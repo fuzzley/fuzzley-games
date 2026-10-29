@@ -41,6 +41,14 @@ export const WORDMARK_MIN_WIDTH_PX = 1280;
 export const HOME_BUTTON_MIN_WIDTH_PX = 360;
 
 /**
+ * The height below which a rail, down the side of a phone on its side, has no
+ * room for the home button either, so the link home moves into the overflow
+ * menu. The tallest rail the games have, of seven items, needs 370 CSS px
+ * with it. The Sass calls it `$rail-home-min-height`.
+ */
+export const HOME_BUTTON_MIN_RAIL_HEIGHT_PX = 380;
+
+/**
  * Returns the shape of a screen of a size in CSS pixels: roomy, or compact and
  * then upright or on its side, as CSS reads orientation, where a square
  * screen is upright. An unmeasured screen reads as roomy.

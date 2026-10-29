@@ -2,6 +2,7 @@ import { compileString } from "sass";
 import {
   COMPACT_MAX_HEIGHT_PX,
   COMPACT_MAX_WIDTH_PX,
+  HOME_BUTTON_MIN_RAIL_HEIGHT_PX,
   LABELLED_ACTIONS_MIN_WIDTH_PX,
   formFactorAt,
 } from "./index";
@@ -87,6 +88,12 @@ describe("the Sass breakpoints", () => {
   it("takes a phone on its side to be either compact size, turned", () => {
     expect(media("phone-landscape")).toBe(
       `(max-width: ${COMPACT_MAX_WIDTH_PX - GUARD}px) and (orientation: landscape), (max-height: ${COMPACT_MAX_HEIGHT_PX - GUARD}px) and (orientation: landscape)`,
+    );
+  });
+
+  it("takes a short rail to be one with no room for the home button", () => {
+    expect(media("short-rail")).toBe(
+      `(max-height: ${HOME_BUTTON_MIN_RAIL_HEIGHT_PX - GUARD}px)`,
     );
   });
 

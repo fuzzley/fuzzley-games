@@ -111,4 +111,24 @@ describe("GameViewportService", () => {
   it("leaves the link home out of a bar below 360 px", () => {
     expect(at(359, 700).barHome()).toBe("none");
   });
+
+  it("leaves the link home out of a rail below 380 px tall", () => {
+    expect(at(750, 379).barHome()).toBe("none");
+  });
+
+  it("leads a rail 380 px tall with the home button", () => {
+    expect(at(844, 380).barHome()).toBe("icon");
+  });
+
+  it("leads a bar along the bottom with the home button, however short", () => {
+    expect(at(370, 370).barHome()).toBe("icon");
+  });
+
+  it("moves the link home off the rail as a phone turns on its side", () => {
+    const service = at(375, 667);
+
+    viewport?.setSize(667, 375);
+
+    expect(service.barHome()).toBe("none");
+  });
 });

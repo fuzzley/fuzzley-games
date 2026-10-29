@@ -59,7 +59,7 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   (`fitsWordmark`) and the home button (`fitsHomeButton`), and so how it
   shows the link home (`barHome`: the wordmark on a roomy window from 1280
   CSS px, the button below that or on a compact one, and `none` below
-  360). `allowsMotion` says whether the player has no wish for less
+  360 wide, or on a rail under 380 tall). `allowsMotion` says whether the player has no wish for less
   motion, the one case in which the stylesheets animate, for code that
   waits on an animation, and `isTouchScreen` whether the main pointer is a
   finger (`pointer: coarse`), for controls only a touch screen needs. A
@@ -70,7 +70,8 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   so a game's renderer can read them as well as its shell. `_index.scss`
   holds them for Sass: `below()` and `from()` a named width (`tablet`,
   `desktop`), and `compact`, `phone-portrait` and `phone-landscape`, which
-  apply the service's tests. `breakpoints.spec.ts` compiles the mixins and
+  apply the service's tests, and `short-rail`, under which a rail loses its
+  home button and tightens its gaps. `breakpoints.spec.ts` compiles the mixins and
   holds them to the constants.
 - `src/stopwatch/`: `StopwatchService`, a game's clock, in whole seconds,
   which counts only while the page is in view. It reads the time from the

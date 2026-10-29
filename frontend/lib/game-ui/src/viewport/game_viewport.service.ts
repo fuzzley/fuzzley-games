@@ -10,6 +10,7 @@ import {
   COMPACT_MAX_HEIGHT_PX,
   COMPACT_MAX_WIDTH_PX,
   type FormFactor,
+  HOME_BUTTON_MIN_RAIL_HEIGHT_PX,
   HOME_BUTTON_MIN_WIDTH_PX,
   WORDMARK_MIN_WIDTH_PX,
 } from "../breakpoints";
@@ -20,6 +21,7 @@ const COMPACT_QUERY = `(max-width: ${COMPACT_MAX_WIDTH_PX - 0.02}px), (max-heigh
 const PORTRAIT_QUERY = "(orientation: portrait)";
 const BELOW_WORDMARK_QUERY = `(max-width: ${WORDMARK_MIN_WIDTH_PX - 0.02}px)`;
 const BELOW_HOME_BUTTON_QUERY = `(max-width: ${HOME_BUTTON_MIN_WIDTH_PX - 0.02}px)`;
+const SHORT_RAIL_QUERY = `(max-height: ${HOME_BUTTON_MIN_RAIL_HEIGHT_PX - 0.02}px)`;
 const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
 const TOUCH_QUERY = "(pointer: coarse)";
 
@@ -41,6 +43,7 @@ export class GameViewportService {
   private readonly portrait = signal(false);
   private readonly belowWordmark = signal(false);
   private readonly belowHomeButton = signal(false);
+  private readonly belowRailHomeButton = signal(false);
   private readonly motion = signal(false);
   private readonly touch = signal(false);
 
@@ -79,14 +82,22 @@ export class GameViewportService {
   /** Whether the window is wide enough for the bar's wordmark. */
   readonly fitsWordmark = computed(() => !this.belowWordmark());
 
-  /** Whether the window is wide enough for the bar's home button. */
-  readonly fitsHomeButton = computed(() => !this.belowHomeButton());
+  /**
+   * Whether the bar has room for its home button: a window 360 px wide or
+   * more, and a rail, down the side of a phone on its side, 380 px tall or
+   * more.
+   */
+  readonly fitsHomeButton = computed(
+    () =>
+      !this.belowHomeButton() &&
+      !(this.barPlacement() === "end" && this.belowRailHomeButton()),
+  );
 
   /**
    * How the bar shows its link home: the wordmark on a roomy window wide
    * enough for it, the home button where only that fits, and not at all on
-   * the narrowest, where the overflow menu leads with the link instead
-   * (`withHomeLink()`).
+   * the narrowest or on the shortest rail, where the overflow menu leads with
+   * the link instead (`withHomeLink()`).
    */
   readonly barHome = computed<BarHome>(() => {
     if (!this.fitsHomeButton()) return "none";
@@ -113,6 +124,7 @@ export class GameViewportService {
     this.follow(PORTRAIT_QUERY, this.portrait);
     this.follow(BELOW_WORDMARK_QUERY, this.belowWordmark);
     this.follow(BELOW_HOME_BUTTON_QUERY, this.belowHomeButton);
+    this.follow(SHORT_RAIL_QUERY, this.belowRailHomeButton);
     this.follow(MOTION_QUERY, this.motion);
     this.follow(TOUCH_QUERY, this.touch);
   }
