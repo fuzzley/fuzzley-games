@@ -3,7 +3,7 @@
 A plan for a hands-on pass over Snake as a player, at
 https://fuzzley.games/play/snake/, on a desktop or laptop with a keyboard
 and a mouse: its interface, its controls and its rules. Phones and tablets,
-held either way, have a plan of their own, `docs/snake-mobile-qa-plan.md`,
+held either way, have a plan of their own, `docs/archive/snake-mobile-qa-plan.md`,
 which borrows this plan's helpers and leaves the rules to it. Written
 2026-10-28 from the code on `main` at `cfd56a6`. Paths are relative to
 `frontend/games/snake/`.

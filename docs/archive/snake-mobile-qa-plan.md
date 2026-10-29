@@ -9,7 +9,7 @@ mid-run, swipes and the on-screen arrows, and what the browser and the
 system do around the page. Written 2026-10-28 from the code on `main` at
 `cfd56a6`. Paths are relative to `frontend/games/snake/`.
 
-The desktop plan, `docs/snake-qa-plan.md`, tests the rules, the timing and
+The desktop plan, `docs/archive/snake-qa-plan.md`, tests the rules, the timing and
 the storage in depth, and this plan doesn't repeat them. It borrows that
 plan's console helpers (its appendix, A.1 to A.6) and its way of reporting:
 findings shaped like `docs/archive/sudoku-qa-plan.md`. Where both plans

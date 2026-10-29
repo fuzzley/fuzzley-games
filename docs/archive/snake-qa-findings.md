@@ -2,9 +2,11 @@
 
 Tested 2026-10-28 at https://fuzzley.games/play/snake/, the build from
 `cfd56a6` (built 2026-10-28 19:48 UTC, as `version.json` says), following
-`docs/snake-qa-plan.md` (desktop) and `docs/snake-mobile-qa-plan.md`
+`docs/archive/snake-qa-plan.md` (desktop) and `docs/archive/snake-mobile-qa-plan.md`
 (phones and tablets). Twelve findings, ordered by priority: two High, six
-Medium and four Low. The rules, the timing, the storage and the site all
+Medium and four Low, all fixed on 2026-10-29 as
+`docs/archive/snake-qa-fixes-plan.md` describes; the summary names the
+commit that fixed each. The rules, the timing, the storage and the site all
 held. What went wrong is around the board: on phones, its size and turning
 the phone; everywhere, loading slowly and where the keys go. Paths are
 relative to `frontend/games/snake/`.
@@ -42,7 +44,7 @@ after a turn either way, the canvas kept a size from partway through the
 turn, 326 or 330 CSS px square in its 390 px box. The board was drawn 295
 to 300 px across instead of 357, in the box's top left corner, with the
 Ready and Paused cards, which the page places on the box, hanging off its
-edge (`docs/snake-qa-rotation.jpeg`). It stays that way until the window
+edge (`docs/archive/snake-qa-rotation.jpeg`). It stays that way until the window
 changes size again; a `resize` event put it right at once.
 
 `ViewportScaler` (`frontend/lib/phaser/src/host/viewport_scaler.ts`) sizes
@@ -137,7 +139,7 @@ under the 16 px that `yarn check:layout` holds the board to:
 
 Everywhere else they were 17 px or more (18.7 at 360 × 640). At 320 × 480
 the board is 153 px across, and the Ready card covers it and runs past its
-foot, cutting off "start." (`docs/snake-qa-small-board.png`). At 375 × 553
+foot, cutting off "start." (`docs/archive/snake-qa-small-board.png`). At 375 × 553
 and 568 × 320 the card runs a pixel or two past the board's edge. Each key
 of the pad is 64 px (`--arrow` in `src/app/arrows/arrows.component.scss`),
 so the pad takes 208 px of a short screen whatever the room, with 24 px of
@@ -168,7 +170,7 @@ padding under it. An iPhone SE in Safari is a common phone.
 items: home, the speed badge, Score, Best, Pause, New Game and ⋮. At
 568 × 320 and 667 × 320 (an iPhone SE, the second in Safari) "More actions"
 spans 303 to 347 px of a 320 px window, so 17 of its 44 px show
-(`docs/snake-qa-rail.png`); at 750 × 342 (an iPhone 15 in Safari's bars) 5
+(`docs/archive/snake-qa-rail.png`); at 750 × 342 (an iPhone 15 in Safari's bars) 5
 px are off. Nothing scrolls. The ⋮ menu holds Sound, How to play and
 Settings, so on these phones they hang on a sliver. The rail is
 `@fz/game-ui`'s: at 568 × 320 Minesweeper's ⋮ is cut off too (294 to 338
@@ -600,20 +602,20 @@ Emulation can't show these; they need a person with real devices.
 
 ## Summary
 
-| #   | Finding                                                   | Priority | Effort | Where                     |
-| --- | --------------------------------------------------------- | -------- | ------ | ------------------------- |
-| 1   | Turning the phone leaves the board drawn small            | High     | S      | `@fz/phaser`, phones      |
-| 2   | A slow connection is told the board is broken             | High     | S      | `@fz/phaser`, everywhere  |
-| 3   | Small phones get a small board with the arrows showing    | Medium   | S      | Snake, phones             |
-| 4   | The rail's ⋮ runs off a short phone held sideways         | Medium   | S      | `@fz/game-ui`, phones     |
-| 5   | Turning the phone mid-run doesn't pause it                | Medium   | S      | Snake, phones             |
-| 6   | Nothing says how to play again after the result card      | Medium   | S      | Snake, everywhere         |
-| 7   | A click beside the board pauses, and the keys don't reach | Medium   | S      | Snake, desktop            |
-| 8   | A press while the board loads starts an unseen run        | Medium   | S      | Snake, slow connections   |
-| 9   | A paused run ignores the direction back                   | Low      | S      | Snake, everywhere         |
-| 10  | A keyboard press on an on-screen arrow cuts the keys off  | Low      | S      | Snake, keyboard and touch |
-| 11  | Small things in the words and sizes                       | Low      | S      | Snake                     |
-| 12  | nginx's bare 404 under `/play/`, naming its version       | Low      | S      | nginx                     |
+| #   | Finding                                                   | Priority | Effort | Where                     | Fixed in   |
+| --- | --------------------------------------------------------- | -------- | ------ | ------------------------- | ---------- |
+| 1   | Turning the phone leaves the board drawn small            | High     | S      | `@fz/phaser`, phones      | `ab5bcbc`  |
+| 2   | A slow connection is told the board is broken             | High     | S      | `@fz/phaser`, everywhere  | `7dbfdbb7` |
+| 3   | Small phones get a small board with the arrows showing    | Medium   | S      | Snake, phones             | `6288568d` |
+| 4   | The rail's ⋮ runs off a short phone held sideways         | Medium   | S      | `@fz/game-ui`, phones     | `2e6446ec` |
+| 5   | Turning the phone mid-run doesn't pause it                | Medium   | S      | Snake, phones             | `e910cd01` |
+| 6   | Nothing says how to play again after the result card      | Medium   | S      | Snake, everywhere         | `842a58ba` |
+| 7   | A click beside the board pauses, and the keys don't reach | Medium   | S      | Snake, desktop            | `cbdb2f0f` |
+| 8   | A press while the board loads starts an unseen run        | Medium   | S      | Snake, slow connections   | `0d03a774` |
+| 9   | A paused run ignores the direction back                   | Low      | S      | Snake, everywhere         | `892b4de0` |
+| 10  | A keyboard press on an on-screen arrow cuts the keys off  | Low      | S      | Snake, keyboard and touch | `cbdb2f0f` |
+| 11  | Small things in the words and sizes                       | Low      | S      | Snake                     | `a28082c5` |
+| 12  | nginx's bare 404 under `/play/`, naming its version       | Low      | S      | nginx                     | `93035612` |
 
 ## Suggested order
 
