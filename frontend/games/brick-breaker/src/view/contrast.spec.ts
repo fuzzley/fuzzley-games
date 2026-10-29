@@ -34,7 +34,9 @@ function named(
 // tints and the warning and danger colors all sit on the same side of the
 // field, so a color 3:1 from both the field and a tint would need 9:1 from
 // the field, which only the text reaches. So each is outlined, in a color
-// held to 3:1 against everything it crosses.
+// held to 3:1 against everything it crosses. The marks that tell a brick's
+// kind and state apart, and a capsule's symbol, are held to 3:1 against
+// what they are drawn on.
 describe("the field's contrast", () => {
   const palettes = paletteRoles(compileStylesheet(GLOBAL));
 
@@ -62,12 +64,16 @@ describe("the field's contrast", () => {
     const tints = palette.tints.map(
       (tint, i) => [`tint ${String(i + 1)}`, tint] as const,
     );
+    const toughTints = palette.toughTints.map(
+      (tint, i) => [`tough tint ${String(i + 1)}`, tint] as const,
+    );
     const outlined = [
       ...named(palette.balls, "ball"),
       ...named(palette.capsules, "capsule"),
     ];
     const crossed = [
       ...tints,
+      ...toughTints,
       ...named(palette.bricks, "brick"),
       ["paddle", palette.paddle] as const,
     ];
@@ -95,6 +101,15 @@ describe("the field's contrast", () => {
       (_, color) => {
         expect(
           contrast(rgbOf(palette.outline), rgbOf(color)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each([...crossed, ...named(palette.capsules, "capsule")])(
+      "keeps the marks at 3:1 or more against the %s",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(palette.mark), rgbOf(color)),
         ).toBeGreaterThanOrEqual(3);
       },
     );

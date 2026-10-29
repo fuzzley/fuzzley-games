@@ -115,13 +115,22 @@ the view's first files and the shell exist.
   and fingers into each frame's `Steer`, and a tap into a launch; and
   `palette.ts` the field's colors from the palette's roles
   (`bricksPalette()`), with the brick tints from `inks.ts`, the game's own
-  eight for light palettes and eight for dark, and the outline every ball
-  and capsule takes over the bricks it crosses. `contrast.spec.ts` holds
+  eight for light palettes and eight for dark, the outline every ball
+  and capsule takes over the bricks it crosses, and the marks a brick's
+  kind and state are told apart by. `art.ts` draws every frame of the
+  atlas (`atlasFrames()`) as plain commands in device pixels, a brick kind
+  in each tint and state (`BRICK_ART`), each ball (`BALL_ART`), each
+  capsule's shape (`CAPSULE_ART`) and symbol (`SYMBOLS`), its tag, the
+  paddle and the flourishes, and names the frame a brick, a ball, a
+  capsule or a tag shows (`brickFrame()` and the rest); `effects.ts` says
+  what each event calls for, its sound and the flourishes it plays where
+  motion is welcome. `contrast.spec.ts` holds
   every tint, the steel, blast and gift bricks, every ball kind, both
   capsule tones and the paddle to 3:1 against the field in every palette,
-  each ball and capsule against its outline, and the outline against every
-  tint, brick and the paddle, and its comment says why a ball isn't held
-  against the tints.
+  a tough brick's deeper tints too, each ball and capsule against its
+  outline, the outline against every tint, brick and the paddle, and the
+  marks against every brick, capsule and the paddle; its comment says why
+  a ball isn't held against the tints.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.

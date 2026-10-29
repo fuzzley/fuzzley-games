@@ -333,10 +333,10 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
 - **B5.3** `src/view/art.ts` and `effects.ts`: `BRICK_ART`, `BALL_ART`,
   `CAPSULE_ART`, `SYMBOLS` and `atlasFrames()`, each frame drawn as plain
   commands, and what each event calls for. Every ball and capsule is
-  outlined in the palette's `outline`, at least 1 CSS px wide, and every
-  color the art derives from the palette (a tough brick's deeper tint, a
-  plain brick's lighter edge, a ghost's outline, the net, the bolt, the
-  tags) joins `contrast.spec.ts`. Specced: every frame within its size,
+  outlined in the palette's `outline`, at least 1 CSS px wide, every
+  brick's marks are in its `mark`, and every color the art derives from
+  the palette (a tough brick's deeper tint, the net) joins
+  `contrast.spec.ts`. Specced: every frame within its size,
   every kind in every state present, each event's effects with and without
   motion. One commit, `yarn verify` with it.
 
@@ -561,7 +561,7 @@ since color is never the only signal:
 
 | Kind   | In a level | Hits   | Needed | Points       | What it does                                                                      | How it looks                                                             |
 | ------ | ---------- | ------ | ------ | ------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Plain  | `o`        | 1      | yes    | 50           | Breaks                                                                            | Its tint, with a lighter top edge                                        |
+| Plain  | `o`        | 1      | yes    | 50           | Breaks                                                                            | Its tint, and no mark                                                    |
 | Tough  | `2` to `4` | 2 to 4 | yes    | 50 a hit     | Takes as many hits as its digit, cracking as it weakens                           | Its tint, deeper, with a pip for each hit left and cracks for each taken |
 | Steel  | `#`        | never  | no     | none         | Turns every ball, a fire ball too, and stops laser bolts                          | The text color at 55%, with two rivets                                   |
 | Blast  | `*`        | 1      | yes    | 100          | Breaks, and hits the eight bricks around it once, which can set off another blast | The danger color, with a starburst                                       |
@@ -1280,8 +1280,9 @@ how a careful clone does its collisions:
   canvas too, so no stylesheet needs them.
 - `art.ts`: `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` and `SYMBOLS`, and
   `atlasFrames(palette, unit)`: every frame the atlas holds (each kind in
-  each tint and each state, each ball and each capsule, outlined at least
-  1 CSS px wide, the paddle's slice, the bolt, the shard and each tag),
+  each tint and each state, its marks in the field's color, each ball and
+  each capsule, outlined at least 1 CSS px wide, the paddle's slice, the
+  bolt, the shard and each tag),
   with its size in device pixels and its
   drawing as plain commands (rectangles, rounded rectangles, circles, lines
   and polygons), which the scene plays into a `Graphics`. So what every
