@@ -1,0 +1,9 @@
+@use "./styles" as *;
+
+// The page is the game: for now, its name in the middle.
+:host {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}

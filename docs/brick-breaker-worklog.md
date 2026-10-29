@@ -277,3 +277,23 @@ At `ba7354fd`, on Windows, Chrome in the app's browser pane:
   run going on paused when turned to 844 × 390. No console errors.
 
 Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
+
+## B1.1: the workspace
+
+- **Built.** `frontend/games/brick-breaker/`, from Snake's: `package.json`,
+  `vite.config.ts` (`gameConfig()`, port 9004), `vitest.config.ts` (the
+  rules and the view held to 100% of statements, functions and lines and
+  95% of branches), `eslint.config.js` with Snake's four fences, the
+  tsconfig solution, `stylelint.config.js`, `src/test-setup.ts` with the
+  headless Phaser, `index.html`, `src/main.ts`, an `app.component` that
+  shows the game's name, with its spec, the styles' `global.scss` and
+  `_index.scss`, `LICENSE`, `README.md`, `AGENTS.md` and `CLAUDE.md`.
+  `yarn install` adds it to the lockfile. A `brick-breaker-dev` preview is
+  in the machine's `.claude/launch.json`.
+- **Choices.** No `tools/` yet, so no scripts' ESLint block, no
+  `tsconfig.scripts.json`, and none of Snake's `tools` scripts: each comes
+  with its first script. `AGENTS.md` describes only what exists, and names
+  the layers' folders once they do.
+- **Checks.** lint, typecheck, test (1) and build: the entry chunk is
+  34.9 kB gzipped with no Phaser yet. `yarn constraints` and the reference
+  check pass. `games.json` doesn't list it.
