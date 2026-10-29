@@ -248,5 +248,14 @@ describe("BarComponent", () => {
 
       expect(items[0]).toBe("Fuzzley Games");
     });
+
+    it("moves the link home into the menu on a rail too short for it", async () => {
+      viewport?.setSize(568, 320);
+      const { user } = await renderBar();
+
+      const items = await openMenu(user);
+
+      expect(items[0]).toBe("Fuzzley Games");
+    });
   });
 });

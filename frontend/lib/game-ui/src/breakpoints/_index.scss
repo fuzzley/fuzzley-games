@@ -21,6 +21,10 @@ $breakpoints: (
 // phone on its side.
 $compact-max-height: 500px;
 
+// The height below which a rail has no room for the home button, which moves
+// into the overflow menu, and keeps its gaps tight.
+$rail-home-min-height: 380px;
+
 @function -width($name) {
   @if not map.has-key($breakpoints, $name) {
     @error "Unknown breakpoint `#{$name}`. Known: #{map.keys($breakpoints)}.";
@@ -60,6 +64,14 @@ $compact-max-height: 500px;
 @mixin phone-portrait {
   // A compact screen taller than it is wide is narrower than `tablet` too.
   @media (max-width: #{-width("tablet") - 0.02px}) and (orientation: portrait) {
+    @content;
+  }
+}
+
+/// Applies its content on a screen too short for the home button on a rail,
+/// as `GameViewportService` reads it; whatever it styles must be a rail's.
+@mixin short-rail {
+  @media (max-height: #{$rail-home-min-height - 0.02px}) {
     @content;
   }
 }

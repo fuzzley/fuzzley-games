@@ -121,8 +121,9 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   the game switcher, the score, time and moves and the actions, and decides
   where the bar stands and how it shows the link home: the wordmark from
   1280 CSS px up (`WORDMARK_MIN_WIDTH_PX`), the home button below that, and
-  below 360 (`HOME_BUTTON_MIN_WIDTH_PX`) the first item of the overflow
-  menu, `<fz-bar-overflow>`, which holds what a compact bar has no room for.
+  below 360 (`HOME_BUTTON_MIN_WIDTH_PX`), or on a rail under 380 tall
+  (`HOME_BUTTON_MIN_RAIL_HEIGHT_PX`), the first item of the overflow menu,
+  `<fz-bar-overflow>`, which holds what a compact bar has no room for.
 - **`src/ui/app/styles`** — the Sass design system. `global.scss` is loaded once
   from `main.ts` and is the only stylesheet outside a component; `_index.scss`
   is the toolkit every component `@use`s, and deliberately emits no CSS.
