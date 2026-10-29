@@ -48,3 +48,24 @@ export function endStreak(field: Field): void {
 export function clearingPoints(livesLost: number): number {
   return CLEAR_POINTS + (livesLost === 0 ? CLEAN_POINTS : 0);
 }
+
+/** Describes how a cleared level's points add up, for its card. */
+export interface LevelTally {
+  /** The bricks' own points. */
+  readonly bricks: number;
+  /** What the streaks added beyond them. */
+  readonly streaks: number;
+  /** What clearing the level added. */
+  readonly bonus: number;
+}
+
+/** Returns how a level's points add up, as its field stands once it is cleared. */
+export function tallyOf(
+  field: Pick<Field, "score" | "streakPoints" | "livesLost">,
+): LevelTally {
+  return {
+    bricks: field.score - field.streakPoints,
+    streaks: field.streakPoints,
+    bonus: clearingPoints(field.livesLost),
+  };
+}

@@ -1869,3 +1869,63 @@ findings is answered here, and the fixes are in one commit.
     service's 63), build. The rules and the view stay at 100% of
     statements. The service misses only its two tokens' factories, which
     the spec replaces.
+
+## B7.2: the board, its cards and the room
+
+- **Built:**
+  - `src/app/board/`, `BoardComponent`:
+    - `<fz-phaser-canvas>` with the scene, loaded with `import()`, handed
+      plain functions over `GameService`, the palette from
+      `ThemeService`'s roles and the palette's mode, the player's motion,
+      and how a finger steers (dragging, until the settings exist).
+    - The empty field drawn in CSS until the scene draws: the panel, the
+      wall on three sides and the paddle in the middle, at the unit
+      `fieldMetrics()` works out, from the rules' measures.
+    - The focus ring around the field where the scene laid it out, and the
+      pointer hidden while a ball is in play.
+    - The cards:
+      - Ready, whenever a ball waits on the paddle: the level, and how to
+        launch ("Tap to launch." on a touch screen).
+      - Paused, with Resume.
+      - Cleared, once its wait has run: the bricks', the streaks' and the
+        bonus's points, the score, and Next level.
+      - Ended, once an ended run's result is put away, with New game.
+      - Still loading, and couldn't be drawn, as Snake's.
+    - It is an application named for its level ("Brick Breaker, level 3:
+      Pyramid"), described by its keys, and Phaser's keyboard target. It
+      keeps the scene's pictures for How to play (`pictures`).
+  - `app.component`: the board in the room (`[fzPlayRoom]`), which pauses
+    the level in play when the player looks away; the announcer and the
+    confirm dialog. The board takes the focus as each run begins and as
+    the last dialog closes, as Snake's does.
+  - `GameService.tally`, from the rules' new `tallyOf()`: how a cleared
+    level's points add up, for its card.
+  - `src/testing/play.ts`: the small levels and the steering that B7.1's
+    spec kept to itself, shared now with the board's and the app's specs.
+- **Choices.**
+  - **The Ready card shows whenever a ball waits on the paddle,** not only
+    before a run's first serve: after a lost ball and on a new level too.
+    It sits halfway between the foot of the bricks' rows and the paddle,
+    so it covers neither, and lets clicks and taps through to the canvas.
+  - **Until B8 brings the bar,** the game's name is a heading only a
+    screen reader sees. **Until B8.2 brings the result card,** an ended
+    run leaves the board without a card, as the plan orders the steps.
+- **Found in a browser.** The scene never drew on the dev server. Its
+  first bake comes in `create()`, before the canvas is laid out, at a unit
+  of a few device pixels. There the art's insets gave some shapes a
+  negative size, and the canvas threw at a negative radius. The headless
+  specs never saw it, since `runScene()`'s canvas has its size from the
+  start.
+  - `shapes.ts`'s helpers now take no size below nothing, and a rounded
+    rectangle's radius no more than half its side.
+  - A spec draws the atlas at every unit from 1 to 16 device pixels, at
+    five pixel ratios, and finds no negative size.
+- **Checks.**
+  - The board's spec runs on `provideFakePhaserCanvas()` for the cards,
+    and with the real scene it loads for the layout, Space and a level
+    played to its end in the scene's time.
+  - On the dev server: the field, the bricks, the paddle and the card
+    draw, a click launches, and the console is clean.
+  - `yarn verify`: lint, typecheck, test (Brick Breaker's 1,326), build.
+    The rules and the view stay at 100% of statements.
+  - Q3 waits for B7.1's review, whose fixes change how the service plays.

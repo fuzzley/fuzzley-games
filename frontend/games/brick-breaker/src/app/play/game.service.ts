@@ -43,7 +43,7 @@ import {
   resume,
   startLevel,
 } from "../../rules/run";
-import { multiplier } from "../../rules/scoring";
+import { type LevelTally, multiplier, tallyOf } from "../../rules/scoring";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { advanceClock, createClock, progressOf } from "../../rules/stepper";
 import type { FieldCommand } from "../../view/controls";
@@ -132,6 +132,7 @@ export class GameService {
   private readonly servingState = signal(true);
   private readonly multiplierState = signal(1);
   private readonly clearedOpenState = signal(false);
+  private readonly tallyState = signal<LevelTally | null>(null);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
   private readonly runsState = signal(0);
@@ -171,6 +172,9 @@ export class GameService {
 
   /** Whether the card over a cleared level is showing, which opens once its last shards have flown. */
   readonly clearedOpen = this.clearedOpenState.asReadonly();
+
+  /** How the last level cleared added up, for its card, or null before one is. */
+  readonly tally = this.tallyState.asReadonly();
 
   /** Whether the card over an ended run is showing, which opens once the last ball has faded. */
   readonly resultOpen = this.resultOpenState.asReadonly();
@@ -426,6 +430,7 @@ export class GameService {
     if (after.lives > before.lives) this.news.push(describeExtraLife(after));
     if (after.outcome === "cleared") {
       this.sinceDone = 0;
+      this.tallyState.set(tallyOf(this.field));
       this.news.push(describeCleared(after));
     } else if (hasEnded(after)) {
       this.sinceDone = 0;

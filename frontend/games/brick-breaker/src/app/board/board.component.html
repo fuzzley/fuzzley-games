@@ -1,0 +1,71 @@
+<fz-phaser-canvas [scene]="scene" [options]="hostOptions">
+  <!-- The empty field, sized as the scene sizes it, until the scene draws. -->
+  <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
+    <div class="field">
+      <div class="paddle" [style]="paddleStyle"></div>
+    </div>
+  </div>
+</fz-phaser-canvas>
+<div class="ring" [style]="ringStyle()"></div>
+
+<p id="board-keys" class="fz-visually-hidden">
+  The left and right arrow keys, or A and D, move the paddle, and so does the
+  mouse or a finger. Space, the up arrow or W launches the ball and fires the
+  laser. P pauses and goes on, Escape pauses, and Enter goes on, or to the next
+  level. Once a run has ended, Enter or Space starts another.
+</p>
+
+@switch (card()) {
+  @case ("ready") {
+    <div class="card">
+      <p class="card-title">{{ levelTitle() }}</p>
+      <p>{{ launchWords() }}</p>
+    </div>
+  }
+  @case ("paused") {
+    <div class="card">
+      <p class="card-title">Paused</p>
+      <p>Score {{ game.score() }}</p>
+      <button type="button" class="fz-button" (click)="resume()">Resume</button>
+    </div>
+  }
+  @case ("cleared") {
+    <div class="card">
+      <p class="card-title">{{ clearedTitle() }}</p>
+      <dl class="tally">
+        @for (line of tallyLines(); track line.label) {
+          <div>
+            <dt>{{ line.label }}</dt>
+            <dd>{{ line.points }}</dd>
+          </div>
+        }
+      </dl>
+      <p>Score {{ game.score() }}</p>
+      <button type="button" class="fz-button" (click)="nextLevel()">
+        Next level
+      </button>
+    </div>
+  }
+  @case ("ended") {
+    <div class="card">
+      <p class="card-title">{{ endTitle() }}</p>
+      <p>Score {{ game.score() }}</p>
+      <button type="button" class="fz-button" (click)="newGame()">
+        New game
+      </button>
+    </div>
+  }
+  @case ("slow") {
+    <div class="card" role="status">
+      <p class="card-title">Still loading the board</p>
+      <p>It can take a while on a slow connection.</p>
+    </div>
+  }
+  @case ("failed") {
+    <div class="card" role="alert">
+      <p class="card-title">The board couldn't be drawn</p>
+      <p>Reloading the page may help.</p>
+      <button type="button" class="fz-button" (click)="reload()">Reload</button>
+    </div>
+  }
+}
