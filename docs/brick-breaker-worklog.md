@@ -257,3 +257,23 @@ copied from Snake's spec, `setVisibility()` copied (a helper in
 `@fz/game-ui/testing` can come when Brick Breaker's shell needs it), and
 `FOCUSABLE` as it was. The fix's commit (`21d65a12`) missed the skill's
 line and this entry, which the next commit adds.
+
+## Q1: Snake unchanged
+
+At `ba7354fd`, on Windows, Chrome in the app's browser pane:
+
+- **Suite.** `yarn verify` passed at `0af7a840`; since then Snake's 395 specs
+  pass on each fix, and its `app.component.spec.ts` pausing cases among
+  them.
+- **Layout.** `yarn workspace snake check:layout` on a fresh build: the
+  layout holds at every shape and turn, with and without the arrows.
+- **Screenshots.** `yarn capture:screenshots` against the dev server wrote
+  `preview.webp` and `thumb.webp` byte for byte as they are in the tree.
+- **Sounds.** `yarn build:sounds` writes the same bytes (L2.2), and the dev
+  server serves the sprite and its map (200s), with nothing in the console.
+- **By hand.** A run started by key ("Started, at Normal speed."); the page
+  hidden paused it; a direction went on ("Going on."); the focus moved to
+  the bar paused it; after a reload it was taken up paused; at 390 × 844 a
+  run going on paused when turned to 844 × 390. No console errors.
+
+Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
