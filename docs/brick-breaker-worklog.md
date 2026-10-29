@@ -311,3 +311,18 @@ Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
   nothing (decision 3). A frame too long for twelve steps drops all that is
   left, the part of a step included.
 - **Checks.** lint, typecheck, test: 26 tests, 100% of the rules.
+
+## B2.2: the grid
+
+- **Built.** `src/rules/grid.ts`: cells by index, column and row,
+  `columnAt()` and `rowAt()` for a point, `brickBox()` and `exposureOf()`,
+  specced on grids drawn as rows of `#`: a brick alone, two side by side,
+  one under another, one against the wall, one touched across a corner.
+- **Choices.**
+  - `brickBox()` writes into a box it is given, and `exposureOf()` returns
+    bits (`SIDE`), so the sweep allocates nothing per step.
+  - `SIDE` is an object `as const`, not an enum: the style guide asks for
+    no `const enum`, and plain bits read the same.
+  - The walls beside the grid count as solid, so a brick against one has
+    no face or corner there, and the space above the first row is open.
+- **Checks.** lint, typecheck, test (41).

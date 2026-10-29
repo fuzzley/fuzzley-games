@@ -41,7 +41,11 @@ and `@fz/phaser/host` only by type and loads the scene with `import()`.
   field is 26 wide and 30 tall); `speed.ts` the three speeds, each a base
   and a top the ball climbs to, and `ballSpeed()`; and `stepper.ts` the
   clock that turns a frame's time into fixed steps of 1/120 s, twelve at
-  most a frame.
+  most a frame. `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
+  `brickBox()`, the one place a brick's box is worked out, and
+  `exposureOf()`, which faces and corners of a brick a ball can touch, so
+  bricks side by side make one face and a corner is only where nothing
+  touches it.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
