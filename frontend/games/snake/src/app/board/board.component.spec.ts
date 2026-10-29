@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
   type FakeCanvasOptions,
@@ -22,15 +23,21 @@ const ROLES = {
   danger: "#c0392b",
 };
 
-/** Renders the board beside a button outside it, on a fake canvas. */
-async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
+/**
+ * Renders the board beside a button outside it, on a fake canvas, with the
+ * arrows beside it where `arrows` says.
+ */
+async function renderBoard(
+  options: FakeCanvasOptions = {},
+  arrows = false,
+): Promise<{
   board: HTMLElement;
   game: GameService;
   fake: FakePhaserCanvas;
   detectChanges: () => void;
 }> {
   const view = await render(
-    `<app-board /><button type="button">Elsewhere</button>`,
+    `<app-board [arrows]="${String(arrows)}" /><button type="button">Elsewhere</button>`,
     {
       imports: [BoardComponent],
       providers: [provideFakePhaserCanvas(options)],
@@ -81,6 +88,34 @@ describe("BoardComponent", () => {
       expect(
         screen.getByText("Press an arrow key, or swipe, to start."),
       ).toBeInTheDocument();
+    });
+
+    describe("on a touch screen", () => {
+      let viewport: FakeViewport | null = null;
+
+      beforeEach(() => {
+        viewport = installFakeViewport(390, 844);
+        viewport.setCoarsePointer(true);
+      });
+
+      afterEach(() => {
+        viewport?.restore();
+        viewport = null;
+      });
+
+      it("say to swipe or press an arrow, with the arrows beside the board", async () => {
+        await renderBoard({}, true);
+
+        expect(
+          screen.getByText("Swipe, or press an arrow, to start."),
+        ).toBeInTheDocument();
+      });
+
+      it("say to swipe, without them", async () => {
+        await renderBoard();
+
+        expect(screen.getByText("Swipe to start.")).toBeInTheDocument();
+      });
     });
 
     it("say the run is paused, with its score", async () => {

@@ -31,7 +31,7 @@ const ARROWS: readonly Choice<Arrows>[] = [
   {
     id: "touch",
     name: "On a touch screen",
-    says: "Beside the board on a phone or a tablet.",
+    says: "On a phone or a tablet.",
   },
   { id: "always", name: "Always", says: "For a mouse too." },
   { id: "never", name: "Never", says: "Swipes and keys only." },
