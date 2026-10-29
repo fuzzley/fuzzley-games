@@ -10,7 +10,11 @@ export interface Box {
 
 /**
  * Says whether a cell stops a ball: a brick in it that the ball can't pass
- * through. Columns beside the grid, where the walls stand, do.
+ * through.
+ *
+ * Columns beside the grid, where the walls stand, do, and rows above and
+ * below it don't, so a field's checks a cell with {@link inGrid} before it
+ * looks in its bricks, where column -1 would be the last of the row above.
  */
 export type Solid = (column: number, row: number) => boolean;
 
@@ -48,9 +52,9 @@ export function rowAt(y: number): number {
 }
 
 /**
- * Writes the box of the brick in a cell into `box`, and returns it. It is
- * the only place the field learns where a brick lies, so a brick that moved
- * would change only this.
+ * Writes the box of the brick in a cell into `box`, and returns it.
+ *
+ * It is the only place a brick's box is worked out.
  */
 export function brickBox(column: number, row: number, box: Box): Box {
   box.left = column * BRICK_WIDTH;
@@ -74,10 +78,11 @@ export const SIDE = {
 
 /**
  * Returns which faces and corners of the brick in a cell a ball can touch,
- * as {@link SIDE}'s bits: a face where the cell beside it is open, so bricks
- * side by side make one flat face, and a corner where both cells beside it
- * and the one across from it are, so a corner is only where nothing touches
- * it.
+ * as {@link SIDE}'s bits.
+ *
+ * A face is exposed where the cell beside it is open, so bricks side by side
+ * make one flat face. A corner is exposed where both cells beside it and the
+ * one across from it are open, so a corner is only where nothing touches it.
  */
 export function exposureOf(solid: Solid, column: number, row: number): number {
   const up = !solid(column, row - 1);

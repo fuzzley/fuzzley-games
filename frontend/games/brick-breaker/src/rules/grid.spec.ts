@@ -47,9 +47,21 @@ describe("the grid's cells", () => {
     expect(inGrid(column, row)).toBe(inside);
   });
 
-  it("find the column and row a point lies in, below the bricks' top", () => {
-    // Bricks are 2 wide and 1 tall, from 2 below the top wall.
-    expect([columnAt(5.9), rowAt(2.5), rowAt(1.5)]).toEqual([2, 0, -1]);
+  // Bricks are 2 wide and 1 tall, from 2 below the top wall.
+  it.each([
+    [5.9, 2],
+    [6, 3],
+    [-0.5, -1],
+  ])("put x = %f in column %i", (x, column) => {
+    expect(columnAt(x)).toBe(column);
+  });
+
+  it.each([
+    [2.5, 0],
+    [3, 1],
+    [1.5, -1],
+  ])("put y = %f in row %i", (y, row) => {
+    expect(rowAt(y)).toBe(row);
   });
 });
 
@@ -106,19 +118,45 @@ describe("exposureOf", () => {
     ]);
   });
 
-  it("hides a corner a brick across from it touches, keeping both faces", () => {
-    const solid = solidFrom(["...#", "....#"]);
+  it("hides the face a brick below covers, and its corners", () => {
+    const solid = solidFrom(["", "....#", "....#"]);
 
     expect(sidesOf(exposureOf(solid, 4, 1))).toEqual([
       "top",
       "right",
+      "left",
+      "topLeft",
+      "topRight",
+    ]);
+  });
+
+  it("hides the face and corners against the right wall", () => {
+    const solid = solidFrom(["", "............#"]);
+
+    expect(sidesOf(exposureOf(solid, 12, 1))).toEqual([
+      "top",
       "bottom",
       "left",
-      "topRight",
-      "bottomRight",
+      "topLeft",
       "bottomLeft",
     ]);
   });
+
+  it.each([
+    ["topLeft", ["...#", "....#", ""]],
+    ["topRight", [".....#", "....#", ""]],
+    ["bottomRight", ["", "....#", ".....#"]],
+    ["bottomLeft", ["", "....#", "...#"]],
+  ])(
+    "hides only the %s corner a brick across from it touches",
+    (corner, rows) => {
+      const solid = solidFrom(rows);
+
+      expect(sidesOf(exposureOf(solid, 4, 1))).toEqual(
+        Object.keys(SIDE).filter((side) => side !== corner),
+      );
+    },
+  );
 
   it("exposes the top of the first row, under the open space", () => {
     const solid = solidFrom(["#"]);

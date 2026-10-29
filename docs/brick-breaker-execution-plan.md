@@ -254,8 +254,9 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
 - **B2.1** `src/rules/tuning.ts`, `speed.ts` and `stepper.ts`, each
   specced. One commit.
 - **B2.2** `src/rules/grid.ts`: the bricks on their 13 by 16 grid, a cell's
-  box from `brickBox()`, which faces and corners are exposed, and the cells
-  a moving box crosses. Specced on pictures of grids. One commit.
+  box from `brickBox()`, which faces and corners are exposed, and the column
+  and row a point lies in, by which the field finds the cells a ball's move
+  crosses. Specced on pictures of grids. One commit.
 - **B2.3** `src/rules/sweep.ts`: the earliest contact of a moving circle with
   a segment pushed out by its radius, a corner's circle, and the paddle's
   rounded box, with the normal and the time; contacts at the same moment
