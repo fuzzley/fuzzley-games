@@ -74,6 +74,14 @@ describe("SettingsComponent", () => {
     expect(settings().arrows).toBe("always");
   });
 
+  it("says the arrows show on a phone or a tablet by default", async () => {
+    await renderSettings();
+
+    expect(
+      screen.getByRole("radio", { name: /^On a touch screen/ }),
+    ).toHaveAccessibleName(/On a phone or a tablet./);
+  });
+
   it("turns the sound off", async () => {
     const { user } = await renderSettings();
 

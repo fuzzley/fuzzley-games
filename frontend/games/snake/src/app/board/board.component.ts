@@ -7,6 +7,7 @@ import {
   afterRenderEffect,
   computed,
   inject,
+  input,
   signal,
   viewChild,
 } from "@angular/core";
@@ -64,6 +65,9 @@ export class BoardComponent {
   private readonly injector = inject(Injector);
   private readonly canvas = viewChild.required(PhaserCanvasComponent);
 
+  /** Whether the on-screen arrows show beside the board. */
+  readonly arrows = input(false);
+
   protected readonly squares = BOARD_SIZE;
   protected readonly label = `Snake, ${BOARD_SIZE} by ${BOARD_SIZE}`;
 
@@ -118,6 +122,19 @@ export class BoardComponent {
       default:
         return null;
     }
+  });
+
+  /**
+   * What the card says starts a run: the swipe and the arrows, as there are
+   * on a touch screen, or the keys too.
+   */
+  protected readonly startWords = computed(() => {
+    if (!this.viewport.isTouchScreen()) {
+      return "Press an arrow key, or swipe, to start.";
+    }
+    return this.arrows()
+      ? "Swipe, or press an arrow, to start."
+      : "Swipe to start.";
   });
 
   /** What the card over an ended run calls it, as the result card does. */

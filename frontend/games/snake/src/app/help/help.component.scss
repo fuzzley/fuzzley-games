@@ -4,3 +4,8 @@
 .card {
   @include help-card;
 }
+
+// Four keys read as one, so they never part over two lines.
+.keys {
+  white-space: nowrap;
+}

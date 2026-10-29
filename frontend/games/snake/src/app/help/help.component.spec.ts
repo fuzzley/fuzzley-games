@@ -18,6 +18,24 @@ describe("HelpComponent", () => {
     ).toBeInTheDocument();
   });
 
+  it("says the run goes on at P too", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText(/Pausing./).parentElement).toHaveTextContent(
+      "Space or P, or Resume",
+    );
+  });
+
+  it("says how to start again once a run has ended", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(
+      screen.getByRole("rowheader", {
+        name: "Start again, once a run has ended",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("asks to close at its close button", async () => {
     const closed = vi.fn();
     await render(HelpComponent, { inputs: { open: true }, on: { closed } });

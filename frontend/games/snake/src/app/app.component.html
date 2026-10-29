@@ -10,7 +10,7 @@
     [class.with-arrows]="showArrows()"
     (focusout)="onRoomFocusOut($event)"
   >
-    <app-board #board />
+    <app-board #board [arrows]="showArrows()" />
     @if (showArrows()) {
       <app-arrows
         (handBack)="board.focus({ preventScroll: true, focusVisible: false })"
