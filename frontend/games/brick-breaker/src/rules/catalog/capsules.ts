@@ -52,6 +52,9 @@ export type PaddleMode = Extract<
   { readonly kind: "paddle-mode" }
 >["mode"];
 
+/** Whether a capsule helps the player or hinders them. */
+export type CapsuleTone = "good" | "bad";
+
 /** Describes a capsule: what it does, and when it may fall. */
 export interface Capsule {
   /** Names it, in How to play and as it is caught, such as "Wide paddle". */
@@ -59,7 +62,7 @@ export interface Capsule {
   /** Says what it does, in a sentence for How to play. */
   readonly about: string;
   /** Whether it helps the player or hinders them; Relaxed drops no bad one. */
-  readonly tone: "good" | "bad";
+  readonly tone: CapsuleTone;
   /** How likely it is to be drawn, against the others in the pool. */
   readonly weight: number;
   /** The first level whose pool it joins. */
