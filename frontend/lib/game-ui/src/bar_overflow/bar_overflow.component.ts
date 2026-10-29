@@ -2,6 +2,7 @@ import { Component, computed, inject, input, output } from "@angular/core";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@angular/aria/menu";
 import { IconComponent, type IconName } from "@fz/ui/icon";
 import { GameBarComponent } from "../game_bar";
+import { type MenuSide, menuSide } from "../game_bar/menu_side";
 
 /** Describes what every entry in a bar's overflow menu shows. */
 interface BarOverflowEntry {
@@ -33,9 +34,6 @@ export interface BarOverflowLink extends BarOverflowEntry {
 export type BarOverflowItem<Id extends string = string> =
   BarOverflowAction<Id> | BarOverflowLink;
 
-/** Names the side of its button the menu opens on. */
-type Side = "below" | "above" | "after" | "before";
-
 /**
  * Shows a "More actions" button that opens a menu of what a game bar has no
  * room for.
@@ -63,18 +61,9 @@ export class BarOverflowComponent<Id extends string = string> {
   /** Emits the id of the action chosen. */
   readonly choose = output<Id>();
 
-  protected readonly side = computed<Side>(() => {
-    switch (this.bar?.placement() ?? "top") {
-      case "top":
-        return "below";
-      case "bottom":
-        return "above";
-      case "start":
-        return "after";
-      case "end":
-        return "before";
-    }
-  });
+  protected readonly side = computed<MenuSide>(() =>
+    menuSide(this.bar?.placement() ?? "top"),
+  );
 
   /** Whether the menu lines up with its button's start, in a reversed bar. */
   protected readonly alignsStart = computed(
