@@ -31,7 +31,9 @@ WebGL's batch, so:
   page takes several, and a frame touching two pages costs at least two
   draws. That is expected.
 - **Draw a run-time texture once,** with `bakeTexture()` from
-  `@fz/phaser/scene`, rather than redrawing a `Graphics` every frame.
+  `@fz/phaser/scene`, rather than redrawing a `Graphics` every frame, and
+  many small ones into one with `bakeAtlas()`, so what shows them is one
+  binding.
 
 ## 2. No filter on many objects
 

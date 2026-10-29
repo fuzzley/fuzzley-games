@@ -152,3 +152,21 @@ committed bytes, and checked the `glide` specs' arithmetic. Its findings:
 Left as advised: `Sound.sample`'s name, the WAV header's bare offsets, the
 envelope's doc, the map's rounding to milliseconds, and the file's header
 comment.
+
+## L3.1: `bakeAtlas()`
+
+- **Built.** `bakeAtlas(scene, key, frames)` in `@fz/phaser/scene`, on
+  `bakeTexture()`: the frames packed in rows, in their order, about as wide
+  as the atlas is tall, a 2-pixel gutter between, each drawn translated to
+  its place in one `Graphics`, then added as a named frame. With
+  `ATLAS_GUTTER` and `MAX_ATLAS_SIDE` (4096). Specced on `runBareScene()`.
+- **Choices.**
+  - A bake again moves each frame with `Frame.setSize()` rather than
+    removing and adding it, so an image showing a frame keeps a live frame;
+    frames a new bake leaves out are removed.
+  - It throws for two frames of one name, or an atlas over 4096 a side, so a
+    mistake shows the first time the scene draws.
+  - Rows, not a smarter packing: the frames Brick Breaker bakes are a few
+    sizes, and rows in their order keep a frame's place predictable.
+- **Checks.** `@fz/phaser`: lint, typecheck, 249 tests. Docs: the library's
+  `AGENTS.md`, `phaser-core` and `phaser-canvas-performance`.

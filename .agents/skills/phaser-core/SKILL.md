@@ -126,8 +126,11 @@ scene without shutting it down first, so the end is whichever comes first.
   scene's first frame.
 - `bakeTexture()` draws a texture at run time, with a throwaway `Graphics`,
   and draws it again after a lost WebGL context, which Phaser restores only
-  for textures it loaded. Anything else drawn at run time redraws itself
-  through `onContextRestored()`.
+  for textures it loaded. `bakeAtlas()` does the same for many frames in
+  one texture, packed in rows with a gutter, each a named frame of it, so
+  the objects showing them draw in one batch; baked again, it moves its
+  frames and keeps their objects. Anything else drawn at run time redraws
+  itself through `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
   device pixels.
 
