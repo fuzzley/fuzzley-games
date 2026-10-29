@@ -48,6 +48,15 @@ and `@fz/phaser/host` only by type and loads the scene with `import()`.
   touches it. `sweep.ts` finds the first moment a moving circle touches a
   face pushed out by its radius, or a corner, as a share of its move, so
   however fast a ball goes it can't pass through a brick.
+- **`src/rules/catalog/`** — what the game can hold, each a readonly object
+  written `as const satisfies`, so its ids survive as a type: `bricks.ts`
+  (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
+  and its traits), `balls.ts` (`BALL_KINDS`, each kind's damage, whether it
+  passes through what it breaks and reaches the bricks around) and
+  `capsules.ts` (`CAPSULES`, each capsule's tone, weight, first level and
+  effect, whose kind is its group). Each has its ids in How to play's order
+  and a function that returns an entry as the shape every entry has.
+  `src/rules/catalog.spec.ts` holds every entry to the catalogs' rules.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.

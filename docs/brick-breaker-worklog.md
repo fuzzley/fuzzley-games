@@ -341,3 +341,25 @@ Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
   for every face and corner near a ball with nothing allocated; the field
   gathers the contacts at the earliest moment.
 - **Checks.** lint, typecheck, test (58).
+
+## B3.1, brought forward: the catalogs
+
+- **Order.** The field (B2.4) names its bricks by kind, so the catalogs come
+  before it rather than after; B3's other steps keep their order.
+- **Built.** `src/rules/catalog/bricks.ts`, `balls.ts` and `capsules.ts`:
+  every brick kind, ball kind and capsule of "Design reference", written
+  `as const satisfies`, with the trait and effect unions, the ids in How to
+  play's order, `brickKind()`, `ballKind()` and `capsule()` (an entry as its
+  shape), `hasTrait()` and `isCapsuleId()`. `src/rules/catalog.spec.ts`'s
+  first half: each entry named and described in a sentence, names apart, a
+  brick that never breaks needing nothing and scoring nothing, every
+  capsule weighed above nothing, joining after level 1, listed in the order
+  it joins.
+- **Choices.**
+  - A brick kind has `mostHits`, how many hits a level's legend may give it
+    (4 for a tough brick), where the plan said only that a legend may set
+    more.
+  - The ghost brick's 2 hits are its whole, the first of which shows it.
+  - The ids come from `Object.keys()` with a commented cast, the one place
+    the catalogs widen a type.
+- **Checks.** lint, typecheck, test (81).
