@@ -121,9 +121,9 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
   },
 };
 
-/** Every kind of effect. */
+/** Every kind of effect, in the order the field shows their tags. */
 // Object.keys() types its keys as strings; the table's keys are the kinds.
-const EFFECT_KINDS = Object.keys(EFFECT_RULES) as readonly EffectKind[];
+export const EFFECT_KINDS = Object.keys(EFFECT_RULES) as readonly EffectKind[];
 
 // Made once and reused, so a step makes nothing.
 const paddleArea: Box = { left: 0, top: 0, right: 0, bottom: 0 };

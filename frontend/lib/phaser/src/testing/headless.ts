@@ -56,6 +56,15 @@ export function installHeadlessPhaser(): void {
     });
   }
 
+  // jsdom can't encode a canvas as an image. A picture of one names its
+  // size, so a spec can tell apart the pictures `textures.getBase64()` takes
+  // of an atlas's frames.
+  HTMLCanvasElement.prototype.toDataURL = function toDataURL(
+    this: HTMLCanvasElement,
+  ): string {
+    return `data:image/png;size=${String(this.width)}x${String(this.height)},`;
+  };
+
   // jsdom lays nothing out, and Phaser maps the pointer through the canvas's
   // place on the page.
   HTMLCanvasElement.prototype.getBoundingClientRect = function layOut(

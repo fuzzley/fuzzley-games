@@ -2,19 +2,35 @@ import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { onFirstFrame, pixelRatioOf, whenSceneEnds } from "@fz/phaser/scene";
 import { Core, type GameObjects, Input, Scene } from "phaser";
+import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
-import { type ArtFrame, FRAMES } from "../view/art";
+import {
+  type ArtFrame,
+  FRAMES,
+  PICTURE_FRAMES,
+  type Pictures,
+  ballFrame,
+  brickColor,
+  mapPictures,
+} from "../view/art";
 import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
+import { type Flourish, effectsOf, flourishesOf } from "../view/effects";
 import { type FieldMetrics, fieldMetrics } from "../view/field_metrics";
-import type { FieldFrame, FieldView } from "../view/frame";
+import { glowAlpha } from "../view/flourish";
+import type { FieldEvent, FieldFrame, FieldView } from "../view/frame";
 import { LAYERS, type Layer } from "../view/layers";
 import type { BricksPalette } from "../view/palette";
 import { Steering, type TouchSteering } from "../view/steering";
-import { bakeBricksAtlas } from "./atlas";
+import { ATLAS, bakeBricksAtlas } from "./atlas";
 import { BallPainter } from "./ball_painter";
+import { BoltPainter } from "./bolt_painter";
 import { BrickPainter } from "./brick_painter";
+import { CapsulePainter } from "./capsule_painter";
+import { EffectsPainter } from "./effects_painter";
 import { FieldPainter } from "./field_painter";
+import { GlowPainter } from "./glow_painter";
 import { PaddlePainter } from "./paddle_painter";
+import { TagPainter } from "./tag_painter";
 
 /** What the scene asks of the shell, and tells it. */
 export interface BricksSceneOptions {
@@ -32,6 +48,8 @@ export interface BricksSceneOptions {
   readonly onLayout: (field: CssRect) => void;
   /** Takes what a key, a click or a tap asks of the game. */
   readonly command: (command: FieldCommand) => void;
+  /** Takes a picture of every brick, ball and capsule as drawn, for How to play, each time they are drawn anew. */
+  readonly onPictures: (pictures: Pictures) => void;
 }
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
@@ -39,8 +57,8 @@ const CAPTURED_KEYS = "LEFT,RIGHT,UP,SPACE";
 
 /**
  * Draws a level of Brick Breaker, handing the shell each frame's time and
- * steering before pulling the field to draw, and turns keys, clicks and
- * taps into commands.
+ * steering before pulling the field to draw and playing what happened on
+ * it, and turns keys, clicks and taps into commands.
  */
 export class BricksScene extends Scene {
   /** How many scenes have been built, which numbers each one's key. */
@@ -53,8 +71,18 @@ export class BricksScene extends Scene {
   field!: FieldPainter;
   /** Draws the bricks. */
   bricks!: BrickPainter;
+  /** Frames the last bricks a level needs, once they glow. */
+  glow!: GlowPainter;
+  /** Draws the shards, the rings and the fades, and shakes the field. */
+  effects!: EffectsPainter;
+  /** Draws the capsules falling. */
+  capsules!: CapsulePainter;
+  /** Draws the laser's bolts. */
+  bolts!: BoltPainter;
   /** Draws the paddle. */
   paddle!: PaddlePainter;
+  /** Draws the tags of the effects in play. */
+  tags!: TagPainter;
   /** Draws the balls. */
   balls!: BallPainter;
 
@@ -69,6 +97,14 @@ export class BricksScene extends Scene {
   private frames!: readonly ArtFrame[];
   /** The field the scene draws, which a new level replaces. */
   private shownField: FieldView | null = null;
+  /** The serial of the last event of the field the scene played. */
+  private played = 0;
+  /** The field's step at which its last brick broke, or it was first drawn. */
+  private brokeAt = 0;
+  /** The scene's time this frame, in milliseconds, by which the flourishes run. */
+  private now = 0;
+  /** Whether the player welcomes motion, as of this frame. */
+  private motion = true;
   /**
    * The key events the scene has taken. Phaser hands over every key event
    * of a frame again with each new one, so a frame of three keys would
@@ -93,7 +129,12 @@ export class BricksScene extends Scene {
     const layers = this.layers();
     this.field = new FieldPainter(this, layers.field);
     this.bricks = new BrickPainter(this, layers.bricks);
+    this.glow = new GlowPainter(this, layers.bursts);
+    this.effects = new EffectsPainter(this, layers.bursts, layers.balls);
+    this.capsules = new CapsulePainter(this, layers.capsules);
+    this.bolts = new BoltPainter(this, layers.bolts);
     this.paddle = new PaddlePainter(this, layers.paddle, this.paddleEnds());
+    this.tags = new TagPainter(this, layers.tags);
     this.balls = new BallPainter(this, layers.balls);
     this.steering = new Steering(this.metrics);
     this.layOut();
@@ -104,11 +145,13 @@ export class BricksScene extends Scene {
   }
 
   /**
-   * Hands the shell the time the frame took and the steering, then draws
-   * the field as it now stands. It allocates nothing but on a new layout, a
-   * new palette or a new level.
+   * Hands the shell the time the frame took and the steering, then plays
+   * what happened on the field since the last frame, once each, and draws
+   * it as it now stands. It allocates nothing but on a new layout, a new
+   * palette or a new level.
    */
-  override update(_time: number, delta: number): void {
+  override update(time: number, delta: number): void {
+    this.now = time;
     if (this.moved()) {
       if (this.measure()) this.rebake();
       this.layOut();
@@ -116,13 +159,81 @@ export class BricksScene extends Scene {
     this.options.tick(delta, this.steering.read());
     const frame = this.options.frame();
     const palette = this.options.palette();
+    this.motion = this.options.motion();
     if (palette !== this.painted) this.repaint(palette);
     if (frame.field !== this.shownField) this.startField(frame.field);
-    const field = frame.field;
-    this.field.draw(this.metrics, this.painted, field.net);
+    frame.events.forEachSince(this.played, this.play);
+    this.played = frame.events.latest;
+    this.draw(frame);
+  }
+
+  /** Has each painter draw the field as it stands, in its layer. */
+  private draw({ field, alpha }: FieldFrame): void {
+    const metrics = this.metrics;
+    this.field.draw(metrics, this.painted, field.net);
     this.bricks.show(field);
-    this.paddle.draw(field.paddle, field.mode, frame.alpha, this.metrics);
-    this.balls.draw(field, frame.alpha, this.metrics);
+    this.bricks.animate(this.now);
+    this.glow.draw(field, glowAlpha(field, this.brokeAt, this.motion), metrics);
+    this.effects.animate(this.now);
+    this.capsules.draw(field, alpha, metrics);
+    this.bolts.draw(field, alpha, metrics);
+    this.paddle.draw(field.paddle, field.mode, alpha, metrics);
+    this.tags.draw(field, alpha, metrics, this.painted);
+    this.balls.draw(field, alpha, metrics, this.motion);
+  }
+
+  /**
+   * Plays an event: notes a brick breaking, and plays the flourishes it
+   * calls for where motion is welcome. Made once, so playing makes nothing.
+   */
+  private readonly play = (event: Readonly<FieldEvent>): void => {
+    const field = this.shownField;
+    if (!field) return;
+    if (event.kind === "broken") this.brokeAt = field.steps;
+    const flourishes = flourishesOf(effectsOf(event, field), this.motion);
+    for (const flourish of flourishes) this.flourish(flourish, event, field);
+  };
+
+  /** Plays one of an event's flourishes. */
+  private flourish(
+    flourish: Flourish,
+    event: Readonly<FieldEvent>,
+    field: FieldView,
+  ): void {
+    switch (flourish) {
+      case "pop":
+        this.bricks.pop(event.cell, this.now);
+        return;
+      case "grow":
+        this.bricks.grow(event.cell, this.now);
+        return;
+      case "shards": {
+        const brick = field.bricks[event.cell];
+        if (!brick) return;
+        this.effects.shatter(
+          columnMiddle(columnOf(event.cell)),
+          rowMiddle(rowOf(event.cell)),
+          brickColor(brick, this.painted),
+          this.metrics,
+        );
+        return;
+      }
+      case "ring":
+        this.effects.ring(event.x, event.y, this.now, this.metrics);
+        return;
+      case "shake":
+        this.effects.shake();
+        return;
+      case "fade":
+        this.effects.fade(
+          event.x,
+          event.y,
+          ballFrame(field.ballKind),
+          this.now,
+          this.metrics,
+        );
+        return;
+    }
   }
 
   /** Returns a layer for each entry of the view's list, made back to front. */
@@ -168,6 +279,7 @@ export class BricksScene extends Scene {
   /** Puts the field where it was measured, and tells the shell where. */
   private layOut(): void {
     this.bricks.layout(this.metrics);
+    this.effects.layout(this.metrics);
     this.steering.measure(this.metrics);
     this.options.onLayout(this.metrics.css);
   }
@@ -178,16 +290,26 @@ export class BricksScene extends Scene {
     this.rebake();
   }
 
-  /** Bakes the atlas at the field's scale, in the palette. */
+  /** Bakes the atlas at the field's scale, in the palette, and hands How to play its pictures. */
   private bake(): void {
     this.frames = bakeBricksAtlas(this, this.painted, this.metrics);
+    this.options.onPictures(
+      mapPictures(PICTURE_FRAMES, (frame) =>
+        this.textures.getBase64(ATLAS, frame),
+      ),
+    );
   }
 
   /** Bakes the atlas again, and has every image take up its frame anew. */
   private rebake(): void {
     this.bake();
     this.bricks.refresh();
+    this.glow.refresh();
+    this.effects.refresh();
+    this.capsules.refresh();
+    this.bolts.refresh();
     this.paddle.refresh(this.paddleEnds());
+    this.tags.refresh();
     this.balls.refresh();
   }
 
@@ -196,12 +318,20 @@ export class BricksScene extends Scene {
     return this.frames.find((frame) => frame.name === FRAMES.paddle)?.ends ?? 0;
   }
 
-  /** Starts drawing a new field, dropping its bricks in where motion is welcome. */
+  /**
+   * Starts drawing a new field, from its first event, stopping what the
+   * last one set off, and drops its bricks in where motion is welcome.
+   */
   private startField(field: FieldView): void {
     this.shownField = field;
+    this.played = 0;
+    this.brokeAt = field.steps;
     this.tweens.killAll();
+    this.bricks.still();
+    this.effects.reset();
+    this.balls.reset();
     this.bricks.show(field);
-    if (this.options.motion()) this.bricks.dropIn(this.metrics);
+    if (this.motion) this.bricks.dropIn(this.metrics);
     else this.bricks.layout(this.metrics);
   }
 

@@ -39,6 +39,14 @@ describe("installHeadlessPhaser", () => {
     });
   });
 
+  it("gives a canvas a picture that names its size", () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 12;
+    canvas.height = 34;
+
+    expect(canvas.toDataURL()).toBe("data:image/png;size=12x34,");
+  });
+
   it("does nothing when drawn on", () => {
     const context = document.createElement("canvas").getContext("2d")!;
 

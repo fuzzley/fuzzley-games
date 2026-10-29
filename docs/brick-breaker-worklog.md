@@ -1511,3 +1511,74 @@ Checked in a scratch spec, deleted after.
     scenes use) and is left for the user to decide, outside this plan.
 - **Checks.** lint, typecheck, test (1,091); the rules and the view at 100%
   of statements.
+
+## B6.2: the capsules, bolts, tags and effects, the events and the pictures
+
+- **Built,** in `src/scene/`:
+  - `capsule_painter.ts` and `bolt_painter.ts`: an image for each record
+    the field keeps (eight of each), each drawn between its last place and
+    its next; a bolt hangs from its tip.
+  - `tag_painter.ts`: a tag for each kind of effect, made once, shown in a
+    row under the paddle while its capsule is in play, in its capsule's
+    frame; and one `Graphics`, cleared and drawn each frame, with a ring
+    around each tag in the wall's wash, and an arc in the capsule's tone
+    for the time left.
+  - `effects_painter.ts`: a broken brick's shards from one particle
+    emitter, tinted in the brick's color; eight blast rings; a fading ball
+    for each of the eight balls; and the camera's shake. Rings and fades
+    run on the scene's clock rather than tweens, so playing one makes
+    nothing.
+  - `glow_painter.ts`: three frames around the last bricks a level needs.
+  - `BrickPainter` swells a brick that holds a hit (`pop`) and grows a
+    regrown one back (`grow`), also on the scene's clock. `BallPainter`
+    leaves a fire ball's embers from a second emitter.
+  - `bricks_scene.ts`:
+    - It plays the field's events once each, from the last serial it
+      played, through one arrow made once. A new field starts from serial
+      0, and stops everything the last set off: shards, embers, rings,
+      fades, the shake, and any brick mid-move.
+    - It plays the flourishes `effectsOf()` and `flourishesOf()` give,
+      none without motion; the glow holds still without it.
+    - After each bake it hands How to play its pictures (`onPictures`),
+      each `textures.getBase64()` of a frame `PICTURE_FRAMES` names.
+      `sound` comes with B9, which plays it.
+- **The view:**
+  - `flourish.ts`: each flourish's curve (`popScale`, `growScale`,
+    `ringScale`, `fadeAlpha`, `shareDone`), and `glowAlpha()`.
+  - `tags.ts`: `timeLeft()`, `firstTagX()` and the row's measures. The
+    row's middle sits halfway from the net to the field's foot, so the
+    rings cross neither. A spec holds that.
+  - `art.ts` adds `brickColor()` (each kind's `colorOf`), the glow's frame
+    (four bars a line past the cell), `PICTURE_FRAMES` (a tough brick with
+    a hit taken, a ghost still hidden) and `mapPictures()`.
+  - `palette.ts` adds `glow`, the text, which the contrast spec holds
+    against the field.
+  - The rules export `EFFECT_KINDS`, the tags' order.
+- **Choices.**
+  - **The glow is built here.** Decision 15's glow is in no step, and this
+    one holds the effects. It shows once three or fewer needed bricks are
+    left and none has broken for 15 s, measured in the field's steps from
+    the last `broken` event, or from the field's start. It pulses from full
+    to 35% over 1.2 s, and holds still without motion.
+  - **The fake canvas pictures itself.** `@fz/phaser/testing`'s headless
+    canvas now has a `toDataURL()` that names the canvas's size. jsdom
+    has none: it printed "Not implemented" on every bake and returned
+    nothing. A spec can now tell the pictures of frames apart. It is
+    specced in `headless.spec.ts` and noted in `lib/phaser/AGENTS.md`.
+  - **New loops are indexed `for` loops.** B6.1's review found closures
+    made each frame. B6.1's own painters are fixed in its review's
+    commit.
+- **Checks.**
+  - Mutation runs on the scene spec: 25 mutations. 23 are killed once
+    specs were added for the glow's timing, a new level's reset and the
+    glow's needed bricks.
+  - Of the other two, clearing a finished move survives because a
+    finished move's scale is 1 anyway. The other, `grow()` setting the
+    scale at once, was redundant, since the move scales it that frame, so
+    it was removed.
+  - The look of the shards, rings, tags and glow is checked in a browser
+    at Q3, once the board shows the scene.
+  - `yarn verify`: lint, typecheck, test (Brick Breaker's 1,159, the
+    scene's 63), build. The rules and the view are at 100% of statements.
+    `timeLeft()`'s guard for an effect without a time was unreachable on
+    its own line, so it was folded into the guard before it.

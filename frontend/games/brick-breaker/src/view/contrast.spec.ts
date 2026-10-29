@@ -29,7 +29,8 @@ function named(
 
 // Everything a player follows, aims at or dodges is held to 3:1, the bar for
 // graphics, against the field, in every palette; the wall, which only frames
-// the field, is left at a wash of the text, as Snake's is. A ball or a
+// the field, is left at a wash of the text, as Snake's is; the last bricks'
+// glow is held to it too. A ball or a
 // capsule crosses bricks too, and its color can't also clear every tint: the
 // tints and the warning and danger colors all sit on the same side of the
 // field, so a color 3:1 from both the field and a tint would need 9:1 from
@@ -78,7 +79,7 @@ describe("the field's contrast", () => {
       ["paddle", palette.paddle] as const,
     ];
 
-    it.each([...crossed, ...outlined])(
+    it.each([...crossed, ...outlined, ["glow", palette.glow] as const])(
       "keeps the %s at 3:1 or more against the field",
       (_, color) => {
         expect(
