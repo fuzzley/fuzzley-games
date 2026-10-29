@@ -1,3 +1,4 @@
+import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
@@ -5,6 +6,7 @@ import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
 
 /** What a spec gets back from rendering the bar. */
@@ -36,6 +38,19 @@ function figure(term: string): string {
   return value.textContent.trim();
 }
 
+/** Returns the badge that shows the level and offers the others. */
+function levelBadge(): HTMLElement {
+  return screen.getByRole("button", { name: "Level: Hard" });
+}
+
+/** Chooses a level from the badge's menu. */
+async function chooseLevel(user: UserEvent, name: string): Promise<void> {
+  await user.click(levelBadge());
+  await user.click(
+    screen.getByRole("menuitemradio", { name: new RegExp(`^${name}`) }),
+  );
+}
+
 describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
@@ -56,7 +71,49 @@ describe("BarComponent", () => {
     it("shows the level of the game on the board", async () => {
       await renderBar();
 
-      expect(screen.getByText("Hard")).toBeInTheDocument();
+      expect(levelBadge()).toHaveTextContent("Hard");
+    });
+
+    it("offers the levels from the badge, the board's checked", async () => {
+      const { user } = await renderBar();
+
+      await user.click(levelBadge());
+
+      expect(
+        screen.getByRole("menuitemradio", { checked: true }),
+      ).toHaveAccessibleName(/^Hard/);
+    });
+
+    it("names the level chosen before it loses the game under way", async () => {
+      const { user } = await renderBar();
+
+      await chooseLevel(user, "Medium");
+
+      expect(TestBed.inject(ConfirmService).prompt().title).toBe(
+        "Start a new Medium game?",
+      );
+    });
+
+    it("keeps the game at its level when the player backs out", async () => {
+      const { user } = await renderBar();
+      await chooseLevel(user, "Medium");
+
+      TestBed.inject(ConfirmService).cancel();
+      await TestBed.inject(ApplicationRef).whenStable();
+
+      expect(TestBed.inject(GameService).level()).toBe("hard");
+    });
+
+    it("deals at the level chosen, and keeps it, when the player goes ahead", async () => {
+      const { user } = await renderBar();
+      await chooseLevel(user, "Medium");
+
+      TestBed.inject(ConfirmService).accept();
+
+      expect(
+        await screen.findByRole("button", { name: "Level: Medium" }),
+      ).toBeInTheDocument();
+      expect(TestBed.inject(SettingsService).settings().level).toBe("medium");
     });
 
     it("shows the time", async () => {
@@ -114,7 +171,7 @@ describe("BarComponent", () => {
     /** Opens the overflow menu and returns its items' names. */
     async function openMenu(user: UserEvent): Promise<string[]> {
       await user.click(screen.getByRole("button", { name: "More actions" }));
-      const menu = await screen.findByRole("menu");
+      const menu = await screen.findByRole("menu", { name: "More actions" });
       return within(menu)
         .getAllByRole("menuitem")
         .map((item) => item.textContent.trim());
@@ -128,10 +185,10 @@ describe("BarComponent", () => {
       ).toHaveClass("fz-visually-hidden");
     });
 
-    it("shows the level of the game on the board", async () => {
+    it("keeps the level in the bar, out of the menu", async () => {
       await renderBar();
 
-      expect(screen.getByText("Hard")).toBeVisible();
+      expect(levelBadge()).toBeVisible();
     });
 
     it("moves Fill in notes, Restart, How to play and Settings into the menu", async () => {

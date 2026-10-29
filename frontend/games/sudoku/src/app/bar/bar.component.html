@@ -13,7 +13,13 @@
     Sudoku
   </h1>
   <!-- At every size, as the level isn't shown anywhere else in play. -->
-  <span fzBarTitle class="fz-badge level">{{ level() }}</span>
+  <fz-bar-choice
+    fzBarTitle
+    label="Level"
+    [options]="levels"
+    [value]="game.level()"
+    (choose)="changeLevel($event)"
+  />
 
   <!-- Not a live region: the clock would speak every second. -->
   <dl fzBarStatus class="metrics">

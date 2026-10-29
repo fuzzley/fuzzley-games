@@ -1,5 +1,9 @@
 import { Component, computed, inject, output } from "@angular/core";
 import {
+  BarChoiceComponent,
+  type BarChoiceOption,
+} from "@fz/game-ui/bar_choice";
+import {
   type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
@@ -9,11 +13,18 @@ import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent } from "@fz/ui/icon";
-import { LEVEL_INFO } from "../../rules/difficulty";
+import { LEVELS, LEVEL_INFO, type Level } from "../../rules/difficulty";
 import { GameService } from "../play/game.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
 const HOME_HREF = "/";
+
+/** The levels the badge offers, each with what it asks of the player. */
+const LEVEL_CHOICES: readonly BarChoiceOption<Level>[] = LEVELS.map((id) => ({
+  id,
+  name: LEVEL_INFO[id].name,
+  detail: LEVEL_INFO[id].asks,
+}));
 
 /** Names an action the overflow menu offers. */
 type MenuAction = "notes" | "restart" | "help" | "settings";
@@ -28,15 +39,20 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
 
 /**
  * Shows the game bar: the link home, the game's name and level, the time,
- * and the actions. The level shows at every size; the name only for a
- * screen reader on a compact screen.
+ * and the actions. The level shows at every size, as a menu of the levels;
+ * the name only for a screen reader on a compact screen.
  *
  * On a compact screen, Fill in notes, Restart, How to play and Settings
  * move into the overflow menu, and on the narrowest the link home does too.
  */
 @Component({
   selector: "app-bar",
-  imports: [BarOverflowComponent, GameBarComponent, IconComponent],
+  imports: [
+    BarChoiceComponent,
+    BarOverflowComponent,
+    GameBarComponent,
+    IconComponent,
+  ],
   host: {
     "[class.compact]": "viewport.isCompact()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
@@ -56,7 +72,7 @@ export class BarComponent {
 
   protected readonly homeHref = HOME_HREF;
 
-  protected readonly level = computed(() => LEVEL_INFO[this.game.level()].name);
+  protected readonly levels = LEVEL_CHOICES;
 
   protected readonly time = computed(() => formatClock(this.game.seconds()));
 
@@ -68,6 +84,11 @@ export class BarComponent {
       ? withHomeLink(OVERFLOW_ACTIONS, HOME_HREF)
       : OVERFLOW_ACTIONS,
   );
+
+  /** Deals a puzzle at the level chosen from the badge, asking first. */
+  protected changeLevel(level: Level): void {
+    void this.game.changeLevel(level);
+  }
 
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {
