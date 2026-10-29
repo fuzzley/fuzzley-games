@@ -50,6 +50,29 @@
   }
 }
 
+// On a short stage upright, where the pad sits under the board, or a narrow
+// one on its side, where it sits beside it, the keys shrink to a thumb's
+// size, so the board keeps squares big enough to read and steer.
+@container stage (orientation: portrait) and (height < 560px) {
+  :host {
+    --arrow: 44px;
+  }
+
+  .arrow {
+    --fz-icon-size: 24px;
+  }
+}
+
+@container stage (orientation: landscape) and (width < 540px) {
+  :host {
+    --arrow: 44px;
+  }
+
+  .arrow {
+    --fz-icon-size: 24px;
+  }
+}
+
 // The chevron points down; the others turn it.
 .arrow[data-direction="up"] {
   grid-area: up;

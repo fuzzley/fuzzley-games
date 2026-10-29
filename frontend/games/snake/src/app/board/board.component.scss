@@ -112,6 +112,21 @@
   }
 }
 
+// On a small board, as on the smallest phones with the arrows, the card sets
+// smaller and sits in the middle, so it stays on the board.
+@container (width < 280px) or (height < 280px) {
+  .card {
+    gap: var(--fz-space-1);
+    padding: var(--fz-space-3) var(--fz-space-4);
+    translate: none;
+    font-size: var(--fz-font-sm);
+
+    button {
+      margin-top: var(--fz-space-1);
+    }
+  }
+}
+
 .card-title {
   font-size: var(--fz-font-lg);
   font-weight: 700;
