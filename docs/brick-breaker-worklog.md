@@ -456,3 +456,33 @@ findings:
 The log's reason for `SIDE` was wrong: the style guide forbids `const enum`,
 not `enum`. `SIDE` is an object because its specs read its names with
 `Object.entries()`, which an enum's reverse mappings would muddle.
+
+## B2.3's review
+
+The reviewer checked every formula and the spec's numbers by hand, found no
+way for a fast ball to tunnel, then ran the spec against six changed
+copies of the sweep, all of which passed. Its findings:
+
+1. **The spec left the boundaries untested:** a face's ends, a contact at
+   exactly the move's end, the center on the line, a tangent, a still ball;
+   and "slides along" passed for the wrong reason. Fixed: a case for each,
+   and the slide starts over the face.
+2. **The plan's B2.3 promised what the field does** (gathering a moment's
+   contacts, the paddle). Fixed: the plan says the sweep meets boxes and the
+   field gathers.
+3. **Ten positional numbers let a bad face through** (a normal of 0, a
+   diagonal one, `from` past `to`). Fixed: `sweepFace(move, box, side)` and
+   `sweepCorner(move, box, corner)` take a `Move` and a `Box` the field keeps
+   and a `SIDE` bit, so a face can only be one of a box's four; still
+   nothing allocated. Walls and the paddle are boxes too.
+4. **The docs didn't explain `line`, and put the span on the wrong axis.**
+   Gone with the new shape; `MISSED`'s doc reads as a constant's.
+5. **"Or turn twice off one" wasn't the sweep's to promise:** a face's end
+   and its corner report the same moment. Dropped; the field merges them.
+6. **`gap < -r` hid "the center is behind the line".** Fixed: the distance in
+   front is tested first, then the radius taken off.
+7. **A tangent counted as a corner hit, where sliding along a face didn't.**
+   Fixed: a ball that would only graze a corner misses it.
+
+Left as advised: the root's form, a center inside a brick touching at once,
+the file's `//` comment, and the short names in the mathematics.

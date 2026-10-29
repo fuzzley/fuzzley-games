@@ -257,12 +257,14 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   box from `brickBox()`, which faces and corners are exposed, and the column
   and row a point lies in, by which the field finds the cells a ball's move
   crosses. Specced on pictures of grids. One commit.
-- **B2.3** `src/rules/sweep.ts`: the earliest contact of a moving circle with
-  a segment pushed out by its radius, a corner's circle, and the paddle's
-  rounded box, with the normal and the time; contacts at the same moment
-  gathered. Specced: a face, a seam, an exposed and a hidden corner, a
-  glancing hit, a ball too fast for any step, a start already touching. One
-  commit.
+- **B2.3** `src/rules/sweep.ts`: when a moving ball first touches a face
+  of a box, pushed out by its radius, or a corner, named by `SIDE`'s bits,
+  as a share of its move; bricks, walls and the paddle are all boxes, and a
+  contact's normal is its side's. Specced: faces met straight, at an angle,
+  at their ends and at the move's end, a ball too fast for any step, one
+  already touching, corners met, grazed and passed. The field (B2.4)
+  gathers the contacts of one moment, a seam's two faces or a face's end
+  and its corner, and turns once. One commit.
 - **B2.4** `src/rules/field.ts`, `paddle.ts`, `balls.ts` and the event log
   (`events.ts`, a ring of 256 reused records), with `src/testing/field_picture.ts`
   (`fieldFrom`): a field of plain bricks, the paddle steered by `to`, `by`
