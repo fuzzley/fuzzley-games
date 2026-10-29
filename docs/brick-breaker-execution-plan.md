@@ -915,12 +915,16 @@ text.
 | The scene spec     | `src/scene/bricks_scene.spec.ts` | Every kind, in every state, is drawn from a frame of the atlas                                                                                                                                                                                                 |
 
 The autopilot plays as a good player would: it keeps the paddle under the
-lowest ball falling toward it, lands it a seeded distance off the middle,
-catches every capsule but the bad ones, and launches at once. It runs in
-Node, without Phaser, and plays a level in well under a second.
-`yarn report:levels` runs it over every level and prints how long each took
-and how many bounces and lives it cost, which is how the difficulty ramp
-is tuned and checked by eye.
+ball that will reach it first, lands it a seeded distance off the middle
+or toward a brick the level needs, catches the good capsules it has time
+for, fires whenever it can, and serves and launches at once. It steers as
+a pointer does, so it is as fast as a mouse, and better than most
+players. It runs in Node, without Phaser, and plays a level in well under
+a second. `yarn report:levels` runs it over every level, from the level's
+number as the seed, as the spec does, and prints how long each took, how
+long of that went on the last three bricks the level needed (where a level
+that hides its last bricks drags), and how many bounces and lives it cost,
+which is how the difficulty ramp is tuned and checked by eye.
 
 #### What adding each takes
 

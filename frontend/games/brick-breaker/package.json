@@ -11,10 +11,11 @@
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
+    "report:levels": "node tools/report-levels.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json",
-    "lint": "eslint src vite.config.ts vitest.config.ts && yarn lint:styles",
+    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
+    "lint": "eslint src tools vite.config.ts vitest.config.ts && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""
   },
   "repository": {

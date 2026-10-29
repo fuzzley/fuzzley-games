@@ -996,3 +996,60 @@ Left as advised: the run a value and the field mutable, `levelSeed()`'s
 mix, `multiplier()`'s scan, a mark spent at six, steel scoring 0, the
 streak's breaks, `startLevel()` from `cleared`, and the earlier fixes'
 shapes.
+
+## B4.2: the autopilot and the levels' report
+
+- **Built.**
+  - `src/testing/autopilot.ts`: `autoplay()`, `AutopilotReport`,
+    `AUTOPILOT_LIMIT` (eight minutes) and `ENDGAME` (three bricks).
+  - `src/rules/autopilot.spec.ts`: the autopilot clears a level, stops at
+    its limit on one it can't, and plays alike from a seed. Every level, at
+    every speed, is cleared by it within eight minutes.
+  - `tools/report-levels.mjs`, run by `yarn report:levels`: the rules and
+    the autopilot loaded through Vite, as Sudoku's generator loads its
+    rules, and a table of every level at every speed. The workspace gains
+    `tsconfig.scripts.json`, and `yarn lint` and `yarn typecheck` take in
+    `tools/`.
+  - The catalog spec's second half: the levels use every brick kind and
+    let every capsule fall, but those it names as still to come (steel,
+    blast, ghost and regrow; Narrow, Fire, Fast and Blast). Each capsule
+    that can fall first falls at the level its `from` names, counting a
+    gift's draw and a pinned capsule.
+- **Choices.**
+  - The autopilot steers as a pointer does, so it moves as fast as a mouse
+    and plays better than most players: it lost no life in any level. Its
+    limit finds a level that loops or hides its last bricks, not one too
+    hard for a person. The report's times show the ramp.
+  - It aims half its landings at a brick the level still needs, chosen by
+    the seed, and the rest at a seeded place on the paddle, so a last
+    brick is chased as a player would chase it.
+  - It goes for a good capsule only when it can catch it and still be back
+    under the ball in time.
+  - The spec and the report play from the level's number as the seed, so
+    the report shows what the spec found.
+  - The report adds the time spent once three or fewer needed bricks were
+    left, the plan's "last brick" drag, for Q2 to read.
+- **The report** at this commit (time, the last three bricks' time, the
+  paddle's hits and lives lost):
+
+  ```text
+                    relaxed                normal                 fast
+   1 Stripes        2:48 0:08   63  0      2:20 0:09   69  0      1:47 0:08   58  0
+   2 Gifts          1:13 0:04   62  0      1:01 0:02   59  0      0:46 0:02   58  0
+   3 Pyramid        1:49 0:08   37  0      1:34 0:07   43  0      1:16 0:07   40  0
+   4 Checker        3:31 0:10   86  0      2:51 0:11   85  0      2:01 0:03   71  0
+   5 Window         1:53 0:03   85  0      1:19 0:02   71  0      1:00 0:02   50  0
+   6 Arch           1:10 0:08   87  0      1:12 0:06   91  0      1:05 0:13   76  0
+   7 Diamond        2:51 0:03   80  0      2:07 0:03   74  0      1:32 0:01   68  0
+   8 Waves          1:24 0:03   77  0      0:59 0:01   65  0      0:51 0:03   80  0
+   9 Rocket         4:50 0:30  101  0      3:53 0:35  108  0      3:20 0:28   90  0
+  10 Castle         2:02 0:13   83  0      1:36 0:07   96  0      2:24 0:28  107  0
+  ```
+
+  The whole report runs in under three seconds. Q2 reads it.
+
+- **Checks.** `yarn verify`: lint, typecheck, test (578), build; the rules
+  at 100% of statements.
+
+- **Review in.** B4.1's review came in during this step; its fixes follow
+  in their own commit, before Q2.

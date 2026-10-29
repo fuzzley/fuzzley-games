@@ -1,0 +1,5 @@
+{
+  // The Node scripts under tools/, type-checked from their JSDoc.
+  "extends": "@fz/dev/tsconfig/scripts.json",
+  "include": ["tools/**/*.mjs"]
+}

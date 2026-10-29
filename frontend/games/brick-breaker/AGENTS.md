@@ -122,8 +122,14 @@ workspace's with the others'.
   spec, which leaves the floor alone.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
   between the layers, then stylelint with `@fz/style`'s preset).
-- **Type Checking:** `yarn typecheck` (the app, the specs and the Vite
-  config).
+- **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
+  config, and the scripts under `tools/` from their JSDoc).
+- **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
+  the autopilot plays every level at every speed, from the level's number
+  as the seed, and it prints the game time each took, the time spent on the
+  last three bricks the level needed, the paddle's hits and the lives lost;
+  it fails if a play didn't clear its level). It is how the difficulty ramp
+  is tuned.
 
 ## Tests
 
@@ -133,4 +139,13 @@ tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
 `src/testing/field_picture.ts` lays a field out from a picture of its
 bricks (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in
 play with none (`playWithoutBall()`), steps it and reads its events, so a
-spec of the field reads as the field it plays.
+spec of the field reads as the field it plays. `src/testing/autopilot.ts`
+plays a level as a good player would (`autoplay()`): it keeps the paddle
+under the ball that will reach it first, lands it a seeded distance off
+the middle or toward a brick the level needs, catches the good capsules it
+has time for, and fires, serves and launches at once.
+`src/rules/autopilot.spec.ts` holds every level, at every speed, to being
+cleared by it within eight minutes of game time, and the catalog spec holds
+the levels to using every brick kind and letting every capsule first fall
+at the level its `from` names, but those the sets still to come bring, which
+it names.
