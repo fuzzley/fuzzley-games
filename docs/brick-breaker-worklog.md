@@ -1359,3 +1359,50 @@ Checked in a scratch spec, deleted after.
   the view draws the glow, and the autopilot takes `GLOW_BRICKS` from it.
 - **Checks.** lint, typecheck, test (738), the rules and the view at 100%
   of statements.
+
+## B5.2's review (7f5077b1)
+
+1. **Capsules cross bricks too.**
+   - A capsule falls straight through the bricks below, drawn over them, at
+     1.02:1 (accent on the green ink in Classic) to 1.17:1.
+   - **Fixed:** every capsule is outlined as a ball is. The spec, the
+     plan's capsule bullet, the art bullet and the Risks say so.
+2. **The outline was only a comment.**
+   - **Fixed:** `BricksPalette.outline`, the panel.
+   - The spec holds each ball and capsule against it, and it against every
+     tint, the untinted bricks and the paddle. An outline in the text color
+     fails 47 cases.
+   - The plan's B5.3 step and art bullet now set its width at 1 CSS px or
+     more.
+3. **Docs.**
+   - AGENTS.md lists what the spec holds exactly, and no longer speaks of
+     an outline to come.
+   - The Risks say the plain ball clears the tints in the light palettes
+     only, which let the dark inks be brighter.
+   - The B5.2 step says "outline".
+   - The spec's comment gives the real reason a ball can't clear the tints:
+     the tints and warning and danger sit on the same side of the field,
+     so a color 3:1 from both would need 9:1 from the field, which only
+     the text reaches.
+   - Steel at Pastel needs 51.5%, not about 53%.
+4. **Kinds with no color yet** (a tough brick's deeper tint, a plain brick's
+   edge, a ghost's outline, the net, the bolt, the tags).
+   - **Planned:** the plan's B5.3 step now says every color the art derives
+     joins the contrast spec, since that is where they are made.
+5. **The wall at 1.47–1.83:1.** Exempted in the spec's comment and the
+   plan, as Snake's is: it frames the field, and the field's edge is where
+   the bricks and paddle stop anyway.
+6. **Nits.**
+   - `field`'s doc names the panel role, not `--fz-field`.
+   - The untinted bricks are grouped as `bricks: { steel, blast, gift }`,
+     typed by `UntintedKind`, a slice of the catalog's ids.
+   - The spec walks the palette's records, so a new tone or kind is
+     checked.
+   - The docs link `WALL_WASH` and `STEEL_WASH`.
+   - `inks.ts`'s comment is reworded.
+   - `frontend/AGENTS.md` says a canvas game keeps its own colors in its
+     view's TypeScript.
+   - The spec numbers tints from 1, as levels do.
+
+- **Checks.** lint, typecheck, test (806), the rules and the view at 100%
+  of statements.

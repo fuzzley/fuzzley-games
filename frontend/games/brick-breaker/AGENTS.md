@@ -115,10 +115,13 @@ the view's first files and the shell exist.
   and fingers into each frame's `Steer`, and a tap into a launch; and
   `palette.ts` the field's colors from the palette's roles
   (`bricksPalette()`), with the brick tints from `inks.ts`, the game's own
-  eight for light palettes and eight for dark. `contrast.spec.ts` holds
-  every tint, brick, ball, capsule and the paddle to 3:1 against the field
-  in every palette; a ball's color can't clear every tint too, so each ball
-  is to be outlined in the field's color.
+  eight for light palettes and eight for dark, and the outline every ball
+  and capsule takes over the bricks it crosses. `contrast.spec.ts` holds
+  every tint, the steel, blast and gift bricks, every ball kind, both
+  capsule tones and the paddle to 3:1 against the field in every palette,
+  each ball and capsule against its outline, and the outline against every
+  tint, brick and the paddle, and its comment says why a ball isn't held
+  against the tints.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.

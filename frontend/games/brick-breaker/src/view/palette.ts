@@ -1,5 +1,6 @@
 import { colorNumber, mixColors } from "@fz/phaser/color";
 import type { BallKindId } from "../rules/catalog/balls";
+import type { BrickKindId } from "../rules/catalog/bricks";
 import type { CapsuleTone } from "../rules/catalog/capsules";
 import { DARK_INKS, LIGHT_INKS } from "./inks";
 
@@ -15,19 +16,25 @@ export interface PaletteRoles {
   readonly warning: string;
 }
 
+/** The brick kinds drawn in a color of their own, rather than a tint. */
+export type UntintedKind = Extract<BrickKindId, "steel" | "blast" | "gift">;
+
 /** The field's colors, as the numbers Phaser takes. */
 export interface BricksPalette {
-  /** The field under everything, and the outline around every ball. */
+  /** The field under everything: the `panel` role, as Snake's board is, not `--fz-field`. */
   readonly field: number;
-  /** The wall around the field: text at 20%. */
+  /**
+   * The outline around every ball and capsule, so it stands out from any
+   * brick it crosses: the field's color, which every brick keeps 3:1 from.
+   */
+  readonly outline: number;
+  /** The wall around the field: text at {@link WALL_WASH}. */
   readonly wall: number;
   readonly paddle: number;
   readonly balls: Readonly<Record<BallKindId, number>>;
   readonly capsules: Readonly<Record<CapsuleTone, number>>;
-  /** A steel brick: text at 55%. */
-  readonly steel: number;
-  readonly blast: number;
-  readonly gift: number;
+  /** Steel in text at {@link STEEL_WASH}, a blast brick in the danger color and a gift in the accent. */
+  readonly bricks: Readonly<Record<UntintedKind, number>>;
   /** The colors a brick takes by its tint, 0 to 7: the inks of the palette's mode. */
   readonly tints: readonly number[];
 }
@@ -49,13 +56,16 @@ export function bricksPalette(
   const danger = colorNumber(roles.danger);
   return {
     field: panel,
+    outline: panel,
     wall: mixColors(text, panel, WALL_WASH),
     paddle: accent,
     balls: { normal: text, fire: colorNumber(roles.warning), blast: danger },
     capsules: { good: accent, bad: danger },
-    steel: mixColors(text, panel, STEEL_WASH),
-    blast: danger,
-    gift: accent,
+    bricks: {
+      steel: mixColors(text, panel, STEEL_WASH),
+      blast: danger,
+      gift: accent,
+    },
     tints: mode === "light" ? LIGHT_INKS : DARK_INKS,
   };
 }

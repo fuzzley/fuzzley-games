@@ -6,7 +6,6 @@ import {
   contrast,
   paletteRoles,
 } from "@fz/style/testing";
-import { BALL_KIND_IDS } from "../rules/catalog/balls";
 import { bricksPalette } from "./palette";
 
 // Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
@@ -17,11 +16,25 @@ function rgbOf(color: number): Rgb {
   return [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff];
 }
 
-// Everything a player follows, aims at or dodges is held to 3:1, the bar
-// for graphics, against the field, in every palette. A ball's color can't
-// also clear every tint: the fire ball's warning and the blast ball's danger
-// sit as far from the field as the tints do. So every ball is outlined in the
-// field's color, and a tint's 3:1 against the field holds the outline's too.
+/** Returns a record's entries, each named by its key and what it is. */
+function named(
+  record: Readonly<Record<string, number>>,
+  what: string,
+): readonly (readonly [string, number])[] {
+  return Object.entries(record).map(([key, color]) => [
+    `${key} ${what}`,
+    color,
+  ]);
+}
+
+// Everything a player follows, aims at or dodges is held to 3:1, the bar for
+// graphics, against the field, in every palette; the wall, which only frames
+// the field, is left at a wash of the text, as Snake's is. A ball or a
+// capsule crosses bricks too, and its color can't also clear every tint: the
+// tints and the warning and danger colors all sit on the same side of the
+// field, so a color 3:1 from both the field and a tint would need 9:1 from
+// the field, which only the text reaches. So each is outlined, in a color
+// held to 3:1 against everything it crosses.
 describe("the field's contrast", () => {
   const palettes = paletteRoles(compileStylesheet(GLOBAL));
 
@@ -45,24 +58,43 @@ describe("the field's contrast", () => {
       },
       mode,
     );
-    const drawn: readonly (readonly [string, number])[] = [
-      ...palette.tints.map((tint, i) => [`tint ${i}`, tint] as const),
-      ["steel brick", palette.steel],
-      ["blast brick", palette.blast],
-      ["gift brick", palette.gift],
-      ...BALL_KIND_IDS.map(
-        (kind) => [`${kind} ball`, palette.balls[kind]] as const,
-      ),
-      ["good capsule", palette.capsules.good],
-      ["bad capsule", palette.capsules.bad],
-      ["paddle", palette.paddle],
+    // Numbered from 1, as a level's tints are.
+    const tints = palette.tints.map(
+      (tint, i) => [`tint ${String(i + 1)}`, tint] as const,
+    );
+    const outlined = [
+      ...named(palette.balls, "ball"),
+      ...named(palette.capsules, "capsule"),
+    ];
+    const crossed = [
+      ...tints,
+      ...named(palette.bricks, "brick"),
+      ["paddle", palette.paddle] as const,
     ];
 
-    it.each(drawn)(
+    it.each([...crossed, ...outlined])(
       "keeps the %s at 3:1 or more against the field",
       (_, color) => {
         expect(
           contrast(rgbOf(color), rgbOf(palette.field)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each(outlined)(
+      "keeps the %s at 3:1 or more against its outline",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(color), rgbOf(palette.outline)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each(crossed)(
+      "keeps the outline at 3:1 or more against the %s",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(palette.outline), rgbOf(color)),
         ).toBeGreaterThanOrEqual(3);
       },
     );
