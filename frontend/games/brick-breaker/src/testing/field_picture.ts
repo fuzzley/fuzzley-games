@@ -1,13 +1,14 @@
 import type { Ball } from "../rules/balls";
+import type { Brick } from "../rules/bricks";
 import type { CapsuleId } from "../rules/catalog/capsules";
 import type { FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
-import { CELLS, columnOf, rowOf } from "../rules/grid";
+import { CELLS, cellIndex, columnOf, rowOf } from "../rules/grid";
 import { LEGEND, NO_BRICK, brickOf } from "../rules/legend";
 import type { LevelBrick } from "../rules/level";
 import type { Steer } from "../rules/paddle";
 import type { Speed } from "../rules/speed";
-import { COLUMNS } from "../rules/tuning";
+import { COLUMNS, ROWS } from "../rules/tuning";
 
 /** Says how a pictured field is played, where a spec cares. */
 export interface PictureOptions {
@@ -22,6 +23,20 @@ export interface PictureOptions {
   readonly gift?: CapsuleId;
 }
 
+/** Rows that lay one brick far down the field, which keeps a level from clearing. */
+export const KEEPER: readonly string[] = [
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "o",
+];
+
 /** Steering that asks nothing of the paddle. */
 export const NO_STEER: Readonly<Steer> = { to: null, by: 0, push: 0 };
 
@@ -30,13 +45,16 @@ export const NO_STEER: Readonly<Steer> = { to: null, by: 0, push: 0 };
  * for each row from the top, in the shared legend's characters: `.` or
  * nothing for no brick, `o` a plain one, `2` to `4` a tough one of that many
  * hits, `#` steel, `*` a blast, `?` a gift, `~` a ghost and `+` one that
- * regrows. It throws for a row too long or a character it doesn't know, so
- * a spec plays the field it draws.
+ * regrows. It throws for a row too long, too many rows, or a character it
+ * doesn't know, so a spec plays the field it draws.
  */
 export function fieldFrom(
   rows: readonly string[],
   options: PictureOptions = {},
 ): Field {
+  if (rows.length > ROWS) {
+    throw new Error(`Too many rows: ${String(rows.length)}.`);
+  }
   for (const row of rows) {
     if (row.length > COLUMNS) throw new Error(`A row too long: "${row}".`);
   }
@@ -92,6 +110,13 @@ export function playWithoutBall(field: Field): Field {
   field.state = "playing";
   for (const ball of field.balls) ball.live = false;
   return field;
+}
+
+/** Returns the brick in a cell of the field, broken or not. */
+export function brickAt(field: Field, column: number, row: number): Brick {
+  const brick = field.bricks[cellIndex(column, row)];
+  if (!brick) throw new Error(`No brick at ${String(column)}, ${String(row)}.`);
+  return brick;
 }
 
 /** Returns one of the field's balls, in play or not. */

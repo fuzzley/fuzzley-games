@@ -14,12 +14,37 @@ export function multiplier(streak: number): number {
   return 1;
 }
 
-/** Adds a hit on a brick to the level's score: its kind's points, times the streak's multiplier. */
-export function scoreHit(field: Field, brick: Readonly<Brick>): void {
-  field.score += brickKind(brick.kind).points * multiplier(field.streak);
+/**
+ * Adds a hit on a brick to the level's score: its kind's points for each of
+ * the hits it took, times the streak's multiplier.
+ */
+export function scoreHit(
+  field: Field,
+  brick: Readonly<Brick>,
+  taken: number,
+): void {
+  const points = brickKind(brick.kind).points * taken;
+  const times = multiplier(field.streak);
+  field.score += points * times;
+  field.streakPoints += points * (times - 1);
 }
 
-/** Returns what clearing a level adds, more for one cleared without losing a ball. */
+/** Lengthens the streak by a brick broken, then scores the hit that broke it. */
+export function scoreBreak(
+  field: Field,
+  brick: Readonly<Brick>,
+  taken: number,
+): void {
+  field.streak++;
+  scoreHit(field, brick, taken);
+}
+
+/** Starts the streak again, as the paddle meets a ball or the last ball is lost. */
+export function endStreak(field: Field): void {
+  field.streak = 0;
+}
+
+/** Returns what clearing a level adds, more for one cleared without losing a life. */
 export function clearingPoints(livesLost: number): number {
   return CLEAR_POINTS + (livesLost === 0 ? CLEAN_POINTS : 0);
 }

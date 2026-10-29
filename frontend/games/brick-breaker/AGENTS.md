@@ -66,14 +66,14 @@ and the shell exist.
   typed so that a trait without its rule fails to compile. `capsules.ts`
   drops capsules while the level is in play (`dropFrom()`), by the level's
   chance or from a gift brick, by weight from the level's pool, from
-  `draws.ts`'s seeded draws; moves them down
-  to be caught or missed; and holds `EFFECT_RULES`, what each effect of
-  `catalog/capsules.ts` does as it starts and ends, one of each group in
-  play at a time. `bolts.ts` fires and moves the laser's bolts. The field
-  counts its steps (`Field.steps`), and a timer is the step its thing
-  happens at, `stepsIn()` steps on from when it was set, as milliseconds
-  summed step by step would creep. `scoring.ts` scores each hit by its
-  kind's points, times the streak's multiplier, and says what clearing a
+  `draws.ts`'s seeded draws; moves them down to be caught or missed; and
+  holds `EFFECT_RULES`, what each effect of `catalog/capsules.ts` does as
+  it starts and ends, one of each group in play at a time. `bolts.ts` fires
+  and moves the laser's bolts. The field counts its steps (`Field.steps`),
+  and a timer is the step its thing happens at, `stepsIn()` steps on from
+  when it was set, as milliseconds summed step by step would creep.
+  `scoring.ts` scores each hit by its kind's points for the hits it took,
+  times the streak's multiplier, keeps the streak, and says what clearing a
   level adds. `events.ts`'s `EventLog` is a ring of 256 numbered records,
   which the scene will play from the last one it played.
 - **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
@@ -81,6 +81,8 @@ and the shell exist.
   points banked and the score, the lives and the points of the next, and
   the outcome. `tally()` takes a level's score as it stands, `clearLevel()`
   banks it, and `levelSeed()` gives each level's field a seed of its own.
+  A move that doesn't fit where the run stands returns it as it is, so a
+  run over stays over and a level is banked once.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any

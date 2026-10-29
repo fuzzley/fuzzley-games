@@ -375,8 +375,10 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
 
 - **B9.1** `tools/build-sounds.mjs` with the ten sounds on `@fz/dev/sounds`,
   the sprite in `src/scene/sounds/`, a `SpritePlayer` in the scene playing
-  each event's sound (a streak's rising pitch included), and the Sound
-  button and setting. Specced. One commit.
+  each event's sound (a streak's rising pitch included, for which a
+  `broken` event carries the streak as it was, as the scene plays events
+  after the field has moved on), and the Sound button and setting.
+  Specced. One commit.
 
 #### B10: storage (medium)
 
@@ -532,13 +534,16 @@ by playing.
 
 - **Bricks score by the hit:** 50 for each hit a plain, tough or ghost
   brick takes, 100 for a blast or gift brick, and 20 for a regrowing brick
-  each time it breaks.
+  each time it breaks. A fire ball's hit takes every hit a brick has left,
+  and scores each, so a good capsule never costs points.
 - **A streak scores more.** The bricks broken between two touches of the
   paddle count up: from the fifth they score double, from the tenth triple,
   and from the twentieth four times. Touching the paddle, or losing the
-  ball, starts the count again. The bar shows the multiplier while it is
-  above one, on a screen with room for it.
-- **A cleared level adds 1,000,** and 500 more if no ball was lost on it.
+  last ball, starts the count again. The bar shows the multiplier while it
+  is above one, on a screen with room for it. The field keeps what the
+  streaks added apart (`streakPoints`), for the Cleared card.
+- **A cleared level adds 1,000,** and 500 more if no life was lost on it;
+  a ball of several lost while another plays on costs no life.
 - **Points bring lives:** one at 20,000 and every 40,000 after, up to six.
 - **A run's score** is everything from the level it started on to its end.
   Bests are kept for each speed, as Snake's are, for runs and for each
@@ -1154,13 +1159,18 @@ export interface FieldFrame {
   a level adds. The numbers are the tuning's (`STREAK`, `CLEAR_POINTS`,
   `CLEAN_POINTS`), and a brick kind's points the catalog's.
 - `run.ts`: `Run`, a value each change replaces, as Snake's is: its id, its
-  seed, its speed, how many levels there are, the level it started at and
-  the one in play, the points banked by the levels cleared, the score, the
-  lives, the points of the next extra life, and the outcome (`ready`,
+  seed, its speed, the number of the last level, the level it started at
+  and the one in play, the points banked by the levels cleared, the score,
+  the lives, the points of the next extra life, and the outcome (`ready`,
   `playing`, `paused`, `cleared`, `over` or `won`). `startLevel()`,
   `pause()`, `resume()`, `tally()`, `gainLives()`, `clearLevel()` and
   `loseLife()` move it, and `levelSeed()` gives each level's field a seed
-  of its own, which the field's draws count from.
+  of its own, which the field's draws count from. A move that doesn't fit
+  where the run stands returns it as it is, so the shell makes each move
+  as it comes: a run over stays over though a blast clears its level after
+  the last life, and a level is banked once. The field's `livesGained` and
+  `livesLost` count up over the level, and the shell gives the run what has
+  come since it last looked.
 - `stepper.ts`: fixed steps of 1/120 s from a frame's time, at most twelve,
   dropping what is left of a longer frame, so a stall slows the game rather
   than letting it leap.

@@ -59,6 +59,7 @@ import {
   paddleBox,
   steerPaddle,
 } from "./paddle";
+import { endStreak } from "./scoring";
 import { type Speed, ballSpeed } from "./speed";
 import { stepsIn } from "./stepper";
 import { MISSED, type Move, sweepCorner, sweepFace } from "./sweep";
@@ -90,7 +91,7 @@ export type FieldState = "serve" | "playing" | "lost" | "cleared";
 /** Says how a field is played: at which speed, and from which seed. */
 export interface FieldSetup {
   readonly speed: Speed;
-  /** The run's seed, from which everything random on the field is drawn. */
+  /** The level's seed (`levelSeed()`), from which everything random on the field is drawn. */
   readonly seed: number;
 }
 
@@ -112,9 +113,17 @@ export interface Field {
   readonly paddle: Paddle;
   /** The level's points so far, before what clearing it adds. */
   score: number;
-  /** The bricks broken since the paddle last met a ball, which multiply the score. */
+  /** What the streaks added to the level's points, beyond the bricks' own. */
+  streakPoints: number;
+  /**
+   * The bricks broken since the paddle last met a ball, or the last ball
+   * was lost, which multiply the score.
+   */
   streak: number;
-  /** How many times the level's last ball has been lost. */
+  /**
+   * How many times the level's last ball has been lost, counting up, for
+   * the run to take a life for each one it hasn't yet.
+   */
   livesLost: number;
   /** How far the balls' speed has climbed, in brick hits. */
   climbed: number;
@@ -128,7 +137,10 @@ export interface Field {
   mode: PaddleMode | null;
   /** Whether a net under the paddle will turn back the next ball that falls. */
   net: boolean;
-  /** How many lives caught capsules have brought, for the run to add. */
+  /**
+   * How many lives caught capsules have brought, counting up, for the run
+   * to add those it hasn't yet.
+   */
   livesGained: number;
   /** The capsules falling, and those waiting to fall, as many as may. */
   readonly falling: readonly Falling[];
@@ -170,6 +182,13 @@ interface Contacts {
 
 /** How close two contacts' moments are for the ball to meet both at once. */
 const AT_ONCE = 1e-9;
+
+/**
+ * The widest gap beside a wall that the paddle's reach closes: a ball's
+ * width and a little more, as a ball shuttling between the wall and the
+ * paddle in a gap barely wider than it would take an age to fall through.
+ */
+const CLOSED_GAP = 2 * BALL_RADIUS + 0.1;
 
 /** How far the walls reach beyond the field, which no ball goes near. */
 const FAR = 1000;
@@ -240,6 +259,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
     score: 0,
+    streakPoints: 0,
     streak: 0,
     livesLost: 0,
     climbed: 0,
@@ -370,7 +390,7 @@ function liftOffPaddle(field: Field, ball: Ball): void {
  * the paddle catches, and starts the streak again.
  */
 function meetPaddle(field: Field, ball: Ball): void {
-  field.streak = 0;
+  endStreak(field);
   if (field.mode === "catch") {
     holdBall(ball, field.paddle, ball.x - field.paddle.x);
     ball.letGoAt = field.steps + stepsIn(CATCH_HOLD_MS);
@@ -405,12 +425,13 @@ function turnAtNet(field: Field, ball: Ball): void {
 
 /**
  * Writes the box a ball meets the paddle by: its own, reaching to a wall
- * closer to it than a ball is wide, so no ball is caught between the two.
+ * closer to it than {@link CLOSED_GAP}, so no ball is caught between the
+ * two.
  */
 function paddleReach(paddle: Readonly<Paddle>, reach: Box): Box {
   paddleBox(paddle, reach);
-  if (reach.left < 2 * BALL_RADIUS) reach.left = 0;
-  if (reach.right > FIELD_WIDTH - 2 * BALL_RADIUS) reach.right = FIELD_WIDTH;
+  if (reach.left < CLOSED_GAP) reach.left = 0;
+  if (reach.right > FIELD_WIDTH - CLOSED_GAP) reach.right = FIELD_WIDTH;
   return reach;
 }
 
@@ -558,17 +579,16 @@ function mirror(field: Field, ball: Ball): void {
   const faced = met.faceX !== 0 || met.faceY !== 0;
   let nx = faced ? Math.sign(met.faceX) : met.cornerX;
   let ny = faced ? Math.sign(met.faceY) : met.cornerY;
+  if (faced) {
+    reflectBall(ball, nx, 0);
+    reflectBall(ball, 0, ny);
+  }
   // What is met head on from both sides at once cancels out, and turns
   // nothing.
   const length = Math.hypot(nx, ny) || 1;
   nx /= length;
   ny /= length;
-  if (faced) {
-    reflectBall(ball, Math.sign(nx), 0);
-    reflectBall(ball, 0, Math.sign(ny));
-  } else {
-    reflectBall(ball, nx, ny);
-  }
+  if (!faced) reflectBall(ball, nx, ny);
   ball.bounces++;
   if (met.wall) {
     if (ball.bounces > LULL_BOUNCES) {
@@ -614,7 +634,7 @@ function loseBall(field: Field, ball: Ball): void {
   if (field.balls.some((each) => each.live)) return;
   field.state = "lost";
   field.livesLost++;
-  field.streak = 0;
+  endStreak(field);
   field.climbed = 0;
   endEffects(field);
   dropCapsules(field);

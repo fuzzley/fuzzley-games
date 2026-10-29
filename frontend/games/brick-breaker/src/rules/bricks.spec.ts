@@ -1,10 +1,12 @@
 import {
+  KEEPER,
+  brickAt,
   eventsOf,
   fieldFrom,
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
-import { type Brick, hitBrick } from "./bricks";
+import { hitBrick } from "./bricks";
 import { BRICK_KINDS } from "./catalog/bricks";
 import type { Field } from "./field";
 import { cellIndex } from "./grid";
@@ -15,16 +17,6 @@ const FUSE_STEPS = stepsIn(BRICK_KINDS.blast.traits[0].delayMs);
 
 /** The steps a regrowing brick waits before it grows back. */
 const REGROW_STEPS = stepsIn(BRICK_KINDS.regrow.traits[0].afterMs);
-
-/** A brick far down the field, which keeps a level from clearing. */
-const KEEPER = ["", "", "", "", "", "", "", "", "", "o"];
-
-/** Returns the brick in a cell of the field. */
-function brickAt(field: Field, column: number, row: number): Brick {
-  const brick = field.bricks[cellIndex(column, row)];
-  if (!brick) throw new Error(`No brick at ${String(column)}, ${String(row)}.`);
-  return brick;
-}
 
 /** Hits the brick in a cell of the field a number of times. */
 function hitAt(field: Field, column: number, row: number, times = 1): void {
@@ -198,6 +190,37 @@ describe("a brick that blasts", () => {
       needed: 0,
       events: ["broken", "blast", "broken", "broken", "cleared"],
     });
+  });
+
+  it("hits nothing more once it has cleared the level", () => {
+    const field = fieldFrom(["o*+"]);
+    hitAt(field, 1, 0);
+
+    stepTimes(field, FUSE_STEPS);
+
+    expect({
+      events: eventsOf(field),
+      regrow: brickAt(field, 2, 0).broken,
+    }).toEqual({
+      events: ["broken", "blast", "broken", "cleared"],
+      regrow: false,
+    });
+  });
+
+  it("goes out, lit with another that clears the level as it goes off", () => {
+    const field = fieldFrom(["*o..*+"]);
+    hitAt(field, 0, 0);
+    hitAt(field, 4, 0);
+
+    stepTimes(field, FUSE_STEPS);
+
+    expect(eventsOf(field)).toEqual([
+      "broken",
+      "broken",
+      "blast",
+      "broken",
+      "cleared",
+    ]);
   });
 
   it("goes out, still lit, as the level clears", () => {

@@ -15,15 +15,23 @@ import {
 export type Outcome =
   "ready" | "playing" | "paused" | "cleared" | "over" | "won";
 
-/** A run of the game, from the level it started at to its end, a value each change replaces. */
+/**
+ * Describes a run of the game, from the level it started at to its end, a
+ * value each change replaces.
+ *
+ * A move that doesn't fit where the run stands returns it as it is, so the
+ * shell can make each move as it comes: a run over stays over though a
+ * blast clears its level after the last life is lost, and a level is
+ * banked once.
+ */
 export interface Run {
   /** Tells runs apart: a new run takes a new one. */
   readonly id: number;
   /** Where everything random comes from: the same seed plays the same. */
   readonly seed: number;
   readonly speed: Speed;
-  /** How many levels the game has, the last of which wins the run. */
-  readonly levels: number;
+  /** The number of the game's last level, clearing which wins the run. */
+  readonly lastLevel: number;
   /** The level it started at, from 1. */
   readonly firstLevel: number;
   /** The level in play, or the last one cleared, from 1. */
@@ -43,18 +51,24 @@ export interface RunStart {
   readonly id: number;
   readonly seed: number;
   readonly speed: Speed;
-  readonly levels: number;
+  readonly lastLevel: number;
   /** The level it starts at, from 1. */
   readonly level: number;
 }
 
 /** Returns a new run, waiting for its first level to start. */
-export function createRun({ id, seed, speed, levels, level }: RunStart): Run {
+export function createRun({
+  id,
+  seed,
+  speed,
+  lastLevel,
+  level,
+}: RunStart): Run {
   return {
     id,
     seed,
     speed,
-    levels,
+    lastLevel,
     firstLevel: level,
     level,
     banked: 0,
@@ -91,26 +105,32 @@ export function resume(run: Run): Run {
 }
 
 /**
- * Returns the run with the points of the level in play as they now stand,
+ * Returns the run with the points of the level under way as they now stand,
  * and the lives they bring.
  */
 export function tally(run: Run, levelPoints: number): Run {
+  if (!isUnderWay(run)) return run;
   return withScore(run, run.banked + levelPoints);
 }
 
-/** Returns the run with lives that capsules brought, up to the most it may hold. */
+/**
+ * Returns the run with lives that capsules brought, while a level is under
+ * way, up to the most it may hold.
+ */
 export function gainLives(run: Run, count: number): Run {
+  if (!isUnderWay(run)) return run;
   return { ...run, lives: Math.min(MAX_LIVES, run.lives + count) };
 }
 
-/** Returns the run with a life lost, over if it was the last. */
+/** Returns the run with a life lost, while a level is under way, over if it was the last. */
 export function loseLife(run: Run): Run {
+  if (!isUnderWay(run)) return run;
   const lives = run.lives - 1;
   return { ...run, lives, outcome: lives > 0 ? run.outcome : "over" };
 }
 
 /**
- * Returns the run with the level in play cleared: its points banked with
+ * Returns the run with the level under way cleared: its points banked with
  * what clearing it adds, and the run won if it was the last level.
  */
 export function clearLevel(
@@ -118,8 +138,9 @@ export function clearLevel(
   levelPoints: number,
   livesLost: number,
 ): Run {
+  if (!isUnderWay(run)) return run;
   const score = run.banked + levelPoints + clearingPoints(livesLost);
-  const outcome = run.level >= run.levels ? "won" : "cleared";
+  const outcome = run.level >= run.lastLevel ? "won" : "cleared";
   return { ...withScore(run, score), banked: score, outcome };
 }
 
@@ -129,6 +150,11 @@ export function clearLevel(
  */
 export function levelSeed(run: Run): number {
   return run.seed ^ Math.imul(run.level, 0x85ebca6b);
+}
+
+/** Returns whether a level is under way, in play or paused. */
+function isUnderWay(run: Run): boolean {
+  return run.outcome === "playing" || run.outcome === "paused";
 }
 
 /** Returns the run at a score, with a life for each mark it passed on the way, up to the most it may hold. */
