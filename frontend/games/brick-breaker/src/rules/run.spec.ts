@@ -135,6 +135,19 @@ describe("resume", () => {
   });
 });
 
+describe("catchUp", () => {
+  it("returns the run as it is while its field has nothing new", () => {
+    const run = catchUp(
+      playing(),
+      fieldAt({ score: 120, livesGained: 1, livesLost: 1 }),
+    );
+
+    expect(
+      catchUp(run, fieldAt({ score: 120, livesGained: 1, livesLost: 1 })),
+    ).toBe(run);
+  });
+});
+
 describe("catchUp's points", () => {
   it("add the level's to those banked", () => {
     const before = playing({ banked: 3000, score: 3200 });

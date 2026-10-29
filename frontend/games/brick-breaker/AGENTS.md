@@ -84,7 +84,11 @@ the scene and the shell's first files exist.
   its clearing, which it banks, the order they come in on a field, since a
   frame's steps can hold them all; and `levelSeed()` gives each level's
   field a seed of its own. A move that doesn't fit where the run stands
-  returns it as it is, so a run over stays over and a level is banked once.
+  returns it as it is, so a run over stays over and a level is banked once,
+  and so does a field with nothing new, so the shell can tell a frame that
+  changed the run. `describe.ts` puts what happened into the words the
+  announcer says: a level's start, a capsule caught, a ball lost, an extra
+  life, the last few bricks, a clearing, a pause, going on and the end.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -164,9 +168,16 @@ the scene and the shell's first files exist.
   keys, clicks and taps go back through `command()`; Phaser hands a key
   event over again with each new one in a frame, so the scene takes each
   once.
-- **`src/app/`** — the shell: for now `app.component`, which shows the
-  game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
-  `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
+- **`src/app/`** — the shell, one folder per feature, as in Snake: for now
+  `app.component`, which shows the game's name; `play/`, whose
+  `GameService` holds the run in a signal and the level in play's field
+  outside one, moves the field on through `tick()`, which the scene's
+  frames drive, steered as the player steers, launches, fires, pauses,
+  goes on and starts levels and runs, says what happened through
+  `@fz/ui/announcer`, and asks through `@fz/ui/confirm` before a new game
+  or speed throws a run away; and `styles/`, `global.scss`, loaded once
+  from `main.ts`, and `_index.scss`, the toolkit every component `@use`s,
+  which emits no CSS.
 
 ## Development Commands
 
@@ -215,4 +226,6 @@ cleared by it within eight minutes of game time, its last three bricks
 within one, and the catalog spec holds
 the levels to using every brick kind and letting every capsule first fall
 at the level its `from` names, but those the sets still to come bring, which
-it names.
+it names. `GameService`'s spec plays small levels of its own, each set up to
+come to one thing soon, handed in through `GAME_LEVELS`, from a seed of its
+own through `GAME_RANDOM`, steering the paddle from the frame it reads.
