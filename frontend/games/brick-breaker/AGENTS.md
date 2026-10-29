@@ -46,9 +46,10 @@ and the shell exist.
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
   bricks side by side make one face and a corner is only where nothing
-  touches it. `sweep.ts` finds the first moment a moving circle touches a
-  face pushed out by its radius, or a corner, as a share of its move, so
-  however fast a ball goes it can't pass through a brick.
+  touches it. `sweep.ts` finds when a ball's
+  move first touches a face of a box, pushed out by its radius, or a corner,
+  as a share of the move, so however fast a ball goes it can't pass through
+  a brick; bricks, the walls and the paddle are all boxes.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
