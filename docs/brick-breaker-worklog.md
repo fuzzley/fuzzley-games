@@ -1463,3 +1463,51 @@ Checked in a scratch spec, deleted after.
 - **Checks.** `yarn verify` (lint, typecheck, every workspace's tests,
   Brick Breaker's 1,050, and the build); the rules and the view at 100%
   of statements.
+
+## B6.1: the scene, the atlas and the first painters
+
+- **Built,** in `src/scene/`:
+  - `bricks_scene.ts`: `BricksScene` and `makeBricksScene()`, on
+    `BricksSceneOptions`. These are `tick(deltaMs, steer)`, `frame`,
+    `palette`, `motion`, `touch`, `onLayout` and `command`; `sound` and
+    `onPictures` come with B6.2.
+    - Each frame it measures if the canvas moved, hands over the time and
+      the steering, re-bakes on a new palette or unit, starts a new field
+      (a new level), and has the painters draw.
+    - Keys go through `Steering` (held pushes) or `commandOfKey()`; the
+      pointer through `Steering` (a mouse press or a tap launches).
+    - It lets go of every key and finger as the window blurs, the page
+      hides, or the focus leaves the board.
+  - `atlas.ts`: `bakeBricksAtlas()`, which plays the view's commands into
+    a `Graphics` through `bakeAtlas()`.
+  - `field_painter.ts`: the field, the wall on three sides, and the net in
+    the good capsules' accent. It redraws only when the layout, the
+    palette or the net changes.
+  - `brick_painter.ts`: 208 images made once. Each cell's frame changes
+    only when its brick's does; bricks drop in row by row, 45 ms apart, as
+    a level starts, or show at once without motion.
+  - `paddle_painter.ts`: a 3-slice `NineSlice` whose ends come from the
+    paddle frame's `ends`, drawn between its last place and its next, with
+    the cannons (laser) and the rim (catch).
+  - `ball_painter.ts`: eight images, each live ball drawn between its last
+    place and its next in the balls' kind's frame.
+  - The view gains `between(last, next, alpha)` in `frame.ts`.
+  - `bricks_scene.spec.ts`: 40 specs on `runScene()` with a fake shell
+    over a pictured field: the frames and the layout, the atlas (every
+    frame, baked again at a new unit), the field and its palette and net,
+    the bricks (frames, a hit, a break, the drop-in with and without
+    motion, a new level), the paddle (place, interpolation, modes, ends),
+    the balls, the keys and the pointer.
+- **Found on the way.** Phaser's keyboard plugin runs on every key event
+  (`MANAGER_PROCESS`) over the frame's whole queue, which is cleared only
+  at the frame's end. Its duplicate check compares only with the event
+  before, so the third key of a frame hands the first over again.
+  - Four keys in one frame gave nine commands in the spec, and the same
+    can happen in a browser.
+  - The scene keeps the events it took in a `WeakSet` and takes each
+    once.
+  - Snake's scene has the same exposure: a frame with three key events
+    could replay a turn. That is a fix for `@fz/phaser` (a helper both
+    scenes use) and is left for the user to decide, outside this plan.
+- **Checks.** lint, typecheck, test (1,091); the rules and the view at 100%
+  of statements.
