@@ -148,6 +148,16 @@ describe("GameService", () => {
       expect(said()).toBe("Going on.");
     });
 
+    it("goes on at the direction back, and says so", () => {
+      const game = startedGame();
+      game.pause();
+
+      game.turn("down");
+
+      expect(game.outcome()).toBe("playing");
+      expect(said()).toBe("Going on.");
+    });
+
     it("goes on at Resume", () => {
       const game = startedGame();
       game.pause();

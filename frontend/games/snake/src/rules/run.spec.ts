@@ -124,6 +124,25 @@ describe("turn", () => {
     });
   });
 
+  it("goes on with a paused run straight ahead, back the way it heads", () => {
+    const paused = pause(playing);
+
+    expect(turn(paused, "left")).toMatchObject({
+      outcome: "playing",
+      heading: "right",
+      turns: [],
+    });
+  });
+
+  it("goes on with a paused run straight ahead, back the way it will be heading", () => {
+    const paused = pause(turn(playing, "up"));
+
+    expect(turn(paused, "down")).toMatchObject({
+      outcome: "playing",
+      turns: ["up"],
+    });
+  });
+
   it("changes nothing once the run has ended", () => {
     const over = { ...playing, outcome: "over" as const };
 

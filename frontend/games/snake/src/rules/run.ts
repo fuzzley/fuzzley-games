@@ -95,14 +95,15 @@ export function hasEnded(run: Run): boolean {
  * Returns the run with a direction pressed: queued as a turn, if it turns the
  * way the snake will be heading by then, and there is room in the queue.
  *
- * A run waiting or paused starts or goes on at a direction, unless it is
- * back the way the snake is heading. A turn back is dropped, as is one the
- * way the snake already goes.
+ * A run waiting or paused starts or goes on at a direction. Back the way
+ * the snake is heading starts nothing, but goes on with a paused run straight
+ * ahead, since a player who stopped to think may press it. A turn back is
+ * dropped, as is one the way the snake already goes.
  */
 export function turn(run: Run, direction: Direction): Run {
   if (hasEnded(run)) return run;
   const ahead = run.turns.at(-1) ?? run.heading;
-  if (direction === opposite(ahead)) return run;
+  if (direction === opposite(ahead)) return resume(run);
   const queues = direction !== ahead && run.turns.length < MAX_TURNS;
   if (run.outcome === "playing" && !queues) return run;
   return {
