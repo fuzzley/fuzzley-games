@@ -21,3 +21,17 @@ and the QA checkpoints. Newest last.
 - **Branch.** `brick-breaker-lift`, cut from `main` at `c0220468`.
 - **Numbers to compare against.** Snake's entry chunk is 77.7 kB gzipped,
   its scene 4.0 kB and its `phaser` chunk 351.7 kB (from the design plan).
+
+## L1.1: the layout entry
+
+- **Built.** `@fz/phaser/layout`: `fitCells(viewport, { across, down,
+frameCss })`, with `Viewport` (moved from Snake), `CssRect` and `CellFit`,
+  fully covered. The pure entries' ESLint fence takes `src/layout/`, and now
+  lets the pure entries import each other (`layout` takes `Insets`). Snake's
+  `boardMetrics()` is a call to it, and Snake's `BoardRect` is the library's
+  `CssRect`.
+- **Choice.** `board_metrics.spec.ts` changed only its import of `Viewport`,
+  which now comes from the library; its cases are as they were, and pass.
+- **Checks.** `@fz/phaser` and `snake`: lint, typecheck and test pass
+  (Snake 395 tests). Docs: the library's `AGENTS.md`, Snake's layer table
+  and the `phaser-core` skill name the entry.

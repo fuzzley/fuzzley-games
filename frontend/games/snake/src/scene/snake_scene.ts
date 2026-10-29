@@ -1,13 +1,9 @@
 import type { SceneSurroundings } from "@fz/phaser/host";
+import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { onFirstFrame, pixelRatioOf } from "@fz/phaser/scene";
 import { Input, Scene } from "phaser";
 import { BOARD_SIZE } from "../rules/arena";
-import {
-  type BoardMetrics,
-  type BoardRect,
-  type Viewport,
-  boardMetrics,
-} from "../view/board_metrics";
+import { type BoardMetrics, boardMetrics } from "../view/board_metrics";
 import {
   type BoardCommand,
   SWIPE_CSS_PX,
@@ -37,7 +33,7 @@ export interface SnakeSceneOptions {
   /** Returns whether the player wants sound. */
   readonly sound: () => boolean;
   /** Takes where the board now lies on the canvas, in CSS pixels. */
-  readonly onLayout: (board: BoardRect) => void;
+  readonly onLayout: (board: CssRect) => void;
   /** Takes what a key or a swipe asks of the game. */
   readonly command: (command: BoardCommand) => void;
 }

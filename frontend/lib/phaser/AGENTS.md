@@ -18,6 +18,11 @@ take the pure ones.
 - `src/color/`: `colorNumber()`, a palette role's hex as the number Phaser
   takes, and `mixColors()`, two colors mixed as CSS's `color-mix(in srgb)`
   mixes them, for `@fz/style`'s washes. It imports nothing.
+- `src/layout/`: `fitCells()`, which fits a field of square cells, any
+  number across and down with a frame around them, inside a canvas's
+  insets, each cell a whole number of device pixels and the field centered
+  on whole pixels, with the `Viewport` it reads and the `CssRect` it gives
+  back. It imports nothing but `insets`.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
   it, and `ViewportScaler`, which keeps the canvas at the size and pixel
@@ -56,8 +61,8 @@ take the pure ones.
 
 - **Imports go one way.** The library imports Phaser, Angular and
   `@fz/style`, never a game or the site.
-- **The pure entries import nothing,** as ESLint checks, so a game's
-  Phaser-free code can take them.
+- **The pure entries import nothing but each other,** as ESLint checks, so
+  a game's Phaser-free code can take them.
 - **The host and the scene helpers know no framework,** as ESLint checks, so
   a scene runs the same in any app, and in a spec.
 - **Only the canvas makes a host,** and it imports `host` with `import()`:

@@ -14,10 +14,10 @@ import {
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { PhaserCanvasComponent, type SceneSource } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
+import type { CssRect } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { BOARD_SIZE } from "../../rules/arena";
 import type { SnakeSceneOptions } from "../../scene/snake_scene";
-import type { BoardRect } from "../../view/board_metrics";
 import { snakePalette } from "../../view/palette";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
@@ -82,7 +82,7 @@ export class BoardComponent {
   );
 
   /** Where the scene last laid the board out, in CSS pixels on the canvas. */
-  private readonly laidOut = signal<BoardRect | null>(null);
+  private readonly laidOut = signal<CssRect | null>(null);
 
   /** The board's rectangle, for the layout check: x, y, width and height. */
   protected readonly boardRect = computed(() => {

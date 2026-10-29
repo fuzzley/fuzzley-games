@@ -1,14 +1,10 @@
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
+import type { CssRect } from "@fz/phaser/layout";
 import { pixelRatioOf } from "@fz/phaser/scene";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { BOARD_SIZE } from "../rules/arena";
 import { type Run, createRun, step, turn } from "../rules/run";
-import {
-  type BoardRect,
-  boardMetrics,
-  centerX,
-  centerY,
-} from "../view/board_metrics";
+import { boardMetrics, centerX, centerY } from "../view/board_metrics";
 import type { BoardCommand } from "../view/controls";
 import type { SnakeFrame } from "../view/frame";
 import { type SnakePalette, snakePalette } from "../view/palette";
@@ -58,7 +54,7 @@ class FakeShell implements SnakeSceneOptions {
   welcomesMotion = true;
   wantsSound = true;
   readonly ticks: number[] = [];
-  readonly layouts: BoardRect[] = [];
+  readonly layouts: CssRect[] = [];
   readonly commands: BoardCommand[] = [];
 
   readonly tick = (deltaMs: number): void => {
@@ -68,7 +64,7 @@ class FakeShell implements SnakeSceneOptions {
   readonly palette = (): SnakePalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
   readonly sound = (): boolean => this.wantsSound;
-  readonly onLayout = (board: BoardRect): void => {
+  readonly onLayout = (board: CssRect): void => {
     this.layouts.push(board);
   };
   readonly command = (command: BoardCommand): void => {

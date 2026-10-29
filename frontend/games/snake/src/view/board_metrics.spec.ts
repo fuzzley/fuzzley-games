@@ -1,5 +1,6 @@
 import { NO_INSETS } from "@fz/phaser/insets";
-import { type Viewport, boardMetrics, centerX, centerY } from "./board_metrics";
+import type { Viewport } from "@fz/phaser/layout";
+import { boardMetrics, centerX, centerY } from "./board_metrics";
 
 /** Returns a viewport of a CSS size at a pixel ratio. */
 function viewport(
