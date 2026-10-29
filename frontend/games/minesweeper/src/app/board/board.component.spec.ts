@@ -1,10 +1,13 @@
+import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { fireEvent } from "@testing-library/dom";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { PictureOptions } from "../../testing/field_picture";
-import { playOn } from "../../testing/game";
+import { pauseAtEnd, playOn } from "../../testing/game";
+import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
+import { LANDING_STEP_MS } from "./landing";
 
 /**
  * A field in play. Its top-right corner is a blank that opens the squares
@@ -28,6 +31,17 @@ function square(index: number): HTMLElement {
 /** Returns what each square is named, in the order they are shown. */
 function names(): (string | null)[] {
   return squares().map((cell) => cell.getAttribute("aria-label"));
+}
+
+/** Returns when each square that lands does so, by where it is shown. */
+function landingTimes(): Record<number, string> {
+  return Object.fromEntries(
+    squares().flatMap((cell, index) =>
+      cell.classList.contains("lands")
+        ? [[index, cell.style.getPropertyValue("--lands-in")]]
+        : [],
+    ),
+  );
 }
 
 /** Renders the board over a field drawn as a picture. */
@@ -160,6 +174,69 @@ describe("BoardComponent", () => {
 
     expect(square(1)).toHaveAccessibleName("Flagged, no mine");
     expect(square(8)).toHaveAccessibleName("Mine");
+  });
+
+  describe("as a mine is stepped on", () => {
+    it("flashes the mine", async () => {
+      const user = await renderBoard(IN_PLAY);
+
+      await user.click(square(0));
+
+      expect(square(0)).toHaveClass("hit");
+    });
+
+    it("stops flashing it with the next move", async () => {
+      const user = await renderBoard(IN_PLAY);
+      await user.click(square(0));
+
+      await user.click(square(2));
+
+      expect(square(0)).not.toHaveClass("hit");
+    });
+
+    it("leaves still a mine stepped on before the game was taken up", async () => {
+      await renderBoard(["x..", "...", "..*"]);
+
+      expect(square(0)).not.toHaveClass("hit");
+    });
+  });
+
+  describe("at the end of a game", () => {
+    it("lands a loss's mines and wrong flags, later the further from the last move", async () => {
+      pauseAtEnd(60_000);
+      const user = await renderBoard(["*f..", "..*.", "....", "...*"], {
+        livesLeft: 1,
+      });
+
+      await user.click(square(0));
+
+      expect(landingTimes()).toEqual({
+        1: `${LANDING_STEP_MS}ms`,
+        6: `${2 * LANDING_STEP_MS}ms`,
+        15: `${3 * LANDING_STEP_MS}ms`,
+      });
+    });
+
+    it("lands a flag on each mine a win leaves, but not on the player's own", async () => {
+      pauseAtEnd(60_000);
+      const user = await renderBoard(["F1_", "121", ".1*"]);
+
+      await user.click(square(6));
+
+      expect(Object.keys(landingTimes())).toEqual(["8"]);
+    });
+
+    it("keeps still once the card opens", async () => {
+      pauseAtEnd(1000);
+      await renderBoard(["F1_", "121", ".1*"]);
+      vi.useFakeTimers();
+      TestBed.inject(GameService).reveal(6);
+
+      vi.advanceTimersByTime(1000);
+      TestBed.tick();
+
+      expect(landingTimes()).toEqual({});
+    });
   });
 
   describe("on a touch screen", () => {

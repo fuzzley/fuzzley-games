@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { GameService } from "../app/play/game.service";
+import { ENDING_PAUSE, GameService } from "../app/play/game.service";
 import type { DifficultyId } from "../rules/difficulty";
 import { type PictureOptions, fieldFrom } from "./field_picture";
 
@@ -24,4 +24,15 @@ export function playOn(
     options.difficulty ?? "medium",
   );
   return game;
+}
+
+/**
+ * Sets how long a finished board shows how the game ended before the card
+ * opens, in ms; 0 opens it in the move that ends the game. Call it before
+ * anything injects the game.
+ */
+export function pauseAtEnd(ms: number): void {
+  TestBed.configureTestingModule({
+    providers: [{ provide: ENDING_PAUSE, useValue: () => ms }],
+  });
 }

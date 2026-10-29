@@ -11,6 +11,7 @@ import { IconComponent } from "@fz/ui/icon";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { describeSquare, type Showing, showing } from "../../rules/describe";
 import { GameService } from "../play/game.service";
+import { LANDING_RUN_MS, landings } from "./landing";
 import { LongPressDirective } from "./long_press.directive";
 
 /** Describes one square as the board draws it. */
@@ -21,6 +22,13 @@ interface CellView {
   /** The number it shows, or null. */
   readonly count: number | null;
   readonly label: string;
+  /** Whether the last move stepped on it, which flashes it. */
+  readonly hit: boolean;
+  /**
+   * How long after the move that ended the game it lands, showing how, as a
+   * CSS time; null when it doesn't, or once the card is open.
+   */
+  readonly landsIn: string | null;
 }
 
 /**
@@ -37,6 +45,9 @@ interface CellView {
 @Component({
   selector: "app-board",
   imports: [Grid, GridRow, GridCell, IconComponent, LongPressDirective],
+  host: {
+    "[style.--landing-run]": "landingRun",
+  },
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
 })
@@ -45,6 +56,8 @@ export class BoardComponent {
   private readonly viewport = inject(GameViewportService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
+
+  protected readonly landingRun = `${LANDING_RUN_MS}ms`;
 
   /** Whether the board stands a wide field on end, to fit an upright screen. */
   protected readonly turned = computed(() => {
@@ -69,16 +82,25 @@ export class BoardComponent {
     const { cols } = field.size;
     const shape = this.shape();
     const turned = this.turned();
+    const move = this.game.lastMove();
+    const landing =
+      move && this.game.ending() ? landings(field, move.before, move.at) : null;
     return Array.from({ length: shape.rows }, (_, row) =>
       Array.from({ length: shape.cols }, (_, col) => {
         const index = turned ? col * cols + row : row * cols + col;
         const shown = showing(field, index);
+        const landsIn = landing?.get(index);
         return {
           index,
           showing: shown,
           count:
             shown === "number" ? (field.layout?.counts[index] ?? null) : null,
           label: describeSquare(field, index),
+          hit:
+            shown === "tripped" &&
+            move !== null &&
+            move.before.squares[index] !== "tripped",
+          landsIn: landsIn === undefined ? null : `${landsIn}ms`,
         };
       }),
     );

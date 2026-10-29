@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { playOn } from "../testing/game";
+import { pauseAtEnd, playOn } from "../testing/game";
 import { AppComponent } from "./app.component";
 
 /** Renders the game over a field drawn as a picture. */
@@ -89,6 +89,7 @@ describe("AppComponent", () => {
   });
 
   it("shows how the game ended", async () => {
+    pauseAtEnd(0);
     const user = await renderApp(["*1_", "121", ".1*"]);
 
     await user.click(square(6));
@@ -98,7 +99,29 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
   });
 
+  it("leaves the board to look at for a moment before the card", async () => {
+    pauseAtEnd(60_000);
+    const user = await renderApp(["*1_", "121", ".1*"]);
+
+    await user.click(square(6));
+
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+
+  it("opens the card at once on a click on the board in the pause", async () => {
+    pauseAtEnd(60_000);
+    const user = await renderApp(["*1_", "121", ".1*"]);
+    await user.click(square(6));
+
+    await user.click(square(0));
+
+    expect(
+      await screen.findByRole("alertdialog", { name: "Field cleared!" }),
+    ).toBeInTheDocument();
+  });
+
   it("gives the board the focus after New Game from the card", async () => {
+    pauseAtEnd(0);
     const user = await renderApp(["*1_", "121", ".1*"]);
     await user.click(square(6));
     const card = await screen.findByRole("alertdialog");

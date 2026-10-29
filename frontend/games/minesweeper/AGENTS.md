@@ -38,10 +38,12 @@ workspace keeps its own for its code. Paths are relative to
   the `<fz-announcer>` every move is announced through.
   - `play/` — `GameService` holds the game in play, runs its clock on
     `@fz/game-ui/stopwatch`, makes every move and says what it did through
-    `@fz/ui/announcer`, and asks through `@fz/ui/confirm` before a new deal
-    throws a game away; `SavedGameService` keeps the game in progress.
-  - `board/` — the minefield, and `LongPressDirective`, which tells when a
-    finger rests on it and keeps the click that follows from it.
+    `@fz/ui/announcer`, asks through `@fz/ui/confirm` before a new deal
+    throws a game away, and waits a moment once a game ends before the card
+    opens (`ENDING_PAUSE`); `SavedGameService` keeps the game in progress.
+  - `board/` — the minefield, `LongPressDirective`, which tells when a
+    finger rests on it and keeps the click that follows from it, and
+    `landing.ts`, which times how the board shows a game's end.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     difficulty, a `<fz-bar-choice>` that deals a field of another through
     `GameService.changeSettings()`, Custom's the one the settings keep, on
@@ -82,6 +84,13 @@ workspace keeps its own for its code. Paths are relative to
   palette, so a palette that breaks it needs the inks changed with it.
 - **It turns** on an upright screen when the field is wider than tall, so a
   Hard field fits a phone without scrolling sideways.
+- **It shows how a game ended** before the card opens. A mine stepped on
+  flashes, and once the game ends the squares that show how land one after
+  another, out from the last move: a loss's mines and wrong flags, and the
+  flags a win lays. `src/app/board/landing.ts` times them, and
+  `GameService` waits that long and a moment more, or the moment alone
+  where motion is unwelcome. A move on the board in the pause opens the
+  card at once.
 
 ## Styling
 
