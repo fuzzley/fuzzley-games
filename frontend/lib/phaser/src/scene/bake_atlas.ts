@@ -19,7 +19,7 @@ export const ATLAS_GUTTER = 2;
 /** The widest or tallest an atlas may be, which every WebGL device takes. */
 export const MAX_ATLAS_SIDE = 4096;
 
-/** Where a frame lies in the atlas. */
+/** Says where a frame lies in the atlas. */
 interface Placed {
   readonly frame: AtlasFrame;
   readonly x: number;
@@ -33,14 +33,24 @@ interface Packing {
   readonly height: number;
 }
 
+/** The name Phaser gives the frame that is a texture's whole. */
+const BASE_FRAME = "__BASE";
+
+/** Returns whether a size is a whole number of pixels, at least one. */
+function isWholeSize(size: number): boolean {
+  return Number.isInteger(size) && size > 0;
+}
+
 /**
  * Draws many frames into one texture, each a named frame of it, so the game
  * objects that show them draw in one batch; draws it again whenever a lost
  * WebGL context is restored, as {@link bakeTexture} does.
  *
  * Baking a key again draws over its texture and moves its frames, keeping
- * each frame's object, so an image already showing one shows the new
- * picture; it takes the frame's new size once it sets the frame again.
+ * each frame's object, but an object showing one takes the frame's new size
+ * and origin only once it sets the frame again, and one left showing a
+ * frame the new bake leaves out throws as it draws. So a scene sets every
+ * object's frame again after a bake.
  */
 export function bakeAtlas(
   scene: Scene,
@@ -73,7 +83,9 @@ export function bakeAtlas(
 
 /**
  * Packs frames into rows, in their order, about as wide as the atlas is
- * tall, with a gutter between, or throws for frames it can't pack.
+ * tall, with a gutter between. It throws for two frames of one name, a
+ * frame named as Phaser names a texture's whole, a size that isn't a whole
+ * number of pixels above 0, or an atlas larger than every device takes.
  */
 function pack(frames: readonly AtlasFrame[]): Packing {
   const names = new Set<string>();
@@ -82,6 +94,14 @@ function pack(frames: readonly AtlasFrame[]): Packing {
   for (const frame of frames) {
     if (names.has(frame.name)) {
       throw new Error(`Two atlas frames are named "${frame.name}".`);
+    }
+    if (frame.name === BASE_FRAME) {
+      throw new Error(`An atlas frame can't be named "${BASE_FRAME}".`);
+    }
+    if (!isWholeSize(frame.width) || !isWholeSize(frame.height)) {
+      throw new Error(
+        `The atlas frame "${frame.name}" is ${frame.width} × ${frame.height}, not whole pixels.`,
+      );
     }
     names.add(frame.name);
     area += (frame.width + ATLAS_GUTTER) * (frame.height + ATLAS_GUTTER);

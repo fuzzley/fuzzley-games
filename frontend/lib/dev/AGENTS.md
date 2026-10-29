@@ -119,8 +119,8 @@ too. Paths are relative to `frontend/lib/dev/`.
 - `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized.
   A `Sound` is a name, a length, a peak and a wave, made of `glide()` (a
   tone gliding between two pitches), `envelope()`, `thud()` (seeded noise)
-  and `note()`; `writeSoundSprite()` renders a list of them, refusing none,
-  two of one name or a silent one, at 16,000
+  and `note()`; `writeSoundSprite()` renders a list of them, throwing for an
+  empty list, two of one name or a silent one, at 16,000
   samples a second, each faded out at its end and a tenth of a second
   apart, into `sounds.wav` and the spritemap Phaser plays it by,
   `sounds.json`, the same bytes every run. A game's
@@ -182,7 +182,7 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   games with Vite in a folder of their own and reads the manifests they
   write; `src/screenshots.spec.ts` writes the site's images from a capture
   it draws; `src/sounds.spec.ts` renders sprites and reads them back;
-  `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers and the layout check against a fake browser,
-  `src/testing/fake_browser.ts`. Starting a real Chrome is left to the
+  `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
+  and the layout check against a fake browser, `src/testing/fake_browser.ts`. Starting a real Chrome is left to the
   screenshot scripts, so the coverage floor in `vitest.config.ts` sits
   under it.

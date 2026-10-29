@@ -118,7 +118,11 @@ describe("thud", () => {
 
 describe("note", () => {
   it("is silent until it starts", () => {
-    const played = note(0.5, (t) => t + 1, envelope(0.001, 1));
+    const played = note(
+      0.5,
+      () => 1,
+      () => 1,
+    );
 
     expect(played(0.4)).toBe(0);
   });
@@ -194,6 +198,14 @@ describe("renderSoundSprite", () => {
 
   it("refuses no sounds", () => {
     expect(() => renderSoundSprite([])).toThrow("A sprite needs a sound.");
+  });
+
+  it("takes a sound named as an object's own members are", () => {
+    const { json } = renderSoundSprite([{ ...BEEP, name: "toString" }]);
+
+    expect(
+      Object.keys((JSON.parse(json) as { spritemap: object }).spritemap),
+    ).toEqual(["toString"]);
   });
 
   it("refuses two sounds of one name", () => {

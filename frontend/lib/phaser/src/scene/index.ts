@@ -1,9 +1,4 @@
-export {
-  ATLAS_GUTTER,
-  type AtlasFrame,
-  MAX_ATLAS_SIDE,
-  bakeAtlas,
-} from "./bake_atlas";
+export { type AtlasFrame, bakeAtlas } from "./bake_atlas";
 export { type DrawTexture, bakeTexture } from "./bake_texture";
 export {
   onContextRestored,
