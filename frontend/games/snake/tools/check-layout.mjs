@@ -2,7 +2,8 @@
 /**
  * Checks Snake's layout in a headless Chrome, which jsdom can't: the build
  * is served as `yarn preview` serves it and opened at each shape a game is
- * laid out for (`@fz/dev/layout`), at twice the pixels, once as a mouse
+ * laid out for (`@fz/dev/layout`), and at the smallest phone, at twice the
+ * pixels, and turned from upright to its side and back, once as a mouse
  * finds it and once with the on-screen arrows.
  *
  *   yarn build
@@ -10,10 +11,11 @@
  *
  * At each shape the page must report no error and not scroll; the canvas
  * must be drawn, at its size in CSS pixels times the pixel ratio; the board
- * must be square, its squares at least 16 CSS px, in the window, where the
- * placeholder drew it, to the pixel, and inside the focus ring; and the
- * arrows must lie in the window, clear of the board. It prints what is
- * wrong and fails, or says the layout holds.
+ * must be square, its squares at least 16 CSS px (12 on the smallest phone
+ * with the arrows), in the window, where the placeholder drew it, to the
+ * pixel, and inside the focus ring; its card must lie on it; and the arrows
+ * must lie in the window, clear of the board. It prints what is wrong and
+ * fails, or says the layout holds.
  */
 import { access } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -21,7 +23,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { preview } from "vite";
 import { withChrome } from "@fz/dev/chrome";
-import { SHAPES, checkLayout } from "@fz/dev/layout";
+import { SHAPES, TURNS, checkLayout, checkTurns } from "@fz/dev/layout";
 
 const USAGE = `Usage: yarn check:layout [options]
 
@@ -33,10 +35,26 @@ Checks the build's layout in headless Chrome at each shape a game takes.
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+/**
+ * The smallest phone, held upright, where the arrows under the board leave
+ * it squares of only 12 CSS px or so, whatever their size.
+ */
+const SMALLEST = {
+  name: "smallest phone portrait",
+  viewport: { width: 320, height: 480, deviceScaleFactor: 1 },
+};
+
 /** The shapes, at twice the pixels, so the canvas's backing size is tested. */
-const SHAPES_2X = SHAPES.map((shape) => ({
+const SHAPES_2X = [...SHAPES, SMALLEST].map((shape) => ({
   ...shape,
   viewport: { ...shape.viewport, deviceScaleFactor: 2 },
+}));
+
+/** The turns, at twice the pixels. */
+const TURNS_2X = TURNS.map((turn) => ({
+  ...turn,
+  from: { ...turn.from, deviceScaleFactor: 2 },
+  to: { ...turn.to, deviceScaleFactor: 2 },
 }));
 
 /**
@@ -99,8 +117,13 @@ function inspectBoard() {
   if (Math.abs(width - height) > 0.5) {
     problems.push(`The board is ${width} by ${height} CSS px, not square.`);
   }
-  if (square < 16) {
-    problems.push(`The board's squares are ${square} CSS px, under 16.`);
+  // Under 360 CSS px wide, the arrows under the board leave it no more.
+  const smallest =
+    innerWidth < 360 && document.querySelector(".arrow") ? 12 : 16;
+  if (square < smallest) {
+    problems.push(
+      `The board's squares are ${square} CSS px, under ${smallest}.`,
+    );
   }
   if (
     left < 0 ||
@@ -127,6 +150,17 @@ function inspectBoard() {
         `The placeholder drew the board ${off.toFixed(1)} CSS px from where the scene did.`,
       );
     }
+  }
+
+  const card = document.querySelector(".card")?.getBoundingClientRect();
+  if (
+    card &&
+    (card.left < left - 1 ||
+      card.top < top - 1 ||
+      card.right > left + width + 1 ||
+      card.bottom > top + height + 1)
+  ) {
+    problems.push("The card over the board runs off it.");
   }
 
   const ring = document.querySelector(".ring")?.getBoundingClientRect();
@@ -213,9 +247,20 @@ async function main() {
           { url, ready, inspect: inspectBoard, before: wantArrows },
           SHAPES_2X,
         );
+        const turned = await checkTurns(
+          devtools,
+          { url, ready, inspect: inspectBoard },
+          TURNS_2X,
+        );
+        const turnedWithArrows = await checkTurns(
+          devtools,
+          { url, ready, inspect: inspectBoard, before: wantArrows },
+          TURNS_2X,
+        );
         return [
           ...plain,
-          ...withArrows.map((found) => ({
+          ...turned,
+          ...[...withArrows, ...turnedWithArrows].map((found) => ({
             ...found,
             shape: `${found.shape}, with the arrows`,
           })),
@@ -229,9 +274,11 @@ async function main() {
       process.exitCode = 1;
       return;
     }
-    const shapes = SHAPES.map((shape) => shape.name).join(", ");
+    const shapes = [...SHAPES, SMALLEST, ...TURNS]
+      .map((shape) => shape.name)
+      .join(", ");
     console.log(
-      `Snake's layout holds at each shape, with and without the arrows: ${shapes}.`,
+      `Snake's layout holds at each shape and turn, with and without the arrows: ${shapes}.`,
     );
   } finally {
     await server.close();

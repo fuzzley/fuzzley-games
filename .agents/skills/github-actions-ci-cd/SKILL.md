@@ -25,8 +25,8 @@ a run in progress.
    build). The build builds the games in `frontend/games/` and copies the
    ones `frontend/site/games.json` lists into the site. Then
    `yarn check:layout` opens each game's build that has a layout check in
-   the runner's Chrome, at a roomy window, an upright phone and one on its
-   side (`@fz/dev/layout`).
+   the runner's Chrome, at a roomy window and a large and a small phone,
+   upright and on its side (`@fz/dev/layout`).
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
