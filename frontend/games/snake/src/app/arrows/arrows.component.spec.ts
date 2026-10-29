@@ -61,6 +61,54 @@ describe("ArrowsComponent", () => {
   });
 });
 
+describe("ArrowsComponent with the focus on an arrow", () => {
+  it("turns the snake at an arrow key, as the board does", async () => {
+    const game = await renderArrows();
+    game.turn("up");
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Up" }), {
+      code: "ArrowLeft",
+    });
+
+    expect(game.run().turns).toEqual(["up", "left"]);
+  });
+
+  it("pauses at Space, without pressing the arrow", async () => {
+    const game = await renderArrows();
+    game.turn("up");
+    const up = screen.getByRole("button", { name: "Up" });
+
+    const pressed = fireEvent.keyDown(up, { code: "Space" });
+    fireEvent.keyUp(up, { code: "Space" });
+
+    expect(pressed).toBe(false);
+    expect(game.outcome()).toBe("paused");
+  });
+
+  it("leaves Enter to press the arrow", async () => {
+    await renderArrows();
+
+    const pressed = fireEvent.keyDown(
+      screen.getByRole("button", { name: "Up" }),
+      { code: "Enter" },
+    );
+
+    expect(pressed).toBe(true);
+  });
+
+  it("ignores a key held down", async () => {
+    const game = await renderArrows();
+    game.turn("up");
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Up" }), {
+      code: "ArrowLeft",
+      repeat: true,
+    });
+
+    expect(game.run().turns).toEqual(["up"]);
+  });
+});
+
 describe("ArrowsComponent before the board is drawn", () => {
   it("does nothing at a press", async () => {
     const game = await renderArrows();

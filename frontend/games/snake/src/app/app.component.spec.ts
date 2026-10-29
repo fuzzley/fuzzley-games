@@ -148,6 +148,66 @@ describe("AppComponent", () => {
     });
   });
 
+  describe("the room", () => {
+    it("keeps the focus on the board through a press beside it", async () => {
+      const game = await renderApp();
+      await settle();
+      game.turn("up");
+
+      const kept = !fireEvent.pointerDown(screen.getByRole("main"), {
+        button: 0,
+      });
+
+      expect(kept).toBe(true);
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("lets a press on a control take the focus", async () => {
+      await renderApp();
+      await settle();
+
+      const taken = fireEvent.pointerDown(
+        screen.getByRole("button", { name: "New Game" }),
+        { button: 0 },
+      );
+
+      expect(taken).toBe(true);
+    });
+
+    it("pauses the run as the focus leaves the board for the bar", async () => {
+      const game = await renderApp();
+      await settle();
+      game.turn("up");
+
+      await userEvent.tab();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("keeps the run going as the focus moves from the board to an arrow", async () => {
+      onTouchScreen();
+      const game = await renderApp();
+      await settle();
+      game.turn("up");
+
+      await userEvent.tab();
+
+      expect(screen.getByRole("button", { name: "Up" })).toHaveFocus();
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("pauses the run as the focus leaves the arrows for the bar", async () => {
+      onTouchScreen();
+      const game = await renderApp();
+      await settle();
+      game.turn("up");
+
+      await userEvent.tab({ shift: true });
+
+      expect(game.outcome()).toBe("paused");
+    });
+  });
+
   describe("the arrows", () => {
     it("wait for the board to be drawn", async () => {
       onTouchScreen();

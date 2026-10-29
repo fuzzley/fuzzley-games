@@ -4,7 +4,12 @@
   it.
 -->
 <main class="stage">
-  <div class="room" [class.with-arrows]="showArrows()">
+  <div
+    #room
+    class="room"
+    [class.with-arrows]="showArrows()"
+    (focusout)="onRoomFocusOut($event)"
+  >
     <app-board #board />
     @if (showArrows()) {
       <app-arrows
