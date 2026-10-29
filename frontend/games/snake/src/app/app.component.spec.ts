@@ -94,6 +94,55 @@ describe("AppComponent", () => {
     expect(game.outcome()).toBe("playing");
   });
 
+  describe("turning the screen", () => {
+    beforeEach(() => {
+      viewport = installFakeViewport(390, 844);
+    });
+
+    it("pauses the run under way, and says so", async () => {
+      const game = await renderApp();
+      game.turn("up");
+
+      viewport?.setSize(844, 390);
+      await settle();
+
+      expect(game.outcome()).toBe("paused");
+      expect(document.querySelector("fz-announcer")).toHaveTextContent(
+        /^Paused, with a score of 0/,
+      );
+    });
+
+    it("pauses it turned back upright too", async () => {
+      viewport?.setSize(844, 390);
+      const game = await renderApp();
+      game.turn("up");
+
+      viewport?.setSize(390, 844);
+      await settle();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("leaves a run waiting for its first direction waiting", async () => {
+      const game = await renderApp();
+
+      viewport?.setSize(844, 390);
+      await settle();
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("leaves the run going through a change of size that doesn't turn it", async () => {
+      const game = await renderApp();
+      game.turn("up");
+
+      viewport?.setSize(390, 664);
+      await settle();
+
+      expect(game.outcome()).toBe("playing");
+    });
+  });
+
   describe("the arrows", () => {
     it("show on a touch screen", async () => {
       onTouchScreen();

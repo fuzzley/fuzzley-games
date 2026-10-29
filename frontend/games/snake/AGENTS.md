@@ -71,7 +71,7 @@ Phaser stays out of the first download.
   Sudoku. `app.component` lays out the board, the arrows and the bar, with
   the `<fz-announcer>` the run is announced through; it hands the board the
   focus as each run begins and whenever the last dialog closes, and pauses
-  the run when the page is hidden.
+  the run when the page is hidden or the screen turns.
   - `play/` — `GameService` holds the run and its clock, which the scene's
     frames drive through `tick()`, makes every command, says what happened,
     keeps the stats, and asks through `@fz/ui/confirm` before a new game or
@@ -129,7 +129,7 @@ Phaser stays out of the first download.
   captures are global, which is why the scene takes only the keys the game
   uses, and ignores a held key and one pressed with Ctrl, Alt or Meta.
 - **The run waits for the player.** It starts at the first direction, pauses
-  when the focus leaves the board or the page is hidden, and goes on at
+  when the focus leaves the board, the page is hidden or the screen turns, and goes on at
   once at a direction, Space or P; a run taken up after a reload starts
   paused.
 - **Its colors are the palette's.** `snakePalette()` takes the panel, the

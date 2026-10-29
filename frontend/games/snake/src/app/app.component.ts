@@ -27,7 +27,8 @@ import { SettingsService } from "./settings/settings.service";
  *
  * The board takes the focus as a run begins, as the page loads or after a new
  * game, and whenever the last dialog over it closes, so the keys steer at
- * once. The run pauses whenever the page is hidden; the board pauses it
+ * once. The run pauses whenever the page is hidden or the screen turns,
+ * which moves the board while the player can't watch it; the board pauses it
  * whenever it loses the focus.
  */
 @Component({
@@ -85,7 +86,21 @@ export class AppComponent {
   /** Whether a dialog covered the board when the focus was last looked at. */
   private wasCovered = false;
 
+  /** Whether the window was upright when last looked at, to tell a turn. */
+  private wasPortrait: boolean | null = null;
+
   constructor() {
+    effect(() => {
+      const portrait = this.viewport.isPortrait();
+      const turned = this.wasPortrait !== null && portrait !== this.wasPortrait;
+      this.wasPortrait = portrait;
+      if (turned) {
+        untracked(() => {
+          this.game.pause();
+        });
+      }
+    });
+
     effect(() => {
       const run = this.game.runs();
       const covered = this.covered();
