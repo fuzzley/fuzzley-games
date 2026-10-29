@@ -933,3 +933,66 @@ paddle's side, and `hardSolid`.
   statements, `levels.ts` at 100% of branches.
 - **Review in.** B3.4's review came in during this step; its fixes follow
   in their own commit, before B4.2.
+
+## B3.4's review
+
+The reviewer reviewed B3.4 with the fixes of B2.4's and B3.2's reviews. It
+found scoring as the plan has it, the timers exact, and the earlier fixes
+covered by specs that fail when they are undone, but for those below. Its
+findings:
+
+1. **The run's moves acted on any run.** `loseLife()` on the last life and
+   then `clearLevel()` revived a run with no lives, the order of the two
+   decided the outcome, `tally()` after `clearLevel()` banked twice, and
+   lives went on after the run was over. Fixed: `tally()`, `gainLives()`,
+   `loseLife()` and `clearLevel()` act only while a level is under way, in
+   play or paused, and return any other run as it is. So a run over stays
+   over though a blast clears its level after the last life, and a level
+   is banked once. `Run`'s doc and the plan say so. Specs: each move
+   refuses each outcome, and a run over stays over through a clear.
+2. **The right-angle spec didn't test its fix.** Its heading, -36.87°, met
+   the two walls one after the other. Fixed: the exact heading, from
+   `atan2`, and the spec expects one `wall` event. It now fails with one
+   reflect about the summed normal.
+3. **Gaps in the specs, each a mutation that passed.** Fixed: `tally()`'s
+   spec arranges a score apart from the banked points; a mark passed at
+   six checks the next mark; `clearLevel()`'s spec arranges a stale score;
+   a ball lost while another plays on keeps the streak and costs no life;
+   a blast that clears the level hits nothing more, and a second blast lit
+   with it goes out. Each fails with its mutation.
+4. **A gap just over a ball's width beside a wall** let a ball shuttle
+   between the wall and the paddle's side, all but still. Fixed: the
+   paddle's reach closes a gap under `CLOSED_GAP`, a ball's width and 0.1.
+   A probe of the narrowest gap left open, 0.83, at four headings: the ball
+   is out within 19 steps, a sixth of a second. The spec checks a gap of
+   0.7 and one of 0.8.
+5. **Scoring in the form the plan needs later.** Fixed: the field keeps
+   what the streaks added apart (`streakPoints`), for the Cleared card.
+   Left for B9, as the plan now says: the `broken` event will carry the
+   streak, for the rising pitch.
+6. **Design questions.** Fire cost points, as a 4-hit brick broken in one
+   hit scored 50. Fixed: a hit scores each of the hits it takes, so a fire
+   ball's scores them all. The clean bonus is for no life lost, as the code
+   has it; the plan's wording now says so.
+7. **Readability.** Fixed: the streak's rule is all in `scoring.ts`
+   (`scoreBreak()` lengthens the streak and then scores, `endStreak()`
+   starts it again); `Field.livesGained` and `livesLost` say they count up
+   for the run to take what is new; `mirror()` reflects by each face's sign
+   once.
+8. **Doc nits.** Fixed: `FieldSetup.seed` is the level's; `Run`'s doc
+   opens "Describes"; `Field.streak` names the lost ball; `Run.levels` is
+   `lastLevel`. `hitBrick()`'s ragged wrap went with B3.3's review.
+9. **Spec nits.** Fixed: `scoring.spec`'s hits go through `brickAt()`,
+   which throws for no brick; `gainLives()`, `pause()` and `resume()` have
+   one act a spec; `KEEPER` and `brickAt()` are `field_picture.ts`'s, for
+   the three specs that used copies; `fieldFrom()` throws for more than 16
+   rows. Left: the seam spec, which checks that two bricks met at once
+   turn a ball once. Exposure is not what makes it pass: a face its
+   neighbour hides can't be reached in this sweep, so exposing every side
+   changes no turn. `exposureOf()` stays, as it spares the sweep the hidden
+   faces.
+
+Left as advised: the run a value and the field mutable, `levelSeed()`'s
+mix, `multiplier()`'s scan, a mark spent at six, steel scoring 0, the
+streak's breaks, `startLevel()` from `cleared`, and the earlier fixes'
+shapes.

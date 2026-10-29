@@ -18,7 +18,7 @@ import {
   rowOf,
 } from "./grid";
 import type { LevelBrick } from "./level";
-import { scoreHit } from "./scoring";
+import { scoreBreak, scoreHit } from "./scoring";
 import { stepsIn } from "./stepper";
 import { BALL_RADIUS } from "./tuning";
 
@@ -150,8 +150,9 @@ export function isNeeded(brick: Readonly<Brick>): boolean {
  * `damage` says off it, or all of them, and returns whether it broke.
  *
  * Its events are recorded at `x` and `y`, where the ball, the bolt or the
- * blast was. Each hit scores, and each brick broken lengthens the streak
- * that multiplies the score and may let a capsule fall. Breaking the last
+ * blast was. Each hit scores the hits it takes, and each brick broken
+ * lengthens the streak that multiplies the score and may let a capsule
+ * fall. Breaking the last
  * brick the level needs clears it, after which, as on a broken brick, a hit
  * does nothing.
  */
@@ -164,17 +165,17 @@ export function hitBrick(
 ): boolean {
   if (brick.broken || field.state === "cleared") return false;
   runTraits("hit", field, brick);
+  const before = brick.hits;
   if (canBreak(brick)) {
-    brick.hits = damage === "breaks" ? 0 : brick.hits - damage;
+    brick.hits = damage === "breaks" ? 0 : Math.max(0, brick.hits - damage);
   }
   if (!canBreak(brick) || brick.hits > 0) {
-    scoreHit(field, brick);
+    scoreHit(field, brick, before - brick.hits);
     field.events.add("hit", x, y, brick.cell);
     return false;
   }
   brick.broken = true;
-  field.streak++;
-  scoreHit(field, brick);
+  scoreBreak(field, brick, before);
   field.events.add("broken", x, y, brick.cell);
   runTraits("broken", field, brick);
   if (isNeeded(brick)) {

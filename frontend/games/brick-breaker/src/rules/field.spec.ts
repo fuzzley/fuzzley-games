@@ -19,6 +19,7 @@ import {
   MAX_CONTACTS,
   PADDLE_ANGLE,
   PADDLE_TOP,
+  PADDLE_WIDTH,
   SERVE_ANGLE,
   STEP_S,
 } from "./tuning";
@@ -160,13 +161,15 @@ describe("the walls", () => {
   it("send back the way it came a ball that meets two at once at a right angle", () => {
     // Heading 0.6 left for each 0.8 up, it reaches both walls at once.
     const field = fieldFrom(FAR_BRICK);
-    const ball = throwBall(field, 0.96, 1.16, -36.87);
+    const heading = (-Math.atan2(0.6, 0.8) * 180) / Math.PI;
+    const ball = throwBall(field, 0.96, 1.16, heading);
 
     stepTimes(field, 10);
 
-    expect([ball.dx, ball.dy].map((each) => Number(each.toFixed(3)))).toEqual([
-      0.6, 0.8,
-    ]);
+    expect({
+      way: [ball.dx, ball.dy].map((each) => Number(each.toFixed(3))),
+      events: eventsOf(field),
+    }).toEqual({ way: [0.6, 0.8], events: ["wall"] });
   });
 
   it("say a ball bounced off them", () => {
@@ -248,10 +251,12 @@ describe("the paddle", () => {
     expect(ball.y).toBeGreaterThan(28.4);
   });
 
-  it("leaves no gap a ball could be caught in beside a wall", () => {
-    // The paddle's end is 0.7 from the left wall, narrower than a ball.
+  it.each([
+    ["narrower than a ball", 0.7],
+    ["a little wider than a ball, which it would shuttle in", 0.8],
+  ])("leaves no gap beside a wall %s", (_, gap) => {
     const field = fieldFrom(FAR_BRICK);
-    steerField(field, { ...NO_STEER, to: 2.7 });
+    steerField(field, { ...NO_STEER, to: PADDLE_WIDTH / 2 + gap });
     stepTimes(field, 40);
     const ball = throwBall(field, BALL_RADIUS, 26, 180);
 

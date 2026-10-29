@@ -1,19 +1,20 @@
-import { fieldFrom, stepTimes, throwBall } from "../testing/field_picture";
+import {
+  KEEPER,
+  brickAt,
+  fieldFrom,
+  stepTimes,
+  throwBall,
+} from "../testing/field_picture";
 import { hitBrick } from "./bricks";
 import type { Field } from "./field";
-import { cellIndex } from "./grid";
 import { clearingPoints, multiplier } from "./scoring";
 import { stepsIn } from "./stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "./tuning";
 
-/** A brick far down the field, which keeps a level from clearing. */
-const KEEPER = ["", "", "", "", "", "", "", "", "", "o"];
-
-/** Hits the bricks of the first row, in the columns given, in turn. */
+/** Hits the bricks of the first row once each, in the columns given, in turn. */
 function hitTop(field: Field, ...columns: number[]): void {
   for (const column of columns) {
-    const brick = field.bricks[cellIndex(column, 0)];
-    if (brick) hitBrick(field, brick, 0, 0);
+    hitBrick(field, brickAt(field, column, 0), 0, 0);
   }
 }
 
@@ -33,7 +34,7 @@ describe("multiplier", () => {
 });
 
 describe("clearingPoints", () => {
-  it("adds more for a level cleared without losing a ball", () => {
+  it("adds more for a level cleared without losing a life", () => {
     expect([clearingPoints(0), clearingPoints(1)]).toEqual([
       CLEAR_POINTS + CLEAN_POINTS,
       CLEAR_POINTS,
@@ -56,6 +57,14 @@ describe("a level's score", () => {
     expect(field.score).toBe(score);
   });
 
+  it("counts every hit a brick takes at once, as from a fire ball", () => {
+    const field = fieldFrom(["4", ...KEEPER]);
+
+    hitBrick(field, brickAt(field, 0, 0), 0, 0, "breaks");
+
+    expect(field.score).toBe(200);
+  });
+
   it("counts a regrowing brick each time it breaks", () => {
     const field = fieldFrom(["+", ...KEEPER]);
     hitTop(field, 0);
@@ -74,10 +83,17 @@ describe("a level's score", () => {
     expect(field.score).toBe(4 * 50 + 2 * 100);
   });
 
+  it("keeps apart what the streak added", () => {
+    const field = fieldFrom(["oooooo", ...KEEPER]);
+
+    hitTop(field, 0, 1, 2, 3, 4, 5);
+
+    expect(field.streakPoints).toBe(2 * 50);
+  });
+
   it("counts the bricks a blast breaks in the streak", () => {
     const field = fieldFrom(["ooo", "o*o", "ooo", ...KEEPER]);
-    const blast = field.bricks[cellIndex(1, 1)];
-    if (blast) hitBrick(field, blast, 0, 0);
+    hitBrick(field, brickAt(field, 1, 1), 0, 0);
 
     stepTimes(field, stepsIn(100));
 
@@ -106,6 +122,20 @@ describe("a streak", () => {
     expect({ streak: field.streak, livesLost: field.livesLost }).toEqual({
       streak: 0,
       livesLost: 1,
+    });
+  });
+
+  it("goes on as a ball is lost while another plays on", () => {
+    const field = fieldFrom(KEEPER);
+    throwBall(field, 5, 29.5, 180);
+    throwBall(field, 13, 15, 0, 1);
+    field.streak = 7;
+
+    stepTimes(field, 10);
+
+    expect({ streak: field.streak, livesLost: field.livesLost }).toEqual({
+      streak: 7,
+      livesLost: 0,
     });
   });
 });

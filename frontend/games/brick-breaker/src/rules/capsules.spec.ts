@@ -1,4 +1,5 @@
 import {
+  KEEPER,
   type PictureOptions,
   ballOf,
   eventsOf,
@@ -27,9 +28,6 @@ import {
   PADDLE_WIDTH,
   STEP_S,
 } from "./tuning";
-
-/** A brick far down the field, which keeps a level from clearing. */
-const KEEPER = ["", "", "", "", "", "", "", "", "", "o"];
 
 /** How far a capsule falls in a step. */
 const FALL = CAPSULE_FALL_SPEED * STEP_S;
