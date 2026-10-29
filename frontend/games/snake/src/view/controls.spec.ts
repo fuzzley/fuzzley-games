@@ -13,6 +13,8 @@ describe("commandOfKey", () => {
     ["Escape", "pause"],
     ["KeyP", "toggle"],
     ["Space", "toggle"],
+    ["Enter", "go"],
+    ["NumpadEnter", "go"],
   ])("reads %s as %s", (code, command) => {
     expect(commandOfKey(code)).toBe(command);
   });
@@ -22,7 +24,7 @@ describe("commandOfKey", () => {
   });
 
   it("lists every key it answers", () => {
-    expect(BOARD_KEYS).toHaveLength(11);
+    expect(BOARD_KEYS).toHaveLength(13);
   });
 });
 

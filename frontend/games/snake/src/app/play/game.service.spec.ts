@@ -158,6 +158,23 @@ describe("GameService", () => {
       expect(said()).toBe("Going on.");
     });
 
+    it("goes on at Enter", () => {
+      const game = startedGame();
+      game.pause();
+
+      game.command("go");
+
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("does nothing at Enter to a run under way", () => {
+      const game = startedGame();
+
+      game.command("go");
+
+      expect(game.outcome()).toBe("playing");
+    });
+
     it("goes on at Resume", () => {
       const game = startedGame();
       game.pause();
@@ -311,6 +328,37 @@ describe("GameService", () => {
 
         expect(game.resultOpen()).toBe(true);
       });
+    });
+
+    it("starts another run at the key that toggles once the result card is put away", async () => {
+      const game = endedGame();
+      game.closeResult();
+
+      game.command("toggle");
+      await Promise.resolve();
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("starts another run at Enter once the result card is put away", async () => {
+      const game = endedGame();
+      game.closeResult();
+
+      game.command("go");
+      await Promise.resolve();
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("starts nothing at a key before the result card is put away", async () => {
+      const game = endedGame();
+      const ended = game.run();
+
+      game.command("toggle");
+      game.command("go");
+      await Promise.resolve();
+
+      expect(game.run()).toBe(ended);
     });
 
     it("puts the result card away", () => {

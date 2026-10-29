@@ -82,9 +82,9 @@ Phaser stays out of the first download.
     after a reload.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty board drawn in CSS until the scene has drawn; the focus ring;
-    and the cards that say how to start, that the run is paused, that the
-    board is still loading on a slow connection, or that it couldn't be
-    drawn. The board is Phaser's keyboard target.
+    and the cards that say how to start, that the run is paused, how to
+    start again once an ended run's result is put away, that the board is
+    still loading on a slow connection, or that it couldn't be drawn. The board is Phaser's keyboard target.
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
     say, which turn the snake and hand the focus back to the board, steer by
     the game's keys while one has the focus, and wait, dimmed, until the
@@ -134,7 +134,9 @@ Phaser stays out of the first download.
 - **The run waits for the player.** It starts at the first direction, pauses
   when the focus leaves the room, the page is hidden or the screen turns,
   and goes on at once at a direction, Space or P; a run taken up after a
-  reload starts paused. Nothing starts or goes on until the board is drawn
+  reload starts paused. Once an ended run's result is put away, Enter or
+  Space starts another; Enter pressed on a button over the board presses
+  the button instead. Nothing starts or goes on until the board is drawn
   (`GameService.drawn`, which the board sets from its canvas), since a run
   nobody can see would be lost.
 - **Its colors are the palette's.** `snakePalette()` takes the panel, the

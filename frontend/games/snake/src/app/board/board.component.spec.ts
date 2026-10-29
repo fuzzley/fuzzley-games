@@ -10,6 +10,7 @@ import {
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { stepMs } from "../../rules/speed";
+import { playToTheEnd } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
 
@@ -112,6 +113,40 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(screen.queryByText(/to start|Paused/)).not.toBeInTheDocument();
+    });
+
+    it("say nothing over an ended run while its result is to come", async () => {
+      const { game, detectChanges } = await renderBoard();
+      game.turn("up");
+      playToTheEnd(game);
+
+      detectChanges();
+
+      expect(screen.queryByText("Game over")).not.toBeInTheDocument();
+    });
+
+    it("offer a new game once an ended run's result is put away", async () => {
+      const { game, detectChanges } = await renderBoard();
+      game.turn("up");
+      playToTheEnd(game);
+
+      game.closeResult();
+      detectChanges();
+
+      expect(screen.getByText("Game over")).toBeInTheDocument();
+      expect(screen.getByText("Score 0")).toBeInTheDocument();
+    });
+
+    it("start a new game from the card over an ended run", async () => {
+      const { game, detectChanges } = await renderBoard();
+      game.turn("up");
+      playToTheEnd(game);
+      game.closeResult();
+      detectChanges();
+
+      await userEvent.click(screen.getByRole("button", { name: "New Game" }));
+
+      expect(game.outcome()).toBe("ready");
     });
 
     it("say when the board couldn't be drawn, offering to reload", async () => {
