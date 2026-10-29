@@ -70,8 +70,10 @@ Phaser stays out of the first download.
 - **`src/app/`** — the shell, one folder per feature, as in Minesweeper and
   Sudoku. `app.component` lays out the board, the arrows and the bar, with
   the `<fz-announcer>` the run is announced through; it hands the board the
-  focus as each run begins and whenever the last dialog closes, and pauses
-  the run when the page is hidden or the screen turns.
+  focus as each run begins and whenever the last dialog closes, keeps it in
+  the room (the board and the arrows) through a press on what can't take
+  it, and pauses the run when the page is hidden, the screen turns or the
+  focus leaves the room.
   - `play/` — `GameService` holds the run and its clock, which the scene's
     frames drive through `tick()`, makes every command, says what happened,
     keeps the stats, and asks through `@fz/ui/confirm` before a new game or
@@ -82,11 +84,11 @@ Phaser stays out of the first download.
     the empty board drawn in CSS until the scene has drawn; the focus ring;
     and the cards that say how to start, that the run is paused, that the
     board is still loading on a slow connection, or that it couldn't be
-    drawn. The board is Phaser's keyboard target and pauses
-    the run when the focus leaves it.
+    drawn. The board is Phaser's keyboard target.
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
-    say, which turn the snake and hand the focus back to the board, and
-    wait, dimmed, until the board is drawn.
+    say, which turn the snake and hand the focus back to the board, steer by
+    the game's keys while one has the focus, and wait, dimmed, until the
+    board is drawn.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     speed, a `<fz-bar-choice>` that starts a run at another through
     `GameService.changeSpeed()`, the score and the best, and the actions,
@@ -130,7 +132,7 @@ Phaser stays out of the first download.
   captures are global, which is why the scene takes only the keys the game
   uses, and ignores a held key and one pressed with Ctrl, Alt or Meta.
 - **The run waits for the player.** It starts at the first direction, pauses
-  when the focus leaves the board, the page is hidden or the screen turns,
+  when the focus leaves the room, the page is hidden or the screen turns,
   and goes on at once at a direction, Space or P; a run taken up after a
   reload starts paused. Nothing starts or goes on until the board is drawn
   (`GameService.drawn`, which the board sets from its canvas), since a run

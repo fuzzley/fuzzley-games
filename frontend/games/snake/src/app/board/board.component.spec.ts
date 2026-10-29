@@ -153,18 +153,6 @@ describe("BoardComponent", () => {
     });
   });
 
-  describe("pausing", () => {
-    it("pauses the run as the focus leaves the board", async () => {
-      const { board, game } = await renderBoard();
-      board.focus();
-      game.turn("up");
-
-      await userEvent.click(screen.getByRole("button", { name: "Elsewhere" }));
-
-      expect(game.outcome()).toBe("paused");
-    });
-  });
-
   describe("with the scene it loads", () => {
     let scene: SceneRun<HostedScene> | null = null;
 

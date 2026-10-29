@@ -1,6 +1,7 @@
 import { DOCUMENT } from "@angular/common";
 import {
   Component,
+  type ElementRef,
   computed,
   effect,
   inject,
@@ -20,6 +21,9 @@ import { ResultComponent } from "./result/result.component";
 import { SettingsComponent } from "./settings/settings.component";
 import { SettingsService } from "./settings/settings.service";
 
+/** What can take the focus, which a press on it moves there. */
+const FOCUSABLE = "button, a[href], input, select, textarea, [tabindex]";
+
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the
  * on-screen arrows beside it where they are wanted, the live region that says
@@ -28,8 +32,8 @@ import { SettingsService } from "./settings/settings.service";
  * The board takes the focus as a run begins, as the page loads or after a new
  * game, and whenever the last dialog over it closes, so the keys steer at
  * once. The run pauses whenever the page is hidden or the screen turns,
- * which moves the board while the player can't watch it; the board pauses it
- * whenever it loses the focus.
+ * which moves the board while the player can't watch it, and whenever the
+ * focus leaves the room: the board and the arrows, whose keys all steer.
  */
 @Component({
   selector: "app-root",
@@ -47,6 +51,7 @@ import { SettingsService } from "./settings/settings.service";
     "[class.compact]": "viewport.isCompact()",
     "[attr.data-bar]": "viewport.barPlacement()",
     "(document:visibilitychange)": "onVisibilityChange()",
+    "(document:pointerdown)": "onPress($event)",
   },
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
@@ -58,6 +63,7 @@ export class AppComponent {
   private readonly confirm = inject(ConfirmService);
   private readonly document = inject(DOCUMENT);
   private readonly board = viewChild.required(BoardComponent);
+  private readonly room = viewChild.required<ElementRef<HTMLElement>>("room");
 
   protected readonly settingsOpen = signal(false);
   protected readonly helpOpen = signal(false);
@@ -114,6 +120,32 @@ export class AppComponent {
         this.board().focus(options);
       });
     });
+  }
+
+  /**
+   * Keeps the focus in the room through a press on something that can't take
+   * it, such as the stage beside the board or the bar's score, which would
+   * otherwise leave it on the page, pausing the run and stranding the keys.
+   */
+  protected onPress(event: PointerEvent): void {
+    if (event.button !== 0) return;
+    if (!this.room().nativeElement.contains(this.document.activeElement)) {
+      return;
+    }
+    const target = event.target;
+    if (target instanceof Element && !target.closest(FOCUSABLE)) {
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Pauses the run once the focus leaves the room, for the bar, a dialog or
+   * another window, since the keys no longer reach it.
+   */
+  protected onRoomFocusOut(event: FocusEvent): void {
+    const to = event.relatedTarget;
+    if (to instanceof Node && this.room().nativeElement.contains(to)) return;
+    this.game.pause();
   }
 
   /** Pauses the run under way as the page goes out of sight. */

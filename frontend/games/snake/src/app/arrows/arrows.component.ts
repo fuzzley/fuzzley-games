@@ -1,6 +1,7 @@
 import { Component, inject, output } from "@angular/core";
 import { IconComponent } from "@fz/ui/icon";
 import type { Direction } from "../../rules/geometry";
+import { commandOfKey } from "../../view/controls";
 import { GameService } from "../play/game.service";
 
 /** Describes one arrow's button. */
@@ -21,10 +22,17 @@ const ARROWS: readonly Arrow[] = [
  * Shows the on-screen arrows, for a touch screen, which turn the snake as a
  * finger lands on one rather than as it lifts, and leave the focus where it
  * was. They wait, dimmed, until the board is drawn.
+ *
+ * With the focus on an arrow, the game's keys steer as they do on the board,
+ * whose keys Phaser hears only on the board's own element.
  */
 @Component({
   selector: "app-arrows",
   imports: [IconComponent],
+  host: {
+    "(keydown)": "onKeyDown($event)",
+    "(keyup)": "onKeyUp($event)",
+  },
   templateUrl: "./arrows.component.html",
   styleUrl: "./arrows.component.scss",
 })
@@ -45,6 +53,24 @@ export class ArrowsComponent {
     event.preventDefault();
     this.game.turn(direction);
     this.handBack.emit();
+  }
+
+  /**
+   * Does what one of the game's keys asks, pressed on a focused arrow, as on
+   * the board; Enter presses the arrow itself.
+   */
+  protected onKeyDown(event: KeyboardEvent): void {
+    if (event.code === "Enter") return;
+    if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+    const command = commandOfKey(event.code);
+    if (!command) return;
+    event.preventDefault();
+    this.game.command(command);
+  }
+
+  /** Keeps Space, which pauses, from pressing the focused arrow as it lifts. */
+  protected onKeyUp(event: KeyboardEvent): void {
+    if (event.code === "Space") event.preventDefault();
   }
 
   /**

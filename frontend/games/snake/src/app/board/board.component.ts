@@ -49,7 +49,6 @@ type Card = "start" | "paused" | "slow" | "failed" | null;
     "[style.--squares]": "squares",
     "[style.--pixel-ratio]": "pixelRatio",
     "(pointerdown)": "takeFocus()",
-    "(focusout)": "onFocusOut($event)",
   },
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
@@ -222,15 +221,5 @@ export class BoardComponent {
     if (!board.contains(this.document.activeElement)) {
       board.focus({ preventScroll: true });
     }
-  }
-
-  /**
-   * Pauses the run once the focus leaves the board, for the bar, a dialog or
-   * another window, since the keys no longer reach it.
-   */
-  protected onFocusOut(event: FocusEvent): void {
-    const to = event.relatedTarget;
-    if (to instanceof Node && this.host.nativeElement.contains(to)) return;
-    this.game.pause();
   }
 }
