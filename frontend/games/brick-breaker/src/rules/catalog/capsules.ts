@@ -1,8 +1,10 @@
 import type { BallKindId } from "./balls";
 
 /**
- * Names what catching a capsule does. Its kind is its group: catching one
- * replaces whatever of its kind is in effect, so two never run at once.
+ * Names what catching a capsule does.
+ *
+ * Its kind is its group: catching one replaces whatever of its kind is in
+ * effect, so two never run at once.
  */
 export type CapsuleEffect =
   /** The paddle grows or shrinks to a width, for a time. */
@@ -41,6 +43,9 @@ export type CapsuleEffect =
   /** A net under the paddle turns back the next ball that falls. */
   | { readonly kind: "net" };
 
+/** An effect's kind, which is its group. */
+export type EffectKind = CapsuleEffect["kind"];
+
 /** Describes a capsule: what it does, and when it may fall. */
 export interface Capsule {
   /** Names it, in How to play and as it is caught, such as "Wide paddle". */
@@ -53,6 +58,7 @@ export interface Capsule {
   readonly weight: number;
   /** The first level whose pool it joins. */
   readonly from: number;
+  /** What catching it does. */
   readonly effect: CapsuleEffect;
 }
 
@@ -94,7 +100,7 @@ export const CAPSULES = {
   catch: {
     name: "Catch",
     about:
-      "A ball that lands on the paddle stays there until launched, for 20 seconds.",
+      "For 20 seconds, a ball that lands on the paddle waits there, for 3 seconds at most, until launched.",
     tone: "good",
     weight: 6,
     from: 6,
@@ -119,7 +125,7 @@ export const CAPSULES = {
   },
   narrow: {
     name: "Narrow paddle",
-    about: "The paddle shrinks by a third for 15 seconds.",
+    about: "The paddle shrinks to two thirds of its width for 15 seconds.",
     tone: "bad",
     weight: 5,
     from: 11,
@@ -173,6 +179,3 @@ export function capsule(id: CapsuleId): Capsule {
 export function isCapsuleId(value: unknown): value is CapsuleId {
   return typeof value === "string" && Object.hasOwn(CAPSULES, value);
 }
-
-/** An effect's kind, which is its group. */
-export type EffectKind = CapsuleEffect["kind"];

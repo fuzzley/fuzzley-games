@@ -1,6 +1,6 @@
 /** Names something a brick does beyond taking hits, with its settings. */
 export type BrickTrait =
-  /** Never breaks, stops a fire ball, and stops laser bolts. */
+  /** Never breaks: it turns every ball, a fire ball too, and stops every bolt. */
   | { readonly kind: "hard" }
   /** Breaks the bricks around it a beat after it breaks. */
   | { readonly kind: "blasts"; readonly delayMs: number }
@@ -11,6 +11,9 @@ export type BrickTrait =
   /** Grows back a while after it breaks, once no ball is in its place. */
   | { readonly kind: "regrows"; readonly afterMs: number };
 
+/** A brick trait's kind, such as "hard". */
+export type TraitKind = BrickTrait["kind"];
+
 /** Describes a kind of brick: what breaking it takes, and what it does. */
 export interface BrickKind {
   /** Names it in How to play, such as "Steel brick". */
@@ -19,7 +22,10 @@ export interface BrickKind {
   readonly about: string;
   /** How many hits break it, or "never". */
   readonly hits: number | "never";
-  /** The most hits a level's legend may give it, where it may give more. */
+  /**
+   * The most hits a level's legend may give it; without one it takes
+   * `hits`. 0 for one that never breaks.
+   */
   readonly mostHits: number;
   /** Whether a level needs it broken to be cleared. */
   readonly needed: boolean;
@@ -51,7 +57,7 @@ export const BRICK_KINDS = {
   },
   steel: {
     name: "Steel brick",
-    about: "Never breaks, and turns every ball and bolt.",
+    about: "Never breaks: it turns every ball and stops every bolt.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -112,6 +118,6 @@ export function brickKind(id: BrickKindId): BrickKind {
 }
 
 /** Returns whether a brick kind has a trait of a kind. */
-export function hasTrait(id: BrickKindId, trait: BrickTrait["kind"]): boolean {
-  return brickKind(id).traits.some((each) => each.kind === trait);
+export function hasTrait(id: BrickKindId, kind: TraitKind): boolean {
+  return brickKind(id).traits.some((trait) => trait.kind === kind);
 }
