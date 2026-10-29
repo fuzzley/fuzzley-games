@@ -34,8 +34,11 @@ smaller one to start from.
 - **`@fz/phaser/scene`**: the helpers below, for a scene that lives in a game
   that outlives it.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
-- **`@fz/phaser/insets`** and **`@fz/phaser/color`** import nothing, so a
-  game's code without Phaser can take them.
+- **`@fz/phaser/insets`**, **`@fz/phaser/color`** and
+  **`@fz/phaser/layout`** import nothing but each other, so a game's code
+  without Phaser can take them. `fitCells()` in `layout` fits a field of
+  cells, across by down, inside a canvas's insets, each cell whole device
+  pixels.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
   a `phaser` chunk of its own, and `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser

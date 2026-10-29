@@ -16,8 +16,8 @@ export default defineConfig(
   }),
   {
     // The pure entries are for a game's code that knows no Phaser and no
-    // framework, so they import nothing at all.
-    files: ["src/insets/**/*.ts", "src/color/**/*.ts"],
+    // framework, so they import nothing but each other.
+    files: ["src/insets/**/*.ts", "src/color/**/*.ts", "src/layout/**/*.ts"],
     ignores: ["**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -32,9 +32,12 @@ export default defineConfig(
                 "rxjs",
                 "rxjs/*",
                 "../*",
+                "!../insets",
+                "!../color",
+                "!../layout",
               ],
               message:
-                "The pure entries import nothing, so code with no Phaser can take them.",
+                "The pure entries import nothing but each other, so code with no Phaser can take them.",
             },
           ],
         },

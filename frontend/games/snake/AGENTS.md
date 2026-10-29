@@ -29,7 +29,7 @@ Four folders under `src/`, each importing only the layers below it, as
 | Folder       | May import                                                                                      | May not import                                                      |
 | ------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `src/rules/` | `@fz/core`                                                                                      | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`                                  | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`             | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
 | `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                           | Angular, RxJS, the shell's libraries, the shell                     |
 | `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser/host` by type | Phaser, and the scene or the host by a value import                 |
 
@@ -51,8 +51,8 @@ Phaser stays out of the first download.
   says, and `saved_run.ts` turns a run into what storage keeps and back.
 - **`src/view/`** — what the scene draws, worked out without Phaser, so its
   specs are plain: where the board lies on the canvas, in whole device
-  pixels (`board_metrics.ts`); the palette from the page's roles
-  (`palette.ts`); the snake as a path of segments and corners, glided
+  pixels (`board_metrics.ts`, on `@fz/phaser/layout`'s `fitCells()`); the
+  palette from the page's roles (`palette.ts`); the snake as a path of segments and corners, glided
   between steps (`snake_shapes.ts`, from a `SnakeFrame` in `frame.ts`); what
   a step sets off, the crumbs, the shake, the fade and the sound
   (`effects.ts`), and for how long (`timing.ts`); and the keys and swipes
