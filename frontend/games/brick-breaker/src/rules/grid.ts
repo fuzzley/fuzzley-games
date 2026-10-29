@@ -86,6 +86,12 @@ export const SIDE = {
   bottomLeft: 128,
 } as const;
 
+/** Every face and corner of a box, as an exposure. */
+export const ALL_SIDES = Object.values(SIDE).reduce(
+  (all: number, side) => all | side,
+  0,
+);
+
 /** One of a box's faces, as {@link SIDE} names it. */
 export type Face = (typeof SIDE)["top" | "right" | "bottom" | "left"];
 

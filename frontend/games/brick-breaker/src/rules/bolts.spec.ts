@@ -4,7 +4,7 @@ import {
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
-import { fire } from "./bolts";
+import { fireBolts } from "./bolts";
 import { catchCapsule } from "./capsules";
 import type { Field } from "./field";
 import { cellIndex } from "./grid";
@@ -67,11 +67,11 @@ function isBroken(
   return field.bricks[cellIndex(column, row)]?.broken;
 }
 
-describe("fire", () => {
+describe("fireBolts", () => {
   it("fires a bolt from each end of the paddle", () => {
     const field = laserField([]);
 
-    fire(field);
+    fireBolts(field);
 
     expect({ bolts: boltsOf(field), events: eventsOf(field) }).toEqual({
       bolts: [
@@ -86,7 +86,7 @@ describe("fire", () => {
     const field = laserField([]);
     field.mode = null;
 
-    fire(field);
+    fireBolts(field);
 
     expect(boltsOf(field)).toEqual([]);
   });
@@ -95,27 +95,27 @@ describe("fire", () => {
     const field = fieldFrom(["o"]);
     catchCapsule(field, "laser", 0, 0);
 
-    fire(field);
+    fireBolts(field);
 
     expect(boltsOf(field)).toEqual([]);
   });
 
   it("fires no second pair too soon after the first", () => {
     const field = laserField([]);
-    fire(field);
+    fireBolts(field);
     stepTimes(field, stepsIn(BOLT_GAP_MS) - 1);
 
-    fire(field);
+    fireBolts(field);
 
     expect(boltsOf(field)).toHaveLength(2);
   });
 
   it("fires again once the gap has gone by", () => {
     const field = laserField([]);
-    fire(field);
+    fireBolts(field);
     stepTimes(field, stepsIn(BOLT_GAP_MS));
 
-    fire(field);
+    fireBolts(field);
 
     expect(boltsOf(field)).toHaveLength(4);
   });
@@ -124,7 +124,7 @@ describe("fire", () => {
 describe("a bolt", () => {
   it("rises at its speed", () => {
     const field = laserField([]);
-    fire(field);
+    fireBolts(field);
 
     stepTimes(field, 1);
 
@@ -133,7 +133,7 @@ describe("a bolt", () => {
 
   it("breaks the first brick above it, and stops", () => {
     const field = laserField([".....o", "", "", "", ".....o"]);
-    fire(field);
+    fireBolts(field);
 
     stepTimes(field, TO_TOP);
 
@@ -146,7 +146,7 @@ describe("a bolt", () => {
 
   it("stops at steel", () => {
     const field = laserField([".....o", "", "", "", ".....#"]);
-    fire(field);
+    fireBolts(field);
 
     stepTimes(field, TO_TOP);
 
@@ -158,7 +158,7 @@ describe("a bolt", () => {
 
   it("stops at the top wall", () => {
     const field = laserField([]);
-    fire(field);
+    fireBolts(field);
 
     stepTimes(field, TO_TOP);
 
@@ -169,7 +169,7 @@ describe("a bolt", () => {
     const field = fieldFrom([".....o"]);
     catchCapsule(field, "laser", 0, 0);
     throwBall(field, 1, 20, 0);
-    fire(field);
+    fireBolts(field);
 
     stepTimes(field, TO_TOP);
 
@@ -178,7 +178,7 @@ describe("a bolt", () => {
 
   it("goes as the last ball is lost", () => {
     const field = laserField([]);
-    fire(field);
+    fireBolts(field);
     throwBall(field, 5, 29.5, 175);
 
     stepTimes(field, 10);

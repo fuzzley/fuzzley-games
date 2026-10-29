@@ -824,3 +824,75 @@ fuse's among them.
   statements.
 - **Review in.** B3.3's review came in during this step; its fixes follow
   in their own commit, before B4.
+
+## B3.3's review
+
+The reviewer ran the commit's specs and a stress run of 60 random levels
+with every capsule. It found no free ball overlapping a brick, and
+`needed` true to the bricks at every step. Its findings:
+
+1. **A caught ball could sit past the paddle's end, and in a wall.** When
+   the paddle shrank under it, the ball kept its offset, and carried to a
+   wall it went past it. Launched from there, the sweep missed the wall
+   and the ball left the field. Fixed: `followPaddle()` moves a resting
+   ball in from an end the paddle shrank past and keeps it off the walls,
+   so `meetPaddle()` no longer limits the offset itself. Specs: each limit,
+   and a ball caught at the end, shrunk, carried to the wall and launched,
+   which stays in the field.
+2. **A blast ball struck again a brick its own reach had broken,** when it
+   met two at once. B3.2's review had already stopped the second break, but
+   the strike still climbed the speed and reached around again. Fixed:
+   `turn()` strikes only a brick met that is still whole. Specs: the blast
+   spec names the cells broken instead of counting `needed`, and a ball up
+   the seam of two bricks climbs once.
+3. **Every catch logged "paddle" four or five times.** A held ball still
+   heads down onto the paddle, so each of the contacts left met it again.
+   Fixed: `travel()` stops once the paddle holds the ball, and a ball the
+   paddle lifts and catches waits as a held one does. Specs: the full list
+   of events, for a landing, a launch and a paddle moved into a ball.
+4. **Capsules fell after the last ball was lost,** from a chain still
+   going off. Fixed: a capsule falls only while the level is in play,
+   through `dropFrom()`. The plan says so. The capsules' specs now play a
+   field with no ball (`playWithoutBall()` in `field_picture.ts`), since
+   bricks broke there while the field waited to serve, which play never
+   does. The spec of losing the last ball now drops its capsule before the
+   ball goes, so it no longer passes with nothing falling.
+5. **The gift trait leaked into `hitBrick()`, and a gift that cleared the
+   level still let a capsule fall.** Fixed: `dropFrom()` decides a broken
+   brick's capsule in one place, after the level's count, a gift's always
+   and another needed brick's by chance. `gives`' rule is empty, with a
+   comment, as `hard`'s is. Spec: a gift that clears the level drops
+   nothing.
+6. **`passes` was read as "breaks", and `size` nowhere.** Fixed: the
+   catalog spec holds that a kind that passes has `damage: "breaks"` and
+   that every kind is a normal ball's size. The plan's list for a ball kind
+   says so, and its heavy-ball example names where the size would be read.
+7. **A netted ball under the paddle jumps onto it.** Left: it may not show
+   once drawn; Q3 looks at it.
+8. **One scratch box for the paddle and a brick.** The drop no longer uses
+   one since B3.2's review. Fixed anyway: it is `paddleArea`, the paddle's
+   alone.
+9. **Readability.** Fixed: `endEffects()` and `dropCapsules()` are apart;
+   `splitBalls()` says why it marks the balls first; `ALL_SIDES` is
+   `grid.ts`'s, built from `SIDE`; `findContacts()` picks what is solid
+   once, and its `if` has braces; `Field.mode` is `PaddleMode`, from the
+   capsule catalog; `fire()` is `fireBolts()`; the imports are in order;
+   and the plan names `createEffects()` among what a new effect takes.
+   Left: `hitAround()`'s doc, which reads true now that a broken brick
+   takes no hit.
+10. **Docs.** `AGENTS.md`'s timers line was fixed with B3.4. Fixed: the
+    plan no longer says Net outlasts a level, as each level is a field of
+    its own.
+11. **Specs.** Fixed: the two specs that hid findings 2 and 3 (above), and
+    `TO_PADDLE` and `TO_FLOOR`, worked out from the tuning as `TO_TOP` is.
+
+Each new spec fails with its fix undone. A pointer's target is set as the
+paddle is steered, at the width it has then, so a paddle shrinking stops
+short of the wall until it is steered again; in play it is steered each
+frame, so this is left as it is.
+
+Left as advised: an effect's time counting from its catch's step, gifts
+past the eight records, Multiball leaving a resting ball, a blast ball at
+steel, the allocations at a catch, drop or lull, a bolt not moved up to the
+brick it hits, braceless one-line loops, Catch holding a ball met at the
+paddle's side, and `hardSolid`.

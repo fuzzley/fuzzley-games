@@ -2,6 +2,7 @@ import { headingOf } from "../testing/field_picture";
 import {
   type Ball,
   createBall,
+  followPaddle,
   holdBall,
   reflectBall,
   serveBall,
@@ -9,7 +10,13 @@ import {
   turnBall,
 } from "./balls";
 import { createPaddle } from "./paddle";
-import { BALL_RADIUS, FLATTEST, PADDLE_TOP, SERVE_ANGLE } from "./tuning";
+import {
+  BALL_RADIUS,
+  FIELD_WIDTH,
+  FLATTEST,
+  PADDLE_TOP,
+  SERVE_ANGLE,
+} from "./tuning";
 
 /** Returns a ball in play heading a way, not yet of length 1. */
 function heading(dx: number, dy: number): Ball {
@@ -31,6 +38,38 @@ describe("holdBall", () => {
       lastX: 10.5,
       lastY: PADDLE_TOP - BALL_RADIUS,
     });
+  });
+});
+
+describe("followPaddle", () => {
+  it("keeps a resting ball where it rests as the paddle moves", () => {
+    const ball = createBall();
+    holdBall(ball, { ...createPaddle(), x: 10 }, -1);
+
+    followPaddle(ball, { ...createPaddle(), x: 12 });
+
+    expect(ball.x).toBe(11);
+  });
+
+  it("moves a resting ball in from an end the paddle shrank past", () => {
+    const ball = createBall();
+    holdBall(ball, { ...createPaddle(), x: 10, width: 6 }, 2.5);
+
+    followPaddle(ball, { ...createPaddle(), x: 10, width: 2 });
+
+    expect({ x: ball.x, offset: ball.offset }).toEqual({ x: 11, offset: 1 });
+  });
+
+  it.each([
+    ["left", 1, -1, BALL_RADIUS],
+    ["right", FIELD_WIDTH - 1, 1, FIELD_WIDTH - BALL_RADIUS],
+  ])("keeps a resting ball off the %s wall", (_, x, offset, at) => {
+    const ball = createBall();
+    holdBall(ball, { ...createPaddle(), x: 13 }, offset);
+
+    followPaddle(ball, { ...createPaddle(), x });
+
+    expect(ball.x).toBe(at);
   });
 });
 

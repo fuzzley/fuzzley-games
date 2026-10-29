@@ -4,19 +4,23 @@ import {
   eventsOf,
   fieldFrom,
   headingOf,
+  playWithoutBall,
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
 import { hitBrick } from "./bricks";
 import { CAPSULES, CAPSULE_IDS, type CapsuleId } from "./catalog/capsules";
-import { type Field, launch } from "./field";
-import { cellIndex } from "./grid";
+import { type Field, launch, steerField } from "./field";
+import { cellIndex, rowMiddle } from "./grid";
 import { stepsIn } from "./stepper";
 import { FALLING_POOL, catchCapsule } from "./capsules";
 import {
   BALL_RADIUS,
   CAPSULE_FALL_SPEED,
+  CAPSULE_HEIGHT,
   CATCH_HOLD_MS,
+  FIELD_HEIGHT,
+  FIELD_WIDTH,
   MAX_CAPSULES,
   PADDLE_ANGLE,
   PADDLE_TOP,
@@ -27,15 +31,25 @@ import {
 /** A brick far down the field, which keeps a level from clearing. */
 const KEEPER = ["", "", "", "", "", "", "", "", "", "o"];
 
+/** How far a capsule falls in a step. */
+const FALL = CAPSULE_FALL_SPEED * STEP_S;
+
 /** The steps a capsule falling from the first row takes to reach the paddle. */
-const TO_PADDLE = 340;
+const TO_PADDLE =
+  Math.ceil((PADDLE_TOP - CAPSULE_HEIGHT / 2 - rowMiddle(0)) / FALL) + 1;
 
 /** The steps a capsule falling from the first row takes to pass the floor. */
-const TO_FLOOR = 400;
+const TO_FLOOR =
+  Math.ceil((FIELD_HEIGHT + CAPSULE_HEIGHT / 2 - rowMiddle(0)) / FALL) + 1;
 
-/** Returns a field of one row of bricks over the keeper, capsules falling as the options say. */
+/**
+ * Returns a field in play, with no ball until a spec throws one, of one row
+ * of bricks over the keeper, capsules falling as the options say.
+ */
 function fieldOf(row: string, options: PictureOptions = {}): Field {
-  return fieldFrom([row, ...KEEPER], { capsules: ["wide"], ...options });
+  return playWithoutBall(
+    fieldFrom([row, ...KEEPER], { capsules: ["wide"], ...options }),
+  );
 }
 
 /** Breaks the bricks in the first row's columns, one after another. */
@@ -159,6 +173,27 @@ describe("a gift brick", () => {
     breakTop(field, 0);
 
     expect(falling(field)).toEqual(["multi"]);
+  });
+
+  it("gives none once the last ball is lost", () => {
+    const field = fieldOf("?");
+    throwBall(field, 5, 29.5, 180);
+    stepTimes(field, 10);
+
+    breakTop(field, 0);
+
+    expect(falling(field)).toEqual([]);
+  });
+
+  it("gives none as it clears the level", () => {
+    const field = playWithoutBall(fieldFrom(["?"], { capsules: ["wide"] }));
+
+    breakTop(field, 0);
+
+    expect({ falling: falling(field), events: eventsOf(field) }).toEqual({
+      falling: [],
+      events: ["broken", "cleared"],
+    });
   });
 
   it("gives none when the level's pool is empty", () => {
@@ -336,8 +371,8 @@ describe("an effect", () => {
     for (const id of ["wide", "fire", "net", "laser", "slow"] as const) {
       catchCapsule(field, id, 0, 0);
     }
-    breakTop(field, 0);
     throwBall(field, 5, 29.5, 175);
+    breakTop(field, 0);
 
     stepTimes(field, 10);
 
@@ -417,7 +452,7 @@ describe("Multiball", () => {
   });
 
   it("leaves a ball on the paddle as it is", () => {
-    const field = fieldOf("");
+    const field = fieldFrom(KEEPER);
 
     catchCapsule(field, "multi", 0, 0);
 
@@ -462,6 +497,27 @@ describe("Catch", () => {
     });
   });
 
+  it("meets it once as it lands", () => {
+    const field = catching();
+
+    stepTimes(field, 10);
+
+    expect(eventsOf(field)).toEqual(["caught", "paddle"]);
+  });
+
+  it("holds a ball the paddle moves into, meeting it once", () => {
+    const field = fieldOf("");
+    catchCapsule(field, "catch", 0, 0);
+    throwBall(field, 13, PADDLE_TOP, 180);
+
+    stepTimes(field, 5);
+
+    expect({
+      held: ballOf(field).held,
+      events: eventsOf(field),
+    }).toEqual({ held: true, events: ["caught", "paddle"] });
+  });
+
   it("holds it as long as it may", () => {
     const field = catching();
 
@@ -489,8 +545,28 @@ describe("Catch", () => {
 
     expect({
       held: ballOf(field).held,
-      events: eventsOf(field).slice(-1),
-    }).toEqual({ held: false, events: ["launched"] });
+      events: eventsOf(field),
+    }).toEqual({ held: false, events: ["caught", "paddle", "launched"] });
+  });
+
+  it("keeps a ball caught at its end on it as it shrinks, and in the field", () => {
+    const field = fieldOf("");
+    catchCapsule(field, "catch", 0, 0);
+    throwBall(field, 15, 26, 180);
+    stepTimes(field, 10);
+    catchCapsule(field, "narrow", 0, 0);
+    stepTimes(field, 60);
+    steerField(field, { to: FIELD_WIDTH, by: 0, push: 0 });
+    stepTimes(field, 30);
+
+    launch(field);
+    stepTimes(field, 30);
+
+    const ball = ballOf(field);
+    expect({
+      live: ball.live,
+      inField: ball.x >= BALL_RADIUS && ball.x <= FIELD_WIDTH - BALL_RADIUS,
+    }).toEqual({ live: true, inField: true });
   });
 });
 

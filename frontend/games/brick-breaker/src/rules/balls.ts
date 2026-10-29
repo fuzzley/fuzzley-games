@@ -1,6 +1,7 @@
 import type { Paddle } from "./paddle";
 import {
   BALL_RADIUS,
+  FIELD_WIDTH,
   FLATTEST,
   PADDLE_ANGLE,
   PADDLE_TOP,
@@ -72,9 +73,17 @@ export function holdBall(
   ball.lastY = ball.y;
 }
 
-/** Keeps a resting ball where it rests on the paddle. */
+/**
+ * Keeps a resting ball where it rests on the paddle, moved in from an end
+ * the paddle shrank past, and kept off the walls.
+ */
 export function followPaddle(ball: Ball, paddle: Readonly<Paddle>): void {
-  ball.x = paddle.x + ball.offset;
+  const half = paddle.width / 2;
+  ball.offset = Math.max(-half, Math.min(half, ball.offset));
+  ball.x = Math.max(
+    BALL_RADIUS,
+    Math.min(FIELD_WIDTH - BALL_RADIUS, paddle.x + ball.offset),
+  );
   ball.y = PADDLE_TOP - BALL_RADIUS;
 }
 

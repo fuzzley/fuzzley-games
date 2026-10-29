@@ -40,7 +40,7 @@ export function createBolts(): Bolt[] {
  * Fires a bolt from each end of the paddle, if a laser is in effect, the
  * level is in play, and the last pair went long enough ago.
  */
-export function fire(field: Field): void {
+export function fireBolts(field: Field): void {
   if (field.mode !== "laser" || field.state !== "playing") return;
   if (field.steps < field.boltsReadyAt) return;
   field.boltsReadyAt = field.steps + stepsIn(BOLT_GAP_MS);

@@ -1,5 +1,6 @@
 import { splitOff } from "./balls";
 import type { Brick } from "./bricks";
+import { brickKind, hasTrait } from "./catalog/bricks";
 import {
   type CapsuleEffect,
   type CapsuleId,
@@ -11,6 +12,7 @@ import type { Field } from "./field";
 import { type Box, columnMiddle, columnOf, rowMiddle, rowOf } from "./grid";
 import { paddleBox } from "./paddle";
 import { SPEED_INFO } from "./speed";
+import { stepsIn } from "./stepper";
 import {
   CAPSULE_FALL_SPEED,
   CAPSULE_HEIGHT,
@@ -20,7 +22,6 @@ import {
   PADDLE_WIDTH,
   STEP_S,
 } from "./tuning";
-import { stepsIn } from "./stepper";
 
 /** Describes a capsule falling down the field. */
 export interface Falling {
@@ -125,7 +126,7 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
 const EFFECT_KINDS = Object.keys(EFFECT_RULES) as readonly EffectKind[];
 
 // Made once and reused, so a step makes nothing.
-const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
+const paddleArea: Box = { left: 0, top: 0, right: 0, bottom: 0 };
 
 /** Returns the records of the capsules a field may have falling, none falling. */
 export function createFalling(): Falling[] {
@@ -154,11 +155,21 @@ export function createEffects(): Effects {
 }
 
 /**
- * Lets a capsule drawn from the level's pool fall from a brick the level
- * needs, as it breaks, by the level's chance, while fewer than
- * {@link MAX_CAPSULES} are falling.
+ * Lets a capsule fall from a brick as it breaks, while the level is in
+ * play: always from a gift brick, and by the level's chance from another
+ * the level needs.
  */
-export function dropByChance(field: Field, brick: Readonly<Brick>): void {
+export function dropFrom(field: Field, brick: Readonly<Brick>): void {
+  if (field.state !== "playing") return;
+  if (hasTrait(brick.kind, "gives")) dropGift(field, brick);
+  else if (brickKind(brick.kind).needed) dropByChance(field, brick);
+}
+
+/**
+ * Lets a capsule drawn from the level's pool fall from a brick, by the
+ * level's chance, while fewer than {@link MAX_CAPSULES} are falling.
+ */
+function dropByChance(field: Field, brick: Readonly<Brick>): void {
   if (field.level.drops <= 0 || fallingCount(field) >= MAX_CAPSULES) return;
   if (nextDraw(field) >= field.level.drops) return;
   const id = drawCapsule(field);
@@ -169,7 +180,7 @@ export function dropByChance(field: Field, brick: Readonly<Brick>): void {
  * Lets a gift brick's capsule fall, however many are falling: the one the
  * level pinned to it, or else one drawn from the level's pool.
  */
-export function dropGift(field: Field, brick: Readonly<Brick>): void {
+function dropGift(field: Field, brick: Readonly<Brick>): void {
   const pinned = brick.capsule;
   const id = pinned && mayFall(field, pinned) ? pinned : drawCapsule(field);
   if (id) drop(field, brick, id);
@@ -180,12 +191,12 @@ export function dropGift(field: Field, brick: Readonly<Brick>): void {
  * touches it, and one past the floor is missed.
  */
 export function stepCapsules(field: Field): void {
-  paddleBox(field.paddle, box);
+  paddleBox(field.paddle, paddleArea);
   for (const falling of field.falling) {
     if (!falling.live) continue;
     falling.lastY = falling.y;
     falling.y += CAPSULE_FALL_SPEED * STEP_S;
-    if (touches(falling, box)) {
+    if (touches(falling, paddleArea)) {
       falling.live = false;
       catchCapsule(field, falling.id, falling.x, falling.y);
     } else if (falling.y - CAPSULE_HEIGHT / 2 > FIELD_HEIGHT) {
@@ -234,9 +245,13 @@ export function endEffect(field: Field, kind: EffectKind): void {
   EFFECT_RULES[kind].end?.(field);
 }
 
-/** Ends every effect, and lets go of the falling capsules, as a life is lost. */
+/** Ends every effect, as a life is lost. */
 export function endEffects(field: Field): void {
   for (const kind of EFFECT_KINDS) endEffect(field, kind);
+}
+
+/** Lets go of the falling capsules, as a life is lost. */
+export function dropCapsules(field: Field): void {
   for (const falling of field.falling) falling.live = false;
 }
 
@@ -308,6 +323,8 @@ function touches(falling: Readonly<Falling>, box: Readonly<Box>): boolean {
  * either way, then twice that, up to as many balls as the field holds.
  */
 function splitBalls(field: Field, into: number, spreadDeg: number): void {
+  // The balls to split, a bit each, taken first, as the copies take records
+  // later in the list, which mustn't split again.
   let inFlight = 0;
   for (const [i, ball] of field.balls.entries()) {
     if (ball.live && !ball.held) inFlight |= 1 << i;
