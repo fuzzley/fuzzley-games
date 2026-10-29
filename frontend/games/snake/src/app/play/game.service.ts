@@ -89,6 +89,7 @@ export class GameService {
   private readonly newBestState = signal(false);
   private readonly resultOpenState = signal(false);
   private readonly runsState = signal(0);
+  private readonly drawnState = signal(true);
 
   /** The time since the last step, toward the next, in milliseconds. */
   private carried = 0;
@@ -116,6 +117,13 @@ export class GameService {
    * taken up adding one, for the board to take the focus after.
    */
   readonly runs = this.runsState.asReadonly();
+
+  /**
+   * Whether the board is drawn, so the player can watch the snake move. Until
+   * it is, nothing starts or goes on: the board, in its scene, is what moves
+   * the run on, and a run under way that nobody can see would be lost.
+   */
+  readonly drawn = this.drawnState.asReadonly();
 
   /** The apples eaten this run. */
   readonly score = computed(() => this.runState().eaten);
@@ -186,10 +194,12 @@ export class GameService {
 
   /**
    * Turns the snake, or queues the turn, and starts a run waiting for its
-   * first direction, or one paused, at a direction it can take.
+   * first direction, or one paused, at a direction it can take, once the
+   * board is drawn.
    */
   turn(direction: Direction): void {
     const before = this.runState();
+    if (before.outcome !== "playing" && !this.drawnState()) return;
     const after = turn(before, direction);
     if (after === before) return;
     this.runState.set(after);
@@ -210,8 +220,9 @@ export class GameService {
     this.announcer.say(describePause(after));
   }
 
-  /** Goes on with a paused run, and says so. */
+  /** Goes on with a paused run, once the board is drawn, and says so. */
   resume(): void {
+    if (!this.drawnState()) return;
     const before = this.runState();
     const after = resume(before);
     if (after === before) return;
@@ -254,6 +265,11 @@ export class GameService {
     this.lastId = Math.max(this.lastId, run.id);
     this.begin(pause(run));
     this.announcer.say(describeTakenUp(run));
+  }
+
+  /** Says whether the board is drawn yet, as the board's canvas reports it. */
+  setDrawn(drawn: boolean): void {
+    this.drawnState.set(drawn);
   }
 
   /** Puts away the card over an ended run, leaving the board to look at. */

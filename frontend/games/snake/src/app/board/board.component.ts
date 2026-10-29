@@ -4,6 +4,7 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  afterRenderEffect,
   computed,
   inject,
   signal,
@@ -182,6 +183,14 @@ export class BoardComponent {
       fps: { smoothStep: true },
     },
   };
+
+  constructor() {
+    // A run can't start, or go on, before the scene that moves it is drawn.
+    // After rendering, since the canvas's state needs the scene it is given.
+    afterRenderEffect(() => {
+      this.game.setDrawn(this.canvas().state() === "ready");
+    });
+  }
 
   /** Puts the focus on the board once it has drawn, as a run begins. */
   focus(options?: FocusOptions): void {

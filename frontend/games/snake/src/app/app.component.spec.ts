@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
-import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import { FakePhaserCanvas, provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { AppComponent } from "./app.component";
@@ -11,9 +11,14 @@ import {
   SETTINGS_KEY,
 } from "./settings/settings.service";
 
-/** Renders the game on a fake canvas. */
-async function renderApp(): Promise<GameService> {
-  await render(AppComponent, { providers: [provideFakePhaserCanvas()] });
+/**
+ * Renders the game on a fake canvas, whose scene is drawn at once unless
+ * `readyAtOnce` is false.
+ */
+async function renderApp(readyAtOnce = true): Promise<GameService> {
+  await render(AppComponent, {
+    providers: [provideFakePhaserCanvas({ readyAtOnce })],
+  });
   return TestBed.inject(GameService);
 }
 
@@ -144,6 +149,34 @@ describe("AppComponent", () => {
   });
 
   describe("the arrows", () => {
+    it("wait for the board to be drawn", async () => {
+      onTouchScreen();
+      const game = await renderApp(false);
+
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Up" }), {
+        button: 0,
+      });
+
+      expect(game.outcome()).toBe("ready");
+      expect(screen.getByRole("button", { name: "Up" })).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
+    });
+
+    it("start the run once the board is drawn", async () => {
+      onTouchScreen();
+      const game = await renderApp(false);
+      TestBed.inject(FakePhaserCanvas).host.latest.ready();
+      await settle();
+
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Up" }), {
+        button: 0,
+      });
+
+      expect(game.outcome()).toBe("playing");
+    });
+
     it("show on a touch screen", async () => {
       onTouchScreen();
 
