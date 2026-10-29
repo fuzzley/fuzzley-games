@@ -528,3 +528,55 @@ bug. Its findings:
 Left as advised: the `Object.keys()` casts, `as const satisfies`, the
 accessors, a ball capsule naming `"normal"`, `ms` beside `delayMs`, the
 three `isCapsuleId()` cases, and a record keyed by id.
+
+## B2.4: the field
+
+- **Built.** `src/rules/field.ts`: `Field`, `createField()`,
+  `steerField()`, `stepField()`, `launch()` and `serve()`, with a ball's
+  travel: the earliest contact among the walls, the paddle and the exposed
+  faces and corners of the bricks in the cells its move crosses, every
+  contact of that moment gathered and turned once, up to four a step.
+  `paddle.ts` (`Steer`, `Paddle`, steering and moving, the paddle's box),
+  `balls.ts` (`Ball`, holding and serving, the paddle's angles, the mirror,
+  a turn, settling), `events.ts` (`EventLog`) and `level.ts` (`Level`,
+  `LevelBrick`). `src/testing/field_picture.ts`: `fieldFrom()`, with `o`,
+  `#`, `+` and `2` to `4`, `throwBall()`, `stepTimes()`, `eventsOf()`,
+  `headingOf()` and `ballOf()`. Specs for each, 84 new.
+- **Choices.**
+  - Steering is taken once a frame (`steerField()`) and the steps follow
+    it (`stepField(field)`), rather than `stepField(field, steer)`: a
+    finger's drag is a frame's distance, which twelve steps would apply
+    twelve times.
+  - Keys and a pointer: keys go first and let go of the pointer's place; a
+    pointer that stops asking leaves the paddle heading where it last
+    asked; a drag moves that place. The keys' ramp starts from nothing when
+    the keys change, and letting go stops the paddle at once.
+  - The paddle's ends and top corners send a ball off as its end would,
+    60° outward and up, rather than by their normal; its underside meets
+    nothing. The plan says so.
+  - The climb counts hits on bricks that break; steel adds nothing, so a
+    ball rattling among steel doesn't speed up. It resets when the last
+    ball in play is lost, not each of several. The plan says so.
+  - Bounces count at walls and bricks; meeting the paddle or breaking a
+    needed brick resets them. The lull turns at the wall after twelve.
+  - `Level` holds only what the field reads so far, its cells and pace; the
+    capsules' and the levels' steps add theirs. `FieldEvent` has only the
+    kinds the field writes so far.
+  - `Field.solid` is the one closure a field makes, for `exposureOf()`. The
+    sweep's move, box and contacts are module records reused every step,
+    so a step allocates nothing; losing or serving a ball, which happens
+    a few times a level, may.
+- **QA.** A scratch spec (deleted) played random levels of 12 rows
+  (plain, tough and steel bricks) with a paddle steered to the lowest
+  falling ball, checking at every step that no ball is NaN, past a wall,
+  inside a brick by more than 1e-6, of a length other than 1, or flatter
+  than 20°. Two of eight levels never cleared: a ball glancing off a steel
+  corner was turned flatter than 20°, and holding it to 20° with its sign
+  sent it back into the corner, which it met again at once, every step.
+  Fixed: `settleBall()` takes the normal and picks the up or down that
+  leaves, and a lull's turn back into its wall is mirrored; a spec holds the
+  corner case, which failed before the fix. After it, 16 levels cleared in
+  4 to 8 minutes of game time with no fault, and 6 more, with a paddle
+  aimed loosely enough to lose 39 balls, did too.
+- **Checks.** `yarn verify` passes; the rules at 100% of statements, 98%
+  of branches.
