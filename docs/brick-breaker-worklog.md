@@ -297,3 +297,17 @@ Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
 - **Checks.** lint, typecheck, test (1) and build: the entry chunk is
   34.9 kB gzipped with no Phaser yet. `yarn constraints` and the reference
   check pass. `games.json` doesn't list it.
+
+## B2.1: tuning, speeds and the stepper
+
+- **Built.** `src/rules/tuning.ts` (every number of "The feel, in numbers",
+  and the sizes the physics needs: the capsule's, the bolt's, the net's
+  depth), `speed.ts` (`SPEED_INFO`, `ballSpeed()`, `isSpeed()`) and
+  `stepper.ts` (`Clock`, `advanceClock()`, `progressOf()`), each specced;
+  `tuning.spec.ts` holds what tuning must not break, such as a row of
+  bricks filling the field's width.
+- **Choice.** The clock is a record changed in place and returns its step
+  count, rather than Snake's new value each frame, so a frame allocates
+  nothing (decision 3). A frame too long for twelve steps drops all that is
+  left, the part of a step included.
+- **Checks.** lint, typecheck, test: 26 tests, 100% of the rules.
