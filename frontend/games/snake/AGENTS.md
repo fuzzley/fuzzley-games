@@ -231,7 +231,8 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
   inside the focus ring, its card lies on it, and the arrows lie in the
   window, off the board).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
-  which synthesizes the bite, the bump and the chime into
+  which synthesizes the bite, the bump and the chime with `@fz/dev/sounds`
+  into
   `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the same
   bytes every run).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
