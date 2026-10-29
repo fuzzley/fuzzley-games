@@ -1281,12 +1281,16 @@ how a careful clone does its collisions:
   a frame: the keys held, as a push, the one held last winning; the mouse,
   as a place to go; a finger, as a drag or a place, as the setting says,
   one finger at a time; and a tap, a press and release within 250 ms and 8
-  CSS px, as a launch, as is a mouse's press. A place is asked only on a
-  frame the pointer moved, so a paddle the keys pushed stays where they
-  left it.
+  CSS px that the browser didn't cancel, as a launch, as is a press of the
+  mouse's main button. A place is asked only on a frame the pointer moved,
+  so a paddle the keys pushed stays where they left it; the rules keep a
+  paddle against a wall as it narrows, so a pointer resting past the wall
+  leaves no gap.
 - `controls.ts`: the keys by `event.code`, as Snake's are: the commands
-  (`FieldCommand`: launch, pause, toggle, go), the held pushes, and the
-  ones the scene captures (`FIELD_KEYS`).
+  (`FieldCommand`: launch, pause, toggle, go; launch on a cleared level
+  goes on to the next) and the held pushes. The scene captures, in
+  Phaser's names, only the keys that would scroll the page (the arrows and
+  Space), as Snake's does, so Enter still presses the cards' buttons.
 - `effects.ts`: what each event calls for (shards, a ring, a shake, a pop, a
   fade, a sound), each marked as motion or not.
 - `timing.ts`: how long each flourish lasts, and how long the cards wait
@@ -1465,7 +1469,7 @@ does.
 - **Keys are read by `event.code`,** so an AZERTY keyboard steers with Q
   and D. The single-character keys work only while the board has the focus,
   as WCAG 2.1.4 asks, and Phaser's captures are only the keys the game
-  uses.
+  uses that would scroll the page.
 - **A held key is a held key,** unlike Snake's single presses: the scene
   follows key down and key up, and forgets every held key whenever the game
   pauses, so a key let go while the focus was away doesn't stick.

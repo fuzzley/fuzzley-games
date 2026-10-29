@@ -728,12 +728,17 @@ describe("a blast ball", () => {
 
       stepTimes(field, 35);
 
-      expect({ broken: brokenOf(field), climbed: field.climbed }).toEqual({
+      expect({
+        broken: brokenOf(field),
+        climbed: field.climbed,
+        bounces: field.balls[0]?.bounces,
+      }).toEqual({
         broken: [
           [5, 6],
           [6, 6],
         ],
         climbed: 2,
+        bounces: 0,
       });
     },
   );

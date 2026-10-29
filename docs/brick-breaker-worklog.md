@@ -1303,3 +1303,59 @@ Checked in a scratch spec, deleted after.
     by set or take the Risks' turns.
 
 - **Checks.** lint, typecheck, test, the report (above).
+
+## B5.1's review (a29543fe, 6c1ce745, 4d058dc7)
+
+1. **A paddle held at a wall left a gap as it narrowed.** A pointer resting
+   past the wall sends no place after B5.1, so the target stayed clamped to
+   the old width: a 1-unit gap once Wide ended.
+   - **Fixed in the rules,** for every input: as `movePaddle()` changes the
+     width, a paddle, or a target, against a wall stays against it
+     (`keptAtWall()`). That covers a paddle the keys left there too.
+   - **Specced:** a pointer past the wall at width 6, narrowed to 4, rests
+     at 24; and a key-pushed paddle narrowed to 2.6. Each fails without its
+     half of the fix.
+2. **`FIELD_KEYS` couldn't be handed to Phaser's capture,** and held Enter,
+   whose capture would block the cards' buttons.
+   - **Fixed:** it is gone, as nothing but its spec used it.
+   - The plan now says the scene captures, in Phaser's names, only the keys
+     that would scroll the page (the arrows and Space), as Snake's does.
+3. **Steering's spec had gaps.** Added:
+   - a second finger after a lifted drag;
+   - a tap after a drag;
+   - `letGo()` with the mouse, in follow mode, with either key held, and
+     with a finger pressed;
+   - a finger let go past 8 px.
+   - Each of the reviewer's eight mutations now fails a spec.
+4. **Any mouse button launched, and a cancelled touch was a tap.**
+   - **Fixed:** `PointerView` gains `button` and `wasCanceled`. Only the
+     main button launches, and a touch the browser cancels is no tap.
+5. **No spec told the two-pass strike from the old loop.** Fixed: the seam
+   spec expects the ball's `bounces` to be 0.
+6. **Castle doesn't reach lowest in set 1** (row 12; Waves 14, Rocket 13).
+   - **Left as it is.** The plan's "reach lower" is the set's trend, not a
+     rule level by level. Castle tests the set by its hits (the most, 159),
+     its walls and its gate, and Q2 shortened it for time. Lengthening its
+     legs would undo that.
+7. **Space and Next level disagreed.** Fixed: `FieldCommand`'s doc and the
+   plan's controls bullet say `launch` on a cleared level goes on to the
+   next, for the shell to honour in B7.
+8. **Docs.**
+   - The layers put the balls last, so nothing hides them, the tags before
+     them.
+   - The shards' and rings' layer is `bursts`, as the rules' effects are
+     what the tags show.
+   - `CLEARED_MS`'s doc says it is the card's wait.
+   - `fieldFrom()`'s doc is reflowed.
+9. **Style.**
+   - `frame.spec.ts` now checks the types it is about (`expectTypeOf`).
+   - Steering takes its metrics as a parameter property.
+   - **Left:** `FieldView` as its own interface rather than a `Pick`. Its
+     nested types are read-only, so a write to the paddle or a brick fails
+     to compile, which a `Pick` of `Field` would allow.
+
+- **Found while fixing:** `GLOW_BRICKS` and `GLOW_AFTER_MS` were in both
+  `tuning.ts` and `timing.ts`. They are now only in `timing.ts`, since only
+  the view draws the glow, and the autopilot takes `GLOW_BRICKS` from it.
+- **Checks.** lint, typecheck, test (738), the rules and the view at 100%
+  of statements.
