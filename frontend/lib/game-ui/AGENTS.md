@@ -73,6 +73,13 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   apply the service's tests, and `short-rail`, under which a rail loses its
   home button and tightens its gaps. `breakpoints.spec.ts` compiles the mixins and
   holds them to the constants.
+- `src/play_room/`: `[fzPlayRoom]` (`PlayRoomDirective`), on the element
+  that holds a game's board and the controls whose keys steer it, which
+  says through `away` why the game should pause, whenever the player looks
+  away: `"focus"` once the focus leaves it, `"hidden"` as the page goes out
+  of sight, `"turned"` as the screen turns (from `GameViewportService`'s
+  `isPortrait`). Pausing is the app's. A press there on what can't take
+  the focus keeps it where it is, so the keys aren't stranded.
 - `src/stopwatch/`: `StopwatchService`, a game's clock, in whole seconds,
   which counts only while the page is in view. It reads the time from the
   clock rather than counting its ticks, so a pause keeps the part of a

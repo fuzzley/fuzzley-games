@@ -108,7 +108,8 @@ hidden.
 - It waits for the player: nothing moves until the first key, and it
   pauses whenever the focus leaves the board and its arrows, the page is
   hidden or the screen turns, so opening a dialog, switching tabs or
-  turning the phone never costs a run. Pause has a key of
+  turning the phone never costs a run: `@fz/game-ui/play_room`'s
+  `[fzPlayRoom]` says when. Pause has a key of
   its own (Space, P or Escape) and a button.
 - Its pace is the player's to choose: Snake offers three speeds, and a
   snake that steps from square to square rather than gliding.

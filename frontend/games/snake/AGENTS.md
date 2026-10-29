@@ -70,10 +70,11 @@ Phaser stays out of the first download.
 - **`src/app/`** — the shell, one folder per feature, as in Minesweeper and
   Sudoku. `app.component` lays out the board, the arrows and the bar, with
   the `<fz-announcer>` the run is announced through; it hands the board the
-  focus as each run begins and whenever the last dialog closes, keeps it in
-  the room (the board and the arrows) through a press on what can't take
-  it, and pauses the run when the page is hidden, the screen turns or the
-  focus leaves the room.
+  focus as each run begins and whenever the last dialog closes, and pauses
+  the run when `@fz/game-ui/play_room`'s `[fzPlayRoom]`, on the room (the
+  board and the arrows), says the player looked away: the page hidden, the
+  screen turned or the focus gone from the room. The directive also keeps
+  the focus in the room through a press on what can't take it.
   - `play/` — `GameService` holds the run and its clock, which the scene's
     frames drive through `tick()`, makes every command, says what happened,
     keeps the stats, and asks through `@fz/ui/confirm` before a new game or
