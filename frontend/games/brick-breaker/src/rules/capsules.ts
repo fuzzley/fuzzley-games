@@ -8,7 +8,7 @@ import {
 } from "./catalog/capsules";
 import { nextDraw } from "./draws";
 import type { Field } from "./field";
-import { type Box, brickBox, columnOf, rowOf } from "./grid";
+import { type Box, columnMiddle, columnOf, rowMiddle, rowOf } from "./grid";
 import { paddleBox } from "./paddle";
 import { SPEED_INFO } from "./speed";
 import {
@@ -39,8 +39,8 @@ export interface Falling {
 export interface InEffect {
   /** The capsule that started it, or null while none of the group is in play. */
   capsule: CapsuleId | null;
-  /** The steps it has left, or Infinity for one that lasts until it is used. */
-  stepsLeft: number;
+  /** The step it ends at, or 0 for one that lasts until it is used. */
+  endsAt: number;
 }
 
 /** The effects in play, one for each group. */
@@ -141,7 +141,7 @@ export function createFalling(): Falling[] {
 
 /** Returns the records of the effects in play, none yet. */
 export function createEffects(): Effects {
-  const none = (): InEffect => ({ capsule: null, stepsLeft: 0 });
+  const none = (): InEffect => ({ capsule: null, endsAt: 0 });
   return {
     "paddle-size": none(),
     "paddle-mode": none(),
@@ -211,19 +211,17 @@ export function catchCapsule(
   if (EFFECT_RULES[effect.kind].end) {
     const inEffect = field.effects[effect.kind];
     inEffect.capsule = id;
-    inEffect.stepsLeft =
-      "ms" in effect ? stepsIn(effect.ms) : Number.POSITIVE_INFINITY;
+    inEffect.endsAt = "ms" in effect ? field.steps + stepsIn(effect.ms) : 0;
   }
   field.events.add("caught", x, y, -1, id);
 }
 
-/** Counts down each effect's time by a step, ending those whose time runs out. */
+/** Ends the effects whose time has run out. */
 export function stepEffects(field: Field): void {
   for (const kind of EFFECT_KINDS) {
     const inEffect = field.effects[kind];
-    if (!inEffect.capsule) continue;
-    inEffect.stepsLeft--;
-    if (inEffect.stepsLeft <= 0) endEffect(field, kind);
+    if (!inEffect.capsule || inEffect.endsAt === 0) continue;
+    if (field.steps >= inEffect.endsAt) endEffect(field, kind);
   }
 }
 
@@ -232,7 +230,7 @@ export function endEffect(field: Field, kind: EffectKind): void {
   const inEffect = field.effects[kind];
   if (!inEffect.capsule) return;
   inEffect.capsule = null;
-  inEffect.stepsLeft = 0;
+  inEffect.endsAt = 0;
   EFFECT_RULES[kind].end?.(field);
 }
 
@@ -280,11 +278,10 @@ function mayFall(field: Field, id: CapsuleId): boolean {
 function drop(field: Field, brick: Readonly<Brick>, id: CapsuleId): void {
   const falling = field.falling.find((each) => !each.live);
   if (!falling) return;
-  brickBox(columnOf(brick.cell), rowOf(brick.cell), box);
   falling.live = true;
   falling.id = id;
-  falling.x = (box.left + box.right) / 2;
-  falling.y = (box.top + box.bottom) / 2;
+  falling.x = columnMiddle(columnOf(brick.cell));
+  falling.y = rowMiddle(rowOf(brick.cell));
   falling.lastY = falling.y;
   field.events.add("dropped", falling.x, falling.y, brick.cell, id);
 }

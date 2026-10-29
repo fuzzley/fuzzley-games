@@ -744,3 +744,50 @@ Left as advised: `Field.solid` as a closure, the `|| 1` guard, the event
 log's `if (event)`, a generator per draw, `for…of`, `expect.closeTo` in
 the stepper's spec, the visitor of `forEachSince()`, a lull only at walls,
 and keys over the pointer.
+
+## B3.2's review
+
+The reviewer found the traits as the plan has them, a missing rule a
+compile error, and the fences holding. Its findings:
+
+1. **The fuse burned a step long, and longer or shorter by the grid's
+   order:** twelve steps of 8.33 ms left 3.6e-15 of 100 ms, and a blast lit
+   during the bricks' pass was counted down in it if it lay later in the
+   grid. Fixed: the field counts its steps (`Field.steps`), and every timer
+   is the step its thing happens at: a blast's `goesOffAt`, a regrowth's
+   `regrowsAt`, an effect's `endsAt`, a caught ball's `letGoAt` and the
+   laser's `boltsReadyAt`, B3.3's countdowns included, so there is one way
+   to time. A chain now goes off exactly a beat apart either way, and the
+   specs check the beat to the step, both ways.
+2. **A fuse lit as the level clears never burned.** Kept: once cleared,
+   the field stands still, and what is left of a chain is no brick the
+   level needs. A spec says so.
+3. **A blast could clear a level that was `lost` or `serve`.** Kept: a
+   chain lit before the last ball fell finishes, and clears the level if it
+   breaks the last brick it needs. `FieldState`'s doc says so, and a spec
+   plays it.
+4. **A regrowing brick the level needed would clear it too soon,** as the
+   count only falls. A catalog spec holds that no kind that regrows is
+   needed, and the plan's growing brick raises the count for what it adds.
+5. **`hitBrick()` broke a broken brick again.** Fixed: a broken brick takes
+   no hit, so `hitAround()` no longer checks.
+6. **Hits went on after the level cleared,** within a blast or a ball's
+   contacts. Fixed: once cleared, a hit does nothing.
+7. **A trait wasn't all in its rule:** the hidden brick's start was in
+   `createBrick()`. Fixed: a `laid` rule sets a trait's state as the level
+   lays the brick out, and the plan's list of what a new trait takes names
+   `Brick` and `laid`.
+8. **Gaps in the specs.** Fixed: a blast's hits neither climb the speed
+   nor start a ball's bounces again, and the blast that clears a level is
+   checked for its count and its events' order.
+9. **`centerOf()` made a pair at each blast and regrowth.** Fixed:
+   `columnMiddle()` and `rowMiddle()` in `grid.ts`, which the capsules'
+   drop uses too.
+10. **Small.** Fixed: `hitBrick()`'s doc says where its events are put;
+    `canBreak()` is asked once; `isNeeded()` serves the field and the
+    bricks; the hard trait's comment says who reads its `hits`.
+
+Left as advised: `runRule<K>()`, `isCleared()`, `isBallIn()`'s closure,
+the type-only import, and steel taking a blast's hit. For later: the plan's
+saved game keeps the field's step count and every timer's step, a lit
+fuse's among them.

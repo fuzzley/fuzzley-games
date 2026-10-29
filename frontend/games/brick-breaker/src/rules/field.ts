@@ -16,6 +16,7 @@ import {
   createBrick,
   hitAround,
   hitBrick,
+  isNeeded,
   stepBricks,
 } from "./bricks";
 import {
@@ -29,7 +30,6 @@ import {
   stepEffects,
 } from "./capsules";
 import { type BallKindId, ballKind } from "./catalog/balls";
-import { brickKind } from "./catalog/bricks";
 import { nextDraw } from "./draws";
 import { EventLog } from "./events";
 import {
@@ -78,6 +78,9 @@ import { stepsIn } from "./stepper";
 /**
  * Names where a level stands: its ball waiting on the paddle to be served,
  * in play, its last ball lost, or every brick it needs broken.
+ *
+ * A blast lit before the last ball is lost still goes off, so a level may
+ * be cleared from `lost` or `serve` as well as from `playing`.
  */
 export type FieldState = "serve" | "playing" | "lost" | "cleared";
 
@@ -124,8 +127,10 @@ export interface Field {
   readonly effects: Effects;
   /** The bolts rising, and those waiting to be fired, as many as may. */
   readonly bolts: readonly Bolt[];
-  /** The steps until the paddle may fire again. */
-  boltGapSteps: number;
+  /** The step the paddle may fire again at. */
+  boltsReadyAt: number;
+  /** How many steps the field has taken, by which its timers run. */
+  steps: number;
   /** How many random draws the field has made, which seeds the next. */
   draws: number;
   /** What happened, for the scene to play. */
@@ -225,8 +230,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
       const brick = bricks[cellIndex(column, row)];
       return !!brick && !brick.broken && !canBreak(brick);
     },
-    needed: bricks.filter((brick) => brick && brickKind(brick.kind).needed)
-      .length,
+    needed: bricks.filter((brick) => brick && isNeeded(brick)).length,
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
     climbed: 0,
@@ -239,7 +243,8 @@ export function createField(level: Level, setup: FieldSetup): Field {
     falling: createFalling(),
     effects: createEffects(),
     bolts: createBolts(),
-    boltGapSteps: 0,
+    boltsReadyAt: 0,
+    steps: 0,
     draws: 0,
     events: new EventLog(),
   };
@@ -259,6 +264,7 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
  */
 export function stepField(field: Field): void {
   if (field.state !== "cleared") {
+    field.steps++;
     movePaddle(field.paddle);
     stepBricks(field);
     stepCapsules(field);
@@ -359,16 +365,16 @@ function meetPaddle(field: Field, ball: Ball): void {
       field.paddle,
       Math.max(-half, Math.min(half, ball.x - field.paddle.x)),
     );
+    ball.letGoAt = field.steps + stepsIn(CATCH_HOLD_MS);
   } else {
     bounceOffPaddle(ball, field.paddle);
   }
   field.events.add("paddle", ball.x, ball.y);
 }
 
-/** Counts a caught ball's time on the paddle, and lets it go once it has waited its longest. */
+/** Lets a caught ball go once it has waited on the paddle its longest. */
 function holdCaught(field: Field, ball: Ball): void {
-  ball.heldSteps++;
-  if (ball.heldSteps < stepsIn(CATCH_HOLD_MS)) return;
+  if (field.steps < ball.letGoAt) return;
   letGo(field, ball);
   field.events.add("launched", ball.x, ball.y);
 }
@@ -580,7 +586,7 @@ function strike(field: Field, ball: Ball, brick: Brick): void {
   const kind = ballKind(field.ballKind);
   if (canBreak(brick)) field.climbed += field.climbRate;
   const broke = hitBrick(field, brick, ball.x, ball.y, kind.damage);
-  if (broke && brickKind(brick.kind).needed) ball.bounces = 0;
+  if (broke && isNeeded(brick)) ball.bounces = 0;
   if (kind.reaches) hitAround(field, brick, ball.x, ball.y);
 }
 
