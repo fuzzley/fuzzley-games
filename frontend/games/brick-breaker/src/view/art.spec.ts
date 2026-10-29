@@ -13,11 +13,15 @@ import {
   type BrickLook,
   type DrawCommand,
   FRAMES,
+  PICTURE_FRAMES,
+  type Pictures,
   atlasFrames,
   ballFrame,
+  brickColor,
   brickFrame,
   capsuleFrame,
   lineWidth,
+  mapPictures,
   tagFrame,
 } from "./art";
 import { type PaletteRoles, bricksPalette } from "./palette";
@@ -347,11 +351,97 @@ describe("the atlas", () => {
     }).toEqual({ endsRound: true, middle: 2 });
   });
 
+  it("frames a brick's cell in the glow's color, a line past it on each side", () => {
+    const glow = frameNamed(FRAMES.glow);
+    const line = lineWidth(SCALE);
+
+    expect({
+      width: glow.width,
+      height: glow.height,
+      colors: new Set(glow.commands.map((command) => command.color)),
+    }).toEqual({
+      width: 2 * SCALE.unit + 2 * line,
+      height: SCALE.unit + 2 * line,
+      colors: new Set([PALETTE.glow]),
+    });
+  });
+
   it("draws each tag in its capsule's tone", () => {
     const tones = [tagFrame("wide"), tagFrame("fast")].map(
       (name) => frameNamed(name).commands[0]?.color,
     );
 
     expect(tones).toEqual([PALETTE.capsules.good, PALETTE.capsules.bad]);
+  });
+});
+
+describe("brickColor", () => {
+  it.each([
+    ["plain", PALETTE.tints[2]],
+    ["tough", PALETTE.toughTints[2]],
+    ["ghost", PALETTE.tints[2]],
+    ["regrow", PALETTE.tints[2]],
+    ["steel", PALETTE.bricks.steel],
+    ["blast", PALETTE.bricks.blast],
+    ["gift", PALETTE.bricks.gift],
+  ] as const)("draws a %s brick in its body's color", (kind, color) => {
+    const look: BrickLook = { kind, tint: 2, whole: 2, hits: 1, shown: true };
+
+    expect(brickColor(look, PALETTE)).toBe(color);
+  });
+
+  it("throws for a tint no level can name", () => {
+    const look: BrickLook = {
+      kind: "plain",
+      tint: TINTS,
+      whole: 1,
+      hits: 1,
+      shown: true,
+    };
+
+    expect(() => brickColor(look, PALETTE)).toThrow("No tint");
+  });
+});
+
+describe("PICTURE_FRAMES", () => {
+  const names = new Set(atlasFrames(PALETTE, SCALE).map((frame) => frame.name));
+
+  it("pictures every brick kind, ball kind and capsule from a frame the atlas holds", () => {
+    const pictured = [
+      ...Object.values(PICTURE_FRAMES.bricks),
+      ...Object.values(PICTURE_FRAMES.balls),
+      ...Object.values(PICTURE_FRAMES.capsules),
+    ];
+
+    expect({
+      count: pictured.length,
+      missing: pictured.filter((name) => !names.has(name)),
+    }).toEqual({
+      count: BRICK_KIND_IDS.length + BALL_KIND_IDS.length + CAPSULE_IDS.length,
+      missing: [],
+    });
+  });
+
+  it("pictures a ghost brick still hidden", () => {
+    expect(PICTURE_FRAMES.bricks.ghost).toMatch(/^ghost-/);
+  });
+});
+
+describe("mapPictures", () => {
+  it("turns every picture into another, keeping what it pictures", () => {
+    const pictures: Pictures = {
+      bricks: { ...PICTURE_FRAMES.bricks, plain: "a" },
+      balls: { ...PICTURE_FRAMES.balls, fire: "b" },
+      capsules: { ...PICTURE_FRAMES.capsules, net: "c" },
+    };
+
+    const mapped = mapPictures(pictures, (name) => `${name}!`);
+
+    expect([
+      mapped.bricks.plain,
+      mapped.balls.fire,
+      mapped.capsules.net,
+      Object.keys(mapped.capsules),
+    ]).toEqual(["a!", "b!", "c!", Object.keys(pictures.capsules)]);
   });
 });

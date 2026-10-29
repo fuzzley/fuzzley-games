@@ -110,6 +110,8 @@ export interface Box {
 export interface BrickArt {
   /** Returns the name of the frame a brick of the kind shows, as it stands. */
   readonly frameOf: (brick: BrickLook) => string;
+  /** Returns the color a brick of the kind is drawn in, which its shards take. */
+  readonly colorOf: (brick: BrickLook, palette: BricksPalette) => number;
   /** Returns every frame a brick of the kind may show. */
   readonly frames: (
     palette: BricksPalette,
@@ -157,6 +159,8 @@ export const FRAMES = {
   ember: "ember",
   /** A blast's ring, at its widest. */
   ring: "ring",
+  /** The frame around each of the last bricks a level needs, once they glow. */
+  glow: "glow",
 } as const;
 
 /** How far in from its cell a brick is drawn, on each side, in field units. */
@@ -260,9 +264,33 @@ function nameAt(names: readonly string[] | undefined, at: number): string {
   return name;
 }
 
+/** Returns the color at a place in a palette's list of tints, which holds one for every tint a level can name. */
+function tintAt(tints: readonly number[], at: number): number {
+  const tint = tints[at];
+  if (tint === undefined) throw new Error(`No tint ${String(at)}.`);
+  return tint;
+}
+
 /** Returns how wide a line is, in whole device pixels: a CSS pixel at least. */
 export function lineWidth(scale: ArtScale): number {
   return Math.max(Math.ceil(scale.pixelRatio), Math.round(scale.unit * LINE));
+}
+
+/** Returns the four bars of a frame around the inside of a box, a width thick. */
+function frameAround(
+  box: Box,
+  width: number,
+  color: number,
+): readonly DrawCommand[] {
+  const { x, y } = box;
+  const right = x + box.width - width;
+  const bottom = y + box.height - width;
+  return [
+    rect({ x, y, width: box.width, height: width }, color),
+    rect({ x, y: bottom, width: box.width, height: width }, color),
+    rect({ x, y, width, height: box.height }, color),
+    rect({ x: right, y, width, height: box.height }, color),
+  ];
 }
 
 /** Returns a rectangle filled in a color. */
@@ -530,6 +558,7 @@ function burst(body: Box, color: number): DrawCommand {
 export const BRICK_ART = {
   plain: {
     frameOf: (brick) => nameAt(PLAIN_FRAMES, brick.tint),
+    colorOf: (brick, palette) => tintAt(palette.tints, brick.tint),
     frames: (palette, scale) =>
       palette.tints.map((tint, i) =>
         drawBrick(nameAt(PLAIN_FRAMES, i), scale, (body) => [
@@ -540,6 +569,7 @@ export const BRICK_ART = {
   tough: {
     frameOf: (brick) =>
       nameAt(TOUGH_FRAMES[brick.whole]?.[brick.hits], brick.tint),
+    colorOf: (brick, palette) => tintAt(palette.toughTints, brick.tint),
     frames: (palette, scale) =>
       TOUGH_FRAMES.slice(BRICK_KINDS.tough.hits).flatMap((byHits, i) => {
         const whole = BRICK_KINDS.tough.hits + i;
@@ -557,6 +587,7 @@ export const BRICK_ART = {
   },
   steel: {
     frameOf: () => "steel",
+    colorOf: (_, palette) => palette.bricks.steel,
     frames: (palette, scale) => [
       drawBrick("steel", scale, (body) => [
         filled(body, scale, palette.bricks.steel),
@@ -566,6 +597,7 @@ export const BRICK_ART = {
   },
   blast: {
     frameOf: () => "blast",
+    colorOf: (_, palette) => palette.bricks.blast,
     frames: (palette, scale) => [
       drawBrick("blast", scale, (body) => [
         filled(body, scale, palette.bricks.blast),
@@ -575,6 +607,7 @@ export const BRICK_ART = {
   },
   gift: {
     frameOf: () => "gift",
+    colorOf: (_, palette) => palette.bricks.gift,
     frames: (palette, scale) => [
       drawBrick("gift", scale, (body) => [
         filled(body, scale, palette.bricks.gift),
@@ -586,6 +619,7 @@ export const BRICK_ART = {
     // Once it shows, a ghost brick is drawn as a plain one.
     frameOf: (brick) =>
       nameAt(brick.shown ? PLAIN_FRAMES : GHOST_FRAMES, brick.tint),
+    colorOf: (brick, palette) => tintAt(palette.tints, brick.tint),
     frames: (palette, scale) =>
       palette.tints.map((tint, i) =>
         drawBrick(nameAt(GHOST_FRAMES, i), scale, (body) =>
@@ -595,6 +629,7 @@ export const BRICK_ART = {
   },
   regrow: {
     frameOf: (brick) => nameAt(REGROW_FRAMES, brick.tint),
+    colorOf: (brick, palette) => tintAt(palette.tints, brick.tint),
     frames: (palette, scale) =>
       palette.tints.map((tint, i) =>
         drawBrick(nameAt(REGROW_FRAMES, i), scale, (body) => [
@@ -829,6 +864,11 @@ export function brickFrame(brick: BrickLook): string {
   return BRICK_ART[brick.kind].frameOf(brick);
 }
 
+/** Returns the color a brick is drawn in, which its shards take. */
+export function brickColor(brick: BrickLook, palette: BricksPalette): number {
+  return BRICK_ART[brick.kind].colorOf(brick, palette);
+}
+
 /** Returns the name of a kind of ball's frame. */
 export function ballFrame(kind: BallKindId): string {
   return BALL_FRAMES[kind];
@@ -936,6 +976,12 @@ function otherArt(
   const shard = Math.max(2, Math.round(SHARD_SIZE * scale.unit));
   const ember = Math.max(2, Math.round(EMBER_SIZE * scale.unit));
   const blastRing = Math.round(RING_SIZE * scale.unit);
+  const glow = {
+    x: 0,
+    y: 0,
+    width: Math.round(BRICK_WIDTH * scale.unit) + 2 * line,
+    height: Math.round(BRICK_HEIGHT * scale.unit) + 2 * line,
+  };
   return [
     {
       name: FRAMES.paddle,
@@ -1014,6 +1060,12 @@ function otherArt(
         ),
       ],
     },
+    {
+      name: FRAMES.glow,
+      width: glow.width,
+      height: glow.height,
+      commands: frameAround(glow, 2 * line, palette.glow),
+    },
   ];
 }
 
@@ -1033,4 +1085,55 @@ export function atlasFrames(
     ...CAPSULE_IDS.map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
   ];
+}
+
+/** Names a picture of each brick kind, ball kind and capsule, for How to play. */
+export interface Pictures {
+  readonly bricks: Readonly<Record<BrickKindId, string>>;
+  readonly balls: Readonly<Record<BallKindId, string>>;
+  readonly capsules: Readonly<Record<CapsuleId, string>>;
+}
+
+/** How How to play pictures each kind of brick: a tough one with a hit taken, and a ghost still hidden. */
+const PICTURED_BRICKS: Readonly<Record<BrickKindId, BrickLook>> = {
+  plain: { kind: "plain", tint: 0, whole: 1, hits: 1, shown: true },
+  tough: { kind: "tough", tint: 5, whole: 3, hits: 2, shown: true },
+  steel: { kind: "steel", tint: 0, whole: 0, hits: 0, shown: true },
+  blast: { kind: "blast", tint: 0, whole: 1, hits: 1, shown: true },
+  gift: { kind: "gift", tint: 0, whole: 1, hits: 1, shown: true },
+  ghost: { kind: "ghost", tint: 6, whole: 2, hits: 2, shown: false },
+  regrow: { kind: "regrow", tint: 3, whole: 1, hits: 1, shown: true },
+};
+
+/** The frames How to play's pictures are taken from. */
+export const PICTURE_FRAMES: Pictures = {
+  // Object.fromEntries() types its keys as strings; these are the kinds.
+  bricks: Object.fromEntries(
+    BRICK_KIND_IDS.map((kind) => [kind, brickFrame(PICTURED_BRICKS[kind])]),
+  ) as Record<BrickKindId, string>,
+  balls: BALL_FRAMES,
+  capsules: CAPSULE_FRAMES,
+};
+
+/** Returns a set of pictures with each turned into another, such as a frame's name into the image baked of it. */
+export function mapPictures(
+  pictures: Pictures,
+  map: (picture: string) => string,
+): Pictures {
+  return {
+    bricks: mapRecord(pictures.bricks, map),
+    balls: mapRecord(pictures.balls, map),
+    capsules: mapRecord(pictures.capsules, map),
+  };
+}
+
+/** Returns a record with each of its values turned into another. */
+function mapRecord<K extends string>(
+  record: Readonly<Record<K, string>>,
+  map: (value: string) => string,
+): Record<K, string> {
+  // Object.fromEntries() types its keys as strings; these are the record's.
+  return Object.fromEntries(
+    Object.entries<string>(record).map(([key, value]) => [key, map(value)]),
+  ) as Record<K, string>;
 }

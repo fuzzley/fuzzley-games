@@ -35,6 +35,8 @@ export interface BricksPalette {
   readonly mark: number;
   /** The wall around the field: text at {@link WALL_WASH}. */
   readonly wall: number;
+  /** The frame around each of the last bricks a level needs, once they glow: the text. */
+  readonly glow: number;
   readonly paddle: number;
   readonly balls: Readonly<Record<BallKindId, number>>;
   readonly capsules: Readonly<Record<CapsuleTone, number>>;
@@ -70,6 +72,7 @@ export function bricksPalette(
     outline: panel,
     mark: panel,
     wall: mixColors(text, panel, WALL_WASH),
+    glow: text,
     paddle: accent,
     balls: { normal: text, fire: colorNumber(roles.warning), blast: danger },
     capsules: { good: accent, bad: danger },

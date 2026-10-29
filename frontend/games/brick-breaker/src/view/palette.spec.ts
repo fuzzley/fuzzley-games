@@ -51,6 +51,10 @@ describe("bricksPalette", () => {
     });
   });
 
+  it("frames the last bricks' glow in the text", () => {
+    expect(bricksPalette(ROLES, "light").glow).toBe(0x000000);
+  });
+
   it("washes the wall with a fifth of the text, and steel with more than half", () => {
     const palette = bricksPalette(ROLES, "light");
 

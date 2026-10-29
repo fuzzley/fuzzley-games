@@ -1,18 +1,28 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
-import { Core } from "phaser";
+import { Core, type Game, type GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks";
 import { cellIndex } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
-import { BRICKS_TOP, COLUMNS, ROWS } from "../rules/tuning";
+import { stepsIn } from "../rules/stepper";
+import { BRICKS_TOP, COLUMNS, FIELD_HEIGHT, ROWS } from "../rules/tuning";
 import {
   ballOf,
   brickAt,
   fieldFrom,
   throwBall,
 } from "../testing/field_picture";
-import { atlasFrames, ballFrame, brickFrame } from "../view/art";
+import {
+  PICTURE_FRAMES,
+  type Pictures,
+  atlasFrames,
+  ballFrame,
+  brickColor,
+  brickFrame,
+  capsuleFrame,
+  tagFrame,
+} from "../view/art";
 import type { FieldCommand } from "../view/controls";
 import {
   type FieldMetrics,
@@ -24,7 +34,17 @@ import {
 import type { FieldFrame } from "../view/frame";
 import { type BricksPalette, bricksPalette } from "../view/palette";
 import type { TouchSteering } from "../view/steering";
-import { DROP_IN_MS } from "../view/timing";
+import { TAG_SPACING, TAG_Y, firstTagX } from "../view/tags";
+import {
+  DROP_IN_MS,
+  FADE_MS,
+  GLOW_AFTER_MS,
+  GLOW_PULSE_MS,
+  POP_MS,
+  REGROW_MS,
+  RING_MS,
+  SHARDS,
+} from "../view/timing";
 import { ATLAS } from "./atlas";
 import {
   type BricksScene,
@@ -74,6 +94,7 @@ class FakeShell implements BricksSceneOptions {
   readonly ticks: Tick[] = [];
   readonly layouts: CssRect[] = [];
   readonly commands: FieldCommand[] = [];
+  readonly pictures: Pictures[] = [];
 
   readonly tick = (deltaMs: number, steer: Readonly<Steer>): void => {
     this.ticks.push({ deltaMs, steer: { ...steer } });
@@ -91,6 +112,9 @@ class FakeShell implements BricksSceneOptions {
   };
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
+  };
+  readonly onPictures = (pictures: Pictures): void => {
+    this.pictures.push(pictures);
   };
 
   /** Shows a new field, as a new level does. */
@@ -126,9 +150,10 @@ afterEach(() => {
   running = null;
 });
 
-/** Runs the scene for a shell, its first frame drawn. */
+/** Runs the scene for a shell, its first frame drawn, in a game readied first as a spec asks. */
 async function startBoard(
   setUp: (shell: FakeShell) => void = () => undefined,
+  prepare: (game: Game) => void = () => undefined,
 ): Promise<Board> {
   const shell = new FakeShell();
   setUp(shell);
@@ -137,10 +162,42 @@ async function startBoard(
   document.body.append(keys);
   const run = await runScene(makeBricksScene(shell), {
     config: { input: { keyboard: { target: keys } } },
+    prepare,
   });
   running = run;
   run.advance(16);
   return { shell, run, scene: run.scene, keys };
+}
+
+/** Returns how many game objects a scene holds, those in its layers too. */
+function objectsIn(scene: BricksScene): number {
+  const count = (objects: readonly GameObjects.GameObject[]): number =>
+    objects.reduce(
+      (sum, object) =>
+        sum + 1 + (isLayer(object) ? count(object.getChildren()) : 0),
+      0,
+    );
+  return count(scene.children.getChildren());
+}
+
+/** Returns whether a game object is a layer, which holds others. */
+function isLayer(object: GameObjects.GameObject): object is GameObjects.Layer {
+  return object.type === "Layer";
+}
+
+/** Returns what a spec reads of an image: whether it shows, its frame and its place. */
+function placed(image: GameObjects.Image | undefined): object {
+  return {
+    visible: image?.visible,
+    frame: image?.frame.name,
+    x: image?.x,
+    y: image?.y,
+  };
+}
+
+/** Returns how many of a set of images show. */
+function showing(images: readonly GameObjects.Image[]): number {
+  return images.filter((image) => image.visible).length;
 }
 
 /** Returns the field's layout on the spec's 400 × 400 canvas, at a pixel to a pixel. */
@@ -551,6 +608,429 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(shell.lastSteer().by).toBe(26 / metricsAt().unit);
+    });
+  });
+
+  describe("the capsules", () => {
+    it("are drawn falling between their last place and their next, each in its frame", async () => {
+      const { shell, run, scene } = await startBoard();
+      Object.assign(shell.field.falling[0] ?? {}, {
+        live: true,
+        id: "slow",
+        x: 5,
+        y: 10,
+        lastY: 9,
+      });
+
+      shell.alpha = 0.25;
+      run.advance(16);
+
+      expect(placed(scene.capsules.images[0])).toEqual({
+        visible: true,
+        frame: capsuleFrame("slow"),
+        x: toCanvasX(metricsAt(), 5),
+        y: toCanvasY(metricsAt(), 9.25),
+      });
+    });
+
+    it("hide a capsule once it stops falling", async () => {
+      const { shell, run, scene } = await startBoard();
+      const falling = shell.field.falling[0];
+      if (falling) falling.live = true;
+      run.advance(16);
+
+      if (falling) falling.live = false;
+      run.advance(16);
+
+      expect(showing(scene.capsules.images)).toBe(0);
+    });
+  });
+
+  describe("the bolts", () => {
+    it("are drawn rising between their last place and their next, hung from their tips", async () => {
+      const { shell, run, scene } = await startBoard();
+      Object.assign(shell.field.bolts[0] ?? {}, {
+        live: true,
+        x: 7,
+        y: 20,
+        lastY: 21,
+      });
+
+      shell.alpha = 0.5;
+      run.advance(16);
+
+      expect(scene.bolts.images[0]).toMatchObject({
+        visible: true,
+        originY: 0,
+        x: toCanvasX(metricsAt(), 7),
+        y: toCanvasY(metricsAt(), 20.5),
+      });
+    });
+
+    it("hide those not rising", async () => {
+      const { scene } = await startBoard();
+
+      expect(showing(scene.bolts.images)).toBe(0);
+    });
+  });
+
+  describe("the tags", () => {
+    it("show each effect in play in a row under the paddle, in its capsule's frame", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.effects["paddle-size"].capsule = "wide";
+      shell.field.effects["paddle-size"].endsAt = stepsIn(20_000);
+      shell.field.effects.net.capsule = "net";
+      const metrics = metricsAt();
+      const first = firstTagX(shell.field.paddle.x, 2);
+
+      run.advance(16);
+
+      expect([
+        placed(scene.tags.images["paddle-size"]),
+        placed(scene.tags.images.net),
+      ]).toEqual([
+        {
+          visible: true,
+          frame: tagFrame("wide"),
+          x: toCanvasX(metrics, first),
+          y: toCanvasY(metrics, TAG_Y),
+        },
+        {
+          visible: true,
+          frame: tagFrame("net"),
+          x: toCanvasX(metrics, first + TAG_SPACING),
+          y: toCanvasY(metrics, TAG_Y),
+        },
+      ]);
+    });
+
+    it("draw a ring for each tag, in its capsule's tone", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.effects.pace.capsule = "fast";
+      shell.field.effects.pace.endsAt = stepsIn(10_000);
+
+      run.advance(16);
+
+      expect(scene.tags.rings.commandBuffer).toEqual(
+        expect.arrayContaining([LIGHT.wall, LIGHT.capsules.bad]),
+      );
+    });
+
+    it("show none, and no rings, while no effect is in play", async () => {
+      const { scene } = await startBoard();
+
+      expect({
+        tags: showing(Object.values(scene.tags.images)),
+        rings: scene.tags.rings.commandBuffer.length,
+      }).toEqual({ tags: 0, rings: 0 });
+    });
+  });
+
+  describe("what happens on the field", () => {
+    it("swells a brick that holds a hit, and settles it back", async () => {
+      const { shell, run, scene } = await startBoard();
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 3, BRICKS_TOP + 1);
+      const image = scene.bricks.images[cellIndex(1, 0)];
+
+      run.advance(POP_MS / 2);
+      const swollen = image?.scale ?? 0;
+      run.advance(POP_MS);
+
+      expect({ swollen: swollen > 1, settled: image?.scale }).toEqual({
+        swollen: true,
+        settled: 1,
+      });
+    });
+
+    it("throws a broken brick's shards, in its color", async () => {
+      const { shell, run, scene } = await startBoard();
+      const plain = brickAt(shell.field, 0, 0);
+      hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
+
+      run.advance(16);
+
+      const tints = new Set<number>();
+      scene.effects.shards.forEachAlive((shard) => tints.add(shard.tint), null);
+
+      expect({
+        shards: scene.effects.shards.getAliveParticleCount(),
+        tints,
+      }).toEqual({
+        shards: SHARDS,
+        tints: new Set([brickColor(plain, LIGHT)]),
+      });
+    });
+
+    it("spreads a blast's ring once, and shakes the field", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+
+      run.advance(16);
+      const spreading = showing(scene.effects.rings);
+      const shaking = scene.cameras.main.shakeEffect.isRunning;
+      run.advance(RING_MS + 32);
+
+      expect({
+        spreading,
+        shaking,
+        after: showing(scene.effects.rings),
+      }).toEqual({ spreading: 1, shaking: true, after: 0 });
+    });
+
+    it("fades a lost ball out where it fell, in its frame", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.ballKind = "blast";
+      shell.field.events.add("lost", 6, FIELD_HEIGHT);
+
+      run.advance(16);
+      const fading = scene.effects.fades[0];
+      const seen = {
+        visible: fading?.visible,
+        frame: fading?.frame.name,
+        x: fading?.x,
+        y: fading?.y,
+      };
+      run.advance(FADE_MS);
+
+      expect({ ...seen, after: fading?.visible }).toEqual({
+        visible: true,
+        frame: ballFrame("blast"),
+        x: toCanvasX(metricsAt(), 6),
+        y: toCanvasY(metricsAt(), FIELD_HEIGHT),
+        after: false,
+      });
+    });
+
+    it("grows a regrown brick back from nothing", async () => {
+      const { shell, run, scene } = await startBoard();
+      const cell = cellIndex(0, 0);
+      shell.field.events.add("regrown", 1, BRICKS_TOP + 0.5, cell);
+      const image = scene.bricks.images[cell];
+
+      run.advance(16);
+      const growing = image?.scale ?? 1;
+      run.advance(REGROW_MS);
+
+      expect({ growing: growing < 0.5, grown: image?.scale }).toEqual({
+        growing: true,
+        grown: 1,
+      });
+    });
+
+    it("leaves embers behind a fire ball", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 4, 20, 0);
+      shell.field.ballKind = "fire";
+
+      run.advance(16);
+
+      expect(scene.balls.embers.getAliveParticleCount()).toBeGreaterThan(0);
+    });
+
+    it("frames the last bricks a level needs once none has broken for a while", async () => {
+      const { shell, run, scene } = await startBoard((shell) => {
+        shell.showField(["o3#"]);
+      });
+      shell.field.steps = stepsIn(GLOW_AFTER_MS) - 1;
+      run.advance(16);
+      const before = showing(scene.glow.images);
+
+      shell.field.steps = stepsIn(GLOW_AFTER_MS);
+      run.advance(16);
+
+      expect({
+        before,
+        after: scene.glow.images
+          .filter((image) => image.visible)
+          .map((image) => [image.x, image.alpha]),
+      }).toEqual({
+        before: 0,
+        after: [
+          [toCanvasX(metricsAt(), 1), 1],
+          [toCanvasX(metricsAt(), 3), 1],
+        ],
+      });
+    });
+
+    it("darkens the last bricks' glow as one of them breaks", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.steps = stepsIn(GLOW_AFTER_MS);
+      run.advance(16);
+
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+      run.advance(16);
+
+      expect(showing(scene.glow.images)).toBe(0);
+    });
+
+    it("glows a new level's last bricks from when it started", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.steps = 2 * stepsIn(GLOW_AFTER_MS);
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+      run.advance(16);
+
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+      shell.field.steps = stepsIn(GLOW_AFTER_MS);
+      run.advance(16);
+
+      expect(showing(scene.glow.images)).toBe(2);
+    });
+
+    it("plays each event once, however many frames pass", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+
+      run.advance(RING_MS * 3);
+
+      expect(showing(scene.effects.rings)).toBe(0);
+    });
+  });
+
+  describe("where the player prefers less motion", () => {
+    it("plays no flourish", async () => {
+      const { shell, run, scene } = await startBoard(stillness);
+      throwBall(shell.field, 4, 20, 0);
+      shell.field.ballKind = "fire";
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 3, BRICKS_TOP + 1);
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+      shell.field.events.add("lost", 6, FIELD_HEIGHT);
+      shell.field.events.add("regrown", 1, BRICKS_TOP + 0.5, cellIndex(0, 0));
+
+      run.advance(16);
+
+      expect({
+        shards: scene.effects.shards.getAliveParticleCount(),
+        embers: scene.balls.embers.getAliveParticleCount(),
+        rings: showing(scene.effects.rings),
+        fades: showing(scene.effects.fades),
+        shaking: scene.cameras.main.shakeEffect.isRunning,
+        scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
+      }).toEqual({
+        shards: 0,
+        embers: 0,
+        rings: 0,
+        fades: 0,
+        shaking: false,
+        scaled: 0,
+      });
+    });
+
+    it("holds the last bricks' glow still", async () => {
+      const { shell, run, scene } = await startBoard(stillness);
+
+      shell.field.steps = stepsIn(GLOW_AFTER_MS + GLOW_PULSE_MS / 2);
+      run.advance(16);
+
+      expect(scene.glow.images[0]?.alpha).toBe(1);
+    });
+  });
+
+  describe("a new level", () => {
+    it("makes no game object after the first", async () => {
+      const { shell, run, scene } = await startBoard();
+      const first = objectsIn(scene);
+
+      shell.showField(["*?~+#"]);
+      throwBall(shell.field, 4, 20, 0);
+      shell.field.ballKind = "fire";
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+      shell.field.events.add("lost", 6, FIELD_HEIGHT);
+      shell.field.effects.net.capsule = "net";
+      run.advance(DROP_IN_MS);
+
+      expect(objectsIn(scene)).toBe(first);
+    });
+
+    it("stops what the last level set off", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 4, 20, 0);
+      shell.field.ballKind = "fire";
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 3, BRICKS_TOP + 1);
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+      shell.field.events.add("lost", 6, FIELD_HEIGHT);
+      run.advance(16);
+
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+
+      expect({
+        shards: scene.effects.shards.getAliveParticleCount(),
+        embers: scene.balls.embers.getAliveParticleCount(),
+        rings: showing(scene.effects.rings),
+        fades: showing(scene.effects.fades),
+        scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
+      }).toEqual({ shards: 0, embers: 0, rings: 0, fades: 0, scaled: 0 });
+    });
+
+    it("plays the new level's events from its first", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.add("wall", 0, 5);
+      shell.field.events.add("wall", 0, 6);
+      run.advance(16);
+
+      shell.showField(ROWS_DRAWN);
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+      run.advance(16);
+
+      expect(showing(scene.effects.rings)).toBe(1);
+    });
+  });
+
+  describe("the pictures", () => {
+    it("hand How to play the atlas's picture of each brick, ball and capsule", async () => {
+      const { shell, scene } = await startBoard();
+      const baked = (frame: string): string =>
+        scene.textures.getBase64(ATLAS, frame);
+
+      const pictures = shell.pictures.at(-1);
+
+      expect([
+        pictures?.bricks.tough,
+        pictures?.balls.fire,
+        pictures?.capsules.net,
+      ]).toEqual([
+        baked(PICTURE_FRAMES.bricks.tough),
+        baked(PICTURE_FRAMES.balls.fire),
+        baked(PICTURE_FRAMES.capsules.net),
+      ]);
+    });
+
+    it("are handed over again in a new palette", async () => {
+      const { shell, run } = await startBoard();
+
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect(shell.pictures).toHaveLength(2);
+    });
+  });
+
+  describe("once it ends", () => {
+    it("calls the shell no more, and lets go of the game's events", async () => {
+      const awayEvents = [Core.Events.BLUR, Core.Events.HIDDEN];
+      let listening: number[] = [];
+      const { shell, run, scene } = await startBoard(undefined, (game) => {
+        listening = awayEvents.map((name) => game.events.listenerCount(name));
+      });
+      const calls = (): number =>
+        shell.ticks.length + shell.layouts.length + shell.pictures.length;
+
+      run.game.scene.stop(scene.key);
+      const before = calls();
+      run.advance(48);
+      run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      expect({
+        calls: calls() - before,
+        commands: shell.commands,
+        listening: awayEvents.map((name) =>
+          run.game.events.listenerCount(name),
+        ),
+      }).toEqual({ calls: 0, commands: [], listening });
     });
   });
 });

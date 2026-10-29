@@ -110,7 +110,11 @@ the scene's first files and the shell exist.
   reads: `FieldView`, the field it can't change, `EventsView` and
   `FieldFrame`; `layers.ts` the order the field is drawn in, back to front,
   in one list; `timing.ts` how long each flourish lasts and how long the
-  cards wait; `controls.ts` the keys by `event.code`, the commands and the
+  cards wait; `flourish.ts` how each flourish moves over its time, and how
+  bright the last bricks a level needs glow once none has broken for a
+  while, pulsing only where motion is welcome; `tags.ts` where the tags of
+  the effects in play lie under the paddle, and how much of each one's time
+  is left; `controls.ts` the keys by `event.code`, the commands and the
   held pushes; `steering.ts` the `Steering` that turns keys, the mouse
   and fingers into each frame's `Steer`, and a tap into a launch; and
   `palette.ts` the field's colors from the palette's roles
@@ -122,26 +126,37 @@ the scene's first files and the shell exist.
   in each tint and state (`BRICK_ART`), each ball (`BALL_ART`), each
   capsule's shape (`CAPSULE_ART`) and symbol (`SYMBOLS`), its tag, the
   paddle and the flourishes, and names the frame a brick, a ball, a
-  capsule or a tag shows (`brickFrame()` and the rest); `effects.ts` says
-  what each event calls for, its sound and the flourishes it plays where
-  motion is welcome. `contrast.spec.ts` holds
-  every tint, the steel, blast and gift bricks, every ball kind, both
-  capsule tones and the paddle to 3:1 against the field in every palette,
-  a tough brick's deeper tints too, each ball and capsule against its
-  outline, the outline against every tint, brick and the paddle, and the
-  marks against every brick, capsule and the paddle; its comment says why
-  a ball isn't held against the tints.
+  capsule or a tag shows (`brickFrame()` and the rest), the color a brick's
+  shards take (`brickColor()`), and How to play's pictures
+  (`PICTURE_FRAMES`); `effects.ts` says what each event calls for, its
+  sound and the flourishes it plays where motion is welcome.
+  `contrast.spec.ts` holds every tint, the steel, blast and gift bricks,
+  every ball kind, both capsule tones, the paddle and the last bricks' glow
+  to 3:1 against the field in every palette, a tough brick's deeper tints
+  too, each ball and capsule against its outline, the outline against every
+  tint, brick and the paddle, and the marks against every brick, capsule
+  and the paddle; its comment says why a ball isn't held against the tints.
 - **`src/scene/`** — the Phaser scene. `BricksScene`
   (`bricks_scene.ts`) is handed plain functions over the game
   (`BricksSceneOptions`): each frame it hands the game the time and the
   steering its `Steering` read from the keys and the pointer, reads the
   frame and the palette, and has its painters draw, each in its layer of
   `LAYERS`: `FieldPainter` the field, its wall and the net,
-  `BrickPainter` an image for each cell, made once and dropped in as a
-  level starts, `PaddlePainter` the paddle as a nine-slice with its
-  cannons and rim, and `BallPainter` the balls, each between its last
-  place and its next. `atlas.ts` plays the view's art into
-  `@fz/phaser`'s `bakeAtlas()`, again on a new palette or a new unit. The
+  `BrickPainter` an image for each cell, made once, dropped in as a level
+  starts, swollen at a hit a brick holds and grown back as it regrows,
+  `GlowPainter` the frames around the last bricks a level needs,
+  `EffectsPainter` a broken brick's shards, a blast's ring, a lost ball's
+  fade and the field's shake, `CapsulePainter` and `BoltPainter` what
+  falls and rises, `PaddlePainter` the paddle as a nine-slice with its
+  cannons and rim, `TagPainter` the effects in play and their emptying
+  rings, and `BallPainter` the balls, with a fire ball's embers, each
+  thing that moves drawn between its last place and its next. Every game
+  object is made as the scene is created, and a new field stops what the
+  last one set off. The scene plays each of the field's events once, from
+  the last it played, and the flourishes an event calls for only where
+  motion is welcome. `atlas.ts` plays the view's art into `@fz/phaser`'s
+  `bakeAtlas()`, again on a new palette or a new unit, and the scene hands
+  How to play its pictures from the atlas each time (`onPictures()`). The
   keys, clicks and taps go back through `command()`; Phaser hands a key
   event over again with each new one in a frame, so the scene takes each
   once.
