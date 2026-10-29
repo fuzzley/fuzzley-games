@@ -26,6 +26,9 @@
         <div
           ngGridCell
           class="cell"
+          [class.hit]="cell.hit"
+          [class.lands]="cell.landsIn"
+          [style.--lands-in]="cell.landsIn"
           [attr.data-index]="cell.index"
           [attr.data-show]="cell.showing"
           [attr.data-n]="cell.count"

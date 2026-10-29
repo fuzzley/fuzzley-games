@@ -1,4 +1,5 @@
 import {
+  DestroyRef,
   Injectable,
   InjectionToken,
   computed,
@@ -6,6 +7,7 @@ import {
   signal,
 } from "@angular/core";
 import { StopwatchService } from "@fz/game-ui/stopwatch";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { describeMove } from "../../rules/describe";
@@ -20,6 +22,7 @@ import {
   toggleFlag,
 } from "../../rules/field";
 import { randomSeed } from "@fz/core/random";
+import { LANDING_MS } from "../board/landing";
 import { type Settings, SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
 
@@ -28,6 +31,31 @@ export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
   providedIn: "root",
   factory: () => Math.random,
 });
+
+/**
+ * How long a finished board is left to look at before the card opens, once
+ * nothing on it moves, in ms.
+ */
+export const LOOK_MS = 600;
+
+/**
+ * How long a finished board shows how the game ended before the card opens,
+ * in ms: the board's landings and a moment to look at them, or the moment
+ * alone where motion is unwelcome, but in specs.
+ */
+export const ENDING_PAUSE = new InjectionToken<() => number>("ENDING_PAUSE", {
+  providedIn: "root",
+  factory: () => {
+    const viewport = inject(GameViewportService);
+    return () => (viewport.allowsMotion() ? LANDING_MS : 0) + LOOK_MS;
+  },
+});
+
+/** Says what a move did: the field before it, and the square it was made on. */
+export interface Move {
+  readonly before: Field;
+  readonly at: number;
+}
 
 /** What a new deal asks before it throws away the game under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
@@ -57,6 +85,9 @@ const RESTART_QUESTION: ConfirmRequest = {
 /**
  * Plays the game: holds the field, makes the player's moves on it, runs its
  * clock, keeps its score, and says what each move did.
+ *
+ * When a game ends, the board shows how for a moment before the card opens,
+ * and a move made on it meanwhile opens the card at once.
  */
 @Injectable({ providedIn: "root" })
 export class GameService {
@@ -66,6 +97,7 @@ export class GameService {
   private readonly stopwatch = inject(StopwatchService);
   private readonly announcer = inject(AnnouncerService);
   private readonly random = inject(GAME_RANDOM);
+  private readonly endingPause = inject(ENDING_PAUSE);
 
   private readonly fieldState = signal<Field>(this.deal());
   private readonly difficultyState = signal<DifficultyId>(
@@ -74,6 +106,9 @@ export class GameService {
   private readonly newBestState = signal(false);
   private readonly flagModeState = signal(false);
   private readonly resultOpenState = signal(false);
+  private readonly lastMoveState = signal<Move | null>(null);
+  private readonly endingState = signal(false);
+  private endingTimer: ReturnType<typeof setTimeout> | undefined;
 
   /** The game on the board. */
   readonly field = this.fieldState.asReadonly();
@@ -96,11 +131,26 @@ export class GameService {
   /** Whether the card at the end of a game is showing. */
   readonly resultOpen = this.resultOpenState.asReadonly();
 
+  /** The last move that changed the field, or null since the deal. */
+  readonly lastMove = this.lastMoveState.asReadonly();
+
+  /**
+   * Whether the game has just ended and the board is showing how, before the
+   * card opens.
+   */
+  readonly ending = this.endingState.asReadonly();
+
   /** The mines not yet flagged or stepped on. */
   readonly minesLeft = computed(() => minesLeft(this.fieldState()));
 
   /** Whether a game is under way, which a new deal would lose. */
   readonly inProgress = computed(() => this.fieldState().outcome === "playing");
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      clearTimeout(this.endingTimer);
+    });
+  }
 
   /** Reveals a square, or flags it in Flag mode: what a click or a tap does. */
   play(index: number): void {
@@ -113,12 +163,14 @@ export class GameService {
 
   /** Reveals a square, or the squares around a number whose flags match it. */
   reveal(index: number): void {
-    this.move(reveal(this.fieldState(), index));
+    if (this.cutEndingShort()) return;
+    this.move(index, reveal(this.fieldState(), index));
   }
 
   /** Flags a hidden square, or takes the flag off. */
   flag(index: number): void {
-    this.move(toggleFlag(this.fieldState(), index));
+    if (this.cutEndingShort()) return;
+    this.move(index, toggleFlag(this.fieldState(), index));
   }
 
   /** Turns Flag mode on or off. */
@@ -180,23 +232,59 @@ export class GameService {
   }
 
   private begin(field: Field, seconds: number, difficulty: DifficultyId): void {
+    this.stopEnding();
     this.fieldState.set(field);
     this.difficultyState.set(difficulty);
     this.stopwatch.reset(seconds);
     this.newBestState.set(false);
     this.resultOpenState.set(false);
+    this.lastMoveState.set(null);
     this.announcer.clear();
     this.syncClock();
   }
 
-  private move(after: Field): void {
+  private move(at: number, after: Field): void {
     const before = this.fieldState();
     if (after === before) return;
     this.fieldState.set(after);
+    this.lastMoveState.set({ before, at });
     this.syncClock();
     this.keepScore(before, after);
     this.announcer.say(describeMove(before, after));
-    if (isOver(after)) this.resultOpenState.set(true);
+    if (isOver(after)) this.end();
+  }
+
+  /** Leaves the finished board to show how the game ended, then opens the card. */
+  private end(): void {
+    const pause = this.endingPause();
+    if (pause <= 0) {
+      this.showResult();
+      return;
+    }
+    this.endingState.set(true);
+    this.endingTimer = setTimeout(() => {
+      this.showResult();
+    }, pause);
+  }
+
+  /**
+   * Opens the card if the board is showing how the game ended, and returns
+   * whether it did.
+   */
+  private cutEndingShort(): boolean {
+    if (!this.endingState()) return false;
+    this.showResult();
+    return true;
+  }
+
+  private showResult(): void {
+    this.stopEnding();
+    this.resultOpenState.set(true);
+  }
+
+  private stopEnding(): void {
+    clearTimeout(this.endingTimer);
+    this.endingState.set(false);
   }
 
   /** Counts a game once its first square is revealed, and again if it is won. */

@@ -1,11 +1,13 @@
 import { TestBed } from "@angular/core/testing";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { pictureOf } from "../../testing/field_picture";
-import { playOn } from "../../testing/game";
+import { pauseAtEnd, playOn } from "../../testing/game";
+import { LANDING_MS } from "../board/landing";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-import { GameService } from "./game.service";
+import { GameService, LOOK_MS } from "./game.service";
 
 /**
  * A field in play. Revealing its top-right corner, a blank, opens the four
@@ -195,25 +197,119 @@ describe("GameService", () => {
       );
     });
 
-    it("shows how the game ended once the last life is lost", () => {
-      const game = playOn(IN_PLAY, { livesLeft: 1 });
+    it("remembers the last move: the field before it, and its square", () => {
+      const game = playOn(IN_PLAY);
+      const before = game.field();
 
-      game.reveal(0);
+      game.reveal(2);
 
-      expect(game.field().outcome).toBe("lost");
-      expect(game.resultOpen()).toBe(true);
+      expect(game.lastMove()).toEqual({ before, at: 2 });
     });
 
-    it("shows how the game ended once the field is cleared", () => {
+    it("forgets the last move with a new deal", async () => {
+      const game = playOn(NEARLY_WON);
+      game.reveal(6);
+
+      await game.newGame();
+
+      expect(game.lastMove()).toBeNull();
+    });
+  });
+
+  describe("the end of a game", () => {
+    let viewport: FakeViewport | null = null;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      viewport?.restore();
+      viewport = null;
+    });
+
+    it("leaves the board to show how the game ended before the card opens", () => {
+      pauseAtEnd(1000);
       const game = playOn(NEARLY_WON);
 
       game.reveal(6);
 
-      expect(game.field().outcome).toBe("won");
+      expect(game.ending()).toBe(true);
+      expect(game.resultOpen()).toBe(false);
+    });
+
+    it("shows how the game ended after the pause once the last life is lost", () => {
+      pauseAtEnd(1000);
+      const game = playOn(IN_PLAY, { livesLeft: 1 });
+      game.reveal(0);
+
+      vi.advanceTimersByTime(1000);
+
+      expect(game.ending()).toBe(false);
+      expect(game.resultOpen()).toBe(true);
+    });
+
+    it("shows how the game ended after the pause once the field is cleared", () => {
+      pauseAtEnd(1000);
+      const game = playOn(NEARLY_WON);
+      game.reveal(6);
+
+      vi.advanceTimersByTime(1000);
+
+      expect(game.resultOpen()).toBe(true);
+    });
+
+    it("cuts the pause short on a move made in it", () => {
+      pauseAtEnd(1000);
+      const game = playOn(NEARLY_WON);
+      game.reveal(6);
+
+      game.flag(0);
+
+      expect(game.resultOpen()).toBe(true);
+    });
+
+    it("opens the card in the move that ends the game with no pause", () => {
+      pauseAtEnd(0);
+      const game = playOn(NEARLY_WON);
+
+      game.reveal(6);
+
+      expect(game.resultOpen()).toBe(true);
+    });
+
+    it("opens no card over a game dealt in the pause", async () => {
+      pauseAtEnd(1000);
+      const game = playOn(NEARLY_WON);
+      game.reveal(6);
+      await game.newGame();
+
+      vi.advanceTimersByTime(1000);
+
+      expect(game.resultOpen()).toBe(false);
+    });
+
+    it("pauses for the board's landings where motion is welcome", () => {
+      viewport = installFakeViewport(1280);
+      const game = playOn(NEARLY_WON);
+      game.reveal(6);
+
+      vi.advanceTimersByTime(LANDING_MS + LOOK_MS - 1);
+
+      expect(game.resultOpen()).toBe(false);
+    });
+
+    it("pauses only a moment where motion is unwelcome", () => {
+      const game = playOn(NEARLY_WON);
+      game.reveal(6);
+
+      vi.advanceTimersByTime(LOOK_MS);
+
       expect(game.resultOpen()).toBe(true);
     });
 
     it("puts the result away, leaving the field as it ended", () => {
+      pauseAtEnd(0);
       const game = playOn(NEARLY_WON);
       game.reveal(6);
 

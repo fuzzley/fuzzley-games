@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { pictureOf } from "../../testing/field_picture";
-import { type GameOptions, playOn } from "../../testing/game";
+import { type GameOptions, pauseAtEnd, playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
 import { STATS_KEY } from "../stats/stats.service";
 import { ResultComponent } from "./result.component";
@@ -21,12 +21,16 @@ function storeStats(stats: object): void {
   localStorage.setItem(STATS_KEY, JSON.stringify({ version: 1, ...stats }));
 }
 
-/** Renders the card, then plays a field to its end with its last move. */
+/**
+ * Renders the card, then plays a field to its end with its last move, with
+ * no pause before the card.
+ */
 async function finish(
   picture: readonly string[],
   lastMove: number,
   options: GameOptions = {},
 ): Promise<UserEvent> {
+  pauseAtEnd(0);
   const { fixture } = await render(ResultComponent);
   playOn(picture, options).reveal(lastMove);
   await fixture.whenStable();

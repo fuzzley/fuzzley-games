@@ -1,6 +1,14 @@
 @use "../styles" as *;
 @use "inks";
 
+// A hidden square's raised edges. White lightens and black darkens alike in
+// every palette, as the shadows do.
+// stylelint-disable color-named
+$raised:
+  inset 0 2px 0 color-mix(in srgb, white 24%, transparent),
+  inset 0 -2px 0 color-mix(in srgb, black 22%, transparent);
+// stylelint-enable color-named
+
 :host {
   display: block;
   margin: auto;
@@ -72,15 +80,10 @@
 
 // A hidden square is a raised tile in the accent, which clears 3:1 on the
 // panel in every palette, so it stands apart from a revealed one; a flag on
-// it, in the accent's ink, clears 4.5:1. White lightens and black darkens
-// alike in every palette, as the shadows do.
+// it, in the accent's ink, clears 4.5:1.
 .cell[data-show="hidden"],
 .cell[data-show="flagged"] {
-  // stylelint-disable color-named
-  box-shadow:
-    inset 0 2px 0 color-mix(in srgb, white 24%, transparent),
-    inset 0 -2px 0 color-mix(in srgb, black 22%, transparent);
-  // stylelint-enable color-named
+  box-shadow: $raised;
   background: var(--fz-accent);
   color: var(--fz-on-accent);
 }
@@ -119,5 +122,82 @@
     border-radius: 2px;
     background: var(--fz-danger);
     transform: rotate(-45deg);
+  }
+}
+
+// A mine stepped on flashes, a ring of the danger color going out from it.
+// Once a game ends, the squares that show how land one after another, out
+// from the square it ended on: a loss uncovers the mines and strikes out the
+// wrong flags, and a win lays its flags. The delays are bound from
+// landing.ts, where the game reads how long the landings run; where motion
+// is unwelcome, everything shows at once.
+@media (prefers-reduced-motion: no-preference) {
+  .cell.hit {
+    z-index: 1;
+    animation: hit 0.45s var(--fz-ease-decelerate);
+  }
+
+  .cell.lands {
+    &[data-show="mine"],
+    &[data-show="wrong-flag"] {
+      animation: uncover var(--landing-run) var(--fz-ease-decelerate)
+        var(--lands-in) both;
+    }
+
+    &[data-show="mine"] fz-icon {
+      animation: pop var(--landing-run) var(--fz-ease-spring) var(--lands-in)
+        both;
+    }
+
+    &[data-show="flagged"] fz-icon {
+      animation: plant var(--landing-run) var(--fz-ease-spring) var(--lands-in)
+        both;
+    }
+
+    &[data-show="wrong-flag"]::after {
+      animation: strike var(--landing-run) var(--fz-ease-decelerate)
+        var(--lands-in) both;
+    }
+  }
+}
+
+@keyframes hit {
+  from {
+    outline: 3px solid var(--fz-danger);
+    outline-offset: 0;
+    transform: scale(1.3);
+  }
+
+  to {
+    outline: 3px solid transparent;
+    outline-offset: 10px;
+  }
+}
+
+@keyframes uncover {
+  from {
+    box-shadow: $raised;
+    background: var(--fz-accent);
+    color: var(--fz-on-accent);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes plant {
+  from {
+    opacity: 0;
+    transform: translateY(-60%) scale(1.3);
+  }
+}
+
+@keyframes strike {
+  from {
+    transform: rotate(-45deg) scaleX(0);
   }
 }
