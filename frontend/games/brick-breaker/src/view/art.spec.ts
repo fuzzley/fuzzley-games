@@ -1,6 +1,7 @@
 import { BALL_KIND_IDS } from "../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../rules/catalog/bricks";
 import { CAPSULE_IDS } from "../rules/catalog/capsules";
+import { PADDLE_HEIGHT } from "../rules/tuning";
 import {
   ART_PALETTE,
   ART_SCALE,
@@ -238,13 +239,23 @@ describe("the atlas", () => {
     expect(names.has(name)).toBe(true);
   });
 
-  it("keeps the paddle's ends whole for its nine-slice, with a middle to stretch", () => {
-    const paddle = frameNamed(FRAMES.paddle);
+  it("draws the paddle's end as a disc in its color, as tall as the paddle", () => {
+    const end = frameNamed(FRAMES.paddle);
+    const height = Math.round(PADDLE_HEIGHT * ART_SCALE.unit);
 
-    expect({
-      endsRound: (paddle.ends ?? 0) >= paddle.height / 2,
-      middle: paddle.width - 2 * (paddle.ends ?? 0),
-    }).toEqual({ endsRound: true, middle: 2 });
+    expect(end).toMatchObject({
+      width: height,
+      height,
+      commands: [
+        {
+          kind: "circle",
+          x: height / 2,
+          y: height / 2,
+          radius: height / 2,
+          color: ART_PALETTE.paddle,
+        },
+      ],
+    });
   });
 
   it("frames a brick's cell in the glow's color, a line past it on each side", () => {

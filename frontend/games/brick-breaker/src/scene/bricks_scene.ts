@@ -5,7 +5,6 @@ import { Core, type GameObjects, Input, Scene } from "phaser";
 import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
 import {
-  FRAMES,
   PICTURE_FRAMES,
   type Pictures,
   ballFrame,
@@ -19,7 +18,6 @@ import { glowAlpha } from "../view/flourish";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/frame";
 import { LAYERS, type Layer } from "../view/layers";
 import type { BricksPalette } from "../view/palette";
-import type { ArtFrame } from "../view/shapes";
 import { Steering, type TouchSteering } from "../view/steering";
 import { ATLAS, bakeBricksAtlas } from "./atlas";
 import { BallPainter } from "./ball_painter";
@@ -93,8 +91,6 @@ export class BricksScene extends Scene {
   private metrics!: FieldMetrics;
   /** The palette the atlas was last baked in. */
   private painted!: BricksPalette;
-  /** The atlas's frames, as last baked. */
-  private frames!: readonly ArtFrame[];
   /** The field the scene draws, which a new level replaces. */
   private shownField: FieldView | null = null;
   /** The serial of the last event of the field the scene played. */
@@ -133,7 +129,12 @@ export class BricksScene extends Scene {
     this.effects = new EffectsPainter(this, layers.bursts, layers.balls);
     this.capsules = new CapsulePainter(this, layers.capsules);
     this.bolts = new BoltPainter(this, layers.bolts);
-    this.paddle = new PaddlePainter(this, layers.paddle, this.paddleEnds());
+    this.paddle = new PaddlePainter(
+      this,
+      layers.paddle,
+      this.metrics,
+      this.painted,
+    );
     this.tags = new TagPainter(this, layers.tags);
     this.balls = new BallPainter(this, layers.balls);
     this.steering = new Steering(this.metrics);
@@ -152,15 +153,20 @@ export class BricksScene extends Scene {
    */
   override update(time: number, delta: number): void {
     this.now = time;
+    let stale = false;
     if (this.moved()) {
-      if (this.measure()) this.rebake();
+      stale = this.measure();
       this.layOut();
     }
     this.options.tick(delta, this.steering.read());
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.motion = this.options.motion();
-    if (palette !== this.painted) this.repaint(palette);
+    if (palette !== this.painted) {
+      this.painted = palette;
+      stale = true;
+    }
+    if (stale) this.rebake();
     if (frame.field !== this.shownField) this.startField(frame.field);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
@@ -284,15 +290,9 @@ export class BricksScene extends Scene {
     this.options.onLayout(this.metrics.css);
   }
 
-  /** Bakes the atlas again in a new palette. */
-  private repaint(palette: BricksPalette): void {
-    this.painted = palette;
-    this.rebake();
-  }
-
   /** Bakes the atlas at the field's scale, in the palette, and hands How to play its pictures. */
   private bake(): void {
-    this.frames = bakeBricksAtlas(this, this.painted, this.metrics);
+    bakeBricksAtlas(this, this.painted, this.metrics);
     this.options.onPictures(
       mapPictures(PICTURE_FRAMES, (frame) =>
         this.textures.getBase64(ATLAS, frame),
@@ -308,14 +308,9 @@ export class BricksScene extends Scene {
     this.effects.refresh();
     this.capsules.refresh();
     this.bolts.refresh();
-    this.paddle.refresh(this.paddleEnds());
+    this.paddle.refresh(this.metrics, this.painted);
     this.tags.refresh();
     this.balls.refresh();
-  }
-
-  /** Returns how wide the paddle's ends are, as the atlas's paddle frame keeps them. */
-  private paddleEnds(): number {
-    return this.frames.find((frame) => frame.name === FRAMES.paddle)?.ends ?? 0;
   }
 
   /**
@@ -373,19 +368,19 @@ export class BricksScene extends Scene {
       this.steering.letGo();
     };
     // Phaser types the keyboard's target as anything; the game's is the board.
-    const keys: unknown = this.game.input.keyboard?.target;
-    const target = keys instanceof HTMLElement ? keys : null;
+    const listened: unknown = this.game.input.keyboard?.target;
+    const board = listened instanceof HTMLElement ? listened : null;
     const leave = (event: FocusEvent): void => {
       const to = event.relatedTarget;
-      if (!(to instanceof Node && target?.contains(to))) letGo();
+      if (!(to instanceof Node && board?.contains(to))) letGo();
     };
     this.game.events.on(Core.Events.BLUR, letGo);
     this.game.events.on(Core.Events.HIDDEN, letGo);
-    target?.addEventListener("focusout", leave);
+    board?.addEventListener("focusout", leave);
     whenSceneEnds(this, () => {
       this.game.events.off(Core.Events.BLUR, letGo);
       this.game.events.off(Core.Events.HIDDEN, letGo);
-      target?.removeEventListener("focusout", leave);
+      board?.removeEventListener("focusout", leave);
     });
   }
 

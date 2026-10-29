@@ -47,17 +47,19 @@ export class BallPainter {
   ): void {
     const frame = ballFrame(field.ballKind);
     const trails = motion && field.ballKind === "fire";
-    this.images.forEach((image, i) => {
+    for (let i = 0; i < this.images.length; i++) {
+      const image = this.images[i];
       const ball = field.balls[i];
+      if (!image) continue;
       image.setVisible(ball?.live === true);
-      if (!ball?.live) return;
+      if (!ball?.live) continue;
       if (image.frame.name !== frame) image.setFrame(frame);
       image.setPosition(
         toCanvasX(metrics, between(ball.lastX, ball.x, alpha)),
         toCanvasY(metrics, between(ball.lastY, ball.y, alpha)),
       );
       if (trails) this.embers.emitParticleAt(image.x, image.y, 1);
-    });
+    }
   }
 
   /** Puts out every ember, as a new field starts. */

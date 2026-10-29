@@ -7,6 +7,7 @@ export {
 } from "./fake_canvas";
 export { installHeadlessPhaser } from "./headless";
 export {
+  type KeyModifiers,
   type SceneRun,
   type SceneRunOptions,
   runBareScene,

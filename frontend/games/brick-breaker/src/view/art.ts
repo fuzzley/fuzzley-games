@@ -59,11 +59,10 @@ export type DrawCapsule = (shape: CapsuleShape) => readonly DrawCommand[];
 
 /** The names of the frames that aren't a brick's, a ball's, a capsule's or a tag's. */
 export const FRAMES = {
+  /** Each of the paddle's round ends, a disc as tall as the paddle, its body between their middles. */
   paddle: "paddle",
   /** A laser's cannon, over each end of the paddle. */
   cannon: "cannon",
-  /** A catching paddle's rim, along its top, stretched to its width. */
-  rim: "rim",
   bolt: "bolt",
   /** A broken brick's shard, white, so the scene tints it as the brick was. */
   shard: "shard",
@@ -255,8 +254,7 @@ function otherArt(
   scale: ArtScale,
 ): readonly ArtFrame[] {
   const line = lineWidth(scale);
-  const paddleHeight = Math.round(PADDLE_HEIGHT * scale.unit);
-  const ends = Math.ceil(paddleHeight / 2);
+  const paddle = Math.round(PADDLE_HEIGHT * scale.unit);
   const cannon = {
     x: 0,
     y: 0,
@@ -281,16 +279,9 @@ function otherArt(
   return [
     {
       name: FRAMES.paddle,
-      width: 2 * ends + 2,
-      height: paddleHeight,
-      commands: [
-        roundRect(
-          { x: 0, y: 0, width: 2 * ends + 2, height: paddleHeight },
-          paddleHeight / 2,
-          palette.paddle,
-        ),
-      ],
-      ends,
+      width: paddle,
+      height: paddle,
+      commands: [circle(paddle / 2, paddle / 2, paddle / 2, palette.paddle)],
     },
     {
       name: FRAMES.cannon,
@@ -308,12 +299,6 @@ function otherArt(
           palette.mark,
         ),
       ],
-    },
-    {
-      name: FRAMES.rim,
-      width: 2,
-      height: line,
-      commands: [rect({ x: 0, y: 0, width: 2, height: line }, palette.mark)],
     },
     {
       name: FRAMES.bolt,
