@@ -125,6 +125,11 @@ curl -s "$base/version.json" | grep -q "\"commit\": \"${commit::7}\"" ||
 # Each game in games.json is a static page of its own under /play/, never the
 # site's index.html, with its own fingerprinted assets/ folder.
 expect 404 /play/no-such-game/
+# nginx's own pages and its Server header don't name its version.
+curl -s "$base/play/no-such-game/" | grep -q 'nginx/[0-9]' &&
+  fail "/play/no-such-game/ names nginx's version."
+header /play/no-such-game/ server | grep -q '/[0-9]' &&
+  fail "The Server header names nginx's version."
 for slug in $(jq -r 'keys[]' frontend/site/games.json); do
   expect 200 "/play/$slug/"
   expect 301 "/play/$slug"

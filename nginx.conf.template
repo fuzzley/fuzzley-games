@@ -8,6 +8,10 @@ server {
     absolute_redirect off;
     port_in_redirect off;
 
+    # nginx's own pages, such as a game's 404, and its Server header leave
+    # out its version, which tells nobody anything they need.
+    server_tokens off;
+
     # A folder's index.html has the folder's address, so search engines and
     # analytics see one URL for each page: /play/solitaire/index.html is sent
     # to /play/solitaire/ with its query, and the browser keeps any #hash. It

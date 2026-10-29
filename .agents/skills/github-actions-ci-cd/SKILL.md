@@ -33,7 +33,8 @@ a run in progress.
    missing file under `/assets/` is a 404, the `Cache-Control` and security
    headers match `nginx.conf.template` and `nginx/`, the site's pages carry
    the Content Security Policy and the games don't, `theme.js` sets the
-   palette, `env.js` carries the ID, and `version.json` names the commit. For each game in `frontend/site/games.json` it checks `/play/<slug>/` is
+   palette, `env.js` carries the ID, `version.json` names the commit, and
+   neither nginx's 404 nor its `Server` header names its version. For each game in `frontend/site/games.json` it checks `/play/<slug>/` is
    the game's own page with the analytics tags, never the site's
    `index.html`, with its own fingerprinted assets and the site's icons,
    and that `version.json` names its build: its workspace and the image's
