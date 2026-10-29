@@ -19,22 +19,23 @@ export type AwayReason = "focus" | "hidden" | "turned";
 const FOCUSABLE = "button, a[href], input, select, textarea, [tabindex]";
 
 /**
- * Marks the room a game is played in, the board and the controls whose keys
- * steer it, and says through `away` whenever the player looks away from it:
- * the focus leaves the room, the page is hidden, or the screen turns, which
- * moves the board while the player can't watch it. Pausing is the app's.
+ * Marks the room a game is played in, and says through `away` whenever the
+ * player looks away from it.
  *
- * It also keeps the focus in the room through a press on something there
- * that can't take it, such as the stage beside the board or the bar's
- * score, which would otherwise leave the focus on the page and strand the
- * keys.
+ * The room is the board and the controls whose keys steer it. The player
+ * looks away when the focus leaves the room, the page is hidden, or the
+ * screen turns, which moves the board while they can't watch it; pausing is
+ * the app's. While the focus is in the room, a press anywhere on the page
+ * on what can't take the focus, such as the space beside the board or the
+ * bar's text, keeps it there, rather than leaving it on the page and
+ * stranding the keys.
  */
 @Directive({
   selector: "[fzPlayRoom]",
   host: {
-    "(focusout)": "onFocusOut($event)",
-    "(document:visibilitychange)": "onVisibilityChange()",
-    "(document:pointerdown)": "onPress($event)",
+    "(focusout)": "noticeFocusLeaving($event)",
+    "(document:visibilitychange)": "noticePageHidden()",
+    "(document:pointerdown)": "keepFocus($event)",
   },
 })
 export class PlayRoomDirective {
@@ -61,15 +62,15 @@ export class PlayRoomDirective {
     });
   }
 
-  /** Says the focus is away once it leaves the room, for anywhere. */
-  protected onFocusOut(event: FocusEvent): void {
+  /** Says the player looked away once the focus leaves the room, for anywhere. */
+  protected noticeFocusLeaving(event: FocusEvent): void {
     const to = event.relatedTarget;
     if (to instanceof Node && this.room.nativeElement.contains(to)) return;
     this.away.emit("focus");
   }
 
-  /** Says the page is away as it goes out of sight. */
-  protected onVisibilityChange(): void {
+  /** Says the player looked away as the page goes out of sight. */
+  protected noticePageHidden(): void {
     if (this.document.visibilityState === "hidden") this.away.emit("hidden");
   }
 
@@ -77,7 +78,7 @@ export class PlayRoomDirective {
    * Keeps the focus where it is through a main press on what can't take it,
    * while the focus is in the room.
    */
-  protected onPress(event: PointerEvent): void {
+  protected keepFocus(event: PointerEvent): void {
     if (event.button !== 0) return;
     if (!this.room.nativeElement.contains(this.document.activeElement)) return;
     const target = event.target;

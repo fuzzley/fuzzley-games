@@ -78,8 +78,10 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   says through `away` why the game should pause, whenever the player looks
   away: `"focus"` once the focus leaves it, `"hidden"` as the page goes out
   of sight, `"turned"` as the screen turns (from `GameViewportService`'s
-  `isPortrait`). Pausing is the app's. A press there on what can't take
-  the focus keeps it where it is, so the keys aren't stranded.
+  `isPortrait`). Pausing is the app's. While the focus is in the room, a
+  press anywhere on the page on what can't take the focus keeps it there,
+  so the keys aren't stranded. It reads the viewport, unlike the
+  library's components: telling a turn is what it is for.
 - `src/stopwatch/`: `StopwatchService`, a game's clock, in whole seconds,
   which counts only while the page is in view. It reads the time from the
   clock rather than counting its ticks, so a pause keeps the part of a

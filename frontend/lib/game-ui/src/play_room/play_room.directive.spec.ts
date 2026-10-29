@@ -1,16 +1,18 @@
 import { Component } from "@angular/core";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import { render, screen } from "@testing-library/angular";
+import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type FakeViewport, installFakeViewport } from "../testing";
 import { type AwayReason, PlayRoomDirective } from "./play_room.directive";
 
 @Component({
   imports: [PlayRoomDirective],
   template: `
-    <div fzPlayRoom data-testid="room" (away)="reasons.push($event)">
+    <div fzPlayRoom (away)="reasons.push($event)">
       <div role="application" aria-label="Board" tabindex="0"></div>
+      <p>Beside the board</p>
       <button type="button">Up</button>
-      <p>Score 10</p>
     </div>
+    <p>Score 10</p>
     <button type="button">Settings</button>
   `,
 })
@@ -45,34 +47,44 @@ describe("PlayRoomDirective", () => {
     Reflect.deleteProperty(document, "visibilityState");
   });
 
-  /** Renders a room, the board in it focused, and returns what it said. */
-  async function renderRoom(): Promise<AwayReason[]> {
+  /** Renders a room with the board in it focused. */
+  async function renderRoom(): Promise<{
+    user: UserEvent;
+    reasons: AwayReason[];
+    board: HTMLElement;
+  }> {
     const { fixture } = await render(TestRoomHostComponent);
-    screen.getByRole("application").focus();
-    return fixture.componentInstance.reasons;
+    const board = screen.getByRole("application");
+    board.focus();
+    return {
+      user: userEvent.setup(),
+      reasons: fixture.componentInstance.reasons,
+      board,
+    };
   }
 
   describe("the focus", () => {
     it("is away once it leaves the room for the page around it", async () => {
-      const reasons = await renderRoom();
+      const { user, reasons } = await renderRoom();
 
-      screen.getByRole("button", { name: "Settings" }).focus();
+      await user.tab();
+      await user.tab();
 
       expect(reasons).toEqual(["focus"]);
     });
 
     it("is away once it leaves for another window", async () => {
-      const reasons = await renderRoom();
+      const { reasons, board } = await renderRoom();
 
-      screen.getByRole("application").blur();
+      board.blur();
 
       expect(reasons).toEqual(["focus"]);
     });
 
     it("stays while it moves within the room", async () => {
-      const reasons = await renderRoom();
+      const { user, reasons } = await renderRoom();
 
-      screen.getByRole("button", { name: "Up" }).focus();
+      await user.tab();
 
       expect(reasons).toEqual([]);
     });
@@ -80,7 +92,7 @@ describe("PlayRoomDirective", () => {
 
   describe("the page", () => {
     it("is away as it goes out of sight", async () => {
-      const reasons = await renderRoom();
+      const { reasons } = await renderRoom();
 
       setVisibility("hidden");
 
@@ -88,7 +100,7 @@ describe("PlayRoomDirective", () => {
     });
 
     it("isn't as it comes back into sight", async () => {
-      const reasons = await renderRoom();
+      const { reasons } = await renderRoom();
 
       setVisibility("visible");
 
@@ -98,7 +110,7 @@ describe("PlayRoomDirective", () => {
 
   describe("the screen", () => {
     it("is away as it turns on its side", async () => {
-      const reasons = await renderRoom();
+      const { reasons } = await renderRoom();
 
       viewport?.setSize(844, 390);
       await settle();
@@ -108,7 +120,7 @@ describe("PlayRoomDirective", () => {
 
     it("is away as it turns back upright", async () => {
       viewport?.setSize(844, 390);
-      const reasons = await renderRoom();
+      const { reasons } = await renderRoom();
 
       viewport?.setSize(390, 844);
       await settle();
@@ -117,7 +129,7 @@ describe("PlayRoomDirective", () => {
     });
 
     it("isn't through a change of size that doesn't turn it", async () => {
-      const reasons = await renderRoom();
+      const { reasons } = await renderRoom();
 
       viewport?.setSize(390, 664);
       await settle();
@@ -127,46 +139,49 @@ describe("PlayRoomDirective", () => {
   });
 
   describe("a press", () => {
-    it("keeps the focus in the room when it lands on what can't take it", async () => {
-      await renderRoom();
+    it("keeps the focus in the room when it lands outside on what can't take it", async () => {
+      const { user, board } = await renderRoom();
 
-      const kept = !fireEvent.pointerDown(screen.getByText("Score 10"), {
-        button: 0,
-      });
+      await user.click(screen.getByText("Score 10"));
 
-      expect(kept).toBe(true);
+      expect(board).toHaveFocus();
+    });
+
+    it("keeps the focus in the room when it lands inside on what can't take it", async () => {
+      const { user, board } = await renderRoom();
+
+      await user.click(screen.getByText("Beside the board"));
+
+      expect(board).toHaveFocus();
     });
 
     it("lets a control take the focus", async () => {
-      await renderRoom();
+      const { user } = await renderRoom();
+      const settings = screen.getByRole("button", { name: "Settings" });
 
-      const taken = fireEvent.pointerDown(
-        screen.getByRole("button", { name: "Settings" }),
-        { button: 0 },
-      );
+      await user.click(settings);
 
-      expect(taken).toBe(true);
+      expect(settings).toHaveFocus();
     });
 
     it("leaves the focus alone while it is outside the room", async () => {
-      await renderRoom();
-      screen.getByRole("button", { name: "Settings" }).focus();
+      const { user } = await renderRoom();
+      await user.click(screen.getByRole("button", { name: "Settings" }));
 
-      const taken = fireEvent.pointerDown(screen.getByText("Score 10"), {
-        button: 0,
-      });
+      await user.click(screen.getByText("Score 10"));
 
-      expect(taken).toBe(true);
+      expect(document.body).toHaveFocus();
     });
 
     it("leaves a press of another button alone", async () => {
-      await renderRoom();
+      const { user, board } = await renderRoom();
 
-      const taken = fireEvent.pointerDown(screen.getByText("Score 10"), {
-        button: 2,
+      await user.pointer({
+        keys: "[MouseRight]",
+        target: screen.getByText("Score 10"),
       });
 
-      expect(taken).toBe(true);
+      expect(board).not.toHaveFocus();
     });
   });
 });
