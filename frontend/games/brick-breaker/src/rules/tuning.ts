@@ -1,6 +1,8 @@
 // The numbers that set the game's feel, in one file, so tuning it touches
-// nothing else. Lengths are field units, times seconds or milliseconds as
-// their names say, and speeds units a second.
+// nothing else: lengths in field units, speeds in units a second, and times
+// in milliseconds, but the step's, which the physics takes in seconds. A
+// number that belongs to one kind of brick or one capsule is its catalog
+// entry's.
 
 /** The field's width: 13 bricks of 2. */
 export const FIELD_WIDTH = 26;
@@ -32,7 +34,10 @@ export const PADDLE_HEIGHT = 0.75;
 /** Where the paddle's top lies, down from the top wall. */
 export const PADDLE_TOP = 27.5;
 
-/** How fast the paddle grows or shrinks to a new width. */
+/**
+ * How fast the paddle grows or shrinks to a new width, in the rules, so the
+ * paddle the scene draws is the one the ball meets.
+ */
 export const PADDLE_RESIZE_SPEED = 16;
 
 /** The ball's radius. */
@@ -47,7 +52,7 @@ export const CLIMB = 0.015;
 /** The angle a served ball leaves at, from straight up, in degrees. */
 export const SERVE_ANGLE = 20;
 
-/** The steepest a ball leaves the paddle's ends at, from straight up. */
+/** The most slanted a ball leaves the paddle's ends at, from straight up, in degrees. */
 export const PADDLE_ANGLE = 60;
 
 /** The flattest a ball travels, from the horizontal, in degrees. */
@@ -62,8 +67,8 @@ export const LULL_TURN = { least: 3, most: 7 } as const;
 /** The fastest held keys move the paddle. */
 export const KEY_SPEED = 32;
 
-/** How long held keys take to bring the paddle to its fastest, in seconds. */
-export const KEY_RAMP_S = 0.12;
+/** How long held keys take to bring the paddle to its fastest. */
+export const KEY_RAMP_MS = 120;
 
 /** The fastest the paddle follows a pointer or a finger. */
 export const POINTER_SPEED = 120;
@@ -104,26 +109,20 @@ export const MAX_CAPSULES = 3;
 /** How fast a laser bolt rises. */
 export const BOLT_SPEED = 40;
 
-/** The shortest time between two pairs of bolts, in seconds. */
-export const BOLT_GAP_S = 0.35;
+/** The shortest time between two pairs of bolts. */
+export const BOLT_GAP_MS = 350;
 
 /** A bolt's length. */
 export const BOLT_LENGTH = 0.8;
 
 /** How long a caught ball waits on the paddle before it leaves by itself. */
-export const CATCH_HOLD_S = 3;
+export const CATCH_HOLD_MS = 3000;
 
-/** How far below the paddle a net lies. */
+/** How far below the paddle's top a net lies. */
 export const NET_DEPTH = 1.25;
-
-/** How long a blast takes to reach the bricks around it, in milliseconds. */
-export const BLAST_DELAY_MS = 100;
-
-/** How long a regrowing brick stays broken, in milliseconds. */
-export const REGROW_MS = 10_000;
 
 /** How few needed bricks are left before they may glow. */
 export const GLOW_BRICKS = 3;
 
-/** How long since the last needed brick broke before the last ones glow, in milliseconds. */
+/** How long since the last needed brick broke before the last ones glow. */
 export const GLOW_AFTER_MS = 15_000;

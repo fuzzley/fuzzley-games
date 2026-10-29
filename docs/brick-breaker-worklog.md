@@ -363,3 +363,38 @@ Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
   - The ids come from `Object.keys()` with a commented cast, the one place
     the catalogs widen a type.
 - **Checks.** lint, typecheck, test (81).
+
+## B2.1's review
+
+The reviewer checked the numbers against the plan, simulated the clock for
+an hour at six refresh rates and a million jittered frames (no drift
+outside a step), and found no allocation. Its findings:
+
+1. **Two homes for one number:** the blast's delay and the regrow's time
+   were in `tuning.ts` and the catalog; the plan put Wide's and Narrow's
+   widths in both too. Fixed: a number of one brick kind or one capsule is
+   its catalog entry's, `tuning.ts` says so, the two constants are gone, and
+   the plan's table says whose the widths are.
+2. **The plan's `vector.ts` wasn't built.** Not needed: the sweep and the
+   balls work on plain numbers in place. The plan no longer lists it.
+3. **A `NaN` frame froze the clock for good.** Fixed: a frame of no time,
+   less, or not a number adds none, with a spec for -100 and `NaN`.
+4. **"Steepest" was the wrong word,** and the unit was missing. Fixed: "the
+   most slanted … in degrees".
+5. **Choices not logged:** the rules resize the paddle (`PADDLE_RESIZE_SPEED`)
+   where the plan had the view tween it, so the paddle drawn is the one the
+   ball meets; the plan now says so. The lost ball's beat is the shell's to
+   time (the view's `timing.ts`, B5.1): the field waits in `lost` until it
+   is served again.
+6. **Mixed time units.** Fixed: every duration in `tuning.ts` is in
+   milliseconds (`KEY_RAMP_MS`, `BOLT_GAP_MS`, `CATCH_HOLD_MS`), as the
+   catalog's are, but the step's, which the physics takes in seconds.
+7. **`advanceClock()`'s doc opened with two sentences.** Split.
+8. **`NET_DEPTH` didn't say from where.** Fixed: below the paddle's top.
+9. **Specs.** Fixed: a frame of exactly twelve steps and one of thirteen,
+   the part of a step through `progressOf()`, named objects in the
+   assertions, the paddle's two checks split, and `SPEED_INFO`'s case under
+   its own `describe`.
+
+Left as advised: `SPEED_INFO`'s missing doc, as Snake's, `isSpeed()`'s
+`as Speed`, and the name `climbed`.
