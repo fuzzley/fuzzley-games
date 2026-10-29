@@ -43,8 +43,9 @@ export const NO_STEER: Readonly<Steer> = { to: null, by: 0, push: 0 };
 /**
  * Returns a field from a picture of its bricks, a row of up to 13 characters
  * for each row from the top, in the characters of `legend.ts`'s shared
- * legend, `.` or nothing for no brick. It throws for a row too long, too many rows, or a character it
- * doesn't know, so a spec plays the field it draws.
+ * legend, `.` or nothing for no brick. It throws for a row too long, too
+ * many rows, or a character it doesn't know, so a spec plays the field it
+ * draws.
  */
 export function fieldFrom(
   rows: readonly string[],

@@ -1,7 +1,8 @@
 /**
- * Names what a key, a click or a tap asks of the game: to launch the ball
- * or fire the laser, to pause, to pause or go on as it isn't, or to go on,
- * or to the next level once one is cleared.
+ * Names what a key, a click or a tap asks of the game: to launch the ball,
+ * fire the laser, or go on to the next level once one is cleared
+ * (`launch`); to pause; to pause or go on, as it isn't (`toggle`); or to go
+ * on, or to the next level (`go`).
  */
 export type FieldCommand = "launch" | "pause" | "toggle" | "go";
 
@@ -30,12 +31,6 @@ const HELD_KEYS: Readonly<Record<string, HeldKey>> = {
   ArrowRight: "right",
   KeyD: "right",
 };
-
-/** The keys the field answers, by `event.code`, which the scene captures. */
-export const FIELD_KEYS: readonly string[] = [
-  ...Object.keys(HELD_KEYS),
-  ...Object.keys(COMMAND_KEYS),
-];
 
 /** Returns what a key asks of the game, or null for a key that asks nothing. */
 export function commandOfKey(code: string): FieldCommand | null {

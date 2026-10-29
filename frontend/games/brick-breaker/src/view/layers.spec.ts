@@ -7,14 +7,11 @@ describe("depthOf", () => {
     expect(depths).toEqual(LAYERS.map((_, i) => i));
   });
 
-  it("draws the field at the back and the tags at the front", () => {
-    expect([depthOf("field"), depthOf("tags")]).toEqual([0, LAYERS.length - 1]);
+  it("draws the field at the back", () => {
+    expect(depthOf("field")).toBe(0);
   });
 
-  it.each(["bricks", "effects", "capsules", "bolts", "paddle"] as const)(
-    "draws the balls in front of the %s, so nothing hides them",
-    (layer) => {
-      expect(depthOf("balls")).toBeGreaterThan(depthOf(layer));
-    },
-  );
+  it("draws the balls at the front, so nothing hides them", () => {
+    expect(depthOf("balls")).toBe(LAYERS.length - 1);
+  });
 });

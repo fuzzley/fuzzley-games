@@ -23,15 +23,17 @@ function finger(
     x: toCanvasX(metrics, x),
     y: 200,
     wasTouch: true,
+    button: 0,
+    wasCanceled: false,
     downTime: 1000,
     upTime: 1000,
     ...changes,
   };
 }
 
-/** Returns a mouse at a place of the field, in field units. */
-function mouse(x: number): PointerView {
-  return { ...finger(x), wasTouch: false };
+/** Returns a mouse at a place of the field, in field units, changed as given. */
+function mouse(x: number, changes: Partial<PointerView> = {}): PointerView {
+  return { ...finger(x), wasTouch: false, ...changes };
 }
 
 describe("Steering's keys", () => {
@@ -81,6 +83,18 @@ describe("Steering's keys", () => {
 
     expect(steering.read().push).toBe(0);
   });
+
+  it.each(["left", "right"] as const)(
+    "push it nowhere once the steering lets go of %s",
+    (key) => {
+      const steering = new Steering(metricsAt());
+      steering.press(key);
+
+      steering.letGo();
+
+      expect(steering.read().push).toBe(0);
+    },
+  );
 });
 
 describe("Steering's mouse", () => {
@@ -111,11 +125,26 @@ describe("Steering's mouse", () => {
     });
   });
 
+  it("launches nothing as another button is pressed", () => {
+    const steering = new Steering(metricsAt());
+
+    expect(steering.pointerDown(mouse(4, { button: 2 }), "drag")).toBe(false);
+  });
+
   it("is no tap as it is let go", () => {
     const steering = new Steering(metricsAt());
     steering.pointerDown(mouse(4), "drag");
 
     expect(steering.pointerUp(mouse(4))).toBe(false);
+  });
+
+  it("asks for nothing once the steering lets go", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerMove(mouse(7.5));
+
+    steering.letGo();
+
+    expect(steering.read().to).toBeNull();
   });
 });
 
@@ -144,6 +173,16 @@ describe("Steering's finger, dragging", () => {
     expect(steering.pointerDown(finger(20), "drag")).toBe(false);
   });
 
+  it("steers again once lifted and pressed anew, as another finger", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerDown(finger(20), "drag");
+    steering.pointerUp(finger(20));
+    steering.pointerDown(finger(5, { id: 2 }), "drag");
+    steering.pointerMove(finger(9, { id: 2 }));
+
+    expect(steering.read().by).toBe(4);
+  });
+
   it("is let alone by a second finger while it steers", () => {
     const steering = new Steering(metricsAt());
     steering.pointerDown(finger(20), "drag");
@@ -169,6 +208,15 @@ describe("Steering's finger, followed", () => {
     steering.pointerMove(finger(11));
 
     expect(steering.read()).toEqual({ to: 11, by: 0, push: 0 });
+  });
+
+  it("asks for nothing once the steering lets go", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerDown(finger(6), "follow");
+
+    steering.letGo();
+
+    expect(steering.read().to).toBeNull();
   });
 });
 
@@ -197,6 +245,40 @@ describe("Steering's taps", () => {
     const steering = new Steering(metricsAt());
     steering.pointerDown(finger(10), "drag");
     steering.pointerMove(finger(12));
+
+    expect(steering.pointerUp(finger(10))).toBe(false);
+  });
+
+  it("aren't a finger let go farther off than a tap moves", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerDown(finger(10), "drag");
+    const moved = { x: toCanvasX(metricsAt(), 10) + TAP_CSS_PX + 1 };
+
+    expect(steering.pointerUp(finger(10, moved))).toBe(false);
+  });
+
+  it("launch, a finger pressed briefly after one that dragged", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerDown(finger(10), "drag");
+    steering.pointerMove(finger(14));
+    steering.pointerUp(finger(14));
+    steering.pointerDown(finger(14, { id: 2 }), "drag");
+
+    expect(steering.pointerUp(finger(14, { id: 2 }))).toBe(true);
+  });
+
+  it("aren't a touch the browser took away", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerDown(finger(10), "drag");
+
+    expect(steering.pointerUp(finger(10, { wasCanceled: true }))).toBe(false);
+  });
+
+  it("aren't a finger pressed as the steering let go", () => {
+    const steering = new Steering(metricsAt());
+    steering.pointerDown(finger(10), "drag");
+
+    steering.letGo();
 
     expect(steering.pointerUp(finger(10))).toBe(false);
   });

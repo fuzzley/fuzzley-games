@@ -31,11 +31,11 @@ import {
   CAPSULE_FALL_SPEED,
   CAPSULE_HEIGHT,
   FIELD_WIDTH,
-  GLOW_BRICKS,
   PADDLE_ANGLE,
   PADDLE_TOP,
   POINTER_SPEED,
 } from "../rules/tuning";
+import { GLOW_BRICKS } from "../view/timing";
 
 /** The longest the autopilot plays a level, in steps: eight minutes. */
 export const AUTOPILOT_LIMIT = stepsIn(8 * 60_000);

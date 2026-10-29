@@ -141,9 +141,3 @@ export const CATCH_HOLD_MS = 3000;
 
 /** How far below the paddle's top a net lies. */
 export const NET_DEPTH = 1.25;
-
-/** How few needed bricks are left before they may glow. */
-export const GLOW_BRICKS = 3;
-
-/** How long since the last needed brick broke before the last ones glow. */
-export const GLOW_AFTER_MS = 15_000;

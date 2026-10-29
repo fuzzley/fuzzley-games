@@ -83,16 +83,18 @@ export function steerPaddle(paddle: Paddle, steer: Readonly<Steer>): void {
 }
 
 /**
- * Moves the paddle on by a step: toward its width, then by its keys, at
- * their speed as it ramps up, or toward its target, never past the walls.
+ * Moves the paddle on by a step: toward its width, keeping it and its
+ * target against a wall they were against, then by its keys, at their
+ * speed as it ramps up, or toward its target, never past the walls.
  */
 export function movePaddle(paddle: Paddle): void {
   paddle.lastX = paddle.x;
-  paddle.width = toward(
-    paddle.width,
-    paddle.goalWidth,
-    PADDLE_RESIZE_SPEED * STEP_S,
-  );
+  const was = paddle.width;
+  paddle.width = toward(was, paddle.goalWidth, PADDLE_RESIZE_SPEED * STEP_S);
+  paddle.x = keptAtWall(paddle.x, was, paddle.width);
+  if (paddle.target !== null) {
+    paddle.target = keptAtWall(paddle.target, was, paddle.width);
+  }
   if (paddle.push !== 0) {
     paddle.speed = toward(
       paddle.speed,
@@ -122,6 +124,17 @@ export function paddleBox(paddle: Readonly<Paddle>, box: Box): Box {
 function within(paddle: Readonly<Paddle>, x: number): number {
   const half = paddle.width / 2;
   return Math.min(FIELD_WIDTH - half, Math.max(half, x));
+}
+
+/**
+ * Returns where a paddle's middle at a wall at one width is at the same
+ * wall at another, and any other place as it is, so a paddle held against
+ * a wall as it narrows leaves no gap a ball could fall through.
+ */
+function keptAtWall(x: number, was: number, width: number): number {
+  if (x <= was / 2) return width / 2;
+  if (x >= FIELD_WIDTH - was / 2) return FIELD_WIDTH - width / 2;
+  return x;
 }
 
 /** Returns a value moved toward a goal by at most a step. */

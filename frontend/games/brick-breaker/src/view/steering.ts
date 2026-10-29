@@ -21,6 +21,10 @@ export interface PointerView {
   readonly y: number;
   /** Whether it is a finger, rather than a mouse. */
   readonly wasTouch: boolean;
+  /** The mouse button last pressed or let go: 0 is the main one. */
+  readonly button: number;
+  /** Whether the browser took its touch away, as a gesture of its own began. */
+  readonly wasCanceled: boolean;
   /** When it was last pressed, in milliseconds. */
   readonly downTime: number;
   /** When it was last let go, in milliseconds. */
@@ -37,7 +41,6 @@ export interface PointerView {
  * again.
  */
 export class Steering {
-  private metrics: FieldMetrics;
   private left = false;
   private right = false;
   /** The way of the key held last, which wins while both are held. */
@@ -57,9 +60,7 @@ export class Steering {
   // Written again each frame, so steering makes nothing.
   private readonly steer: Steer = { to: null, by: 0, push: 0 };
 
-  constructor(metrics: FieldMetrics) {
-    this.metrics = metrics;
-  }
+  constructor(private metrics: FieldMetrics) {}
 
   /** Takes where the field now lies on the canvas. */
   measure(metrics: FieldMetrics): void {
@@ -84,13 +85,14 @@ export class Steering {
   }
 
   /**
-   * Takes a pointer pressed, and returns whether it launches: a mouse's
-   * press does at once, and a finger's may as a tap, once it is let go.
+   * Takes a pointer pressed, and returns whether it launches: a press of the
+   * mouse's main button does at once, and a finger's may as a tap, once it
+   * is let go.
    */
   pointerDown(pointer: PointerView, touch: TouchSteering): boolean {
     if (!pointer.wasTouch) {
       this.toX = pointer.x;
-      return true;
+      return pointer.button === 0;
     }
     if (this.finger !== null) return false;
     this.finger = pointer.id;
@@ -125,13 +127,15 @@ export class Steering {
 
   /**
    * Takes a pointer let go, and returns whether it was a tap, which
-   * launches: a finger pressed briefly that barely moved.
+   * launches: a finger pressed briefly that barely moved, and that the
+   * browser didn't take away.
    */
   pointerUp(pointer: PointerView): boolean {
     if (!pointer.wasTouch || pointer.id !== this.finger) return false;
     this.finger = null;
     this.reach(pointer);
     return (
+      !pointer.wasCanceled &&
       pointer.upTime - pointer.downTime <= TAP_MS &&
       this.farthest <= TAP_CSS_PX * this.metrics.pixelRatio
     );

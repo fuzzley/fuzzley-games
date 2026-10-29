@@ -207,6 +207,29 @@ describe("the paddle's width", () => {
 
     expect(paddle.x).toBe(3);
   });
+
+  it("keeps a paddle the keys left at a wall against it as it narrows", () => {
+    const paddle = createPaddle();
+    drive(paddle, { push: 1 }, 120);
+    drive(paddle, {});
+    paddle.goalWidth = 2.6;
+
+    drive(paddle, {}, 60);
+
+    expect(paddle.x).toBe(FIELD_WIDTH - 1.3);
+  });
+
+  it("keeps a pointer's place past a wall at the wall as it narrows", () => {
+    const paddle = createPaddle();
+    paddle.goalWidth = 6;
+    drive(paddle, {}, 60);
+    drive(paddle, { to: 30 }, 120);
+    paddle.goalWidth = 4;
+
+    drive(paddle, {}, 240);
+
+    expect(paddle.x).toBe(FIELD_WIDTH - 2);
+  });
 });
 
 describe("paddleBox", () => {
