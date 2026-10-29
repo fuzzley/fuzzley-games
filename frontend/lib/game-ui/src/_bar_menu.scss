@@ -1,0 +1,85 @@
+// What the menus a game bar opens share, drawn as the site's theme menu is: a
+// raised panel off a side of its button, with rows that light up under the
+// keyboard or the pointer. Each menu lines its panel up with its button
+// itself, as one at the bar's end hangs from the opposite corner to one at
+// its start.
+
+/// Covers the window while a menu is open, so the tap that closes it presses
+/// nothing else.
+@mixin dismiss {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+/// Draws a menu's panel, hidden until Angular Aria marks it visible, a little
+/// way off the side of its button its `data-side` names.
+@mixin panel {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fz-space-1);
+  min-width: 180px;
+  padding: 0.5rem;
+  border: 1px solid var(--fz-edge-3);
+  border-radius: 14px;
+  background: var(--fz-panel-raised);
+  color: var(--fz-text);
+  box-shadow: var(--fz-shadow-raised);
+  animation: fz-menu-in var(--fz-duration-fast) var(--fz-ease-decelerate);
+
+  &:not([data-visible="true"]) {
+    display: none;
+  }
+
+  &[data-side="below"] {
+    top: calc(100% + var(--fz-space-3));
+  }
+
+  &[data-side="above"] {
+    bottom: calc(100% + var(--fz-space-3));
+  }
+
+  &[data-side="after"] {
+    inset-inline-start: calc(100% + var(--fz-space-3));
+  }
+
+  &[data-side="before"] {
+    inset-inline-end: calc(100% + var(--fz-space-3));
+  }
+}
+
+/// Draws a row of a menu, lit while the arrow keys or the pointer are on it.
+@mixin item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--fz-tap-target);
+  padding: 0.5rem 0.625rem;
+  border-radius: 10px;
+  color: var(--fz-text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover,
+  &[data-active="true"] {
+    background: var(--fz-panel);
+  }
+}
+
+/// Declares the panel's entrance. A component includes it at the top level of
+/// its stylesheet, since Angular renames a component's own `@keyframes`.
+@mixin keyframes {
+  @keyframes fz-menu-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+}

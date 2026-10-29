@@ -1,4 +1,5 @@
 @use "@fz/style" as fz;
+@use "../bar_menu" as menu;
 
 :host {
   position: relative;
@@ -10,56 +11,32 @@
 }
 
 .dismiss {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
+  @include menu.dismiss;
 }
 
-// Drawn as the site's theme menu is: a raised panel, with rows that light up
-// under the keyboard or the pointer.
 .panel {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: var(--fz-space-1);
-  min-width: 180px;
-  padding: 0.5rem;
-  border: 1px solid var(--fz-edge-3);
-  border-radius: 14px;
-  background: var(--fz-panel-raised);
-  color: var(--fz-text);
-  box-shadow: var(--fz-shadow-raised);
-  animation: fz-menu-in var(--fz-duration-fast) var(--fz-ease-decelerate);
-
-  // Angular Aria marks the menu visible while it is open.
-  &:not([data-visible="true"]) {
-    display: none;
-  }
+  @include menu.panel;
 }
 
-// Out of the corner it hangs from, a little way off the button.
+// Out of the corner it hangs from: in a row its button's end, as the button
+// ends the bar, and on a rail its bottom.
 .panel[data-side="below"] {
-  top: calc(100% + var(--fz-space-3));
   inset-inline-end: 0;
   transform-origin: top right;
 }
 
 .panel[data-side="above"] {
-  bottom: calc(100% + var(--fz-space-3));
   inset-inline-end: 0;
   transform-origin: bottom right;
 }
 
 .panel[data-side="after"] {
   bottom: 0;
-  inset-inline-start: calc(100% + var(--fz-space-3));
   transform-origin: bottom left;
 }
 
 .panel[data-side="before"] {
   bottom: 0;
-  inset-inline-end: calc(100% + var(--fz-space-3));
   transform-origin: bottom right;
 }
 
@@ -75,26 +52,7 @@
 .item {
   --fz-icon-size: 18px;
 
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: var(--fz-tap-target);
-  padding: 0.5rem 0.625rem;
-  border-radius: 10px;
-  color: var(--fz-text);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  white-space: nowrap;
-  text-decoration: none;
-  cursor: pointer;
-
-  // The item the arrow keys or the pointer are on.
-  &:hover,
-  &[data-active="true"] {
-    background: var(--fz-panel);
-  }
+  @include menu.item;
 }
 
 .icon {
@@ -106,9 +64,4 @@
   border-top: 1px solid var(--fz-edge-3);
 }
 
-@keyframes fz-menu-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-}
+@include menu.keyframes;
