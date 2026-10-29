@@ -15,7 +15,7 @@ import {
   describeRefusal,
   describeUndo,
 } from "../../rules/describe";
-import type { Level } from "../../rules/difficulty";
+import { LEVEL_INFO, type Level } from "../../rules/difficulty";
 import {
   type Grid,
   countHint,
@@ -46,6 +46,14 @@ const NEW_GAME_QUESTION: ConfirmRequest = {
   confirmLabel: "New game",
   tone: "danger",
 };
+
+/** What a deal at another level asks: New Game's question, naming the level. */
+function levelQuestion(level: Level): ConfirmRequest {
+  return {
+    ...NEW_GAME_QUESTION,
+    title: `Start a new ${LEVEL_INFO[level].name} game?`,
+  };
+}
 
 /** What Restart asks before it clears the game under way. */
 const RESTART_QUESTION: ConfirmRequest = {
@@ -280,7 +288,7 @@ export class GameService {
    * first if a game is under way, and resolves to whether it did.
    */
   async changeLevel(level: Level): Promise<boolean> {
-    if (!(await this.mayLoseGame(NEW_GAME_QUESTION))) return false;
+    if (!(await this.mayLoseGame(levelQuestion(level)))) return false;
     this.settings.update({ level });
     this.begin(this.deal(level));
     return true;

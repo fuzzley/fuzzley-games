@@ -66,8 +66,9 @@ workspace keeps its own for its code. Paths are relative to
     measures both forms in hidden copies, and the sheet's clear backdrop
     leaves the board, shaded by the hint, in sight.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
-    level, the time and the actions, and moves them into
-    `<fz-bar-overflow>` on a compact screen.
+    level, a `<fz-bar-choice>` that deals at another one through
+    `GameService.changeLevel()`, the time and the actions, and moves the
+    actions into `<fz-bar-overflow>` on a compact screen.
   - `settings/` — the settings drawer (the level, the assists and the
     palette) and `SettingsService`, which keeps what the player chose.
   - `stats/` — `StatsService`, the games played and solved and the best

@@ -15,10 +15,6 @@
   white-space: nowrap;
 }
 
-.level {
-  flex: none;
-}
-
 // The time, as Minesweeper shows its figures: a card of a label over a
 // value. The label is spoken as a word, and shown in capitals.
 .metrics {
@@ -131,12 +127,6 @@
   .value {
     font-size: var(--fz-font-sm);
   }
-}
-
-// On a rail, the level in smaller type, which fits "Medium" across it.
-:host(.rail) .level {
-  padding-inline: var(--fz-space-1);
-  font-size: var(--fz-font-2xs);
 }
 
 // On a rail, the icon over the value.

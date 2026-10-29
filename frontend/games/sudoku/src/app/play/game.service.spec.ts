@@ -81,6 +81,17 @@ describe("GameService", () => {
       );
     });
 
+    it("names the level before a deal at another level loses the game under way", () => {
+      const game = playOn();
+
+      void game.changeLevel("hard");
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Start a new Hard game?",
+        confirmLabel: "New game",
+      });
+    });
+
     it("asks to restart the puzzle, not for a new game, before a restart", () => {
       const game = playOn();
 
