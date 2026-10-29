@@ -76,9 +76,12 @@ export default defineConfig(
         ...PHASER,
         ...FRAMEWORKS,
         ...SHELL_LIBRARIES,
-        "@fz/phaser/host",
-        "@fz/phaser/scene",
-        "@fz/phaser/canvas",
+        // An entry, never the package: git's ignore rules can't take back a
+        // file whose folder is excluded.
+        "@fz/phaser/*",
+        "!@fz/phaser/color",
+        "!@fz/phaser/insets",
+        "!@fz/phaser/layout",
       ],
       message:
         "The view is plain TypeScript: no Phaser, no framework, and of @fz/phaser only its pure entries.",
@@ -105,7 +108,13 @@ export default defineConfig(
         "The shell never imports Phaser: the board loads the scene with import().",
     },
     {
-      group: ["**/scene", "**/scene/**", "@fz/phaser/host"],
+      group: [
+        "**/scene",
+        "**/scene/**",
+        "@fz/phaser/host",
+        "@fz/phaser/scene",
+        "@fz/phaser/sound",
+      ],
       allowTypeImports: true,
       message:
         "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",

@@ -40,6 +40,8 @@ export default defineConfig(
                 "!../insets",
                 "!../color",
                 "!../layout",
+                // An entry through its index alone, never its files.
+                "../*/*",
               ],
               message:
                 "The pure entries import nothing but each other, so code with no Phaser can take them.",
