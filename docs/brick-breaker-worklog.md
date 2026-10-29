@@ -230,3 +230,30 @@ the uploads `bakeTexture()` already made.
   and tests (Snake 395, `@fz/phaser` 249, `@fz/game-ui` 156, `@fz/dev` 109),
   and the build. Snake's entry chunk is 81.2 kB gzipped, its scene 3.8 kB
   and its `phaser` chunk 357.1 kB.
+
+## L4.1's review
+
+The reviewer found no bug, and Snake's behavior unchanged: on a turn, the
+pause now runs after the focus effect rather than before, which is harmless,
+since neither reads what the other writes. Its findings:
+
+1. **The docs said "a press there", but the rule holds for a press anywhere
+   on the page while the focus is in the room,** and the spec never pressed
+   outside it. Fixed in the directive's doc, the library's `AGENTS.md` and
+   `fuzzley-ui`; the spec presses text outside the room and inside it.
+2. **The press specs checked `fireEvent`'s return, not the focus.** Fixed:
+   they press with user-event, which skips moving the focus when the press
+   is cancelled, and check where the focus is; moving within and out of the
+   room uses `user.tab()`. Turning the rule off fails the two that keep it.
+3. **The class doc's first paragraph was two sentences, and named Snake's
+   score.** Fixed.
+4. **Handlers were named for their events.** Fixed: `noticeFocusLeaving()`,
+   `noticePageHidden()` and `keepFocus()`.
+5. **The library says a component reads no viewport.** The directive does,
+   on purpose; the library's `AGENTS.md` says so.
+
+Left as advised: the `setTimeout` settle and the `FakeViewport | null`
+copied from Snake's spec, `setVisibility()` copied (a helper in
+`@fz/game-ui/testing` can come when Brick Breaker's shell needs it), and
+`FOCUSABLE` as it was. The fix's commit (`21d65a12`) missed the skill's
+line and this entry, which the next commit adds.
