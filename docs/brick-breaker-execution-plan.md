@@ -558,7 +558,7 @@ since color is never the only signal:
 | ------ | ---------- | ------ | ------ | ------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Plain  | `o`        | 1      | yes    | 50           | Breaks                                                                            | Its tint, with a lighter top edge                                        |
 | Tough  | `2` to `4` | 2 to 4 | yes    | 50 a hit     | Takes as many hits as its digit, cracking as it weakens                           | Its tint, deeper, with a pip for each hit left and cracks for each taken |
-| Steel  | `#`        | never  | no     | none         | Turns every ball, a fire ball too, and stops laser bolts                          | The text color at low strength, with two rivets                          |
+| Steel  | `#`        | never  | no     | none         | Turns every ball, a fire ball too, and stops laser bolts                          | The text color at 55%, with two rivets                                   |
 | Blast  | `*`        | 1      | yes    | 100          | Breaks, and hits the eight bricks around it once, which can set off another blast | The danger color, with a starburst                                       |
 | Gift   | `?`        | 1      | yes    | 100          | Always lets a capsule fall                                                        | The accent, with a capsule's outline in it                               |
 | Ghost  | `~`        | 2      | yes    | 50 a hit     | Shows only as a faint outline until it is first hit, then is a plain brick        | A dashed outline, then its tint                                          |
@@ -623,7 +623,10 @@ else without special cases:
 What keeps them readable, which a new kind keeps too:
 
 - **The ball is the clearest thing on the field.** Every kind is held to
-  3:1 against the field and against every brick tint by the contrast spec.
+  3:1 against the field by the contrast spec, and outlined in the field's
+  color, which every brick tint is held to 3:1 against. A ball's own color
+  can't clear every tint too: the fire ball's warning and the blast ball's
+  danger sit as far from the field as the tints do.
 - **A kind changes the ball's look in one way a glance can take in:** a
   color and one mark (a trail, a ring). A trail is never wider than the
   ball, and never longer than three of it.
@@ -1251,10 +1254,12 @@ how a careful clone does its collisions:
   the wall is drawn only on the left, the top and the right; and
   `toCanvasX()`, `toCanvasY()`, `toFieldX()` and `toFieldY()` between the
   two, an axis each, so nothing is made to hold a pair.
-- `palette.ts`: `bricksPalette(roles, mode)`. The field is `panel`, the wall
-  `text` at 20%, the ball `text`, the paddle `accent`, steel `text` at 35%,
-  a good capsule `accent` and a bad one `danger`, the fire ball `warning`
-  and the blast ball `danger`; the tints are the game's inks.
+- `palette.ts`: `bricksPalette(roles, mode)`. The field is `panel`, and the
+  outline around every ball; the wall is `text` at 20%, the ball `text`, the
+  paddle `accent`, steel `text` at 55%, enough for 3:1 against the field in
+  every palette, a good capsule and a gift brick `accent`, a bad one and a
+  blast brick `danger`, the fire ball `warning` and the blast ball `danger`;
+  the tints are the inks of the palette's mode.
 - `inks.ts`: the game's own colors, eight brick tints for the light palettes
   and eight for the dark, which the contrast spec holds to 3:1 against the
   field in every palette. They are written here, in TypeScript, because the
@@ -1567,10 +1572,10 @@ statements, functions and lines, and 95% of branches.
 - **A field on a phone held sideways is small,** about 12 CSS px a unit. Q3
   plays it there, and the layout check holds the unit to 10 CSS px or more.
 - **Eight tints at 3:1 against the field and against the ball is a narrow
-  band** of lightness, in a light palette most. If it is too narrow for
-  eight hues that look apart, the ball gets a thin ring in the field's color
-  instead, and the tints answer only to the field; B5's contrast spec
-  decides.
+  band** of lightness, in a light palette most. B5's contrast spec decided
+  it: the plain ball clears eight hues in the band, but the fire and blast
+  balls can't, so every ball has a thin outline in the field's color, and
+  the tints answer only to the field.
 - **A blast chain could flash.** Effects are small and spread in time, and
   B12 plays Chain reaction looking for it.
 - **The lift changes a live game.** Snake's suite, its layout check, its

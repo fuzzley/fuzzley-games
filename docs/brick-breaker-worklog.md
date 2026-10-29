@@ -1186,3 +1186,40 @@ Checked in a scratch spec, deleted after.
     card waits for; the Cleared card waits 700 ms for the last shards.
 - **Checks.** lint, typecheck, test (656), the rules and the view at 100% of
   statements.
+
+## B5.2: the field's palette, the inks and the contrast spec
+
+- **Built,** in `src/view/`:
+  - `palette.ts`: `PaletteMode`, `PaletteRoles`, `BricksPalette` and
+    `bricksPalette()`. A ball's color is by its kind and a capsule's by its
+    tone, as records over the catalogs' ids, so a new kind without a color
+    fails to compile. `CapsuleTone` is named in the capsules' catalog for
+    it.
+  - `inks.ts`: `LIGHT_INKS` and `DARK_INKS`, eight each: red, orange,
+    amber, green, teal, blue, violet and pink, in the order rows take them.
+  - `contrast.spec.ts`: every tint, steel, blast and gift brick, every ball
+    kind, both capsule tones and the paddle at 3:1 or more against the
+    field, in all four palettes (68 cases). Weakening steel or paling an
+    ink fails it.
+  - `palette.spec.ts` and `inks.spec.ts`.
+- **Decided by the spec.**
+  - **Steel is the text at 55%, not 35%.** At 35% it is 2.0–2.9:1 against
+    the field. Pastel needs about 53%.
+  - **Every ball gets the outline, as the Risks foresaw.** The light inks
+    sit at a luminance of about 0.165, so the plain ball clears them all
+    (3.03–3.41:1). But the fire ball's warning and the blast ball's danger
+    are 3:1 or more from the field on the same side as the tints, so no
+    ball color but the text could clear them.
+    - So every ball is outlined in the field's color, the same for every
+      kind so a kind still changes one mark, and the tints answer only to
+      the field.
+    - The dark inks are freed to be brighter (luminance about 0.26–0.30,
+      4.4–5.3:1 against the field), which keeps amber from going brown.
+  - The plan's view bullet, ball kinds, brick table and Risks now say so.
+  - A pink replaced the slate I first tried, so no tint looks like steel.
+    Some tints come near a kind's role color in one palette or another
+    (the red ink and a blast brick, the green ink and Classic's gift). The
+    kinds keep their patterns, the starburst and the capsule's outline, as
+    the plan says, so color is never the only signal.
+- **Checks.** lint, typecheck, test (732), the rules and the view at 100% of
+  statements.
