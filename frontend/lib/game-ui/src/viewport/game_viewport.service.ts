@@ -1,3 +1,4 @@
+import { DOCUMENT } from "@angular/common";
 import {
   DestroyRef,
   Injectable,
@@ -33,8 +34,9 @@ const TOUCH_QUERY = "(pointer: coarse)";
  *
  * A signal rather than CSS alone, because a compact layout moves controls,
  * and can turn a board, rather than only restyling them. The bar reads none
- * of it: the app binds what it says to the bar's inputs. A host without
- * `matchMedia` reads as roomy, wider than tall, asking for no motion, and
+ * of it: the app binds what it says to the bar's inputs. It asks the
+ * document's window, and a document without one, or a window without
+ * `matchMedia`, reads as roomy, wider than tall, asking for no motion, and
  * pointed at with a mouse.
  */
 @Injectable({ providedIn: "root" })
@@ -127,21 +129,26 @@ export class GameViewportService {
   readonly isTouchScreen = this.touch.asReadonly();
 
   constructor() {
-    if (typeof window === "undefined" || !("matchMedia" in window)) return;
+    const view = inject(DOCUMENT).defaultView;
+    if (!view || !("matchMedia" in view)) return;
 
-    this.follow(COMPACT_QUERY, this.compact);
-    this.follow(PORTRAIT_QUERY, this.portrait);
-    this.follow(BELOW_ACTION_LABELS_QUERY, this.belowActionLabels);
-    this.follow(BELOW_WORDMARK_QUERY, this.belowWordmark);
-    this.follow(BELOW_HOME_BUTTON_QUERY, this.belowHomeButton);
-    this.follow(SHORT_RAIL_QUERY, this.belowRailHomeButton);
-    this.follow(MOTION_QUERY, this.motion);
-    this.follow(TOUCH_QUERY, this.touch);
+    this.follow(view, COMPACT_QUERY, this.compact);
+    this.follow(view, PORTRAIT_QUERY, this.portrait);
+    this.follow(view, BELOW_ACTION_LABELS_QUERY, this.belowActionLabels);
+    this.follow(view, BELOW_WORDMARK_QUERY, this.belowWordmark);
+    this.follow(view, BELOW_HOME_BUTTON_QUERY, this.belowHomeButton);
+    this.follow(view, SHORT_RAIL_QUERY, this.belowRailHomeButton);
+    this.follow(view, MOTION_QUERY, this.motion);
+    this.follow(view, TOUCH_QUERY, this.touch);
   }
 
-  /** Keeps a signal set to whether a media query matches. */
-  private follow(media: string, matches: WritableSignal<boolean>): void {
-    const query = window.matchMedia(media);
+  /** Keeps a signal set to whether a media query matches in a window. */
+  private follow(
+    view: Window,
+    media: string,
+    matches: WritableSignal<boolean>,
+  ): void {
+    const query = view.matchMedia(media);
     matches.set(query.matches);
     const onChange = (): void => {
       matches.set(query.matches);

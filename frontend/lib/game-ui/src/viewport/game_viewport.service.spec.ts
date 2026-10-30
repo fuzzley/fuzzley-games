@@ -1,3 +1,4 @@
+import { DOCUMENT } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "../testing";
 import { GameViewportService } from "./game_viewport.service";
@@ -8,6 +9,14 @@ describe("GameViewportService", () => {
   /** Returns the service for a window of this size. */
   function at(width: number, height: number): GameViewportService {
     viewport = installFakeViewport(width, height);
+    return TestBed.inject(GameViewportService);
+  }
+
+  /** Returns the service for a document of its own, not the page's. */
+  function inDocument(document: unknown): GameViewportService {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DOCUMENT, useValue: document }],
+    });
     return TestBed.inject(GameViewportService);
   }
 
@@ -30,6 +39,24 @@ describe("GameViewportService", () => {
 
   it("reads as pointed at with a mouse where the browser can't be asked", () => {
     expect(TestBed.inject(GameViewportService).isTouchScreen()).toBe(false);
+  });
+
+  it("reads roomy for a document without a window, whatever the page's", () => {
+    viewport = installFakeViewport(390, 844);
+
+    const service = inDocument(document.implementation.createHTMLDocument());
+
+    expect(service.formFactor()).toBe("roomy");
+  });
+
+  it("asks the document's window, not the page's", () => {
+    const phone = installFakeViewport(390, 844);
+    const matchMedia = window.matchMedia.bind(window);
+    phone.restore();
+
+    const service = inDocument({ defaultView: { matchMedia } });
+
+    expect(service.formFactor()).toBe("phone-portrait");
   });
 
   it("reads a finger as the main pointer of a touch screen", () => {

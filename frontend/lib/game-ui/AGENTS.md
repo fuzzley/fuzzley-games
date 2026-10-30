@@ -63,9 +63,10 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   360 wide, or on a rail under 380 tall). `allowsMotion` says whether the player has no wish for less
   motion, the one case in which the stylesheets animate, for code that
   waits on an animation, and `isTouchScreen` whether the main pointer is a
-  finger (`pointer: coarse`), for controls only a touch screen needs. A
-  host without `matchMedia` reads as roomy, as asking for no motion, and
-  as pointed at with a mouse.
+  finger (`pointer: coarse`), for controls only a touch screen needs. It
+  asks the window of Angular's `DOCUMENT`, and a document without one, or
+  a window without `matchMedia`, reads as roomy, as asking for no motion,
+  and as pointed at with a mouse.
 - `src/breakpoints/`: the widths every game changes shape at. `index.ts`
   holds them as constants, with `formFactorAt()`, and imports no Angular,
   so a game's renderer can read them as well as its shell. `_index.scss`
