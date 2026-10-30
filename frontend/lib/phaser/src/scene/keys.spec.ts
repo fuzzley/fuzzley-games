@@ -24,6 +24,31 @@ describe("the key helpers", () => {
     run = null;
   });
 
+  it("hand each helper only its own kind of key event", async () => {
+    const { run, pressed, released } = await listen();
+
+    run.key("keydown", "KeyP", "p");
+    run.key("keyup", "KeyP", "p");
+    run.advance(16);
+
+    expect({ pressed, released }).toEqual({
+      pressed: ["KeyP"],
+      released: ["KeyP"],
+    });
+  });
+
+  it("stop once the scene has ended", async () => {
+    const { run, pressed, released } = await listen();
+    run.game.scene.stop("bare");
+    run.advance(16);
+
+    run.key("keydown", "KeyP", "p");
+    run.key("keyup", "KeyP", "p");
+    run.advance(16);
+
+    expect({ pressed, released }).toEqual({ pressed: [], released: [] });
+  });
+
   describe("onKeyDown", () => {
     it("hears each key pressed once, however many come in a frame", async () => {
       const { run, pressed } = await listen();
@@ -52,6 +77,20 @@ describe("the key helpers", () => {
 
       expect(pressed).toEqual(["Space", "Space"]);
     });
+
+    it("hands every listener each key", async () => {
+      const { run, pressed } = await listen();
+      const alsoPressed: string[] = [];
+      onKeyDown(run.scene, (event) => alsoPressed.push(event.code));
+
+      run.key("keydown", "ArrowLeft");
+      run.key("keydown", "ArrowUp");
+      run.key("keydown", "ArrowRight");
+      run.advance(16);
+
+      expect(alsoPressed).toEqual(pressed);
+      expect(alsoPressed).toEqual(["ArrowLeft", "ArrowUp", "ArrowRight"]);
+    });
   });
 
   describe("onKeyUp", () => {
@@ -64,19 +103,6 @@ describe("the key helpers", () => {
       run.advance(16);
 
       expect(released).toEqual(["ArrowLeft", "ArrowUp", "ArrowRight"]);
-    });
-
-    it("hears only what is let go, and onKeyDown only what is pressed", async () => {
-      const { run, pressed, released } = await listen();
-
-      run.key("keydown", "KeyP", "p");
-      run.key("keyup", "KeyP", "p");
-      run.advance(16);
-
-      expect({ pressed, released }).toEqual({
-        pressed: ["KeyP"],
-        released: ["KeyP"],
-      });
     });
   });
 });

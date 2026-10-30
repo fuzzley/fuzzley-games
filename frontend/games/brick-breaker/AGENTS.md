@@ -202,7 +202,7 @@ doesn't see, so Phaser stays out of the first download.
   settings want none; it plays the chime, the level cleared's, each time the
   game's count of `chimes()` goes up. The keys, clicks and taps go back
   through `command()`, the keys heard through `@fz/phaser/scene`'s
-  `onKeyDown()` and `onKeyUp()`, which hand over each once.
+  `onKeyDown()` and `onKeyUp()`, which hand over each key event once.
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the

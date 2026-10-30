@@ -1,34 +1,36 @@
 import { Input, type Scene } from "phaser";
 
-/** Calls `listener` once for each key the scene's keyboard hears pressed. */
-export function onKeyDown(
-  scene: Scene,
-  listener: (event: KeyboardEvent) => void,
-): void {
+/** Takes a key event a scene's keyboard heard. */
+export type KeyListener = (event: KeyboardEvent) => void;
+
+/**
+ * Calls `listener` once for each key pressed on the scene's keyboard, a held
+ * key's repeats among them, until the scene ends, where Phaser's own key
+ * events would hand it over again with each later key of its frame.
+ */
+export function onKeyDown(scene: Scene, listener: KeyListener): void {
   onEachKey(scene, Input.Keyboard.Events.ANY_KEY_DOWN, listener);
 }
 
-/** Calls `listener` once for each key the scene's keyboard hears let go. */
-export function onKeyUp(
-  scene: Scene,
-  listener: (event: KeyboardEvent) => void,
-): void {
+/**
+ * Calls `listener` once for each key let go on the scene's keyboard, until
+ * the scene ends, where Phaser's own key events would hand it over again
+ * with each later key of its frame.
+ */
+export function onKeyUp(scene: Scene, listener: KeyListener): void {
   onEachKey(scene, Input.Keyboard.Events.ANY_KEY_UP, listener);
 }
 
 /**
  * Calls `listener` once for each key event the scene's keyboard emits under
- * `name`.
+ * `name`, until the scene ends, as the keyboard lets go of its listeners
+ * then.
  *
- * Phaser hands over every key event of a frame again with each new one in
- * it, and drops only one that repeats the event just before, so a frame of
- * three keys would repeat the first.
+ * Phaser runs through the frame's whole queue of key events as each new one
+ * comes, and drops only an event that repeats the one just before, so from
+ * the third key of a frame on, every key before it is handed over again.
  */
-function onEachKey(
-  scene: Scene,
-  name: string,
-  listener: (event: KeyboardEvent) => void,
-): void {
+function onEachKey(scene: Scene, name: string, listener: KeyListener): void {
   const taken = new WeakSet<KeyboardEvent>();
   scene.input.keyboard?.on(name, (event: KeyboardEvent) => {
     if (taken.has(event)) return;

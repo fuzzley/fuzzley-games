@@ -98,10 +98,11 @@ out of the first download.
   `input.keyboard.target` to the board's element, so the keys reach the
   scene only while it has the focus, and a dialog or the bar keeps its own.
 - **Hear the keys through `onKeyDown()` and `onKeyUp()`,** from
-  `@fz/phaser/scene`, not the keyboard's `ANY_KEY_DOWN` and `ANY_KEY_UP`.
-  Phaser hands over every key event of a frame again with each new one in
-  it, dropping only one that repeats the event just before, so a frame of
-  three keys repeats the first; the helpers hand over each once.
+  `@fz/phaser/scene`, not the keyboard's own key events. Phaser runs
+  through the frame's whole queue of key events as each new one comes,
+  dropping only one that repeats the event just before, so from the third
+  key of a frame on, every key before it is handed over again; the helpers
+  hand over each once.
 - **Phaser's key captures are global,** whatever the target: a captured key
   has its default prevented everywhere. Capture only the keys the game
   uses, and ignore a held key and one pressed with Ctrl, Alt or Meta, so the
@@ -166,17 +167,18 @@ browser, through a game's screenshots and its `check:layout`.
   out at its CSS size, and `await loseContext()` and
   `await restoreContext()` lose and restore the context as a browser may,
   its events on a later task, for a spec of what a scene draws again.
-- **Input is a browser's.** `key()` sends a key with the `keyCode` a
-  browser gives it, which Phaser hears on the next frame, so `advance()`
-  after one; press at most two keys a frame, since with a third Phaser
-  sends the earlier ones again, in a browser too. `pointer()` presses,
-  moves and lets go with the mouse, on the canvas or on an element of the
-  page over it (which Phaser hears through the window, raising
-  `pointerdownoutside`), and `touch()` with a finger; Phaser hit-tests and
-  raises its own events. An object made interactive answers from the next
-  frame, when Phaser takes it in, so `advance()` a frame before the first
-  press. Phaser's drag thresholds are 0, so a press on a draggable object
-  starts its drag at once.
+- **Input is a browser's.** `key()` sends a key with the `keyCode` a browser
+  gives it, which Phaser hands the scene at once and keeps with the frame's
+  other keys until the frame ends, so the keys sent before one `advance()` are
+  one frame's. A scene that hears them through `onKeyDown()` and `onKeyUp()`
+  takes any number a frame; Phaser's own key events hand the earlier ones over
+  again from the third on, in a browser too. `pointer()` presses, moves and
+  lets go with the mouse, on the canvas or on an element of the page over it
+  (which Phaser hears through the window, raising `pointerdownoutside`), and
+  `touch()` with a finger; Phaser hit-tests and raises its own events. An
+  object made interactive answers from the next frame, when Phaser takes it
+  in, so `advance()` a frame before the first press. Phaser's drag thresholds
+  are 0, so a press on a draggable object starts its drag at once.
 - **An error a handler throws** while Phaser hears a browser's event
   reaches the window's `error` event, not the spec. jsdom reads its
   stack, and the first stack through Phaser in a file is mapped through

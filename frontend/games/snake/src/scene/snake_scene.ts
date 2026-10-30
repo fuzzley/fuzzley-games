@@ -208,7 +208,7 @@ export class SnakeScene extends Scene {
   private listen(): void {
     this.input.keyboard?.addCapture(CAPTURED_KEYS);
     onKeyDown(this, (event) => {
-      this.onKey(event);
+      this.press(event);
     });
     const swipe = new SwipeReader();
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
@@ -233,7 +233,7 @@ export class SnakeScene extends Scene {
    * Passes on what a key asks, once per press, leaving the browser its
    * shortcuts.
    */
-  private onKey(event: KeyboardEvent): void {
+  private press(event: KeyboardEvent): void {
     if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
     const command = commandOfKey(event.code);
     if (command) this.options.command(command);
