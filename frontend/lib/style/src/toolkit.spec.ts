@@ -11,12 +11,15 @@ function compiled(body: string): string {
   }).css;
 }
 
-/** Returns the declarations of the first rule for `selector` in compressed CSS. */
+/**
+ * Returns the declarations of the first rule in compressed CSS whose selector
+ * is `selector`, or none if no rule's is.
+ */
 function declarations(css: string, selector: string): string[] {
-  const head = css.indexOf(`${selector}{`);
-  if (head < 0) return [];
-  const start = head + selector.length + 1;
-  return css.slice(start, css.indexOf("}", start)).split(";");
+  for (const [, head, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (head === selector) return (body ?? "").split(";");
+  }
+  return [];
 }
 
 describe("the toolkit's mixins", () => {
@@ -65,8 +68,16 @@ describe("the toolkit's mixins", () => {
   });
 
   it("size a dialog's card as asked, within the window", () => {
-    expect(compiled("@include fz.dialog-card(400px);")).toContain(
-      "width:400px;max-width:calc(100vw - var(--fz-space-8))",
+    const card = declarations(
+      compiled("@include fz.dialog-card(400px);"),
+      ".it",
+    );
+
+    expect(card).toEqual(
+      expect.arrayContaining([
+        "width:400px",
+        "max-width:calc(100vw - var(--fz-space-8))",
+      ]),
     );
   });
 
@@ -89,7 +100,9 @@ describe("the toolkit's mixins", () => {
   });
 
   it("size a help card as asked", () => {
-    expect(compiled("@include fz.help-card(600px);")).toContain("width:600px");
+    const card = declarations(compiled("@include fz.help-card(600px);"), ".it");
+
+    expect(card).toContain("width:600px");
   });
 
   it("draw a help card's keys as keycaps", () => {
@@ -105,7 +118,9 @@ describe("the toolkit's mixins", () => {
   });
 
   it("center a result card", () => {
-    expect(compiled("@include fz.result-card;")).toContain("text-align:center");
+    const card = declarations(compiled("@include fz.result-card;"), ".it");
+
+    expect(card).toContain("text-align:center");
   });
 
   it("size a dialog's close button's icon", () => {
