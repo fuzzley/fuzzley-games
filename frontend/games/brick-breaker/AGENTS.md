@@ -234,11 +234,12 @@ doesn't see, so Phaser stays out of the first download.
     level; Ended, once an ended run's result is put away; and still loading
     and couldn't be drawn. The board is Phaser's keyboard target, so the
     cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
-    `fzKeepKeys`), and take Space and Enter themselves. `fieldPalette()`
-    colors the field from `ThemeService`'s roles and `mode`, and a finger
-    steers as the settings say. The board keeps the scene's pictures for How
-    to play (`pictures`). It is an application named for its level, "Brick
-    Breaker, level 3: Pyramid".
+    `fzKeepKeys`), and take Space and Enter themselves; Resume and Next level
+    hand the board back the focus, and the board takes it as New game's run
+    begins. `fieldPalette()` colors the field from `ThemeService`'s roles and
+    `mode`, and a finger steers as the settings say. The board keeps the
+    scene's pictures for How to play (`pictures`). It is an application named
+    for its level, "Brick Breaker, level 3: Pyramid".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, which asks before it starts a run at another, the
     figures, and Pause, Sound, Levels, New game, How to play and Settings,
@@ -306,9 +307,9 @@ doesn't see, so Phaser stays out of the first download.
 - **Phaser's input is the board's.** The keyboard's target is the board's
   element, so the keys reach the game only while it has the focus. Phaser
   cancels a captured key's default there, which is why the scene captures only
-  the arrows and Space, which would scroll the page, and ignores a key pressed
-  with Ctrl, Alt or Meta. Keys go by `event.code`, so an AZERTY keyboard
-  steers with Q and D.
+  Left, Right, Up and Space, the keys it uses that would scroll the page, and
+  ignores a key pressed with Ctrl, Alt or Meta. Keys go by `event.code`, so an
+  AZERTY keyboard steers with Q and D.
 - **The level waits for the player.** A ball waits on the paddle until it is
   launched. The level pauses when the focus leaves the room, the page is
   hidden, the screen turns or a dialog opens, and goes on only when the

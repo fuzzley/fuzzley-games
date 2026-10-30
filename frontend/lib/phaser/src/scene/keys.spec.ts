@@ -24,7 +24,7 @@ describe("the key helpers", () => {
     run = null;
   });
 
-  it("hand each helper only its own kind of key event", async () => {
+  it("hand each listener only its own kind of key event", async () => {
     const { run, pressed, released } = await listen();
 
     run.key("keydown", "KeyP", "p");
@@ -73,6 +73,16 @@ describe("the key helpers", () => {
       run.advance(16);
 
       run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      expect(pressed).toEqual(["Space", "Space"]);
+    });
+
+    it("hears a held key's repeats, which a scene tells apart itself", async () => {
+      const { run, pressed } = await listen();
+
+      run.key("keydown", "Space", " ");
+      run.key("keydown", "Space", " ", { repeat: true });
       run.advance(16);
 
       expect(pressed).toEqual(["Space", "Space"]);

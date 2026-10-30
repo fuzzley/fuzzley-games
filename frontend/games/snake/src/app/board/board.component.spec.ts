@@ -294,7 +294,7 @@ describe("BoardComponent", () => {
       ["Space", " "],
       ["Enter", "{Enter}"],
     ])(
-      "go on at %s on Resume, handing the board the focus",
+      "goes on at %s on Resume, handing the board the focus",
       async (_, keys) => {
         const { board, game, run, detectChanges } = await runBoardScene();
         game.turn("up");

@@ -21,14 +21,15 @@ capsule from one atlas baked at run time (`bakeAtlas()`).
   Phaser. Its `scene` is a `SceneSource`, a function returning a `MakeScene`
   or a promise of one, and each new one swaps into the same game; `options`
   are the host's (`title`, `background`, Phaser's `config`), read once;
-  `label`, if given, names the canvas to assistive technology as an image.
-  Its `state` is `loading`, `ready` or `failed`, also as `data-state` on the
+  `label`, if given, names the canvas to assistive technology as an image. Its
+  `state` is `loading`, `ready` or `failed`, also as `data-state` on the
   element. It fails a scene whose source rejects, or that isn't ready in a
-  minute, and after 8 seconds `slow` (`data-slow`) says it is still
-  loading, which the app says to the player. What the app
-  projects as `[fzCanvasPlaceholder]` lies over the canvas until the scene
-  is ready. It loads the host, and Phaser with it, with `import()` when it
-  first shows a scene (`frontend/lib/phaser/src/canvas/`).
+  minute, and after 8 seconds `slow` (`data-slow`) says it is still loading,
+  which the app says to the player. What the app projects as
+  `[fzCanvasPlaceholder]` lies over the canvas until the scene is ready. It
+  loads the host, and Phaser with it, with `import()` when it first shows a
+  scene (`frontend/lib/phaser/src/canvas/`). Beside it, `fzKeepKeys` keeps a
+  button's keys from the board around it.
 - **`@fz/phaser/host`**: `PhaserHost`, which keeps one Phaser game, and so
   one WebGL context, for the canvas's whole life, and `ViewportScaler`,
   which keeps the canvas at its box's size in device pixels. Only the canvas
@@ -103,15 +104,16 @@ out of the first download.
   dropping only one that repeats the event just before, so from the third
   key of a frame on, every key before it is handed over again; the helpers
   hand over each once.
-- **Phaser's key captures are the game's,** shared by every scene, and
-  cancel a captured key's default as it reaches the keyboard's target, from
-  the target or from anything inside it, and nowhere else. Capture only the
-  keys the game uses, and ignore a held key and one pressed with Ctrl, Alt
-  or Meta, so the browser's shortcuts still work.
+- **A captured key's default is cancelled only on the keyboard's target,**
+  pressed there or on anything inside it. The captures are the game's,
+  shared by every scene. Capture only the keys the game uses, and ignore a
+  held key and one pressed with Ctrl, Alt or Meta, so the browser's
+  shortcuts still work.
 - **A button over the board keeps its keys with `fzKeepKeys`,** from
-  `@fz/phaser/canvas`. Without it, Space or Enter pressed on the button
-  reaches the scene too, and Phaser cancels Space's keyup, at which a
-  browser clicks a button, so the focus is left on a button that goes.
+  `@fz/phaser/canvas`. Without it, a key pressed on the button reaches the
+  scene too, which acts on Enter or Space as well as the button would, and
+  Phaser cancels Space's keyup, at which a browser clicks a button, so the
+  focus is left on a button that goes.
 - **Phaser's mouse prevents the default of `mousedown`,** which keeps the
   focus off the canvas; an element that should take the focus at a click
   focuses itself on `pointerdown`.
@@ -184,6 +186,10 @@ browser, through a game's screenshots and its `check:layout`.
   object made interactive answers from the next frame, when Phaser takes it
   in, so `advance()` a frame before the first press. Phaser's drag thresholds
   are 0, so a press on a draggable object starts its drag at once.
+- **user-event's keys carry no `keyCode`,** which Phaser's capture reads, so
+  Phaser cancels nothing user-event presses. A spec of a capture, such as
+  Space kept from the board by a button's `fzKeepKeys`, sends the key with
+  `fireEvent` and its `keyCode`, as `key()` does.
 - **An error a handler throws** while Phaser hears a browser's event
   reaches the window's `error` event, not the spec. jsdom reads its
   stack, and the first stack through Phaser in a file is mapped through
