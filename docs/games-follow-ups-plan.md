@@ -290,3 +290,15 @@ stands above the board. Every finding was taken.
   script has since B13's review, with the same comment.
 - **Checks:** Snake's lint and typecheck pass (the script is checked from
   its JSDoc). The script is run against Snake's dev server at G-Q1.
+
+### G5: the dialogs' comment
+
+- **What went wrong:** Snake, Minesweeper and Sudoku said their
+  `<fz-confirm-dialog />` comes last "so it opens over the settings when a
+  change would lose" a game. `<fz-dialog>` opens with `showModal()`, which
+  puts a dialog in the top layer over every one opened before it, wherever
+  it sits in the page, so the order of the elements decides nothing.
+- **Built:** the comment went from all three, as it went from Brick
+  Breaker's in B8.2's review. The confirmation stays where it is.
+- **Checks:** the three games' lint and test pass (Minesweeper 376,
+  Sudoku 591, Snake 399), and Prettier.
