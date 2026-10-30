@@ -10,14 +10,21 @@
 
 <p id="board-keys" class="fz-visually-hidden">
   The left and right arrow keys, or A and D, move the paddle, and so does the
-  mouse or a finger. Space, the up arrow or W launches the ball and fires the
-  laser. P pauses and goes on, Escape pauses, and Enter goes on, or to the next
-  level. Once a run has ended, Enter or Space starts another.
+  mouse or a finger. Space, the up arrow or W launches the ball, fires the
+  laser, goes on, and goes to the next level. Escape pauses, P pauses and goes
+  on, and Enter goes on, or to the next level. Once an ended run's result is put
+  away, Space, Enter or P starts another.
 </p>
+
+<!--
+  A key pressed on a card's button stays with it, so the button takes it and
+  hands the board the focus, rather than the board's keys doing the same and
+  leaving the focus on nothing as the card goes.
+-->
 
 @switch (card()) {
   @case ("ready") {
-    <div class="card">
+    <div class="card ready">
       <p class="card-title">{{ levelTitle() }}</p>
       <p>{{ launchWords() }}</p>
     </div>
@@ -26,7 +33,14 @@
     <div class="card">
       <p class="card-title">Paused</p>
       <p>Score {{ game.score() }}</p>
-      <button type="button" class="fz-button" (click)="resume()">Resume</button>
+      <button
+        type="button"
+        class="fz-button"
+        (keydown)="keepKey($event)"
+        (click)="resume()"
+      >
+        Resume
+      </button>
     </div>
   }
   @case ("cleared") {
@@ -41,7 +55,12 @@
         }
       </dl>
       <p>Score {{ game.score() }}</p>
-      <button type="button" class="fz-button" (click)="nextLevel()">
+      <button
+        type="button"
+        class="fz-button"
+        (keydown)="keepKey($event)"
+        (click)="nextLevel()"
+      >
         Next level
       </button>
     </div>
@@ -50,7 +69,12 @@
     <div class="card">
       <p class="card-title">{{ endTitle() }}</p>
       <p>Score {{ game.score() }}</p>
-      <button type="button" class="fz-button" (click)="newGame()">
+      <button
+        type="button"
+        class="fz-button"
+        (keydown)="keepKey($event)"
+        (click)="newGame()"
+      >
         New game
       </button>
     </div>

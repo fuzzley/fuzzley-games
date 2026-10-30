@@ -14,7 +14,6 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { PhaserCanvasComponent, type SceneSource } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
 import type { CssRect } from "@fz/phaser/layout";
-import { THEMES } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import {
   BRICKS_TOP,
@@ -28,9 +27,9 @@ import {
 } from "../../rules/tuning";
 import type { BricksSceneOptions } from "../../scene/bricks_scene";
 import type { Pictures } from "../../view/art";
-import { type PaletteMode, bricksPalette } from "../../view/palette";
 import type { TouchSteering } from "../../view/steering";
 import { GameService } from "../play/game.service";
+import { fieldPalette } from "./field_palette";
 
 /** Names a card laid over the field, or none. */
 type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
@@ -39,9 +38,10 @@ type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
 const TOUCH: TouchSteering = "drag";
 
 /**
- * How far below the field's middle the cards sit, in field units: halfway
- * between the foot of the bricks' rows and the paddle, so a card covers
- * neither.
+ * How far below the field's middle the Ready card sits, in field units:
+ * halfway between the foot of the bricks' rows and the paddle, so it covers
+ * neither as the player aims. The other cards, which stand while nothing
+ * moves, are taller than that gap and sit in the middle.
  */
 const CARD_DROP =
   (BRICKS_TOP + ROWS * BRICK_HEIGHT + PADDLE_TOP) / 2 - FIELD_HEIGHT / 2;
@@ -82,7 +82,6 @@ const CARD_DROP =
 export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(GameViewportService);
-  private readonly theme = inject(ThemeService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
@@ -200,29 +199,8 @@ export class BoardComponent {
     this.game.outcome() === "won" ? "Every level cleared!" : "Game over",
   );
 
-  /** The palette's mode, light or dark, which picks the bricks' tints. */
-  private readonly mode = computed<PaletteMode>(
-    () => THEMES.find(({ id }) => id === this.theme.current())?.mode ?? "light",
-  );
-
-  /** The field's colors, a new object only when the palette changes. */
-  private readonly palette = computed(() =>
-    bricksPalette(
-      {
-        panel: this.panel(),
-        text: this.text(),
-        accent: this.accent(),
-        danger: this.danger(),
-        warning: this.warning(),
-      },
-      this.mode(),
-    ),
-  );
-  private readonly panel = this.theme.role("panel");
-  private readonly text = this.theme.role("text");
-  private readonly accent = this.theme.role("accent");
-  private readonly danger = this.theme.role("danger");
-  private readonly warning = this.theme.role("warning");
+  /** The field's colors, from the palette on the page. */
+  private readonly palette = fieldPalette(inject(ThemeService));
 
   private readonly picturesState = signal<Pictures | null>(null);
 
@@ -296,7 +274,7 @@ export class BoardComponent {
     });
   }
 
-  /** Puts the focus on the board once it has drawn, as a run begins. */
+  /** Puts the focus on the board after Angular's next render, as a run begins. */
   focus(options?: FocusOptions): void {
     afterNextRender(
       () => {
@@ -316,6 +294,11 @@ export class BoardComponent {
   protected nextLevel(): void {
     this.game.nextLevel();
     this.host.nativeElement.focus();
+  }
+
+  /** Keeps a key pressed on a card's button from the board's keys, so the button takes it. */
+  protected keepKey(event: KeyboardEvent): void {
+    event.stopPropagation();
   }
 
   /** Starts another run, from the card over an ended one. */

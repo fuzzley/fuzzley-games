@@ -2118,3 +2118,76 @@ through Phaser's input and the scene's `Steering`.
   the width fails the tablet's two.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,369),
   build.
+
+## B7.2's review (fd37e168, with 578f4386)
+
+The reviewer ran two findings against the real scene in a scratch copy
+before reporting. Every finding was taken.
+
+1. **Space on a card's button left the focus on nothing.** Phaser hears
+   the keys on the board, so Space on a focused Resume or Next level
+   bubbled up to it. The scene went on, or to the next level, and Phaser's
+   capture kept the button from clicking, so nothing handed the board back
+   the focus as the card went. **Fixed:** the cards' buttons keep their keys
+   (`keepKey()` stops a keydown at the button), so the button takes Space
+   or Enter and hands the board the focus. Two specs press Space on Resume
+   and on Next level with the real scene and find the board focused.
+   Without the fix, both fail. **Snake's Resume has the same problem**,
+   which goes on the list for the user.
+2. **Only the Ready card fit between the bricks and the paddle.** The
+   Cleared card (about 243 px) and the Paused card (about 157 px) were
+   moved down with it, and covered the paddle on a phone or left the field
+   on its side. **Fixed:** only the Ready card is moved down. The others,
+   shown while nothing moves, sit in the middle, and `CARD_DROP`'s doc says
+   so. The smaller cards now start below a board 360 px tall rather than
+   320, and the Ready card stays between the bricks and the paddle there
+   too. Measured in the browser, with each card shown from the page:
+   - 390 × 844: Ready 447–546 between the bricks' foot (433) and the paddle
+     (561). Paused and Cleared on the field, above the paddle.
+   - 667 × 375: Ready 227–326 between 222 and 331. Cleared 66–309.
+   - 568 × 320: at first the Ready card overlapped both by a few pixels and
+     the Cleared card reached the paddle. With the smaller cards, Ready is
+     195–272 between 189 and 279, and Cleared 60–260.
+   - 375 × 553: Ready 298–397 between 286 and 409. Cleared 125–368.
+3. **The tally spec read its expected values from the code under test.**
+   **Fixed:** it reads each line as its term and points and pins them:
+   Bricks 1300, Streaks 1300, Bonus 1500 and Score 4100. Swapping the labels
+   fails it, since the terms' order changes. On the Blasts level the two
+   sums happen to be equal, so swapping the sums themselves can't be caught
+   there, and no level in the spec set that clears tells them apart.
+   `tallyOf()`'s own spec holds the sums.
+4. **Nothing checked the palette's mode, and it could run a moment ahead
+   of the colors.** **Fixed:**
+   - `@fz/ui`'s `ThemeService` gains `mode`, light or dark, which follows
+     the palette as it is applied to the page, as `role()` does, rather
+     than `current`, which changes a moment before. Three specs cover it,
+     the last one that the mode waits for the palette to be applied.
+   - The board's colors moved into `src/app/board/field_palette.ts`
+     (`fieldPalette(theme)`), which reads the roles and the mode at the
+     same moment. Its spec holds a light palette to the light tints, a
+     dark one to the dark tints, and a palette chosen later to its own.
+     Making it always light fails the spec.
+   - The `fuzzley-ui` skill and `@fz/ui`'s AGENTS.md name `mode`.
+5. **The keys' description left out what Space, ↑ and W do besides
+   launch, and its last sentence wasn't true yet.** **Fixed:** it says they
+   also go on and go to the next level, and that once an ended run's result
+   is put away, Space, Enter or P starts another. That is what
+   `GameService` does, and B8.2's result card is what puts it away. Since
+   B8.1, the bar's New game starts another run at any time, so an ended run
+   is no longer a dead end.
+6. **The tally outlived its run.** **Fixed:** `begin()` clears it, with a
+   spec, so it is null again until a level of the new run is cleared.
+7. **Spec readability.** **Fixed:**
+   - `endedBoard()` loses `FIRST_LIVES` balls.
+   - `advanceWhilePlaying()` steps by `FRAME_MS` up to a named
+     `LEVEL_LIMIT_MS`, and the other scene frames use `FRAME_MS` too.
+   - The app spec's "goes to the board as a new run begins" uses
+     `toHaveFocus()`.
+8. **`focus()` said "once it has drawn".** **Fixed:** it says "after
+   Angular's next render".
+
+- **Mutants.** Each of these failed the specs: dropping `keepKey()`'s
+  `stopPropagation()`, swapping the tally's labels, always-light in
+  `fieldPalette()`, and dropping the tally's reset.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,375),
+  build.

@@ -92,8 +92,8 @@
   outline-color: var(--fz-focus-ring-color);
 }
 
-// Between the bricks and the paddle, `--card-drop` units below the field's
-// middle, letting clicks and taps through to the canvas but on its button.
+// In the middle of the field, letting clicks and taps through to the canvas
+// but on its button.
 .card {
   @include glass(12px);
 
@@ -108,7 +108,6 @@
   height: fit-content;
   margin: auto;
   padding: var(--fz-space-5) var(--fz-space-6);
-  translate: 0 calc(var(--card-drop) * var(--unit));
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-lg);
   background: var(--fz-panel-glass);
@@ -127,13 +126,19 @@
   }
 }
 
-// On a small field, as on the smallest phones, the card sets smaller and
-// sits in the middle, so it stays on the field.
-@container (width < 280px) or (height < 320px) {
+// The Ready card, the one shown while the player aims, between the bricks and
+// the paddle, `--card-drop` units below the field's middle.
+.ready {
+  translate: 0 calc(var(--card-drop) * var(--unit));
+}
+
+// On a small field, as on the smallest phones, a card sets smaller, so the
+// Ready card still fits between the bricks and the paddle, and the others on
+// the field.
+@container (width < 280px) or (height < 360px) {
   .card {
     gap: var(--fz-space-1);
     padding: var(--fz-space-3) var(--fz-space-4);
-    translate: none;
     font-size: var(--fz-font-sm);
 
     button {

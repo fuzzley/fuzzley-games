@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import { fuzzballSvg } from "@fz/style/fuzzball";
 import {
+  type ColorMode,
   DEFAULT_THEMES,
   type PaletteRole,
   THEMES,
@@ -61,6 +62,15 @@ export class ThemeService {
 
   /** The palette in use. */
   readonly current: Signal<ThemeId> = this.chosen.asReadonly();
+
+  /**
+   * Whether the palette on the page is light or dark, which changes with
+   * its roles' colors rather than a moment before them, as `current` does.
+   */
+  readonly mode: Signal<ColorMode> = computed(() => {
+    const id = this.applied();
+    return THEMES.find((theme) => theme.id === id)?.mode ?? "light";
+  });
 
   /** The palettes a chooser offers, in order, the one in use checked. */
   readonly options: Signal<readonly ThemeOption[]> = computed(() =>

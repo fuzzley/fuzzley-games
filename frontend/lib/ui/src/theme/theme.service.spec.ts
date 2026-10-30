@@ -218,6 +218,32 @@ describe("ThemeService", () => {
     expect(felt()).toBe("#17605a");
   });
 
+  it("says a dark palette on the page is dark", () => {
+    const theme = service();
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    expect(theme.mode()).toBe("dark");
+  });
+
+  it("says a light palette on the page is light", () => {
+    const theme = service();
+
+    theme.select("classic");
+    TestBed.tick();
+
+    expect(theme.mode()).toBe("light");
+  });
+
+  it("keeps the mode of the palette on the page until the new one is applied", () => {
+    const theme = service();
+
+    theme.select("midnight");
+
+    expect(theme.mode()).toBe("light");
+  });
+
   it("reads a role no stylesheet sets as empty", () => {
     expect(service().role("felt")()).toBe("");
   });
