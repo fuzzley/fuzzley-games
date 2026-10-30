@@ -4,7 +4,7 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { createRun, pause, step, turn } from "../../rules/run";
 import { saveRun } from "../../rules/saved_run";
 import { stepMs } from "../../rules/speed";
-import { playToTheEnd } from "../../testing/play";
+import { playToTheEnd, provideFixedSeed } from "../../testing/play";
 import { GameService } from "./game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./saved_game.service";
 
@@ -45,6 +45,10 @@ function started(): GameService {
 }
 
 describe("SavedGameService", () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideFixedSeed()] });
+  });
+
   describe("keeping", () => {
     it("keeps a run as it starts", () => {
       const game = started();

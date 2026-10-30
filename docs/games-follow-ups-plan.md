@@ -196,3 +196,37 @@ listeners were gone after a restart, and a key is heard before any
 
 - **Not taken:** G4's line in the plan says what changes, not what goes
   wrong today. Its log entry will.
+
+### G3's review (d76297f2)
+
+The reviewer confirmed the diagnosis in a script of its own: the same 13
+sources, 0.5 eating one and 0.121 two, and 1.42% over a million runs of
+`Math.random`, as 4 of the 285 squares free lie ahead. It found no other
+spec the seed could fail today. Every finding was taken.
+
+1. **`endedGame()`'s doc ended on a negation,** and held a fact of the
+   helper's. **Fixed:** "and now and then the second, which
+   `provideFixedSeed()` rules out".
+2. **The helper's name and doc were vague:** every run has a seed, and it
+   returns a provider. **Fixed:** `provideFixedSeed()`, "Returns a provider
+   that gives every run the same seed, one whose second apple falls out of
+   the way of a run heading right."
+3. **The plan said the specs that play runs to an end get a fixed seed;
+   only one did.** Leaving chance as the default leaves the next spec of a
+   run's score flaky one time in 70. **Fixed** the other way round from G3's
+   entry: every spec that plays runs to an end provides it, the board's,
+   the result's, `GameService`'s and `SavedGameService`'s, as Brick
+   Breaker's specs all provide their seed.
+4. **The skill's sentence was imprecise, and in the rules' section.**
+   **Fixed:** under The Shell, "`GameService` seeds each run from
+   `GAME_RANDOM`, `Math.random` unless a spec provides another", with the
+   rate as its cause, one run in 70, rather than a sample.
+5. **"A probe over 1,000 sources"** is clearer as 1,000 values of the
+   random source, 0.000 to 0.999, as this entry has it.
+6. **`renderEnded()`'s doc** had the seed wedged in. **Fixed:** its doc is
+   as it was, and the provider says what it does.
+- **Left for later, as the reviewer suggests:** `GAME_RANDOM` is Snake's
+  and Brick Breaker's alike, worth a shared token if a third game needs
+  one.
+- **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier and
+  the references.
