@@ -4,7 +4,7 @@ The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
 Cloud Run. The games are built here too, under `frontend/games/`, and
 served as static pages under `/play/<slug>/`: the Solitaire Collection,
-Minesweeper, Sudoku and Snake.
+Minesweeper, Sudoku, Snake and Brick Breaker.
 
 ## Technology Stack
 

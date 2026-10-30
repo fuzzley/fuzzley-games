@@ -1,8 +1,7 @@
 # Brick Breaker
 
 Brick Breaker: bounce the ball off your paddle, break every brick, and keep
-the ball off the floor. It will be played at
-https://fuzzley.games/play/brick-breaker/, once the site's catalog holds it.
+the ball off the floor. Play it at https://fuzzley.games/play/brick-breaker/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
 (`frontend/lib/`), with its field drawn by [Phaser](https://phaser.io/)
@@ -31,6 +30,9 @@ yarn workspace brick-breaker report:levels       # how long each level takes the
 yarn workspace brick-breaker build:sounds        # write the sounds again
 yarn workspace brick-breaker capture:screenshots # the site's screenshots, from the dev server
 ```
+
+The site's `yarn build` builds it, copies `dist/` to `/play/brick-breaker/`,
+and adds the site's analytics tags.
 
 ## License
 

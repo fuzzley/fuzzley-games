@@ -1,4 +1,7 @@
 {
+  "brick-breaker": {
+    "workspace": "games/brick-breaker"
+  },
   "minesweeper": {
     "workspace": "games/minesweeper"
   },

@@ -333,4 +333,14 @@ export const GAMES: readonly Game[] = [
     added: "2026-10-28",
     play: { build: "snake" },
   },
+  {
+    slug: "brick-breaker",
+    name: "Brick Breaker",
+    category: "arcade",
+    blurb: "Bounce the ball, break every brick, and keep it off the floor.",
+    players: SOLO,
+    minutes: 10,
+    added: "2026-10-30",
+    play: { build: "brick-breaker" },
+  },
 ];
