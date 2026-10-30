@@ -3304,12 +3304,14 @@ against the specs, and probed the announcer with a spec of its own.
 1. **Hourglass hid its last bricks in the neck's shadow.** The one-cell
    steel neck shaded column 6 of the top half from below. Every endgame over
    30 s ended on those bricks, the worst taking 2:06. **Fixed in the map:**
-   - Column 6 is empty above the neck, from the top row down.
+   - Column 6 is empty in the four rows above the neck, from the row of 2s
+     down. The top row of 3s still spans it.
    - Over 40 seeds, one play of 120 runs past a minute (1:23 at Relaxed).
    - **A probe of the bricks each long endgame left** (the autopilot noting
      them for a moment, then put back):
-     - **Hourglass:** none in column 6 now. The 8 endgames over 30 s mostly
-       end on the middle of the top row of 3s, the last row the ball reaches.
+     - **Hourglass:** none under the top row in column 6 now. The 8
+       endgames over 30 s mostly end on the middle of the top row of 3s, the
+       last row the ball reaches.
      - **Hedge maze:** its 19 spread over all three corridors, beside their
        regrowing gates, which are the level's trick.
      - **Spiral:** the cluster the reviewer named. 6 of its 8 end on (3, 7),
@@ -3389,8 +3391,8 @@ against the specs, and probed the announcer with a spec of its own.
    **Fixed in part:**
    - `early` is a readonly signal, as `message` is.
    - `notePlaced()` and `noteEarlyWordsSaid()` say that only
-     `<fz-announcer>` calls them. TypeScript has nothing narrower than
-     public for a service another file's component calls.
+     `<fz-announcer>` calls them. They stay on the service that holds what
+     they change (B12.1's review corrected the reason first given here).
 8. **`@fz/ui`'s `AGENTS.md` said a later region "says" the last words.**
    **Fixed:** it holds them from the start, so it doesn't say them again.
    The two spec names match.
@@ -3526,3 +3528,76 @@ against the specs, and probed the announcer with a spec of its own.
   site's build copies the game, adds its analytics tags, and finds the
   catalog's name in its `game.json`. `yarn check:layout` holds for all
   three games that have one.
+
+## B12.1's review (b2dff36a, with 525d05a5)
+
+The reviewer ran the layout check with what it measured printed, mutants
+against the announcer, the round trip and `catchUp()`, and the level report
+over 40 seeds, which reproduced the table exactly.
+
+1. **The region's `arrived` signal did nothing.** Its timer set it, then at
+   once `noteEarlyWordsSaid()` made the words not early, for good, so
+   `arrived` was never true while they were. **Fixed in `@fz/ui`:**
+   - The region says nothing while the words are early, and its timer only
+     notes them said.
+   - Its docs, the service's and `@fz/ui`'s `AGENTS.md` say words said
+     before any region has rendered wait, which covers words said after one
+     was made but before it rendered.
+2. **`withScore()` moved the next life's mark back** for a run whose next
+   life lay past its score. A later mark then paid a life the run had
+   already passed, with the chime. No stored run reaches it, as
+   `restoreGame()` holds the mark to the score. **Fixed:** the mark is never
+   moved back, so the marks passed are never fewer than none. The spec
+   holds the mark as well as the lives.
+3. **The layout check's floor was looser than it needs to be, and its
+   comment wrong.** Only a short window brings the unit under 10: 320 × 480
+   gives 11, and 568 × 320 gives 9.5. **Fixed:**
+   - The floor is 9 in a window under 360 CSS px tall, and 10 elsewhere.
+   - The comment gives 568 × 320's 9.5 as the case.
+   - The game's `AGENTS.md` and the plan say so.
+4. **Some of the inspection's checks passed when their element was
+   missing.** **Fixed:**
+   - A missing placeholder or card is a problem, as a missing ring was.
+   - The selectors are scoped to the board, since `.card` also matched the
+     dialogs' cards.
+   - The placeholder is held to the field's height too.
+   - The inspection's doc names everything it checks, and the header is
+     rewrapped.
+   - A probe with the selectors broken reported both elements missing at
+     every shape.
+5. **Three copies of the layout check's runner.** Sudoku's, Snake's and
+   Brick Breaker's share their command line, usage and `main()`, and
+   Snake's and Brick Breaker's their shapes too. **Not changed:** a runner
+   in `@fz/dev/layout` that takes each game's `inspect()` would touch
+   Sudoku and Snake. It is left as a follow-up, beside the settings
+   drawer's and `arpeggio()`'s lifts.
+6. **The round trip's helpers.** **Fixed:**
+   - `FIELD_WIDTH` replaces the bare 26.
+   - The paddle goes to the wall across the field from the ball. Its
+     mirror, `26 - x`, met a ball near the middle.
+   - `AIMS` and `PLAYED_STATES` are readonly.
+   - The play still reaches every state. The reviewer's mutants give the
+     same verdicts: the round trip kills all but dropping the score, the
+     lives lost or the bricks needed, which `takeUpField()`'s own spec
+     kills.
+7. **The reason given for leaving the announcer's bookkeeping public was
+   wrong.** `@fz/ui`'s `exports` map blocks deep imports, so a second
+   injectable that `index.ts` doesn't export would be out of the apps'
+   reach. **Not changed:** the two calls stay on the service whose state
+   they change, documented as the region's alone. A class of their own
+   would guard two calls at the cost of splitting one small service. The
+   B11.2 review's entry now says so rather than give the wrong reason.
+8. **The worklog said column 6 was empty above Hourglass's neck "from the
+   top row down".** The top row of 3s spans it. **Fixed:** the entry says
+   the four rows above the neck, from the row of 2s down.
+9. **An app spec raced the region's 100 ms wait.** It passed only if
+   `render()` finished first. **Fixed:** `renderTakingUp()` fakes
+   `setTimeout` and `clearTimeout`, and the case after it moves them on by
+   `ARRIVAL_MS` rather than waiting. A region that never waits, nothing
+   early, and early words never said each fail the app spec.
+10. **No spec took a region away before its wait was over.** **Fixed:** a
+    spec takes one away, lets the moment pass, and expects the next region
+    to start empty. Without `clearTimeout()` it fails.
+
+- **Checks.** The announcer's 19 specs, the run's, the round trip's and the
+  app's pass, and the layout check holds at every shape and turn.
