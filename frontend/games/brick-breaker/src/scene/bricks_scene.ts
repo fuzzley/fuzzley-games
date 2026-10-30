@@ -125,7 +125,7 @@ export class BricksScene extends Scene {
   private readonly frameSounds = new FrameSounds();
   /** How many chimes the game had called for as the scene last looked. */
   private chimed = 0;
-  /** How a sound is played, made once and changed for each. */
+  /** How a sound is played, made once and changed for each: Phaser copies it as the sound starts. */
   private readonly soundConfig: Types.Sound.SoundConfig = { detune: 0 };
   /**
    * The key events the scene has taken. Phaser hands over every key event
@@ -180,8 +180,10 @@ export class BricksScene extends Scene {
   /**
    * Hands the shell the time the frame took and the steering, then plays
    * what happened on the field since the last frame, once each, and draws
-   * it as it now stands. It allocates nothing but on a new layout, a new
-   * palette or a new level.
+   * it as it now stands.
+   *
+   * It allocates nothing of its own but on a new layout, a new palette or a
+   * new level; Phaser makes a sound object for each sound it plays.
    */
   override update(time: number, delta: number): void {
     this.now = time;
@@ -212,7 +214,7 @@ export class BricksScene extends Scene {
     this.draw(frame);
   }
 
-  /** Plays a sound, risen by some cents. Made once, so playing makes nothing. */
+  /** Plays a sound, risen by some cents, for `FrameSounds.playEach()`, which takes it each frame. */
   private readonly playSound = (name: SoundName, detune: number): void => {
     this.soundConfig.detune = detune;
     this.sounds.play(name, this.soundConfig);
@@ -236,7 +238,9 @@ export class BricksScene extends Scene {
   /**
    * Plays an event: notes a brick breaking, keeps the sound it calls for to
    * play with the frame's others, and plays the flourishes it calls for
-   * where motion is welcome. Made once, so playing makes nothing.
+   * where motion is welcome.
+   *
+   * Made once, as the event log takes it each frame.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
     const field = this.shownField;

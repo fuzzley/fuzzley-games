@@ -50,8 +50,8 @@ interface PauseButton {
  * lives to six.
  *
  * On a compact screen, Pause and New game stay, and Sound, Levels, How to
- * play and Settings move into the overflow menu, as on the narrowest the link home
- * does too.
+ * play and Settings move into the overflow menu, as on the narrowest the
+ * link home does too.
  */
 @Component({
   selector: "app-bar",
@@ -112,6 +112,11 @@ export class BarComponent {
 
   /** Whether the player wants sound. */
   protected readonly sound = computed(() => this.settings.settings().sound);
+
+  /** The Sound button's icon, which shows whether the sound is on. */
+  protected readonly soundIcon = computed<IconName>(() =>
+    this.sound() ? "sound" : "sound-off",
+  );
 
   protected readonly pauseButton = computed<PauseButton>(() => {
     const outcome = this.game.outcome();

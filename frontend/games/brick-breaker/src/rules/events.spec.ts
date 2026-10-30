@@ -17,6 +17,12 @@ describe("EventLog", () => {
     });
   });
 
+  it("visits no event from a serial before the first", () => {
+    const log = new EventLog();
+
+    expect(eventsSince(log, -1)).toEqual([]);
+  });
+
   it("numbers each event one more than the last", () => {
     const log = new EventLog();
 

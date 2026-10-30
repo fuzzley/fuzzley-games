@@ -45,8 +45,10 @@ export interface FieldEvent {
   capsule: CapsuleId | null;
   /**
    * How long the streak was as a brick broke, that brick counted, for its
-   * sound's pitch; 0 for any other event. The scene plays an event after
-   * the field has moved on, so the event keeps it.
+   * sound's pitch; 0 for any other event.
+   *
+   * The scene plays an event after the field has moved on, so the event
+   * keeps it.
    */
   streak: number;
 }
@@ -112,7 +114,7 @@ export class EventLog {
     serial: number,
     visit: (event: Readonly<FieldEvent>) => void,
   ): void {
-    const first = Math.max(serial + 1, this.last - EVENT_LOG_SIZE + 1);
+    const first = Math.max(serial + 1, this.last - EVENT_LOG_SIZE + 1, 1);
     for (let at = first; at <= this.last; at++) {
       const event = this.ring[at % EVENT_LOG_SIZE];
       if (event) visit(event);

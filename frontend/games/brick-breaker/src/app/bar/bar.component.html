@@ -80,6 +80,10 @@
     <span class="btn-text">{{ pauseButton().label }}</span>
   </button>
 
+  <!--
+    A block apiece: the bar takes a block's button among its actions only
+    while the button is the block's one element.
+  -->
   @if (!viewport.isCompact()) {
     <button
       fzBarActions
@@ -91,7 +95,7 @@
       (pointerdown)="keepFocus($event)"
       (click)="toggleSound()"
     >
-      <fz-icon [name]="sound() ? 'sound' : 'sound-off'" />
+      <fz-icon [name]="soundIcon()" />
     </button>
   }
 

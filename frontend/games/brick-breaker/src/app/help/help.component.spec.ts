@@ -56,6 +56,16 @@ describe("HelpComponent", () => {
     ).toHaveLength(count);
   });
 
+  it("says how capsules come before listing them", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(
+      within(screen.getByRole("region", { name: "Capsules" })).getByText(
+        /^A broken brick may let a capsule fall/,
+      ),
+    ).toBeVisible();
+  });
+
   it("says what a steel brick does", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 

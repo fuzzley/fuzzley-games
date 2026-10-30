@@ -372,6 +372,16 @@ describe("BarComponent", () => {
       expect(TestBed.inject(SettingsService).settings().sound).toBe(false);
     });
 
+    it("offers to turn the sound back on from the menu", async () => {
+      const { user, detectChanges } = await renderBar();
+      TestBed.inject(SettingsService).update({ sound: false });
+      detectChanges();
+
+      const items = await openMenu(user);
+
+      expect(items[0]).toBe("Turn sound on");
+    });
+
     it("moves the link home into the menu where there is no room for it", async () => {
       viewport?.setSize(340, 700);
       const { user } = await renderBar();

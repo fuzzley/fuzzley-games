@@ -139,11 +139,11 @@ export function eventsOf(field: Field): FieldEventKind[] {
 
 /** Returns a copy of the latest event the field's log holds, or null before the first. */
 export function lastEvent(field: Field): FieldEvent | null {
-  const events: FieldEvent[] = [];
+  let last: FieldEvent | null = null;
   field.events.forEachSince(field.events.latest - 1, (event) => {
-    events.push({ ...event });
+    last = { ...event };
   });
-  return events.at(-1) ?? null;
+  return last;
 }
 
 /** Returns which way a ball heads, in degrees from straight up, positive to the right. */
