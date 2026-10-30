@@ -115,15 +115,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   a capture into a folder, the thumbnail cropped to a region when given
   one; `writeImage()` writes one image of any size, as the Solitaire
   Collection's rules-page image is.
-- `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized.
-  A `Sound` is a name, a length, a peak and a wave, made of `glide()` (a
-  tone gliding between two pitches), `envelope()`, `thud()` (seeded noise)
-  and `note()`; `writeSoundSprite()` renders a list of them, throwing for an
-  empty list, two of one name or a silent one, at 16,000
-  samples a second, each faded out at its end and a tenth of a second
-  apart, into `sounds.wav` and the spritemap Phaser plays it by,
-  `sounds.json`, the same bytes every run. A game's
-  `tools/build-sounds.mjs` holds its recipes and calls it.
+- `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized. A
+  `Sound` is a name, a length, a peak and a wave, made of `glide()` (a tone
+  gliding between two pitches), `envelope()`, `thud()` (seeded noise),
+  `note()` and `arpeggio()` (a chord's notes struck one after another, as a
+  chime is); `writeSoundSprite()` renders a list of them, throwing for an
+  empty list, two of one name or a silent one, at 16,000 samples a second,
+  each faded out at its end and a tenth of a second apart, into `sounds.wav`
+  and the spritemap Phaser plays it by, `sounds.json`, the same bytes every
+  run. A game's `tools/build-sounds.mjs` holds its recipes and calls it.
 
 ## How a workspace uses it
 

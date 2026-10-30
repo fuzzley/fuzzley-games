@@ -447,3 +447,22 @@ but one nit.
 - **Checks** for both reviews' fixes: lint, typecheck and test pass in
   `@fz/phaser` (266 tests) and Snake (399), and Prettier and the
   references. Brick Breaker's change is to its `AGENTS.md` alone.
+
+### G7: `arpeggio()`
+
+- **Built:** `arpeggio(pitches, gap, decay)` in `@fz/dev/sounds`: a chord's
+  notes struck `gap` seconds apart, each held at its pitch with a quarter of
+  its second harmonic and ringing out as `envelope()` falls over `decay`,
+  as Brick Breaker's sound script had it. Brick Breaker's script imports it
+  in place of its own, and Snake's chime, which wrote the same thing out by
+  hand, is `arpeggio([1047, 1319, 1568], 0.09, 0.15)`.
+- **The sounds are unchanged:** `yarn build:sounds` in both games wrote
+  `sounds.wav` and `sounds.json` byte for byte as they were, 41,324 bytes
+  of WAV for Snake's three sounds and 121,964 for Brick Breaker's ten.
+- **Specs:** an arpeggio is silent before its first note, plays only its
+  first until the next is struck, and adds each later note from the moment
+  it is struck, held against arpeggios of the notes alone.
+- **Docs:** `@fz/dev`'s `AGENTS.md` lists it among the waves.
+- **Checks:** `@fz/dev`'s lint, typecheck and test (113) pass, both games'
+  lint and typecheck, which check their scripts from their JSDoc, and
+  Prettier and the references.

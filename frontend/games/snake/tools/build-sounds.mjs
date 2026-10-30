@@ -5,7 +5,14 @@
 //   yarn build:sounds
 
 import { join } from "node:path";
-import { envelope, glide, note, thud, writeSoundSprite } from "@fz/dev/sounds";
+import {
+  arpeggio,
+  envelope,
+  glide,
+  note,
+  thud,
+  writeSoundSprite,
+} from "@fz/dev/sounds";
 
 /** @import { Sound } from "@fz/dev/sounds" */
 
@@ -43,12 +50,7 @@ const SOUNDS = [
     name: "best",
     seconds: 0.62,
     peak: 0.5,
-    sample: (() => {
-      const notes = [1047, 1319, 1568].map((pitch, i) =>
-        note(i * 0.09, glide(pitch, pitch, 1, 0.25), envelope(0.005, 0.15)),
-      );
-      return (t) => notes.reduce((sum, played) => sum + played(t), 0);
-    })(),
+    sample: arpeggio([1047, 1319, 1568], 0.09, 0.15),
   },
 ];
 

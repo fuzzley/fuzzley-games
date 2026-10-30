@@ -106,6 +106,21 @@ export function note(at: number, tone: Wave, shape: Wave): Wave {
 }
 
 /**
+ * Returns a chord's notes, in Hz, struck `gap` seconds apart in the order
+ * given, each ringing out as `envelope()` falls over `decay`.
+ */
+export function arpeggio(
+  pitches: readonly number[],
+  gap: number,
+  decay: number,
+): Wave {
+  const notes = pitches.map((pitch, i) =>
+    note(i * gap, glide(pitch, pitch, 1, 0.25), envelope(0.005, decay)),
+  );
+  return (t) => notes.reduce((sum, played) => sum + played(t), 0);
+}
+
+/**
  * Returns a sound's samples, scaled to its peak and faded out at the end, or
  * throws for one that is silent or not a number, which can't be scaled.
  */
