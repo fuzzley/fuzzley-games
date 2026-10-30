@@ -3315,9 +3315,9 @@ against the specs, and probed the announcer with a spec of its own.
      - **Hedge maze:** its 19 spread over all three corridors, beside their
        regrowing gates, which are the level's trick.
      - **Spiral:** the cluster the reviewer named. 6 of its 8 end on row 3,
-       column 7,
-       above the hook's steel bar, but only one play reached the limit, at
-       exactly 1:00. **Left as it is, and worth watching.**
+       column 7 (from 0), above the hook's steel bar, but only one play
+       reached the limit, at exactly 1:00. **Left as it is, and worth
+       watching.**
    - **The worklog was wrong** to say no long endgame left the same bricks
      for last: 20 seeds had caught only one of Hourglass's.
 2. **The announcer decided whether to wait as a region was made.** Words
@@ -3678,13 +3678,14 @@ against its build.
      draws, and the store keeps no seed of the field's: `restoreGame()`
      makes the field again from `levelSeed()`.
 3. **`keptRun()` hits its bricks on a field not yet in play.** The draws
-   and the climb stay at 0, where a ball would have left at least 8 draws
-   for eight bricks broken, and a climb of 12, one for each hit of a brick
-   that can break (corrected by B14.2's review). `restoreGame()` accepts
-   the run, and the screenshot can't show either count. **Fixed in the
-   doc:** it says the bricks and points are as a ball would leave them, and
-   the climb and draws as at the serve. Copying `strike()`'s climb and the drops into a testing
-   helper would add rules nothing on screen shows.
+   and the climb stay at 0, where a ball would have left a draw for each of
+   the eight bricks broken while fewer than three capsules fell, and a
+   climb of 12, one for each hit of a brick that can break (corrected by
+   B14.2's review). `restoreGame()` accepts the run, and the screenshot
+   can't show either count. **Fixed in the doc:** it says the bricks and
+   points are as a ball would leave them, and the climb and draws as at the
+   serve. Copying `strike()`'s climb and the drops into a testing helper
+   would add rules nothing on screen shows.
 4. **The `brick-breaker-testing` skill still had the app spec wait
    `ARRIVAL_MS`.** That was the race B12.1's review removed. **Fixed:** it
    describes the fake timers.
@@ -3775,12 +3776,12 @@ the plan's "As built" section, checked against the log, the code and
    played the game since. No checkpoint played a phone on its side either.
    **Fixed:**
    - "As built" says no one has tuned the feel, and that the flourishes'
-     times are B5.1's first guesses.
+     times are first guesses.
    - It lists the feel as left for the user.
    - The B0 item says which of the spike's questions were answered.
    - "The feel, in numbers" and the Risks no longer say the feel was
-     settled, and the sideways phone's risk says only the layout check
-     covers it.
+     settled, and the sideways phone's risk says no checkpoint played it
+     there.
 3. **The design reference wasn't true everywhere.** **Fixed:**
    - A cleared level's balls stand still under the Cleared card. They
      don't leave the field.
@@ -3790,7 +3791,8 @@ the plan's "As built" section, checked against the log, the code and
      edited as they were built.
 4. **The performance worst case was misstated.** The trace measured
    5.77 ms at worst, and about 8 ms was the unthrottled worst times six,
-   on the dev server, and only at 60 Hz. **Fixed:** "As built" gives each,
+   on the dev server, and no trace ran at 120 Hz. **Fixed:** "As built"
+   gives each,
    and lists the frames over the bar and 120 Hz as left for the user.
 5. **Decisions and follow-ups missing from "As built."** **Fixed:**
    - A level's number seeds its draws and picks its default pool.
@@ -3808,10 +3810,11 @@ the plan's "As built" section, checked against the log, the code and
    confirmed it.
 8. **Test gaps.** **Fixed:**
    - A damage of 2 passed for `"breaks"`, as Rocket's fin bricks take two
-     hits. `keptRun()`'s spec now breaks the four-hit nose too, for 400
+     hits. `keptRun()`'s spec now breaks the tip of the nose too, a brick
+     of four hits, for 400
      points, and the mutant fails it.
    - B13's review entry said a ball would have left a climb of 10. It is
-     12, one for each hit of a brick that can break, and at least 8 draws.
+     12, one for each hit of a brick that can break, and about 8 draws.
 9. **Readability.** **Fixed:**
    - The chime "where it would sound over" the lost ball.
    - "A run is counted in the records from its first serve."
@@ -3822,3 +3825,36 @@ the plan's "As built" section, checked against the log, the code and
 
 - **Checks.** `keptRun()`'s and the run's specs pass. Prettier, the
   references, lint and typecheck pass.
+
+## The last fixes' review (93f0c273)
+
+The reviewer found no bug. It ran the report again and compared all ninety
+of the table's times, which match, and ran mutants against both specs,
+which fail them. Every finding was the record's wording. **All fixed:**
+
+1. **The range's low end was still the old table's.** Fuse at Fast, 0:48,
+   is the lowest. "As built" says so, and adds Fuse beside the levels that
+   read short, with B11.1's reason: its fuse takes three rows at once.
+2. **The design reference still had Q3 confirm the pace by playing.** It
+   says no one has timed it yet.
+3. **"The log's last entry has the table"** went stale with this entry. It
+   names B14.2's review's entry.
+4. **"Only 60 Hz was measured"** isn't in Q5's record, which gives no rate.
+   It says no trace ran at 120 Hz, in "As built" and in B14.2's review's
+   entry.
+5. **The flourishes' times are B5.1's and B6.2's,** whose pop and embers
+   came later.
+6. **Ragged lines** in the plan, this log and `@fz/dev`'s `AGENTS.md` are
+   rewrapped, its whole paragraph this time.
+7. **The `KEPT` comment** puts the three broken bricks in parentheses, and
+   calls the four-hit brick the tip of the nose.
+8. **Smaller claims:**
+   - A ball's draws are one for each brick broken while fewer than three
+     capsules fall, not "at least 8".
+   - The sideways phone's risk names what was measured there, the bar and
+     the cards (B8.1, B7.2's review), and that no one played it there.
+   - Spiral's cell is counted from 0.
+
+- **Checks.** Prettier and the references pass, and `keptRun()`'s spec
+  passes with its new comment. This round changed only wording, so it
+  ends the chain of reviews.

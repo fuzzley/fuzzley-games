@@ -84,7 +84,8 @@ left for the user.
 - **No one has tuned the feel.** Q3 left `tuning.ts` as it was, since the
   feel wants a person playing, and only the autopilot and scripted input
   have played the game since: Q5 cleared its levels through the rules'
-  `hitBrick()`. The flourishes' times are still B5.1's first guesses.
+  `hitBrick()`. The flourishes' times are still first guesses: B5.1's, and
+  B6.2's pop and embers.
 - **Decision 15's glow was built in B6.2,** with the effects, as no step
   had it.
 - **The paddle is two images of its round end and a rectangle between
@@ -140,10 +141,11 @@ left for the user.
 
 - **The levels over 40 seeds** (B11.2's review). Every one of 3,600 plays
   cleared its level with no life lost. 16 of them, 0.44%, spent over a
-  minute on their last bricks. The middle times run from 0:49 (Low bridge,
-  Relaxed) to 3:00 (Stripes, Relaxed). Keep is the longest at Normal and
-  Fast (2:52 and 2:14). The Vault's longest play is 7:26 at Relaxed, under
-  the 8-minute limit. The log's last entry has the table of all thirty.
+  minute on their last bricks. The middle times run from 0:48 (Fuse,
+  Fast) to 3:00 (Stripes, Relaxed). Keep is the longest at Normal and Fast
+  (2:52 and 2:14). The Vault's longest play is 7:26 at Relaxed, under the
+  8-minute limit. The log's entry for B14.2's review has the table of all
+  thirty.
 - **Performance** (Q5), on the dev server, at Chain reaction with eight
   balls in flight.
   - Unthrottled, Phaser's frame took 0.3 ms at the median and 1.4 ms at
@@ -152,7 +154,7 @@ left for the user.
     0.49 ms at the median and 3.05 ms at p95, inside the 4 ms bar, and
     5.77 ms at worst, over it. The unthrottled worst times six would be
     about 8 ms.
-  - Only 60 Hz was measured, though the budget names 120 Hz too.
+  - No trace ran at 120 Hz, which the budget names too.
 - **The bundle,** gzipped (Q5): the entry 95.1 kB, the scene 9.8 kB and
   Phaser's chunk 353.9 kB, which loads by `import()` after the page paints.
 - **Lighthouse** (Q5): accessibility 100 and best practices 100.
@@ -190,9 +192,10 @@ left for the user.
   - **Low bridge and Storm read short** for their places (B11.2). Their
     bricks reach low, so they ask for quick reactions, which the
     autopilot, reacting at once, doesn't feel, and their blast bricks and
-    capsules clear them fast.
-  - **Spiral's last bricks gather at row 3, column 7,** over the hook's
-    steel bar, which is worth watching (B11.2's review).
+    capsules clear them fast. Fuse, level 13, is shorter still, the
+    shortest at Fast, by design: its fuse takes three rows at once (B11.1).
+  - **Spiral's last bricks gather at row 3, column 7 (from 0),** over the
+    hook's steel bar, which is worth watching (B11.2's review).
   - **The worst frames of a blast chain are over the 4 ms bar** at ×6, and
     120 Hz is unmeasured (Q5).
 - **Follow-ups outside this game.**
@@ -665,9 +668,9 @@ section changes with the step that learned it, and the log says why.
 #### The feel, in numbers
 
 The numbers the game starts from, to be settled by playing (no one has
-yet, as "As built" says), kept in
-`src/rules/tuning.ts` so one file tunes the game, but those of one kind of
-brick or one capsule, which its catalog entry holds:
+yet, as "As built" says), kept in `src/rules/tuning.ts` so one file tunes
+the game, but those of one kind of brick or one capsule, which its catalog
+entry holds:
 
 | What                     | Value                                                                                        |
 | ------------------------ | -------------------------------------------------------------------------------------------- |
@@ -687,8 +690,8 @@ brick or one capsule, which its catalog entry holds:
 | The step                 | 1/120 s, 12 at most a frame                                                                  |
 
 At Normal the ball crosses from the paddle to the lowest bricks of an early
-level in a little over a second, which is the genre's pace; Q3 confirms it
-by playing.
+level in a little over a second, which is the genre's pace; no one has
+timed it by playing yet.
 
 #### Scoring
 
@@ -1753,8 +1756,9 @@ statements, functions and lines, and 95% of branches.
   speed per level by turns, and the report plays them all.
 - **A field on a phone held sideways is small,** about 12 CSS px a unit.
   No checkpoint played it there: Q3, Q4 and Q5 played upright phones. The
-  layout check holds the unit to 10 CSS px or more, or 9 in a window under
-  360 CSS px tall, where 568 × 320 gives 9.5.
+  bar and the cards were measured there in a browser (B8.1, B7.2's
+  review), and the layout check holds the unit to 10 CSS px or more, or 9
+  in a window under 360 CSS px tall, where 568 × 320 gives 9.5.
 - **Eight tints at 3:1 against the field and against the ball is a narrow
   band** of lightness, in a light palette most. B5's contrast spec decided
   it: in the light palettes the plain ball clears eight hues in the band,

@@ -59,24 +59,23 @@ too. Paths are relative to `frontend/lib/dev/`.
   of its own (`PHASER_CHUNK`), and a dev server on the game's own port,
   which its screenshot script defaults to: 9000 for the Solitaire
   Collection, 9001 for Minesweeper, 9002 for Sudoku, 9003 for Snake,
-  9004 for Brick Breaker. The Angular plugins, `angularPlugins()`, which
-  the site's config takes too, are Analog's with its live reload, which
-  swaps an edited component's template or styles into the running page,
-  and `componentUpdates()`, which makes that hold for every component and
-  reloads the page for an edit to TypeScript, whose class code Angular
-  can't swap. Analog announces an update under the
-  component's path from the app's folder, where Angular compiled in its
-  path from the app's `rootDir`, or its whole path for a file outside it,
-  such as a library's, in lower case on Windows; so `componentUpdates()`
-  renames each update to Angular's ID, and the page's request for it back
-  to Analog's. It takes the app's `rootDir` to be its folder, as
-  `tsconfig/angular.json` sets it; an app that moves its `rootDir` loses
-  its updates without a word. The last of them, `watchLibraries()`,
-  watches `frontend/lib/` as a whole: Vite watches each file outside the
-  app's folder on its own, and loses one that git replaces (a checkout, a
-  stash, a branch switch), which a watched folder sees come back. A server
-  logs a page reload for a library's template it never loaded, and sends
-  one only for that template's own address, so no page reloads.
+  9004 for Brick Breaker. The Angular plugins, `angularPlugins()`, which the
+  site's config takes too, are Analog's with its live reload, which swaps an
+  edited component's template or styles into the running page, and
+  `componentUpdates()`, which makes that hold for every component and reloads
+  the page for an edit to TypeScript, whose class code Angular can't swap.
+  Analog announces an update under the component's path from the app's folder,
+  where Angular compiled in its path from the app's `rootDir`, or its whole
+  path for a file outside it, such as a library's, in lower case on Windows;
+  so `componentUpdates()` renames each update to Angular's ID, and the page's
+  request for it back to Analog's. It takes the app's `rootDir` to be its
+  folder, as `tsconfig/angular.json` sets it; an app that moves its `rootDir`
+  loses its updates without a word. The last of them, `watchLibraries()`,
+  watches `frontend/lib/` as a whole: Vite watches each file outside the app's
+  folder on its own, and loses one that git replaces (a checkout, a stash, a
+  branch switch), which a watched folder sees come back. A server logs a page
+  reload for a library's template it never loaded, and sends one only for that
+  template's own address, so no page reloads.
 - `src/game_manifest.ts`, `@fz/dev/game-manifest`: what a game's build
   says it holds, in `game.json` at the top of its `dist/`: its name and,
   for a collection, the `id` and `name` of every game it opens.

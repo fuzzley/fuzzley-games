@@ -5,9 +5,9 @@ import { stepsIn } from "../rules/stepper";
 import { type KeptRun, type Place, keptRun } from "./kept_run";
 
 /**
- * A run on Rocket, level 9, with three bricks broken, a plain flame, a tough
- * fin brick and the four-hit nose, and the fin brick below the broken one
- * hit once.
+ * A run on Rocket, level 9, with three bricks broken (a plain flame, a tough
+ * fin brick and the tip of its nose, a brick of four hits) and the fin brick
+ * below the broken one hit once.
  */
 const KEPT: KeptRun = {
   level: 9,
