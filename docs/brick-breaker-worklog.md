@@ -2826,3 +2826,63 @@ did needless work.
   were run again: each fails now.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,575),
   build, clean on the first run.
+
+## Q4: the whole shell
+
+Checked on the dev server in the DevTools MCP's headless Chrome, at
+1240 × 900, as a phone (390 × 844 at 3×, touch) and at 1440 × 900. The
+storage started empty. Keys and clicks were real events; a level cleared,
+the last life and the place of a lost ball were set from the page.
+
+- **The tab order.** The board comes first, then the link home, the speed's
+  badge, Pause, Sound, Levels, New game, How to play and Settings, then the
+  board again.
+- **The dialogs, by keyboard.** Enter opens Levels, How to play and the
+  settings, and Escape closes each.
+  - The focus lands on the close button, or on How to play's scrolling body.
+  - The focus comes back to the board each time.
+- **The dialogs, by mouse.** Each opens from the bar and closes from its
+  close button, handing the board the focus.
+  - A locked level's tile does nothing when clicked.
+  - The question before New game, and before a speed from the badge's
+    menu, takes the focus.
+  - Cancel, or Escape, keeps the run, paused, and the board takes the focus.
+- **The settings,** changed by mouse, and still the same after a reload:
+  Fast, Follow the finger, no sound, and Soft pastel.
+- **The records and the progress.** Level 1 was cleared at Fast with 50
+  points and a ball lost.
+  - The level's best is 1,050, and Stripes is in the levels cleared.
+  - The run kept is level 2, not yet begun.
+  - After a reload, the run is paused on level 2, Gifts, and the announcer
+    says so. Levels shows level 1 with its tick and "Best 1050", level 2
+    open and marked as the run's, and levels 3 to 10 locked.
+- **The end of a run.** With one life left, the ball was lost on level 2.
+  - The result card shows the trophy, "New best", Score 1050, Best 1050,
+    Level 2 and Cleared 1, two by two.
+  - The focus is on Try again from level 2.
+  - Fast's record is one run, best 1,050 and furthest level 2.
+  - The saved game is gone.
+  - Escape puts the card away, leaving the Ended card, and Enter starts a
+    new run on level 1.
+- **A run in play kept.** One brick was broken, then the ball was lost.
+  After a reload, the run is paused at 50 points and two lives, that brick
+  broken, 77 still needed, and the ball waits on the paddle.
+- **The bar.**
+  - **On a phone,** the bar holds the link home, the badge, the score over
+    the lives, Pause, New game and More actions. Nothing scrolls sideways.
+  - More actions holds "Turn sound on", Levels, How to play and Settings.
+    Turning the sound on from there stores it.
+  - The Levels dialog fills the phone, two tiles across.
+  - **At 1440,** the wordmark, the three figures and every action fit, with
+    their labels.
+- **The palettes.** Soft pastel (light) and Midnight blue (dark): screenshots
+  of the field in play, the Levels dialog and the result card.
+- **The console** stayed clean through four loads: no errors, no warnings.
+- **Notes, nothing changed.**
+  - A sound turned on from the overflow menu leaves the focus on More
+    actions, as a menu does, rather than on the board, which Sound in the
+    bar keeps.
+  - Scores show without a thousands separator on the bar, the result card,
+    the Levels tiles and in what the announcer says ("1050"), as Snake's do.
+    How to play writes its numbers with one ("1,000 points"). This is a
+    question for the user.
