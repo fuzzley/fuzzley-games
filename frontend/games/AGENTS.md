@@ -36,7 +36,8 @@ are relative to `frontend/games/`.
   inspection of the page finds. The root's `yarn check:layout` runs every
   game's that has one, and CI runs it after the build; Sudoku's
   `tools/check-layout.mjs` is one to start from, and Snake's one for a
-  board drawn with Phaser.
+  board drawn with Phaser, which `@fz/dev/layout` inspects as it does
+  every such board, given the board's description.
 - **Its screenshots are the site's.** `public/docs/screenshots/<id>/` holds
   the `thumb.webp` and `preview.webp` the site's catalog shows of each game
   it opens, written from a capture by `@fz/dev/screenshots`'s

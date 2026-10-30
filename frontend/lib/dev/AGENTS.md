@@ -99,7 +99,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   selector and the fonts, and returns what is wrong at each: an error the page
   reports (an exception, `console.error`, or the browser's own, such as a
   refused resource), a page that scrolls, a control of the game bar out of the
-  window, and what the game's own `inspect()`, run in the page, finds.
+  window, what is wrong with the check's `board`, where it has one, and what
+  the game's own `inspect()`, run in the page, finds.
   `checkTurns()` does the same once it has turned the window, as a phone
   turns, through each of `TURNS` (upright to its side, and back), and given
   half a second to lay itself out again, which finds what follows a turn late,
@@ -107,10 +108,20 @@ too. Paths are relative to `frontend/lib/dev/`.
   scripts, to set it up as a player might have, such as with a setting stored.
   `SMALLEST`, a 320 × 480 phone held upright, and `shapesAt()` and
   `turnsAt()`, which copy shapes and turns at a pixel ratio, are there for a
-  game drawn on a canvas, as Snake and Brick Breaker check theirs at 2×. The
+  game drawn on a canvas, as Snake and Brick Breaker check theirs at 2×. A
+  check's `board`, a `PhaserBoard`, names a board drawn with Phaser by its
+  element, the attribute that says where the scene drew it, its shape in
+  units and its placeholder, focus ring and card, and the check holds it as
+  every such board is held: its canvas ready and drawn at its size times
+  the board element's `--pixel-ratio`, the board in its shape and in the
+  window, the placeholder and the ring where the scene drew it, and the
+  card on it. The game's `inspect()` is then handed where the board lies, a
+  `BoardBox`, for what is its own, such as the least its unit may be. The
   functions it runs in the page are in `src/layout_page.ts`, which only a
-  browser runs, so coverage leaves it out. A game's `tools/check-layout.mjs`
-  holds its inspection and which checks it runs, and hands them to
+  browser runs, so coverage leaves it out, and the board's inspection,
+  `inspectPhaserBoard()`, in `src/board_page.ts`, which its spec runs in
+  jsdom. A game's `tools/check-layout.mjs` holds its inspection and which
+  checks it runs, and hands them to
   `runLayoutScript()`, which reads the command line (`--chrome`, `--help`),
   serves the build as `yarn preview` does, runs the checks in a headless
   Chrome and prints what is wrong, or that the layout holds. It returns the
@@ -192,6 +203,9 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   it draws; `src/sounds.spec.ts` renders sprites and reads them back;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
   and the layout check against a fake browser, `src/testing/fake_browser.ts`,
-  and the layout spec serves a build it writes with Vite's `preview()`.
+  and the layout spec serves a build it writes with Vite's `preview()`;
+  `src/board_page.spec.ts` runs the inspection of a board drawn with
+  Phaser in jsdom, the one spec here that does, over the rectangles it
+  hands each element.
   Starting a real Chrome is left to the screenshot scripts, so the coverage
   floor in `vitest.config.ts` sits under it.

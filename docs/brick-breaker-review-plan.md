@@ -620,3 +620,69 @@ R11's review, before the commit:
 3. _Three of the shell's specs built the sentence they expect with
    `formatPoints()`, the function under test._ Taken: they say the
    sentences as a player hears them, "Score 4,100".
+
+### R12: the Phaser boards' layout checks share their inspection
+
+`@fz/dev/layout`'s `LayoutCheck` takes a `board`, a `PhaserBoard`: what
+the board is called, its element, the attribute that says where the
+scene drew it, its shape in units, and its placeholder, focus ring and
+card. `inspectPhaserBoard()`, in `board_page.ts`, holds it as Snake's
+and Brick Breaker's scripts each held theirs: the canvas there, ready and
+drawn at its size times the pixel ratio; the board in its shape and in
+the window; the placeholder and the ring where the scene drew it, each
+compared on all four sides, where Snake's compared three; and the card on
+it.
+It reads the ratio from the board element's `--pixel-ratio`, the ratio
+the board laid its placeholder out at, rather than keeping a copy of
+`canvasPixelRatio()` in the page, which R3 left to this step. The game's
+own `inspect()` is then handed where the board lies, a `BoardBox`, for
+what is its own: Brick Breaker's least unit, and Snake's least square and
+its arrows. Snake's card and placeholder are now required, as Brick
+Breaker's were; the start card shows at every shape the check opens.
+
+Specs, against the fake browser: the board's problems reported before
+the game's own; the board inspected as the check describes it, and none
+where it has none; and the game's inspection handed the board's box, and
+nothing where the board doesn't say where it lies; and, in jsdom,
+`inspectPhaserBoard()` itself, as the reviews below asked. Both games'
+`check:layout` ran, and hold at every shape and turn, Snake's with the
+arrows and without; and a throwaway
+script that fed Brick Breaker's build mistaken descriptions (a shape of
+25 units, an attribute, placeholder, ring, card and element it lacks) got
+each one reported.
+
+R12's review, before the commit:
+
+1. _Nothing kept `inspectPhaserBoard()`'s failure paths proved, since the
+   layout checks only ever pass through it._ Taken: `@fz/dev` takes jsdom
+   as a devDependency, at the range every other workspace has, and a spec
+   runs the inspection in jsdom over rectangles it hands each element: a
+   board that fits, the placeholder's and the ring's rounding, and each
+   problem it reports.
+2. _`board` named both the check's `PhaserBoard` and the `BoardBox` its
+   `inspect()` is handed._ Taken: the box is `box`, in the type and in
+   Snake's script.
+3. _`inspect()`'s doc didn't say when it is handed nothing._ Taken.
+4. _The docs said the card lies where the scene drew the board, though
+   it is only held to lying on it._ Taken: "the card on it".
+5. _`PhaserBoard`'s selectors were described as the elements._ Taken.
+6. _The spec spelled out `BoardInspection` again._ Taken: it imports it.
+
+A second review read what answering the first added.
+
+The second review, of the change as it stood:
+
+1. _The spec held each problem on one side only, a full pixel or more
+   past its tolerance, so a side dropped or a tolerance loosened mostly
+   passed, and the log claimed more than it held._ Taken: the spec's page
+   says its window, and a row puts each side of the canvas, the board,
+   the window, the placeholder, the ring and the card just past its
+   tolerance, and another holds each at its tolerance. A sweep of 31
+   mutants, each side dropped and each tolerance tightened to nothing or
+   loosened, with the ratio read as 1, the box's left and the unit worked
+   out wrong, is caught whole.
+2. _Coverage left out the inspection, though it is now tested._ Taken:
+   it moves to `board_page.ts`, which coverage measures, every line and
+   branch; `layout_page.ts` keeps what only a browser runs, as it was.
+3. _A ragged paragraph in `@fz/dev`'s `AGENTS.md`._ Taken, with 2.
+4. _`BoardInspection.problems` wasn't readonly._ Taken.

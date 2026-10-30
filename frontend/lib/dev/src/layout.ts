@@ -3,6 +3,12 @@ import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 import { preview } from "vite";
 import {
+  type BoardBox,
+  type BoardInspection,
+  type PhaserBoard,
+  inspectPhaserBoard,
+} from "./board_page.ts";
+import {
   type DevToolsConnection,
   type Page,
   type Viewport,
@@ -15,6 +21,8 @@ import {
   settle,
   settleTurn,
 } from "./layout_page.ts";
+
+export type { BoardBox, PhaserBoard } from "./board_page.ts";
 
 /** Names a shape of window a game is laid out for, and gives one. */
 export interface Shape {
@@ -101,11 +109,17 @@ export interface LayoutCheck {
   /** A selector the page matches once the game has drawn. */
   readonly ready: string;
   /**
-   * Returns what is wrong with the game's layout, in words, or nothing. It
-   * runs in the page, sent as its source, so it can use nothing from the
-   * module it is written in.
+   * The board drawn with Phaser, where the game has one, which the check
+   * inspects as it does every such board.
    */
-  readonly inspect: () => string[];
+  readonly board?: PhaserBoard;
+  /**
+   * Returns what is wrong with the game's layout, in words, or nothing. It is
+   * given where the check's board lies, where it has one and the page says
+   * where, and nothing otherwise. It runs in the page, sent as its source, so
+   * it can use nothing from the module it is written in.
+   */
+  readonly inspect: (box?: BoardBox) => string[];
   /**
    * Runs in the page before its own scripts, as `Page.beforeLoad()` runs
    * one, to set it up as a player might have, such as with a setting
@@ -133,7 +147,8 @@ const TURN_SETTLE_MS = 500;
 /**
  * Opens a game at every shape, each in a page of its own, and returns what
  * is wrong: an error the page reported, a page that scrolls, a control of
- * the game bar outside the window, and what the game's own inspection finds.
+ * the game bar outside the window, what is wrong with a board drawn with
+ * Phaser, where the check has one, and what the game's own inspection finds.
  */
 export async function checkLayout(
   devtools: DevToolsConnection,
@@ -313,10 +328,16 @@ async function load(page: Page, check: LayoutCheck): Promise<string[]> {
 
 /** Returns what is wrong with the game's layout as the page now stands. */
 async function inspect(page: Page, check: LayoutCheck): Promise<string[]> {
-  const own = await page.evaluate(check.inspect);
+  const board: BoardInspection = check.board
+    ? await page.evaluate(inspectPhaserBoard, check.board)
+    : { problems: [] };
+  // An argument goes to the page as JSON, which turns undefined into null.
+  const own = board.box
+    ? await page.evaluate(check.inspect, board.box)
+    : await page.evaluate(check.inspect);
   const scrolls = await page.evaluate(scrolling);
   const bar = await page.evaluate(barOutOfWindow);
-  return [...scrolls, ...bar, ...own];
+  return [...scrolls, ...bar, ...board.problems, ...own];
 }
 
 /**
