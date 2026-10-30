@@ -196,11 +196,20 @@ class ServedRequest extends EventTarget {
         this.response = bytes.slice().buffer;
         break;
       case "json":
-        this.response = JSON.parse(this.text) as unknown;
+        this.response = parsedJson(this.text);
         break;
       default:
         this.response = this.text;
     }
+  }
+}
+
+/** Returns text parsed as JSON, or null for text that isn't, as an XHR answers. */
+function parsedJson(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
   }
 }
 

@@ -13,8 +13,9 @@ export interface SceneRunOptions {
   /** What the scene is told the app's chrome covers; nothing when not given. */
   readonly insets?: Insets;
   /**
-   * Answers the files the game asks for, until the run is destroyed; every
-   * request is a 404 when not given. One run serves at a time.
+   * Answers the files the game asks for, until the run is destroyed or its
+   * setup fails; every request is a 404 when not given. One run serves at a
+   * time.
    */
   readonly serve?: FileServer;
   /**
@@ -116,21 +117,18 @@ export async function runScene<S extends HostedScene>(
   make: (surroundings: SceneSurroundings) => S,
   options: SceneRunOptions = {},
 ): Promise<SceneRun<S>> {
-  const { Scenes } = await import("phaser");
-  const { width = 400, height = 400, insets = NO_INSETS } = options;
-  serveFrom(options.serve);
-  const game = await startGame({ ...options.config, width, height });
-  await options.prepare?.(game);
-
+  const { insets = NO_INSETS } = options;
   let ready = false;
-  const scene = make({
-    insets: () => insets,
-    ready: () => {
-      ready = true;
+  const { game, scene } = await setUp(
+    make,
+    {
+      insets: () => insets,
+      ready: () => {
+        ready = true;
+      },
     },
-  });
-  game.scene.add(scene.key, scene, true);
-  await started(scene, Scenes.RUNNING);
+    options,
+  );
 
   let time = game.loop.time;
   let wall = Date.now();
@@ -257,6 +255,38 @@ export async function runBareScene(
     }
   }
   return runScene(() => new BareScene(), options);
+}
+
+/**
+ * Starts a game serving the files the options give, and the scene `make`
+ * builds in it, running; or, if any of it throws, lets go of the game and
+ * the files, so a spec that fails here leaves nothing to the next.
+ */
+async function setUp<S extends HostedScene>(
+  make: (surroundings: SceneSurroundings) => S,
+  surroundings: SceneSurroundings,
+  options: SceneRunOptions,
+): Promise<{ readonly game: Game; readonly scene: S }> {
+  const { Scenes } = await import("phaser");
+  const { width = 400, height = 400 } = options;
+  serveFrom(options.serve);
+  let game: Game | undefined;
+  try {
+    game = await startGame({ ...options.config, width, height });
+    await options.prepare?.(game);
+    const scene = make(surroundings);
+    game.scene.add(scene.key, scene, true);
+    await started(scene, Scenes.RUNNING);
+    return { game, scene };
+  } catch (error) {
+    serveFrom(undefined);
+    try {
+      if (game) stopGame(game);
+    } catch {
+      // What the setup threw says more than what tearing down after it did.
+    }
+    throw error;
+  }
 }
 
 /** The `keyCode` a browser gives each key that has one but a letter or digit. */

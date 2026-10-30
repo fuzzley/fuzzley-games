@@ -35,6 +35,14 @@ describe("provideFakePhaserCanvas", () => {
     expect(onReady).toHaveBeenCalledOnce();
   });
 
+  it("says a scene is ready only once the show that asked has returned, as a real host does", () => {
+    const onReady = vi.fn();
+
+    void fakeCanvas().host.show(SOURCE, onReady);
+
+    expect(onReady).not.toHaveBeenCalled();
+  });
+
   it("waits to be told, when asked to", () => {
     const host = fakeCanvas({ readyAtOnce: false }).host;
     const onReady = vi.fn();

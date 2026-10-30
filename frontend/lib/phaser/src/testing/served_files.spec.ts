@@ -123,6 +123,20 @@ describe("served files", () => {
     ]);
   });
 
+  it.each([
+    ["isn't JSON", "/apple.json"],
+    ["isn't served", "/pear.json"],
+  ])(
+    "answers null to a request for JSON whose file %s, as a browser does",
+    async (_, url) => {
+      serveFrom(serving("/apple.json", "crisp"));
+
+      const answer = await request(url, "json");
+
+      expect(answer.response).toBeNull();
+    },
+  );
+
   it("gives a response's text whatever its type", async () => {
     serveFrom(serving("/apple.txt", new TextEncoder().encode("crisp")));
 
