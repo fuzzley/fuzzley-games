@@ -2606,3 +2606,71 @@ passed the specs it should have failed.
     itself.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,516),
   build, clean on the first run.
+
+## B9's review (0f11461d, with 52abf4be)
+
+The reviewer worked in a `git archive` copy and ran a mutant for each
+test finding. Every one passed the specs.
+
+1. **No spec showed a sound played, or its pitch.** The scene's specs
+   checked only the mute. Three mutants passed: no sounds played, no
+   event's sound heard, and every detune 0. **Fixed in B10.1's commit
+   (9e960ade)**, which needed the same spy to spec the chime:
+   - `SpritePlayer.prototype.play` records each sound and its detune as it
+     plays.
+   - "Play a broken brick's, risen along its streak" expects
+     `[["broken", 400]]` at a streak of 5.
+   - Each of the three mutants fails it now.
+   - The B9 entry's "a sound heard when wanted" overstated the mute spec,
+     which only a scene that always mutes would fail.
+2. **The won card couldn't tell the run's first level from level 1.**
+   52abf4be's won run started on level 1. A subtitle hard-coded to level
+   1 passed the whole suite, and New game at level 1 passed the result
+   spec. **Fixed:**
+   - `TWO_SETS` is now Blasts and Again, then Last.
+   - The won run starts on level 2 and wins on 3: "From level 2 to the
+     last", Score 8200, Best 8200, Level 3, Cleared 2, and New game at 2.
+   - Both mutants fail.
+3. **"Allocates nothing" was no longer true.** Phaser makes a sound object
+   for each sound played, and `FrameSounds` iterated a `Map`. **Fixed:**
+   - `FrameSounds` holds each sound's rise in an array by its place in
+     `SOUNDS`, walked by index. Hearing and playing make nothing, and the
+     sounds play in the sprite's order (specced).
+   - `update()`'s comment says Phaser makes a sound object for each sound.
+   - The shared config's comment says why one serves: Phaser copies it as
+     the sound starts.
+4. **`lastEvent()` returned slot 0, which no event wrote, before the
+   first.** **Fixed in the log:** `forEachSince()` starts at serial 1 at
+   least, so no reader sees that slot, with a spec. `lastEvent()` keeps
+   only the latest event, not an array.
+5. **"Turn sound on" in the menu was unspecced.** **Fixed:** Snake's spec,
+   ported. A menu that always offers "off" fails it.
+6. **The drawer never showed a stored "off".** **Fixed:** two specs, the
+   box unchecked where the settings keep the sound off, and a click turning
+   it back on. A box always checked fails both.
+7. **The ways a finger steers were written out three times.** **Fixed:**
+   - `TOUCH_STEERINGS` is `as const`, and `TouchSteering` comes from it.
+   - The drawer maps it over `TOUCH_INFO`, a `Record<TouchSteering, …>`,
+     as it maps `SPEEDS` over `SPEED_INFO`.
+   - A new way to steer fails to compile until the drawer describes it.
+8. **The capsules' introduction was unspecced.** **Fixed:** a spec finds
+   it in the Capsules section. `intro: null` fails it.
+9. **Nits:**
+   - **Fixed:**
+     - The comments that opened with two sentences (`playSound`, `play`,
+       `FieldEvent.streak`) open with one.
+     - The bar's long comment line is wrapped.
+     - The Sound button's icon is a `soundIcon` view model.
+     - `isTouchSteering()` "Returns whether".
+   - **Not done: merging the Sound and Levels blocks.** Tried, and the bar
+     lost both buttons: `<fz-game-bar>` projects `[fzBarActions]`, and
+     Angular projects a block into a named slot only while the block has
+     one root element. A comment above them now says so.
+   - **Not done: lifting `arpeggio()` into `@fz/dev/sounds`.** It repeats
+     Snake's chime. The lift touches Snake's sounds, so it joins the
+     drawer-styles lift on the list for the user.
+   - **The B9 entry overclaimed.** The highest pitch is the streak as the
+     frame left it only if no paddle bounce ended the streak within the
+     frame. Playing at the highest is still the choice.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,522),
+  build, clean on the first run.

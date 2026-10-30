@@ -70,8 +70,8 @@ describe("LevelsComponent", () => {
     await renderLevels(TWO_SETS);
 
     expect([levelsIn("First"), levelsIn("Second")]).toEqual([
-      ["1 Blasts"],
-      ["2 Last Locked"],
+      ["1 Blasts", "2 Again Locked"],
+      ["3 Last Locked"],
     ]);
   });
 

@@ -108,6 +108,17 @@ describe("FrameSounds", () => {
     ]);
   });
 
+  it("plays them in the sprite's order, whatever order they were heard in", () => {
+    const sounds = new FrameSounds();
+    sounds.hear("blast", 0);
+    sounds.hear("wall", 0);
+
+    expect(played(sounds)).toEqual([
+      ["wall", 0],
+      ["blast", 0],
+    ]);
+  });
+
   it("forgets the sounds it played", () => {
     const sounds = new FrameSounds();
     sounds.hear("wall", 0);

@@ -71,9 +71,14 @@ const SET: LevelSetData = {
 /** The shell's specs' levels, numbered from 1. */
 export const SPEC_LEVELS: readonly LevelEntry[] = levelsOf([SET]);
 
-/** Two sets of one level each, both cleared at a hit: a run won in two levels. */
+/** Two sets, of two levels and then one, each cleared at a hit. */
 export const TWO_SETS: readonly LevelEntry[] = levelsOf([
-  { id: "first", name: "First", drops: 0, levels: [BLASTS] },
+  {
+    id: "first",
+    name: "First",
+    drops: 0,
+    levels: [BLASTS, { ...BLASTS, id: "again", name: "Again" }],
+  },
   { id: "second", name: "Second", drops: 0, levels: [LAST] },
 ]);
 

@@ -5,7 +5,7 @@ import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { SettingsComponent } from "./settings.component";
-import { SettingsService } from "./settings.service";
+import { SETTINGS_KEY, SettingsService } from "./settings.service";
 
 /** What a spec gets back from rendering the settings. */
 interface RenderedSettings {
@@ -27,6 +27,14 @@ async function renderSettings(): Promise<RenderedSettings> {
     game: TestBed.inject(GameService),
     closed,
   };
+}
+
+/** Stores settings with the sound off, as a player's browser would keep them. */
+function keepSoundOff(): void {
+  localStorage.setItem(
+    SETTINGS_KEY,
+    JSON.stringify({ version: 1, sound: false }),
+  );
 }
 
 describe("SettingsComponent", () => {
@@ -97,6 +105,25 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("checkbox", { name: "Play sounds" }));
 
     expect(TestBed.inject(SettingsService).settings().sound).toBe(false);
+  });
+
+  it("shows the sound off where the settings keep it off", async () => {
+    keepSoundOff();
+
+    await renderSettings();
+
+    expect(
+      screen.getByRole("checkbox", { name: "Play sounds" }),
+    ).not.toBeChecked();
+  });
+
+  it("turns the sound back on", async () => {
+    keepSoundOff();
+    const { user } = await renderSettings();
+
+    await user.click(screen.getByRole("checkbox", { name: "Play sounds" }));
+
+    expect(TestBed.inject(SettingsService).settings().sound).toBe(true);
   });
 
   it("offers the palettes", async () => {

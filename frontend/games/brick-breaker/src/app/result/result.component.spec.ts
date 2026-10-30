@@ -57,9 +57,9 @@ async function renderLost(): Promise<RenderedResult> {
   return rendered;
 }
 
-/** Renders the card over a run won on its second level, the last, the card open. */
+/** Renders the card over a run started on the second level and won on the third, the last, the card open. */
 async function renderWon(): Promise<RenderedResult> {
-  const rendered = await renderAt(1, TWO_SETS);
+  const rendered = await renderAt(2, TWO_SETS);
   clearToNext(rendered.game);
   playToClear(rendered.game);
   rendered.game.tick(FRAME_MS, STILL);
@@ -135,11 +135,11 @@ describe("ResultComponent", () => {
 
     expect(
       screen.getByRole("alertdialog", { name: "Every level cleared!" }),
-    ).toHaveAccessibleDescription("From level 1 to the last, at Normal speed");
+    ).toHaveAccessibleDescription("From level 2 to the last, at Normal speed");
     expect(figures()).toEqual([
-      ["Score", expect.any(String)],
-      ["Best", expect.any(String)],
-      ["Level", "2"],
+      ["Score", "8200"],
+      ["Best", "8200"],
+      ["Level", "3"],
       ["Cleared", "2"],
     ]);
   });
@@ -149,7 +149,7 @@ describe("ResultComponent", () => {
 
     await user.click(screen.getByRole("button", { name: "New game" }));
 
-    expect(game.run()).toMatchObject({ level: 1, outcome: "ready" });
+    expect(game.run()).toMatchObject({ level: 2, outcome: "ready" });
   });
 
   it("puts the card away and asks for the levels", async () => {

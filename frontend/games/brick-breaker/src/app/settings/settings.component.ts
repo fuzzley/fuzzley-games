@@ -4,30 +4,27 @@ import { IconComponent } from "@fz/ui/icon";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
-import type { TouchSteering } from "../../view/steering";
+import { TOUCH_STEERINGS, type TouchSteering } from "../../view/steering";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "./settings.service";
 
-/** Describes one choice of a setting. */
-interface Choice<T> {
-  readonly id: T;
+/** Describes one choice of a setting, as the drawer offers it. */
+interface ChoiceInfo {
   readonly name: string;
   readonly says: string;
 }
 
-/** The ways a finger may steer the paddle, as the drawer offers them. */
-const TOUCH_CHOICES: readonly Choice<TouchSteering>[] = [
-  {
-    id: "drag",
+/** What the drawer says of each way a finger may steer the paddle. */
+const TOUCH_INFO: Readonly<Record<TouchSteering, ChoiceInfo>> = {
+  drag: {
     name: "Drag",
     says: "The paddle moves as far as your finger does, from anywhere on the field.",
   },
-  {
-    id: "follow",
+  follow: {
     name: "Follow the finger",
     says: "The paddle goes wherever your finger is.",
   },
-];
+};
 
 /**
  * Shows the settings in a drawer: the speed, how a finger steers the
@@ -72,9 +69,10 @@ export class SettingsComponent {
 
   protected readonly touchSteerings = computed(() => {
     const current = this.settings().touch;
-    return TOUCH_CHOICES.map((choice) => ({
-      ...choice,
-      checked: choice.id === current,
+    return TOUCH_STEERINGS.map((id) => ({
+      id,
+      ...TOUCH_INFO[id],
+      checked: id === current,
     }));
   });
 
