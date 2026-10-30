@@ -333,6 +333,20 @@ describe("catchUp's clearing", () => {
 
     expect(run.lives).toBe(FIRST_LIVES + 1);
   });
+
+  it("spends a mark its points pass with the most lives a player holds", () => {
+    const before = playing({
+      lives: MAX_LIVES,
+      banked: FIRST_LIFE_POINTS - 1000,
+    });
+
+    const run = catchUp(before, fieldAt({ state: "cleared" }));
+
+    expect({ lives: run.lives, next: run.nextLifeAt }).toEqual({
+      lives: MAX_LIVES,
+      next: FIRST_LIFE_POINTS + LIFE_POINTS,
+    });
+  });
 });
 
 // A frame's steps can hold a level's points, a life caught, a life lost and

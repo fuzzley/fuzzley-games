@@ -337,7 +337,7 @@ export const GAMES: readonly Game[] = [
     slug: "brick-breaker",
     name: "Brick Breaker",
     category: "arcade",
-    blurb: "Bounce the ball, break every brick, and keep it off the floor.",
+    blurb: "Bounce the ball, break every brick and keep it off the floor.",
     players: SOLO,
     minutes: 10,
     added: "2026-10-30",

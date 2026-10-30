@@ -23,9 +23,9 @@ Run these from `frontend/games/brick-breaker/`, or as
   coverage. The whole suite takes minutes, most of them the autopilot
   playing every level at every speed.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
-  to 100% of statements, functions and lines and 95% of branches. `yarn
-test`, which CI runs, fails below either. The scene and the shell have no
-  floor of their own.
+  to 100% of statements, functions and lines and 95% of branches.
+  `yarn test`, which CI runs, fails below either. The scene and the shell
+  have no floor of their own.
 
 ## Setup
 
@@ -120,10 +120,10 @@ game through `runScene()`:
   `stillness` sets the shell up for a player who prefers less motion.
   `afterEach` destroys the game.
 - Drive it with the run's `advance(ms)`, keys on the element Phaser's
-  keyboard listens on (the board's `keys`) and the pointer, and change the shell's field as the rules would; assert on the
-  game objects (`imagesIn()`, `shardsOf()`, their frames, places and
-  visibility) or on what the shell kept. A headless game draws no pixels
-  and plays no sound.
+  keyboard listens on (the board's `keys`) and the pointer, and change the
+  shell's field as the rules would; assert on the game objects
+  (`imagesIn()`, `shardsOf()`, their frames, places and visibility) or on
+  what the shell kept. A headless game draws no pixels and plays no sound.
 
 ## The Shell
 
@@ -150,5 +150,7 @@ game through `runScene()`:
 - A saved game is stored before the service starts: `SavedGameService`'s
   spec writes `brick-breaker-game` through the rules' `saveGame()`, then
   injects it, as `main.ts` does on load. The app's spec renders the app as
-  `main.ts` starts it, over a stored run, and waits `@fz/ui/announcer`'s
-  `ARRIVAL_MS` for the live region to say where the run stands.
+  `main.ts` starts it, over a stored run, on fake timers (`setTimeout` and
+  `clearTimeout` alone), and moves them on by `@fz/ui/announcer`'s
+  `ARRIVAL_MS` for the live region to say where the run stands, rather
+  than racing a real wait.

@@ -80,9 +80,10 @@ and clears them fast.
 Its file in `src/rules/levels/`, with its `id`, `name`, `drops` (the
 chance of a capsule its levels share) and `levels`, imported in
 `src/rules/levels.ts` and placed in `LEVEL_SETS`. The Levels dialog shows
-each set under its name. The levels spec holds paces only within a set, so
-a new set's start where the last set's end, by hand: Basics runs 1 to 1.06,
-Steel 1.06 to 1.12 and Tricks 1.12 to 1.2.
+each set under its name. The levels spec holds a set's paces from falling
+only within it, so a new set's paces start where the last set's end, kept
+so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
+1.2.
 
 ## A Capsule With an Effect That Exists
 
@@ -109,7 +110,7 @@ Steel 1.06 to 1.12 and Tricks 1.12 to 1.2.
 ## A Ball Kind
 
 - Its entry in `BALL_KINDS`: its `damage` (a number of hits, or `breaks`),
-  whether it `passes` through what it breaks, whether its hits `reach` the
+  whether it `passes` through what it breaks, whether it `reaches` the
   bricks around, its `speed` and its `size`.
 - Its look in `BALL_ART` (`src/view/art.ts`) and its color in
   `bricksPalette()`'s `balls` (`src/view/palette.ts`); the compiler asks

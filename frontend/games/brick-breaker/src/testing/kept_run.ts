@@ -1,13 +1,16 @@
 import { type Brick, hitBrick } from "../rules/bricks";
 import { createField } from "../rules/field";
+import { cellIndex, inGrid } from "../rules/grid";
 import { type LevelEntry, parseLevel } from "../rules/levels";
 import { catchUp, createRun, levelSeed, startLevel } from "../rules/run";
 import { type SavedGame, saveGame } from "../rules/saved_game";
 import type { Speed } from "../rules/speed";
 import { stepsIn } from "../rules/stepper";
-import { COLUMNS } from "../rules/tuning";
 
-/** A brick's place in a level's grid: its row, then its column, from 0. */
+/**
+ * A brick's place in a level's grid, from 0: its row first, as a level's
+ * picture reads, then its column.
+ */
 export type Place = readonly [row: number, column: number];
 
 /** Describes a run begun at a level and played part way into it. */
@@ -25,12 +28,13 @@ export interface KeptRun {
 }
 
 /**
- * Returns a run as storage keeps it: begun at a level, with the bricks it
- * names broken or hit once through the rules, as a ball would have left
- * them, for a page to take up. `yarn capture:screenshots` keeps its run
- * with it.
+ * Returns a run as storage keeps it, for a page to take up: begun at a
+ * level, with the bricks it names broken or hit once through the rules.
  *
- * It throws for a level the game doesn't have or a place with no brick.
+ * The bricks and the points are as a ball would have left them, but the
+ * balls' climb and the capsules' draws are as at the serve, since the
+ * bricks are hit with no ball in play. It throws for a level the game
+ * doesn't have or a place with no brick.
  */
 export function keptRun(
   levels: readonly LevelEntry[],
@@ -53,7 +57,9 @@ export function keptRun(
   });
   field.steps = stepsIn(kept.playedMs);
   const brickAt = ([row, column]: Place): Brick => {
-    const brick = field.bricks[row * COLUMNS + column];
+    const brick = inGrid(column, row)
+      ? field.bricks[cellIndex(column, row)]
+      : undefined;
     if (!brick) {
       throw new Error(
         `Level ${String(kept.level)} has no brick at row ${String(row)}, column ${String(column)}.`,

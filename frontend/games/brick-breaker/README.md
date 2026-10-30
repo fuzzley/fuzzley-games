@@ -1,6 +1,6 @@
 # Brick Breaker
 
-Brick Breaker: bounce the ball off your paddle, break every brick, and keep
+Brick Breaker: bounce the ball off your paddle, break every brick and keep
 the ball off the floor. Play it at https://fuzzley.games/play/brick-breaker/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
