@@ -447,3 +447,38 @@ R7's review, before the commit:
    spec's imports were out of order, and taking up picked a brick already
    picked._ Taken: `endCardTitle`, the order, and `Object.assign(brick,
 kept)`.
+
+### R8: the stats are read in the rules
+
+`src/rules/stats.ts` holds the records' types and what was the service's
+logic, as `progress.ts` holds the progress's and `saved_game.ts` the saved
+game's: `statsOf()` reads what is stored, keeping what makes sense and the
+bests of a level the game still has, and `withRunStarted()`,
+`withRunEnded()` and `withLevelPoints()` move the records on, each a new
+value, or the same one where nothing changed, and `isNewBest()` says
+whether a run's score beats the best.
+`StatsService` keeps only the signal and the storage: it reads the
+records once, and stores them whenever they change. Its spec keeps what
+it wires, the storage's round trip, its version and the levels it is
+given; the rules' spec holds what the records do, at each speed.
+
+`AGENTS.md` names `stats.ts` among the run's rules and says what the
+service keeps.
+
+R8's review, before the commit:
+
+1. _The log said every update gave back the same records where nothing
+   changed, and only `withLevelPoints()` did; and `AGENTS.md` counted
+   `isNewBest()`, a question, among them._ Taken: `withRunEnded()` gives
+   back the same records for a run that beats neither the best nor the
+   furthest, which a spec holds, and both docs say what `isNewBest()` is.
+2. _Nothing held a level's points short of its best, or equal to it, to
+   storing nothing._ Taken: the rules' spec pins both with `toBe`, and the
+   service's stores another tab's records, then holds them unchanged by a
+   lesser level, which fails without the service's check.
+3. _The spoiled records spoiled only `runs`._ Taken: a spec spoils each
+   count in turn.
+4. _Small points._ Taken: the import order, `recordEnd()` takes an
+   `EndedRun`, and `AGENTS.md`'s saved-game sentence is rewrapped. The
+   rules' spec reads the real levels, whose ids never change, as the
+   stats rely on them.
