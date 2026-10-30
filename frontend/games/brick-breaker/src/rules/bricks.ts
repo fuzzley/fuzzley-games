@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import { dropFrom } from "./capsules";
 import {
   type BrickKindId,
@@ -262,8 +263,8 @@ function isBallIn(field: Field, brick: Readonly<Brick>): boolean {
   brickBox(columnOf(brick.cell), rowOf(brick.cell), box);
   return field.balls.some((ball) => {
     if (!ball.live) return false;
-    const nearX = Math.min(box.right, Math.max(box.left, ball.x));
-    const nearY = Math.min(box.bottom, Math.max(box.top, ball.y));
+    const nearX = clamp(ball.x, box.left, box.right);
+    const nearY = clamp(ball.y, box.top, box.bottom);
     return Math.hypot(ball.x - nearX, ball.y - nearY) < BALL_RADIUS;
   });
 }

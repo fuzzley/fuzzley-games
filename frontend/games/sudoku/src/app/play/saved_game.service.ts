@@ -7,7 +7,7 @@ import {
   untracked,
 } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { isWhole } from "@fz/core/json";
+import { isCount } from "@fz/core/json";
 import { restoreGrid, saveGrid } from "../../rules/saved_grid";
 import { GameService } from "./game.service";
 
@@ -80,7 +80,7 @@ export class SavedGameService {
     if (!saved) return;
     const { seconds } = saved;
     const grid = restoreGrid(saved["grid"]);
-    if (grid?.outcome !== "playing" || !isWhole(seconds) || seconds < 0) {
+    if (grid?.outcome !== "playing" || !isCount(seconds)) {
       return;
     }
     this.game.resume(grid, seconds, saved["replay"] === true);

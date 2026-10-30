@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import type { Box } from "./grid";
 import { STEP_MS } from "./stepper";
 import {
@@ -135,7 +136,7 @@ export function paddleBox(paddle: Readonly<Paddle>, box: Box): Box {
 /** Returns a place for the paddle's middle that keeps it between the walls. */
 function within(paddle: Readonly<Paddle>, x: number): number {
   const half = paddle.width / 2;
-  return Math.min(FIELD_WIDTH - half, Math.max(half, x));
+  return clamp(x, half, FIELD_WIDTH - half);
 }
 
 /**

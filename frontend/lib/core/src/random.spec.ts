@@ -1,4 +1,4 @@
-import { createRandom, randomSeed, shuffled } from "./random";
+import { createRandom, drawAt, randomSeed, shuffled } from "./random";
 
 describe("createRandom", () => {
   it("keeps Mulberry32's sequence, which saved games rely on", () => {
@@ -28,6 +28,20 @@ describe("createRandom", () => {
   });
 });
 
+describe("drawAt", () => {
+  it("keeps the numbers a seed draws, which saved games rely on", () => {
+    const draws = [1, 2, 3].map((n) => drawAt(1, n) * 2 ** 32);
+
+    expect(draws).toEqual([2197834832, 2224532361, 1846942522]);
+  });
+
+  it("keeps the numbers a negative seed draws", () => {
+    const draws = [1, 2, 3].map((n) => drawAt(-7, n) * 2 ** 32);
+
+    expect(draws).toEqual([1618267339, 634116645, 624449489]);
+  });
+});
+
 describe("randomSeed", () => {
   it("makes a whole number of 32 bits from the source given", () => {
     expect(randomSeed(() => 0.5)).toBe(-2147483648);
@@ -43,5 +57,13 @@ describe("shuffled", () => {
 
   it("orders them by the source given", () => {
     expect(shuffled(["a", "b", "c"], () => 0)).toEqual(["a", "b", "c"]);
+  });
+
+  it("keeps the order a seed gives, which seeded deals rely on", () => {
+    const items = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    expect(shuffled(items, createRandom(3))).toEqual([
+      7, 1, 5, 2, 8, 4, 6, 3, 9,
+    ]);
   });
 });

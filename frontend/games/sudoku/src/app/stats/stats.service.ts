@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import type { Level } from "../../rules/difficulty";
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord } from "@fz/core/json";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "sudoku-stats";
@@ -91,9 +91,9 @@ export class StatsService {
 function parseStats(value: unknown): LevelStats {
   if (!isRecord(value)) return NONE;
   const { played, solved, best } = value;
-  if (!isWhole(played) || !isWhole(solved) || solved < 0 || solved > played) {
+  if (!isCount(played) || !isCount(solved) || solved > played) {
     return NONE;
   }
-  const time = isWhole(best) && best >= 0 && solved > 0 ? best : null;
+  const time = isCount(best) && solved > 0 ? best : null;
   return { played, solved, best: time };
 }

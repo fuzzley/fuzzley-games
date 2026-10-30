@@ -1,13 +1,14 @@
 {
   "name": "@fz/core",
   "version": "0.0.0",
-  "description": "The small helpers the games share with no framework and no platform: a seeded random source, readers for stored JSON and counts in words.",
+  "description": "The small helpers the games share with no framework and no platform: a seeded random source, readers for stored JSON, counts in words and a clamp.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
   "exports": {
     "./format": "./src/format.ts",
     "./json": "./src/json.ts",
+    "./math": "./src/math.ts",
     "./random": "./src/random.ts"
   },
   "sideEffects": false,

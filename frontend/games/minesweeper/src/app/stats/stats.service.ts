@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import type { DifficultyId } from "../../rules/difficulty";
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord } from "@fz/core/json";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "minesweeper-stats";
@@ -100,9 +100,9 @@ export class StatsService {
 function parseStats(value: unknown): DifficultyStats {
   if (!isRecord(value)) return NONE;
   const { played, won, best } = value;
-  if (!isWhole(played) || !isWhole(won) || won < 0 || won > played) {
+  if (!isCount(played) || !isCount(won) || won > played) {
     return NONE;
   }
-  const time = isWhole(best) && best >= 0 && won > 0 ? best : null;
+  const time = isCount(best) && won > 0 ? best : null;
   return { played, won, best: time };
 }

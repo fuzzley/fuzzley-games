@@ -1,4 +1,4 @@
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord, isWhole } from "@fz/core/json";
 import { BOARD_SIZE, onBoard } from "./arena";
 import {
   type Direction,
@@ -60,10 +60,8 @@ export function restoreRun(value: unknown, id: number): Run | null {
     !isDirection(heading) ||
     !isSpeed(speed) ||
     !isWhole(seed) ||
-    !isWhole(eaten) ||
-    !isWhole(steps) ||
-    eaten < 0 ||
-    steps < 0 ||
+    !isCount(eaten) ||
+    !isCount(steps) ||
     snake.length !== START_LENGTH + eaten ||
     !Array.isArray(turns) ||
     !turns.every(isDirection) ||

@@ -20,6 +20,16 @@ describe("placeApple", () => {
     );
   });
 
+  it("keeps where apples land, which saved runs rely on", () => {
+    const apples = [0, 1, 2].map((eaten) => placeApple(run.snake, 4, 9, eaten));
+
+    expect(apples).toEqual([
+      { x: 1, y: 1 },
+      { x: 0, y: 1 },
+      { x: 0, y: 3 },
+    ]);
+  });
+
   it("lays apples in different places as the run goes on", () => {
     const apples = new Set(
       Array.from({ length: 20 }, (_, eaten) =>

@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import { stepsIn } from "../rules/stepper";
 import { STEP_S } from "../rules/tuning";
 import type { FieldView } from "./frame";
@@ -14,7 +15,7 @@ export const GLOW_LEAST = 0.35;
 
 /** Returns how far through its time a flourish is, from 0 as it starts to 1 once it is over. */
 export function shareDone(startedAt: number, now: number, ms: number): number {
-  return Math.min(1, Math.max(0, (now - startedAt) / ms));
+  return clamp((now - startedAt) / ms, 0, 1);
 }
 
 /** Returns the scale of a brick that holds a hit, a share through its pop: swelling, then settling back. */

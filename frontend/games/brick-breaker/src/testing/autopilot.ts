@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
 import type { Ball } from "../rules/balls";
 import { fireBolts } from "../rules/bolts";
@@ -235,7 +236,7 @@ function reachFor(field: Field, aim: Aim, landing: number): number {
     ) *
       180) /
     Math.PI;
-  return Math.max(-MOST_REACH, Math.min(MOST_REACH, toward / PADDLE_ANGLE));
+  return clamp(toward / PADDLE_ANGLE, -MOST_REACH, MOST_REACH);
 }
 
 /**

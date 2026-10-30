@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import {
   type Ball,
   bounceOffPaddle,
@@ -384,8 +385,8 @@ export function serve(field: Field): void {
 function liftOffPaddle(field: Field, ball: Ball): void {
   paddleReach(field.paddle, box);
   if (ball.y >= box.bottom) return;
-  const nearX = Math.min(box.right, Math.max(box.left, ball.x));
-  const nearY = Math.min(box.bottom, Math.max(box.top, ball.y));
+  const nearX = clamp(ball.x, box.left, box.right);
+  const nearY = clamp(ball.y, box.top, box.bottom);
   const apart = Math.hypot(ball.x - nearX, ball.y - nearY);
   if (apart >= BALL_RADIUS) return;
   ball.y = box.top - BALL_RADIUS;

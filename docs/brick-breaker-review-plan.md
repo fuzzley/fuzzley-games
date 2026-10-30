@@ -197,3 +197,57 @@ R2's review, before the commit:
    Snake's board spec's helper says it waits only when `readyAtOnce`
    holds, and `serve`'s doc says the run stops serving when its setup
    fails too.
+
+### R4: `@fz/core` takes what the games copy
+
+Built before R3, as it was ready first.
+
+`@fz/core/math` is a new entry with `clamp(value, least, most)`, which
+Brick Breaker's rules, view and autopilot and Snake's view now use for
+every `Math.min(…, Math.max(…))` that kept a number between two others.
+Its rules and view may import `@fz/core`; its scene, which may not, had
+none. The Solitaire Collection's engine writes the same out three times,
+and keeps it, as it keeps its own random apart from `@fz/core`; `@fz/dev`'s
+sounds keep theirs, as that library depends on `@fz/core` for nothing
+else; and so does Sudoku's puzzle generator, a script Node runs without
+the app's compiler.
+
+`drawAt(seed, n)` in `@fz/core/random` is the `n`th of a seed's draws made
+on its own, `createRandom(seed ^ Math.imul(n, 0x9e3779b1))()`, the formula
+Brick Breaker's field draws and Snake's apples each wrote out, so their
+numbers are unchanged (Snake's `| 0` was `createRandom()`'s own). Its
+first numbers are pinned, as Mulberry32's are, and so is the order
+`shuffled()` gives a seed, which Sudoku's deals rely on.
+
+`isCount()` in `@fz/core/json` is a whole number not below nothing, safe
+to add one to: Brick Breaker's saved game and stats each wrote one, under
+the same name and two meanings, and every reader of Minesweeper's, Sudoku's
+and Snake's saved games and stats wrote `isWhole(x) && x >= 0` inline. A
+record or game holding a count past 2^53, which no game writes, is now
+dropped whole, as it is for any count it can't trust.
+
+`@fz/core`'s `AGENTS.md` lists the new helpers and pins `drawAt()`'s
+numbers and `shuffled()`'s order as contracts; the games' `AGENTS.md` and
+the `fuzzley-ui` skill name the clamp.
+
+R4's review, before the commit:
+
+1. _A clamp left in `followPaddle()`._ Taken: the ball held on the paddle
+   is clamped too.
+2. _`isCount()` adopted in some readers only._ Taken: Snake's stats and
+   saved run, and Minesweeper's and Sudoku's saved games and Minesweeper's
+   saved field, read their counts with it as well; `isWhole()` stays for
+   seeds, sizes and squares, which may be negative or are checked against a
+   range of their own.
+3. _`drawAt()`'s doc, and a spec that would pass with the seed and the
+   count mixed differently._ Taken: the doc says what it returns in one
+   sentence and why its numbers can't change, and the draw-0 spec gives way
+   to a pin of a negative seed's draws.
+4. _Nothing held the games to drawing from 1._ Taken: Snake's apples spec
+   pins where the first three apples land, and a new `draws.spec.ts` pins
+   a field's first two draws and its count, so drawing from 0 or 2 fails.
+5. _The log named `@fz/style` as keeping a clamp, and said too little of
+   what a count past 2^53 does._ Taken: corrected above.
+6. _`isCount()` took a number only by way of `Number.isSafeInteger()`'s
+   type check, then cast it._ Taken: it checks `typeof` first, as
+   `isWhole()` does, and compares the number itself.

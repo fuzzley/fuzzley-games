@@ -7,3 +7,11 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 export function isWhole(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value);
 }
+
+/**
+ * Returns whether a value read from JSON is a count: a whole number not
+ * below nothing, and small enough that adding one to it still counts.
+ */
+export function isCount(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}

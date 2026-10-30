@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import { isDifficultyId } from "../../rules/difficulty";
-import { isWhole } from "@fz/core/json";
+import { isCount } from "@fz/core/json";
 import { restoreField, saveField } from "../../rules/saved_field";
 import { GameService } from "./game.service";
 
@@ -81,8 +81,7 @@ export class SavedGameService {
     if (
       field?.outcome !== "playing" ||
       !isDifficultyId(difficulty) ||
-      !isWhole(seconds) ||
-      seconds < 0
+      !isCount(seconds)
     ) {
       return;
     }

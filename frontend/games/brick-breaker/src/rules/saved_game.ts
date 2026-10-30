@@ -1,4 +1,4 @@
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord, isWhole } from "@fz/core/json";
 import { type Brick, neededLeft } from "./bricks";
 import { brickKind, hasTrait } from "./catalog/bricks";
 import type { Field } from "./field";
@@ -298,12 +298,4 @@ function takeUpBrick(brick: Brick, kept: SavedBrick): void {
   brick.shown = kept.shown;
   brick.goesOffAt = kept.goesOffAt;
   brick.regrowsAt = kept.regrowsAt;
-}
-
-/**
- * Returns whether a value is a whole number not below nothing, and small
- * enough that adding one to it still counts.
- */
-function isCount(value: unknown): value is number {
-  return Number.isSafeInteger(value) && Number(value) >= 0;
 }
