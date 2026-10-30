@@ -2351,3 +2351,69 @@ before these fixes, and they came after its commit.
   That spec passed four times alone, as did Snake's whole suite, and the
   next full run was clean. It is flaky under load, and on the list for the
   user.
+
+## B9: sound
+
+- **Built:**
+  - `tools/build-sounds.mjs` writes the ten sounds with `@fz/dev/sounds`
+    into `src/scene/sounds/sounds.wav` and `sounds.json` (3.81 s, 121,964
+    bytes). `yarn build:sounds` runs it, and two runs write the same bytes.
+    - The sounds are a paddle's bop, a wall's tick, a brick's knock, a
+      broken brick's blip, steel's clang, a blast's boom, a capsule's two
+      rising notes, a bolt's zap, a lost ball's falling tone, and a level's
+      four-note chime.
+    - Their names and order are the view's `SOUNDS`, which the scene's
+      spec holds the spritemap to.
+  - `src/rules/events.ts`: a `FieldEvent` carries `streak`, which
+    `hitBrick()` sets on a `broken` event, itself counted. The scene plays
+    the events after the frame's steps, when the streak may have moved on
+    or ended.
+  - `src/view/effects.ts`:
+    - `SOUNDS` and `SoundName`.
+    - `detuneOf()`: a broken brick's blip rises 100 cents for each brick of
+      the streak past the first, up to an octave.
+    - `FrameSounds` gathers a frame's sounds and plays each once, at the
+      highest pitch it was heard at.
+  - `src/scene/bricks_scene.ts`: a `SpritePlayer` named `bricks-sounds`
+    plays each event's sound. It follows the new `sound` option every
+    frame, so the game is muted while the settings want no sound.
+  - `SettingsService` keeps `sound`, on by default. A setting stored
+    before it existed is read as on.
+  - The bar's Sound button, pressed while sound is on, sits after Pause
+    and keeps the focus on the board, as Pause does. On a compact screen
+    it is the overflow's first item, "Turn sound off" or "Turn sound on".
+  - The settings drawer's Sound checkbox, "Play sounds", copied from
+    Snake's along with its styles.
+  - The board hands the scene the setting.
+- **Choices:**
+  - **One of each sound a frame, at its highest pitch.** A blast or a fire
+    ball can break a dozen bricks in a frame. Stacking a dozen blips makes
+    the sound louder rather than richer, and the highest pitch is the
+    streak as the frame left it.
+  - **The chime for an extra life and a new best waits for B10.** Neither
+    is a field event. A life gained from points is the run's, and a best is
+    the records', which B10 brings. The scene will hear them then, through
+    an option as it hears the setting.
+  - **`SettingsService` gains the sound now**, and B10 adds the speed, as
+    the B8.2 entry says.
+  - **A capsule's Extra life plays the caught notes.** It is a capsule
+    caught like any other, and the chime is kept for what the run does.
+- **Specs:**
+  - The rules: the streak a broken brick carries, itself counted (it reads
+    the last event, so it fails if the streak is left at 0).
+  - The view: `detuneOf()` at no streak, along one and at the top, and
+    `FrameSounds` playing a sound once at its highest pitch, then
+    forgetting it.
+  - The scene:
+    - the spritemap's sounds in `SOUNDS`' order;
+    - a sound heard when wanted and the game muted when not;
+    - the shards still flying before the sounds have loaded.
+  - The settings: sound on by default, a stored sound kept, and settings
+    stored before the sound existed read with it on.
+  - The bar: Sound pressed while on, turning it off, keeping the focus,
+    and the overflow's item on a compact screen.
+  - The drawer: turning the sound off.
+  - The board: muted when the settings say so. It fails against a board
+    that always asks for sound.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,451),
+  build, clean on the first run.

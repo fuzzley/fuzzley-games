@@ -63,9 +63,9 @@
   </dl>
 
   <!--
-    Pause keeps the focus on the board through a press with a pointer, so
-    pressing it never pauses the level by taking it. It is dimmed rather
-    than disabled, so the focus never falls off it.
+    Pause and Sound keep the focus on the board through a press with a
+    pointer, so pressing one never pauses the level by taking it. Pause is
+    dimmed rather than disabled, so the focus never falls off it.
   -->
   <button
     fzBarActions
@@ -79,6 +79,21 @@
     <fz-icon [name]="pauseButton().icon" />
     <span class="btn-text">{{ pauseButton().label }}</span>
   </button>
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="Sound"
+      title="Sound"
+      [attr.aria-pressed]="sound()"
+      (pointerdown)="keepFocus($event)"
+      (click)="toggleSound()"
+    >
+      <fz-icon [name]="sound() ? 'sound' : 'sound-off'" />
+    </button>
+  }
 
   @if (!viewport.isCompact()) {
     <button

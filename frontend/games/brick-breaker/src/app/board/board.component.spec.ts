@@ -469,6 +469,15 @@ describe("BoardComponent", () => {
       expect(game.frame().field.paddle.x).toBeLessThan(FIELD_WIDTH / 4);
     });
 
+    it("plays no sound where the settings say", async () => {
+      const { run } = await runBoardScene();
+      TestBed.inject(SettingsService).update({ sound: false });
+
+      run.advance(FRAME_MS);
+
+      expect(run.scene.sound.mute).toBe(true);
+    });
+
     it("plays a level to its end in the scene's time", async () => {
       const { game, run } = await runBoardScene();
       run.key("keydown", "Space", " ");

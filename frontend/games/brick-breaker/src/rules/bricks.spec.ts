@@ -3,6 +3,7 @@ import {
   brickAt,
   eventsOf,
   fieldFrom,
+  lastEvent,
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
@@ -47,6 +48,15 @@ describe("a brick", () => {
       events: ["broken"],
       needed: 1,
     });
+  });
+
+  it("says how long the streak was as it broke, itself counted", () => {
+    const field = fieldFrom(["oo", ...KEEPER]);
+    hitBrick(field, brickAt(field, 0, 0), 1, 2);
+
+    hitBrick(field, brickAt(field, 1, 0), 3, 2);
+
+    expect(lastEvent(field)).toMatchObject({ kind: "broken", streak: 2 });
   });
 
   it("takes as many hits as the level gives it", () => {

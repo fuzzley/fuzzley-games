@@ -30,7 +30,7 @@ const TOUCH_STEERINGS: readonly Choice<TouchSteering>[] = [
 
 /**
  * Shows the settings in a drawer: the speed, how a finger steers the
- * paddle, and the palette.
+ * paddle, the sound, and the palette.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
  * the speeds are radios the arrow keys move between without choosing. The
@@ -51,6 +51,8 @@ export class SettingsComponent {
   private readonly game = inject(GameService);
   private readonly store = inject(SettingsService);
 
+  protected readonly settings = this.store.settings;
+
   /** Whether the drawer is showing. */
   readonly open = input.required<boolean>();
 
@@ -68,7 +70,7 @@ export class SettingsComponent {
   });
 
   protected readonly touchSteerings = computed(() => {
-    const current = this.store.settings().touch;
+    const current = this.settings().touch;
     return TOUCH_STEERINGS.map((choice) => ({
       ...choice,
       checked: choice.id === current,
@@ -84,5 +86,10 @@ export class SettingsComponent {
   /** Says how a finger steers the paddle. */
   protected chooseTouch(touch: TouchSteering): void {
     this.store.update({ touch });
+  }
+
+  /** Turns the sound on or off, as its checkbox says. */
+  protected setSound(sound: boolean): void {
+    this.store.update({ sound });
   }
 }

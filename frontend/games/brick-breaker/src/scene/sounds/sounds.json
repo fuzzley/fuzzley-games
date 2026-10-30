@@ -1,0 +1,54 @@
+{
+  "spritemap": {
+    "paddle": {
+      "start": 0,
+      "end": 0.12,
+      "loop": false
+    },
+    "wall": {
+      "start": 0.22,
+      "end": 0.3,
+      "loop": false
+    },
+    "hit": {
+      "start": 0.4,
+      "end": 0.51,
+      "loop": false
+    },
+    "broken": {
+      "start": 0.61,
+      "end": 0.75,
+      "loop": false
+    },
+    "steel": {
+      "start": 0.85,
+      "end": 1.21,
+      "loop": false
+    },
+    "blast": {
+      "start": 1.31,
+      "end": 1.77,
+      "loop": false
+    },
+    "caught": {
+      "start": 1.87,
+      "end": 2.05,
+      "loop": false
+    },
+    "fired": {
+      "start": 2.15,
+      "end": 2.27,
+      "loop": false
+    },
+    "lost": {
+      "start": 2.37,
+      "end": 2.93,
+      "loop": false
+    },
+    "cleared": {
+      "start": 3.03,
+      "end": 3.81,
+      "loop": false
+    }
+  }
+}

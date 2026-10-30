@@ -1,7 +1,8 @@
 import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { onFirstFrame, pixelRatioOf, whenSceneEnds } from "@fz/phaser/scene";
-import { Core, type GameObjects, Input, Scene } from "phaser";
+import { SpritePlayer } from "@fz/phaser/sound";
+import { Core, type GameObjects, Input, Scene, type Types } from "phaser";
 import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
 import {
@@ -12,7 +13,14 @@ import {
 } from "../view/art";
 import { brickColor } from "../view/brick_art";
 import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
-import { type Flourish, effectsOf, flourishesOf } from "../view/effects";
+import {
+  type Flourish,
+  FrameSounds,
+  type SoundName,
+  detuneOf,
+  effectsOf,
+  flourishesOf,
+} from "../view/effects";
 import { type FieldMetrics, fieldMetrics } from "../view/field_metrics";
 import { glowAlpha } from "../view/flourish";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/frame";
@@ -28,6 +36,8 @@ import { EffectsPainter } from "./effects_painter";
 import { FieldPainter } from "./field_painter";
 import { GlowPainter } from "./glow_painter";
 import { PaddlePainter } from "./paddle_painter";
+import spritemap from "./sounds/sounds.json";
+import spriteUrl from "./sounds/sounds.wav?url";
 import { TagPainter } from "./tag_painter";
 
 /** What the scene asks of the shell, and tells it. */
@@ -42,6 +52,8 @@ export interface BricksSceneOptions {
   readonly motion: () => boolean;
   /** Returns how a finger steers: by dragging, or by following it. */
   readonly touch: () => TouchSteering;
+  /** Returns whether the player wants sound. */
+  readonly sound: () => boolean;
   /** Takes where the field now lies on the canvas, in CSS pixels. */
   readonly onLayout: (field: CssRect) => void;
   /** Takes what a key, a click or a tap asks of the game. */
@@ -83,6 +95,8 @@ export class BricksScene extends Scene {
   tags!: TagPainter;
   /** Draws the balls. */
   balls!: BallPainter;
+  /** Plays the sounds. */
+  sounds!: SpritePlayer<SoundName>;
 
   /** Turns the keys and the pointer into each frame's steering. */
   private steering!: Steering;
@@ -101,6 +115,10 @@ export class BricksScene extends Scene {
   private now = 0;
   /** Whether the player welcomes motion, as of this frame. */
   private motion = true;
+  /** The sounds this frame's events call for, played once each after them. */
+  private readonly frameSounds = new FrameSounds();
+  /** How a sound is played, made once and changed for each. */
+  private readonly soundConfig: Types.Sound.SoundConfig = { detune: 0 };
   /**
    * The key events the scene has taken. Phaser hands over every key event
    * of a frame again with each new one, so a frame of three keys would
@@ -137,6 +155,11 @@ export class BricksScene extends Scene {
     );
     this.tags = new TagPainter(this, layers.tags);
     this.balls = new BallPainter(this, layers.balls);
+    this.sounds = new SpritePlayer(this, {
+      key: "bricks-sounds",
+      spritemap,
+      url: spriteUrl,
+    });
     this.steering = new Steering(this.metrics);
     this.layOut();
     this.listen();
@@ -159,6 +182,7 @@ export class BricksScene extends Scene {
       this.layOut();
     }
     this.options.tick(delta, this.steering.read());
+    this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.motion = this.options.motion();
@@ -170,8 +194,15 @@ export class BricksScene extends Scene {
     if (frame.field !== this.shownField) this.startField(frame.field);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
+    this.frameSounds.playEach(this.playSound);
     this.draw(frame);
   }
+
+  /** Plays a sound, risen by some cents. Made once, so playing makes nothing. */
+  private readonly playSound = (name: SoundName, detune: number): void => {
+    this.soundConfig.detune = detune;
+    this.sounds.play(name, this.soundConfig);
+  };
 
   /** Has each painter draw the field as it stands, in its layer. */
   private draw({ field, alpha }: FieldFrame): void {
@@ -189,14 +220,17 @@ export class BricksScene extends Scene {
   }
 
   /**
-   * Plays an event: notes a brick breaking, and plays the flourishes it
-   * calls for where motion is welcome. Made once, so playing makes nothing.
+   * Plays an event: notes a brick breaking, keeps the sound it calls for to
+   * play with the frame's others, and plays the flourishes it calls for
+   * where motion is welcome. Made once, so playing makes nothing.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
     const field = this.shownField;
     if (!field) return;
     if (event.kind === "broken") this.brokeAt = field.steps;
-    const flourishes = flourishesOf(effectsOf(event, field), this.motion);
+    const effects = effectsOf(event, field);
+    if (effects.sound) this.frameSounds.hear(effects.sound, detuneOf(event));
+    const flourishes = flourishesOf(effects, this.motion);
     for (const flourish of flourishes) this.flourish(flourish, event, field);
   };
 
