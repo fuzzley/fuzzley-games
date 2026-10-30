@@ -7,7 +7,7 @@ import {
 } from "../testing/field_picture";
 import { hitBrick } from "./bricks";
 import type { Field } from "./field";
-import { clearingPoints, multiplier, tallyOf } from "./scoring";
+import { clearingPoints, multiplier, pointsOf, tallyOf } from "./scoring";
 import { stepsIn } from "./stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "./tuning";
 
@@ -49,6 +49,12 @@ describe("tallyOf", () => {
       streaks: 700,
       bonus: CLEAR_POINTS,
     });
+  });
+});
+
+describe("pointsOf", () => {
+  it("adds up a level's tally", () => {
+    expect(pointsOf({ bricks: 3500, streaks: 700, bonus: 1000 })).toBe(5200);
   });
 });
 

@@ -59,6 +59,11 @@ export interface LevelTally {
   readonly bonus: number;
 }
 
+/** Returns a cleared level's points, its tally's lines added up. */
+export function pointsOf({ bricks, streaks, bonus }: LevelTally): number {
+  return bricks + streaks + bonus;
+}
+
 /** Returns how a level's points add up, as its field stands once it is cleared. */
 export function tallyOf(
   field: Pick<Field, "score" | "streakPoints" | "livesLost">,

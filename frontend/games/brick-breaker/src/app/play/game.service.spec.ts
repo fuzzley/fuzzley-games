@@ -3,6 +3,7 @@ import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { FEW_BRICKS } from "../../rules/describe";
+import { levelsOf } from "../../rules/levels";
 import { STEP_MS } from "../../rules/stepper";
 import { FIELD_WIDTH, FIRST_LIVES } from "../../rules/tuning";
 import {
@@ -11,6 +12,7 @@ import {
   SPEC_LEVELS,
   STILL,
   awayFrom,
+  clearToNext,
   loseBall,
   playFor,
   playToClear,
@@ -20,7 +22,32 @@ import {
   underCapsule,
 } from "../../testing/play";
 import { CLEARED_MS, FADE_MS, SERVE_MS } from "../../view/timing";
+import { SettingsService } from "../settings/settings.service";
+import { ProgressService } from "../stats/progress.service";
+import { StatsService } from "../stats/stats.service";
 import { GameService } from "./game.service";
+import { GAME_LEVELS } from "./tokens";
+
+/**
+ * Two levels: six rows of blast bricks, which a hit clears for more points
+ * than the first extra life needs, then a row of them to finish on.
+ */
+const RICH_LEVELS = levelsOf([
+  {
+    id: "rich",
+    name: "Rich",
+    drops: 0,
+    levels: [
+      {
+        id: "rich",
+        name: "Rich",
+        capsules: [],
+        bricks: Array.from({ length: 6 }, () => "*".repeat(13)),
+      },
+      { id: "after", name: "After", capsules: [], bricks: ["*".repeat(13)] },
+    ],
+  },
+]);
 
 /** Returns whether the paddle has been made wide. */
 function isWide(game: GameService): boolean {
@@ -447,7 +474,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "won",
-        said: `Every level cleared! Score ${String(game.score())}, at level ${String(SPEC_LEVEL.last)}.`,
+        said: `Every level cleared! Score ${String(game.score())}, at level ${String(SPEC_LEVEL.last)}. A new best!`,
       });
     });
 
@@ -742,6 +769,135 @@ describe("GameService", () => {
       game.tryAgain();
 
       expect(game.run()).toBe(run);
+    });
+  });
+
+  describe("the records", () => {
+    /** Returns the game with a run lost on its second level, after clearing the first. */
+    async function lostOnSecond(): Promise<GameService> {
+      const game = await gameAt(SPEC_LEVEL.blasts);
+      clearToNext(game);
+      for (let life = 0; life < FIRST_LIVES; life++) loseBall(game);
+      return game;
+    }
+
+    it("starts a run at the speed the settings keep", () => {
+      TestBed.inject(SettingsService).update({ speed: "fast" });
+
+      const game = TestBed.inject(GameService);
+
+      expect(game.run().speed).toBe("fast");
+    });
+
+    it("keeps a new speed in the settings", async () => {
+      const game = TestBed.inject(GameService);
+
+      await game.changeSpeed("relaxed");
+
+      expect(TestBed.inject(SettingsService).settings().speed).toBe("relaxed");
+    });
+
+    it("counts a run as its first ball is served", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+
+      game.launch();
+
+      expect(TestBed.inject(StatsService).stats().speeds.normal.runs).toBe(1);
+    });
+
+    it("counts a run once, however many levels it plays", async () => {
+      const game = await launchedAt(SPEC_LEVEL.blasts);
+
+      clearToNext(game);
+      game.launch();
+
+      expect(TestBed.inject(StatsService).stats().speeds.normal.runs).toBe(1);
+    });
+
+    it("opens the level after one cleared", async () => {
+      await clearedAt(SPEC_LEVEL.blasts);
+
+      expect(TestBed.inject(ProgressService).isOpen(SPEC_LEVEL.wide)).toBe(
+        true,
+      );
+    });
+
+    it("keeps a cleared level's points as its best at the speed", async () => {
+      await clearedAt(SPEC_LEVEL.blasts);
+
+      expect(TestBed.inject(StatsService).stats().levels).toEqual({
+        blasts: { normal: 4100 },
+      });
+    });
+
+    it("keeps an ended run's score as the best, and calls it new", async () => {
+      const game = await lostOnSecond();
+
+      expect({
+        newBest: game.newBest(),
+        best: game.best(),
+        said: said(),
+      }).toEqual({
+        newBest: true,
+        best: 4400,
+        said: "Game over. Score 4400, at level 2. A new best!",
+      });
+    });
+
+    it("gives the best of the run's own speed", async () => {
+      const game = TestBed.inject(GameService);
+      TestBed.inject(StatsService).recordEnd({
+        ...game.run(),
+        speed: "fast",
+        score: 900,
+      });
+
+      await game.changeSpeed("fast");
+
+      expect(game.best()).toBe(900);
+    });
+
+    it("calls no score a new best", async () => {
+      const game = await endedAt(SPEC_LEVEL.steel);
+
+      expect(game.newBest()).toBe(false);
+    });
+
+    it("forgets a new best as the next run begins", async () => {
+      const game = await lostOnSecond();
+
+      game.tryAgain();
+
+      expect(game.newBest()).toBe(false);
+    });
+
+    it("calls for the chime as a new best's card opens", async () => {
+      const game = await lostOnSecond();
+      const before = game.chimes();
+
+      playUntil(game, () => STILL, game.resultOpen);
+
+      expect([before, game.chimes()]).toEqual([0, 1]);
+    });
+
+    it("calls for the chime for a life the points brought", async () => {
+      TestBed.overrideProvider(GAME_LEVELS, { useValue: RICH_LEVELS });
+      const game = await launchedAt(1);
+
+      playToClear(game);
+
+      expect({ lives: game.lives(), chimes: game.chimes() }).toEqual({
+        lives: FIRST_LIVES + 1,
+        chimes: 1,
+      });
+    });
+
+    it("calls for no chime for a life a capsule brought", async () => {
+      const game = await launchedAt(SPEC_LEVEL.lives);
+
+      playUntil(game, underCapsule, () => game.lives() > FIRST_LIVES);
+
+      expect(game.chimes()).toBe(0);
     });
   });
 

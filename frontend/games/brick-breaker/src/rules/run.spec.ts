@@ -4,6 +4,7 @@ import {
   type Run,
   catchUp,
   createRun,
+  gainedLifeByPoints,
   hasEnded,
   levelSeed,
   levelsCleared,
@@ -246,6 +247,40 @@ describe("catchUp's lives", () => {
     const twice = catchUp(once, field);
 
     expect(twice.lives).toBe(once.lives);
+  });
+});
+
+describe("gainedLifeByPoints", () => {
+  it("says the points passing a mark brought a life", () => {
+    const before = playing();
+
+    const after = catchUp(before, fieldAt({ score: FIRST_LIFE_POINTS }));
+
+    expect(gainedLifeByPoints(before, after)).toBe(true);
+  });
+
+  it("says no life came of points short of the mark", () => {
+    const before = playing();
+
+    const after = catchUp(before, fieldAt({ score: FIRST_LIFE_POINTS - 1 }));
+
+    expect(gainedLifeByPoints(before, after)).toBe(false);
+  });
+
+  it("says no life came of a mark passed with every life held", () => {
+    const before = playing({ lives: MAX_LIVES });
+
+    const after = catchUp(before, fieldAt({ score: FIRST_LIFE_POINTS }));
+
+    expect(gainedLifeByPoints(before, after)).toBe(false);
+  });
+
+  it("leaves out the lives a capsule brought", () => {
+    const before = playing();
+
+    const after = catchUp(before, fieldAt({ livesGained: 1 }));
+
+    expect(gainedLifeByPoints(before, after)).toBe(false);
   });
 });
 

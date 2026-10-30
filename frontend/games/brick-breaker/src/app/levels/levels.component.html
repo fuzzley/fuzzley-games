@@ -9,7 +9,10 @@
       <fz-icon name="close" />
     </button>
     <h2>Levels</h2>
-    <p>Choose a level to start a run there.</p>
+    <p>
+      Choose a level to start a run there. Clearing one opens the next; each
+      shows its best at the speed in play.
+    </p>
 
     @for (set of sets(); track set.id) {
       <section [attr.aria-labelledby]="set.headingId">
@@ -19,17 +22,27 @@
             <li>
               <!--
                 Named by its number and its name, "1 Blasts", as a voice
-                command reads it: `&ngsp;` keeps the space between them, which
-                a template otherwise drops.
+                command reads it, then what it says under them: `&ngsp;`
+                keeps the spaces between them, which a template otherwise
+                drops. A locked level is marked `aria-disabled` rather than
+                disabled, so it is still found and read.
               -->
               <button
                 type="button"
                 class="level"
                 [attr.aria-current]="level.current ? 'true' : null"
-                (click)="choose(level.number)"
+                [attr.aria-disabled]="level.open ? null : 'true'"
+                (click)="choose(level)"
               >
-                <span class="number">{{ level.number }}</span
+                <span class="head"
+                  ><span class="number">{{ level.number }}</span>
+                  @if (level.cleared) {
+                    <fz-icon name="tick" />
+                  }</span
                 >&ngsp;<span class="name">{{ level.name }}</span>
+                @if (level.status; as status) {
+                  &ngsp;<span class="status">{{ status }}</span>
+                }
               </button>
             </li>
           }

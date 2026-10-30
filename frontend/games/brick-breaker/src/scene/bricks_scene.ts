@@ -54,6 +54,12 @@ export interface BricksSceneOptions {
   readonly touch: () => TouchSteering;
   /** Returns whether the player wants sound. */
   readonly sound: () => boolean;
+  /**
+   * Returns how many times the game has called for its chime, for what
+   * the run does rather than the field; the scene plays it each time the
+   * count goes up.
+   */
+  readonly chimes: () => number;
   /** Takes where the field now lies on the canvas, in CSS pixels. */
   readonly onLayout: (field: CssRect) => void;
   /** Takes what a key, a click or a tap asks of the game. */
@@ -117,6 +123,8 @@ export class BricksScene extends Scene {
   private motion = true;
   /** The sounds this frame's events call for, played once each after them. */
   private readonly frameSounds = new FrameSounds();
+  /** How many chimes the game had called for as the scene last looked. */
+  private chimed = 0;
   /** How a sound is played, made once and changed for each. */
   private readonly soundConfig: Types.Sound.SoundConfig = { detune: 0 };
   /**
@@ -161,6 +169,7 @@ export class BricksScene extends Scene {
       url: spriteUrl,
     });
     this.steering = new Steering(this.metrics);
+    this.chimed = this.options.chimes();
     this.layOut();
     this.listen();
     onFirstFrame(this, () => {
@@ -194,6 +203,11 @@ export class BricksScene extends Scene {
     if (frame.field !== this.shownField) this.startField(frame.field);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
+    const chimes = this.options.chimes();
+    if (chimes !== this.chimed) {
+      this.chimed = chimes;
+      this.frameSounds.hear("cleared", 0);
+    }
     this.frameSounds.playEach(this.playSound);
     this.draw(frame);
   }

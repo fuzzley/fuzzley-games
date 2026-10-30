@@ -75,26 +75,31 @@ the scene and the shell's first files exist.
   when it was set, as milliseconds summed step by step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
   times the streak's multiplier, keeps the streak, and says what clearing a
-  level adds, and how a cleared level's points add up (`tallyOf()`).
+  level adds, and how a cleared level's points add up (`tallyOf()`) and come
+  to (`pointsOf()`).
   `events.ts`'s `EventLog` is a ring of 256 numbered records, which the
   scene plays and the shell hears, each from the last one it read; a broken
   brick's carries the streak as it broke, as the scene plays it once the
   field has moved on.
-- **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
-  as Snake's is, from the first level to the end: the level in play, the
-  points banked and the score, the lives and the points of the next, and
-  the outcome. `catchUp()` takes what the level's field has come to since
-  it last looked, its points, then the lives gained, then those lost, then
-  its clearing, which it banks, the order they come in on a field, since a
-  frame's steps can hold them all; `levelSeed()` gives each level's
-  field a seed of its own; and `levelsCleared()` counts the levels a run
-  has cleared. A move that doesn't fit where the run stands
-  returns it as it is, so a run over stays over and a level is banked once,
-  and so does a field with nothing new, so the shell can tell a frame that
-  changed the run. `describe.ts` puts what happened into the words the
-  announcer says: a level's start, a capsule caught, the lives a frame
-  gained and lost (`describeLives()`, from the run before and after), the
-  last few bricks, a clearing, a pause, going on and the end.
+- **The run** — `src/rules/run.ts`: `Run`, a value each change replaces, as
+  Snake's is, from the first level to the end: the level in play, the points
+  banked and the score, the lives and the points of the next, and the outcome.
+  `catchUp()` takes what the level's field has come to since it last looked,
+  its points, then the lives gained, then those lost, then its clearing, which
+  it banks, the order they come in on a field, since a frame's steps can hold
+  them all; `levelSeed()` gives each level's field a seed of its own;
+  `levelsCleared()` counts the levels a run has cleared; and
+  `gainedLifeByPoints()` says whether a frame's points brought a life, for the
+  chime. A move that doesn't fit where the run stands returns it as it is, so
+  a run over stays over and a level is banked once, and so does a field with
+  nothing new, so the shell can tell a frame that changed the run.
+  `describe.ts` puts what happened into the words the announcer says: a
+  level's start, a capsule caught, the lives a frame gained and lost
+  (`describeLives()`, from the run before and after), the last few bricks, a
+  clearing, a pause, going on and the end. `progress.ts` says which levels a
+  run may start at (`isOpen()`): the first, any cleared, and the one after a
+  level cleared, at any speed; `clearedOf()` reads the ids stored, keeping
+  those a level still has.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -177,11 +182,12 @@ the scene and the shell's first files exist.
   motion is welcome. `atlas.ts` plays the view's art into `@fz/phaser`'s
   `bakeAtlas()`, again on a new palette or a new unit, and the scene hands
   How to play its pictures from the atlas each time (`onPictures()`).
-  `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
-  sprite in `sounds/`, which `yarn build:sounds` writes, and mutes the game
-  while the settings want none. The keys, clicks and taps go back through
-  `command()`; Phaser hands a key event over again with each new one in a
-  frame, so the scene takes each once.
+  `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
+  in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
+  settings want none; it plays the chime, the level cleared's, each time the
+  game's count of `chimes()` goes up. The keys, clicks and taps go back
+  through `command()`; Phaser hands a key event over again with each new one
+  in a frame, so the scene takes each once.
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
@@ -189,13 +195,16 @@ the scene and the shell's first files exist.
   run begins and whenever the last dialog closes, and pauses the level in
   play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player
   looked away.
-  - `play/` — `GameService` holds the run in a signal and the level in
-    play's field outside one, moves the field on through `tick()`, which
-    the scene's frames drive, steered as the player steers, launches,
-    fires, pauses, goes on and starts levels and runs, says what happened
-    through `@fz/ui/announcer`, adds up a cleared level's points
-    (`tally`), and asks through `@fz/ui/confirm` before a new game or speed
-    throws a run away.
+  - `play/` — `GameService` holds the run in a signal and the level in play's
+    field outside one, moves the field on through `tick()`, which the scene's
+    frames drive, steered as the player steers, launches, fires, pauses, goes
+    on and starts levels and runs, says what happened through
+    `@fz/ui/announcer`, adds up a cleared level's points (`tally`), keeps the
+    records and the levels cleared through `stats/`, calls for the chime for a
+    life the points brought and for a new best as its card opens (`chimes`),
+    and asks through `@fz/ui/confirm` before a new game or speed throws a run
+    away. `tokens.ts` holds what a spec hands it instead of the game's own:
+    the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with
     `import()`; the empty field and the paddle drawn in CSS until the
     scene has drawn; the focus ring; the pointer hidden while a ball is in
@@ -222,27 +231,31 @@ the scene and the shell's first files exist.
     as Resume goes on, and asks the app for the levels, How to play and the
     settings.
   - `levels/` — the Levels dialog: each set under its name, its levels as
-    buttons in a grid, named by number and name ("3 Pyramid"), the run's
-    own marked `aria-current`. Choosing one starts a run there, asking
-    first if one is under way, and closes once it has.
+    buttons in a grid, named by number and name ("3 Pyramid"), then a tick
+    once cleared, with its best at the speed in play, "Cleared" or "Locked"
+    under the name, and the run's own marked `aria-current`. A level not yet
+    open is `aria-disabled`, and can't be chosen. Choosing an open one starts
+    a run there, asking first if one is under way, and closes once it has.
   - `result/` — the card over an ended run, once the last ball has faded:
-    lost or won, where and at what speed, the score, the level reached
-    and the levels cleared (`levelsCleared()`); Try again from the level a
-    lost run ended on, or a new game after a win; Choose a level, which
-    puts it away and asks the app for the levels; and Close.
+    lost or won, where and at what speed, the score and the best at its speed,
+    with "New best" and the trophy when it set one, the level reached and the
+    levels cleared (`levelsCleared()`); Try again from the level a lost run
+    ended on, or a new game after a win; Choose a level, which puts it away
+    and asks the app for the levels; and Close.
   - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
     pausing, the controls, and every brick, capsule and ball from the
     catalogs, each with its name, its sentence and, once the scene has
     drawn, its picture, which the app hands it from the board.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
-    sound and the palette) and `SettingsService`, which keeps what the
-    player chose.
+    sound and the palette) and `SettingsService`, which keeps what the player
+    chose, the speed of the last run started among it.
+  - `stats/` — the records: `StatsService`, each speed's runs, best score
+    and furthest level, and each level's best points at each speed; and
+    `ProgressService`, the levels cleared, at any speed, which open the
+    levels after them.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
     `_index.scss`, the toolkit every component `@use`s, which emits no
     CSS.
-
-  Until progress and records are kept, every level is open in the Levels
-  dialog, and the result card shows no best.
 
 ## What It Keeps
 
@@ -250,8 +263,13 @@ Each entry is in `localStorage`, versioned
 (`LocalStorageService.writeVersioned()`), and its reader drops what it
 can't trust rather than failing:
 
-- `brick-breaker-settings`: how a finger steers the paddle, and whether
-  the field plays its sounds.
+- `brick-breaker-settings`: the speed, how a finger steers the paddle, and
+  whether the field plays its sounds.
+- `brick-breaker-stats`: for each speed, the runs, the best run's score and
+  the furthest level reached; and for each level's id, its best points at
+  each speed it was cleared at. Ids no level has any more are dropped.
+- `brick-breaker-progress`: the ids of the levels cleared, at any speed,
+  which open the levels after them. Ids no level has any more are dropped.
 
 ## Development Commands
 

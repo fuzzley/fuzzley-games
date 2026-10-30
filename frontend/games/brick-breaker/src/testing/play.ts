@@ -1,9 +1,6 @@
 import type { Provider } from "@angular/core";
-import {
-  GAME_LEVELS,
-  GAME_RANDOM,
-  type GameService,
-} from "../app/play/game.service";
+import type { GameService } from "../app/play/game.service";
+import { GAME_LEVELS, GAME_RANDOM } from "../app/play/tokens";
 import {
   type LevelData,
   type LevelEntry,

@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
+import { type Speed, isSpeed } from "../../rules/speed";
 import { type TouchSteering, isTouchSteering } from "../../view/steering";
 
 /** Where the settings are kept. Renaming it loses every player's. */
@@ -10,6 +11,8 @@ const SETTINGS_VERSION = 1;
 
 /** Says how the player plays. */
 export interface Settings {
+  /** The speed new runs are played at. */
+  readonly speed: Speed;
   /** How a finger steers the paddle on a touch screen. */
   readonly touch: TouchSteering;
   /** Whether the field plays its sounds. */
@@ -18,6 +21,7 @@ export interface Settings {
 
 /** The settings a player starts with. */
 export const DEFAULT_SETTINGS: Settings = {
+  speed: "normal",
   touch: "drag",
   sound: true,
 };
@@ -41,8 +45,9 @@ export class SettingsService {
   private read(): Settings {
     const saved = this.storage.readVersioned(SETTINGS_KEY, SETTINGS_VERSION);
     if (!saved) return DEFAULT_SETTINGS;
-    const { touch, sound } = saved;
+    const { speed, touch, sound } = saved;
     return {
+      speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
       touch: isTouchSteering(touch) ? touch : DEFAULT_SETTINGS.touch,
       sound: typeof sound === "boolean" ? sound : DEFAULT_SETTINGS.sound,
     };

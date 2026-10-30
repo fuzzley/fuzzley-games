@@ -11,10 +11,14 @@ function store(value: unknown): void {
 }
 
 describe("SettingsService", () => {
-  it("starts a new player steering by dragging, with sound", () => {
+  it("starts a new player at Normal, steering by dragging, with sound", () => {
     const settings = TestBed.inject(SettingsService);
 
-    expect(settings.settings()).toEqual({ touch: "drag", sound: true });
+    expect(settings.settings()).toEqual({
+      speed: "normal",
+      touch: "drag",
+      sound: true,
+    });
   });
 
   it("changes only the settings given", () => {
@@ -22,23 +26,34 @@ describe("SettingsService", () => {
 
     settings.update({ touch: "follow" });
 
-    expect(settings.settings()).toEqual({ touch: "follow", sound: true });
+    expect(settings.settings()).toEqual({
+      speed: "normal",
+      touch: "follow",
+      sound: true,
+    });
   });
 
   it("keeps the settings for the next visit", () => {
-    TestBed.inject(SettingsService).update({ touch: "follow" });
+    TestBed.inject(SettingsService).update({ speed: "fast", touch: "follow" });
 
     TestBed.resetTestingModule();
 
-    expect(TestBed.inject(SettingsService).settings().touch).toBe("follow");
+    expect(TestBed.inject(SettingsService).settings()).toMatchObject({
+      speed: "fast",
+      touch: "follow",
+    });
   });
 
   it("takes each stored setting that makes sense, and the default for the rest", () => {
-    store({ version: 1, touch: "swipe", sound: false });
+    store({ version: 1, speed: "slow", touch: "swipe", sound: false });
 
     const settings = TestBed.inject(SettingsService);
 
-    expect(settings.settings()).toEqual({ touch: "drag", sound: false });
+    expect(settings.settings()).toEqual({
+      speed: "normal",
+      touch: "drag",
+      sound: false,
+    });
   });
 
   it("takes a setting kept before it was offered as its default", () => {
@@ -46,7 +61,11 @@ describe("SettingsService", () => {
 
     const settings = TestBed.inject(SettingsService);
 
-    expect(settings.settings()).toEqual({ touch: "follow", sound: true });
+    expect(settings.settings()).toEqual({
+      speed: "normal",
+      touch: "follow",
+      sound: true,
+    });
   });
 
   it("starts afresh from settings stored in another shape", () => {
