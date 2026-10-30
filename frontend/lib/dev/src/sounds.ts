@@ -47,6 +47,12 @@ const GAP_S = 0.1;
 /** How long each sound fades out at its end, so it never clicks. */
 const FADE_S = 0.01;
 
+/** How much of its second harmonic an arpeggio's note carries. */
+const ARPEGGIO_BRIGHT = 0.25;
+
+/** How long an arpeggio's note takes to rise, in seconds, so it never clicks. */
+const ARPEGGIO_ATTACK_S = 0.005;
+
 /**
  * Returns a tone that glides exponentially from one pitch to another, in
  * Hz, then holds, with a share of its second harmonic for brightness.
@@ -106,8 +112,9 @@ export function note(at: number, tone: Wave, shape: Wave): Wave {
 }
 
 /**
- * Returns a chord's notes, in Hz, struck `gap` seconds apart in the order
- * given, each ringing out as `envelope()` falls over `decay`.
+ * Returns a chord struck one note at a time, `gap` seconds apart, each pitch
+ * (in Hz) a tone with a quarter of its second harmonic that rises over 5 ms,
+ * then falls to about a third every `decay` seconds.
  */
 export function arpeggio(
   pitches: readonly number[],
@@ -115,7 +122,11 @@ export function arpeggio(
   decay: number,
 ): Wave {
   const notes = pitches.map((pitch, i) =>
-    note(i * gap, glide(pitch, pitch, 1, 0.25), envelope(0.005, decay)),
+    note(
+      i * gap,
+      glide(pitch, pitch, 1, ARPEGGIO_BRIGHT),
+      envelope(ARPEGGIO_ATTACK_S, decay),
+    ),
   );
   return (t) => notes.reduce((sum, played) => sum + played(t), 0);
 }

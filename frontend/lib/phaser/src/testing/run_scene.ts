@@ -53,7 +53,8 @@ export interface SceneRun<S extends HostedScene> {
   advance(ms: number, frameMs?: number): void;
   /**
    * Sends a key event to the element Phaser's keyboard listens on, as a
-   * browser sends it, with the key's `keyCode` and any modifiers.
+   * browser sends it, with the key's `keyCode`, and the modifiers and
+   * `repeat` given.
    *
    * Phaser hands it to the scene at once, and keeps it with the frame's
    * other keys until the next frame ends.

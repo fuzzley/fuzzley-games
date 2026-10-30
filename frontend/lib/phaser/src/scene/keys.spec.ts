@@ -78,14 +78,16 @@ describe("the key helpers", () => {
       expect(pressed).toEqual(["Space", "Space"]);
     });
 
-    it("hears a held key's repeats, which a scene tells apart itself", async () => {
-      const { run, pressed } = await listen();
+    it("hears a held key's repeats, each marked as one", async () => {
+      const { run } = await listen();
+      const repeats: boolean[] = [];
+      onKeyDown(run.scene, (event) => repeats.push(event.repeat));
 
       run.key("keydown", "Space", " ");
       run.key("keydown", "Space", " ", { repeat: true });
       run.advance(16);
 
-      expect(pressed).toEqual(["Space", "Space"]);
+      expect(repeats).toEqual([false, true]);
     });
 
     it("hands every listener each key", async () => {

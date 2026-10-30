@@ -29,13 +29,13 @@ log is at its end.
 ## Part 1: the fixes
 
 - **G1. Each key event once.** Phaser's keyboard plugin runs through the
-  frame's whole queue of key events as each new one comes, so from the
-  third key of a frame on, every key before it is handed over again. Brick
-  Breaker's scene keeps the events it took in a `WeakSet`; Snake's has no guard, so it could repeat a turn. A helper in
-  `@fz/phaser/scene` listens for keys pressed or let go and hands each over
-  once, both scenes use it, and its spec holds a frame of several keys to
-  one call each. The `phaser-core` skill and `@fz/phaser`'s `AGENTS.md`
-  name it.
+  frame's whole queue of key events as each new one comes, so from the third
+  key of a frame on, every key before it is handed over again. Brick Breaker's
+  scene keeps the events it took in a `WeakSet`; Snake's has no guard, so it
+  could repeat a turn. A helper in `@fz/phaser/scene` listens for keys pressed
+  or let go and hands each over once, both scenes use it, and its spec holds a
+  frame of several keys to one call each. The `phaser-core` skill and
+  `@fz/phaser`'s `AGENTS.md` name it.
 - **G2. Snake's card buttons keep their keys.** Space on the focused Resume
   or New Game bubbles to the board, where the scene acts on it and
   Phaser's capture cancels the button's own click, so the focus is left on
@@ -541,3 +541,43 @@ as far as it could check without Chrome. Every finding was taken but the
    left margin's far side, and the file's head comment had two "and"s and
    an unclear "its". **Fixed:** "right", and the head comment lists the
    parts and the whole dialogs apart.
+
+### G7's review (78f58cc9, with cc9bfb2a)
+
+The reviewer built both games' sounds from the scripts before and after
+G7, against the library's source, and found them and the committed files
+the same bytes, and the key helpers' docs true to Phaser's source. Every
+finding was taken.
+
+1. **The arpeggio's specs couldn't fail:** every time they read fell on a
+   whole cycle, where every sine is nought, so they passed for an arpeggio
+   that dropped its later notes, struck them all at the first pitch, never
+   fell or had no harmonic. **Fixed:** they read an eighth or a quarter of
+   a cycle into a note, where its sines are round numbers, against values
+   written out: the rise over 5 ms, the first note alone with its harmonic
+   before the next, and the next struck `gap` seconds later at its own
+   pitch. Seven broken arpeggios, each of those faults, a gap of nought or
+   a tenth too long, and no rise, each fail one spec or more.
+2. **The doc left out the timbre the code fixes,** and "a chord's notes, in
+   Hz" read as notes in Hz. **Fixed:** the harmonic and the rise are named
+   constants beside the sprite's, and the doc says the chord is struck a
+   note at a time, each pitch a tone with a quarter of its second harmonic,
+   rising over 5 ms and falling to about a third every `decay`.
+3. **A held key's repeats don't always reach `onKeyDown()`:** Phaser holds
+   them back for a key a scene made a `Key` of. Neither game does. **Fixed**
+   in its doc.
+4. **"An event that repeats the one just before"** clashed with a held
+   key's repeats. **Fixed:** the private helper's doc says Phaser drops an
+   event whose key code, type and time match the one it handled before.
+5. **The repeats' spec didn't check they are marked.** **Fixed:** it holds
+   the events' `repeat` to `[false, true]`.
+6. **That check of Phaser's drops user-event's keys too,** which carry no
+   key code, when two keydowns come in one millisecond. **Fixed:** the
+   `phaser-core` skill says so beside its note on the key code.
+7. **Nits:** the skill's "as well as the button would", the library's
+   `AGENTS.md`'s "hears once", `key()`'s "any modifiers", which carry
+   `repeat` too, and an unwrapped line in G1's step. **Fixed:** each.
+
+- **Checks:** `@fz/dev`'s and `@fz/phaser`'s lint and typecheck, their
+  sounds' and keys' specs, both games' `yarn build:sounds`, which wrote the
+  same files, and Prettier and the references.
