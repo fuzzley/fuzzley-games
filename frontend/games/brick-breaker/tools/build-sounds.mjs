@@ -7,24 +7,16 @@
 //   yarn build:sounds
 
 import { join } from "node:path";
-import { envelope, glide, note, thud, writeSoundSprite } from "@fz/dev/sounds";
+import {
+  arpeggio,
+  envelope,
+  glide,
+  note,
+  thud,
+  writeSoundSprite,
+} from "@fz/dev/sounds";
 
-/** @import { Sound, Wave } from "@fz/dev/sounds" */
-
-/**
- * Returns a chord's notes struck one after another, each ringing out.
- *
- * @param {readonly number[]} pitches The notes, in Hz, in the order struck.
- * @param {number} gap The seconds between one note and the next.
- * @param {number} decay How quickly each note fades, as `envelope()` takes it.
- * @returns {Wave}
- */
-function arpeggio(pitches, gap, decay) {
-  const notes = pitches.map((pitch, i) =>
-    note(i * gap, glide(pitch, pitch, 1, 0.25), envelope(0.005, decay)),
-  );
-  return (t) => notes.reduce((sum, played) => sum + played(t), 0);
-}
+/** @import { Sound } from "@fz/dev/sounds" */
 
 /** @type {readonly Sound[]} */
 const SOUNDS = [

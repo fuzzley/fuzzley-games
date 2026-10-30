@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   SAMPLE_RATE,
   type Sound,
+  arpeggio,
   envelope,
   glide,
   note,
@@ -135,6 +136,26 @@ describe("note", () => {
     );
 
     expect(played(0.6)).toBeCloseTo(0.1 * 0.25);
+  });
+});
+
+describe("arpeggio", () => {
+  it("is silent before its first note", () => {
+    expect(arpeggio([440], 0.1, 0.1)(-0.01)).toBe(0);
+  });
+
+  it("plays only its first note until the next is struck", () => {
+    const chord = arpeggio([100, 200], 0.5, 0.1);
+
+    expect(chord(0.3)).toBe(arpeggio([100], 0.5, 0.1)(0.3));
+  });
+
+  it("adds each later note from the moment it is struck", () => {
+    const chord = arpeggio([100, 200], 0.5, 0.1);
+
+    const second = chord(0.6) - arpeggio([100], 0.5, 0.1)(0.6);
+
+    expect(second).toBeCloseTo(arpeggio([200], 0.5, 0.1)(0.1));
   });
 });
 
