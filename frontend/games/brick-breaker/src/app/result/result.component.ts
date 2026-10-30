@@ -51,6 +51,7 @@ export class ResultComponent {
     const run = this.game.run();
     return [
       { term: "Score", value: String(run.score) },
+      { term: "Best", value: String(this.game.best()) },
       { term: "Level", value: String(run.level) },
       { term: "Cleared", value: String(levelsCleared(run)) },
     ];

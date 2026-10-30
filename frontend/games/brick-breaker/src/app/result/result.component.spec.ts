@@ -92,14 +92,31 @@ describe("ResultComponent", () => {
     ).toHaveAccessibleDescription("Out of lives on level 2, at Normal speed");
   });
 
-  it("shows the score, the level reached and the levels cleared", async () => {
+  it("shows the score, the best, the level reached and the levels cleared", async () => {
     await renderLost();
 
     expect(figures()).toEqual([
       ["Score", "4400"],
+      ["Best", "4400"],
       ["Level", "2"],
       ["Cleared", "1"],
     ]);
+  });
+
+  it("calls a score above the best a new best", async () => {
+    await renderLost();
+
+    expect(screen.getByText("New best")).toBeVisible();
+  });
+
+  it("calls no score a new best", async () => {
+    const rendered = await renderAt(SPEC_LEVEL.steel);
+    for (let life = 0; life < FIRST_LIVES; life++) loseBall(rendered.game);
+    rendered.game.tick(FRAME_MS, STILL);
+
+    rendered.detectChanges();
+
+    expect(screen.queryByText("New best")).not.toBeInTheDocument();
   });
 
   it("tries the level a run was lost on again", async () => {
@@ -121,6 +138,7 @@ describe("ResultComponent", () => {
     ).toHaveAccessibleDescription("From level 1 to the last, at Normal speed");
     expect(figures()).toEqual([
       ["Score", expect.any(String)],
+      ["Best", expect.any(String)],
       ["Level", "2"],
       ["Cleared", "2"],
     ]);

@@ -55,6 +55,31 @@
     color: var(--fz-text);
   }
 
+  // Locked: an outline only, its words as legible as an open level's.
+  &[aria-disabled="true"] {
+    border-style: dashed;
+    background: none;
+    cursor: default;
+
+    &:hover {
+      border-color: var(--fz-edge-2);
+      background: none;
+    }
+  }
+
+  // The number, and a tick beside it once the level is cleared.
+  .head {
+    display: flex;
+    gap: var(--fz-space-1);
+    align-items: center;
+
+    fz-icon {
+      --fz-icon-size: 16px;
+
+      color: var(--fz-accent);
+    }
+  }
+
   .number {
     color: var(--fz-text);
     font-family: var(--fz-font-mono);
@@ -62,7 +87,8 @@
     font-weight: 700;
   }
 
-  .name {
+  .name,
+  .status {
     font-size: var(--fz-font-sm);
   }
 }

@@ -2499,3 +2499,110 @@ passed the specs it should have failed.
   shows, and the words sit in the second column. The console stayed clean.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,464),
   build, clean on the first run.
+
+## B10.1: the records, the progress and the speed kept
+
+- **Built:**
+  - The rules:
+    - `progress.ts`: `isOpen()` (the first level, any level cleared, and
+      the one after a level cleared, at any speed) and `clearedOf()`, which
+      keeps the stored ids a level still has.
+    - `gainedLifeByPoints()` in `run.ts`: whether a frame's points brought a
+      life, as opposed to a capsule's.
+    - `pointsOf()` in `scoring.ts`: a tally's lines added up.
+  - `src/app/stats/`:
+    - `StatsService` under `brick-breaker-stats`: each speed's runs, best
+      score and furthest level, and each level's best points at each
+      speed.
+    - `ProgressService` under `brick-breaker-progress`: the ids of the
+      levels cleared.
+    - Both readers keep each part that makes sense and drop ids no level
+      has.
+  - `SettingsService` keeps the speed. The first run starts at it, and
+    `changeSpeed()` keeps the new one.
+  - `GameService`:
+    - It counts a run at its first serve.
+    - As a level clears, it keeps the level cleared and its points as its
+      best at the speed. A won run's last level counts too.
+    - As a run ends, it keeps the score and the level reached, and says
+      "A new best!" when the score beats the best.
+    - `best`, `newBest` and `chimes`: the count goes up for a life the
+      points brought, and for a new best as its card opens.
+  - `GAME_LEVELS` and `GAME_RANDOM` moved to `src/app/play/tokens.ts`. The
+    records services need the levels and the game service needs the
+    records, so keeping them in `game.service.ts` would make a cycle.
+  - The scene takes `chimes()` and plays the level cleared's chime each
+    time the count goes up. It notes the count as it is made, so a chime
+    called for before it began is never played.
+  - The Levels dialog:
+    - A tick beside a cleared level's number.
+    - Under its name, its best at the speed in play, "Cleared" when its
+      best is at another speed, or "Locked".
+    - A locked level is `aria-disabled` and drawn with a dashed outline,
+      its words as legible as an open level's. Choosing it does nothing.
+  - The result card shows the best at the run's speed among its figures,
+    two by two, and "New best" with the trophy, as Snake's does.
+- **Choices:**
+  - **No best in the bar, against the plan.** With a six-figure score and
+    best and six hearts, the game's name had no room left. At 1200 px it
+    was 38 px short. At 1280 px, where the wordmark takes over, it was
+    95 px short, and the name shrank to "B.". The best is on the result
+    card and on each level in the Levels dialog. Showing it in the bar
+    only above about 1400 px would need a breakpoint of the game's own.
+  - **A level's best is its own points**, bricks, streaks and bonus, as
+    its card added them up, not the run's score at the time.
+  - **A cleared level stays open**, as well as the one after it, so a set
+    reordered by a later version never locks a level the player cleared.
+  - **A run counts from its first serve**, as Snake's counts from its
+    first direction. Only a run's first level starts as "ready".
+  - **The chime for a new best sounds as the card opens**, not as the run
+    ends, where it would sound over the lost ball's falling tone. A
+    capsule's Extra life keeps the caught notes, as B9 chose.
+  - **The game service doesn't refuse a locked level.** Only the dialog
+    offers levels to choose. Try again and New game start where the run
+    reached or started, which is always open.
+- **Specs:**
+  - The rules: `isOpen()` (5), `clearedOf()` (5), `gainedLifeByPoints()`
+    (4) and `pointsOf()` (1).
+  - `StatsService` (11) and `ProgressService` (5), with stored data that
+    half makes sense, and another version.
+  - `SettingsService`: the speed, kept and read back.
+  - `GameService`, "the records" (13):
+    - the speed from the settings, and a new one kept;
+    - a run counted once, at its first serve;
+    - the next level opened and the level's best kept;
+    - a new best kept and said, and none for a score of 0;
+    - the best of the run's own speed;
+    - the new best forgotten as the next run begins;
+    - the chime as a new best's card opens;
+    - the chime for a life by points, on a two-level game whose first
+      level is six rows of blast bricks (about 28,000 points in one
+      chain);
+    - no chime for a capsule's life.
+  - The scene: the chime played as the count goes up, none for a count
+    from before it began, and a broken brick's sound at its streak's
+    pitch. A spy on `SpritePlayer.prototype.play` records each sound as
+    it is played, since the sprite can't load headless.
+  - The Levels dialog: the locks, a locked level that can't be chosen, a
+    best, and "Cleared" for a best at another speed.
+  - The result card: the best among the figures, and "New best" or not.
+- **Mutants.** Twelve, each run against its specs:
+  - Eleven failed at once: a cleared level not kept open, no run counted,
+    no level kept cleared, no level best kept, no speed kept, no chime for
+    a points life, no chime for a new best, a new best never forgotten,
+    the scene chiming for old calls, a locked level chosen, and a worse
+    level score kept.
+  - The twelfth, the best read from Normal whatever the speed, passed.
+    The spec "gives the best of the run's own speed" now fails it.
+- **Browser check** on the dev server:
+  - The bar at 1200 and 1280 px, measured as above.
+  - With two levels cleared, one with a best at another speed, the Levels
+    dialog read "1 Stripes Best 5230", "2 Gifts Cleared" and "3 Pyramid",
+    then "Locked" from 4 on. Each tick, outline and the run's own mark
+    showed.
+  - The result card with a new best: the trophy, "New best", and Score,
+    Best, Level and Cleared two by two. At 375 × 553 nothing scrolls
+    sideways and the first button is in view; the card scrolls within
+    itself.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,516),
+  build, clean on the first run.

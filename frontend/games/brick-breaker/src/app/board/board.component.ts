@@ -218,6 +218,7 @@ export class BoardComponent {
     motion: () => this.viewport.allowsMotion(),
     touch: () => this.settings.settings().touch,
     sound: () => this.settings.settings().sound,
+    chimes: () => this.game.chimes(),
     onLayout: (field) => {
       this.laidOut.set(field);
     },

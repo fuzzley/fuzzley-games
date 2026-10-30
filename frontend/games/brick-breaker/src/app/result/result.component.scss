@@ -3,6 +3,12 @@
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .card {
   @include result-card;
+
+  // Four figures, two by two: the score over the level, the best over the
+  // levels cleared.
+  .figures {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .card-icon {

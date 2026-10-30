@@ -164,6 +164,14 @@ export function levelSeed(run: Run): number {
   return run.seed ^ Math.imul(run.level, 0x85ebca6b);
 }
 
+/**
+ * Returns whether the points a run scored between two moments brought it a
+ * life; the lives a capsule brings aren't counted.
+ */
+export function gainedLifeByPoints(before: Run, after: Run): boolean {
+  return after.nextLifeAt > before.nextLifeAt && before.lives < MAX_LIVES;
+}
+
 /** Returns whether a level's field has come to anything the run hasn't taken yet. */
 function hasNews(run: Run, field: LevelProgress): boolean {
   return (

@@ -12,6 +12,8 @@ import {
   provideSpecLevels,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
+import { ProgressService } from "../stats/progress.service";
+import { StatsService } from "../stats/stats.service";
 import { LevelsComponent } from "./levels.component";
 
 /** What a spec gets back from rendering the dialog. */
@@ -42,6 +44,11 @@ async function renderLevels(
   };
 }
 
+/** Opens the Lives level, as clearing the level before it would. */
+function openLives(): void {
+  TestBed.inject(ProgressService).recordCleared("few");
+}
+
 /** Returns the names of a set's levels, as the dialog lists them under its name. */
 function levelsIn(set: string): string[] {
   return within(screen.getByRole("region", { name: set }))
@@ -64,7 +71,7 @@ describe("LevelsComponent", () => {
 
     expect([levelsIn("First"), levelsIn("Second")]).toEqual([
       ["1 Blasts"],
-      ["2 Last"],
+      ["2 Last Locked"],
     ]);
   });
 
@@ -73,14 +80,48 @@ describe("LevelsComponent", () => {
 
     expect(levelsIn("Specs")).toEqual([
       "1 Blasts",
-      "2 Wide",
-      "3 Steel",
-      "4 Few",
-      "5 Lives",
-      "6 Laser",
-      "7 Catch",
-      "8 Last",
+      "2 Wide Locked",
+      "3 Steel Locked",
+      "4 Few Locked",
+      "5 Lives Locked",
+      "6 Laser Locked",
+      "7 Catch Locked",
+      "8 Last Locked",
     ]);
+  });
+
+  it("locks a level not yet open, which can't be chosen", async () => {
+    const { user, game, closed } = await renderLevels();
+    const steel = screen.getByRole("button", { name: "3 Steel Locked" });
+
+    await user.click(steel);
+
+    expect(steel).toHaveAttribute("aria-disabled", "true");
+    expect(game.runs()).toBe(0);
+    expect(closed).not.toHaveBeenCalled();
+  });
+
+  it("shows a level cleared with its best at the speed in play", async () => {
+    const { detectChanges } = await renderLevels();
+
+    TestBed.inject(ProgressService).recordCleared("blasts");
+    TestBed.inject(StatsService).recordLevel("blasts", "normal", 4100);
+    detectChanges();
+
+    expect(levelsIn("Specs").slice(0, 2)).toEqual([
+      "1 Blasts Best 4100",
+      "2 Wide",
+    ]);
+  });
+
+  it("says a level was cleared where it has no best at the speed in play", async () => {
+    const { detectChanges } = await renderLevels();
+
+    TestBed.inject(ProgressService).recordCleared("blasts");
+    TestBed.inject(StatsService).recordLevel("blasts", "fast", 3000);
+    detectChanges();
+
+    expect(levelsIn("Specs")[0]).toBe("1 Blasts Cleared");
   });
 
   it("marks the level of the run on the board", async () => {
@@ -95,7 +136,9 @@ describe("LevelsComponent", () => {
   });
 
   it("starts a run at the level chosen, and closes", async () => {
-    const { user, game, closed } = await renderLevels();
+    const { user, game, closed, detectChanges } = await renderLevels();
+    openLives();
+    detectChanges();
 
     await user.click(screen.getByRole("button", { name: "5 Lives" }));
 
@@ -104,7 +147,9 @@ describe("LevelsComponent", () => {
   });
 
   it("stays open when the player backs out of throwing away a level in play", async () => {
-    const { user, game, closed } = await renderLevels();
+    const { user, game, closed, detectChanges } = await renderLevels();
+    openLives();
+    detectChanges();
     await game.startAt(SPEC_LEVEL.steel);
     game.launch();
     await user.click(screen.getByRole("button", { name: "5 Lives" }));

@@ -6,11 +6,16 @@
   (closed)="game.closeResult()"
 >
   <div class="card">
-    @if (won()) {
+    @if (game.newBest() || won()) {
       <fz-icon class="card-icon" name="trophy" />
     }
     <h2>{{ title() }}</h2>
-    <p class="subtitle" id="result-subtitle">{{ subtitle() }}</p>
+    <p class="subtitle">
+      <span id="result-subtitle">{{ subtitle() }}</span>
+      @if (game.newBest()) {
+        <span class="fz-badge fz-badge-accent">New best</span>
+      }
+    </p>
 
     <!--
       A description list, so each figure is announced with what it measures;

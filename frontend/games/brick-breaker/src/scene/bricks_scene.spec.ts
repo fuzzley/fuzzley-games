@@ -1,5 +1,6 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
+import { SpritePlayer } from "@fz/phaser/sound";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { Core, type Game, GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks";
@@ -112,6 +113,7 @@ class FakeShell implements BricksSceneOptions {
   welcomesMotion = true;
   steering: TouchSteering = "drag";
   wantsSound = true;
+  chimesCalled = 0;
   readonly ticks: Tick[] = [];
   readonly layouts: CssRect[] = [];
   readonly commands: FieldCommand[] = [];
@@ -129,6 +131,7 @@ class FakeShell implements BricksSceneOptions {
   readonly motion = (): boolean => this.welcomesMotion;
   readonly touch = (): TouchSteering => this.steering;
   readonly sound = (): boolean => this.wantsSound;
+  readonly chimes = (): number => this.chimesCalled;
   readonly onLayout = (field: CssRect): void => {
     this.layouts.push(field);
   };
@@ -1380,6 +1383,25 @@ describe("BricksScene", () => {
   });
 
   describe("the sounds", () => {
+    /**
+     * Returns each sound the scenes play from now on, with how far it rose,
+     * as they play it. The sprite can't load headless, so playing leaves
+     * nothing else to look at.
+     */
+    function soundsPlayed(): [string, number][] {
+      const played: [string, number][] = [];
+      vi.spyOn(SpritePlayer.prototype, "play").mockImplementation(
+        (name: string, config) => {
+          played.push([name, config?.detune ?? 0]);
+        },
+      );
+      return played;
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it("are the view's, in the sprite's order", () => {
       expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
     });
@@ -1397,6 +1419,37 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(scene.sound.mute).toBe(true);
+    });
+
+    it("play a broken brick's, risen along its streak", async () => {
+      const { shell, run } = await startBoard();
+      const played = soundsPlayed();
+      shell.field.streak = 4;
+
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, 3);
+      run.advance(16);
+
+      expect(played).toEqual([["broken", 400]]);
+    });
+
+    it("play the chime each time the shell calls for it", async () => {
+      const { shell, run } = await startBoard();
+      const played = soundsPlayed();
+
+      shell.chimesCalled += 1;
+      run.advance(16);
+
+      expect(played).toEqual([["cleared", 0]]);
+    });
+
+    it("play no chime the shell called for before the scene began", async () => {
+      const played = soundsPlayed();
+
+      await startBoard((shell) => {
+        shell.chimesCalled = 3;
+      });
+
+      expect(played).toEqual([]);
     });
 
     it("leave the field playing where they can't be loaded", async () => {

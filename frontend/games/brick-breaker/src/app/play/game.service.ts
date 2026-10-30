@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InjectionToken,
   type WritableSignal,
   computed,
   inject,
@@ -31,39 +30,34 @@ import {
   steerField,
   stepField,
 } from "../../rules/field";
-import { LEVELS, type LevelEntry, parseLevel } from "../../rules/levels";
+import { type LevelEntry, parseLevel } from "../../rules/levels";
 import type { Steer } from "../../rules/paddle";
 import {
   type Run,
   catchUp,
   createRun,
+  gainedLifeByPoints,
   hasEnded,
   levelSeed,
   pause,
   resume,
   startLevel,
 } from "../../rules/run";
-import { type LevelTally, multiplier, tallyOf } from "../../rules/scoring";
+import {
+  type LevelTally,
+  multiplier,
+  pointsOf,
+  tallyOf,
+} from "../../rules/scoring";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { advanceClock, createClock, progressOf } from "../../rules/stepper";
 import type { FieldCommand } from "../../view/controls";
 import type { EventsView, FieldFrame, FieldView } from "../../view/frame";
 import { SERVE_MS, clearedDelayMs, resultDelayMs } from "../../view/timing";
-
-/** Where new runs take their seeds from: `Math.random` but in specs. */
-export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
-  providedIn: "root",
-  factory: () => Math.random,
-});
-
-/** The levels a run is played through, in order: the game's but in specs. */
-export const GAME_LEVELS = new InjectionToken<readonly LevelEntry[]>(
-  "GAME_LEVELS",
-  { providedIn: "root", factory: () => LEVELS },
-);
-
-/** The speed the first run is played at. */
-const FIRST_SPEED: Speed = "normal";
+import { SettingsService } from "../settings/settings.service";
+import { ProgressService } from "../stats/progress.service";
+import { StatsService } from "../stats/stats.service";
+import { GAME_LEVELS, GAME_RANDOM } from "./tokens";
 
 /** What a new run asks before it throws away the one under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
@@ -92,7 +86,7 @@ interface Frame extends FieldFrame {
  * Plays the game: holds the run and the level in play's field, moves the
  * field on by the time the board's frames take, steered as the player
  * steers, launches, fires, pauses and starts levels and runs as the player
- * asks, and says what happened.
+ * asks, says what happened, and keeps the records and the levels cleared.
  *
  * The run is a signal, which changes only when the field comes to
  * something the run takes: points, a life, a clearing. The field changes
@@ -107,10 +101,15 @@ export class GameService {
   private readonly viewport = inject(GameViewportService);
   private readonly random = inject(GAME_RANDOM);
   private readonly levels = inject(GAME_LEVELS);
+  private readonly settings = inject(SettingsService);
+  private readonly stats = inject(StatsService);
+  private readonly progress = inject(ProgressService);
 
   /** The id the last run took, which the next one follows. */
   private lastId = 0;
-  private readonly runState = signal<Run>(this.create(FIRST_SPEED, 1));
+  private readonly runState = signal<Run>(
+    this.create(this.settings.settings().speed, 1),
+  );
   /** The level in play, stepped in place. */
   private field: Field = this.fieldOf(this.runState());
   private readonly clock = createClock();
@@ -137,6 +136,8 @@ export class GameService {
   private readonly resultClosedState = signal(false);
   private readonly runsState = signal(0);
   private readonly drawnState = signal(true);
+  private readonly newBestState = signal(false);
+  private readonly chimesState = signal(0);
 
   /** The run on the board. */
   readonly run = this.runState.asReadonly();
@@ -149,6 +150,20 @@ export class GameService {
 
   /** The lives the run has left. */
   readonly lives = computed(() => this.runState().lives);
+
+  /** The best score at the run's speed, as of the last run that ended. */
+  readonly best = computed(
+    () => this.stats.stats().speeds[this.runState().speed].best,
+  );
+
+  /** Whether the run just ended set a new best score at its speed. */
+  readonly newBest = this.newBestState.asReadonly();
+
+  /**
+   * How many times the run has called for the chime: for a life its points
+   * brought, and for a new best as its card opens.
+   */
+  readonly chimes = this.chimesState.asReadonly();
 
   /** Where the run stands. */
   readonly outcome = computed(() => this.runState().outcome);
@@ -215,7 +230,12 @@ export class GameService {
         break;
       case "over":
       case "won":
-        this.openAfter(deltaMs, resultDelayMs, this.resultOpenState);
+        if (
+          this.openAfter(deltaMs, resultDelayMs, this.resultOpenState) &&
+          this.newBestState()
+        ) {
+          this.chime();
+        }
         break;
       case "paused":
         break;
@@ -268,6 +288,7 @@ export class GameService {
       (outcome === "ready" || outcome === "playing")
     ) {
       if (outcome === "ready") {
+        this.stats.recordStart(this.runState().speed);
         this.runState.update(startLevel);
         this.announcer.say(describeLevel(this.level(), this.field.needed));
       }
@@ -361,11 +382,12 @@ export class GameService {
   }
 
   /**
-   * Starts a run at another speed, asking first if one is under way, and
-   * resolves to whether it did.
+   * Starts a run at another speed, and keeps it in the settings, asking
+   * first if one is under way, and resolves to whether it did.
    */
   async changeSpeed(speed: Speed): Promise<boolean> {
     if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
+    this.settings.update({ speed });
     this.begin(this.create(speed, this.runState().firstLevel));
     return true;
   }
@@ -430,45 +452,68 @@ export class GameService {
   };
 
   /**
-   * Takes the run the field brought it to, and gathers what to say of the
-   * change: the end of a run lost, rather than its last ball; else the
-   * lives gained and lost, then a clearing or a win.
+   * Takes the run the field brought it to, keeps what it set down, and
+   * gathers what to say of the change: the end of a run lost, rather than
+   * its last ball; else the lives gained and lost, then a clearing or a win.
    */
   private takeIn(after: Run): void {
     const before = this.runState();
     if (after === before) return;
     this.runState.set(after);
     if (after.outcome === "over") {
-      this.sinceDone = 0;
-      this.news.push(describeEnd(after, false));
+      this.end(after);
       return;
     }
+    if (gainedLifeByPoints(before, after)) this.chime();
     const lives = describeLives(before, after);
     if (lives !== null) this.news.push(lives);
     if (after.outcome === "cleared") {
       this.sinceDone = 0;
-      this.tallyState.set(tallyOf(this.field));
+      const tally = tallyOf(this.field);
+      this.tallyState.set(tally);
+      this.keepCleared(after, tally);
       this.news.push(describeCleared(after));
     } else if (after.outcome === "won") {
-      this.sinceDone = 0;
-      this.news.push(describeEnd(after, false));
+      this.keepCleared(after, tallyOf(this.field));
+      this.end(after);
     }
+  }
+
+  /** Keeps a level cleared, which opens the next, and its points if they are its best. */
+  private keepCleared(run: Run, tally: LevelTally): void {
+    const id = this.level().data.id;
+    this.progress.recordCleared(id);
+    this.stats.recordLevel(id, run.speed, pointsOf(tally));
+  }
+
+  /** Keeps an ended run's score and reach, and says how it ended. */
+  private end(run: Run): void {
+    this.sinceDone = 0;
+    const newBest = this.stats.recordEnd(run);
+    this.newBestState.set(newBest);
+    this.news.push(describeEnd(run, newBest));
+  }
+
+  /** Calls for the chime, which the scene plays. */
+  private chime(): void {
+    this.chimesState.update((chimes) => chimes + 1);
   }
 
   /**
    * Opens a card once its wait, with motion or without, has run since the
-   * level was cleared or the run ended.
+   * level was cleared or the run ended, and returns whether it opened now.
    */
   private openAfter(
     deltaMs: number,
     delayMs: (motion: boolean) => number,
     card: WritableSignal<boolean>,
-  ): void {
-    if (this.sinceDone === null) return;
+  ): boolean {
+    if (this.sinceDone === null) return false;
     this.sinceDone += deltaMs;
-    if (this.sinceDone < delayMs(this.viewport.allowsMotion())) return;
+    if (this.sinceDone < delayMs(this.viewport.allowsMotion())) return false;
     card.set(true);
     this.sinceDone = null;
+    return true;
   }
 
   /** Says what the frame gathered, all at once. */
@@ -514,6 +559,7 @@ export class GameService {
     this.showField(run);
     this.runState.set(run);
     this.tallyState.set(null);
+    this.newBestState.set(false);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
     this.runsState.update((runs) => runs + 1);
