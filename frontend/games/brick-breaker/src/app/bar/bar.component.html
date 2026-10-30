@@ -37,7 +37,7 @@
       <dt><fz-icon name="bricks" /><span class="label">Score</span></dt>
       <dd class="value">{{ game.score() }}</dd>
     </div>
-    <div class="metric lives">
+    <div class="metric">
       <dt><fz-icon name="heart" /><span class="label">Lives</span></dt>
       <dd class="value">
         @if (fitsEveryFigure()) {
@@ -52,11 +52,13 @@
         <span class="fz-visually-hidden">{{ livesText() }}</span>
       </dd>
     </div>
-    @if (streak(); as times) {
-      <div class="metric streak">
-        <dt><span class="label">Streak</span></dt>
-        <dd class="value">{{ times }}</dd>
-      </div>
+    @if (fitsEveryFigure()) {
+      @if (streak(); as times) {
+        <div class="metric streak">
+          <dt><span class="label">Streak</span></dt>
+          <dd class="value">{{ times }}</dd>
+        </div>
+      }
     }
   </dl>
 

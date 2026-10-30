@@ -2274,3 +2274,80 @@ before reporting. Every finding was taken.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,424),
   build. The first run failed only at Prettier on the settings template,
   which was formatted.
+
+## B8.1's review (adb6aebb, with 16336def)
+
+The reviewer proved findings 1 and 2 by running code: a scratch copy, a
+jsdom probe, and a page in Chrome. Every finding was taken. B8.2 was built
+before these fixes, and they came after its commit.
+
+1. **Space on a card's button still did nothing in a real browser.**
+   `keepKey()` stopped only the keydown. The keyup still reached Phaser,
+   which cancels a captured key's keyup, and a browser clicks a button at
+   Space's keyup. B7.2's specs couldn't see it, because user-event sends no
+   key code and Phaser's capture reads one. **Fixed:**
+   - The three card buttons keep their keyup too, and a comment says why.
+   - The two specs now send Space with its key code, down and up. They hold
+     that neither is cancelled and that the scene hears nothing. Removing
+     either binding fails both.
+   - In the browser pane, a real Space on the focused Resume went on with
+     the level and handed the board the focus.
+   - The scene's guard for Enter on a button over the field went, with its
+     spec. No key from a card's button reaches the scene now, so the guard
+     couldn't fire.
+   - The board's keys description says a card's button takes Space and
+     Enter itself.
+2. **The "no streak" spec couldn't fail.** A `term` takes no name from its
+   content. **Fixed:** it checks the terms shown, as the narrower bars'
+   spec does.
+3. **Leftovers from Snake's bar.** **Fixed:** the unused `compact` host
+   class and the `lives` class went.
+4. **The lives as shown were never checked.** **Fixed:**
+   - A roomy bar draws a heart for each life. That spec finds them as
+     icons, since they are hidden from a screen reader.
+   - On each narrower bar, the number shows 2 after a life is lost.
+   - At 340 × 700, the link home leads the menu.
+5. **The app's wiring of the bar was untested.** **Fixed:**
+   - The level pauses as the focus leaves the board for the bar.
+   - The bar's Resume, pressed from the keyboard, hands the board the
+     focus. The first version passed without the wiring, since the board
+     kept the focus. It now starts from the bar's button, and fails
+     without `(handBack)`.
+6. **The bar's class comment opened with three sentences.** **Fixed:** one
+   sentence, then the details, with "the lives to six".
+7. **`fitsActionLabels`'s comment gave one game's reason.** **Fixed:** it
+   says only what it measures.
+8. **`ThemeService.mode`'s comment read two ways.** **Fixed:** it changes
+   with `role()`'s colors, a moment after `current`.
+9. **The light-mode spec started light.** **Fixed:** it starts on Midnight
+   blue.
+10. **`fieldPalette`'s spec missed what it was for.** **Fixed:**
+    - A spec holds the tints light after a dark palette is chosen but not
+      yet on the page. Reading the mode from `current` would fail it.
+    - The palette is taken off the page after each spec.
+    - The roles are shared with the board's spec from
+      `src/testing/roles.ts` (`ROLES`, `paintRoles()`).
+11. **AGENTS.md's "It keeps the scene's pictures" read as `fieldPalette`.**
+    **Fixed:** "The board keeps…", the paragraph rewrapped, and the keys
+    sentence says down and up.
+12. **The level and the streak were hidden two ways.** **Fixed:** `streak`
+    depends on the multiplier alone, and the template hides both under
+    `fitsEveryFigure()`.
+13. **`tally`'s comment.** **Fixed:** null until a level of this run is
+    cleared.
+
+- **Mutants.** Each of these failed the specs: dropping the keyup or the
+  keydown binding, a `(handBack)` that does nothing, and (from B8.2's
+  log) a board that ignores the finger setting.
+- **A slip, put right.** For the binding mutants I wrote the backup from
+  Windows Python to `/tmp`, which is `C:\tmp` there and not Git Bash's
+  `/tmp`. The restore found nothing, and the template was left with no
+  bindings. It was put back by hand, its diff checked against the last
+  commit, and the backup file removed. `C:\tmp` already existed, and was
+  left as it was.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,431),
+  build. The first run had one failure, in Snake's result spec ("shows the
+  score, the best and the snake's length" saw 2, 2 and 5 for 1, 1 and 4).
+  That spec passed four times alone, as did Snake's whole suite, and the
+  next full run was clean. It is flaky under load, and on the list for the
+  user.

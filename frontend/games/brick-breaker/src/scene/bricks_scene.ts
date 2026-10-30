@@ -406,12 +406,7 @@ export class BricksScene extends Scene {
     }
     if (event.repeat) return;
     const command = commandOfKey(event.code);
-    if (!command) return;
-    // Enter on a button over the field, such as Resume, presses the button.
-    if (command === "go" && event.target !== this.game.input.keyboard?.target) {
-      return;
-    }
-    this.options.command(command);
+    if (command) this.options.command(command);
   }
 }
 

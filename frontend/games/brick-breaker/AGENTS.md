@@ -194,12 +194,13 @@ the scene and the shell's first files exist.
     play; and the cards: Ready, with the level and how to launch, whenever
     a ball waits on the paddle; Paused; Cleared, with how the level's
     points added up and Next level; Ended, once an ended run's result is
-    put away; and still loading and couldn't be drawn. A key pressed on a
-    card's button stays with it, which hands the board back the focus.
-    `fieldPalette()` colors the field from `ThemeService`'s roles and
-    `mode`. It keeps the scene's pictures for How to play (`pictures`). The board is an
-    application named for its level, "Brick Breaker, level 3: Pyramid",
-    and Phaser's keyboard target. A finger steers as the settings say.
+    put away; and still loading and couldn't be drawn. A key pressed or let
+    go on a card's button stays with it, so the button takes it and hands
+    the board back the focus. `fieldPalette()` colors the field from
+    `ThemeService`'s roles and `mode`, and a finger steers as the settings
+    say. The board keeps the scene's pictures for How to play
+    (`pictures`). It is an application named for its level, "Brick
+    Breaker, level 3: Pyramid", and Phaser's keyboard target.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`,
     the speed's badge, which asks before it starts a run at another, the
     figures, and Pause, Levels, New game, How to play and Settings, the
@@ -287,7 +288,8 @@ cleared by it within eight minutes of game time, its last three bricks
 within one, and the catalog spec holds
 the levels to using every brick kind and letting every capsule first fall
 at the level its `from` names, but those the sets still to come bring, which
-it names. `src/testing/play.ts` holds the small levels the shell's specs
+it names. `src/testing/roles.ts` puts a palette's roles on the page (`paintRoles()`)
+for the specs that color the field. `src/testing/play.ts` holds the small levels the shell's specs
 play, each set up to come to one thing soon, handed to `GameService`
 through `GAME_LEVELS` with a seed of its own through `GAME_RANDOM`
 (`provideSpecLevels()`), and plays them through `tick()`, steering the

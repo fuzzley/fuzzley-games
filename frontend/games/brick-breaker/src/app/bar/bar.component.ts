@@ -38,13 +38,15 @@ interface PauseButton {
 }
 
 /**
- * Shows the game bar: the link home, the game's name and speed, the level,
- * the score, the lives as hearts and the streak's multiplier while it
- * counts, and the actions. The speed shows at every size, as a menu of the
- * speeds; the name only for a screen reader on a compact screen. Below the
- * width the actions keep their labels from, the bar has room for the score
- * and the lives alone, the lives as a number, since a score runs to six
- * figures and a run to six lives.
+ * Shows the game bar: the link home, the game's name and speed, the
+ * figures, and the actions.
+ *
+ * The speed shows at every size, as a menu of the speeds; the name only for
+ * a screen reader on a compact screen. From the width the actions keep their
+ * labels at, the figures are the level, the score, the lives as hearts and
+ * the streak's multiplier while it counts; below it, the score and the lives
+ * alone, the lives as a number, since a score runs to six figures and the
+ * lives to six.
  *
  * On a compact screen, Pause and New game stay, and Levels, How to play and
  * Settings move into the overflow menu, as on the narrowest the link home
@@ -59,7 +61,6 @@ interface PauseButton {
     IconComponent,
   ],
   host: {
-    "[class.compact]": "viewport.isCompact()",
     "[class.score-and-lives]": "!fitsEveryFigure()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
   },
@@ -101,13 +102,10 @@ export class BarComponent {
     count(this.game.lives(), "life", "lives"),
   );
 
-  /**
-   * How many times a hit scores, as "×2", while a streak makes it more than
-   * once and the bar has room for it; else null.
-   */
+  /** How many times a hit scores, as "×2", while a streak makes it more than once; else null. */
   protected readonly streak = computed(() => {
     const times = this.game.multiplier();
-    return times > 1 && this.fitsEveryFigure() ? `×${String(times)}` : null;
+    return times > 1 ? `×${String(times)}` : null;
   });
 
   protected readonly pauseButton = computed<PauseButton>(() => {

@@ -114,6 +114,33 @@ describe("AppComponent", () => {
     });
   });
 
+  describe("the bar", () => {
+    it("pauses the level in play as the focus leaves the board for it", async () => {
+      const game = await launchedApp();
+      await settle();
+
+      await userEvent.tab();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("hands the board the focus as its Resume goes on", async () => {
+      const game = await launchedApp();
+      await settle();
+      // Taking the focus from the board pauses the level, and Pause reads Resume.
+      within(screen.getByRole("banner"))
+        .getByRole("button", { name: "Pause" })
+        .focus();
+      await settle();
+
+      await userEvent.keyboard("{Enter}");
+      await settle();
+
+      expect(game.outcome()).toBe("playing");
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
   describe("the dialogs", () => {
     it.each([
       ["Levels", "Levels"],

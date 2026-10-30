@@ -2,7 +2,7 @@ import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import {
   SPEC_LEVEL,
@@ -57,12 +57,19 @@ async function renderInPlay(): Promise<RenderedBar> {
   return rendered;
 }
 
-/** Returns the value a figure in the bar gives, by its term. */
-function figure(term: string): string {
+/** Returns the value a figure in the bar gives, by its term, as an element. */
+function figureValue(term: string): HTMLElement {
   const name = screen
     .getAllByRole("term")
     .find((dt) => dt.textContent.trim() === term);
-  return name?.nextElementSibling?.textContent.trim() ?? "";
+  const value = name?.nextElementSibling;
+  if (!(value instanceof HTMLElement)) throw new Error(`No ${term} shown.`);
+  return value;
+}
+
+/** Returns the value a figure in the bar gives, by its term. */
+function figure(term: string): string {
+  return figureValue(term).textContent.trim();
 }
 
 /** Returns the terms of the figures the bar shows, in order. */
@@ -159,7 +166,14 @@ describe("BarComponent", () => {
     it("shows no streak while a hit scores once", async () => {
       await renderInPlay();
 
-      expect(screen.queryByRole("term", { name: "Streak" })).toBeNull();
+      expect(terms()).not.toContain("Streak");
+    });
+
+    it("draws a heart for each life", async () => {
+      await renderInPlay();
+
+      // The hearts are pictures, hidden from a screen reader, so no role finds them.
+      expect(figureValue("Lives").querySelectorAll("fz-icon")).toHaveLength(3);
     });
 
     it("shows how many times a hit scores while a streak counts", async () => {
@@ -255,6 +269,15 @@ describe("BarComponent", () => {
       expect(terms()).toEqual(["Score", "Lives"]);
     });
 
+    it("shows the lives as a number", async () => {
+      const { game, detectChanges } = await renderInPlay();
+
+      loseBall(game);
+      detectChanges();
+
+      expect(within(figureValue("Lives")).getByText("2")).toBeInTheDocument();
+    });
+
     it("leaves out the streak while one counts", async () => {
       const { game, detectChanges } = await renderBar();
       await game.startAt(SPEC_LEVEL.few);
@@ -272,9 +295,12 @@ describe("BarComponent", () => {
       viewport = installFakeViewport(390, 844);
     });
 
-    /** Opens the overflow menu. */
-    async function openMenu(user: UserEvent): Promise<void> {
+    /** Opens the overflow menu, and returns what it offers. */
+    async function openMenu(user: UserEvent): Promise<string[]> {
       await user.click(screen.getByRole("button", { name: "More actions" }));
+      return screen
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent.trim());
     }
 
     it("keeps the speed in the bar, out of the menu", async () => {
@@ -293,11 +319,18 @@ describe("BarComponent", () => {
     it("moves the levels, How to play and the settings into the menu", async () => {
       const { user } = await renderBar();
 
-      await openMenu(user);
+      const items = await openMenu(user);
 
-      expect(
-        screen.getAllByRole("menuitem").map((item) => item.textContent.trim()),
-      ).toEqual(["Levels", "How to play", "Settings"]);
+      expect(items).toEqual(["Levels", "How to play", "Settings"]);
+    });
+
+    it("moves the link home into the menu where there is no room for it", async () => {
+      viewport?.setSize(340, 700);
+      const { user } = await renderBar();
+
+      const items = await openMenu(user);
+
+      expect(items[0]).toBe("Fuzzley Games");
     });
 
     it.each([

@@ -173,7 +173,7 @@ export class GameService {
   /** Whether the card over a cleared level is showing, which opens once its last shards have flown. */
   readonly clearedOpen = this.clearedOpenState.asReadonly();
 
-  /** How the last level cleared added up, for its card, or null before one is. */
+  /** How the last level cleared added up, for its card, or null until a level of this run is cleared. */
   readonly tally = this.tallyState.asReadonly();
 
   /** Whether the card over an ended run is showing, which opens once the last ball has faded. */

@@ -294,7 +294,7 @@ export class BoardComponent {
     this.host.nativeElement.focus();
   }
 
-  /** Keeps a key pressed on a card's button from the board's keys, so the button takes it. */
+  /** Keeps a key pressed or let go on a card's button from the board's keys, so the button takes it. */
   protected keepKey(event: KeyboardEvent): void {
     event.stopPropagation();
   }
