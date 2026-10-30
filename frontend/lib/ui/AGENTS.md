@@ -49,8 +49,8 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   reader says them again. Words said before any region is in the page, such
   as a game taken up as the app starts, wait until the region has been there
   a moment (`ARRIVAL_MS`), as a screen reader doesn't announce a region that
-  arrives with its words; a region that arrives later says what was said
-  last at once.
+  arrives with its words; a region that arrives later holds what was said
+  last from the start, so it doesn't say it again.
 - `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native
   modal `<dialog>`, so the browser traps focus, makes the page behind it
   inert and gives focus back on close. The host owns `open`: the dialog

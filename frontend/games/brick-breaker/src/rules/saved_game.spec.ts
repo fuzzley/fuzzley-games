@@ -1,5 +1,5 @@
 import { hitBrick } from "./bricks";
-import { BRICK_KINDS } from "./catalog/bricks";
+import { BRICK_KINDS, hasTrait } from "./catalog/bricks";
 import {
   type Field,
   createField,
@@ -9,7 +9,7 @@ import {
   stepField,
 } from "./field";
 import { levelsOf, parseLevel } from "./levels";
-import { type Run, catchUp, createRun, startLevel } from "./run";
+import { type Run, catchUp, createRun, levelSeed, startLevel } from "./run";
 import {
   type SavedGame,
   restoreGame,
@@ -22,8 +22,9 @@ import { FIRST_LIFE_POINTS, MAX_LIVES } from "./tuning";
 /**
  * Three levels: a plain brick, a tough one, steel, a hidden brick, a
  * regrowing one, a blast brick, another plain one and another hidden one;
- * then a row of plain bricks; then a crowd of every brick that changes as it
- * is played, too many to clear in a few seconds.
+ * then a row of plain bricks; then, in a set whose bricks draw for capsules,
+ * a crowd of every brick that changes as it is played, over a row of blast
+ * bricks the ball sets off at once, too many to clear in a few seconds.
  */
 const LEVELS = levelsOf([
   {
@@ -33,6 +34,13 @@ const LEVELS = levelsOf([
     levels: [
       { id: "mixed", name: "Mixed", capsules: [], bricks: ["o3#~+*o~....."] },
       { id: "row", name: "Row", capsules: [], bricks: ["ooo.........."] },
+    ],
+  },
+  {
+    id: "crowds",
+    name: "Crowds",
+    drops: 0.25,
+    levels: [
       {
         id: "crowd",
         name: "Crowd",
@@ -44,6 +52,7 @@ const LEVELS = levelsOf([
           "~4~+~4~+~4~+~",
           "3*3~3+3~3*3+3",
           "+~+~+~+~+~+~+",
+          "*************",
         ],
       },
     ],
@@ -53,11 +62,45 @@ const LEVELS = levelsOf([
 /** The step the played field is at as its bricks are hit. */
 const PLAYED_AT = 300;
 
+/** How many steps the crowd is played between two takes, sharing no factor with a fuse's 12. */
+const STRIDE = 7;
+
+/** How many takes of the crowd are kept and taken up. */
+const TAKES = 300;
+
+/** The take from which the paddle keeps away from the ball until one is lost. */
+const MISS_FROM = 150;
+
+/** How far off the ball's middle the paddle meets it, take by take, so the ball goes everywhere. */
+const AIMS = [-1.4, -0.6, 0.3, 1.1];
+
+/** Every state of the crowd's play that a field taken up must keep. */
+const PLAYED_STATES = [
+  "a ball lost",
+  "a fuse lit",
+  "a ghost shown",
+  "a regrowing brick broken",
+  "a regrowing brick grown back",
+  "a tough brick worn",
+  "draws",
+  "streak points",
+];
+
 /** Returns a new field of one of the levels. */
 function fieldOf(level: number): Field {
   const entry = LEVELS[level - 1];
   if (!entry) throw new Error(`No level ${String(level)}.`);
   return createField(parseLevel(entry), { speed: "normal", seed: 1 });
+}
+
+/** Returns a new field of the level a run is on, as the game makes it. */
+function fieldFor(run: Run): Field {
+  const entry = LEVELS[run.level - 1];
+  if (!entry) throw new Error(`No level ${String(run.level)}.`);
+  return createField(parseLevel(entry), {
+    speed: run.speed,
+    seed: levelSeed(run),
+  });
 }
 
 /**
@@ -88,17 +131,63 @@ function playedField(): { run: Run; field: Field } {
 }
 
 /**
- * Plays a field on a number of steps, its paddle under its first ball in
- * play, serving and launching at once.
+ * Plays a field on a number of steps, serving and launching at once, its
+ * paddle sent where `aim` puts it for its first ball in play.
  */
-function playOn(field: Field, steps: number): void {
+function playOn(
+  field: Field,
+  steps: number,
+  aim: (ballX: number) => number,
+): void {
   for (let i = 0; i < steps; i++) {
     if (field.state === "lost") serve(field);
     launch(field);
     const ball = field.balls.find((each) => each.live);
-    steerField(field, { to: ball?.x ?? null, by: 0, push: 0 });
+    steerField(field, { to: ball ? aim(ball.x) : null, by: 0, push: 0 });
     stepField(field);
   }
+}
+
+/**
+ * Returns where the paddle goes for a ball, take by take: a little off the
+ * ball's middle, or, from {@link MISS_FROM} until a ball is lost, far from
+ * it.
+ */
+function aimOf(
+  field: Readonly<Field>,
+  take: number,
+): (ballX: number) => number {
+  const missing = take >= MISS_FROM && field.livesLost === 0;
+  const off = AIMS[take % AIMS.length] ?? 0;
+  return (x) => (missing ? 26 - x : x + off);
+}
+
+/** Names the states of {@link PLAYED_STATES} a field holds now. */
+function statesOf(field: Readonly<Field>): string[] {
+  const states = [
+    field.livesLost > 0 && "a ball lost",
+    field.draws > 0 && "draws",
+    field.streakPoints > 0 && "streak points",
+  ];
+  for (const brick of field.bricks) {
+    if (!brick) continue;
+    states.push(
+      brick.broken && brick.goesOffAt > field.steps && "a fuse lit",
+      !brick.broken &&
+        hasTrait(brick.kind, "hidden") &&
+        brick.shown &&
+        "a ghost shown",
+      brick.broken &&
+        hasTrait(brick.kind, "regrows") &&
+        "a regrowing brick broken",
+      !brick.broken && brick.regrowsAt > 0 && "a regrowing brick grown back",
+      brick.kind === "tough" &&
+        !brick.broken &&
+        brick.hits < brick.whole &&
+        "a tough brick worn",
+    );
+  }
+  return states.filter((state) => state !== false);
 }
 
 /**
@@ -109,9 +198,12 @@ function keptAsItStands(run: Run, field: Field): boolean {
   const saved = saveGame(run, field, LEVELS);
   const takenUp = restoreGame(JSON.parse(JSON.stringify(saved)), LEVELS, 2);
   if (!takenUp) return false;
-  const fresh = fieldOf(run.level);
+  const fresh = fieldFor(takenUp.run);
   takeUpField(fresh, takenUp.field, takenUp.run);
-  return JSON.stringify(saveGame(run, fresh, LEVELS)) === JSON.stringify(saved);
+  return (
+    JSON.stringify(saveGame(takenUp.run, fresh, LEVELS)) ===
+    JSON.stringify(saved)
+  );
 }
 
 /** Returns a played run as storage keeps it, read back from JSON as a reload would. */
@@ -245,20 +337,25 @@ describe("restoreGame", () => {
     ).not.toBeNull();
   });
 
-  it("takes up a field at any step of its play as it stood", () => {
-    const field = fieldOf(3);
+  it("takes up a run and its field at any step of their play as they stood", () => {
     let run = startLevel(
-      createRun({ id: 1, seed: 5, speed: "fast", lastLevel: 3, level: 3 }),
+      createRun({ id: 1, seed: 5, speed: "normal", lastLevel: 3, level: 3 }),
     );
+    const field = fieldFor(run);
     const misses: number[] = [];
+    const seen = new Set<string>();
 
-    for (let moment = 0; moment < 40; moment++) {
-      playOn(field, 50);
+    for (let take = 0; take < TAKES; take++) {
+      playOn(field, STRIDE, aimOf(field, take));
       run = catchUp(run, field);
-      if (!keptAsItStands(run, field)) misses.push(moment);
+      for (const state of statesOf(field)) seen.add(state);
+      if (!keptAsItStands(run, field)) misses.push(take);
     }
 
-    expect(misses).toEqual([]);
+    expect({ misses, seen: [...seen].sort() }).toEqual({
+      misses: [],
+      seen: PLAYED_STATES,
+    });
   });
 
   it.each<[string, (saved: Record<string, unknown>) => unknown]>([
@@ -300,7 +397,10 @@ describe("restoreGame", () => {
     ],
     [
       "a level not yet begun with points on it",
-      (saved) => ({ ...storedCleared(), score: Number(saved["score"]) + 10 }),
+      () => {
+        const cleared = storedCleared();
+        return { ...cleared, score: Number(cleared["score"]) + 10 };
+      },
     ],
     [
       "a level not yet begun with a life gained on it",

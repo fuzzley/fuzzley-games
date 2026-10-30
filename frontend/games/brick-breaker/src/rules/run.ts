@@ -197,7 +197,7 @@ function isUnderWay(run: Run): boolean {
 /** Returns the run at a score, with a life for each mark it passed on the way, up to the most it may hold. */
 function withScore(run: Run, score: number): Run {
   const nextLifeAt = nextLifeAfter(score);
-  const passed = (nextLifeAt - run.nextLifeAt) / LIFE_POINTS;
+  const passed = Math.max(0, (nextLifeAt - run.nextLifeAt) / LIFE_POINTS);
   const lives = Math.min(MAX_LIVES, run.lives + passed);
   return { ...run, score, lives, nextLifeAt };
 }

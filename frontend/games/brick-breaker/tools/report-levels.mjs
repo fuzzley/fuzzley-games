@@ -245,8 +245,9 @@ for (const entry of game.levels) {
   const name = `${String(entry.number).padStart(2)} ${entry.data.name}`;
   console.log(name.padEnd(NAME_WIDTH) + cells.join("   "));
 }
+if (uncleared > 0 || slow > 0) console.log();
 if (uncleared > 0) {
-  console.log(`\n${String(uncleared)} plays didn't clear their level (-).`);
+  console.log(`${String(uncleared)} plays didn't clear their level (-).`);
 }
 if (slow > 0) {
   console.log(

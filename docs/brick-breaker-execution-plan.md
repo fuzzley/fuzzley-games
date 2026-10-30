@@ -689,7 +689,7 @@ take up more of the field; the last level of a set tests all of it.
 | #   | Name           | What it brings                                              |
 | --- | -------------- | ----------------------------------------------------------- |
 | 21  | Garden         | Regrowing bricks, a hedge in front of plain ones            |
-| 22  | Hedge maze     | Regrowing walls in steel corridors                          |
+| 22  | Hedge maze     | Steel corridors behind regrowing gates                      |
 | 23  | Low bridge     | Bricks down to the sixteenth row, with little time to react |
 | 24  | Hourglass      | Two halves joined by a steel neck                           |
 | 25  | Chain reaction | A field of blast bricks with tough ones between             |
@@ -697,7 +697,7 @@ take up more of the field; the last level of a set tests all of it.
 | 27  | Spiral         | A steel spiral lined with bricks                            |
 | 28  | Keep           | Walls of four behind regrowing gates                        |
 | 29  | Storm          | Every kind, low and dense                                   |
-| 30  | Finale         | A picture of everything: the hardest                        |
+| 30  | Finale         | A picture of everything, at the game's top pace             |
 
 Capsules join the pool at the levels the capsule table gives, and a level
 may name its own pool instead. The chance that a needed brick lets one fall

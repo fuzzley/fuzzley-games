@@ -33,21 +33,21 @@ export const ARRIVAL_MS = 100;
 export class AnnouncerComponent {
   private readonly announcer = inject(AnnouncerService);
 
-  /** Whether it says what the service says yet, which waits for words said before any region. */
-  private readonly speaking = signal(!this.announcer.early);
+  /** Whether it has been in the page long enough to say words said before any region was. */
+  private readonly arrived = signal(false);
 
-  /** What the region says now. */
+  /** What the region says now: words said before any region was only once it has arrived. */
   protected readonly said = computed(() =>
-    this.speaking() ? this.announcer.message() : "",
+    !this.announcer.early() || this.arrived() ? this.announcer.message() : "",
   );
 
   constructor() {
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
       this.announcer.notePlaced();
-      if (this.speaking()) return;
+      if (!this.announcer.early()) return;
       const timer = setTimeout(() => {
-        this.speaking.set(true);
+        this.arrived.set(true);
         this.announcer.noteEarlyWordsSaid();
       }, ARRIVAL_MS);
       destroyRef.onDestroy(() => {
