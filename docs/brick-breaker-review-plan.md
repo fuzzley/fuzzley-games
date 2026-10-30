@@ -251,3 +251,51 @@ R4's review, before the commit:
 6. _`isCount()` took a number only by way of `Number.isSafeInteger()`'s
    type check, then cast it._ Taken: it checks `typeof` first, as
    `isWhole()` does, and compares the number itself.
+
+### R3: the smaller fixes in `@fz/phaser`
+
+`@fz/phaser/layout` holds `MAX_PIXEL_RATIO`, which was
+`ViewportScaler.MAX_PIXEL_RATIO`, and `canvasPixelRatio()`, the display's
+ratio held between 1 and it, which the scaler starts from before its
+budget and Snake's and Brick Breaker's boards size their placeholders by:
+they wrote `Math.min(devicePixelRatio, 3)`, which didn't floor at 1, so a
+page zoomed out below 1 drew its placeholder at another unit than the
+scene. The layout checks' own copy, which runs in the page and can import
+nothing, is R12's.
+
+The scaler remembers the ratio its media query watches and makes a new
+query only when the ratio changed, not at every resize the parent
+reports; `stop()` forgets it, so a scaler started again watches anew.
+`onFirstFrame()` listens for `RENDER` rather than `POST_UPDATE`, which a
+scene emits before it draws, so a scene's `ready()` comes once its frame
+is drawn, as the canvas's placeholder waits for. The canvas's stylesheet
+starts its surface's selector at `fz-phaser-canvas`, as the library's rule
+for an unencapsulated stylesheet says, and its template binds
+`surfaceAria`, a view model of what the surface tells assistive
+technology, rather than working it out. `PhaserHost` and `ViewportScaler`
+mark no member `public`, nor do the scaler's spec's fakes, but for the
+fake parent's width and height, parameter properties a spec changes, which
+need one.
+
+Specs: `canvasPixelRatio()` on a display's own ratio, a fraction, past the
+most, below 1 and none; the scaler keeping its query through a resize and
+watching anew once started again; and `onFirstFrame()` calling its
+listener only once the scene's camera has drawn.
+
+R3's review, before the commit:
+
+1. _The `onFirstFrame()` spec emitted `POST_UPDATE` by hand, so it passed
+   on `PRE_RENDER` too, which comes before the cameras draw._ Taken: it
+   runs a real frame and holds the listener to coming after the main
+   camera's `POST_RENDER`, which fails on either of the others.
+2. _`public readonly` on a parameter property, which Google's style guide
+   rules out since `readonly` already makes it one._ Taken: the fake query
+   and resize observer write `readonly` alone, as the scene helpers' spec
+   does, and the log names the only modifiers left.
+3. _"Keeps the query it watches" counted the queries, not their
+   listeners._ Taken: it holds the one query to its one listener.
+4. _`canvasPixelRatio()`'s doc, and no board spec of it._ The doc names
+   its parameter and no longer repeats the scaler's budget as a number,
+   taken. The boards' placeholder is left without a spec of its own: each
+   passes the window's ratio through the one call, whose floor and cap
+   `pixel_ratio.spec.ts` pins.

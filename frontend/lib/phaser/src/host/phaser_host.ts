@@ -225,7 +225,7 @@ export class PhaserHost {
    * changed sides. The scene lays itself out inside the new insets on its next
    * frame.
    */
-  public refreshInsets(): void {
+  refreshInsets(): void {
     this.scaler?.refreshInsets();
   }
 
@@ -233,7 +233,7 @@ export class PhaserHost {
    * Tears the game down, releasing the scaler's listeners, the canvas and its
    * WebGL context.
    */
-  public destroy(): void {
+  destroy(): void {
     this.scaler?.stop();
     this.scaler = undefined;
     this.scene = undefined;

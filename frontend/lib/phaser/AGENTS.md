@@ -22,7 +22,10 @@ take the pure ones.
   number across and down with a frame around them, inside a canvas's
   insets, each cell a whole number of device pixels and the field centered
   on whole pixels, with the `Viewport` it reads and the `CssRect` it gives
-  back. It imports nothing but `insets`.
+  back; and `canvasPixelRatio()`, the pixel ratio a canvas renders at on a
+  display, at least 1 and at most `MAX_PIXEL_RATIO`, which the host renders
+  by and an app's placeholder sizes its cells by. It imports nothing but
+  `insets`.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
   it, building the next before it lets go of the last, its `show()` settling

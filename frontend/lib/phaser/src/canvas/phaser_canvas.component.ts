@@ -4,6 +4,7 @@ import {
   type ElementRef,
   ErrorHandler,
   ViewEncapsulation,
+  computed,
   effect,
   inject,
   input,
@@ -84,6 +85,17 @@ export class PhaserCanvasComponent {
    * as it may on a slow connection; it is still loading, not failed.
    */
   readonly slow = this.slowState.asReadonly();
+
+  /**
+   * What the surface Phaser draws in says to assistive technology: an image
+   * named by `label`, or nothing, hidden; and whether it is still loading.
+   */
+  protected readonly surfaceAria = computed(() => {
+    const label = this.label();
+    const busy = this.sceneState() === "loading";
+    if (!label) return { role: null, label: null, hidden: "true", busy };
+    return { role: "img", label, hidden: null, busy };
+  });
 
   private readonly createHost = inject(PHASER_CANVAS_HOST);
   private readonly errors = inject(ErrorHandler);

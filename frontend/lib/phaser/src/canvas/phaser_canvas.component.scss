@@ -11,7 +11,7 @@ fz-phaser-canvas {
 }
 
 // Phaser's own element, so it never fights Angular over the placeholder.
-.fz-phaser-canvas-surface {
+fz-phaser-canvas > .fz-phaser-canvas-surface {
   position: absolute;
   inset: 0;
 }

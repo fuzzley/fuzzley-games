@@ -1,5 +1,6 @@
 import type { Game } from "phaser";
 import { type Insets, NO_INSETS } from "../insets";
+import { canvasPixelRatio } from "../layout";
 
 /** Describes the subscription surface of a `MediaQueryList`. */
 export interface PixelRatioQuery {
@@ -90,17 +91,11 @@ export const watchDevicePixels: WatchDevicePixels = (target, onResize) => {
  */
 export class ViewportScaler {
   /**
-   * The highest pixel ratio the canvas is rendered at, beyond which sharpness
-   * stops visibly improving while the pixel count keeps growing.
-   */
-  public static readonly MAX_PIXEL_RATIO = 3;
-
-  /**
    * The pixel ratio a canvas of any size may render at. Above it, the canvas
    * must also hold no more than
    * {@link ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS}.
    */
-  public static readonly UNBUDGETED_PIXEL_RATIO = 2;
+  static readonly UNBUDGETED_PIXEL_RATIO = 2;
 
   /**
    * The most device pixels a canvas rendered above
@@ -108,13 +103,13 @@ export class ViewportScaler {
    * phone at 3x, whose canvas a browser would otherwise stretch, but not for a
    * laptop, which keeps to 2x.
    */
-  public static readonly MAX_BUDGETED_DEVICE_PIXELS = 4_500_000;
+  static readonly MAX_BUDGETED_DEVICE_PIXELS = 4_500_000;
 
   /**
    * The custom properties the parent declares its insets in: how far in from
    * each edge the shell's own chrome, such as a header, lies over the canvas.
    */
-  public static readonly INSET_PROPERTIES: {
+  static readonly INSET_PROPERTIES: {
     readonly [Edge in keyof Insets]: string;
   } = {
     top: "--fz-canvas-inset-top",
@@ -131,6 +126,9 @@ export class ViewportScaler {
 
   /** Media query tracking the current pixel ratio, re-armed after each change. */
   private pixelRatioQuery: PixelRatioQuery | null = null;
+
+  /** The pixel ratio {@link pixelRatioQuery} watches for a change from. */
+  private watchedRatio: number | null = null;
 
   /** The parent's size in device pixels, as the browser last counted it. */
   private devicePixelSize: DevicePixelSize | null = null;
@@ -161,7 +159,7 @@ export class ViewportScaler {
    * The pixel ratio the canvas is currently rendered at, or 1 before it has
    * been sized; see {@link ViewportScaler.pixelRatioFor}.
    */
-  public get pixelRatio(): number {
+  get pixelRatio(): number {
     return this.pixelRatioValue;
   }
 
@@ -172,7 +170,7 @@ export class ViewportScaler {
    * Read once per resize rather than per frame, since reading a computed style
    * can force the browser to lay the page out again.
    */
-  public get insets(): Insets {
+  get insets(): Insets {
     return this.insetsValue;
   }
 
@@ -185,7 +183,7 @@ export class ViewportScaler {
    * has moved its chrome, so it sizes the canvas only where nothing can watch
    * the parent.
    */
-  public start(): void {
+  start(): void {
     this.apply();
     this.stopWatchingParent = this.watchParent(this.parent, (size) => {
       this.devicePixelSize = size;
@@ -197,16 +195,17 @@ export class ViewportScaler {
   }
 
   /** Stops tracking changes, releasing every listener the scaler registered. */
-  public stop(): void {
+  stop(): void {
     this.window.removeEventListener("resize", this.onViewportChange);
     this.pixelRatioQuery?.removeEventListener("change", this.onViewportChange);
     this.pixelRatioQuery = null;
+    this.watchedRatio = null;
     this.stopWatchingParent?.();
     this.stopWatchingParent = null;
   }
 
   /** Resizes the canvas to the parent's current size at the current DPR. */
-  public apply(): void {
+  apply(): void {
     const bounds = this.parent.getBoundingClientRect();
     const cssWidth = Math.max(1, Math.floor(bounds.width));
     const cssHeight = Math.max(1, Math.floor(bounds.height));
@@ -244,7 +243,7 @@ export class ViewportScaler {
    * Reads the insets the parent declares again, for chrome that moved without
    * the canvas changing size, such as a rail changing sides.
    */
-  public refreshInsets(): void {
+  refreshInsets(): void {
     this.insetsValue = this.readInsets();
   }
 
@@ -266,15 +265,12 @@ export class ViewportScaler {
 
   /**
    * Returns the pixel ratio to render a canvas of a CSS size at: the display's,
-   * up to {@link ViewportScaler.MAX_PIXEL_RATIO}, but above
+   * as {@link canvasPixelRatio} bounds it, but above
    * {@link ViewportScaler.UNBUDGETED_PIXEL_RATIO} only as far as the canvas
    * stays within {@link ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS}.
    */
   private pixelRatioFor(cssWidth: number, cssHeight: number): number {
-    const wanted = Math.min(
-      this.devicePixelRatio,
-      ViewportScaler.MAX_PIXEL_RATIO,
-    );
+    const wanted = canvasPixelRatio(this.window.devicePixelRatio);
     if (wanted <= ViewportScaler.UNBUDGETED_PIXEL_RATIO) return wanted;
 
     const affordable = Math.sqrt(
@@ -313,18 +309,20 @@ export class ViewportScaler {
 
   /**
    * Replaces the pixel ratio media query with one for the current ratio, whose
-   * `change` fires when the window moves display or the browser zooms.
+   * `change` fires when the window moves display or the browser zooms; one
+   * for the ratio already watched is kept.
    */
   private watchPixelRatio(): void {
-    const query = this.window.matchMedia?.(
-      `(resolution: ${this.devicePixelRatio}dppx)`,
-    );
+    const ratio = this.devicePixelRatio;
+    if (ratio === this.watchedRatio) return;
+    const query = this.window.matchMedia?.(`(resolution: ${ratio}dppx)`);
     if (!query) {
       return;
     }
 
     this.pixelRatioQuery?.removeEventListener("change", this.onViewportChange);
     this.pixelRatioQuery = query;
+    this.watchedRatio = ratio;
     query.addEventListener("change", this.onViewportChange);
   }
 }
