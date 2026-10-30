@@ -492,3 +492,52 @@ but one nit.
   `yarn check:layout` through the runner, on the builds as they were, says
   each game's layout holds where it did, and Sudoku's `--help` prints the
   usage.
+
+### G6's review (0ab9f8e1)
+
+The reviewer compiled scratch stylesheets with the repository's Sass, and
+found the mixin rightly whole and rightly in `@fz/style`, and G6's log true
+as far as it could check without Chrome. Every finding was taken but the
+`:where()` alternative.
+
+1. **The drawer's rules sit a class deeper than the copies' did,** since
+   the mixin nests them in the drawer's block, so a game's own rule for
+   `.choice` or `.drawer-content` at the top level loses, whatever its
+   order. Nothing does so today. **Fixed:** the mixin's doc and
+   `@fz/style`'s `AGENTS.md` say a game's own rule goes inside the block
+   that includes it, after the include. `:where(&)` would keep the old
+   weight, but asks whether Angular's emulation keeps it too, for no rule
+   that needs it.
+2. **The mixin's doc opened with two sentences** and restated the code.
+   **Fixed:** one sentence, the classes it styles in a second paragraph,
+   and why there is no scrim or z-index in a `//` comment by
+   `margin-left`.
+3. **The mixin lacked the Solitaire Collection's guard,** a positioned
+   `.drawer-content`, without which what is absolutely positioned in it,
+   such as a visually hidden hint, stays where it was as the content
+   scrolls, since the frosted drawer is its containing block; and it
+   hard-coded the width `help-card` and `result-card` take. **Fixed:**
+   the guard, with its comment, and `settings-drawer($width: 340px)`. The
+   Solitaire Collection's drawer stays its own: its markup is its own, a
+   `.btn-close` and `.close-icon`, and settings in its `app-option-group`s,
+   which the drawer's encapsulated rules can't reach, so taking the mixin
+   means rewriting its template, which this plan never set out to do.
+4. **`_dialogs.scss` is the games' alone,** though `@fz/style` is what the
+   site and the games share. **Fixed:** `@fz/style`'s `AGENTS.md` says so.
+5. **The specs held two declarations side by side,** which a harmless
+   reorder breaks, and nothing held the content scrolling. **Fixed:** the
+   height and the pinning are held apart, and new specs hold the content
+   positioned and scrolling, and the width a drawer is given.
+6. **`@fz/style`'s `AGENTS.md` chained appositions** past parsing.
+   **Fixed:** the dialogs are a sentence of their own, the whole ones set
+   off by semicolons.
+7. **Minesweeper's and Sudoku's `AGENTS.md` said every game's dialogs
+   share the drawer,** which the Solitaire Collection's doesn't. **Fixed:**
+   they say every game's but the Solitaire Collection's does.
+8. **`.check` is a word this repository uses for much else.** **Fixed:**
+   `.setting-check`, beside `.setting-label` and `.setting-desc`, in the
+   mixin, its spec and the three templates.
+9. **Nits:** the doc said the drawer's "end" where the code pins it to the
+   left margin's far side, and the file's head comment had two "and"s and
+   an unclear "its". **Fixed:** "right", and the head comment lists the
+   parts and the whole dialogs apart.
