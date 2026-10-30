@@ -12,7 +12,11 @@ import {
   viewChild,
 } from "@angular/core";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { PhaserCanvasComponent, type SceneSource } from "@fz/phaser/canvas";
+import {
+  KeepKeysDirective,
+  PhaserCanvasComponent,
+  type SceneSource,
+} from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
 import type { CssRect } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
@@ -39,7 +43,7 @@ type Card = "start" | "paused" | "ended" | "slow" | "failed" | null;
  */
 @Component({
   selector: "app-board",
-  imports: [PhaserCanvasComponent],
+  imports: [KeepKeysDirective, PhaserCanvasComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -231,11 +235,6 @@ export class BoardComponent {
   protected resume(): void {
     this.game.resume();
     this.host.nativeElement.focus();
-  }
-
-  /** Keeps a key pressed or let go on a card's button from the board's keys, so the button takes it. */
-  protected keepKey(event: KeyboardEvent): void {
-    event.stopPropagation();
   }
 
   /** Starts another run, from the card over an ended one. */

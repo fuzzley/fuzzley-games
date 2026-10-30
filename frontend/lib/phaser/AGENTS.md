@@ -44,17 +44,20 @@ take the pure ones.
   waits for it, and plays its sounds, named by the spritemap, once it has
   loaded while the player wants sound, muting the game while they don't.
   It imports Phaser, never Angular.
-- `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows
-  its scenes in, which makes the one host it keeps, through the
-  `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a
-  function returning a `MakeScene` or a promise of one; its `state` is
-  `loading`, `ready` or `failed`, also on the element as `data-state`, and
-  failed only when the source rejects or a minute passes, since a slow
-  connection can take that long; `slow` says, after 8 s, that it is still
-  loading, for the app to say so (`data-slow`); and
-  what the app projects as `[fzCanvasPlaceholder]` lies over the canvas
-  until the scene is ready. It imports the host, and so Phaser, with
-  `import()`, when it first shows a scene.
+- `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows its
+  scenes in, which makes the one host it keeps, through the
+  `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a function
+  returning a `MakeScene` or a promise of one; its `state` is `loading`,
+  `ready` or `failed`, also on the element as `data-state`, and failed only
+  when the source rejects or a minute passes, since a slow connection can take
+  that long; `slow` says, after 8 s, that it is still loading, for the app to
+  say so (`data-slow`); and what the app projects as `[fzCanvasPlaceholder]`
+  lies over the canvas until the scene is ready. It imports the host, and so
+  Phaser, with `import()`, when it first shows a scene. Beside it,
+  `fzKeepKeys` (`KeepKeysDirective`) keeps a key pressed or let go on a button
+  over the board, the keyboard's target, from the board, so the button takes
+  it rather than the scene, and Space's keyup, at which the button clicks,
+  isn't cancelled by Phaser's capture.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
   which a test setup calls, gives jsdom the 2D and WebGL contexts, drawing
   nothing, that Phaser needs, a canvas's picture as a `data:` URL that

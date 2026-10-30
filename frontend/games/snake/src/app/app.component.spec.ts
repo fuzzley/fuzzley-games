@@ -1,8 +1,9 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { FakePhaserCanvas, provideFakePhaserCanvas } from "@fz/phaser/testing";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { playToTheEnd, provideFixedSeed } from "../testing/play";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import {
@@ -17,7 +18,7 @@ import {
  */
 async function renderApp(readyAtOnce = true): Promise<GameService> {
   await render(AppComponent, {
-    providers: [provideFakePhaserCanvas({ readyAtOnce })],
+    providers: [provideFakePhaserCanvas({ readyAtOnce }), provideFixedSeed()],
   });
   return TestBed.inject(GameService);
 }
@@ -308,6 +309,22 @@ describe("AppComponent", () => {
       await settle();
 
       expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("goes to the board as the card's New Game starts a run at Space", async () => {
+      const game = await renderApp();
+      game.turn("up");
+      playToTheEnd(game);
+      game.closeResult();
+      await settle();
+      const board = screen.getByRole("application");
+      within(board).getByRole("button", { name: "New Game" }).focus();
+
+      await userEvent.keyboard(" ");
+      await settle();
+
+      expect(game.outcome()).toBe("ready");
+      expect(board).toHaveFocus();
     });
 
     it("leaves the board as a dialog opens, pausing the run", async () => {

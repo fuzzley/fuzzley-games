@@ -290,22 +290,25 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("playing");
     });
 
-    it("leaves Space on Resume to the button, down and up", async () => {
-      const { game, run, detectChanges } = await runBoardScene();
-      game.turn("up");
-      game.pause();
-      detectChanges();
-      const resume = screen.getByRole("button", { name: "Resume" });
+    it.each([
+      ["Space", " "],
+      ["Enter", "{Enter}"],
+    ])(
+      "go on at %s on Resume, handing the board the focus",
+      async (_, keys) => {
+        const { board, game, run, detectChanges } = await runBoardScene();
+        game.turn("up");
+        game.pause();
+        detectChanges();
+        screen.getByRole("button", { name: "Resume" }).focus();
 
-      const kept = [
-        fireEvent.keyDown(resume, SPACE),
-        fireEvent.keyUp(resume, SPACE),
-      ];
-      run.advance(16);
+        await userEvent.keyboard(keys);
+        run.advance(16);
 
-      expect(kept).toEqual([true, true]);
-      expect(game.outcome()).toBe("paused");
-    });
+        expect(game.outcome()).toBe("playing");
+        expect(board).toHaveFocus();
+      },
+    );
 
     it("leaves Space on New Game to the button, down and up", async () => {
       const { game, run, detectChanges } = await runBoardScene();
@@ -316,11 +319,15 @@ describe("BoardComponent", () => {
       const newGame = screen.getByRole("button", { name: "New Game" });
       const runs = game.runs();
 
+      // Sent as events, since the scene's own Space starts a run too: what
+      // the button changes is that the scene never hears it.
       const kept = [
         fireEvent.keyDown(newGame, SPACE),
         fireEvent.keyUp(newGame, SPACE),
       ];
       run.advance(16);
+      // A new game waits on whether a run would be lost, a moment later.
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(kept).toEqual([true, true]);
       expect(game.runs()).toBe(runs);

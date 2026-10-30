@@ -86,9 +86,9 @@ Phaser stays out of the first download.
     the empty board drawn in CSS until the scene has drawn; the focus ring;
     and the cards that say how to start, that the run is paused, how to
     start again once an ended run's result is put away, that the board is
-    still loading on a slow connection, or that it couldn't be drawn. A key
-    pressed or let go on a card's button stays with it. The board is
-    Phaser's keyboard target.
+    still loading on a slow connection, or that it couldn't be drawn. The
+    board is Phaser's keyboard target, so the cards' buttons keep their
+    keys from it (`fzKeepKeys`).
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
     say, which turn the snake and hand the focus back to the board, steer by
     the game's keys while one has the focus, and wait, dimmed, until the
@@ -132,16 +132,18 @@ Phaser stays out of the first download.
   Pause and Sound keep the focus on the board when pressed with a mouse or
   a finger, so the keys go on working.
 - **Phaser's input is the board's.** The keyboard's target is the board's
-  element, so the keys reach the game only while it has the focus; Phaser's
-  captures are global, which is why the scene takes only the keys the game
-  uses, and ignores a held key and one pressed with Ctrl, Alt or Meta.
+  element, so the keys reach the game only while it has the focus. Phaser
+  cancels a captured key's default there, which is why the scene captures
+  only the arrows and Space, which would scroll the page, and ignores a held
+  key and one pressed with Ctrl, Alt or Meta. A card's button, Resume or New
+  Game, keeps its keys from the board with `@fz/phaser/canvas`'s
+  `fzKeepKeys`, so it takes Space and Enter itself: Resume hands the board
+  the focus, and the board takes it as New Game's run begins.
 - **The run waits for the player.** It starts at the first direction, pauses
-  when the focus leaves the room, the page is hidden or the screen turns,
-  and goes on at once at a direction, Space or P; a run taken up after a
-  reload starts paused. Once an ended run's result is put away, Enter or
-  Space starts another. A key pressed or let go on a card's button, Resume
-  or New Game, stays with it, so the button takes Space and Enter and hands
-  the board the focus. Nothing starts or goes on until the board is drawn
+  when the focus leaves the room, the page is hidden or the screen turns, and
+  goes on at once at a direction, Space or P; a run taken up after a reload
+  starts paused. Once an ended run's result is put away, Enter or Space starts
+  another. Nothing starts or goes on until the board is drawn
   (`GameService.drawn`, which the board sets from its canvas), since a run
   nobody can see would be lost.
 - **Its colors are the palette's.** `snakePalette()` takes the panel, the
