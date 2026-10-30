@@ -17,7 +17,7 @@ import {
   type SceneSource,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
-import type { CssRect } from "@fz/phaser/layout";
+import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import {
   BRICKS_TOP,
@@ -106,9 +106,8 @@ export class BoardComponent {
    * so the placeholder sizes its unit in whole device pixels as the scene
    * does.
    */
-  protected readonly pixelRatio = Math.min(
+  protected readonly pixelRatio = canvasPixelRatio(
     this.document.defaultView?.devicePixelRatio ?? 1,
-    3,
   );
 
   /** Names the board for the level on it, as "Brick Breaker, level 3: Pyramid". */

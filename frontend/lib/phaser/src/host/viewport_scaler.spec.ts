@@ -10,12 +10,13 @@ import {
   watchDevicePixels,
 } from "./viewport_scaler";
 import { NO_INSETS } from "../insets";
+import { MAX_PIXEL_RATIO } from "../layout";
 
 /** Stands in for a media query, recording listeners to fire a DPR change. */
 class FakePixelRatioQuery implements PixelRatioQuery {
-  public readonly listeners: (() => void)[] = [];
+  readonly listeners: (() => void)[] = [];
 
-  constructor(public readonly query: string) {}
+  constructor(readonly query: string) {}
 
   addEventListener(_type: "change", listener: () => void): void {
     this.listeners.push(listener);
@@ -34,11 +35,11 @@ class FakePixelRatioQuery implements PixelRatioQuery {
 
 /** Stands in for a window whose pixel ratio and size a test drives. */
 class FakeWindow implements ScalerWindow {
-  public devicePixelRatio: number;
-  public readonly resizeListeners: (() => void)[] = [];
-  public readonly queries: FakePixelRatioQuery[] = [];
+  devicePixelRatio: number;
+  readonly resizeListeners: (() => void)[] = [];
+  readonly queries: FakePixelRatioQuery[] = [];
   /** The custom properties the parent declares, by name. */
-  public readonly parentStyle = new Map<string, string>();
+  readonly parentStyle = new Map<string, string>();
 
   constructor(devicePixelRatio: number) {
     this.devicePixelRatio = devicePixelRatio;
@@ -105,7 +106,7 @@ class FakeParent implements MeasurableParent {
 /** Stands in for the browser counting the parent's device pixels. */
 class FakeParentWatch {
   private onResize: ((size: DevicePixelSize | null) => void) | null = null;
-  public stopped = false;
+  stopped = false;
 
   readonly watch = (
     _target: MeasurableParent,
@@ -272,8 +273,8 @@ describe("ViewportScaler", () => {
     const { scaler, game } = await startScaler(4, 800, 600);
 
     expect([scaler.pixelRatio, game.canvas.width]).toEqual([
-      ViewportScaler.MAX_PIXEL_RATIO,
-      800 * ViewportScaler.MAX_PIXEL_RATIO,
+      MAX_PIXEL_RATIO,
+      800 * MAX_PIXEL_RATIO,
     ]);
   });
 
@@ -429,6 +430,27 @@ describe("ViewportScaler", () => {
     expect(window.latestQuery.query).toBe("(resolution: 1dppx)");
   });
 
+  it("keeps the query it watches while the ratio stays as it is", async () => {
+    const { window, parent, parentWatch } = await startScaler(2, 800, 600);
+    parent.width = 1000;
+    parent.height = 750;
+
+    parentWatch.report({ width: 2000, height: 1500 });
+
+    expect(window.queries.map((query) => query.listeners.length)).toEqual([1]);
+  });
+
+  it("watches the ratio afresh once started again", async () => {
+    const { window, scaler } = await startScaler(2);
+    scaler.stop();
+
+    scaler.start();
+
+    expect(window.queries.map((query) => query.listeners.length)).toEqual([
+      0, 1,
+    ]);
+  });
+
   it("leaves only one live pixel ratio query after a change", async () => {
     const { window } = await startScaler(2);
     window.devicePixelRatio = 1;
@@ -545,10 +567,10 @@ describe("watchDevicePixels", () => {
   class FakeResizeObserver {
     static latest: FakeResizeObserver | null = null;
     static acceptsDevicePixelBox = true;
-    public options: ResizeObserverOptions | undefined;
-    public disconnected = false;
+    options: ResizeObserverOptions | undefined;
+    disconnected = false;
 
-    constructor(public readonly callback: ResizeObserverCallback) {
+    constructor(readonly callback: ResizeObserverCallback) {
       FakeResizeObserver.latest = this;
     }
 

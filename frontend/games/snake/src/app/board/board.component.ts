@@ -18,7 +18,7 @@ import {
   type SceneSource,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
-import type { CssRect } from "@fz/phaser/layout";
+import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { BOARD_SIZE } from "../../rules/arena";
 import type { SnakeSceneOptions } from "../../scene/snake_scene";
@@ -80,9 +80,8 @@ export class BoardComponent {
    * so the placeholder sizes its squares in whole device pixels as the scene
    * does.
    */
-  protected readonly pixelRatio = Math.min(
+  protected readonly pixelRatio = canvasPixelRatio(
     this.document.defaultView?.devicePixelRatio ?? 1,
-    3,
   );
 
   /** Where the scene last laid the board out, in CSS pixels on the canvas. */

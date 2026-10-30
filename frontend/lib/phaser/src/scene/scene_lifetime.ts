@@ -41,11 +41,11 @@ export function onContextRestored(scene: Scene, listener: () => void): void {
   });
 }
 
-/** Calls `listener` once, after the scene's first frame. */
+/** Calls `listener` once, after the scene has drawn its first frame. */
 export function onFirstFrame(scene: Scene, listener: () => void): void {
-  scene.events.once(Scenes.Events.POST_UPDATE, listener);
+  scene.events.once(Scenes.Events.RENDER, listener);
   whenSceneEnds(scene, () => {
-    scene.events.off(Scenes.Events.POST_UPDATE, listener);
+    scene.events.off(Scenes.Events.RENDER, listener);
   });
 }
 

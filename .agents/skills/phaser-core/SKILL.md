@@ -47,7 +47,8 @@ capsule from one atlas baked at run time (`bakeAtlas()`).
   **`@fz/phaser/layout`** import nothing but each other, so a game's code
   without Phaser can take them. `fitCells()` in `layout` fits a field of
   cells, across by down, inside a canvas's insets, each cell whole device
-  pixels.
+  pixels, and `canvasPixelRatio()` is the ratio a canvas renders at on a
+  display, which a placeholder drawn in CSS sizes its cells by.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
   a `phaser` chunk of its own, and `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser
@@ -142,7 +143,7 @@ scene without shutting it down first, so the end is whichever comes first.
 - `whenSceneEnds(scene, release)` runs `release` then.
 - `onScaleResize()`, `onContextRestored()` and `onFirstFrame()` subscribe
   until the scene ends, for the game's scale manager, its renderer and the
-  scene's first frame.
+  scene's first frame drawn.
 - `bakeTexture()` draws a texture at run time, with a throwaway `Graphics`,
   and draws it again after a lost WebGL context, which Phaser restores only
   for textures it loaded. `bakeAtlas()` does the same for many frames in

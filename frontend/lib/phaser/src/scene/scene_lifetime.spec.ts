@@ -1,4 +1,4 @@
-import { Scene } from "phaser";
+import { Cameras, Scene } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { type SceneRun, runScene } from "../testing";
 import {
@@ -134,6 +134,20 @@ describe("onFirstFrame", () => {
     run.advance(48);
 
     expect([before, listener.mock.calls.length]).toEqual([0, 1]);
+    run.destroy();
+  });
+
+  it("calls the listener once the scene's camera has drawn", async () => {
+    const run = await runBare();
+    const heard: string[] = [];
+    onFirstFrame(run.scene, () => heard.push("ready"));
+    run.scene.cameras.main.once(Cameras.Scene2D.Events.POST_RENDER, () =>
+      heard.push("drawn"),
+    );
+
+    run.advance(16);
+
+    expect(heard).toEqual(["drawn", "ready"]);
     run.destroy();
   });
 
