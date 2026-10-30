@@ -140,7 +140,12 @@ doesn't see, so Phaser stays out of the first download.
   effect, whose kind is its group). Each has its ids in How to play's order
   and a function that returns an entry as the shape every entry has.
   `src/rules/catalog.spec.ts` holds every entry to the catalogs' rules.
-- **`src/view/`** — what to draw, without Phaser, tested in Node.
+- **`src/view/`** — what to draw and when the field moves on, without
+  Phaser, tested in Node.
+  `level_play.ts` holds `LevelPlay`, a level in play, which `GameService`
+  makes for each level and drives: its field, the clock its steps run by,
+  the frame the scene draws, the events it has handed on, the beat before
+  the next serve and the wait before a card opens.
   `field_metrics.ts` lays the field on the canvas from `fitCells()`, a unit a
   whole number of device pixels, with `toCanvasX()`/`toCanvasY()` and
   `toFieldX()`/`toFieldY()` between the two; `frame.ts` is what the scene
@@ -220,13 +225,14 @@ doesn't see, so Phaser stays out of the first download.
   run begins and whenever the last dialog closes, and pauses the level in
   play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player
   looked away.
-  - `play/` — `GameService` holds the run in a signal and the level in play's
-    field outside one, moves the field on through `tick()`, which the scene's
-    frames drive, steered as the player steers, launches, fires, pauses, goes
-    on and starts levels and runs, says what happened through
-    `@fz/ui/announcer`, adds up a cleared level's points (`tally`), keeps the
-    records and the levels cleared through `stats/`, calls for the chime for a
-    life the points brought and for a new best as its card opens (`chimes`),
+  - `play/` — `GameService` holds the run in a signal and the level in play
+    outside one, as the view's `LevelPlay`, and moves the field on through
+    `tick()`, which the scene's frames drive, steered as the player steers,
+    launches, fires, pauses, goes on and starts levels and runs, says what
+    happened through `@fz/ui/announcer`, adds up a cleared level's points
+    (`tally`), keeps the records and the levels cleared through `stats/`,
+    calls for the chime for a life the points brought and for a new best as
+    its card opens (`chimes`),
     and asks through `@fz/ui/confirm` before a new game or speed throws a run
     away. `src/app/tokens.ts` holds what a spec hands it instead of the
     game's own: the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).

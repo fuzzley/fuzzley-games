@@ -27,9 +27,6 @@ import {
   type Field,
   createField,
   launch as launchBalls,
-  serve,
-  steerField,
-  stepField,
 } from "../../rules/field";
 import { type LevelEntry, parseLevel } from "../../rules/levels";
 import type { Steer } from "../../rules/paddle";
@@ -58,10 +55,10 @@ import {
   takeUpField,
 } from "../../rules/saved_game";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
-import { advanceClock, createClock, progressOf } from "../../rules/stepper";
 import type { FieldCommand } from "../../view/controls";
-import type { EventsView, FieldFrame, FieldView } from "../../view/frame";
-import { SERVE_MS, clearedDelayMs, resultDelayMs } from "../../view/timing";
+import type { FieldFrame } from "../../view/frame";
+import { LevelPlay } from "../../view/level_play";
+import { clearedDelayMs, resultDelayMs } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
@@ -81,13 +78,6 @@ function speedQuestion(speed: Speed): ConfirmRequest {
     ...NEW_GAME_QUESTION,
     title: `Start a new ${SPEED_INFO[speed].name} game?`,
   };
-}
-
-/** The frame the scene is handed, one record written again each frame. */
-interface Frame extends FieldFrame {
-  field: FieldView;
-  alpha: number;
-  events: EventsView;
 }
 
 /**
@@ -118,21 +108,8 @@ export class GameService {
   private readonly runState = signal<Run>(
     this.create(this.settings.settings().speed, 1),
   );
-  /** The level in play, stepped in place. */
-  private field: Field = this.fieldOf(this.runState());
-  private readonly clock = createClock();
-  private readonly shown: Frame = {
-    field: this.field,
-    alpha: 0,
-    events: this.field.events,
-  };
-
-  /** The serial of the last of the field's events heard. */
-  private heard = 0;
-  /** The time the paddle has stood empty since the last ball was lost. */
-  private sinceLost = 0;
-  /** The time since the level was cleared or the run ended, while its card waits to open, or null. */
-  private sinceDone: number | null = null;
+  /** The level in play: its field, stepped in place, and the beats its play waits out. */
+  private levelPlay = new LevelPlay(this.fieldOf(this.runState()));
   /** What a frame calls to be said, gathered as it is worked out, and said at its end. */
   private readonly news: string[] = [];
 
@@ -228,7 +205,7 @@ export class GameService {
     switch (this.runState().outcome) {
       case "ready":
       case "playing":
-        this.play(deltaMs, steer);
+        this.playOn(deltaMs, steer);
         break;
       case "cleared":
         this.openAfter(deltaMs, clearedDelayMs, this.clearedOpenState);
@@ -249,11 +226,12 @@ export class GameService {
   }
 
   /**
-   * Returns the field to draw, as the game now stands: one record, written
-   * again as the game moves on, so drawing a frame allocates nothing.
+   * Returns the field to draw, as the game now stands: one record for each
+   * level, written again as the field moves on, so drawing a frame
+   * allocates nothing.
    */
   frame(): FieldFrame {
-    return this.shown;
+    return this.levelPlay.frame();
   }
 
   /** Does what a key, a click or a tap on the board asks. */
@@ -292,14 +270,15 @@ export class GameService {
       this.drawnState() &&
       (outcome === "ready" || outcome === "playing")
     ) {
+      const field = this.levelPlay.field;
       if (outcome === "ready") {
         this.stats.recordStart(this.runState().speed);
         this.runState.update(startLevel);
-        this.announcer.say(describeLevel(this.level(), this.field.needed));
+        this.announcer.say(describeLevel(this.level(), field.needed));
       }
-      launchBalls(this.field);
-      fireBolts(this.field);
-      this.servingState.set(this.field.state === "serve");
+      launchBalls(field);
+      fireBolts(field);
+      this.servingState.set(field.state === "serve");
     }
   }
 
@@ -366,7 +345,9 @@ export class GameService {
     const after = startLevel(before);
     this.showField(after);
     this.runState.set(after);
-    this.announcer.say(describeLevel(this.level(), this.field.needed));
+    this.announcer.say(
+      describeLevel(this.level(), this.levelPlay.field.needed),
+    );
   }
 
   /**
@@ -409,7 +390,7 @@ export class GameService {
    * or null for a run with nothing to keep.
    */
   saved(): SavedGame | null {
-    return saveGame(this.runState(), this.field, this.levels);
+    return saveGame(this.runState(), this.levelPlay.field, this.levels);
   }
 
   /**
@@ -419,7 +400,7 @@ export class GameService {
   takeUp({ run, field }: TakenUp): void {
     this.lastId = Math.max(this.lastId, run.id);
     this.begin(run);
-    takeUpField(this.field, field, run);
+    takeUpField(this.levelPlay.field, field, run);
     this.announcer.say(describeTakenUp(run, this.level()));
   }
 
@@ -439,30 +420,18 @@ export class GameService {
    * into the run, then, with the level still in play, serves again once a
    * lost ball's beat has run.
    */
-  private play(deltaMs: number, steer: Readonly<Steer>): void {
-    const field = this.field;
+  private playOn(deltaMs: number, steer: Readonly<Steer>): void {
+    const field = this.levelPlay.field;
     const needed = field.needed;
-    steerField(field, steer);
-    const steps = advanceClock(this.clock, deltaMs);
-    for (let i = 0; i < steps; i++) stepField(field);
-    this.shown.alpha = progressOf(this.clock);
-    field.events.forEachSince(this.heard, this.hear);
-    this.heard = field.events.latest;
+    this.levelPlay.advance(deltaMs, steer, this.hear);
     const fewLeft = describeFewLeft(needed, field.needed);
     if (fewLeft !== null) this.news.push(fewLeft);
     this.takeIn(catchUp(this.runState(), field));
-    if (this.runState().outcome === "playing") this.serveAfterLoss(deltaMs);
+    if (this.runState().outcome === "playing") {
+      this.levelPlay.serveAfterLoss(deltaMs);
+    }
     this.servingState.set(field.state === "serve");
     this.multiplierState.set(multiplier(field.streak));
-  }
-
-  /** Puts the next ball on the paddle once the last one lost has had its beat. */
-  private serveAfterLoss(deltaMs: number): void {
-    if (this.field.state !== "lost") return;
-    this.sinceLost += deltaMs;
-    if (this.sinceLost < SERVE_MS) return;
-    serve(this.field);
-    this.sinceLost = 0;
   }
 
   /**
@@ -493,13 +462,13 @@ export class GameService {
     const lives = describeLives(before, after);
     if (lives !== null) this.news.push(lives);
     if (after.outcome === "cleared") {
-      this.sinceDone = 0;
-      const tally = tallyOf(this.field);
+      this.levelPlay.startCardWait();
+      const tally = tallyOf(this.levelPlay.field);
       this.tallyState.set(tally);
       this.keepCleared(after, tally);
       this.news.push(describeCleared(after));
     } else if (after.outcome === "won") {
-      this.keepCleared(after, tallyOf(this.field));
+      this.keepCleared(after, tallyOf(this.levelPlay.field));
       this.end(after);
     }
   }
@@ -513,7 +482,7 @@ export class GameService {
 
   /** Keeps an ended run's score and reach, and says how it ended. */
   private end(run: Run): void {
-    this.sinceDone = 0;
+    this.levelPlay.startCardWait();
     const newBest = this.stats.recordEnd(run);
     this.newBestState.set(newBest);
     this.news.push(describeEnd(run, newBest));
@@ -533,11 +502,9 @@ export class GameService {
     delayMs: (motion: boolean) => number,
     card: WritableSignal<boolean>,
   ): boolean {
-    if (this.sinceDone === null) return false;
-    this.sinceDone += deltaMs;
-    if (this.sinceDone < delayMs(this.viewport.allowsMotion())) return false;
+    const waitMs = delayMs(this.viewport.allowsMotion());
+    if (!this.levelPlay.countCardWait(deltaMs, waitMs)) return false;
     card.set(true);
-    this.sinceDone = null;
     return true;
   }
 
@@ -593,14 +560,7 @@ export class GameService {
 
   /** Lays out the run's level in play on a new field, with nothing of the last one left. */
   private showField(run: Run): void {
-    this.field = this.fieldOf(run);
-    this.shown.field = this.field;
-    this.shown.events = this.field.events;
-    this.shown.alpha = 0;
-    this.clock.carried = 0;
-    this.heard = 0;
-    this.sinceLost = 0;
-    this.sinceDone = null;
+    this.levelPlay = new LevelPlay(this.fieldOf(run));
     this.servingState.set(true);
     this.multiplierState.set(1);
     this.clearedOpenState.set(false);
