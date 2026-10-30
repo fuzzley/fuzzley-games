@@ -28,10 +28,10 @@ log is at its end.
 
 ## Part 1: the fixes
 
-- **G1. Each key event once.** Phaser's keyboard plugin hands over every
-  key event of a frame again with each new one, so from the third key of a
-  frame on, every key before it is handed over again. Brick Breaker's scene keeps the events it took in a
-  `WeakSet`; Snake's has no guard, so it could repeat a turn. A helper in
+- **G1. Each key event once.** Phaser's keyboard plugin runs through the
+  frame's whole queue of key events as each new one comes, so from the
+  third key of a frame on, every key before it is handed over again. Brick
+  Breaker's scene keeps the events it took in a `WeakSet`; Snake's has no guard, so it could repeat a turn. A helper in
   `@fz/phaser/scene` listens for keys pressed or let go and hands each over
   once, both scenes use it, and its spec holds a frame of several keys to
   one call each. The `phaser-core` skill and `@fz/phaser`'s `AGENTS.md`
@@ -112,14 +112,15 @@ log is at its end.
 
 ### G2: Snake's card buttons keep their keys
 
-- **Built:** Resume and New Game, the two buttons on the cards over the
-  board, keep their keydown and keyup (`keepKey()`, which stops the event
-  at the button), as Brick Breaker's cards do. Space on a focused Resume
-  bubbled to the board: the scene heard it and went on, and Phaser's
-  capture cancelled the keyup the browser clicks the button at, so the card
-  went with the focus on it. Now the button takes the key, and its click
-  hands the board the focus. Reload is left as it is: it shows only when
-  the board couldn't be drawn, so no scene hears the keys.
+- **Built:** Resume and New Game, the two buttons on the cards over the board,
+  keep their keydown and keyup (`keepKey()`, which stops the event at the
+  button), as Brick Breaker's cards do. Space on a focused Resume bubbled to
+  the board: the scene heard it and went on, and Phaser's capture cancelled
+  the keyup the browser clicks the button at, so the card went with the focus
+  on it. Now the button takes the key: Resume's click hands the board the
+  focus, and the board takes it as New Game's run begins (corrected by G2's
+  review). Reload is left as it is: it shows only when the board couldn't be
+  drawn, so no scene hears the keys.
 - **The scene's guard went:** it ignored Enter on a button over the board,
   which no key from a card's button reaches now. Its spec went with it.
 - **Words:** the board's description of its keys ends "On a card's button,
@@ -134,13 +135,14 @@ log is at its end.
 
 ### G3: Snake's specs play the same apples every run
 
-- **Cause:** Brick Breaker's log put the result spec's one failure, 2, 2
-  and 5 for 1, 1 and 4, down to load. It wasn't. `GameService` seeds each
-  run from `GAME_RANDOM`, which is `Math.random` unless a spec provides
-  another, and none did. A run lost heading right eats the first apple,
-  always at (12, 8), then crashes four squares on, and the second apple
-  falls where the seed says. A probe over 1,000 sources found 13 that lay
-  it in those four squares (0.121, 0.154, … 0.983), so the run eats two.
+- **Cause:** Brick Breaker's log put the result spec's one failure, 2, 2 and 5
+  for 1, 1 and 4, down to load. It wasn't. `GameService` seeds each run from
+  `GAME_RANDOM`, which is `Math.random` unless a spec provides another, and
+  none did. A run lost heading right eats the first apple, always at (12, 8),
+  then crashes four squares on, and the second apple falls where the seed
+  says. A probe over 1,000 values of the random source, 0.000 to 0.999, found
+  13 that lay it in those four squares (0.121, 0.154, … 0.983), so the run
+  eats two.
 - **Built:** `provideSeededRuns()` in `src/testing/play.ts` gives every run
   the same seed, from a source of 0.5, which lays the second apple out of
   the way. The result spec renders with it. With 0.121 in its place, the
@@ -179,7 +181,8 @@ listeners were gone after a restart, and a key is heard before any
    sibling helper has, and "hands every listener each key", which a
    module-wide `WeakSet` fails (tried: it does).
 5. **A spec of both helpers sat under `onKeyUp`.** **Fixed:** it is on the
-   outer `describe`, "hand each helper only its own kind of key event".
+   outer `describe`, "hand each listener only its own kind of key event"
+   (worded so by G4's review).
 6. **Snake's handler was still `onKey()`,** where `on…` now means
    subscribing. **Fixed:** `press()`, as Brick Breaker's.
 7. **Two awkward sentences** in the games' `AGENTS.md`. **Fixed:** "each
@@ -200,7 +203,7 @@ listeners were gone after a restart, and a key is heard before any
 ### G3's review (d76297f2)
 
 The reviewer confirmed the diagnosis in a script of its own: the same 13
-sources, 0.5 eating one and 0.121 two, and 1.42% over a million runs of
+values, 0.5 eating one and 0.121 two, and 1.42% over a million runs of
 `Math.random`, as 4 of the 285 squares free lie ahead. It found no other
 spec the seed could fail today. Every finding was taken.
 
@@ -222,7 +225,8 @@ spec the seed could fail today. Every finding was taken.
    `GAME_RANDOM`, `Math.random` unless a spec provides another", with the
    rate as its cause, one run in 70, rather than a sample.
 5. **"A probe over 1,000 sources"** is clearer as 1,000 values of the
-   random source, 0.000 to 0.999, as this entry has it.
+   random source, 0.000 to 0.999. **Fixed** in G3's entry, by G4's
+   review, which found it left as it was.
 6. **`renderEnded()`'s doc** had the seed wedged in. **Fixed:** its doc is
    as it was, and the provider says what it does.
 
@@ -281,11 +285,13 @@ stands above the board. Every finding was taken.
 
 ### G4: Snake's screenshot script waits for a host not yet rendered
 
-- **What went wrong:** `describePage()` in
-  `tools/capture-screenshots.mjs` waited while the canvas host said
-  `loading`, and a host not yet rendered says nothing, so the wait ended
-  at once on a page that hadn't drawn the canvas yet. The 800 ms after it
-  usually covered it, and a slow first load would capture an empty board.
+- **What went wrong:** `describePage()` in `tools/capture-screenshots.mjs`
+  waited while the canvas host said `loading`, and a host not yet rendered
+  says nothing, so the wait ended at once on a page that hadn't drawn the
+  canvas yet. Only the 800 ms after it was left: a scene ready within them was
+  captured, perhaps before the apple's pop and the placeholder's fade had
+  finished, and one slower failed the capture, which takes only a board that
+  says it is ready (corrected by G4's review).
 - **Built:** a host not yet rendered counts as loading, as Brick Breaker's
   script has since B13's review, with the same comment.
 - **Checks:** Snake's lint and typecheck pass (the script is checked from
@@ -363,3 +369,81 @@ way.
 - **Checks:** lint, typecheck and test pass in `@fz/style` (251 tests),
   Minesweeper (376), Sudoku (591), Snake (399) and Brick Breaker (1,753),
   and Prettier and the references.
+
+### G4's review (3e8faf8b, with 1e20ccfe and 1a82886f)
+
+The reviewer ran a probe of two keys in a frame (nothing replayed), and a
+module-wide `WeakSet` (the new spec fails it). It found the seed in every
+spec that plays to an end, and the skill's account of Phaser's keys true
+to Phaser's source. Every finding was taken but the last.
+
+1. **The corrected wording wasn't everywhere.** `@fz/phaser`'s `AGENTS.md`
+   still said every key of a frame is handed over again with each new one,
+   and this plan's G1 kept the old clause before the new. **Fixed:** the
+   library's `AGENTS.md` says only what the helpers do, and G1 says how
+   Phaser runs through the frame's queue.
+2. **The helpers' docs overstated the replay,** which spares the first key
+   when the second comes, and packed the reason into the summary. **Fixed:**
+   each says what it does in one sentence, then that Phaser's own key
+   events hand a frame's earlier keys over again from its third key on;
+   the private helper's doc no longer repeats it.
+3. **No spec held a held key's repeats,** though the commit said so.
+   **Fixed:** "hears a held key's repeats, which a scene tells apart
+   itself".
+4. **G4's entry got the old failure wrong:** the capture takes only a board
+   that says it is ready, so a slow load failed it rather than capturing an
+   empty board. **Fixed** in the entry.
+5. **"Hand each helper only its own kind of key event"** read oddly.
+   **Fixed:** "each listener".
+6. **`key()`'s doc opened with two sentences,** and named `advance()`,
+   which can run several frames. **Fixed:** what it sends, then a paragraph
+   on what Phaser does with it "until the next frame ends".
+7. **G3's review entry left item 5 without a verdict,** and still said
+   "sources". **Fixed:** "values" in G3's entry and its review's, and item 5
+   says so.
+
+- **Not taken:** the wait in Snake's and Brick Breaker's `describePage()`
+  could be `@fz/dev`'s `settle()`, exported. Those scripts wait for a state
+  and then a fixed time for the flourishes, which `settle()` doesn't; G8
+  lifts the layout check's runner, not the screenshots'.
+
+### G5's review (5b5569c1, with d635611f)
+
+The reviewer took `fzKeepKeys` out of both games in a scratch copy: three
+of Snake's specs and three of Brick Breaker's fail, and New Game's `runs`
+check now fails alone. It found G5 right as it is, as
+`ConfirmDialogComponent`'s doc and the `fuzzley-ui` skill already say an
+app puts one confirmation in its root template. Every finding was taken
+but one nit.
+
+1. **G2's entry still said New Game's click hands the board the focus.**
+   **Fixed** there, as G1's review set the way.
+2. **user-event sends Space with no `keyCode`,** so Phaser's capture
+   cancels nothing in Snake's Resume specs: they fail without the directive
+   because the scene hears the key, not because the keyup is cancelled.
+   Only the directive's spec, with `fireEvent` and the key code, covers the
+   cancellation. **Fixed:** the `phaser-core` skill's testing section says
+   so, and how to send a key a capture sees.
+3. **The directive's spec:** `pressSpace()` returns a flag for each event,
+   the control case's title read awkwardly, and `run?.advance()` hid a
+   nullable. **Fixed:** its doc, "lets a key on an element without it
+   reach the scene, which cancels it", and `renderBoard()` returns the run.
+4. **"Go on at %s on Resume"** sat among singular titles. **Fixed:** "goes
+   on".
+5. **Brick Breaker's `AGENTS.md`** lost that Resume and Next level hand the
+   board back the focus, and said the scene captures the arrows, where it
+   captures Left, Right, Up and Space. **Fixed:** both.
+6. **The new docs read heavily.** **Fixed:** the directive's first sentence
+   says it stops key events reaching the board, and its second paragraph no
+   longer repeats the target; `@fz/phaser`'s `AGENTS.md` says what it stops
+   without naming a board it never defines; the skill's bullet leads with
+   where a captured key is cancelled, the `fzKeepKeys` bullet says the scene
+   acts on Enter or Space as the button would, and the library's list names
+   `fzKeepKeys` under `@fz/phaser/canvas`.
+
+- **Not taken:** `keep(event: Event)` would do; `KeyboardEvent` says what
+  the host listens for.
+
+- **Checks** for both reviews' fixes: lint, typecheck and test pass in
+  `@fz/phaser` (266 tests) and Snake (399), and Prettier and the
+  references. Brick Breaker's change is to its `AGENTS.md` alone.

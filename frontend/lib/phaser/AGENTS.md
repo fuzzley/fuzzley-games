@@ -34,11 +34,10 @@ take the pure ones.
   `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
   `onFirstFrame()`, which let go of what they subscribe to when the scene
   ends; `onKeyDown()` and `onKeyUp()`, which hand a scene each key event its
-  keyboard hears once, where Phaser hands every key event of a frame over
-  again with each new one; `pixelRatioOf()`; `bakeTexture()`, a texture drawn
-  at run time and drawn again after a lost context; and `bakeAtlas()`, many
-  named frames drawn into one such texture, after which every object showing
-  one of its frames sets it again. It imports Phaser, never Angular.
+  keyboard hears once; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at
+  run time and drawn again after a lost context; and `bakeAtlas()`, many named
+  frames drawn into one such texture, after which every object showing one of
+  its frames sets it again. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never
   waits for it, and plays its sounds, named by the spritemap, once it has
@@ -54,10 +53,10 @@ take the pure ones.
   say so (`data-slow`); and what the app projects as `[fzCanvasPlaceholder]`
   lies over the canvas until the scene is ready. It imports the host, and so
   Phaser, with `import()`, when it first shows a scene. Beside it,
-  `fzKeepKeys` (`KeepKeysDirective`) keeps a key pressed or let go on a button
-  over the board, the keyboard's target, from the board, so the button takes
-  it rather than the scene, and Space's keyup, at which the button clicks,
-  isn't cancelled by Phaser's capture.
+  `fzKeepKeys` (`KeepKeysDirective`) stops key events on a button from
+  reaching the element around it that Phaser's keyboard listens on, so the
+  button takes the key rather than the scene, and Phaser's capture never
+  cancels Space's keyup, at which the button clicks.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
   which a test setup calls, gives jsdom the 2D and WebGL contexts, drawing
   nothing, that Phaser needs, a canvas's picture as a `data:` URL that

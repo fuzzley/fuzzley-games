@@ -5,8 +5,10 @@ export type KeyListener = (event: KeyboardEvent) => void;
 
 /**
  * Calls `listener` once for each key pressed on the scene's keyboard, a held
- * key's repeats among them, until the scene ends, where Phaser's own key
- * events would hand it over again with each later key of its frame.
+ * key's repeats included, until the scene ends.
+ *
+ * Phaser's own key events hand a frame's earlier keys over again from its
+ * third key on.
  */
 export function onKeyDown(scene: Scene, listener: KeyListener): void {
   onEachKey(scene, Input.Keyboard.Events.ANY_KEY_DOWN, listener);
@@ -14,8 +16,10 @@ export function onKeyDown(scene: Scene, listener: KeyListener): void {
 
 /**
  * Calls `listener` once for each key let go on the scene's keyboard, until
- * the scene ends, where Phaser's own key events would hand it over again
- * with each later key of its frame.
+ * the scene ends.
+ *
+ * Phaser's own key events hand a frame's earlier keys over again from its
+ * third key on.
  */
 export function onKeyUp(scene: Scene, listener: KeyListener): void {
   onEachKey(scene, Input.Keyboard.Events.ANY_KEY_UP, listener);
@@ -27,8 +31,7 @@ export function onKeyUp(scene: Scene, listener: KeyListener): void {
  * then.
  *
  * Phaser runs through the frame's whole queue of key events as each new one
- * comes, and drops only an event that repeats the one just before, so from
- * the third key of a frame on, every key before it is handed over again.
+ * comes, and drops only an event that repeats the one just before.
  */
 function onEachKey(scene: Scene, name: string, listener: KeyListener): void {
   const taken = new WeakSet<KeyboardEvent>();
