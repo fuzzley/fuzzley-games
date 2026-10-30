@@ -15,6 +15,7 @@ import {
   provideSpecLevels,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
+import { StatsService } from "../stats/stats.service";
 import { ResultComponent } from "./result.component";
 
 /** What a spec gets back from rendering the card. */
@@ -47,9 +48,13 @@ async function renderAt(
   };
 }
 
-/** Renders the card over a run lost on its second level, the card open. */
-async function renderLost(): Promise<RenderedResult> {
+/** Renders the card over a run lost on its second level, the card open, with a best kept before it if given. */
+async function renderLost(bestBefore = 0): Promise<RenderedResult> {
   const rendered = await renderAt(SPEC_LEVEL.blasts);
+  TestBed.inject(StatsService).recordEnd({
+    ...rendered.game.run(),
+    score: bestBefore,
+  });
   clearToNext(rendered.game);
   for (let life = 0; life < FIRST_LIVES; life++) loseBall(rendered.game);
   rendered.game.tick(FRAME_MS, STILL);
@@ -103,10 +108,21 @@ describe("ResultComponent", () => {
     ]);
   });
 
-  it("calls a score above the best a new best", async () => {
+  it("calls a score above the best a new best, with the trophy", async () => {
     await renderLost();
 
     expect(screen.getByText("New best")).toBeVisible();
+    // The trophy is hidden from assistive technology, which "New best" tells.
+    expect(document.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
+  });
+
+  it("shows the best a run fell short of, and no new best", async () => {
+    await renderLost(9000);
+
+    expect({
+      best: figures().find(([term]) => term === "Best")?.[1],
+      newBest: screen.queryByText("New best"),
+    }).toEqual({ best: "9000", newBest: null });
   });
 
   it("calls no score a new best", async () => {

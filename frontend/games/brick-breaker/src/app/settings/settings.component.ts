@@ -58,7 +58,7 @@ export class SettingsComponent {
   readonly closed = output();
 
   protected readonly speeds = computed(() => {
-    const current = this.game.run().speed;
+    const current = this.game.speed();
     return SPEEDS.map((id) => ({
       id,
       name: SPEED_INFO[id].name,
@@ -78,7 +78,7 @@ export class SettingsComponent {
 
   /** Starts a run at the speed chosen, unless it is the speed in use. */
   protected async chooseSpeed(speed: Speed): Promise<void> {
-    if (speed === this.game.run().speed) return;
+    if (speed === this.game.speed()) return;
     await this.game.changeSpeed(speed);
   }
 

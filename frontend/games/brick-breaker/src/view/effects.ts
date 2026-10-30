@@ -83,8 +83,11 @@ export function detuneOf(event: Readonly<FieldEvent>): number {
   return Math.min((event.streak - 1) * STREAK_STEP_CENTS, STREAK_MOST_CENTS);
 }
 
-/** What `FrameSounds` holds for a sound not heard: below any rise. */
-const UNHEARD = -1;
+/** The sound a level cleared plays, which a life by points and a new best share. */
+export const CHIME: SoundName = "cleared";
+
+/** What `FrameSounds` holds for a sound not heard: below any rise or fall. */
+const UNHEARD = Number.NEGATIVE_INFINITY;
 
 /**
  * Gathers the sounds a frame's events call for, so each plays once, at the

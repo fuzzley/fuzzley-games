@@ -71,6 +71,18 @@ describe("StatsService", () => {
     });
   });
 
+  it("keeps the best through a lower score", () => {
+    const stats = TestBed.inject(StatsService);
+    stats.recordEnd(endedRun("normal", 600, 1));
+
+    const newBest = stats.recordEnd(endedRun("normal", 500, 1));
+
+    expect({ newBest, best: stats.stats().speeds.normal.best }).toEqual({
+      newBest: false,
+      best: 600,
+    });
+  });
+
   it("calls no score a new best", () => {
     const stats = TestBed.inject(StatsService);
 

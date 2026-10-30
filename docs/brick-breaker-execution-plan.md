@@ -1444,9 +1444,11 @@ One folder per feature under `src/app/`, as in the other games:
   - **Ended,** once the result card is put away, with New game.
   - **Still loading** and **couldn't be drawn,** as Snake's.
 - **`bar/`:** the link home; "Brick Breaker" with the speed as a
-  `<fz-bar-choice>` badge; the level, the score, the best, the lives as
-  hearts as Minesweeper draws them, and the streak's multiplier while it is
-  above one; then Pause, Sound, Levels, New game, How to play and Settings.
+  `<fz-bar-choice>` badge; the level, the score, the lives as hearts as
+  Minesweeper draws them, and the streak's multiplier while it is above
+  one; then Pause, Sound, Levels, New game, How to play and Settings. The
+  best shows on the result card and in the Levels dialog: B10.1 found no
+  room for it in the bar beside a six-figure score.
   On a compact screen, Pause and New game stay and the rest go in the
   overflow menu.
 - **`levels/`:** the Levels dialog: each set under its name, its levels as

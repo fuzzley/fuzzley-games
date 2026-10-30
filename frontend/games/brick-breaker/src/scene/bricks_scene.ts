@@ -14,12 +14,13 @@ import {
 import { brickColor } from "../view/brick_art";
 import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
 import {
-  type Flourish,
-  FrameSounds,
-  type SoundName,
+  CHIME,
   detuneOf,
   effectsOf,
+  type Flourish,
   flourishesOf,
+  FrameSounds,
+  type SoundName,
 } from "../view/effects";
 import { type FieldMetrics, fieldMetrics } from "../view/field_metrics";
 import { glowAlpha } from "../view/flourish";
@@ -208,7 +209,7 @@ export class BricksScene extends Scene {
     const chimes = this.options.chimes();
     if (chimes !== this.chimed) {
       this.chimed = chimes;
-      this.frameSounds.hear("cleared", 0);
+      this.frameSounds.hear(CHIME, 0);
     }
     this.frameSounds.playEach(this.playSound);
     this.draw(frame);

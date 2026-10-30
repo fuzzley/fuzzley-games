@@ -3,7 +3,7 @@ import { isRecord, isWhole } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import type { Run } from "../../rules/run";
 import { SPEEDS, type Speed } from "../../rules/speed";
-import { GAME_LEVELS } from "../play/tokens";
+import { GAME_LEVELS } from "../tokens";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "brick-breaker-stats";
@@ -54,7 +54,10 @@ export class StatsService {
 
   /** Counts a run started at a speed. */
   recordStart(speed: Speed): void {
-    this.changeSpeed(speed, (stats) => ({ ...stats, runs: stats.runs + 1 }));
+    this.changeSpeedStats(speed, (stats) => ({
+      ...stats,
+      runs: stats.runs + 1,
+    }));
   }
 
   /**
@@ -63,7 +66,7 @@ export class StatsService {
    */
   recordEnd(run: Run): boolean {
     const before = this.state().speeds[run.speed].best;
-    this.changeSpeed(run.speed, (stats) => ({
+    this.changeSpeedStats(run.speed, (stats) => ({
       runs: Math.max(stats.runs, 1),
       best: Math.max(stats.best, run.score),
       furthest: Math.max(stats.furthest, run.level),
@@ -81,7 +84,7 @@ export class StatsService {
     }));
   }
 
-  private changeSpeed(
+  private changeSpeedStats(
     speed: Speed,
     update: (stats: SpeedStats) => SpeedStats,
   ): void {
