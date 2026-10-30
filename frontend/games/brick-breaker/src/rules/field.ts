@@ -17,6 +17,7 @@ import {
   hitAround,
   hitBrick,
   isNeeded,
+  neededLeft,
   stepBricks,
 } from "./bricks";
 import {
@@ -256,7 +257,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
       const brick = bricks[cellIndex(column, row)];
       return !!brick && !brick.broken && !canBreak(brick);
     },
-    needed: bricks.filter((brick) => brick && isNeeded(brick)).length,
+    needed: neededLeft(bricks),
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
     score: 0,

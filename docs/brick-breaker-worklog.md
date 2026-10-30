@@ -2948,3 +2948,98 @@ the last life and the place of a lost ball were set from the page.
 - **Checks.** Lint, typecheck and test in the workspace (Brick Breaker's
   1,641), and the references check. AGENTS.md names the set, the report's
   option and the catalog spec's shorter list.
+
+## B10.2's review (cb7b4d43, with 089163a3)
+
+The reviewer found no bug in what a normal run does. They proved five things
+by running them:
+
+- a ball lost before a reload isn't given back;
+- a save at a level's first serve is taken up;
+- a confirmed New game forgets the old run;
+- a run taken up is counted once;
+- a lit blast goes off after the take-up.
+
+The specs were the weak spot: 20 of their 21 mutants passed the whole suite.
+
+1. **Most of `takeUpField()` could be deleted unnoticed.** **Fixed:**
+   - The rules spec's level now holds a hidden brick, hit, and another not
+     hit, a regrowing brick, a blast brick and steel. Its played field has a
+     lit fuse, a regrowth due, a streak, a climb, draws, and a life gained
+     and one lost.
+   - The take-up spec saves the field taken up and expects what the field
+     played saves.
+   - A second spec checks the points, the lives and the bricks still
+     needed.
+   - The service's spec loses a ball, reloads, goes on and keeps two lives.
+     It also sets off a fuse lit before the reload.
+2. **No spec took up a save made before anything scored.** **Fixed:** a
+   service spec serves, reloads and expects the run paused.
+3. **The take-up announcement was never spoken.** `takeUp()` runs from the
+   app's initializer, before `<fz-announcer>` exists, so the region arrived
+   with its words in it. Snake, Minesweeper and Sudoku take up their games
+   the same way. **Fixed in `@fz/ui`:**
+   - `AnnouncerComponent` starts empty when words were said before it was
+     in the page.
+   - It says them once it has been there `ARRIVAL_MS` (100 ms).
+   - What is said later shows at once, as before.
+
+   A spec renders it after the service spoke, and reads it empty, then
+   speaking. The library's `AGENTS.md` says so.
+
+4. **The reader took states no run comes to.** **Fixed.** `restoreGame()`
+   now also drops:
+   - a level with nothing it needs left;
+   - a breakable brick broken with hits left, or whole without any;
+   - steel kept broken;
+   - a brick hidden whose kind doesn't hide, or hidden once hit;
+   - a fuse on a brick that doesn't blast, or isn't broken;
+   - a regrowth on a brick that doesn't regrow;
+   - a level kept as not begun, with points or lives on it;
+   - a next life off the ladder: `run.ts`'s new `nextLifeAfter()` works it
+     out from the score;
+   - a count too large to step by one (`Number.isSafeInteger`).
+
+   The cells' kinds are still not stored. A level redrawn under the same id
+   fails these checks wherever a cell's kind changed in a way its state
+   shows, and the version would change before any such redraw.
+
+5. **Nine guards were unproven.** **Fixed:** a spoiled case for each, every
+   new guard's own, and a round trip at six lives.
+6. **Two of the service's promises had no spec.** **Fixed:**
+   - "forgets a run thrown away for a new one".
+   - "doesn't write the run as it scores", played on the Few level until it
+     scores.
+7. **A reload rescues a ball already past the paddle. Not changed.**
+   Decision 16 puts the ball back on the paddle, so a reload can rescue any
+   ball heading for a miss, not only one already past. Guarding only the
+   last 2.5 units would leave that open, and would end a run on a reload
+   without its record. It is a question for the user.
+8. **Readability.** **Fixed:**
+   - The effect no longer tracks `level()`, which every level change
+     already changes through `outcome` or `runs`.
+   - `restoredField()` returns `{ field }`, or null when it can't be
+     trusted.
+   - `SavedGame.speed` is a `Speed`.
+   - `neededLeft()`, in `bricks.ts`, counts the bricks still needed for
+     `createField()` and the take-up alike.
+   - The take-up loop walks the cells.
+   - The scene's imports are in ASCII order again.
+   - `EVENT_EFFECTS.cleared` plays `CHIME`, which is declared above it.
+9. **Docs.** **Fixed:**
+   - What It Keeps names the draws, the climb and the streak's points.
+   - `AGENTS.md` says the run is forgotten once it ends or another begins.
+   - The service's comment is down to when it writes.
+10. **B10.1's `speed()` in the Levels dialog is unspecced.** `speed()` is
+    worked out from the run, so it always equals `run().speed`. The change
+    only spares the grid a rebuild at every point, which no public
+    behaviour shows. It stays unspecced.
+11. **A run waiting for its first serve isn't kept,** so a level chosen and
+    not yet served is lost on a reload. That is intended: nothing was played,
+    and the level is one click away in Levels.
+
+- **Mutants.** The reviewer's twenty survivors were run again: each fails now.
+  So do ten mutants of the new guards, including one that hides every
+  hidden brick and one that keeps none shown.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,673,
+  `@fz/ui`'s 182, Snake's 395), build, clean on the first run.

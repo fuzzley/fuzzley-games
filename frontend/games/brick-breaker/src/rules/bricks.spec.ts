@@ -7,7 +7,7 @@ import {
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
-import { hitBrick } from "./bricks";
+import { hitBrick, neededLeft } from "./bricks";
 import { BRICK_KINDS } from "./catalog/bricks";
 import type { Field } from "./field";
 import { cellIndex } from "./grid";
@@ -319,5 +319,14 @@ describe("a brick that regrows", () => {
     stepTimes(field, 30);
 
     expect(brickAt(field, 0, 0).broken).toBe(false);
+  });
+});
+
+describe("neededLeft", () => {
+  it("counts the bricks a level needs that are not yet broken", () => {
+    const field = fieldFrom(["o2#+~*"]);
+    hitAt(field, 0, 0);
+
+    expect(neededLeft(field.bricks)).toBe(3);
   });
 });

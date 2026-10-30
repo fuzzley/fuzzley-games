@@ -103,8 +103,11 @@ the scene and the shell's first files exist.
   into what storage keeps (`saveGame()`), a run whose level was just cleared
   as the next level not yet begun, and back (`restoreGame()`), paused,
   dropping a level the game doesn't have under that number, a field that
-  doesn't fit its level, or a number out of its range; `takeUpField()` lays
-  the bricks and counts kept over a new field of the level.
+  doesn't fit its level, a number out of its range, or a state no run comes
+  to, such as a brick broken with hits left or a level that needs nothing
+  more; `takeUpField()` lays the bricks and counts kept over a new field of
+  the level. `run.ts`'s `nextLifeAfter()` gives the mark the next life comes
+  at from a score, which a kept run's must match.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -212,10 +215,10 @@ the scene and the shell's first files exist.
     game's own: the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
-    as the page goes away, never at a step, and forgets it once the run ends;
-    `main.ts` starts it before the board first shows, and it takes up the run
-    kept (`takeUp()`), paused with the ball on the paddle, its bricks as they
-    were.
+    as the page goes away, never at a step, and forgets it once the run ends
+    or another begins; `main.ts` starts it before the board first shows, and
+    it takes up the run kept (`takeUp()`), paused with the ball on the
+    paddle, its bricks as they were.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with
     `import()`; the empty field and the paddle drawn in CSS until the
     scene has drawn; the focus ring; the pointer hidden while a ball is in
@@ -283,7 +286,8 @@ can't trust rather than failing:
   which open the levels after them. Ids no level has any more are dropped.
 - `brick-breaker-game`: the run under way and its level's bricks, each
   brick's hits left, whether it is broken or shown, and the steps its blast
-  and its regrowth are due at, with the field's count of steps. The balls
+  and its regrowth are due at, with the field's count of steps, its draws,
+  how far the balls' speed has climbed, and the streak's points. The balls
   in flight, the capsules and the effects are not kept (decision 16).
 
 ## Development Commands
