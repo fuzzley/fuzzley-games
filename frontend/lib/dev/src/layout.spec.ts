@@ -378,7 +378,7 @@ describe("runLayoutScript", () => {
       runChrome: fakeChrome(),
     });
 
-    await expect(fetch(kept[0] ?? "")).rejects.toThrow();
+    await expect(fetch(kept[0] ?? "")).rejects.toThrow("fetch failed");
   });
 
   it("throws what the checks throw, and stops serving the build", async () => {
@@ -392,7 +392,7 @@ describe("runLayoutScript", () => {
     });
 
     await expect(running).rejects.toThrow("Chrome went away.");
-    await expect(fetch(kept[0] ?? "")).rejects.toThrow();
+    await expect(fetch(kept[0] ?? "")).rejects.toThrow("fetch failed");
   });
 
   it("says the layout holds where nothing is wrong, and succeeds", async () => {

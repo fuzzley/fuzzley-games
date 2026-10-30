@@ -114,8 +114,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   serves the build as `yarn preview` does, runs the checks in a headless
   Chrome and prints what is wrong, or that the layout holds. It returns the
   exit code, 1 for a layout that doesn't hold and 2 for an option it doesn't
-  know, and throws where it can't check at all, for a game with no build or no
-  Chrome to run.
+  know, and throws where it can't check at all, such as for a game with no
+  build, no Chrome to run, or a page that never draws.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),

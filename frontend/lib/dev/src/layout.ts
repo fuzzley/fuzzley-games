@@ -216,7 +216,8 @@ export interface LayoutScriptOptions {
  * that the layout holds.
  *
  * It throws, rather than returning a code, where it can't run the checks at
- * all: for a game with no build, or no Chrome to run.
+ * all, such as for a game with no build, no Chrome to run, or a page that
+ * never draws.
  */
 export async function runLayoutScript(
   script: LayoutScript,
@@ -225,21 +226,9 @@ export async function runLayoutScript(
     runChrome = withChrome,
   }: LayoutScriptOptions = {},
 ): Promise<number> {
-  let values: { chrome?: string | undefined; help?: boolean | undefined };
-  try {
-    ({ values } = parseArgs({
-      args: [...args],
-      options: {
-        chrome: { type: "string" },
-        help: { type: "boolean", short: "h" },
-      },
-    }));
-  } catch (error) {
-    if (!isUsageError(error)) throw error;
-    console.error(`${error.message}\n\n${usage(script.game)}`);
-    return 2;
-  }
-  if (values.help) {
+  const options = readCommandLine(args, script.game);
+  if (!options) return 2;
+  if (options.help) {
     console.log(usage(script.game));
     return 0;
   }
@@ -255,7 +244,7 @@ export async function runLayoutScript(
     const url = server.resolvedUrls?.local[0];
     if (!url) throw new Error("The preview server gave no address.");
     const problems = await runChrome(
-      { chrome: values.chrome, name: basename(script.root) },
+      { chrome: options.chrome, name: basename(script.root) },
       (devtools) => script.check(devtools, url),
     );
     for (const { shape, problem } of problems) {
@@ -266,6 +255,26 @@ export async function runLayoutScript(
     return 0;
   } finally {
     await server.close();
+  }
+}
+
+/**
+ * Returns the options a layout script's command line gives, or nothing once
+ * it has reported an option it can't read, with the game's usage.
+ */
+function readCommandLine(args: readonly string[], game: string) {
+  try {
+    return parseArgs({
+      args: [...args],
+      options: {
+        chrome: { type: "string" },
+        help: { type: "boolean", short: "h" },
+      },
+    }).values;
+  } catch (error) {
+    if (!isUsageError(error)) throw error;
+    console.error(`${error.message}\n\n${usage(game)}`);
+    return undefined;
   }
 }
 
@@ -284,7 +293,9 @@ Checks ${game}'s layout in headless Chrome, on the build yarn build made.
 function isUsageError(error: unknown): error is Error {
   return (
     error instanceof Error &&
-    String(field(error, "code")).startsWith("ERR_PARSE_ARGS_")
+    "code" in error &&
+    typeof error.code === "string" &&
+    error.code.startsWith("ERR_PARSE_ARGS_")
   );
 }
 

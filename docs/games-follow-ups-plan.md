@@ -627,3 +627,61 @@ part of the seventh.
   lint and typecheck, Prettier and the references; Sudoku's
   `check:layout --bogus` reports the option with the usage and exits 2,
   and `yarn check:layout` says each game's layout holds where it did.
+
+### The review of the three reviews' fixes (baad8126, cccbfdd5, c524ff2e)
+
+The reviewer found each commit does what its entry says, and checked the
+arpeggio's values, the server's close and the key helpers' docs against
+Phaser's source. It ran its faults in scratch copies. Every finding was
+taken.
+
+1. **No arpeggio spec struck a third note,** though Snake's chime has three
+   and Brick Breaker's chord four, so a third note struck at `gap`, dropped,
+   or played at the second's pitch passed. **Fixed:** a spec of three
+   notes, read where all three sound; each of those faults fails it.
+2. **The drawer's size specs didn't pin the property:** `[^}]*width:320px`
+   matched a `min-width` too. **Fixed:** a helper reads a rule's
+   declarations, and the specs look for each whole one, the content's
+   position and scrolling among them rather than its whole rule in order. A
+   width given as `min-width`, a `min-height` and static content each fail.
+3. **The spec that the server stops could pass without a server:** `fetch`
+   of no address throws too. **Fixed:** both look for "fetch failed", what
+   a closed port gives; a runner that never calls the checks fails four
+   specs.
+4. **Minesweeper's and Sudoku's `AGENTS.md` still said every game's dialogs
+   share the cards,** where the Solitaire Collection's take only the
+   headings and the choice tiles. **Fixed:** they say so.
+5. **The advice on a game's own drawer rules was short:** some of the
+   mixin's rules are two classes deep, and a later rule weighs the same,
+   not more. **Fixed:** the mixin's doc and `@fz/style`'s `AGENTS.md` say
+   to nest a game's rule as the mixin nests it, after the include, where it
+   wins by coming later.
+6. **The runner's opening copied `parseArgs()`'s type by hand,** and read
+   the error's code through a helper for DevTools' objects. **Fixed:**
+   `readCommandLine()` returns the options, or nothing once it has reported
+   one it can't read, and the guard narrows the error itself.
+7. **The doc's throws read as all of them.** **Fixed:** "such as" a game
+   with no build, no Chrome, or a page that never draws, in the doc and
+   `@fz/dev`'s `AGENTS.md`.
+8. **Nits:** the arpeggio's comment on its times, a missing blank line, and
+   commas around its doc's harmonic. **Fixed:** each.
+
+- **Checks:** lint, typecheck and the changed specs in `@fz/dev` (the
+  layout's 23, the sounds' 26) and `@fz/style` (the toolkit's 24), Prettier
+  and the references; Sudoku's `check:layout --bogus` still exits 2.
+
+### G-Q2: the lifts, checked
+
+- **`yarn verify`** passed at `c524ff2e`: lint, typecheck, every
+  workspace's tests (the Solitaire Collection's 6,872, Brick Breaker's
+  1,753, Sudoku's 591, Snake's 399, Minesweeper's 376, `@fz/phaser`'s 266,
+  `@fz/style`'s 254 and `@fz/dev`'s 124 among them) and the build.
+- **`yarn check:layout`** on that build, through the runner, says each
+  game's layout holds where it did.
+- **The four drawers,** from their dev servers at 1024 × 768: each 340px
+  wide, pinned to the right, the window's height in Minesweeper's, its
+  content positioned; Sudoku's two checkbox rows, and Snake's and Brick
+  Breaker's one, laid out as the box beside its label with the description
+  under it; Minesweeper's own choices and segmented control as they were.
+- **The sounds:** `yarn build:sounds` in Snake and Brick Breaker wrote the
+  committed files byte for byte, after G7's review as after G7.

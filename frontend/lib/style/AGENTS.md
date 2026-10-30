@@ -60,8 +60,8 @@ relative to `frontend/lib/style/`.
   `settings-drawer($width)`, a game's settings drawer, with the settings'
   labels, descriptions, choice tiles and checkboxes. A game whose dialogs
   differ writes its own from the parts, or adds to a whole one inside the
-  block that includes it, after the include, where its rules outweigh the
-  whole one's. The toolkit emits no CSS, so any stylesheet can load it, and
+  block that includes it, after the include, each selector nested as the
+  mixin nests it, so its rules weigh the same and win by coming later. The toolkit emits no CSS, so any stylesheet can load it, and
   `src/toolkit.spec.ts` checks what each mixin writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
   keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.
