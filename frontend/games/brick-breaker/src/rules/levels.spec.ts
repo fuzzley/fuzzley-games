@@ -1,4 +1,4 @@
-import { brickKind } from "./catalog/bricks";
+import { brickKind, isNeeded } from "./catalog/bricks";
 import { CAPSULE_IDS, capsule } from "./catalog/capsules";
 import { CELLS, cellIndex, columnOf, rowOf } from "./grid";
 import type { Level, LevelBrick } from "./level";
@@ -82,7 +82,7 @@ function shutIn(level: Level): number[] {
   }
   return level.cells.flatMap((brick, cell) =>
     brick &&
-    brickKind(brick.kind).needed &&
+    isNeeded(brick.kind) &&
     !reached.has(key(columnOf(cell), rowOf(cell)))
       ? [cell]
       : [],
@@ -360,9 +360,9 @@ describe("the levels", () => {
   it.each(named)("give %s a brick it needs", (_, entry) => {
     const level = parseLevel(entry);
 
-    expect(
-      level.cells.some((brick) => brick && brickKind(brick.kind).needed),
-    ).toBe(true);
+    expect(level.cells.some((brick) => brick && isNeeded(brick.kind))).toBe(
+      true,
+    );
   });
 
   it.each(named)("let a ball reach every brick %s needs", (_, entry) => {

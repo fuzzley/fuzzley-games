@@ -1,10 +1,10 @@
-import { clamp } from "@fz/core/math";
 import {
   type Ball,
   bounceOffPaddle,
   createBall,
   followPaddle,
   holdBall,
+  overlapsBox,
   reflectBall,
   serveBall,
   settleBall,
@@ -17,7 +17,6 @@ import {
   createBrick,
   hitAround,
   hitBrick,
-  isNeeded,
   neededLeft,
   stepBricks,
 } from "./bricks";
@@ -33,6 +32,7 @@ import {
   stepEffects,
 } from "./capsules";
 import { type BallKindId, ballKind } from "./catalog/balls";
+import { isNeeded } from "./catalog/bricks";
 import type { PaddleMode } from "./catalog/capsules";
 import { nextDraw } from "./draws";
 import { EventLog } from "./events";
@@ -384,11 +384,7 @@ export function serve(field: Field): void {
  */
 function liftOffPaddle(field: Field, ball: Ball): void {
   paddleReach(field.paddle, box);
-  if (ball.y >= box.bottom) return;
-  const nearX = clamp(ball.x, box.left, box.right);
-  const nearY = clamp(ball.y, box.top, box.bottom);
-  const apart = Math.hypot(ball.x - nearX, ball.y - nearY);
-  if (apart >= BALL_RADIUS) return;
+  if (ball.y >= box.bottom || !overlapsBox(ball, box)) return;
   ball.y = box.top - BALL_RADIUS;
   if (ball.dy > 0) meetPaddle(field, ball);
 }
@@ -628,7 +624,7 @@ function strike(field: Field, ball: Ball, brick: Brick): void {
   if (canBreak(brick)) field.climbed += field.climbRate;
   const damage = ballKind(field.ballKind).damage;
   const broke = hitBrick(field, brick, ball.x, ball.y, damage);
-  if (broke && isNeeded(brick)) ball.bounces = 0;
+  if (broke && isNeeded(brick.kind)) ball.bounces = 0;
 }
 
 /**

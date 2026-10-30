@@ -1,6 +1,7 @@
 import { Component, computed, inject, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
+import { endTitle } from "../../rules/describe";
 import { levelsCleared } from "../../rules/run";
 import { SPEED_INFO } from "../../rules/speed";
 import { GameService } from "../play/game.service";
@@ -34,9 +35,7 @@ export class ResultComponent {
 
   protected readonly won = computed(() => this.game.outcome() === "won");
 
-  protected readonly title = computed(() =>
-    this.won() ? "Every level cleared!" : "Game over",
-  );
+  protected readonly title = computed(() => endTitle(this.game.run()));
 
   /** Where the run started or ended, and at what speed. */
   protected readonly subtitle = computed(() => {

@@ -4,6 +4,7 @@ import {
   createBall,
   followPaddle,
   holdBall,
+  overlapsBox,
   reflectBall,
   serveBall,
   settleBall,
@@ -152,5 +153,25 @@ describe("settleBall", () => {
     settleBall(ball, 0.28, -0.96);
 
     expect(headingOf(ball)).toBeCloseTo(90 - FLATTEST);
+  });
+});
+
+describe("overlapsBox", () => {
+  const box = { left: 10, top: 10, right: 12, bottom: 11 };
+
+  it.each([
+    ["inside it", 11, 10.5, true],
+    ["just over its side", 12 + BALL_RADIUS * 0.9, 10.5, true],
+    ["just off its side", 12 + BALL_RADIUS * 1.1, 10.5, false],
+    [
+      "off its corner, though in reach across and down alone",
+      12.3,
+      11.3,
+      false,
+    ],
+  ])("says whether a ball %s overlaps it", (_, x, y, overlaps) => {
+    const ball = { ...createBall(), x, y };
+
+    expect(overlapsBox(ball, box)).toBe(overlaps);
   });
 });

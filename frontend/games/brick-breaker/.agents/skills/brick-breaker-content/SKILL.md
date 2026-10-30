@@ -111,16 +111,16 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 
 - Its entry in `BALL_KINDS`: its `damage` (a number of hits, or `breaks`),
   whether it `passes` through what it breaks, whether it `reaches` the
-  bricks around, its `speed` and its `size`.
+  bricks around, and its `speed`.
 - Its look in `BALL_ART` (`src/view/art.ts`) and its color in
   `bricksPalette()`'s `balls` (`src/view/palette.ts`); the compiler asks
   for both.
 - A capsule whose effect is `{ kind: "ball", ball: "<id>", ms }`.
-- The physics needs nothing new while its size is a normal ball's and one
-  that passes breaks what it passes through at a hit, as the catalog spec
-  holds. A larger ball means the sweep, the paddle's reach and the check
-  that no ball sits where a regrowing brick would grow read its size where
-  they now read `BALL_RADIUS`.
+- The physics needs nothing new while one that passes breaks what it
+  passes through at a hit, as the catalog spec holds. Every ball's radius
+  is `BALL_RADIUS`: a ball of another size needs a `size` here, which the
+  sweep, the paddle's reach and the check that no ball sits where a
+  regrowing brick would grow read where they now read `BALL_RADIUS`.
 
 ## A Brick Kind With Traits That Exist
 
@@ -144,10 +144,11 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
   damage, `broken` as it breaks, and `step` at each step; the compiler asks
   for the rule.
 - Any state it keeps on `Brick`, set by its rule's `laid`.
-- **The saved game keeps that state:** in `src/rules/saved_game.ts`,
-  `SavedBrick` gains it, `savedField()` writes it, `restoredBrick()` reads it
-  and refuses a state no run comes to, and `takeUpBrick()` lays it on the
-  new field. In `src/rules/saved_game.spec.ts`, the round trip's crowd gains
-  a brick with the trait, and `PLAYED_STATES` the state, so a take-up that
-  drops it fails.
+- **The saved game keeps that state:** in `src/rules/saved_game.ts`, its
+  key joins `KEPT_OF_BRICK`, from which `SavedBrick` is typed and by which
+  `savedField()` writes it and `takeUpField()` lays it on the new field,
+  and `restoredBrick()` reads it and refuses a state no run comes to; the
+  compiler asks for that. In `src/rules/saved_game.spec.ts`, the round
+  trip's crowd gains a brick with the trait, and `PLAYED_STATES` the
+  state, so a take-up that drops it fails.
 - Its look in `BRICK_ART`, for each state a player must tell apart.

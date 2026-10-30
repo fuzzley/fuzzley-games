@@ -95,7 +95,7 @@ describe("a brick", () => {
   });
 });
 
-describe("a hard brick", () => {
+describe("a brick that never breaks", () => {
   it("never breaks, however often it is hit", () => {
     const field = fieldFrom(["#", ...KEEPER]);
 

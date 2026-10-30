@@ -1,6 +1,6 @@
 import type { GameObjects, Scene } from "phaser";
-import { brickKind } from "../rules/catalog/bricks";
-import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
+import { isNeeded } from "../rules/catalog/bricks";
+import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import { FRAMES } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
 import type { FieldView } from "../view/frame";
@@ -28,11 +28,11 @@ export class GlowPainter {
     let shown = 0;
     for (let cell = 0; glow > 0 && cell < field.bricks.length; cell++) {
       const brick = field.bricks[cell];
-      if (!brick || brick.broken || !brickKind(brick.kind).needed) continue;
+      if (!brick || brick.broken || !isNeeded(brick.kind)) continue;
       this.images[shown++]
         ?.setPosition(
-          toCanvasX(metrics, columnMiddle(columnOf(cell))),
-          toCanvasY(metrics, rowMiddle(rowOf(cell))),
+          toCanvasX(metrics, cellMiddleX(cell)),
+          toCanvasY(metrics, cellMiddleY(cell)),
         )
         .setAlpha(glow)
         .setVisible(true);

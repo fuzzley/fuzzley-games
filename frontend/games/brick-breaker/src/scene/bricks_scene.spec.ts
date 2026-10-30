@@ -6,13 +6,7 @@ import { Core, type Game, GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks";
 import { catchCapsule } from "../rules/capsules";
 import type { Ball } from "../rules/balls";
-import {
-  cellIndex,
-  columnMiddle,
-  columnOf,
-  rowMiddle,
-  rowOf,
-} from "../rules/grid";
+import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
@@ -1018,8 +1012,8 @@ describe("BricksScene", () => {
       hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
       const metrics = metricsAt();
       const middle = {
-        x: toCanvasX(metrics, columnMiddle(columnOf(plain.cell))),
-        y: toCanvasY(metrics, rowMiddle(rowOf(plain.cell))),
+        x: toCanvasX(metrics, cellMiddleX(plain.cell)),
+        y: toCanvasY(metrics, cellMiddleY(plain.cell)),
       };
 
       run.advance(16);

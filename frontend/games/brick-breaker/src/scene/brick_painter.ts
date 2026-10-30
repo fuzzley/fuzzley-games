@@ -1,5 +1,5 @@
 import type { GameObjects, Scene } from "phaser";
-import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
+import { cellMiddleX, cellMiddleY, rowOf } from "../rules/grid";
 import { BRICK_HEIGHT, COLUMNS, ROWS } from "../rules/tuning";
 import { brickFrame } from "../view/brick_art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
@@ -64,8 +64,8 @@ export class BrickPainter {
     this.images.forEach((image, cell) => {
       image
         .setPosition(
-          toCanvasX(metrics, columnMiddle(columnOf(cell))),
-          toCanvasY(metrics, rowMiddle(rowOf(cell))),
+          toCanvasX(metrics, cellMiddleX(cell)),
+          toCanvasY(metrics, cellMiddleY(cell)),
         )
         .setAlpha(1);
     });

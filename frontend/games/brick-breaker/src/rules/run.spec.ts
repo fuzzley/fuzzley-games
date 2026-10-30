@@ -6,6 +6,7 @@ import {
   createRun,
   gainedLifeByPoints,
   hasEnded,
+  isInProgress,
   levelSeed,
   levelsCleared,
   nextLifeAfter,
@@ -427,6 +428,19 @@ describe("hasEnded", () => {
     ["won", true],
   ] as const)("says a run %s has ended: %s", (outcome, ended) => {
     expect(hasEnded(runWith({ outcome }))).toBe(ended);
+  });
+});
+
+describe("isInProgress", () => {
+  it.each([
+    ["ready", false],
+    ["playing", true],
+    ["paused", true],
+    ["cleared", true],
+    ["over", false],
+    ["won", false],
+  ] as const)("says a run %s is in progress: %s", (outcome, going) => {
+    expect(isInProgress(runWith({ outcome }))).toBe(going);
   });
 });
 

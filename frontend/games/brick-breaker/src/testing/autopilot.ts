@@ -2,8 +2,8 @@ import { clamp } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
 import type { Ball } from "../rules/balls";
 import { fireBolts } from "../rules/bolts";
-import { isNeeded } from "../rules/bricks";
 import type { Falling } from "../rules/capsules";
+import { isNeeded } from "../rules/catalog/bricks";
 import { capsule } from "../rules/catalog/capsules";
 import {
   type Field,
@@ -16,12 +16,10 @@ import {
 } from "../rules/field";
 import {
   cellIndex,
+  cellMiddleX,
+  cellMiddleY,
   columnAt,
-  columnMiddle,
-  columnOf,
   rowAt,
-  rowMiddle,
-  rowOf,
 } from "../rules/grid";
 import type { Level } from "../rules/level";
 import { type LevelEntry, parseLevel } from "../rules/levels";
@@ -217,7 +215,7 @@ function chooseAim(
     (brick) =>
       brick &&
       !brick.broken &&
-      isNeeded(brick) &&
+      isNeeded(brick.kind) &&
       inSight(field, landing, brick.cell),
   );
   if (seen.length > 0) {
@@ -231,8 +229,8 @@ function reachFor(field: Field, aim: Aim, landing: number): number {
   if (!brick || brick.broken) return aim.reach;
   const toward =
     (Math.atan2(
-      columnMiddle(columnOf(brick.cell)) - landing,
-      PADDLE_LINE - rowMiddle(rowOf(brick.cell)),
+      cellMiddleX(brick.cell) - landing,
+      PADDLE_LINE - cellMiddleY(brick.cell),
     ) *
       180) /
     Math.PI;
@@ -248,8 +246,8 @@ function reachFor(field: Field, aim: Aim, landing: number): number {
  * better in the report than one that followed the ball's edges too.
  */
 function inSight(field: Field, from: number, cell: number): boolean {
-  const x = columnMiddle(columnOf(cell));
-  const y = rowMiddle(rowOf(cell));
+  const x = cellMiddleX(cell);
+  const y = cellMiddleY(cell);
   const length = Math.hypot(x - from, PADDLE_LINE - y);
   for (let along = 0; along < length; along += SIGHT_STEP) {
     const t = along / length;

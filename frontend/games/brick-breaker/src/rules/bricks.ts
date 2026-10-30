@@ -1,10 +1,11 @@
-import { clamp } from "@fz/core/math";
+import { overlapsBox } from "./balls";
 import { dropFrom } from "./capsules";
 import {
   type BrickKindId,
   type BrickTrait,
   type TraitKind,
   brickKind,
+  isNeeded,
 } from "./catalog/bricks";
 import type { CapsuleId } from "./catalog/capsules";
 import type { Field } from "./field";
@@ -12,16 +13,15 @@ import {
   type Box,
   brickBox,
   cellIndex,
-  columnMiddle,
+  cellMiddleX,
+  cellMiddleY,
   columnOf,
   inGrid,
-  rowMiddle,
   rowOf,
 } from "./grid";
 import type { LevelBrick } from "./level";
 import { scoreBreak, scoreHit } from "./scoring";
 import { stepsIn } from "./stepper";
-import { BALL_RADIUS } from "./tuning";
 
 /**
  * Describes a brick in play.
@@ -76,8 +76,6 @@ type Moment = "hit" | "broken" | "step";
 const TRAIT_RULES: {
   readonly [K in TraitKind]: TraitRule<TraitOf[K]>;
 } = {
-  // Never breaking is its kind's `hits`, which the balls and bolts read.
-  hard: {},
   blasts: {
     broken: (field, brick, { delayMs }) => {
       brick.goesOffAt = field.steps + stepsIn(delayMs);
@@ -108,7 +106,12 @@ const TRAIT_RULES: {
       if (isBallIn(field, brick)) return;
       brick.broken = false;
       brick.hits = brick.whole;
-      field.events.add("regrown", middleX(brick), middleY(brick), brick.cell);
+      field.events.add(
+        "regrown",
+        cellMiddleX(brick.cell),
+        cellMiddleY(brick.cell),
+        brick.cell,
+      );
     },
   },
 };
@@ -141,17 +144,13 @@ export function canBreak(brick: Readonly<Brick>): boolean {
   return brickKind(brick.kind).hits !== "never";
 }
 
-/** Returns whether the level needs a brick broken to be cleared. */
-export function isNeeded(brick: Readonly<Brick>): boolean {
-  return brickKind(brick.kind).needed;
-}
-
 /** Returns how many of a level's bricks it needs that are not yet broken. */
 export function neededLeft(
   bricks: readonly (Readonly<Brick> | null)[],
 ): number {
-  return bricks.filter((brick) => brick && isNeeded(brick) && !brick.broken)
-    .length;
+  return bricks.filter(
+    (brick) => brick && isNeeded(brick.kind) && !brick.broken,
+  ).length;
 }
 
 /**
@@ -186,7 +185,7 @@ export function hitBrick(
   scoreBreak(field, brick, before);
   field.events.add("broken", x, y, brick.cell, null, field.streak);
   runTraits("broken", field, brick);
-  if (isNeeded(brick)) {
+  if (isNeeded(brick.kind)) {
     field.needed--;
     if (field.needed === 0) {
       field.state = "cleared";
@@ -252,8 +251,8 @@ function layRule<K extends TraitKind>(
 
 /** Sets a blast off: the eight bricks around it each take a hit. */
 function goOff(field: Field, brick: Brick): void {
-  const x = middleX(brick);
-  const y = middleY(brick);
+  const x = cellMiddleX(brick.cell);
+  const y = cellMiddleY(brick.cell);
   field.events.add("blast", x, y, brick.cell);
   hitAround(field, brick, x, y);
 }
@@ -261,20 +260,5 @@ function goOff(field: Field, brick: Brick): void {
 /** Returns whether a ball in play overlaps a brick's place. */
 function isBallIn(field: Field, brick: Readonly<Brick>): boolean {
   brickBox(columnOf(brick.cell), rowOf(brick.cell), box);
-  return field.balls.some((ball) => {
-    if (!ball.live) return false;
-    const nearX = clamp(ball.x, box.left, box.right);
-    const nearY = clamp(ball.y, box.top, box.bottom);
-    return Math.hypot(ball.x - nearX, ball.y - nearY) < BALL_RADIUS;
-  });
-}
-
-/** Returns where a brick's middle is, across. */
-function middleX(brick: Readonly<Brick>): number {
-  return columnMiddle(columnOf(brick.cell));
-}
-
-/** Returns where a brick's middle is, down. */
-function middleY(brick: Readonly<Brick>): number {
-  return rowMiddle(rowOf(brick.cell));
+  return field.balls.some((ball) => ball.live && overlapsBox(ball, box));
 }

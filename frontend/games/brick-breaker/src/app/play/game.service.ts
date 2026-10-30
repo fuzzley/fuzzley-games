@@ -39,6 +39,7 @@ import {
   createRun,
   gainedLifeByPoints,
   hasEnded,
+  isInProgress,
   levelSeed,
   pause,
   resume,
@@ -180,13 +181,8 @@ export class GameService {
   /** Whether the run has ended, lost or won. */
   readonly ended = computed(() => hasEnded(this.runState()));
 
-  /** Whether a run is under way, which a new game would lose: a level in play, paused or just cleared. */
-  readonly inProgress = computed(() => {
-    const outcome = this.runState().outcome;
-    return (
-      outcome === "playing" || outcome === "paused" || outcome === "cleared"
-    );
-  });
+  /** Whether a run is in progress, which a new game would lose: a level in play, paused or just cleared. */
+  readonly inProgress = computed(() => isInProgress(this.runState()));
 
   /** Whether a ball waits on the paddle to be served, for the card that says how. */
   readonly serving = this.servingState.asReadonly();

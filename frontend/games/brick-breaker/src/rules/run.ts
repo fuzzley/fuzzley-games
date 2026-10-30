@@ -95,6 +95,14 @@ export function hasEnded(run: Run): boolean {
   return run.outcome === "over" || run.outcome === "won";
 }
 
+/**
+ * Returns whether a run is in progress, which a new game would lose: a
+ * level under way or just cleared.
+ */
+export function isInProgress(run: Run): boolean {
+  return isUnderWay(run) || run.outcome === "cleared";
+}
+
 /** Returns how many levels a run has cleared since its first. */
 export function levelsCleared(run: Run): number {
   const throughLevel = run.outcome === "cleared" || run.outcome === "won";

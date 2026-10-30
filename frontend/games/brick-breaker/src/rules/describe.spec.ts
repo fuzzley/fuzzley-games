@@ -8,6 +8,7 @@ import {
   describePause,
   describeResume,
   describeTakenUp,
+  endTitle,
 } from "./describe";
 import { LEVELS } from "./levels";
 import { type Run, createRun } from "./run";
@@ -145,4 +146,13 @@ describe("describe", () => {
       expect(describeEnd(runAt({ outcome }), newBest)).toBe(words);
     },
   );
+});
+
+describe("endTitle", () => {
+  it.each([
+    ["over", "Game over"],
+    ["won", "Every level cleared!"],
+  ] as const)("calls a run %s %j", (outcome, title) => {
+    expect(endTitle({ outcome })).toBe(title);
+  });
 });

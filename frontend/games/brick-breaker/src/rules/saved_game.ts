@@ -1,22 +1,26 @@
 import { isCount, isRecord, isWhole } from "@fz/core/json";
 import { type Brick, neededLeft } from "./bricks";
-import { brickKind, hasTrait } from "./catalog/bricks";
+import { hasTrait, isNeeded } from "./catalog/bricks";
 import type { Field } from "./field";
 import { CELLS } from "./grid";
 import type { LevelBrick } from "./level";
 import { type LevelEntry, parseLevel } from "./levels";
-import { type Run, nextLifeAfter, startLevel } from "./run";
+import { type Run, isInProgress, nextLifeAfter, startLevel } from "./run";
 import { type Speed, isSpeed } from "./speed";
+import { pick } from "./tables";
 import { MAX_LIVES } from "./tuning";
 
+/** What of a brick play changes, and so what storage keeps of it. */
+const KEPT_OF_BRICK = [
+  "hits",
+  "broken",
+  "shown",
+  "goesOffAt",
+  "regrowsAt",
+] as const satisfies readonly (keyof Brick)[];
+
 /** A brick of the level in play as storage keeps it: what play has changed of it. */
-export interface SavedBrick {
-  readonly hits: number;
-  readonly broken: boolean;
-  readonly shown: boolean;
-  readonly goesOffAt: number;
-  readonly regrowsAt: number;
-}
+export type SavedBrick = Readonly<Pick<Brick, (typeof KEPT_OF_BRICK)[number]>>;
 
 /** The level in play's field as storage keeps it: its bricks, and the counts its timers and points run by. */
 export interface SavedField {
@@ -71,8 +75,8 @@ export function saveGame(
   field: SavableField,
   levels: readonly LevelEntry[],
 ): SavedGame | null {
+  if (!isInProgress(run)) return null;
   if (run.outcome === "cleared") return savedRun(startLevel(run), null, levels);
-  if (run.outcome !== "playing" && run.outcome !== "paused") return null;
   return savedRun(run, savedField(field), levels);
 }
 
@@ -162,7 +166,7 @@ export function takeUpField(
   if (!saved) return;
   for (const [cell, brick] of field.bricks.entries()) {
     const kept = saved.bricks[cell];
-    if (brick && kept) takeUpBrick(brick, kept);
+    if (brick && kept) Object.assign(brick, kept);
   }
   field.needed = neededLeft(field.bricks);
   field.streakPoints = saved.streakPoints;
@@ -199,15 +203,7 @@ function savedRun(
 function savedField(field: SavableField): SavedField {
   return {
     bricks: field.bricks.map((brick) =>
-      brick
-        ? {
-            hits: brick.hits,
-            broken: brick.broken,
-            shown: brick.shown,
-            goesOffAt: brick.goesOffAt,
-            regrowsAt: brick.regrowsAt,
-          }
-        : null,
+      brick ? pick(brick, KEPT_OF_BRICK) : null,
     ),
     streakPoints: field.streakPoints,
     climbed: field.climbed,
@@ -254,7 +250,7 @@ function restoredField(
     const restored = restoredBrick(brick, placed);
     if (!restored) return null;
     bricks.push(restored);
-    if (brickKind(placed.kind).needed && !restored.broken) needsMore = true;
+    if (isNeeded(placed.kind) && !restored.broken) needsMore = true;
   }
   if (!needsMore) return null;
   return { bricks, streakPoints, climbed, steps, draws };
@@ -289,13 +285,4 @@ function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
     return null;
   }
   return { hits, broken, shown, goesOffAt, regrowsAt };
-}
-
-/** Lays a brick's kept state over it. */
-function takeUpBrick(brick: Brick, kept: SavedBrick): void {
-  brick.hits = kept.hits;
-  brick.broken = kept.broken;
-  brick.shown = kept.shown;
-  brick.goesOffAt = kept.goesOffAt;
-  brick.regrowsAt = kept.regrowsAt;
 }

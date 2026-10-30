@@ -1,6 +1,6 @@
 import { splitOff } from "./balls";
 import type { Brick } from "./bricks";
-import { brickKind, hasTrait } from "./catalog/bricks";
+import { hasTrait, isNeeded } from "./catalog/bricks";
 import {
   type CapsuleEffect,
   type CapsuleId,
@@ -9,10 +9,11 @@ import {
 } from "./catalog/capsules";
 import { nextDraw } from "./draws";
 import type { Field } from "./field";
-import { type Box, columnMiddle, columnOf, rowMiddle, rowOf } from "./grid";
+import { type Box, cellMiddleX, cellMiddleY } from "./grid";
 import { paddleBox } from "./paddle";
 import { SPEED_INFO } from "./speed";
 import { stepsIn } from "./stepper";
+import { keysOf } from "./tables";
 import {
   CAPSULE_FALL_SPEED,
   CAPSULE_HEIGHT,
@@ -122,8 +123,7 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
 };
 
 /** Every kind of effect, in the order the field shows their tags. */
-// Object.keys() types its keys as strings; the table's keys are the kinds.
-export const EFFECT_KINDS = Object.keys(EFFECT_RULES) as readonly EffectKind[];
+export const EFFECT_KINDS = keysOf(EFFECT_RULES);
 
 // Made once and reused, so a step makes nothing.
 const paddleArea: Box = { left: 0, top: 0, right: 0, bottom: 0 };
@@ -162,7 +162,7 @@ export function createEffects(): Effects {
 export function dropFrom(field: Field, brick: Readonly<Brick>): void {
   if (field.state !== "playing") return;
   if (hasTrait(brick.kind, "gives")) dropGift(field, brick);
-  else if (brickKind(brick.kind).needed) dropByChance(field, brick);
+  else if (isNeeded(brick.kind)) dropByChance(field, brick);
 }
 
 /**
@@ -295,8 +295,8 @@ function drop(field: Field, brick: Readonly<Brick>, id: CapsuleId): void {
   if (!falling) return;
   falling.live = true;
   falling.id = id;
-  falling.x = columnMiddle(columnOf(brick.cell));
-  falling.y = rowMiddle(rowOf(brick.cell));
+  falling.x = cellMiddleX(brick.cell);
+  falling.y = cellMiddleY(brick.cell);
   falling.lastY = falling.y;
   field.events.add("dropped", falling.x, falling.y, brick.cell, id);
 }

@@ -1,6 +1,5 @@
 import { clamp } from "@fz/core/math";
-import { stepsIn } from "../rules/stepper";
-import { STEP_S } from "../rules/tuning";
+import { STEP_MS, stepsIn } from "../rules/stepper";
 import type { FieldView } from "./frame";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
 
@@ -52,7 +51,7 @@ export function glowAlpha(
   const glowing = field.steps - brokeAt - stepsIn(GLOW_AFTER_MS);
   if (glowing < 0) return 0;
   if (!motion) return 1;
-  const turn = (glowing * STEP_S * 1000) / GLOW_PULSE_MS;
+  const turn = (glowing * STEP_MS) / GLOW_PULSE_MS;
   return (
     GLOW_LEAST + ((1 - GLOW_LEAST) * (1 + Math.cos(2 * Math.PI * turn))) / 2
   );

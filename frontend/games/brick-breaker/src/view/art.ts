@@ -6,6 +6,7 @@ import {
   type CapsuleTone,
   capsule,
 } from "../rules/catalog/capsules";
+import { keysOf, recordOf } from "../rules/tables";
 import {
   BALL_RADIUS,
   BOLT_LENGTH,
@@ -98,17 +99,19 @@ const SYMBOL_SHARE = 0.85;
 /** How deep a bad capsule's notches are, as a share of its height. */
 const NOTCH = 0.3;
 
-// Made once, so finding a frame's name makes nothing. Object.fromEntries()
-// types its keys as strings; these keys are the catalogs' ids.
-const BALL_FRAMES = Object.fromEntries(
-  BALL_KIND_IDS.map((kind) => [kind, `ball-${kind}`]),
-) as Readonly<Record<BallKindId, string>>;
-const CAPSULE_FRAMES = Object.fromEntries(
-  CAPSULE_IDS.map((id) => [id, `capsule-${id}`]),
-) as Readonly<Record<CapsuleId, string>>;
-const TAG_FRAMES = Object.fromEntries(
-  CAPSULE_IDS.map((id) => [id, `tag-${id}`]),
-) as Readonly<Record<CapsuleId, string>>;
+// Made once, so finding a frame's name makes nothing.
+const BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
+  BALL_KIND_IDS,
+  (kind) => `ball-${kind}`,
+);
+const CAPSULE_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
+  CAPSULE_IDS,
+  (id) => `capsule-${id}`,
+);
+const TAG_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
+  CAPSULE_IDS,
+  (id) => `tag-${id}`,
+);
 
 /** How each kind of ball is drawn inside its outline: in its color, with its one mark. */
 export const BALL_ART = {
@@ -388,10 +391,7 @@ const PICTURED_BRICKS: Readonly<Record<BrickKindId, BrickLook>> = {
 
 /** The frames How to play's pictures are taken from. */
 export const PICTURE_FRAMES: Pictures = {
-  // Object.fromEntries() types its keys as strings; these are the kinds.
-  bricks: Object.fromEntries(
-    BRICK_KIND_IDS.map((kind) => [kind, brickFrame(PICTURED_BRICKS[kind])]),
-  ) as Record<BrickKindId, string>,
+  bricks: recordOf(BRICK_KIND_IDS, (kind) => brickFrame(PICTURED_BRICKS[kind])),
   balls: BALL_FRAMES,
   capsules: CAPSULE_FRAMES,
 };
@@ -413,8 +413,5 @@ function mapRecord<K extends string>(
   record: Readonly<Record<K, string>>,
   map: (value: string) => string,
 ): Record<K, string> {
-  // Object.fromEntries() types its keys as strings; these are the record's.
-  return Object.fromEntries(
-    Object.entries<string>(record).map(([key, value]) => [key, map(value)]),
-  ) as Record<K, string>;
+  return recordOf(keysOf(record), (key) => map(record[key]));
 }

@@ -1,6 +1,7 @@
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_KINDS } from "../rules/capsules";
 import { type EffectKind, capsule } from "../rules/catalog/capsules";
+import { recordOf } from "../rules/tables";
 import { tagFrame } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
 import { type FieldView, between } from "../view/frame";
@@ -30,13 +31,9 @@ export class TagPainter {
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.rings = scene.add.graphics();
-    // Object.fromEntries() types its keys as strings; these are the kinds.
-    this.images = Object.fromEntries(
-      EFFECT_KINDS.map((kind) => [
-        kind,
-        scene.add.image(0, 0, ATLAS, tagFrame("wide")).setVisible(false),
-      ]),
-    ) as Record<EffectKind, GameObjects.Image>;
+    this.images = recordOf(EFFECT_KINDS, () =>
+      scene.add.image(0, 0, ATLAS, tagFrame("wide")).setVisible(false),
+    );
     layer.add([this.rings, ...Object.values(this.images)]);
   }
 
