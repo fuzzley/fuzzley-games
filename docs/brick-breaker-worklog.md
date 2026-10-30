@@ -3295,3 +3295,114 @@ needed to reach into the page. Nothing was found to fix.
   `phaser` chunk 353.9 kB. The entry imports no Phaser; it reaches the scene,
   and through it Phaser, only by `import()`.
 - **The console** stayed clean on both pages through every check.
+
+## B11.2's review (819b2427, with 71b26f09)
+
+The reviewer played the Tricks levels from 40 seeds each, ran mutants
+against the specs, and probed the announcer with a spec of its own.
+
+1. **Hourglass hid its last bricks in the neck's shadow.** The one-cell
+   steel neck shaded column 6 of the top half from below. Every endgame over
+   30 s ended on those bricks, the worst taking 2:06. **Fixed in the map:**
+   - Column 6 is empty above the neck, from the top row down.
+   - Over 40 seeds, one play of 120 runs past a minute (1:23 at Relaxed).
+   - **A probe of the bricks each long endgame left** (the autopilot noting
+     them for a moment, then put back):
+     - **Hourglass:** none in column 6 now. The 8 endgames over 30 s mostly
+       end on the middle of the top row of 3s, the last row the ball reaches.
+     - **Hedge maze:** its 19 spread over all three corridors, beside their
+       regrowing gates, which are the level's trick.
+     - **Spiral:** the cluster the reviewer named. 6 of its 8 end on (3, 7),
+       above the hook's steel bar, but only one play reached the limit, at
+       exactly 1:00. **Left as it is, and worth watching.**
+   - **The worklog was wrong** to say no long endgame left the same bricks
+     for last: 20 seeds had caught only one of Hourglass's.
+2. **The announcer decided whether to wait as a region was made.** Words
+   said after that, but before it rendered, arrived with it unannounced, and
+   stayed early for a later region to say. **Fixed in `@fz/ui`:**
+   - `early` is a signal now, which the region reads as it renders.
+   - Words said before its first render wait as early words do.
+   - A spec renders a page whose region is made before something speaks,
+     and expects it empty, then speaking after `ARRIVAL_MS`.
+   - **No app took that path:** each says its early words from
+     `provideAppInitializer`.
+3. **Brick Breaker's app spec didn't check the wait it names.** **Fixed:** a
+   spec expects the region empty as the app renders over a stored run.
+   - Mutants of a region that never waits, and of nothing early, now fail
+     it.
+4. **The round trip played far less than it claimed.** In 2,000 steps it
+   broke 2 needed bricks, and never lit a fuse, built a streak, made a draw
+   or lost a ball. **Fixed:**
+   - **The crowd** is in a set of its own whose bricks draw for capsules,
+     over a row of blast bricks the ball sets off at once.
+   - **The paddle** meets the ball off its middle, by a cycle of four, and
+     from take 150 keeps away until a ball is lost.
+   - **The takes** come every 7 steps, sharing no factor with a fuse's 12,
+     300 of them.
+   - **The spec expects every state** a take-up must keep to have been
+     reached: a fuse lit, a ghost shown, a regrowing brick broken and grown
+     back, a tough brick worn, streak points, draws and a ball lost.
+   - Mutants dropping the taking up of `goesOffAt`, `streakPoints` or
+     `draws`, or refusing a lit fuse, now fail this spec on its own.
+5. **The round trip checked only the field.** It saved the original run
+   again, and its run and field came from different speeds and seeds.
+   **Fixed:**
+   - It saves the run taken up again.
+   - The field is made from the run's speed and `levelSeed()`, as the game
+     makes it.
+   - A mutant restoring one life now fails it.
+   - Restoring no life gained survives. No life is gained in this play, so
+     that mutant changes nothing here, and other specs cover gaining one.
+6. **The docs were stale after the redraw.** **Fixed:**
+   - **The plan's table** now has Hedge maze's corridors behind regrowing
+     gates, and Finale "at the game's top pace" rather than "the hardest".
+   - **Finale** is not the longest by the report: Keep is.
+     - "The hardest" isn't something the report can measure, since the
+       autopilot loses no lives.
+     - Finale has the game's top pace, 1.2. Lengthening it again would bring
+       back the slow endgame its 3-hit rim fixed.
+     - A question for the user.
+   - **The Vault**, in B11.1's review, also gained a row of 2s, and six 2s
+     became 3s. That was 26 hits more than that entry said.
+   - **Every level over 40 seeds** (3,600 plays, middle times):
+     - All 3,600 plays cleared, and no life was lost.
+     - 16 ran past a minute's endgame: Shelf, Corridors, Cage, the Vault
+       (twice), Hedge maze (twice), Hourglass, Spiral and Storm. That is
+       0.44%, as before.
+     - The Vault's longest play is 7:26 at Relaxed, under the 8-minute limit.
+
+   | #   | Level          | Relaxed | Normal | Fast |
+   | --- | -------------- | ------- | ------ | ---- |
+   | 20  | Vault          | 2:27    | 2:14   | 2:08 |
+   | 21  | Garden         | 1:36    | 1:26   | 1:19 |
+   | 22  | Hedge maze     | 1:31    | 1:18   | 1:06 |
+   | 23  | Low bridge     | 0:49    | 0:53   | 1:02 |
+   | 24  | Hourglass      | 1:41    | 1:34   | 1:06 |
+   | 25  | Chain reaction | 2:19    | 2:02   | 1:38 |
+   | 26  | Fog            | 1:30    | 1:22   | 1:21 |
+   | 27  | Spiral         | 1:08    | 1:13   | 1:13 |
+   | 28  | Keep           | 2:50    | 2:52   | 2:14 |
+   | 29  | Storm          | 1:00    | 1:07   | 1:01 |
+   | 30  | Finale         | 2:14    | 2:03   | 1:52 |
+
+7. **The announcer's bookkeeping was public, and `early` a getter.**
+   **Fixed in part:**
+   - `early` is a readonly signal, as `message` is.
+   - `notePlaced()` and `noteEarlyWordsSaid()` say that only
+     `<fz-announcer>` calls them. TypeScript has nothing narrower than
+     public for a service another file's component calls.
+8. **`@fz/ui`'s `AGENTS.md` said a later region "says" the last words.**
+   **Fixed:** it holds them from the start, so it doesn't say them again.
+   The two spec names match.
+9. **A mutant keeping `early` once set survived.** **Fixed:** a spec counts
+   words said after early ones, once a region is in the page, as not early.
+10. **`withScore()` could take a life away** for a run whose next life lay
+    past its score. **Fixed:** the marks passed are never fewer than none.
+    A spec holds it, and fails without the floor.
+11. **`ReadonlyArray<AutopilotReport>` in the report.** **Not changed:** the
+    JSDoc type parser rejects `readonly AutopilotReport[]` as a function
+    type's parameter (`jsdoc/valid-types`), as it did when it was written.
+12. **The report's summary could run into the table.** **Fixed:** a blank
+    line comes before the summary whenever there is one.
+13. **A not-begun case mixed two stored runs.** **Fixed:** it takes the
+    score from the cleared run it changes.

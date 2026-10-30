@@ -114,6 +114,14 @@ describe("AppComponent", () => {
     expect(screen.getByRole("application")).toHaveFocus();
   });
 
+  it("doesn't say where a run taken up stands as the live region arrives", async () => {
+    storeRun();
+
+    await renderTakingUp();
+
+    expect(document.querySelector("fz-announcer")).toHaveTextContent(/^$/);
+  });
+
   it("says where a run taken up stands, once the live region has been in the page a moment", async () => {
     storeRun();
     await renderTakingUp();
