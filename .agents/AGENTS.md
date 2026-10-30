@@ -18,6 +18,8 @@ Minesweeper, Sudoku and Snake.
   `frontend/games/sudoku/AGENTS.md`. Snake draws its board with Phaser 4,
   through `@fz/phaser` as the Solitaire Collection does, in an Angular
   shell on the shared libraries; see `frontend/games/snake/AGENTS.md`.
+  Brick Breaker is drawn the same way, its rules, physics included, kept
+  free of any framework; see `frontend/games/brick-breaker/AGENTS.md`.
 - **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
 - **Serving:** nginx in a Docker image, on Google Cloud Run
 
@@ -114,8 +116,9 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `frontend/lib/dev/AGENTS.md`,
   `frontend/games/solitaire/AGENTS.md`,
   `frontend/games/minesweeper/AGENTS.md`,
-  `frontend/games/sudoku/AGENTS.md` and
-  `frontend/games/snake/AGENTS.md`. So the site's rules never reach a
+  `frontend/games/sudoku/AGENTS.md`,
+  `frontend/games/snake/AGENTS.md` and
+  `frontend/games/brick-breaker/AGENTS.md`. So the site's rules never reach a
   game, nor a game's the site. A rule is written once, in the highest layer
   it holds for: one for the whole repository, such as how code, comments
   and tests are written, belongs here.
@@ -125,7 +128,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `frontend/games/solitaire/.agents/skills/`,
   `frontend/games/minesweeper/.agents/skills/`,
   `frontend/games/sudoku/.agents/skills/`,
-  `frontend/games/snake/.agents/skills/`), and cites paths from its
+  `frontend/games/snake/.agents/skills/`,
+  `frontend/games/brick-breaker/.agents/skills/`), and cites paths from its
   folder. Gemini CLI reads the repository's directly. Claude Code only
   discovers `.claude/skills/<name>/SKILL.md`, so
   **`node .agents/link-claude-skills.mjs`** links each skill into the
@@ -216,7 +220,8 @@ holds the patterns every Angular workspace's specs share: Testing Library by
 role, user-event, jest-dom and zoneless change detection. An app also has a
 skill of its own for its runner setup, fixtures and floors
 (`site-testing`, `minesweeper-testing`, `sudoku-testing`,
-`snake-testing`, `solitaire-testing`), and its `AGENTS.md` says where its specs go.
+`snake-testing`, `brick-breaker-testing`, `solitaire-testing`), and its
+`AGENTS.md` says where its specs go.
 
 - **Test Coverage:** Cover new and changed code with specs.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.

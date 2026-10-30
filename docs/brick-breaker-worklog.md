@@ -3480,3 +3480,31 @@ against the specs, and probed the announcer with a spec of its own.
       places.
 - **Checks.** Formatting and the references pass; every path and name the
   docs cite was read back from the code.
+
+## B13.3: the lists that name the games
+
+- **Named now:**
+  - **`.agents/AGENTS.md`:** the stack, the layers of `AGENTS.md`, the
+    workspaces' skills folders, and the apps' testing skills.
+  - **`frontend/AGENTS.md`** and **`frontend/games/AGENTS.md`:** the games'
+    folders. The ports were already there, 9004 Brick Breaker's and 9005 the
+    next game's.
+  - **`frontend/lib/dev/AGENTS.md`:** the dev servers' ports.
+  - **`docs/operations.md`:** the games that began here.
+  - **The root `README.md`:** the workspace's dev server.
+  - **`phaser-core`:** the games built on `@fz/phaser`, their layers, how a
+    game takes the scene's time, and its scene spec as a worked example.
+  - **`fuzzley-ui`:** the apps that adopt the libraries, and the contrast
+    specs.
+  - **`web-game-accessibility`:** the `AGENTS.md` files, a board that moves
+    by itself, and the choice of pace.
+  - **`angular-testing`:** the workspaces and the apps' testing skills.
+- **Left for B14.1,** which puts the game in the site's catalog. Each says
+  what the site serves, which isn't so until then:
+  - `.agents/AGENTS.md`'s list of the games at `/play/<slug>/`;
+  - `docs/operations.md`'s "Games";
+  - the root `README.md`'s games and their local addresses;
+  - the game's own `README.md` and `AGENTS.md` line on where it is played.
+- **Nothing else names the games:** the CI workflow, its scripts and the
+  site's `AGENTS.md` list none.
+- **Checks.** Formatting and the references pass.

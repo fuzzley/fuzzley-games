@@ -2,8 +2,8 @@
 
 `frontend/games/`: the games built here, one workspace each, named after its
 folder: the Solitaire Collection (`solitaire/`), Minesweeper
-(`minesweeper/`), Sudoku (`sudoku/`) and Snake (`snake/`). These rules
-hold for every game.
+(`minesweeper/`), Sudoku (`sudoku/`), Snake (`snake/`) and Brick
+Breaker (`brick-breaker/`). These rules hold for every game.
 The frontend's, in [frontend/AGENTS.md](../AGENTS.md), and the repository's
 apply too, and each game keeps its own in its folder's `AGENTS.md`. Paths
 are relative to `frontend/games/`.

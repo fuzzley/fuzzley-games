@@ -61,7 +61,8 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
   its folder. What every game keeps, and how to add one, is in
   `games/AGENTS.md`; what each keeps of its own is in its folder's:
   `games/solitaire/AGENTS.md`, `games/minesweeper/AGENTS.md`,
-  `games/sudoku/AGENTS.md` and `games/snake/AGENTS.md`.
+  `games/sudoku/AGENTS.md`, `games/snake/AGENTS.md` and
+  `games/brick-breaker/AGENTS.md`.
 
 ## Yarn and Node
 

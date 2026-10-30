@@ -8,10 +8,12 @@ description: How a game here is drawn with Phaser 4 — the @fz/phaser library (
 A game drawn with Phaser 4 keeps Phaser to the code that draws, and builds on
 `@fz/phaser` (`frontend/lib/phaser/`), which holds what every such game
 shares. Its rules are in
-[its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Two games are
+[its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Three games are
 built this way: the Solitaire Collection, whose card-specific rules are in
-its own `solitaire-phaser` skill, and Snake (`frontend/games/snake/`), the
-smaller one to start from.
+its own `solitaire-phaser` skill; Snake (`frontend/games/snake/`), the
+smaller one to start from; and Brick Breaker
+(`frontend/games/brick-breaker/`), which draws every brick, ball and
+capsule from one atlas baked at run time (`bakeAtlas()`).
 
 ## The library
 
@@ -58,7 +60,9 @@ still pass: the Solitaire Collection's `src/engine/render/phaser` and
 `src/engine/board` draw, and its cards, rules, layout and games are fenced.
 Snake keeps four layers (`frontend/games/snake/AGENTS.md`): its rules, a
 view that works out what to draw without Phaser, so its specs are plain,
-the scene, the one folder that imports Phaser, and the shell.
+the scene, the one folder that imports Phaser, and the shell. Brick
+Breaker keeps the same four (`frontend/games/brick-breaker/AGENTS.md`),
+its physics in its rules.
 The Angular shell imports `@fz/phaser/canvas` and a scene source, never
 Phaser itself; a source that loads the scene with `import()` keeps Phaser
 out of the first download.
@@ -74,9 +78,10 @@ out of the first download.
   game (`frontend/games/snake/src/scene/snake_scene.ts`), so its specs hand
   it a fake shell.
 - **A game that runs in time takes the scene's.** Snake's scene hands the
-  game each frame's time in `update()`, and the game steps the run and
-  hands back the frame to draw, so the run never steps without being drawn
-  and stops when Phaser does.
+  game each frame's time in `update()`, as Brick Breaker's hands its game
+  the time and the steering, and the game steps the run and hands back the
+  frame to draw, so the run never steps without being drawn and stops
+  when Phaser does.
 - **A scene says when it has drawn,** with `ready()`, once its first frame
   is up: `onFirstFrame()` calls it at the right time. The canvas uncovers
   the scene then.
@@ -199,8 +204,11 @@ browser, through a game's screenshots and its `check:layout`.
   relies on in Phaser, so an upgrade that breaks it fails there first.
 - Snake's scene specs are the worked example of a scene played with keys
   (`frontend/games/snake/src/scene/snake_scene.spec.ts`, and its
-  `snake-testing` skill), and the Solitaire Collection's of a board whose
-  atlases are served and loaded, played with the mouse
+  `snake-testing` skill); Brick Breaker's, of one whose atlas is baked at
+  run time, played with keys and the pointer
+  (`frontend/games/brick-breaker/src/scene/bricks_scene.spec.ts`, and its
+  `brick-breaker-testing` skill); and the Solitaire Collection's of a board
+  whose atlases are served and loaded, played with the mouse
   (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`,
   and its `solitaire-testing` skill).
 
