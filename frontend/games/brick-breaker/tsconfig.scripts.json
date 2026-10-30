@@ -1,5 +1,9 @@
 {
-  // The Node scripts under tools/, type-checked from their JSDoc.
+  // The Node scripts under tools/, type-checked from their JSDoc. The DOM's
+  // types are for the functions a script runs in a page.
   "extends": "@fz/dev/tsconfig/scripts.json",
+  "compilerOptions": {
+    "lib": ["es2024", "dom", "dom.iterable"]
+  },
   "include": ["tools/**/*.mjs"]
 }

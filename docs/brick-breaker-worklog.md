@@ -3171,3 +3171,32 @@ refused, and none came back changed.
 
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,740,
   `@fz/ui`'s 189), build, clean on the first run.
+
+## B12.1: the layout check
+
+- **Built.** `tools/check-layout.mjs`, Snake's adapted to the field, and
+  `check:layout` in `package.json`. The root's `yarn check:layout`, and so
+  CI, now runs it.
+  - It serves the build and opens it in headless Chrome, at
+    `@fz/dev/layout`'s shapes and at 320 × 480, and turned from upright to
+    its side and back, each at 2×.
+  - **The library's own checks:** no error, no scrolling, and the bar's
+    controls in the window.
+  - **The canvas:** it reaches `data-state="ready"` and draws at its size
+    times the pixel ratio.
+  - **The field** (`data-field`): 26 units by 30 and inside the window,
+    where the placeholder drew it, within a pixel, and inside the focus
+    ring.
+  - **The card** lies on the field.
+- **Deviation.** The plan asked for a unit of 10 CSS px, or 8 at 320 × 480.
+  On the small phone on its side (568 × 320), the field's 30 units of
+  height leave 9.5 at most. So the floor is 8 wherever the window is under
+  360 CSS px either way.
+- **The placeholder's check is real.** In the browser, after the scene had
+  drawn, the placeholder's field stayed laid out, only hidden, half a
+  pixel from the scene's.
+- **The scripts' type-check** takes the DOM's types, as Snake's does, for
+  the inspection that runs in the page.
+- **Checks.** `yarn check:layout` holds at every shape and turn. Lint,
+  typecheck, the references and the constraints pass. Docs: Brick
+  Breaker's `AGENTS.md` and the frontend's.

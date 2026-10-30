@@ -322,6 +322,16 @@ workspace's with the others'.
   longest endgame and the most lives lost, as the capsules one seed lets
   fall can make a level look far easier or harder than it is; it marks a
   long endgame too, but fails only on a level not cleared.
+- **Check the Layout:** `yarn check:layout` (runs
+  `tools/check-layout.mjs` on the build `yarn build` made: in headless
+  Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
+  small phone, upright and on its side) and at 320 × 480, and turned from
+  upright to its side and back, each at 2×, the page reports no error and
+  doesn't scroll, the bar's controls lie in the window, the canvas draws at
+  its size times the pixel ratio, and the field keeps its shape, 26 units
+  by 30, with a unit of 10 CSS px or more (8 where the window is under 360
+  CSS px either way), inside the window, where the placeholder drew it and
+  inside the focus ring, its card on it).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the ten sounds, from the paddle's bop to a level's
   chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their
