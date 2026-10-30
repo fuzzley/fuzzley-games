@@ -25,10 +25,13 @@ take the pure ones.
   back. It imports nothing but `insets`.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
-  it, and `ViewportScaler`, which keeps the canvas at the size and pixel
-  ratio of its box, as a `ResizeObserver` reports the box once it is laid
-  out: the window's `resize` comes before the app has moved what stands
-  around it, so it sizes the canvas only where nothing can watch the box.
+  it, building the next before it lets go of the last, its `show()` settling
+  once the scene is mounted or rejecting with what kept it from being (a
+  scene that loads files first creates itself later, outside it), and
+  `ViewportScaler`, which keeps the canvas at the size and pixel ratio of its
+  box, as a `ResizeObserver` reports the box once it is laid out: the
+  window's `resize` comes before the app has moved what stands around it, so
+  it sizes the canvas only where nothing can watch the box.
   It imports Phaser, never Angular.
 - `src/scene/`: what a scene needs to live in a game that outlives it:
   `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
@@ -48,9 +51,11 @@ take the pure ones.
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a function
   returning a `MakeScene` or a promise of one; its `state` is `loading`,
   `ready` or `failed`, also on the element as `data-state`, and failed only
-  when the source rejects or a minute passes, since a slow connection can take
-  that long; `slow` says, after 8 s, that it is still loading, for the app to
-  say so (`data-slow`); and what the app projects as `[fzCanvasPlaceholder]`
+  when a minute passes, since a slow connection can take that long, or the
+  source rejects or the scene it makes can't be built or mounted, whose error
+  it hands to Angular's `ErrorHandler`; `slow` says, after 8 s, that it is
+  still loading, for the app to say so (`data-slow`); `state` and `slow` are
+  read-only to the app; and what the app projects as `[fzCanvasPlaceholder]`
   lies over the canvas until the scene is ready. It imports the host, and so
   Phaser, with `import()`, when it first shows a scene. Beside it,
   `fzKeepKeys` (`KeepKeysDirective`) stops key events on a button from

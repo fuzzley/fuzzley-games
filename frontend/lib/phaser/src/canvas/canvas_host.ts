@@ -13,7 +13,8 @@ export interface CanvasHost {
   /**
    * Shows the scene a source makes in place of the one shown, calling
    * `onReady` once it has drawn its first frame, unless another has been
-   * shown since; rejects if the source does.
+   * shown since; rejects if the source does, or the scene it makes can't be
+   * built or mounted.
    */
   show(source: SceneSource, onReady: () => void): Promise<void>;
   /** Reads the insets again, for chrome that moved without the canvas changing size. */
@@ -66,7 +67,7 @@ class LazyPhaserHost implements CanvasHost {
     ]);
     if (this.destroyed || asked !== this.asked) return;
     this.host ??= new PhaserHost(this.view, this.parent, this.options);
-    this.host.show(make, onReady);
+    await this.host.show(make, onReady);
   }
 
   refreshInsets(): void {

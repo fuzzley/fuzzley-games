@@ -29,6 +29,13 @@ class KeyedScene extends Scene implements HostedScene {
   }
 }
 
+/** A scene that throws as it is created. */
+class ThrowingScene extends KeyedScene {
+  override create(): void {
+    throw new Error("can't create");
+  }
+}
+
 /** A game a host started, and when it booted and was torn down. */
 interface StartedGame {
   readonly game: Game;
@@ -43,6 +50,14 @@ const OPTIONS: HostOptions = {
   background: "#102030",
   config: { banner: false, audio: { noAudio: true } },
 };
+
+/** Returns what a promise settles as: "resolved", or what it rejected with. */
+async function settledAs(promise: Promise<void>): Promise<unknown> {
+  return promise.then(
+    () => "resolved",
+    (error: unknown) => error,
+  );
+}
 
 /** Resolves once a game has raised an event. */
 async function heard(game: Game, event: string): Promise<void> {
@@ -67,10 +82,18 @@ describe("PhaserHost", () => {
     return parent;
   }
 
-  /** Returns a host that records each real game it starts. */
-  function hostOn(parent = attached(), options = OPTIONS): PhaserHost {
+  /**
+   * Returns a host that records each real game it starts, handing each to
+   * `onGame` before the host hears of it.
+   */
+  function hostOn(
+    parent = attached(),
+    options = OPTIONS,
+    onGame?: (game: Game) => void,
+  ): PhaserHost {
     const made = new PhaserHost(window, parent, options, (config) => {
       const game = new Game(config);
+      onGame?.(game);
       started.push({
         game,
         config,
@@ -114,11 +137,33 @@ describe("PhaserHost", () => {
   /** Shows a scene and returns it, once it has been built. */
   function show(on = host, onReady?: () => void): () => KeyedScene | undefined {
     let built: KeyedScene | undefined;
-    on.show(() => {
+    void on.show(() => {
       built = new KeyedScene();
       return built;
     }, onReady);
     return () => built;
+  }
+
+  /** Shows a scene whose building throws, and returns what `show()` settles as. */
+  function showBroken(on = host): Promise<unknown> {
+    return settledAs(
+      on.show(() => {
+        throw new Error("can't build");
+      }),
+    );
+  }
+
+  /** Returns a host whose canvas can't be measured once its game has booted. */
+  function unmeasurableHost(): PhaserHost {
+    const parent = attached();
+    // Heard before the host's own listener, so the scaler finds it broken.
+    return hostOn(parent, OPTIONS, (game) => {
+      game.events.once(Core.Events.READY, () => {
+        parent.getBoundingClientRect = () => {
+          throw new Error("can't measure");
+        };
+      });
+    });
   }
 
   /** Shows a scene, and returns what it is told of its surroundings. */
@@ -131,7 +176,7 @@ describe("PhaserHost", () => {
       told = surroundings;
       return new KeyedScene();
     };
-    on.show(make, onReady);
+    void on.show(make, onReady);
     return () => told;
   }
 
@@ -183,7 +228,7 @@ describe("PhaserHost", () => {
     const real = new PhaserHost(window, parent, OPTIONS);
     hosts.push(real);
     const created = new Promise<void>((resolve) => {
-      real.show(
+      void real.show(
         () =>
           new (class extends KeyedScene {
             override create(): void {
@@ -209,7 +254,7 @@ describe("PhaserHost", () => {
 
   it("tells a scene no insets before the game has measured its canvas", async () => {
     let insets: (() => Insets) | undefined;
-    host.show((surroundings) => {
+    void host.show((surroundings) => {
       insets = surroundings.insets;
       return new KeyedScene();
     });
@@ -329,6 +374,83 @@ describe("PhaserHost", () => {
       await only().booted;
 
       expect(mounted()).toEqual([]);
+    });
+
+    it("resolves once the scene is mounted", async () => {
+      let built: KeyedScene | undefined;
+
+      await host.show(() => {
+        built = new KeyedScene();
+        return built;
+      });
+
+      expect(mounted()).toEqual([built?.key]);
+    });
+
+    it("resolves the show of a scene replaced while the game boots", async () => {
+      const first = host.show(() => new KeyedScene());
+      show();
+
+      await expect(first).resolves.toBeUndefined();
+    });
+
+    it("resolves the show of a scene still waiting when the host is destroyed", async () => {
+      const waiting = host.show(() => new KeyedScene());
+
+      host.destroy();
+
+      await expect(waiting).resolves.toBeUndefined();
+    });
+
+    it("rejects with what building the scene threw, keeping the scene on the canvas", async () => {
+      const first = show();
+      await only().booted;
+
+      const settled = await showBroken();
+
+      expect([settled, mounted()]).toEqual([
+        new Error("can't build"),
+        [first()?.key],
+      ]);
+    });
+
+    it("rejects with what the scene threw as it was created", async () => {
+      show();
+      await only().booted;
+
+      const settled = await settledAs(host.show(() => new ThrowingScene()));
+
+      expect(settled).toEqual(new Error("can't create"));
+    });
+
+    it("starts the game though its first scene can't be built", async () => {
+      const settled = await showBroken();
+
+      expect([settled, only().game.isRunning]).toEqual([
+        new Error("can't build"),
+        true,
+      ]);
+    });
+
+    it("rejects, and starts the game all the same, when the canvas can't be measured", async () => {
+      const broken = unmeasurableHost();
+
+      const settled = await settledAs(broken.show(() => new KeyedScene()));
+
+      expect([settled, mounted(), only().game.isRunning]).toEqual([
+        new Error("can't measure"),
+        [],
+        true,
+      ]);
+    });
+
+    it("rejects every scene shown once the canvas couldn't be measured", async () => {
+      const broken = unmeasurableHost();
+      await settledAs(broken.show(() => new KeyedScene()));
+
+      const settled = await settledAs(broken.show(() => new KeyedScene()));
+
+      expect([settled, mounted()]).toEqual([new Error("can't measure"), []]);
     });
   });
 

@@ -59,10 +59,17 @@ export type CreateGame = (config: Types.Core.GameConfig) => Phaser.Game;
 /** Builds a Phaser game. */
 const createPhaserGame: CreateGame = (config) => new Phaser.Game(config);
 
-/** The scene waiting for the game to boot, and what to tell once it draws. */
+/**
+ * Describes a scene waiting to be mounted: how to build it, what to tell once
+ * it draws, and how to settle the `show()` that asked for it.
+ */
 interface PendingScene {
   readonly make: MakeScene;
   readonly onReady?: (() => void) | undefined;
+  /** Settles the `show()` once the scene is mounted, or will never be. */
+  readonly resolve: () => void;
+  /** Settles the `show()` with what kept the scene from being mounted. */
+  readonly reject: (error: unknown) => void;
 }
 
 /**
@@ -88,6 +95,9 @@ export class PhaserHost {
   /** The scene to mount once the game has booted. */
   private pending?: PendingScene;
 
+  /** What kept the game's canvas from being sized as it booted, if anything did. */
+  private bootError?: Error;
+
   /** Creates a host that mounts a canvas into `parent` when first shown a scene. */
   constructor(
     private readonly window: Window,
@@ -101,17 +111,31 @@ export class PhaserHost {
    * game first if need be, and calls `onReady` once that scene says it has
    * drawn its first frame.
    *
+   * Resolves once the scene is mounted, or once another shown before the
+   * game booted, or the host's end, means it never will be; rejects with what
+   * went wrong if building or mounting it threw, or the canvas couldn't be
+   * sized as the game booted. A scene that loads files creates itself only
+   * once they have loaded, after this has resolved, so what its `create()`
+   * throws then isn't caught here.
+   *
    * A scene shown before the game has booted replaces any other still
    * waiting, so only the latest is ever built.
    */
-  public show(make: MakeScene, onReady?: () => void): void {
-    const pending = { make, onReady };
-    if (this.game && this.booted) {
-      this.mount(this.game, pending);
-      return;
-    }
-    this.pending = pending;
-    if (!this.game) this.start();
+  show(make: MakeScene, onReady?: () => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.bootError) {
+        reject(this.bootError);
+        return;
+      }
+      const pending = { make, onReady, resolve, reject };
+      if (this.game && this.booted) {
+        this.mount(this.game, pending);
+        return;
+      }
+      this.pending?.resolve();
+      this.pending = pending;
+      if (!this.game) this.start();
+    });
   }
 
   /** Starts the game, which mounts the waiting scene once it has booted. */
@@ -146,31 +170,53 @@ export class PhaserHost {
       // A game destroyed while booting may still finish booting.
       if (this.game !== game) return;
       this.booted = true;
-      this.scaler = new ViewportScaler(this.window, game, this.parent);
-      this.scaler.start();
-      if (this.pending) this.mount(game, this.pending);
+      const pending = this.pending;
+      this.pending = undefined;
+      // Phaser starts the game's loop only once this listener returns, so
+      // nothing thrown here may escape it.
+      try {
+        const scaler = new ViewportScaler(this.window, game, this.parent);
+        scaler.start();
+        this.scaler = scaler;
+      } catch (error) {
+        this.bootError =
+          error instanceof Error
+            ? error
+            : new Error("The canvas couldn't be sized", { cause: error });
+        pending?.reject(this.bootError);
+        return;
+      }
+      if (pending) this.mount(game, pending);
     });
   }
 
-  /** Swaps a scene in for the one on the canvas. */
+  /**
+   * Builds a scene and swaps it in for the one on the canvas, which stays if
+   * the new one can't be built, and settles the `show()` that asked for it.
+   */
   private mount(game: Phaser.Game, pending: PendingScene): void {
-    this.pending = undefined;
     const scenes = game.scene;
-    if (this.scene) {
-      // Stopped before it is removed, because removing a scene destroys it
-      // without shutting it down.
-      scenes.stop(this.scene.key);
-      scenes.remove(this.scene.key);
+    try {
+      const scene = pending.make({
+        insets: () => this.scaler?.insets ?? NO_INSETS,
+        ready: () => {
+          // A scene replaced before its first frame has nothing to report.
+          if (this.scene === scene) pending.onReady?.();
+        },
+      });
+      if (this.scene) {
+        // Stopped before it is removed, because removing a scene destroys it
+        // without shutting it down.
+        scenes.stop(this.scene.key);
+        scenes.remove(this.scene.key);
+      }
+      this.scene = scene;
+      scenes.add(scene.key, scene, true);
+    } catch (error) {
+      pending.reject(error);
+      return;
     }
-    const scene = pending.make({
-      insets: () => this.scaler?.insets ?? NO_INSETS,
-      ready: () => {
-        // A scene replaced before its first frame has nothing to report.
-        if (this.scene === scene) pending.onReady?.();
-      },
-    });
-    this.scene = scene;
-    scenes.add(scene.key, scene, true);
+    pending.resolve();
   }
 
   /**
@@ -191,6 +237,7 @@ export class PhaserHost {
     this.scaler?.stop();
     this.scaler = undefined;
     this.scene = undefined;
+    this.pending?.resolve();
     this.pending = undefined;
     this.booted = false;
     const game = this.game;

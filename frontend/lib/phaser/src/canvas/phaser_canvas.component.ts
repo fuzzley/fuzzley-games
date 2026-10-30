@@ -2,6 +2,7 @@ import {
   Component,
   DestroyRef,
   type ElementRef,
+  ErrorHandler,
   ViewEncapsulation,
   effect,
   inject,
@@ -19,7 +20,8 @@ import {
 
 /**
  * Says where a canvas's scene is: still loading, ready once it has drawn its
- * first frame, or failed, when its source rejected or it was given up on.
+ * first frame, or failed, when it couldn't be loaded, built or mounted, or
+ * was given up on.
  */
 export type CanvasState = "loading" | "ready" | "failed";
 
@@ -64,22 +66,27 @@ export class PhaserCanvasComponent {
   /** What the canvas is called to assistive technology, if anything. */
   readonly label = input<string>();
 
-  /** Where the scene is, starting again at `loading` with each new one. */
-  readonly state = linkedSignal<SceneSource, CanvasState>({
+  private readonly sceneState = linkedSignal<SceneSource, CanvasState>({
     source: this.scene,
     computation: () => "loading",
   });
+
+  private readonly slowState = linkedSignal<SceneSource, boolean>({
+    source: this.scene,
+    computation: () => false,
+  });
+
+  /** Where the scene is, starting again at `loading` with each new one. */
+  readonly state = this.sceneState.asReadonly();
 
   /**
    * Whether the scene is taking long enough to load for the app to say so,
    * as it may on a slow connection; it is still loading, not failed.
    */
-  readonly slow = linkedSignal<SceneSource, boolean>({
-    source: this.scene,
-    computation: () => false,
-  });
+  readonly slow = this.slowState.asReadonly();
 
   private readonly createHost = inject(PHASER_CANVAS_HOST);
+  private readonly errors = inject(ErrorHandler);
   private readonly surface =
     viewChild.required<ElementRef<HTMLElement>>("surface");
   private host?: CanvasHost;
@@ -95,11 +102,11 @@ export class PhaserCanvasComponent {
       const settle = (state: CanvasState): void => {
         if (!current) return;
         stopTimers();
-        this.slow.set(false);
-        this.state.set(state);
+        this.slowState.set(false);
+        this.sceneState.set(state);
       };
       const slowTimer = setTimeout(() => {
-        if (current) this.slow.set(true);
+        if (current) this.slowState.set(true);
       }, SLOW_AFTER_MS);
       const giveUpTimer = setTimeout(() => {
         settle("failed");
@@ -122,8 +129,9 @@ export class PhaserCanvasComponent {
           .show(source, () => {
             settle("ready");
           })
-          .catch(() => {
+          .catch((error: unknown) => {
             settle("failed");
+            this.errors.handleError(error);
           });
       });
     });
