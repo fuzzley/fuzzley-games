@@ -63,7 +63,8 @@ Phaser stays out of the first download.
   hands the game the time, reads the frame and the palette, and has its
   painters draw: `BoardPainter` the checker and the wall, `ApplePainter` the
   apple, `SnakePainter` the snake, and `EffectsPainter` the crumbs, the
-  shake and the fade. Its keys and swipes go back through `command()`.
+  shake and the fade. Its keys, heard through `@fz/phaser/scene`'s
+  `onKeyDown()`, and swipes go back through `command()`.
   `textures.ts` bakes the apple and the crumb through `@fz/phaser`'s
   `bakeTexture()`, and `@fz/phaser/sound`'s `SpritePlayer` plays the sprite
   in `sounds/`, which `yarn build:sounds` writes.

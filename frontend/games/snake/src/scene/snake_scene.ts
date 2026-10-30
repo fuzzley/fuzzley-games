@@ -1,6 +1,6 @@
 import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
-import { onFirstFrame, pixelRatioOf } from "@fz/phaser/scene";
+import { onFirstFrame, onKeyDown, pixelRatioOf } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { Input, Scene } from "phaser";
 import { BOARD_SIZE } from "../rules/arena";
@@ -206,16 +206,10 @@ export class SnakeScene extends Scene {
 
   /** Turns keys and swipes over the board into commands. */
   private listen(): void {
-    const keyboard = this.input.keyboard;
-    if (keyboard) {
-      keyboard.addCapture(CAPTURED_KEYS);
-      keyboard.on(
-        Input.Keyboard.Events.ANY_KEY_DOWN,
-        (event: KeyboardEvent) => {
-          this.onKey(event);
-        },
-      );
-    }
+    this.input.keyboard?.addCapture(CAPTURED_KEYS);
+    onKeyDown(this, (event) => {
+      this.onKey(event);
+    });
     const swipe = new SwipeReader();
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
       swipe.start(pointer.x, pointer.y);
