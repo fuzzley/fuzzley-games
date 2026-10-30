@@ -302,3 +302,32 @@ stands above the board. Every finding was taken.
   Breaker's in B8.2's review. The confirmation stays where it is.
 - **Checks:** the three games' lint and test pass (Minesweeper 376,
   Sudoku 591, Snake 399), and Prettier.
+
+### G-Q1: the fixes, checked
+
+At `5b5569c1`, with G2's review fixes in and G4's and G5's reviews under
+way.
+
+- **`yarn verify`:** lint, typecheck, test and build pass in every
+  workspace, in 7:51. The tests: `@fz/phaser` 265, Snake 399, Brick
+  Breaker 1,753, Minesweeper 376, Sudoku 591, the Solitaire Collection
+  6,872, and the libraries' and the site's.
+- **`yarn check:layout`:** Sudoku's, Snake's and Brick Breaker's layouts hold at
+  every shape and turn.
+- **Snake, from its dev server in Chrome:**
+  - With the run paused and Resume focused, a real Space went on with the
+    run and left the focus on the board; so did a real Enter.
+  - Four P presses sent in one task, so in one frame, left a paused run
+    paused: four toggles. Before G1 the scene would have heard nine, and
+    gone on.
+  - Once a run ended and its result was closed, a real Space on the card's
+    New Game began a new run, with the focus on the board.
+  - The console stayed clean.
+- **Snake's screenshot script** (G4) ran against the dev server, took up
+  its run with a score of 12, and wrote both images byte for byte as they
+  were.
+- **Brick Breaker on fuzzley.games,** once its merge went live (`8d6095c`
+  in `version.json`): its card in Arcade links `/play/brick-breaker/`, the
+  level drew, Space launched the ball, a brick broke for 50, the ball was
+  lost to a still paddle and announced ("Ball lost. 2 lives left."), and
+  the console stayed clean.
