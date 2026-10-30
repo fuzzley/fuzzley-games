@@ -225,8 +225,56 @@ spec the seed could fail today. Every finding was taken.
    random source, 0.000 to 0.999, as this entry has it.
 6. **`renderEnded()`'s doc** had the seed wedged in. **Fixed:** its doc is
    as it was, and the provider says what it does.
+
 - **Left for later, as the reviewer suggests:** `GAME_RANDOM` is Snake's
   and Brick Breaker's alike, worth a shared token if a third game needs
   one.
 - **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier and
   the references.
+
+### G2's review (7a115b83)
+
+The reviewer found the fix right, and proved its findings on the commit's
+code in a scratch copy, with probe specs run with and without the
+bindings. Nothing above the board loses these keys: the play room
+listens to focus, visibility and presses, and no other key listener
+stands above the board. Every finding was taken.
+
+1. **The New Game spec's `runs` check couldn't fail:** `newGame()` waits a
+   microtask on whether a run would be lost, so a run the scene started
+   began after the assertion. **Fixed:** the spec waits for it, as Brick
+   Breaker's does, and keeps `fireEvent` with a comment on why: the
+   scene's own Space starts a run too, so only the events say which heard
+   it.
+2. **The Resume spec checked the mechanism, not the fix.** **Fixed:** it
+   presses Space, then Enter, on the focused Resume with user-event, and
+   expects the run going and the board focused. Without the directive
+   both fail, as does the New Game spec, and the click spec passes.
+3. **New Game doesn't hand the board the focus; the app does,** as the run
+   begins. **Fixed:** the docs say so, and an app spec presses Space on
+   the card's New Game and finds a new run and the board focused.
+4. **The reason sat in a loose HTML comment,** and read poorly.
+5. **Snake and Brick Breaker shared `keepKey()` word for word,** with its
+   comment, and the next Phaser game would need it too. **Fixed, for 4
+   and 5 both:** `KeepKeysDirective` (`fzKeepKeys`) in
+   `@fz/phaser/canvas`, its doc giving the reason once, with a spec that
+   runs a scene capturing Space on a board with a kept button and a plain
+   one: the kept one's keys are neither cancelled nor heard, the plain
+   one's are both. Both games' card buttons use it, and their
+   `keepKey()` and comments went. The docs lead with the cause: the board
+   is Phaser's keyboard target, so the cards' buttons keep their keys.
+   - **The `phaser-core` skill said a captured key has its default
+     prevented everywhere.** Phaser listens and prevents only on its
+     target (`KeyboardManager.js`), as the fix relies on. **Fixed** there
+     and in both games' `AGENTS.md`, and the skill says to put
+     `fzKeepKeys` on a button over the board, and why.
+6. **The log said New Game's click hands the board the focus, and that "no
+   run starts" was checked.** Both are put right above.
+
+- **Found on the way:** G3's review entry wanted a blank line Prettier adds,
+  which this commit has.
+- **Checks:** lint, typecheck and test pass in `@fz/phaser` (265 tests),
+  Snake (399) and Brick Breaker (1,753), and Prettier and the references.
+  A lint error came first: inline in Phaser's config, whose keyboard
+  target is `any`, `screen.getByRole()` took `any` for its type, so the
+  spec names the board first.

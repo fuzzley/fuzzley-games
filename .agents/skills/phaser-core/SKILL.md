@@ -103,10 +103,15 @@ out of the first download.
   dropping only one that repeats the event just before, so from the third
   key of a frame on, every key before it is handed over again; the helpers
   hand over each once.
-- **Phaser's key captures are global,** whatever the target: a captured key
-  has its default prevented everywhere. Capture only the keys the game
-  uses, and ignore a held key and one pressed with Ctrl, Alt or Meta, so the
-  browser's shortcuts still work.
+- **Phaser's key captures are the game's,** shared by every scene, and
+  cancel a captured key's default as it reaches the keyboard's target, from
+  the target or from anything inside it, and nowhere else. Capture only the
+  keys the game uses, and ignore a held key and one pressed with Ctrl, Alt
+  or Meta, so the browser's shortcuts still work.
+- **A button over the board keeps its keys with `fzKeepKeys`,** from
+  `@fz/phaser/canvas`. Without it, Space or Enter pressed on the button
+  reaches the scene too, and Phaser cancels Space's keyup, at which a
+  browser clicks a button, so the focus is left on a button that goes.
 - **Phaser's mouse prevents the default of `mousedown`,** which keeps the
   focus off the canvas; an element that should take the focus at a click
   focuses itself on `pointerdown`.

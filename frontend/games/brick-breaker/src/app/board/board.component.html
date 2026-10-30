@@ -17,13 +17,6 @@
   button's: Space and Enter press it.
 </p>
 
-<!--
-  A key pressed on a card's button stays with it, down and up, so the button
-  takes it and hands the board the focus, rather than the board's keys doing
-  the same and leaving the focus on nothing as the card goes. The browser
-  clicks a button at Space's keyup, which Phaser would cancel.
--->
-
 @switch (card()) {
   @case ("ready") {
     <div class="card ready">
@@ -35,13 +28,7 @@
     <div class="card">
       <p class="card-title">Paused</p>
       <p>Score {{ game.score() }}</p>
-      <button
-        type="button"
-        class="fz-button"
-        (keydown)="keepKey($event)"
-        (keyup)="keepKey($event)"
-        (click)="resume()"
-      >
+      <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
         Resume
       </button>
     </div>
@@ -58,13 +45,7 @@
         }
       </dl>
       <p>Score {{ game.score() }}</p>
-      <button
-        type="button"
-        class="fz-button"
-        (keydown)="keepKey($event)"
-        (keyup)="keepKey($event)"
-        (click)="nextLevel()"
-      >
+      <button type="button" class="fz-button" fzKeepKeys (click)="nextLevel()">
         Next level
       </button>
     </div>
@@ -73,13 +54,7 @@
     <div class="card">
       <p class="card-title">{{ endTitle() }}</p>
       <p>Score {{ game.score() }}</p>
-      <button
-        type="button"
-        class="fz-button"
-        (keydown)="keepKey($event)"
-        (keyup)="keepKey($event)"
-        (click)="newGame()"
-      >
+      <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
         New game
       </button>
     </div>
