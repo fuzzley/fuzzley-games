@@ -233,6 +233,11 @@ export class BoardComponent {
     this.host.nativeElement.focus();
   }
 
+  /** Keeps a key pressed or let go on a card's button from the board's keys, so the button takes it. */
+  protected keepKey(event: KeyboardEvent): void {
+    event.stopPropagation();
+  }
+
   /** Starts another run, from the card over an ended one. */
   protected newGame(): void {
     void this.game.newGame();

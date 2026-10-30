@@ -15,6 +15,9 @@ import { playToTheEnd } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
 
+/** Space as a browser sends it, with the key code Phaser's capture reads. */
+const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
+
 /** The colors the page gives the board, as a palette's stylesheet would. */
 const ROLES = {
   panel: "#f1f3f5",
@@ -285,6 +288,42 @@ describe("BoardComponent", () => {
       run.advance(16);
 
       expect(game.outcome()).toBe("playing");
+    });
+
+    it("leaves Space on Resume to the button, down and up", async () => {
+      const { game, run, detectChanges } = await runBoardScene();
+      game.turn("up");
+      game.pause();
+      detectChanges();
+      const resume = screen.getByRole("button", { name: "Resume" });
+
+      const kept = [
+        fireEvent.keyDown(resume, SPACE),
+        fireEvent.keyUp(resume, SPACE),
+      ];
+      run.advance(16);
+
+      expect(kept).toEqual([true, true]);
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("leaves Space on New Game to the button, down and up", async () => {
+      const { game, run, detectChanges } = await runBoardScene();
+      game.turn("up");
+      playToTheEnd(game);
+      game.closeResult();
+      detectChanges();
+      const newGame = screen.getByRole("button", { name: "New Game" });
+      const runs = game.runs();
+
+      const kept = [
+        fireEvent.keyDown(newGame, SPACE),
+        fireEvent.keyUp(newGame, SPACE),
+      ];
+      run.advance(16);
+
+      expect(kept).toEqual([true, true]);
+      expect(game.runs()).toBe(runs);
     });
 
     it("moves the run on in the scene's time", async () => {

@@ -236,12 +236,7 @@ export class SnakeScene extends Scene {
   private onKey(event: KeyboardEvent): void {
     if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
     const command = commandOfKey(event.code);
-    if (!command) return;
-    // Enter on a button over the board, such as Resume, presses the button.
-    if (command === "go" && event.target !== this.game.input.keyboard?.target) {
-      return;
-    }
-    this.options.command(command);
+    if (command) this.options.command(command);
   }
 }
 
