@@ -3442,3 +3442,41 @@ against the specs, and probed the announcer with a spec of its own.
     the references pass.
   - Brick Breaker's suite passes with its floors (1,748).
   - The build carries both images under `docs/screenshots/brick-breaker/`.
+
+## B13.2: the game's docs and skills
+
+- **`AGENTS.md`** describes the game as it stands, as Snake's does.
+  - It no longer says the game is being built.
+  - The layers are a table of what each may import.
+  - Layout ends with `src/testing/` and `tools/`.
+  - **New sections.** "The Field" holds the principles: the scene follows
+    the game, the board is an application, Phaser's input is the board's,
+    the level waits for the player, the colors are the palette's and the
+    inks', the placeholder works the field out in CSS, and motion follows
+    the player's preference. "Styling" and "In This Repository" (the
+    screenshots, the toolbar's color, accessibility) come after it.
+  - Tests lists what `src/testing/` holds, `kept_run.ts` among it, and
+    points at the skills.
+  - That the site serves the game at `/play/brick-breaker/` waits for
+    B14.1, which puts it in the site's catalog.
+- **`README.md`** describes the game, its sets, kinds and capsules, and
+  every script, as Snake's does. It says the game will be played at its
+  address once the catalog holds it, which B14.1 makes so.
+- **Two skills** in `.agents/skills/`, linked into `.claude/skills/` with
+  `node .agents/link-claude-skills.mjs`:
+  - **`brick-breaker-testing`:** the commands and the floor, the setup,
+    fields drawn as pictures, the levels and the autopilot, the saved
+    game's round trip and its states, the view's art and contrast, the
+    scene's `FakeShell`, and the shell's small levels and helpers.
+  - **`brick-breaker-content`:** what adding a level, a set, a capsule, a
+    new kind of effect, a ball kind, a brick kind or a brick trait takes.
+    It covers the files, the records the compiler holds complete, what the
+    saved game must keep for a trait, and the checks.
+    - It lists what the levels so far showed makes an endgame drag: bricks
+      above steel, a one-cell channel at a wall, an enclosure's inner
+      corners, a corridor two rows high between steel, and bricks shaded by
+      a single steel cell.
+    - It notes that the screenshots keep a run on Rocket by its bricks'
+      places.
+- **Checks.** Formatting and the references pass; every path and name the
+  docs cite was read back from the code.
