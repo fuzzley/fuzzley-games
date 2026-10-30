@@ -34,7 +34,7 @@ take the pure ones.
   `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
   `onFirstFrame()`, which let go of what they subscribe to when the scene
   ends; `onKeyDown()` and `onKeyUp()`, which hand a scene each key event its
-  keyboard hears once; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at
+  keyboard hears, once; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at
   run time and drawn again after a lost context; and `bakeAtlas()`, many named
   frames drawn into one such texture, after which every object showing one of
   its frames sets it again. It imports Phaser, never Angular.

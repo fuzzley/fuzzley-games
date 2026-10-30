@@ -139,23 +139,30 @@ describe("note", () => {
   });
 });
 
+// The times are an eighth or a quarter of a cycle into a note, where its sine
+// and its harmonic's are round numbers.
 describe("arpeggio", () => {
-  it("is silent before its first note", () => {
-    expect(arpeggio([440], 0.1, 0.1)(-0.01)).toBe(0);
+  it("raises a note over its first 5 ms", () => {
+    const chord = arpeggio([100], 0.5, 0.1);
+
+    expect(chord(0.0025)).toBeCloseTo(0.5 * Math.exp(-0.025), 6);
   });
 
-  it("plays only its first note until the next is struck", () => {
+  it("plays its first note alone, with a quarter of its second harmonic, until the next is struck", () => {
     const chord = arpeggio([100, 200], 0.5, 0.1);
 
-    expect(chord(0.3)).toBe(arpeggio([100], 0.5, 0.1)(0.3));
+    expect(chord(0.30125)).toBeCloseTo(
+      (Math.SQRT1_2 + 0.25) * Math.exp(-3.0125),
+      6,
+    );
   });
 
-  it("adds each later note from the moment it is struck", () => {
+  it("strikes the next note gap seconds later, at its own pitch", () => {
     const chord = arpeggio([100, 200], 0.5, 0.1);
 
-    const second = chord(0.6) - arpeggio([100], 0.5, 0.1)(0.6);
-
-    expect(second).toBeCloseTo(arpeggio([200], 0.5, 0.1)(0.1));
+    const first = (0.25 - Math.SQRT1_2) * Math.exp(-5.0625);
+    const second = Math.exp(-0.0625);
+    expect(chord(0.50625)).toBeCloseTo(first + second, 6);
   });
 });
 

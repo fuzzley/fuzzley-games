@@ -111,9 +111,9 @@ out of the first download.
   shortcuts still work.
 - **A button over the board keeps its keys with `fzKeepKeys`,** from
   `@fz/phaser/canvas`. Without it, a key pressed on the button reaches the
-  scene too, which acts on Enter or Space as well as the button would, and
-  Phaser cancels Space's keyup, at which a browser clicks a button, so the
-  focus is left on a button that goes.
+  scene too, which acts on Enter or Space besides the button, and Phaser
+  cancels Space's keyup, at which a browser clicks a button, so the focus is
+  left on a button that goes.
 - **Phaser's mouse prevents the default of `mousedown`,** which keeps the
   focus off the canvas; an element that should take the focus at a click
   focuses itself on `pointerdown`.
@@ -189,7 +189,10 @@ browser, through a game's screenshots and its `check:layout`.
 - **user-event's keys carry no `keyCode`,** which Phaser's capture reads, so
   Phaser cancels nothing user-event presses. A spec of a capture, such as
   Space kept from the board by a button's `fzKeepKeys`, sends the key with
-  `fireEvent` and its `keyCode`, as `key()` does.
+  `fireEvent` and its `keyCode`, as `key()` does. Phaser also drops a key
+  event whose key code, type and time match those of the one before it, so
+  two keydowns in a row from user-event in one millisecond, as under fake
+  timers, reach the scene as one.
 - **An error a handler throws** while Phaser hears a browser's event
   reaches the window's `error` event, not the spec. jsdom reads its
   stack, and the first stack through Phaser in a file is mapped through
