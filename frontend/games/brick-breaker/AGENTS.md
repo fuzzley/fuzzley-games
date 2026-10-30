@@ -193,8 +193,10 @@ the scene and the shell's first files exist.
     play; and the cards: Ready, with the level and how to launch, whenever
     a ball waits on the paddle; Paused; Cleared, with how the level's
     points added up and Next level; Ended, once an ended run's result is
-    put away; and still loading and couldn't be drawn. It keeps the
-    scene's pictures for How to play (`pictures`). The board is an
+    put away; and still loading and couldn't be drawn. A key pressed on a
+    card's button stays with it, which hands the board back the focus.
+    `fieldPalette()` colors the field from `ThemeService`'s roles and
+    `mode`. It keeps the scene's pictures for How to play (`pictures`). The board is an
     application named for its level, "Brick Breaker, level 3: Pyramid",
     and Phaser's keyboard target.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`,

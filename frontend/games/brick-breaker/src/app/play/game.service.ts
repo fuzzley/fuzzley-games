@@ -513,6 +513,7 @@ export class GameService {
   private begin(run: Run): void {
     this.showField(run);
     this.runState.set(run);
+    this.tallyState.set(null);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
     this.runsState.update((runs) => runs + 1);

@@ -378,6 +378,16 @@ describe("GameService", () => {
       );
     });
 
+    it("forgets the level's points as a new run begins", async () => {
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect(game.tally()).toBeNull();
+    });
+
     it("opens the cleared card at the next frame where the player prefers less motion", async () => {
       const game = await clearedAt(SPEC_LEVEL.blasts);
 

@@ -20,6 +20,7 @@ import {
   playUntil,
   provideSpecLevels,
 } from "../../testing/play";
+import { FIRST_LIVES } from "../../rules/tuning";
 import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
 
@@ -31,6 +32,9 @@ const ROLES = {
   danger: "#c0392b",
   warning: "#b8860b",
 };
+
+/** The longest the scene plays a level for before a spec gives up on it. */
+const LEVEL_LIMIT_MS = 10_000;
 
 /** Renders the board beside a button outside it, on a fake canvas. */
 async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
@@ -60,14 +64,28 @@ async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
   };
 }
 
-/** Advances the scene a frame at a time while a level is in play, ten seconds at most. */
+/** Advances the scene a frame at a time while a level is in play, for `LEVEL_LIMIT_MS` at most. */
 function advanceWhilePlaying(
   run: SceneRun<HostedScene>,
   game: GameService,
 ): void {
-  for (let ms = 0; ms < 10_000 && game.outcome() === "playing"; ms += 16) {
-    run.advance(16);
+  for (
+    let ms = 0;
+    ms < LEVEL_LIMIT_MS && game.outcome() === "playing";
+    ms += FRAME_MS
+  ) {
+    run.advance(FRAME_MS);
   }
+}
+
+/** Returns the cleared card's sum, each line as its term and its points. */
+function tallyLines(): [string, string][] {
+  return screen
+    .getAllByRole("term")
+    .map((term) => [
+      term.textContent.trim(),
+      term.nextElementSibling?.textContent.trim() ?? "",
+    ]);
 }
 
 /** Returns the board's game with its run at one of the specs' levels. */
@@ -88,7 +106,7 @@ async function endedBoard(): Promise<{
   detectChanges: () => void;
 }> {
   const rendered = await renderAt(SPEC_LEVEL.steel);
-  for (let life = 0; life < 3; life++) loseBall(rendered.game);
+  for (let life = 0; life < FIRST_LIVES; life++) loseBall(rendered.game);
   return rendered;
 }
 
@@ -220,16 +238,13 @@ describe("BoardComponent", () => {
       game.tick(FRAME_MS, STILL);
       detectChanges();
 
-      const tally = game.tally();
       expect(screen.getByText("Level 1 cleared")).toBeInTheDocument();
-      expect(
-        screen
-          .getAllByRole("definition")
-          .map((points) => Number(points.textContent)),
-      ).toEqual([tally?.bricks, tally?.streaks, tally?.bonus]);
-      expect(
-        screen.getByText(`Score ${String(game.score())}`),
-      ).toBeInTheDocument();
+      expect(tallyLines()).toEqual([
+        ["Bricks", "1300"],
+        ["Streaks", "1300"],
+        ["Bonus", "1500"],
+      ]);
+      expect(screen.getByText("Score 4100")).toBeInTheDocument();
     });
 
     it("go on to the next level at Next level, handing the board the focus", async () => {
@@ -373,7 +388,7 @@ describe("BoardComponent", () => {
         config: { input: { keyboard: { target: board } } },
       });
       scene = run;
-      run.advance(16);
+      run.advance(FRAME_MS);
       return { board, component, game, run, detectChanges };
     }
 
@@ -410,9 +425,37 @@ describe("BoardComponent", () => {
       const { game, run } = await runBoardScene();
 
       run.key("keydown", "Space", " ");
-      run.advance(16);
+      run.advance(FRAME_MS);
 
       expect(game.outcome()).toBe("playing");
+    });
+
+    it("leaves Space pressed on Resume to the button, which hands the board the focus", async () => {
+      const { board, game, run, detectChanges } = await runBoardScene();
+      game.launch();
+      game.pause();
+      detectChanges();
+      screen.getByRole("button", { name: "Resume" }).focus();
+
+      await userEvent.keyboard(" ");
+      run.advance(FRAME_MS);
+
+      expect(game.outcome()).toBe("playing");
+      expect(board).toHaveFocus();
+    });
+
+    it("leaves Space pressed on Next level to the button, which hands the board the focus", async () => {
+      const { board, game, run, detectChanges } = await runBoardScene();
+      playToClear(game);
+      game.tick(FRAME_MS, STILL);
+      detectChanges();
+      screen.getByRole("button", { name: "Next level" }).focus();
+
+      await userEvent.keyboard(" ");
+      run.advance(FRAME_MS);
+
+      expect(game.level().number).toBe(SPEC_LEVEL.wide);
+      expect(board).toHaveFocus();
     });
 
     it("plays a level to its end in the scene's time", async () => {

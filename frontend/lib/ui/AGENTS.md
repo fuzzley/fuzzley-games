@@ -23,7 +23,8 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   nothing, so a change of shape drops what it can't read.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
   it, takes up one chosen in another tab, gives a role's color as a signal
-  (`role("felt")`), offers the palettes as a chooser lists them
+  (`role("felt")`) and whether the palette is light or dark (`mode`), each
+  as the palette is put on the page, offers the palettes as a chooser lists them
   (`options`), and draws the tab's icon, where the page links one, as the
   fuzzball in the palette's accent; `<fz-theme-menu>`, the menu a player
   picks one from; and `<fz-theme-picker>`, the same choice as radios, for a

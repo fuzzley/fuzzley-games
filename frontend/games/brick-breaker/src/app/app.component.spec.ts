@@ -131,10 +131,8 @@ describe("AppComponent", () => {
       );
       await settle();
 
-      expect({
-        outcome: game.outcome(),
-        focused: screen.getByRole("application"),
-      }).toEqual({ outcome: "ready", focused: document.activeElement });
+      expect(game.outcome()).toBe("ready");
+      expect(screen.getByRole("application")).toHaveFocus();
     });
   });
 });
