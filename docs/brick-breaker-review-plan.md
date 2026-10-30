@@ -360,3 +360,28 @@ The second review, of the whole change:
 3. _The game bar's `@let shown` lost its noun, and a spec's name claimed
    what the compiler does, not lint._ Taken: `homeLink`, and "takes
    `@default never;` as a switch's default".
+
+### R6: the games' viewport reads the window it is given
+
+`GameViewportService` asks the window of Angular's `DOCUMENT`
+(`defaultView`) for its media queries, rather than the global `window`, as
+`@fz/phaser`'s canvas host, `@fz/ui`'s theme and storage, and the boards
+already did, so it follows whichever document the app is given. A
+document without a window reads as a window without `matchMedia` did:
+roomy, wider than tall, asking for no motion and pointed at with a mouse.
+`follow()` takes the window it asks. `@fz/game-ui`'s `AGENTS.md` says
+which window it asks.
+
+Specs: a document without a window reads as roomy even while the page's
+own window is a phone held upright, which the global `window` would have
+read as compact; and a document whose window is a phone held upright reads
+as one while the page's can't be asked.
+
+R6's review, before the commit:
+
+1. _The spec stopped at the guard, so `follow()` asking the global window
+   again would have passed._ Taken: a second spec gives the service a
+   document whose window answers as a phone while the page's can't be
+   asked, which fails with that change; the two provide the document
+   through one helper.
+2. _A line of the log ran long._ Taken: rewrapped.
