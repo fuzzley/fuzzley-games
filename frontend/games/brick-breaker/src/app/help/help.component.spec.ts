@@ -1,8 +1,8 @@
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { BALL_KIND_IDS } from "../../rules/catalog/balls";
-import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
-import { CAPSULE_IDS } from "../../rules/catalog/capsules";
+import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
+import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
+import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
 import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art";
 import { HelpComponent } from "./help.component";
 
@@ -70,16 +70,20 @@ describe("HelpComponent", () => {
     expect(screen.queryAllByRole("presentation")).toHaveLength(0);
   });
 
-  it("shows each picture the scene drew beside its name", async () => {
+  it.each([
+    ["a brick", brickKind("steel").name, PICTURES.bricks.steel],
+    ["a capsule", capsule("wide").name, PICTURES.capsules.wide],
+    ["a ball", ballKind("normal").name, PICTURES.balls.normal],
+  ])("shows %s's picture beside its name", async (_, name, picture) => {
     await render(HelpComponent, {
       inputs: { open: true, pictures: PICTURES },
     });
 
-    const steel = screen.getByText("Steel brick.").closest("li");
+    const entry = screen.getByText(`${name}.`).closest("li");
 
-    expect(steel && within(steel).getByRole("presentation")).toHaveAttribute(
+    expect(entry && within(entry).getByRole("presentation")).toHaveAttribute(
       "src",
-      PICTURES.bricks.steel,
+      picture,
     );
   });
 

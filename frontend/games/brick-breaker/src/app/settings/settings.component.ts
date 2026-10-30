@@ -15,7 +15,8 @@ interface Choice<T> {
   readonly says: string;
 }
 
-const TOUCH_STEERINGS: readonly Choice<TouchSteering>[] = [
+/** The ways a finger may steer the paddle, as the drawer offers them. */
+const TOUCH_CHOICES: readonly Choice<TouchSteering>[] = [
   {
     id: "drag",
     name: "Drag",
@@ -71,7 +72,7 @@ export class SettingsComponent {
 
   protected readonly touchSteerings = computed(() => {
     const current = this.settings().touch;
-    return TOUCH_STEERINGS.map((choice) => ({
+    return TOUCH_CHOICES.map((choice) => ({
       ...choice,
       checked: choice.id === current,
     }));

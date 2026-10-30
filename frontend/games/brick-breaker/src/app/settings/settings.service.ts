@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import type { TouchSteering } from "../../view/steering";
+import { type TouchSteering, isTouchSteering } from "../../view/steering";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 export const SETTINGS_KEY = "brick-breaker-settings";
@@ -21,8 +21,6 @@ export const DEFAULT_SETTINGS: Settings = {
   touch: "drag",
   sound: true,
 };
-
-const TOUCH_STEERINGS: readonly TouchSteering[] = ["drag", "follow"];
 
 /** Holds and keeps the player's settings. */
 @Injectable({ providedIn: "root" })
@@ -45,16 +43,8 @@ export class SettingsService {
     if (!saved) return DEFAULT_SETTINGS;
     const { touch, sound } = saved;
     return {
-      touch: oneOf(TOUCH_STEERINGS, touch) ?? DEFAULT_SETTINGS.touch,
+      touch: isTouchSteering(touch) ? touch : DEFAULT_SETTINGS.touch,
       sound: typeof sound === "boolean" ? sound : DEFAULT_SETTINGS.sound,
     };
   }
-}
-
-/** Returns a value if it is one of those given, else null. */
-function oneOf<T extends string>(
-  options: readonly T[],
-  value: unknown,
-): T | null {
-  return options.find((option) => option === value) ?? null;
 }

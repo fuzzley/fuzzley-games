@@ -36,7 +36,10 @@
         <tr>
           <th scope="row">Steer</th>
           <td>Move it; the paddle follows</td>
-          <td>Drag anywhere on the field, or as the settings say</td>
+          <td>
+            Drag anywhere on the field, or, in the settings, have the paddle
+            follow your finger
+          </td>
           <td>
             Hold <kbd>←</kbd> or <kbd>→</kbd>, or <kbd>A</kbd> or <kbd>D</kbd>
           </td>
@@ -52,7 +55,8 @@
           <td>Pause, then Resume</td>
           <td>Pause, then Resume</td>
           <td>
-            <kbd>P</kbd>; <kbd>Esc</kbd> pauses and <kbd>Enter</kbd> goes on
+            <kbd>P</kbd>; <kbd>Esc</kbd> pauses, and <kbd>Enter</kbd> or
+            <kbd>Space</kbd> goes on
           </td>
         </tr>
         <tr>
@@ -71,65 +75,26 @@
     </table>
 
     <!-- Each picture is beside its name, which says what it is. -->
-    <section aria-labelledby="help-bricks">
-      <h3 id="help-bricks">Bricks</h3>
-      <ul class="catalog">
-        @for (entry of bricks(); track entry.id) {
-          <li>
-            @if (entry.picture; as picture) {
-              <img [src]="picture" alt="" />
-            } @else {
-              <span class="picture"></span>
-            }
-            <div>
-              <strong>{{ entry.name }}.</strong>
-              {{ entry.about }}
-            </div>
-          </li>
+    @for (catalog of catalogs(); track catalog.id) {
+      <section [attr.aria-labelledby]="catalog.headingId">
+        <h3 [id]="catalog.headingId">{{ catalog.heading }}</h3>
+        @if (catalog.intro; as intro) {
+          <p>{{ intro }}</p>
         }
-      </ul>
-    </section>
-
-    <section aria-labelledby="help-capsules">
-      <h3 id="help-capsules">Capsules</h3>
-      <p>
-        A broken brick may let a capsule fall. Catch it with the paddle for what
-        it does; Relaxed lets none fall that makes the game harder.
-      </p>
-      <ul class="catalog">
-        @for (entry of capsules(); track entry.id) {
-          <li>
-            @if (entry.picture; as picture) {
-              <img [src]="picture" alt="" />
-            } @else {
-              <span class="picture"></span>
-            }
-            <div>
-              <strong>{{ entry.name }}.</strong>
-              {{ entry.about }}
-            </div>
-          </li>
-        }
-      </ul>
-    </section>
-
-    <section aria-labelledby="help-balls">
-      <h3 id="help-balls">Balls</h3>
-      <ul class="catalog">
-        @for (entry of balls(); track entry.id) {
-          <li>
-            @if (entry.picture; as picture) {
-              <img [src]="picture" alt="" />
-            } @else {
-              <span class="picture"></span>
-            }
-            <div>
-              <strong>{{ entry.name }}.</strong>
-              {{ entry.about }}
-            </div>
-          </li>
-        }
-      </ul>
-    </section>
+        <ul class="catalog">
+          @for (entry of catalog.entries; track entry.id) {
+            <li>
+              @if (entry.picture; as picture) {
+                <img [src]="picture" alt="" />
+              }
+              <div>
+                <strong>{{ entry.name }}.</strong>
+                {{ entry.about }}
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
   </div>
 </fz-dialog>

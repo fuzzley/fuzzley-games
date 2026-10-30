@@ -458,6 +458,27 @@ describe("BoardComponent", () => {
       expect(game.level().number).toBe(SPEC_LEVEL.blasts);
     });
 
+    it("leaves Space on New game to the button, down and up", async () => {
+      const { game, run, detectChanges } = await runBoardScene();
+      await game.startAt(SPEC_LEVEL.steel);
+      for (let life = 0; life < FIRST_LIVES; life++) loseBall(game);
+      game.closeResult();
+      detectChanges();
+      const newGame = screen.getByRole("button", { name: "New game" });
+      const runs = game.runs();
+
+      const kept = [
+        fireEvent.keyDown(newGame, SPACE),
+        fireEvent.keyUp(newGame, SPACE),
+      ];
+      run.advance(FRAME_MS);
+      // A new game waits on whether a run would be lost, a moment later.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(kept).toEqual([true, true]);
+      expect(game.runs()).toBe(runs);
+    });
+
     it("has the paddle follow a finger where the settings say", async () => {
       const { game, run } = await runBoardScene();
       TestBed.inject(SettingsService).update({ touch: "follow" });

@@ -38,7 +38,7 @@ export class ResultComponent {
     this.won() ? "Every level cleared!" : "Game over",
   );
 
-  /** Where the run ended, and at what speed. */
+  /** Where the run started or ended, and at what speed. */
   protected readonly subtitle = computed(() => {
     const run = this.game.run();
     const where = this.won()

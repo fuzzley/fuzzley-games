@@ -5,6 +5,14 @@ import { type FieldMetrics, toFieldX } from "./field_metrics";
 /** Says how a finger steers the paddle: by dragging it from anywhere, or by the paddle following it. */
 export type TouchSteering = "drag" | "follow";
 
+/** Every way a finger may steer the paddle. */
+export const TOUCH_STEERINGS: readonly TouchSteering[] = ["drag", "follow"];
+
+/** Says whether a value is a way a finger may steer the paddle. */
+export function isTouchSteering(value: unknown): value is TouchSteering {
+  return TOUCH_STEERINGS.some((steering) => steering === value);
+}
+
 /** How long a press of a finger may last to be a tap, in milliseconds. */
 export const TAP_MS = 250;
 

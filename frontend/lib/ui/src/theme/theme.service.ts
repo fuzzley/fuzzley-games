@@ -64,9 +64,8 @@ export class ThemeService {
   readonly current: Signal<ThemeId> = this.chosen.asReadonly();
 
   /**
-   * Whether the palette on the page is light or dark, which changes with
-   * `role()`'s colors, once the palette is on the page, a moment after
-   * `current`.
+   * Whether the palette on the page is light or dark. It changes when
+   * `role()`'s colors do, a moment after `current`.
    */
   readonly mode: Signal<ColorMode> = computed(() => {
     const id = this.applied();

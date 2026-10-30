@@ -2417,3 +2417,85 @@ before these fixes, and they came after its commit.
     that always asks for sound.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,451),
   build, clean on the first run.
+
+## B8.2's review (aaa53ef1, with 8bed5b3d)
+
+The reviewer checked out the two commits from `git archive` and ran a
+mutant for each finding marked as tested. Every one of those mutants
+passed the specs it should have failed.
+
+1. **The result card's specs couldn't tell the level reached from the
+   first.** Every lost run ended on its first level, and the won one
+   started on the last. Five mutants passed: Try again always starting a
+   new game, the label, the lost subtitle and the Level figure reading the
+   first level, and the won subtitle reading the level reached. **Fixed:**
+   - The rules gain `levelsOf()`, which numbers the levels of a list of
+     sets; `LEVELS` uses it.
+   - `testing/play.ts` gains `TWO_SETS`, two sets of a blasts level each
+     (a run won in two levels), `clearToNext()`, and a levels argument to
+     `provideSpecLevels()`.
+   - The lost run clears level 1 and is lost on level 2: "Try again from
+     level 2", "Out of lives on level 2", Score 4400, Level 2, Cleared 1.
+   - The won run goes from level 1 to level 2: "From level 1 to the last",
+     Level 2, Cleared 2, and New game starts at level 1.
+   - Each of the five mutants fails now.
+2. **"Leaves the board as a dialog opens, pausing the level" tested the
+   bar.** The click moving the focus paused the level, not the dialog, and
+   another spec covers that. **Fixed:** removed.
+3. **Only the settings were proven to cover the board.** **Fixed:**
+   - "Goes back to the board once … closes" runs over Levels, How to
+     play and Settings.
+   - A spec goes from the result card to Levels and closes it, and the
+     board has the focus.
+   - Dropping `levelsOpen()` or `helpOpen()` from `covered` fails each.
+4. **One set of levels couldn't test grouping by set.** **Fixed:**
+   - The dialog's spec lists `TWO_SETS` under "First" and "Second".
+   - The full list of the spec levels is its own spec.
+   - `sets` groups the levels once, in a `Map` by set id, whose local name
+     no longer shadows the member.
+   - Putting every level in one set fails.
+5. **The marked level was the run's first.** **Fixed:** the run goes on to
+   level 2, and "2 Wide" is current. A mark hard-coded to 3 fails.
+6. **The Ended card's New game kept its keys unspecced.** **Fixed:** a
+   third spec fires Space down and up on it. Both stay uncancelled, and no
+   run starts, though Space on an ended run starts one when the board has
+   it. Removing the two bindings fails it.
+7. **Only a brick's picture was checked.** **Fixed:** a brick, a capsule
+   and a ball, each by its catalog name. Capsules without their pictures
+   fail.
+8. **The controls left out Space for going on.** **Fixed:** "P; Esc
+   pauses, and Enter or Space goes on". The touch steering cell says
+   "Drag anywhere on the field, or, in the settings, have the paddle
+   follow your finger".
+9. **The catalog list was written out three times.** **Fixed:**
+   - A `catalogs` view model lists each catalog's id, heading, heading id,
+     introduction (the capsules' only) and entries.
+   - One `@for` renders them.
+   - The placeholder `<span class="picture">` is gone: the words take the
+     second column with `grid-column: 2`, picture or not.
+10. **Two `TOUCH_STEERINGS` of different types.** **Fixed:**
+    - `view/steering.ts` exports `TOUCH_STEERINGS` and `isTouchSteering()`,
+      as `speed.ts` has `SPEEDS` and `isSpeed()`, with specs.
+    - The settings reader uses the guard, so its copy of Snake's `oneOf()`
+      is gone, and nothing needs lifting into `@fz/core`.
+    - The drawer's list is `TOUCH_CHOICES`.
+11. **"Last, so it opens over…" was wrong.** `<fz-dialog>` opens with
+    `showModal()`, so a dialog stacks over those opened before it,
+    wherever it sits in the page. **Fixed** in Brick Breaker by removing
+    the comment. Snake, Minesweeper and Sudoku carry the same comment, and
+    are on the list for the user, outside this game's commits.
+12. **Docs nits.** **Fixed:**
+    - The subtitle's comment: "Where the run started or ended".
+    - AGENTS.md's long lines are rewrapped, with `levelsOf()`, `TWO_SETS`,
+      `clearToNext()` and the touch steering guard named.
+    - The bar's dialog `it.each` has one column.
+    - `ThemeService.mode`'s comment is two plain sentences.
+13. **The settings drawer's styles are a fourth copy.** **Not done here.**
+    A mixin in `@fz/game-ui` would change four games' drawers at once,
+    which is a lift of its own. It is on the list for the user.
+
+- **Browser check.** How to play lists 7 bricks, 11 capsules and 3 balls,
+  each with its picture, under one template. The capsules' introduction
+  shows, and the words sit in the second column. The console stayed clean.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,464),
+  build, clean on the first run.

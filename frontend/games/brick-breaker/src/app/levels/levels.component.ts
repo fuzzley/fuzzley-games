@@ -45,18 +45,21 @@ export class LevelsComponent {
 
   protected readonly sets = computed<readonly SetChoice[]>(() => {
     const current = this.game.level().number;
-    const sets = [...new Set(this.levels.map(({ set }) => set))];
-    return sets.map(({ id, name }) => ({
+    const bySet = new Map<string, { name: string; levels: LevelChoice[] }>();
+    for (const { number, set, data } of this.levels) {
+      const choice = bySet.get(set.id) ?? { name: set.name, levels: [] };
+      choice.levels.push({
+        number,
+        name: data.name,
+        current: number === current,
+      });
+      bySet.set(set.id, choice);
+    }
+    return [...bySet].map(([id, { name, levels }]) => ({
       id,
       name,
       headingId: `levels-${id}`,
-      levels: this.levels
-        .filter((entry) => entry.set.id === id)
-        .map(({ number, data }) => ({
-          number,
-          name: data.name,
-          current: number === current,
-        })),
+      levels,
     }));
   });
 

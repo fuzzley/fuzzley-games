@@ -1,6 +1,13 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import { type FieldMetrics, fieldMetrics, toCanvasX } from "./field_metrics";
-import { type PointerView, Steering, TAP_CSS_PX, TAP_MS } from "./steering";
+import {
+  type PointerView,
+  Steering,
+  TAP_CSS_PX,
+  TAP_MS,
+  TOUCH_STEERINGS,
+  isTouchSteering,
+} from "./steering";
 
 /** Returns the metrics of a canvas of 400 by 300 CSS pixels: units of 9 at a pixel ratio of 1, 18 at 2. */
 function metricsAt(pixelRatio = 1): FieldMetrics {
@@ -331,5 +338,15 @@ describe("Steering", () => {
     const steering = new Steering(metricsAt());
 
     expect(steering.read()).toBe(steering.read());
+  });
+});
+
+describe("isTouchSteering", () => {
+  it.each(TOUCH_STEERINGS)("knows %s", (steering) => {
+    expect(isTouchSteering(steering)).toBe(true);
+  });
+
+  it.each(["swipe", "", 1, null])("refuses %j", (value) => {
+    expect(isTouchSteering(value)).toBe(false);
   });
 });
