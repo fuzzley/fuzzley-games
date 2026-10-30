@@ -29,8 +29,8 @@ log is at its end.
 ## Part 1: the fixes
 
 - **G1. Each key event once.** Phaser's keyboard plugin hands over every
-  key event of a frame again with each new one, so a frame of three keys
-  repeats the first. Brick Breaker's scene keeps the events it took in a
+  key event of a frame again with each new one, so from the third key of a
+  frame on, every key before it is handed over again. Brick Breaker's scene keeps the events it took in a
   `WeakSet`; Snake's has no guard, so it could repeat a turn. A helper in
   `@fz/phaser/scene` listens for keys pressed or let go and hands each over
   once, both scenes use it, and its spec holds a frame of several keys to
@@ -153,3 +153,46 @@ log is at its end.
   and when a spec provides `provideSeededRuns()`.
 - **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier and
   the references.
+
+### G1's review (b8928cbf)
+
+The reviewer found the fix sound, and proved its findings in a scratch
+copy: a raw listener given three keys in a frame heard five, the helper's
+listeners were gone after a restart, and a key is heard before any
+`advance()`. Every finding was taken but the last nit, as said.
+
+1. **"A frame of three keys repeats the first" was wrong.** From the third
+   key of a frame on, every key before it is handed over again: four keys
+   give 1 + 1 + 3 + 4 = 9, as G1's own count says. **Fixed** in the
+   helper's doc, the `phaser-core` skill and this plan's G1. A probe here
+   gave `A, B, A, B, C, A, B, C, D` for four keys.
+2. **The skill's testing rule was stale:** "press at most two keys a
+   frame, since with a third Phaser sends the earlier ones again". **Fixed:**
+   a scene that hears the keys through the helpers takes any number a
+   frame, and Phaser's own key events hand the earlier ones over again.
+3. **The helpers' docs read as once per press.** A held key's repeats are
+   events of their own, and both scenes still check `event.repeat`.
+   **Fixed:** `onKeyDown()`'s doc says a held key's repeats are among the
+   keys, and each exported doc says why to use it, on hover, and that it
+   lasts until the scene ends.
+4. **Spec gaps.** **Fixed:** "stop once the scene has ended", as each
+   sibling helper has, and "hands every listener each key", which a
+   module-wide `WeakSet` fails (tried: it does).
+5. **A spec of both helpers sat under `onKeyUp`.** **Fixed:** it is on the
+   outer `describe`, "hand each helper only its own kind of key event".
+6. **Snake's handler was still `onKey()`,** where `on…` now means
+   subscribing. **Fixed:** `press()`, as Brick Breaker's.
+7. **Two awkward sentences** in the games' `AGENTS.md`. **Fixed:** "each
+   key event once", and "its swipes".
+8. **The skill named only `ANY_KEY_DOWN` and `ANY_KEY_UP`,** where the
+   per-key events replay too. **Fixed:** "not the keyboard's own key
+   events".
+9. **`(event: KeyboardEvent) => void` three times.** **Fixed:** a
+   `KeyListener` type, exported beside the helpers, since their signatures
+   name it.
+10. **`runScene()`'s `key()` said Phaser hears a key on the next frame.** It
+    hears it at once and forgets the frame's keys as the frame ends.
+    **Fixed** in its doc and the skill's testing rule.
+
+- **Not taken:** G4's line in the plan says what changes, not what goes
+  wrong today. Its log entry will.
