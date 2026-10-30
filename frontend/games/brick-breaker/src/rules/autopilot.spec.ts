@@ -5,7 +5,7 @@ import {
   playLevel,
 } from "../testing/autopilot";
 import type { Level } from "./level";
-import { LEVELS, type LevelData, parseLevel } from "./levels";
+import { LEVELS, type LevelData, type LevelEntry, parseLevel } from "./levels";
 import { SPEEDS } from "./speed";
 import { stepsIn } from "./stepper";
 import { COLUMNS } from "./tuning";
@@ -13,18 +13,26 @@ import { COLUMNS } from "./tuning";
 /** The seeds a spec plays a level from, to judge the autopilot by more than one game. */
 const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);
 
-/** Returns a level of the bricks drawn, each row filled out with gaps, drawing from the capsules given. */
+/** Returns the first level of the bricks drawn, each row filled out with gaps, drawing from the capsules given. */
+function entryOf(
+  rows: readonly string[],
+  capsules: readonly string[] = [],
+): LevelEntry {
+  const bricks = rows.map((row) => row.padEnd(COLUMNS, "."));
+  const data: LevelData = { id: "spec", name: "Spec", bricks, capsules };
+  return {
+    number: 1,
+    set: { id: "spec", name: "Spec", drops: 0, levels: [data] },
+    data,
+  };
+}
+
+/** Returns a level of the bricks drawn, as {@link entryOf} lays it out, ready to play. */
 function levelOf(
   rows: readonly string[],
   capsules: readonly string[] = [],
 ): Level {
-  const bricks = rows.map((row) => row.padEnd(COLUMNS, "."));
-  const data: LevelData = { id: "spec", name: "Spec", bricks, capsules };
-  return parseLevel({
-    number: 1,
-    set: { id: "spec", name: "Spec", drops: 0, levels: [data] },
-    data,
-  });
+  return parseLevel(entryOf(rows, capsules));
 }
 
 describe("the autopilot", () => {
@@ -48,6 +56,21 @@ describe("the autopilot", () => {
     const [first, second] = [1, 1].map((seed) => autoplay(level, "fast", seed));
 
     expect(first).toEqual(second);
+  });
+
+  it("plays one of the game's levels from its number, unless given a seed", () => {
+    const entry = {
+      ...entryOf(["", "", "oo?oo", "o2o2o"], ["wide", "multi"]),
+      number: 4,
+    };
+    const level = parseLevel(entry);
+
+    const plays = [playLevel(entry, "fast"), playLevel(entry, "fast", 9)];
+
+    expect(plays).toEqual([
+      autoplay(level, "fast", 4),
+      autoplay(level, "fast", 9),
+    ]);
   });
 
   it("counts a level of three bricks as endgame from its start", () => {

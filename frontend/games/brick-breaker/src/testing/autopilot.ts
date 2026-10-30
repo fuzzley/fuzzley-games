@@ -135,11 +135,16 @@ export function autoplay(
 }
 
 /**
- * Plays one of the game's levels at a speed, from its number as the seed,
- * as `src/rules/autopilot.spec.ts` and `yarn report:levels` both play it.
+ * Plays one of the game's levels at a speed, from its number as the seed
+ * unless given another, as `src/rules/autopilot.spec.ts` and
+ * `yarn report:levels` both play it.
  */
-export function playLevel(entry: LevelEntry, speed: Speed): AutopilotReport {
-  return autoplay(parseLevel(entry), speed, entry.number);
+export function playLevel(
+  entry: LevelEntry,
+  speed: Speed,
+  seed = entry.number,
+): AutopilotReport {
+  return autoplay(parseLevel(entry), speed, seed);
 }
 
 /** Returns whether the field's level is cleared, read afresh. */

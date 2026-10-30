@@ -2886,3 +2886,65 @@ the last life and the place of a lost ball were set from the page.
     the Levels tiles and in what the announcer says ("1050"), as Snake's do.
     How to play writes its numbers with one ("1,000 points"). This is a
     question for the user.
+
+## B11.1: the Steel set
+
+- **Built.** `src/rules/levels/steel.json`, levels 11 to 20, as the plan's
+  table names them, at a pace from 1.06 to 1.12 and a capsule chance of
+  0.12. `LEVEL_SETS` holds it after Basics.
+  - Narrow first falls on Pillars, Fire on Shelf, Fast on Minefield and the
+    Blast capsule on Hidden, as each one's `from` says.
+  - The catalog spec's list of capsules still to come is gone, since every
+    capsule now falls. Its list of brick kinds holds only the regrowing
+    brick, which Tricks brings.
+- **Tuning.** The report's single play of each level, from its number,
+  swung from 0:29 to 5:17 on the same level, as the capsules a seed lets
+  fall decide much of it. So `yarn report:levels --seeds <n>` now plays each
+  level from n seeds of its own, and prints the middle time, the longest,
+  the longest endgame and the most lives lost. `playLevel()` takes a seed
+  for it, its number by default, with a spec.
+- **What the tuning changed.**
+  - **The bricks the autopilot left for last** sat where a ball seldom goes:
+    - above the steel, reached only up a channel one cell wide;
+    - in a vault's inner corners, beside its walls;
+    - above the post between the Cage's doors.
+
+    A probe printed the endgame's bricks for each seed, and each map was
+    redrawn so nothing a level needs hides there:
+    - Pillars has three pillars, with gaps above them, rather than four
+      against the walls.
+    - The Cage holds two blocks, each over its own door.
+    - The Vault's treasure sits straight above its door, with its inner
+      corners empty.
+
+  - **Steel under the bricks traps the ball above it,** which clears a
+    level fast. Shelf has tougher rows over a shelf with an empty row above
+    it.
+  - **The Vault was the easiest of the set at first,** with its gifts'
+    capsules. As the set's test, it has heavier walls of bricks around it.
+- **Where it ended,** the middle of 15 seeds at Relaxed, Normal and Fast:
+
+  | #   | Level     | Relaxed | Normal | Fast |
+  | --- | --------- | ------- | ------ | ---- |
+  | 11  | Pillars   | 1:53    | 1:50   | 1:41 |
+  | 12  | Shelf     | 2:06    | 1:40   | 1:21 |
+  | 13  | Fuse      | 1:06    | 1:04   | 0:48 |
+  | 14  | Minefield | 1:53    | 1:42   | 1:26 |
+  | 15  | Hidden    | 2:00    | 1:53   | 1:57 |
+  | 16  | Corridors | 1:54    | 1:27   | 1:27 |
+  | 17  | Cage      | 1:39    | 1:50   | 1:38 |
+  | 18  | Lanterns  | 2:30    | 2:31   | 2:15 |
+  | 19  | Gears     | 1:52    | 1:26   | 1:19 |
+  | 20  | Vault     | 3:23    | 3:11   | 2:17 |
+  - The first set's middles run from 1:06 to 2:52, so the sets match in
+    length while the pace rises.
+  - The Vault, the set's test, is the longest.
+  - Fuse keeps the plan's map, so it is the shortest: the fuse takes three
+    rows at once.
+  - The longest endgame of any seed is 1:28, on Shelf at Fast. The spec's
+    own seeds all finish within a minute.
+  - The autopilot lost no lives on any seed.
+
+- **Checks.** Lint, typecheck and test in the workspace (Brick Breaker's
+  1,641), and the references check. AGENTS.md names the set, the report's
+  option and the catalog spec's shorter list.
