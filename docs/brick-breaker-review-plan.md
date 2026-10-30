@@ -686,3 +686,23 @@ The second review, of the change as it stood:
    branch; `layout_page.ts` keeps what only a browser runs, as it was.
 3. _A ragged paragraph in `@fz/dev`'s `AGENTS.md`._ Taken, with 2.
 4. _`BoardInspection.problems` wasn't readonly._ Taken.
+
+### R-Q: the QA checkpoint
+
+`yarn verify` passes: lint, typecheck, every workspace's tests and the
+build. `yarn check:layout` holds for Brick Breaker and Snake at every
+shape and turn, Snake's with the arrows and without, and for Sudoku at
+every shape.
+
+Both games were played on their builds, in headless Chrome, since the
+browser pane, hidden, draws no frames. Brick Breaker: Level 1's Ready
+card over its bricks; a click launched the ball, which broke a brick for
+50; P paused, the card saying "Score 50" and the announcer the same, and
+went on; the paddle swept to and fro until a ball was lost, "Ball lost.
+2 lives left.", and the Ready card came back; Levels opened, pausing the
+level, with level 1 open and the rest locked; How to play showed its 21
+pictures from the scene, and its scoring written "1,000", "20,000" and
+"40,000". Snake: the Ready card; the arrows started the run and circled
+the snake; P paused it, with its card and "Paused, with a score of 0.
+Press a direction to go on.", and went on; the snake ran into the wall,
+faded, and the result opened. Neither page reported an error.
