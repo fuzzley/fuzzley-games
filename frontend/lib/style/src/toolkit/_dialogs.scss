@@ -1,9 +1,10 @@
 @use "controls";
 @use "motion";
+@use "surfaces";
 
 // The parts a game's dialogs are drawn from: a card, its close button, a
 // setting's heading and choices, and the cards that say how to play and how
-// a game ended.
+// a game ended, and the drawer of its settings.
 
 /// Styles a card alone over the dimmed page, as the confirmation is, `$width`
 /// wide where the window has room.
@@ -224,5 +225,132 @@
   .actions {
     display: grid;
     gap: var(--fz-space-3);
+  }
+}
+
+/// Styles a game's settings drawer, the height of the window at its end: its
+/// `.drawer-header`, with the `h2` and the `.close` button, and the
+/// `.drawer-content` under it, which scrolls. That holds `.setting`s, each
+/// with its `.setting-label`, its control and a `.setting-desc`; a
+/// `.choice-list` of `.choice` tiles, each its `.name` over its `.desc`; and
+/// `.check`s, a checkbox beside its label, with a `.setting-desc` under the
+/// label.
+///
+/// It sets no scrim or z-index, since `<fz-dialog>` lays the drawer in the
+/// top layer, and `margin-left: auto` pins it to the end of the dialog's
+/// flexbox.
+@mixin settings-drawer {
+  @include surfaces.glass(20px);
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 340px;
+  max-width: 100vw;
+  height: 100dvh;
+  margin-left: auto;
+  border-left: 1px solid var(--fz-edge-2);
+  background: var(--fz-panel-glass);
+  box-shadow: var(--fz-shadow-drawer);
+  color: var(--fz-text);
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--fz-space-5) var(--fz-space-6);
+    border-bottom: 1px solid var(--fz-edge-2);
+
+    h2 {
+      margin: 0;
+      font-size: var(--fz-font-xl);
+      font-weight: 700;
+    }
+  }
+
+  .close {
+    @include close-button;
+  }
+
+  .drawer-content {
+    flex: 1;
+    padding: var(--fz-space-6);
+    overflow-y: auto;
+  }
+
+  .setting {
+    margin: 0 0 var(--fz-space-6);
+  }
+
+  .setting-label {
+    @include field-label;
+  }
+
+  // `--fz-muted`, which clears 4.5:1 on the drawer's surface.
+  .setting-desc {
+    margin: var(--fz-space-2) 0 0;
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+    line-height: var(--fz-leading-tight);
+  }
+
+  .choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fz-space-2);
+  }
+
+  .choice {
+    @include choice-tile;
+
+    flex-direction: column;
+    gap: var(--fz-space-1);
+    min-height: var(--fz-tap-target);
+    padding: var(--fz-space-2) var(--fz-space-3);
+    font: inherit;
+    text-align: left;
+
+    .name {
+      font-size: var(--fz-font-sm);
+      font-weight: 600;
+    }
+
+    // Muted whether or not its row is checked, so the name stays the loudest.
+    .desc {
+      color: var(--fz-muted);
+      font-size: var(--fz-font-xs);
+      line-height: var(--fz-leading-tight);
+    }
+  }
+
+  // The label is as tall as a finger needs, and clicking it ticks the box.
+  .check {
+    display: grid;
+    margin-bottom: var(--fz-space-3);
+    grid-template-columns: auto 1fr;
+    column-gap: var(--fz-space-3);
+    align-items: center;
+
+    input {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: var(--fz-accent);
+      cursor: pointer;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      min-height: var(--fz-tap-target);
+      font-size: var(--fz-font-sm);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .setting-desc {
+      grid-column: 2;
+      margin: 0;
+    }
   }
 }

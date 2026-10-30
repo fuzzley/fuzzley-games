@@ -112,6 +112,24 @@ describe("the toolkit's mixins", () => {
     );
   });
 
+  it("pin a settings drawer to its dialog's end, the window's height", () => {
+    expect(compiled("@include fz.settings-drawer;")).toMatch(
+      /^\.it\{[^}]*height:100dvh;margin-left:auto;/,
+    );
+  });
+
+  it("draw a settings drawer's choices as tiles", () => {
+    expect(compiled("@include fz.settings-drawer;")).toContain(
+      ".it .choice[aria-checked=true]{border-color:var(--fz-accent)",
+    );
+  });
+
+  it("set a check's description under its label, beside the box", () => {
+    expect(compiled("@include fz.settings-drawer;")).toContain(
+      ".it .check .setting-desc{grid-column:2;margin:0}",
+    );
+  });
+
   it("put a checked choice tile in the accent", () => {
     expect(compiled("@include fz.choice-tile;")).toContain(
       ".it[aria-checked=true]{border-color:var(--fz-accent);background:var(--fz-accent-wash);color:var(--fz-text)}",
