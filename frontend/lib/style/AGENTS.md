@@ -51,18 +51,19 @@ relative to `frontend/lib/style/`.
   `@use "@fz/style" as fz;`, from `src/toolkit/`: `visually-hidden` and
   `tap-target` (`_a11y.scss`), `flex-center` (`_layout.scss`), `transition`
   (`_motion.scss`), `glass` (`_surfaces.scss`), `icon-button`
-  (`_controls.scss`); and the games' dialogs (`_dialogs.scss`). Those are
-  the parts a dialog is drawn from, `dialog-card($width)`, `close-button`,
+  (`_controls.scss`); and the games' dialogs (`_dialogs.scss`). Those are the
+  parts a dialog is drawn from, `dialog-card($width)`, `close-button`,
   `corner-close-button`, `field-label` and `choice-tile`, and three whole
-  dialogs a game fills in, which name the classes they style: `help-card`,
-  How to play's words and table of controls; `result-card`, the card a
-  finished game's result shows on, with its icon, figures and actions; and
+  dialogs a game fills in, which name the classes they style: `help-card`, How
+  to play's words and table of controls; `result-card`, the card a finished
+  game's result shows on, with its icon, figures and actions; and
   `settings-drawer($width)`, a game's settings drawer, with the settings'
   labels, descriptions, choice tiles and checkboxes. A game whose dialogs
   differ writes its own from the parts, or adds to a whole one inside the
-  block that includes it, after the include, each selector nested as the
-  mixin nests it, so its rules weigh the same and win by coming later. The toolkit emits no CSS, so any stylesheet can load it, and
-  `src/toolkit.spec.ts` checks what each mixin writes.
+  block that includes it, after the include, each selector nested as the mixin
+  nests it, so its rules weigh the same and win by coming later. The toolkit
+  emits no CSS, so any stylesheet can load it, and `src/toolkit.spec.ts`
+  checks what each mixin writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
   keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for

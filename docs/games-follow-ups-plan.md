@@ -685,3 +685,25 @@ taken.
   under it; Minesweeper's own choices and segmented control as they were.
 - **The sounds:** `yarn build:sounds` in Snake and Brick Breaker wrote the
   committed files byte for byte, after G7's review as after G7.
+
+### The last fixes' review (8d60373f)
+
+The reviewer found nothing wrong in the commit, each of its eight fixes
+doing what its entry says, and three things beside it, all taken.
+
+1. **The cards' size specs kept the hole the drawer's had:** a dialog card
+   whose `width` became `min-width` passed, and so did a result card whose
+   centering moved into a nested rule. **Fixed:** the dialog card's, the
+   help card's and the result card's specs read the card's own
+   declarations; each of those faults now fails.
+2. **`declarations()` matched a selector anywhere in another,** so
+   `.x .it{…}` before `.it{…}` would have answered for `.it`. Nothing calls
+   it so yet. **Fixed:** it reads each rule's selector whole and takes the
+   first that is the one asked for.
+3. **`@fz/style`'s `AGENTS.md` kept a line of 131 characters,** and the
+   helper's doc one of 83. **Fixed:** both rewrapped.
+
+- **Not reviewed again:** these fixes are to specs and a doc alone; each
+  is proven by the faults above instead.
+- **Checks:** `@fz/style`'s lint, typecheck and toolkit spec (24), and
+  Prettier and the references.
