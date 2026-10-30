@@ -5,7 +5,8 @@
   [class.reversed]="reversed() && !isRail()"
 >
   <div class="lead">
-    @switch (shownHome()) {
+    @let homeLink = shownHome();
+    @switch (homeLink) {
       @case ("wordmark") {
         <a class="home-wordmark" [href]="homeHref()"><fz-wordmark /></a>
         <span class="divider"></span>
@@ -20,6 +21,8 @@
           <fz-icon name="home" />
         </a>
       }
+      @case ("none") {}
+      @default never;
     }
     <ng-content select="[fzBarTitle]" />
   </div>

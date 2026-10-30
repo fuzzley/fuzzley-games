@@ -60,7 +60,9 @@ n)`, the n-th draw of a seed, which Snake's apples and Brick Breaker's
 - **R5. A `switch` over a union names every member.** `@fz/dev`'s ESLint
   preset turns on `switch-exhaustiveness-check`, so a new member of a
   union a `switch` without a `default` handles fails to lint, as Brick
-  Breaker's atlas and flourishes would have; what it finds is fixed.
+  Breaker's atlas and flourishes would have; what it finds is fixed. A
+  template's `@switch` over a union ends in `@default never;`, which the
+  compiler checks, and lint asks every one for a `@default`.
 - **R6. The games' viewport reads the window it is given,**
   `inject(DOCUMENT).defaultView`, rather than the global `window`.
 
@@ -299,3 +301,62 @@ R3's review, before the commit:
    taken. The boards' placeholder is left without a spec of its own: each
    passes the window's ratio through the one call, whose floor and cap
    `pixel_ratio.spec.ts` pins.
+
+### R5: a `switch` over a union names every member
+
+`@fz/dev`'s `typescript()` block turns on typescript-eslint's
+`switch-exhaustiveness-check`, with a `default` counted as the author's
+word that the members it doesn't name are alike
+(`considerDefaultExhaustiveForUnions`), so every workspace holds to it at
+once. Nothing in the repository broke it: every `switch` over a union named
+each member or had a `default`. What it adds is that a new member fails to
+lint where a `switch` returning nothing would have let it through, as Brick
+Breaker's atlas and its flourishes would have; with `"polygon"` left out of
+the atlas's `play()`, it names the case missing. Three `default`s stood
+for one member each, which a new member would have joined without a word,
+so they name it instead: Snake's board's card for a run in play, the
+squares Minesweeper shows as hidden, and the Solitaire Collection's
+stacked piles.
+
+A template's `@switch` is out of that rule's reach, and a new card, icon
+or tab with no case shows nothing. So `templates()` turns on
+angular-eslint's `require-switch-default`, its twin for templates, and
+every `@switch` over a union, seven of them, ends in Angular's
+`@default never;`, which the compiler holds to a case for every member:
+the game bar's link home, `<fz-icon>`'s icons, Brick Breaker's and Snake's
+cards, Minesweeper's squares, the Solitaire Collection's help tabs and
+Sudoku's hint. The members that show nothing share one empty `@case`. The
+check
+compiles to a TypeScript `switch` over the expression, which can't narrow a
+call, so each that switched over a signal takes its value into a `@let`
+first. The frontend's `AGENTS.md` says so among the Angular rules, and
+`@fz/dev`'s lists both rules.
+
+Specs: `@fz/dev`'s ESLint spec holds a `switch` missing a member to the
+rule, and lets one whose `default` stands for the rest pass; it asks a
+`@switch` with no `@default` for one, and lets `@default never;` stand.
+Leaving `"none"` out of the game bar's cases fails `@fz/game-ui`'s
+typecheck.
+
+R5's review, before the commit:
+
+1. _A `default` standing for one member still hides a new one, and three
+   did._ Taken: they name it, above.
+2. _Templates' `@switch`es were outside the rule, though Angular 22 has
+   `@default never;`._ Taken, as above; a second review read it before
+   the commit.
+3. _The new specs split the template literal's pair._ Taken: they follow
+   it.
+
+The second review, of the whole change:
+
+1. _Minesweeper's two empty `@case`s gave every cell two more anchors,
+   and each hidden or blank cell an empty view._ Taken: they are one
+   group, `@case ("hidden") @case ("blank") {}`, which the frontend's rule
+   now shows.
+2. _The rule didn't say what a `@switch` over a value that isn't a union
+   takes,_ where `@default never;` can't compile. Taken: a `@default`
+   that says what shows.
+3. _The game bar's `@let shown` lost its noun, and a spec's name claimed
+   what the compiler does, not lint._ Taken: `homeLink`, and "takes
+   `@default never;` as a switch's default".

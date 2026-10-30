@@ -75,6 +75,13 @@ export function typescript({ files, root }: TypeScriptFiles): Config[] {
         "error",
         { allowNumber: true, allowBoolean: true },
       ],
+      // A union's new member fails to lint where a switch over it has no
+      // case for it, rather than doing nothing there; a `default` is the
+      // author saying the rest are alike.
+      "@typescript-eslint/switch-exhaustiveness-check": [
+        "error",
+        { considerDefaultExhaustiveForUnions: true },
+      ],
       // A library's testing helpers stand in for what an app really runs.
       "no-restricted-imports": [
         "error",
@@ -132,6 +139,10 @@ export function templates({ files }: Files): Config[] {
       "@angular-eslint/template/prefer-control-flow": "error",
       "@angular-eslint/template/prefer-self-closing-tags": "error",
       "@angular-eslint/template/prefer-template-literal": "error",
+      // A `@switch` with no case for a value renders nothing for it. Its
+      // `@default never;` has the compiler hold the cases to every member of
+      // a union, as `switch-exhaustiveness-check` does a TypeScript switch.
+      "@angular-eslint/template/require-switch-default": "error",
     },
   });
 }

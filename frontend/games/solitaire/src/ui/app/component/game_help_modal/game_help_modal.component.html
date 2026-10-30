@@ -99,7 +99,8 @@
 
       <!-- Modal Body Content -->
       <div class="modal-body">
-        @switch (activeTab()) {
+        @let tab = activeTab();
+        @switch (tab) {
           @case ("overview") {
             <section
               id="panel-overview"
@@ -245,6 +246,7 @@
               }
             </section>
           }
+          @default never;
         }
       </div>
     } @else {

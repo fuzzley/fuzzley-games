@@ -213,7 +213,7 @@ export function pileCardOffsets(
       return fanDownOffsets(cards, layout, expansionCardId);
     case "spread":
       return spreadOffsets(cards.length, layout);
-    default:
+    case "stacked":
       return stackedCardOffsets(cards.length);
   }
 }
