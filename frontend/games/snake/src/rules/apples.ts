@@ -1,4 +1,4 @@
-import { createRandom } from "@fz/core/random";
+import { drawAt } from "@fz/core/random";
 import type { Square } from "./geometry";
 
 /**
@@ -19,7 +19,6 @@ export function placeApple(
     if (!covered.has(index)) free.push(index);
   }
   if (free.length === 0) return null;
-  const random = createRandom((seed ^ Math.imul(eaten + 1, 0x9e3779b1)) | 0);
-  const index = free[Math.floor(random() * free.length)] ?? 0;
+  const index = free[Math.floor(drawAt(seed, eaten + 1) * free.length)] ?? 0;
   return { x: index % size, y: Math.floor(index / size) };
 }

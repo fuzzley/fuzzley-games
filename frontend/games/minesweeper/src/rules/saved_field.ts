@@ -7,7 +7,7 @@ import {
   type Square,
   layoutOf,
 } from "./field";
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord, isWhole } from "@fz/core/json";
 
 /** A field as it is stored: plain JSON, a letter a square. */
 export interface SavedField {
@@ -63,9 +63,8 @@ export function restoreField(saved: unknown): Field | null {
     !isWhole(mines) ||
     !isWhole(seed) ||
     !isWhole(lives) ||
-    !isWhole(livesLeft) ||
+    !isCount(livesLeft) ||
     !isValidLives(lives) ||
-    livesLeft < 0 ||
     livesLeft > lives ||
     rows < 1 ||
     cols < 1 ||
@@ -115,7 +114,7 @@ function parseMines(value: unknown, size: FieldSize): boolean[] | null {
   if (!Array.isArray(value) || value.length !== size.mines) return null;
   const mines = new Array<boolean>(total).fill(false);
   for (const index of value) {
-    if (!isWhole(index) || index < 0 || index >= total || mines[index]) {
+    if (!isCount(index) || index >= total || mines[index]) {
       return null;
     }
     mines[index] = true;

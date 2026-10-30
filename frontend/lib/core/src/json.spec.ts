@@ -1,4 +1,4 @@
-import { isRecord, isWhole } from "./json";
+import { isCount, isRecord, isWhole } from "./json";
 
 describe("isRecord", () => {
   it("accepts an object", () => {
@@ -18,4 +18,17 @@ describe("isWhole", () => {
   it.each([1.5, "3", Number.NaN, null])("refuses %j", (value) => {
     expect(isWhole(value)).toBe(false);
   });
+});
+
+describe("isCount", () => {
+  it.each([0, 12, Number.MAX_SAFE_INTEGER])("accepts %j", (value) => {
+    expect(isCount(value)).toBe(true);
+  });
+
+  it.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1, "3", null])(
+    "refuses %j",
+    (value) => {
+      expect(isCount(value)).toBe(false);
+    },
+  );
 });

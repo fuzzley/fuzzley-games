@@ -1,4 +1,4 @@
-import { createRandom } from "@fz/core/random";
+import { drawAt } from "@fz/core/random";
 import type { Field } from "./field";
 
 /**
@@ -8,5 +8,5 @@ import type { Field } from "./field";
  */
 export function nextDraw(field: Field): number {
   field.draws++;
-  return createRandom(field.setup.seed ^ Math.imul(field.draws, 0x9e3779b1))();
+  return drawAt(field.setup.seed, field.draws);
 }

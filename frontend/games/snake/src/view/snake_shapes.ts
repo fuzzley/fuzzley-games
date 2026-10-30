@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import { landing } from "../rules/arena";
 import { type Direction, type Square, sameSquare } from "../rules/geometry";
 import type { BoardMetrics } from "./board_metrics";
@@ -104,8 +105,7 @@ export function snakeShapes(
   const last = snake.length - 1;
   if (last < 0) return out;
   const head = nth(snake, 0);
-  const glide =
-    run.outcome === "playing" ? Math.min(1, Math.max(0, progress)) : 0;
+  const glide = run.outcome === "playing" ? clamp(progress, 0, 1) : 0;
   const heading = glide > 0 ? (run.turns[0] ?? run.heading) : run.heading;
   const next = glide > 0 ? landing(head, heading, run.size) : null;
   const grows =

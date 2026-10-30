@@ -3,7 +3,7 @@ import { type Level, isLevel } from "./difficulty";
 import { isDigitSet } from "./digits";
 import { type Grid, isGiven } from "./grid";
 import type { Change, Move, Square } from "./history";
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord } from "@fz/core/json";
 import { digitsText, parseDigits, puzzleFrom } from "./puzzle";
 
 /** A grid as it is stored: plain JSON. */
@@ -49,8 +49,7 @@ export function restoreGrid(saved: unknown): Grid | null {
   const history = unpackHistory(saved["history"]);
   if (
     !isLevel(level) ||
-    !isWhole(hints) ||
-    hints < 0 ||
+    !isCount(hints) ||
     !givens ||
     !digits ||
     !history ||
@@ -136,7 +135,7 @@ function unpackMove(value: unknown): Move | null {
       numbers.slice(at, at + 5);
     const before = squareOf(digitBefore, notesBefore);
     const after = squareOf(digitAfter, notesAfter);
-    if (!isWhole(index) || index < 0 || index >= CELLS || !before || !after) {
+    if (!isCount(index) || index >= CELLS || !before || !after) {
       return null;
     }
     move.push({ index, before, after });
@@ -155,5 +154,5 @@ function squareOf(digit: unknown, notes: unknown): Square | null {
 
 /** Returns whether a value is a square's digit, or 0 for none. */
 function isDigit(value: unknown): value is number {
-  return isWhole(value) && value >= 0 && value <= 9;
+  return isCount(value) && value <= 9;
 }

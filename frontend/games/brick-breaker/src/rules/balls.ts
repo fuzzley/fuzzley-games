@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import type { Paddle } from "./paddle";
 import {
   BALL_RADIUS,
@@ -79,10 +80,11 @@ export function holdBall(
  */
 export function followPaddle(ball: Ball, paddle: Readonly<Paddle>): void {
   const half = paddle.width / 2;
-  ball.offset = Math.max(-half, Math.min(half, ball.offset));
-  ball.x = Math.max(
+  ball.offset = clamp(ball.offset, -half, half);
+  ball.x = clamp(
+    paddle.x + ball.offset,
     BALL_RADIUS,
-    Math.min(FIELD_WIDTH - BALL_RADIUS, paddle.x + ball.offset),
+    FIELD_WIDTH - BALL_RADIUS,
   );
   ball.y = PADDLE_TOP - BALL_RADIUS;
 }
@@ -126,7 +128,7 @@ export function serveBall(ball: Ball, facing: -1 | 1): void {
  */
 export function bounceOffPaddle(ball: Ball, paddle: Readonly<Paddle>): void {
   const reach = (ball.x - paddle.x) / (paddle.width / 2);
-  aim(ball, Math.max(-1, Math.min(1, reach)) * PADDLE_ANGLE);
+  aim(ball, clamp(reach, -1, 1) * PADDLE_ANGLE);
   ball.bounces = 0;
 }
 

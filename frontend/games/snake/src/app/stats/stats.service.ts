@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import type { Speed } from "../../rules/speed";
 
@@ -81,7 +81,6 @@ export class StatsService {
 function parseStats(value: unknown): SpeedStats {
   if (!isRecord(value)) return NONE;
   const { runs, best, longest } = value;
-  if (!isWhole(runs) || !isWhole(best) || !isWhole(longest)) return NONE;
-  if (runs < 0 || best < 0 || longest < 0) return NONE;
+  if (!isCount(runs) || !isCount(best) || !isCount(longest)) return NONE;
   return { runs, best, longest };
 }

@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import type { InEffect } from "../rules/capsules";
 import { capsule } from "../rules/catalog/capsules";
 import { stepsIn } from "../rules/stepper";
@@ -27,7 +28,7 @@ export function timeLeft(effect: Readonly<InEffect>, steps: number): number {
   // Only an effect that lasts a time ends at a step; any other lasts until it is used.
   if (effect.endsAt === 0 || !("ms" in started)) return 1;
   const left = (effect.endsAt - steps) / stepsIn(started.ms);
-  return Math.min(1, Math.max(0, left));
+  return clamp(left, 0, 1);
 }
 
 /**
@@ -38,5 +39,5 @@ export function firstTagX(paddleX: number, count: number): number {
   const half = ((count - 1) * TAG_SPACING) / 2;
   const least = TAG_RADIUS + half;
   const most = FIELD_WIDTH - TAG_RADIUS - half;
-  return Math.min(most, Math.max(least, paddleX)) - half;
+  return clamp(paddleX, least, most) - half;
 }

@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import type { FieldMetrics } from "./field_metrics";
 
 /** Says where a point of a drawing is, in device pixels from its frame's top left corner. */
@@ -98,7 +99,7 @@ export function roundRect(
   return {
     kind: "roundRect",
     ...box,
-    radius: Math.min(most, Math.max(0, radius)),
+    radius: clamp(radius, 0, most),
     color,
   };
 }

@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import { colorNumber, mixColors } from "@fz/phaser/color";
 
 /** The palette roles the board is drawn in, as the page sets them, in hex. */
@@ -62,5 +63,5 @@ export function snakePalette(roles: PaletteRoles): SnakePalette {
  * a crashed snake fades from `snake` to `faded`.
  */
 export function fadeTo(from: number, to: number, fade: number): number {
-  return mixColors(to, from, Math.min(1, Math.max(0, fade)));
+  return mixColors(to, from, clamp(fade, 0, 1));
 }

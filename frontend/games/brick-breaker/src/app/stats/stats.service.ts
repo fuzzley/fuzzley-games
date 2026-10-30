@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
-import { isRecord, isWhole } from "@fz/core/json";
+import { isCount, isRecord } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import type { Run } from "../../rules/run";
 import { SPEEDS, type Speed } from "../../rules/speed";
@@ -115,11 +115,6 @@ export class StatsService {
       ),
     };
   }
-}
-
-/** Returns a count as stored, if it is a whole number not below nothing. */
-function isCount(value: unknown): value is number {
-  return isWhole(value) && value >= 0;
 }
 
 /** Returns one speed's stats as stored, or none if they make no sense. */
