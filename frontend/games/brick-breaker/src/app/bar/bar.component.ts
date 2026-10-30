@@ -13,6 +13,7 @@ import {
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent, type IconName } from "@fz/ui/icon";
+import { formatPoints } from "../../rules/describe";
 import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
@@ -103,6 +104,9 @@ export class BarComponent {
   protected readonly livesText = computed(() =>
     count(this.game.lives(), "life", "lives"),
   );
+
+  /** The run's score, grouped in thousands. */
+  protected readonly score = computed(() => formatPoints(this.game.score()));
 
   /** How many times a hit scores, as "×2", while a streak makes it more than once; else null. */
   protected readonly streak = computed(() => {

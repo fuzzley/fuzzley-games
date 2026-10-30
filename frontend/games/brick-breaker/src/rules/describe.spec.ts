@@ -9,6 +9,7 @@ import {
   describeResume,
   describeTakenUp,
   endTitle,
+  formatPoints,
 } from "./describe";
 import { LEVELS } from "./levels";
 import { type Run, createRun } from "./run";
@@ -113,13 +114,13 @@ describe("describe", () => {
 
   it("says a level is cleared, with the score", () => {
     expect(describeCleared(runAt({ outcome: "cleared" }))).toBe(
-      "Level 3 cleared! Score 4250.",
+      "Level 3 cleared! Score 4,250.",
     );
   });
 
   it("says a run is paused, with the score, and how to go on", () => {
     expect(describePause(runAt({ outcome: "paused" }))).toBe(
-      "Paused, with a score of 4250. Press Enter to go on.",
+      "Paused, with a score of 4,250. Press Enter to go on.",
     );
   });
 
@@ -132,14 +133,14 @@ describe("describe", () => {
     if (!pyramid) throw new Error("No third level.");
 
     expect(describeTakenUp(runAt({ lives: 1 }), pyramid)).toBe(
-      "Your last run is paused on level 3, Pyramid, with a score of 4250 and 1 life. Press Enter to go on.",
+      "Your last run is paused on level 3, Pyramid, with a score of 4,250 and 1 life. Press Enter to go on.",
     );
   });
 
   it.each([
-    ["over", false, "Game over. Score 4250, at level 3."],
-    ["over", true, "Game over. Score 4250, at level 3. A new best!"],
-    ["won", false, "Every level cleared! Score 4250, at level 3."],
+    ["over", false, "Game over. Score 4,250, at level 3."],
+    ["over", true, "Game over. Score 4,250, at level 3. A new best!"],
+    ["won", false, "Every level cleared! Score 4,250, at level 3."],
   ] as const)(
     "says a run %s ends (a new best: %s)",
     (outcome, newBest, words) => {
@@ -154,5 +155,16 @@ describe("endTitle", () => {
     ["won", "Every level cleared!"],
   ] as const)("calls a run %s %j", (outcome, title) => {
     expect(endTitle({ outcome })).toBe(title);
+  });
+});
+
+describe("formatPoints", () => {
+  it.each([
+    [0, "0"],
+    [950, "950"],
+    [4250, "4,250"],
+    [1234567, "1,234,567"],
+  ])("writes %i points as %j", (points, written) => {
+    expect(formatPoints(points)).toBe(written);
   });
 });

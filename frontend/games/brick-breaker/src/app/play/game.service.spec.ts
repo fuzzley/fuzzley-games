@@ -400,7 +400,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "cleared",
-        said: `Level 1 cleared! Score ${String(game.score())}.`,
+        said: "Level 1 cleared! Score 4,100.",
       });
     });
 
@@ -483,7 +483,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "won",
-        said: `Every level cleared! Score ${String(game.score())}, at level ${String(SPEC_LEVEL.last)}. A new best!`,
+        said: `Every level cleared! Score 4,100, at level ${String(SPEC_LEVEL.last)}. A new best!`,
       });
     });
 
@@ -888,7 +888,7 @@ describe("GameService", () => {
       }).toEqual({
         newBest: true,
         best: 4400,
-        said: "Game over. Score 4400, at level 2. A new best!",
+        said: "Game over. Score 4,400, at level 2. A new best!",
       });
     });
 

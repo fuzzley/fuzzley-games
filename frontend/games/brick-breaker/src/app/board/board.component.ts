@@ -19,7 +19,7 @@ import {
 import type { HostOptions } from "@fz/phaser/host";
 import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
-import { endTitle } from "../../rules/describe";
+import { endTitle, formatPoints } from "../../rules/describe";
 import {
   BRICKS_TOP,
   BRICK_HEIGHT,
@@ -180,6 +180,9 @@ export class BoardComponent {
       : "Press Space or click to launch.",
   );
 
+  /** The run's score, as the cards write it. */
+  protected readonly score = computed(() => formatPoints(this.game.score()));
+
   /** What the Cleared card calls the level. */
   protected readonly clearedTitle = computed(
     () => `Level ${String(this.game.level().number)} cleared`,
@@ -190,9 +193,9 @@ export class BoardComponent {
     const tally = this.game.tally();
     if (!tally) return [];
     return [
-      { label: "Bricks", points: tally.bricks },
-      { label: "Streaks", points: tally.streaks },
-      { label: "Bonus", points: tally.bonus },
+      { label: "Bricks", points: formatPoints(tally.bricks) },
+      { label: "Streaks", points: formatPoints(tally.streaks) },
+      { label: "Bonus", points: formatPoints(tally.bonus) },
     ];
   });
 

@@ -1,7 +1,7 @@
 import { Component, computed, inject, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { endTitle } from "../../rules/describe";
+import { endTitle, formatPoints } from "../../rules/describe";
 import { levelsCleared } from "../../rules/run";
 import { SPEED_INFO } from "../../rules/speed";
 import { GameService } from "../play/game.service";
@@ -49,8 +49,8 @@ export class ResultComponent {
   protected readonly figures = computed<readonly Figure[]>(() => {
     const run = this.game.run();
     return [
-      { term: "Score", value: String(run.score) },
-      { term: "Best", value: String(this.game.best()) },
+      { term: "Score", value: formatPoints(run.score) },
+      { term: "Best", value: formatPoints(this.game.best()) },
       { term: "Level", value: String(run.level) },
       { term: "Cleared", value: String(levelsCleared(run)) },
     ];

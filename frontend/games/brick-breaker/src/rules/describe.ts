@@ -3,6 +3,11 @@ import { type CapsuleId, capsule } from "./catalog/capsules";
 import type { LevelEntry } from "./levels";
 import type { Run } from "./run";
 
+/** Writes points as a player reads them, with a comma in the thousands: "4,250". */
+export function formatPoints(points: number): string {
+  return points.toLocaleString("en-US");
+}
+
 /** How few bricks a level needs before the announcer says how many are left. */
 export const FEW_BRICKS = 5;
 
@@ -51,12 +56,12 @@ export function describeFewLeft(before: number, after: number): string | null {
 
 /** Returns what is said as a level is cleared, short of the last: the level and the score. */
 export function describeCleared(run: Run): string {
-  return `Level ${String(run.level)} cleared! Score ${String(run.score)}.`;
+  return `Level ${String(run.level)} cleared! Score ${formatPoints(run.score)}.`;
 }
 
 /** Returns what is said as a run pauses. */
 export function describePause(run: Run): string {
-  return `Paused, with a score of ${String(run.score)}. Press Enter to go on.`;
+  return `Paused, with a score of ${formatPoints(run.score)}. Press Enter to go on.`;
 }
 
 /** Returns what is said as a paused run goes on. */
@@ -66,7 +71,7 @@ export function describeResume(): string {
 
 /** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
 export function describeTakenUp(run: Run, entry: LevelEntry): string {
-  return `Your last run is paused on level ${String(entry.number)}, ${entry.data.name}, with a score of ${String(run.score)} and ${count(run.lives, "life", "lives")}. Press Enter to go on.`;
+  return `Your last run is paused on level ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(run.lives, "life", "lives")}. Press Enter to go on.`;
 }
 
 /** Returns what an ended run is called, on its cards and as the announcer says it ends. */
@@ -77,7 +82,7 @@ export function endTitle(run: Pick<Run, "outcome">): string {
 /** Returns what is said as a run ends: how, the score, the level reached, and whether it is a new best. */
 export function describeEnd(run: Run, newBest: boolean): string {
   const best = newBest ? " A new best!" : "";
-  return `${asSentence(endTitle(run))} Score ${String(run.score)}, at level ${String(run.level)}.${best}`;
+  return `${asSentence(endTitle(run))} Score ${formatPoints(run.score)}, at level ${String(run.level)}.${best}`;
 }
 
 /** Returns words as a sentence: ending in a full stop, unless they end in a mark of their own. */
