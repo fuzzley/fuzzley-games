@@ -42,6 +42,38 @@ const GUARDED =
   "export const shaken = scene.cameras?.main !== undefined;\n";
 
 /**
+ * Returns a module whose function switches over a side, left or right,
+ * with the cases given, then the line after the switch, if any.
+ */
+function sideSwitch(cases: readonly string[], after?: string): string {
+  return [
+    'export function sign(side: "left" | "right"): number {',
+    "  switch (side) {",
+    ...cases.map((line) => `    ${line}`),
+    "  }",
+    ...(after ? [`  ${after}`] : []),
+    "}",
+    "",
+  ].join("\n");
+}
+
+/**
+ * Returns a template that switches over a side, with a case for the left,
+ * then the blocks given.
+ */
+function leftSwitch(...blocks: string[]): string {
+  return [
+    "@switch (side) {",
+    '  @case ("left") {',
+    "    <p>Left</p>",
+    "  }",
+    ...blocks.map((block) => `  ${block}`),
+    "}",
+    "",
+  ].join("\n");
+}
+
+/**
  * Writes files into a workspace of their own, lints them with
  * {@link workspace}'s blocks, and returns the rules each one breaks.
  */
@@ -92,6 +124,29 @@ describe("typescript", () => {
   it("lets a template literal hold a number", async () => {
     const problems = await lint({
       "src/app.ts": "const lives = 3;\nexport const left = `${lives} left`;\n",
+    });
+
+    expect(problems["src/app.ts"]).toEqual([]);
+  });
+
+  it("holds a switch over a union to a case for every member", async () => {
+    const problems = await lint({
+      "src/app.ts": sideSwitch(['case "left":', "  return -1;"], "return 1;"),
+    });
+
+    expect(problems["src/app.ts"]).toEqual([
+      "@typescript-eslint/switch-exhaustiveness-check",
+    ]);
+  });
+
+  it("lets a switch's default stand for the members it doesn't name", async () => {
+    const problems = await lint({
+      "src/app.ts": sideSwitch([
+        'case "left":',
+        "  return -1;",
+        "default:",
+        "  return 1;",
+      ]),
     });
 
     expect(problems["src/app.ts"]).toEqual([]);
@@ -159,6 +214,22 @@ describe("templates", () => {
     expect(problems["src/thing.html"]).toEqual([
       "@angular-eslint/template/button-has-type",
     ]);
+  });
+
+  it("asks a switch what it shows for the values it doesn't name", async () => {
+    const problems = await lint({ "src/thing.html": leftSwitch() });
+
+    expect(problems["src/thing.html"]).toEqual([
+      "@angular-eslint/template/require-switch-default",
+    ]);
+  });
+
+  it("takes `@default never;` as a switch's default", async () => {
+    const problems = await lint({
+      "src/thing.html": leftSwitch("@default never;"),
+    });
+
+    expect(problems["src/thing.html"]).toEqual([]);
   });
 });
 

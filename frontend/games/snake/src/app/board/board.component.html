@@ -12,7 +12,8 @@
   a card's button, the keys are the button's: Space and Enter press it.
 </p>
 
-@switch (card()) {
+@let shownCard = card();
+@switch (shownCard) {
   @case ("start") {
     <div class="card">
       <p class="card-title">Ready</p>
@@ -50,4 +51,6 @@
       <button type="button" class="fz-button" (click)="reload()">Reload</button>
     </div>
   }
+  @case (null) {}
+  @default never;
 }

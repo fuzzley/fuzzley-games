@@ -10,7 +10,7 @@ export type Showing =
 
 /** Returns what a square looks like. */
 export function showing(field: Field, index: number): Showing {
-  const square = field.squares[index];
+  const square = field.squares[index] ?? "hidden";
   const mine = field.layout?.mines[index] ?? false;
   const lost = field.outcome === "lost";
   switch (square) {
@@ -20,7 +20,7 @@ export function showing(field: Field, index: number): Showing {
       return "tripped";
     case "revealed":
       return field.layout?.counts[index] ? "number" : "blank";
-    default:
+    case "hidden":
       return lost && mine ? "mine" : "hidden";
   }
 }

@@ -122,7 +122,7 @@ export class BoardComponent {
       case "over":
       case "won":
         return this.game.resultClosed() ? "ended" : null;
-      default:
+      case "playing":
         return null;
     }
   });

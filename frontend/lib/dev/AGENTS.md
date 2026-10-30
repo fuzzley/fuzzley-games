@@ -14,14 +14,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   - `typescript()`: typescript-eslint's strict and stylistic type-checked
     rules, with the repository's own on top (explicit return types on what a
     module exports, `import type` for type-only imports, `@deprecated` APIs
-    an error), and the fence around every library's testing entry point,
+    an error, and a `switch` over a union with a case for every member or a
+    `default`), and the fence around every library's testing entry point,
     such as `@fz/ui/testing`. It needs the workspace's folder (`root`), whose
     `tsconfig.json` its project service starts from.
   - `angular()`: angular-eslint's rules for the TypeScript, and the prefix
     every component and directive selector carries (`fz` in a library,
     `app` in an app).
   - `templates()`: angular-eslint's rules for the templates, accessibility's
-    among them.
+    among them, and a `@default` on every `@switch`.
   - `tests()`: what the specs, and the helpers only they use, may do that
     other code may not: assert with `!`, stub with an empty function, let a
     mock's type be what it builds, and import the libraries' testing helpers.

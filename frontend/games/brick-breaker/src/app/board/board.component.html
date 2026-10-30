@@ -17,7 +17,8 @@
   button's: Space and Enter press it.
 </p>
 
-@switch (card()) {
+@let shownCard = card();
+@switch (shownCard) {
   @case ("ready") {
     <div class="card ready">
       <p class="card-title">{{ levelTitle() }}</p>
@@ -72,4 +73,6 @@
       <button type="button" class="fz-button" (click)="reload()">Reload</button>
     </div>
   }
+  @case (null) {}
+  @default never;
 }

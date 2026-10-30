@@ -3,7 +3,8 @@
   of them fit, the sheet holds them.
 -->
 @if (game.hint(); as hint) {
-  @switch (fit()) {
+  @let hintFit = fit();
+  @switch (hintFit) {
     @case ("full") {
       <p class="words">
         <strong class="title">{{ hint.title }}</strong>
@@ -24,6 +25,8 @@
         </button>
       </p>
     }
+    @case ("none") {}
+    @default never;
   }
 }
 

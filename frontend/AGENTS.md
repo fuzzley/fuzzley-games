@@ -114,6 +114,14 @@ their templates and stylesheets alike.
 - **Templates bind, they do not compute.** Expose a `computed()` view model
   instead of calling a method from a template, which re-runs on every change
   detection pass, or working out a label, a comparison or a plural there.
+- **A `@switch` over a union ends in `@default never;`,** which has the
+  compiler hold its cases to every member, as lint holds a TypeScript
+  `switch`, so a new member, such as a card or an icon, fails to compile
+  rather than showing nothing. The members that show nothing share one
+  empty `@case` (`@case ("hidden") @case ("blank") {}`). The compiler can't
+  narrow a call, so a signal's value is taken into a `@let` first
+  (`@let shownCard = card();`). Over any other value, a `@default { … }`
+  says what shows. Lint asks every `@switch` for a `@default`.
 - **Visible state is announced state.** A control that looks selected
   carries `aria-checked`, `aria-current` or `aria-pressed`. The rules are
   the `web-game-accessibility` skill's; the template accessibility lint
