@@ -3093,3 +3093,81 @@ The specs were the weak spot: 20 of their 21 mutants passed the whole suite.
 
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,734),
   build. AGENTS.md names the set and the catalog spec's full check.
+
+## B11.1's review (e58b8c5b, with 702a6e44)
+
+The reviewer found no bug in a real run. A probe kept, read back and took
+up the field every 23 steps of autopilot play on every level: no state was
+refused, and none came back changed.
+
+1. **Three Steel levels ran past a minute's endgame on other seeds.** Shelf
+   took 1:28, Corridors 1:15 and the Vault 1:03, over 20 seeds. **Fixed in
+   the maps, and the report now shows it:**
+   - **Shelf** keeps its columns at the walls empty.
+   - **Corridors** has 2s at the corridors' tops, and corridors a row
+     shallower.
+   - **The Vault** has empty cells beside its shell's top.
+   - **The Tricks levels** got the same treatment:
+     - Hedge maze's corridor tops are plain bricks.
+     - Hourglass's neck is one cell wide, so it shades less of the top
+       half.
+     - Spiral's centre has a plain top row.
+     - Finale's rim and the cup's tip take three hits.
+   - **The report:**
+     - Both modes mark an endgame over the limit with `!`.
+     - A single play of each level, the spec's own game, fails on one, as
+       the spec does.
+     - `--seeds` counts them but fails only on a level not cleared. Across
+       many seeds a few plays are unlucky however a level is drawn.
+   - **Over 20 seeds** (1,800 plays), 7 now run past a minute, the longest
+     1:24 on Hourglass at Relaxed. None of them leaves the same bricks for
+     last.
+   - **The spec still plays one seed.** The suite already takes minutes,
+     and the tail it would catch is luck, not a hidden brick.
+2. **No spec kept a brick grown back or a blast gone off.** **Fixed:**
+   - A spec takes each up.
+   - A new spec plays a crowded level of every brick that changes in play,
+     keeping it every 50 steps, reading it back and taking it up, and
+     expects each to come back as it stood. Mutants dropping the taking up
+     of `shown`, `regrowsAt` or the climb fail it.
+3. **The announcer delayed any words present as a region arrived,** so a
+   region arriving later, such as a dialog's under `@if`, would repeat old
+   words. **Fixed in `@fz/ui`:**
+   - `AnnouncerService` notes whether the words were said before any region
+     was in the page (`early`).
+   - `<fz-announcer>` waits only for those.
+   - Once a region has said them, they are no longer early.
+   - The service's spec and the component's cover each case, and four
+     mutants fail.
+
+   Whether 100 ms is enough for a screen reader during the page's load is
+   unchecked: no screen reader runs here.
+
+4. **The not-begun check was tested only as a whole.** **Fixed:** three
+   cases from a run kept as cleared, adding only points, only a life gained,
+   or only a life lost.
+5. **The announcer spec held two cycles.** **Fixed:**
+   - It is split.
+   - Brick Breaker's app spec renders the app as `main.ts` starts it, over
+     a stored run, and reads the take-up in `<fz-announcer>` after
+     `ARRIVAL_MS`, which `@fz/ui/announcer` now exports.
+6. **The plan's Pillars map was stale.** **Fixed:** it shows the three
+   pillars with gaps above them.
+7. **`restoredField()` returned a three-way result.** **Fixed:**
+   `restoreGame()` checks a level kept as not begun itself, and
+   `restoredField()` returns the field or null.
+8. **`nextLifeAfter()` repeated the ladder.** **Fixed:** `withScore()` takes
+   the next life from it, and gains a life for each mark passed.
+9. **Spec readability.** **Fixed:** `base` for the state every expected
+   brick builds on, and the counts taken apart from the bricks.
+10. **The report's style.** **Fixed:**
+    - `ONE_PLAY` is typed `Layout`.
+    - `cellsOf` takes a `ReadonlyArray`.
+    - Each speed's columns are `cells`.
+    - The seeds' stride is `SEED_STRIDE`.
+11. **The autopilot loses no lives,** so the report measures length, not
+    difficulty. **Not changed:** a slower-reacting autopilot would show the
+    ramp, which is a question for the user.
+
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,740,
+  `@fz/ui`'s 189), build, clean on the first run.

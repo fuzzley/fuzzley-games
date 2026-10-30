@@ -118,9 +118,15 @@ export function restoreGame(
   ) {
     return null;
   }
-  const begun = score > banked || levelGained > 0 || levelLost > 0;
-  const restored = restoredField(value["field"], entry, score - banked, begun);
-  if (!restored) return null;
+  const kept = value["field"];
+  let field: SavedField | null = null;
+  if (kept !== null) {
+    field = restoredField(kept, entry, score - banked);
+    if (!field) return null;
+  } else if (score > banked || levelGained > 0 || levelLost > 0) {
+    // A level kept as not yet begun has nothing on it yet.
+    return null;
+  }
   return {
     run: {
       id,
@@ -137,7 +143,7 @@ export function restoreGame(
       levelLost,
       outcome: "paused",
     },
-    field: restored.field,
+    field,
   };
 }
 
@@ -211,18 +217,15 @@ function savedField(field: SavableField): SavedField {
 }
 
 /**
- * Returns a level's field as storage kept it, as `field`, null for a level
- * not yet begun, or returns null if it can't be trusted: it doesn't fit the
- * level, a number is out of its range, the level needs nothing more, or a
- * level with points or lives on it is kept as not begun.
+ * Returns a level's field as storage kept it, or null if it can't be
+ * trusted: it doesn't fit the level, a number is out of its range, or the
+ * level needs nothing more.
  */
 function restoredField(
   value: unknown,
   entry: LevelEntry,
   levelScore: number,
-  begun: boolean,
-): { readonly field: SavedField | null } | null {
-  if (value === null) return begun ? null : { field: null };
+): SavedField | null {
   if (!isRecord(value)) return null;
   const { streakPoints, climbed, steps, draws } = value;
   if (
@@ -254,7 +257,7 @@ function restoredField(
     if (brickKind(placed.kind).needed && !restored.broken) needsMore = true;
   }
   if (!needsMore) return null;
-  return { field: { bricks, streakPoints, climbed, steps, draws } };
+  return { bricks, streakPoints, climbed, steps, draws };
 }
 
 /**

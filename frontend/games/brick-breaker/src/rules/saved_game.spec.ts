@@ -1,6 +1,13 @@
 import { hitBrick } from "./bricks";
 import { BRICK_KINDS } from "./catalog/bricks";
-import { type Field, createField } from "./field";
+import {
+  type Field,
+  createField,
+  launch,
+  serve,
+  steerField,
+  stepField,
+} from "./field";
 import { levelsOf, parseLevel } from "./levels";
 import { type Run, catchUp, createRun, startLevel } from "./run";
 import {
@@ -13,9 +20,10 @@ import { stepsIn } from "./stepper";
 import { FIRST_LIFE_POINTS, MAX_LIVES } from "./tuning";
 
 /**
- * Two levels: a plain brick, a tough one, steel, a hidden brick, a
- * regrowing one, a blast brick, another plain one and another hidden one,
- * then a row of plain bricks.
+ * Three levels: a plain brick, a tough one, steel, a hidden brick, a
+ * regrowing one, a blast brick, another plain one and another hidden one;
+ * then a row of plain bricks; then a crowd of every brick that changes as it
+ * is played, too many to clear in a few seconds.
  */
 const LEVELS = levelsOf([
   {
@@ -25,6 +33,19 @@ const LEVELS = levelsOf([
     levels: [
       { id: "mixed", name: "Mixed", capsules: [], bricks: ["o3#~+*o~....."] },
       { id: "row", name: "Row", capsules: [], bricks: ["ooo.........."] },
+      {
+        id: "crowd",
+        name: "Crowd",
+        capsules: [],
+        bricks: [
+          "4444444444444",
+          "4~+*~4~*+~4~4",
+          "3+3~3*3~3+3~3",
+          "~4~+~4~+~4~+~",
+          "3*3~3+3~3*3+3",
+          "+~+~+~+~+~+~+",
+        ],
+      },
     ],
   },
 ]);
@@ -59,11 +80,38 @@ function playedField(): { run: Run; field: Field } {
   field.livesLost = 1;
   const run = catchUp(
     startLevel(
-      createRun({ id: 3, seed: 9, speed: "fast", lastLevel: 2, level: 1 }),
+      createRun({ id: 3, seed: 9, speed: "fast", lastLevel: 3, level: 1 }),
     ),
     field,
   );
   return { run, field };
+}
+
+/**
+ * Plays a field on a number of steps, its paddle under its first ball in
+ * play, serving and launching at once.
+ */
+function playOn(field: Field, steps: number): void {
+  for (let i = 0; i < steps; i++) {
+    if (field.state === "lost") serve(field);
+    launch(field);
+    const ball = field.balls.find((each) => each.live);
+    steerField(field, { to: ball?.x ?? null, by: 0, push: 0 });
+    stepField(field);
+  }
+}
+
+/**
+ * Returns whether a run and its field, kept and read back from JSON as a
+ * reload would, are taken up as they stood.
+ */
+function keptAsItStands(run: Run, field: Field): boolean {
+  const saved = saveGame(run, field, LEVELS);
+  const takenUp = restoreGame(JSON.parse(JSON.stringify(saved)), LEVELS, 2);
+  if (!takenUp) return false;
+  const fresh = fieldOf(run.level);
+  takeUpField(fresh, takenUp.field, takenUp.run);
+  return JSON.stringify(saveGame(run, fresh, LEVELS)) === JSON.stringify(saved);
 }
 
 /** Returns a played run as storage keeps it, read back from JSON as a reload would. */
@@ -81,7 +129,7 @@ describe("saveGame", () => {
       id: 1,
       seed: 1,
       speed: "normal",
-      lastLevel: 2,
+      lastLevel: 3,
       level: 1,
     });
 
@@ -102,45 +150,45 @@ describe("saveGame", () => {
 
   it("keeps a run in play with its level's bricks and counts as they stand", () => {
     const { run, field } = playedField();
-    const plain = { hits: 0, broken: false, shown: true };
+    const base = { hits: 0, broken: false, shown: true };
     const timers = { goesOffAt: 0, regrowsAt: 0 };
 
     const saved = saveGame(run, field, LEVELS);
 
+    const { bricks = [], ...counts } = saved?.field ?? {};
     expect({
       levelId: saved?.levelId,
       score: saved?.score,
-      counts: { ...saved?.field, bricks: undefined },
-      bricks: saved?.field?.bricks.slice(0, 9),
+      counts,
+      bricks: bricks.slice(0, 9),
     }).toEqual({
       levelId: "mixed",
       score: run.score,
       counts: {
-        bricks: undefined,
         streakPoints: 10,
         climbed: 2.5,
         steps: PLAYED_AT,
         draws: 4,
       },
       bricks: [
-        { ...plain, broken: true, ...timers },
-        { ...plain, hits: 2, ...timers },
-        { ...plain, ...timers },
-        { ...plain, hits: 1, ...timers },
+        { ...base, broken: true, ...timers },
+        { ...base, hits: 2, ...timers },
+        { ...base, ...timers },
+        { ...base, hits: 1, ...timers },
         {
-          ...plain,
+          ...base,
           broken: true,
           goesOffAt: 0,
           regrowsAt: PLAYED_AT + stepsIn(BRICK_KINDS.regrow.traits[0].afterMs),
         },
         {
-          ...plain,
+          ...base,
           broken: true,
           goesOffAt: PLAYED_AT + stepsIn(BRICK_KINDS.blast.traits[0].delayMs),
           regrowsAt: 0,
         },
-        { ...plain, hits: 1, ...timers },
-        { ...plain, hits: 2, shown: false, ...timers },
+        { ...base, hits: 1, ...timers },
+        { ...base, hits: 2, shown: false, ...timers },
         null,
       ],
     });
@@ -185,6 +233,34 @@ describe("restoreGame", () => {
     expect(takenUp?.run.lives).toBe(MAX_LIVES);
   });
 
+  it.each<[string, Record<number, unknown>]>([
+    [
+      "a brick grown back",
+      { 4: { hits: 1, broken: false, regrowsAt: PLAYED_AT } },
+    ],
+    ["a blast brick gone off", { 5: { goesOffAt: 0 } }],
+  ])("takes up %s", (_, changes) => {
+    expect(
+      restoreGame(withBricks(stored(), changes), LEVELS, 7),
+    ).not.toBeNull();
+  });
+
+  it("takes up a field at any step of its play as it stood", () => {
+    const field = fieldOf(3);
+    let run = startLevel(
+      createRun({ id: 1, seed: 5, speed: "fast", lastLevel: 3, level: 3 }),
+    );
+    const misses: number[] = [];
+
+    for (let moment = 0; moment < 40; moment++) {
+      playOn(field, 50);
+      run = catchUp(run, field);
+      if (!keptAsItStands(run, field)) misses.push(moment);
+    }
+
+    expect(misses).toEqual([]);
+  });
+
   it.each<[string, (saved: Record<string, unknown>) => unknown]>([
     ["not an object", () => "saved"],
     ["a level the game doesn't have", (saved) => ({ ...saved, level: 9 })],
@@ -223,8 +299,16 @@ describe("restoreGame", () => {
       (saved) => ({ ...saved, nextLifeAt: FIRST_LIFE_POINTS + 1 }),
     ],
     [
-      "a level not yet begun with points and lives on it",
-      (saved) => ({ ...saved, field: null }),
+      "a level not yet begun with points on it",
+      (saved) => ({ ...storedCleared(), score: Number(saved["score"]) + 10 }),
+    ],
+    [
+      "a level not yet begun with a life gained on it",
+      () => ({ ...storedCleared(), levelGained: 1 }),
+    ],
+    [
+      "a level not yet begun with a life lost on it",
+      () => ({ ...storedCleared(), levelLost: 1 }),
     ],
     ["a field that isn't one", (saved) => ({ ...saved, field: "bricks" })],
     [
@@ -346,6 +430,16 @@ describe("takeUpField", () => {
     });
   });
 });
+
+/** Returns a played run kept as its level was cleared: the next level, not yet begun. */
+function storedCleared(): Record<string, unknown> {
+  const { run, field } = playedField();
+  const cleared = { ...run, banked: run.score, outcome: "cleared" as const };
+  return JSON.parse(JSON.stringify(saveGame(cleared, field, LEVELS))) as Record<
+    string,
+    unknown
+  >;
+}
 
 /** Returns a stored game's field, as an object to spoil. */
 function fieldIn(saved: Record<string, unknown>): Record<string, unknown> {

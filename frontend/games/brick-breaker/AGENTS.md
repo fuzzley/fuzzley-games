@@ -314,12 +314,14 @@ workspace's with the others'.
   the autopilot plays every level at every speed, from the level's number
   as the seed, as the autopilot's spec does, through `playLevel()`, and it
   prints the game time each took, the time spent on the last three bricks
-  the level needed, the paddle's bounces and the lives lost; it fails if a
-  play didn't clear its level). It is how the difficulty ramp is tuned.
-  `--seeds <n>` plays each level that many times at each speed, from seeds
-  of its own, and prints the middle time, the longest, the longest endgame
-  and the most lives lost, as the capsules one seed lets fall can make a
-  level look far easier or harder than it is.
+  the level needed, the paddle's bounces and the lives lost; it fails, as
+  the spec does, if a play didn't clear its level (`-`) or took longer over
+  its last bricks than the spec allows (`!`)). It is how the difficulty ramp
+  is tuned. `--seeds <n>` plays each level that many times at each speed,
+  from seeds of its own, and prints the middle time, the longest, the
+  longest endgame and the most lives lost, as the capsules one seed lets
+  fall can make a level look far easier or harder than it is; it marks a
+  long endgame too, but fails only on a level not cleared.
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the ten sounds, from the paddle's bop to a level's
   chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their

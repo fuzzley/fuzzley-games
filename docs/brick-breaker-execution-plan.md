@@ -709,11 +709,11 @@ Four of the maps, as their grids read (a `.` is no brick):
 ```text
 3 Pyramid        11 Pillars       13 Fuse          21 Garden
 .............    .............    .............    .............
-......2......    2222222222222    ooooooooooooo    ooooooooooooo
-.....2o2.....    ooooooooooooo    o***********o    o2o2o2o2o2o2o
-....ooooo....    o#oo#ooo#oo#o    ooooooooooooo    ooooooooooooo
-...ooooooo...    o#oo#ooo#oo#o    .............    .............
-..ooooooooo..    o#oo#ooo#oo#o    2222222222222    +++++...+++++
+......2......    22.222.222.22    ooooooooooooo    ooooooooooooo
+.....2o2.....    oo.ooo.ooo.oo    o***********o    o2o2o2o2o2o2o
+....ooooo....    oo#ooo#ooo#oo    ooooooooooooo    ooooooooooooo
+...ooooooo...    oo#ooo#ooo#oo    .............    .............
+..ooooooooo..    oo#ooo#ooo#oo    2222222222222    +++++...+++++
 .ooooooooooo.    .............
                  ..#.......#..
 ```
