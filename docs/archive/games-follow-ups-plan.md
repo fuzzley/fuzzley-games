@@ -707,3 +707,12 @@ doing what its entry says, and three things beside it, all taken.
   is proven by the faults above instead.
 - **Checks:** `@fz/style`'s lint, typecheck and toolkit spec (24), and
   Prettier and the references.
+
+### G9: the plan archived
+
+- **Done:** this plan and its log moved to `docs/archive/`, with every step
+  built: the fixes G1 to G5, the lifts G6 to G8, both QA checkpoints, and
+  every commit but the last, to specs alone, reviewed, its findings answered
+  here, in the 18 commits on `games-follow-ups` from `8d6095c6` before this
+  one. Nothing has been pushed; merging into `main` waits for the user's
+  go-ahead.
