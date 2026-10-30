@@ -331,3 +331,35 @@ way.
   level drew, Space launched the ball, a brick broke for 50, the ball was
   lost to a still paddle and announced ("Ball lost. 2 lives left."), and
   the console stayed clean.
+
+### G6: the settings drawer's styles
+
+- **Built:** `settings-drawer`, a mixin in `@fz/style`'s `_dialogs.scss`
+  beside `help-card` and `result-card`, applied to the drawer's element and
+  naming the classes it styles: the panel, frosted, the window's height at
+  its end; `.drawer-header` with its `h2` and `.close`; `.drawer-content`,
+  which scrolls; `.setting`, `.setting-label` and `.setting-desc`;
+  `.choice-list` and its `.choice` tiles, each a `.name` over a `.desc`;
+  and `.check`, a checkbox beside its label with a description under it.
+  The comments the copies carried, on the top layer and the muted
+  description's contrast, are in the mixin.
+- **The games:** Snake's, Sudoku's and Brick Breaker's drawer stylesheets
+  are now `.drawer { @include settings-drawer; }` alone, and Minesweeper's
+  that and its own custom board and segmented control. Their checkbox rows
+  were `.assist`, Sudoku's word for its assists; the library calls them
+  `.check`, and the three templates do too. The four stylesheets, 530
+  lines, are now 102: five lines each, and Minesweeper's 87.
+- **Compared in Chrome:** each game's drawer opened from its dev server at
+  1440 × 900, before (G6 stashed, the templates still `.assist`) and after,
+  with 44 computed properties and the box of every element in the drawer
+  read: Minesweeper's 63 elements, Sudoku's 65, Snake's 79 and Brick
+  Breaker's 67, with no difference in any.
+- **Specs:** `toolkit.spec.ts` holds the drawer to the window's height and
+  its dialog's end, its checked choice tile to the accent, and a check's
+  description to the column beside the box.
+- **Docs:** `@fz/style`'s `AGENTS.md` and the `fuzzley-ui` skill list the
+  mixin with the whole dialogs; Minesweeper's and Sudoku's `AGENTS.md`
+  name the drawer among the dialogs' shared mixins.
+- **Checks:** lint, typecheck and test pass in `@fz/style` (251 tests),
+  Minesweeper (376), Sudoku (591), Snake (399) and Brick Breaker (1,753),
+  and Prettier and the references.

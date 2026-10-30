@@ -105,8 +105,8 @@ frontend's Angular and Sass rules apply; on top of them:
   `GameViewportService`,** which applies the games' compact test in code and
   says where the bar stands and what fits in it.
 - **The flag, heart and mine** were added to `@fz/ui`'s icons for this game.
-  The dialogs' cards, close buttons, headings and choice tiles are
-  `@fz/style`'s mixins, which every game's dialogs share.
+  The dialogs' cards, close buttons, headings and choice tiles, and the
+  settings drawer, are `@fz/style`'s mixins, which every game's dialogs share.
 
 ## In This Repository
 

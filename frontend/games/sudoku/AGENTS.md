@@ -162,8 +162,9 @@ else. The frontend's Angular and Sass rules apply; on top of them:
   applies the games' compact test in code and says where the bar stands
   and what fits in it.
 - **The pencil, the eraser and the bulb** were added to `@fz/ui`'s icons for
-  the pad. The dialogs' cards, close buttons, headings and choice tiles are
-  `@fz/style`'s mixins, which every game's dialogs share.
+  the pad. The dialogs' cards, close buttons, headings and choice tiles, and
+  the settings drawer, are `@fz/style`'s mixins, which every game's dialogs
+  share.
 
 ## What It Keeps
 
