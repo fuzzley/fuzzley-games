@@ -1,0 +1,40 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include help-card;
+
+  h3 {
+    margin: var(--fz-space-5) 0 var(--fz-space-2);
+    font-size: var(--fz-font-md);
+    font-weight: 700;
+  }
+}
+
+// Each picture in a column of one width, and each line as tall as the
+// tallest, so the words line up whatever it shows, and nothing moves as the
+// pictures come in.
+.catalog {
+  display: grid;
+  gap: var(--fz-space-2);
+  margin: 0;
+  padding: 0;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  line-height: var(--fz-leading-normal);
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: var(--fz-space-3);
+    align-items: center;
+    min-height: 24px;
+  }
+
+  img {
+    justify-self: center;
+    max-width: 48px;
+    max-height: 24px;
+  }
+}

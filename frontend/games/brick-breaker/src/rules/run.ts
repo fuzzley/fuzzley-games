@@ -95,6 +95,12 @@ export function hasEnded(run: Run): boolean {
   return run.outcome === "over" || run.outcome === "won";
 }
 
+/** Returns how many levels a run has cleared since its first. */
+export function levelsCleared(run: Run): number {
+  const throughLevel = run.outcome === "cleared" || run.outcome === "won";
+  return run.level - run.firstLevel + (throughLevel ? 1 : 0);
+}
+
 /**
  * Returns the run with a level under way: its first, or the one after the
  * level just cleared. Any other run is returned as it is.

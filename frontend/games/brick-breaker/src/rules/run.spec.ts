@@ -6,6 +6,7 @@ import {
   createRun,
   hasEnded,
   levelSeed,
+  levelsCleared,
   pause,
   resume,
   startLevel,
@@ -361,6 +362,30 @@ describe("hasEnded", () => {
     ["won", true],
   ] as const)("says a run %s has ended: %s", (outcome, ended) => {
     expect(hasEnded(runWith({ outcome }))).toBe(ended);
+  });
+});
+
+describe("levelsCleared", () => {
+  it("counts none while the first level is in play", () => {
+    expect(levelsCleared(playing({ firstLevel: 3, level: 3 }))).toBe(0);
+  });
+
+  it("counts the levels before the one a run was lost on", () => {
+    expect(
+      levelsCleared(runWith({ firstLevel: 3, level: 7, outcome: "over" })),
+    ).toBe(4);
+  });
+
+  it("counts a level just cleared", () => {
+    expect(
+      levelsCleared(runWith({ firstLevel: 3, level: 7, outcome: "cleared" })),
+    ).toBe(5);
+  });
+
+  it("counts the last level of a run won", () => {
+    expect(
+      levelsCleared(runWith({ firstLevel: 1, level: 10, outcome: "won" })),
+    ).toBe(10);
   });
 });
 

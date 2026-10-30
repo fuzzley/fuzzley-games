@@ -2191,3 +2191,86 @@ before reporting. Every finding was taken.
   `fieldPalette()`, and dropping the tally's reset.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,375),
   build.
+
+## B8.2: the dialogs
+
+- **Built:**
+  - `src/app/levels/`: the Levels dialog. Each set is a section named by
+    its heading, and its levels are buttons in a grid, each named by its
+    number and name ("3 Pyramid"), with the run's own `aria-current`.
+    Choosing one starts a run there through `GameService.startAt()`,
+    asking first if a run is under way. The dialog closes once a run has
+    started, and stays open if the player backs out.
+  - `src/app/result/`: the card over an ended run, an alert dialog opened
+    once the last ball has faded.
+    - It shows "Game over" or "Every level cleared!", where and at what
+      speed ("Out of lives on level 5, at Normal speed"), the score, the
+      level reached and the levels cleared.
+    - Its first button, focused as it opens, says "Try again from level n"
+      after a loss and "New game" after a win.
+    - Choose a level puts the card away and asks the app for the levels.
+      Close leaves the board to look at.
+    - The rules gain `levelsCleared(run)`.
+  - `src/app/help/`: How to play.
+    - The aim, then scoring and pausing. The scoring sentences are written
+      from `tuning.ts`'s numbers, so they can't drift from the game: the
+      streak in the bar's "×2" notation, the clearing bonus, and the lives.
+    - The controls in a table: mouse, touch and keyboard.
+    - The bricks, capsules and balls, each a section named by its heading,
+      with every entry's name and sentence from the catalogs and its
+      picture from the board once the scene has drawn.
+  - `src/app/settings/`: the settings drawer, as Snake's, with the speed,
+    how a finger steers (Drag, or Follow the finger) and the palette.
+    `SettingsService` keeps how a finger steers under
+    `brick-breaker-settings`, version 1, dropping anything else. The board
+    hands the scene the setting in place of its `"drag"` constant.
+  - `app.component` lays out the four dialogs, binds the bar's Levels, How
+    to play and Settings, and counts each dialog as covering the board, so
+    the board takes the focus back as the last one closes.
+- **Choices.** Each part waits for the step that brings what it needs:
+  - **Every level is open until B10.** Progress (`brick-breaker-progress`)
+    and records come in B10.1, and with them the Levels dialog's locks,
+    ticks and bests and the result card's best and "New best!".
+  - **`SettingsService` came early, with how a finger steers only.** The
+    setting needs a home now that the settings drawer offers it. The plan
+    puts the service in B10.1, so B9 adds the sound to it and B10 the
+    speed, which a run carries until then.
+  - **The result card's first button depends on the outcome.** Trying
+    again from the last level after a win would replay it alone, so a won
+    run offers a new game from where it started.
+- **Found while building.**
+  - The dev server stopped while `settings.component.ts` existed without
+    its template. It was restarted once both were written.
+  - A template drops the space between two elements, so the level buttons
+    were first named "1Blasts". `&ngsp;` keeps it.
+- **Browser check** on the dev server:
+  - How to play showed all 21 pictures (7 bricks, 11 capsules and 3 balls)
+    beside their names, and the scoring read as written.
+  - The settings drawer marked Normal and Drag as chosen.
+  - The Levels dialog marked level 1. Choosing Pyramid started a run at
+    level 3, closed the dialog and gave the board the focus.
+  - With the run ended on level 5 from the page, the result card read
+    "Out of lives on level 5, at Normal speed": score 12340, level 5,
+    cleared 2. The focus was on "Try again from level 5".
+  - Choose a level put the card away and opened Levels. Closing that left
+    the Ended card on the board and the focus on the board.
+  - At 375 × 553, the Levels, How to play and the settings each fit the
+    window, with nothing scrolling sideways. The console stayed clean.
+- **Specs.**
+  - `levelsCleared()`: four cases.
+  - `SettingsService`: five.
+  - The settings drawer: nine, including starting no run at the speed in
+    use and the finger setting.
+  - How to play: ten, including the scoring sentences, each catalog's
+    count, and a picture beside its name.
+  - The result card: eight, covering lost and won, the figures, each
+    button, and Choose a level.
+  - The Levels dialog: six, including backing out of the question.
+  - The board: a finger follows where the settings say. It fails against a
+    board that hands the scene `"drag"`.
+  - The app: each dialog opened from the bar, Levels from the result card,
+    the focus back after the settings close, and the level paused as a
+    dialog opens.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,424),
+  build. The first run failed only at Prettier on the settings template,
+  which was formatted.

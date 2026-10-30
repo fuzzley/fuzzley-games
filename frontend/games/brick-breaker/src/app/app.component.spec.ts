@@ -3,7 +3,14 @@ import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { provideSpecLevels } from "../testing/play";
+import { FIRST_LIVES } from "../rules/tuning";
+import {
+  FRAME_MS,
+  SPEC_LEVEL,
+  STILL,
+  loseBall,
+  provideSpecLevels,
+} from "../testing/play";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 
@@ -107,7 +114,57 @@ describe("AppComponent", () => {
     });
   });
 
+  describe("the dialogs", () => {
+    it.each([
+      ["Levels", "Levels"],
+      ["How to play", "How to play"],
+      ["Settings", "Settings"],
+    ])("open %s from the bar", async (button, dialog) => {
+      await renderApp();
+
+      await userEvent.click(screen.getByRole("button", { name: button }));
+
+      expect(screen.getByRole("dialog", { name: dialog })).toBeVisible();
+    });
+
+    it("open the levels from the card over an ended run", async () => {
+      const game = await renderApp();
+      await game.startAt(SPEC_LEVEL.steel);
+      for (let life = 0; life < FIRST_LIVES; life++) loseBall(game);
+      game.tick(FRAME_MS, STILL);
+      await settle();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Choose a level" }),
+      );
+
+      expect(screen.getByRole("dialog", { name: "Levels" })).toBeVisible();
+    });
+  });
+
   describe("the focus", () => {
+    it("goes back to the board once the settings close", async () => {
+      await renderApp();
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Close settings" }),
+      );
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("leaves the board as a dialog opens, pausing the level", async () => {
+      const game = await launchedApp();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "How to play" }),
+      );
+
+      expect(game.outcome()).toBe("paused");
+    });
+
     it("goes back to the board once a question is answered no", async () => {
       const game = await launchedApp();
       void game.newGame();

@@ -1,0 +1,135 @@
+<fz-dialog [open]="open()" label="How to play" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close How to play"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>How to play</h2>
+    <p>
+      Keep the ball in play with the paddle, and break every brick a level needs
+      to clear it. A ball that falls past the paddle costs a life; the run ends
+      when the last is lost, or when the last level is cleared.
+    </p>
+    <p>
+      <strong>Scoring.</strong> Each brick scores its points for every hit it
+      takes. {{ scoring.streak }} {{ scoring.clearing }} {{ scoring.lives }}
+    </p>
+    <p>
+      <strong>Pausing.</strong> The game pauses itself when you switch away,
+      turn the screen or open a dialog, and goes on only when you say.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <td></td>
+          <th scope="col">Mouse</th>
+          <th scope="col">Touch</th>
+          <th scope="col">Keyboard</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Steer</th>
+          <td>Move it; the paddle follows</td>
+          <td>Drag anywhere on the field, or as the settings say</td>
+          <td>
+            Hold <kbd>←</kbd> or <kbd>→</kbd>, or <kbd>A</kbd> or <kbd>D</kbd>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Launch, or fire</th>
+          <td>Click</td>
+          <td>Tap</td>
+          <td><kbd>Space</kbd>, <kbd>↑</kbd> or <kbd>W</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Pause, or go on</th>
+          <td>Pause, then Resume</td>
+          <td>Pause, then Resume</td>
+          <td>
+            <kbd>P</kbd>; <kbd>Esc</kbd> pauses and <kbd>Enter</kbd> goes on
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Next level</th>
+          <td>Next level</td>
+          <td>Next level</td>
+          <td><kbd>Enter</kbd> or <kbd>Space</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Start again, once a run has ended</th>
+          <td>New game</td>
+          <td>New game</td>
+          <td><kbd>Enter</kbd>, <kbd>Space</kbd> or <kbd>P</kbd></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Each picture is beside its name, which says what it is. -->
+    <section aria-labelledby="help-bricks">
+      <h3 id="help-bricks">Bricks</h3>
+      <ul class="catalog">
+        @for (entry of bricks(); track entry.id) {
+          <li>
+            @if (entry.picture; as picture) {
+              <img [src]="picture" alt="" />
+            } @else {
+              <span class="picture"></span>
+            }
+            <div>
+              <strong>{{ entry.name }}.</strong>
+              {{ entry.about }}
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="help-capsules">
+      <h3 id="help-capsules">Capsules</h3>
+      <p>
+        A broken brick may let a capsule fall. Catch it with the paddle for what
+        it does; Relaxed lets none fall that makes the game harder.
+      </p>
+      <ul class="catalog">
+        @for (entry of capsules(); track entry.id) {
+          <li>
+            @if (entry.picture; as picture) {
+              <img [src]="picture" alt="" />
+            } @else {
+              <span class="picture"></span>
+            }
+            <div>
+              <strong>{{ entry.name }}.</strong>
+              {{ entry.about }}
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="help-balls">
+      <h3 id="help-balls">Balls</h3>
+      <ul class="catalog">
+        @for (entry of balls(); track entry.id) {
+          <li>
+            @if (entry.picture; as picture) {
+              <img [src]="picture" alt="" />
+            } @else {
+              <span class="picture"></span>
+            }
+            <div>
+              <strong>{{ entry.name }}.</strong>
+              {{ entry.about }}
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</fz-dialog>
