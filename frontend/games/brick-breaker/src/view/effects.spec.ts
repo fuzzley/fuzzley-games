@@ -119,6 +119,13 @@ describe("FrameSounds", () => {
     ]);
   });
 
+  it("plays a sound lowered below its own pitch", () => {
+    const sounds = new FrameSounds();
+    sounds.hear("lost", -100);
+
+    expect(played(sounds)).toEqual([["lost", -100]]);
+  });
+
   it("forgets the sounds it played", () => {
     const sounds = new FrameSounds();
     sounds.hear("wall", 0);

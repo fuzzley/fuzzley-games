@@ -7,6 +7,7 @@ import {
   describeLives,
   describePause,
   describeResume,
+  describeTakenUp,
 } from "./describe";
 import { LEVELS } from "./levels";
 import { type Run, createRun } from "./run";
@@ -123,6 +124,15 @@ describe("describe", () => {
 
   it("says a paused run goes on", () => {
     expect(describeResume()).toBe("Going on.");
+  });
+
+  it("says where a run taken up after a reload stands, paused", () => {
+    const pyramid = LEVELS[2];
+    if (!pyramid) throw new Error("No third level.");
+
+    expect(describeTakenUp(runAt({ lives: 1 }), pyramid)).toBe(
+      "Your last run is paused on level 3, Pyramid, with a score of 4250 and 1 life. Press Enter to go on.",
+    );
   });
 
   it.each([

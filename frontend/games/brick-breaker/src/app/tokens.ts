@@ -1,5 +1,5 @@
 import { InjectionToken } from "@angular/core";
-import { LEVELS, type LevelEntry } from "../../rules/levels";
+import { LEVELS, type LevelEntry } from "../rules/levels";
 
 /** Where new runs take their seeds from: `Math.random` but in specs. */
 export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {

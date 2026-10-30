@@ -9,7 +9,7 @@ import {
 import { LocalStorageService } from "@fz/ui/storage";
 import { restoreGame } from "../../rules/saved_game";
 import { GameService } from "./game.service";
-import { GAME_LEVELS } from "./tokens";
+import { GAME_LEVELS } from "../tokens";
 
 /** Where the run under way is kept. Renaming it loses every player's. */
 export const SAVED_GAME_KEY = "brick-breaker-game";

@@ -17,7 +17,7 @@
     fzBarTitle
     label="Speed"
     [options]="speeds"
-    [value]="game.run().speed"
+    [value]="game.speed()"
     (choose)="changeSpeed($event)"
   />
 

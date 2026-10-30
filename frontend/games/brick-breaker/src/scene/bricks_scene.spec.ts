@@ -1438,8 +1438,14 @@ describe("BricksScene", () => {
 
       shell.chimesCalled += 1;
       run.advance(16);
+      run.advance(16);
+      shell.chimesCalled += 1;
+      run.advance(16);
 
-      expect(played).toEqual([["cleared", 0]]);
+      expect(played).toEqual([
+        ["cleared", 0],
+        ["cleared", 0],
+      ]);
     });
 
     it("play no chime the shell called for before the scene began", async () => {

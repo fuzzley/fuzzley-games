@@ -64,7 +64,7 @@ import { SERVE_MS, clearedDelayMs, resultDelayMs } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_LEVELS, GAME_RANDOM } from "./tokens";
+import { GAME_LEVELS, GAME_RANDOM } from "../tokens";
 
 /** What a new run asks before it throws away the one under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
@@ -152,6 +152,9 @@ export class GameService {
   /** The level in play, or the last one cleared. */
   readonly level = computed(() => this.levelEntry(this.runState().level));
 
+  /** The run's speed, which changes only as a new run begins. */
+  readonly speed = computed(() => this.runState().speed);
+
   /** The run's points so far. */
   readonly score = computed(() => this.runState().score);
 
@@ -159,16 +162,15 @@ export class GameService {
   readonly lives = computed(() => this.runState().lives);
 
   /** The best score at the run's speed, as of the last run that ended. */
-  readonly best = computed(
-    () => this.stats.stats().speeds[this.runState().speed].best,
-  );
+  readonly best = computed(() => this.stats.stats().speeds[this.speed()].best);
 
   /** Whether the run just ended set a new best score at its speed. */
   readonly newBest = this.newBestState.asReadonly();
 
   /**
-   * How many times the run has called for the chime: for a life its points
-   * brought, and for a new best as its card opens.
+   * How many times the game has called for the chime since the page
+   * loaded: for a life a run's points brought, and for a new best as its
+   * card opens.
    */
   readonly chimes = this.chimesState.asReadonly();
 
@@ -479,8 +481,8 @@ export class GameService {
   };
 
   /**
-   * Takes the run the field brought it to, keeps what it set down, and
-   * gathers what to say of the change: the end of a run lost, rather than
+   * Takes the run the field brought it to, keeps the records, and gathers
+   * what to say of the change: the end of a run lost, rather than
    * its last ball; else the lives gained and lost, then a clearing or a win.
    */
   private takeIn(after: Run): void {

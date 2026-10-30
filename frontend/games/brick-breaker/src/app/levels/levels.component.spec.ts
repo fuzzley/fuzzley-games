@@ -114,6 +114,32 @@ describe("LevelsComponent", () => {
     ]);
   });
 
+  it("ticks a level cleared", async () => {
+    const { detectChanges } = await renderLevels();
+
+    TestBed.inject(ProgressService).recordCleared("blasts");
+    detectChanges();
+
+    // The tick is hidden from assistive technology, which "Cleared" tells.
+    expect(
+      screen
+        .getByRole("button", { name: "1 Blasts Cleared" })
+        .querySelector('fz-icon[name="tick"]'),
+    ).not.toBeNull();
+  });
+
+  it("shows each level's best at the speed in play", async () => {
+    const { game, detectChanges } = await renderLevels();
+    TestBed.inject(ProgressService).recordCleared("blasts");
+    TestBed.inject(StatsService).recordLevel("blasts", "normal", 4100);
+    TestBed.inject(StatsService).recordLevel("blasts", "fast", 3000);
+
+    await game.changeSpeed("fast");
+    detectChanges();
+
+    expect(levelsIn("Specs")[0]).toBe("1 Blasts Best 3000");
+  });
+
   it("says a level was cleared where it has no best at the speed in play", async () => {
     const { detectChanges } = await renderLevels();
 

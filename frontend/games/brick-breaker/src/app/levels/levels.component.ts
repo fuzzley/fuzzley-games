@@ -2,7 +2,7 @@ import { Component, computed, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { GameService } from "../play/game.service";
-import { GAME_LEVELS } from "../play/tokens";
+import { GAME_LEVELS } from "../tokens";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 
@@ -58,7 +58,7 @@ export class LevelsComponent {
 
   protected readonly sets = computed<readonly SetChoice[]>(() => {
     const current = this.game.level().number;
-    const speed = this.game.run().speed;
+    const speed = this.game.speed();
     const cleared = this.progress.cleared();
     const bests = this.stats.stats().levels;
     const bySet = new Map<string, { name: string; levels: LevelChoice[] }>();

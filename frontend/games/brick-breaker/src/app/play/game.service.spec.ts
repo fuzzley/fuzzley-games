@@ -11,6 +11,7 @@ import {
   SPEC_LEVEL,
   SPEC_LEVELS,
   STILL,
+  TWO_SETS,
   awayFrom,
   clearToNext,
   loseBall,
@@ -26,7 +27,7 @@ import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GameService } from "./game.service";
-import { GAME_LEVELS } from "./tokens";
+import { GAME_LEVELS } from "../tokens";
 
 /**
  * Two levels: six rows of blast bricks, which a hit clears for more points
@@ -813,6 +814,12 @@ describe("GameService", () => {
       expect(TestBed.inject(StatsService).stats().speeds.normal.runs).toBe(1);
     });
 
+    it("counts no run before its first serve", async () => {
+      await gameAt(SPEC_LEVEL.steel);
+
+      expect(TestBed.inject(StatsService).stats().speeds.normal.runs).toBe(0);
+    });
+
     it("counts a run once, however many levels it plays", async () => {
       const game = await launchedAt(SPEC_LEVEL.blasts);
 
@@ -835,6 +842,39 @@ describe("GameService", () => {
 
       expect(TestBed.inject(StatsService).stats().levels).toEqual({
         blasts: { normal: 4100 },
+      });
+    });
+
+    it("keeps a won run's last level cleared, with its best", async () => {
+      await clearedAt(SPEC_LEVEL.last);
+
+      expect({
+        cleared: TestBed.inject(ProgressService).cleared().has("last"),
+        best: TestBed.inject(StatsService).stats().levels["last"],
+      }).toEqual({ cleared: true, best: { normal: 4100 } });
+    });
+
+    it("keeps the records at the run's own speed", async () => {
+      TestBed.inject(SettingsService).update({ speed: "fast" });
+
+      await clearedAt(SPEC_LEVEL.blasts);
+
+      const stats = TestBed.inject(StatsService).stats();
+      expect({
+        runs: stats.speeds.fast.runs,
+        best: stats.levels["blasts"],
+      }).toEqual({ runs: 1, best: { fast: 4100 } });
+    });
+
+    it("keeps a level's own points as its best, not the run's score", async () => {
+      TestBed.overrideProvider(GAME_LEVELS, { useValue: TWO_SETS });
+      const game = await launchedAt(1);
+
+      clearToNext(game);
+      playToClear(game);
+
+      expect(TestBed.inject(StatsService).stats().levels["again"]).toEqual({
+        normal: 4100,
       });
     });
 
@@ -886,6 +926,14 @@ describe("GameService", () => {
       playUntil(game, () => STILL, game.resultOpen);
 
       expect([before, game.chimes()]).toEqual([0, 1]);
+    });
+
+    it("calls for no chime as the card of a run with no new best opens", async () => {
+      const game = await endedAt(SPEC_LEVEL.steel);
+
+      playUntil(game, () => STILL, game.resultOpen);
+
+      expect(game.chimes()).toBe(0);
     });
 
     it("calls for the chime for a life the points brought", async () => {

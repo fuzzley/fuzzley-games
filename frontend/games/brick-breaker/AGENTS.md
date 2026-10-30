@@ -208,8 +208,8 @@ the scene and the shell's first files exist.
     records and the levels cleared through `stats/`, calls for the chime for a
     life the points brought and for a new best as its card opens (`chimes`),
     and asks through `@fz/ui/confirm` before a new game or speed throws a run
-    away. `tokens.ts` holds what a spec hands it instead of the game's own:
-    the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).
+    away. `src/app/tokens.ts` holds what a spec hands it instead of the
+    game's own: the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
     as the page goes away, never at a step, and forgets it once the run ends;
@@ -339,8 +339,8 @@ every brick kind and letting every capsule first fall at the level its `from`
 names, but those the sets still to come bring, which it names.
 `src/testing/roles.ts` puts a palette's roles on the page (`paintRoles()`) for
 the specs that color the field. `src/testing/play.ts` holds the small levels
-the shell's specs play, each set up to come to one thing soon, and two sets of
-a level each (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with
+the shell's specs play, each set up to come to one thing soon, and two sets, of
+two levels and then one (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with
 a seed of its own through `GAME_RANDOM` (`provideSpecLevels()`), and plays
 them through `tick()`, steering the paddle from the frame it reads (`under()`,
 `awayFrom()`, `playUntil()`, `loseBall()`, `playToClear()`, `clearToNext()`).

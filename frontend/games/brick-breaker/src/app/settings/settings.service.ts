@@ -11,7 +11,7 @@ const SETTINGS_VERSION = 1;
 
 /** Says how the player plays. */
 export interface Settings {
-  /** The speed new runs are played at. */
+  /** The speed of the last run started, at which a visit's first run is played. */
   readonly speed: Speed;
   /** How a finger steers the paddle on a touch screen. */
   readonly touch: TouchSteering;

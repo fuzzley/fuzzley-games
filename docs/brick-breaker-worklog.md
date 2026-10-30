@@ -2755,3 +2755,74 @@ test finding. Every one passed the specs.
   build. The first run failed the rules' coverage floor (100% of
   statements): three guards and the restore of a level not yet begun had
   no spec. Four specs cover them.
+
+## B10.1's review (9e960ade, with d6ae2cc3)
+
+The reviewer found no bug in what the game does. Eleven of their
+seventeen mutants passed every spec, though, and the closed Levels dialog
+did needless work.
+
+1. **A won run's last level was never shown to be kept.** **Fixed:**
+   "keeps a won run's last level cleared, with its best" (`last`,
+   `{ normal: 4100 }`).
+2. **Every record was specced only at Normal.** Three mutants passed: the
+   Levels dialog, the level best and the run count, each read or kept at
+   Normal. **Fixed:**
+   - The game service keeps the records at Fast, from the settings: one
+     run and `{ fast: 4100 }`.
+   - The Levels dialog, after `changeSpeed("fast")`, shows the Fast best
+     of two.
+3. **The new-best chime's condition was unproven.** **Fixed:** a run lost
+   with 0 points calls for no chime as its card opens.
+4. **"A run counts from its first serve" was unproven.** **Fixed:** no
+   run is counted before the first serve.
+5. **"A level's best is its own points" was unproven.** **Fixed:** on
+   `TWO_SETS`, clearing levels 1 and 2 keeps 4100 for Again, not the run's 8200.
+6. **Every spec had the best equal to the score.** **Fixed:** the stats
+   keep a best of 600 through a 500. The result card shows a best of 9000
+   that a 4400 run fell short of, without "New best".
+7. **The scene's "each time" spec could not catch a chime every frame.**
+   **Fixed:** one call, two frames, another call: exactly two chimes.
+8. **The closed Levels dialog rebuilt its grid at every point.**
+   `<fz-dialog>` keeps its content live, and `sets` read the whole run for
+   its speed. The reviewer counted 9 rebuilds over 8 score changes, and 1
+   with the speed read on its own. **Fixed:** `GameService.speed`, a
+   computed that changes only with a run. The Levels dialog, the settings
+   drawer, the bar's badge and `best` read it.
+9. **Stale or loose comments.** **Fixed:**
+   - AGENTS.md describes `TWO_SETS` as two sets of two levels and then
+     one.
+   - The result card's class comment names the best and "New best".
+   - `chimes` counts since the page loaded.
+   - `takeIn()` "keeps the records".
+   - `Settings.speed` is the last run's, at which a visit's first run is
+     played.
+   - The plan's bar no longer lists the best, and says where it shows.
+10. **Names.** **Fixed:**
+    - `ProgressService` imports the rule as `isLevelOpen`.
+    - `StatsService.changeSpeed()` is `changeSpeedStats()`.
+    - The scene plays `CHIME`, which `view/effects.ts` exports, with a
+      line saying what shares it.
+11. **`FrameSounds` dropped a detune of -1 or below.** **Fixed:** "unheard"
+    is `Number.NEGATIVE_INFINITY`, with a spec that plays a sound lowered
+    by 100 cents.
+12. **The tick and the trophy were unspecced.** **Fixed:** each is
+    checked by its icon, with a comment that the words beside it tell
+    assistive technology the same.
+13. **Two choices, challenged. Not changed:**
+    - **A best on the Ready card.** The Ready card is about the serve, and
+      shows at every ball. The best is a target for the end of a run, on
+      the result card, and per level in the Levels dialog.
+    - **The status in the tile's name, rather than a description.** The
+      name is the tile's visible text, in order, which voice control
+      matches from its start ("3 Steel"). A description would take two ids
+      per tile and leave the name short of what the tile shows.
+14. **A folder cycle through the tokens.** **Fixed:** they moved to
+    `src/app/tokens.ts`, so `stats/` and `play/` no longer import each
+    other's folder.
+
+- **Also:** `describeTakenUp()`, from B10.2, gains a spec of its own.
+- **Mutants.** The reviewer's eleven survivors, and the negative detune,
+  were run again: each fails now.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,575),
+  build, clean on the first run.

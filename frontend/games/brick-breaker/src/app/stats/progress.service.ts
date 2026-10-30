@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { clearedOf, isOpen } from "../../rules/progress";
-import { GAME_LEVELS } from "../play/tokens";
+import { clearedOf, isOpen as isLevelOpen } from "../../rules/progress";
+import { GAME_LEVELS } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */
 export const PROGRESS_KEY = "brick-breaker-progress";
@@ -21,7 +21,7 @@ export class ProgressService {
 
   /** Returns whether a run may start at a level, by its number. */
   isOpen(level: number): boolean {
-    return isOpen(this.levels, this.state(), level);
+    return isLevelOpen(this.levels, this.state(), level);
   }
 
   /** Keeps a level cleared, by its id, which opens the next. */
