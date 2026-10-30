@@ -3043,3 +3043,53 @@ The specs were the weak spot: 20 of their 21 mutants passed the whole suite.
   hidden brick and one that keeps none shown.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,673,
   `@fz/ui`'s 182, Snake's 395), build, clean on the first run.
+
+## B11.2: the Tricks set
+
+- **Built.** `src/rules/levels/tricks.json`, levels 21 to 30, as the plan's
+  table names them, at a pace from 1.12 to 1.20 and a capsule chance of
+  0.14. `LEVEL_SETS` holds it last.
+  - The regrowing brick first comes in Garden, on the plan's map.
+  - Finale is a trophy, with a grid of tints: an amber cup on a violet
+    stand.
+  - Every brick kind is now used, so the catalog spec's waiting list is
+    gone.
+- **What the tuning changed,** from a probe of the bricks each slow
+  endgame was left with, as in B11.1:
+  - **Spiral, drawn as a closed spiral,** was never cleared: the ball
+    doesn't travel along a corridor two rows tall. It is now an outer arm
+    with an inner hook. The centre is open from below, and no bricks sit
+    in the corridor under the outer arm.
+  - **Hedge maze** had two rows of hedges, which kept regrowing across the
+    corridors. It has one row now, with a gap in each hedge.
+  - **Keep** had its walls' corners in channels one cell wide, behind the
+    gates. Its wall now spans the field, and the gates guard only the
+    middle.
+  - **Finale's stem** sat on the steel base, boxed in by regrowing bricks.
+    The stem stands clear of the base, and the steel handles enclose
+    nothing.
+  - **Storm's steel** sits in its top row, where it hides nothing.
+- **Where it ended,** the middle of 15 seeds, at Relaxed, Normal and Fast:
+
+  | #   | Level          | Relaxed | Normal | Fast |
+  | --- | -------------- | ------- | ------ | ---- |
+  | 21  | Garden         | 1:17    | 1:35   | 1:19 |
+  | 22  | Hedge maze     | 1:45    | 1:33   | 1:18 |
+  | 23  | Low bridge     | 0:49    | 0:53   | 1:02 |
+  | 24  | Hourglass      | 1:37    | 1:49   | 1:47 |
+  | 25  | Chain reaction | 2:04    | 1:49   | 1:39 |
+  | 26  | Fog            | 1:25    | 1:28   | 1:19 |
+  | 27  | Spiral         | 1:00    | 0:53   | 0:51 |
+  | 28  | Keep           | 2:44    | 2:52   | 2:06 |
+  | 29  | Storm          | 1:04    | 1:03   | 0:57 |
+  | 30  | Finale         | 2:49    | 2:51   | 2:11 |
+  - Keep and Finale are the longest, and Finale has the set's highest pace.
+  - Low bridge and Storm read short. Their bricks reach low, so they ask for
+    quick reactions, which the autopilot, reacting at once, doesn't feel.
+    Their blast bricks and capsules clear them fast.
+  - The spec's own seeds all finish their endgames within a minute.
+  - A few other seeds take a little longer, up to 1:08 on Finale at Fast.
+  - The autopilot lost no lives.
+
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,734),
+  build. AGENTS.md names the set and the catalog spec's full check.

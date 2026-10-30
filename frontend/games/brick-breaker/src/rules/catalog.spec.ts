@@ -2,7 +2,6 @@ import { BALL_KIND_IDS, ballKind } from "./catalog/balls";
 import {
   BRICK_KINDS,
   BRICK_KIND_IDS,
-  type BrickKindId,
   brickKind,
   hasTrait,
   isBrickKindId,
@@ -17,12 +16,6 @@ import {
 import type { Level } from "./level";
 import { LEVELS, parseLevel } from "./levels";
 import { CATCH_HOLD_MS, MAX_LIVES } from "./tuning";
-
-/**
- * The brick kinds no level uses yet, which the sets to come bring; once the
- * last set is in, the list is empty and every kind is used.
- */
-const KINDS_TO_COME: readonly BrickKindId[] = ["regrow"];
 
 /** Every level, ready to play, with its number. */
 const PLAYED = LEVELS.map(
@@ -236,14 +229,14 @@ describe("the capsules", () => {
 });
 
 describe("the levels", () => {
-  it("use every brick kind, but those the sets to come bring", () => {
+  it("use every brick kind", () => {
     const used = new Set(
       PLAYED.flatMap(([, level]) =>
         level.cells.flatMap((brick) => (brick ? [brick.kind] : [])),
       ),
     );
 
-    expect(BRICK_KIND_IDS.filter((id) => !used.has(id))).toEqual(KINDS_TO_COME);
+    expect(BRICK_KIND_IDS.filter((id) => !used.has(id))).toEqual([]);
   });
 
   it("let every capsule fall", () => {

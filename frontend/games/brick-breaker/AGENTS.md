@@ -112,12 +112,13 @@ the scene and the shell's first files exist.
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
   of its own, and, for a picture, a grid of tints: `basics.json`, levels 1
-  to 10, and `steel.json`, 11 to 20. `src/rules/levels.ts` lists the sets
-  in order (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, through
-  `levelsOf()`), and `parseLevel()` turns one into a `Level` to play, or
-  throws an error that names what is wrong with its data. Its spec holds
-  every level to parsing, ids and names of their own, a brick it needs that
-  a ball can reach, and a pace that never falls within a set.
+  to 10, `steel.json`, 11 to 20, and `tricks.json`, 21 to 30.
+  `src/rules/levels.ts` lists the sets in order (`LEVEL_SETS`), numbers
+  every level from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()`
+  turns one into a `Level` to play, or throws an error that names what is
+  wrong with its data. Its spec holds every level to parsing, ids and names
+  of their own, a brick it needs that a ball can reach, and a pace that
+  never falls within a set.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
@@ -343,8 +344,8 @@ needs that it can see, catches the good capsules it has time for, and fires,
 serves and launches at once. `src/rules/autopilot.spec.ts` holds every level,
 at every speed, to being cleared by it within eight minutes of game time, its
 last three bricks within one, and the catalog spec holds the levels to using
-every brick kind, but those the set still to come brings, which it names,
-and letting every capsule first fall at the level its `from` names.
+every brick kind and letting every capsule first fall at the level its `from`
+names.
 `src/testing/roles.ts` puts a palette's roles on the page (`paintRoles()`) for
 the specs that color the field. `src/testing/play.ts` holds the small levels
 the shell's specs play, each set up to come to one thing soon, and two sets, of
