@@ -97,6 +97,11 @@ out of the first download.
 - **The keyboard listens where the game says.** Set Phaser's
   `input.keyboard.target` to the board's element, so the keys reach the
   scene only while it has the focus, and a dialog or the bar keeps its own.
+- **Hear the keys through `onKeyDown()` and `onKeyUp()`,** from
+  `@fz/phaser/scene`, not the keyboard's `ANY_KEY_DOWN` and `ANY_KEY_UP`.
+  Phaser hands over every key event of a frame again with each new one in
+  it, dropping only one that repeats the event just before, so a frame of
+  three keys repeats the first; the helpers hand over each once.
 - **Phaser's key captures are global,** whatever the target: a captured key
   has its default prevented everywhere. Capture only the keys the game
   uses, and ignore a held key and one pressed with Ctrl, Alt or Meta, so the

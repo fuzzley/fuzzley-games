@@ -344,6 +344,18 @@ describe("SnakeScene", () => {
       expect(shell.commands).toEqual(["up", "toggle"]);
     });
 
+    it("turn into the commands they ask for, each once, however many come in a frame", async () => {
+      const { shell, run } = await startBoard();
+
+      run.key("keydown", "ArrowUp");
+      run.key("keydown", "ArrowLeft");
+      run.key("keydown", "Space", " ");
+      run.key("keydown", "Escape");
+      run.advance(16);
+
+      expect(shell.commands).toEqual(["up", "left", "toggle", "pause"]);
+    });
+
     it("turn Enter on the board into going on", async () => {
       const { shell, run } = await startBoard();
 

@@ -33,10 +33,12 @@ take the pure ones.
 - `src/scene/`: what a scene needs to live in a game that outlives it:
   `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
   `onFirstFrame()`, which let go of what they subscribe to when the scene
-  ends; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at run time
-  and drawn again after a lost context; and `bakeAtlas()`, many named
-  frames drawn into one such texture, after which every object showing one
-  of its frames sets it again. It imports Phaser, never Angular.
+  ends; `onKeyDown()` and `onKeyUp()`, which hand a scene each key event its
+  keyboard hears once, where Phaser hands every key event of a frame over
+  again with each new one; `pixelRatioOf()`; `bakeTexture()`, a texture drawn
+  at run time and drawn again after a lost context; and `bakeAtlas()`, many
+  named frames drawn into one such texture, after which every object showing
+  one of its frames sets it again. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never
   waits for it, and plays its sounds, named by the spritemap, once it has

@@ -1,6 +1,12 @@
 import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
-import { onFirstFrame, pixelRatioOf, whenSceneEnds } from "@fz/phaser/scene";
+import {
+  onFirstFrame,
+  onKeyDown,
+  onKeyUp,
+  pixelRatioOf,
+  whenSceneEnds,
+} from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { Core, type GameObjects, Input, Scene, type Types } from "phaser";
 import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
@@ -128,12 +134,6 @@ export class BricksScene extends Scene {
   private chimed = 0;
   /** How a sound is played, made once and changed for each: Phaser copies it as the sound starts. */
   private readonly soundConfig: Types.Sound.SoundConfig = { detune: 0 };
-  /**
-   * The key events the scene has taken. Phaser hands over every key event
-   * of a frame again with each new one, so a frame of three keys would
-   * repeat the first.
-   */
-  private readonly keysTaken = new WeakSet<KeyboardEvent>();
 
   constructor(
     private readonly options: BricksSceneOptions,
@@ -386,20 +386,14 @@ export class BricksScene extends Scene {
 
   /** Turns the keys and the pointer into steering and commands. */
   private listen(): void {
-    const keyboard = this.input.keyboard;
-    if (keyboard) {
-      keyboard.addCapture(CAPTURED_KEYS);
-      keyboard.on(
-        Input.Keyboard.Events.ANY_KEY_DOWN,
-        (event: KeyboardEvent) => {
-          this.onKeyDown(event);
-        },
-      );
-      keyboard.on(Input.Keyboard.Events.ANY_KEY_UP, (event: KeyboardEvent) => {
-        const held = heldKeyOf(event.code);
-        if (held && this.isNew(event)) this.steering.release(held);
-      });
-    }
+    this.input.keyboard?.addCapture(CAPTURED_KEYS);
+    onKeyDown(this, (event) => {
+      this.press(event);
+    });
+    onKeyUp(this, (event) => {
+      const held = heldKeyOf(event.code);
+      if (held) this.steering.release(held);
+    });
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
       if (this.steering.pointerDown(pointer, this.options.touch())) {
         this.options.command("launch");
@@ -438,19 +432,11 @@ export class BricksScene extends Scene {
     });
   }
 
-  /** Returns whether the scene hasn't taken a key event yet, and takes it. */
-  private isNew(event: KeyboardEvent): boolean {
-    if (this.keysTaken.has(event)) return false;
-    this.keysTaken.add(event);
-    return true;
-  }
-
   /**
    * Holds a key that pushes the paddle, and passes on what any other key
    * asks, once per press, leaving the browser its shortcuts.
    */
-  private onKeyDown(event: KeyboardEvent): void {
-    if (!this.isNew(event)) return;
+  private press(event: KeyboardEvent): void {
     if (event.ctrlKey || event.altKey || event.metaKey) return;
     const held = heldKeyOf(event.code);
     if (held) {
