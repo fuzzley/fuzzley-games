@@ -17,45 +17,26 @@
  * must lie in the window, clear of the board. It prints what is wrong and
  * fails, or says the layout holds.
  */
-import { access } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { preview } from "vite";
-import { withChrome } from "@fz/dev/chrome";
-import { SHAPES, TURNS, checkLayout, checkTurns } from "@fz/dev/layout";
-
-const USAGE = `Usage: yarn check:layout [options]
-
-Checks the build's layout in headless Chrome at each shape a game takes.
-
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+import { join } from "node:path";
+import {
+  SHAPES,
+  SMALLEST,
+  TURNS,
+  checkLayout,
+  checkTurns,
+  runLayoutScript,
+  shapesAt,
+  turnsAt,
+} from "@fz/dev/layout";
 
 /**
- * The smallest phone, held upright, where the arrows under the board leave
- * it squares of only 12 CSS px or so, whatever their size.
+ * The shapes and the smallest phone, at twice the pixels, so the canvas's
+ * backing size is tested.
  */
-const SMALLEST = {
-  name: "smallest phone portrait",
-  viewport: { width: 320, height: 480, deviceScaleFactor: 1 },
-};
-
-/** The shapes, at twice the pixels, so the canvas's backing size is tested. */
-const SHAPES_2X = [...SHAPES, SMALLEST].map((shape) => ({
-  ...shape,
-  viewport: { ...shape.viewport, deviceScaleFactor: 2 },
-}));
+const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
 
 /** The turns, at twice the pixels. */
-const TURNS_2X = TURNS.map((turn) => ({
-  ...turn,
-  from: { ...turn.from, deviceScaleFactor: 2 },
-  to: { ...turn.to, deviceScaleFactor: 2 },
-}));
+const TURNS_2X = turnsAt(2, TURNS);
 
 /**
  * Stores settings that show the on-screen arrows with a mouse too. It runs
@@ -198,91 +179,35 @@ function inspectBoard() {
   return problems;
 }
 
-/**
- * Returns the options the command line sets.
- *
- * @returns {{chrome?: string} | undefined} Nothing when it asks only for
- *   help.
- */
-function parseCommandLine() {
-  const { values } = parseArgs({
-    options: {
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
-  }
-  return { chrome: values.chrome };
-}
+/** The selector the page matches once the scene has drawn. */
+const READY = 'fz-phaser-canvas[data-state="ready"]';
 
-async function main() {
-  const options = parseCommandLine();
-  if (!options) return;
-  await access(join(ROOT, "dist/index.html")).catch(() => {
-    throw new Error("Found no build to check; run yarn build first.");
-  });
+/** The names of the shapes and turns the layout is checked at. */
+const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
+  .map((shape) => shape.name)
+  .join(", ");
 
-  const server = await preview({
-    root: ROOT,
-    logLevel: "silent",
-    preview: { port: 0, strictPort: true },
-  });
-  try {
-    const url = server.resolvedUrls?.local[0];
-    if (!url) throw new Error("The preview server gave no address.");
-    const problems = await withChrome(
-      { chrome: options.chrome, name: "snake" },
-      async (devtools) => {
-        const ready = 'fz-phaser-canvas[data-state="ready"]';
-        const plain = await checkLayout(
-          devtools,
-          { url, ready, inspect: inspectBoard },
-          SHAPES_2X,
-        );
-        const withArrows = await checkLayout(
-          devtools,
-          { url, ready, inspect: inspectBoard, before: wantArrows },
-          SHAPES_2X,
-        );
-        const turned = await checkTurns(
-          devtools,
-          { url, ready, inspect: inspectBoard },
-          TURNS_2X,
-        );
-        const turnedWithArrows = await checkTurns(
-          devtools,
-          { url, ready, inspect: inspectBoard, before: wantArrows },
-          TURNS_2X,
-        );
-        return [
-          ...plain,
-          ...turned,
-          ...[...withArrows, ...turnedWithArrows].map((found) => ({
-            ...found,
-            shape: `${found.shape}, with the arrows`,
-          })),
-        ];
-      },
-    );
-    for (const { shape, problem } of problems) {
-      console.error(`${shape}: ${problem}`);
-    }
-    if (problems.length > 0) {
-      process.exitCode = 1;
-      return;
-    }
-    const shapes = [...SHAPES, SMALLEST, ...TURNS]
-      .map((shape) => shape.name)
-      .join(", ");
-    console.log(
-      `Snake's layout holds at each shape and turn, with and without the arrows: ${shapes}.`,
-    );
-  } finally {
-    await server.close();
-  }
-}
-
-await main();
+process.exitCode = await runLayoutScript({
+  game: "Snake",
+  root: join(import.meta.dirname, ".."),
+  check: async (devtools, url) => {
+    const plain = { url, ready: READY, inspect: inspectBoard };
+    const arrows = { ...plain, before: wantArrows };
+    const withoutArrows = [
+      ...(await checkLayout(devtools, plain, SHAPES_2X)),
+      ...(await checkTurns(devtools, plain, TURNS_2X)),
+    ];
+    const withArrows = [
+      ...(await checkLayout(devtools, arrows, SHAPES_2X)),
+      ...(await checkTurns(devtools, arrows, TURNS_2X)),
+    ];
+    return [
+      ...withoutArrows,
+      ...withArrows.map((found) => ({
+        ...found,
+        shape: `${found.shape}, with the arrows`,
+      })),
+    ];
+  },
+  holds: `at each shape and turn, with and without the arrows: ${CHECKED}`,
+});

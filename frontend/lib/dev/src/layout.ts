@@ -1,7 +1,13 @@
+import { access } from "node:fs/promises";
+import { basename, join } from "node:path";
+import { parseArgs } from "node:util";
+import { preview } from "vite";
 import {
+  type ChromeOptions,
   type DevToolsConnection,
   type Page,
   type Viewport,
+  withChrome,
   withPage,
 } from "./chrome.ts";
 import {
@@ -45,6 +51,26 @@ export const SHAPES: readonly Shape[] = [
   },
 ];
 
+/**
+ * The smallest phone, held upright, at which a game whose board is drawn on
+ * a canvas is checked too, where its board has the least room.
+ */
+export const SMALLEST: Shape = {
+  name: "smallest phone portrait",
+  viewport: { width: 320, height: 480, deviceScaleFactor: 1 },
+};
+
+/**
+ * Returns shapes at a pixel ratio, such as 2, at which a canvas's backing
+ * size is checked against its size in CSS pixels.
+ */
+export function shapesAt(ratio: number, shapes: readonly Shape[]): Shape[] {
+  return shapes.map((shape) => ({
+    ...shape,
+    viewport: { ...shape.viewport, deviceScaleFactor: ratio },
+  }));
+}
+
 /** Names a turn of a phone, and gives the shape it starts from and ends at. */
 export interface Turn {
   readonly name: string;
@@ -65,6 +91,15 @@ export const TURNS: readonly Turn[] = [
     to: { width: 390, height: 844, deviceScaleFactor: 1 },
   },
 ];
+
+/** Returns turns at a pixel ratio, as {@link shapesAt} returns shapes. */
+export function turnsAt(ratio: number, turns: readonly Turn[]): Turn[] {
+  return turns.map((turn) => ({
+    ...turn,
+    from: { ...turn.from, deviceScaleFactor: ratio },
+    to: { ...turn.to, deviceScaleFactor: ratio },
+  }));
+}
 
 /** Says how to check a game's layout. */
 export interface LayoutCheck {
@@ -210,4 +245,90 @@ function field(value: unknown, key: string): unknown {
   return typeof value === "object" && value !== null
     ? (Reflect.get(value, key) as unknown)
     : undefined;
+}
+
+/** Says what a game's `tools/check-layout.mjs` checks its build with. */
+export interface LayoutScript {
+  /** The game's name, as the script's words say it, such as "Snake". */
+  readonly game: string;
+  /** The game's workspace folder, whose build, in `dist/`, is served. */
+  readonly root: string;
+  /**
+   * Runs the game's checks on its build, served at `url`, and returns what
+   * is wrong.
+   */
+  readonly check: (
+    devtools: DevToolsConnection,
+    url: string,
+  ) => Promise<LayoutProblem[]>;
+  /**
+   * Says where the layout held once nothing is wrong, after "holds", such
+   * as "at each shape: roomy, phone portrait".
+   */
+  readonly holds: string;
+}
+
+/** Starts a headless Chrome for a script's use, as `withChrome()` does. */
+export type RunChrome = <T>(
+  options: ChromeOptions,
+  use: (devtools: DevToolsConnection) => Promise<T>,
+) => Promise<T>;
+
+/** What `--help` prints. */
+export const LAYOUT_USAGE = `Usage: yarn check:layout [options]
+
+Checks the build's layout in headless Chrome at each shape a game takes.
+
+  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
+                   install location)
+  -h, --help       Show this message`;
+
+/**
+ * Runs a game's layout check from its script's command line, and returns
+ * the exit code: it serves the build as `yarn preview` does, runs the
+ * game's checks on it in a headless Chrome, and prints what is wrong, or
+ * that the layout holds.
+ *
+ * It throws when the game has no build, since there is nothing to check.
+ */
+export async function runLayoutScript(
+  script: LayoutScript,
+  args: readonly string[] = process.argv.slice(2),
+  runChrome: RunChrome = withChrome,
+): Promise<number> {
+  const { values } = parseArgs({
+    args: [...args],
+    options: {
+      chrome: { type: "string" },
+      help: { type: "boolean", short: "h" },
+    },
+  });
+  if (values.help) {
+    console.log(LAYOUT_USAGE);
+    return 0;
+  }
+  await access(join(script.root, "dist/index.html")).catch(() => {
+    throw new Error("Found no build to check; run yarn build first.");
+  });
+  const server = await preview({
+    root: script.root,
+    logLevel: "silent",
+    preview: { port: 0, strictPort: true },
+  });
+  try {
+    const url = server.resolvedUrls?.local[0];
+    if (!url) throw new Error("The preview server gave no address.");
+    const problems = await runChrome(
+      { chrome: values.chrome, name: basename(script.root) },
+      (devtools) => script.check(devtools, url),
+    );
+    for (const { shape, problem } of problems) {
+      console.error(`${shape}: ${problem}`);
+    }
+    if (problems.length > 0) return 1;
+    console.log(`${script.game}'s layout holds ${script.holds}.`);
+    return 0;
+  } finally {
+    await server.close();
+  }
 }
