@@ -109,3 +109,25 @@ log is at its end.
   games' `AGENTS.md` say their scenes do.
 - **Checks:** lint, typecheck and test pass in `@fz/phaser` (261 tests),
   Snake (396) and Brick Breaker (1,753); Prettier and the references pass.
+
+### G2: Snake's card buttons keep their keys
+
+- **Built:** Resume and New Game, the two buttons on the cards over the
+  board, keep their keydown and keyup (`keepKey()`, which stops the event
+  at the button), as Brick Breaker's cards do. Space on a focused Resume
+  bubbled to the board: the scene heard it and went on, and Phaser's
+  capture cancelled the keyup the browser clicks the button at, so the card
+  went with the focus on it. Now the button takes the key, and its click
+  hands the board the focus. Reload is left as it is: it shows only when
+  the board couldn't be drawn, so no scene hears the keys.
+- **The scene's guard went:** it ignored Enter on a button over the board,
+  which no key from a card's button reaches now. Its spec went with it.
+- **Words:** the board's description of its keys ends "On a card's button,
+  the keys are the button's: Space and Enter press it." Snake's
+  `AGENTS.md` says so where it describes the run and the board.
+- **Specs:** with the real scene, Space sent with its key code, down and
+  up, on Resume and on New Game: neither event is cancelled and the scene
+  hears neither, so the run stays paused, and no run starts. Without the
+  keydown binding both fail with `[false, true]`, and without the keyup
+  binding with `[true, false]`.
+- **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier.
