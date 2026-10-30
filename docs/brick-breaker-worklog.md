@@ -3200,3 +3200,98 @@ refused, and none came back changed.
 - **Checks.** `yarn check:layout` holds at every shape and turn. Lint,
   typecheck, the references and the constraints pass. Docs: Brick
   Breaker's `AGENTS.md` and the frontend's.
+
+## Q5: the full pass
+
+Checked in the DevTools MCP's Chrome. The build ran under `yarn preview`, in
+a context of its own with empty storage. The dev server ran where a check
+needed to reach into the page. Nothing was found to fix.
+
+- **Every level of set 1, and 20 and 30, at every speed, by every input.**
+  108 levels played on the dev server.
+  - **Keys and mouse.** Three runs, one per speed, each through levels 1 to
+    10 by Next level, then 20 and 30 begun from Levels. Keys and mouse took
+    turns level by level, and swapped places on Normal.
+  - **Touch.** The same three runs again, with the window a 412 × 915 phone
+    with touch. Follow the finger was used on Relaxed and Drag on Normal and
+    Fast.
+  - **What each level checked.**
+    - The ready card ("Tap to launch." on the phone).
+    - The paddle steered left: by the arrow key held; by the mouse moved to
+      a fifth of the field; and by the finger, to where it lifted when
+      following, or as far as it moved when dragging, within 0.6 units.
+    - The ball launched by Space, a click or a tap.
+    - The level cleared, every needed brick broken through the rules' own
+      `hitBrick()`.
+    - The Cleared card, then Next level by Enter or by its button.
+  - **How the input was given.** It was DOM events, which is all Phaser and
+    the board read. A touch has to carry `pageX`, which Phaser reads and
+    Chrome's `Touch` doesn't derive.
+  - **The end of each run.** Level 30 ended it with "Every level cleared!"
+    and the speed's new best.
+  - **The best.** The runs given up at level 10 for a new game don't count
+    toward it, as `recordEnd()` keeps only ended runs.
+- **AZERTY.** A key goes by its place (`event.code`), as the plan decided.
+  - AZERTY's Q (`KeyA`) moves the paddle left, D right, and Z (`KeyW`)
+    launches.
+  - The keys labelled A and W there do nothing.
+  - **Note.** The help and the board's description name the keys by
+    QWERTY's labels ("A or D", "W"), as Snake's name W, A, S and D. A
+    question for the user, across the games.
+- **Tabs switched mid-level.** A second DevTools tab doesn't hide the page,
+  so `document.hidden` was set and `visibilitychange` sent, with a ball in
+  flight.
+  - The run paused at once.
+  - Nothing stepped while hidden: the steps and the ball stood still.
+  - Back, it waits on the Paused card with the board focused.
+  - Enter goes on, and the announcer says "Going on."
+- **The context lost and restored** (`WEBGL_lose_context`) mid-level.
+  - No error, and the canvas stays ready.
+  - `bakeAtlas()` draws the atlas again, and the field was drawn whole after.
+- **The palettes** on the build, with every level opened through the stored
+  progress.
+  - Vault and Finale in Soft pastel, then Finale switched live to Casino
+    night from the settings, the atlas baked again in it. All three were
+    sent to the user.
+  - **Note.** Casino night's accent is the trophy's amber, so Finale's two
+    gift bricks nearly vanish into it but for their capsule marks. This is
+    the gift-accent question from Q3.
+- **The accessibility tree** on the build.
+  - **The board** is an application named "Brick Breaker, level 1:
+    Stripes", described by the keys, with its card's text inside.
+  - **The bar** is a banner holding the heading, the speed's menu button,
+    the three figures and named buttons, Pause disabled until the ball is
+    launched and Sound pressed.
+  - **The live region** is polite.
+  - **Levels** is a modal dialog of three regions, Basics, Steel and
+    Tricks, each with its heading and ten buttons named by number, name and
+    state ("2 Gifts Locked").
+  - **How to play** is a modal dialog: its input table has column and row
+    headers, then the Bricks, Capsules and Balls regions with their
+    headings.
+  - **Note.** The set headings and the bar's labels come through upper
+    case, as CSS sets them, as in the other games.
+- **Lighthouse** on the build, desktop and mobile.
+  - Accessibility 100, best practices 100.
+  - SEO 92 and the agents' audit fail only on `/robots.txt` and `/llms.txt`,
+    which the preview answers with the game's page. The site serves its own
+    in production.
+- **The performance trace.** On the dev server, slower than the build, at
+  Chain reaction: eight balls in flight, the blast ball's chains and their
+  shards, and three capsules falling.
+  - **Unthrottled,** Phaser's whole frame, update and render, takes 0.3 ms
+    at the median and 1.4 ms at worst.
+  - **With the CPU throttled six times,** wall times measure where Chrome's
+    throttler suspends the thread, not the work. The render, 0.2 ms
+    unthrottled, read 21 ms.
+  - **The trace's CPU time per frame** over the same seconds is 0.49 ms at
+    the median, 3.05 ms at p95 and 5.77 ms at worst. Those frames each ran
+    up to 12 steps to catch up.
+  - **Against the plan's bar of 4 ms at ×6,** the median and p95 pass. The
+    worst frames of a blast chain are over it, at about 8 ms by the
+    unthrottled worst times six, but inside a 60 fps frame. Left as it is
+    and noted for the user.
+- **The bundle,** gzipped: the entry 95.1 kB, the scene 9.8 kB and the
+  `phaser` chunk 353.9 kB. The entry imports no Phaser; it reaches the scene,
+  and through it Phaser, only by `import()`.
+- **The console** stayed clean on both pages through every check.
