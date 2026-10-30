@@ -175,9 +175,9 @@ the scene and the shell's first files exist.
   event over again with each new one in a frame, so the scene takes each
   once.
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
-  `app.component` lays the board in the room, with the `<fz-announcer>`
-  the game is announced through and the question before a run is thrown
-  away; it hands the board the focus as each run begins and whenever the
+  `app.component` lays the board in the room beside the bar, with the
+  `<fz-announcer>` the game is announced through and the question before
+  a run is thrown away; it hands the board the focus as each run begins and whenever the
   last dialog closes, and pauses the level in play when
   `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked away.
   - `play/` — `GameService` holds the run in a signal and the level in
@@ -197,13 +197,23 @@ the scene and the shell's first files exist.
     scene's pictures for How to play (`pictures`). The board is an
     application named for its level, "Brick Breaker, level 3: Pyramid",
     and Phaser's keyboard target.
+  - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`,
+    the speed's badge, which asks before it starts a run at another, the
+    figures, and Pause, Levels, New game, How to play and Settings, the
+    last three in the overflow menu on a compact screen. From the width the
+    actions keep their labels at (`fitsActionLabels`), the figures are the
+    level, the score, the lives as hearts and the streak's multiplier while
+    it counts; below it, the score and the lives alone, the lives as a
+    number, one over the other across the bar, as a score runs to six
+    figures. It hands the board back the focus as Resume goes on, and asks
+    the app for the levels, How to play and the settings, which nothing
+    answers yet.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
     `_index.scss`, the toolkit every component `@use`s, which emits no
     CSS.
 
-  Until the bar and the result card come, the game's name is a heading
-  only a screen reader sees, and an ended run leaves the board without a
-  card.
+  Until the result card comes, an ended run leaves the board without a
+  card, and the bar's New game starts another.
 
 ## Development Commands
 

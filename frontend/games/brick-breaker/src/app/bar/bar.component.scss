@@ -1,0 +1,185 @@
+@use "../styles" as *;
+
+:host {
+  display: block;
+}
+
+.title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--fz-bar-text);
+  font-size: var(--fz-font-lg);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The level, the score, the lives and the streak, as the other games show
+// their figures: a card of a label over a value. The label is spoken as a
+// word, and shown in capitals.
+.metrics {
+  display: flex;
+  gap: var(--fz-space-2);
+  min-width: 0;
+  margin: 0;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 72px;
+  padding: var(--fz-space-1) var(--fz-space-4);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-2);
+
+  dt {
+    display: flex;
+    margin-bottom: 2px;
+    color: var(--fz-muted);
+    font-size: var(--fz-font-2xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  // Shown in place of the label where the bar has room for two figures.
+  dt fz-icon {
+    display: none;
+  }
+}
+
+// `tabular-nums` as well, since some font stacks draw a narrower digit and a
+// figure that changes width drags its neighbors along.
+.value {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  color: var(--fz-text);
+  font-family: var(--fz-font-mono);
+  font-size: var(--fz-font-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+// A heart for each life, as Minesweeper draws them.
+.hearts {
+  --fz-icon-size: 18px;
+
+  display: flex;
+  gap: 3px;
+  padding-block: 3px;
+  color: var(--fz-danger);
+}
+
+// The multiplier in the accent, so a streak catches the eye.
+.streak .value {
+  color: var(--fz-accent);
+}
+
+// Every action clears the minimum tap size, labeled or not.
+.action {
+  @include tap-target;
+
+  // Dimmed rather than disabled, so the focus never falls off it.
+  &[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// The gear turns under the pointer, where motion is welcome.
+@media (prefers-reduced-motion: no-preference) {
+  .settings {
+    @include transition(background, transform);
+
+    &:hover {
+      transform: rotate(45deg);
+    }
+  }
+}
+
+// Below this width the actions lose their labels, which a screen reader
+// still reads.
+@include below("desktop") {
+  :host {
+    --fz-bar-gap: var(--fz-space-3);
+    --fz-bar-actions-gap: var(--fz-space-2);
+  }
+
+  .action:not(.fz-button-circle) {
+    padding: var(--fz-space-2);
+    border-radius: 50%;
+  }
+
+  .btn-text {
+    @include visually-hidden;
+  }
+}
+
+// Where the bar has room for the score and the lives alone, each is an icon
+// beside its value.
+:host(.score-and-lives) .metric {
+  --fz-icon-size: 15px;
+
+  flex-direction: row;
+  gap: 4px;
+  min-width: 0;
+
+  dt {
+    margin: 0;
+  }
+
+  dt fz-icon {
+    display: block;
+  }
+
+  .label {
+    @include visually-hidden;
+  }
+
+  .value {
+    font-size: var(--fz-font-sm);
+  }
+}
+
+// Across the bar, the score over the lives in one card, since a score runs to
+// six figures and the bar has no room for them side by side.
+:host(.score-and-lives:not(.rail)) .metrics {
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px var(--fz-space-2);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-2);
+}
+
+:host(.score-and-lives:not(.rail)) .metric {
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+  background: none;
+
+  .value {
+    line-height: 1;
+  }
+}
+
+// On a rail, the figures stacked.
+:host(.rail) .metrics {
+  flex-direction: column;
+}
+
+:host(.rail) .metric {
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
+
+  .value {
+    font-size: var(--fz-font-xs);
+  }
+}

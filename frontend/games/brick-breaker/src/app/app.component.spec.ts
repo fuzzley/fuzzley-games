@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { provideSpecLevels } from "../testing/play";
 import { AppComponent } from "./app.component";
@@ -51,12 +51,12 @@ describe("AppComponent", () => {
     );
   });
 
-  it("names the game", async () => {
+  it("names the game in the bar", async () => {
     await renderApp();
 
-    expect(
+    expect(screen.getByRole("banner")).toContainElement(
       screen.getByRole("heading", { level: 1, name: "Brick Breaker" }),
-    ).toBeInTheDocument();
+    );
   });
 
   it("hands the board the focus as the page loads, so the keys steer at once", async () => {
@@ -124,7 +124,11 @@ describe("AppComponent", () => {
       void game.newGame();
       await settle();
 
-      await userEvent.click(screen.getByRole("button", { name: "New game" }));
+      await userEvent.click(
+        within(screen.getByRole("alertdialog")).getByRole("button", {
+          name: "New game",
+        }),
+      );
       await settle();
 
       expect({

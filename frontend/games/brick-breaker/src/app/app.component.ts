@@ -10,12 +10,14 @@ import { PlayRoomDirective } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
+import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { GameService } from "./play/game.service";
 
 /**
- * Shows the game: the board in the room, the live region that says what
- * happens, and the question before a run is thrown away.
+ * Shows the game: the bar, the board in the room the bar leaves it, the live
+ * region that says what happens, and the question before a run is thrown
+ * away.
  *
  * The board takes the focus as a run begins, as the page loads or after a
  * new game, and whenever the last dialog over it closes, so the keys steer
@@ -26,12 +28,14 @@ import { GameService } from "./play/game.service";
   selector: "app-root",
   imports: [
     AnnouncerComponent,
+    BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
     PlayRoomDirective,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",
+    "[attr.data-bar]": "viewport.barPlacement()",
   },
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",

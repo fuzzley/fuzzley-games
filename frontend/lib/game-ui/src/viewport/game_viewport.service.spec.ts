@@ -80,6 +80,14 @@ describe("GameViewportService", () => {
     expect(service.barPlacement()).toBe("end");
   });
 
+  it("has room for the actions' labels from 1200 px", () => {
+    expect(at(1200, 800).fitsActionLabels()).toBe(true);
+  });
+
+  it("has no room for the actions' labels below 1200 px", () => {
+    expect(at(1199, 800).fitsActionLabels()).toBe(false);
+  });
+
   it("has room for the wordmark from 1280 px", () => {
     expect(at(1280, 800).fitsWordmark()).toBe(true);
   });

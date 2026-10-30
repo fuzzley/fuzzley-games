@@ -1,0 +1,138 @@
+<fz-game-bar
+  [placement]="viewport.barPlacement()"
+  [compact]="viewport.isCompact()"
+  [home]="viewport.barHome()"
+  [homeHref]="homeHref"
+>
+  <!-- The page's one <h1>, heard rather than seen on a compact screen. -->
+  <h1
+    fzBarTitle
+    class="title"
+    [class.fz-visually-hidden]="viewport.isCompact()"
+  >
+    Brick Breaker
+  </h1>
+  <!-- At every size, as the speed isn't shown anywhere else in play. -->
+  <fz-bar-choice
+    fzBarTitle
+    label="Speed"
+    [options]="speeds"
+    [value]="game.run().speed"
+    (choose)="changeSpeed($event)"
+  />
+
+  <!--
+    Not a live region: the announcer says each turning point. Where the bar
+    has room only for the score and the lives, the Ready card and the
+    board's name give the level.
+  -->
+  <dl fzBarStatus class="metrics">
+    @if (fitsEveryFigure()) {
+      <div class="metric">
+        <dt><fz-icon name="flag" /><span class="label">Level</span></dt>
+        <dd class="value">{{ game.level().number }}</dd>
+      </div>
+    }
+    <div class="metric">
+      <dt><fz-icon name="bricks" /><span class="label">Score</span></dt>
+      <dd class="value">{{ game.score() }}</dd>
+    </div>
+    <div class="metric lives">
+      <dt><fz-icon name="heart" /><span class="label">Lives</span></dt>
+      <dd class="value">
+        @if (fitsEveryFigure()) {
+          <span class="hearts">
+            @for (heart of hearts(); track heart) {
+              <fz-icon name="heart" />
+            }
+          </span>
+        } @else {
+          <span aria-hidden="true">{{ game.lives() }}</span>
+        }
+        <span class="fz-visually-hidden">{{ livesText() }}</span>
+      </dd>
+    </div>
+    @if (streak(); as times) {
+      <div class="metric streak">
+        <dt><span class="label">Streak</span></dt>
+        <dd class="value">{{ times }}</dd>
+      </div>
+    }
+  </dl>
+
+  <!--
+    Pause keeps the focus on the board through a press with a pointer, so
+    pressing it never pauses the level by taking it. It is dimmed rather
+    than disabled, so the focus never falls off it.
+  -->
+  <button
+    fzBarActions
+    type="button"
+    class="fz-button fz-button-secondary action"
+    [class.fz-button-circle]="viewport.isCompact()"
+    [attr.aria-disabled]="pauseButton().able ? null : 'true'"
+    (pointerdown)="keepFocus($event)"
+    (click)="togglePause()"
+  >
+    <fz-icon [name]="pauseButton().icon" />
+    <span class="btn-text">{{ pauseButton().label }}</span>
+  </button>
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="Levels"
+      title="Levels"
+      (click)="openLevels.emit()"
+    >
+      <fz-icon name="grid" />
+    </button>
+  }
+
+  <button
+    fzBarActions
+    type="button"
+    class="fz-button action"
+    [class.fz-button-circle]="viewport.isCompact()"
+    (click)="newGame()"
+  >
+    <fz-icon name="plus" />
+    <span class="btn-text">New game</span>
+  </button>
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="How to play"
+      title="How to play"
+      (click)="openHelp.emit()"
+    >
+      <fz-icon name="help" />
+    </button>
+  }
+
+  @if (viewport.isCompact()) {
+    <fz-bar-overflow
+      fzBarActions
+      [items]="overflowItems()"
+      (choose)="chooseFromMenu($event)"
+    />
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action settings"
+      aria-label="Settings"
+      title="Settings"
+      (click)="openSettings.emit()"
+    >
+      <fz-icon name="settings" />
+    </button>
+  }
+</fz-game-bar>
