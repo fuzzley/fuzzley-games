@@ -482,3 +482,46 @@ R8's review, before the commit:
    `EndedRun`, and `AGENTS.md`'s saved-game sentence is rewrapped. The
    rules' spec reads the real levels, whose ids never change, as the
    stats rely on them.
+
+### R9: the painters share one interface
+
+`src/scene/painter.ts` holds `Painter`, which each of the nine painters
+implements: `draw()` from a `PaintContext`, the field, how far it is
+between steps, the metrics, the palette, the scene's time, whether motion
+is welcome and the step its last brick broke at, and an optional
+`refresh()` from what the atlas was baked at, the metrics and the
+palette (`Baked`, which the context extends), once it is baked again. The
+scene keeps the painters in one list, back to front, and one context, made
+as it is created and written over each frame, so drawing still makes
+nothing; `draw()` and `rebake()` are loops. The scene's time, whether
+motion is welcome and the step the last brick broke at live in the context
+alone, so no copy of them can go stale; the frame's field, its layout and
+its palette are written into it as each frame is drawn. The glow painter works out its brightness from the
+context (`glowAlpha()`), the brick painter's `draw()` shows the bricks and
+moves those on the move, and the effects painter's moves its rings and
+fades, where the scene called each part itself. What only some painters
+do on an event, such as a brick's pop or a shatter, stays a method of
+their own.
+
+`AGENTS.md` says each painter is a `Painter`.
+
+Specs: the paddle drawn where a new layout puts it, and the last bricks'
+glow held still once the player turns motion off mid-level, each of which
+fails without its part of the context written.
+
+R9's review, before the commit:
+
+1. _Two of the context's per-frame copies, the metrics and whether motion
+   is welcome, had no spec, and dropping either passed._ Taken: the two
+   specs above, and the scene keeps its time, motion and last break in the
+   context alone, so `draw()` writes only what the frame brings.
+2. _The context's first values, made in `create()`, are never read._
+   Left: they are the scene's own at that moment, and `draw()` writes over
+   them before any painter reads one; a context needs a field to be typed
+   as one.
+3. _Names: `paint` read as a verb, and `PaintLook` was vague._ Taken:
+   `context`, and `Baked`, an interface `PaintContext` extends.
+4. _Docs: a long line, "frames" said of the field painter, which has
+   none, "its layer" of the effects painter, which draws in two, and "a
+   line of the list" for a painter that is a field and a construction
+   too._ Taken.

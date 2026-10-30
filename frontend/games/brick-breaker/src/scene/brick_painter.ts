@@ -12,6 +12,7 @@ import {
   REGROW_MS,
 } from "../view/timing";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** How far above its place a brick starts as it drops in, in field units. */
 const DROP_FROM = 2 * BRICK_HEIGHT;
@@ -35,7 +36,7 @@ const MOVES: Readonly<
  * showing its brick's frame or hidden; drops them in as a level starts,
  * swells one at a hit it holds and grows one back.
  */
-export class BrickPainter {
+export class BrickPainter implements Painter {
   /** An image for each cell, row by row. */
   readonly images: readonly GameObjects.Image[];
   /** The frame each cell shows, or null where it is hidden. */
@@ -89,6 +90,12 @@ export class BrickPainter {
     }
   }
 
+  /** Shows each cell's brick as it stands, each moving brick scaled for the time. */
+  draw({ field, now }: Readonly<PaintContext>): void {
+    this.show(field);
+    this.animate(now);
+  }
+
   /** Swells a brick that held a hit, and settles it back. */
   pop(cell: number, now: number): void {
     this.move(cell, "pop", now);
@@ -100,7 +107,7 @@ export class BrickPainter {
   }
 
   /** Scales each moving brick for the time, and stills those whose move is over. */
-  animate(now: number): void {
+  private animate(now: number): void {
     for (let cell = 0; cell < this.moves.length; cell++) {
       const move = this.moves[cell];
       if (!move) continue;

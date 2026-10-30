@@ -195,9 +195,13 @@ doesn't see, so Phaser stays out of the first download.
   rectangle between their middles, which keep their shape at any width on
   either renderer, with its cannons and rim, `TagPainter` the effects in
   play and their emptying rings, and `BallPainter` the balls, with a fire
-  ball's embers, one for each ember's width it goes. Each thing that moves
-  is drawn between its last place and its next. Every game
-  object is made as the scene is created, and a new field stops what the
+  ball's embers, one for each ember's width it goes. Each is a `Painter`
+  (`painter.ts`), which draws from the one `PaintContext` the scene writes
+  over each frame and, where it draws from the atlas, takes up its frames
+  again after a bake, so the scene draws and refreshes them in a loop over
+  its list of painters, which a new one joins as `create()` makes it. Each
+  thing that moves is drawn between its last place and its next. Every
+  game object is made as the scene is created, and a new field stops what the
   last one set off. The scene plays each of the field's events once, from
   the last it played, and the flourishes an event calls for only where
   motion is welcome. `atlas.ts` plays the view's art into `@fz/phaser`'s

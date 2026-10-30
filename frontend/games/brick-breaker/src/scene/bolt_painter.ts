@@ -1,12 +1,13 @@
 import type { GameObjects, Scene } from "phaser";
 import { BOLT_POOL } from "../rules/bolts";
 import { FRAMES } from "../view/art";
-import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
-import { type FieldView, between } from "../view/frame";
+import { toCanvasX, toCanvasY } from "../view/field_metrics";
+import { between } from "../view/frame";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** Draws the laser's bolts rising: an image for each record the field keeps, made once, hung from its tip. */
-export class BoltPainter {
+export class BoltPainter implements Painter {
   readonly images: readonly GameObjects.Image[];
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -25,7 +26,7 @@ export class BoltPainter {
   }
 
   /** Draws each bolt rising between its last place and its next, and hides the rest. */
-  draw(field: FieldView, alpha: number, metrics: FieldMetrics): void {
+  draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
     for (let i = 0; i < this.images.length; i++) {
       const image = this.images[i];
       const bolt = field.bolts[i];
