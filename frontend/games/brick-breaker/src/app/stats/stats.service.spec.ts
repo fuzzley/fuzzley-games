@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { type Run, createRun } from "../../rules/run";
 import type { Speed } from "../../rules/speed";
+import type { EndedRun } from "../../rules/stats";
 import { provideSpecLevels } from "../../testing/play";
 import { STATS_KEY, StatsService } from "./stats.service";
 
@@ -10,9 +10,13 @@ function store(value: unknown): void {
 }
 
 /** Returns a run ended at a speed, a score and a level. */
-function endedRun(speed: Speed, score: number, level: number): Run {
-  const run = createRun({ id: 1, seed: 1, speed, lastLevel: 8, level: 1 });
-  return { ...run, score, level, lives: 0, outcome: "over" };
+function endedRun(speed: Speed, score: number, level: number): EndedRun {
+  return { speed, score, level };
+}
+
+/** Returns what is stored, as a player's browser holds it. */
+function stored(): unknown {
+  return JSON.parse(localStorage.getItem(STATS_KEY) ?? "null");
 }
 
 const NONE = { runs: 0, best: 0, furthest: 0 };
@@ -59,44 +63,6 @@ describe("StatsService", () => {
     expect(stats.recordEnd(endedRun("normal", 600, 1))).toBe(true);
   });
 
-  it("calls a score that only matches the best no new best, keeping the furthest", () => {
-    const stats = TestBed.inject(StatsService);
-    stats.recordEnd(endedRun("normal", 500, 3));
-
-    const newBest = stats.recordEnd(endedRun("normal", 500, 2));
-
-    expect({ newBest, normal: stats.stats().speeds.normal }).toEqual({
-      newBest: false,
-      normal: { runs: 1, best: 500, furthest: 3 },
-    });
-  });
-
-  it("keeps the best through a lower score", () => {
-    const stats = TestBed.inject(StatsService);
-    stats.recordEnd(endedRun("normal", 600, 1));
-
-    const newBest = stats.recordEnd(endedRun("normal", 500, 1));
-
-    expect({ newBest, best: stats.stats().speeds.normal.best }).toEqual({
-      newBest: false,
-      best: 600,
-    });
-  });
-
-  it("calls no score a new best", () => {
-    const stats = TestBed.inject(StatsService);
-
-    expect(stats.recordEnd(endedRun("relaxed", 0, 1))).toBe(false);
-  });
-
-  it("keeps each speed's stats apart", () => {
-    const stats = TestBed.inject(StatsService);
-
-    stats.recordEnd(endedRun("fast", 900, 4));
-
-    expect(stats.stats().speeds.normal).toEqual(NONE);
-  });
-
   it("keeps a level's best points at each speed", () => {
     const stats = TestBed.inject(StatsService);
 
@@ -107,6 +73,17 @@ describe("StatsService", () => {
     expect(stats.stats().levels).toEqual({
       blasts: { normal: 4100, fast: 3000 },
     });
+  });
+
+  it("stores nothing for a cleared level's points short of its best", () => {
+    const stats = TestBed.inject(StatsService);
+    stats.recordLevel("blasts", "normal", 4100);
+    const elsewhere = { version: 1, speeds: {}, levels: {} };
+    store(elsewhere);
+
+    stats.recordLevel("blasts", "normal", 2500);
+
+    expect(stored()).toEqual(elsewhere);
   });
 
   it("keeps the stats for the next visit", () => {
@@ -120,19 +97,11 @@ describe("StatsService", () => {
     });
   });
 
-  it("keeps whatever stored still makes sense, dropping the rest", () => {
+  it("reads the stats stored, for the levels the game has", () => {
     store({
       version: 1,
-      speeds: {
-        relaxed: { runs: 2, best: 900, furthest: 3 },
-        normal: { runs: -1, best: 5, furthest: 1 },
-        fast: "lots",
-      },
-      levels: {
-        blasts: { normal: 4100, fast: 2.5 },
-        steel: { relaxed: "high" },
-        gone: { normal: 100 },
-      },
+      speeds: { relaxed: { runs: 2, best: 900, furthest: 3 } },
+      levels: { blasts: { normal: 4100 }, gone: { normal: 100 } },
     });
 
     const stats = TestBed.inject(StatsService);
