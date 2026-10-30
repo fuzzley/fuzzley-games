@@ -117,6 +117,14 @@ describe("GameService", () => {
       }).toEqual({ outcome: "ready", level: 1, lives: 3, serving: true });
     });
 
+    it("stops waiting on the serve as the ball is launched", () => {
+      const game = TestBed.inject(GameService);
+
+      game.launch();
+
+      expect(game.serving()).toBe(false);
+    });
+
     it("starts its level at the first launch, serving the ball, and says which level it is", () => {
       const game = TestBed.inject(GameService);
 

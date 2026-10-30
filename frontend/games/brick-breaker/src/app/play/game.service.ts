@@ -20,6 +20,7 @@ import {
   describeLives,
   describePause,
   describeResume,
+  describeTakenUp,
 } from "../../rules/describe";
 import type { FieldEvent } from "../../rules/events";
 import {
@@ -49,6 +50,12 @@ import {
   pointsOf,
   tallyOf,
 } from "../../rules/scoring";
+import {
+  type SavedGame,
+  type TakenUp,
+  saveGame,
+  takeUpField,
+} from "../../rules/saved_game";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { advanceClock, createClock, progressOf } from "../../rules/stepper";
 import type { FieldCommand } from "../../view/controls";
@@ -294,6 +301,7 @@ export class GameService {
       }
       launchBalls(this.field);
       fireBolts(this.field);
+      this.servingState.set(this.field.state === "serve");
     }
   }
 
@@ -396,6 +404,25 @@ export class GameService {
   tryAgain(): void {
     const run = this.runState();
     if (hasEnded(run)) this.begin(this.create(run.speed, run.level));
+  }
+
+  /**
+   * Returns the run under way and its level's field as storage keeps them,
+   * or null for a run with nothing to keep.
+   */
+  saved(): SavedGame | null {
+    return saveGame(this.runState(), this.field, this.levels);
+  }
+
+  /**
+   * Takes up a run where storage kept it, paused, with its bricks as they
+   * were and the ball on the paddle, and says so.
+   */
+  takeUp({ run, field }: TakenUp): void {
+    this.lastId = Math.max(this.lastId, run.id);
+    this.begin(run);
+    takeUpField(this.field, field, run);
+    this.announcer.say(describeTakenUp(run, this.level()));
   }
 
   /** Says whether the board is drawn yet, as the board's canvas reports it. */

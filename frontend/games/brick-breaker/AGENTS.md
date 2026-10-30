@@ -99,7 +99,12 @@ the scene and the shell's first files exist.
   clearing, a pause, going on and the end. `progress.ts` says which levels a
   run may start at (`isOpen()`): the first, any cleared, and the one after a
   level cleared, at any speed; `clearedOf()` reads the ids stored, keeping
-  those a level still has.
+  those a level still has. `saved_game.ts` turns a run under way and its field
+  into what storage keeps (`saveGame()`), a run whose level was just cleared
+  as the next level not yet begun, and back (`restoreGame()`), paused,
+  dropping a level the game doesn't have under that number, a field that
+  doesn't fit its level, or a number out of its range; `takeUpField()` lays
+  the bricks and counts kept over a new field of the level.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -205,6 +210,12 @@ the scene and the shell's first files exist.
     and asks through `@fz/ui/confirm` before a new game or speed throws a run
     away. `tokens.ts` holds what a spec hands it instead of the game's own:
     the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).
+    `SavedGameService` keeps the run under way, through `GameService.saved()`,
+    as a level starts, as a ball is served, as the run pauses or goes on, and
+    as the page goes away, never at a step, and forgets it once the run ends;
+    `main.ts` starts it before the board first shows, and it takes up the run
+    kept (`takeUp()`), paused with the ball on the paddle, its bricks as they
+    were.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with
     `import()`; the empty field and the paddle drawn in CSS until the
     scene has drawn; the focus ring; the pointer hidden while a ball is in
@@ -270,6 +281,10 @@ can't trust rather than failing:
   each speed it was cleared at. Ids no level has any more are dropped.
 - `brick-breaker-progress`: the ids of the levels cleared, at any speed,
   which open the levels after them. Ids no level has any more are dropped.
+- `brick-breaker-game`: the run under way and its level's bricks, each
+  brick's hits left, whether it is broken or shown, and the steps its blast
+  and its regrowth are due at, with the field's count of steps. The balls
+  in flight, the capsules and the effects are not kept (decision 16).
 
 ## Development Commands
 

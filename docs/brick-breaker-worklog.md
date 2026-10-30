@@ -2672,5 +2672,86 @@ test finding. Every one passed the specs.
    - **The B9 entry overclaimed.** The highest pitch is the streak as the
      frame left it only if no paddle bounce ended the streak within the
      frame. Playing at the highest is still the choice.
+
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,522),
   build, clean on the first run.
+
+## B10.2: the saved game
+
+- **Built:**
+  - `src/rules/saved_game.ts`:
+    - `saveGame()` keeps a run in play or paused with its level's bricks:
+      each brick's hits, whether it is broken or shown, and the steps its
+      blast and its regrowth are due at. With them go the field's step and
+      draw counts, its streak points and how far the speed has climbed.
+    - A run whose level was just cleared is kept as the next level, not
+      yet begun. A run waiting for its first serve, or one that has ended,
+      keeps nothing.
+    - `restoreGame()` reads it back, paused, under a new id. It drops a
+      level the game doesn't have under that number, a field whose bricks
+      don't fit the level, and any number out of its range: lives, a
+      score below the points banked, the next life's mark, a brick's hits,
+      streak points beyond the level's.
+    - `takeUpField()` lays what was kept over a new field of the level,
+      and counts the bricks it still needs again.
+  - `SavedGameService` under `brick-breaker-game`, as Snake's:
+    - It writes as a level starts, as a ball is served, as the run pauses
+      or goes on, and as the page goes away, never at a step.
+    - It forgets a run that has ended.
+    - `main.ts` starts it before the board first shows, and it takes up
+      the run kept.
+  - `GameService`:
+    - `saved()` and `takeUp()`, which lays the bricks over the new field
+      and says "Your last run is paused on level 1, Stripes, with a score
+      of 50 and 2 lives. Press Enter to go on." (`describeTakenUp()`).
+    - `launch()` sets `serving` at once, rather than at the next frame, so
+      the serve is kept as it happens.
+- **Choices:**
+  - **A lit blast and a regrowth carry over.** The kept steps are against
+    the field's own count, which is kept too, so a blast lit before the
+    reload goes off, and a brick regrows, at the step it would have.
+  - **The speed's climb and the draws carry over,** so a level taken up is
+    as fast as it was, and its capsules fall as they would have.
+  - **`loseBall()` in `testing/play.ts` waits only while the last ball lost
+    is off the field.** It used to wait for `serving`, which, with a ball
+    already in play, read true until the next frame. With `serving` now
+    false at once, it waited out a whole loss first, and the bar's lives
+    specs lost two balls.
+- **Specs:**
+  - The rules (27):
+    - nothing kept for a run waiting, ended, or at a level the game
+      doesn't have;
+    - a run in play and its bricks kept;
+    - a cleared run kept as the next level;
+    - a round trip to a paused run with a new id, and one to a level not
+      yet begun;
+    - seventeen kinds of stored data left out;
+    - the bricks, points and counts laid over a new field, and a level not
+      yet begun left as laid.
+  - `SavedGameService` (14): kept as the first ball is served, not at a
+    step, at a pause, after a ball lost, as the page goes away, and as the
+    next level after a clearing; nothing kept for an ended or waiting run;
+    taken up paused with its bricks, announced, under an id of its own, the
+    next run's id past it; and left out when it can't be trusted or is in
+    another shape.
+  - `GameService`: no longer serving once the ball is launched.
+- **Mutants.** Fifteen, each run against its specs:
+  - Thirteen failed at once.
+  - Two passed. Dropping the check on the next life's mark passed because
+    the spoiled value also fell below the first mark. Dropping the id
+    counter's update passed because only the run after the taken-up one
+    shows it.
+  - A spec for each now fails them: the mark passed, the mark before the
+    first, and the next run's id.
+- **Browser check** in headless Chrome, as the app's pane was hidden and
+  its frames stood still:
+  - On level 1, a launch, five seconds of play and a pause kept score 50,
+    2 lives and brick 100 broken.
+  - After a reload: paused, score 50, 2 lives, brick 100 broken with its
+    gap in the pink row, the ball on the paddle, 77 bricks needed, run id 2,
+    and the announcement above.
+  - Resume and a launch played on.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,564),
+  build. The first run failed the rules' coverage floor (100% of
+  statements): three guards and the restore of a level not yet begun had
+  no spec. Four specs cover them.
