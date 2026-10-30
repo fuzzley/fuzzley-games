@@ -3314,7 +3314,8 @@ against the specs, and probed the announcer with a spec of its own.
        last row the ball reaches.
      - **Hedge maze:** its 19 spread over all three corridors, beside their
        regrowing gates, which are the level's trick.
-     - **Spiral:** the cluster the reviewer named. 6 of its 8 end on (3, 7),
+     - **Spiral:** the cluster the reviewer named. 6 of its 8 end on row 3,
+       column 7,
        above the hook's steel bar, but only one play reached the limit, at
        exactly 1:00. **Left as it is, and worth watching.**
    - **The worklog was wrong** to say no long endgame left the same bricks
@@ -3633,9 +3634,12 @@ over 40 seeds, which reproduced the table exactly.
     dialog while the board has the focus. Snake's page logs the same.
   - **On the site's home page,** a DevTools issue: a form field with no id
     or name. It is the site's, not the game's.
-- **No "Refused to load."** The site's pages load nothing new from another
-  origin: the thumbnail and the preview come from `/play/brick-breaker/`,
-  which the policy's `img-src 'self'` allows. The games carry no policy.
+- **No "Refused to load," by reasoning.** `yarn preview` sends no policy,
+  so a refusal couldn't show there. The site's pages load nothing new from
+  another origin: the thumbnail and the preview come from
+  `/play/brick-breaker/`, which the policy's `img-src 'self'` allows. The
+  games carry no policy. B14.2's review then served the build under the
+  policy and saw no violation.
 
 ## B14.2: the archive
 
@@ -3674,11 +3678,12 @@ against its build.
      draws, and the store keeps no seed of the field's: `restoreGame()`
      makes the field again from `levelSeed()`.
 3. **`keptRun()` hits its bricks on a field not yet in play.** The draws
-   and the climb stay at 0, where a ball breaking eight bricks would have
-   left 8 and 10. `restoreGame()` accepts the run, and the screenshot
-   can't show either count. **Fixed in the doc:** it says the bricks and
-   points are as a ball would leave them, and the climb and draws as at
-   the serve. Copying `strike()`'s climb and the drops into a testing
+   and the climb stay at 0, where a ball would have left at least 8 draws
+   for eight bricks broken, and a climb of 12, one for each hit of a brick
+   that can break (corrected by B14.2's review). `restoreGame()` accepts
+   the run, and the screenshot can't show either count. **Fixed in the
+   doc:** it says the bricks and points are as a ball would leave them, and
+   the climb and draws as at the serve. Copying `strike()`'s climb and the drops into a testing
    helper would add rules nothing on screen shows.
 4. **The `brick-breaker-testing` skill still had the app spec wait
    `ARRIVAL_MS`.** That was the race B12.1's review removed. **Fixed:** it
@@ -3716,3 +3721,104 @@ against its build.
   Breaker suite pass. Lint, typecheck, the references and Prettier pass.
   `yarn capture:screenshots` ran against the dev server and wrote the same
   images byte for byte.
+
+## B14.2's review (6f8d136e, with a8e6a64a)
+
+The reviewer found no bug in the game. Every finding was in the record:
+the plan's "As built" section, checked against the log, the code and
+`yarn report:levels --seeds 40`, which it ran again.
+
+1. **"As built" had the levels' lengths wrong.** The middle times run to
+   3:00, Stripes' at Relaxed, not to Keep's 2:52, so Keep is the longest
+   only at Normal and Fast. The log's 40-seed table covered levels 20 to 30
+   alone. **Fixed:**
+   - The section gives the range and where Keep is longest.
+   - Stripes, the longest level at Relaxed, is a question for the user.
+   - The middle times of all thirty, over 40 seeds a speed, from the same
+     report as B11.2's review's table:
+
+   | #   | Level          | Relaxed | Normal | Fast |
+   | --- | -------------- | ------- | ------ | ---- |
+   | 1   | Stripes        | 3:00    | 2:25   | 1:58 |
+   | 2   | Gifts          | 1:31    | 1:15   | 1:07 |
+   | 3   | Pyramid        | 1:26    | 1:17   | 0:59 |
+   | 4   | Checker        | 2:32    | 1:59   | 1:44 |
+   | 5   | Window         | 2:08    | 1:51   | 1:27 |
+   | 6   | Arch           | 2:14    | 1:50   | 1:43 |
+   | 7   | Diamond        | 2:40    | 2:12   | 1:54 |
+   | 8   | Waves          | 1:47    | 1:35   | 1:19 |
+   | 9   | Rocket         | 1:46    | 1:27   | 1:13 |
+   | 10  | Castle         | 1:46    | 1:52   | 1:20 |
+   | 11  | Pillars        | 1:59    | 1:45   | 1:36 |
+   | 12  | Shelf          | 1:32    | 1:22   | 1:14 |
+   | 13  | Fuse           | 1:02    | 0:58   | 0:48 |
+   | 14  | Minefield      | 1:51    | 1:58   | 1:34 |
+   | 15  | Hidden         | 2:21    | 2:07   | 1:52 |
+   | 16  | Corridors      | 2:13    | 1:46   | 1:29 |
+   | 17  | Cage           | 2:18    | 1:52   | 1:41 |
+   | 18  | Lanterns       | 2:49    | 2:22   | 2:01 |
+   | 19  | Gears          | 1:42    | 1:44   | 1:27 |
+   | 20  | Vault          | 2:27    | 2:14   | 2:08 |
+   | 21  | Garden         | 1:36    | 1:26   | 1:19 |
+   | 22  | Hedge maze     | 1:31    | 1:18   | 1:06 |
+   | 23  | Low bridge     | 0:49    | 0:53   | 1:02 |
+   | 24  | Hourglass      | 1:41    | 1:34   | 1:06 |
+   | 25  | Chain reaction | 2:19    | 2:02   | 1:38 |
+   | 26  | Fog            | 1:30    | 1:22   | 1:21 |
+   | 27  | Spiral         | 1:08    | 1:13   | 1:13 |
+   | 28  | Keep           | 2:50    | 2:52   | 2:14 |
+   | 29  | Storm          | 1:00    | 1:07   | 1:01 |
+   | 30  | Finale         | 2:14    | 2:03   | 1:52 |
+
+2. **The record said the feel was settled by playing.** Q3 left
+   `tuning.ts` as it was, and only the autopilot and scripted input have
+   played the game since. No checkpoint played a phone on its side either.
+   **Fixed:**
+   - "As built" says no one has tuned the feel, and that the flourishes'
+     times are B5.1's first guesses.
+   - It lists the feel as left for the user.
+   - The B0 item says which of the spike's questions were answered.
+   - "The feel, in numbers" and the Risks no longer say the feel was
+     settled, and the sideways phone's risk says only the layout check
+     covers it.
+3. **The design reference wasn't true everywhere.** **Fixed:**
+   - A cleared level's balls stand still under the Cleared card. They
+     don't leave the field.
+   - "As built" notes the paddle built from two images and a rectangle,
+     not B6.1's `NineSlice`.
+   - Its opening no longer claims the steps are as planned: a few were
+     edited as they were built.
+4. **The performance worst case was misstated.** The trace measured
+   5.77 ms at worst, and about 8 ms was the unthrottled worst times six,
+   on the dev server, and only at 60 Hz. **Fixed:** "As built" gives each,
+   and lists the frames over the bar and 120 Hz as left for the user.
+5. **Decisions and follow-ups missing from "As built."** **Fixed:**
+   - A level's number seeds its draws and picks its default pool.
+   - A mark passed at six lives is spent.
+   - Only the Levels dialog keeps a locked level from being chosen.
+   - Snake's screenshot script has the wait B13's review fixed in Brick
+     Breaker's.
+6. **The levels that read short were misattributed.** B11.2 named Low
+   bridge and Storm, with a reason, and Spiral's cell had no order.
+   **Fixed:** the two levels and their reason, from B11.2, and "row 3,
+   column 7", here too.
+7. **Q6's "No Refused to load" couldn't be seen on `yarn preview`,** which
+   sends no policy. The reviewer served the build under the policy and saw
+   no violation. **Fixed:** Q6 says it was reasoned, and that the review
+   confirmed it.
+8. **Test gaps.** **Fixed:**
+   - A damage of 2 passed for `"breaks"`, as Rocket's fin bricks take two
+     hits. `keptRun()`'s spec now breaks the four-hit nose too, for 400
+     points, and the mutant fails it.
+   - B13's review entry said a ball would have left a climb of 10. It is
+     12, one for each hit of a brick that can break, and at least 8 draws.
+9. **Readability.** **Fixed:**
+   - The chime "where it would sound over" the lost ball.
+   - "A run is counted in the records from its first serve."
+   - The bar's figures on a phone on its side: a card each, down the rail.
+   - The two clearing cases arrange a run whose score matches its banked
+     points, a state `restoreGame()` accepts.
+   - The game's and `@fz/dev`'s `AGENTS.md` paragraphs are rewrapped.
+
+- **Checks.** `keptRun()`'s and the run's specs pass. Prettier, the
+  references, lint and typecheck pass.
