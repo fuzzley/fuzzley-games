@@ -131,3 +131,25 @@ log is at its end.
   keydown binding both fail with `[false, true]`, and without the keyup
   binding with `[true, false]`.
 - **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier.
+
+### G3: Snake's specs play the same apples every run
+
+- **Cause:** Brick Breaker's log put the result spec's one failure, 2, 2
+  and 5 for 1, 1 and 4, down to load. It wasn't. `GameService` seeds each
+  run from `GAME_RANDOM`, which is `Math.random` unless a spec provides
+  another, and none did. A run lost heading right eats the first apple,
+  always at (12, 8), then crashes four squares on, and the second apple
+  falls where the seed says. A probe over 1,000 sources found 13 that lay
+  it in those four squares (0.121, 0.154, … 0.983), so the run eats two.
+- **Built:** `provideSeededRuns()` in `src/testing/play.ts` gives every run
+  the same seed, from a source of 0.5, which lays the second apple out of
+  the way. The result spec renders with it. With 0.121 in its place, the
+  spec fails as it did once, with 2, 2 and 5.
+- **The other specs:** the others that play a run right count only whether
+  it ate, which the first apple settles, and Saved game's eight steps right
+  end on the first apple, so they keep `Math.random`.
+- **Docs:** `endedGame()`'s doc says a run lost right may eat the second
+  apple too. The `snake-testing` skill says where later apples come from,
+  and when a spec provides `provideSeededRuns()`.
+- **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier and
+  the references.

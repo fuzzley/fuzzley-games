@@ -1,6 +1,6 @@
 ---
 name: snake-testing
-description: How Snake runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, runs drawn as pictures with runFrom, games played with playToTheEnd, endedGame and wonGame, the scene run for real with runScene and a fake shell, the shell's specs on provideFakePhaserCanvas, and the contrast spec over every palette. Triggers on: snake spec, snake test, runFrom, pictureOf, run picture, playToTheEnd, endedGame, FakeShell, startBoard, snake scene spec, snake coverage, frontend/games/snake tests.
+description: How Snake runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, runs drawn as pictures with runFrom, games played with playToTheEnd, endedGame and wonGame, seeded with provideSeededRuns, the scene run for real with runScene and a fake shell, the shell's specs on provideFakePhaserCanvas, and the contrast spec over every palette. Triggers on: snake spec, snake test, runFrom, pictureOf, run picture, playToTheEnd, endedGame, provideSeededRuns, flaky snake spec, FakeShell, startBoard, snake scene spec, snake coverage, frontend/games/snake tests.
 ---
 
 # Testing Snake
@@ -50,7 +50,8 @@ Run these from `frontend/games/snake/`, or as
   expects.
 - A new run is always the same: `createRun()` puts the head at (4, 8)
   heading right and the first apple at (12, 8), so eight steps right eat
-  it. Later apples come from the run's seed.
+  it. Later apples come from the run's seed, which `GameService` takes from
+  `Math.random` unless it is given `GAME_RANDOM`.
 - The rules and the view know no framework, so their specs call the
   functions directly and assert on what they return. `stepper.spec.ts`
   passes frame times; `snake_shapes.spec.ts` checks the path the snake is
@@ -88,7 +89,11 @@ game through `runScene()`:
   `stepMs(speed, eaten)` for one step. `playToTheEnd(game)`,
   `endedGame(direction)` and `wonGame()` (`src/testing/play.ts`) play a
   game to its end, lost up or right, or won on `ALMOST_FULL`, a three by
-  three board one apple from full, taken up with `takeUp()`.
+  three board one apple from full, taken up with `takeUp()`. A run lost
+  right eats the first apple, and the second where the seed lays it in the
+  way, as 13 seeds in 1,000 do; a spec that counts what a run ate past its
+  first apple provides `provideSeededRuns()`, which gives every run the
+  same seed, one that lays it elsewhere.
 - `render()` sets up the TestBed, so a spec that changes a setting first
   stores it, or changes it after rendering.
 - jsdom has no `matchMedia`, so motion isn't allowed: the result card opens
