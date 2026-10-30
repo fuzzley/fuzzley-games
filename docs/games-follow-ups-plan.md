@@ -278,3 +278,15 @@ stands above the board. Every finding was taken.
   A lint error came first: inline in Phaser's config, whose keyboard
   target is `any`, `screen.getByRole()` took `any` for its type, so the
   spec names the board first.
+
+### G4: Snake's screenshot script waits for a host not yet rendered
+
+- **What went wrong:** `describePage()` in
+  `tools/capture-screenshots.mjs` waited while the canvas host said
+  `loading`, and a host not yet rendered says nothing, so the wait ended
+  at once on a page that hadn't drawn the canvas yet. The 800 ms after it
+  usually covered it, and a slow first load would capture an empty board.
+- **Built:** a host not yet rendered counts as loading, as Brick Breaker's
+  script has since B13's review, with the same comment.
+- **Checks:** Snake's lint and typecheck pass (the script is checked from
+  its JSDoc). The script is run against Snake's dev server at G-Q1.

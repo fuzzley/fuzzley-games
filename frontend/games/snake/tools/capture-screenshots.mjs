@@ -124,11 +124,10 @@ function preparePage(run, stats, gameKey, statsKey, theme, themeKey) {
  */
 async function describePage() {
   const host = () => document.querySelector("fz-phaser-canvas");
-  for (
-    let i = 0;
-    i < 200 && host()?.getAttribute("data-state") === "loading";
-    i++
-  ) {
+  // A host not yet rendered is still loading too.
+  const loading = () =>
+    (host()?.getAttribute("data-state") ?? "loading") === "loading";
+  for (let i = 0; i < 200 && loading(); i++) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   await document.fonts.ready;
