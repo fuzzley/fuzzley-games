@@ -44,8 +44,9 @@ Every game is built here. The Solitaire Collection is built in
 `frontend/games/solitaire/` and played at `/play/solitaire/`, which picks a
 game by hash route (`/play/solitaire/#/klondike`). Minesweeper is built in
 `frontend/games/minesweeper/` and played at `/play/minesweeper/`, Sudoku
-in `frontend/games/sudoku/`, at `/play/sudoku/`, and Snake in
-`frontend/games/snake/`, at `/play/snake/`.
+in `frontend/games/sudoku/`, at `/play/sudoku/`, Snake in
+`frontend/games/snake/`, at `/play/snake/`, and Brick Breaker in
+`frontend/games/brick-breaker/`, at `/play/brick-breaker/`.
 
 `frontend/site/games.json` lists each game's build, by the slug it is served
 at: a Yarn workspace under `frontend/games/`, named by its folder in

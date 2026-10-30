@@ -4,7 +4,8 @@ A gallery of card, puzzle and arcade games to play in your browser,
 starting with the games of the
 [Solitaire Collection](frontend/games/solitaire/), from Klondike and Spider
 to Pyramid and TriPeaks, [Minesweeper](frontend/games/minesweeper/),
-[Sudoku](frontend/games/sudoku/) and [Snake](frontend/games/snake/).
+[Sudoku](frontend/games/sudoku/), [Snake](frontend/games/snake/) and
+[Brick Breaker](frontend/games/brick-breaker/).
 
 Play at https://fuzzley.games.
 
@@ -16,8 +17,9 @@ components, Signals, zoneless) built with [Vite](https://vite.dev/)
 and palettes of CSS custom properties, and served by nginx in a Docker
 container on Google Cloud Run. The games are built here too, the Solitaire
 Collection in `frontend/games/solitaire/`, Minesweeper in
-`frontend/games/minesweeper/`, Sudoku in `frontend/games/sudoku/` and Snake
-in `frontend/games/snake/`, and served as static pages under
+`frontend/games/minesweeper/`, Sudoku in `frontend/games/sudoku/`, Snake
+in `frontend/games/snake/` and Brick Breaker in
+`frontend/games/brick-breaker/`, and served as static pages under
 `/play/<slug>/`.
 
 Dependency management and development scripts use [Yarn](https://yarnpkg.com/)
@@ -52,8 +54,9 @@ yarn workspace brick-breaker dev # work on Brick Breaker alone, on http://localh
 Solitaire Collection is then at
 http://localhost:4200/play/solitaire/, Minesweeper at
 http://localhost:4200/play/minesweeper/, Sudoku at
-http://localhost:4200/play/sudoku/ and Snake at
-http://localhost:4200/play/snake/.
+http://localhost:4200/play/sudoku/, Snake at
+http://localhost:4200/play/snake/ and Brick Breaker at
+http://localhost:4200/play/brick-breaker/.
 
 The portal application code lives in `frontend/site/src/app/` (bootstrapped
 by `frontend/site/src/app/main.ts`), with theme palettes and shared styles in

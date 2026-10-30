@@ -366,6 +366,8 @@ can't trust rather than failing:
 
 What every game keeps is in `frontend/games/AGENTS.md`. Here:
 
+- **The site serves it at `/play/brick-breaker/`,** and its `game.json`
+  names it Brick Breaker, as the site's catalog must.
 - **Its screenshots** are in `public/docs/screenshots/brick-breaker/`, and
   `yarn capture:screenshots` makes them again; `index.html` names the
   preview as the page's link preview.

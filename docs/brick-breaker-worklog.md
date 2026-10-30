@@ -3508,3 +3508,21 @@ against the specs, and probed the announcer with a spec of its own.
 - **Nothing else names the games:** the CI workflow, its scripts and the
   site's `AGENTS.md` list none.
 - **Checks.** Formatting and the references pass.
+
+## B14.1: the site
+
+- **The site builds and lists it.**
+  - `frontend/site/games.json` has the workspace.
+  - The catalog has Brick Breaker in Arcade, after Snake: "Bounce the ball,
+    break every brick, and keep it off the floor.", for one player, 10
+    minutes, added 2026-10-30, played at `/play/brick-breaker/`.
+  - Its thumbnail and preview are the build's own screenshots, by the slug.
+  - The site's description names it.
+- **The docs held back in B13.3** now say where it is played: the
+  repository's `AGENTS.md`, `docs/operations.md`, the root `README.md`, and
+  the game's `README.md` and `AGENTS.md`.
+- **Checks.** `yarn verify` passes: every workspace's tests, 6,872 in the
+  Solitaire Collection's and 1,748 in Brick Breaker's among them. The
+  site's build copies the game, adds its analytics tags, and finds the
+  catalog's name in its `game.json`. `yarn check:layout` holds for all
+  three games that have one.
