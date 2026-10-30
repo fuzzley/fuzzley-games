@@ -9,6 +9,7 @@ import { CELLS, columnOf, rowOf } from "./grid";
 import { type BrickSpec, LEGEND, NO_BRICK, brickOf } from "./legend";
 import { type Level, type LevelBrick, TINTS } from "./level";
 import basics from "./levels/basics.json";
+import steel from "./levels/steel.json";
 import { COLUMNS, ROWS } from "./tuning";
 
 /** Describes a brick a level's own legend adds, as its file holds it. */
@@ -62,7 +63,7 @@ export interface LevelEntry {
 }
 
 /** Every set of levels, in the order they are played. */
-export const LEVEL_SETS: readonly LevelSetData[] = [basics];
+export const LEVEL_SETS: readonly LevelSetData[] = [basics, steel];
 
 /** Returns the levels of sets, in the order played, numbered from 1. */
 export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {

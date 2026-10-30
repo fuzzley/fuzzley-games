@@ -22,23 +22,7 @@ import { CATCH_HOLD_MS, MAX_LIVES } from "./tuning";
  * The brick kinds no level uses yet, which the sets to come bring; once the
  * last set is in, the list is empty and every kind is used.
  */
-const KINDS_TO_COME: readonly BrickKindId[] = [
-  "steel",
-  "blast",
-  "ghost",
-  "regrow",
-];
-
-/**
- * The capsules no level lets fall yet, which the sets to come bring; once
- * the last set is in, the list is empty and every capsule can fall.
- */
-const CAPSULES_TO_COME: readonly CapsuleId[] = [
-  "narrow",
-  "fire",
-  "fast",
-  "blast",
-];
+const KINDS_TO_COME: readonly BrickKindId[] = ["regrow"];
 
 /** Every level, ready to play, with its number. */
 const PLAYED = LEVELS.map(
@@ -262,17 +246,15 @@ describe("the levels", () => {
     expect(BRICK_KIND_IDS.filter((id) => !used.has(id))).toEqual(KINDS_TO_COME);
   });
 
-  it("let every capsule fall, but those the sets to come bring", () => {
+  it("let every capsule fall", () => {
     const falling = CAPSULE_IDS.filter((id) =>
       PLAYED.some(([, level]) => canFall(level, id)),
     );
 
-    expect(CAPSULE_IDS.filter((id) => !falling.includes(id))).toEqual(
-      CAPSULES_TO_COME,
-    );
+    expect(falling).toEqual(CAPSULE_IDS);
   });
 
-  it.each(CAPSULE_IDS.filter((id) => !CAPSULES_TO_COME.includes(id)))(
+  it.each(CAPSULE_IDS)(
     "let %s first fall in the level it joins the pool at",
     (id) => {
       const first = PLAYED.find(([, level]) => canFall(level, id));
