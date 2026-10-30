@@ -9,14 +9,19 @@
  * level needed, how many times its paddle met a ball, and the lives it
  * lost. It plays each through the autopilot's `playLevel()`, as
  * `src/rules/autopilot.spec.ts` does, so the report and the spec play the
- * same games. It loads the rules and the autopilot through Vite, as the
- * game's build does. The report is how the difficulty ramp is tuned: a level
- * that takes long, or costs lives at Relaxed, is one to look at again.
+ * same games, and it fails as the spec does: when a play doesn't clear its
+ * level (`-`), or takes longer than the spec allows over its last bricks
+ * (`!`). It loads the rules and the autopilot through Vite, as the game's
+ * build does. The report is how the difficulty ramp is tuned: a level that
+ * takes long, or costs lives at Relaxed, is one to look at again.
  *
  * With `--seeds`, it plays each level that many times at each speed, from
  * seeds of its own, and prints the middle time, the longest, the longest
  * endgame and the most lives lost, since the capsules one seed lets fall can
- * make a level look far easier or harder than it is.
+ * make a level look far easier or harder than it is. It still marks and
+ * counts the endgames longer than the spec allows, but fails only on a play
+ * that doesn't clear its level: across many seeds, a few plays are unlucky
+ * however a level is drawn.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,6 +32,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** How wide the column of the levels' names is. */
 const NAME_WIDTH = 18;
+
+/** How far apart each level's seeds start with `--seeds`, so no two levels share one. */
+const SEED_STRIDE = 1000;
 
 /**
  * A level as the rules list it.
@@ -54,6 +62,7 @@ const NAME_WIDTH = 18;
  * @property {readonly LevelEntry[]} levels Every level, in the order played.
  * @property {readonly string[]} speeds Every speed, slowest first.
  * @property {number} stepSeconds The game time a step takes, in seconds.
+ * @property {number} endgameLimit The most steps the spec lets a play's endgame take.
  * @property {(entry: LevelEntry, speed: string, seed?: number) => AutopilotReport} playLevel
  */
 
@@ -65,29 +74,22 @@ const NAME_WIDTH = 18;
  * @property {(entry: LevelEntry) => number[]} seedsOf The seeds a level is played from.
  * @property {readonly string[]} headings The heading of each column.
  * @property {readonly number[]} widths How wide each column is.
- * @property {(plays: AutopilotReport[], stepSeconds: number) => string[]} cellsOf
+ * @property {boolean} strict Whether an endgame longer than the spec allows fails the report.
+ * @property {(plays: ReadonlyArray<AutopilotReport>, game: Game) => string[]} cellsOf
  *   Returns the columns' cells for a level's plays at one speed.
  */
 
-/** One play of each level at each speed, from its number, as the spec plays it. */
+/** @type {Layout} */
 const ONE_PLAY = {
-  /**
-   * @param {LevelEntry} entry
-   * @returns {number[]}
-   */
   seedsOf: (entry) => [entry.number],
   headings: ["time", "last", "bounces", "lost"],
-  widths: [5, 5, 8, 5],
-  /**
-   * @param {readonly AutopilotReport[]} plays
-   * @param {number} stepSeconds
-   * @returns {string[]}
-   */
-  cellsOf: ([play], stepSeconds) =>
+  widths: [5, 6, 8, 5],
+  strict: true,
+  cellsOf: ([play], game) =>
     play
       ? [
-          play.cleared ? timeOf(play.steps, stepSeconds) : "-",
-          timeOf(play.endgameSteps, stepSeconds),
+          play.cleared ? timeOf(play.steps, game) : "-",
+          endgameOf(play.endgameSteps, game),
           String(play.bounces),
           String(play.livesLost),
         ]
@@ -104,24 +106,22 @@ const ONE_PLAY = {
 function manyPlays(count) {
   return {
     seedsOf: (entry) =>
-      Array.from({ length: count }, (_, i) => entry.number * 1000 + i),
+      Array.from({ length: count }, (_, i) => entry.number * SEED_STRIDE + i),
     headings: ["middle", "most", "last", "lost"],
-    widths: [6, 5, 5, 5],
-    cellsOf: (plays, stepSeconds) => {
+    widths: [6, 5, 6, 5],
+    strict: false,
+    cellsOf: (plays, game) => {
       const steps = plays
         .map((play) => (play.cleared ? play.steps : Number.POSITIVE_INFINITY))
         .sort((a, b) => a - b);
       const time = (/** @type {number | undefined} */ value) =>
         value === undefined || value === Number.POSITIVE_INFINITY
           ? "-"
-          : timeOf(value, stepSeconds);
+          : timeOf(value, game);
       return [
         time(steps[Math.floor(steps.length / 2)]),
         time(steps.at(-1)),
-        timeOf(
-          Math.max(...plays.map((play) => play.endgameSteps)),
-          stepSeconds,
-        ),
+        endgameOf(Math.max(...plays.map((play) => play.endgameSteps)), game),
         String(Math.max(...plays.map((play) => play.livesLost))),
       ];
     },
@@ -159,6 +159,7 @@ async function loadGame() {
     levels: levels["LEVELS"],
     speeds: speed["SPEEDS"],
     stepSeconds: tuning["STEP_S"],
+    endgameLimit: autopilot["ENDGAME_LIMIT"],
     playLevel: autopilot["playLevel"],
   });
 }
@@ -186,12 +187,24 @@ function layoutAsked() {
  * seconds.
  *
  * @param {number} steps
- * @param {number} stepSeconds
+ * @param {Game} game
  * @returns {string}
  */
-function timeOf(steps, stepSeconds) {
-  const seconds = Math.round(steps * stepSeconds);
+function timeOf(steps, game) {
+  const seconds = Math.round(steps * game.stepSeconds);
   return `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Returns an endgame's steps as the game time it takes, marked `!` when it
+ * is longer than the spec allows.
+ *
+ * @param {number} steps
+ * @param {Game} game
+ * @returns {string}
+ */
+function endgameOf(steps, game) {
+  return timeOf(steps, game) + (steps > game.endgameLimit ? "!" : "");
 }
 
 /**
@@ -216,19 +229,28 @@ console.log(
 console.log(
   "".padEnd(NAME_WIDTH) + game.speeds.map(() => headings).join("   "),
 );
-let failed = 0;
+let uncleared = 0;
+let slow = 0;
 for (const entry of game.levels) {
-  const speeds = game.speeds.map((speed) => {
+  const cells = game.speeds.map((speed) => {
     const plays = layout
       .seedsOf(entry)
       .map((seed) => game.playLevel(entry, speed, seed));
-    failed += plays.filter((play) => !play.cleared).length;
-    return columns(layout.cellsOf(plays, game.stepSeconds), layout);
+    uncleared += plays.filter((play) => !play.cleared).length;
+    slow += plays.filter(
+      (play) => play.endgameSteps > game.endgameLimit,
+    ).length;
+    return columns(layout.cellsOf(plays, game), layout);
   });
   const name = `${String(entry.number).padStart(2)} ${entry.data.name}`;
-  console.log(name.padEnd(NAME_WIDTH) + speeds.join("   "));
+  console.log(name.padEnd(NAME_WIDTH) + cells.join("   "));
 }
-if (failed > 0) {
-  console.log(`\n${String(failed)} plays didn't clear their level (-).`);
-  process.exitCode = 1;
+if (uncleared > 0) {
+  console.log(`\n${String(uncleared)} plays didn't clear their level (-).`);
 }
+if (slow > 0) {
+  console.log(
+    `${String(slow)} plays took longer than the spec allows over their level's last bricks (!).`,
+  );
+}
+if (uncleared > 0 || (layout.strict && slow > 0)) process.exitCode = 1;

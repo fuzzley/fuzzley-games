@@ -9,9 +9,9 @@ import {
 import { AnnouncerService } from "./announcer.service";
 
 /**
- * How long the region is in the page before it says what was said before it
- * was, since a screen reader announces a live region's changes, not one that
- * arrives with its words.
+ * How long a region is in the page before it says what was said before any
+ * region was, since a screen reader announces a live region's changes, not
+ * one that arrives with its words.
  */
 export const ARRIVAL_MS = 100;
 
@@ -33,8 +33,8 @@ export const ARRIVAL_MS = 100;
 export class AnnouncerComponent {
   private readonly announcer = inject(AnnouncerService);
 
-  /** Whether it says what the service says yet, which waits if words came before it. */
-  private readonly speaking = signal(this.announcer.message() === "");
+  /** Whether it says what the service says yet, which waits for words said before any region. */
+  private readonly speaking = signal(!this.announcer.early);
 
   /** What the region says now. */
   protected readonly said = computed(() =>
@@ -42,11 +42,13 @@ export class AnnouncerComponent {
   );
 
   constructor() {
-    if (this.speaking()) return;
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
+      this.announcer.notePlaced();
+      if (this.speaking()) return;
       const timer = setTimeout(() => {
         this.speaking.set(true);
+        this.announcer.noteEarlyWordsSaid();
       }, ARRIVAL_MS);
       destroyRef.onDestroy(() => {
         clearTimeout(timer);

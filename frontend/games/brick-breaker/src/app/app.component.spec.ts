@@ -1,18 +1,26 @@
+import { inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { createField } from "../rules/field";
+import { parseLevel } from "../rules/levels";
+import { createRun, startLevel } from "../rules/run";
+import { saveGame } from "../rules/saved_game";
 import { FIRST_LIVES } from "../rules/tuning";
 import {
   FRAME_MS,
   SPEC_LEVEL,
+  SPEC_LEVELS,
   STILL,
   loseBall,
   provideSpecLevels,
 } from "../testing/play";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
+import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
 
 /** Renders the game on a fake canvas, whose scene is drawn at once. */
 async function renderApp(): Promise<GameService> {
@@ -20,6 +28,39 @@ async function renderApp(): Promise<GameService> {
     providers: [provideFakePhaserCanvas(), ...provideSpecLevels()],
   });
   return TestBed.inject(GameService);
+}
+
+/** Stores a run just begun on the steel level, as a player's browser would hold it. */
+function storeRun(): void {
+  const entry = SPEC_LEVELS[SPEC_LEVEL.steel - 1];
+  if (!entry) throw new Error("No steel level.");
+  const run = startLevel(
+    createRun({
+      id: 1,
+      seed: 1,
+      speed: "normal",
+      lastLevel: SPEC_LEVELS.length,
+      level: entry.number,
+    }),
+  );
+  const field = createField(parseLevel(entry), { speed: "normal", seed: 1 });
+  localStorage.setItem(
+    SAVED_GAME_KEY,
+    JSON.stringify({ version: 1, ...saveGame(run, field, SPEC_LEVELS) }),
+  );
+}
+
+/** Renders the game as `main.ts` starts it, taking up the run stored. */
+async function renderTakingUp(): Promise<void> {
+  await render(AppComponent, {
+    providers: [
+      provideFakePhaserCanvas(),
+      ...provideSpecLevels(),
+      provideAppInitializer(() => {
+        inject(SavedGameService);
+      }),
+    ],
+  });
 }
 
 /** Returns the game with its first level's ball served. */
@@ -71,6 +112,18 @@ describe("AppComponent", () => {
     await settle();
 
     expect(screen.getByRole("application")).toHaveFocus();
+  });
+
+  it("says where a run taken up stands, once the live region has been in the page a moment", async () => {
+    storeRun();
+    await renderTakingUp();
+
+    await new Promise((resolve) => setTimeout(resolve, ARRIVAL_MS));
+    TestBed.tick();
+
+    expect(document.querySelector("fz-announcer")).toHaveTextContent(
+      "Your last run is paused on level 3, Steel, with a score of 0 and 3 lives. Press Enter to go on.",
+    );
   });
 
   it("pauses the level in play as the page goes out of sight", async () => {
