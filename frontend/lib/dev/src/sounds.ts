@@ -113,8 +113,8 @@ export function note(at: number, tone: Wave, shape: Wave): Wave {
 
 /**
  * Returns a chord struck one note at a time, `gap` seconds apart, each pitch
- * (in Hz) a tone with a quarter of its second harmonic that rises over 5 ms,
- * then falls to about a third every `decay` seconds.
+ * (in Hz) a tone, with a quarter of its second harmonic, that rises over
+ * 5 ms, then falls to about a third every `decay` seconds.
  */
 export function arpeggio(
   pitches: readonly number[],

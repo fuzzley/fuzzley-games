@@ -139,8 +139,8 @@ describe("note", () => {
   });
 });
 
-// The times are an eighth or a quarter of a cycle into a note, where its sine
-// and its harmonic's are round numbers.
+// Each time read is a whole number of eighths of a cycle into every note
+// sounding, where its sine and its harmonic's are round numbers.
 describe("arpeggio", () => {
   it("raises a note over its first 5 ms", () => {
     const chord = arpeggio([100], 0.5, 0.1);
@@ -162,7 +162,18 @@ describe("arpeggio", () => {
 
     const first = (0.25 - Math.SQRT1_2) * Math.exp(-5.0625);
     const second = Math.exp(-0.0625);
+
     expect(chord(0.50625)).toBeCloseTo(first + second, 6);
+  });
+
+  it("strikes each later note gap seconds after the one before, at its own pitch", () => {
+    const chord = arpeggio([100, 200, 600], 0.5, 0.1);
+
+    const first = (0.25 - Math.SQRT1_2) * Math.exp(-10.0625);
+    const second = Math.exp(-5.0625);
+    const third = -Math.exp(-0.0625);
+
+    expect(chord(1.00625)).toBeCloseTo(first + second + third, 6);
   });
 });
 

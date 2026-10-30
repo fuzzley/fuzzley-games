@@ -162,9 +162,10 @@ else. The frontend's Angular and Sass rules apply; on top of them:
   applies the games' compact test in code and says where the bar stands
   and what fits in it.
 - **The pencil, the eraser and the bulb** were added to `@fz/ui`'s icons for
-  the pad. The dialogs' cards, close buttons, headings and choice tiles are
-  `@fz/style`'s mixins, which every game's dialogs share, and so is the
-  settings drawer, which every game but the Solitaire Collection shares.
+  the pad. The dialogs' cards, close buttons, headings and choice tiles, and
+  the settings drawer, are `@fz/style`'s mixins, which the games' dialogs
+  share, but for the Solitaire Collection's, which take only the headings and
+  the choice tiles.
 
 ## What It Keeps
 

@@ -11,6 +11,14 @@ function compiled(body: string): string {
   }).css;
 }
 
+/** Returns the declarations of the first rule for `selector` in compressed CSS. */
+function declarations(css: string, selector: string): string[] {
+  const head = css.indexOf(`${selector}{`);
+  if (head < 0) return [];
+  const start = head + selector.length + 1;
+  return css.slice(start, css.indexOf("}", start)).split(";");
+}
+
 describe("the toolkit's mixins", () => {
   it("transition each property they name at the shared speed", () => {
     expect(compiled("@include fz.transition(background, transform);")).toBe(
@@ -113,26 +121,40 @@ describe("the toolkit's mixins", () => {
   });
 
   it("make a settings drawer the window's height", () => {
-    expect(compiled("@include fz.settings-drawer;")).toMatch(
-      /^\.it\{[^}]*height:100dvh/,
+    const drawer = declarations(
+      compiled("@include fz.settings-drawer;"),
+      ".it",
     );
+
+    expect(drawer).toContain("height:100dvh");
   });
 
   it("pin a settings drawer to the right of its dialog", () => {
-    expect(compiled("@include fz.settings-drawer;")).toMatch(
-      /^\.it\{[^}]*margin-left:auto/,
+    const drawer = declarations(
+      compiled("@include fz.settings-drawer;"),
+      ".it",
     );
+
+    expect(drawer).toContain("margin-left:auto");
   });
 
   it("size a settings drawer as asked", () => {
-    expect(compiled("@include fz.settings-drawer(320px);")).toMatch(
-      /^\.it\{[^}]*width:320px/,
+    const drawer = declarations(
+      compiled("@include fz.settings-drawer(320px);"),
+      ".it",
     );
+
+    expect(drawer).toContain("width:320px");
   });
 
   it("scroll a settings drawer's content, which moves what is positioned in it", () => {
-    expect(compiled("@include fz.settings-drawer;")).toContain(
-      ".it .drawer-content{position:relative;flex:1;padding:var(--fz-space-6);overflow-y:auto}",
+    const content = declarations(
+      compiled("@include fz.settings-drawer;"),
+      ".it .drawer-content",
+    );
+
+    expect(content).toEqual(
+      expect.arrayContaining(["position:relative", "overflow-y:auto"]),
     );
   });
 

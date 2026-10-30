@@ -236,9 +236,10 @@
 /// `.setting` in it, with its `.setting-label`, its control and a
 /// `.setting-desc`; a `.choice-list` of `.choice` tiles, each its `.name`
 /// over its `.desc`; and a `.setting-check`, a checkbox beside its label,
-/// with a `.setting-desc` under the label. Those rules sit a class deeper
-/// than the drawer, so a game's own rule for one goes inside the drawer's
-/// block, after the include.
+/// with a `.setting-desc` under the label. A game's own rule for one of them
+/// goes inside the drawer's block, after the include, nested as the mixin
+/// nests it, such as `.setting-check .setting-desc`, so it weighs the same
+/// and wins by coming later.
 @mixin settings-drawer($width: 340px) {
   @include surfaces.glass(20px);
 
