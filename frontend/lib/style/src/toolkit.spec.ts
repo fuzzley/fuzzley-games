@@ -112,9 +112,27 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("pin a settings drawer to its dialog's end, the window's height", () => {
+  it("make a settings drawer the window's height", () => {
     expect(compiled("@include fz.settings-drawer;")).toMatch(
-      /^\.it\{[^}]*height:100dvh;margin-left:auto;/,
+      /^\.it\{[^}]*height:100dvh/,
+    );
+  });
+
+  it("pin a settings drawer to the right of its dialog", () => {
+    expect(compiled("@include fz.settings-drawer;")).toMatch(
+      /^\.it\{[^}]*margin-left:auto/,
+    );
+  });
+
+  it("size a settings drawer as asked", () => {
+    expect(compiled("@include fz.settings-drawer(320px);")).toMatch(
+      /^\.it\{[^}]*width:320px/,
+    );
+  });
+
+  it("scroll a settings drawer's content, which moves what is positioned in it", () => {
+    expect(compiled("@include fz.settings-drawer;")).toContain(
+      ".it .drawer-content{position:relative;flex:1;padding:var(--fz-space-6);overflow-y:auto}",
     );
   });
 
@@ -124,9 +142,9 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("set a check's description under its label, beside the box", () => {
+  it("set a checkbox's description under its label, beside the box", () => {
     expect(compiled("@include fz.settings-drawer;")).toContain(
-      ".it .check .setting-desc{grid-column:2;margin:0}",
+      ".it .setting-check .setting-desc{grid-column:2;margin:0}",
     );
   });
 
