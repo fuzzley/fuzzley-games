@@ -59,7 +59,12 @@ async function served(): Promise<GameService> {
   return game;
 }
 
-/** Returns the game with a few blast bricks of the Few level broken, paused, and kept. */
+/** Returns how many of the level in play's bricks are broken. */
+function brokenIn(game: GameService): number {
+  return game.frame().field.bricks.filter((brick) => brick?.broken).length;
+}
+
+/** Returns the game with a blast brick of the Few level broken, its fuse lit, paused, and kept. */
 async function brokeSome(): Promise<GameService> {
   const game = start();
   await game.startAt(SPEC_LEVEL.few);
@@ -89,6 +94,18 @@ describe("SavedGameService", () => {
       TestBed.tick();
 
       expect(stored()).not.toEqual(current(game));
+    });
+
+    it("doesn't write the run as it scores", async () => {
+      const game = start();
+      await game.startAt(SPEC_LEVEL.few);
+      game.launch();
+      TestBed.tick();
+
+      playUntil(game, under, () => game.score() > 0);
+      TestBed.tick();
+
+      expect(stored()).toMatchObject({ score: 0 });
     });
 
     it("keeps the run where it stands as it pauses", async () => {
@@ -142,6 +159,17 @@ describe("SavedGameService", () => {
       expect(stored()).toBeNull();
     });
 
+    it("forgets a run thrown away for a new one", async () => {
+      const game = await served();
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+      TestBed.tick();
+
+      expect(stored()).toBeNull();
+    });
+
     it("keeps nothing of a run waiting for its first serve", () => {
       start();
 
@@ -172,6 +200,38 @@ describe("SavedGameService", () => {
         broken,
         serving: true,
       });
+    });
+
+    it("takes up a run kept as its first ball was served, before it scored", async () => {
+      await served();
+
+      const game = reload();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("doesn't give back a ball lost before the page went away", async () => {
+      const before = await served();
+      loseBall(before);
+      before.pause();
+      TestBed.tick();
+      const game = reload();
+
+      game.resume();
+      playFor(game, 100, STILL);
+
+      expect(game.run().lives).toBe(FIRST_LIVES - 1);
+    });
+
+    it("sets off a blast whose fuse was lit before the page went away", async () => {
+      await brokeSome();
+      const game = reload();
+      const broken = brokenIn(game);
+
+      game.resume();
+      playFor(game, 250, STILL);
+
+      expect(brokenIn(game)).toBeGreaterThan(broken);
     });
 
     it("says where the run taken up stands", async () => {

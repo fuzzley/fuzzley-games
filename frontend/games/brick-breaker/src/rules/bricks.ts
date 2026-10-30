@@ -145,6 +145,14 @@ export function isNeeded(brick: Readonly<Brick>): boolean {
   return brickKind(brick.kind).needed;
 }
 
+/** Returns how many of a level's bricks it needs that are not yet broken. */
+export function neededLeft(
+  bricks: readonly (Readonly<Brick> | null)[],
+): number {
+  return bricks.filter((brick) => brick && isNeeded(brick) && !brick.broken)
+    .length;
+}
+
 /**
  * Hits a brick once, as a ball, a bolt or a blast does, taking the hits
  * `damage` says off it, or all of them, and returns whether it broke.

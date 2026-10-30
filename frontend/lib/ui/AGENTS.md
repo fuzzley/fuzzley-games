@@ -46,7 +46,10 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   in each modal dialog that speaks while open: a modal hides the page behind
   it from a screen reader, and a closed one hides its own region. The same
   words said twice end the second time with a no-break space, so a screen
-  reader says them again.
+  reader says them again. Words said before the region is in the page, such
+  as a game taken up as the app starts, wait until it has been there a
+  moment (`ARRIVAL_MS`), as a screen reader doesn't announce a region that
+  arrives with its words.
 - `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native
   modal `<dialog>`, so the browser traps focus, makes the page behind it
   inert and gives focus back on close. The host owns `open`: the dialog

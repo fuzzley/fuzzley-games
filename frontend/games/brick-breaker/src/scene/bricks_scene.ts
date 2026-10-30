@@ -15,12 +15,12 @@ import { brickColor } from "../view/brick_art";
 import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
 import {
   CHIME,
-  detuneOf,
-  effectsOf,
   type Flourish,
-  flourishesOf,
   FrameSounds,
   type SoundName,
+  detuneOf,
+  effectsOf,
+  flourishesOf,
 } from "../view/effects";
 import { type FieldMetrics, fieldMetrics } from "../view/field_metrics";
 import { glowAlpha } from "../view/flourish";

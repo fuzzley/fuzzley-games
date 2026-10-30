@@ -39,6 +39,9 @@ export interface EventEffects {
   readonly sound: SoundName | null;
 }
 
+/** The sound a level cleared plays, which a life by points and a new best share. */
+export const CHIME: SoundName = "cleared";
+
 /** What each event calls for, but a hit on steel, which rings. */
 const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   launched: { flourishes: [], sound: null },
@@ -54,7 +57,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   fired: { flourishes: [], sound: "fired" },
   netted: { flourishes: [], sound: "paddle" },
   lost: { flourishes: ["fade", "shake"], sound: "lost" },
-  cleared: { flourishes: [], sound: "cleared" },
+  cleared: { flourishes: [], sound: CHIME },
 };
 
 /** What a hit on a brick that never breaks calls for. */
@@ -82,9 +85,6 @@ export function detuneOf(event: Readonly<FieldEvent>): number {
   if (event.kind !== "broken" || event.streak < 2) return 0;
   return Math.min((event.streak - 1) * STREAK_STEP_CENTS, STREAK_MOST_CENTS);
 }
-
-/** The sound a level cleared plays, which a life by points and a new best share. */
-export const CHIME: SoundName = "cleared";
 
 /** What `FrameSounds` holds for a sound not heard: below any rise or fall. */
 const UNHEARD = Number.NEGATIVE_INFINITY;

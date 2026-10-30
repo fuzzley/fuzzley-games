@@ -172,6 +172,13 @@ export function gainedLifeByPoints(before: Run, after: Run): boolean {
   return after.nextLifeAt > before.nextLifeAt && before.lives < MAX_LIVES;
 }
 
+/** Returns the score a run's next life comes at, from its score: the first mark above it. */
+export function nextLifeAfter(score: number): number {
+  if (score < FIRST_LIFE_POINTS) return FIRST_LIFE_POINTS;
+  const passed = Math.floor((score - FIRST_LIFE_POINTS) / LIFE_POINTS) + 1;
+  return FIRST_LIFE_POINTS + passed * LIFE_POINTS;
+}
+
 /** Returns whether a level's field has come to anything the run hasn't taken yet. */
 function hasNews(run: Run, field: LevelProgress): boolean {
   return (

@@ -8,6 +8,7 @@ import {
   hasEnded,
   levelSeed,
   levelsCleared,
+  nextLifeAfter,
   pause,
   resume,
   startLevel,
@@ -435,5 +436,24 @@ describe("levelSeed", () => {
     expect(levelSeed(runWith({ level: 5 }))).toBe(
       levelSeed(runWith({ level: 5 })),
     );
+  });
+});
+
+describe("nextLifeAfter", () => {
+  it.each([
+    [0, FIRST_LIFE_POINTS],
+    [FIRST_LIFE_POINTS - 1, FIRST_LIFE_POINTS],
+    [FIRST_LIFE_POINTS, FIRST_LIFE_POINTS + LIFE_POINTS],
+    [FIRST_LIFE_POINTS + LIFE_POINTS, FIRST_LIFE_POINTS + 2 * LIFE_POINTS],
+  ])("puts the next life after %i points at %i", (score, next) => {
+    expect(nextLifeAfter(score)).toBe(next);
+  });
+
+  it("agrees with the run's own count, however far its points climb", () => {
+    const field = fieldAt({ score: 3 * LIFE_POINTS + 1234 });
+
+    const run = catchUp(playing(), field);
+
+    expect(nextLifeAfter(run.score)).toBe(run.nextLifeAt);
   });
 });

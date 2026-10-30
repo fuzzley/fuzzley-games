@@ -21,11 +21,8 @@ const SAVED_GAME_VERSION = 1;
  * Keeps the run under way, and takes it up again, paused, when the page
  * loads, so a reload or a phone dropping the tab loses little.
  *
- * Only a run under way is kept: one waiting for its first serve, or one
- * that has ended, is not. It is written as a level starts, as a ball is
- * served, as the run pauses or goes on, and as the page goes away, never at
- * a step. A hidden page pauses the level, which writes it where it stands.
- * Something must inject it at startup for the run to be taken up.
+ * It writes as the run changes course, never at a step, and something must
+ * inject it at startup for the run to be taken up.
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
@@ -37,7 +34,6 @@ export class SavedGameService {
     this.restore();
     effect(() => {
       this.game.outcome();
-      this.game.level();
       this.game.serving();
       this.game.runs();
       untracked(() => {

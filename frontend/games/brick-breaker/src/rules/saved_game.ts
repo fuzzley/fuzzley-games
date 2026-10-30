@@ -1,11 +1,13 @@
 import { isRecord, isWhole } from "@fz/core/json";
-import { type Brick, isNeeded } from "./bricks";
+import { type Brick, neededLeft } from "./bricks";
+import { brickKind, hasTrait } from "./catalog/bricks";
 import type { Field } from "./field";
 import { CELLS } from "./grid";
+import type { LevelBrick } from "./level";
 import { type LevelEntry, parseLevel } from "./levels";
-import { type Run, startLevel } from "./run";
-import { isSpeed } from "./speed";
-import { FIRST_LIFE_POINTS, MAX_LIVES } from "./tuning";
+import { type Run, nextLifeAfter, startLevel } from "./run";
+import { type Speed, isSpeed } from "./speed";
+import { MAX_LIVES } from "./tuning";
 
 /** A brick of the level in play as storage keeps it: what play has changed of it. */
 export interface SavedBrick {
@@ -32,7 +34,7 @@ export interface SavedGame {
   readonly levelId: string;
   readonly level: number;
   readonly firstLevel: number;
-  readonly speed: string;
+  readonly speed: Speed;
   readonly seed: number;
   readonly banked: number;
   readonly score: number;
@@ -77,8 +79,8 @@ export function saveGame(
 /**
  * Returns the run storage kept, paused, under a new id, with its level's
  * field as kept, or null if it can't be trusted: a level the game doesn't
- * have under that number, a field that doesn't fit the level, or a number
- * out of its range.
+ * have under that number, a field that doesn't fit the level, a number out
+ * of its range, or a state no run comes to.
  */
 export function restoreGame(
   value: unknown,
@@ -90,14 +92,14 @@ export function restoreGame(
     value;
   const { nextLifeAt, levelGained, levelLost } = value;
   if (
-    !isWhole(level) ||
-    !isWhole(firstLevel) ||
+    !isCount(level) ||
+    !isCount(firstLevel) ||
     !isSpeed(speed) ||
     !isWhole(seed) ||
     !isCount(banked) ||
-    !isWhole(score) ||
-    !isWhole(lives) ||
-    !isWhole(nextLifeAt) ||
+    !isCount(score) ||
+    !isCount(lives) ||
+    !isCount(nextLifeAt) ||
     !isCount(levelGained) ||
     !isCount(levelLost)
   ) {
@@ -112,13 +114,13 @@ export function restoreGame(
     score < banked ||
     lives < 1 ||
     lives > MAX_LIVES ||
-    nextLifeAt <= score ||
-    nextLifeAt < FIRST_LIFE_POINTS
+    nextLifeAt !== nextLifeAfter(score)
   ) {
     return null;
   }
-  const field = restoredField(value["field"], entry, score - banked);
-  if (field === undefined) return null;
+  const begun = score > banked || levelGained > 0 || levelLost > 0;
+  const restored = restoredField(value["field"], entry, score - banked, begun);
+  if (!restored) return null;
   return {
     run: {
       id,
@@ -135,7 +137,7 @@ export function restoreGame(
       levelLost,
       outcome: "paused",
     },
-    field,
+    field: restored.field,
   };
 }
 
@@ -152,13 +154,11 @@ export function takeUpField(
   field.livesGained = run.levelGained;
   field.livesLost = run.levelLost;
   if (!saved) return;
-  for (const brick of field.bricks) {
-    const kept = brick && saved.bricks[brick.cell];
+  for (const [cell, brick] of field.bricks.entries()) {
+    const kept = saved.bricks[cell];
     if (brick && kept) takeUpBrick(brick, kept);
   }
-  field.needed = field.bricks.filter(
-    (brick) => brick && isNeeded(brick) && !brick.broken,
-  ).length;
+  field.needed = neededLeft(field.bricks);
   field.streakPoints = saved.streakPoints;
   field.climbed = saved.climbed;
   field.steps = saved.steps;
@@ -211,17 +211,19 @@ function savedField(field: SavableField): SavedField {
 }
 
 /**
- * Returns a level's field as storage kept it: null for a level not yet
- * begun, or undefined if it doesn't fit the level or a number is out of its
- * range.
+ * Returns a level's field as storage kept it, as `field`, null for a level
+ * not yet begun, or returns null if it can't be trusted: it doesn't fit the
+ * level, a number is out of its range, the level needs nothing more, or a
+ * level with points or lives on it is kept as not begun.
  */
 function restoredField(
   value: unknown,
   entry: LevelEntry,
   levelScore: number,
-): SavedField | null | undefined {
-  if (value === null) return null;
-  if (!isRecord(value)) return undefined;
+  begun: boolean,
+): { readonly field: SavedField | null } | null {
+  if (value === null) return begun ? null : { field: null };
+  if (!isRecord(value)) return null;
   const { streakPoints, climbed, steps, draws } = value;
   if (
     !isCount(streakPoints) ||
@@ -232,37 +234,54 @@ function restoredField(
     !isCount(steps) ||
     !isCount(draws)
   ) {
-    return undefined;
+    return null;
   }
   const kept = value["bricks"];
   const cells = parseLevel(entry).cells;
-  if (!Array.isArray(kept) || kept.length !== CELLS) return undefined;
+  if (!Array.isArray(kept) || kept.length !== CELLS) return null;
   const bricks: (SavedBrick | null)[] = [];
+  let needsMore = false;
   for (const [cell, placed] of cells.entries()) {
     const brick: unknown = kept[cell];
     if (!placed) {
-      if (brick !== null) return undefined;
+      if (brick !== null) return null;
       bricks.push(null);
       continue;
     }
-    const restored = restoredBrick(brick, placed.hits);
-    if (!restored) return undefined;
+    const restored = restoredBrick(brick, placed);
+    if (!restored) return null;
     bricks.push(restored);
+    if (brickKind(placed.kind).needed && !restored.broken) needsMore = true;
   }
-  return { bricks, streakPoints, climbed, steps, draws };
+  if (!needsMore) return null;
+  return { field: { bricks, streakPoints, climbed, steps, draws } };
 }
 
-/** Returns a brick as storage kept it, or null if a number is out of its range. */
-function restoredBrick(value: unknown, whole: number): SavedBrick | null {
+/**
+ * Returns a brick as storage kept it, or null if a number is out of its
+ * range or it is in a state its kind never comes to: broken with hits left
+ * or whole without, hidden once hit, or with a fuse or a regrowth its kind
+ * doesn't have.
+ */
+function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
   if (!isRecord(value)) return null;
   const { hits, broken, shown, goesOffAt, regrowsAt } = value;
   if (
     !isCount(hits) ||
-    hits > whole ||
+    hits > placed.hits ||
     typeof broken !== "boolean" ||
     typeof shown !== "boolean" ||
     !isCount(goesOffAt) ||
     !isCount(regrowsAt)
+  ) {
+    return null;
+  }
+  const { kind } = placed;
+  if (
+    broken !== (placed.hits > 0 && hits === 0) ||
+    (!shown && (!hasTrait(kind, "hidden") || hits < placed.hits)) ||
+    (goesOffAt > 0 && (!hasTrait(kind, "blasts") || !broken)) ||
+    (regrowsAt > 0 && !hasTrait(kind, "regrows"))
   ) {
     return null;
   }
@@ -278,7 +297,10 @@ function takeUpBrick(brick: Brick, kept: SavedBrick): void {
   brick.regrowsAt = kept.regrowsAt;
 }
 
-/** Returns whether a value is a whole number not below nothing. */
+/**
+ * Returns whether a value is a whole number not below nothing, and small
+ * enough that adding one to it still counts.
+ */
 function isCount(value: unknown): value is number {
-  return isWhole(value) && value >= 0;
+  return Number.isSafeInteger(value) && Number(value) >= 0;
 }
