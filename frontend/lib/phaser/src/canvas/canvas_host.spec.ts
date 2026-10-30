@@ -89,6 +89,17 @@ describe("PHASER_CANVAS_HOST", () => {
     await expect(shown).rejects.toThrow("offline");
   });
 
+  it("fails when the scene its source makes can't be built", async () => {
+    const shown = host.show(
+      () => () => {
+        throw new Error("can't build");
+      },
+      () => undefined,
+    );
+
+    await expect(shown).rejects.toThrow("can't build");
+  });
+
   it("shows only the latest of two scenes when the first is slower to load", async () => {
     const built: string[] = [];
     let loadSlow: (make: MakeScene) => void = () => undefined;

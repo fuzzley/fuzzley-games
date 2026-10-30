@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, ErrorHandler, input } from "@angular/core";
 import type { ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { render, screen } from "@testing-library/angular";
@@ -43,13 +43,26 @@ interface RenderedCanvas {
   readonly show: (scene: SceneSource) => Promise<void>;
   /** Lets what the fake host settled reach the page. */
   readonly settle: () => Promise<void>;
+  /** What the app's error handler was handed. */
+  readonly errors: readonly unknown[];
 }
 
 /** Renders a canvas whose scenes wait to be told they are ready. */
 async function renderCanvas(label?: string): Promise<RenderedCanvas> {
+  const errors: unknown[] = [];
   const { fixture, rerender } = await render(TestCanvasHostComponent, {
     inputs: label === undefined ? {} : { label },
-    providers: [provideFakePhaserCanvas({ readyAtOnce: false })],
+    providers: [
+      provideFakePhaserCanvas({ readyAtOnce: false }),
+      {
+        provide: ErrorHandler,
+        useValue: {
+          handleError: (error: unknown) => {
+            errors.push(error);
+          },
+        },
+      },
+    ],
   });
   const debug = fixture.debugElement.query(By.directive(PhaserCanvasComponent));
   return {
@@ -65,6 +78,7 @@ async function renderCanvas(label?: string): Promise<RenderedCanvas> {
       fixture.detectChanges();
       await fixture.whenStable();
     },
+    errors,
   };
 }
 
@@ -151,6 +165,25 @@ describe("PhaserCanvasComponent", () => {
       await settle();
 
       expect(element).toHaveAttribute("data-state", "failed");
+    });
+
+    it("hands what kept the scene from loading to the app's error handler", async () => {
+      const { errors, host, settle } = await renderCanvas();
+
+      host.latest.fail();
+      await settle();
+
+      expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
+    });
+
+    it("hands a replaced scene's failure to the error handler too, a real one all the same", async () => {
+      const { errors, host, settle, show } = await renderCanvas();
+      await show(SECOND);
+
+      host.shown[0]!.fail();
+      await settle();
+
+      expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
     it("is loading still when the scene hasn't drawn in eight seconds", async () => {

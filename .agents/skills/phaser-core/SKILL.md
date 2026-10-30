@@ -23,9 +23,10 @@ capsule from one atlas baked at run time (`bakeAtlas()`).
   are the host's (`title`, `background`, Phaser's `config`), read once;
   `label`, if given, names the canvas to assistive technology as an image. Its
   `state` is `loading`, `ready` or `failed`, also as `data-state` on the
-  element. It fails a scene whose source rejects, or that isn't ready in a
-  minute, and after 8 seconds `slow` (`data-slow`) says it is still loading,
-  which the app says to the player. What the app projects as
+  element. It fails a scene that isn't ready in a minute, or whose source
+  rejects or that can't be built or mounted, handing that error to Angular's
+  `ErrorHandler`, and after 8 seconds `slow` (`data-slow`) says it is still
+  loading, which the app says to the player. What the app projects as
   `[fzCanvasPlaceholder]` lies over the canvas until the scene is ready. It
   loads the host, and Phaser with it, with `import()` when it first shows a
   scene (`frontend/lib/phaser/src/canvas/`). Beside it, `fzKeepKeys` keeps a
