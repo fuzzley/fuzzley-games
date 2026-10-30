@@ -91,8 +91,9 @@ workspace, or names one differently from its build, apostrophes aside.
 
 The Solitaire Collection and Minesweeper began in repositories of their
 own, fSolitaire and fMinesweeper, and were branched off into this one with
-their history; Sudoku and Snake began here. Nothing here builds from those
-repositories or links to them, and each game may diverge from its own.
+their history; Sudoku, Snake and Brick Breaker began here. Nothing here
+builds from those repositories or links to them, and each game may diverge
+from its own.
 
 ## Security headers
 

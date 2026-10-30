@@ -10,8 +10,8 @@ share. The shared libraries' components meet them by themselves, so the
 first way to meet one is to use the library's piece (the `fuzzley-ui` skill
 lists them); each workspace's `AGENTS.md` names what it keeps of its own:
 `frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md`,
-`frontend/games/minesweeper/AGENTS.md`, `frontend/games/sudoku/AGENTS.md`
-and `frontend/games/snake/AGENTS.md`.
+`frontend/games/minesweeper/AGENTS.md`, `frontend/games/sudoku/AGENTS.md`,
+`frontend/games/snake/AGENTS.md` and `frontend/games/brick-breaker/AGENTS.md`.
 
 ## Core Accessibility Rules
 
@@ -99,11 +99,12 @@ move it with the arrow keys, Home and End.
   key pressed with a finger or a mouse hands the focus back to the board,
   so the player goes on typing, and one pressed from the keyboard keeps it.
 
-A board that moves by itself, as Snake's does
-(`frontend/games/snake/src/app/board/`), is no grid: it is one focusable
-element with `role="application"`, named for the game and described by
-its keys, so a screen reader hands it the arrow keys; the canvas in it is
-hidden.
+A board that moves by itself, as Snake's and Brick Breaker's do
+(`frontend/games/snake/src/app/board/`,
+`frontend/games/brick-breaker/src/app/board/`), is no grid: it is one
+focusable element with `role="application"`, named for the game and
+described by its keys, so a screen reader hands it the arrow keys; the
+canvas in it is hidden.
 
 - It waits for the player: nothing moves until the first key, and it
   pauses whenever the focus leaves the board and its arrows, the page is
@@ -112,7 +113,9 @@ hidden.
   `[fzPlayRoom]` says when. Pause has a key of
   its own (Space, P or Escape) and a button.
 - Its pace is the player's to choose: Snake offers three speeds, and a
-  snake that steps from square to square rather than gliding.
+  snake that steps from square to square rather than gliding; Brick
+  Breaker three speeds, the slowest of which lets no capsule fall that
+  makes the game harder.
 - The run's turning points are announced, not each move: the start, a
   pause, going on, and the end with the score; a run taken up after a
   reload says it is paused.

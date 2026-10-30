@@ -45,6 +45,7 @@ yarn workspace solitaire dev     # work on the Solitaire Collection alone, on ht
 yarn workspace minesweeper dev   # work on Minesweeper alone, on http://localhost:9001
 yarn workspace sudoku dev        # work on Sudoku alone, on http://localhost:9002
 yarn workspace snake dev         # work on Snake alone, on http://localhost:9003
+yarn workspace brick-breaker dev # work on Brick Breaker alone, on http://localhost:9004
 ```
 
 `yarn dev` and `yarn build` first build the games in `frontend/games/`. The
