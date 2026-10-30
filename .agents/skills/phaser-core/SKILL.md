@@ -164,7 +164,10 @@ browser, through a game's screenshots and its `check:layout`.
 
 - **A shell's specs** take `provideFakePhaserCanvas()`, which loads no
   Phaser; `FakePhaserCanvas` keeps the hosts it made, and readies or fails
-  each scene they were shown.
+  each scene they were shown. A scene it readies at once is ready only
+  after the `show()` that asked has returned, as a real host's is, so a
+  spec that needs the board drawn awaits `fixture.whenStable()` after
+  rendering it.
 - **A scene's specs** run real Phaser in jsdom, its WebGL renderer
   included, on a context that draws nothing. The test setup calls
   `installHeadlessPhaser()` before anything imports Phaser, which tests for

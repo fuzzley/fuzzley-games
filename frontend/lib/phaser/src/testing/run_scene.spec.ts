@@ -1,4 +1,11 @@
-import { type Game, type GameObjects, Renderer, Scene, WEBGL } from "phaser";
+import {
+  type Game,
+  type GameObjects,
+  Renderer,
+  Scene,
+  Scenes,
+  WEBGL,
+} from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { runBareScene, runScene } from "./run_scene";
 import { type FileServer, pngOfSize } from "./served_files";
@@ -96,6 +103,38 @@ class LoadingScene extends Scene implements HostedScene {
     });
     this.load.image("apple", "/apple.png");
   }
+}
+
+/**
+ * A scene that throws as it is created, having set up a teardown that
+ * throws too, as one that fails halfway through `create()` may.
+ */
+class BrokenScene extends Scene implements HostedScene {
+  readonly key = "broken";
+
+  constructor() {
+    super("broken");
+  }
+
+  create(): void {
+    this.events.once(Scenes.Events.DESTROY, () => {
+      throw new Error("teardown threw");
+    });
+    throw new Error("create threw");
+  }
+}
+
+/** Requests a URL as Phaser's loader does, and resolves to the status it is answered with. */
+async function statusOf(url: string): Promise<number> {
+  const request = new XMLHttpRequest();
+  request.open("GET", url);
+  const answered = new Promise<number>((resolve) => {
+    request.onload = () => {
+      resolve(request.status);
+    };
+  });
+  request.send();
+  return answered;
 }
 
 /** Runs a loading scene, serving it what a server would. */
@@ -379,12 +418,49 @@ describe("runScene", () => {
 
   it("serves nothing once the run is destroyed", async () => {
     const run = await runLoading(() => pngOfSize(1, 1));
+
     run.destroy();
 
-    const again = await runLoading();
+    expect(await statusOf("/apple.png")).toBe(404);
+  });
 
-    expect(again.scene.failed).toEqual(["apple"]);
-    again.destroy();
+  it("rejects with what building the scene threw, leaving no game in the page", async () => {
+    const before = document.body.children.length;
+
+    const run = runScene(() => {
+      throw new Error("can't build");
+    });
+
+    await expect(run).rejects.toThrow("can't build");
+    expect(document.body.children.length).toBe(before);
+  });
+
+  it("serves nothing once its setup has failed", async () => {
+    const run = runScene(
+      () => {
+        throw new Error("can't build");
+      },
+      { serve: () => pngOfSize(1, 1) },
+    );
+
+    await run.catch(() => undefined);
+
+    expect(await statusOf("/apple.png")).toBe(404);
+  });
+
+  it("rejects with what setup threw though tearing down after it throws, letting go of all it started", async () => {
+    const before = document.body.children.length;
+
+    const run = runScene(() => new BrokenScene(), {
+      serve: () => pngOfSize(1, 1),
+    });
+    const thrown = await run.catch((error: unknown) => error);
+
+    expect([
+      thrown,
+      document.body.children.length - before,
+      await statusOf("/apple.png"),
+    ]).toEqual([new Error("create threw"), 0, 404]);
   });
 
   it("sends the pointer to an element over the canvas, as the page's chrome", async () => {

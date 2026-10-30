@@ -39,9 +39,12 @@ export async function startGame(config: SpecGameConfig = {}): Promise<Game> {
 /** Destroys a game {@link startGame} started, with its parent. */
 export function stopGame(game: Game): void {
   const parent = game.canvas.parentElement;
-  game.destroy(true);
-  // Phaser tears a game down on its next frame, which only a step brings
-  // while the loop sleeps.
-  game.step(game.loop.time, 0);
-  parent?.remove();
+  try {
+    game.destroy(true);
+    // Phaser tears a game down on its next frame, which only a step brings
+    // while the loop sleeps.
+    game.step(game.loop.time, 0);
+  } finally {
+    parent?.remove();
+  }
 }

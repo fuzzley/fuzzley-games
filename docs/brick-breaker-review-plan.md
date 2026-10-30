@@ -152,3 +152,48 @@ R1's review, before the commit:
 The reviewer ran `yarn prettier --check` from `frontend/`, where the
 script is `prettier . --write`, and so reformatted three files of the
 steps under way, unstaged; only their formatting changed.
+
+### R2: the harness behaves as a browser does when things go wrong
+
+`runScene()` sets up through `setUp()`, which starts the game, readies
+it, builds the scene and waits for it to run, and, if any of that throws,
+stops the game, takes its parent out of the page and stops serving the
+spec's files before it rethrows. A served file read as JSON that isn't
+JSON, or isn't served, answers `null`, as an XHR does, rather than
+throwing inside a timer. The fake canvas readies a scene shown with
+`readyAtOnce` in a microtask after its `show()` returns, as the real host
+never readies one inside `show()`.
+
+That last change found what the agent who reviewed `@fz/phaser` foresaw:
+Brick Breaker's and Snake's app specs, and Snake's board spec, played as
+soon as `render()` returned, which worked only because the canvas was
+ready inside the render that showed it, so the board's
+`afterRenderEffect` saw it drawn in the same pass. Each now awaits
+`fixture.whenStable()` after rendering, as it would have to for a real
+canvas; the `phaser-core` skill says so. The Solitaire Collection's specs
+pass unchanged.
+
+Specs: `runScene()` rejecting with what building the scene threw and
+leaving no game's parent in the page, and serving nothing once its setup
+failed; a request for JSON that isn't JSON, or isn't served, answering
+`null`; and the fake saying a scene is ready only once the `show()` that
+asked has returned.
+
+R2's review, before the commit:
+
+1. _A teardown that throws stopped the cleanup halfway and hid the real
+   error._ Taken: `setUp()` stops serving first, tears the game down in a
+   `try` whose error it drops, since what the setup threw says more, and
+   rethrows the setup's; `stopGame()` takes the game's parent out of the
+   page in a `finally`, which `SceneRun.destroy()` gains too. A spec runs
+   a scene that throws as it is created, with a teardown that throws, and
+   holds `runScene()` to rejecting with the first error, leaving nothing
+   in the page and serving nothing; it fails with the old catch.
+2. _"Serves nothing once its setup has failed" passed with the fix
+   removed,_ as the next run resets the server itself, and so did the
+   older "serves nothing once the run is destroyed". Taken: both ask the
+   server directly (`statusOf()`) for a 404.
+3. _The small points._ Taken: the fake canvas's spec names its subject,
+   Snake's board spec's helper says it waits only when `readyAtOnce`
+   holds, and `serve`'s doc says the run stops serving when its setup
+   fails too.

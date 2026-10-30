@@ -13,13 +13,14 @@ import {
 } from "./settings/settings.service";
 
 /**
- * Renders the game on a fake canvas, whose scene is drawn at once unless
- * `readyAtOnce` is false.
+ * Renders the game on a fake canvas, and waits for its scene to be drawn,
+ * unless `readyAtOnce` is false.
  */
 async function renderApp(readyAtOnce = true): Promise<GameService> {
-  await render(AppComponent, {
+  const { fixture } = await render(AppComponent, {
     providers: [provideFakePhaserCanvas({ readyAtOnce }), provideFixedSeed()],
   });
+  await fixture.whenStable();
   return TestBed.inject(GameService);
 }
 

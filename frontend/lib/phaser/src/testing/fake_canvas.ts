@@ -14,8 +14,9 @@ import type { HostOptions } from "../host";
 /** Says how {@link provideFakePhaserCanvas} answers a canvas. */
 export interface FakeCanvasOptions {
   /**
-   * Whether a scene is ready as soon as it is shown; true when not given.
-   * Otherwise it waits for its {@link FakeShownScene.ready}.
+   * Whether a scene is ready as soon as it is shown, once the `show()` that
+   * asked has returned, as a real host is never ready inside it; true when
+   * not given. Otherwise it waits for its {@link FakeShownScene.ready}.
    */
   readonly readyAtOnce?: boolean;
 }
@@ -59,7 +60,7 @@ export class FakeCanvasHost implements CanvasHost {
 
   show(source: SceneSource, onReady: () => void): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.shown.push({
+      const scene: FakeShownScene = {
         source,
         ready: () => {
           onReady();
@@ -68,8 +69,13 @@ export class FakeCanvasHost implements CanvasHost {
         fail: () => {
           reject(new Error("The scene couldn't be loaded"));
         },
-      });
-      if (this.readyAtOnce) this.latest.ready();
+      };
+      this.shown.push(scene);
+      if (this.readyAtOnce) {
+        queueMicrotask(() => {
+          scene.ready();
+        });
+      }
     });
   }
 

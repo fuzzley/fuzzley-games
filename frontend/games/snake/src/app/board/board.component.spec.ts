@@ -28,7 +28,8 @@ const ROLES = {
 
 /**
  * Renders the board beside a button outside it, on a fake canvas, with the
- * arrows beside it where `arrows` says.
+ * arrows beside it where `arrows` says, and waits for its scene to be drawn,
+ * unless `readyAtOnce` is false.
  */
 async function renderBoard(
   options: FakeCanvasOptions = {},
@@ -46,6 +47,7 @@ async function renderBoard(
       providers: [provideFakePhaserCanvas(options), provideFixedSeed()],
     },
   );
+  await view.fixture.whenStable();
   return {
     board: screen.getByRole("application"),
     game: TestBed.inject(GameService),

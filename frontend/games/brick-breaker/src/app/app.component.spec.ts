@@ -22,11 +22,12 @@ import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
 
-/** Renders the game on a fake canvas, whose scene is drawn at once. */
+/** Renders the game on a fake canvas, and waits for its scene to be drawn. */
 async function renderApp(): Promise<GameService> {
-  await render(AppComponent, {
+  const { fixture } = await render(AppComponent, {
     providers: [provideFakePhaserCanvas(), ...provideSpecLevels()],
   });
+  await fixture.whenStable();
   return TestBed.inject(GameService);
 }
 
