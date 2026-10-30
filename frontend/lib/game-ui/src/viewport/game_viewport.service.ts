@@ -12,6 +12,7 @@ import {
   type FormFactor,
   HOME_BUTTON_MIN_RAIL_HEIGHT_PX,
   HOME_BUTTON_MIN_WIDTH_PX,
+  LABELLED_ACTIONS_MIN_WIDTH_PX,
   WORDMARK_MIN_WIDTH_PX,
 } from "../breakpoints";
 import type { BarHome, BarPlacement } from "../game_bar";
@@ -19,6 +20,7 @@ import type { BarHome, BarPlacement } from "../game_bar";
 // The 0.02px guard is the one `below()` applies in the stylesheets.
 const COMPACT_QUERY = `(max-width: ${COMPACT_MAX_WIDTH_PX - 0.02}px), (max-height: ${COMPACT_MAX_HEIGHT_PX - 0.02}px)`;
 const PORTRAIT_QUERY = "(orientation: portrait)";
+const BELOW_ACTION_LABELS_QUERY = `(max-width: ${LABELLED_ACTIONS_MIN_WIDTH_PX - 0.02}px)`;
 const BELOW_WORDMARK_QUERY = `(max-width: ${WORDMARK_MIN_WIDTH_PX - 0.02}px)`;
 const BELOW_HOME_BUTTON_QUERY = `(max-width: ${HOME_BUTTON_MIN_WIDTH_PX - 0.02}px)`;
 const SHORT_RAIL_QUERY = `(max-height: ${HOME_BUTTON_MIN_RAIL_HEIGHT_PX - 0.02}px)`;
@@ -41,6 +43,7 @@ export class GameViewportService {
 
   private readonly compact = signal(false);
   private readonly portrait = signal(false);
+  private readonly belowActionLabels = signal(false);
   private readonly belowWordmark = signal(false);
   private readonly belowHomeButton = signal(false);
   private readonly belowRailHomeButton = signal(false);
@@ -78,6 +81,12 @@ export class GameViewportService {
         return "end";
     }
   });
+
+  /**
+   * Whether the window is wide enough for the bar's actions to keep their
+   * labels, which leaves a game's bar room for more of its figures.
+   */
+  readonly fitsActionLabels = computed(() => !this.belowActionLabels());
 
   /** Whether the window is wide enough for the bar's wordmark. */
   readonly fitsWordmark = computed(() => !this.belowWordmark());
@@ -122,6 +131,7 @@ export class GameViewportService {
 
     this.follow(COMPACT_QUERY, this.compact);
     this.follow(PORTRAIT_QUERY, this.portrait);
+    this.follow(BELOW_ACTION_LABELS_QUERY, this.belowActionLabels);
     this.follow(BELOW_WORDMARK_QUERY, this.belowWordmark);
     this.follow(BELOW_HOME_BUTTON_QUERY, this.belowHomeButton);
     this.follow(SHORT_RAIL_QUERY, this.belowRailHomeButton);

@@ -1,6 +1,7 @@
-@use "./styles" as *;
+@use "@fz/game-ui" as game-ui;
 
-// The page is the game: the stage takes all of it.
+// The page is the game: the bar stands against one edge, and the stage takes
+// the rest.
 :host {
   position: fixed;
   inset: 0;
@@ -8,11 +9,23 @@
   overflow: hidden;
 }
 
+:host(.compact) {
+  @include game-ui.bar-size($compact: true);
+}
+
 // A size container, which the board's layout follows.
 .stage {
   position: absolute;
-  inset: 0;
+  inset: var(--fz-bar-height) 0 0;
   container: stage / size;
+}
+
+:host([data-bar="bottom"]) .stage {
+  inset: 0 0 var(--fz-bar-height);
+}
+
+:host([data-bar="end"]) .stage {
+  inset: 0 var(--fz-rail-width) 0 0;
 }
 
 // The board fills the room, and lays the field out inside it.

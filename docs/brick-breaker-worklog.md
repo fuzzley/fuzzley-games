@@ -2047,3 +2047,74 @@ through Phaser's input and the scene's `Steering`.
   - The feel itself, which wants a person playing; `tuning.ts` is left as
     it is.
   - Reduced motion in the browser, which the specs hold.
+
+## B8.1: the bar
+
+- **Built:**
+  - `@fz/ui`'s `bricks` icon, a wall of bricks for the score, with its
+    case in the icon spec's sweep over `ICON_NAMES`.
+  - `@fz/game-ui`'s `GameViewportService.fitsActionLabels`, whether the
+    window is as wide as the `desktop` breakpoint, from which the bar's
+    actions keep their labels, with its two specs.
+  - `src/app/bar/`, `BarComponent`, on `@fz/game-ui`'s game bar, as
+    Snake's:
+    - The link home, the page's `<h1>` (seen on a roomy screen, heard on a
+      compact one), and the speed's badge, `<fz-bar-choice>`, which asks
+      before it throws a run away for a run at another speed.
+    - The figures, a `<dl>` that isn't a live region, since the announcer
+      says each turning point. From the width the actions keep their
+      labels at: the level, the score, the lives as hearts and the
+      streak's multiplier ("×2") while it counts, in the accent. Below it:
+      the score and the lives alone, each an icon beside its value, the
+      lives as a number, one over the other across the bar or in a card
+      each down a rail. The lives are said in words for a screen reader.
+    - Pause, dimmed rather than disabled while there's no level in play,
+      which keeps the focus on the board through a press and hands it
+      back as Resume goes on; Levels; New game; How to play; Settings. On
+      a compact screen Levels, How to play and Settings move into the
+      overflow menu, led by the link home on the narrowest.
+  - `app.component` puts the bar beside the board, with the stage inset
+    by the bar's height on the side it stands, as Snake's. The hidden
+    `<h1>` went; the bar holds it.
+- **Choices.**
+  - **Sound and Best wait for their steps.** The plan lists both in the
+    bar, but Sound has nothing to switch until B9, and Best nothing to
+    show until B10's stats. They come with those steps.
+  - **Levels, How to play and Settings are outputs nothing answers yet.**
+    B8.2 binds them to its dialogs in `app.component`.
+  - **Below the desktop width, the score and the lives alone.** Measured
+    in the browser: at 375 × 553, the narrowest shape the layout check
+    holds a game to, three figures side by side overflowed even at a score
+    of 0, and a four-digit score overflowed two. Extra lives come every
+    40,000 points, so a score runs to six figures and a run to six lives.
+    The two now sit one over the other in one card (86 px for 999999 and
+    six lives). From 720 px, the narrowest roomy bar, to 1199 px, the
+    labeled cards, six hearts and a streak left no room for the name,
+    which the bar gives way first ("Bri…" at 768 with a score of 0, and
+    nothing at all with six lives); the same two figures leave it whole.
+    The level is on the Ready card and in the board's name, and a streak's
+    points show in the Cleared card's sum. That needed a signal for the
+    `desktop` width, so the template decides it and a spec can hold it,
+    as `isCompact` decides the rest; Minesweeper drops its difficulty at
+    the same width with CSS.
+- **Browser check** on the dev server, with the run's figures set from the
+  page (a score of 0 and of 999,999, three and six lives, a ×4 streak):
+  - 1280 × 800 and 1200 × 800: every figure, the name whole.
+  - 1199 × 800 and 720 × 900: the score over the lives, the name whole.
+  - 375 × 812 and 375 × 553: the score over the lives; every figure fits
+    its box, and the page doesn't scroll.
+  - 667 × 375 and 568 × 320, the rail: a card each, the last control
+    inside the window.
+- **Specs.** `bar.component.spec.ts`: the heading; the speed shown,
+  changed, named in the question, and kept when the player backs out;
+  the level, score and lives; a life lost; no streak, then "×2" while one
+  counts; Pause pausing, Resume going on and handing the focus back,
+  dimmed with nothing in play and doing nothing there, and keeping the
+  focus through a press; New game; asking for the levels, How to play and
+  the settings. On an upright phone, a phone on its side and a tablet:
+  the score and the lives alone, and no streak while one counts. On a
+  compact screen: the speed, Pause and New game kept in the bar, the menu's
+  items, and asking for each from it. Setting `fitsEveryFigure` to ignore
+  the width fails the tablet's two.
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,369),
+  build.

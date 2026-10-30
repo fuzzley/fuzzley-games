@@ -55,8 +55,9 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
-  (`barPlacement`), whether the bar has room for the wordmark
-  (`fitsWordmark`) and the home button (`fitsHomeButton`), and so how it
+  (`barPlacement`), whether the bar has room for its actions' labels
+  (`fitsActionLabels`, from 1200 CSS px, as the `desktop` breakpoint), the
+  wordmark (`fitsWordmark`) and the home button (`fitsHomeButton`), and so how it
   shows the link home (`barHome`: the wordmark on a roomy window from 1280
   CSS px, the button below that or on a compact one, and `none` below
   360 wide, or on a rail under 380 tall). `allowsMotion` says whether the player has no wish for less
