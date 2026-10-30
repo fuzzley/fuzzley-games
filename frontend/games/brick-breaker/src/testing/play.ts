@@ -4,7 +4,12 @@ import {
   GAME_RANDOM,
   type GameService,
 } from "../app/play/game.service";
-import type { LevelData, LevelEntry, LevelSetData } from "../rules/levels";
+import {
+  type LevelData,
+  type LevelEntry,
+  type LevelSetData,
+  levelsOf,
+} from "../rules/levels";
 import type { Steer } from "../rules/paddle";
 import { FIELD_WIDTH } from "../rules/tuning";
 
@@ -25,14 +30,24 @@ function giftsOf(capsule: string, name: string): LevelData {
   };
 }
 
+/** A row of blast bricks, which a hit on any one of them clears. */
+const BLASTS: LevelData = {
+  id: "blasts",
+  name: "Blasts",
+  capsules: [],
+  bricks: ["*".repeat(13)],
+};
+
+/** The last level, blasts again, clearing which wins the run. */
+const LAST: LevelData = { ...BLASTS, id: "last", name: "Last" };
+
 /** The levels the shell's specs play: small, each set up to come to one thing soon. */
 const SET: LevelSetData = {
   id: "specs",
   name: "Specs",
   drops: 0,
   levels: [
-    // A row of blast bricks, which a hit on any one of them clears.
-    { id: "blasts", name: "Blasts", capsules: [], bricks: ["*".repeat(13)] },
+    BLASTS,
     // Gifts that each let a wide paddle fall, before steel.
     giftsOf("wide", "Wide"),
     // A wall of steel, which no ball gets past, before the brick it needs.
@@ -52,17 +67,18 @@ const SET: LevelSetData = {
     giftsOf("life", "Lives"),
     giftsOf("laser", "Laser"),
     giftsOf("catch", "Catch"),
-    // The last level, blasts again, clearing which wins the run.
-    { id: "last", name: "Last", capsules: [], bricks: ["*".repeat(13)] },
+    LAST,
   ],
 };
 
 /** The shell's specs' levels, numbered from 1. */
-export const SPEC_LEVELS: readonly LevelEntry[] = SET.levels.map((data, i) => ({
-  number: i + 1,
-  set: SET,
-  data,
-}));
+export const SPEC_LEVELS: readonly LevelEntry[] = levelsOf([SET]);
+
+/** Two sets of one level each, both cleared at a hit: a run won in two levels. */
+export const TWO_SETS: readonly LevelEntry[] = levelsOf([
+  { id: "first", name: "First", drops: 0, levels: [BLASTS] },
+  { id: "second", name: "Second", drops: 0, levels: [LAST] },
+]);
 
 /** Each of the specs' levels' numbers, by what it is set up for. */
 export const SPEC_LEVEL = {
@@ -76,10 +92,12 @@ export const SPEC_LEVEL = {
   last: 8,
 } as const;
 
-/** Returns the providers that hand `GameService` the specs' levels and a seed of its own. */
-export function provideSpecLevels(): Provider[] {
+/** Returns the providers that hand `GameService` the specs' levels, or those given, and a seed of its own. */
+export function provideSpecLevels(
+  levels: readonly LevelEntry[] = SPEC_LEVELS,
+): Provider[] {
   return [
-    { provide: GAME_LEVELS, useValue: SPEC_LEVELS },
+    { provide: GAME_LEVELS, useValue: levels },
     { provide: GAME_RANDOM, useValue: () => 0.5 },
   ];
 }
@@ -152,4 +170,11 @@ export function loseBall(game: GameService): void {
 export function playToClear(game: GameService): void {
   game.launch();
   playUntil(game, under, () => game.outcome() !== "playing");
+}
+
+/** Clears the level in play, then goes on to the next once its card shows. */
+export function clearToNext(game: GameService): void {
+  playToClear(game);
+  playUntil(game, () => STILL, game.clearedOpen);
+  game.nextLevel();
 }

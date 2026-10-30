@@ -23,6 +23,17 @@ interface Entry {
   readonly picture: string | null;
 }
 
+/** Describes one of How to play's lists: a catalog under its heading. */
+interface Catalog {
+  readonly id: string;
+  readonly heading: string;
+  /** The id of its heading, which names its section. */
+  readonly headingId: string;
+  /** What to know before its entries, or null when there is nothing. */
+  readonly intro: string | null;
+  readonly entries: readonly Entry[];
+}
+
 /** Writes points as a player reads them, with a comma in the thousands. */
 function points(value: number): string {
   return value.toLocaleString("en-US");
@@ -53,6 +64,10 @@ const SCORING = {
   lives: `A life comes at ${points(FIRST_LIFE_POINTS)} points and every ${points(LIFE_POINTS)} after, up to ${String(MAX_LIVES)} lives.`,
 };
 
+/** What How to play says of capsules before listing them. */
+const CAPSULES_INTRO =
+  "A broken brick may let a capsule fall. Catch it with the paddle for what it does; Relaxed lets none fall that makes the game harder.";
+
 /**
  * Shows How to play: the aim, scoring and pausing, the controls, and every
  * brick, capsule and ball, each with its name, what it does and its picture
@@ -76,15 +91,30 @@ export class HelpComponent {
 
   protected readonly scoring = SCORING;
 
-  protected readonly bricks = computed(() =>
-    entries(BRICK_KIND_IDS, brickKind, this.pictures()?.bricks),
-  );
-
-  protected readonly capsules = computed(() =>
-    entries(CAPSULE_IDS, capsule, this.pictures()?.capsules),
-  );
-
-  protected readonly balls = computed(() =>
-    entries(BALL_KIND_IDS, ballKind, this.pictures()?.balls),
-  );
+  protected readonly catalogs = computed<readonly Catalog[]>(() => {
+    const pictures = this.pictures();
+    return [
+      {
+        id: "bricks",
+        heading: "Bricks",
+        headingId: "help-bricks",
+        intro: null,
+        entries: entries(BRICK_KIND_IDS, brickKind, pictures?.bricks),
+      },
+      {
+        id: "capsules",
+        heading: "Capsules",
+        headingId: "help-capsules",
+        intro: CAPSULES_INTRO,
+        entries: entries(CAPSULE_IDS, capsule, pictures?.capsules),
+      },
+      {
+        id: "balls",
+        heading: "Balls",
+        headingId: "help-balls",
+        intro: null,
+        entries: entries(BALL_KIND_IDS, ballKind, pictures?.balls),
+      },
+    ];
+  });
 }

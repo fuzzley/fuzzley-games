@@ -3,7 +3,14 @@ import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
+import type { LevelEntry } from "../../rules/levels";
+import {
+  SPEC_LEVEL,
+  SPEC_LEVELS,
+  TWO_SETS,
+  clearToNext,
+  provideSpecLevels,
+} from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { LevelsComponent } from "./levels.component";
 
@@ -15,13 +22,15 @@ interface RenderedLevels {
   readonly detectChanges: () => void;
 }
 
-/** Renders the dialog, open, over the specs' levels. */
-async function renderLevels(): Promise<RenderedLevels> {
+/** Renders the dialog, open, over the specs' levels or those given. */
+async function renderLevels(
+  levels: readonly LevelEntry[] = SPEC_LEVELS,
+): Promise<RenderedLevels> {
   const closed = vi.fn();
   const { fixture } = await render(LevelsComponent, {
     inputs: { open: true },
     on: { closed },
-    providers: provideSpecLevels(),
+    providers: provideSpecLevels(levels),
   });
   return {
     user: userEvent.setup(),
@@ -31,6 +40,13 @@ async function renderLevels(): Promise<RenderedLevels> {
       fixture.detectChanges();
     },
   };
+}
+
+/** Returns the names of a set's levels, as the dialog lists them under its name. */
+function levelsIn(set: string): string[] {
+  return within(screen.getByRole("region", { name: set }))
+    .getAllByRole("button")
+    .map((level) => level.textContent);
 }
 
 describe("LevelsComponent", () => {
@@ -44,13 +60,18 @@ describe("LevelsComponent", () => {
   });
 
   it("lists each set's levels under its name, by number and name", async () => {
+    await renderLevels(TWO_SETS);
+
+    expect([levelsIn("First"), levelsIn("Second")]).toEqual([
+      ["1 Blasts"],
+      ["2 Last"],
+    ]);
+  });
+
+  it("lists every level of a set", async () => {
     await renderLevels();
 
-    expect(
-      within(screen.getByRole("region", { name: "Specs" }))
-        .getAllByRole("button")
-        .map((level) => level.textContent),
-    ).toEqual([
+    expect(levelsIn("Specs")).toEqual([
       "1 Blasts",
       "2 Wide",
       "3 Steel",
@@ -65,11 +86,11 @@ describe("LevelsComponent", () => {
   it("marks the level of the run on the board", async () => {
     const { game, detectChanges } = await renderLevels();
 
-    await game.startAt(SPEC_LEVEL.steel);
+    clearToNext(game);
     detectChanges();
 
     expect(screen.getByRole("button", { current: true })).toHaveAccessibleName(
-      "3 Steel",
+      "2 Wide",
     );
   });
 

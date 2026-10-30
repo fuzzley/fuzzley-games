@@ -64,10 +64,15 @@ export interface LevelEntry {
 /** Every set of levels, in the order they are played. */
 export const LEVEL_SETS: readonly LevelSetData[] = [basics];
 
+/** Returns the levels of sets, in the order played, numbered from 1. */
+export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {
+  return sets
+    .flatMap((set) => set.levels.map((data) => ({ set, data })))
+    .map((entry, i) => ({ ...entry, number: i + 1 }));
+}
+
 /** Every level, in the order they are played. */
-export const LEVELS: readonly LevelEntry[] = LEVEL_SETS.flatMap((set) =>
-  set.levels.map((data) => ({ set, data })),
-).map((entry, i) => ({ ...entry, number: i + 1 }));
+export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);
 
 /** The slowest and the fastest a level's pace may be. */
 const PACE = { least: 0.8, most: 1.4 } as const;

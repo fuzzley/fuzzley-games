@@ -27,5 +27,4 @@
 />
 <app-result (chooseLevel)="levelsOpen.set(true)" />
 <app-levels [open]="levelsOpen()" (closed)="levelsOpen.set(false)" />
-<!-- Last, so it opens over the settings or the levels when a change would lose a run. -->
 <fz-confirm-dialog />

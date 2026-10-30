@@ -7,6 +7,7 @@ import {
   LEVEL_SETS,
   type LevelData,
   type LevelSetData,
+  levelsOf,
   parseLevel,
 } from "./levels";
 import { COLUMNS, ROWS } from "./tuning";
@@ -381,5 +382,36 @@ describe("the levels", () => {
     expect(LEVELS.map((entry) => entry.number)).toEqual(
       LEVELS.map((_, i) => i + 1),
     );
+  });
+});
+
+describe("levelsOf", () => {
+  /** Returns a set of levels of one brick each, named by their ids. */
+  function setOf(id: string, levelIds: readonly string[]): LevelSetData {
+    return {
+      id,
+      name: id,
+      drops: 0,
+      levels: levelIds.map((levelId) => ({
+        id: levelId,
+        name: levelId,
+        capsules: [],
+        bricks: ["o"],
+      })),
+    };
+  }
+
+  it("numbers the levels of every set in order, from 1, each with its set", () => {
+    const sets = [setOf("first", ["a", "b"]), setOf("second", ["c"])];
+
+    const levels = levelsOf(sets);
+
+    expect(
+      levels.map(({ number, set, data }) => [number, set.id, data.id]),
+    ).toEqual([
+      [1, "first", "a"],
+      [2, "first", "b"],
+      [3, "second", "c"],
+    ]);
   });
 });

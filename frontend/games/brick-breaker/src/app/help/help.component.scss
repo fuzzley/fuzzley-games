@@ -30,6 +30,11 @@
     gap: var(--fz-space-3);
     align-items: center;
     min-height: 24px;
+
+    // Beside the picture's column, whether or not the picture has come.
+    > div {
+      grid-column: 2;
+    }
   }
 
   img {

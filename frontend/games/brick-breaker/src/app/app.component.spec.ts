@@ -142,17 +142,16 @@ describe("AppComponent", () => {
   });
 
   describe("the dialogs", () => {
-    it.each([
-      ["Levels", "Levels"],
-      ["How to play", "How to play"],
-      ["Settings", "Settings"],
-    ])("open %s from the bar", async (button, dialog) => {
-      await renderApp();
+    it.each(["Levels", "How to play", "Settings"])(
+      "open %s from the bar",
+      async (name) => {
+        await renderApp();
 
-      await userEvent.click(screen.getByRole("button", { name: button }));
+        await userEvent.click(screen.getByRole("button", { name }));
 
-      expect(screen.getByRole("dialog", { name: dialog })).toBeVisible();
-    });
+        expect(screen.getByRole("dialog", { name })).toBeVisible();
+      },
+    );
 
     it("open the levels from the card over an ended run", async () => {
       const game = await renderApp();
@@ -170,26 +169,37 @@ describe("AppComponent", () => {
   });
 
   describe("the focus", () => {
-    it("goes back to the board once the settings close", async () => {
+    it.each([
+      ["Levels", "Close levels"],
+      ["How to play", "Close How to play"],
+      ["Settings", "Close settings"],
+    ])("goes back to the board once %s closes", async (open, close) => {
       await renderApp();
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+      await userEvent.click(screen.getByRole("button", { name: open }));
 
-      await userEvent.click(
-        screen.getByRole("button", { name: "Close settings" }),
-      );
+      await userEvent.click(screen.getByRole("button", { name: close }));
       await settle();
 
       expect(screen.getByRole("application")).toHaveFocus();
     });
 
-    it("leaves the board as a dialog opens, pausing the level", async () => {
-      const game = await launchedApp();
+    it("goes back to the board once the levels chosen from an ended run close", async () => {
+      const game = await renderApp();
+      await game.startAt(SPEC_LEVEL.steel);
+      for (let life = 0; life < FIRST_LIVES; life++) loseBall(game);
+      game.tick(FRAME_MS, STILL);
+      await settle();
+      await userEvent.click(
+        screen.getByRole("button", { name: "Choose a level" }),
+      );
+      await settle();
 
       await userEvent.click(
-        screen.getByRole("button", { name: "How to play" }),
+        screen.getByRole("button", { name: "Close levels" }),
       );
+      await settle();
 
-      expect(game.outcome()).toBe("paused");
+      expect(screen.getByRole("application")).toHaveFocus();
     });
 
     it("goes back to the board once a question is answered no", async () => {

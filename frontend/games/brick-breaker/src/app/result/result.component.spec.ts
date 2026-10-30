@@ -2,10 +2,14 @@ import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { FIRST_LIVES } from "../../rules/tuning";
+import type { LevelEntry } from "../../rules/levels";
 import {
   FRAME_MS,
   SPEC_LEVEL,
+  SPEC_LEVELS,
   STILL,
+  TWO_SETS,
+  clearToNext,
   loseBall,
   playToClear,
   provideSpecLevels,
@@ -21,11 +25,14 @@ interface RenderedResult {
   readonly detectChanges: () => void;
 }
 
-/** Renders the card over the specs' levels, with a run started at a level. */
-async function renderAt(level: number): Promise<RenderedResult> {
+/** Renders the card over the specs' levels, or those given, with a run started at a level. */
+async function renderAt(
+  level: number,
+  levels: readonly LevelEntry[] = SPEC_LEVELS,
+): Promise<RenderedResult> {
   const chooseLevel = vi.fn();
   const { fixture } = await render(ResultComponent, {
-    providers: provideSpecLevels(),
+    providers: provideSpecLevels(levels),
     on: { chooseLevel },
   });
   const game = TestBed.inject(GameService);
@@ -40,18 +47,20 @@ async function renderAt(level: number): Promise<RenderedResult> {
   };
 }
 
-/** Renders the card over a run lost at the steel level, the card open. */
+/** Renders the card over a run lost on its second level, the card open. */
 async function renderLost(): Promise<RenderedResult> {
-  const rendered = await renderAt(SPEC_LEVEL.steel);
+  const rendered = await renderAt(SPEC_LEVEL.blasts);
+  clearToNext(rendered.game);
   for (let life = 0; life < FIRST_LIVES; life++) loseBall(rendered.game);
   rendered.game.tick(FRAME_MS, STILL);
   rendered.detectChanges();
   return rendered;
 }
 
-/** Renders the card over a run won at the last level, the card open. */
+/** Renders the card over a run won on its second level, the last, the card open. */
 async function renderWon(): Promise<RenderedResult> {
-  const rendered = await renderAt(SPEC_LEVEL.last);
+  const rendered = await renderAt(1, TWO_SETS);
+  clearToNext(rendered.game);
   playToClear(rendered.game);
   rendered.game.tick(FRAME_MS, STILL);
   rendered.detectChanges();
@@ -80,16 +89,16 @@ describe("ResultComponent", () => {
 
     expect(
       screen.getByRole("alertdialog", { name: "Game over" }),
-    ).toHaveAccessibleDescription("Out of lives on level 3, at Normal speed");
+    ).toHaveAccessibleDescription("Out of lives on level 2, at Normal speed");
   });
 
   it("shows the score, the level reached and the levels cleared", async () => {
     await renderLost();
 
     expect(figures()).toEqual([
-      ["Score", "0"],
-      ["Level", "3"],
-      ["Cleared", "0"],
+      ["Score", "4400"],
+      ["Level", "2"],
+      ["Cleared", "1"],
     ]);
   });
 
@@ -97,10 +106,10 @@ describe("ResultComponent", () => {
     const { user, game } = await renderLost();
 
     await user.click(
-      screen.getByRole("button", { name: "Try again from level 3" }),
+      screen.getByRole("button", { name: "Try again from level 2" }),
     );
 
-    expect(game.run()).toMatchObject({ level: 3, outcome: "ready" });
+    expect(game.run()).toMatchObject({ level: 2, outcome: "ready" });
     expect(game.resultOpen()).toBe(false);
   });
 
@@ -109,8 +118,12 @@ describe("ResultComponent", () => {
 
     expect(
       screen.getByRole("alertdialog", { name: "Every level cleared!" }),
-    ).toHaveAccessibleDescription("From level 8 to the last, at Normal speed");
-    expect(figures()).toContainEqual(["Cleared", "1"]);
+    ).toHaveAccessibleDescription("From level 1 to the last, at Normal speed");
+    expect(figures()).toEqual([
+      ["Score", expect.any(String)],
+      ["Level", "2"],
+      ["Cleared", "2"],
+    ]);
   });
 
   it("starts a new game after a won run, at the level it started at", async () => {
@@ -118,10 +131,7 @@ describe("ResultComponent", () => {
 
     await user.click(screen.getByRole("button", { name: "New game" }));
 
-    expect(game.run()).toMatchObject({
-      level: SPEC_LEVEL.last,
-      outcome: "ready",
-    });
+    expect(game.run()).toMatchObject({ level: 1, outcome: "ready" });
   });
 
   it("puts the card away and asks for the levels", async () => {
