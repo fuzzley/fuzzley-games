@@ -1,7 +1,7 @@
 # Brick Breaker
 
-The `brick-breaker` workspace: Brick Breaker, its field to be drawn with
-Phaser 4 through `@fz/phaser`, in an Angular shell on the shared libraries. What
+The `brick-breaker` workspace: Brick Breaker, its field drawn with Phaser 4
+through `@fz/phaser`, in an Angular shell on the shared libraries. What
 every game keeps, in [frontend/games/AGENTS.md](../AGENTS.md), what every
 workspace keeps, in [frontend/AGENTS.md](../../AGENTS.md), and the
 repository's rules, in [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply
@@ -9,9 +9,9 @@ here too; this workspace keeps its own for its code. The repository's
 `phaser-core` skill says how any game here is drawn with Phaser. Paths are
 relative to `frontend/games/brick-breaker/`.
 
-It is being built, step by step, as `docs/brick-breaker-execution-plan.md`
-lays out, which also describes the game as it will be; this file describes
-the code that exists.
+Its skills, in `.agents/skills/`, cover how its specs run and what they
+share (`brick-breaker-testing`), and what adding a level, a set, a capsule,
+a ball or a brick kind takes (`brick-breaker-content`).
 
 ## Technology Stack
 
@@ -27,13 +27,19 @@ the code that exists.
 
 ## Layers
 
-`eslint.config.js` fences four folders under `src/`, as Snake's, each
-importing only the layers below it: the rules, with no framework and no
-library but `@fz/core`, physics included; the view, which works out what
-to draw without Phaser, with `@fz/phaser`'s pure entries; the scene, the
-only code that imports Phaser; and the shell, in Angular, which may take
-the scene and `@fz/phaser/host` only by type. So far the rules, the view,
-the scene and the shell's first files exist.
+Four folders under `src/`, each importing only the layers below it, as
+`eslint.config.js` fences them:
+
+| Folder       | May import                                                                                                                 | May not import                                                      |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`                                        | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
+| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import      |
+
+The physics is the rules', so the whole game plays in Node, as the
+autopilot does. The shell loads the scene with `import()`, which the fence
+doesn't see, so Phaser stays out of the first download.
 
 ## Layout
 
@@ -272,6 +278,71 @@ the scene and the shell's first files exist.
     `_index.scss`, the toolkit every component `@use`s, which emits no
     CSS.
 
+  A new feature gets a folder of its own, named for what it does, never for
+  the kind of code in it.
+
+- **`src/testing/`** — what the specs share, and what the scripts in
+  `tools/` load through Vite: fields from pictures, the atlas in one palette,
+  the autopilot, the palette's roles, the shell's small levels and the run
+  the screenshots keep, as Tests below says. The app's tsconfig leaves it
+  out.
+- **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
+  synthesizes the sounds; `report-levels.mjs` reports how the autopilot plays
+  every level; `check-layout.mjs` checks the build's layout in headless
+  Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
+
+## The Field
+
+- **The scene follows the game; it never leads.** Each frame it hands the
+  game the time and the steering (`tick()`), so the field steps in the
+  scene's time, in fixed steps, and draws the frame the game hands back. A
+  new field, as a level starts or a run is taken up, is how the scene knows
+  to stop what the last one set off.
+- **The board is an application** to assistive technology, focusable,
+  named for its level and described by its keys; the canvas in it is
+  hidden, and the announcer says what happens. Pause and Sound keep the
+  focus on the board when pressed with a mouse or a finger, so the keys go
+  on working.
+- **Phaser's input is the board's.** The keyboard's target is the board's
+  element, so the keys reach the game only while it has the focus. Phaser's
+  captures are global, which is why the scene captures only the arrows and
+  Space, which would scroll the page, and ignores a key pressed with Ctrl,
+  Alt or Meta. Keys go by `event.code`, so an AZERTY keyboard steers with Q
+  and D.
+- **The level waits for the player.** A ball waits on the paddle until it is
+  launched. The level pauses when the focus leaves the room, the page is
+  hidden, the screen turns or a dialog opens, and goes on only when the
+  player says; a run taken up after a reload starts paused. Nothing launches
+  or goes on until the field is drawn (`GameService.setDrawn()`, which the
+  board calls from its canvas), since a level nobody can see would be lost.
+- **Its colors are the palette's and its own inks'.** `bricksPalette()`
+  takes the field, its wall, the paddle, the balls, the capsules and the
+  steel, blast and gift bricks from the page's roles, which `ThemeService`
+  reads, and the bricks' tints from `inks.ts`, eight for light palettes and
+  eight for dark; `src/view/contrast.spec.ts` holds them apart in every
+  palette.
+- **The placeholder, the ring and the cards work out the field in CSS,** as
+  `fieldMetrics()` does, at the window's pixel ratio; the ring takes the
+  scene's own rectangle once it has drawn (`data-field`), and the layout
+  check holds the placeholder to it.
+- **Motion follows the player's preference** (`GameViewportService`'s
+  `allowsMotion`): without it the flourishes, the shards, rings, shake and
+  the last bricks' pulse, are left out, and the cards open without waiting.
+
+## Styling
+
+Every component stylesheet opens with `@use "../styles" as *;`, which
+brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints, and nothing
+else. The frontend's Angular and Sass rules apply; on top of them:
+
+- **No color is written in a stylesheet.** The field's are the palette's
+  and the inks', which the scene draws, and the placeholder draws with the
+  palette's tokens.
+- **The size comes from the stage,** a size container: the field takes the
+  most room it is given that keeps its shape, 26 units by 30, each unit a
+  whole number of device pixels, inside a margin of `--room`, the insets the
+  canvas lays the field inside.
+
 ## What It Keeps
 
 Each entry is in `localStorage`, versioned
@@ -290,6 +361,20 @@ can't trust rather than failing:
   and its regrowth are due at, with the field's count of steps, its draws,
   how far the balls' speed has climbed, and the streak's points. The balls
   in flight, the capsules and the effects are not kept (decision 16).
+
+## In This Repository
+
+What every game keeps is in `frontend/games/AGENTS.md`. Here:
+
+- **Its screenshots** are in `public/docs/screenshots/brick-breaker/`, and
+  `yarn capture:screenshots` makes them again; `index.html` names the
+  preview as the page's link preview.
+- **The browser's toolbar takes the page's color** (`THEME_COLOR_ROLE` in
+  `src/main.ts`), and the settings offer the palette.
+- **Accessibility.** The rules are the repository's `web-game-accessibility`
+  skill's. Every overlay is an `<fz-dialog>`, the board is the application
+  above, and every level begun, ball lost, pause, going on, level cleared
+  and end is announced.
 
 ## Development Commands
 
@@ -355,27 +440,38 @@ workspace's with the others'.
 The repository's rules for specs apply. A spec sits beside the file it tests,
 named after it, and runs in jsdom; `src/test-setup.ts` installs
 `@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs real
-Phaser through `runScene()`, with a fake shell over a pictured field.
-`src/testing/field_picture.ts` lays a field out from a picture of its bricks
-(`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in play with
-none (`playWithoutBall()`), steps it and reads its events, so a spec of the
-field reads as the field it plays. `src/testing/art_frames.ts` draws the atlas
-in one palette at one scale for the art's specs, and finds a frame by its name
-(`frameNamed()`). `src/testing/autopilot.ts` plays a level as a good player
-would (`autoplay()`): it keeps the paddle under the ball that will reach it
-first, lands it a seeded distance off the middle or toward a brick the level
-needs that it can see, catches the good capsules it has time for, and fires,
-serves and launches at once. `src/rules/autopilot.spec.ts` holds every level,
-at every speed, to being cleared by it within eight minutes of game time, its
-last three bricks within one, and the catalog spec holds the levels to using
-every brick kind and letting every capsule first fall at the level its `from`
-names.
-`src/testing/roles.ts` puts a palette's roles on the page (`paintRoles()`) for
-the specs that color the field. `src/testing/play.ts` holds the small levels
-the shell's specs play, each set up to come to one thing soon, and two sets, of
-two levels and then one (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with
-a seed of its own through `GAME_RANDOM` (`provideSpecLevels()`), and plays
-them through `tick()`, steering the paddle from the frame it reads (`under()`,
-`awayFrom()`, `playUntil()`, `loseBall()`, `playToClear()`, `clearToNext()`).
+Phaser through `runScene()`, with a fake shell over a pictured field. This
+workspace's `brick-breaker-testing` skill covers its setup, floors and
+fixtures, the repository's `angular-testing` the patterns every Angular
+workspace's specs share, and `phaser-core` the harness. What the specs share
+is in `src/testing/`:
+
+- `field_picture.ts` lays a field out from a picture of its bricks
+  (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in play
+  with none (`playWithoutBall()`), steps it and reads its events, so a spec
+  of the field reads as the field it plays.
+- `art_frames.ts` draws the atlas in one palette at one scale for the art's
+  specs, and finds a frame by its name (`frameNamed()`).
+- `autopilot.ts` plays a level as a good player would (`autoplay()`): it
+  keeps the paddle under the ball that will reach it first, lands it a
+  seeded distance off the middle or toward a brick the level needs that it
+  can see, catches the good capsules it has time for, and fires, serves and
+  launches at once. `src/rules/autopilot.spec.ts` holds every level, at
+  every speed, to being cleared by it within eight minutes of game time, its
+  last three bricks within one, and the catalog spec holds the levels to
+  using every brick kind and letting every capsule first fall at the level
+  its `from` names.
+- `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
+  specs that color the field.
+- `play.ts` holds the small levels the shell's specs play, each set up to
+  come to one thing soon, and two sets, of two levels and then one
+  (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with a seed of
+  its own through `GAME_RANDOM` (`provideSpecLevels()`), and plays them
+  through `tick()`, steering the paddle from the frame it reads (`under()`,
+  `awayFrom()`, `playUntil()`, `loseBall()`, `playToClear()`,
+  `clearToNext()`).
+- `kept_run.ts` keeps a run begun at a level, the bricks it names broken or
+  worn through the rules (`keptRun()`), for the screenshots' script.
+
 The board's spec runs on `provideFakePhaserCanvas()`, and then with the real
 scene it loads, through which it plays a level to its end.
