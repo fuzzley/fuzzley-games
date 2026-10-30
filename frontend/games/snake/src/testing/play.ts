@@ -1,5 +1,6 @@
+import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { GameService } from "../app/play/game.service";
+import { GAME_RANDOM, GameService } from "../app/play/game.service";
 import type { Direction } from "../rules/geometry";
 import { stepMs } from "../rules/speed";
 import { runFrom } from "./run_picture";
@@ -14,6 +15,15 @@ export const ALMOST_FULL = runFrom(["v<<", "@*^", ">>^"], {
   steps: 20,
 });
 
+/**
+ * Gives `GameService` the same seed for every run, so the apples after the
+ * first fall where they fell before, and a run played to its end eats the
+ * same number of them each time.
+ */
+export function provideSeededRuns(): Provider {
+  return { provide: GAME_RANDOM, useValue: () => 0.5 };
+}
+
 /** Moves a game on a step's time at a time until its run ends. */
 export function playToTheEnd(game: GameService): void {
   for (let i = 0; i < 200 && !game.ended(); i++) {
@@ -24,7 +34,8 @@ export function playToTheEnd(game: GameService): void {
 /**
  * Returns the game with a run started one way and played to its end: up runs
  * into the top wall having eaten nothing, and right eats the first apple on
- * its way into the right one.
+ * its way into the right one, and the second too where the run's seed lays
+ * it in the way, as the seed `provideSeededRuns()` gives doesn't.
  */
 export function endedGame(direction: Direction = "up"): GameService {
   const game = TestBed.inject(GameService);

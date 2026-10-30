@@ -1,18 +1,19 @@
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import type { Direction } from "../../rules/geometry";
-import { endedGame, wonGame } from "../../testing/play";
+import { endedGame, provideSeededRuns, wonGame } from "../../testing/play";
 import type { GameService } from "../play/game.service";
 import { ResultComponent } from "./result.component";
 
 /**
- * Renders the card, then plays a run one way to its end, and waits for the
- * card to open: at once, as jsdom asks for no motion.
+ * Renders the card, then plays a run one way to its end, each run from the
+ * same seed, and waits for the card to open: at once, as jsdom asks for no
+ * motion.
  */
 async function renderEnded(
   play: () => GameService = () => endedGame(),
 ): Promise<{ user: UserEvent; game: GameService }> {
-  await render(ResultComponent);
+  await render(ResultComponent, { providers: [provideSeededRuns()] });
   const game = play();
   game.tick(16);
   await screen.findByRole("alertdialog");
