@@ -12,6 +12,7 @@
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "build:sounds": "node tools/build-sounds.mjs",
+    "capture:screenshots": "node tools/capture-screenshots.mjs",
     "check:layout": "node tools/check-layout.mjs",
     "report:levels": "node tools/report-levels.mjs",
     "test": "vitest run --coverage",
