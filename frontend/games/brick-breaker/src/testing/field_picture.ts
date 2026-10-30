@@ -1,7 +1,7 @@
 import type { Ball } from "../rules/balls";
 import type { Brick } from "../rules/bricks";
 import type { CapsuleId } from "../rules/catalog/capsules";
-import type { FieldEventKind } from "../rules/events";
+import type { FieldEvent, FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
 import { CELLS, cellIndex, columnOf, rowOf } from "../rules/grid";
 import { LEGEND, NO_BRICK, brickOf } from "../rules/legend";
@@ -135,6 +135,15 @@ export function eventsOf(field: Field): FieldEventKind[] {
   const kinds: FieldEventKind[] = [];
   field.events.forEachSince(0, (event) => kinds.push(event.kind));
   return kinds;
+}
+
+/** Returns a copy of the latest event the field's log holds, or null before the first. */
+export function lastEvent(field: Field): FieldEvent | null {
+  const events: FieldEvent[] = [];
+  field.events.forEachSince(field.events.latest - 1, (event) => {
+    events.push({ ...event });
+  });
+  return events.at(-1) ?? null;
 }
 
 /** Returns which way a ball heads, in degrees from straight up, positive to the right. */

@@ -86,3 +86,35 @@
     line-height: var(--fz-leading-tight);
   }
 }
+
+// The box, then its label, with the description under the label. The label
+// is as tall as a finger needs, and clicking it ticks the box.
+.assist {
+  display: grid;
+  margin-bottom: var(--fz-space-3);
+  grid-template-columns: auto 1fr;
+  column-gap: var(--fz-space-3);
+  align-items: center;
+
+  input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--fz-accent);
+    cursor: pointer;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    min-height: var(--fz-tap-target);
+    font-size: var(--fz-font-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .setting-desc {
+    grid-column: 2;
+    margin: 0;
+  }
+}

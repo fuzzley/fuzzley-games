@@ -1,18 +1,28 @@
 import { canBreak } from "../rules/bricks";
 import type { FieldEvent, FieldEventKind, FieldView } from "./frame";
 
+/** Every sound of the game's sprite, in the sprite's order. */
+export const SOUNDS = [
+  "paddle",
+  "wall",
+  "hit",
+  "broken",
+  "steel",
+  "blast",
+  "caught",
+  "fired",
+  "lost",
+  "cleared",
+] as const;
+
 /** Names a sound of the game's sprite. */
-export type SoundName =
-  | "paddle"
-  | "wall"
-  | "hit"
-  | "broken"
-  | "steel"
-  | "blast"
-  | "caught"
-  | "fired"
-  | "lost"
-  | "cleared";
+export type SoundName = (typeof SOUNDS)[number];
+
+/** How far a sound rises for each brick of a streak, in cents: a semitone. */
+const STREAK_STEP_CENTS = 100;
+
+/** The most a streak raises a sound, in cents: an octave. */
+const STREAK_MOST_CENTS = 1200;
 
 /**
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
@@ -61,6 +71,39 @@ export function effectsOf(
   const brick = field.bricks[event.cell];
   if (event.kind === "hit" && brick && !canBreak(brick)) return UNBROKEN_HIT;
   return EVENT_EFFECTS[event.kind];
+}
+
+/**
+ * Returns how far an event's sound is raised, in cents: a broken brick's by
+ * a semitone for each brick of its streak before it, up to an octave, which
+ * rewards a streak by ear; any other's not at all.
+ */
+export function detuneOf(event: Readonly<FieldEvent>): number {
+  if (event.kind !== "broken" || event.streak < 2) return 0;
+  return Math.min((event.streak - 1) * STREAK_STEP_CENTS, STREAK_MOST_CENTS);
+}
+
+/**
+ * Gathers the sounds a frame's events call for, so each plays once, at the
+ * most it rose: a blast's dozen bricks sound as one, and a streak at its
+ * highest.
+ */
+export class FrameSounds {
+  /** Each sound heard since they were last played, with the most it rose. */
+  private readonly heard = new Map<SoundName, number>();
+
+  /** Notes a sound an event calls for, risen by some cents. */
+  hear(name: SoundName, detune: number): void {
+    const highest = this.heard.get(name);
+    if (highest === undefined || detune > highest) this.heard.set(name, detune);
+  }
+
+  /** Plays each sound heard since the last time, once, at the most it rose, and forgets them. */
+  playEach(play: (name: SoundName, detune: number) => void): void {
+    if (this.heard.size === 0) return;
+    for (const [name, detune] of this.heard) play(name, detune);
+    this.heard.clear();
+  }
 }
 
 /** Returns the flourishes an event's effects play: all of them where motion is welcome, else none. */

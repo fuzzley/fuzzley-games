@@ -175,7 +175,7 @@ export function hitBrick(
   }
   brick.broken = true;
   scoreBreak(field, brick, before);
-  field.events.add("broken", x, y, brick.cell);
+  field.events.add("broken", x, y, brick.cell, null, field.streak);
   runTraits("broken", field, brick);
   if (isNeeded(brick)) {
     field.needed--;

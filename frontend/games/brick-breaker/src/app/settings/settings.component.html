@@ -60,6 +60,25 @@
       </div>
 
       <div class="setting">
+        <span class="setting-label" aria-hidden="true">Sound</span>
+        <div class="assist">
+          <input
+            #sound
+            id="sound"
+            type="checkbox"
+            aria-describedby="sound-desc"
+            [checked]="settings().sound"
+            (change)="setSound(sound.checked)"
+          />
+          <label for="sound">Play sounds</label>
+          <p class="setting-desc" id="sound-desc">
+            A bounce off the paddle, a break that rises along a streak, and a
+            chime for a level cleared.
+          </p>
+        </div>
+      </div>
+
+      <div class="setting">
         <span class="setting-label" aria-hidden="true">Theme</span>
         <fz-theme-picker />
       </div>

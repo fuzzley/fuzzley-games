@@ -91,6 +91,14 @@ describe("SettingsComponent", () => {
     ).toBeChecked();
   });
 
+  it("turns the sound off", async () => {
+    const { user } = await renderSettings();
+
+    await user.click(screen.getByRole("checkbox", { name: "Play sounds" }));
+
+    expect(TestBed.inject(SettingsService).settings().sound).toBe(false);
+  });
+
   it("offers the palettes", async () => {
     await renderSettings();
 

@@ -21,11 +21,27 @@ describe("EventLog", () => {
     const log = new EventLog();
 
     log.add("wall", 1, 2);
-    log.add("broken", 3, 4, 17);
+    log.add("broken", 3, 4, 17, null, 5);
 
     expect(eventsSince(log, 0)).toEqual([
-      { serial: 1, kind: "wall", x: 1, y: 2, cell: -1, capsule: null },
-      { serial: 2, kind: "broken", x: 3, y: 4, cell: 17, capsule: null },
+      {
+        serial: 1,
+        kind: "wall",
+        x: 1,
+        y: 2,
+        cell: -1,
+        capsule: null,
+        streak: 0,
+      },
+      {
+        serial: 2,
+        kind: "broken",
+        x: 3,
+        y: 4,
+        cell: 17,
+        capsule: null,
+        streak: 5,
+      },
     ]);
   });
 

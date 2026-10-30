@@ -15,6 +15,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent, type IconName } from "@fz/ui/icon";
 import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
 const HOME_HREF = "/";
@@ -27,7 +28,7 @@ const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
 }));
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "levels" | "help" | "settings";
+type MenuAction = "sound" | "levels" | "help" | "settings";
 
 /** Describes the Pause button as the level stands. */
 interface PauseButton {
@@ -48,8 +49,8 @@ interface PauseButton {
  * alone, the lives as a number, since a score runs to six figures and the
  * lives to six.
  *
- * On a compact screen, Pause and New game stay, and Levels, How to play and
- * Settings move into the overflow menu, as on the narrowest the link home
+ * On a compact screen, Pause and New game stay, and Sound, Levels, How to
+ * play and Settings move into the overflow menu, as on the narrowest the link home
  * does too.
  */
 @Component({
@@ -70,6 +71,7 @@ interface PauseButton {
 export class BarComponent {
   protected readonly game = inject(GameService);
   protected readonly viewport = inject(GameViewportService);
+  private readonly settings = inject(SettingsService);
 
   /** Emitted when the player asks for the levels, to start at one. */
   readonly openLevels = output();
@@ -108,6 +110,9 @@ export class BarComponent {
     return times > 1 ? `×${String(times)}` : null;
   });
 
+  /** Whether the player wants sound. */
+  protected readonly sound = computed(() => this.settings.settings().sound);
+
   protected readonly pauseButton = computed<PauseButton>(() => {
     const outcome = this.game.outcome();
     return outcome === "paused"
@@ -120,6 +125,9 @@ export class BarComponent {
     readonly BarOverflowItem<MenuAction>[]
   >(() => {
     const actions: readonly BarOverflowAction<MenuAction>[] = [
+      this.sound()
+        ? { id: "sound", label: "Turn sound off", icon: "sound-off" }
+        : { id: "sound", label: "Turn sound on", icon: "sound" },
       { id: "levels", label: "Levels", icon: "grid" },
       { id: "help", label: "How to play", icon: "help" },
       { id: "settings", label: "Settings", icon: "settings" },
@@ -151,6 +159,11 @@ export class BarComponent {
     }
   }
 
+  /** Turns the sound on or off, which the settings keep. */
+  protected toggleSound(): void {
+    this.settings.update({ sound: !this.sound() });
+  }
+
   /** Starts a run at the speed chosen from the badge, asking first. */
   protected changeSpeed(speed: Speed): void {
     void this.game.changeSpeed(speed);
@@ -164,6 +177,9 @@ export class BarComponent {
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {
     switch (id) {
+      case "sound":
+        this.toggleSound();
+        break;
       case "levels":
         this.openLevels.emit();
         break;

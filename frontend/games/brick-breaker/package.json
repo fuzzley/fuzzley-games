@@ -11,6 +11,7 @@
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
+    "build:sounds": "node tools/build-sounds.mjs",
     "report:levels": "node tools/report-levels.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",

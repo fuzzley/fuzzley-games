@@ -217,6 +217,7 @@ export class BoardComponent {
     palette: () => this.palette(),
     motion: () => this.viewport.allowsMotion(),
     touch: () => this.settings.settings().touch,
+    sound: () => this.settings.settings().sound,
     onLayout: (field) => {
       this.laidOut.set(field);
     },

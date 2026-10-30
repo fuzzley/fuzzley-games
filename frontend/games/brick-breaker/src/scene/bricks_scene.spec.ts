@@ -47,6 +47,7 @@ import {
   toCanvasY,
   toFieldX,
 } from "../view/field_metrics";
+import { SOUNDS } from "../view/effects";
 import type { FieldFrame } from "../view/frame";
 import { type BricksPalette, bricksPalette } from "../view/palette";
 import { lineWidth } from "../view/shapes";
@@ -64,6 +65,7 @@ import {
   SHARDS,
 } from "../view/timing";
 import { ATLAS } from "./atlas";
+import spritemap from "./sounds/sounds.json";
 import {
   type BricksScene,
   type BricksSceneOptions,
@@ -109,6 +111,7 @@ class FakeShell implements BricksSceneOptions {
   colors: BricksPalette = LIGHT;
   welcomesMotion = true;
   steering: TouchSteering = "drag";
+  wantsSound = true;
   readonly ticks: Tick[] = [];
   readonly layouts: CssRect[] = [];
   readonly commands: FieldCommand[] = [];
@@ -125,6 +128,7 @@ class FakeShell implements BricksSceneOptions {
   readonly palette = (): BricksPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
   readonly touch = (): TouchSteering => this.steering;
+  readonly sound = (): boolean => this.wantsSound;
   readonly onLayout = (field: CssRect): void => {
     this.layouts.push(field);
   };
@@ -1372,6 +1376,37 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(shell.pictures).toHaveLength(2);
+    });
+  });
+
+  describe("the sounds", () => {
+    it("are the view's, in the sprite's order", () => {
+      expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
+    });
+
+    it("can be heard while the player wants them", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.sound.mute).toBe(false);
+    });
+
+    it("are muted while the player wants none", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.wantsSound = false;
+      run.advance(16);
+
+      expect(scene.sound.mute).toBe(true);
+    });
+
+    it("leave the field playing where they can't be loaded", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, 3);
+      run.advance(16);
+
+      expect(scene.sounds.loaded).toBe(false);
+      expect(shardsOf(scene)).not.toHaveLength(0);
     });
   });
 

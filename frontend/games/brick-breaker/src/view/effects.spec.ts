@@ -1,10 +1,16 @@
 import { fieldFrom } from "../testing/field_picture";
-import { effectsOf, flourishesOf } from "./effects";
+import {
+  FrameSounds,
+  type SoundName,
+  detuneOf,
+  effectsOf,
+  flourishesOf,
+} from "./effects";
 import type { FieldEvent, FieldEventKind } from "./frame";
 
-/** Returns an event of a kind, at a cell or none. */
-function eventOf(kind: FieldEventKind, cell = -1): FieldEvent {
-  return { serial: 1, kind, x: 0, y: 0, cell, capsule: null };
+/** Returns an event of a kind, at a cell or none, at a length of streak. */
+function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {
+  return { serial: 1, kind, x: 0, y: 0, cell, capsule: null, streak };
 }
 
 /** Every event, with the sound it plays and what of it moves. */
@@ -62,5 +68,51 @@ describe("flourishesOf", () => {
     const effects = effectsOf(eventOf("blast", 0), field);
 
     expect(flourishesOf(effects, true)).toEqual(["ring", "shake"]);
+  });
+});
+
+describe("detuneOf", () => {
+  it.each([
+    [1, 0],
+    [2, 100],
+    [5, 400],
+    [13, 1200],
+    [30, 1200],
+  ])("raises a brick broken %i into a streak by %i cents", (streak, cents) => {
+    expect(detuneOf(eventOf("broken", 0, streak))).toBe(cents);
+  });
+
+  it("raises no other event's sound", () => {
+    expect(detuneOf(eventOf("hit", 0, 5))).toBe(0);
+  });
+});
+
+describe("FrameSounds", () => {
+  /** Returns what a frame's sounds play, each as its name and how far it rose. */
+  function played(sounds: FrameSounds): [SoundName, number][] {
+    const plays: [SoundName, number][] = [];
+    sounds.playEach((name, detune) => plays.push([name, detune]));
+    return plays;
+  }
+
+  it("plays each sound heard once, at the most it rose", () => {
+    const sounds = new FrameSounds();
+    sounds.hear("broken", 100);
+    sounds.hear("blast", 0);
+    sounds.hear("broken", 300);
+    sounds.hear("broken", 200);
+
+    expect(played(sounds)).toEqual([
+      ["broken", 300],
+      ["blast", 0],
+    ]);
+  });
+
+  it("forgets the sounds it played", () => {
+    const sounds = new FrameSounds();
+    sounds.hear("wall", 0);
+    played(sounds);
+
+    expect(played(sounds)).toEqual([]);
   });
 });

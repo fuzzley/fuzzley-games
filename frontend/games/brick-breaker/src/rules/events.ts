@@ -43,6 +43,12 @@ export interface FieldEvent {
   cell: number;
   /** The capsule it happened to, or null. */
   capsule: CapsuleId | null;
+  /**
+   * How long the streak was as a brick broke, that brick counted, for its
+   * sound's pitch; 0 for any other event. The scene plays an event after
+   * the field has moved on, so the event keeps it.
+   */
+  streak: number;
 }
 
 /** How many events the log keeps, far more than a frame's steps make. */
@@ -58,7 +64,15 @@ export const EVENT_LOG_SIZE = 256;
 export class EventLog {
   private readonly ring: FieldEvent[] = Array.from(
     { length: EVENT_LOG_SIZE },
-    () => ({ serial: 0, kind: "wall", x: 0, y: 0, cell: -1, capsule: null }),
+    () => ({
+      serial: 0,
+      kind: "wall",
+      x: 0,
+      y: 0,
+      cell: -1,
+      capsule: null,
+      streak: 0,
+    }),
   );
 
   private last = 0;
@@ -75,6 +89,7 @@ export class EventLog {
     y: number,
     cell = -1,
     capsule: CapsuleId | null = null,
+    streak = 0,
   ): void {
     this.last++;
     const event = this.ring[this.last % EVENT_LOG_SIZE];
@@ -85,6 +100,7 @@ export class EventLog {
       event.y = y;
       event.cell = cell;
       event.capsule = capsule;
+      event.streak = streak;
     }
   }
 

@@ -77,7 +77,9 @@ the scene and the shell's first files exist.
   times the streak's multiplier, keeps the streak, and says what clearing a
   level adds, and how a cleared level's points add up (`tallyOf()`).
   `events.ts`'s `EventLog` is a ring of 256 numbered records, which the
-  scene plays and the shell hears, each from the last one it read.
+  scene plays and the shell hears, each from the last one it read; a broken
+  brick's carries the streak as it broke, as the scene plays it once the
+  field has moved on.
 - **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
   as Snake's is, from the first level to the end: the level in play, the
   points banked and the score, the lives and the points of the next, and
@@ -142,7 +144,10 @@ the scene and the shell's first files exist.
   are drawn with (`DrawCommand`), their helpers, which take no size below
   nothing, since a canvas not yet laid out gives a unit too small for the
   insets, and `lineWidth()`; `effects.ts` says what each event calls for,
-  its sound and the flourishes it plays where motion is welcome.
+  its sound and the flourishes it plays where motion is welcome, how far a
+  broken brick's sound rises along a streak (`detuneOf()`), and
+  `FrameSounds`, which plays each sound once a frame at most, at the
+  highest it was heard.
   `contrast.spec.ts` holds every tint, the steel, blast and gift bricks,
   every ball kind, both capsule tones, the paddle and the last bricks' glow
   to 3:1 against the field in every palette, a tough brick's deeper tints
@@ -171,16 +176,19 @@ the scene and the shell's first files exist.
   the last it played, and the flourishes an event calls for only where
   motion is welcome. `atlas.ts` plays the view's art into `@fz/phaser`'s
   `bakeAtlas()`, again on a new palette or a new unit, and the scene hands
-  How to play its pictures from the atlas each time (`onPictures()`). The
-  keys, clicks and taps go back through `command()`; Phaser hands a key
-  event over again with each new one in a frame, so the scene takes each
-  once.
+  How to play its pictures from the atlas each time (`onPictures()`).
+  `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
+  sprite in `sounds/`, which `yarn build:sounds` writes, and mutes the game
+  while the settings want none. The keys, clicks and taps go back through
+  `command()`; Phaser hands a key event over again with each new one in a
+  frame, so the scene takes each once.
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
-  question before a run is thrown away; it hands the board the focus as each run begins and whenever the
-  last dialog closes, and pauses the level in play when
-  `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked away.
+  question before a run is thrown away; it hands the board the focus as each
+  run begins and whenever the last dialog closes, and pauses the level in
+  play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player
+  looked away.
   - `play/` — `GameService` holds the run in a signal and the level in
     play's field outside one, moves the field on through `tick()`, which
     the scene's frames drive, steered as the player steers, launches,
@@ -201,16 +209,18 @@ the scene and the shell's first files exist.
     say. The board keeps the scene's pictures for How to play
     (`pictures`). It is an application named for its level, "Brick
     Breaker, level 3: Pyramid", and Phaser's keyboard target.
-  - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`,
-    the speed's badge, which asks before it starts a run at another, the
-    figures, and Pause, Levels, New game, How to play and Settings, the
-    last three in the overflow menu on a compact screen. From the width the
-    actions keep their labels at (`fitsActionLabels`), the figures are the
-    level, the score, the lives as hearts and the streak's multiplier while
-    it counts; below it, the score and the lives alone, the lives as a
-    number, one over the other across the bar, as a score runs to six
-    figures. It hands the board back the focus as Resume goes on, and asks
-    the app for the levels, How to play and the settings.
+  - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
+    speed's badge, which asks before it starts a run at another, the
+    figures, and Pause, Sound, Levels, New game, How to play and Settings,
+    all but Pause and New game in the overflow menu on a compact screen.
+    From the width the actions keep their labels at (`fitsActionLabels`),
+    the figures are the level, the score, the lives as hearts and the
+    streak's multiplier while it counts; below it, the score and the lives
+    alone, the lives as a number, one over the other across the bar, as a
+    score runs to six figures. Pause and Sound keep the focus on the board
+    when pressed with a mouse or a finger. It hands the board back the focus
+    as Resume goes on, and asks the app for the levels, How to play and the
+    settings.
   - `levels/` — the Levels dialog: each set under its name, its levels as
     buttons in a grid, named by number and name ("3 Pyramid"), the run's
     own marked `aria-current`. Choosing one starts a run there, asking
@@ -224,8 +234,9 @@ the scene and the shell's first files exist.
     pausing, the controls, and every brick, capsule and ball from the
     catalogs, each with its name, its sentence and, once the scene has
     drawn, its picture, which the app hands it from the board.
-  - `settings/` — the settings drawer (the speed, how a finger steers and
-    the palette) and `SettingsService`, which keeps what the player chose.
+  - `settings/` — the settings drawer (the speed, how a finger steers, the
+    sound and the palette) and `SettingsService`, which keeps what the
+    player chose.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
     `_index.scss`, the toolkit every component `@use`s, which emits no
     CSS.
@@ -239,7 +250,8 @@ Each entry is in `localStorage`, versioned
 (`LocalStorageService.writeVersioned()`), and its reader drops what it
 can't trust rather than failing:
 
-- `brick-breaker-settings`: how a finger steers the paddle.
+- `brick-breaker-settings`: how a finger steers the paddle, and whether
+  the field plays its sounds.
 
 ## Development Commands
 
@@ -266,6 +278,11 @@ workspace's with the others'.
   prints the game time each took, the time spent on the last three bricks
   the level needed, the paddle's bounces and the lives lost; it fails if a
   play didn't clear its level). It is how the difficulty ramp is tuned.
+- **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
+  which synthesizes the ten sounds, from the paddle's bop to a level's
+  chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their
+  spritemap, `sounds.json`, the same bytes every run; their names and order
+  are the view's `SOUNDS`, which the scene's spec holds them to).
 
 ## Tests
 

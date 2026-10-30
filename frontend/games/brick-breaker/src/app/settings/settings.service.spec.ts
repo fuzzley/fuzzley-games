@@ -11,18 +11,18 @@ function store(value: unknown): void {
 }
 
 describe("SettingsService", () => {
-  it("starts a new player steering by dragging", () => {
+  it("starts a new player steering by dragging, with sound", () => {
     const settings = TestBed.inject(SettingsService);
 
-    expect(settings.settings()).toEqual({ touch: "drag" });
+    expect(settings.settings()).toEqual({ touch: "drag", sound: true });
   });
 
-  it("changes the settings given", () => {
+  it("changes only the settings given", () => {
     const settings = TestBed.inject(SettingsService);
 
     settings.update({ touch: "follow" });
 
-    expect(settings.settings()).toEqual({ touch: "follow" });
+    expect(settings.settings()).toEqual({ touch: "follow", sound: true });
   });
 
   it("keeps the settings for the next visit", () => {
@@ -33,12 +33,20 @@ describe("SettingsService", () => {
     expect(TestBed.inject(SettingsService).settings().touch).toBe("follow");
   });
 
-  it("takes the default for a stored setting that makes no sense", () => {
-    store({ version: 1, touch: "swipe" });
+  it("takes each stored setting that makes sense, and the default for the rest", () => {
+    store({ version: 1, touch: "swipe", sound: false });
 
     const settings = TestBed.inject(SettingsService);
 
-    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
+    expect(settings.settings()).toEqual({ touch: "drag", sound: false });
+  });
+
+  it("takes a setting kept before it was offered as its default", () => {
+    store({ version: 1, touch: "follow" });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({ touch: "follow", sound: true });
   });
 
   it("starts afresh from settings stored in another shape", () => {

@@ -12,11 +12,14 @@ const SETTINGS_VERSION = 1;
 export interface Settings {
   /** How a finger steers the paddle on a touch screen. */
   readonly touch: TouchSteering;
+  /** Whether the field plays its sounds. */
+  readonly sound: boolean;
 }
 
 /** The settings a player starts with. */
 export const DEFAULT_SETTINGS: Settings = {
   touch: "drag",
+  sound: true,
 };
 
 const TOUCH_STEERINGS: readonly TouchSteering[] = ["drag", "follow"];
@@ -40,9 +43,10 @@ export class SettingsService {
   private read(): Settings {
     const saved = this.storage.readVersioned(SETTINGS_KEY, SETTINGS_VERSION);
     if (!saved) return DEFAULT_SETTINGS;
-    const { touch } = saved;
+    const { touch, sound } = saved;
     return {
       touch: oneOf(TOUCH_STEERINGS, touch) ?? DEFAULT_SETTINGS.touch,
+      sound: typeof sound === "boolean" ? sound : DEFAULT_SETTINGS.sound,
     };
   }
 }
