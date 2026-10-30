@@ -104,15 +104,18 @@ too. Paths are relative to `frontend/lib/dev/`.
   half a second to lay itself out again, which finds what follows a turn late,
   or not at all. A check's `before()` runs in the page ahead of its own
   scripts, to set it up as a player might have, such as with a setting stored.
-  `SMALLEST`, a phone of 320 × 480, and `shapesAt()` and `turnsAt()`, which
-  set a pixel ratio, are for a game drawn on a canvas, whose backing size is
-  checked at 2×. The functions it runs in the page are in
-  `src/layout_page.ts`, which only a browser runs, so coverage leaves it out.
-  A game's `tools/check-layout.mjs` holds its inspection and which checks it
-  runs, and hands them to `runLayoutScript()`, which reads the command line
-  (`--chrome`, `--help`), serves the build as `yarn preview` does, runs the
-  checks in a headless Chrome and prints what is wrong, or that the layout
-  holds, returning the exit code.
+  `SMALLEST`, a 320 × 480 phone held upright, and `shapesAt()` and
+  `turnsAt()`, which copy shapes and turns at a pixel ratio, are there for a
+  game drawn on a canvas, as Snake and Brick Breaker check theirs at 2×. The
+  functions it runs in the page are in `src/layout_page.ts`, which only a
+  browser runs, so coverage leaves it out. A game's `tools/check-layout.mjs`
+  holds its inspection and which checks it runs, and hands them to
+  `runLayoutScript()`, which reads the command line (`--chrome`, `--help`),
+  serves the build as `yarn preview` does, runs the checks in a headless
+  Chrome and prints what is wrong, or that the layout holds. It returns the
+  exit code, 1 for a layout that doesn't hold and 2 for an option it doesn't
+  know, and throws where it can't check at all, for a game with no build or no
+  Chrome to run.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),
@@ -187,6 +190,7 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   write; `src/screenshots.spec.ts` writes the site's images from a capture
   it draws; `src/sounds.spec.ts` renders sprites and reads them back;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
-  and the layout check against a fake browser, `src/testing/fake_browser.ts`.
+  and the layout check against a fake browser, `src/testing/fake_browser.ts`,
+  and the layout spec serves a build it writes with Vite's `preview()`.
   Starting a real Chrome is left to the screenshot scripts, so the coverage
   floor in `vitest.config.ts` sits under it.

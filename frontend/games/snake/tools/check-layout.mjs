@@ -38,6 +38,14 @@ const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
 /** The turns, at twice the pixels. */
 const TURNS_2X = turnsAt(2, TURNS);
 
+/** The selector the page matches once the scene has drawn. */
+const READY = 'fz-phaser-canvas[data-state="ready"]';
+
+/** The names of the shapes and turns the layout is checked at. */
+const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
+  .map((shape) => shape.name)
+  .join(", ");
+
 /**
  * Stores settings that show the on-screen arrows with a mouse too. It runs
  * in the page before its scripts, so it uses nothing from this module.
@@ -179,27 +187,19 @@ function inspectBoard() {
   return problems;
 }
 
-/** The selector the page matches once the scene has drawn. */
-const READY = 'fz-phaser-canvas[data-state="ready"]';
-
-/** The names of the shapes and turns the layout is checked at. */
-const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
-  .map((shape) => shape.name)
-  .join(", ");
-
 process.exitCode = await runLayoutScript({
   game: "Snake",
   root: join(import.meta.dirname, ".."),
   check: async (devtools, url) => {
-    const plain = { url, ready: READY, inspect: inspectBoard };
-    const arrows = { ...plain, before: wantArrows };
+    const bare = { url, ready: READY, inspect: inspectBoard };
+    const arrowed = { ...bare, before: wantArrows };
     const withoutArrows = [
-      ...(await checkLayout(devtools, plain, SHAPES_2X)),
-      ...(await checkTurns(devtools, plain, TURNS_2X)),
+      ...(await checkLayout(devtools, bare, SHAPES_2X)),
+      ...(await checkTurns(devtools, bare, TURNS_2X)),
     ];
     const withArrows = [
-      ...(await checkLayout(devtools, arrows, SHAPES_2X)),
-      ...(await checkTurns(devtools, arrows, TURNS_2X)),
+      ...(await checkLayout(devtools, arrowed, SHAPES_2X)),
+      ...(await checkTurns(devtools, arrowed, TURNS_2X)),
     ];
     return [
       ...withoutArrows,

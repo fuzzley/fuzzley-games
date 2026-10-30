@@ -581,3 +581,49 @@ finding was taken.
 - **Checks:** `@fz/dev`'s and `@fz/phaser`'s lint and typecheck, their
   sounds' and keys' specs, both games' `yarn build:sounds`, which wrote the
   same files, and Prettier and the references.
+
+### G8's review (cd86abb5)
+
+The reviewer found nothing a script did lost: the shapes, turns and pixel
+ratios, Snake's two passes and their labels, the words printed, the exit
+codes, the server closed, and the profiles' names. It took the server's
+close out, and every spec still passed. Every finding was taken but one
+part of the seventh.
+
+1. **The specs didn't hold the server closed,** nor a check that throws,
+   which the `finally` is for, nor that a layout that fails says nothing
+   of holding. **Fixed:** two specs fetch the build's address once the run
+   is over, after checks that pass and after checks that throw, and the
+   failing spec holds what is printed to nothing. With the close taken out,
+   both new specs fail; with "holds" printed to stderr, one does.
+2. **The API was larger than it needed:** `RunChrome` was `withChrome()`'s
+   type, `LAYOUT_USAGE` was exported only for a spec to compare with
+   itself, and a spec that stood in for Chrome had to pass the arguments
+   too. **Fixed:** the options are an object of the arguments and the
+   Chrome to run, typed as `withChrome()`, and the usage is private, its
+   spec reading what it says. `holds` keeps its job, and its doc shows the
+   sentence it ends.
+3. **The doc named one throw of several,** and not why it throws. **Fixed:**
+   it throws, rather than returning a code, where it can't check at all,
+   for a game with no build or no Chrome to run.
+4. **The usage named no game,** so the root's `yarn check:layout --help`
+   printed three of the same, and an option it didn't know printed a stack
+   trace. **Fixed:** the usage names the game, and an option it doesn't
+   know is reported with the usage, on stderr, returning 2.
+5. **The runner's exports came after the private helpers.** **Fixed:** they
+   come before them.
+6. **`@fz/dev`'s `AGENTS.md`** didn't say the layout spec serves a build,
+   and said what the games check at 2× rather than what the helpers are.
+   **Fixed:** both, and the exit codes.
+7. **The scripts' constants were split** between the top and the bottom,
+   and Snake's two checks were named like the lists of what they found.
+   **Fixed:** the constants are at the top, and the checks are `bare` and
+   `arrowed`. **Not taken:** Sudoku's `holds` stays inline, where the
+   others name theirs, since it lists one set of shapes.
+8. **`SMALLEST`'s and `shapesAt()`'s docs said what the games use them
+   for.** **Fixed:** they say what each is.
+
+- **Checks:** `@fz/dev`'s lint, typecheck and test (124), the three games'
+  lint and typecheck, Prettier and the references; Sudoku's
+  `check:layout --bogus` reports the option with the usage and exits 2,
+  and `yarn check:layout` says each game's layout holds where it did.

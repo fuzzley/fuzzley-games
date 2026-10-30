@@ -1,13 +1,15 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { type ChromeOptions, DevToolsConnection } from "./chrome.ts";
 import {
-  LAYOUT_USAGE,
+  type ChromeOptions,
+  DevToolsConnection,
+  type withChrome,
+} from "./chrome.ts";
+import {
   type LayoutCheck,
   type LayoutProblem,
   type LayoutScript,
-  type RunChrome,
   SHAPES,
   TURNS,
   checkLayout,
@@ -327,10 +329,24 @@ describe("runLayoutScript", () => {
    * Returns a stand-in for Chrome that hands the script a connection to a
    * fake browser, and keeps the options it was started with.
    */
-  function fakeChrome(started: ChromeOptions[] = []): RunChrome {
+  function fakeChrome(started: ChromeOptions[] = []): typeof withChrome {
     return async (options, use) => {
       started.push(options);
       return use(new DevToolsConnection(new FakeBrowser({})));
+    };
+  }
+
+  /**
+   * Returns checks that keep the address the build is served at, then find
+   * nothing wrong, or throw `thrown`.
+   */
+  function keepingAddress(
+    kept: string[],
+    thrown?: Error,
+  ): LayoutScript["check"] {
+    return (_, url) => {
+      kept.push(url);
+      return thrown ? Promise.reject(thrown) : Promise.resolve([]);
     };
   }
 
@@ -345,15 +361,47 @@ describe("runLayoutScript", () => {
       return [];
     };
 
-    await runLayoutScript(script([], check), [], fakeChrome());
+    await runLayoutScript(script([], check), {
+      args: [],
+      runChrome: fakeChrome(),
+    });
 
     expect(served).toContain("The game, built");
+  });
+
+  it("stops serving the build once the checks are done", async () => {
+    await build("The game");
+    const kept: string[] = [];
+
+    await runLayoutScript(script([], keepingAddress(kept)), {
+      args: [],
+      runChrome: fakeChrome(),
+    });
+
+    await expect(fetch(kept[0] ?? "")).rejects.toThrow();
+  });
+
+  it("throws what the checks throw, and stops serving the build", async () => {
+    await build("The game");
+    const kept: string[] = [];
+    const check = keepingAddress(kept, new Error("Chrome went away."));
+
+    const running = runLayoutScript(script([], check), {
+      args: [],
+      runChrome: fakeChrome(),
+    });
+
+    await expect(running).rejects.toThrow("Chrome went away.");
+    await expect(fetch(kept[0] ?? "")).rejects.toThrow();
   });
 
   it("says the layout holds where nothing is wrong, and succeeds", async () => {
     await build("The game");
 
-    const code = await runLayoutScript(script(), [], fakeChrome());
+    const code = await runLayoutScript(script(), {
+      args: [],
+      runChrome: fakeChrome(),
+    });
 
     expect({ code, printed }).toEqual({
       code: 0,
@@ -365,11 +413,15 @@ describe("runLayoutScript", () => {
     await build("The game");
     const found = [{ shape: "roomy", problem: "The board is missing." }];
 
-    const code = await runLayoutScript(script(found), [], fakeChrome());
+    const code = await runLayoutScript(script(found), {
+      args: [],
+      runChrome: fakeChrome(),
+    });
 
-    expect({ code, reported }).toEqual({
+    expect({ code, reported, printed }).toEqual({
       code: 1,
       reported: ["roomy: The board is missing."],
+      printed: [],
     });
   });
 
@@ -377,33 +429,49 @@ describe("runLayoutScript", () => {
     await build("The game");
     const started: ChromeOptions[] = [];
 
-    await runLayoutScript(
-      script(),
-      ["--chrome", "/opt/chrome"],
-      fakeChrome(started),
-    );
+    await runLayoutScript(script(), {
+      args: ["--chrome", "/opt/chrome"],
+      runChrome: fakeChrome(started),
+    });
 
     expect(started).toEqual([{ chrome: "/opt/chrome", name: basename(root) }]);
   });
 
-  it("prints its usage for --help, and checks nothing", async () => {
+  it("prints its usage for --help, naming the game, and checks nothing", async () => {
     const started: ChromeOptions[] = [];
 
-    const code = await runLayoutScript(
-      script(),
-      ["--help"],
-      fakeChrome(started),
-    );
-
-    expect({ code, printed, started }).toEqual({
-      code: 0,
-      printed: [LAYOUT_USAGE],
-      started: [],
+    const code = await runLayoutScript(script(), {
+      args: ["--help"],
+      runChrome: fakeChrome(started),
     });
+
+    expect({ code, started }).toEqual({ code: 0, started: [] });
+    expect(printed.join("\n")).toMatch(
+      /^Usage: yarn check:layout.*\n\nChecks Game's layout[^]*--chrome <path>/,
+    );
+  });
+
+  it("reports an option it doesn't know, with its usage, and fails, checking nothing", async () => {
+    const started: ChromeOptions[] = [];
+
+    const code = await runLayoutScript(script(), {
+      args: ["--bogus"],
+      runChrome: fakeChrome(started),
+    });
+
+    expect({ code, started }).toEqual({ code: 2, started: [] });
+    expect(reported.join("\n")).toMatch(
+      /^Unknown option '--bogus'[^]*Usage: yarn check:layout/,
+    );
   });
 
   it("throws for a game with no build, saying to build it first", async () => {
-    await expect(runLayoutScript(script(), [], fakeChrome())).rejects.toThrow(
+    const running = runLayoutScript(script(), {
+      args: [],
+      runChrome: fakeChrome(),
+    });
+
+    await expect(running).rejects.toThrow(
       "Found no build to check; run yarn build first.",
     );
   });
