@@ -106,12 +106,14 @@ focusable element with `role="application"`, named for the game and
 described by its keys, so a screen reader hands it the arrow keys; the
 canvas in it is hidden.
 
-- It waits for the player: nothing moves until the first key, and it
-  pauses whenever the focus leaves the board and its arrows, the page is
-  hidden or the screen turns, so opening a dialog, switching tabs or
-  turning the phone never costs a run: `@fz/game-ui/play_room`'s
-  `[fzPlayRoom]` says when. Pause has a key of
-  its own (Space, P or Escape) and a button.
+- It waits for the player: nothing moves until the player starts it,
+  Snake by its first direction and Brick Breaker by a launch, and it
+  pauses whenever the focus leaves the board (and Snake's on-screen
+  arrows), the page is hidden or the screen turns, so opening a dialog,
+  switching tabs or turning the phone never costs a run:
+  `@fz/game-ui/play_room`'s `[fzPlayRoom]` says when. Pause has keys of
+  its own and a button: Space, P or Escape in Snake, and P or Escape in
+  Brick Breaker, whose Space launches.
 - Its pace is the player's to choose: Snake offers three speeds, and a
   snake that steps from square to square rather than gliding; Brick
   Breaker three speeds, the slowest of which lets no capsule fall that

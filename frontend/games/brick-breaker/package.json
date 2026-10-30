@@ -1,7 +1,7 @@
 {
   "name": "brick-breaker",
   "version": "0.0.1",
-  "description": "Brick Breaker, drawn with Phaser: bounce the ball off the paddle, break every brick, and keep it off the floor.",
+  "description": "Brick Breaker, drawn with Phaser: bounce the ball off the paddle, break every brick and keep it off the floor.",
   "private": true,
   "type": "module",
   "scripts": {

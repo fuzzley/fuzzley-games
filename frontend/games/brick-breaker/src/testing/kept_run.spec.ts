@@ -1,21 +1,28 @@
+import { cellIndex } from "../rules/grid";
 import { LEVELS } from "../rules/levels";
 import { restoreGame } from "../rules/saved_game";
-import { COLUMNS } from "../rules/tuning";
-import { type KeptRun, keptRun } from "./kept_run";
+import { stepsIn } from "../rules/stepper";
+import { type KeptRun, type Place, keptRun } from "./kept_run";
 
-/** A run on Rocket, level 9: a plain brick of its flames broken, and a tough one of its fin hit once. */
+/**
+ * A run on Rocket, level 9: a plain brick of its flames and a tough one of
+ * its fin broken, and the tough one below it hit once.
+ */
 const KEPT: KeptRun = {
   level: 9,
   speed: "normal",
   seed: 9,
   playedMs: 20_000,
-  broken: [[12, 4]],
-  worn: [[10, 1]],
+  broken: [
+    [12, 4],
+    [10, 1],
+  ],
+  worn: [[11, 1]],
 };
 
 /** Returns the kept brick at a place, as storage keeps it. */
-function keptBrickAt(row: number, column: number): unknown {
-  return keptRun(LEVELS, KEPT).field?.bricks[row * COLUMNS + column];
+function keptBrickAt([row, column]: Place): unknown {
+  return keptRun(LEVELS, KEPT).field?.bricks[cellIndex(column, row)];
 }
 
 describe("keptRun", () => {
@@ -31,16 +38,23 @@ describe("keptRun", () => {
     });
   });
 
-  it("breaks the bricks it names broken", () => {
-    expect(keptBrickAt(12, 4)).toMatchObject({ hits: 0, broken: true });
+  it.each<[string, Place]>([
+    ["a plain brick", [12, 4]],
+    ["a tough brick", [10, 1]],
+  ])("breaks %s it names broken", (_, place) => {
+    expect(keptBrickAt(place)).toMatchObject({ hits: 0, broken: true });
   });
 
   it("hits once the bricks it names worn", () => {
-    expect(keptBrickAt(10, 1)).toMatchObject({ hits: 1, broken: false });
+    expect(keptBrickAt([11, 1])).toMatchObject({ hits: 1, broken: false });
   });
 
   it("keeps the points the bricks scored: 50 for each hit, before a streak", () => {
-    expect(keptRun(LEVELS, KEPT).score).toBe(100);
+    expect(keptRun(LEVELS, KEPT).score).toBe(200);
+  });
+
+  it("keeps the level played for as long as it names", () => {
+    expect(keptRun(LEVELS, KEPT).field?.steps).toBe(stepsIn(20_000));
   });
 
   it("throws for a level the game doesn't have", () => {
@@ -52,6 +66,12 @@ describe("keptRun", () => {
   it("throws for a place with no brick", () => {
     expect(() => keptRun(LEVELS, { ...KEPT, broken: [[0, 0]] })).toThrow(
       "Level 9 has no brick at row 0, column 0.",
+    );
+  });
+
+  it("throws for a place outside the grid, rather than reading the next row", () => {
+    expect(() => keptRun(LEVELS, { ...KEPT, broken: [[9, 14]] })).toThrow(
+      "Level 9 has no brick at row 9, column 14.",
     );
   });
 });

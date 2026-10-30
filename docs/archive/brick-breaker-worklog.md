@@ -3578,8 +3578,9 @@ over 40 seeds, which reproduced the table exactly.
    - `AIMS` and `PLAYED_STATES` are readonly.
    - The play still reaches every state. The reviewer's mutants give the
      same verdicts: the round trip kills all but dropping the score, the
-     lives lost or the bricks needed, which `takeUpField()`'s own spec
-     kills.
+     lives gained or lost, or the bricks needed, which `takeUpField()`'s
+     own spec kills. (The entry first left out the lives gained, as B13's
+     review found.)
 7. **The reason given for leaving the announcer's bookkeeping public was
    wrong.** `@fz/ui`'s `exports` map blocks deep imports, so a second
    injectable that `index.ts` doesn't export would be out of the apps'
@@ -3649,3 +3650,69 @@ over 40 seeds, which reproduced the table exactly.
   - what is left for the user.
 - **Checks.** Prettier and the references pass. Nothing outside the
   archive names either file.
+
+## B13.1 to B14.1's review (9eaf65f5, 80e90a40, 18def931, 04258c5c, with 44e0e6aa)
+
+The reviewer found no bug in the game. It ran mutants against `keptRun()`,
+`catchUp()`, the announcer, the round trip and the layout check, checked the
+docs' names and numbers against the source, and checked the site's entry
+against its build.
+
+1. **The `web-game-accessibility` skill gave Brick Breaker Snake's keys.**
+   B13.3 named both games over bullets written for Snake: Pause on Space,
+   and the board's on-screen arrows. Brick Breaker's Space launches.
+   **Fixed:** the skill says how each game starts and which keys pause
+   each, and keeps the arrows to Snake.
+2. **`keptRun()`'s spec couldn't tell `"breaks"` from one hit.** Its one
+   broken brick took one hit. Ignoring `playedMs` survived too. **Fixed:**
+   - The spec breaks a tough fin brick as well as a flame, and wears the
+     fin brick below it, for 200 points.
+   - It expects the steps `playedMs` names.
+   - Mutants dropping `"breaks"` or `playedMs` now fail it.
+   - Seeding the field with the run's seed rather than `levelSeed()` still
+     survives, as an equivalent mutant. No ball is in play, so nothing
+     draws, and the store keeps no seed of the field's: `restoreGame()`
+     makes the field again from `levelSeed()`.
+3. **`keptRun()` hits its bricks on a field not yet in play.** The draws
+   and the climb stay at 0, where a ball breaking eight bricks would have
+   left 8 and 10. `restoreGame()` accepts the run, and the screenshot
+   can't show either count. **Fixed in the doc:** it says the bricks and
+   points are as a ball would leave them, and the climb and draws as at
+   the serve. Copying `strike()`'s climb and the drops into a testing
+   helper would add rules nothing on screen shows.
+4. **The `brick-breaker-testing` skill still had the app spec wait
+   `ARRIVAL_MS`.** That was the race B12.1's review removed. **Fixed:** it
+   describes the fake timers.
+5. **The lives cap on `catchUp()`'s clearing path was untested.** Without
+   it, a run at six lives whose clearing points pass a mark would reach
+   seven, and `restoreGame()` would refuse its save. **Fixed:** a clearing
+   case holds `MAX_LIVES` and the next mark, and fails without the cap.
+6. **The `brick-breaker-content` skill named a ball kind's `reach`.** The
+   field is `reaches`. **Fixed.**
+7. **`keptRun()` worked out cells by hand.** A column past the grid read
+   the next row's brick rather than throwing. **Fixed:**
+   - It checks `inGrid()` and indexes by `cellIndex()`. A spec expects
+     column 14 to throw.
+   - `Place` stays row first, as a level's picture reads and as the
+     screenshot script lists the bricks. Its doc says why.
+8. **B12.1's review entry left one survivor out.** Dropping the lives
+   gained also survives the round trip, and `takeUpField()`'s spec kills
+   it. **Fixed** in that entry.
+
+- **Nits, all fixed:**
+  - `keptRun()`'s doc opens with one sentence.
+  - The content skill's sentence on paces has its missing words.
+  - The testing skill's split code span and long line are rewrapped.
+  - So is the long line in `@fz/dev`'s `AGENTS.md`.
+  - The game's `AGENTS.md` says three bricks of the rocket's foot.
+  - **The serial comma** is gone from the blurb, and from the game's
+    noscript text, `package.json` and README, which shared it. The meta
+    description already had none. This entry and the plan's B14.1 quote
+    the blurb as it was.
+  - **The capture script** treats a canvas host not yet rendered as still
+    loading. Snake's copy has the same wait, which a runner lifted into
+    `@fz/dev` would share.
+- **Checks.** `keptRun()`'s, the run's, the site's and the whole Brick
+  Breaker suite pass. Lint, typecheck, the references and Prettier pass.
+  `yarn capture:screenshots` ran against the dev server and wrote the same
+  images byte for byte.

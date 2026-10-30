@@ -60,8 +60,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   which its screenshot script defaults to: 9000 for the Solitaire
   Collection, 9001 for Minesweeper, 9002 for Sudoku, 9003 for Snake,
   9004 for Brick Breaker. The Angular plugins, `angularPlugins()`, which
-  the site's config takes too, are Analog's with its live reload, which swaps an edited component's template or styles
-  into the running page, and `componentUpdates()`, which makes that hold
+  the site's config takes too, are Analog's with its live reload, which
+  swaps an edited component's template or styles into the running page,
+  and `componentUpdates()`, which makes that hold
   for every component and reloads the page for an edit to TypeScript, whose
   class code Angular can't swap. Analog announces an update under the
   component's path from the app's folder, where Angular compiled in its

@@ -427,8 +427,9 @@ workspace's with the others'.
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/chrome`: a run kept by the rules (`keptRun()`, in
-  `src/testing/kept_run.ts`), begun on level 9, Rocket, at Normal, with the
-  foot of its body, three flames and a brick of each fin broken, taken up
+  `src/testing/kept_run.ts`), begun on level 9, Rocket, at Normal, with
+  three bricks of its body's foot, three flames and a brick of each fin
+  broken, taken up
   and gone on with, so the ball waits on the paddle under the card that says
   how to launch it, at 1280 × 720 and 2× on Classic felt, written to
   `public/docs/screenshots/brick-breaker/` as the site's `preview.webp`
