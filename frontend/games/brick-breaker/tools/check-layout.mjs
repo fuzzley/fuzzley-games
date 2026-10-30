@@ -36,6 +36,14 @@ const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
 /** The turns, at twice the pixels. */
 const TURNS_2X = turnsAt(2, TURNS);
 
+/** The selector the page matches once the scene has drawn. */
+const READY = 'fz-phaser-canvas[data-state="ready"]';
+
+/** The names of the shapes and turns the layout is checked at. */
+const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
+  .map((shape) => shape.name)
+  .join(", ");
+
 /**
  * Returns what is wrong with the field, its canvas, its placeholder, its
  * focus ring and its card. It runs in the page, so it uses nothing from this
@@ -153,14 +161,6 @@ function inspectField() {
   }
   return problems;
 }
-
-/** The selector the page matches once the scene has drawn. */
-const READY = 'fz-phaser-canvas[data-state="ready"]';
-
-/** The names of the shapes and turns the layout is checked at. */
-const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
-  .map((shape) => shape.name)
-  .join(", ");
 
 process.exitCode = await runLayoutScript({
   game: "Brick Breaker",

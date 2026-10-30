@@ -3,7 +3,6 @@ import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 import { preview } from "vite";
 import {
-  type ChromeOptions,
   type DevToolsConnection,
   type Page,
   type Viewport,
@@ -51,19 +50,13 @@ export const SHAPES: readonly Shape[] = [
   },
 ];
 
-/**
- * The smallest phone, held upright, at which a game whose board is drawn on
- * a canvas is checked too, where its board has the least room.
- */
+/** A 320 × 480 phone held upright, the least room a board is checked in. */
 export const SMALLEST: Shape = {
   name: "smallest phone portrait",
   viewport: { width: 320, height: 480, deviceScaleFactor: 1 },
 };
 
-/**
- * Returns shapes at a pixel ratio, such as 2, at which a canvas's backing
- * size is checked against its size in CSS pixels.
- */
+/** Returns copies of shapes at a pixel ratio, such as 2. */
 export function shapesAt(ratio: number, shapes: readonly Shape[]): Shape[] {
   return shapes.map((shape) => ({
     ...shape,
@@ -92,7 +85,7 @@ export const TURNS: readonly Turn[] = [
   },
 ];
 
-/** Returns turns at a pixel ratio, as {@link shapesAt} returns shapes. */
+/** Returns copies of turns at a pixel ratio, as {@link shapesAt} does shapes. */
 export function turnsAt(ratio: number, turns: readonly Turn[]): Turn[] {
   return turns.map((turn) => ({
     ...turn,
@@ -186,6 +179,115 @@ export async function checkTurns(
   return problems;
 }
 
+/** Says what a game's `tools/check-layout.mjs` checks its build with. */
+export interface LayoutScript {
+  /** The game's name, as the script's words say it, such as "Snake". */
+  readonly game: string;
+  /** The game's workspace folder, whose build, in `dist/`, is served. */
+  readonly root: string;
+  /**
+   * Runs the game's checks on its build, served at `url`, and returns what
+   * is wrong.
+   */
+  readonly check: (
+    devtools: DevToolsConnection,
+    url: string,
+  ) => Promise<LayoutProblem[]>;
+  /**
+   * Says where the checks found the layout holds, which the script prints
+   * once they find nothing wrong, as in "Sudoku's layout holds at each
+   * shape: roomy, …".
+   */
+  readonly holds: string;
+}
+
+/** Says what a layout script runs on, where a spec stands in for it. */
+export interface LayoutScriptOptions {
+  /** The command line's arguments, the process's by default. */
+  readonly args?: readonly string[];
+  /** Starts the headless Chrome, `withChrome()` by default. */
+  readonly runChrome?: typeof withChrome;
+}
+
+/**
+ * Runs a game's layout check from its script's command line, and returns
+ * the exit code: it serves the build as `yarn preview` does, runs the
+ * game's checks on it in a headless Chrome, and prints what is wrong, or
+ * that the layout holds.
+ *
+ * It throws, rather than returning a code, where it can't run the checks at
+ * all: for a game with no build, or no Chrome to run.
+ */
+export async function runLayoutScript(
+  script: LayoutScript,
+  {
+    args = process.argv.slice(2),
+    runChrome = withChrome,
+  }: LayoutScriptOptions = {},
+): Promise<number> {
+  let values: { chrome?: string | undefined; help?: boolean | undefined };
+  try {
+    ({ values } = parseArgs({
+      args: [...args],
+      options: {
+        chrome: { type: "string" },
+        help: { type: "boolean", short: "h" },
+      },
+    }));
+  } catch (error) {
+    if (!isUsageError(error)) throw error;
+    console.error(`${error.message}\n\n${usage(script.game)}`);
+    return 2;
+  }
+  if (values.help) {
+    console.log(usage(script.game));
+    return 0;
+  }
+  await access(join(script.root, "dist/index.html")).catch(() => {
+    throw new Error("Found no build to check; run yarn build first.");
+  });
+  const server = await preview({
+    root: script.root,
+    logLevel: "silent",
+    preview: { port: 0, strictPort: true },
+  });
+  try {
+    const url = server.resolvedUrls?.local[0];
+    if (!url) throw new Error("The preview server gave no address.");
+    const problems = await runChrome(
+      { chrome: values.chrome, name: basename(script.root) },
+      (devtools) => script.check(devtools, url),
+    );
+    for (const { shape, problem } of problems) {
+      console.error(`${shape}: ${problem}`);
+    }
+    if (problems.length > 0) return 1;
+    console.log(`${script.game}'s layout holds ${script.holds}.`);
+    return 0;
+  } finally {
+    await server.close();
+  }
+}
+
+/** Returns what `--help` prints for a game. */
+function usage(game: string): string {
+  return `Usage: yarn check:layout [options]
+
+Checks ${game}'s layout in headless Chrome, on the build yarn build made.
+
+  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
+                   install location)
+  -h, --help       Show this message`;
+}
+
+/** Returns whether `parseArgs()` threw for a command line it can't read. */
+function isUsageError(error: unknown): error is Error {
+  return (
+    error instanceof Error &&
+    String(field(error, "code")).startsWith("ERR_PARSE_ARGS_")
+  );
+}
+
 /**
  * Loads the game on a page and waits for it to draw, and returns the list of
  * errors the page reports, which goes on filling.
@@ -245,90 +347,4 @@ function field(value: unknown, key: string): unknown {
   return typeof value === "object" && value !== null
     ? (Reflect.get(value, key) as unknown)
     : undefined;
-}
-
-/** Says what a game's `tools/check-layout.mjs` checks its build with. */
-export interface LayoutScript {
-  /** The game's name, as the script's words say it, such as "Snake". */
-  readonly game: string;
-  /** The game's workspace folder, whose build, in `dist/`, is served. */
-  readonly root: string;
-  /**
-   * Runs the game's checks on its build, served at `url`, and returns what
-   * is wrong.
-   */
-  readonly check: (
-    devtools: DevToolsConnection,
-    url: string,
-  ) => Promise<LayoutProblem[]>;
-  /**
-   * Says where the layout held once nothing is wrong, after "holds", such
-   * as "at each shape: roomy, phone portrait".
-   */
-  readonly holds: string;
-}
-
-/** Starts a headless Chrome for a script's use, as `withChrome()` does. */
-export type RunChrome = <T>(
-  options: ChromeOptions,
-  use: (devtools: DevToolsConnection) => Promise<T>,
-) => Promise<T>;
-
-/** What `--help` prints. */
-export const LAYOUT_USAGE = `Usage: yarn check:layout [options]
-
-Checks the build's layout in headless Chrome at each shape a game takes.
-
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
-
-/**
- * Runs a game's layout check from its script's command line, and returns
- * the exit code: it serves the build as `yarn preview` does, runs the
- * game's checks on it in a headless Chrome, and prints what is wrong, or
- * that the layout holds.
- *
- * It throws when the game has no build, since there is nothing to check.
- */
-export async function runLayoutScript(
-  script: LayoutScript,
-  args: readonly string[] = process.argv.slice(2),
-  runChrome: RunChrome = withChrome,
-): Promise<number> {
-  const { values } = parseArgs({
-    args: [...args],
-    options: {
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(LAYOUT_USAGE);
-    return 0;
-  }
-  await access(join(script.root, "dist/index.html")).catch(() => {
-    throw new Error("Found no build to check; run yarn build first.");
-  });
-  const server = await preview({
-    root: script.root,
-    logLevel: "silent",
-    preview: { port: 0, strictPort: true },
-  });
-  try {
-    const url = server.resolvedUrls?.local[0];
-    if (!url) throw new Error("The preview server gave no address.");
-    const problems = await runChrome(
-      { chrome: values.chrome, name: basename(script.root) },
-      (devtools) => script.check(devtools, url),
-    );
-    for (const { shape, problem } of problems) {
-      console.error(`${shape}: ${problem}`);
-    }
-    if (problems.length > 0) return 1;
-    console.log(`${script.game}'s layout holds ${script.holds}.`);
-    return 0;
-  } finally {
-    await server.close();
-  }
 }
