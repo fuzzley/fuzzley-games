@@ -87,7 +87,8 @@ n)`, the n-th draw of a seed, which Snake's apples and Brick Breaker's
   loop, and a new painter is a line.
 - **R10. The level's frame loop is a class of its own,** with no
   framework: the field, its clock, the frame the scene draws, the events
-  heard and the beat before the next serve, which `GameService` drives.
+  heard, the beat before the next serve and the wait before a card opens,
+  which `GameService` drives.
 - **R11. Points are written one way,** grouped in thousands, in the bar,
   the cards, the result, the levels and what the announcer says, as How to
   play writes them.
@@ -525,3 +526,61 @@ R9's review, before the commit:
    none, "its layer" of the effects painter, which draws in two, and "a
    line of the list" for a painter that is a field and a construction
    too._ Taken.
+
+### R10: the level's frame loop is a class of its own
+
+`src/view/level_play.ts` holds `LevelPlay`, plain TypeScript, which the
+view's fence keeps free of Angular: the level in play's field, the clock
+its steps run by, the frame the scene draws (one record for the level,
+whose `alpha` each frame writes again), the serial of the last event
+handed on, the time the paddle has stood empty since the last ball was
+lost, and the time a card has waited since the level was cleared or the
+run ended. `advance()` steers the field, steps it as often as the frame's
+time holds a step and hands each new event on, once; `serveAfterLoss()`
+serves again once a lost ball has had its beat; `startCardWait()` and
+`countCardWait()` wait out the beat before the Cleared or the result card
+opens. `GameService` makes one for each level, where it reset six fields
+of its own, and drives it, keeping the run, the signals, what is said and
+the records, so nothing of one level's play carries to the next.
+
+Specs: `LevelPlay` steps as often as a frame's time holds a step, draws
+between steps as far as the time left over goes, carries that time into
+the next frame, steers before it steps, hands each event on once, waits
+out a lost ball's beat and serves after it, counts the beat only from the
+loss and afresh after the next, and says a card is due once its wait has
+run, once. `GameService`'s specs pass unchanged. `AGENTS.md` names it
+among the view's files.
+
+R10's review, before the commit:
+
+1. _"Serves nothing while a ball is in play" tested `serve()`'s guard, not
+   `LevelPlay`'s, and nothing held the beat to starting again after a
+   serve._ Taken: specs that the beat counts only from the loss, and
+   afresh after the next, each failing without its line.
+2. _Nothing held the field to being steered before it steps._ Taken: a
+   spec, which fails with the order turned round.
+3. _`src/app/play/` doesn't keep a class that "knows no framework" free of
+   one._ Taken: it lives in `src/view/`, whose fence rejects Angular and
+   whose coverage floor is every line.
+4. _The card's wait was still reset by hand._ Taken: `LevelPlay` keeps it
+   too.
+5. _`step()` made many steps._ Taken: `advance()`.
+6. _The frame record's `field` and `events` were writable, though only
+   `alpha` changes._ Taken: only `alpha` is.
+7. _Docs and a spec's two states._ Taken: the class's doc says to make
+   one for each level, `frame()`'s says one record for each level, the
+   long line in `AGENTS.md` is rewrapped, and the serve spec is two.
+
+A second review read the change as reshaped.
+
+The second review, of the change as it stood:
+
+1. _`cardIsDue()` read as a question, though it counts the frame's time
+   and uses up its answer, and `awaitCard()` as a promise._ Taken:
+   `startCardWait()` and `countCardWait()`, whose doc says to call it
+   once a frame.
+2. _The specs' times were whole milliseconds that work only at 120 steps a
+   second._ Taken: they are written in `STEP_MS`.
+3. _Docs: a long line left in `AGENTS.md`, the plan's R10 bullet without
+   the card's wait, the frame record's doc opening with a noun, and the
+   view's entry saying only "what to draw"._ Taken.
