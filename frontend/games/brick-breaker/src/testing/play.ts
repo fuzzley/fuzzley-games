@@ -162,7 +162,11 @@ export function playFor(
 
 /** Serves the ball, at once or once it is back on the paddle, and plays it until it is lost. */
 export function loseBall(game: GameService): void {
-  playUntil(game, () => STILL, game.serving);
+  playUntil(
+    game,
+    () => STILL,
+    () => game.frame().field.state !== "lost",
+  );
   const lives = game.lives();
   game.launch();
   playUntil(game, awayFrom, () => game.lives() < lives);

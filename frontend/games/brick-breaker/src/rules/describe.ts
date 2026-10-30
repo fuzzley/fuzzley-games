@@ -64,6 +64,11 @@ export function describeResume(): string {
   return "Going on.";
 }
 
+/** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
+export function describeTakenUp(run: Run, entry: LevelEntry): string {
+  return `Your last run is paused on level ${String(entry.number)}, ${entry.data.name}, with a score of ${String(run.score)} and ${count(run.lives, "life", "lives")}. Press Enter to go on.`;
+}
+
 /** Returns what is said as a run ends: how, the score, the level reached, and whether it is a new best. */
 export function describeEnd(run: Run, newBest: boolean): string {
   const how = run.outcome === "won" ? "Every level cleared!" : "Game over.";
