@@ -2,13 +2,14 @@ import type { GameObjects, Scene } from "phaser";
 import { isNeeded } from "../rules/catalog/bricks";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import { FRAMES } from "../view/art";
-import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
-import type { FieldView } from "../view/frame";
+import { toCanvasX, toCanvasY } from "../view/field_metrics";
+import { glowAlpha } from "../view/flourish";
 import { GLOW_BRICKS } from "../view/timing";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** Frames the last bricks a level needs, once they glow: an image for each brick that may, made once. */
-export class GlowPainter {
+export class GlowPainter implements Painter {
   readonly images: readonly GameObjects.Image[];
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -24,7 +25,8 @@ export class GlowPainter {
   }
 
   /** Frames each brick the level still needs, as bright as the glow is, or hides the frames while it is dark. */
-  draw(field: FieldView, glow: number, metrics: FieldMetrics): void {
+  draw({ field, metrics, brokeAt, motion }: Readonly<PaintContext>): void {
+    const glow = glowAlpha(field, brokeAt, motion);
     let shown = 0;
     for (let cell = 0; glow > 0 && cell < field.bricks.length; cell++) {
       const brick = field.bricks[cell];

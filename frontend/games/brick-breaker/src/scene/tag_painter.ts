@@ -3,9 +3,8 @@ import { EFFECT_KINDS } from "../rules/capsules";
 import { type EffectKind, capsule } from "../rules/catalog/capsules";
 import { recordOf } from "../rules/tables";
 import { tagFrame } from "../view/art";
-import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
-import { type FieldView, between } from "../view/frame";
-import type { BricksPalette } from "../view/palette";
+import { toCanvasX, toCanvasY } from "../view/field_metrics";
+import { between } from "../view/frame";
 import { lineWidth } from "../view/shapes";
 import {
   TAG_RADIUS,
@@ -15,6 +14,7 @@ import {
   timeLeft,
 } from "../view/tags";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** Where a ring starts to empty from: its top. */
 const RING_TOP = -Math.PI / 2;
@@ -23,7 +23,7 @@ const RING_TOP = -Math.PI / 2;
  * Draws a tag for each effect in play, in a row under the paddle: its
  * capsule's symbol, over a ring that empties as its time runs out.
  */
-export class TagPainter {
+export class TagPainter implements Painter {
   /** A tag for each kind of effect, made once. */
   readonly images: Readonly<Record<EffectKind, GameObjects.Image>>;
   /** The rings, drawn again each frame. */
@@ -46,12 +46,7 @@ export class TagPainter {
   }
 
   /** Draws the tags of the effects in play, under the paddle between its last place and its next. */
-  draw(
-    field: FieldView,
-    alpha: number,
-    metrics: FieldMetrics,
-    palette: BricksPalette,
-  ): void {
+  draw({ field, alpha, metrics, palette }: Readonly<PaintContext>): void {
     this.rings.clear();
     let count = 0;
     for (const kind of EFFECT_KINDS) {

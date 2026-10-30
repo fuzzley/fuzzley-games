@@ -1,6 +1,4 @@
 import type { GameObjects, Scene } from "phaser";
-import type { PaddleMode } from "../rules/catalog/capsules";
-import type { Paddle } from "../rules/paddle";
 import { BOLT_INSET, PADDLE_HEIGHT, PADDLE_TOP } from "../rules/tuning";
 import { FRAMES } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
@@ -8,6 +6,7 @@ import { between } from "../view/frame";
 import type { BricksPalette } from "../view/palette";
 import { lineWidth } from "../view/shapes";
 import { ATLAS } from "./atlas";
+import type { Baked, PaintContext, Painter } from "./painter";
 
 /**
  * Draws the paddle: a body between the middles of its two round ends, so
@@ -17,7 +16,7 @@ import { ATLAS } from "./atlas";
  * The body and the rim are rectangles a pixel wide, scaled across, which
  * draw crisp at any width on either of Phaser's renderers.
  */
-export class PaddlePainter {
+export class PaddlePainter implements Painter {
   /** Its body, from the middle of one end to the middle of the other. */
   readonly body: GameObjects.Rectangle;
   /** Its round ends, left and right. */
@@ -44,11 +43,11 @@ export class PaddlePainter {
       scene.add.image(0, 0, ATLAS, FRAMES.cannon).setVisible(false),
     );
     layer.add([this.body, ...this.ends, this.rim, ...this.cannons]);
-    this.refresh(metrics, palette);
+    this.refresh({ metrics, palette });
   }
 
   /** Takes up the frames again, once the atlas has been baked again, and sizes and paints the body and the rim to match. */
-  refresh(metrics: FieldMetrics, palette: BricksPalette): void {
+  refresh({ metrics, palette }: Readonly<Baked>): void {
     for (const end of this.ends) end.setFrame(FRAMES.paddle);
     for (const cannon of this.cannons) cannon.setFrame(FRAMES.cannon);
     this.body
@@ -58,12 +57,8 @@ export class PaddlePainter {
   }
 
   /** Draws the paddle between its last place and its next, at its width, with what its mode adds. */
-  draw(
-    paddle: Readonly<Paddle>,
-    mode: PaddleMode | null,
-    alpha: number,
-    metrics: FieldMetrics,
-  ): void {
+  draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
+    const { paddle, mode } = field;
     const x = toCanvasX(metrics, between(paddle.lastX, paddle.x, alpha));
     const top = toCanvasY(metrics, PADDLE_TOP);
     const width = Math.round(paddle.width * metrics.unit);

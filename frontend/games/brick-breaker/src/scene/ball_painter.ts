@@ -3,9 +3,10 @@ import type { BallKindId } from "../rules/catalog/balls";
 import { MAX_BALLS } from "../rules/tuning";
 import { FRAMES, ballFrame } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
-import { type FieldView, between } from "../view/frame";
+import { between } from "../view/frame";
 import { EMBERS_MS } from "../view/timing";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** How far a fire ball goes between one ember and the next, in field units: an ember's width. */
 const EMBER_GAP = 0.2;
@@ -26,7 +27,7 @@ interface EmberPlace {
  * the balls' kind, with a fire ball's trail of embers where motion is
  * welcome, an ember for each gap it goes, however often it is drawn.
  */
-export class BallPainter {
+export class BallPainter implements Painter {
   readonly images: readonly GameObjects.Image[];
   /** Leaves a fire ball's embers behind it, fading as they shrink. */
   readonly embers: GameObjects.Particles.ParticleEmitter;
@@ -61,12 +62,7 @@ export class BallPainter {
    * the rest, leaving embers along each fire ball's way if motion is
    * welcome.
    */
-  draw(
-    field: FieldView,
-    alpha: number,
-    metrics: FieldMetrics,
-    motion: boolean,
-  ): void {
+  draw({ field, alpha, metrics, motion }: Readonly<PaintContext>): void {
     this.drawnKind = field.ballKind;
     const frame = ballFrame(field.ballKind);
     const trails = motion && field.ballKind === "fire";

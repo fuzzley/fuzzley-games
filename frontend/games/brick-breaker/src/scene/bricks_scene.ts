@@ -30,7 +30,6 @@ import {
   flourishesOf,
 } from "../view/effects";
 import { type FieldMetrics, fieldMetrics } from "../view/field_metrics";
-import { glowAlpha } from "../view/flourish";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/frame";
 import { LAYERS, type Layer } from "../view/layers";
 import type { BricksPalette } from "../view/palette";
@@ -44,6 +43,7 @@ import { EffectsPainter } from "./effects_painter";
 import { FieldPainter } from "./field_painter";
 import { GlowPainter } from "./glow_painter";
 import { PaddlePainter } from "./paddle_painter";
+import type { PaintContext, Painter } from "./painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
 import { TagPainter } from "./tag_painter";
@@ -111,6 +111,15 @@ export class BricksScene extends Scene {
   balls!: BallPainter;
   /** Plays the sounds. */
   sounds!: SpritePlayer<SoundName>;
+  /** Every painter, back to front, which each frame draws and each bake refreshes. */
+  private painters: readonly Painter[] = [];
+  /**
+   * What the painters draw each frame from, which the scene writes over:
+   * the frame's field, the layout and the palette as each frame finds them,
+   * and the scene's time, whether motion is welcome and when the last brick
+   * broke, which it keeps here alone.
+   */
+  private context!: PaintContext;
 
   /** Turns the keys and the pointer into each frame's steering. */
   private steering!: Steering;
@@ -123,12 +132,6 @@ export class BricksScene extends Scene {
   private shownField: FieldView | null = null;
   /** The serial of the last event of the field the scene played. */
   private played = 0;
-  /** The field's step at which its last brick broke, or it was first drawn. */
-  private brokeAt = 0;
-  /** The scene's time this frame, in milliseconds, by which the flourishes run. */
-  private now = 0;
-  /** Whether the player welcomes motion, as of this frame. */
-  private motion = true;
   /** The sounds this frame's events call for, played once each after them. */
   private readonly frameSounds = new FrameSounds();
   /** How many chimes the game had called for as the scene last looked. */
@@ -165,6 +168,27 @@ export class BricksScene extends Scene {
     );
     this.tags = new TagPainter(this, layers.tags);
     this.balls = new BallPainter(this, layers.balls);
+    this.painters = [
+      this.field,
+      this.bricks,
+      this.glow,
+      this.effects,
+      this.capsules,
+      this.bolts,
+      this.paddle,
+      this.tags,
+      this.balls,
+    ];
+    const { field, alpha } = this.options.frame();
+    this.context = {
+      field,
+      alpha,
+      metrics: this.metrics,
+      palette: this.painted,
+      now: 0,
+      motion: this.options.motion(),
+      brokeAt: field.steps,
+    };
     this.sounds = new SpritePlayer(this, {
       key: "bricks-sounds",
       spritemap,
@@ -188,7 +212,7 @@ export class BricksScene extends Scene {
    * new level; Phaser makes a sound object for each sound it plays.
    */
   override update(time: number, delta: number): void {
-    this.now = time;
+    this.context.now = time;
     let stale = false;
     if (this.moved()) {
       stale = this.measure();
@@ -198,7 +222,7 @@ export class BricksScene extends Scene {
     this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
-    this.motion = this.options.motion();
+    this.context.motion = this.options.motion();
     if (palette !== this.painted) {
       this.painted = palette;
       stale = true;
@@ -224,17 +248,12 @@ export class BricksScene extends Scene {
 
   /** Has each painter draw the field as it stands, in its layer. */
   private draw({ field, alpha }: FieldFrame): void {
-    const metrics = this.metrics;
-    this.field.draw(metrics, this.painted, field.net);
-    this.bricks.show(field);
-    this.bricks.animate(this.now);
-    this.glow.draw(field, glowAlpha(field, this.brokeAt, this.motion), metrics);
-    this.effects.animate(this.now);
-    this.capsules.draw(field, alpha, metrics);
-    this.bolts.draw(field, alpha, metrics);
-    this.paddle.draw(field.paddle, field.mode, alpha, metrics);
-    this.tags.draw(field, alpha, metrics, this.painted);
-    this.balls.draw(field, alpha, metrics, this.motion);
+    const context = this.context;
+    context.field = field;
+    context.alpha = alpha;
+    context.metrics = this.metrics;
+    context.palette = this.painted;
+    for (const painter of this.painters) painter.draw(context);
   }
 
   /**
@@ -247,10 +266,10 @@ export class BricksScene extends Scene {
   private readonly play = (event: Readonly<FieldEvent>): void => {
     const field = this.shownField;
     if (!field) return;
-    if (event.kind === "broken") this.brokeAt = field.steps;
+    if (event.kind === "broken") this.context.brokeAt = field.steps;
     const effects = effectsOf(event, field);
     if (effects.sound) this.frameSounds.hear(effects.sound, detuneOf(event));
-    const flourishes = flourishesOf(effects, this.motion);
+    const flourishes = flourishesOf(effects, this.context.motion);
     for (const flourish of flourishes) this.flourish(flourish, event, field);
   };
 
@@ -262,10 +281,10 @@ export class BricksScene extends Scene {
   ): void {
     switch (flourish) {
       case "pop":
-        this.bricks.pop(event.cell, this.now);
+        this.bricks.pop(event.cell, this.context.now);
         return;
       case "grow":
-        this.bricks.grow(event.cell, this.now);
+        this.bricks.grow(event.cell, this.context.now);
         return;
       case "shards": {
         const brick = field.bricks[event.cell];
@@ -279,7 +298,7 @@ export class BricksScene extends Scene {
         return;
       }
       case "ring":
-        this.effects.ring(event.x, event.y, this.now, this.metrics);
+        this.effects.ring(event.x, event.y, this.context.now, this.metrics);
         return;
       case "shake":
         this.effects.shake();
@@ -290,7 +309,7 @@ export class BricksScene extends Scene {
           event.x,
           event.y,
           ballFrame(this.balls.drawnKind),
-          this.now,
+          this.context.now,
           this.metrics,
         );
         return;
@@ -356,14 +375,8 @@ export class BricksScene extends Scene {
   /** Bakes the atlas again, and has every image take up its frame anew. */
   private rebake(): void {
     this.bake();
-    this.bricks.refresh();
-    this.glow.refresh();
-    this.effects.refresh();
-    this.capsules.refresh();
-    this.bolts.refresh();
-    this.paddle.refresh(this.metrics, this.painted);
-    this.tags.refresh();
-    this.balls.refresh();
+    const baked = { metrics: this.metrics, palette: this.painted };
+    for (const painter of this.painters) painter.refresh?.(baked);
   }
 
   /**
@@ -373,13 +386,13 @@ export class BricksScene extends Scene {
   private startField(field: FieldView): void {
     this.shownField = field;
     this.played = 0;
-    this.brokeAt = field.steps;
+    this.context.brokeAt = field.steps;
     this.tweens.killAll();
     this.bricks.still();
     this.effects.reset();
     this.balls.reset();
     this.bricks.show(field);
-    if (this.motion) this.bricks.dropIn(this.metrics);
+    if (this.context.motion) this.bricks.dropIn(this.metrics);
     else this.bricks.layout(this.metrics);
   }
 

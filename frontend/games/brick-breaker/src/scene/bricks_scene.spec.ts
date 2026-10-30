@@ -526,6 +526,19 @@ describe("BricksScene", () => {
       });
     });
 
+    it("is drawn where a new layout puts it", async () => {
+      const { shell, run, scene } = await startBoard();
+      const metrics = metricsAt(600, 400);
+
+      run.game.scale.resize(600, 400);
+      run.advance(16);
+
+      expect([scene.paddle.body.x, scene.paddle.body.y]).toEqual([
+        toCanvasX(metrics, shell.field.paddle.x),
+        toCanvasY(metrics, PADDLE_TOP),
+      ]);
+    });
+
     it("is drawn between its last place and its next", async () => {
       const { shell, run, scene } = await startBoard();
       const paddle = shell.field.paddle;
@@ -1279,6 +1292,16 @@ describe("BricksScene", () => {
 
     it("holds the last bricks' glow still", async () => {
       const { shell, run, scene } = await startBoard(stillness);
+
+      shell.field.steps = stepsIn(GLOW_AFTER_MS + GLOW_PULSE_MS / 2);
+      run.advance(16);
+
+      expect(scene.glow.images[0]?.alpha).toBe(1);
+    });
+
+    it("holds the last bricks' glow still once the player turns motion off", async () => {
+      const { shell, run, scene } = await startBoard();
+      stillness(shell);
 
       shell.field.steps = stepsIn(GLOW_AFTER_MS + GLOW_PULSE_MS / 2);
       run.advance(16);

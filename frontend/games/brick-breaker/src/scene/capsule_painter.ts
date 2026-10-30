@@ -1,12 +1,13 @@
 import type { GameObjects, Scene } from "phaser";
 import { FALLING_POOL } from "../rules/capsules";
 import { capsuleFrame } from "../view/art";
-import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
-import { type FieldView, between } from "../view/frame";
+import { toCanvasX, toCanvasY } from "../view/field_metrics";
+import { between } from "../view/frame";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** Draws the capsules falling: an image for each record the field keeps, made once. */
-export class CapsulePainter {
+export class CapsulePainter implements Painter {
   readonly images: readonly GameObjects.Image[];
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -22,7 +23,7 @@ export class CapsulePainter {
   }
 
   /** Draws each capsule falling between its last place and its next, and hides the rest. */
-  draw(field: FieldView, alpha: number, metrics: FieldMetrics): void {
+  draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
     for (let i = 0; i < this.images.length; i++) {
       const image = this.images[i];
       const falling = field.falling[i];

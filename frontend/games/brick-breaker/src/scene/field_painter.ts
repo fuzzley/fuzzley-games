@@ -3,9 +3,10 @@ import { NET_DEPTH, PADDLE_TOP } from "../rules/tuning";
 import { type FieldMetrics, toCanvasY } from "../view/field_metrics";
 import type { BricksPalette } from "../view/palette";
 import { lineWidth } from "../view/shapes";
+import type { PaintContext, Painter } from "./painter";
 
 /** Draws the field, its wall on the left, the top and the right, and the net while there is one. */
-export class FieldPainter {
+export class FieldPainter implements Painter {
   readonly graphics: GameObjects.Graphics;
   private metrics: FieldMetrics | null = null;
   private palette: BricksPalette | null = null;
@@ -17,7 +18,8 @@ export class FieldPainter {
   }
 
   /** Draws the field where the metrics put it, in a palette, with the net or without; again only once one of them changed. */
-  draw(metrics: FieldMetrics, palette: BricksPalette, net: boolean): void {
+  draw({ field, metrics, palette }: Readonly<PaintContext>): void {
+    const { net } = field;
     if (
       metrics === this.metrics &&
       palette === this.palette &&

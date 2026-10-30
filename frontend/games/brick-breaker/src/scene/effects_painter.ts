@@ -12,6 +12,7 @@ import {
   SHARDS_MS,
 } from "../view/timing";
 import { ATLAS } from "./atlas";
+import type { PaintContext, Painter } from "./painter";
 
 /** How many blasts' rings may spread at once; a chain goes off a few at a time. */
 const RING_POOL = 8;
@@ -27,7 +28,7 @@ const SHARD_FALL = 30;
  * shards, a blast's ring, a lost ball's fade, and the field's shake. Each is
  * made once, and the scene plays them only where motion is welcome.
  */
-export class EffectsPainter {
+export class EffectsPainter implements Painter {
   /** Throws a broken brick's shards, tinted as the brick was. */
   readonly shards: GameObjects.Particles.ParticleEmitter;
   /** A ring for each blast that may spread at once. */
@@ -129,8 +130,8 @@ export class EffectsPainter {
       .setVisible(true);
   }
 
-  /** Moves each ring and fade on to the time, and hides those that are over. */
-  animate(now: number): void {
+  /** Moves each ring and fade on to the scene's time, and hides those that are over. */
+  draw({ now }: Readonly<PaintContext>): void {
     for (let i = 0; i < this.rings.length; i++) {
       const ring = this.rings[i];
       if (!ring?.visible) continue;
