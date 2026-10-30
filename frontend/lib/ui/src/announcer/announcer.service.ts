@@ -6,15 +6,15 @@ export class AnnouncerService {
   private readonly messageState = signal("");
   private readonly earlyState = signal(false);
 
-  /** Whether a live region has been in the page, to say what changes. */
+  /** Whether a live region has rendered, to say what changes. */
   private regionPlaced = false;
 
   /** What the live region says now. */
   readonly message = this.messageState.asReadonly();
 
   /**
-   * Whether the words now were said before any live region was in the page,
-   * so a region waits a moment before it says them: a screen reader
+   * Whether the words now were said before any live region had rendered, so
+   * the regions wait a moment before they say them: a screen reader
    * announces a region's changes, not one that arrives with its words.
    */
   readonly early = this.earlyState.asReadonly();
@@ -37,7 +37,7 @@ export class AnnouncerService {
     this.messageState.set("");
   }
 
-  /** Notes that a live region is in the page; only `<fz-announcer>` calls it, once it has rendered. */
+  /** Notes that a live region has rendered; only `<fz-announcer>` calls it. */
   notePlaced(): void {
     this.regionPlaced = true;
   }

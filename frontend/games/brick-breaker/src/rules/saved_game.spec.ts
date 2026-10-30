@@ -17,7 +17,7 @@ import {
   takeUpField,
 } from "./saved_game";
 import { stepsIn } from "./stepper";
-import { FIRST_LIFE_POINTS, MAX_LIVES } from "./tuning";
+import { FIELD_WIDTH, FIRST_LIFE_POINTS, MAX_LIVES } from "./tuning";
 
 /**
  * Three levels: a plain brick, a tough one, steel, a hidden brick, a
@@ -72,10 +72,10 @@ const TAKES = 300;
 const MISS_FROM = 150;
 
 /** How far off the ball's middle the paddle meets it, take by take, so the ball goes everywhere. */
-const AIMS = [-1.4, -0.6, 0.3, 1.1];
+const AIMS: readonly number[] = [-1.4, -0.6, 0.3, 1.1];
 
 /** Every state of the crowd's play that a field taken up must keep. */
-const PLAYED_STATES = [
+const PLAYED_STATES: readonly string[] = [
   "a ball lost",
   "a fuse lit",
   "a ghost shown",
@@ -150,8 +150,8 @@ function playOn(
 
 /**
  * Returns where the paddle goes for a ball, take by take: a little off the
- * ball's middle, or, from {@link MISS_FROM} until a ball is lost, far from
- * it.
+ * ball's middle, or, from {@link MISS_FROM} until a ball is lost, to the wall
+ * across the field from it.
  */
 function aimOf(
   field: Readonly<Field>,
@@ -159,7 +159,10 @@ function aimOf(
 ): (ballX: number) => number {
   const missing = take >= MISS_FROM && field.livesLost === 0;
   const off = AIMS[take % AIMS.length] ?? 0;
-  return (x) => (missing ? 26 - x : x + off);
+  return (x) => {
+    if (missing) return x < FIELD_WIDTH / 2 ? FIELD_WIDTH : 0;
+    return x + off;
+  };
 }
 
 /** Names the states of {@link PLAYED_STATES} a field holds now. */

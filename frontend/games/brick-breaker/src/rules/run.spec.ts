@@ -184,12 +184,15 @@ describe("catchUp's points", () => {
     expect(catchUp(playing(), field).lives).toBe(FIRST_LIVES + 2);
   });
 
-  it("never take a life for a run whose next life is past its score", () => {
+  it("neither take a life nor move the mark back for a run whose next life is past its score", () => {
     const before = playing({ nextLifeAt: FIRST_LIFE_POINTS + LIFE_POINTS });
 
     const run = catchUp(before, fieldAt({ score: 100 }));
 
-    expect(run.lives).toBe(FIRST_LIVES);
+    expect({ lives: run.lives, next: run.nextLifeAt }).toEqual({
+      lives: FIRST_LIVES,
+      next: FIRST_LIFE_POINTS + LIFE_POINTS,
+    });
   });
 
   it("spend a mark passed with the most lives a player holds", () => {

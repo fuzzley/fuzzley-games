@@ -413,8 +413,9 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   320 × 480, and turned, each at 2×: no error and no scrolling; the canvas
   reaches `data-state="ready"` and draws at its size times the ratio; the
   field (`data-field`) has the shape 26 by 30, a unit of at least 10 CSS px
-  (8 at 320 × 480), lies inside the window, where the placeholder drew it
-  and inside the focus ring; its card lies on it. One commit.
+  (9 in a window under 360 CSS px tall, as built), lies inside the window,
+  where the placeholder drew it and inside the focus ring; its card lies on
+  it. One commit.
 - **B12.2** Q5: every level of the first set and the last of each other
   set, by mouse, keys and touch, at each speed, in a light palette and a
   dark; tabs switched mid-level; an AZERTY layout; the context lost and
@@ -1597,7 +1598,8 @@ statements, functions and lines, and 95% of branches.
   each well under a second in Node; if the suite slows, the spec plays one
   speed per level by turns, and the report plays them all.
 - **A field on a phone held sideways is small,** about 12 CSS px a unit. Q3
-  plays it there, and the layout check holds the unit to 10 CSS px or more.
+  plays it there, and the layout check holds the unit to 10 CSS px or more,
+  or 9 in a window under 360 CSS px tall, where 568 × 320 gives 9.5.
 - **Eight tints at 3:1 against the field and against the ball is a narrow
   band** of lightness, in a light palette most. B5's contrast spec decided
   it: in the light palettes the plain ball clears eight hues in the band,

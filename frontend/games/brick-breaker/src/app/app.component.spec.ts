@@ -50,8 +50,12 @@ function storeRun(): void {
   );
 }
 
-/** Renders the game as `main.ts` starts it, taking up the run stored. */
+/**
+ * Renders the game as `main.ts` starts it, taking up the run stored, on fake
+ * timers, so the live region waits until a spec moves them on.
+ */
 async function renderTakingUp(): Promise<void> {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
   await render(AppComponent, {
     providers: [
       provideFakePhaserCanvas(),
@@ -86,6 +90,7 @@ function setVisibility(state: DocumentVisibilityState): void {
 
 describe("AppComponent", () => {
   afterEach(() => {
+    vi.useRealTimers();
     Reflect.deleteProperty(document, "visibilityState");
   });
 
@@ -126,7 +131,7 @@ describe("AppComponent", () => {
     storeRun();
     await renderTakingUp();
 
-    await new Promise((resolve) => setTimeout(resolve, ARRIVAL_MS));
+    vi.advanceTimersByTime(ARRIVAL_MS);
     TestBed.tick();
 
     expect(document.querySelector("fz-announcer")).toHaveTextContent(

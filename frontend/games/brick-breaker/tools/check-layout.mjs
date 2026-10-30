@@ -10,10 +10,10 @@
  *
  * At each shape the page must report no error and not scroll; the canvas
  * must be drawn, at its size in CSS pixels times the pixel ratio; the field
- * must keep its shape, 26 units by 30, a unit at least 10 CSS px (8 on the
- * smallest phones, either way up), in the window, where the placeholder drew it, to the
- * pixel, and inside the focus ring; and its card must lie on it. It prints
- * what is wrong and fails, or says the layout holds.
+ * must keep its shape, 26 units by 30, a unit at least 10 CSS px (9 in a
+ * window under 360 CSS px tall), in the window, where the placeholder drew
+ * it, to the pixel, and inside the focus ring; and its card must lie on it.
+ * It prints what is wrong and fails, or says the layout holds.
  */
 import { access } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -53,8 +53,9 @@ const TURNS_2X = TURNS.map((turn) => ({
 }));
 
 /**
- * Returns what is wrong with the field, its canvas and its card. It runs in
- * the page, so it uses nothing from this module.
+ * Returns what is wrong with the field, its canvas, its placeholder, its
+ * focus ring and its card. It runs in the page, so it uses nothing from this
+ * module.
  *
  * @returns {string[]}
  */
@@ -101,9 +102,9 @@ function inspectField() {
       `The field is ${width} by ${height} CSS px, not ${across} units by ${down}.`,
     );
   }
-  // A window under 360 CSS px either way, upright or on its side, leaves the
-  // field's 30 units of height or 26 of width less than 10 px each.
-  const smallest = Math.min(innerWidth, innerHeight) < 360 ? 8 : 10;
+  // A phone on its side under 360 CSS px tall can't give the field's 30
+  // units of height 10 px each, after the room around it: 568 × 320 gives 9.5.
+  const smallest = innerHeight < 360 ? 9 : 10;
   if (unit < smallest) {
     problems.push(`The field's unit is ${unit} CSS px, under ${smallest}.`);
   }
@@ -118,7 +119,7 @@ function inspectField() {
 
   // The placeholder's field, inside its wall, where the scene's lies, but
   // for the half pixel the scene may round to at the pixel ratio.
-  const drawn = document.querySelector(".placeholder .field");
+  const drawn = document.querySelector("app-board .placeholder .field");
   if (drawn) {
     const wall = parseFloat(getComputedStyle(drawn).borderLeftWidth);
     const rect = drawn.getBoundingClientRect();
@@ -126,26 +127,35 @@ function inspectField() {
       Math.abs(rect.left + wall - left),
       Math.abs(rect.top + wall - top),
       Math.abs(rect.width - 2 * wall - width),
+      Math.abs(rect.height - 2 * wall - height),
     );
     if (off > 1) {
       problems.push(
         `The placeholder drew the field ${off.toFixed(1)} CSS px from where the scene did.`,
       );
     }
+  } else {
+    problems.push("The placeholder's field is missing.");
   }
 
-  const card = document.querySelector(".card")?.getBoundingClientRect();
-  if (
-    card &&
-    (card.left < left - 1 ||
-      card.top < top - 1 ||
-      card.right > left + width + 1 ||
-      card.bottom > top + height + 1)
+  // The Ready card, as the ball waits on the paddle.
+  const card = document
+    .querySelector("app-board .card")
+    ?.getBoundingClientRect();
+  if (!card) {
+    problems.push("The card over the field is missing.");
+  } else if (
+    card.left < left - 1 ||
+    card.top < top - 1 ||
+    card.right > left + width + 1 ||
+    card.bottom > top + height + 1
   ) {
     problems.push("The card over the field runs off it.");
   }
 
-  const ring = document.querySelector(".ring")?.getBoundingClientRect();
+  const ring = document
+    .querySelector("app-board .ring")
+    ?.getBoundingClientRect();
   if (
     !ring ||
     Math.max(

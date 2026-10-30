@@ -4,14 +4,13 @@ import {
   afterNextRender,
   computed,
   inject,
-  signal,
 } from "@angular/core";
 import { AnnouncerService } from "./announcer.service";
 
 /**
  * How long a region is in the page before it says what was said before any
- * region was, since a screen reader announces a live region's changes, not
- * one that arrives with its words.
+ * region had rendered, since a screen reader announces a live region's
+ * changes, not one that arrives with its words.
  */
 export const ARRIVAL_MS = 100;
 
@@ -33,12 +32,9 @@ export const ARRIVAL_MS = 100;
 export class AnnouncerComponent {
   private readonly announcer = inject(AnnouncerService);
 
-  /** Whether it has been in the page long enough to say words said before any region was. */
-  private readonly arrived = signal(false);
-
-  /** What the region says now: words said before any region was only once it has arrived. */
+  /** What the region says now: nothing while the words are early. */
   protected readonly said = computed(() =>
-    !this.announcer.early() || this.arrived() ? this.announcer.message() : "",
+    this.announcer.early() ? "" : this.announcer.message(),
   );
 
   constructor() {
@@ -47,7 +43,6 @@ export class AnnouncerComponent {
       this.announcer.notePlaced();
       if (!this.announcer.early()) return;
       const timer = setTimeout(() => {
-        this.arrived.set(true);
         this.announcer.noteEarlyWordsSaid();
       }, ARRIVAL_MS);
       destroyRef.onDestroy(() => {

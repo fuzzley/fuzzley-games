@@ -44,6 +44,18 @@ function placedBeforeSpeaking(): HTMLElement {
   return shown;
 }
 
+/**
+ * Puts a region in the page, on fake timers, takes it away before it has been
+ * there a moment, then lets the moment pass.
+ */
+function placedThenTakenAway(): void {
+  vi.useFakeTimers();
+  const fixture = TestBed.createComponent(AnnouncerComponent);
+  fixture.detectChanges();
+  fixture.destroy();
+  vi.advanceTimersByTime(ARRIVAL_MS);
+}
+
 /** Returns the region a rendered announcer speaks through. */
 async function region(): Promise<HTMLElement> {
   const { fixture } = await render(AnnouncerComponent);
@@ -94,6 +106,15 @@ describe("AnnouncerComponent", () => {
     TestBed.tick();
 
     expect(shown).toHaveTextContent("Your last game is paused.");
+  });
+
+  it("starts empty when the region before it was taken away before it said the early words", () => {
+    TestBed.inject(AnnouncerService).say("Your last game is paused.");
+    placedThenTakenAway();
+
+    const later = placed();
+
+    expect(later).toHaveTextContent(/^$/);
   });
 
   it("arrives holding the words said while another region was in the page", () => {
