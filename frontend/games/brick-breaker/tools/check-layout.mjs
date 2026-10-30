@@ -8,12 +8,13 @@
  *   yarn build
  *   yarn check:layout
  *
- * At each shape the page must report no error and not scroll; the canvas
- * must be drawn, at its size in CSS pixels times the pixel ratio; the field
- * must keep its shape, 26 units by 30, a unit at least 10 CSS px (9 in a
- * window under 360 CSS px tall), in the window, where the placeholder drew
- * it, to the pixel, and inside the focus ring; and its card must lie on it.
- * It prints what is wrong and fails, or says the layout holds.
+ * At each shape the page must report no error and not scroll; the field, as
+ * `@fz/dev/layout` inspects a board drawn with Phaser, must be drawn on its
+ * canvas at the board's pixel ratio, keep its shape, 26 units by 30, and lie
+ * in the window, where the placeholder drew it, to the pixel, and inside the
+ * focus ring, its card on it; and its unit must be at least 10 CSS px (9 in
+ * a window under 360 CSS px tall). It prints what is wrong and fails, or
+ * says the layout holds.
  */
 import { join } from "node:path";
 import {
@@ -26,6 +27,8 @@ import {
   shapesAt,
   turnsAt,
 } from "@fz/dev/layout";
+
+/** @import { BoardBox, PhaserBoard } from "@fz/dev/layout" */
 
 /**
  * The shapes and the smallest phone, at twice the pixels, so the canvas's
@@ -45,128 +48,43 @@ const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
   .join(", ");
 
 /**
- * Returns what is wrong with the field, its canvas, its placeholder, its
- * focus ring and its card. It runs in the page, so it uses nothing from this
- * module.
+ * The field, as `@fz/dev/layout` inspects a board drawn with Phaser; its card
+ * is Ready's, as the ball waits on the paddle.
  *
+ * @type {PhaserBoard}
+ */
+const FIELD = {
+  name: "field",
+  element: "app-board",
+  drawnAt: "data-field",
+  across: 26,
+  down: 30,
+  placeholder: ".placeholder .field",
+  ring: ".ring",
+  card: ".card",
+};
+
+/**
+ * Returns what is wrong with the field's unit, given where the field lies.
+ * It runs in the page, so it uses nothing from this module.
+ *
+ * @param {BoardBox} [field]
  * @returns {string[]}
  */
-function inspectField() {
-  /** @type {string[]} */
-  const problems = [];
-  const across = 26;
-  const down = 30;
-  const host = document.querySelector("fz-phaser-canvas");
-  const canvas = document.querySelector("fz-phaser-canvas canvas");
-  const board = document.querySelector("app-board");
-  if (!host || !(canvas instanceof HTMLCanvasElement) || !board) {
-    return ["The board or its canvas is missing."];
-  }
-  const state = host.getAttribute("data-state");
-  if (state !== "ready") problems.push(`The canvas is ${state}, not ready.`);
-
-  const box = canvas.getBoundingClientRect();
-  const ratio = Math.min(devicePixelRatio, 3);
-  if (
-    Math.abs(canvas.width - box.width * ratio) > 1 ||
-    Math.abs(canvas.height - box.height * ratio) > 1
-  ) {
-    problems.push(
-      `The canvas draws ${canvas.width} × ${canvas.height} pixels for ${box.width} × ${box.height} CSS px at ${ratio}×.`,
-    );
-  }
-
-  const laidOut = (board.getAttribute("data-field") ?? "")
-    .split(" ")
-    .map(Number);
-  const [x = NaN, y = NaN, width = NaN, height = NaN] = laidOut;
-  if (laidOut.length !== 4 || laidOut.some((n) => !Number.isFinite(n))) {
-    return [
-      ...problems,
-      "The board doesn't say where the field lies (data-field).",
-    ];
-  }
-  const left = box.left + x;
-  const top = box.top + y;
-  const unit = width / across;
-  if (Math.abs(height - unit * down) > 0.5) {
-    problems.push(
-      `The field is ${width} by ${height} CSS px, not ${across} units by ${down}.`,
-    );
-  }
+function inspectUnit(field) {
   // A phone on its side under 360 CSS px tall can't give the field's 30
   // units of height 10 px each, after the room around it: 568 × 320 gives 9.5.
   const smallest = innerHeight < 360 ? 9 : 10;
-  if (unit < smallest) {
-    problems.push(`The field's unit is ${unit} CSS px, under ${smallest}.`);
-  }
-  if (
-    left < 0 ||
-    top < 0 ||
-    left + width > innerWidth + 1 ||
-    top + height > innerHeight + 1
-  ) {
-    problems.push("The field runs out of the window.");
-  }
-
-  // The placeholder's field, inside its wall, where the scene's lies, but
-  // for the half pixel the scene may round to at the pixel ratio.
-  const drawn = document.querySelector("app-board .placeholder .field");
-  if (drawn) {
-    const wall = parseFloat(getComputedStyle(drawn).borderLeftWidth);
-    const rect = drawn.getBoundingClientRect();
-    const off = Math.max(
-      Math.abs(rect.left + wall - left),
-      Math.abs(rect.top + wall - top),
-      Math.abs(rect.width - 2 * wall - width),
-      Math.abs(rect.height - 2 * wall - height),
-    );
-    if (off > 1) {
-      problems.push(
-        `The placeholder drew the field ${off.toFixed(1)} CSS px from where the scene did.`,
-      );
-    }
-  } else {
-    problems.push("The placeholder's field is missing.");
-  }
-
-  // The Ready card, as the ball waits on the paddle.
-  const card = document
-    .querySelector("app-board .card")
-    ?.getBoundingClientRect();
-  if (!card) {
-    problems.push("The card over the field is missing.");
-  } else if (
-    card.left < left - 1 ||
-    card.top < top - 1 ||
-    card.right > left + width + 1 ||
-    card.bottom > top + height + 1
-  ) {
-    problems.push("The card over the field runs off it.");
-  }
-
-  const ring = document
-    .querySelector("app-board .ring")
-    ?.getBoundingClientRect();
-  if (
-    !ring ||
-    Math.max(
-      Math.abs(ring.left - left),
-      Math.abs(ring.top - top),
-      Math.abs(ring.width - width),
-      Math.abs(ring.height - height),
-    ) > 0.5
-  ) {
-    problems.push("The focus ring doesn't lie around the field.");
-  }
-  return problems;
+  return field && field.unit < smallest
+    ? [`The field's unit is ${field.unit} CSS px, under ${smallest}.`]
+    : [];
 }
 
 process.exitCode = await runLayoutScript({
   game: "Brick Breaker",
   root: join(import.meta.dirname, ".."),
   check: async (devtools, url) => {
-    const check = { url, ready: READY, inspect: inspectField };
+    const check = { url, ready: READY, board: FIELD, inspect: inspectUnit };
     const shaped = await checkLayout(devtools, check, SHAPES_2X);
     const turned = await checkTurns(devtools, check, TURNS_2X);
     return [...shaped, ...turned];

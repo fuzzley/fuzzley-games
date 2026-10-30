@@ -232,11 +232,12 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
   small phone, upright and on its side) and at 320 × 480, and turned from
   upright to its side and back, each at 2×, once with the arrows and once
   without, the page reports no error and doesn't scroll, the bar's controls
-  lie in the window, the canvas draws at its size times the pixel ratio,
-  the board is square with squares of 16 CSS px or more (12 at 320 × 480
-  with the arrows), inside the window, where the placeholder drew it and
-  inside the focus ring, its card lies on it, and the arrows lie in the
-  window, off the board).
+  lie in the window, and, as `@fz/dev/layout` holds a board drawn with
+  Phaser, the canvas draws at its size times the board's pixel ratio and
+  the board is square, inside the window, where the placeholder drew it and
+  inside the focus ring, its card on it; its squares are 16 CSS px or more
+  (12 at 320 × 480 with the arrows), and the arrows lie in the window, off
+  the board).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the bite, the bump and the chime with `@fz/dev/sounds`
   into `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`,

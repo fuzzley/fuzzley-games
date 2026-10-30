@@ -435,11 +435,12 @@ workspace's with the others'.
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
   small phone, upright and on its side) and at 320 × 480, and turned from
   upright to its side and back, each at 2×, the page reports no error and
-  doesn't scroll, the bar's controls lie in the window, the canvas draws at
-  its size times the pixel ratio, and the field keeps its shape, 26 units
-  by 30, with a unit of 10 CSS px or more (9 in a window under 360 CSS px
-  tall), inside the window, where the placeholder drew it and inside the
-  focus ring, its card on it).
+  doesn't scroll, the bar's controls lie in the window, and, as
+  `@fz/dev/layout` holds a board drawn with Phaser, the canvas draws at its
+  size times the board's pixel ratio and the field keeps its shape, 26
+  units by 30, inside the window, where the placeholder drew it and inside
+  the focus ring, its card on it; and its unit is 10 CSS px or more (9 in
+  a window under 360 CSS px tall)).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the ten sounds, from the paddle's bop to a level's
   chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their

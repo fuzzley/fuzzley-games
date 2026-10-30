@@ -7,9 +7,11 @@ import {
   type withChrome,
 } from "./chrome.ts";
 import {
+  type BoardBox,
   type LayoutCheck,
   type LayoutProblem,
   type LayoutScript,
+  type PhaserBoard,
   SHAPES,
   TURNS,
   checkLayout,
@@ -18,6 +20,7 @@ import {
   shapesAt,
   turnsAt,
 } from "./layout.ts";
+import type { BoardInspection } from "./board_page.ts";
 import { type Command, FakeBrowser } from "./testing/fake_browser.ts";
 
 /** Words only the game's inspection holds, for the fake browser to spot. */
@@ -39,6 +42,24 @@ const ROOMY = SHAPES.slice(0, 1);
 /** Words only the check of the game bar holds. */
 const BAR = "fz-game-bar button";
 
+/** A board drawn with Phaser, as a check describes it. */
+const BOARD: PhaserBoard = {
+  name: "field",
+  element: "app-board",
+  drawnAt: "data-field",
+  across: 26,
+  down: 30,
+  placeholder: ".placeholder .field",
+  ring: ".ring",
+  card: ".card",
+};
+
+/** Where a board lies, as the page finds it. */
+const BOX: BoardBox = { left: 40, top: 60, width: 260, height: 300, unit: 10 };
+
+/** Words only the inspection of a board drawn with Phaser holds. */
+const BOARD_INSPECTION = "function inspectPhaserBoard";
+
 /**
  * Returns a fake browser whose pages find nothing wrong but what the game's
  * inspection finds, and the check of its bar, and which report some events
@@ -52,11 +73,16 @@ function browserFinding(
 }
 
 /**
- * Returns a fake browser whose pages find what the game's inspection and the
- * check of its bar each find, and nothing else wrong.
+ * Returns a fake browser whose pages find what the game's inspection, the
+ * check of its bar and the inspection of its board each find, and nothing
+ * else wrong.
  */
 function browserFindingIn(
-  found: { readonly own?: readonly string[]; readonly bar?: readonly string[] },
+  found: {
+    readonly own?: readonly string[];
+    readonly bar?: readonly string[];
+    readonly board?: BoardInspection;
+  },
   ...events: readonly object[]
 ): FakeBrowser {
   const browser: FakeBrowser = new FakeBrowser({
@@ -70,11 +96,21 @@ function browserFindingIn(
         ? (found.own ?? [])
         : expression.includes(BAR)
           ? (found.bar ?? [])
-          : [];
+          : expression.includes(BOARD_INSPECTION)
+            ? (found.board ?? { problems: [] })
+            : [];
       return { result: { result: { value } } };
     },
   });
   return browser;
+}
+
+/** Returns the scripts a page was sent to run that hold some words. */
+function evaluatedWith(browser: FakeBrowser, words: string): string[] {
+  return browser.sent
+    .filter(({ method }) => method === "Runtime.evaluate")
+    .map(({ params }) => String(params["expression"]))
+    .filter((expression) => expression.includes(words));
 }
 
 /** Returns the widths a page was set to, in order. */
@@ -167,6 +203,78 @@ describe("checkLayout", () => {
 
     expect(problems).toEqual([
       { shape: "roomy", problem: "The board isn't square." },
+    ]);
+  });
+
+  it("reports what is wrong with the check's board, before what the game's inspection finds", async () => {
+    const devtools = new DevToolsConnection(
+      browserFindingIn({
+        board: { problems: ["The field runs out of the window."], box: BOX },
+        own: ["The field's unit is 8 CSS px, under 10."],
+      }),
+    );
+
+    const problems = await checkLayout(
+      devtools,
+      { ...CHECK, board: BOARD },
+      ROOMY,
+    );
+
+    expect(problems.map(({ problem }) => problem)).toEqual([
+      "The field runs out of the window.",
+      "The field's unit is 8 CSS px, under 10.",
+    ]);
+  });
+
+  it("inspects the check's board as the check describes it", async () => {
+    const browser = browserFinding([]);
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, board: BOARD },
+      ROOMY,
+    );
+
+    expect(evaluatedWith(browser, BOARD_INSPECTION)).toEqual([
+      expect.stringContaining(JSON.stringify([BOARD])),
+    ]);
+  });
+
+  it("inspects no board where the check has none", async () => {
+    const browser = browserFinding([]);
+
+    await checkLayout(new DevToolsConnection(browser), CHECK, ROOMY);
+
+    expect(evaluatedWith(browser, BOARD_INSPECTION)).toEqual([]);
+  });
+
+  it("hands the game's inspection where the board lies", async () => {
+    const browser = browserFindingIn({ board: { problems: [], box: BOX } });
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, board: BOARD },
+      ROOMY,
+    );
+
+    expect(evaluatedWith(browser, OWN)).toEqual([
+      expect.stringContaining(JSON.stringify([BOX])),
+    ]);
+  });
+
+  it("hands the game's inspection nothing where the board doesn't say where it lies", async () => {
+    const browser = browserFindingIn({
+      board: { problems: ["app-board doesn't say where the field lies."] },
+    });
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, board: BOARD },
+      ROOMY,
+    );
+
+    expect(evaluatedWith(browser, OWN)).toEqual([
+      expect.stringMatching(/\(\.\.\.\[\]\)$/),
     ]);
   });
 
