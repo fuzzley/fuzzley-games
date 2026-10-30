@@ -327,7 +327,10 @@ describe("catchUp's clearing", () => {
   });
 
   it("brings the lives its points pass", () => {
-    const before = playing({ banked: FIRST_LIFE_POINTS - 1000 });
+    const before = playing({
+      banked: FIRST_LIFE_POINTS - 1000,
+      score: FIRST_LIFE_POINTS - 1000,
+    });
 
     const run = catchUp(before, fieldAt({ state: "cleared" }));
 
@@ -338,6 +341,7 @@ describe("catchUp's clearing", () => {
     const before = playing({
       lives: MAX_LIVES,
       banked: FIRST_LIFE_POINTS - 1000,
+      score: FIRST_LIFE_POINTS - 1000,
     });
 
     const run = catchUp(before, fieldAt({ state: "cleared" }));

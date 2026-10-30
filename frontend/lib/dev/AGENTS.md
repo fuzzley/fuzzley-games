@@ -62,9 +62,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   9004 for Brick Breaker. The Angular plugins, `angularPlugins()`, which
   the site's config takes too, are Analog's with its live reload, which
   swaps an edited component's template or styles into the running page,
-  and `componentUpdates()`, which makes that hold
-  for every component and reloads the page for an edit to TypeScript, whose
-  class code Angular can't swap. Analog announces an update under the
+  and `componentUpdates()`, which makes that hold for every component and
+  reloads the page for an edit to TypeScript, whose class code Angular
+  can't swap. Analog announces an update under the
   component's path from the app's folder, where Angular compiled in its
   path from the app's `rootDir`, or its whole path for a file outside it,
   such as a library's, in lower case on Windows; so `componentUpdates()`

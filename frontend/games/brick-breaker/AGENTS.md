@@ -429,14 +429,13 @@ workspace's with the others'.
   Chrome, through `@fz/dev/chrome`: a run kept by the rules (`keptRun()`, in
   `src/testing/kept_run.ts`), begun on level 9, Rocket, at Normal, with
   three bricks of its body's foot, three flames and a brick of each fin
-  broken, taken up
-  and gone on with, so the ball waits on the paddle under the card that says
-  how to launch it, at 1280 × 720 and 2× on Classic felt, written to
-  `public/docs/screenshots/brick-breaker/` as the site's `preview.webp`
-  (2560 × 1440), which `index.html` names as the link preview, and
-  `thumb.webp` (576 × 324, the field) by `@fz/dev/screenshots`; `--url`
-  names another server, and `--chrome <path>` or `CHROME_PATH` picks the
-  browser).
+  broken, taken up and gone on with, so the ball waits on the paddle under
+  the card that says how to launch it, at 1280 × 720 and 2× on Classic
+  felt, written to `public/docs/screenshots/brick-breaker/` as the site's
+  `preview.webp` (2560 × 1440), which `index.html` names as the link
+  preview, and `thumb.webp` (576 × 324, the field) by
+  `@fz/dev/screenshots`; `--url` names another server, and
+  `--chrome <path>` or `CHROME_PATH` picks the browser).
 
 ## Tests
 

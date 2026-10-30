@@ -69,25 +69,35 @@ by number:
 
 ## As built
 
-The steps below are as they were planned, and the design reference was
-kept true as the work went. This section holds the rest: where the build
-left the steps, what the log decided that a later change could trip on,
-the numbers, and what was left for the user.
+The steps below are mostly as they were planned, a few edited as they
+were built, and the design reference was updated as the work went. This
+section holds what neither says: where the build left the steps, what the
+log decided that a later change could trip on, the numbers, and what was
+left for the user.
 
 ### Where the build left the steps
 
 - **B0's mock was no gate.** The look was shown in screenshots at Q3, Q4
-  and Q5, and the spike's questions were answered on the real code at Q2
-  and Q3.
+  and Q5. Of the spike's questions, the physics' cost, the touch steering
+  and the paddle's ends were answered on the real code at Q2 and Q3; the
+  feel was not, as the next item says.
+- **No one has tuned the feel.** Q3 left `tuning.ts` as it was, since the
+  feel wants a person playing, and only the autopilot and scripted input
+  have played the game since: Q5 cleared its levels through the rules'
+  `hitBrick()`. The flourishes' times are still B5.1's first guesses.
 - **Decision 15's glow was built in B6.2,** with the effects, as no step
   had it.
+- **The paddle is two images of its round end and a rectangle between
+  them,** not B6.1's `NineSlice`, which draws nothing on the Canvas
+  renderer (B6.1's review).
 - **The bar shows no best** (B10.1). Beside a six-figure score, a
   six-figure best and six hearts, the game's name had no room: it was
   38 px short at 1200 px wide, and 95 px at 1280. The best is on the result
   card and on each level in the Levels dialog.
 - **Below the desktop width, the bar's figures are the score and the lives
-  alone** (B8.1), one over the other. At 375 × 553, three figures side by
-  side overflowed. Up to 1199 px, the labeled cards left no room for the
+  alone** (B8.1): one over the other in one card, or a card each down the
+  rail of a phone on its side. At 375 × 553, three figures side by side
+  overflowed. Up to 1199 px, the labeled cards left no room for the
   game's name. The level is on the Ready card and in the board's name.
 - **The layout check's floor is 9 CSS px in a window under 360 px tall,**
   and 10 elsewhere (B12.1 and its review). A phone on its side at
@@ -106,12 +116,20 @@ the numbers, and what was left for the user.
 - **A level's ids are text in its file,** checked by `parseLevel()`, which
   throws, naming the level, so a bad level fails the tests rather than a
   player's game (B4.1).
+- **A level's number seeds its draws and picks its default pool,** so a
+  level inserted before others changes how theirs play (B4.1's review).
+- **A mark passed at six lives is spent, not saved** (B3.4).
 - **A cleared level stays open,** as does the one after it, so a set
   reordered later never locks a level the player cleared (B10.1).
-- **A run counts from its first serve,** and a level's best is its own
-  points as its card added them up, not the run's score (B10.1).
+- **Only the Levels dialog keeps a locked level from being chosen;**
+  `GameService` doesn't refuse one, as Try again and New game start where
+  the run reached or started, which is always open (B10.1).
+- **A run is counted in the records from its first serve,** and a level's
+  best is its own points as its card added them up, not the run's score
+  (B10.1).
 - **The chime for a new best sounds as the result card opens,** not as the
-  run ends, under the lost ball's falling tone (B10.1).
+  run ends, where it would sound over the lost ball's falling tone
+  (B10.1).
 - **A lit blast, a regrowth, the draws and the climb carry over a
   reload,** against the field's own count of steps, which is kept too
   (B10.2).
@@ -122,15 +140,19 @@ the numbers, and what was left for the user.
 
 - **The levels over 40 seeds** (B11.2's review). Every one of 3,600 plays
   cleared its level with no life lost. 16 of them, 0.44%, spent over a
-  minute on their last bricks. The middle times run from Low bridge's 0:49
-  to Keep's 2:52, and the Vault's longest play is 7:26 at Relaxed, under
-  the 8-minute limit. The table is in the log.
-- **Performance** (Q5), at Chain reaction with eight balls in flight.
+  minute on their last bricks. The middle times run from 0:49 (Low bridge,
+  Relaxed) to 3:00 (Stripes, Relaxed). Keep is the longest at Normal and
+  Fast (2:52 and 2:14). The Vault's longest play is 7:26 at Relaxed, under
+  the 8-minute limit. The log's last entry has the table of all thirty.
+- **Performance** (Q5), on the dev server, at Chain reaction with eight
+  balls in flight.
   - Unthrottled, Phaser's frame took 0.3 ms at the median and 1.4 ms at
     worst.
   - With the CPU throttled six times, the trace's CPU time per frame was
-    0.49 ms at the median and 3.05 ms at p95, inside the 4 ms bar. The
-    worst frames of a blast chain came to about 8 ms.
+    0.49 ms at the median and 3.05 ms at p95, inside the 4 ms bar, and
+    5.77 ms at worst, over it. The unthrottled worst times six would be
+    about 8 ms.
+  - Only 60 Hz was measured, though the budget names 120 Hz too.
 - **The bundle,** gzipped (Q5): the entry 95.1 kB, the scene 9.8 kB and
   Phaser's chunk 353.9 kB, which loads by `import()` after the page paints.
 - **Lighthouse** (Q5): accessibility 100 and best practices 100.
@@ -141,9 +163,15 @@ the numbers, and what was left for the user.
   - **Decision 16:** a reload rescues a ball heading for a miss, since the
     balls in flight aren't kept and the run comes back with the ball on
     the paddle.
+  - **The feel is untried by a person:** the speeds, the angles, the climb,
+    the paddle's response and the flourishes' times, as "Where the build
+    left the steps" says.
   - **The autopilot loses no lives,** so the report measures a level's
     length, not its difficulty. Finale has the game's top pace, but Keep is
-    its longest level.
+    the longest at Normal and Fast.
+  - **Stripes, level 1, is the longest level at Relaxed** (3:00 in the
+    middle), and second only to Keep at Normal, which cuts against a game
+    that rises from its first level.
   - **The gift bricks wear the accent.** It sits close to one row's tint
     in each palette, and in Casino night to Finale's trophy, so only their
     capsule mark tells them apart there (Q3, Q5).
@@ -159,9 +187,14 @@ the numbers, and what was left for the user.
     (Q4).
   - **The announcer's 100 ms wait** hasn't been tried with a real screen
     reader.
-  - **Low bridge, Storm and Spiral read short** for their places, and
-    Spiral's last bricks gather at (3, 7), over the hook's steel bar, which
-    is worth watching (B11.2's review).
+  - **Low bridge and Storm read short** for their places (B11.2). Their
+    bricks reach low, so they ask for quick reactions, which the
+    autopilot, reacting at once, doesn't feel, and their blast bricks and
+    capsules clear them fast.
+  - **Spiral's last bricks gather at row 3, column 7,** over the hook's
+    steel bar, which is worth watching (B11.2's review).
+  - **The worst frames of a blast chain are over the 4 ms bar** at ×6, and
+    120 Hz is unmeasured (Q5).
 - **Follow-ups outside this game.**
   - **Lifts into the libraries:** the settings drawer's styles into
     `@fz/game-ui`, as four games copy them; `arpeggio()` into
@@ -173,6 +206,9 @@ the numbers, and what was left for the user.
     load.
   - **Snake, Minesweeper and Sudoku** say their last dialog is "last, so it
     opens over" the others, which `showModal()` makes untrue.
+  - **Snake's screenshot script** waits for its canvas only while the host
+    says it is loading, so a host not yet rendered falls through, as Brick
+    Breaker's did until B13's review.
 
 ## How the work runs
 
@@ -622,13 +658,14 @@ section changes with the step that learned it, and the log says why.
   game goes on; the last one lost costs a life, ends every capsule's effect,
   and serves again after a beat. With no lives left, the run is over.
 - **A level is cleared** when every brick it needs is broken; steel bricks
-  and regrowing bricks never need breaking. The balls in play leave the
-  field, the level's score is added up on a card, and the next level waits
-  for the player.
+  and regrowing bricks never need breaking. The balls in play stand still
+  under the Cleared card, the level's score is added up on it, and the next
+  level waits for the player.
 
 #### The feel, in numbers
 
-The numbers the game starts from, settled by playing at Q3, kept in
+The numbers the game starts from, to be settled by playing (no one has
+yet, as "As built" says), kept in
 `src/rules/tuning.ts` so one file tunes the game, but those of one kind of
 brick or one capsule, which its catalog entry holds:
 
@@ -1701,8 +1738,9 @@ statements, functions and lines, and 95% of branches.
 ## Risks
 
 - **The feel is everything, and no spec can judge it.** The speeds, the
-  angles, the climb and the paddle's response are settled by playing at Q3,
-  again at Q4, and again at Q5, with the numbers kept in one file.
+  angles, the climb and the paddle's response were to be settled by
+  playing at Q3, Q4 and Q5, with the numbers kept in one file. None of the
+  three did, as "As built" says.
 - **Physics has corners, literally.** A seam, a corner beside a wall, a
   paddle swung into a ball, two balls on one brick, a ball at the top speed:
   each is a spec in B2 before anything draws, and the sweep never lets a
@@ -1713,9 +1751,10 @@ statements, functions and lines, and 95% of branches.
 - **The autopilot in CI.** Thirty levels at three speeds is ninety plays,
   each well under a second in Node; if the suite slows, the spec plays one
   speed per level by turns, and the report plays them all.
-- **A field on a phone held sideways is small,** about 12 CSS px a unit. Q3
-  plays it there, and the layout check holds the unit to 10 CSS px or more,
-  or 9 in a window under 360 CSS px tall, where 568 × 320 gives 9.5.
+- **A field on a phone held sideways is small,** about 12 CSS px a unit.
+  No checkpoint played it there: Q3, Q4 and Q5 played upright phones. The
+  layout check holds the unit to 10 CSS px or more, or 9 in a window under
+  360 CSS px tall, where 568 × 320 gives 9.5.
 - **Eight tints at 3:1 against the field and against the ball is a narrow
   band** of lightness, in a light palette most. B5's contrast spec decided
   it: in the light palettes the plain ball clears eight hues in the band,

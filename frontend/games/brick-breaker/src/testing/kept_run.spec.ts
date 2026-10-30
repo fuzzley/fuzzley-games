@@ -5,8 +5,9 @@ import { stepsIn } from "../rules/stepper";
 import { type KeptRun, type Place, keptRun } from "./kept_run";
 
 /**
- * A run on Rocket, level 9: a plain brick of its flames and a tough one of
- * its fin broken, and the tough one below it hit once.
+ * A run on Rocket, level 9, with three bricks broken, a plain flame, a tough
+ * fin brick and the four-hit nose, and the fin brick below the broken one
+ * hit once.
  */
 const KEPT: KeptRun = {
   level: 9,
@@ -16,6 +17,7 @@ const KEPT: KeptRun = {
   broken: [
     [12, 4],
     [10, 1],
+    [0, 6],
   ],
   worn: [[11, 1]],
 };
@@ -41,6 +43,7 @@ describe("keptRun", () => {
   it.each<[string, Place]>([
     ["a plain brick", [12, 4]],
     ["a tough brick", [10, 1]],
+    ["a brick of four hits", [0, 6]],
   ])("breaks %s it names broken", (_, place) => {
     expect(keptBrickAt(place)).toMatchObject({ hits: 0, broken: true });
   });
@@ -50,7 +53,7 @@ describe("keptRun", () => {
   });
 
   it("keeps the points the bricks scored: 50 for each hit, before a streak", () => {
-    expect(keptRun(LEVELS, KEPT).score).toBe(200);
+    expect(keptRun(LEVELS, KEPT).score).toBe(400);
   });
 
   it("keeps the level played for as long as it names", () => {
