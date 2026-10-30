@@ -1,9 +1,9 @@
 # Brick Breaker: the work log
 
-Where the build of Brick Breaker stands, step by step, as
-`docs/brick-breaker-execution-plan.md` runs it: what each step built, the
-choices it made, its checks, its review and what became of each finding,
-and the QA checkpoints. Newest last.
+Where the build of Brick Breaker stood, step by step, as
+`brick-breaker-execution-plan.md`, beside this log, ran it: what each step
+built, the choices it made, its checks, its review and what became of each
+finding, and the QA checkpoints. Newest last.
 
 ## 2026-10-29: the plan
 
@@ -3601,3 +3601,51 @@ over 40 seeds, which reproduced the table exactly.
 
 - **Checks.** The announcer's 19 specs, the run's, the round trip's and the
   app's pass, and the layout check holds at every shape and turn.
+
+## Q6: the site's build
+
+- **The image waits for CI.** Docker isn't running on this machine:
+  `docker info` can't reach its engine. Verify's image job builds it, and
+  `check-image.sh` checks every game `games.json` lists, Brick Breaker with
+  them: its status and redirects, its caching, the security headers, no
+  policy, the analytics tags and its assets.
+- **The site's build** at `44e0e6aa`, from `yarn build`, served by
+  `yarn preview`. Checked in the DevTools MCP's Chrome, in a context of its
+  own.
+  - **The catalog** lists it in Arcade, after Snake: New, Solo, 10 min,
+    with its thumbnail, and Arcade counts 2 games.
+  - **Its page,** `/games/brick-breaker`, gives the blurb, "Solo, about 10
+    min a game", and Play over the preview.
+  - **Played at `/play/brick-breaker/`,** reached by that Play.
+    - Every request was answered 200, `env.js` and `analytics.js` among
+      them.
+    - The canvas was ready, in the palette chosen on the site (Casino
+      night), and the canonical link names fuzzley.games.
+    - A ball launched by Space broke bricks for 50 points. Lost, unsteered,
+      it was announced ("Ball lost. 2 lives left."), and the Ready card came
+      back.
+  - **The footer** names the commit, `44e0e6aa`, as `version.json` does for
+    each game's build.
+- **The console.**
+  - **On the game's page,** only Chrome's info line that autofocus was
+    blocked. The result card's Try again carries `autofocus` in its closed
+    dialog while the board has the focus. Snake's page logs the same.
+  - **On the site's home page,** a DevTools issue: a form field with no id
+    or name. It is the site's, not the game's.
+- **No "Refused to load."** The site's pages load nothing new from another
+  origin: the thumbnail and the preview come from `/play/brick-breaker/`,
+  which the policy's `img-src 'self'` allows. The games carry no policy.
+
+## B14.2: the archive
+
+- **The plan and this log moved to `docs/archive/`.** The plan keeps its
+  name, as the design plan it replaced was `brick-breaker-plan.md`.
+- **The plan opens with how it was built,** and its new "As built" section
+  holds what this log decided that the steps and the design reference
+  don't say:
+  - where the build left the steps;
+  - the decisions a later change could trip on;
+  - the numbers;
+  - what is left for the user.
+- **Checks.** Prettier and the references pass. Nothing outside the
+  archive names either file.

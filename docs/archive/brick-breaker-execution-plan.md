@@ -1,10 +1,18 @@
 # Plan: building Brick Breaker, step by step
 
 Answered 2026-10-29: the user took every recommendation of the design plan,
-and asked for this plan of how it is built. The design plan is folded in
-below ("Design reference") and deleted, so this file is the one place the
-game is described until it ships, and the work log
-(`docs/brick-breaker-worklog.md`) the one place its progress is.
+and asked for this plan of how it is built, with a work log, regular
+commits, QA checkpoints and an independent review of every commit. The
+design plan is folded in below ("Design reference") and was deleted.
+
+Built on 2026-10-29 and 30, each step below a commit, and each commit
+reviewed. Part 1 was built on the branch `brick-breaker-lift`, cut from
+`main`, and Part 2 on `brick-breaker`, cut from Part 1's tip; the two merge
+into `main` only on the user's go-ahead (B14.3). "As built" gathers what the
+work log decided that the steps and the design reference don't say, and
+what it left open. The log itself is beside this plan, in
+`brick-breaker-worklog.md`. Both describe the code as it was, so check a
+path against the tree before following one.
 
 Brick Breaker is the fifth game hosted on fuzzley.games, at
 `/play/brick-breaker/`, in the Arcade category beside Snake: a paddle at the
@@ -58,6 +66,113 @@ by number:
 20. Brick Breaker goes in Arcade.
 21. The lift merges first, on its own; the game merges once, linked from the
     catalog in the same commit.
+
+## As built
+
+The steps below are as they were planned, and the design reference was
+kept true as the work went. This section holds the rest: where the build
+left the steps, what the log decided that a later change could trip on,
+the numbers, and what was left for the user.
+
+### Where the build left the steps
+
+- **B0's mock was no gate.** The look was shown in screenshots at Q3, Q4
+  and Q5, and the spike's questions were answered on the real code at Q2
+  and Q3.
+- **Decision 15's glow was built in B6.2,** with the effects, as no step
+  had it.
+- **The bar shows no best** (B10.1). Beside a six-figure score, a
+  six-figure best and six hearts, the game's name had no room: it was
+  38 px short at 1200 px wide, and 95 px at 1280. The best is on the result
+  card and on each level in the Levels dialog.
+- **Below the desktop width, the bar's figures are the score and the lives
+  alone** (B8.1), one over the other. At 375 × 553, three figures side by
+  side overflowed. Up to 1199 px, the labeled cards left no room for the
+  game's name. The level is on the Ready card and in the board's name.
+- **The layout check's floor is 9 CSS px in a window under 360 px tall,**
+  and 10 elsewhere (B12.1 and its review). A phone on its side at
+  568 × 320 gives 9.5.
+- **The screenshot shows the launch card, not the Paused card** (B13.1).
+  The Paused card lies over the rocket's broken foot, so the script presses
+  Resume, and the ball waits on the paddle under the card that says how to
+  launch it.
+
+### What the log decided
+
+- **Timers count whole steps** (`stepsIn()`), not milliseconds. Twelve
+  steps of 8.33 ms summed to just under 100 ms, a step late (B3.3).
+- **A legend's hits run from its kind's hits to its `mostHits`:** 2 to 4
+  for a tough brick, and none for steel (B3.1, B4.1).
+- **A level's ids are text in its file,** checked by `parseLevel()`, which
+  throws, naming the level, so a bad level fails the tests rather than a
+  player's game (B4.1).
+- **A cleared level stays open,** as does the one after it, so a set
+  reordered later never locks a level the player cleared (B10.1).
+- **A run counts from its first serve,** and a level's best is its own
+  points as its card added them up, not the run's score (B10.1).
+- **The chime for a new best sounds as the result card opens,** not as the
+  run ends, under the lost ball's falling tone (B10.1).
+- **A lit blast, a regrowth, the draws and the climb carry over a
+  reload,** against the field's own count of steps, which is kept too
+  (B10.2).
+- **Phaser hands a key over again** with each new key in a frame, so the
+  scene takes each event once (B6.1).
+
+### The numbers
+
+- **The levels over 40 seeds** (B11.2's review). Every one of 3,600 plays
+  cleared its level with no life lost. 16 of them, 0.44%, spent over a
+  minute on their last bricks. The middle times run from Low bridge's 0:49
+  to Keep's 2:52, and the Vault's longest play is 7:26 at Relaxed, under
+  the 8-minute limit. The table is in the log.
+- **Performance** (Q5), at Chain reaction with eight balls in flight.
+  - Unthrottled, Phaser's frame took 0.3 ms at the median and 1.4 ms at
+    worst.
+  - With the CPU throttled six times, the trace's CPU time per frame was
+    0.49 ms at the median and 3.05 ms at p95, inside the 4 ms bar. The
+    worst frames of a blast chain came to about 8 ms.
+- **The bundle,** gzipped (Q5): the entry 95.1 kB, the scene 9.8 kB and
+  Phaser's chunk 353.9 kB, which loads by `import()` after the page paints.
+- **Lighthouse** (Q5): accessibility 100 and best practices 100.
+
+### Left for the user
+
+- **Questions about the game.**
+  - **Decision 16:** a reload rescues a ball heading for a miss, since the
+    balls in flight aren't kept and the run comes back with the ball on
+    the paddle.
+  - **The autopilot loses no lives,** so the report measures a level's
+    length, not its difficulty. Finale has the game's top pace, but Keep is
+    its longest level.
+  - **The gift bricks wear the accent.** It sits close to one row's tint
+    in each palette, and in Casino night to Finale's trophy, so only their
+    capsule mark tells them apart there (Q3, Q5).
+  - **A ball in flight as a level clears stays frozen** under the Cleared
+    card. It could fade, as a lost ball does (Q3).
+  - **The help names the keys by QWERTY's labels** ("A or D"), though the
+    keys go by place, as Snake's do (Q5).
+  - **Scores show without a thousands separator** in the bar, the cards, the
+    Levels dialog and what the announcer says, but How to play writes them
+    with one (Q4).
+  - **A sound turned on from the overflow menu leaves the focus on More
+    actions,** as a menu does, where Sound in the bar keeps it on the board
+    (Q4).
+  - **The announcer's 100 ms wait** hasn't been tried with a real screen
+    reader.
+  - **Low bridge, Storm and Spiral read short** for their places, and
+    Spiral's last bricks gather at (3, 7), over the hook's steel bar, which
+    is worth watching (B11.2's review).
+- **Follow-ups outside this game.**
+  - **Lifts into the libraries:** the settings drawer's styles into
+    `@fz/game-ui`, as four games copy them; `arpeggio()` into
+    `@fz/dev/sounds`; and the layout check's runner into `@fz/dev/layout`,
+    which Sudoku, Snake and Brick Breaker each copy.
+  - **Snake:** its scene can replay a key as Brick Breaker's could, a fix
+    for `@fz/phaser`; Space on its focused Resume reaches the board, as it
+    did on Brick Breaker's cards; and its result spec failed once under
+    load.
+  - **Snake, Minesweeper and Sudoku** say their last dialog is "last, so it
+    opens over" the others, which `showModal()` makes untrue.
 
 ## How the work runs
 
@@ -128,11 +243,12 @@ review: …`, checked as any step's. It comes after the commit of the step
 
 ### The work log
 
-`docs/brick-breaker-worklog.md`, committed with the step it records. Each
-step's entry gives the date, the commit, what was built, any choice made
-that this plan didn't make (and why), what the checks reported, the review's
-findings and what became of each, and numbers worth keeping: bundle sizes,
-timings, the autopilot's report. QA checkpoints log what was tried, on what,
+`docs/brick-breaker-worklog.md` while the work ran, now beside this plan,
+committed with the step it records. Each step's entry gives the date, the
+commit, what was built, any choice made that this plan didn't make (and
+why), what the checks reported, the review's findings and what became of
+each, and numbers worth keeping: bundle sizes, timings, the autopilot's
+report. QA checkpoints log what was tried, on what,
 and what was found. A design change found on the way is made in this plan
 too, so the plan stays true.
 
