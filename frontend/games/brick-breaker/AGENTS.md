@@ -337,6 +337,18 @@ workspace's with the others'.
   chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their
   spritemap, `sounds.json`, the same bytes every run; their names and order
   are the view's `SOUNDS`, which the scene's spec holds them to).
+- **Capture Screenshots:** `yarn capture:screenshots` (runs
+  `tools/capture-screenshots.mjs` against the running dev server in headless
+  Chrome, through `@fz/dev/chrome`: a run kept by the rules (`keptRun()`, in
+  `src/testing/kept_run.ts`), begun on level 9, Rocket, at Normal, with the
+  foot of its body, three flames and a brick of each fin broken, taken up
+  and gone on with, so the ball waits on the paddle under the card that says
+  how to launch it, at 1280 × 720 and 2× on Classic felt, written to
+  `public/docs/screenshots/brick-breaker/` as the site's `preview.webp`
+  (2560 × 1440), which `index.html` names as the link preview, and
+  `thumb.webp` (576 × 324, the field) by `@fz/dev/screenshots`; `--url`
+  names another server, and `--chrome <path>` or `CHROME_PATH` picks the
+  browser).
 
 ## Tests
 

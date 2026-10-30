@@ -3406,3 +3406,39 @@ against the specs, and probed the announcer with a spec of its own.
     line comes before the summary whenever there is one.
 13. **A not-begun case mixed two stored runs.** **Fixed:** it takes the
     score from the cleared run it changes.
+
+## B13.1: the screenshots
+
+- **Built.** `tools/capture-screenshots.mjs`, Snake's adapted, as
+  `yarn capture:screenshots`.
+  - It writes `public/docs/screenshots/brick-breaker/preview.webp` (2560 × 1440) and `thumb.webp` (576 × 324, the field and a margin), through
+    `writeSiteImages()`.
+  - `index.html` names the preview as its link preview, with its type, size
+    and alt text, as Snake's does.
+- **The run shown is kept by the rules.** `keptRun()`, in
+  `src/testing/kept_run.ts`, begins a run at a level and breaks or wears the
+  bricks it names through `hitBrick()`, as a ball would, then keeps it with
+  `saveGame()`.
+  - The script loads it through Vite's `runnerImport()`, as the report loads
+    the autopilot, and stores it with the saved game's version.
+  - So the run is always one the game's reader takes up, however the rules
+    change. Its spec takes one up, checks the bricks and the points, and
+    expects it to throw for a level or a place with none.
+- **The picture.** Rocket at Normal, on Classic felt, at 1280 × 720 and 2×.
+  - It shows a bite out of the rocket's foot, three of its flames and a
+    brick of each fin broken, and two fin bricks worn.
+  - The score reads 950.
+- **Deviation.** The plan asked for the run taken up paused, as Snake's is.
+  The Paused card lies in the middle of the field, over the rocket's foot,
+  where the broken bricks are.
+  - So the script presses Resume once the run is taken up.
+  - The ball then waits on the paddle under the card that says how to
+    launch it, which lies low on the field, clear of the rocket, and names
+    the level.
+  - The script fails unless the run was taken up paused, at its score, and
+    then went on.
+- **Checks.**
+  - Lint, typecheck (the script's in-page code included), formatting and
+    the references pass.
+  - Brick Breaker's suite passes with its floors (1,748).
+  - The build carries both images under `docs/screenshots/brick-breaker/`.
