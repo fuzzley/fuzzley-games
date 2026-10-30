@@ -16,11 +16,10 @@ export const ALMOST_FULL = runFrom(["v<<", "@*^", ">>^"], {
 });
 
 /**
- * Gives `GameService` the same seed for every run, so the apples after the
- * first fall where they fell before, and a run played to its end eats the
- * same number of them each time.
+ * Returns a provider that gives every run the same seed, one whose second
+ * apple falls out of the way of a run heading right.
  */
-export function provideSeededRuns(): Provider {
+export function provideFixedSeed(): Provider {
   return { provide: GAME_RANDOM, useValue: () => 0.5 };
 }
 
@@ -34,8 +33,8 @@ export function playToTheEnd(game: GameService): void {
 /**
  * Returns the game with a run started one way and played to its end: up runs
  * into the top wall having eaten nothing, and right eats the first apple on
- * its way into the right one, and the second too where the run's seed lays
- * it in the way, as the seed `provideSeededRuns()` gives doesn't.
+ * its way into the right one, and now and then the second, which
+ * `provideFixedSeed()` rules out.
  */
 export function endedGame(direction: Direction = "up"): GameService {
   const game = TestBed.inject(GameService);

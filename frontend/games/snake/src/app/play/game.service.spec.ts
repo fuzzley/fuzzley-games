@@ -4,7 +4,12 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { pause } from "../../rules/run";
 import { stepMs } from "../../rules/speed";
-import { endedGame, playToTheEnd, wonGame } from "../../testing/play";
+import {
+  endedGame,
+  playToTheEnd,
+  provideFixedSeed,
+  wonGame,
+} from "../../testing/play";
 import { runFrom } from "../../testing/run_picture";
 import { FADE_MS } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
@@ -27,6 +32,10 @@ function startedGame(): GameService {
 }
 
 describe("GameService", () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideFixedSeed()] });
+  });
+
   describe("a new run", () => {
     it("waits, at the speed in the settings, for its first direction", () => {
       TestBed.inject(SettingsService).update({ speed: "fast" });

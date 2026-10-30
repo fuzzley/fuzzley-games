@@ -11,7 +11,7 @@ import {
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { stepMs } from "../../rules/speed";
-import { playToTheEnd } from "../../testing/play";
+import { playToTheEnd, provideFixedSeed } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
 
@@ -43,7 +43,7 @@ async function renderBoard(
     `<app-board [arrows]="${String(arrows)}" /><button type="button">Elsewhere</button>`,
     {
       imports: [BoardComponent],
-      providers: [provideFakePhaserCanvas(options)],
+      providers: [provideFakePhaserCanvas(options), provideFixedSeed()],
     },
   );
   return {
