@@ -133,10 +133,6 @@ describe("the brick kinds", () => {
     },
   );
 
-  it.each(BRICK_KIND_IDS)("make %s hard exactly when it never breaks", (id) => {
-    expect(hasTrait(id, "hard")).toBe(brickKind(id).hits === "never");
-  });
-
   // A brick that grows back would have to be counted again by the field.
   it.each(BRICK_KIND_IDS.filter((id) => hasTrait(id, "regrows")))(
     "need %s, which regrows, broken never",
@@ -171,13 +167,6 @@ describe("the ball kinds", () => {
     "let %s pass through only what a hit of it breaks",
     (id) => {
       expect(ballKind(id).damage).toBe("breaks");
-    },
-  );
-
-  it.each(BALL_KIND_IDS)(
-    "keep %s a normal ball's size, the only one the physics reads",
-    (id) => {
-      expect(ballKind(id).size).toBe(1);
     },
   );
 });

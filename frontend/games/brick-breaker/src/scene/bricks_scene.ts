@@ -9,8 +9,9 @@ import {
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { Core, type GameObjects, Input, Scene, type Types } from "phaser";
-import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
+import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
+import { recordOf } from "../rules/tables";
 import {
   PICTURE_FRAMES,
   type Pictures,
@@ -270,8 +271,8 @@ export class BricksScene extends Scene {
         const brick = field.bricks[event.cell];
         if (!brick) return;
         this.effects.shatter(
-          columnMiddle(columnOf(event.cell)),
-          rowMiddle(rowOf(event.cell)),
+          cellMiddleX(event.cell),
+          cellMiddleY(event.cell),
           brickColor(brick, this.painted),
           this.metrics,
         );
@@ -298,9 +299,7 @@ export class BricksScene extends Scene {
 
   /** Returns a layer for each entry of the view's list, made back to front. */
   private layers(): Readonly<Record<Layer, GameObjects.Layer>> {
-    const made = LAYERS.map((layer) => [layer, this.add.layer()] as const);
-    // Object.fromEntries() types its keys as strings; these are the layers.
-    return Object.fromEntries(made) as Record<Layer, GameObjects.Layer>;
+    return recordOf(LAYERS, () => this.add.layer());
   }
 
   /** Returns whether the canvas, its pixel ratio or the chrome over it changed. */

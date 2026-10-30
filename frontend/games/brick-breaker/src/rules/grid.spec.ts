@@ -4,6 +4,8 @@ import {
   type Solid,
   brickBox,
   cellIndex,
+  cellMiddleX,
+  cellMiddleY,
   columnAt,
   columnOf,
   exposureOf,
@@ -62,6 +64,12 @@ describe("the grid's cells", () => {
     [1.5, -1],
   ])("put y = %f in row %i", (y, row) => {
     expect(rowAt(y)).toBe(row);
+  });
+
+  it("put a cell's middle in the middle of its brick", () => {
+    const cell = cellIndex(3, 4);
+
+    expect([cellMiddleX(cell), cellMiddleY(cell)]).toEqual([7, 6.5]);
   });
 });
 

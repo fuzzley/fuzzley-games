@@ -1,7 +1,7 @@
+import { keysOf } from "../tables";
+
 /** Names something a brick does beyond taking hits, with its settings. */
 export type BrickTrait =
-  /** Never breaks: it turns every ball, a fire ball too, and stops every bolt. */
-  | { readonly kind: "hard" }
   /** Breaks the bricks around it a beat after it breaks. */
   | { readonly kind: "blasts"; readonly delayMs: number }
   /** Always lets a capsule fall, the level's pinned one or one drawn. */
@@ -11,7 +11,7 @@ export type BrickTrait =
   /** Grows back a while after it breaks, once no ball is in its place. */
   | { readonly kind: "regrows"; readonly afterMs: number };
 
-/** A brick trait's kind, such as "hard". */
+/** A brick trait's kind, such as "blasts". */
 export type TraitKind = BrickTrait["kind"];
 
 /** Describes a kind of brick: what breaking it takes, and what it does. */
@@ -62,7 +62,7 @@ export const BRICK_KINDS = {
     mostHits: 0,
     needed: false,
     points: 0,
-    traits: [{ kind: "hard" }],
+    traits: [],
   },
   blast: {
     name: "Blast brick",
@@ -107,10 +107,7 @@ export const BRICK_KINDS = {
 export type BrickKindId = keyof typeof BRICK_KINDS;
 
 /** Every brick kind's id, in How to play's order. */
-// Object.keys() types its keys as strings; the catalog's keys are its ids.
-export const BRICK_KIND_IDS = Object.keys(
-  BRICK_KINDS,
-) as readonly BrickKindId[];
+export const BRICK_KIND_IDS = keysOf(BRICK_KINDS);
 
 /** Returns a brick kind, as the shape every kind has. */
 export function brickKind(id: BrickKindId): BrickKind {
@@ -120,6 +117,11 @@ export function brickKind(id: BrickKindId): BrickKind {
 /** Returns whether a value names a brick kind. */
 export function isBrickKindId(value: unknown): value is BrickKindId {
   return typeof value === "string" && Object.hasOwn(BRICK_KINDS, value);
+}
+
+/** Returns whether a level needs a brick of a kind broken to be cleared. */
+export function isNeeded(id: BrickKindId): boolean {
+  return brickKind(id).needed;
 }
 
 /** Returns whether a brick kind has a trait of a kind. */

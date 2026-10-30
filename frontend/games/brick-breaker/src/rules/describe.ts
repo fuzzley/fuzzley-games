@@ -69,9 +69,18 @@ export function describeTakenUp(run: Run, entry: LevelEntry): string {
   return `Your last run is paused on level ${String(entry.number)}, ${entry.data.name}, with a score of ${String(run.score)} and ${count(run.lives, "life", "lives")}. Press Enter to go on.`;
 }
 
+/** Returns what an ended run is called, on its cards and as the announcer says it ends. */
+export function endTitle(run: Pick<Run, "outcome">): string {
+  return run.outcome === "won" ? "Every level cleared!" : "Game over";
+}
+
 /** Returns what is said as a run ends: how, the score, the level reached, and whether it is a new best. */
 export function describeEnd(run: Run, newBest: boolean): string {
-  const how = run.outcome === "won" ? "Every level cleared!" : "Game over.";
   const best = newBest ? " A new best!" : "";
-  return `${how} Score ${String(run.score)}, at level ${String(run.level)}.${best}`;
+  return `${asSentence(endTitle(run))} Score ${String(run.score)}, at level ${String(run.level)}.${best}`;
+}
+
+/** Returns words as a sentence: ending in a full stop, unless they end in a mark of their own. */
+function asSentence(words: string): string {
+  return /[.!?]$/.test(words) ? words : `${words}.`;
 }

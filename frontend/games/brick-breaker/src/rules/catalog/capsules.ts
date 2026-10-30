@@ -1,3 +1,4 @@
+import { keysOf } from "../tables";
 import type { BallKindId } from "./balls";
 
 /**
@@ -176,8 +177,7 @@ export const CAPSULES = {
 export type CapsuleId = keyof typeof CAPSULES;
 
 /** Every capsule's id, in How to play's order. */
-// Object.keys() types its keys as strings; the catalog's keys are its ids.
-export const CAPSULE_IDS = Object.keys(CAPSULES) as readonly CapsuleId[];
+export const CAPSULE_IDS = keysOf(CAPSULES);
 
 /** Returns a capsule, as the shape every capsule has. */
 export function capsule(id: CapsuleId): Capsule {

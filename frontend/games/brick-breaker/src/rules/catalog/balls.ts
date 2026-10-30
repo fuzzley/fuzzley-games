@@ -1,3 +1,5 @@
+import { keysOf } from "../tables";
+
 /** Describes a kind of ball: what its hits do, and how it moves. */
 export interface BallKind {
   /** Names it in How to play, such as "Fire ball". */
@@ -12,8 +14,6 @@ export interface BallKind {
   readonly reaches: boolean;
   /** Its speed, against a normal ball's. */
   readonly speed: number;
-  /** Its size, against a normal ball's. */
-  readonly size: number;
 }
 
 /** Every kind of ball, by id, in How to play's order. */
@@ -25,7 +25,6 @@ export const BALL_KINDS = {
     passes: false,
     reaches: false,
     speed: 1,
-    size: 1,
   },
   fire: {
     name: "Fire ball",
@@ -35,7 +34,6 @@ export const BALL_KINDS = {
     passes: true,
     reaches: false,
     speed: 1,
-    size: 1,
   },
   blast: {
     name: "Blast ball",
@@ -44,7 +42,6 @@ export const BALL_KINDS = {
     passes: false,
     reaches: true,
     speed: 1,
-    size: 1,
   },
 } as const satisfies Readonly<Record<string, BallKind>>;
 
@@ -52,8 +49,7 @@ export const BALL_KINDS = {
 export type BallKindId = keyof typeof BALL_KINDS;
 
 /** Every ball kind's id, in How to play's order. */
-// Object.keys() types its keys as strings; the catalog's keys are its ids.
-export const BALL_KIND_IDS = Object.keys(BALL_KINDS) as readonly BallKindId[];
+export const BALL_KIND_IDS = keysOf(BALL_KINDS);
 
 /** Returns a ball kind, as the shape every kind has. */
 export function ballKind(id: BallKindId): BallKind {

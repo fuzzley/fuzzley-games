@@ -19,6 +19,7 @@ import {
 import type { HostOptions } from "@fz/phaser/host";
 import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
+import { endTitle } from "../../rules/describe";
 import {
   BRICKS_TOP,
   BRICK_HEIGHT,
@@ -196,9 +197,7 @@ export class BoardComponent {
   });
 
   /** What the card over an ended run calls it. */
-  protected readonly endTitle = computed(() =>
-    this.game.outcome() === "won" ? "Every level cleared!" : "Game over",
-  );
+  protected readonly endCardTitle = computed(() => endTitle(this.game.run()));
 
   /** The field's colors, from the palette on the page. */
   private readonly palette = fieldPalette(inject(ThemeService));

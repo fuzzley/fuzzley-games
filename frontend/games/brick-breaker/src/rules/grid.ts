@@ -61,6 +61,16 @@ export function rowMiddle(row: number): number {
   return BRICKS_TOP + (row + 0.5) * BRICK_HEIGHT;
 }
 
+/** Returns where a cell's middle is, across. */
+export function cellMiddleX(cell: number): number {
+  return columnMiddle(columnOf(cell));
+}
+
+/** Returns where a cell's middle is, down. */
+export function cellMiddleY(cell: number): number {
+  return rowMiddle(rowOf(cell));
+}
+
 /**
  * Writes the box of the brick in a cell into `box`, and returns it.
  *

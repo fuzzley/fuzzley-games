@@ -1,4 +1,5 @@
 import { clamp } from "@fz/core/math";
+import type { Box } from "./grid";
 import type { Paddle } from "./paddle";
 import {
   BALL_RADIUS,
@@ -170,6 +171,13 @@ export function settleBall(ball: Ball, nx: number, ny: number): void {
   ball.dx = ball.dx < 0 ? -FLATTEST_COS : FLATTEST_COS;
   ball.dy = ball.dy > 0 ? FLATTEST_SIN : -FLATTEST_SIN;
   if (ball.dx * nx + ball.dy * ny < 0) ball.dy = -ball.dy;
+}
+
+/** Returns whether a ball overlaps a box, some of it inside. */
+export function overlapsBox(ball: Readonly<Ball>, box: Readonly<Box>): boolean {
+  const nearX = clamp(ball.x, box.left, box.right);
+  const nearY = clamp(ball.y, box.top, box.bottom);
+  return Math.hypot(ball.x - nearX, ball.y - nearY) < BALL_RADIUS;
 }
 
 /** Points a ball at an angle from straight up, in degrees, positive to the right. */

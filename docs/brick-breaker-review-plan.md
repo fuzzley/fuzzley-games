@@ -385,3 +385,65 @@ R6's review, before the commit:
    asked, which fails with that change; the two provide the document
    through one helper.
 2. _A line of the log ran long._ Taken: rewrapped.
+
+### R7: the rules say each thing once
+
+- `BallKind.size`, which nothing read, is gone, with the catalog spec
+  that held it to 1; the content skill says a ball of another size would
+  need it back, and what would read it.
+- The `hard` trait is gone: it only repeated a kind's `hits: "never"`,
+  which the balls and bolts read, and its rule was empty. The steel
+  brick's spec, that it never breaks, stays, named for what it holds.
+- `isNeeded()` sits in the brick catalog beside `hasTrait()`, taking a
+  kind's id, so the capsules' drop, the saved game's check that a level
+  still needs a brick, the glow painter and the levels' spec ask it rather
+  than reading the catalog's `needed`.
+- `grid.ts`'s `cellMiddleX()` and `cellMiddleY()` are a cell's middle,
+  which the bricks, the capsules, three painters, the scene, the
+  autopilot and a spec summed from its column and row.
+- `overlapsBox()` in `balls.ts` is whether a ball overlaps a box, which a
+  regrowing brick's check and the paddle's lift each wrote out.
+- `isInProgress()` in `run.ts`, built on `isUnderWay()`, is whether a new
+  game would lose the run, which `GameService` and `saveGame()` each
+  worked out from the outcome.
+- The glow's pulse is timed in `STEP_MS`, not `STEP_S * 1000`.
+- `endTitle()` in `describe.ts` is what an ended run is called, which the
+  board's card, the result and what the announcer says each wrote.
+- `tables.ts` holds `keysOf()`, `recordOf()` and `pick()`, so the
+  catalogs' ids, the effects' kinds, the layers, the tags' images, the
+  balls', capsules' and tags' frame names and How to play's pictures are
+  typed through them rather than a cast each. `recordOf()` makes its
+  entries in its keys' order, which the scene's layers are drawn in.
+- `KEPT_OF_BRICK` lists what storage keeps of a brick: `SavedBrick` is
+  typed from it and saving picks it, so a new key is written once, and
+  `restoredBrick()`, whose brick taking up lays on, fails to compile
+  without it.
+
+Specs: `cellMiddleX()` and `cellMiddleY()`, `overlapsBox()` inside, over
+a side, off it and off a corner within reach of both its sides,
+`isInProgress()` at every outcome, `endTitle()`, and the table helpers,
+`recordOf()`'s order among them.
+
+R7's review, before the commit:
+
+1. _`capsules.ts` took `isNeeded()` from `bricks.ts`, which takes
+   `dropFrom()` from it: an import cycle._ Taken: `isNeeded()` moved to
+   the brick catalog, which both already import, and takes a kind's id,
+   as `hasTrait()` does.
+2. _The balls', capsules' and tags' frame names kept their casts._ Taken:
+   `recordOf()`.
+3. _Nothing held the scene's layers to being made back to front, once
+   `recordOf()` made them._ Taken: its doc says it makes them in the keys'
+   order, and a spec holds it to that.
+4. _`saveGame()` wrote the outcome test out again._ Taken: it asks
+   `isInProgress()`.
+5. _Names: `records.ts` read as the player's records, and
+   `GameService.inProgress`'s doc used `isUnderWay()`'s words._ Taken:
+   `tables.ts`, and "in progress"; the log no longer says the two
+   functions sit side by side.
+6. _The skill said a ball is `BALL_RADIUS` across, its radius, and ran a
+   line long._ Taken.
+7. _The board's `endTitle` field called the `endTitle()` it imports, the
+   spec's imports were out of order, and taking up picked a brick already
+   picked._ Taken: `endCardTitle`, the order, and `Object.assign(brick,
+kept)`.
