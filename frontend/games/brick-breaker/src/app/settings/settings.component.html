@@ -1,0 +1,68 @@
+<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>Settings</h2>
+      <button
+        type="button"
+        class="close"
+        aria-label="Close settings"
+        (click)="closed.emit()"
+      >
+        <fz-icon name="close" />
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <div class="setting">
+        <span class="setting-label" id="speed-label">Speed</span>
+        <!-- Each choice is named by all its text, as a voice command reads it. -->
+        <div
+          class="choice-list"
+          fzRadioGroup
+          aria-labelledby="speed-label"
+          aria-describedby="speed-desc"
+        >
+          @for (choice of speeds(); track choice.id) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              (click)="chooseSpeed(choice.id)"
+            >
+              <span class="name">{{ choice.name }}</span>
+              <span class="desc">{{ choice.says }}</span>
+            </button>
+          }
+        </div>
+        <p class="setting-desc" id="speed-desc">
+          Changing the speed starts a new run. The ball speeds up as it hits the
+          bricks.
+        </p>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" id="touch-label">On a touch screen</span>
+        <div class="choice-list" fzRadioGroup aria-labelledby="touch-label">
+          @for (choice of touchSteerings(); track choice.id) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              (click)="chooseTouch(choice.id)"
+            >
+              <span class="name">{{ choice.name }}</span>
+              <span class="desc">{{ choice.says }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Theme</span>
+        <fz-theme-picker />
+      </div>
+    </div>
+  </div>
+</fz-dialog>

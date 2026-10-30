@@ -27,15 +27,12 @@ import {
 } from "../../rules/tuning";
 import type { BricksSceneOptions } from "../../scene/bricks_scene";
 import type { Pictures } from "../../view/art";
-import type { TouchSteering } from "../../view/steering";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
 
 /** Names a card laid over the field, or none. */
 type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
-
-/** How a finger steers the paddle: by dragging it, from wherever it lands. */
-const TOUCH: TouchSteering = "drag";
 
 /**
  * How far below the field's middle the Ready card sits, in field units:
@@ -82,6 +79,7 @@ const CARD_DROP =
 export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(GameViewportService);
+  private readonly settings = inject(SettingsService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
@@ -218,7 +216,7 @@ export class BoardComponent {
     frame: () => this.game.frame(),
     palette: () => this.palette(),
     motion: () => this.viewport.allowsMotion(),
-    touch: () => TOUCH,
+    touch: () => this.settings.settings().touch,
     onLayout: (field) => {
       this.laidOut.set(field);
     },

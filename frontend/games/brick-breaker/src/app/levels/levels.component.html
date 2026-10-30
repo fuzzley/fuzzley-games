@@ -1,0 +1,40 @@
+<fz-dialog [open]="open()" label="Levels" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close levels"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>Levels</h2>
+    <p>Choose a level to start a run there.</p>
+
+    @for (set of sets(); track set.id) {
+      <section [attr.aria-labelledby]="set.headingId">
+        <h3 [id]="set.headingId">{{ set.name }}</h3>
+        <ul class="grid">
+          @for (level of set.levels; track level.number) {
+            <li>
+              <!--
+                Named by its number and its name, "1 Blasts", as a voice
+                command reads it: `&ngsp;` keeps the space between them, which
+                a template otherwise drops.
+              -->
+              <button
+                type="button"
+                class="level"
+                [attr.aria-current]="level.current ? 'true' : null"
+                (click)="choose(level.number)"
+              >
+                <span class="number">{{ level.number }}</span
+                >&ngsp;<span class="name">{{ level.name }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+</fz-dialog>

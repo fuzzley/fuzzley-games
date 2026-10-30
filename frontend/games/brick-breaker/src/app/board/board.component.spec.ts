@@ -20,8 +20,9 @@ import {
   playUntil,
   provideSpecLevels,
 } from "../../testing/play";
-import { FIRST_LIVES } from "../../rules/tuning";
+import { FIELD_WIDTH, FIRST_LIVES } from "../../rules/tuning";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";
 
 /** The colors the page gives the field, as a palette's stylesheet would. */
@@ -456,6 +457,17 @@ describe("BoardComponent", () => {
 
       expect(game.level().number).toBe(SPEC_LEVEL.wide);
       expect(board).toHaveFocus();
+    });
+
+    it("has the paddle follow a finger where the settings say", async () => {
+      const { game, run } = await runBoardScene();
+      TestBed.inject(SettingsService).update({ touch: "follow" });
+
+      run.touch("start", 40, 300);
+      run.touch("move", 41, 300);
+      run.advance(500, FRAME_MS);
+
+      expect(game.frame().field.paddle.x).toBeLessThan(FIELD_WIDTH / 4);
     });
 
     it("plays a level to its end in the scene's time", async () => {

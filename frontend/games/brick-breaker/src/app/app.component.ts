@@ -3,6 +3,7 @@ import {
   computed,
   effect,
   inject,
+  signal,
   untracked,
   viewChild,
 } from "@angular/core";
@@ -12,12 +13,15 @@ import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
+import { HelpComponent } from "./help/help.component";
+import { LevelsComponent } from "./levels/levels.component";
 import { GameService } from "./play/game.service";
+import { ResultComponent } from "./result/result.component";
+import { SettingsComponent } from "./settings/settings.component";
 
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the live
- * region that says what happens, and the question before a run is thrown
- * away.
+ * region that says what happens, and the dialogs.
  *
  * The board takes the focus as a run begins, as the page loads or after a
  * new game, and whenever the last dialog over it closes, so the keys steer
@@ -31,7 +35,11 @@ import { GameService } from "./play/game.service";
     BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
+    HelpComponent,
+    LevelsComponent,
     PlayRoomDirective,
+    ResultComponent,
+    SettingsComponent,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",
@@ -46,9 +54,18 @@ export class AppComponent {
   private readonly confirm = inject(ConfirmService);
   private readonly board = viewChild.required(BoardComponent);
 
+  protected readonly levelsOpen = signal(false);
+  protected readonly helpOpen = signal(false);
+  protected readonly settingsOpen = signal(false);
+
   /** Whether a dialog covers the board. */
   private readonly covered = computed(
-    () => this.confirm.isOpen() || this.game.resultOpen(),
+    () =>
+      this.levelsOpen() ||
+      this.helpOpen() ||
+      this.settingsOpen() ||
+      this.confirm.isOpen() ||
+      this.game.resultOpen(),
   );
 
   /** The last run the board took the focus for, by `GameService.runs`. */

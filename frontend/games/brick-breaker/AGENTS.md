@@ -84,8 +84,9 @@ the scene and the shell's first files exist.
   the outcome. `catchUp()` takes what the level's field has come to since
   it last looked, its points, then the lives gained, then those lost, then
   its clearing, which it banks, the order they come in on a field, since a
-  frame's steps can hold them all; and `levelSeed()` gives each level's
-  field a seed of its own. A move that doesn't fit where the run stands
+  frame's steps can hold them all; `levelSeed()` gives each level's
+  field a seed of its own; and `levelsCleared()` counts the levels a run
+  has cleared. A move that doesn't fit where the run stands
   returns it as it is, so a run over stays over and a level is banked once,
   and so does a field with nothing new, so the shell can tell a frame that
   changed the run. `describe.ts` puts what happened into the words the
@@ -176,8 +177,8 @@ the scene and the shell's first files exist.
   once.
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
   `app.component` lays the board in the room beside the bar, with the
-  `<fz-announcer>` the game is announced through and the question before
-  a run is thrown away; it hands the board the focus as each run begins and whenever the
+  `<fz-announcer>` the game is announced through, the dialogs, and the
+  question before a run is thrown away; it hands the board the focus as each run begins and whenever the
   last dialog closes, and pauses the level in play when
   `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked away.
   - `play/` — `GameService` holds the run in a signal and the level in
@@ -198,7 +199,7 @@ the scene and the shell's first files exist.
     `fieldPalette()` colors the field from `ThemeService`'s roles and
     `mode`. It keeps the scene's pictures for How to play (`pictures`). The board is an
     application named for its level, "Brick Breaker, level 3: Pyramid",
-    and Phaser's keyboard target.
+    and Phaser's keyboard target. A finger steers as the settings say.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`,
     the speed's badge, which asks before it starts a run at another, the
     figures, and Pause, Levels, New game, How to play and Settings, the
@@ -208,14 +209,36 @@ the scene and the shell's first files exist.
     it counts; below it, the score and the lives alone, the lives as a
     number, one over the other across the bar, as a score runs to six
     figures. It hands the board back the focus as Resume goes on, and asks
-    the app for the levels, How to play and the settings, which nothing
-    answers yet.
+    the app for the levels, How to play and the settings.
+  - `levels/` — the Levels dialog: each set under its name, its levels as
+    buttons in a grid, named by number and name ("3 Pyramid"), the run's
+    own marked `aria-current`. Choosing one starts a run there, asking
+    first if one is under way, and closes once it has.
+  - `result/` — the card over an ended run, once the last ball has faded:
+    lost or won, where and at what speed, the score, the level reached
+    and the levels cleared (`levelsCleared()`); Try again from the level a
+    lost run ended on, or a new game after a win; Choose a level, which
+    puts it away and asks the app for the levels; and Close.
+  - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
+    pausing, the controls, and every brick, capsule and ball from the
+    catalogs, each with its name, its sentence and, once the scene has
+    drawn, its picture, which the app hands it from the board.
+  - `settings/` — the settings drawer (the speed, how a finger steers and
+    the palette) and `SettingsService`, which keeps what the player chose.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
     `_index.scss`, the toolkit every component `@use`s, which emits no
     CSS.
 
-  Until the result card comes, an ended run leaves the board without a
-  card, and the bar's New game starts another.
+  Until progress and records are kept, every level is open in the Levels
+  dialog, and the result card shows no best.
+
+## What It Keeps
+
+Each entry is in `localStorage`, versioned
+(`LocalStorageService.writeVersioned()`), and its reader drops what it
+can't trust rather than failing:
+
+- `brick-breaker-settings`: how a finger steers the paddle.
 
 ## Development Commands
 

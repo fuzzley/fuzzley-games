@@ -1,0 +1,68 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include dialog-card(580px);
+
+  h2 {
+    margin: 0 0 var(--fz-space-2);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  h3 {
+    @include field-label;
+
+    margin-top: var(--fz-space-5);
+  }
+
+  p {
+    margin: 0;
+    color: var(--fz-muted);
+    font-size: var(--fz-font-sm);
+  }
+}
+
+.close {
+  @include corner-close-button;
+}
+
+// As many columns as fit a level's name, at least two on the narrowest phone.
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--fz-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The level of the run on the board in the accent, as a checked choice is.
+.level {
+  @include choice-tile;
+
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--fz-tap-target);
+  font: inherit;
+  text-align: left;
+
+  &[aria-current="true"] {
+    border-color: var(--fz-accent);
+    background: var(--fz-accent-wash);
+    color: var(--fz-text);
+  }
+
+  .number {
+    color: var(--fz-text);
+    font-family: var(--fz-font-mono);
+    font-size: var(--fz-font-lg);
+    font-weight: 700;
+  }
+
+  .name {
+    font-size: var(--fz-font-sm);
+  }
+}

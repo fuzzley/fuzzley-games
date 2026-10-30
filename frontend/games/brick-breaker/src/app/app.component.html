@@ -9,9 +9,23 @@
   </div>
 </main>
 
-<app-bar (handBack)="board.focus()" />
+<app-bar
+  (openLevels)="levelsOpen.set(true)"
+  (openHelp)="helpOpen.set(true)"
+  (openSettings)="settingsOpen.set(true)"
+  (handBack)="board.focus()"
+/>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
+<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
+<app-help
+  [open]="helpOpen()"
+  [pictures]="board.pictures()"
+  (closed)="helpOpen.set(false)"
+/>
+<app-result (chooseLevel)="levelsOpen.set(true)" />
+<app-levels [open]="levelsOpen()" (closed)="levelsOpen.set(false)" />
+<!-- Last, so it opens over the settings or the levels when a change would lose a run. -->
 <fz-confirm-dialog />
