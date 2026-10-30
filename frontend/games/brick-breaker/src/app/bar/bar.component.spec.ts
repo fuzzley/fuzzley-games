@@ -7,6 +7,7 @@ import { type UserEvent, userEvent } from "@testing-library/user-event";
 import {
   SPEC_LEVEL,
   loseBall,
+  playToClear,
   playUntil,
   provideSpecLevels,
   under,
@@ -153,6 +154,16 @@ describe("BarComponent", () => {
         "0",
         "3 lives",
       ]);
+    });
+
+    it("writes the score grouped in thousands", async () => {
+      const { game, detectChanges } = await renderBar();
+      await game.startAt(SPEC_LEVEL.blasts);
+
+      playToClear(game);
+      detectChanges();
+
+      expect(figure("Score")).toBe("4,100");
     });
 
     it("shows a life lost", async () => {

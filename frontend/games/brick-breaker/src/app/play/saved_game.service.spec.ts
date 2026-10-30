@@ -235,13 +235,12 @@ describe("SavedGameService", () => {
     });
 
     it("says where the run taken up stands", async () => {
-      const before = await brokeSome();
-      const score = before.score();
+      await brokeSome();
 
       reload();
 
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        `Your last run is paused on level 4, Few, with a score of ${String(score)} and 3 lives. Press Enter to go on.`,
+        "Your last run is paused on level 4, Few, with a score of 100 and 3 lives. Press Enter to go on.",
       );
     });
 

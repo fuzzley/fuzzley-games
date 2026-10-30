@@ -84,6 +84,13 @@ const RUN = {
  */
 
 /**
+ * A run kept by the game's own rules, and its score as the game writes
+ * points.
+ *
+ * @typedef {{saved: SavedRun, score: string}} KeptRun
+ */
+
+/**
  * What the page shows once the run is taken up.
  *
  * @typedef {{state: string, outcome: string, score: string, field: Region | null}} PageState
@@ -96,9 +103,10 @@ const RUN = {
  */
 
 /**
- * Returns the run, kept by the game's own rules, loaded through Vite.
+ * Returns the run, kept by the game's own rules, loaded through Vite, with
+ * its score as they write points.
  *
- * @returns {Promise<SavedRun>}
+ * @returns {Promise<KeptRun>}
  */
 async function keepRun() {
   const load = async (/** @type {string} */ file) => {
@@ -109,15 +117,20 @@ async function keepRun() {
     });
     return /** @type {Record<string, unknown>} */ (module);
   };
-  const [levels, kept] = await Promise.all([
+  const [levels, kept, describe] = await Promise.all([
     load("src/rules/levels.ts"),
     load("src/testing/kept_run.ts"),
+    load("src/rules/describe.ts"),
   ]);
   const keptRun =
     /** @type {(levels: unknown, run: typeof RUN) => SavedRun} */ (
       kept["keptRun"]
     );
-  return keptRun(levels["LEVELS"], RUN);
+  const formatPoints = /** @type {(points: number) => string} */ (
+    describe["formatPoints"]
+  );
+  const saved = keptRun(levels["LEVELS"], RUN);
+  return { saved, score: formatPoints(saved.score) };
 }
 
 /**
@@ -231,13 +244,13 @@ function thumbRegion(field) {
  *
  * @param {Page} page
  * @param {string} url
- * @param {SavedRun} run
+ * @param {KeptRun} run
  * @returns {Promise<{png: Buffer, page: PageState & {field: Region}} | {problem: string}>}
  */
 async function capture(page, url, run) {
   await page.beforeLoad(
     preparePage,
-    JSON.stringify({ version: SAVED_GAME_VERSION, ...run }),
+    JSON.stringify({ version: SAVED_GAME_VERSION, ...run.saved }),
     SAVED_GAME_KEY,
     THEME,
     THEME_STORAGE_KEY,
@@ -247,7 +260,7 @@ async function capture(page, url, run) {
   if (shown.state !== "ready") return { problem: "the field did not draw" };
   if (shown.outcome !== "paused")
     return { problem: "the run was not taken up" };
-  if (shown.score !== String(run.score)) {
+  if (shown.score !== run.score) {
     return { problem: `the score reads ${shown.score}` };
   }
   const { field } = shown;

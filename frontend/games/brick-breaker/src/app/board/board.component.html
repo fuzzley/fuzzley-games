@@ -28,7 +28,7 @@
   @case ("paused") {
     <div class="card">
       <p class="card-title">Paused</p>
-      <p>Score {{ game.score() }}</p>
+      <p>Score {{ score() }}</p>
       <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
         Resume
       </button>
@@ -45,7 +45,7 @@
           </div>
         }
       </dl>
-      <p>Score {{ game.score() }}</p>
+      <p>Score {{ score() }}</p>
       <button type="button" class="fz-button" fzKeepKeys (click)="nextLevel()">
         Next level
       </button>
@@ -54,7 +54,7 @@
   @case ("ended") {
     <div class="card">
       <p class="card-title">{{ endCardTitle() }}</p>
-      <p>Score {{ game.score() }}</p>
+      <p>Score {{ score() }}</p>
       <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
         New game
       </button>

@@ -4,6 +4,7 @@ import { IconComponent } from "@fz/ui/icon";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
+import { formatPoints } from "../../rules/describe";
 import {
   CLEAN_POINTS,
   CLEAR_POINTS,
@@ -34,11 +35,6 @@ interface Catalog {
   readonly entries: readonly Entry[];
 }
 
-/** Writes points as a player reads them, with a comma in the thousands. */
-function points(value: number): string {
-  return value.toLocaleString("en-US");
-}
-
 /** Returns a catalog's entries for How to play, each with its picture once there is one. */
 function entries<Id extends string>(
   ids: readonly Id[],
@@ -60,8 +56,8 @@ const STREAK_WORDS = [...STREAK]
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
   streak: `A streak of bricks broken since the ball last touched the paddle multiplies each hit's points: ${STREAK_WORDS}.`,
-  clearing: `A level cleared adds ${points(CLEAR_POINTS)} points, and ${points(CLEAN_POINTS)} more when no ball was lost on it.`,
-  lives: `A life comes at ${points(FIRST_LIFE_POINTS)} points and every ${points(LIFE_POINTS)} after, up to ${String(MAX_LIVES)} lives.`,
+  clearing: `A level cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no ball was lost on it.`,
+  lives: `A life comes at ${formatPoints(FIRST_LIFE_POINTS)} points and every ${formatPoints(LIFE_POINTS)} after, up to ${String(MAX_LIVES)} lives.`,
 };
 
 /** What How to play says of capsules before listing them. */

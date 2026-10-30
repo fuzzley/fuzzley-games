@@ -109,7 +109,7 @@ describe("LevelsComponent", () => {
     detectChanges();
 
     expect(levelsIn("Specs").slice(0, 2)).toEqual([
-      "1 Blasts Best 4100",
+      "1 Blasts Best 4,100",
       "2 Wide",
     ]);
   });
@@ -137,7 +137,7 @@ describe("LevelsComponent", () => {
     await game.changeSpeed("fast");
     detectChanges();
 
-    expect(levelsIn("Specs")[0]).toBe("1 Blasts Best 3000");
+    expect(levelsIn("Specs")[0]).toBe("1 Blasts Best 3,000");
   });
 
   it("says a level was cleared where it has no best at the speed in play", async () => {

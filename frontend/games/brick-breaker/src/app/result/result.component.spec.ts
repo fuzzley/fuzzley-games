@@ -101,8 +101,8 @@ describe("ResultComponent", () => {
     await renderLost();
 
     expect(figures()).toEqual([
-      ["Score", "4400"],
-      ["Best", "4400"],
+      ["Score", "4,400"],
+      ["Best", "4,400"],
       ["Level", "2"],
       ["Cleared", "1"],
     ]);
@@ -122,7 +122,7 @@ describe("ResultComponent", () => {
     expect({
       best: figures().find(([term]) => term === "Best")?.[1],
       newBest: screen.queryByText("New best"),
-    }).toEqual({ best: "9000", newBest: null });
+    }).toEqual({ best: "9,000", newBest: null });
   });
 
   it("calls no score a new best", async () => {
@@ -153,8 +153,8 @@ describe("ResultComponent", () => {
       screen.getByRole("alertdialog", { name: "Every level cleared!" }),
     ).toHaveAccessibleDescription("From level 2 to the last, at Normal speed");
     expect(figures()).toEqual([
-      ["Score", "8200"],
-      ["Best", "8200"],
+      ["Score", "8,200"],
+      ["Best", "8,200"],
       ["Level", "3"],
       ["Cleared", "2"],
     ]);

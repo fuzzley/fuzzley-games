@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
+import { formatPoints } from "../../rules/describe";
 import { GameService } from "../play/game.service";
 import { GAME_LEVELS } from "../tokens";
 import { ProgressService } from "../stats/progress.service";
@@ -98,6 +99,6 @@ function statusOf(
   best: number | undefined,
 ): string | null {
   if (!open) return "Locked";
-  if (best !== undefined) return `Best ${String(best)}`;
+  if (best !== undefined) return `Best ${formatPoints(best)}`;
   return cleared ? "Cleared" : null;
 }

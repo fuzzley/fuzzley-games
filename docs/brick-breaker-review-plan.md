@@ -584,3 +584,39 @@ The second review, of the change as it stood:
 3. _Docs: a long line left in `AGENTS.md`, the plan's R10 bullet without
    the card's wait, the frame record's doc opening with a noun, and the
    view's entry saying only "what to draw"._ Taken.
+
+### R11: points are written one way
+
+`formatPoints()` in `describe.ts` writes points grouped in thousands,
+"4,250", as How to play did with a function of its own, which it now
+takes from there. What the announcer says of a score (a level cleared, a
+pause, a run taken up, the end), the bar's score, the cards' scores and
+the Cleared card's tally, the result's score and best, and the Levels
+dialog's bests all go through it; they wrote `String()` or bound the
+number bare, so a score of 12,500 read as "12500" in one place and
+"12,500" in another. The bar and the board bind a computed score rather
+than the number.
+
+Specs: `formatPoints()` from nothing to a million; every spec that read a
+score of four figures or more now reads it grouped. `AGENTS.md` names it,
+and `endTitle()`, among `describe.ts`'s words.
+
+A comma widens a score of four figures or more, so the build's layout
+check ran, and holds at every shape and turn; and since it opens a run at
+nothing, a score of "123,456" was put in the bar of the build by hand at
+320 × 480 and 568 × 320: it fits, with nothing out of the window and no
+scroll.
+
+R11's review, before the commit:
+
+1. _The screenshot script still held the bar's score to `String()`, which
+   passes only while the kept run scores under 1,000 (it scores 950)._
+   Taken: it loads `describe.ts` with the levels and the kept run, and
+   expects the score as `formatPoints()` writes it; a capture ran, and
+   left the images as they were.
+2. _Nothing held the bar to grouping, since its one score was 0._ Taken:
+   a spec clears a level and reads "4,100" in the bar; it fails with the
+   number bound bare.
+3. _Three of the shell's specs built the sentence they expect with
+   `formatPoints()`, the function under test._ Taken: they say the
+   sentences as a player hears them, "Score 4,100".

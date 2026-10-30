@@ -102,9 +102,12 @@ doesn't see, so Phaser stays out of the first download.
   `describe.ts` puts what happened into the words the announcer says: a
   level's start, a capsule caught, the lives a frame gained and lost
   (`describeLives()`, from the run before and after), the last few bricks, a
-  clearing, a pause, going on and the end. `progress.ts` says which levels a
-  run may start at (`isOpen()`): the first, any cleared, and the one after a
-  level cleared, at any speed; `clearedOf()` reads the ids stored, keeping
+  clearing, a pause, going on and the end; `endTitle()` says what an ended
+  run is called; and `formatPoints()` writes points grouped in thousands,
+  "4,250", as the announcer, the bar, the cards, the result, the levels and
+  How to play all write them. `progress.ts` says which levels a run may
+  start at (`isOpen()`): the first, any cleared, and the one after a level
+  cleared, at any speed; `clearedOf()` reads the ids stored, keeping
   those a level still has. `stats.ts` holds the records, each speed's runs,
   best score and furthest level, and each level's best points at each
   speed: `statsOf()` reads them as stored, keeping what makes sense and
