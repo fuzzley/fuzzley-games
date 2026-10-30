@@ -15,42 +15,26 @@
  * it, to the pixel, and inside the focus ring; and its card must lie on it.
  * It prints what is wrong and fails, or says the layout holds.
  */
-import { access } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { preview } from "vite";
-import { withChrome } from "@fz/dev/chrome";
-import { SHAPES, TURNS, checkLayout, checkTurns } from "@fz/dev/layout";
+import { join } from "node:path";
+import {
+  SHAPES,
+  SMALLEST,
+  TURNS,
+  checkLayout,
+  checkTurns,
+  runLayoutScript,
+  shapesAt,
+  turnsAt,
+} from "@fz/dev/layout";
 
-const USAGE = `Usage: yarn check:layout [options]
-
-Checks the build's layout in headless Chrome at each shape a game takes.
-
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-
-/** The smallest phone, held upright. */
-const SMALLEST = {
-  name: "smallest phone portrait",
-  viewport: { width: 320, height: 480, deviceScaleFactor: 1 },
-};
-
-/** The shapes, at twice the pixels, so the canvas's backing size is tested. */
-const SHAPES_2X = [...SHAPES, SMALLEST].map((shape) => ({
-  ...shape,
-  viewport: { ...shape.viewport, deviceScaleFactor: 2 },
-}));
+/**
+ * The shapes and the smallest phone, at twice the pixels, so the canvas's
+ * backing size is tested.
+ */
+const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
 
 /** The turns, at twice the pixels. */
-const TURNS_2X = TURNS.map((turn) => ({
-  ...turn,
-  from: { ...turn.from, deviceScaleFactor: 2 },
-  to: { ...turn.to, deviceScaleFactor: 2 },
-}));
+const TURNS_2X = turnsAt(2, TURNS);
 
 /**
  * Returns what is wrong with the field, its canvas, its placeholder, its
@@ -170,74 +154,22 @@ function inspectField() {
   return problems;
 }
 
-/**
- * Returns the options the command line sets.
- *
- * @returns {{chrome?: string} | undefined} Nothing when it asks only for
- *   help.
- */
-function parseCommandLine() {
-  const { values } = parseArgs({
-    options: {
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
-  }
-  return { chrome: values.chrome };
-}
+/** The selector the page matches once the scene has drawn. */
+const READY = 'fz-phaser-canvas[data-state="ready"]';
 
-async function main() {
-  const options = parseCommandLine();
-  if (!options) return;
-  await access(join(ROOT, "dist/index.html")).catch(() => {
-    throw new Error("Found no build to check; run yarn build first.");
-  });
+/** The names of the shapes and turns the layout is checked at. */
+const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
+  .map((shape) => shape.name)
+  .join(", ");
 
-  const server = await preview({
-    root: ROOT,
-    logLevel: "silent",
-    preview: { port: 0, strictPort: true },
-  });
-  try {
-    const url = server.resolvedUrls?.local[0];
-    if (!url) throw new Error("The preview server gave no address.");
-    const problems = await withChrome(
-      { chrome: options.chrome, name: "brick-breaker" },
-      async (devtools) => {
-        const ready = 'fz-phaser-canvas[data-state="ready"]';
-        const shaped = await checkLayout(
-          devtools,
-          { url, ready, inspect: inspectField },
-          SHAPES_2X,
-        );
-        const turned = await checkTurns(
-          devtools,
-          { url, ready, inspect: inspectField },
-          TURNS_2X,
-        );
-        return [...shaped, ...turned];
-      },
-    );
-    for (const { shape, problem } of problems) {
-      console.error(`${shape}: ${problem}`);
-    }
-    if (problems.length > 0) {
-      process.exitCode = 1;
-      return;
-    }
-    const shapes = [...SHAPES, SMALLEST, ...TURNS]
-      .map((shape) => shape.name)
-      .join(", ");
-    console.log(
-      `Brick Breaker's layout holds at each shape and turn: ${shapes}.`,
-    );
-  } finally {
-    await server.close();
-  }
-}
-
-await main();
+process.exitCode = await runLayoutScript({
+  game: "Brick Breaker",
+  root: join(import.meta.dirname, ".."),
+  check: async (devtools, url) => {
+    const check = { url, ready: READY, inspect: inspectField };
+    const shaped = await checkLayout(devtools, check, SHAPES_2X);
+    const turned = await checkTurns(devtools, check, TURNS_2X);
+    return [...shaped, ...turned];
+  },
+  holds: `at each shape and turn: ${CHECKED}`,
+});

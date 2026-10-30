@@ -466,3 +466,29 @@ but one nit.
 - **Checks:** `@fz/dev`'s lint, typecheck and test (113) pass, both games'
   lint and typecheck, which check their scripts from their JSDoc, and
   Prettier and the references.
+
+### G8: the layout check's runner
+
+- **Built:** `runLayoutScript()` in `@fz/dev/layout`, given the game's
+  name, its folder, its checks and the words for where the layout held. It
+  reads `--chrome` and `--help`, throws for a game with no build, serves the
+  build with Vite's `preview()` on a free port, runs the checks in a
+  headless Chrome whose profile is named for the game's folder, and prints
+  what is wrong at each shape, or that the layout holds, returning the exit
+  code the script sets. Beside it, `SMALLEST`, the 320 × 480 phone, and
+  `shapesAt()` and `turnsAt()`, which set a pixel ratio, since Snake and
+  Brick Breaker each wrote both out.
+- **The games:** each `tools/check-layout.mjs` keeps its inspection and
+  which checks it runs, and ends in `runLayoutScript()`: Sudoku's 148 lines
+  are 85, Snake's 288 are 213 and Brick Breaker's 243 are 175.
+- **Specs:** `layout.spec.ts` serves a build written into a folder of its
+  own and fetches it from the address the checks are handed, and holds the
+  runner's exit codes and words, the Chrome it starts, `--help`, and the
+  error for a missing build, with a stand-in for Chrome; and `shapesAt()`
+  and `turnsAt()`.
+- **Docs:** `@fz/dev`'s `AGENTS.md` describes the runner and the helpers.
+- **Checks:** `@fz/dev`'s lint, typecheck and test (121) pass, the three
+  games' lint and typecheck, Prettier and the references; and
+  `yarn check:layout` through the runner, on the builds as they were, says
+  each game's layout holds where it did, and Sudoku's `--help` prints the
+  usage.

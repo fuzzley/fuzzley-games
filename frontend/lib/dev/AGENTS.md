@@ -93,21 +93,26 @@ too. Paths are relative to `frontend/lib/dev/`.
   or the first installed in a usual place. The games' screenshot scripts
   are built on it, and so is the layout check.
 - `src/layout.ts`, `@fz/dev/layout`: a game's layout checked in a real
-  browser. `checkLayout()` opens a game's page at each of `SHAPES` (a
-  roomy window, and a large and a small phone, upright and on its side),
-  waits for a selector and the fonts, and returns what is wrong at each: an
-  error the page reports (an exception, `console.error`, or the browser's
-  own, such as a refused resource), a page that scrolls, a control of the
-  game bar out of the window, and what the game's own `inspect()`, run in
-  the page, finds. `checkTurns()` does the same once it has turned the
-  window, as a phone turns, through each of `TURNS` (upright to its side,
-  and back), and given half a second to lay itself out again, which finds
-  what follows a turn late, or not at all. A check's `before()` runs in the
-  page ahead of its own scripts, to set it up as a player might have, such
-  as with a setting stored. The functions it runs in the page
-  are in `src/layout_page.ts`, which only a browser runs, so coverage leaves
-  it out. A game's `tools/check-layout.mjs` serves its build with Vite's
-  `preview()` and calls it.
+  browser. `checkLayout()` opens a game's page at each of `SHAPES` (a roomy
+  window, and a large and a small phone, upright and on its side), waits for a
+  selector and the fonts, and returns what is wrong at each: an error the page
+  reports (an exception, `console.error`, or the browser's own, such as a
+  refused resource), a page that scrolls, a control of the game bar out of the
+  window, and what the game's own `inspect()`, run in the page, finds.
+  `checkTurns()` does the same once it has turned the window, as a phone
+  turns, through each of `TURNS` (upright to its side, and back), and given
+  half a second to lay itself out again, which finds what follows a turn late,
+  or not at all. A check's `before()` runs in the page ahead of its own
+  scripts, to set it up as a player might have, such as with a setting stored.
+  `SMALLEST`, a phone of 320 × 480, and `shapesAt()` and `turnsAt()`, which
+  set a pixel ratio, are for a game drawn on a canvas, whose backing size is
+  checked at 2×. The functions it runs in the page are in
+  `src/layout_page.ts`, which only a browser runs, so coverage leaves it out.
+  A game's `tools/check-layout.mjs` holds its inspection and which checks it
+  runs, and hands them to `runLayoutScript()`, which reads the command line
+  (`--chrome`, `--help`), serves the build as `yarn preview` does, runs the
+  checks in a headless Chrome and prints what is wrong, or that the layout
+  holds, returning the exit code.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),

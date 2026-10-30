@@ -1,10 +1,20 @@
-import { DevToolsConnection } from "./chrome.ts";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+import { type ChromeOptions, DevToolsConnection } from "./chrome.ts";
 import {
+  LAYOUT_USAGE,
   type LayoutCheck,
+  type LayoutProblem,
+  type LayoutScript,
+  type RunChrome,
   SHAPES,
   TURNS,
   checkLayout,
   checkTurns,
+  runLayoutScript,
+  shapesAt,
+  turnsAt,
 } from "./layout.ts";
 import { type Command, FakeBrowser } from "./testing/fake_browser.ts";
 
@@ -252,5 +262,149 @@ describe("checkTurns", () => {
         problem: "The board is drawn small.",
       },
     ]);
+  });
+});
+
+describe("shapesAt", () => {
+  it("sets each shape's pixel ratio, keeping its size", () => {
+    const [roomy] = shapesAt(2, SHAPES);
+
+    expect(roomy?.viewport).toEqual({
+      width: 1280,
+      height: 800,
+      deviceScaleFactor: 2,
+    });
+  });
+});
+
+describe("turnsAt", () => {
+  it("sets the pixel ratio a turn starts and ends at", () => {
+    const [turn] = turnsAt(2, TURNS);
+
+    expect([turn?.from.deviceScaleFactor, turn?.to.deviceScaleFactor]).toEqual([
+      2, 2,
+    ]);
+  });
+});
+
+describe("runLayoutScript", () => {
+  let root = "";
+  let printed: string[] = [];
+  let reported: string[] = [];
+
+  beforeEach(async () => {
+    root = await mkdtemp(join(tmpdir(), "fz-layout-"));
+    printed = [];
+    reported = [];
+    vi.spyOn(console, "log").mockImplementation((words: string) => {
+      printed.push(words);
+    });
+    vi.spyOn(console, "error").mockImplementation((words: string) => {
+      reported.push(words);
+    });
+  });
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await rm(root, { recursive: true, force: true });
+  });
+
+  /** Writes a build into the game's folder, its page saying `words`. */
+  async function build(words: string): Promise<void> {
+    await mkdir(join(root, "dist"));
+    await writeFile(join(root, "dist/index.html"), `<p>${words}</p>`);
+  }
+
+  /** Returns a script for the game, whose checks find what is given. */
+  function script(
+    found: readonly LayoutProblem[] = [],
+    check: LayoutScript["check"] = () => Promise.resolve([...found]),
+  ): LayoutScript {
+    return { game: "Game", root, check, holds: "at each shape" };
+  }
+
+  /**
+   * Returns a stand-in for Chrome that hands the script a connection to a
+   * fake browser, and keeps the options it was started with.
+   */
+  function fakeChrome(started: ChromeOptions[] = []): RunChrome {
+    return async (options, use) => {
+      started.push(options);
+      return use(new DevToolsConnection(new FakeBrowser({})));
+    };
+  }
+
+  it("serves the build, and hands the game's checks its address", async () => {
+    await build("The game, built");
+    let served = "";
+    const check = async (
+      _: DevToolsConnection,
+      url: string,
+    ): Promise<LayoutProblem[]> => {
+      served = await (await fetch(url)).text();
+      return [];
+    };
+
+    await runLayoutScript(script([], check), [], fakeChrome());
+
+    expect(served).toContain("The game, built");
+  });
+
+  it("says the layout holds where nothing is wrong, and succeeds", async () => {
+    await build("The game");
+
+    const code = await runLayoutScript(script(), [], fakeChrome());
+
+    expect({ code, printed }).toEqual({
+      code: 0,
+      printed: ["Game's layout holds at each shape."],
+    });
+  });
+
+  it("prints what is wrong at each shape, and fails", async () => {
+    await build("The game");
+    const found = [{ shape: "roomy", problem: "The board is missing." }];
+
+    const code = await runLayoutScript(script(found), [], fakeChrome());
+
+    expect({ code, reported }).toEqual({
+      code: 1,
+      reported: ["roomy: The board is missing."],
+    });
+  });
+
+  it("starts the Chrome the command line names, its profile named for the game's folder", async () => {
+    await build("The game");
+    const started: ChromeOptions[] = [];
+
+    await runLayoutScript(
+      script(),
+      ["--chrome", "/opt/chrome"],
+      fakeChrome(started),
+    );
+
+    expect(started).toEqual([{ chrome: "/opt/chrome", name: basename(root) }]);
+  });
+
+  it("prints its usage for --help, and checks nothing", async () => {
+    const started: ChromeOptions[] = [];
+
+    const code = await runLayoutScript(
+      script(),
+      ["--help"],
+      fakeChrome(started),
+    );
+
+    expect({ code, printed, started }).toEqual({
+      code: 0,
+      printed: [LAYOUT_USAGE],
+      started: [],
+    });
+  });
+
+  it("throws for a game with no build, saying to build it first", async () => {
+    await expect(runLayoutScript(script(), [], fakeChrome())).rejects.toThrow(
+      "Found no build to check; run yarn build first.",
+    );
   });
 });
