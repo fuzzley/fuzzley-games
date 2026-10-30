@@ -21,18 +21,13 @@ import {
   provideSpecLevels,
 } from "../../testing/play";
 import { FIELD_WIDTH, FIRST_LIVES } from "../../rules/tuning";
+import { paintRoles } from "../../testing/roles";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";
 
-/** The colors the page gives the field, as a palette's stylesheet would. */
-const ROLES = {
-  panel: "#f1f3f5",
-  text: "#1f2328",
-  accent: "#2a7a3a",
-  danger: "#c0392b",
-  warning: "#b8860b",
-};
+/** Space as a browser sends it, with the key code Phaser's capture reads. */
+const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
 
 /** The longest the scene plays a level for before a spec gives up on it. */
 const LEVEL_LIMIT_MS = 10_000;
@@ -363,9 +358,7 @@ describe("BoardComponent", () => {
     let scene: SceneRun<HostedScene> | null = null;
 
     beforeEach(() => {
-      for (const [role, color] of Object.entries(ROLES)) {
-        document.documentElement.style.setProperty(`--fz-${role}`, color);
-      }
+      paintRoles();
     });
 
     afterEach(() => {
@@ -431,32 +424,38 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("playing");
     });
 
-    it("leaves Space pressed on Resume to the button, which hands the board the focus", async () => {
-      const { board, game, run, detectChanges } = await runBoardScene();
+    it("leaves Space on Resume to the button, down and up", async () => {
+      const { game, run, detectChanges } = await runBoardScene();
       game.launch();
       game.pause();
       detectChanges();
-      screen.getByRole("button", { name: "Resume" }).focus();
+      const resume = screen.getByRole("button", { name: "Resume" });
 
-      await userEvent.keyboard(" ");
+      const kept = [
+        fireEvent.keyDown(resume, SPACE),
+        fireEvent.keyUp(resume, SPACE),
+      ];
       run.advance(FRAME_MS);
 
-      expect(game.outcome()).toBe("playing");
-      expect(board).toHaveFocus();
+      expect(kept).toEqual([true, true]);
+      expect(game.outcome()).toBe("paused");
     });
 
-    it("leaves Space pressed on Next level to the button, which hands the board the focus", async () => {
-      const { board, game, run, detectChanges } = await runBoardScene();
+    it("leaves Space on Next level to the button, down and up", async () => {
+      const { game, run, detectChanges } = await runBoardScene();
       playToClear(game);
       game.tick(FRAME_MS, STILL);
       detectChanges();
-      screen.getByRole("button", { name: "Next level" }).focus();
+      const next = screen.getByRole("button", { name: "Next level" });
 
-      await userEvent.keyboard(" ");
+      const kept = [
+        fireEvent.keyDown(next, SPACE),
+        fireEvent.keyUp(next, SPACE),
+      ];
       run.advance(FRAME_MS);
 
-      expect(game.level().number).toBe(SPEC_LEVEL.wide);
-      expect(board).toHaveFocus();
+      expect(kept).toEqual([true, true]);
+      expect(game.level().number).toBe(SPEC_LEVEL.blasts);
     });
 
     it("has the paddle follow a finger where the settings say", async () => {

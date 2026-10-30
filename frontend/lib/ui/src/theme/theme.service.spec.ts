@@ -228,6 +228,7 @@ describe("ThemeService", () => {
   });
 
   it("says a light palette on the page is light", () => {
+    document.documentElement.dataset["theme"] = "midnight";
     const theme = service();
 
     theme.select("classic");

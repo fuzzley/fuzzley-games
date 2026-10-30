@@ -83,8 +83,8 @@ export class GameViewportService {
   });
 
   /**
-   * Whether the window is wide enough for the bar's actions to keep their
-   * labels, which leaves a game's bar room for more of its figures.
+   * Whether the window is as wide as the `desktop` breakpoint, from which
+   * the bar's actions keep their labels.
    */
   readonly fitsActionLabels = computed(() => !this.belowActionLabels());
 

@@ -65,7 +65,8 @@ export class ThemeService {
 
   /**
    * Whether the palette on the page is light or dark, which changes with
-   * its roles' colors rather than a moment before them, as `current` does.
+   * `role()`'s colors, once the palette is on the page, a moment after
+   * `current`.
    */
   readonly mode: Signal<ColorMode> = computed(() => {
     const id = this.applied();

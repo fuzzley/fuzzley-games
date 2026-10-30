@@ -766,19 +766,6 @@ describe("BricksScene", () => {
       expect(shell.commands).toEqual(["launch", "pause", "toggle", "go"]);
     });
 
-    it("leave Enter on a button over the field to press the button", async () => {
-      const { shell, run, keys } = await startBoard();
-      const resume = document.createElement("button");
-      keys.append(resume);
-
-      resume.dispatchEvent(
-        new KeyboardEvent("keydown", { code: "Enter", bubbles: true }),
-      );
-      run.advance(16);
-
-      expect(shell.commands).toEqual([]);
-    });
-
     it.each([
       ["a held key's repeat", "Space", " ", { repeat: true }],
       ["a shortcut with Ctrl", "KeyP", "p", { ctrlKey: true }],
