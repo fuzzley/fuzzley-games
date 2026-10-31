@@ -706,3 +706,11 @@ pictures from the scene, and its scoring written "1,000", "20,000" and
 the snake; P paused it, with its card and "Paused, with a score of 0.
 Press a direction to go on.", and went on; the snake ran into the wall,
 faded, and the result opened. Neither page reported an error.
+
+### The plan archived
+
+This plan and its log moved to `docs/archive/`, with every step built:
+R1 to R12, each reviewed before its commit and its findings answered
+here, and the QA checkpoint, in the 13 commits on `brick-breaker-review`
+from `e53169fa` before this one. The user gave the go-ahead to merge it
+into `main`.
