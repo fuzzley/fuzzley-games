@@ -1,7 +1,8 @@
 import { fieldFrom } from "../testing/field_picture";
 import {
-  FrameSounds,
+  SOUNDS,
   type SoundName,
+  createFrameSounds,
   detuneOf,
   effectsOf,
   flourishesOf,
@@ -87,50 +88,14 @@ describe("detuneOf", () => {
   });
 });
 
-describe("FrameSounds", () => {
-  /** Returns what a frame's sounds play, each as its name and how far it rose. */
-  function played(sounds: FrameSounds): [SoundName, number][] {
-    const plays: [SoundName, number][] = [];
-    sounds.playEach((name, detune) => plays.push([name, detune]));
-    return plays;
-  }
+describe("createFrameSounds", () => {
+  it("plays each of the sprite's sounds heard, in the sprite's order", () => {
+    const sounds = createFrameSounds();
+    for (const name of [...SOUNDS].reverse()) sounds.hear(name, 0);
 
-  it("plays each sound heard once, at the most it rose", () => {
-    const sounds = new FrameSounds();
-    sounds.hear("broken", 100);
-    sounds.hear("blast", 0);
-    sounds.hear("broken", 300);
-    sounds.hear("broken", 200);
+    const played: SoundName[] = [];
+    sounds.playEach((name) => played.push(name));
 
-    expect(played(sounds)).toEqual([
-      ["broken", 300],
-      ["blast", 0],
-    ]);
-  });
-
-  it("plays them in the sprite's order, whatever order they were heard in", () => {
-    const sounds = new FrameSounds();
-    sounds.hear("blast", 0);
-    sounds.hear("wall", 0);
-
-    expect(played(sounds)).toEqual([
-      ["wall", 0],
-      ["blast", 0],
-    ]);
-  });
-
-  it("plays a sound lowered below its own pitch", () => {
-    const sounds = new FrameSounds();
-    sounds.hear("lost", -100);
-
-    expect(played(sounds)).toEqual([["lost", -100]]);
-  });
-
-  it("forgets the sounds it played", () => {
-    const sounds = new FrameSounds();
-    sounds.hear("wall", 0);
-    played(sounds);
-
-    expect(played(sounds)).toEqual([]);
+    expect(played).toEqual(SOUNDS);
   });
 });

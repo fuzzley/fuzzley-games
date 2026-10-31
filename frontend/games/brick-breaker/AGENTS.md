@@ -193,8 +193,9 @@ doesn't see, so Phaser stays out of the first download.
   canvas not yet laid out gives a unit too small for the insets, and
   `lineWidth()`; `effects.ts` says what each event calls for, its sound and
   the flourishes it plays where motion is welcome, how far a broken brick's
-  sound rises along a streak (`detuneOf()`), and `FrameSounds`, which plays
-  each sound once a frame at most, at the highest it was heard.
+  sound rises along a streak (`detuneOf()`), and `createFrameSounds()`,
+  `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
+  sound once a frame at most, at the highest it was heard.
   `contrast.spec.ts` holds every tint, the steel, blast and gift bricks, every
   ball kind, both capsule tones, the paddle and the last bricks' glow to 3:1
   against the field in every palette, a tough brick's deeper tints too, each

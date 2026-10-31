@@ -33,6 +33,10 @@ Each file is an entry point of its own, imported by name, such as
   next event's record, numbered, to fill in place, so nothing is made per
   event, and `forEachSince()` hands each reader the events past the last
   it read, however many steps a frame took.
+- `src/frame_sounds.ts`: `FrameSounds<Name>`, made from the names of a
+  sprite's sounds, which gathers the sounds a frame's events call for
+  (`hear()`) and plays each once (`playEach()`), at the most it rose, in
+  the sprite's order.
 
 Every game but the Solitaire Collection takes some of them, and `@fz/ui`'s
 storage takes `isRecord()`. The Solitaire Collection keeps its own seeded

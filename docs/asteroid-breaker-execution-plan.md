@@ -244,7 +244,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
 - **L1.3** `@fz/core/frame_sounds`: `FrameSounds<Name>`, from Brick
   Breaker's `src/view/effects.ts`, taking the sprite's names; each sound once
   a frame at most, at the highest it was heard. Brick Breaker passes its
-  `SOUNDS`. One commit.
+  `SOUNDS`, in the view's `createFrameSounds()`, since the view holds the
+  sprite's names and ties them to the gatherer once. One commit.
 - **L1.4** `formatPoints()` moves into `@fz/core/format` beside `count()`,
   unchanged; Brick Breaker's `describe.ts` and every caller import it from
   there. Each of the four is specced to 100%, as `@fz/core`'s floor asks.
@@ -472,7 +473,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 - **A11.1** `tools/build-sounds.mjs` with the thirteen sounds on
   `@fz/dev/sounds`, the sprite in `src/scene/sounds/`, a `SpritePlayer` in
-  the scene playing each event's sound through `@fz/core/frame_sounds`, a
+  the scene playing each event's sound through the view's `FrameSounds`
+  (`@fz/core/frame_sounds`), a
   break's rising with the chain, the thrust's hum through `hold()`, the
   Sound button and the haptics setting. Specced. One commit.
 
@@ -1007,7 +1009,7 @@ comet's warning, two soft notes; a lost ship's fall; a cleared wave's chime;
 an extra ship's chime; a stray brought home's two rising notes. The thrust
 hums low while it is held, through the
 lifted `SpritePlayer.hold()`. Each sound plays once a frame at most, at the
-highest it was heard, as Brick Breaker's `FrameSounds` has it.
+highest it was heard, as `@fz/core/frame_sounds` has it.
 
 ### Cards and dialogs
 
