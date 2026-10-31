@@ -77,63 +77,24 @@
   outline-color: var(--fz-focus-ring-color);
 }
 
-// Over the board, setting a card in its middle, letting swipes through to the
-// canvas but on the card's button. A grid sets the card at its own height:
-// Safari stretched one held between insets with `height: fit-content` from
-// top to bottom.
 .cards {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
+  @include board-card-layer;
 }
 
 // Over the lower half of the board, clear of the row the snake and the apple
 // start on.
 .card {
-  @include glass(12px);
+  @include board-card(var(--room));
 
-  display: grid;
-  justify-items: center;
-  gap: var(--fz-space-2);
-  box-sizing: border-box;
-  max-width: min(320px, 100cqmin - 4 * var(--room));
-  padding: var(--fz-space-5) var(--fz-space-6);
   translate: 0 calc(var(--side) / 4);
-  border: 1px solid var(--fz-edge-3);
-  border-radius: var(--fz-radius-lg);
-  background: var(--fz-panel-glass);
-  box-shadow: var(--fz-shadow-card);
-  color: var(--fz-text);
-  text-align: center;
-
-  p {
-    margin: 0;
-  }
-
-  button {
-    margin-top: var(--fz-space-2);
-    pointer-events: auto;
-  }
 }
 
 // On a small board, as on the smallest phones with the arrows, the card sets
 // smaller and sits in the middle, so it stays on the board.
 @container (width < 280px) or (height < 280px) {
   .card {
-    gap: var(--fz-space-1);
-    padding: var(--fz-space-3) var(--fz-space-4);
+    @include board-card-small;
+
     translate: none;
-    font-size: var(--fz-font-sm);
-
-    button {
-      margin-top: var(--fz-space-1);
-    }
   }
-}
-
-.card-title {
-  font-size: var(--fz-font-lg);
-  font-weight: 700;
 }
