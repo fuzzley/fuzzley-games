@@ -1,5 +1,5 @@
-// The inspection a layout check runs in the page of a board drawn with
-// Phaser, sent as its source, so it uses nothing from outside itself.
+// The inspections a layout check runs in the page of a board drawn with
+// Phaser, each sent as its source, so each uses nothing from outside itself.
 
 /**
  * Describes a board drawn with Phaser, as the page shows it: an element that
@@ -41,6 +41,41 @@ export interface PhaserBoard {
    * the game opens.
    */
   readonly card: string;
+  /**
+   * The controls the canvas draws beside the board for a touch screen, if it
+   * has them.
+   */
+  readonly deck?: PhaserDeck;
+}
+
+/**
+ * Describes a deck: the zones a canvas draws beside its board for a touch
+ * screen's thumbs, such as a stick's and its buttons'.
+ *
+ * A layout check holds the deck to showing every zone it names, so a game
+ * with a deck checks its layout with the deck shown, such as by a setting
+ * its check's `before()` stores.
+ */
+export interface PhaserDeck {
+  /**
+   * The attribute of the board's element that lists the zones, such as
+   * `data-deck`: each a name of one word and where the zone lies on the
+   * canvas, as "x y width height" in CSS px, the zones parted by commas, as
+   * "stick 0 600 180 200, buttons 180 600 180 200".
+   */
+  readonly drawnAt: string;
+  /** The zones the deck shows, by the names it lists them by. */
+  readonly zones: readonly string[];
+  /** The least a zone may be across and down, in CSS px, for a thumb. */
+  readonly least: number;
+}
+
+/** Says where a rectangle lies, in CSS px. */
+interface Rect {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 /** Says where a board lies in the window, in CSS px, and the size of its unit. */
@@ -174,4 +209,111 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
     problems.push(`The focus ring doesn't lie around the ${name}.`);
   }
   return { problems, box };
+}
+
+/**
+ * Returns what is wrong with the deck a board's canvas draws beside the board
+ * where it lies: a zone the deck names missing, unknown, unreadable or listed
+ * twice, or one off the canvas, out of the window, over the board, another
+ * zone or a control of the game bar, or smaller than the deck's least. It runs
+ * in the page.
+ */
+export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
+  /** Returns whether two rectangles share more than half a pixel's width. */
+  function overlaps(a: Rect, b: Rect): boolean {
+    return (
+      a.left < b.left + b.width - 0.5 &&
+      b.left < a.left + a.width - 0.5 &&
+      a.top < b.top + b.height - 0.5 &&
+      b.top < a.top + a.height - 0.5
+    );
+  }
+
+  const { deck } = board;
+  const element = document.querySelector(board.element);
+  const shown = element
+    ?.querySelector("fz-phaser-canvas canvas")
+    ?.getBoundingClientRect();
+  // The board's own inspection says what is missing of the board.
+  if (!deck || !element || !shown) return [];
+  const listed = element.getAttribute(deck.drawnAt);
+  if (listed === null) {
+    return [
+      `${board.element} doesn't say where its deck lies (${deck.drawnAt}).`,
+    ];
+  }
+
+  const problems: string[] = [];
+  /** Where each zone lies on the canvas, by its name. */
+  const zones = new Map<string, Rect>();
+  for (const written of listed.split(",").map((zone) => zone.trim())) {
+    if (written === "") continue;
+    const [zone = "", ...at] = written.split(/\s+/);
+    const [left = NaN, top = NaN, width = NaN, height = NaN] = at.map(Number);
+    if (at.length !== 4 || ![left, top, width, height].every(Number.isFinite)) {
+      problems.push(`The deck's zone "${written}" doesn't say where it lies.`);
+    } else if (!deck.zones.includes(zone)) {
+      problems.push(`The deck shows a zone its board doesn't name: ${zone}.`);
+    } else if (zones.has(zone)) {
+      problems.push(`The deck lists its ${zone} zone twice.`);
+    } else {
+      zones.set(zone, { left, top, width, height });
+    }
+  }
+  for (const zone of deck.zones) {
+    if (!zones.has(zone)) problems.push(`The deck shows no ${zone} zone.`);
+  }
+
+  const controls = [
+    ...document.querySelectorAll("fz-game-bar button, fz-game-bar a"),
+  ];
+  for (const [zone, at] of zones) {
+    if (
+      at.left < -0.5 ||
+      at.top < -0.5 ||
+      at.left + at.width > shown.width + 0.5 ||
+      at.top + at.height > shown.height + 0.5
+    ) {
+      problems.push(`The deck's ${zone} zone runs off the canvas.`);
+    }
+    const lies: Rect = {
+      ...at,
+      left: shown.left + at.left,
+      top: shown.top + at.top,
+    };
+    if (
+      lies.left < -0.5 ||
+      lies.top < -0.5 ||
+      lies.left + lies.width > innerWidth + 0.5 ||
+      lies.top + lies.height > innerHeight + 0.5
+    ) {
+      problems.push(`The deck's ${zone} zone runs out of the window.`);
+    }
+    if (overlaps(lies, box)) {
+      problems.push(`The deck's ${zone} zone lies over the ${board.name}.`);
+    }
+    for (const control of controls) {
+      const taken = control.getBoundingClientRect();
+      if (taken.width === 0 || taken.height === 0 || !overlaps(lies, taken)) {
+        continue;
+      }
+      const label =
+        control.getAttribute("aria-label") ?? control.textContent.trim();
+      problems.push(`The deck's ${zone} zone lies over the bar's ${label}.`);
+    }
+    if (at.width < deck.least || at.height < deck.least) {
+      problems.push(
+        `The deck's ${zone} zone is ${at.width} by ${at.height} CSS px, less than ${deck.least} across or down.`,
+      );
+    }
+  }
+  const placed = [...zones];
+  for (const [i, [zone, at]] of placed.entries()) {
+    for (const [other, there] of placed.slice(i + 1)) {
+      if (overlaps(at, there)) {
+        problems.push(`The deck's ${zone} zone lies over its ${other} zone.`);
+      }
+    }
+  }
+  return problems;
 }

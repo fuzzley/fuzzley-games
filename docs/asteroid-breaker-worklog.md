@@ -242,3 +242,92 @@ and build across every workspace.
      line and a spec's doc re-wrapped; the scene-end spec stops the scene
      by its own key, not the harness's (through the game's scene manager,
      as the scene's own plugin only queues the stop).
+
+## L2: done
+
+2026-10-31. `yarn verify` passed on L2.1's commit.
+
+## L3.1: a deck in the layout check
+
+2026-10-31.
+
+- **Built.** `@fz/dev/layout`'s `PhaserBoard` takes an optional `deck`, a
+  `PhaserDeck`: the attribute of the board's element that lists the deck's
+  zones, such as `data-deck`, the zones it must show, by name, and the
+  least a zone may be across and down. `inspectPhaserDeck()`, a second
+  inspection run in the page once the board's says where the board lies,
+  reads each zone, a one-word name and "x y width height" in CSS px on the
+  canvas, the zones parted by commas, and says which runs off the canvas
+  or out of the window, lies over the board or a control of the bar that
+  shows, or another zone, or is smaller than the least, by its name; the
+  attribute missing, a zone it can't read, doesn't know or finds twice, and
+  a zone it must show and doesn't, are problems too. `checkLayout()` reports the deck's problems
+  after the board's, before the game's own. Brick Breaker's and Snake's
+  checks name no deck, so nothing of theirs changed.
+- **Choices.** Each zone is named in the list, which the plan's "x y width
+  height" left out, so a problem says "the deck's stick zone" rather than a
+  zone's place in the list, and the deck names the zones it must show, so
+  a deck that stops showing fails the check rather than passing it with
+  nothing to check; a game checks its layout with its deck shown, which
+  A15.1 now says. The least is the deck's, one number for every zone,
+  since Asteroid Breaker's stick and buttons both want a thumb's room (112
+  CSS px at the least, as its design gives the sideways deck). The deck's
+  inspection is its own function, so `inspectPhaserBoard()` is as it was;
+  it runs in the page from its source alone, so its one helper,
+  `overlaps()`, is declared inside it (checked by importing it as the check
+  scripts do, under Node's type stripping, and running its source in a
+  bare jsdom window). The layout spec's fake browser told the bar's check
+  from the others by the words "fz-game-bar button", which the deck's
+  inspection holds too; it tells each by its function's name now, as it
+  already did the board's.
+- **Checks.** `@fz/dev`: lint, typecheck, test (215 tests, floors held;
+  `board_page.ts` fully covered), and twenty-five mutants of the deck's
+  inspection, each of a bound, a clause of `overlaps()`, the least, a
+  hidden control, an unknown or a missing zone, the bar's links, a
+  second control, a fifth number, a zone twice, zones over each other,
+  each caught by its spec.
+  `brick-breaker` and `snake`: typecheck (their check scripts).
+  `yarn prettier:check`, `node .agents/check-skill-references.mjs`. Docs:
+  `@fz/dev`'s `AGENTS.md`, and the plan's L3.1 and A15.1.
+- **Review.** The first version checked the deck inside
+  `inspectPhaserBoard()`, and the review found:
+  1. Its specs passed with half the check broken: the window's top and
+     bottom, two clauses of the overlap, the least's `<`, either half of a
+     hidden control's test (the reviewer proved each on a copy). Fixed: a
+     case for each, and the mutants above.
+  2. Nothing held a zone on the canvas, though the scene draws it and
+     touches reach it there; sideways, the bar's rail lies in the window
+     beyond the canvas. Fixed: a zone off the canvas is a problem.
+  3. An empty list passed, so a check in a headless Chrome, which is no
+     touch screen, would have checked nothing. Fixed: the deck names its
+     zones, each must show, and A15.1 shows the deck through `before()`.
+  4. The new specs' stubs were never restored, the `afterEach` being
+     inside the board's describe. Fixed: it is the file's.
+  5. The helpers inside the inspection shadowed its names and half read
+     its closure. Fixed: the deck's inspection is its own function, with
+     `Rect` declared beside the module's other types.
+  6. "The deck's buttons is …" read wrongly, a name of two words would
+     have been unreadable, and two docs had lines left unwrapped. Fixed:
+     "zone" after every name, a name is one word, re-wrapped.
+
+  The fixes reshaped the change, so it was reviewed again before its
+  commit.
+
+  The second review found:
+  1. Nothing kept the zones apart, though the design does, upright and on
+     its side. Fixed: a zone over another is a problem, specced on each
+     side of the edge.
+  2. A zone listed twice replaced the first, unchecked (the reviewer showed
+     it in a headless Chrome). Fixed: the second is a problem.
+  3. Three mutants passed: the bar's links left out, the controls' walk
+     stopped at the first overlap, a zone of five numbers read. Fixed: the
+     page's bar has a link, a case lies under two controls, and one gives
+     five numbers.
+  4. `canvas` was the element in the board's inspection and its rectangle
+     in the deck's. Fixed: `shown`, as the board's names it.
+  5. `Rect`'s doc said "in the window" of rectangles on the canvas too, the
+     plan's table of lifted pieces described the deck as it was first
+     built, and four one-line docs ran long. Fixed.
+  6. Optional, and done: the fake browser answers from a table rather than
+     five nested conditions, and "a board with no canvas" was one with no
+     element, so it is named so, beside a case with no canvas.

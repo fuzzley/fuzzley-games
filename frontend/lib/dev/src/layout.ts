@@ -7,6 +7,7 @@ import {
   type BoardInspection,
   type PhaserBoard,
   inspectPhaserBoard,
+  inspectPhaserDeck,
 } from "./board_page.ts";
 import {
   type DevToolsConnection,
@@ -22,7 +23,7 @@ import {
   settleTurn,
 } from "./layout_page.ts";
 
-export type { BoardBox, PhaserBoard } from "./board_page.ts";
+export type { BoardBox, PhaserBoard, PhaserDeck } from "./board_page.ts";
 
 /** Names a shape of window a game is laid out for, and gives one. */
 export interface Shape {
@@ -110,7 +111,8 @@ export interface LayoutCheck {
   readonly ready: string;
   /**
    * The board drawn with Phaser, where the game has one, which the check
-   * inspects as it does every such board.
+   * inspects as it does every such board, and its deck, where it has one,
+   * once the page says where the board lies.
    */
   readonly board?: PhaserBoard;
   /**
@@ -331,13 +333,17 @@ async function inspect(page: Page, check: LayoutCheck): Promise<string[]> {
   const board: BoardInspection = check.board
     ? await page.evaluate(inspectPhaserBoard, check.board)
     : { problems: [] };
+  const deck =
+    check.board?.deck && board.box
+      ? await page.evaluate(inspectPhaserDeck, check.board, board.box)
+      : [];
   // An argument goes to the page as JSON, which turns undefined into null.
   const own = board.box
     ? await page.evaluate(check.inspect, board.box)
     : await page.evaluate(check.inspect);
   const scrolls = await page.evaluate(scrolling);
   const bar = await page.evaluate(barOutOfWindow);
-  return [...scrolls, ...bar, ...board.problems, ...own];
+  return [...scrolls, ...bar, ...board.problems, ...deck, ...own];
 }
 
 /**

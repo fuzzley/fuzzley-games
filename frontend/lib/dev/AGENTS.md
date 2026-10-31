@@ -116,12 +116,19 @@ too. Paths are relative to `frontend/lib/dev/`.
   and the check holds it as every such board is held: its canvas ready and
   drawn at its size times the board element's `--pixel-ratio`, the board in
   its shape and in the window, the placeholder and the ring where the scene
-  drew it, and the card on it. The game's `inspect()` is then handed where
-  the board lies, a `BoardBox`, for what is its own, such as the least its
-  unit may be. The functions it runs in the page are in
-  `src/layout_page.ts`, which only a browser runs, so coverage leaves it
-  out, and the board's inspection, `inspectPhaserBoard()`, in
-  `src/board_page.ts`, which its spec runs in jsdom. A game's
+  drew it, and the card on it. A board with a deck beside it, the zones its
+  canvas draws for a touch screen's thumbs, names that too (`PhaserDeck`):
+  the attribute that lists the zones, each by its name and where it lies on
+  the canvas, the zones it must show, and the least a zone may be across
+  and down; once the page says where the board lies, the check holds each
+  zone named, shown once, on the canvas and in the window, off the board,
+  the other zones and the bar's controls, and at least that size, so a game
+  checks its layout with its deck shown. The game's `inspect()` is then handed where the
+  board lies, a `BoardBox`, for what is its own, such as the least its unit
+  may be. The functions it runs in the page are in `src/layout_page.ts`,
+  which only a browser runs, so coverage leaves it out, and the board's and
+  the deck's inspections, `inspectPhaserBoard()` and `inspectPhaserDeck()`,
+  in `src/board_page.ts`, which its spec runs in jsdom. A game's
   `tools/check-layout.mjs` holds its inspection and which checks it runs,
   and hands them to `runLayoutScript()`, which reads the command line
   (`--chrome`, `--help`), serves the build as `yarn preview` does, runs the

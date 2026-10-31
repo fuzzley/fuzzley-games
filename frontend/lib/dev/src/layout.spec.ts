@@ -39,8 +39,8 @@ const CHECK: LayoutCheck = {
 /** The first shape alone, for a spec that needs only one. */
 const ROOMY = SHAPES.slice(0, 1);
 
-/** Words only the check of the game bar holds. */
-const BAR = "fz-game-bar button";
+/** Words only the check of the game bar holds: its name. */
+const BAR = "function barOutOfWindow";
 
 /** A board drawn with Phaser, as a check describes it. */
 const BOARD: PhaserBoard = {
@@ -57,8 +57,17 @@ const BOARD: PhaserBoard = {
 /** Where a board lies, as the page finds it. */
 const BOX: BoardBox = { left: 40, top: 60, width: 260, height: 300, unit: 10 };
 
-/** Words only the inspection of a board drawn with Phaser holds. */
+/** Words only the inspection of a board drawn with Phaser holds: its name. */
 const BOARD_INSPECTION = "function inspectPhaserBoard";
+
+/** Words only the inspection of a board's deck holds: its name. */
+const DECK_INSPECTION = "function inspectPhaserDeck";
+
+/** A board with a deck beside it, as a check describes it. */
+const DECKED: PhaserBoard = {
+  ...BOARD,
+  deck: { drawnAt: "data-deck", zones: ["stick"], least: 112 },
+};
 
 /**
  * Returns a fake browser whose pages find nothing wrong but what the game's
@@ -74,14 +83,15 @@ function browserFinding(
 
 /**
  * Returns a fake browser whose pages find what the game's inspection, the
- * check of its bar and the inspection of its board each find, and nothing
- * else wrong.
+ * check of its bar and the inspections of its board and its deck each find,
+ * and nothing else wrong.
  */
 function browserFindingIn(
   found: {
     readonly own?: readonly string[];
     readonly bar?: readonly string[];
     readonly board?: BoardInspection;
+    readonly deck?: readonly string[];
   },
   ...events: readonly object[]
 ): FakeBrowser {
@@ -92,13 +102,14 @@ function browserFindingIn(
     },
     "Runtime.evaluate": (command: Command) => {
       const expression = String(command.params["expression"]);
-      const value = expression.includes(OWN)
-        ? (found.own ?? [])
-        : expression.includes(BAR)
-          ? (found.bar ?? [])
-          : expression.includes(BOARD_INSPECTION)
-            ? (found.board ?? { problems: [] })
-            : [];
+      const answers: readonly (readonly [string, unknown])[] = [
+        [OWN, found.own ?? []],
+        [BAR, found.bar ?? []],
+        [BOARD_INSPECTION, found.board ?? { problems: [] }],
+        [DECK_INSPECTION, found.deck ?? []],
+      ];
+      const value =
+        answers.find(([words]) => expression.includes(words))?.[1] ?? [];
       return { result: { result: { value } } };
     },
   });
@@ -246,6 +257,61 @@ describe("checkLayout", () => {
     await checkLayout(new DevToolsConnection(browser), CHECK, ROOMY);
 
     expect(evaluatedWith(browser, BOARD_INSPECTION)).toEqual([]);
+  });
+
+  it("inspects the board's deck, with where the board lies, after the board", async () => {
+    const devtools = new DevToolsConnection(
+      browserFindingIn({
+        board: { problems: ["The field runs out of the window."], box: BOX },
+        deck: ["The deck's stick zone lies over the field."],
+        own: ["The field's unit is 8 CSS px, under 10."],
+      }),
+    );
+
+    const problems = await checkLayout(
+      devtools,
+      { ...CHECK, board: DECKED },
+      ROOMY,
+    );
+
+    expect(problems.map(({ problem }) => problem)).toEqual([
+      "The field runs out of the window.",
+      "The deck's stick zone lies over the field.",
+      "The field's unit is 8 CSS px, under 10.",
+    ]);
+  });
+
+  it("hands the deck's inspection the board and where it lies", async () => {
+    const browser = browserFindingIn({ board: { problems: [], box: BOX } });
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, board: DECKED },
+      ROOMY,
+    );
+
+    expect(evaluatedWith(browser, DECK_INSPECTION)).toEqual([
+      expect.stringContaining(JSON.stringify([DECKED, BOX])),
+    ]);
+  });
+
+  it.each<[string, PhaserBoard, BoardInspection]>([
+    ["the board has none", BOARD, { problems: [], box: BOX }],
+    [
+      "the board doesn't say where it lies",
+      DECKED,
+      { problems: ["app-board doesn't say where the field lies."] },
+    ],
+  ])("inspects no deck where %s", async (_, board, inspection) => {
+    const browser = browserFindingIn({ board: inspection });
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, board },
+      ROOMY,
+    );
+
+    expect(evaluatedWith(browser, DECK_INSPECTION)).toEqual([]);
   });
 
   it("hands the game's inspection where the board lies", async () => {
