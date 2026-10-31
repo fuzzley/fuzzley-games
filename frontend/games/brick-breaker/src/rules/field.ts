@@ -36,7 +36,7 @@ import { type BallKindId, ballKind } from "./catalog/balls";
 import { isNeeded } from "./catalog/bricks";
 import type { PaddleMode } from "./catalog/capsules";
 import { nextDraw } from "./draws";
-import { EventLog } from "./events";
+import { FieldEventLog } from "./events";
 import {
   ALL_SIDES,
   type Box,
@@ -178,7 +178,7 @@ export interface Field {
   /** How many random draws the field has made, which seeds the next. */
   draws: number;
   /** What happened, for the scene to play. */
-  readonly events: EventLog;
+  readonly events: FieldEventLog;
 }
 
 /** Something a ball can meet: a brick, a wall or the paddle. */
@@ -302,7 +302,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     boltsReadyAt: 0,
     steps: 0,
     draws: 0,
-    events: new EventLog(),
+    events: new FieldEventLog(),
   };
 }
 

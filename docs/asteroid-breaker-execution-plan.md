@@ -238,7 +238,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   record; `next()` hands back the next record, numbered, to fill in place,
   and the readers read on from the last number they saw, as Brick Breaker's
   do. Brick Breaker's `events.ts` keeps `FieldEvent`, `FieldEventKind` and
-  `EVENT_LOG_SIZE`, and makes an `EventLog<FieldEvent>`. One commit.
+  `EVENT_LOG_SIZE`, and its `FieldEventLog` is an `EventLog<FieldEvent>`
+  whose `add()` fills `next()`'s record, so its callers are unchanged. One
+  commit.
 - **L1.3** `@fz/core/frame_sounds`: `FrameSounds<Name>`, from Brick
   Breaker's `src/view/effects.ts`, taking the sprite's names; each sound once
   a frame at most, at the highest it was heard. Brick Breaker passes its

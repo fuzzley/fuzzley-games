@@ -66,3 +66,48 @@ it records. Newest last.
      reason for `createFieldClock()`'s name that seemed to argue against
      `stepsIn(ms)`'s. Fixed: dated, rejoined, and the second name's reason
      given.
+
+## L1.2: the event log
+
+2026-10-31.
+
+- **Built.** `@fz/core/event_log`: `EventLog<E extends NumberedEvent>`,
+  taking its size and a function that makes a blank record, every record
+  made with the log; `next()` numbers the next event's record and hands it
+  to its writer to fill, and `forEachSince()` and `latest` are Brick
+  Breaker's, at 100%. Brick Breaker's `events.ts` keeps `FieldEvent` (now a
+  `NumberedEvent`), `FieldEventKind` and `EVENT_LOG_SIZE`, and its
+  `FieldEventLog` extends the library's, with the `add()` its rules have
+  always called, so none of its thirty-odd callers changed; `Field`,
+  `EventsView` and the frame's type spec name it.
+- **Choices.** The repository's lint forbids `!` outside specs and the
+  library's floor is every branch, while a lookup in an array is a record
+  or nothing to the compiler; so one private `recordOf()` makes a record
+  where it finds none (`??=`), and the constructor makes every record
+  through it, which covers that branch and leaves none to make after. The
+  first event takes the ring's first record. A size that is not a whole
+  number of at least one throws a `RangeError`, since the ring's arithmetic
+  goes wrong quietly otherwise. `next()` is public, so a game can fill its
+  records however it likes; Brick Breaker's subclass keeps `add()` for its
+  call sites, rather than a free function that would change every one of
+  them.
+- **Checks.** `@fz/core`: lint, typecheck, test (61 tests, 100%).
+  `brick-breaker`: lint, typecheck, test (1988 tests, floors held;
+  `events.ts` now fully covered). `yarn prettier:check`,
+  `node .agents/check-skill-references.mjs`. Docs: `@fz/core`'s
+  `AGENTS.md` and `package.json`, `frontend/games/AGENTS.md` and Brick
+  Breaker's `AGENTS.md`.
+- **Review.**
+  1. The ring was first made lazily, each record as the ring first came to
+     it, on the premise that a ring made up front needs a guard no spec
+     reaches; the reviewer showed the constructor can make every record
+     through the same lookup, covering it, and that the lazy ring put the
+     first 256 events' records into Brick Breaker's physics steps, against
+     its "a step makes nothing" and Asteroid Breaker's performance bar.
+     Fixed: the records are made with the log, a spec counts them, and the
+     docs lost the qualifiers the lazy ring had cost them.
+  2. `forEachSince()` read through the lookup that makes records, so a
+     serial between two whole ones made a record under a fractional key.
+     Fixed: it reads on from the whole serial below, with a spec.
+  3. `@fz/core`'s `AGENTS.md` hung "nothing is made per event" off
+     `forEachSince()`. Fixed: it is `next()`'s.

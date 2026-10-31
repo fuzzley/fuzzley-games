@@ -93,10 +93,10 @@ doesn't see, so Phaser stays out of the first download.
   times the streak's multiplier, keeps the streak, and says what clearing a
   level adds, and how a cleared level's points add up (`tallyOf()`) and come
   to (`pointsOf()`).
-  `events.ts`'s `EventLog` is a ring of 256 numbered records, which the
-  scene plays and the shell hears, each from the last one it read; a broken
-  brick's carries the streak as it broke, as the scene plays it once the
-  field has moved on.
+  `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s `EventLog` of
+  256 numbered records, which `add()` fills, the scene plays and the shell
+  hears, each from the last one it read; a broken brick's carries the
+  streak as it broke, as the scene plays it once the field has moved on.
 - **The run** — `src/rules/run.ts`: `Run`, a value each change replaces, as
   Snake's is, from the first level to the end: the level in play, the points
   banked and the score, the lives and the points of the next, and the outcome.
