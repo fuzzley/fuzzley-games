@@ -263,13 +263,17 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### L3: a deck in the layout check (small)
 
-- **L3.1** `@fz/dev/layout`'s `PhaserBoard` takes an optional `deck`: the
-  attribute of the board's element that lists its zones, each "x y width
-  height" in CSS px, as `data-field` gives the field. The check holds each
-  zone inside the window, clear of the board's field, clear of the bar's
-  controls, and at least the least size the board names, and says which
-  failed. Specced as the board's other checks are. Brick Breaker's check,
-  which names no deck, is unchanged. One commit.
+- **L3.1** `@fz/dev/layout`'s `PhaserBoard` takes an optional `deck`
+  (`PhaserDeck`): the attribute of the board's element that lists its
+  zones, each its name and "x y width height" in CSS px on the canvas, as
+  `data-field` gives the field, parted by commas; the zones it must show;
+  and the least a zone may be across and down. A second inspection in the
+  page, `inspectPhaserDeck()`, run once the board's says where the board
+  lies, holds each zone named and shown once, on the canvas and in the window,
+  clear of the board's field, of the other zones and of the bar's controls, and
+  at least that size, and says which failed, by its name. Specced as the board's
+  other checks are. Brick Breaker's check, which names no deck, is unchanged.
+  One commit.
 
 #### L4: docs (small)
 
@@ -520,8 +524,11 @@ more. Paths in Part 1 are under `frontend/lib/` or
   drawn at its size times the ratio; the field filling its room with a
   short side of 40 units and a unit of 6 CSS px or more, inside the
   window, where the placeholder drew it and inside the focus ring; and the
-  deck's zones, through Part 1's `deck`, in the window, off the field and
-  the bar. One commit.
+  deck's zones, through Part 1's `deck`, the stick's and the buttons',
+  each shown, on the canvas and in the window, off the field, each other
+  and the bar,
+  with the deck set to show by the check's `before()`, since a headless
+  Chrome is no touch screen. One commit.
 - **A15.2** Q5: the full pass its row lists. Fixes, each a commit.
 
 #### A16: screenshots and docs (medium)
@@ -1335,14 +1342,14 @@ An `asteroid-breaker-content` skill walks an agent through each, as
 
 ### The lifted pieces
 
-| Piece                       | From Brick Breaker                                                                     | To                      | What changes                                                                                                                                                                |
-| --------------------------- | -------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A fixed-step clock          | `src/rules/stepper.ts`: `createClock()`, `advanceClock()`, `progressOf()`, `stepsIn()` | `@fz/core/clock`        | The step's length and the most steps a frame are its arguments; Brick Breaker passes 1/120 s and 12                                                                         |
-| A ring of numbered events   | `src/rules/events.ts`: `EventLog`                                                      | `@fz/core/event_log`    | `EventLog<E>` takes its size and a blank record; `next()` hands back the next record, numbered, to fill in place, so nothing is made per step                               |
-| A frame's sounds            | `src/view/effects.ts`: `FrameSounds`                                                   | `@fz/core/frame_sounds` | `FrameSounds<Name>` takes the sprite's names; Brick Breaker's `SOUNDS`                                                                                                      |
-| Points grouped in thousands | `src/rules/describe.ts`: `formatPoints()`                                              | `@fz/core/format`       | Beside `count()`, unchanged                                                                                                                                                 |
-| A sound held                | new                                                                                    | `@fz/phaser/sound`      | `SpritePlayer.hold(name, held)` loops a sound while held and stops it when let go, or when sound is turned off or the scene ends                                            |
-| A deck beside a board       | new                                                                                    | `@fz/dev/layout`        | `PhaserBoard` takes an optional `deck`, the attribute its zones are given; the check holds each zone in the window, off the board, off the bar, and at least its least size |
+| Piece                       | From Brick Breaker                                                                     | To                      | What changes                                                                                                                                                                                                                                                                |
+| --------------------------- | -------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A fixed-step clock          | `src/rules/stepper.ts`: `createClock()`, `advanceClock()`, `progressOf()`, `stepsIn()` | `@fz/core/clock`        | The step's length and the most steps a frame are its arguments; Brick Breaker passes 1/120 s and 12                                                                                                                                                                         |
+| A ring of numbered events   | `src/rules/events.ts`: `EventLog`                                                      | `@fz/core/event_log`    | `EventLog<E>` takes its size and a blank record; `next()` hands back the next record, numbered, to fill in place, so nothing is made per step                                                                                                                               |
+| A frame's sounds            | `src/view/effects.ts`: `FrameSounds`                                                   | `@fz/core/frame_sounds` | `FrameSounds<Name>` takes the sprite's names; Brick Breaker's `SOUNDS`                                                                                                                                                                                                      |
+| Points grouped in thousands | `src/rules/describe.ts`: `formatPoints()`                                              | `@fz/core/format`       | Beside `count()`, unchanged                                                                                                                                                                                                                                                 |
+| A sound held                | new                                                                                    | `@fz/phaser/sound`      | `SpritePlayer.hold(name, held)` loops a sound while held and stops it when let go, or when sound is turned off or the scene ends                                                                                                                                            |
+| A deck beside a board       | new                                                                                    | `@fz/dev/layout`        | `PhaserBoard` takes an optional `deck`: the attribute that lists its zones by name, the zones it must show, and their least size; `inspectPhaserDeck()` holds each zone on the canvas and in the window, off the board, the other zones and the bar, and at least that size |
 
 Each moves now because two games need it, as `@fz/core`'s rule asks; the
 last two are new, and each lies where the next action game will look for

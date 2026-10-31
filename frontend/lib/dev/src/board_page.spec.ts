@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
-import { type PhaserBoard, inspectPhaserBoard } from "./board_page.ts";
+import {
+  type BoardBox,
+  type PhaserBoard,
+  inspectPhaserBoard,
+  inspectPhaserDeck,
+} from "./board_page.ts";
 
 /** A rectangle on the page, in CSS px. */
 interface Rect {
@@ -20,6 +25,15 @@ interface BoardPage {
   readonly placeholder: Rect | null;
   readonly ring: Rect | null;
   readonly card: Rect | null;
+  /**
+   * The deck's zones, as the board's element lists them, or null where it
+   * doesn't.
+   */
+  readonly deck: string | null;
+  /** The bar's button, named Pause. */
+  readonly control: Rect;
+  /** The bar's link, named Home. */
+  readonly link: Rect;
 }
 
 /** The field, as Brick Breaker describes it. */
@@ -61,6 +75,9 @@ const FITTING: BoardPage = {
   placeholder: PLACEHOLDER,
   ring: RING,
   card: CARD,
+  deck: null,
+  control: { left: 900, top: 10, width: 44, height: 44 },
+  link: { left: 960, top: 10, width: 44, height: 44 },
 };
 
 /** Returns a board's page with everything on it moved by a distance. */
@@ -91,10 +108,14 @@ function lay(page: BoardPage): void {
       </fz-phaser-canvas>
       <div class="ring"></div>
       <div class="card"></div>
-    </app-board>`;
+    </app-board>
+    <fz-game-bar>
+      <button aria-label="Pause"></button><a aria-label="Home"></a>
+    </fz-game-bar>`;
   const board = element("app-board");
   if (page.ratio !== null) board.style.setProperty("--pixel-ratio", page.ratio);
   if (page.drawnAt !== null) board.setAttribute("data-field", page.drawnAt);
+  if (page.deck !== null) board.setAttribute("data-deck", page.deck);
   element("fz-phaser-canvas").setAttribute("data-state", page.state);
   const canvas = element("canvas");
   if (!(canvas instanceof HTMLCanvasElement)) throw new Error("No canvas.");
@@ -106,6 +127,8 @@ function lay(page: BoardPage): void {
   place(placeholder, page.placeholder);
   place(element(".ring"), page.ring);
   place(element(".card"), page.card);
+  place(element("fz-game-bar button"), page.control);
+  place(element("fz-game-bar a"), page.link);
 }
 
 /** Returns the element a selector finds in the document. */
@@ -127,12 +150,12 @@ function place(target: HTMLElement, rect: Rect | null): void {
   );
 }
 
-describe("inspectPhaserBoard", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
-  });
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
+describe("inspectPhaserBoard", () => {
   it("finds nothing wrong with a board where the scene drew it, and says where it lies", () => {
     lay(FITTING);
 
@@ -366,5 +389,347 @@ describe("inspectPhaserBoard", () => {
     expect(inspectPhaserBoard({ ...FIELD, element: "app-bar" })).toEqual({
       problems: ["Found no canvas in app-bar."],
     });
+  });
+});
+
+/** The field, as a game with a deck beside it describes it. */
+const DECKED: PhaserBoard = {
+  ...FIELD,
+  deck: { drawnAt: "data-deck", zones: ["stick", "buttons"], least: 112 },
+};
+
+/** Where the fitting page's field lies in the window. */
+const FIELD_BOX: BoardBox = {
+  left: 120,
+  top: 75,
+  width: 260,
+  height: 300,
+  unit: 10,
+};
+
+/**
+ * The fitting page with a deck to the field's right on its canvas, which
+ * lies at 100 and 50 in the window, 400 CSS px by 350: the stick's zone over
+ * the buttons', each 120 by 150, just off the field.
+ */
+const BESIDE: BoardPage = {
+  ...FITTING,
+  deck: "stick 280 25 120 150, buttons 280 175 120 150",
+};
+
+/**
+ * The fitting page in a window smaller than its canvas, which runs 20 CSS px
+ * past each of its edges.
+ */
+const SPILLING: BoardPage = {
+  ...FITTING,
+  window: { width: 440, height: 400 },
+  canvas: { left: -20, top: -20, width: 480, height: 440 },
+};
+
+/** A field out of every zone's way, for the specs of a zone on its own. */
+const AWAY: BoardBox = {
+  left: -1000,
+  top: -1000,
+  width: 1,
+  height: 1,
+  unit: 1,
+};
+
+/**
+ * Returns the field's description with a deck of one zone, the stick, at
+ * least `least` across and down.
+ */
+function stickOnly(least = 112): PhaserBoard {
+  return { ...FIELD, deck: { drawnAt: "data-deck", zones: ["stick"], least } };
+}
+
+describe("inspectPhaserDeck", () => {
+  it.each<[string, BoardPage, PhaserBoard, BoardBox]>([
+    ["a deck beside the field", BESIDE, DECKED, FIELD_BOX],
+    [
+      "zones as long as the least, at the canvas's corners",
+      { ...BESIDE, deck: "stick 288 0 112 112, buttons 288 238 112 112" },
+      DECKED,
+      FIELD_BOX,
+    ],
+    [
+      "zones listed with room to spare between them",
+      { ...BESIDE, deck: " stick  280 25 120 150 ,, buttons 280 175 120 150 " },
+      DECKED,
+      FIELD_BOX,
+    ],
+    [
+      "a zone to the field's left, half a pixel onto it",
+      { ...BESIDE, deck: "stick 0 25 120.5 150" },
+      stickOnly(),
+      { ...FIELD_BOX, left: 220 },
+    ],
+    [
+      "a zone above the field, half a pixel onto it",
+      { ...BESIDE, deck: "stick 20 0 260 25.5" },
+      stickOnly(20),
+      FIELD_BOX,
+    ],
+    [
+      "a zone at each edge of the window",
+      { ...SPILLING, deck: "stick 20 20 440 400" },
+      stickOnly(),
+      AWAY,
+    ],
+    [
+      "a zone under a control the bar hides, no wider than nothing",
+      { ...BESIDE, control: { left: 390, top: 80, width: 0, height: 44 } },
+      DECKED,
+      FIELD_BOX,
+    ],
+    [
+      "a zone under a control the bar hides, no taller than nothing",
+      { ...BESIDE, control: { left: 390, top: 80, width: 44, height: 0 } },
+      DECKED,
+      FIELD_BOX,
+    ],
+  ])("finds nothing wrong with %s", (_, page, board, box) => {
+    lay(page);
+
+    expect(inspectPhaserDeck(board, box)).toEqual([]);
+  });
+
+  it.each<[string, BoardPage, PhaserBoard, BoardBox, string[]]>([
+    [
+      "a deck that says nothing of where it lies",
+      FITTING,
+      DECKED,
+      FIELD_BOX,
+      ["app-board doesn't say where its deck lies (data-deck)."],
+    ],
+    [
+      "a deck that shows none of its zones",
+      { ...BESIDE, deck: "" },
+      DECKED,
+      FIELD_BOX,
+      ["The deck shows no stick zone.", "The deck shows no buttons zone."],
+    ],
+    [
+      "a zone the board doesn't name",
+      { ...BESIDE, deck: "stick 280 25 120 150, fire 280 175 120 150" },
+      DECKED,
+      FIELD_BOX,
+      [
+        "The deck shows a zone its board doesn't name: fire.",
+        "The deck shows no buttons zone.",
+      ],
+    ],
+    [
+      'a zone written "stick 280 25 120"',
+      { ...BESIDE, deck: "stick 280 25 120" },
+      stickOnly(),
+      FIELD_BOX,
+      [
+        "The deck's zone \"stick 280 25 120\" doesn't say where it lies.",
+        "The deck shows no stick zone.",
+      ],
+    ],
+    [
+      'a zone written "stick 280 25 120 tall"',
+      { ...BESIDE, deck: "stick 280 25 120 tall" },
+      stickOnly(),
+      FIELD_BOX,
+      [
+        "The deck's zone \"stick 280 25 120 tall\" doesn't say where it lies.",
+        "The deck shows no stick zone.",
+      ],
+    ],
+    [
+      'a zone written "stick 280 25 Infinity 150"',
+      { ...BESIDE, deck: "stick 280 25 Infinity 150" },
+      stickOnly(),
+      FIELD_BOX,
+      [
+        "The deck's zone \"stick 280 25 Infinity 150\" doesn't say where it lies.",
+        "The deck shows no stick zone.",
+      ],
+    ],
+    [
+      "a zone a pixel off the canvas's left",
+      { ...BESIDE, deck: "stick -1 25 120 150" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs off the canvas."],
+    ],
+    [
+      "a zone a pixel off the canvas's top",
+      { ...BESIDE, deck: "stick 280 -1 120 150" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs off the canvas."],
+    ],
+    [
+      "a zone a pixel off the canvas's right",
+      { ...BESIDE, deck: "stick 281 25 120 150" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs off the canvas."],
+    ],
+    [
+      "a zone a pixel off the canvas's bottom",
+      { ...BESIDE, deck: "stick 280 201 120 150" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs off the canvas."],
+    ],
+    [
+      "a zone a pixel out of the window's left",
+      { ...SPILLING, deck: "stick 19 120 120 120" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs out of the window."],
+    ],
+    [
+      "a zone a pixel out of the window's top",
+      { ...SPILLING, deck: "stick 120 19 120 120" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs out of the window."],
+    ],
+    [
+      "a zone a pixel out of the window's right",
+      { ...SPILLING, deck: "stick 341 120 120 120" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs out of the window."],
+    ],
+    [
+      "a zone a pixel out of the window's bottom",
+      { ...SPILLING, deck: "stick 120 301 120 120" },
+      stickOnly(),
+      AWAY,
+      ["The deck's stick zone runs out of the window."],
+    ],
+    [
+      "a zone with a number too many",
+      { ...BESIDE, deck: "stick 280 25 120 150 7" },
+      stickOnly(),
+      FIELD_BOX,
+      [
+        "The deck's zone \"stick 280 25 120 150 7\" doesn't say where it lies.",
+        "The deck shows no stick zone.",
+      ],
+    ],
+    [
+      "a zone listed twice",
+      {
+        ...BESIDE,
+        deck: "stick 280 25 120 150, stick 279 25 120 150, buttons 280 175 120 150",
+      },
+      DECKED,
+      FIELD_BOX,
+      ["The deck lists its stick zone twice."],
+    ],
+    [
+      "zones a pixel onto each other",
+      { ...BESIDE, deck: "stick 280 25 120 151, buttons 280 175 120 150" },
+      DECKED,
+      FIELD_BOX,
+      ["The deck's stick zone lies over its buttons zone."],
+    ],
+    [
+      "a zone under a button and a link of the bar",
+      {
+        ...BESIDE,
+        control: { left: 390, top: 80, width: 44, height: 44 },
+        link: { left: 390, top: 140, width: 44, height: 44 },
+      },
+      DECKED,
+      FIELD_BOX,
+      [
+        "The deck's stick zone lies over the bar's Pause.",
+        "The deck's stick zone lies over the bar's Home.",
+      ],
+    ],
+    [
+      "a zone a pixel onto the field's right",
+      { ...BESIDE, deck: "stick 279 25 120 150, buttons 280 175 120 150" },
+      DECKED,
+      FIELD_BOX,
+      ["The deck's stick zone lies over the field."],
+    ],
+    [
+      "a zone a pixel onto the field's left",
+      { ...BESIDE, deck: "stick 0 25 121 150" },
+      stickOnly(),
+      { ...FIELD_BOX, left: 220 },
+      ["The deck's stick zone lies over the field."],
+    ],
+    [
+      "a zone a pixel onto the field's top",
+      { ...BESIDE, deck: "stick 20 0 260 26" },
+      stickOnly(20),
+      FIELD_BOX,
+      ["The deck's stick zone lies over the field."],
+    ],
+    [
+      "a zone a pixel onto the field's bottom",
+      { ...BESIDE, deck: "stick 20 324 260 26" },
+      stickOnly(20),
+      FIELD_BOX,
+      ["The deck's stick zone lies over the field."],
+    ],
+    [
+      "a zone under a control of the bar",
+      { ...BESIDE, control: { left: 390, top: 80, width: 44, height: 44 } },
+      DECKED,
+      FIELD_BOX,
+      ["The deck's stick zone lies over the bar's Pause."],
+    ],
+    [
+      "a zone a pixel too narrow for a thumb",
+      { ...BESIDE, deck: "stick 280 25 120 150, buttons 289 175 111 150" },
+      DECKED,
+      FIELD_BOX,
+      [
+        "The deck's buttons zone is 111 by 150 CSS px, less than 112 across or down.",
+      ],
+    ],
+    [
+      "a zone a pixel too short for a thumb",
+      { ...BESIDE, deck: "stick 280 25 120 111, buttons 280 175 120 150" },
+      DECKED,
+      FIELD_BOX,
+      [
+        "The deck's stick zone is 120 by 111 CSS px, less than 112 across or down.",
+      ],
+    ],
+  ])("reports %s", (_, page, board, box, problems) => {
+    lay(page);
+
+    expect(inspectPhaserDeck(board, box)).toEqual(problems);
+  });
+
+  it("names a control of the bar by its text where it has no label", () => {
+    lay({ ...BESIDE, control: { left: 390, top: 80, width: 44, height: 44 } });
+    const control = element("fz-game-bar button");
+    control.removeAttribute("aria-label");
+    control.textContent = " Menu ";
+
+    expect(inspectPhaserDeck(DECKED, FIELD_BOX)).toEqual([
+      "The deck's stick zone lies over the bar's Menu.",
+    ]);
+  });
+
+  it.each<[string, PhaserBoard]>([
+    ["a board that names no deck", FIELD],
+    ["a board whose element isn't there", { ...DECKED, element: "app-bar" }],
+  ])("leaves %s to the board's own inspection", (_, board) => {
+    lay(BESIDE);
+
+    expect(inspectPhaserDeck(board, FIELD_BOX)).toEqual([]);
+  });
+
+  it("leaves a board with no canvas to the board's own inspection", () => {
+    lay(BESIDE);
+    element("canvas").remove();
+
+    expect(inspectPhaserDeck(DECKED, FIELD_BOX)).toEqual([]);
   });
 });
