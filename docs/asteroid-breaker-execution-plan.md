@@ -1374,7 +1374,7 @@ As Brick Breaker's, four folders under `src/`, fenced by
 #### The rules
 
 - `tuning.ts` the numbers; `speed.ts` the three speeds; the clock from
-  `@fz/core/clock`.
+  `@fz/core/clock`, through `stepper.ts`, as in Brick Breaker.
 - `torus.ts`: the field's size in units, the wrap, the shortest way from
   one place to another across it, the distance, and the copies an object
   near an edge needs drawn (one to four), which the view reads.

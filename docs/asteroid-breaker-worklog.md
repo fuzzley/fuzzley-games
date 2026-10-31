@@ -519,3 +519,75 @@ and build across every workspace.
      and called the Sass the package's one entry, of eight. Fixed: the
      probe ran again with `@fz/style/themes`, and the Sass is the
      package's own entry, as the first choice above now says.
+
+## A1: done
+
+2026-10-31. `yarn verify` passed on A1.1's commit, `f0069a09`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's among
+them. The site's build copied the five games `games.json` lists, and not
+Asteroid Breaker.
+
+## A2.1: the step and the speeds
+
+2026-10-31.
+
+- **Built.** `src/rules/tuning.ts`, the file the game's numbers are kept
+  in, with the step's for now: 1/120 s, and 12 at most a frame.
+  `src/rules/stepper.ts`, Brick Breaker's: the step in milliseconds,
+  `stepsIn()` for a timer kept in steps, and `createFieldClock()` on
+  `@fz/core/clock`. `src/rules/speed.ts`: `SPEEDS`, Relaxed, Normal and
+  Fast, the type `Speed` taken from it, and for each its name, what it is
+  like for the settings, and three factors against Normal's: `motion`, on
+  how fast the rocks and the comets move; `cometRate`, on how often a
+  comet comes; and `drops`, on the chance a broken rock lets a pickup go;
+  with `isSpeed()`, for what storage reads back.
+- **Choices.**
+  - The plan names no factor for how fast the rocks move. Relaxed's 0.8
+    and Fast's 1.2 are Brick Breaker's ball speeds against Normal's, 20, 25
+    and 30 units a second, as first guesses; Q3 and the autopilot settle
+    them. Relaxed sends comets half as often and lets a quarter more
+    pickups go, as decided; Fast does as Normal does.
+  - Each factor is named for what it multiplies, beside the names the plan
+    gives the waves' and the rock kinds' own numbers: a rock kind's
+    `speed`, a wave's `pace`, its `comets.every`, the time between two,
+    and its `drops`, the chance this one scales.
+  - `tuning.ts` holds only the numbers code reads, each later step adding
+    its own with the code that reads it, rather than the whole table of
+    "The feel, in numbers" at once with nothing to read most of it.
+  - The clock goes through a `stepper.ts` of the game's, as Brick
+    Breaker's does, so the field, the scene and the specs share one step;
+    the plan's "The rules" now names it.
+  - `isSpeed()` compares each speed with the value rather than casting the
+    value to `Speed` for `includes()`.
+  - No Custom speed: the plan leaves it out ("Not in this plan").
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (19 tests,
+  the rules fully covered), `yarn prettier:check`,
+  `node .agents/check-skill-references.mjs`. Twelve mutants, each caught:
+  `isSpeed()` taking any string; Relaxed's and Fast's `motion` each at
+  Normal's; Relaxed's `cometRate` and `drops` at Normal's; Fast's
+  `cometRate` and `drops` at Relaxed's; Normal's `drops` at 1.1; Fast
+  left out of `SPEEDS`, now a compile error as well as a failing spec; the
+  step at 1/60 s; 10 steps a frame; and the step's milliseconds off by
+  one.
+- **Review.**
+  1. The factors were `speed`, `comets` and `pickups`, which clash with
+     the setting's own name, a rock kind's `speed` and the wave's
+     `comets` and `pickups`, which the plan gives other meanings: a
+     comet's `every` is a time between two, which a count invites
+     multiplying, doubling Relaxed's comets rather than halving them.
+     `Speed`'s doc left out what else a speed sets. Fixed: `motion`,
+     `cometRate` (its doc says the time between two is divided by it) and
+     `drops`, and the doc widened.
+  2. Fast's "Quicker rocks and comets from the first wave." read as
+     comets from the first wave, which come from wave 13, and Relaxed's
+     left out its slower comets. Fixed: "Quicker rocks and comets.", and
+     "Slower rocks, fewer and slower comets, and more pickups."
+  3. `Speed` and `SPEEDS` were two lists to keep in step, why Fast left
+     out of the list first survived. Fixed: the type is taken from the
+     list, `as const`, as Sudoku's are, so a speed left out of it doesn't
+     compile; the spec of the list's order stays, for the menu's.
+  4. The log counted eleven mutants and listed ten, and Brick Breaker's
+     ball read oddly. Fixed, the mutants run again on the new names, two
+     more among them.
+  5. Normal's spec named its three factors, so a fourth would slip past
+     it. Fixed: it takes every field but the name and the text.
