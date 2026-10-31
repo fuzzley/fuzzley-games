@@ -7,7 +7,7 @@ import {
 } from "../testing/autopilot";
 import type { Level } from "./level";
 import { LEVELS, type LevelData, type LevelEntry, parseLevel } from "./levels";
-import { SPEEDS } from "./speed";
+import { PRESET_SPEEDS } from "./speed";
 import { stepsIn } from "./stepper";
 import { COLUMNS, FIELD_HEIGHT, TALLEST_FIELD } from "./tuning";
 
@@ -137,7 +137,7 @@ describe("the autopilot", () => {
 
 describe("every level", () => {
   const plays = LEVELS.flatMap((entry) =>
-    SPEEDS.map((speed) => [entry.data.name, speed, entry] as const),
+    PRESET_SPEEDS.map((speed) => [entry.data.name, speed, entry] as const),
   );
 
   it.each(plays)(

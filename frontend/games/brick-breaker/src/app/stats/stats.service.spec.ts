@@ -30,7 +30,7 @@ describe("StatsService", () => {
     const stats = TestBed.inject(StatsService);
 
     expect(stats.stats()).toEqual({
-      speeds: { relaxed: NONE, normal: NONE, fast: NONE },
+      speeds: { relaxed: NONE, normal: NONE, fast: NONE, custom: NONE },
       levels: {},
     });
   });
@@ -111,6 +111,7 @@ describe("StatsService", () => {
         relaxed: { runs: 2, best: 900, furthest: 3 },
         normal: NONE,
         fast: NONE,
+        custom: NONE,
       },
       levels: { blasts: { normal: 4100 } },
     });

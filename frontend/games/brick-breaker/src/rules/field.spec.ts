@@ -10,6 +10,7 @@ import {
 } from "../testing/field_picture";
 import {
   type Field,
+  keySpeedOf,
   launch,
   reshapeField,
   serve,
@@ -18,11 +19,14 @@ import {
 } from "./field";
 import { catchCapsule } from "./capsules";
 import { cellIndex, columnOf, rowOf } from "./grid";
-import { ballSpeed } from "./speed";
+import { CUSTOM_PERCENT, SPEED_INFO, ballSpeed, customFactor } from "./speed";
+import { STEP_MS } from "./stepper";
 import {
   BALL_RADIUS,
   FIELD_HEIGHT,
   FLATTEST,
+  KEY_RAMP_MS,
+  KEY_SPEED,
   LULL_BOUNCES,
   LULL_TURN,
   MAX_CONTACTS,
@@ -215,6 +219,72 @@ describe("the serve", () => {
     expect(lastMove(field)).toBeCloseTo(
       ballSpeed("normal", 1, 0) * 1.5 * STEP_S,
     );
+  });
+
+  it("moves a Custom ball on as far as the player's speed says", () => {
+    const field = fieldFrom(FAR_BRICK, { speed: "custom" });
+    field.customPercent = 150;
+    launch(field);
+
+    stepField(field);
+
+    expect(lastMove(field)).toBeCloseTo(
+      ballSpeed("normal", 1, 0) * 1.5 * STEP_S,
+    );
+  });
+
+  it("leaves the ball at any other speed as fast as its speed says", () => {
+    const field = fieldFrom(FAR_BRICK, { speed: "fast" });
+    field.customPercent = 150;
+    launch(field);
+
+    stepField(field);
+
+    expect(lastMove(field)).toBeCloseTo(ballSpeed("fast", 1, 0) * STEP_S);
+  });
+});
+
+describe("keySpeedOf", () => {
+  it.each([
+    ["normal", 200, KEY_SPEED],
+    ["custom", 50, KEY_SPEED],
+    ["custom", 120, KEY_SPEED],
+    [
+      "custom",
+      200,
+      (KEY_SPEED * 2 * SPEED_INFO.custom.top) / SPEED_INFO.fast.top,
+    ],
+  ] as const)(
+    "has held keys move the paddle at %s with Custom at %i%% at %f",
+    (speed, customPercent, keySpeed) => {
+      const field = fieldFrom(FAR_BRICK, { speed });
+      field.customPercent = customPercent;
+
+      expect(keySpeedOf(field)).toBeCloseTo(keySpeed);
+    },
+  );
+
+  it.each([CUSTOM_PERCENT.least, 100, CUSTOM_PERCENT.most])(
+    "has held keys move the paddle faster than a Custom ball at %i%% crosses the field at its top",
+    (customPercent) => {
+      const field = fieldFrom(FAR_BRICK, { speed: "custom" });
+      field.customPercent = customPercent;
+      const top = SPEED_INFO.custom.top * customFactor("custom", customPercent);
+
+      expect(keySpeedOf(field)).toBeGreaterThan(
+        top * Math.cos((FLATTEST * Math.PI) / 180),
+      );
+    },
+  );
+
+  it("moves the paddle by held keys at that speed", () => {
+    const field = fieldFrom(FAR_BRICK, { speed: "custom" });
+    field.customPercent = 200;
+    steerField(field, { ...NO_STEER, push: 1 });
+
+    stepTimes(field, Math.ceil(KEY_RAMP_MS / STEP_MS));
+
+    expect(field.paddle.speed).toBeCloseTo(keySpeedOf(field));
   });
 });
 

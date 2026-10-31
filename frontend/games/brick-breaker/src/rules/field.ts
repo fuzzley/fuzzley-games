@@ -64,7 +64,13 @@ import {
   steerPaddle,
 } from "./paddle";
 import { endStreak } from "./scoring";
-import { type Speed, ballSpeed } from "./speed";
+import {
+  PRESET_SPEEDS,
+  SPEED_INFO,
+  type Speed,
+  ballSpeed,
+  customFactor,
+} from "./speed";
 import { stepsIn } from "./stepper";
 import { MISSED, type Move, sweepCorner, sweepFace } from "./sweep";
 import {
@@ -73,6 +79,7 @@ import {
   COLUMNS,
   FIELD_HEIGHT,
   FIELD_WIDTH,
+  KEY_SPEED,
   LULL_BOUNCES,
   LULL_TURN,
   MAX_BALLS,
@@ -142,6 +149,11 @@ export interface Field {
   paceScale: number;
   /** A factor on the balls' speed on top of every other: 1 unless set to another. */
   ballSpeedScale: number;
+  /**
+   * A Custom run's ball speed, as a percent of Normal's: 100 unless the
+   * player sets another; a run at any other speed ignores it.
+   */
+  customPercent: number;
   /** The kind every ball in play is. */
   ballKind: BallKindId;
   /** What the paddle does beyond turning the balls, or null. */
@@ -279,6 +291,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     climbRate: 1,
     paceScale: 1,
     ballSpeedScale: 1,
+    customPercent: 100,
     ballKind: "normal",
     mode: null,
     net: false,
@@ -308,7 +321,7 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 export function stepField(field: Field): void {
   if (field.state !== "cleared") {
     field.steps++;
-    movePaddle(field.paddle);
+    movePaddle(field.paddle, keySpeedOf(field));
     stepBricks(field);
     stepCapsules(field);
     stepEffects(field);
@@ -340,7 +353,28 @@ export function ballSpeedOf(field: Readonly<Field>): number {
     field.climbed,
     field.paceScale,
   );
-  return speed * ballKind(field.ballKind).speed * field.ballSpeedScale;
+  return (
+    speed *
+    ballKind(field.ballKind).speed *
+    customFactor(field.setup.speed, field.customPercent) *
+    field.ballSpeedScale
+  );
+}
+
+/** The fastest a preset speed's ball climbs to, which held keys are tuned to outrun. */
+const PRESET_TOP = Math.max(
+  ...PRESET_SPEEDS.map((speed) => SPEED_INFO[speed].top),
+);
+
+/**
+ * Returns how fast held keys move the field's paddle, in units a second:
+ * {@link KEY_SPEED}, and faster with a Custom ball that climbs past every
+ * preset speed's top, so the keys keep up with it.
+ */
+export function keySpeedOf(field: Readonly<Field>): number {
+  const { speed } = field.setup;
+  const top = SPEED_INFO[speed].top * customFactor(speed, field.customPercent);
+  return KEY_SPEED * Math.max(1, top / PRESET_TOP);
 }
 
 /** Moves each ball on by a step, until the level is cleared. */

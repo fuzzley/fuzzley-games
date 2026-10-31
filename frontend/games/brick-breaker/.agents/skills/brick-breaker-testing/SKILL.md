@@ -21,7 +21,7 @@ Run these from `frontend/games/brick-breaker/`, or as
 - **Run Tests**: `yarn test` (the whole suite once, with coverage) or
   `yarn test:watch`. `yarn vitest run <path>` runs one spec without
   coverage. The whole suite takes minutes, most of them the autopilot
-  playing every level at every speed.
+  playing every level at every preset speed.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
   to 100% of statements, functions and lines and 95% of branches.
   `yarn test`, which CI runs, fails below either. The scene and the shell
@@ -68,9 +68,10 @@ Run these from `frontend/games/brick-breaker/`, or as
   levels to using every brick kind and letting every capsule first fall at
   the level its `from` names.
 - `src/rules/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
-  level at every speed (`playLevel()`, from the level's number as the
-  seed), and holds each to being cleared within eight minutes of game time,
-  its last three bricks within one; and plays them again on the tallest
+  level at every preset speed, all but Custom (`PRESET_SPEEDS`,
+  `playLevel()`, from the level's number as the seed), and holds each to
+  being cleared within eight minutes of game time, its last three bricks
+  within one; and plays them again on the tallest
   field (`TALLEST_FIELD`), held only to being cleared within eight minutes
   stretched as far as the paddle lies farther from the bricks
   (`limitsOf()`), since luck decides more of a taller field's endgames. A

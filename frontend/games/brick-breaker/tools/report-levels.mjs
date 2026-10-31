@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Prints how the autopilot plays every level at every speed.
+ * Prints how the autopilot plays every level at every preset speed.
  *
  *   yarn report:levels [--seeds <n>] [--height <n>]
  *
@@ -74,7 +74,7 @@ const SEED_STRIDE = 1000;
  *
  * @typedef {object} Rules
  * @property {readonly LevelEntry[]} levels Every level, in the order played.
- * @property {readonly string[]} speeds Every speed, slowest first.
+ * @property {readonly string[]} speeds The preset speeds, slowest first: all but Custom.
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} leastHeight The field's height, unless a tall screen makes it taller.
  * @property {number} tallest The tallest a field grows.
@@ -88,7 +88,7 @@ const SEED_STRIDE = 1000;
  *
  * @typedef {object} Game
  * @property {readonly LevelEntry[]} levels Every level, in the order played.
- * @property {readonly string[]} speeds Every speed, slowest first.
+ * @property {readonly string[]} speeds The preset speeds, slowest first: all but Custom.
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} height How tall the field is played.
  * @property {boolean} tallerField Whether the field is taller than the least, which the spec holds to no endgame's limit.
@@ -190,7 +190,7 @@ async function loadGame(heightAsked) {
   ]);
   const rules = /** @type {Rules} */ ({
     levels: levels["LEVELS"],
-    speeds: speed["SPEEDS"],
+    speeds: speed["PRESET_SPEEDS"],
     stepSeconds: tuning["STEP_S"],
     leastHeight: tuning["FIELD_HEIGHT"],
     tallest: tuning["TALLEST_FIELD"],

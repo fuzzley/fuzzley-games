@@ -10,9 +10,9 @@ through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with
 It holds thirty levels in three sets, with tough, steel, blast, gift, ghost
 and regrowing bricks, eleven capsules and three kinds of ball, all played by
 rules that run without a framework, physics included. It plays at three
-speeds, by mouse, keyboard or touch, pauses whenever the field loses the
-player, wears whichever palette the player chose on the site, and keeps a
-run under way across a reload, paused. Phaser loads after the page has
+speeds or one the player sets, by mouse, keyboard or touch, pauses whenever
+the field loses the player, wears whichever palette the player chose on the
+site, and keeps a run under way across a reload, paused. Phaser loads after the page has
 painted, behind a drawing of the empty field.
 
 ## Development

@@ -67,6 +67,15 @@ describe("the paddle by keys", () => {
     expect(paddle.speed).toBe(KEY_SPEED);
   });
 
+  it("ramps up to the speed it is given instead", () => {
+    const paddle = createPaddle();
+    steerPaddle(paddle, { to: null, by: 0, push: 1 });
+
+    for (let i = 0; i < RAMP_STEPS; i++) movePaddle(paddle, 2 * KEY_SPEED);
+
+    expect(paddle.speed).toBe(2 * KEY_SPEED);
+  });
+
   it("moves by its speed each step", () => {
     const paddle = createPaddle();
     drive(paddle, { push: -1 }, RAMP_STEPS);

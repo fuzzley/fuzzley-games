@@ -47,9 +47,11 @@ doesn't see, so Phaser stays out of the first download.
   `tuning.ts` holds the numbers that set its feel, in field units (the
   field is 26 wide and 30 tall, or up to 45 on a tall screen,
   `TALLEST_FIELD`, the room it gains lying between the bricks and the
-  paddle); `speed.ts` the three speeds, each a base and a top the ball
-  climbs to, and `ballSpeed()`; and `stepper.ts` the clock that turns a
-  frame's time into fixed steps of 1/120 s, twelve at most a frame.
+  paddle); `speed.ts` the three preset speeds (`PRESET_SPEEDS`), each a
+  base and a top the ball climbs to, Custom, at the player's percent of
+  Normal's, 50% to 200% (`CUSTOM_PERCENT`, `customFactor()`), and
+  `ballSpeed()`; and `stepper.ts` the clock that turns a frame's time into
+  fixed steps of 1/120 s, twelve at most a frame.
   `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
@@ -66,12 +68,14 @@ doesn't see, so Phaser stays out of the first download.
   served, the paddle as far above the floor (`paddleTopOf()`),
   `steerField()` takes a frame's steering, `stepField()` moves it on a
   step, `launch()` serves the ball waiting on the paddle and `serve()` puts
-  one there after the last is lost. A ball's travel gathers what it meets
-  first, the walls, the paddle and the bricks' exposed faces and corners,
-  all at one moment, and turns once. `paddle.ts` steers the paddle
-  (`Steer`: a pointer's place, a finger's drag, held keys) and `balls.ts`
-  turns a ball: off the paddle by where it landed, as a mirror, by a lull's
-  few degrees, and back to the flattest it travels. `bricks.ts` holds
+  one there after the last is lost; held keys move its paddle faster with a
+  Custom ball that climbs past every preset speed's top (`keySpeedOf()`).
+  A ball's travel gathers what it meets first, the walls, the paddle and
+  the bricks' exposed faces and corners, all at one moment, and turns once.
+  `paddle.ts` steers the paddle (`Steer`: a pointer's place, a finger's
+  drag, held keys) and `balls.ts` turns a ball: off the paddle by where it
+  landed, as a mirror, by a lull's few degrees, and back to the flattest it
+  travels. `bricks.ts` holds
   `Brick`, `hitBrick()`, which a ball or a blast calls, and `TRAIT_RULES`,
   what each trait of `catalog/bricks.ts` does as a brick is hit, breaks, and
   at each step, typed so that a trait without its rule fails to compile.
@@ -301,11 +305,15 @@ doesn't see, so Phaser stays out of the first download.
     drawn, its picture, which the app hands it from the board.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
     sound and the palette) and `SettingsService`, which keeps what the player
-    chose, the speed of the last run started among it. In a development build
-    (`DEBUG_MENU`, from `import.meta.env.DEV`, as a game's own dev server runs
-    it) the drawer also offers a slider for the ball's speed, ×0.5 to ×2 the
-    speed's own, which `GameService.setBallSpeedScale()` gives the field in
-    play and every one after it (`Field.ballSpeedScale`), and nothing keeps.
+    chose, the speed of the last run started among it. While the run is at
+    Custom, the drawer offers a slider for its ball's speed, 50% to 200% of
+    Normal's, which `GameService.setCustomPercent()` keeps and gives the
+    field in play at once (`Field.customPercent`); a field at any other
+    speed ignores it. In a development build (`DEBUG_MENU`, from
+    `import.meta.env.DEV`, as a game's own dev server runs it) the drawer
+    also offers a slider for the ball's speed, ×0.5 to ×2 the speed's own,
+    which `GameService.setBallSpeedScale()` gives the field in play and
+    every one after it (`Field.ballSpeedScale`), and nothing keeps.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `stats.ts` reads and moves on, each speed's runs, best score and
     furthest level, and each level's best points at each speed; and
@@ -394,8 +402,8 @@ Each entry is in `localStorage`, versioned
 (`LocalStorageService.writeVersioned()`), and its reader drops what it
 can't trust rather than failing:
 
-- `brick-breaker-settings`: the speed, how a finger steers the paddle, and
-  whether the field plays its sounds.
+- `brick-breaker-settings`: the speed, the ball's speed at Custom, how a
+  finger steers the paddle, and whether the field plays its sounds.
 - `brick-breaker-stats`: for each speed, the runs, the best run's score and
   the furthest level reached; and for each level's id, its best points at
   each speed it was cleared at. Ids no level has any more are dropped.
@@ -443,9 +451,10 @@ workspace's with the others'.
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` from their JSDoc).
 - **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
-  the autopilot plays every level at every speed, from the level's number
-  as the seed, as the autopilot's spec does, through `playLevel()`, and it
-  prints the game time each took, the time spent on the last three bricks
+  the autopilot plays every level at every preset speed, all but Custom,
+  from the level's number as the seed, as the autopilot's spec
+  does, through `playLevel()`, and it prints the game time each took, the
+  time spent on the last three bricks
   the level needed, the paddle's bounces and the lives lost; it fails, as
   the spec does, if a play didn't clear its level (`-`) or took longer over
   its last bricks than the spec allows (`!`)). It is how the difficulty ramp
@@ -512,11 +521,12 @@ is in `src/testing/`:
   seeded distance off the middle or toward a brick the level needs that it
   can see, catches the good capsules it has time for, and fires, serves and
   launches at once. `src/rules/autopilot.spec.ts` holds every level, at
-  every speed, to being cleared by it within eight minutes of game time, its
-  last three bricks within one, and on the tallest field within those eight
-  minutes stretched as far as the paddle lies farther from the bricks
-  (`limitsOf()`), and the catalog spec holds the levels to using every brick
-  kind and letting every capsule first fall at the level its `from` names.
+  every preset speed, to being cleared by it within eight minutes of
+  game time, its last three bricks within one, and on the tallest field
+  within those eight minutes stretched as far as the paddle lies farther
+  from the bricks (`limitsOf()`), and the catalog spec holds the levels to
+  using every brick kind and letting every capsule first fall at the level
+  its `from` names.
 - `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
   specs that color the field.
 - `play.ts` holds the small levels the shell's specs play, each set up to

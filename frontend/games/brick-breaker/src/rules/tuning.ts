@@ -78,7 +78,11 @@ export const LULL_BOUNCES = 12;
 /** The least and most a lull's turn is, in degrees. */
 export const LULL_TURN = { least: 3, most: 7 } as const;
 
-/** The fastest held keys move the paddle: faster across than any speed's top. */
+/**
+ * How fast held keys move the paddle: faster across than any preset speed's
+ * top. They go faster only with a Custom ball that climbs past every preset
+ * speed's top (`keySpeedOf()`).
+ */
 export const KEY_SPEED = 50;
 
 /** How long held keys take to bring the paddle to its fastest. */

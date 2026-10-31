@@ -25,7 +25,7 @@ function ended(speed: Speed, score: number, level: number): EndedRun {
 describe("statsOf", () => {
   it("reads nothing stored as no runs and no bests", () => {
     expect(statsOf(null, LEVELS)).toEqual({
-      speeds: { relaxed: NONE, normal: NONE, fast: NONE },
+      speeds: { relaxed: NONE, normal: NONE, fast: NONE, custom: NONE },
       levels: {},
     });
   });
@@ -36,9 +36,10 @@ describe("statsOf", () => {
         relaxed: { runs: 2, best: 900, furthest: 3 },
         normal: { runs: -1, best: 5, furthest: 1 },
         fast: "lots",
+        custom: { runs: 1, best: 300, furthest: 2 },
       },
       levels: {
-        stripes: { normal: 4100, fast: 2.5 },
+        stripes: { normal: 4100, fast: 2.5, custom: 700 },
         gifts: { relaxed: "high" },
         gone: { normal: 100 },
       },
@@ -49,8 +50,9 @@ describe("statsOf", () => {
         relaxed: { runs: 2, best: 900, furthest: 3 },
         normal: NONE,
         fast: NONE,
+        custom: { runs: 1, best: 300, furthest: 2 },
       },
-      levels: { stripes: { normal: 4100 } },
+      levels: { stripes: { normal: 4100, custom: 700 } },
     });
   });
 });
@@ -73,6 +75,7 @@ describe("withRunStarted", () => {
       relaxed: NONE,
       normal: NONE,
       fast: { runs: 1, best: 0, furthest: 0 },
+      custom: NONE,
     });
   });
 });

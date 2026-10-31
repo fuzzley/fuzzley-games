@@ -86,6 +86,83 @@ describe("SettingsComponent", () => {
     expect(game.runs()).toBe(0);
   });
 
+  describe("Custom's ball speed", () => {
+    it("is not offered at another speed", async () => {
+      await renderSettings();
+
+      expect(
+        screen.queryByRole("slider", { name: "Custom ball speed" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("is offered at Normal's once a run starts at Custom", async () => {
+      const { user } = await renderSettings();
+
+      await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+
+      expect(
+        screen.getByRole("slider", { name: "Custom ball speed" }),
+      ).toHaveValue("100");
+    });
+
+    it("is at the percent the settings keep", async () => {
+      localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({ version: 1, speed: "custom", customPercent: 150 }),
+      );
+
+      await renderSettings();
+
+      expect(
+        screen.getByRole("slider", { name: "Custom ball speed" }),
+      ).toHaveValue("150");
+    });
+
+    it("is set as the slider says, and kept", async () => {
+      const { game } = await renderSettings();
+      await game.changeSpeed("custom");
+
+      fireEvent.input(
+        await screen.findByRole("slider", { name: "Custom ball speed" }),
+        { target: { value: "150" } },
+      );
+
+      expect(TestBed.inject(SettingsService).settings().customPercent).toBe(
+        150,
+      );
+    });
+
+    it("says how fast it is, against Normal", async () => {
+      const { game } = await renderSettings();
+      await game.changeSpeed("custom");
+
+      game.setCustomPercent(150);
+
+      expect(
+        await screen.findByRole("slider", { name: "Custom ball speed" }),
+      ).toHaveAttribute("aria-valuetext", "150% of Normal");
+    });
+
+    it("shows how fast it is, against Normal", async () => {
+      const { game } = await renderSettings();
+      await game.changeSpeed("custom");
+
+      game.setCustomPercent(150);
+
+      expect(await screen.findByText("150% of Normal.")).toBeVisible();
+    });
+
+    it("is described without its value, which it reads out already", async () => {
+      const { game } = await renderSettings();
+
+      await game.changeSpeed("custom");
+
+      expect(
+        await screen.findByRole("slider", { name: "Custom ball speed" }),
+      ).toHaveAccessibleDescription("The ball in play takes it at once.");
+    });
+  });
+
   it("steers by dragging by default", async () => {
     await renderSettings();
 
@@ -190,6 +267,21 @@ describe("SettingsComponent", () => {
         await screen.findByRole("slider", {
           description:
             "×1.50: at Fast, the ball serves at 45 and climbs to 67.5 units a second, before a level's pace and what a capsule does to it.",
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("says what the scale comes to at Custom, at the player's speed", async () => {
+      const { game } = await renderSettings();
+      game.setBallSpeedScale(1.5);
+      await game.changeSpeed("custom");
+
+      game.setCustomPercent(200);
+
+      expect(
+        await screen.findByRole("slider", {
+          description:
+            "×1.50: at Custom, the ball serves at 75 and climbs to 112.5 units a second, before a level's pace and what a capsule does to it.",
         }),
       ).toBeInTheDocument();
     });
