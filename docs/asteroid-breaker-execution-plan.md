@@ -257,8 +257,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   a sound of the sprite while held is true, and stops it when it is let go,
   when `follow(false)` turns the sound off, or when the scene shuts down;
   a second `hold()` of the same sound while it plays changes nothing.
-  Specced on `runScene()` with the served WAV, as `play()` is. Brick Breaker
-  doesn't use it. One commit.
+  Specced on `runBareScene()`, the sprite put in the audio cache, as
+  `play()` is, since the headless game has no audio. Brick Breaker doesn't
+  use it. One commit.
 
 #### L3: a deck in the layout check (small)
 

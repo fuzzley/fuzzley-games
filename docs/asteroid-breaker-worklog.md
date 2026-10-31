@@ -192,3 +192,53 @@ it records. Newest last.
      columns. Fixed: "points grouped in thousands" everywhere, re-wrapped.
   3. Brick Breaker's `describe.ts` paragraph, rewritten here, never named
      `formatCustomPercent()`. Fixed: it does.
+
+## L1: done
+
+2026-10-31. `yarn verify` passed on L1.4's commit: lint, typecheck, test
+and build across every workspace.
+
+## L2.1: a sound held
+
+2026-10-31.
+
+- **Built.** `SpritePlayer.hold(name, held)` in `@fz/phaser/sound`: held,
+  a sound of the sprite starts looping, once the sprite has loaded and
+  while the player wants sound, and plays on, unchanged, while it is held
+  again; let go, it is destroyed, which stops it and has the game's sound
+  manager drop it. `follow(false)` and the scene's end (`whenSceneEnds()`)
+  let go of every sound held. Specced: the loop asked for, a sound held
+  again played on as it was, one sound per name however often held, one
+  let go of two, held again, a sound let go that wasn't held, sound turned
+  off, and on again while held, sound never wanted or not yet asked for,
+  the sprite not yet loaded, and the scene ended; each hook fails its spec
+  when taken out.
+- **Choices.** A scene calls `hold()` every frame with whether its key is
+  down, so a sound turned off and on again, or a sprite that loads late,
+  starts on the next frame without the player keeping state of its own.
+  The specs read the game's sound manager for the sounds not yet let go
+  (`getAll()`, `pendingRemove`), as the headless game plays no audio;
+  the loop itself is the one call watched, on `NoAudioSound`'s prototype,
+  as `play()`'s specs watch theirs. The plan said the specs would load
+  the served WAV; the headless game has no audio to load it into, so they
+  put the sprite in the cache as `play()`'s do, and the plan says so now.
+- **Checks.** `@fz/phaser`: lint, typecheck, test (303 tests, floors
+  held). `yarn prettier:check`, `node .agents/check-skill-references.mjs`.
+  Docs: `@fz/phaser`'s `AGENTS.md` and the `phaser-core` skill.
+- **Review.**
+  1. Nothing checked that a sound held again plays on as it was: a
+     `hold()` that restarted the loop each frame, a buzz under Web Audio,
+     passed every spec (the reviewer proved it on a copy). Fixed: a spec
+     watches that the second hold plays nothing.
+  2. Nothing checked sound turned off and on while a key is held, the
+     case the per-frame call is for: without `clear()`, the sounds
+     destroyed stayed in the map and the hum never came back. Fixed: a
+     spec, which fails on that copy.
+  3. `held` was both the map and the parameter, beside `holding`. Fixed:
+     `heldSounds`, `sound` and `looping`.
+  4. The alias of `addAudioSprite()`'s return type was Phaser's
+     `Sound.BaseSound` in other words. Fixed: the map holds that.
+  5. Nits. Fixed: the loop's config is one `LOOP`, made once; the skill's
+     line and a spec's doc re-wrapped; the scene-end spec stops the scene
+     by its own key, not the harness's (through the game's scene manager,
+     as the scene's own plugin only queues the stop).
