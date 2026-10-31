@@ -15,6 +15,7 @@ import { CAPSULES, CAPSULE_IDS, type CapsuleId } from "./catalog/capsules";
 import { type Field, launch, steerField } from "./field";
 import { cellIndex, rowMiddle } from "./grid";
 import { paddleTopOf } from "./paddle";
+import { ballSpeed } from "./speed";
 import { stepsIn } from "./stepper";
 import { FALLING_POOL, catchCapsule } from "./capsules";
 import {
@@ -491,14 +492,20 @@ describe("Extra life", () => {
 });
 
 describe("Catch", () => {
-  /** The step in which the ball lands on the paddle, from 1.14 above it. */
-  const LANDED = 9;
+  /** How far down the field the ball is thrown from, 1.14 above the paddle. */
+  const THROWN_FROM = 26;
+
+  /** The step in which the ball lands on the paddle, at Normal's serve. */
+  const LANDED = Math.ceil(
+    (PADDLE_TOP - BALL_RADIUS - THROWN_FROM) /
+      (ballSpeed("normal", 1, 0) * STEP_S),
+  );
 
   /** Returns a field catching, its ball about to land 1 right of the paddle's middle. */
   function catching(): Field {
     const field = fieldOf("");
     catchCapsule(field, "catch", 0, 0);
-    throwBall(field, 14, 26, 180);
+    throwBall(field, 14, THROWN_FROM, 180);
     return field;
   }
 

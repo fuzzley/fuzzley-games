@@ -222,10 +222,18 @@ describe("the walls", () => {
   });
 
   it("send back the way it came a ball that meets two at once at a right angle", () => {
-    // Heading 0.6 left for each 0.8 up, it reaches both walls at once.
+    // Heading 0.6 left for each 0.8 up, it reaches both walls at once, two
+    // and a half steps on: never at a step's end, where rounding could have it
+    // meet one wall in that step and the other in the next.
     const field = fieldFrom(FAR_BRICK);
     const heading = (-Math.atan2(0.6, 0.8) * 180) / Math.PI;
-    const ball = throwBall(field, 0.96, 1.16, heading);
+    const reach = 2.5 * ballSpeed("normal", 1, 0) * STEP_S;
+    const ball = throwBall(
+      field,
+      BALL_RADIUS + 0.6 * reach,
+      BALL_RADIUS + 0.8 * reach,
+      heading,
+    );
 
     stepTimes(field, 10);
 

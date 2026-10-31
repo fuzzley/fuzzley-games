@@ -78,8 +78,8 @@ export const LULL_BOUNCES = 12;
 /** The least and most a lull's turn is, in degrees. */
 export const LULL_TURN = { least: 3, most: 7 } as const;
 
-/** The fastest held keys move the paddle. */
-export const KEY_SPEED = 32;
+/** The fastest held keys move the paddle: faster across than any speed's top. */
+export const KEY_SPEED = 40;
 
 /** How long held keys take to bring the paddle to its fastest. */
 export const KEY_RAMP_MS = 120;
