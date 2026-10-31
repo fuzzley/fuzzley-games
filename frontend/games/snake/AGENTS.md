@@ -245,8 +245,8 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/chrome`: a run kept as the game keeps one, twelve
-  apples in at Normal, taken up paused, at 1280 × 720 and 2× on Soft
-  pastel, written to `public/docs/screenshots/snake/` as the site's
+  apples in at Normal, taken up paused, at 1280 × 720 and 2× on Casino
+  night, written to `public/docs/screenshots/snake/` as the site's
   `preview.webp` (2560 × 1440) and `thumb.webp` (576 × 324, the board) by
   `@fz/dev/screenshots`; `--url` names another server, and
   `--chrome <path>` or `CHROME_PATH` picks the browser).
