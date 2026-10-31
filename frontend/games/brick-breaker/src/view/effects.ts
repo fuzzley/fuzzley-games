@@ -1,3 +1,4 @@
+import { FrameSounds } from "@fz/core/frame_sounds";
 import { canBreak } from "../rules/bricks";
 import type { FieldEvent, FieldEventKind, FieldView } from "./frame";
 
@@ -86,37 +87,9 @@ export function detuneOf(event: Readonly<FieldEvent>): number {
   return Math.min((event.streak - 1) * STREAK_STEP_CENTS, STREAK_MOST_CENTS);
 }
 
-/** What `FrameSounds` holds for a sound not heard: below any rise or fall. */
-const UNHEARD = Number.NEGATIVE_INFINITY;
-
-/**
- * Gathers the sounds a frame's events call for, so each plays once, at the
- * most it rose: a blast's dozen bricks sound as one, and a streak at its
- * highest.
- */
-export class FrameSounds {
-  /** The most each of `SOUNDS` rose since they were last played, by its place there, or `UNHEARD`. */
-  private readonly heard: number[] = SOUNDS.map(() => UNHEARD);
-
-  /** Notes a sound an event calls for, risen by some cents. */
-  hear(name: SoundName, detune: number): void {
-    const at = SOUNDS.indexOf(name);
-    if (detune > (this.heard[at] ?? UNHEARD)) this.heard[at] = detune;
-  }
-
-  /**
-   * Plays each sound heard since the last time, once, at the most it rose,
-   * in the sprite's order, and forgets them.
-   */
-  playEach(play: (name: SoundName, detune: number) => void): void {
-    for (let at = 0; at < SOUNDS.length; at++) {
-      const name = SOUNDS[at];
-      const detune = this.heard[at] ?? UNHEARD;
-      if (name === undefined || detune === UNHEARD) continue;
-      this.heard[at] = UNHEARD;
-      play(name, detune);
-    }
-  }
+/** Returns what gathers a frame's sounds, so each of {@link SOUNDS} plays once a frame at most. */
+export function createFrameSounds(): FrameSounds<SoundName> {
+  return new FrameSounds(SOUNDS);
 }
 
 /** Returns the flourishes an event's effects play: all of them where motion is welcome, else none. */

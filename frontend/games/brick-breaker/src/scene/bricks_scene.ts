@@ -24,8 +24,8 @@ import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
 import {
   CHIME,
   type Flourish,
-  FrameSounds,
   type SoundName,
+  createFrameSounds,
   detuneOf,
   effectsOf,
   flourishesOf,
@@ -142,7 +142,7 @@ export class BricksScene extends Scene {
   /** The serial of the last event of the field the scene played. */
   private played = 0;
   /** The sounds this frame's events call for, played once each after them. */
-  private readonly frameSounds = new FrameSounds();
+  private readonly frameSounds = createFrameSounds();
   /** How many chimes the game had called for as the scene last looked. */
   private chimed = 0;
   /** How a sound is played, made once and changed for each: Phaser copies it as the sound starts. */

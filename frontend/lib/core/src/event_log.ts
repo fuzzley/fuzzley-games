@@ -19,6 +19,8 @@ export class EventLog<E extends NumberedEvent> {
   private last = 0;
 
   /**
+   * Creates a log of no events, its records made.
+   *
    * @param size How many events it keeps, a whole number, at least one: far
    *   more than a frame's steps make, so no reader misses one.
    * @param blank Makes a record for the ring, which the log numbers and its

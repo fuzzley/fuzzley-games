@@ -111,3 +111,45 @@ it records. Newest last.
      Fixed: it reads on from the whole serial below, with a spec.
   3. `@fz/core`'s `AGENTS.md` hung "nothing is made per event" off
      `forEachSince()`. Fixed: it is `next()`'s.
+
+## L1.3: a frame's sounds
+
+2026-10-31.
+
+- **Built.** `@fz/core/frame_sounds`: `FrameSounds<Name extends string>`,
+  made from the names of a sprite's sounds, with Brick Breaker's `hear()`
+  and `playEach()`, at 100%. Brick Breaker's view makes its own with
+  `createFrameSounds()`, from its `SOUNDS`, which the scene calls where it
+  made a `FrameSounds` before; its spec of the class moved to the
+  library's, and what stays checks the sprite's order.
+- **Choices.** Each sound is a record, its name and the most it rose, made
+  once in the constructor, and both methods walk them with `for…of`: Brick
+  Breaker's class looked a sound up by its place in two arrays, a number or
+  nothing to the compiler, which a library held to every branch can't
+  guard. `hear()` stops at the sound it is given; with the sprite's ten
+  sounds, a walk costs what `indexOf()` did. The view makes the scene's,
+  since `SOUNDS` is the view's, so the sprite's names are tied to the
+  gatherer in one place. `EventLog`'s constructor doc gains the opening
+  sentence the repository's constructors have ("Creates …"), which L1.2
+  left out.
+- **Checks.** `@fz/core`: lint, typecheck, test (66 tests, 100%).
+  `brick-breaker`: lint, typecheck, test (1985 tests, floors held;
+  `effects.ts` now fully covered). `yarn prettier:check`,
+  `node .agents/check-skill-references.mjs`. Docs: `@fz/core`'s
+  `AGENTS.md` and `package.json`, `frontend/games/AGENTS.md` and Brick
+  Breaker's `AGENTS.md`.
+- **Review.**
+  1. The library's order spec heard two sounds whose sprite order is also
+     their alphabetical order, so it passed with the sounds sorted (the
+     reviewer proved it on a copy). Fixed: three sounds, heard in an order
+     neither the sprite's, its reverse nor the alphabet's.
+  2. `frontend/games/AGENTS.md` said a game's rules share the helpers,
+     the frame's sounds among them, which only a view uses. Fixed: the
+     game shares them, and the rules may import no other library.
+  3. The reason given for `createFrameSounds()` was a layer rule the
+     scene's fence doesn't hold, and the plan's A11.1 and its sound section
+     disagreed with it. Fixed: the reason is that `SOUNDS` is the view's,
+     and A11.1 and the sound section name the view's `FrameSounds` and the
+     library.
+  4. The library's class doc spoke of bricks and streaks. Fixed: hits and
+     a rising run.
