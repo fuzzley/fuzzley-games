@@ -85,7 +85,9 @@ out of the first download.
   game each frame's time in `update()`, as Brick Breaker's hands its game
   the time and the steering, and the game steps the run and hands back the
   frame to draw, so the run never steps without being drawn and stops
-  when Phaser does.
+  when Phaser does. A game of fixed steps keeps them with `@fz/core/clock`,
+  and its scene reads what each step did from an `@fz/core/event_log`, as
+  Brick Breaker's does (the `fuzzley-ui` skill).
 - **A scene says when it has drawn,** with `ready()`, once its first frame
   is up: `onFirstFrame()` calls it at the right time. The canvas uncovers
   the scene then.
