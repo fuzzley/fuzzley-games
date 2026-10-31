@@ -77,21 +77,28 @@
   outline-color: var(--fz-focus-ring-color);
 }
 
+// Over the board, setting a card in its middle, letting swipes through to the
+// canvas but on the card's button. A grid sets the card at its own height:
+// Safari stretched one held between insets with `height: fit-content` from
+// top to bottom.
+.cards {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
 // Over the lower half of the board, clear of the row the snake and the apple
-// start on, letting swipes through to the canvas but on its button.
+// start on.
 .card {
   @include glass(12px);
 
-  position: absolute;
-  inset: 0;
   display: grid;
   justify-items: center;
   gap: var(--fz-space-2);
   box-sizing: border-box;
-  width: fit-content;
   max-width: min(320px, 100cqmin - 4 * var(--room));
-  height: fit-content;
-  margin: auto;
   padding: var(--fz-space-5) var(--fz-space-6);
   translate: 0 calc(var(--side) / 4);
   border: 1px solid var(--fz-edge-3);
@@ -100,7 +107,6 @@
   box-shadow: var(--fz-shadow-card);
   color: var(--fz-text);
   text-align: center;
-  pointer-events: none;
 
   p {
     margin: 0;

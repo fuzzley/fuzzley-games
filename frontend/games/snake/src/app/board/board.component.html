@@ -13,44 +13,48 @@
 </p>
 
 @let shownCard = card();
-@switch (shownCard) {
-  @case ("start") {
-    <div class="card">
-      <p class="card-title">Ready</p>
-      <p>{{ startWords() }}</p>
-    </div>
+<div class="cards">
+  @switch (shownCard) {
+    @case ("start") {
+      <div class="card">
+        <p class="card-title">Ready</p>
+        <p>{{ startWords() }}</p>
+      </div>
+    }
+    @case ("paused") {
+      <div class="card">
+        <p class="card-title">Paused</p>
+        <p>Score {{ game.score() }}</p>
+        <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
+          Resume
+        </button>
+      </div>
+    }
+    @case ("ended") {
+      <div class="card">
+        <p class="card-title">{{ endTitle() }}</p>
+        <p>Score {{ game.score() }}</p>
+        <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
+          New Game
+        </button>
+      </div>
+    }
+    @case ("slow") {
+      <div class="card" role="status">
+        <p class="card-title">Still loading the board</p>
+        <p>It can take a while on a slow connection.</p>
+      </div>
+    }
+    @case ("failed") {
+      <div class="card" role="alert">
+        <p class="card-title">The board couldn't be drawn</p>
+        <p>Reloading the page may help.</p>
+        <button type="button" class="fz-button" (click)="reload()">
+          Reload
+        </button>
+      </div>
+    }
+    @case (null) {}
+    @default never;
   }
-  @case ("paused") {
-    <div class="card">
-      <p class="card-title">Paused</p>
-      <p>Score {{ game.score() }}</p>
-      <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
-        Resume
-      </button>
-    </div>
-  }
-  @case ("ended") {
-    <div class="card">
-      <p class="card-title">{{ endTitle() }}</p>
-      <p>Score {{ game.score() }}</p>
-      <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
-        New Game
-      </button>
-    </div>
-  }
-  @case ("slow") {
-    <div class="card" role="status">
-      <p class="card-title">Still loading the board</p>
-      <p>It can take a while on a slow connection.</p>
-    </div>
-  }
-  @case ("failed") {
-    <div class="card" role="alert">
-      <p class="card-title">The board couldn't be drawn</p>
-      <p>Reloading the page may help.</p>
-      <button type="button" class="fz-button" (click)="reload()">Reload</button>
-    </div>
-  }
-  @case (null) {}
-  @default never;
-}
+</div>
