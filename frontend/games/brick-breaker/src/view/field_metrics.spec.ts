@@ -1,8 +1,11 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
-import { FIELD_HEIGHT } from "../rules/tuning";
+import { FIELD_HEIGHT, TALLEST_FIELD } from "../rules/tuning";
 import {
+  FINGER_ROOM_CSS_PX,
+  fieldHeightFor,
   fieldMetrics,
+  fingerRoomOf,
   toCanvasX,
   toCanvasY,
   toFieldX,
@@ -74,6 +77,77 @@ describe("fieldMetrics", () => {
       height: metrics.height / 2,
     });
   });
+});
+
+describe("fieldHeightFor", () => {
+  it("has a wide canvas lay out a field of the least height", () => {
+    expect(fieldHeightFor(viewport(1280, 720))).toBe(FIELD_HEIGHT);
+  });
+
+  it("has an upright phone's canvas lay out the tallest field", () => {
+    expect(fieldHeightFor(viewport(390, 772))).toBe(TALLEST_FIELD);
+  });
+
+  it("lays out as many units as fit above a finger's room, a CSS pixel in hand", () => {
+    // 400 less the walls makes units of 15; 669 less the walls, the finger's
+    // room and the pixel in hand leaves 600: 40 units.
+    expect(fieldHeightFor(viewport(400, 669))).toBe(40);
+  });
+
+  it("counts the chrome over the canvas out of the room", () => {
+    const chrome = { top: 12, right: 12, bottom: 12, left: 12 };
+
+    expect(fieldHeightFor({ ...viewport(424, 693), insets: chrome })).toBe(40);
+  });
+
+  it("keeps a field of the least height where a finger's room would take the rest", () => {
+    // Units of 15: 500 has room for 32 units, but 28 above a finger's room.
+    expect(fieldHeightFor(viewport(400, 500))).toBe(FIELD_HEIGHT);
+  });
+
+  it.each([
+    [390, 60],
+    [0, 0],
+  ])(
+    "keeps a field of the least height on a canvas %i by %i, with no room for any",
+    (width, height) => {
+      expect(fieldHeightFor(viewport(width, height))).toBe(FIELD_HEIGHT);
+    },
+  );
+
+  it("fits the field at its width's unit on a canvas a pixel shorter than measured", () => {
+    const height = fieldHeightFor(viewport(400, 669));
+    const shorter = {
+      ...viewport(400, 668),
+      insets: { ...NO_INSETS, bottom: FINGER_ROOM_CSS_PX },
+    };
+
+    expect(fieldMetrics(shorter, height).unit).toBe(15);
+  });
+
+  it("fits the field at its width's unit on a canvas a pixel wider than measured", () => {
+    // 393 less the walls is a pixel short of 26 units of 15, which 394 holds.
+    const height = fieldHeightFor(viewport(393, 669));
+    const wider = {
+      ...viewport(394, 669),
+      insets: { ...NO_INSETS, bottom: FINGER_ROOM_CSS_PX },
+    };
+
+    expect(fieldMetrics(wider, height).unit).toBe(15);
+  });
+});
+
+describe("fingerRoomOf", () => {
+  it.each([
+    [FIELD_HEIGHT, 0],
+    [FIELD_HEIGHT + 1, FINGER_ROOM_CSS_PX],
+    [TALLEST_FIELD, FINGER_ROOM_CSS_PX],
+  ])(
+    "leaves a board with room for a field %i tall %i CSS px for a finger",
+    (roomFor, room) => {
+      expect(fingerRoomOf(roomFor)).toBe(room);
+    },
+  );
 });
 
 describe("toCanvasX and toCanvasY", () => {

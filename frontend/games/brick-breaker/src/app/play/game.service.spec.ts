@@ -5,7 +5,12 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { FEW_BRICKS } from "../../rules/describe";
 import { levelsOf } from "../../rules/levels";
 import { STEP_MS } from "../../rules/stepper";
-import { FIELD_WIDTH, FIRST_LIVES } from "../../rules/tuning";
+import {
+  FIELD_HEIGHT,
+  FIELD_WIDTH,
+  FIRST_LIVES,
+  TALLEST_FIELD,
+} from "../../rules/tuning";
 import {
   FRAME_MS,
   SPEC_LEVEL,
@@ -205,6 +210,47 @@ describe("GameService", () => {
       await starting;
 
       expect(game.multiplier()).toBe(1);
+    });
+  });
+
+  describe("the field's height", () => {
+    it("is the height asked for at once while the ball waits to be served", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+
+      game.setFieldHeight(TALLEST_FIELD);
+
+      expect({
+        height: game.fieldHeight(),
+        field: game.frame().field.height,
+      }).toEqual({ height: TALLEST_FIELD, field: TALLEST_FIELD });
+    });
+
+    it("stays as it is while a ball is in play", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+
+      game.setFieldHeight(TALLEST_FIELD);
+
+      expect(game.fieldHeight()).toBe(FIELD_HEIGHT);
+    });
+
+    it("becomes the height asked for as the next ball waits on the paddle", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+      game.setFieldHeight(TALLEST_FIELD);
+      loseBall(game);
+
+      game.tick(SERVE_MS, STILL);
+
+      expect(game.fieldHeight()).toBe(TALLEST_FIELD);
+    });
+
+    it("is the height asked for on the next level", async () => {
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+      game.setFieldHeight(TALLEST_FIELD);
+      playUntil(game, () => STILL, game.clearedOpen);
+
+      game.nextLevel();
+
+      expect(game.fieldHeight()).toBe(TALLEST_FIELD);
     });
   });
 

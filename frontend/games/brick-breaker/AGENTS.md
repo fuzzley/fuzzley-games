@@ -155,7 +155,10 @@ doesn't see, so Phaser stays out of the first download.
   the next serve and the wait before a card opens.
   `field_metrics.ts` lays the field on the canvas from `fitCells()`, a unit a
   whole number of device pixels, with `toCanvasX()`/`toCanvasY()` and
-  `toFieldX()`/`toFieldY()` between the two; `frame.ts` is what the scene
+  `toFieldX()`/`toFieldY()` between the two, and says how tall a field a
+  canvas has room for (`fieldHeightFor()`) and the room a board with room
+  for a taller one leaves under the field for a finger
+  (`fingerRoomOf()`); `frame.ts` is what the scene
   reads: `FieldView`, the field it can't change, `EventsView` and
   `FieldFrame`; `layers.ts` the order the field is drawn in, back to front, in
   one list; `timing.ts` how long each flourish lasts, how long the paddle
@@ -259,7 +262,11 @@ doesn't see, so Phaser stays out of the first download.
     cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
     `fzKeepKeys`), and take Space and Enter themselves; Resume and Next level
     hand the board back the focus, and the board takes it as New game's run
-    begins. `fieldPalette()` colors the field from `ThemeService`'s roles and
+    begins. It watches its own size and asks the game for the field's height
+    it has room for (`GameService.setFieldHeight()`), and, where it has room
+    for a taller field, leaves a finger's room under the field, which the
+    scene lays the field out above.
+    `fieldPalette()` colors the field from `ThemeService`'s roles and
     `mode`, and a finger steers as the settings say. The board keeps the
     scene's pictures for How to play (`pictures`). It is an application named
     for its level, "Brick Breaker, level 3: Pyramid".
@@ -346,6 +353,13 @@ doesn't see, so Phaser stays out of the first download.
   reads, and the bricks' tints from `inks.ts`, eight for light palettes and
   eight for dark; `src/view/contrast.spec.ts` holds them apart in every
   palette.
+- **The field takes the board's shape as it waits to serve.** On a board
+  with room for more than 30 units of height, at the unit its width allows,
+  over a finger's room to steer by, the field grows to as many as fit, up
+  to 45, the room it gains between the bricks and the paddle. It changes
+  only while the ball waits on the paddle, so a screen turned mid-rally
+  keeps its field, fitted whole, until the next serve; the finger's room
+  follows the board at once.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
   `fieldMetrics()` does, at the window's pixel ratio; the ring takes the
   scene's own rectangle once it has drawn (`data-field`), and the layout
@@ -364,9 +378,10 @@ else. The frontend's Angular and Sass rules apply; on top of them:
   and the inks', which the scene draws, and the placeholder draws with the
   palette's tokens.
 - **The size comes from the stage,** a size container: the field takes the
-  most room it is given that keeps its shape, 26 units by 30, each unit a
-  whole number of device pixels, inside a margin of `--room`, the insets the
-  canvas lays the field inside.
+  most room it is given that keeps its shape, 26 units by the height the
+  game gives it (`--down`), each unit a whole number of device pixels,
+  inside a margin of `--room`, the insets the canvas lays the field inside,
+  and `--finger-room` more under it on a board with room for a taller one.
 
 ## What It Keeps
 
@@ -446,9 +461,11 @@ workspace's with the others'.
   doesn't scroll, the bar's controls lie in the window, and, as
   `@fz/dev/layout` holds a board drawn with Phaser, the canvas draws at its
   size times the board's pixel ratio and the field keeps its shape, 26
-  units by 30, inside the window, where the placeholder drew it and inside
-  the focus ring, its card on it; and its unit is 10 CSS px or more (9 in
-  a window under 360 CSS px tall)).
+  units by the height the board gives it, inside the window, where the
+  placeholder drew it and inside the focus ring, its card on it; its unit
+  is 10 CSS px or more (9 in a window under 360 CSS px tall); and, as the
+  ball waits to be served, a field taller than 30 units, and only one,
+  leaves a finger's room under it, past the room around it).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the ten sounds, from the paddle's bop to a level's
   chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their

@@ -20,8 +20,15 @@ import {
   playUntil,
   provideSpecLevels,
 } from "../../testing/play";
-import { FIELD_WIDTH, FIRST_LIVES } from "../../rules/tuning";
+import { paddleTopOf } from "../../rules/paddle";
+import {
+  FIELD_HEIGHT,
+  FIELD_WIDTH,
+  FIRST_LIVES,
+  TALLEST_FIELD,
+} from "../../rules/tuning";
 import { paintRoles } from "../../testing/roles";
+import { FINGER_ROOM_CSS_PX } from "../../view/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";
@@ -31,6 +38,58 @@ const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
 
 /** The longest the scene plays a level for before a spec gives up on it. */
 const LEVEL_LIMIT_MS = 10_000;
+
+/**
+ * Stands in for the browser's `ResizeObserver`, which jsdom lacks: the spec
+ * says when what it watches was laid out anew.
+ */
+class FakeResizeObserver implements ResizeObserver {
+  /** Every one made since the spec stood them in. */
+  static made: FakeResizeObserver[] = [];
+  readonly watched = new Set<Element>();
+
+  constructor(private readonly callback: ResizeObserverCallback) {
+    FakeResizeObserver.made.push(this);
+  }
+
+  observe(target: Element): void {
+    this.watched.add(target);
+  }
+
+  unobserve(target: Element): void {
+    this.watched.delete(target);
+  }
+
+  disconnect(): void {
+    this.watched.clear();
+  }
+
+  /** Tells it what it watches was laid out anew, if it watches anything. */
+  resized(): void {
+    if (this.watched.size > 0) this.callback([], this);
+  }
+}
+
+/** Stands the fake `ResizeObserver` in for the specs of the describe it is called in. */
+function watchResizes(): void {
+  beforeEach(() => {
+    FakeResizeObserver.made = [];
+    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+}
+
+/** Lays the board out at a size in CSS px, as a browser would, and tells what watches it. */
+function resize(board: HTMLElement, width: number, height: number): void {
+  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+    new DOMRect(0, 0, width, height),
+  );
+  for (const observer of FakeResizeObserver.made) observer.resized();
+}
 
 /** Renders the board beside a button outside it, on a fake canvas. */
 async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
@@ -149,6 +208,75 @@ describe("BoardComponent", () => {
       const { board } = await renderAt(SPEC_LEVEL.steel);
 
       expect(board).not.toHaveClass("in-play");
+    });
+  });
+
+  describe("the field's height", () => {
+    watchResizes();
+
+    it("is all an upright board has room for, with room for a finger under it", async () => {
+      const { board, game, detectChanges } = await renderBoard();
+
+      resize(board, 390, 772);
+      detectChanges();
+
+      expect({
+        height: game.fieldHeight(),
+        down: board.style.getPropertyValue("--down"),
+        finger: board.style.getPropertyValue("--finger-room"),
+      }).toEqual({
+        height: TALLEST_FIELD,
+        down: String(TALLEST_FIELD),
+        finger: String(FINGER_ROOM_CSS_PX),
+      });
+    });
+
+    it("is the least on a wide board, with no room under it", async () => {
+      const { board, game, detectChanges } = await renderBoard();
+
+      resize(board, 1280, 720);
+      detectChanges();
+
+      expect({
+        height: game.fieldHeight(),
+        finger: board.style.getPropertyValue("--finger-room"),
+      }).toEqual({ height: FIELD_HEIGHT, finger: "0" });
+    });
+
+    it("counts the insets the board declares for the canvas out of its room", async () => {
+      const { board, game } = await renderBoard();
+      board.style.setProperty("--fz-canvas-inset-bottom", "200px");
+
+      resize(board, 390, 772);
+
+      // 772 less the inset, a finger's room, the pixel in hand and the walls
+      // leaves 503: 35 units of 14.
+      expect(game.fieldHeight()).toBe(35);
+    });
+
+    it("draws the waiting paddle in the placeholder as far above a taller field's floor", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, 390, 772);
+      detectChanges();
+
+      // The placeholder is only drawn, so it has no role to find it by.
+      const paddle = board.querySelector<HTMLElement>(".paddle");
+      expect(paddle?.style.getPropertyValue("--paddle-top")).toBe(
+        String(paddleTopOf(TALLEST_FIELD)),
+      );
+    });
+
+    it("stops watching the board once it is gone", async () => {
+      const { fixture } = await render(BoardComponent, {
+        providers: [provideFakePhaserCanvas(), ...provideSpecLevels()],
+      });
+
+      fixture.destroy();
+
+      expect(FakeResizeObserver.made.map((made) => made.watched.size)).toEqual([
+        0,
+      ]);
     });
   });
 
@@ -367,8 +495,10 @@ describe("BoardComponent", () => {
       document.documentElement.removeAttribute("style");
     });
 
-    /** Runs the scene the board hands its canvas, as Phaser would. */
-    async function runBoardScene(): Promise<{
+    /** Runs the scene the board hands its canvas, as Phaser would, on a canvas of a size in CSS px. */
+    async function runBoardScene(
+      canvas: { width?: number; height?: number } = {},
+    ): Promise<{
       board: HTMLElement;
       component: BoardComponent;
       game: GameService;
@@ -379,6 +509,7 @@ describe("BoardComponent", () => {
         await renderBoard();
       const make = await fake.host.latest.source();
       const run = await runScene(make, {
+        ...canvas,
         config: { input: { keyboard: { target: board } } },
       });
       scene = run;
@@ -406,6 +537,28 @@ describe("BoardComponent", () => {
         top: `${y}px`,
         width: `${width}px`,
         height: `${height}px`,
+      });
+    });
+
+    describe("on a board with room for a taller field", () => {
+      watchResizes();
+
+      it("lays the field out above a finger's room", async () => {
+        // 390 by 700 has room for the tallest field, which, without a finger's
+        // room, would lie 35 CSS px above the canvas's bottom.
+        const { board, run, detectChanges } = await runBoardScene({
+          width: 390,
+          height: 700,
+        });
+        resize(board, 390, 700);
+
+        run.advance(FRAME_MS);
+        detectChanges();
+
+        const [, y = NaN, , height = NaN] = (board.dataset["field"] ?? "")
+          .split(" ")
+          .map(Number);
+        expect(700 - y - height).toBeGreaterThanOrEqual(FINGER_ROOM_CSS_PX);
       });
     });
 

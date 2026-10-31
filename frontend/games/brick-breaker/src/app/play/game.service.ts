@@ -27,6 +27,7 @@ import {
   type Field,
   createField,
   launch as launchBalls,
+  reshapeField,
 } from "../../rules/field";
 import { type LevelEntry, parseLevel } from "../../rules/levels";
 import type { Steer } from "../../rules/paddle";
@@ -55,6 +56,7 @@ import {
   takeUpField,
 } from "../../rules/saved_game";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
+import { FIELD_HEIGHT } from "../../rules/tuning";
 import type { FieldCommand } from "../../view/controls";
 import type { FieldFrame } from "../../view/frame";
 import { LevelPlay } from "../../view/level_play";
@@ -112,6 +114,8 @@ export class GameService {
   private levelPlay = new LevelPlay(this.fieldOf(this.runState()));
   /** What a frame calls to be said, gathered as it is worked out, and said at its end. */
   private readonly news: string[] = [];
+  /** The height the board has room for, which the field takes whenever its ball waits to be served. */
+  private heightAsked = FIELD_HEIGHT;
 
   private readonly servingState = signal(true);
   private readonly multiplierState = signal(1);
@@ -123,6 +127,7 @@ export class GameService {
   private readonly drawnState = signal(true);
   private readonly newBestState = signal(false);
   private readonly chimesState = signal(0);
+  private readonly fieldHeightState = signal(FIELD_HEIGHT);
 
   /** The run on the board. */
   readonly run = this.runState.asReadonly();
@@ -151,6 +156,9 @@ export class GameService {
    * card opens.
    */
   readonly chimes = this.chimesState.asReadonly();
+
+  /** How tall the field in play is, in field units. */
+  readonly fieldHeight = this.fieldHeightState.asReadonly();
 
   /** Where the run stands. */
   readonly outcome = computed(() => this.runState().outcome);
@@ -222,6 +230,7 @@ export class GameService {
       case "paused":
         break;
     }
+    this.fitField();
     this.sayNews();
   }
 
@@ -404,6 +413,16 @@ export class GameService {
     this.announcer.say(describeTakenUp(run, this.level()));
   }
 
+  /**
+   * Asks for the field to be a height tall, as the board has room for,
+   * which it becomes at once if its ball waits to be served, else as the
+   * next one does.
+   */
+  setFieldHeight(height: number): void {
+    this.heightAsked = height;
+    this.fitField();
+  }
+
   /** Says whether the board is drawn yet, as the board's canvas reports it. */
   setDrawn(drawn: boolean): void {
     this.drawnState.set(drawn);
@@ -561,9 +580,17 @@ export class GameService {
   /** Lays out the run's level in play on a new field, with nothing of the last one left. */
   private showField(run: Run): void {
     this.levelPlay = new LevelPlay(this.fieldOf(run));
+    this.fitField();
     this.servingState.set(true);
     this.multiplierState.set(1);
     this.clearedOpenState.set(false);
+  }
+
+  /** Makes the field the height asked for, if its ball waits to be served. */
+  private fitField(): void {
+    const field = this.levelPlay.field;
+    reshapeField(field, this.heightAsked);
+    this.fieldHeightState.set(field.height);
   }
 
   /** Resolves to whether to go ahead: at once with no run under way to lose. */
