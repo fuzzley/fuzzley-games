@@ -1,0 +1,4 @@
+// The only stylesheet loaded outside a component: @fz/style's global one,
+// shared with the site and the other games. Its rules sit in cascade layers,
+// so the components' win over them.
+@use "@fz/style/global";

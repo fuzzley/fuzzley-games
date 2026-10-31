@@ -442,3 +442,80 @@ and build across every workspace.
   7. The labels' style differed from the log's, a line of housekeeping
      stood among the results, and "each turn both ways" misnamed the two
      turns. Fixed.
+
+## A1.1: the workspace
+
+2026-10-31, on `asteroid-breaker`, cut from `asteroid-breaker-lift` at
+`a52ebd30`.
+
+- **Built.** `frontend/games/asteroid-breaker/`, the workspace
+  `asteroid-breaker`, from Brick Breaker's: its `package.json`, with the
+  same libraries and tools, `phaser`, `@fz/phaser` and `@fz/core` among
+  them; `gameConfig({ port: 9005, name: "Asteroid Breaker" })`;
+  `angularTests()` with Brick Breaker's floors on the rules and the view;
+  ESLint with `@fz/dev`'s blocks, `phaser()` for the scene and the four
+  layers' fences; the tsconfig solution for the app, the specs and the
+  Vite configs; stylelint with `@fz/style`'s preset; a test setup that
+  installs the headless Phaser first; `index.html`, with the palette, the
+  icons, the description and the structured data; and a shell,
+  `AppComponent`, that shows the game's name in the page's main landmark,
+  over `@fz/style`'s global stylesheet. Its `AGENTS.md`, `CLAUDE.md`,
+  `README.md` and `LICENSE` are Brick Breaker's in shape, saying only what
+  holds yet. `yarn install` added it to `yarn.lock`; `games.json` doesn't
+  list it, so the site's build leaves it out.
+- **Choices.**
+  - The view's fence lets in `@fz/style/fuzzball`, as "Layers" says.
+    `@fz/style` as a pattern excludes the package's folder, which git's
+    ignore rules, the fence's, can't take a file back from, so the view
+    names `@fz/style`'s entries, `@fz/style/*`, rather than the package,
+    as it already did `@fz/phaser`'s, and the package's own entry in a
+    pattern of its own, `regex: "^@fz/style$"`, which excludes nothing
+    beneath it. A probe found it: the first version blocked the fuzzball
+    too.
+  - What has nothing to hold yet waits for it: no `tools/`, so no
+    `tsconfig.scripts.json`, no `scripts()` block, and `lint` names `src`
+    and the configs alone, since ESLint and `tsc` fail on a folder or a
+    project with no files; the test setup has no dialog polyfill and
+    doesn't clear `localStorage`, for no dialog or store exists;
+    `main.ts` provides zoneless change detection alone, `THEME_COLOR_ROLE`
+    and the app initializer coming with the theme and the saved game; and
+    `index.html` has no `og:image` or `twitter:card`, which A16.1's preview
+    brings.
+  - The globs that name what is coming stay, as Brick Breaker's: the
+    floors on `src/rules/**` and `src/view/**`, the fences, and
+    `src/testing/**` in the coverage's and the specs' blocks. Each matches
+    nothing yet, which passes (Vitest's floors on no files included).
+  - The `AGENTS.md` table names the layers without paths, since the
+    reference check holds a backticked path to existing, and only
+    `src/app/` does.
+- **Checks.** The workspace's `lint`, `typecheck`, `test` (1 test, 100%)
+  and `build` (`dist/` with `game.json`, "Asteroid Breaker", the icons and
+  `theme.js`); `yarn constraints`, `yarn dedupe --check`,
+  `node .agents/check-skill-references.mjs`, `yarn prettier:check`. The
+  install's one new peer warning is Brick Breaker's, `@angular/forms` for
+  the CDK. The fences, probed with files of each layer's imports, then
+  deleted: the rules take `@fz/core` and not the fuzzball; the view the
+  fuzzball, `@fz/core` and `@fz/phaser/color`, and not `@fz/style` itself
+  or `@fz/style/themes`, `@fz/ui`, `@fz/game-ui`, `@fz/phaser/host`,
+  Phaser or Angular; the scene Phaser and not the fuzzball or `@fz/ui`;
+  the shell the host by type, and not Phaser or `@fz/phaser/scene` by
+  value. The dev server on 9005 serves the page in the stored palette, the
+  name in the middle, with no scroll and no console message but Vite's and
+  Angular's.
+- **Review.**
+  1. The view's fence listed `@fz/ui` and `@fz/game-ui` by hand, a second
+     copy of the shell's libraries, so one added to them later would be
+     fenced off from the scene and not the view. Fixed: `UI_LIBRARIES`,
+     which `SHELL_LIBRARIES` spreads, and the view takes.
+  2. The view could import `@fz/style` itself, the fence resting on that
+     package's exports staying Sass. Fixed: a pattern of its own,
+     `regex: "^@fz/style$"`, which the reviewer and the probe above both
+     found blocks the package and not the fuzzball.
+  3. The `AGENTS.md`'s stack named signals, `@fz/ui` and `@fz/game-ui` as
+     the shell's, and a field, none of which exists yet. Fixed: the field
+     is to be drawn, and the shell wears `@fz/style`'s global stylesheet so
+     far, the other libraries among its dependencies.
+  4. This entry's probe named `@fz/style/palettes`, which isn't an entry,
+     and called the Sass the package's one entry, of eight. Fixed: the
+     probe ran again with `@fz/style/themes`, and the Sass is the
+     package's own entry, as the first choice above now says.
