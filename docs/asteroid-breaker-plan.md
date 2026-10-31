@@ -2,9 +2,10 @@
 
 Asteroid Breaker would be the sixth game hosted on fuzzley.games, at
 `/play/asteroid-breaker/`, in the Arcade category beside Snake and Brick
-Breaker: a small ship drifts in a square of space that wraps at every edge,
-turning, thrusting and firing, and breaks every rock in the wave into smaller
-and smaller pieces before one of them finds it. Its rules, physics included,
+Breaker: a small ship drifts in a field of space that fills the screen and
+wraps at every edge, turning, thrusting and firing, and breaks every rock in
+the wave into smaller and smaller pieces before one of them finds it; thirty
+waves, then Endless. Its rules, physics included,
 are plain TypeScript, its field is a Phaser scene, and its shell is Angular
 on the shared libraries, laid out as Brick Breaker is.
 
@@ -98,6 +99,12 @@ the genre, and guides to touch controls. No other game's code was read.
 Each has a recommendation, first. "Design reference" is written with every
 recommendation taken.
 
+**Answered 2026-10-31:** every recommendation, with the user's changes:
+the field fills the screen, however it is shaped, with rocks to match
+(decision 3, rewritten); thirty waves and then Endless (decision 12); and
+every control in the mock's sketch in the game's debug menu (decision 23).
+Decision 25, the fuzzball, is open.
+
 1. **The name:** Asteroid Breaker, at `/play/asteroid-breaker/`, workspace
    `games/asteroid-breaker`, port 9005, in Arcade. Or a shorter name (Rock
    Breaker, Space Rocks).
@@ -106,10 +113,13 @@ recommendation taken.
    Or twin-stick flight, the thrust's direction apart from the aim, which is
    easier to learn but loses the turn-around-to-brake that the genre is
    played by, and plays differently by keyboard.
-3. **The field:** a square of 40 by 40 units that wraps at every edge, the
-   same on every screen, so every player plays the same game and the bests
-   compare. A square fits a desktop, and leaves a phone the room for its
-   thumbs both ways. Or wider than tall on a wide screen without touch.
+3. **The field fills the screen** (the user's): it takes all the room the
+   bar and the deck leave, whatever its shape, and wraps at every edge. Its
+   short side is always 40 units, so the ship and rocks are the same size
+   against it everywhere, and its long side is as long as the room, up to
+   88 units (2.2 to 1). A wave's rocks are written for 40 by 40 and grow in
+   number with the field's area, so every shape is as full. (It was: a
+   square of 40 by 40 on every screen.)
 4. **Touch:** a deck beside the field, under it upright and on both sides of
    it on its side, never over it: a stick that appears where the left thumb
    lands and turns the ship toward where it points, thrusting once pushed
@@ -142,8 +152,9 @@ recommendation taken.
     end with their level and a lost life.
 12. **Waves:** thirty, in three sectors of ten, as data, the last of each a
     boulder; each new thing comes alone first. A run starts at the first
-    wave of any sector the player has reached, and clearing wave 30 wins.
-    Or an endless run of generated waves.
+    wave of any sector the player has reached. Clearing wave 30 opens
+    Endless (the user's), waves made from the run's seed that grow harder
+    without end, and the run goes on into it until its ships run out.
 13. **The game waits for the player.** A wave's rocks hold still under the
     Ready card until the first move or shot. After a lost ship the field
     plays on, and the next ship waits where it is safest, untouchable, until
@@ -178,10 +189,19 @@ recommendation taken.
     sound into `@fz/phaser/sound`, and the deck into `@fz/dev/layout`'s
     board check), Brick Breaker adopting each unchanged, and merges first.
 23. **The feel is settled by a person on real phones** at Q3, before the
-    other twenty-five waves are built, with a tuning drawer in development
-    builds, as Brick Breaker's ball speed slider is.
+    other twenty-five waves are built, with a debug menu in development
+    builds, as Brick Breaker's ball speed slider is, holding every control
+    the mock's sketch has (the user's): the eight sliders and the four
+    switches, with Reset and a button that copies the numbers for
+    `tuning.ts`.
 24. **No gamepad in this plan.** The stick's model maps straight onto one,
     so it is a small follow-up.
+25. **Fuzzley flavor (open).** Recommended, together, as "Fuzzley flavor"
+    below draws out: the fuzzball pilots the ship, seen in its window; the
+    ships left show as fuzzballs; a lost ship's pilot bails out in a bubble;
+    and stray fuzzballs, to fly into and bring home, take the gold nugget's
+    place. Optional: a fuzzball constellation in Endless's stars. Not
+    recommended: the ship as a fuzzball, or fuzzy rocks to shoot.
 
 ## Design reference
 
@@ -189,14 +209,30 @@ recommendation taken.
 
 #### The field and the ship
 
-- **The field is 40 units by 40** and wraps: whatever leaves by one edge
-  comes in by the other, ship, shots, rocks and pickups alike. The comet and
-  the gold nugget alone cross once and leave. Everything the rules know is
-  in these units; the view turns them into device pixels.
-- **The field keeps its shape.** It is fitted whole into the room the bar
-  and the deck leave, a whole number of device pixels square, and centered,
-  with a frame of 2 CSS px on every side. A wider window shows more page
-  around it, not more field.
+- **The field fills the room** the bar and the deck leave, inside a margin
+  of 12 CSS px on a compact screen and 24 on a roomy one, with a frame of
+  2 CSS px on every side, and wraps: whatever leaves by one edge comes in
+  by the other, ship, shots, rocks and pickups alike. The comet and the gold
+  nugget alone cross once and leave. Everything the rules know is in units;
+  the view turns them into device pixels.
+- **Its short side is 40 units,** and its long side as many as the room
+  holds at that unit, up to 88, where a room wider than 2.2 to 1 shows the
+  page at its ends. So a unit is the short side over 40, a fraction of a
+  pixel or not: the rocks turn and nothing needs a whole pixel's edge but the
+  frame, which lies on whole device pixels.
+- **Its rocks fill it.** A wave's counts are written for a field of 40 by
+  40 (1,600 units²) and multiplied by the field's area over that, rounded
+  to the nearest and never fewer than written: "3 large stone" is 5 on a
+  desktop's 40 by 73. The cap on rocks, the pickups a field holds at once and
+  the gold nuggets grow the same way; comets come more often by the square
+  root of it, as they cross a longer field. The autopilot plays every wave
+  on the narrowest field and the widest.
+- **The field takes the room's shape as a wave starts, and while the game
+  is paused.** A pause, which turning the phone sets off, stretches every
+  place on the field to the new shape, adding and removing nothing, and
+  the ship is untouchable for 1 s after it goes on. Between the two, a
+  window resized in play keeps the field's shape, fitted whole into the room,
+  until the next wave or pause.
 - **The ship is a round pod,** 2.4 units long and 1.5 wide, its nose ahead,
   two fins at its tail and a round window; it is hit only within 0.7 units
   of its middle, less than it looks, so a graze is a miss.
@@ -231,7 +267,7 @@ the mock's sketch has sliders for the ship's.
 
 | What                  | Value                                                                                                                         |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| The field             | 40 × 40 units, wrapping at every edge                                                                                         |
+| The field             | 40 units on its short side, up to 88 on its long, wrapping at every edge; counts written for 40 × 40, times its area's share  |
 | The step              | 1/120 s, 12 at most a frame                                                                                                   |
 | The ship              | 2.4 units long, 1.5 wide, hit within 0.7 of its middle                                                                        |
 | Thrust                | 24 units a second, each second, along the heading; top speed 15 units a second                                                |
@@ -242,16 +278,28 @@ the mock's sketch has sliders for the ship's.
 | The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                          |
 | Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                 |
 | Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's |
-| Rocks on the field    | 48 at most; at the cap a rock splits into one piece fewer                                                                     |
+| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into one piece fewer                           |
 | A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                  |
 | Pickups               | 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet)                                               |
 | The chain             | 1.5 s from one break to the next                                                                                              |
 | Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                       |
 
-On a phone upright (390 × 844) a unit is about 9 CSS px, so the ship is
-22 px long and a small rock 16 px across; on a small phone on its side
-(568 × 320), about 6.6 px, the layout check's floor being 6; on a desktop
-at 1280 × 800, about 17 px.
+What the shapes the layout check holds come to (the mock page works each
+out with the same rules):
+
+| Window                             | The field, in CSS px | In units  | A unit  | Rocks against 40 × 40 |
+| ---------------------------------- | -------------------- | --------- | ------- | --------------------- |
+| Roomy, 1280 × 800                  | 1232 × 679           | 72.6 × 40 | 17.0 px | × 1.8                 |
+| Phone upright, 390 × 844           | 366 × 572            | 40 × 62.5 | 9.2 px  | × 1.6                 |
+| Phone on its side, 844 × 390       | 506 × 366            | 55.3 × 40 | 9.2 px  | × 1.4                 |
+| Small phone upright, 375 × 553     | 351 × 333            | 42.2 × 40 | 8.3 px  | × 1.1                 |
+| Small phone on its side, 568 × 320 | 256 × 296            | 40 × 46.3 | 6.4 px  | × 1.2                 |
+
+So the ship is 22 px long on a phone, 15 on the smallest on its side, and 41
+on a desktop; the layout check's floor for a unit is 6 CSS px. A very large
+window draws everything larger rather than more of it, since the short side
+is always 40 units; the atlas is baked at no more than 40 device px a unit
+and scaled past that.
 
 #### Rocks
 
@@ -301,7 +349,8 @@ beat apart (90 ms), so a chain reads as a chain.
 #### Pickups
 
 A broken rock lets a pickup go by the sector's chance (0.04, 0.05, 0.06;
-a quarter more at Relaxed), while fewer than two are on the field; a crystal
+a quarter more at Relaxed), while fewer than two are on the field (more on
+a larger one, as "The field and the ship" says); a crystal
 always does, and so does the next large rock broken once 25 s of a wave have
 gone by without one. Which pickup is drawn by weight from the wave's pool,
 from the run's seed, the wave and its count of draws, so a wave played the
@@ -354,7 +403,8 @@ Thirty waves in three sectors of ten. Each sector brings a few new things,
 each first alone, in a wave built around it, before it joins the others.
 Within a sector the pace rises a little each wave, and the last wave has a
 boulder, as the sector's test. A wave is cleared when every rock in it is
-broken; the gold nugget and the comets never count.
+broken; the gold nugget and the comets never count. The counts below are
+for a field of 40 by 40; a larger field has more, by its area.
 
 **Sector 1, Inner belt** (pace 1.00 to 1.08)
 
@@ -401,18 +451,53 @@ broken; the gold nugget and the comets never count.
 | 29  | Tempest          | 8 large of every kind; comets every 9–12 s | Everything                   |
 | 30  | Eye of the storm | 2 boulders, 4 large of every kind; comets  | The finale, at the top pace  |
 
+#### Endless
+
+- **Clearing wave 30 opens Endless,** and the run goes on into it, wave 31,
+  32 and on, until its ships run out. Wave 30's Cleared card says so
+  ("Storm cleared. Endless begins."), with the trophy and the chime, and the
+  run is marked as one that cleared all thirty.
+- **Endless's waves are made, not written,** by `src/rules/endless.ts`, from
+  the run's seed and the wave's number, so a run that reaches a wave with
+  the same seed meets the same wave, and a saved game makes its wave again
+  from the two. Each is a `Wave`, as a sector's waves are, so the field
+  plays it with no rule of its own:
+  - **its rocks:** a budget of 10 at wave 31, rising by 0.5 a wave to 24,
+    spent on large rocks by their weight (stone and crystal 1, ice 1.2,
+    volatile 1.5, as two medium, lodestone 1.6, iron 2), drawn from every
+    kind, at most a third of the budget on iron, with one crystal in every
+    wave, so pickups keep coming;
+  - **a boulder wave every tenth wave** (40, 50 and on): a boulder for each
+    ten waves past 30, three at most, and large rocks for the rest;
+  - **its pace:** 1.25 at wave 31, rising 0.015 a wave to 1.6;
+  - **its comets:** every 12–15 s at wave 31, closing to every 6–8 s by
+    wave 60;
+  - **its formation,** drawn from the four, and its gold nuggets: one a
+    wave, two from wave 50.
+- **The budget is for 40 by 40,** as every wave's counts are, and grows
+  with the field.
+- **Endless is a fourth row in the Sectors dialog,** open once a run has
+  cleared wave 30, at any speed; a run started there begins at wave 31 with
+  three ships.
+- **An Endless wave is named by its number** ("Wave 37, Endless"), in the
+  bar, the Ready card and the announcer.
+
 #### Runs, sectors and records
 
-- **A run** starts at the first wave of a sector the player has reached,
-  with three ships and no score, and goes on through the waves in order
-  until the ships run out or wave 30 is cleared.
+- **A run** starts at the first wave of a sector the player has reached, or
+  at Endless once it is open, with three ships and no score, and goes on
+  through the waves in order, into Endless after wave 30, until its ships
+  run out. No run is won: the result card says how far it came.
 - **Sectors open as they are reached,** at any speed: the first is open from
   the start, and each after it once a run has reached its first wave. The
   Sectors dialog lists them, with their bests.
 - **New game** starts a run where the last run started; the Sectors dialog
   starts one at any open sector. Both ask first when a run is under way.
-- **Records,** for each speed: the runs played, the best run's score and the
-  furthest wave reached.
+- **Records,** for each speed: the runs played, the best run's score, the
+  furthest wave reached, Endless's waves counting on from 30, and whether a
+  run has cleared all thirty. A wider field holds more rocks, so a wave is
+  worth more points on a desktop than on a phone; the bests are kept by
+  speed alone, as the player has one screen at a time.
 
 ### Controls
 
@@ -440,11 +525,12 @@ field:
 
 - **Upright,** it lies under the field, between it and the bar: the stick's
   zone is its left half, and Fire and Dash sit in the right half, toward the
-  bottom where thumbs rest. It is at least 136 CSS px tall; the field gives
-  up room to keep it so, which only small phones need.
+  bottom where thumbs rest. It takes a quarter of the stage's height, 136 to
+  200 CSS px, and the field the rest.
 - **On its side,** a deck lies on each side of the field: the stick's zone
-  on the left, the buttons on the right, each at least 120 CSS px wide,
-  inside the screen's safe areas and 16 px from its edges, so no thumb
+  on the left, the buttons on the right, each a sixth of the stage's width,
+  112 to 176 CSS px, inside the screen's safe areas and 16 px from its
+  edges, so no thumb
   starts the browser's own swipe. The bar's rail stands beyond the right
   one, as on every game on its side.
 - **"Stick on the right"** swaps the two halves or sides, for a left hand on
@@ -475,8 +561,8 @@ Fire is gone and Dash moves to its place.
 The mock page draws all of this, in every palette.
 
 - **The field is the palette's field** (`--fz-field`), framed in its line,
-  with three dozen specks of the field's muted text at a third of its
-  strength, seeded for each run and still. In a light palette it reads as a
+  with three dozen specks for each 1,600 units² of the field's muted text
+  at a third of its strength, seeded for each run and still. In a light palette it reads as a
   star chart on paper, in a dark one as night.
 - **The rocks are flat shapes in the game's own inks,** seven for light
   palettes and seven for dark, in `src/view/inks.ts`, outlined in the
@@ -537,15 +623,50 @@ highest it was heard, as Brick Breaker's `FrameSounds` has it.
   extra, the wave's 500, the 500 for no ship lost) and "Move or fire for
   wave 5", which the stick, a flight key, Enter or the card's button does,
   so a thumb on the deck never has to reach the field.
-- **Ended,** the result card, once the last ship's burst has faded: lost or
-  won, the wave reached and at what speed, the score and the best, "New
-  best" and the trophy when it set one; Try again from the sector the run
-  started at; Choose a sector; Close.
+- **Storm cleared,** wave 30's Cleared card: the trophy, "Storm cleared.
+  Endless begins.", and the wave's tally, then "Move or fire for wave 31".
+- **Ended,** the result card, once the last ship's burst has faded: the
+  wave reached ("Lost on wave 37, Endless") and at what speed, the score and
+  the best, "New best" and the trophy when it set one, and "Cleared all
+  thirty" for a run that did; Try again from the sector the run started at;
+  Choose a sector; Close.
 - **Sectors,** **How to play** (the aim, the controls by keys, mouse and
   touch, every rock and pickup from the catalogs, each with its picture,
   taken from the scene's atlas) and **Settings** (the speed, when the deck
   shows, which side holds the stick, fire by itself, haptics, sound and the
   palette).
+
+### The debug menu
+
+In a development build only (`DEBUG_MENU`, from `import.meta.env.DEV`, as
+Brick Breaker's is), the settings drawer ends with a Debug section holding
+every control the mock's sketch has, each acting on the ship in flight at
+once:
+
+| Control                      | Range               | Starts at (`tuning.ts`) |
+| ---------------------------- | ------------------- | ----------------------- |
+| Thrust                       | 8 to 60 u/s²        | 24                      |
+| Top speed                    | 6 to 30 u/s         | 15                      |
+| Coasting: speed halves every | 0.3 to 6 s          | 1.5                     |
+| Turning by keys              | 120 to 600°/s       | 300                     |
+| Turning toward a heading     | 180 to 1440°/s      | 600                     |
+| Shot speed                   | 16 to 60 u/s        | 32                      |
+| A shot every                 | 60 to 400 ms        | 140                     |
+| Rocks' speed                 | ×0.5 to ×2          | ×1                      |
+| Shots carry the ship's speed | on or off           | on                      |
+| Fire by itself               | on or off           | the setting's           |
+| Stick on the right           | on or off           | the setting's           |
+| Deck                         | Auto, Always, Never | the setting's           |
+
+- **The last three are the player's settings too,** and change them; the
+  rest live only in the field in play (`Field.debug`), as Brick Breaker's
+  `ballSpeedScale` does, and nothing keeps them.
+- **Reset the numbers** puts the eight sliders back to `tuning.ts`'s;
+  **Copy the numbers** puts them on the clipboard as the lines of
+  `tuning.ts` they would replace, so a feel found by playing is pasted
+  straight in.
+- **The autopilot, the report and the specs play `tuning.ts`'s numbers
+  only,** so a debug value never reaches a check.
 
 ### What it keeps
 
@@ -554,15 +675,19 @@ dropping what it can't trust:
 
 - `asteroid-breaker-settings`: the speed, when the deck shows, which side
   holds the stick, fire by itself, haptics and sound.
-- `asteroid-breaker-stats`: for each speed, the runs, the best score and the
-  furthest wave.
-- `asteroid-breaker-progress`: the sectors reached.
+- `asteroid-breaker-stats`: for each speed, the runs, the best score, the
+  furthest wave and whether a run has cleared all thirty.
+- `asteroid-breaker-progress`: the sectors reached, Endless among them.
 - `asteroid-breaker-game`: the run under way (the wave, the score, the
-  ships, the next ship's mark, the speed) and its field: each rock's kind,
-  size, outline, place, speed, turn and hits left, the field's count of
-  steps and draws, and the time the wave has run, for its nugget and
-  comets. Written as a wave starts, as a ship is lost or waits, as the run
-  pauses or goes on, and as the page goes away, never at a step.
+  ships, the next ship's mark, the speed, the seed) and its field: its size
+  in units, each rock's kind, size, outline, place, speed, turn and hits
+  left, the field's count of steps and draws, and the time the wave has
+  run, for its nugget and comets. Written as a wave starts, as a ship is lost
+  or waits, as the run pauses or goes on, and as the page goes away, never
+  at a step. Taken up paused, it stretches to the room it comes back to, as
+  a pause does.
+
+The debug menu's numbers are not kept: a reload starts from `tuning.ts`.
 
 ### Accessibility
 
@@ -573,6 +698,50 @@ wave begun ("Wave 4, Thaw. 4 rocks."), a ship lost and how many are left, a
 pickup caught, a wave cleared with the score, a pause, going on and the
 end. Every overlay is an `<fz-dialog>`. A real-time shooter can't be played
 by a screen reader, but nothing in its shell is out of a keyboard's reach.
+
+### Fuzzley flavor (decision 25, open)
+
+The fuzzball is the site's mark, a pom-pom with two eyes in the palette's
+accent, its shapes in `@fz/style/fuzzball` (`FUZZBALL`). Five ways it could
+belong to the game, all drawn on the mock page; the first four are
+recommended together, as one story: the fuzzball flies the ship, and
+brings its strays home.
+
+1. **The pilot.** The pod's window grows from 0.29 to 0.4 units across its
+   radius and shows the fuzzball inside, in the accent on the window's
+   color. The pilot stays upright while the pod turns round it, its eyes
+   glancing toward the heading, and it blinks every few seconds where motion
+   is welcome. On a phone the window is about 7 CSS px across, where the
+   pilot is two dark eyes in it; on a desktop, about 14, where its fur shows.
+2. **Pilots for ships.** The bar draws each ship left as a small fuzzball,
+   in the accent, rather than a pod, and the Extra ship pickup carries one.
+3. **The bail-out.** When a ship is lost, the pod bursts and its pilot pops
+   out in a bubble and floats off the field, blinking, over 1.4 s, where
+   motion is welcome; the next pilot arrives with the next ship. It softens
+   the moment, which a casual game wants.
+4. **Strays to bring home, in place of the gold nugget.** From wave 3, a
+   fuzzball adrift in a bubble crosses the field once on a gentle curve, as
+   the nugget would. Shots pass through its bubble; the ship brings it home
+   by touching it, guarded or not, for 500 points, and the Magnet draws it
+   in. Each run counts its strays, on the result card ("3 fuzzballs brought
+   home"), and the records count them all. Wave 26, Gold rush, becomes Lost
+   and found, with three. It asks the player to fly somewhere, through the
+   rocks, rather than shoot something, which the genre's glide rewards.
+5. **A constellation, optional.** In Endless, a dozen of the field's specks
+   trace the fuzzball's outline and two brighter ones its eyes, faint, for a
+   player who looks. It changes nothing.
+
+Not recommended: the ship as a fuzzball, since a round ship can't show where
+it points, and fuzzy rocks, since the mark shouldn't be what the player
+shoots.
+
+What it takes: the view's fence allows `@fz/style/fuzzball`, which is data;
+`art.ts` draws the body and eyes as circles and ellipses and flattens the
+fur's curves into short lines for Phaser's `Graphics`; the pilot's eyes are
+a frame of their own, moved within the window. The bar draws its fuzzballs
+from the same shapes, as `<fz-wordmark>` does. Taking 4 renames the nugget
+in the catalogs, the waves and the records (`strays`), and moves it from
+the shots' targets to what the ship catches.
 
 ## Growing it
 
@@ -686,8 +855,9 @@ to 1.4, a chance outside 0 to 1, a range that runs backward.
 | The compiler       | everywhere                     | Every trait and effect has its rule, and every rock, weapon and pickup its art                                                                         |
 | The catalog spec   | `src/rules/catalog.spec.ts`    | Every entry has a name and a sentence; every kind is used by a wave from its `from`; every pickup can come in a wave from its `from`; weights positive |
 | The waves spec     | `src/rules/waves.spec.ts`      | Every wave parses; ids and names unique; the pace never falls within a sector; each sector ends with a boulder                                         |
-| The placement spec | `src/rules/spawn.spec.ts`      | Over many seeds, every wave lays its rocks out fairly: 12 units off, no course within 5 units in 3 s                                                   |
-| The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave, at every speed, from fixed seeds, is cleared by `src/testing/autopilot.ts` within four minutes of game time                                |
+| The placement spec | `src/rules/spawn.spec.ts`      | Over many seeds and on the narrowest and widest fields, every wave lays its rocks out fairly: 12 units off, no course within 5 units in 3 s            |
+| The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave, and Endless's 31 to 60, at every speed, on the narrowest and widest fields, from fixed seeds, is cleared within four minutes of game time  |
+| The Endless spec   | `src/rules/endless.spec.ts`    | Every wave it makes from 31 to 200, over many seeds, parses as a written wave does, keeps to its budget and the cap, and is the same for the same seed |
 | The contrast spec  | `src/view/contrast.spec.ts`    | Every ink, the ship, shots, pickups, comet and nugget against the field in every palette; the marks against their rocks; the outline against every ink |
 | The scene spec     | `src/scene/belt_scene.spec.ts` | Every kind in every state is drawn from a frame of the atlas, and an object across an edge is drawn on both sides                                      |
 
@@ -748,9 +918,14 @@ As Brick Breaker's, four folders under `src/`, fenced by
 
 - `tuning.ts` the numbers; `speed.ts` the three speeds; the clock from
   `@fz/core/clock`.
-- `torus.ts`: the wrap, the shortest way from one place to another across
-  it, the distance, and the copies an object near an edge needs drawn (one
-  to four), which the view reads.
+- `torus.ts`: the field's size in units, the wrap, the shortest way from
+  one place to another across it, the distance, and the copies an object
+  near an edge needs drawn (one to four), which the view reads.
+- `fill.ts`: a wave's counts for a field's area (`fillFor()`), the cap, the
+  pickups at once, the nuggets and the comets' times, and the stretch a
+  pause makes (`stretchField()`), so the autopilot plays them as a player
+  meets them.
+- `endless.ts`: Endless's waves, from the run's seed and the wave's number.
 - `ship.ts`: the ship's flight from a frame's `Steer` (`turn` of −1 to 1, or
   a `heading` to turn toward; `thrust` 0 to 1; `fire`; `dash`), its guard,
   its dash and its recharge.
@@ -778,17 +953,23 @@ Every object is a circle on the torus. Each step, at 1/120 s: the ship
 flies; every rock and pickup moves and wraps; each shot is swept from its
 last place to its next against every rock (the shortest way across the
 wrap), and the first it meets takes the hit; the ship is tested against
-every rock, comet and pickup; blasts due go off. With 48 rocks, 30 shots
-and a comet that is under two thousand circle tests a step, which needs no
-spatial index; Q2 times it in Node.
+every rock, comet and pickup; blasts due go off. At the widest field's cap,
+105 rocks, with 30 shots and two comets, that is under four thousand circle
+tests a step, which needs no spatial index; Q2 times it in Node, and a grid
+of cells joins only if it doesn't fit.
 
 ### The view
 
-- `field_metrics.ts`: where the field and the deck lie on the canvas, from
-  `@fz/phaser/layout`'s `fitCells()` with one cell across and down, inside
-  the insets the deck leaves (`deckLayout()`: upright, the room under the
-  largest square that leaves 136 CSS px; on its side, the room either side
-  of one that leaves 120), with `toCanvas()` and `toField()` between the two.
+- `field_metrics.ts`: where the deck and the field lie on the canvas and
+  the field's size in units: `deckLayout()` takes the deck's share of the
+  stage (a quarter of its height upright, 136 to 200 CSS px; a sixth of its
+  width each side on its side, 112 to 176), and `fieldShape()` fits the
+  field into the rest, its short side 40 units and its long side up to 88,
+  on whole device pixels, a unit being whatever fraction that makes; with
+  `toCanvas()` and `toField()` between the two. `@fz/phaser/layout`'s
+  `fitCells()` doesn't fit, as it makes each cell a whole number of device
+  pixels, which would waste up to 88 of them on the long side; the game
+  keeps its own, as no other game needs it yet.
 - `steering.ts`: `Steering`, which turns held keys, the mouse and fingers
   into each frame's `Steer`: the keys as a turn and a push, the pointer as a
   heading, the stick (`stick.ts`, its rings, its remapping, its following
@@ -846,8 +1027,10 @@ turns, as it does for Brick Breaker.
 ### Performance
 
 Brick Breaker's bar holds: a frame's work under 4 ms at the median with the
-CPU throttled six times, measured at the busiest moment (Tempest, 48 rocks,
-Rapid with Spread, a blast chain); nothing allocated per step or frame
+CPU throttled six times, measured at the busiest moment (Tempest on the
+widest field, at the cap of 105 rocks, Rapid with Spread, a blast chain), on
+a 2560 × 1440 window too, where the atlas is scaled up; nothing allocated
+per step or frame
 (`phaser-canvas-performance`); a check at 120 Hz this time, which Brick
 Breaker never had. Phaser loads with `import()` after the page paints.
 
@@ -856,8 +1039,10 @@ Breaker never had. Phaser loads with `import()` after the page paints.
 As Brick Breaker's: the rules and the view in Node, each spec beside its
 file, a floor on both; fields from pictures in `src/testing/`
 (`fieldFrom()`, a rock or ship placed and stepped); the stick and the deck's
-layout by cases (every `@fz/dev/layout` shape gives a square field and a
-deck of its least size); the autopilot and the placement over seeds; the
+layout by cases (every `@fz/dev/layout` shape gives a field filling its
+room, a short side of 40 units, a unit of 6 CSS px or more and a deck of
+its least size); the fill and the stretch by cases; the autopilot and the
+placement over seeds and field shapes; Endless's waves over seeds; the
 saved game's round trip; the contrast spec over every palette; the scene on
 real Phaser through `runScene()`, the shell through
 `provideFakePhaserCanvas()`; `yarn check:layout` at every shape and turned,
@@ -900,8 +1085,9 @@ more.
   lodestone's pull (large).
 - **A4** Pickups, effects, the nugget and the comet, scoring and the event
   log (large).
-- **A5** Waves as data, the first five waves, the placement, the run, and the
-  field whole (`field.ts`; medium).
+- **A5** Waves as data, the first five waves, the placement, the fill and
+  the stretch for any field's shape, the run, and the field whole
+  (`field.ts`; medium).
 - **A6** The autopilot and `yarn report:waves`; then **Q2**: the five waves
   over many seeds at every speed, a thousand seeded random flights checked
   for a ship, shot or rock off the torus, the physics' cost at the cap
@@ -911,27 +1097,33 @@ more.
 - **A8** The scene: the painters, the cameras, the copies across edges, the
   pools and flourishes (large).
 - **A9** Play and the board: `GameService`, `WavePlay`, the board with its
-  cards and the deck's room, and a development build's tuning drawer
-  (large). Then **Q3, the feel gate:** the five waves played by keys, mouse,
-  and on real phones upright and on their side, Android's Chrome and, if
-  one is to hand, an iPhone's Safari; the numbers in `tuning.ts` and the
-  stick's tuned by the user's play; screenshots sent as they are taken. The
+  cards and the deck's room, and the debug menu with every control the
+  mock's sketch has, Reset and Copy the numbers (large). Then **Q3, the
+  feel gate:** the five waves played by keys, mouse, and on real phones
+  upright and on their side, Android's Chrome and, if one is to hand, an
+  iPhone's Safari, and in windows from a small phone's to a 2560 × 1440
+  desktop's; the numbers in `tuning.ts` and the stick's tuned by the user's
+  play through the debug menu; screenshots sent as they are taken. The
   other waves aren't built until the user says the feel is right.
 - **A10** The bar, the icon, the Sectors, Result, How to play and
   Settings dialogs (medium).
 - **A11** Sound, haptics (small).
 - **A12** Storage: settings, stats, progress, the saved game (medium).
 - **A13** The other twenty-five waves, tuned by `yarn report:waves` and by
-  play (large); then **Q4**, the whole shell, every dialog by keyboard and
-  by mouse, records and a saved game across a reload, a light palette and a
-  dark.
-- **A14** The checks: `check:layout` with the deck at every shape and
-  turned, the accessibility tree, Lighthouse, a performance trace at ×6 and
-  at 120 Hz, the bundle's size (medium); **Q5**.
-- **A15** Screenshots, the `AGENTS.md`, the `asteroid-breaker-testing` and
+  play (large).
+- **A14** Endless: `endless.ts`, its spec, the Sectors dialog's fourth row,
+  Storm cleared's card and the records' "cleared all thirty", Endless's
+  waves 31 to 60 in the report (medium); then **Q4**, the whole shell, every
+  dialog by keyboard and by mouse, records and a saved game across a reload,
+  one in Endless among them, a light palette and a dark.
+- **A15** The checks: `check:layout` at every shape and turned, the field
+  filling its room and the deck in its place, the accessibility tree,
+  Lighthouse, a performance trace at ×6 and at 120 Hz on the widest field,
+  the bundle's size (medium); **Q5**.
+- **A16** Screenshots, the `AGENTS.md`, the `asteroid-breaker-testing` and
   `asteroid-breaker-content` skills, `node .agents/link-claude-skills.mjs`
   (medium).
-- **A16** Ship: `games.json`, the site's catalog entry
+- **A17** Ship: `games.json`, the site's catalog entry
   (`category: "arcade"`, its blurb "Fly, drift and blast every rock to
   rubble before one finds you."), the image built and played at
   `/play/asteroid-breaker/` with the console open, no "Refused to load";
@@ -942,9 +1134,18 @@ more.
 - **Touch feel is the game, and only a person on a phone can judge it.**
   The earlier games never had a real-device pass; this one has its gate at
   Q3, before most of the content exists.
-- **A small phone on its side is tight:** at 568 × 320 the field is about
-  264 CSS px across between two decks of 120. The layout check holds its
-  unit to 6 CSS px; if it plays badly there, the decks shrink first.
+- **A small phone on its side is tight:** at 568 × 320 the field is 256 CSS
+  px across between two decks of 112, a unit of 6.4. The layout check holds
+  its unit to 6 CSS px; if it plays badly there, the decks shrink first.
+- **A wider field is a longer wave.** At constant density a desktop's
+  field holds 1.8 times a 40 by 40's rocks, the widest 2.2, so its waves take
+  longer and score more, and bests made on a desktop beat a phone's. The
+  autopilot's report shows the lengths on both; if a desktop's waves drag,
+  the long side's cap comes down before the density does.
+- **A very large window draws everything large,** a ship of 80 CSS px on a
+  2560 × 1440 screen, since the short side is always 40 units. The atlas is
+  scaled past 40 device px a unit, which softens edges a little; the
+  screenshots at that size show whether it matters.
 - **iPhone Safari's edge swipe** goes back a page and can't be fully
   stopped; the decks keep 16 px off the edges and inside the safe areas.
 - **Thumbs near the bar.** Upright, the bar sits under the deck; a thumb
@@ -961,6 +1162,6 @@ more.
 ## Not in this plan
 
 - A gamepad (decision 24), and full screen on phones that allow it.
-- Enemy ships, an endless mode after wave 30, a Custom speed, ships to
-  choose between, co-op, online leaderboards, tilt.
+- Enemy ships, a Custom speed, ships to choose between, co-op, online
+  leaderboards, tilt.
 - Moving the stick into a library, until a second game wants one.
