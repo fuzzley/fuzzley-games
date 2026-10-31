@@ -204,6 +204,18 @@ describe("the serve", () => {
 
     expect(lastMove(field)).toBeCloseTo(ballSpeed("normal", 1, 0) * STEP_S);
   });
+
+  it("moves the ball on as far as its speed scale says", () => {
+    const field = fieldFrom(FAR_BRICK);
+    field.ballSpeedScale = 1.5;
+    launch(field);
+
+    stepField(field);
+
+    expect(lastMove(field)).toBeCloseTo(
+      ballSpeed("normal", 1, 0) * 1.5 * STEP_S,
+    );
+  });
 });
 
 describe("the walls", () => {

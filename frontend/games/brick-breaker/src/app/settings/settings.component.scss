@@ -2,4 +2,10 @@
 
 .drawer {
   @include settings-drawer;
+
+  .range {
+    width: 100%;
+    margin: 0;
+    accent-color: var(--fz-accent);
+  }
 }
