@@ -331,3 +331,48 @@ and build across every workspace.
   6. Optional, and done: the fake browser answers from a table rather than
      five nested conditions, and "a board with no canvas" was one with no
      element, so it is named so, beside a case with no canvas.
+
+## L3: done
+
+2026-10-31. `yarn verify` passed on L3.1's commit.
+
+## L4.1: docs
+
+2026-10-31.
+
+- **Built.** The `fuzzley-ui` skill names `@fz/core`'s new helpers, in its
+  description, its triggers and its table of libraries, which now gives
+  the library a game's code with no framework, not its rules alone, and
+  says where to reach for each: a clock of fixed steps, a log of events, a
+  frame's sounds and points written as a player reads them. The
+  `phaser-core` skill, where a Phaser game's author starts, names the
+  clock and the log where it says how a game runs in time.
+- **Choices.** Every other doc the plan's L4.1 named was brought up to
+  date in the step that made it untrue, as the plan's "A step is a commit"
+  asks: `@fz/core`'s `AGENTS.md` and `package.json` with each of L1's
+  four, `frontend/games/AGENTS.md` and Brick Breaker's `AGENTS.md` with
+  the step that moved what they named, `@fz/phaser`'s `AGENTS.md` and
+  the `phaser-core` skill's line on sound with L2.1, and `@fz/dev`'s
+  `AGENTS.md` with L3.1. A sweep of every `AGENTS.md` and skill for the
+  old homes (`stepper.ts`'s clock, `EventLog`, `FrameSounds`,
+  `formatPoints()`) found none left; the `brick-breaker-testing` skill
+  named none of them.
+- **Checks.** `node .agents/check-skill-references.mjs`,
+  `yarn prettier:check`. L4's `yarn verify` is L5.1's first run.
+- **Review.**
+  1. The skill's description ran to 1,062 characters, past the 1,024 a
+     skill's loader may cut it at, and its triggers come last. Fixed: 995,
+     the library named for a game's code with no framework, as its shells
+     import it too.
+  2. `phaser-core`, where Asteroid Breaker's builder will look first,
+     didn't name the lifted clock and log. Fixed.
+  3. `stepsIn()` was written bare, beside Brick Breaker's `stepsIn(ms)` of
+     the same name. Fixed: `stepsIn(ms, stepMs)`.
+  4. The log's row didn't say how it is made, nor name `latest`, which
+     every reader keeps, and said the shell plays events it only reads.
+     Fixed.
+  5. A row read badly, `FrameSounds` lacked its `<Name>` beside
+     `EventLog<E>`, and the new rows' first cells widened the table, so
+     every row of it changed. Fixed: the cells fit the column as it was.
+  6. L4 had no `yarn verify` of its own. L5.1's first run is it, as the
+     line above says.
