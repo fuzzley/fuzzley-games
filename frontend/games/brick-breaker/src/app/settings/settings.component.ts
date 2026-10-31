@@ -6,6 +6,7 @@ import { ThemePickerComponent } from "@fz/ui/theme";
 import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
 import { TOUCH_STEERINGS, type TouchSteering } from "../../view/steering";
 import { GameService } from "../play/game.service";
+import { DEBUG_MENU } from "../tokens";
 import { SettingsService } from "./settings.service";
 
 /** Describes one choice of a setting, as the drawer offers it. */
@@ -26,9 +27,15 @@ const TOUCH_INFO: Readonly<Record<TouchSteering, ChoiceInfo>> = {
   },
 };
 
+/** Returns a speed in units a second as the debug menu writes it, to a tenth. */
+function unitsOf(speed: number): string {
+  return String(Math.round(speed * 10) / 10);
+}
+
 /**
  * Shows the settings in a drawer: the speed, how a finger steers the
- * paddle, the sound, and the palette.
+ * paddle, the sound, and the palette, and in a development build the ball's
+ * speed to try.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
  * the speeds are radios the arrow keys move between without choosing. The
@@ -50,6 +57,9 @@ export class SettingsComponent {
   private readonly store = inject(SettingsService);
 
   protected readonly settings = this.store.settings;
+
+  /** Whether to offer the debug menu, as a development build does. */
+  protected readonly debugMenu = inject(DEBUG_MENU);
 
   /** Whether the drawer is showing. */
   readonly open = input.required<boolean>();
@@ -76,6 +86,21 @@ export class SettingsComponent {
     }));
   });
 
+  /** The ball's speed as the debug menu scales it, and what it comes to at the run's speed. */
+  protected readonly ballSpeedScale = computed(() => {
+    const value = this.game.ballSpeedScale();
+    const { name, base, top } = SPEED_INFO[this.game.speed()];
+    const scale = `×${value.toFixed(2)}`;
+    return {
+      value,
+      scale,
+      says:
+        `${scale}: at ${name}, the ball serves at ${unitsOf(base * value)} ` +
+        `and climbs to ${unitsOf(top * value)} units a second, before a ` +
+        `level's pace and what a capsule does to it.`,
+    };
+  });
+
   /** Starts a run at the speed chosen, unless it is the speed in use. */
   protected async chooseSpeed(speed: Speed): Promise<void> {
     if (speed === this.game.speed()) return;
@@ -90,5 +115,10 @@ export class SettingsComponent {
   /** Turns the sound on or off, as its checkbox says. */
   protected setSound(sound: boolean): void {
     this.store.update({ sound });
+  }
+
+  /** Scales the ball's speed, as the debug menu's slider says. */
+  protected setBallSpeedScale(scale: number): void {
+    this.game.setBallSpeedScale(scale);
   }
 }

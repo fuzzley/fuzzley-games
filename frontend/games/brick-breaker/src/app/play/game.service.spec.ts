@@ -83,6 +83,15 @@ async function gameAt(level: number): Promise<GameService> {
   return game;
 }
 
+/** Returns how far the first ball moves in the game's next frame, the paddle still. */
+function travelled(game: GameService): number {
+  const [ball] = game.frame().field.balls;
+  if (!ball) throw new Error("No ball on the field.");
+  const { x, y } = ball;
+  game.tick(FRAME_MS, STILL);
+  return Math.hypot(ball.x - x, ball.y - y);
+}
+
 /** Returns the game with its run's level started, the ball served. */
 async function launchedAt(level: number): Promise<GameService> {
   const game = await gameAt(level);
@@ -251,6 +260,30 @@ describe("GameService", () => {
       game.nextLevel();
 
       expect(game.fieldHeight()).toBe(TALLEST_FIELD);
+    });
+  });
+
+  describe("the ball's speed scale", () => {
+    it("moves the ball as far again a frame at twice the scale", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+      const unscaled = travelled(game);
+
+      game.setBallSpeedScale(2);
+
+      expect(travelled(game) / unscaled).toBeCloseTo(2);
+    });
+
+    it("holds on the next level", async () => {
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+      game.setBallSpeedScale(2);
+      playUntil(game, () => STILL, game.clearedOpen);
+      game.nextLevel();
+      game.launch();
+
+      const scaled = travelled(game);
+
+      game.setBallSpeedScale(1);
+      expect(scaled / travelled(game)).toBeCloseTo(2);
     });
   });
 

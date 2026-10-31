@@ -1,9 +1,11 @@
+import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
 import { GameService } from "../play/game.service";
+import { DEBUG_MENU } from "../tokens";
 import { SettingsComponent } from "./settings.component";
 import { SETTINGS_KEY, SettingsService } from "./settings.service";
 
@@ -14,13 +16,15 @@ interface RenderedSettings {
   readonly closed: ReturnType<typeof vi.fn>;
 }
 
-/** Renders the settings, open, over the specs' levels. */
-async function renderSettings(): Promise<RenderedSettings> {
+/** Renders the settings, open, over the specs' levels and the providers given. */
+async function renderSettings(
+  providers: Provider[] = [],
+): Promise<RenderedSettings> {
   const closed = vi.fn();
   await render(SettingsComponent, {
     inputs: { open: true },
     on: { closed },
-    providers: provideSpecLevels(),
+    providers: [...provideSpecLevels(), ...providers],
   });
   return {
     user: userEvent.setup(),
@@ -131,6 +135,72 @@ describe("SettingsComponent", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Midnight blue/ })).toBeVisible();
+  });
+
+  describe("in a development build", () => {
+    it("offers the ball's speed at the speed's own", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("slider", { name: "Ball speed (debug)" }),
+      ).toHaveValue("1");
+    });
+
+    it("scales the ball's speed as the slider says", async () => {
+      const { game } = await renderSettings();
+
+      fireEvent.input(
+        screen.getByRole("slider", { name: "Ball speed (debug)" }),
+        { target: { value: "1.5" } },
+      );
+
+      expect(game.ballSpeedScale()).toBe(1.5);
+    });
+
+    it("names the scale it is at", async () => {
+      const { game } = await renderSettings();
+
+      game.setBallSpeedScale(1.5);
+
+      expect(
+        await screen.findByRole("slider", { name: "Ball speed (debug)" }),
+      ).toHaveAttribute("aria-valuetext", "×1.50");
+    });
+
+    it("says what the scale comes to at the run's speed", async () => {
+      const { game } = await renderSettings();
+
+      game.setBallSpeedScale(1.5);
+
+      expect(
+        await screen.findByRole("slider", {
+          description:
+            "×1.50: at Normal, the ball serves at 30 and climbs to 45 units a second, before a level's pace and what a capsule does to it.",
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("says what the scale comes to at another speed, once a run starts at it", async () => {
+      const { game } = await renderSettings();
+      game.setBallSpeedScale(1.5);
+
+      await game.changeSpeed("fast");
+
+      expect(
+        await screen.findByRole("slider", {
+          description:
+            "×1.50: at Fast, the ball serves at 36 and climbs to 54 units a second, before a level's pace and what a capsule does to it.",
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("offers no ball's speed in a production build", async () => {
+    await renderSettings([{ provide: DEBUG_MENU, useValue: false }]);
+
+    expect(
+      screen.queryByRole("slider", { name: "Ball speed (debug)" }),
+    ).not.toBeInTheDocument();
   });
 
   it("asks to close at its close button", async () => {

@@ -140,6 +140,8 @@ export interface Field {
   climbRate: number;
   /** The balls' speed against what it would be: 1, or another while paced. */
   paceScale: number;
+  /** A factor on the balls' speed on top of every other: 1 unless set to another. */
+  ballSpeedScale: number;
   /** The kind every ball in play is. */
   ballKind: BallKindId;
   /** What the paddle does beyond turning the balls, or null. */
@@ -276,6 +278,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     climbed: 0,
     climbRate: 1,
     paceScale: 1,
+    ballSpeedScale: 1,
     ballKind: "normal",
     mode: null,
     net: false,
@@ -337,7 +340,7 @@ export function ballSpeedOf(field: Readonly<Field>): number {
     field.climbed,
     field.paceScale,
   );
-  return speed * ballKind(field.ballKind).speed;
+  return speed * ballKind(field.ballKind).speed * field.ballSpeedScale;
 }
 
 /** Moves each ball on by a step, until the level is cleared. */

@@ -82,6 +82,30 @@
         <span class="setting-label" aria-hidden="true">Theme</span>
         <fz-theme-picker />
       </div>
+
+      @if (debugMenu) {
+        <div class="setting">
+          <label class="setting-label" for="ball-speed-scale"
+            >Ball speed (debug)</label
+          >
+          <input
+            #slider
+            id="ball-speed-scale"
+            class="range"
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.05"
+            aria-describedby="ball-speed-scale-desc"
+            [attr.aria-valuetext]="ballSpeedScale().scale"
+            [value]="ballSpeedScale().value"
+            (input)="setBallSpeedScale(slider.valueAsNumber)"
+          />
+          <p class="setting-desc" id="ball-speed-scale-desc">
+            {{ ballSpeedScale().says }}
+          </p>
+        </div>
+      }
     </div>
   </div>
 </fz-dialog>

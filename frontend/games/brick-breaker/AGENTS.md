@@ -245,7 +245,8 @@ doesn't see, so Phaser stays out of the first download.
     its card opens (`chimes`),
     and asks through `@fz/ui/confirm` before a new game or speed throws a run
     away. `src/app/tokens.ts` holds what a spec hands it instead of the
-    game's own: the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`).
+    game's own: the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`),
+    and whether the settings offer the debug menu (`DEBUG_MENU`).
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
     as the page goes away, never at a step, and forgets it once the run ends
@@ -300,7 +301,11 @@ doesn't see, so Phaser stays out of the first download.
     drawn, its picture, which the app hands it from the board.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
     sound and the palette) and `SettingsService`, which keeps what the player
-    chose, the speed of the last run started among it.
+    chose, the speed of the last run started among it. In a development build
+    (`DEBUG_MENU`, from `import.meta.env.DEV`, as a game's own dev server runs
+    it) the drawer also offers a slider for the ball's speed, ×0.5 to ×2 the
+    speed's own, which `GameService.setBallSpeedScale()` gives the field in
+    play and every one after it (`Field.ballSpeedScale`), and nothing keeps.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `stats.ts` reads and moves on, each speed's runs, best score and
     furthest level, and each level's best points at each speed; and

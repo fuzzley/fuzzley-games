@@ -128,6 +128,7 @@ export class GameService {
   private readonly newBestState = signal(false);
   private readonly chimesState = signal(0);
   private readonly fieldHeightState = signal(FIELD_HEIGHT);
+  private readonly ballSpeedScaleState = signal(1);
 
   /** The run on the board. */
   readonly run = this.runState.asReadonly();
@@ -159,6 +160,9 @@ export class GameService {
 
   /** How tall the field in play is, in field units. */
   readonly fieldHeight = this.fieldHeightState.asReadonly();
+
+  /** How fast the balls go against the speed's own, as `setBallSpeedScale()` set it. */
+  readonly ballSpeedScale = this.ballSpeedScaleState.asReadonly();
 
   /** Where the run stands. */
   readonly outcome = computed(() => this.runState().outcome);
@@ -423,6 +427,15 @@ export class GameService {
     this.fitField();
   }
 
+  /**
+   * Scales how fast the balls go against the speed's own, on the field in
+   * play and every one after it, for a development build's debug menu.
+   */
+  setBallSpeedScale(scale: number): void {
+    this.ballSpeedScaleState.set(scale);
+    this.levelPlay.field.ballSpeedScale = scale;
+  }
+
   /** Says whether the board is drawn yet, as the board's canvas reports it. */
   setDrawn(drawn: boolean): void {
     this.drawnState.set(drawn);
@@ -580,6 +593,7 @@ export class GameService {
   /** Lays out the run's level in play on a new field, with nothing of the last one left. */
   private showField(run: Run): void {
     this.levelPlay = new LevelPlay(this.fieldOf(run));
+    this.levelPlay.field.ballSpeedScale = this.ballSpeedScaleState();
     this.fitField();
     this.servingState.set(true);
     this.multiplierState.set(1);
