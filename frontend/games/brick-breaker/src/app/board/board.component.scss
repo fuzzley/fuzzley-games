@@ -96,21 +96,26 @@
   outline-color: var(--fz-focus-ring-color);
 }
 
-// In the middle of the field, letting clicks and taps through to the canvas
-// but on its button.
+// Over the field, setting a card in its middle, letting clicks and taps
+// through to the canvas but on the card's button. A grid sets the card at its
+// own height: Safari stretched one held between insets with
+// `height: fit-content` from top to bottom.
+.cards {
+  position: absolute;
+  inset: 0 0 var(--finger);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
 .card {
   @include glass(12px);
 
-  position: absolute;
-  inset: 0 0 var(--finger);
   display: grid;
   justify-items: center;
   gap: var(--fz-space-2);
   box-sizing: border-box;
-  width: fit-content;
   max-width: min(320px, 100cqmin - 4 * var(--room));
-  height: fit-content;
-  margin: auto;
   padding: var(--fz-space-5) var(--fz-space-6);
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-lg);
@@ -118,7 +123,6 @@
   box-shadow: var(--fz-shadow-card);
   color: var(--fz-text);
   text-align: center;
-  pointer-events: none;
 
   p {
     margin: 0;
