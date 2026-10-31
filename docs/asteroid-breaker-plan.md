@@ -22,8 +22,9 @@ the mock, not the game's.
 The game keeps the genre's conventions: inertia, a wrapping field, rocks that
 split into smaller, faster pieces. What is its own: rock kinds as a catalog
 (as Brick Breaker's bricks are), thirty designed waves in three sectors, a
-comet and a gold nugget in place of enemy ships, a dash in place of a random
-jump, a chain multiplier, a round pod for a ship, and flat art in the site's
+comet and stray fuzzballs to bring home in place of enemy ships, a dash in
+place of a random jump, a chain multiplier, a round pod flown by the site's
+fuzzball, each pilot in a color of its own, and flat art in the site's
 palettes.
 
 ## What other games teach
@@ -48,8 +49,8 @@ the genre, and guides to touch controls. No other game's code was read.
   aimed at the same strategy
   ([Wikipedia](<https://en.wikipedia.org/wiki/Asteroids_(video_game)>),
   [Asteroids Deluxe](https://en.wikipedia.org/wiki/Asteroids_Deluxe)). A
-  game here has no endless source of points to farm: the gold nugget comes a
-  set number of times a wave, and comets pay nothing.
+  game here has no endless source of points to farm: the strays come a set
+  number of times a wave, and comets pay nothing.
 - **Pickups that come to you, and come often enough.** Blasteroids' power
   crystals decay, so they must be caught quickly
   ([Blasteroids](https://en.wikipedia.org/wiki/Blasteroids)); reviewers of
@@ -101,9 +102,11 @@ recommendation taken.
 
 **Answered 2026-10-31:** every recommendation, with the user's changes:
 the field fills the screen, however it is shaped, with rocks to match
-(decision 3, rewritten); thirty waves and then Endless (decision 12); and
-every control in the mock's sketch in the game's debug menu (decision 23).
-Decision 25, the fuzzball, is open.
+(decision 3, rewritten); thirty waves and then Endless (decision 12); every
+control in the mock's sketch in the game's debug menu (decision 23); and all
+five of the fuzzball's ideas, the constellation too, each pilot in a color
+of its own that stands out in the palette the player chose (decision 25).
+Decision 26, which follows from 25, is open.
 
 1. **The name:** Asteroid Breaker, at `/play/asteroid-breaker/`, workspace
    `games/asteroid-breaker`, port 9005, in Arcade. Or a shorter name (Rock
@@ -141,9 +144,10 @@ Decision 25, the fuzzball, is open.
    well as its color: stone, ice, crystal, iron, volatile, lodestone and
    the boulder. Rocks pass over each other rather than collide, so where a
    rock goes can be read.
-9. **No enemy ships.** The gold nugget, which crosses once and pays well,
-   and the comet, a hazard warned of at the edge, give a wave its surprises.
-   Or a hunter that chases the ship, later, as a kind.
+9. **No enemy ships.** A stray fuzzball, which crosses once and pays well
+   when brought home (decision 25; it was a gold nugget to shoot), and the
+   comet, a hazard warned of at the edge, give a wave its surprises. Or a
+   hunter that chases the ship, later, as a kind.
 10. **Pickups:** eight, none bad: Spread, Rapid, Lance, Shield, Magnet,
     Slow, Nova and an extra ship. One of each group at a time; drawn in to
     the ship from 3 units; 8 s to catch one; and one guaranteed after 25 s
@@ -165,7 +169,7 @@ Decision 25, the fuzzball, is open.
     breaks each within 1.5 s of the last scores double from the fifth,
     triple from the tenth and four times from the twentieth, as Brick
     Breaker's streak; 500 for a cleared wave and 500 more without a ship
-    lost; 500 for the gold nugget.
+    lost; 500 for a stray brought home.
 16. **Speeds:** Relaxed, Normal and Fast, in the bar's `<fz-bar-choice>`,
     with bests for each; Relaxed's comets come half as often. A Custom speed
     later, as Brick Breaker grew one.
@@ -176,13 +180,14 @@ Decision 25, the fuzzball, is open.
 18. **Flourishes,** only where motion is welcome: shards, a hit's flash,
     points that rise, a kick on a big break, a shake and a brief pause on a
     lost ship, the thrust's exhaust and the dash's trail.
-19. **Sound:** twelve effects and a thrust's hum while it is held, on by
-    default, with the Sound button.
+19. **Sound:** thirteen effects (twelve, and a stray brought home's, which
+    decision 25 adds) and a thrust's hum while it is held, on by default,
+    with the Sound button.
 20. **Haptics:** a short buzz as a ship is lost and as a wave clears, on
     phones that can (Android's browsers; Safari can't), on by default, in
     the settings.
 21. **A game taken up after a reload** keeps its rocks as they were, its
-    score, ships and wave; the shots, pickups, comets and effects go, and
+    score, ships, pilots and wave; the shots, pickups, comets and effects go, and
     the ship waits where it is safest; it comes back paused.
 22. **Part 1 lifts six pieces** into the libraries (the step clock, the
     event log, the frame's sounds and grouped points into `@fz/core`, a held
@@ -196,12 +201,23 @@ Decision 25, the fuzzball, is open.
     `tuning.ts`.
 24. **No gamepad in this plan.** The stick's model maps straight onto one,
     so it is a small follow-up.
-25. **Fuzzley flavor (open).** Recommended, together, as "Fuzzley flavor"
-    below draws out: the fuzzball pilots the ship, seen in its window; the
-    ships left show as fuzzballs; a lost ship's pilot bails out in a bubble;
-    and stray fuzzballs, to fly into and bring home, take the gold nugget's
-    place. Optional: a fuzzball constellation in Endless's stars. Not
-    recommended: the ship as a fuzzball, or fuzzy rocks to shoot.
+25. **Fuzzley flavor** (the user's): all five, as "Fuzzley flavor" below
+    draws out: the fuzzball pilots the ship, seen in its window; the ships
+    left show in the bar as their pilots; a lost ship's pilot bails out in a
+    bubble; stray fuzzballs, to fly into and bring home, take the gold
+    nugget's place; and in Endless a fuzzball constellation lies among the
+    stars. Every pilot, adrift, waiting in the bar or at the controls, has
+    a color of its own, one of eight held to stand out against the field
+    and the bar in the palette the player chose. Not taken: the ship as a
+    fuzzball, or fuzzy rocks to shoot.
+26. **A stray brought home joins the crew (open).** It waits at home, and
+    flies the next ship the run gains, by points or the Extra ship pickup,
+    in its own color, so the crew in the bar is the fuzzballs the player
+    brought home; ships still come only as decision 14 says. Or a stray
+    brought home is itself one more ship, up to six: a stray crosses nearly
+    every wave from wave 3, so that would give a ship most waves, against
+    about five in thirty waves by points, and the run would lose its
+    tension; the 10,000-point ships would go.
 
 ## Design reference
 
@@ -212,8 +228,8 @@ Decision 25, the fuzzball, is open.
 - **The field fills the room** the bar and the deck leave, inside a margin
   of 12 CSS px on a compact screen and 24 on a roomy one, with a frame of
   2 CSS px on every side, and wraps: whatever leaves by one edge comes in
-  by the other, ship, shots, rocks and pickups alike. The comet and the gold
-  nugget alone cross once and leave. Everything the rules know is in units;
+  by the other, ship, shots, rocks and pickups alike. The comet and a stray
+  alone cross once and leave. Everything the rules know is in units;
   the view turns them into device pixels.
 - **Its short side is 40 units,** and its long side as many as the room
   holds at that unit, up to 88, where a room wider than 2.2 to 1 shows the
@@ -224,7 +240,7 @@ Decision 25, the fuzzball, is open.
   40 (1,600 units²) and multiplied by the field's area over that, rounded
   to the nearest and never fewer than written: "3 large stone" is 5 on a
   desktop's 40 by 73. The cap on rocks, the pickups a field holds at once and
-  the gold nuggets grow the same way; comets come more often by the square
+  the strays grow the same way; comets come more often by the square
   root of it, as they cross a longer field. The autopilot plays every wave
   on the narrowest field and the widest.
 - **The field takes the room's shape as a wave starts, and while the game
@@ -234,8 +250,9 @@ Decision 25, the fuzzball, is open.
   window resized in play keeps the field's shape, fitted whole into the room,
   until the next wave or pause.
 - **The ship is a round pod,** 2.4 units long and 1.5 wide, its nose ahead,
-  two fins at its tail and a round window; it is hit only within 0.7 units
-  of its middle, less than it looks, so a graze is a miss.
+  two fins at its tail and a round window, 0.4 units across its radius,
+  where its pilot sits ("Pilots"); it is hit only within 0.7 units of its
+  middle, less than it looks, so a graze is a miss.
 - **It flies as the genre does.** Thrust pushes it along its heading; it
   keeps its speed and slows as it coasts, its speed halving every 1.5 s; it
   can't go faster than its top speed. Turning changes only where it points,
@@ -251,8 +268,8 @@ Decision 25, the fuzzball, is open.
   and for 0.1 s after nothing can hit it; then it keeps its old speed, plus
   a little along the heading, to its top speed. It recharges in 2.5 s,
   shown by a ring.
-- **A lost ship** bursts, ends the chain and every effect, and the next
-  waits 1 s later where it is safest: the middle, if no rock is within 9
+- **A lost ship** bursts, its pilot bailing out, ends the chain and every
+  effect, and the next waits 1 s later where it is safest: the middle, if no rock is within 9
   units of it, else the best of a 5 × 5 grid of places, by the distance to
   the nearest rock a second ahead. It waits there, untouchable and blinking,
   while the rocks fly on, until the player moves, turns, fires or dashes,
@@ -281,6 +298,7 @@ the mock's sketch has sliders for the ship's.
 | Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into one piece fewer                           |
 | A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                  |
 | Pickups               | 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet)                                               |
+| Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second; a bubble of 1.15; 500 points         |
 | The chain             | 1.5 s from one break to the next                                                                                              |
 | Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                       |
 
@@ -332,19 +350,47 @@ color, since color is never the only signal:
 A volatile rock's blast never hurts the ship. Blasts set each other off a
 beat apart (90 ms), so a chain reads as a chain.
 
-#### The gold nugget and the comet
+#### Strays and the comet
 
-- **The gold nugget** comes from wave 3, as many times a wave as the wave
-  says (once by default), 20 s into it if the wave is still on: it comes in
-  at an edge, crosses the field once on a gentle curve at 9 units a second,
-  and leaves. One hit breaks it, for 500 points, times the chain. A wave
-  never needs it.
+- **A stray fuzzball** comes from wave 3, as many times a wave as the wave
+  says (once by default, more on a larger field), the first 20 s into it if
+  the wave is still on and each after it 8 s after the last has gone, so one
+  is adrift at a time: in its bubble it comes in at an edge, crosses the
+  field once on a gentle curve at 3.2 units a second, slow enough to fly
+  to, its eyes on the ship, and leaves. Shots pass through its bubble. The
+  ship brings it home by touching it, its middle within 2 units of the
+  stray's, guarded, dashing or not, for 500 points, times the chain, and
+  the Magnet draws it in. A wave never needs it, and one that leaves costs
+  nothing. Each run counts its strays brought home, and the records count
+  them all.
 - **The comet** comes from wave 13, as often as its wave says: a chevron in
   the danger color pulses at the edge it will come in by for 1.5 s, then it
   crosses the field in a straight line at 26 units a second and leaves. It
   can't be broken, it breaks any rock it touches one size down, for no
   points, and it takes the ship unless the ship is dashing or shielded.
   Relaxed sends half as many.
+
+#### Pilots
+
+- **Every ship has a pilot,** the site's fuzzball, seen in its window, and
+  every pilot has a color of its own, one of eight ("Look" says which).
+- **A run starts with three,** in the first three colors. The bar shows a
+  fuzzball for each ship the run has, the pilot flying first, then the
+  others in the order they will fly.
+- **A stray brought home joins the crew** (decision 26): it waits at home,
+  in the order brought home, and flies the next ship the run gains, by
+  points or the Extra ship pickup, which joins the end of the line in the
+  bar in the stray's color. A ship gained with no one at home brings a new
+  pilot.
+- **A new pilot's color** is the next of the eight in turn, skipping any
+  worn by a pilot in the crew, at home or adrift, so no two share one while
+  eight are enough; with all eight worn, the next in turn. A stray takes its
+  color as it comes in, and keeps it at home and at the controls.
+- **A lost ship's pilot bails out** in a bubble of its color and floats off
+  the field; the next in the bar takes the controls.
+- **The rules know a pilot only as its color's number,** 0 to 7, as Brick
+  Breaker's levels know a brick's tint, and the view gives the number its
+  ink in the palette in play.
 
 #### Pickups
 
@@ -365,9 +411,9 @@ by touching it.
 | Spread     | three rays              | weapon  | Three shots at each pull, 12° apart                                                      | 12 s                         | 10     | 2         |
 | Rapid      | two chevrons            | weapon  | A shot each 0.07 s, 10 in flight                                                         | 12 s                         | 9      | 2         |
 | Shield     | a ring                  | guard   | The next rock or comet to touch the ship breaks a size down instead, and the shield goes | until used, or the wave ends | 7      | 2         |
-| Extra ship | the pod                 | at once | One more ship, up to six                                                                 | at once                      | 1      | 5         |
+| Extra ship | the pod, a pilot in it  | at once | One more ship, up to six, flown by the first stray at home, if one waits                 | at once                      | 1      | 5         |
 | Lance      | an arrow through a ring | weapon  | A shot passes through what it breaks, up to three rocks                                  | 10 s                         | 6      | 6         |
-| Magnet     | a horseshoe             | pull    | Draws pickups and the gold nugget in from 14 units                                       | 15 s                         | 5      | 6         |
+| Magnet     | a horseshoe             | pull    | Draws pickups and strays in from 14 units                                                | 15 s                         | 5      | 6         |
 | Slow       | an hourglass            | pace    | Rocks and comets move at half their speed                                                | 8 s                          | 5      | 8         |
 | Nova       | a starburst             | at once | A ring sweeps 12 units out from the ship; each rock it reaches takes a hit               | at once                      | 4      | 9         |
 
@@ -392,8 +438,11 @@ by touching it.
   twentieth four times. A pause of 1.5 s, or a lost ship, starts the count
   again. Blasts count. The bar shows the multiplier while it is above one,
   on a screen with room, and each break's points rise from it, "+40 ×2".
+- **A stray brought home scores 500,** times the chain, and doesn't count
+  on in it.
 - **A cleared wave adds 500,** and 500 more if no ship was lost on it.
-- **Points bring ships:** one at 10,000 and every 20,000 after, up to six.
+- **Points bring ships:** one at 10,000 and every 20,000 after, up to six,
+  each flown by the first stray at home, if one waits.
 - **A run's score** is everything from the wave it started on to its end.
   Bests are kept for each speed, for runs and for the furthest wave.
 
@@ -403,7 +452,7 @@ Thirty waves in three sectors of ten. Each sector brings a few new things,
 each first alone, in a wave built around it, before it joins the others.
 Within a sector the pace rises a little each wave, and the last wave has a
 boulder, as the sector's test. A wave is cleared when every rock in it is
-broken; the gold nugget and the comets never count. The counts below are
+broken; the strays and the comets never count. The counts below are
 for a field of 40 by 40; a larger field has more, by its area.
 
 **Sector 1, Inner belt** (pace 1.00 to 1.08)
@@ -412,7 +461,7 @@ for a field of 40 by 40; a larger field has more, by its area.
 | --- | ----------- | ------------------------------------- | ------------------------------------------- |
 | 1   | First light | 3 large stone                         | The flight and the split; no pickups        |
 | 2   | Gem         | 3 large stone, 1 large crystal        | The first pickups: Spread, Rapid and Shield |
-| 3   | Glint       | 4 large stone                         | The gold nugget                             |
+| 3   | Adrift      | 4 large stone                         | The first stray to bring home               |
 | 4   | Thaw        | 2 large ice, 2 large stone            | Ice                                         |
 | 5   | Hail        | 4 large ice                           | An extra ship can drop                      |
 | 6   | Scatter     | 8 medium stone, 2 medium crystal      | Many small targets; Lance and Magnet        |
@@ -445,7 +494,7 @@ for a field of 40 by 40; a larger field has more, by its area.
 | 23  | Gauntlet         | 3 large iron, 3 large lodestone            | Tough rocks that come to you |
 | 24  | Wildfire         | 4 large volatile, 3 large ice              | Chains through ice           |
 | 25  | Swarm            | 16 small stone and ice                     | Fast and many                |
-| 26  | Gold rush        | 5 large of four kinds; 3 gold nuggets      | Points for the brave         |
+| 26  | Lost and found   | 5 large of four kinds; 3 strays            | Strays for the brave         |
 | 27  | Pull             | 4 large lodestone; comets every 8–11 s     | Pulled into the comets' path |
 | 28  | Bulwark          | 5 large iron, 2 large crystal              | Iron, with help              |
 | 29  | Tempest          | 8 large of every kind; comets every 9–12 s | Everything                   |
@@ -472,8 +521,12 @@ for a field of 40 by 40; a larger field has more, by its area.
   - **its pace:** 1.25 at wave 31, rising 0.015 a wave to 1.6;
   - **its comets:** every 12–15 s at wave 31, closing to every 6–8 s by
     wave 60;
-  - **its formation,** drawn from the four, and its gold nuggets: one a
-    wave, two from wave 50.
+  - **its formation,** drawn from the four, and its strays: one a wave, two
+    from wave 50.
+- **A constellation lies among its stars,** the fuzzball's outline in a
+  dozen of the field's specks and its eyes in two brighter ones, placed by
+  the run's seed and the wave's number, faint, for a player who looks
+  ("Fuzzley flavor"). It changes nothing.
 - **The budget is for 40 by 40,** as every wave's counts are, and grows
   with the field.
 - **Endless is a fourth row in the Sectors dialog,** open once a run has
@@ -494,8 +547,9 @@ for a field of 40 by 40; a larger field has more, by its area.
 - **New game** starts a run where the last run started; the Sectors dialog
   starts one at any open sector. Both ask first when a run is under way.
 - **Records,** for each speed: the runs played, the best run's score, the
-  furthest wave reached, Endless's waves counting on from 30, and whether a
-  run has cleared all thirty. A wider field holds more rocks, so a wave is
+  furthest wave reached, Endless's waves counting on from 30, whether a run
+  has cleared all thirty, and the strays brought home, all told. A wider
+  field holds more rocks, so a wave is
   worth more points on a desktop than on a phone; the bests are kept by
   speed alone, as the player has one screen at a time.
 
@@ -570,16 +624,20 @@ The mock page draws all of this, in every palette.
   A rock's outline is a rounded, uneven polygon from a seed, nine to twelve
   points from 0.78 to 1 of its radius (ice's are sharp-cornered); six
   outlines for each kind and size, baked once, and each rock turns slowly.
-- **The ship is the accent,** its window the accent's text color; its
-  flame is the warning color, as long as the thrust is strong, flickering
-  where motion is welcome. A guarded ship blinks within a faint ring.
+- **The ship is the accent,** its window the field's color, with its pilot
+  in it in the pilot's ink; its flame is the warning color, as long as the
+  thrust is strong, flickering where motion is welcome. A guarded ship
+  blinks within a faint ring.
 - **Shots are the field's text color,** the clearest thing on the field, a
   short capsule along their travel.
 - **A pickup is the accent,** a rounded hexagon with its symbol in the
   accent's text color, breathing gently, blinking its last 2 s.
 - **The comet is the danger color,** a head with a short tapering tail; its
   warning a chevron of the same at the edge.
-- **The gold nugget** is the gold ink, with a four-pointed glint.
+- **A stray** is its pilot's ink in a bubble: the field's text at a wash,
+  with a white glint on its rim, so it reads apart from every rock.
+- **The pilots take the game's own inks,** eight for light palettes and
+  eight for dark, in `src/view/inks.ts`, as "Fuzzley flavor" lists them.
 - **The deck** draws in the field's line and muted text, faint at rest: the
   stick's base and rings, the knob in the accent while held; Fire and Dash
   as rings with their symbols, filled in the accent while pressed.
@@ -609,7 +667,8 @@ a shot's soft tick; a large, medium and small break, from a low thump to a
 crack, rising with the chain by up to a fifth (Brick Breaker's
 `detuneOf()`); iron's ring; a blast; a pickup caught; the dash's whoosh; the
 comet's warning, two soft notes; a lost ship's fall; a cleared wave's chime;
-an extra ship's chime. The thrust hums low while it is held, through the
+an extra ship's chime; a stray brought home's two rising notes. The thrust
+hums low while it is held, through the
 lifted `SpritePlayer.hold()`. Each sound plays once a frame at most, at the
 highest it was heard, as Brick Breaker's `FrameSounds` has it.
 
@@ -618,21 +677,26 @@ highest it was heard, as Brick Breaker's `FrameSounds` has it.
 - **Ready,** whenever a wave waits for its first move: "Wave 4: Thaw", and
   how to start, by keys ("Arrows or W A D to fly, Space to fire") or by
   touch ("Steer with the left pad, fire with the right").
-- **Paused,** with the score and Resume.
+- **Paused,** with the score, the fuzzballs waiting at home, each drawn in
+  its color, and Resume.
 - **Wave cleared,** with how its points added up (rocks, the chains'
-  extra, the wave's 500, the 500 for no ship lost) and "Move or fire for
+  extra, the strays brought home, the wave's 500, the 500 for no ship
+  lost) and "Move or fire for
   wave 5", which the stick, a flight key, Enter or the card's button does,
   so a thumb on the deck never has to reach the field.
 - **Storm cleared,** wave 30's Cleared card: the trophy, "Storm cleared.
   Endless begins.", and the wave's tally, then "Move or fire for wave 31".
 - **Ended,** the result card, once the last ship's burst has faded: the
   wave reached ("Lost on wave 37, Endless") and at what speed, the score and
-  the best, "New best" and the trophy when it set one, and "Cleared all
-  thirty" for a run that did; Try again from the sector the run started at;
+  the best, "New best" and the trophy when it set one, the fuzzballs
+  brought home ("3 fuzzballs brought home"), each drawn in its color, and
+  "Cleared all thirty" for a run that did; Try again from the sector the
+  run started at;
   Choose a sector; Close.
 - **Sectors,** **How to play** (the aim, the controls by keys, mouse and
-  touch, every rock and pickup from the catalogs, each with its picture,
-  taken from the scene's atlas) and **Settings** (the speed, when the deck
+  touch, every rock and pickup from the catalogs, a stray and the comet,
+  each with its picture, taken from the scene's atlas) and **Settings**
+  (the speed, when the deck
   shows, which side holds the stick, fire by itself, haptics, sound and the
   palette).
 
@@ -676,13 +740,17 @@ dropping what it can't trust:
 - `asteroid-breaker-settings`: the speed, when the deck shows, which side
   holds the stick, fire by itself, haptics and sound.
 - `asteroid-breaker-stats`: for each speed, the runs, the best score, the
-  furthest wave and whether a run has cleared all thirty.
+  furthest wave, whether a run has cleared all thirty, and the strays
+  brought home.
 - `asteroid-breaker-progress`: the sectors reached, Endless among them.
 - `asteroid-breaker-game`: the run under way (the wave, the score, the
-  ships, the next ship's mark, the speed, the seed) and its field: its size
-  in units, each rock's kind, size, outline, place, speed, turn and hits
-  left, the field's count of steps and draws, and the time the wave has
-  run, for its nugget and comets. Written as a wave starts, as a ship is lost
+  crew's colors, the pilot flying first, those at home, the last color
+  given, the strays brought home, the next ship's mark, the speed, the
+  seed) and its field: its size in units, each rock's kind, size, outline,
+  place, speed, turn and hits left, the field's count of steps and draws,
+  and the time the wave has run and the strays it has sent, for its strays
+  and comets; a stray adrift goes, as the comets do. Written as a wave
+  starts, as a ship is lost
   or waits, as the run pauses or goes on, and as the page goes away, never
   at a step. Taken up paused, it stretches to the room it comes back to, as
   a pause does.
@@ -694,54 +762,94 @@ The debug menu's numbers are not kept: a reload starts from `tuning.ts`.
 As the other games', by the `web-game-accessibility` skill: the board is an
 application named for its wave ("Asteroid Breaker, wave 4: Thaw"),
 described by its keys, the canvas in it hidden; the announcer says each
-wave begun ("Wave 4, Thaw. 4 rocks."), a ship lost and how many are left, a
-pickup caught, a wave cleared with the score, a pause, going on and the
-end. Every overlay is an `<fz-dialog>`. A real-time shooter can't be played
+wave begun ("Wave 4, Thaw. 4 rocks."), a stray adrift ("A stray fuzzball
+drifts in."), a stray brought home ("Brought home: 2 waiting."), a ship
+gained and who flies it, a ship lost and how many are left, a pickup
+caught, a wave cleared with the score, a pause, going on and the end. A
+pilot's color is never said: it tells pilots apart, and nothing in play
+depends on it. Every overlay is an `<fz-dialog>`. A real-time shooter can't be played
 by a screen reader, but nothing in its shell is out of a keyboard's reach.
 
-### Fuzzley flavor (decision 25, open)
+### Fuzzley flavor
 
-The fuzzball is the site's mark, a pom-pom with two eyes in the palette's
-accent, its shapes in `@fz/style/fuzzball` (`FUZZBALL`). Five ways it could
-belong to the game, all drawn on the mock page; the first four are
-recommended together, as one story: the fuzzball flies the ship, and
-brings its strays home.
+The fuzzball is the site's mark, a pom-pom with two eyes, its shapes in
+`@fz/style/fuzzball` (`FUZZBALL`). It belongs to the game five ways
+(decision 25), all drawn on the mock page, as one story: the fuzzball flies
+the ship, and brings its strays home.
 
-1. **The pilot.** The pod's window grows from 0.29 to 0.4 units across its
-   radius and shows the fuzzball inside, in the accent on the window's
-   color. The pilot stays upright while the pod turns round it, its eyes
-   glancing toward the heading, and it blinks every few seconds where motion
-   is welcome. On a phone the window is about 7 CSS px across, where the
-   pilot is two dark eyes in it; on a desktop, about 14, where its fur shows.
-2. **Pilots for ships.** The bar draws each ship left as a small fuzzball,
-   in the accent, rather than a pod, and the Extra ship pickup carries one.
+1. **The pilot.** The pod's window, 0.4 units across its radius, is the
+   field's color and shows its pilot inside, in the pilot's ink. The pilot
+   stays upright while the pod turns round it, its eyes glancing toward the
+   heading, and it blinks every few seconds where motion is welcome. On a
+   phone the window is about 7 CSS px across, where the pilot is a dab of
+   its color with two dark eyes; on a desktop, about 14, where its fur
+   shows.
+2. **Pilots for ships.** The bar draws each ship as its pilot, a small
+   fuzzball in its ink, rather than a pod, the one flying first; the Extra
+   ship pickup carries one in its symbol.
 3. **The bail-out.** When a ship is lost, the pod bursts and its pilot pops
-   out in a bubble and floats off the field, blinking, over 1.4 s, where
-   motion is welcome; the next pilot arrives with the next ship. It softens
-   the moment, which a casual game wants.
-4. **Strays to bring home, in place of the gold nugget.** From wave 3, a
-   fuzzball adrift in a bubble crosses the field once on a gentle curve, as
-   the nugget would. Shots pass through its bubble; the ship brings it home
-   by touching it, guarded or not, for 500 points, and the Magnet draws it
-   in. Each run counts its strays, on the result card ("3 fuzzballs brought
-   home"), and the records count them all. Wave 26, Gold rush, becomes Lost
-   and found, with three. It asks the player to fly somewhere, through the
-   rocks, rather than shoot something, which the genre's glide rewards.
-5. **A constellation, optional.** In Endless, a dozen of the field's specks
-   trace the fuzzball's outline and two brighter ones its eyes, faint, for a
-   player who looks. It changes nothing.
+   out in a bubble, in its color, and floats off the field, blinking, over
+   1.4 s, where motion is welcome; the next in the bar takes the controls.
+   It softens the moment, which a casual game wants.
+4. **Strays to bring home, in place of the gold nugget,** as "Strays and the
+   comet" and "Pilots" say: each in a color of its own, flown to through
+   the rocks, then waiting at home to fly the next ship the run gains. Wave
+   26 is Lost and found, with three. It asks the player to fly somewhere,
+   through the rocks, rather than shoot something, which the genre's glide
+   rewards.
+5. **A constellation in Endless.** A dozen of the field's specks trace the
+   fuzzball's outline and two brighter ones its eyes, faint, for a player
+   who looks. It changes nothing.
 
-Not recommended: the ship as a fuzzball, since a round ship can't show where
-it points, and fuzzy rocks, since the mark shouldn't be what the player
+Not taken: the ship as a fuzzball, since a round ship can't show where it
+points, and fuzzy rocks, since the mark shouldn't be what the player
 shoots.
+
+#### The pilots' colors
+
+Every pilot has a color of its own, so the crew in the bar, a stray adrift
+and the pilot at the controls each read as one fuzzball, the same one from
+the field to the bar. The colors are the game's own, in `src/view/inks.ts`,
+eight for light palettes and eight for dark, as the rocks' are, taken in
+this order:
+
+| Color  | Light palettes | Dark palettes |
+| ------ | -------------- | ------------- |
+| Coral  | `#d33f37`      | `#ff7b70`     |
+| Orange | `#c05a0c`      | `#ff9b45`     |
+| Gold   | `#957000`      | `#f2cb45`     |
+| Green  | `#2c8a3a`      | `#72d36a`     |
+| Teal   | `#0f8378`      | `#3fd2c2`     |
+| Blue   | `#2c72d6`      | `#72adff`     |
+| Violet | `#8b55dc`      | `#b892ff`     |
+| Pink   | `#c83a8e`      | `#ff7dc3`     |
+
+- **Each stands out where it is drawn,** in the palette the player chose:
+  3:1 or more, the bar for graphics, against the field, which is behind a
+  stray's bubble and in the ship's window, and against the bar, where the
+  crew waits. In a light palette the least is green's, 4.37 against the
+  field and 3.92 against Soft pastel's bar; in a dark one, coral's, 5.93
+  against the field and 6.93 against the bar. A light palette's inks are
+  mid-tones, as a light field and the eyes' dark ink both need them to be:
+  the eyes keep 3.79:1 or more against every ink, and 7.12 in a dark
+  palette.
+- **They stay apart from each other,** none nearer another than a ΔE of 27,
+  so two pilots side by side in the bar never look alike.
+- **Color is never the only signal,** as everywhere on the site: nothing in
+  play depends on telling pilots apart, and a stray reads apart from a
+  rock by its bubble, its fur and its eyes.
+- **The contrast spec holds them,** in every palette: each ink against the
+  field and the bar, and the eyes against each ink.
 
 What it takes: the view's fence allows `@fz/style/fuzzball`, which is data;
 `art.ts` draws the body and eyes as circles and ellipses and flattens the
-fur's curves into short lines for Phaser's `Graphics`; the pilot's eyes are
-a frame of their own, moved within the window. The bar draws its fuzzballs
-from the same shapes, as `<fz-wordmark>` does. Taking 4 renames the nugget
-in the catalogs, the waves and the records (`strays`), and moves it from
-the shots' targets to what the ship catches.
+fur's curves into short lines for Phaser's `Graphics`, a pilot's frame for
+each of the eight inks, its eyes a frame of their own, moved within the
+window. The bar, the Paused card and the result draw their fuzzballs from
+the same shapes, as `<fz-wordmark>` does, in the inks the view's
+`pilotInk()` gives them. A stray is in the catalogs, the waves and the
+records where the nugget would have been (`strays`), among what the ship
+catches rather than what its shots hit.
 
 ## Growing it
 
@@ -836,8 +944,8 @@ export interface WaveData {
   readonly drops?: number;
   /** The pickups that can come; else every one whose wave has come. */
   readonly pickups?: readonly string[];
-  /** How many gold nuggets cross it; 1 from wave 3 by default. */
-  readonly gold?: number;
+  /** How many strays cross it; 1 from wave 3 by default. */
+  readonly strays?: number;
   /** How often comets come, the seconds between them drawn from a range. */
   readonly comets?: { readonly every: readonly [number, number] };
 }
@@ -850,21 +958,23 @@ to 1.4, a chance outside 0 to 1, a range that runs backward.
 
 ### The checks that keep it whole
 
-| Check              | Where                          | What it holds                                                                                                                                          |
-| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| The compiler       | everywhere                     | Every trait and effect has its rule, and every rock, weapon and pickup its art                                                                         |
-| The catalog spec   | `src/rules/catalog.spec.ts`    | Every entry has a name and a sentence; every kind is used by a wave from its `from`; every pickup can come in a wave from its `from`; weights positive |
-| The waves spec     | `src/rules/waves.spec.ts`      | Every wave parses; ids and names unique; the pace never falls within a sector; each sector ends with a boulder                                         |
-| The placement spec | `src/rules/spawn.spec.ts`      | Over many seeds and on the narrowest and widest fields, every wave lays its rocks out fairly: 12 units off, no course within 5 units in 3 s            |
-| The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave, and Endless's 31 to 60, at every speed, on the narrowest and widest fields, from fixed seeds, is cleared within four minutes of game time  |
-| The Endless spec   | `src/rules/endless.spec.ts`    | Every wave it makes from 31 to 200, over many seeds, parses as a written wave does, keeps to its budget and the cap, and is the same for the same seed |
-| The contrast spec  | `src/view/contrast.spec.ts`    | Every ink, the ship, shots, pickups, comet and nugget against the field in every palette; the marks against their rocks; the outline against every ink |
-| The scene spec     | `src/scene/belt_scene.spec.ts` | Every kind in every state is drawn from a frame of the atlas, and an object across an edge is drawn on both sides                                      |
+| Check              | Where                          | What it holds                                                                                                                                                                                                                   |
+| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The compiler       | everywhere                     | Every trait and effect has its rule, and every rock, weapon and pickup its art                                                                                                                                                  |
+| The catalog spec   | `src/rules/catalog.spec.ts`    | Every entry has a name and a sentence; every kind is used by a wave from its `from`; every pickup can come in a wave from its `from`; weights positive                                                                          |
+| The waves spec     | `src/rules/waves.spec.ts`      | Every wave parses; ids and names unique; the pace never falls within a sector; each sector ends with a boulder                                                                                                                  |
+| The placement spec | `src/rules/spawn.spec.ts`      | Over many seeds and on the narrowest and widest fields, every wave lays its rocks out fairly: 12 units off, no course within 5 units in 3 s                                                                                     |
+| The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave, and Endless's 31 to 60, at every speed, on the narrowest and widest fields, from fixed seeds, is cleared within four minutes of game time                                                                           |
+| The Endless spec   | `src/rules/endless.spec.ts`    | Every wave it makes from 31 to 200, over many seeds, parses as a written wave does, keeps to its budget and the cap, and is the same for the same seed                                                                          |
+| The contrast spec  | `src/view/contrast.spec.ts`    | Every rock ink, the ship, shots, pickups and comet against the field in every palette; every pilot's ink against the field and the bar, and the eyes against each; the marks against their rocks; the outline against every ink |
+| The pilots spec    | `src/rules/pilots.spec.ts`     | A new pilot's color is the next in turn not worn by the crew, at home or adrift, or with all eight worn the next in turn; a stray keeps its color at home and at the controls                                                   |
+| The scene spec     | `src/scene/belt_scene.spec.ts` | Every kind in every state is drawn from a frame of the atlas, and an object across an edge is drawn on both sides                                                                                                               |
 
 The autopilot flies as a fair player would: it turns toward the rock it can
 hit soonest, leading it, fires when lined up, thrusts away from a rock
 whose course comes within 4 units, dashes when one is about to hit, and
-catches the pickups it has time for. It runs in Node, without Phaser.
+catches the pickups and strays it has time for. It runs in Node, without
+Phaser.
 `yarn report:waves` runs it over every wave at every speed from many seeds,
 invulnerable and not, and prints how long each took and the ships each
 cost, which is how the climb from wave to wave is tuned and checked.
@@ -910,7 +1020,7 @@ As Brick Breaker's, four folders under `src/`, fenced by
 | Folder       | May import                                                                                                                 | May not import                                                      |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`                                        | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/style/fuzzball`                  | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
 | `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
 | `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and those by a value import                                 |
 
@@ -922,7 +1032,7 @@ As Brick Breaker's, four folders under `src/`, fenced by
   one place to another across it, the distance, and the copies an object
   near an edge needs drawn (one to four), which the view reads.
 - `fill.ts`: a wave's counts for a field's area (`fillFor()`), the cap, the
-  pickups at once, the nuggets and the comets' times, and the stretch a
+  pickups at once, the strays and the comets' times, and the stretch a
   pause makes (`stretchField()`), so the autopilot plays them as a player
   meets them.
 - `endless.ts`: Endless's waves, from the run's seed and the wave's number.
@@ -937,15 +1047,18 @@ As Brick Breaker's, four folders under `src/`, fenced by
 - `pickups.ts`: drops by chance, crystal and drought, by weight from the
   wave's pool through `@fz/core/random`'s `drawAt()`, the pull to the ship,
   the catch, and `EFFECT_RULES`.
-- `hazards.ts`: the gold nugget's and the comets' times, warnings and
-  crossings.
+- `hazards.ts`: the strays' and the comets' times, warnings and
+  crossings, a stray's catch and the Magnet's pull on it.
+- `pilots.ts`: the crew, those at home, and the next pilot's color
+  (`nextPilot()`), a pilot being its color's number, 0 to 7.
 - `spawn.ts`: the wave's rocks laid out by its formation, fairly, and the
   safest place for a new ship.
 - `field.ts`: `Field`, a wave in play, stepped in place from records made
   once, as Brick Breaker's is: `createField()`, `steerField()`,
   `stepField()`, and the events it logs (`@fz/core/event_log`).
 - `scoring.ts`, `run.ts`, `describe.ts`, `progress.ts`, `stats.ts` and
-  `saved_game.ts`, as Brick Breaker's are, for waves, sectors and ships.
+  `saved_game.ts`, as Brick Breaker's are, for waves, sectors, ships and
+  their pilots.
 
 ### The physics
 
@@ -953,7 +1066,7 @@ Every object is a circle on the torus. Each step, at 1/120 s: the ship
 flies; every rock and pickup moves and wraps; each shot is swept from its
 last place to its next against every rock (the shortest way across the
 wrap), and the first it meets takes the hit; the ship is tested against
-every rock, comet and pickup; blasts due go off. At the widest field's cap,
+every rock, comet, pickup and stray; blasts due go off. At the widest field's cap,
 105 rocks, with 30 shots and two comets, that is under four thousand circle
 tests a step, which needs no spatial index; Q2 times it in Node, and a grid
 of cells joins only if it doesn't fit.
@@ -978,12 +1091,15 @@ of cells joins only if it doesn't fit.
 - `frame.ts`, `layers.ts`, `timing.ts`, `flourish.ts`, `effects.ts` (each
   event's sound and flourishes) and `tags.ts`, as Brick Breaker's are.
 - `palette.ts` and `inks.ts`: the field's colors from the palette's roles,
-  and the rocks' inks, seven for light palettes and seven for dark.
+  the rocks' inks, seven for light palettes and seven for dark, and the
+  pilots', eight for each (`pilotInk()`), which the shell's bar and cards
+  take too.
 - `art.ts`, `rock_art.ts`, `symbols.ts` and `shapes.ts`: every frame of the
   atlas as plain drawing commands in device pixels: the ship, its flame and
-  ring, shots, each rock kind in each size, outline and state, each pickup
-  and its symbol, the comet, its warning, the nugget, the deck's parts and
-  the flourishes' shards; and How to play's pictures.
+  ring, a pilot in each ink and its eyes, a stray's bubble, shots, each rock
+  kind in each size, outline and state, each pickup and its symbol, the
+  comet, its warning, the deck's parts and the flourishes' shards; the
+  constellation's places; and How to play's pictures.
 - `wave_play.ts`: `WavePlay`, the wave in play that `GameService` makes and
   drives, as Brick Breaker's `LevelPlay` is.
 
@@ -991,9 +1107,11 @@ of cells joins only if it doesn't fit.
 
 `BeltScene` is handed plain functions over the game, as `BricksScene` is:
 each frame it hands the game the time and the steering, reads the frame and
-has its painters draw, each in its layer: `FieldPainter` the specks and the
-frame, `RockPainter`, `PickupPainter`, `HazardPainter` the comets, their
-warnings and the nugget, `ShotPainter`, `ShipPainter`, `EffectsPainter` the
+has its painters draw, each in its layer: `FieldPainter` the specks, the
+constellation in Endless and the frame, `RockPainter`, `PickupPainter`,
+`StrayPainter` the strays adrift and the pilots bailing out,
+`HazardPainter` the comets and their warnings, `ShotPainter`,
+`ShipPainter` the ship and its pilot, `EffectsPainter` the
 shards, rings, exhaust and shake, `PointsPainter` the rising points,
 `TagPainter` the effects in play, and `DeckPainter` the stick and buttons.
 
@@ -1018,8 +1136,10 @@ Laid out as Brick Breaker's, one folder per feature: `play/`
 drawn in CSS, the focus ring, the cards, the deck's room in CSS for the
 placeholder, the pointer hidden while a ship flies, haptics through
 `navigator.vibrate` where it exists), `bar/` (the speed's badge, the
-figures: the wave, the score, the ships as pods and the chain while it
-counts; compact, the score and the ships alone), `sectors/`, `result/`,
+figures: the wave, the score, the ships as their pilots, each in its ink,
+and the chain while it counts; compact, the score and the ships alone),
+`pilot/` (`<app-pilot>`, a fuzzball in a pilot's ink, which the bar, the
+Paused card and the result share), `sectors/`, `result/`,
 `help/`, `settings/`, `stats/` and `styles/`. The board is an application;
 `[fzPlayRoom]` pauses the wave when the player looks away or the phone
 turns, as it does for Brick Breaker.
@@ -1083,8 +1203,8 @@ more.
   `ship.ts`, `shots.ts` (large).
 - **A3** Rocks: the catalog, splits, the cap, hits, blasts and the
   lodestone's pull (large).
-- **A4** Pickups, effects, the nugget and the comet, scoring and the event
-  log (large).
+- **A4** Pickups, effects, the strays, the pilots and the comet, scoring
+  and the event log (large).
 - **A5** Waves as data, the first five waves, the placement, the fill and
   the stretch for any field's shape, the run, and the field whole
   (`field.ts`; medium).
@@ -1093,7 +1213,8 @@ more.
   for a ship, shot or rock off the torus, the physics' cost at the cap
   timed in Node.
 - **A7** The view: the field's and the deck's layout, the stick and the
-  steering, the palette and inks, the art and the atlas's frames (large).
+  steering, the palette and inks, the pilots' among them, the art and the
+  atlas's frames (large).
 - **A8** The scene: the painters, the cameras, the copies across edges, the
   pools and flourishes (large).
 - **A9** Play and the board: `GameService`, `WavePlay`, the board with its
@@ -1105,14 +1226,15 @@ more.
   desktop's; the numbers in `tuning.ts` and the stick's tuned by the user's
   play through the debug menu; screenshots sent as they are taken. The
   other waves aren't built until the user says the feel is right.
-- **A10** The bar, the icon, the Sectors, Result, How to play and
-  Settings dialogs (medium).
+- **A10** The bar with its pilots, the icon, the Sectors, Result, How to
+  play and Settings dialogs (medium).
 - **A11** Sound, haptics (small).
 - **A12** Storage: settings, stats, progress, the saved game (medium).
 - **A13** The other twenty-five waves, tuned by `yarn report:waves` and by
   play (large).
-- **A14** Endless: `endless.ts`, its spec, the Sectors dialog's fourth row,
-  Storm cleared's card and the records' "cleared all thirty", Endless's
+- **A14** Endless: `endless.ts`, its spec, the constellation, the Sectors
+  dialog's fourth row, Storm cleared's card and the records' "cleared all
+  thirty", Endless's
   waves 31 to 60 in the report (medium); then **Q4**, the whole shell, every
   dialog by keyboard and by mouse, records and a saved game across a reload,
   one in Endless among them, a light palette and a dark.
