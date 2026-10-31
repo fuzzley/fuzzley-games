@@ -12,7 +12,8 @@
  * level 9, Rocket, a bite out of its foot, three of its flames and a brick
  * of each fin broken, the ball waiting on the paddle under the card that
  * says how to launch it, which lies clear of the rocket as the Paused card
- * doesn't. The palette is Classic felt.
+ * doesn't. The palette is Midnight blue, dark as the classics' are in the
+ * catalog, and Snake beside it takes the other dark one.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,7 +42,7 @@ const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/brick-breaker");
 const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
 
 /** The palette the screenshot is taken in. */
-const THEME = "classic";
+const THEME = "midnight";
 
 /** The page kept around the field in the thumbnail, in CSS pixels. */
 const THUMB_MARGIN = 24;

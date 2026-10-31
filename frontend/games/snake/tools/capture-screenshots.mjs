@@ -9,7 +9,9 @@
  * `public/docs/screenshots/snake/`. Both show the same run, kept as the game
  * keeps one and taken up paused on load: at Normal, twelve apples in, the
  * snake bending across the upper half of the board, clear of the card that
- * says the run is paused, toward the apple. The palette is Soft pastel.
+ * says the run is paused, toward the apple. The palette is Casino night,
+ * dark as the classics' are in the catalog, and Brick Breaker beside it
+ * takes the other dark one.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -36,7 +38,7 @@ const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/snake");
 const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
 
 /** The palette the screenshot is taken in. */
-const THEME = "pastel";
+const THEME = "casino";
 
 /** The page kept around the board in the thumbnail, in CSS pixels. */
 const THUMB_MARGIN = 24;
