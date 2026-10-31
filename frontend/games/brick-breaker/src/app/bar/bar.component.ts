@@ -13,8 +13,13 @@ import {
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent, type IconName } from "@fz/ui/icon";
-import { formatPoints } from "../../rules/describe";
-import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
+import { formatCustomPercent, formatPoints } from "../../rules/describe";
+import {
+  CUSTOM_PERCENT,
+  SPEEDS,
+  SPEED_INFO,
+  type Speed,
+} from "../../rules/speed";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 
@@ -43,8 +48,9 @@ interface PauseButton {
  * Shows the game bar: the link home, the game's name and speed, the
  * figures, and the actions.
  *
- * The speed shows at every size, as a menu of the speeds; the name only for
- * a screen reader on a compact screen. From the width the actions keep their
+ * The speed shows at every size, as a menu of the speeds, which at Custom
+ * offers a slider for its ball's speed beneath them; the name only for a
+ * screen reader on a compact screen. From the width the actions keep their
  * labels at, the figures are the level, the score, the lives as hearts and
  * the streak's multiplier while it counts; below it, the score and the lives
  * alone, the lives as a number, since a score runs to six figures and the
@@ -89,6 +95,21 @@ export class BarComponent {
   protected readonly homeHref = HOME_HREF;
 
   protected readonly speeds = SPEED_CHOICES;
+
+  /** The bounds and steps of Custom's slider. */
+  protected readonly customRange = CUSTOM_PERCENT;
+
+  /** Custom's ball speed while the run is at Custom, as its slider shows it and reads it; else null. */
+  protected readonly customSpeed = computed(() => {
+    const value = this.game.customPercent();
+    return value === null
+      ? null
+      : {
+          value,
+          shown: `${String(value)}%`,
+          valueText: formatCustomPercent(value),
+        };
+  });
 
   /** Whether the bar has room for the level, the hearts and the streak. */
   protected readonly fitsEveryFigure = computed(
@@ -176,6 +197,11 @@ export class BarComponent {
   /** Starts a run at the speed chosen from the badge, asking first. */
   protected changeSpeed(speed: Speed): void {
     void this.game.changeSpeed(speed);
+  }
+
+  /** Sets Custom's ball speed, as the menu's slider says. */
+  protected setCustomPercent(percent: number): void {
+    this.game.setCustomPercent(percent);
   }
 
   /** Starts a new run, asking first. */

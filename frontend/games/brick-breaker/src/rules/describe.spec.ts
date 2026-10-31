@@ -9,6 +9,7 @@ import {
   describeResume,
   describeTakenUp,
   endTitle,
+  formatCustomPercent,
   formatPoints,
 } from "./describe";
 import { LEVELS } from "./levels";
@@ -166,5 +167,11 @@ describe("formatPoints", () => {
     [1234567, "1,234,567"],
   ])("writes %i points as %j", (points, written) => {
     expect(formatPoints(points)).toBe(written);
+  });
+});
+
+describe("formatCustomPercent", () => {
+  it("writes Custom's ball speed against Normal's", () => {
+    expect(formatCustomPercent(150)).toBe("150% of Normal");
   });
 });

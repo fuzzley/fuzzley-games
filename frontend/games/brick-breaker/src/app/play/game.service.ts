@@ -139,6 +139,11 @@ export class GameService {
   /** The run's speed, which changes only as a new run begins. */
   readonly speed = computed(() => this.runState().speed);
 
+  /** How fast the ball goes at Custom, as a percent of Normal's, while the run is at Custom; else null. */
+  readonly customPercent = computed(() =>
+    this.speed() === "custom" ? this.settings.settings().customPercent : null,
+  );
+
   /** The run's points so far. */
   readonly score = computed(() => this.runState().score);
 

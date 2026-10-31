@@ -20,13 +20,25 @@ export interface BarChoiceOption<Id extends string = string> {
  * Angular Aria's menu supplies the keyboard, the roles, and focus going back
  * to the badge. The choices come as data, since Angular Aria finds a menu's
  * items in the template that declares the menu. Inside a `fz-game-bar` the
- * menu opens away from the edge the bar stands against, and on a rail the
+ * menu opens away from the edge the bar stands against, from the bar's
+ * start where the bar is compact and across the window, and on a rail the
  * badge is set smaller.
+ *
+ * What the app projects as `fzBarChoiceExtra`, such as a slider for the
+ * choice checked, shows beneath the choices. Tab reaches it from them, and
+ * its keys are its own but Escape, which closes the menu. It stays inside
+ * the menu, since the menu closes once the focus leaves it, but it is none
+ * of the menu's items, which a screen reader counts and the arrow keys move
+ * between: keep it to one simple control, and offer what it does elsewhere
+ * too.
  */
 @Component({
   selector: "fz-bar-choice",
   imports: [IconComponent, Menu, MenuContent, MenuItem, MenuTrigger],
-  host: { "[class.rail]": "onRail()" },
+  host: {
+    "[class.rail]": "onRail()",
+    "[class.from-bar]": "hangsFromBar()",
+  },
   templateUrl: "./bar_choice.component.html",
   styleUrl: "./bar_choice.component.scss",
 })
@@ -70,6 +82,15 @@ export class BarChoiceComponent<Id extends string = string> {
 
   protected readonly onRail = computed(() => opensFromRail(this.side()));
 
+  /**
+   * Whether the menu hangs from the bar's start rather than the badge's, as
+   * on a compact bar across the window, where the badge may sit too far
+   * along for the menu to fit beside it.
+   */
+  protected readonly hangsFromBar = computed(
+    () => (this.bar?.compact() ?? false) && !this.onRail(),
+  );
+
   /** Whether the menu lines up with its badge's end, in a reversed bar. */
   protected readonly alignsEnd = computed(
     () => (this.bar?.reversed() ?? false) && !this.onRail(),
@@ -78,6 +99,14 @@ export class BarChoiceComponent<Id extends string = string> {
   protected select(id: string | undefined): void {
     const option = this.options().find((each) => each.id === id);
     if (option && option.id !== this.value()) this.choose.emit(option.id);
+  }
+
+  /**
+   * Keeps the keys pressed in what the app adds beneath the choices from the
+   * menu, but Escape, which closes it, and Tab, which leaves it.
+   */
+  protected keepKeys(event: KeyboardEvent): void {
+    if (event.key !== "Escape" && event.key !== "Tab") event.stopPropagation();
   }
 
   protected dismiss(trigger: MenuTrigger<string>): void {

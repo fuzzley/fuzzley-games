@@ -3,6 +3,7 @@ import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
+import { formatCustomPercent } from "../../rules/describe";
 import {
   CUSTOM_PERCENT,
   SPEEDS,
@@ -88,9 +89,10 @@ export class SettingsComponent {
 
   /** Custom's ball speed while the run is at Custom, and how it reads, else null. */
   protected readonly customSpeed = computed(() => {
-    if (this.game.speed() !== "custom") return null;
-    const value = this.settings().customPercent;
-    return { value, valueText: `${String(value)}% of Normal` };
+    const value = this.game.customPercent();
+    return value === null
+      ? null
+      : { value, valueText: formatCustomPercent(value) };
   });
 
   protected readonly touchSteerings = computed(() => {

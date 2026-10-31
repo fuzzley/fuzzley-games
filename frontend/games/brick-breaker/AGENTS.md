@@ -276,9 +276,11 @@ doesn't see, so Phaser stays out of the first download.
     scene's pictures for How to play (`pictures`). It is an application named
     for its level, "Brick Breaker, level 3: Pyramid".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
-    speed's badge, which asks before it starts a run at another, the
-    figures, and Pause, Sound, Levels, New game, How to play and Settings,
-    all but Pause and New game in the overflow menu on a compact screen.
+    speed's badge, which asks before it starts a run at another (while the
+    run is at Custom, its menu offers the slider for the ball's speed
+    beneath the speeds, as the settings drawer does), the figures, and
+    Pause, Sound, Levels, New game, How to play and Settings, all but Pause
+    and New game in the overflow menu on a compact screen.
     From the width the actions keep their labels at (`fitsActionLabels`),
     the figures are the level, the score, the lives as hearts and the
     streak's multiplier while it counts; below it, the score and the lives
@@ -306,10 +308,11 @@ doesn't see, so Phaser stays out of the first download.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
     sound and the palette) and `SettingsService`, which keeps what the player
     chose, the speed of the last run started among it. While the run is at
-    Custom, the drawer offers a slider for its ball's speed, 50% to 200% of
-    Normal's, which `GameService.setCustomPercent()` keeps and gives the
-    field in play at once (`Field.customPercent`); a field at any other
-    speed ignores it. In a development build (`DEBUG_MENU`, from
+    Custom (`GameService.customPercent`), the drawer offers a slider for its
+    ball's speed, 50% to 200% of Normal's, which
+    `GameService.setCustomPercent()` keeps and gives the field in play at
+    once (`Field.customPercent`); a field at any other speed ignores it. In
+    a development build (`DEBUG_MENU`, from
     `import.meta.env.DEV`, as a game's own dev server runs it) the drawer
     also offers a slider for the ball's speed, ×0.5 to ×2 the speed's own,
     which `GameService.setBallSpeedScale()` gives the field in play and

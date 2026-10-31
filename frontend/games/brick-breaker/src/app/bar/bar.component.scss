@@ -81,6 +81,33 @@
   color: var(--fz-accent);
 }
 
+// Custom's ball speed beneath the speeds in the badge's menu: its name and
+// percent over the slider, which is a finger's tap tall.
+.custom-speed {
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--fz-space-3);
+  font-size: var(--fz-font-sm);
+  font-weight: 500;
+}
+
+.custom-value {
+  color: var(--fz-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.range {
+  width: 100%;
+  height: var(--fz-tap-target);
+  margin: 0;
+  accent-color: var(--fz-accent);
+}
+
 // Every action clears the minimum tap size, labeled or not.
 .action {
   @include tap-target;
