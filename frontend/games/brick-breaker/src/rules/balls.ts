@@ -6,7 +6,6 @@ import {
   FIELD_WIDTH,
   FLATTEST,
   PADDLE_ANGLE,
-  PADDLE_TOP,
   SERVE_ANGLE,
 } from "./tuning";
 
@@ -87,7 +86,7 @@ export function followPaddle(ball: Ball, paddle: Readonly<Paddle>): void {
     BALL_RADIUS,
     FIELD_WIDTH - BALL_RADIUS,
   );
-  ball.y = PADDLE_TOP - BALL_RADIUS;
+  ball.y = paddle.top - BALL_RADIUS;
 }
 
 /**

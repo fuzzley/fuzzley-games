@@ -2,13 +2,14 @@ import {
   AUTOPILOT_LIMIT,
   ENDGAME_LIMIT,
   autoplay,
+  limitsOf,
   playLevel,
 } from "../testing/autopilot";
 import type { Level } from "./level";
 import { LEVELS, type LevelData, type LevelEntry, parseLevel } from "./levels";
 import { SPEEDS } from "./speed";
 import { stepsIn } from "./stepper";
-import { COLUMNS } from "./tuning";
+import { COLUMNS, FIELD_HEIGHT, TALLEST_FIELD } from "./tuning";
 
 /** The seeds a spec plays a level from, to judge the autopilot by more than one game. */
 const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -45,7 +46,7 @@ describe("the autopilot", () => {
   it("stops at its limit on a level it can't clear", () => {
     const level = levelOf(["###", "#o#", "###"]);
 
-    const report = autoplay(level, "normal", 1, 600);
+    const report = autoplay(level, "normal", 1, { limit: 600 });
 
     expect(report).toMatchObject({ cleared: false, steps: 600 });
   });
@@ -65,12 +66,31 @@ describe("the autopilot", () => {
     };
     const level = parseLevel(entry);
 
-    const plays = [playLevel(entry, "fast"), playLevel(entry, "fast", 9)];
+    const plays = [
+      playLevel(entry, "fast"),
+      playLevel(entry, "fast", { seed: 9 }),
+    ];
 
     expect(plays).toEqual([
       autoplay(level, "fast", 4),
       autoplay(level, "fast", 9),
     ]);
+  });
+
+  it("plays a field of the least height to the spec's own limits", () => {
+    expect(limitsOf(FIELD_HEIGHT)).toEqual({
+      level: AUTOPILOT_LIMIT,
+      endgame: ENDGAME_LIMIT,
+    });
+  });
+
+  it("plays a taller field to longer limits, as its ball's trips are longer", () => {
+    const tallest = limitsOf(TALLEST_FIELD);
+
+    expect({
+      level: tallest.level > AUTOPILOT_LIMIT,
+      endgame: tallest.endgame > ENDGAME_LIMIT,
+    }).toEqual({ level: true, endgame: true });
   });
 
   it("counts a level of three bricks as endgame from its start", () => {
@@ -130,6 +150,23 @@ describe("every level", () => {
         inTime: report.steps < AUTOPILOT_LIMIT,
         endgameInTime: report.endgameSteps <= ENDGAME_LIMIT,
       }).toEqual({ cleared: true, inTime: true, endgameInTime: true });
+    },
+  );
+
+  // A taller field lengthens every trip between the paddle and the bricks,
+  // and leaves more of how long the last bricks take to luck: across twenty
+  // seeds, its endgames drag past their stretched minute about three times
+  // as often. The spec above holds how each level is drawn; this one, that
+  // each is still cleared in its time on the tallest field.
+  it.each(plays)(
+    `is cleared, %s at %s, on a field ${String(TALLEST_FIELD)} tall, within eight minutes stretched as its ball's trips are`,
+    (_, speed, entry) => {
+      const report = playLevel(entry, speed, { height: TALLEST_FIELD });
+
+      expect({
+        cleared: report.cleared,
+        inTime: report.steps < limitsOf(TALLEST_FIELD).level,
+      }).toEqual({ cleared: true, inTime: true });
     },
   );
 });

@@ -125,6 +125,8 @@ export class BricksScene extends Scene {
   private steering!: Steering;
   /** The canvas as the field was last laid out on it. */
   private viewport: Viewport | null = null;
+  /** The field's height as it was last laid out, in field units. */
+  private down = 0;
   private metrics!: FieldMetrics;
   /** The palette the atlas was last baked in. */
   private painted!: BricksPalette;
@@ -213,16 +215,14 @@ export class BricksScene extends Scene {
    */
   override update(time: number, delta: number): void {
     this.context.now = time;
-    let stale = false;
-    if (this.moved()) {
-      stale = this.measure();
-      this.layOut();
-    }
+    let stale = this.fit();
     this.options.tick(delta, this.steering.read());
     this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.context.motion = this.options.motion();
+    // The tick may have reshaped the field, as the level waits to serve.
+    stale = this.fit() || stale;
     if (palette !== this.painted) {
       this.painted = palette;
       stale = true;
@@ -321,7 +321,18 @@ export class BricksScene extends Scene {
     return recordOf(LAYERS, () => this.add.layer());
   }
 
-  /** Returns whether the canvas, its pixel ratio or the chrome over it changed. */
+  /**
+   * Lays the field out again if it moved, and returns whether the art must
+   * be drawn again.
+   */
+  private fit(): boolean {
+    if (!this.moved()) return false;
+    const stale = this.measure();
+    this.layOut();
+    return stale;
+  }
+
+  /** Returns whether the canvas, its pixel ratio, the chrome over it or the field's height changed. */
   private moved(): boolean {
     const viewport = this.viewport;
     if (!viewport) return true;
@@ -329,7 +340,8 @@ export class BricksScene extends Scene {
       viewport.width !== this.scale.width ||
       viewport.height !== this.scale.height ||
       viewport.pixelRatio !== pixelRatioOf(this) ||
-      viewport.insets !== this.surroundings.insets()
+      viewport.insets !== this.surroundings.insets() ||
+      this.down !== this.options.frame().field.height
     );
   }
 
@@ -347,7 +359,8 @@ export class BricksScene extends Scene {
     };
     const last = this.viewport ? this.metrics : null;
     this.viewport = viewport;
-    this.metrics = fieldMetrics(viewport);
+    this.down = this.options.frame().field.height;
+    this.metrics = fieldMetrics(viewport, this.down);
     return (
       last?.unit !== this.metrics.unit ||
       last.pixelRatio !== this.metrics.pixelRatio

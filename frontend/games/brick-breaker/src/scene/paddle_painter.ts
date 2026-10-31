@@ -1,5 +1,5 @@
 import type { GameObjects, Scene } from "phaser";
-import { BOLT_INSET, PADDLE_HEIGHT, PADDLE_TOP } from "../rules/tuning";
+import { BOLT_INSET, PADDLE_HEIGHT } from "../rules/tuning";
 import { FRAMES } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
 import { between } from "../view/frame";
@@ -60,7 +60,7 @@ export class PaddlePainter implements Painter {
   draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
     const { paddle, mode } = field;
     const x = toCanvasX(metrics, between(paddle.lastX, paddle.x, alpha));
-    const top = toCanvasY(metrics, PADDLE_TOP);
+    const top = toCanvasY(metrics, paddle.top);
     const width = Math.round(paddle.width * metrics.unit);
     const height = this.body.height;
     const span = Math.max(0, width - height);

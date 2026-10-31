@@ -9,8 +9,17 @@
 /** The field's width: 13 bricks of 2. */
 export const FIELD_WIDTH = 26;
 
-/** The field's height, from the top wall to the floor. */
+/**
+ * The field's height, from the top wall to the floor, unless a screen taller
+ * than it is wide has room for more, up to {@link TALLEST_FIELD}.
+ */
 export const FIELD_HEIGHT = 30;
+
+/**
+ * The tallest a field grows on a tall screen, the room it gains lying
+ * between the bricks and the paddle.
+ */
+export const TALLEST_FIELD = 45;
 
 /** How many bricks a row holds. */
 export const COLUMNS = 13;
@@ -33,7 +42,10 @@ export const PADDLE_WIDTH = 4;
 /** The paddle's height. */
 export const PADDLE_HEIGHT = 0.75;
 
-/** Where the paddle's top lies, down from the top wall. */
+/**
+ * Where the paddle's top lies, down from the top wall, on a field
+ * {@link FIELD_HEIGHT} tall; on a taller one it lies as far above the floor.
+ */
 export const PADDLE_TOP = 27.5;
 
 /**

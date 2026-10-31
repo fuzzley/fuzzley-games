@@ -1,5 +1,5 @@
 import { type CssRect, type Viewport, fitCells } from "@fz/phaser/layout";
-import { FIELD_HEIGHT, FIELD_WIDTH } from "../rules/tuning";
+import { FIELD_WIDTH } from "../rules/tuning";
 
 /** Says where the field lies on the canvas. */
 export interface FieldMetrics {
@@ -25,15 +25,15 @@ export interface FieldMetrics {
 export const WALL_CSS_PX = 2;
 
 /**
- * Returns where the field lies on a canvas: the largest that fits inside
- * the chrome, a unit a whole number of device pixels so every brick's edge
- * is sharp, centered with room for a wall on every side, though the wall is
- * drawn only on the left, the top and the right.
+ * Returns where a field `down` units tall lies on a canvas: the largest that
+ * fits inside the chrome, a unit a whole number of device pixels so every
+ * brick's edge is sharp, centered with room for a wall on every side, though
+ * the wall is drawn only on the left, the top and the right.
  */
-export function fieldMetrics(viewport: Viewport): FieldMetrics {
+export function fieldMetrics(viewport: Viewport, down: number): FieldMetrics {
   const fit = fitCells(viewport, {
     across: FIELD_WIDTH,
-    down: FIELD_HEIGHT,
+    down,
     frameCss: WALL_CSS_PX,
   });
   return {

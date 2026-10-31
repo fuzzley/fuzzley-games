@@ -45,10 +45,12 @@ doesn't see, so Phaser stays out of the first download.
 
 - **`src/rules/`** — the game, with no framework, physics included.
   `tuning.ts` holds the numbers that set its feel, in field units (the
-  field is 26 wide and 30 tall); `speed.ts` the three speeds, each a base
-  and a top the ball climbs to, and `ballSpeed()`; and `stepper.ts` the
-  clock that turns a frame's time into fixed steps of 1/120 s, twelve at
-  most a frame. `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
+  field is 26 wide and 30 tall, or up to 45 on a tall screen,
+  `TALLEST_FIELD`, the room it gains lying between the bricks and the
+  paddle); `speed.ts` the three speeds, each a base and a top the ball
+  climbs to, and `ballSpeed()`; and `stepper.ts` the clock that turns a
+  frame's time into fixed steps of 1/120 s, twelve at most a frame.
+  `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
   bricks side by side make one face and a corner is only where nothing
@@ -59,21 +61,23 @@ doesn't see, so Phaser stays out of the first download.
 - **The field** — `src/rules/field.ts`: `Field`, a level in play, which
   each step changes in place, from records made once, so a step makes
   nothing but a random draw's generator, for a lull or a capsule.
-  `createField()` lays out a `Level` (`level.ts`), `steerField()` takes a
-  frame's steering, `stepField()` moves it on a step, `launch()`
-  serves the ball waiting on the paddle and `serve()` puts one there after
-  the last is lost. A ball's travel gathers what it meets first, the walls,
-  the paddle and the bricks' exposed faces and corners, all at one moment,
-  and turns once. `paddle.ts` steers the paddle (`Steer`: a pointer's place,
-  a finger's drag, held keys) and `balls.ts` turns a ball: off the paddle by
-  where it landed, as a mirror, by a lull's few degrees, and back to the
-  flattest it travels. `bricks.ts` holds `Brick`, `hitBrick()`, which a
-  ball or a blast calls, and `TRAIT_RULES`, what each trait of
-  `catalog/bricks.ts` does as a brick is hit, breaks, and at each step,
-  typed so that a trait without its rule fails to compile. `capsules.ts`
-  drops capsules while the level is in play (`dropFrom()`), by the level's
-  chance or from a gift brick, by weight from the level's pool, from
-  `draws.ts`'s seeded draws; moves them down to be caught or missed; and
+  `createField()` lays out a `Level` (`level.ts`), 30 units tall,
+  `reshapeField()` makes it another height while its ball waits to be
+  served, the paddle as far above the floor (`paddleTopOf()`),
+  `steerField()` takes a frame's steering, `stepField()` moves it on a
+  step, `launch()` serves the ball waiting on the paddle and `serve()` puts
+  one there after the last is lost. A ball's travel gathers what it meets
+  first, the walls, the paddle and the bricks' exposed faces and corners,
+  all at one moment, and turns once. `paddle.ts` steers the paddle
+  (`Steer`: a pointer's place, a finger's drag, held keys) and `balls.ts`
+  turns a ball: off the paddle by where it landed, as a mirror, by a lull's
+  few degrees, and back to the flattest it travels. `bricks.ts` holds
+  `Brick`, `hitBrick()`, which a ball or a blast calls, and `TRAIT_RULES`,
+  what each trait of `catalog/bricks.ts` does as a brick is hit, breaks, and
+  at each step, typed so that a trait without its rule fails to compile.
+  `capsules.ts` drops capsules while the level is in play (`dropFrom()`), by
+  the level's chance or from a gift brick, by weight from the level's pool,
+  from `draws.ts`'s seeded draws; moves them down to be caught or missed; and
   holds `EFFECT_RULES`, what each effect of `catalog/capsules.ts` does as
   it starts and ends, one of each group in play at a time. `bolts.ts` fires
   and moves the laser's bolts. The field counts its steps (`Field.steps`),
@@ -429,7 +433,11 @@ workspace's with the others'.
   from seeds of its own, and prints the middle time, the longest, the
   longest endgame and the most lives lost, as the capsules one seed lets
   fall can make a level look far easier or harder than it is; it marks a
-  long endgame too, but fails only on a level not cleared.
+  long endgame too, but fails only on a level not cleared. `--height <n>`
+  plays them on a field that many units tall, up to 45, to the autopilot's
+  limits for that height, stretched as far as the paddle lies farther from
+  the bricks (`limitsOf()`), and fails, as the spec does there, only on a
+  level not cleared.
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
@@ -473,7 +481,8 @@ is in `src/testing/`:
 - `field_picture.ts` lays a field out from a picture of its bricks
   (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in play
   with none (`playWithoutBall()`), steps it and reads its events, so a spec
-  of the field reads as the field it plays.
+  of the field reads as the field it plays; a field may be drawn taller
+  (`height`).
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
   specs, and finds a frame by its name (`frameNamed()`).
 - `autopilot.ts` plays a level as a good player would (`autoplay()`): it
@@ -482,9 +491,10 @@ is in `src/testing/`:
   can see, catches the good capsules it has time for, and fires, serves and
   launches at once. `src/rules/autopilot.spec.ts` holds every level, at
   every speed, to being cleared by it within eight minutes of game time, its
-  last three bricks within one, and the catalog spec holds the levels to
-  using every brick kind and letting every capsule first fall at the level
-  its `from` names.
+  last three bricks within one, and on the tallest field within those eight
+  minutes stretched as far as the paddle lies farther from the bricks
+  (`limitsOf()`), and the catalog spec holds the levels to using every brick
+  kind and letting every capsule first fall at the level its `from` names.
 - `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
   specs that color the field.
 - `play.ts` holds the small levels the shell's specs play, each set up to

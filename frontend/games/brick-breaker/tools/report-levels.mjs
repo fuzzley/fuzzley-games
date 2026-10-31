@@ -2,7 +2,7 @@
 /**
  * Prints how the autopilot plays every level at every speed.
  *
- *   yarn report:levels [--seeds <n>]
+ *   yarn report:levels [--seeds <n>] [--height <n>]
  *
  * For each level and speed it prints the game time the autopilot took to
  * clear the level, the time of that it spent on the last three bricks the
@@ -22,6 +22,12 @@
  * counts the endgames longer than the spec allows, but fails only on a play
  * that doesn't clear its level: across many seeds, a few plays are unlucky
  * however a level is drawn.
+ *
+ * With `--height`, it plays every level on a field that many units tall,
+ * as a tall screen lays it out, from the least height to the tallest, to
+ * the autopilot's limits for that height (`limitsOf()`). It marks the
+ * endgames longer than those allow, but fails only on a play that doesn't
+ * clear its level, as the spec holds the tallest field.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,14 +62,38 @@ const SEED_STRIDE = 1000;
  */
 
 /**
+ * The longest the autopilot may take over a level, in steps.
+ *
+ * @typedef {object} AutopilotLimits
+ * @property {number} level
+ * @property {number} endgame
+ */
+
+/**
  * What the script takes from the rules and the autopilot.
+ *
+ * @typedef {object} Rules
+ * @property {readonly LevelEntry[]} levels Every level, in the order played.
+ * @property {readonly string[]} speeds Every speed, slowest first.
+ * @property {number} stepSeconds The game time a step takes, in seconds.
+ * @property {number} leastHeight The field's height, unless a tall screen makes it taller.
+ * @property {number} tallest The tallest a field grows.
+ * @property {(height: number) => AutopilotLimits} limitsOf
+ * @property {(entry: LevelEntry, speed: string, options: { seed: number, height: number }) => AutopilotReport} playLevel
+ */
+
+/**
+ * The game as the report plays it: the rules, on a field of the height
+ * asked.
  *
  * @typedef {object} Game
  * @property {readonly LevelEntry[]} levels Every level, in the order played.
  * @property {readonly string[]} speeds Every speed, slowest first.
  * @property {number} stepSeconds The game time a step takes, in seconds.
- * @property {number} endgameLimit The most steps the spec lets a play's endgame take.
- * @property {(entry: LevelEntry, speed: string, seed?: number) => AutopilotReport} playLevel
+ * @property {number} height How tall the field is played.
+ * @property {boolean} tallerField Whether the field is taller than the least, which the spec holds to no endgame's limit.
+ * @property {number} endgameLimit The most steps a play's endgame may take on that field.
+ * @property {(entry: LevelEntry, speed: string, seed: number) => AutopilotReport} playLevel
  */
 
 /**
@@ -144,42 +174,79 @@ async function load(file) {
 }
 
 /**
- * Returns what the script takes from the game.
+ * Returns the game as the report plays it, on a field as tall as `--height`
+ * asks, the least by default, or throws an error that says what is wrong
+ * with the height.
  *
+ * @param {string | undefined} heightAsked
  * @returns {Promise<Game>}
  */
-async function loadGame() {
+async function loadGame(heightAsked) {
   const [levels, speed, tuning, autopilot] = await Promise.all([
     load("src/rules/levels.ts"),
     load("src/rules/speed.ts"),
     load("src/rules/tuning.ts"),
     load("src/testing/autopilot.ts"),
   ]);
-  return /** @type {Game} */ ({
+  const rules = /** @type {Rules} */ ({
     levels: levels["LEVELS"],
     speeds: speed["SPEEDS"],
     stepSeconds: tuning["STEP_S"],
-    endgameLimit: autopilot["ENDGAME_LIMIT"],
+    leastHeight: tuning["FIELD_HEIGHT"],
+    tallest: tuning["TALLEST_FIELD"],
+    limitsOf: autopilot["limitsOf"],
     playLevel: autopilot["playLevel"],
   });
+  const height = heightOf(heightAsked, rules);
+  return {
+    levels: rules.levels,
+    speeds: rules.speeds,
+    stepSeconds: rules.stepSeconds,
+    height,
+    tallerField: height > rules.leastHeight,
+    endgameLimit: rules.limitsOf(height).endgame,
+    playLevel: (entry, speed, seed) =>
+      rules.playLevel(entry, speed, { seed, height }),
+  };
 }
 
 /**
- * Returns the layout the command line asks for, or throws an error that
- * says what is wrong with it.
+ * Returns the layout `--seeds` asks for, or throws an error that says what
+ * is wrong with it.
  *
+ * @param {string | undefined} seeds
  * @returns {Layout}
  */
-function layoutAsked() {
-  const { values } = parseArgs({ options: { seeds: { type: "string" } } });
-  if (values.seeds === undefined) return ONE_PLAY;
-  const count = Number(values.seeds);
+function layoutAsked(seeds) {
+  if (seeds === undefined) return ONE_PLAY;
+  const count = Number(seeds);
   if (!Number.isInteger(count) || count < 1) {
-    throw new Error(
-      `--seeds takes a whole number from 1, not "${values.seeds}".`,
-    );
+    throw new Error(`--seeds takes a whole number from 1, not "${seeds}".`);
   }
   return manyPlays(count);
+}
+
+/**
+ * Returns the field's height `--height` asks for, the least by default, or
+ * throws an error that says what is wrong with it.
+ *
+ * @param {string | undefined} height
+ * @param {Rules} rules
+ * @returns {number}
+ */
+function heightOf(height, rules) {
+  if (height === undefined) return rules.leastHeight;
+  const units = Number(height);
+  if (
+    !Number.isInteger(units) ||
+    units < rules.leastHeight ||
+    units > rules.tallest
+  ) {
+    throw new Error(
+      `--height takes a whole number from ${String(rules.leastHeight)} to ${String(rules.tallest)}, not "${height}".`,
+    );
+  }
+  return units;
 }
 
 /**
@@ -219,8 +286,11 @@ function columns(cells, layout) {
   return cells.map((cell, i) => cell.padStart(layout.widths[i] ?? 0)).join(" ");
 }
 
-const layout = layoutAsked();
-const game = await loadGame();
+const { values: asked } = parseArgs({
+  options: { seeds: { type: "string" }, height: { type: "string" } },
+});
+const layout = layoutAsked(asked.seeds);
+const game = await loadGame(asked.height);
 const headings = columns(layout.headings, layout);
 console.log(
   "".padEnd(NAME_WIDTH) +
@@ -250,8 +320,12 @@ if (uncleared > 0) {
   console.log(`${String(uncleared)} plays didn't clear their level (-).`);
 }
 if (slow > 0) {
+  const limit = game.tallerField
+    ? `a field ${String(game.height)} tall allows`
+    : "the spec allows";
   console.log(
-    `${String(slow)} plays took longer than the spec allows over their level's last bricks (!).`,
+    `${String(slow)} plays took longer than ${limit} over their level's last bricks (!).`,
   );
 }
-if (uncleared > 0 || (layout.strict && slow > 0)) process.exitCode = 1;
+const strict = layout.strict && !game.tallerField;
+if (uncleared > 0 || (strict && slow > 0)) process.exitCode = 1;

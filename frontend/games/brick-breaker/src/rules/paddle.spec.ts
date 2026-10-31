@@ -5,10 +5,12 @@ import {
   createPaddle,
   movePaddle,
   paddleBox,
+  paddleTopOf,
   steerPaddle,
 } from "./paddle";
 import { STEP_MS } from "./stepper";
 import {
+  FIELD_HEIGHT,
   FIELD_WIDTH,
   KEY_RAMP_MS,
   KEY_SPEED,
@@ -17,6 +19,7 @@ import {
   PADDLE_TOP,
   POINTER_SPEED,
   STEP_S,
+  TALLEST_FIELD,
 } from "./tuning";
 
 /** The steps held keys take to bring the paddle to its fastest. */
@@ -35,6 +38,7 @@ describe("createPaddle", () => {
     expect(paddle).toEqual({
       x: 13,
       lastX: 13,
+      top: PADDLE_TOP,
       width: 4,
       goalWidth: 4,
       target: null,
@@ -266,7 +270,33 @@ describe("the paddle's width", () => {
   });
 });
 
+describe("paddleTopOf", () => {
+  it("puts the paddle as far above the floor of a taller field", () => {
+    const above = [FIELD_HEIGHT, TALLEST_FIELD].map(
+      (height) => height - paddleTopOf(height),
+    );
+
+    expect(above).toEqual([
+      FIELD_HEIGHT - PADDLE_TOP,
+      FIELD_HEIGHT - PADDLE_TOP,
+    ]);
+  });
+});
+
 describe("paddleBox", () => {
+  it("writes the box of a paddle lowered on a taller field", () => {
+    const paddle = createPaddle();
+    paddle.top = paddleTopOf(TALLEST_FIELD);
+    const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
+
+    paddleBox(paddle, box);
+
+    expect([box.top, box.bottom]).toEqual([
+      paddle.top,
+      paddle.top + PADDLE_HEIGHT,
+    ]);
+  });
+
   it("writes the paddle's box", () => {
     const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
 

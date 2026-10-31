@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import {
   type Ball,
   bounceOffPaddle,
@@ -59,6 +60,7 @@ import {
   createPaddle,
   movePaddle,
   paddleBox,
+  paddleTopOf,
   steerPaddle,
 } from "./paddle";
 import { endStreak } from "./scoring";
@@ -76,9 +78,9 @@ import {
   MAX_BALLS,
   MAX_CONTACTS,
   NET_DEPTH,
-  PADDLE_TOP,
   ROWS,
   STEP_S,
+  TALLEST_FIELD,
 } from "./tuning";
 
 /**
@@ -102,6 +104,11 @@ export interface Field {
   readonly level: Level;
   readonly setup: FieldSetup;
   state: FieldState;
+  /**
+   * How tall it is, from the top wall to the floor: {@link FIELD_HEIGHT}, or
+   * more as a tall screen reshapes it ({@link reshapeField}).
+   */
+  height: number;
   /** A brick for each cell of the grid, row by row, null where there is none. */
   readonly bricks: readonly (Brick | null)[];
   /** Says whether a cell stops a ball, as the bricks now stand. */
@@ -248,6 +255,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     level,
     setup,
     state: "serve",
+    height: FIELD_HEIGHT,
     bricks,
     solid: (column, row) =>
       inGrid(column, row)
@@ -349,7 +357,7 @@ function stepBalls(field: Field): void {
     travel(field, ball, distance);
     if (isCleared(field)) return;
     if (field.net) turnAtNet(field, ball);
-    if (ball.y - BALL_RADIUS > FIELD_HEIGHT) loseBall(field, ball);
+    if (ball.y - BALL_RADIUS > field.height) loseBall(field, ball);
   }
 }
 
@@ -366,6 +374,23 @@ export function launch(field: Field): void {
     if (serving) serveBall(ball, field.paddle.facing);
     else letGo(field, ball);
     field.events.add("launched", ball.x, ball.y);
+  }
+}
+
+/**
+ * Makes the field a height tall, from {@link FIELD_HEIGHT} to
+ * {@link TALLEST_FIELD}, its paddle and the ball waiting on it as far above
+ * the new floor, while the level waits to serve; at any other time, or for
+ * a height that is no number, it leaves the field as it is.
+ */
+export function reshapeField(field: Field, height: number): void {
+  if (field.state !== "serve" || Number.isNaN(height)) return;
+  field.height = clamp(height, FIELD_HEIGHT, TALLEST_FIELD);
+  field.paddle.top = paddleTopOf(field.height);
+  for (const ball of field.balls) {
+    if (!ball.live || !ball.held) continue;
+    followPaddle(ball, field.paddle);
+    ball.lastY = ball.y;
   }
 }
 
@@ -419,7 +444,7 @@ function letGo(field: Field, ball: Ball): void {
 
 /** Turns back a ball that fell into the net under the paddle this step, and the net goes. */
 function turnAtNet(field: Field, ball: Ball): void {
-  const line = PADDLE_TOP + NET_DEPTH;
+  const line = field.paddle.top + NET_DEPTH;
   if (ball.lastY + BALL_RADIUS >= line || ball.y + BALL_RADIUS < line) return;
   ball.y = line - BALL_RADIUS;
   ball.dy = -ball.dy;
@@ -641,7 +666,7 @@ function isCleared(field: Readonly<Field>): boolean {
  */
 function loseBall(field: Field, ball: Ball): void {
   ball.live = false;
-  field.events.add("lost", ball.x, FIELD_HEIGHT);
+  field.events.add("lost", ball.x, field.height);
   if (field.balls.some((each) => each.live)) return;
   field.state = "lost";
   field.livesLost++;

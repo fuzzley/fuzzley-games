@@ -1,13 +1,9 @@
 import { clamp } from "@fz/core/math";
 import type { InEffect } from "../rules/capsules";
 import { capsule } from "../rules/catalog/capsules";
+import { paddleTopOf } from "../rules/paddle";
 import { stepsIn } from "../rules/stepper";
-import {
-  FIELD_HEIGHT,
-  FIELD_WIDTH,
-  NET_DEPTH,
-  PADDLE_TOP,
-} from "../rules/tuning";
+import { FIELD_WIDTH, NET_DEPTH } from "../rules/tuning";
 
 /** How far apart the middles of two tags side by side are, in field units. */
 export const TAG_SPACING = 1.3;
@@ -15,8 +11,13 @@ export const TAG_SPACING = 1.3;
 /** How far a tag's ring reaches from its middle, in field units. */
 export const TAG_RADIUS = 0.55;
 
-/** Where the tags' middles lie down the field: halfway from the net to the field's foot, so their rings cross neither. */
-export const TAG_Y = (PADDLE_TOP + NET_DEPTH + FIELD_HEIGHT) / 2;
+/**
+ * Returns where the tags' middles lie down a field of a height: halfway from
+ * the net to the field's foot, so their rings cross neither.
+ */
+export function tagY(height: number): number {
+  return (paddleTopOf(height) + NET_DEPTH + height) / 2;
+}
 
 /**
  * Returns how much of an effect's time is left, from 1 as it starts to 0 as

@@ -6,17 +6,20 @@ import { Core, type Game, GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks";
 import { catchCapsule } from "../rules/capsules";
 import type { Ball } from "../rules/balls";
+import { reshapeField } from "../rules/field";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
-import type { Steer } from "../rules/paddle";
+import { type Steer, paddleTopOf } from "../rules/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
   BOLT_INSET,
   BRICKS_TOP,
   COLUMNS,
   FIELD_HEIGHT,
+  NET_DEPTH,
   PADDLE_HEIGHT,
   PADDLE_TOP,
   ROWS,
+  TALLEST_FIELD,
 } from "../rules/tuning";
 import {
   ballOf,
@@ -48,7 +51,7 @@ import { type BricksPalette, bricksPalette } from "../view/palette";
 import { lineWidth } from "../view/shapes";
 import type { TouchSteering } from "../view/steering";
 import { between } from "../view/frame";
-import { TAG_SPACING, TAG_Y, firstTagX } from "../view/tags";
+import { TAG_SPACING, firstTagX, tagY } from "../view/tags";
 import {
   DROP_IN_MS,
   FADE_MS,
@@ -108,6 +111,8 @@ class FakeShell implements BricksSceneOptions {
   steering: TouchSteering = "drag";
   wantsSound = true;
   chimesCalled = 0;
+  /** The height the shell makes the field as it ticks, as the game does when the board asks, or null. */
+  heightAsked: number | null = null;
   readonly ticks: Tick[] = [];
   readonly layouts: CssRect[] = [];
   readonly commands: FieldCommand[] = [];
@@ -115,6 +120,7 @@ class FakeShell implements BricksSceneOptions {
 
   readonly tick = (deltaMs: number, steer: Readonly<Steer>): void => {
     this.ticks.push({ deltaMs, steer: { ...steer } });
+    if (this.heightAsked !== null) reshapeField(this.field, this.heightAsked);
   };
   readonly frame = (): FieldFrame => ({
     field: this.field,
@@ -272,7 +278,18 @@ function showing(images: readonly GameObjects.Image[]): number {
 
 /** Returns the field's layout on the spec's 400 × 400 canvas, at a pixel to a pixel. */
 function metricsAt(width = 400, height = 400): FieldMetrics {
-  return fieldMetrics({ width, height, pixelRatio: 1, insets: NO_INSETS });
+  return fieldMetrics(
+    { width, height, pixelRatio: 1, insets: NO_INSETS },
+    FIELD_HEIGHT,
+  );
+}
+
+/** Returns the layout of the tallest field on the spec's 400 × 400 canvas. */
+function tallestMetrics(): FieldMetrics {
+  return fieldMetrics(
+    { width: 400, height: 400, pixelRatio: 1, insets: NO_INSETS },
+    TALLEST_FIELD,
+  );
 }
 
 describe("BricksScene", () => {
@@ -308,6 +325,26 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(shell.layouts.at(-1)).toEqual(metricsAt(600, 400).css);
+    });
+
+    it("lays the field out again as it is reshaped", async () => {
+      const { shell, run } = await startBoard();
+
+      reshapeField(shell.field, TALLEST_FIELD);
+      run.advance(16);
+
+      expect(shell.layouts.at(-1)).toEqual(tallestMetrics().css);
+    });
+
+    it("draws a field reshaped in the shell's tick at its new layout that frame", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.heightAsked = TALLEST_FIELD;
+
+      run.advance(16);
+
+      expect(scene.paddle.body.y).toBe(
+        toCanvasY(tallestMetrics(), paddleTopOf(TALLEST_FIELD)),
+      );
     });
 
     it("bakes the atlas again at a new unit", async () => {
@@ -395,6 +432,23 @@ describe("BricksScene", () => {
 
       expect(scene.field.graphics.commandBuffer).toEqual(
         expect.arrayContaining([LIGHT.capsules.good]),
+      );
+    });
+
+    it("draws the net under the paddle of a taller field", async () => {
+      const { shell, run, scene } = await startBoard();
+      reshapeField(shell.field, TALLEST_FIELD);
+      shell.field.net = true;
+
+      run.advance(16);
+
+      // A fill is its color, its alpha, then the rectangle's command, x, y.
+      const buffer = scene.field.graphics.commandBuffer;
+      const net = buffer.indexOf(LIGHT.capsules.good);
+      expect(buffer[net + 4]).toBe(
+        Math.round(
+          toCanvasY(tallestMetrics(), paddleTopOf(TALLEST_FIELD) + NET_DEPTH),
+        ),
       );
     });
   });
@@ -921,6 +975,18 @@ describe("BricksScene", () => {
   });
 
   describe("the tags", () => {
+    it("lie under the paddle of a taller field", async () => {
+      const { shell, run, scene } = await startBoard();
+      reshapeField(shell.field, TALLEST_FIELD);
+      shell.field.effects.net.capsule = "net";
+
+      run.advance(16);
+
+      expect(scene.tags.images.net.y).toBe(
+        toCanvasY(tallestMetrics(), tagY(TALLEST_FIELD)),
+      );
+    });
+
     it("show each effect in play in a row under the paddle, in its capsule's frame", async () => {
       const { shell, run, scene } = await startBoard();
       shell.field.effects["paddle-size"].capsule = "wide";
@@ -939,13 +1005,13 @@ describe("BricksScene", () => {
           visible: true,
           frame: tagFrame("wide"),
           x: toCanvasX(metrics, first),
-          y: toCanvasY(metrics, TAG_Y),
+          y: toCanvasY(metrics, tagY(FIELD_HEIGHT)),
         },
         {
           visible: true,
           frame: tagFrame("net"),
           x: toCanvasX(metrics, first + TAG_SPACING),
-          y: toCanvasY(metrics, TAG_Y),
+          y: toCanvasY(metrics, tagY(FIELD_HEIGHT)),
         },
       ]);
     });
