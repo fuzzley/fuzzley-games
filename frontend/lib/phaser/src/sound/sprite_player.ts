@@ -1,4 +1,5 @@
-import type { Scene, Types } from "phaser";
+import type { Scene, Sound, Types } from "phaser";
+import { whenSceneEnds } from "../scene";
 
 /**
  * Describes a sound sprite: one file of sounds, and where each lies in it,
@@ -15,6 +16,9 @@ export interface SoundSprite<Name extends string> {
   readonly url: string;
 }
 
+/** How a held sound plays: on a loop, until it is let go. */
+const LOOP: Types.Sound.SoundConfig = { loop: true };
+
 /**
  * Plays the sounds of a sprite, once it has loaded, while the player wants
  * sound.
@@ -28,6 +32,9 @@ export class SpritePlayer<Name extends string> {
   /** Whether the player wanted sound when last asked, or null before. */
   private wanted: boolean | null = null;
 
+  /** The sounds held, each looping until it is let go, by name. */
+  private readonly heldSounds = new Map<Name, Sound.BaseSound>();
+
   constructor(
     private readonly scene: Scene,
     private readonly sprite: SoundSprite<Name>,
@@ -40,6 +47,11 @@ export class SpritePlayer<Name extends string> {
       sprite.url,
     );
     scene.load.start();
+    // A held sound belongs to the game's sound manager, which outlives the
+    // scene, so it would loop on after it.
+    whenSceneEnds(scene, () => {
+      this.letGoOfAll();
+    });
   }
 
   /** Whether the sprite has loaded, so a sound can be played. */
@@ -55,6 +67,7 @@ export class SpritePlayer<Name extends string> {
     if (wanted === this.wanted) return;
     this.wanted = wanted;
     this.scene.sound.mute = !wanted;
+    if (!wanted) this.letGoOfAll();
   }
 
   /**
@@ -65,5 +78,33 @@ export class SpritePlayer<Name extends string> {
     if (this.wanted && this.loaded) {
       this.scene.sound.playAudioSprite(this.sprite.key, name, config);
     }
+  }
+
+  /**
+   * Loops a sound while it is held and stops it once it is let go, as a key
+   * held down hums; a scene calls it each frame with whether it is held.
+   *
+   * A sound held starts once the sprite has loaded, while the player wants
+   * sound, and stops as they turn sound off or the scene ends; held again
+   * while it plays, it plays on as it was.
+   */
+  hold(name: Name, held: boolean): void {
+    const sound = this.heldSounds.get(name);
+    if (!held) {
+      // Destroyed, it stops, and the game's sound manager drops it.
+      sound?.destroy();
+      this.heldSounds.delete(name);
+      return;
+    }
+    if (sound || !this.wanted || !this.loaded) return;
+    const looping = this.scene.sound.addAudioSprite(this.sprite.key);
+    looping.play(name, LOOP);
+    this.heldSounds.set(name, looping);
+  }
+
+  /** Stops every sound held. */
+  private letGoOfAll(): void {
+    for (const sound of this.heldSounds.values()) sound.destroy();
+    this.heldSounds.clear();
   }
 }

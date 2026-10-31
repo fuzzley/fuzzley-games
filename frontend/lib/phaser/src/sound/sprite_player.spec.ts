@@ -1,4 +1,4 @@
-import type { Scene } from "phaser";
+import { type Scene, Sound } from "phaser";
 import type { HostedScene } from "../host";
 import { type SceneRun, runBareScene } from "../testing";
 import { type SoundSprite, SpritePlayer } from "./sprite_player";
@@ -139,5 +139,151 @@ describe("SpritePlayer", () => {
     player.follow(true);
 
     expect(scene.sound.mute).toBe(true);
+  });
+});
+
+describe("SpritePlayer's held sounds", () => {
+  let run: SceneRun<HostedScene> | null = null;
+
+  /** Starts a bare scene with a player of the sprite, loaded and wanted. */
+  async function startPlayer(): Promise<{
+    scene: Scene;
+    player: SpritePlayer<"ping" | "pong">;
+  }> {
+    run = await runBareScene();
+    const player = new SpritePlayer(run.scene, SPRITE);
+    cacheSprite(run.scene);
+    player.follow(true);
+    return { scene: run.scene, player };
+  }
+
+  /** Returns how many of the sprite's sounds the game holds, not yet let go. */
+  function heldIn(scene: Scene): number {
+    return scene.sound
+      .getAll(SPRITE.key)
+      .filter((sound) => !sound.pendingRemove).length;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    run?.destroy();
+    run = null;
+  });
+
+  // The headless game plays no audio, so this watches the call itself.
+  it("loops the sound held", async () => {
+    const { player } = await startPlayer();
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
+
+    player.hold("ping", true);
+
+    expect(play).toHaveBeenCalledWith("ping", { loop: true });
+  });
+
+  it("plays a sound held again on as it was", async () => {
+    const { player } = await startPlayer();
+    player.hold("ping", true);
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
+
+    player.hold("ping", true);
+
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it("holds one sound for each held, however often it is held", async () => {
+    const { scene, player } = await startPlayer();
+
+    player.hold("ping", true);
+    player.hold("ping", true);
+    player.hold("pong", true);
+
+    expect(heldIn(scene)).toBe(2);
+  });
+
+  it("stops a sound let go, and only that one", async () => {
+    const { scene, player } = await startPlayer();
+    player.hold("ping", true);
+    player.hold("pong", true);
+
+    player.hold("ping", false);
+
+    expect(heldIn(scene)).toBe(1);
+  });
+
+  it("holds a sound again once it was let go", async () => {
+    const { scene, player } = await startPlayer();
+    player.hold("ping", true);
+    player.hold("ping", false);
+
+    player.hold("ping", true);
+
+    expect(heldIn(scene)).toBe(1);
+  });
+
+  it("lets go of a sound not held without a fuss", async () => {
+    const { scene, player } = await startPlayer();
+
+    player.hold("ping", false);
+
+    expect(heldIn(scene)).toBe(0);
+  });
+
+  it("stops every sound held as the player turns sound off", async () => {
+    const { scene, player } = await startPlayer();
+    player.hold("ping", true);
+    player.hold("pong", true);
+
+    player.follow(false);
+
+    expect(heldIn(scene)).toBe(0);
+  });
+
+  it("holds a sound again once sound is turned back on", async () => {
+    const { scene, player } = await startPlayer();
+    player.hold("ping", true);
+    player.follow(false);
+    player.follow(true);
+
+    player.hold("ping", true);
+
+    expect(heldIn(scene)).toBe(1);
+  });
+
+  it("holds nothing while the player wants no sound", async () => {
+    const { scene, player } = await startPlayer();
+    player.follow(false);
+
+    player.hold("ping", true);
+
+    expect(heldIn(scene)).toBe(0);
+  });
+
+  it("holds nothing before the player has been asked", async () => {
+    run = await runBareScene();
+    const player = new SpritePlayer(run.scene, SPRITE);
+    cacheSprite(run.scene);
+
+    player.hold("ping", true);
+
+    expect(heldIn(run.scene)).toBe(0);
+  });
+
+  it("holds nothing before the sprite is in the cache", async () => {
+    run = await runBareScene();
+    const player = new SpritePlayer(run.scene, SPRITE);
+    player.follow(true);
+
+    player.hold("ping", true);
+
+    expect(heldIn(run.scene)).toBe(0);
+  });
+
+  it("stops every sound held as the scene ends", async () => {
+    const { scene, player } = await startPlayer();
+    player.hold("ping", true);
+
+    scene.game.scene.stop(scene.scene.key);
+
+    expect(heldIn(scene)).toBe(0);
   });
 });
