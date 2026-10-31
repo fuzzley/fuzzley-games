@@ -50,8 +50,10 @@ doesn't see, so Phaser stays out of the first download.
   paddle); `speed.ts` the three preset speeds (`PRESET_SPEEDS`), each a
   base and a top the ball climbs to, Custom, at the player's percent of
   Normal's, 50% to 200% (`CUSTOM_PERCENT`, `customFactor()`), and
-  `ballSpeed()`; and `stepper.ts` the clock that turns a frame's time into
-  fixed steps of 1/120 s, twelve at most a frame.
+  `ballSpeed()`; and `stepper.ts` the field's step, 1/120 s (`STEP_MS`),
+  `stepsIn(ms)`, a time in those steps (`@fz/core/clock`'s, bound to the
+  field's step), and the field's clock (`createFieldClock()`), which turns
+  a frame's time into steps, twelve at most a frame.
   `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so

@@ -225,12 +225,14 @@ more. Paths in Part 1 are under `frontend/lib/` or
 #### L1: `@fz/core`'s four (medium)
 
 - **L1.1** `@fz/core/clock`: `src/clock.ts` and its spec, from Brick
-  Breaker's `src/rules/stepper.ts`. `createClock()` takes the step's length
-  and the most steps a frame, which the `Clock` keeps, and `advanceClock()`,
-  `progressOf()` and `stepsIn()` read them from it. Brick Breaker's
-  `stepper.ts` keeps `STEP_S` and `STEP_MS` and makes its clock with 1/120 s
-  and 12; its specs pass unchanged. `package.json`'s `exports` gains the
-  entry. One commit.
+  Breaker's `src/rules/stepper.ts`. `createClock(stepMs, maxStepsPerFrame)`
+  makes a `Clock` that keeps them, which `advanceClock()` and
+  `progressOf()` read; `stepsIn(ms, stepMs)` takes the step's length
+  itself, since the rules count their timers with no clock to hand. Brick
+  Breaker's `stepper.ts` keeps `STEP_MS`, its own `stepsIn(ms)` and
+  `createFieldClock()`, its clock of 1/120 s and 12; its stepper spec's
+  cases move to the library's, and its other specs pass unchanged.
+  `package.json`'s `exports` gains the entry. One commit.
 - **L1.2** `@fz/core/event_log`: `EventLog<E>`, from Brick Breaker's
   `src/rules/events.ts`, taking its size and a function that makes a blank
   record; `next()` hands back the next record, numbered, to fill in place,
@@ -267,9 +269,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### L4: docs (small)
 
-- **L4.1** `@fz/core`'s, `@fz/phaser`'s and `@fz/dev`'s `AGENTS.md`, Brick
-  Breaker's `AGENTS.md` and `brick-breaker-testing` skill, and the
-  `phaser-core` and `fuzzley-ui` skills, each naming the lifted pieces where
+- **L4.1** `@fz/core`'s, `@fz/phaser`'s and `@fz/dev`'s `AGENTS.md`,
+  `frontend/games/AGENTS.md`, Brick Breaker's `AGENTS.md` and
+  `brick-breaker-testing` skill, and the `phaser-core` and `fuzzley-ui`
+  skills, each naming the lifted pieces where
   it named Brick Breaker's. `node .agents/check-skill-references.mjs`
   passes. One commit.
 

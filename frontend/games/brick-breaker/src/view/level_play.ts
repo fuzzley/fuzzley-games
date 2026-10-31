@@ -1,7 +1,8 @@
+import { advanceClock, progressOf } from "@fz/core/clock";
 import type { FieldEvent } from "../rules/events";
 import { type Field, serve, steerField, stepField } from "../rules/field";
 import type { Steer } from "../rules/paddle";
-import { advanceClock, createClock, progressOf } from "../rules/stepper";
+import { createFieldClock } from "../rules/stepper";
 import type { FieldFrame } from "./frame";
 import { SERVE_MS } from "./timing";
 
@@ -21,7 +22,7 @@ interface Frame extends FieldFrame {
  */
 export class LevelPlay {
   /** The time the steps run by, carried from one frame to the next. */
-  private readonly clock = createClock();
+  private readonly clock = createFieldClock();
   /** The frame the scene draws, written again as the field moves on. */
   private readonly shown: Frame;
   /** The serial of the last of the field's events handed on. */
