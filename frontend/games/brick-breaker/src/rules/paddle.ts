@@ -107,9 +107,9 @@ export function steerPaddle(paddle: Paddle, steer: Readonly<Steer>): void {
 /**
  * Moves the paddle on by a step: toward its width, keeping it and a
  * finger's target against a wall they were against, then by its keys, at
- * their speed as it ramps up, or toward its target, never past the walls.
+ * `keySpeed` as it ramps up, or toward its target, never past the walls.
  */
-export function movePaddle(paddle: Paddle): void {
+export function movePaddle(paddle: Paddle, keySpeed = KEY_SPEED): void {
   paddle.lastX = paddle.x;
   const was = paddle.width;
   paddle.width = toward(was, paddle.goalWidth, PADDLE_RESIZE_SPEED * STEP_S);
@@ -120,8 +120,8 @@ export function movePaddle(paddle: Paddle): void {
   if (paddle.push !== 0) {
     paddle.speed = toward(
       paddle.speed,
-      paddle.push * KEY_SPEED,
-      KEY_SPEED * RAMP,
+      paddle.push * keySpeed,
+      keySpeed * RAMP,
     );
     paddle.x += paddle.speed * STEP_S;
   } else if (paddle.target !== null) {

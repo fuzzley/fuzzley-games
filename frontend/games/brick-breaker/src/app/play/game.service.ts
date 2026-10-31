@@ -428,6 +428,15 @@ export class GameService {
   }
 
   /**
+   * Sets how fast the ball goes at Custom, as a percent of Normal's, and
+   * keeps it: a Custom run's ball takes it at once.
+   */
+  setCustomPercent(customPercent: number): void {
+    this.settings.update({ customPercent });
+    this.levelPlay.field.customPercent = customPercent;
+  }
+
+  /**
    * Scales how fast the balls go against the speed's own, on the field in
    * play and every one after it, for a development build's debug menu.
    */
@@ -563,12 +572,17 @@ export class GameService {
     });
   }
 
-  /** Returns the field of a run's level in play, its ball waiting on the paddle. */
+  /**
+   * Returns the field of a run's level in play, its ball waiting on the
+   * paddle, at the Custom speed the settings keep.
+   */
   private fieldOf(run: Run): Field {
-    return createField(parseLevel(this.levelEntry(run.level)), {
+    const field = createField(parseLevel(this.levelEntry(run.level)), {
       speed: run.speed,
       seed: levelSeed(run),
     });
+    field.customPercent = this.settings.settings().customPercent;
+    return field;
   }
 
   /** Returns a level of the game by its number, from 1. */

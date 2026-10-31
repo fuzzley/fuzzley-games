@@ -10,6 +10,7 @@ import {
   playToClear,
   playUntil,
   provideSpecLevels,
+  travelled,
   under,
 } from "../../testing/play";
 import { GameService } from "./game.service";
@@ -200,6 +201,22 @@ describe("SavedGameService", () => {
         broken,
         serving: true,
       });
+    });
+
+    it("takes up a Custom run's ball at the speed the settings keep", async () => {
+      const before = start();
+      before.setCustomPercent(200);
+      await before.changeSpeed("custom");
+      before.launch();
+      TestBed.tick();
+      const game = reload();
+      game.resume();
+      game.launch();
+      const kept = travelled(game);
+
+      game.setCustomPercent(100);
+
+      expect(kept / travelled(game)).toBeCloseTo(2);
     });
 
     it("takes up a run kept as its first ball was served, before it scored", async () => {

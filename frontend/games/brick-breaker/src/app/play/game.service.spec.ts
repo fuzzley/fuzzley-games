@@ -16,6 +16,7 @@ import {
   SPEC_LEVEL,
   SPEC_LEVELS,
   STILL,
+  travelled,
   TWO_SETS,
   awayFrom,
   clearToNext,
@@ -81,15 +82,6 @@ async function gameAt(level: number): Promise<GameService> {
   const game = TestBed.inject(GameService);
   await game.startAt(level);
   return game;
-}
-
-/** Returns how far the first ball moves in the game's next frame, the paddle still. */
-function travelled(game: GameService): number {
-  const [ball] = game.frame().field.balls;
-  if (!ball) throw new Error("No ball on the field.");
-  const { x, y } = ball;
-  game.tick(FRAME_MS, STILL);
-  return Math.hypot(ball.x - x, ball.y - y);
 }
 
 /** Returns the game with its run's level started, the ball served. */
@@ -284,6 +276,52 @@ describe("GameService", () => {
 
       game.setBallSpeedScale(1);
       expect(scaled / travelled(game)).toBeCloseTo(2);
+    });
+  });
+
+  describe("Custom's ball speed", () => {
+    it("moves a Custom ball as far again a frame at twice it, at once", async () => {
+      const game = TestBed.inject(GameService);
+      await game.changeSpeed("custom");
+      await game.startAt(SPEC_LEVEL.steel);
+      game.launch();
+      const normal = travelled(game);
+
+      game.setCustomPercent(200);
+
+      expect(travelled(game) / normal).toBeCloseTo(2);
+    });
+
+    it("starts a Custom run's ball at the speed the settings keep", async () => {
+      TestBed.inject(SettingsService).update({ customPercent: 200 });
+      const game = TestBed.inject(GameService);
+      await game.changeSpeed("custom");
+      await game.startAt(SPEC_LEVEL.steel);
+      game.launch();
+      const kept = travelled(game);
+
+      game.setCustomPercent(100);
+
+      expect(kept / travelled(game)).toBeCloseTo(2);
+    });
+
+    it("leaves the ball at another speed as it was", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+      const normal = travelled(game);
+
+      game.setCustomPercent(200);
+
+      expect(travelled(game) / normal).toBeCloseTo(1);
+    });
+
+    it("is kept in the settings", () => {
+      const game = TestBed.inject(GameService);
+
+      game.setCustomPercent(150);
+
+      expect(TestBed.inject(SettingsService).settings().customPercent).toBe(
+        150,
+      );
     });
   });
 

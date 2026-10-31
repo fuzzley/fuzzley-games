@@ -117,7 +117,8 @@ canvas in it is hidden.
 - Its pace is the player's to choose: Snake offers three speeds, and a
   snake that steps from square to square rather than gliding; Brick
   Breaker three speeds, the slowest of which lets no capsule fall that
-  makes the game harder.
+  makes the game harder, and Custom, whose ball the player sets from half
+  Normal's speed to twice it.
 - The run's turning points are announced, not each move: the start, a
   pause, going on, and the end with the score; a run taken up after a
   reload says it is paused.

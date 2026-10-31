@@ -11,13 +11,14 @@ function store(value: unknown): void {
 }
 
 describe("SettingsService", () => {
-  it("starts a new player at Normal, steering by dragging, with sound", () => {
+  it("starts a new player at Normal, steering by dragging, with sound, and Custom at 100%", () => {
     const settings = TestBed.inject(SettingsService);
 
     expect(settings.settings()).toEqual({
       speed: "normal",
       touch: "drag",
       sound: true,
+      customPercent: 100,
     });
   });
 
@@ -30,22 +31,34 @@ describe("SettingsService", () => {
       speed: "normal",
       touch: "follow",
       sound: true,
+      customPercent: 100,
     });
   });
 
   it("keeps the settings for the next visit", () => {
-    TestBed.inject(SettingsService).update({ speed: "fast", touch: "follow" });
+    TestBed.inject(SettingsService).update({
+      speed: "custom",
+      touch: "follow",
+      customPercent: 135,
+    });
 
     TestBed.resetTestingModule();
 
     expect(TestBed.inject(SettingsService).settings()).toMatchObject({
-      speed: "fast",
+      speed: "custom",
       touch: "follow",
+      customPercent: 135,
     });
   });
 
   it("takes each stored setting that makes sense, and the default for the rest", () => {
-    store({ version: 1, speed: "slow", touch: "swipe", sound: false });
+    store({
+      version: 1,
+      speed: "slow",
+      touch: "swipe",
+      sound: false,
+      customPercent: 50,
+    });
 
     const settings = TestBed.inject(SettingsService);
 
@@ -53,6 +66,7 @@ describe("SettingsService", () => {
       speed: "normal",
       touch: "drag",
       sound: false,
+      customPercent: 50,
     });
   });
 
@@ -65,8 +79,20 @@ describe("SettingsService", () => {
       speed: "normal",
       touch: "follow",
       sound: true,
+      customPercent: 100,
     });
   });
+
+  it.each([45, 205, 123, "fast", null])(
+    "takes a Custom speed stored as %j as 100%",
+    (customPercent) => {
+      store({ version: 1, customPercent });
+
+      const settings = TestBed.inject(SettingsService);
+
+      expect(settings.settings().customPercent).toBe(100);
+    },
+  );
 
   it("starts afresh from settings stored in another shape", () => {
     store({ version: 2, touch: "follow" });

@@ -41,6 +41,32 @@
         </p>
       </div>
 
+      @let custom = customSpeed();
+      @if (custom) {
+        <div class="setting">
+          <label class="setting-label" for="custom-speed">
+            Custom ball speed
+          </label>
+          <input
+            #customSlider
+            id="custom-speed"
+            class="range"
+            type="range"
+            [min]="customRange.least"
+            [max]="customRange.most"
+            [step]="customRange.step"
+            aria-describedby="custom-speed-desc"
+            [attr.aria-valuetext]="custom.valueText"
+            [value]="custom.value"
+            (input)="setCustomPercent(customSlider.valueAsNumber)"
+          />
+          <p class="setting-desc" id="custom-speed-desc">
+            <span aria-hidden="true">{{ custom.valueText }}. </span>The ball in
+            play takes it at once.
+          </p>
+        </div>
+      }
+
       <div class="setting">
         <span class="setting-label" id="touch-label">On a touch screen</span>
         <div class="choice-list" fzRadioGroup aria-labelledby="touch-label">

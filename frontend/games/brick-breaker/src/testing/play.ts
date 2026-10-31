@@ -137,6 +137,15 @@ function lowestBallX(game: GameService): number | null {
   return lowest?.x ?? null;
 }
 
+/** Returns how far the first ball moves in the game's next frame, the paddle still. */
+export function travelled(game: GameService): number {
+  const [ball] = game.frame().field.balls;
+  if (!ball) throw new Error("No ball on the field.");
+  const { x, y } = ball;
+  game.tick(FRAME_MS, STILL);
+  return Math.hypot(ball.x - x, ball.y - y);
+}
+
 /**
  * Ticks the game a frame at a time, steered as a rule says, until something
  * comes to pass, failing past a minute's frames.

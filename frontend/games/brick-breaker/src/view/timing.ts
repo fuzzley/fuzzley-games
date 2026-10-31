@@ -7,7 +7,7 @@ export const DROP_IN_STAGGER_MS = 45;
 /** How long a brick that holds a hit takes to swell and settle. */
 export const POP_MS = 120;
 
-/** How long a fire ball's embers last, short enough that its trail stays within three balls at the top speed. */
+/** How long a fire ball's embers last, short enough that its trail keeps close behind it. */
 export const EMBERS_MS = 60;
 
 /** How long a regrowing brick takes to grow back. */
