@@ -111,6 +111,7 @@ class FakeShell implements BricksSceneOptions {
   steering: TouchSteering = "drag";
   wantsSound = true;
   chimesCalled = 0;
+  fingerSpace = 0;
   /** The height the shell makes the field as it ticks, as the game does when the board asks, or null. */
   heightAsked: number | null = null;
   readonly ticks: Tick[] = [];
@@ -132,6 +133,7 @@ class FakeShell implements BricksSceneOptions {
   readonly touch = (): TouchSteering => this.steering;
   readonly sound = (): boolean => this.wantsSound;
   readonly chimes = (): number => this.chimesCalled;
+  readonly fingerRoom = (): number => this.fingerSpace;
   readonly onLayout = (field: CssRect): void => {
     this.layouts.push(field);
   };
@@ -276,10 +278,18 @@ function showing(images: readonly GameObjects.Image[]): number {
   return images.filter((image) => image.visible).length;
 }
 
-/** Returns the field's layout on the spec's 400 × 400 canvas, at a pixel to a pixel. */
-function metricsAt(width = 400, height = 400): FieldMetrics {
+/**
+ * Returns the field's layout on the spec's 400 × 400 canvas, at a pixel to
+ * a pixel, with room for a finger under it as given.
+ */
+function metricsAt(width = 400, height = 400, fingerRoom = 0): FieldMetrics {
   return fieldMetrics(
-    { width, height, pixelRatio: 1, insets: NO_INSETS },
+    {
+      width,
+      height,
+      pixelRatio: 1,
+      insets: { ...NO_INSETS, bottom: fingerRoom },
+    },
     FIELD_HEIGHT,
   );
 }
@@ -345,6 +355,15 @@ describe("BricksScene", () => {
       expect(scene.paddle.body.y).toBe(
         toCanvasY(tallestMetrics(), paddleTopOf(TALLEST_FIELD)),
       );
+    });
+
+    it("leaves the room for a finger under the field the shell asks for", async () => {
+      const { shell, run } = await startBoard();
+
+      shell.fingerSpace = 64;
+      run.advance(16);
+
+      expect(shell.layouts.at(-1)).toEqual(metricsAt(400, 400, 64).css);
     });
 
     it("bakes the atlas again at a new unit", async () => {

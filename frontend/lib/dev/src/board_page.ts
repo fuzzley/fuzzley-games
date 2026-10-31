@@ -23,8 +23,12 @@ export interface PhaserBoard {
   readonly drawnAt: string;
   /** The board's width, in its units, such as squares. */
   readonly across: number;
-  /** The board's height, in its units. */
-  readonly down: number;
+  /**
+   * The board's height, in its units, or the custom property of its element
+   * that holds it, such as `--down`, for a board whose height follows its
+   * room.
+   */
+  readonly down: number | string;
   /**
    * A selector, within the board's element, for the placeholder's board,
    * whose wall lies around where the scene draws.
@@ -104,9 +108,15 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
     height,
     unit: width / board.across,
   };
-  if (Math.abs(height - box.unit * board.down) > 0.5) {
+  const down =
+    typeof board.down === "number"
+      ? board.down
+      : parseFloat(getComputedStyle(element).getPropertyValue(board.down));
+  if (!Number.isFinite(down)) {
+    problems.push(`${board.element} gives no ${String(board.down)}.`);
+  } else if (Math.abs(height - box.unit * down) > 0.5) {
     problems.push(
-      `The ${name} is ${width} by ${height} CSS px, not ${board.across} units by ${board.down}.`,
+      `The ${name} is ${width} by ${height} CSS px, not ${board.across} units by ${down}.`,
     );
   }
   if (

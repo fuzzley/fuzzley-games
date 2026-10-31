@@ -1,4 +1,5 @@
 import type { SceneSurroundings } from "@fz/phaser/host";
+import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import {
   onFirstFrame,
@@ -68,6 +69,8 @@ export interface BricksSceneOptions {
    * count goes up.
    */
   readonly chimes: () => number;
+  /** Returns the room to leave under the field for a finger, in CSS pixels. */
+  readonly fingerRoom: () => number;
   /** Takes where the field now lies on the canvas, in CSS pixels. */
   readonly onLayout: (field: CssRect) => void;
   /** Takes what a key, a click or a tap asks of the game. */
@@ -123,8 +126,12 @@ export class BricksScene extends Scene {
 
   /** Turns the keys and the pointer into each frame's steering. */
   private steering!: Steering;
-  /** The canvas as the field was last laid out on it. */
+  /** The canvas as the field was last laid out on it, the finger's room in its insets. */
   private viewport: Viewport | null = null;
+  /** The chrome over the canvas as the field was last laid out, in CSS pixels. */
+  private chrome: Insets = NO_INSETS;
+  /** The finger's room under the field as it was last laid out, in CSS pixels. */
+  private fingerRoom = 0;
   /** The field's height as it was last laid out, in field units. */
   private down = 0;
   private metrics!: FieldMetrics;
@@ -332,7 +339,10 @@ export class BricksScene extends Scene {
     return stale;
   }
 
-  /** Returns whether the canvas, its pixel ratio, the chrome over it or the field's height changed. */
+  /**
+   * Returns whether the canvas, its pixel ratio, the chrome over it, the
+   * finger's room or the field's height changed.
+   */
   private moved(): boolean {
     const viewport = this.viewport;
     if (!viewport) return true;
@@ -340,7 +350,8 @@ export class BricksScene extends Scene {
       viewport.width !== this.scale.width ||
       viewport.height !== this.scale.height ||
       viewport.pixelRatio !== pixelRatioOf(this) ||
-      viewport.insets !== this.surroundings.insets() ||
+      this.chrome !== this.surroundings.insets() ||
+      this.fingerRoom !== this.options.fingerRoom() ||
       this.down !== this.options.frame().field.height
     );
   }
@@ -351,11 +362,16 @@ export class BricksScene extends Scene {
    * pixel ratio.
    */
   private measure(): boolean {
+    this.chrome = this.surroundings.insets();
+    this.fingerRoom = this.options.fingerRoom();
     const viewport: Viewport = {
       width: this.scale.width,
       height: this.scale.height,
       pixelRatio: pixelRatioOf(this),
-      insets: this.surroundings.insets(),
+      insets: {
+        ...this.chrome,
+        bottom: this.chrome.bottom + this.fingerRoom,
+      },
     };
     const last = this.viewport ? this.metrics : null;
     this.viewport = viewport;

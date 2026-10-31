@@ -1,16 +1,20 @@
 @use "../styles" as *;
 
-// The board takes the room the stage gives it. The scene lays the field out
-// `--room` in from each edge, which the canvas reads as its insets, and the
-// placeholder, the focus ring until the scene has drawn and the cards work
-// out the same unit: the largest that fits the field with room for its
-// wall, whole device pixels at `--pixel-ratio` (`fieldMetrics()`).
-// `--across` and `--down` come from the component, the field's size in
-// units.
+// The board takes the room the stage gives it. The scene lays the field
+// out `--room` in from each edge, which the canvas reads as its insets,
+// and, where the board has room for a taller field, `--finger-room` CSS
+// px more from the bottom for a finger to steer in, which the component
+// hands it. The placeholder, the focus ring until the scene has drawn
+// and the cards work out the same unit: the largest that fits the field
+// with room for its wall, whole device pixels at `--pixel-ratio`
+// (`fieldMetrics()`). `--across`, `--down` and `--finger-room` come
+// from the component, the first two the field's size in units.
 :host {
   --room: var(--fz-space-6);
   --wall: 2px;
   --pixel-ratio: 1;
+  --finger-room: 0;
+  --finger: calc(var(--finger-room) * 1px);
   --fz-canvas-inset-top: var(--room);
   --fz-canvas-inset-right: var(--room);
   --fz-canvas-inset-bottom: var(--room);
@@ -35,12 +39,11 @@
 .placeholder,
 .ring,
 .card {
+  --room-across: calc(100cqw - 2 * var(--room) - 2 * var(--wall));
+  --room-down: calc(100cqh - 2 * var(--room) - var(--finger) - 2 * var(--wall));
   --unit: round(
     down,
-    min(
-      (100cqw - 2 * var(--room) - 2 * var(--wall)) / var(--across),
-      (100cqh - 2 * var(--room) - 2 * var(--wall)) / var(--down)
-    ),
+    min(var(--room-across) / var(--across), var(--room-down) / var(--down)),
     1px / var(--pixel-ratio)
   );
 }
@@ -48,6 +51,7 @@
 .placeholder {
   display: grid;
   place-items: center;
+  padding-bottom: var(--finger);
 }
 
 // The field in the panel's color, with the wall on its left, its top and its
@@ -78,7 +82,7 @@
 // Around the wall, while the board has the focus from the keyboard.
 .ring {
   position: absolute;
-  inset: 0;
+  inset: 0 0 var(--finger);
   width: calc(var(--across) * var(--unit));
   height: calc(var(--down) * var(--unit));
   margin: auto;
@@ -98,7 +102,7 @@
   @include glass(12px);
 
   position: absolute;
-  inset: 0;
+  inset: 0 0 var(--finger);
   display: grid;
   justify-items: center;
   gap: var(--fz-space-2);

@@ -1,5 +1,5 @@
 import { type CssRect, type Viewport, fitCells } from "@fz/phaser/layout";
-import { FIELD_WIDTH } from "../rules/tuning";
+import { FIELD_HEIGHT, FIELD_WIDTH, TALLEST_FIELD } from "../rules/tuning";
 
 /** Says where the field lies on the canvas. */
 export interface FieldMetrics {
@@ -23,6 +23,52 @@ export interface FieldMetrics {
 
 /** How thick the wall is, in CSS pixels. */
 export const WALL_CSS_PX = 2;
+
+/**
+ * The room a board with room for a field taller than {@link FIELD_HEIGHT}
+ * leaves under the field, in CSS pixels, for a finger to steer the paddle by
+ * without hiding it.
+ */
+export const FINGER_ROOM_CSS_PX = 64;
+
+/**
+ * Returns how tall a field a canvas has room for, in field units: the
+ * tallest, from {@link FIELD_HEIGHT} to {@link TALLEST_FIELD}, that keeps
+ * the unit its width allows above a finger's room.
+ *
+ * It counts a device pixel more across, and a CSS pixel less down, than the
+ * canvas measured, so one the browser sizes a pixel wider or shorter still
+ * lays the field out at the unit its width allows.
+ */
+export function fieldHeightFor(viewport: Viewport): number {
+  const room: Viewport = {
+    ...viewport,
+    width: viewport.width + 1,
+    insets: {
+      ...viewport.insets,
+      bottom: viewport.insets.bottom + FINGER_ROOM_CSS_PX + 1,
+    },
+  };
+  // The largest unit any field gets: the width's, unless the canvas has
+  // little room down. At the least, 1, every field gets it, however tall.
+  const largest = fieldMetrics(room, 1).unit;
+  if (largest <= 1) return FIELD_HEIGHT;
+  let down = TALLEST_FIELD;
+  while (down > FIELD_HEIGHT && fieldMetrics(room, down).unit < largest) {
+    down--;
+  }
+  return down;
+}
+
+/**
+ * Returns the room a board leaves under the field for a finger, in CSS
+ * pixels, given how tall a field it has room for:
+ * {@link FINGER_ROOM_CSS_PX} where a field taller than {@link FIELD_HEIGHT}
+ * fits, and none where it doesn't.
+ */
+export function fingerRoomOf(roomFor: number): number {
+  return roomFor > FIELD_HEIGHT ? FINGER_ROOM_CSS_PX : 0;
+}
 
 /**
  * Returns where a field `down` units tall lies on a canvas: the largest that

@@ -326,6 +326,25 @@ describe("inspectPhaserBoard", () => {
     ]);
   });
 
+  it("reads a board's height from a custom property of its element", () => {
+    lay(FITTING);
+    element("app-board").style.setProperty("--down", "29");
+
+    const { problems } = inspectPhaserBoard({ ...FIELD, down: "--down" });
+
+    expect(problems).toEqual([
+      "The field is 260 by 300 CSS px, not 26 units by 29.",
+    ]);
+  });
+
+  it("reports a board whose element gives no height where its description says", () => {
+    lay(FITTING);
+
+    const { problems } = inspectPhaserBoard({ ...FIELD, down: "--down" });
+
+    expect(problems).toEqual(["app-board gives no --down."]);
+  });
+
   it.each([
     ["says nothing", null],
     ["gives three numbers", "20 25 260"],

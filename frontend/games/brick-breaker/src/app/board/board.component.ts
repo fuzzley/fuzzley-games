@@ -1,6 +1,7 @@
 import { DOCUMENT } from "@angular/common";
 import {
   Component,
+  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
@@ -17,9 +18,11 @@ import {
   type SceneSource,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
+import type { Insets } from "@fz/phaser/insets";
 import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { endTitle, formatPoints } from "../../rules/describe";
+import { paddleTopOf } from "../../rules/paddle";
 import {
   BRICKS_TOP,
   BRICK_HEIGHT,
@@ -32,6 +35,7 @@ import {
 } from "../../rules/tuning";
 import type { BricksSceneOptions } from "../../scene/bricks_scene";
 import type { Pictures } from "../../view/art";
+import { fieldHeightFor, fingerRoomOf } from "../../view/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
@@ -42,8 +46,9 @@ type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
 /**
  * How far below the field's middle the Ready card sits, in field units:
  * halfway between the foot of the bricks' rows and the paddle, so it covers
- * neither as the player aims. The other cards, which stand while nothing
- * moves, are taller than that gap and sit in the middle.
+ * neither as the player aims, the same on a taller field, whose paddle lies
+ * as far above its floor. The other cards, which stand while nothing moves,
+ * are taller than that gap and sit in the middle.
  */
 const CARD_DROP =
   (BRICKS_TOP + ROWS * BRICK_HEIGHT + PADDLE_TOP) / 2 - FIELD_HEIGHT / 2;
@@ -73,7 +78,8 @@ const CARD_DROP =
     "[attr.data-outcome]": "game.outcome()",
     "[class.in-play]": "inPlay()",
     "[style.--across]": "across",
-    "[style.--down]": "down",
+    "[style.--down]": "game.fieldHeight()",
+    "[style.--finger-room]": "fingerRoom()",
     "[style.--card-drop]": "cardDrop",
     "[style.--pixel-ratio]": "pixelRatio",
     "(pointerdown)": "takeFocus()",
@@ -88,19 +94,29 @@ export class BoardComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly canvas = viewChild.required(PhaserCanvasComponent);
 
   protected readonly across = FIELD_WIDTH;
-  protected readonly down = FIELD_HEIGHT;
   protected readonly cardDrop = CARD_DROP;
 
+  /** How tall a field the board has room for, which the game gives the field as its ball waits to be served. */
+  private readonly roomFor = signal(FIELD_HEIGHT);
+
+  /**
+   * The room the board leaves under the field for a finger, in CSS pixels,
+   * where it has room for a taller field: it follows the board, whose shape
+   * changes at once, not the field, which waits for its ball to be served.
+   */
+  protected readonly fingerRoom = computed(() => fingerRoomOf(this.roomFor()));
+
   /** Where the placeholder draws the paddle, waiting in the middle, in field units. */
-  protected readonly paddleStyle = {
+  protected readonly paddleStyle = computed(() => ({
     "--paddle-left": (FIELD_WIDTH - PADDLE_WIDTH) / 2,
-    "--paddle-top": PADDLE_TOP,
+    "--paddle-top": paddleTopOf(this.game.fieldHeight()),
     "--paddle-width": PADDLE_WIDTH,
     "--paddle-height": PADDLE_HEIGHT,
-  };
+  }));
 
   /**
    * The device pixels to a CSS pixel, as the canvas most often renders at,
@@ -224,6 +240,7 @@ export class BoardComponent {
     touch: () => this.settings.settings().touch,
     sound: () => this.settings.settings().sound,
     chimes: () => this.game.chimes(),
+    fingerRoom: () => this.fingerRoom(),
     onLayout: (field) => {
       this.laidOut.set(field);
     },
@@ -277,6 +294,9 @@ export class BoardComponent {
     afterRenderEffect(() => {
       this.game.setDrawn(this.canvas().state() === "ready");
     });
+    afterNextRender(() => {
+      this.watchSize();
+    });
   }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */
@@ -304,6 +324,51 @@ export class BoardComponent {
   /** Starts another run, from the card over an ended one. */
   protected newGame(): void {
     void this.game.newGame();
+  }
+
+  /**
+   * Works out how tall a field the board has room for each time its size
+   * changes, where the browser can watch it, and asks the game for it.
+   */
+  private watchSize(): void {
+    if (typeof ResizeObserver === "undefined") return;
+    const board = this.host.nativeElement;
+    const observer = new ResizeObserver(() => {
+      const height = this.roomOf(board);
+      this.roomFor.set(height);
+      this.game.setFieldHeight(height);
+    });
+    observer.observe(board);
+    this.destroyRef.onDestroy(() => {
+      observer.disconnect();
+    });
+  }
+
+  /**
+   * Returns how tall a field the board has room for, in field units, inside
+   * the insets its stylesheet declares for the canvas, as the scene reads
+   * them, at the pixel ratio the placeholder is drawn at.
+   */
+  private roomOf(board: HTMLElement): number {
+    const { width, height } = board.getBoundingClientRect();
+    const style = getComputedStyle(board);
+    const inset = (edge: keyof Insets): number => {
+      const value = parseFloat(
+        style.getPropertyValue(`--fz-canvas-inset-${edge}`),
+      );
+      return Number.isFinite(value) ? value : 0;
+    };
+    return fieldHeightFor({
+      width: Math.floor(width * this.pixelRatio),
+      height: Math.floor(height * this.pixelRatio),
+      pixelRatio: this.pixelRatio,
+      insets: {
+        top: inset("top"),
+        right: inset("right"),
+        bottom: inset("bottom"),
+        left: inset("left"),
+      },
+    });
   }
 
   /** Loads the page again, for a board that couldn't be drawn. */

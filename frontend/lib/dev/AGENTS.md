@@ -111,23 +111,25 @@ too. Paths are relative to `frontend/lib/dev/`.
   game drawn on a canvas, as Snake and Brick Breaker check theirs at 2×. A
   check's `board`, a `PhaserBoard`, names a board drawn with Phaser by its
   element, the attribute that says where the scene drew it, its shape in
-  units and its placeholder, focus ring and card, and the check holds it as
-  every such board is held: its canvas ready and drawn at its size times
-  the board element's `--pixel-ratio`, the board in its shape and in the
-  window, the placeholder and the ring where the scene drew it, and the
-  card on it. The game's `inspect()` is then handed where the board lies, a
-  `BoardBox`, for what is its own, such as the least its unit may be. The
-  functions it runs in the page are in `src/layout_page.ts`, which only a
-  browser runs, so coverage leaves it out, and the board's inspection,
-  `inspectPhaserBoard()`, in `src/board_page.ts`, which its spec runs in
-  jsdom. A game's `tools/check-layout.mjs` holds its inspection and which
-  checks it runs, and hands them to
-  `runLayoutScript()`, which reads the command line (`--chrome`, `--help`),
-  serves the build as `yarn preview` does, runs the checks in a headless
-  Chrome and prints what is wrong, or that the layout holds. It returns the
-  exit code, 1 for a layout that doesn't hold and 2 for an option it doesn't
-  know, and throws where it can't check at all, such as for a game with no
-  build, no Chrome to run, or a page that never draws.
+  units, its height read from a custom property of its element where it
+  follows the room it is given, and its placeholder, focus ring and card,
+  and the check holds it as every such board is held: its canvas ready and
+  drawn at its size times the board element's `--pixel-ratio`, the board in
+  its shape and in the window, the placeholder and the ring where the scene
+  drew it, and the card on it. The game's `inspect()` is then handed where
+  the board lies, a `BoardBox`, for what is its own, such as the least its
+  unit may be. The functions it runs in the page are in
+  `src/layout_page.ts`, which only a browser runs, so coverage leaves it
+  out, and the board's inspection, `inspectPhaserBoard()`, in
+  `src/board_page.ts`, which its spec runs in jsdom. A game's
+  `tools/check-layout.mjs` holds its inspection and which checks it runs,
+  and hands them to `runLayoutScript()`, which reads the command line
+  (`--chrome`, `--help`), serves the build as `yarn preview` does, runs the
+  checks in a headless Chrome and prints what is wrong, or that the layout
+  holds. It returns the exit code, 1 for a layout that doesn't hold and 2
+  for an option it doesn't know, and throws where it can't check at all,
+  such as for a game with no build, no Chrome to run, or a page that never
+  draws.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),
