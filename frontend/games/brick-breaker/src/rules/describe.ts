@@ -1,12 +1,7 @@
-import { count } from "@fz/core/format";
+import { count, formatPoints } from "@fz/core/format";
 import { type CapsuleId, capsule } from "./catalog/capsules";
 import type { LevelEntry } from "./levels";
 import type { Run } from "./run";
-
-/** Writes points as a player reads them, with a comma in the thousands: "4,250". */
-export function formatPoints(points: number): string {
-  return points.toLocaleString("en-US");
-}
 
 /** Writes Custom's ball speed, a percent of Normal's, as its sliders read it: "150% of Normal". */
 export function formatCustomPercent(percent: number): string {

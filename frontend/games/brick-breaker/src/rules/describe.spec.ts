@@ -10,7 +10,6 @@ import {
   describeTakenUp,
   endTitle,
   formatCustomPercent,
-  formatPoints,
 } from "./describe";
 import { LEVELS } from "./levels";
 import { type Run, createRun } from "./run";
@@ -156,17 +155,6 @@ describe("endTitle", () => {
     ["won", "Every level cleared!"],
   ] as const)("calls a run %s %j", (outcome, title) => {
     expect(endTitle({ outcome })).toBe(title);
-  });
-});
-
-describe("formatPoints", () => {
-  it.each([
-    [0, "0"],
-    [950, "950"],
-    [4250, "4,250"],
-    [1234567, "1,234,567"],
-  ])("writes %i points as %j", (points, written) => {
-    expect(formatPoints(points)).toBe(written);
   });
 });
 

@@ -21,7 +21,7 @@ Each file is an entry point of its own, imported by name, such as
 - `src/json.ts`: `isRecord()`, `isWhole()` and `isCount()`, for reading
   back what was stored as JSON, which may have been edited or cut short.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
-  "2 hints".
+  "2 hints", and `formatPoints()`, points grouped in thousands, "4,250".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most.
 - `src/clock.ts`: `createClock(stepMs, maxStepsPerFrame)`, a `Clock` that
   turns a frame's time into fixed steps, `advanceClock()`, how many a frame

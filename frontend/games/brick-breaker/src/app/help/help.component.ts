@@ -1,10 +1,10 @@
 import { Component, computed, input, output } from "@angular/core";
+import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
-import { formatPoints } from "../../rules/describe";
 import {
   CLEAN_POINTS,
   CLEAR_POINTS,

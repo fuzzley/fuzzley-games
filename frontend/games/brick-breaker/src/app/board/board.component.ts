@@ -11,6 +11,7 @@ import {
   signal,
   viewChild,
 } from "@angular/core";
+import { formatPoints } from "@fz/core/format";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   KeepKeysDirective,
@@ -21,7 +22,7 @@ import type { HostOptions } from "@fz/phaser/host";
 import type { Insets } from "@fz/phaser/insets";
 import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
-import { endTitle, formatPoints } from "../../rules/describe";
+import { endTitle } from "../../rules/describe";
 import { paddleTopOf } from "../../rules/paddle";
 import {
   BRICKS_TOP,

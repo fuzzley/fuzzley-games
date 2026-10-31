@@ -105,30 +105,33 @@ const RUN = {
 
 /**
  * Returns the run, kept by the game's own rules, loaded through Vite, with
- * its score as they write points.
+ * its score as the game writes points.
+ *
+ * `@fz/core` isn't written for Node to strip its types, so it comes through
+ * Vite as the rules do.
  *
  * @returns {Promise<KeptRun>}
  */
 async function keepRun() {
-  const load = async (/** @type {string} */ file) => {
-    const { module } = await runnerImport(join(ROOT, file), {
+  const load = async (/** @type {string} */ id) => {
+    const { module } = await runnerImport(id, {
       configFile: false,
       root: ROOT,
       logLevel: "silent",
     });
     return /** @type {Record<string, unknown>} */ (module);
   };
-  const [levels, kept, describe] = await Promise.all([
-    load("src/rules/levels.ts"),
-    load("src/testing/kept_run.ts"),
-    load("src/rules/describe.ts"),
+  const [levels, kept, format] = await Promise.all([
+    load(join(ROOT, "src/rules/levels.ts")),
+    load(join(ROOT, "src/testing/kept_run.ts")),
+    load("@fz/core/format"),
   ]);
   const keptRun =
     /** @type {(levels: unknown, run: typeof RUN) => SavedRun} */ (
       kept["keptRun"]
     );
   const formatPoints = /** @type {(points: number) => string} */ (
-    describe["formatPoints"]
+    format["formatPoints"]
   );
   const saved = keptRun(levels["LEVELS"], RUN);
   return { saved, score: formatPoints(saved.score) };

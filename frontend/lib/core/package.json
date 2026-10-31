@@ -1,7 +1,7 @@
 {
   "name": "@fz/core",
   "version": "0.0.0",
-  "description": "The small helpers the games share with no framework and no platform: a seeded random source, readers for stored JSON, counts in words, a clamp, a clock of fixed steps, a log of numbered events and a frame's sounds gathered.",
+  "description": "The small helpers the games share with no framework and no platform: a seeded random source, readers for stored JSON, counts in words, points grouped in thousands, a clamp, a clock of fixed steps, a log of numbered events and a frame's sounds gathered.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",

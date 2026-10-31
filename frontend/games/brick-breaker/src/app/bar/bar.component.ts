@@ -1,5 +1,5 @@
 import { Component, computed, inject, output } from "@angular/core";
-import { count } from "@fz/core/format";
+import { count, formatPoints } from "@fz/core/format";
 import {
   BarChoiceComponent,
   type BarChoiceOption,
@@ -13,7 +13,7 @@ import {
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent, type IconName } from "@fz/ui/icon";
-import { formatCustomPercent, formatPoints } from "../../rules/describe";
+import { formatCustomPercent } from "../../rules/describe";
 import {
   CUSTOM_PERCENT,
   SPEEDS,

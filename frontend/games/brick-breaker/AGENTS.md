@@ -113,26 +113,26 @@ doesn't see, so Phaser stays out of the first download.
   level's start, a capsule caught, the lives a frame gained and lost
   (`describeLives()`, from the run before and after), the last few bricks, a
   clearing, a pause, going on and the end; `endTitle()` says what an ended
-  run is called; and `formatPoints()` writes points grouped in thousands,
-  "4,250", as the announcer, the bar, the cards, the result, the levels and
-  How to play all write them. `progress.ts` says which levels a run may
-  start at (`isOpen()`): the first, any cleared, and the one after a level
-  cleared, at any speed; `clearedOf()` reads the ids stored, keeping
-  those a level still has. `stats.ts` holds the records, each speed's runs,
-  best score and furthest level, and each level's best points at each
-  speed: `statsOf()` reads them as stored, keeping what makes sense and
-  the bests of a level the game still has, `withRunStarted()`,
-  `withRunEnded()` and `withLevelPoints()` move them on, and `isNewBest()`
-  says whether a run's score beats the best. `saved_game.ts` turns a run
-  under way and its field into what storage keeps (`saveGame()`), a run
-  whose level was just cleared as the next level not yet begun, and back
-  (`restoreGame()`), paused, dropping a level the game doesn't have under
-  that number, a field that doesn't fit its level, a number out of its
-  range, or a state no run comes to, such as a brick broken with hits left
-  or a level that needs nothing more; `takeUpField()` lays the bricks and
-  counts kept over a new field of the level. `run.ts`'s `nextLifeAfter()`
-  gives the mark the next life comes at from a score, which a kept run's
-  must match.
+  run is called; and `formatCustomPercent()` writes Custom's ball speed as
+  its sliders read it, "150% of Normal". The announcer, the bar, the cards,
+  the result, the levels and How to play all write points grouped in
+  thousands, "4,250", with `@fz/core/format`'s `formatPoints()`.
+  `progress.ts` says which levels a run may start at (`isOpen()`): the first,
+  any cleared, and the one after a level cleared, at any speed; `clearedOf()`
+  reads the ids stored, keeping those a level still has. `stats.ts` holds the
+  records, each speed's runs, best score and furthest level, and each level's
+  best points at each speed: `statsOf()` reads them as stored, keeping what
+  makes sense and the bests of a level the game still has, `withRunStarted()`,
+  `withRunEnded()` and `withLevelPoints()` move them on, and `isNewBest()` says
+  whether a run's score beats the best. `saved_game.ts` turns a run under way
+  and its field into what storage keeps (`saveGame()`), a run whose level was
+  just cleared as the next level not yet begun, and back (`restoreGame()`),
+  paused, dropping a level the game doesn't have under that number, a field that
+  doesn't fit its level, a number out of its range, or a state no run comes to,
+  such as a brick broken with hits left or a level that needs nothing more;
+  `takeUpField()` lays the bricks and counts kept over a new field of the level.
+  `run.ts`'s `nextLifeAfter()` gives the mark the next life comes at from a
+  score, which a kept run's must match.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any

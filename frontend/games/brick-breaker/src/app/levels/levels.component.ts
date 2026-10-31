@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output } from "@angular/core";
+import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { formatPoints } from "../../rules/describe";
 import { GameService } from "../play/game.service";
 import { GAME_LEVELS } from "../tokens";
 import { ProgressService } from "../stats/progress.service";
