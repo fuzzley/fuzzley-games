@@ -123,6 +123,61 @@ describe("the toolkit's mixins", () => {
     expect(card).toContain("text-align:center");
   });
 
+  it("center a board's card in a grid over all of the board but its foot", () => {
+    expect(compiled("@include fz.board-card-layer(var(--finger));")).toBe(
+      ".it{position:absolute;inset:0 0 var(--finger);display:grid;place-items:center;pointer-events:none}",
+    );
+  });
+
+  it("lay a board's cards over all of the board unless asked", () => {
+    const layer = declarations(
+      compiled("@include fz.board-card-layer;"),
+      ".it",
+    );
+
+    expect(layer).toContain("inset:0 0 0");
+  });
+
+  it("frost a board's card and center its lines", () => {
+    const card = declarations(compiled("@include fz.board-card(24px);"), ".it");
+
+    expect(card).toEqual(
+      expect.arrayContaining([
+        "backdrop-filter:blur(12px)",
+        "display:grid",
+        "justify-items:center",
+        "text-align:center",
+      ]),
+    );
+  });
+
+  it("narrow a board's card by four of the room around the board", () => {
+    const card = declarations(
+      compiled("@include fz.board-card(var(--room));"),
+      ".it",
+    );
+
+    expect(card).toContain("max-width:min(320px,100cqmin - 4*var(--room))");
+  });
+
+  it("set a board card's title large", () => {
+    expect(compiled("@include fz.board-card(24px);")).toContain(
+      ".it .card-title{font-size:var(--fz-font-lg);font-weight:700}",
+    );
+  });
+
+  it("let the pointer press only a board card's buttons", () => {
+    expect(compiled("@include fz.board-card(24px);")).toContain(
+      ".it button{margin-top:var(--fz-space-2);pointer-events:auto}",
+    );
+  });
+
+  it("set a board's card smaller for a small board", () => {
+    expect(compiled("@include fz.board-card-small;")).toBe(
+      ".it{gap:var(--fz-space-1);padding:var(--fz-space-3) var(--fz-space-4);font-size:var(--fz-font-sm)}.it button{margin-top:var(--fz-space-1)}",
+    );
+  });
+
   it("size a dialog's close button's icon", () => {
     expect(compiled("@include fz.close-button;")).toContain(
       ".it{--fz-icon-size: 20px}",

@@ -4,6 +4,7 @@
 // anything that emits a rule belongs in global.scss, which an app loads once.
 
 @forward "toolkit/a11y";
+@forward "toolkit/boards";
 @forward "toolkit/controls";
 @forward "toolkit/dialogs";
 @forward "toolkit/layout";

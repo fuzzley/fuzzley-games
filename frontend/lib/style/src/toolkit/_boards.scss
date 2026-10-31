@@ -1,0 +1,68 @@
+@use "surfaces";
+
+// What a game shows over its board: the cards, such as Paused, and the layer
+// they show in.
+
+/// Styles the layer a game's cards show in over its board, `$bottom` short
+/// of the board's foot: a grid that sets a card in its middle at the card's
+/// own height, letting the pointer through to the board.
+///
+/// A grid, as Safari stretches a card held between insets with
+/// `height: fit-content` from top to bottom.
+@mixin board-card-layer($bottom: 0) {
+  position: absolute;
+  inset: 0 0 $bottom;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/// Styles a card over a game's board, in its `board-card-layer()`: glass, its
+/// lines centered, its `.card-title` large, and its `button`s the only part
+/// of it the pointer presses.
+///
+/// It is at most 320px wide, and four `$room`s less than the shorter side of
+/// the board's size container: a `$room` inside a board that is itself a
+/// `$room` in from each edge.
+@mixin board-card($room) {
+  @include surfaces.glass(12px);
+
+  display: grid;
+  justify-items: center;
+  gap: var(--fz-space-2);
+  box-sizing: border-box;
+  max-width: min(320px, 100cqmin - 4 * $room);
+  padding: var(--fz-space-5) var(--fz-space-6);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-lg);
+  background: var(--fz-panel-glass);
+  box-shadow: var(--fz-shadow-card);
+  color: var(--fz-text);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+
+  .card-title {
+    font-size: var(--fz-font-lg);
+    font-weight: 700;
+  }
+
+  button {
+    margin-top: var(--fz-space-2);
+    pointer-events: auto;
+  }
+}
+
+/// Sets a `board-card()` smaller, for a small board, inside the game's own
+/// container query.
+@mixin board-card-small {
+  gap: var(--fz-space-1);
+  padding: var(--fz-space-3) var(--fz-space-4);
+  font-size: var(--fz-font-sm);
+
+  button {
+    margin-top: var(--fz-space-1);
+  }
+}
