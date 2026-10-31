@@ -7,6 +7,8 @@ import {
   FIELD_HEIGHT,
   FIELD_WIDTH,
   FIRST_LIVES,
+  FLATTEST,
+  KEY_SPEED,
   MAX_LIVES,
   PADDLE_HEIGHT,
   PADDLE_TOP,
@@ -14,6 +16,7 @@ import {
   ROWS,
   TALLEST_FIELD,
 } from "./tuning";
+import { SPEEDS, SPEED_INFO } from "./speed";
 
 // The numbers are the game's to tune; these hold what tuning must not break.
 describe("the tuning", () => {
@@ -42,4 +45,15 @@ describe("the tuning", () => {
   it("starts a run with fewer lives than the most it can hold", () => {
     expect(FIRST_LIVES).toBeLessThan(MAX_LIVES);
   });
+
+  it.each(SPEEDS)(
+    "has held keys move the paddle faster than the ball crosses the field at %s's top",
+    (speed) => {
+      const flattest = (FLATTEST * Math.PI) / 180;
+
+      expect(KEY_SPEED).toBeGreaterThan(
+        SPEED_INFO[speed].top * Math.cos(flattest),
+      );
+    },
+  );
 });
