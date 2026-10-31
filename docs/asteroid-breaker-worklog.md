@@ -153,3 +153,42 @@ it records. Newest last.
      library.
   4. The library's class doc spoke of bricks and streaks. Fixed: hits and
      a rising run.
+
+## L1.4: points in words
+
+2026-10-31.
+
+- **Built.** `formatPoints()` in `@fz/core/format`, beside `count()`,
+  unchanged, with Brick Breaker's cases, at 100%. Brick Breaker's
+  `describe.ts` and its five shell components import it from there, and
+  its screenshot script loads it from `@fz/core/format` through Vite, as it
+  loads the rules.
+- **Choices.** The script loads `@fz/core/format` through Vite, as it loads
+  the rules, rather than importing it as it imports `@fz/style/themes`:
+  `@fz/core` isn't held to `erasableSyntaxOnly`, so Node can't strip every
+  file of it (`event_log.ts`'s parameter properties stop it), and a static
+  import that works for `format.ts` today would break the day it gains
+  such a construct, in a script CI never runs. `keepRun()`'s doc says so.
+  Its `load()` takes a module id rather than a path under the game, since
+  Vite's `runnerImport()` resolves a workspace's package as it does a file
+  (checked by loading the script's three modules as it now does, in Node:
+  `formatPoints(4250)` wrote "4,250").
+- **Checks.** `@fz/core`: lint, typecheck, test (70 tests, 100%).
+  `brick-breaker`: lint, typecheck (the scripts' too), test (1981 tests,
+  floors held). `yarn prettier:check`,
+  `node .agents/check-skill-references.mjs`. Docs: `@fz/core`'s
+  `AGENTS.md` and `package.json`, `frontend/games/AGENTS.md` and Brick
+  Breaker's `AGENTS.md`.
+- **Review.** The reviewer also looked across L1's four commits and found
+  their names, docs and specs consistent.
+  1. The log's reason for loading `@fz/core/format` through Vite skipped
+     the question a reader asks, since the script imports `@fz/style`'s
+     TypeScript directly, and its proof read as the script's output.
+     Fixed: the reason is the library's syntax, which Node can't always
+     strip, in the log and in `keepRun()`'s doc, and the proof names the
+     call it made.
+  2. The lists named the helper "points in words", unlike every other
+     doc's "grouped in thousands", and two edited paragraphs ran past 80
+     columns. Fixed: "points grouped in thousands" everywhere, re-wrapped.
+  3. Brick Breaker's `describe.ts` paragraph, rewritten here, never named
+     `formatCustomPercent()`. Fixed: it does.

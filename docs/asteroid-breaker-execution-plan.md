@@ -247,9 +247,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   `SOUNDS`, in the view's `createFrameSounds()`, since the view holds the
   sprite's names and ties them to the gatherer once. One commit.
 - **L1.4** `formatPoints()` moves into `@fz/core/format` beside `count()`,
-  unchanged; Brick Breaker's `describe.ts` and every caller import it from
-  there. Each of the four is specced to 100%, as `@fz/core`'s floor asks.
-  One commit.
+  unchanged; Brick Breaker's `describe.ts`, every caller and its screenshot
+  script import it from there. Each of the four is specced to 100%, as
+  `@fz/core`'s floor asks. One commit.
 
 #### L2: a sound held (small)
 
