@@ -1,33 +1,19 @@
-import { EVENT_LOG_SIZE, EventLog, type FieldEvent } from "./events";
+import { EVENT_LOG_SIZE, type FieldEvent, FieldEventLog } from "./events";
 
 /** Returns copies of the events a log holds past a serial, oldest first. */
-function eventsSince(log: EventLog, serial: number): FieldEvent[] {
+function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
   const events: FieldEvent[] = [];
   log.forEachSince(serial, (event) => events.push({ ...event }));
   return events;
 }
 
-describe("EventLog", () => {
-  it("holds no event before the first", () => {
-    const log = new EventLog();
-
-    expect({ latest: log.latest, events: eventsSince(log, 0) }).toEqual({
-      latest: 0,
-      events: [],
-    });
-  });
-
-  it("visits no event from a serial before the first", () => {
-    const log = new EventLog();
-
-    expect(eventsSince(log, -1)).toEqual([]);
-  });
-
-  it("numbers each event one more than the last", () => {
-    const log = new EventLog();
+describe("FieldEventLog", () => {
+  it("records each event's kind, place, brick, capsule and streak, numbered", () => {
+    const log = new FieldEventLog();
 
     log.add("wall", 1, 2);
-    log.add("broken", 3, 4, 17, null, 5);
+    log.add("dropped", 3, 4, 17, "wide");
+    log.add("broken", 5, 6, 18, null, 5);
 
     expect(eventsSince(log, 0)).toEqual([
       {
@@ -41,37 +27,55 @@ describe("EventLog", () => {
       },
       {
         serial: 2,
-        kind: "broken",
+        kind: "dropped",
         x: 3,
         y: 4,
         cell: 17,
+        capsule: "wide",
+        streak: 0,
+      },
+      {
+        serial: 3,
+        kind: "broken",
+        x: 5,
+        y: 6,
+        cell: 18,
         capsule: null,
         streak: 5,
       },
     ]);
   });
 
-  it("visits only the events past a serial", () => {
-    const log = new EventLog();
-    log.add("wall", 0, 0);
-    log.add("paddle", 0, 0);
-    log.add("lost", 0, 0);
+  it("keeps the latest events, as many as its size", () => {
+    const log = new FieldEventLog();
 
-    const serials = eventsSince(log, 1).map((event) => event.serial);
-
-    expect(serials).toEqual([2, 3]);
-  });
-
-  it("keeps only the latest events once more were added than it holds", () => {
-    const log = new EventLog();
     for (let i = 0; i < EVENT_LOG_SIZE + 44; i++) log.add("wall", i, 0);
 
     const serials = eventsSince(log, 0).map((event) => event.serial);
-
     expect([serials.length, serials[0], serials.at(-1)]).toEqual([
       EVENT_LOG_SIZE,
       45,
       EVENT_LOG_SIZE + 44,
+    ]);
+  });
+
+  it("leaves nothing of the oldest event in the record a new one takes", () => {
+    const log = new FieldEventLog();
+    log.add("dropped", 3, 4, 17, "wide", 5);
+    for (let i = 1; i < EVENT_LOG_SIZE; i++) log.add("paddle", 0, 0);
+
+    log.add("wall", 1, 2);
+
+    expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual([
+      {
+        serial: EVENT_LOG_SIZE + 1,
+        kind: "wall",
+        x: 1,
+        y: 2,
+        cell: -1,
+        capsule: null,
+        streak: 0,
+      },
     ]);
   });
 });

@@ -4,7 +4,7 @@ import type { Brick } from "../rules/bricks";
 import type { Falling, InEffect } from "../rules/capsules";
 import type { BallKindId } from "../rules/catalog/balls";
 import type { EffectKind, PaddleMode } from "../rules/catalog/capsules";
-import type { EventLog } from "../rules/events";
+import type { FieldEventLog } from "../rules/events";
 import type { FieldState } from "../rules/field";
 import type { Paddle } from "../rules/paddle";
 
@@ -45,7 +45,7 @@ export interface FieldView {
 }
 
 /** Describes the field's log of events as the scene reads it: from a serial on, never adding to it. */
-export type EventsView = Pick<EventLog, "latest" | "forEachSince">;
+export type EventsView = Pick<FieldEventLog, "latest" | "forEachSince">;
 
 /** Describes the field between one step and the next. */
 export interface FieldFrame {

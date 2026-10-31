@@ -1,3 +1,4 @@
+import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { CapsuleId } from "./catalog/capsules";
 
 /** Names something that happened on the field, for the scene to play. */
@@ -32,9 +33,7 @@ export type FieldEventKind =
   | "cleared";
 
 /** Records something that happened on the field, and where. */
-export interface FieldEvent {
-  /** Numbers it, one more than the event before. */
-  serial: number;
+export interface FieldEvent extends NumberedEvent {
   kind: FieldEventKind;
   /** Where it happened, in field units. */
   x: number;
@@ -56,32 +55,23 @@ export interface FieldEvent {
 /** How many events the log keeps, far more than a frame's steps make. */
 export const EVENT_LOG_SIZE = 256;
 
-/**
- * Keeps the field's latest events in a ring of records made once, each
- * numbered.
- *
- * A reader plays every event past the last it played, however many steps a
- * frame took, and nothing is made as the field steps.
- */
-export class EventLog {
-  private readonly ring: FieldEvent[] = Array.from(
-    { length: EVENT_LOG_SIZE },
-    () => ({
-      serial: 0,
-      kind: "wall",
-      x: 0,
-      y: 0,
-      cell: -1,
-      capsule: null,
-      streak: 0,
-    }),
-  );
+/** Returns a record for the log's ring, before an event fills it. */
+function blankEvent(): FieldEvent {
+  return {
+    serial: 0,
+    kind: "wall",
+    x: 0,
+    y: 0,
+    cell: -1,
+    capsule: null,
+    streak: 0,
+  };
+}
 
-  private last = 0;
-
-  /** The serial of the latest event, 0 before the first. */
-  get latest(): number {
-    return this.last;
+/** Keeps the field's latest events, for the scene to play and the shell to hear. */
+export class FieldEventLog extends EventLog<FieldEvent> {
+  constructor() {
+    super(EVENT_LOG_SIZE, blankEvent);
   }
 
   /** Records an event. */
@@ -93,31 +83,12 @@ export class EventLog {
     capsule: CapsuleId | null = null,
     streak = 0,
   ): void {
-    this.last++;
-    const event = this.ring[this.last % EVENT_LOG_SIZE];
-    if (event) {
-      event.serial = this.last;
-      event.kind = kind;
-      event.x = x;
-      event.y = y;
-      event.cell = cell;
-      event.capsule = capsule;
-      event.streak = streak;
-    }
-  }
-
-  /**
-   * Visits every event after a serial, oldest first, as many as the ring
-   * still holds.
-   */
-  forEachSince(
-    serial: number,
-    visit: (event: Readonly<FieldEvent>) => void,
-  ): void {
-    const first = Math.max(serial + 1, this.last - EVENT_LOG_SIZE + 1, 1);
-    for (let at = first; at <= this.last; at++) {
-      const event = this.ring[at % EVENT_LOG_SIZE];
-      if (event) visit(event);
-    }
+    const event = this.next();
+    event.kind = kind;
+    event.x = x;
+    event.y = y;
+    event.cell = cell;
+    event.capsule = capsule;
+    event.streak = streak;
   }
 }

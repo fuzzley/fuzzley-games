@@ -1,4 +1,4 @@
-import type { EventLog } from "../rules/events";
+import type { FieldEventLog } from "../rules/events";
 import type { Field } from "../rules/field";
 import { type EventsView, type FieldView, between } from "./frame";
 
@@ -8,7 +8,7 @@ describe("a field frame", () => {
   });
 
   it("reads the rules' event log as it is", () => {
-    expectTypeOf<EventLog>().toExtend<EventsView>();
+    expectTypeOf<FieldEventLog>().toExtend<EventsView>();
   });
 });
 

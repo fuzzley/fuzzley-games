@@ -28,6 +28,11 @@ Each file is an entry point of its own, imported by name, such as
   holds, at most its most, `progressOf()`, how far it is toward the next,
   for drawing between steps, and `stepsIn()`, a time as a count of steps,
   for a game that keeps its timers in steps.
+- `src/event_log.ts`: `EventLog<E>`, a ring of a game's latest events,
+  each a `NumberedEvent`, made with the log: `next()` hands its writer the
+  next event's record, numbered, to fill in place, so nothing is made per
+  event, and `forEachSince()` hands each reader the events past the last
+  it read, however many steps a frame took.
 
 Every game but the Solitaire Collection takes some of them, and `@fz/ui`'s
 storage takes `isRecord()`. The Solitaire Collection keeps its own seeded
