@@ -9,8 +9,8 @@ import { lineWidth } from "../view/shapes";
 import {
   TAG_RADIUS,
   TAG_SPACING,
-  TAG_Y,
   firstTagX,
+  tagY,
   timeLeft,
 } from "../view/tags";
 import { ATLAS } from "./atlas";
@@ -54,7 +54,7 @@ export class TagPainter implements Painter {
     }
     const paddleX = between(field.paddle.lastX, field.paddle.x, alpha);
     let x = firstTagX(paddleX, count);
-    const y = toCanvasY(metrics, TAG_Y);
+    const y = toCanvasY(metrics, tagY(field.height));
     const radius = TAG_RADIUS * metrics.unit;
     const width = lineWidth(metrics);
     for (const kind of EFFECT_KINDS) {

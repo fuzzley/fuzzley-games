@@ -1,12 +1,13 @@
 import type { InEffect } from "../rules/capsules";
+import { paddleTopOf } from "../rules/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
   FIELD_HEIGHT,
   FIELD_WIDTH,
   NET_DEPTH,
-  PADDLE_TOP,
+  TALLEST_FIELD,
 } from "../rules/tuning";
-import { TAG_RADIUS, TAG_SPACING, TAG_Y, firstTagX, timeLeft } from "./tags";
+import { TAG_RADIUS, TAG_SPACING, firstTagX, tagY, timeLeft } from "./tags";
 
 describe("timeLeft", () => {
   // Wide lasts 20 seconds.
@@ -51,11 +52,16 @@ describe("firstTagX", () => {
   });
 });
 
-describe("TAG_Y", () => {
-  it("keeps the tags' rings clear of the net and on the field", () => {
-    expect({
-      belowNet: TAG_Y - TAG_RADIUS > PADDLE_TOP + NET_DEPTH,
-      onField: TAG_Y + TAG_RADIUS < FIELD_HEIGHT,
-    }).toEqual({ belowNet: true, onField: true });
-  });
+describe("tagY", () => {
+  it.each([FIELD_HEIGHT, TALLEST_FIELD])(
+    "keeps the tags' rings clear of the net and on a field %i tall",
+    (height) => {
+      const y = tagY(height);
+
+      expect({
+        belowNet: y - TAG_RADIUS > paddleTopOf(height) + NET_DEPTH,
+        onField: y + TAG_RADIUS < height,
+      }).toEqual({ belowNet: true, onField: true });
+    },
+  );
 });

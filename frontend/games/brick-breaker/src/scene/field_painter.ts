@@ -1,5 +1,5 @@
 import type { GameObjects, Scene } from "phaser";
-import { NET_DEPTH, PADDLE_TOP } from "../rules/tuning";
+import { NET_DEPTH } from "../rules/tuning";
 import { type FieldMetrics, toCanvasY } from "../view/field_metrics";
 import type { BricksPalette } from "../view/palette";
 import { lineWidth } from "../view/shapes";
@@ -42,7 +42,7 @@ export class FieldPainter implements Painter {
       graphics.fillStyle(palette.capsules.good);
       graphics.fillRect(
         x,
-        Math.round(toCanvasY(metrics, PADDLE_TOP + NET_DEPTH)),
+        Math.round(toCanvasY(metrics, field.paddle.top + NET_DEPTH)),
         width,
         lineWidth(metrics),
       );

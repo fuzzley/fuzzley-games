@@ -17,6 +17,8 @@ export type { Steer } from "../rules/paddle";
  */
 export interface FieldView {
   readonly state: FieldState;
+  /** How tall it is, from the top wall to the floor, in field units. */
+  readonly height: number;
   /** A brick for each cell of the grid, row by row, null where there is none. */
   readonly bricks: readonly (Readonly<Brick> | null)[];
   /** How many bricks the level needs broken still. */

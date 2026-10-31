@@ -1,4 +1,5 @@
 import { NO_INSETS } from "@fz/phaser/insets";
+import { FIELD_HEIGHT } from "../rules/tuning";
 import { type FieldMetrics, fieldMetrics, toCanvasX } from "./field_metrics";
 import {
   type PointerView,
@@ -11,12 +12,15 @@ import {
 
 /** Returns the metrics of a canvas of 400 by 300 CSS pixels: units of 9 at a pixel ratio of 1, 18 at 2. */
 function metricsAt(pixelRatio = 1): FieldMetrics {
-  return fieldMetrics({
-    width: 400 * pixelRatio,
-    height: 300 * pixelRatio,
-    pixelRatio,
-    insets: NO_INSETS,
-  });
+  return fieldMetrics(
+    {
+      width: 400 * pixelRatio,
+      height: 300 * pixelRatio,
+      pixelRatio,
+      insets: NO_INSETS,
+    },
+    FIELD_HEIGHT,
+  );
 }
 
 /** Returns a finger at a place of the field, in field units, changed as given. */

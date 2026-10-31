@@ -2,13 +2,18 @@ import type { Ball } from "../rules/balls";
 import type { Brick } from "../rules/bricks";
 import type { CapsuleId } from "../rules/catalog/capsules";
 import type { FieldEvent, FieldEventKind } from "../rules/events";
-import { type Field, createField, stepField } from "../rules/field";
+import {
+  type Field,
+  createField,
+  reshapeField,
+  stepField,
+} from "../rules/field";
 import { CELLS, cellIndex, columnOf, rowOf } from "../rules/grid";
 import { LEGEND, NO_BRICK, brickOf } from "../rules/legend";
 import type { LevelBrick } from "../rules/level";
 import type { Steer } from "../rules/paddle";
 import type { Speed } from "../rules/speed";
-import { COLUMNS, ROWS } from "../rules/tuning";
+import { COLUMNS, FIELD_HEIGHT, ROWS } from "../rules/tuning";
 
 /** Says how a pictured field is played, where a spec cares. */
 export interface PictureOptions {
@@ -21,6 +26,8 @@ export interface PictureOptions {
   readonly capsules?: readonly CapsuleId[];
   /** The capsule every gift brick gives, else one drawn. */
   readonly gift?: CapsuleId;
+  /** How tall the field is, {@link FIELD_HEIGHT} by default. */
+  readonly height?: number;
 }
 
 /** Rows that lay one brick far down the field, which keeps a level from clearing. */
@@ -63,7 +70,7 @@ export function fieldFrom(
       options.gift ?? null,
     ),
   );
-  return createField(
+  const field = createField(
     {
       cells,
       pace: options.pace ?? 1,
@@ -72,6 +79,8 @@ export function fieldFrom(
     },
     { speed: options.speed ?? "normal", seed: options.seed ?? 1 },
   );
+  reshapeField(field, options.height ?? FIELD_HEIGHT);
+  return field;
 }
 
 /**

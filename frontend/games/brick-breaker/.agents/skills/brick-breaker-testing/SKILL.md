@@ -45,7 +45,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   characters (`src/rules/legend.ts`: `o` plain, `2` to `4` tough, `#` steel,
   `*` blast, `?` gift, `~` ghost, `+` regrowing, `.` none). The options set
   what a picture can't show: the speed, the seed, the pace, the chance of a
-  capsule, the capsules that may fall and the one every gift gives.
+  capsule, the capsules that may fall, the one every gift gives and the
+  field's height, 30 by default, as a tall screen makes it up to 45.
   `KEEPER` is a picture of one brick far down the field, so a level doesn't
   clear while a spec plays on.
 - A field is in play once a ball is: `throwBall(field, x, y, degrees)` puts
@@ -69,11 +70,16 @@ Run these from `frontend/games/brick-breaker/`, or as
 - `src/rules/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
   level at every speed (`playLevel()`, from the level's number as the
   seed), and holds each to being cleared within eight minutes of game time,
-  its last three bricks within one. A spec of the autopilot itself lays a
-  level out of the bricks it draws (`entryOf()`).
-- `yarn report:levels` plays the same games, and `--seeds <n>` many more,
-  for tuning; a slow endgame on one seed in many is luck, but one that
-  leaves the same bricks for last is a level to redraw.
+  its last three bricks within one; and plays them again on the tallest
+  field (`TALLEST_FIELD`), held only to being cleared within eight minutes
+  stretched as far as the paddle lies farther from the bricks
+  (`limitsOf()`), since luck decides more of a taller field's endgames. A
+  spec of the autopilot itself lays a level out of the bricks it draws
+  (`entryOf()`).
+- `yarn report:levels` plays the same games, `--seeds <n>` many more, and
+  `--height <n>` on a taller field, for tuning; a slow endgame on one seed
+  in many is luck, but one that leaves the same bricks for last is a level
+  to redraw.
 
 ## The Saved Game
 

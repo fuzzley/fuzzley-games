@@ -2,14 +2,7 @@ import { type Brick, hitBrick } from "./bricks";
 import type { Field } from "./field";
 import { cellIndex, columnAt, rowAt } from "./grid";
 import { stepsIn } from "./stepper";
-import {
-  BOLT_GAP_MS,
-  BOLT_INSET,
-  BOLT_SPEED,
-  PADDLE_TOP,
-  ROWS,
-  STEP_S,
-} from "./tuning";
+import { BOLT_GAP_MS, BOLT_INSET, BOLT_SPEED, ROWS, STEP_S } from "./tuning";
 
 /** Describes a laser bolt rising up the field. */
 export interface Bolt {
@@ -47,7 +40,7 @@ export function fireBolts(field: Field): void {
   const { x, width } = field.paddle;
   shoot(field, x - width / 2 + BOLT_INSET);
   shoot(field, x + width / 2 - BOLT_INSET);
-  field.events.add("fired", x, PADDLE_TOP);
+  field.events.add("fired", x, field.paddle.top);
 }
 
 /**
@@ -82,8 +75,8 @@ function shoot(field: Field, x: number): void {
   if (bolt) {
     bolt.live = true;
     bolt.x = x;
-    bolt.y = PADDLE_TOP;
-    bolt.lastY = PADDLE_TOP;
+    bolt.y = field.paddle.top;
+    bolt.lastY = field.paddle.top;
   }
 }
 

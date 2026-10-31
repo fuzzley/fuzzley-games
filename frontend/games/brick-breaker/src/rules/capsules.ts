@@ -18,7 +18,6 @@ import {
   CAPSULE_FALL_SPEED,
   CAPSULE_HEIGHT,
   CAPSULE_WIDTH,
-  FIELD_HEIGHT,
   MAX_CAPSULES,
   PADDLE_WIDTH,
   STEP_S,
@@ -199,9 +198,9 @@ export function stepCapsules(field: Field): void {
     if (touches(falling, paddleArea)) {
       falling.live = false;
       catchCapsule(field, falling.id, falling.x, falling.y);
-    } else if (falling.y - CAPSULE_HEIGHT / 2 > FIELD_HEIGHT) {
+    } else if (falling.y - CAPSULE_HEIGHT / 2 > field.height) {
       falling.live = false;
-      field.events.add("missed", falling.x, FIELD_HEIGHT, -1, falling.id);
+      field.events.add("missed", falling.x, field.height, -1, falling.id);
     }
   }
 }

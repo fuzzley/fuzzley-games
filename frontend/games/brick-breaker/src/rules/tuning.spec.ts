@@ -12,6 +12,7 @@ import {
   PADDLE_TOP,
   PADDLE_WIDTH,
   ROWS,
+  TALLEST_FIELD,
 } from "./tuning";
 
 // The numbers are the game's to tune; these hold what tuning must not break.
@@ -28,6 +29,10 @@ describe("the tuning", () => {
 
   it("keeps the paddle narrower than the field", () => {
     expect(FIELD_WIDTH - PADDLE_WIDTH).toBeGreaterThan(0);
+  });
+
+  it("lets a field grow no shorter than it is", () => {
+    expect(TALLEST_FIELD).toBeGreaterThanOrEqual(FIELD_HEIGHT);
   });
 
   it("keeps the paddle above the floor", () => {

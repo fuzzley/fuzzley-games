@@ -31,7 +31,7 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   | The compiler       | everywhere                       | Every trait and effect has its rule, and every brick, ball and capsule its art                                      |
   | The catalog spec   | `src/rules/catalog.spec.ts`      | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level |
   | The levels spec    | `src/rules/levels.spec.ts`       | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set      |
-  | The autopilot spec | `src/rules/autopilot.spec.ts`    | Every level cleared at every speed within eight minutes of game time, its last three bricks within one              |
+  | The autopilot spec | `src/rules/autopilot.spec.ts`    | Every level cleared at every speed in eight minutes, its last bricks in one; and in time on the tallest field       |
   | The contrast spec  | `src/view/contrast.spec.ts`      | Every color against the field, and the outline and the marks against what they cross, in every palette              |
   | The scene spec     | `src/scene/bricks_scene.spec.ts` | Every kind, in every state, drawn from a frame of the atlas                                                         |
 
@@ -67,7 +67,8 @@ Then:
 3. `yarn report:levels`, then `yarn report:levels --seeds 20`: its middle
    time should sit with its set's, rising through the game, and a long
    endgame (`!`) on one seed in many is luck, but on many seeds, leaving
-   the same bricks for last, it is a level to redraw.
+   the same bricks for last, it is a level to redraw. `--height 45` plays
+   it on the tallest field, as an upright phone shows it.
 
 What drags an endgame, as the levels so far have shown: bricks above steel,
 a channel one cell wide at a wall, the inner corners of an enclosure, a

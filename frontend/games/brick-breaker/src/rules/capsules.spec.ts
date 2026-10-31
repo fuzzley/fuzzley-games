@@ -5,6 +5,7 @@ import {
   eventsOf,
   fieldFrom,
   headingOf,
+  lastEvent,
   playWithoutBall,
   stepTimes,
   throwBall,
@@ -13,6 +14,7 @@ import { hitBrick } from "./bricks";
 import { CAPSULES, CAPSULE_IDS, type CapsuleId } from "./catalog/capsules";
 import { type Field, launch, steerField } from "./field";
 import { cellIndex, rowMiddle } from "./grid";
+import { paddleTopOf } from "./paddle";
 import { stepsIn } from "./stepper";
 import { FALLING_POOL, catchCapsule } from "./capsules";
 import {
@@ -23,10 +25,12 @@ import {
   FIELD_HEIGHT,
   FIELD_WIDTH,
   MAX_CAPSULES,
+  NET_DEPTH,
   PADDLE_ANGLE,
   PADDLE_TOP,
   PADDLE_WIDTH,
   STEP_S,
+  TALLEST_FIELD,
 } from "./tuning";
 
 /** How far a capsule falls in a step. */
@@ -36,9 +40,10 @@ const FALL = CAPSULE_FALL_SPEED * STEP_S;
 const TO_PADDLE =
   Math.ceil((PADDLE_TOP - CAPSULE_HEIGHT / 2 - rowMiddle(0)) / FALL) + 1;
 
-/** The steps a capsule falling from the first row takes to pass the floor. */
-const TO_FLOOR =
-  Math.ceil((FIELD_HEIGHT + CAPSULE_HEIGHT / 2 - rowMiddle(0)) / FALL) + 1;
+/** Returns the steps a capsule falling from the first row takes to pass the floor of a field a height tall. */
+function toFloor(height = FIELD_HEIGHT): number {
+  return Math.ceil((height + CAPSULE_HEIGHT / 2 - rowMiddle(0)) / FALL) + 1;
+}
 
 /**
  * Returns a field in play, with no ball until a spec throws one, of one row
@@ -306,7 +311,7 @@ describe("a falling capsule", () => {
     const field = fieldOf("?");
     breakTop(field, 0);
 
-    stepTimes(field, TO_FLOOR);
+    stepTimes(field, toFloor());
 
     expect({
       falling: falling(field),
@@ -316,6 +321,20 @@ describe("a falling capsule", () => {
       falling: [],
       goal: PADDLE_WIDTH,
       events: ["broken", "dropped", "missed"],
+    });
+  });
+});
+
+describe("a capsule falling on a taller field", () => {
+  it("is missed once it falls past its floor", () => {
+    const field = fieldOf("?", { height: TALLEST_FIELD });
+    breakTop(field, 0);
+
+    stepTimes(field, toFloor(TALLEST_FIELD));
+
+    expect(lastEvent(field)).toMatchObject({
+      kind: "missed",
+      y: TALLEST_FIELD,
     });
   });
 });
@@ -581,6 +600,19 @@ describe("Net", () => {
       net: field.net,
       events: eventsOf(field),
     }).toEqual({ up: true, net: false, events: ["caught", "netted"] });
+  });
+
+  it("turns back a ball at the paddle of a taller field", () => {
+    const field = fieldOf("", { height: TALLEST_FIELD });
+    catchCapsule(field, "net", 0, 0);
+    throwBall(field, 5, paddleTopOf(TALLEST_FIELD) - 0.5, 180);
+
+    stepTimes(field, 20);
+
+    expect(lastEvent(field)).toMatchObject({
+      kind: "netted",
+      y: paddleTopOf(TALLEST_FIELD) + NET_DEPTH,
+    });
   });
 
   it("turns back only one", () => {

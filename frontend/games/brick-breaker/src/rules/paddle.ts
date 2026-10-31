@@ -2,6 +2,7 @@ import { clamp } from "@fz/core/math";
 import type { Box } from "./grid";
 import { STEP_MS } from "./stepper";
 import {
+  FIELD_HEIGHT,
   FIELD_WIDTH,
   KEY_RAMP_MS,
   KEY_SPEED,
@@ -32,6 +33,8 @@ export interface Paddle {
   x: number;
   /** Where its middle was a step ago, for the scene to draw between. */
   lastX: number;
+  /** Where its top lies, down from the top wall, as far above the floor however tall the field is. */
+  top: number;
   /** How wide it is. */
   width: number;
   /** How wide it is growing or shrinking to. */
@@ -55,12 +58,18 @@ export interface Paddle {
 /** The share of the keys' top speed one step's ramp adds. */
 const RAMP = STEP_MS / KEY_RAMP_MS;
 
-/** Returns a paddle in the field's middle, at its first width. */
+/** Returns where the paddle's top lies on a field of a height, as far above its floor as on any. */
+export function paddleTopOf(height: number): number {
+  return PADDLE_TOP + height - FIELD_HEIGHT;
+}
+
+/** Returns a paddle in the middle of a field {@link FIELD_HEIGHT} tall, at its first width. */
 export function createPaddle(): Paddle {
   const middle = FIELD_WIDTH / 2;
   return {
     x: middle,
     lastX: middle,
+    top: PADDLE_TOP,
     width: PADDLE_WIDTH,
     goalWidth: PADDLE_WIDTH,
     target: null,
@@ -127,9 +136,9 @@ export function movePaddle(paddle: Paddle): void {
 /** Writes the paddle's box into `box`, and returns it. */
 export function paddleBox(paddle: Readonly<Paddle>, box: Box): Box {
   box.left = paddle.x - paddle.width / 2;
-  box.top = PADDLE_TOP;
+  box.top = paddle.top;
   box.right = paddle.x + paddle.width / 2;
-  box.bottom = PADDLE_TOP + PADDLE_HEIGHT;
+  box.bottom = paddle.top + PADDLE_HEIGHT;
   return box;
 }
 

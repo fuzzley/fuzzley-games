@@ -4,15 +4,24 @@ import {
   eventsOf,
   fieldFrom,
   headingOf,
+  lastEvent,
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
-import { type Field, launch, serve, steerField, stepField } from "./field";
+import {
+  type Field,
+  launch,
+  reshapeField,
+  serve,
+  steerField,
+  stepField,
+} from "./field";
 import { catchCapsule } from "./capsules";
 import { cellIndex, columnOf, rowOf } from "./grid";
 import { ballSpeed } from "./speed";
 import {
   BALL_RADIUS,
+  FIELD_HEIGHT,
   FLATTEST,
   LULL_BOUNCES,
   LULL_TURN,
@@ -22,6 +31,7 @@ import {
   PADDLE_WIDTH,
   SERVE_ANGLE,
   STEP_S,
+  TALLEST_FIELD,
 } from "./tuning";
 
 /** A brick in the top left corner, far from where the specs throw their balls. */
@@ -68,6 +78,59 @@ describe("a new field", () => {
       state: "serve",
       live: 1,
       ball: { held: true, x: 13, y: PADDLE_TOP - BALL_RADIUS },
+    });
+  });
+});
+
+describe("reshapeField", () => {
+  it("makes a field waiting to serve taller, its paddle and ball as far above the new floor", () => {
+    const field = fieldFrom(FAR_BRICK);
+    const top = PADDLE_TOP + TALLEST_FIELD - FIELD_HEIGHT;
+
+    reshapeField(field, TALLEST_FIELD);
+
+    expect({
+      height: field.height,
+      top: field.paddle.top,
+      ball: ballOf(field),
+    }).toMatchObject({
+      height: TALLEST_FIELD,
+      top,
+      ball: { held: true, y: top - BALL_RADIUS, lastY: top - BALL_RADIUS },
+    });
+  });
+
+  it.each([
+    [FIELD_HEIGHT - 10, FIELD_HEIGHT],
+    [TALLEST_FIELD + 10, TALLEST_FIELD],
+  ])("makes a field asked to be %i tall %i tall instead", (asked, height) => {
+    const field = fieldFrom(FAR_BRICK);
+
+    reshapeField(field, asked);
+
+    expect([field.height, field.paddle.top]).toEqual([
+      height,
+      PADDLE_TOP + height - FIELD_HEIGHT,
+    ]);
+  });
+
+  it("leaves a field asked to be a height that is no number as it is", () => {
+    const field = fieldFrom(FAR_BRICK, { height: TALLEST_FIELD });
+
+    reshapeField(field, Number.NaN);
+
+    expect(field.height).toBe(TALLEST_FIELD);
+  });
+
+  it("leaves a field with a ball in flight as it is", () => {
+    const field = fieldFrom(FAR_BRICK);
+    throwBall(field, 13, 15, 0);
+
+    reshapeField(field, TALLEST_FIELD);
+
+    expect({ height: field.height, top: field.paddle.top }).toEqual({
+      height: FIELD_HEIGHT,
+      top: PADDLE_TOP,
     });
   });
 });
@@ -451,6 +514,27 @@ describe("a lost ball", () => {
     expect({ state: field.state, events: eventsOf(field) }).toEqual({
       state: "lost",
       events: ["lost"],
+    });
+  });
+
+  it("stays in play past the floor a field of the least height has, on a taller one", () => {
+    const field = fieldFrom(FAR_BRICK, { height: TALLEST_FIELD });
+    throwBall(field, 5, 29.5, 180);
+
+    stepTimes(field, 10);
+
+    expect(field.state).toBe("playing");
+  });
+
+  it("is lost past a taller field's floor", () => {
+    const field = fieldFrom(FAR_BRICK, { height: TALLEST_FIELD });
+    throwBall(field, 5, TALLEST_FIELD - 0.5, 180);
+
+    stepTimes(field, 10);
+
+    expect({ state: field.state, at: lastEvent(field)?.y }).toEqual({
+      state: "lost",
+      at: TALLEST_FIELD,
     });
   });
 

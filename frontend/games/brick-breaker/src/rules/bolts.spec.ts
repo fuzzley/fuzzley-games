@@ -8,24 +8,27 @@ import { fireBolts } from "./bolts";
 import { catchCapsule } from "./capsules";
 import type { Field } from "./field";
 import { cellIndex } from "./grid";
+import { paddleTopOf } from "./paddle";
 import { stepsIn } from "./stepper";
 import {
   BOLT_GAP_MS,
   BOLT_INSET,
   BOLT_SPEED,
+  FIELD_HEIGHT,
   PADDLE_TOP,
   STEP_S,
+  TALLEST_FIELD,
 } from "./tuning";
 
 /** The steps a bolt takes to rise from the paddle to the top wall. */
 const TO_TOP = Math.ceil(PADDLE_TOP / (BOLT_SPEED * STEP_S)) + 1;
 
 /**
- * Returns a field in play with a laser in effect, from rows of bricks, its
- * ball rising by the right wall; its bolts rise in the sixth column and the
- * eighth, from 11.4 and 14.6 across.
+ * Returns a field in play with a laser in effect, from rows of bricks, a
+ * height tall, its ball rising by the right wall; its bolts rise in the
+ * sixth column and the eighth, from 11.4 and 14.6 across.
  */
-function laserField(rows: readonly string[]): Field {
+function laserField(rows: readonly string[], height = FIELD_HEIGHT): Field {
   const field = fieldFrom(
     [
       ...rows,
@@ -45,6 +48,7 @@ function laserField(rows: readonly string[]): Field {
       "",
       "o",
     ].slice(0, 16),
+    { height },
   );
   catchCapsule(field, "laser", 0, 0);
   throwBall(field, 25, 20, 0);
@@ -80,6 +84,17 @@ describe("fireBolts", () => {
       ],
       events: ["caught", "fired"],
     });
+  });
+
+  it("fires from the paddle's top on a taller field", () => {
+    const field = laserField([], TALLEST_FIELD);
+
+    fireBolts(field);
+
+    expect(boltsOf(field).map(([, y]) => y)).toEqual([
+      paddleTopOf(TALLEST_FIELD),
+      paddleTopOf(TALLEST_FIELD),
+    ]);
   });
 
   it("fires nothing without a laser", () => {
