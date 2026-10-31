@@ -13,7 +13,7 @@ import {
   under,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
-import { SettingsService } from "../settings/settings.service";
+import { SETTINGS_KEY, SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
 
 /** What a spec gets back from rendering the bar. */
@@ -144,6 +144,78 @@ describe("BarComponent", () => {
       await TestBed.inject(ApplicationRef).whenStable();
 
       expect(game.run().speed).toBe("normal");
+    });
+
+    describe("Custom's ball speed, beneath the speeds", () => {
+      /** Renders the bar over a run at Custom, its ball at a percent, and opens the speed's menu. */
+      async function renderAtCustom(percent = 100): Promise<RenderedBar> {
+        localStorage.setItem(
+          SETTINGS_KEY,
+          JSON.stringify({
+            version: 1,
+            speed: "custom",
+            customPercent: percent,
+          }),
+        );
+        const rendered = await renderBar();
+        await rendered.user.click(speedBadge());
+        return rendered;
+      }
+
+      /** Returns the slider for Custom's ball speed in the speed's menu. */
+      function customSlider(): HTMLElement {
+        return within(screen.getByRole("menu", { name: "Speed" })).getByRole(
+          "slider",
+          { name: "Custom ball speed" },
+        );
+      }
+
+      it("is not offered at another speed", async () => {
+        const { user } = await renderBar();
+
+        await user.click(speedBadge());
+
+        expect(
+          screen.queryByRole("slider", { name: "Custom ball speed" }),
+        ).not.toBeInTheDocument();
+      });
+
+      it("is offered at the percent the settings keep while the run is at Custom", async () => {
+        await renderAtCustom(150);
+
+        expect(customSlider()).toHaveValue("150");
+      });
+
+      it("is set as the slider says", async () => {
+        const { game } = await renderAtCustom();
+
+        fireEvent.input(customSlider(), { target: { value: "150" } });
+
+        expect(game.customPercent()).toBe(150);
+      });
+
+      it("shows its percent", async () => {
+        const { game, detectChanges } = await renderAtCustom();
+
+        game.setCustomPercent(150);
+        detectChanges();
+
+        expect(
+          within(screen.getByRole("menu", { name: "Speed" })).getByText("150%"),
+        ).toBeInTheDocument();
+      });
+
+      it("reads its percent against Normal's", async () => {
+        const { game, detectChanges } = await renderAtCustom();
+
+        game.setCustomPercent(150);
+        detectChanges();
+
+        expect(customSlider()).toHaveAttribute(
+          "aria-valuetext",
+          "150% of Normal",
+        );
+      });
     });
 
     it("shows the level, the score and the lives", async () => {

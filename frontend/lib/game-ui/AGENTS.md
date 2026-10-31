@@ -47,11 +47,19 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   one checked, which the badge shows, and `choose` emits the id of any
   other. The badge is named by its `label` and the choice ("Level:
   Medium"), and is drawn as `.fz-badge` but takes a press anywhere in the
-  tap size around it. Its menu hangs from the badge's start, as the badge
-  leads the bar, and on a rail the badge is set smaller, over its chevron.
-  It opens and closes as the overflow's does: `menuSide()` in
-  `src/game_bar/menu_side.ts` gives both the side, and the private partial
-  `src/_bar_menu.scss` draws both panels.
+  tap size around it. What the app projects as `fzBarChoiceExtra`, such as
+  a slider for the choice checked, shows in the menu beneath the choices,
+  where Tab reaches it, and its keys are its own but Escape, which closes
+  the menu. It is none of the menu's items, which a screen reader counts
+  and the arrow keys move between, so it holds one simple control, and
+  what it does is offered elsewhere too, as Brick Breaker's settings offer
+  its slider. Its menu hangs from the badge's start, as the badge leads the
+  bar, but on a compact bar across the window from the bar's start, or its
+  end when reversed, no wider than the bar, its details wrapping where they
+  must; on a rail the badge is set smaller, over its chevron. It opens and
+  closes as the overflow's does: `menuSide()` in `src/game_bar/menu_side.ts`
+  gives both the side, and the private partial `src/_bar_menu.scss` draws
+  both panels.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands

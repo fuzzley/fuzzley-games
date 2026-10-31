@@ -1,5 +1,5 @@
 import { Component, input } from "@angular/core";
-import { render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type BarPlacement, GameBarComponent } from "../game_bar";
 import {
@@ -16,7 +16,11 @@ const OPTIONS: readonly BarChoiceOption[] = [
 @Component({
   imports: [BarChoiceComponent, GameBarComponent],
   template: `
-    <fz-game-bar [placement]="placement()" [reversed]="reversed()">
+    <fz-game-bar
+      [placement]="placement()"
+      [reversed]="reversed()"
+      [compact]="compact()"
+    >
       <fz-bar-choice
         fzBarTitle
         label="Level"
@@ -29,6 +33,28 @@ const OPTIONS: readonly BarChoiceOption[] = [
 class TestBarHostComponent {
   readonly placement = input<BarPlacement>("top");
   readonly reversed = input(false);
+  readonly compact = input(false);
+  protected readonly options = OPTIONS;
+}
+
+@Component({
+  imports: [BarChoiceComponent],
+  template: `
+    <fz-bar-choice
+      label="Level"
+      value="medium"
+      [options]="options"
+      (choose)="choose()($event)"
+    >
+      <div fzBarChoiceExtra>
+        <label for="spec-range">Pace</label>
+        <input id="spec-range" type="range" />
+      </div>
+    </fz-bar-choice>
+  `,
+})
+class TestExtraHostComponent {
+  readonly choose = input.required<(id: string) => void>();
   protected readonly options = OPTIONS;
 }
 
@@ -56,13 +82,29 @@ describe("BarChoiceComponent", () => {
   async function renderInBar(
     placement: BarPlacement,
     reversed = false,
+    compact = false,
   ): Promise<{ readonly user: UserEvent; readonly host: Element }> {
     const { container } = await render(TestBarHostComponent, {
-      inputs: { placement, reversed },
+      inputs: { placement, reversed, compact },
     });
     const host = container.querySelector("fz-bar-choice");
     if (!host) throw new Error("No fz-bar-choice in the bar");
     return { user: userEvent.setup(), host };
+  }
+
+  /** Renders a choice with a slider of the host's own beneath its choices. */
+  async function renderWithExtra(): Promise<{
+    readonly user: UserEvent;
+    readonly choose: ReturnType<typeof vi.fn>;
+  }> {
+    const choose = vi.fn();
+    await render(TestExtraHostComponent, { inputs: { choose } });
+    return { user: userEvent.setup(), choose };
+  }
+
+  /** Returns the slider the host adds beneath the choices. */
+  function extraSlider(): HTMLElement {
+    return screen.getByRole("slider", { name: "Pace" });
   }
 
   function badge(): HTMLElement {
@@ -216,6 +258,69 @@ describe("BarChoiceComponent", () => {
     expect(badge()).toHaveFocus();
   });
 
+  describe("with what the app adds beneath the choices", () => {
+    it("shows it in the menu, after the last choice", async () => {
+      const { user } = await renderWithExtra();
+
+      await user.click(badge());
+
+      expect(screen.getByRole("menu")).toContainElement(extraSlider());
+      expect(
+        choice("Hard").compareDocumentPosition(extraSlider()) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it("reaches it with Tab from the choices, keeping the menu open", async () => {
+      const { user } = await renderWithExtra();
+      badge().focus();
+      await user.keyboard("{Enter}");
+
+      await user.tab();
+
+      expect(extraSlider()).toHaveFocus();
+      expect(badge()).toHaveAttribute("aria-expanded", "true");
+    });
+
+    // Pressed with fireEvent, since user-event's Home and End on a range
+    // input reach for a text selection jsdom doesn't have.
+    it.each(["ArrowDown", "ArrowUp", "Home", "End", "Enter", " ", "h"])(
+      "leaves %j pressed in it to it, choosing nothing",
+      async (key) => {
+        const { user, choose } = await renderWithExtra();
+        await user.click(badge());
+        await user.click(extraSlider());
+
+        fireEvent.keyDown(extraSlider(), { key });
+
+        expect(extraSlider()).toHaveFocus();
+        expect(badge()).toHaveAttribute("aria-expanded", "true");
+        expect(choose).not.toHaveBeenCalled();
+      },
+    );
+
+    it("closes on Escape from it and hands focus back to its badge", async () => {
+      const { user } = await renderWithExtra();
+      await user.click(badge());
+      await user.click(extraSlider());
+
+      await user.keyboard("{Escape}");
+
+      expect(badge()).toHaveAttribute("aria-expanded", "false");
+      expect(badge()).toHaveFocus();
+    });
+
+    it("chooses nothing when it is pressed", async () => {
+      const { user, choose } = await renderWithExtra();
+      await user.click(badge());
+
+      await user.click(screen.getByText("Pace"));
+
+      expect(choose).not.toHaveBeenCalled();
+      expect(badge()).toHaveAttribute("aria-expanded", "true");
+    });
+  });
+
   it.each<[BarPlacement, string]>([
     ["top", "below"],
     ["bottom", "above"],
@@ -245,6 +350,29 @@ describe("BarChoiceComponent", () => {
       expect(host.classList.contains("rail")).toBe(rail);
     },
   );
+
+  it.each<[BarPlacement, boolean, boolean]>([
+    ["bottom", true, true],
+    ["top", true, true],
+    ["bottom", false, false],
+    ["end", true, false],
+  ])(
+    "hangs its menu from the bar in a bar at the %s, compact %s: %s",
+    async (placement, compact, fromBar) => {
+      const { host } = await renderInBar(placement, false, compact);
+
+      expect(host.classList.contains("from-bar")).toBe(fromBar);
+    },
+  );
+
+  it("hangs its menu from the bar's end in a compact, reversed bar", async () => {
+    const { user, host } = await renderInBar("bottom", true, true);
+
+    await user.click(badge());
+
+    expect(host).toHaveClass("from-bar");
+    expect(screen.getByRole("menu")).toHaveClass("align-end");
+  });
 
   it("lines up with its badge's end in a reversed bar", async () => {
     const { user } = await renderInBar("top", true);

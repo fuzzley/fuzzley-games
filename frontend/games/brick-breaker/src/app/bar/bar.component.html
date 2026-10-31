@@ -12,14 +12,40 @@
   >
     Brick Breaker
   </h1>
-  <!-- At every size, as the speed isn't shown anywhere else in play. -->
+  <!--
+    At every size, as the speed isn't shown anywhere else in play, with
+    Custom's ball speed beneath the speeds while the run is at Custom.
+  -->
   <fz-bar-choice
     fzBarTitle
     label="Speed"
     [options]="speeds"
     [value]="game.speed()"
     (choose)="changeSpeed($event)"
-  />
+  >
+    @if (customSpeed(); as custom) {
+      <div fzBarChoiceExtra class="custom-speed">
+        <div class="custom-head">
+          <label for="bar-custom-speed">Custom ball speed</label>
+          <span class="custom-value" aria-hidden="true">
+            {{ custom.shown }}
+          </span>
+        </div>
+        <input
+          #customSlider
+          id="bar-custom-speed"
+          class="range"
+          type="range"
+          [min]="customRange.least"
+          [max]="customRange.most"
+          [step]="customRange.step"
+          [attr.aria-valuetext]="custom.valueText"
+          [value]="custom.value"
+          (input)="setCustomPercent(customSlider.valueAsNumber)"
+        />
+      </div>
+    }
+  </fz-bar-choice>
 
   <!--
     Not a live region: the announcer says each turning point. Where the bar

@@ -93,6 +93,27 @@
   transform-origin: top right;
 }
 
+// On a compact bar across the window, out of the bar's start instead, or its
+// end in a reversed bar, never wider than the bar, its details wrapping where
+// the bar has no room for them.
+// The badge mustn't be the menu's containing block for this: the bar is.
+:host(.from-bar) {
+  position: static;
+
+  .panel {
+    inset-inline: var(--fz-space-2) auto;
+    max-width: calc(100% - 2 * var(--fz-space-2));
+  }
+
+  .panel.align-end {
+    inset-inline: auto var(--fz-space-2);
+  }
+
+  .detail {
+    white-space: normal;
+  }
+}
+
 .item {
   @include menu.item;
 
@@ -108,6 +129,18 @@
 .detail {
   color: var(--fz-muted);
   font-size: 0.8125rem;
+}
+
+// What the app adds, beneath a rule, in line with the rows' text. Nothing at
+// all while it adds nothing.
+.extra {
+  grid-column: 1 / -1;
+  padding: var(--fz-space-2) 0.625rem var(--fz-space-1);
+  border-top: 1px solid var(--fz-edge-2);
+
+  &:empty {
+    display: none;
+  }
 }
 
 .mark {

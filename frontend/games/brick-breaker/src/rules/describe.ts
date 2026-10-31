@@ -8,6 +8,11 @@ export function formatPoints(points: number): string {
   return points.toLocaleString("en-US");
 }
 
+/** Writes Custom's ball speed, a percent of Normal's, as its sliders read it: "150% of Normal". */
+export function formatCustomPercent(percent: number): string {
+  return `${String(percent)}% of Normal`;
+}
+
 /** How few bricks a level needs before the announcer says how many are left. */
 export const FEW_BRICKS = 5;
 

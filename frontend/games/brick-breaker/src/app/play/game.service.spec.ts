@@ -323,6 +323,23 @@ describe("GameService", () => {
         150,
       );
     });
+
+    it("is given while the run is at Custom", async () => {
+      const game = TestBed.inject(GameService);
+      await game.changeSpeed("custom");
+
+      game.setCustomPercent(150);
+
+      expect(game.customPercent()).toBe(150);
+    });
+
+    it("is given as nothing at another speed", () => {
+      const game = TestBed.inject(GameService);
+
+      game.setCustomPercent(150);
+
+      expect(game.customPercent()).toBeNull();
+    });
   });
 
   describe("a lost ball", () => {

@@ -53,4 +53,14 @@
       </div>
     }
   </ng-template>
+
+  <!--
+    What the app adds beneath the choices, such as a control of the one
+    checked. Inside the menu, so taking the focus leaves it open, and with
+    its keys kept from the menu's, which would take the arrows for its own.
+  -->
+  <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+  <div class="extra" (keydown)="keepKeys($event)">
+    <ng-content select="[fzBarChoiceExtra]" />
+  </div>
 </div>

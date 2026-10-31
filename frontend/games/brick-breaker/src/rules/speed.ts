@@ -56,7 +56,7 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
   custom: {
     ...NORMAL,
     name: "Custom",
-    says: "The ball at the speed you set in the settings.",
+    says: "The ball at the speed you set.",
   },
 };
 
