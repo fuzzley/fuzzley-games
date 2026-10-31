@@ -23,6 +23,11 @@ Each file is an entry point of its own, imported by name, such as
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
   "2 hints".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most.
+- `src/clock.ts`: `createClock(stepMs, maxStepsPerFrame)`, a `Clock` that
+  turns a frame's time into fixed steps, `advanceClock()`, how many a frame
+  holds, at most its most, `progressOf()`, how far it is toward the next,
+  for drawing between steps, and `stepsIn()`, a time as a count of steps,
+  for a game that keeps its timers in steps.
 
 Every game but the Solitaire Collection takes some of them, and `@fz/ui`'s
 storage takes `isRecord()`. The Solitaire Collection keeps its own seeded
