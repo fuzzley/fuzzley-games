@@ -152,7 +152,7 @@ describe("GameService", () => {
       }).toEqual({
         outcome: "playing",
         field: "playing",
-        said: "Level 1, Blasts. 13 bricks.",
+        said: "Level 1, Blasts. 5 bricks.",
       });
     });
 
@@ -479,7 +479,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "cleared",
-        said: "Level 1 cleared! Score 4,100.",
+        said: "Level 1 cleared! Score 2,100.",
       });
     });
 
@@ -562,7 +562,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "won",
-        said: `Every level cleared! Score 4,100, at level ${String(SPEC_LEVEL.last)}. A new best!`,
+        said: `Every level cleared! Score 2,100, at level ${String(SPEC_LEVEL.last)}. A new best!`,
       });
     });
 
@@ -920,7 +920,7 @@ describe("GameService", () => {
       await clearedAt(SPEC_LEVEL.blasts);
 
       expect(TestBed.inject(StatsService).stats().levels).toEqual({
-        blasts: { normal: 4100 },
+        blasts: { normal: 2100 },
       });
     });
 
@@ -930,7 +930,7 @@ describe("GameService", () => {
       expect({
         cleared: TestBed.inject(ProgressService).cleared().has("last"),
         best: TestBed.inject(StatsService).stats().levels["last"],
-      }).toEqual({ cleared: true, best: { normal: 4100 } });
+      }).toEqual({ cleared: true, best: { normal: 2100 } });
     });
 
     it("keeps the records at the run's own speed", async () => {
@@ -942,7 +942,7 @@ describe("GameService", () => {
       expect({
         runs: stats.speeds.fast.runs,
         best: stats.levels["blasts"],
-      }).toEqual({ runs: 1, best: { fast: 4100 } });
+      }).toEqual({ runs: 1, best: { fast: 2100 } });
     });
 
     it("keeps a level's own points as its best, not the run's score", async () => {
@@ -953,7 +953,7 @@ describe("GameService", () => {
       playToClear(game);
 
       expect(TestBed.inject(StatsService).stats().levels["again"]).toEqual({
-        normal: 4100,
+        normal: 2100,
       });
     });
 
@@ -966,8 +966,8 @@ describe("GameService", () => {
         said: said(),
       }).toEqual({
         newBest: true,
-        best: 4400,
-        said: "Game over. Score 4,400, at level 2. A new best!",
+        best: 2400,
+        said: "Game over. Score 2,400, at level 2. A new best!",
       });
     });
 

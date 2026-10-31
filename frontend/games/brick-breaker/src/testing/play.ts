@@ -27,12 +27,16 @@ function giftsOf(capsule: string, name: string): LevelData {
   };
 }
 
-/** A row of blast bricks, which a hit on any one of them clears. */
+/**
+ * A short row of blast bricks, which a hit on any one of them clears: short
+ * enough that the blasts' chain is out before the ball is back at the
+ * paddle at any speed, which would end the streak and change the points.
+ */
 const BLASTS: LevelData = {
   id: "blasts",
   name: "Blasts",
   capsules: [],
-  bricks: ["*".repeat(13)],
+  bricks: ["........*****"],
 };
 
 /** The last level, blasts again, clearing which wins the run. */

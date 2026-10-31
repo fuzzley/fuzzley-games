@@ -175,7 +175,7 @@ describe("SettingsComponent", () => {
       expect(
         await screen.findByRole("slider", {
           description:
-            "×1.50: at Normal, the ball serves at 30 and climbs to 45 units a second, before a level's pace and what a capsule does to it.",
+            "×1.50: at Normal, the ball serves at 37.5 and climbs to 56.3 units a second, before a level's pace and what a capsule does to it.",
         }),
       ).toBeInTheDocument();
     });
@@ -189,7 +189,7 @@ describe("SettingsComponent", () => {
       expect(
         await screen.findByRole("slider", {
           description:
-            "×1.50: at Fast, the ball serves at 36 and climbs to 54 units a second, before a level's pace and what a capsule does to it.",
+            "×1.50: at Fast, the ball serves at 45 and climbs to 67.5 units a second, before a level's pace and what a capsule does to it.",
         }),
       ).toBeInTheDocument();
     });

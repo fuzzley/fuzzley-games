@@ -79,7 +79,7 @@ export const LULL_BOUNCES = 12;
 export const LULL_TURN = { least: 3, most: 7 } as const;
 
 /** The fastest held keys move the paddle: faster across than any speed's top. */
-export const KEY_SPEED = 40;
+export const KEY_SPEED = 50;
 
 /** How long held keys take to bring the paddle to its fastest. */
 export const KEY_RAMP_MS = 120;

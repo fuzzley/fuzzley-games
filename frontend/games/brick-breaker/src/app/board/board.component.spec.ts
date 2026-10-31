@@ -364,11 +364,11 @@ describe("BoardComponent", () => {
 
       expect(screen.getByText("Level 1 cleared")).toBeInTheDocument();
       expect(tallyLines()).toEqual([
-        ["Bricks", "1,300"],
-        ["Streaks", "1,300"],
+        ["Bricks", "500"],
+        ["Streaks", "100"],
         ["Bonus", "1,500"],
       ]);
-      expect(screen.getByText("Score 4,100")).toBeInTheDocument();
+      expect(screen.getByText("Score 2,100")).toBeInTheDocument();
     });
 
     it("go on to the next level at Next level, handing the board the focus", async () => {

@@ -22,22 +22,22 @@ export interface SpeedInfo {
 export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
   relaxed: {
     name: "Relaxed",
-    base: 16,
-    top: 24,
+    base: 20,
+    top: 30,
     badCapsules: false,
     says: "A slower ball, and no capsule that makes it harder.",
   },
   normal: {
     name: "Normal",
-    base: 20,
-    top: 30,
+    base: 25,
+    top: 37.5,
     badCapsules: true,
     says: "The classic pace.",
   },
   fast: {
     name: "Fast",
-    base: 24,
-    top: 36,
+    base: 30,
+    top: 45,
     badCapsules: true,
     says: "Quick from the first serve.",
   },

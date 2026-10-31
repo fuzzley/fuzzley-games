@@ -101,8 +101,8 @@ describe("ResultComponent", () => {
     await renderLost();
 
     expect(figures()).toEqual([
-      ["Score", "4,400"],
-      ["Best", "4,400"],
+      ["Score", "2,400"],
+      ["Best", "2,400"],
       ["Level", "2"],
       ["Cleared", "1"],
     ]);
@@ -153,8 +153,8 @@ describe("ResultComponent", () => {
       screen.getByRole("alertdialog", { name: "Every level cleared!" }),
     ).toHaveAccessibleDescription("From level 2 to the last, at Normal speed");
     expect(figures()).toEqual([
-      ["Score", "8,200"],
-      ["Best", "8,200"],
+      ["Score", "4,200"],
+      ["Best", "4,200"],
       ["Level", "3"],
       ["Cleared", "2"],
     ]);
