@@ -279,6 +279,20 @@ describe("the draw", () => {
 
     expect(falling(first)).toEqual(falling(second));
   });
+
+  it("picks other capsules from other seeds", () => {
+    const drawn = Array.from({ length: 8 }, (_, seed) => {
+      const field = fieldOf("ooo", {
+        drops: 1,
+        capsules: ["wide", "multi", "slow"],
+        seed,
+      });
+      breakTop(field, 0, 1, 2);
+      return falling(field).join(" ");
+    });
+
+    expect(new Set(drawn).size).toBeGreaterThan(1);
+  });
 });
 
 describe("a falling capsule", () => {

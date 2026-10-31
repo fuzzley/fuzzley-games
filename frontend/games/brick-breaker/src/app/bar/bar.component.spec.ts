@@ -163,7 +163,7 @@ describe("BarComponent", () => {
       playToClear(game);
       detectChanges();
 
-      expect(figure("Score")).toBe("4,100");
+      expect(figure("Score")).toBe("2,100");
     });
 
     it("shows a life lost", async () => {

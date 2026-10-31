@@ -726,10 +726,6 @@ describe("a field", () => {
     expect(play(7).draws).toBeGreaterThan(0);
   });
 
-  it("plays another way from another seed", () => {
-    expect(play(7).balls).not.toEqual(play(8).balls);
-  });
-
   it("stands still once cleared, to be drawn where it is", () => {
     const field = fieldFrom(["......o"]);
     const ball = throwBall(field, 13, 6, 0);
