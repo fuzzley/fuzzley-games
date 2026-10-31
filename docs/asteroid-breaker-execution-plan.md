@@ -405,7 +405,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 - **A7.1** `src/view/field_metrics.ts` (`deckLayout()`, `fieldShape()`,
   `toCanvas()`, `toField()`), `frame.ts`, `layers.ts`, `timing.ts` and
-  `controls.ts` (the keys by `event.code`). Specced, the layout at every
+  `controls.ts` (the keys by `event.code`). `fieldShape()` keeps the field
+  it had while its room has no area, as a hidden page's is, and never asks
+  `torusFor()` for one, which throws. Specced, the layout at every
   `@fz/dev/layout` shape: the field filling its room, its short side 40
   units, a unit of 6 CSS px or more, a deck of its least size. One commit.
 - **A7.2** `src/view/stick.ts`, `deck.ts` and `steering.ts`: the stick's

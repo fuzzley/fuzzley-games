@@ -9,3 +9,13 @@ export const STEP_S = 1 / 120;
 
 /** The most steps one frame takes, however long it was. */
 export const MAX_STEPS_PER_FRAME = 12;
+
+/** The field's short side, whatever the shape of the room it fills. */
+export const FIELD_SHORT_SIDE = 40;
+
+/**
+ * The longest the field's long side grows, so a room longer than this
+ * over {@link FIELD_SHORT_SIDE} times its short side shows the page at the
+ * field's ends.
+ */
+export const FIELD_LONGEST_SIDE = 88;

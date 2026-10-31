@@ -591,3 +591,83 @@ Asteroid Breaker.
      more among them.
   5. Normal's spec named its three factors, so a fourth would slip past
      it. Fixed: it takes every field but the name and the text.
+
+## A2.2: the torus
+
+2026-10-31.
+
+- **Built.** `src/rules/torus.ts`: `Torus`, the field's size in units;
+  `torusFor()`, the field for a room of a shape, its short side 40 units
+  and its long as many as the shape holds, up to 88; `wrap()`, a
+  coordinate put back on its axis; `across()`, the shortest way along an
+  axis from one coordinate to another, across the wrap or not;
+  `distanceSquared()` and `distance()` between two places; and
+  `copyShift()`, where on an axis an object reaching past an edge needs a
+  copy drawn. `tuning.ts` gains the field's two sides, 40 and 88.
+- **Choices.**
+  - `torusFor()` takes the room's sides in any unit, so the view's
+    `fieldShape()` (A7) hands it the room it measures, and a spec or the
+    autopilot names a field by its shape: `torusFor(88, 40)` is the
+    widest. A side that isn't a finite number above 0 throws a
+    `RangeError`, as a field with no room is a caller's bug; the view
+    must not ask for one while the page is hidden, which the plan's A7.1
+    now says.
+  - The functions take a place's coordinates one by one, not as `{ x, y }`
+    objects, since the physics measures thousands of pairs a step and
+    nothing it does a step may allocate (the `phaser-canvas-performance`
+    skill); `torusFor()`, called as a wave starts or on a pause, is the one
+    that allocates. For the same reason `wrap()` and `across()` take the
+    remainder, slow on floats, only for a place off the axis, or lengths
+    off it.
+  - `copyShift()` answers for one axis. The view draws an object once,
+    then once more for each axis whose shift isn't 0, and once more at the
+    corner when both aren't: one, two or four times, never three, which is
+    the plan's "one to four". An object touching an edge needs no copy;
+    one past it does.
+  - `across()` gives half a length ahead as ahead and half back as back,
+    either being as short. `wrap()` keeps a coordinate just short of 0
+    from rounding to the length itself, which is off the axis.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (59 tests,
+  the rules fully covered), `yarn prettier:check`. Twenty-five mutants,
+  each caught: `wrap()` without its rounding guard, or with its fast path
+  taking the length itself or a place below 0; `across()` with each bound
+  made inclusive, each wrap left out, its remainder left out, or taken
+  only ahead or only back; `distanceSquared()` measuring either axis by
+  the other's length, or dropping the second axis; `distance()` without
+  its root; `torusFor()` without the longest side, taking the sides'
+  ratio one way only, laying the field on the wrong side, or taking an
+  infinite or a 0 side; `copyShift()` with either bound inclusive or
+  either shift turned round; and each of the field's sides in `tuning.ts`
+  changed. Over a million random pairs up to 200 units off the axis,
+  `across()` with its fast path gives what it gave without it, and runs
+  1.8 times as fast on places on the axis (a bench of mine, warmed up,
+  over 8,000 precomputed pairs).
+- **Review.**
+  1. `across()` took a float's remainder, which V8 makes a call into C,
+     for every pair, about 8,000 a step: the reviewer's bench of 30 shots
+     against 105 rocks took 79 µs a step with it and 14 µs without, near a
+     quarter of the frame's budget at the plan's ×6 throttle. Fixed: the
+     remainder only for a way longer than the length, and `wrap()`
+     returning a place on the axis as it is; a case lengths off the axis
+     each way holds both halves of the guard.
+  2. The log promised the view "will not" ask for a field with no room,
+     which nothing in the plan required, while a board measured as Brick
+     Breaker's is reads 0 by 0 when hidden, and throwing in its observer
+     would fail the layout check. Fixed: the plan's A7.1 says
+     `fieldShape()` keeps the field it had while its room has no area, and
+     never asks `torusFor()` for one; the log says "must not". The throw
+     stays, rather than a square field for no room, since a hidden page
+     should keep the field it shows, not reshape it.
+  3. The error said "must be above 0, not Infinity". Fixed: "a finite
+     number above 0".
+  4. Two of `torusFor()`'s cases compared floats with `toEqual` against
+     the code's own formula. Fixed: the plan's table's numbers, 72.58 and
+     61.64, through `expect.closeTo()`, in an array, as Brick Breaker's
+     `flourish.spec.ts` holds them, since the lint refuses the matcher's
+     `any` as an object's property.
+  5. `copyShift()`'s doc didn't say it takes a place just off the axis, as
+     one drawn between two steps across the wrap is, its names printed "a
+     copy -1 lengths on", and `tuning.ts` wrote 2.2, which the two sides
+     give. Fixed: the doc says it, a case just before the start and one
+     just after the end, a word for each shift, and the longest side's doc
+     in terms of the short one.
