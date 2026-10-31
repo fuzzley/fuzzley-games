@@ -376,3 +376,69 @@ and build across every workspace.
      every row of it changed. Fixed: the cells fit the column as it was.
   6. L4 had no `yarn verify` of its own. L5.1's first run is it, as the
      line above says.
+
+## L5.1 and Q1: Brick Breaker unchanged
+
+2026-10-31, on `9aa6769f`.
+
+- **`yarn verify`** passed: lint, typecheck, test and build across every
+  workspace. It is L4's run too.
+- **Brick Breaker's `check:layout`** holds at each shape, turned both
+  ways: roomy, the phones upright and on their side, and the small and
+  smallest phones.
+- **Its sounds, the same bytes.** `yarn build:sounds` wrote
+  `sounds.wav` `e14d3425…bc4e214f` and `sounds.json` `098d8d41…f2d14e01`
+  (SHA-256), as `main`'s are, and left the tree unchanged.
+- **`yarn report:levels`, the same numbers.** Its table on this branch and
+  on `main` (`fc53b01e`) are the same, line for line: every level's time,
+  the time on its last three bricks, bounces and balls lost, at each
+  speed.
+- **Played** on the worktree's dev server in the DevTools MCP's Chrome,
+  with real mouse, key and touch events sent to the canvas and the board,
+  as Brick Breaker's Q3 did. The served modules were checked to be the
+  lifted ones by two of the four: `stepper.ts` imports
+  `lib/core/src/clock.ts`, and `event_log.ts` loads.
+  - **Mouse.** At 1280 × 800, level 1 (Stripes) at Normal: the paddle goes
+    to 6 and to 20 units as the pointer does, and a click launches. An
+    in-page autopilot following the ball cleared the level in about four
+    minutes without losing a ball, once it met the ball off the paddle's
+    middle: met dead centre, the ball came back the same way, and the
+    last 7 bricks went untouched until the page was reloaded, the run
+    taken up and the aim varied. The Cleared card added it up as bricks
+    3,900, streaks 1,700 and bonus 1,500, a score of 7,100, and Next level
+    opened level 2, Gifts. The log's events came in order, every one read
+    once: on the last stretch, 50 (29 off the walls, 12 off the paddle, 7
+    broken, a launch and the clear).
+  - **Keys.** ← held moves the paddle 12.6 units, as its 50 units a second
+    after a 120 ms ramp give for a hold a frame past 0.3 s, and D brings
+    it back; Space launches; Escape pauses, showing the Paused card; P goes
+    on. A ball lost was served again after its beat.
+  - **Touch.** As a phone (390 × 844 at 3×, touch emulated): the run saved
+    before the reload is taken up, paused; Resume tapped, the Ready card
+    says "Tap to launch."; a finger dragged 6 units moves the paddle 6
+    units, and a tap launches.
+  - **Console.** Clean, at both sizes and through every reload.
+- **Not checked here.** Sound by ear, a real phone, and browsers but
+  Chrome: Part 1 changed how the scene gathers its sounds, not what they
+  are, and `bricks_scene.spec.ts` holds the sprite's order; Q3 plays on
+  real phones. A run lost to its end was not played; the run's and the
+  result's specs cover it, and `formatPoints()` there is the same
+  function the Cleared card's tally showed working.
+- **Part 1 is done.** `asteroid-breaker` is cut from
+  `asteroid-breaker-lift` here.
+- **Review.**
+  1. The first entry played 20 seconds of level 1 and said nothing of
+     what went unchecked. Fixed: the level played to its clear, its card's
+     tally and the next level logged, and what wasn't checked said, with
+     what covers each.
+  2. Its count, 44 events, was the log's serial, not what was read (34).
+     Fixed: the clear's last stretch, counted, every kind named.
+  3. `report:levels`' `last` is the time on the last three bricks, not
+     the last brick. Fixed.
+  4. "Cut from this commit's tip" named no branch. Fixed.
+  5. Only two of the four lifted modules were checked by name. Said so.
+  6. The keys' 12.6 units stood alone. Fixed: what the paddle's speed and
+     ramp give for the hold.
+  7. The labels' style differed from the log's, a line of housekeeping
+     stood among the results, and "each turn both ways" misnamed the two
+     turns. Fixed.
