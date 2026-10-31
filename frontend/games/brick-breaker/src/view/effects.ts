@@ -21,8 +21,8 @@ export type SoundName = (typeof SOUNDS)[number];
 /** How far a sound rises for each brick of a streak, in cents: a semitone. */
 const STREAK_STEP_CENTS = 100;
 
-/** The most a streak raises a sound, in cents: an octave. */
-const STREAK_MOST_CENTS = 1200;
+/** The most a streak raises a sound, in cents: a fifth. */
+const STREAK_MOST_CENTS = 700;
 
 /**
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
@@ -78,7 +78,7 @@ export function effectsOf(
 
 /**
  * Returns how far an event's sound is raised, in cents: a broken brick's by
- * a semitone for each brick of its streak before it, up to an octave, which
+ * a semitone for each brick of its streak before it, up to a fifth, which
  * rewards a streak by ear; any other's not at all.
  */
 export function detuneOf(event: Readonly<FieldEvent>): number {

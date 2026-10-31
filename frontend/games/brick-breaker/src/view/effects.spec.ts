@@ -76,8 +76,8 @@ describe("detuneOf", () => {
     [1, 0],
     [2, 100],
     [5, 400],
-    [13, 1200],
-    [30, 1200],
+    [8, 700],
+    [30, 700],
   ])("raises a brick broken %i into a streak by %i cents", (streak, cents) => {
     expect(detuneOf(eventOf("broken", 0, streak))).toBe(cents);
   });

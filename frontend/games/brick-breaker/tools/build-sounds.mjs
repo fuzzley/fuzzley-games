@@ -46,12 +46,14 @@ const SOUNDS = [
       return (t) => tone(t) + 0.8 * knock(t) * knockShape(t);
     })(),
   },
-  // A brick broken: a bright blip, which the scene raises along a streak.
+  // A brick broken: a soft bloop that glides up, which the scene raises along
+  // a streak. Heard at nearly every brick, so it stays low and mellow, just
+  // above the knock of a brick that holds.
   {
     name: "broken",
     seconds: 0.14,
     peak: 0.5,
-    sample: note(0, glide(660, 990, 0.04, 0.25), envelope(0.002, 0.045)),
+    sample: note(0, glide(392, 587, 0.04, 0.1), envelope(0.004, 0.045)),
   },
   // Steel: two clashing partials, ringing like struck metal.
   {
