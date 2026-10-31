@@ -290,8 +290,8 @@ out with the same rules):
 | Window                             | The field, in CSS px | In units  | A unit  | Rocks against 40 × 40 |
 | ---------------------------------- | -------------------- | --------- | ------- | --------------------- |
 | Roomy, 1280 × 800                  | 1232 × 679           | 72.6 × 40 | 17.0 px | × 1.8                 |
-| Phone upright, 390 × 844           | 366 × 572            | 40 × 62.5 | 9.2 px  | × 1.6                 |
-| Phone on its side, 844 × 390       | 506 × 366            | 55.3 × 40 | 9.2 px  | × 1.4                 |
+| Phone upright, 390 × 844           | 366 × 564            | 40 × 61.6 | 9.2 px  | × 1.5                 |
+| Phone on its side, 844 × 390       | 496 × 366            | 54.2 × 40 | 9.2 px  | × 1.4                 |
 | Small phone upright, 375 × 553     | 351 × 333            | 42.2 × 40 | 8.3 px  | × 1.1                 |
 | Small phone on its side, 568 × 320 | 256 × 296            | 40 × 46.3 | 6.4 px  | × 1.2                 |
 
