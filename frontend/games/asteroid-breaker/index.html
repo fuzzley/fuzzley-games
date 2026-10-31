@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Asteroid Breaker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      The palette the player chose on the site or in another game, which
+      theme.js puts on the page before anything paints. A plain tag, at a
+      relative URL like the build's other files: @fz/style's Vite plugin
+      makes it, and vite-ignore tells Vite it isn't for bundling.
+    -->
+    <script src="theme.js" vite-ignore></script>
+    <!--
+      The fuzzball, which the same plugin makes in the default palettes'
+      accents. The ICO and the home screen icon are for what draws no SVG;
+      the ICO's sizes keeps a browser that draws both from picking it.
+    -->
+    <link rel="icon" href="favicon.ico" sizes="32x32" vite-ignore />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" vite-ignore />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" vite-ignore />
+    <!-- Tints the mobile browser's chrome to match the page, Classic felt's. -->
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- For search engines and link previews. -->
+    <meta
+      name="description"
+      content="Play Asteroid Breaker free in your browser: fly a small ship through a field that wraps at every edge, and blast every rock to rubble before one finds you. Thirty waves, then Endless, by keyboard, mouse or touch."
+    />
+    <link rel="canonical" href="https://fuzzley.games/play/asteroid-breaker/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Asteroid Breaker" />
+    <meta
+      property="og:description"
+      content="Play Asteroid Breaker free in your browser: fly a small ship through a field that wraps at every edge, and blast every rock to rubble before one finds you. Thirty waves, then Endless, by keyboard, mouse or touch."
+    />
+    <meta
+      property="og:url"
+      content="https://fuzzley.games/play/asteroid-breaker/"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Asteroid Breaker",
+        "url": "https://fuzzley.games/play/asteroid-breaker/",
+        "description": "Play Asteroid Breaker free in your browser: fly a small ship through a field that wraps at every edge, and blast every rock to rubble before one finds you. Thirty waves, then Endless, by keyboard, mouse or touch.",
+        "applicationCategory": "GameApplication",
+        "genre": ["Arcade", "Action game"],
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript.",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+  </head>
+
+  <body>
+    <app-root></app-root>
+    <noscript>
+      <h1>Asteroid Breaker</h1>
+      <p>
+        Asteroid Breaker, free to play in your browser: fly, drift and blast
+        every rock to rubble before one finds you. Turn on JavaScript to play.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
