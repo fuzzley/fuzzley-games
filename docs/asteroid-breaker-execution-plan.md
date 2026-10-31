@@ -1,223 +1,555 @@
-# Plan: Asteroid Breaker
+# Plan: building Asteroid Breaker, step by step
 
-Asteroid Breaker would be the sixth game hosted on fuzzley.games, at
-`/play/asteroid-breaker/`, in the Arcade category beside Snake and Brick
-Breaker: a small ship drifts in a field of space that fills the screen and
-wraps at every edge, turning, thrusting and firing, and breaks every rock in
-the wave into smaller and smaller pieces before one of them finds it; thirty
-waves, then Endless. Its rules, physics included,
-are plain TypeScript, its field is a Phaser scene, and its shell is Angular
-on the shared libraries, laid out as Brick Breaker is.
-
-This is the design plan. Every decision the user has to take is under
-"Decisions", each with a recommendation; "Design reference" says what the
-game is with every recommendation taken; "The build" says how it is made;
-"Phases" says in what order. The
+Answered 2026-10-31: the user took every recommendation of the design plan,
+with changes of their own to decisions 3, 12, 23 and 25, and asked for this
+plan of how it is built, as Brick Breaker was: a work log, regular commits,
+QA checkpoints and an independent review of every change. The design plan
+is folded in below ("Design reference"), and its file became this one. The
 [mock page](https://claude.ai/artifact/WGnBUrcPphdq9U1RMEvViN), a private
-artifact, draws the look, the layouts on a desktop and on phones both ways,
-the art, the rules' diagrams and the cards, and has a sketch to fly, in a
-browser or on a phone, for the feel. The sketch is throwaway code written for
-the mock, not the game's.
+artifact, draws the look, the layouts, the art, the rules' diagrams, the
+cards and the pilots' colors, and has a sketch to fly; the sketch is
+throwaway code written for the mock, not the game's.
 
-The game keeps the genre's conventions: inertia, a wrapping field, rocks that
-split into smaller, faster pieces. What is its own: rock kinds as a catalog
-(as Brick Breaker's bricks are), thirty designed waves in three sectors, a
-comet and stray fuzzballs to bring home in place of enemy ships, a dash in
-place of a random jump, a chain multiplier, a round pod flown by the site's
-fuzzball, each pilot in a color of its own, and flat art in the site's
-palettes.
+Asteroid Breaker is the sixth game hosted on fuzzley.games, at
+`/play/asteroid-breaker/`, in the Arcade category beside Snake and Brick
+Breaker: a small ship, flown by the site's fuzzball, drifts in a field of
+space that fills the screen and wraps at every edge, turning, thrusting and
+firing, and breaks every rock in the wave into smaller and smaller pieces
+before one of them finds it, bringing home the stray fuzzballs it meets;
+thirty waves, then Endless. Its rules, physics included, are plain
+TypeScript, its field is a Phaser scene, and its shell is Angular on the
+shared libraries, laid out as Brick Breaker is. The work has two parts:
 
-## What other games teach
+- **Part 1 lifts six pieces into the libraries:** four of Brick Breaker's
+  (its fixed-step clock, its event log, its frame's sounds and its points
+  grouped in thousands) and two new ones (a sound held while a key is, and
+  a deck beside a board in the layout check). Brick Breaker adopts the four
+  it gives, and nothing about it changes.
+- **Part 2 builds the game,** from an empty workspace to a game linked from
+  the catalog: its rules and physics first, tested in Node, then its view,
+  its scene and its shell, five waves of it put in front of the user on real
+  phones before the other twenty-five are built.
 
-Read for this plan: descriptions, reviews and design write-ups of games in
-the genre, and guides to touch controls. No other game's code was read.
+The game keeps the genre's conventions: inertia, a wrapping field, rocks
+that split into smaller, faster pieces. What is its own: rock kinds as a
+catalog (as Brick Breaker's bricks are), thirty designed waves in three
+sectors and Endless after them, a comet and stray fuzzballs to bring home in
+place of enemy ships, a dash in place of a random jump, a chain multiplier,
+a round pod flown by the site's fuzzball, each pilot in a color of its own,
+and flat art in the site's palettes.
 
-- **The glide is the genre.** The original is described as "a rudimentary
-  physics game": ship, rocks and shots all carry inertia, and a shot leaves
-  with the ship's speed added to its own
-  ([Game Developer](https://www.gamedeveloper.com/design/feature-game-design-essentials-20-atari-games-)).
-  Players of clones say what they miss is the glide
-  ([AtariAge](https://forums.atariage.com/topic/365993-the-case-of-the-assy-asteroids-clones/)).
-  So the ship drifts, and shots add the ship's speed (decision 2).
-- **Wrapping is the escape valve,** and smaller rocks are faster and worth
-  more; the original capped the rocks on screen and split one into fewer
-  pieces at the cap
-  ([Wikipedia](<https://en.wikipedia.org/wiki/Asteroids_(video_game)>)).
-  Kept, with our own numbers.
-- **Lurking.** Players of the original hid near an edge and farmed the
-  saucers for points until a patched ROM stopped it; its sequel's design
-  aimed at the same strategy
-  ([Wikipedia](<https://en.wikipedia.org/wiki/Asteroids_(video_game)>),
-  [Asteroids Deluxe](https://en.wikipedia.org/wiki/Asteroids_Deluxe)). A
-  game here has no endless source of points to farm: the strays come a set
-  number of times a wave, and comets pay nothing.
-- **Pickups that come to you, and come often enough.** Blasteroids' power
-  crystals decay, so they must be caught quickly
-  ([Blasteroids](https://en.wikipedia.org/wiki/Blasteroids)); reviewers of
-  Asteroids: Recharged liked that pickups drift toward the ship, which spares
-  unfair deaths, and disliked uneven drop rates
-  ([Gamezebo](https://www.gamezebo.com/reviews/asteroids-recharged-switch-review-out-of-this-world/),
-  [The Xbox Hub](https://www.thexboxhub.com/asteroids-recharged-review/)).
-  So pickups last 8 s, are drawn in from close by, and a drought rule
-  guarantees one (decision 10).
-- **Rocks of different stuff.** Super Stardust HD's rocks are rock, gold and
-  ice, each best broken by its own weapon
-  ([Giant Bomb](https://www.giantbomb.com/wiki/Games/Super_Stardust_HD)),
-  and Blasteroids has rocks that home on the ship after a hit, rocks that
-  grow, and rocks that hold crystals. Asteroid Breaker's kinds are its own,
-  but the idea, a kind told apart at a glance that asks for a different
-  approach, is what its catalog is for (decision 8).
-- **Shields and boosts over a random jump.** Asteroids Deluxe replaced the
-  jump to a random spot with a draining shield; Super Stardust HD has a
-  boost. A random jump is a gamble the player can't learn, so the escape
-  here is a dash (decision 7).
-- **On a phone, twin sticks are the common answer, and a finger over the
-  ship is the common complaint.** Atari's own mobile game went twin-stick
-  ([Gamezebo](https://www.gamezebo.com/upcoming/asteroids-gunner-preview/));
-  players say a finger covering the ship is bad and that a virtual stick
-  works for asteroid shooting
-  ([TouchArcade](https://toucharcade.com/community/threads/preferred-control-method-for-shmup-bullethell-free-flight-games.125655/));
-  a developer of a portrait asteroid game found four buttons needed two
-  hands and thought holding to fire more accessible
-  ([TouchArcade](https://toucharcade.com/community/threads/spacey-asteroid-beta-testers-needed.411941/)).
-  So the controls sit off the field, in a deck, and fire is held
-  (decisions 4 and 6).
-- **How a virtual stick feels right:** it appears where the thumb lands, in
-  a zone of its own; a dead zone of 10–15% of its radius, with the output
-  remapped from the dead zone's edge so it doesn't jump; the knob clamped to
-  the base; a highlight at full push, since a thumb feels no stop; and one
-  finger tracked from press to release
-  ([Abratabia](https://www.abratabia.com/game-controls/virtual-joystick.php)).
-  All of it is in the deck (decision 4).
-- **Feel comes from small, quick feedback:** a kick and a decaying shake, a
-  brief pause on a big hit, debris that lingers, sound with every action
-  ([Vlambeer's talk, as summarized](https://infovore.org/?p=5275)). So the
-  flourishes (decision 18), all left out where the player asks for less
-  motion.
+## The user's answers
 
-## Decisions
+All 26 decisions, as answered; "Design reference" cites them by number, and
+marks the user's own:
 
-Each has a recommendation, first. "Design reference" is written with every
-recommendation taken.
+1. The name is Asteroid Breaker, at `/play/asteroid-breaker/`, workspace
+   `games/asteroid-breaker`, port 9005, in Arcade.
+2. The genre's flight, with inertia: the ship turns, thrusts along its
+   heading, drifts and slows; a shot leaves with the ship's speed added.
+3. The field fills the screen (the user's): all the room the bar and the
+   deck leave, whatever its shape, wrapping at every edge. Its short side is
+   40 units and its long side as long as the room, up to 88; a wave's rocks
+   are written for 40 by 40 and grow in number with the field's area.
+4. Touch: a deck beside the field, under it upright and on both sides of it
+   on its side, never over it: a stick that appears where the left thumb
+   lands, turning the ship toward where it points and thrusting past half
+   way, and Fire and Dash for the right thumb; a setting swaps the hands.
+5. The deck is drawn in the canvas, by the scene, and read by the view's
+   `Steering`.
+6. Fire is held: 7 shots a second, 6 in flight at most. "Fire by itself" is
+   a setting, off by default.
+7. The escape is a dash: 0.22 s along the heading, untouchable, recharged
+   in 2.5 s.
+8. Seven rock kinds, told apart by shape and marks as well as color; rocks
+   pass over each other.
+9. No enemy ships: a stray fuzzball to bring home and the comet give a wave
+   its surprises.
+10. Eight pickups, none bad: one of each group at a time, drawn in from 3
+    units, 8 s to catch, one guaranteed after 25 s without any.
+11. Effects end with their wave and with a lost ship.
+12. Thirty waves in three sectors of ten, as data, each sector ending with a
+    boulder, then Endless (the user's), made from the run's seed and harder
+    each wave; a run starts at any sector reached, or at Endless once wave
+    30 is cleared.
+13. The game waits for the player: a wave's rocks hold still under the Ready
+    card until the first move, and a new ship waits, untouchable, where it
+    is safest.
+14. Three ships, one more at 10,000 points and every 20,000 after, six at
+    most.
+15. Scoring by kind and size, smaller worth more; a chain of breaks each
+    within 1.5 s of the last scores double from the fifth, triple from the
+    tenth and four times from the twentieth; 500 for a cleared wave and 500
+    more with no ship lost; 500 for a stray brought home.
+16. Relaxed, Normal and Fast, in the bar's `<fz-bar-choice>`, with bests for
+    each.
+17. The field takes the palette's field, light space in a light palette and
+    dark in a dark one; the rocks take the game's own inks, held to the
+    contrast spec.
+18. Flourishes only where motion is welcome.
+19. Thirteen sounds and the thrust's hum, on by default, with the Sound
+    button.
+20. Haptics on a lost ship and a cleared wave, on phones that can, on by
+    default.
+21. A game taken up after a reload keeps its rocks, score, ships, pilots and
+    wave, and comes back paused.
+22. Part 1 lifts six pieces into the libraries, Brick Breaker adopting each
+    unchanged, and merges first.
+23. The feel is settled by the user on real phones at Q3, before the other
+    twenty-five waves are built, with a debug menu in development builds
+    holding every control the mock's sketch has (the user's).
+24. No gamepad in this plan.
+25. Fuzzley flavor, all five (the user's): the pilot in the window, pilots
+    for ships in the bar, the bail-out, strays to bring home in place of the
+    gold nugget, and a constellation in Endless; every pilot in a color of
+    its own that stands out against the field and the bar in the palette the
+    player chose.
+26. A stray brought home joins the crew: it waits at home and flies the next
+    ship the run gains; ships still come only as decision 14 says.
 
-**Answered 2026-10-31:** every recommendation, with the user's changes:
-the field fills the screen, however it is shaped, with rocks to match
-(decision 3, rewritten); thirty waves and then Endless (decision 12); every
-control in the mock's sketch in the game's debug menu (decision 23); and all
-five of the fuzzball's ideas, the constellation too, each pilot in a color
-of its own that stands out in the palette the player chose (decision 25).
-Decision 26, which follows from 25, is open.
+## How the work runs
 
-1. **The name:** Asteroid Breaker, at `/play/asteroid-breaker/`, workspace
-   `games/asteroid-breaker`, port 9005, in Arcade. Or a shorter name (Rock
-   Breaker, Space Rocks).
-2. **The flight:** the genre's, with inertia: the ship turns, thrusts along
-   its heading, drifts and slows; a shot leaves with the ship's speed added.
-   Or twin-stick flight, the thrust's direction apart from the aim, which is
-   easier to learn but loses the turn-around-to-brake that the genre is
-   played by, and plays differently by keyboard.
-3. **The field fills the screen** (the user's): it takes all the room the
-   bar and the deck leave, whatever its shape, and wraps at every edge. Its
-   short side is always 40 units, so the ship and rocks are the same size
-   against it everywhere, and its long side is as long as the room, up to
-   88 units (2.2 to 1). A wave's rocks are written for 40 by 40 and grow in
-   number with the field's area, so every shape is as full. (It was: a
-   square of 40 by 40 on every screen.)
-4. **Touch:** a deck beside the field, under it upright and on both sides of
-   it on its side, never over it: a stick that appears where the left thumb
-   lands and turns the ship toward where it points, thrusting once pushed
-   past half way, and Fire and Dash for the right thumb; a setting swaps the
-   hands. Or twin sticks (the left thrusts, the right aims and fires); or
-   steering by dragging on the field, which hides the ship under the finger.
-5. **The deck is drawn in the canvas,** by the scene, and read by the
-   view's `Steering`, as Brick Breaker's finger room is: one input path, the
-   stick drawn at the frame rate, and its layout worked out in one place. Or
-   Angular buttons beside the canvas, as Snake's arrows are, which a screen
-   reader could reach, though no one can play a real-time shooter by one.
-6. **Firing:** held to fire, 7 shots a second, 6 in flight at most. A
-   setting, "Fire by itself", fires whenever a rock is in play, for playing
-   with one thumb; off by default. Or auto-fire by default on touch.
-7. **The escape:** a dash, a burst along the heading for 0.22 s during
-   which nothing can hit the ship, recharging in 2.5 s. Or a draining
-   shield held on a button; or nothing beyond flying.
-8. **Rock kinds:** seven, each told apart by its shape and its marks as
-   well as its color: stone, ice, crystal, iron, volatile, lodestone and
-   the boulder. Rocks pass over each other rather than collide, so where a
-   rock goes can be read.
-9. **No enemy ships.** A stray fuzzball, which crosses once and pays well
-   when brought home (decision 25; it was a gold nugget to shoot), and the
-   comet, a hazard warned of at the edge, give a wave its surprises. Or a
-   hunter that chases the ship, later, as a kind.
-10. **Pickups:** eight, none bad: Spread, Rapid, Lance, Shield, Magnet,
-    Slow, Nova and an extra ship. One of each group at a time; drawn in to
-    the ship from 3 units; 8 s to catch one; and one guaranteed after 25 s
-    without any.
-11. **Effects end with their wave and with a lost ship,** as Brick Breaker's
-    end with their level and a lost life.
-12. **Waves:** thirty, in three sectors of ten, as data, the last of each a
-    boulder; each new thing comes alone first. A run starts at the first
-    wave of any sector the player has reached. Clearing wave 30 opens
-    Endless (the user's), waves made from the run's seed that grow harder
-    without end, and the run goes on into it until its ships run out.
-13. **The game waits for the player.** A wave's rocks hold still under the
-    Ready card until the first move or shot. After a lost ship the field
-    plays on, and the next ship waits where it is safest, untouchable, until
-    the player moves, then is untouchable 2 s more.
-14. **Ships:** three; one more at 10,000 points and every 20,000 after, six
-    at most.
-15. **Scoring:** points by kind and size, smaller worth more; a chain of
-    breaks each within 1.5 s of the last scores double from the fifth,
-    triple from the tenth and four times from the twentieth, as Brick
-    Breaker's streak; 500 for a cleared wave and 500 more without a ship
-    lost; 500 for a stray brought home.
-16. **Speeds:** Relaxed, Normal and Fast, in the bar's `<fz-bar-choice>`,
-    with bests for each; Relaxed's comets come half as often. A Custom speed
-    later, as Brick Breaker grew one.
-17. **Colors:** the field takes the palette's field, light space in a light
-    palette and dark in a dark one, as every game's board does; the rocks
-    take the game's own inks, seven for light palettes and seven for dark,
-    held to the contrast spec. Or always dark space, whatever the palette.
-18. **Flourishes,** only where motion is welcome: shards, a hit's flash,
-    points that rise, a kick on a big break, a shake and a brief pause on a
-    lost ship, the thrust's exhaust and the dash's trail.
-19. **Sound:** thirteen effects (twelve, and a stray brought home's, which
-    decision 25 adds) and a thrust's hum while it is held, on by default,
-    with the Sound button.
-20. **Haptics:** a short buzz as a ship is lost and as a wave clears, on
-    phones that can (Android's browsers; Safari can't), on by default, in
-    the settings.
-21. **A game taken up after a reload** keeps its rocks as they were, its
-    score, ships, pilots and wave; the shots, pickups, comets and effects go, and
-    the ship waits where it is safest; it comes back paused.
-22. **Part 1 lifts six pieces** into the libraries (the step clock, the
-    event log, the frame's sounds and grouped points into `@fz/core`, a held
-    sound into `@fz/phaser/sound`, and the deck into `@fz/dev/layout`'s
-    board check), Brick Breaker adopting each unchanged, and merges first.
-23. **The feel is settled by a person on real phones** at Q3, before the
-    other twenty-five waves are built, with a debug menu in development
-    builds, as Brick Breaker's ball speed slider is, holding every control
-    the mock's sketch has (the user's): the eight sliders and the four
-    switches, with Reset and a button that copies the numbers for
-    `tuning.ts`.
-24. **No gamepad in this plan.** The stick's model maps straight onto one,
-    so it is a small follow-up.
-25. **Fuzzley flavor** (the user's): all five, as "Fuzzley flavor" below
-    draws out: the fuzzball pilots the ship, seen in its window; the ships
-    left show in the bar as their pilots; a lost ship's pilot bails out in a
-    bubble; stray fuzzballs, to fly into and bring home, take the gold
-    nugget's place; and in Endless a fuzzball constellation lies among the
-    stars. Every pilot, adrift, waiting in the bar or at the controls, has
-    a color of its own, one of eight held to stand out against the field
-    and the bar in the palette the player chose. Not taken: the ship as a
-    fuzzball, or fuzzy rocks to shoot.
-26. **A stray brought home joins the crew (open).** It waits at home, and
-    flies the next ship the run gains, by points or the Extra ship pickup,
-    in its own color, so the crew in the bar is the fuzzballs the player
-    brought home; ships still come only as decision 14 says. Or a stray
-    brought home is itself one more ship, up to six: a stray crosses nearly
-    every wave from wave 3, so that would give a ship most waves, against
-    about five in thirty waves by points, and the run would lose its
-    tension; the 10,000-point ships would go.
+This is the process every step follows, from the first commit to the last,
+written here so it isn't forgotten halfway. It is Brick Breaker's, with its
+reviews now made before each commit, as the `commit-review-process` skill
+says.
+
+### Where it is built
+
+In the sibling worktree `C:\Users\fuzz3\Projects\personal\fuzzley-games-asteroid-breaker`,
+where this plan was written, so the main checkout stays free for other
+work. Before the first step: `yarn install` from its `frontend/`, and
+`node .agents/link-claude-skills.mjs` from its root, so its skills load. Its
+dev server is 9005's, and `yarn stop` there stops only its own. Once the
+work is merged the worktree is removed, with the robocopy step the
+`node_modules` in it needs on Windows.
+
+### Branches
+
+- **Part 1** is built on `asteroid-breaker-lift`, cut from this plan's
+  branch, `asteroid-breaker-plan`, once that is rebased onto `main`, so the
+  plan and its log go with the work.
+- **Part 2** is built on `asteroid-breaker`, cut from the tip of
+  `asteroid-breaker-lift` once Part 1 is done, so it starts on the lifted
+  pieces without waiting for a merge.
+- **Nothing is pushed, and nothing reaches `main`, without the user's
+  go-ahead.** When it comes, `asteroid-breaker-lift` merges first, on its
+  own, since it changes a live game, and `asteroid-breaker` after it
+  (decision 22).
+
+### A step is a commit
+
+Each step under "Phases" ends in one commit, in the repository's form
+(`feat(core): …`, `feat(asteroid-breaker): …`, `test(…)`, `docs: …`), once:
+
+- the workspaces it touched pass their own `lint`, `typecheck` and `test`
+  (`yarn workspace <name> <script>`), and `yarn prettier:check` passes;
+- what it adds is covered by specs, at the workspace's floor;
+- the docs it makes untrue are brought up to date in the same commit (an
+  `AGENTS.md`, a skill, `docs/operations.md`);
+- its review is answered (below);
+- the work log has its entry.
+
+The last step of each phase runs `yarn verify` too, which must be green
+before the next phase starts.
+
+### Every change is reviewed before it is committed
+
+As the `commit-review-process` skill says: the step's change is staged,
+then a fresh `general-purpose` agent, never a fork, reviews the staged diff
+with only the project's and the phase's context, and reports without
+changing anything. Its brief is the skill's, filled in with:
+
+- **the project:** "Asteroid Breaker, a Phaser game for fuzzley.games; read
+  `docs/asteroid-breaker-execution-plan.md`, step `<step>`, and the
+  sections of its design reference the step names";
+- **the phase and the change:** the step's own words below, and the files
+  it touches;
+- **the skills to read:** `phaser-core` and `phaser-canvas-performance` for
+  the scene, `angular-testing` and `fuzzley-ui` for the shell,
+  `web-game-accessibility` for the board and the dialogs, and
+  `brick-breaker-testing` for Part 1's changes to Brick Breaker.
+
+Every comment is answered, fixed or left with a reason, in the work log
+under the step; the fixes go into the change, its checks run again, and then
+it is committed. A fix that reshapes the change, rather than correcting it,
+earns a second review before the commit.
+
+### The work log
+
+`docs/asteroid-breaker-worklog.md`, committed with the step it records.
+Each step's entry gives the date, the commit, what was built, any choice
+made that this plan didn't make (and why), what the checks reported, the
+review's comments and what became of each, and numbers worth keeping:
+bundle sizes, timings, the autopilot's report. QA checkpoints log what was
+tried, on what, and what was found. A design change found on the way is made
+in this plan too, so the plan stays true.
+
+### QA checkpoints
+
+Beyond the specs, thorough checks by hand and in a browser, each logged, at
+six points. Screenshots go to the user as they are taken, from Q3 on, so
+the look can be redirected early.
+
+| Checkpoint | When                       | What                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1         | L5                         | Brick Breaker unchanged: `yarn verify`, its `check:layout`, its sounds the same bytes, `yarn report:levels` the same numbers, and a level played in its dev server by keys, mouse and touch                                                                                                                                                                                                                       |
+| Q2         | after A6                   | The rules alone: the five waves over many seeds at every speed, on the narrowest and widest fields; a thousand seeded random flights checked for a ship, shot, rock, pickup or stray off the torus; the physics' cost at the widest field's cap (105 rocks, 30 shots, two comets) timed in Node                                                                                                                   |
+| Q3         | after A9, the feel gate    | The five waves played by keys and mouse in windows from a small phone's to a 2560 × 1440 desktop's, and by the user on real phones, upright and on their side, Android's Chrome and, if one is to hand, an iPhone's Safari, from the dev server on the local network (`yarn dev --host`); the feel tuned through the debug menu and its numbers copied into `tuning.ts`. The build waits here for the user's word |
+| Q4         | after A14                  | The whole shell: every dialog by keyboard and by mouse, the cards, the bar on a phone and a wide screen, the pilots' colors in every palette, sound and haptics, settings, records and progress across a reload, a saved game taken up, one in Endless among them, a light palette and a dark                                                                                                                     |
+| Q5         | A15                        | The full pass A15 lists: every wave of the first sector and the last of each other, and Endless's first, by mouse, keys and touch; AZERTY; a lost context; the accessibility tree; Lighthouse; a performance trace at ×6 and at 120 Hz on the widest field; the bundle's sizes                                                                                                                                    |
+| Q6         | A17, before asking to ship | The site's build and the Docker image: the game reached from the catalog, played at `/play/asteroid-breaker/` with the console open, no "Refused to load"                                                                                                                                                                                                                                                         |
+
+A problem a checkpoint finds is fixed in a commit of its own, reviewed as
+any other, before the next phase.
+
+### What changed from the design plan's phases
+
+- **Steps are commits,** each reviewed before it is made, where the design
+  plan's phases were "a few commits".
+- **Part 2 starts from the lift's branch,** not from `main` after a merge,
+  so it doesn't wait for one.
+- **The debug menu comes with the board (A9),** in a first settings drawer,
+  since Q3 tunes the feel through it; the rest of the settings follow in
+  A10.
+
+## Phases
+
+Sizes are rough: small is an hour or two, medium half a day, large a day or
+more. Paths in Part 1 are under `frontend/lib/` or
+`frontend/games/brick-breaker/`; in Part 2, under
+`frontend/games/asteroid-breaker/` unless they say otherwise.
+
+### Part 1: the lift (`asteroid-breaker-lift`)
+
+#### L1: `@fz/core`'s four (medium)
+
+- **L1.1** `@fz/core/clock`: `src/clock.ts` and its spec, from Brick
+  Breaker's `src/rules/stepper.ts`. `createClock()` takes the step's length
+  and the most steps a frame, which the `Clock` keeps, and `advanceClock()`,
+  `progressOf()` and `stepsIn()` read them from it. Brick Breaker's
+  `stepper.ts` keeps `STEP_S` and `STEP_MS` and makes its clock with 1/120 s
+  and 12; its specs pass unchanged. `package.json`'s `exports` gains the
+  entry. One commit.
+- **L1.2** `@fz/core/event_log`: `EventLog<E>`, from Brick Breaker's
+  `src/rules/events.ts`, taking its size and a function that makes a blank
+  record; `next()` hands back the next record, numbered, to fill in place,
+  and the readers read on from the last number they saw, as Brick Breaker's
+  do. Brick Breaker's `events.ts` keeps `FieldEvent`, `FieldEventKind` and
+  `EVENT_LOG_SIZE`, and makes an `EventLog<FieldEvent>`. One commit.
+- **L1.3** `@fz/core/frame_sounds`: `FrameSounds<Name>`, from Brick
+  Breaker's `src/view/effects.ts`, taking the sprite's names; each sound once
+  a frame at most, at the highest it was heard. Brick Breaker passes its
+  `SOUNDS`. One commit.
+- **L1.4** `formatPoints()` moves into `@fz/core/format` beside `count()`,
+  unchanged; Brick Breaker's `describe.ts` and every caller import it from
+  there. Each of the four is specced to 100%, as `@fz/core`'s floor asks.
+  One commit.
+
+#### L2: a sound held (small)
+
+- **L2.1** `SpritePlayer.hold(name, held)` in `@fz/phaser/sound`: it loops
+  a sound of the sprite while held is true, and stops it when it is let go,
+  when `follow(false)` turns the sound off, or when the scene shuts down;
+  a second `hold()` of the same sound while it plays changes nothing.
+  Specced on `runScene()` with the served WAV, as `play()` is. Brick Breaker
+  doesn't use it. One commit.
+
+#### L3: a deck in the layout check (small)
+
+- **L3.1** `@fz/dev/layout`'s `PhaserBoard` takes an optional `deck`: the
+  attribute of the board's element that lists its zones, each "x y width
+  height" in CSS px, as `data-field` gives the field. The check holds each
+  zone inside the window, clear of the board's field, clear of the bar's
+  controls, and at least the least size the board names, and says which
+  failed. Specced as the board's other checks are. Brick Breaker's check,
+  which names no deck, is unchanged. One commit.
+
+#### L4: docs (small)
+
+- **L4.1** `@fz/core`'s, `@fz/phaser`'s and `@fz/dev`'s `AGENTS.md`, Brick
+  Breaker's `AGENTS.md` and `brick-breaker-testing` skill, and the
+  `phaser-core` and `fuzzley-ui` skills, each naming the lifted pieces where
+  it named Brick Breaker's. `node .agents/check-skill-references.mjs`
+  passes. One commit.
+
+#### L5: proof (small)
+
+- **L5.1** `yarn verify`, Brick Breaker's `check:layout`, then Q1. Fixes, if
+  any, in commits of their own. Part 1 is done; `asteroid-breaker` is cut
+  from its tip.
+
+### Part 2: the game (`asteroid-breaker`)
+
+#### A1: the workspace (small)
+
+- **A1.1** `frontend/games/asteroid-breaker/`, from Brick Breaker's:
+  `package.json` (`asteroid-breaker`, with `phaser`, `@fz/phaser`,
+  `@fz/core` and the other libraries), `vite.config.ts`
+  (`gameConfig({ port: 9005, name: "Asteroid Breaker" })`),
+  `vitest.config.ts` with the floors on the rules and the view,
+  `eslint.config.js` with `@fz/dev`'s blocks, `phaser()` for `src/scene/`
+  and the four layers' fences ("Layers"), the tsconfig solution,
+  `stylelint.config.js`, `src/test-setup.ts` with the headless Phaser,
+  `index.html`, `src/main.ts` with a shell that shows only the game's name,
+  `LICENSE`, `README.md`, `AGENTS.md` and `CLAUDE.md`. `yarn install`; the
+  workspace's lint, typecheck, test and build pass. `games.json` doesn't
+  list it yet. One commit.
+
+#### A2: the torus and the flight (large)
+
+- **A2.1** `src/rules/tuning.ts` and `speed.ts` (Relaxed, Normal and Fast,
+  each a factor on the rocks' and comets' speed, Relaxed's comets half as
+  many and its pickups a quarter more likely), with the clock from
+  `@fz/core/clock` at 1/120 s and 12. Specced. One commit.
+- **A2.2** `src/rules/torus.ts`: the field's size in units, the wrap, the
+  shortest way from one place to another across it, the distance, and the
+  copies an object near an edge needs drawn, one to four. Specced by cases,
+  the corners and a field of 88 by 40 among them. One commit.
+- **A2.3** `src/rules/ship.ts`: the flight from a frame's `Steer`, the turn
+  by keys ramped in, the turn toward a heading eased, the thrust, the
+  coasting's half-life, the top speed; the dash, its untouchable time and
+  its recharge; and the guard. Specced by flights: a tap's few degrees, no
+  overshoot toward a heading, turning round to stop, the top speed held,
+  the dash's speed after. One commit.
+- **A2.4** `src/rules/catalog/weapons.ts` (`WEAPONS`: the plain gun, and
+  Spread, Rapid and Lance as data, which A4's pickups hand out) and
+  `src/rules/shots.ts`: shots fired from the nose at the weapon's rate and
+  count, their speed plus the ship's, wrapping and fading, swept as segments
+  against circles across the wrap. Specced: no shot passes a small rock in a
+  step at the fastest the ship and a shot go together, across an edge and
+  at a corner. One commit, `yarn verify` with it.
+
+#### A3: rocks (large)
+
+- **A3.1** `src/rules/catalog/rocks.ts` (`ROCK_KINDS`, `RockKind`,
+  `RockTrait`), as "The catalogs" has them, `as const satisfies`, and the
+  first half of `src/rules/catalog.spec.ts`: every entry named and
+  described, hits and points for every size it comes in. One commit.
+- **A3.2** `src/rules/rocks.ts`: `Rock`, `hitRock()`, the split into pieces
+  of the next size, each turned 25° to 50° off its travel by the run's
+  seeded random and pushed along the shot's, the cap's piece fewer, and
+  `TRAIT_RULES` for `blasts` (the reach, the 90 ms beat, the chain),
+  `gives`, `drawn` (the lodestone's pull, never past its size's speed) and
+  `rings` (iron's hits shown). Specced trait by trait. One commit.
+- **A3.3** `src/rules/field.ts`: `Field`, a wave in play, stepped in place
+  from records made once: `createField()`, `steerField()` and `stepField()`,
+  the ship, the shots and the rocks, hits, blasts, a lost ship and a cleared
+  wave, and the events it logs through `@fz/core/event_log`; with
+  `src/testing/field_picture.ts` (`fieldFrom()`), a field laid out from a
+  picture of its rocks and ship. Specced, the same seed and steering making
+  the same field among it. One commit, `yarn verify` with it.
+
+#### A4: pickups, strays, pilots, the comet and scoring (large)
+
+- **A4.1** `src/rules/catalog/pickups.ts` (`PICKUPS`, the effect union) and
+  `src/rules/pickups.ts`: the drop by chance, crystal and drought, the draw
+  by weight from the wave's pool through `@fz/core/random`'s `drawAt()`, the
+  drift, the pull to the ship, the catch, the 8 s and the blink, and
+  `EFFECT_RULES` for every effect (weapon, guard, pull, pace, nova, ship),
+  one of each group at a time, each ending with its wave and a lost ship.
+  The catalog spec's checks of the pickups join it. Specced effect by
+  effect. One commit.
+- **A4.2** `src/rules/pilots.ts` and `hazards.ts`: the crew, those at home
+  and `nextPilot()` (decisions 25 and 26); a stray's times (20 s into a
+  wave, then 8 s after the last has gone), its crossing, its catch and the
+  Magnet's pull on it, and the bail-out's event; the comet's warning, its
+  crossing, its breaking rocks a size down for nothing, and its taking the
+  ship. `src/rules/pilots.spec.ts` as "The checks that keep it whole" says.
+  Specced. One commit.
+- **A4.3** `src/rules/scoring.ts` and `run.ts`: points by kind and size,
+  the chain's multiplier and its ending, a stray's 500, the wave's 500s, the
+  ships points bring, each flown by the first stray at home, and `Run`'s
+  moves, as Brick Breaker's, with `catchUp()` taking what the field has come
+  to since it last looked, and each wave's field its seed. Specced. One
+  commit, `yarn verify` with it.
+
+#### A5: waves and the field whole (medium)
+
+- **A5.1** `src/rules/waves.ts` (`parseWave()`, `SECTORS`, `WAVES`),
+  `src/rules/waves/inner-belt.json` with waves 1 to 5, and
+  `src/rules/waves.spec.ts`, the checks that need a whole sector waiting for
+  A13. One commit.
+- **A5.2** `src/rules/spawn.ts` (the four formations, the placement's
+  fairness, the safest place for a new ship) and `fill.ts` (`fillFor()`, the
+  cap, the pickups at once, the strays and the comets' times for a field's
+  area, and `stretchField()`), with `src/rules/spawn.spec.ts` over many seeds
+  on the narrowest and widest fields. One commit.
+- **A5.3** The field whole: a wave laid out from its `Wave` on a field of
+  any shape, waiting for the first move (decision 13), the new ship waiting
+  where it is safest, untouchable, and the stretch on a pause. Specced. One
+  commit, `yarn verify` with it.
+
+#### A6: the autopilot (medium)
+
+- **A6.1** `src/testing/autopilot.ts`, flying as a fair player would
+  ("The checks that keep it whole"), `src/rules/autopilot.spec.ts` (the five
+  waves at every speed, on the narrowest and widest fields, from fixed seeds,
+  each cleared within four minutes of game time), and
+  `tools/report-waves.mjs`, `yarn report:waves`, printing each wave's time,
+  the ships it cost and the strays brought home, with `--seeds <n>` and
+  `--field <narrow|wide>`. One commit, `yarn verify` with it, then Q2.
+
+#### A7: the view (large)
+
+- **A7.1** `src/view/field_metrics.ts` (`deckLayout()`, `fieldShape()`,
+  `toCanvas()`, `toField()`), `frame.ts`, `layers.ts`, `timing.ts` and
+  `controls.ts` (the keys by `event.code`). Specced, the layout at every
+  `@fz/dev/layout` shape: the field filling its room, its short side 40
+  units, a unit of 6 CSS px or more, a deck of its least size. One commit.
+- **A7.2** `src/view/stick.ts`, `deck.ts` and `steering.ts`: the stick's
+  rings, its remapping, its following base and its one finger; Fire and
+  Dash by which finger is where, within 12 px; the keys as a turn and a
+  push, the mouse as a heading once it moves; swapped hands and "Fire by
+  itself". Specced by cases. One commit.
+- **A7.3** `src/view/palette.ts`, `inks.ts` (the rocks' inks, seven for
+  light palettes and seven for dark, and the pilots', eight for each, with
+  `pilotInk()`) and `contrast.spec.ts`, holding every color "The checks
+  that keep it whole" names in every palette. One commit.
+- **A7.4** `src/view/art.ts`, `rock_art.ts`, `symbols.ts`, `shapes.ts`,
+  `effects.ts`, `flourish.ts` and `tags.ts`: every frame of the atlas as
+  plain commands, the pilot in each ink and its eyes from
+  `@fz/style/fuzzball` among them, a stray's bubble and the constellation's
+  places; and what each event calls for, its sound and its flourishes.
+  Specced: every frame within its size, every kind in every state present,
+  the frames fitting 2048 × 2048 at the largest unit, each event's effects
+  with motion and without. One commit, `yarn verify` with it.
+
+#### A8: the scene (large)
+
+- **A8.1** `src/scene/belt_scene.ts`, `atlas.ts`, the two cameras, and the
+  field, rock, ship and shot painters, an object across an edge drawn on
+  both sides from pooled images; the steering written each frame, the atlas
+  baked again on a new palette or unit. Specced on `runScene()` with a fake
+  shell. One commit.
+- **A8.2** The pickup, stray, hazard, effects, points, tag and deck
+  painters; the particle emitters on the atlas; the events played once each;
+  How to play's pictures from the atlas; nothing with motion off; no game
+  object made after `create()`; nothing called after the scene ends.
+  Specced. One commit, `yarn verify` with it.
+
+#### A9: play and the board (large)
+
+- **A9.1** `src/app/play/game.service.ts`, `src/view/wave_play.ts` and
+  `src/rules/describe.ts`: the run in a signal and the wave in play outside
+  one, `tick()`, steering, pausing, going on, starting waves and runs, the
+  question before a run is thrown away, and what the announcer says.
+  Specced. One commit.
+- **A9.2** `src/app/board/` and `app.component` with the room
+  (`[fzPlayRoom]`) and the focus: the scene loaded with `import()` behind a
+  CSS drawing of the empty field and the deck's room; the Ready, Paused,
+  Cleared and Ended cards, still loading and couldn't be drawn; the pointer
+  hidden while a ship flies; haptics through `navigator.vibrate`. Specced
+  with `provideFakePhaserCanvas()`, a wave played to its end through
+  `tick()`. One commit.
+- **A9.3** A first settings drawer holding the three settings the debug
+  menu changes (fire by itself, which side holds the stick, when the deck
+  shows) and, in a development build (`DEBUG_MENU`), the Debug section: the
+  eight sliders and four switches "The debug menu" lists, acting on the
+  field in play (`Field.debug`), Reset the numbers and Copy the numbers.
+  Specced. One commit, `yarn verify` with it, then Q3, where the build
+  waits until the user says the feel is right.
+
+#### A10: the bar, the icon and the dialogs (medium)
+
+- **A10.1** An `asteroid` icon in `@fz/ui` with its spec's case;
+  `src/app/pilot/` (`<app-pilot>`, a fuzzball in a pilot's ink); and
+  `src/app/bar/`: the link home, the name with the speed's badge, the wave,
+  the score, the ships as their pilots, the chain while it counts, and
+  Pause, Sound, Sectors, New game, How to play and Settings, the overflow
+  on a compact screen. Specced. One commit.
+- **A10.2** `src/app/sectors/`, `result/`, `help/` and the rest of
+  `settings/`: the Sectors dialog, the result card with the fuzzballs
+  brought home, How to play from the catalogs with the scene's pictures,
+  and every setting. Specced. One commit, `yarn verify` with it.
+
+#### A11: sound and haptics (small)
+
+- **A11.1** `tools/build-sounds.mjs` with the thirteen sounds on
+  `@fz/dev/sounds`, the sprite in `src/scene/sounds/`, a `SpritePlayer` in
+  the scene playing each event's sound through `@fz/core/frame_sounds`, a
+  break's rising with the chain, the thrust's hum through `hold()`, the
+  Sound button and the haptics setting. Specced. One commit.
+
+#### A12: storage (medium)
+
+- **A12.1** `SettingsService`, `StatsService` and `src/rules/progress.ts`
+  with its service, under `asteroid-breaker-settings`,
+  `asteroid-breaker-stats` and `asteroid-breaker-progress`, each reader
+  dropping what it can't trust. Specced with an in-memory store. One commit.
+- **A12.2** `src/rules/saved_game.ts` and `SavedGameService` under
+  `asteroid-breaker-game`, as "What it keeps" says, the crew and those at
+  home among it: written as a wave starts, as a ship is lost or waits, on a
+  pause and as the page goes away; taken up paused, stretched to the room it
+  comes back to (decision 21). Specced, a round trip among it. One commit,
+  `yarn verify` with it.
+
+#### A13: the other twenty-five waves (large)
+
+- **A13.1** Waves 6 to 10 in `inner-belt.json`, each played and tuned with
+  `yarn report:waves` until the sector climbs evenly. One commit.
+- **A13.2** `src/rules/waves/iron-reach.json`, waves 11 to 20, the same
+  way. One commit.
+- **A13.3** `src/rules/waves/storm.json`, waves 21 to 30, the same way; the
+  catalog spec now sees every kind used and every pickup able to come from
+  its `from`, and the waves spec holds every sector whole. One commit,
+  `yarn verify` with it.
+
+#### A14: Endless (medium)
+
+- **A14.1** `src/rules/endless.ts` and `endless.spec.ts`, the constellation
+  drawn in Endless's waves, and the autopilot's spec and report over
+  Endless's 31 to 60. One commit.
+- **A14.2** The Sectors dialog's fourth row, Storm cleared's card, and the
+  records' "cleared all thirty". Specced. One commit, `yarn verify` with it,
+  then Q4.
+
+#### A15: the checks (medium)
+
+- **A15.1** `tools/check-layout.mjs`, Brick Breaker's adapted, and
+  `check:layout` in `package.json`: at `@fz/dev/layout`'s shapes and at
+  320 × 480, and turned, each at 2×, no error and no scrolling; the canvas
+  drawn at its size times the ratio; the field filling its room with a
+  short side of 40 units and a unit of 6 CSS px or more, inside the
+  window, where the placeholder drew it and inside the focus ring; and the
+  deck's zones, through Part 1's `deck`, in the window, off the field and
+  the bar. One commit.
+- **A15.2** Q5: the full pass its row lists. Fixes, each a commit.
+
+#### A16: screenshots and docs (medium)
+
+- **A16.1** `tools/capture-screenshots.mjs` and the images: a run kept by
+  the rules, begun on wave 9, Crowd, at Normal, a stray adrift, taken up
+  paused, at 1280 × 720 and 2× in a dark palette, as the other arcade
+  games' are, written by `writeSiteImages()`; `index.html`'s `og:image` tags
+  pointing at the preview. One commit.
+- **A16.2** The game's `AGENTS.md` and `README.md`, the
+  `asteroid-breaker-testing` and `asteroid-breaker-content` skills in the
+  workspace's `.agents/skills/`, linked with
+  `node .agents/link-claude-skills.mjs`. One commit.
+- **A16.3** The lists that name the games: `.agents/AGENTS.md`,
+  `frontend/AGENTS.md`, `frontend/games/AGENTS.md` (9005 Asteroid Breaker's,
+  the next game 9006), `frontend/lib/dev/AGENTS.md`, `docs/operations.md`,
+  the root `README.md`, and the `phaser-core`, `fuzzley-ui`,
+  `web-game-accessibility` and `angular-testing` skills. One commit.
+
+#### A17: ship (small)
+
+- **A17.1** `frontend/site/games.json` gets
+  `"asteroid-breaker": { "workspace": "games/asteroid-breaker" }`; the
+  catalog gets Asteroid Breaker in Arcade ("Fly, drift and blast every rock
+  to rubble before one finds you.", `players: SOLO`, `minutes: 10`, `added`
+  on the day, `play: { build: "asteroid-breaker" }`);
+  `frontend/site/index.html`'s meta description names it. `yarn verify` and
+  `yarn check:layout`. One commit.
+- **A17.2** Q6, in the Docker image if Docker is running on this machine
+  (it is off by default; if it stays off, the log says so and the image
+  waits for CI). This plan and the work log move to `docs/archive/`, the
+  log's lasting decisions folded into the plan. One commit.
+- **A17.3** On the user's go-ahead: `asteroid-breaker-lift` merged into
+  `main`, then `asteroid-breaker`, and pushed; the game played on
+  fuzzley.games. Rollback: `git push --force origin <last good commit>:live`,
+  then revert the merge on `main`.
 
 ## Design reference
 
@@ -851,13 +1183,13 @@ the same shapes, as `<fz-wordmark>` does, in the inks the view's
 records where the nugget would have been (`strays`), among what the ship
 catches rather than what its shots hit.
 
-## Growing it
+### Growing it
 
 As Brick Breaker's, every rock kind, weapon and pickup is an entry in a
 catalog and every wave an entry in a data file, and the compiler and the
 specs between them refuse one with a part missing.
 
-### The catalogs
+#### The catalogs
 
 In `src/rules/catalog/`, each a readonly object written `as const
 satisfies`, so its ids survive as a type:
@@ -914,7 +1246,7 @@ export type RockTrait =
   kind without its art fails to compile; How to play lists every entry with
   its picture.
 
-### Waves as data
+#### Waves as data
 
 A sector is one JSON file in `src/rules/waves/` (`inner-belt.json`,
 `iron-reach.json`, `storm.json`), imported statically, its id, name,
@@ -956,7 +1288,7 @@ is wrong: an unknown kind, size or pickup, a size a kind doesn't come in, a
 count that isn't whole, more rocks than the field's cap, a pace outside 0.8
 to 1.4, a chance outside 0 to 1, a range that runs backward.
 
-### The checks that keep it whole
+#### The checks that keep it whole
 
 | Check              | Where                          | What it holds                                                                                                                                                                                                                   |
 | ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -979,7 +1311,7 @@ Phaser.
 invulnerable and not, and prints how long each took and the ships each
 cost, which is how the climb from wave to wave is tuned and checked.
 
-### What adding each takes
+#### What adding each takes
 
 - **A wave:** its block in a sector's file.
 - **A rock kind with traits that exist:** its entry in `ROCK_KINDS`, its
@@ -993,7 +1325,7 @@ cost, which is how the climb from wave to wave is tuned and checked.
 An `asteroid-breaker-content` skill walks an agent through each, as
 `brick-breaker-content` does.
 
-## The lifted pieces
+### The lifted pieces
 
 | Piece                       | From Brick Breaker                                                                     | To                      | What changes                                                                                                                                                                |
 | --------------------------- | -------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1010,9 +1342,9 @@ it. The stick itself stays in Asteroid Breaker until a second game wants
 one. Brick Breaker adopts the four it gives, its sounds the same bytes, its
 autopilot's report the same numbers.
 
-## The build
+### The build
 
-### Layers
+#### Layers
 
 As Brick Breaker's, four folders under `src/`, fenced by
 `eslint.config.js`:
@@ -1024,7 +1356,7 @@ As Brick Breaker's, four folders under `src/`, fenced by
 | `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
 | `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and those by a value import                                 |
 
-### The rules
+#### The rules
 
 - `tuning.ts` the numbers; `speed.ts` the three speeds; the clock from
   `@fz/core/clock`.
@@ -1060,7 +1392,7 @@ As Brick Breaker's, four folders under `src/`, fenced by
   `saved_game.ts`, as Brick Breaker's are, for waves, sectors, ships and
   their pilots.
 
-### The physics
+#### The physics
 
 Every object is a circle on the torus. Each step, at 1/120 s: the ship
 flies; every rock and pickup moves and wraps; each shot is swept from its
@@ -1071,7 +1403,7 @@ every rock, comet, pickup and stray; blasts due go off. At the widest field's ca
 tests a step, which needs no spatial index; Q2 times it in Node, and a grid
 of cells joins only if it doesn't fit.
 
-### The view
+#### The view
 
 - `field_metrics.ts`: where the deck and the field lie on the canvas and
   the field's size in units: `deckLayout()` takes the deck's share of the
@@ -1103,7 +1435,7 @@ of cells joins only if it doesn't fit.
 - `wave_play.ts`: `WavePlay`, the wave in play that `GameService` makes and
   drives, as Brick Breaker's `LevelPlay` is.
 
-### The scene
+#### The scene
 
 `BeltScene` is handed plain functions over the game, as `BricksScene` is:
 each frame it hands the game the time and the steering, reads the frame and
@@ -1129,7 +1461,7 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
   frame.
 - **Three pointers** (`input.addPointer(2)`): the mouse, and two fingers.
 
-### The shell
+#### The shell
 
 Laid out as Brick Breaker's, one folder per feature: `play/`
 (`GameService`, `SavedGameService`), `board/` (the canvas, the placeholder
@@ -1144,7 +1476,7 @@ Paused card and the result share), `sectors/`, `result/`,
 `[fzPlayRoom]` pauses the wave when the player looks away or the phone
 turns, as it does for Brick Breaker.
 
-### Performance
+#### Performance
 
 Brick Breaker's bar holds: a frame's work under 4 ms at the median with the
 CPU throttled six times, measured at the busiest moment (Tempest on the
@@ -1154,7 +1486,7 @@ per step or frame
 (`phaser-canvas-performance`); a check at 120 Hz this time, which Brick
 Breaker never had. Phaser loads with `import()` after the page paints.
 
-### Testing
+#### Testing
 
 As Brick Breaker's: the rules and the view in Node, each spec beside its
 file, a floor on both; fields from pictures in `src/testing/`
@@ -1167,89 +1499,6 @@ saved game's round trip; the contrast spec over every palette; the scene on
 real Phaser through `runScene()`, the shell through
 `provideFakePhaserCanvas()`; `yarn check:layout` at every shape and turned,
 with the deck; `yarn capture:screenshots` for the site's images.
-
-## Phases
-
-### How the work runs
-
-As Brick Breaker's did, and as the `commit-review-process` skill now says:
-Part 1 on `asteroid-breaker-lift`, cut from `main`; Part 2 on
-`asteroid-breaker`, cut from its tip. Each step a commit, each staged change
-reviewed by a fresh agent before it is committed, every comment answered in
-a work log (`docs/asteroid-breaker-worklog.md`), QA checkpoints logged.
-Nothing is pushed, and nothing reaches `main`, without the user's go-ahead;
-the lift merges first, on its own, since it changes a live game.
-
-Sizes are rough: small is an hour or two, medium half a day, large a day or
-more.
-
-### Part 1: the lift
-
-- **L1** `@fz/core/clock`, `@fz/core/event_log`, `@fz/core/frame_sounds`
-  and `formatPoints()` in `@fz/core/format`, each specced to 100%, and Brick
-  Breaker adopting each (medium; four commits).
-- **L2** `SpritePlayer.hold()`, specced on `runScene()` (small).
-- **L3** `@fz/dev/layout`'s deck (small).
-- **L4** the docs: `@fz/core`'s, `@fz/phaser`'s and `@fz/dev`'s `AGENTS.md`,
-  Brick Breaker's, the `phaser-core` and `fuzzley-ui` skills (small).
-- **Q1** Brick Breaker unchanged: `yarn verify`, its `check:layout`, its
-  sounds the same bytes, `yarn report:levels` the same numbers, a level
-  played by keys, mouse and touch.
-
-### Part 2: the game
-
-- **A1** The workspace, from Brick Breaker's (port 9005; small).
-- **A2** The torus and the flight: `tuning.ts`, `speed.ts`, `torus.ts`,
-  `ship.ts`, `shots.ts` (large).
-- **A3** Rocks: the catalog, splits, the cap, hits, blasts and the
-  lodestone's pull (large).
-- **A4** Pickups, effects, the strays, the pilots and the comet, scoring
-  and the event log (large).
-- **A5** Waves as data, the first five waves, the placement, the fill and
-  the stretch for any field's shape, the run, and the field whole
-  (`field.ts`; medium).
-- **A6** The autopilot and `yarn report:waves`; then **Q2**: the five waves
-  over many seeds at every speed, a thousand seeded random flights checked
-  for a ship, shot or rock off the torus, the physics' cost at the cap
-  timed in Node.
-- **A7** The view: the field's and the deck's layout, the stick and the
-  steering, the palette and inks, the pilots' among them, the art and the
-  atlas's frames (large).
-- **A8** The scene: the painters, the cameras, the copies across edges, the
-  pools and flourishes (large).
-- **A9** Play and the board: `GameService`, `WavePlay`, the board with its
-  cards and the deck's room, and the debug menu with every control the
-  mock's sketch has, Reset and Copy the numbers (large). Then **Q3, the
-  feel gate:** the five waves played by keys, mouse, and on real phones
-  upright and on their side, Android's Chrome and, if one is to hand, an
-  iPhone's Safari, and in windows from a small phone's to a 2560 × 1440
-  desktop's; the numbers in `tuning.ts` and the stick's tuned by the user's
-  play through the debug menu; screenshots sent as they are taken. The
-  other waves aren't built until the user says the feel is right.
-- **A10** The bar with its pilots, the icon, the Sectors, Result, How to
-  play and Settings dialogs (medium).
-- **A11** Sound, haptics (small).
-- **A12** Storage: settings, stats, progress, the saved game (medium).
-- **A13** The other twenty-five waves, tuned by `yarn report:waves` and by
-  play (large).
-- **A14** Endless: `endless.ts`, its spec, the constellation, the Sectors
-  dialog's fourth row, Storm cleared's card and the records' "cleared all
-  thirty", Endless's
-  waves 31 to 60 in the report (medium); then **Q4**, the whole shell, every
-  dialog by keyboard and by mouse, records and a saved game across a reload,
-  one in Endless among them, a light palette and a dark.
-- **A15** The checks: `check:layout` at every shape and turned, the field
-  filling its room and the deck in its place, the accessibility tree,
-  Lighthouse, a performance trace at ×6 and at 120 Hz on the widest field,
-  the bundle's size (medium); **Q5**.
-- **A16** Screenshots, the `AGENTS.md`, the `asteroid-breaker-testing` and
-  `asteroid-breaker-content` skills, `node .agents/link-claude-skills.mjs`
-  (medium).
-- **A17** Ship: `games.json`, the site's catalog entry
-  (`category: "arcade"`, its blurb "Fly, drift and blast every rock to
-  rubble before one finds you."), the image built and played at
-  `/play/asteroid-breaker/` with the console open, no "Refused to load";
-  **Q6**; then the user's go-ahead to merge and push (small).
 
 ## Risks
 
@@ -1276,7 +1525,7 @@ more.
 - **Many objects drawn up to four times** at the edges; the pools and the
   one atlas keep it to one texture, and the trace at Tempest proves it.
 - **Light palettes:** space on white is unusual. The mock shows it; if the
-  user prefers night everywhere, decision 17's alternative is one switch in
+  user prefers night everywhere, always dark space is one switch in
   `palette.ts`.
 - **Shots added to the ship's speed** can feel odd to a newcomer flying
   backward. It is the genre's, and the sketch lets it be tried.
@@ -1287,3 +1536,72 @@ more.
 - Enemy ships, a Custom speed, ships to choose between, co-op, online
   leaderboards, tilt.
 - Moving the stick into a library, until a second game wants one.
+
+## What other games teach
+
+Read for the design plan, and what its decisions drew on: descriptions,
+reviews and design write-ups of games in the genre, and guides to touch
+controls. No other game's code was read.
+
+- **The glide is the genre.** The original is described as "a rudimentary
+  physics game": ship, rocks and shots all carry inertia, and a shot leaves
+  with the ship's speed added to its own
+  ([Game Developer](https://www.gamedeveloper.com/design/feature-game-design-essentials-20-atari-games-)).
+  Players of clones say what they miss is the glide
+  ([AtariAge](https://forums.atariage.com/topic/365993-the-case-of-the-assy-asteroids-clones/)).
+  So the ship drifts, and shots add the ship's speed (decision 2).
+- **Wrapping is the escape valve,** and smaller rocks are faster and worth
+  more; the original capped the rocks on screen and split one into fewer
+  pieces at the cap
+  ([Wikipedia](<https://en.wikipedia.org/wiki/Asteroids_(video_game)>)).
+  Kept, with our own numbers.
+- **Lurking.** Players of the original hid near an edge and farmed the
+  saucers for points until a patched ROM stopped it; its sequel's design
+  aimed at the same strategy
+  ([Wikipedia](<https://en.wikipedia.org/wiki/Asteroids_(video_game)>),
+  [Asteroids Deluxe](https://en.wikipedia.org/wiki/Asteroids_Deluxe)). A
+  game here has no endless source of points to farm: the strays come a set
+  number of times a wave, and comets pay nothing.
+- **Pickups that come to you, and come often enough.** Blasteroids' power
+  crystals decay, so they must be caught quickly
+  ([Blasteroids](https://en.wikipedia.org/wiki/Blasteroids)); reviewers of
+  Asteroids: Recharged liked that pickups drift toward the ship, which spares
+  unfair deaths, and disliked uneven drop rates
+  ([Gamezebo](https://www.gamezebo.com/reviews/asteroids-recharged-switch-review-out-of-this-world/),
+  [The Xbox Hub](https://www.thexboxhub.com/asteroids-recharged-review/)).
+  So pickups last 8 s, are drawn in from close by, and a drought rule
+  guarantees one (decision 10).
+- **Rocks of different stuff.** Super Stardust HD's rocks are rock, gold and
+  ice, each best broken by its own weapon
+  ([Giant Bomb](https://www.giantbomb.com/wiki/Games/Super_Stardust_HD)),
+  and Blasteroids has rocks that home on the ship after a hit, rocks that
+  grow, and rocks that hold crystals. Asteroid Breaker's kinds are its own,
+  but the idea, a kind told apart at a glance that asks for a different
+  approach, is what its catalog is for (decision 8).
+- **Shields and boosts over a random jump.** Asteroids Deluxe replaced the
+  jump to a random spot with a draining shield; Super Stardust HD has a
+  boost. A random jump is a gamble the player can't learn, so the escape
+  here is a dash (decision 7).
+- **On a phone, twin sticks are the common answer, and a finger over the
+  ship is the common complaint.** Atari's own mobile game went twin-stick
+  ([Gamezebo](https://www.gamezebo.com/upcoming/asteroids-gunner-preview/));
+  players say a finger covering the ship is bad and that a virtual stick
+  works for asteroid shooting
+  ([TouchArcade](https://toucharcade.com/community/threads/preferred-control-method-for-shmup-bullethell-free-flight-games.125655/));
+  a developer of a portrait asteroid game found four buttons needed two
+  hands and thought holding to fire more accessible
+  ([TouchArcade](https://toucharcade.com/community/threads/spacey-asteroid-beta-testers-needed.411941/)).
+  So the controls sit off the field, in a deck, and fire is held
+  (decisions 4 and 6).
+- **How a virtual stick feels right:** it appears where the thumb lands, in
+  a zone of its own; a dead zone of 10–15% of its radius, with the output
+  remapped from the dead zone's edge so it doesn't jump; the knob clamped to
+  the base; a highlight at full push, since a thumb feels no stop; and one
+  finger tracked from press to release
+  ([Abratabia](https://www.abratabia.com/game-controls/virtual-joystick.php)).
+  All of it is in the deck (decision 4).
+- **Feel comes from small, quick feedback:** a kick and a decaying shake, a
+  brief pause on a big hit, debris that lingers, sound with every action
+  ([Vlambeer's talk, as summarized](https://infovore.org/?p=5275)). So the
+  flourishes (decision 18), all left out where the player asks for less
+  motion.
