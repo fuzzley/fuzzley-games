@@ -446,7 +446,7 @@ more. Paths in Part 1 are under `frontend/lib/` or
   each cleared within four minutes of game time), and
   `tools/report-waves.mjs`, `yarn report:waves`, printing each wave's time,
   the ships it cost and the strays brought home, with `--seeds <n>` and
-  `--field <narrow|wide>`. One commit, `yarn verify` with it, then Q2.
+  `--field <narrow|wide|tall>`. One commit, `yarn verify` with it, then Q2.
 
 #### A7: the view (large)
 
@@ -1419,10 +1419,10 @@ numbers, whose least isn't above 0, or that runs backward.
 | The scene spec     | `src/scene/belt_scene.spec.ts` | Every kind in every state is drawn from a frame of the atlas, and an object across an edge is drawn on both sides                                                                                                               |
 
 The autopilot flies as a fair player would: it turns toward the rock it can
-hit soonest, leading it, fires when lined up, thrusts away from a rock
-whose course comes within 4 units, dashes when one is about to hit, and
-catches the pickups and strays it has time for. It runs in Node, without
-Phaser.
+hit soonest, leading it, fires when lined up, thrusts away from a rock or
+comet whose course comes within 1.5 units of touching the ship in the next
+second, dashes when one is about to hit, and catches the pickups and strays
+it has time for. It runs in Node, without Phaser.
 `yarn report:waves` runs it over every wave at every speed from many seeds,
 invulnerable and not, and prints how long each took and the ships each
 cost, which is how the climb from wave to wave is tuned and checked.
