@@ -13,7 +13,7 @@ import {
 import { WEAPONS } from "./catalog/weapons";
 import { EFFECT_KINDS } from "./pickups";
 import { stepsIn } from "./stepper";
-import { SHOT_LIFE_MS } from "./tuning";
+import { MAX_SHIPS, SHOT_LIFE_MS } from "./tuning";
 
 /** Every rock kind, with its id. */
 const ROCK_ENTRIES = ROCK_KIND_IDS.map((id) => [id, rockKind(id)] as const);
@@ -357,6 +357,11 @@ describe("PICKUPS", () => {
       "the Magnet's reach",
       PICKUPS.magnet.about,
       `from ${String(PICKUPS.magnet.effect.reach)} units`,
+    ],
+    [
+      "the Extra ship's most",
+      PICKUPS.ship.about,
+      `up to ${spelled(MAX_SHIPS)}`,
     ],
     [
       "the Nova's reach",

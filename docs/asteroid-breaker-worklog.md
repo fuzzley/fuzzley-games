@@ -1545,3 +1545,160 @@ out.
 
   These corrected the change rather than reshaping it, so it is committed
   on them.
+
+## A4.2: the pilots, the strays and the comet
+
+2026-11-01.
+
+- **Built.** `src/rules/pilots.ts`: `Pilot`, a color's number; `Crew`, a
+  value of the pilots flying, those at home and the color last given;
+  `createCrew()`, `atControls()`, `nextPilot()`, `given()`, `gainShip()`,
+  `bailOut()` and `bringHome()`. `src/rules/hazards.ts`: `HazardSetup`, a
+  wave's strays and the time between its comets; `Stray` and `Strays`, the
+  one adrift in a record made once, and when the next comes; `Comet` and
+  `Comets`, `COMET_RECORDS` of them; `scheduleComet()`, `stepComets()`,
+  `touchesComet()`, `stepStrays()`, `adriftPilot()` and `clearHazards()`.
+  A stray comes in off an edge, in the next color in turn, and crosses on
+  a gentle curve without wrapping until it leaves; the ship brings it home
+  by touching it, and a Magnet draws it in. A comet is warned of off its
+  edge for 1.5 s, then crosses in a straight line at the field's pace,
+  smashing each rock it meets a size down, and takes a ship it touches
+  that isn't guarded, or spends its shield. The field holds the crew
+  through the wave, from its setup's, with the strays and the comets; each
+  step flies the comets after the shots land, tests the ship against the
+  rocks and the comets, and floats the stray after the pickups; a lost
+  ship's pilot bails out, and a cleared wave lets the stray and the comets
+  go. `rocks.ts` gains the blow that smashes, which breaks a rock but lets
+  no pickup go; `events.ts` a pilot's events, `addPilot()`, the bail-out's
+  among them, and the comet's warning; `torus.ts` `pullToward()`, lifted
+  from the pickups' pull, and `moveAlong()`, which it and the stray's pull
+  move by; the Extra ship joins the crew; and `tuning.ts` the ships'
+  numbers, the strays', the comet's and where along an edge they come in.
+  The field picture takes a wave's strays, comets and crew, and gains
+  `placeStray()`, `placeComet()` and `loggedOn()`, lifted from the pickups'
+  spec.
+- **Choices.**
+  - The crew is a value the field holds through a wave, from the run's as
+    it starts, and the run takes it back as it catches up. A stray's color
+    skips the colors worn at the step it comes in, and the run catches up
+    once a frame, so only the field can give it; the field gives every
+    color, then, and A4.3 has the field gain the ships points bring, from
+    the run's score and next mark as the wave starts. The field no longer
+    counts the ships it gained, which the crew says.
+  - A stray takes its color from the same turn as a new pilot, so the
+    strays of a run come in colors of their own, one after another, not
+    the same free color each time.
+  - A pilot is a plain number, as Brick Breaker's tints are; `atControls()`
+    throws for a crew with no one flying, a run that is over, which never
+    has a ship in play.
+  - A stray and a comet each come in off one of the four edges, drawn,
+    from 15% to 85% of the way along it, tilted toward its middle by up to
+    20° for a stray and 30° for a comet, so neither clips a corner. A
+    stray's curve turns 2° to 5° a second, either way, too wide to stay on
+    the field, so it always leaves, which `tuning.spec.ts` holds; every
+    stray stays on the narrowest and the widest field 5 s at least, over
+    forty seeds. Neither wraps.
+  - A stray and a comet meet things only with their middle on the field:
+    what they meet wraps and is drawn across the edge, and they aren't, so
+    off the field they would reach things at the far edge, out of their
+    sight. A stray is brought home within 2 units of the ship's middle, as
+    the plan says, by a guarded ship too, and moves from the step after it
+    comes in.
+  - Only a Magnet in effect draws a stray in, from its reach at the
+    pickups' speed; the pickups' own 3 units don't. It draws it the
+    straight way, never across an edge, as a stray doesn't wrap, so a stray
+    is never drawn off the field, though one still coming in is drawn
+    onto it. A stray that leaves logs nothing.
+  - A comet's breaks give nothing: no points (A4.3's), no pickup, and no
+    drought's pickup either, so a comet is never a gift. Its blow
+    `"smashes"`. A volatile rock it breaks still goes off, and what that
+    blast breaks gives as any blast's does: the blast is the rock's.
+  - A comet passes over the pieces it lays, as a Lance shot does: it keeps
+    the latest eight steps it broke rocks in, far more than it breaks rocks
+    in while one's pieces are within its reach, and passes over rocks laid
+    then. So it breaks the pieces of a rock the ship broke in its way,
+    though not those of one a shot or a blast broke in a step it broke
+    rocks in too, as a Lance shot passes them. Its pieces are pushed along
+    its travel.
+  - Comets come start to start, the time between their warnings drawn,
+    the first as the field is made. Three records, enough for one warned
+    of while two cross under Slow; one due with none free doesn't come,
+    and the next is drawn.
+  - A comet flies at the field's pace, so the wave's pace hurries it as it
+    does the rocks, and Slow and the speed set it; the plan's comet now
+    says so. Its reach is 1, and it comes in from and leaves past 3 units
+    off the field, its head and tail out of sight; both are guesses for
+    the view and Q3.
+  - The shots land before the comets fly, so a rock both meet in a step is
+    the shot's, for its points and its pickup. The stray floats after the
+    ship is tested, so a rock takes the ship before it brings a stray
+    home, as with a Shield.
+  - A comet on a shielded ship spends the shield and flies on, the ship
+    untouchable for 1 s; a guarded ship, a dashing one among them, is
+    spared.
+  - The Extra ship joins the crew, flown by the first stray at home or a
+    new pilot, six ships at most; the catalog spec now spells "up to six"
+    out.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (680 tests,
+  the rules fully covered but A3.2's one branch), `yarn prettier:check`
+  and the skill references. 75 mutants of the pilots, the strays, the
+  comets, the field's step, the smashing blow, the pull and the events:
+  all caught but three, each a gap a new spec then caught: a stray's turn,
+  checked to two places, where a heading of 0 passed; where a crossing was
+  a step ago as it comes in; and the leave boundary, checked at the right
+  edge only, now at all four. Writing them found six more gaps, specced
+  before the run; four still stand, a comet's push on its pieces, a
+  stray's catch off each edge, a rock taking the ship before it brings a
+  stray home, and a pilot left in a record by an older event, and two were
+  of rules the review then reshaped. After the review's fixes, 687 tests,
+  a comet breaking two rocks in a step among them, and 11 mutants of the
+  fixes: all caught but one that changes nothing, keeping a step a comet
+  broke rocks in before or after it breaks the rock, which the loop
+  reaches the next slot after either way.
+- **Review.**
+  1. A Magnet drew a stray the shortest way across the wrap and wrapped
+     it, so a stray, never drawn across an edge, popped from one edge to
+     the other. Fixed: it is drawn the straight way, without wrapping, by
+     `moveAlong()`, which `pullToward()` now moves by; the spec is the
+     other way round, and one draws a stray still coming in onto the
+     field.
+  2. A stray came in anywhere along an edge and tilted either way, so about
+     one in forty clipped a corner and was gone within 2 s. Fixed: strays
+     and comets come in from 15% to 85% of the way along, tilted toward
+     the edge's middle, a comet too, as one that clips a corner wastes its
+     warning; a spec holds every stray on the field 5 s at least, and the
+     entries' spec where along and which way. The plan's feel table gains
+     the tilts.
+  3. A comet passed over every rock laid after it came in, the pieces of
+     rocks the ship broke in its way among them. Fixed, as the reviewer
+     put it: the steps it broke rocks in, as a Lance's shot keeps them,
+     with specs of a rock between two of its breaks and of a rock the ship
+     broke in its way, and of a record reused. That a volatile rock it
+     breaks still goes off, giving as any blast, is now in the plan.
+  4. The spec that a stray always leaves measured its curve against the
+     field's short side, not the side and its bubble past each edge, where
+     a Magnet could leave one on a curve that fits. Fixed.
+
+  The nits: `turnsBack` is `anticlockwise`; the strays' and comets'
+  records share `blankCrossing()`, and their events' place `edgeOf()`.
+
+  The second and third reshape how strays and comets come in and what a
+  comet breaks, so the change was reviewed again.
+
+  Second review:
+
+  1. Nothing held that a volatile rock a comet breaks still goes off.
+     Fixed: a spec has a comet break one, and its blast a crystal, which
+     lets a pickup go.
+  2. Only a ring of one step was caught: two, a ring that stops turning
+     round, and a step taken twice all passed. Fixed: specs that a comet
+     keeps the latest steps, dropping the oldest, and a step it broke two
+     rocks in once, and that it passes over the pieces of a row of six
+     rocks, which a ring of four lets it break again.
+  3. `smashedAt`'s doc said it passes only its own pieces, where it passes
+     whatever was laid in its steps. Fixed: worded as the Lance's is, and
+     the choice above says so.
+  4. A paragraph of the plan wasn't rewrapped. Fixed.
+
+  The reviewer's five mutants are caught now, at 691 tests. These correct
+  the change, so it is committed on them.

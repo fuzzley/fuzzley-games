@@ -1,20 +1,28 @@
 import { stepsBetween } from "../testing/numbers";
+import { RADIANS_PER_DEGREE } from "./angles";
 import { PICKUPS } from "./catalog/pickups";
 import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
+import { PILOT_COLORS } from "./pilots";
 import { stepsIn } from "./stepper";
 import {
   COAST_HALF_LIFE_MS,
+  COMET_MARGIN,
+  COMET_RADIUS,
+  COMET_TILT,
   DASH_CARRY,
   DASH_GUARD_MS,
   DASH_MS,
   DASH_RECHARGE_MS,
   DASH_SPEED,
   DROUGHT_MS,
+  ENTRY_ALONG,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
+  FIRST_SHIPS,
   HEADING_EASE,
   HEADING_TURN_RATE,
   KEY_TURN_RAMP_MS,
+  MAX_SHIPS,
   PICKUP_BLINK_MS,
   PICKUP_CATCH_REACH,
   PICKUP_DRIFT,
@@ -26,9 +34,15 @@ import {
   ROCK_RADIUS,
   ROCK_SPEED,
   ROCK_SPIN,
+  SHIP_HIT_RADIUS,
   SHOT_LIFE_MS,
   SHOT_SPEED,
   STEP_S,
+  STRAY_CATCH_REACH,
+  STRAY_RADIUS,
+  STRAY_SPEED,
+  STRAY_TILT,
+  STRAY_TURN,
   THRUST,
   TOP_SPEED,
 } from "./tuning";
@@ -116,6 +130,8 @@ describe("the tuning", () => {
     ["each size's speeds", ...SPEEDS],
     ["a rock's spin", ROCK_SPIN],
     ["a piece's turn", PIECE_TURN],
+    ["a stray's turn", STRAY_TURN],
+    ["where along an edge a crossing comes in", ENTRY_ALONG],
   ])("draws %s from a span above 0", (_, ...spans) => {
     const broken = spans.filter(
       (span) => !(span.least > 0 && span.least <= span.most),
@@ -152,5 +168,56 @@ describe("the tuning", () => {
   // waits on how many may float at once.
   it("lets a drought outlast a pickup's life", () => {
     expect(DROUGHT_MS).toBeGreaterThan(PICKUP_LIFE_MS);
+  });
+
+  it("starts a run with a ship at least", () => {
+    expect(FIRST_SHIPS).toBeGreaterThan(0);
+  });
+
+  it("starts a run with no more ships than it can have", () => {
+    expect(FIRST_SHIPS).toBeLessThanOrEqual(MAX_SHIPS);
+  });
+
+  it("gives a full crew and a stray adrift a color each", () => {
+    expect(MAX_SHIPS + 1).toBeLessThanOrEqual(PILOT_COLORS);
+  });
+
+  it("flies a stray slower than the ship's top speed, so the ship can catch it", () => {
+    expect(STRAY_SPEED).toBeLessThan(TOP_SPEED);
+  });
+
+  it("brings a stray home once the ship touches its bubble", () => {
+    expect(STRAY_CATCH_REACH).toBeGreaterThanOrEqual(
+      STRAY_RADIUS + SHIP_HIT_RADIUS,
+    );
+  });
+
+  // A stray leaves once its middle is its bubble's reach past an edge, and
+  // a curve too wide to fit within that can't stay on the field, wherever a
+  // Magnet leaves it.
+  it("curves a stray's crossing too wide to stay on the field, so it always leaves", () => {
+    const tightest = (2 * STRAY_SPEED) / (STRAY_TURN.most * RADIANS_PER_DEGREE);
+
+    expect(tightest).toBeGreaterThan(FIELD_SHORT_SIDE + 2 * STRAY_RADIUS);
+  });
+
+  it("brings strays and comets in away from an edge's corners", () => {
+    expect(Math.min(ENTRY_ALONG.least, 1 - ENTRY_ALONG.most)).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it.each([
+    ["a stray", STRAY_TILT],
+    ["a comet", COMET_TILT],
+  ])(
+    "heads %s into the field, less than a quarter turn off straight across",
+    (_, tilt) => {
+      expect(tilt).toBeLessThan(90);
+    },
+  );
+
+  it("starts a comet with its head out of sight", () => {
+    expect(COMET_MARGIN).toBeGreaterThanOrEqual(COMET_RADIUS);
   });
 });

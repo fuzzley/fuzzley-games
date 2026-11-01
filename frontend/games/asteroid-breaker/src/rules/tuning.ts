@@ -164,3 +164,58 @@ export const DROUGHT_MS = 25_000;
 
 /** How long the ship stays untouchable as its shield goes, so the pieces of the rock it broke can fly clear. */
 export const SHIELD_GUARD_MS = 1000;
+
+/** How many ships a run starts with, each with its pilot. */
+export const FIRST_SHIPS = 3;
+
+/** The most ships a run has at once; one gained past it is not. */
+export const MAX_SHIPS = 6;
+
+/** How far into a wave its first stray comes. */
+export const STRAY_FIRST_MS = 20_000;
+
+/** How long after a stray has gone, brought home or off the field, the next comes. */
+export const STRAY_NEXT_MS = 8000;
+
+/** How fast a stray crosses the field. */
+export const STRAY_SPEED = 3.2;
+
+/**
+ * How far a stray's bubble reaches from its middle, which comes in from and
+ * leaves past that far off the field, so the bubble slides in and out of
+ * sight.
+ */
+export const STRAY_RADIUS = 1.15;
+
+/** How near the ship's middle a stray's is as the ship brings it home. */
+export const STRAY_CATCH_REACH = 2;
+
+/** How far off straight across the field a stray comes in, in degrees, toward its edge's middle. */
+export const STRAY_TILT = 20;
+
+/** How fast a stray's heading turns as it crosses, in degrees a second, either way, so it crosses on a gentle curve. */
+export const STRAY_TURN: Span = { least: 2, most: 5 };
+
+/** How long a comet is warned of at the edge it will come in by. */
+export const COMET_WARNING_MS = 1500;
+
+/** How fast a comet crosses the field, before the field's pace. */
+export const COMET_SPEED = 26;
+
+/** How far from its middle a comet meets what it touches. */
+export const COMET_RADIUS = 1;
+
+/**
+ * How far off the field a comet's middle comes in from and leaves past, so
+ * its head and its short tail slide in and out of sight.
+ */
+export const COMET_MARGIN = 3;
+
+/** How far off straight across the field a comet comes in, in degrees, toward its edge's middle. */
+export const COMET_TILT = 30;
+
+/**
+ * Where along an edge a stray or a comet comes in, as a share of it: away
+ * from its corners, so neither clips one and is gone at once.
+ */
+export const ENTRY_ALONG: Span = { least: 0.15, most: 0.85 };

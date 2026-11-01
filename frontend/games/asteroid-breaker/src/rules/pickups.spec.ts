@@ -3,15 +3,16 @@ import {
   catchOn,
   fieldFrom,
   floatingPickups,
+  loggedOn,
   placePickup,
   placeRock,
+  placeStray,
   shipOf,
   stepTimes,
 } from "../testing/field_picture";
 import { PICKUPS } from "./catalog/pickups";
 import { ROCK_KINDS } from "./catalog/rocks";
 import type { Floating } from "./drops";
-import type { FieldEvent } from "./events";
 import { type Field, steerField, stepField } from "./field";
 import { EFFECT_KINDS } from "./pickups";
 import { rockHitRadius } from "./rocks";
@@ -67,13 +68,6 @@ function droppedByShot(): { field: Field; floating: Floating } {
     }
   }
   throw new Error("The shot let no pickup go.");
-}
-
-/** Returns copies of the events a field's log holds, oldest first. */
-function loggedOn(field: Field): FieldEvent[] {
-  const events: FieldEvent[] = [];
-  field.events.forEachSince(0, (event) => events.push({ ...event }));
-  return events;
 }
 
 describe("a floating pickup", () => {
@@ -401,14 +395,46 @@ describe("each effect", () => {
     ]);
   });
 
-  it("gives a ship, for the run to add, and nothing to end", () => {
-    const field = fieldOf();
+  it("gives a ship, flown by a new pilot with no one at home, and nothing to end", () => {
+    const field = fieldOf({
+      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
+    });
 
     catchOn(field, "ship");
 
-    expect([field.shipsGained, field.effects.ship]).toEqual([
-      1,
+    expect([field.crew, field.effects.ship]).toEqual([
+      { flying: [0, 1, 2, 3], home: [], lastGiven: 3 },
       { pickup: null, endsAt: 0 },
     ]);
+  });
+
+  it("gives a ship flown by the first stray at home", () => {
+    const field = fieldOf({
+      crew: { flying: [0, 1], home: [5, 6], lastGiven: 6 },
+    });
+
+    catchOn(field, "ship");
+
+    expect(field.crew).toEqual({ flying: [0, 1, 5], home: [6], lastGiven: 6 });
+  });
+
+  it("gives a new pilot a color the stray adrift doesn't wear", () => {
+    const field = fieldOf({
+      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
+    });
+    placeStray(field, 4, 30, 0, 3);
+
+    catchOn(field, "ship");
+
+    expect(field.crew.flying).toEqual([0, 1, 2, 4]);
+  });
+
+  it("gives no ship past the most", () => {
+    const crew = { flying: [0, 1, 2, 3, 4, 5], home: [6], lastGiven: 6 };
+    const field = fieldOf({ crew });
+
+    catchOn(field, "ship");
+
+    expect(field.crew).toBe(crew);
   });
 });

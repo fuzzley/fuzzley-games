@@ -1,10 +1,23 @@
-// A wave in play: the ship, its shots, the rocks and the pickups, stepped
-// in place from records made once, as Brick Breaker's field is.
+// A wave in play: the ship, its shots, the rocks, the pickups, the strays
+// and the comets, stepped in place from records made once, as Brick
+// Breaker's field is.
 
 import type { RockKindId } from "./catalog/rocks";
 import type { WeaponId } from "./catalog/weapons";
 import { type DropSetup, createPickups } from "./drops";
 import { FieldEventLog } from "./events";
+import {
+  type Comets,
+  type HazardSetup,
+  type Strays,
+  clearHazards,
+  createComets,
+  createStrays,
+  scheduleComet,
+  stepComets,
+  stepStrays,
+  touchesComet,
+} from "./hazards";
 import {
   type Effects,
   clearPickups,
@@ -14,6 +27,7 @@ import {
   stepEffects,
   stepPickups,
 } from "./pickups";
+import { type Crew, atControls, bailOut } from "./pilots";
 import {
   type Rock,
   type RockField,
@@ -51,9 +65,10 @@ import { PICKUP_PULL_REACH, SHIELD_GUARD_MS, SHIP_HIT_RADIUS } from "./tuning";
 
 /**
  * Says how a wave is played: its field's size and cap, the seed its draws
- * come from, its pace, the kind of rock it names and the pickups it lets go.
+ * come from, its pace, the kind of rock it names, the pickups it lets go,
+ * what it sends across the field and the crew it starts with.
  */
-export interface FieldSetup extends DropSetup {
+export interface FieldSetup extends DropSetup, HazardSetup {
   readonly torus: Torus;
   /** The most rocks the field holds at once. */
   readonly cap: number;
@@ -62,6 +77,8 @@ export interface FieldSetup extends DropSetup {
   readonly pace: number;
   /** The kind of rock it names, which a boulder breaks into. */
   readonly waveKind: RockKindId;
+  /** The run's crew as the wave starts. */
+  readonly crew: Crew;
 }
 
 /** Describes a wave in play, which each step changes in place. */
@@ -88,26 +105,26 @@ export interface Field extends RockField {
   /** How near the ship a pickup is drawn in to it from. */
   pullReach: number;
   /**
-   * How many ships it has lost, counting up, for the run to take one for
-   * each it hasn't yet.
+   * Who flies the run's ships and who waits at home, which the wave changes
+   * as it loses and gains ships and brings strays home, for the run to take.
    */
+  crew: Crew;
+  /** How many ships it has lost. */
   shipsLost: number;
-  /**
-   * How many ships its pickups have given, counting up, for the run to add
-   * one for each it hasn't yet.
-   */
-  shipsGained: number;
+  readonly strays: Strays;
+  readonly comets: Comets;
   /** Whether every rock it held is gone, after which everything stands still. */
   cleared: boolean;
 }
 
 /**
- * Returns a wave's field, its rocks' slots free and its ship waiting in its
- * middle for the player's first move; the wave lays its rocks after.
+ * Returns a wave's field, its rocks' slots free, its ship waiting in its
+ * middle for the player's first move, and its first comet's time drawn;
+ * the wave lays its rocks after.
  */
 export function createField(setup: FieldSetup): Field {
   const { torus } = setup;
-  return {
+  const field: Field = {
     setup,
     torus,
     rocks: createRocks(setup.cap),
@@ -127,11 +144,15 @@ export function createField(setup: FieldSetup): Field {
     effects: createEffects(),
     shielded: false,
     pullReach: PICKUP_PULL_REACH,
+    crew: setup.crew,
     shipsLost: 0,
-    shipsGained: 0,
+    strays: createStrays(),
+    comets: createComets(),
     cleared: false,
     events: new FieldEventLog(),
   };
+  scheduleComet(field);
+  return field;
 }
 
 /** Takes a frame's steering, which the steps until the next frame follow. */
@@ -147,11 +168,15 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 /**
  * Moves the field on by a step: blasts due go off and effects whose time is
  * up end, the ship flies by the frame's steering and fires, its shots and
- * the rocks fly, each shot meets the first rock in its way, a rock takes a
- * ship it touches that isn't guarded, or breaks on its shield, and the
- * pickups float on, the ship catching those it touches. Once no rock is
- * left, the wave is cleared: its effects end, its pickups go, and
+ * the rocks fly, each shot meets the first rock in its way, the comets fly,
+ * breaking what they meet, a rock or a comet takes a ship it touches that
+ * isn't guarded, or spends its shield, and the pickups and the stray float
+ * on, the ship catching those it touches. Once no rock is left, the wave is
+ * cleared: its effects end, its pickups, stray and comets go, and
  * everything else stands still where it is.
+ *
+ * The shots land before the comets fly, so a rock both meet in a step is
+ * the shot's, for its points.
  */
 export function stepField(field: Field): void {
   if (field.cleared) return;
@@ -180,8 +205,10 @@ export function stepField(field: Field): void {
       landShot(shot, hitRock(field, rock, shot.vx, shot.vy), field.steps);
     }
   }
-  if (ship) meetRocks(field, ship);
+  stepComets(field);
+  if (ship) meetDangers(field, ship);
   stepPickups(field);
+  stepStrays(field);
   if (rocksLeft(field) === 0) clear(field);
 }
 
@@ -211,13 +238,15 @@ function firstMet(field: Field, shot: Readonly<Shot>): Rock | null {
 }
 
 /**
- * Lets the first whole rock to touch a ship that isn't guarded take it, or,
- * while it is shielded, break a size down on the shield, which goes, the
- * ship kept untouchable a while so the pieces can fly clear.
+ * Lets the first whole rock or crossing comet to touch a ship that isn't
+ * guarded take it, or, while it is shielded, spend the shield on it: a rock
+ * breaks a size down, and a comet, which can't be broken, flies on. The
+ * ship is kept untouchable a while after, so a rock's pieces can fly clear.
  */
-function meetRocks(field: Field, ship: Ship): void {
-  const rock = touching(field, ship);
-  if (rock === null) return;
+function meetDangers(field: Field, ship: Ship): void {
+  if (isGuarded(ship)) return;
+  const rock = touchingRock(field, ship);
+  if (rock === null && !touchesComet(field, ship)) return;
   if (!field.shielded) {
     loseShip(field, ship);
     return;
@@ -226,6 +255,7 @@ function meetRocks(field: Field, ship: Ship): void {
   endEffect(field, "guard");
   guardShip(ship, SHIELD_GUARD_MS);
   field.events.add("shielded", ship.x, ship.y);
+  if (rock === null) return;
   hitRock(
     field,
     rock,
@@ -235,9 +265,8 @@ function meetRocks(field: Field, ship: Ship): void {
   );
 }
 
-/** Returns the first whole rock that touches a ship that isn't guarded, or null for none. */
-function touching(field: Field, ship: Readonly<Ship>): Rock | null {
-  if (isGuarded(ship)) return null;
+/** Returns the first whole rock that touches a ship, or null for none. */
+function touchingRock(field: Field, ship: Readonly<Ship>): Rock | null {
   for (const rock of field.rocks) {
     if (!rock.live) continue;
     const reach = SHIP_HIT_RADIUS + rockHitRadius(rock.size);
@@ -248,11 +277,13 @@ function touching(field: Field, ship: Readonly<Ship>): Rock | null {
 }
 
 /**
- * Loses the field's ship, which its shots in flight outlive, and with it
- * every effect and the pickups floating.
+ * Loses the field's ship, which its shots in flight outlive, its pilot
+ * bailing out and the next in line taking the controls, and with it every
+ * effect and the pickups floating.
  */
 function loseShip(field: Field, ship: Readonly<Ship>): void {
-  field.events.add("lost", ship.x, ship.y);
+  field.events.addPilot("lost", ship.x, ship.y, atControls(field.crew));
+  field.crew = bailOut(field.crew);
   field.ship = null;
   field.shipsLost += 1;
   endEffects(field);
@@ -260,14 +291,15 @@ function loseShip(field: Field, ship: Readonly<Ship>): void {
 }
 
 /**
- * Clears the wave, ending its effects and letting its pickups go, and sets
- * where everything else moving was a step ago to where it is, so a cleared
- * field is drawn standing still.
+ * Clears the wave, ending its effects and letting its pickups, its stray
+ * and its comets go, and sets where everything else moving was a step ago
+ * to where it is, so a cleared field is drawn standing still.
  */
 function clear(field: Field): void {
   field.cleared = true;
   endEffects(field);
   clearPickups(field);
+  clearHazards(field);
   const { ship, torus } = field;
   field.events.add("cleared", torus.width / 2, torus.height / 2);
   if (ship) {

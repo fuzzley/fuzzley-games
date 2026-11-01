@@ -1,6 +1,7 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { PickupId } from "./catalog/pickups";
 import type { RockKindId, RockSize } from "./catalog/rocks";
+import type { Pilot } from "./pilots";
 
 /** Names something that happened at a place on the field, which its event names nothing else of. */
 export type PlaceEventKind =
@@ -12,8 +13,8 @@ export type PlaceEventKind =
   | "shielded"
   /** The Nova's ring swept out from the ship. */
   | "nova"
-  /** A rock took the ship. */
-  | "lost"
+  /** A comet's warning began, at the edge it will come in by. */
+  | "warned"
   /** The wave's last rock went, so the wave is cleared. */
   | "cleared";
 
@@ -37,8 +38,18 @@ export type PickupEventKind =
   /** A pickup's time ran out before the ship caught it. */
   | "faded";
 
+/** Names something that happened to a pilot, which its event names. */
+export type PilotEventKind =
+  /** A rock or a comet took the ship, and its pilot bailed out. */
+  | "lost"
+  /** A stray came in at an edge. */
+  | "strayed"
+  /** The ship brought a stray home. */
+  | "home";
+
 /** Names something that happened on the field, for the scene to play. */
-export type FieldEventKind = PlaceEventKind | RockEventKind | PickupEventKind;
+export type FieldEventKind =
+  PlaceEventKind | RockEventKind | PickupEventKind | PilotEventKind;
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
@@ -51,6 +62,8 @@ export interface FieldEvent extends NumberedEvent {
   size: RockSize | null;
   /** The pickup it happened to, or null for an event of none. */
   pickup: PickupId | null;
+  /** The pilot it happened to, or null for an event of none. */
+  pilot: Pilot | null;
   /** How far a blast or the Nova reaches, 0 for any other event. */
   reach: number;
 }
@@ -71,6 +84,7 @@ function blankEvent(): FieldEvent {
     rock: null,
     size: null,
     pickup: null,
+    pilot: null,
     reach: 0,
   };
 }
@@ -114,6 +128,11 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.record(kind, x, y).pickup = pickup;
   }
 
+  /** Records an event that happened to a pilot. */
+  addPilot(kind: PilotEventKind, x: number, y: number, pilot: Pilot): void {
+    this.record(kind, x, y).pilot = pilot;
+  }
+
   /** Returns the next record, its kind and place filled in and nothing of an older event left in it. */
   private record(kind: FieldEventKind, x: number, y: number): FieldEvent {
     const event = this.next();
@@ -123,6 +142,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.rock = null;
     event.size = null;
     event.pickup = null;
+    event.pilot = null;
     event.reach = 0;
     return event;
   }

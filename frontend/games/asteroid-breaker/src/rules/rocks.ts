@@ -82,10 +82,11 @@ export interface RockField extends DropField {
 
 /**
  * Names how hard something hits a rock: a hit takes one of its hits off, as
- * a shot, a blast and the Nova do, and a blow that breaks takes all it has
- * left, as a comet's and the Shield's do.
+ * a shot, a blast and the Nova do; a blow that breaks takes all it has
+ * left, as the Shield's does; and one that smashes breaks it as well, but
+ * for nothing, letting no pickup go, as a comet's does.
  */
-export type Blow = "hit" | "breaks";
+export type Blow = "hit" | "breaks" | "smashes";
 
 /** A rock trait of each kind, by its kind. */
 type TraitOf = { readonly [T in RockTrait as T["kind"]]: T };
@@ -203,12 +204,12 @@ export function addRock(
  * Hits a whole rock once, as a shot, a blast, the Nova, a comet or the
  * Shield does, and returns whether it broke; a rock not whole takes nothing.
  *
- * One broken leaves the field, may let a pickup go, its traits run, and it
- * splits into pieces of the size after its own, pushed along the way the
- * hit came: `alongX` and `alongY`, of any length, or both 0 for no push.
- * Its slot is free as it breaks, and one of its pieces may lie there by the
- * time this returns, so a caller takes what it broke from before the hit,
- * or from the break's event.
+ * One broken leaves the field, may let a pickup go unless it was smashed,
+ * its traits run, and it splits into pieces of the size after its own,
+ * pushed along the way the hit came: `alongX` and `alongY`, of any length,
+ * or both 0 for no push. Its slot is free as it breaks, and one of its
+ * pieces may lie there by the time this returns, so a caller takes what it
+ * broke from before the hit, or from the break's event.
  */
 export function hitRock(
   field: RockField,
@@ -218,7 +219,7 @@ export function hitRock(
   blow: Blow = "hit",
 ): boolean {
   if (!rock.live) return false;
-  rock.hits = blow === "breaks" ? 0 : rock.hits - 1;
+  rock.hits = blow === "hit" ? rock.hits - 1 : 0;
   if (rock.hits > 0) {
     field.events.addRock("hit", rock.x, rock.y, rock.kind, rock.size);
     runTraits("held", field, rock);
@@ -226,7 +227,7 @@ export function hitRock(
   }
   rock.live = false;
   field.events.addRock("broken", rock.x, rock.y, rock.kind, rock.size);
-  dropFrom(field, rock);
+  if (blow !== "smashes") dropFrom(field, rock);
   runTraits("broken", field, rock);
   split(field, rock, alongX, alongY);
   return true;

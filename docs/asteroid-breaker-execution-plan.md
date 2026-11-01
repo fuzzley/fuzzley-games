@@ -389,13 +389,20 @@ more. Paths in Part 1 are under `frontend/lib/` or
   Magnet's pull on it, and the bail-out's event; the comet's warning, its
   crossing, its breaking rocks a size down for nothing, and its taking the
   ship. `src/rules/pilots.spec.ts` as "The checks that keep it whole" says.
-  Specced. One commit.
+  The crew is a value the field holds through a wave, from the run's as
+  it starts, so the field gives every color, a stray's and a new pilot's
+  alike, and the run takes the crew back as it catches up; the Extra ship
+  joins it, six ships at most. A comet's blow smashes a rock: it breaks it
+  as the Shield's does, but lets no pickup go, a crystal's or a drought's
+  either. Specced. One commit.
 - **A4.3** `src/rules/scoring.ts` and `run.ts`: points by kind and size,
   the chain's multiplier and its ending, a stray's 500, the wave's 500s, the
   ships points bring, each flown by the first stray at home, and `Run`'s
   moves, as Brick Breaker's, with `catchUp()` taking what the field has come
-  to since it last looked, and each wave's field its seed. Specced. One
-  commit, `yarn verify` with it.
+  to since it last looked, the crew among it, and each wave's field its
+  seed. The field gains the ships points bring, from the run's score and
+  next mark as the wave starts, since the crew is the field's in a wave.
+  Specced. One commit, `yarn verify` with it.
 
 #### A5: waves and the field whole (medium)
 
@@ -659,27 +666,29 @@ tunes the game, but those of one kind of rock or one pickup, which its
 catalog entry holds. They are first guesses, to be settled by playing at Q3;
 the mock's sketch has sliders for the ship's.
 
-| What                  | Value                                                                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| The field             | 40 units on its short side, up to 88 on its long, wrapping at every edge; counts written for 40 × 40, times its area's share  |
-| The step              | 1/120 s, 12 at most a frame                                                                                                   |
-| The ship              | 2.4 units long, 1.5 wide, hit within 0.7 of its middle                                                                        |
-| Thrust                | 24 units a second, each second, along the heading; top speed 15 units a second                                                |
-| Coasting              | the speed halves every 1.5 s                                                                                                  |
-| Turning, by keys      | 300° a second, reached in 0.08 s                                                                                              |
-| Turning, to a heading | up to 600° a second, easing in over the last 12°                                                                              |
-| Shots                 | 32 units a second plus the ship's speed, up to its top speed; 0.8 s; one each 0.14 s held; 6 in flight; a radius of 0.18      |
-| The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                          |
-| Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                 |
-| Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's |
-| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into as many pieces as fit, one at least       |
-| Rocks' turn           | 6° to 30° a second, either way; a piece turns 25° to 50° off its parent's travel, pushed 1.5 units a second along the hit     |
-| A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                  |
-| Pickups               | drifting at 2 units a second for 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet), caught at 2 |
-| The Shield            | the rock that touches the ship breaks a size down, the ship untouchable 1 s after                                             |
-| Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second; a bubble of 1.15; 500 points         |
-| The chain             | 1.5 s from one break to the next                                                                                              |
-| Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                       |
+| What                  | Value                                                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The field             | 40 units on its short side, up to 88 on its long, wrapping at every edge; counts written for 40 × 40, times its area's share                                        |
+| The step              | 1/120 s, 12 at most a frame                                                                                                                                         |
+| The ship              | 2.4 units long, 1.5 wide, hit within 0.7 of its middle                                                                                                              |
+| Thrust                | 24 units a second, each second, along the heading; top speed 15 units a second                                                                                      |
+| Coasting              | the speed halves every 1.5 s                                                                                                                                        |
+| Turning, by keys      | 300° a second, reached in 0.08 s                                                                                                                                    |
+| Turning, to a heading | up to 600° a second, easing in over the last 12°                                                                                                                    |
+| Shots                 | 32 units a second plus the ship's speed, up to its top speed; 0.8 s; one each 0.14 s held; 6 in flight; a radius of 0.18                                            |
+| The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                                                                |
+| Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                                                       |
+| Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's                                       |
+| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into as many pieces as fit, one at least                                             |
+| Rocks' turn           | 6° to 30° a second, either way; a piece turns 25° to 50° off its parent's travel, pushed 1.5 units a second along the hit                                           |
+| A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                                                        |
+| Pickups               | drifting at 2 units a second for 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet), caught at 2                                       |
+| The Shield            | the rock that touches the ship breaks a size down, the ship untouchable 1 s after                                                                                   |
+| Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second, turning 2° to 5° a second; a bubble of 1.15, brought home at 2; 500 points |
+| The comet             | warned of 1.5 s ahead; 26 units a second times the field's pace; meets what is within 1 unit; comes in from and leaves past 3 units off the field                   |
+| Coming in             | from 15% to 85% of the way along an edge, tilted toward its middle by up to 20° for a stray and 30° for a comet                                                     |
+| The chain             | 1.5 s from one break to the next                                                                                                                                    |
+| Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                                                             |
 
 What the shapes the layout check holds come to (the mock page works each
 out with the same rules):
@@ -739,15 +748,24 @@ beat apart (90 ms), so a chain reads as a chain.
   to, its eyes on the ship, and leaves. Shots pass through its bubble. The
   ship brings it home by touching it, its middle within 2 units of the
   stray's, guarded, dashing or not, for 500 points, times the chain, and
-  the Magnet draws it in. A wave never needs it, and one that leaves costs
-  nothing. Each run counts its strays brought home, and the records count
-  them all.
+  the Magnet draws it in, the straight way, never across an edge. A wave
+  never needs it, and one that leaves costs nothing. Each run counts its
+  strays brought home, and the records count them all.
 - **The comet** comes from wave 13, as often as its wave says: a chevron in
   the danger color pulses at the edge it will come in by for 1.5 s, then it
-  crosses the field in a straight line at 26 units a second and leaves. It
-  can't be broken, it breaks any rock it touches one size down, for no
-  points, and it takes the ship unless the ship is dashing or shielded.
-  Relaxed sends half as many.
+  crosses the field in a straight line at 26 units a second, times the
+  field's pace as the rocks are, and leaves. It can't be broken, it breaks
+  any rock it touches one size down, for no points and no pickup, a
+  crystal's or a drought's either, and passes over the pieces, and it takes
+  the ship unless the ship is dashing or shielded. A volatile rock it
+  breaks still goes off, and what the blast breaks gives as any blast's
+  does: the blast is the rock's. Relaxed sends half as many.
+- **A stray and a comet come in away from an edge's corners,** heading
+  across the field and tilted toward the edge's middle, so neither clips a
+  corner and is gone at once.
+- **A stray and a comet meet things only with their middle on the field,**
+  since they don't wrap and what they meet is drawn across the wrap; both
+  go as the wave is cleared.
 
 #### Pilots
 
