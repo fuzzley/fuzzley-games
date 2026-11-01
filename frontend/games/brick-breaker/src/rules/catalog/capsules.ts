@@ -1,4 +1,4 @@
-import { keysOf } from "../tables";
+import { keysOf } from "@fz/core/records";
 import type { BallKindId } from "./balls";
 
 /**

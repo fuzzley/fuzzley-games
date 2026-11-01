@@ -1,15 +1,3 @@
-/**
- * Returns a record's keys, typed as its own.
- *
- * `Object.keys()` types them as strings, since an object may hold keys its
- * type doesn't name; a table written here, such as a catalog, holds none.
- */
-export function keysOf<K extends string>(
-  record: Readonly<Record<K, unknown>>,
-): readonly K[] {
-  return Object.keys(record) as K[];
-}
-
 /** Returns a record with an entry for each key, made from the key, in the keys' order. */
 export function recordOf<K extends string, V>(
   keys: readonly K[],

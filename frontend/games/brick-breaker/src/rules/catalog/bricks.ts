@@ -1,4 +1,4 @@
-import { keysOf } from "../tables";
+import { keysOf } from "@fz/core/records";
 
 /** Names something a brick does beyond taking hits, with its settings. */
 export type BrickTrait =
