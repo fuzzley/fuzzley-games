@@ -435,6 +435,14 @@ describe("hitRock", () => {
     expect(hitRock(field, rock, 1, 0, "breaks")).toBe(true);
   });
 
+  it("breaks a rock with hits to spare by a blow that smashes", () => {
+    const field = fieldOf();
+    const rock = lay(field, "iron", "small");
+    rock.hits = 3;
+
+    expect(hitRock(field, rock, 1, 0, "smashes")).toBe(true);
+  });
+
   it("takes nothing from a rock that isn't whole", () => {
     const field = fieldOf();
     const rock = lay(field, "stone", "small");
@@ -1061,6 +1069,17 @@ describe("a rock that gives", () => {
 
     expect([logged(field), wholeOf(field).length]).toEqual([
       ["broken", "dropped"],
+      ROCK_KINDS.crystal.splits.count,
+    ]);
+  });
+
+  it("lets none go as a blow that smashes breaks it, its pieces flying as ever", () => {
+    const field = fieldOf({ pool: ["spread"] });
+
+    hitRock(field, lay(field, "crystal", "medium"), 1, 0, "smashes");
+
+    expect([logged(field), wholeOf(field).length]).toEqual([
+      ["broken"],
       ROCK_KINDS.crystal.splits.count,
     ]);
   });

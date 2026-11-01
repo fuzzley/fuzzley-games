@@ -10,10 +10,12 @@ import {
 } from "./catalog/pickups";
 import type { Floating } from "./drops";
 import type { Field } from "./field";
+import { adriftPilot } from "./hazards";
+import { gainShip } from "./pilots";
 import { hitWithin } from "./rocks";
 import type { Ship } from "./ship";
 import { stepsIn } from "./stepper";
-import { type Torus, across, distanceSquared, wrap } from "./torus";
+import { type Torus, distanceSquared, pullToward, wrap } from "./torus";
 import {
   PICKUP_CATCH_REACH,
   PICKUP_PULL_REACH,
@@ -89,7 +91,7 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
   },
   ship: {
     start: (field) => {
-      field.shipsGained += 1;
+      field.crew = gainShip(field.crew, adriftPilot(field.strays));
     },
   },
 };
@@ -127,7 +129,7 @@ export function stepPickups(field: Field): void {
     floating.lifeSteps -= 1;
     floating.lastX = floating.x;
     floating.lastY = floating.y;
-    if (ship === null || !pullIn(floating, ship, field.pullReach, torus)) {
+    if (ship === null || !pullIn(field, floating, ship)) {
       drift(floating, torus);
     }
     if (ship !== null && touches(floating, ship, torus)) {
@@ -196,24 +198,19 @@ function startEffect<K extends EffectKind>(
   EFFECT_RULES[kind].start(field, effect, ship);
 }
 
-/**
- * Draws a pickup a step in toward the ship the shortest way, if it is
- * within a reach of it, never past it, and returns whether it did.
- */
+/** Draws a pickup a step in toward the ship, if it is within the field's reach of it, and returns whether it did. */
 function pullIn(
+  field: Field,
   floating: Floating,
   ship: Readonly<Ship>,
-  reach: number,
-  torus: Torus,
 ): boolean {
-  const toX = across(floating.x, ship.x, torus.width);
-  const toY = across(floating.y, ship.y, torus.height);
-  const way = Math.hypot(toX, toY);
-  if (way > reach) return false;
-  const share = way > 0 ? Math.min((PICKUP_PULL_SPEED * STEP_S) / way, 1) : 0;
-  floating.x = wrap(floating.x + toX * share, torus.width);
-  floating.y = wrap(floating.y + toY * share, torus.height);
-  return true;
+  return pullToward(
+    floating,
+    ship,
+    field.pullReach,
+    PICKUP_PULL_SPEED * STEP_S,
+    field.torus,
+  );
 }
 
 /** Drifts a pickup a step on, across the wrap. */

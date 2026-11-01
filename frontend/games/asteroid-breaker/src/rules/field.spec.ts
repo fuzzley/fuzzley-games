@@ -5,8 +5,11 @@ import {
   eventsOf,
   fieldFrom,
   floatingPickups,
+  loggedOn,
+  placeComet,
   placePickup,
   placeRock,
+  placeStray,
   shipOf,
   stepTimes,
   wholeRocks,
@@ -20,6 +23,7 @@ import {
   steerField,
   stepField,
 } from "./field";
+import { createCrew } from "./pilots";
 import { type Rock, hitRock, rockHitRadius, rocksLeft } from "./rocks";
 import {
   STILL,
@@ -32,6 +36,8 @@ import {
 import { TUNED_GUNNERY } from "./shots";
 import { STEP_MS, stepsIn } from "./stepper";
 import {
+  COMET_RADIUS,
+  COMET_SPEED,
   PICKUP_PULL_REACH,
   SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
@@ -50,6 +56,9 @@ const SETUP: FieldSetup = {
   drops: 0,
   pool: [],
   pickupsAtOnce: 2,
+  strays: 1,
+  cometEvery: null,
+  crew: createCrew(),
 };
 
 /** Steering that holds fire and nothing else. */
@@ -247,15 +256,42 @@ describe("createField", () => {
       ),
       shielded: field.shielded,
       pullReach: field.pullReach,
-      shipsGained: field.shipsGained,
     }).toEqual({
       setup: SETUP,
       floating: [],
       inEffect: [],
       shielded: false,
       pullReach: PICKUP_PULL_REACH,
-      shipsGained: 0,
     });
+  });
+
+  it("starts with the wave's crew, no stray sent and no comet on its way", () => {
+    const field = createField(SETUP);
+
+    expect({
+      crew: field.crew,
+      lost: field.shipsLost,
+      adrift: field.strays.adrift.live,
+      sent: field.strays.sent,
+      broughtHome: field.strays.broughtHome,
+      comets: field.comets.slots.filter((comet) => comet.live),
+    }).toEqual({
+      crew: SETUP.crew,
+      lost: 0,
+      adrift: false,
+      sent: 0,
+      broughtHome: 0,
+      comets: [],
+    });
+  });
+
+  it.each([
+    ["draws nothing for a wave without comets", null, 0],
+    ["draws its first comet's time", { least: 14_000, most: 18_000 }, 1],
+  ])("%s", (_, cometEvery, draws) => {
+    const field = createField({ ...SETUP, cometEvery });
+
+    expect(field.draws).toBe(draws);
   });
 });
 
@@ -524,6 +560,19 @@ describe("stepField", () => {
     ]);
   });
 
+  it("bails the pilot at the controls out of a lost ship, logging it, and hands the controls to the next", () => {
+    const field = fieldFrom(["^B"], {
+      crew: { flying: [4, 1, 6], home: [2], lastGiven: 6 },
+    });
+
+    stepField(field);
+
+    expect([field.crew, loggedOn(field)]).toEqual([
+      { flying: [1, 6], home: [2], lastGiven: 6 },
+      [expect.objectContaining({ kind: "lost", pilot: 4 })],
+    ]);
+  });
+
   it.each([
     ["loses the ship to a rock just within", -0.01, 1],
     ["keeps the ship from a rock just past", 0.01, 0],
@@ -579,6 +628,16 @@ describe("stepField", () => {
     stepField(field);
 
     expect(field.shipsLost).toBe(1);
+  });
+
+  it("lets a rock take the ship before it can bring a stray home in the step", () => {
+    const field = fieldFrom(["^", "", "L"]);
+    onlyRock(field).y = 4;
+    const stray = placeStray(field, 2, 2);
+
+    stepField(field);
+
+    expect([field.shipsLost, stray.live]).toEqual([1, true]);
   });
 
   it("ends an effect whose time is up before the ship fires in the step", () => {
@@ -642,6 +701,45 @@ describe("stepField", () => {
       inEffect: null,
       floating: [],
     });
+  });
+
+  it("lets the stray and the comets go as the wave is cleared", () => {
+    const field = fieldFrom(["^", "", "", "", "", "", "........S"]);
+    placeStray(field, 40, 30);
+    placeComet(field, 20, 30);
+    hitRock(field, onlyRock(field), 0, 0);
+
+    stepField(field);
+
+    expect([
+      field.cleared,
+      field.strays.adrift.live,
+      field.comets.slots.filter((comet) => comet.live),
+    ]).toEqual([true, false, []]);
+  });
+
+  it("lands the shots before the comets fly, so a rock both meet in a step is the shot's", () => {
+    const picture = ["", "....M", "", "....^"];
+    const options = { kind: "crystal", pool: ["spread"] } as const;
+    // The twin, with no comet, tells the step the shot breaks the crystal
+    // in, letting a pickup go; the comet comes within reach of it in that
+    // step.
+    const twin = fieldFrom(picture, options);
+    fireOnce(twin);
+    stepUntil(twin, (each) => floatingPickups(each).length > 0);
+    const field = fieldFrom(picture, options);
+    const rock = onlyRock(field);
+    const reach = COMET_RADIUS + rockHitRadius("medium") - 0.01;
+    placeComet(
+      field,
+      rock.x - reach - twin.steps * COMET_SPEED * STEP_S,
+      rock.y,
+    );
+
+    fireOnce(field);
+    stepTimes(field, twin.steps - 1);
+
+    expect(floatingPickups(field)).toHaveLength(1);
   });
 
   it("clears a wave with no ship in it", () => {

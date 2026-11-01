@@ -4,6 +4,7 @@ import {
   copyShift,
   distance,
   distanceSquared,
+  pullToward,
   torusFor,
   wrap,
 } from "./torus";
@@ -127,4 +128,36 @@ describe("copyShift", () => {
       expect(copyShift(at, 2, 40)).toBe(shift);
     },
   );
+});
+
+describe("pullToward", () => {
+  // Each pulls toward 10, 10 from within a reach of 5.5, by a length of 2.
+  it.each([
+    ["a length toward a place within its reach", 13, 14, true, 11.8, 12.4],
+    ["to the place, never past it", 10.3, 10.4, true, 10, 10],
+    ["a place already there nowhere", 10, 10, true, 10, 10],
+    ["a place past its reach nowhere", 16, 10, false, 16, 10],
+  ])("pulls %s", (_, x, y, pulled, toX, toY) => {
+    const moving = { x, y };
+
+    const did = pullToward(moving, { x: 10, y: 10 }, 5.5, 2, SQUARE);
+
+    expect([did, moving.x, moving.y]).toEqual([
+      pulled,
+      expect.closeTo(toX),
+      expect.closeTo(toY),
+    ]);
+  });
+
+  it("pulls the shortest way across the wrap, wrapping onto the field", () => {
+    const moving = { x: 39, y: 39 };
+
+    pullToward(moving, { x: 1, y: 2 }, 5.5, 2, SQUARE);
+
+    // 2 along the way of 2 and 3 across the corner, wrapped.
+    expect([moving.x, moving.y]).toEqual([
+      expect.closeTo(39 + 4 / Math.sqrt(13) - 40),
+      expect.closeTo(39 + 6 / Math.sqrt(13) - 40),
+    ]);
+  });
 });

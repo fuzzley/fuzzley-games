@@ -1,13 +1,15 @@
 import type { PickupId } from "../rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../rules/catalog/rocks";
 import type { Floating } from "../rules/drops";
-import type { FieldEventKind } from "../rules/events";
+import type { FieldEvent, FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
+import type { Comet, Stray } from "../rules/hazards";
+import { type Crew, type Pilot, createCrew } from "../rules/pilots";
 import { type Rock, addRock } from "../rules/rocks";
 import { STILL, type Ship, createShip } from "../rules/ship";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
-import { PICKUP_LIFE_MS } from "../rules/tuning";
+import { PICKUP_LIFE_MS, type Span } from "../rules/tuning";
 
 /** How many units across each of a picture's characters stands for. */
 export const CELL = 4;
@@ -33,6 +35,12 @@ export interface PictureOptions {
   readonly pool?: readonly PickupId[];
   /** How many pickups may float before chance lets no more go, 2 by default. */
   readonly pickupsAtOnce?: number;
+  /** How many strays it sends, none by default. */
+  readonly strays?: number;
+  /** The time between its comets, none by default. */
+  readonly cometEvery?: Span | null;
+  /** The crew it starts with, a run's first by default. */
+  readonly crew?: Crew;
 }
 
 /** The sizes a picture's letters stand for. */
@@ -82,6 +90,9 @@ export function fieldFrom(
     drops: options.drops ?? 0,
     pool: options.pool ?? [],
     pickupsAtOnce: options.pickupsAtOnce ?? 2,
+    strays: options.strays ?? 0,
+    cometEvery: options.cometEvery ?? null,
+    crew: options.crew ?? createCrew(),
   });
   field.ship = null;
   rows.forEach((row, down) => {
@@ -165,6 +176,54 @@ export function catchOn(field: Field, id: PickupId): void {
   stepField(field);
 }
 
+/**
+ * Sends a stray across a field from a place, heading a way on a straight
+ * line, a pilot in a color, and returns it.
+ */
+export function placeStray(
+  field: Field,
+  x: number,
+  y: number,
+  heading = 0,
+  pilot: Pilot = 5,
+): Stray {
+  const stray = field.strays.adrift;
+  stray.live = true;
+  stray.pilot = pilot;
+  stray.x = x;
+  stray.y = y;
+  stray.heading = heading;
+  stray.turn = 0;
+  stray.lastX = x;
+  stray.lastY = y;
+  return stray;
+}
+
+/**
+ * Sends a comet across a field from a place, heading a way, crossing from
+ * the step under way, and returns it, failing the spec if no record is
+ * free.
+ */
+export function placeComet(
+  field: Field,
+  x: number,
+  y: number,
+  heading = 0,
+): Comet {
+  const comet = field.comets.slots.find((each) => !each.live);
+  if (!comet) throw new Error("No record was free for the comet.");
+  comet.live = true;
+  comet.x = x;
+  comet.y = y;
+  comet.heading = heading;
+  comet.lastX = x;
+  comet.lastY = y;
+  comet.warnSteps = 0;
+  comet.smashedAt.fill(-1);
+  comet.smashes = 0;
+  return comet;
+}
+
 /** Returns the field's floating pickups, in their records' order. */
 export function floatingPickups(field: Field): Floating[] {
   return field.pickups.filter((floating) => floating.live);
@@ -180,6 +239,13 @@ export function eventsOf(field: Field): FieldEventKind[] {
   const kinds: FieldEventKind[] = [];
   field.events.forEachSince(0, (event) => kinds.push(event.kind));
   return kinds;
+}
+
+/** Returns copies of the events a field's log still holds, oldest first. */
+export function loggedOn(field: Field): FieldEvent[] {
+  const events: FieldEvent[] = [];
+  field.events.forEachSince(0, (event) => events.push({ ...event }));
+  return events;
 }
 
 /** Puts a flying ship on a field at a place, its nose up. */

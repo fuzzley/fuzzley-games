@@ -1,7 +1,7 @@
 // The field wraps at every edge, so it is a torus: what leaves by one edge
 // comes in by the other, and the way from one place to another is the
-// shortest across the edges. These take a place's coordinates one by one,
-// since the physics calls them thousands of times a step.
+// shortest across the edges. Those the physics calls thousands of times a
+// step take a place's coordinates one by one.
 
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "./tuning";
 
@@ -15,6 +15,12 @@ export interface Torus {
 export interface Place {
   readonly x: number;
   readonly y: number;
+}
+
+/** Describes a place on the field that moves, changed in place. */
+export interface Moving {
+  x: number;
+  y: number;
 }
 
 /**
@@ -86,6 +92,39 @@ export function distance(
   toY: number,
 ): number {
   return Math.sqrt(distanceSquared(torus, fromX, fromY, toX, toY));
+}
+
+/**
+ * Moves a place a length toward another the shortest way across the wrap,
+ * if it is within a reach of it, never past it, and returns whether it did.
+ */
+export function pullToward(
+  moving: Moving,
+  to: Place,
+  reach: number,
+  length: number,
+  torus: Torus,
+): boolean {
+  const wayX = across(moving.x, to.x, torus.width);
+  const wayY = across(moving.y, to.y, torus.height);
+  if (Math.hypot(wayX, wayY) > reach) return false;
+  moveAlong(moving, wayX, wayY, length);
+  moving.x = wrap(moving.x, torus.width);
+  moving.y = wrap(moving.y, torus.height);
+  return true;
+}
+
+/** Moves a place a length along a way, of any length, never past its end, without wrapping. */
+export function moveAlong(
+  moving: Moving,
+  wayX: number,
+  wayY: number,
+  length: number,
+): void {
+  const way = Math.hypot(wayX, wayY);
+  const share = way > 0 ? Math.min(length / way, 1) : 0;
+  moving.x += wayX * share;
+  moving.y += wayY * share;
 }
 
 /**
