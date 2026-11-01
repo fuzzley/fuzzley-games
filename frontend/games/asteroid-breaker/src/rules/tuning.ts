@@ -140,3 +140,27 @@ export const PIECE_TURN: Span = { least: 25, most: 50 };
 
 /** How fast a broken rock's pieces are pushed along the way the hit came, on top of their own speed. */
 export const PIECE_PUSH = 1.5;
+
+/** How fast a pickup drifts from where it was let go. */
+export const PICKUP_DRIFT = 2;
+
+/** How long a pickup floats before it fades. */
+export const PICKUP_LIFE_MS = 8000;
+
+/** How long before it fades a pickup blinks. */
+export const PICKUP_BLINK_MS = 2000;
+
+/** How near the ship a pickup is drawn in to it from, unless a Magnet draws from farther. */
+export const PICKUP_PULL_REACH = 3;
+
+/** How fast a pickup is drawn in to the ship, in place of its drift. */
+export const PICKUP_PULL_SPEED = 10;
+
+/** How near the ship's middle a pickup's is as the ship catches it. */
+export const PICKUP_CATCH_REACH = 2;
+
+/** How long a wave goes without letting a pickup go before the next large rock broken lets one go. */
+export const DROUGHT_MS = 25_000;
+
+/** How long the ship stays untouchable as its shield goes, so the pieces of the rock it broke can fly clear. */
+export const SHIELD_GUARD_MS = 1000;

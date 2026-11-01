@@ -1,9 +1,13 @@
+import type { PickupId } from "../rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../rules/catalog/rocks";
+import type { Floating } from "../rules/drops";
 import type { FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
 import { type Rock, addRock } from "../rules/rocks";
 import { STILL, type Ship, createShip } from "../rules/ship";
+import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
+import { PICKUP_LIFE_MS } from "../rules/tuning";
 
 /** How many units across each of a picture's characters stands for. */
 export const CELL = 4;
@@ -23,6 +27,12 @@ export interface PictureOptions {
   readonly kind?: RockKindId;
   /** The kind of rock its wave names, stone by default. */
   readonly waveKind?: RockKindId;
+  /** The chance a broken rock lets a pickup go, 0 by default. */
+  readonly drops?: number;
+  /** The pickups its rocks may let go, none by default, so none ever do. */
+  readonly pool?: readonly PickupId[];
+  /** How many pickups may float before chance lets no more go, 2 by default. */
+  readonly pickupsAtOnce?: number;
 }
 
 /** The sizes a picture's letters stand for. */
@@ -69,6 +79,9 @@ export function fieldFrom(
     seed: options.seed ?? 1,
     pace: options.pace ?? 1,
     waveKind: options.waveKind ?? "stone",
+    drops: options.drops ?? 0,
+    pool: options.pool ?? [],
+    pickupsAtOnce: options.pickupsAtOnce ?? 2,
   });
   field.ship = null;
   rows.forEach((row, down) => {
@@ -83,11 +96,31 @@ export function fieldFrom(
       else if (!EMPTY.has(character)) {
         const size = sizeOf(character);
         const kind = size === "boulder" ? "boulder" : (options.kind ?? "stone");
-        layStill(field, size, x, y, kind);
+        placeRock(field, size, x, y, kind);
       }
     }
   });
   return field;
+}
+
+/**
+ * Lays a rock on a field standing still at a place, a stone unless it says,
+ * and returns it.
+ *
+ * @throws {Error} If no slot is free, so a spec plays the field it lays.
+ */
+export function placeRock(
+  field: Field,
+  size: RockSize,
+  x: number,
+  y: number,
+  kind: RockKindId = "stone",
+): Rock {
+  const rock = addRock(field, kind, size, x, y, 0);
+  if (!rock) throw new Error("No slot was free for the rock.");
+  rock.vx = 0;
+  rock.vy = 0;
+  return rock;
 }
 
 /** Returns the field's ship, failing the spec if it has none. */
@@ -99,6 +132,42 @@ export function shipOf(field: Field): Ship {
 /** Returns the field's whole rocks, in their slots' order. */
 export function wholeRocks(field: Field): Rock[] {
   return field.rocks.filter((rock) => rock.live);
+}
+
+/**
+ * Floats a pickup on a field at a place, standing still and new, and
+ * returns it, failing the spec if no record is free.
+ */
+export function placePickup(
+  field: Field,
+  id: PickupId,
+  x: number,
+  y: number,
+): Floating {
+  const floating = field.pickups.find((each) => !each.live);
+  if (!floating) throw new Error("No record was free for the pickup.");
+  floating.live = true;
+  floating.id = id;
+  floating.x = x;
+  floating.y = y;
+  floating.vx = 0;
+  floating.vy = 0;
+  floating.lastX = x;
+  floating.lastY = y;
+  floating.lifeSteps = stepsIn(PICKUP_LIFE_MS);
+  return floating;
+}
+
+/** Has a field's ship catch a pickup: it is floated onto the ship, and the field stepped. */
+export function catchOn(field: Field, id: PickupId): void {
+  const ship = shipOf(field);
+  placePickup(field, id, ship.x, ship.y);
+  stepField(field);
+}
+
+/** Returns the field's floating pickups, in their records' order. */
+export function floatingPickups(field: Field): Floating[] {
+  return field.pickups.filter((floating) => floating.live);
 }
 
 /** Steps a field a number of times. */
@@ -118,20 +187,6 @@ function placeShip(field: Field, x: number, y: number): void {
   if (field.ship) throw new Error("A picture holds one ship at most.");
   field.ship = createShip(x, y, STILL);
   field.ship.waiting = false;
-}
-
-/** Lays a rock standing still at a place, failing the spec if no slot is free. */
-function layStill(
-  field: Field,
-  size: RockSize,
-  x: number,
-  y: number,
-  kind: RockKindId,
-): void {
-  const rock = addRock(field, kind, size, x, y, 0);
-  if (!rock) throw new Error("The picture holds more rocks than the cap.");
-  rock.vx = 0;
-  rock.vy = 0;
 }
 
 /** Returns the size of rock a picture's character stands for. */

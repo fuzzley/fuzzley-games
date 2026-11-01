@@ -1,13 +1,18 @@
 import {
   KEEPER,
   PICTURE_TORUS,
+  catchOn,
   eventsOf,
   fieldFrom,
+  floatingPickups,
+  placePickup,
+  placeRock,
   shipOf,
   stepTimes,
   wholeRocks,
 } from "../testing/field_picture";
-import { ROCK_KINDS, type RockKindId, type RockSize } from "./catalog/rocks";
+import { PICKUPS } from "./catalog/pickups";
+import { ROCK_KINDS, type RockSize } from "./catalog/rocks";
 import {
   type Field,
   type FieldSetup,
@@ -15,7 +20,7 @@ import {
   steerField,
   stepField,
 } from "./field";
-import { type Rock, addRock, hitRock, rockHitRadius, rocksLeft } from "./rocks";
+import { type Rock, hitRock, rockHitRadius, rocksLeft } from "./rocks";
 import {
   STILL,
   type Steer,
@@ -27,6 +32,8 @@ import {
 import { TUNED_GUNNERY } from "./shots";
 import { STEP_MS, stepsIn } from "./stepper";
 import {
+  PICKUP_PULL_REACH,
+  SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
   SHIP_LENGTH,
   SHOT_RADIUS,
@@ -40,6 +47,9 @@ const SETUP: FieldSetup = {
   seed: 1,
   pace: 1.1,
   waveKind: "ice",
+  drops: 0,
+  pool: [],
+  pickupsAtOnce: 2,
 };
 
 /** Steering that holds fire and nothing else. */
@@ -101,21 +111,6 @@ function rockOfSize(field: Field, size: RockSize): Rock {
   return rock;
 }
 
-/** Lays a still rock of a size at a place, a stone unless it says, and returns it, failing the spec if no slot is free. */
-function stillRock(
-  field: Field,
-  size: RockSize,
-  x: number,
-  y: number,
-  kind: RockKindId = "stone",
-): Rock {
-  const rock = addRock(field, kind, size, x, y, 0);
-  if (!rock) throw new Error("No slot was free for the rock.");
-  rock.vx = 0;
-  rock.vy = 0;
-  return rock;
-}
-
 /** Returns the velocities of the pieces a field's rocks broke into. */
 function piecesOf(field: Field): number[][] {
   return wholeRocks(field)
@@ -138,6 +133,88 @@ function played(seed: number): Field {
   return field;
 }
 
+/** Returns a field whose shielded ship a large iron rock, which takes several hits, has just come to touch. */
+function rockOnShield(): Field {
+  const field = fieldFrom(["^", "", "L"], { kind: "iron" });
+  catchOn(field, "shield");
+  onlyRock(field).y = 4;
+  return field;
+}
+
+describe("a shielded ship", () => {
+  it("breaks a rock that touches it a size down, whatever its hits, instead of being lost, and the shield goes, logging it", () => {
+    const field = rockOnShield();
+
+    stepField(field);
+
+    expect({
+      lost: field.shipsLost,
+      shielded: field.shielded,
+      inEffect: field.effects.guard.pickup,
+      sizes: sizesOf(field),
+      events: eventsOf(field),
+    }).toEqual({
+      lost: 0,
+      shielded: false,
+      inEffect: null,
+      sizes: ["medium", "medium"],
+      events: ["caught", "shielded", "broken"],
+    });
+  });
+
+  it("pushes the pieces of the rock it breaks away from the ship, as a hit from its side would", () => {
+    const shielded = rockOnShield();
+    const struck = rockOnShield();
+    hitRock(struck, onlyRock(struck), 0, 2, "breaks");
+
+    stepField(shielded);
+
+    expect(velocitiesOf(shielded)).toEqual(velocitiesOf(struck));
+  });
+
+  it.each([
+    ["keeps the ship from the pieces while the shield's guard holds", 0, 0],
+    ["lets the pieces take the ship once the shield's guard is over", 1, 1],
+  ])("%s", (_, after, lost) => {
+    const field = rockOnShield();
+    stepField(field);
+    for (const piece of wholeRocks(field)) {
+      piece.vx = 0;
+      piece.vy = 0;
+    }
+
+    stepTimes(field, stepsIn(SHIELD_GUARD_MS) + after);
+
+    expect(field.shipsLost).toBe(lost);
+  });
+
+  it("spends its shield on one rock, its guard keeping it from another touching it in the step", () => {
+    const field = fieldFrom(["^", "", "LL"]);
+    catchOn(field, "shield");
+    const [first, second] = wholeRocks(field);
+    if (!first || !second) throw new Error("The picture has two rocks.");
+    first.y = 4;
+    second.x = 2;
+    second.y = 0.5;
+
+    stepField(field);
+
+    expect([field.shipsLost, sizesOf(field)]).toEqual([
+      0,
+      ["large", "medium", "medium"],
+    ]);
+  });
+
+  it("keeps its shield while it is guarded otherwise", () => {
+    const field = rockOnShield();
+    guardShip(shipOf(field), 500);
+
+    stepField(field);
+
+    expect([field.shielded, sizesOf(field)]).toEqual([true, ["large"]]);
+  });
+});
+
 describe("createField", () => {
   it("lays a wave's field out with free slots for its cap and its ship waiting in its middle", () => {
     const field = createField(SETUP);
@@ -156,6 +233,28 @@ describe("createField", () => {
       weapon: "gun",
       pace: 1.1,
       cleared: false,
+    });
+  });
+
+  it("keeps its setup, with no pickup floating and none in effect", () => {
+    const field = createField(SETUP);
+
+    expect({
+      setup: field.setup,
+      floating: floatingPickups(field),
+      inEffect: Object.values(field.effects).filter(
+        (inEffect) => inEffect.pickup !== null,
+      ),
+      shielded: field.shielded,
+      pullReach: field.pullReach,
+      shipsGained: field.shipsGained,
+    }).toEqual({
+      setup: SETUP,
+      floating: [],
+      inEffect: [],
+      shielded: false,
+      pullReach: PICKUP_PULL_REACH,
+      shipsGained: 0,
     });
   });
 });
@@ -350,7 +449,7 @@ describe("stepField", () => {
     const field = fieldFrom(["^", "", "L"], { kind: "volatile" });
     const volatile = onlyRock(field);
     volatile.y = 8;
-    stillRock(field, "small", 2, 3);
+    placeRock(field, "small", 2, 3);
     guardShip(shipOf(field), (BEAT - 1) * STEP_MS);
     hitRock(field, volatile, 0, 0);
 
@@ -363,8 +462,8 @@ describe("stepField", () => {
     const field = fieldFrom(["", "", "^"]);
     const ahead =
       10 - SHIP_LENGTH / 2 - 0.2 - rockHitRadius("large") - SHOT_RADIUS;
-    stillRock(field, "large", 2, ahead);
-    hitRock(field, stillRock(field, "large", 10, ahead, "volatile"), 0, 0);
+    placeRock(field, "large", 2, ahead);
+    hitRock(field, placeRock(field, "large", 10, ahead, "volatile"), 0, 0);
     stepTimes(field, BEAT - 1);
     stepBy(field, FIRE);
     steerField(field, STILL);
@@ -376,7 +475,7 @@ describe("stepField", () => {
 
   it("lands the shots before the ship is tested, so one that breaks a rock on the ship saves it", () => {
     const field = fieldFrom(["", "", "^"]);
-    stillRock(field, "small", 2, 10 - SHIP_LENGTH / 2);
+    placeRock(field, "small", 2, 10 - SHIP_LENGTH / 2);
 
     stepBy(field, FIRE);
 
@@ -385,7 +484,7 @@ describe("stepField", () => {
 
   it("breaks a rock across an edge in the step a shot comes within its reach", () => {
     const field = fieldFrom(["^"]);
-    stillRock(field, "small", 2, 39.6);
+    placeRock(field, "small", 2, 39.6);
 
     stepBy(field, FIRE);
 
@@ -395,7 +494,7 @@ describe("stepField", () => {
   it("loses the ship to a rock across an edge", () => {
     const field = fieldFrom(["^"]);
     shipOf(field).x = 0.5;
-    stillRock(field, "small", 71.5, 2);
+    placeRock(field, "small", 71.5, 2);
 
     stepField(field);
 
@@ -448,6 +547,50 @@ describe("stepField", () => {
     expect(field.shipsLost).toBe(0);
   });
 
+  it("ends every effect and lets the pickups go as the ship is lost", () => {
+    const field = fieldFrom(["^", "", "L"], { pace: 1.2 });
+    catchOn(field, "spread");
+    catchOn(field, "slow");
+    placePickup(field, "nova", 40, 20);
+    onlyRock(field).y = 4;
+
+    stepField(field);
+
+    expect({
+      lost: field.shipsLost,
+      weapon: field.weapon,
+      pace: field.pace,
+      inEffect: [field.effects.weapon.pickup, field.effects.pace.pickup],
+      floating: floatingPickups(field),
+    }).toEqual({
+      lost: 1,
+      weapon: "gun",
+      pace: 1.2,
+      inEffect: [null, null],
+      floating: [],
+    });
+  });
+
+  it("lets a rock take the ship before it can catch a Shield in the step", () => {
+    const field = fieldFrom(["^", "", "L"]);
+    onlyRock(field).y = 4;
+    placePickup(field, "shield", 2, 2);
+
+    stepField(field);
+
+    expect(field.shipsLost).toBe(1);
+  });
+
+  it("ends an effect whose time is up before the ship fires in the step", () => {
+    const field = fieldFrom(["^", "", "", "", "", "", "........L"]);
+    catchOn(field, "spread");
+    stepTimes(field, stepsIn(PICKUPS.spread.effect.ms) - 1);
+
+    stepBy(field, FIRE);
+
+    expect(shotsInFlight(field)).toBe(1);
+  });
+
   it("lets the shots in flight outlive a lost ship", () => {
     const field = fieldFrom(["^", "B"]);
     stepBy(field, FIRE);
@@ -478,6 +621,27 @@ describe("stepField", () => {
     stepUntil(field, (each) => each.cleared);
 
     expect(eventsOf(field)).toEqual(["fired", "broken", "cleared"]);
+  });
+
+  it("ends every effect and lets the pickups go as the wave is cleared", () => {
+    const field = fieldFrom(["^", "", "", "", "", "", "........S"]);
+    catchOn(field, "spread");
+    placePickup(field, "nova", 40, 10);
+    hitRock(field, onlyRock(field), 0, 0);
+
+    stepField(field);
+
+    expect({
+      cleared: field.cleared,
+      weapon: field.weapon,
+      inEffect: field.effects.weapon.pickup,
+      floating: floatingPickups(field),
+    }).toEqual({
+      cleared: true,
+      weapon: "gun",
+      inEffect: null,
+      floating: [],
+    });
   });
 
   it("clears a wave with no ship in it", () => {

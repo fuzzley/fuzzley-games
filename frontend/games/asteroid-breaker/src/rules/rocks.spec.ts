@@ -1,10 +1,12 @@
 import { RADIANS_PER_DEGREE, TURN } from "./angles";
+import type { PickupId } from "./catalog/pickups";
 import {
   ROCK_KINDS,
   ROCK_SIZES,
   type RockKindId,
   type RockSize,
 } from "./catalog/rocks";
+import { createPickups } from "./drops";
 import { type FieldEvent, type FieldEventKind, FieldEventLog } from "./events";
 import {
   ROCK_OUTLINES,
@@ -60,16 +62,20 @@ interface FieldOptions {
   readonly seed?: number;
   readonly waveKind?: RockKindId;
   readonly ship?: Place | null;
+  /** The pickups its rocks may let go, none by default. */
+  readonly pool?: readonly PickupId[];
 }
 
-/** Returns a field of free rock slots, no step taken and, unless given one, no ship. */
+/** Returns a field of free rock slots, no step taken, no chance of a pickup and, unless given one, no ship. */
 function fieldOf({
   cap = 8,
   seed = 1,
   waveKind = "stone",
   ship = null,
+  pool = [],
 }: FieldOptions = {}): SpecField {
   return {
+    setup: { drops: 0, pool, pickupsAtOnce: 2 },
     torus: FIELD,
     rocks: createRocks(cap),
     waveKind,
@@ -78,6 +84,8 @@ function fieldOf({
     steps: 0,
     seed,
     draws: 0,
+    pickups: createPickups(),
+    lastDropAt: 0,
     events: new FieldEventLog(),
   };
 }
@@ -1046,13 +1054,13 @@ describe("a rock that rings", () => {
 });
 
 describe("a rock that gives", () => {
-  it("breaks as any rock does, its pickup being the pickups' to let go", () => {
-    const field = fieldOf();
+  it("lets a pickup go as it breaks, whatever the chance", () => {
+    const field = fieldOf({ pool: ["spread"] });
 
     hitRock(field, lay(field, "crystal", "medium"), 1, 0);
 
     expect([logged(field), wholeOf(field).length]).toEqual([
-      ["broken"],
+      ["broken", "dropped"],
       ROCK_KINDS.crystal.splits.count,
     ]);
   });

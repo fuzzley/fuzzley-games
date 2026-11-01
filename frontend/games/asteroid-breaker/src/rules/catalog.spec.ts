@@ -1,4 +1,5 @@
 import { stepsBetween } from "../testing/numbers";
+import { PICKUPS, PICKUP_IDS, pickup } from "./catalog/pickups";
 import {
   type BySize,
   ROCK_KINDS,
@@ -10,6 +11,7 @@ import {
   sizeAfter,
 } from "./catalog/rocks";
 import { WEAPONS } from "./catalog/weapons";
+import { EFFECT_KINDS } from "./pickups";
 import { stepsIn } from "./stepper";
 import { SHOT_LIFE_MS } from "./tuning";
 
@@ -18,9 +20,28 @@ const ROCK_ENTRIES = ROCK_KIND_IDS.map((id) => [id, rockKind(id)] as const);
 
 const WEAPON_ENTRIES = Object.entries(WEAPONS);
 
+/** Every pickup, with its id. */
+const PICKUP_ENTRIES = PICKUP_IDS.map((id) => [id, pickup(id)] as const);
+
+/** Every pickup whose effect lasts a time, with its id and that time. */
+const TIMED = PICKUP_ENTRIES.flatMap(([id, entry]) =>
+  "ms" in entry.effect ? [[id, entry, entry.effect.ms] as const] : [],
+);
+
 /** Returns the sizes a record has a number for, largest first. */
 function sizesOf(record: BySize): RockSize[] {
   return ROCK_SIZES.filter((size) => record[size] !== undefined);
+}
+
+/** Spells a share as the catalogs' sentences do, twice or half. */
+function share(n: number): string {
+  const words: Readonly<Record<number, string>> = { 2: "twice", 0.5: "half" };
+  return words[n] ?? String(n);
+}
+
+/** Returns a pattern that finds a time, in whole seconds, in a sentence. */
+function seconds(ms: number): RegExp {
+  return new RegExp(String.raw`\b${String(ms / 1000)} seconds\b`);
 }
 
 /** Returns a record's numbers, largest size first. */
@@ -258,4 +279,91 @@ describe("WEAPONS", () => {
       ]).toContain(true);
     },
   );
+});
+
+describe("PICKUPS", () => {
+  it.each(PICKUP_ENTRIES)("names %s in a word or a few", (_, entry) => {
+    expect(entry.name).toMatch(/^[A-Z][a-z]+( [a-z]+)*$/);
+  });
+
+  it.each(PICKUP_ENTRIES)("says what %s does, in a sentence", (_, entry) => {
+    expect(entry.about).toMatch(/^[A-Z].*\.$/);
+  });
+
+  it("names every pickup apart", () => {
+    const names = PICKUP_ENTRIES.map(([, entry]) => entry.name);
+
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it.each(PICKUP_ENTRIES)("weighs %s above nothing", (_, entry) => {
+    expect(entry.weight).toBeGreaterThan(0);
+  });
+
+  it.each(PICKUP_ENTRIES)(
+    "lets %s join from a wave after the first",
+    (_, entry) => {
+      expect(entry.from).toBeGreaterThan(1);
+    },
+  );
+
+  it("lists the pickups in the order they join the pool", () => {
+    const froms = PICKUP_ENTRIES.map(([, entry]) => entry.from);
+
+    expect(froms).toEqual([...froms].sort((a, b) => a - b));
+  });
+
+  it.each(TIMED)("says how long %s lasts", (_, entry, ms) => {
+    expect(entry.about).toMatch(seconds(ms));
+  });
+
+  it("gives every kind of effect a pickup", () => {
+    const given = new Set(PICKUP_ENTRIES.map(([, entry]) => entry.effect.kind));
+
+    expect(EFFECT_KINDS.filter((kind) => !given.has(kind))).toEqual([]);
+  });
+
+  it.each(PICKED_WEAPONS)("lets a pickup hand the ship %s", (id) => {
+    const handing = PICKUP_ENTRIES.filter(
+      ([, entry]) =>
+        entry.effect.kind === "weapon" && entry.effect.weapon === id,
+    );
+
+    expect(handing).not.toEqual([]);
+  });
+
+  it.each([
+    [
+      "Spread's fan",
+      PICKUPS.spread.about.toLowerCase(),
+      `${spelled(WEAPONS.spread.count)} shots at each pull, ${String(WEAPONS.spread.spreadDeg)}° apart`,
+    ],
+    [
+      "Rapid's rate",
+      PICKUPS.rapid.about,
+      `${share(WEAPONS.gun.everyMs / WEAPONS.rapid.everyMs)} as often`,
+    ],
+    [
+      "the Slow's share",
+      PICKUPS.slow.about,
+      `at ${share(PICKUPS.slow.effect.scale)} their speed`,
+    ],
+    [
+      "the Lance's breaks",
+      PICKUPS.lance.about,
+      `up to ${spelled(WEAPONS.lance.breaks)} rocks`,
+    ],
+    [
+      "the Magnet's reach",
+      PICKUPS.magnet.about,
+      `from ${String(PICKUPS.magnet.effect.reach)} units`,
+    ],
+    [
+      "the Nova's reach",
+      PICKUPS.nova.about,
+      `${String(PICKUPS.nova.effect.reach)} units out`,
+    ],
+  ])("spells out %s as it is", (_, about, words) => {
+    expect(about).toContain(words);
+  });
 });
