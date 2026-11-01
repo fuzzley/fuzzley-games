@@ -1,4 +1,4 @@
-import { isCount, isRecord, isWhole } from "./json";
+import { isCount, isRecord, isWhole, unknownKey } from "./json";
 
 describe("isRecord", () => {
   it("accepts an object", () => {
@@ -31,4 +31,28 @@ describe("isCount", () => {
       expect(isCount(value)).toBe(false);
     },
   );
+});
+
+describe("unknownKey", () => {
+  /** The keys a spec's values may have. */
+  const KNOWN = { id: true, pace: true } as const;
+
+  it.each([
+    ["known keys alone", { id: "a", pace: 1 }],
+    ["no keys", {}],
+  ])("finds none in a value of %s", (_, value) => {
+    expect(unknownKey(value, KNOWN)).toBeNull();
+  });
+
+  it("finds the first key the known keys lack", () => {
+    expect(unknownKey({ id: "a", pase: 1, colour: 2 }, KNOWN)).toBe("pase");
+  });
+
+  it("finds an empty key, as a half-typed one would leave", () => {
+    expect(unknownKey({ "": 1 }, KNOWN)).toBe("");
+  });
+
+  it("knows no key from the known keys' prototype", () => {
+    expect(unknownKey({ toString: 1 }, KNOWN)).toBe("toString");
+  });
 });
