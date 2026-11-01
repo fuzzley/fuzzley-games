@@ -9,7 +9,7 @@ import { type Rock, addRock } from "../rules/rocks";
 import { STILL, type Ship, createShip } from "../rules/ship";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
-import { PICKUP_LIFE_MS, type Span } from "../rules/tuning";
+import { FIRST_SHIP_POINTS, PICKUP_LIFE_MS, type Span } from "../rules/tuning";
 
 /** How many units across each of a picture's characters stands for. */
 export const CELL = 4;
@@ -41,6 +41,10 @@ export interface PictureOptions {
   readonly cometEvery?: Span | null;
   /** The crew it starts with, a run's first by default. */
   readonly crew?: Crew;
+  /** The run's points as it starts, none by default. */
+  readonly banked?: number;
+  /** The score the run's next ship comes at, its first's by default. */
+  readonly nextShipAt?: number;
 }
 
 /** The sizes a picture's letters stand for. */
@@ -93,6 +97,8 @@ export function fieldFrom(
     strays: options.strays ?? 0,
     cometEvery: options.cometEvery ?? null,
     crew: options.crew ?? createCrew(),
+    banked: options.banked ?? 0,
+    nextShipAt: options.nextShipAt ?? FIRST_SHIP_POINTS,
   });
   field.ship = null;
   rows.forEach((row, down) => {
@@ -235,14 +241,14 @@ export function stepTimes(field: Field, steps: number): void {
 }
 
 /** Returns the kinds of every event the field's log still holds, oldest first. */
-export function eventsOf(field: Field): FieldEventKind[] {
+export function eventsOf(field: Pick<Field, "events">): FieldEventKind[] {
   const kinds: FieldEventKind[] = [];
   field.events.forEachSince(0, (event) => kinds.push(event.kind));
   return kinds;
 }
 
 /** Returns copies of the events a field's log still holds, oldest first. */
-export function loggedOn(field: Field): FieldEvent[] {
+export function loggedOn(field: Pick<Field, "events">): FieldEvent[] {
   const events: FieldEvent[] = [];
   field.events.forEachSince(0, (event) => events.push({ ...event }));
   return events;

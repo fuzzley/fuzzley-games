@@ -45,11 +45,20 @@ export type PilotEventKind =
   /** A stray came in at an edge. */
   | "strayed"
   /** The ship brought a stray home. */
-  | "home";
+  | "home"
+  /** The crew gained a ship, by points or an Extra ship, and its pilot flies it. */
+  | "gained";
+
+/** Names points scored at a place, a break's or a stray's, which its event says. */
+export type ScoreEventKind = "scored";
 
 /** Names something that happened on the field, for the scene to play. */
 export type FieldEventKind =
-  PlaceEventKind | RockEventKind | PickupEventKind | PilotEventKind;
+  | PlaceEventKind
+  | RockEventKind
+  | PickupEventKind
+  | PilotEventKind
+  | ScoreEventKind;
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
@@ -64,6 +73,10 @@ export interface FieldEvent extends NumberedEvent {
   pickup: PickupId | null;
   /** The pilot it happened to, or null for an event of none. */
   pilot: Pilot | null;
+  /** The points it scored before the chain's multiplier, 0 for an event that scored none. */
+  points: number;
+  /** The chain's multiplier it scored at, 0 for an event that scored none. */
+  times: number;
   /** How far a blast or the Nova reaches, 0 for any other event. */
   reach: number;
 }
@@ -85,6 +98,8 @@ function blankEvent(): FieldEvent {
     size: null,
     pickup: null,
     pilot: null,
+    points: 0,
+    times: 0,
     reach: 0,
   };
 }
@@ -133,6 +148,13 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.record(kind, x, y).pilot = pilot;
   }
 
+  /** Records points scored at a place, before the chain's multiplier, and the multiplier. */
+  addScore(x: number, y: number, points: number, times: number): void {
+    const event = this.record("scored", x, y);
+    event.points = points;
+    event.times = times;
+  }
+
   /** Returns the next record, its kind and place filled in and nothing of an older event left in it. */
   private record(kind: FieldEventKind, x: number, y: number): FieldEvent {
     const event = this.next();
@@ -143,6 +165,8 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.size = null;
     event.pickup = null;
     event.pilot = null;
+    event.points = 0;
+    event.times = 0;
     event.reach = 0;
     return event;
   }

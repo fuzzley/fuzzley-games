@@ -392,6 +392,7 @@ describe("each effect", () => {
         reach: PICKUPS.nova.effect.reach,
       }),
       expect.objectContaining({ kind: "broken" }),
+      expect.objectContaining({ kind: "scored" }),
     ]);
   });
 
@@ -405,6 +406,19 @@ describe("each effect", () => {
     expect([field.crew, field.effects.ship]).toEqual([
       { flying: [0, 1, 2, 3], home: [], lastGiven: 3 },
       { pickup: null, endsAt: 0 },
+    ]);
+  });
+
+  it("logs the ship it gives and its pilot, at the ship", () => {
+    const field = fieldOf({
+      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
+    });
+    const { x, y } = shipOf(field);
+
+    catchOn(field, "ship");
+
+    expect(loggedOn(field).filter((event) => event.kind === "gained")).toEqual([
+      expect.objectContaining({ x, y, pilot: 3 }),
     ]);
   });
 

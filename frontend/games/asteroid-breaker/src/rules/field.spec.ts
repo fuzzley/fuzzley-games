@@ -38,6 +38,7 @@ import { STEP_MS, stepsIn } from "./stepper";
 import {
   COMET_RADIUS,
   COMET_SPEED,
+  FIRST_SHIP_POINTS,
   PICKUP_PULL_REACH,
   SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
@@ -59,6 +60,8 @@ const SETUP: FieldSetup = {
   strays: 1,
   cometEvery: null,
   crew: createCrew(),
+  banked: 0,
+  nextShipAt: FIRST_SHIP_POINTS,
 };
 
 /** Steering that holds fire and nothing else. */
@@ -167,7 +170,7 @@ describe("a shielded ship", () => {
       shielded: false,
       inEffect: null,
       sizes: ["medium", "medium"],
-      events: ["caught", "shielded", "broken"],
+      events: ["caught", "shielded", "broken", "scored"],
     });
   });
 
@@ -679,7 +682,7 @@ describe("stepField", () => {
 
     stepUntil(field, (each) => each.cleared);
 
-    expect(eventsOf(field)).toEqual(["fired", "broken", "cleared"]);
+    expect(eventsOf(field)).toEqual(["fired", "broken", "scored", "cleared"]);
   });
 
   it("ends every effect and lets the pickups go as the wave is cleared", () => {

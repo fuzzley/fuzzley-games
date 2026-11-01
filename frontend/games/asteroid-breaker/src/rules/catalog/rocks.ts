@@ -152,6 +152,19 @@ export function rockKind(id: RockKindId): RockKind {
   return ROCK_KINDS[id];
 }
 
+/**
+ * Returns the points a rock of a kind and size scores as it breaks.
+ *
+ * @throws {RangeError} When its kind doesn't come in the size.
+ */
+export function rockPoints(id: RockKindId, size: RockSize): number {
+  const points = rockKind(id).points[size];
+  if (points === undefined) {
+    throw new RangeError(`A ${id} rock doesn't come ${size}.`);
+  }
+  return points;
+}
+
 /** Returns whether a kind of rock has a trait. */
 export function hasTrait(id: RockKindId, kind: RockTraitKind): boolean {
   return rockKind(id).traits.some((trait) => trait.kind === kind);

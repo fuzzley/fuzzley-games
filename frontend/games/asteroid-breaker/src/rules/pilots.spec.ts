@@ -1,14 +1,20 @@
+import { loggedOn } from "../testing/field_picture";
+import { FieldEventLog } from "./events";
+import { createStrays } from "./hazards";
 import {
   type Crew,
+  type CrewField,
   PILOT_COLORS,
   atControls,
   bailOut,
   bringHome,
   createCrew,
   gainShip,
+  gainShipOn,
   given,
   nextPilot,
 } from "./pilots";
+import type { Place } from "./torus";
 import { FIRST_SHIPS, MAX_SHIPS } from "./tuning";
 
 /** Returns a crew of pilots flying and at home, the last color given 2 unless it says. */
@@ -115,6 +121,59 @@ describe("gainShip", () => {
     const crew = fullCrew(home);
 
     expect(gainShip(crew, null)).toBe(crew);
+  });
+});
+
+describe("gainShipOn", () => {
+  /** Returns what of a field a ship gained changes: a crew, a stray adrift in color 3 or gone, a ship's place, and a log. */
+  function fieldOf(
+    crew: Crew,
+    {
+      adrift = false,
+      ship = null,
+    }: { adrift?: boolean; ship?: Place | null } = {},
+  ): CrewField {
+    const strays = createStrays();
+    Object.assign(strays.adrift, { live: adrift, pilot: 3 });
+    const torus = { width: 60, height: 40 };
+    return { crew, strays, ship, torus, events: new FieldEventLog() };
+  }
+
+  it("gives a new pilot a color the stray adrift doesn't wear", () => {
+    const field = fieldOf(crewOf([0, 1, 2]), { adrift: true });
+
+    gainShipOn(field);
+
+    expect(field.crew).toEqual(crewOf([0, 1, 2, 4], [], 4));
+  });
+
+  it("gives a new pilot the color of a stray that has gone", () => {
+    const field = fieldOf(crewOf([0, 1, 2]));
+
+    gainShipOn(field);
+
+    expect(field.crew).toEqual(crewOf([0, 1, 2, 3], [], 3));
+  });
+
+  it.each([
+    ["at the ship", { x: 12, y: 9 }, { x: 12, y: 9 }],
+    ["at the field's middle between ships", null, { x: 30, y: 20 }],
+  ])("logs the ship gained and its pilot %s", (_, ship, place) => {
+    const field = fieldOf(crewOf([0], [6]), { ship });
+
+    gainShipOn(field);
+
+    expect(loggedOn(field)).toEqual([
+      expect.objectContaining({ kind: "gained", ...place, pilot: 6 }),
+    ]);
+  });
+
+  it("logs nothing past the most ships", () => {
+    const field = fieldOf(fullCrew([6]));
+
+    gainShipOn(field);
+
+    expect(loggedOn(field)).toEqual([]);
   });
 });
 

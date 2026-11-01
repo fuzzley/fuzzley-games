@@ -1702,3 +1702,109 @@ out.
 
   The reviewer's five mutants are caught now, at 691 tests. These correct
   the change, so it is committed on them.
+
+## A4.3: the points and the run
+
+2026-11-01.
+
+- **Built.** `src/rules/scoring.ts`: `ScoreField`, what of the field its
+  points change; `multiplier()` and `chainMultiplier()`; `scoreBreak()`,
+  `scoreStray()` and `endChain()`; `clearingPoints()` and
+  `scoreClearing()`; `gainShipsByPoints()`; and `WaveTally`, `tallyOf()` and `pointsOf()`.
+  `src/rules/run.ts`: `Run`, `createRun()`, `startWave()`, `pause()`,
+  `resume()`, `catchUp()`, `hasEnded()`, `isInProgress()`,
+  `wavesCleared()`, `waveSeed()` and `waveStart()`. A rock scores its
+  kind's points for its size, from the catalog's new `rockPoints()`, as it
+  breaks, times the chain's multiplier, unless a comet smashed it; each
+  break within 1.5 s of the last counts on in the chain, a blast's among
+  them, and a lost ship ends it. A stray brought home scores 500 times the
+  chain, and a cleared wave 500, and 500 more with no ship lost. Each
+  logs a `"scored"` event at its place, with its points before the
+  multiplier and the multiplier, and nothing scores once the run is over. The field holds the wave's points, the chain and the next
+  ship's mark, from its setup's banked points and mark, and gains the
+  ships points bring. `pilots.ts` gains `CrewField` and `gainShipOn()`,
+  which the Extra ship and the points both gain a ship by, logging a
+  `"gained"` event with its pilot, in place of `hazards.ts`'s
+  `adriftPilot()`. The field picture takes the banked
+  points and the mark.
+- **Choices.**
+  - Points are scored in `hitRock()`, so a break scores the same whatever
+    broke it, a shot, a blast, the Nova or the Shield, and only the comet's
+    blow, which smashes, scores nothing.
+  - The chain counts break by break, a step's several breaks each, and is
+    kept while the next comes within 1.5 s of the last; a stray scores at
+    the multiplier the chain stands at, the last break's, and doesn't
+    count on. A lost ship ends it at once; a pause of 1.5 s ends it as the
+    next break starts the count again.
+  - The clearing's points go into the wave's, so the field's score is the
+    whole wave's, and `tallyOf()` parts it again for the Cleared card: the
+    rocks' are what is left once the chains' extra, the strays' 500s and
+    the clearing's are taken out, so the tally always adds up to the
+    score. The chains' extra is kept as it is scored, a stray's among it.
+  - The ships points bring are gained on the field, as the crew is the
+    field's in a wave (A4.2), each flown by the first stray at home or a
+    new pilot in a color the stray adrift doesn't wear. The field gains
+    them before the ship meets the rocks and the comets, so the points a
+    step scores before a rock takes the last ship save the run, and again
+    after the clear, for its points. A crew with no one flying gains none,
+    so a run over stays over. A mark passed with six ships flying is spent.
+  - Once no one is flying the run is over, and nothing scores: not the
+    shots still in flight, the blasts still to go off, nor the clearing
+    they make. Otherwise a run's score would hang on whether its last steps
+    fell in the frame it was caught up in or a later one, which the run
+    no longer looks at.
+  - A ship gained logs a `"gained"` event with its pilot, at the ship or
+    the field's middle between ships, for its chime and the announcer, as
+    only the field knows: a ship that saves the last keeps the crew's
+    size, and a mark spent with six ships flying moves on all the same.
+  - `gainShipOn()` moved the stray adrift's color into `pilots.ts`, so
+    `scoring.ts`, which `hazards.ts` imports for a stray's points, doesn't
+    import the hazards back.
+  - The run keeps the strays brought home as it keeps points, banked as a
+    wave clears, for the result card's fuzzballs. `catchUp()` ends a run
+    whose field has no one flying, though a blast cleared the wave after
+    the last ship was lost, banking nothing, as Brick Breaker's does.
+  - A wave's seed is the run's mixed with the wave's number times an odd
+    constant, as Brick Breaker's level's is, so no wave of a run draws as
+    another run's does, as seed 1's second would seed 2's first with a
+    plain mix.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (779 tests,
+  the rules fully covered but A3.2's one branch), `yarn prettier:check`
+  and the skill references. 61 mutants of the scoring, the run and the
+  wiring: all caught but four, each a gap a spec then closed: a ship for
+  each mark passed, which the field gaining twice a step hid with two
+  marks at once, now three; the event's points and multiplier, logged at
+  ×1 alone, now from a chain; and a wave's seed, where a plain mix of the
+  run's and the wave's passed, now held apart across twenty runs' twenty
+  waves, which a plain mix draws as 32 seeds. After the review's fixes,
+  787 tests, and 10 mutants of the fixes: all caught but one, a run over
+  that a stray at home kept scoring, now specced.
+- **Review.**
+  1. An ended run's score hung on its frames: shots still in flight and
+     blasts went on scoring after the last ship was lost, and a blast's
+     clearing too, so a run caught up after each step ended on fewer
+     points than one whose last steps fell in one frame. Fixed: nothing
+     scores once no one is flying, `ScoreField` holding the crew and the
+     ships lost, and the clearing's points moving into `scoreClearing()`;
+     specs of a break after the last ship is lost and of a wave a blast
+     then clears, a stray at home among them; the plan's scoring says so.
+  2. Nothing told of a ship gained by points, which the chime and the
+     announcer need and only the field knows. Fixed: a `"gained"` event,
+     logged by `gainShipOn()` for the ship it gains, with its pilot, at
+     the ship or the field's middle, specced for points, the Extra ship,
+     both places and a crew of the most ships; the plan's A4.3 says so.
+  3. No spec had a stray scored within a chain, so its extra could have
+     left the tally's chains unseen. Fixed: one brings a stray home after a
+     chain of five and finds its extra among the chains'.
+  4. The event held the points with the multiplier in them, where the
+     flourish shows them before it, "+40 ×2". Taken: it holds them before,
+     the whole being the points times the multiplier.
+
+  The nits: `clear()`'s doc is rewrapped, `FieldSetup`'s names the points
+  banked and the next ship's mark, a spec's `if` has braces, and the field
+  spec's mark is `FIRST_SHIP_POINTS`. Left: `pilots.ts` keeps its
+  type-only import of `Strays`; `CrewField` now needs the events and the
+  torus as well, so a narrower shape of the stray would make it no leaf.
+
+  These correct the change, and the event is the one the reviewer
+  described, so it is committed on them.

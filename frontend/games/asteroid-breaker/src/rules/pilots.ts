@@ -3,6 +3,9 @@
 // pilot only as its color's number, as Brick Breaker's levels know a
 // brick's tint, and the view gives the number its ink.
 
+import type { FieldEventLog } from "./events";
+import type { Strays } from "./hazards";
+import type { Place, Torus } from "./torus";
 import { FIRST_SHIPS, MAX_SHIPS } from "./tuning";
 
 /** A pilot, by its color's number, from 0 to under {@link PILOT_COLORS}. */
@@ -22,6 +25,16 @@ export interface Crew {
   readonly home: readonly Pilot[];
   /** The color last given to a new pilot or a stray, from which the next is counted. */
   readonly lastGiven: Pilot;
+}
+
+/** Describes what of the field a ship gained changes: its crew, by the stray adrift, and its log. */
+export interface CrewField {
+  crew: Crew;
+  readonly strays: Readonly<Strays>;
+  /** The ship in play, where a ship gained is logged, or null between ships. */
+  readonly ship: Readonly<Place> | null;
+  readonly torus: Torus;
+  readonly events: FieldEventLog;
 }
 
 /** Returns a run's first crew: a pilot for each of its first ships, in the first colors, and no one at home. */
@@ -76,6 +89,22 @@ export function gainShip(crew: Crew, adrift: Pilot | null): Crew {
   }
   const pilot = nextPilot(crew, adrift);
   return { ...given(crew, pilot), flying: [...crew.flying, pilot] };
+}
+
+/**
+ * Gains the field's crew a ship, as `gainShip()` does, a new pilot skipping
+ * the color of the stray adrift, and logs its pilot at the ship, or the
+ * field's middle between ships.
+ */
+export function gainShipOn(field: CrewField): void {
+  const { adrift } = field.strays;
+  const flew = field.crew.flying.length;
+  field.crew = gainShip(field.crew, adrift.live ? adrift.pilot : null);
+  const x = field.ship?.x ?? field.torus.width / 2;
+  const y = field.ship?.y ?? field.torus.height / 2;
+  for (const pilot of field.crew.flying.slice(flew)) {
+    field.events.addPilot("gained", x, y, pilot);
+  }
 }
 
 /** Returns the crew with the pilot at the controls bailed out of its lost ship, the next in line taking them. */

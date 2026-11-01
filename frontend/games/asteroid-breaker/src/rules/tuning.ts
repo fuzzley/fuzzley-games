@@ -219,3 +219,31 @@ export const COMET_TILT = 30;
  * from its corners, so neither clips one and is gone at once.
  */
 export const ENTRY_ALONG: Span = { least: 0.15, most: 0.85 };
+
+/** How long after a break the next must come to count on in the chain. */
+export const CHAIN_MS = 1500;
+
+/**
+ * How a chain of breaks scores: from the count a break is in the chain,
+ * how many times its points it scores, the longest first.
+ */
+export const CHAIN = [
+  { from: 20, times: 4 },
+  { from: 10, times: 3 },
+  { from: 5, times: 2 },
+] as const;
+
+/** The points a stray brought home scores, before the chain's multiplier. */
+export const STRAY_POINTS = 500;
+
+/** The points a cleared wave adds. */
+export const CLEAR_POINTS = 500;
+
+/** The points a wave cleared without losing a ship adds besides. */
+export const CLEAN_POINTS = 500;
+
+/** The score that brings a run's first ship more. */
+export const FIRST_SHIP_POINTS = 10_000;
+
+/** The points between each ship more after the first. */
+export const SHIP_POINTS = 20_000;

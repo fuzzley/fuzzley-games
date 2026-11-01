@@ -18,6 +18,8 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     size: null,
     pickup: null,
     pilot: null,
+    points: 0,
+    times: 0,
     reach: 0,
     ...event,
   };
@@ -49,6 +51,13 @@ const EACH_RECORD: readonly (readonly [
       log.addPilot("home", 1, 2, 6);
     },
     { kind: "home", pilot: 6 },
+  ],
+  [
+    "points'",
+    (log) => {
+      log.addScore(1, 2, 80, 2);
+    },
+    { kind: "scored", points: 80, times: 2 },
   ],
   [
     "a place's",
@@ -100,6 +109,16 @@ describe("FieldEventLog", () => {
     ]);
   });
 
+  it("records points scored with the chain's multiplier they were scored at", () => {
+    const log = new FieldEventLog();
+
+    log.addScore(1, 2, 120, 3);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "scored", x: 1, y: 2, points: 120, times: 3 }),
+    ]);
+  });
+
   it("records an event of a place with only its place", () => {
     const log = new FieldEventLog();
 
@@ -138,22 +157,21 @@ describe("FieldEventLog", () => {
   it.each(EACH_RECORD)(
     "leaves nothing of an older event in the record %s event takes",
     (_, add, recorded) => {
-      // The three records it takes each held an event of another kind.
+      // The four records it takes each held an event of another kind.
       const log = new FieldEventLog();
       log.addRock("blast", 3, 4, "volatile", "large", 6);
       log.addPickup("dropped", 3, 4, "spread");
       log.addPilot("strayed", 3, 4, 7);
-      for (let i = 3; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
+      log.addScore(3, 4, 90, 4);
+      for (let i = 4; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
 
-      add(log);
-      add(log);
-      add(log);
+      for (let i = 0; i < 4; i++) add(log);
 
-      expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual([
-        eventOf({ serial: EVENT_LOG_SIZE + 1, x: 1, y: 2, ...recorded }),
-        eventOf({ serial: EVENT_LOG_SIZE + 2, x: 1, y: 2, ...recorded }),
-        eventOf({ serial: EVENT_LOG_SIZE + 3, x: 1, y: 2, ...recorded }),
-      ]);
+      expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual(
+        [1, 2, 3, 4].map((n) =>
+          eventOf({ serial: EVENT_LOG_SIZE + n, x: 1, y: 2, ...recorded }),
+        ),
+      );
     },
   );
 });

@@ -21,7 +21,6 @@ import {
   COMET_RECORDS,
   type Comet,
   type Crossing,
-  adriftPilot,
 } from "./hazards";
 import { hitRock, rockHitRadius } from "./rocks";
 import { guardShip } from "./ship";
@@ -574,7 +573,7 @@ describe("a stray adrift", () => {
 
     stepField(field);
 
-    const logged = loggedOn(field).at(-1);
+    const logged = loggedOn(field).find((each) => each.kind === "home");
     expect([
       field.crew.home,
       field.strays.broughtHome,
@@ -694,22 +693,6 @@ describe("a stray adrift", () => {
       expect.closeTo(0.05),
       expect.closeTo(SHIP_Y + STRAY_STEP),
     ]);
-  });
-});
-
-describe("adriftPilot", () => {
-  it("returns the pilot of the stray adrift", () => {
-    const field = fieldFrom(PICTURE);
-    placeStray(field, 10, 30, 0, 6);
-
-    expect(adriftPilot(field.strays)).toBe(6);
-  });
-
-  it("returns null once the stray has gone", () => {
-    const field = fieldFrom(PICTURE);
-    placeStray(field, 10, 30, 0, 6).live = false;
-
-    expect(adriftPilot(field.strays)).toBeNull();
   });
 });
 
@@ -962,6 +945,7 @@ describe("a comet", () => {
       ["broken", "volatile"],
       ["blast", "volatile"],
       ["broken", "crystal"],
+      ["scored", null],
       ["dropped", null],
     ]);
   });

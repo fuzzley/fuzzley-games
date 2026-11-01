@@ -9,6 +9,7 @@ import { drawIn, nextDraw } from "./draws";
 import type { Field } from "./field";
 import { type Pilot, bringHome, given, nextPilot } from "./pilots";
 import { hitRock, rockHitRadius } from "./rocks";
+import { scoreStray } from "./scoring";
 import type { Ship } from "./ship";
 import { stepsIn } from "./stepper";
 import { type Place, type Torus, distanceSquared, moveAlong } from "./torus";
@@ -134,11 +135,6 @@ export function scheduleComet(field: Field): void {
   const every = field.setup.cometEvery;
   if (every === null) return;
   field.comets.nextAt = field.steps + stepsIn(drawIn(field, every));
-}
-
-/** Returns the pilot of the stray adrift, or null while none is. */
-export function adriftPilot(strays: Readonly<Strays>): Pilot | null {
-  return strays.adrift.live ? strays.adrift.pilot : null;
 }
 
 /**
@@ -279,13 +275,14 @@ function pullIn(field: Field, stray: Stray, ship: Readonly<Ship>): boolean {
   return true;
 }
 
-/** Brings the stray adrift home, where it waits behind those home before it. */
+/** Brings the stray adrift home, where it waits behind those home before it, for its points. */
 function bringStrayHome(field: Field): void {
   const { strays } = field;
   const stray = strays.adrift;
   strays.broughtHome += 1;
   field.crew = bringHome(field.crew, stray.pilot);
   field.events.addPilot("home", stray.x, stray.y, stray.pilot);
+  scoreStray(field, stray.x, stray.y);
   strayGone(field);
 }
 

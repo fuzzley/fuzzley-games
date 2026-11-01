@@ -396,12 +396,22 @@ more. Paths in Part 1 are under `frontend/lib/` or
   as the Shield's does, but lets no pickup go, a crystal's or a drought's
   either. Specced. One commit.
 - **A4.3** `src/rules/scoring.ts` and `run.ts`: points by kind and size,
-  the chain's multiplier and its ending, a stray's 500, the wave's 500s, the
-  ships points bring, each flown by the first stray at home, and `Run`'s
-  moves, as Brick Breaker's, with `catchUp()` taking what the field has come
-  to since it last looked, the crew among it, and each wave's field its
-  seed. The field gains the ships points bring, from the run's score and
-  next mark as the wave starts, since the crew is the field's in a wave.
+  from the catalog's `rockPoints()`, scored as a rock breaks unless a comet
+  smashes it, so the Shield's breaks score; the chain's multiplier, counted
+  break by break, blasts among them, and its ending, by time or a lost
+  ship; a stray's 500, times the chain; the wave's 500s; a `"scored"` event
+  at each break and stray, its points and multiplier, for the "+40 ×2"; the
+  ships points bring, each flown by the first stray at home, and a
+  `"gained"` event with its pilot for each ship gained, by points or an
+  Extra ship, for its chime and the announcer; nothing scored once the run
+  is over, so its score doesn't hang on its frames; `tallyOf()`,
+  how a cleared wave's points add up, for its card; and `Run`'s moves, as
+  Brick Breaker's, with `catchUp()` taking what the field has come to since
+  it last looked, the crew among it, and `waveStart()` handing each wave's
+  field its seed, the crew, the points banked and the next ship's mark.
+  The field gains the ships points bring, since the crew is the field's in
+  a wave: before the ship meets the rocks, so a step's points can save the
+  last ship, and again after the clear, for its points.
   Specced. One commit, `yarn verify` with it.
 
 #### A5: waves and the field whole (medium)
@@ -842,8 +852,10 @@ by touching it.
 - **A cleared wave adds 500,** and 500 more if no ship was lost on it.
 - **Points bring ships:** one at 10,000 and every 20,000 after, up to six,
   each flown by the first stray at home, if one waits.
-- **A run's score** is everything from the wave it started on to its end.
-  Bests are kept for each speed, for runs and for the furthest wave.
+- **A run's score** is everything from the wave it started on to its end:
+  once the last ship is lost nothing scores, its shots and blasts still
+  breaking rocks, nor a clearing they make. Bests are kept for each speed,
+  for runs and for the furthest wave.
 
 #### Waves
 

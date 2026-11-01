@@ -28,6 +28,7 @@ import {
   stepPickups,
 } from "./pickups";
 import { type Crew, atControls, bailOut } from "./pilots";
+import { endChain, gainShipsByPoints, scoreClearing } from "./scoring";
 import {
   type Rock,
   type RockField,
@@ -66,7 +67,8 @@ import { PICKUP_PULL_REACH, SHIELD_GUARD_MS, SHIP_HIT_RADIUS } from "./tuning";
 /**
  * Says how a wave is played: its field's size and cap, the seed its draws
  * come from, its pace, the kind of rock it names, the pickups it lets go,
- * what it sends across the field and the crew it starts with.
+ * what it sends across the field, and the crew, the points banked and the
+ * next ship's mark it starts with.
  */
 export interface FieldSetup extends DropSetup, HazardSetup {
   readonly torus: Torus;
@@ -79,6 +81,10 @@ export interface FieldSetup extends DropSetup, HazardSetup {
   readonly waveKind: RockKindId;
   /** The run's crew as the wave starts. */
   readonly crew: Crew;
+  /** The run's points as the wave starts, which the wave's add to. */
+  readonly banked: number;
+  /** The score the run's next ship comes at, as the wave starts. */
+  readonly nextShipAt: number;
 }
 
 /** Describes a wave in play, which each step changes in place. */
@@ -111,6 +117,8 @@ export interface Field extends RockField {
   crew: Crew;
   /** How many ships it has lost. */
   shipsLost: number;
+  /** The score the run's next ship comes at, which the wave's points move on. */
+  nextShipAt: number;
   readonly strays: Strays;
   readonly comets: Comets;
   /** Whether every rock it held is gone, after which everything stands still. */
@@ -146,6 +154,11 @@ export function createField(setup: FieldSetup): Field {
     pullReach: PICKUP_PULL_REACH,
     crew: setup.crew,
     shipsLost: 0,
+    score: 0,
+    chain: 0,
+    lastBreakAt: 0,
+    chainPoints: 0,
+    nextShipAt: setup.nextShipAt,
     strays: createStrays(),
     comets: createComets(),
     cleared: false,
@@ -176,7 +189,9 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
  * everything else stands still where it is.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
- * the shot's, for its points.
+ * the shot's, for its points; and the ships the step's points bring come
+ * before the ship is tested, as well as after, so one they bring is the
+ * run's before a rock can take the last.
  */
 export function stepField(field: Field): void {
   if (field.cleared) return;
@@ -206,10 +221,12 @@ export function stepField(field: Field): void {
     }
   }
   stepComets(field);
+  gainShipsByPoints(field);
   if (ship) meetDangers(field, ship);
   stepPickups(field);
   stepStrays(field);
   if (rocksLeft(field) === 0) clear(field);
+  gainShipsByPoints(field);
 }
 
 /**
@@ -278,25 +295,28 @@ function touchingRock(field: Field, ship: Readonly<Ship>): Rock | null {
 
 /**
  * Loses the field's ship, which its shots in flight outlive, its pilot
- * bailing out and the next in line taking the controls, and with it every
- * effect and the pickups floating.
+ * bailing out and the next in line taking the controls, and with it the
+ * chain, every effect and the pickups floating.
  */
 function loseShip(field: Field, ship: Readonly<Ship>): void {
   field.events.addPilot("lost", ship.x, ship.y, atControls(field.crew));
   field.crew = bailOut(field.crew);
   field.ship = null;
   field.shipsLost += 1;
+  endChain(field);
   endEffects(field);
   clearPickups(field);
 }
 
 /**
- * Clears the wave, ending its effects and letting its pickups, its stray
- * and its comets go, and sets where everything else moving was a step ago
- * to where it is, so a cleared field is drawn standing still.
+ * Clears the wave, for its clearing's points, ending its effects and
+ * letting its pickups, its stray and its comets go, and sets where
+ * everything else moving was a step ago to where it is, so a cleared field
+ * is drawn standing still.
  */
 function clear(field: Field): void {
   field.cleared = true;
+  scoreClearing(field);
   endEffects(field);
   clearPickups(field);
   clearHazards(field);
