@@ -562,6 +562,18 @@ describe("flyShip", () => {
   });
 
   describe("the dash", () => {
+    it("says a dash started in the step it starts, and in no other", () => {
+      const ship = flying(270);
+
+      const started = [
+        flyShip(ship, steer({ dash: true }), FIELD),
+        flyShip(ship, steer({ dash: true }), FIELD),
+        flyShip(ship, STILL, FIELD),
+      ];
+
+      expect(started).toEqual([true, false, false]);
+    });
+
     it("throws a ship along its heading at the dash's speed for the dash's time", () => {
       const ship = flying(270);
       const speeds: number[] = [];

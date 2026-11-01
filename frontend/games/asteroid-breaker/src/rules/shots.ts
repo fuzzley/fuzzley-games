@@ -43,6 +43,12 @@ export interface Shot {
   weapon: WeaponId;
   /** The rocks it may still break, flying on through each but the last. */
   breaksLeft: number;
+  /**
+   * The field's steps it flew on through a rock it broke in, one for each
+   * it may, so it passes what was laid then, those rocks' pieces; −1 for
+   * each it hasn't.
+   */
+  readonly passedAt: number[];
 }
 
 /** Describes the ship's shots: a slot for each it can have in flight, made once, and the time until it can fire again. */
@@ -77,6 +83,10 @@ export const TUNED_GUNNERY: Gunnery = {
 /** How far ahead of the ship's middle its nose is, where its shots leave. */
 const NOSE = SHIP_LENGTH / 2;
 
+/** The most rocks a shot flies on through, one fewer than the most a weapon breaks. */
+const MOST_PASSES =
+  Math.max(...Object.values(WEAPONS).map((weapon) => weapon.breaks)) - 1;
+
 /** How many slots the shots have: every weapon's most in flight, together. */
 const SLOTS = Object.values(WEAPONS).reduce(
   (slots, weapon) => slots + weapon.inFlight,
@@ -96,16 +106,18 @@ export function createShots(): Shots {
       lifeSteps: 0,
       weapon: "gun",
       breaksLeft: 0,
+      passedAt: Array.from({ length: MOST_PASSES }, () => -1),
     })),
     reloadSteps: 0,
   };
 }
 
 /**
- * Steps a ship's shots: each in flight flies on and wraps, or fades as its
- * time runs out, and a pull of the weapon in hand fires if fire is held, the
- * ship isn't waiting, the weapon is ready and the whole pull fits within
- * its most in flight, which only its own shots count toward.
+ * Steps a ship's shots, and returns whether a pull fired: each in flight
+ * flies on and wraps, or fades as its time runs out, and a pull of the
+ * weapon in hand fires if fire is held, there is a ship and it isn't
+ * waiting, the weapon is ready and the whole pull fits within its most in
+ * flight, which only its own shots count toward.
  *
  * Step the ship first: a pull leaves from where its nose is now, and flies
  * its first step at once. A shot carries the ship's velocity only up to its
@@ -113,13 +125,13 @@ export function createShots(): Shots {
  */
 export function stepShots(
   shots: Shots,
-  ship: Readonly<Ship>,
+  ship: Readonly<Ship> | null,
   fire: boolean,
   weaponId: WeaponId,
   torus: Torus,
   gunnery: Gunnery = TUNED_GUNNERY,
   flight: Flight = TUNED_FLIGHT,
-): void {
+): boolean {
   if (shots.reloadSteps > 0) shots.reloadSteps -= 1;
   let flying = 0;
   for (const shot of shots.slots) {
@@ -131,22 +143,30 @@ export function stepShots(
   }
   const weapon = WEAPONS[weaponId];
   if (
-    fire &&
-    !ship.waiting &&
-    shots.reloadSteps === 0 &&
-    flying + weapon.count <= weapon.inFlight
+    !fire ||
+    ship === null ||
+    ship.waiting ||
+    shots.reloadSteps > 0 ||
+    flying + weapon.count > weapon.inFlight
   ) {
-    pull(shots, ship, weaponId, torus, gunnery, flight);
+    return false;
   }
+  pull(shots, ship, weaponId, torus, gunnery, flight);
+  return true;
 }
 
 /**
- * Spends a shot on a rock it has met, unless it broke the rock and has
- * breaks left, when it flies on through.
+ * Spends a shot on a rock it has met in a step of the field, unless it
+ * broke the rock and has breaks left, when it flies on through, keeping the
+ * step to pass the rock's pieces.
  */
-export function landShot(shot: Shot, broke: boolean): void {
-  if (broke && shot.breaksLeft > 1) shot.breaksLeft -= 1;
-  else shot.lifeSteps = 0;
+export function landShot(shot: Shot, broke: boolean, step: number): void {
+  if (broke && shot.breaksLeft > 1) {
+    shot.passedAt[WEAPONS[shot.weapon].breaks - shot.breaksLeft] = step;
+    shot.breaksLeft -= 1;
+  } else {
+    shot.lifeSteps = 0;
+  }
 }
 
 /**
@@ -210,6 +230,7 @@ function pull(
     shot.lifeSteps = stepsIn(SHOT_LIFE_MS);
     shot.weapon = weaponId;
     shot.breaksLeft = weapon.breaks;
+    shot.passedAt.fill(-1);
     flyShot(shot, torus);
     fired += 1;
   }

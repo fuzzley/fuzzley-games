@@ -354,13 +354,17 @@ more. Paths in Part 1 are under `frontend/lib/` or
   small rock's radius from here, which it writes out until then. One
   commit.
 - **A3.3** `src/rules/field.ts`: `Field`, a wave in play, stepped in place
-  from records made once: `createField()`, `steerField()` and `stepField()`,
-  the ship, the shots and the rocks, hits (a Lance shot that breaks a rock
-  flies on past its pieces, not into them), blasts, a lost ship and a
-  cleared wave, and the events it logs through `@fz/core/event_log`; with
-  `src/testing/field_picture.ts` (`fieldFrom()`), a field laid out from a
-  picture of its rocks and ship. Specced, the same seed and steering making
-  the same field among it. One commit, `yarn verify` with it.
+  from records made once: `createField()` from a `FieldSetup`,
+  `steerField()` and `stepField()`, the ship, the shots and the rocks, hits
+  (a Lance shot that breaks a rock flies on past its pieces, not into them,
+  as a shot keeps each step it broke through a rock in and passes the rocks
+  laid then), blasts, a lost ship and a cleared wave, and the events it logs
+  through `@fz/core/event_log`: a pull fired and a dash started, which
+  `stepShots()` and `flyShip()` now report, a ship lost and the wave
+  cleared. With `src/testing/field_picture.ts` (`fieldFrom()`), a field
+  laid out from a picture of its rocks and ship. Specced, the same seed and
+  steering making the same field among it. One commit, `yarn verify` with
+  it.
 
 #### A4: pickups, strays, pilots, the comet and scoring (large)
 

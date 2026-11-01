@@ -14,6 +14,7 @@ import {
   createRocks,
   hitRock,
   rockHitRadius,
+  rocksLeft,
   setOffBlasts,
   stepRocks,
 } from "./rocks";
@@ -248,6 +249,28 @@ describe("createRocks", () => {
       false,
       false,
     ]);
+  });
+});
+
+describe("rocksLeft", () => {
+  it("counts the rocks a field holds, one waiting to go off among them", () => {
+    const field = fieldOf();
+    lay(field, "stone", "large");
+    hitRock(field, lay(field, "volatile", "large", 60, 20), 1, 0);
+
+    const left = rocksLeft(field);
+
+    expect(left).toBe(2);
+  });
+
+  it("counts none once the last has gone off", () => {
+    const field = fieldOf();
+    hitRock(field, lay(field, "volatile", "large"), 1, 0);
+    stepFor(field, stepsIn(BLAST.delayMs));
+
+    const left = rocksLeft(field);
+
+    expect(left).toBe(0);
   });
 });
 

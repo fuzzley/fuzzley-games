@@ -25,6 +25,9 @@ export const FIELD_LONGEST_SIDE = 88;
 /** The ship's length, nose to tail; its shots leave its nose, half of it ahead of its middle. */
 export const SHIP_LENGTH = 2.4;
 
+/** How far from its middle the ship is hit, less than it is drawn, so a graze is a miss. */
+export const SHIP_HIT_RADIUS = 0.7;
+
 /** The push of full thrust along the ship's heading, in units a second, each second. */
 export const THRUST = 24;
 

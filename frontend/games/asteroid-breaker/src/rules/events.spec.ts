@@ -36,6 +36,24 @@ describe("FieldEventLog", () => {
     ]);
   });
 
+  it("records an event of no rock with none", () => {
+    const log = new FieldEventLog();
+
+    log.add("lost", 1, 2);
+
+    expect(eventsSince(log, 0)).toEqual([
+      {
+        serial: 1,
+        kind: "lost",
+        x: 1,
+        y: 2,
+        rock: null,
+        size: null,
+        reach: 0,
+      },
+    ]);
+  });
+
   it("keeps the latest events, as many as its size", () => {
     const log = new FieldEventLog();
 
