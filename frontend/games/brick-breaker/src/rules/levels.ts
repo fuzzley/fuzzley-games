@@ -1,3 +1,4 @@
+import { unknownKey } from "@fz/core/json";
 import { brickKind, hasTrait, isBrickKindId } from "./catalog/bricks";
 import {
   CAPSULE_IDS,
@@ -137,14 +138,6 @@ export function parseLevel({ number, set, data }: LevelEntry): Level {
 /** Returns an error that names what is wrong with a level's data. */
 function wrong(data: LevelData, problem: string): Error {
   return new Error(`Level "${data.id}": ${problem}.`);
-}
-
-/** Returns the first key of a value that the known keys lack, or null. */
-function unknownKey(
-  value: object,
-  known: Readonly<Record<string, true>>,
-): string | null {
-  return Object.keys(value).find((key) => !Object.hasOwn(known, key)) ?? null;
 }
 
 /** Throws unless a grid of a level's has at most 16 rows, each 13 long. */

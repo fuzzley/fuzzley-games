@@ -15,3 +15,17 @@ export function isWhole(value: unknown): value is number {
 export function isCount(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
+
+/**
+ * Returns the first key of a value read from JSON that the known keys lack,
+ * or null, so a key a typo misspells isn't left unread.
+ *
+ * Type the known keys as `Readonly<Record<keyof Data, true>>`, for the type
+ * of the data, so a key the type gains fails to compile until it is known.
+ */
+export function unknownKey(
+  value: object,
+  known: Readonly<Record<string, true>>,
+): string | null {
+  return Object.keys(value).find((key) => !Object.hasOwn(known, key)) ?? null;
+}

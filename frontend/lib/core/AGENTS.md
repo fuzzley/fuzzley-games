@@ -19,7 +19,9 @@ Each file is an entry point of its own, imported by name, such as
   source, `randomSeed()`, a whole number of 32 bits for a new deal, and
   `shuffled()`, a list in an order a source picks.
 - `src/json.ts`: `isRecord()`, `isWhole()` and `isCount()`, for reading
-  back what was stored as JSON, which may have been edited or cut short.
+  back what was stored as JSON, which may have been edited or cut short,
+  and `unknownKey()`, a key a data file holds that its type doesn't name,
+  as a typo would leave.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
   "2 hints", and `formatPoints()`, points grouped in thousands, "4,250".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most.
