@@ -1,5 +1,5 @@
 import { stepsBetween } from "../testing/numbers";
-import { PICKUPS, PICKUP_IDS, pickup } from "./catalog/pickups";
+import { PICKUPS, PICKUP_IDS, isPickupId, pickup } from "./catalog/pickups";
 import {
   type BySize,
   ROCK_KINDS,
@@ -7,6 +7,8 @@ import {
   ROCK_SIZES,
   type RockSize,
   type RockTrait,
+  isRockKindId,
+  isRockSize,
   rockKind,
   rockPoints,
   sizeAfter,
@@ -228,6 +230,20 @@ describe("rockPoints", () => {
 
   it("throws for a size its kind doesn't come in", () => {
     expect(() => rockPoints("volatile", "small")).toThrow(RangeError);
+  });
+});
+
+describe.each([
+  ["isRockKindId", isRockKindId, ROCK_KIND_IDS],
+  ["isRockSize", isRockSize, ROCK_SIZES],
+  ["isPickupId", isPickupId, PICKUP_IDS],
+] as const)("%s", (_, isOne, names) => {
+  it.each(names)("knows %s", (name) => {
+    expect(isOne(name)).toBe(true);
+  });
+
+  it.each(["rubber", "toString", "", 3, null])("knows no %j", (value) => {
+    expect(isOne(value)).toBe(false);
   });
 });
 

@@ -107,6 +107,11 @@ export type PickupId = keyof typeof PICKUPS;
 /** Every pickup's id, in How to play's order. */
 export const PICKUP_IDS = keysOf(PICKUPS);
 
+/** Returns whether a value names a pickup, as a wave's file may. */
+export function isPickupId(value: unknown): value is PickupId {
+  return typeof value === "string" && Object.hasOwn(PICKUPS, value);
+}
+
 /** Returns a pickup, as the shape every pickup has. */
 export function pickup(id: PickupId): Pickup {
   return PICKUPS[id];

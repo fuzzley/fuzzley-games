@@ -6,6 +6,11 @@ export const ROCK_SIZES = ["boulder", "large", "medium", "small"] as const;
 /** Names a size of rock, such as "medium". */
 export type RockSize = (typeof ROCK_SIZES)[number];
 
+/** Returns whether a value names a size of rock, as a wave's file may. */
+export function isRockSize(value: unknown): value is RockSize {
+  return ROCK_SIZES.some((size) => size === value);
+}
+
 /** Returns the size a rock's pieces are, the size after its own, or null for a small rock, which breaks into nothing. */
 export function sizeAfter(size: RockSize): RockSize | null {
   return ROCK_SIZES[ROCK_SIZES.indexOf(size) + 1] ?? null;
@@ -146,6 +151,11 @@ export type RockKindId = keyof typeof ROCK_KINDS;
 
 /** Every rock kind's id, in How to play's order. */
 export const ROCK_KIND_IDS = keysOf(ROCK_KINDS);
+
+/** Returns whether a value names a kind of rock, as a wave's file may. */
+export function isRockKindId(value: unknown): value is RockKindId {
+  return typeof value === "string" && Object.hasOwn(ROCK_KINDS, value);
+}
 
 /** Returns a rock kind, as the shape every kind has. */
 export function rockKind(id: RockKindId): RockKind {
