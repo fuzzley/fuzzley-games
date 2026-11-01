@@ -1,0 +1,43 @@
+{
+  "id": "inner-belt",
+  "name": "Inner belt",
+  "drops": 0.04,
+  "waves": [
+    {
+      "id": "first-light",
+      "name": "First light",
+      "pace": 1.0,
+      "rocks": [{ "kind": "stone", "size": "large", "count": 3 }]
+    },
+    {
+      "id": "gem",
+      "name": "Gem",
+      "pace": 1.01,
+      "rocks": [
+        { "kind": "stone", "size": "large", "count": 3 },
+        { "kind": "crystal", "size": "large", "count": 1 }
+      ]
+    },
+    {
+      "id": "adrift",
+      "name": "Adrift",
+      "pace": 1.02,
+      "rocks": [{ "kind": "stone", "size": "large", "count": 4 }]
+    },
+    {
+      "id": "thaw",
+      "name": "Thaw",
+      "pace": 1.03,
+      "rocks": [
+        { "kind": "ice", "size": "large", "count": 2 },
+        { "kind": "stone", "size": "large", "count": 2 }
+      ]
+    },
+    {
+      "id": "hail",
+      "name": "Hail",
+      "pace": 1.04,
+      "rocks": [{ "kind": "ice", "size": "large", "count": 4 }]
+    }
+  ]
+}

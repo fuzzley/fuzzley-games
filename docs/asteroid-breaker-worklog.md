@@ -1808,3 +1808,112 @@ out.
 
   These correct the change, and the event is the one the reviewer
   described, so it is committed on them.
+
+## A4: done
+
+2026-11-01. `yarn verify` passed on A4.3's commit, `6a31f77a`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 787
+tests among them, the rules fully covered but the one branch the catalog
+rules out.
+
+## A5.1, first: `unknownKey()` into `@fz/core`
+
+2026-11-01.
+
+- **Built.** `@fz/core/json`: `unknownKey()`, the first key of a value
+  read from JSON that a record of known keys lacks, or null, lifted word
+  for word from Brick Breaker's levels, which take it from there. Its doc
+  says to type the known keys by the data's type, as both callers do.
+  `@fz/core`'s `AGENTS.md`, its package's description, the games'
+  `AGENTS.md` and the `fuzzley-ui` skill, its triggers among it, name it.
+  Committed `c317e7ef`.
+- **Choices.** It goes in `json`, beside the other readers of JSON, not
+  `records`, whose `keysOf()` is for catalogs written as literals; and
+  its signature stays as it was: a known keys record typed by the data's
+  own keys would reject the spec's value with a typo, whose type holds the
+  typo too.
+- **Checks.** `@fz/core`'s and Brick Breaker's `lint`, `typecheck` and
+  `test` (77 and 1,980 tests, the library fully covered),
+  `yarn prettier:check` and the skill references.
+- **Review.**
+  1. The four summaries of `@fz/core`, the skill's description and table,
+     the games' `AGENTS.md` and the package's description, still said
+     only "readers for stored JSON", so an agent writing a data file's
+     parser wouldn't find it. Fixed in all four, and `unknownKey` is among
+     the skill's triggers, as `keysOf` is.
+  2. A spec passed with `?? null` as `|| null`, which would let an empty
+     key through. Fixed: a spec finds `""`.
+  3. The skill's row didn't say to type the known keys by the data's type,
+     which is what keeps them whole. Fixed there and in the doc.
+  4. The doc's "the keys known lack" misread. Fixed: "the known keys".
+
+  These correct the change, so it was committed on them.
+
+## A5.1: the waves as data
+
+2026-11-01.
+
+- **Built.** `src/rules/waves.ts`: `FORMATIONS` and `Formation`;
+  `RocksData`, `CometsData`, `WaveData` and `SectorData`, a sector's file;
+  `WaveEntry`,
+  a wave numbered with its sector; `WaveRocks` and `Wave`, a wave ready to
+  play; `SECTORS`, `wavesOf()`, `WAVES` and `parseWave()`.
+  `src/rules/waves/inner-belt.json`: the Inner belt, its pickups' chance
+  0.04, with waves 1 to 5, First light, Gem, Adrift, Thaw and Hail, the
+  pace from 1.00 to 1.04. The catalogs gain `isRockKindId()`,
+  `isRockSize()` and `isPickupId()`, and `tuning.ts` `ROCK_CAP`, the 48
+  rocks a field of 40 by 40 holds, and `STRAYS_FROM`, wave 3. The parser
+  takes `isCount()` and `unknownKey()` from `@fz/core/json`.
+- **Choices.**
+  - As Brick Breaker's levels: `parseWave()` throws naming the wave and
+    what is wrong, a key a typo misspells among it, and a wave that
+    doesn't say takes its sector's chance, the pickups whose wave has
+    come, a stray from wave 3, a scatter, a pace of 1 and stone for a
+    boulder's pieces.
+  - A file's formation is text and its comets' range a list, as JSON's
+    types are, so the data's types say so and `parseWave()` checks them;
+    the plan's sketch of `WaveData` now does too.
+  - A wave's counts are for a field of 40 by 40, and A5.2 grows them with
+    the field; so its rocks may number 48 at most, the cap a field that
+    size holds, and one at least.
+  - A comet's range is in seconds in the file and in milliseconds in the
+    `Wave`, as the field's setup takes it.
+  - The checks that need a whole sector, that each ends with a boulder, and
+    the catalog's that every kind and pickup comes in a wave, wait for A13.
+  - A `Wave` names the kind its boulders break into `pieces`, as its file
+    does, where the field's setup says `waveKind`; A5.3, which lays a field
+    out from a `Wave`, settles one name for both.
+- **Checks.** The workspace's `lint`, `typecheck` and `test`, the waves
+  fully covered, `yarn prettier:check` and the skill references. 33
+  mutants of the parser and the guards, each taking a check away: all
+  caught but one, a range of comets' times of one time, now specced. After
+  the review's fixes, 875 tests, and its five mutants of the bounds and
+  two more: all caught but one that changes nothing, a range with no first
+  number, which has no second either, the check kept for the compiler.
+- **Review.**
+  1. The specs held no bound: five mutants that moved the pace's and the
+     chance's bounds by a hair or counted the largest of a wave's rocks
+     rather than all of them passed, where mine had only taken each check
+     away. Fixed: specs parse a wave at either end of the pace and of the
+     chance, as Brick Breaker's levels' do, and name a wave whose two lists
+     of rocks together pass the cap.
+  2. A private `isCount()` copied `@fz/core/json`'s. Fixed: the parser
+     takes the library's.
+  3. A private `unknownKey()` copied Brick Breaker's word for word, and
+     `@fz/core` takes a helper once two workspaces need it. Fixed: it
+     moved into `@fz/core/json` first, as a reviewed commit of its own
+     (the entry before this one), and the parser takes it from there.
+  4. The plan's list of what `parseWave()` names read as if a range's
+     least above 0 were wrong. Fixed: reworded.
+  5. A comets' range of no numbers was named "every s". Fixed: the range
+     is named as its list, "every [12, 9] s", and a spec names an empty
+     one.
+  6. The small points: `!(least > 0)` is `least <= 0`, the spec of the
+     pool says "lets every pickup come whose wave has come", and the specs'
+     kebab-case is one `KEBAB`. Left: a `Wave`'s `pieces` keeps the
+     file's name until A5.3 maps a `Wave` onto the field's setup, as the
+     choice above says, where renaming the field's `waveKind` now would
+     reach the rocks' rules and their specs for nothing A5.1 needs.
+
+  These correct the change, the lift aside, which had a review of its own,
+  so it is committed on them.

@@ -419,7 +419,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
 - **A5.1** `src/rules/waves.ts` (`parseWave()`, `SECTORS`, `WAVES`),
   `src/rules/waves/inner-belt.json` with waves 1 to 5, and
   `src/rules/waves.spec.ts`, the checks that need a whole sector waiting for
-  A13. One commit.
+  A13; the catalogs' guards of a file's names (`isRockKindId()`,
+  `isRockSize()`, `isPickupId()`), and `ROCK_CAP` and `STRAYS_FROM` in
+  `tuning.ts`. One commit.
 - **A5.2** `src/rules/spawn.ts` (the four formations, the placement's
   fairness, the safest place for a new ship) and `fill.ts` (`fillFor()`, the
   cap, the pickups at once, the strays and the comets' times for a field's
@@ -430,7 +432,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   where it is safest, untouchable, and given what the player holds as it
   comes (`createShip()`'s `held`), and the stretch on a pause, with the
   1 s guard after it through `guardShip()`, which counts it from the step
-  that follows. Specced. One commit, `yarn verify` with it.
+  that follows; and one name for the kind a boulder breaks into, the
+  `Wave`'s `pieces` and the setup's `waveKind`. Specced. One commit,
+  `yarn verify` with it.
 
 #### A6: the autopilot (medium)
 
@@ -1358,8 +1362,8 @@ export interface WaveData {
     readonly size: string;
     readonly count: number;
   }[];
-  /** How its rocks are laid out; scattered by default. */
-  readonly formation?: "scatter" | "ring" | "wall" | "cluster";
+  /** How its rocks are laid out, one of `FORMATIONS`; scattered by default. */
+  readonly formation?: string;
   /** The rocks' speed against their own, 1 by default. */
   readonly pace?: number;
   /** The kind a boulder breaks into; stone by default. */
@@ -1370,15 +1374,20 @@ export interface WaveData {
   readonly pickups?: readonly string[];
   /** How many strays cross it; 1 from wave 3 by default. */
   readonly strays?: number;
-  /** How often comets come, the seconds between them drawn from a range. */
-  readonly comets?: { readonly every: readonly [number, number] };
+  /** How often comets come: the seconds from one to the next, drawn from the least to the most. */
+  readonly comets?: { readonly every: readonly number[] };
 }
 ```
 
+A file's formation is text and its range a list, as JSON's types are, so
+`parseWave()` checks both.
+
 `parseWave()` turns one into a `Wave`, or throws naming the wave and what
-is wrong: an unknown kind, size or pickup, a size a kind doesn't come in, a
-count that isn't whole, more rocks than the field's cap, a pace outside 0.8
-to 1.4, a chance outside 0 to 1, a range that runs backward.
+is wrong: an unknown key, kind, size, formation or pickup, a size a kind
+doesn't come in, boulders breaking into a kind that doesn't come large, a
+count that isn't whole, no rocks or more than a field of 40 by 40 holds, a
+pace outside 0.8 to 1.4, a chance outside 0 to 1, and a range that isn't two
+numbers, whose least isn't above 0, or that runs backward.
 
 #### The checks that keep it whole
 

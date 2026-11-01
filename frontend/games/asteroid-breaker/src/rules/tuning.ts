@@ -141,6 +141,9 @@ export const PIECE_TURN: Span = { least: 25, most: 50 };
 /** How fast a broken rock's pieces are pushed along the way the hit came, on top of their own speed. */
 export const PIECE_PUSH = 1.5;
 
+/** The most rocks a field of 40 by 40 holds at once, a wave's written among them; a larger field holds more, by its area. */
+export const ROCK_CAP = 48;
+
 /** How fast a pickup drifts from where it was let go. */
 export const PICKUP_DRIFT = 2;
 
@@ -170,6 +173,9 @@ export const FIRST_SHIPS = 3;
 
 /** The most ships a run has at once; one gained past it is not. */
 export const MAX_SHIPS = 6;
+
+/** The first wave a stray crosses, in a wave that doesn't say how many. */
+export const STRAYS_FROM = 3;
 
 /** How far into a wave its first stray comes. */
 export const STRAY_FIRST_MS = 20_000;
