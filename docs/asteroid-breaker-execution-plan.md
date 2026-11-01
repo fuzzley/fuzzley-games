@@ -706,7 +706,7 @@ color, since color is never the only signal:
 | Iron      | 3/2/1        | 2 iron of the next size                  | 0.75  | 30/60/90       | 11        | Takes several hits at each size; a shot that doesn't break it rings off                   | Smooth, slate, four rivets, a dent for each hit taken |
 | Volatile  | 1/1/–        | nothing                                  | 0.9   | 40/60          | 12        | Blasts: every rock within 6 units (4 for a medium) takes a hit, which can set off another | Round, a glowing core with three cracks               |
 | Lodestone | 2/1/1        | 2 lodestones of the next size            | 1     | 25/50/80       | 21        | Drifts toward the ship, a little each second, never past its size's speed                 | Garnet, crossed by two bands                          |
-| Boulder   | 6            | 3 large rocks of the kind its wave names | 0.6   | 200            | 10        | Ends each sector                                                                          | Twice a large rock, its ink deeper, five craters      |
+| Boulder   | 6            | 3 large rocks of the kind its wave names | 1     | 200            | 10        | Ends each sector                                                                          | Twice a large rock, its ink deeper, five craters      |
 
 A volatile rock's blast never hurts the ship. Blasts set each other off a
 beat apart (90 ms), so a chain reads as a chain.
@@ -1228,23 +1228,29 @@ In `src/rules/catalog/`, each a readonly object written `as const
 satisfies`, so its ids survive as a type:
 
 ```ts
+/** The sizes a rock comes in, largest first; a rock breaks into pieces of the size after its own. */
+export const ROCK_SIZES = ["boulder", "large", "medium", "small"] as const;
+
+/** Gives a number for each size a kind of rock comes in, such as its hits. */
+export type BySize = Readonly<Partial<Record<RockSize, number>>>;
+
 /** Describes a kind of rock: its sizes, what breaking it takes and what it does. */
 export interface RockKind {
-  /** Names it in How to play, such as "Iron rock". */
+  /** Names it in How to play, such as "Iron". */
   readonly name: string;
   /** Says what it does, in a sentence for How to play. */
   readonly about: string;
   /** The hits that break it at each size it comes in. */
-  readonly hits: Readonly<Partial<Record<RockSize, number>>>;
-  /** What it breaks into, by kind and count; none for a rock that breaks whole. */
+  readonly hits: BySize;
+  /** What it breaks into, by kind and count; null for one that breaks into nothing, as a small rock does. */
   readonly splits: {
     readonly into: "self" | "stone" | "wave";
     readonly count: number;
   } | null;
   /** Its speed against its size's. */
   readonly speed: number;
-  /** What it scores at each size. */
-  readonly points: Readonly<Partial<Record<RockSize, number>>>;
+  /** What it scores at each size it comes in. */
+  readonly points: BySize;
   /** What it does beyond breaking. */
   readonly traits: readonly RockTrait[];
 }
@@ -1253,13 +1259,18 @@ export interface RockKind {
 export type RockTrait =
   | {
       readonly kind: "blasts";
-      readonly reach: number;
+      readonly reach: BySize;
       readonly delayMs: number;
     }
   | { readonly kind: "gives" }
   | { readonly kind: "drawn"; readonly pull: number }
   | { readonly kind: "rings" };
 ```
+
+The boulder is a size of its own, which only the boulder comes in, slow
+enough as a size (1.5 to 2.5 units a second) that its kind's speed is 1. A
+blast's reach is by size, as a volatile rock's is 6 units from a large one
+and 4 from a medium.
 
 - **`ROCK_KINDS`** (`catalog/rocks.ts`), with `TRAIT_RULES` in
   `src/rules/rocks.ts`, its type mapped from the union, so a trait without
@@ -1326,7 +1337,7 @@ to 1.4, a chance outside 0 to 1, a range that runs backward.
 | Check              | Where                          | What it holds                                                                                                                                                                                                                   |
 | ------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The compiler       | everywhere                     | Every trait and effect has its rule, and every rock, weapon and pickup its art                                                                                                                                                  |
-| The catalog spec   | `src/rules/catalog.spec.ts`    | Every entry has a name and a sentence; every kind is used by a wave from its `from`; every pickup can come in a wave from its `from`; weights positive                                                                          |
+| The catalog spec   | `src/rules/catalog.spec.ts`    | Every entry has a name and a sentence; every kind is used by a wave; every pickup can come in a wave from its `from`; weights positive                                                                                          |
 | The waves spec     | `src/rules/waves.spec.ts`      | Every wave parses; ids and names unique; the pace never falls within a sector; each sector ends with a boulder                                                                                                                  |
 | The placement spec | `src/rules/spawn.spec.ts`      | Over many seeds and on the narrowest and widest fields, every wave lays its rocks out fairly: 12 units off, no course within 5 units in 3 s                                                                                     |
 | The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave, and Endless's 31 to 60, at every speed, on the narrowest and widest fields, from fixed seeds, is cleared within four minutes of game time                                                                           |
