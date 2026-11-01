@@ -1,4 +1,9 @@
-export { type AtlasFrame, bakeAtlas } from "./bake_atlas";
+export {
+  type AtlasFrame,
+  type FrameSize,
+  atlasSize,
+  bakeAtlas,
+} from "./bake_atlas";
 export { type DrawTexture, bakeTexture } from "./bake_texture";
 export { type KeyListener, onKeyDown, onKeyUp } from "./keys";
 export {

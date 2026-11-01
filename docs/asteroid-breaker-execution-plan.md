@@ -470,14 +470,20 @@ more. Paths in Part 1 are under `frontend/lib/` or
   light palettes and seven for dark, and the pilots', eight for each, with
   `pilotInk()`) and `contrast.spec.ts`, holding every color "The checks
   that keep it whole" names in every palette. One commit.
-- **A7.4** `src/view/art.ts`, `rock_art.ts`, `symbols.ts`, `shapes.ts`,
-  `effects.ts`, `flourish.ts` and `tags.ts`: every frame of the atlas as
-  plain commands, the pilot in each ink and its eyes from
-  `@fz/style/fuzzball` among them, a stray's bubble and the constellation's
-  places; and what each event calls for, its sound and its flourishes.
-  Specced: every frame within its size, every kind in every state present,
-  the frames fitting 2048 × 2048 at the largest unit, each event's effects
-  with motion and without. One commit, `yarn verify` with it.
+- **A7.4** In two commits, so each review can hold its diff.
+  - **A7.4.1** `src/view/art.ts`, `rock_art.ts`, `pilot_art.ts`,
+    `ship_art.ts`, `symbols.ts` and `shapes.ts`: every frame of the atlas
+    as plain commands, the pilot in each ink and its eyes from
+    `@fz/style/fuzzball` among them, a stray's bubble and the
+    constellation's places, and the deck's parts, white, apart; with
+    `@fz/phaser/scene`'s `atlasSize()`, so a spec can hold the atlas to a
+    size. Specced: every frame within its size, every kind in every state
+    present, every mark on its rock's body, the frames fitting 2048 × 2048
+    at the largest unit.
+  - **A7.4.2** `effects.ts`, `flourish.ts` and `tags.ts`, with the tags'
+    frames: what each event calls for, its sound and its flourishes.
+    Specced: each event's effects with motion and without. `yarn verify`
+    with it.
 
 #### A8: the scene (large)
 
@@ -721,8 +727,9 @@ out with the same rules):
 So the ship is 22 px long on a phone, 15 on the smallest on its side, and 41
 on a desktop; the layout check's floor for a unit is 6 CSS px. A very large
 window draws everything larger rather than more of it, since the short side
-is always 40 units; the atlas is baked at no more than 40 device px a unit
-and scaled past that.
+is always 40 units; the atlas is baked at no more than 32 device px a unit
+and scaled past that, the most at which its frames fit 2048 × 2048 with
+room to spare.
 
 #### Rocks
 
@@ -838,7 +845,7 @@ by touching it.
 | Spread     | three rays              | weapon  | Three shots at each pull, 12° apart, 18 in flight                                        | 12 s                         | 10     | 2         |
 | Rapid      | two chevrons            | weapon  | A shot each 0.07 s, 12 in flight                                                         | 12 s                         | 9      | 2         |
 | Shield     | a ring                  | guard   | The next rock or comet to touch the ship breaks a size down instead, and the shield goes | until used, or the wave ends | 7      | 2         |
-| Extra ship | the pod, a pilot in it  | at once | One more ship, up to six, flown by the first stray at home, if one waits                 | at once                      | 1      | 5         |
+| Extra ship | a pilot in its window   | at once | One more ship, up to six, flown by the first stray at home, if one waits                 | at once                      | 1      | 5         |
 | Lance      | an arrow through a ring | weapon  | A shot passes through what it breaks, up to three rocks                                  | 10 s                         | 6      | 6         |
 | Magnet     | a horseshoe             | pull    | Draws pickups and strays in from 14 units                                                | 15 s                         | 5      | 6         |
 | Slow       | an hourglass            | pace    | Rocks and comets move at half their speed                                                | 8 s                          | 5      | 8         |
@@ -954,8 +961,8 @@ for a field of 40 by 40; a larger field has more, by its area.
     wave 60;
   - **its formation,** drawn from the four, and its strays: one a wave, two
     from wave 50.
-- **A constellation lies among its stars,** the fuzzball's outline in a
-  dozen of the field's specks and its eyes in two brighter ones, placed by
+- **A constellation lies among its stars,** the fuzzball's outline in
+  fifteen of the field's specks and its eyes in two brighter ones, placed by
   the run's seed and the wave's number, faint, for a player who looks
   ("Fuzzley flavor"). It changes nothing.
 - **The budget is for 40 by 40,** as every wave's counts are, and grows
@@ -1234,7 +1241,7 @@ the ship, and brings its strays home.
    26 is Lost and found, with three. It asks the player to fly somewhere,
    through the rocks, rather than shoot something, which the genre's glide
    rewards.
-5. **A constellation in Endless.** A dozen of the field's specks trace the
+5. **A constellation in Endless.** Fifteen of the field's specks trace the
    fuzzball's outline and two brighter ones its eyes, faint, for a player
    who looks. It changes nothing.
 
@@ -1279,7 +1286,7 @@ this order:
   field and the bar, and the eyes against each ink.
 
 What it takes: the view's fence allows `@fz/style/fuzzball`, which is data;
-`art.ts` draws the body and eyes as circles and ellipses and flattens the
+`pilot_art.ts` draws the body and eyes as circles and ellipses and flattens the
 fur's curves into short lines for Phaser's `Graphics`, a pilot's frame for
 each of the eight inks, its eyes a frame of their own, moved within the
 window. The bar, the Paused card and the result draw their fuzzballs from
@@ -1454,7 +1461,7 @@ An `asteroid-breaker-content` skill walks an agent through each, as
 | A ring of numbered events   | `src/rules/events.ts`: `EventLog`                                                      | `@fz/core/event_log`    | `EventLog<E>` takes its size and a blank record; `next()` hands back the next record, numbered, to fill in place, so nothing is made per step                                                                                                                               |
 | A frame's sounds            | `src/view/effects.ts`: `FrameSounds`                                                   | `@fz/core/frame_sounds` | `FrameSounds<Name>` takes the sprite's names; Brick Breaker's `SOUNDS`                                                                                                                                                                                                      |
 | Points grouped in thousands | `src/rules/describe.ts`: `formatPoints()`                                              | `@fz/core/format`       | Beside `count()`, unchanged                                                                                                                                                                                                                                                 |
-| A record's keys, typed      | `src/rules/tables.ts`: `keysOf()`                                                      | `@fz/core/records`      | Unchanged, at A2.4, as the weapons' catalog needs it; `recordOf()` and `pick()`, only Brick Breaker's, stay                                                                                                                                                                 |
+| A record's keys, typed      | `src/rules/tables.ts`: `keysOf()`                                                      | `@fz/core/records`      | Unchanged, at A2.4, as the weapons' catalog needs it; `recordOf()` too, at A7.4.1, as the art needs it; `pick()`, only Brick Breaker's, stays                                                                                                                               |
 | A sound held                | new                                                                                    | `@fz/phaser/sound`      | `SpritePlayer.hold(name, held)` loops a sound while held and stops it when let go, or when sound is turned off or the scene ends                                                                                                                                            |
 | A deck beside a board       | new                                                                                    | `@fz/dev/layout`        | `PhaserBoard` takes an optional `deck`: the attribute that lists its zones by name, the zones it must show, and their least size; `inspectPhaserDeck()` holds each zone on the canvas and in the window, off the board, the other zones and the bar, and at least that size |
 
@@ -1562,11 +1569,13 @@ Node, and a grid of cells joins only if it doesn't fit.
   the rocks' inks, seven for light palettes and seven for dark, and the
   pilots', eight for each (`pilotInk()`), which the shell's bar and cards
   take too.
-- `art.ts`, `rock_art.ts`, `symbols.ts` and `shapes.ts`: every frame of the
+- `art.ts`, `rock_art.ts`, `pilot_art.ts`, `ship_art.ts`, `symbols.ts` and
+  `shapes.ts`: every frame of the
   atlas as plain drawing commands in device pixels: the ship, its flame and
   ring, a pilot in each ink and its eyes, a stray's bubble, shots, each rock
   kind in each size, outline and state, each pickup and its symbol, the
-  comet, its warning, the deck's parts and the flourishes' shards; the
+  comet, its warning, the deck's parts, white, in their own small atlas,
+  as they are sized in CSS pixels, and the flourishes' shards; the
   constellation's places; and How to play's pictures.
 - `wave_play.ts`: `WavePlay`, the wave in play that `GameService` makes and
   drives, as Brick Breaker's `LevelPlay` is.
@@ -1593,7 +1602,9 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
   one edge as it slides in at the other.
 - **One atlas,** baked with `@fz/phaser/scene`'s `bakeAtlas()` again on a
   new palette or unit, so the field draws from one texture; its frames fit
-  in 2048 × 2048 at the largest unit, at six outlines a kind and size.
+  in 2048 × 2048 at the largest unit, at six outlines a kind and size,
+  baked at 32 device px a unit at most. The deck's parts, sized in CSS
+  pixels, are baked in a small atlas of their own on a new pixel ratio.
 - **Flourishes from pools,** a particle emitter on the atlas for shards and
   exhaust, every image made as the scene is created; nothing is made per
   frame.
@@ -1656,7 +1667,7 @@ with the deck; `yarn capture:screenshots` for the site's images.
   the long side's cap comes down before the density does.
 - **A very large window draws everything large,** a ship of 80 CSS px on a
   2560 × 1440 screen, since the short side is always 40 units. The atlas is
-  scaled past 40 device px a unit, which softens edges a little; the
+  scaled past 32 device px a unit, which softens edges a little; the
   screenshots at that size show whether it matters.
 - **iPhone Safari's edge swipe** goes back a page and can't be fully
   stopped; the stick at rest and the buttons keep 16 px off the edges,

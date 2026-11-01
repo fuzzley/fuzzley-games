@@ -55,7 +55,8 @@ are relative to `frontend/games/`.
 - **It shares `@fz/core`'s helpers,** the seeded random, the readers for
   stored JSON and a data file's keys, counts in words, points grouped in thousands, a clamp, a
   clock of fixed steps, a log of numbered events, a frame's sounds gathered
-  and a record's keys typed as its own, rather than keeping copies
+  and a record's keys typed as its own or a record made from them, rather
+  than keeping copies
   (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
   import.
 - **Saved games outlive the code.** What a game stores goes through

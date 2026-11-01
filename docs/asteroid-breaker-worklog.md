@@ -2720,3 +2720,184 @@ rules out.
   The review's own mutants that got through, a speck at full strength, a
   bubble at half or 0.7 and a dark boulder in stone's ink, and three of
   the pilots' inks taken from one mode, are each caught now.
+
+## A7.4.1: the atlas's art
+
+2026-11-01.
+
+- **Built.** A7.4 is split in two commits, so each review can hold its
+  diff: this one the atlas's art, the next the effects, the flourishes
+  and the tags.
+  - `src/view/shapes.ts`: the drawing commands Brick Breaker's are, less
+    the plain rectangle, a line a straight one between two points; the
+    curves and outlines the art is built from, flattened into points
+    (`arcPoints()`, `ellipsePoints()`, `quadraticPoints()`,
+    `cubicPoints()`, `outward()`); `stroke()`, a line through points, and
+    `dashedRing()`, a ring of dashes; `centered()`, which frames a drawing
+    about its middle, `scaledBy()` and `shifted()`; and `bakedScale()`,
+    the unit the atlas is baked at.
+  - `rock_art.ts`: each kind in each size it comes in, in each of its six
+    outlines, drawn from a seed, with its kind's marks; and over it, for
+    each count of hits it can take and hold, a frame of cracks, or of
+    dents for iron, that every outline of its kind and size shares.
+  - `pilot_art.ts`: the fuzzball, read from `@fz/style/fuzzball`'s shapes,
+    in each pilot's ink, seated in the ship's window and adrift; its eyes
+    a frame of their own for each seat, with how far they move toward
+    where it looks; and the constellation's places.
+  - `ship_art.ts`: the ship, its flame at full thrust, and the rings of a
+    new ship's guard and of the Shield.
+  - `symbols.ts`: each pickup's symbol and each button's, from the mock.
+  - `art.ts`: the atlas's index, `atlasFrames()`, with the pickups, the
+    shot, a stray's bubble, the comet and its warning, the flourishes'
+    white frames and How to play's pictures; and `deckFrames()`, the
+    deck's parts.
+  - `@fz/core/records`'s `recordOf()`, lifted from Brick Breaker's
+    `tables.ts` with its spec, so both games take it from there, as
+    `frontend/games/AGENTS.md` asks.
+  - `@fz/phaser/scene`'s `atlasSize()`: how big the atlas of a set of
+    frames is, packed as `bakeAtlas()` packs them, so the game's spec
+    holds its atlas to 2048 × 2048.
+- **Choices.**
+  - **The atlas is baked at 32 device px a unit at most,** not the plan's
+    40: at 40 its 151 frames pack to 1962 × 2234, as the six boulder
+    outlines alone take a fifth of it, and 36 is the most that fits. 32
+    leaves 252 px for the tags and what comes later. The scene scales the
+    art up past it, by twice at most on a 5K screen; the plan says so.
+  - **Every frame is centered on what the scene places,** a rock's or the
+    ship's middle, the comet's head, the flame's base, so the scene sets
+    no origin of its own; it wastes a little on the comet's frame, whose
+    tail reaches back from its head.
+  - **The outlines are filled polygons,** a body grown outward by
+    `outward()` under the body, rather than stroked, so no outline
+    depends on how Phaser joins a thick line's corners. Nor does a line:
+    `stroke()` draws one as a straight line between each two of its
+    points with a dot as wide at each, so its ends and corners are round,
+    as the mock draws them, and its frame holds all of it. Phaser's
+    canvas Graphics sets no join or cap, so a line drawn through points
+    would take the canvas's pointed corners and flat ends, cut at its
+    points.
+  - **A rock's outline is the mock's,** its points drawn from a seed for
+    each kind, size and outline, rounded through its sides' middles, or
+    sharp-cornered with fewer points for ice, as the mock draws it; each
+    is scaled so its farthest point lies at its size's radius, as
+    `ROCK_RADIUS` says. Its marks are drawn in the marks' color, as A7.3
+    decided, within 0.6 of its radius, rivets and all. A rounded
+    outline's sides come in no nearer than 0.75, but an ice rock's can,
+    to 0.65 in these seeds and 0.57 in the worst its style allows; its
+    only marks, its facets, run out toward its corners, and the spec
+    holds every mark on its body at every scale, so a seed that broke it
+    would fail.
+  - **A lodestone's bands end short of its sides,** a tenth of its radius
+    or a line's width, whichever is more, so its ink closes each band's
+    ends and the rock reads as one, crossed by two bands, as the mock
+    clips them, rather than three slabs parted by the field's color.
+  - **A rock shows the hits it has taken in a frame over it,** shared by
+    every outline of its kind and size, so the six outlines aren't each
+    drawn again for every count, which wouldn't fit: a crack for each hit,
+    or a dent for iron, as the plan's table says.
+  - **A crystal is a stone with a gem,** as the mock draws it: its body in
+    stone's ink and its gem in its own, outlined in the marks' color, so
+    the gem reads by its outline whatever the two inks' contrast. Its
+    shards take its body's color. The palette's and the inks' docs say a
+    crystal's ink is its gem's.
+  - **The fins are the accent,** as the hull is, where the mock darkens
+    them: one color holds the ship to the contrast A7.3 checked, and the
+    hull's outline parts them. The flame is the warning color alone, the
+    comet the danger color alone, its tail too, and the Shield a ring
+    with no wash, which would hide the rocks about to touch it: flat, as
+    the design asks.
+  - **A pilot's eyes are a frame of their own,** so the scene moves them
+    toward the heading or the ship, as `LOOK` says, and draws a blink by
+    squashing them. Their glints are left out where each would be under
+    half a device pixel, as `fuzzballSvg()` leaves them out at 16 px. The
+    fur's strands keep the mark's proportions at every size, so the spec's
+    rule that every line is a CSS pixel wide or more spares them.
+  - **The constellation takes every other strand's tip,** fifteen, as the
+    mock traces it, where the plan said a dozen; the plan says fifteen.
+  - **The deck's parts are white, sized in CSS pixels,** and so baked
+    apart from the field's atlas by `deckFrames()`, on a new pixel ratio
+    only: the scene tints them at rest, held or pressed. Dash's recharge,
+    an arc that grows, and a blast's and the Nova's rings, up to 12 units
+    out, aren't frames: a ring that large would take a quarter of the
+    atlas, so the scene draws them as Phaser's arcs.
+  - **The tags' frames wait for `tags.ts`,** in A7.4.2, which decides
+    which effects show one.
+  - **The comet's tail reaches 2.8 units back from its head's middle,**
+    within the 3 the comet leaves the field by, so all of it has gone
+    from sight as the comet goes, and short, as the plan's look asks.
+  - **How to play pictures** each rock whole at its largest size, each
+    pickup, the comet, and a stray as the fuzzball in the accent in its
+    bubble, as the fuzzball is everywhere but in a pilot's ink. The
+    comet's picture is a frame of its own, framed by `bounded()` about
+    its head and tail together, as a picture is taken whole and the
+    comet's frame is centered on its head.
+- **Review.** A fresh agent reviewed it, the geometry measured in a
+  probe of its own; every comment is answered.
+  1. A lodestone's bands ran to its body's edge in the field's color, so
+     they joined the field and cut the rock in three. Fixed: each ends
+     short of the sides, as the choices say, and a case holds every
+     band's corners half a CSS pixel or more inside the body at every
+     scale.
+  2. Lines took the canvas's pointed corners and flat ends, and the
+     dash button's chevron reached past its frame by up to 1.3 px, which
+     the spec's copy of `centered()`'s reach couldn't see. Fixed by
+     `stroke()`, as the choices say, rather than by setting the canvas's
+     join and cap in `@fz/phaser`'s `bakeTexture()`, where Brick
+     Breaker's frames would change too: a dot at each point makes every
+     line's reach exact, and `edgeOf()` takes a line's ends.
+  3. `records.ts` copied Brick Breaker's `recordOf()`, and the guard's
+     dashes the deck's. Fixed: `recordOf()` is lifted into `@fz/core`,
+     Brick Breaker taking it from there, and `dashedRing()` is one helper
+     in `shapes.ts`, taking a color.
+  4. The Extra ship's symbol was the pod alone where the plan says it
+     carries a pilot; the log said no side comes in nearer than 0.75,
+     false of ice; and the rivets reached 0.685. Fixed: the symbol is a
+     pilot in its window, the pilot in the accent on the window in the
+     color on it, set a little low as it sits in the ship; the choices
+     say what holds ice's marks; and the rivets' edges lie at 0.6, which
+     a case holds.
+  5. The hull's `left` and `right` were swapped against its doc. Fixed.
+  6. At the cap, a pixel ratio of 1 packs wider than 3. Fixed: the specs
+     bake at both.
+- **Second review.** The first review's fixes reshaped the change, so a
+  fresh agent reviewed it again, whole; every comment is answered.
+  1. The comet's tail reached 5.5 units back, past the 3 the comet leaves
+     the field by, so its back vanished in a frame as it went. Fixed: the
+     tail is 2.8, as the choices say, and a case holds the comet's frame
+     within the margin.
+  2. How to play's comet picture was the comet's frame, centered on its
+     head, so the picture would sit off its middle. Fixed: it is a frame
+     of its own, as the choices say, and a case holds it about its
+     middle.
+  3. The log said 34 is the most that fits, and the canvas's caps square.
+     Fixed: 36 fits, measured, and the caps are flat.
+  4. Two cases' titles said more than they checked: a pilot adrift within
+     its bubble, and a pickup's outline its width out all round. Fixed: a
+     case holds the stray picture's pilot inside its rim's inner edge, and
+     every point of the pickup's outline lies its width from the hexagon.
+  5. The small points: Brick Breaker's `@fz/core/records` imports sit with
+     its package imports, `ROCK_ART` isn't exported, the pickup's corner
+     comment says its arc touches the hexagon's sides, and a line's extent
+     is now its own, its ends cut across it at its corners, rather than a
+     bound half its width past them.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,150
+  tests; the view at 100% of statements, functions and lines and 95.21%
+  of branches, the rest the fallbacks strict indexing asks for);
+  Brick Breaker's (1,978), `@fz/core`'s (79) and `@fz/phaser`'s (305);
+  `yarn prettier:check` and the skill references.
+  Mutants of the art and the shapes, each a size, a color, a count or a
+  step of the geometry changed: of 57, two didn't apply as written and
+  six got through. Ice drawn rounded, its facets toward every corner, a
+  rock's or a pickup's outline not grown past its body, and the stray's
+  picture's pilot at its bubble's middle are each caught now by a case of
+  its own, and the two that didn't apply, run again, are caught. The
+  sixth, a lodestone's band taking its left end from the last crossing
+  rather than the nearest, draws the same while every band's line crosses
+  each side of a body once, as it does in every outline. Mutants of the
+  review's fixes, each a dot, a piece, a dash count, a line's reach or
+  move, a band's inset, a rivet's reach or the Extra ship's pilot
+  changed: of 11, one got through, the pilot at its window's middle,
+  which a case of its own catches now. Mutants of the second review's
+  fixes, the tail at 5.5, the picture the comet's own frame, `bounded()`
+  not moving the drawing or taking its left for its right, and a line's
+  extent half its width past its ends: of 6, none got through.

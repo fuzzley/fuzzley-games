@@ -1,4 +1,4 @@
-import { keysOf } from "@fz/core/records";
+import { keysOf, recordOf } from "@fz/core/records";
 import { BALL_KIND_IDS, type BallKindId } from "../rules/catalog/balls";
 import { BRICK_KIND_IDS, type BrickKindId } from "../rules/catalog/bricks";
 import {
@@ -7,7 +7,6 @@ import {
   type CapsuleTone,
   capsule,
 } from "../rules/catalog/capsules";
-import { recordOf } from "../rules/tables";
 import {
   BALL_RADIUS,
   BOLT_LENGTH,

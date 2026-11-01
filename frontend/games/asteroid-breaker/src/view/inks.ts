@@ -5,7 +5,7 @@ import type { RockKindId } from "../rules/catalog/rocks";
 
 /** Describes the inks a palette's mode gives the rocks. */
 export interface RockInks {
-  /** The body of each kind. */
+  /** Each kind's ink: its body's, but a crystal's, which is its gem's. */
   readonly kinds: Readonly<Record<RockKindId, number>>;
   /** The glow at a volatile rock's middle. */
   readonly core: number;

@@ -13,6 +13,9 @@ export interface AtlasFrame {
   readonly draw: DrawTexture;
 }
 
+/** Describes a frame by all its atlas's packing reads of it: its name and its size. */
+export type FrameSize = Pick<AtlasFrame, "name" | "width" | "height">;
+
 /** The empty pixels between two frames, so none bleeds into the next. */
 export const ATLAS_GUTTER = 2;
 
@@ -20,15 +23,15 @@ export const ATLAS_GUTTER = 2;
 export const MAX_ATLAS_SIDE = 4096;
 
 /** Says where a frame lies in the atlas. */
-interface Placed {
-  readonly frame: AtlasFrame;
+interface Placed<T extends FrameSize> {
+  readonly frame: T;
   readonly x: number;
   readonly y: number;
 }
 
 /** Says where every frame lies in an atlas, and how big it is. */
-interface Packing {
-  readonly placed: readonly Placed[];
+interface Packing<T extends FrameSize> {
+  readonly placed: readonly Placed<T>[];
   readonly width: number;
   readonly height: number;
 }
@@ -82,6 +85,20 @@ export function bakeAtlas(
 }
 
 /**
+ * Returns how big an atlas of frames is, packed as {@link bakeAtlas} packs
+ * them, so a game can hold its atlas to a size the devices it plays on take.
+ *
+ * It throws as {@link bakeAtlas} does.
+ */
+export function atlasSize(frames: readonly FrameSize[]): {
+  readonly width: number;
+  readonly height: number;
+} {
+  const { width, height } = pack(frames);
+  return { width, height };
+}
+
+/**
  * Packs frames into rows, in their order, about as wide as the atlas is
  * tall, with a gutter between.
  *
@@ -89,7 +106,7 @@ export function bakeAtlas(
  * texture's whole, a size that isn't a whole number of pixels above 0, or an
  * atlas larger than every device takes.
  */
-function pack(frames: readonly AtlasFrame[]): Packing {
+function pack<T extends FrameSize>(frames: readonly T[]): Packing<T> {
   const names = new Set<string>();
   let area = 0;
   let widest = 1;
@@ -111,7 +128,7 @@ function pack(frames: readonly AtlasFrame[]): Packing {
   }
 
   const across = Math.max(widest, Math.ceil(Math.sqrt(area)));
-  const placed: Placed[] = [];
+  const placed: Placed<T>[] = [];
   let x = 0;
   let y = 0;
   let rowHeight = 0;

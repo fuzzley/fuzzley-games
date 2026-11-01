@@ -1,7 +1,7 @@
+import { recordOf } from "@fz/core/records";
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_KINDS } from "../rules/capsules";
 import { type EffectKind, capsule } from "../rules/catalog/capsules";
-import { recordOf } from "../rules/tables";
 import { tagFrame } from "../view/art";
 import { toCanvasX, toCanvasY } from "../view/field_metrics";
 import { between } from "../view/frame";

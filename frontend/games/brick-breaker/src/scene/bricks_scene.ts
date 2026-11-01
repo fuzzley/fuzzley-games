@@ -1,3 +1,4 @@
+import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
@@ -12,7 +13,6 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { Core, type GameObjects, Input, Scene, type Types } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
-import { recordOf } from "../rules/tables";
 import {
   PICTURE_FRAMES,
   type Pictures,
