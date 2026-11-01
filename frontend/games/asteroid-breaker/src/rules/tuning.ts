@@ -70,6 +70,9 @@ export const DASH_RECHARGE_MS = 2500;
 /** The speed a dash adds along the ship's heading to what it flew at before, to its top speed. */
 export const DASH_CARRY = 4;
 
+/** How long after a ship is lost the next in line comes, to wait where it is safest. */
+export const NEW_SHIP_MS = 1000;
+
 /** How long a new ship stays untouchable once it first moves. */
 export const NEW_SHIP_GUARD_MS = 2000;
 
@@ -188,6 +191,9 @@ export const DROUGHT_MS = 25_000;
 
 /** How long the ship stays untouchable as its shield goes, so the pieces of the rock it broke can fly clear. */
 export const SHIELD_GUARD_MS = 1000;
+
+/** How long the ship stays untouchable once a pause that stretched the field to a new shape ends. */
+export const STRETCH_GUARD_MS = 1000;
 
 /** How many ships a run starts with, each with its pilot. */
 export const FIRST_SHIPS = 3;

@@ -63,7 +63,7 @@ describe("parseWave", () => {
   });
 
   it("breaks its boulders into stones, or the kind it says", () => {
-    expect([parsed().pieces, parsed({ pieces: "iron" }).pieces]).toEqual([
+    expect([parsed().waveKind, parsed({ waveKind: "iron" }).waveKind]).toEqual([
       "stone",
       "iron",
     ]);
@@ -153,12 +153,12 @@ describe("parseWave", () => {
     ],
     [
       "boulders breaking into a kind that doesn't exist",
-      { pieces: "rubber" },
+      { waveKind: "rubber" },
       `its boulders break into "rubber", which is no large rock`,
     ],
     [
       "boulders breaking into a kind that doesn't come large",
-      { pieces: "boulder" },
+      { waveKind: "boulder" },
       `its boulders break into "boulder", which is no large rock`,
     ],
     ["a pace too slow", { pace: 0.7 }, "its pace, 0.7, is outside 0.8 to 1.4"],

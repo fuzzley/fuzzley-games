@@ -187,6 +187,18 @@ export function isGuarded(ship: Readonly<Ship>): boolean {
 }
 
 /**
+ * Keeps a waiting ship waiting through a frame's steering that doesn't move
+ * it afresh, taking the steering as held and leaving its timers as they
+ * are, and returns whether it did, as a wave's first ship does while the
+ * wave holds still for the player's first move.
+ */
+export function waitOn(ship: Ship, steer: Readonly<Steer>): boolean {
+  if (!ship.waiting || movesAfresh(ship, steer)) return false;
+  hold(ship.held, steer);
+  return true;
+}
+
+/**
  * Keeps a ship untouchable, between steps, for at least a time from the
  * next step on, as the field does as a pause ends.
  */

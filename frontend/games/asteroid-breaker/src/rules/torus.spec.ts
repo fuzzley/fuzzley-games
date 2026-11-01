@@ -4,6 +4,7 @@ import {
   copyShift,
   distance,
   distanceSquared,
+  middleOf,
   pullToward,
   torusFor,
   wrap,
@@ -14,6 +15,12 @@ const SQUARE: Torus = { width: 40, height: 40 };
 
 /** The widest field, on its side. */
 const WIDEST: Torus = { width: 88, height: 40 };
+
+describe("middleOf", () => {
+  it("is halfway across a field and halfway down", () => {
+    expect(middleOf({ width: 73, height: 40 })).toEqual({ x: 36.5, y: 20 });
+  });
+});
 
 describe("torusFor", () => {
   it.each([

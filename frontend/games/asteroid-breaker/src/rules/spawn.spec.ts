@@ -4,19 +4,27 @@ import {
   shipOf,
   wholeRocks,
 } from "../testing/field_picture";
-import { type Field, createField } from "./field";
+import {
+  type Field,
+  type FieldSetup,
+  type WaveSetup,
+  createField,
+  fieldFor,
+} from "./field";
 import { fillFor } from "./fill";
 import { createCrew } from "./pilots";
 import { type Rock, stepRocks } from "./rocks";
+import { STILL } from "./ship";
 import { layOut, liesFairly, safestPlace } from "./spawn";
 import { SPEEDS, SPEED_INFO, type Speed } from "./speed";
 import { stepsIn } from "./stepper";
-import { type Place, type Torus, across, distance } from "./torus";
+import { type Place, type Torus, across, distance, middleOf } from "./torus";
 import {
   FAIR_COURSE,
   FAIR_COURSE_MS,
   FAIR_DISTANCE,
   FIRST_SHIP_POINTS,
+  ROCK_CAP,
   ROCK_RADIUS,
   ROCK_SPEED,
   SAFE_MIDDLE,
@@ -51,30 +59,44 @@ const ROCKS = [
   { kind: "ice", size: "small", count: 2 },
 ] as const;
 
-/** Returns a field a wave fills on a shape at a speed, from a seed, its ship waiting in the middle and no rock laid yet. */
-function fieldFor(wave: Wave, torus: Torus, speed: Speed, seed: number): Field {
-  const fill = fillFor(wave, torus);
-  return createField({
+/** How the spec's fields are played but for their shape, their pace and their seed: no pickups, strays or comets, and a run's first crew. */
+const SETUP: FieldSetup = {
+  torus: NARROWEST,
+  cap: ROCK_CAP,
+  seed: 1,
+  pace: 1,
+  waveKind: "stone",
+  drops: 0,
+  pool: [],
+  pickupsAtOnce: 2,
+  strays: 0,
+  cometEvery: null,
+  crew: createCrew(),
+  banked: 0,
+  nextShipAt: FIRST_SHIP_POINTS,
+};
+
+/** Returns a field of a shape at a pace, from a seed, its ship waiting in the middle and no rock laid yet. */
+function waitingField(torus: Torus, pace = 1, seed = 1): Field {
+  return createField({ ...SETUP, torus, pace, seed });
+}
+
+/** Returns how the spec starts a wave on a field of a shape at a speed, from a seed, with a run's first crew. */
+function startOn(torus: Torus, speed: Speed, seed: number): WaveSetup {
+  return {
     torus,
-    cap: fill.cap,
+    speed,
     seed,
-    pace: wave.pace * SPEED_INFO[speed].motion,
-    waveKind: wave.pieces,
-    drops: wave.drops,
-    pool: wave.pool,
-    pickupsAtOnce: fill.pickupsAtOnce,
-    strays: fill.strays,
-    cometEvery: fill.cometEvery,
     crew: createCrew(),
     banked: 0,
     nextShipAt: FIRST_SHIP_POINTS,
-  });
+    held: STILL,
+  };
 }
 
-/** Returns a field of a shape, 40 by 40 unless given, at Normal, with the spec's rocks laid out in a formation as written. */
+/** Returns a field of a shape, 40 by 40 unless given, with the spec's rocks laid out in a formation as written. */
 function laidOut(formation: Formation, torus: Torus = NARROWEST): Field {
-  const wave = { ...parsedFirst(), rocks: ROCKS, formation };
-  const field = fieldFor(wave, torus, "normal", 1);
+  const field = waitingField(torus);
   layOut(field, ROCKS, formation, middleOf(torus));
   return field;
 }
@@ -84,11 +106,6 @@ function parsedFirst(): Wave {
   const [first] = WAVES;
   if (!first) throw new Error("The game has a wave.");
   return parseWave(first);
-}
-
-/** Returns a field's middle. */
-function middleOf(torus: Torus): Place {
-  return { x: torus.width / 2, y: torus.height / 2 };
 }
 
 /** Returns how fast a rock flies at a pace of 1. */
@@ -158,9 +175,8 @@ describe("layOut", () => {
     let short = 0;
 
     for (const seed of SEEDS) {
-      const field = fieldFor(wave, torus, speed, seed);
+      const field = fieldFor(wave, startOn(torus, speed, seed));
       const fill = fillFor(wave, torus);
-      layOut(field, fill.rocks, wave.formation, middleOf(torus));
       const laid = fill.rocks.reduce((sum, each) => sum + each.count, 0);
       short += laid - wholeRocks(field).length;
       const { off, flown } = nearness(field);
@@ -198,7 +214,7 @@ describe("layOut", () => {
   it("flies a ring either way, as drawn", () => {
     const ways = new Set(
       SEEDS.map((seed) => {
-        const field = fieldFor(parsedFirst(), NARROWEST, "normal", seed);
+        const field = waitingField(NARROWEST, 1, seed);
         layOut(field, ROCKS, "ring", MIDDLE);
         const [rock] = wholeRocks(field);
         if (!rock) throw new Error("The ring has a rock.");
@@ -212,10 +228,8 @@ describe("layOut", () => {
   // So fast that some of a ring's rocks come round the wrap at the ship
   // and are turned to keep clear of it.
   it("flies a ring one way though some of its rocks were turned to keep clear", () => {
-    const wave = { ...parsedFirst(), pace: 1.5 };
-
     const ways = SEEDS.map((seed) => {
-      const field = fieldFor(wave, NARROWEST, "normal", seed);
+      const field = waitingField(NARROWEST, 1.5, seed);
       layOut(field, ROCKS, "ring", MIDDLE);
       return new Set(wholeRocks(field).map(wayRound)).size;
     });
@@ -291,7 +305,7 @@ describe("layOut", () => {
       { kind: "ice", size: "small", count: 2 },
       { kind: "stone", size: "large", count: 2 },
     ] as const;
-    const field = fieldFor(parsedFirst(), torus, "normal", 1);
+    const field = waitingField(torus);
 
     layOut(field, rocks, "wall", middleOf(torus));
 
@@ -302,24 +316,21 @@ describe("layOut", () => {
   });
 
   it.each([
-    ["of four, none quite in line with the ship", 4, NARROWEST, 1.4, "fast"],
     [
-      "of three, one in line with it",
-      3,
-      { width: 41.4, height: 40 },
-      1,
-      "normal",
+      "of four at the fastest pace, none quite in line with the ship",
+      4,
+      NARROWEST,
+      1.4 * SPEED_INFO.fast.motion,
     ],
+    ["of three, one in line with it", 3, { width: 41.4, height: 40 }, 1],
   ] as const)(
     "slows a wall %s no faster than keeps a rock in line with the ship clear of it",
-    (_, count, torus, wavePace, speed) => {
+    (_, count, torus, pace) => {
       const rocks = [{ kind: "ice", size: "small", count }] as const;
-      const wave = { ...parsedFirst(), pace: wavePace };
-      const field = fieldFor(wave, torus, speed, 1);
+      const field = waitingField(torus, pace);
 
       layOut(field, rocks, "wall", middleOf(torus));
 
-      const pace = wavePace * SPEED_INFO[speed].motion;
       const fairest =
         (torus.width / 2 - FAIR_COURSE) / ((FAIR_COURSE_MS / 1000) * pace);
       expect(wholeRocks(field).map(speedOf)).toEqual(
@@ -375,8 +386,7 @@ describe("layOut", () => {
 
   /** Returns a field of 40 by 40 with two dozen large stones laid out on it in a formation, scattered unless it says, so many that a cluster crowds and flying so fast that hardly a course they are drawn on keeps clear of the ship. */
   function laidFast(formation: Formation = "scatter"): Field {
-    const wave = { ...parsedFirst(), pace: 50 };
-    const field = fieldFor(wave, NARROWEST, "normal", 3);
+    const field = waitingField(NARROWEST, 50, 3);
     const rocks = [{ kind: "stone", size: "large", count: 24 }] as const;
     layOut(field, rocks, formation, MIDDLE);
     return field;
@@ -411,8 +421,7 @@ describe("layOut", () => {
       const wave = { ...parsedFirst(), rocks, formation, pace: 1.4 };
 
       const unfair = SEEDS.filter((seed) => {
-        const field = fieldFor(wave, torus, "fast", seed);
-        layOut(field, rocks, formation, middleOf(torus));
+        const field = fieldFor(wave, startOn(torus, "fast", seed));
         const { off, flown } = nearness(field);
         return off < FAIR_DISTANCE || flown < FAIR_COURSE;
       });
