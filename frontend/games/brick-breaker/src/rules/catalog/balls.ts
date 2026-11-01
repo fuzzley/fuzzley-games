@@ -1,4 +1,4 @@
-import { keysOf } from "../tables";
+import { keysOf } from "@fz/core/records";
 
 /** Describes a kind of ball: what its hits do, and how it moves. */
 export interface BallKind {

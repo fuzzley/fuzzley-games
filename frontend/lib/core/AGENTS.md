@@ -23,6 +23,8 @@ Each file is an entry point of its own, imported by name, such as
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
   "2 hints", and `formatPoints()`, points grouped in thousands, "4,250".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most.
+- `src/records.ts`: `keysOf()`, a record's keys typed as its own, as a
+  catalog's ids are, which `Object.keys()` types as strings.
 - `src/clock.ts`: `createClock(stepMs, maxStepsPerFrame)`, a `Clock` that
   turns a frame's time into fixed steps, `advanceClock()`, how many a frame
   holds, at most its most, `progressOf()`, how far it is toward the next,

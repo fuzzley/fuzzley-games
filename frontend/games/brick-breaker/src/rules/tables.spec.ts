@@ -1,14 +1,4 @@
-import { keysOf, pick, recordOf } from "./tables";
-
-describe("keysOf", () => {
-  it("returns a record's keys in the order they were written", () => {
-    expect(keysOf({ normal: 1, fire: 2, blast: 3 })).toEqual([
-      "normal",
-      "fire",
-      "blast",
-    ]);
-  });
-});
+import { pick, recordOf } from "./tables";
 
 describe("recordOf", () => {
   it("makes an entry for each key from the key", () => {

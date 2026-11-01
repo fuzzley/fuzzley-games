@@ -1,3 +1,4 @@
+import { keysOf } from "@fz/core/records";
 import { splitOff } from "./balls";
 import type { Brick } from "./bricks";
 import { hasTrait, isNeeded } from "./catalog/bricks";
@@ -13,7 +14,6 @@ import { type Box, cellMiddleX, cellMiddleY } from "./grid";
 import { paddleBox } from "./paddle";
 import { SPEED_INFO } from "./speed";
 import { stepsIn } from "./stepper";
-import { keysOf } from "./tables";
 import {
   CAPSULE_FALL_SPEED,
   CAPSULE_HEIGHT,
