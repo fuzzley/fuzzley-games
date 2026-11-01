@@ -2499,3 +2499,139 @@ rules out.
   deck's choice ignoring the field in play, the reshape weighing the
   field it had, the reviewer's five edges, the right zone's left from
   the canvas's edges both ways, and the tie; each is caught.
+
+## A7.2: the stick, the deck and the steering
+
+2026-11-01.
+
+- **Built.** `src/view/stick.ts`: `Stick`, the one finger on the stick
+  from where it lands to where it lifts, its rings, its push and its
+  following base, and `StickView`, the stick as the deck's painter reads
+  it. `deck.ts`: `deckOf()`, where the stick rests and Fire and Dash lie
+  around a field of a shape, and `buttonAt()`, the button a place presses.
+  `steering.ts`: `Steering`, which turns the keys, the mouse and the
+  fingers into each frame's `Steer`, as the `BoardSetting` says.
+  `BoardSetting` takes "Fire by itself" too, as it moves Dash into Fire's
+  place, and the steering reads it there to hold fire every frame. `src/testing/canvases.ts` holds
+  the field metrics spec's `viewport()`, `chrome()` and `boardOf()`, which
+  the deck's spec takes too.
+- **Choices.**
+  - The stick's numbers are the plan's: a base of 48 CSS px, a knob of
+    20, a turn ring at 12% of its reach and a thrust ring at half. Each
+    ring has a give of 4% of the reach, about 2 CSS px: once the knob
+    passes out of a ring, what it began holds until the knob comes that
+    far back inside. Within the thrust ring's give the stick thrusts but
+    pushes nothing, as the push rises from nothing at the ring, so the
+    ring's light doesn't flicker and the push never jumps.
+  - The base lands where the thumb does, never moved in from the zone's
+    sides, since a base moved would leave the knob off its middle and
+    steer at once. Dragged past the edge, the knob stays at it and the
+    base follows, out of the zone if the thumb goes there.
+  - The parts lie where the mock has them: under the field, the stick at
+    rest 0.42 across its zone and 0.58 down, Fire 0.66 and 0.62, and Dash
+    70 CSS px toward the middle and 34 up from it; beside the field, 0.5
+    and 0.66, 0.56 and 0.7, and Dash 6 toward the middle and 80 up; each
+    mirrored with the stick on the right.
+  - Each part keeps within its zone, 10 CSS px from its top and bottom,
+    as the mock has it, and 16 from the zone's side at the stage's, as
+    the plan asks. The mock kept 16 from both sides, but on a small phone
+    on its side the zone is 112 wide, too narrow for the stick's 96 and 16
+    either side, as the layout spec found; the side toward the field has
+    the margin beyond it, and the line between the zones under the field
+    is no edge a swipe starts from. Dash keeps the rule the others do,
+    where the mock gave it 12 across and 8 down.
+  - A button takes a press within 12 CSS px of its edge, as the plan
+    says; where both buttons' slacks meet, as they do by 2 px under the
+    field, the nearer edge wins.
+  - The steering follows three fingers, `MOST_FINGERS`, as the scene will
+    add pointers for: a thumb on the stick and two on the buttons, so one
+    can hold Fire as another dashes. A finger off the stick presses
+    whichever button it is on now, so one sliding from Fire to Dash
+    dashes; the stick's finger never presses one, and a finger pressed in
+    the stick's zone while another holds it is one off it.
+  - The keys come by `event.code`, each counted while it is held, so a
+    key held repeats nothing, and of two held for one thing, letting one
+    go leaves it asked. The mouse aims once it moves over the field, from
+    its top left pixel to short of its right and bottom ones, at its place
+    in field units as it moves, so a still pointer aims at the same place
+    through a resize or a pause; a turn key pressed, or a finger taking
+    the stick, takes the heading back, and the next move takes it again. Its main button fires and its second thrusts
+    while held. A stick's heading turns the ship before the mouse's aim,
+    and the mouse's before the keys', as the rules take one at a time.
+  - The canvas can change under a finger, as a window is resized in play,
+    and where the finger lies on the new canvas is unknown till it moves.
+    So every finger asks what it did till then: the stick's next move lays
+    its base afresh, as far from the finger and the same way as before,
+    and a finger off the stick presses the button it pressed, unless the
+    new deck has none such.
+  - `Steering` makes nothing as it reads a frame: one `Steer` record,
+    written again each frame, the finger records made once, and loops
+    where a callback would make a closure.
+- **Review.** A fresh agent reviewed it; every comment is answered.
+  1. A held turn key repeats, and Phaser hands each repeat on as a key
+     pressed, so `press()` took the heading back from the mouse some 30
+     times a second while a turn key was held and the mouse moved. Fixed:
+     a key held already is pressed no more, and a mouse move that goes
+     nowhere, as browsers send, takes nothing either; a spec holds each.
+  2. A resize or a change of pixel ratio mid-press left the stick's base
+     where it lay on the old canvas, so the finger's next move made the
+     ship lurch at full push, and a still finger off the stick could stop
+     firing or land on the new Dash. Fixed as the choice above says, with
+     specs for both, two changes before a move among them.
+  3. `MOST_FINGERS` said it was every finger followed when it was those
+     off the stick, and the plan's three pointers were the mouse and two
+     fingers where `addPointer(2)` adds three. Fixed: three fingers in
+     all, any of them off the stick, and the plan's line says the scene
+     adds `MOST_FINGERS - 1` to the one Phaser starts with.
+  4. "Fire by itself" lived in the `BoardSetting` and in a setter of the
+     steering's, which the scene had to keep in step. Fixed: the steering
+     takes the `BoardSetting`, and reads it from there.
+  5. The plan's A7.2 bullet still said the 16 px is kept from the zones'
+     sides. Fixed: from the stage's.
+  6. A press under the id of a finger whose lift was lost left the old
+     record pressing Fire. Fixed: a press lets go of any finger with its
+     id first, on the stick or off it, and specs hold both.
+  7. No deck spec had chrome. Fixed: one with a notch's 44 px down the
+     left keeps the stick 16 px inside the stage.
+- **Second review.** A second fresh agent reviewed the change with those
+  answers; every comment is answered.
+  1. A mouse that had crossed the field kept aiming once a finger took
+     the stick, so with the thumb in the turn ring, or lifted, the ship
+     swung toward a cursor nobody touched, as on a tablet with a trackpad.
+     Fixed: a finger taking the stick takes the heading from the mouse,
+     as a turn key does, and specs hold both.
+  2. A finger off the stick pressed nothing after any change of the
+     canvas, so a still thumb on Fire stopped firing whenever the board
+     measured again, as at a wave's start after a resize. Fixed: it
+     presses the button it pressed until it moves, through two changes
+     too, and one on no button presses none, though it may lie on one on
+     the new canvas.
+  3. `MOST_FINGERS` said the steering follows three fingers where its
+     records and the stick's let it follow four. Fixed: it is how many the
+     scene follows, and the steering keeps a record for each, as all may
+     be off the stick; Phaser hands over no more.
+  4. The guard against a key's repeats was kept by what a key asks, so a
+     second key for a turn already held no longer took the heading back,
+     and letting go of one of two keys for one thing let it go. Fixed:
+     the keys come by `event.code`, each counted, as the choice above
+     says, which needs nothing of the scene.
+  5. The stick's view keeps the old canvas's places after a change until
+     the finger moves. Left as it is, said on `StickView`: the painter
+     draws the stick there for a frame at most, as a held thumb moves.
+  6. The plan's deck section still kept the 16 px from the screen's
+     edges. Fixed: from the stage's sides, as elsewhere.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (1,564 tests,
+  the view fully covered), `yarn prettier:check` and the skill
+  references. The deck's sweep over every `@fz/dev/layout` shape, both
+  hands and Fire or none, found the small phone's 112 px zone above.
+  Mutants of the stick, the deck and the steering, each undoing one bound,
+  ring, reset or precedence: of 57, five got through, a lifted stick still
+  thrusting, an edge kept from a zone's side toward the middle, Dash's gap
+  from its zone's top, and the stick's reach after a change of pixel
+  ratio, each now caught by a spec added for it; the fifth, `buttonAt()`
+  measuring a missing Fire as Dash, gives the same, as a tie goes to Dash.
+  Mutants of the review's fixes: of 17, four got through, the base laid
+  afresh down the canvas, two of a finger's waiting to move after a
+  change, caught by specs added for them, and an early return in letting
+  go of a finger, which changed nothing and is gone. Mutants of the second
+  review's fixes: of 11, each is caught.

@@ -464,7 +464,7 @@ more. Paths in Part 1 are under `frontend/lib/` or
   from its last move so a still pointer gives the same place, the stick as
   a heading, its rings with some give, so a thumb resting on one doesn't
   flicker a push or a heading on and off; the stick at rest and the buttons
-  kept 16 px from their zones' sides, off the screen's edges; swapped
+  kept 16 px from the stage's sides, off the screen's edges; swapped
   hands and "Fire by itself". Specced by cases. One commit.
 - **A7.3** `src/view/palette.ts`, `inks.ts` (the rocks' inks, seven for
   light palettes and seven for dark, and the pilots', eight for each, with
@@ -1014,8 +1014,8 @@ field:
   200 CSS px, and the field the rest.
 - **On its side,** a deck lies on each side of the field: the stick's zone
   on the left, the buttons on the right, each a sixth of the stage's width,
-  112 to 176 CSS px, inside the screen's safe areas, the stick and the
-  buttons kept 16 px from the screen's edges, so no thumb starts the
+  112 to 176 CSS px, inside the screen's safe areas, the stick at rest and
+  the buttons kept 16 px from the stage's sides, so no thumb starts the
   browser's own swipe. The bar's rail stands beyond the right one, as on
   every game on its side.
 - **Between the two,** on a stage near square, it lies whichever way
@@ -1597,7 +1597,10 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
 - **Flourishes from pools,** a particle emitter on the atlas for shards and
   exhaust, every image made as the scene is created; nothing is made per
   frame.
-- **Three pointers** (`input.addPointer(2)`): the mouse, and two fingers.
+- **Four pointers:** the mouse, and the three fingers the steering
+  follows (`MOST_FINGERS`), a thumb on the stick and two on the buttons, so
+  one can hold Fire as another dashes; Phaser starts with one, and the
+  scene adds the rest (`input.addPointer(MOST_FINGERS - 1)`).
 
 #### The shell
 
@@ -1656,7 +1659,8 @@ with the deck; `yarn capture:screenshots` for the site's images.
   scaled past 40 device px a unit, which softens edges a little; the
   screenshots at that size show whether it matters.
 - **iPhone Safari's edge swipe** goes back a page and can't be fully
-  stopped; the decks keep 16 px off the edges and inside the safe areas.
+  stopped; the stick at rest and the buttons keep 16 px off the edges,
+  and the decks inside the safe areas.
 - **Thumbs near the bar.** Upright, the bar sits under the deck; a thumb
   that slides can press Pause. The deck keeps a gap above the bar, and the
   bar's buttons need a deliberate tap.

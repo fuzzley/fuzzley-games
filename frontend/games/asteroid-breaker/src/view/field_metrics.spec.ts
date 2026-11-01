@@ -1,8 +1,7 @@
-import { SHAPES, SMALLEST, type Shape, shapesAt } from "@fz/dev/layout";
-import { formFactorAt } from "@fz/game-ui/breakpoints";
-import { type Insets, NO_INSETS } from "@fz/phaser/insets";
+import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
 import type { Viewport } from "@fz/phaser/layout";
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "../rules/tuning";
+import { boardOf, chrome, viewport } from "../testing/canvases";
 import {
   type BoardSetting,
   DECK_HEIGHT_CSS_PX,
@@ -23,6 +22,7 @@ const NO_DECK: BoardSetting = {
   marginCss: 0,
   deck: false,
   stickOnRight: false,
+  fireByItself: false,
 };
 
 /** A board with no margin, its deck showing, its stick on the left. */
@@ -39,47 +39,6 @@ function deckOn(canvas: Viewport, board: BoardSetting): DeckLayout | null {
 /** Returns the room of the field a canvas shapes, as a wave starts there. */
 function roomOn(canvas: Viewport, board: BoardSetting): PixelRect {
   return fieldRoom(canvas, board, fieldShape(canvas, board, SQUARE));
-}
-
-/** Returns a viewport of a CSS size at a pixel ratio, its chrome as given. */
-function viewport(
-  width: number,
-  height: number,
-  pixelRatio = 1,
-  insets: Insets = NO_INSETS,
-): Viewport {
-  return {
-    width: Math.round(width * pixelRatio),
-    height: Math.round(height * pixelRatio),
-    pixelRatio,
-    insets,
-  };
-}
-
-/** Returns chrome of the same CSS size over each edge. */
-function chrome(css: number): Insets {
-  return { top: css, right: css, bottom: css, left: css };
-}
-
-/**
- * Returns the canvas a board has in a window of a shape, and its margin,
- * as `@fz/game-ui` and the board lay them out: the window less the bar, 73
- * CSS px tall, or 60 on a compact screen, or on a compact screen on its side
- * less the rail down its right, 64 wide; the margin 24 CSS px, or 12
- * compact.
- */
-function boardOf(shape: Shape): { canvas: Viewport; marginCss: number } {
-  const { width, height, deviceScaleFactor } = shape.viewport;
-  const form = formFactorAt(width, height);
-  const canvas =
-    form === "phone-landscape"
-      ? viewport(width - 64, height, deviceScaleFactor)
-      : viewport(
-          width,
-          height - (form === "roomy" ? 73 : 60),
-          deviceScaleFactor,
-        );
-  return { canvas, marginCss: form === "roomy" ? 24 : 12 };
 }
 
 /** Returns the field's frame, the field and the frame around it. */
@@ -522,7 +481,7 @@ describe("the layout", () => {
           ratio,
           deck ? "with" : "without",
           canvas,
-          { marginCss, deck, stickOnRight: false },
+          { marginCss, deck, stickOnRight: false, fireByItself: false },
         ] as const;
       }),
     ),
