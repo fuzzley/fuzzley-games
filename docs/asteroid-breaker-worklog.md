@@ -671,3 +671,218 @@ Asteroid Breaker.
      give. Fixed: the doc says it, a case just before the start and one
      just after the end, a word for each shift, and the longest side's doc
      in terms of the short one.
+
+## A2.3: the ship's flight
+
+2026-10-31.
+
+- **Built.** `src/rules/ship.ts`:
+  - `Steer`, what a frame steers by: the keys' turn from −1 to 1, a
+    stick's heading or the mouse's `aim`, a place on the field; a push
+    from 0 to 1; fire; a dash. It is a record the view writes each frame,
+    with `STILL`.
+  - `Flight`, the five numbers the debug menu will tune in flight, with
+    `TUNED_FLIGHT`, `tuning.ts`'s.
+  - `Ship`, stepped in place, with where it was and pointed a step ago, for
+    the scene to draw between; `Held`, its copy of the step before's
+    steering; and where a stick held as it came pointed.
+  - `createShip()`, waiting with its nose up, given what the player holds
+    as it comes, which every caller must say; `isGuarded()`; `guardShip()`,
+    for the field's guard between steps.
+  - `flyShip()`, a step's flight: the turn by keys, ramped in, or toward
+    the mouse or a stick's heading, slowing into it; the push, the coasting
+    and the top speed; the dash; and the wrap.
+
+  `torus.ts` gains `Place`; `tuning.ts` the flight's numbers, the dash's,
+  a new ship's guard and the stick's slack; `tuning.spec.ts` holds what
+  tuning them must not break.
+
+- **Choices.**
+  - Angles are radians, 0 along x and a quarter turn along y, which on the
+    field, its y running down, is clockwise; a key's turn of 1 is
+    clockwise, as → is.
+  - `Steer`'s fields are writable and `flyShip()` takes it `Readonly`, as
+    Brick Breaker's paddle does, so the view writes one record a frame and
+    allocates none. At most one of the keys' turn, the stick's heading and
+    the mouse's aim turns the ship, the others 0 and null, which the view
+    keeps to.
+  - The mouse aims at a place, not a heading, as Brick Breaker's pointer
+    is a place: a still pointer gives the same place whatever the ship
+    does, where a heading toward it changes as the ship moves. The ship
+    turns toward it straight, as the player sees it, not the shorter way
+    across an edge, and not at all toward its own place. The view keeps the
+    place it found as the pointer last moved, so a still pointer gives the
+    same place every frame, through a resize or a pause's stretch too, which
+    `aim`'s doc says for A7.2; A7.2 in the plan also gives the stick's rings
+    some give, so a resting thumb doesn't flicker a push on and off.
+  - A waiting ship goes at a fresh move only: a keys' turn begun or turned
+    round, a stick's heading begun or turned more than `STICK_SLACK`, 8°,
+    from where it pointed as the ship came, the mouse moved, a push begun,
+    or fire or a dash pressed. What the player holds as a ship comes
+    (`createShip()`'s `held`) is no move until it changes, so a still
+    pointer, a resting thumb's tremble or fire held from the ship just lost
+    doesn't end the wait; let go and given again, each does. `held` has no
+    default, as "Fire by itself" holds fire every frame: a ship made as if
+    nothing were held, as a wave's first could be, would go at once. A dash
+    that ends a wait throws the ship at once.
+  - The coasting slows the ship every step, thrusting or not, so a turn
+    while it thrusts swings its course round; the top speed caps it, the
+    coasting's slowing there being under 7 units a second each second
+    against the thrust's 24. Q3 will say if it feels right.
+  - The keys' turn ramps in, in a straight line, over 80 ms, and starts
+    over whenever its sign changes: as it starts, as it turns round, and
+    after the mouse or a stick turned the ship. A 40 ms tap turns about 4°,
+    a corrective one the other way too. Toward a heading, the most a step
+    turns shrinks with what is left within 12° of it, so the ship comes to
+    it gently, and a bound keeps it from turning past it.
+  - The dash sets the ship's speed along its heading after the step's turn,
+    and neither thrust nor coasting touch it until the throw ends; the ship
+    can still turn. Then it flies at what it flew at before, plus
+    `DASH_CARRY`, 4 units a second, along the heading it ends on, a first
+    guess for "a little", and the step's push keeps it under its top speed.
+    A held dash dashes once, and the recharge counts from the dash's start,
+    so the ring fills from the press.
+  - Timers count down as a step starts, so one set in a step counts it: a
+    dash of 26 steps throws the ship for 26, and a guard of 38 holds
+    through 38 tests of what touches it. A new ship's 2 s guard, from its
+    first move, and a dash's 0.32 s keep the longer. `guardShip()`, for a
+    guard set between steps, as the pause's 1 s is, adds the step the next
+    one counts down first, so the field needn't; A5.3 in the plan names it.
+  - `Flight` holds the numbers the debug menu tunes in flight (thrust, top
+    speed, coasting, both turn rates), so `flyShip()` takes one, the tuned
+    by default; the dash, the ramp and the slack, which it doesn't tune,
+    are read from `tuning.ts`.
+  - The specs take every speed, time and turn from `tuning.ts`, so tuning
+    the feel at Q3 breaks none of them while `tuning.spec.ts` holds. It
+    holds what no tuning may break: full thrust reaching the top speed
+    against the coasting; the keys' ramp over several steps, so a tap turns
+    less than a held key; the turn toward a heading easing within a quarter
+    turn of it, and slowing over more than a step's turn; and the dash
+    faster than the top speed, leaving a ship less than half its top speed
+    faster, guarded for more steps than it throws, and recharged only after
+    its guard ends, in steps, or dashing could keep a ship untouchable.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (136 tests,
+  the rules fully covered), `yarn prettier:check`.
+  - **Tuning.** Each of the flight's numbers set alone to the ends of the
+    debug menu's ranges and past them: the top speed 6 and 30, the thrust 8
+    and 60, the coasting's half-life 300, 700 and 6,000 ms, the keys' rate
+    120 and 600, their ramp 10, 40 and 200 ms, the heading's rate 180,
+    1,200 and 1,440, its ease 6° and 40°, the stick's slack 2° and 30°, and
+    the dash's speed, time, guard, recharge, carry and a new ship's guard at
+    their ends, a new ship's guard of 250 ms, under the dash's, the dash's
+    guard at 2,400 ms, and the ease at 100°. The flight's specs fail only
+    where `tuning.spec.ts` does too, which it does where a number breaks
+    what it holds: a top speed of 6, which a carry of 4 is more than half
+    of; a 300 ms half-life, whose thrust can't reach the top speed; a 10 ms
+    ramp, two steps; a heading's rate of 1,440, a step's turn as wide as
+    the ease; a 400 ms dash, longer than its guard; a carry of 15; and an
+    ease of 100°, past a quarter turn.
+  - **Mutants**, in five rounds, each round's survivors given cases.
+    - The first, 44, left 10: the ramp not starting over after a heading,
+      the ease and the anticlockwise bound left out, the longer guard not
+      kept, a redundant clamp at the dash's end, now gone, an equivalent
+      `<=`, and four tuning numbers the specs then partly wrote out.
+    - The second, 41, left 6: the ramp's restarts, held by a bound of
+      exactly one step's turn that rounding passed, and four of `Flight`'s
+      numbers read from `tuning.ts` in its place.
+    - The third, 61 on the code as the first review reshaped it, left 5:
+      the held heading and push not copied, where the ship was a step ago
+      not kept, and its y wrapped by the field's width.
+    - The fourth, 28 on the code as the second review reshaped it, left 4:
+      the mouse's y not compared, its spec moving the pointer across only;
+      the flag for whether the mouse aimed, both ways, which the held place
+      being zeroed made redundant, so the held place now keeps the last one
+      aimed at; and the `return` after a turn toward a heading, which,
+      the keys' turn being 0 then, as `Steer` says, changes nothing. The
+      first three, run again, are caught.
+    - The fifth, the third review's three, each caught once the specs below
+      were added: the slack measured from the step before, which a slow,
+      deliberate turn would never pass; the slack measured by subtraction
+      rather than across the half turn, where a stick pointing left
+      crosses from π to −π; and a held turn turned round not counted as a
+      move.
+- **First review.**
+  1. A heading standing from the mouse, or fire or a push held from the
+     ship just lost, ended every wait at once. Answered with a fresh move
+     against the step before and what `createShip()` is given, which the
+     second review found didn't hold for the mouse or a stick (below).
+  2. The keys' ramp didn't start over when the turn turned round without a
+     step of none between, as Brick Breaker's keys allow, so a corrective
+     40 ms tap turned 12.5°, not 4°. Fixed: it starts over whenever the
+     turn's sign changes.
+  3. The log said tuning broke no spec, but the debug menu's ends broke
+     eight, and the wrap's spec started above the top speed. Fixed: every
+     number taken from `tuning.ts`, the invariants in `tuning.spec.ts`,
+     and the sweep above.
+  4. `Steer`'s readonly fields would have made the view allocate a record
+     a frame. Fixed: writable, taken `Readonly`.
+  5. "Nears its top speed smoothly" was untrue; the cap stops it dead.
+     Fixed.
+  6. `Ship` kept nothing for the scene to draw between steps. Fixed:
+     `lastX`, `lastY` and `lastAngle`, kept while it waits too.
+  7. Nothing held the angle within a turn, and the "across 0" spec never
+     crossed it. Fixed: both turns' specs cross 0 and hold the angle.
+  8. "No faster than its full rate" checked neither. Fixed: signed, "at
+     its full rate while far from the heading".
+  9. `tuning.spec.ts` compared milliseconds where the rules count steps.
+     Fixed: in steps.
+  10. `STEP_S * 1000` beside `STEP_MS`, `Ship`'s doc, two `Flight` fields
+      without docs, `HEADING_EASE` credited with the bound's work, a held
+      dash counted in a loop, and a loose tolerance. Fixed, each.
+- **Second review.**
+  1. The mouse's heading, an angle from the ship to the pointer, changes
+     as a new ship comes at a new place, and a stick under a resting thumb
+     trembles, so either still ended the wait at once, compared as exact
+     floats. Fixed: the mouse aims at a place, `Steer.aim`, the same under
+     a still pointer, and a stick's heading moves a waiting ship only
+     begun or turned past `STICK_SLACK` from where it pointed as the ship
+     came; specs for a still pointer, a pointer moved either way, a
+     trembling stick and one turned past its slack.
+  2. No spec held a waiting ship still under what it held, and a dash
+     ending a wait wasn't held to throw it. Fixed: the table of what is
+     held as a ship comes holds it still, and a spec of the dash.
+  3. The turn through a dash, the carry along the heading it ends on, and
+     the coasting under thrust had no spec. Fixed, each.
+  4. Some specs rested on tuning unsaid: the ramp's specs on a ramp of
+     more than two steps, the carry's on room under the top speed, and a
+     turn's on 100 ms being whole steps. Fixed: the ramp's first step and
+     whole steps taken from the numbers, and both invariants in
+     `tuning.spec.ts`.
+  5. With no guard exported, A5.3 would have had to repeat both "keep the
+     longer" and the step's offset. Fixed: `guardShip()`, specced.
+  6. "But while it dashes" read either way, `RADIANS` named no unit, and
+     `isGuarded()` could take `Readonly<Ship>`. Fixed. The heading's turn
+     setting the ramp to 0 itself would only repeat the sign's rule, given
+     `Steer`'s contract, which its doc now states.
+- **Third review.** It found the code right in every case it probed, and
+  the specs, the contracts and the docs short of it:
+  1. The slack had no spec a broken one would fail: measured from the
+     step before, or by subtraction across the half turn, it passed.
+     Fixed: a stick turned a degree a step until past its slack, a tremble
+     either side of where it pointed, and one either side of the half
+     turn.
+  2. A held turn turned round, which Brick Breaker's keys allow without a
+     step of none, had no spec. Fixed.
+  3. `aim`'s contract for A7.2 was unwritten, and Brick Breaker's
+     `Steering`, which asks for a place only as the pointer moves, would
+     break it if ported as it is. Answered in `aim`'s doc and A7.2 in the
+     plan: the view keeps the place it found as the pointer last moved.
+     The other way, a target kept on the ship, would leave a ship released
+     by another move facing away from the mouse until it moved again.
+  4. `createShip()`'s default of nothing held would let "Fire by itself"
+     end every first wait. Fixed: `held` is required, and `fire`'s doc says
+     what holds it.
+  5. A dash ending a wait was held to a new ship's guard, which fails when
+     the dash's is the longer, and six heading specs rested on an ease
+     under a quarter turn. Fixed: the longer of the two, and the ease's
+     invariant in `tuning.spec.ts`.
+  6. `lastX` and `lastAngle` lie a field or a turn away after a wrap.
+     Fixed: their docs say the scene draws between them with `across()`.
+  7. The plan's view still gave the pointer as a heading, `flyShip()`'s doc
+     counted 26 and 38 steps, which tuning will change, and `aimX`'s "kept
+     when it stops" changed nothing the code does. Fixed, each; the held
+     place is kept only so a spec can hold the flag beside it.
+  8. The stick's rings want some give, for A7.2. Written into A7.2.
+
+  These corrected the change rather than reshaping it, so it is committed
+  on them.

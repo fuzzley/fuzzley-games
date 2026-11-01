@@ -388,8 +388,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
   on the narrowest and widest fields. One commit.
 - **A5.3** The field whole: a wave laid out from its `Wave` on a field of
   any shape, waiting for the first move (decision 13), the new ship waiting
-  where it is safest, untouchable, and the stretch on a pause. Specced. One
-  commit, `yarn verify` with it.
+  where it is safest, untouchable, and given what the player holds as it
+  comes (`createShip()`'s `held`), and the stretch on a pause, with the
+  1 s guard after it through `guardShip()`, which counts it from the step
+  that follows. Specced. One commit, `yarn verify` with it.
 
 #### A6: the autopilot (medium)
 
@@ -413,7 +415,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
 - **A7.2** `src/view/stick.ts`, `deck.ts` and `steering.ts`: the stick's
   rings, its remapping, its following base and its one finger; Fire and
   Dash by which finger is where, within 12 px; the keys as a turn and a
-  push, the mouse as a heading once it moves; swapped hands and "Fire by
+  push, the mouse as a place to aim at (`Steer.aim`) once it moves, kept
+  from its last move so a still pointer gives the same place, the stick as
+  a heading, its rings with some give, so a thumb resting on one doesn't
+  flicker a push or a heading on and off; swapped hands and "Fire by
   itself". Specced by cases. One commit.
 - **A7.3** `src/view/palette.ts`, `inks.ts` (the rocks' inks, seven for
   light palettes and seven for dark, and the pilots', eight for each, with
@@ -1385,9 +1390,9 @@ As Brick Breaker's, four folders under `src/`, fenced by
   pause makes (`stretchField()`), so the autopilot plays them as a player
   meets them.
 - `endless.ts`: Endless's waves, from the run's seed and the wave's number.
-- `ship.ts`: the ship's flight from a frame's `Steer` (`turn` of −1 to 1, or
-  a `heading` to turn toward; `thrust` 0 to 1; `fire`; `dash`), its guard,
-  its dash and its recharge.
+- `ship.ts`: the ship's flight from a frame's `Steer` (`turn` of −1 to 1, a
+  stick's `heading` or the mouse's `aim` to turn toward; `thrust` 0 to 1;
+  `fire`; `dash`), its guard, its dash and its recharge.
 - `shots.ts`: shots fired by the weapon in hand (`WEAPONS`), moved, swept
   as segments against rocks' circles across the wrap, so none passes
   through a small rock in a step.
@@ -1434,9 +1439,9 @@ of cells joins only if it doesn't fit.
   keeps its own, as no other game needs it yet.
 - `steering.ts`: `Steering`, which turns held keys, the mouse and fingers
   into each frame's `Steer`: the keys as a turn and a push, the pointer as a
-  heading, the stick (`stick.ts`, its rings, its remapping, its following
-  base and its one finger) and the buttons (`deck.ts`) by which finger is
-  where.
+  place to aim at, kept from its last move, the stick (`stick.ts`, its
+  rings, its remapping, its following base and its one finger) as a heading
+  and a push, and the buttons (`deck.ts`) by which finger is where.
 - `frame.ts`, `layers.ts`, `timing.ts`, `flourish.ts`, `effects.ts` (each
   event's sound and flourishes) and `tags.ts`, as Brick Breaker's are.
 - `palette.ts` and `inks.ts`: the field's colors from the palette's roles,

@@ -11,6 +11,12 @@ export interface Torus {
   readonly height: number;
 }
 
+/** Describes a place on the field, in units. */
+export interface Place {
+  readonly x: number;
+  readonly y: number;
+}
+
 /**
  * Returns the field for a room of a shape, its sides in any unit: its short
  * side {@link FIELD_SHORT_SIDE} units, and its long side as many as the
