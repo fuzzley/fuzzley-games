@@ -1346,3 +1346,91 @@ prettier:check`. Eleven mutants of the catalog, each caught: a crystal
 
   These corrected the change rather than reshaping it, so it is committed
   on them.
+
+## A3.3: the field
+
+2026-11-01.
+
+- **Built.** `src/rules/field.ts`: `FieldSetup`, a wave's field's size, cap,
+  seed, pace and kind; `Field`, which extends A3.2's `RockField` with the
+  ship, its shots, the weapon in hand, the flight and gunnery the debug
+  menu tunes, the frame's steering, the ships lost and whether the wave is
+  cleared; `createField()`, its slots free and its ship waiting in its
+  middle; `steerField()`, the frame's steering copied; and `stepField()`:
+  blasts due go off, the ship flies and fires, the shots and the rocks
+  fly, each shot meets the first rock in its way, a rock takes a ship it
+  touches that isn't guarded, and once no rock is left the wave is cleared
+  and everything stands still. The field logs a pull fired, a dash
+  started, a ship lost and the wave cleared, which `events.ts` gains, with
+  the rock of an event of no rock null. `stepShots()` now returns whether
+  a pull fired and takes a ship of null, flying the shots on; `flyShip()`
+  returns whether a dash started; a shot keeps `passedAt`, each step it
+  flew on through a rock in, which `landShot()` now takes the step for; `rocksLeft()`
+  counts a field's rocks; and `tuning.ts` gains the ship's hit radius, 0.7.
+  `src/testing/field_picture.ts`: `fieldFrom()`, a field from a picture of
+  its rocks and ship, with `KEEPER`, `shipOf()`, `wholeRocks()`,
+  `stepTimes()` and `eventsOf()`, as Brick Breaker's.
+- **Choices.**
+  - A Lance shot that breaks a rock passes the rocks laid in each step it
+    broke through one in, which are those rocks' pieces. Passing what it
+    starts a step within, the first try, missed them: it breaks a rock at
+    the edge of its reach, and the pieces, smaller, lie at its middle,
+    still ahead. Another shot's pieces laid in the same step are passed
+    too, which only a Lance shot meets, rarely.
+  - Each shot takes one rock a step, the first it meets; a Lance shot
+    meets the next in a step after.
+  - A lost ship leaves the rock that took it whole, since the plan breaks
+    a rock on the ship only through the Shield, and its shots in flight
+    fly on. The field's ship is null until the next comes (A5.3), and
+    `shipsLost` counts up for the run, as Brick Breaker's `livesLost` does.
+  - The wave is cleared once no slot holds a rock, so a blast still to go
+    off holds it, and a cleared field stands still, its ship and shots
+    drawn where they are, as Brick Breaker's does.
+  - `cleared` is a flag, not Brick Breaker's union of states: the ship's
+    `waiting` holds the wait for a first move, and a null ship a lost one,
+    so a flag is all that is left.
+  - The ship is tested against each rock's middle, not swept: together
+    they close at most about a quarter of a unit a step, far under the
+    1.5 units their reaches add to for the smallest rock.
+  - A picture's characters are cells of 4 units, B a boulder and L, M and
+    S a rock of the picture's kind, still in its cell's middle, and ^ the
+    ship there, flying, its nose up; a picture with no ship has none. A
+    picture lays its rocks still, so a spec moves what it means to.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (422 tests,
+  the rules fully covered but A3.2's one branch), `yarn prettier:check`
+  and the skill references. 40 mutants of the field, the ship's and the
+  shots' new returns, `brokeAt` and `rocksLeft()`: all caught but five,
+  which new specs then caught: free shot slots and free rock slots swept,
+  free rock slots touching the ship, the pieces' push along the shot
+  dropped, and a cleared field leaving a moving ship's last place behind.
+  The Lance's first rule, passing what a shot starts a step within, broke
+  the pieces on its spec, which led to the steps it broke through in.
+- **Review.**
+  1. A Lance shot kept only the last step it broke through in, so one that
+     broke two rocks a few units apart then broke the first one's pieces,
+     pushed along its way. Fixed: it keeps each, `passedAt`, one for each
+     rock it may fly on through, made with its slot and emptied as it is
+     fired; a spec has two rocks 3 units apart.
+  2. The step's order and the wrap had no specs in the field, so blasts
+     after the shots or the rocks, the rocks before the ship, the ship
+     tested before the shots land, and an unwrapped field for the sweep
+     and the ship all passed. Fixed: a blast due breaking a rock on a ship
+     whose guard runs out that step saves it; a shot breaking a rock on the
+     ship saves it; a blast due in the step a shot meets a stone it reaches
+     breaks the stone first; a shot breaks a rock across an edge in the
+     step it comes within reach; and a rock across an edge takes the ship.
+     Each of those mutants is caught.
+  3. The spec of the first rock met within a step held the slot order with
+     it, so a first-in-the-slots rule passed. Fixed: both orders.
+  4. A rock event could be logged with no rock. Fixed: `RockEventKind`, and
+     `add()` overloaded, so a rock's event takes its kind and size and
+     any other only a place.
+  5. The spec of pieces drawn from the seed passed before any piece was
+     made, as every rock's turn and outline are drawn too. Fixed: it holds
+     only the pieces.
+  6. The picture's doc broke a line oddly, and its `@throws` left out a
+     picture past the cap and a kind that doesn't come in a size; the
+     specs' field repeated the picture's. Fixed, each.
+
+  These corrected the change rather than reshaping it, so it is committed
+  on them.

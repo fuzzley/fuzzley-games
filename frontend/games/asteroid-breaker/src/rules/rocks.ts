@@ -271,6 +271,13 @@ function isDue(field: RockField, rock: Readonly<Rock>): boolean {
   return rock.goesOffAt !== 0 && rock.goesOffAt <= field.steps;
 }
 
+/** Returns how many rocks a field holds, whole or broken and waiting to go off. */
+export function rocksLeft(field: Readonly<RockField>): number {
+  let left = 0;
+  for (const rock of field.rocks) if (!isFree(rock)) left += 1;
+  return left;
+}
+
 /** Returns whether a slot holds neither a whole rock nor a broken one waiting to go off. */
 function isFree(rock: Readonly<Rock>): boolean {
   return !rock.live && rock.goesOffAt === 0;

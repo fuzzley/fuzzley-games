@@ -157,6 +157,7 @@ function shotFrom(
     lifeSteps: 1,
     weapon: "gun",
     breaksLeft: 1,
+    passedAt: [],
   };
 }
 
@@ -179,6 +180,30 @@ function grazing(x: number, y: number, angle: number, side: 1 | -1): Shot {
 
 describe("stepShots", () => {
   describe("firing", () => {
+    it("says whether each step fired a pull", () => {
+      const shots = createShots();
+      const ship = flying(36, 20, 0);
+
+      const fired = [true, true, false].map((fire) =>
+        stepShots(shots, ship, fire, "gun", FIELD),
+      );
+
+      expect(fired).toEqual([true, false, false]);
+    });
+
+    it("flies the shots in flight on while there is no ship, and fires none", () => {
+      const shots = createShots();
+      stepShots(shots, flying(36, 20, 0), true, "gun", FIELD, EVERY_STEP);
+      const { x } = only(inFlight(shots));
+
+      const fired = stepShots(shots, null, true, "gun", FIELD, EVERY_STEP);
+
+      expect([fired, only(inFlight(shots)).x]).toEqual([
+        false,
+        expect.closeTo(x + SHOT_STEP),
+      ]);
+    });
+
     it("fires a shot from the ship's nose", () => {
       const shot = only(pulled(flying(36, 20, 1)));
 
@@ -426,7 +451,7 @@ describe("stepShots", () => {
       const ship = flying(36, 20, 0);
       const pulls = WEAPONS.spread.inFlight / WEAPONS.spread.count;
       stepFor(shots, ship, pulls, true, "spread", EVERY_STEP);
-      landShot(firstInFlight(shots), false);
+      landShot(firstInFlight(shots), false, 1);
 
       stepFor(shots, ship, 1, true, "spread", EVERY_STEP);
 
@@ -517,7 +542,7 @@ describe("stepShots", () => {
       stepFor(shots, ship, 1, true);
       const shot = only(inFlight(shots));
       const { x } = shot;
-      landShot(shot, false);
+      landShot(shot, false, 1);
 
       stepFor(shots, ship, 1, false);
 
@@ -538,7 +563,7 @@ describe("landShot", () => {
   ] as const)("spends %s", (_, id, hits) => {
     const shot = only(pulled(flying(36, 20, 0), id));
 
-    for (const broke of hits) landShot(shot, broke);
+    for (const broke of hits) landShot(shot, broke, 1);
 
     expect(shot.lifeSteps).toBe(0);
   });
@@ -548,10 +573,40 @@ describe("landShot", () => {
     const lifeSteps = shot.lifeSteps;
 
     for (let rock = 1; rock < WEAPONS.lance.breaks; rock++) {
-      landShot(shot, true);
+      landShot(shot, true, rock);
     }
 
     expect([shot.lifeSteps, shot.breaksLeft]).toEqual([lifeSteps, 1]);
+  });
+
+  it("keeps each step a shot flew on through a rock in", () => {
+    const shot = only(pulled(flying(36, 20, 0), "lance"));
+
+    landShot(shot, true, 7);
+    landShot(shot, true, 9);
+
+    expect(shot.passedAt).toEqual([7, 9]);
+  });
+
+  it("leaves a shot that has flown on through nothing passing nothing", () => {
+    const shot = only(pulled(flying(36, 20, 0), "lance"));
+
+    landShot(shot, false, 7);
+
+    expect(shot.passedAt).toEqual([-1, -1]);
+  });
+
+  it("fires a shot from a slot passing nothing, whatever it passed before", () => {
+    const shots = createShots();
+    const ship = flying(36, 20, 0);
+    stepShots(shots, ship, true, "lance", FIELD, EVERY_STEP);
+    const first = only(inFlight(shots));
+    landShot(first, true, 1);
+    first.lifeSteps = 0;
+
+    stepShots(shots, ship, true, "lance", FIELD, EVERY_STEP);
+
+    expect(only(inFlight(shots)).passedAt).toEqual([-1, -1]);
   });
 });
 

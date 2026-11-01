@@ -1,8 +1,8 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { RockKindId, RockSize } from "./catalog/rocks";
 
-/** Names something that happened on the field, for the scene to play. */
-export type FieldEventKind =
+/** Names something that happened to a rock, which its event names. */
+export type RockEventKind =
   /** A rock took a hit and holds. */
   | "hit"
   /** A rock that rings took a hit and holds, so it rang. */
@@ -12,15 +12,27 @@ export type FieldEventKind =
   /** A broken rock that blasts went off. */
   | "blast";
 
+/** Names something that happened on the field, for the scene to play. */
+export type FieldEventKind =
+  /** The ship fired a pull of its weapon. */
+  | "fired"
+  /** The ship started a dash. */
+  | "dashed"
+  | RockEventKind
+  /** A rock took the ship. */
+  | "lost"
+  /** The wave's last rock went, so the wave is cleared. */
+  | "cleared";
+
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
   kind: FieldEventKind;
   /** Where it happened, in field units. */
   x: number;
   y: number;
-  /** The kind of rock it happened to, for its ink and its sound. */
-  rock: RockKindId;
-  size: RockSize;
+  /** The kind of rock it happened to, for its ink and its sound, or null for an event of no rock. */
+  rock: RockKindId | null;
+  size: RockSize | null;
   /** How far a blast reaches, 0 for any other event. */
   reach: number;
 }
@@ -38,8 +50,8 @@ function blankEvent(): FieldEvent {
     kind: "hit",
     x: 0,
     y: 0,
-    rock: "stone",
-    size: "small",
+    rock: null,
+    size: null,
     reach: 0,
   };
 }
@@ -50,13 +62,23 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     super(EVENT_LOG_SIZE, blankEvent);
   }
 
-  /** Records an event that happened to a rock. */
+  /** Records an event that happened to a rock, with its kind and size and, for a blast, its reach. */
   add(
-    kind: FieldEventKind,
+    kind: RockEventKind,
     x: number,
     y: number,
     rock: RockKindId,
     size: RockSize,
+    reach?: number,
+  ): void;
+  /** Records an event of no rock. */
+  add(kind: Exclude<FieldEventKind, RockEventKind>, x: number, y: number): void;
+  add(
+    kind: FieldEventKind,
+    x: number,
+    y: number,
+    rock: RockKindId | null = null,
+    size: RockSize | null = null,
     reach = 0,
   ): void {
     const event = this.next();

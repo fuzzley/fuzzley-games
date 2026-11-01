@@ -196,7 +196,8 @@ export function guardShip(ship: Ship, ms: number): void {
 }
 
 /**
- * Flies a ship one step by a frame's steering, on a field.
+ * Flies a ship one step by a frame's steering, on a field, and returns
+ * whether a dash started in it.
  *
  * Its timers count down as the step starts, so one set in a step counts it:
  * a dash of so many steps throws the ship for that many, the one it starts
@@ -208,7 +209,7 @@ export function flyShip(
   steer: Readonly<Steer>,
   torus: Torus,
   flight: Flight = TUNED_FLIGHT,
-): void {
+): boolean {
   ship.lastX = ship.x;
   ship.lastY = ship.y;
   ship.lastAngle = ship.angle;
@@ -217,16 +218,17 @@ export function flyShip(
     ship.waiting = false;
     guard(ship, NEW_SHIP_GUARD_MS);
   }
+  let dashed = false;
   if (!ship.waiting) {
     turnShip(ship, steer, flight);
-    if (steer.dash && !ship.held.dash && ship.rechargeSteps === 0) {
-      startDash(ship);
-    }
+    dashed = steer.dash && !ship.held.dash && ship.rechargeSteps === 0;
+    if (dashed) startDash(ship);
     if (ship.dashSteps === 0) pushShip(ship, steer.thrust, flight);
     ship.x = wrap(ship.x + ship.vx * STEP_S, torus.width);
     ship.y = wrap(ship.y + ship.vy * STEP_S, torus.height);
   }
   hold(ship.held, steer);
+  return dashed;
 }
 
 /** Copies a frame's steering into what a ship holds from the step before. */

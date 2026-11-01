@@ -1,0 +1,549 @@
+import {
+  KEEPER,
+  PICTURE_TORUS,
+  eventsOf,
+  fieldFrom,
+  shipOf,
+  stepTimes,
+  wholeRocks,
+} from "../testing/field_picture";
+import { ROCK_KINDS, type RockKindId, type RockSize } from "./catalog/rocks";
+import {
+  type Field,
+  type FieldSetup,
+  createField,
+  steerField,
+  stepField,
+} from "./field";
+import { type Rock, addRock, hitRock, rockHitRadius, rocksLeft } from "./rocks";
+import {
+  STILL,
+  type Steer,
+  TUNED_FLIGHT,
+  createShip,
+  flyShip,
+  guardShip,
+} from "./ship";
+import { TUNED_GUNNERY } from "./shots";
+import { STEP_MS, stepsIn } from "./stepper";
+import {
+  SHIP_HIT_RADIUS,
+  SHIP_LENGTH,
+  SHOT_RADIUS,
+  SHOT_SPEED,
+  STEP_S,
+} from "./tuning";
+
+const SETUP: FieldSetup = {
+  torus: PICTURE_TORUS,
+  cap: 30,
+  seed: 1,
+  pace: 1.1,
+  waveKind: "ice",
+};
+
+/** Steering that holds fire and nothing else. */
+const FIRE: Readonly<Steer> = { ...STILL, fire: true };
+
+/** The volatile rock's beat, in steps. */
+const BEAT = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs);
+
+/** Steps a field by a steering. */
+function stepBy(field: Field, steer: Readonly<Steer>, steps = 1): void {
+  steerField(field, steer);
+  stepTimes(field, steps);
+}
+
+/** Fires one pull from a field's ship, then lets fire go. */
+function fireOnce(field: Field): void {
+  stepBy(field, FIRE);
+  steerField(field, STILL);
+}
+
+/** Steps a field until a test holds of it, failing the spec if it doesn't within a number of steps. */
+function stepUntil(
+  field: Field,
+  holds: (field: Field) => boolean,
+  most = 600,
+): void {
+  for (let step = 0; step < most; step++) {
+    if (holds(field)) return;
+    stepField(field);
+  }
+  throw new Error(`It didn't hold within ${String(most)} steps.`);
+}
+
+/** Returns the sizes of a field's whole rocks, smallest last. */
+function sizesOf(field: Field): string[] {
+  return wholeRocks(field)
+    .map((rock) => rock.size)
+    .sort();
+}
+
+/** Returns the velocities of a field's whole rocks. */
+function velocitiesOf(field: Field): number[][] {
+  return wholeRocks(field).map((rock) => [rock.vx, rock.vy]);
+}
+
+/** Returns the one rock a picture laid, failing the spec if it laid another number. */
+function onlyRock(field: Field): Rock {
+  const [rock, ...others] = wholeRocks(field);
+  if (!rock || others.length > 0) throw new Error("Expected one rock.");
+  return rock;
+}
+
+/** Returns a field's one whole rock of a size, failing the spec if it has another number. */
+function rockOfSize(field: Field, size: RockSize): Rock {
+  const [rock, ...others] = wholeRocks(field).filter(
+    (each) => each.size === size,
+  );
+  if (!rock || others.length > 0) throw new Error(`Expected one ${size} rock.`);
+  return rock;
+}
+
+/** Lays a still rock of a size at a place, a stone unless it says, and returns it, failing the spec if no slot is free. */
+function stillRock(
+  field: Field,
+  size: RockSize,
+  x: number,
+  y: number,
+  kind: RockKindId = "stone",
+): Rock {
+  const rock = addRock(field, kind, size, x, y, 0);
+  if (!rock) throw new Error("No slot was free for the rock.");
+  rock.vx = 0;
+  rock.vy = 0;
+  return rock;
+}
+
+/** Returns the velocities of the pieces a field's rocks broke into. */
+function piecesOf(field: Field): number[][] {
+  return wholeRocks(field)
+    .filter((rock) => rock.laidAt > 0)
+    .map((rock) => [rock.vx, rock.vy]);
+}
+
+/** Returns how many of a field's shots are in flight. */
+function shotsInFlight(field: Field): number {
+  return field.shots.slots.filter((shot) => shot.lifeSteps > 0).length;
+}
+
+/** Returns a field of ice rocks around the ship after a steering that turns, thrusts and fires, from a seed. */
+function played(seed: number): Field {
+  const field = fieldFrom(["L...L", "", "..^..", "", "L...L"], {
+    seed,
+    kind: "ice",
+  });
+  stepBy(field, { ...STILL, turn: 0.3, thrust: 0.2, fire: true }, 240);
+  return field;
+}
+
+describe("createField", () => {
+  it("lays a wave's field out with free slots for its cap and its ship waiting in its middle", () => {
+    const field = createField(SETUP);
+
+    expect({
+      slots: field.rocks.length,
+      left: rocksLeft(field),
+      ship: field.ship,
+      weapon: field.weapon,
+      pace: field.pace,
+      cleared: field.cleared,
+    }).toMatchObject({
+      slots: 30,
+      left: 0,
+      ship: { x: 36, y: 20, waiting: true },
+      weapon: "gun",
+      pace: 1.1,
+      cleared: false,
+    });
+  });
+});
+
+describe("steerField", () => {
+  it("keeps a frame's steering, whatever its record becomes after", () => {
+    const field = createField(SETUP);
+    const aim = { x: 1, y: 2 };
+    const given: Steer = {
+      turn: -1,
+      heading: 1,
+      aim,
+      thrust: 0.5,
+      fire: true,
+      dash: true,
+    };
+
+    steerField(field, given);
+    Object.assign(given, STILL);
+
+    expect(field.steer).toEqual({
+      turn: -1,
+      heading: 1,
+      aim,
+      thrust: 0.5,
+      fire: true,
+      dash: true,
+    });
+  });
+});
+
+describe("stepField", () => {
+  it("counts its steps", () => {
+    const field = fieldFrom(KEEPER);
+
+    stepTimes(field, 3);
+
+    expect(field.steps).toBe(3);
+  });
+
+  it("flies the ship by the frame's steering", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+    const by = { ...STILL, thrust: 1, turn: 0.5 };
+    const alone = { ...createShip(18, 14, STILL), waiting: false };
+    for (let step = 0; step < 60; step++) flyShip(alone, by, SETUP.torus);
+
+    stepBy(field, by, 60);
+
+    expect([shipOf(field).x, shipOf(field).y]).toEqual([
+      expect.closeTo(alone.x),
+      expect.closeTo(alone.y),
+    ]);
+  });
+
+  it("flies the ship by the field's flight", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+    field.flight = { ...TUNED_FLIGHT, topSpeed: TUNED_FLIGHT.topSpeed / 3 };
+
+    stepBy(field, { ...STILL, thrust: 1 }, 240);
+
+    expect(Math.hypot(shipOf(field).vx, shipOf(field).vy)).toBeCloseTo(
+      field.flight.topSpeed,
+    );
+  });
+
+  it("fires by the field's gunnery", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+    field.gunnery = {
+      ...TUNED_GUNNERY,
+      shotSpeed: TUNED_GUNNERY.shotSpeed / 2,
+    };
+
+    stepBy(field, FIRE);
+
+    const [shot] = field.shots.slots;
+    expect(shot?.vy).toBeCloseTo(-field.gunnery.shotSpeed);
+  });
+
+  it("logs a dash as it starts, once while it is held", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+
+    stepBy(field, { ...STILL, dash: true }, 10);
+
+    expect(eventsOf(field)).toEqual(["dashed"]);
+  });
+
+  it("fires the weapon in hand while fire is held, logging the pull", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+    field.weapon = "spread";
+
+    stepBy(field, FIRE);
+
+    expect([shotsInFlight(field), eventsOf(field)]).toEqual([3, ["fired"]]);
+  });
+
+  it("breaks the rock a shot meets, spending the shot", () => {
+    const field = fieldFrom(["S...L", "", "^"]);
+    fireOnce(field);
+
+    stepTimes(field, 40);
+
+    expect([sizesOf(field), shotsInFlight(field)]).toEqual([["large"], 0]);
+  });
+
+  it("leaves whole a rock no shot flies at, whatever lies in the shots' free slots", () => {
+    const field = fieldFrom(["B"]);
+
+    stepTimes(field, 10);
+
+    expect(onlyRock(field).hits).toBe(ROCK_KINDS.boulder.hits.boulder);
+  });
+
+  it("pushes a broken rock's pieces along the shot that broke it", () => {
+    const struck = fieldFrom(["M", "", "^"]);
+    hitRock(struck, onlyRock(struck), 0, -1);
+    const shot = fieldFrom(["M", "", "^"]);
+    fireOnce(shot);
+
+    stepUntil(shot, (each) => wholeRocks(each).length === 2);
+
+    expect(velocitiesOf(shot)).toEqual(
+      velocitiesOf(struck).map(([vx = 0, vy = 0]): unknown[] => [
+        expect.closeTo(vx),
+        expect.closeTo(vy),
+      ]),
+    );
+  });
+
+  it("flies a shot on through where a rock broke before, to the next", () => {
+    const field = fieldFrom(["L", "", "S", "", "^"]);
+    fireOnce(field);
+    stepTimes(field, 40);
+    fireOnce(field);
+
+    stepTimes(field, 60);
+
+    expect(sizesOf(field)).toEqual(["medium", "medium"]);
+  });
+
+  it("breaks only the first rock in a shot's way", () => {
+    const field = fieldFrom(["L", "", "M", "", "^"]);
+    fireOnce(field);
+
+    stepTimes(field, 60);
+
+    expect(sizesOf(field)).toEqual(["large", "small", "small"]);
+  });
+
+  it.each([
+    ["the one it meets first", ["S", "L", "", "", "^"]],
+    ["the other", ["L", "S", "", "", "^"]],
+  ])(
+    "breaks the rock a shot meets first within a step, its slot %s",
+    (_, rows) => {
+      const field = fieldFrom(rows);
+      const small = rockOfSize(field, "small");
+      const large = rockOfSize(field, "large");
+      const step = SHOT_SPEED * STEP_S;
+      const into = 18 - SHIP_LENGTH / 2 - 15 * step;
+      small.y = into - 0.1 - rockHitRadius("small") - SHOT_RADIUS;
+      large.y = into - 0.2 - rockHitRadius("large") - SHOT_RADIUS;
+      fireOnce(field);
+
+      stepTimes(field, 15);
+
+      expect(sizesOf(field)).toEqual(["large"]);
+    },
+  );
+
+  it("flies a Lance shot on past the pieces of two rocks close together", () => {
+    const field = fieldFrom(["", "", "", "M", "L", "", "^"]);
+    rockOfSize(field, "medium").y = 15;
+    field.weapon = "lance";
+    fireOnce(field);
+
+    stepTimes(field, 60);
+
+    expect(sizesOf(field)).toEqual(["medium", "medium", "small", "small"]);
+  });
+
+  it("flies a Lance shot on past the pieces of a rock it breaks, to the next", () => {
+    const field = fieldFrom(["L", "", "M", "", "^"]);
+    field.weapon = "lance";
+    fireOnce(field);
+
+    stepTimes(field, 60);
+
+    expect(sizesOf(field)).toEqual(["medium", "medium", "small", "small"]);
+  });
+
+  it("sets blasts off before the ship is tested, so one that breaks a rock on the ship saves it", () => {
+    const field = fieldFrom(["^", "", "L"], { kind: "volatile" });
+    const volatile = onlyRock(field);
+    volatile.y = 8;
+    stillRock(field, "small", 2, 3);
+    guardShip(shipOf(field), (BEAT - 1) * STEP_MS);
+    hitRock(field, volatile, 0, 0);
+
+    stepTimes(field, BEAT);
+
+    expect([field.shipsLost, sizesOf(field)]).toEqual([0, []]);
+  });
+
+  it("sets blasts off before the shots fly, so a shot meets what a blast left in its step", () => {
+    const field = fieldFrom(["", "", "^"]);
+    const ahead =
+      10 - SHIP_LENGTH / 2 - 0.2 - rockHitRadius("large") - SHOT_RADIUS;
+    stillRock(field, "large", 2, ahead);
+    hitRock(field, stillRock(field, "large", 10, ahead, "volatile"), 0, 0);
+    stepTimes(field, BEAT - 1);
+    stepBy(field, FIRE);
+    steerField(field, STILL);
+
+    stepTimes(field, 30);
+
+    expect(sizesOf(field)).toEqual(["medium", "small", "small"]);
+  });
+
+  it("lands the shots before the ship is tested, so one that breaks a rock on the ship saves it", () => {
+    const field = fieldFrom(["", "", "^"]);
+    stillRock(field, "small", 2, 10 - SHIP_LENGTH / 2);
+
+    stepBy(field, FIRE);
+
+    expect([field.shipsLost, sizesOf(field)]).toEqual([0, []]);
+  });
+
+  it("breaks a rock across an edge in the step a shot comes within its reach", () => {
+    const field = fieldFrom(["^"]);
+    stillRock(field, "small", 2, 39.6);
+
+    stepBy(field, FIRE);
+
+    expect(sizesOf(field)).toEqual([]);
+  });
+
+  it("loses the ship to a rock across an edge", () => {
+    const field = fieldFrom(["^"]);
+    shipOf(field).x = 0.5;
+    stillRock(field, "small", 71.5, 2);
+
+    stepField(field);
+
+    expect(field.shipsLost).toBe(1);
+  });
+
+  it("keeps the ship from where a rock beside it broke", () => {
+    const field = fieldFrom(["^", "S"]);
+    const rock = onlyRock(field);
+    rock.y = shipOf(field).y + SHIP_HIT_RADIUS;
+    hitRock(field, rock, 0, 0);
+
+    stepField(field);
+
+    expect(field.shipsLost).toBe(0);
+  });
+
+  it("loses the ship to a rock that touches it, logging it", () => {
+    const field = fieldFrom(["^B"]);
+
+    stepField(field);
+
+    expect([field.ship, field.shipsLost, eventsOf(field)]).toEqual([
+      null,
+      1,
+      ["lost"],
+    ]);
+  });
+
+  it.each([
+    ["loses the ship to a rock just within", -0.01, 1],
+    ["keeps the ship from a rock just past", 0.01, 0],
+  ])("%s its reach", (_, beyond, lost) => {
+    const field = fieldFrom(["^", "", "L"]);
+    const [rock] = wholeRocks(field);
+    if (!rock) throw new Error("The picture has no rock.");
+    rock.y = 2 + SHIP_HIT_RADIUS + rockHitRadius("large") + beyond;
+
+    stepField(field);
+
+    expect(field.shipsLost).toBe(lost);
+  });
+
+  it("keeps a guarded ship from a rock that touches it", () => {
+    const field = fieldFrom(["^B"]);
+    guardShip(shipOf(field), 500);
+
+    stepField(field);
+
+    expect(field.shipsLost).toBe(0);
+  });
+
+  it("lets the shots in flight outlive a lost ship", () => {
+    const field = fieldFrom(["^", "B"]);
+    stepBy(field, FIRE);
+
+    stepBy(field, FIRE, 5);
+
+    expect([shotsInFlight(field), eventsOf(field)]).toEqual([
+      1,
+      ["fired", "lost"],
+    ]);
+  });
+
+  it("flies its rocks on without a ship, and fires nothing", () => {
+    const field = fieldFrom(["...L"]);
+    const [rock] = wholeRocks(field);
+    if (!rock) throw new Error("The picture has no rock.");
+    rock.vx = 3;
+
+    stepBy(field, FIRE, 120);
+
+    expect([rock.x, eventsOf(field)]).toEqual([expect.closeTo(14 + 3), []]);
+  });
+
+  it("clears the wave once no rock is left, logging it last", () => {
+    const field = fieldFrom(["S", "", "^"]);
+    fireOnce(field);
+
+    stepUntil(field, (each) => each.cleared);
+
+    expect(eventsOf(field)).toEqual(["fired", "broken", "cleared"]);
+  });
+
+  it("clears a wave with no ship in it", () => {
+    const field = fieldFrom(["S"]);
+    const [rock] = wholeRocks(field);
+    if (!rock) throw new Error("The picture has no rock.");
+    hitRock(field, rock, 0, 0);
+
+    stepField(field);
+
+    expect(field.cleared).toBe(true);
+  });
+
+  it("stands still once the wave is cleared", () => {
+    const field = fieldFrom(["S", "", "^"]);
+    stepBy(field, { ...STILL, turn: 0.4, thrust: 0.5 }, 30);
+    hitRock(field, onlyRock(field), 0, 0);
+    stepField(field);
+    const { steps } = field;
+    const { x, y, angle } = shipOf(field);
+
+    stepBy(field, { ...STILL, thrust: 1 }, 30);
+
+    expect([field.steps, shipOf(field)]).toEqual([
+      steps,
+      expect.objectContaining({ x, y, lastX: x, lastY: y, lastAngle: angle }),
+    ]);
+  });
+
+  it("holds its shots in flight still once the wave is cleared", () => {
+    const field = fieldFrom(["S", "", "^"]);
+    steerField(field, FIRE);
+    stepUntil(field, (each) => each.cleared);
+
+    const moved = field.shots.slots.filter(
+      (shot) =>
+        shot.lifeSteps > 0 && (shot.lastX !== shot.x || shot.lastY !== shot.y),
+    );
+
+    expect([shotsInFlight(field) > 0, moved]).toEqual([true, []]);
+  });
+
+  it("waits for a broken rock's blast to go off before it clears", () => {
+    const field = fieldFrom(["M", "", "^"], { kind: "volatile" });
+    fireOnce(field);
+    stepUntil(field, (each) => wholeRocks(each).length === 0);
+    const clearedAsItBroke = field.cleared;
+
+    stepTimes(field, BEAT);
+
+    expect([clearedAsItBroke, field.cleared]).toEqual([false, true]);
+  });
+
+  it("makes the same field from the same seed and steering", () => {
+    const first = played(3);
+
+    const second = played(3);
+
+    expect(second).toEqual(first);
+  });
+
+  it("draws its rocks' pieces from its seed", () => {
+    const first = played(3);
+
+    const second = played(4);
+
+    expect(piecesOf(second)).not.toEqual(piecesOf(first));
+  });
+});
