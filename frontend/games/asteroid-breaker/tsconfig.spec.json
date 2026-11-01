@@ -1,6 +1,11 @@
 {
+  // The specs, which Vitest runs. `@fz/dev/layout`, whose shapes the view's
+  // layout spec holds the field to, imports its modules by their full file
+  // names, as Node needs.
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": ["node", "vite/client", "vitest/globals"]
   },
   "include": ["src/**/*.ts"]
