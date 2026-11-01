@@ -43,7 +43,8 @@ take the pure ones.
   keyboard hears, once; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at
   run time and drawn again after a lost context; and `bakeAtlas()`, many named
   frames drawn into one such texture, after which every object showing one of
-  its frames sets it again. It imports Phaser, never Angular.
+  its frames sets it again, with `atlasSize()`, how big the atlas of a set of
+  frames is, so a game's spec can hold it to a size. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never
   waits for it, and plays its sounds, named by the spritemap, once it has

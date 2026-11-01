@@ -61,9 +61,9 @@ export interface BeltPalette {
   readonly bubble: number;
   /** A stray's bubble's rim, which tells it from a rock: the field's text at {@link BUBBLE_RIM}. */
   readonly rim: number;
-  /** The glint on a stray's bubble. */
+  /** The glint on a stray's bubble and in a pilot's eyes: white. */
   readonly glint: number;
-  /** The body of each kind of rock: the inks of the palette's mode. */
+  /** Each kind of rock's ink, its body's but a crystal's, which is its gem's, set in a stone's body: the inks of the palette's mode. */
   readonly rocks: Readonly<Record<RockKindId, number>>;
   /** The glow at a volatile rock's middle. */
   readonly core: number;
