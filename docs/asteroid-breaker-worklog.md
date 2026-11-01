@@ -2635,3 +2635,88 @@ rules out.
   change, caught by specs added for them, and an early return in letting
   go of a finger, which changed nothing and is gone. Mutants of the second
   review's fixes: of 11, each is caught.
+
+## A7.3: the palette, the inks and the contrast spec
+
+2026-11-01.
+
+- **Built.** `src/view/inks.ts`: the rocks' inks, a body for each of the
+  seven kinds and a volatile rock's core, for light palettes and for dark,
+  and the pilots', eight for each, in CSS hex, as the plan's table has
+  them. `palette.ts`: `beltPalette()`, the field's colors from a
+  palette's roles and the inks of its mode, as the numbers Phaser takes,
+  and `pilotInk()`, a pilot's ink by its color and the mode, in CSS hex,
+  for the shell's bar and cards. `contrast.spec.ts`
+  holds every color the plan's checks name in every palette, and
+  `inks.spec.ts` and `palette.spec.ts` hold the inks and the roles each
+  color takes.
+- **Choices.**
+  - The roles are the field's: the field, its line, its text and its
+    muted text, with the accent, the color on it, the danger color and the
+    warning color, as the plan's look has them. The ship and a pickup are
+    the accent, a pickup's symbol the color on it, the flame the warning
+    color, the shots the field's text, the comet the danger color, the
+    specks the field's muted text at a third of its strength.
+  - The rocks' inks are the design mock's, which keep 3.9:1 or more
+    against the field in every palette. A rock's marks and everything's
+    outline are the field's color, as Brick Breaker's are, so each keeps
+    3:1 against what it is drawn on by the same rule. A volatile rock's
+    glowing core is no mark, only its look, so no rule holds it: in a dark
+    palette no glow brighter than its body keeps 3:1 against it. Its
+    cracks stay on its body, as a light palette's core is too light for
+    marks in the field's color.
+  - A stray's bubble is the field's text at 6% over the field, as the mock
+    has it, and its rim, which tells a stray from a rock, at half: the
+    mock's 45% kept 2.8:1 and 2.7:1 in the light palettes, and half is the
+    least that keeps 3:1 in all four.
+  - The pilots' inks keep 3:1 against what each is drawn on, the field in
+    the ship's window, a stray's bubble and the bar, and the eyes 3:1
+    against each, in every palette; the least are green's, 4.37 against
+    the field, 3.90 against Classic felt's bubble and 3.92 against Soft
+    pastel's bar, and the eyes' 3.79 against violet, as the plan says. Their ΔE of 27 or more apart is
+    CIE76, by which the plan measured it: coral and orange, the nearest,
+    are 27.1 apart in a light palette.
+  - The pilots' inks are written in CSS hex, as the shell draws a pilot in
+    SVG, as `<fz-wordmark>` draws the fuzzball, and `beltPalette()` gives
+    the scene their numbers. `pilotInk()` throws for a color no pilot has,
+    as `colorNumber()` throws for a color it can't read, so a bad number
+    fails a spec rather than drawing nothing.
+  - The deck's colors are the field's line, its muted text and the accent,
+    as the plan's look has them; what they keep against what the deck is
+    drawn on waits for the deck's painter, which decides that.
+- **Review.** A fresh agent reviewed it, every number in this entry
+  recomputed from the palettes; every comment is answered.
+  1. A stray's pilot was held against the field, but it is drawn on the
+     bubble, so a bubble of any wash passed. Fixed: the pilots keep 3:1
+     against the field, the bubble and the bar, each its own case.
+  2. The palette spec worked out the specks, the bubble and its rim as the
+     code does, from the same constants, so changing one passed. Fixed:
+     it expects their colors outright, as Brick Breaker's does.
+  3. `pilotInk()` gave a number, where the shell, its caller, draws in
+     SVG and needs CSS, and the light or dark choice was written twice;
+     and its reason was wrong, as Brick Breaker's shell makes a palette.
+     Fixed as the choices above say, the choice made in one place.
+  4. A volatile rock's cracks in the field's color would vanish over a
+     light palette's core. Fixed: the `mark` doc keeps them on its body,
+     for A7.4.
+  5. The pilots' and the inks' cases compared records of true and false,
+     so a failure wouldn't show the ratio or the ΔE. Fixed: each measure
+     is its own expectation.
+  6. The small points: the inks' docs say each kind's body keeps 3:1, as
+     the core needn't; `pilotInk()` says what it throws with `@throws`;
+     the palette spec expects the eyes' color outright and keeps its
+     imports in order; and each kind of rock has an ink of its own in
+     each mode, as the reviewer found a dark boulder could take stone's.
+     `rgbOf()`, now in two games' contrast specs, waits for a third, which
+     would lift it into `@fz/style/testing`. The pilots' order isn't
+     pinned: it is data, and every rule holds whatever the order.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (1,834 tests,
+  the view fully covered), `yarn prettier:check` and the skill
+  references. Mutants of the palette and the inks, each a role swapped,
+  a wash changed or an ink moved: of 26, three got through, a pickup's
+  symbol and the bubble's glint in the field's color, which the spec's
+  sample palette couldn't tell from white until its field was made
+  `#fafafa`, and a volatile rock's core, which no rule holds, as above.
+  The review's own mutants that got through, a speck at full strength, a
+  bubble at half or 0.7 and a dark boulder in stone's ink, and three of
+  the pilots' inks taken from one mode, are each caught now.
