@@ -6,6 +6,11 @@ export const ROCK_SIZES = ["boulder", "large", "medium", "small"] as const;
 /** Names a size of rock, such as "medium". */
 export type RockSize = (typeof ROCK_SIZES)[number];
 
+/** Returns the size a rock's pieces are, the size after its own, or null for a small rock, which breaks into nothing. */
+export function sizeAfter(size: RockSize): RockSize | null {
+  return ROCK_SIZES[ROCK_SIZES.indexOf(size) + 1] ?? null;
+}
+
 /** Gives a number for each size a kind of rock comes in, such as its hits. */
 export type BySize = Readonly<Partial<Record<RockSize, number>>>;
 
@@ -35,6 +40,9 @@ export type RockTrait =
 /** A rock trait's kind, such as "blasts". */
 export type RockTraitKind = RockTrait["kind"];
 
+/** Names what a rock's pieces are: itself, stone, or the kind its wave names. */
+export type PieceKind = "self" | "stone" | "wave";
+
 /** Describes a kind of rock: its sizes, what breaking it takes and what it does. */
 export interface RockKind {
   /** Names it in How to play, such as "Iron". */
@@ -50,7 +58,7 @@ export interface RockKind {
    * whatever this says.
    */
   readonly splits: {
-    readonly into: "self" | "stone" | "wave";
+    readonly into: PieceKind;
     readonly count: number;
   } | null;
   /**

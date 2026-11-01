@@ -1191,3 +1191,158 @@ prettier:check`. Eleven mutants of the catalog, each caught: a crystal
 
   These corrected the change rather than reshaping it, so it is committed
   on them.
+
+## A3.2: the rocks' rules
+
+2026-11-01.
+
+- **Built.** `src/rules/rocks.ts`: `Rock`, laid in place in its slot, with
+  the step it was laid at; `RockField`, what of the field the rocks' rules
+  act on, its pace among it; `createRocks()`, a free slot for each rock the
+  cap holds; `addRock()`, a whole rock of a kind and size laid in the first
+  free slot, flying a heading at a speed drawn from its size's, times its
+  kind's, with an outline, a turn and a spin drawn; `hitRock()`, a hit or
+  a blow that breaks, which logs the hit or the break and splits a broken
+  rock into pieces of the size after, turned off its travel and pushed
+  along the hit; `stepRocks()`, each whole rock flown and turned at the
+  field's pace and wrapped; `setOffBlasts()`, first in a step;
+  `rockHitRadius()`; and `TRAIT_RULES`, mapped from the traits' union, at
+  four moments: `held`, `broken`, `step` and `goesOff`.
+  `src/rules/draws.ts`: `nextDraw()` and `drawIn()`, the field's seeded
+  draws. `src/rules/events.ts`: `FieldEventLog`, with the rocks' events:
+  a hit held, a ring, a break and a blast. `tuning.ts` gains each size's
+  radius and speed, the share of its radius a rock is hit within, a
+  rock's spin and a piece's turn and push; the catalog gains
+  `sizeAfter()` and `PieceKind`, which its spec and the rules share.
+  `src/testing/numbers.ts` holds `stepsBetween()`, which the catalog's and
+  the tuning's specs share. `shots.spec.ts` takes a small rock's radius
+  from `rockHitRadius()`.
+- **Choices.**
+  - The cap is the slots. The field's rocks are slots made once, as many
+    as its cap, and a split lays its pieces in free ones, its own among
+    them, so at the cap a rock splits into as many pieces as there is
+    room for, and one at least. The plan's "one piece fewer" is what a
+    stone does at the cap; an ice rock there splits into one. The plan
+    says so.
+  - A volatile rock keeps its slot until it goes off, through its blast,
+    and blasts going off together free theirs only once all have, so the
+    cap holds every rock and every blast to come, whatever the slots'
+    order, and no pool of blasts is needed, nor a rule for one full. A
+    split at the cap has one slot fewer for those 90 ms.
+  - The beat runs by the field's count of steps, as Brick Breaker's does,
+    rather than counting down as the shots' times do: a blast sets off
+    another in the same loop, and a countdown there would count the new
+    one's first step or not by the order of their slots.
+  - A blast reaches a rock when the reach meets its body: its reach plus
+    the rock's radius for a hit, from middle to middle across the wrap,
+    as the Nova's ring will. It reaches only rocks laid before its step
+    (`laidAt`), so neither the pieces it breaks them into nor those of
+    another blast in the step are hit, and blasts in one step hit the
+    same rocks whatever the order of their slots; which way the pieces
+    are pushed, and the draws they take, are still the first blast's to
+    reach them.
+  - Blasts go off first in a step, once it is counted, as Brick Breaker's
+    bricks step before its balls, so a blast reaches the pieces a shot
+    laid the step before. `setOffBlasts()` says so, and the plan's
+    physics lists them first.
+  - A rock's velocity is its own at a pace of 1, and the field's `pace`,
+    the wave's, the speed's and Slow's together, scales its flight, its
+    turn and a lodestone's pull alike, so Slow halves every rock without
+    touching its record, and a course is the same at any pace.
+  - A lodestone's pull never takes it past its size's top speed, times its
+    kind's, but the cap never brakes a piece pushed past that, as one with
+    no ship to drift toward keeps its speed.
+  - A piece's push is along the hit's way, made a unit long, so a caller
+    passes a shot's velocity or a blast's offset as it has them.
+  - The pieces' sides alternate from a side drawn for the first, so two
+    turn one each way, and ice's third turns the first's way again.
+  - The rules act on `RockField`, which A3.3's `Field` will extend, since
+    the rocks come before the field here; Brick Breaker's bricks take its
+    `Field`, which came first. `events.ts` and `draws.ts` begin here, as
+    the rocks need them; A3.3 adds the field's other events.
+  - A broken rock's slot is free as it breaks, so one of its pieces may
+    take it: what a caller needs of the broken rock it takes before the
+    hit, or from the break's event. A4's scoring and drops go inside
+    `hitRock()`, before the split, as Brick Breaker's `hitBrick()` scores.
+  - A hit is `"hit"` or a blow that `"breaks"` (a comet's, the Shield's),
+    where Brick Breaker's takes a number of hits, as nothing here takes
+    two at once.
+  - `rings` rings as any hit holds, a blast's as well as a shot's, as
+    there is no other sound for a hit that holds. `gives` has no rule
+    here: the pickup it lets go is A4's.
+  - A rock's outline, turn and spin are drawn as it is laid, since the
+    saved game keeps them and the view draws them; the rules use none of
+    them. The spin of 6° to 30° a second and the push of 1.5 units a
+    second are first guesses, tuned at Q3; the plan's feel table has them.
+  - `nextDraw()` is Brick Breaker's two lines around `@fz/core`'s
+    `drawAt()`, each on its own field's shape, so it stays each game's
+    rather than lifted.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (377 tests,
+  the rules fully covered but a blast's reach for a size its rock doesn't
+  come in, which the catalog's spec rules out), `yarn prettier:check` and
+  the skill references. 68 mutants and 9 tunings before the review: all
+  caught but four of the y axis (a blast's push, the pull's way and gain,
+  and the cap on it), which diagonal specs and a row along y then caught,
+  and a lodestone's top speed without its kind's, which is 1. Tuned, the
+  numbers fail only `tuning.spec.ts`, or nothing. After the first review,
+  seven more: each caught but a blast's reach met exactly, which the
+  specs hold a sliver either side of, and the kind's speed again. After
+  the second, four more, each caught: blasts going off together freeing
+  their slots one by one, a blast reaching pieces laid the step before
+  it no longer, and a beat a step late.
+- **Review.**
+  1. A broken rock's first piece takes its slot, so the record `hitRock()`
+     was given reads as the piece once it returns, and a caller scoring or
+     dropping from it after would take the piece's kind and size. Fixed:
+     its doc says so, and where to take the broken rock from; a spec pins
+     it; and a rock keeps the step it was laid at, `laidAt`. Scoring and
+     drops will run inside it, before the split.
+  2. Blasts going off in one step built on each other, so a stone between
+     two could break once or twice by their slots' order. Fixed: a blast
+     reaches only rocks laid before its step, which also keeps its own
+     pieces out of its reach, so the list made once went; a spec lays the
+     two blasts in either order.
+  3. The lodestone's pull ignored the pace, so Slow tightened its turn.
+     Fixed: the pace is the field's, `RockField.pace`, which scales the
+     flight, the turn and the pull alike; a spec flies a second of a
+     rock's time at two paces.
+  4. The pull's cap braked a pushed piece faster than its size's top
+     speed, with a jolt. Fixed: it caps at the larger of the top and the
+     speed before the pull; a spec.
+  5. The cap's spec passed with the rock unbroken, holding kinds only.
+     Fixed: kinds and sizes, in both of the cap's specs.
+  6. A kind that both blasted and split would split into nothing at the
+     cap; the scratch list held the last field's rocks; a helper's doc
+     named a seed it doesn't take; an import was out of order; and
+     `Readonly<Place>` repeated `Place`'s own. Fixed: a catalog spec that
+     a rock that blasts breaks into nothing; the list is gone; the doc,
+     the import and the type.
+
+  The step a rock is laid at, and the pace on the field, reshaped the
+  change, so it had a second review.
+
+- **Second review.**
+  1. The spec that a blast hits only what its own reach touches passed
+     with the old list never cleared: the lodestone broke, and its piece
+     in its slot had the hits left the spec looked for. Fixed: the spec
+     holds every whole rock's kind, size and hits.
+  2. A blast going off after the shots' hits in a step left out the
+     pieces they had laid in it, so pieces could fly from a blast's middle
+     unhurt. Fixed: blasts go off first in a step, as above, which
+     `setOffBlasts()` says and the specs step by; a spec has a blast reach
+     the pieces a hit laid the step before.
+  3. "The same field whatever their slots' order" said too much: the
+     pieces' push and draws are the first blast's, and at the cap a blast
+     that freed its slot gave the next one's split another. Fixed: the doc
+     and the spec say the same rocks are hit; blasts due free their slots
+     once all have gone off, and a spec holds the cap's pieces the same in
+     either order.
+  4. Two docs said more than the code: a broken rock's first piece, where
+     any of them may take its slot, and a rock past its top "turned
+     without slowing", where a pull against it still slows it. Fixed:
+     "one of its pieces", and the cap "never brakes" it.
+  5. `stepsBetween()` was written in two specs. Fixed:
+     `src/testing/numbers.ts`.
+
+  These corrected the change rather than reshaping it, so it is committed
+  on them.

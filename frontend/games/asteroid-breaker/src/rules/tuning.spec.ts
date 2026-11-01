@@ -1,3 +1,5 @@
+import { stepsBetween } from "../testing/numbers";
+import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
 import { stepsIn } from "./stepper";
 import {
   COAST_HALF_LIFE_MS,
@@ -11,12 +13,28 @@ import {
   HEADING_EASE,
   HEADING_TURN_RATE,
   KEY_TURN_RAMP_MS,
+  PIECE_PUSH,
+  PIECE_TURN,
+  ROCK_RADIUS,
+  ROCK_SPEED,
+  ROCK_SPIN,
   SHOT_LIFE_MS,
   SHOT_SPEED,
   STEP_S,
   THRUST,
   TOP_SPEED,
 } from "./tuning";
+
+/** Each size's radius, largest first. */
+const RADII = ROCK_SIZES.map((size) => ROCK_RADIUS[size]);
+
+/** Each size's speeds, largest first. */
+const SPEEDS = ROCK_SIZES.map((size) => ROCK_SPEED[size]);
+
+/** The slowest a rock kind flies, against its size's speed. */
+const SLOWEST_KIND = Math.min(
+  ...Object.values(ROCK_KINDS).map((kind) => kind.speed),
+);
 
 // The numbers are the game's to tune; these hold what tuning must not break.
 describe("the tuning", () => {
@@ -73,5 +91,36 @@ describe("the tuning", () => {
 
   it("fires a shot faster than a dash throws the ship, so a dashing ship never catches its shot", () => {
     expect(SHOT_SPEED + TOP_SPEED).toBeGreaterThan(DASH_SPEED);
+  });
+
+  it("makes each size of rock smaller than the size before", () => {
+    expect(stepsBetween(RADII).filter((step) => step >= 0)).toEqual([]);
+  });
+
+  it("flies a broken rock's pieces faster than it, as both ends of their size's speeds rise", () => {
+    const leasts = stepsBetween(SPEEDS.map((span) => span.least));
+    const mosts = stepsBetween(SPEEDS.map((span) => span.most));
+
+    expect([...leasts, ...mosts].filter((step) => step <= 0)).toEqual([]);
+  });
+
+  it.each([
+    ["each size's speeds", ...SPEEDS],
+    ["a rock's spin", ROCK_SPIN],
+    ["a piece's turn", PIECE_TURN],
+  ])("draws %s from a span above 0", (_, ...spans) => {
+    const broken = spans.filter(
+      (span) => !(span.least > 0 && span.least <= span.most),
+    );
+
+    expect(broken).toEqual([]);
+  });
+
+  it("turns a broken rock's pieces less than a quarter turn off its travel, so they fly on its way", () => {
+    expect(PIECE_TURN.most).toBeLessThan(90);
+  });
+
+  it("pushes a piece along the hit by less than the slowest piece flies", () => {
+    expect(PIECE_PUSH).toBeLessThan(ROCK_SPEED.large.least * SLOWEST_KIND);
   });
 });

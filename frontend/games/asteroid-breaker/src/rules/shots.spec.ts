@@ -1,5 +1,6 @@
 import { RADIANS_PER_DEGREE } from "./angles";
 import { WEAPONS, WEAPON_IDS, type WeaponId } from "./catalog/weapons";
+import { rockHitRadius } from "./rocks";
 import {
   type Flight,
   type Ship,
@@ -51,11 +52,8 @@ const FASTEST = SHOT_SPEED + TOP_SPEED;
 /** How far a shot at the fastest flies in a step. */
 const FASTEST_STEP = FASTEST * STEP_S;
 
-/**
- * A small rock's radius for a hit, nine tenths of the 0.9 it is drawn at,
- * until the rocks' catalog gives it.
- */
-const SMALL_ROCK = 0.9 * 0.9;
+/** How far from its middle a small rock is hit. */
+const SMALL_ROCK = rockHitRadius("small");
 
 /** How near a small rock's middle a shot's middle comes to meet it. */
 const REACH = SMALL_ROCK + SHOT_RADIUS;

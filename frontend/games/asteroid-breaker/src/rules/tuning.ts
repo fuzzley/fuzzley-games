@@ -4,6 +4,8 @@
 // number a catalog's entries differ by, such as a rock kind's speed or a
 // pickup's time, is the entry's.
 
+import type { RockSize } from "./catalog/rocks";
+
 /** How long a step of the field is, in seconds. */
 export const STEP_S = 1 / 120;
 
@@ -95,3 +97,43 @@ export const SHOTS_IN_FLIGHT = 6;
 
 /** How far from its middle a shot reaches what it hits. */
 export const SHOT_RADIUS = 0.18;
+
+/** Describes the span a number is drawn from, the least to the most. */
+export interface Span {
+  readonly least: number;
+  readonly most: number;
+}
+
+/** How far from its middle a rock of each size is drawn, to its outline's farthest points. */
+export const ROCK_RADIUS: Readonly<Record<RockSize, number>> = {
+  boulder: 4.6,
+  large: 2.8,
+  medium: 1.6,
+  small: 0.9,
+};
+
+/**
+ * How much of its radius a rock is hit within, so a shot that only grazes
+ * its uneven outline misses.
+ */
+export const ROCK_HIT_SHARE = 0.9;
+
+/**
+ * How fast a rock of each size flies, drawn from a span, before its kind's
+ * speed and the field's pace, which are the wave's and the speed's.
+ */
+export const ROCK_SPEED: Readonly<Record<RockSize, Span>> = {
+  boulder: { least: 1.5, most: 2.5 },
+  large: { least: 2.5, most: 4 },
+  medium: { least: 4, most: 6 },
+  small: { least: 5.5, most: 8.5 },
+};
+
+/** How fast a rock turns as it flies, in degrees a second, either way. */
+export const ROCK_SPIN: Span = { least: 6, most: 30 };
+
+/** How far each of a broken rock's pieces turns off its travel, in degrees, to one side or the other. */
+export const PIECE_TURN: Span = { least: 25, most: 50 };
+
+/** How fast a broken rock's pieces are pushed along the way the hit came, on top of their own speed. */
+export const PIECE_PUSH = 1.5;
