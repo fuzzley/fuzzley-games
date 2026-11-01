@@ -18,6 +18,8 @@ import {
   DASH_SPEED,
   DROUGHT_MS,
   ENTRY_ALONG,
+  FAIR_COURSE,
+  FAIR_DISTANCE,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
   FIRST_SHIP_POINTS,
@@ -37,6 +39,7 @@ import {
   ROCK_RADIUS,
   ROCK_SPEED,
   ROCK_SPIN,
+  SAFE_GRID,
   SHIP_HIT_RADIUS,
   SHIP_POINTS,
   SHOT_LIFE_MS,
@@ -246,5 +249,20 @@ describe("the tuning", () => {
     ["each after it", SHIP_POINTS],
   ])("brings %s by points above 0", (_, points) => {
     expect(points).toBeGreaterThan(0);
+  });
+
+  it("starts a wave's rocks farther off the ship than their courses may come", () => {
+    expect(FAIR_DISTANCE).toBeGreaterThan(FAIR_COURSE);
+  });
+
+  // So a scattered rock's place is soon drawn.
+  it("leaves most of the narrowest field far enough off the ship for a rock to start", () => {
+    expect(Math.PI * FAIR_DISTANCE ** 2).toBeLessThan(
+      FIELD_SHORT_SIDE ** 2 / 2,
+    );
+  });
+
+  it("puts the field's middle among the places a new ship may wait at", () => {
+    expect(SAFE_GRID % 2).toBe(1);
   });
 });

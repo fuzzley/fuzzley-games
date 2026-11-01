@@ -90,6 +90,8 @@ export interface FieldSetup extends DropSetup, HazardSetup {
 /** Describes a wave in play, which each step changes in place. */
 export interface Field extends RockField {
   readonly setup: FieldSetup;
+  /** The field's size, its setup's until a pause stretches it to another shape. */
+  torus: Torus;
   /** The ship in play, or null once it is lost, until the next comes. */
   ship: Ship | null;
   readonly shots: Shots;

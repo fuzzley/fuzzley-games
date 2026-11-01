@@ -426,7 +426,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
   fairness, the safest place for a new ship) and `fill.ts` (`fillFor()`, the
   cap, the pickups at once, the strays and the comets' times for a field's
   area, and `stretchField()`), with `src/rules/spawn.spec.ts` over many seeds
-  on the narrowest and widest fields. One commit.
+  on the narrowest and widest fields, every wave in every formation at
+  every speed, and `fill.spec.ts`. One commit.
 - **A5.3** The field whole: a wave laid out from its `Wave` on a field of
   any shape, waiting for the first move (decision 13), the new ship waiting
   where it is safest, untouchable, and given what the player holds as it
@@ -734,7 +735,20 @@ and scaled past that.
   where each will go, and the field never clumps.
 - **Rocks are placed fairly.** A wave's rocks start at least 12 units from
   the ship, measured across the wrap, each on a course that doesn't come
-  within 5 units of it in its first 3 s.
+  within 5 units of it in its first 3 s, flown as play flies it, a
+  lodestone's pull toward the waiting ship among it.
+- **A wave lays its rocks out in one of four formations,** every rock of
+  it: a scatter, each drawn anywhere far enough off, flying a drawn way; a
+  ring round the ship, as far off as a large rock sits inside the short
+  side, every rock flying along it one way; a wall across the short side,
+  half the long side off, flying along the long side at one speed, the
+  slowest drawn and no faster than keeps the rock in line with the ship
+  clear of it, slower still for lodestones until they are fair; and a
+  cluster about a middle half the long side off, flying one drawn way, or
+  at right angles to the way to the ship if that way isn't fair. A rock
+  whose course still isn't fair turns at right angles to the way from the
+  ship, slowed until it is, as a course long enough to come round the wrap
+  can still near the ship.
 
 Seven kinds to start, each told apart by its shape and marks as well as its
 color, since color is never the only signal:

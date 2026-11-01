@@ -98,7 +98,10 @@ interface TraitRule<T extends RockTrait> {
   readonly held?: (field: RockField, rock: Rock, trait: T) => void;
   /** Runs as it breaks, before its pieces fly. */
   readonly broken?: (field: RockField, rock: Rock, trait: T) => void;
-  /** Runs at each step it flies, before it moves. */
+  /**
+   * Runs at each step it flies, before it moves, acting on the rock alone,
+   * as the placement flies a copy of it ahead by it too.
+   */
   readonly step?: (field: RockField, rock: Rock, trait: T) => void;
   /** Runs as a broken rock's beat is up, before its slot is freed. */
   readonly goesOff?: (field: RockField, rock: Rock, trait: T) => void;
@@ -237,18 +240,25 @@ export function hitRock(
   return true;
 }
 
-/** Flies each whole rock a step on at the field's pace, its traits' rules first, and wraps it. */
+/** Flies each whole rock a step on, as {@link flyRock} does. */
 export function stepRocks(field: RockField): void {
-  const time = field.pace * STEP_S;
   for (const rock of field.rocks) {
-    if (!rock.live) continue;
-    runTraits("step", field, rock);
-    rock.lastX = rock.x;
-    rock.lastY = rock.y;
-    rock.x = wrap(rock.x + rock.vx * time, field.torus.width);
-    rock.y = wrap(rock.y + rock.vy * time, field.torus.height);
-    rock.angle = wrap(rock.angle + rock.spin * time, TURN);
+    if (rock.live) flyRock(field, rock);
   }
+}
+
+/**
+ * Flies a rock a step on at the field's pace, its traits' rules first, and
+ * wraps it: as play does, and as the placement follows a course ahead.
+ */
+export function flyRock(field: RockField, rock: Rock): void {
+  const time = field.pace * STEP_S;
+  runTraits("step", field, rock);
+  rock.lastX = rock.x;
+  rock.lastY = rock.y;
+  rock.x = wrap(rock.x + rock.vx * time, field.torus.width);
+  rock.y = wrap(rock.y + rock.vy * time, field.torus.height);
+  rock.angle = wrap(rock.angle + rock.spin * time, TURN);
 }
 
 /**

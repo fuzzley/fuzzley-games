@@ -144,6 +144,27 @@ export const PIECE_PUSH = 1.5;
 /** The most rocks a field of 40 by 40 holds at once, a wave's written among them; a larger field holds more, by its area. */
 export const ROCK_CAP = 48;
 
+/** How near the ship, middle to middle across the wrap, no rock of a wave starts. */
+export const FAIR_DISTANCE = 12;
+
+/** How near the ship no rock of a wave comes on its course in its first {@link FAIR_COURSE_MS}. */
+export const FAIR_COURSE = 5;
+
+/** How long a wave's rocks keep {@link FAIR_COURSE} off the ship, flying as they start. */
+export const FAIR_COURSE_MS = 3000;
+
+/** How near the field's middle no rock may be for a new ship to wait there. */
+export const SAFE_MIDDLE = 9;
+
+/** How many places across and down the field a new ship may wait at, when the middle isn't safe. */
+export const SAFE_GRID = 5;
+
+/** How far ahead a new ship's place is judged, by where the rocks will be. */
+export const SAFE_AHEAD_MS = 1000;
+
+/** How many pickups a field of 40 by 40 floats before chance lets no more go; a larger field floats more, by its area. */
+export const PICKUPS_AT_ONCE = 2;
+
 /** How fast a pickup drifts from where it was let go. */
 export const PICKUP_DRIFT = 2;
 
