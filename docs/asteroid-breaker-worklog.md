@@ -1105,3 +1105,89 @@ Asteroid Breaker.
 
   These corrected the change rather than reshaping it, so it is committed
   on them.
+
+## A2: done
+
+2026-10-31. `yarn verify` passed on A2.4's commit, `1b425c40`, with the lift
+before it, `fcbe223f`: lint, typecheck, test and build across every
+workspace, Asteroid Breaker's 210 tests among them, the rules fully covered.
+
+## A3.1: the rocks' catalog
+
+2026-10-31.
+
+- **Built.** `src/rules/catalog/rocks.ts`: `ROCK_SIZES` and `RockSize`, the
+  boulder, large, medium and small, largest first, and `BySize`, a number
+  for each size a kind comes in; `RockTrait` and
+  `RockTraitKind`, a blast, a pickup given, a drift toward the ship and a
+  shot rung off, each with its settings; `RockKind`; `ROCK_KINDS`, the
+  seven kinds of the plan's table, written `as const satisfies`, with
+  `RockKindId`, `ROCK_KIND_IDS` and `rockKind()`, a kind as the shape every
+  kind has, as Brick Breaker's bricks are. `src/rules/catalog.spec.ts`
+  gains the rocks' part.
+- **Choices.**
+  - The boulder is a size of its own, which only the boulder comes in, so
+    a size's radius and speed (A3.2) cover it as they do the rest, and its
+    pieces are the size after, large. Its kind's speed is 1, where the
+    plan's table gave 0.6: the plan's 1.5 to 2.5 units a second for the
+    boulder is the large size's 2.5 to 4 at 0.6 already, so the boulder
+    flies as the plan says, not slowed twice. The plan's table says so.
+  - A blast's `reach` is by size, where the plan gave one number for it,
+    since its table has a volatile rock reach 6 units from a large one and
+    4 from a medium. The plan's catalogs say so.
+  - `splits` names pieces of the size after the rock's own, and a small
+    rock breaks into nothing whatever it says, so a stone's two pieces
+    stand for its every size. The plan said "none for a rock that breaks
+    whole"; it now says so.
+  - The kinds are in How to play's order, the wave each first comes in:
+    stone, crystal, ice, the boulder, iron, the volatile and the lodestone.
+  - The names are the table's, "Iron" rather than the plan's example "Iron
+    rock", since every one is a rock and How to play heads each with its
+    picture.
+  - A lodestone's `pull` is 1 unit a second each second, a first guess at
+    the plan's "a little each second", tuned at Q3; its size's speed caps
+    it (A3.2).
+  - `isRockKindId()` and `hasTrait()`, which Brick Breaker's bricks have,
+    wait for A3.2's rules and A5's waves, which read them.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (278 tests,
+  86 of them the catalogs', the rules fully covered), `yarn
+prettier:check`. Eleven mutants of the catalog, each caught: a crystal
+  given a small size without its points, an ice rock without its small
+  points, a small iron rock worth less than a medium one, an iron rock
+  with no medium size, a small lodestone harder than a medium one, a
+  crystal breaking into crystals it has no small size for, a volatile
+  rock's blast reaching only from large, iron ringing twice, a lodestone
+  named "Stone" or not at all, and ice's sentence without its full stop.
+  After the review, those and the review's twelve that passed, 21 in all:
+  each caught but a small lodestone taking two hits, which only the spec
+  the review asked to drop held.
+- **Review.**
+  1. The boulder's speed was the kind's 0.6 on a size already slowed by
+     it. Fixed: 1, as above.
+  2. The sentences counted hits and pieces the specs didn't hold to the
+     data, and iron's "several hits at each size" was untrue of a small
+     one. Fixed: a spec spells out the boulder's hits and pieces and
+     ice's, stone's and crystal's pieces, as Brick Breaker's does, and
+     iron "takes several hits until it is small".
+  3. Twelve broken catalogs passed: a hit, a piece or a point of 0, a name
+     in lower case, the boulder's size given to stone or taken from the
+     boulder, the boulder breaking into nothing, and a blast, a beat or a
+     pull of 0 or less. Fixed: specs of whole hits, pieces and points, one
+     at least; the boulder's size and the wave's pieces only the
+     boulder's; a name of capitalised words; and every trait's numbers
+     above 0.
+  4. One test held the name and the sentence together and failed as
+     `[true, false]`. Fixed: two, each matching its text.
+  5. Two tests took the least or most of an empty list for the boulder.
+     Fixed: each lists the steps that break its rule, and expects none.
+  6. The type of a number by size was written four times. Fixed: `BySize`,
+     exported, which the plan's catalogs use too.
+  7. Sizes one after another, and fewer hits at a smaller size, are no
+     rules of the design: the pieces' spec holds the sizes a split needs.
+     Dropped, both.
+  8. `splits`' doc read as if a small rock held null, and the plan's
+     catalog spec still read a kind's `from`, which `RockKind` has none of.
+     Fixed, each.
+
+  These corrected the change rather than reshaping it, so it is committed
+  on them.

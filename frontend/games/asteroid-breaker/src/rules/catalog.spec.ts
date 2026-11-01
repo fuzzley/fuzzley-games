@@ -1,8 +1,198 @@
+import {
+  type BySize,
+  ROCK_KINDS,
+  ROCK_KIND_IDS,
+  ROCK_SIZES,
+  type RockSize,
+  type RockTrait,
+  rockKind,
+} from "./catalog/rocks";
 import { WEAPONS } from "./catalog/weapons";
 import { stepsIn } from "./stepper";
 import { SHOT_LIFE_MS } from "./tuning";
 
+/** Every rock kind, with its id. */
+const ROCK_ENTRIES = ROCK_KIND_IDS.map((id) => [id, rockKind(id)] as const);
+
 const WEAPON_ENTRIES = Object.entries(WEAPONS);
+
+/** Returns the sizes a record has a number for, largest first. */
+function sizesOf(record: BySize): RockSize[] {
+  return ROCK_SIZES.filter((size) => record[size] !== undefined);
+}
+
+/** Returns a record's numbers, largest size first. */
+function valuesOf(record: BySize): number[] {
+  return ROCK_SIZES.flatMap((size) => record[size] ?? []);
+}
+
+/** Returns how much each of a list's numbers differs from the one before. */
+function stepsBetween(values: readonly number[]): number[] {
+  return values.slice(1).map((value, at) => value - (values[at] ?? value));
+}
+
+/** Returns the size a rock of a size breaks into, or null for the smallest. */
+function sizeAfter(size: RockSize): RockSize | null {
+  return ROCK_SIZES[ROCK_SIZES.indexOf(size) + 1] ?? null;
+}
+
+/** Returns the numbers that set a trait, which are all above 0. */
+function settingsOf(trait: RockTrait): number[] {
+  switch (trait.kind) {
+    case "blasts":
+      return [...valuesOf(trait.reach), trait.delayMs];
+    case "drawn":
+      return [trait.pull];
+    case "gives":
+    case "rings":
+      return [];
+  }
+}
+
+/** Spells a count from one to eight, as the catalogs' sentences do. */
+function spelled(n: number): string {
+  const words = [
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+  ];
+  return words[n - 1] ?? String(n);
+}
+
+/** Every rock kind that breaks into pieces of its own kind or of stone, with its id. */
+const SPLITTING = ROCK_ENTRIES.filter(
+  ([, kind]) => kind.splits !== null && kind.splits.into !== "wave",
+);
+
+/** Every rock kind that blasts, with its id and its blast. */
+const BLASTING = ROCK_ENTRIES.flatMap(([id, kind]) =>
+  kind.traits.flatMap((trait) =>
+    trait.kind === "blasts" ? [[id, kind, trait] as const] : [],
+  ),
+);
+
+describe("ROCK_KINDS", () => {
+  it.each(ROCK_ENTRIES)("names %s in a word or a few", (_, kind) => {
+    expect(kind.name).toMatch(/^[A-Z][a-z]+( [a-z]+)*$/);
+  });
+
+  it.each(ROCK_ENTRIES)("says what %s does, in a sentence", (_, kind) => {
+    expect(kind.about).toMatch(/^[A-Z].*\.$/);
+  });
+
+  it("names every kind apart", () => {
+    const names = ROCK_ENTRIES.map(([, kind]) => kind.name);
+
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it.each([
+    [
+      "the boulder's hits",
+      ROCK_KINDS.boulder.about,
+      `${spelled(ROCK_KINDS.boulder.hits.boulder)} hits`,
+    ],
+    [
+      "the boulder's pieces",
+      ROCK_KINDS.boulder.about,
+      `into ${spelled(ROCK_KINDS.boulder.splits.count)} large`,
+    ],
+    [
+      "ice's pieces",
+      ROCK_KINDS.ice.about,
+      `into ${spelled(ROCK_KINDS.ice.splits.count)}`,
+    ],
+    [
+      "stone's pieces",
+      ROCK_KINDS.stone.about,
+      `into ${spelled(ROCK_KINDS.stone.splits.count)}`,
+    ],
+    [
+      "crystal's pieces",
+      ROCK_KINDS.crystal.about,
+      `into ${spelled(ROCK_KINDS.crystal.splits.count)}`,
+    ],
+  ])("spells out %s as they are", (_, about, counted) => {
+    expect(about).toContain(counted);
+  });
+
+  it.each(ROCK_ENTRIES)(
+    "gives %s hits and points at every size it comes in, and no other",
+    (_, kind) => {
+      expect(sizesOf(kind.points)).toEqual(sizesOf(kind.hits));
+    },
+  );
+
+  it.each(ROCK_ENTRIES)(
+    "breaks %s with whole hits, one at least, into whole pieces, for whole points",
+    (_, kind) => {
+      const counts = [
+        ...valuesOf(kind.hits),
+        ...valuesOf(kind.points),
+        ...(kind.splits ? [kind.splits.count] : []),
+      ];
+
+      expect(counts.filter((n) => !(Number.isInteger(n) && n >= 1))).toEqual(
+        [],
+      );
+    },
+  );
+
+  it.each(ROCK_ENTRIES)(
+    "keeps the boulder's size, and pieces of the wave's kind, to the boulder, not %s",
+    (id, kind) => {
+      expect([
+        kind.hits.boulder !== undefined,
+        kind.splits?.into === "wave",
+      ]).toEqual([id === "boulder", id === "boulder"]);
+    },
+  );
+
+  it.each(SPLITTING)(
+    "breaks %s into pieces that come in the size after each of its own",
+    (_, kind) => {
+      const pieces = kind.splits?.into === "stone" ? rockKind("stone") : kind;
+
+      const missing = sizesOf(kind.hits)
+        .map(sizeAfter)
+        .filter((size) => size !== null && pieces.hits[size] === undefined);
+
+      expect(missing).toEqual([]);
+    },
+  );
+
+  it.each(ROCK_ENTRIES)("scores %s more at each smaller size", (_, kind) => {
+    const falls = stepsBetween(valuesOf(kind.points)).filter(
+      (step) => step <= 0,
+    );
+
+    expect(falls).toEqual([]);
+  });
+
+  it.each(ROCK_ENTRIES)("gives %s each trait once at most", (_, kind) => {
+    const traits = kind.traits.map((trait) => trait.kind);
+
+    expect(new Set(traits).size).toBe(traits.length);
+  });
+
+  it.each(ROCK_ENTRIES)("sets %s's traits with numbers above 0", (_, kind) => {
+    const settings = kind.traits.flatMap(settingsOf);
+
+    expect(settings.filter((n) => !(n > 0))).toEqual([]);
+  });
+
+  it.each(BLASTING)(
+    "lets %s's blast reach from every size it comes in",
+    (_, kind, blast) => {
+      expect(sizesOf(blast.reach)).toEqual(sizesOf(kind.hits));
+    },
+  );
+});
 
 /** The weapons a pickup gives, every one but the gun. */
 const PICKED_WEAPONS = WEAPON_ENTRIES.filter(([id]) => id !== "gun");
