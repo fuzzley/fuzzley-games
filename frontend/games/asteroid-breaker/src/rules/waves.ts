@@ -49,8 +49,8 @@ export interface WaveData {
   readonly formation?: string;
   /** The rocks' speed against their own, 1 by default. */
   readonly pace?: number;
-  /** The kind a boulder breaks into; stone by default. */
-  readonly pieces?: string;
+  /** The kind of rock it names, which its boulders break into; stone by default. */
+  readonly waveKind?: string;
   /** The chance a broken rock lets a pickup go; else its sector's. */
   readonly drops?: number;
   /** The pickups that can come; else every one whose wave has come. */
@@ -92,8 +92,8 @@ export interface Wave {
   readonly formation: Formation;
   /** The rocks' speed against their own. */
   readonly pace: number;
-  /** The kind a boulder breaks into. */
-  readonly pieces: RockKindId;
+  /** The kind of rock it names, which its boulders break into. */
+  readonly waveKind: RockKindId;
   /** The chance a broken rock lets a pickup go. */
   readonly drops: number;
   /** The pickups that can come. */
@@ -127,7 +127,7 @@ const WAVE_KEYS: Readonly<Record<keyof WaveData, true>> = {
   rocks: true,
   formation: true,
   pace: true,
-  pieces: true,
+  waveKind: true,
   drops: true,
   pickups: true,
   strays: true,
@@ -181,7 +181,7 @@ export function parseWave({ number, sector, data }: WaveEntry): Wave {
     rocks,
     formation: formationOf(data),
     pace,
-    pieces: piecesOf(data),
+    waveKind: waveKindOf(data),
     drops,
     pool: poolOf(data, number),
     strays,
@@ -236,16 +236,16 @@ function isFormation(name: string): name is Formation {
   return FORMATIONS.some((formation) => formation === name);
 }
 
-/** Returns the kind a wave's boulders break into, checked: one that comes large. */
-function piecesOf(data: WaveData): RockKindId {
-  const pieces = data.pieces ?? "stone";
-  if (!isRockKindId(pieces) || rockKind(pieces).hits.large === undefined) {
+/** Returns the kind of rock a wave names, which its boulders break into, checked: one that comes large. */
+function waveKindOf(data: WaveData): RockKindId {
+  const kind = data.waveKind ?? "stone";
+  if (!isRockKindId(kind) || rockKind(kind).hits.large === undefined) {
     throw wrong(
       data,
-      `its boulders break into "${pieces}", which is no large rock`,
+      `its boulders break into "${kind}", which is no large rock`,
     );
   }
-  return pieces;
+  return kind;
 }
 
 /** Returns the pickups that can come in a wave: its own, or those whose wave has come. */

@@ -23,7 +23,7 @@ const WAVE: Wave = {
   ],
   formation: "scatter",
   pace: 1,
-  pieces: "stone",
+  waveKind: "stone",
   drops: 0.05,
   pool: [],
   strays: 1,

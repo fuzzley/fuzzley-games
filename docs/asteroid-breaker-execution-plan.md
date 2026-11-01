@@ -428,14 +428,15 @@ more. Paths in Part 1 are under `frontend/lib/` or
   area, and `stretchField()`), with `src/rules/spawn.spec.ts` over many seeds
   on the narrowest and widest fields, every wave in every formation at
   every speed, and `fill.spec.ts`. One commit.
-- **A5.3** The field whole: a wave laid out from its `Wave` on a field of
-  any shape, waiting for the first move (decision 13), the new ship waiting
-  where it is safest, untouchable, and given what the player holds as it
-  comes (`createShip()`'s `held`), and the stretch on a pause, with the
-  1 s guard after it through `guardShip()`, which counts it from the step
-  that follows; and one name for the kind a boulder breaks into, the
-  `Wave`'s `pieces` and the setup's `waveKind`. Specced. One commit,
-  `yarn verify` with it.
+- **A5.3** The field whole: `fieldFor()`, a wave laid out from its `Wave`
+  on a field of any shape at a speed, holding still for the first move
+  (decision 13); the next ship a second after one is lost, waiting where it
+  is safest, untouchable, and given what the player holds as it comes
+  (`createShip()`'s `held`), as the wave's first is; `reshapeField()`, the
+  stretch on a pause, with the 1 s guard after it through `guardShip()`,
+  which counts it from the step that follows; and one name, `waveKind`, for
+  the kind of rock a wave names, which its boulders break into. Specced.
+  One commit, `yarn verify` with it.
 
 #### A6: the autopilot (medium)
 
@@ -1380,8 +1381,8 @@ export interface WaveData {
   readonly formation?: string;
   /** The rocks' speed against their own, 1 by default. */
   readonly pace?: number;
-  /** The kind a boulder breaks into; stone by default. */
-  readonly pieces?: string;
+  /** The kind of rock it names, which its boulders break into; stone by default. */
+  readonly waveKind?: string;
   /** The chance a broken rock lets a pickup go; else its sector's. */
   readonly drops?: number;
   /** The pickups that can come; else every one whose wave has come. */
@@ -1509,8 +1510,9 @@ As Brick Breaker's, four folders under `src/`, fenced by
 - `spawn.ts`: the wave's rocks laid out by its formation, fairly, and the
   safest place for a new ship.
 - `field.ts`: `Field`, a wave in play, stepped in place from records made
-  once, as Brick Breaker's is: `createField()`, `steerField()`,
-  `stepField()`, and the events it logs (`@fz/core/event_log`).
+  once, as Brick Breaker's is: `fieldFor()`, a wave's field laid out whole,
+  `createField()`, `steerField()`, `stepField()`, `reshapeField()`, the
+  stretch on a pause, and the events it logs (`@fz/core/event_log`).
 - `scoring.ts`, `run.ts`, `describe.ts`, `progress.ts`, `stats.ts` and
   `saved_game.ts`, as Brick Breaker's are, for waves, sectors, ships and
   their pilots.

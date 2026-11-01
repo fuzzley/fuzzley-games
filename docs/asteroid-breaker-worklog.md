@@ -2072,3 +2072,98 @@ rules out.
   to that in its runs, over every kind and size at the steepest paces, so
   it stays as it is. Five mutants, one for each gap: all caught. These
   correct the change, so it is committed on them.
+
+## A5.3: the field whole
+
+2026-11-01.
+
+- **Built.** `src/rules/field.ts`: `fieldFor()`, a wave's field laid out
+  whole from its `Wave` on a field of a shape at a speed, through
+  `fillFor()` and `layOut()`, from a `WaveSetup`: the shape, the speed,
+  what the run hands it and what the player holds as it starts.
+  `createField()` takes what is held, its ship and its steering starting
+  from it. The field holds still until the player's first move; its
+  `shipDueAt` is the step the next ship in line comes at, a second after
+  one is lost, waiting where `safestPlace()` says; and `reshapeField()` is
+  the stretch on a pause, with its 1 s guard. `ship.ts` gains `waitOn()`,
+  `torus.ts` `middleOf()`, and `tuning.ts` `NEW_SHIP_MS` and
+  `STRETCH_GUARD_MS`, 1 s each. A wave's `pieces` is `waveKind`, in its file as on the field.
+- **Choices.**
+  - The speed meets the wave in `fieldFor()`: the rocks' pace is the
+    wave's times the speed's motion; the chance of a pickup the wave's
+    times the speed's, at most 1, as Relaxed's 1.25 carries one written at
+    0.9 past it; and the comets' times, shortened by the area's square
+    root, divided by the speed's rate.
+  - A wave holds still while it has taken no step and its ship waits:
+    `stepField()` has the ship `waitOn()` through the frame's steering,
+    which takes the steering as held without counting the ship's timers
+    down. So a key let go and pressed again is a move, and a
+    stretch's guard set under the Ready card counts from the first step
+    played. The first move's step plays as any other, the wait ending in
+    the ship's flight, and the wave's steps, its comets' and strays' times
+    among them, start there.
+  - The wave's first ship takes what the player holds as it comes, as a
+    later one does, so a key still held from the wave before doesn't start
+    the next; the field's steering starts from it too, so a step taken
+    before the first frame's steering comes moves nothing.
+  - The next ship is due a second after the step one is lost, while the
+    crew has someone flying, and comes as its step starts, before blasts
+    go off, so a drawn rock is pulled toward it from that step. A field
+    drawn with no ship, none lost, brings none, as the field picture's
+    don't, and a cleared field brings none, though one was due as the
+    last rock broke.
+  - `reshapeField()` stretches only to a shape that differs, and only then
+    guards the ship: a pause that moves nothing has nothing to guard
+    against, and a guard after every pause would let a pause buy a second
+    untouchable. The guard counts from the step after the pause, as
+    `guardShip()` does; with no ship in play, the next comes waiting,
+    untouchable anyway.
+  - `pieces` is `waveKind` in the file, the `Wave` and the field, the name
+    the catalog's `into: "wave"` already reads as: the kind of rock the
+    wave names.
+  - `fieldFor()` lays the rocks round the field's middle, `middleOf()`,
+    where `createField()` sets its ship waiting, and names each key of the
+    setup it hands on, so nothing else a caller's object holds reaches the
+    field's setup.
+  - `spawn.spec.ts` lays every wave out through `fieldFor()`, as the game
+    will; its specs of a formation's shape lay the spec's rocks on a
+    waiting field, ungrown by its area.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (1,148
+  tests, the field fully covered), `yarn prettier:check` and the skill
+  references. 21 mutants of the field's setup, its holding still, the
+  next ship, the stretch, `waitOn()` and the parser's new name, each
+  undoing one: all caught.
+- **Review.** A fresh reviewer read the staged change; each comment is
+  answered here.
+  1. A wave cleared in the second a ship was due, by shots in flight or a
+     blast, kept `shipDueAt` set, a ship coming that never would. Fixed:
+     `clear()` brings none, and a spec clears a wave in the wait.
+  2. `WaveSetup` spelled `WaveStart`'s keys out again, and `fieldFor()`
+     spread whatever else the setup held into the field's, so a run handed
+     whole would carry its id and outcome into the setup a saved game
+     keeps. Fixed: `WaveSetup` extends `WaveStart`, and `fieldFor()`
+     names each key it hands on. `waveStart()` stays as it is, the shape,
+     the speed and what is held the shell's to add.
+  3. `waitsThrough()` was named as a question but takes the steering as
+     held. Fixed: it is `waitOn()`, which says it keeps the ship waiting,
+     and the field's `holdsStill()` is `holdStill()`, which says it holds
+     the wave and takes the steering.
+  4. Nothing showed the next ship comes as its step starts; brought at the
+     step's end, every spec passed. Fixed: a spec stills a lodestone just
+     before the ship is due and finds it pulled toward the ship in that
+     step, and the log and `stepField()`'s doc give that as the reason.
+  5. "Stretches a field between one ship lost and the next" lost no ship.
+     Fixed: it loses one, stretches the field while the next is due, and
+     finds the next waiting where it is safest on the new shape.
+  6. `createField()`'s `Field & { ship: Ship }` stayed the field's type
+     after a step took the ship away. Fixed: it returns a `Field`, and
+     both it and `fieldFor()` take the middle from `torus.ts`'s new
+     `middleOf()`, which `safestPlace()`, `clear()` and the placement's
+     spec take too.
+  7. The plan's line on `field.ts` named only three functions. Fixed: it
+     names `fieldFor()` and `reshapeField()` too.
+
+  After the fixes, 1,151 tests, the field fully covered. Mutants of the two
+  new specs' points, `clear()` keeping its due ship and the ship brought at
+  the step's end, are both caught, the second by the lodestone's spec
+  alone. These correct the change, so it is committed on them.

@@ -8,7 +8,7 @@ import type { RockKindId, RockSize } from "./catalog/rocks";
 import { drawIn, nextDraw } from "./draws";
 import { type Rock, type RockField, addRock, flyRock } from "./rocks";
 import { stepsIn } from "./stepper";
-import { type Place, across, distanceSquared, wrap } from "./torus";
+import { type Place, across, distanceSquared, middleOf, wrap } from "./torus";
 import {
   FAIR_COURSE,
   FAIR_COURSE_MS,
@@ -86,7 +86,7 @@ export function liesFairly(
  */
 export function safestPlace(field: RockField): Place {
   const { width, height } = field.torus;
-  const middle = { x: width / 2, y: height / 2 };
+  const middle = middleOf(field.torus);
   if (nearestRock(field, middle, 0) >= SAFE_MIDDLE) return middle;
   let safest = middle;
   let room = -1;

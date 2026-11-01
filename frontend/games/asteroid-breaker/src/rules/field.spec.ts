@@ -19,7 +19,10 @@ import { ROCK_KINDS, type RockSize } from "./catalog/rocks";
 import {
   type Field,
   type FieldSetup,
+  type WaveSetup,
   createField,
+  fieldFor,
+  reshapeField,
   steerField,
   stepField,
 } from "./field";
@@ -32,13 +35,17 @@ import {
   createShip,
   flyShip,
   guardShip,
+  isGuarded,
 } from "./ship";
 import { TUNED_GUNNERY } from "./shots";
+import { liesFairly, safestPlace } from "./spawn";
 import { STEP_MS, stepsIn } from "./stepper";
+import { distance } from "./torus";
 import {
   COMET_RADIUS,
   COMET_SPEED,
   FIRST_SHIP_POINTS,
+  NEW_SHIP_MS,
   PICKUP_PULL_REACH,
   SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
@@ -46,7 +53,9 @@ import {
   SHOT_RADIUS,
   SHOT_SPEED,
   STEP_S,
+  STRETCH_GUARD_MS,
 } from "./tuning";
+import { type SectorData, type Wave, type WaveData, parseWave } from "./waves";
 
 const SETUP: FieldSetup = {
   torus: PICTURE_TORUS,
@@ -66,6 +75,26 @@ const SETUP: FieldSetup = {
 
 /** Steering that holds fire and nothing else. */
 const FIRE: Readonly<Steer> = { ...STILL, fire: true };
+
+/** Steering that holds thrust and nothing else. */
+const THRUST: Readonly<Steer> = { ...STILL, thrust: 1 };
+
+/** The sector of the specs' waves, whose chance of a pickup is 0.05. */
+const SECTOR: SectorData = { id: "spec", name: "Spec", drops: 0.05, waves: [] };
+
+/** How the specs' waves start: on a desktop's field at Relaxed, a run's points and crew handed on, nothing held. */
+const START: WaveSetup = {
+  torus: { width: 73, height: 40 },
+  speed: "relaxed",
+  seed: 5,
+  crew: { flying: [3, 0], home: [6], lastGiven: 6 },
+  banked: 1200,
+  nextShipAt: 20_000,
+  held: STILL,
+};
+
+/** The step a ship lost in a field's first step is followed by the next in line at. */
+const NEXT_SHIP_STEP = 1 + stepsIn(NEW_SHIP_MS);
 
 /** The volatile rock's beat, in steps. */
 const BEAT = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs);
@@ -133,6 +162,27 @@ function piecesOf(field: Field): number[][] {
 /** Returns how many of a field's shots are in flight. */
 function shotsInFlight(field: Field): number {
   return field.shots.slots.filter((shot) => shot.lifeSteps > 0).length;
+}
+
+/** Returns where a field's whole rocks are. */
+function placesOf(field: Field): number[][] {
+  return wholeRocks(field).map((rock) => [rock.x, rock.y]);
+}
+
+/** Returns the game's third wave as the specs write it, changed as given: three large stones, scattered, a chance of a pickup of 0.9 and comets every 10 to 20 s. */
+function waveOf(changes: Partial<WaveData> = {}): Wave {
+  return parseWave({
+    number: 3,
+    sector: SECTOR,
+    data: {
+      id: "spec",
+      name: "Spec",
+      rocks: [{ kind: "stone", size: "large", count: 3 }],
+      drops: 0.9,
+      comets: { every: [10, 20] },
+      ...changes,
+    },
+  });
 }
 
 /** Returns a field of ice rocks around the ship after a steering that turns, thrusts and fires, from a seed. */
@@ -227,6 +277,59 @@ describe("a shielded ship", () => {
   });
 });
 
+describe("fieldFor", () => {
+  it("sets a wave's field up for its shape and the run's speed", () => {
+    const wave = waveOf();
+    const sooner = Math.sqrt((73 * 40) / 1600);
+
+    const field = fieldFor(wave, START);
+
+    expect(field.setup).toEqual({
+      torus: START.torus,
+      cap: 87,
+      seed: 5,
+      pace: 0.8,
+      waveKind: "stone",
+      drops: 1,
+      pool: wave.pool,
+      pickupsAtOnce: 4,
+      strays: 2,
+      cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
+      crew: START.crew,
+      banked: 1200,
+      nextShipAt: 20_000,
+    });
+  });
+
+  it("lays its rocks out, grown by the field's area, fairly round its ship waiting in the middle", () => {
+    const field = fieldFor(waveOf(), START);
+
+    const ship = shipOf(field);
+    expect({
+      ship: [ship.x, ship.y, ship.waiting],
+      rocks: wholeRocks(field).length,
+      unfair: wholeRocks(field).filter(
+        (rock) => !liesFairly(field, rock, ship),
+      ),
+    }).toEqual({ ship: [36.5, 20, true], rocks: 5, unfair: [] });
+  });
+
+  it("lays its rocks out in its formation", () => {
+    const field = fieldFor(waveOf({ formation: "ring" }), START);
+
+    const offs = wholeRocks(field).map((rock) =>
+      distance(field.torus, 36.5, 20, rock.x, rock.y).toFixed(9),
+    );
+    expect(new Set(offs).size).toBe(1);
+  });
+
+  it("breaks its boulders into the kind of rock it names", () => {
+    const field = fieldFor(waveOf({ waveKind: "ice" }), START);
+
+    expect(field.waveKind).toBe("ice");
+  });
+});
+
 describe("createField", () => {
   it("lays a wave's field out with free slots for its cap and its ship waiting in its middle", () => {
     const field = createField(SETUP);
@@ -295,6 +398,16 @@ describe("createField", () => {
     const field = createField({ ...SETUP, cometEvery });
 
     expect(field.draws).toBe(draws);
+  });
+
+  // So a step taken before the first frame's steering comes moves nothing.
+  it("steers by what the player holds as it starts, until a frame's steering comes", () => {
+    const field = createField(SETUP, THRUST);
+    stepField(field);
+
+    stepBy(field, THRUST);
+
+    expect([field.steps, shipOf(field).waiting]).toEqual([0, true]);
   });
 });
 
@@ -810,5 +923,189 @@ describe("stepField", () => {
     const second = played(4);
 
     expect(piecesOf(second)).not.toEqual(piecesOf(first));
+  });
+
+  it("holds a wave still for the player's first move", () => {
+    const field = fieldFor(waveOf(), START);
+    const laid = placesOf(field);
+
+    stepBy(field, STILL, 240);
+
+    expect([field.steps, shipOf(field).waiting, placesOf(field)]).toEqual([
+      0,
+      true,
+      laid,
+    ]);
+  });
+
+  it("starts a wave with the player's first move", () => {
+    const field = fieldFor(waveOf(), START);
+    stepBy(field, STILL, 60);
+
+    stepBy(field, THRUST);
+
+    const still = wholeRocks(field).filter(
+      (rock) => rock.x === rock.lastX && rock.y === rock.lastY,
+    );
+    expect([field.steps, shipOf(field).waiting, still]).toEqual([1, false, []]);
+  });
+
+  it("takes what the player holds as a wave starts as no move until it changes", () => {
+    const field = fieldFor(waveOf(), { ...START, held: THRUST });
+
+    stepBy(field, THRUST, 60);
+
+    expect([field.steps, shipOf(field).waiting]).toEqual([0, true]);
+  });
+
+  it("brings no ship for a second after one is lost", () => {
+    const field = fieldFrom(["^B"]);
+
+    stepTimes(field, NEXT_SHIP_STEP - 1);
+
+    expect(field.ship).toBeNull();
+  });
+
+  // A large rock beside the middle keeps the next ship from it.
+  it("brings the next in line a second after, waiting where it is safest", () => {
+    const field = fieldFrom(["^B", "", "", "", "", ".........L"]);
+
+    stepTimes(field, NEXT_SHIP_STEP);
+
+    const safest = safestPlace(field);
+    const ship = shipOf(field);
+    expect([ship.x, ship.y, ship.waiting]).toEqual([safest.x, safest.y, true]);
+    expect([safest.x, safest.y]).not.toEqual([36, 20]);
+  });
+
+  it("flies the rocks on while the next ship waits", () => {
+    const field = fieldFrom(["^B", "", "", "", "", "..........L"]);
+    stepTimes(field, NEXT_SHIP_STEP);
+    const rock = rockOfSize(field, "large");
+    rock.vx = 3;
+
+    stepTimes(field, 120);
+
+    expect([shipOf(field).waiting, rock.x]).toEqual([
+      true,
+      expect.closeTo(42 + 3, 9),
+    ]);
+  });
+
+  it("gives the next ship what the player holds as it comes, no move until it changes", () => {
+    const field = fieldFrom(["^B"]);
+
+    stepBy(field, THRUST, NEXT_SHIP_STEP + 60);
+
+    expect(shipOf(field).waiting).toBe(true);
+  });
+
+  it("lets the next ship fly with the player's first move, and keeps it", () => {
+    const field = fieldFrom(["^B"]);
+    stepTimes(field, NEXT_SHIP_STEP);
+
+    stepBy(field, THRUST, 60);
+
+    expect(shipOf(field).waiting).toBe(false);
+  });
+
+  it("brings no ship once the crew has none left", () => {
+    const field = fieldFrom(["^B"], {
+      crew: { flying: [0], home: [], lastGiven: 0 },
+    });
+
+    stepTimes(field, NEXT_SHIP_STEP + 60);
+
+    expect([field.ship, field.shipDueAt]).toEqual([null, null]);
+  });
+
+  // The shots in flight, or a blast, can break the last rock in the wait.
+  it("brings no ship once the wave is cleared while one is due", () => {
+    const field = fieldFrom(["^"]);
+    const ship = shipOf(field);
+    const rock = placeRock(field, "small", ship.x, ship.y);
+    stepField(field);
+    hitRock(field, rock, 0, 0);
+
+    stepTimes(field, NEXT_SHIP_STEP);
+
+    expect([field.cleared, field.ship, field.shipDueAt]).toEqual([
+      true,
+      null,
+      null,
+    ]);
+  });
+
+  it("brings the next ship as its step starts, so a drawn rock is pulled toward it in that step", () => {
+    const field = fieldFrom(["^B", "", "", "", "", "..........L"], {
+      kind: "lodestone",
+    });
+    stepTimes(field, NEXT_SHIP_STEP - 1);
+    const rock = rockOfSize(field, "large");
+    rock.vx = 0;
+    rock.vy = 0;
+
+    stepField(field);
+
+    expect(Math.hypot(rock.vx, rock.vy)).toBeGreaterThan(0);
+  });
+});
+
+describe("reshapeField", () => {
+  /** Returns a field of 72 by 40, its ship flying near its middle and a large rock in its corner. */
+  function flying(): Field {
+    return fieldFrom(["L", "", "", "", ".........^"]);
+  }
+
+  it("stretches a field to a new shape, though only one side changes", () => {
+    const field = flying();
+
+    reshapeField(field, { width: 72, height: 80 });
+
+    expect([field.torus, placesOf(field)]).toEqual([
+      { width: 72, height: 80 },
+      [[2, 4]],
+    ]);
+  });
+
+  it("brings the next ship, due as the field was stretched, onto its new shape", () => {
+    const field = fieldFrom(["^B", "", "", "", "", ".........L"]);
+    stepField(field);
+    reshapeField(field, { width: 36, height: 80 });
+
+    stepTimes(field, NEXT_SHIP_STEP - 1);
+
+    const safest = safestPlace(field);
+    const ship = shipOf(field);
+    expect([field.torus, ship.x, ship.y, ship.waiting]).toEqual([
+      { width: 36, height: 80 },
+      safest.x,
+      safest.y,
+      true,
+    ]);
+  });
+
+  it.each([
+    ["untouchable through a second's steps", 0, true],
+    ["touchable after", 1, false],
+  ])("keeps the ship %s from the next step on", (_, after, guarded) => {
+    const field = flying();
+    reshapeField(field, { width: 36, height: 80 });
+
+    stepTimes(field, stepsIn(STRETCH_GUARD_MS) + after);
+
+    expect(isGuarded(shipOf(field))).toBe(guarded);
+  });
+
+  it("leaves a field of its shape as it is, its ship touchable", () => {
+    const field = flying();
+
+    reshapeField(field, { width: 72, height: 40 });
+
+    expect([field.torus, placesOf(field), isGuarded(shipOf(field))]).toEqual([
+      PICTURE_TORUS,
+      [[2, 2]],
+      false,
+    ]);
   });
 });

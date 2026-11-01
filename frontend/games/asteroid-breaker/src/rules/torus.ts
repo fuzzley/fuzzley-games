@@ -47,6 +47,11 @@ export function torusFor(width: number, height: number): Torus {
     : { width: FIELD_SHORT_SIDE, height: long };
 }
 
+/** Returns the middle of a field, where a wave's first ship waits. */
+export function middleOf(torus: Torus): Place {
+  return { x: torus.width / 2, y: torus.height / 2 };
+}
+
 /** Returns a coordinate wrapped onto an axis of a length, from 0 to under the length. */
 export function wrap(at: number, length: number): number {
   if (at >= 0 && at < length) return at;

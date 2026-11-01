@@ -6,6 +6,7 @@ import type { RockKindId } from "./catalog/rocks";
 import type { WeaponId } from "./catalog/weapons";
 import { type DropSetup, createPickups } from "./drops";
 import { FieldEventLog } from "./events";
+import { fillFor, stretchField } from "./fill";
 import {
   type Comets,
   type HazardSetup,
@@ -49,6 +50,7 @@ import {
   flyShip,
   guardShip,
   isGuarded,
+  waitOn,
 } from "./ship";
 import {
   type Gunnery,
@@ -61,8 +63,19 @@ import {
   stepShots,
   sweepShot,
 } from "./shots";
-import { type Torus, across, distanceSquared } from "./torus";
-import { PICKUP_PULL_REACH, SHIELD_GUARD_MS, SHIP_HIT_RADIUS } from "./tuning";
+import { layOut, safestPlace } from "./spawn";
+import { SPEED_INFO, type Speed } from "./speed";
+import { stepsIn } from "./stepper";
+import type { WaveStart } from "./run";
+import { type Torus, across, distanceSquared, middleOf } from "./torus";
+import {
+  NEW_SHIP_MS,
+  PICKUP_PULL_REACH,
+  SHIELD_GUARD_MS,
+  SHIP_HIT_RADIUS,
+  STRETCH_GUARD_MS,
+} from "./tuning";
+import type { Wave } from "./waves";
 
 /**
  * Says how a wave is played: its field's size and cap, the seed its draws
@@ -87,6 +100,18 @@ export interface FieldSetup extends DropSetup, HazardSetup {
   readonly nextShipAt: number;
 }
 
+/**
+ * Says how a wave's field is set up beyond what the wave says: what the
+ * run hands it ({@link waveStart}), its shape, the run's speed, and what the
+ * player holds as it starts.
+ */
+export interface WaveSetup extends WaveStart {
+  readonly torus: Torus;
+  readonly speed: Speed;
+  /** What the player holds as the wave starts, which is no move until it changes. */
+  readonly held: Readonly<Steer>;
+}
+
 /** Describes a wave in play, which each step changes in place. */
 export interface Field extends RockField {
   readonly setup: FieldSetup;
@@ -94,6 +119,8 @@ export interface Field extends RockField {
   torus: Torus;
   /** The ship in play, or null once it is lost, until the next comes. */
   ship: Ship | null;
+  /** The step the next ship in line comes at, or null while none is coming. */
+  shipDueAt: number | null;
   readonly shots: Shots;
   /** The weapon in hand. */
   weapon: WeaponId;
@@ -128,23 +155,66 @@ export interface Field extends RockField {
 }
 
 /**
- * Returns a wave's field, its rocks' slots free, its ship waiting in its
- * middle for the player's first move, and its first comet's time drawn;
- * the wave lays its rocks after.
+ * Returns a wave's field laid out whole on a field of a shape, at a speed,
+ * holding still for the player's first move.
+ *
+ * Its counts and its cap grow with the field's area, as `fillFor()` says,
+ * and the speed sets its rocks' pace, its chance of a pickup, at most 1,
+ * and how often its comets come.
  */
-export function createField(setup: FieldSetup): Field {
+export function fieldFor(wave: Wave, setup: WaveSetup): Field {
+  const { torus, seed, crew, banked, nextShipAt } = setup;
+  const fill = fillFor(wave, torus);
+  const { motion, drops, cometRate } = SPEED_INFO[setup.speed];
+  const every = fill.cometEvery;
+  const field = createField(
+    {
+      torus,
+      seed,
+      crew,
+      banked,
+      nextShipAt,
+      cap: fill.cap,
+      pace: wave.pace * motion,
+      waveKind: wave.waveKind,
+      drops: Math.min(1, wave.drops * drops),
+      pool: wave.pool,
+      pickupsAtOnce: fill.pickupsAtOnce,
+      strays: fill.strays,
+      cometEvery: every && {
+        least: every.least / cometRate,
+        most: every.most / cometRate,
+      },
+    },
+    setup.held,
+  );
+  layOut(field, fill.rocks, wave.formation, middleOf(torus));
+  return field;
+}
+
+/**
+ * Returns a wave's field, its rocks' slots free, its ship waiting in its
+ * middle for the player's first move, given what the player holds as it
+ * comes, and its first comet's time drawn; `fieldFor()` lays its rocks.
+ */
+export function createField(
+  setup: FieldSetup,
+  held: Readonly<Steer> = STILL,
+): Field {
   const { torus } = setup;
+  const middle = middleOf(torus);
   const field: Field = {
     setup,
     torus,
     rocks: createRocks(setup.cap),
     waveKind: setup.waveKind,
-    ship: createShip(torus.width / 2, torus.height / 2, STILL),
+    ship: createShip(middle.x, middle.y, held),
+    shipDueAt: null,
     shots: createShots(),
     weapon: "gun",
     flight: TUNED_FLIGHT,
     gunnery: TUNED_GUNNERY,
-    steer: { ...STILL },
+    steer: { ...held },
     pace: setup.pace,
     steps: 0,
     seed: setup.seed,
@@ -188,16 +258,22 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
  * isn't guarded, or spends its shield, and the pickups and the stray float
  * on, the ship catching those it touches. Once no rock is left, the wave is
  * cleared: its effects end, its pickups, stray and comets go, and
- * everything else stands still where it is.
+ * everything else stands still where it is. A wave holds still from its
+ * start until the player's first move, and a ship lost is followed a
+ * second later by the next in line, waiting where it is safest.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
- * the shot's, for its points; and the ships the step's points bring come
+ * the shot's, for its points; the ships the step's points bring come
  * before the ship is tested, as well as after, so one they bring is the
- * run's before a rock can take the last.
+ * run's before a rock can take the last; and the next ship comes as its
+ * step starts, so a drawn rock is pulled toward it from that step.
  */
 export function stepField(field: Field): void {
-  if (field.cleared) return;
+  if (field.cleared || holdStill(field)) return;
   field.steps += 1;
+  if (field.shipDueAt !== null && field.steps >= field.shipDueAt) {
+    bringShip(field);
+  }
   setOffBlasts(field);
   stepEffects(field);
   const { ship, steer, torus } = field;
@@ -229,6 +305,40 @@ export function stepField(field: Field): void {
   stepStrays(field);
   if (rocksLeft(field) === 0) clear(field);
   gainShipsByPoints(field);
+}
+
+/**
+ * Stretches a paused field to a new shape, as `stretchField()` does, its
+ * ship untouchable for a second from the step that follows, as the
+ * stretch may bring a rock nearer it; a field of that shape already is
+ * left as it is.
+ */
+export function reshapeField(field: Field, torus: Torus): void {
+  const { width, height } = field.torus;
+  if (torus.width === width && torus.height === height) return;
+  stretchField(field, torus);
+  if (field.ship) guardShip(field.ship, STRETCH_GUARD_MS);
+}
+
+/**
+ * Holds a wave still through a step, from its start until the frame's
+ * steering moves its waiting ship afresh, the ship taking the steering as
+ * held, and returns whether it did.
+ */
+function holdStill(field: Field): boolean {
+  const { ship } = field;
+  return field.steps === 0 && ship !== null && waitOn(ship, field.steer);
+}
+
+/**
+ * Brings the next ship in line to wait where it is safest, given what the
+ * player holds as it comes, so a key held since the last was lost is no
+ * move.
+ */
+function bringShip(field: Field): void {
+  const { x, y } = safestPlace(field);
+  field.ship = createShip(x, y, field.steer);
+  field.shipDueAt = null;
 }
 
 /**
@@ -297,13 +407,16 @@ function touchingRock(field: Field, ship: Readonly<Ship>): Rock | null {
 
 /**
  * Loses the field's ship, which its shots in flight outlive, its pilot
- * bailing out and the next in line taking the controls, and with it the
- * chain, every effect and the pickups floating.
+ * bailing out and the next in line taking the controls, due to come a
+ * second later, and with it the chain, every effect and the pickups
+ * floating.
  */
 function loseShip(field: Field, ship: Readonly<Ship>): void {
   field.events.addPilot("lost", ship.x, ship.y, atControls(field.crew));
   field.crew = bailOut(field.crew);
   field.ship = null;
+  field.shipDueAt =
+    field.crew.flying.length > 0 ? field.steps + stepsIn(NEW_SHIP_MS) : null;
   field.shipsLost += 1;
   endChain(field);
   endEffects(field);
@@ -311,19 +424,21 @@ function loseShip(field: Field, ship: Readonly<Ship>): void {
 }
 
 /**
- * Clears the wave, for its clearing's points, ending its effects and
- * letting its pickups, its stray and its comets go, and sets where
- * everything else moving was a step ago to where it is, so a cleared field
- * is drawn standing still.
+ * Clears the wave, for its clearing's points, ending its effects, letting
+ * its pickups, its stray and its comets go and bringing no next ship, and
+ * sets where everything else moving was a step ago to where it is, so a
+ * cleared field is drawn standing still.
  */
 function clear(field: Field): void {
   field.cleared = true;
+  field.shipDueAt = null;
   scoreClearing(field);
   endEffects(field);
   clearPickups(field);
   clearHazards(field);
-  const { ship, torus } = field;
-  field.events.add("cleared", torus.width / 2, torus.height / 2);
+  const { ship } = field;
+  const middle = middleOf(field.torus);
+  field.events.add("cleared", middle.x, middle.y);
   if (ship) {
     ship.lastX = ship.x;
     ship.lastY = ship.y;

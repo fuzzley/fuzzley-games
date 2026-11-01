@@ -8,6 +8,7 @@ import {
   flyShip,
   guardShip,
   isGuarded,
+  waitOn,
 } from "./ship";
 import { STEP_MS, stepsIn } from "./stepper";
 import { type Torus, across } from "./torus";
@@ -712,5 +713,38 @@ describe("guardShip", () => {
     guardShip(ship, 500);
 
     expect(ship.guardSteps).toBe(longer);
+  });
+});
+
+describe("waitOn", () => {
+  it("waits on through steering that doesn't move a waiting ship, its guard kept", () => {
+    const ship = createShip(36, 20, STILL);
+    guardShip(ship, 500);
+    const guard = ship.guardSteps;
+
+    const waits = waitOn(ship, STILL);
+
+    expect([waits, ship.waiting, ship.guardSteps]).toEqual([true, true, guard]);
+  });
+
+  it("waits no more through a fresh move, leaving it for the ship's flight", () => {
+    const ship = createShip(36, 20, STILL);
+
+    const waits = waitOn(ship, steer({ thrust: 1 }));
+
+    expect([waits, ship.waiting]).toEqual([false, true]);
+  });
+
+  it("takes what it waits through as held, so a push let go and given again moves it", () => {
+    const ship = createShip(36, 20, steer({ thrust: 1 }));
+    waitOn(ship, STILL);
+
+    const waits = waitOn(ship, steer({ thrust: 1 }));
+
+    expect(waits).toBe(false);
+  });
+
+  it("finds a ship flying waits for nothing", () => {
+    expect(waitOn(flying(0), STILL)).toBe(false);
   });
 });
