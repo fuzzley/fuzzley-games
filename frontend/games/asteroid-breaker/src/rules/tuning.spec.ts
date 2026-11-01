@@ -5,6 +5,8 @@ import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
 import { PILOT_COLORS } from "./pilots";
 import { stepsIn } from "./stepper";
 import {
+  CHAIN,
+  CHAIN_MS,
   COAST_HALF_LIFE_MS,
   COMET_MARGIN,
   COMET_RADIUS,
@@ -18,6 +20,7 @@ import {
   ENTRY_ALONG,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
+  FIRST_SHIP_POINTS,
   FIRST_SHIPS,
   HEADING_EASE,
   HEADING_TURN_RATE,
@@ -35,6 +38,7 @@ import {
   ROCK_SPEED,
   ROCK_SPIN,
   SHIP_HIT_RADIUS,
+  SHIP_POINTS,
   SHOT_LIFE_MS,
   SHOT_SPEED,
   STEP_S,
@@ -219,5 +223,28 @@ describe("the tuning", () => {
 
   it("starts a comet with its head out of sight", () => {
     expect(COMET_MARGIN).toBeGreaterThanOrEqual(COMET_RADIUS);
+  });
+
+  it("gives a chain's breaks more than a step to follow each other", () => {
+    expect(stepsIn(CHAIN_MS)).toBeGreaterThan(1);
+  });
+
+  it("scores a longer chain more times, and each of its rows more than once", () => {
+    const froms = CHAIN.map((row) => row.from);
+    const times = CHAIN.map((row) => row.times);
+
+    expect([
+      stepsBetween(froms).filter((step) => step >= 0),
+      stepsBetween(times).filter((step) => step >= 0),
+      times.filter((n) => n <= 1),
+    ]).toEqual([[], [], []]);
+  });
+
+  // A mark that didn't move on would gain a ship every step.
+  it.each([
+    ["the first ship", FIRST_SHIP_POINTS],
+    ["each after it", SHIP_POINTS],
+  ])("brings %s by points above 0", (_, points) => {
+    expect(points).toBeGreaterThan(0);
   });
 });

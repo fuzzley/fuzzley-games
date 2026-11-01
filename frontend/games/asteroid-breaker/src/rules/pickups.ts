@@ -10,8 +10,7 @@ import {
 } from "./catalog/pickups";
 import type { Floating } from "./drops";
 import type { Field } from "./field";
-import { adriftPilot } from "./hazards";
-import { gainShip } from "./pilots";
+import { gainShipOn } from "./pilots";
 import { hitWithin } from "./rocks";
 import type { Ship } from "./ship";
 import { stepsIn } from "./stepper";
@@ -91,7 +90,7 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
   },
   ship: {
     start: (field) => {
-      field.crew = gainShip(field.crew, adriftPilot(field.strays));
+      gainShipOn(field);
     },
   },
 };

@@ -14,6 +14,7 @@ import {
 } from "./catalog/rocks";
 import { drawIn, nextDraw } from "./draws";
 import { type DropField, dropFrom } from "./drops";
+import { type ScoreField, scoreBreak } from "./scoring";
 import { stepsIn } from "./stepper";
 import { type Place, type Torus, across, distanceSquared, wrap } from "./torus";
 import {
@@ -61,7 +62,7 @@ export interface Rock {
 }
 
 /** Describes what the rocks' rules act on, which the field holds. */
-export interface RockField extends DropField {
+export interface RockField extends DropField, ScoreField {
   readonly torus: Torus;
   /**
    * A slot for each rock the field holds at most, its cap; a free slot holds
@@ -204,8 +205,8 @@ export function addRock(
  * Hits a whole rock once, as a shot, a blast, the Nova, a comet or the
  * Shield does, and returns whether it broke; a rock not whole takes nothing.
  *
- * One broken leaves the field, may let a pickup go unless it was smashed,
- * its traits run, and it splits into pieces of the size after its own,
+ * One broken leaves the field, scores and may let a pickup go unless it was
+ * smashed, its traits run, and it splits into pieces of the size after its own,
  * pushed along the way the hit came: `alongX` and `alongY`, of any length,
  * or both 0 for no push. Its slot is free as it breaks, and one of its
  * pieces may lie there by the time this returns, so a caller takes what it
@@ -227,7 +228,10 @@ export function hitRock(
   }
   rock.live = false;
   field.events.addRock("broken", rock.x, rock.y, rock.kind, rock.size);
-  if (blow !== "smashes") dropFrom(field, rock);
+  if (blow !== "smashes") {
+    scoreBreak(field, rock);
+    dropFrom(field, rock);
+  }
   runTraits("broken", field, rock);
   split(field, rock, alongX, alongY);
   return true;

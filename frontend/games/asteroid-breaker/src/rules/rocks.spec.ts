@@ -8,6 +8,7 @@ import {
 } from "./catalog/rocks";
 import { createPickups } from "./drops";
 import { type FieldEvent, type FieldEventKind, FieldEventLog } from "./events";
+import { createCrew } from "./pilots";
 import {
   ROCK_OUTLINES,
   type Rock,
@@ -86,6 +87,12 @@ function fieldOf({
     draws: 0,
     pickups: createPickups(),
     lastDropAt: 0,
+    score: 0,
+    chain: 0,
+    lastBreakAt: 0,
+    chainPoints: 0,
+    crew: createCrew(),
+    shipsLost: 0,
     events: new FieldEventLog(),
   };
 }
@@ -423,7 +430,7 @@ describe("hitRock", () => {
     expect([broke, rock.live, logged(field)]).toEqual([
       true,
       false,
-      ["broken"],
+      ["broken", "scored"],
     ]);
   });
 
@@ -450,7 +457,7 @@ describe("hitRock", () => {
 
     const broke = hitRock(field, rock, 1, 0);
 
-    expect([broke, logged(field)]).toEqual([false, ["broken"]]);
+    expect([broke, logged(field)]).toEqual([false, ["broken", "scored"]]);
   });
 
   it("logs a hit at the rock's place, with its kind and size", () => {
@@ -1043,7 +1050,7 @@ describe("a rock that rings", () => {
 
     hitRock(field, lay(field, "iron", "small"), 1, 0);
 
-    expect(logged(field)).toEqual(["broken"]);
+    expect(logged(field)).toEqual(["broken", "scored"]);
   });
 
   it("logs its ring at its place, with its kind and size", () => {
@@ -1068,7 +1075,7 @@ describe("a rock that gives", () => {
     hitRock(field, lay(field, "crystal", "medium"), 1, 0);
 
     expect([logged(field), wholeOf(field).length]).toEqual([
-      ["broken", "dropped"],
+      ["broken", "scored", "dropped"],
       ROCK_KINDS.crystal.splits.count,
     ]);
   });

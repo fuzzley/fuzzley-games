@@ -8,6 +8,7 @@ import {
   type RockSize,
   type RockTrait,
   rockKind,
+  rockPoints,
   sizeAfter,
 } from "./catalog/rocks";
 import { WEAPONS } from "./catalog/weapons";
@@ -217,6 +218,16 @@ describe("ROCK_KINDS", () => {
   // Its slot waits for its blast, so a split at the cap would have no room.
   it.each(BLASTING)("breaks %s into nothing, as it blasts", (_, kind) => {
     expect(kind.splits).toBeNull();
+  });
+});
+
+describe("rockPoints", () => {
+  it("returns the points of a kind of rock at a size", () => {
+    expect(rockPoints("iron", "medium")).toBe(ROCK_KINDS.iron.points.medium);
+  });
+
+  it("throws for a size its kind doesn't come in", () => {
+    expect(() => rockPoints("volatile", "small")).toThrow(RangeError);
   });
 });
 
