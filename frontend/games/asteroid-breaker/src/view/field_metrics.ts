@@ -40,6 +40,8 @@ export interface BoardSetting {
   readonly deck: boolean;
   /** Whether the deck's stick is on the right, for a left hand on the buttons. */
   readonly stickOnRight: boolean;
+  /** Whether fire is held by itself, so the deck has no Fire and Dash takes its place. */
+  readonly fireByItself: boolean;
 }
 
 /** Says where the deck lies on the canvas: the stick's zone and the buttons'. */
