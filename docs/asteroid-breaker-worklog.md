@@ -1917,3 +1917,158 @@ rules out.
 
   These correct the change, the lift aside, which had a review of its own,
   so it is committed on them.
+
+## A5.2: the placement and the fill
+
+2026-11-01.
+
+- **Built.** `src/rules/fill.ts`: `Fill`, how a wave fills a field of its
+  shape; `areaShare()`, `fillFor()` and `stretchField()`.
+  `src/rules/spawn.ts`: `layOut()`, a wave's rocks in its formation;
+  `liesFairly()`; and `safestPlace()`, where a new ship waits. `tuning.ts`
+  gains `FAIR_DISTANCE`, `FAIR_COURSE` and `FAIR_COURSE_MS`, the 12 units,
+  5 units and 3 s of the plan's fairness, `SAFE_MIDDLE`, `SAFE_GRID` and
+  `SAFE_AHEAD_MS`, the 9 units, 5 places and 1 s of a new ship's, and
+  `PICKUPS_AT_ONCE`, 2; `Field` gains a torus a stretch may replace.
+- **Choices.**
+  - A count grows by the field's area, rounded to the nearest. A field is
+    never smaller than 40 by 40, so a count is never fewer than written
+    without a rule to say so. The cap is the area's share of 48, rounded
+    down, 105 on the widest field, but never fewer than the rocks the wave
+    lays, which rounding can grow past it: 48 small rocks are 88 on a
+    desktop's 73 by 40, whose share of the cap is 87.
+  - Comets come more often by the square root of the area, as the plan
+    says; the speed's own rate is the field's setup's, in A5.3.
+  - A stretch moves every place, and where it was a step ago, to the same
+    share of the way across and down, keeps every speed and replaces the
+    field's torus. A stray or a comet off the field keeps as far off it,
+    so one waiting at an edge comes in there. What wraps is wrapped again,
+    as a place a hair short of the far edge can stretch onto it, 40.1 to
+    72 across among the cases. The mouse's aim the ship holds is left as it
+    is, as `Steer.aim` says the view keeps its place through a stretch.
+  - Fair is middle to middle, as the plan measures it. A course is followed
+    step by step for its 3 s, as play flies it through `flyRock()`, which
+    `stepRocks()` flies each rock by: across the wrap, as the fastest rock
+    crosses 25 units in that time, more than half the short side, and one
+    flying away can come round at the ship; and a lodestone's pull toward
+    the ship waiting at the place, which bends its course.
+  - The four formations lay every rock of a wave, as the plan now says: a
+    scatter, each drawn anywhere 12 units off, flying a drawn way, drawn
+    again until a place fits, which more than two thirds of the narrowest
+    field is (`tuning.spec.ts` holds that); a ring as far off as a large
+    rock sits inside the short side, 16.2 units, every rock flying along
+    it one way, which no course can bring nearer; a wall across the short
+    side at its far edge, half the long side off, flying along the long
+    side at one speed, the slowest drawn and no faster than keeps the rock
+    in line with the ship clear of it; and a cluster spread a large rock's
+    radius apart on a golden-angle spiral about a middle half the long side
+    off, flying one drawn way, or along the short side if that isn't fair.
+    The ring, the wall and the cluster turned aside are fair by how they are
+    laid, at the game's paces, for a rock that flies straight. A rock still
+    not fair turns at right angles to the way from the ship, to the side
+    its course leans, where it comes no nearer than it starts, and is
+    slowed by halves until it is fair, as a course long enough to come
+    round the wrap can still near the ship: a small ice rock at Fast
+    crosses the whole narrowest field in 3 s, and at a pace of 50, the
+    specs' case, a right angle is not enough. A wall of lodestones is
+    slowed by halves too. A rock that hardly moves is fair unless the ship
+    draws it, so the halving ends; it ends anyway after 20 halvings, the
+    rock all but still, so a rock laid too near, as a ring on a field under
+    31.6 units across would be, can't hang the layout.
+    Wave 12's "3 medium volatile in a cluster, 3 large stone" lays its
+    stones in the cluster too, which A13 may write as two formations if
+    playing asks.
+  - A new ship waits at the middle unless a rock's middle is nearer than 9
+    units, else at the grid place whose nearest rock will be farthest a
+    second ahead, at the field's pace, the first of those as far.
+  - The placement draws from the field's own draws, so a wave from a seed
+    is laid out the same each time.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (1,103
+  tests, the fill and the placement fully covered), `yarn prettier:check`
+  and the skill references. The placement's spec lays every wave in every
+  formation, on the narrowest field and the widest either way up, at every
+  speed, from twelve seeds, and finds every rock laid and fair. 41 mutants
+  of the fill and the placement: all caught but six. A ring flown one way
+  only, a wall flown at its cap whatever was drawn, a turned rock always
+  to one side or not at right angles were gaps, now specced: a ring is
+  flown both ways over the seeds, a wall at a large stone's speed while
+  that is fair, and a scatter at a pace of 50 is fair throughout, its
+  turned rocks at right angles and to both sides, as is every formation
+  at that pace. The cluster's own last `keepClear()` and the wall's
+  changed nothing, as the two are fair by how they are laid, so both went;
+  and the halving became one speed along one way. The one left changes
+  nothing a float can show: a course exactly 5 units off the ship.
+- **Review.** A fresh reviewer read the staged change; each comment is
+  answered here.
+  1. A stretch that widened the field scaled a comet waiting off its edge
+     through its warning further off, past where it counts as gone, so a
+     comet warned of never came, and a stray just come in went the same
+     way. Fixed: a place along a side off the field keeps as far off it, as
+     the plan's "adding and removing nothing" asks, and specs stretch a
+     stray and a comet off every edge, and step a comet crossing in from
+     off the left edge and one from off the top in after a widening.
+  2. Stretching the mouse's aim the ship holds broke `Steer.aim`'s promise
+     that the view keeps its place through a stretch, so a still mouse
+     would end a ship's wait after a pause. Fixed as `Steer.aim` says: the
+     aim is left alone, and a spec holds a ship a still mouse aims at
+     waiting across a stretch.
+  3. `liesFairly()` followed a straight course, while play bends a
+     lodestone's toward the ship, and the every-wave spec judged fairness
+     by `liesFairly()` itself. Fixed both ways: `flyRock()`, split out of
+     `stepRocks()`, flies a rock a step as play does, and `liesFairly()`
+     flies a copy of the rock by it toward a ship at the place; and the
+     spec flies the laid field on with `stepRocks()` and measures with
+     `distance()`. The pull showed what straight courses hid: at Fast and
+     the steepest pace a still lodestone 12 units off reaches the ship in
+     3 s, so no halving could make it fair and `keepClear()` would never
+     have ended. Laid six to a wave over 200 seeds, the scatter, the ring
+     and the cluster are fair now, but a wall, whose speed is fair only for
+     a straight course, came within 1.25 units; it is slowed by halves too,
+     through `flyFairly()`, which `keepClear()` shares. A spec lays six
+     large lodestones in every formation, on the narrowest field and the
+     widest either way up, at the fastest pace, from twelve seeds, and
+     finds them fair.
+  4. `keepClear()`'s loop ended only because every rock it took started
+     far enough off. Fixed with 3: the halving stops after 20, the rock all
+     but still, and a spec lays a ring on a field 24 across, nearer the
+     ship than fair, all but still.
+  5. The small points: the spec's "40 by 73" is "73 by 40"; `Fill.rocks`
+     says its counts are grown; the squared distances lost their names, in
+     `liesFairly()`, `placeOff()` and `nearestRock()`; and the ratios
+     named `across` and `down` went with the stretch's new rule, which
+     takes the two shapes.
+
+  After the fixes, 1,123 tests, the fill and the placement fully covered.
+  Thirteen mutants of the fixes, each undoing one: all caught but one,
+  the overhang's `at > from` as `at >= from`, which gives the same place,
+  as a place at the far edge stretches onto the new one either way.
+
+  These reshape the check and the stretch, so the change had a second
+  review.
+
+- **Second review.** A fresh reviewer read the change as fixed and found
+  the first review's findings answered; its own comments:
+  1. A wall of an odd count lays its middle rock in line with the ship,
+     which at the fairest speed ends its 3 s exactly 5 units off; summed
+     step by step, the course lands a hair either side, and about half
+     such walls, by the room's shape alone, were halved. Fixed: the
+     fairest speed aims a hair, a millionth of a unit, inside the bound,
+     and a spec lays three small ice on 41.4 by 40, where it binds, at it.
+  2. `keepClear()`'s turn to the side a course leans was unspecced, and
+     turned the other way a ring whose rocks were only partly turned flies
+     both ways. Fixed: a spec lays a ring at a pace of 1.5, where some of
+     its rocks are turned, from twelve seeds, flying one way.
+  3. Nothing held a crowded cluster to the 12 units, as twelve rocks don't
+     crowd it. Fixed: the pace-50 specs lay two dozen and check where each
+     starts as well as its course.
+  4. The wall's slowest speed and the middle judged by where the rocks are
+     now each survived a mutant. Fixed: the wall's spec lays its small ice
+     before its large stones, and the middle's lays a rock that flies away.
+  5. "A comet waiting off an edge" places one already crossing, the
+     stronger case, so the spec and the log say "crossing in from off".
+
+  It noted too that a rock the ship draws is left at the halving's end in
+  its least fair state, as slowing it makes it less fair; no layout came
+  to that in its runs, over every kind and size at the steepest paces, so
+  it stays as it is. Five mutants, one for each gap: all caught. These
+  correct the change, so it is committed on them.
