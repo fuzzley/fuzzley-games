@@ -1,3 +1,4 @@
+import { stepsBetween } from "../testing/numbers";
 import {
   type BySize,
   ROCK_KINDS,
@@ -6,6 +7,7 @@ import {
   type RockSize,
   type RockTrait,
   rockKind,
+  sizeAfter,
 } from "./catalog/rocks";
 import { WEAPONS } from "./catalog/weapons";
 import { stepsIn } from "./stepper";
@@ -24,16 +26,6 @@ function sizesOf(record: BySize): RockSize[] {
 /** Returns a record's numbers, largest size first. */
 function valuesOf(record: BySize): number[] {
   return ROCK_SIZES.flatMap((size) => record[size] ?? []);
-}
-
-/** Returns how much each of a list's numbers differs from the one before. */
-function stepsBetween(values: readonly number[]): number[] {
-  return values.slice(1).map((value, at) => value - (values[at] ?? value));
-}
-
-/** Returns the size a rock of a size breaks into, or null for the smallest. */
-function sizeAfter(size: RockSize): RockSize | null {
-  return ROCK_SIZES[ROCK_SIZES.indexOf(size) + 1] ?? null;
 }
 
 /** Returns the numbers that set a trait, which are all above 0. */
@@ -192,6 +184,19 @@ describe("ROCK_KINDS", () => {
       expect(sizesOf(blast.reach)).toEqual(sizesOf(kind.hits));
     },
   );
+
+  // A beat of no steps would set a whole chain off in one step.
+  it.each(BLASTING)(
+    "sets %s's blasts a step apart at least",
+    (_, __, blast) => {
+      expect(stepsIn(blast.delayMs)).toBeGreaterThanOrEqual(1);
+    },
+  );
+
+  // Its slot waits for its blast, so a split at the cap would have no room.
+  it.each(BLASTING)("breaks %s into nothing, as it blasts", (_, kind) => {
+    expect(kind.splits).toBeNull();
+  });
 });
 
 /** The weapons a pickup gives, every one but the gun. */

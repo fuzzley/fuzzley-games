@@ -340,14 +340,19 @@ more. Paths in Part 1 are under `frontend/lib/` or
   rocks' part of `src/rules/catalog.spec.ts`, beside A2.4's weapons': every
   entry named and described, hits and points for every size it comes in.
   One commit.
-- **A3.2** `src/rules/rocks.ts`: `Rock`, `hitRock()`, the split into pieces
-  of the next size, each turned 25° to 50° off its travel by the run's
-  seeded random and pushed along the shot's, the cap's piece fewer, and
+- **A3.2** `src/rules/rocks.ts`: `Rock`, laid in slots made once, as
+  many as the cap, by `addRock()`; `hitRock()`, the split into pieces of
+  the next size, each turned 25° to 50° off its travel by the run's seeded
+  random and pushed along the shot's, as many as the free slots hold at
+  the cap, one at least; `stepRocks()` and `setOffBlasts()`; and
   `TRAIT_RULES` for `blasts` (the reach, the 90 ms beat, the chain),
   `gives`, `drawn` (the lodestone's pull, never past its size's speed) and
-  `rings` (iron's hits shown). Specced trait by trait; `shots.spec.ts`
-  takes a small rock's radius from here, which it writes out until then.
-  One commit.
+  `rings` (iron's ring as a hit holds). It acts on `RockField`, what of the
+  field the rocks need, which A3.3's `Field` extends, and begins
+  `src/rules/events.ts` with the rocks' events and `src/rules/draws.ts`
+  with the seeded draws. Specced trait by trait; `shots.spec.ts` takes a
+  small rock's radius from here, which it writes out until then. One
+  commit.
 - **A3.3** `src/rules/field.ts`: `Field`, a wave in play, stepped in place
   from records made once: `createField()`, `steerField()` and `stepField()`,
   the ship, the shots and the rocks, hits (a Lance shot that breaks a rock
@@ -656,7 +661,8 @@ the mock's sketch has sliders for the ship's.
 | The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                          |
 | Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                 |
 | Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's |
-| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into one piece fewer                           |
+| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into as many pieces as fit, one at least       |
+| Rocks' turn           | 6° to 30° a second, either way; a piece turns 25° to 50° off its parent's travel, pushed 1.5 units a second along the hit     |
 | A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                  |
 | Pickups               | 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet)                                               |
 | Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second; a bubble of 1.15; 500 points         |
@@ -1274,8 +1280,8 @@ and 4 from a medium.
 
 - **`ROCK_KINDS`** (`catalog/rocks.ts`), with `TRAIT_RULES` in
   `src/rules/rocks.ts`, its type mapped from the union, so a trait without
-  its rule fails to compile: `hit`, `broken` and `step`, as Brick Breaker's
-  `TRAIT_RULES` are.
+  its rule fails to compile: `held`, `broken`, `step` and `goesOff`, as
+  Brick Breaker's `TRAIT_RULES` are.
 - **`WEAPONS`** (`catalog/weapons.ts`): the plain gun and each weapon a
   pickup gives, by `count`, `spreadDeg`, `everyMs`, `inFlight` and `breaks`,
   so a weapon is data, as Brick Breaker's ball kinds are.
@@ -1419,8 +1425,13 @@ As Brick Breaker's, four folders under `src/`, fenced by
 - `shots.ts`: shots fired by the weapon in hand (`WEAPONS`), moved, swept
   as segments against rocks' circles across the wrap, so none passes
   through a small rock in a step.
-- `rocks.ts`: `Rock`, `hitRock()`, which a shot, a blast, a comet, the
-  Nova and the Shield call, the split, the cap, and `TRAIT_RULES`.
+- `rocks.ts`: `Rock`, laid by `addRock()` in slots as many as the cap;
+  `hitRock()`, which a shot, a blast, a comet, the Nova and the Shield
+  call; the split, the cap, and `TRAIT_RULES`.
+- `draws.ts`: the field's seeded draws (`nextDraw()`, `drawIn()`), as
+  Brick Breaker's are.
+- `events.ts`: `FieldEventLog`, what happened on the field, for the scene
+  to play, through `@fz/core/event_log`.
 - `pickups.ts`: drops by chance, crystal and drought, by weight from the
   wave's pool through `@fz/core/random`'s `drawAt()`, the pull to the ship,
   the catch, and `EFFECT_RULES`.
@@ -1439,17 +1450,17 @@ As Brick Breaker's, four folders under `src/`, fenced by
 
 #### The physics
 
-Every object is a circle on the torus. Each step, at 1/120 s: the ship
-flies, then its shots, a pull leaving from where its nose is now; every
-rock and pickup moves and wraps; each shot is swept from its last place to
-its next against every rock (the shortest way across the wrap), and the
-first it meets takes the hit; the ship is tested against every rock,
-comet, pickup and stray; blasts due go off. At the widest field's cap, 105
-rocks, with Spread's 18 shots and two comets, that is about two thousand
-circle tests a step, and with every weapon's 42 at once, as weapons caught
-one after another can leave for a moment, about four and a half thousand,
-which needs no spatial index; Q2 times the most in Node, and a grid of
-cells joins only if it doesn't fit.
+Every object is a circle on the torus. Each step, at 1/120 s: blasts due go
+off, reaching the rocks laid before the step; the ship flies, then its
+shots, a pull leaving from where its nose is now; every rock and pickup
+moves and wraps; each shot is swept from its last place to its next against
+every rock (the shortest way across the wrap), and the first it meets takes
+the hit; the ship is tested against every rock, comet, pickup and stray. At
+the widest field's cap, 105 rocks, with Spread's 18 shots and two comets,
+that is about two thousand circle tests a step, and with every weapon's 42
+at once, as weapons caught one after another can leave for a moment, about
+four and a half thousand, which needs no spatial index; Q2 times the most in
+Node, and a grid of cells joins only if it doesn't fit.
 
 #### The view
 
