@@ -1,8 +1,8 @@
 // The ship's flight, a step at a time, from what the player steers it by:
 // it turns, thrusts along its heading, coasts, keeps under its top speed and
-// wraps, or dashes. Angles are in radians, 0 along x and a quarter turn
-// along y, which on the field, its y running down, is clockwise.
+// wraps, or dashes.
 
+import { RADIANS_PER_DEGREE, TURN } from "./angles";
 import { STEP_MS, stepsIn } from "./stepper";
 import { type Place, type Torus, across, wrap } from "./torus";
 import {
@@ -22,12 +22,6 @@ import {
   THRUST,
   TOP_SPEED,
 } from "./tuning";
-
-/** A whole turn, in radians. */
-const TURN = 2 * Math.PI;
-
-/** The radians in a degree. */
-const RADIANS_PER_DEGREE = Math.PI / 180;
 
 /** How far the keys' turn ramps in each step they are held. */
 const RAMP_STEP = STEP_MS / KEY_TURN_RAMP_MS;

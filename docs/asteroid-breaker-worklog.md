@@ -886,3 +886,222 @@ Asteroid Breaker.
 
   These corrected the change rather than reshaping it, so it is committed
   on them.
+
+## A2.4, first: `keysOf()` into `@fz/core`
+
+2026-10-31.
+
+- **Built.** `@fz/core/records`: `keysOf()`, a record's keys typed as its
+  own, moved from Brick Breaker's `src/rules/tables.ts` with its spec; the
+  package's `exports` and description, `@fz/core`'s `AGENTS.md`,
+  `frontend/games/AGENTS.md` and the `fuzzley-ui` skill name it. Brick
+  Breaker's five users import it from there, and its `tables.ts` keeps
+  `recordOf()` and `pick()`, which only it uses.
+- **Choices.** It moves as A2.4's second review asked, the weapons'
+  catalog being the second workspace to need it, as `@fz/core`'s rule
+  says, in a commit of its own before A2.4's; the plan's lifted pieces list
+  it. The entry is named `records`, for what it takes, as `math` and
+  `format` are named for theirs; `isRecord()` stays in `json`, among the
+  readers of stored JSON.
+- **Checks.** `@fz/core`'s and Brick Breaker's `lint`, `typecheck` and
+  `test` (72 and 1,980 tests, `@fz/core` fully covered), the reference
+  check, `yarn prettier:check`.
+- **Review.**
+  1. The skill's description, which Claude Code matches a task against,
+     still listed `@fz/core`'s helpers without it. Fixed, and `keysOf`
+     among its triggers.
+  2. The spec held the keys' order, which `Object.keys()` gives, not their
+     type, the one thing `keysOf()` adds. Fixed: an `expectTypeOf` case,
+     which `yarn typecheck` checks, as Brick Breaker's `frame.spec.ts` has.
+  3. Its doc stated a fact of Brick Breaker's tables, where a library's
+     states the caller's condition. Fixed.
+
+  These corrected the change, so it is committed on them.
+
+## A2.4: the weapons and the shots
+
+2026-10-31.
+
+- **Built.**
+  - `src/rules/catalog/weapons.ts`: `WEAPONS`, the plain gun, Spread,
+    Rapid and Lance, each by `count`, `spreadDeg`, `everyMs`, `inFlight`
+    and `breaks`, written `as const satisfies`; `WeaponId`; and
+    `WEAPON_IDS`, through `@fz/core/records`'s `keysOf()`, which the
+    commit before this one lifts from Brick Breaker (the entry above).
+  - `src/rules/shots.ts`: `Shot`; `Shots`, a slot for each shot every
+    weapon can have in flight at once, made once, and the time until the
+    next pull; `Gunnery` and `TUNED_GUNNERY`, the shot speed, the gun's
+    time and whether a shot carries the ship's velocity, which the debug
+    menu tunes in flight; `createShots()`; `stepShots()`, each shot flying
+    on and wrapping or fading, and a pull fired from the nose, fanned about
+    the heading, at the shot speed plus the ship's velocity up to its
+    flight's top speed, flying its first step at once; `landShot()`, a shot
+    spent on what it meets unless it broke it with breaks left; and
+    `sweepShot()`, how far through its step a shot first came within reach
+    of a circle, across the wrap, else `MISSED`.
+  - `src/rules/angles.ts`: `TURN` and `RADIANS_PER_DEGREE`, lifted from
+    `ship.ts`, as the shots need them too.
+  - `tuning.ts` gains the ship's length, 2.4, and the shots' numbers: 32
+    units a second, the ship's velocity carried, 0.8 s, 140 ms between the
+    gun's pulls, 6 in flight and a radius of 0.18.
+  - `src/rules/catalog.spec.ts` begins, with the weapons', and
+    `tuning.spec.ts` gains three invariants: a shot from a still ship flies
+    past the middle of the field's short side, one at the fastest a shot
+    goes fades before it circles it, and a shot fired along a dash outruns
+    the ship.
+- **Choices.**
+  - The plan's `passes` is `breaks`, the most rocks one shot breaks: the
+    gun's 1 and Lance's 3, where `passes: 1` would read as a gun shot that
+    passes through a rock. A rock a shot doesn't break spends it, Lance's
+    too, as iron rings a shot off.
+  - Spread holds 18 in flight, as many pulls as the gun has shots: at the
+    gun's 6 it would fire two pulls and wait, slower than the gun. The
+    plan's pickup table says so. Its busiest moment had "Rapid with
+    Spread", which one weapon at a time can't be: it now says Spread's 18.
+  - Rapid holds 12 in flight, twice the gun's, as it fires twice as often.
+    The plan's 10 held fewer than a shot's life of its pulls, 12, so held
+    fire came in bursts of ten with a gap of 0.2 s. `catalog.spec.ts` holds
+    every weapon to a shot's life of its pulls, and `shots.spec.ts` every
+    weapon's held fire to a steady pull, so held fire never waits on a
+    weapon's most at the tuned numbers. The debug menu's quickest gun waits
+    on it, where the most bounds what the shots cost, as it should.
+  - A weapon's most in flight counts only its own shots, each shot keeping
+    the weapon that fired it, so a weapon caught fires at once, whatever
+    the one before left flying; the plan's pickups say so. There is a slot
+    for every weapon's most at once, 42, so a pull that fits its weapon's
+    most always finds slots; Q2 and "The physics" count the 42, which
+    weapons caught one after another can leave for a moment.
+  - A pull waits until all of it fits in flight, so a spread always fans
+    three.
+  - A weapon is ready a pull's time after the last, fire held or not, so
+    pressing again fires no faster than holding, and "Fire by itself" and a
+    quick thumb fire alike; it readies while fire isn't held, so a press
+    after its time fires at once.
+  - The time since the last pull carries through a change of weapon, so a
+    weapon caught fires when the one before would have: Rapid caught just
+    after the gun's pull waits the gun's 17 steps, not its own 8, and
+    weapons caught one after another fire no faster than either. The
+    plan's pickups say so.
+  - The debug menu's "A shot every" sets the gun's time, and every weapon's
+    scales with it (`Gunnery.gunEveryMs`), while the catalog writes Rapid's
+    as half `SHOT_EVERY_MS`; so a rate found by playing and copied into
+    `tuning.ts` keeps Rapid twice as fast as it was played. The plan's
+    debug menu says so.
+  - A shot carries the ship's velocity only up to its flight's top speed,
+    so a dash throws the ship but not its shots: a shot along a dash goes
+    at its own speed and the top speed, 47 units a second, still faster
+    than the dash's 34, and fades before it circles the field, as the plan
+    says a shot can't. `stepShots()` takes the ship's `Flight` for it, so
+    the debug menu's top speed bounds the carry as it bounds the flight.
+    The plan's ship and its numbers say so.
+  - Shots live in slots made once, one freed as its shot's steps run out,
+    so firing allocates nothing, and the scene draws a slot while it has
+    steps left. `stepShots()` takes a `WeaponId`, not a `Weapon`, so a pull
+    always fits the slots, made for the catalog's weapons.
+  - The shots step after the ship, and a pull flies its first step at once
+    from where the nose is now, so its first sweep starts at the nose and
+    a rock just ahead is met that step; a shot's life counts the step it is
+    fired in, as the ship's timers do.
+  - A waiting ship fires nothing: "Fire by itself" holds fire, which
+    doesn't end a wait, and a ship untouchable as it waits mustn't break
+    rocks.
+  - `sweepShot()` solves the meeting exactly, a quadratic in the step's
+    share, against the circle where it is as the step ends, as "The
+    physics" has it: a small rock moves about a tenth of a unit a step at
+    the most, a tenth of its reach. It measures the shot's start from the
+    circle the shortest way, so it meets only the circle's nearest copy,
+    which is the only one in reach while a rock and a step's travel are far
+    under half the field's short side. A miss is `MISSED`, infinity, as
+    Brick Breaker's sweep has it, so the field takes the first a shot meets
+    with a plain `<`.
+  - `keysOf()` moves into `@fz/core`, whose rule asks it of a helper a
+    second workspace needs, in a commit of its own before this one, the
+    entry above; the plan's lifted pieces list it.
+  - The specs write a small rock's hit radius out, nine tenths of 0.9,
+    until A3.2's rocks; A3.2 in the plan says to take it from there. A
+    Lance shot that breaks a rock would meet its pieces, which start where
+    the rock was, at once; A3.3 in the plan says it flies on past them.
+  - `SHOTS_CARRY_SHIP` sits in `tuning.ts` with the numbers, though the
+    debug menu's Reset and Copy take only its sliders, so one file says how
+    the game fires.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (210 tests,
+  the rules fully covered), `yarn prettier:check`, and `yarn verify`, with
+  the lift before it: every workspace's lint, typecheck and tests, and the
+  build.
+  - **Tuning.** Each of the shots' numbers set alone to the ends of the
+    debug menu's ranges and past them: the shot speed 16 and 60, the gun's
+    time 60, 120, 150 and 400 ms, the shot's life 400 and 1,200 ms, 3 and 12
+    of the gun's in flight, the shot's radius 0.05 and 0.5, the ship's
+    length 1.2, the carry off, the top speed 6 and 30, and a dash of 60
+    units a second. The
+    shots' specs fail only where `tuning.spec.ts` or `catalog.spec.ts` do
+    too: a speed of 16 or a life of 400 ms, whose shot doesn't reach the
+    field's middle; a speed of 60, a life of 1,200 ms or a top speed of 30,
+    whose shot circles it; a dash of 60, faster than a shot fired along it;
+    a top speed of 6, which the dash's carry is more than half of; and a
+    gun's time of 60 or 120 ms, or 3 of its shots in flight, at which the
+    gun holds fewer than a shot's life of its pulls.
+  - **Mutants**, in four rounds, each round's survivors given cases.
+    - The first, 47: the reload's count, its readying and its time; a
+      shot's fading, counting and life; the trigger's four conditions and
+      the fit of a pull; `landShot()`'s two conditions; the sweep's wrap,
+      reach, start within reach, closing, root and step's end; the pull's
+      fan, slots, carry, nose, wraps and first step; and the catalog's
+      Spread, Rapid and Lance. Six survived. Four are the same code: the
+      sweep's bounds made strict or loose at a touch, and its guard on a
+      negative square, whose root's NaN already misses; the guard stays,
+      to say so. The slots' first places a pull overwrites. A shot's wrap
+      at the top and bottom had no case: now it has, with the nose's wraps
+      on both axes.
+    - The second, 4: the three wraps, caught, and the carry tuned off,
+      which no spec fails now that the specs of the carry say which they
+      fire.
+    - The third, 10 on the code as the review left it: a weapon's most
+      counting every shot, a shot not keeping its weapon, the slots for
+      one weapon's most, the carry uncapped or capped by the tuned top
+      speed, the carry always on, the nose where the ship was a step ago
+      on each axis, and a miss given as 1. One survived, the nose's y,
+      whose spec flew the ship along x only; flown on a slant, it is caught.
+    - The fourth, 2 on the code as the second review left it: Rapid's most
+      back at 10, and a weapon caught firing on its own time rather than
+      the last pull's, each caught.
+- **Review.**
+  1. A weapon's most in flight counted every shot, whichever weapon fired
+     it, so a weapon caught as Spread's 18 flew, or the gun as Spread ran
+     out with fire held, fired nothing for over half a second. Fixed: a
+     shot keeps its weapon, a weapon's most counts its own, and the slots
+     hold every weapon's most at once; specced with the gun firing beside
+     Spread's 18.
+  2. A shot carried a dash's 34 units a second, so one fired along it went
+     66 and circled the field's short side, which the plan says a shot
+     can't, while the invariant looked only at the top speed. Fixed: the
+     carry stops at the flight's top speed, and the invariants hold the
+     fastest shot to fading first and to outrunning the dash.
+  3. No spec held that a pull leaves from where the ship is after its
+     step, which `stepShots()`'s doc asks the field to keep to. Fixed: a
+     ship flown a step on a slant fires from its new nose.
+  4. The specs listed the weapons by hand, and the fan's spec spelled out
+     the degree. Fixed: `WEAPON_IDS`, as Brick Breaker's catalogs export
+     their ids, and `RADIANS_PER_DEGREE`.
+  5. `sweepShot()` gave null for a miss, where Brick Breaker's sweep gives
+     `MISSED`, infinity, which the log's own reason argued for. Fixed:
+     `MISSED`.
+  6. `yarn verify` ends A2. Run before the commit, below.
+
+  The first two reshape how the shots count and carry, so the step has a
+  second review before it is committed.
+
+- **Second review.** It found no bug, and the first review's answers held:
+  1. Rapid's 10 in flight held fewer than a shot's life of its pulls, so
+     held fire came in bursts. Fixed: 12, twice the gun's, and the specs
+     above, of the catalog and of held fire.
+  2. The reload carried through a change of weapon, where the plan said a
+     weapon caught "fires at once". Kept, as weapons caught one after
+     another then fire no faster than either, the plan's sentence saying
+     what the code does, and specced.
+  3. `keysOf()` was copied, where `@fz/core`'s rule asks for a helper a
+     second workspace needs, and no step of the plan would lift it. Fixed:
+     lifted in a commit of its own, the entry above.
+
+  These corrected the change rather than reshaping it, so it is committed
+  on them.

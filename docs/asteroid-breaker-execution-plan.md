@@ -194,7 +194,7 @@ the look can be redirected early.
 | Checkpoint | When                       | What                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ---------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Q1         | L5                         | Brick Breaker unchanged: `yarn verify`, its `check:layout`, its sounds the same bytes, `yarn report:levels` the same numbers, and a level played in its dev server by keys, mouse and touch                                                                                                                                                                                                                       |
-| Q2         | after A6                   | The rules alone: the five waves over many seeds at every speed, on the narrowest and widest fields; a thousand seeded random flights checked for a ship, shot, rock, pickup or stray off the torus; the physics' cost at the widest field's cap (105 rocks, 30 shots, two comets) timed in Node                                                                                                                   |
+| Q2         | after A6                   | The rules alone: the five waves over many seeds at every speed, on the narrowest and widest fields; a thousand seeded random flights checked for a ship, shot, rock, pickup or stray off the torus; the physics' cost at the widest field's cap (105 rocks, 42 shots, two comets) timed in Node                                                                                                                   |
 | Q3         | after A9, the feel gate    | The five waves played by keys and mouse in windows from a small phone's to a 2560 × 1440 desktop's, and by the user on real phones, upright and on their side, Android's Chrome and, if one is to hand, an iPhone's Safari, from the dev server on the local network (`yarn dev --host`); the feel tuned through the debug menu and its numbers copied into `tuning.ts`. The build waits here for the user's word |
 | Q4         | after A14                  | The whole shell: every dialog by keyboard and by mouse, the cards, the bar on a phone and a wide screen, the pilots' colors in every palette, sound and haptics, settings, records and progress across a reload, a saved game taken up, one in Endless among them, a light palette and a dark                                                                                                                     |
 | Q5         | A15                        | The full pass A15 lists: every wave of the first sector and the last of each other, and Endless's first, by mouse, keys and touch; AZERTY; a lost context; the accessibility tree; Lighthouse; a performance trace at ×6 and at 120 Hz on the widest field; the bundle's sizes                                                                                                                                    |
@@ -329,24 +329,30 @@ more. Paths in Part 1 are under `frontend/lib/` or
   count, their speed plus the ship's, wrapping and fading, swept as segments
   against circles across the wrap. Specced: no shot passes a small rock in a
   step at the fastest the ship and a shot go together, across an edge and
-  at a corner. One commit, `yarn verify` with it.
+  at a corner. First, in a commit of its own, `keysOf()` moves from Brick
+  Breaker into `@fz/core/records`, the weapons' catalog being the second to
+  need it ("The lifted pieces"). Then one commit, `yarn verify` with it.
 
 #### A3: rocks (large)
 
 - **A3.1** `src/rules/catalog/rocks.ts` (`ROCK_KINDS`, `RockKind`,
   `RockTrait`), as "The catalogs" has them, `as const satisfies`, and the
-  first half of `src/rules/catalog.spec.ts`: every entry named and
-  described, hits and points for every size it comes in. One commit.
+  rocks' part of `src/rules/catalog.spec.ts`, beside A2.4's weapons': every
+  entry named and described, hits and points for every size it comes in.
+  One commit.
 - **A3.2** `src/rules/rocks.ts`: `Rock`, `hitRock()`, the split into pieces
   of the next size, each turned 25° to 50° off its travel by the run's
   seeded random and pushed along the shot's, the cap's piece fewer, and
   `TRAIT_RULES` for `blasts` (the reach, the 90 ms beat, the chain),
   `gives`, `drawn` (the lodestone's pull, never past its size's speed) and
-  `rings` (iron's hits shown). Specced trait by trait. One commit.
+  `rings` (iron's hits shown). Specced trait by trait; `shots.spec.ts`
+  takes a small rock's radius from here, which it writes out until then.
+  One commit.
 - **A3.3** `src/rules/field.ts`: `Field`, a wave in play, stepped in place
   from records made once: `createField()`, `steerField()` and `stepField()`,
-  the ship, the shots and the rocks, hits, blasts, a lost ship and a cleared
-  wave, and the events it logs through `@fz/core/event_log`; with
+  the ship, the shots and the rocks, hits (a Lance shot that breaks a rock
+  flies on past its pieces, not into them), blasts, a lost ship and a
+  cleared wave, and the events it logs through `@fz/core/event_log`; with
   `src/testing/field_picture.ts` (`fieldFrom()`), a field laid out from a
   picture of its rocks and ship. Specced, the same seed and steering making
   the same field among it. One commit, `yarn verify` with it.
@@ -615,7 +621,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
   hundredths of a second so a tap turns a few degrees. By a stick or the
   mouse, toward where they point, at up to twice that, easing into the
   heading, so it can't overshoot and shudder.
-- **Shots** leave the nose at their speed plus the ship's, wrap, and fade
+- **Shots** leave the nose at their speed plus the ship's, up to its top
+  speed, so a dash throws the ship but not its shots; they wrap, and fade
   after 0.8 s, so a shot crosses most of the field but can't circle it.
   Holding fire fires 7 a second, with at most 6 in flight.
 - **The dash** throws the ship along its heading for 0.22 s, during which
@@ -645,7 +652,7 @@ the mock's sketch has sliders for the ship's.
 | Coasting              | the speed halves every 1.5 s                                                                                                  |
 | Turning, by keys      | 300° a second, reached in 0.08 s                                                                                              |
 | Turning, to a heading | up to 600° a second, easing in over the last 12°                                                                              |
-| Shots                 | 32 units a second plus the ship's speed; 0.8 s; one each 0.14 s held; 6 in flight; a radius of 0.18                           |
+| Shots                 | 32 units a second plus the ship's speed, up to its top speed; 0.8 s; one each 0.14 s held; 6 in flight; a radius of 0.18      |
 | The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                          |
 | Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                 |
 | Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's |
@@ -762,8 +769,8 @@ by touching it.
 
 | Pickup     | Symbol                  | Group   | What it does                                                                             | Lasts                        | Weight | From wave |
 | ---------- | ----------------------- | ------- | ---------------------------------------------------------------------------------------- | ---------------------------- | ------ | --------- |
-| Spread     | three rays              | weapon  | Three shots at each pull, 12° apart                                                      | 12 s                         | 10     | 2         |
-| Rapid      | two chevrons            | weapon  | A shot each 0.07 s, 10 in flight                                                         | 12 s                         | 9      | 2         |
+| Spread     | three rays              | weapon  | Three shots at each pull, 12° apart, 18 in flight                                        | 12 s                         | 10     | 2         |
+| Rapid      | two chevrons            | weapon  | A shot each 0.07 s, 12 in flight                                                         | 12 s                         | 9      | 2         |
 | Shield     | a ring                  | guard   | The next rock or comet to touch the ship breaks a size down instead, and the shield goes | until used, or the wave ends | 7      | 2         |
 | Extra ship | the pod, a pilot in it  | at once | One more ship, up to six, flown by the first stray at home, if one waits                 | at once                      | 1      | 5         |
 | Lance      | an arrow through a ring | weapon  | A shot passes through what it breaks, up to three rocks                                  | 10 s                         | 6      | 6         |
@@ -776,7 +783,9 @@ by touching it.
   apart from every rock.
 - **One of each group at a time.** Spread, Rapid and Lance are the weapon,
   and the latest caught replaces the one before; the same again starts its
-  time over.
+  time over. The shots of the one before fly on, counted only toward its
+  own most in flight, so they don't hold the new one back; it fires once
+  the last pull's time is up, as the one before would have.
 - **Every effect ends with its wave and when a ship is lost,** with the
   pickups on the field.
 - **What is in effect shows on the field,** at its bottom left: a tag for
@@ -1079,6 +1088,8 @@ once:
 - **The last three are the player's settings too,** and change them; the
   rest live only in the field in play (`Field.debug`), as Brick Breaker's
   `ballSpeedScale` does, and nothing keeps them.
+- **A shot every** sets the gun's time, and every weapon's scales with it,
+  so Rapid's stays half the gun's, as the catalog writes it.
 - **Reset the numbers** puts the eight sliders back to `tuning.ts`'s;
   **Copy the numbers** puts them on the clipboard as the lines of
   `tuning.ts` they would replace, so a feel found by playing is pasted
@@ -1255,7 +1266,7 @@ export type RockTrait =
   its rule fails to compile: `hit`, `broken` and `step`, as Brick Breaker's
   `TRAIT_RULES` are.
 - **`WEAPONS`** (`catalog/weapons.ts`): the plain gun and each weapon a
-  pickup gives, by `count`, `spreadDeg`, `everyMs`, `inFlight` and `passes`,
+  pickup gives, by `count`, `spreadDeg`, `everyMs`, `inFlight` and `breaks`,
   so a weapon is data, as Brick Breaker's ball kinds are.
 - **`PICKUPS`** (`catalog/pickups.ts`): each its name, sentence, `weight`,
   the wave it is `from` and its `effect`, one of a union:
@@ -1355,13 +1366,14 @@ An `asteroid-breaker-content` skill walks an agent through each, as
 | A ring of numbered events   | `src/rules/events.ts`: `EventLog`                                                      | `@fz/core/event_log`    | `EventLog<E>` takes its size and a blank record; `next()` hands back the next record, numbered, to fill in place, so nothing is made per step                                                                                                                               |
 | A frame's sounds            | `src/view/effects.ts`: `FrameSounds`                                                   | `@fz/core/frame_sounds` | `FrameSounds<Name>` takes the sprite's names; Brick Breaker's `SOUNDS`                                                                                                                                                                                                      |
 | Points grouped in thousands | `src/rules/describe.ts`: `formatPoints()`                                              | `@fz/core/format`       | Beside `count()`, unchanged                                                                                                                                                                                                                                                 |
+| A record's keys, typed      | `src/rules/tables.ts`: `keysOf()`                                                      | `@fz/core/records`      | Unchanged, at A2.4, as the weapons' catalog needs it; `recordOf()` and `pick()`, only Brick Breaker's, stay                                                                                                                                                                 |
 | A sound held                | new                                                                                    | `@fz/phaser/sound`      | `SpritePlayer.hold(name, held)` loops a sound while held and stops it when let go, or when sound is turned off or the scene ends                                                                                                                                            |
 | A deck beside a board       | new                                                                                    | `@fz/dev/layout`        | `PhaserBoard` takes an optional `deck`: the attribute that lists its zones by name, the zones it must show, and their least size; `inspectPhaserDeck()` holds each zone on the canvas and in the window, off the board, the other zones and the bar, and at least that size |
 
 Each moves now because two games need it, as `@fz/core`'s rule asks; the
 last two are new, and each lies where the next action game will look for
 it. The stick itself stays in Asteroid Breaker until a second game wants
-one. Brick Breaker adopts the four it gives, its sounds the same bytes, its
+one. Brick Breaker adopts the five it gives, its sounds the same bytes, its
 autopilot's report the same numbers.
 
 ### The build
@@ -1417,13 +1429,16 @@ As Brick Breaker's, four folders under `src/`, fenced by
 #### The physics
 
 Every object is a circle on the torus. Each step, at 1/120 s: the ship
-flies; every rock and pickup moves and wraps; each shot is swept from its
-last place to its next against every rock (the shortest way across the
-wrap), and the first it meets takes the hit; the ship is tested against
-every rock, comet, pickup and stray; blasts due go off. At the widest field's cap,
-105 rocks, with 30 shots and two comets, that is under four thousand circle
-tests a step, which needs no spatial index; Q2 times it in Node, and a grid
-of cells joins only if it doesn't fit.
+flies, then its shots, a pull leaving from where its nose is now; every
+rock and pickup moves and wraps; each shot is swept from its last place to
+its next against every rock (the shortest way across the wrap), and the
+first it meets takes the hit; the ship is tested against every rock,
+comet, pickup and stray; blasts due go off. At the widest field's cap, 105
+rocks, with Spread's 18 shots and two comets, that is about two thousand
+circle tests a step, and with every weapon's 42 at once, as weapons caught
+one after another can leave for a moment, about four and a half thousand,
+which needs no spatial index; Q2 times the most in Node, and a grid of
+cells joins only if it doesn't fit.
 
 #### The view
 
@@ -1502,7 +1517,7 @@ turns, as it does for Brick Breaker.
 
 Brick Breaker's bar holds: a frame's work under 4 ms at the median with the
 CPU throttled six times, measured at the busiest moment (Tempest on the
-widest field, at the cap of 105 rocks, Rapid with Spread, a blast chain), on
+widest field, at the cap of 105 rocks, Spread's 18 shots, a blast chain), on
 a 2560 × 1440 window too, where the atlas is scaled up; nothing allocated
 per step or frame
 (`phaser-canvas-performance`); a check at 120 Hz this time, which Brick

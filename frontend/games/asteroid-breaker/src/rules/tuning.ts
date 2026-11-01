@@ -20,6 +20,9 @@ export const FIELD_SHORT_SIDE = 40;
  */
 export const FIELD_LONGEST_SIDE = 88;
 
+/** The ship's length, nose to tail; its shots leave its nose, half of it ahead of its middle. */
+export const SHIP_LENGTH = 2.4;
+
 /** The push of full thrust along the ship's heading, in units a second, each second. */
 export const THRUST = 24;
 
@@ -71,3 +74,24 @@ export const NEW_SHIP_GUARD_MS = 2000;
  * doesn't end the wait.
  */
 export const STICK_SLACK = 8;
+
+/** How fast a shot flies, before the ship's velocity is added to it. */
+export const SHOT_SPEED = 32;
+
+/** Whether a shot leaves with the ship's velocity added to its own, as the genre's do. */
+export const SHOTS_CARRY_SHIP = true;
+
+/** How long a shot flies before it fades. */
+export const SHOT_LIFE_MS = 800;
+
+/**
+ * The time between the gun's pulls while fire is held; each weapon's is
+ * written against it, so tuning it tunes them all.
+ */
+export const SHOT_EVERY_MS = 140;
+
+/** The most of the gun's shots in flight at once. */
+export const SHOTS_IN_FLIGHT = 6;
+
+/** How far from its middle a shot reaches what it hits. */
+export const SHOT_RADIUS = 0.18;
