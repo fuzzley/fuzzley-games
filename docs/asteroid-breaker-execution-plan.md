@@ -368,14 +368,21 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### A4: pickups, strays, pilots, the comet and scoring (large)
 
-- **A4.1** `src/rules/catalog/pickups.ts` (`PICKUPS`, the effect union) and
-  `src/rules/pickups.ts`: the drop by chance, crystal and drought, the draw
-  by weight from the wave's pool through `@fz/core/random`'s `drawAt()`, the
-  drift, the pull to the ship, the catch, the 8 s and the blink, and
-  `EFFECT_RULES` for every effect (weapon, guard, pull, pace, nova, ship),
-  one of each group at a time, each ending with its wave and a lost ship.
-  The catalog spec's checks of the pickups join it. Specced effect by
-  effect. One commit.
+- **A4.1** `src/rules/catalog/pickups.ts` (`PICKUPS`, the effect union);
+  `src/rules/drops.ts`, the drop by chance, crystal and drought and the
+  draw by weight from the wave's pool through `@fz/core/random`'s
+  `drawAt()`, which `hitRock()` calls as a rock breaks, acting on
+  `DropField`, what of the field a drop needs, which `RockField` extends;
+  and `src/rules/pickups.ts`: the drift, the pull to the ship, the catch,
+  the 8 s and the blink, and `EFFECT_RULES` for every effect (weapon,
+  guard, pull, pace, nova, ship), one of each group at a time, each ending
+  with its wave and a lost ship. The drop is a file of its own as the Nova
+  hits rocks: `pickups.ts` imports `rocks.ts`, which can't import it back.
+  The field breaks a rock that touches a shielded ship a size down, the
+  ship untouchable 1 s after, and `events.ts` records an event by what it
+  happened to: `add()` a place's, `addRock()` a rock's, `addPickup()` a
+  pickup's. The catalog spec's checks of the pickups join it. Specced
+  effect by effect. One commit.
 - **A4.2** `src/rules/pilots.ts` and `hazards.ts`: the crew, those at home
   and `nextPilot()` (decisions 25 and 26); a stray's times (20 s into a
   wave, then 8 s after the last has gone), its crossing, its catch and the
@@ -668,7 +675,8 @@ the mock's sketch has sliders for the ship's.
 | Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into as many pieces as fit, one at least       |
 | Rocks' turn           | 6° to 30° a second, either way; a piece turns 25° to 50° off its parent's travel, pushed 1.5 units a second along the hit     |
 | A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                  |
-| Pickups               | 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet)                                               |
+| Pickups               | drifting at 2 units a second for 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet), caught at 2 |
+| The Shield            | the rock that touches the ship breaks a size down, the ship untouchable 1 s after                                             |
 | Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second; a bubble of 1.15; 500 points         |
 | The chain             | 1.5 s from one break to the next                                                                                              |
 | Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                       |
@@ -1436,9 +1444,11 @@ As Brick Breaker's, four folders under `src/`, fenced by
   Brick Breaker's are.
 - `events.ts`: `FieldEventLog`, what happened on the field, for the scene
   to play, through `@fz/core/event_log`.
-- `pickups.ts`: drops by chance, crystal and drought, by weight from the
-  wave's pool through `@fz/core/random`'s `drawAt()`, the pull to the ship,
-  the catch, and `EFFECT_RULES`.
+- `drops.ts`: drops by chance, crystal and drought, by weight from the
+  wave's pool through `@fz/core/random`'s `drawAt()`, which `hitRock()`
+  calls as a rock breaks.
+- `pickups.ts`: the drift, the pull to the ship, the catch, and
+  `EFFECT_RULES`.
 - `hazards.ts`: the strays' and the comets' times, warnings and
   crossings, a stray's catch and the Magnet's pull on it.
 - `pilots.ts`: the crew, those at home, and the next pilot's color

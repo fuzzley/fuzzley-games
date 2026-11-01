@@ -151,3 +151,8 @@ export const ROCK_KIND_IDS = keysOf(ROCK_KINDS);
 export function rockKind(id: RockKindId): RockKind {
   return ROCK_KINDS[id];
 }
+
+/** Returns whether a kind of rock has a trait. */
+export function hasTrait(id: RockKindId, kind: RockTraitKind): boolean {
+  return rockKind(id).traits.some((trait) => trait.kind === kind);
+}

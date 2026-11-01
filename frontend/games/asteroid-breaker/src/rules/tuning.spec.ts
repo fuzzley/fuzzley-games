@@ -1,4 +1,5 @@
 import { stepsBetween } from "../testing/numbers";
+import { PICKUPS } from "./catalog/pickups";
 import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
 import { stepsIn } from "./stepper";
 import {
@@ -8,11 +9,18 @@ import {
   DASH_MS,
   DASH_RECHARGE_MS,
   DASH_SPEED,
+  DROUGHT_MS,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
   HEADING_EASE,
   HEADING_TURN_RATE,
   KEY_TURN_RAMP_MS,
+  PICKUP_BLINK_MS,
+  PICKUP_CATCH_REACH,
+  PICKUP_DRIFT,
+  PICKUP_LIFE_MS,
+  PICKUP_PULL_REACH,
+  PICKUP_PULL_SPEED,
   PIECE_PUSH,
   PIECE_TURN,
   ROCK_RADIUS,
@@ -122,5 +130,27 @@ describe("the tuning", () => {
 
   it("pushes a piece along the hit by less than the slowest piece flies", () => {
     expect(PIECE_PUSH).toBeLessThan(ROCK_SPEED.large.least * SLOWEST_KIND);
+  });
+
+  it("blinks a pickup only toward the end of its life", () => {
+    expect(PICKUP_BLINK_MS).toBeLessThan(PICKUP_LIFE_MS / 2);
+  });
+
+  it("draws a pickup in faster than it drifts away", () => {
+    expect(PICKUP_PULL_SPEED).toBeGreaterThan(PICKUP_DRIFT);
+  });
+
+  it("draws a pickup in from farther than the ship catches it", () => {
+    expect(PICKUP_CATCH_REACH).toBeLessThan(PICKUP_PULL_REACH);
+  });
+
+  it("draws pickups in from farther with the Magnet", () => {
+    expect(PICKUP_PULL_REACH).toBeLessThan(PICKUPS.magnet.effect.reach);
+  });
+
+  // So no pickup floats as a drought ends, and the one it lets go never
+  // waits on how many may float at once.
+  it("lets a drought outlast a pickup's life", () => {
+    expect(DROUGHT_MS).toBeGreaterThan(PICKUP_LIFE_MS);
   });
 });

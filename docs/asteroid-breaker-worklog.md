@@ -1434,3 +1434,114 @@ prettier:check`. Eleven mutants of the catalog, each caught: a crystal
 
   These corrected the change rather than reshaping it, so it is committed
   on them.
+
+## A3: done
+
+2026-11-01. `yarn verify` passed on A3.3's commit, `71a9a887`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 422
+tests among them, the rules fully covered but one branch the catalog rules
+out.
+
+## A4.1: the pickups
+
+2026-11-01.
+
+- **Built.** `src/rules/catalog/pickups.ts`: `PICKUPS`, the eight, each its
+  name, sentence, weight, the wave it comes from and its effect, one of the
+  union `PickupEffect`, whose kind is its group. `src/rules/drops.ts`:
+  `Floating`, a pickup let go, in `PICKUP_RECORDS` records made once;
+  `DropSetup`, a wave's chance, pool and most at once; `DropField`, what a
+  drop needs of the field, which `RockField` now extends; `dropFrom()`,
+  which `hitRock()` calls as a rock breaks, letting a pickup drawn by weight
+  from the pool go from a crystal always, from the first large rock broken
+  once 25 s have gone by without one, and otherwise by the wave's chance
+  while fewer than its most at once float; and `blinks()`, for the view.
+  `src/rules/pickups.ts`: `stepPickups()`, each pickup drifting, drawn in
+  to the ship from its reach, caught as it touches the ship, or faded;
+  `EFFECT_RULES`, a start and an end for each kind of effect, one of each
+  group in play, `stepEffects()`, `endEffect()`, `endEffects()` and
+  `clearPickups()`. The field keeps its setup, the pickups, the effects,
+  whether the ship is shielded, the reach pickups are drawn in from and the
+  ships gained; each step ends effects whose time is up before the ship
+  flies, a rock that touches a shielded ship breaks a size down on the
+  shield, and the pickups float on after the ship is tested; a lost ship
+  and a cleared wave end every effect and let the pickups go. `rocks.ts`
+  lifts `hitWithin()` out of the blast, for the Nova; `events.ts` records
+  an event by what it happened to, `add()` a place's, the Nova's with its
+  reach, `addRock()` a rock's and `addPickup()` a pickup's; the rocks'
+  catalog gains `hasTrait()`; and `tuning.ts` the pickups' drift, life,
+  blink, reach, pull and catch, the drought and the Shield's guard. The
+  field picture takes a wave's chance, pool and most at once, and gains
+  `placeRock()`, lifted from the field spec, `placePickup()`,
+  `floatingPickups()` and `catchOn()`.
+- **Choices.**
+  - The drop is a file of its own, as the Nova hits rocks: `pickups.ts`
+    imports `rocks.ts`, and `hitRock()` lets a pickup go, so one file for
+    both would import `rocks.ts` and be imported by it.
+  - Every rock broken may let a pickup go, whatever broke it, a blast, the
+    Nova and the Shield among them. Whether a comet's breaks do, which the
+    plan says score nothing, is A4.2's to say.
+  - A drought lets a pickup go however many float, as a crystal does: none
+    floats by then, since a drought outlasts a pickup's life, which
+    `tuning.spec.ts` holds. An empty pool, and a chance of 0, draw nothing,
+    so a wave that can let none go draws as one without the rule would.
+  - A pickup drawn in keeps its drift, and drifts on with it once the ship
+    has flown out of reach. It is caught within 2 units of the ship's
+    middle, as a stray is, by a ship waiting, guarded or dashing alike.
+  - A rock that touches a shielded ship breaks with the blow that breaks,
+    whatever its hits, its pieces pushed away from the ship; the shield
+    goes, and the ship is untouchable for 1 s, a first guess for Q3, which
+    also keeps it from any other rock touching it in that step. A ship
+    guarded otherwise doesn't spend its shield.
+  - The Shield is `shielded`, set and cleared by its rule, as Brick
+    Breaker's net is, so its record is kept while it lasts.
+  - The Nova's rule is the one that takes the ship, where its ring sweeps
+    from; it hits at once, reaching what a blast would, the rocks laid
+    before its step.
+  - The pickups float on after the ship is tested, so a rock takes a ship
+    before it can catch a Shield in the same step; effects end before the
+    ship flies, so a pull in the step a weapon's time ends is the gun's. An
+    effect lasts its time's steps after the one it is caught in.
+  - The effects end and the pickups go as the wave is cleared, as the plan
+    says they end with it, as well as when a ship is lost.
+  - The events are three methods, not more overloads: a pickup's event
+    takes a pickup and the Nova's a reach, and one signature for all four
+    would take a union in each place.
+  - The extra ship's "up to six" is the run's to keep, at A4.3, which gains
+    the most ships, and the catalog spec spells it out then; the field only
+    counts the ships its pickups gave.
+  - The Magnet draws from 14 units at the same 10 a second. The sentences
+    name comets and strays already, from the plan's table, so How to play's
+    words are written once.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (543 tests,
+  the rules fully covered but A3.2's one branch), `yarn prettier:check`
+  and the skill references. 69 mutants of the drop, the pickups, the
+  effects, the field's Shield and step and the events: all caught but
+  five. Two were gaps, which new specs then caught: a chance of 0 drawing
+  for nothing, and a catch measured without the wrap, which passed as the
+  spec's pickup crossed the edge as it was drawn in. Three change nothing
+  in play: the weighted draw stopping on a sliver of 0 as well as below
+  it; ending a group's effect before the next of it starts, which each
+  start rule overwrites, kept as the rule a future effect may need; and
+  the pull's cap at the ship's middle, which a pickup never reaches before
+  it is caught 2 units off.
+- **Review.**
+  1. A pickup let go in a step was counted down later in that step, so it
+     floated one step fewer than its doc said, which a pickup placed
+     between steps hid. Fixed: a pickup fades once it has no steps left,
+     and counts one down after; a spec counts the life of one a shot lets
+     go, and the old countdown is caught. A pickup the Nova lets go as the
+     ship catches another first floats in that step or the next, by its
+     record's order, a step's difference, left as it is.
+  2. Rapid's "twice as often" and the Slow's "half their speed" weren't
+     held to their numbers. Fixed: two rows, with `share()`; retuning
+     either is caught.
+  3. The entry named `PICKUP_POOL`, since renamed. Fixed.
+  4. `add()` took a reach for any event of a place. Fixed: overloaded, so
+     the Nova's needs one and no other takes it.
+  5. The pickups' private `drawIn()` shared its name with the draws'.
+     Fixed: `pullIn()`.
+  6. `hitRock()`'s doc wrapped oddly. Fixed.
+
+  These corrected the change rather than reshaping it, so it is committed
+  on them.

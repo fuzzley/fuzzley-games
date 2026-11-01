@@ -12,8 +12,8 @@ import {
   rockKind,
   sizeAfter,
 } from "./catalog/rocks";
-import { type Draws, drawIn, nextDraw } from "./draws";
-import type { FieldEventLog } from "./events";
+import { drawIn, nextDraw } from "./draws";
+import { type DropField, dropFrom } from "./drops";
 import { stepsIn } from "./stepper";
 import { type Place, type Torus, across, distanceSquared, wrap } from "./torus";
 import {
@@ -61,7 +61,7 @@ export interface Rock {
 }
 
 /** Describes what the rocks' rules act on, which the field holds. */
-export interface RockField extends Draws {
+export interface RockField extends DropField {
   readonly torus: Torus;
   /**
    * A slot for each rock the field holds at most, its cap; a free slot holds
@@ -78,10 +78,6 @@ export interface RockField extends Draws {
    * drawn rock's pull alike, so a rock's course is the same at any pace.
    */
   readonly pace: number;
-  /** How many steps the field has taken, by which a blast's beat runs and a rock's laying is told. */
-  readonly steps: number;
-  /** What happened, for the scene to play. */
-  readonly events: FieldEventLog;
 }
 
 /**
@@ -130,7 +126,7 @@ const TRAIT_RULES: {
   },
   rings: {
     held: (field, rock) => {
-      field.events.add("rung", rock.x, rock.y, rock.kind, rock.size);
+      field.events.addRock("rung", rock.x, rock.y, rock.kind, rock.size);
     },
   },
 };
@@ -207,12 +203,12 @@ export function addRock(
  * Hits a whole rock once, as a shot, a blast, the Nova, a comet or the
  * Shield does, and returns whether it broke; a rock not whole takes nothing.
  *
- * One broken leaves the field, its traits run, and it splits into pieces of
- * the size after its own, pushed along the way the hit came: `alongX` and
- * `alongY`, of any length, or both 0 for no push. Its slot is free as it
- * breaks, and one of its pieces may lie there by the time this returns, so
- * a caller takes what it broke from before the hit, or from the break's
- * event.
+ * One broken leaves the field, may let a pickup go, its traits run, and it
+ * splits into pieces of the size after its own, pushed along the way the
+ * hit came: `alongX` and `alongY`, of any length, or both 0 for no push.
+ * Its slot is free as it breaks, and one of its pieces may lie there by the
+ * time this returns, so a caller takes what it broke from before the hit,
+ * or from the break's event.
  */
 export function hitRock(
   field: RockField,
@@ -224,12 +220,13 @@ export function hitRock(
   if (!rock.live) return false;
   rock.hits = blow === "breaks" ? 0 : rock.hits - 1;
   if (rock.hits > 0) {
-    field.events.add("hit", rock.x, rock.y, rock.kind, rock.size);
+    field.events.addRock("hit", rock.x, rock.y, rock.kind, rock.size);
     runTraits("held", field, rock);
     return false;
   }
   rock.live = false;
-  field.events.add("broken", rock.x, rock.y, rock.kind, rock.size);
+  field.events.addRock("broken", rock.x, rock.y, rock.kind, rock.size);
+  dropFrom(field, rock);
   runTraits("broken", field, rock);
   split(field, rock, alongX, alongY);
   return true;
@@ -333,17 +330,20 @@ function kindOfPieces(
 }
 
 /**
- * Sets a broken rock's blast off: every whole rock within its reach, the
- * reach touching the rock's own, takes a hit, pushed away from it.
+ * Hits every whole rock within a reach of a place, the reach touching the
+ * rock's own, each pushed away from the place, as a blast and the Nova do.
  *
- * It reaches only rocks laid before its step, so neither the pieces it
- * breaks them into nor those of another blast going off with it are hit:
- * blasts in a step hit the same rocks whatever their slots' order.
+ * It reaches only rocks laid before the step under way, so it never hits
+ * the pieces it breaks rocks into, and blasts going off in a step hit the
+ * same rocks whatever their slots' order.
  */
-function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
+export function hitWithin(
+  field: RockField,
+  x: number,
+  y: number,
+  reach: number,
+): void {
   const { torus } = field;
-  const { x, y } = rock;
-  field.events.add("blast", x, y, rock.kind, rock.size, reach);
   for (const other of field.rocks) {
     if (!other.live || other.laidAt === field.steps) continue;
     const within = reach + rockHitRadius(other.size);
@@ -357,6 +357,12 @@ function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
       across(y, other.y, torus.height),
     );
   }
+}
+
+/** Sets a broken rock's blast off, which hits every whole rock within its reach. */
+function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
+  field.events.addRock("blast", rock.x, rock.y, rock.kind, rock.size, reach);
+  hitWithin(field, rock.x, rock.y, reach);
 }
 
 /**
