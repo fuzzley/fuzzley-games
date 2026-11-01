@@ -450,8 +450,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### A7: the view (large)
 
-- **A7.1** `src/view/field_metrics.ts` (`deckLayout()`, `fieldShape()`,
-  `toCanvas()`, `toField()`), `frame.ts`, `layers.ts`, `timing.ts` and
+- **A7.1** `src/view/field_metrics.ts` (`deckLayout()`, `fieldRoom()`,
+  `fieldShape()`, `fieldMetrics()`, `toCanvas()`, `toField()`), `frame.ts`, `layers.ts`, `timing.ts` and
   `controls.ts` (the keys by `event.code`). `fieldShape()` keeps the field
   it had while its room has no area, as a hidden page's is, and never asks
   `torusFor()` for one, which throws. Specced, the layout at every
@@ -463,8 +463,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   push, the mouse as a place to aim at (`Steer.aim`) once it moves, kept
   from its last move so a still pointer gives the same place, the stick as
   a heading, its rings with some give, so a thumb resting on one doesn't
-  flicker a push or a heading on and off; swapped hands and "Fire by
-  itself". Specced by cases. One commit.
+  flicker a push or a heading on and off; the stick at rest and the buttons
+  kept 16 px from their zones' sides, off the screen's edges; swapped
+  hands and "Fire by itself". Specced by cases. One commit.
 - **A7.3** `src/view/palette.ts`, `inks.ts` (the rocks' inks, seven for
   light palettes and seven for dark, and the pilots', eight for each, with
   `pilotInk()`) and `contrast.spec.ts`, holding every color "The checks
@@ -1013,10 +1014,14 @@ field:
   200 CSS px, and the field the rest.
 - **On its side,** a deck lies on each side of the field: the stick's zone
   on the left, the buttons on the right, each a sixth of the stage's width,
-  112 to 176 CSS px, inside the screen's safe areas and 16 px from its
-  edges, so no thumb
-  starts the browser's own swipe. The bar's rail stands beyond the right
-  one, as on every game on its side.
+  112 to 176 CSS px, inside the screen's safe areas, the stick and the
+  buttons kept 16 px from the screen's edges, so no thumb starts the
+  browser's own swipe. The bar's rail stands beyond the right one, as on
+  every game on its side.
+- **Between the two,** on a stage near square, it lies whichever way
+  leaves the field in play the larger unit, as `deckLayout()` works out,
+  so a window resized in play doesn't turn it from a field it fits; the
+  margin lies between the deck and the field.
 - **"Stick on the right"** swaps the two halves or sides, for a left hand on
   the buttons.
 
@@ -1536,10 +1541,13 @@ Node, and a grid of cells joins only if it doesn't fit.
 - `field_metrics.ts`: where the deck and the field lie on the canvas and
   the field's size in units: `deckLayout()` takes the deck's share of the
   stage (a quarter of its height upright, 136 to 200 CSS px; a sixth of its
-  width each side on its side, 112 to 176), and `fieldShape()` fits the
-  field into the rest, its short side 40 units and its long side up to 88,
+  width each side on its side, 112 to 176), `fieldRoom()` is the rest,
+  `fieldShape()` shapes the field for it, its short side 40 units and its
+  long side up to 88, and `fieldMetrics()` fits a field of a shape into it
   on whole device pixels, a unit being whatever fraction that makes; with
-  `toCanvas()` and `toField()` between the two. `@fz/phaser/layout`'s
+  `toCanvas()` and `toField()` between the two. The deck lies under the
+  field or beside it, whichever leaves the field in play the larger unit,
+  so a phone upright has it under and one on its side beside. `@fz/phaser/layout`'s
   `fitCells()` doesn't fit, as it makes each cell a whole number of device
   pixels, which would waste up to 88 of them on the long side; the game
   keeps its own, as no other game needs it yet.
@@ -1577,7 +1585,9 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
 
 - **Two cameras.** The field's camera has the field's rectangle as its
   viewport, so whatever lies past an edge is cut off there; the deck's
-  camera draws the deck and ignores the field's objects.
+  camera, over the whole canvas, draws the field's frame and the deck and
+  ignores the field's objects, so the frame stays still as the field
+  shakes.
 - **An object across an edge is drawn on both sides,** up to four times at
   a corner, from pooled images, as `torus.ts` says, so a rock slides out of
   one edge as it slides in at the other.

@@ -31,8 +31,9 @@ shows the game's name alone, and the site doesn't ship it:
 ## Layers
 
 Four layers, each a folder under `src/` named for it, each importing only
-the layers below it, as `eslint.config.js` fences them. Only the rules',
-`src/rules/`, and the shell's, `src/app/`, hold code yet.
+the layers below it, as `eslint.config.js` fences them. The rules',
+`src/rules/`, the view's, `src/view/`, and the shell's, `src/app/`, hold
+code so far.
 
 | Layer | May import                                                                                                                 | May not import                                                      |
 | ----- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |

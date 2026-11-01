@@ -2296,3 +2296,206 @@ rules out.
   the touching dash, the course drawing away, the comet unwrapped, the
   frame bound and the touch's test, each is caught. These correct the
   change, so it is committed on them.
+
+## A6: done
+
+2026-11-01. `yarn verify` passed on A6.1's commit, `0a137445`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 1,230
+tests among them, the rules fully covered but the one branch the catalog
+rules out.
+
+## Q2: the rules alone
+
+2026-11-01. Run by the author, as the plan has it, after A6.
+
+- **The five waves over many seeds.** `yarn report:waves --seeds 20` on
+  the narrowest field, and with `--field wide` and `--field tall`, at
+  every speed: all 2,700 plays cleared within four minutes, at most one
+  ship lost to a wave at a speed. On the narrowest field the middle times
+  run from 6 s, First light, to 15 s, Hail at Fast, the longest 18 s; on
+  the widest, either way up, from 19 s to 40 s, the longest 1:04, Hail at
+  Fast upright. Strays came only on the widest fields, where the autopilot
+  brought home 7 in 10 of Adrift's at Relaxed and 223 of Hail's 227.
+- **A thousand seeded random flights.** Each flies one of the five waves,
+  in turn, at each speed in turn, on a field of a long side drawn from 40
+  to 88 either way up, half of them with comets crossing every 2 to 4 s,
+  which none of the five has yet. Every 20 frames it draws a fresh turn,
+  stick heading, mouse aim (sometimes off the field), and push; every frame
+  fire and, now and then, a dash; and one frame in 500 stretches the field
+  to a new shape, as a pause would. After every step it checks the ship,
+  every shot in flight, every whole rock and every pickup floating lies on
+  the torus, from 0 up to but not reaching its width and height, and the
+  stray adrift within its radius of it, as a stray crosses rather than
+  wraps. 2,790,372 steps, 2,781 stretches, a comet in play for 1,129,714
+  of them and a stray for 256,626: nothing off the torus.
+- **The physics' cost at the widest field's cap.** A field 40 by 88 at
+  Fast, its 105 rock slots all whole and flying, a quarter of each size,
+  its 42 shots all in flight and its three comet records all crossing,
+  stepped 120 steps from each of 300 seeds and every step timed in Node:
+  a median of 98 µs a step, the 99th hundredth 572 µs and the worst 1.6
+  ms, the slowest likely the collector clearing the probe's own record of
+  times. A frame at 60 Hz plays two steps, 0.2 ms of its 16.7 at the
+  median.
+- **What it leaves.** The rules hold the torus whole and are cheap enough
+  for any frame. One thing for the waves' tuning, A13, and for Q3: on the
+  narrowest field no wave lasts to its first stray, which the plan sends
+  20 s in if the wave is still on, so Adrift, "the first stray to bring
+  home", sends none on a square field, and few on a phone upright. A
+  person aims worse than the autopilot and takes longer; Q3 will say
+  whether they see one.
+
+## A7.1: the field on the canvas
+
+2026-11-01.
+
+- **Built.** `src/view/field_metrics.ts`: `deckLayout()`, where the deck
+  lies around a field of a shape, or null where it doesn't show;
+  `fieldRoom()`, the stage inside the chrome less the deck, inside the
+  margin; `fieldShape()`, the field's shape for its room as a wave starts
+  or while the game is paused; `fieldMetrics()`, where a field of a shape
+  lies in its room; and `toCanvas()` and `toField()` between the two, all
+  as a `BoardSetting` says: the margin, whether the deck shows and which
+  side its stick is on. `frame.ts`: `FieldView`, the
+  field as the view and the scene read it, `EventsView`, `FieldFrame`,
+  `between()` and `betweenOnAxis()`, which draws a thing a step took
+  across an edge at the edge rather than across the field. `layers.ts`,
+  the painters' layers in the plan's order; `timing.ts`, the flourishes'
+  times and counts from the plan's table, with `clearedDelayMs()` and
+  `resultDelayMs()`; and `controls.ts`, the keys by `event.code`.
+  Specced, the layout at every `@fz/dev/layout` shape, the smallest phone
+  upright among them, at 1×, 2× and 3×, with the deck and without.
+- **Choices.**
+  - The stage is the canvas inside the chrome the board declares, the bar
+    or its rail and the safe areas. The deck lies at the stage's edges,
+    and the margin, 12 CSS px on a compact screen and 24 on a roomy one,
+    lies between the deck and the field, so the board hands it over as a
+    setting of its own rather than among the insets, as Brick Breaker's
+    does, which would push the deck in from the edges too.
+  - The deck lies under the field, a quarter of the stage's height, its
+    two zones side by side, or a zone each side of it, a sixth of the
+    stage's width, whichever leaves the field the larger unit, and under
+    it where both leave the same. A phone upright has it under and one on
+    its side beside; between them, on a stage near square, the way that
+    wastes less of it wins. `fieldShape()` weighs the field each room
+    would shape, and the other three the field in play, so a window
+    resized in play keeps the deck where the field it keeps fits best;
+    once the field is shaped, both choose the same way, as the field a
+    room shapes gets the largest unit any field can there.
+  - The zones are the deck's whole share of the stage, from its edges in.
+    The 16 CSS px the plan keeps from the screen's edges, so no thumb
+    starts the browser's own swipe, holds for the stick and the buttons,
+    which A7.2 places in their zones.
+  - `fieldShape()` measures the room inside the frame in whole device
+    pixels and hands it to `torusFor()`, so the field it gives fits that
+    room to the pixel: the short side's pixels over 40 are the unit, and
+    the long side holds as many units as its pixels do. A room with no
+    area, a hidden page's or one the deck takes whole, keeps the last
+    shape, and `torusFor()`, which throws for it, is never asked; nor is
+    it while the deck's choice weighs a layout that leaves no room, which
+    counts as a unit of 0.
+  - `fieldMetrics()` takes the shape as given, so a window resized in
+    play fits the field kept from its last room whole, centered on whole
+    device pixels; its width and height are whole pixels, a hair under one
+    counting as one, as the unit's rounding can leave the long side. On a
+    canvas with no room, a unit is a device pixel, as `fitCells()` keeps a
+    cell.
+  - `toCanvas()` and `toField()` write into a record the caller keeps,
+    since the scene places every object every frame and allocates nothing.
+  - `FieldView` names only what the scene will draw from: the shape, the
+    rocks, the ship, the shots, the weapon, the pickups, the stray, the
+    comets, the effects, the shield, the crew, the chain, the steps and
+    whether the wave is cleared. A frame spec holds the rules' `Field` to
+    being one.
+  - The layers follow the plan's painters, back to front, the frame and
+    the deck last, both drawn by the deck's camera over the whole canvas:
+    the field's camera shows the field's rectangle alone, which the frame
+    lies around, and so the frame stays still as the field shakes. The
+    plan's scene section says so now.
+  - The deck's sizes come from the plan: 136 to 200 CSS px tall under the
+    field, a quarter of the stage; 112 to 176 wide beside it, a sixth. The
+    layout spec models the board in each shape as `@fz/game-ui` lays the
+    bar, by `formFactorAt()`: 73 CSS px tall, 60 on a compact screen, or
+    the rail of 64 down the right of a compact screen on its side; the
+    bar's sizes live in Sass alone, so the spec spells them out.
+  - `resultDelayMs()` waits for the later of the last ship's shards and
+    its shake, though the shards end later as the table has them, so the
+    delay stays right if either changes; its spec states that property,
+    and the mutant that keeps the shards alone, the same as things stand,
+    can't fail it.
+  - `tsconfig.spec.json` allows importing TypeScript by its file name, as
+    `tsconfig.node.json` does, for `@fz/dev/layout`'s shapes, whose module
+    names its own that way.
+- **Review.** A fresh agent reviewed the first version, which turned the
+  deck by the stage's shape alone and pushed it 16 px in on its side;
+  every comment is answered.
+  1. The layout spec passed with `fieldShape()` keeping the last shape,
+     as it asked only that the field span its room on one axis, which any
+     field fitted whole does. Fixed: it asks for both, unless the long
+     side is 88 units, which the reviewer proved catches that mutant.
+  2. The deck lay on its side on a square stage, and at every shape wider
+     than tall, though under the field it would leave a unit a quarter
+     larger there, and a pixel turned the field. Fixed by the reshape: the
+     deck lies whichever way leaves the larger unit, and the spec checks
+     the choice either side of where it turns, 660 by 600 under and 720
+     by 600 beside.
+  3. `fieldRoom()` told the zones apart by their x, which turned the gap
+     between two zones that crossed on a tiny canvas into a room with
+     area. Fixed: a private `zonesOf()` gives the zones unswapped to both
+     `deckLayout()` and `fieldRoom()`, the room is never less than nothing
+     across or down, and a spec has the deck take a canvas whole beside
+     the field as well as under it.
+  4. The frame was in the field's layer, which the field's camera would
+     cut off. Fixed: the frame is a layer of its own, before the deck,
+     and `layers.ts` and the plan say the deck's camera draws it.
+  5. `betweenOnAxis()` would wrap a comet or stray coming in onto the far
+     side. Fixed: its doc says they cross, and `between()` draws them.
+  6. The small points: `FieldView`'s `strays` has its doc; `toCanvas()`
+     and `toField()` take a `Place`, already read-only, rather than
+     `Readonly<Place>`; the spec's board uses `formFactorAt()`; the
+     timing spec states the delay's property rather than its formula; and
+     the layers spec's case that held for any order gave way to two that
+     don't, the rocks behind all that flies among them, and the frame and
+     the deck last.
+- **Second review.** A second fresh agent reviewed the reshape; every
+  comment is answered.
+  1. The deck chose its side by the field each room would shape, even in
+     play, so a pixel's resize near the turn, from 676 by 600 to 677,
+     laid the deck beside a field kept from under it, its unit falling
+     from 9.95 to 6.36. Fixed: `deckLayout()`, `fieldRoom()` and
+     `fieldMetrics()` weigh the field in play, `fieldShape()` the field
+     each room would shape, and specs hold both at that pixel. The
+     reviewer's one `boardLayout()` for the field and the deck together
+     isn't taken: each call takes the same canvas, setting and field, the
+     scene measures them together as the canvas changes, and the deck's
+     CSS rectangle for the placeholder comes with the shell that needs
+     it.
+  2. Every spec's chrome was the same at each edge, so five mutants that
+     took one edge's inset for another's, or the canvas for the stage,
+     got through. Fixed: the deck and the room under the field and beside
+     it inside chrome that differs at each edge, and each of the five,
+     rerun, is caught.
+  3. `fieldShape()`'s doc said the field reshapes as a pause ends, where
+     the plan and the rules' `reshapeField()` say while it lasts. Fixed:
+     "as a wave starts or while the game is paused", here too.
+  4. The plan's A7.1 bullet didn't name `fieldRoom()` or
+     `fieldMetrics()`, and A7.2's didn't take on the 16 px this entry
+     hands it. Fixed, both.
+  5. The timing spec held for any delay past both ends, and the layout
+     sweep's escape for a field 88 units long skipped its spanning the
+     room at all. Fixed: the delay is one of the two ends and past both,
+     and a field 88 long must still span its room along its short side.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (1,372 tests,
+  the view fully covered), `yarn prettier:check` and the skill references.
+  Mutants of the first version, each undoing one bound, share or rounding:
+  of 15, five got through at first, a square stage, an odd width's pixel,
+  a room just its frame wide, the long side's rounding across and the
+  centering down; each is caught by a spec added for it. Mutants of the
+  reshape: of 15, three got through, the room's height under the deck
+  taken from the canvas's top rather than the stage's, the deck's choice
+  asking `torusFor()` about a layout that leaves no room, and the
+  equivalent one in `resultDelayMs()` above; the first two are caught by
+  a spec with chrome above the deck and one where under the field would
+  leave it only its frame. Mutants after the second review: ten, the
+  deck's choice ignoring the field in play, the reshape weighing the
+  field it had, the reviewer's five edges, the right zone's left from
+  the canvas's edges both ways, and the tie; each is caught.
