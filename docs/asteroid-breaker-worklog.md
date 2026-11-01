@@ -2167,3 +2167,132 @@ rules out.
   new specs' points, `clear()` keeping its due ship and the ship brought at
   the step's end, are both caught, the second by the lodestone's spec
   alone. These correct the change, so it is committed on them.
+
+## A5: done
+
+2026-11-01. `yarn verify` passed on A5.3's commit, `60e7e9cb`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 1,151
+tests among them, the rules fully covered but the one branch the catalog
+rules out.
+
+## A6.1: the autopilot
+
+2026-11-01.
+
+- **Built.** `src/testing/autopilot.ts`: `autoplay()`, which lays a wave
+  out with `fieldFor()` from a seed on a field of a shape and plays it;
+  `playField()`, which plays a field laid out, until its wave is cleared,
+  its last ship lost or the limit comes; `playWave()`, which plays one of
+  the game's waves from its number as the seed; and `pilot()`, a frame's
+  steering. Each frame it flees the soonest course of a rock or a crossing
+  comet that comes within 1.5 units of touching the ship in the next
+  second, dashing when one would touch it within a quarter of a second;
+  else
+  chases the stray adrift, or the pickup it can reach soonest before it
+  fades, leading it and steering against its own drift; else turns toward
+  the rock it can hit soonest, its turn counted with the shot's flight,
+  closing on it at half thrust while it is out of reach. Whichever it
+  does, it fires once lined up with that rock. `invulnerable` guards its
+  ship every step, so how long a wave takes is told apart from what it
+  costs. `src/rules/autopilot.spec.ts` holds every wave, at every speed,
+  on the narrowest field and the widest either way up, cleared within four
+  minutes of game time; the autopilot's play to clearing, stopping,
+  playing alike from a seed, losing nothing untouchable, and catching the
+  strays and pickups; and each of a frame's choices on a pictured field.
+  `tools/report-waves.mjs`, `yarn report:waves`, prints each wave's time
+  and strays brought home, flown untouchable, and the ships it cost as the
+  spec plays it, with `--seeds <n>` and `--field <narrow|wide|tall>`, and
+  fails as the spec does, counting its untouchable plays too. The workspace's lint and typecheck take in `tools/`,
+  as Brick Breaker's do.
+- **Choices.**
+  - The autopilot reads the field as a player sees it, the rocks', the
+    comets', the stray's and the pickups' places and velocities, and
+    steers only through `steerField()`, by a heading and a push, as the
+    stick does; nothing of the rules is reached past.
+  - It lets go of everything while it has no ship, so the next comes held
+    still and its first move is a fresh one, as a player's would be.
+  - Frames bound a play, not steps, so a wave held still for a first move
+    that never came would still end; once a wave starts, each frame plays
+    a step, so the limit is four minutes of game time either way.
+  - A course is judged a second ahead, at the speed the field flies it,
+    so a fast wave's rocks are fled sooner, as a player would. The plan
+    had it fled within 4 units; it is 1.5 units beyond touching, since a
+    boulder's hit radius and the ship's come to 4.8, so a course 4 units
+    from a boulder's middle already hits. The plan says so now.
+  - It fires as it flees. Fleeing without firing cost more ships than not
+    fleeing at all among six fast boulders, 19 lost over eight seeds
+    against 13; firing, 8.
+  - The goal is led by how long the ship takes to reach it at its top
+    speed, and the push points along the wanted velocity less the ship's,
+    so a chase closes in rather than circling: without it, it brought home
+    fewer than half the strays.
+  - It stops short of a rock in reach rather than pushing on at half
+    thrust: pushing on cleared a little sooner but cost three ships to
+    one among twenty fast iron rocks.
+  - The stray's spec plays twenty large iron rocks, which outlast both
+    strays' coming, the first 20 s in; the game's waves clear before most
+    come on the narrowest field. It brings 16 of 16 home across its seeds.
+  - The frame's specs picture each choice, since the waves' outcomes alone
+    let most of them go: with no fleeing, no dash, no lead or no aim, every
+    wave was still cleared in time.
+  - A wave cleared in the step its last ship went counts as lost, as the
+    run has it: `catchUp()` ends a run with no ship before it looks at
+    the clearing.
+  - The report plays each wave twice, untouchable for its time and strays,
+    and as the spec plays it for its ships, the two the plan names.
+    `WIDEST`, 88 by 40, is the autopilot's, so the spec and `--field wide`
+    play the same field.
+- **What it shows.** On the narrowest field every wave clears in 7 to 15
+  s, before any stray comes; on the widest, either way up, in 16 to 48 s,
+  with strays brought home on all but the first two waves. From each
+  wave's own seed none costs a ship; from four seeds of its own, Hail at
+  Fast on the widest field upright cost one. The sector's climb is tuned
+  in A13.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (1,230
+  tests), `yarn prettier:check`, the skill references, and
+  `yarn report:waves` on both fields, from one seed and from four.
+  Mutants of the autopilot, each undoing one of its choices, its loop or
+  its report: against the waves' outcomes alone, 13 of the first 20 got
+  through, every wave still cleared with no fleeing, no dash, no lead or
+  no aim, which is why the frame's specs picture each choice. With them,
+  25 of 31 were caught, and the six left, the dash's recharge, the shots'
+  reach, the second looked ahead, the sooner of two courses and the
+  field's pace for rocks and for comets, are each caught by a spec added
+  for it.
+- **Review.** A fresh reviewer read the staged change; each comment is
+  answered here.
+  1. The dash went off for any course within the 1.5 units fled, and a
+     course already drawing away counted as nearest at once, so the most
+     urgent: a small rock 2.5 units off, flying away, set it dashing,
+     which throws the ship along its nose and leaves no dash for 2.5 s.
+     Over 1,440 plays the reviewer counted 38 ships lost, 6 once fixed.
+     Fixed: a course drawing away is no threat, and the dash is only for
+     one that would touch the ship; specs flee a near pass without
+     dashing and leave a rock drawing away beside the ship be.
+  2. Comets were judged across the wrap, which they don't cross: a comet
+     coming in at one edge set a ship by the other fleeing and dashing,
+     and so did one that had crossed past it. Fixed: a comet is as far as
+     it looks, and a spec pictures each case. The reviewer's further
+     window, while the comet's middle is on the field and so can touch,
+     is left out: past the wrap, it changes only a comet skimming along
+     just off an edge, which comes in heading across the field.
+  3. The report couldn't play the spec's upright widest field. Fixed:
+     `--field tall` plays `TALLEST`, which the spec's fields name too; the
+     doc comment, AGENTS.md and the plan's bullet say so.
+  4. "Fails as the spec does" undersold it, as the report fails on its
+     untouchable plays and every seed's too. Fixed: its doc comment and
+     AGENTS.md say it is the stricter of the two. It keeps failing on them,
+     as a wave the autopilot can't clear untouchable is one to look at.
+  5. Nothing held the frames bounding a play rather than the steps: a
+     wave held still would have played forever. Fixed: a spec holds a
+     waiting ship with nothing to steer for to its limit of 10 frames, no
+     step played.
+  6. The nits, all taken: the stray spec's two counts are two assertions,
+     `entryOf()`'s doc says it is a spec's wave numbered the game's third,
+     the turn rate is in `RADIANS_PER_DEGREE` as `ship.ts` has it, and a
+     pickup's life left is `lifeSteps * STEP_S`.
+
+  After the fixes, the autopilot's 79 specs pass; undoing each fix in turn,
+  the touching dash, the course drawing away, the comet unwrapped, the
+  frame bound and the touch's test, each is caught. These correct the
+  change, so it is committed on them.
