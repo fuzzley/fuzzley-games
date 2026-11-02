@@ -1,4 +1,15 @@
 import { keysOf, recordOf } from "@fz/core/records";
+import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  circle,
+  polygon,
+  rect,
+  ring,
+  roundRect,
+} from "@fz/phaser/shapes";
 import { BALL_KIND_IDS, type BallKindId } from "../rules/catalog/balls";
 import { BRICK_KIND_IDS, type BrickKindId } from "../rules/catalog/bricks";
 import {
@@ -19,19 +30,10 @@ import {
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import type { BricksPalette } from "./palette";
 import {
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
-  type Point,
-  circle,
   frameAround,
   inset,
   lineWidth,
   middleSquare,
-  polygon,
-  rect,
-  ring,
-  roundRect,
   star,
   within,
 } from "./shapes";

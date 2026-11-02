@@ -5,6 +5,14 @@
 import { createRandom } from "@fz/core/random";
 import { recordOf } from "@fz/core/records";
 import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  circle,
+  polygon,
+} from "@fz/phaser/shapes";
+import {
   ROCK_KIND_IDS,
   ROCK_SIZES,
   type RockKindId,
@@ -15,17 +23,11 @@ import { ROCK_OUTLINES, type Rock } from "../rules/rocks";
 import { ROCK_RADIUS } from "../rules/tuning";
 import type { BeltPalette } from "./palette";
 import {
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
-  type Point,
   centered,
-  circle,
   lineWidth,
   outlineWidth,
   outward,
   placed,
-  polygon,
   quadraticPoints,
   scaledBy,
   stroke,

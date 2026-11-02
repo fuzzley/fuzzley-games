@@ -3,22 +3,19 @@
 // pilot looks at; and the constellation that traces it among the specks.
 
 import { FUZZBALL } from "@fz/style/fuzzball";
-import { PILOT_COLORS, type Pilot } from "../rules/pilots";
-import type { Moving, Place } from "../rules/torus";
-import { STRAY_RADIUS } from "../rules/tuning";
-import type { BeltPalette } from "./palette";
 import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
   type Point,
-  centered,
   circle,
-  ellipsePoints,
   polygon,
-  quadraticPoints,
-  stroke,
-} from "./shapes";
+} from "@fz/phaser/shapes";
+import { PILOT_COLORS, type Pilot } from "../rules/pilots";
+import type { Moving, Place } from "../rules/torus";
+import { STRAY_RADIUS } from "../rules/tuning";
+import type { BeltPalette } from "./palette";
+import { centered, ellipsePoints, quadraticPoints, stroke } from "./shapes";
 import { WINDOW } from "./ship_art";
 
 /** Names where a pilot is drawn: in the ship's window, or adrift in a stray's bubble or bailing out. */

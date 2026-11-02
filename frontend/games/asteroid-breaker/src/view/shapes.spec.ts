@@ -1,12 +1,20 @@
 import {
   type DrawCommand,
-  MOST_BAKED_UNIT,
   type Point,
-  arcPoints,
-  bounded,
-  bakedScale,
-  centered,
   circle,
+  line,
+  polygon,
+  polyline,
+  rect,
+  ring,
+  roundRect,
+} from "@fz/phaser/shapes";
+import {
+  MOST_BAKED_UNIT,
+  arcPoints,
+  bakedScale,
+  bounded,
+  centered,
   cubicPoints,
   dashedRing,
   ellipsePoints,
@@ -14,15 +22,10 @@ import {
   outlineWidth,
   outward,
   placed,
-  polygon,
-  line,
   quadraticPoints,
-  ring,
-  roundRect,
   scaledBy,
   shifted,
   stroke,
-  widthOf,
 } from "./shapes";
 
 /** A square of side 2 about the origin, its points clockwise on the screen. */
@@ -68,29 +71,6 @@ describe("the widths", () => {
       expect([lineWidth(scale), outlineWidth(scale)]).toEqual([line, outline]);
     },
   );
-
-  it("draw a width given in field units in whole device pixels", () => {
-    expect(widthOf(0.32, { unit: 20, pixelRatio: 1 })).toBe(6);
-  });
-});
-
-describe("the shapes", () => {
-  it("clamp a rounded rectangle's size and radius to nothing and to half its side", () => {
-    expect([
-      roundRect({ x: 0, y: 0, width: 10, height: 4 }, 5, 1),
-      roundRect({ x: 0, y: 0, width: -2, height: 4 }, 1, 1),
-    ]).toMatchObject([
-      { width: 10, height: 4, radius: 2 },
-      { width: 0, height: 4, radius: 0 },
-    ]);
-  });
-
-  it("clamp a circle's and a ring's radius to nothing", () => {
-    expect([circle(0, 0, -1, 1), ring(0, 0, -1, 2, 1)]).toMatchObject([
-      { radius: 0 },
-      { radius: 0, width: 2 },
-    ]);
-  });
 });
 
 describe("the curves", () => {
@@ -282,6 +262,11 @@ describe("placing a drawing", () => {
       line({ x: 1, y: 2 }, { x: 3, y: -1 }, 1, 9),
       line({ x: 2, y: 4 }, { x: 6, y: -2 }, 2, 9),
     ],
+    [
+      rect({ x: 1, y: 2, width: 3, height: 4 }, 9),
+      rect({ x: 2, y: 4, width: 6, height: 8 }, 9),
+    ],
+    [polyline([{ x: 1, y: 2 }], 1, 9), polyline([{ x: 2, y: 4 }], 2, 9)],
     [polygon([{ x: 1, y: 2 }], 9), polygon([{ x: 2, y: 4 }], 9)],
   ])("scales a %o with its lines", (command, twice) => {
     expect(scaledBy(command, 2)).toEqual(twice);
@@ -298,6 +283,11 @@ describe("placing a drawing", () => {
       line({ x: 1, y: 2 }, { x: 3, y: -1 }, 1, 9),
       line({ x: 11, y: 22 }, { x: 13, y: 19 }, 1, 9),
     ],
+    [
+      rect({ x: 1, y: 2, width: 3, height: 4 }, 9),
+      rect({ x: 11, y: 22, width: 3, height: 4 }, 9),
+    ],
+    [polyline([{ x: 1, y: 2 }], 1, 9), polyline([{ x: 11, y: 22 }], 1, 9)],
     [polygon([{ x: 1, y: 2 }], 9), polygon([{ x: 11, y: 22 }], 9)],
   ])("moves a %o", (command, moved) => {
     expect(shifted(command, 10, 20)).toEqual(moved);

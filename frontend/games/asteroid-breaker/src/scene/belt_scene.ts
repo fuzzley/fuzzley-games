@@ -9,6 +9,7 @@ import {
   pixelRatioOf,
   whenSceneEnds,
 } from "@fz/phaser/scene";
+import type { ArtScale } from "@fz/phaser/shapes";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { ROCK_RADIUS } from "../rules/tuning";
@@ -31,7 +32,7 @@ import { ringColorOf, ringReachOf, shardCount, wayOf } from "../view/flourish";
 import type { FieldEvent, FieldFrame, FieldView, Steer } from "../view/frame";
 import { LAYERS, type Layer } from "../view/layers";
 import type { BeltPalette } from "../view/palette";
-import { type ArtScale, bakedScale } from "../view/shapes";
+import { bakedScale } from "../view/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering";
 import { BURST_SHARDS } from "../view/timing";
 import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";

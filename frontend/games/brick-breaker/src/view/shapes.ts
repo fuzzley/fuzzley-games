@@ -1,158 +1,22 @@
-import { clamp } from "@fz/core/math";
-import type { FieldMetrics } from "./field_metrics";
+// Brick Breaker's own helpers for its art, over `@fz/phaser/shapes`: the
+// width its lines are drawn in, and the areas, points and stars its frames
+// are laid out by.
 
-/** Says where a point of a drawing is, in device pixels from its frame's top left corner. */
-export interface Point {
-  readonly x: number;
-  readonly y: number;
-}
-
-/** Says where an area of a drawing lies, in device pixels from its frame's top left corner. */
-export interface Area {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
-
-/** Describes one shape of a frame's drawing, in device pixels from the frame's top left corner. */
-export type DrawCommand =
-  | {
-      readonly kind: "rect";
-      readonly x: number;
-      readonly y: number;
-      readonly width: number;
-      readonly height: number;
-      readonly color: number;
-    }
-  | {
-      readonly kind: "roundRect";
-      readonly x: number;
-      readonly y: number;
-      readonly width: number;
-      readonly height: number;
-      readonly radius: number;
-      readonly color: number;
-    }
-  | {
-      readonly kind: "circle";
-      readonly x: number;
-      readonly y: number;
-      readonly radius: number;
-      readonly color: number;
-    }
-  | {
-      /** A circle's outline, its line's middle at the radius. */
-      readonly kind: "ring";
-      readonly x: number;
-      readonly y: number;
-      readonly radius: number;
-      readonly width: number;
-      readonly color: number;
-    }
-  | {
-      /** A line through points in turn, drawn as one path so its corners join. */
-      readonly kind: "polyline";
-      readonly points: readonly Point[];
-      readonly width: number;
-      readonly color: number;
-    }
-  | {
-      readonly kind: "polygon";
-      readonly points: readonly Point[];
-      readonly color: number;
-    };
-
-/** Describes a frame of the atlas: its name, its size in device pixels and its drawing. */
-export interface ArtFrame {
-  readonly name: string;
-  readonly width: number;
-  readonly height: number;
-  /** Its shapes, each drawn over those before it. */
-  readonly commands: readonly DrawCommand[];
-}
-
-/** Says what the art is drawn at: a field unit's device pixels, and a CSS pixel's. */
-export type ArtScale = Pick<FieldMetrics, "unit" | "pixelRatio">;
+import {
+  type Area,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  rect,
+  widthOf,
+} from "@fz/phaser/shapes";
 
 /** How wide a line is, in field units, where that is more than a CSS pixel. */
 const LINE = 0.06;
 
 /** Returns how wide a line is, in whole device pixels: a CSS pixel at least. */
 export function lineWidth(scale: ArtScale): number {
-  return Math.max(Math.ceil(scale.pixelRatio), Math.round(scale.unit * LINE));
-}
-
-/** Returns a rectangle filled in a color. */
-export function rect(area: Area, color: number): DrawCommand {
-  return { kind: "rect", ...sized(area), color };
-}
-
-/** Returns a rectangle with rounded corners filled in a color. */
-export function roundRect(
-  area: Area,
-  radius: number,
-  color: number,
-): DrawCommand {
-  const box = sized(area);
-  const most = Math.min(box.width, box.height) / 2;
-  return {
-    kind: "roundRect",
-    ...box,
-    radius: clamp(radius, 0, most),
-    color,
-  };
-}
-
-/** Returns a circle filled in a color. */
-export function circle(
-  x: number,
-  y: number,
-  radius: number,
-  color: number,
-): DrawCommand {
-  return { kind: "circle", x, y, radius: Math.max(0, radius), color };
-}
-
-/** Returns a circle's outline in a color. */
-export function ring(
-  x: number,
-  y: number,
-  radius: number,
-  width: number,
-  color: number,
-): DrawCommand {
-  return { kind: "ring", x, y, radius: Math.max(0, radius), width, color };
-}
-
-/**
- * Returns an area no narrower and no shorter than nothing.
- *
- * The shapes with a size take none below nothing, as they and their radii
- * clamp: a unit too small for their insets, as the canvas has before it is
- * laid out, would give them one, and a canvas throws at a negative radius.
- */
-function sized(area: Area): Area {
-  return {
-    x: area.x,
-    y: area.y,
-    width: Math.max(0, area.width),
-    height: Math.max(0, area.height),
-  };
-}
-
-/** Returns a polygon filled in a color. */
-export function polygon(points: readonly Point[], color: number): DrawCommand {
-  return { kind: "polygon", points, color };
-}
-
-/** Returns a line through points in turn, in a color. */
-export function polyline(
-  points: readonly Point[],
-  width: number,
-  color: number,
-): DrawCommand {
-  return { kind: "polyline", points, width, color };
+  return widthOf(LINE, scale);
 }
 
 /** Returns the four bars of a frame around the inside of an area, a width thick. */

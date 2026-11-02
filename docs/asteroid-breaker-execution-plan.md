@@ -1486,14 +1486,19 @@ An `asteroid-breaker-content` skill walks an agent through each, as
 | A frame's sounds            | `src/view/effects.ts`: `FrameSounds`                                                   | `@fz/core/frame_sounds` | `FrameSounds<Name>` takes the sprite's names; Brick Breaker's `SOUNDS`                                                                                                                                                                                                      |
 | Points grouped in thousands | `src/rules/describe.ts`: `formatPoints()`                                              | `@fz/core/format`       | Beside `count()`, unchanged                                                                                                                                                                                                                                                 |
 | A record's keys, typed      | `src/rules/tables.ts`: `keysOf()`                                                      | `@fz/core/records`      | Unchanged, at A2.4, as the weapons' catalog needs it; `recordOf()` too, at A7.4.1, as the art needs it; `pick()`, only Brick Breaker's, stays                                                                                                                               |
+| A drawing vocabulary        | `src/view/shapes.ts`: `DrawCommand`, `ArtFrame`, the shapes and their builders         | `@fz/phaser/shapes`     | Every kind either game draws, each its own type, the rectangle and the polyline Brick Breaker's and the line Asteroid Breaker's; `extentOf()` beside them, which both games bound their frames by; each game's own helpers stay; lifted at Q3                               |
+| An atlas's player           | `src/scene/atlas.ts`: `play()`                                                         | `@fz/phaser/scene`      | `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()` draws one; lifted at Q3                                                                                                                                                                                                    |
 | A sound held                | new                                                                                    | `@fz/phaser/sound`      | `SpritePlayer.hold(name, held)` loops a sound while held and stops it when let go, or when sound is turned off or the scene ends                                                                                                                                            |
 | A deck beside a board       | new                                                                                    | `@fz/dev/layout`        | `PhaserBoard` takes an optional `deck`: the attribute that lists its zones by name, the zones it must show, and their least size; `inspectPhaserDeck()` holds each zone on the canvas and in the window, off the board, the other zones and the bar, and at least that size |
 
 Each moves now because two games need it, as `@fz/core`'s rule asks; the
 last two are new, and each lies where the next action game will look for
 it. The stick itself stays in Asteroid Breaker until a second game wants
-one. Brick Breaker adopts the five it gives, its sounds the same bytes, its
-autopilot's report the same numbers.
+one. Brick Breaker adopts the five it gave in Part 1, its sounds the same
+bytes, its autopilot's report the same numbers. The drawing vocabulary and
+the atlas's player moved at Q3, on the user's word, as Asteroid Breaker's
+were near copies of Brick Breaker's, both games adopting them, their art
+the same.
 
 ### The build
 
@@ -1502,12 +1507,12 @@ autopilot's report the same numbers.
 As Brick Breaker's, four folders under `src/`, fenced by
 `eslint.config.js`:
 
-| Folder       | May import                                                                                                                 | May not import                                                      |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/style/fuzzball`                  | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
-| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
-| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and those by a value import                                 |
+| Folder       | May import                                                                                                                     | May not import                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                     | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/style/fuzzball` | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
+| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                          | Angular, RxJS, the shell's libraries, the shell                     |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type     | Phaser, and those by a value import                                 |
 
 #### The rules
 

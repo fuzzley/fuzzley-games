@@ -1,3 +1,4 @@
+import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
 import {
   ROCK_KIND_IDS,
   type RockKindId,
@@ -25,15 +26,7 @@ import {
   sizesOf,
   takenFrame,
 } from "./rock_art";
-import {
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
-  type Point,
-  lineWidth,
-  outlineWidth,
-  placed,
-} from "./shapes";
+import { lineWidth, outlineWidth, placed } from "./shapes";
 
 /** How far a size may stray from what it should be and still pass, for a rounding. */
 const SLACK = 1e-9;

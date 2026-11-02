@@ -37,12 +37,12 @@ the layers below it, as `eslint.config.js` fences them: the rules',
 draws the field on Phaser, and the shell's, `src/app/`, whose board loads
 the scene with `import()`.
 
-| Layer | May import                                                                                                                 | May not import                                                      |
-| ----- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| rules | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| view  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/style/fuzzball`                  | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
-| scene | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
-| app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import      |
+| Layer | May import                                                                                                                     | May not import                                                      |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| rules | `@fz/core`                                                                                                                     | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
+| view  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/style/fuzzball` | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
+| scene | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                          | Angular, RxJS, the shell's libraries, the shell                     |
+| app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type     | Phaser, and the scene or those three entries by a value import      |
 
 ## Development Commands
 

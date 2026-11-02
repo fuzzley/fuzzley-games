@@ -27,6 +27,14 @@ take the pure ones.
   display, at least 1 and at most `MAX_PIXEL_RATIO`, which the host renders
   by and an app's placeholder sizes its cells by. It imports nothing but
   `insets`.
+- `src/shapes/`: the vocabulary a game's art is drawn in, each shape of a
+  frame as plain data in device pixels: `DrawCommand`, a rectangle, a
+  rounded one, a circle, a ring, a line, a polyline or a polygon, each with
+  its builder, which takes no size and no radius below nothing, as a canvas
+  not yet laid out can give one; `ArtFrame`, a frame of an atlas drawn in
+  them; `extentOf()`, how far a shape reaches, which a game frames its
+  drawings by, short of a polyline's mitred corners; and `ArtScale` and `widthOf()`, a width in field units as
+  whole device pixels. It imports nothing.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
   it, building the next before it lets go of the last, its `show()` settling
@@ -45,7 +53,9 @@ take the pure ones.
   run time and drawn again after a lost context; and `bakeAtlas()`, many named
   frames drawn into one such texture, after which every object showing one of
   its frames sets it again, with `atlasSize()`, how big the atlas of a set of
-  frames is, so a game's spec can hold it to a size. It imports Phaser, never Angular.
+  frames is, so a game's spec can hold it to a size; and `atlasFrameOf()`,
+  an `ArtFrame` as `bakeAtlas()` draws one, its shapes played into the
+  `Graphics` in turn. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never
   waits for it, and plays its sounds, named by the spritemap, once it has

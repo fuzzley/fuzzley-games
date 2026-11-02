@@ -3819,3 +3819,107 @@ typecheck, test and build across every workspace.
   after a loss waited for a move; and the rocks' speed moved to ×2 on a
   waiting wave laid it out again, every rock where it was and twice as
   fast, the Ready card still up and the console clean.
+
+## A9: done
+
+2026-11-02. `yarn verify` passed on A9.3's commit, `ac0da0ee`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 2,773
+tests among them.
+
+## Q3, first half: the five waves in windows
+
+2026-11-02, on the dev server, in the DevTools MCP's Chrome. Each wave was
+started in turn, flown by held keys (thrust, a turn and Space) for 2.5
+seconds, and read back: what it laid, what was left, the frame rate, the
+score and the ships.
+
+| Window                                            | Field    | Frames a second | Console |
+| ------------------------------------------------- | -------- | --------------- | ------- |
+| 360 × 640, a phone, upright                       | 40 by 54 | 144             | clean   |
+| 568 × 320, a phone on its side, decks either side | 43 by 40 | 144             | clean   |
+| 1280 × 800                                        | 66 by 40 | 140 to 144      | clean   |
+| 2560 × 1440                                       | 72 by 40 | 144             | clean   |
+
+- **Every wave played at every size,** breaking and scoring, no ship
+  lost in the time.
+- **The mouse** turns the ship to the pointer and fires on the left
+  button, under the crosshair.
+- **The settings drawer** opens, Always shows the deck on a desktop, a
+  slider takes at once, and Copy reaches the clipboard on `localhost`.
+  (It was opened from the Ready card, which since A9.3's review offers it
+  on a touch screen only; a desktop opens it from the Paused card.)
+- **The second half is the user's:** real phones, upright and on their
+  side, from `yarn dev --host`, and the feel tuned through the debug menu.
+
+## Lift: the drawing vocabulary and the atlas's player
+
+2026-11-02, at Q3, as the user asked: "Yes move to shared", to lifting the
+near copies the two Phaser games kept. On `asteroid-breaker-shared-lift`, a
+worktree of its own, so the dev server the phones reach stays as it was.
+
+- **Built.**
+  - `@fz/phaser/shapes`, a pure entry: `Point`, `Area`, a type for each
+    command, the rectangle, the rounded one, the circle, the ring, the
+    line, the polyline and the polygon, and their union `DrawCommand`;
+    `ArtFrame`; `ArtScale` and `widthOf()`; each command's builder, which
+    takes no size and no radius below nothing; and `extentOf()`, how far a
+    shape reaches.
+  - `atlasFrameOf()` in `@fz/phaser/scene`, an `ArtFrame` as `bakeAtlas()`
+    draws one, which both games' `atlas.ts` kept as a private `play()`.
+  - Both games' `src/view/shapes.ts` keep only their own helpers:
+    Brick Breaker's areas, points and stars and its `lineWidth()`;
+    Asteroid Breaker's widths, curves, outlines and frames. Every file
+    takes the vocabulary from the library, and Asteroid Breaker's
+    `scaledBy()`, `shifted()` and its spec's `edgeOf()` meet the two kinds
+    it never draws.
+  - The library's fence for pure entries, and each Phaser game's view
+    fence, Snake's too so its list stays whole, let `shapes` in; the
+    library's `AGENTS.md`, the `phaser-core` skill, the games' `AGENTS.md`
+    and the plan's lifted pieces name it.
+- **Choices.**
+  - **The library holds every kind either game draws,** not only those
+    both do, so one player draws them all; each game draws the kinds it
+    always did.
+  - **`extentOf()` moves, the framing helpers stay.** Both games bound
+    their frames by the extent, Brick Breaker in its art's spec, so it
+    goes beside the commands; `centered()`, `bounded()`, `scaledBy()` and
+    `shifted()` only Asteroid Breaker uses, so they stay in it, as
+    `@fz/core`'s rule asks of a helper one workspace needs.
+  - **Each game keeps its own line width,** 0.06 of a unit in both, as
+    its look; the library gives the rounding, `widthOf()`.
+  - **The entry clamps inline,** as a pure entry imports nothing but the
+    others.
+- **Review.** Nothing wrong in what either game draws; six comments, all
+  taken.
+  1. Brick Breaker's `AGENTS.md` gave the clamp to its own helpers, which
+     don't clamp, `inset()` least of all. It goes with the library's
+     builders, which do, and the long lines are wrapped.
+  2. The plan's table put the two Q3 rows after "A sound held", so "the
+     last two are new" named the wrong rows. They sit above the new
+     pieces, and Brick Breaker adopts "the five it gave in Part 1".
+  3. Brick Breaker's new line-width spec let anything from about 0.047 to
+     0.0625 through. Its cases are units just past a rounding edge, 42
+     and 58, which let only about 0.0596 to 0.0602 through; 0.05 and
+     0.062 are caught.
+  4. The player's rounded-rectangle case gave its `y` and its radius the
+     same number, so the two swapped passed. The radius has its own, and
+     the swap is caught.
+  5. The library's `AGENTS.md` didn't say `extentOf()` falls short of a
+     polyline's mitred corners, which its doc comment does. It says so,
+     so the next game frames no polyline by it.
+  6. One import in `belt_scene.ts` sat out of order. It's in order.
+
+  These correct the change rather than reshape it, so it had no second
+  review.
+
+- **Checks.** Each touched workspace's `lint`, `typecheck` and `test`
+  (`@fz/phaser` 334 tests, Brick Breaker 1,982, Asteroid Breaker 2,774,
+  Snake 400), `yarn prettier:check` and the skill references. Both games'
+  art hashed the same before and after, every frame's commands at 24
+  scales from a unit of 1 to 54 at pixel ratios 1 to 3, and the player
+  is the union of their two. 29 mutants of the vocabulary, the player,
+  Asteroid Breaker's helpers and Brick Breaker's line width: all caught
+  but 2, a pixel ratio rounded rather than up, as no case had a ratio
+  where the two differ, and Brick Breaker's line width, which nothing
+  pinned before either; each has a case now that catches it, and the 3
+  on the review's fixes were caught.

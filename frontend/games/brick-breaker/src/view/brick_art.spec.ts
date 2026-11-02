@@ -1,3 +1,4 @@
+import type { ArtFrame } from "@fz/phaser/shapes";
 import {
   BRICK_KINDS,
   BRICK_KIND_IDS,
@@ -13,7 +14,6 @@ import {
 } from "../testing/art_frames";
 import { atlasFrames } from "./art";
 import { type BrickLook, brickColor, brickFrame } from "./brick_art";
-import type { ArtFrame } from "./shapes";
 
 /** Returns every look a brick of a kind can have: each whole, each count of hits left, shown or not, in each tint. */
 function looksOf(kind: BrickKindId): readonly BrickLook[] {

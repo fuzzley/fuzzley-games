@@ -80,6 +80,7 @@ export default defineConfig(
         "!@fz/phaser/color",
         "!@fz/phaser/insets",
         "!@fz/phaser/layout",
+        "!@fz/phaser/shapes",
       ],
       message:
         "The view is plain TypeScript: no Phaser, no framework, of @fz/style only the fuzzball, and of @fz/phaser only its pure entries.",

@@ -1,24 +1,20 @@
-import type { Brick } from "../rules/bricks";
-import { BRICK_KINDS, type BrickKindId } from "../rules/catalog/bricks";
-import { TINTS } from "../rules/level";
-import { BRICK_HEIGHT, BRICK_WIDTH } from "../rules/tuning";
-import type { BricksPalette } from "./palette";
 import {
   type Area,
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
   circle,
-  inset,
-  lineWidth,
-  middleSquare,
   polygon,
   polyline,
   rect,
   roundRect,
-  star,
-  within,
-} from "./shapes";
+} from "@fz/phaser/shapes";
+import type { Brick } from "../rules/bricks";
+import { BRICK_KINDS, type BrickKindId } from "../rules/catalog/bricks";
+import { TINTS } from "../rules/level";
+import { BRICK_HEIGHT, BRICK_WIDTH } from "../rules/tuning";
+import type { BricksPalette } from "./palette";
+import { inset, lineWidth, middleSquare, star, within } from "./shapes";
 
 /** Describes what a brick's frame shows of it. */
 export type BrickLook = Pick<

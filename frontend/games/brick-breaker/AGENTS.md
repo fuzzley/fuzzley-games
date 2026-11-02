@@ -33,7 +33,7 @@ Four folders under `src/`, each importing only the layers below it, as
 | Folder       | May import                                                                                                                 | May not import                                                      |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`                                        | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
 | `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
 | `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import      |
 
@@ -188,11 +188,13 @@ doesn't see, so Phaser stays out of the first download.
   (`PICTURE_FRAMES`); `brick_art.ts` draws a brick kind in each tint and state
   (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`) and the
   color its shards take (`brickColor()`); `symbols.ts` draws each capsule's
-  symbol (`SYMBOLS`); and `shapes.ts` holds the commands they are drawn with
-  (`DrawCommand`), their helpers, which take no size below nothing, since a
-  canvas not yet laid out gives a unit too small for the insets, and
-  `lineWidth()`; `effects.ts` says what each event calls for, its sound and
-  the flourishes it plays where motion is welcome, how far a broken brick's
+  symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s commands
+  (`DrawCommand`), whose builders take no size below nothing, since a canvas
+  not yet laid out gives a unit too small for the insets, and `shapes.ts`
+  holds the game's own helpers over them, the areas, points and stars its
+  frames are laid out by, and `lineWidth()`; `effects.ts` says what each
+  event calls for, its sound and the flourishes it plays where motion is
+  welcome, how far a broken brick's
   sound rises along a streak (`detuneOf()`), and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
   sound once a frame at most, at the highest it was heard.
@@ -226,9 +228,10 @@ doesn't see, so Phaser stays out of the first download.
   game object is made as the scene is created, and a new field stops what the
   last one set off. The scene plays each of the field's events once, from
   the last it played, and the flourishes an event calls for only where
-  motion is welcome. `atlas.ts` plays the view's art into `@fz/phaser`'s
-  `bakeAtlas()`, again on a new palette or a new unit, and the scene hands
-  How to play its pictures from the atlas each time (`onPictures()`).
+  motion is welcome. `atlas.ts` bakes the view's art with `@fz/phaser`'s
+  `bakeAtlas()` and `atlasFrameOf()`, again on a new palette or a new unit,
+  and the scene hands How to play its pictures from the atlas each time
+  (`onPictures()`).
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
   settings want none; it plays the chime, the level cleared's, each time the

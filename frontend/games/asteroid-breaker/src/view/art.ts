@@ -1,4 +1,15 @@
 import { recordOf } from "@fz/core/records";
+import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  circle,
+  polygon,
+  ring,
+  roundRect,
+  widthOf,
+} from "@fz/phaser/shapes";
 import { PICKUP_IDS, type PickupId } from "../rules/catalog/pickups";
 import { ROCK_KIND_IDS, type RockKindId } from "../rules/catalog/rocks";
 import { STRAY_RADIUS } from "../rules/tuning";
@@ -16,25 +27,16 @@ import {
 } from "./pilot_art";
 import { largestOf, rockFrame, rockFrames } from "./rock_art";
 import {
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
-  type Point,
   arcPoints,
   bounded,
   centered,
-  circle,
   dashedRing,
   lineWidth,
   outlineWidth,
   placed,
-  polygon,
   quadraticPoints,
-  ring,
-  roundRect,
   shifted,
   stroke,
-  widthOf,
 } from "./shapes";
 import { shipFrames } from "./ship_art";
 import { KNOB_RADIUS_CSS_PX, STICK_RADIUS_CSS_PX, THRUST_RING } from "./stick";

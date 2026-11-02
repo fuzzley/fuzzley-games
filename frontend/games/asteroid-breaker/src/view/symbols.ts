@@ -1,18 +1,15 @@
-import type { PickupId } from "../rules/catalog/pickups";
-import type { DeckButton } from "./deck";
-import { fuzzballCommands } from "./pilot_art";
 import {
   type Area,
   type DrawCommand,
   type Point,
-  arcPoints,
   circle,
-  placed,
   polygon,
   ring,
-  shifted,
-  stroke,
-} from "./shapes";
+} from "@fz/phaser/shapes";
+import type { PickupId } from "../rules/catalog/pickups";
+import type { DeckButton } from "./deck";
+import { fuzzballCommands } from "./pilot_art";
+import { arcPoints, placed, shifted, stroke } from "./shapes";
 
 /** Draws a symbol in a square, in a color, its lines a width or wider, on a ground of another color, which a few of its parts take. */
 export type DrawSymbol = (
