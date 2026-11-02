@@ -22,6 +22,7 @@ import {
   deckFrames,
   mapPictures,
   pickupFrame,
+  tagFrame,
 } from "./art";
 import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
 import { rockFrame, sizesOf, takenFrame } from "./rock_art";
@@ -31,9 +32,11 @@ import {
   type DrawCommand,
   type Point,
   bakedScale,
+  lineWidth,
   outlineWidth,
 } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
+import { TAG_RADIUS, isTagged } from "./tags";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -255,9 +258,48 @@ describe("the atlas", () => {
     ...Object.values(FRAMES),
     ...Object.values(SHIP_FRAMES),
     ...PICKUP_IDS.map(pickupFrame),
+    ...PICKUP_IDS.filter(isTagged).map(tagFrame),
   ])("holds the %s frame", (name) => {
     expect(names.has(name)).toBe(true);
   });
+});
+
+describe("a tag's frame", () => {
+  it.each(PICKUP_IDS.filter(isTagged))(
+    "draws %s's symbol alone, in the accent",
+    (id) => {
+      const frame = frameNamed(tagFrame(id));
+
+      expect(new Set(frame.commands.map((command) => command.color))).toEqual(
+        new Set([ART_PALETTE.accent]),
+      );
+    },
+  );
+
+  it.each(PICKUP_IDS.filter(isTagged))(
+    "keeps %s's symbol within its ring, clear of the ring's line",
+    (id) => {
+      const frame = frameNamed(tagFrame(id));
+      const middle = { x: frame.width / 2, y: frame.height / 2 };
+
+      const reach = Math.max(
+        ...frame.commands
+          .flatMap(edgeOf)
+          .map((point) => Math.hypot(point.x - middle.x, point.y - middle.y)),
+      );
+
+      expect(reach).toBeLessThan(
+        TAG_RADIUS * ART_SCALE.unit - lineWidth(ART_SCALE),
+      );
+    },
+  );
+
+  it.each(["ship", "nova"] as const)(
+    "names no tag for %s, which is over as it starts",
+    (id) => {
+      expect(() => tagFrame(id)).toThrow(RangeError);
+    },
+  );
 });
 
 describe("the deck's frames", () => {

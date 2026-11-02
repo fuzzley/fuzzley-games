@@ -14,7 +14,7 @@ import { PICKUPS } from "./catalog/pickups";
 import { ROCK_KINDS } from "./catalog/rocks";
 import type { Floating } from "./drops";
 import { type Field, steerField, stepField } from "./field";
-import { EFFECT_KINDS } from "./pickups";
+import { EFFECT_KINDS, lasts } from "./pickups";
 import { rockHitRadius } from "./rocks";
 import { STILL } from "./ship";
 import { stepsIn } from "./stepper";
@@ -275,6 +275,15 @@ describe("an effect", () => {
     expect([field.effects.weapon.pickup, field.effects.pace.pickup]).toEqual([
       "spread",
       "slow",
+    ]);
+  });
+
+  it("lasts for each group but the Nova's and an Extra ship's, which are over as they start", () => {
+    expect(EFFECT_KINDS.filter(lasts)).toEqual([
+      "weapon",
+      "guard",
+      "pull",
+      "pace",
     ]);
   });
 

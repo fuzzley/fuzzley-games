@@ -24,6 +24,7 @@ import {
 import { stepsIn } from "./stepper";
 import type { Place, Torus } from "./torus";
 import {
+  CHAIN_MS,
   PIECE_PUSH,
   PIECE_TURN,
   ROCK_RADIUS,
@@ -472,6 +473,42 @@ describe("hitRock", () => {
       rock: "iron",
       size: "large",
     });
+  });
+
+  it("logs each break with the count it is in its chain", () => {
+    const field = fieldOf();
+
+    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
+    hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0);
+
+    expect(
+      eventsOf(field)
+        .filter((event) => event.kind === "broken")
+        .map((event) => event.chain),
+    ).toEqual([1, 2]);
+  });
+
+  it("logs a break past the chain's time as the first of a new one", () => {
+    const field = fieldOf();
+    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
+    field.steps += stepsIn(CHAIN_MS) + 1;
+
+    hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0);
+
+    expect(
+      eventsOf(field)
+        .filter((event) => event.kind === "broken")
+        .at(-1),
+    ).toMatchObject({ chain: 1 });
+  });
+
+  it("logs a smashed rock's break as counting in no chain", () => {
+    const field = fieldOf();
+    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
+
+    hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0, "smashes");
+
+    expect(eventsOf(field).at(-1)).toMatchObject({ kind: "broken", chain: 0 });
   });
 
   it("logs a break at the rock's place, with its kind and size", () => {

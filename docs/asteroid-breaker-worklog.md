@@ -2901,3 +2901,137 @@ rules out.
   fixes, the tail at 5.5, the picture the comet's own frame, `bounded()`
   not moving the drawing or taking its left for its right, and a line's
   extent half its width past its ends: of 6, none got through.
+
+## A7.4.2: the effects, the flourishes and the tags
+
+2026-11-01.
+
+- **Built.**
+  - `src/view/effects.ts`: what each event calls for, its sound of the
+    sprite's fourteen and its flourishes where motion is welcome and where
+    it isn't, `flourishesOf()`, `detuneOf()`, a break raised a semitone
+    for each break of its chain before it up to a fifth, and
+    `createFrameSounds()`, as Brick Breaker's are.
+  - `flourish.ts`: how each flourish moves over its time, the points'
+    label and rise, how far each ring sweeps and when a flash is due; the idle motions, a pickup's
+    breath, a stray's bob, the warning's pulse and the flame's flicker,
+    each still where motion isn't welcome; and the blink. `timing.ts`
+    gains the dust's, the spark's, the rings' and the trail's times, and
+    the least gap between two flashes.
+  - `tags.ts`: where the tags lie, `timeLeft()` and `isTagged()`; and
+    `art.ts`'s tags, `tagFrame()`, for each pickup whose effect lasts.
+  - In the rules: `pickups.ts`'s `lasts()`, whether an effect of a kind
+    lasts, which `catchPickup()` now asks too; each break's event carries
+    the count it is in its chain, through the log's new `addBreak()` and
+    `scoring.ts`'s `chainCountOf()`, 0 for a comet's smash, as Brick
+    Breaker's carry their streak; so `FieldView` no longer names the
+    chain, which nothing else read.
+- **Choices.**
+  - **A hit that holds plays its size's break sound,** with its flash and
+    spark: the plan's sounds name none for it, and the five hits a
+    boulder holds would go unheard. An iron rock's hit plays nothing of
+    its own, as the rules log its ring beside it, which plays its sound,
+    its flash and its spark once.
+  - **A spent Shield plays iron's ring,** with its ring sweeping out: the
+    plan names no sound for it, but losing the guard is a turn in a wave
+    that a player without motion would otherwise miss.
+  - **Each break rises by its own count in its chain,** carried on its
+    event, so a comet's smash, which counts in none, and a break after a
+    lost ship rise as they should; each sound still plays once a frame,
+    at the highest it was heard.
+  - **The points show where motion isn't welcome,** without rising: each
+    effect names what it plays with motion and without, the points alone
+    in both, so the scene asks one question of every event.
+  - **A rock's break or held hit that names no kind or size throws,** as
+    `takenFrame()` does: the log never records one, so a spec fails
+    rather than the game going quiet.
+  - **The flourishes' times and reaches are the view's,** as Brick
+    Breaker's are: a ring sweeps in 0.3 s, the dust spreads in 0.4 s, the
+    spark flies in 0.2 s, each of a dash's outlines fades in 0.25 s, and a
+    lost ship's burst is a break's shards. A spent Shield's ring sweeps 3
+    units out, past the Shield's own, and a lost ship's 5. The points read
+    "+40", or "+40 ×2" where the chain scored them more.
+  - **The field flashes under three times a second,** however fast the
+    hits come: a flash is due only once 0.34 s have passed since the last,
+    and a hit held sooner sparks alone, as flashing faster is unsafe.
+  - **What only the scene's flourishes need waits for A8.2,** which plays
+    them: the way the blow that broke a rock came, which the kick goes
+    along, as `hitRock()` already takes it for every blow, and the slot of
+    the rock a hit held, which its flash is drawn over, both on the
+    events, so the rules log nothing yet that nothing reads.
+  - **An idle motion's phase is its own,** its slot's, never its place on
+    the field, which would quicken or slow it as the thing drifts.
+  - **A blink is no motion but a sign,** a pickup about to fade or a
+    guarded ship, so it blinks either way, two and a half times a
+    second, under the three flashes a second that are safe.
+  - **The tags lie at the field's bottom left,** as the plan says, their
+    rings 0.8 units in from both edges and 0.5 apart, a full row of four,
+    one for each group that lasts, within a third of the narrowest field.
+    Each tag's frame is its pickup's symbol alone in the accent, as Brick
+    Breaker's is in its tone's color, inside the ring the scene draws and
+    empties. They are drawn over the field and under the rocks and all
+    that flies among them, so a ship or a rock passing over a tag hides it
+    a moment, rather than the tag hiding what could take the ship.
+  - **`isTagged()` asks the rules,** through `lasts()`, rather than the
+    view keeping its own list, so a new pickup whose effect lasts gets a
+    tag with nothing else to change.
+- **Review.** A fresh agent reviewed it; every comment is answered.
+  1. An iron rock's held hit played twice, its hit's and its ring's sounds
+     and two flashes, as the rules log both. Fixed as the choices say, and
+     a case plays a real iron hit's events and hears one sound.
+  2. `detuneOf()` read the field's chain, which a comet's smash leaves as
+     it was and a lost ship ends, so such breaks rose wrong, and its spec
+     handed it the chain. Fixed: each break's event carries its count, as
+     the choices say, with cases in the rules and a field's breaks
+     detuned by their own counts.
+  3. Nothing told the scene to show the points where motion isn't
+     welcome. Fixed: each effect names what it plays without motion, and
+     `riseOf()` holds the points where they were scored.
+  4. The rings, the dust, the spark and the trail had no times, the spent
+     Shield's and the lost ship's rings no reach, and the kick no way.
+     Fixed as the choices say, with `ringReachOf()`; the kick's way waits
+     for A8.2, as the second review's answers say.
+  5. A Shield spent was silent. It plays iron's ring now.
+  6. `FLICKER` and the pulse's rate said other than their formulas did.
+     Fixed: the flame dips by `FLICKER` at most, and the warning pulses
+     once a turn, full as it starts, a case holding each.
+  7. The tags had no ground, so the ship under them hid them. Answered
+     the other way round after the second review: the tags lie under the
+     ship and the rocks, as the choices say.
+  8. The log's two claims, of iron and of the chain, are corrected here.
+- **Second review.** The first review's fixes reshaped the change, so a
+  fresh agent reviewed it again, whole; every comment is answered.
+  1. The tags' disc, opaque and over the rocks and the ship, would hide
+     them in the field's corner, where a ship could be lost to a rock
+     unseen. Fixed: the tags lie under all that moves, with no ground, as
+     the choices say.
+  2. The kick had no way, and the log called it fixed; from the ship to
+     the rock is wrong for a blast, a comet, the Nova, a shot across an
+     edge and a lost ship. Left for A8.2, as the choices say, which logs
+     the blow's way with the painter that reads it; the log is corrected.
+  3. Nothing held a held hit's flashes to a safe rate, and the scene can't
+     find the rock to flash over. Fixed for the rate: `flashDue()` and
+     `FLASH_GAP_MS`, and the flash's doc says it is a wash of the rock's
+     own frame. The rock's slot waits for A8.2, as the kick's way does.
+  4. The trail's case passed with every outline as opaque. Fixed: it
+     expects each outline's alpha.
+  5. An idle motion offset by a moving place would change its rate.
+     Fixed: the offset is a phase, the thing's own, as its doc says.
+  6. `effectsOf()`'s `@throws` promised a break without a kind threw.
+     Fixed: it says only a hit needs its rock's kind, as the code does.
+  7. The points' label was left to the scene. Fixed: `pointsLabel()`.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,316
+  tests; the view at 100% of statements, functions and lines and 95.83%
+  of branches), `yarn prettier:check` and the skill references. Mutants
+  of the effects, the flourishes, the tags and `lasts()`, each a sound, a
+  flourish, a curve, a rate, a place or a guard changed: of 29, one got
+  through, `timeLeft()` asking whether an effect ends at step 0 as well as
+  whether it lasts a time, which only the Shield, lasting none, does; the
+  question is gone. Mutants of the review's fixes, iron's hit, the
+  Shield's sound, the points without motion, the chain's count, its reset
+  and its time, the swing, the flicker, the rise, the rings' reaches and
+  the tags' disc: of 17, one got through, `detuneOf()` guarding a first
+  break, which rises by nothing either way; the guard is folded into its
+  sum. Mutants of the second review's fixes, the flash's gap, the label's
+  multiplier and thousands, the trail and the tags' layer: of 5, none got
+  through.

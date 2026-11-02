@@ -39,6 +39,7 @@ import {
 import { shipFrames } from "./ship_art";
 import { KNOB_RADIUS_CSS_PX, STICK_RADIUS_CSS_PX, THRUST_RING } from "./stick";
 import { SYMBOLS } from "./symbols";
+import { isTagged } from "./tags";
 
 /** The names of the frames that aren't a rock's, a pilot's, the ship's or a pickup's. */
 export const FRAMES = {
@@ -91,6 +92,9 @@ const PICKUP = { reach: 0.95, corner: 0.27 } as const;
 /** How wide a pickup's symbol's square is, in field units. */
 const SYMBOL_SIDE = 1;
 
+/** How wide a tag's symbol's square is, in field units, within its ring. */
+const TAG_SYMBOL_SIDE = 1.2;
+
 /** How wide a stray's bubble's rim is, and its glint, in field units. */
 const BUBBLE = { rim: 0.11, glint: 0.1 } as const;
 
@@ -132,6 +136,24 @@ const PICKUP_FRAMES: Readonly<Record<PickupId, string>> = recordOf(
 /** Returns the name of a pickup's frame, as it drifts. */
 export function pickupFrame(id: PickupId): string {
   return PICKUP_FRAMES[id];
+}
+
+/** The names of the tags' frames, for each pickup whose effect lasts. */
+const TAG_FRAMES: ReadonlyMap<PickupId, string> = new Map(
+  PICKUP_IDS.filter(isTagged).map((id) => [id, `tag-${id}`]),
+);
+
+/**
+ * Returns the name of a pickup's tag, at the field's bottom left while its
+ * effect lasts.
+ *
+ * @throws {RangeError} For a pickup whose effect is over as it starts,
+ *   which shows no tag.
+ */
+export function tagFrame(id: PickupId): string {
+  const name = TAG_FRAMES.get(id);
+  if (name === undefined) throw new RangeError(`"${id}" shows no tag`);
+  return name;
 }
 
 /** Returns a regular polygon's outline with rounded corners: each corner an arc about a point that far from its middle, the first corner at an angle. */
@@ -176,6 +198,20 @@ function pickupArt(
       palette.accent,
     ),
   ]);
+}
+
+/** Returns a pickup's tag: its symbol alone, in the accent, which the scene draws a ring round. */
+function tagArt(id: PickupId, palette: BeltPalette, scale: ArtScale): ArtFrame {
+  const side = TAG_SYMBOL_SIDE * scale.unit;
+  return centered(
+    tagFrame(id),
+    SYMBOLS[id](
+      { x: -side / 2, y: -side / 2, width: side, height: side },
+      palette.accent,
+      lineWidth(scale),
+      palette.field,
+    ),
+  );
 }
 
 /** Returns a stray's bubble about its middle: its wash, its rim and its glint. */
@@ -318,9 +354,9 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
  * Returns every frame the field's atlas holds, drawn in a palette at a
  * scale, tallest first, so the rows the atlas packs them in waste little:
  * each rock in each kind, size, outline and hits taken, the ship and what
- * it carries, the pilots and their eyes, the pickups, the shot, a stray's
- * bubble, the comet and its warning, the flourishes and the stray's
- * picture.
+ * it carries, the pilots and their eyes, the pickups and their tags, the
+ * shot, a stray's bubble, the comet and its warning, the flourishes and
+ * the stray's picture.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
  * would make it too large for some devices.
@@ -334,6 +370,7 @@ export function atlasFrames(
     ...shipFrames(palette, scale),
     ...pilotFrames(palette, scale),
     ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),
+    ...[...TAG_FRAMES.keys()].map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
   ].sort((a, b) => b.height - a.height);
 }

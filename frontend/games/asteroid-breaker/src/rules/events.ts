@@ -79,6 +79,8 @@ export interface FieldEvent extends NumberedEvent {
   times: number;
   /** How far a blast or the Nova reaches, 0 for any other event. */
   reach: number;
+  /** The count a broken rock is in its chain, 0 for one smashed, which counts in none, and for any other event. */
+  chain: number;
 }
 
 /**
@@ -101,6 +103,7 @@ function blankEvent(): FieldEvent {
     points: 0,
     times: 0,
     reach: 0,
+    chain: 0,
   };
 }
 
@@ -118,9 +121,9 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.record(kind, x, y).reach = reach;
   }
 
-  /** Records an event that happened to a rock, with its kind and size and, for a blast, its reach. */
+  /** Records an event that happened to a rock but its break, with its kind and size and, for a blast, its reach. */
   addRock(
-    kind: RockEventKind,
+    kind: Exclude<RockEventKind, "broken">,
     x: number,
     y: number,
     rock: RockKindId,
@@ -131,6 +134,20 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.rock = rock;
     event.size = size;
     event.reach = reach;
+  }
+
+  /** Records a rock broken, with its kind and size and the count it is in its chain. */
+  addBreak(
+    x: number,
+    y: number,
+    rock: RockKindId,
+    size: RockSize,
+    chain: number,
+  ): void {
+    const event = this.record("broken", x, y);
+    event.rock = rock;
+    event.size = size;
+    event.chain = chain;
   }
 
   /** Records an event that happened to a pickup. */
@@ -168,6 +185,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.points = 0;
     event.times = 0;
     event.reach = 0;
+    event.chain = 0;
     return event;
   }
 }

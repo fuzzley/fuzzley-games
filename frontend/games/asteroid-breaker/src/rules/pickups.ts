@@ -98,6 +98,11 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
 /** Every kind of effect, in the order the field shows their tags. */
 export const EFFECT_KINDS = keysOf(EFFECT_RULES);
 
+/** Returns whether an effect of a kind lasts, until its time runs out or it is used, rather than being over as it starts. */
+export function lasts(kind: EffectKind): boolean {
+  return EFFECT_RULES[kind].end !== undefined;
+}
+
 /** Returns the records of the effects in play, none yet. */
 export function createEffects(): Effects {
   const none = (): InEffect => ({ pickup: null, endsAt: 0 });
@@ -180,7 +185,7 @@ function catchPickup(
   field.events.addPickup("caught", floating.x, floating.y, id);
   endEffect(field, effect.kind);
   startEffect(field, effect.kind, effect, ship);
-  if (EFFECT_RULES[effect.kind].end) {
+  if (lasts(effect.kind)) {
     const inEffect = field.effects[effect.kind];
     inEffect.pickup = id;
     inEffect.endsAt = "ms" in effect ? field.steps + stepsIn(effect.ms) : 0;
