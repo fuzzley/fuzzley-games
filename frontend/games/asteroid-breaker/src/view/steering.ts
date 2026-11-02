@@ -158,30 +158,33 @@ export class Steering {
   /**
    * Takes a pointer pressed: the mouse's buttons, held; a finger in the
    * stick's zone, which takes the stick unless another holds it; or any
-   * other finger, which presses the button it is on.
+   * other finger, which presses the button it is on. Returns whether a
+   * finger took the stick or pressed a button, which goes on with a paused
+   * game, as a flight key does.
    */
-  pointerDown(pointer: PointerView): void {
+  pointerDown(pointer: PointerView): boolean {
     if (!pointer.wasTouch) {
       this.holdButton(pointer.button, true);
-      return;
+      return false;
     }
     // A finger pressed under the id of one whose lift was lost is a new one.
     this.forget(pointer.id);
     const { deck } = this;
-    if (!deck) return;
+    if (!deck) return false;
     if (
       within(deck.stickZone, pointer) &&
       this.stick.press(pointer.id, pointer)
     ) {
       this.aiming = false;
-      return;
+      return true;
     }
     const finger = this.fingerOf(null);
-    if (!finger) return;
+    if (!finger) return false;
     finger.id = pointer.id;
     finger.placed = true;
     finger.x = pointer.x;
     finger.y = pointer.y;
+    return this.buttonOf(finger) !== null;
   }
 
   /**

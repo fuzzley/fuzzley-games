@@ -1,0 +1,83 @@
+<fz-phaser-canvas [scene]="scene" [options]="hostOptions">
+  <!-- The empty field, where the scene will draw it, until it does. -->
+  <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
+    <div class="field" [style]="fieldStyle()"></div>
+  </div>
+</fz-phaser-canvas>
+<div class="ring" [style]="fieldStyle()"></div>
+
+<p id="board-keys" class="fz-visually-hidden">
+  The left and right arrow keys, or A and D, turn the ship, and the mouse turns
+  it toward the pointer. The up arrow or W thrusts, and so does the right mouse
+  button. Space or the left mouse button fires, and Shift, the down arrow or S
+  dashes. Any of those keys starts a wave, goes on, and goes to the next wave.
+  Escape pauses, P pauses and goes on, and Enter goes on, or to the next wave.
+  Once an ended run's result is put away, any flight key, Enter or P starts
+  another. On a card's button, the keys are the button's: Space and Enter press
+  it.
+</p>
+
+@let shownCard = card();
+<div class="cards" [style]="fieldStyle()">
+  @switch (shownCard) {
+    @case ("ready") {
+      <div class="card ready">
+        <p class="card-title">{{ waveTitle() }}</p>
+        <p>{{ flyWords() }}</p>
+      </div>
+    }
+    @case ("paused") {
+      <div class="card">
+        <p class="card-title">Paused</p>
+        <p>Score {{ score() }}</p>
+        <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
+          Resume
+        </button>
+      </div>
+    }
+    @case ("cleared") {
+      <div class="card">
+        <p class="card-title">{{ clearedTitle() }}</p>
+        <dl class="tally">
+          @for (line of tallyLines(); track line.label) {
+            <div>
+              <dt>{{ line.label }}</dt>
+              <dd>{{ line.points }}</dd>
+            </div>
+          }
+        </dl>
+        <p>Score {{ score() }}</p>
+        <p>{{ nextWords() }}</p>
+        <button type="button" class="fz-button" fzKeepKeys (click)="nextWave()">
+          Next wave
+        </button>
+      </div>
+    }
+    @case ("ended") {
+      <div class="card">
+        <p class="card-title">{{ endTitle() }}</p>
+        <p>Score {{ score() }}</p>
+        <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
+          New game
+        </button>
+      </div>
+    }
+    @case ("slow") {
+      <div class="card" role="status">
+        <p class="card-title">Still loading the board</p>
+        <p>It can take a while on a slow connection.</p>
+      </div>
+    }
+    @case ("failed") {
+      <div class="card" role="alert">
+        <p class="card-title">The board couldn't be drawn</p>
+        <p>Reloading the page may help.</p>
+        <button type="button" class="fz-button" (click)="reload()">
+          Reload
+        </button>
+      </div>
+    }
+    @case (null) {}
+    @default never;
+  }
+</div>

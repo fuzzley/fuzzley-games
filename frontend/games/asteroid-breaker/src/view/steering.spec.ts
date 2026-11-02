@@ -669,6 +669,62 @@ describe("Steering's buttons", () => {
   });
 });
 
+describe("Steering's presses", () => {
+  it("say a finger took the stick", () => {
+    const layout = layoutOf();
+
+    const took = steeringOf(layout).pointerDown(finger(1, layout.deck.stick));
+
+    expect(took).toBe(true);
+  });
+
+  it.each([
+    ["Fire", (layout: Layout) => layout.fire],
+    ["Dash", (layout: Layout) => layout.deck.dash],
+  ])("say a finger pressed %s", (_, button) => {
+    const layout = layoutOf();
+
+    const took = steeringOf(layout).pointerDown(finger(2, button(layout)));
+
+    expect(took).toBe(true);
+  });
+
+  it("say a finger on the field took nothing", () => {
+    const layout = layoutOf();
+
+    const took = steeringOf(layout).pointerDown(
+      finger(2, onCanvas({ x: 20, y: 20 }, layout)),
+    );
+
+    expect(took).toBe(false);
+  });
+
+  it("say a finger took nothing where the deck doesn't show", () => {
+    const layout = layoutOf();
+    const steering = new Steering(layout.metrics, null, layout.board);
+
+    expect(steering.pointerDown(finger(1, layout.deck.stick))).toBe(false);
+  });
+
+  it("say a finger took nothing once every finger the steering follows is down", () => {
+    const layout = layoutOf();
+    const steering = stickHeld(layout);
+    steering.pointerDown(finger(2, layout.fire));
+    steering.pointerDown(finger(3, layout.deck.dash));
+    steering.pointerDown(finger(4, layout.fire));
+
+    expect(steering.pointerDown(finger(5, layout.deck.dash))).toBe(false);
+  });
+
+  it("say the mouse's buttons took nothing, as they don't go on", () => {
+    const layout = layoutOf();
+
+    const took = steeringOf(layout).pointerDown(mouse(layout.fire));
+
+    expect(took).toBe(false);
+  });
+});
+
 describe("Steering", () => {
   it("fires every frame where the board holds fire by itself", () => {
     const layout = layoutOf();
