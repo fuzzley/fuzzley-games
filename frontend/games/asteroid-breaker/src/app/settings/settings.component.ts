@@ -54,8 +54,8 @@ const COPY_WORDS = {
 
 /**
  * Shows the settings in a drawer: when the deck shows, which side holds its
- * stick and whether the ship fires by itself, and in a development build
- * the debug menu, the numbers that set the feel, tuned on the field in play.
+ * stick and whether the ship fires by itself, and where `DEBUG_MENU` offers
+ * it the debug menu, the numbers that set the feel, tuned on the field in play.
  *
  * Each costs the run nothing, and applies at once.
  */
@@ -72,7 +72,10 @@ export class SettingsComponent {
 
   protected readonly settings = this.store.settings;
 
-  /** Whether to offer the debug menu, as a development build does. */
+  /**
+   * Whether to offer the debug menu, as a development build does, and a
+   * production one at `?debug`.
+   */
   protected readonly debugMenu = inject(DEBUG_MENU);
 
   /** Whether the drawer is showing. */

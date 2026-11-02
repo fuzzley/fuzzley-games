@@ -97,7 +97,8 @@ marks the user's own:
     unchanged, and merges first.
 23. The feel is settled by the user on real phones at Q3, before the other
     twenty-five waves are built, with a debug menu in development builds
-    holding every control the mock's sketch has (the user's).
+    holding every control the mock's sketch has (the user's), and in
+    production ones at `?debug` (the user's, 2026-11-02).
 24. No gamepad in this plan.
 25. Fuzzley flavor, all five (the user's): the pilot in the window, pilots
     for ships in the bar, the bail-out, strays to bring home in place of the
@@ -563,7 +564,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
 - **A12.1** `SettingsService`, `StatsService` and `src/rules/progress.ts`
   with its service, under `asteroid-breaker-settings`,
   `asteroid-breaker-stats` and `asteroid-breaker-progress`, each reader
-  dropping what it can't trust. Specced with an in-memory store. One commit.
+  dropping what it can't trust; a run flown on numbers the debug menu
+  tuned writes neither, as `?debug` reaches production. Specced with an
+  in-memory store. One commit.
 - **A12.2** `src/rules/saved_game.ts` and `SavedGameService` under
   `asteroid-breaker-game`, as "What it keeps" says, the crew and those at
   home among it: written as a wave starts, as a ship is lost or waits, on a
@@ -625,12 +628,16 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### A17: ship (small)
 
-- **A17.1** `frontend/site/games.json` gets
-  `"asteroid-breaker": { "workspace": "games/asteroid-breaker" }`; the
-  catalog gets Asteroid Breaker in Arcade ("Fly, drift and blast every rock
-  to rubble before one finds you.", `players: SOLO`, `minutes: 10`, `added`
-  on the day, `play: { build: "asteroid-breaker" }`);
-  `frontend/site/index.html`'s meta description names it. `yarn verify` and
+- **A17.1** The game went up on the site early, on 2026-11-02, as the
+  user asked, badged "In development": `frontend/site/games.json` has
+  `"asteroid-breaker": { "workspace": "games/asteroid-breaker" }`, and
+  the catalog has Asteroid Breaker in Arcade ("Fly, drift and blast every
+  rock to rubble before one finds you.", `players: SOLO`, `minutes: 10`,
+  `play: { build: "asteroid-breaker" }`, `inDevelopment: true`). Here its
+  entry loses `inDevelopment` and takes `added` on the day,
+  `frontend/site/index.html`'s meta description names it, and the game's
+  own `index.html` says "Thirty waves, then Endless" again, which it
+  dropped while the build had five waves and no Endless. `yarn verify` and
   `yarn check:layout`. One commit.
 - **A17.2** Q6, in the Docker image if Docker is running on this machine
   (it is off by default; if it stays off, the log says so and the image
@@ -1160,10 +1167,11 @@ highest it was heard, as `@fz/core/frame_sounds` has it.
 
 ### The debug menu
 
-In a development build only (`DEBUG_MENU`, from `import.meta.env.DEV`, as
-Brick Breaker's is), the settings drawer ends with a Debug section holding
-every control the mock's sketch has, each acting on the ship in flight at
-once:
+In a development build (`DEBUG_MENU`, from `import.meta.env.DEV`, as Brick
+Breaker's is), and in a production one whose address asks for it with
+`?debug`, so the feel can be tuned on the site itself, the settings drawer
+ends with a Debug section holding every control the mock's sketch has,
+each acting on the ship in flight at once:
 
 | Control                      | Range               | Starts at (`tuning.ts`) |
 | ---------------------------- | ------------------- | ----------------------- |

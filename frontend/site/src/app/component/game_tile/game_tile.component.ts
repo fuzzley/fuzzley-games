@@ -17,12 +17,16 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
  */
 export const EAGER_TILES = 6;
 
-/** Returns the badge beside a game's name: coming soon, new, or none. */
+/**
+ * Returns the badge beside a game's name: coming soon, in development, new,
+ * or none.
+ */
 function badgeFor(
   game: Game,
   isNew: boolean,
 ): { text: string; new: boolean } | null {
   if (!game.play) return { text: "Coming soon", new: false };
+  if (game.inDevelopment) return { text: "In development", new: false };
   return isNew ? { text: "New", new: true } : null;
 }
 

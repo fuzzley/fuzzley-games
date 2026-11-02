@@ -90,5 +90,7 @@ are relative to `frontend/games/`.
    `frontend/site/games.json` (`"<slug>": { "workspace": "games/<folder>" }`)
    and its entry in the site's catalog,
    `frontend/site/src/app/provider/games.ts`, with
-   `play: { build: "<slug>" }` and the name its `game.json` gives it.
+   `play: { build: "<slug>" }` and the name its `game.json` gives it, and
+   `inDevelopment: true` while it plays but isn't finished, which the site
+   says beside its name and on its page.
    `docs/operations.md` covers the rest of the pipeline.

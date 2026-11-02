@@ -1,4 +1,7 @@
 {
+  "asteroid-breaker": {
+    "workspace": "games/asteroid-breaker"
+  },
   "brick-breaker": {
     "workspace": "games/brick-breaker"
   },
