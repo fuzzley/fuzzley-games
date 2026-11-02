@@ -11,25 +11,37 @@ import {
 } from "@fz/phaser/scene";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
+import { ROCK_RADIUS } from "../rules/tuning";
 import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art";
 import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
 import { type Deck, deckOf } from "../view/deck";
+import {
+  type Flourish,
+  effectsOf,
+  flourishesOf,
+  rockKindOf,
+  rockSizeOf,
+} from "../view/effects";
 import {
   type BoardSetting,
   type FieldMetrics,
   fieldMetrics,
 } from "../view/field_metrics";
-import type { FieldFrame, FieldView, Steer } from "../view/frame";
+import { ringColorOf, ringReachOf, shardCount, wayOf } from "../view/flourish";
+import type { FieldEvent, FieldFrame, FieldView, Steer } from "../view/frame";
 import { LAYERS, type Layer } from "../view/layers";
 import type { BeltPalette } from "../view/palette";
 import { type ArtScale, bakedScale } from "../view/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering";
+import { BURST_SHARDS } from "../view/timing";
 import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
 import { DeckPainter } from "./deck_painter";
+import { EffectsPainter } from "./effects_painter";
 import { FieldPainter } from "./field_painter";
 import { HazardPainter } from "./hazard_painter";
 import type { PaintContext, Painter } from "./painter";
 import { PickupPainter } from "./pickup_painter";
+import { PointsPainter } from "./points_painter";
 import { RockPainter } from "./rock_painter";
 import { ShipPainter } from "./ship_painter";
 import { ShotPainter } from "./shot_painter";
@@ -91,7 +103,7 @@ export class BeltScene extends Scene {
   rocks!: RockPainter;
   /** Draws the pickups. */
   pickups!: PickupPainter;
-  /** Draws the stray adrift. */
+  /** Draws the stray adrift and a lost ship's pilot bailing out. */
   strays!: StrayPainter;
   /** Draws the comets and their warnings. */
   hazards!: HazardPainter;
@@ -99,6 +111,10 @@ export class BeltScene extends Scene {
   shots!: ShotPainter;
   /** Draws the ship, its pilot and its rings. */
   ship!: ShipPainter;
+  /** Draws what bursts from the field as things happen on it, and kicks and shakes it. */
+  effects!: EffectsPainter;
+  /** Draws the points scored. */
+  points!: PointsPainter;
   /** Draws the deck, over the whole canvas. */
   deck!: DeckPainter;
   /** Draws the frame and the deck, over the whole canvas. */
@@ -131,7 +147,9 @@ export class BeltScene extends Scene {
   /** The palette the atlas was last baked in. */
   private painted!: BeltPalette;
   /** The field the scene draws, which a new wave replaces. */
-  private shownField: FieldView | null = null;
+  private shownField!: FieldView;
+  /** The serial of the last event of the field the scene played. */
+  private played = 0;
 
   constructor(
     private readonly options: BeltSceneOptions,
@@ -151,12 +169,23 @@ export class BeltScene extends Scene {
     this.layers = recordOf(LAYERS, () => this.add.layer());
     this.field = new FieldPainter(this, this.layers);
     this.tags = new TagPainter(this, this.layers.tags);
-    this.rocks = new RockPainter(this, this.layers.rocks);
+    this.rocks = new RockPainter(this, this.layers.rocks, this.layers.effects);
     this.pickups = new PickupPainter(this, this.layers.pickups);
     this.strays = new StrayPainter(this, this.layers.strays);
     this.hazards = new HazardPainter(this, this.layers.hazards);
     this.shots = new ShotPainter(this, this.layers.shots);
     this.ship = new ShipPainter(this, this.layers.ship);
+    this.effects = new EffectsPainter(
+      this,
+      this.layers.effects,
+      this.cameras.main,
+    );
+    this.points = new PointsPainter(
+      this,
+      this.layers.points,
+      // The page's font, which the canvas takes from the board around it.
+      getComputedStyle(this.game.canvas).fontFamily || "sans-serif",
+    );
     this.deck = new DeckPainter(this, this.layers.deck, this.steering);
     this.painters = [
       this.field,
@@ -167,6 +196,8 @@ export class BeltScene extends Scene {
       this.hazards,
       this.shots,
       this.ship,
+      this.effects,
+      this.points,
       this.deck,
     ];
     this.cameras.main.ignore([this.layers.frame, this.layers.deck]);
@@ -174,6 +205,7 @@ export class BeltScene extends Scene {
     this.deckCamera = this.cameras.add();
     this.deckCamera.ignore(FIELD_LAYERS.map((layer) => this.layers[layer]));
     const { field, alpha, seed } = this.options.frame();
+    this.startField(field);
     this.context = {
       field,
       alpha,
@@ -218,7 +250,98 @@ export class BeltScene extends Scene {
     }
     if (stale) this.rebake();
     if (frame.field !== this.shownField) this.startField(frame.field);
+    frame.events.forEachSince(this.played, this.play);
+    this.played = frame.events.latest;
     this.draw(frame);
+  }
+
+  /** Plays what an event calls for, once, for `forEachSince()`, which takes it each frame: its flourishes where motion is welcome, and its points either way. */
+  private readonly play = (event: Readonly<FieldEvent>): void => {
+    const flourishes = flourishesOf(effectsOf(event), this.context.motion);
+    for (const flourish of flourishes) {
+      this.flourish(flourish, event, this.shownField);
+    }
+  };
+
+  /** Plays one of an event's flourishes on the field it happened on. */
+  private flourish(
+    flourish: Flourish,
+    event: Readonly<FieldEvent>,
+    field: FieldView,
+  ): void {
+    const { now } = this.context;
+    const palette = this.painted;
+    const { x, y } = event;
+    switch (flourish) {
+      case "shards":
+        this.effects.shatter(
+          x,
+          y,
+          palette.rocks[rockKindOf(event)],
+          shardCount(event.serial),
+          this.metrics,
+          this.zoom(),
+        );
+        return;
+      case "dust":
+        this.effects.puff(
+          x,
+          y,
+          ROCK_RADIUS[rockSizeOf(event)],
+          palette.rocks[rockKindOf(event)],
+          now,
+        );
+        return;
+      case "kick":
+        this.effects.kick(event.wayX, event.wayY, now);
+        return;
+      case "flash":
+        this.rocks.flashSlot(event.slot, now);
+        return;
+      case "spark":
+        this.effects.spark(
+          x,
+          y,
+          ROCK_RADIUS[rockSizeOf(event)],
+          wayOf(event.serial),
+          palette.flame,
+          now,
+        );
+        return;
+      case "ring":
+        this.effects.ring(
+          x,
+          y,
+          ringReachOf(event),
+          ringColorOf(event, palette),
+          now,
+        );
+        return;
+      case "points":
+        this.points.show(event, now);
+        return;
+      case "trail":
+        this.effects.trailDash(x, y, event.wayX, event.wayY, field.steps);
+        return;
+      case "burst":
+        this.effects.shatter(
+          x,
+          y,
+          palette.accent,
+          BURST_SHARDS,
+          this.metrics,
+          this.zoom(),
+        );
+        return;
+      case "bailout":
+        if (event.pilot !== null) {
+          this.strays.bailOut(x, y, event.pilot, wayOf(event.serial), now);
+        }
+        return;
+      case "shake":
+        this.effects.shake(now);
+        return;
+    }
   }
 
   /** Has each painter draw the field as it stands, in its layer. */
@@ -328,9 +451,17 @@ export class BeltScene extends Scene {
     for (const painter of this.painters) painter.refresh?.(baked);
   }
 
-  /** Starts drawing a new field, making the images it needs that the last didn't. */
+  /**
+   * Starts drawing a new field, from its first event, stopping what the
+   * last one set off, and making the images it needs that the last didn't.
+   */
   private startField(field: FieldView): void {
     this.shownField = field;
+    this.played = 0;
+    this.effects.reset();
+    this.points.reset();
+    this.rocks.reset();
+    this.strays.reset();
     this.rocks.fit(field.rocks.length);
     this.shots.fit(field.shots.slots.length);
   }

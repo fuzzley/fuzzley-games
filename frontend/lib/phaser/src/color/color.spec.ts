@@ -1,4 +1,4 @@
-import { colorNumber, mixColors } from "./color";
+import { colorNumber, cssHex, mixColors } from "./color";
 
 describe("colorNumber", () => {
   it("reads six hex digits", () => {
@@ -25,6 +25,20 @@ describe("colorNumber", () => {
       expect(() => colorNumber(css)).toThrow("Not a color in hex");
     },
   );
+});
+
+describe("cssHex", () => {
+  it("writes a color in six hex digits", () => {
+    expect(cssHex(0x2f7d4f)).toBe("#2f7d4f");
+  });
+
+  it("writes a dark color's leading zeros", () => {
+    expect(cssHex(0x00000a)).toBe("#00000a");
+  });
+
+  it("writes what colorNumber reads", () => {
+    expect(colorNumber(cssHex(0x102030))).toBe(0x102030);
+  });
 });
 
 describe("mixColors", () => {

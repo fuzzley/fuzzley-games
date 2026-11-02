@@ -1,9 +1,11 @@
+import { advanceClock } from "@fz/core/clock";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { GameObjects } from "phaser";
-import type { Field } from "../rules/field";
+import { type Field, stepField } from "../rules/field";
 import type { Rock } from "../rules/rocks";
 import type { Steer } from "../rules/ship";
+import { createFieldClock } from "../rules/stepper";
 import {
   type BeltScene,
   type BeltSceneOptions,
@@ -74,13 +76,25 @@ export class FakeShell implements BeltSceneOptions {
   colors: BeltPalette = ART_PALETTE;
   welcomesMotion = true;
   setting: BoardSetting = BOARD;
+  /**
+   * Whether each frame's time moves the field on, as the game does, steered
+   * as the spec steers it on `field.steer`; else the field stands as the
+   * spec leaves it.
+   */
+  stepsField = false;
   readonly ticks: Tick[] = [];
   readonly layouts: Layout[] = [];
   readonly commands: FieldCommand[] = [];
   readonly pictures: Pictures[] = [];
 
+  /** The time the field's steps run by, while it is stepped. */
+  private readonly clock = createFieldClock();
+
   readonly tick = (deltaMs: number, steer: Readonly<Steer>): void => {
     this.ticks.push({ deltaMs, steer: { ...steer } });
+    if (!this.stepsField) return;
+    const steps = advanceClock(this.clock, deltaMs);
+    for (let i = 0; i < steps; i++) stepField(this.field);
   };
   readonly frame = (): FieldFrame => ({
     field: this.field,
@@ -120,6 +134,11 @@ export function withShip(shell: FakeShell): void {
 /** Sets a shell up for a player who prefers less motion. */
 export function stillness(shell: FakeShell): void {
   shell.welcomesMotion = false;
+}
+
+/** Sets a shell up to move its field on by each frame's time, as the game does. */
+export function stepping(shell: FakeShell): void {
+  shell.stepsField = true;
 }
 
 /** A scene running for a spec: the shell it plays to, the run that steps it, its scene, and the element its keyboard listens on. */

@@ -493,6 +493,16 @@ describe("stepField", () => {
     expect(eventsOf(field)).toEqual(["dashed"]);
   });
 
+  it("logs the way the ship heads as it dashes, for its trail", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+
+    stepBy(field, { ...STILL, dash: true });
+
+    const [dash] = loggedOn(field);
+    expect(dash?.wayX).toBeCloseTo(0, 9);
+    expect(dash?.wayY).toBeCloseTo(-1, 9);
+  });
+
   it("fires the weapon in hand while fire is held, logging the pull", () => {
     const field = fieldFrom([...KEEPER, "", "", "....^"]);
     field.weapon = "spread";

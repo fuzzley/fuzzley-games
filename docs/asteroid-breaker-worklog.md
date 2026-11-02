@@ -3298,3 +3298,160 @@ branches strict indexing and the catalog rule out.
      so the move reads as one.
 - **Checks.** The workspace's `lint` and `typecheck` on both files, the
   scene's 87 cases, and Prettier. No mutants: nothing but specs moved.
+
+## A8.2.2: the flourishes, the points and the bail-out
+
+2026-11-01.
+
+- **Built.**
+  - In the rules, what each flourish needs logged on its event:
+    - each rock holds its slot, which a hit or a ring logs, for the flash;
+    - a break logs the way the blow came (`addBreak()`), for the kick;
+    - a dash logs the way the ship heads (`addDash()`), for its trail.
+
+    Both ways sit in the event's `wayX` and `wayY`. `addRock()` takes the
+    rock as its slot holds it.
+
+  - In the view:
+    - `flourish.ts`:
+      - a pilot bailing out, its speed and `bailOutShown()`;
+      - the pilots' eye blink, `eyesOpen()`;
+      - `shakeOf()`, still for a moment, then dying away;
+      - `ringColorOf()`;
+      - `wayOf()`, the way an event's flourish flies by its serial, a
+        golden angle apart; the pickups' breaths now share
+        `GOLDEN_ANGLE`;
+      - `trailLaidAfter()` and `trailReach()`, when and where a dash's
+        outlines are laid; `trailAlpha()` now counts from the dash's
+        start.
+    - `effects.ts`: the bail-out among a lost ship's flourishes, and
+      `rockKindOf()` and `rockSizeOf()` exported.
+    - `timing.ts`: the bail-out's times and the burst's shards.
+    - `ship_art.ts`: `flameTip()`, where the exhaust streams from.
+    - `art.ts`: the flourishes' sizes, exported.
+  - `@fz/phaser/color`'s `cssHex()`, `colorNumber()` back again, for the
+    points' text.
+  - The painters:
+    - `effects_painter.ts`:
+      - shards on a particle emitter, in the rock's ink, and a lost ship's
+        burst in the accent;
+      - dust, and a held hit's spark;
+      - the rings, on one `Graphics`, on both sides of an edge;
+      - a dash's trail;
+      - the exhaust off the flame's tip, as many specks as the thrust is
+        strong;
+      - the kick and the shake, through the field camera's scroll.
+    - `points_painter.ts`: the points in the page's font, in the field's
+      text stroked in its color, rising and fading, kept whole inside the
+      field.
+    - `rock_painter.ts`: a held hit's flash, its rock's frame filled light
+      over it, no sooner after the last than `flashDue()` allows.
+    - `stray_painter.ts`: a lost ship's pilot bailing out, floating off
+      the way its serial says, steady and then blinking; and both pilots'
+      eyes blinking.
+    - `ship_painter.ts`: the eyes of the pilot at the controls blink.
+    - `copies.ts` gains `setTintFill()`. `turns.ts` is the pool each
+      flourish's records play from in turn.
+  - `belt_scene.ts` plays each event once, as Brick Breaker's does. A new
+    field plays from its first event and stops what the last set off.
+    Each flourish goes to its painter, only where motion is welcome, but
+    for the points.
+  - Specs: `flourishes.spec.ts`, cases on the scene run for real, and the
+    view's and the rules' cases for each new function.
+- **Choices.**
+  - **The kick and the shake move the field camera's scroll,** so the two
+    add up, and the shake can hold still for its moment and then die
+    away. Phaser's own shake neither waits nor dies away. The frame and
+    the deck, on the deck's camera, stay still.
+  - **The flash is the rock painter's,** as it knows the rock's frame and
+    turn. It is drawn in the effects layer, over the rocks.
+  - **The particles fly and are sized by callbacks** that read the field's
+    unit and zoom as last drawn, so nothing is set up again, or made, as
+    the unit changes.
+  - **A pilot bailing out is drawn once, as the stray is.** One bails out
+    at a time, as ships are lost seconds apart.
+  - **The points take the page's font,** read off the canvas, so the
+    scene names none.
+  - **Left for A9, at Q3:** the result card's wait (`resultDelayMs()`)
+    covers the burst and the shake, but not the bail-out's 1.4 s. Whether
+    the card should wait for it is open.
+  - **Nothing outlives the scene:** the painters keep no timer, tween or
+    listener.
+  - **The shards are drawn once, where the rock broke.** At an edge, those
+    flying off it are cut there, for their half second: a second batch at
+    the copy's place would scatter another way, so the two would not match.
+    Dust and sparks are drawn on both sides of an edge, as the rings and
+    the trail are.
+  - **The exhaust and the trail follow the field's steps,** not the
+    scene's time, which runs on as a field pauses or is cleared. Each
+    flourish's fade runs in the scene's time, as Brick Breaker's do.
+- **Review.** A fresh agent found the events played once, each painter
+  and the camera reset as a new field starts, the particles neither
+  allocated nor reconfigured in play, and nothing made per frame. Its
+  comments:
+  1. **The exhaust kept streaming on a cleared field,** as its count ran
+     by the scene's time while its thrust came from the last step. A pause
+     would have done the same. The dash's trail had the same fault, laying
+     outlines ahead of a ship that had stopped. Fixed: the exhaust streams
+     for the steps the field took since it was last drawn, and each of the
+     trail's outlines is laid once the field has stepped past where it
+     lies. The specs' fake shell can now step its field, as the game does
+     (`stepping()`). New cases: no exhaust once the wave is cleared, no
+     outline laid ahead of a field that stands still, and a new dash's
+     trail laid afresh.
+  2. **The exhaust's start wasn't wrapped,** so specks from a tip past an
+     edge were thrown off the field, unseen. Fixed, with a case at the
+     edge.
+  3. **Dust and sparks were drawn on one side of an edge only.** Fixed:
+     each is drawn from `Copies`, and a spark's place is wrapped, with a
+     case for each. Shards stay drawn once, as Choices says.
+  4. **The shake's 29 Hz aliased at 60 fps** into a slow beat, its up and
+     down swing falling to 0.3 of the shake. Fixed: 13 and 17 Hz, with a
+     case sampled at 60 frames a second whenever they fall, which the old
+     rates fail.
+  5. **A frame's first events threw shards at a unit of 0,** as the
+     painter took the unit only as it drew, after the events played.
+     Fixed: `shatter()` takes the unit and zoom as the field is laid out,
+     with a case for shards thrown on the first frame.
+  6. Nits, all taken: the scene's `strays` doc names the bail-out;
+     `SHIP_REACH` moved into `ship_art.ts`; this entry's checks, below;
+     and the new field's case no longer checks the flash, whose reset has
+     its own case.
+
+  The fixes reshape the exhaust and the trail, so they had a second
+  review, which found each fix doing what it says. Its comments:
+  1. **No case held the trail's fade:** outlines fading from the dash's
+     start, or not at all, would have passed. Fixed: a case fades the last
+     outline from as it is laid.
+  2. **A trail starts from the frame's last step, not the dash's own,** so
+     on a frame of many steps its outlines are laid late. Left: they are
+     only ever late, never ahead of the ship. At 60 frames a second the lag
+     is a step, and only a frame stalled to the steps' cap makes it show.
+  3. **The first frame's shards case passed with no shards at all.** Fixed:
+     it wants some, each flying.
+  4. **The effects layer's order had changed unchosen,** the trail now over
+     the shards. Fixed: the painter builds back to front, the trail first,
+     as `layers.ts` now lists the layer's flourishes.
+  5. **A new field's reset of the steps last drawn had no case,** leaning
+     on the rules' ship waiting, though a field taken up keeps its steps.
+     Fixed: a case shows a field far into its wave, its ship thrusting.
+  6. Nits, all taken: `thrusting()`'s doc; `Trail`'s fields documented one
+     by one; the fake shell's `stepsField`; and the scene's shown field set
+     as it is created, so playing an event needs no guard.
+
+- **Checks.** The workspace's `lint`, `typecheck` and `test`, `@fz/phaser`'s
+  for `cssHex()`, `yarn prettier:check` and the skill references, and
+  `yarn verify` before the review's fixes. Mutants of the painters, the
+  scene's playing, the view's new functions and the rules' logging, each a
+  place, a tint, an alpha, a reset, a guard or a way changed: of 81, 76
+  were caught at first. Of the other five, the exhaust's angle and its
+  place along the ship got through a ship heading up, which now heads
+  right. A flash pinned to slot 0 got through a hit on slot 0, which is
+  now on a middle rock among three. Two flash resets got through a case
+  that waited past the flash, which a new field's first hit now catches.
+  One mutant no longer matched once Prettier had wrapped its line; run
+  again by hand, it was caught. Of the reserve's and cap's mutants, the
+  shards' reserve got through, as play reached the cap regardless; the
+  case now counts the particles from the start. Of the fixes' 13, one got
+  through: a new field's reset of the steps last drawn, which the second
+  review's case now catches, with its two of the trail's fade.

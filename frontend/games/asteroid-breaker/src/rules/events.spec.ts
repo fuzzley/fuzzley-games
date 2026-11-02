@@ -1,4 +1,10 @@
-import { EVENT_LOG_SIZE, type FieldEvent, FieldEventLog } from "./events";
+import type { RockKindId, RockSize } from "./catalog/rocks";
+import {
+  EVENT_LOG_SIZE,
+  type FieldEvent,
+  FieldEventLog,
+  type LoggedRock,
+} from "./events";
 
 /** Returns copies of the events a log holds past a serial, oldest first. */
 function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
@@ -22,8 +28,22 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     times: 0,
     reach: 0,
     chain: 0,
+    slot: -1,
+    wayX: 0,
+    wayY: 0,
     ...event,
   };
+}
+
+/** Returns a rock in a slot at a place, as its events record it. */
+function rockAt(
+  x: number,
+  y: number,
+  kind: RockKindId,
+  size: RockSize,
+  slot: number,
+): LoggedRock {
+  return { x, y, kind, size, slot };
 }
 
 /** An event of each kind the log records, at 1, 2: who it is of, how it is added, and what it records. */
@@ -35,16 +55,24 @@ const EACH_RECORD: readonly (readonly [
   [
     "a rock's",
     (log) => {
-      log.addRock("hit", 1, 2, "ice", "small");
+      log.addRock("hit", rockAt(1, 2, "ice", "small", 3));
     },
-    { kind: "hit", rock: "ice", size: "small" },
+    { kind: "hit", rock: "ice", size: "small", slot: 3 },
   ],
   [
     "a break's",
     (log) => {
-      log.addBreak(1, 2, "ice", "small", 3);
+      log.addBreak(rockAt(1, 2, "ice", "small", 2), 3, 0, -5);
     },
-    { kind: "broken", rock: "ice", size: "small", chain: 3 },
+    {
+      kind: "broken",
+      rock: "ice",
+      size: "small",
+      slot: 2,
+      chain: 3,
+      wayX: 0,
+      wayY: -1,
+    },
   ],
   [
     "a pickup's",
@@ -70,21 +98,35 @@ const EACH_RECORD: readonly (readonly [
   [
     "a place's",
     (log) => {
-      log.add("dashed", 1, 2);
+      log.add("fired", 1, 2);
     },
-    { kind: "dashed" },
+    { kind: "fired" },
+  ],
+  [
+    "a dash's",
+    (log) => {
+      log.addDash(1, 2, 0);
+    },
+    { kind: "dashed", wayX: 1, wayY: 0 },
   ],
 ];
 
 describe("FieldEventLog", () => {
-  it("records each rock's event with its kind, place, rock, size and reach, numbered", () => {
+  it("records each rock's event with its kind, its place, kind, size and slot, and its reach, numbered", () => {
     const log = new FieldEventLog();
 
-    log.addRock("hit", 1, 2, "iron", "large");
-    log.addRock("blast", 3, 4, "volatile", "medium", 4);
+    log.addRock("hit", rockAt(1, 2, "iron", "large", 7));
+    log.addRock("blast", rockAt(3, 4, "volatile", "medium", 9), 4);
 
     expect(eventsSince(log, 0)).toEqual([
-      eventOf({ kind: "hit", x: 1, y: 2, rock: "iron", size: "large" }),
+      eventOf({
+        kind: "hit",
+        x: 1,
+        y: 2,
+        rock: "iron",
+        size: "large",
+        slot: 7,
+      }),
       eventOf({
         serial: 2,
         kind: "blast",
@@ -92,15 +134,16 @@ describe("FieldEventLog", () => {
         y: 4,
         rock: "volatile",
         size: "medium",
+        slot: 9,
         reach: 4,
       }),
     ]);
   });
 
-  it("records a rock broken with its kind, place, size and the count it is in its chain", () => {
+  it("records a rock broken with its place, kind, size and slot, the count it is in its chain, and the way the blow came", () => {
     const log = new FieldEventLog();
 
-    log.addBreak(1, 2, "ice", "medium", 4);
+    log.addBreak(rockAt(1, 2, "ice", "medium", 5), 4, 3, 4);
 
     expect(eventsSince(log, 0)).toEqual([
       eventOf({
@@ -109,7 +152,34 @@ describe("FieldEventLog", () => {
         y: 2,
         rock: "ice",
         size: "medium",
+        slot: 5,
         chain: 4,
+        wayX: 0.6,
+        wayY: 0.8,
+      }),
+    ]);
+  });
+
+  it("records a rock broken by a blow that came no way with none", () => {
+    const log = new FieldEventLog();
+
+    log.addBreak(rockAt(1, 2, "ice", "medium", 5), 4, 0, 0);
+
+    expect(eventsSince(log, 0)).toMatchObject([{ wayX: 0, wayY: 0 }]);
+  });
+
+  it("records the ship's dash with its place and the way it heads", () => {
+    const log = new FieldEventLog();
+
+    log.addDash(1, 2, Math.PI / 3);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "dashed",
+        x: 1,
+        y: 2,
+        wayX: Math.cos(Math.PI / 3),
+        wayY: Math.sin(Math.PI / 3),
       }),
     ]);
   });
@@ -168,7 +238,7 @@ describe("FieldEventLog", () => {
     const log = new FieldEventLog();
 
     for (let i = 0; i < EVENT_LOG_SIZE + 44; i++) {
-      log.addRock("hit", i, 0, "stone", "large");
+      log.addRock("hit", rockAt(i, 0, "stone", "large", 0));
     }
 
     const serials = eventsSince(log, 0).map((event) => event.serial);
@@ -184,11 +254,11 @@ describe("FieldEventLog", () => {
     (_, add, recorded) => {
       // The five records it takes held a blast, a pickup's event, a pilot's, points and a break, each with what it alone records.
       const log = new FieldEventLog();
-      log.addRock("blast", 3, 4, "volatile", "large", 6);
+      log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
       log.addPickup("dropped", 3, 4, "spread");
       log.addPilot("strayed", 3, 4, 7);
       log.addScore(3, 4, 90, 4);
-      log.addBreak(3, 4, "stone", "large", 5);
+      log.addBreak(rockAt(3, 4, "stone", "large", 9), 5, 1, 1);
       for (let i = 5; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
 
       for (let i = 0; i < 5; i++) add(log);

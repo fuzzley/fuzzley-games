@@ -78,6 +78,9 @@ export const WINDOW = {
   radius: OWN_WINDOW.radius * SHIP_UNIT,
 } as const;
 
+/** How far the ship's frames reach from its middle, its rings the farthest, in field units. */
+export const SHIP_REACH = 2;
+
 /** How far behind the ship's middle its flame's base is, in field units. */
 export const FLAME_BEHIND = -FLAME_BASE * SHIP_UNIT;
 
@@ -85,6 +88,12 @@ export const FLAME_BEHIND = -FLAME_BASE * SHIP_UNIT;
 export function flameShare(thrust: number): number {
   const full = FLAME_LENGTH.least + FLAME_LENGTH.more;
   return (FLAME_LENGTH.least + FLAME_LENGTH.more * thrust) / full;
+}
+
+/** Returns how far behind the ship's middle its flame's tip is at a thrust from 0 to 1, in field units, where its exhaust streams from. */
+export function flameTip(thrust: number): number {
+  const length = FLAME_LENGTH.least + FLAME_LENGTH.more * thrust;
+  return FLAME_BEHIND + length * SHIP_UNIT;
 }
 
 /** Returns the hull's outline, from its nose round its right side and back. */

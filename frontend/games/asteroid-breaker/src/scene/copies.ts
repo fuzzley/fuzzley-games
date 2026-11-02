@@ -1,4 +1,4 @@
-import type { GameObjects, Scene } from "phaser";
+import { type GameObjects, type Scene, TintModes } from "phaser";
 import { type Moving, type Torus, copyShift } from "../rules/torus";
 import { type FieldMetrics, toCanvas } from "../view/field_metrics";
 import { ATLAS } from "./atlas";
@@ -72,6 +72,18 @@ export class Copies {
   /** Scales each copy, across and down. */
   setScale(across: number, down = across): void {
     for (const image of this.images) image.setScale(across, down);
+  }
+
+  /** Tints each copy in a color, which its frame's white takes. */
+  setTint(color: number): void {
+    for (const image of this.images) image.setTint(color);
+  }
+
+  /** Fills each copy in a color, keeping its frame's shape. */
+  setTintFill(color: number): void {
+    for (const image of this.images) {
+      image.setTint(color).setTintMode(TintModes.FILL);
+    }
   }
 
   /** Sets how opaque each copy is. */

@@ -43,9 +43,9 @@ const CHAIN_MOST_CENTS = 700;
  * Names a flourish the scene plays: a broken rock's shards and dust, the
  * field's kick at a large break, a held hit's flash and spark, a blast's,
  * the Nova's, a spent Shield's or a lost ship's ring, the points scored, a
- * dash's trail, a lost ship's burst and the field's shake. Each but the
- * points moves, so plays only where motion is welcome; the points show
- * either way, rising only where it is.
+ * dash's trail, a lost ship's burst, its pilot bailing out, and the
+ * field's shake. Each but the points moves, so plays only where motion is
+ * welcome; the points show either way, rising only where it is.
  */
 export type Flourish =
   | "shards"
@@ -57,6 +57,7 @@ export type Flourish =
   | "points"
   | "trail"
   | "burst"
+  | "bailout"
   | "shake";
 
 /** Says what an event calls for: the flourishes it plays, with motion and without, and its sound. */
@@ -136,7 +137,7 @@ const EVENT_EFFECTS: Readonly<
   dropped: QUIET,
   caught: moving("caught"),
   faded: QUIET,
-  lost: moving("lost", ["burst", "ring", "shake"]),
+  lost: moving("lost", ["burst", "ring", "shake", "bailout"]),
   strayed: QUIET,
   home: moving("home"),
   gained: moving("gained"),
@@ -152,25 +153,33 @@ const EVENT_EFFECTS: Readonly<
 export function effectsOf(event: Readonly<FieldEvent>): EventEffects {
   switch (event.kind) {
     case "broken":
-      return BROKEN[sizeOf(event)];
+      return BROKEN[rockSizeOf(event)];
     case "hit":
       // A rock that rings logs its ring too, which plays for both.
-      return RINGING.has(kindOf(event)) ? QUIET : HELD[sizeOf(event)];
+      return RINGING.has(rockKindOf(event)) ? QUIET : HELD[rockSizeOf(event)];
     default:
       return EVENT_EFFECTS[event.kind];
   }
 }
 
-/** Returns the kind of the rock an event happened to. */
-function kindOf(event: Readonly<FieldEvent>): RockKindId {
+/**
+ * Returns the kind of the rock an event happened to.
+ *
+ * @throws {RangeError} For an event that names no rock.
+ */
+export function rockKindOf(event: Readonly<FieldEvent>): RockKindId {
   if (event.rock === null) {
     throw new RangeError(`A "${event.kind}" event names no rock`);
   }
   return event.rock;
 }
 
-/** Returns the size of the rock an event happened to. */
-function sizeOf(event: Readonly<FieldEvent>): RockSize {
+/**
+ * Returns the size of the rock an event happened to.
+ *
+ * @throws {RangeError} For an event that names no rock's size.
+ */
+export function rockSizeOf(event: Readonly<FieldEvent>): RockSize {
   if (event.size === null) {
     throw new RangeError(`A "${event.kind}" event names no rock's size`);
   }

@@ -52,6 +52,16 @@ export type PilotEventKind =
 /** Names points scored at a place, a break's or a stray's, which its event says. */
 export type ScoreEventKind = "scored";
 
+/** Describes a rock as its events record it, as the rocks' slots hold it. */
+export interface LoggedRock {
+  readonly x: number;
+  readonly y: number;
+  readonly kind: RockKindId;
+  readonly size: RockSize;
+  /** Its slot among the field's, which the scene draws it in. */
+  readonly slot: number;
+}
+
 /** Names something that happened on the field, for the scene to play. */
 export type FieldEventKind =
   | PlaceEventKind
@@ -81,6 +91,15 @@ export interface FieldEvent extends NumberedEvent {
   reach: number;
   /** The count a broken rock is in its chain, 0 for one smashed, which counts in none, and for any other event. */
   chain: number;
+  /** The slot of the rock it happened to, where a hit it holds flashes, or −1 for an event of no rock. */
+  slot: number;
+  /**
+   * The way it went, a share along each axis: the blow that broke a rock,
+   * for the field's kick, or the ship as it dashed, for its trail; 0 along
+   * both for a blow that came no way, and for any other event.
+   */
+  wayX: number;
+  wayY: number;
 }
 
 /**
@@ -104,6 +123,9 @@ function blankEvent(): FieldEvent {
     times: 0,
     reach: 0,
     chain: 0,
+    slot: -1,
+    wayX: 0,
+    wayY: 0,
   };
 }
 
@@ -116,38 +138,48 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   /** Records the Nova's ring, with how far it reaches. */
   add(kind: "nova", x: number, y: number, reach: number): void;
   /** Records an event of nothing but its place. */
-  add(kind: Exclude<PlaceEventKind, "nova">, x: number, y: number): void;
+  add(
+    kind: Exclude<PlaceEventKind, "nova" | "dashed">,
+    x: number,
+    y: number,
+  ): void;
   add(kind: PlaceEventKind, x: number, y: number, reach = 0): void {
     this.record(kind, x, y).reach = reach;
   }
 
-  /** Records an event that happened to a rock but its break, with its kind and size and, for a blast, its reach. */
-  addRock(
-    kind: Exclude<RockEventKind, "broken">,
-    x: number,
-    y: number,
-    rock: RockKindId,
-    size: RockSize,
-    reach = 0,
-  ): void {
-    const event = this.record(kind, x, y);
-    event.rock = rock;
-    event.size = size;
-    event.reach = reach;
+  /** Records the ship starting a dash, at its place, and the way it heads, in radians. */
+  addDash(x: number, y: number, heading: number): void {
+    const event = this.record("dashed", x, y);
+    event.wayX = Math.cos(heading);
+    event.wayY = Math.sin(heading);
   }
 
-  /** Records a rock broken, with its kind and size and the count it is in its chain. */
-  addBreak(
-    x: number,
-    y: number,
-    rock: RockKindId,
-    size: RockSize,
-    chain: number,
+  /** Records an event that happened to a rock but its break, at its place, with its kind, size and slot and, for a blast, its reach. */
+  addRock(
+    kind: Exclude<RockEventKind, "broken">,
+    rock: LoggedRock,
+    reach = 0,
   ): void {
-    const event = this.record("broken", x, y);
-    event.rock = rock;
-    event.size = size;
+    this.recordRock(kind, rock).reach = reach;
+  }
+
+  /**
+   * Records a rock broken, at its place, with its kind, size and slot, the
+   * count it is in its chain, and the way the blow came: `alongX` and
+   * `alongY`, of any length, or both 0 for none.
+   */
+  addBreak(
+    rock: LoggedRock,
+    chain: number,
+    alongX: number,
+    alongY: number,
+  ): void {
+    const event = this.recordRock("broken", rock);
     event.chain = chain;
+    const along = Math.hypot(alongX, alongY);
+    if (along === 0) return;
+    event.wayX = alongX / along;
+    event.wayY = alongY / along;
   }
 
   /** Records an event that happened to a pickup. */
@@ -172,6 +204,15 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.times = times;
   }
 
+  /** Returns the next record for an event of a rock, its kind and the rock's place, kind, size and slot filled in. */
+  private recordRock(kind: RockEventKind, rock: LoggedRock): FieldEvent {
+    const event = this.record(kind, rock.x, rock.y);
+    event.rock = rock.kind;
+    event.size = rock.size;
+    event.slot = rock.slot;
+    return event;
+  }
+
   /** Returns the next record, its kind and place filled in and nothing of an older event left in it. */
   private record(kind: FieldEventKind, x: number, y: number): FieldEvent {
     const event = this.next();
@@ -186,6 +227,9 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.times = 0;
     event.reach = 0;
     event.chain = 0;
+    event.slot = -1;
+    event.wayX = 0;
+    event.wayY = 0;
     return event;
   }
 }

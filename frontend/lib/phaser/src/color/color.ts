@@ -14,6 +14,11 @@ export function colorNumber(css: string): number {
   return Number.parseInt(full, 16);
 }
 
+/** Returns a color, as the number Phaser takes, written in CSS hex of six digits, as a `Text`'s style takes it. */
+export function cssHex(color: number): string {
+  return `#${color.toString(16).padStart(6, "0")}`;
+}
+
 /**
  * Returns `top` mixed into `under` by `weight`, from 0 to 1, as CSS's
  * `color-mix(in srgb, top weight, under)` mixes them, which is also how `top`

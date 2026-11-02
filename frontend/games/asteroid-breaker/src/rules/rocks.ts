@@ -32,6 +32,8 @@ export const ROCK_OUTLINES = 6;
 
 /** Describes a rock, laid in place in its slot. */
 export interface Rock {
+  /** Its place among the field's slots, which the scene draws it in. */
+  readonly slot: number;
   /** Whether it is on the field, whole, to be hit. */
   live: boolean;
   kind: RockKindId;
@@ -131,14 +133,15 @@ const TRAIT_RULES: {
   },
   rings: {
     held: (field, rock) => {
-      field.events.addRock("rung", rock.x, rock.y, rock.kind, rock.size);
+      field.events.addRock("rung", rock);
     },
   },
 };
 
 /** Returns the field's rock slots, as many as its cap, each free. */
 export function createRocks(cap: number): Rock[] {
-  return Array.from({ length: cap }, () => ({
+  return Array.from({ length: cap }, (_, slot) => ({
+    slot,
     live: false,
     kind: "stone",
     size: "small",
@@ -225,7 +228,7 @@ export function hitRock(
   if (!rock.live) return false;
   rock.hits = blow === "hit" ? rock.hits - 1 : 0;
   if (rock.hits > 0) {
-    field.events.addRock("hit", rock.x, rock.y, rock.kind, rock.size);
+    field.events.addRock("hit", rock);
     runTraits("held", field, rock);
     return false;
   }
@@ -233,7 +236,7 @@ export function hitRock(
   // A smashed rock counts in no chain.
   const counts = blow !== "smashes";
   const chain = counts ? chainCountOf(field) : 0;
-  field.events.addBreak(rock.x, rock.y, rock.kind, rock.size, chain);
+  field.events.addBreak(rock, chain, alongX, alongY);
   if (counts) {
     scoreBreak(field, rock);
     dropFrom(field, rock);
@@ -379,7 +382,7 @@ export function hitWithin(
 
 /** Sets a broken rock's blast off, which hits every whole rock within its reach. */
 function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
-  field.events.addRock("blast", rock.x, rock.y, rock.kind, rock.size, reach);
+  field.events.addRock("blast", rock, reach);
   hitWithin(field, rock.x, rock.y, reach);
 }
 

@@ -115,8 +115,13 @@ const COMET = { head: 1.1, tail: 2.8, bend: 0.55 } as const;
 /** How wide the warning's chevrons are drawn, in field units. */
 const WARNING_LINE = 0.32;
 
-/** How big a speck is at its largest, a shard and a spark, and a puff, in field units. */
-const FLOURISH = { speck: 0.18, shard: 0.5, spark: 0.3, puff: 0.4 } as const;
+/** How big a speck is at its largest, a shard and a spark, and a puff's radius, in field units. */
+export const FLOURISH = {
+  speck: 0.18,
+  shard: 0.5,
+  spark: 0.3,
+  puff: 0.4,
+} as const;
 
 /** How wide the deck's lines are, in CSS pixels. */
 const DECK_LINE_CSS_PX = 2;
