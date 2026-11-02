@@ -3564,3 +3564,114 @@ typecheck, test and build across every workspace.
   Of the first fixes' 15, one got through: `wave()` following the run, as
   the case's first move changed no run; the case pauses now, and catches
   it. Of the second's 6, none got through.
+
+## A9.2: the board, its cards and the room
+
+2026-11-02.
+
+- **Built.**
+  - `src/app/board/board.component.ts`, `<app-board>`:
+    - the canvas, the scene loaded through `import()` behind a CSS drawing
+      of the empty field, laid out where the scene will draw it, clear of
+      the deck's room (`fieldMetrics()`);
+    - an application named for its wave ("Asteroid Breaker, wave 1: First
+      light"), described by its keys, taking the focus for a press;
+    - the Ready, Paused, Cleared and Ended cards, and the still loading and
+      couldn't be drawn ones, over the field;
+    - the pointer a crosshair while a ship flies, as the mouse aims it;
+    - haptics through `navigator.vibrate`, where the phone has it: once
+      as a ship is lost, twice as a wave is cleared (`src/view/haptics.ts`);
+    - the context menu off in the host's config, as the right button
+      thrusts.
+  - `src/app/board/field_palette.ts`: the field's colors from the palette
+    on the page, its roles and its mode; `src/view/tally.ts`, the Cleared
+    card's lines.
+  - `src/app/app.component.ts`: the board in the room (`[fzPlayRoom]`),
+    the wave pausing as the player looks away from it, the focus on the
+    board as a run begins and as the question over it closes, the
+    announcer and the question before a run is thrown away.
+  - A press on the deck goes on, as a flight key does: `Steering`'s
+    `pointerDown()` says whether a finger took the stick or pressed a
+    button, and the scene sends `"go"` for it.
+  - `src/testing/roles.ts`, the palette's roles painted on the page for
+    the shell's specs, and the dialog polyfill in `test-setup.ts`.
+- **Choices.**
+  - **The Ready card sits at the foot of the field,** where every other
+    card is in its middle, since a wave's first ship waits in the middle,
+    and the player would not see it under the card.
+  - **No bar until A10, so the stage takes the whole page,** and on a phone
+    the cards' buttons are the only ones: Resume and New game. A phone
+    pauses only as it is turned or the page is left.
+  - **The result is put away as it opens, until A10.2's dialog,** leaving
+    the Ended card, with the wave lost on, the score and New game.
+- **In the browser.** The dev server, in the DevTools MCP's Chrome at 1240
+  by 900 and as a phone, 390 by 844 with touch:
+  - The page loads with a clean console, the board focused, at 144 frames
+    a second. The built-in browser's pane ran hidden, at a frame a second,
+    and the game paused itself, as the room says.
+  - The rocks hold still under the Ready card; a held arrow and Space start
+    the wave ("Wave 1, First light. 4 rocks."), the card goes and the
+    pointer hides.
+  - Escape pauses ("Paused, with a score of 0. Press Enter to go on.") with
+    the Paused card, and Enter goes on.
+  - A wave emptied by hand clears it, with its card's tally and "Move or
+    fire for wave 2", which Space goes on to.
+  - Three ships lost end the run ("Game over. Score 40, on wave 1."), and
+    the Ended card shows. A flight key then starts another run, as
+    Brick Breaker's serve does, though the board's description said only
+    Enter or P did; it says so now.
+  - On a 360 by 740 phone, after the review's margin fix, the Cleared
+    card is 274 pixels wide and its tally fits inside it.
+  - As a phone, the deck shows, the Ready card says how to fly by touch,
+    Fire starts the wave and the stick flies the ship.
+  - The first look found the Ready card over the waiting ship, which
+    moved it.
+  - Once, mid-session, the page failed to boot ("NG0201: No provider found
+    for DocumentToken"): the coverage run's writes had reloaded it while
+    Vite optimized Phaser, leaving two copies of Angular's dependencies on
+    the page. A fresh dev server cleared it.
+- **Review.** A fresh agent found the board following Brick Breaker's, the
+  placeholder laid out as the scene lays the field, a finger's `"go"` safe
+  in every outcome, the haptics' guard specced and the atlas baked once at
+  startup. Its comments:
+  1. **The hidden pointer hid the mouse's aim,** as the mouse turns the
+     ship toward a place it can't see once the pointer is gone, and the
+     scene marks none. Fixed: the pointer is a crosshair while a ship
+     flies, which marks the aim and covers little; the plan says so too.
+  2. **A spec passed with the new-run half of the focus rule broken,** as
+     the run it began came through the question, whose closing hands the
+     board the focus by itself. Fixed with its case: a run begun from the
+     Ended card's New game, whose button goes with the card.
+  3. **The margin was set twice, and disagreed on a compact screen:** 12
+     pixels for the scene, 24 in the stylesheet, which sizes the cards, so a
+     Cleared card's tally spilled out of its padding on a small phone.
+     Fixed: the board sets `--margin` from the margin it hands the scene;
+     specced.
+  4. **The Cleared card's button was named as an instruction,** "Move or
+     fire for wave 2", which isn't what pressing it does, and isn't true
+     for the mouse, which goes on by the button alone. Fixed: the card says
+     it on a line of its own, and the button is Next wave, as Brick
+     Breaker's is Next level; the plan's card says so too.
+  5. **Three wordings:** `AGENTS.md` named the question before a new game,
+     which nothing in this step can ask; the keys' description said "any of
+     those keys" right after Escape; and a scene case said a finger goes on
+     with a paused game, where it checks the command alone. Each fixed.
+
+  The fixes correct the change rather than reshape it, so it had no second
+  review.
+
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,695
+  tests), `yarn prettier:check` and the skill references. 48 mutants of
+  the board, the app, the haptics, the deck's presses and the palette,
+  each a guard, a card, a word, a binding or a focus changed: all caught
+  but 12. The next wave's Ready card and its plain pointer got through, as
+  no case went on to a second wave; the drawn state taken while the scene
+  loads, the canvas's insets and its pixel ratio, as no case set them; the
+  cards' layer placed and the keys kept on two cards' buttons, as no case
+  looked; the tally's lines swapped, as the specs' waves make no chain and
+  bring no stray home, so the lines are `tallyLines()` in the view now,
+  specced on a tally whose parts differ; and the app's focus without a
+  ring on load, and its focus back from wherever it was, as the question's
+  own dialog gave it back to the board that held it. Each has a case now,
+  and all 14 of the second round were caught, as were the 4 of the
+  review's fixes.

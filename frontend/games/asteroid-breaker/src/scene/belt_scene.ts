@@ -476,7 +476,7 @@ export class BeltScene extends Scene {
       this.steering.release(event.code);
     });
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
-      this.steering.pointerDown(pointer);
+      if (this.steering.pointerDown(pointer)) this.options.command("go");
     });
     this.input.on(Input.Events.POINTER_MOVE, (pointer: Input.Pointer) => {
       this.steering.pointerMove(pointer);

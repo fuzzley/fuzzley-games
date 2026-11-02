@@ -1,7 +1,21 @@
-// The page is the game, and its name stands in the middle of it.
+// The page is the game: the stage takes all of it.
 :host {
   position: fixed;
   inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+// A size container, which the board's layout follows.
+.stage {
+  position: absolute;
+  inset: 0;
+  container: stage / size;
+}
+
+// The board fills the room, and lays the field out inside it.
+.room {
   display: grid;
-  place-items: center;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: 100%;
 }

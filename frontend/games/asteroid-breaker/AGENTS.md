@@ -12,7 +12,8 @@ says how any game here is drawn with Phaser. Paths are relative to
 
 The game is being built from `docs/asteroid-breaker-execution-plan.md`, step
 by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
-shows the game's name alone, and the site doesn't ship it:
+shows the board alone, with its cards and no bar or dialogs yet, and the
+site doesn't ship it:
 `frontend/site/games.json` doesn't list it.
 
 ## Technology Stack
@@ -33,8 +34,8 @@ shows the game's name alone, and the site doesn't ship it:
 Four layers, each a folder under `src/` named for it, each importing only
 the layers below it, as `eslint.config.js` fences them: the rules',
 `src/rules/`, the view's, `src/view/`, the scene's, `src/scene/`, which
-draws the field on Phaser, though the shell doesn't load it yet, and the
-shell's, `src/app/`.
+draws the field on Phaser, and the shell's, `src/app/`, whose board loads
+the scene with `import()`.
 
 | Layer | May import                                                                                                                 | May not import                                                      |
 | ----- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |

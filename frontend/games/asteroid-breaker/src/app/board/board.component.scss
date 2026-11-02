@@ -1,0 +1,102 @@
+@use "../styles" as *;
+
+// The board takes the room the stage gives it, and the canvas fills it. The
+// component works out where the field lies on it as the scene lays it out
+// (`fieldMetrics()`), so the placeholder, the focus ring and the cards sit
+// where the scene draws the field, before it has and after; until the board
+// is measured, they fill it, a margin in.
+:host {
+  // The margin around the field, which the component sets as the scene
+  // lays it out; this is its roomy screen's, for the first paint.
+  --margin: 24px;
+  --frame: 2px;
+
+  position: relative;
+  display: block;
+  container-type: size;
+  overflow: hidden;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+// The mouse aims the ship where the pointer is, which a crosshair marks
+// without covering the ship or the rocks near it.
+:host(.in-play) {
+  cursor: crosshair;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+// The field in its color, framed in its line outside it, as the scene draws
+// it.
+.field,
+.ring {
+  position: absolute;
+  inset: var(--margin);
+}
+
+.field {
+  outline: var(--frame) solid var(--fz-field-line);
+  background-color: var(--fz-field);
+}
+
+// Around the frame, while the board has the focus from the keyboard.
+.ring {
+  border-radius: var(--fz-radius-sm);
+  outline: var(--fz-focus-ring-width) solid transparent;
+  outline-offset: calc(var(--frame) + var(--fz-focus-ring-offset));
+  pointer-events: none;
+}
+
+:host(:focus-visible) .ring {
+  outline-color: var(--fz-focus-ring-color);
+}
+
+// Over the field, a card in its middle, but for the Ready card.
+.cards {
+  @include board-card-layer;
+}
+
+.card {
+  @include board-card(var(--margin));
+}
+
+// At the foot of the field, clear of the middle, where a wave's first ship
+// waits for the first move.
+.ready {
+  align-self: end;
+  margin-bottom: var(--margin);
+}
+
+// On a small board, as on the smallest phones, a card sets smaller.
+@container (width < 280px) or (height < 360px) {
+  .card {
+    @include board-card-small;
+  }
+}
+
+// Each part of a cleared wave's points on a line, its name and its points at
+// either end.
+.tally {
+  display: grid;
+  gap: var(--fz-space-1);
+  min-width: 14em;
+  margin: 0;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--fz-space-4);
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}

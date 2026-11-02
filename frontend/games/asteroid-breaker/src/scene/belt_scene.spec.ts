@@ -910,6 +910,27 @@ describe("the deck", () => {
     });
   });
 
+  it.each([
+    ["the stick", (deck: Deck) => deck.stick],
+    ["Dash", (deck: Deck) => deck.dash],
+  ])("asks to go on at a finger on %s", async (_, part) => {
+    const { shell, run } = await startBoard(withDeck);
+    const { x, y } = part(deckFor(shell));
+
+    run.touch("start", x, y);
+
+    expect(shell.commands).toEqual(["go"]);
+  });
+
+  it("asks nothing at a finger on the field", async () => {
+    const { shell, run } = await startBoard(withDeck);
+    const { x, y } = onCanvas(metricsOf(shell), 10, 10);
+
+    run.touch("start", x, y);
+
+    expect(shell.commands).toEqual([]);
+  });
+
   it("draws the stick where a finger holds it, its knob in the accent", async () => {
     const { shell, run, scene } = await startBoard(withDeck);
     const { x, y } = deckFor(shell).stick;

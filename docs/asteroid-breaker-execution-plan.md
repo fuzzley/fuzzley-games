@@ -521,7 +521,7 @@ more. Paths in Part 1 are under `frontend/lib/` or
   (`[fzPlayRoom]`) and the focus: the scene loaded with `import()` behind a
   CSS drawing of the empty field and the deck's room; the Ready, Paused,
   Cleared and Ended cards, still loading and couldn't be drawn; the pointer
-  hidden while a ship flies; haptics through `navigator.vibrate`; the
+  a crosshair while a ship flies; haptics through `navigator.vibrate`; the
   context menu off in the host's config, as Brick Breaker's is. Specced
   with `provideFakePhaserCanvas()`, a wave played to its end through
   `tick()`. One commit.
@@ -1136,9 +1136,9 @@ highest it was heard, as `@fz/core/frame_sounds` has it.
   its color, and Resume.
 - **Wave cleared,** with how its points added up (rocks, the chains'
   extra, the strays brought home, the wave's 500, the 500 for no ship
-  lost) and "Move or fire for
-  wave 5", which the stick, a flight key, Enter or the card's button does,
-  so a thumb on the deck never has to reach the field.
+  lost), "Move or fire for wave 5.", which the stick, a flight key or
+  Enter does, so a thumb on the deck never has to reach the field, and
+  Next wave, the card's button, for the mouse.
 - **Storm cleared,** wave 30's Cleared card: the trophy, "Storm cleared.
   Endless begins.", and the wave's tally, then "Move or fire for wave 31".
 - **Ended,** the result card, once the last ship's burst has faded: the
@@ -1633,7 +1633,8 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
 Laid out as Brick Breaker's, one folder per feature: `play/`
 (`GameService`, `SavedGameService`), `board/` (the canvas, the placeholder
 drawn in CSS, the focus ring, the cards, the deck's room in CSS for the
-placeholder, the pointer hidden while a ship flies, haptics through
+placeholder, the pointer a crosshair while a ship flies, as the mouse aims
+the ship where it is, haptics through
 `navigator.vibrate` where it exists), `bar/` (the speed's badge, the
 figures: the wave, the score, the ships as their pilots, each in its ink,
 and the chain while it counts; compact, the score and the ships alone),

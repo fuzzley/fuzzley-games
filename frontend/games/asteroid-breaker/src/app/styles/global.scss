@@ -2,3 +2,9 @@
 // shared with the site and the other games. Its rules sit in cascade layers,
 // so the components' win over them.
 @use "@fz/style/global";
+
+// The page never scrolls, so a finger dragging down the field never pulls
+// the page to refresh.
+:root {
+  overscroll-behavior: none;
+}
