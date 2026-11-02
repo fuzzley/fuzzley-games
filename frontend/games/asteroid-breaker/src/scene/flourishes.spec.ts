@@ -194,7 +194,7 @@ function logEveryFlourish(shell: FakeShell): void {
   events.addRock("hit", rock);
   events.addRock("blast", rock, 6);
   events.addDash(MIDDLE.x, MIDDLE.y, 0);
-  events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+  events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2, shell.field.crew);
   events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
 }
 
@@ -601,7 +601,13 @@ describe("the rings", () => {
 
   it("sweeps a lost ship's ring out in the accent, to a lost ship's reach", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
     run.advance(16);
 
     const radii = overTime(
@@ -935,7 +941,13 @@ describe("the exhaust", () => {
 describe("a lost ship", () => {
   it("bursts into shards in the accent", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
 
     run.advance(16);
 
@@ -946,7 +958,13 @@ describe("a lost ship", () => {
 
   it("holds the field still for a moment", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
 
     const scrolls = overTime(run, SHAKE_DELAY_MS - 16, 16, () =>
       scrolledBy(scene, shell),
@@ -957,7 +975,13 @@ describe("a lost ship", () => {
 
   it("shakes the field once the moment is past", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
     run.advance(SHAKE_DELAY_MS);
 
     const scrolls = overTime(run, SHAKE_MS - 50, 16, () =>
@@ -969,7 +993,13 @@ describe("a lost ship", () => {
 
   it("rests the field once the shake has died away", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
 
     run.advance(SHAKE_DELAY_MS + SHAKE_MS + 32);
 
@@ -978,7 +1008,13 @@ describe("a lost ship", () => {
 
   it("pops its pilot out in a bubble where it was lost, in its ink", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
 
     run.advance(16);
 
@@ -991,7 +1027,13 @@ describe("a lost ship", () => {
 
   it("floats the pilot off the way the event's serial says", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
     run.advance(16);
 
     run.advance(500, 25);
@@ -1010,7 +1052,13 @@ describe("a lost ship", () => {
 
   it("turns the pilot's eyes the way it floats off", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
 
     run.advance(16);
 
@@ -1025,7 +1073,13 @@ describe("a lost ship", () => {
 
   it("shows the pilot steadily, then blinks it as it goes", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
     const { bubble } = scene.strays.bailing;
 
     const steady = overTime(
@@ -1050,7 +1104,13 @@ describe("a lost ship", () => {
 
   it("puts the pilot away once it has gone", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2);
+    shell.field.events.addPilot(
+      "lost",
+      MIDDLE.x,
+      MIDDLE.y,
+      2,
+      shell.field.crew,
+    );
 
     run.advance(BAIL_OUT_MS + 32);
 

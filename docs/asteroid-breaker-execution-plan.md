@@ -402,8 +402,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
   ship; a stray's 500, times the chain; the wave's 500s; a `"scored"` event
   at each break and stray, its points and multiplier, for the "+40 ×2"; the
   ships points bring, each flown by the first stray at home, and a
-  `"gained"` event with its pilot for each ship gained, by points or an
-  Extra ship, for its chime and the announcer; nothing scored once the run
+  `"gained"` event with its pilot, and whether it was brought home, for
+  each ship gained, by points or an Extra ship, for its chime and the
+  announcer, each pilot's event and each catch logging the ships and the
+  strays waiting as it left them; nothing scored once the run
   is over, so its score doesn't hang on its frames; `tallyOf()`,
   how a cleared wave's points add up, for its card; and `Run`'s moves, as
   Brick Breaker's, with `catchUp()` taking what the field has come to since

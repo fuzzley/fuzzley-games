@@ -418,6 +418,23 @@ describe("each effect", () => {
     ]);
   });
 
+  it("logs its catch with the ships the crew had, before the one it gives", () => {
+    const field = fieldOf({
+      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
+    });
+
+    catchOn(field, "ship");
+
+    expect(
+      loggedOn(field)
+        .filter((event) => event.kind === "caught" || event.kind === "gained")
+        .map(({ kind, ships }) => [kind, ships]),
+    ).toEqual([
+      ["caught", 3],
+      ["gained", 4],
+    ]);
+  });
+
   it("logs the ship it gives and its pilot, at the ship", () => {
     const field = fieldOf({
       crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },

@@ -407,13 +407,14 @@ function touchingRock(field: Field, ship: Readonly<Ship>): Rock | null {
 
 /**
  * Loses the field's ship, which its shots in flight outlive, its pilot
- * bailing out and the next in line taking the controls, due to come a
- * second later, and with it the chain, every effect and the pickups
- * floating.
+ * bailing out, logged with the ships left, and the next in line taking the
+ * controls, due to come a second later, and with it the chain, every
+ * effect and the pickups floating.
  */
 function loseShip(field: Field, ship: Readonly<Ship>): void {
-  field.events.addPilot("lost", ship.x, ship.y, atControls(field.crew));
+  const pilot = atControls(field.crew);
   field.crew = bailOut(field.crew);
+  field.events.addPilot("lost", ship.x, ship.y, pilot, field.crew);
   field.ship = null;
   field.shipDueAt =
     field.crew.flying.length > 0 ? field.steps + stepsIn(NEW_SHIP_MS) : null;

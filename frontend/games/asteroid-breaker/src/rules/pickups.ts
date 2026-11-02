@@ -182,7 +182,7 @@ function catchPickup(
 ): void {
   const { id } = floating;
   const { effect } = pickup(id);
-  field.events.addPickup("caught", floating.x, floating.y, id);
+  field.events.addCaught(floating.x, floating.y, id, field.crew);
   endEffect(field, effect.kind);
   startEffect(field, effect.kind, effect, ship);
   if (lasts(effect.kind)) {

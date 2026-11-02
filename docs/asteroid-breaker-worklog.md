@@ -3455,3 +3455,112 @@ branches strict indexing and the catalog rule out.
   case now counts the particles from the start. Of the fixes' 13, one got
   through: a new field's reset of the steps last drawn, which the second
   review's case now catches, with its two of the trail's fade.
+
+## A8: done
+
+2026-11-01. `yarn verify` passed on A8.2.2's commit, `6d65d0c2`: lint,
+typecheck, test and build across every workspace.
+
+## A9.1: play, the run and what is said
+
+2026-11-02.
+
+- **Built.**
+  - `src/app/play/game.service.ts`, `GameService`:
+    - the run in a signal, and the wave in play outside one, its field
+      stepped in place 120 times a second;
+    - `tick()`, steering the field, starting the run's first wave at the
+      first move, taking what the field comes to into the run, and opening
+      the Cleared and result cards once their waits have run;
+    - pausing, going on, the next wave, a new game, a run at a wave, Try
+      again, each as Brick Breaker's does;
+    - the question before a run in progress is thrown away;
+    - the board's room, which shapes the next wave, lays a waiting wave
+      out again and stretches a paused one;
+    - what the announcer says, gathered through a frame and said at its
+      end.
+  - `src/view/wave_play.ts`, `WavePlay`, Brick Breaker's `LevelPlay`
+    without the serve: the field's clock, the frame the scene draws, each
+    event handed on once, and the wait before a card.
+  - `src/rules/describe.ts`: what is said as a wave begins, of each event
+    of the field, as a wave is cleared, at a pause, going on and at the
+    end, as the plan's accessibility lists them.
+  - In the rules, each pilot's event and each catch log the ships the crew
+    has and the strays waiting as the event leaves them, and a `"gained"`
+    event whether its pilot was brought home (`addGained()`), which only
+    `gainShipOn()` knows; a lost ship is logged once its pilot has bailed
+    out, with the ships left, and a catch before its effect starts
+    (`addCaught()`).
+  - `src/app/tokens.ts`, with `GAME_RANDOM` and `GAME_WAVES`, and
+    `src/testing/play.ts`: three small waves for the shell's specs, and
+    steering that shoots at the nearest rock, rams it or flies to a pickup.
+  - `tsconfig.spec.json` rewrites the `.ts` names `@fz/dev/layout` imports
+    by, rather than not emitting, so Analog's plugin compiles `@fz/ui`'s
+    Angular code for the specs, which the first spec to import it needed.
+- **Choices.**
+  - **A ship gained is said as an Extra ship,** "Extra ship, flown by a
+    fuzzball brought home. 4 ships.", by points or the pickup, and the
+    pickup's catch says nothing more, but with six ships flying, where it
+    gains none and is said by its name, as any pickup is.
+  - **The field stands still once the run ends,** as Brick Breaker's does,
+    the scene's burst and bail-out going on in its own time. The rules
+    would let it drift on, as nothing scores once no one is flying, but
+    its comets' warnings and strays would play behind the result card.
+  - **Past the last wave, the last is played again, numbered on,** so a
+    run that clears wave 5 goes on to a sixth until A13 writes it and
+    A14's Endless makes the rest; until then, nothing has to throw.
+  - **A move on the stick goes on from a pause or a cleared wave in A9.2,**
+    as a pointer down on the deck the scene turns into `"go"`, as it does
+    a flight key, rather than the service reading the steering for one.
+- **Review.** A fresh agent found the service's moves, the card waits, the
+  held steering and `WavePlay` sound. Its comments:
+  1. **A pause didn't take up a room that changed in play,** though the
+     plan has the field keep its shape "until the next wave or pause", and
+     turning the phone sets off both a pause and a new room, in either
+     order. Fixed: `pause()` stretches the field to the room, which leaves a
+     field of that shape as it is; specced.
+  2. **What was said counted the crew as the frame left it,** so a stray
+     brought home whose points brought a ship said "Brought home: 0
+     waiting.", the ship having taken it. Fixed as it proposed, in the
+     rules: each pilot's event logs the ships and the strays waiting as it
+     happened, a lost ship once its pilot has bailed out, and
+     `describeEvent()` reads them; specced, that stray among them.
+  3. **An Extra ship was said twice,** "Extra ship. Ship gained. 4
+     ships." Fixed: a ship gained is said as an Extra ship, and the
+     pickup's catch says nothing, as Brick Breaker leaves a life capsule
+     to the life it gains.
+  4. **`describeEvent()`'s doc read as if what it says returned null.**
+     Fixed.
+  5. **Past the last wave, `wave()` made a new entry at every change of
+     the run,** each frame that scored, waking what reads it. Fixed: it
+     follows the wave's number alone; specced.
+
+  The fixes reshape the events, so they had a second review, which found
+  each doing what it says. Its comments:
+  1. **An Extra ship caught with six ships flying said nothing,** gaining
+     none, where every other pickup is said by its name. Fixed as it
+     proposed: a catch logs the crew as it found it (`addCaught()`), and an
+     Extra ship that gains none is said by its name; specced.
+  2. **`describeEvent()` wrote the ships in words for every event,** up to
+     120 steps a second, though the shell's hearing makes nothing. Fixed:
+     only the two that say them do.
+  3. **The counts' doc didn't say what is stored,** the ships left after a
+     loss, the one gained among them after a gain. Fixed, with
+     `describeEvent()`'s and, as it suggested, `setRoom()`'s.
+
+  These take its own proposals, correcting the fixes rather than
+  reshaping them, so they had no third review.
+
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,621
+  tests, the rules and the view above the floor), `yarn prettier:check` and
+  the skill references. 62 mutants of the service, the wave's play, what is
+  said and the event's new field, each a guard, a wait, a reset, a seed or a
+  word changed: all caught but three. The Cleared card's wait swapped for
+  the result card's got through a case that waited half of it; each card's
+  case now waits a millisecond short. A later run's seed got through, as the
+  first run's play was built apart from the rest; both are now built by
+  `playOf()`. The space between two things said in one frame got through,
+  as no spec wave brings two about in one frame of 12 steps at most; left.
+  Of the first fixes' 15, one got through: `wave()` following the run, as
+  the case's first move changed no run; the case pauses now, and catches
+  it. Of the second's 6, none got through.

@@ -258,7 +258,7 @@ function sendStray(field: Field): void {
   field.crew = given(field.crew, stray.pilot);
   strays.sent += 1;
   const at = edgeOf(stray, field.torus);
-  field.events.addPilot("strayed", at.x, at.y, stray.pilot);
+  field.events.addPilot("strayed", at.x, at.y, stray.pilot, field.crew);
 }
 
 /**
@@ -281,7 +281,7 @@ function bringStrayHome(field: Field): void {
   const stray = strays.adrift;
   strays.broughtHome += 1;
   field.crew = bringHome(field.crew, stray.pilot);
-  field.events.addPilot("home", stray.x, stray.y, stray.pilot);
+  field.events.addPilot("home", stray.x, stray.y, stray.pilot, field.crew);
   scoreStray(field, stray.x, stray.y);
   strayGone(field);
 }

@@ -686,7 +686,7 @@ describe("stepField", () => {
     ]);
   });
 
-  it("bails the pilot at the controls out of a lost ship, logging it, and hands the controls to the next", () => {
+  it("bails the pilot at the controls out of a lost ship, logging it with the ships left, and hands the controls to the next", () => {
     const field = fieldFrom(["^B"], {
       crew: { flying: [4, 1, 6], home: [2], lastGiven: 6 },
     });
@@ -695,7 +695,14 @@ describe("stepField", () => {
 
     expect([field.crew, loggedOn(field)]).toEqual([
       { flying: [1, 6], home: [2], lastGiven: 6 },
-      [expect.objectContaining({ kind: "lost", pilot: 4 })],
+      [
+        expect.objectContaining({
+          kind: "lost",
+          pilot: 4,
+          ships: 2,
+          waiting: 1,
+        }),
+      ],
     ]);
   });
 

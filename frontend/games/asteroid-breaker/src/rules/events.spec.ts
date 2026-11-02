@@ -1,10 +1,14 @@
 import type { RockKindId, RockSize } from "./catalog/rocks";
+import type { Crew } from "./pilots";
 import {
   EVENT_LOG_SIZE,
   type FieldEvent,
   FieldEventLog,
   type LoggedRock,
 } from "./events";
+
+/** A crew of two ships and a stray waiting at home, which a pilot's event counts. */
+const CREW: Crew = { flying: [0, 1], home: [6], lastGiven: 6 };
 
 /** Returns copies of the events a log holds past a serial, oldest first. */
 function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
@@ -24,6 +28,9 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     size: null,
     pickup: null,
     pilot: null,
+    fromHome: false,
+    ships: 0,
+    waiting: 0,
     points: 0,
     times: 0,
     reach: 0,
@@ -84,9 +91,9 @@ const EACH_RECORD: readonly (readonly [
   [
     "a pilot's",
     (log) => {
-      log.addPilot("home", 1, 2, 6);
+      log.addPilot("home", 1, 2, 6, CREW);
     },
-    { kind: "home", pilot: 6 },
+    { kind: "home", pilot: 6, ships: 2, waiting: 1 },
   ],
   [
     "points'",
@@ -187,20 +194,55 @@ describe("FieldEventLog", () => {
   it("records a pickup's event with its pickup", () => {
     const log = new FieldEventLog();
 
-    log.addPickup("caught", 1, 2, "lance");
+    log.addPickup("dropped", 1, 2, "lance");
 
     expect(eventsSince(log, 0)).toEqual([
-      eventOf({ kind: "caught", x: 1, y: 2, pickup: "lance" }),
+      eventOf({ kind: "dropped", x: 1, y: 2, pickup: "lance" }),
     ]);
   });
 
-  it("records a pilot's event with its pilot", () => {
+  it("records a pickup caught with its pickup and the crew's ships and those waiting", () => {
     const log = new FieldEventLog();
 
-    log.addPilot("lost", 1, 2, 4);
+    log.addCaught(1, 2, "lance", CREW);
 
     expect(eventsSince(log, 0)).toEqual([
-      eventOf({ kind: "lost", x: 1, y: 2, pilot: 4 }),
+      eventOf({
+        kind: "caught",
+        x: 1,
+        y: 2,
+        pickup: "lance",
+        ships: 2,
+        waiting: 1,
+      }),
+    ]);
+  });
+
+  it("records a pilot's event with its pilot and the crew's ships and those waiting", () => {
+    const log = new FieldEventLog();
+
+    log.addPilot("lost", 1, 2, 4, CREW);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "lost", x: 1, y: 2, pilot: 4, ships: 2, waiting: 1 }),
+    ]);
+  });
+
+  it("records a ship gained with its pilot, whether it was brought home, and the crew's counts", () => {
+    const log = new FieldEventLog();
+
+    log.addGained(1, 2, 5, true, CREW);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "gained",
+        x: 1,
+        y: 2,
+        pilot: 5,
+        fromHome: true,
+        ships: 2,
+        waiting: 1,
+      }),
     ]);
   });
 
@@ -252,11 +294,15 @@ describe("FieldEventLog", () => {
   it.each(EACH_RECORD)(
     "leaves nothing of an older event in the record %s event takes",
     (_, add, recorded) => {
-      // The five records it takes held a blast, a pickup's event, a pilot's, points and a break, each with what it alone records.
+      // The five records it takes held a blast, a pickup's event, a ship gained, points and a break, each with what it alone records.
       const log = new FieldEventLog();
       log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
       log.addPickup("dropped", 3, 4, "spread");
-      log.addPilot("strayed", 3, 4, 7);
+      log.addGained(3, 4, 7, true, {
+        flying: [0, 1, 2],
+        home: [5, 6],
+        lastGiven: 7,
+      });
       log.addScore(3, 4, 90, 4);
       log.addBreak(rockAt(3, 4, "stone", "large", 9), 5, 1, 1);
       for (let i = 5; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
