@@ -421,6 +421,7 @@ describe("steerField", () => {
       aim,
       thrust: 0.5,
       fire: true,
+      autoFire: true,
       dash: true,
     };
 
@@ -433,6 +434,7 @@ describe("steerField", () => {
       aim,
       thrust: 0.5,
       fire: true,
+      autoFire: true,
       dash: true,
     });
   });
@@ -510,6 +512,14 @@ describe("stepField", () => {
     stepBy(field, FIRE);
 
     expect([shotsInFlight(field), eventsOf(field)]).toEqual([3, ["fired"]]);
+  });
+
+  it("fires by itself with no fire held, as the setting has it", () => {
+    const field = fieldFrom([...KEEPER, "", "", "....^"]);
+
+    stepBy(field, { ...STILL, autoFire: true });
+
+    expect([shotsInFlight(field), eventsOf(field)]).toEqual([1, ["fired"]]);
   });
 
   it("breaks the rock a shot meets, spending the shot", () => {
@@ -942,6 +952,42 @@ describe("stepField", () => {
     expect(piecesOf(second)).not.toEqual(piecesOf(first));
   });
 
+  it("flies a wave as tuning.ts says unless its setup tunes it", () => {
+    const field = fieldFor(waveOf(), START);
+
+    expect({
+      flight: field.flight,
+      gunnery: field.gunnery,
+      rockSpeed: field.rockSpeed,
+    }).toEqual({ flight: TUNED_FLIGHT, gunnery: TUNED_GUNNERY, rockSpeed: 1 });
+  });
+
+  it("flies a wave as its setup tunes it", () => {
+    const tuned = {
+      flight: { ...TUNED_FLIGHT, topSpeed: 6 },
+      gunnery: { ...TUNED_GUNNERY, shotSpeed: 20 },
+      rockSpeed: 2,
+    };
+
+    const field = fieldFor(waveOf(), { ...START, ...tuned });
+
+    expect({
+      flight: field.flight,
+      gunnery: field.gunnery,
+      rockSpeed: field.rockSpeed,
+    }).toEqual(tuned);
+  });
+
+  it("lays a wave's rocks out flying at its setup's rocks' speed, each twice as fast at 2", () => {
+    const untuned = velocitiesOf(fieldFor(waveOf(), START));
+
+    const tuned = velocitiesOf(fieldFor(waveOf(), { ...START, rockSpeed: 2 }));
+
+    expect(tuned).toEqual(
+      untuned.map((velocity) => velocity.map((v) => v * 2)),
+    );
+  });
+
   it("holds a wave still for the player's first move", () => {
     const field = fieldFor(waveOf(), START);
     const laid = placesOf(field);
@@ -953,6 +999,14 @@ describe("stepField", () => {
       true,
       laid,
     ]);
+  });
+
+  it("holds a wave still as the ship comes to fire by itself, which is no move of the player's", () => {
+    const field = fieldFor(waveOf(), START);
+
+    stepBy(field, { ...STILL, autoFire: true }, 60);
+
+    expect([field.steps, shipOf(field).waiting]).toEqual([0, true]);
   });
 
   it("starts a wave with the player's first move", () => {

@@ -1,0 +1,51 @@
+@use "../styles" as *;
+
+.drawer {
+  @include settings-drawer;
+
+  .range {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    accent-color: var(--fz-accent);
+  }
+
+  // A slider with the number it is at beside it, read as it moves.
+  .slider {
+    display: flex;
+    align-items: center;
+    gap: var(--fz-space-3);
+
+    .value {
+      min-width: 6em;
+      font-variant-numeric: tabular-nums;
+      text-align: end;
+    }
+  }
+
+  .debug {
+    padding-top: var(--fz-space-5);
+    border-top: 1px solid var(--fz-edge-2);
+
+    h3 {
+      margin: 0;
+      font-size: var(--fz-font-lg);
+    }
+
+    > .setting-desc {
+      margin-bottom: var(--fz-space-5);
+    }
+
+    pre {
+      overflow-x: auto;
+      font-size: var(--fz-font-xs);
+    }
+  }
+
+  .debug-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fz-space-3);
+    margin-top: var(--fz-space-5);
+  }
+}

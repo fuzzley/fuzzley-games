@@ -110,6 +110,15 @@ export interface WaveSetup extends WaveStart {
   readonly speed: Speed;
   /** What the player holds as the wave starts, which is no move until it changes. */
   readonly held: Readonly<Steer>;
+  /** How the ship flies: `tuning.ts`'s unless the debug menu tunes it. */
+  readonly flight?: Flight;
+  /** How its shots fly and fire: `tuning.ts`'s unless the debug menu tunes it. */
+  readonly gunnery?: Gunnery;
+  /**
+   * How fast its rocks fly against their size's speed, which its layout
+   * keeps clear of the ship at: 1 unless the debug menu tunes it.
+   */
+  readonly rockSpeed?: number;
 }
 
 /** Describes a wave in play, which each step changes in place. */
@@ -131,6 +140,7 @@ export interface Field extends RockField {
   /** The frame's steering, which each step until the next frame follows. */
   readonly steer: Steer;
   pace: number;
+  rockSpeed: number;
   steps: number;
   draws: number;
   /** The effects in play, one of each group. */
@@ -160,7 +170,8 @@ export interface Field extends RockField {
  *
  * Its counts and its cap grow with the field's area, as `fillFor()` says,
  * and the speed sets its rocks' pace, its chance of a pickup, at most 1,
- * and how often its comets come.
+ * and how often its comets come. It flies as the setup's flight, gunnery
+ * and rocks' speed say, its rocks laid out fairly for theirs.
  */
 export function fieldFor(wave: Wave, setup: WaveSetup): Field {
   const { torus, seed, crew, banked, nextShipAt } = setup;
@@ -188,6 +199,9 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
     },
     setup.held,
   );
+  field.flight = setup.flight ?? TUNED_FLIGHT;
+  field.gunnery = setup.gunnery ?? TUNED_GUNNERY;
+  field.rockSpeed = setup.rockSpeed ?? 1;
   layOut(field, fill.rocks, wave.formation, middleOf(torus));
   return field;
 }
@@ -216,6 +230,7 @@ export function createField(
     gunnery: TUNED_GUNNERY,
     steer: { ...held },
     pace: setup.pace,
+    rockSpeed: 1,
     steps: 0,
     seed: setup.seed,
     draws: 0,
@@ -247,6 +262,7 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
   field.steer.aim = steer.aim;
   field.steer.thrust = steer.thrust;
   field.steer.fire = steer.fire;
+  field.steer.autoFire = steer.autoFire;
   field.steer.dash = steer.dash;
 }
 
@@ -283,7 +299,7 @@ export function stepField(field: Field): void {
   const fired = stepShots(
     field.shots,
     ship,
-    steer.fire,
+    steer.fire || steer.autoFire,
     field.weapon,
     torus,
     field.gunnery,

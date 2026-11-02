@@ -5,6 +5,7 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import type { Rock } from "../../rules/rocks";
 import { STILL, type Steer } from "../../rules/ship";
 import { STEP_MS } from "../../rules/stepper";
 import {
@@ -13,6 +14,7 @@ import {
   FIELD_SHORT_SIDE,
   FIRST_SHIPS,
 } from "../../rules/tuning";
+import { WAVES, type WaveEntry, wavesOf } from "../../rules/waves";
 import {
   FRAME_MS,
   SPEC_RANDOM,
@@ -27,6 +29,7 @@ import {
   shoot,
   toPickup,
 } from "../../testing/play";
+import { TUNED } from "../../view/debug_tuning";
 import type { BoardSetting } from "../../view/field_metrics";
 import { CLEARED_MS, resultDelayMs } from "../../view/timing";
 import { GameService } from "./game.service";
@@ -116,6 +119,17 @@ describe("GameService", () => {
         speed: "normal",
         ships: FIRST_SHIPS,
         score: 0,
+        waiting: true,
+      });
+    });
+
+    it("goes on waiting as the ship comes to fire by itself, as the setting turned on asks", () => {
+      const game = TestBed.inject(GameService);
+
+      playFor(game, 1000, { ...STILL, autoFire: true });
+
+      expect({ outcome: game.outcome(), waiting: game.waiting() }).toEqual({
+        outcome: "ready",
         waiting: true,
       });
     });
@@ -733,6 +747,116 @@ describe("GameService", () => {
       await game.startAt(SPEC_WAVE.pebble);
 
       expect(game.runs()).toBe(2);
+    });
+  });
+
+  describe("the debug menu's numbers", () => {
+    /** Thrust held, nose up, for the ship's top speed. */
+    const FULL_THRUST: Readonly<Steer> = { ...STILL, thrust: 1 };
+
+    /** Returns the ship's speed, or 0 with none in play. */
+    function shipSpeed(game: GameService): number {
+      const { ship } = game.frame().field;
+      return ship ? Math.hypot(ship.vx, ship.vy) : 0;
+    }
+
+    /** Returns the places and the velocities of the field's whole rocks. */
+    function rocksOf(game: GameService): Pick<Rock, "x" | "y" | "vx" | "vy">[] {
+      return game
+        .frame()
+        .field.rocks.filter((rock) => rock.live)
+        .map(({ x, y, vx, vy }) => ({ x, y, vx, vy }));
+    }
+
+    /**
+     * Returns the waves with only the game's first, laid out as a wall,
+     * whose rocks, from the specs' seed, come at the waiting ship at twice
+     * the rocks' speed unless they are laid out for it.
+     */
+    function firstWaveAsWall(): WaveEntry[] {
+      const [entry] = WAVES;
+      if (!entry) throw new Error("No waves");
+      return wavesOf([
+        { ...entry.sector, waves: [{ ...entry.data, formation: "wall" }] },
+      ]);
+    }
+
+    /** Returns a game apart from the one the specs inject, on the same waves and seeds. */
+    function anotherGame(): GameService {
+      return TestBed.runInInjectionContext(() => new GameService());
+    }
+
+    /** Returns the velocities of the field's whole rocks, across first. */
+    function rockVelocities(game: GameService): number[] {
+      return rocksOf(game).flatMap(({ vx, vy }) => [vx, vy]);
+    }
+
+    it("start at tuning.ts's", () => {
+      const game = TestBed.inject(GameService);
+
+      expect(game.tuning()).toEqual(TUNED);
+    });
+
+    it("tune the field in play at once, its rocks in flight among it", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      const before = rockVelocities(game);
+
+      game.tune({ rockSpeed: 2 });
+
+      expect(rockVelocities(game)).toEqual(before.map((v) => v * 2));
+    });
+
+    it("keep the numbers tuned before as another is tuned", () => {
+      const game = TestBed.inject(GameService);
+      game.tune({ thrust: 40 });
+
+      game.tune({ rockSpeed: 2 });
+
+      expect(game.tuning()).toEqual({ ...TUNED, thrust: 40, rockSpeed: 2 });
+    });
+
+    it("fly the ship in play as tuned", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+
+      game.tune({ topSpeed: 6 });
+      playFor(game, 1000, FULL_THRUST);
+
+      expect(shipSpeed(game)).toBeCloseTo(6);
+    });
+
+    it("lay a wave waiting for its first move out again for the rocks' speed tuned, as one laid out for it", async () => {
+      TestBed.configureTestingModule({
+        providers: provideSpecWaves(firstWaveAsWall()),
+      });
+      const laidForIt = anotherGame();
+      laidForIt.tune({ rockSpeed: 2 });
+      await laidForIt.startAt(1);
+      const game = TestBed.inject(GameService);
+
+      game.tune({ rockSpeed: 2 });
+
+      expect(rocksOf(game)).toEqual(rocksOf(laidForIt));
+    });
+
+    it("tune every wave after the one in play", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      game.tune({ topSpeed: 6 });
+
+      clearToNext(game);
+      playFor(game, 1000, FULL_THRUST);
+
+      expect(shipSpeed(game)).toBeCloseTo(6);
+    });
+
+    it("go back to tuning.ts's at a reset, on the field in play too", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      const before = rockVelocities(game);
+      game.tune({ thrust: 40, rockSpeed: 2 });
+
+      game.resetTuning();
+
+      expect(game.tuning()).toEqual(TUNED);
+      expect(rockVelocities(game)).toEqual(before);
     });
   });
 });

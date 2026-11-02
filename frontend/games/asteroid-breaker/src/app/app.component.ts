@@ -1,17 +1,27 @@
-import { Component, effect, inject, untracked, viewChild } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from "@angular/core";
 import { PlayRoomDirective } from "@fz/game-ui/play_room";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
 import { BoardComponent } from "./board/board.component";
 import { GameService } from "./play/game.service";
+import { SettingsComponent } from "./settings/settings.component";
 
 /**
  * Shows the game: the board in the room the page gives it, the live region
- * that says what happens, and the question before a run is thrown away.
+ * that says what happens, the settings the board's cards open, and the
+ * question before a run is thrown away.
  *
  * The board takes the focus as a run begins, as the page loads or after a
- * new game, and whenever the question over it closes, so the keys steer at
- * once. The wave in play pauses whenever the player looks away from the
+ * new game, and whenever the last dialog over it closes, so the keys steer
+ * at once. The wave in play pauses whenever the player looks away from the
  * room (`[fzPlayRoom]`). An ended run's result is put away as it opens,
  * leaving the board's card to offer another run.
  */
@@ -22,6 +32,7 @@ import { GameService } from "./play/game.service";
     BoardComponent,
     ConfirmDialogComponent,
     PlayRoomDirective,
+    SettingsComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
@@ -31,16 +42,23 @@ export class AppComponent {
   private readonly confirm = inject(ConfirmService);
   private readonly board = viewChild.required(BoardComponent);
 
+  protected readonly settingsOpen = signal(false);
+
+  /** Whether a dialog covers the board. */
+  private readonly covered = computed(
+    () => this.settingsOpen() || this.confirm.isOpen(),
+  );
+
   /** The last run the board took the focus for, by `GameService.runs`. */
   private focusedRun = -1;
 
-  /** Whether the question covered the board when the focus was last looked at. */
+  /** Whether a dialog covered the board when the focus was last looked at. */
   private wasCovered = false;
 
   constructor() {
     effect(() => {
       const run = this.game.runs();
-      const covered = this.confirm.isOpen();
+      const covered = this.covered();
       const uncovered = this.wasCovered && !covered;
       this.wasCovered = covered;
       if (covered || (run === this.focusedRun && !uncovered)) return;

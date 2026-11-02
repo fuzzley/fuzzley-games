@@ -528,10 +528,13 @@ more. Paths in Part 1 are under `frontend/lib/` or
 - **A9.3** A first settings drawer holding the three settings the debug
   menu changes (fire by itself, which side holds the stick, when the deck
   shows) and, in a development build (`DEBUG_MENU`), the Debug section: the
-  eight sliders and four switches "The debug menu" lists, acting on the
-  field in play (`Field.debug`), Reset the numbers and Copy the numbers.
-  Specced. One commit, `yarn verify` with it, then Q3, where the build
-  waits until the user says the feel is right.
+  eight sliders and the switch for the shots "The debug menu" lists, the
+  other three being the drawer's, acting on the field in play
+  (`Field.flight`, `Field.gunnery` and `Field.rockSpeed`), Reset the
+  numbers and Copy the numbers. Until A10.1's bar, the Paused card's
+  Settings opens it, and on a touch screen, which has no Pause till then,
+  the Ready card's too. Specced. One commit, `yarn verify` with it, then
+  Q3, where the build waits until the user says the feel is right.
 
 #### A10: the bar, the icon and the dialogs (medium)
 
@@ -1178,11 +1181,19 @@ once:
 | Deck                         | Auto, Always, Never | the setting's           |
 
 - **The last three are the player's settings too,** and change them; the
-  rest live only in the field in play (`Field.debug`), as Brick Breaker's
-  `ballSpeedScale` does, and nothing keeps them.
+  rest live only in the game service, as Brick Breaker's `ballSpeedScale`
+  does, and nothing keeps them. The field in play takes them at once
+  (`Field.flight`, `Field.gunnery` and `Field.rockSpeed`), and a new
+  wave's setup hands them to its field before its layout (`WaveSetup`'s
+  `flight`, `gunnery` and `rockSpeed`).
+- **Rocks' speed** scales how fast the rocks fly against `ROCK_SPEED`,
+  those in flight at once, and a wave waiting for its first move is laid
+  out again for it, so its start stays fair. Copy the numbers writes
+  `ROCK_SPEED` scaled.
 - **A shot every** sets the gun's time, and every weapon's scales with it,
   so Rapid's stays half the gun's, as the catalog writes it.
-- **Reset the numbers** puts the eight sliders back to `tuning.ts`'s;
+- **Reset the numbers** puts the eight sliders and the shots' switch back
+  to `tuning.ts`'s;
   **Copy the numbers** puts them on the clipboard as the lines of
   `tuning.ts` they would replace, so a feel found by playing is pasted
   straight in.

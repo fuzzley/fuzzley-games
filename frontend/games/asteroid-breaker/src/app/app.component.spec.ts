@@ -135,6 +135,36 @@ describe("AppComponent", () => {
     });
   });
 
+  describe("the settings", () => {
+    /** Returns the game with its wave started, then paused, for the Paused card's Settings. */
+    async function pausedApp(): Promise<GameService> {
+      const game = await startedApp();
+      game.pause();
+      await settle();
+      return game;
+    }
+
+    it("open from the card over a paused wave", async () => {
+      await pausedApp();
+
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      expect(screen.getByRole("dialog", { name: "Settings" })).toBeVisible();
+    });
+
+    it("hand the board the focus back as they close", async () => {
+      await pausedApp();
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Close settings" }),
+      );
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
   describe("the focus", () => {
     it("goes back to the board once a question is answered no, wherever it was before", async () => {
       const game = await startedApp();

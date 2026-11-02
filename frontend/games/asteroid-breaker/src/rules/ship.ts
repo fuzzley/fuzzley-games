@@ -45,8 +45,13 @@ export interface Steer {
   aim: Place | null;
   /** The push along the heading, from 0 to 1. */
   thrust: number;
-  /** Whether fire is held, as "Fire by itself" holds it every frame. */
+  /** Whether the player holds fire. */
   fire: boolean;
+  /**
+   * Whether the ship fires by itself, as the setting has it: it fires as if
+   * fire were held, but a waiting ship never takes it for a move.
+   */
+  autoFire: boolean;
   /** Whether a dash is asked for; held, it dashes once. */
   dash: boolean;
 }
@@ -58,6 +63,7 @@ export const STILL: Readonly<Steer> = {
   aim: null,
   thrust: 0,
   fire: false,
+  autoFire: false,
   dash: false,
 };
 

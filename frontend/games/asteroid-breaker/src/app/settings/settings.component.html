@@ -1,0 +1,136 @@
+<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>Settings</h2>
+      <button
+        type="button"
+        class="close"
+        aria-label="Close settings"
+        (click)="closed.emit()"
+      >
+        <fz-icon name="close" />
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <div class="setting">
+        <span class="setting-label" id="deck-label">Touch controls</span>
+        <!-- Each choice is named by all its text, as a voice command reads it. -->
+        <div class="choice-list" fzRadioGroup aria-labelledby="deck-label">
+          @for (choice of deckChoices(); track choice.id) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              (click)="chooseDeck(choice.id)"
+            >
+              <span class="name">{{ choice.name }}</span>
+              <span class="desc">{{ choice.says }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Stick</span>
+        <div class="setting-check">
+          <input
+            #stick
+            id="stick-on-right"
+            type="checkbox"
+            aria-describedby="stick-desc"
+            [checked]="settings().stickOnRight"
+            (change)="setStickOnRight(stick.checked)"
+          />
+          <label for="stick-on-right">Stick on the right</label>
+          <p class="setting-desc" id="stick-desc">
+            For a left thumb on Fire and Dash.
+          </p>
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Fire</span>
+        <div class="setting-check">
+          <input
+            #fire
+            id="fire-by-itself"
+            type="checkbox"
+            aria-describedby="fire-desc"
+            [checked]="settings().fireByItself"
+            (change)="setFireByItself(fire.checked)"
+          />
+          <label for="fire-by-itself">Fire by itself</label>
+          <p class="setting-desc" id="fire-desc">
+            The ship fires all the time, and the deck has Dash alone.
+          </p>
+        </div>
+      </div>
+
+      @if (debugMenu) {
+        <section class="debug" aria-labelledby="debug-heading">
+          <h3 id="debug-heading">Debug</h3>
+          <p class="setting-desc">
+            The field in play takes each number at once, and every wave after
+            it, until the page is loaded again.
+          </p>
+
+          @for (slider of sliders(); track slider.id) {
+            <div class="setting">
+              <label class="setting-label" [for]="slider.inputId">
+                {{ slider.name }}
+              </label>
+              <div class="slider">
+                <input
+                  #range
+                  class="range"
+                  type="range"
+                  [id]="slider.inputId"
+                  [min]="slider.least"
+                  [max]="slider.most"
+                  [step]="slider.step"
+                  [attr.aria-valuetext]="slider.valueText"
+                  [value]="slider.value"
+                  (input)="tune(slider.id, range.valueAsNumber)"
+                />
+                <span class="value" aria-hidden="true">{{
+                  slider.valueText
+                }}</span>
+              </div>
+            </div>
+          }
+
+          <div class="setting-check">
+            <input
+              #carry
+              id="carry-ship"
+              type="checkbox"
+              [checked]="carryShip()"
+              (change)="setCarryShip(carry.checked)"
+            />
+            <label for="carry-ship">Shots carry the ship's speed</label>
+          </div>
+
+          <div class="debug-actions">
+            <button type="button" class="fz-button" (click)="resetNumbers()">
+              Reset the numbers
+            </button>
+            <button type="button" class="fz-button" (click)="copyNumbers()">
+              Copy the numbers
+            </button>
+          </div>
+          <p class="setting-desc" role="status">{{ copyWords() }}</p>
+          <details
+            #linesBox
+            [open]="linesShown()"
+            (toggle)="linesShown.set(linesBox.open)"
+          >
+            <summary>The lines of <code>tuning.ts</code></summary>
+            <pre>{{ lines() }}</pre>
+          </details>
+        </section>
+      }
+    </div>
+  </div>
+</fz-dialog>

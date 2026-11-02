@@ -63,8 +63,8 @@ interface Finger {
  * Turns the player's keys, mouse and fingers into the ship's steering for
  * each frame: the keys as a turn and a push; the mouse as a place to aim
  * at, its main button fire and its second a push; the deck's stick as a
- * heading and a push, and its buttons by which finger is where; and fire
- * held every frame where it is by itself.
+ * heading and a push, and its buttons by which finger is where; and the
+ * ship firing by itself where the board's setting says so.
  *
  * The mouse aims only once it moves over the field, and stops as a turn key
  * is pressed or a finger takes the stick; its place is kept in field units
@@ -99,6 +99,7 @@ export class Steering {
     aim: null,
     thrust: 0,
     fire: false,
+    autoFire: false,
     dash: false,
   };
 
@@ -117,7 +118,8 @@ export class Steering {
 
   /**
    * Takes where the field and the deck now lie on the canvas, as the
-   * board's setting says, whose "Fire by itself" holds fire every frame.
+   * board's setting says, whose "Fire by itself" has the ship fire every
+   * frame.
    * Every finger goes on asking what it did until it moves, as where it lies
    * on the new canvas is unknown till then.
    */
@@ -246,11 +248,8 @@ export class Steering {
     steer.turn = steer.heading === null && !steer.aim ? this.turn() : 0;
     steer.thrust =
       this.keys.thrust > 0 || this.mouseThrust ? 1 : this.stick.thrust();
-    steer.fire =
-      this.board.fireByItself ||
-      this.keys.fire > 0 ||
-      this.mouseFire ||
-      this.isPressed("fire");
+    steer.fire = this.keys.fire > 0 || this.mouseFire || this.isPressed("fire");
+    steer.autoFire = this.board.fireByItself;
     steer.dash = this.keys.dash > 0 || this.isPressed("dash");
     return steer;
   }

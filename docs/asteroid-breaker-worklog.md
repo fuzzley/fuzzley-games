@@ -3675,3 +3675,147 @@ typecheck, test and build across every workspace.
   own dialog gave it back to the board that held it. Each has a case now,
   and all 14 of the second round were caught, as were the 4 of the
   review's fixes.
+
+## A9.3: the settings drawer and the debug menu
+
+2026-11-02.
+
+- **Built.**
+  - `src/app/settings/settings.component.ts`, `<app-settings>`, a drawer
+    as Brick Breaker's: when the deck shows (on a touch screen, always or
+    never), the stick on the right, and fire by itself; and in a
+    development build (`DEBUG_MENU`), the Debug section: the eight sliders
+    "The debug menu" lists, each writing its number in its unit, the switch
+    for shots carrying the ship's speed, Reset the numbers and Copy the
+    numbers, with the lines of `tuning.ts` beneath, opened where the
+    browser keeps the clipboard shut.
+  - `src/app/settings/settings.service.ts`: the three settings, held for
+    the visit until A12.1 keeps them.
+  - `src/view/debug_tuning.ts`: the numbers the menu tunes (`Tuning`,
+    `TUNED`), its sliders and their ranges, how each is written, the lines
+    of `tuning.ts` Copy writes, and `tuneField()`, which hands a field its
+    flight, its gunnery and its rocks' speed.
+  - `GameService.tune()` and `resetTuning()`: a wave under way takes the
+    numbers at once, a wave waiting for its first move is laid out again
+    for them, and every wave after is laid out with them, as a wave's
+    setup hands `fieldFor()` the flight, the gunnery and the rocks' speed
+    before its layout.
+  - In the rules, a field's `rockSpeed`, which a rock laid flies at and a
+    drawn rock's most speed scales by, and `tuneRockSpeed()`, which speeds
+    the rocks in flight to a new one.
+  - The board follows the settings: the deck where they show it, the stick
+    on its side, fire by itself, and the Ready card's words for each. The
+    Paused card offers Settings until A10.1's bar does, and the Ready card
+    too on a touch screen, and the board takes the focus back as the drawer
+    closes.
+  - Fire by itself is `Steer.autoFire`, beside `Steer.fire`: the gun reads
+    either, but only fire held is a move that starts a waiting wave.
+- **Choices.**
+  - **Rocks' speed scales how fast rocks fly against `ROCK_SPEED`,** those
+    in flight at once, not the field's pace, which their turn, a drawn
+    rock's pull and the comets go by too. So Copy writes `ROCK_SPEED`
+    scaled, and the pasted lines play as the slider did.
+  - **The three settings show once, in the drawer,** not again in the
+    Debug section, though the plan's table lists them there too.
+  - **The settings live for the visit,** as A12.1 is where they are kept;
+    so do the numbers, as the plan has it.
+  - **Settings on the Paused card, and on the Ready card on a touch
+    screen,** is the drawer's only way in until the bar. A phone has no
+    Pause, so it opens it before each wave; a mouse can't reach the Ready
+    card's button without crossing the field, which starts the wave, so a
+    desktop goes through Pause.
+- **Review.** Seven comments, all taken.
+  1. Ticking Fire by itself on the Ready card started the wave behind the
+     drawer, as the setting folded into `Steer.fire` and a waiting ship
+     took it for a fresh press. Fire by itself is now `Steer.autoFire`,
+     which `stepShots` fires on and `movesAfresh` never reads; specced in
+     the steering, the field and the game service. This reshaped the
+     change, so it had a second review.
+  2. The rocks' speed came after the layout, so its fair start was laid
+     for ×1. `WaveSetup.rockSpeed` now sets the field's before `layOut`,
+     `fieldOf` passes the tuned one, and the spawn spec lays every
+     formation's last wave fairly at ×2.
+  3. A mouse can't reach the Ready card's Settings without starting the
+     wave. The Ready card offers it on a touch screen only, and a desktop
+     opens the drawer from Pause; the plan says so.
+  4. The drawn rock's cap case never reached the cap. It flies at ×1.25,
+     where the cap binds, and expects the cap's speed.
+  5. Copy wrote the scaled rock speeds to two places. They're written to
+     four, with a case.
+  6. Copy's status stayed after a number moved. A slider or the shots'
+     switch clears it, with a case each, and `copyNumbers` sets "failed"
+     where the clipboard is missing rather than throwing to its own
+     `catch`.
+  7. The plan's Reset left out the shots' switch. It names it.
+- **Second review.** Five comments, all taken.
+  1. Tuning the rocks' speed on a waiting wave, as the Ready card's
+     Settings does on a phone, scaled rocks laid out fairly for the old
+     speed, the first review's second comment by another way. `tune()`
+     lays a waiting wave out again, as `setRoom()` does, from the same
+     seed; specced on the game's first wave laid out as a wall, which the
+     old way leaves a rock unfair in, against a game whose wave was laid
+     out for the speed from the start.
+  2. No case held a new wave's rocks to the speed, so `fieldFor()` setting
+     it after the layout, or `fieldOf()` leaving it out, would have passed.
+     A wave's setup now carries the flight, the gunnery and the rocks'
+     speed (`fieldTuning()` gives them from the debug menu's numbers), so
+     a new field takes all three before its layout and `playOf()` no
+     longer tunes it after; `tuneField()` is left to a wave under way.
+     The field's specs hold each to its setup and the rocks' velocities to
+     twice theirs at 2, and the first round's survivor is caught now.
+  3. Over plain HTTP every slider move closed the copied lines, as it
+     cleared a failed Copy. Only a Copy that reached the clipboard is
+     forgotten now, as the lines shown follow the numbers; specced.
+  4. Two doc comments, `addRock()`'s and `drift()`'s, left out the field's
+     rocks' speed. They say it.
+  5. Two nits: the Ready card's `settingsWhileReady` is the viewport's
+     signal itself, not a `computed()` around it, and the spec for a
+     player's build looks for no slider, which a section no longer a
+     region couldn't pass. Both taken.
+
+  The second comment's fix reshapes how a new field is tuned, so the
+  change had a third review.
+
+- **Third review.** Nothing blocking; five comments.
+  1. This entry was missing from the staged change. It goes in with the
+     commit, as every step's does.
+  2. Once the player shut the lines by hand, another failed Copy left them
+     shut, as `[open]` followed the status, which was "failed" already.
+     The lines' state is a signal of its own, which a failed Copy opens
+     and the `<details>`'s `toggle` follows; specced, the case caught with
+     either half undone.
+  3. A waiting wave is laid out again for any number, though only the
+     rocks' speed bears on its layout. Left as one way, as `setRoom()`'s
+     is: the same seed lays the same wave, and a slider drags no faster
+     than a resize does. The doc no longer says the flight bears on a
+     fair start.
+  4. The drawer's own rules sat outside its block, after the
+     `settings-drawer` include rather than in it, as the mixin asks. They
+     sit inside it.
+  5. Spec nits. `rocksOf()` and `rockVelocities()` overlapped; the second
+     is built from the first. The ship's thrust held is `FULL_THRUST`, not
+     `THRUST`, which `tuning.ts` names too. The board's spec subscribes to
+     `openSettings` rather than taking Testing Library's `on:`, left: it
+     renders the board in a template beside another button, where `on:`
+     doesn't reach the board's outputs.
+
+  These correct the change rather than reshape it, so it had no fourth
+  review.
+
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,773
+  tests), `yarn prettier:check` and the skill references. 49 mutants of
+  the drawer, the settings, the tuning, the rocks' speed and the board,
+  each a bound, a merge, a word, a guard or a binding changed: all caught
+  but 3, a rock's speed down tuned at heading 0, the tuning's merge and
+  the settings' merge, which each have a case now; run again, with the
+  deck's Always, whose first anchor missed, all 4 were caught. Of the 13
+  on the first review's fixes, all were caught but one, `fieldOf()`
+  handing the tuned rocks' speed to the layout, which the second review's
+  second comment answers. Of the 11 on the second review's fixes, that
+  one among them, all were caught but Reset forgetting a Copy, which has a
+  case now that catches it, and the 2 on the third's were caught. In the dev server, on a phone's screen, Fire by itself ticked from the
+  Ready card left the wave waiting behind the drawer; with it shut, a turn
+  started the wave and the ship fired with nothing held, and the ship
+  after a loss waited for a move; and the rocks' speed moved to ×2 on a
+  waiting wave laid it out again, every rock where it was and twice as
+  fast, the Ready card still up and the console clean.

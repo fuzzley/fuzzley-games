@@ -9,6 +9,7 @@ import {
   computed,
   effect,
   inject,
+  output,
   signal,
   viewChild,
 } from "@angular/core";
@@ -38,6 +39,7 @@ import {
 import { buzzOf } from "../../view/haptics";
 import { tallyLines } from "../../view/tally";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
 
 /** Names a card laid over the field, or none. */
@@ -53,8 +55,10 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  * of the deck's room, until the scene has drawn, and the cards that say how
  * to fly, that the wave is paused, how a wave cleared added up, how to start
  * again once an ended run's result is put away, that the board is still
- * loading on a slow connection, or that it couldn't be drawn. It buzzes the
- * phone, where it can, as a ship is lost and as a wave is cleared.
+ * loading on a slow connection, or that it couldn't be drawn; the card over
+ * a paused wave offers the settings, and on a touch screen the Ready card
+ * too. It buzzes the phone, where it can, as a ship is lost and as a wave
+ * is cleared.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the keys rather than reading with them; the canvas in it is
@@ -81,6 +85,7 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
 export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(GameViewportService);
+  private readonly settings = inject(SettingsService).settings;
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
@@ -97,17 +102,22 @@ export class BoardComponent {
   );
 
   /**
-   * How the board lays the field and the deck out: the deck on a touch
-   * screen. Its margin is the stylesheet's too, which the cards keep.
+   * How the board lays the field and the deck out, as the settings say: the
+   * deck where they have it show, on a touch screen unless they say
+   * otherwise. Its margin is the stylesheet's too, which the cards keep.
    */
-  protected readonly board = computed<BoardSetting>(() => ({
-    marginCss: this.viewport.isCompact()
-      ? MARGIN_CSS_PX.compact
-      : MARGIN_CSS_PX.roomy,
-    deck: this.viewport.isTouchScreen(),
-    stickOnRight: false,
-    fireByItself: false,
-  }));
+  protected readonly board = computed<BoardSetting>(() => {
+    const { deck, stickOnRight, fireByItself } = this.settings();
+    return {
+      marginCss: this.viewport.isCompact()
+        ? MARGIN_CSS_PX.compact
+        : MARGIN_CSS_PX.roomy,
+      deck:
+        deck === "always" || (deck === "auto" && this.viewport.isTouchScreen()),
+      stickOnRight,
+      fireByItself,
+    };
+  });
 
   /** The canvas the board makes, as its size last changed, or null before it is measured. */
   private readonly room = signal<Viewport | null>(null);
@@ -167,12 +177,31 @@ export class BoardComponent {
     return `Wave ${String(number)}: ${data.name}`;
   });
 
-  /** What the Ready card says flies the ship: the deck where it shows, else the keys. */
-  protected readonly flyWords = computed(() =>
-    this.board().deck
-      ? "Steer with the left pad, fire with the right."
-      : "Arrows or W A D to fly, Space to fire.",
-  );
+  /**
+   * What the Ready card says flies the ship: the deck where it shows, its
+   * stick on the side the settings say, else the keys; and how it fires.
+   */
+  protected readonly flyWords = computed(() => {
+    const { deck, stickOnRight, fireByItself } = this.board();
+    if (!deck) {
+      return fireByItself
+        ? "Arrows or W A D to fly; the ship fires by itself."
+        : "Arrows or W A D to fly, Space to fire.";
+    }
+    const [stick, buttons] = stickOnRight
+      ? ["right", "left"]
+      : ["left", "right"];
+    return fireByItself
+      ? `Steer with the ${stick} pad; the ship fires by itself.`
+      : `Steer with the ${stick} pad, fire with the ${buttons}.`;
+  });
+
+  /**
+   * Whether the Ready card offers the settings: on a touch screen, which
+   * has no Pause, but not where a mouse would cross the field to reach it,
+   * which starts the wave.
+   */
+  protected readonly settingsWhileReady = this.viewport.isTouchScreen;
 
   /** The run's score, as the cards write it. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
@@ -208,6 +237,9 @@ export class BoardComponent {
    * scene last drew them, for How to play, or null before it has drawn.
    */
   readonly pictures = this.picturesState.asReadonly();
+
+  /** Emitted when a card's Settings button asks for the settings. */
+  readonly openSettings = output();
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BeltSceneOptions = {
