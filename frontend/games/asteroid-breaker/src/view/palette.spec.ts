@@ -53,6 +53,10 @@ describe("beltPalette", () => {
     ]);
   });
 
+  it("draws the stick's base and the buttons at rest in a wash of the field's text", () => {
+    expect(beltPalette(ROLES, "light").deck).toBe(0xeeeeee);
+  });
+
   it.each([
     ["light", LIGHT_ROCK_INKS, LIGHT_PILOT_INKS],
     ["dark", DARK_ROCK_INKS, DARK_PILOT_INKS],

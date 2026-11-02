@@ -1,3 +1,4 @@
+import type { Deck } from "../view/deck";
 import type { FieldMetrics } from "../view/field_metrics";
 import type { FieldView } from "../view/frame";
 import type { BeltPalette } from "../view/palette";
@@ -25,6 +26,8 @@ export interface PaintContext extends Baked {
   alpha: number;
   /** The run's seed, which the field's specks are strewn from. */
   seed: number;
+  /** Where the deck's parts lie on the canvas, or null where it doesn't show. */
+  deck: Deck | null;
   /** The scene's time, in milliseconds, by which the flourishes and idle motions run. */
   now: number;
   /** Whether the player welcomes motion. */

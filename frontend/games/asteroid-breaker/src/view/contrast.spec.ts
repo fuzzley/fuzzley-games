@@ -32,7 +32,8 @@ function between(one: number, other: number): number {
 // a rock it crosses, and a rock's marks are drawn in the same, so each keeps
 // 3:1 against those too. Each pilot keeps 3:1 against what it is drawn on:
 // the field, in the ship's window; a stray's bubble; and the bar, where the
-// crew waits; and its eyes keep 3:1 against it.
+// crew waits; and its eyes keep 3:1 against it. The deck's symbols at rest
+// keep 3:1 against its buttons, and the knob against the stick's base.
 describe("the field's contrast", () => {
   const palettes = paletteRoles(compileStylesheet(GLOBAL));
 
@@ -118,6 +119,13 @@ describe("the field's contrast", () => {
 
     it.each(pilots)("keeps the eyes at 3:1 or more against %s", (_, color) => {
       expect(between(palette.eyes, color)).toBeGreaterThanOrEqual(GRAPHIC);
+    });
+
+    it.each([
+      ["a button's symbol at rest", palette.muted],
+      ["the stick's knob", palette.accent],
+    ] as const)("keeps %s at 3:1 or more against the deck", (_, color) => {
+      expect(between(color, palette.deck)).toBeGreaterThanOrEqual(GRAPHIC);
     });
   });
 });

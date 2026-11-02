@@ -8,6 +8,7 @@ import {
   flyShip,
   guardShip,
   isGuarded,
+  rechargeShare,
   thrustOf,
   waitOn,
 } from "./ship";
@@ -738,6 +739,26 @@ describe("thrustOf", () => {
     flyShip(ship, steer({ thrust: 1, dash: true }), FIELD);
 
     expect(thrustOf(ship)).toBe(0);
+  });
+});
+
+describe("rechargeShare", () => {
+  it("finds a ship that never dashed charged", () => {
+    expect(rechargeShare(flying(0))).toBe(1);
+  });
+
+  it("finds a ship's dash recharging over its time, from nothing as it dashes", () => {
+    const ship = flying(0);
+    const shares: number[] = [];
+
+    flyShip(ship, steer({ dash: true }), FIELD);
+    shares.push(rechargeShare(ship));
+    fly(ship, STILL, DASH_RECHARGE_MS / 2);
+    shares.push(rechargeShare(ship));
+    fly(ship, STILL, DASH_RECHARGE_MS / 2);
+    shares.push(rechargeShare(ship));
+
+    expect(shares).toEqual([0, 0.5, 1]);
   });
 });
 

@@ -9,8 +9,10 @@ import {
   DECK_EDGE_CSS_PX,
   DECK_GAP_CSS_PX,
   type Deck,
+  RECHARGE_RING_CSS_PX,
   buttonAt,
   deckOf,
+  rechargeRing,
 } from "./deck";
 import {
   type BoardSetting,
@@ -252,6 +254,22 @@ describe("deckOf", () => {
         apart:
           deck !== null && (deck.fire === null || apart(deck.fire, deck.dash)),
       }).toEqual({ stick: true, fire: true, dash: true, apart: true });
+    },
+  );
+});
+
+describe("rechargeRing", () => {
+  it.each([1, 2])(
+    "rings Dash a little out from its edge, at a pixel ratio of %i",
+    (pixelRatio) => {
+      const dash: Circle = { x: 300, y: 200, radius: 24 * pixelRatio };
+
+      expect(rechargeRing(dash, pixelRatio)).toEqual({
+        x: 300,
+        y: 200,
+        radius: (24 + RECHARGE_RING_CSS_PX.gap) * pixelRatio,
+        width: RECHARGE_RING_CSS_PX.width * pixelRatio,
+      });
     },
   );
 });

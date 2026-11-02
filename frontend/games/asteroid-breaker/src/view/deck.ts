@@ -32,6 +32,14 @@ export interface Circle {
   readonly radius: number;
 }
 
+/** Describes a ring on the canvas, in device pixels: a circle drawn in a line so wide. */
+export interface Ring extends Circle {
+  readonly width: number;
+}
+
+/** How far out from Dash's edge its recharge's ring lies, and how wide it is, in CSS pixels. */
+export const RECHARGE_RING_CSS_PX = { gap: 4, width: 3 } as const;
+
 /** Says where the deck's parts lie on the canvas, in device pixels. */
 export interface Deck {
   /** Where a finger pressed takes the stick. */
@@ -126,6 +134,16 @@ export function deckOf(
       buttonsSide,
     ),
     slack: BUTTON_SLACK_CSS_PX * pixelRatio,
+  };
+}
+
+/** Returns the ring Dash's recharge is drawn on, a little out from its edge, in device pixels. */
+export function rechargeRing(dash: Circle, pixelRatio: number): Ring {
+  return {
+    x: dash.x,
+    y: dash.y,
+    radius: dash.radius + RECHARGE_RING_CSS_PX.gap * pixelRatio,
+    width: RECHARGE_RING_CSS_PX.width * pixelRatio,
   };
 }
 
