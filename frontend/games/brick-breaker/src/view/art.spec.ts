@@ -1,3 +1,9 @@
+import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  extentOf,
+} from "@fz/phaser/shapes";
 import { BALL_KIND_IDS } from "../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../rules/catalog/bricks";
 import { CAPSULE_IDS } from "../rules/catalog/capsules";
@@ -18,12 +24,7 @@ import {
   mapPictures,
   tagFrame,
 } from "./art";
-import {
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
-  lineWidth,
-} from "./shapes";
+import { lineWidth } from "./shapes";
 
 /** The scales a field is drawn at, from the smallest unit the layout allows to a large one at a pixel ratio of 3. */
 const SCALES: readonly ArtScale[] = [
@@ -32,45 +33,6 @@ const SCALES: readonly ArtScale[] = [
   { unit: 24, pixelRatio: 2 },
   { unit: 54, pixelRatio: 3 },
 ];
-
-/** Returns the left, top, right and bottom of what a command draws. */
-function extentOf(
-  command: DrawCommand,
-): readonly [number, number, number, number] {
-  switch (command.kind) {
-    case "rect":
-    case "roundRect":
-      return [
-        command.x,
-        command.y,
-        command.x + command.width,
-        command.y + command.height,
-      ];
-    case "circle":
-    case "ring": {
-      const reach =
-        command.radius + (command.kind === "ring" ? command.width / 2 : 0);
-      return [
-        command.x - reach,
-        command.y - reach,
-        command.x + reach,
-        command.y + reach,
-      ];
-    }
-    case "polyline":
-    case "polygon": {
-      const half = command.kind === "polyline" ? command.width / 2 : 0;
-      const xs = command.points.map((point) => point.x);
-      const ys = command.points.map((point) => point.y);
-      return [
-        Math.min(...xs) - half,
-        Math.min(...ys) - half,
-        Math.max(...xs) + half,
-        Math.max(...ys) + half,
-      ];
-    }
-  }
-}
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {

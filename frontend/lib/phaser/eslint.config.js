@@ -22,7 +22,12 @@ export default defineConfig(
   {
     // The pure entries are for a game's code that knows no Phaser and no
     // framework, so they import nothing but each other.
-    files: ["src/insets/**/*.ts", "src/color/**/*.ts", "src/layout/**/*.ts"],
+    files: [
+      "src/insets/**/*.ts",
+      "src/color/**/*.ts",
+      "src/layout/**/*.ts",
+      "src/shapes/**/*.ts",
+    ],
     ignores: ["**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -40,6 +45,7 @@ export default defineConfig(
                 "!../insets",
                 "!../color",
                 "!../layout",
+                "!../shapes",
                 // An entry through its index alone, never its files.
                 "../*/*",
               ],

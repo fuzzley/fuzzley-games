@@ -1,6 +1,6 @@
+import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
 import { atlasFrames } from "../view/art";
 import { type PaletteRoles, beltPalette } from "../view/palette";
-import type { ArtFrame, ArtScale, DrawCommand, Point } from "../view/shapes";
 
 /** The roles the art's specs draw in, each a color no other role takes, and none white. */
 const ROLES: PaletteRoles = {
@@ -82,9 +82,17 @@ function distanceToSide(point: Point, a: Point, b: Point): number {
   );
 }
 
-/** Returns points around the edge of what a command draws: a circle's or a ring's round it, a line's along both its sides, a polygon's corners. */
+/**
+ * Returns points around the edge of what a command draws: a circle's or a
+ * ring's round it, a line's along both its sides, a rectangle's or a
+ * polygon's corners.
+ *
+ * @throws {Error} For a polyline, which the game's art never draws, as a
+ *   canvas joins its corners past its width.
+ */
 export function edgeOf(command: DrawCommand): readonly Point[] {
   switch (command.kind) {
+    case "rect":
     case "roundRect":
       return [
         { x: command.x, y: command.y },
@@ -111,6 +119,8 @@ export function edgeOf(command: DrawCommand): readonly Point[] {
         { x: end.x - across, y: end.y - down },
       ]);
     }
+    case "polyline":
+      throw new Error("The game's art draws no polyline.");
     case "polygon":
       return command.points;
   }

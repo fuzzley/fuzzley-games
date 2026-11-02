@@ -13,3 +13,4 @@ export {
   pixelRatioOf,
   whenSceneEnds,
 } from "./scene_lifetime";
+export { atlasFrameOf } from "./shapes_frame";

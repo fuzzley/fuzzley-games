@@ -1,80 +1,19 @@
-// The atlas's drawing vocabulary: the shapes a frame is drawn in, as plain
-// data the scene plays into a `Graphics`, and the curves and outlines the
-// art builds them from, each flattened into points here, since a frame is
-// baked once and the scene's drawing knows only straight lines and circles.
+// Asteroid Breaker's own helpers for its art, over `@fz/phaser/shapes`: the
+// widths it draws in, the curves and outlines its frames are built from,
+// each flattened into points, since a frame is baked once and the scene's
+// drawing knows only straight lines and circles, and the frames that hold
+// a drawing about its middle.
 
-import { clamp } from "@fz/core/math";
-import type { FieldMetrics } from "./field_metrics";
-
-/** Says where a point of a drawing is, in device pixels. */
-export interface Point {
-  readonly x: number;
-  readonly y: number;
-}
-
-/** Says where an area of a drawing lies, in device pixels. */
-export interface Area {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
-
-/** Describes one shape of a frame's drawing, in device pixels from the frame's top left corner. */
-export type DrawCommand =
-  | {
-      readonly kind: "roundRect";
-      readonly x: number;
-      readonly y: number;
-      readonly width: number;
-      readonly height: number;
-      readonly radius: number;
-      readonly color: number;
-    }
-  | {
-      readonly kind: "circle";
-      readonly x: number;
-      readonly y: number;
-      readonly radius: number;
-      readonly color: number;
-    }
-  | {
-      /** A circle's outline, its line's middle at the radius. */
-      readonly kind: "ring";
-      readonly x: number;
-      readonly y: number;
-      readonly radius: number;
-      readonly width: number;
-      readonly color: number;
-    }
-  | {
-      /**
-       * A straight line from a point to another, its ends cut straight across; a line
-       * through more points is drawn as several, with {@link stroke}.
-       */
-      readonly kind: "line";
-      readonly from: Point;
-      readonly to: Point;
-      readonly width: number;
-      readonly color: number;
-    }
-  | {
-      readonly kind: "polygon";
-      readonly points: readonly Point[];
-      readonly color: number;
-    };
-
-/** Describes a frame of the atlas: its name, its size in device pixels and its drawing. */
-export interface ArtFrame {
-  readonly name: string;
-  readonly width: number;
-  readonly height: number;
-  /** Its shapes, each drawn over those before it. */
-  readonly commands: readonly DrawCommand[];
-}
-
-/** Says what the art is drawn at: a field unit's device pixels, and a CSS pixel's. */
-export type ArtScale = Pick<FieldMetrics, "unit" | "pixelRatio">;
+import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  circle,
+  extentOf,
+  line,
+  widthOf,
+} from "@fz/phaser/shapes";
 
 /**
  * The most device pixels a field unit is baked at; the scene scales the
@@ -114,66 +53,6 @@ export function lineWidth(scale: ArtScale): number {
 /** Returns how wide an outline is, in whole device pixels: a CSS pixel at least. */
 export function outlineWidth(scale: ArtScale): number {
   return widthOf(OUTLINE, scale);
-}
-
-/** Returns a width given in field units in whole device pixels, a CSS pixel at least. */
-export function widthOf(units: number, scale: ArtScale): number {
-  return Math.max(Math.ceil(scale.pixelRatio), Math.round(scale.unit * units));
-}
-
-/** Returns a rectangle with rounded corners filled in a color, no smaller than nothing. */
-export function roundRect(
-  area: Area,
-  radius: number,
-  color: number,
-): DrawCommand {
-  const width = Math.max(0, area.width);
-  const height = Math.max(0, area.height);
-  return {
-    kind: "roundRect",
-    x: area.x,
-    y: area.y,
-    width,
-    height,
-    radius: clamp(radius, 0, Math.min(width, height) / 2),
-    color,
-  };
-}
-
-/** Returns a circle filled in a color. */
-export function circle(
-  x: number,
-  y: number,
-  radius: number,
-  color: number,
-): DrawCommand {
-  return { kind: "circle", x, y, radius: Math.max(0, radius), color };
-}
-
-/** Returns a circle's outline in a color. */
-export function ring(
-  x: number,
-  y: number,
-  radius: number,
-  width: number,
-  color: number,
-): DrawCommand {
-  return { kind: "ring", x, y, radius: Math.max(0, radius), width, color };
-}
-
-/** Returns a polygon filled in a color. */
-export function polygon(points: readonly Point[], color: number): DrawCommand {
-  return { kind: "polygon", points, color };
-}
-
-/** Returns a straight line from a point to another, in a color. */
-export function line(
-  from: Point,
-  to: Point,
-  width: number,
-  color: number,
-): DrawCommand {
-  return { kind: "line", from, to, width, color };
 }
 
 /**
@@ -387,58 +266,17 @@ export function bounded(
   );
 }
 
-/** Returns the left, top, right and bottom of what a command draws. */
-function extentOf(
-  command: DrawCommand,
-): readonly [number, number, number, number] {
-  switch (command.kind) {
-    case "roundRect":
-      return [
-        command.x,
-        command.y,
-        command.x + command.width,
-        command.y + command.height,
-      ];
-    case "circle":
-    case "ring": {
-      const reach =
-        command.radius + (command.kind === "ring" ? command.width / 2 : 0);
-      return [
-        command.x - reach,
-        command.y - reach,
-        command.x + reach,
-        command.y + reach,
-      ];
-    }
-    case "line": {
-      // An end is cut straight across the line, half its width either side of its point.
-      const { from, to } = command;
-      const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
-      const across = (Math.abs(to.y - from.y) / length) * (command.width / 2);
-      const down = (Math.abs(to.x - from.x) / length) * (command.width / 2);
-      return [
-        Math.min(from.x, to.x) - across,
-        Math.min(from.y, to.y) - down,
-        Math.max(from.x, to.x) + across,
-        Math.max(from.y, to.y) + down,
-      ];
-    }
-    case "polygon": {
-      const xs = command.points.map((point) => point.x);
-      const ys = command.points.map((point) => point.y);
-      return [
-        Math.min(...xs),
-        Math.min(...ys),
-        Math.max(...xs),
-        Math.max(...ys),
-      ];
-    }
-  }
-}
-
 /** Returns a command scaled about the origin by a factor, its lines' widths with it. */
 export function scaledBy(command: DrawCommand, by: number): DrawCommand {
   switch (command.kind) {
+    case "rect":
+      return {
+        ...command,
+        x: command.x * by,
+        y: command.y * by,
+        width: command.width * by,
+        height: command.height * by,
+      };
     case "roundRect":
       return {
         ...command,
@@ -470,6 +308,12 @@ export function scaledBy(command: DrawCommand, by: number): DrawCommand {
         to: { x: command.to.x * by, y: command.to.y * by },
         width: command.width * by,
       };
+    case "polyline":
+      return {
+        ...command,
+        points: placed(command.points, by),
+        width: command.width * by,
+      };
     case "polygon":
       return { ...command, points: placed(command.points, by) };
   }
@@ -482,6 +326,7 @@ export function shifted(
   y: number,
 ): DrawCommand {
   switch (command.kind) {
+    case "rect":
     case "roundRect":
     case "circle":
     case "ring":
@@ -492,6 +337,7 @@ export function shifted(
         from: { x: command.from.x + x, y: command.from.y + y },
         to: { x: command.to.x + x, y: command.to.y + y },
       };
+    case "polyline":
     case "polygon":
       return { ...command, points: placed(command.points, 1, x, y) };
   }

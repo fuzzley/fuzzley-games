@@ -1,4 +1,5 @@
 import { atlasSize } from "@fz/phaser/scene";
+import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
 import { PICKUP_IDS } from "../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../rules/catalog/rocks";
 import { PILOT_COLORS } from "../rules/pilots";
@@ -26,15 +27,7 @@ import {
 } from "./art";
 import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
 import { rockFrame, sizesOf, takenFrame } from "./rock_art";
-import {
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
-  type Point,
-  bakedScale,
-  lineWidth,
-  outlineWidth,
-} from "./shapes";
+import { bakedScale, lineWidth, outlineWidth } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
 import { TAG_RADIUS, isTagged } from "./tags";
 

@@ -1,20 +1,22 @@
-import { SHIP_LENGTH } from "../rules/tuning";
-import type { BeltPalette } from "./palette";
 import {
   type ArtFrame,
   type ArtScale,
   type Point,
-  centered,
   circle,
+  polygon,
+  ring,
+  widthOf,
+} from "@fz/phaser/shapes";
+import { SHIP_LENGTH } from "../rules/tuning";
+import type { BeltPalette } from "./palette";
+import {
+  centered,
   cubicPoints,
   dashedRing,
   outlineWidth,
   outward,
   placed,
-  polygon,
   quadraticPoints,
-  ring,
-  widthOf,
 } from "./shapes";
 
 /** Describes the ship's outlines, in its own units, its nose along x. */

@@ -44,12 +44,15 @@ capsule from one atlas baked at run time (`bakeAtlas()`).
   sprite that fails to load leaves the game silent, not broken.
   `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
-- **`@fz/phaser/insets`**, **`@fz/phaser/color`** and
-  **`@fz/phaser/layout`** import nothing but each other, so a game's code
-  without Phaser can take them. `fitCells()` in `layout` fits a field of
-  cells, across by down, inside a canvas's insets, each cell whole device
+- **`@fz/phaser/insets`**, **`@fz/phaser/color`**, **`@fz/phaser/layout`**
+  and **`@fz/phaser/shapes`** import nothing but each other, so a game's
+  code without Phaser can take them. `fitCells()` in `layout` fits a field
+  of cells, across by down, inside a canvas's insets, each cell whole device
   pixels, and `canvasPixelRatio()` is the ratio a canvas renders at on a
-  display, which a placeholder drawn in CSS sizes its cells by.
+  display, which a placeholder drawn in CSS sizes its cells by. `shapes` is
+  the vocabulary a game's art is drawn in, each shape of a frame as plain
+  data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
+  Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
   a `phaser` chunk of its own, and `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser
