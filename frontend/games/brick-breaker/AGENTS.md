@@ -156,9 +156,10 @@ doesn't see, so Phaser stays out of the first download.
 - **`src/view/`** — what to draw and when the field moves on, without
   Phaser, tested in Node.
   `level_play.ts` holds `LevelPlay`, a level in play, which `GameService`
-  makes for each level and drives: its field, the clock its steps run by,
-  the frame the scene draws, the events it has handed on, the beat before
-  the next serve and the wait before a card opens.
+  makes for each level and drives: `@fz/core/field_play`'s `FieldPlay` over
+  the rules' steps and clock, which keeps the frame the scene draws, the
+  events it has handed on and the wait before a card opens, and the beat
+  before the next serve.
   `field_metrics.ts` lays the field on the canvas from `fitCells()`, a unit a
   whole number of device pixels, with `toCanvasX()`/`toCanvasY()` and
   `toFieldX()`/`toFieldY()` between the two, and says how tall a field a

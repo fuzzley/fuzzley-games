@@ -1,4 +1,3 @@
-import type { FieldEventKind } from "../rules/events";
 import type { Steer } from "../rules/paddle";
 import { STEP_MS } from "../rules/stepper";
 import {
@@ -28,6 +27,19 @@ function deaf(): void {
 }
 
 describe("LevelPlay", () => {
+  describe("frame", () => {
+    it("hands the scene the field and its events", () => {
+      const play = stillPlay();
+
+      const { field, events } = play.frame();
+
+      expect({ field, events }).toEqual({
+        field: play.field,
+        events: play.field.events,
+      });
+    });
+  });
+
   describe("advance", () => {
     it("steps the field as often as a frame's time holds a step", () => {
       const play = stillPlay();
@@ -35,23 +47,6 @@ describe("LevelPlay", () => {
       play.advance(3.6 * STEP_MS, NO_STEER, deaf);
 
       expect(play.field.steps).toBe(3);
-    });
-
-    it("draws between steps as far as the time left over goes", () => {
-      const play = stillPlay();
-
-      play.advance(3.6 * STEP_MS, NO_STEER, deaf);
-
-      expect(play.frame().alpha).toBeCloseTo(0.6);
-    });
-
-    it("carries the time a frame leaves over into the next", () => {
-      const play = stillPlay();
-      play.advance(3.6 * STEP_MS, NO_STEER, deaf);
-
-      play.advance(0.5 * STEP_MS, NO_STEER, deaf);
-
-      expect(play.field.steps).toBe(4);
     });
 
     it("steers the field before it steps it", () => {
@@ -62,17 +57,6 @@ describe("LevelPlay", () => {
       play.advance(STEP_MS, toward, deaf);
 
       expect(play.field.paddle.x).toBeLessThan(from);
-    });
-
-    it("hands on each event once", () => {
-      const play = stillPlay();
-      const heard: FieldEventKind[] = [];
-      play.field.events.add("paddle", 0, 0);
-      play.advance(0, NO_STEER, (event) => heard.push(event.kind));
-
-      play.advance(0, NO_STEER, (event) => heard.push(event.kind));
-
-      expect(heard).toEqual(["paddle"]);
     });
   });
 
@@ -112,31 +96,6 @@ describe("LevelPlay", () => {
       play.serveAfterLoss(SERVE_MS / 2);
 
       expect(play.field.state).toBe("lost");
-    });
-  });
-
-  describe("countCardWait", () => {
-    it("says nothing is due before the level is cleared or the run ends", () => {
-      const play = stillPlay();
-
-      expect(play.countCardWait(1000, 0)).toBe(false);
-    });
-
-    it("waits out the card's wait", () => {
-      const play = stillPlay();
-      play.startCardWait();
-
-      expect(play.countCardWait(100, 300)).toBe(false);
-    });
-
-    it("says the card is due once its wait has run, and once only", () => {
-      const play = stillPlay();
-      play.startCardWait();
-      play.countCardWait(200, 300);
-
-      const due = [play.countCardWait(100, 300), play.countCardWait(100, 300)];
-
-      expect(due).toEqual([true, false]);
     });
   });
 });
