@@ -20,6 +20,7 @@ import {
   rocksLeft,
   setOffBlasts,
   stepRocks,
+  tuneRockSpeed,
 } from "./rocks";
 import { stepsIn } from "./stepper";
 import type { Place, Torus } from "./torus";
@@ -56,6 +57,7 @@ interface SpecField extends RockField {
   steps: number;
   ship: Place | null;
   pace: number;
+  rockSpeed: number;
 }
 
 /** Describes the field a spec starts from. */
@@ -66,6 +68,7 @@ interface FieldOptions {
   readonly ship?: Place | null;
   /** The pickups its rocks may let go, none by default. */
   readonly pool?: readonly PickupId[];
+  readonly rockSpeed?: number;
 }
 
 /** Returns a field of free rock slots, no step taken, no chance of a pickup and, unless given one, no ship. */
@@ -75,6 +78,7 @@ function fieldOf({
   waveKind = "stone",
   ship = null,
   pool = [],
+  rockSpeed = 1,
 }: FieldOptions = {}): SpecField {
   return {
     setup: { drops: 0, pool, pickupsAtOnce: 2 },
@@ -83,6 +87,7 @@ function fieldOf({
     waveKind,
     ship,
     pace: 1,
+    rockSpeed,
     steps: 0,
     seed,
     draws: 0,
@@ -340,6 +345,16 @@ describe("addRock", () => {
     expect(outside(speeds, ROCK_SPEED.large, ROCK_KINDS.ice.speed)).toEqual([]);
   });
 
+  it("flies a rock at the field's rocks' speed too, as the debug menu tunes it", () => {
+    const speeds = SEEDS.map((seed) =>
+      speedOf(lay(fieldOf({ seed, rockSpeed: 1.5 }), "ice", "large")),
+    );
+
+    expect(
+      outside(speeds, ROCK_SPEED.large, ROCK_KINDS.ice.speed * 1.5),
+    ).toEqual([]);
+  });
+
   it("draws a rock's speed from across its size's", () => {
     const speeds = SEEDS.map((seed) =>
       speedOf(lay(fieldOf({ seed }), "stone", "medium")),
@@ -408,6 +423,32 @@ describe("addRock", () => {
     expect(() => addRock(field, "crystal", "small", 36, 20, 0)).toThrow(
       RangeError,
     );
+  });
+});
+
+describe("tuneRockSpeed", () => {
+  it("speeds the rocks in flight to a new speed at once", () => {
+    const field = fieldOf();
+    const rock = lay(field, "stone", "large", 36, 20, Math.PI / 3);
+    const { vx, vy } = rock;
+
+    tuneRockSpeed(field, 2);
+
+    expect({ vx: rock.vx, vy: rock.vy, rockSpeed: field.rockSpeed }).toEqual({
+      vx: vx * 2,
+      vy: vy * 2,
+      rockSpeed: 2,
+    });
+  });
+
+  it("speeds them by the change from the speed in use", () => {
+    const field = fieldOf({ rockSpeed: 2 });
+    const rock = lay(field, "stone", "large");
+    const { vx } = rock;
+
+    tuneRockSpeed(field, 1);
+
+    expect(rock.vx).toBeCloseTo(vx / 2);
   });
 });
 
@@ -1041,6 +1082,22 @@ describe("a rock that is drawn", () => {
       expect.closeTo(top, 6),
       true,
     ]);
+  });
+
+  it("speeds toward the ship past its most speed, to that at the field's rocks' speed and no faster", () => {
+    const most = ROCK_SPEED.large.most * ROCK_KINDS.lodestone.speed;
+    const field = fieldOf({ ship: { x: 36, y: 20 }, rockSpeed: 1.25 });
+    const rock = lay(field, "lodestone", "large", 0, 20, Math.PI / 2);
+    rock.vx = 0;
+    rock.vy = most;
+    const speeds: number[] = [];
+
+    for (let step = 0; step < 600; step++) {
+      stepFor(field, 1);
+      speeds.push(speedOf(rock));
+    }
+
+    expect(Math.max(...speeds)).toBeCloseTo(most * 1.25, 6);
   });
 
   it("turns a rock already past its most speed without slowing it", () => {

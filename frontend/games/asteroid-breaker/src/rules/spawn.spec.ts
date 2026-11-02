@@ -186,6 +186,25 @@ describe("layOut", () => {
     expect({ short, unfair }).toEqual({ short: 0, unfair: [] });
   });
 
+  it.each(FORMATIONS)(
+    "lays the last wave out fairly as a %s, every rock, at twice the rocks' speed the debug menu tunes",
+    (formation) => {
+      const entry = WAVES.at(-1);
+      if (!entry) throw new Error("No waves");
+      const wave = { ...parseWave(entry), formation };
+      const unfair: number[] = [];
+
+      for (const seed of SEEDS) {
+        const setup = startOn(NARROWEST, "normal", seed);
+        const field = fieldFor(wave, { ...setup, rockSpeed: 2 });
+        const { off, flown } = nearness(field);
+        if (off < FAIR_DISTANCE || flown < FAIR_COURSE) unfair.push(seed);
+      }
+
+      expect(unfair).toEqual([]);
+    },
+  );
+
   it("lays a ring evenly round the ship, as far off as a large rock sits inside the field's short side, every rock flying along it one way", () => {
     const field = laidOut("ring");
     const radius = 20 - ROCK_RADIUS.large - 1;

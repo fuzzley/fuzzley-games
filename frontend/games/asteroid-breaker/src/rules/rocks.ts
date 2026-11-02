@@ -81,6 +81,11 @@ export interface RockField extends DropField, ScoreField {
    * drawn rock's pull alike, so a rock's course is the same at any pace.
    */
   readonly pace: number;
+  /**
+   * How fast its rocks fly against their size's speed in `tuning.ts`, a
+   * drawn rock's most speed with it: 1 but where the debug menu tunes it.
+   */
+  readonly rockSpeed: number;
 }
 
 /**
@@ -168,7 +173,8 @@ export function rockHitRadius(size: RockSize): number {
 /**
  * Lays a whole rock of a kind and size in the field's first free slot, at a
  * place, flying a heading at a speed drawn from its size's, times its
- * kind's, and returns it, or null when every slot is taken.
+ * kind's and the field's rocks' speed, and returns it, or null when every
+ * slot is taken.
  *
  * @throws {RangeError} When its kind doesn't come in the size.
  */
@@ -187,7 +193,7 @@ export function addRock(
   }
   const rock = field.rocks.find(isFree);
   if (rock === undefined) return null;
-  const flies = drawIn(field, ROCK_SPEED[size]) * speed;
+  const flies = drawIn(field, ROCK_SPEED[size]) * speed * field.rockSpeed;
   const spinsBack = nextDraw(field) < 0.5;
   rock.live = true;
   rock.kind = kind;
@@ -287,6 +293,22 @@ export function setOffBlasts(field: RockField): void {
 /** Returns whether a broken rock that blasts is due to go off. */
 function isDue(field: RockField, rock: Readonly<Rock>): boolean {
   return rock.goesOffAt !== 0 && rock.goesOffAt <= field.steps;
+}
+
+/**
+ * Sets how fast a field's rocks fly against their size's speed, speeding or
+ * slowing those in flight to it at once, as the debug menu tunes it.
+ */
+export function tuneRockSpeed(
+  field: Pick<RockField, "rocks"> & { rockSpeed: number },
+  rockSpeed: number,
+): void {
+  const change = rockSpeed / field.rockSpeed;
+  for (const rock of field.rocks) {
+    rock.vx *= change;
+    rock.vy *= change;
+  }
+  field.rockSpeed = rockSpeed;
 }
 
 /** Returns how many rocks a field holds, whole or broken and waiting to go off. */
@@ -389,8 +411,8 @@ function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
 /**
  * Speeds a drawn rock toward the ship the shortest way, by its pull each
  * second at the field's pace, never past its size's most speed, times its
- * kind's; the cap never brakes a rock already past that, as a pushed piece
- * may be.
+ * kind's and the field's rocks' speed; the cap never brakes a rock already
+ * past that, as a pushed piece may be.
  */
 function drift(field: RockField, rock: Rock, pull: number): void {
   const { ship, torus } = field;
@@ -400,7 +422,7 @@ function drift(field: RockField, rock: Rock, pull: number): void {
   const way = Math.hypot(toX, toY);
   if (way === 0) return;
   const most = Math.max(
-    ROCK_SPEED[rock.size].most * rockKind(rock.kind).speed,
+    ROCK_SPEED[rock.size].most * rockKind(rock.kind).speed * field.rockSpeed,
     Math.hypot(rock.vx, rock.vy),
   );
   const gain = pull * field.pace * STEP_S;

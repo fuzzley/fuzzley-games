@@ -39,6 +39,12 @@ import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import { type WaveEntry, parseWave } from "../../rules/waves";
 import type { FieldCommand } from "../../view/controls";
+import {
+  TUNED,
+  type Tuning,
+  fieldTuning,
+  tuneField,
+} from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field_metrics";
 import type { FieldFrame } from "../../view/frame";
 import { clearedDelayMs, resultDelayMs } from "../../view/timing";
@@ -85,6 +91,7 @@ export class GameService {
   private torus = FIRST_TORUS;
   /** What the player held as the last frame was handed over, which a new wave's ship takes as held. */
   private readonly held: Steer = { ...STILL };
+  private readonly tuningState = signal(TUNED);
   private readonly runState = signal<Run>(this.create("normal", 1));
   /** The wave in play: its field, stepped in place, and the beat before a card. */
   private wavePlay = this.playOf(this.runState());
@@ -156,6 +163,12 @@ export class GameService {
    * on.
    */
   readonly drawn = this.drawnState.asReadonly();
+
+  /**
+   * The numbers that set the feel, as the debug menu tunes them, which the
+   * field in play and every one after take: `tuning.ts`'s until it does.
+   */
+  readonly tuning = this.tuningState.asReadonly();
 
   /**
    * Moves the field on by the time a frame took, steered as the player
@@ -320,6 +333,26 @@ export class GameService {
     }
   }
 
+  /**
+   * Tunes some of the numbers that set the feel, as the debug menu does. A
+   * wave waiting for its first move is laid out again with them, as the
+   * rocks' speed bears on a fair start, and one under way takes them at
+   * once.
+   */
+  tune(change: Partial<Tuning>): void {
+    this.tuningState.update((tuning) => ({ ...tuning, ...change }));
+    if (this.waitingState()) {
+      this.showField(this.runState());
+    } else {
+      tuneField(this.wavePlay.field, this.tuningState());
+    }
+  }
+
+  /** Puts the numbers that set the feel back to `tuning.ts`'s. */
+  resetTuning(): void {
+    this.tune(TUNED);
+  }
+
   /** Says whether the board is drawn yet, as the board's canvas reports it. */
   setDrawn(drawn: boolean): void {
     this.drawnState.set(drawn);
@@ -410,18 +443,19 @@ export class GameService {
     });
   }
 
-  /** Returns the play of a run's wave in play, its field's specks strewn from the run's seed. */
+  /** Returns the play of a run's wave in play, its specks strewn from the run's seed. */
   private playOf(run: Run): WavePlay {
     return new WavePlay(this.fieldOf(run), run.seed);
   }
 
-  /** Returns the field of a run's wave in play, laid out on the board's room, its ship waiting for the first move. */
+  /** Returns the field of a run's wave in play, laid out on the board's room and tuned as the debug menu says, its ship waiting for the first move. */
   private fieldOf(run: Run): Field {
     return fieldFor(parseWave(this.waveEntry(run.wave)), {
       ...waveStart(run),
       torus: this.torus,
       speed: run.speed,
       held: this.held,
+      ...fieldTuning(this.tuningState()),
     });
   }
 

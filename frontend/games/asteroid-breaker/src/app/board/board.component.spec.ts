@@ -39,6 +39,7 @@ import {
 import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/haptics";
 import { CLEARED_MS } from "../../view/timing";
 import { GameService } from "../play/game.service";
+import { type Settings, SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";
 
 /** Space as a browser sends it, with the key code Phaser's capture reads. */
@@ -195,6 +196,11 @@ async function startedAt(wave: number): Promise<{
   rendered.game.tick(FRAME_MS, shoot(rendered.game));
   rendered.detectChanges();
   return rendered;
+}
+
+/** Changes the player's settings, once the board is rendered. */
+function useSettings(change: Partial<Settings>): void {
+  TestBed.inject(SettingsService).update(change);
 }
 
 /** Starts the wave in play, then pauses it, for the Paused card. */
@@ -362,6 +368,18 @@ describe("BoardComponent", () => {
       );
     });
 
+    it("draws the empty field clear of the deck where the settings always show it", async () => {
+      const { board, detectChanges } = await renderBoard();
+      useSettings({ deck: "always" });
+
+      resize(board, 1280, 720);
+      detectChanges();
+
+      expect(board.querySelector(".field")).toHaveStyle(
+        placedOver(fieldOn(1280, 720, { ...ROOMY, deck: true })),
+      );
+    });
+
     describe("on a touch screen", () => {
       let viewport: FakeViewport | null = null;
 
@@ -383,6 +401,18 @@ describe("BoardComponent", () => {
 
         expect(board.querySelector(".field")).toHaveStyle(
           placedOver(fieldOn(390, 780, TOUCH)),
+        );
+      });
+
+      it("draws the empty field with no deck where the settings never show it", async () => {
+        const { board, detectChanges } = await renderBoard();
+        useSettings({ deck: "never" });
+
+        resize(board, 390, 780);
+        detectChanges();
+
+        expect(board.querySelector(".field")).toHaveStyle(
+          placedOver(fieldOn(390, 780, { ...TOUCH, deck: false })),
         );
       });
     });
@@ -430,6 +460,85 @@ describe("BoardComponent", () => {
           screen.getByText("Steer with the left pad, fire with the right."),
         ).toBeInTheDocument();
       });
+
+      it.each<[string, Partial<Settings>, string]>([
+        [
+          "with the stick on the right",
+          { stickOnRight: true },
+          "Steer with the right pad, fire with the left.",
+        ],
+        [
+          "firing by itself",
+          { fireByItself: true },
+          "Steer with the left pad; the ship fires by itself.",
+        ],
+        [
+          "with the stick on the right, firing by itself",
+          { stickOnRight: true, fireByItself: true },
+          "Steer with the right pad; the ship fires by itself.",
+        ],
+      ])("say how to fly by the deck %s", async (_, change, words) => {
+        const { detectChanges } = await renderBoard();
+
+        useSettings(change);
+        detectChanges();
+
+        expect(screen.getByText(words)).toBeInTheDocument();
+      });
+
+      it("offer the settings over a wave waiting for its first move", async () => {
+        const { component } = await renderBoard();
+        const asked = vi.fn();
+        component.openSettings.subscribe(asked);
+
+        await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+        expect(asked).toHaveBeenCalledOnce();
+      });
+
+      it("keep the keys on the Ready card's Settings from the board", async () => {
+        const { board } = await renderBoard();
+        const heard = vi.fn();
+        board.addEventListener("keydown", heard);
+
+        fireEvent.keyDown(
+          screen.getByRole("button", { name: "Settings" }),
+          SPACE,
+        );
+
+        expect(heard).not.toHaveBeenCalled();
+      });
+    });
+
+    it("say the ship fires by itself, where the settings have it", async () => {
+      const { detectChanges } = await renderBoard();
+
+      useSettings({ fireByItself: true });
+      detectChanges();
+
+      expect(
+        screen.getByText("Arrows or W A D to fly; the ship fires by itself."),
+      ).toBeInTheDocument();
+    });
+
+    it("offer no settings over a waiting wave where a mouse would cross the field to them", async () => {
+      await renderBoard();
+
+      expect(
+        screen.queryByRole("button", { name: "Settings" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("offer the settings over a paused wave", async () => {
+      const { component, game, detectChanges } = await renderBoard();
+      pauseIn(game);
+      detectChanges();
+      const asked = vi.fn();
+      component.openSettings.subscribe(asked);
+
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      expect(asked).toHaveBeenCalledOnce();
     });
 
     it("show nothing over a ship in flight", async () => {
@@ -505,6 +614,7 @@ describe("BoardComponent", () => {
 
     it.each([
       ["Resume", pauseIn],
+      ["Settings", pauseIn],
       ["Next wave", clearIn],
       ["New game", endIn],
     ])(

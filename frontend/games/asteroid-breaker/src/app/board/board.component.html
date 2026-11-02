@@ -24,6 +24,16 @@
       <div class="card ready">
         <p class="card-title">{{ waveTitle() }}</p>
         <p>{{ flyWords() }}</p>
+        @if (settingsWhileReady()) {
+          <button
+            type="button"
+            class="fz-button"
+            fzKeepKeys
+            (click)="openSettings.emit()"
+          >
+            Settings
+          </button>
+        }
       </div>
     }
     @case ("paused") {
@@ -32,6 +42,14 @@
         <p>Score {{ score() }}</p>
         <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
           Resume
+        </button>
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="openSettings.emit()"
+        >
+          Settings
         </button>
       </div>
     }

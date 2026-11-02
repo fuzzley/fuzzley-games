@@ -12,8 +12,8 @@ says how any game here is drawn with Phaser. Paths are relative to
 
 The game is being built from `docs/asteroid-breaker-execution-plan.md`, step
 by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
-shows the board alone, with its cards and no bar or dialogs yet, and the
-site doesn't ship it:
+shows the board, with its cards and a first settings drawer but no bar
+yet, and the site doesn't ship it:
 `frontend/site/games.json` doesn't list it.
 
 ## Technology Stack

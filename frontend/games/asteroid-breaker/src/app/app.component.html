@@ -2,11 +2,12 @@
 <main class="stage">
   <h1 class="fz-visually-hidden">Asteroid Breaker</h1>
   <div class="room" fzPlayRoom (away)="pauseRun()">
-    <app-board />
+    <app-board (openSettings)="settingsOpen.set(true)" />
   </div>
 </main>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
+<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <fz-confirm-dialog />

@@ -726,7 +726,7 @@ describe("Steering's presses", () => {
 });
 
 describe("Steering", () => {
-  it("fires every frame where the board holds fire by itself", () => {
+  it("has the ship fire by itself where the board says so, with no fire held", () => {
     const layout = layoutOf();
 
     const steering = new Steering(layout.metrics, layout.deck, {
@@ -734,7 +734,19 @@ describe("Steering", () => {
       fireByItself: true,
     });
 
-    expect([steering.read().fire, steering.read().fire]).toEqual([true, true]);
+    expect(steering.read()).toMatchObject({ fire: false, autoFire: true });
+  });
+
+  it("still holds fire at Space where the ship fires by itself", () => {
+    const layout = layoutOf();
+    const steering = new Steering(layout.metrics, layout.deck, {
+      ...layout.board,
+      fireByItself: true,
+    });
+
+    steering.press("Space");
+
+    expect(steering.read()).toMatchObject({ fire: true, autoFire: true });
   });
 
   it("stops firing by itself as the board's setting changes", () => {
@@ -746,7 +758,7 @@ describe("Steering", () => {
 
     remeasure(steering, layout);
 
-    expect(steering.read().fire).toBe(false);
+    expect(steering.read().autoFire).toBe(false);
   });
 
   it("forgets every key, button and finger held as the game pauses, and keeps the mouse's place", () => {
