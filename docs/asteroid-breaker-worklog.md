@@ -3257,6 +3257,7 @@ branches strict indexing and the catalog rule out.
 
   The review also turned up the pilots' eye blink, which the plan's
   pilot has and nothing draws yet; it is A8.2.2's now, as the plan says.
+
 - **Checks.** The workspace's `lint`, `typecheck` and `test` (2,441
   tests; the rules and the view at their floors, and every line of the
   scene run), `yarn prettier:check` and the skill references. Mutants of
@@ -3270,3 +3271,30 @@ branches strict indexing and the catalog rule out.
   at something under a unit off, which a near case now catches; and the
   deck's painter handing `rechargeRing()` a pixel ratio of 1, which the
   harness, at 1, can't tell, as the case above says.
+
+## A8.2.2, first: the scene's specs share a board
+
+2026-11-01.
+
+- **Built.** The scene spec's harness, the fake shell, the canvases,
+  `startBoard()` and what a spec reads of the drawn scene with, moved out
+  of `belt_scene.spec.ts`, at 1,627 lines, into `src/testing/belt_board.ts`,
+  so the flourishes' specs can share it from a file of their own. No case
+  changed.
+- **Choices.** A commit of its own ahead of A8.2.2, so its review reads a
+  move alone rather than one inside the flourishes' diff.
+- **Review.** A fresh agent found the move whole, every case unchanged,
+  and the module's state kept apart between spec files by Vitest's
+  isolation. Its comments:
+  1. The board's teardown had become a contract across the module's
+     border: a spec file that left out `afterEach(stopBoard)` would leak a
+     game and its board per case, silently. Fixed as it proposed:
+     `startBoard()` ends what it starts with `onTestFinished()`, so the
+     module keeps no state, `stopBoard()` and the hook are gone, and a case
+     that started two boards would end both.
+  2. `Board` had no doc comment, now part of a shared module. Fixed.
+  3. `Tick` and `Layout` needn't be exported. Fixed.
+  4. `COMMANDS` was split over lines by hand in the move. Put back on one,
+     so the move reads as one.
+- **Checks.** The workspace's `lint` and `typecheck` on both files, the
+  scene's 87 cases, and Prettier. No mutants: nothing but specs moved.
