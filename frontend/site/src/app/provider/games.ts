@@ -343,4 +343,15 @@ export const GAMES: readonly Game[] = [
     added: "2026-10-30",
     play: { build: "brick-breaker" },
   },
+  {
+    slug: "asteroid-breaker",
+    name: "Asteroid Breaker",
+    category: "arcade",
+    blurb: "Fly, drift and blast every rock to rubble before one finds you.",
+    players: SOLO,
+    minutes: 10,
+    added: "2026-11-02",
+    play: { build: "asteroid-breaker" },
+    inDevelopment: true,
+  },
 ];

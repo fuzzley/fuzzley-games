@@ -5,9 +5,20 @@
     }}</a>
     @if (view.play; as play) {
       <div class="intro">
-        <h1>{{ view.game.name }}</h1>
+        <h1>
+          {{ view.game.name }}
+          @if (view.game.inDevelopment) {
+            <span class="fz-badge">In development</span>
+          }
+        </h1>
         <p class="blurb">{{ view.game.blurb }}</p>
         <p class="meta">{{ view.meta }}</p>
+        @if (view.game.inDevelopment) {
+          <p class="meta">
+            {{ view.game.name }} is still in development: it plays, but it may
+            change as it’s finished.
+          </p>
+        }
         <a class="fz-button play-cta" [href]="play.href">
           <fz-icon name="play" />
           Play {{ view.game.name }}

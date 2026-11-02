@@ -3983,3 +3983,66 @@ worktree of its own, so the dev server the phones reach stays as it was.
   each game's steps, frame and Brick Breaker's serve, each an order, a
   bound, a reset or a wiring changed: all caught, and the 2 the review
   proved are caught now too.
+
+## Lifts: done
+
+2026-11-02. `yarn verify` passed on the second lift's commit, `ff350e52`:
+lint, typecheck, test and build across every workspace.
+
+## On the site early: `?debug` and "In development"
+
+2026-11-02, as the user asked: "Expose debug menu in prod with a '?debug'
+URL parameter and push so I can try in prod", then "Also add the game
+entry to main ui but let users know it's under development still."
+
+- **Built.**
+  - `DEBUG_MENU` is true in a development build, as it was, and in a
+    production one whose address has `?debug`, whatever else it holds.
+    Whether the build is a development one is `DEV_BUILD`, a token of its
+    own, which the spec provides as false to stand for production, since
+    `vi.stubEnv()` doesn't change `import.meta.env.DEV` under this setup.
+    The settings drawer, the tuning's header and the plan's debug menu
+    say so.
+  - The gallery's two screenshots, a wave-4 field in Midnight blue at
+    1280×720, twice over, made into the site's 576×324 thumb and 2560×1440
+    preview, as `@fz/dev/screenshots` makes the other games'.
+  - The site serves the build (`games.json`) and lists the game in Arcade,
+    with `inDevelopment: true`, a new field of `Game`: its tile is badged
+    "In development", ahead of "New", and its page badges its heading and
+    says it may change as it's finished.
+  - The plan's A17.1 says the game went up early and what is left of it
+    there; `frontend/games/AGENTS.md` names `inDevelopment` for the next
+    game.
+- **Choices.**
+  - **The site's meta description and the repository's lists of games
+    wait** for A16.3 and A17.1, which name the game when it ships.
+  - **Anyone may open the debug menu** at `?debug`: it tunes their own
+    game only, and saves nothing, so nothing guards it.
+  - **One badge a tile:** "In development" says more than "New" while
+    both hold.
+- **Review.** Nothing broken, the build and the image check sound with
+  the new `games.json` entry; four comments, three taken whole and one in
+  part.
+  1. The game's `AGENTS.md` still said the site didn't ship it. It says
+     the site serves it, badged, and that `?debug` offers the debug menu;
+     the plan's decision 23 names `?debug` too.
+  2. The game's page, now served and indexed, promised "Thirty waves, then
+     Endless" in its description, its link preview and its structured
+     data, where the build has five waves and no Endless. The three drop
+     it, and A17.1 puts it back. Its `og:image` tags wait for A16.1, which
+     adds them with the screenshot it takes of the finished bar.
+  3. With `?debug` in production for good, a tuned run would write the
+     stats and progress A12 adds. A12.1 says it writes neither.
+  4. The work log had no entry for this change, which it now has: this
+     one.
+
+  These correct the change rather than reshape it, so it had no second
+  review.
+
+- **Checks.** Each touched workspace's `lint`, `typecheck` and `test` (the
+  site 177 tests, Asteroid Breaker 2,775), `yarn prettier:check`, the
+  skill references, and `yarn verify`, whose build copied the game into
+  the site and checked the catalog's name and pictures against it. 15
+  mutants of the badge, the page's note, the catalog and `DEBUG_MENU`'s
+  test of the address: all caught but the badge's accent, which a case
+  holds now.

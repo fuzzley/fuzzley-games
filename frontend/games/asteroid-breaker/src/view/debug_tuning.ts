@@ -1,7 +1,7 @@
-// The numbers the debug menu tunes in play, which only a development build
-// offers: the ship's flight, its gunnery and the rocks' speed, each starting
-// at `tuning.ts`'s and written back as its lines, so a feel found by playing
-// is pasted straight in.
+// The numbers the debug menu tunes in play, which a development build
+// offers, and a production one at `?debug`: the ship's flight, its gunnery
+// and the rocks' speed, each starting at `tuning.ts`'s and written back as
+// its lines, so a feel found by playing is pasted straight in.
 
 import { ROCK_SIZES } from "../rules/catalog/rocks";
 import type { Field } from "../rules/field";

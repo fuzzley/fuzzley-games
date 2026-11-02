@@ -34,6 +34,8 @@ export interface Game {
   readonly added: string;
   /** Where the game is played, or omitted for one still to come. */
   readonly play?: PlayLocation;
+  /** Whether a game that plays is still being built, which the site says. */
+  readonly inDevelopment?: boolean;
 }
 
 /** Returns the address a game is played at. */

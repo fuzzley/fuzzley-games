@@ -24,6 +24,12 @@ describe("GAMES", () => {
     expect(new Set(locations).size).toBe(locations.length);
   });
 
+  it("says only of a game that plays that it's in development", () => {
+    const bad = GAMES.filter((game) => game.inDevelopment && !game.play);
+
+    expect(bad).toEqual([]);
+  });
+
   it("dates every game with a real ISO date", () => {
     const bad = GAMES.filter(
       (game) =>

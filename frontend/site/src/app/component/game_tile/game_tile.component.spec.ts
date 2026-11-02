@@ -23,6 +23,10 @@ describe("GameTileComponent", () => {
     });
   }
 
+  function inDevelopment(slug: string): Game {
+    return { ...testGame(slug), inDevelopment: true };
+  }
+
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -57,6 +61,27 @@ describe("GameTileComponent", () => {
 
     expect(screen.queryAllByRole("link")).toEqual([]);
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
+  });
+
+  it("says a game that plays is still in development", async () => {
+    await renderGame(inDevelopment("minesweeper"));
+
+    expect(screen.getByText("In development")).not.toHaveClass(
+      "fz-badge-accent",
+    );
+    expect(
+      screen.getByRole("link", { name: "Play Minesweeper" }),
+    ).toBeInTheDocument();
+  });
+
+  it("badges a game in development as such even while it's new", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-05"));
+
+    await renderGame({ ...inDevelopment("minesweeper"), added: "2026-11-02" });
+
+    expect(screen.getByText("In development")).toBeInTheDocument();
+    expect(screen.queryByText("New")).toBeNull();
   });
 
   it("badges a game added lately as new", async () => {

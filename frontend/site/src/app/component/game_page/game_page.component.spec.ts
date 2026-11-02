@@ -1,6 +1,11 @@
 import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
-import { provideTestCatalog } from "../../testing/catalog";
+import type { Game } from "../../model/game";
+import {
+  TEST_CATALOG,
+  provideTestCatalog,
+  testGame,
+} from "../../testing/catalog";
 import { GamePageComponent } from "./game_page.component";
 
 describe("GamePageComponent", () => {
@@ -8,6 +13,16 @@ describe("GamePageComponent", () => {
     await render(GamePageComponent, {
       inputs: { slug },
       providers: [provideRouter([]), provideTestCatalog()],
+    });
+  }
+
+  async function renderGame(game: Game): Promise<void> {
+    await render(GamePageComponent, {
+      inputs: { slug: game.slug },
+      providers: [
+        provideRouter([]),
+        provideTestCatalog({ ...TEST_CATALOG, games: [game] }),
+      ],
     });
   }
 
@@ -63,6 +78,31 @@ describe("GamePageComponent", () => {
       "Reversi Coming soon",
     );
     expect(screen.queryByRole("link", { name: /^Play/ })).toBeNull();
+  });
+
+  it("says a game is still in development, and opens it all the same", async () => {
+    await renderGame({ ...testGame("minesweeper"), inDevelopment: true });
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Minesweeper In development",
+    );
+    expect(
+      screen.getByText(
+        "Minesweeper is still in development: it plays, but it may change as it’s finished.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Play Minesweeper" }),
+    ).toHaveAttribute("href", "/play/minesweeper/");
+  });
+
+  it("says nothing of development for a finished game", async () => {
+    await renderPage("bakers-game");
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      /^Baker’s Game$/,
+    );
+    expect(screen.queryByText(/still in development/)).toBeNull();
   });
 
   it("says when there's no game at the address", async () => {
