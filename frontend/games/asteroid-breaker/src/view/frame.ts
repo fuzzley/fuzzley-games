@@ -39,8 +39,6 @@ export interface FieldView {
   readonly shielded: boolean;
   /** Who flies the run's ships, the pilot at the controls first, and who waits at home. */
   readonly crew: Crew;
-  /** The breaks in the chain under way. */
-  readonly chain: number;
   /** How many steps the wave has taken, by which its timers run. */
   readonly steps: number;
   /** Whether every rock it held is gone. */

@@ -72,9 +72,14 @@ export function chainMultiplier(field: Readonly<ScoreField>): number {
  * the last break was too long ago, and logs them at the rock's place.
  */
 export function scoreBreak(field: ScoreField, rock: Readonly<Rock>): void {
-  field.chain = chainNow(field) + 1;
+  field.chain = chainCountOf(field);
   field.lastBreakAt = field.steps;
   score(field, rockPoints(rock.kind, rock.size), rock.x, rock.y);
+}
+
+/** Returns the count in its chain a break now would be: the next of the chain's, or the first of a new one once its time is up. */
+export function chainCountOf(field: Readonly<ScoreField>): number {
+  return chainNow(field) + 1;
 }
 
 /** Scores a stray brought home at a place, times the chain's multiplier, without counting it on in the chain. */

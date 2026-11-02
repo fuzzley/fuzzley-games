@@ -21,6 +21,7 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     points: 0,
     times: 0,
     reach: 0,
+    chain: 0,
     ...event,
   };
 }
@@ -34,9 +35,16 @@ const EACH_RECORD: readonly (readonly [
   [
     "a rock's",
     (log) => {
-      log.addRock("broken", 1, 2, "ice", "small");
+      log.addRock("hit", 1, 2, "ice", "small");
     },
-    { kind: "broken", rock: "ice", size: "small" },
+    { kind: "hit", rock: "ice", size: "small" },
+  ],
+  [
+    "a break's",
+    (log) => {
+      log.addBreak(1, 2, "ice", "small", 3);
+    },
+    { kind: "broken", rock: "ice", size: "small", chain: 3 },
   ],
   [
     "a pickup's",
@@ -85,6 +93,23 @@ describe("FieldEventLog", () => {
         rock: "volatile",
         size: "medium",
         reach: 4,
+      }),
+    ]);
+  });
+
+  it("records a rock broken with its kind, place, size and the count it is in its chain", () => {
+    const log = new FieldEventLog();
+
+    log.addBreak(1, 2, "ice", "medium", 4);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "broken",
+        x: 1,
+        y: 2,
+        rock: "ice",
+        size: "medium",
+        chain: 4,
       }),
     ]);
   });
@@ -157,18 +182,19 @@ describe("FieldEventLog", () => {
   it.each(EACH_RECORD)(
     "leaves nothing of an older event in the record %s event takes",
     (_, add, recorded) => {
-      // The four records it takes each held an event of another kind.
+      // The five records it takes held a blast, a pickup's event, a pilot's, points and a break, each with what it alone records.
       const log = new FieldEventLog();
       log.addRock("blast", 3, 4, "volatile", "large", 6);
       log.addPickup("dropped", 3, 4, "spread");
       log.addPilot("strayed", 3, 4, 7);
       log.addScore(3, 4, 90, 4);
-      for (let i = 4; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
+      log.addBreak(3, 4, "stone", "large", 5);
+      for (let i = 5; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
 
-      for (let i = 0; i < 4; i++) add(log);
+      for (let i = 0; i < 5; i++) add(log);
 
       expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual(
-        [1, 2, 3, 4].map((n) =>
+        [1, 2, 3, 4, 5].map((n) =>
           eventOf({ serial: EVENT_LOG_SIZE + n, x: 1, y: 2, ...recorded }),
         ),
       );

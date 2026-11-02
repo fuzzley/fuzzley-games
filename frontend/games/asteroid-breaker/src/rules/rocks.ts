@@ -14,7 +14,7 @@ import {
 } from "./catalog/rocks";
 import { drawIn, nextDraw } from "./draws";
 import { type DropField, dropFrom } from "./drops";
-import { type ScoreField, scoreBreak } from "./scoring";
+import { type ScoreField, chainCountOf, scoreBreak } from "./scoring";
 import { stepsIn } from "./stepper";
 import { type Place, type Torus, across, distanceSquared, wrap } from "./torus";
 import {
@@ -230,8 +230,11 @@ export function hitRock(
     return false;
   }
   rock.live = false;
-  field.events.addRock("broken", rock.x, rock.y, rock.kind, rock.size);
-  if (blow !== "smashes") {
+  // A smashed rock counts in no chain.
+  const counts = blow !== "smashes";
+  const chain = counts ? chainCountOf(field) : 0;
+  field.events.addBreak(rock.x, rock.y, rock.kind, rock.size, chain);
+  if (counts) {
     scoreBreak(field, rock);
     dropFrom(field, rock);
   }

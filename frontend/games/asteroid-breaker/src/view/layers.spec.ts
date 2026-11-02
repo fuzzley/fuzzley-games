@@ -20,6 +20,11 @@ describe("depthOf", () => {
     );
   });
 
+  it("draws the tags of the effects in play over the field, under the rocks and all that flies among them", () => {
+    expect(depthOf("tags")).toBe(depthOf("field") + 1);
+    expect(depthOf("rocks")).toBe(depthOf("tags") + 1);
+  });
+
   it("draws the frame and the deck at the front, which nothing on the field hides", () => {
     expect([depthOf("frame"), depthOf("deck")]).toEqual([
       LAYERS.length - 2,

@@ -1,4 +1,4 @@
-/** How long a broken rock's shards fly before they fade, in milliseconds. */
+/** How long a broken rock's shards fly before they fade, and a lost ship's burst, in milliseconds. */
 export const SHARDS_MS = 500;
 
 /** The fewest shards a broken rock scatters. */
@@ -7,8 +7,24 @@ export const LEAST_SHARDS = 4;
 /** The most shards a broken rock scatters. */
 export const MOST_SHARDS = 7;
 
+/** How long a broken rock's puff of dust spreads and fades. */
+export const DUST_MS = 400;
+
 /** How long a rock that holds a hit flashes light. */
 export const FLASH_MS = 60;
+
+/**
+ * How long after a flash the field flashes again at the soonest, so it
+ * flashes under three times a second, as flashing is safe, however fast
+ * the hits come; a hit held sooner sparks alone.
+ */
+export const FLASH_GAP_MS = 340;
+
+/** How long the spark off a rock that holds a hit flies and fades. */
+export const SPARK_MS = 200;
+
+/** How long a blast's, the Nova's, a spent Shield's or a lost ship's ring takes to sweep out to its reach and fade. */
+export const RING_MS = 300;
 
 /** How far the field kicks away from the shot as a large rock breaks, in CSS pixels. */
 export const KICK_CSS_PX = 2;
@@ -33,6 +49,9 @@ export const SHAKE_DELAY_MS = 80;
 
 /** How many fading outlines of the ship a dash leaves along its path. */
 export const DASH_TRAIL = 3;
+
+/** How long each of a dash's outlines takes to fade. */
+export const TRAIL_MS = 250;
 
 /** How long the Cleared card waits after the last rock goes, so its shards are seen before the card covers them. */
 export const CLEARED_MS = 800;

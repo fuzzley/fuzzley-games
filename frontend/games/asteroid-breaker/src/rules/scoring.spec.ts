@@ -16,6 +16,7 @@ import { type Field, stepField } from "./field";
 import type { Crew } from "./pilots";
 import { type Blow, type Rock, hitRock } from "./rocks";
 import {
+  chainCountOf,
   chainMultiplier,
   clearingPoints,
   multiplier,
@@ -177,6 +178,28 @@ describe("a broken rock", () => {
         times: SHORTEST.times,
       }),
     ]);
+  });
+});
+
+describe("chainCountOf", () => {
+  it("counts a break the first of a chain on a field with none", () => {
+    expect(chainCountOf(stones(1))).toBe(1);
+  });
+
+  it("counts a break the next of the chain within its time", () => {
+    const field = stones(2);
+
+    breakSmalls(field);
+
+    expect(chainCountOf(field)).toBe(3);
+  });
+
+  it("counts a break the first of a new chain once the last's time is up", () => {
+    const field = stones(2);
+
+    breakSmalls(field, CHAIN_STEPS + 1);
+
+    expect(chainCountOf(field)).toBe(1);
   });
 });
 
