@@ -16,8 +16,9 @@ take the pure ones.
 - `src/insets/`: `Insets` and `NO_INSETS`, how far an app's chrome lies over
   each edge of a canvas. It imports nothing.
 - `src/color/`: `colorNumber()`, a palette role's hex as the number Phaser
-  takes, and `mixColors()`, two colors mixed as CSS's `color-mix(in srgb)`
-  mixes them, for `@fz/style`'s washes. It imports nothing.
+  takes, and `cssHex()` back again, for a `Text`'s style, and
+  `mixColors()`, two colors mixed as CSS's `color-mix(in srgb)` mixes them,
+  for `@fz/style`'s washes. It imports nothing.
 - `src/layout/`: `fitCells()`, which fits a field of square cells, any
   number across and down with a frame around them, inside a canvas's
   insets, each cell a whole number of device pixels and the field centered

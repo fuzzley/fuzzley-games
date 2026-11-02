@@ -612,7 +612,7 @@ describe("the stray", () => {
     const metrics = metricsOf(shell);
     const sits = 20 + STRAY_DROP * STRAY_RADIUS;
     const size = PILOT_SIZES.adrift;
-    const { bubble, pilot, eyes } = scene.strays;
+    const { bubble, pilot, eyes } = scene.strays.adrift;
     expect({
       bubble: shownAt(bubble),
       pilot: shownAt(pilot),
@@ -644,7 +644,7 @@ describe("the stray", () => {
     run.advance(16);
 
     const sits = ship.y + 10 + STRAY_DROP * STRAY_RADIUS;
-    expect(shownAt(scene.strays.eyes)).toEqual(
+    expect(shownAt(scene.strays.adrift.eyes)).toEqual(
       onCanvas(
         metricsOf(shell),
         ship.x - 1,
@@ -662,7 +662,7 @@ describe("the stray", () => {
 
     run.advance(16);
 
-    expect(shownAt(scene.strays.bubble)).toEqual(
+    expect(shownAt(scene.strays.adrift.bubble)).toEqual(
       onCanvas(metricsOf(shell), -1.5, 20),
     );
   });
@@ -670,7 +670,7 @@ describe("the stray", () => {
   it("bobs its pilot in its bubble where motion is welcome", async () => {
     const { shell, run, scene } = await startBoard();
     placeStray(shell.field, 30, 20);
-    const { bubble, pilot } = scene.strays;
+    const { bubble, pilot } = scene.strays.adrift;
 
     const seen = {
       bubble: overASecond(run, () => bubble.y).size,
@@ -684,7 +684,7 @@ describe("the stray", () => {
   it("draws nothing while no stray is adrift", async () => {
     const { scene } = await startBoard();
 
-    const { bubble, pilot, eyes } = scene.strays;
+    const { bubble, pilot, eyes } = scene.strays.adrift;
 
     expect([bubble, pilot, eyes].map(shownAt)).toEqual([null, null, null]);
   });

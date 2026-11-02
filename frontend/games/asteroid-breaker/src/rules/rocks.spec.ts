@@ -255,6 +255,10 @@ function stonesFlying(field: SpecField): number[][] {
 }
 
 describe("createRocks", () => {
+  it("numbers each slot by its place", () => {
+    expect(createRocks(3).map((rock) => rock.slot)).toEqual([0, 1, 2]);
+  });
+
   it("makes a free slot for each rock the cap holds", () => {
     const rocks = createRocks(5);
 
@@ -472,6 +476,28 @@ describe("hitRock", () => {
       y: 30,
       rock: "iron",
       size: "large",
+    });
+  });
+
+  it("logs a hit with the slot of the rock that holds it, where it flashes", () => {
+    const field = fieldOf();
+    lay(field, "stone", "large", 30, 30);
+    const rock = lay(field, "lodestone", "large", 10, 30);
+
+    hitRock(field, rock, 1, 0);
+
+    expect(eventsOf(field)[0]).toMatchObject({ kind: "hit", slot: rock.slot });
+  });
+
+  it("logs a break with the way the blow came, a share along each axis", () => {
+    const field = fieldOf();
+
+    hitRock(field, lay(field, "stone", "small", 10, 30), -3, 4);
+
+    expect(eventsOf(field)[0]).toMatchObject({
+      kind: "broken",
+      wayX: -0.6,
+      wayY: 0.8,
     });
   });
 
@@ -1090,10 +1116,12 @@ describe("a rock that rings", () => {
     expect(logged(field)).toEqual(["broken", "scored"]);
   });
 
-  it("logs its ring at its place, with its kind and size", () => {
+  it("logs its ring at its place, with its kind, size and slot", () => {
     const field = fieldOf();
+    lay(field, "stone", "large", 30, 30);
+    const rock = lay(field, "iron", "medium", 10, 30);
 
-    hitRock(field, lay(field, "iron", "medium", 10, 30), 1, 0);
+    hitRock(field, rock, 1, 0);
 
     expect(eventsOf(field).at(-1)).toMatchObject({
       kind: "rung",
@@ -1101,6 +1129,7 @@ describe("a rock that rings", () => {
       y: 30,
       rock: "iron",
       size: "medium",
+      slot: rock.slot,
     });
   });
 });

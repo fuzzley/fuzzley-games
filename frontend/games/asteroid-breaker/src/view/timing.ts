@@ -7,6 +7,9 @@ export const LEAST_SHARDS = 4;
 /** The most shards a broken rock scatters. */
 export const MOST_SHARDS = 7;
 
+/** How many shards a lost ship bursts into. */
+export const BURST_SHARDS = 12;
+
 /** How long a broken rock's puff of dust spreads and fades. */
 export const DUST_MS = 400;
 
@@ -46,6 +49,12 @@ export const SHAKE_MS = 300;
 
 /** How long the field holds still as a ship is lost, before it shakes. */
 export const SHAKE_DELAY_MS = 80;
+
+/** How long a lost ship's pilot floats off in its bubble before it is gone. */
+export const BAIL_OUT_MS = 1400;
+
+/** How long into its bail-out a pilot starts to blink, as it goes. */
+export const BAIL_OUT_BLINK_MS = 700;
 
 /** How many fading outlines of the ship a dash leaves along its path. */
 export const DASH_TRAIL = 3;

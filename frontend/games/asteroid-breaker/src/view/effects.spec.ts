@@ -15,6 +15,8 @@ import {
   detuneOf,
   effectsOf,
   flourishesOf,
+  rockKindOf,
+  rockSizeOf,
 } from "./effects";
 import type { FieldEvent, FieldEventKind } from "./frame";
 
@@ -38,6 +40,9 @@ function eventOf(
     times: 0,
     reach: 0,
     chain,
+    slot: -1,
+    wayX: 0,
+    wayY: 0,
   };
 }
 
@@ -59,7 +64,7 @@ const EVENTS: readonly (readonly [
   ["dropped", null, [], []],
   ["caught", "caught", [], []],
   ["faded", null, [], []],
-  ["lost", "lost", ["burst", "ring", "shake"], []],
+  ["lost", "lost", ["burst", "ring", "shake", "bailout"], []],
   ["strayed", null, [], []],
   ["home", "home", [], []],
   ["gained", "gained", [], []],
@@ -166,6 +171,22 @@ describe("flourishesOf", () => {
     expect(flourishesOf(effectsOf(eventOf("scored")), false)).toEqual([
       "points",
     ]);
+  });
+});
+
+describe("the rock an event names", () => {
+  it("reads the kind and size of the rock an event happened to", () => {
+    const event = eventOf("broken", "medium", "ice");
+
+    expect([rockKindOf(event), rockSizeOf(event)]).toEqual(["ice", "medium"]);
+  });
+
+  it("throws for an event that names no rock", () => {
+    expect(() => rockKindOf(eventOf("fired"))).toThrow(RangeError);
+  });
+
+  it("throws for an event that names no rock's size", () => {
+    expect(() => rockSizeOf(eventOf("fired"))).toThrow(RangeError);
   });
 });
 

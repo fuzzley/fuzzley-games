@@ -4,8 +4,9 @@
  * the effects in play, under all that moves, so they hide nothing a player
  * must see; the rocks; the pickups; the strays adrift and the pilots
  * bailing out; the comets and their warnings; the shots; the ship and its
- * pilot; the shards, rings and exhaust; the points rising; and the frame
- * and the deck.
+ * pilot; the flourishes, back to front a held hit's flash, a dash's
+ * trail, the exhaust, the shards, the dust, the sparks and the rings; the
+ * points rising; and the frame and the deck.
  *
  * The field's camera shows the field's rectangle alone, so the frame,
  * which lies around it, is drawn by the deck's camera over the whole

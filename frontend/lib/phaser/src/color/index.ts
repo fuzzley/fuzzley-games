@@ -1,1 +1,1 @@
-export { colorNumber, mixColors } from "./color";
+export { colorNumber, cssHex, mixColors } from "./color";

@@ -278,7 +278,7 @@ export function stepField(field: Field): void {
   stepEffects(field);
   const { ship, steer, torus } = field;
   if (ship && flyShip(ship, steer, torus, field.flight)) {
-    field.events.add("dashed", ship.x, ship.y);
+    field.events.addDash(ship.x, ship.y, ship.angle);
   }
   const fired = stepShots(
     field.shots,

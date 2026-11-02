@@ -47,13 +47,13 @@ export interface BeltPalette {
    * of a light palette is too light for them.
    */
   readonly mark: number;
-  /** The ship, a pickup, the stick's knob and a button pressed: the accent. */
+  /** The ship, a pickup, the stick's knob, a button pressed, a lost ship's burst, and the rings of the Nova, a spent Shield and a lost ship: the accent. */
   readonly accent: number;
   /** A pickup's symbol and a pressed button's: the color the palette sets on its accent. */
   readonly onAccent: number;
-  /** The ship's flame: the warning color. */
+  /** The ship's flame, its exhaust, a held hit's spark and a blast's ring: the warning color. */
   readonly flame: number;
-  /** The shots, the clearest thing on the field: the field's text. */
+  /** The shots, the clearest thing on the field, and the points scored: the field's text. */
   readonly shot: number;
   /** The comet and its warning: the danger color. */
   readonly comet: number;
@@ -63,7 +63,7 @@ export interface BeltPalette {
   readonly rim: number;
   /** The stick's base and the buttons at rest, a little apart from the field: the field's text at {@link DECK_WASH}. */
   readonly deck: number;
-  /** The glint on a stray's bubble and in a pilot's eyes: white. */
+  /** The glint on a stray's bubble and in a pilot's eyes, and a held hit's flash: white. */
   readonly glint: number;
   /** Each kind of rock's ink, its body's but a crystal's, which is its gem's, set in a stone's body: the inks of the palette's mode. */
   readonly rocks: Readonly<Record<RockKindId, number>>;

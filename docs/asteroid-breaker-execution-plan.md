@@ -1618,9 +1618,9 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
   in 2048 × 2048 at the largest unit, at six outlines a kind and size,
   baked at 32 device px a unit at most. The deck's parts, sized in CSS
   pixels, are baked in a small atlas of their own on a new pixel ratio.
-- **Flourishes from pools,** a particle emitter on the atlas for shards and
-  exhaust, every image made as the scene is created; nothing is made per
-  frame.
+- **Flourishes from pools,** particle emitters on the atlas for the shards
+  and the exhaust, their particles reserved and capped, every image made
+  as the scene is created; nothing is made per frame.
 - **Four pointers:** the mouse, and the three fingers the steering
   follows (`MOST_FINGERS`), a thumb on the stick and two on the buttons, so
   one can hold Fire as another dashes; Phaser starts with one, and the

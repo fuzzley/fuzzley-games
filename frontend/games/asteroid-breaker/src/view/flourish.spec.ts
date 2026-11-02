@@ -1,15 +1,20 @@
+import { DASH_MS, DASH_SPEED } from "../rules/tuning";
 import {
   BOB,
   BREATH,
+  EYES_SHUT,
   FLASH_MOST,
   FLICKER,
+  GOLDEN_ANGLE,
   LOST_RING_REACH,
   PULSE_LEAST,
   SHIELD_RING_REACH,
   TRAIL_MOST,
+  bailOutShown,
   blinkShown,
   bobShare,
   breathScale,
+  eyesOpen,
   fadeAlpha,
   flashAlpha,
   flashDue,
@@ -18,19 +23,28 @@ import {
   pointsLabel,
   pulseAlpha,
   riseOf,
+  ringColorOf,
   ringReachOf,
+  shakeOf,
   shardCount,
   shareDone,
   spread,
   trailAlpha,
+  trailLaidAfter,
+  trailReach,
+  wayOf,
 } from "./flourish";
 import type { FieldEvent, FieldEventKind } from "./frame";
 import {
+  BAIL_OUT_BLINK_MS,
+  BAIL_OUT_MS,
   DASH_TRAIL,
   FLASH_GAP_MS,
   LEAST_SHARDS,
   MOST_SHARDS,
   POINTS_RISE,
+  SHAKE_DELAY_MS,
+  SHAKE_MS,
 } from "./timing";
 
 /** Returns an event of a kind that reaches as far as given. */
@@ -48,6 +62,9 @@ function reaching(kind: FieldEventKind, reach: number): FieldEvent {
     times: 0,
     reach,
     chain: 0,
+    slot: -1,
+    wayX: 0,
+    wayY: 0,
   };
 }
 
@@ -90,14 +107,35 @@ describe("the flourishes' curves", () => {
 });
 
 describe("trailAlpha", () => {
-  it("draws a dash's first outline, nearest the ship, the most opaque", () => {
-    expect(trailAlpha(0)).toBe(TRAIL_MOST);
+  it("draws a dash's last outline, nearest the ship, the most opaque", () => {
+    expect(trailAlpha(DASH_TRAIL - 1)).toBe(TRAIL_MOST);
   });
 
-  it("draws each after it a like share fainter, the last still seen", () => {
+  it("draws each before it a like share fainter, the first still seen", () => {
     const alphas = Array.from({ length: DASH_TRAIL }, (_, i) => trailAlpha(i));
 
-    expect(alphas).toEqual([TRAIL_MOST, (TRAIL_MOST * 2) / 3, TRAIL_MOST / 3]);
+    expect(alphas).toEqual([TRAIL_MOST / 3, (TRAIL_MOST * 2) / 3, TRAIL_MOST]);
+  });
+});
+
+describe("the trail's outlines", () => {
+  it("lays the first where the dash starts, as it starts", () => {
+    expect([trailLaidAfter(0), trailReach(0)]).toEqual([0, 0]);
+  });
+
+  it("lays each after it as the ship passes, a like share of the dash on", () => {
+    const laid = Array.from({ length: DASH_TRAIL }, (_, i) =>
+      trailLaidAfter(i),
+    );
+
+    expect(laid).toEqual([0, DASH_MS / 3, (DASH_MS * 2) / 3]);
+  });
+
+  it("lays each where the ship is as it is laid, at the dash's speed", () => {
+    expect(trailReach(2)).toBeCloseTo(
+      (DASH_SPEED * (DASH_MS * 2)) / 3 / 1000,
+      9,
+    );
   });
 });
 
@@ -155,6 +193,121 @@ describe("ringReachOf", () => {
     ["lost", LOST_RING_REACH],
   ] as const)("sweeps a %s ring out to its own reach", (kind, reach) => {
     expect(ringReachOf(reaching(kind, 0))).toBe(reach);
+  });
+});
+
+describe("ringColorOf", () => {
+  const PALETTE = { flame: 0xf39a4b, accent: 0x4fbf7f };
+
+  it("sweeps a blast's ring out in the warning color", () => {
+    expect(ringColorOf(reaching("blast", 7), PALETTE)).toBe(PALETTE.flame);
+  });
+
+  it.each(["nova", "shielded", "lost"] as const)(
+    "sweeps a %s ring out in the accent",
+    (kind) => {
+      expect(ringColorOf(reaching(kind, 0), PALETTE)).toBe(PALETTE.accent);
+    },
+  );
+});
+
+describe("wayOf", () => {
+  it("flies each event's flourish a golden angle on from the one before's", () => {
+    expect(wayOf(3) - wayOf(2)).toBeCloseTo(GOLDEN_ANGLE, 9);
+  });
+});
+
+describe("bailOutShown", () => {
+  /** The share through a bail-out at which its pilot starts to blink. */
+  const BLINKING = BAIL_OUT_BLINK_MS / BAIL_OUT_MS;
+
+  it("shows a pilot bailing out steadily until it starts to blink", () => {
+    const shown = overTime((seconds) => bailOutShown(BLINKING / 2, seconds));
+
+    expect(new Set(shown)).toEqual(new Set([true]));
+  });
+
+  it("blinks a pilot as it goes", () => {
+    const shown = overTime((seconds) => bailOutShown(BLINKING, seconds));
+
+    expect(shown).toEqual(overTime(blinkShown));
+  });
+});
+
+describe("shakeOf", () => {
+  /** Returns the most the field is shaken along either axis over a stretch of a shake, from and to so many milliseconds after the ship was lost. */
+  function mostShaken(from: number, to: number): number {
+    return Math.max(
+      ...Array.from({ length: to - from }, (_, ms) => {
+        const { x, y } = shakeOf(from + ms + 0.5, { x: 0, y: 0 });
+        return Math.max(Math.abs(x), Math.abs(y));
+      }),
+    );
+  }
+
+  it("holds the field still for a moment as the ship is lost", () => {
+    expect(mostShaken(0, SHAKE_DELAY_MS)).toBe(0);
+  });
+
+  it("shakes the field nearly all of its shake at first", () => {
+    expect(mostShaken(SHAKE_DELAY_MS, SHAKE_DELAY_MS + 20)).toBeGreaterThan(
+      0.9,
+    );
+  });
+
+  it("dies away as the shake goes on, to a quarter of it three quarters through", () => {
+    const late = SHAKE_DELAY_MS + 0.75 * SHAKE_MS;
+
+    const most = mostShaken(late, late + 20);
+
+    expect(most).toBeLessThanOrEqual(0.25);
+    expect(most).toBeGreaterThan(0.15);
+  });
+
+  it("rests a field no ship was lost on", () => {
+    expect(shakeOf(Infinity, { x: 1, y: 1 })).toEqual({ x: 0, y: 0 });
+  });
+
+  it("rests the field once the shake is over", () => {
+    const over = SHAKE_DELAY_MS + SHAKE_MS;
+
+    expect(mostShaken(over, over + 1000)).toBe(0);
+  });
+
+  it("shakes the field along each axis apart, never along a line", () => {
+    const ratios = new Set(
+      Array.from({ length: SHAKE_MS }, (_, ms) => {
+        const { x, y } = shakeOf(SHAKE_DELAY_MS + ms + 0.5, { x: 0, y: 0 });
+        return Math.round((y / x) * 10);
+      }),
+    );
+
+    expect(ratios.size).toBeGreaterThan(10);
+  });
+
+  it("swings the field well both ways at a screen's 60 frames a second, whenever its frames fall", () => {
+    const frameMs = 1000 / 60;
+    // The least, over each moment the frames may start at, of the most the
+    // shake's first half swings the field along each axis.
+    const least = { x: 1, y: 1 };
+    for (let start = 0; start < frameMs; start += 0.5) {
+      const most = { x: 0, y: 0 };
+      for (let ms = start; ms < SHAKE_MS / 2; ms += frameMs) {
+        const { x, y } = shakeOf(SHAKE_DELAY_MS + ms, { x: 0, y: 0 });
+        most.x = Math.max(most.x, Math.abs(x));
+        most.y = Math.max(most.y, Math.abs(y));
+      }
+      least.x = Math.min(least.x, most.x);
+      least.y = Math.min(least.y, most.y);
+    }
+
+    expect(Math.min(least.x, least.y)).toBeGreaterThan(0.6);
+  });
+
+  it("writes the shake into the record it is given", () => {
+    const into = { x: 0, y: 0 };
+
+    expect(shakeOf(SHAKE_DELAY_MS, into)).toBe(into);
   });
 });
 
@@ -241,6 +394,33 @@ describe("flickerShare", () => {
     expect(
       new Set(overTime((seconds) => flickerShare(seconds, false))),
     ).toEqual(new Set([1]));
+  });
+});
+
+describe("eyesOpen", () => {
+  it("keeps a pilot's eyes open most of the time", () => {
+    const open = overTime((seconds) => eyesOpen(seconds, 0, true));
+
+    expect(open.filter((share) => share === 1).length).toBeGreaterThan(900);
+  });
+
+  it("blinks a pilot's eyes shut to their least, and open again", () => {
+    const open = overTime((seconds) => eyesOpen(seconds, 0, true));
+
+    expect(Math.min(...open)).toBeCloseTo(EYES_SHUT, 1);
+  });
+
+  it("blinks two pilots apart", () => {
+    const first = overTime((seconds) => eyesOpen(seconds, 0, true));
+    const second = overTime((seconds) => eyesOpen(seconds, 1, true));
+
+    expect(second).not.toEqual(first);
+  });
+
+  it("keeps a pilot's eyes open where motion isn't welcome", () => {
+    expect(new Set(overTime((seconds) => eyesOpen(seconds, 0, false)))).toEqual(
+      new Set([1]),
+    );
   });
 });
 

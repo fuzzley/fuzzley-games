@@ -1,6 +1,12 @@
 import { SHIP_LENGTH } from "../rules/tuning";
 import { ART_PALETTE, ART_SCALE, frameNamed } from "../testing/art_frames";
-import { FLAME_BEHIND, SHIP_FRAMES, WINDOW, flameShare } from "./ship_art";
+import {
+  FLAME_BEHIND,
+  SHIP_FRAMES,
+  WINDOW,
+  flameShare,
+  flameTip,
+} from "./ship_art";
 
 describe("the ship's frame", () => {
   const ship = frameNamed(SHIP_FRAMES.ship);
@@ -82,6 +88,14 @@ describe("the flame", () => {
       expect(flameShare(thrust)).toBeCloseTo(share);
     },
   );
+
+  it("ends the flame a little behind its base at no thrust", () => {
+    expect(flameTip(0)).toBeCloseTo(FLAME_BEHIND + (0.55 * SHIP_LENGTH) / 2.37);
+  });
+
+  it("ends it its whole length behind its base at full thrust", () => {
+    expect(flameTip(1)).toBeCloseTo(FLAME_BEHIND + (1.6 * SHIP_LENGTH) / 2.37);
+  });
 });
 
 describe("the ship's rings", () => {

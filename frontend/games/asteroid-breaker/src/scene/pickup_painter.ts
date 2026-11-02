@@ -1,16 +1,13 @@
 import type { GameObjects, Scene } from "phaser";
 import { PICKUP_RECORDS, blinks } from "../rules/drops";
 import { pickupFrame } from "../view/art";
-import { blinkShown, breathScale } from "../view/flourish";
+import { GOLDEN_ANGLE, blinkShown, breathScale } from "../view/flourish";
 import { betweenOnAxis } from "../view/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
 /** How far a pickup's frame reaches from its middle, its outline and its breath included, in field units. */
 const PICKUP_REACH = 1.1;
-
-/** How far apart the breaths of two pickups side by side are, in radians: a golden angle, so no two keep step. */
-const PHASE_STEP = 2.4;
 
 /**
  * Draws the pickups floating on the field: each in its frame, breathing
@@ -53,7 +50,7 @@ export class PickupPainter implements Painter {
         continue;
       }
       copies.setFrame(pickupFrame(floating.id));
-      copies.setScale(zoom * breathScale(seconds, i * PHASE_STEP, motion));
+      copies.setScale(zoom * breathScale(seconds, i * GOLDEN_ANGLE, motion));
       copies.show(
         betweenOnAxis(floating.lastX, floating.x, alpha, torus.width),
         betweenOnAxis(floating.lastY, floating.y, alpha, torus.height),
