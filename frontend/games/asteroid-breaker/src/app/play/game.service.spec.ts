@@ -1,0 +1,738 @@
+import { TestBed } from "@angular/core/testing";
+import { randomSeed } from "@fz/core/random";
+import { installFakeViewport } from "@fz/game-ui/testing";
+import { NO_INSETS } from "@fz/phaser/insets";
+import type { Viewport } from "@fz/phaser/layout";
+import { AnnouncerService } from "@fz/ui/announcer";
+import { ConfirmService } from "@fz/ui/confirm";
+import { STILL, type Steer } from "../../rules/ship";
+import { STEP_MS } from "../../rules/stepper";
+import {
+  CLEAN_POINTS,
+  CLEAR_POINTS,
+  FIELD_SHORT_SIDE,
+  FIRST_SHIPS,
+} from "../../rules/tuning";
+import {
+  FRAME_MS,
+  SPEC_RANDOM,
+  SPEC_WAVE,
+  clearToNext,
+  endRun,
+  loseShip,
+  playFor,
+  playToClear,
+  playUntil,
+  provideSpecWaves,
+  shoot,
+  toPickup,
+} from "../../testing/play";
+import type { BoardSetting } from "../../view/field_metrics";
+import { CLEARED_MS, resultDelayMs } from "../../view/timing";
+import { GameService } from "./game.service";
+
+/** A board with no margin and no deck, as on a screen with no touch. */
+const BOARD: BoardSetting = {
+  marginCss: 0,
+  deck: false,
+  stickOnRight: false,
+  fireByItself: false,
+};
+
+/** A canvas on its side, which shapes a field wider than it is tall. */
+const WIDE: Viewport = {
+  width: 1280,
+  height: 720,
+  pixelRatio: 1,
+  insets: NO_INSETS,
+};
+
+/** A square canvas, which shapes a field of the first wave's shape, the short side's square. */
+const SQUARE: Viewport = { ...WIDE, width: 800, height: 800 };
+
+/** Fire held, which a new wave's ship takes as held when it is held as the wave is laid out. */
+const FIRE: Readonly<Steer> = { ...STILL, fire: true };
+
+/** The points the specs' small stone scores. */
+const PEBBLE_POINTS = 40;
+
+/** Lets every promise the game is waiting on settle. */
+async function flush(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/** Returns what the live region last said. */
+function said(): string {
+  return TestBed.inject(AnnouncerService).message();
+}
+
+/** Returns the game with a new run at one of the specs' waves, waiting for its first move. */
+async function gameAt(wave: number): Promise<GameService> {
+  const game = TestBed.inject(GameService);
+  await game.startAt(wave);
+  return game;
+}
+
+/** Returns the game with its run's wave started by a first move. */
+async function startedAt(wave: number): Promise<GameService> {
+  const game = await gameAt(wave);
+  game.tick(FRAME_MS, shoot(game));
+  return game;
+}
+
+/** Returns the game with the wave its run is at cleared. */
+async function clearedAt(wave: number): Promise<GameService> {
+  const game = await gameAt(wave);
+  playToClear(game);
+  return game;
+}
+
+/** Returns the game with a run at a wave that has lost every ship. */
+async function endedAt(wave: number): Promise<GameService> {
+  const game = await gameAt(wave);
+  endRun(game);
+  return game;
+}
+
+beforeEach(() => {
+  TestBed.configureTestingModule({ providers: provideSpecWaves() });
+});
+
+describe("GameService", () => {
+  describe("a new run", () => {
+    it("waits at the first wave for its first move, with the first ships and no points", () => {
+      const game = TestBed.inject(GameService);
+
+      expect({
+        outcome: game.outcome(),
+        wave: game.wave().number,
+        speed: game.speed(),
+        ships: game.ships(),
+        score: game.score(),
+        waiting: game.waiting(),
+      }).toEqual({
+        outcome: "ready",
+        wave: 1,
+        speed: "normal",
+        ships: FIRST_SHIPS,
+        score: 0,
+        waiting: true,
+      });
+    });
+
+    it("holds its field still while nothing moves", () => {
+      const game = TestBed.inject(GameService);
+
+      playFor(game, 1000, STILL);
+
+      expect({
+        outcome: game.outcome(),
+        steps: game.frame().field.steps,
+      }).toEqual({ outcome: "ready", steps: 0 });
+    });
+
+    it("starts its wave at the first move, and says which it is", () => {
+      const game = TestBed.inject(GameService);
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect({
+        outcome: game.outcome(),
+        waiting: game.waiting(),
+        said: said(),
+      }).toEqual({
+        outcome: "playing",
+        waiting: false,
+        said: "Wave 1, Pebble. 1 rock.",
+      });
+    });
+
+    it("takes its seed from the game's random, and strews its field's specks from it", () => {
+      const game = TestBed.inject(GameService);
+
+      expect([game.run().seed, game.frame().seed]).toEqual([
+        randomSeed(SPEC_RANDOM),
+        randomSeed(SPEC_RANDOM),
+      ]);
+    });
+  });
+
+  describe("time", () => {
+    it("steps the field as often as a frame's time holds a step", () => {
+      const game = TestBed.inject(GameService);
+
+      game.tick(10.5 * STEP_MS, shoot(game));
+
+      expect(game.frame().field.steps).toBe(10);
+    });
+
+    it("draws between steps as far as the time left over goes", () => {
+      const game = TestBed.inject(GameService);
+
+      game.tick(1.25 * STEP_MS, shoot(game));
+
+      expect(game.frame().alpha).toBeCloseTo(0.25);
+    });
+  });
+
+  describe("a lost ship", () => {
+    it("costs the run a ship, and says how many are left", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+
+      loseShip(game);
+
+      expect({ ships: game.ships(), said: said() }).toEqual({
+        ships: FIRST_SHIPS - 1,
+        said: "Ship lost. 2 ships left.",
+      });
+    });
+  });
+
+  describe("pickups", () => {
+    it("says a pickup caught by its name", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      playUntil(game, toPickup, () => game.frame().field.shielded);
+
+      expect(said()).toBe("Shield.");
+    });
+  });
+
+  describe("clearing a wave", () => {
+    it("banks the wave's points, and says so", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      playToClear(game);
+
+      expect({ score: game.score(), said: said() }).toEqual({
+        score: PEBBLE_POINTS + CLEAR_POINTS + CLEAN_POINTS,
+        said: "Wave 1 cleared! Score 1,040.",
+      });
+    });
+
+    it("adds up the wave's points for its card", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      playToClear(game);
+
+      expect(game.tally()).toEqual({
+        rocks: PEBBLE_POINTS,
+        chains: 0,
+        strays: 0,
+        cleared: CLEAR_POINTS,
+        clean: CLEAN_POINTS,
+      });
+    });
+
+    it("opens the card at the next frame where the player prefers less motion", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.clearedOpen()).toBe(true);
+    });
+
+    describe("where motion is welcome", () => {
+      let viewport: ReturnType<typeof installFakeViewport>;
+
+      beforeEach(() => {
+        viewport = installFakeViewport(1024, 768);
+      });
+
+      afterEach(() => {
+        viewport.restore();
+      });
+
+      it("waits for the last shards to fly before the card", async () => {
+        const game = await clearedAt(SPEC_WAVE.pebble);
+
+        game.tick(CLEARED_MS - 1, STILL);
+
+        expect(game.clearedOpen()).toBe(false);
+      });
+
+      it("opens the card once the last shards have flown", async () => {
+        const game = await clearedAt(SPEC_WAVE.pebble);
+
+        game.tick(CLEARED_MS, STILL);
+
+        expect(game.clearedOpen()).toBe(true);
+      });
+    });
+
+    it("stays on the wave cleared until its card shows", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+
+      game.nextWave();
+
+      expect(game.wave().number).toBe(SPEC_WAVE.pebble);
+    });
+
+    it("goes on to the next wave once the card shows, laid out afresh, and says which it is", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      clearToNext(game);
+
+      expect({
+        wave: game.wave().number,
+        outcome: game.outcome(),
+        waiting: game.waiting(),
+        steps: game.frame().field.steps,
+        clearedOpen: game.clearedOpen(),
+        said: said(),
+      }).toEqual({
+        wave: SPEC_WAVE.gift,
+        outcome: "playing",
+        waiting: true,
+        steps: 0,
+        clearedOpen: false,
+        said: "Wave 2, Gift. 1 rock.",
+      });
+    });
+
+    it("goes on to the next wave at Enter", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+      game.tick(FRAME_MS, STILL);
+
+      game.command("go");
+
+      expect(game.wave().number).toBe(SPEC_WAVE.gift);
+    });
+
+    it("takes what was held as the wave was cleared as no move in the next", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+      playUntil(game, () => FIRE, game.clearedOpen);
+      game.nextWave();
+
+      game.tick(FRAME_MS, FIRE);
+
+      expect(game.waiting()).toBe(true);
+    });
+
+    it("starts the next wave at a fresh move", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+      playUntil(game, () => STILL, game.clearedOpen);
+      game.nextWave();
+
+      game.tick(FRAME_MS, FIRE);
+
+      expect(game.waiting()).toBe(false);
+    });
+
+    it("plays the last wave again past it, numbered on", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      clearToNext(game);
+
+      expect({
+        number: game.wave().number,
+        name: game.wave().data.name,
+        said: said(),
+      }).toEqual({
+        number: SPEC_WAVE.last + 1,
+        name: "Last",
+        said: "Wave 4, Last. 1 rock.",
+      });
+    });
+
+    it("keeps a wave's entry past the last as the run changes", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+      clearToNext(game);
+      const wave = game.wave();
+
+      game.pause();
+
+      expect(game.wave()).toBe(wave);
+    });
+  });
+
+  describe("pausing", () => {
+    it("pauses the wave in play, and says so", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      game.pause();
+
+      expect({ outcome: game.outcome(), said: said() }).toEqual({
+        outcome: "paused",
+        said: "Paused, with a score of 0. Press Enter to go on.",
+      });
+    });
+
+    it("keeps a paused field still", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.pause();
+      const steps = game.frame().field.steps;
+
+      game.tick(10 * STEP_MS, FIRE);
+
+      expect(game.frame().field.steps).toBe(steps);
+    });
+
+    it("goes on at Enter, and says so", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.pause();
+
+      game.command("go");
+
+      expect({ outcome: game.outcome(), said: said() }).toEqual({
+        outcome: "playing",
+        said: "Going on.",
+      });
+    });
+
+    it("pauses at the key that toggles", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      game.command("toggle");
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("goes on at the key that toggles", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.command("pause");
+
+      game.command("toggle");
+
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("has nothing to pause before the first move", () => {
+      const game = TestBed.inject(GameService);
+
+      game.pause();
+
+      expect(game.outcome()).toBe("ready");
+    });
+  });
+
+  describe("before the board is drawn", () => {
+    it("keeps a paused run paused at Enter or Resume", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.pause();
+      game.setDrawn(false);
+
+      game.command("go");
+      game.resume();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("stays on a cleared wave", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+      game.tick(FRAME_MS, STILL);
+      game.setDrawn(false);
+
+      game.nextWave();
+
+      expect(game.wave().number).toBe(SPEC_WAVE.pebble);
+    });
+
+    it("goes on once the board is drawn", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.pause();
+      game.setDrawn(false);
+
+      game.setDrawn(true);
+      game.resume();
+
+      expect(game.outcome()).toBe("playing");
+    });
+  });
+
+  describe("the room", () => {
+    it("lays a wave waiting for its first move out again on a new room", () => {
+      const game = TestBed.inject(GameService);
+
+      game.setRoom(WIDE, BOARD);
+
+      expect(game.frame().field.torus.width).toBeGreaterThan(FIELD_SHORT_SIDE);
+    });
+
+    it("keeps the field where the room keeps its shape", () => {
+      const game = TestBed.inject(GameService);
+      const frame = game.frame();
+
+      game.setRoom(SQUARE, BOARD);
+
+      expect(game.frame()).toBe(frame);
+    });
+
+    it("stretches a paused wave to a new room, keeping its field", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.pause();
+      const { field } = game.frame();
+
+      game.setRoom(WIDE, BOARD);
+
+      expect({
+        kept: game.frame().field === field,
+        wide: field.torus.width > FIELD_SHORT_SIDE,
+      }).toEqual({ kept: true, wide: true });
+    });
+
+    it("stretches a wave to a room it changed to in play, as it pauses", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.setRoom(WIDE, BOARD);
+
+      game.pause();
+
+      expect(game.frame().field.torus.width).toBeGreaterThan(FIELD_SHORT_SIDE);
+    });
+
+    it("leaves a wave in play as it is, and shapes the next for the room", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      game.setRoom(WIDE, BOARD);
+      const during = game.frame().field.torus.width;
+
+      clearToNext(game);
+
+      expect({
+        during,
+        next: game.frame().field.torus.width > FIELD_SHORT_SIDE,
+      }).toEqual({ during: FIELD_SHORT_SIDE, next: true });
+    });
+  });
+
+  describe("the end of a run", () => {
+    it("ends once the last ship is lost, and says so", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      endRun(game);
+
+      expect({
+        ended: game.ended(),
+        ships: game.ships(),
+        said: said(),
+      }).toEqual({
+        ended: true,
+        ships: 0,
+        said: "Game over. Score 0, on wave 1.",
+      });
+    });
+
+    it("opens the result card at the next frame where the player prefers less motion", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.resultOpen()).toBe(true);
+    });
+
+    describe("where motion is welcome", () => {
+      let viewport: ReturnType<typeof installFakeViewport>;
+
+      beforeEach(() => {
+        viewport = installFakeViewport(1024, 768);
+      });
+
+      afterEach(() => {
+        viewport.restore();
+      });
+
+      it("waits for the last ship's burst before the result card", async () => {
+        const game = await endedAt(SPEC_WAVE.pebble);
+
+        game.tick(resultDelayMs(true) - 1, STILL);
+
+        expect(game.resultOpen()).toBe(false);
+      });
+
+      it("opens the result card once the last ship's burst has flown", async () => {
+        const game = await endedAt(SPEC_WAVE.pebble);
+
+        game.tick(resultDelayMs(true), STILL);
+
+        expect(game.resultOpen()).toBe(true);
+      });
+    });
+
+    it("puts the result card away", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      game.tick(FRAME_MS, STILL);
+
+      game.closeResult();
+
+      expect({ open: game.resultOpen(), closed: game.resultClosed() }).toEqual({
+        open: false,
+        closed: true,
+      });
+    });
+
+    it.each(["toggle", "go"] as const)(
+      "starts another run at %s once the result card is put away",
+      async (command) => {
+        const game = await endedAt(SPEC_WAVE.gift);
+        const ended = game.run();
+        game.closeResult();
+
+        game.command(command);
+        await flush();
+
+        expect({
+          newId: game.run().id > ended.id,
+          outcome: game.outcome(),
+          wave: game.wave().number,
+        }).toEqual({ newId: true, outcome: "ready", wave: SPEC_WAVE.gift });
+      },
+    );
+
+    it("starts no other run at Enter while the result card shows", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      const ended = game.run();
+
+      game.command("go");
+      await flush();
+
+      expect(game.run()).toBe(ended);
+    });
+
+    it("tries again from the wave the run started at, with the first ships", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      endRun(game);
+
+      game.tryAgain();
+
+      expect({
+        outcome: game.outcome(),
+        wave: game.wave().number,
+        ships: game.ships(),
+      }).toEqual({
+        outcome: "ready",
+        wave: SPEC_WAVE.pebble,
+        ships: FIRST_SHIPS,
+      });
+    });
+
+    it("tries nothing again while the run goes on", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      const run = game.run();
+
+      game.tryAgain();
+
+      expect(game.run()).toBe(run);
+    });
+  });
+
+  describe("a new game", () => {
+    it("starts a new run without asking while none is under way", async () => {
+      const game = TestBed.inject(GameService);
+
+      const started = await game.newGame();
+
+      expect({
+        started,
+        asked: TestBed.inject(ConfirmService).isOpen(),
+        runs: game.runs(),
+      }).toEqual({ started: true, asked: false, runs: 1 });
+    });
+
+    it("starts at the wave the last run started at", async () => {
+      const game = await gameAt(SPEC_WAVE.gift);
+
+      await game.newGame();
+
+      expect(game.wave().number).toBe(SPEC_WAVE.gift);
+    });
+
+    it("asks before it throws away the run under way", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      void game.newGame();
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Start a new game?",
+        confirmLabel: "New game",
+      });
+    });
+
+    it("asks before it throws away a wave just cleared", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+
+      void game.newGame();
+
+      expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
+    });
+
+    it("keeps the run under way when the player backs out", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      const before = game.run();
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).cancel();
+
+      expect({ started: await starting, run: game.run() }).toEqual({
+        started: false,
+        run: before,
+      });
+    });
+
+    it("throws the run away once the player agrees, and lays its wave out afresh", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.tick(10.5 * STEP_MS, STILL);
+      const before = game.run();
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect({
+        newId: game.run().id > before.id,
+        outcome: game.outcome(),
+        steps: game.frame().field.steps,
+        alpha: game.frame().alpha,
+        waiting: game.waiting(),
+      }).toEqual({
+        newId: true,
+        outcome: "ready",
+        steps: 0,
+        alpha: 0,
+        waiting: true,
+      });
+    });
+
+    it("forgets the last run's tally and its result card", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      endRun(game);
+      game.tick(FRAME_MS, STILL);
+
+      game.tryAgain();
+
+      expect({ tally: game.tally(), resultOpen: game.resultOpen() }).toEqual({
+        tally: null,
+        resultOpen: false,
+      });
+    });
+
+    it("forgets that the last run's result card was put away", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      game.tick(FRAME_MS, STILL);
+      game.closeResult();
+
+      game.tryAgain();
+
+      expect(game.resultClosed()).toBe(false);
+    });
+
+    it("clears what the last run had said", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect(said()).toBe("");
+    });
+
+    it("counts each run begun", async () => {
+      const game = TestBed.inject(GameService);
+
+      await game.startAt(SPEC_WAVE.gift);
+      await game.startAt(SPEC_WAVE.pebble);
+
+      expect(game.runs()).toBe(2);
+    });
+  });
+});

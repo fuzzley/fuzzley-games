@@ -168,6 +168,27 @@ describe("gainShipOn", () => {
     ]);
   });
 
+  it.each([
+    ["one brought home", crewOf([0], [6]), true],
+    ["a new one", crewOf([0]), false],
+  ])("logs whether the pilot is %s", (_, crew, fromHome) => {
+    const field = fieldOf(crew);
+
+    gainShipOn(field);
+
+    expect(loggedOn(field)).toEqual([expect.objectContaining({ fromHome })]);
+  });
+
+  it("logs the ships the crew has once gained, and those still waiting", () => {
+    const field = fieldOf(crewOf([0], [6, 2]));
+
+    gainShipOn(field);
+
+    expect(loggedOn(field)).toEqual([
+      expect.objectContaining({ ships: 2, waiting: 1 }),
+    ]);
+  });
+
   it("logs nothing past the most ships", () => {
     const field = fieldOf(fullCrew([6]));
 

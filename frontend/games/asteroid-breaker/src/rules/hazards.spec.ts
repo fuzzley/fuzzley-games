@@ -34,12 +34,14 @@ import {
   COMET_WARNING_MS,
   DROUGHT_MS,
   ENTRY_ALONG,
+  FIRST_SHIP_POINTS,
   PICKUP_PULL_SPEED,
   SHIP_HIT_RADIUS,
   STEP_S,
   STRAY_CATCH_REACH,
   STRAY_FIRST_MS,
   STRAY_NEXT_MS,
+  STRAY_POINTS,
   STRAY_RADIUS,
   STRAY_SPEED,
   STRAY_TILT,
@@ -582,6 +584,7 @@ describe("a stray adrift", () => {
       logged?.pilot,
       logged?.x,
       logged?.y,
+      logged?.waiting,
     ]).toEqual([
       [6, 5],
       1,
@@ -590,6 +593,31 @@ describe("a stray adrift", () => {
       5,
       expect.closeTo(SHIP_X),
       expect.closeTo(SHIP_Y + STRAY_STEP),
+      2,
+    ]);
+  });
+
+  it("is logged waiting at home, though the ship its points bring takes it at once", () => {
+    const field = fieldFrom(PICTURE, {
+      crew: { flying: [0, 1], home: [], lastGiven: 6 },
+      banked: FIRST_SHIP_POINTS - STRAY_POINTS,
+    });
+    placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
+
+    stepField(field);
+
+    expect(
+      loggedOn(field)
+        .filter((each) => each.kind === "home" || each.kind === "gained")
+        .map(({ kind, waiting, ships, fromHome }) => ({
+          kind,
+          waiting,
+          ships,
+          fromHome,
+        })),
+    ).toEqual([
+      { kind: "home", waiting: 1, ships: 2, fromHome: false },
+      { kind: "gained", waiting: 0, ships: 3, fromHome: true },
     ]);
   });
 

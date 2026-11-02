@@ -93,17 +93,18 @@ export function gainShip(crew: Crew, adrift: Pilot | null): Crew {
 
 /**
  * Gains the field's crew a ship, as `gainShip()` does, a new pilot skipping
- * the color of the stray adrift, and logs its pilot at the ship, or the
- * field's middle between ships.
+ * the color of the stray adrift, and logs its pilot, and whether it was
+ * brought home, at the ship, or the field's middle between ships.
  */
 export function gainShipOn(field: CrewField): void {
   const { adrift } = field.strays;
-  const flew = field.crew.flying.length;
+  const { flying, home } = field.crew;
   field.crew = gainShip(field.crew, adrift.live ? adrift.pilot : null);
+  const fromHome = field.crew.home.length < home.length;
   const x = field.ship?.x ?? field.torus.width / 2;
   const y = field.ship?.y ?? field.torus.height / 2;
-  for (const pilot of field.crew.flying.slice(flew)) {
-    field.events.addPilot("gained", x, y, pilot);
+  for (const pilot of field.crew.flying.slice(flying.length)) {
+    field.events.addGained(x, y, pilot, fromHome, field.crew);
   }
 }
 

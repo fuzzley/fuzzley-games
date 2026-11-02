@@ -1,7 +1,7 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { PickupId } from "./catalog/pickups";
 import type { RockKindId, RockSize } from "./catalog/rocks";
-import type { Pilot } from "./pilots";
+import type { Crew, Pilot } from "./pilots";
 
 /** Names something that happened at a place on the field, which its event names nothing else of. */
 export type PlaceEventKind =
@@ -83,6 +83,16 @@ export interface FieldEvent extends NumberedEvent {
   pickup: PickupId | null;
   /** The pilot it happened to, or null for an event of none. */
   pilot: Pilot | null;
+  /** Whether the pilot of a ship gained was brought home, rather than new; false for any other event. */
+  fromHome: boolean;
+  /**
+   * The ships the crew has as the event leaves it: after a ship lost, those
+   * left; after a ship gained, the one gained among them; and as a pickup is
+   * caught, before its effect starts; 0 for any other event.
+   */
+  ships: number;
+  /** The strays waiting at home as the event leaves them, counted when `ships` is; 0 for any other event. */
+  waiting: number;
   /** The points it scored before the chain's multiplier, 0 for an event that scored none. */
   points: number;
   /** The chain's multiplier it scored at, 0 for an event that scored none. */
@@ -119,6 +129,9 @@ function blankEvent(): FieldEvent {
     size: null,
     pickup: null,
     pilot: null,
+    fromHome: false,
+    ships: 0,
+    waiting: 0,
     points: 0,
     times: 0,
     reach: 0,
@@ -127,6 +140,12 @@ function blankEvent(): FieldEvent {
     wayX: 0,
     wayY: 0,
   };
+}
+
+/** Writes into an event the ships a crew has and the strays waiting at home. */
+function countCrew(event: FieldEvent, crew: Crew): void {
+  event.ships = crew.flying.length;
+  event.waiting = crew.home.length;
 }
 
 /** Keeps the field's latest events, for the scene to play and the shell to hear. */
@@ -182,9 +201,9 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.wayY = alongY / along;
   }
 
-  /** Records an event that happened to a pickup. */
+  /** Records an event that happened to a pickup but its catch. */
   addPickup(
-    kind: PickupEventKind,
+    kind: Exclude<PickupEventKind, "caught">,
     x: number,
     y: number,
     pickup: PickupId,
@@ -192,9 +211,33 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.record(kind, x, y).pickup = pickup;
   }
 
-  /** Records an event that happened to a pilot. */
-  addPilot(kind: PilotEventKind, x: number, y: number, pilot: Pilot): void {
-    this.record(kind, x, y).pilot = pilot;
+  /** Records a pickup caught, and the crew as the catch found it, before the pickup's effect starts. */
+  addCaught(x: number, y: number, pickup: PickupId, crew: Crew): void {
+    const event = this.record("caught", x, y);
+    event.pickup = pickup;
+    countCrew(event, crew);
+  }
+
+  /** Records an event that happened to a pilot but a ship gained, and the crew as it left it. */
+  addPilot(
+    kind: Exclude<PilotEventKind, "gained">,
+    x: number,
+    y: number,
+    pilot: Pilot,
+    crew: Crew,
+  ): void {
+    this.recordPilot(kind, x, y, pilot, crew);
+  }
+
+  /** Records a ship gained, with its pilot, whether the pilot was brought home, and the crew as it left it. */
+  addGained(
+    x: number,
+    y: number,
+    pilot: Pilot,
+    fromHome: boolean,
+    crew: Crew,
+  ): void {
+    this.recordPilot("gained", x, y, pilot, crew).fromHome = fromHome;
   }
 
   /** Records points scored at a place, before the chain's multiplier, and the multiplier. */
@@ -202,6 +245,20 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     const event = this.record("scored", x, y);
     event.points = points;
     event.times = times;
+  }
+
+  /** Returns the next record for an event of a pilot, its kind, place and pilot and the crew's counts filled in. */
+  private recordPilot(
+    kind: PilotEventKind,
+    x: number,
+    y: number,
+    pilot: Pilot,
+    crew: Crew,
+  ): FieldEvent {
+    const event = this.record(kind, x, y);
+    event.pilot = pilot;
+    countCrew(event, crew);
+    return event;
   }
 
   /** Returns the next record for an event of a rock, its kind and the rock's place, kind, size and slot filled in. */
@@ -223,6 +280,9 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.size = null;
     event.pickup = null;
     event.pilot = null;
+    event.fromHome = false;
+    event.ships = 0;
+    event.waiting = 0;
     event.points = 0;
     event.times = 0;
     event.reach = 0;
