@@ -498,7 +498,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   broke a rock came, for the kick, and the slot of a rock that held a hit,
   for its flash;
   How to play's pictures from the atlas; nothing with motion off; no game
-  object made after `create()`; nothing called after the scene ends.
+  object made in a frame of play, the flourishes' made in `create()` and
+  the rocks' and shots' as a field of more slots than any before is shown;
+  nothing called after the scene ends.
   Specced. One commit, `yarn verify` with it.
 
 #### A9: play and the board (large)
@@ -512,7 +514,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
   (`[fzPlayRoom]`) and the focus: the scene loaded with `import()` behind a
   CSS drawing of the empty field and the deck's room; the Ready, Paused,
   Cleared and Ended cards, still loading and couldn't be drawn; the pointer
-  hidden while a ship flies; haptics through `navigator.vibrate`. Specced
+  hidden while a ship flies; haptics through `navigator.vibrate`; the
+  context menu off in the host's config, as Brick Breaker's is. Specced
   with `provideFakePhaserCanvas()`, a wave played to its end through
   `tick()`. One commit.
 - **A9.3** A first settings drawer holding the three settings the debug
@@ -1602,7 +1605,9 @@ shards, rings, exhaust and shake, `PointsPainter` the rising points,
   shakes.
 - **An object across an edge is drawn on both sides,** up to four times at
   a corner, from pooled images, as `torus.ts` says, so a rock slides out of
-  one edge as it slides in at the other.
+  one edge as it slides in at the other. The pools grow as a field of more
+  rock or shot slots than any before is shown, as a field's cap grows with
+  its area and a wave may lay past it, never in a frame of play.
 - **One atlas,** baked with `@fz/phaser/scene`'s `bakeAtlas()` again on a
   new palette or unit, so the field draws from one texture; its frames fit
   in 2048 × 2048 at the largest unit, at six outlines a kind and size,

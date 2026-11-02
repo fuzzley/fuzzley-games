@@ -17,7 +17,7 @@ shows the game's name alone, and the site doesn't ship it:
 
 ## Technology Stack
 
-- **Field:** to be drawn with [Phaser 4](https://phaser.io/), through
+- **Field:** drawn with [Phaser 4](https://phaser.io/), through
   `@fz/phaser`
 - **UI:** [Angular](https://angular.dev/) (standalone components, zoneless
   change detection), on `@fz/style`'s global stylesheet so far, with
@@ -31,9 +31,10 @@ shows the game's name alone, and the site doesn't ship it:
 ## Layers
 
 Four layers, each a folder under `src/` named for it, each importing only
-the layers below it, as `eslint.config.js` fences them. The rules',
-`src/rules/`, the view's, `src/view/`, and the shell's, `src/app/`, hold
-code so far.
+the layers below it, as `eslint.config.js` fences them: the rules',
+`src/rules/`, the view's, `src/view/`, the scene's, `src/scene/`, which
+draws the field on Phaser, though the shell doesn't load it yet, and the
+shell's, `src/app/`.
 
 | Layer | May import                                                                                                                 | May not import                                                      |
 | ----- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |

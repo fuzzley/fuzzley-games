@@ -3035,3 +3035,137 @@ rules out.
   sum. Mutants of the second review's fixes, the flash's gap, the label's
   multiplier and thousands, the trail and the tags' layer: of 5, none got
   through.
+
+## A7: done
+
+2026-11-01. `yarn verify` passed on A7.4.2's commit, `699782fb`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 2,316
+tests among them, the rules and the view fully covered but for the
+branches strict indexing and the catalog rule out.
+
+## A8.1: the scene, its cameras and the first painters
+
+2026-11-01.
+
+- **Built.**
+  - `src/scene/belt_scene.ts`: `BeltScene`, handed plain functions over
+    the game as `BricksScene` is. Each frame it hands the shell the time
+    and the steering, then draws the field it pulls. It lays the field
+    and the deck out again on a new canvas, chrome, board setting or
+    field size, and bakes the atlases again on a new scale or palette. It
+    turns keys into commands, and the keys, the mouse and up to three
+    fingers into the steering, which lets go as the window loses the
+    player.
+  - `atlas.ts`: plays the view's commands into a `Graphics` for
+    `bakeAtlas()`, the field's atlas and the deck's apart.
+  - `copies.ts`: `Copies`, a thing drawn once, or up to four times from
+    images made once where it reaches past an edge, as `copyShift()` says.
+  - `painter.ts`: what each painter draws from, written over each frame.
+  - The painters:
+    - `field_painter.ts`: the specks and the frame.
+    - `rock_painter.ts`: each rock's body, and the hits it has taken over
+      it.
+    - `shot_painter.ts`: the shots.
+    - `ship_painter.ts`: the hull, its flame, its pilot upright in its
+      window with its eyes turned the way it heads, and the guard's and
+      the Shield's rings.
+  - In the view:
+    - `specks.ts`: the specks, three dozen for each 1,600 units², strewn
+      from the run's seed as shares of the field.
+    - `frame.ts`: `angleBetween()`, and the run's seed on `FieldFrame`.
+  - In the rules, `thrustOf()` in `ship.ts`: the thrust that pushed the
+    ship in its last step, for its flame.
+- **Choices.**
+  - **The field's camera shows the canvas's own pixels:** its viewport is
+    the field's rectangle and its scroll the rectangle's corner, so a
+    place on the canvas, as `toCanvas()` gives it, is the same in its
+    world, and whatever reaches past an edge is cut off there. The deck's
+    camera covers the canvas and ignores the field's layers, as the
+    field's ignores the frame's and the deck's, each by its layer, so an
+    image added to a layer later is kept apart too.
+  - **The atlas is drawn at the field's unit,** each image scaled by the
+    field's unit over the baked one, which is 1 but past the bake's
+    largest of 32 device px a unit.
+  - **A rock's, a shot's and the ship's parts are each four images,** one
+    shown, the others past an edge when the thing reaches across it; the
+    reach is a little past each frame's, so a copy past the field is
+    only cut off by the camera.
+  - **The pools are made for the field shown,** grown as a field of more
+    rock or shot slots than any before is shown, and never in a frame of
+    play. The plan made every image as the scene is created, but the most
+    rock slots isn't fixed: a field's cap grows with its area, and a wave
+    whose counts round up lays past it. The plan says so now, and A8.2's
+    check is of no image made in a frame of play.
+  - **The specks are laid as shares of the field,** so a field reshaped
+    between waves keeps them where they were, showing as many as its
+    area holds, the first; the run's seed lays them, as the plan says,
+    which the shell hands over with each frame.
+  - **The pilot sits upright in its window,** its eyes turned the way the
+    ship heads, as `LOOK` says, and the whole ship blinks within its
+    faint ring while nothing can touch it, waiting or guarded, as the
+    plan's look and its lost ship say.
+  - **The flame shows the thrust that pushed the ship,** `thrustOf()` in
+    the rules: none while it waits, though the thrust held as it came is
+    kept, and none while a dash throws it.
+  - **A key that flies the ship goes on with a paused game,** as the
+    controls say, so the scene asks "go" of the shell at each fresh press
+    of one; the shell does nothing with it while the game plays.
+  - **The scene tells the shell the canvas it laid the field out on,**
+    not only where the field lies, as the next field's shape is made for
+    the room it leaves, which A9 asks `fieldShape()` for.
+- **Review.** A fresh agent reviewed it; every comment is answered.
+  1. A waiting ship showed no ring and didn't blink, as only its guard's
+     steps were read, and showed a flame for the thrust held as it came.
+     Fixed: the ring and the blink follow `isGuarded()`, and the flame
+     `thrustOf()`, new in the rules, which no thrust pushes while the ship
+     waits or dashes. Cases blink a waiting ship in its ring and show it
+     no flame.
+  2. Nothing resized the canvas, so the rebake at a new unit, each
+     painter's `refresh()`, the deck camera and what the shell was told
+     went unchecked, and the case keeping a rock's frame through a new
+     palette passed whether or not it was refreshed. Fixed with Brick
+     Breaker's cases: a frame of the atlas at the new unit's size, no
+     image left at its old frame's size, the cameras and what the shell is
+     told on a larger canvas. The fake shell keeps the field's rectangle
+     it is told now, and the weak case is gone. Its mutants showed the
+     deck camera's `setViewport()` did nothing Phaser doesn't, as Phaser
+     keeps a camera over the whole canvas at the canvas's size, so the
+     line is gone.
+  3. `create()` changed the game, which outlives the scene: each scene
+     built added two pointers and a listener for the context menu.
+     Fixed: the scene adds only the pointers the game lacks, as a case of
+     a second scene in the same game holds, and the context menu is left
+     to the board's config, as Brick Breaker's is, which A9.2 now says.
+  4. The pools were made as a field was shown, though the plan made every
+     image as the scene is created. Left as it is, with the reason the
+     choices give: the most rock slots isn't fixed. The plan says so now.
+  5. A new wave's torus, a new record of the same size, laid the field out
+     again and told the shell. Fixed: the scene compares the sizes, with
+     cases of a field narrower, taller and of the same size.
+  6. The log's blink and its pools are corrected above.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,383
+  tests; the rules and the view at their floors, and every line of the
+  scene run), `yarn prettier:check` and the skill references. Mutants of
+  the copies, the painters and the scene, each a place, a frame, a turn,
+  a scale, a guard, a camera or a key changed: of 31, nine got through.
+  - A copy past the bottom edge shifted by the field's width, as no case
+    laid a rock by the bottom edge; one does now.
+  - A hidden copy left unplaced, which shows nothing; `showCopy()` now
+    places each copy, shown or not, and has no branch for it.
+  - A broken rock's body, and the hits over a fresh piece in its slot,
+    left shown; two cases now break a rock.
+  - The flame's place and length and the pilot's window, all drawn for a
+    ship heading straight up at full thrust, along an axis and at a
+    flame's whole length; those cases now head the ship off the axes, at
+    half thrust.
+  - A held key's repeat asking "go" again, which a case now repeats.
+
+  Mutants of those fixes and of the pointer's and the focus's wiring, the
+  mouse moving and let go and the focus leaving the board or moving
+  within it, which cases now cover: of 14, none got through.
+  `Copies.setTint()`, which no painter used yet, is gone until one does.
+  Mutants of the review's fixes, the guard and the flame, `thrustOf()`'s
+  two guards, each refresh, the rebake, the deck camera, the torus's two
+  sides and the pointers added: of 16, three got through, the deck
+  camera's viewport, now gone, the torus's height, which a taller field's
+  case now catches, and the pointers, which a second scene's now does.

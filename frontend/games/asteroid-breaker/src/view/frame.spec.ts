@@ -3,6 +3,7 @@ import type { Field } from "../rules/field";
 import {
   type EventsView,
   type FieldView,
+  angleBetween,
   between,
   betweenOnAxis,
 } from "./frame";
@@ -44,4 +45,18 @@ describe("betweenOnAxis", () => {
       expect(betweenOnAxis(9.5, 0.5, alpha, 10)).toBe(at);
     },
   );
+});
+
+describe("angleBetween", () => {
+  it("turns a thing between its last angle and its next", () => {
+    expect(angleBetween(1, 2, 0.25)).toBe(1.25);
+  });
+
+  it("turns a thing whose angle went round past a whole turn the shorter way", () => {
+    // From just short of a whole turn to just past none: a turn of 0.2.
+    expect(angleBetween(2 * Math.PI - 0.1, 0.1, 0.5)).toBeCloseTo(
+      2 * Math.PI,
+      9,
+    );
+  });
 });
