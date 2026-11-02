@@ -1,13 +1,14 @@
 {
   "name": "@fz/core",
   "version": "0.0.0",
-  "description": "The small helpers the games share with no framework and no platform: a seeded random source, readers for stored JSON and a data file's keys, counts in words, points grouped in thousands, a clamp, a clock of fixed steps, a log of numbered events, a frame's sounds gathered and a record's keys typed as its own.",
+  "description": "The small helpers the games share with no framework and no platform: a seeded random source, readers for stored JSON and a data file's keys, counts in words, points grouped in thousands, a clamp, a clock of fixed steps, a log of numbered events, a field played by them, a frame's sounds gathered and a record's keys typed as its own.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
   "exports": {
     "./clock": "./src/clock.ts",
     "./event_log": "./src/event_log.ts",
+    "./field_play": "./src/field_play.ts",
     "./format": "./src/format.ts",
     "./frame_sounds": "./src/frame_sounds.ts",
     "./json": "./src/json.ts",

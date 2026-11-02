@@ -38,6 +38,14 @@ Each file is an entry point of its own, imported by name, such as
   next event's record, numbered, to fill in place, so nothing is made per
   event, and `forEachSince()` hands each reader the events past the last
   it read, however many steps a frame took.
+- `src/field_play.ts`: `FieldPlay`, a game's field in play, made for each
+  field over its `FieldRules` (a frame's steering taken, a step), a
+  `Clock` and the frame its scene draws: `advance()` moves the field on by a
+  frame's time in steps, steered, writes how far it is toward the next step
+  into the frame (a `PlayFrame`), and hands on each event of its log once;
+  `startCardWait()` and `countCardWait()` wait out the beat before a card
+  opens over it. A game extends it with its frame's type and what else its
+  play does.
 - `src/frame_sounds.ts`: `FrameSounds<Name>`, made from the names of a
   sprite's sounds, which gathers the sounds a frame's events call for
   (`hear()`) and plays each once (`playEach()`), at the most it rose, in

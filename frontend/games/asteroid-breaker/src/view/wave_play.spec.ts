@@ -1,4 +1,3 @@
-import type { FieldEventKind } from "../rules/events";
 import { STILL, type Steer } from "../rules/ship";
 import { STEP_MS } from "../rules/stepper";
 import { KEEPER, fieldFrom, shipOf } from "../testing/field_picture";
@@ -46,23 +45,6 @@ describe("WavePlay", () => {
       expect(play.field.steps).toBe(3);
     });
 
-    it("draws between steps as far as the time left over goes", () => {
-      const play = stillPlay();
-
-      play.advance(3.6 * STEP_MS, STILL, deaf);
-
-      expect(play.frame().alpha).toBeCloseTo(0.6);
-    });
-
-    it("carries the time a frame leaves over into the next", () => {
-      const play = stillPlay();
-      play.advance(3.6 * STEP_MS, STILL, deaf);
-
-      play.advance(0.5 * STEP_MS, STILL, deaf);
-
-      expect(play.field.steps).toBe(4);
-    });
-
     it("steers the field before it steps it", () => {
       const play = new WavePlay(fieldFrom(["L.......^"]), 7);
       const from = shipOf(play.field).y;
@@ -71,42 +53,6 @@ describe("WavePlay", () => {
       play.advance(STEP_MS, thrust, deaf);
 
       expect(shipOf(play.field).y).toBeLessThan(from);
-    });
-
-    it("hands on each event once", () => {
-      const play = stillPlay();
-      const heard: FieldEventKind[] = [];
-      play.field.events.add("fired", 0, 0);
-      play.advance(0, STILL, (event) => heard.push(event.kind));
-
-      play.advance(0, STILL, (event) => heard.push(event.kind));
-
-      expect(heard).toEqual(["fired"]);
-    });
-  });
-
-  describe("countCardWait", () => {
-    it("says nothing is due before the wave is cleared or the run ends", () => {
-      const play = stillPlay();
-
-      expect(play.countCardWait(1000, 0)).toBe(false);
-    });
-
-    it("waits out the card's wait", () => {
-      const play = stillPlay();
-      play.startCardWait();
-
-      expect(play.countCardWait(100, 300)).toBe(false);
-    });
-
-    it("says the card is due once its wait has run, and once only", () => {
-      const play = stillPlay();
-      play.startCardWait();
-      play.countCardWait(200, 300);
-
-      const due = [play.countCardWait(100, 300), play.countCardWait(100, 300)];
-
-      expect(due).toEqual([true, false]);
     });
   });
 });

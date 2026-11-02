@@ -1488,6 +1488,7 @@ An `asteroid-breaker-content` skill walks an agent through each, as
 | A record's keys, typed      | `src/rules/tables.ts`: `keysOf()`                                                      | `@fz/core/records`      | Unchanged, at A2.4, as the weapons' catalog needs it; `recordOf()` too, at A7.4.1, as the art needs it; `pick()`, only Brick Breaker's, stays                                                                                                                               |
 | A drawing vocabulary        | `src/view/shapes.ts`: `DrawCommand`, `ArtFrame`, the shapes and their builders         | `@fz/phaser/shapes`     | Every kind either game draws, each its own type, the rectangle and the polyline Brick Breaker's and the line Asteroid Breaker's; `extentOf()` beside them, which both games bound their frames by; each game's own helpers stay; lifted at Q3                               |
 | An atlas's player           | `src/scene/atlas.ts`: `play()`                                                         | `@fz/phaser/scene`      | `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()` draws one; lifted at Q3                                                                                                                                                                                                    |
+| A field's play              | `src/view/level_play.ts`: `LevelPlay`                                                  | `@fz/core/field_play`   | `FieldPlay` takes the rules' steps, the clock and the frame the scene draws; `LevelPlay` extends it with the serve after a lost ball, as `WavePlay` does with the run's seed; lifted at Q3                                                                                  |
 | A sound held                | new                                                                                    | `@fz/phaser/sound`      | `SpritePlayer.hold(name, held)` loops a sound while held and stops it when let go, or when sound is turned off or the scene ends                                                                                                                                            |
 | A deck beside a board       | new                                                                                    | `@fz/dev/layout`        | `PhaserBoard` takes an optional `deck`: the attribute that lists its zones by name, the zones it must show, and their least size; `inspectPhaserDeck()` holds each zone on the canvas and in the window, off the board, the other zones and the bar, and at least that size |
 
@@ -1495,10 +1496,10 @@ Each moves now because two games need it, as `@fz/core`'s rule asks; the
 last two are new, and each lies where the next action game will look for
 it. The stick itself stays in Asteroid Breaker until a second game wants
 one. Brick Breaker adopts the five it gave in Part 1, its sounds the same
-bytes, its autopilot's report the same numbers. The drawing vocabulary and
-the atlas's player moved at Q3, on the user's word, as Asteroid Breaker's
-were near copies of Brick Breaker's, both games adopting them, their art
-the same.
+bytes, its autopilot's report the same numbers. The drawing vocabulary, the
+atlas's player and the field's play moved at Q3, on the user's word, as
+Asteroid Breaker's were near copies of Brick Breaker's, both games adopting
+them, their art the same.
 
 ### The build
 
@@ -1607,7 +1608,8 @@ Node, and a grid of cells joins only if it doesn't fit.
   as they are sized in CSS pixels, and the flourishes' shards; the
   constellation's places; and How to play's pictures.
 - `wave_play.ts`: `WavePlay`, the wave in play that `GameService` makes and
-  drives, as Brick Breaker's `LevelPlay` is.
+  drives, `@fz/core`'s `FieldPlay` over the rules' steps and the run's
+  seed, as Brick Breaker's `LevelPlay` is.
 
 #### The scene
 

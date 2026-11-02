@@ -3923,3 +3923,63 @@ worktree of its own, so the dev server the phones reach stays as it was.
   where the two differ, and Brick Breaker's line width, which nothing
   pinned before either; each has a case now that catches it, and the 3
   on the review's fixes were caught.
+
+## Lift: a field's play
+
+2026-11-02, the second of the lifts at Q3, on the same branch.
+
+- **Built.**
+  - `@fz/core/field_play`: `FieldPlay`, made for each field over its
+    `FieldRules` (the steering a frame takes, a step), a `Clock`
+    and the frame the scene draws, a `PlayFrame` it writes `alpha` into:
+    `advance()` steers the field, steps it for the time a frame holds,
+    writes how far it is toward the next step, and hands on each event of
+    its log once; `frame()`; and `startCardWait()` and `countCardWait()`,
+    the beat before a card opens. Both games' plays held all of it.
+  - Brick Breaker's `LevelPlay` and Asteroid Breaker's `WavePlay` extend
+    it, each passing its rules, their clock and its frame:
+    `LevelPlay` adds the serve after a lost ball, and `WavePlay`'s frame
+    holds the run's seed.
+  - The clock's arithmetic, the events handed on once and the card's
+    wait are specced once, in `@fz/core`, on a field that counts its
+    steps; each game keeps the cases that prove its wiring, its clock's
+    step and its rules' steering, and Brick Breaker its serve, Asteroid
+    Breaker its frame.
+  - `@fz/core`'s `AGENTS.md`, the `fuzzley-ui` skill, Brick Breaker's
+    `AGENTS.md` and the plan name it.
+- **Choices.**
+  - **The games extend it** rather than hold one: each game's play is its
+    rules' steps and its frame, and what else it does, so a subclass is
+    the least of it, where holding one would pass on every method.
+  - **It holds the frame the scene draws,** generic over its type, and
+    writes `alpha` into it, so a frame still allocates nothing and each
+    game's frame keeps its own fields, Asteroid Breaker's seed among them.
+  - **It lives in `@fz/core`,** beside the clock and the event log it is
+    made of, as a game's view, which knows no Phaser, takes it.
+- **Review.** Nothing broken, neither game's play changed; four comments,
+  all taken.
+  1. `frontend/games/AGENTS.md` and `@fz/core`'s package description list
+     the library's helpers, and stopped at the frame's sounds, so the next
+     game would copy a play. Both name it, as they did once the frame's
+     sounds were lifted.
+  2. The library's spec let two parts of the play's contract go: the
+     events a field logged before its play began, which it hands on, and
+     a wait started again part-way, which waits it all again; the reviewer
+     proved each in a copy. Each has a case now that catches it, and
+     Brick Breaker's spec, which never checked its frame, holds it to its
+     field and its log, as Asteroid Breaker's does.
+  3. `steps` meant the rules, a count and the field's steps in two lines.
+     The rules are `FieldRules`, held as `rules`.
+  4. The events' type parameter, `Event`, shadowed the DOM's in the games.
+     It is `E`, as `EventLog`'s is.
+
+  These correct the change rather than reshape it, so it had no second
+  review.
+
+- **Checks.** Each touched workspace's `lint`, `typecheck` and `test`
+  (`@fz/core` 91 tests at its full coverage, Brick Breaker 1,977, Asteroid
+  Breaker 2,768, the cases that moved counted once, in the library),
+  `yarn prettier:check` and the skill references. 19 mutants of the play,
+  each game's steps, frame and Brick Breaker's serve, each an order, a
+  bound, a reset or a wiring changed: all caught, and the 2 the review
+  proved are caught now too.
