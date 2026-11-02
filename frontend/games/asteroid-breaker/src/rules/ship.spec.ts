@@ -8,6 +8,7 @@ import {
   flyShip,
   guardShip,
   isGuarded,
+  thrustOf,
   waitOn,
 } from "./ship";
 import { STEP_MS, stepsIn } from "./stepper";
@@ -713,6 +714,30 @@ describe("guardShip", () => {
     guardShip(ship, 500);
 
     expect(ship.guardSteps).toBe(longer);
+  });
+});
+
+describe("thrustOf", () => {
+  it("finds a flying ship pushed as hard as its thrust was held", () => {
+    const ship = flying(0);
+
+    flyShip(ship, steer({ thrust: 0.5 }), FIELD);
+
+    expect(thrustOf(ship)).toBe(0.5);
+  });
+
+  it("finds a waiting ship pushed by no thrust held as it came", () => {
+    const ship = createShip(36, 20, steer({ thrust: 1 }));
+
+    expect(thrustOf(ship)).toBe(0);
+  });
+
+  it("finds a ship a dash throws pushed by no thrust", () => {
+    const ship = flying(0);
+
+    flyShip(ship, steer({ thrust: 1, dash: true }), FIELD);
+
+    expect(thrustOf(ship)).toBe(0);
   });
 });
 

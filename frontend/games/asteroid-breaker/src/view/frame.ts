@@ -7,6 +7,7 @@ import type { Crew } from "../rules/pilots";
 import type { Rock } from "../rules/rocks";
 import type { Ship } from "../rules/ship";
 import type { Shot } from "../rules/shots";
+import { TURN } from "../rules/angles";
 import { type Torus, across, wrap } from "../rules/torus";
 
 export type { FieldEvent, FieldEventKind } from "../rules/events";
@@ -59,6 +60,8 @@ export interface FieldFrame {
    * once; a new log comes with a new field, and stops what the last set off.
    */
   readonly events: EventsView;
+  /** The run's seed, which the field's specks are strewn from, so they stay through its waves. */
+  readonly seed: number;
 }
 
 /** Returns where a thing is drawn between its last place and its next, `alpha` of the way. */
@@ -83,4 +86,13 @@ export function betweenOnAxis(
   length: number,
 ): number {
   return wrap(last + across(last, next, length) * alpha, length);
+}
+
+/** Returns where a thing's turn is drawn between its last angle and its next, in radians, `alpha` of the way the shorter way round. */
+export function angleBetween(
+  last: number,
+  next: number,
+  alpha: number,
+): number {
+  return last + across(last, next, TURN) * alpha;
 }

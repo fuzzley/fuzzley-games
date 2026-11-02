@@ -186,6 +186,11 @@ export function isGuarded(ship: Readonly<Ship>): boolean {
   return ship.waiting || ship.guardSteps > 0;
 }
 
+/** Returns how hard a ship's thrust pushed it in its last step: as hard as it was held, but not at all while it waits or a dash throws it. */
+export function thrustOf(ship: Readonly<Ship>): number {
+  return ship.waiting || ship.dashSteps > 0 ? 0 : ship.held.thrust;
+}
+
 /**
  * Keeps a waiting ship waiting through a frame's steering that doesn't move
  * it afresh, taking the steering as held and leaving its timers as they
