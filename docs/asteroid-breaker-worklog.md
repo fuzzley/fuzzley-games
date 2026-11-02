@@ -3169,3 +3169,104 @@ branches strict indexing and the catalog rule out.
   sides and the pointers added: of 16, three got through, the deck
   camera's viewport, now gone, the torus's height, which a taller field's
   case now catches, and the pointers, which a second scene's now does.
+
+## A8.2.1: what idles on the field, the tags and the deck
+
+2026-11-01.
+
+- **Built.**
+  - The painters:
+    - `pickup_painter.ts`: each pickup floating, breathing where motion
+      is welcome, each record a phase apart, and blinking through its last
+      seconds.
+    - `stray_painter.ts`: the stray adrift, its pilot in its ink low in
+      its bubble, bobbing where motion is welcome, its eyes on the ship.
+    - `hazard_painter.ts`: each comet crossing, turned the way it flies,
+      and each one warned of as a chevron at its edge, pulsing where motion
+      is welcome.
+    - `tag_painter.ts`: a tag for each effect in play, in a row at the
+      field's bottom left, its symbol in a ring of the field's line that
+      empties in the accent.
+    - `deck_painter.ts`: the deck, from its own atlas in the canvas's
+      pixels: the stick faint where it waits, and where a finger holds it
+      its base, its rings lit as it thrusts and at full push, and its knob
+      in the accent; Fire and Dash filled in the accent while pressed, and
+      Dash ringed as it recharges.
+  - `belt_scene.ts` makes them, and hands the painters where the deck
+    lies with each frame; `painter.ts`'s context carries it.
+  - In the view: `warning.ts`, where a comet's warning lies and how long
+    it has been warned of; `lookingFrom()` in `pilot_art.ts`, the way a
+    pilot looks; `rechargeRing()` in `deck.ts`, the ring Dash's recharge is
+    drawn on; and in `palette.ts` the deck's wash, with its contrast cases.
+  - In the rules, `rechargeShare()` in `ship.ts`, how far the dash has
+    recharged.
+  - The plan's A8.2 is in two commits now, as A7.4 was, so each review can
+    hold its diff.
+- **Choices.**
+  - **A comet and a stray are drawn once,** between their last place and
+    their next without wrapping, as they cross rather than wrap; the
+    field's camera cuts them off as they come in and leave.
+  - **A comet's warning lies just inside the edge it waits beyond,** level
+    with it, 1.5 units in, so all of its chevrons show, pointing the way
+    the comet will come. It pulses by its own time, from the field's steps,
+    so it starts full, as `pulseAlpha()` means, and holds still while the
+    game is paused.
+  - **A stray's eyes are on the ship,** as the plan's stray has them, the
+    straight way, as the Magnet draws it, and along its heading between
+    ships.
+  - **A pickup breathes a phase apart from its neighbours,** its record's
+    place in the pool times a golden angle, never its place on the field,
+    as `flourish.ts` asks; it blinks through its last seconds with motion
+    or without, as a blink is a sign, not a motion.
+  - **The deck is drawn as the mock draws it:** the stick at rest a dashed
+    ring of the muted text at 40% and its knob at 25%; held, a base in a
+    wash of the field's text, 5%, as a button at rest is, its edge in the
+    line, lit in the accent at full push, and its thrust ring in the
+    muted text at 40%, lit while it thrusts; a button's symbol at rest in
+    the muted text, as the palette says, where the mock had the text. The
+    contrast spec holds the symbols and the knob at 3:1 against the wash.
+  - **Dash's recharge is a ring drawn each frame it recharges,** 4 CSS px
+    out from its edge, 3 wide, filling from its top, as the mock has it,
+    which `rechargeRing()` works out at the pixel ratio; the other rings
+    are frames of the deck's atlas.
+  - **A tag shows for each effect in play,** as the rules keep in play
+    only an effect that lasts, so the tag painter asks no more.
+  - **A8.1's case of a waiting ship's flame read one frame,** which the
+    ship's blink could hide on a slower start, as the harness starts the
+    scene's clock at the game's own; it reads a second of frames now, as
+    the blinks' cases do, and so do the pickups' blinks and the warning's
+    pulse.
+- **Review.** A fresh agent reviewed it; every comment is answered.
+  1. The stray looked the way it drifts, where the plan has its eyes on
+     the ship, which the log didn't own as a choice. Fixed:
+     `lookingFrom()` turns them on the ship the straight way, and along
+     its heading between ships, with cases in the view and the scene.
+  2. The deck's painter made three arrays a frame. Fixed: the stick's
+     held parts and each button's are listed once, as it is made.
+  3. The rings' cases would pass with them drawn wrong, as they asked
+     only whether a number or a color was somewhere in the `Graphics`'s
+     commands. Fixed: the spec reads each stroked arc with its line from
+     the commands, and holds the tags' and Dash's rings whole; Dash's
+     ring is worked out in the view, by `rechargeRing()`, with cases at a
+     pixel ratio of 1 and 2, as the harness runs only at 1.
+  4. A warning pulsed by the scene's clock, so it could start faint.
+     Fixed: it pulses by `warnedFor()`, its own time, as the choices say.
+  5. Two class docs opened with two sentences, and `REST_ALPHA`'s and
+     the palette's `line` and `muted` said other than the deck draws.
+     Fixed.
+
+  The review also turned up the pilots' eye blink, which the plan's
+  pilot has and nothing draws yet; it is A8.2.2's now, as the plan says.
+- **Checks.** The workspace's `lint`, `typecheck` and `test` (2,441
+  tests; the rules and the view at their floors, and every line of the
+  scene run), `yarn prettier:check` and the skill references. Mutants of
+  the painters, the warning's place, the deck's wash and
+  `rechargeShare()`, each a place, a frame, a tint, an alpha, a phase, a
+  guard or a motion changed: of 51, one got through, the stick's base
+  drawn at its knob, as no case moved the knob and looked at the base;
+  the knob's cases do now. Mutants of the review's fixes, the stray's
+  look, the deck's lists, the rings' lines and reach and the warning's
+  time: of 16, two got through: `lookingFrom()` looking along its heading
+  at something under a unit off, which a near case now catches; and the
+  deck's painter handing `rechargeRing()` a pixel ratio of 1, which the
+  harness, at 1, can't tell, as the case above says.

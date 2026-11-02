@@ -25,11 +25,16 @@ import type { BeltPalette } from "../view/palette";
 import { type ArtScale, bakedScale } from "../view/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering";
 import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
+import { DeckPainter } from "./deck_painter";
 import { FieldPainter } from "./field_painter";
+import { HazardPainter } from "./hazard_painter";
 import type { PaintContext, Painter } from "./painter";
+import { PickupPainter } from "./pickup_painter";
 import { RockPainter } from "./rock_painter";
 import { ShipPainter } from "./ship_painter";
 import { ShotPainter } from "./shot_painter";
+import { StrayPainter } from "./stray_painter";
+import { TagPainter } from "./tag_painter";
 
 /** What the scene asks of the shell, and tells it. */
 export interface BeltSceneOptions {
@@ -80,12 +85,22 @@ export class BeltScene extends Scene {
 
   /** Draws the specks and the frame. */
   field!: FieldPainter;
+  /** Draws the tags of the effects in play. */
+  tags!: TagPainter;
   /** Draws the rocks. */
   rocks!: RockPainter;
+  /** Draws the pickups. */
+  pickups!: PickupPainter;
+  /** Draws the stray adrift. */
+  strays!: StrayPainter;
+  /** Draws the comets and their warnings. */
+  hazards!: HazardPainter;
   /** Draws the shots. */
   shots!: ShotPainter;
   /** Draws the ship, its pilot and its rings. */
   ship!: ShipPainter;
+  /** Draws the deck, over the whole canvas. */
+  deck!: DeckPainter;
   /** Draws the frame and the deck, over the whole canvas. */
   deckCamera!: Cameras.Scene2D.Camera;
 
@@ -107,7 +122,8 @@ export class BeltScene extends Scene {
   /** The field's size as it was last laid out. */
   private torus!: Torus;
   private metrics!: FieldMetrics;
-  private deck: Deck | null = null;
+  /** Where the deck's parts lie, or null where it doesn't show. */
+  private deckParts: Deck | null = null;
   /** The scale the field's atlas was last baked at. */
   private baked: ArtScale | null = null;
   /** The pixel ratio the deck's atlas was last baked at. */
@@ -131,12 +147,28 @@ export class BeltScene extends Scene {
     this.painted = this.options.palette();
     this.measure();
     this.bake();
+    this.steering = new Steering(this.metrics, this.deckParts, this.board);
     this.layers = recordOf(LAYERS, () => this.add.layer());
     this.field = new FieldPainter(this, this.layers);
+    this.tags = new TagPainter(this, this.layers.tags);
     this.rocks = new RockPainter(this, this.layers.rocks);
+    this.pickups = new PickupPainter(this, this.layers.pickups);
+    this.strays = new StrayPainter(this, this.layers.strays);
+    this.hazards = new HazardPainter(this, this.layers.hazards);
     this.shots = new ShotPainter(this, this.layers.shots);
     this.ship = new ShipPainter(this, this.layers.ship);
-    this.painters = [this.field, this.rocks, this.shots, this.ship];
+    this.deck = new DeckPainter(this, this.layers.deck, this.steering);
+    this.painters = [
+      this.field,
+      this.tags,
+      this.rocks,
+      this.pickups,
+      this.strays,
+      this.hazards,
+      this.shots,
+      this.ship,
+      this.deck,
+    ];
     this.cameras.main.ignore([this.layers.frame, this.layers.deck]);
     // Over the whole canvas, which Phaser keeps it to as the canvas changes size.
     this.deckCamera = this.cameras.add();
@@ -146,13 +178,13 @@ export class BeltScene extends Scene {
       field,
       alpha,
       seed,
+      deck: this.deckParts,
       metrics: this.metrics,
       palette: this.painted,
       zoom: this.zoom(),
       now: 0,
       motion: this.options.motion(),
     };
-    this.steering = new Steering(this.metrics, this.deck, this.board);
     // The game outlives the scene, so a scene built after another adds none.
     this.input.addPointer(
       Math.max(0, MOST_FINGERS - this.input.manager.pointersTotal),
@@ -195,6 +227,7 @@ export class BeltScene extends Scene {
     context.field = field;
     context.alpha = alpha;
     context.seed = seed;
+    context.deck = this.deckParts;
     context.metrics = this.metrics;
     context.palette = this.painted;
     context.zoom = this.zoom();
@@ -251,7 +284,7 @@ export class BeltScene extends Scene {
     };
     this.viewport = viewport;
     this.metrics = fieldMetrics(viewport, this.board, this.torus);
-    this.deck = deckOf(viewport, this.board, this.torus);
+    this.deckParts = deckOf(viewport, this.board, this.torus);
     const scale = bakedScale(this.metrics);
     return (
       scale.unit !== this.baked?.unit ||
@@ -264,7 +297,7 @@ export class BeltScene extends Scene {
     const { x, y, width, height } = this.metrics;
     // The field's camera shows the canvas's own pixels, so a place on the canvas is the same in its world.
     this.cameras.main.setViewport(x, y, width, height).setScroll(x, y);
-    this.steering.measure(this.metrics, this.deck, this.board);
+    this.steering.measure(this.metrics, this.deckParts, this.board);
     if (this.viewport) this.options.onLayout(this.viewport, this.metrics.css);
   }
 

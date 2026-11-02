@@ -28,11 +28,11 @@ export interface PaletteRoles {
 export interface BeltPalette {
   /** The field under everything: the palette's field. */
   readonly field: number;
-  /** The frame around the field, and the deck's rings at rest: the field's line. */
+  /** The frame around the field, the tags' rings, and the deck's buttons' rings at rest and its stick's edge: the field's line. */
   readonly line: number;
   /** The specks on the field: its muted text at {@link SPECK_STRENGTH}. */
   readonly speck: number;
-  /** The deck's symbols at rest: the field's muted text. */
+  /** The deck's symbols at rest, and its stick, faint, where it waits and where its thrust ring is unlit: the field's muted text. */
   readonly muted: number;
   /**
    * The outline around every rock, the ship, a pickup and the comet, so
@@ -61,6 +61,8 @@ export interface BeltPalette {
   readonly bubble: number;
   /** A stray's bubble's rim, which tells it from a rock: the field's text at {@link BUBBLE_RIM}. */
   readonly rim: number;
+  /** The stick's base and the buttons at rest, a little apart from the field: the field's text at {@link DECK_WASH}. */
+  readonly deck: number;
   /** The glint on a stray's bubble and in a pilot's eyes: white. */
   readonly glint: number;
   /** Each kind of rock's ink, its body's but a crystal's, which is its gem's, set in a stone's body: the inks of the palette's mode. */
@@ -85,6 +87,9 @@ export const BUBBLE_WASH = 0.06;
  */
 export const BUBBLE_RIM = 0.5;
 
+/** How much of the field's text the stick's base and the buttons at rest take over the field. */
+export const DECK_WASH = 0.05;
+
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
 export function beltPalette(
   roles: PaletteRoles,
@@ -108,6 +113,7 @@ export function beltPalette(
     comet: colorNumber(roles.danger),
     bubble: mixColors(fieldText, field, BUBBLE_WASH),
     rim: mixColors(fieldText, field, BUBBLE_RIM),
+    deck: mixColors(fieldText, field, DECK_WASH),
     glint: 0xffffff,
     rocks: rocks.kinds,
     core: rocks.core,

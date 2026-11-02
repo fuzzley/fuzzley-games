@@ -191,6 +191,11 @@ export function thrustOf(ship: Readonly<Ship>): number {
   return ship.waiting || ship.dashSteps > 0 ? 0 : ship.held.thrust;
 }
 
+/** Returns how far a ship's dash has recharged, from 0 as it dashes to 1 once it can dash again. */
+export function rechargeShare(ship: Readonly<Ship>): number {
+  return 1 - ship.rechargeSteps / stepsIn(DASH_RECHARGE_MS);
+}
+
 /**
  * Keeps a waiting ship waiting through a frame's steering that doesn't move
  * it afresh, taking the steering as held and leaving its timers as they

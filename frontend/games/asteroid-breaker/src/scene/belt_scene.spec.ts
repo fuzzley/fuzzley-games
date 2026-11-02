@@ -3,35 +3,59 @@ import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { Core, GameObjects } from "phaser";
 import { TURN } from "../rules/angles";
+import type { EffectKind, PickupId } from "../rules/catalog/pickups";
 import type { Field } from "../rules/field";
+import { COMET_RECORDS } from "../rules/hazards";
 import { type Rock, hitRock } from "../rules/rocks";
 import type { Ship, Steer } from "../rules/ship";
+import { stepsIn } from "../rules/stepper";
 import { across } from "../rules/torus";
+import {
+  COMET_MARGIN,
+  COMET_WARNING_MS,
+  DASH_RECHARGE_MS,
+  PICKUP_BLINK_MS,
+  STRAY_RADIUS,
+} from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import { viewport } from "../testing/canvases";
 import {
   KEEPER,
   PICTURE_TORUS,
   fieldFrom,
+  placeComet,
+  placePickup,
   placeRock,
+  placeStray,
   shipOf,
 } from "../testing/field_picture";
-import { FRAMES, type Pictures, atlasFrames } from "../view/art";
+import {
+  FRAMES,
+  type Pictures,
+  STRAY_DROP,
+  atlasFrames,
+  pickupFrame,
+  tagFrame,
+} from "../view/art";
 import type { FieldCommand } from "../view/controls";
+import { type Deck, deckOf, rechargeRing } from "../view/deck";
 import {
   type BoardSetting,
   type FieldMetrics,
   fieldMetrics,
 } from "../view/field_metrics";
+import { PULSE_LEAST } from "../view/flourish";
 import type { FieldFrame } from "../view/frame";
 import { LAYERS } from "../view/layers";
 import { type BeltPalette, beltPalette } from "../view/palette";
 import { LOOK, PILOT_SIZES, pilotFrame } from "../view/pilot_art";
 import { rockFrame, takenFrame } from "../view/rock_art";
-import { MOST_BAKED_UNIT, bakedScale } from "../view/shapes";
+import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/ship_art";
 import { speckCount, speckShares } from "../view/specks";
 import { MOST_FINGERS } from "../view/steering";
+import { TAG_RADIUS, tagX, tagY } from "../view/tags";
+import { WARNING_INSET } from "../view/warning";
 import { ATLAS } from "./atlas";
 import {
   type BeltScene,
@@ -39,6 +63,7 @@ import {
   makeBeltScene,
 } from "./belt_scene";
 import type { Copies } from "./copies";
+import { REST_ALPHA, REST_KNOB_ALPHA } from "./deck_painter";
 import { GUARD_ALPHA } from "./ship_painter";
 
 /** A dark palette, for a scene to change to. */
@@ -126,6 +151,14 @@ class FakeShell implements BeltSceneOptions {
   }
 }
 
+/** A field with a ship in it: the keeper, and the ship in the middle. */
+const SHIP_PICTURE = [...KEEPER, "", "", "", ".........^"];
+
+/** Shows a field with a ship in it on a shell. */
+function withShip(shell: FakeShell): void {
+  shell.field = fieldFrom(SHIP_PICTURE);
+}
+
 /** Sets a shell up for a player who prefers less motion. */
 function stillness(shell: FakeShell): void {
   shell.welcomesMotion = false;
@@ -198,6 +231,95 @@ function shown(
   return (copies?.images ?? []).map((image) =>
     image.visible ? { x: image.x, y: image.y } : null,
   );
+}
+
+/** Returns whether a thing's copy where it is shows. */
+function isShown(copies: Copies | undefined): boolean {
+  return copies?.images[0]?.visible ?? false;
+}
+
+/** Returns where an image shows, or null where it doesn't. */
+function shownAt(
+  image: GameObjects.Image,
+): { readonly x: number; readonly y: number } | null {
+  return image.visible ? { x: image.x, y: image.y } : null;
+}
+
+/** The numbers of the `Graphics` commands the painters give, as its command buffer holds them, each followed by its arguments. */
+const COMMANDS = { arc: 0, beginPath: 1, lineStyle: 6, strokePath: 9 } as const;
+
+/** Describes an arc a `Graphics` stroked: about where, how far out, between which angles, and in what line. */
+interface Stroke {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+  readonly start: number;
+  readonly end: number;
+  readonly width: number;
+  readonly color: number;
+}
+
+/**
+ * Returns each arc a `Graphics` stroked, a circle among them, in order,
+ * each in the line it was drawn in, read from its command buffer.
+ *
+ * @throws {Error} For a command the painters give none of, whose
+ *   arguments it can't step over.
+ */
+function strokesOf(graphics: GameObjects.Graphics): readonly Stroke[] {
+  const buffer: readonly unknown[] = graphics.commandBuffer;
+  const at = (i: number): number => Number(buffer[i]);
+  const strokes: Stroke[] = [];
+  let width = 0;
+  let color = 0;
+  let i = 0;
+  while (i < buffer.length) {
+    switch (buffer[i]) {
+      case COMMANDS.lineStyle:
+        width = at(i + 1);
+        color = at(i + 2);
+        // Its width, color and alpha.
+        i += 4;
+        break;
+      case COMMANDS.arc:
+        strokes.push({
+          x: at(i + 1),
+          y: at(i + 2),
+          radius: at(i + 3),
+          start: at(i + 4),
+          end: at(i + 5),
+          width,
+          color,
+        });
+        // Its middle, radius and angles, which way round and its overshoot.
+        i += 8;
+        break;
+      case COMMANDS.beginPath:
+      case COMMANDS.strokePath:
+        i += 1;
+        break;
+      default:
+        throw new Error(`No painter gives command ${String(buffer[i])}.`);
+    }
+  }
+  return strokes;
+}
+
+/**
+ * Returns what a spec reads of the scene over a second, frame by frame, as
+ * the set of what it read: ten frames of 100 ms, enough to see a blink or a
+ * swing both ways.
+ */
+function overASecond<T>(
+  run: SceneRun<BeltScene>,
+  read: () => T,
+): ReadonlySet<T> {
+  const seen = new Set<T>();
+  for (let frame = 0; frame < 10; frame++) {
+    run.advance(100, 100);
+    seen.add(read());
+  }
+  return seen;
 }
 
 /** Returns a rock's slot, which its painter's images are drawn for. */
@@ -509,31 +631,29 @@ describe("the shots", () => {
 });
 
 describe("the ship", () => {
-  /** The field the ship's cases fly in: the keeper, and the ship in the middle. */
-  const SHIP_PICTURE = [...KEEPER, "", "", "", ".........^"];
-
-  /** Shows the ship's picture on a shell. */
-  function withShip(shell: FakeShell): void {
-    shell.field = fieldFrom(SHIP_PICTURE);
-  }
-
-  /** Returns whether the hull and the guard's ring showed, frame by frame over a second. */
-  function overASecond(
+  /** Returns whether the hull, the guard's ring and the flame showed over a second, each as the set of what it was, the ship's blinks among them. */
+  function blinkingOf(
     run: SceneRun<BeltScene>,
     scene: BeltScene,
   ): {
     readonly hull: ReadonlySet<boolean>;
     readonly ring: ReadonlySet<boolean>;
+    readonly flame: ReadonlySet<boolean>;
   } {
-    const hull = new Set<boolean>();
-    const ring = new Set<boolean>();
-    for (let frame = 0; frame < 10; frame++) {
-      run.advance(100, 100);
-      hull.add(scene.ship.hull.images[0]?.visible ?? false);
-      ring.add(scene.ship.guard.images[0]?.visible ?? false);
-    }
-    return { hull, ring };
+    const { hull, guard, flame } = scene.ship;
+    return {
+      hull: overASecond(run, () => isShown(hull)),
+      ring: overASecond(run, () => isShown(guard)),
+      flame: overASecond(run, () => isShown(flame)),
+    };
   }
+
+  /** What a ship nothing can touch shows over a second, with no thrust pushing it: its hull blinking within its ring, and no flame. */
+  const UNTOUCHABLE = {
+    hull: new Set([true, false]),
+    ring: new Set([true]),
+    flame: new Set([false]),
+  };
 
   /** Heads a ship at an angle off the axes, where it headed a step ago too. */
   function turn(ship: Ship, angle: number): void {
@@ -636,25 +756,18 @@ describe("the ship", () => {
     ship.waiting = true;
     ship.held.thrust = 1;
 
-    run.advance(16);
+    const seen = blinkingOf(run, scene);
 
-    // The hull shows, so the flame isn't hidden by the ship's blink.
-    expect([
-      scene.ship.hull.images[0]?.visible,
-      shown(scene.ship.flame),
-    ]).toEqual([true, [null, null, null, null]]);
+    expect(seen).toEqual(UNTOUCHABLE);
   });
 
   it("blinks a guarded ship within its faint ring", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).guardSteps = 1000;
 
-    const seen = overASecond(run, scene);
+    const seen = blinkingOf(run, scene);
 
-    expect(seen).toEqual({
-      hull: new Set([true, false]),
-      ring: new Set([true]),
-    });
+    expect(seen).toEqual(UNTOUCHABLE);
     expect(scene.ship.guard.images[0]?.alpha).toBe(GUARD_ALPHA);
   });
 
@@ -662,12 +775,9 @@ describe("the ship", () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).waiting = true;
 
-    const seen = overASecond(run, scene);
+    const seen = blinkingOf(run, scene);
 
-    expect(seen).toEqual({
-      hull: new Set([true, false]),
-      ring: new Set([true]),
-    });
+    expect(seen).toEqual(UNTOUCHABLE);
   });
 
   it("rings a ship the Shield guards", async () => {
@@ -690,6 +800,522 @@ describe("the ship", () => {
     expect(
       [scene.ship.hull, scene.ship.pilot, scene.ship.eyes].flatMap(shown),
     ).toEqual(Array(12).fill(null));
+  });
+});
+
+describe("the pickups", () => {
+  it("draw a pickup floating where it is, in its frame, still where motion isn't welcome", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    const floating = placePickup(shell.field, "magnet", 30, 20);
+
+    run.advance(16);
+
+    const copies = scene.pickups.pickups[shell.field.pickups.indexOf(floating)];
+    expect([
+      shown(copies),
+      copies?.images[0]?.frame.name,
+      copies?.images[0]?.scale,
+    ]).toEqual([
+      [onCanvas(metricsOf(shell), 30, 20), null, null, null],
+      pickupFrame("magnet"),
+      1,
+    ]);
+  });
+
+  it("draw a pickup between its last place and its next, on both sides of an edge it reaches across", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      each.alpha = 0.5;
+    });
+    const floating = placePickup(shell.field, "spread", 0.5, 20);
+    floating.lastX = 1;
+
+    run.advance(16);
+
+    const metrics = metricsOf(shell);
+    const { width } = shell.field.torus;
+    expect(
+      shown(scene.pickups.pickups[shell.field.pickups.indexOf(floating)]),
+    ).toEqual([
+      onCanvas(metrics, 0.75, 20),
+      onCanvas(metrics, 0.75 + width, 20),
+      null,
+      null,
+    ]);
+  });
+
+  it("breathe where motion is welcome, each a phase apart from the next", async () => {
+    const { shell, run, scene } = await startBoard();
+    placePickup(shell.field, "spread", 20, 20);
+    placePickup(shell.field, "magnet", 40, 20);
+
+    run.advance(16);
+
+    const [first, second] = scene.pickups.pickups.map(
+      (copies) => copies.images[0]?.scale,
+    );
+    expect(first).not.toBe(second);
+  });
+
+  it("blink through their last seconds", async () => {
+    const { shell, run, scene } = await startBoard();
+    const floating = placePickup(shell.field, "spread", 30, 20);
+    floating.lifeSteps = stepsIn(PICKUP_BLINK_MS);
+    const copies = scene.pickups.pickups[shell.field.pickups.indexOf(floating)];
+
+    const seen = overASecond(run, () => isShown(copies));
+
+    expect(seen).toEqual(new Set([true, false]));
+  });
+
+  it("show steadily before their last seconds", async () => {
+    const { shell, run, scene } = await startBoard();
+    const floating = placePickup(shell.field, "spread", 30, 20);
+    floating.lifeSteps = stepsIn(PICKUP_BLINK_MS) + 1;
+    const copies = scene.pickups.pickups[shell.field.pickups.indexOf(floating)];
+
+    const seen = overASecond(run, () => isShown(copies));
+
+    expect(seen).toEqual(new Set([true]));
+  });
+
+  it("draw nothing for a record out of play", async () => {
+    const { shell, run, scene } = await startBoard();
+    const floating = placePickup(shell.field, "spread", 30, 20);
+    run.advance(16);
+    floating.live = false;
+
+    run.advance(16);
+
+    expect(
+      shown(scene.pickups.pickups[shell.field.pickups.indexOf(floating)]),
+    ).toEqual([null, null, null, null]);
+  });
+});
+
+describe("the stray", () => {
+  it("draws the stray adrift in its bubble, its pilot low in it in its ink, looking the way it drifts between ships", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    placeStray(shell.field, 30, 20, 0.5, 3);
+
+    run.advance(16);
+
+    const metrics = metricsOf(shell);
+    const sits = 20 + STRAY_DROP * STRAY_RADIUS;
+    const size = PILOT_SIZES.adrift;
+    const { bubble, pilot, eyes } = scene.strays;
+    expect({
+      bubble: shownAt(bubble),
+      pilot: shownAt(pilot),
+      ink: pilot.frame.name,
+      eyes: shownAt(eyes),
+    }).toEqual({
+      bubble: onCanvas(metrics, 30, 20),
+      pilot: onCanvas(metrics, 30, sits),
+      ink: pilotFrame(3, "adrift"),
+      eyes: onCanvas(
+        metrics,
+        30 + Math.cos(0.5) * LOOK.across * size,
+        sits + Math.sin(0.5) * LOOK.down * size,
+      ),
+    });
+  });
+
+  it("turns the stray's eyes on the ship, where it is drawn between its last place and its next", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      stillness(each);
+      withShip(each);
+      each.alpha = 0.5;
+    });
+    const ship = shipOf(shell.field);
+    ship.lastX = ship.x - 2;
+    // Straight below where the ship is drawn, so it looks straight up.
+    placeStray(shell.field, ship.x - 1, ship.y + 10, 0.5);
+
+    run.advance(16);
+
+    const sits = ship.y + 10 + STRAY_DROP * STRAY_RADIUS;
+    expect(shownAt(scene.strays.eyes)).toEqual(
+      onCanvas(
+        metricsOf(shell),
+        ship.x - 1,
+        sits - LOOK.down * PILOT_SIZES.adrift,
+      ),
+    );
+  });
+
+  it("draws the stray between its last place and its next, off the field as it comes in", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      each.alpha = 0.5;
+    });
+    const stray = placeStray(shell.field, -1, 20);
+    stray.lastX = -2;
+
+    run.advance(16);
+
+    expect(shownAt(scene.strays.bubble)).toEqual(
+      onCanvas(metricsOf(shell), -1.5, 20),
+    );
+  });
+
+  it("bobs its pilot in its bubble where motion is welcome", async () => {
+    const { shell, run, scene } = await startBoard();
+    placeStray(shell.field, 30, 20);
+    const { bubble, pilot } = scene.strays;
+
+    const seen = {
+      bubble: overASecond(run, () => bubble.y).size,
+      pilot: overASecond(run, () => pilot.y).size,
+    };
+
+    expect(seen.bubble).toBe(1);
+    expect(seen.pilot).toBeGreaterThan(1);
+  });
+
+  it("draws nothing while no stray is adrift", async () => {
+    const { scene } = await startBoard();
+
+    const { bubble, pilot, eyes } = scene.strays;
+
+    expect([bubble, pilot, eyes].map(shownAt)).toEqual([null, null, null]);
+  });
+});
+
+describe("the comets", () => {
+  it("draw a comet crossing where it is, turned the way it flies", async () => {
+    const { shell, run, scene } = await startBoard();
+    placeComet(shell.field, 30, 20, 0.5);
+
+    run.advance(16);
+
+    const [comet] = scene.hazards.comets;
+    const [warning] = scene.hazards.warnings;
+    expect({
+      comet: comet && shownAt(comet),
+      turned: comet?.rotation,
+      warning: warning && shownAt(warning),
+    }).toEqual({
+      comet: onCanvas(metricsOf(shell), 30, 20),
+      turned: 0.5,
+      warning: null,
+    });
+  });
+
+  it("draw a comet between its last place and its next, off the field as it comes in", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      each.alpha = 0.5;
+    });
+    const comet = placeComet(shell.field, -1, 20);
+    comet.lastX = -2;
+
+    run.advance(16);
+
+    const [image] = scene.hazards.comets;
+    expect(image && shownAt(image)).toEqual(
+      onCanvas(metricsOf(shell), -1.5, 20),
+    );
+  });
+
+  it("warn of a comet at the edge it will come in by, pointing in, and draw it not yet", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    const comet = placeComet(shell.field, -COMET_MARGIN, 20);
+    comet.warnSteps = 100;
+
+    run.advance(16);
+
+    const [image] = scene.hazards.comets;
+    const [warning] = scene.hazards.warnings;
+    expect({
+      comet: image && shownAt(image),
+      warning: warning && shownAt(warning),
+      turned: warning?.rotation,
+      alpha: warning?.alpha,
+    }).toEqual({
+      comet: null,
+      warning: onCanvas(metricsOf(shell), WARNING_INSET, 20),
+      turned: 0,
+      alpha: 1,
+    });
+  });
+
+  it.each([
+    ["full as it starts", 0, 1],
+    ["at its faintest half a pulse on", 625, PULSE_LEAST],
+  ])(
+    "pulse a warning where motion is welcome, %s",
+    async (_, warnedMs, alpha) => {
+      const { shell, run, scene } = await startBoard();
+      placeComet(shell.field, -COMET_MARGIN, 20).warnSteps =
+        stepsIn(COMET_WARNING_MS) - stepsIn(warnedMs);
+
+      run.advance(16);
+
+      expect(scene.hazards.warnings[0]?.alpha).toBeCloseTo(alpha, 9);
+    },
+  );
+
+  it("draw nothing for a record out of play", async () => {
+    const { scene } = await startBoard();
+
+    expect(
+      [...scene.hazards.comets, ...scene.hazards.warnings].map(shownAt),
+    ).toEqual(Array(2 * COMET_RECORDS).fill(null));
+  });
+});
+
+describe("the tags", () => {
+  /** Puts an effect in play on a field from a pickup, with so much of its time left. */
+  function inPlay(
+    field: Field,
+    kind: EffectKind,
+    id: PickupId,
+    ms: number,
+  ): void {
+    const effect = field.effects[kind];
+    effect.pickup = id;
+    effect.endsAt = field.steps + stepsIn(ms);
+  }
+
+  it("show each lasting effect in play in a row at the field's bottom left, in its pickup's frame", async () => {
+    const { shell, run, scene } = await startBoard();
+    inPlay(shell.field, "weapon", "spread", 12_000);
+    inPlay(shell.field, "pace", "slow", 8000);
+
+    run.advance(16);
+
+    const metrics = metricsOf(shell);
+    const y = tagY(shell.field.torus.height);
+    const { weapon, pace } = scene.tags.images;
+    expect([
+      [shownAt(weapon), weapon.frame.name],
+      [shownAt(pace), pace.frame.name],
+    ]).toEqual([
+      [onCanvas(metrics, tagX(0), y), tagFrame("spread")],
+      [onCanvas(metrics, tagX(1), y), tagFrame("slow")],
+    ]);
+  });
+
+  it("ring each tag in the field's line, emptying in the accent as its time runs out", async () => {
+    const { shell, run, scene } = await startBoard();
+    // Half of Slow's eight seconds left.
+    inPlay(shell.field, "pace", "slow", 4000);
+
+    run.advance(16);
+
+    const metrics = metricsOf(shell);
+    const ring = {
+      ...onCanvas(metrics, tagX(0), tagY(shell.field.torus.height)),
+      radius: TAG_RADIUS * metrics.unit,
+      width: lineWidth(metrics),
+    };
+    expect(strokesOf(scene.tags.rings)).toEqual([
+      { ...ring, start: 0, end: 2 * Math.PI, color: ART_PALETTE.line },
+      // Half the ring, from its top round to its foot.
+      {
+        ...ring,
+        start: -Math.PI / 2,
+        end: Math.PI / 2,
+        color: ART_PALETTE.accent,
+      },
+    ]);
+  });
+
+  it("show none, and no rings, while no lasting effect is in play", async () => {
+    const { scene } = await startBoard();
+
+    expect({
+      tags: Object.values(scene.tags.images).filter((image) => image.visible),
+      rings: strokesOf(scene.tags.rings),
+    }).toEqual({ tags: [], rings: [] });
+  });
+});
+
+describe("the deck", () => {
+  /** How the board lays the field out with the deck showing. */
+  const WITH_DECK: BoardSetting = { ...BOARD, deck: true };
+
+  /** Shows the deck on a shell's board. */
+  function withDeck(shell: FakeShell): void {
+    shell.setting = WITH_DECK;
+  }
+
+  /** Returns where the deck's parts lie on the spec's canvas, as the scene lays them out. */
+  function deckFor(shell: FakeShell): Deck {
+    const deck = deckOf(
+      viewport(CANVAS.width, CANVAS.height),
+      shell.setting,
+      shell.field.torus,
+    );
+    if (!deck) throw new Error("The board shows no deck.");
+    return deck;
+  }
+
+  /** Returns how an image of the deck shows: where, in what color, how opaque; or null where it doesn't. */
+  function look(
+    image: GameObjects.Image,
+  ): { x: number; y: number; tint: number; alpha: number } | null {
+    return image.visible
+      ? { x: image.x, y: image.y, tint: image.tintTopLeft, alpha: image.alpha }
+      : null;
+  }
+
+  it("draws nothing on a board with no deck", async () => {
+    const { scene } = await startBoard();
+
+    const drawn = layersOf(scene)
+      .get("deck")
+      ?.getChildren()
+      .filter(
+        (object) => object instanceof GameObjects.Image && object.visible,
+      );
+
+    expect(drawn).toEqual([]);
+  });
+
+  it("shows the stick faintly where it waits, and the buttons at rest", async () => {
+    const { shell, scene } = await startBoard(withDeck);
+    const deck = deckFor(shell);
+    const { stick, fire, dash } = deck;
+    if (!fire) throw new Error("The deck has no Fire.");
+    const waits = { x: stick.x, y: stick.y };
+
+    const { rest, knob, base } = scene.deck;
+
+    expect({
+      rest: look(rest),
+      knob: look(knob),
+      base: look(base),
+      fire: look(scene.deck.fire.disc),
+      symbol: look(scene.deck.dash.symbol),
+    }).toEqual({
+      rest: { ...waits, tint: ART_PALETTE.muted, alpha: REST_ALPHA },
+      knob: { ...waits, tint: ART_PALETTE.muted, alpha: REST_KNOB_ALPHA },
+      base: null,
+      fire: { x: fire.x, y: fire.y, tint: ART_PALETTE.deck, alpha: 1 },
+      symbol: {
+        x: dash.x,
+        y: dash.y,
+        tint: ART_PALETTE.muted,
+        alpha: 1,
+      },
+    });
+  });
+
+  it("draws the stick where a finger holds it, its knob in the accent", async () => {
+    const { shell, run, scene } = await startBoard(withDeck);
+    const { x, y } = deckFor(shell).stick;
+
+    run.touch("start", x, y);
+    run.advance(16);
+
+    const { base, knob, rest } = scene.deck;
+    expect({
+      base: look(base),
+      knob: look(knob),
+      rest: look(rest),
+    }).toEqual({
+      base: { x, y, tint: ART_PALETTE.deck, alpha: 1 },
+      knob: { x, y, tint: ART_PALETTE.accent, alpha: 1 },
+      rest: null,
+    });
+  });
+
+  it.each([
+    ["turns", 0.3, [ART_PALETTE.muted, REST_ALPHA], ART_PALETTE.line],
+    ["thrusts", 0.75, [ART_PALETTE.accent, 1], ART_PALETTE.line],
+    ["pushes to its edge", 1, [ART_PALETTE.accent, 1], ART_PALETTE.accent],
+  ])(
+    "follows the knob over its base, lighting the stick's rings, as it %s",
+    async (_, out, thrust, edge) => {
+      const { shell, run, scene } = await startBoard(withDeck);
+      const { x, y, radius } = deckFor(shell).stick;
+      run.touch("start", x, y);
+
+      run.touch("move", x + out * radius, y);
+      run.advance(16);
+
+      const { deck } = scene;
+      expect({
+        base: deck.base.x,
+        knob: deck.knob.x,
+        thrust: [deck.thrust.tintTopLeft, deck.thrust.alpha],
+        edge: deck.edge.tintTopLeft,
+      }).toEqual({ base: x, knob: x + out * radius, thrust, edge });
+    },
+  );
+
+  it("fills a button in the accent while a finger presses it", async () => {
+    const { shell, run, scene } = await startBoard(withDeck);
+    const { x, y } = deckFor(shell).dash;
+
+    run.touch("start", x, y);
+    run.advance(16);
+
+    const { disc, ring, symbol } = scene.deck.dash;
+    expect([disc, ring, symbol].map((image) => image.tintTopLeft)).toEqual([
+      ART_PALETTE.accent,
+      ART_PALETTE.accent,
+      ART_PALETTE.onAccent,
+    ]);
+  });
+
+  it("draws no Fire where fire is held by itself", async () => {
+    const { scene } = await startBoard((shell) => {
+      shell.setting = { ...WITH_DECK, fireByItself: true };
+    });
+
+    const { disc, ring, symbol } = scene.deck.fire;
+
+    expect([disc, ring, symbol].map(shownAt)).toEqual([null, null, null]);
+  });
+
+  it("rings Dash as it recharges", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      withShip(each);
+      withDeck(each);
+    });
+    shipOf(shell.field).rechargeSteps = stepsIn(DASH_RECHARGE_MS) / 2;
+
+    run.advance(16);
+
+    // Half the ring, from its top round to its foot.
+    expect(strokesOf(scene.deck.recharge)).toEqual([
+      {
+        ...rechargeRing(deckFor(shell).dash, 1),
+        start: -Math.PI / 2,
+        end: Math.PI / 2,
+        color: ART_PALETTE.accent,
+      },
+    ]);
+  });
+
+  it("draws no ring round Dash once it is charged", async () => {
+    const { scene } = await startBoard(withDeck);
+
+    expect(strokesOf(scene.deck.recharge)).toEqual([]);
+  });
+
+  it("shows the deck as the board comes to show it", async () => {
+    const { shell, run, scene } = await startBoard();
+
+    withDeck(shell);
+    run.advance(16);
+
+    expect(shownAt(scene.deck.rest)).toEqual({
+      x: deckFor(shell).stick.x,
+      y: deckFor(shell).stick.y,
+    });
+  });
+
+  it("hides the deck as the board stops showing it", async () => {
+    const { shell, run, scene } = await startBoard(withDeck);
+
+    shell.setting = BOARD;
+    run.advance(16);
+
+    expect([scene.deck.rest, scene.deck.dash.disc].map(shownAt)).toEqual([
+      null,
+      null,
+    ]);
   });
 });
 

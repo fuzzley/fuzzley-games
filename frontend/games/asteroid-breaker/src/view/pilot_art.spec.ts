@@ -9,6 +9,7 @@ import {
   eyesCommands,
   eyesFrame,
   fuzzballCommands,
+  lookingFrom,
   pilotFrame,
   strandsOf,
 } from "./pilot_art";
@@ -131,6 +132,35 @@ describe("a pilot's eyes", () => {
     expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(
       (FUZZBALL.eyes[0]?.cx ?? NaN) - FUZZBALL.body.cx,
     );
+  });
+});
+
+describe("lookingFrom", () => {
+  it.each([
+    ["far off", 1],
+    ["near", 0.1],
+  ])("looks straight at what the pilot watches, %s", (_, scale) => {
+    const watched = { x: 10 + 3 * scale, y: 20 + 4 * scale };
+
+    const look = lookingFrom(10, 20, watched, 0, { x: 0, y: 0 });
+
+    expect(look.x).toBeCloseTo(0.6, 9);
+    expect(look.y).toBeCloseTo(0.8, 9);
+  });
+
+  it.each([
+    ["nothing", null],
+    ["what is right there", { x: 10, y: 20 }],
+  ])("looks along its heading where it watches %s", (_, watched) => {
+    const look = lookingFrom(10, 20, watched, Math.PI / 2, { x: 0, y: 0 });
+
+    expect([look.x, look.y]).toEqual([Math.cos(Math.PI / 2), 1]);
+  });
+
+  it("writes the way into the record it is given", () => {
+    const into = { x: 0, y: 0 };
+
+    expect(lookingFrom(10, 20, null, 0, into)).toBe(into);
   });
 });
 

@@ -4,6 +4,7 @@
 
 import { FUZZBALL } from "@fz/style/fuzzball";
 import { PILOT_COLORS, type Pilot } from "../rules/pilots";
+import type { Moving, Place } from "../rules/torus";
 import { STRAY_RADIUS } from "../rules/tuning";
 import type { BeltPalette } from "./palette";
 import {
@@ -52,6 +53,27 @@ export const PILOT_SIZES: Readonly<Record<Seat, number>> = {
  * times the way it looks.
  */
 export const LOOK = { across: 1.3 / GRID, down: 0.9 / GRID } as const;
+
+/**
+ * Writes the way a pilot at a place looks into a record and returns it, a
+ * share along each axis: straight at what it watches, the ship, the way
+ * the Magnet would draw it, or along its heading where it watches nothing
+ * or what it watches is right there.
+ */
+export function lookingFrom(
+  x: number,
+  y: number,
+  watched: Place | null,
+  heading: number,
+  into: Moving,
+): Moving {
+  const dx = watched ? watched.x - x : 0;
+  const dy = watched ? watched.y - y : 0;
+  const far = Math.hypot(dx, dy);
+  into.x = far > 0 ? dx / far : Math.cos(heading);
+  into.y = far > 0 ? dy / far : Math.sin(heading);
+  return into;
+}
 
 /** The fuzzball's strands of fur, read from its path. */
 const STRANDS: readonly Strand[] = strandsOf(FUZZBALL.fur.d);

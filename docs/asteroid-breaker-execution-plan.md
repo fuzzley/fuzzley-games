@@ -492,16 +492,21 @@ more. Paths in Part 1 are under `frontend/lib/` or
   both sides from pooled images; the steering written each frame, the atlas
   baked again on a new palette or unit. Specced on `runScene()` with a fake
   shell. One commit.
-- **A8.2** The pickup, stray, hazard, effects, points, tag and deck
-  painters; the particle emitters on the atlas; the events played once each,
-  the rules logging on each what its flourishes need, the way the blow that
-  broke a rock came, for the kick, and the slot of a rock that held a hit,
-  for its flash;
-  How to play's pictures from the atlas; nothing with motion off; no game
-  object made in a frame of play, the flourishes' made in `create()` and
-  the rocks' and shots' as a field of more slots than any before is shown;
-  nothing called after the scene ends.
-  Specced. One commit, `yarn verify` with it.
+- **A8.2** In two commits, so each review can hold its diff. How to play's
+  pictures from the atlas came with A8.1.
+  - **A8.2.1** The pickup, stray, hazard, tag and deck painters: what idles
+    on the field, still with motion off and blinking either way, the
+    comet's warning at its edge, the tags' emptying rings, and the deck as
+    the steering holds it, Dash ringed as it recharges. Specced.
+  - **A8.2.2** The effects and points painters; the particle emitters on
+    the atlas; the events played once each, the rules logging on each what
+    its flourishes need, the way the blow that broke a rock came, for the
+    kick, and the slot of a rock that held a hit, for its flash; the
+    bail-out; the pilots' eyes blinking every few seconds, at the controls
+    and adrift, which A8.2.1 left out; nothing with motion off; no game object made in a frame of
+    play, the flourishes' made in `create()` and the rocks' and shots' as a
+    field of more slots than any before is shown; nothing called after the
+    scene ends. Specced. `yarn verify` with it.
 
 #### A9: play and the board (large)
 
