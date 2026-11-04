@@ -9,6 +9,7 @@ import type {
 import { mergeConfig } from "vite";
 import {
   compiledId,
+  componentStylesheets,
   componentUpdates,
   PHASER_CHUNK,
   gameConfig,
@@ -30,6 +31,23 @@ function canonical(file: string): string {
   return file.replaceAll("\\", "/").toLowerCase();
 }
 
+/** A request's handler, as a plugin hands it a dev server's middleware. */
+type Middleware = (
+  req: { url?: string },
+  res: unknown,
+  next: () => void,
+) => void;
+
+/** Returns the address a middleware passes a request on at, or undefined if it never passes it on. */
+function passedOn(middleware: Middleware, url: string): string | undefined {
+  const req = { url };
+  let passed: string | undefined;
+  middleware(req, undefined, () => {
+    passed = req.url;
+  });
+  return passed;
+}
+
 /** A dev server running {@link componentUpdates}, as the tests drive it. */
 interface Served {
   /** The messages the server has sent the page. */
@@ -46,15 +64,11 @@ interface Served {
 function serve(): Served {
   const plugin = componentUpdates(false);
   const sent: unknown[] = [];
-  let middleware = (
-    _req: { url?: string },
-    _res: unknown,
-    _next: () => void,
-  ): void => undefined;
+  let middleware: Middleware = () => undefined;
   const server = {
     ws: { send: (message: unknown) => sent.push(message) },
     middlewares: {
-      use: (handler: typeof middleware) => {
+      use: (handler: Middleware) => {
         middleware = handler;
       },
     },
@@ -76,11 +90,7 @@ function serve(): Served {
       if (typeof payload === "string") viteServer.ws.send(payload, data);
       else viteServer.ws.send(payload);
     },
-    route: (url) => {
-      const req = { url };
-      middleware(req, undefined, () => undefined);
-      return req.url;
-    },
+    route: (url) => passedOn(middleware, url),
     edit: (file, modules) =>
       update.handler({ file, modules, server } as unknown as HmrContext),
   };
@@ -95,6 +105,21 @@ function watched(plugin: Plugin): string[] {
   } as unknown as ViteDevServer;
   (plugin.configureServer as (server: ViteDevServer) => void)(server);
   return added;
+}
+
+/** Returns the address a plugin's middleware passes a request on at, or undefined if it never passes it on. */
+function routed(plugin: Plugin, url: string): string | undefined {
+  let middleware: Middleware = () => undefined;
+  // The hook uses only the server's middleware, so a stand-in for it is enough.
+  const server = {
+    middlewares: {
+      use: (handler: Middleware) => {
+        middleware = handler;
+      },
+    },
+  } as unknown as ViteDevServer;
+  (plugin.configureServer as (server: ViteDevServer) => void)(server);
+  return passedOn(middleware, url);
 }
 
 /** Returns the names of the plugins a config adds. */
@@ -127,6 +152,7 @@ describe("gameConfig", () => {
       expect.arrayContaining([
         "@analogjs/vite-plugin-angular",
         "fz-component-updates",
+        "fz-component-stylesheets",
         "fz-watch-libraries",
         "fz-theme-bootstrap",
         "fz-game-manifest",
@@ -301,6 +327,26 @@ describe("componentUpdates", () => {
       modules: undefined,
       sent: [],
     });
+  });
+});
+
+describe("componentStylesheets", () => {
+  it.each([
+    ["/a1b2.scss?ngcomp&e=2", "/a1b2.scss?ngcomp=&e=2"],
+    ["/a1b2.scss?e=2&ngcomp", "/a1b2.scss?e=2&ngcomp="],
+  ])(
+    "passes the request for %s on with an empty component ID, as Analog takes it",
+    (url, served) => {
+      expect(routed(componentStylesheets(), url)).toBe(served);
+    },
+  );
+
+  it.each([
+    "/a1b2.scss?ngcomp=ng-c123&e=0",
+    "/a1b2.scss?ngcomponent&e=2",
+    "/src/main.ts",
+  ])("passes the request for %s on as it is", (url) => {
+    expect(routed(componentStylesheets(), url)).toBe(url);
   });
 });
 
