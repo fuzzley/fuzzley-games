@@ -4876,3 +4876,84 @@ tuple and copies them with its `pick()`, in its `tables.ts`.
 - **Checks.** `@fz/core`'s and Brick Breaker's `lint`, `typecheck` and
   `test`, `yarn prettier:check` and the skill references. 2 mutants, of
   the copy and of Brick Breaker's use of it: both caught.
+
+## A12.2.1: the saved game's rules
+
+2026-11-04. A12.2 is two commits: the rules, then the shell that keeps
+and takes up a run by them.
+
+- **Built.** `src/rules/saved_game.ts`. `saveGame()` keeps a run under way
+  as "What it keeps" says, and a run whose wave was just cleared at the
+  start of the next, with no field. `restoreGame()` reads it back, paused,
+  under a new id, checking every number and every state against one a run
+  comes to, or drops it. `takeUpField()` lays the kept field out afresh
+  and lays what was kept over it, its ship waiting where it is safest, as
+  the next in line would. `waves.ts`' `waveEntryOf()` finds a wave by its
+  number, which `GameService`'s own lookup now is; `run.ts`' `nextShipAfter()`
+  says where the next ship's mark stands past a score; `hazards.ts`'
+  `nextStrayAfter()` when the next stray comes after one has gone; and
+  `rocks.ts`' `isFree()` is exported, for the rocks storage keeps.
+- **Review.** Two bugs, both taken, and five comments, all taken.
+  1. A paused field stretched to a new room was kept at its new size alone,
+     so it came back laid out at it: more slots, strays and pickups at once
+     than it had, or fewer, and a field holding more rocks than the smaller
+     size holds was dropped. It keeps the size it was laid out at beside its
+     size now; `takeUpField()` lays it out at the first and stretches it to
+     the second, as the pause did, and builds the field itself, so a caller
+     can't lay it out at another.
+  2. A volatile broken and waiting to go off holds its slot until its blast,
+     and only whole rocks were kept: its blast was lost, and a wave waiting
+     on it alone was dropped. A rock is kept whole or with its fuse lit, the
+     step it goes off at checked against its kind's beat.
+  3. The next ship's mark was taken at any mark past the score. It must be
+     the next, `nextShipAfter()`'s, as the field moves it on, at a full crew
+     too.
+  4. More points from the chain than the wave scored, more strays home this
+     wave than it sent, and more at home than the run brought home were let
+     through. Each is dropped, and so is more strays sent than the wave
+     sends.
+  5. A stray adrift goes, and the next came at once, as the wave's count of
+     its time stood at the one adrift's. It is kept as long after as one
+     gone would wait.
+  6. A spec's cleared run kept a stray on it unbanked, which no clearing
+     leaves; and some checks had no case of their own. Each check has one,
+     and the specs' run banks its strays.
+  7. The field's doc opened with two sentences; a rock's ten keys were
+     written in four places, which one tuple holds, copied by `pick()`,
+     lifted to `@fz/core/records` first ("Lift: a copy of some of a
+     record's entries"); and `restoreGame()` found its wave twice.
+
+  The first two reshape `takeUpField()`, so the change had a second
+  review: the fixes hold; two bugs, both taken, and five comments, four
+  taken.
+  1. A wave kept before its first move, as every wave after the first is
+     as it starts, came back laid out at the size it was kept at and
+     stretched, where one waiting is laid out afresh for the room. It is
+     kept as not yet begun.
+  2. A stray brought home scores 500 before the chain, and a field's points
+     were only checked against the chain's: one of 300 with a stray home
+     passed, and its tally said its rocks scored -200. The chain's points
+     and the strays' must fit in the wave's.
+  3. The field's doc left out that the effects in play and the chain go;
+     it names them.
+  4. `savedField()`'s doc opened with two sentences, `waveEntryOf()`'s
+     error lost its full stop, and a rock was read back in two steps.
+     Each is one.
+  5. `nextStrayAfter()`'s spec wrote out its sum; it says the step. A spec
+     helper sat between two blocks, and a case read the stored run twice.
+     Both are fixed.
+  6. A blast's trait could be found by a `traitOf()` beside `hasTrait()`,
+     and `isFiniteNumber()` lifted to `@fz/core/json`: left, as one use
+     each, for the summary at the end.
+  7. A run taken up over the Cleared card skips the next wave's beginning:
+     for the next commit, whose take-up keeps its sector as reached; the
+     taken-up words name the wave.
+
+  These correct the change, so it had no third review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (3,108),
+  `yarn prettier:check` and the skill references. 91 mutants of the
+  keeping, every check of the reading, the laying out and the three
+  helpers: all caught, once the cases six checks lacked were added, but
+  `nextShipAfter()`'s guard below the first mark, which its sum gets right
+  alone but which reads plainly, as Brick Breaker's does.

@@ -319,7 +319,7 @@ export function rocksLeft(field: Readonly<RockField>): number {
 }
 
 /** Returns whether a slot holds neither a whole rock nor a broken one waiting to go off. */
-function isFree(rock: Readonly<Rock>): boolean {
+export function isFree(rock: Readonly<Rock>): boolean {
   return !rock.live && rock.goesOffAt === 0;
 }
 

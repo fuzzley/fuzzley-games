@@ -2,7 +2,7 @@ import type { Field, FieldSetup } from "./field";
 import type { Strays } from "./hazards";
 import { type Crew, createCrew } from "./pilots";
 import type { Speed } from "./speed";
-import { FIRST_SHIP_POINTS } from "./tuning";
+import { FIRST_SHIP_POINTS, SHIP_POINTS } from "./tuning";
 
 /**
  * Says where a run stands: waiting for its first wave to start, a wave under
@@ -167,6 +167,17 @@ export function waveStart(run: Run): WaveStart {
     banked: run.banked,
     nextShipAt: run.nextShipAt,
   };
+}
+
+/**
+ * Returns the score the next ship comes at past a score: the first mark,
+ * or the next of those every {@link SHIP_POINTS} after it, as the field
+ * moves the mark on, at a full crew too.
+ */
+export function nextShipAfter(score: number): number {
+  if (score < FIRST_SHIP_POINTS) return FIRST_SHIP_POINTS;
+  const passed = Math.floor((score - FIRST_SHIP_POINTS) / SHIP_POINTS) + 1;
+  return FIRST_SHIP_POINTS + passed * SHIP_POINTS;
 }
 
 /** Returns whether a wave's field has come to anything the run hasn't taken yet. */

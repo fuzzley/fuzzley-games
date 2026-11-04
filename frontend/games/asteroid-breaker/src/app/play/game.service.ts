@@ -39,7 +39,7 @@ import { SPEED_INFO, type Speed } from "../../rules/speed";
 import type { EndedRun } from "../../rules/stats";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
-import { type WaveEntry, parseWave } from "../../rules/waves";
+import { type WaveEntry, parseWave, waveEntryOf } from "../../rules/waves";
 import type { FieldCommand } from "../../view/controls";
 import {
   TUNED,
@@ -587,10 +587,7 @@ export class GameService {
    * last again, numbered on, so a run that clears it goes on.
    */
   private waveEntry(wave: number): WaveEntry {
-    const last = this.waves.length;
-    const entry = this.waves[Math.min(wave, last) - 1];
-    if (!entry) throw new Error(`No wave ${String(wave)}.`);
-    return wave > last ? { ...entry, number: wave } : entry;
+    return waveEntryOf(this.waves, wave);
   }
 
   /** Puts a new run on the board, at its first wave, laid out before the run is. */

@@ -21,6 +21,7 @@ import {
   COMET_RECORDS,
   type Comet,
   type Crossing,
+  nextStrayAfter,
 } from "./hazards";
 import { hitRock, rockHitRadius } from "./rocks";
 import { guardShip } from "./ship";
@@ -1138,5 +1139,11 @@ describe("a comet", () => {
     stepField(field);
 
     expect([largeAt(field, ROCK_X, 30), field.shipsLost]).toEqual([true, 0]);
+  });
+});
+
+describe("nextStrayAfter", () => {
+  it("puts the next stray eight seconds' steps, 960, after the step one goes at", () => {
+    expect(nextStrayAfter(600)).toBe(1560);
   });
 });

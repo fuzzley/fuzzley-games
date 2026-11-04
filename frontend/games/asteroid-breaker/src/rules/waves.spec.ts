@@ -7,6 +7,7 @@ import {
   type Wave,
   type WaveData,
   parseWave,
+  waveEntryOf,
   wavesOf,
 } from "./waves";
 
@@ -344,5 +345,28 @@ describe("wavesOf", () => {
       [2, "first", "b"],
       [3, "second", "c"],
     ]);
+  });
+});
+
+describe("waveEntryOf", () => {
+  it("finds a wave by its number", () => {
+    expect(waveEntryOf(WAVES, 2)).toBe(WAVES[1]);
+  });
+
+  it("gives the last wave again past it, numbered on", () => {
+    const last = WAVES.at(-1);
+
+    expect(waveEntryOf(WAVES, WAVES.length + 2)).toEqual({
+      ...last,
+      number: WAVES.length + 2,
+    });
+  });
+
+  it.each([0, -1])("throws for wave %d", (wave) => {
+    expect(() => waveEntryOf(WAVES, wave)).toThrow(RangeError);
+  });
+
+  it("throws for a game of no waves", () => {
+    expect(() => waveEntryOf([], 1)).toThrow(RangeError);
   });
 });

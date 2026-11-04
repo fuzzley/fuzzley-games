@@ -289,7 +289,12 @@ function bringStrayHome(field: Field): void {
 /** Ends the stray adrift's crossing, the next due a while after. */
 function strayGone(field: Field): void {
   field.strays.adrift.live = false;
-  field.strays.nextAt = field.steps + stepsIn(STRAY_NEXT_MS);
+  field.strays.nextAt = nextStrayAfter(field.steps);
+}
+
+/** Returns the step the next stray comes at once one has gone at a step, brought home or off the field. */
+export function nextStrayAfter(step: number): number {
+  return step + stepsIn(STRAY_NEXT_MS);
 }
 
 /**
