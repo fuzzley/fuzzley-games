@@ -45,8 +45,10 @@ Every game is built here. The Solitaire Collection is built in
 game by hash route (`/play/solitaire/#/klondike`). Minesweeper is built in
 `frontend/games/minesweeper/` and played at `/play/minesweeper/`, Sudoku
 in `frontend/games/sudoku/`, at `/play/sudoku/`, Snake in
-`frontend/games/snake/`, at `/play/snake/`, and Brick Breaker in
-`frontend/games/brick-breaker/`, at `/play/brick-breaker/`.
+`frontend/games/snake/`, at `/play/snake/`, Brick Breaker in
+`frontend/games/brick-breaker/`, at `/play/brick-breaker/`, and Asteroid
+Breaker in `frontend/games/asteroid-breaker/`, at
+`/play/asteroid-breaker/`.
 
 `frontend/site/games.json` lists each game's build, by the slug it is served
 at: a Yarn workspace under `frontend/games/`, named by its folder in
@@ -90,10 +92,10 @@ workspace, or names one differently from its build, apostrophes aside.
   the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
   change.
 
-The Solitaire Collection and Minesweeper began in repositories of their
-own, fSolitaire and fMinesweeper, and were branched off into this one with
-their history; Sudoku, Snake and Brick Breaker began here. Nothing here
-builds from those repositories or links to them, and each game may diverge
+The Solitaire Collection and Minesweeper began in repositories of their own,
+fSolitaire and fMinesweeper, and were branched off into this one with their
+history; Sudoku, Snake, Brick Breaker and Asteroid Breaker began here. Nothing
+here builds from those repositories or links to them, and each game may diverge
 from its own.
 
 ## Security headers

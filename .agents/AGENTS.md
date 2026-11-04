@@ -4,7 +4,7 @@ The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
 Cloud Run. The games are built here too, under `frontend/games/`, and
 served as static pages under `/play/<slug>/`: the Solitaire Collection,
-Minesweeper, Sudoku, Snake and Brick Breaker.
+Minesweeper, Sudoku, Snake, Brick Breaker and Asteroid Breaker.
 
 ## Technology Stack
 
@@ -20,6 +20,8 @@ Minesweeper, Sudoku, Snake and Brick Breaker.
   shell on the shared libraries; see `frontend/games/snake/AGENTS.md`.
   Brick Breaker is drawn the same way, its rules, physics included, kept
   free of any framework; see `frontend/games/brick-breaker/AGENTS.md`.
+  Asteroid Breaker is too, on a field that wraps; see
+  `frontend/games/asteroid-breaker/AGENTS.md`.
 - **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
 - **Serving:** nginx in a Docker image, on Google Cloud Run
 
@@ -106,22 +108,20 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
   which does not read `AGENTS.md`. Edit this file, not the pointers.
 - **The frontend's instructions** sit in layers below this file, each an
-  `AGENTS.md` with a `CLAUDE.md` beside it that imports it (`@AGENTS.md`),
-  which agents read once they work on a file beneath it:
-  `frontend/AGENTS.md`, for every workspace; `frontend/games/AGENTS.md`, for
-  every game; and each workspace's in its folder:
-  `frontend/site/AGENTS.md`, `frontend/lib/core/AGENTS.md`,
-  `frontend/lib/style/AGENTS.md`, `frontend/lib/ui/AGENTS.md`,
-  `frontend/lib/game-ui/AGENTS.md`, `frontend/lib/phaser/AGENTS.md`,
-  `frontend/lib/dev/AGENTS.md`,
-  `frontend/games/solitaire/AGENTS.md`,
-  `frontend/games/minesweeper/AGENTS.md`,
-  `frontend/games/sudoku/AGENTS.md`,
-  `frontend/games/snake/AGENTS.md` and
-  `frontend/games/brick-breaker/AGENTS.md`. So the site's rules never reach a
-  game, nor a game's the site. A rule is written once, in the highest layer
-  it holds for: one for the whole repository, such as how code, comments
-  and tests are written, belongs here.
+  `AGENTS.md` with a `CLAUDE.md` beside it that imports it (`@AGENTS.md`), which
+  agents read once they work on a file beneath it: `frontend/AGENTS.md`, for
+  every workspace; `frontend/games/AGENTS.md`, for every game; and each
+  workspace's in its folder: `frontend/site/AGENTS.md`,
+  `frontend/lib/core/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
+  `frontend/lib/ui/AGENTS.md`, `frontend/lib/game-ui/AGENTS.md`,
+  `frontend/lib/phaser/AGENTS.md`, `frontend/lib/dev/AGENTS.md`,
+  `frontend/games/solitaire/AGENTS.md`, `frontend/games/minesweeper/AGENTS.md`,
+  `frontend/games/sudoku/AGENTS.md`, `frontend/games/snake/AGENTS.md`,
+  `frontend/games/brick-breaker/AGENTS.md` and
+  `frontend/games/asteroid-breaker/AGENTS.md`. So the site's rules never reach a
+  game, nor a game's the site. A rule is written once, in the highest layer it
+  holds for: one for the whole repository, such as how code, comments and tests
+  are written, belongs here.
 - **Skills:** a skill every workspace can use lives in
   `.agents/skills/<name>/SKILL.md`; a skill about one workspace lives in that
   workspace's `.agents/skills/<name>/SKILL.md` (`frontend/site/.agents/skills/`,
@@ -129,7 +129,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `frontend/games/minesweeper/.agents/skills/`,
   `frontend/games/sudoku/.agents/skills/`,
   `frontend/games/snake/.agents/skills/`,
-  `frontend/games/brick-breaker/.agents/skills/`), and cites paths from its
+  `frontend/games/brick-breaker/.agents/skills/`,
+  `frontend/games/asteroid-breaker/.agents/skills/`), and cites paths from its
   folder. Gemini CLI reads the repository's directly. Claude Code only
   discovers `.claude/skills/<name>/SKILL.md`, so
   **`node .agents/link-claude-skills.mjs`** links each skill into the
@@ -215,13 +216,13 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 
 ## Writing Unit Tests
 
-These rules hold for every workspace's specs. The `angular-testing` skill
-holds the patterns every Angular workspace's specs share: Testing Library by
-role, user-event, jest-dom and zoneless change detection. An app also has a
-skill of its own for its runner setup, fixtures and floors
-(`site-testing`, `minesweeper-testing`, `sudoku-testing`,
-`snake-testing`, `brick-breaker-testing`, `solitaire-testing`), and its
-`AGENTS.md` says where its specs go.
+These rules hold for every workspace's specs. The `angular-testing` skill holds
+the patterns every Angular workspace's specs share: Testing Library by role,
+user-event, jest-dom and zoneless change detection. An app also has a skill of
+its own for its runner setup, fixtures and floors (`site-testing`,
+`minesweeper-testing`, `sudoku-testing`, `snake-testing`,
+`brick-breaker-testing`, `asteroid-breaker-testing`, `solitaire-testing`), and
+its `AGENTS.md` says where its specs go.
 
 - **Test Coverage:** Cover new and changed code with specs.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.

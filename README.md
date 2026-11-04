@@ -4,8 +4,9 @@ A gallery of card, puzzle and arcade games to play in your browser,
 starting with the games of the
 [Solitaire Collection](frontend/games/solitaire/), from Klondike and Spider
 to Pyramid and TriPeaks, [Minesweeper](frontend/games/minesweeper/),
-[Sudoku](frontend/games/sudoku/), [Snake](frontend/games/snake/) and
-[Brick Breaker](frontend/games/brick-breaker/).
+[Sudoku](frontend/games/sudoku/), [Snake](frontend/games/snake/),
+[Brick Breaker](frontend/games/brick-breaker/) and
+[Asteroid Breaker](frontend/games/asteroid-breaker/).
 
 Play at https://fuzzley.games.
 
@@ -14,12 +15,12 @@ Play at https://fuzzley.games.
 The portal is an [Angular](https://angular.dev/) single-page app (standalone
 components, Signals, zoneless) built with [Vite](https://vite.dev/)
 (`@analogjs/vite-plugin-angular`), styled with [Sass](https://sass-lang.com/)
-and palettes of CSS custom properties, and served by nginx in a Docker
-container on Google Cloud Run. The games are built here too, the Solitaire
-Collection in `frontend/games/solitaire/`, Minesweeper in
-`frontend/games/minesweeper/`, Sudoku in `frontend/games/sudoku/`, Snake
-in `frontend/games/snake/` and Brick Breaker in
-`frontend/games/brick-breaker/`, and served as static pages under
+and palettes of CSS custom properties, and served by nginx in a Docker container
+on Google Cloud Run. The games are built here too, the Solitaire Collection in
+`frontend/games/solitaire/`, Minesweeper in `frontend/games/minesweeper/`,
+Sudoku in `frontend/games/sudoku/`, Snake in `frontend/games/snake/`, Brick
+Breaker in `frontend/games/brick-breaker/` and Asteroid Breaker in
+`frontend/games/asteroid-breaker/`, and served as static pages under
 `/play/<slug>/`.
 
 Dependency management and development scripts use [Yarn](https://yarnpkg.com/)
@@ -43,11 +44,12 @@ yarn verify      # lint, type-check, test, and build in one go
 yarn prettier    # format the repository with Prettier
 yarn games       # build the games and copy them into site/public/play/
 
-yarn workspace solitaire dev     # work on the Solitaire Collection alone, on http://localhost:9000
-yarn workspace minesweeper dev   # work on Minesweeper alone, on http://localhost:9001
-yarn workspace sudoku dev        # work on Sudoku alone, on http://localhost:9002
-yarn workspace snake dev         # work on Snake alone, on http://localhost:9003
-yarn workspace brick-breaker dev # work on Brick Breaker alone, on http://localhost:9004
+yarn workspace solitaire dev        # work on the Solitaire Collection alone, on http://localhost:9000
+yarn workspace minesweeper dev      # work on Minesweeper alone, on http://localhost:9001
+yarn workspace sudoku dev           # work on Sudoku alone, on http://localhost:9002
+yarn workspace snake dev            # work on Snake alone, on http://localhost:9003
+yarn workspace brick-breaker dev    # work on Brick Breaker alone, on http://localhost:9004
+yarn workspace asteroid-breaker dev # work on Asteroid Breaker alone, on http://localhost:9005
 ```
 
 `yarn dev` and `yarn build` first build the games in `frontend/games/`. The
@@ -55,8 +57,9 @@ Solitaire Collection is then at
 http://localhost:4200/play/solitaire/, Minesweeper at
 http://localhost:4200/play/minesweeper/, Sudoku at
 http://localhost:4200/play/sudoku/, Snake at
-http://localhost:4200/play/snake/ and Brick Breaker at
-http://localhost:4200/play/brick-breaker/.
+http://localhost:4200/play/snake/, Brick Breaker at
+http://localhost:4200/play/brick-breaker/ and Asteroid Breaker at
+http://localhost:4200/play/asteroid-breaker/.
 
 The portal application code lives in `frontend/site/src/app/` (bootstrapped
 by `frontend/site/src/app/main.ts`), with theme palettes and shared styles in
