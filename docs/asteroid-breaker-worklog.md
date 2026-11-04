@@ -4811,3 +4811,39 @@ by hand.
   `typecheck` and `test`, `yarn prettier:check` and the skill references.
   9 mutants of the reader, its fallback and each game's reading: all
   caught but Sudoku's cleared notes, which no case held; one does now.
+
+## A12.1: the settings kept
+
+2026-11-04.
+
+- **Built.** `SettingsService` keeps the settings under
+  `asteroid-breaker-settings`, versioned, as Brick Breaker's does: the speed
+  of the last run started, when the deck shows, which side holds its stick,
+  whether the ship fires by itself, haptics and sound. Its reader takes each
+  stored setting that makes sense, through `@fz/core/json`'s `booleanOr()`
+  for the yes-or-noes, and the default for the rest, and starts afresh from
+  any other version. The game's `AGENTS.md` lists the entry.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on the dev
+  server: the sound turned off at the bar, kept as the entry shows it, is
+  still off after a reload.
+- **Review.** No bugs; four comments, all taken.
+  1. The reader kept its own `booleanOr()`, a reader of stored JSON the
+     games' rules have them share, and Brick Breaker's, Snake's and
+     Sudoku's wrote the same check out by hand. It is `@fz/core/json`'s,
+     lifted first in a commit of its own ("Lift: a stored yes or no"). The
+     service around it, the same in five games, is left for a follow-up.
+  2. The guide said a tuned run keeps "none of either", among three
+     entries now, and one a tuned run does write, its speed. It says the run
+     keeps neither the records nor the sectors it reaches.
+  3. `isDeckShowing()` and `SETTINGS_KEY` were exported for nothing but
+     the spec. Neither is now, and
+  4. the spec stores under the key's own words, so renaming it, which loses
+     every player's settings, fails a case.
+
+  These correct the change but the first, which the lift took; so it had
+  no second review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (2,994),
+  `yarn prettier:check` and the skill references. 14 mutants of the write,
+  each setting's reading, the yes-or-no reader, the key and the version: all
+  caught.
