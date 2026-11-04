@@ -452,6 +452,42 @@ describe("BoardComponent", () => {
       });
     });
 
+    it("lays the cards over the field as the board is first drawn, before the browser reports its size", async () => {
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(
+        new DOMRect(0, 0, 1280, 720),
+      );
+
+      const { board } = await renderBoard();
+
+      // The layer only places the cards, so it has no role to find it by.
+      expect(board.querySelector(".cards")).toHaveStyle(
+        placedOver(fieldOn(1280, 720, ROOMY)),
+      );
+    });
+
+    it("stretches a paused field to the room it measures, before the scene lays it out", async () => {
+      const { board, game, detectChanges } = await renderBoard();
+      pauseIn(game);
+
+      resize(board, 1280, 720);
+      detectChanges();
+
+      expect(game.frame().field.torus).toEqual(
+        fieldShape(CANVAS_1280, ROOMY, SQUARE),
+      );
+    });
+
+    it("shapes the waiting field for the room it measures, before the scene lays it out", async () => {
+      const { board, game, detectChanges } = await renderBoard();
+
+      resize(board, 1280, 720);
+      detectChanges();
+
+      expect(game.frame().field.torus).toEqual(
+        fieldShape(CANVAS_1280, ROOMY, SQUARE),
+      );
+    });
+
     it("stops watching the board once it is gone", async () => {
       const { fixture } = await render(BoardComponent, {
         providers: [provideFakePhaserCanvas(), ...provideSpecWaves()],
@@ -950,6 +986,24 @@ describe("BoardComponent", () => {
       const { game } = await runBoardScene({ width: 1280, height: 720 });
 
       expect(game.frame().field.torus.width).toBeGreaterThan(FIELD_SHORT_SIDE);
+    });
+
+    describe("as the board is measured", () => {
+      watchResizes();
+
+      it("leaves the field's shape to the scene once the scene has laid it out", async () => {
+        const { board, game, detectChanges } = await runBoardScene({
+          width: 1280,
+          height: 720,
+        });
+        detectChanges();
+        const { torus } = game.frame().field;
+
+        resize(board, 390, 780);
+        detectChanges();
+
+        expect(game.frame().field.torus).toEqual(torus);
+      });
     });
 
     it("lays the field out again for no setting but those it is laid out by", async () => {
