@@ -1,6 +1,7 @@
 // The sectors a player has reached, at any speed, which a run may start at:
 // the first from the start, and each after it once a run has reached it.
 
+import { knownIdsOf } from "@fz/core/json";
 import type { WaveEntry } from "./waves";
 
 /** Describes a sector as a run may start at it: its id, its name and its first wave's number. */
@@ -34,11 +35,5 @@ export function reachedOf(
   value: unknown,
   waves: readonly WaveEntry[],
 ): ReadonlySet<string> {
-  if (!Array.isArray(value)) return new Set();
-  const known = new Set(waves.map(({ sector }) => sector.id));
-  return new Set(
-    value.filter(
-      (id: unknown): id is string => typeof id === "string" && known.has(id),
-    ),
-  );
+  return knownIdsOf(value, new Set(waves.map(({ sector }) => sector.id)));
 }

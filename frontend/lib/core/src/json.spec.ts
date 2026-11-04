@@ -1,4 +1,11 @@
-import { isCount, isRecord, isWhole, unknownKey } from "./json";
+import {
+  countsByIdOf,
+  isCount,
+  isRecord,
+  isWhole,
+  knownIdsOf,
+  unknownKey,
+} from "./json";
 
 describe("isRecord", () => {
   it("accepts an object", () => {
@@ -54,5 +61,73 @@ describe("unknownKey", () => {
 
   it("knows no key from the known keys' prototype", () => {
     expect(unknownKey({ toString: 1 }, KNOWN)).toBe("toString");
+  });
+});
+
+describe("knownIdsOf", () => {
+  /** The ids a spec's lists may hold. */
+  const KNOWN = new Set(["near", "far"]);
+
+  it("takes the known ids of a list", () => {
+    expect(knownIdsOf(["far", "near"], KNOWN)).toEqual(
+      new Set(["far", "near"]),
+    );
+  });
+
+  it("drops an id it doesn't know, and what isn't an id", () => {
+    expect(knownIdsOf(["far", "gone", 3, null], KNOWN)).toEqual(
+      new Set(["far"]),
+    );
+  });
+
+  it.each([undefined, "far", { 0: "far" }])(
+    "takes none from %j, which isn't a list",
+    (value) => {
+      expect(knownIdsOf(value, KNOWN)).toEqual(new Set());
+    },
+  );
+});
+
+describe("countsByIdOf", () => {
+  /** The ids a spec's records hold counts for. */
+  const IDS = ["near", "far"];
+  /** The keys a spec's records hold counts under. */
+  const KEYS = ["relaxed", "normal", "fast"] as const;
+
+  it("takes each id's counts under the keys given", () => {
+    expect(
+      countsByIdOf(
+        { near: { relaxed: 40, fast: 0 }, far: { normal: 900 } },
+        IDS,
+        KEYS,
+      ),
+    ).toEqual({ near: { relaxed: 40, fast: 0 }, far: { normal: 900 } });
+  });
+
+  it("drops what isn't a count, a key not given and an id not given", () => {
+    expect(
+      countsByIdOf(
+        {
+          near: { normal: 900, fast: -1, relaxed: "2", custom: 5 },
+          gone: { normal: 1 },
+        },
+        IDS,
+        KEYS,
+      ),
+    ).toEqual({ near: { normal: 900 } });
+  });
+
+  it("leaves out an id with no counts", () => {
+    expect(countsByIdOf({ near: { fast: 1.5 }, far: null }, IDS, KEYS)).toEqual(
+      {},
+    );
+  });
+
+  it("takes no counts from a list, even under its index", () => {
+    expect(countsByIdOf({ near: [900] }, ["near"], ["0"])).toEqual({});
+  });
+
+  it("takes none from a list, even with an id that is its index", () => {
+    expect(countsByIdOf([{ relaxed: 40 }], ["0"], KEYS)).toEqual({});
   });
 });

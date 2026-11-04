@@ -2,7 +2,7 @@
 // score, the furthest wave and the strays brought home, and each sector's
 // best run.
 
-import { isCount, isRecord } from "@fz/core/json";
+import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
 import type { Run } from "./run";
 import { SPEEDS, type Speed } from "./speed";
@@ -49,15 +49,9 @@ export const NO_STATS: Stats = {
 export function statsOf(value: unknown, sectors: readonly string[]): Stats {
   const saved = isRecord(value) ? value : {};
   const speeds = isRecord(saved["speeds"]) ? saved["speeds"] : {};
-  const stored = isRecord(saved["sectors"]) ? saved["sectors"] : {};
   return {
     speeds: recordOf(SPEEDS, (speed) => speedStatsOf(speeds[speed])),
-    sectors: Object.fromEntries(
-      sectors.flatMap((id) => {
-        const bests = sectorBestsOf(stored[id]);
-        return bests ? [[id, bests]] : [];
-      }),
-    ),
+    sectors: countsByIdOf(saved["sectors"], sectors, SPEEDS),
   };
 }
 
@@ -138,15 +132,4 @@ function speedStatsOf(value: unknown): SpeedStats {
     return NO_RUNS;
   }
   return { runs, best, furthest, strays };
-}
-
-/** Returns a sector's bests as stored, each that makes sense, or null with none. */
-function sectorBestsOf(value: unknown): SectorBests | null {
-  if (!isRecord(value)) return null;
-  const bests: Partial<Record<Speed, number>> = {};
-  for (const speed of SPEEDS) {
-    const points = value[speed];
-    if (isCount(points)) bests[speed] = points;
-  }
-  return Object.keys(bests).length > 0 ? bests : null;
 }
