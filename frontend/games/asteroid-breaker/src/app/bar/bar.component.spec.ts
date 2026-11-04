@@ -19,6 +19,7 @@ import {
   shoot,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
 
 /** What a spec gets back from rendering the bar. */
@@ -281,6 +282,47 @@ describe("BarComponent", () => {
       expect(kept).toBe(true);
     });
 
+    it("shows the sound on, pressed", async () => {
+      await renderBar();
+
+      expect(screen.getByRole("button", { name: "Sound" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    });
+
+    it("turns the sound off, which the settings keep", async () => {
+      const { user } = await renderBar();
+
+      await user.click(screen.getByRole("button", { name: "Sound" }));
+
+      expect(TestBed.inject(SettingsService).settings().sound).toBe(false);
+      expect(screen.getByRole("button", { name: "Sound" })).toHaveAttribute(
+        "aria-pressed",
+        "false",
+      );
+    });
+
+    it("turns the sound back on", async () => {
+      const { user, detectChanges } = await renderBar();
+      TestBed.inject(SettingsService).update({ sound: false });
+      detectChanges();
+
+      await user.click(screen.getByRole("button", { name: "Sound" }));
+
+      expect(TestBed.inject(SettingsService).settings().sound).toBe(true);
+    });
+
+    it("keeps the focus where it was through a press on Sound", async () => {
+      await renderBar();
+
+      const kept = !fireEvent.pointerDown(
+        screen.getByRole("button", { name: "Sound" }),
+      );
+
+      expect(kept).toBe(true);
+    });
+
     it("starts a new game", async () => {
       const { user, game } = await renderBar();
 
@@ -381,12 +423,38 @@ describe("BarComponent", () => {
       expect(screen.getByRole("button", { name: "New game" })).toBeVisible();
     });
 
-    it("moves the sectors, How to play and the settings into the menu", async () => {
+    it("moves the sound, the sectors, How to play and the settings into the menu", async () => {
       const { user } = await renderBar();
 
       const items = await openMenu(user);
 
-      expect(items).toEqual(["Sectors", "How to play", "Settings"]);
+      expect(items).toEqual([
+        "Turn sound off",
+        "Sectors",
+        "How to play",
+        "Settings",
+      ]);
+    });
+
+    it("turns the sound off from the menu", async () => {
+      const { user } = await renderBar();
+      await openMenu(user);
+
+      await user.click(
+        screen.getByRole("menuitem", { name: "Turn sound off" }),
+      );
+
+      expect(TestBed.inject(SettingsService).settings().sound).toBe(false);
+    });
+
+    it("offers to turn the sound back on from the menu", async () => {
+      const { user, detectChanges } = await renderBar();
+      TestBed.inject(SettingsService).update({ sound: false });
+      detectChanges();
+
+      const items = await openMenu(user);
+
+      expect(items[0]).toBe("Turn sound on");
     });
 
     it("moves the link home into the menu where there is no room for it", async () => {

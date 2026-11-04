@@ -10,6 +10,7 @@ import {
   whenSceneEnds,
 } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
+import { SpritePlayer } from "@fz/phaser/sound";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { ROCK_RADIUS } from "../rules/tuning";
@@ -18,6 +19,10 @@ import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
 import { type Deck, deckOf } from "../view/deck";
 import {
   type Flourish,
+  type SoundName,
+  THRUST,
+  createFrameSounds,
+  detuneOf,
   effectsOf,
   flourishesOf,
   rockKindOf,
@@ -48,6 +53,11 @@ import { ShipPainter } from "./ship_painter";
 import { ShotPainter } from "./shot_painter";
 import { StrayPainter } from "./stray_painter";
 import { TagPainter } from "./tag_painter";
+import spritemap from "./sounds/sounds.json";
+import spriteUrl from "./sounds/sounds.wav?url";
+
+/** Names the sounds' sprite in Phaser's caches. */
+export const SOUNDS_KEY = "belt-sounds";
 
 /** What the scene asks of the shell, and tells it. */
 export interface BeltSceneOptions {
@@ -59,6 +69,10 @@ export interface BeltSceneOptions {
   readonly palette: () => BeltPalette;
   /** Returns whether the player welcomes motion. */
   readonly motion: () => boolean;
+  /** Returns whether the player wants sound. */
+  readonly sound: () => boolean;
+  /** Returns whether the ship thrusts while its wave plays on, which the thrust's hum follows. */
+  readonly thrusting: () => boolean;
   /** Returns how the board lays the field and the deck out; a new value lays them out again. */
   readonly board: () => BoardSetting;
   /**
@@ -120,6 +134,8 @@ export class BeltScene extends Scene {
   deck!: DeckPainter;
   /** Draws the frame and the deck, over the whole canvas. */
   deckCamera!: Cameras.Scene2D.Camera;
+  /** Plays the sounds. */
+  sounds!: SpritePlayer<SoundName>;
 
   /** Every painter, back to front, which each frame draws and each bake refreshes. */
   private painters: readonly Painter[] = [];
@@ -151,6 +167,8 @@ export class BeltScene extends Scene {
   private shownField!: FieldView;
   /** The serial of the last event of the field the scene played. */
   private played = 0;
+  /** The sounds this frame's events call for, played once each after them. */
+  private readonly frameSounds = createFrameSounds();
 
   constructor(
     private readonly options: BeltSceneOptions,
@@ -218,6 +236,11 @@ export class BeltScene extends Scene {
       now: 0,
       motion: this.options.motion(),
     };
+    this.sounds = new SpritePlayer(this, {
+      key: SOUNDS_KEY,
+      spritemap,
+      url: spriteUrl,
+    });
     // The game outlives the scene, so a scene built after another adds none.
     this.input.addPointer(
       Math.max(0, MOST_FINGERS - this.input.manager.pointersTotal),
@@ -230,16 +253,18 @@ export class BeltScene extends Scene {
   }
 
   /**
-   * Hands the shell the time the frame took and the steering, then draws
-   * the field as it now stands.
+   * Hands the shell the time the frame took and the steering, then plays
+   * what happened on the field since the last frame, once each, hums while
+   * the ship thrusts, and draws the field as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette or a
-   * new wave.
+   * new wave; Phaser makes a sound object for each sound it plays.
    */
   override update(time: number, delta: number): void {
     this.context.now = time;
     let stale = this.fit();
     this.options.tick(delta, this.steering.read());
+    this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.context.motion = this.options.motion();
@@ -253,12 +278,20 @@ export class BeltScene extends Scene {
     if (frame.field !== this.shownField) this.startField(frame.field);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
+    this.frameSounds.playEach(this.sounds.playRisen);
+    this.sounds.hold(THRUST, this.options.thrusting());
     this.draw(frame);
   }
 
-  /** Plays what an event calls for, once, for `forEachSince()`, which takes it each frame: its flourishes where motion is welcome, and its points either way. */
+  /**
+   * Plays what an event calls for, once, for `forEachSince()`, which takes
+   * it each frame: keeps its sound to play with the frame's others, and
+   * plays its flourishes where motion is welcome, and its points either way.
+   */
   private readonly play = (event: Readonly<FieldEvent>): void => {
-    const flourishes = flourishesOf(effectsOf(event), this.context.motion);
+    const effects = effectsOf(event);
+    if (effects.sound) this.frameSounds.hear(effects.sound, detuneOf(event));
+    const flourishes = flourishesOf(effects, this.context.motion);
     for (const flourish of flourishes) {
       this.flourish(flourish, event, this.shownField);
     }

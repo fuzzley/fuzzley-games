@@ -1,7 +1,7 @@
 import { advanceClock } from "@fz/core/clock";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
-import { GameObjects } from "phaser";
+import { GameObjects, type Scene } from "phaser";
 import { type Field, stepField } from "../rules/field";
 import type { Rock } from "../rules/rocks";
 import type { Steer } from "../rules/ship";
@@ -11,6 +11,7 @@ import {
   type BeltSceneOptions,
   makeBeltScene,
 } from "../scene/belt_scene";
+import { SOUNDS_KEY } from "../scene/belt_scene";
 import type { Copies } from "../scene/copies";
 import type { Pictures } from "../view/art";
 import type { FieldCommand } from "../view/controls";
@@ -75,6 +76,9 @@ export class FakeShell implements BeltSceneOptions {
   seed = 7;
   colors: BeltPalette = ART_PALETTE;
   welcomesMotion = true;
+  wantsSound = true;
+  /** Whether the ship thrusts while its wave plays on, as the game would say. */
+  thrusts = false;
   setting: BoardSetting = BOARD;
   /**
    * Whether each frame's time moves the field on, as the game does, steered
@@ -104,6 +108,8 @@ export class FakeShell implements BeltSceneOptions {
   });
   readonly palette = (): BeltPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
+  readonly sound = (): boolean => this.wantsSound;
+  readonly thrusting = (): boolean => this.thrusts;
   readonly board = (): BoardSetting => this.setting;
   readonly onLayout = (canvas: Viewport, field: CssRect): void => {
     this.layouts.push({ canvas, field });
@@ -334,4 +340,18 @@ export function imagesIn(scene: BeltScene): readonly GameObjects.Image[] {
           object instanceof GameObjects.Image,
       ),
   );
+}
+
+/**
+ * Puts the sounds' sprite in a scene's audio cache, as a load that worked
+ * would, so the scene can hold its hum. The headless game loads no audio.
+ */
+export function cacheSounds(scene: Scene): void {
+  scene.cache.audio.add(SOUNDS_KEY, {});
+}
+
+/** Returns how many of the scene's sounds it holds, looping, not yet let go: its hums. */
+export function humsIn(scene: Scene): number {
+  return scene.sound.getAll(SOUNDS_KEY).filter((sound) => !sound.pendingRemove)
+    .length;
 }

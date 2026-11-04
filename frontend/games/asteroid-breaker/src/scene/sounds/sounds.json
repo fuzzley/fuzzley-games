@@ -1,0 +1,74 @@
+{
+  "spritemap": {
+    "fired": {
+      "start": 0,
+      "end": 0.06,
+      "loop": false
+    },
+    "small": {
+      "start": 0.16,
+      "end": 0.3,
+      "loop": false
+    },
+    "medium": {
+      "start": 0.4,
+      "end": 0.6,
+      "loop": false
+    },
+    "large": {
+      "start": 0.7,
+      "end": 1,
+      "loop": false
+    },
+    "rung": {
+      "start": 1.1,
+      "end": 1.46,
+      "loop": false
+    },
+    "blast": {
+      "start": 1.56,
+      "end": 2.02,
+      "loop": false
+    },
+    "caught": {
+      "start": 2.12,
+      "end": 2.3,
+      "loop": false
+    },
+    "dashed": {
+      "start": 2.4,
+      "end": 2.66,
+      "loop": false
+    },
+    "warned": {
+      "start": 2.76,
+      "end": 3.18,
+      "loop": false
+    },
+    "lost": {
+      "start": 3.28,
+      "end": 3.9,
+      "loop": false
+    },
+    "cleared": {
+      "start": 4,
+      "end": 4.78,
+      "loop": false
+    },
+    "gained": {
+      "start": 4.88,
+      "end": 5.5,
+      "loop": false
+    },
+    "home": {
+      "start": 5.6,
+      "end": 5.9,
+      "loop": false
+    },
+    "thrust": {
+      "start": 6,
+      "end": 6.5,
+      "loop": true
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { NO_INSETS } from "@fz/phaser/insets";
+import { SpritePlayer } from "@fz/phaser/sound";
 import type { SceneRun } from "@fz/phaser/testing";
 import { Core, GameObjects } from "phaser";
 import { TURN } from "../rules/angles";
@@ -23,6 +24,8 @@ import {
   DARK,
   WIDER,
   type FakeShell,
+  cacheSounds,
+  humsIn,
   imagesIn,
   isShown,
   layersOf,
@@ -58,6 +61,7 @@ import {
 } from "../view/art";
 import { type Deck, deckOf, rechargeRing } from "../view/deck";
 import type { BoardSetting } from "../view/field_metrics";
+import { SOUNDS } from "../view/effects";
 import { PULSE_LEAST } from "../view/flourish";
 import { LAYERS } from "../view/layers";
 import { LOOK, PILOT_SIZES, pilotFrame } from "../view/pilot_art";
@@ -72,6 +76,7 @@ import { ATLAS } from "./atlas";
 import { type BeltScene, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./deck_painter";
 import { GUARD_ALPHA } from "./ship_painter";
+import spritemap from "./sounds/sounds.json";
 
 describe("the cameras", () => {
   it("point the field's at the field, showing the canvas's own pixels", async () => {
@@ -1353,6 +1358,121 @@ describe("a new field", () => {
     const drawn = scene.rocks.bodies.filter((body) => body.images[0]?.visible);
     expect(drawn.map((body) => shown(body)[0])).toEqual([
       onCanvas(metricsOf(shell), 38, 2),
+    ]);
+  });
+});
+
+describe("the sounds", () => {
+  /**
+   * Returns each sound the scenes play from now on, with how far it rose,
+   * as they play it. The sprite can't load headless, so playing leaves
+   * nothing else to look at.
+   */
+  function soundsPlayed(): [string, number][] {
+    const played: [string, number][] = [];
+    vi.spyOn(SpritePlayer.prototype, "play").mockImplementation(
+      (name: string, config) => {
+        played.push([name, config?.detune ?? 0]);
+      },
+    );
+    return played;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("are the view's, in the sprite's order", () => {
+    expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
+  });
+
+  it("loop the thrust's hum alone", () => {
+    expect(
+      Object.entries(spritemap.spritemap)
+        .filter(([, sound]) => sound.loop)
+        .map(([name]) => name),
+    ).toEqual(["thrust"]);
+  });
+
+  it("can be heard while the player wants them", async () => {
+    const { scene } = await startBoard();
+
+    expect(scene.sound.mute).toBe(false);
+  });
+
+  it("are muted while the player wants none", async () => {
+    const { shell, run, scene } = await startBoard();
+
+    shell.wantsSound = false;
+    run.advance(16);
+
+    expect(scene.sound.mute).toBe(true);
+  });
+
+  it("play a broken rock's by its size, risen along its chain", async () => {
+    const { shell, run } = await startBoard();
+    const rock = placeRock(shell.field, "small", 30, 20);
+    run.advance(16);
+    const played = soundsPlayed();
+    shell.field.chain = 4;
+    shell.field.lastBreakAt = shell.field.steps;
+
+    hitRock(shell.field, rock, 0, 0);
+    run.advance(16);
+
+    expect(played).toEqual([["small", 400]]);
+  });
+
+  it("play two breaks of a frame as one, at the higher", async () => {
+    const { shell, run } = await startBoard();
+    const first = placeRock(shell.field, "small", 30, 20);
+    const second = placeRock(shell.field, "small", 10, 20);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    hitRock(shell.field, first, 0, 0);
+    hitRock(shell.field, second, 0, 0);
+    run.advance(16);
+
+    expect(played).toEqual([["small", 100]]);
+  });
+
+  it("hum while the ship thrusts", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheSounds(scene);
+
+    shell.thrusts = true;
+    run.advance(16);
+
+    expect(humsIn(scene)).toBe(1);
+  });
+
+  it("stop humming once the ship doesn't thrust", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheSounds(scene);
+    shell.thrusts = true;
+    run.advance(16);
+
+    shell.thrusts = false;
+    run.advance(16);
+
+    expect(humsIn(scene)).toBe(0);
+  });
+
+  it("leave the field playing where they can't be loaded", async () => {
+    const { shell, run, scene } = await startBoard();
+    const rock = placeRock(shell.field, "small", 30, 20);
+    run.advance(16);
+
+    hitRock(shell.field, rock, 0, 0);
+    run.advance(16);
+
+    expect(scene.sounds.loaded).toBe(false);
+    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
+      null,
+      null,
+      null,
+      null,
     ]);
   });
 });

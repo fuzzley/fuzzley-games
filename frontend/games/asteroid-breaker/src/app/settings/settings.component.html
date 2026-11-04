@@ -115,6 +115,25 @@
       </div>
 
       <div class="setting">
+        <span class="setting-label" aria-hidden="true">Sound</span>
+        <div class="setting-check">
+          <input
+            #sound
+            id="sound"
+            type="checkbox"
+            aria-describedby="sound-desc"
+            [checked]="settings().sound"
+            (change)="setSound(sound.checked)"
+          />
+          <label for="sound">Play sounds</label>
+          <p class="setting-desc" id="sound-desc">
+            Each rock breaking, rising along a chain, the thrust's hum, and a
+            chime for a wave cleared.
+          </p>
+        </div>
+      </div>
+
+      <div class="setting">
         <span class="setting-label" aria-hidden="true">Theme</span>
         <fz-theme-picker />
       </div>

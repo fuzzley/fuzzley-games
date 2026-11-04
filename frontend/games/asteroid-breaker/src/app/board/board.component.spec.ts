@@ -20,6 +20,7 @@ import { userEvent } from "@testing-library/user-event";
 import { STILL } from "../../rules/ship";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves";
+import { cacheSounds, humsIn } from "../../testing/belt_board";
 import {
   FRAME_MS,
   SPEC_WAVE,
@@ -834,6 +835,56 @@ describe("BoardComponent", () => {
       run.advance(FRAME_MS);
 
       expect(setRoom).not.toHaveBeenCalled();
+    });
+
+    it("lets the scene be heard while the settings want sound", async () => {
+      const { run } = await runBoardScene();
+
+      run.advance(FRAME_MS);
+
+      expect(run.scene.sound.mute).toBe(false);
+    });
+
+    it("mutes the scene while the settings turn the sound off", async () => {
+      const { run } = await runBoardScene();
+      useSettings({ sound: false });
+
+      run.advance(FRAME_MS);
+
+      expect(run.scene.sound.mute).toBe(true);
+    });
+
+    it("has the scene hum nothing before the ship thrusts", async () => {
+      const { run } = await runBoardScene();
+      cacheSounds(run.scene);
+
+      run.advance(FRAME_MS);
+
+      expect(humsIn(run.scene)).toBe(0);
+    });
+
+    it("has the scene hum while the ship thrusts", async () => {
+      const { run } = await runBoardScene();
+      cacheSounds(run.scene);
+
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(FRAME_MS);
+      run.advance(FRAME_MS);
+
+      expect(humsIn(run.scene)).toBe(1);
+    });
+
+    it("has the scene hum no more as the wave pauses, the thrust still held", async () => {
+      const { game, run } = await runBoardScene();
+      cacheSounds(run.scene);
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(FRAME_MS);
+      run.advance(FRAME_MS);
+
+      game.pause();
+      run.advance(FRAME_MS);
+
+      expect(humsIn(run.scene)).toBe(0);
     });
 
     it("keeps the scene's pictures for How to play", async () => {

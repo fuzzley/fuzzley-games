@@ -7,6 +7,7 @@ import {
   arpeggio,
   envelope,
   glide,
+  looped,
   note,
   renderSoundSprite,
   thud,
@@ -27,6 +28,15 @@ const KNOCK: Sound = {
   seconds: 0.2,
   peak: 1,
   sample: thud(7),
+};
+
+/** A tenth of a second of a steady level, at half strength, which the game loops. */
+const HUM: Sound = {
+  name: "hum",
+  seconds: 0.1,
+  peak: 0.5,
+  sample: () => 1,
+  loop: true,
 };
 
 /** Returns a WAV file's samples, from -1 to 1. */
@@ -139,6 +149,26 @@ describe("note", () => {
   });
 });
 
+describe("looped", () => {
+  it("starts as the wave's next stretch, and ends as the wave, so it runs on unbroken", () => {
+    const noise = thud(3);
+    const hum = looped(noise, 0.5);
+
+    expect(hum(0)).toBe(noise(0.5));
+    expect(hum(0.5)).toBeCloseTo(noise(0.5), 12);
+  });
+
+  it("fades the one into the other at an even loudness", () => {
+    const noise = thud(3);
+    const hum = looped(noise, 0.5);
+
+    expect(hum(0.125)).toBeCloseTo(
+      Math.cos(Math.PI / 8) * noise(0.625) +
+        Math.sin(Math.PI / 8) * noise(0.125),
+    );
+  });
+});
+
 // Each time read is a whole number of eighths of a cycle into every note
 // sounding, where its sine and its harmonic's are round numbers.
 describe("arpeggio", () => {
@@ -225,6 +255,20 @@ describe("renderSoundSprite", () => {
     const { wav } = renderSoundSprite([BEEP]);
 
     expect(samplesOf(wav).at(-1)).toBe(0);
+  });
+
+  it("leaves a sound that loops unfaded, so it ends as loud as it goes on", () => {
+    const { wav } = renderSoundSprite([HUM]);
+
+    expect(samplesOf(wav).at(-1)).toBeCloseTo(0.5, 3);
+  });
+
+  it("maps a sound that loops as looping", () => {
+    const { json } = renderSoundSprite([HUM]);
+
+    expect(JSON.parse(json)).toEqual({
+      spritemap: { hum: { start: 0, end: 0.1, loop: true } },
+    });
   });
 
   it("renders the same bytes every time", () => {

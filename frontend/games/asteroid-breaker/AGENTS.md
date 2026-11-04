@@ -12,11 +12,11 @@ says how any game here is drawn with Phaser. Paths are relative to
 
 The game is being built from `docs/asteroid-breaker-execution-plan.md`, step
 by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
-shows the bar, with Pause, Sectors, New game, How to play, the speed and the
-settings, and the board, with its cards, the settings drawer, the Sectors
-dialog, How to play and the result card over an ended run, and keeps the
-records and the sectors reached ("What It Keeps"). The site serves it all
-the same, badged "In development" (`inDevelopment` in
+shows the bar, with Pause, Sound, Sectors, New game, How to play, the speed
+and the settings, and the board, with its cards, the settings drawer, the
+Sectors dialog, How to play and the result card over an ended run, plays its
+sounds, and keeps the records and the sectors reached ("What It Keeps"). The
+site serves it all the same, badged "In development" (`inDevelopment` in
 `frontend/site/src/app/provider/games.ts`), and a production build offers
 the debug menu at `?debug`, as the user asked.
 
@@ -67,6 +67,12 @@ workspace's with the others'.
   between the layers, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` from their JSDoc).
+- **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
+  which synthesizes the fourteen sounds, from a shot's tick to a wave's
+  chime and the thrust's hum, with `@fz/dev/sounds` into
+  `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the
+  same bytes every run; their names and order are the view's `SOUNDS`,
+  which the scene's spec holds them to).
 - **Report the Waves:** `yarn report:waves` (runs `tools/report-waves.mjs`:
   the autopilot in `src/testing/autopilot.ts` plays every wave at every
   speed on the narrowest field, or the widest with `--field wide` on its

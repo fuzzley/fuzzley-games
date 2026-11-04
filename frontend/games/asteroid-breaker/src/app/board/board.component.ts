@@ -259,6 +259,8 @@ export class BoardComponent {
     frame: () => this.game.frame(),
     palette: () => this.palette(),
     motion: () => this.viewport.allowsMotion(),
+    sound: () => this.settings().sound,
+    thrusting: () => this.game.thrusting(),
     board: () => this.board(),
     onLayout: (viewport, field) => {
       this.game.setRoom(viewport, this.board());

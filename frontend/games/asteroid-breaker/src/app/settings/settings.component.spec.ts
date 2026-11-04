@@ -152,6 +152,20 @@ describe("SettingsComponent", () => {
     expect(store.settings().haptics).toBe(false);
   });
 
+  it("plays sounds until told otherwise", async () => {
+    await renderSettings();
+
+    expect(screen.getByRole("checkbox", { name: "Play sounds" })).toBeChecked();
+  });
+
+  it("turns the sound off at its checkbox", async () => {
+    const { user, store } = await renderSettings();
+
+    await user.click(screen.getByRole("checkbox", { name: "Play sounds" }));
+
+    expect(store.settings().sound).toBe(false);
+  });
+
   it("offers the palettes", async () => {
     await renderSettings();
 

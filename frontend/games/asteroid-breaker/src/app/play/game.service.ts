@@ -34,7 +34,7 @@ import {
   waveStart,
 } from "../../rules/run";
 import { type WaveTally, chainMultiplier, tallyOf } from "../../rules/scoring";
-import { STILL, type Steer } from "../../rules/ship";
+import { STILL, type Steer, thrustOf } from "../../rules/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import type { EndedRun } from "../../rules/stats";
 import type { Torus } from "../../rules/torus";
@@ -260,6 +260,20 @@ export class GameService {
    */
   frame(): FieldFrame {
     return this.wavePlay.frame();
+  }
+
+  /**
+   * Returns whether the ship in play thrusts while its wave plays on, as
+   * the field last stepped, which the thrust's hum follows: not while the
+   * wave waits, is paused or is over.
+   */
+  thrusting(): boolean {
+    const { ship } = this.wavePlay.field;
+    return (
+      this.runState().outcome === "playing" &&
+      ship !== null &&
+      thrustOf(ship) > 0
+    );
   }
 
   /** Does what a key, a click or a tap on the board asks. */

@@ -148,14 +148,14 @@ too. Paths are relative to `frontend/lib/dev/`.
   `Sound` is a name, a length, a peak and a wave, made of `glide()` (a tone
   gliding between two pitches), `envelope()`, `thud()` (seeded noise),
   `note()` and `arpeggio()` (a chord's notes struck one after another, as a
-  chime is); `writeSoundSprite()` renders a list of them, throwing for an
+  chime is), and `looped()`, a wave of noise that ends just as it starts, at
+  an even loudness, for a sound marked `loop`, which a game loops as a held
+  key's hum; `writeSoundSprite()` renders a list of them, throwing for an
   empty list, two of one name or a silent one, at 16,000 samples a second,
-  each faded out at its end and a tenth of a second apart, into `sounds.wav`
-  and the spritemap Phaser plays it by, `sounds.json`, the same bytes every
-  run. A game's `tools/build-sounds.mjs` holds its recipes and calls it.
-
-## How a workspace uses it
-
+  each but a looping one faded out at its end, a tenth of a second apart,
+  into `sounds.wav` and the spritemap Phaser plays it by, `sounds.json`, the
+  same bytes every run. A game's `tools/build-sounds.mjs` holds its recipes
+  and calls it. ## How a workspace uses it
 - **A workspace's configs extend it, and add only what is their own.** Its
   `package.json` lists `"@fz/dev": "workspace:*"` beside `eslint` and
   `typescript`, which it runs. Its `eslint.config.js` passes the blocks to

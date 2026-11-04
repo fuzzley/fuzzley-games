@@ -19,6 +19,12 @@ export interface Sound {
   readonly peak: number;
   /** Its wave, at any scale; it is scaled to its peak. */
   readonly sample: Wave;
+  /**
+   * Whether the game loops it, as a held key's hum: it is left unfaded, so
+   * the loop runs on unbroken, and its wave should end as it starts, as
+   * {@link looped} makes one.
+   */
+  readonly loop?: boolean;
 }
 
 /** Says where a sound lies in the sprite, in seconds, as Phaser reads it. */
@@ -112,6 +118,20 @@ export function note(at: number, tone: Wave, shape: Wave): Wave {
 }
 
 /**
+ * Returns a wave of noise that runs on unbroken when played over and over
+ * every `seconds`: the wave's next stretch fades into its first, at an even
+ * loudness, so it ends just as it starts. A tone loops by running whole
+ * cycles instead.
+ */
+export function looped(wave: Wave, seconds: number): Wave {
+  return (t) => {
+    // Equal-power weights, as the two stretches are unrelated noise.
+    const into = ((t / seconds) * Math.PI) / 2;
+    return Math.cos(into) * wave(t + seconds) + Math.sin(into) * wave(t);
+  };
+}
+
+/**
  * Returns a chord struck one note at a time, `gap` seconds apart, each pitch
  * (in Hz) a tone, with a quarter of its second harmonic, that rises over
  * 5 ms, then falls to about a third every `decay` seconds.
@@ -147,7 +167,7 @@ function render(sound: Sound): Float64Array {
   const fade = FADE_S * SAMPLE_RATE;
   for (let i = 0; i < samples.length; i++) {
     const left = samples.length - 1 - i;
-    const tail = left < fade ? left / fade : 1;
+    const tail = sound.loop || left >= fade ? 1 : left / fade;
     samples[i] = ((samples[i] ?? 0) / loudest) * sound.peak * tail;
   }
   return samples;
@@ -194,6 +214,7 @@ export function renderSoundSprite(sounds: readonly Sound[]): RenderedSprite {
   const rendered = sounds.map((sound) => ({
     name: sound.name,
     samples: render(sound),
+    loop: sound.loop ?? false,
   }));
   const gap = Math.round(GAP_S * SAMPLE_RATE);
   const length =
@@ -203,11 +224,11 @@ export function renderSoundSprite(sounds: readonly Sound[]): RenderedSprite {
   const all = new Float64Array(length);
   const spritemap: Record<string, SpriteEntry> = {};
   let at = 0;
-  for (const { name, samples } of rendered) {
+  for (const { name, samples, loop } of rendered) {
     spritemap[name] = {
       start: Number((at / SAMPLE_RATE).toFixed(3)),
       end: Number(((at + samples.length) / SAMPLE_RATE).toFixed(3)),
-      loop: false,
+      loop,
     };
     all.set(samples, at);
     at += samples.length + gap;
