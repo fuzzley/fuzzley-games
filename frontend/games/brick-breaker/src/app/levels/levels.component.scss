@@ -37,35 +37,8 @@
   list-style: none;
 }
 
-// The level of the run on the board in the accent, as a checked choice is.
 .level {
-  @include choice-tile;
-
-  flex-direction: column;
-  gap: 2px;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: var(--fz-tap-target);
-  font: inherit;
-  text-align: left;
-
-  &[aria-current="true"] {
-    border-color: var(--fz-accent);
-    background: var(--fz-accent-wash);
-    color: var(--fz-text);
-  }
-
-  // Locked: an outline only, its words as legible as an open level's.
-  &[aria-disabled="true"] {
-    border-style: dashed;
-    background: none;
-    cursor: default;
-
-    &:hover {
-      border-color: var(--fz-edge-2);
-      background: none;
-    }
-  }
+  @include start-tile;
 
   // The number, and a tick beside it once the level is cleared.
   .head {

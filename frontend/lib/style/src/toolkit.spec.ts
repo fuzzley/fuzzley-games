@@ -240,6 +240,24 @@ describe("the toolkit's mixins", () => {
     );
   });
 
+  it("put the tile of the run in play in the accent", () => {
+    expect(compiled("@include fz.start-tile;")).toContain(
+      ".it[aria-current=true]{border-color:var(--fz-accent);background:var(--fz-accent-wash);color:var(--fz-text)}",
+    );
+  });
+
+  it("draw a tile not yet open as an outline", () => {
+    expect(compiled("@include fz.start-tile;")).toContain(
+      ".it[aria-disabled=true]{border-style:dashed;background:none;cursor:default}",
+    );
+  });
+
+  it("keep a tile not yet open unlit when hovered", () => {
+    expect(compiled("@include fz.start-tile;")).toContain(
+      ".it[aria-disabled=true]:hover{border-color:var(--fz-edge-2)}",
+    );
+  });
+
   it("put a checked choice tile in the accent", () => {
     expect(compiled("@include fz.choice-tile;")).toContain(
       ".it[aria-checked=true]{border-color:var(--fz-accent);background:var(--fz-accent-wash);color:var(--fz-text)}",

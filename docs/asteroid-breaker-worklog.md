@@ -4479,3 +4479,41 @@ it does.
   but the board's taking the focus back as the dialog closes, which no
   case held; one does now. The review's two, the last wave and the
   dialogs' order: caught now.
+
+## Lift: the tiles a run starts at
+
+2026-11-04. The A10.2.3 review's second comment: the Sectors dialog's tiles
+were Brick Breaker's Levels tiles, line for line.
+
+- **Built.** `@fz/style`'s `start-tile`, beside `choice-tile`: a
+  `choice-tile` with what it holds stacked, the tile of the run in play in
+  the accent by `aria-current`, and one not yet open an outline by
+  `aria-disabled`, its hover the same as it rests. Both dialogs include it
+  and keep the styles of what their tiles hold. Brick Breaker's Levels list
+  takes `role="list"`, as the Sectors list has. `@fz/style`'s `AGENTS.md`,
+  its toolkit spec and the `fuzzley-ui` skill say so.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on a dev server of
+  this worktree's Brick Breaker: the Levels dialog as it was, the first
+  level in the accent, the locked ones dashed, each 44 px or taller, the
+  list a `list`.
+- **Review.** Nothing broken, both games' CSS byte for byte the same; four
+  comments, all taken.
+  1. The locked tile's hover, which keeps it unlit, had no spec. It has
+     one.
+  2. The mixin's doc comment opened with two sentences, and had taken in
+     why a locked tile is drawn as it is. It opens with one, and the why
+     is back above the locked rule.
+  3. The games' comments repeated what the mixin does, and the skill's row
+     spoke only of a setting's tiles. The comments go, and the row speaks
+     of a dialog's tiles.
+  4. `start-tile` repeated the checked tile's accent and set a background
+     its hover already had. The accent is a private mixin both take, and
+     the hover sets its border alone: compiled, each game's CSS differs
+     only by that line.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** `@fz/style`'s `lint`, `typecheck` and `test`, each game's
+  `lint` and its dialog's specs, `yarn prettier:check` and the skill
+  references. 4 mutants of the mixin, the run's tile, the locked one and
+  its hover, and the checked choice: all caught.
