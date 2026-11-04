@@ -5608,9 +5608,11 @@ turn each way and fire.
   - Unthrottled, Tempest on the widest field: 0.65 ms at the median and
     1.07 ms at p95, at 126 frames a second; its one worst frame, 142 ms, as
     the run went on.
-  - The median is under the plan's 4 ms each time; the worst frames, those
-    that run many steps to catch up, are over it, as Brick Breaker's were.
-    No chain of blasts or Spread was set up: left for the summary.
+  - The median is under the plan's 4 ms each time, and so is the 95th
+    hundredth but for Tempest at Fast on the widest field, at 4.48 ms; the
+    worst frames, those that run many steps to catch up, are over it, as
+    Brick Breaker's were. No chain of blasts or Spread was set up: left for
+    the summary.
   - 120 Hz can't be emulated here; unthrottled, the frames ran at 123 to
     144 a second on this machine's display, and the clock steps by time,
     not by frame.
@@ -5734,3 +5736,63 @@ turn each way and fire.
      default and where a play stops, the script's header says the run is
      kept a second before the stray, and the guard is a ship's "once it
      first moves".
+
+## A16.2: the skills and the workspace's docs
+
+2026-11-04.
+
+- **Two skills,** in `frontend/games/asteroid-breaker/.agents/skills/`,
+  linked into `.claude/skills/` by `node .agents/link-claude-skills.mjs`:
+  - `asteroid-breaker-testing`: the Vitest setup with headless Phaser
+    first, the coverage floor, fields from pictures, the autopilot and what
+    it holds every wave to, the saved game's specs, the scene on a
+    `FakeShell`, the shell's small waves, the contrast spec, `keptRun()` and
+    the layout check.
+  - `asteroid-breaker-content`: what a wave, a sector, a formation, a kind
+    of rock or a trait, a pickup or its effect, a weapon or a change to
+    Endless takes, the records the compiler holds complete, what the saved
+    game must keep, and the specs and the report that check each.
+  - Their claims were checked against the code as they were written, and
+    two put right then: the effects in play aren't kept, and a wave's id is
+    kebab-case and its own. The review found more in the content skill.
+- **The game's `AGENTS.md`,** written again in Brick Breaker's order: no
+  more "being built" or "so far", and no link to the plan, which A17.2
+  moves. It adds a Layout of every layer's files, The Field, Styling, and
+  the Tests' fixtures, and What It Keeps names all the saved game keeps. Its
+  draft was a subagent's; every backticked path passes the reference check,
+  and the numbers in it were checked against `tuning.ts`, `stepper.ts`,
+  `events.ts` and `field_metrics.ts`.
+- **The browser's toolbar takes the page's color,** as in every other game
+  (`THEME_COLOR_ROLE` in `src/main.ts`), which this game alone had left at
+  the bar's: the draft found it. On a phone the bar stands at the bottom,
+  and the page runs to the top.
+- **The README** says what the game holds and lists every script.
+- **Q5's numbers:** its line now says Tempest's 95th hundredth on the
+  widest field, 4.48 ms, is over the plan's bar, which it had left out.
+- **Its review.** The `AGENTS.md`, the README and `main.ts` held; seven
+  comments on the skills, all taken.
+  1. The content skill didn't say what a sector or a wave more would break:
+     a sector holds ten waves, so a wave takes one's place, and A Sector now
+     lists where the game is written as thirty waves in three sectors, the
+     waves spec, Endless's numbers that are waves of the game and its spec's
+     waves, Endless's chance of a pickup, which is Storm's by name, and
+     "Cleared all thirty".
+  2. A kind's pieces are `splits`, not `pieces`, and its speed was left out.
+  3. What the compiler asks for was wrong both ways: a pickup's frame and a
+     lasting effect's tag are made from the ids, and a trait's rule
+     (`TRAIT_RULES`) and an effect's (`EFFECT_RULES`) went unnamed. The
+     paragraph, the table and the sections say so, the tags lie at the
+     field's bottom left, not over the ship, and the triggers name both.
+  4. The testing skill said an `afterEach` destroys the game: `startBoard()`
+     does as the test finishes, through `onTestFinished`, and a spec that
+     runs `runScene()` itself cleans up after itself.
+  5. Two lines pointed at the plan and this log, which A17.2 moves: the
+     ships' bar is written out, and Endless's numbers are said to carry
+     their own docs.
+  6. A weapon's fields were misnamed, "pace" among them, which is a wave's,
+     and `WEAPONS` holds the gun too, which no pickup gives: its fields are
+     listed as the `AGENTS.md` lists them.
+  7. Smaller: the deck's contrast is its symbols at rest against its
+     buttons and its knob against the stick's base; the scene's flourishes'
+     spec runs the scene too; and this entry no longer says every claim
+     was checked.
