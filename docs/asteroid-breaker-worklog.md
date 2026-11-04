@@ -5645,3 +5645,92 @@ turn each way and fire.
     4. The effect runs again, for nothing, on each resize once the scene
        has laid out, and the observer's first report sets an equal room:
        left, as harmless.
+
+## A16.1: the screenshots
+
+2026-11-04.
+
+- **`keptRun()`** (`src/testing/kept_run.ts`) keeps a run as storage keeps
+  it: begun at a wave, laid out on a field of the shape it names, and
+  played by the autopilot until the wave's first stray is as near as it
+  names. The plan's run: Crowd, wave 9, at Normal, a second before its
+  first stray.
+  - Played, not broken by hand: rocks broken through `hitRock()` where they
+    were laid left their pieces stacked over each other, as no step had
+    flown them apart, and the ship waited at the middle.
+  - The stray: a stray adrift isn't kept, so the run is kept a second
+    before the first comes, which the script waits for after it goes on.
+  - A first try at five seconds in found no stray: the wave's first comes
+    at 12.3 s on this field, so the run says how near its stray is, not how
+    long it was played.
+  - The autopilot plays it in one call, to the step a new option of
+    `playField()`'s names, `untilStep`.
+- **`tools/capture-screenshots.mjs`**, Brick Breaker's adapted:
+  - It opens the game on one page to read the field's shape the board
+    lays out at 1280 × 720 (`--across`, `--down`), keeps the run on it,
+    and takes it up on a second page of its own, so the first page, going
+    away, keeps no run over it.
+  - It presses Resume, holds Space so the ship's first move ends its wait
+    and it fires, waits for "A stray fuzzball drifts in." and then for the
+    ship's guard, which blinks it, to end, and captures. An earlier capture
+    caught the ship mid-blink.
+  - Casino night, at 2×, after Brick Breaker's Midnight blue.
+  - The thumbnail keeps the field whole, and so the bar above it too, as
+    the field, about 2.07 to 1, is wider than the thumbnail.
+  - `capture:screenshots` in `package.json`; the game's `AGENTS.md` says
+    what it does.
+- **`index.html`** names the preview as the link preview, with its size,
+  its alt text and a large card, as Brick Breaker's does.
+- **Checks.** The spec holds the run to being taken up, its shape, its
+  stray's time and its points, an Endless wave, and the throws. Mutants:
+  dropping the check for a wave with no stray, either bound on how near the
+  stray is, or the step `playField()` stops at each fail a spec, as does
+  playing a frame alone. Either half of the last check, that the autopilot
+  reached the step and the run is still in play, survives alone, as the
+  quick wave fails both; both are kept, as one catches a wave cleared on
+  the very step, the other the autopilot's frames running out, which no
+  wave of the game reaches.
+- **Its review.** Seven comments, six taken, one left for later.
+  1. `keptRun()` refused Endless's waves, which the game keeps and takes up,
+     a bound copied from Brick Breaker's levels. Gone: `waveEntryOf()`
+     throws for a wave before the first, and a spec keeps wave 31.
+  2. How near the stray is went unchecked: a lead longer than the wave's
+     start kept a run unbegun, and none sent the stray on the last step. It
+     throws a `RangeError` for either. The spec of the wave the autopilot
+     ends first had reached it only through that misuse: it now plays a
+     quick wave of its own, a small stone, as every written wave outlasts
+     its first stray. In trying it, wave 1 turned out to send no stray at
+     all, so a run on it was kept before a stray that never comes: that
+     throws too. The message said the wave "ended" when the frames could
+     have run out: "stopped short" now.
+  3. The thumbnail cut 43 px off each side of the field: it took its height
+     from the field's and its width from that. It is grown from both now,
+     worked in the capture's pixels and kept on it once rounded, as
+     rounding the two apart overran the capture by a pixel at first.
+  4. The last wait was a bare 1.5 s that cleared the guard by half a
+     second: it is the guard's 2 s, `NEW_SHIP_GUARD_MS`, loaded with the
+     rules, less the run's lead on the stray, and the stray's half second
+     to come in. Whether the stray was said is read as the wait for it
+     ends, not after the wait past it.
+  5. The result's union, written twice, is a `Shot` typedef, and the
+     script's `KeptRun` is `ShownRun`, as it named the spec's input type
+     too. Brick Breaker's script has the same clash: left.
+  6. The run was played a frame a call, which built the autopilot's
+     steering afresh each frame: `playField()` takes `untilStep`, with a
+     spec, and plays it once.
+  7. `thumbRegion()` is in four scripts and Vite's loader in five: left
+     for the summary, as a lift into `@fz/dev`, out of this step.
+
+  And a nit taken: the score's term is matched as written, "Score".
+
+- **Its second review.** Three comments, all taken.
+  1. The guard's time was read from `tuning.ts` unchecked, so a constant
+     renamed would have waited no time at all, the ship mid-blink, without
+     a word: it throws now.
+  2. `untilStep`'s spec played from step 0, where a frame is a step, so a
+     count of frames passed it: it plays the field 60 steps first, and that
+     mutant fails it.
+  3. The docs: `untilStep` and the report's steps say what it does by
+     default and where a play stops, the script's header says the run is
+     kept a second before the stray, and the guard is a ship's "once it
+     first moves".

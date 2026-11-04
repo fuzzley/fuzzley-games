@@ -62,6 +62,8 @@ export const TALLEST: Torus = {
 export interface PlayOptions {
   /** The most frames it plays, a step each once the wave starts, {@link AUTOPILOT_LIMIT} by default. */
   readonly limit?: number;
+  /** The field's step it stops at, if the wave hasn't ended by then, none by default. */
+  readonly untilStep?: number;
   /** Whether nothing can take its ship, so how long a wave takes is told apart from what it costs. */
   readonly invulnerable?: boolean;
 }
@@ -76,7 +78,7 @@ export interface AutopilotOptions extends PlayOptions {
 export interface AutopilotReport {
   /** Whether it cleared the wave within its time, a ship left. */
   readonly cleared: boolean;
-  /** The steps the wave ran, from the first move to its clearing, its last ship's loss or the limit. */
+  /** The steps the wave ran, from the first move to its clearing, its last ship's loss, the limit or the step it was told to stop at. */
   readonly steps: number;
   readonly shipsLost: number;
   /** The strays the wave sent across the field. */
@@ -150,14 +152,14 @@ export function autoplay(
 
 /**
  * Plays a field laid out as a fair player would, as {@link pilot} steers
- * it each frame, until its wave is cleared, its last ship is lost or the
- * limit comes, and returns how it went.
+ * it each frame, until its wave is cleared, its last ship is lost, or the
+ * limit or the step it is told to stop at comes, and returns how it went.
  */
 export function playField(
   field: Field,
   options: PlayOptions = {},
 ): AutopilotReport {
-  const limit = options.limit ?? AUTOPILOT_LIMIT;
+  const { limit = AUTOPILOT_LIMIT, untilStep = Infinity } = options;
   const steer: Steer = { ...STILL };
   let caught = 0;
   let cometsCrossed = 0;
@@ -165,7 +167,11 @@ export function playField(
   let seen = field.events.latest;
   // Frames bound it, not steps, so a wave held still for a first move that
   // never comes still ends; once the wave starts, each frame plays a step.
-  for (let frame = 0; frame < limit && !isDone(field); frame++) {
+  for (
+    let frame = 0;
+    frame < limit && field.steps < untilStep && !isDone(field);
+    frame++
+  ) {
     if (options.invulnerable && field.ship) guardShip(field.ship, STEP_MS);
     pilot(field, steer);
     steerField(field, steer);

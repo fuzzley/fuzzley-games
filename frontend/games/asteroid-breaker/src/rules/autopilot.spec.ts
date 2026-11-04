@@ -145,6 +145,15 @@ describe("the autopilot", () => {
     ]);
   });
 
+  it("stops at the field's step it is told to stop at, counting the steps played before", () => {
+    const field = fieldFrom(["L.L.L", ...SHIP_ALONE.slice(1)]);
+    playField(field, { untilStep: 60 });
+
+    const report = playField(field, { untilStep: 90 });
+
+    expect(report).toMatchObject({ cleared: false, steps: 90 });
+  });
+
   it("stops once its last ship is lost, the wave uncleared", () => {
     const field = doomedField();
 

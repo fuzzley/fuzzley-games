@@ -90,6 +90,19 @@ workspace's with the others'.
   `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the
   same bytes every run; their names and order are the view's `SOUNDS`,
   which the scene's spec holds them to).
+- **Capture Screenshots:** `yarn capture:screenshots` (runs
+  `tools/capture-screenshots.mjs` against the running dev server in headless
+  Chrome, through `@fz/dev/chrome`: it reads the field's shape the board lays
+  out at 1280 × 720, then a run kept by the rules on it (`keptRun()`, in
+  `src/testing/kept_run.ts`), begun on wave 9, Crowd, at Normal and played by
+  the autopilot until a second before its first stray, is taken up and gone on
+  with, firing, until the stray drifts in, at 2× on Casino night, written to
+  `public/docs/screenshots/asteroid-breaker/` as the site's `preview.webp`
+  (2560 × 1440), which `index.html` names as the link preview, and
+  `thumb.webp` (576 × 324, the field whole, with the bar above it, as the
+  field is wider than a thumbnail) by `@fz/dev/screenshots`; `--url` names
+  another server, such as `yarn preview`'s, and `--chrome <path>` or
+  `CHROME_PATH` picks the browser).
 - **Report the Waves:** `yarn report:waves` (runs `tools/report-waves.mjs`:
   the autopilot in `src/testing/autopilot.ts` plays every wave at every
   speed on the narrowest field, or the widest with `--field wide` on its
