@@ -40,13 +40,14 @@ import {
 import { TUNED_GUNNERY } from "./shots";
 import { liesFairly, safestPlace } from "./spawn";
 import { STEP_MS, stepsIn } from "./stepper";
-import { distance } from "./torus";
+import { across } from "./torus";
 import {
   COMET_RADIUS,
   COMET_SPEED,
   FIRST_SHIP_POINTS,
   NEW_SHIP_MS,
   PICKUP_PULL_REACH,
+  ROCK_RADIUS,
   SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
   SHIP_LENGTH,
@@ -320,11 +321,17 @@ describe("fieldFor", () => {
 
   it("lays its rocks out in its formation", () => {
     const field = fieldFor(waveOf({ formation: "ring" }), START);
+    const halfAcross = 36.5 - ROCK_RADIUS.large - 1;
+    const halfDown = 20 - ROCK_RADIUS.large - 1;
 
-    const offs = wholeRocks(field).map((rock) =>
-      distance(field.torus, 36.5, 20, rock.x, rock.y).toFixed(9),
+    const onRing = wholeRocks(field).map((rock) =>
+      (
+        (across(36.5, rock.x, 73) / halfAcross) ** 2 +
+        (across(20, rock.y, 40) / halfDown) ** 2
+      ).toFixed(9),
     );
-    expect(new Set(offs).size).toBe(1);
+
+    expect(new Set(onRing)).toEqual(new Set(["1.000000000"]));
   });
 
   it("breaks its boulders into the kind of rock it names", () => {

@@ -56,11 +56,12 @@ const TWO_STRAYS_FROM = 50;
 /**
  * The most rocks a wave lays in a ring or a cluster, as many as a sector's
  * do: more, on a field grown for them, pack too tight to fly among, so a
- * wave of more is scattered or a wall.
+ * wave of more is scattered or a wall, as a wave of boulders is, which
+ * would lie over the rocks beside them.
  */
 const GATHERED_MOST = 13;
 
-/** The formations a wave of more than {@link GATHERED_MOST} rocks is drawn from. */
+/** The formations a wave of more than {@link GATHERED_MOST} rocks, or of boulders, is drawn from. */
 const SPREAD_FORMATIONS: readonly Formation[] = ["scatter", "wall"];
 
 /** The share of a wave's budget at most spent on iron, its toughest rocks. */
@@ -108,8 +109,8 @@ export function waveToPlay(entry: WaveEntry, seed: number): Wave {
 /**
  * Returns an Endless wave, made from a run's seed and the wave's number: a
  * budget of rocks, one crystal among them and, every tenth wave, boulders;
- * a formation drawn from the four, but a scatter or a wall for more rocks
- * than {@link GATHERED_MOST}; comets in every wave; and its pace, comets
+ * a formation drawn from the four, but a scatter or a wall for boulders or
+ * for more rocks than {@link GATHERED_MOST}; comets in every wave; and its pace, comets
  * and strays by how far into Endless it is.
  *
  * A number before Endless's first makes its first.
@@ -126,7 +127,8 @@ export function endlessWave(seed: number, number: number): Wave {
   const closed = Math.min(1, past / (COMETS_CLOSED_AT - ENDLESS_FROM));
   const rocks = rocksOf(climbed(BUDGET, past), boulders, random);
   const laid = rocks.reduce((sum, each) => sum + each.count, 0);
-  const formations = laid > GATHERED_MOST ? SPREAD_FORMATIONS : FORMATIONS;
+  const formations =
+    boulders > 0 || laid > GATHERED_MOST ? SPREAD_FORMATIONS : FORMATIONS;
   return {
     rocks,
     formation:

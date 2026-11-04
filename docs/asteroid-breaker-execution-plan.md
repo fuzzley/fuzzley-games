@@ -783,8 +783,10 @@ room to spare.
   lodestone's pull toward the waiting ship among it.
 - **A wave lays its rocks out in one of four formations,** every rock of
   it: a scatter, each drawn anywhere far enough off, flying a drawn way; a
-  ring round the ship, as far off as a large rock sits inside the short
-  side, every rock flying along it one way; a wall across the short side,
+  ring round the ship, evenly along an ellipse as long and as wide as the
+  field leaves a large rock inside it, so a larger field's ring, of more
+  rocks, spreads round it rather than packing a circle, every rock flying
+  along it one way; a wall across the short side,
   half the long side off, flying along the long side at one speed, the
   slowest drawn and no faster than keeps the rock in line with the ship
   clear of it, slower still for lodestones until they are fair; and a
@@ -1003,7 +1005,8 @@ met first alone.
     wave 60;
   - **its formation,** drawn from the four, but a scatter or a wall for a
     wave of more than 13 rocks, the most a sector's ring or cluster holds,
-    as more, grown for a larger field, pack too tight to fly among; its
+    as more, grown for a larger field, pack too tight to fly among, and for
+    a wave of boulders, which would lie over the rocks beside them; its
     strays: one a wave, two from wave 50; and its chance of a pickup
     Storm's, 0.06, every pickup among them.
   - **Endless's waves are held to being fair, not to their cost:** the
