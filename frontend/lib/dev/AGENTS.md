@@ -105,43 +105,42 @@ too. Paths are relative to `frontend/lib/dev/`.
   reports (an exception, `console.error`, or the browser's own, such as a
   refused resource), a page that scrolls, a control of the game bar out of the
   window, what is wrong with the check's `board`, where it has one, and what
-  the game's own `inspect()`, run in the page, finds.
-  `checkTurns()` does the same once it has turned the window, as a phone
-  turns, through each of `TURNS` (upright to its side, and back), and given
-  half a second to lay itself out again, which finds what follows a turn late,
-  or not at all. A check's `before()` runs in the page ahead of its own
-  scripts, to set it up as a player might have, such as with a setting stored.
-  `SMALLEST`, a 320 × 480 phone held upright, and `shapesAt()` and
-  `turnsAt()`, which copy shapes and turns at a pixel ratio, are there for a
-  game drawn on a canvas, as Snake and Brick Breaker check theirs at 2×. A
-  check's `board`, a `PhaserBoard`, names a board drawn with Phaser by its
-  element, the attribute that says where the scene drew it, its shape in
-  units, its height read from a custom property of its element where it
-  follows the room it is given, and its placeholder, focus ring and card,
-  and the check holds it as every such board is held: its canvas ready and
-  drawn at its size times the board element's `--pixel-ratio`, the board in
-  its shape and in the window, the placeholder and the ring where the scene
-  drew it, and the card on it. A board with a deck beside it, the zones its
-  canvas draws for a touch screen's thumbs, names that too (`PhaserDeck`):
-  the attribute that lists the zones, each by its name and where it lies on
-  the canvas, the zones it must show, and the least a zone may be across
-  and down; once the page says where the board lies, the check holds each
-  zone named, shown once, on the canvas and in the window, off the board,
-  the other zones and the bar's controls, and at least that size, so a game
-  checks its layout with its deck shown. The game's `inspect()` is then handed where the
-  board lies, a `BoardBox`, for what is its own, such as the least its unit
-  may be. The functions it runs in the page are in `src/layout_page.ts`,
-  which only a browser runs, so coverage leaves it out, and the board's and
-  the deck's inspections, `inspectPhaserBoard()` and `inspectPhaserDeck()`,
-  in `src/board_page.ts`, which its spec runs in jsdom. A game's
-  `tools/check-layout.mjs` holds its inspection and which checks it runs,
-  and hands them to `runLayoutScript()`, which reads the command line
-  (`--chrome`, `--help`), serves the build as `yarn preview` does, runs the
-  checks in a headless Chrome and prints what is wrong, or that the layout
-  holds. It returns the exit code, 1 for a layout that doesn't hold and 2
-  for an option it doesn't know, and throws where it can't check at all,
-  such as for a game with no build, no Chrome to run, or a page that never
-  draws.
+  the game's own `inspect()`, run in the page, finds. `checkTurns()` does the
+  same once it has turned the window, as a phone turns, through each of
+  `TURNS` (upright to its side, and back), and given half a second to lay
+  itself out again, which finds what follows a turn late, or not at all. A
+  check's `before()` runs in the page ahead of its own scripts, to set it up
+  as a player might have, such as with a setting stored. `SMALLEST`, a 320 ×
+  480 phone held upright, and `shapesAt()` and `turnsAt()`, which copy shapes
+  and turns at a pixel ratio, are there for a game drawn on a canvas, as
+  Snake, Brick Breaker and Asteroid Breaker check theirs at 2×. A check's
+  `board`, a `PhaserBoard`, names a board drawn with Phaser by its element,
+  the attribute that says where the scene drew it, its shape in units, its
+  width or its height read from a custom property of its element where it
+  follows the room it is given, and its placeholder, focus ring and card, and
+  the check holds it as every such board is held: its canvas ready and drawn
+  at its size times the board element's `--pixel-ratio`, the board in its
+  shape and in the window, the placeholder and the ring where the scene drew
+  it, and the card on it. A board with a deck beside it, the zones its canvas
+  draws for a touch screen's thumbs, names that too (`PhaserDeck`): the
+  attribute that lists the zones, each by its name and where it lies on the
+  canvas, the zones it must show, and the least a zone may be across and down;
+  once the page says where the board lies, the check holds each zone named,
+  shown once, on the canvas and in the window, off the board, the other zones
+  and the bar's controls, and at least that size, so a game checks its layout
+  with its deck shown. The game's `inspect()` is then handed where the board
+  lies, a `BoardBox`, for what is its own, such as the least its unit may be.
+  The functions it runs in the page are in `src/layout_page.ts`, which only a
+  browser runs, so coverage leaves it out, and the board's and the deck's
+  inspections, `inspectPhaserBoard()` and `inspectPhaserDeck()`, in
+  `src/board_page.ts`, which its spec runs in jsdom. A game's
+  `tools/check-layout.mjs` holds its inspection and which checks it runs, and
+  hands them to `runLayoutScript()`, which reads the command line (`--chrome`,
+  `--help`), serves the build as `yarn preview` does, runs the checks in a
+  headless Chrome and prints what is wrong, or that the layout holds. It
+  returns the exit code, 1 for a layout that doesn't hold and 2 for an option
+  it doesn't know, and throws where it can't check at all, such as for a game
+  with no build, no Chrome to run, or a page that never draws.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),

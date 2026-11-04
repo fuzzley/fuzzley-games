@@ -67,6 +67,23 @@ workspace's with the others'.
   between the layers, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` from their JSDoc).
+- **Check the Layout:** `yarn check:layout` (runs
+  `tools/check-layout.mjs` on the build `yarn build` made: in headless
+  Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
+  small phone, upright and on its side) and at 320 × 480, and turned from
+  upright to its side and back, each at 2×, with the deck shown, as a
+  headless Chrome is no touch screen, the page reports no error and
+  doesn't scroll, the bar's controls lie in the window, and, as
+  `@fz/dev/layout` holds a board drawn with Phaser, the canvas draws at its
+  size times the board's pixel ratio and the field keeps its shape, its
+  units across and down as the board gives them (`--across`, `--down`),
+  inside the window, where the placeholder drew it and inside the focus
+  ring, its card on it; the deck's stick zone and its buttons' each show,
+  on the canvas and in the window, off the field, each other and the bar,
+  112 CSS px across and down at least (`data-deck`); and the field's short
+  side is 40 units, each 6 CSS px or more, and it fills the room the deck
+  and the margin leave it, inside its frame (`data-room`), both ways, or
+  one way where its long side is 88).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the fourteen sounds, from a shot's tick to a wave's
   chime and the thrust's hum, with `@fz/dev/sounds` into

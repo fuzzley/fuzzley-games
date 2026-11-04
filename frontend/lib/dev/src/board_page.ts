@@ -21,8 +21,12 @@ export interface PhaserBoard {
    * `data-field`.
    */
   readonly drawnAt: string;
-  /** The board's width, in its units, such as squares. */
-  readonly across: number;
+  /**
+   * The board's width, in its units, such as squares, or the custom property
+   * of its element that holds it, such as `--across`, for a board whose
+   * width follows its room.
+   */
+  readonly across: number | string;
   /**
    * The board's height, in its units, or the custom property of its element
    * that holds it, such as `--down`, for a board whose height follows its
@@ -112,9 +116,8 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
   if (state !== "ready") problems.push(`The canvas is ${state}, not ready.`);
 
   const shown = canvas.getBoundingClientRect();
-  const ratio = parseFloat(
-    getComputedStyle(element).getPropertyValue("--pixel-ratio"),
-  );
+  const style = getComputedStyle(element);
+  const ratio = parseFloat(style.getPropertyValue("--pixel-ratio"));
   if (!Number.isFinite(ratio)) {
     problems.push(`${board.element} gives no --pixel-ratio.`);
   } else if (
@@ -136,22 +139,28 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
     );
     return { problems };
   }
+  const unitsOf = (units: number | string): number =>
+    typeof units === "number"
+      ? units
+      : parseFloat(style.getPropertyValue(units));
+  const across = unitsOf(board.across);
+  if (!Number.isFinite(across)) {
+    problems.push(`${board.element} gives no ${String(board.across)}.`);
+    return { problems };
+  }
   const box: BoardBox = {
     left: shown.left + x,
     top: shown.top + y,
     width,
     height,
-    unit: width / board.across,
+    unit: width / across,
   };
-  const down =
-    typeof board.down === "number"
-      ? board.down
-      : parseFloat(getComputedStyle(element).getPropertyValue(board.down));
+  const down = unitsOf(board.down);
   if (!Number.isFinite(down)) {
     problems.push(`${board.element} gives no ${String(board.down)}.`);
   } else if (Math.abs(height - box.unit * down) > 0.5) {
     problems.push(
-      `The ${name} is ${width} by ${height} CSS px, not ${board.across} units by ${down}.`,
+      `The ${name} is ${width} by ${height} CSS px, not ${across} units by ${down}.`,
     );
   }
   if (

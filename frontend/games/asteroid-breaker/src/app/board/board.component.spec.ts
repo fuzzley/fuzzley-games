@@ -37,6 +37,8 @@ import {
 import { paintRoles } from "../../testing/roles";
 import {
   type BoardSetting,
+  type PixelRect,
+  deckLayout,
   fieldMetrics,
   fieldShape,
 } from "../../view/field_metrics";
@@ -62,6 +64,17 @@ const ROOMY: BoardSetting = {
 
 /** How the board lays the field out on a compact touch screen, its deck showing. */
 const TOUCH: BoardSetting = { ...ROOMY, marginCss: 12, deck: true };
+
+/** A canvas of 1280 by 720 CSS px, at one device pixel to one, with no insets. */
+const CANVAS_1280: Viewport = {
+  width: 1280,
+  height: 720,
+  pixelRatio: 1,
+  insets: NO_INSETS,
+};
+
+/** A canvas wider than a field of the longest shape fills: 2400 by 720 CSS px, at one device pixel to one. */
+const WIDE_CANVAS: Viewport = { ...CANVAS_1280, width: 2400 };
 
 /** A field of the narrowest shape, the first wave's before the board is measured. */
 const SQUARE = { width: FIELD_SHORT_SIDE, height: FIELD_SHORT_SIDE };
@@ -138,6 +151,11 @@ function fieldOn(
     insets,
   };
   return fieldMetrics(canvas, board, fieldShape(canvas, board, SQUARE)).css;
+}
+
+/** Returns a rectangle on a canvas at one device pixel to a CSS pixel as the layout check reads it: "x y width height". */
+function wordsOf({ x, y, width, height }: PixelRect): string {
+  return `${String(x)} ${String(y)} ${String(width)} ${String(height)}`;
 }
 
 /** Returns the styles that lay an element over a rectangle, as the board writes them. */
@@ -372,6 +390,16 @@ describe("BoardComponent", () => {
         placedOver(
           fieldOn(1280, 720, ROOMY, { pixelRatio: canvasPixelRatio(2) }),
         ),
+      );
+    });
+
+    it("publishes the pixel ratio it lays the empty field out at, as the canvas renders at", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+
+      const { board } = await renderBoard();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe(
+        String(canvasPixelRatio(2)),
       );
     });
 
@@ -848,6 +876,74 @@ describe("BoardComponent", () => {
         width: `${String(width)}px`,
         height: `${String(height)}px`,
       });
+    });
+
+    it("publishes the field's shape in its units as the scene laid it out, its short side 40", async () => {
+      const { board, detectChanges } = await runBoardScene({
+        width: 1280,
+        height: 720,
+      });
+
+      detectChanges();
+
+      const [, , width = 0, height = 0] = (board.dataset["field"] ?? "")
+        .split(" ")
+        .map(Number);
+      const across = Number(board.style.getPropertyValue("--across"));
+      const down = Number(board.style.getPropertyValue("--down"));
+      expect({
+        unit: height / down,
+        short: Math.min(across, down),
+      }).toEqual({
+        unit: expect.closeTo(width / across, 6) as unknown,
+        short: FIELD_SHORT_SIDE,
+      });
+    });
+
+    it("publishes the room the scene laid the field out in, inside its frame, wider than a field of the longest shape", async () => {
+      const { board, game, detectChanges } = await runBoardScene({
+        width: WIDE_CANVAS.width,
+        height: WIDE_CANVAS.height,
+      });
+
+      detectChanges();
+
+      const { room } = fieldMetrics(
+        WIDE_CANVAS,
+        ROOMY,
+        game.frame().field.torus,
+      );
+      expect(board.dataset["room"]).toBe(wordsOf(room));
+    });
+
+    it("publishes where the deck's zones lie, by their names, where the deck shows", async () => {
+      const { board, game, run, detectChanges } = await runBoardScene({
+        width: 1280,
+        height: 720,
+      });
+
+      useSettings({ deck: "always" });
+      run.advance(FRAME_MS);
+      run.advance(FRAME_MS);
+      detectChanges();
+
+      const deck = deckLayout(
+        CANVAS_1280,
+        { ...ROOMY, deck: true },
+        game.frame().field.torus,
+      );
+      if (!deck) throw new Error("The deck shows on a canvas of 1280 by 720.");
+      expect(board.dataset["deck"]).toBe(
+        `stick ${wordsOf(deck.stick)}, buttons ${wordsOf(deck.buttons)}`,
+      );
+    });
+
+    it("publishes no deck where it doesn't show", async () => {
+      const { board, detectChanges } = await runBoardScene();
+
+      detectChanges();
+
+      expect(board.dataset["deck"]).toBeUndefined();
     });
 
     it("hands the game the room the scene laid the field out in", async () => {

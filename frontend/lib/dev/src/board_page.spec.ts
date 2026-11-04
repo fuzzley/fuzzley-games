@@ -360,6 +360,29 @@ describe("inspectPhaserBoard", () => {
     ]);
   });
 
+  it("reads a board's width from a custom property of its element", () => {
+    lay(FITTING);
+    element("app-board").style.setProperty("--across", "13");
+
+    const { problems, box } = inspectPhaserBoard({
+      ...FIELD,
+      across: "--across",
+    });
+
+    expect({ problems, unit: box?.unit }).toEqual({
+      problems: ["The field is 260 by 300 CSS px, not 13 units by 30."],
+      unit: 20,
+    });
+  });
+
+  it("reports a board whose element gives no width where its description says, and where it lies none", () => {
+    lay(FITTING);
+
+    const inspection = inspectPhaserBoard({ ...FIELD, across: "--across" });
+
+    expect(inspection).toEqual({ problems: ["app-board gives no --across."] });
+  });
+
   it("reports a board whose element gives no height where its description says", () => {
     lay(FITTING);
 

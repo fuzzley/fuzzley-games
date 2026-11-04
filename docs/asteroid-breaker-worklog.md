@@ -5514,3 +5514,59 @@ a 390 × 844 phone at 3× with touch, and 2560 × 1440.
   and haptics can't be heard or felt in a headless page; their settings
   hold. The strays a larger field grows to mostly go unsent, as A13.3
   logged: for the summary, not changed here.
+
+## A15.1: the layout check
+
+2026-11-04.
+
+- **`tools/check-layout.mjs`**, Brick Breaker's adapted: the build at
+  `@fz/dev/layout`'s shapes and at 320 × 480, and turned, each at 2×, the
+  deck set to show by `before()`, since a headless Chrome is no touch
+  screen. The field is inspected as a board drawn with Phaser, its shape
+  read from the board's `--across` and `--down`, which the board sets
+  from the torus the scene last laid out, and the deck by its zones,
+  which the board writes in `data-deck`, in CSS pixels, from the same
+  `deckLayout()` the scene draws it by. The script's own `inspect` holds
+  the field's short side to 40 units and its unit to 6 CSS px or more.
+- **`@fz/dev/layout` takes a board's width from a custom property** as it
+  did its height, as a field that follows its room has no fixed width
+  either, and says so when the element gives none.
+- **It holds** at every shape and turn. The smallest phone's unit is 6.4
+  CSS px, the least of them. Mutants: a deck zone's least raised past its
+  size, the unit floor raised to 7, and the pixel ratio dropped from the
+  zones' sizes each fail the check, the last by the zones running off the
+  canvas at 2×, which the board's specs, at a ratio of 1, can't see.
+- **Review.** No bugs; four comments, all taken. Comments 1 and 2 reshape
+  the change, so it had a second review.
+  1. The board's specs passed with its zones wrong and its ratio a
+     constant: the deck's spec read only the zones' names, and the ratio
+     was checked at 1, jsdom's. The deck's spec holds `data-deck` to
+     `deckLayout()`'s zones on a canvas of 1280 by 720, and the ratio's,
+     among the placeholder's, to `canvasPixelRatio(2)` at two device pixels
+     to one.
+  2. Nothing held the field to filling its room, as the plan asks: a field
+     stuck at 40 by 40 passed, its shape, short side and unit read from the
+     torus itself, and the placeholder placed where the scene drew. The
+     field's metrics give the room it lies in, inside its frame
+     (`FieldMetrics.room`), the board publishes it (`data-room`), and the
+     check holds the field to filling it both ways, to a CSS pixel, or one
+     way where its long side is 88. A build whose field kept 40 by 40
+     fails it at every shape, by 18 to 201 CSS px.
+  3. `frontend/AGENTS.md` didn't say the deck is checked, nor that
+     Asteroid Breaker's check turns the phone, and `@fz/dev`'s didn't name
+     it among the games checked at 2×, its paragraph left ragged. All
+     three say so, the paragraph reflowed.
+  4. Nits, all taken: one signal holds the field, its room, its shape and
+     the deck's zones as the scene laid them out, in CSS pixels, so they
+     can't drift apart; the torus can't be missing, so no `?.` on it; the
+     board's inspection reads the element's style once; and the check
+     compares the short side to 40 plainly, naming the constants it
+     copies.
+- **Second review.** The four answered; three points, all taken. The check
+  first let the field leave less than a unit of its room along its long
+  side, where a field shaped for its room, its long side a fraction of a
+  unit, fills it both ways: it holds both to a CSS pixel now, and the
+  room's doc, the script's and `AGENTS.md` say so. The metrics' new spec
+  repeated the one above it but for the room grown by the frame being the
+  field's room, which it keeps alone. And `Laid`'s doc said its torus was
+  in CSS pixels; it says its rectangles are.
