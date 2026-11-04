@@ -83,6 +83,23 @@
     <span class="btn-text">{{ pauseButton().label }}</span>
   </button>
 
+  <!--
+    A block apiece: the bar takes a block's element among its actions only
+    while it is the block's one element.
+  -->
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="Sectors"
+      title="Sectors"
+      (click)="openSectors.emit()"
+    >
+      <fz-icon name="grid" />
+    </button>
+  }
+
   <button
     fzBarActions
     type="button"
@@ -94,15 +111,11 @@
     <span class="btn-text">New game</span>
   </button>
 
-  <!--
-    A block apiece: the bar takes a block's element among its actions only
-    while it is the block's one element.
-  -->
   @if (viewport.isCompact()) {
     <fz-bar-overflow
       fzBarActions
       [items]="overflowItems()"
-      (choose)="openSettings.emit()"
+      (choose)="chooseFromMenu($event)"
     />
   }
 

@@ -161,6 +161,64 @@ describe("AppComponent", () => {
     });
   });
 
+  describe("the sectors", () => {
+    it("open from the bar", async () => {
+      await renderApp();
+
+      await userEvent.click(screen.getByRole("button", { name: "Sectors" }));
+
+      expect(screen.getByRole("dialog", { name: "Sectors" })).toBeVisible();
+    });
+
+    it("hand the board the focus back as they close", async () => {
+      await renderApp();
+      await userEvent.click(screen.getByRole("button", { name: "Sectors" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Close sectors" }),
+      );
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("open from the result card, which goes away", async () => {
+      const game = await endedApp();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Choose a sector" }),
+      );
+
+      expect(screen.getByRole("dialog", { name: "Sectors" })).toBeVisible();
+      expect(game.resultOpen()).toBe(false);
+    });
+
+    it("take the focus from the result card they open from", async () => {
+      await endedApp();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Choose a sector" }),
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Close sectors" }),
+      ).toHaveFocus();
+    });
+
+    it("hand the board the focus as a run begins from them", async () => {
+      const game = await endedApp();
+      await userEvent.click(
+        screen.getByRole("button", { name: "Choose a sector" }),
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: /^Specs/ }));
+      await settle();
+
+      expect(game.outcome()).toBe("ready");
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
   describe("the settings", () => {
     it("open from the bar", async () => {
       await renderApp();

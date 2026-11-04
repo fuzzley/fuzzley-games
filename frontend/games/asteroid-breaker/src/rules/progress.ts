@@ -4,21 +4,31 @@
 import { knownIdsOf } from "@fz/core/json";
 import type { WaveEntry } from "./waves";
 
-/** Describes a sector as a run may start at it: its id, its name and its first wave's number. */
-export interface SectorStart {
+/** Describes the waves a sector spans: its id, its name, and its first and last waves' numbers. */
+export interface SectorSpan {
   readonly id: string;
   readonly name: string;
   readonly firstWave: number;
+  readonly lastWave: number;
 }
 
-/** Returns each sector of the waves, in the order played, with the number of its first wave. */
-export function sectorStarts(waves: readonly WaveEntry[]): SectorStart[] {
-  const starts: SectorStart[] = [];
+/** Returns each sector of the waves, in the order played, with the numbers of its first and last waves. */
+export function sectorSpans(waves: readonly WaveEntry[]): SectorSpan[] {
+  const spans: SectorSpan[] = [];
   for (const { number, sector } of waves) {
-    if (starts.at(-1)?.id === sector.id) continue;
-    starts.push({ id: sector.id, name: sector.name, firstWave: number });
+    const last = spans.at(-1);
+    if (last?.id === sector.id) {
+      spans[spans.length - 1] = { ...last, lastWave: number };
+    } else {
+      spans.push({
+        id: sector.id,
+        name: sector.name,
+        firstWave: number,
+        lastWave: number,
+      });
+    }
   }
-  return starts;
+  return spans;
 }
 
 /** Returns whether a run may start at a sector: the first, or one a run has reached. */

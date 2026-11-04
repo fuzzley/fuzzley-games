@@ -9,11 +9,21 @@
   </div>
 </main>
 
-<app-bar (openSettings)="settingsOpen.set(true)" (handBack)="board.focus()" />
+<app-bar
+  (openSectors)="sectorsOpen.set(true)"
+  (openSettings)="settingsOpen.set(true)"
+  (handBack)="board.focus()"
+/>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
-<app-result />
+<!--
+  The result card before the sectors: its Choose a sector puts it away as it
+  opens them, and the dialogs open and close in this order, so the card gives
+  the focus back before the sectors take it.
+-->
+<app-result (chooseSector)="sectorsOpen.set(true)" />
+<app-sectors [open]="sectorsOpen()" (closed)="sectorsOpen.set(false)" />
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <fz-confirm-dialog />

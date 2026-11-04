@@ -24,6 +24,7 @@ import { ResultComponent } from "./result.component";
 interface RenderedResult {
   readonly user: UserEvent;
   readonly game: GameService;
+  readonly chooseSector: ReturnType<typeof vi.fn>;
   readonly detectChanges: () => void;
 }
 
@@ -32,14 +33,17 @@ async function renderAt(
   wave: number,
   waves?: readonly WaveEntry[],
 ): Promise<RenderedResult> {
+  const chooseSector = vi.fn();
   const { fixture } = await render(ResultComponent, {
     providers: provideSpecWaves(waves),
+    on: { chooseSector },
   });
   const game = TestBed.inject(GameService);
   await game.startAt(wave);
   return {
     user: userEvent.setup(),
     game,
+    chooseSector,
     detectChanges: () => {
       fixture.detectChanges();
     },
@@ -191,6 +195,20 @@ describe("ResultComponent", () => {
     await renderLost();
 
     expect(screen.getByRole("heading", { name: "Game over" })).toHaveFocus();
+  });
+
+  it("puts the card away, and asks for the sectors", async () => {
+    const { user, game, chooseSector } = await renderLost();
+
+    await user.click(screen.getByRole("button", { name: "Choose a sector" }));
+
+    expect({
+      open: game.resultOpen(),
+      asked: chooseSector.mock.calls.length,
+    }).toEqual({
+      open: false,
+      asked: 1,
+    });
   });
 
   it("puts the card away to look at the board", async () => {

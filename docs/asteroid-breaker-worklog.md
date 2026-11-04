@@ -4418,3 +4418,64 @@ it does.
   and the helper: all caught. In Chrome, on a dev server of this worktree's
   Brick Breaker: the pictures' column 48 px, each line at least 24 px, the
   words muted and the names in the text's color, each heading as before.
+
+## A10.2.3: the Sectors dialog
+
+2026-11-04.
+
+- **Built.**
+  - `src/app/sectors/`: the Sectors dialog, as Brick Breaker's Levels
+    dialog is: each sector a tile, its name, its waves ("Waves 1 to 5",
+    or "Wave 6" for a sector of one) and its best at the speed in play, or
+    "Locked" until a run reaches it, the sector of the wave on the board
+    marked. Choosing an open one starts a run at its first wave, asking
+    first if a run is under way, and closes once it has; backing out
+    leaves it open.
+  - `sectorStarts()` gives each sector's last wave as well as its first.
+  - The bar's Sectors, a round button before New game, in the overflow
+    menu on a compact screen; the result card's Choose a sector, which
+    puts the card away and opens the dialog.
+  - The page holds the dialog and gives the board the focus back as it
+    closes.
+- **Choices.**
+  - **A list, not a grid,** as the game has three sectors and Endless,
+    where Brick Breaker has dozens of levels in sets.
+  - **The sector of the wave on the board is the one marked,** as Brick
+    Breaker marks the level on the board, rather than the one the run
+    started in.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on the dev server,
+  restarted again, as it stops serving the components' stylesheets once
+  new component files come in while it runs: 1280 × 800, the dialog with
+  the one sector so far, marked; 360 × 640 at 2× with touch, Sectors in
+  the overflow menu beside Settings, the dialog inside the window.
+- **Review.** Nothing broken; seven comments, six taken now and one in a
+  commit of its own next.
+  1. No spec started a run at a sector of more than one wave, so starting
+     one at its last wave passed. The specs' far sector has two waves, and
+     a run chosen there starts at its first.
+  2. The tiles' styles are Brick Breaker's Levels tiles', line for line.
+     Lifted next, into `@fz/style` beside `choice-tile`, as the lifts
+     before were.
+  3. The dialog took the focus from the result card only because the card
+     comes first in the page, so its dialog gives the focus back before
+     the sectors' takes it. A comment says so, and a spec holds the focus
+     on the dialog's close button as it opens from the card.
+  4. A spec helper found the tiles by their class. It finds them by role,
+     in the dialog's list.
+  5. A list with no markers is no list to Safari's VoiceOver. It has
+     `role="list"`.
+  6. The dialog's `wavesOf()` shared its name with the rules' wave
+     builder, and `sectorStarts()` gave each sector's last wave too. They
+     are `wavesInWords()` and `sectorSpans()`.
+  7. The game's `AGENTS.md` left Sectors out of the bar, and the card's
+     Choose a sector sat among its computeds. Both fixed.
+
+  These correct the change rather than reshape it, so it had no second
+  review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (2,929),
+  `yarn prettier:check` and the skill references. 12 mutants of the
+  dialog, the sectors' waves, the bar, the card and the page: all caught
+  but the board's taking the focus back as the dialog closes, which no
+  case held; one does now. The review's two, the last wave and the
+  dialogs' order: caught now.

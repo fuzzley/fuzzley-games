@@ -29,7 +29,7 @@ const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
 }));
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "settings";
+type MenuAction = "sectors" | "settings";
 
 /** Describes the Pause button as the wave stands. */
 interface PauseButton {
@@ -51,8 +51,8 @@ interface PauseButton {
  * number beside the pilot at the controls, since a score runs to six
  * figures.
  *
- * On a compact screen, Pause and New game stay, and Settings moves into the
- * overflow menu, as on the narrowest the link home does too.
+ * On a compact screen, Pause and New game stay, and Sectors and Settings
+ * move into the overflow menu, as on the narrowest the link home does too.
  */
 @Component({
   selector: "app-bar",
@@ -74,6 +74,9 @@ interface PauseButton {
 export class BarComponent {
   protected readonly game = inject(GameService);
   protected readonly viewport = inject(GameViewportService);
+
+  /** Emitted when the player asks for the sectors, to start at one. */
+  readonly openSectors = output();
 
   /** Emitted when the player asks for the settings. */
   readonly openSettings = output();
@@ -122,6 +125,7 @@ export class BarComponent {
     readonly BarOverflowItem<MenuAction>[]
   >(() => {
     const actions: readonly BarOverflowAction<MenuAction>[] = [
+      { id: "sectors", label: "Sectors", icon: "grid" },
       { id: "settings", label: "Settings", icon: "settings" },
     ];
     return this.viewport.barHome() === "none"
@@ -159,5 +163,17 @@ export class BarComponent {
   /** Starts a new run, asking first. */
   protected newGame(): void {
     void this.game.newGame();
+  }
+
+  /** Carries out the action chosen from the overflow menu. */
+  protected chooseFromMenu(id: MenuAction): void {
+    switch (id) {
+      case "sectors":
+        this.openSectors.emit();
+        break;
+      case "settings":
+        this.openSettings.emit();
+        break;
+    }
   }
 }
