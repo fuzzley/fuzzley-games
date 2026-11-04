@@ -38,6 +38,53 @@
       "name": "Hail",
       "pace": 1.04,
       "rocks": [{ "kind": "ice", "size": "large", "count": 4 }]
+    },
+    {
+      "id": "scatter",
+      "name": "Scatter",
+      "pace": 1.05,
+      "pickups": ["lance", "magnet"],
+      "rocks": [
+        { "kind": "stone", "size": "medium", "count": 14 },
+        { "kind": "crystal", "size": "medium", "count": 2 }
+      ]
+    },
+    {
+      "id": "crossing",
+      "name": "Crossing",
+      "pace": 1.06,
+      "formation": "wall",
+      "rocks": [
+        { "kind": "stone", "size": "large", "count": 4 },
+        { "kind": "ice", "size": "large", "count": 2 }
+      ]
+    },
+    {
+      "id": "frost",
+      "name": "Frost",
+      "pace": 1.065,
+      "pickups": ["slow"],
+      "rocks": [
+        { "kind": "ice", "size": "large", "count": 4 },
+        { "kind": "crystal", "size": "large", "count": 1 }
+      ]
+    },
+    {
+      "id": "crowd",
+      "name": "Crowd",
+      "pace": 1.07,
+      "pickups": ["nova"],
+      "rocks": [{ "kind": "stone", "size": "large", "count": 9 }]
+    },
+    {
+      "id": "boulder",
+      "name": "Boulder",
+      "pace": 1.08,
+      "rocks": [
+        { "kind": "boulder", "size": "boulder", "count": 1 },
+        { "kind": "stone", "size": "large", "count": 4 },
+        { "kind": "ice", "size": "large", "count": 2 }
+      ]
     }
   ]
 }

@@ -936,11 +936,14 @@ for a field of 40 by 40; a larger field has more, by its area.
 | 3   | Adrift      | 4 large stone                         | The first stray to bring home               |
 | 4   | Thaw        | 2 large ice, 2 large stone            | Ice                                         |
 | 5   | Hail        | 4 large ice                           | An extra ship can drop                      |
-| 6   | Scatter     | 8 medium stone, 2 medium crystal      | Many small targets; Lance and Magnet        |
-| 7   | Crossing    | 3 large stone, 2 large ice, in a wall | A wall that sweeps across                   |
+| 6   | Scatter     | 14 medium stone, 2 medium crystal     | Many small targets; Lance and Magnet        |
+| 7   | Crossing    | 4 large stone, 2 large ice, in a wall | A wall that sweeps across                   |
 | 8   | Frost       | 4 large ice, 1 large crystal          | Slow                                        |
-| 9   | Crowd       | 6 large stone                         | Nova                                        |
-| 10  | Boulder     | 1 boulder, 2 large stone              | The sector's test                           |
+| 9   | Crowd       | 9 large stone                         | Nova                                        |
+| 10  | Boulder     | 1 boulder, 4 large stone, 2 large ice | The sector's test                           |
+
+Scatter, Frost and Crowd let only the pickups they bring come, so each is
+met first alone.
 
 **Sector 2, Iron reach** (pace 1.08 to 1.16)
 
