@@ -35,6 +35,9 @@ export class SpritePlayer<Name extends string> {
   /** The sounds held, each looping until it is let go, by name. */
   private readonly heldSounds = new Map<Name, Sound.BaseSound>();
 
+  /** How a risen sound is played, made once and changed for each: Phaser copies it as the sound starts. */
+  private readonly risen: Types.Sound.SoundConfig = { detune: 0 };
+
   constructor(
     private readonly scene: Scene,
     private readonly sprite: SoundSprite<Name>,
@@ -79,6 +82,18 @@ export class SpritePlayer<Name extends string> {
       this.scene.sound.playAudioSprite(this.sprite.key, name, config);
     }
   }
+
+  /**
+   * Plays a sound risen by some cents, through `play()`.
+   *
+   * It is a function made once, so a scene hands it to
+   * `FrameSounds.playEach()` each frame making no function or config of its
+   * own.
+   */
+  readonly playRisen = (name: Name, detune: number): void => {
+    this.risen.detune = detune;
+    this.play(name, this.risen);
+  };
 
   /**
    * Loops a sound while it is held and stops it once it is let go, as a key

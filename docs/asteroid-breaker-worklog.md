@@ -4661,3 +4661,43 @@ Breaker's line for line.
   `yarn prettier:check` and the skill references. 14 mutants of the first
   run's speed, the speed kept, the haptics, the board's settings, the
   drawer's speed, haptics and palette: all caught.
+
+## A10: done
+
+2026-11-04. `yarn verify` passed on A10.2.5's commit, `fda25a6c`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 2,964
+tests among them.
+
+## Lift: a frame's sounds, played risen
+
+2026-11-04. The A11.1 review's fourth comment: each scene kept a reused
+sound config and a function to play a frame's sounds risen through it, line
+for line Brick Breaker's.
+
+- **Built.** `@fz/phaser/sound`'s `SpritePlayer.playRisen(name, detune)`,
+  which plays a sound risen by some cents through `play()`, a function made
+  once with its own reused config, so a scene hands it to
+  `FrameSounds.playEach()` each frame making nothing. `@fz/phaser` keeps no
+  dependency on `@fz/core`: the scene hands the function to the frame's
+  sounds rather than the sounds to the player. Brick Breaker's scene takes
+  it. Its `AGENTS.md` and the `phaser-core` skill say so.
+- **Review.** Nothing broken, Brick Breaker's sounds and their rise as
+  before, the reused config safe as Phaser copies it as a sound starts; four
+  comments, all taken.
+  1. The spec called it as a method and only where sound was wanted. It
+     calls it detached, as `playEach()` does, and a case holds it silent
+     while the player wants no sound.
+  2. Brick Breaker's specs watch `play()`, which the scene no longer calls
+     itself. That `playRisen()` plays through `play()` is its doc's
+     contract now.
+  3. Its doc comment opened with two sentences. It opens with one, and it
+     sits beside `play()`.
+  4. The library's guide left a line unwrapped, and the skill had the
+     player gather a frame's sounds. The line is wrapped, and the skill says
+     the scene hands the function to `FrameSounds.playEach()`.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** `@fz/phaser`'s and Brick Breaker's `lint`, `typecheck` and
+  `test`, `yarn prettier:check` and the skill references. 3 mutants of the
+  rise, the config handed on and Brick Breaker's frame: all caught.

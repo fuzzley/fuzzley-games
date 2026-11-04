@@ -60,6 +60,31 @@ describe("SpritePlayer", () => {
     expect(play).toHaveBeenCalledWith(SPRITE.key, "pong", { detune: 200 });
   });
 
+  it("plays a sound risen by some cents, for a frame's sounds", async () => {
+    const scene = await startScene();
+    const player = new SpritePlayer(scene, SPRITE);
+    cacheSprite(scene);
+    player.follow(true);
+    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const { playRisen } = player;
+
+    playRisen("ping", 300);
+
+    expect(play).toHaveBeenCalledWith(SPRITE.key, "ping", { detune: 300 });
+  });
+
+  it("plays nothing risen while the player wants no sound", async () => {
+    const scene = await startScene();
+    const player = new SpritePlayer(scene, SPRITE);
+    cacheSprite(scene);
+    player.follow(false);
+    const play = vi.spyOn(scene.sound, "playAudioSprite");
+
+    player.playRisen("ping", 300);
+
+    expect(play).not.toHaveBeenCalled();
+  });
+
   it("plays nothing before the sprite is in the cache", async () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
