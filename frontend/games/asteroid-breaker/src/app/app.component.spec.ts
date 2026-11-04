@@ -1,3 +1,4 @@
+import { inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
@@ -7,12 +8,19 @@ import {
   provideFakePhaserCanvas,
   runScene,
 } from "@fz/phaser/testing";
+import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { fieldFor } from "../rules/field";
+import { createRun, startWave, waveStart } from "../rules/run";
+import { saveGame } from "../rules/saved_game";
 import { STILL } from "../rules/ship";
+import { FIELD_SHORT_SIDE } from "../rules/tuning";
+import { parseWave, waveEntryOf } from "../rules/waves";
 import {
   FRAME_MS,
   SPEC_WAVE,
+  SPEC_WAVES,
   endRun,
   playUntil,
   provideSpecWaves,
@@ -21,6 +29,7 @@ import {
 import { paintRoles } from "../testing/roles";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
+import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
 
 /** Renders the game on a fake canvas, and waits for its scene to be drawn. */
 async function renderApp(): Promise<GameService> {
@@ -46,6 +55,44 @@ async function endedApp(): Promise<GameService> {
   playUntil(game, () => STILL, game.resultOpen);
   await settle();
   return game;
+}
+
+/** Stores a run just begun on the Gift wave, as a player's browser would hold it. */
+function storeRun(): void {
+  const run = startWave(
+    createRun({ id: 1, seed: 1, speed: "normal", wave: SPEC_WAVE.gift }),
+  );
+  const field = fieldFor(parseWave(waveEntryOf(SPEC_WAVES, run.wave)), {
+    ...waveStart(run),
+    torus: { width: FIELD_SHORT_SIDE, height: FIELD_SHORT_SIDE },
+    speed: run.speed,
+    held: STILL,
+  });
+  const saved = saveGame(run, field, SPEC_WAVES, {
+    broughtHome: [],
+    tuned: false,
+  });
+  localStorage.setItem(
+    SAVED_GAME_KEY,
+    JSON.stringify({ version: 1, ...saved }),
+  );
+}
+
+/**
+ * Renders the game as `main.ts` starts it, taking up the run stored, on fake
+ * timers, so the live region waits until a spec moves them on.
+ */
+async function renderTakingUp(): Promise<void> {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  await render(AppComponent, {
+    providers: [
+      provideFakePhaserCanvas(),
+      ...provideSpecWaves(),
+      provideAppInitializer(() => {
+        inject(SavedGameService);
+      }),
+    ],
+  });
 }
 
 /** Lets the board take the focus it was handed after the next render. */
@@ -117,6 +164,36 @@ describe("AppComponent", () => {
     setVisibility("visible");
 
     expect(game.outcome()).toBe("playing");
+  });
+
+  describe("a run taken up", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("shows the run stored, paused, over the board", async () => {
+      storeRun();
+
+      await renderTakingUp();
+
+      expect(
+        within(screen.getByRole("main")).getByRole("button", {
+          name: "Resume",
+        }),
+      ).toBeVisible();
+    });
+
+    it("says where it stands, once the live region has been in the page a moment", async () => {
+      storeRun();
+      await renderTakingUp();
+
+      vi.advanceTimersByTime(ARRIVAL_MS);
+      TestBed.tick();
+
+      expect(document.querySelector("fz-announcer")).toHaveTextContent(
+        "Your last run is paused on wave 2, Gift, with a score of 0 and 3 ships. Press Enter to go on.",
+      );
+    });
   });
 
   describe("turning the screen", () => {

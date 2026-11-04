@@ -5,6 +5,7 @@ import {
   describeEvent,
   describePause,
   describeResume,
+  describeTakenUp,
   describeWave,
   whereLost,
 } from "./describe";
@@ -169,6 +170,16 @@ describe("describePause", () => {
 describe("describeResume", () => {
   it("says the run goes on", () => {
     expect(describeResume()).toBe("Going on.");
+  });
+});
+
+describe("describeTakenUp", () => {
+  it("says the wave the run is paused on, its score, its ships, and how to go on", () => {
+    const run = { ...runAt(4, 9_020), crew: crewOf([0, 3]) };
+
+    expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
+      "Your last run is paused on wave 4, Thaw, with a score of 9,020 and 2 ships. Press Enter to go on.",
+    );
   });
 });
 

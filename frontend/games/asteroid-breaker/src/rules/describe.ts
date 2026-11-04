@@ -63,6 +63,11 @@ export function describeResume(): string {
   return "Going on.";
 }
 
+/** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
+export function describeTakenUp(run: Run, entry: WaveEntry): string {
+  return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(run.crew.flying.length, "ship", "ships")}. Press Enter to go on.`;
+}
+
 /** Returns where a run was lost: the wave its last ship went down on. */
 export function whereLost(run: Run): string {
   return `Lost on wave ${String(run.wave)}`;
