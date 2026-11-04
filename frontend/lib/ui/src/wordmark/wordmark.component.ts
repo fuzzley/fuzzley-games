@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { FUZZBALL } from "@fz/style/fuzzball";
+import { FuzzballComponent } from "../fuzzball";
 
 /**
  * Sets the "Fuzzley Games" name in its own type, after the fuzzball in the
@@ -10,9 +10,8 @@ import { FUZZBALL } from "@fz/style/fuzzball";
  */
 @Component({
   selector: "fz-wordmark",
+  imports: [FuzzballComponent],
   templateUrl: "./wordmark.component.html",
   styleUrl: "./wordmark.component.scss",
 })
-export class WordmarkComponent {
-  protected readonly mark = FUZZBALL;
-}
+export class WordmarkComponent {}

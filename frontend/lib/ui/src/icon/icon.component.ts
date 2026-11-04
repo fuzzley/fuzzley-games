@@ -3,6 +3,7 @@ import { Component, computed, input } from "@angular/core";
 /** The icons the library draws, by name. */
 export const ICON_NAMES = [
   "apple",
+  "asteroid",
   "back",
   "bricks",
   "bug",

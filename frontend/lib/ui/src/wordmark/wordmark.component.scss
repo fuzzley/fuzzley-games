@@ -13,17 +13,7 @@
 }
 
 .mark {
-  flex: none;
   width: 1.3em;
   height: 1.3em;
-}
-
-.body {
-  fill: var(--fz-accent);
-}
-
-.fur {
-  fill: none;
-  stroke: var(--fz-accent);
-  stroke-linecap: round;
+  color: var(--fz-accent);
 }

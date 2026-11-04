@@ -19,9 +19,12 @@ import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { STILL } from "../../rules/ship";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
+import type { WaveEntry } from "../../rules/waves";
 import {
   FRAME_MS,
   SPEC_WAVE,
+  STRAY_WAVES,
+  bringStraysHome,
   clearToNext,
   endRun,
   loseShip,
@@ -147,7 +150,10 @@ function placedOver(rect: CssRect): Record<string, string> {
 }
 
 /** Renders the board beside a button outside it, on a fake canvas. */
-async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
+async function renderBoard(
+  options: FakeCanvasOptions = {},
+  waves?: readonly WaveEntry[],
+): Promise<{
   board: HTMLElement;
   component: BoardComponent;
   game: GameService;
@@ -158,7 +164,7 @@ async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
     `<app-board /><button type="button">Elsewhere</button>`,
     {
       imports: [BoardComponent],
-      providers: [provideFakePhaserCanvas(options), ...provideSpecWaves()],
+      providers: [provideFakePhaserCanvas(options), ...provideSpecWaves(waves)],
     },
   );
   return {
@@ -485,29 +491,6 @@ describe("BoardComponent", () => {
 
         expect(screen.getByText(words)).toBeInTheDocument();
       });
-
-      it("offer the settings over a wave waiting for its first move", async () => {
-        const { component } = await renderBoard();
-        const asked = vi.fn();
-        component.openSettings.subscribe(asked);
-
-        await userEvent.click(screen.getByRole("button", { name: "Settings" }));
-
-        expect(asked).toHaveBeenCalledOnce();
-      });
-
-      it("keep the keys on the Ready card's Settings from the board", async () => {
-        const { board } = await renderBoard();
-        const heard = vi.fn();
-        board.addEventListener("keydown", heard);
-
-        fireEvent.keyDown(
-          screen.getByRole("button", { name: "Settings" }),
-          SPACE,
-        );
-
-        expect(heard).not.toHaveBeenCalled();
-      });
     });
 
     it("say the ship fires by itself, where the settings have it", async () => {
@@ -519,26 +502,6 @@ describe("BoardComponent", () => {
       expect(
         screen.getByText("Arrows or W A D to fly; the ship fires by itself."),
       ).toBeInTheDocument();
-    });
-
-    it("offer no settings over a waiting wave where a mouse would cross the field to them", async () => {
-      await renderBoard();
-
-      expect(
-        screen.queryByRole("button", { name: "Settings" }),
-      ).not.toBeInTheDocument();
-    });
-
-    it("offer the settings over a paused wave", async () => {
-      const { component, game, detectChanges } = await renderBoard();
-      pauseIn(game);
-      detectChanges();
-      const asked = vi.fn();
-      component.openSettings.subscribe(asked);
-
-      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
-
-      expect(asked).toHaveBeenCalledOnce();
     });
 
     it("show nothing over a ship in flight", async () => {
@@ -555,6 +518,26 @@ describe("BoardComponent", () => {
 
       expect(screen.getByText("Paused")).toBeInTheDocument();
       expect(screen.getByText("Score 0")).toBeInTheDocument();
+    });
+
+    it("draw the strays waiting at home on a paused wave, and say how many", async () => {
+      const { game, detectChanges } = await renderBoard({}, STRAY_WAVES);
+      bringStraysHome(game, 2);
+
+      game.pause();
+      detectChanges();
+
+      const home = screen.getByText("2 fuzzballs waiting at home");
+      expect(home.querySelectorAll("app-pilot")).toHaveLength(2);
+    });
+
+    it("say nothing of home on a paused wave with no one waiting there", async () => {
+      const { game, detectChanges } = await startedAt(SPEC_WAVE.gift);
+
+      game.pause();
+      detectChanges();
+
+      expect(screen.queryByText(/waiting at home/)).not.toBeInTheDocument();
     });
 
     it("go on at Resume, handing the board the focus", async () => {
@@ -614,7 +597,6 @@ describe("BoardComponent", () => {
 
     it.each([
       ["Resume", pauseIn],
-      ["Settings", pauseIn],
       ["Next wave", clearIn],
       ["New game", endIn],
     ])(

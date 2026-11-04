@@ -8,15 +8,17 @@ import {
   viewChild,
 } from "@angular/core";
 import { PlayRoomDirective } from "@fz/game-ui/play_room";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
+import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { GameService } from "./play/game.service";
 import { SettingsComponent } from "./settings/settings.component";
 
 /**
- * Shows the game: the board in the room the page gives it, the live region
- * that says what happens, the settings the board's cards open, and the
+ * Shows the game: the bar, the board in the room the bar leaves it, the live
+ * region that says what happens, the settings the bar opens, and the
  * question before a run is thrown away.
  *
  * The board takes the focus as a run begins, as the page loads or after a
@@ -29,15 +31,21 @@ import { SettingsComponent } from "./settings/settings.component";
   selector: "app-root",
   imports: [
     AnnouncerComponent,
+    BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
     PlayRoomDirective,
     SettingsComponent,
   ],
+  host: {
+    "[class.compact]": "viewport.isCompact()",
+    "[attr.data-bar]": "viewport.barPlacement()",
+  },
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
 })
 export class AppComponent {
+  protected readonly viewport = inject(GameViewportService);
   private readonly game = inject(GameService);
   private readonly confirm = inject(ConfirmService);
   private readonly board = viewChild.required(BoardComponent);

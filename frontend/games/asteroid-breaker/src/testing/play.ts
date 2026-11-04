@@ -46,6 +46,59 @@ export const SPEC_WAVES: readonly WaveEntry[] = wavesOf([
   },
 ]);
 
+/**
+ * A wave of one small stone and two strays, for a spec that brings them
+ * home: the stone stays, as nothing fires at it, so the wave stays in play
+ * until the strays come.
+ */
+export const STRAY_WAVES: readonly WaveEntry[] = wavesOf([
+  {
+    id: "strays",
+    name: "Strays",
+    drops: 0,
+    waves: [{ ...pebbleOf("stray", "Stray"), strays: 2 }],
+  },
+]);
+
+/** Returns a wave of small stones in a cluster, near enough to each other that the ship breaks them in a chain. */
+function clusterOf(id: string, name: string, count: number): WaveData {
+  return {
+    id,
+    name,
+    rocks: [{ kind: "stone", size: "small", count }],
+    formation: "cluster",
+    drops: 0,
+    strays: 0,
+  };
+}
+
+/** The waves the specs of the chain's multiplier play, by {@link CHAIN_WAVE}. */
+export const CHAIN_WAVES: readonly WaveEntry[] = wavesOf([
+  {
+    id: "chains",
+    name: "Chains",
+    drops: 0,
+    waves: [
+      clusterOf("long", "Long", 12),
+      {
+        id: "blasts",
+        name: "Blasts",
+        rocks: [{ kind: "volatile", size: "large", count: 6 }],
+        formation: "cluster",
+        drops: 0,
+        strays: 0,
+      },
+    ],
+  },
+]);
+
+/**
+ * Each of the chain's waves' numbers: the long one's stones outlast a
+ * chain, and the blasts one's volatiles set each other off, so the wave is
+ * cleared while the chain scores twice.
+ */
+export const CHAIN_WAVE = { long: 1, blasts: 2 } as const;
+
 /** Each of the specs' waves' numbers, by what it is set up for. */
 export const SPEC_WAVE = { pebble: 1, gift: 2, last: 3 } as const;
 
@@ -79,6 +132,18 @@ export function toPickup(game: GameService): Readonly<Steer> {
   const floating = game.frame().field.pickups.find((each) => each.live);
   if (!floating) return shoot(game);
   return { ...STILL, aim: { x: floating.x, y: floating.y }, thrust: 1 };
+}
+
+/**
+ * Returns the steering that flies the ship to the stray adrift, firing at
+ * nothing; with none adrift yet, it turns the ship where it is, which starts
+ * the wave.
+ */
+export function toStray(game: GameService): Readonly<Steer> {
+  const { adrift } = game.frame().field.strays;
+  return adrift.live
+    ? { ...STILL, aim: { x: adrift.x, y: adrift.y }, thrust: 1 }
+    : { ...STILL, turn: 1 };
 }
 
 /** Returns the whole rock nearest the ship, across the field's edges, or null with no ship or no rock. */
@@ -133,6 +198,16 @@ export function loseShip(game: GameService): void {
 /** Flies every ship the run has into a rock, until the run ends. */
 export function endRun(game: GameService): void {
   playUntil(game, ram, game.ended);
+}
+
+/** Flies the ship to the wave in play's strays until as many as asked wait at home. */
+export function bringStraysHome(game: GameService, count: number): void {
+  playUntil(game, toStray, () => game.crew().home.length >= count);
+}
+
+/** Shoots at the wave in play's rocks until a chain makes a break score more than once. */
+export function chainUp(game: GameService): void {
+  playUntil(game, shoot, () => game.chain() > 1);
 }
 
 /** Shoots at the wave in play's rocks until it is cleared. */

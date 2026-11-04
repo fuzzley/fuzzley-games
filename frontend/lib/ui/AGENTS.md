@@ -59,6 +59,12 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   backdrop, which an app tints with `--fz-dialog-backdrop`, or leaves clear
   with `backdrop="clear"` for a panel about what the page shows; the host
   styles the panel.
+- `src/fuzzball/`: `<fz-fuzzball>`, `@fz/style`'s fuzzball drawn inline,
+  its body and fur in the text's color and its eyes dark, which the
+  wordmark and a game's own fuzzballs draw; 16 device pixels across or
+  less, as 16 px is at about a device pixel to a CSS pixel, it leaves out
+  the glints, as `fuzzballSvg()` says to. It is hidden from assistive
+  technology.
 - `src/icon/`: `<fz-icon name="…">`, the icons, drawn as outlines but for
   a few filled ones; `ICON_NAMES` lists them. A new icon is a name there and
   a case in the template. An icon takes the text's color. Its size comes

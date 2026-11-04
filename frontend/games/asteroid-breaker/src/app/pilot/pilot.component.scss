@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+}
+
+// The fuzzball fills the pilot, however large the bar or a card draws it.
+fz-fuzzball {
+  width: 100%;
+  height: 100%;
+}

@@ -9,11 +9,10 @@ import {
   computed,
   effect,
   inject,
-  output,
   signal,
   viewChild,
 } from "@angular/core";
-import { formatPoints } from "@fz/core/format";
+import { count, formatPoints } from "@fz/core/format";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   KeepKeysDirective,
@@ -38,6 +37,7 @@ import {
 } from "../../view/field_metrics";
 import { buzzOf } from "../../view/haptics";
 import { tallyLines } from "../../view/tally";
+import { PilotComponent } from "../pilot/pilot.component";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
@@ -53,11 +53,10 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  * which hears the keys, the mouse and fingers while the board has the focus,
  * a drawing of the empty field in CSS, where the scene will draw it, clear
  * of the deck's room, until the scene has drawn, and the cards that say how
- * to fly, that the wave is paused, how a wave cleared added up, how to start
- * again once an ended run's result is put away, that the board is still
- * loading on a slow connection, or that it couldn't be drawn; the card over
- * a paused wave offers the settings, and on a touch screen the Ready card
- * too. It buzzes the phone, where it can, as a ship is lost and as a wave
+ * to fly, that the wave is paused and who waits at home, how a wave cleared
+ * added up, how to start again once an ended run's result is put away, that
+ * the board is still loading on a slow connection, or that it couldn't be
+ * drawn. It buzzes the phone, where it can, as a ship is lost and as a wave
  * is cleared.
  *
  * The board is an application to assistive technology, so a screen reader
@@ -66,7 +65,7 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  */
 @Component({
   selector: "app-board",
-  imports: [KeepKeysDirective, PhaserCanvasComponent],
+  imports: [KeepKeysDirective, PhaserCanvasComponent, PilotComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -196,15 +195,17 @@ export class BoardComponent {
       : `Steer with the ${stick} pad, fire with the ${buttons}.`;
   });
 
-  /**
-   * Whether the Ready card offers the settings: on a touch screen, which
-   * has no Pause, but not where a mouse would cross the field to reach it,
-   * which starts the wave.
-   */
-  protected readonly settingsWhileReady = this.viewport.isTouchScreen;
-
   /** The run's score, as the cards write it. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
+
+  /** The strays brought home, waiting to fly the next ships, as the Paused card draws them. */
+  protected readonly home = computed(() => this.game.crew().home);
+
+  /** What the Paused card says of the strays at home, since their pictures say nothing. */
+  protected readonly homeWords = computed(
+    () =>
+      `${count(this.home().length, "fuzzball", "fuzzballs")} waiting at home`,
+  );
 
   /** What the Cleared card calls the wave. */
   protected readonly clearedTitle = computed(
@@ -237,9 +238,6 @@ export class BoardComponent {
    * scene last drew them, for How to play, or null before it has drawn.
    */
   readonly pictures = this.picturesState.asReadonly();
-
-  /** Emitted when a card's Settings button asks for the settings. */
-  readonly openSettings = output();
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BeltSceneOptions = {

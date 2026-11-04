@@ -1,0 +1,25 @@
+// A size container, so the glints know how large it is drawn.
+:host {
+  display: block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  container-type: inline-size;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+// Drawn 16 px across or less on a screen of about a device pixel to a CSS
+// pixel, a glint is under half a device pixel and only turns the eye grey,
+// as `fuzzballSvg()` says of its images.
+@media (resolution < 1.5dppx) {
+  @container (width <= 16px) {
+    .glint {
+      display: none;
+    }
+  }
+}

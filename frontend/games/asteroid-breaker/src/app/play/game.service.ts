@@ -32,9 +32,9 @@ import {
   startWave,
   waveStart,
 } from "../../rules/run";
-import { type WaveTally, tallyOf } from "../../rules/scoring";
+import { type WaveTally, chainMultiplier, tallyOf } from "../../rules/scoring";
 import { STILL, type Steer } from "../../rules/ship";
-import type { Speed } from "../../rules/speed";
+import { SPEED_INFO, type Speed } from "../../rules/speed";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import { type WaveEntry, parseWave } from "../../rules/waves";
@@ -58,6 +58,14 @@ const NEW_GAME_QUESTION: ConfirmRequest = {
   confirmLabel: "New game",
   tone: "danger",
 };
+
+/** What a run at another speed asks: New game's question, naming the speed. */
+function speedQuestion(speed: Speed): ConfirmRequest {
+  return {
+    ...NEW_GAME_QUESTION,
+    title: `Start a new ${SPEED_INFO[speed].name} game?`,
+  };
+}
 
 /** The field's shape before the board says what room it has: a square of the short side. */
 const FIRST_TORUS: Torus = {
@@ -101,6 +109,7 @@ export class GameService {
   private readonly waitingState = signal(true);
   private readonly clearedOpenState = signal(false);
   private readonly tallyState = signal<WaveTally | null>(null);
+  private readonly chainState = signal(1);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
   private readonly runsState = signal(0);
@@ -121,8 +130,17 @@ export class GameService {
   /** The run's points so far. */
   readonly score = computed(() => this.runState().score);
 
+  /** Who flies the run's ships and who waits at home, as the field last left them. */
+  readonly crew = computed(() => this.runState().crew);
+
   /** How many ships the run has, the one in play among them, as the field last left the crew. */
-  readonly ships = computed(() => this.runState().crew.flying.length);
+  readonly ships = computed(() => this.crew().flying.length);
+
+  /**
+   * How many times a break scores, by the chain the wave in play counts: 1
+   * once the chain's time is up, and whenever no wave is in play.
+   */
+  readonly chain = this.chainState.asReadonly();
 
   /** Where the run stands. */
   readonly outcome = computed(() => this.runState().outcome);
@@ -308,6 +326,16 @@ export class GameService {
     return true;
   }
 
+  /**
+   * Starts a new run at a speed, at the wave the last one started at, asking
+   * first if one is under way, and resolves to whether it did.
+   */
+  async changeSpeed(speed: Speed): Promise<boolean> {
+    if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
+    this.begin(this.create(speed, this.runState().firstWave));
+    return true;
+  }
+
   /** Starts a new run at the wave an ended run started at, as its card offers. */
   tryAgain(): void {
     const run = this.runState();
@@ -366,7 +394,8 @@ export class GameService {
 
   /**
    * Steps the field by a frame's time, starts the run's first wave at the
-   * first move, hears what happened, and takes it into the run.
+   * first move, hears what happened, takes it into the run, and shows the
+   * chain the wave in play counts.
    */
   private playOn(deltaMs: number, steer: Readonly<Steer>): void {
     const field = this.wavePlay.field;
@@ -378,6 +407,9 @@ export class GameService {
     }
     this.waitingState.set(!moved);
     this.takeIn(catchUp(this.runState(), field));
+    this.chainState.set(
+      this.runState().outcome === "playing" ? chainMultiplier(field) : 1,
+    );
   }
 
   /** Hears an event of the field, and gathers what to say of it. Made once, so hearing makes nothing. */
@@ -486,11 +518,17 @@ export class GameService {
     this.wavePlay = this.playOf(run);
     this.waitingState.set(true);
     this.clearedOpenState.set(false);
+    this.chainState.set(1);
   }
 
-  /** Resolves to whether to go ahead: at once with no run under way to lose. */
-  private async mayLoseRun(): Promise<boolean> {
+  /**
+   * Resolves to whether to go ahead, asking a question first: at once with
+   * no run under way to lose.
+   */
+  private async mayLoseRun(
+    question: ConfirmRequest = NEW_GAME_QUESTION,
+  ): Promise<boolean> {
     if (!this.inProgress()) return true;
-    return this.confirm.ask(NEW_GAME_QUESTION);
+    return this.confirm.ask(question);
   }
 }
