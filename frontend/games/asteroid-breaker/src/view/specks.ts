@@ -34,3 +34,19 @@ export function speckShares(seed: number): readonly Place[] {
     y: random(),
   }));
 }
+
+/** How wide an Endless wave's constellation is drawn, across the fuzzball's size, in field units. */
+export const CONSTELLATION_SIZE = 10;
+
+/**
+ * Returns where an Endless wave's constellation lies, its middle as shares
+ * of the field's width and height, from the run's seed and the wave's
+ * number, so each wave's lies elsewhere: as far in from every edge as it
+ * is wide on the smallest field, so it never wraps.
+ */
+export function constellationAt(seed: number, wave: number): Place {
+  const random = createRandom(seed ^ Math.imul(wave, 0x165667b1));
+  const margin = CONSTELLATION_SIZE / FIELD_SHORT_SIDE;
+  const within = 1 - 2 * margin;
+  return { x: margin + random() * within, y: margin + random() * within };
+}

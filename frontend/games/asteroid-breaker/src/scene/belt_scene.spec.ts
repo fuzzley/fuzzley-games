@@ -64,11 +64,16 @@ import type { BoardSetting } from "../view/field_metrics";
 import { SOUNDS } from "../view/effects";
 import { PULSE_LEAST } from "../view/flourish";
 import { LAYERS } from "../view/layers";
-import { LOOK, PILOT_SIZES, pilotFrame } from "../view/pilot_art";
+import {
+  CONSTELLATION,
+  LOOK,
+  PILOT_SIZES,
+  pilotFrame,
+} from "../view/pilot_art";
 import { rockFrame, takenFrame } from "../view/rock_art";
 import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/ship_art";
-import { speckCount, speckShares } from "../view/specks";
+import { CONSTELLATION_SIZE, speckCount, speckShares } from "../view/specks";
 import { MOST_FINGERS } from "../view/steering";
 import { TAG_RADIUS, tagX, tagY } from "../view/tags";
 import { WARNING_INSET } from "../view/warning";
@@ -1084,6 +1089,62 @@ describe("the specks", () => {
     const { scene } = await startBoard();
 
     expect(scene.field.specks[0]?.tintTopLeft).toBe(ART_PALETTE.speck);
+  });
+});
+
+describe("the constellation", () => {
+  it("lies nowhere in a sector's wave", async () => {
+    const { scene } = await startBoard();
+
+    expect(scene.field.stars.filter((star) => star.visible)).toEqual([]);
+  });
+
+  it("traces the fuzzball where an Endless wave lays it, at its size in field units", async () => {
+    const { shell, scene } = await startBoard((setUp) => {
+      setUp.constellation = { x: 0.4, y: 0.6 };
+    });
+    const metrics = metricsOf(shell);
+    const across = CONSTELLATION_SIZE * metrics.unit;
+
+    const [star] = scene.field.stars;
+    const [first] = CONSTELLATION.specks;
+
+    expect({
+      shown: scene.field.stars.filter((each) => each.visible).length,
+      x: star?.x,
+      y: star?.y,
+    }).toEqual({
+      shown: CONSTELLATION.specks.length + CONSTELLATION.eyes.length,
+      x: metrics.x + 0.4 * metrics.width + (first?.x ?? 0) * across,
+      y: metrics.y + 0.6 * metrics.height + (first?.y ?? 0) * across,
+    });
+  });
+
+  it("tints its specks as the field's and its eyes brighter", async () => {
+    const { scene } = await startBoard((shell) => {
+      shell.constellation = { x: 0.5, y: 0.5 };
+    });
+
+    const tints = scene.field.stars.map((star) => star.tintTopLeft);
+
+    expect({
+      specks: new Set(tints.slice(0, CONSTELLATION.specks.length)),
+      eyes: new Set(tints.slice(CONSTELLATION.specks.length)),
+    }).toEqual({
+      specks: new Set([ART_PALETTE.speck]),
+      eyes: new Set([ART_PALETTE.muted]),
+    });
+  });
+
+  it("goes as the next wave, a sector's, comes", async () => {
+    const { shell, run, scene } = await startBoard((setUp) => {
+      setUp.constellation = { x: 0.5, y: 0.5 };
+    });
+    shell.constellation = null;
+
+    run.advance(16);
+
+    expect(scene.field.stars.filter((star) => star.visible)).toEqual([]);
   });
 });
 

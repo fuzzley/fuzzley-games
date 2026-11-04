@@ -1,3 +1,4 @@
+import type { Place } from "../rules/torus";
 import type { Deck } from "../view/deck";
 import type { FieldMetrics } from "../view/field_metrics";
 import type { FieldView } from "../view/frame";
@@ -26,6 +27,8 @@ export interface PaintContext extends Baked {
   alpha: number;
   /** The run's seed, which the field's specks are strewn from. */
   seed: number;
+  /** Where an Endless wave's constellation lies, its middle as shares of the field's width and height, or null for none. */
+  constellation: Readonly<Place> | null;
   /** Where the deck's parts lie on the canvas, or null where it doesn't show. */
   deck: Deck | null;
   /** The scene's time, in milliseconds, by which the flourishes and idle motions run. */

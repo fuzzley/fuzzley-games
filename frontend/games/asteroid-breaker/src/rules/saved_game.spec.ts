@@ -1,3 +1,4 @@
+import { waveToPlay } from "./endless";
 import { type Field, type PlayerSetup, fieldFor, steerField } from "./field";
 import { fillFor, stretchField } from "./fill";
 import { nextStrayAfter } from "./hazards";
@@ -15,7 +16,7 @@ import {
 import { STILL } from "./ship";
 import { safestPlace } from "./spawn";
 import { type Torus, middleOf } from "./torus";
-import { type Wave, WAVES, parseWave, waveEntryOf } from "./waves";
+import { type Wave, WAVES, waveEntryOf } from "./waves";
 import { stepTimes } from "../testing/field_picture";
 
 /** The field's size the specs lay their waves out at. */
@@ -57,10 +58,13 @@ function runUnderWay(change: Partial<Run> = {}): Run {
   };
 }
 
-/** Returns the specs' wave, ready to play. */
+/** Returns a run's wave, ready to play: an Endless one made from the run's seed. */
 function waveOf(run: Run): Wave {
-  return parseWave(waveEntryOf(WAVES, run.wave));
+  return waveToPlay(waveEntryOf(WAVES, run.wave), run.seed);
 }
+
+/** A run under way in Endless, on its tenth wave. */
+const IN_ENDLESS: Partial<Run> = { firstWave: 31, wave: 40 };
 
 /** Returns the field of a run's wave as the game lays it out, on a size. */
 function fieldOf(run: Run, torus: Torus = TORUS): Field {
@@ -305,6 +309,17 @@ describe("restoreGame", () => {
     expect(takenUp?.field).toEqual(saved.field);
   });
 
+  it("takes up a run in Endless, its field as kept", () => {
+    const saved = stored(runUnderWay(IN_ENDLESS));
+
+    const takenUp = restoreGame(saved, WAVES, 9);
+
+    expect({ wave: takenUp?.run.wave, field: takenUp?.field }).toEqual({
+      wave: 40,
+      field: saved.field,
+    });
+  });
+
   it("takes up the strays brought home and whether the run was tuned", () => {
     const saved = stored(runUnderWay(), { broughtHome: [5, 7], tuned: true });
 
@@ -525,6 +540,14 @@ describe("takeUpField", () => {
         shipsLost: 1,
       }),
     );
+
+    const field = takeUpField(waveOf(run), SETUP, saved, run);
+
+    expect(saveGame(run, field, WAVES, KEEPING)?.field).toEqual(saved);
+  });
+
+  it("lays an Endless wave's field kept out afresh, as it was, from the run's seed", () => {
+    const { run, saved } = takingUp(stored(runUnderWay(IN_ENDLESS)));
 
     const field = takeUpField(waveOf(run), SETUP, saved, run);
 

@@ -7,6 +7,7 @@ import {
   isRockSize,
   rockKind,
 } from "./catalog/rocks";
+import { waveToPlay } from "./endless";
 import { type Field, type PlayerSetup, fieldFor } from "./field";
 import { fillFor, stretchField } from "./fill";
 import { nextStrayAfter } from "./hazards";
@@ -30,7 +31,7 @@ import {
   MAX_SHIPS,
   STRAY_POINTS,
 } from "./tuning";
-import { type Wave, type WaveEntry, parseWave, waveEntryOf } from "./waves";
+import { type Wave, type WaveEntry, waveEntryOf } from "./waves";
 
 /**
  * What of a rock storage keeps: what it is, where it is, how it flies and
@@ -239,7 +240,7 @@ export function restoreGame(
   const soFar = { points: score - banked, straysHome: strays - straysBanked };
   let field: SavedField | null = null;
   if (kept !== null) {
-    field = restoredField(kept, parseWave(entry), soFar);
+    field = restoredField(kept, waveToPlay(entry, seed), soFar);
     if (!field) return null;
   } else if (soFar.points > 0 || soFar.straysHome > 0) {
     // A wave kept as not yet begun has scored nothing yet.

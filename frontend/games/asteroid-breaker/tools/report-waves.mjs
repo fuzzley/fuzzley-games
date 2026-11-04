@@ -2,7 +2,7 @@
 /**
  * Prints how the autopilot plays every wave at every speed.
  *
- *   yarn report:waves [--seeds <n>] [--field <narrow|wide|tall>]
+ *   yarn report:waves [--seeds <n>] [--field <narrow|wide|tall>] [--endless]
  *
  * For each wave and speed it plays the wave twice through the autopilot's
  * `playWave()`, as `src/rules/autopilot.spec.ts` does, so the report and
@@ -25,6 +25,12 @@
  * With `--field wide`, it plays every wave on the widest field on its side,
  * and with `--field tall` upright, rather than on the narrowest, the three
  * the spec plays.
+ *
+ * With `--endless`, it plays Endless's waves 31 to 60, as the spec does,
+ * rather than the sectors', each made from the seed it is played from, and
+ * fails only on a play that doesn't clear its wave in time with nothing
+ * able to take the ship: Endless is held to being fair, not to what it
+ * costs, as it climbs until a run's ships run out.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -80,6 +86,7 @@ const SEED_STRIDE = 1000;
  *
  * @typedef {object} Rules
  * @property {readonly WaveEntry[]} waves Every wave, in the order played.
+ * @property {readonly WaveEntry[]} endless Endless's waves the spec plays.
  * @property {readonly string[]} speeds The speeds, slowest first.
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} limit The most steps the autopilot plays a wave.
@@ -173,13 +180,15 @@ async function load(file) {
 
 /**
  * Returns the game as the report plays it, on the field `--field` asks
- * for, the narrowest by default, or throws an error that says what is
- * wrong with the field.
+ * for, the narrowest by default, and its sectors' waves or Endless's, as
+ * `--endless` asks, or throws an error that says what is wrong with the
+ * field.
  *
  * @param {string | undefined} fieldAsked
+ * @param {boolean} endless
  * @returns {Promise<Game>}
  */
-async function loadGame(fieldAsked) {
+async function loadGame(fieldAsked, endless) {
   const [waves, speed, tuning, autopilot] = await Promise.all([
     load("src/rules/waves.ts"),
     load("src/rules/speed.ts"),
@@ -188,6 +197,7 @@ async function loadGame(fieldAsked) {
   ]);
   const rules = /** @type {Rules} */ ({
     waves: waves["WAVES"],
+    endless: autopilot["ENDLESS_PLAYED"],
     speeds: speed["SPEEDS"],
     stepSeconds: tuning["STEP_S"],
     limit: autopilot["AUTOPILOT_LIMIT"],
@@ -198,7 +208,7 @@ async function loadGame(fieldAsked) {
   });
   const torus = fieldOf(fieldAsked, rules);
   return {
-    waves: rules.waves,
+    waves: endless ? rules.endless : rules.waves,
     speeds: rules.speeds,
     stepSeconds: rules.stepSeconds,
     limit: rules.limit,
@@ -331,10 +341,14 @@ function columns(cells, layout) {
 }
 
 const { values: asked } = parseArgs({
-  options: { seeds: { type: "string" }, field: { type: "string" } },
+  options: {
+    seeds: { type: "string" },
+    field: { type: "string" },
+    endless: { type: "boolean", default: false },
+  },
 });
 const layout = layoutAsked(asked.seeds);
-const game = await loadGame(asked.field);
+const game = await loadGame(asked.field, asked.endless);
 const headings = columns(layout.headings, layout);
 console.log(
   "".padEnd(NAME_WIDTH) +
@@ -350,7 +364,9 @@ for (const entry of game.waves) {
       .seedsOf(entry)
       .map((seed) => game.playWave(entry, speed, seed));
     uncleared += plays
-      .flatMap((play) => [play.untouchable, play.played])
+      .flatMap((play) =>
+        asked.endless ? [play.untouchable] : [play.untouchable, play.played],
+      )
       .filter((play) => !clearedInTime(play, game)).length;
     return columns(layout.cellsOf(plays, game), layout);
   });

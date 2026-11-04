@@ -995,12 +995,21 @@ met first alone.
     kind, at most a third of the budget on iron, with one crystal in every
     wave, so pickups keep coming;
   - **a boulder wave every tenth wave** (40, 50 and on): a boulder for each
-    ten waves past 30, three at most, and large rocks for the rest;
+    ten waves past 30, three at most, each worth 3 and breaking into three
+    large stones, and large rocks for the rest;
   - **its pace:** 1.25 at wave 31, rising 0.015 a wave to 1.6;
   - **its comets:** every 12–15 s at wave 31, closing to every 6–8 s by
     wave 60;
-  - **its formation,** drawn from the four, and its strays: one a wave, two
-    from wave 50.
+  - **its formation,** drawn from the four, but a scatter or a wall for a
+    wave of more than 13 rocks, the most a sector's ring or cluster holds,
+    as more, grown for a larger field, pack too tight to fly among; its
+    strays: one a wave, two from wave 50; and its chance of a pickup
+    Storm's, 0.06, every pickup among them.
+  - **Endless's waves are held to being fair, not to their cost:** the
+    autopilot's spec clears each of 31 to 60 on every field at every speed
+    with nothing able to take its ship, meeting a comet and a stray, and
+    `yarn report:waves --endless` shows the ships each costs, which climbs
+    until a run's run out.
 - **A constellation lies among its stars,** the fuzzball's outline in
   fifteen of the field's specks and its eyes in two brighter ones, placed by
   the run's seed and the wave's number, faint, for a player who looks
@@ -1476,8 +1485,8 @@ numbers, whose least isn't above 0, or that runs backward.
 | The catalog spec   | `src/rules/catalog.spec.ts`    | Every entry has a name and a sentence; every kind is used by a wave; every pickup can come in a wave from its `from`; weights positive                                                                                          |
 | The waves spec     | `src/rules/waves.spec.ts`      | Every wave parses; ids and names unique; the pace never falls within a sector; each sector ends with a boulder                                                                                                                  |
 | The placement spec | `src/rules/spawn.spec.ts`      | Over many seeds and on the narrowest and widest fields, every wave lays its rocks out fairly: 12 units off, no course within 5 units in 3 s                                                                                     |
-| The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave, and Endless's 31 to 60, at every speed, on the narrowest and widest fields, from fixed seeds, is cleared within four minutes of game time                                                                           |
-| The Endless spec   | `src/rules/endless.spec.ts`    | Every wave it makes from 31 to 200, over many seeds, parses as a written wave does, keeps to its budget and the cap, and is the same for the same seed                                                                          |
+| The autopilot spec | `src/rules/autopilot.spec.ts`  | Every wave at every speed, on the narrowest and widest fields, from fixed seeds, is cleared within four minutes of game time; Endless's 31 to 60 too, with nothing able to take the ship                                        |
+| The Endless spec   | `src/rules/endless.spec.ts`    | Every wave it makes from 31 to 60, over many seeds, and some past them, keeps to its budget, its share of iron, its crystal and the cap, climbs as the plan says, and is the same for the same seed                             |
 | The contrast spec  | `src/view/contrast.spec.ts`    | Every rock ink, the ship, shots, pickups and comet against the field in every palette; every pilot's ink against the field and the bar, and the eyes against each; the marks against their rocks; the outline against every ink |
 | The pilots spec    | `src/rules/pilots.spec.ts`     | A new pilot's color is the next in turn not worn by the crew, at home or adrift, or with all eight worn the next in turn; a stray keeps its color at home and at the controls                                                   |
 | The scene spec     | `src/scene/belt_scene.spec.ts` | Every kind in every state is drawn from a frame of the atlas, and an object across an edge is drawn on both sides                                                                                                               |
