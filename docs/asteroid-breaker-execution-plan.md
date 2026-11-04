@@ -723,29 +723,29 @@ tunes the game, but those of one kind of rock or one pickup, which its
 catalog entry holds. They are first guesses, to be settled by playing at Q3;
 the mock's sketch has sliders for the ship's.
 
-| What                  | Value                                                                                                                                                               |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The field             | 40 units on its short side, up to 88 on its long, wrapping at every edge; counts written for 40 × 40, times its area's share                                        |
-| The step              | 1/120 s, 12 at most a frame                                                                                                                                         |
-| The ship              | 2.4 units long, 1.5 wide, hit within 0.7 of its middle                                                                                                              |
-| Thrust                | 24 units a second, each second, along the heading; top speed 15 units a second                                                                                      |
-| Coasting              | the speed halves every 1.5 s                                                                                                                                        |
-| Turning, by keys      | 300° a second, reached in 0.08 s                                                                                                                                    |
-| Turning, to a heading | up to 600° a second, easing in over the last 12°                                                                                                                    |
-| Shots                 | 32 units a second plus the ship's speed, up to its top speed; 0.8 s; one each 0.14 s held; 6 in flight; a radius of 0.18                                            |
-| The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                                                                |
-| Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                                                       |
-| Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's                                       |
-| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into as many pieces as fit, one at least                                             |
-| Rocks' turn           | 6° to 30° a second, either way; a piece turns 25° to 50° off its parent's travel, pushed 1.5 units a second along the hit                                           |
-| A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                                                        |
-| Pickups               | drifting at 2 units a second for 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet), caught at 2                                       |
-| The Shield            | the rock that touches the ship breaks a size down, the ship untouchable 1 s after                                                                                   |
-| Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second, turning 2° to 5° a second; a bubble of 1.15, brought home at 2; 500 points |
-| The comet             | warned of 1.5 s ahead; 26 units a second times the field's pace; meets what is within 1 unit; comes in from and leaves past 3 units off the field                   |
-| Coming in             | from 15% to 85% of the way along an edge, tilted toward its middle by up to 20° for a stray and 30° for a comet                                                     |
-| The chain             | 1.5 s from one break to the next                                                                                                                                    |
-| Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                                                             |
+| What                  | Value                                                                                                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The field             | 40 units on its short side, up to 88 on its long, wrapping at every edge; counts written for 40 × 40, times its area's share                                                                                          |
+| The step              | 1/120 s, 12 at most a frame                                                                                                                                                                                           |
+| The ship              | 2.4 units long, 1.5 wide, hit within 0.7 of its middle                                                                                                                                                                |
+| Thrust                | 24 units a second, each second, along the heading; top speed 15 units a second                                                                                                                                        |
+| Coasting              | the speed halves every 1.5 s                                                                                                                                                                                          |
+| Turning, by keys      | 300° a second, reached in 0.08 s                                                                                                                                                                                      |
+| Turning, to a heading | up to 600° a second, easing in over the last 12°                                                                                                                                                                      |
+| Shots                 | 32 units a second plus the ship's speed, up to its top speed; 0.8 s; one each 0.14 s held; 6 in flight; a radius of 0.18                                                                                              |
+| The dash              | 34 units a second for 0.22 s, untouchable 0.32 s, recharged in 2.5 s                                                                                                                                                  |
+| Rocks' radius         | large 2.8 units, medium 1.6, small 0.9, the boulder 4.6; hit within 0.9 of it                                                                                                                                         |
+| Rocks' speed          | the boulder 1.5–2.5, large 2.5–4, medium 4–6, small 5.5–8.5 units a second, times the kind's, the wave's pace and the speed's                                                                                         |
+| Rocks on the field    | 48 for each 1,600 units² at most (105 on the widest); at the cap a rock splits into as many pieces as fit, one at least                                                                                               |
+| Rocks' turn           | 6° to 30° a second, either way; a piece turns 25° to 50° off its parent's travel, pushed 1.5 units a second along the hit                                                                                             |
+| A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                                                                                                          |
+| Pickups               | drifting at 2 units a second for 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet), caught at 2                                                                                         |
+| The Shield            | the rock that touches the ship breaks a size down, the ship untouchable 1 s after                                                                                                                                     |
+| Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second, turning 2° to 5° a second; a bubble of 1.15, brought home at 2; 500 points                                                   |
+| The comet             | warned of 1.5 s ahead, a wave's first warning starting 0.25 of its time between comets in; 26 units a second times the field's pace; meets what is within 1 unit; comes in from and leaves past 3 units off the field |
+| Coming in             | from 15% to 85% of the way along an edge, tilted toward its middle by up to 20° for a stray and 30° for a comet                                                                                                       |
+| The chain             | 1.5 s from one break to the next                                                                                                                                                                                      |
+| Ships                 | 3 to start, 6 at most; one more at 10,000 points and every 20,000 after                                                                                                                                               |
 
 What the shapes the layout check holds come to (the mock page works each
 out with the same rules):
@@ -947,18 +947,18 @@ met first alone.
 
 **Sector 2, Iron reach** (pace 1.08 to 1.16)
 
-| #   | Name       | Rocks                                                 | What it brings        |
-| --- | ---------- | ----------------------------------------------------- | --------------------- |
-| 11  | Ore        | 2 large iron, 3 large stone                           | Iron                  |
-| 12  | Powder     | 3 medium volatile in a cluster, 3 large stone         | Volatile rocks        |
-| 13  | Streak     | 4 large stone; comets every 14–18 s                   | Comets                |
-| 14  | Anvil      | 4 large iron, 1 large crystal                         | Iron, many hits       |
-| 15  | Fuse       | a ring of 6 medium volatile, 2 large ice              | A ring that chains    |
-| 16  | Shower     | 5 large ice; comets every 9–12 s                      | Comets through shards |
-| 17  | Foundry    | 3 large iron, 3 medium volatile                       | Blasts to crack iron  |
-| 18  | Rush       | 10 medium stone, ice and iron                         | Speed                 |
-| 19  | Tinder     | 2 large volatile, 4 large stone; comets every 12–15 s | Everything so far     |
-| 20  | Iron heart | 1 boulder of iron, 3 large iron                       | The sector's test     |
+| #   | Name       | Rocks                                                                            | What it brings        |
+| --- | ---------- | -------------------------------------------------------------------------------- | --------------------- |
+| 11  | Ore        | 3 large iron, 5 large stone                                                      | Iron                  |
+| 12  | Powder     | 4 medium volatile, 9 large stone, in a cluster                                   | Volatile rocks        |
+| 13  | Streak     | 9 large stone; comets every 14–18 s                                              | Comets                |
+| 14  | Anvil      | 7 large iron, 1 large crystal                                                    | Iron, many hits       |
+| 15  | Fuse       | a ring of 8 large volatile and 5 large ice                                       | A ring that chains    |
+| 16  | Shower     | 5 large ice; comets every 9–12 s                                                 | Comets through shards |
+| 17  | Foundry    | 4 medium volatile amid 8 large iron, in a cluster                                | Blasts to crack iron  |
+| 18  | Rush       | 22 medium stone, ice and iron                                                    | Speed                 |
+| 19  | Tinder     | 3 large volatile, 8 large stone, 2 large iron, 2 large ice; comets every 12–15 s | Everything so far     |
+| 20  | Iron heart | 1 boulder of iron, 6 large iron, 2 large stone                                   | The sector's test     |
 
 **Sector 3, Storm** (pace 1.16 to 1.25)
 

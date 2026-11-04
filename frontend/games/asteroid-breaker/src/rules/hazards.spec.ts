@@ -28,6 +28,7 @@ import { guardShip } from "./ship";
 import { stepsIn } from "./stepper";
 import { type Place, type Torus, across } from "./torus";
 import {
+  COMET_FIRST_SHARE,
   COMET_MARGIN,
   COMET_RADIUS,
   COMET_SPEED,
@@ -735,7 +736,7 @@ describe("a wave's comets", () => {
     expect(cometsOn(field)).toEqual([]);
   });
 
-  it("draws its first comet's time from its span", () => {
+  it("draws its first comet's time from a share of its span, so a wave cleared quickly meets one", () => {
     const firsts = SEEDS.map(
       (seed) => fieldFrom(PICTURE, { seed, cometEvery: EVERY }).comets.nextAt,
     );
@@ -743,7 +744,9 @@ describe("a wave's comets", () => {
     expect({
       apart: new Set(firsts).size > 1,
       outside: firsts.filter(
-        (at) => at < stepsIn(EVERY.least) || at > stepsIn(EVERY.most),
+        (at) =>
+          at < stepsIn(EVERY.least * COMET_FIRST_SHARE) ||
+          at > stepsIn(EVERY.most * COMET_FIRST_SHARE),
       ),
     }).toEqual({ apart: true, outside: [] });
   });

@@ -479,14 +479,19 @@ describe("every wave", () => {
   );
 
   it.each(plays)(
-    "is cleared, %s at %s on a field %s, within four minutes of game time",
+    "is cleared, %s at %s on a field %s, within four minutes of game time, meeting a comet if it sends comets",
     (_, speed, __, entry, torus) => {
       const report = playWave(entry, speed, { torus });
 
       expect({
         cleared: report.cleared,
         inTime: report.steps < AUTOPILOT_LIMIT,
-      }).toEqual({ cleared: true, inTime: true });
+        metComet: report.cometsCrossed > 0,
+      }).toEqual({
+        cleared: true,
+        inTime: true,
+        metComet: parseWave(entry).cometEvery !== null,
+      });
     },
   );
 });

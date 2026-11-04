@@ -1,0 +1,200 @@
+{
+  "id": "iron-reach",
+  "name": "Iron reach",
+  "drops": 0.05,
+  "waves": [
+    {
+      "id": "ore",
+      "name": "Ore",
+      "pace": 1.08,
+      "rocks": [
+        {
+          "kind": "iron",
+          "size": "large",
+          "count": 3
+        },
+        {
+          "kind": "stone",
+          "size": "large",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "id": "powder",
+      "name": "Powder",
+      "pace": 1.09,
+      "formation": "cluster",
+      "rocks": [
+        {
+          "kind": "volatile",
+          "size": "medium",
+          "count": 4
+        },
+        {
+          "kind": "stone",
+          "size": "large",
+          "count": 9
+        }
+      ]
+    },
+    {
+      "id": "streak",
+      "name": "Streak",
+      "pace": 1.095,
+      "rocks": [
+        {
+          "kind": "stone",
+          "size": "large",
+          "count": 9
+        }
+      ],
+      "comets": {
+        "every": [14, 18]
+      }
+    },
+    {
+      "id": "anvil",
+      "name": "Anvil",
+      "pace": 1.1,
+      "rocks": [
+        {
+          "kind": "iron",
+          "size": "large",
+          "count": 7
+        },
+        {
+          "kind": "crystal",
+          "size": "large",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "fuse",
+      "name": "Fuse",
+      "pace": 1.11,
+      "formation": "ring",
+      "rocks": [
+        {
+          "kind": "volatile",
+          "size": "large",
+          "count": 8
+        },
+        {
+          "kind": "ice",
+          "size": "large",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "id": "shower",
+      "name": "Shower",
+      "pace": 1.12,
+      "rocks": [
+        {
+          "kind": "ice",
+          "size": "large",
+          "count": 5
+        }
+      ],
+      "comets": {
+        "every": [9, 12]
+      }
+    },
+    {
+      "id": "foundry",
+      "name": "Foundry",
+      "pace": 1.13,
+      "formation": "cluster",
+      "rocks": [
+        {
+          "kind": "volatile",
+          "size": "medium",
+          "count": 4
+        },
+        {
+          "kind": "iron",
+          "size": "large",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "id": "rush",
+      "name": "Rush",
+      "pace": 1.14,
+      "rocks": [
+        {
+          "kind": "stone",
+          "size": "medium",
+          "count": 8
+        },
+        {
+          "kind": "ice",
+          "size": "medium",
+          "count": 7
+        },
+        {
+          "kind": "iron",
+          "size": "medium",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "id": "tinder",
+      "name": "Tinder",
+      "pace": 1.15,
+      "rocks": [
+        {
+          "kind": "volatile",
+          "size": "large",
+          "count": 3
+        },
+        {
+          "kind": "stone",
+          "size": "large",
+          "count": 8
+        },
+        {
+          "kind": "iron",
+          "size": "large",
+          "count": 2
+        },
+        {
+          "kind": "ice",
+          "size": "large",
+          "count": 2
+        }
+      ],
+      "comets": {
+        "every": [12, 15]
+      }
+    },
+    {
+      "id": "iron-heart",
+      "name": "Iron heart",
+      "pace": 1.16,
+      "waveKind": "iron",
+      "rocks": [
+        {
+          "kind": "boulder",
+          "size": "boulder",
+          "count": 1
+        },
+        {
+          "kind": "iron",
+          "size": "large",
+          "count": 6
+        },
+        {
+          "kind": "stone",
+          "size": "large",
+          "count": 2
+        }
+      ]
+    }
+  ]
+}
