@@ -14,7 +14,7 @@ import {
   clearHazards,
   createComets,
   createStrays,
-  scheduleComet,
+  scheduleFirstComet,
   stepComets,
   stepStrays,
   touchesComet,
@@ -257,7 +257,7 @@ export function createField(
     cleared: false,
     events: new FieldEventLog(),
   };
-  scheduleComet(field);
+  scheduleFirstComet(field);
   return field;
 }
 

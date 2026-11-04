@@ -229,6 +229,13 @@ export const STRAY_TILT = 20;
 /** How fast a stray's heading turns as it crosses, in degrees a second, either way, so it crosses on a gentle curve. */
 export const STRAY_TURN: Span = { least: 2, most: 5 };
 
+/**
+ * How far into a wave with comets its first comet's warning starts, as a
+ * share of the time between its comets, so a wave cleared quickly still
+ * meets one.
+ */
+export const COMET_FIRST_SHARE = 0.25;
+
 /** How long a comet is warned of at the edge it will come in by. */
 export const COMET_WARNING_MS = 1500;
 

@@ -4,6 +4,7 @@
 
 import { RADIANS_PER_DEGREE, TURN } from "../rules/angles";
 import { type Field, fieldFor, steerField, stepField } from "../rules/field";
+import type { Comet } from "../rules/hazards";
 import { createCrew } from "../rules/pilots";
 import { rockHitRadius } from "../rules/rocks";
 import { STILL, type Ship, type Steer, guardShip } from "../rules/ship";
@@ -74,6 +75,8 @@ export interface AutopilotReport {
   readonly straysHome: number;
   /** The pickups it caught. */
   readonly caught: number;
+  /** The comets that crossed the field once their warning was up. */
+  readonly cometsCrossed: number;
 }
 
 /** How near a course must come to the ship, beyond the two touching, for the autopilot to flee it. */
@@ -126,6 +129,8 @@ export function playField(
   const limit = options.limit ?? AUTOPILOT_LIMIT;
   const steer: Steer = { ...STILL };
   let caught = 0;
+  let cometsCrossed = 0;
+  const warned = field.comets.slots.map(isWarned);
   let seen = field.events.latest;
   // Frames bound it, not steps, so a wave held still for a first move that
   // never comes still ends; once the wave starts, each frame plays a step.
@@ -138,6 +143,10 @@ export function playField(
       if (event.kind === "caught") caught++;
     });
     seen = field.events.latest;
+    for (const [slot, comet] of field.comets.slots.entries()) {
+      if (warned[slot] && comet.live && comet.warnSteps === 0) cometsCrossed++;
+      warned[slot] = isWarned(comet);
+    }
   }
   return {
     // A wave cleared as its last ship went is lost, as the run has it.
@@ -147,7 +156,13 @@ export function playField(
     straysSent: field.strays.sent,
     straysHome: field.strays.broughtHome,
     caught,
+    cometsCrossed,
   };
+}
+
+/** Returns whether a comet is warned of, waiting off its edge to cross. */
+function isWarned(comet: Readonly<Comet>): boolean {
+  return comet.live && comet.warnSteps > 0;
 }
 
 /**

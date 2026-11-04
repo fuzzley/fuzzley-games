@@ -5059,3 +5059,83 @@ tests among them.
 - **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (3,368, the
   every-wave autopilot spec playing waves 6 to 10 on every field at every
   speed), `yarn prettier:check` and the skill references.
+
+## A13.2: Iron reach
+
+2026-11-04.
+
+- **Built.** `src/rules/waves/iron-reach.json`, waves 11 to 20, after the
+  plan's table, its pickups' chance the plan's 0.05, the pace rising from
+  1.08 to 1.16; `SECTORS` takes it second. Iron comes first in Ore,
+  volatiles in Powder's cluster, comets in Streak, a ring that chains in
+  Fuse, blasts amid iron in Foundry's cluster, and an iron boulder in Iron
+  heart, the sector's test. A wave's first comet's warning now starts
+  `COMET_FIRST_SHARE`, a quarter, of its time between comets in
+  (`scheduleFirstComet()`), so a wave cleared quickly still meets one: the
+  autopilot's report counts the comets that crossed (`cometsCrossed`), and
+  the every-wave spec holds each wave with comets to meeting one, on every
+  field at every speed. The plan's comet row says so.
+- **Tuned.** By `yarn report:waves --seeds 12` on each field. The plan's
+  counts cleared in 6 to 16 s on the narrowest field, under Boulder's 18 s,
+  so each wave holds about twice its rocks; the plan's table has them.
+  Middle times at Normal for waves 11 to 20:
+
+  | Field     | Ore  | Powder | Streak | Anvil | Fuse | Shower | Foundry | Rush | Tinder | Iron heart |
+  | --------- | ---- | ------ | ------ | ----- | ---- | ------ | ------- | ---- | ------ | ---------- |
+  | Narrowest | 0:15 | 0:14   | 0:16   | 0:19  | 0:15 | 0:17   | 0:17    | 0:18 | 0:23   | 0:24       |
+  | Wide      | 0:39 | 0:34   | 0:40   | 0:45  | 0:39 | 0:43   | 0:43    | 0:50 | 0:50   | 0:56       |
+  | Upright   | 0:40 | 0:38   | 0:40   | 0:44  | 0:43 | 0:43   | 0:43    | 0:45 | 0:54   | 0:54       |
+
+  The sector opens a step under Boulder, as its new kinds each come first
+  alone, and climbs to Iron heart, the longest wave or tied for it on every
+  field. Two waves dip: Powder, its blasts clearing for the player, and
+  Fuse, its ring's chain the same, 4 to 6 s under Anvil on the narrowest
+  and wide fields; upright, Fuse to Foundry sit level. The bar for ships
+  here is the most lost in a play of twelve seeds: two at Normal or Fast
+  and one at Relaxed. Powder, Foundry and Tinder lose two at Normal or
+  Fast, and Fuse two at Relaxed in one wide play. Shower kept the plan's
+  five ice, as six left one seed at Fast upright uncleared in four
+  minutes; its longest play left, upright at Fast, is 3:10.
+
+- **Review.** No bugs; seven comments, all taken.
+  1. The sector's chance of a pickup was 0.04, Inner belt's, where the plan
+     gives Iron reach 0.05; at 0.05 Powder lost every ship in one seed. It
+     is 0.05, and the sector was tuned again at it: Powder has nine
+     stones, not ten.
+  2. Streak, the wave that brings comets, met none on the narrowest field
+     in 11 of 12 plays at Normal: its first was drawn from its 14 to 18 s,
+     and it clears in 15. A wave's first comet comes sooner.
+  3. Fuse's ring of medium volatiles didn't chain on the narrowest field:
+     its rocks lay 7.8 units apart and a medium blast reaches 5.4. Its
+     volatiles are large, reaching 8.5.
+  4. The sector opening under Boulder, and its dips, were unsaid. They are
+     said above.
+  5. Tinder's two lost ships are within the bar above.
+  6. Foundry's scattered blasts reached iron in half the plays. It is a
+     cluster, its volatiles at the middle.
+  7. The step had no entry. This is it.
+
+  The comet's rule reshapes the change, so it had a second review: no
+  bugs; one gap and four comments, all taken.
+  1. Relaxed doubles the time between comets before the first's share is
+     taken, so at 0.3 a Relaxed Streak on the narrowest field could clear
+     with its first comet still only warned of, as one seed of the
+     report's did. The share is a quarter, and the every-wave spec counts
+     a comet crossed for each wave with comets.
+  2. The log's dips didn't match the report. Fuse has five ice, not six,
+     and the dips are said as the report has them.
+  3. Tinder, "everything so far", had no iron nor ice. It has two of each,
+     for five of its stones.
+  4. Fuse's ring keeps its radius on every field while its count grows
+     with the field, so on the larger fields it lays a solid band, and
+     Powder packs thirteen rocks within eight units on the narrowest:
+     for Q4 to look at, against "the field never clumps".
+  5. The placeholder, the bar's wording, an import's order, the comet row
+     and `HazardSetup`'s doc: each is fixed.
+
+  These correct the change, so it had no third review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (3,829),
+  `yarn prettier:check` and the skill references. 6 mutants of the first
+  comet's rule and the comets counted: all caught, a first comet as late
+  as any other among them.

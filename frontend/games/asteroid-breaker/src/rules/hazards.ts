@@ -14,6 +14,7 @@ import type { Ship } from "./ship";
 import { stepsIn } from "./stepper";
 import { type Place, type Torus, distanceSquared, moveAlong } from "./torus";
 import {
+  COMET_FIRST_SHARE,
   COMET_MARGIN,
   COMET_RADIUS,
   COMET_SPEED,
@@ -39,7 +40,8 @@ export interface HazardSetup {
   readonly strays: number;
   /**
    * The time from one comet's warning to the next's, in milliseconds, drawn
-   * from a span, or null for a wave without comets.
+   * from a span, or null for a wave without comets; the first's warning
+   * starts {@link COMET_FIRST_SHARE} of it into the wave.
    */
   readonly cometEvery: Span | null;
 }
@@ -130,11 +132,21 @@ export function createComets(): Comets {
   };
 }
 
-/** Draws when a wave with comets warns of its next: a time from its span after the step under way. */
-export function scheduleComet(field: Field): void {
+/**
+ * Draws when a wave with comets warns of its first, as it starts: a share of
+ * a time from its span, {@link COMET_FIRST_SHARE}, so a wave cleared quickly
+ * still meets one.
+ */
+export function scheduleFirstComet(field: Field): void {
+  scheduleComet(field, COMET_FIRST_SHARE);
+}
+
+/** Draws when a wave with comets warns of its next: a time from its span, or a share of one, after the step under way. */
+function scheduleComet(field: Field, share = 1): void {
   const every = field.setup.cometEvery;
   if (every === null) return;
-  field.comets.nextAt = field.steps + stepsIn(drawIn(field, every));
+  const span = { least: every.least * share, most: every.most * share };
+  field.comets.nextAt = field.steps + stepsIn(drawIn(field, span));
 }
 
 /**
