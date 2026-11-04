@@ -11,6 +11,7 @@
 
 <app-bar
   (openSectors)="sectorsOpen.set(true)"
+  (openHelp)="helpOpen.set(true)"
   (openSettings)="settingsOpen.set(true)"
   (handBack)="board.focus()"
 />
@@ -25,5 +26,10 @@
 -->
 <app-result (chooseSector)="sectorsOpen.set(true)" />
 <app-sectors [open]="sectorsOpen()" (closed)="sectorsOpen.set(false)" />
+<app-help
+  [open]="helpOpen()"
+  [pictures]="board.pictures()"
+  (closed)="helpOpen.set(false)"
+/>
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <fz-confirm-dialog />
