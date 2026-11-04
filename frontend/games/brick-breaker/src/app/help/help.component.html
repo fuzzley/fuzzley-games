@@ -75,13 +75,7 @@
     </table>
 
     @for (catalog of catalogs(); track catalog.id) {
-      <section [attr.aria-labelledby]="catalog.headingId">
-        <h3 [id]="catalog.headingId">{{ catalog.heading }}</h3>
-        @if (catalog.intro; as intro) {
-          <p>{{ intro }}</p>
-        }
-        <fz-help-catalog [entries]="catalog.entries" />
-      </section>
+      <fz-help-catalog [catalog]="catalog" />
     }
   </div>
 </fz-dialog>

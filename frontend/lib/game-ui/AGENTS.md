@@ -92,10 +92,11 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   press anywhere on the page on what can't take the focus keeps it there,
   so the keys aren't stranded. It reads the viewport, unlike the
   library's components: telling a turn is what it is for.
-- `src/help_catalog/`: `<fz-help-catalog>`, a list for How to play of
-  what a game's field can hold, each entry's picture beside its name and
-  what it does, and `helpEntries()`, which makes a catalog's entries, each
-  with its picture once the game has drawn it. The pictures stand in a
+- `src/help_catalog/`: `<fz-help-catalog>`, a catalog for How to play of
+  what a game's field can hold (a `HelpCatalog`), as a section its heading
+  names, with what to know first and each entry's picture beside its name
+  and what it does, and `helpEntries()`, which makes a catalog's entries,
+  each with its picture once the game has drawn it. The pictures stand in a
   column `--fz-help-picture-width` by `--fz-help-picture-height` (48 by
   24 CSS px unless the app sets them), so the words line up and nothing
   moves as they come in.

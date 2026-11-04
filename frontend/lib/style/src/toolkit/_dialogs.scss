@@ -113,19 +113,11 @@
   right: var(--fz-space-3);
 }
 
-/// Styles a card that says how to play a game: its heading, an `h3` over
-/// each list, paragraphs in the muted color with their bold words in the
-/// text's, a `.close` button in the corner, and a table of the controls
-/// with each key a keycap.
-@mixin help-card($width: 580px) {
-  @include dialog-card($width);
-
-  h2 {
-    margin: 0 0 var(--fz-space-3);
-    font-size: var(--fz-font-2xl);
-    font-weight: 700;
-  }
-
+/// Styles a help card's words: an `h3` over each list, and paragraphs in
+/// the muted color with their bold words in the text's. `help-card` holds
+/// them; a component of its own drawing a part of the card, such as
+/// `<fz-help-catalog>`, takes them too, as the card's rules can't reach it.
+@mixin help-text {
   h3 {
     margin: var(--fz-space-5) 0 var(--fz-space-2);
     font-size: var(--fz-font-md);
@@ -142,6 +134,21 @@
   strong {
     color: var(--fz-text);
   }
+}
+
+/// Styles a card that says how to play a game: its heading, its words
+/// (`help-text`), a `.close` button in the corner, and a table of the
+/// controls with each key a keycap.
+@mixin help-card($width: 580px) {
+  @include dialog-card($width);
+
+  h2 {
+    margin: 0 0 var(--fz-space-3);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  @include help-text;
 
   .close {
     @include corner-close-button;

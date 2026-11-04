@@ -1,8 +1,8 @@
 import { Component, computed, input, output } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
 import {
+  type HelpCatalog,
   HelpCatalogComponent,
-  type HelpEntry,
   helpEntries,
 } from "@fz/game-ui/help_catalog";
 import { DialogComponent } from "@fz/ui/dialog";
@@ -19,17 +19,6 @@ import {
   STREAK,
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art";
-
-/** Describes one of How to play's lists: a catalog under its heading. */
-interface Catalog {
-  readonly id: string;
-  readonly heading: string;
-  /** The id of its heading, which names its section. */
-  readonly headingId: string;
-  /** What to know before its entries, or null when there is nothing. */
-  readonly intro: string | null;
-  readonly entries: readonly HelpEntry[];
-}
 
 /** How a streak multiplies a hit's points, from the least, in the bar's words. */
 const STREAK_WORDS = [...STREAK]
@@ -71,27 +60,24 @@ export class HelpComponent {
 
   protected readonly scoring = SCORING;
 
-  protected readonly catalogs = computed<readonly Catalog[]>(() => {
+  protected readonly catalogs = computed<readonly HelpCatalog[]>(() => {
     const pictures = this.pictures();
     return [
       {
         id: "bricks",
         heading: "Bricks",
-        headingId: "help-bricks",
         intro: null,
         entries: helpEntries(BRICK_KIND_IDS, brickKind, pictures?.bricks),
       },
       {
         id: "capsules",
         heading: "Capsules",
-        headingId: "help-capsules",
         intro: CAPSULES_INTRO,
         entries: helpEntries(CAPSULE_IDS, capsule, pictures?.capsules),
       },
       {
         id: "balls",
         heading: "Balls",
-        headingId: "help-balls",
         intro: null,
         entries: helpEntries(BALL_KIND_IDS, ballKind, pictures?.balls),
       },

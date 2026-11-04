@@ -8,6 +8,16 @@ export interface HelpEntry {
   readonly picture: string | null;
 }
 
+/** Describes a catalog How to play lists: its entries under its heading. */
+export interface HelpCatalog {
+  /** Names it among How to play's catalogs. */
+  readonly id: string;
+  readonly heading: string;
+  /** What to know before its entries, or null when there is nothing. */
+  readonly intro: string | null;
+  readonly entries: readonly HelpEntry[];
+}
+
 /**
  * Returns a catalog's entries for How to play, each with its name and what
  * it does, and its picture once the game has drawn it.

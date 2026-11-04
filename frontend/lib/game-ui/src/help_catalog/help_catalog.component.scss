@@ -1,4 +1,8 @@
+@use "@fz/style" as fz;
+
 :host {
+  @include fz.help-text;
+
   display: block;
 }
 
@@ -23,12 +27,6 @@
     > div {
       grid-column: 2;
     }
-  }
-
-  // Each name in the text's color, as a help card's bold words are, which
-  // the card's rule can't reach in this component.
-  strong {
-    color: var(--fz-text);
   }
 
   img {
