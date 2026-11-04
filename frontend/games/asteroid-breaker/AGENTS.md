@@ -15,10 +15,10 @@ by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
 shows the bar, with Pause, Sound, Sectors, New game, How to play, the speed
 and the settings, and the board, with its cards, the settings drawer, the
 Sectors dialog, How to play and the result card over an ended run, plays its
-sounds, and keeps the records and the sectors reached ("What It Keeps"). The
-site serves it all the same, badged "In development" (`inDevelopment` in
-`frontend/site/src/app/provider/games.ts`), and a production build offers
-the debug menu at `?debug`, as the user asked.
+sounds, and keeps the settings, the records and the sectors reached ("What
+It Keeps"). The site serves it all the same, badged "In development"
+(`inDevelopment` in `frontend/site/src/app/provider/games.ts`), and a
+production build offers the debug menu at `?debug`, as the user asked.
 
 ## Technology Stack
 
@@ -100,6 +100,9 @@ Each entry is in `localStorage`, versioned
 (`LocalStorageService.writeVersioned()`), and its reader drops what it
 can't trust rather than failing:
 
+- `asteroid-breaker-settings`: the speed of the last run started, when the
+  deck shows, which side holds its stick, whether the ship fires by
+  itself, haptics and sound.
 - `asteroid-breaker-stats`: for each speed, the runs, the best run's score,
   the furthest wave reached and the strays brought home; and for each
   sector's id, the score of the best run started there at each speed. Ids
@@ -108,5 +111,6 @@ can't trust rather than failing:
   speed, which a run may start at. Ids no sector has any more are dropped.
 
 A run flown on numbers the debug menu tuned, its field stepped with them,
-keeps none of either. A field added to an entry later is read as optional,
-so a reader never drops a player's records for lacking it.
+keeps neither the records nor the sectors it reaches. A field added to an
+entry later is read as optional, so a reader never drops a player's records
+for lacking it.
