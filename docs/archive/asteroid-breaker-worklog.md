@@ -2310,12 +2310,14 @@ rules out.
 
 - **The five waves over many seeds.** `yarn report:waves --seeds 20` on
   the narrowest field, and with `--field wide` and `--field tall`, at
-  every speed: all 2,700 plays cleared within four minutes, at most one
+  every speed: all 1,800 plays cleared within four minutes, at most one
   ship lost to a wave at a speed. On the narrowest field the middle times
   run from 6 s, First light, to 15 s, Hail at Fast, the longest 18 s; on
   the widest, either way up, from 19 s to 40 s, the longest 1:04, Hail at
   Fast upright. Strays came only on the widest fields, where the autopilot
   brought home 7 in 10 of Adrift's at Relaxed and 223 of Hail's 227.
+  (Put right at A17.2, which had 2,700: five waves, three speeds and 20
+  seeds on three fields, each flown untouchable and as the spec plays it.)
 - **A thousand seeded random flights.** Each flies one of the five waves,
   in turn, at each speed in turn, on a field of a long side drawn from 40
   to 88 either way up, half of them with comets crossing every 2 to 4 s,
@@ -5847,3 +5849,55 @@ the games, each reviewed.
   one's at each shape and turn with the deck shown.
 - **Its review.** Two comments, both taken: the game's page shows no "New",
   only its tile does, and `added`'s doc named only the day a game went up.
+
+## Q6: the site's build
+
+2026-11-04, on the site's preview of `yarn verify`'s build at `3d5d767c`,
+with A17.1's listing, in the DevTools MCP's Chrome. Docker is off on this
+machine, so the image waits for CI: its check that the policy is sent, and
+the live site for what it lets load, as `yarn preview` sends none.
+
+- **The catalog** lists Asteroid Breaker in Arcade with Snake and Brick
+  Breaker, "New", its tile the new thumbnail; its page, reached from the
+  tile, has no badge or note, and its Play opens `/play/asteroid-breaker/`.
+- **Played there** by held keys, the console open: Ready on wave 1, a turn
+  each way, thrust and fire, 510 points and a ship lost in ten seconds, at
+  129 frames a second. The console said nothing but Angular's autofocus
+  note; the toolbar's color was the page's, `#101418` on Casino night.
+- **Nothing can be refused** in the image, by its policy's rules: the new
+  tile's images are the site's own, which `img-src 'self'` allows, and the
+  game under `/play/` carries no policy.
+- **The site's own home page** has its search box with no `id` or `name`,
+  which Chrome's Issues panel notes: the site's, not this game's, left for
+  the summary.
+- The browser pane, hidden, gave the page two frames a second, so the play
+  moved to the DevTools Chrome, as Q5's did.
+
+## A17.2: the plan and this log archived
+
+2026-11-04. The plan takes an "As built" section, as Brick Breaker's does,
+from what this log decided that a later change could trip on, the numbers
+and what was left for the user, and an opening that says how the build
+went; the two move to `docs/archive/`. Nothing else links to either.
+
+- **Checks.** Prettier and `node .agents/check-skill-references.mjs` pass,
+  and a search finds no link to the old paths.
+- **Its review.** Its claims matched the entries they cite; six comments,
+  all taken.
+  1. The opening said the merge was done, before it was: it says it merges
+     on the user's word.
+  2. Two lifts came after their steps' commits, not ahead: "beside its
+     step". `pick()` is named in "The lifted pieces" already, and
+     `<fz-fuzzball>`, new in `@fz/ui` within A10.1, wasn't named: it is.
+  3. Q2's 2,700 plays didn't follow from the report: 1,800, here and in
+     Q2's entry.
+  4. Q6 cited A17.2 and said CI checks what the policy lets load: it cites
+     Q6, says CI checks only that it is sent, and gives why nothing can be
+     refused.
+  5. Two bullets held a decision each beside their own: split. A paragraph
+     edited is wrapped again, Eye of the storm is the longest written wave
+     and not Endless's 60, Lighthouse's two 100s owed nothing to the layout
+     shift, and p95 is the 95th hundredth throughout.
+  6. Two more for what the log decided: the game is written as thirty waves
+     in more places than the rule that counts them, and A4.2's step still
+     has the first stray at 20 s.
