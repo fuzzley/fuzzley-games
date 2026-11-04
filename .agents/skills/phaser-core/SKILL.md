@@ -6,14 +6,15 @@ description: How a game here is drawn with Phaser 4 — the @fz/phaser library (
 # Phaser games here
 
 A game drawn with Phaser 4 keeps Phaser to the code that draws, and builds on
-`@fz/phaser` (`frontend/lib/phaser/`), which holds what every such game
-shares. Its rules are in
-[its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Three games are
-built this way: the Solitaire Collection, whose card-specific rules are in
-its own `solitaire-phaser` skill; Snake (`frontend/games/snake/`), the
-smaller one to start from; and Brick Breaker
-(`frontend/games/brick-breaker/`), which draws every brick, ball and
-capsule from one atlas baked at run time (`bakeAtlas()`).
+`@fz/phaser` (`frontend/lib/phaser/`), which holds what every such game shares.
+Its rules are in [its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Four
+games are built this way: the Solitaire Collection, whose card-specific rules
+are in its own `solitaire-phaser` skill; Snake (`frontend/games/snake/`), the
+smaller one to start from; Brick Breaker (`frontend/games/brick-breaker/`),
+which draws every brick, ball and capsule from one atlas baked at run time
+(`bakeAtlas()`); and Asteroid Breaker (`frontend/games/asteroid-breaker/`),
+which does the same for its rocks, ship and pickups, on a field that wraps,
+beside a deck of controls for a touch screen.
 
 ## The library
 
@@ -70,7 +71,8 @@ Snake keeps four layers (`frontend/games/snake/AGENTS.md`): its rules, a
 view that works out what to draw without Phaser, so its specs are plain,
 the scene, the one folder that imports Phaser, and the shell. Brick
 Breaker keeps the same four (`frontend/games/brick-breaker/AGENTS.md`),
-its physics in its rules.
+its physics in its rules, and so does Asteroid Breaker
+(`frontend/games/asteroid-breaker/AGENTS.md`).
 The Angular shell imports `@fz/phaser/canvas` and a scene source, never
 Phaser itself; a source that loads the scene with `import()` keeps Phaser
 out of the first download.
@@ -240,7 +242,10 @@ browser, through a game's screenshots and its `check:layout`.
   `snake-testing` skill); Brick Breaker's, of one whose atlas is baked at
   run time, played with keys and the pointer
   (`frontend/games/brick-breaker/src/scene/bricks_scene.spec.ts`, and its
-  `brick-breaker-testing` skill); and the Solitaire Collection's of a board
+  `brick-breaker-testing` skill); Asteroid Breaker's, of one played with
+  keys, the mouse and a deck drawn on the canvas
+  (`frontend/games/asteroid-breaker/src/scene/belt_scene.spec.ts`, and its
+  `asteroid-breaker-testing` skill); and the Solitaire Collection's of a board
   whose atlases are served and loaded, played with the mouse
   (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`,
   and its `solitaire-testing` skill).

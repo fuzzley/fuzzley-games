@@ -20,8 +20,9 @@ export function createRandom(seed: number): () => number {
  * number of `createRandom()` seeded with the two mixed, so no draw needs
  * those before it.
  *
- * Its numbers never change, since Snake's and Brick Breaker's saved games
- * keep only a seed and a count, and `random.spec.ts` pins the first of them.
+ * Its numbers never change, since Snake's, Brick Breaker's and Asteroid
+ * Breaker's saved games keep only a seed and a count, and `random.spec.ts`
+ * pins the first of them.
  */
 export function drawAt(seed: number, n: number): number {
   return createRandom(seed ^ Math.imul(n, 0x9e3779b1))();

@@ -5796,3 +5796,31 @@ turn each way and fire.
      buttons and its knob against the stick's base; the scene's flourishes'
      spec runs the scene too; and this entry no longer says every claim
      was checked.
+
+## A16.3: the lists that name the games
+
+2026-11-04.
+
+- **Every list of the games names Asteroid Breaker:** the repository's
+  `AGENTS.md` (its opening, the stack, the layers of instructions, the
+  skills' folders and the apps' testing skills), `frontend/AGENTS.md`,
+  `frontend/games/AGENTS.md` (its folder, and 9005 its dev server's port,
+  the next game's 9006), `frontend/lib/dev/AGENTS.md`, `docs/operations.md`
+  and the root `README.md`, the dev servers' comments there aligned again.
+- **The skills:** `phaser-core`, a fourth game drawn with Phaser, its atlas
+  baked as Brick Breaker's is and its physics in its rules; `fuzzley-ui`, its
+  rocks in inks of its own and its contrast spec; `web-game-accessibility`, a
+  wave's first move as what starts it and Space as fire, not a pause, and its
+  three speeds; `angular-testing`, its shell's specs and its testing skill.
+- The paragraphs whose lines ran long or short are wrapped again at 80
+  columns.
+- **Its review.** Three comments, all taken.
+  1. A list the plan's step missed: `@fz/core`'s `AGENTS.md`, and
+     `drawAt()`'s doc in `src/random.ts`, say why a seed's numbers never
+     change by the saved games that keep one, and named two of the three:
+     Asteroid Breaker keeps a seed and a count of draws too, and makes an
+     Endless wave again from a seed.
+  2. `fuzzley-ui` named Asteroid Breaker's rocks among the inks of a
+     game's own, not its pilots: both now.
+  3. This entry said every paragraph touched was wrapped again, which
+     several, whose lines still fit, weren't: it says which were.

@@ -90,9 +90,10 @@ The Solitaire Collection is the worked example; the site does the same, and
 so do Minesweeper (`frontend/games/minesweeper/`) and Sudoku
 (`frontend/games/sudoku/`), games built from the libraries alone, which show
 the same steps with nothing else around them, and Snake
-(`frontend/games/snake/`) and Brick Breaker (`frontend/games/brick-breaker/`),
-whose boards Phaser draws in the palette's roles, Brick Breaker's bricks in
-inks of its own beside them.
+(`frontend/games/snake/`), Brick Breaker (`frontend/games/brick-breaker/`)
+and Asteroid Breaker (`frontend/games/asteroid-breaker/`), whose boards
+Phaser draws in the palette's roles, Brick Breaker's bricks and Asteroid
+Breaker's rocks and pilots in inks of their own beside them.
 
 1. **Depend on them.** List `"@fz/style": "workspace:*"` in the app's
    `package.json`, and for an Angular app `@fz/ui` and, for a game,
@@ -128,20 +129,21 @@ inks of its own beside them.
    provides `null`), and have the specs' setup call `installDialogPolyfill`
    from `@fz/ui/testing`, as `frontend/games/solitaire/test/test-setup.ts`
    does.
-7. **Check text on the table.** Text on glass over the app's own table
-   depends on the table too: hold it to 4.5:1 over every table color, as
-   `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts` does. A
-   game that draws on the palette's own roles checks what it draws in every
-   palette instead, as
-   `frontend/games/minesweeper/src/app/board/contrast.spec.ts` holds
+7. **Check text on the table.** Text on glass over the app's own table depends
+   on the table too: hold it to 4.5:1 over every table color, as
+   `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts` does. A game
+   that draws on the palette's own roles checks what it draws in every palette
+   instead, as `frontend/games/minesweeper/src/app/board/contrast.spec.ts` holds
    Minesweeper's numbers on their squares, and
-   `frontend/games/sudoku/src/app/board/contrast.spec.ts` Sudoku's digits
-   and notes on every shade of a square,
-   `frontend/games/snake/src/view/contrast.spec.ts` Snake's snake and apple
-   on both shades of square, and
+   `frontend/games/sudoku/src/app/board/contrast.spec.ts` Sudoku's digits and
+   notes on every shade of a square,
+   `frontend/games/snake/src/view/contrast.spec.ts` Snake's snake and apple on
+   both shades of square, and
    `frontend/games/brick-breaker/src/view/contrast.spec.ts` Brick Breaker's
-   tints, bricks, balls and capsules on its field. Each compiles the app's
-   global stylesheet and measures it with `@fz/style/testing`.
+   tints, bricks, balls and capsules on its field, and
+   `frontend/games/asteroid-breaker/src/view/contrast.spec.ts` Asteroid
+   Breaker's rocks, ship, pickups and pilots on its field. Each compiles the
+   app's global stylesheet and measures it with `@fz/style/testing`.
 
 Keep the players' `localStorage` keys as they are, whatever the app moves
 onto `LocalStorageService`: renaming one loses what players saved.

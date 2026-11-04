@@ -70,10 +70,11 @@ random and JSON reader in its engine for now.
 - **Mulberry32's sequence never changes,** nor do `drawAt()`'s numbers or
   the order `shuffled()` gives a seed. The screenshot scripts deal by seed
   and play moves that fit only the deal it gives, a Minesweeper game saved
-  before its first move keeps only its seed, and Snake's and Brick
-  Breaker's runs keep a seed and a count of draws, so the numbers a seed
-  gives are a contract. `src/random.spec.ts` pins the first of them; a
-  change that moves them is a new function, not an edit.
+  before its first move keeps only its seed, Snake's, Brick Breaker's and
+  Asteroid Breaker's runs keep a seed and a count of draws, and Asteroid
+  Breaker's Endless waves are made again from a seed, so the numbers a
+  seed gives are a contract. `src/random.spec.ts` pins the first of them;
+  a change that moves them is a new function, not an edit.
 - **A helper belongs here once two workspaces need it,** or beside one
   that does, as `shuffled()` sits by the seeded random. One only a game
   uses stays in that game.

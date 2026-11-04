@@ -1,12 +1,12 @@
 # The games
 
 `frontend/games/`: the games built here, one workspace each, named after its
-folder: the Solitaire Collection (`solitaire/`), Minesweeper
-(`minesweeper/`), Sudoku (`sudoku/`), Snake (`snake/`) and Brick
-Breaker (`brick-breaker/`). These rules hold for every game.
-The frontend's, in [frontend/AGENTS.md](../AGENTS.md), and the repository's
-apply too, and each game keeps its own in its folder's `AGENTS.md`. Paths
-are relative to `frontend/games/`.
+folder: the Solitaire Collection (`solitaire/`), Minesweeper (`minesweeper/`),
+Sudoku (`sudoku/`), Snake (`snake/`), Brick Breaker (`brick-breaker/`) and
+Asteroid Breaker (`asteroid-breaker/`). These rules hold for every game. The
+frontend's, in [frontend/AGENTS.md](../AGENTS.md), and the repository's apply
+too, and each game keeps its own in its folder's `AGENTS.md`. Paths are relative
+to `frontend/games/`.
 
 ## What every game keeps
 
@@ -24,12 +24,12 @@ are relative to `frontend/games/`.
   build doesn't open. Its dev server swaps an edited component's template
   or styles into the running page, which needs the `rootDir` `@fz/dev`'s
   tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
-- **Its dev server has a port of its own,** which its screenshot script
-  defaults to: 9000 is the Solitaire Collection's, 9001 Minesweeper's,
-  9002 Sudoku's, 9003 Snake's and 9004 Brick Breaker's, so the next game
-  takes 9005. The root's `yarn dev:all` runs it on one after the site's
-  instead, at `/play/<slug>/`, which the site's dev server serves, so
-  nothing the game loads may assume it sits at `/`.
+- **Its dev server has a port of its own,** which its screenshot script defaults
+  to: 9000 is the Solitaire Collection's, 9001 Minesweeper's, 9002 Sudoku's,
+  9003 Snake's, 9004 Brick Breaker's and 9005 Asteroid Breaker's, so the next
+  game takes 9006. The root's `yarn dev:all` runs it on one after the site's
+  instead, at `/play/<slug>/`, which the site's dev server serves, so nothing
+  the game loads may assume it sits at `/`.
 - **Its layout can be checked in a browser,** which jsdom can't: a
   `check:layout` script on `@fz/dev/layout` opens its build at each shape a
   game takes and fails on an error, a page that scrolls, or what its own
