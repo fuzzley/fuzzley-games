@@ -5824,3 +5824,26 @@ turn each way and fire.
      game's own, not its pilots: both now.
   3. This entry said every paragraph touched was wrapped again, which
      several, whose lines still fit, weren't: it says which were.
+
+## A16: done
+
+2026-11-04. The screenshots, the skills, the game's docs and every list of
+the games, each reviewed.
+
+## A17.1: listed for real
+
+2026-11-04.
+
+- **The site's catalog** lists Asteroid Breaker without `inDevelopment`, so
+  its tile says "New" where it said "In development", and its page loses
+  the badge and the note that it may change; its `added` is the day it was
+  finished, which the "New" runs from, and the doc on `added` says so.
+- **`frontend/site/index.html`'s description** names it with the other
+  games, and **the game's own `index.html`** says "Thirty waves, then
+  Endless" again, in its description, its link preview's and its
+  structured data's.
+- **Checks.** `yarn verify` passes: lint, type-check, every workspace's
+  tests and the build. `yarn check:layout` passes for every game, this
+  one's at each shape and turn with the deck shown.
+- **Its review.** Two comments, both taken: the game's page shows no "New",
+  only its tile does, and `added`'s doc named only the day a game went up.

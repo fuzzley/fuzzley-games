@@ -350,8 +350,7 @@ export const GAMES: readonly Game[] = [
     blurb: "Fly, drift and blast every rock to rubble before one finds you.",
     players: SOLO,
     minutes: 10,
-    added: "2026-11-02",
+    added: "2026-11-04",
     play: { build: "asteroid-breaker" },
-    inDevelopment: true,
   },
 ];
