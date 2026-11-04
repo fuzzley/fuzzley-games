@@ -18,7 +18,7 @@ describe("WordmarkComponent", () => {
   it("draws the fuzzball beside the name, hidden from screen readers", async () => {
     const { container } = await render(WordmarkComponent);
 
-    expect(container.querySelector("svg")).toHaveAttribute(
+    expect(container.querySelector("fz-fuzzball")).toHaveAttribute(
       "aria-hidden",
       "true",
     );

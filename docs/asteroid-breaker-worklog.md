@@ -4046,3 +4046,117 @@ entry to main ui but let users know it's under development still."
   mutants of the badge, the page's note, the catalog and `DEBUG_MENU`'s
   test of the address: all caught but the badge's accent, which a case
   holds now.
+
+## Q3, second half: the user's phones
+
+2026-11-03. The user played the waves on their phones, upright and on
+their side, and said: "Current values all look
+good for now and it works well on both orientation in mobile. Continue
+development." So `tuning.ts` keeps the numbers it has, Q3 has passed, and
+A10 begins.
+
+## A10.1: the bar, the icon and the pilot
+
+2026-11-03.
+
+- **Built.**
+  - `@fz/ui`'s `asteroid` icon, a lumpy rock with two craters, which the
+    bar's score takes, as Brick Breaker's takes `bricks`; the spec's
+    `it.each` over `ICON_NAMES` draws it with the rest.
+  - `<fz-fuzzball>` in `@fz/ui`, the fuzzball drawn inline, its body and
+    fur in the text's color and its eyes dark, its glints left out at 16
+    device pixels across or less, as `fuzzballSvg()` says to;
+    `<fz-wordmark>` draws its mark with it, in the accent.
+  - `<app-pilot>` in `src/app/pilot/`: a `<fz-fuzzball>` in `pilotInk()`'s
+    ink for the palette's mode, hidden from assistive technology.
+  - `<app-bar>` in `src/app/bar/`, as Brick Breaker's is: the link home,
+    the name, the speed's `<fz-bar-choice>`; the wave, the score, the
+    ships as their pilots, the one at the controls first, and the
+    chain's multiplier while it counts; Pause, New game and Settings,
+    which move into the overflow on a compact screen. Where the bar has
+    room for two figures, the score and the ships stand alone, the ships
+    a number beside the pilot at the controls.
+  - `GameService` gains `crew`, `chain`, the multiplier the wave in
+    play's chain stands at, 1 whenever no wave is in play, and
+    `changeSpeed()`, which asks Brick Breaker's question, naming the
+    speed.
+  - The board's cards lose their Settings, which the bar has now, and
+    the Paused card draws the strays waiting at home, each in its color,
+    and says how many.
+  - The page lays the stage out around the bar, the bar's size published
+    on `:root` as Brick Breaker's global stylesheet does.
+  - `src/testing/play.ts` gains `STRAY_WAVES`, a stone and two strays,
+    and `bringStraysHome()`; and `CHAIN_WAVES` and `chainUp()`: a cluster
+    of twelve small stones the ship breaks in a chain, and six volatiles
+    that set each other off, clearing the wave while the chain counts.
+- **Choices.**
+  - **Each button comes with what it does:** Sectors and How to play with
+    their dialogs in A10.2, Sound with the sounds in A11.1, rather than
+    in the bar before they do anything. The plan's A10.1 and A10.2 say
+    so.
+  - **The speed lives in the run** until A10.2's settings take it, as
+    nothing keeps it yet (A12.1).
+  - **The Paused card draws the strays at home** with `<app-pilot>` now,
+    as the plan's cards have it, rather than waiting for the result card
+    in A10.2.
+  - **A new run's first pilot is color 0,** which an `@if … as` reads as
+    none; the bar's template tests it against null, and says why.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on the dev
+  server: 1280 × 800, the bar across the top with the three pilots;
+  390 × 844 with touch, the bar at the foot under the deck, the score
+  over the ships beside the coral pilot; 844 × 390 on its side, the rail
+  beyond the right deck. The pilot at the controls was missing on the
+  phone, the `@if` above, and is there now, with a case that catches it.
+- **Review.** Nothing broken; six comments, five taken and one left.
+  1. The bar's styles and its Pause are near copies of Brick Breaker's,
+     and Snake's bar holds the same Pause, so three games keep them. Left
+     for now: a lift across three games' bars is a change of its own,
+     which goes to the user, as the lifts at Q3 did, rather than into
+     this step.
+  2. `<app-pilot>`'s drawing was `<fz-wordmark>`'s, line for line, and
+     drew the glints at 15 px, under the 16 `fuzzballSvg()` leaves them
+     out below. Both draw `@fz/ui`'s `<fz-fuzzball>` now, which leaves
+     them out under 16 px by a container query; checked in Chrome, the
+     compact bar's pilot has none and the roomy bar's three have theirs.
+  3. Two game specs asserted what their helper had played until. The
+     stray's now holds the whole crew, the stray at home in the next
+     color, `[3]`, and none of it flying. The chain's stays as it was:
+     the frame's field doesn't show its chain, and the cases after it
+     hold the signal to the field's chain through each way it changes,
+     its time running out, a pause, a clearing and a new run.
+  4. `CHAIN_WAVE`'s doc spoke of a split stone the wave no longer has. It
+     speaks of the volatiles.
+  5. The pilot's spec named the eyes' color it never checked. The
+     fuzzball's spec checks it, and the pilot's says it draws one.
+  6. The bar's `@let pilot` shared its name with the `@for` below it. It
+     is `first`.
+
+  The fuzzball reshapes the change, so it had a second review: nothing
+  broken, the wordmark as it was; three comments, two taken and one left.
+  1. The glints went at 16 CSS px, where `fuzzballSvg()` counts the
+     image's own pixels, so a phone at 2× lost them at 30 device pixels
+     across. They go at 16 px or less only below 1.5 device pixels to a
+     CSS pixel; checked in Chrome, the compact pilot keeps them at 2× and
+     loses them at 1×, and the wordmark keeps its accent and its glints.
+  2. The fuzzball's spec let its colors go: deleting the body's fill or
+     the fur's stroke passed. Its fixed paint is the template's
+     presentation attributes, as `fuzzballSvg()` writes it, which the
+     spec reads; the pilot's spec is named for what it checks.
+  3. `<app-pilot>` repeats the fuzzball's box; a directive on
+     `<fz-fuzzball>` would be one. Left: the plan names `<app-pilot>`,
+     one element for the bar and the cards to place and size, and the
+     box is five lines.
+
+  These correct the fuzzball rather than reshape it, so it had no third
+  review.
+
+- **Checks.** Each touched workspace's `lint`, `typecheck` and `test`
+  (`@fz/ui` 198 tests, Asteroid Breaker 2,830, `@fz/game-ui` 177, the
+  site 177), `yarn prettier:check` and the skill references. 23 mutants
+  of the chain, the crew, the change of speed, the bar, the Paused card,
+  the pilot and the page's wiring: 20 caught at once; the chain's end at
+  a clearing, the bar's two figures on a short wide window and the
+  Paused card's plural survived, and each has a case now that catches
+  it, the first on a wave of six volatiles that clear in one cascade
+  while the chain counts. 7 more of the fuzzball, the wordmark and the
+  pilot after the review: all caught.

@@ -9,6 +9,7 @@ import type { Rock } from "../../rules/rocks";
 import { STILL, type Steer } from "../../rules/ship";
 import { STEP_MS } from "../../rules/stepper";
 import {
+  CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
   FIELD_SHORT_SIDE,
@@ -16,9 +17,14 @@ import {
 } from "../../rules/tuning";
 import { WAVES, type WaveEntry, wavesOf } from "../../rules/waves";
 import {
+  CHAIN_WAVE,
+  CHAIN_WAVES,
   FRAME_MS,
   SPEC_RANDOM,
   SPEC_WAVE,
+  STRAY_WAVES,
+  bringStraysHome,
+  chainUp,
   clearToNext,
   endRun,
   loseShip,
@@ -32,6 +38,7 @@ import {
 import { TUNED } from "../../view/debug_tuning";
 import type { BoardSetting } from "../../view/field_metrics";
 import { CLEARED_MS, resultDelayMs } from "../../view/timing";
+import { GAME_WAVES } from "../tokens";
 import { GameService } from "./game.service";
 
 /** A board with no margin and no deck, as on a screen with no touch. */
@@ -88,6 +95,12 @@ async function clearedAt(wave: number): Promise<GameService> {
   const game = await gameAt(wave);
   playToClear(game);
   return game;
+}
+
+/** Returns the game over waves of a spec's own, its run waiting at the first for its first move. */
+function gameOver(waves: readonly WaveEntry[]): GameService {
+  TestBed.overrideProvider(GAME_WAVES, { useValue: waves });
+  return TestBed.inject(GameService);
 }
 
 /** Returns the game with a run at a wave that has lost every ship. */
@@ -199,6 +212,80 @@ describe("GameService", () => {
         ships: FIRST_SHIPS - 1,
         said: "Ship lost. 2 ships left.",
       });
+    });
+  });
+
+  describe("the crew", () => {
+    it("flies a new run's ships with pilots in the first colors, and no one at home", () => {
+      const game = TestBed.inject(GameService);
+
+      expect(game.crew()).toMatchObject({ flying: [0, 1, 2], home: [] });
+    });
+
+    it("keeps a stray brought home at home, in the next color, waiting to fly", () => {
+      const game = gameOver(STRAY_WAVES);
+
+      bringStraysHome(game, 1);
+
+      expect(game.crew()).toMatchObject({ flying: [0, 1, 2], home: [3] });
+    });
+  });
+
+  describe("the chain", () => {
+    it("scores a new run's breaks once", () => {
+      const game = TestBed.inject(GameService);
+
+      expect(game.chain()).toBe(1);
+    });
+
+    it("scores twice once five breaks count on in a chain", () => {
+      const game = gameOver(CHAIN_WAVES);
+
+      chainUp(game);
+
+      expect(game.chain()).toBe(2);
+    });
+
+    it("scores once again when the chain's time is up, its shots flown", () => {
+      const game = gameOver(CHAIN_WAVES);
+      chainUp(game);
+
+      playFor(game, 3 * CHAIN_MS, STILL);
+
+      expect({ chain: game.chain(), ships: game.ships() }).toEqual({
+        chain: 1,
+        ships: FIRST_SHIPS,
+      });
+    });
+
+    it("keeps the chain through a pause, as its time stands still", () => {
+      const game = gameOver(CHAIN_WAVES);
+      chainUp(game);
+
+      game.pause();
+      playFor(game, 2 * CHAIN_MS, STILL);
+
+      expect(game.chain()).toBe(2);
+    });
+
+    it("ends the chain as the wave is cleared, though it counts as the last rock breaks", async () => {
+      const game = gameOver(CHAIN_WAVES);
+      await game.startAt(CHAIN_WAVE.blasts);
+
+      playToClear(game);
+
+      expect(game.chain()).toBe(1);
+    });
+
+    it("ends the chain as a new run begins", async () => {
+      const game = gameOver(CHAIN_WAVES);
+      chainUp(game);
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect(game.chain()).toBe(1);
     });
   });
 
@@ -747,6 +834,65 @@ describe("GameService", () => {
       await game.startAt(SPEC_WAVE.pebble);
 
       expect(game.runs()).toBe(2);
+    });
+  });
+
+  describe("a change of speed", () => {
+    it("starts a run at the speed, at the wave the last run started at, without asking while none is under way", async () => {
+      const game = await gameAt(SPEC_WAVE.gift);
+
+      const started = await game.changeSpeed("fast");
+
+      expect({
+        started,
+        asked: TestBed.inject(ConfirmService).isOpen(),
+        speed: game.speed(),
+        wave: game.wave().number,
+        runs: game.runs(),
+      }).toEqual({
+        started: true,
+        asked: false,
+        speed: "fast",
+        wave: SPEC_WAVE.gift,
+        runs: 2,
+      });
+    });
+
+    it("names the speed as it asks before it throws away the run under way", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      void game.changeSpeed("relaxed");
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Start a new Relaxed game?",
+        confirmLabel: "New game",
+      });
+    });
+
+    it("keeps the run under way when the player backs out", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      const before = game.run();
+
+      const starting = game.changeSpeed("relaxed");
+      TestBed.inject(ConfirmService).cancel();
+
+      expect({ started: await starting, run: game.run() }).toEqual({
+        started: false,
+        run: before,
+      });
+    });
+
+    it("starts the run at the speed once the player agrees", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      const starting = game.changeSpeed("fast");
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect({ speed: game.speed(), outcome: game.outcome() }).toEqual({
+        speed: "fast",
+        outcome: "ready",
+      });
     });
   });
 

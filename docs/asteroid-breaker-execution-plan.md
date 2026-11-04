@@ -540,15 +540,19 @@ more. Paths in Part 1 are under `frontend/lib/` or
 #### A10: the bar, the icon and the dialogs (medium)
 
 - **A10.1** An `asteroid` icon in `@fz/ui` with its spec's case;
-  `src/app/pilot/` (`<app-pilot>`, a fuzzball in a pilot's ink); and
-  `src/app/bar/`: the link home, the name with the speed's badge, the wave,
-  the score, the ships as their pilots, the chain while it counts, and
-  Pause, Sound, Sectors, New game, How to play and Settings, the overflow
-  on a compact screen. Specced. One commit.
+  `src/app/pilot/` (`<app-pilot>`, a fuzzball in a pilot's ink), which
+  the Paused card draws the strays at home with; and `src/app/bar/`: the
+  link home, the name with the speed's badge, the wave, the score, the
+  ships as their pilots, the chain while it counts, and Pause, New game
+  and Settings, the overflow on a compact screen, the cards' Settings
+  gone. Each other button comes with what it does: Sectors and How to
+  play with their dialogs in A10.2, Sound with the sounds in A11.1.
+  Specced. One commit.
 - **A10.2** `src/app/sectors/`, `result/`, `help/` and the rest of
   `settings/`: the Sectors dialog, the result card with the fuzzballs
   brought home, How to play from the catalogs with the scene's pictures,
-  and every setting. Specced. One commit, `yarn verify` with it.
+  every setting, and the bar's Sectors and How to play. Specced. One
+  commit, `yarn verify` with it.
 
 #### A11: sound and haptics (small)
 

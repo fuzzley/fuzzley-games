@@ -49,17 +49,21 @@ describe("AppComponent", () => {
     vi.restoreAllMocks();
   });
 
-  it("names the game in the heading of the page's main landmark, over the board", async () => {
+  it("puts the board in the page's main landmark", async () => {
     await renderApp();
 
-    const main = screen.getByRole("main");
-    expect(
-      within(main).getByRole("heading", { level: 1, name: "Asteroid Breaker" }),
-    ).toBeInTheDocument();
-    expect(main).toContainElement(
+    expect(screen.getByRole("main")).toContainElement(
       screen.getByRole("application", {
         name: "Asteroid Breaker, wave 1: Pebble",
       }),
+    );
+  });
+
+  it("names the game in the bar", async () => {
+    await renderApp();
+
+    expect(screen.getByRole("banner")).toContainElement(
+      screen.getByRole("heading", { level: 1, name: "Asteroid Breaker" }),
     );
   });
 
@@ -131,21 +135,17 @@ describe("AppComponent", () => {
       await settle();
 
       expect(game.resultClosed()).toBe(true);
-      expect(screen.getByRole("button", { name: "New game" })).toBeVisible();
+      expect(
+        within(screen.getByRole("application")).getByRole("button", {
+          name: "New game",
+        }),
+      ).toBeVisible();
     });
   });
 
   describe("the settings", () => {
-    /** Returns the game with its wave started, then paused, for the Paused card's Settings. */
-    async function pausedApp(): Promise<GameService> {
-      const game = await startedApp();
-      game.pause();
-      await settle();
-      return game;
-    }
-
-    it("open from the card over a paused wave", async () => {
-      await pausedApp();
+    it("open from the bar", async () => {
+      await renderApp();
 
       await userEvent.click(screen.getByRole("button", { name: "Settings" }));
 
@@ -153,7 +153,7 @@ describe("AppComponent", () => {
     });
 
     it("hand the board the focus back as they close", async () => {
-      await pausedApp();
+      await renderApp();
       await userEvent.click(screen.getByRole("button", { name: "Settings" }));
 
       await userEvent.click(
@@ -185,10 +185,31 @@ describe("AppComponent", () => {
       game.tick(FRAME_MS, shoot(game));
       await settle();
 
-      await userEvent.click(screen.getByRole("button", { name: "New game" }));
+      await userEvent.click(
+        within(screen.getByRole("application")).getByRole("button", {
+          name: "New game",
+        }),
+      );
       await settle();
 
       expect(game.outcome()).toBe("ready");
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("goes back to the board as the bar's Resume goes on with a paused wave, wherever it was before", async () => {
+      const game = await startedApp();
+      game.pause();
+      await settle();
+      screen.getByRole("application").blur();
+
+      await userEvent.click(
+        within(screen.getByRole("banner")).getByRole("button", {
+          name: "Resume",
+        }),
+      );
+      await settle();
+
+      expect(game.outcome()).toBe("playing");
       expect(screen.getByRole("application")).toHaveFocus();
     });
 
