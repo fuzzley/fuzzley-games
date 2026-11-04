@@ -16,9 +16,10 @@ interface Figure {
 
 /**
  * Shows an ended run's result over the board: the wave it was lost on and
- * at what speed, the score and the best, with "New best" when it set one,
- * the wave reached and the waves cleared, and the fuzzballs it brought
- * home, each in its color.
+ * at what speed, the score and the best, with "New best" when it set one
+ * and "Cleared all thirty" when it cleared every written wave, the wave
+ * reached and the waves cleared, and the fuzzballs it brought home, each
+ * in its color.
  *
  * The game opens it once the last ship's burst has faded. It offers to try
  * again from the sector the run started in, or to choose a sector instead,
@@ -39,7 +40,7 @@ export class ResultComponent {
   /** Where the run was lost, and at what speed. */
   protected readonly subtitle = computed(() => {
     const run = this.game.run();
-    return `${whereLost(run)}, at ${SPEED_INFO[run.speed].name} speed`;
+    return `${whereLost(this.game.wave())}, at ${SPEED_INFO[run.speed].name} speed`;
   });
 
   protected readonly figures = computed<readonly Figure[]>(() => {

@@ -3,6 +3,7 @@ import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { FIRST_SHIPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves";
 import {
   FRAME_MS,
@@ -70,13 +71,20 @@ describe("SectorsComponent", () => {
   it("lists each sector by its name and waves, locked until reached", async () => {
     await renderSectors();
 
-    expect(sectorNames()).toEqual(["Near Wave 1", "Far Waves 2 to 3 Locked"]);
+    expect(sectorNames()).toEqual([
+      "Near Wave 1",
+      "Far Waves 2 to 3 Locked",
+      "Endless From wave 4 Locked",
+    ]);
   });
 
   it("says the waves of a sector of more than one", async () => {
     await renderSectors(SPEC_WAVES);
 
-    expect(sectorNames()).toEqual(["Specs Waves 1 to 3"]);
+    expect(sectorNames()).toEqual([
+      "Specs Waves 1 to 3",
+      "Endless From wave 4 Locked",
+    ]);
   });
 
   it("locks a sector not yet reached, which can't be chosen", async () => {
@@ -103,6 +111,7 @@ describe("SectorsComponent", () => {
     expect(sectorNames()).toEqual([
       "Near Wave 1",
       "Far Waves 2 to 3 Best 3,000",
+      "Endless From wave 4 Locked",
     ]);
   });
 
@@ -126,6 +135,21 @@ describe("SectorsComponent", () => {
 
     expect(game.wave().number).toBe(2);
     expect(closed).toHaveBeenCalledOnce();
+  });
+
+  it("starts a run in Endless once a run has reached it, at its first wave", async () => {
+    const { user, game, detectChanges } = await renderSectors();
+    TestBed.inject(ProgressService).recordReached("endless");
+    detectChanges();
+
+    await user.click(
+      screen.getByRole("button", { name: "Endless From wave 4" }),
+    );
+
+    expect({ wave: game.wave().number, ships: game.ships() }).toEqual({
+      wave: 4,
+      ships: FIRST_SHIPS,
+    });
   });
 
   it("stays open when the player backs out of throwing away a run under way", async () => {

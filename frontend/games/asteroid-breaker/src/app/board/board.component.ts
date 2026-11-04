@@ -26,6 +26,7 @@ import {
   type Viewport,
   canvasPixelRatio,
 } from "@fz/phaser/layout";
+import { IconComponent } from "@fz/ui/icon";
 import { ThemeService } from "@fz/ui/theme";
 import { whereLost } from "../../rules/describe";
 import type { Torus } from "../../rules/torus";
@@ -66,7 +67,12 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  */
 @Component({
   selector: "app-board",
-  imports: [KeepKeysDirective, PhaserCanvasComponent, PilotRowComponent],
+  imports: [
+    IconComponent,
+    KeepKeysDirective,
+    PhaserCanvasComponent,
+    PilotRowComponent,
+  ],
   host: {
     tabindex: "0",
     role: "application",
@@ -221,10 +227,13 @@ export class BoardComponent {
       `${count(this.home().length, "fuzzball", "fuzzballs")} waiting at home`,
   );
 
-  /** What the Cleared card calls the wave. */
-  protected readonly clearedTitle = computed(
-    () => `Wave ${String(this.game.wave().number)} cleared`,
-  );
+  /** What the Cleared card calls the wave, or the last sector and Endless after it. */
+  protected readonly clearedTitle = computed(() => {
+    const { number, sector } = this.game.wave();
+    return this.game.beforeEndless()
+      ? `${sector.name} cleared. Endless begins.`
+      : `Wave ${String(number)} cleared`;
+  });
 
   /** What the Cleared card says goes on to the next wave, besides its button. */
   protected readonly nextWords = computed(
@@ -238,7 +247,7 @@ export class BoardComponent {
   });
 
   /** What the card over an ended run calls it: the wave it was lost on. */
-  protected readonly endTitle = computed(() => whereLost(this.game.run()));
+  protected readonly endTitle = computed(() => whereLost(this.game.wave()));
 
   /** The field's colors, from the palette on the page. */
   private readonly palette = fieldPalette(inject(ThemeService));

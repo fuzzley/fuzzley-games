@@ -5,6 +5,7 @@ import {
   type WaveProgress,
   catchUp,
   createRun,
+  hasClearedAll,
   hasEnded,
   isInProgress,
   nextShipAfter,
@@ -110,6 +111,28 @@ describe("wavesCleared", () => {
 
     expect(wavesCleared(run)).toBe(cleared);
   });
+});
+
+describe("hasClearedAll", () => {
+  it.each([
+    ["a run from the first that cleared the last", 1, 30, "cleared", true],
+    ["a run from the first gone on past the last", 1, 34, "playing", true],
+    ["a run from the first on the last", 1, 30, "playing", false],
+    [
+      "a run from a later sector thirty waves past it",
+      11,
+      45,
+      "playing",
+      false,
+    ],
+  ] as const)(
+    "says whether %s has cleared all",
+    (_, firstWave, wave, outcome, cleared) => {
+      const run = runWith({ firstWave, wave, outcome });
+
+      expect(hasClearedAll(run, 30)).toBe(cleared);
+    },
+  );
 });
 
 describe("startWave", () => {

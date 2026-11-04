@@ -40,6 +40,9 @@
     }
     @case ("cleared") {
       <div class="card">
+        @if (game.beforeEndless()) {
+          <fz-icon class="card-icon" name="trophy" />
+        }
         <p class="card-title">{{ clearedTitle() }}</p>
         <dl class="tally">
           @for (line of tallyLines(); track line.label) {

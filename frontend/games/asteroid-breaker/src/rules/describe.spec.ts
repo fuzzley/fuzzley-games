@@ -1,5 +1,6 @@
 import { loggedOn } from "../testing/field_picture";
 import {
+  type EndMarks,
   describeCleared,
   describeEnd,
   describeEvent,
@@ -12,7 +13,7 @@ import {
 import { type FieldEvent, FieldEventLog } from "./events";
 import type { Crew, Pilot } from "./pilots";
 import { type Run, createRun } from "./run";
-import type { WaveEntry } from "./waves";
+import { type WaveEntry, waveEntryOf } from "./waves";
 
 /** Returns a crew of pilots flying and at home. */
 function crewOf(flying: readonly Pilot[], home: readonly Pilot[] = []): Crew {
@@ -36,6 +37,14 @@ function entryOf(number: number, name: string): WaveEntry {
     data: { id: "wave", name, rocks: [] },
   };
 }
+
+/** Returns Endless's wave of a number, past a game of no written waves. */
+function endlessAt(number: number): WaveEntry {
+  return waveEntryOf([], number);
+}
+
+/** What an ended run that set nothing is said to have set. */
+const UNMARKED: EndMarks = { newBest: false, clearedAll: false };
 
 /** Returns a run under way at a wave, with a score. */
 function runAt(wave: number, score: number): Run {
@@ -153,9 +162,33 @@ describe("describeEvent", () => {
 
 describe("describeCleared", () => {
   it("says the wave cleared and the score", () => {
-    expect(describeCleared(runAt(3, 12_500))).toBe(
-      "Wave 3 cleared! Score 12,500.",
+    const said = describeCleared(
+      runAt(3, 12_500),
+      entryOf(3, "Thaw"),
+      entryOf(4, "Drift"),
     );
+
+    expect(said).toBe("Wave 3 cleared! Score 12,500.");
+  });
+
+  it("says the last sector cleared, by its name, and Endless beginning", () => {
+    const said = describeCleared(
+      runAt(30, 12_500),
+      entryOf(30, "Eye"),
+      endlessAt(31),
+    );
+
+    expect(said).toBe("Sector cleared! Endless begins. Score 12,500.");
+  });
+
+  it("says an Endless wave cleared by its number", () => {
+    const said = describeCleared(
+      runAt(37, 12_500),
+      endlessAt(37),
+      endlessAt(38),
+    );
+
+    expect(said).toBe("Wave 37 cleared! Score 12,500.");
   });
 });
 
@@ -184,21 +217,46 @@ describe("describeTakenUp", () => {
 });
 
 describe("whereLost", () => {
-  it("says the wave a run was lost on", () => {
-    expect(whereLost(runAt(4, 9_020))).toBe("Lost on wave 4");
+  it.each([
+    ["a sector's wave", entryOf(4, "Thaw"), "Lost on wave 4"],
+    ["an Endless wave", endlessAt(37), "Lost on wave 37, Endless"],
+  ])("says %s a run was lost on", (_, entry, said) => {
+    expect(whereLost(entry)).toBe(said);
   });
 });
 
 describe("describeEnd", () => {
   it("says the game is over, the score and the wave it was lost on", () => {
-    expect(describeEnd(runAt(4, 9_020), false)).toBe(
+    expect(describeEnd(runAt(4, 9_020), entryOf(4, "Thaw"), UNMARKED)).toBe(
       "Game over. Score 9,020, on wave 4.",
     );
   });
 
+  it("says a wave of Endless's by its number, and Endless", () => {
+    expect(describeEnd(runAt(37, 9_020), endlessAt(37), UNMARKED)).toBe(
+      "Game over. Score 9,020, on wave 37, Endless.",
+    );
+  });
+
   it("says a score is a new best", () => {
-    expect(describeEnd(runAt(4, 9_020), true)).toBe(
-      "Game over. Score 9,020, on wave 4. A new best!",
+    const said = describeEnd(runAt(4, 9_020), entryOf(4, "Thaw"), {
+      ...UNMARKED,
+      newBest: true,
+    });
+
+    expect(said).toBe("Game over. Score 9,020, on wave 4. A new best!");
+  });
+
+  it("says a run cleared all thirty, after a new best", () => {
+    const run = { ...runAt(37, 9_020), firstWave: 1 };
+
+    const said = describeEnd(run, endlessAt(37), {
+      newBest: true,
+      clearedAll: true,
+    });
+
+    expect(said).toBe(
+      "Game over. Score 9,020, on wave 37, Endless. A new best! Cleared all thirty!",
     );
   });
 });

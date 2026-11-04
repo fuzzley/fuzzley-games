@@ -3,7 +3,7 @@ import { pickup } from "./catalog/pickups";
 import type { FieldEvent } from "./events";
 import { MAX_SHIPS } from "./tuning";
 import type { Run } from "./run";
-import type { WaveEntry } from "./waves";
+import { type WaveEntry, isEndless, opensEndless } from "./waves";
 
 /** Returns what is said as a wave begins: its number, its name and the rocks it holds. */
 export function describeWave(entry: WaveEntry, rocks: number): string {
@@ -48,9 +48,28 @@ function shipsOf(event: Readonly<FieldEvent>): string {
   return count(event.ships, "ship", "ships");
 }
 
-/** Returns what is said as a wave is cleared: the wave and the score. */
-export function describeCleared(run: Run): string {
-  return `Wave ${String(run.wave)} cleared! Score ${formatPoints(run.score)}.`;
+/** Says what an ended run set, which is said of it as it ends. */
+export interface EndMarks {
+  /** Whether its score is a new best. */
+  readonly newBest: boolean;
+  /** Whether it has cleared every written wave, from the first. */
+  readonly clearedAll: boolean;
+}
+
+/**
+ * Returns what is said as a wave is cleared, with the one after it: the
+ * wave, or the last sector, by its name, and Endless beginning after it,
+ * and the score.
+ */
+export function describeCleared(
+  run: Run,
+  cleared: WaveEntry,
+  next: WaveEntry,
+): string {
+  const said = opensEndless(cleared, next)
+    ? `${cleared.sector.name} cleared! Endless begins.`
+    : `Wave ${String(cleared.number)} cleared!`;
+  return `${said} Score ${formatPoints(run.score)}.`;
 }
 
 /** Returns what is said as a run pauses. */
@@ -68,13 +87,24 @@ export function describeTakenUp(run: Run, entry: WaveEntry): string {
   return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(run.crew.flying.length, "ship", "ships")}. Press Enter to go on.`;
 }
 
-/** Returns where a run was lost: the wave its last ship went down on. */
-export function whereLost(run: Run): string {
-  return `Lost on wave ${String(run.wave)}`;
+/** Returns where a run was lost: the wave its last ship went down on, Endless's named so. */
+export function whereLost(entry: WaveEntry): string {
+  return `Lost on ${waveIn(entry)}`;
 }
 
-/** Returns what is said as a run ends: the score, the wave it was lost on, and a new best. */
-export function describeEnd(run: Run, newBest: boolean): string {
+/** Returns what is said as a run ends: the score, the wave it was lost on, and what it set. */
+export function describeEnd(
+  run: Run,
+  entry: WaveEntry,
+  { newBest, clearedAll }: EndMarks,
+): string {
   const best = newBest ? " A new best!" : "";
-  return `Game over. Score ${formatPoints(run.score)}, on wave ${String(run.wave)}.${best}`;
+  const all = clearedAll ? " Cleared all thirty!" : "";
+  return `Game over. Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${best}${all}`;
+}
+
+/** Returns a wave by its number, in words: "wave 4", or "wave 37, Endless". */
+function waveIn(entry: WaveEntry): string {
+  const wave = `wave ${String(entry.number)}`;
+  return isEndless(entry) ? `${wave}, Endless` : wave;
 }

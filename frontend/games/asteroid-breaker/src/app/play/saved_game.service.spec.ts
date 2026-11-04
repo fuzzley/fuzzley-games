@@ -320,6 +320,18 @@ describe("SavedGameService", () => {
       }).toEqual(kept);
     });
 
+    it("takes up a run that has cleared every written wave, from the first, as one that has", async () => {
+      const before = await startedAt(SPEC_WAVE.pebble);
+      clearToNext(before);
+      clearToNext(before);
+      clearToNext(before);
+      TestBed.tick();
+
+      const game = reload();
+
+      expect(game.clearedAll()).toBe(true);
+    });
+
     it("plays the wave taken up on as it goes on", async () => {
       await brokeSome();
       const game = reload();
@@ -378,6 +390,20 @@ describe("SavedGameService", () => {
       const game = reload(STRAY_WAVES);
 
       expect(game.broughtHome()).toEqual(broughtHome);
+    });
+
+    it("takes up a run flown on tuned numbers as none that has cleared every written wave", async () => {
+      const before = start();
+      before.tune({ rockSpeed: 1.5 });
+      await before.startAt(SPEC_WAVE.pebble);
+      clearToNext(before);
+      clearToNext(before);
+      clearToNext(before);
+      TestBed.tick();
+
+      const game = reload();
+
+      expect(game.clearedAll()).toBe(false);
     });
 
     it("keeps no records of a run flown on numbers the debug menu tuned", async () => {

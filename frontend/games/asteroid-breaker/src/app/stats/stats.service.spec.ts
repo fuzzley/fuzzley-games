@@ -31,6 +31,7 @@ describe("StatsService", () => {
       best: 0,
       furthest: 0,
       strays: 0,
+      clearedAll: false,
     });
   });
 
@@ -42,7 +43,7 @@ describe("StatsService", () => {
 
     expect({ newBest, normal: stats.stats().speeds.normal }).toEqual({
       newBest: true,
-      normal: { runs: 1, best: 900, furthest: 2, strays: 0 },
+      normal: { runs: 1, best: 900, furthest: 2, strays: 0, clearedAll: false },
     });
   });
 
@@ -80,6 +81,14 @@ describe("StatsService", () => {
     expect(stored()).toBeNull();
   });
 
+  it("takes up the best of a run started in Endless", () => {
+    store({ sectors: { endless: { normal: 1200 } } });
+
+    const stats = TestBed.inject(StatsService);
+
+    expect(stats.stats().sectors).toEqual({ endless: { normal: 1200 } });
+  });
+
   it("takes up the records stored, dropping a sector the game no longer has", () => {
     store({
       speeds: { normal: { runs: 2, best: 900, furthest: 3, strays: 1 } },
@@ -92,7 +101,7 @@ describe("StatsService", () => {
       normal: stats.stats().speeds.normal,
       sectors: stats.stats().sectors,
     }).toEqual({
-      normal: { runs: 2, best: 900, furthest: 3, strays: 1 },
+      normal: { runs: 2, best: 900, furthest: 3, strays: 1, clearedAll: false },
       sectors: { specs: { normal: 900 } },
     });
   });

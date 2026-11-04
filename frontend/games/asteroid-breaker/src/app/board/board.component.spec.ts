@@ -567,6 +567,26 @@ describe("BoardComponent", () => {
       ]);
     });
 
+    it("say the last sector is cleared and Endless begins, with the trophy", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_WAVE.last);
+
+      clearIn(game);
+      detectChanges();
+
+      expect(screen.getByText("Specs cleared. Endless begins.")).toBeVisible();
+      // The trophy is hidden from assistive technology, which the title tells.
+      expect(document.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
+    });
+
+    it("show no trophy over a wave of a sector's but its last", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
+
+      clearIn(game);
+      detectChanges();
+
+      expect(document.querySelector('fz-icon[name="trophy"]')).toBeNull();
+    });
+
     it("say a move or a shot goes on to the next wave", async () => {
       const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
@@ -645,6 +665,15 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(screen.queryByText("Lost on wave 1")).not.toBeInTheDocument();
+    });
+
+    it("say a run lost in Endless was lost there, once its result is put away", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_WAVE.last + 1);
+
+      endIn(game);
+      detectChanges();
+
+      expect(screen.getByText("Lost on wave 4, Endless")).toBeInTheDocument();
     });
 
     it("offer a new game once an ended run's result is put away", async () => {

@@ -5346,3 +5346,87 @@ tests among them.
   past its share, one stray past wave 50, the constellation drawn only
   once, its eyes as dim as its specks, no waiting by a row, the last wave
   again past it, and a constellation at the field's edge: all caught.
+
+## A14.2: Endless in the shell
+
+2026-11-04.
+
+- **Built.** Endless is a fourth sector in the shell. `sectorSpans()` ends
+  with its span, from the wave after the last written one and with no last
+  (`lastWave: null`), so the Sectors dialog lists it ("From wave 31"), and
+  the progress's and the records' readers keep its id, which they dropped
+  as unknown before, A14.1's review's second comment. Clearing the last
+  written wave (`opensEndless()`) opens it, as the plan says, rather than
+  reaching wave 31, as a sector opens; the announcer says "Storm cleared!
+  Endless begins.", and the Cleared card "Storm cleared. Endless begins."
+  under the trophy. A run from wave 1 that has cleared every written wave
+  (`hasClearedAll()`) is kept at its speed as one that cleared all thirty
+  (`SpeedStats.clearedAll`, false in records kept before it), which the
+  result card shows as "Cleared all thirty" and the announcer says as the
+  run ends. A run lost in Endless is "Lost on wave 37, Endless" on the
+  board's ended card, in the result's subtitle and in the announcer.
+- **Review.** No bugs; eight comments, all taken but two, left.
+  1. Three of the game service's specs passed with the code broken: the
+     tuned run never cleared all three waves, the run from a later wave
+     could never clear three, and the one sector of the specs' waves left
+     "the last wave of any sector" before Endless. The tuned run goes into
+     Endless before it ends, the later run starts at Gift and clears three,
+     and the last wave of a sector but the last, in the sector specs'
+     waves, is not before Endless.
+  2. Endless's best now survives a reload, unspecced. The stats service's
+     spec takes one up.
+  3. The game's `AGENTS.md` said nothing of a run that cleared all thirty,
+     nor of Endless among the sectors reached. It says both.
+  4. "Cleared all thirty" was a badge the announcer never said, where a new
+     best is both. `describeEnd()` takes what a run set (`EndMarks`) and
+     says "Cleared all thirty!" after a new best.
+  5. Endless opened as wave 31 began, not as wave 30 was cleared, as the
+     plan and the progress's comment say: Sectors, opened over Storm's
+     Cleared card, showed it shut. `takeIn()` keeps it reached as the last
+     written wave is cleared, unless the run is tuned.
+  6. `describeCleared()` took the last sector's name as its switch, so a
+     caller passing a name each time would have said "Endless begins"
+     after every wave. It takes the wave cleared and the next, and decides
+     by `opensEndless()`, the rule `beforeEndless` reads too, in
+     `waves.ts`. The check that a run had not cleared all before is gone,
+     as the records keep it once. `beforeEndless` stays a rule of the
+     waves, not `number === waves.length`, so the board and what is said
+     read the same one.
+  7. Spec nits: a spec outside its `describe`, two `it.each` titles, one
+     with a whole wave in it, the trophy's spec by jest-dom, and the
+     imports' order. All taken.
+  8. "Thirty" is written, though the rule counts the waves: left, as the
+     plan names the thirty. The trophy sets at 28 px on a small board.
+
+  Comments 5 and 6 reshape the change, so it had a second review: no
+  bugs; five comments, all taken.
+
+  1. A run flown on tuned numbers still showed "Cleared all thirty" and
+     said it, though the records kept nothing of it, where it shows no new
+     best. `clearedAll` is a signal now, set as the records keep it, never
+     for a tuned run, cleared as a run begins and set as one is taken up;
+     the tuned run's spec checks it, and a spec each takes up a run that
+     cleared all and a tuned one.
+  2. The board's ended card in Endless had no spec. One ends a run there.
+  3. The records were told of a run that cleared all at each change to
+     it, harmless as they keep it once. They are told where Endless opens,
+     at the same moment.
+  4. Spec nits: the trophy's spec says why it finds the icon by its
+     attribute, and checks it is there rather than shown, as jsdom shows
+     no component's styles; a title; a fixture of a run that couldn't
+     have cleared all.
+  5. The log's entry, here, goes in with the change.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (4,680),
+  `yarn prettier:check` and the skill references. 15 mutants: the records
+  never told of a run that cleared all, told of a tuned one, Endless kept
+  shut, opened for a tuned run, opened as wave 30 is played, the end said
+  without clearing all, the last of any sector before Endless, the cleared
+  wave's next as itself, `opensEndless()` by either half alone, the end's
+  words without "Cleared all thirty!", the switch of `describeCleared()` by
+  either half, and the wave cleared counted from the run: all caught, the
+  one opened as wave 30 is played once a spec of a stray brought home
+  mid-wave was added for it. After the second review, 7 more: a tuned run
+  taken up as one that cleared all, a run taken up as none, `clearedAll`
+  never set, never cleared as a run begins, the records not told, told of
+  any run, and the end said without it: all caught.

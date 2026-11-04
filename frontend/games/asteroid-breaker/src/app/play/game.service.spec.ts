@@ -483,6 +483,30 @@ describe("GameService", () => {
       }).toEqual({ number: SPEC_WAVE.last + 1, endless: true, said: true });
     });
 
+    it.each([
+      ["a sector's first wave", SPEC_WAVE.pebble, false],
+      ["the last sector's last", SPEC_WAVE.last, true],
+      ["Endless's first", SPEC_WAVE.last + 1, false],
+    ])("calls %s before Endless or not", async (_, wave, before) => {
+      const game = await gameAt(wave);
+
+      expect(game.beforeEndless()).toBe(before);
+    });
+
+    it("calls the last wave of a sector but the last not before Endless", () => {
+      const game = gameOver(SECTOR_WAVES);
+
+      expect(game.beforeEndless()).toBe(false);
+    });
+
+    it("says the last sector is cleared and Endless begins", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      playToClear(game);
+
+      expect(said()).toContain("Specs cleared! Endless begins.");
+    });
+
     it("lays an Endless wave made from the run's seed, its constellation among the specks", async () => {
       const game = await gameAt(SPEC_WAVE.last);
 
@@ -683,6 +707,17 @@ describe("GameService", () => {
         ships: 0,
         said: "Game over. Score 0, on wave 1.",
       });
+    });
+
+    it("says a run from the first wave cleared all thirty as it ends", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      clearToNext(game);
+      clearToNext(game);
+
+      endRun(game);
+
+      expect(said()).toMatch(/Cleared all thirty!$/);
     });
 
     it("opens the result card at the next frame where the player prefers less motion", async () => {
@@ -939,6 +974,55 @@ describe("GameService", () => {
       expect(atNormal().runs).toBe(1);
     });
 
+    it("keeps that a run from the first wave cleared all thirty as it clears the last", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      clearToNext(game);
+
+      playToClear(game);
+
+      expect(atNormal().clearedAll).toBe(true);
+    });
+
+    it("starts a new run as none that has cleared all thirty", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      clearToNext(game);
+      playToClear(game);
+
+      const starting = game.startAt(SPEC_WAVE.pebble);
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect(game.clearedAll()).toBe(false);
+    });
+
+    it("keeps no run from a later wave as one that cleared all thirty, as many waves on", async () => {
+      const game = await gameAt(SPEC_WAVE.gift);
+      clearToNext(game);
+      clearToNext(game);
+
+      playToClear(game);
+
+      expect(atNormal().clearedAll).toBe(false);
+    });
+
+    it("keeps Endless shut while the last written wave is played", () => {
+      const game = gameOver(STRAY_WAVES);
+
+      bringStraysHome(game, 1);
+
+      expect(TestBed.inject(ProgressService).isOpen("endless")).toBe(false);
+    });
+
+    it("opens Endless as the last written wave is cleared", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      playToClear(game);
+
+      expect(TestBed.inject(ProgressService).isOpen("endless")).toBe(true);
+    });
+
     it("keeps an ended run's score and the wave it was lost on, and calls it a new best", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
       clearToNext(game);
@@ -951,7 +1035,13 @@ describe("GameService", () => {
         newBest: game.newBest(),
         said: said(),
       }).toEqual({
-        normal: { runs: 1, best: game.score(), furthest: 2, strays: 0 },
+        normal: {
+          runs: 1,
+          best: game.score(),
+          furthest: 2,
+          strays: 0,
+          clearedAll: false,
+        },
         best: game.score(),
         newBest: true,
         said: `Game over. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
@@ -1021,16 +1111,20 @@ describe("GameService", () => {
       await game.startAt(SPEC_WAVE.pebble);
 
       clearToNext(game);
+      clearToNext(game);
+      clearToNext(game);
       endRun(game);
 
       expect({
         normal: atNormal(),
         reached: TestBed.inject(ProgressService).reached(),
         newBest: game.newBest(),
+        clearedAll: game.clearedAll(),
       }).toEqual({
-        normal: { runs: 0, best: 0, furthest: 0, strays: 0 },
+        normal: { runs: 0, best: 0, furthest: 0, strays: 0, clearedAll: false },
         reached: new Set(),
         newBest: false,
+        clearedAll: false,
       });
     });
 
