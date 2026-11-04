@@ -10,6 +10,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
@@ -365,6 +366,7 @@ export class BoardComponent {
     afterNextRender(() => {
       this.watchSize();
     });
+    this.shapeForTheRoom();
     this.buzzAsTheRunChanges();
   }
 
@@ -411,6 +413,25 @@ export class BoardComponent {
     }
   }
 
+  /**
+   * Hands the game the room the board measures until the scene lays the
+   * field out, so the field the scene first draws is the one the
+   * placeholder drew, not the shape it had, which it would draw for a
+   * frame before the scene's own room reshaped it. Where the canvas the
+   * scene measures differs from the board by a pixel, the scene's room
+   * then reshapes it by a fraction of a unit.
+   */
+  private shapeForTheRoom(): void {
+    effect(() => {
+      const room = this.room();
+      if (!room || this.laid()) return;
+      const board = this.board();
+      untracked(() => {
+        this.game.setRoom(room, board);
+      });
+    });
+  }
+
   /** Buzzes the phone, where it can and the settings say to, as the run loses a ship and as it clears a wave. */
   private buzzAsTheRunChanges(): void {
     let last = this.game.run();
@@ -441,12 +462,16 @@ export class BoardComponent {
   }
 
   /**
-   * Measures the board each time its size changes, where the browser can
-   * watch it, as the canvas the scene will lay the field out on.
+   * Measures the board as it is first drawn, then each time its size
+   * changes, where the browser can watch it, as the canvas the scene will
+   * lay the field out on.
    */
   private watchSize(): void {
     if (typeof ResizeObserver === "undefined") return;
     const board = this.host.nativeElement;
+    // The browser first reports the size after a paint, which would show
+    // the cards over the whole board for a frame before the field.
+    this.room.set(this.canvasOf(board));
     const observer = new ResizeObserver(() => {
       this.room.set(this.canvasOf(board));
     });

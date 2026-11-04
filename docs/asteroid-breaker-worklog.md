@@ -5570,3 +5570,78 @@ a 390 × 844 phone at 3× with touch, and 2560 × 1440.
   repeated the one above it but for the room grown by the frame being the
   field's room, which it keeps alone. And `Laid`'s doc said its torus was
   in CSS pixels; it says its rectangles are.
+
+## Q5: the full pass
+
+2026-11-04, on the production build (`yarn preview`, rebuilt after each
+fix), in the DevTools MCP's Chrome. Each wave was taken up from a run kept
+at its start, resumed, and flown by held keys for four seconds: thrust, a
+turn each way and fire.
+
+- **The waves.** The first sector's ten, Iron heart, Eye of the storm and
+  Endless's first each took up paused, named on the board, went on, broke
+  rocks and scored, at 123 to 124 frames a second at 1280 × 800; the
+  console said nothing but Angular's autofocus note.
+- **The mouse** turned the ship to the pointer and fired on the left button:
+  24 shots round the ship on wave 31 scored 360. Lost there, the result
+  read "Lost on wave 31, Endless, at Normal speed", a new best, "Try again
+  from Endless".
+- **Touch,** on a 390 × 844 phone at 3×: the stick turned and thrust the
+  ship and Fire shot, by touches on the deck's zones, 1,720 points on Crowd
+  in three seconds.
+- **AZERTY:** Z, at W's place (`KeyW`), thrust the ship from the middle.
+- **A lost context,** lost and restored by `WEBGL_lose_context` in play on
+  the phone: Phaser warned of each, the run went on, and the rocks, the
+  ship, its shield and the deck were drawn again. The page raised no error.
+- **The accessibility tree:** the board an application named for its wave
+  and described by its keys, the bar's buttons named and Pause disabled
+  until a wave moves, and the live region polite.
+- **Lighthouse,** desktop and mobile: accessibility 100, best practices
+  100, SEO 92, failing only `/robots.txt` and `/llms.txt`, which the
+  preview answers with the game's page, as for Brick Breaker. Its layout
+  shift failed at first: fixed, below.
+- **The performance trace,** with the CPU throttled six times, keys held:
+  - Tempest at Fast on the widest field (2400 × 800, 88 by 40 units): a
+    frame's CPU time 1.61 ms at the median, 4.48 ms at p95 and 15.43 ms at
+    worst; Eye of the storm at Normal there, 1.20, 3.39 and 11.34 ms.
+  - Tempest on 2560 × 1440, the atlas scaled up: 1.17, 2.88 and 12.99 ms.
+  - Unthrottled, Tempest on the widest field: 0.65 ms at the median and
+    1.07 ms at p95, at 126 frames a second; its one worst frame, 142 ms, as
+    the run went on.
+  - The median is under the plan's 4 ms each time; the worst frames, those
+    that run many steps to catch up, are over it, as Brick Breaker's were.
+    No chain of blasts or Spread was set up: left for the summary.
+  - 120 Hz can't be emulated here; unthrottled, the frames ran at 123 to
+    144 a second on this machine's display, and the clock steps by time,
+    not by frame.
+- **The bundle,** gzipped: the entry 106.5 kB (Brick Breaker's 99.7), the
+  scene 19.3 kB (10.2) and the `phaser` chunk 357.1 kB, as Brick Breaker's;
+  the stylesheet 2.8 kB; the sounds, one WAV, 203 kB (Brick Breaker's
+  119 kB).
+- **The board's field jumped as the page loaded,** a layout shift of 0.38 on
+  1280 × 800 and 0.23 on a phone, which Lighthouse failed:
+  - The scene first laid out the field the run had before any room, 40 by
+    40, and the focus ring jumped to it and back a frame later, as the
+    scene's room reshaped it.
+  - And the browser reported the board's size only after the first paint,
+    so the cards lay over the whole board for a frame before the field,
+    the Ready card 206 px lower on the phone.
+  - Fixed in a commit of its own: the board measures itself as it is first
+    drawn, and hands the game the room it measures until the scene lays
+    the field out, so the scene's first field is the placeholder's. No
+    layout shift is left at either size, nor for a run taken up.
+  - **Its review.** No bugs; four comments, three taken, one left.
+    1. Where the canvas the scene measures differs from the board by a
+       pixel, as it can above 2× or where the browser counts the canvas's
+       device pixels itself, the scene's room still reshapes the field, by
+       a fraction of a unit: the placeholder had the same mismatch before.
+       Left, with the effect's doc saying so: matching the canvas's own
+       count would take the browser's device-pixel box, which the board
+       can't read before the canvas exists.
+    2. The paused field taken up had no spec: one stretches it to the room
+       the board measures.
+    3. The first-draw spec ran change detection again, which the render
+       already had: gone.
+    4. The effect runs again, for nothing, on each resize once the scene
+       has laid out, and the observer's first report sets an equal room:
+       left, as harmless.
