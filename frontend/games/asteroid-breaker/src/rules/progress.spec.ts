@@ -1,4 +1,4 @@
-import { isOpen, reachedOf, sectorStarts } from "./progress";
+import { isOpen, reachedOf, sectorSpans } from "./progress";
 import { type WaveData, wavesOf } from "./waves";
 
 /** Returns a wave of one small stone. */
@@ -16,11 +16,11 @@ const WAVES = wavesOf([
   { id: "far", name: "Far", drops: 0, waves: [waveOf("c"), waveOf("d")] },
 ]);
 
-describe("sectorStarts", () => {
-  it("names each sector once, with its first wave's number", () => {
-    expect(sectorStarts(WAVES)).toEqual([
-      { id: "near", name: "Near", firstWave: 1 },
-      { id: "far", name: "Far", firstWave: 3 },
+describe("sectorSpans", () => {
+  it("names each sector once, with its first and last waves' numbers", () => {
+    expect(sectorSpans(WAVES)).toEqual([
+      { id: "near", name: "Near", firstWave: 1, lastWave: 2 },
+      { id: "far", name: "Far", firstWave: 3, lastWave: 4 },
     ]);
   });
 });

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { sectorStarts } from "../../rules/progress";
+import { sectorSpans } from "../../rules/progress";
 import type { Speed } from "../../rules/speed";
 import {
   type EndedRun,
@@ -29,7 +29,7 @@ export class StatsService {
   private readonly state = signal<Stats>(
     statsOf(
       this.storage.readVersioned(STATS_KEY, STATS_VERSION),
-      sectorStarts(inject(GAME_WAVES)).map(({ id }) => id),
+      sectorSpans(inject(GAME_WAVES)).map(({ id }) => id),
     ),
   );
 

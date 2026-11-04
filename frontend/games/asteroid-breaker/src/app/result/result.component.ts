@@ -1,4 +1,4 @@
-import { Component, computed, inject } from "@angular/core";
+import { Component, computed, inject, output } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -21,8 +21,8 @@ interface Figure {
  * home, each in its color.
  *
  * The game opens it once the last ship's burst has faded. It offers to try
- * again from the sector the run started in, or to close the card to look at
- * the board.
+ * again from the sector the run started in, or to choose a sector instead,
+ * or to close the card to look at the board.
  */
 @Component({
   selector: "app-result",
@@ -32,6 +32,9 @@ interface Figure {
 })
 export class ResultComponent {
   protected readonly game = inject(GameService);
+
+  /** Emitted when the player asks for the sectors, to start at one. */
+  readonly chooseSector = output();
 
   /** Where the run was lost, and at what speed. */
   protected readonly subtitle = computed(() => {
@@ -64,4 +67,10 @@ export class ResultComponent {
   protected readonly againLabel = computed(
     () => `Try again from ${this.game.firstSector().name}`,
   );
+
+  /** Puts the card away, and asks for the sectors. */
+  protected chooseFromSectors(): void {
+    this.game.closeResult();
+    this.chooseSector.emit();
+  }
 }

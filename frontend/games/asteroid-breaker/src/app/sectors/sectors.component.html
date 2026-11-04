@@ -1,0 +1,44 @@
+<fz-dialog [open]="open()" label="Sectors" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close sectors"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>Sectors</h2>
+    <p>
+      Choose a sector to start a run at its first wave. Reaching a sector opens
+      it; each shows its best at the speed in play.
+    </p>
+
+    <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+    <ul class="list" role="list">
+      @for (sector of sectors(); track sector.id) {
+        <li>
+          <!--
+            Named by its name, its waves and what it says under them:
+            `&ngsp;` keeps the spaces between them, which a template
+            otherwise drops. A locked sector is marked `aria-disabled` rather
+            than disabled, so it is still found and read.
+          -->
+          <button
+            type="button"
+            class="sector"
+            [attr.aria-current]="sector.current ? 'true' : null"
+            [attr.aria-disabled]="sector.open ? null : 'true'"
+            (click)="choose(sector)"
+          >
+            <span class="name">{{ sector.name }}</span
+            >&ngsp;<span class="waves">{{ sector.waves }}</span>
+            @if (sector.status; as status) {
+              &ngsp;<span class="status">{{ status }}</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</fz-dialog>

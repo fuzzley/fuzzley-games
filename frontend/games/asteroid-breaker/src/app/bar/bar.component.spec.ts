@@ -25,6 +25,7 @@ import { BarComponent } from "./bar.component";
 interface RenderedBar {
   readonly user: UserEvent;
   readonly game: GameService;
+  readonly openSectors: ReturnType<typeof vi.fn>;
   readonly openSettings: ReturnType<typeof vi.fn>;
   readonly handBack: ReturnType<typeof vi.fn>;
   readonly detectChanges: () => void;
@@ -32,15 +33,17 @@ interface RenderedBar {
 
 /** Renders the bar over the specs' waves, or those given, and listens to what it asks for. */
 async function renderBar(waves?: readonly WaveEntry[]): Promise<RenderedBar> {
+  const openSectors = vi.fn();
   const openSettings = vi.fn();
   const handBack = vi.fn();
   const { fixture } = await render(BarComponent, {
     providers: provideSpecWaves(waves),
-    on: { openSettings, handBack },
+    on: { openSectors, openSettings, handBack },
   });
   return {
     user: userEvent.setup(),
     game: TestBed.inject(GameService),
+    openSectors,
     openSettings,
     handBack,
     detectChanges: () => {
@@ -290,6 +293,14 @@ describe("BarComponent", () => {
 
       expect(openSettings).toHaveBeenCalledOnce();
     });
+
+    it("asks for the sectors", async () => {
+      const { user, openSectors } = await renderBar();
+
+      await user.click(screen.getByRole("button", { name: "Sectors" }));
+
+      expect(openSectors).toHaveBeenCalledOnce();
+    });
   });
 
   describe.each([
@@ -359,12 +370,12 @@ describe("BarComponent", () => {
       expect(screen.getByRole("button", { name: "New game" })).toBeVisible();
     });
 
-    it("moves the settings into the menu", async () => {
+    it("moves the sectors and the settings into the menu", async () => {
       const { user } = await renderBar();
 
       const items = await openMenu(user);
 
-      expect(items).toEqual(["Settings"]);
+      expect(items).toEqual(["Sectors", "Settings"]);
     });
 
     it("moves the link home into the menu where there is no room for it", async () => {
@@ -383,6 +394,15 @@ describe("BarComponent", () => {
       await user.click(screen.getByRole("menuitem", { name: "Settings" }));
 
       expect(openSettings).toHaveBeenCalledOnce();
+    });
+
+    it("asks for the sectors from the menu", async () => {
+      const { user, openSectors } = await renderBar();
+      await openMenu(user);
+
+      await user.click(screen.getByRole("menuitem", { name: "Sectors" }));
+
+      expect(openSectors).toHaveBeenCalledOnce();
     });
   });
 });
