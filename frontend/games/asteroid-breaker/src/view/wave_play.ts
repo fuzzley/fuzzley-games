@@ -3,6 +3,7 @@ import type { FieldEvent } from "../rules/events";
 import { type Field, steerField, stepField } from "../rules/field";
 import type { Steer } from "../rules/ship";
 import { createFieldClock } from "../rules/stepper";
+import type { Place } from "../rules/torus";
 import type { FieldFrame } from "./frame";
 
 /** Describes the frame the scene is handed, one record whose `alpha` each frame writes again. */
@@ -24,13 +25,18 @@ const WAVE_RULES: FieldRules<Field, Steer> = {
  * next.
  */
 export class WavePlay extends FieldPlay<Field, Steer, FieldEvent, Frame> {
-  /** Plays a field, its specks strewn from the run's seed. */
-  constructor(field: Field, seed: number) {
+  /** Plays a field, its specks strewn from the run's seed, and its constellation where an Endless wave lays it. */
+  constructor(
+    field: Field,
+    seed: number,
+    constellation: Readonly<Place> | null = null,
+  ) {
     super(field, WAVE_RULES, createFieldClock(), {
       field,
       alpha: 0,
       events: field.events,
       seed,
+      constellation,
     });
   }
 }

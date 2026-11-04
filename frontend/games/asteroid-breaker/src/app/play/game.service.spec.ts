@@ -6,6 +6,8 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import { endlessWave } from "../../rules/endless";
+import { fillFor } from "../../rules/fill";
 import type { Rock } from "../../rules/rocks";
 import { STILL, type Steer } from "../../rules/ship";
 import type { SpeedStats } from "../../rules/stats";
@@ -17,7 +19,7 @@ import {
   FIELD_SHORT_SIDE,
   FIRST_SHIPS,
 } from "../../rules/tuning";
-import { WAVES, type WaveEntry, wavesOf } from "../../rules/waves";
+import { WAVES, type WaveEntry, isEndless, wavesOf } from "../../rules/waves";
 import {
   CHAIN_WAVE,
   CHAIN_WAVES,
@@ -41,6 +43,7 @@ import {
 } from "../../testing/play";
 import { TUNED } from "../../view/debug_tuning";
 import type { BoardSetting } from "../../view/field_metrics";
+import { constellationAt } from "../../view/specks";
 import { CLEARED_MS, resultDelayMs } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
@@ -468,20 +471,42 @@ describe("GameService", () => {
       expect(game.waiting()).toBe(false);
     });
 
-    it("plays the last wave again past it, numbered on", async () => {
+    it("goes on into Endless past the last wave, and says so", async () => {
       const game = await gameAt(SPEC_WAVE.last);
 
       clearToNext(game);
 
       expect({
         number: game.wave().number,
-        name: game.wave().data.name,
-        said: said(),
+        endless: isEndless(game.wave()),
+        said: /^Wave 4, Endless\. \d+ rocks\.$/.test(said()),
+      }).toEqual({ number: SPEC_WAVE.last + 1, endless: true, said: true });
+    });
+
+    it("lays an Endless wave made from the run's seed, its constellation among the specks", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      clearToNext(game);
+
+      const { seed } = game.run();
+      const { field, constellation } = game.frame();
+      const made = endlessWave(seed, SPEC_WAVE.last + 1);
+      expect({
+        rocks: field.rocks.filter((rock) => rock.live).length,
+        constellation,
       }).toEqual({
-        number: SPEC_WAVE.last + 1,
-        name: "Last",
-        said: "Wave 4, Last. 1 rock.",
+        rocks: fillFor(made, field.torus).rocks.reduce(
+          (sum, rocks) => sum + rocks.count,
+          0,
+        ),
+        constellation: constellationAt(seed, SPEC_WAVE.last + 1),
       });
+    });
+
+    it("lays no constellation in a sector's wave", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      expect(game.frame().constellation).toBeNull();
     });
 
     it("keeps a wave's entry past the last as the run changes", async () => {

@@ -19,6 +19,7 @@ import {
   describeTakenUp,
   describeWave,
 } from "../../rules/describe";
+import { waveToPlay } from "../../rules/endless";
 import type { FieldEvent } from "../../rules/events";
 import {
   type Field,
@@ -51,7 +52,12 @@ import { SPEED_INFO, type Speed } from "../../rules/speed";
 import type { EndedRun } from "../../rules/stats";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
-import { type WaveEntry, parseWave, waveEntryOf } from "../../rules/waves";
+import {
+  type Wave,
+  type WaveEntry,
+  isEndless,
+  waveEntryOf,
+} from "../../rules/waves";
 import type { FieldCommand } from "../../view/controls";
 import {
   TUNED,
@@ -61,6 +67,7 @@ import {
   tuneField,
 } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field_metrics";
+import { constellationAt } from "../../view/specks";
 import type { FieldFrame } from "../../view/frame";
 import { clearedDelayMs, resultDelayMs } from "../../view/timing";
 import { WavePlay } from "../../view/wave_play";
@@ -432,9 +439,13 @@ export class GameService {
     this.broughtHomeState.set(broughtHome);
     this.retunedRun = tuned;
     if (field) {
-      const wave = parseWave(this.waveEntry(run.wave));
-      const taken = takeUpField(wave, this.playerSetup(), field, run);
-      this.wavePlay = new WavePlay(taken, run.seed);
+      const taken = takeUpField(
+        this.waveOf(run),
+        this.playerSetup(),
+        field,
+        run,
+      );
+      this.wavePlay = this.playOf(run, taken);
       reshapeField(taken, this.torus);
       this.waitingState.set(false);
     }
@@ -610,14 +621,21 @@ export class GameService {
     });
   }
 
-  /** Returns the play of a run's wave in play, its specks strewn from the run's seed. */
-  private playOf(run: Run): WavePlay {
-    return new WavePlay(this.fieldOf(run), run.seed);
+  /**
+   * Returns the play of a run's wave in play, on its field as laid out, its
+   * specks strewn from the run's seed and, in Endless, its constellation
+   * laid among them.
+   */
+  private playOf(run: Run, field: Field = this.fieldOf(run)): WavePlay {
+    const constellation = isEndless(this.waveEntry(run.wave))
+      ? constellationAt(run.seed, run.wave)
+      : null;
+    return new WavePlay(field, run.seed, constellation);
   }
 
   /** Returns the field of a run's wave in play, laid out on the board's room and tuned as the debug menu says, its ship waiting for the first move. */
   private fieldOf(run: Run): Field {
-    return fieldFor(parseWave(this.waveEntry(run.wave)), {
+    return fieldFor(this.waveOf(run), {
       ...waveStart(run),
       ...this.playerSetup(),
       torus: this.torus,
@@ -631,11 +649,16 @@ export class GameService {
   }
 
   /**
-   * Returns a wave of the game by its number, from 1; past the last, the
-   * last again, numbered on, so a run that clears it goes on.
+   * Returns a wave of the game by its number, from 1; past the last, one of
+   * Endless's, so a run that clears it goes on.
    */
   private waveEntry(wave: number): WaveEntry {
     return waveEntryOf(this.waves, wave);
+  }
+
+  /** Returns a run's wave in play, ready to play: an Endless one made from the run's seed. */
+  private waveOf(run: Run): Wave {
+    return waveToPlay(this.waveEntry(run.wave), run.seed);
   }
 
   /** Puts a new run on the board, at its first wave, laid out before the run is. */

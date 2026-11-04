@@ -6,6 +6,7 @@ import { type Field, stepField } from "../rules/field";
 import type { Rock } from "../rules/rocks";
 import type { Steer } from "../rules/ship";
 import { createFieldClock } from "../rules/stepper";
+import type { Place } from "../rules/torus";
 import {
   type BeltScene,
   type BeltSceneOptions,
@@ -74,6 +75,8 @@ export class FakeShell implements BeltSceneOptions {
   field: Field = fieldFrom(KEEPER);
   alpha = 0;
   seed = 7;
+  /** Where the constellation lies, as an Endless wave would lay it, or null for none. */
+  constellation: Place | null = null;
   colors: BeltPalette = ART_PALETTE;
   welcomesMotion = true;
   wantsSound = true;
@@ -105,6 +108,7 @@ export class FakeShell implements BeltSceneOptions {
     alpha: this.alpha,
     events: this.field.events,
     seed: this.seed,
+    constellation: this.constellation,
   });
   readonly palette = (): BeltPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;

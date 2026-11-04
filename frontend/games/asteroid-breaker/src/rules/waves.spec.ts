@@ -1,11 +1,13 @@
 import { PICKUP_IDS, pickup } from "./catalog/pickups";
 import { ROCK_CAP, STRAYS_FROM } from "./tuning";
 import {
+  ENDLESS,
   SECTORS,
   type SectorData,
   WAVES,
   type Wave,
   type WaveData,
+  isEndless,
   parseWave,
   waveEntryOf,
   wavesOf,
@@ -370,20 +372,32 @@ describe("waveEntryOf", () => {
     expect(waveEntryOf(WAVES, 2)).toBe(WAVES[1]);
   });
 
-  it("gives the last wave again past it, numbered on", () => {
-    const last = WAVES.at(-1);
+  it("gives one of Endless's past the last, numbered on and named Endless", () => {
+    const entry = waveEntryOf(WAVES, WAVES.length + 2);
 
-    expect(waveEntryOf(WAVES, WAVES.length + 2)).toEqual({
-      ...last,
+    expect({
+      number: entry.number,
+      sector: entry.sector,
+      name: entry.data.name,
+      endless: isEndless(entry),
+    }).toEqual({
       number: WAVES.length + 2,
+      sector: ENDLESS,
+      name: "Endless",
+      endless: true,
     });
   });
 
   it.each([0, -1])("throws for wave %d", (wave) => {
     expect(() => waveEntryOf(WAVES, wave)).toThrow(RangeError);
   });
+});
 
-  it("throws for a game of no waves", () => {
-    expect(() => waveEntryOf([], 1)).toThrow(RangeError);
+describe("isEndless", () => {
+  it("tells a sector's wave from Endless's", () => {
+    expect([
+      isEndless(waveEntryOf(WAVES, WAVES.length)),
+      isEndless(waveEntryOf(WAVES, WAVES.length + 1)),
+    ]).toEqual([false, true]);
   });
 });

@@ -5253,3 +5253,96 @@ tests among them.
   Swarm, the first stray at 20 s, the stray's time ungrown, shifted or
   halved on its way to the field, and the autopilot's wait dropped, at
   any speed, or blind to the pace, were caught.
+
+## A13: done
+
+2026-11-04. `yarn verify` passed on A13.3's commit, `f7bc1df1`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 4,317
+tests among them.
+
+## A14.1: Endless's waves
+
+2026-11-04.
+
+- **Built.** `src/rules/endless.ts`: `endlessWave()` makes a wave from
+  the run's seed and its number, mixed apart from its field's seed, as the
+  plan's Endless section says: a budget of rocks from 10 to 24, one
+  crystal, a boulder wave every tenth, the pace from 1.25 to 1.6, comets
+  closing from 12–15 s to 6–8 s by wave 60, one stray and two from wave
+  50, Storm's chance of a pickup and every pickup. `waveToPlay()` makes any
+  wave ready to play, a sector's parsed and Endless's made, and every
+  place that did (`GameService`, `saved_game.ts`, the autopilot) goes
+  through it. Past the last written wave `waveEntryOf()` gives an Endless
+  entry, of `ENDLESS`, a sector with no written waves, named "Endless",
+  where it gave the last wave again; `isEndless()` tells the two apart.
+  The constellation lies in Endless's waves only: `constellationAt()` puts
+  its middle by the run's seed and the wave's number, the frame and
+  `WavePlay` carry it, and `FieldPainter` draws `CONSTELLATION`'s fifteen
+  specks and two eyes, brighter, 10 units across whatever the field's
+  shape.
+- **Gathered formations hold 13 rocks at most.** The plan draws an
+  Endless wave's formation from the four, but a cluster of sixteen large
+  rocks, grown to thirty-five on the wide field, cost the autopilot every
+  ship in twenty seconds: a wave of more than 13 rocks, the most a
+  sector's ring or cluster holds, is a scatter or a wall. The plan says
+  so.
+- **Endless is held to being fair, not to its cost.** It climbs until a
+  run's ships run out, so the autopilot's spec plays each of 31 to 60
+  (`ENDLESS_PLAYED`) on every field at every speed with nothing able to
+  take the ship, holding it to clearing in four minutes and meeting a
+  comet and a stray; `yarn report:waves --endless` reports them and fails
+  only on that. The plan and the game's `AGENTS.md` say so.
+- **The autopilot waits by a fast rock's row or column.** One untouched
+  play never cleared: the ship waited for a small ice shard faster than
+  80% of its top speed, as A13.3 taught it, but the shard ran along a row
+  52 units off, which it never left. For a fast rock running within 15° of
+  a side, the autopilot crosses to within half its shots' reach of its row
+  or column, and waits there; a fast rock crossing slantwise comes round
+  to wherever it waits. A first try, crossing to the nearest point of any
+  fast rock's path, chased a path that moved as the rock wrapped, and
+  stalled two sector plays. The sectors' reports are as A13.3 logged them.
+- **Tuned.** None of the plan's numbers changed. By `yarn report:waves
+--endless --seeds 12` on each field, every untouched play clears in
+  time. Middle times at Normal:
+
+  | Field     | 31   | 35   | 40   | 45   | 50   | 55   | 60   |
+  | --------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+  | Narrowest | 0:15 | 0:18 | 0:20 | 0:22 | 0:29 | 0:27 | 0:37 |
+  | Wide      | 0:36 | 0:40 | 0:42 | 0:48 | 0:57 | 0:55 | 1:08 |
+  | Upright   | 0:39 | 0:40 | 0:46 | 0:44 | 1:02 | 1:01 | 1:11 |
+
+  Endless opens a step under Eye of the storm, as each sector opens, and
+  climbs past it by wave 50. The most ships lost in a play of twelve is
+  one or two to wave 45, two or three after, and from wave 49 at Fast,
+  wave 55 at Normal and wave 57 at Relaxed some play loses every ship:
+  Endless ends runs, as it means to.
+
+- **Review.** No bugs; six comments, all taken but one, left.
+  1. Nothing in the shell took up an Endless run: a reload could have lost
+     its constellation, or failed to make its wave. The saved game's spec
+     takes one up, its rocks and constellation as they were.
+  2. Reaching Endless records "endless" as a sector reached, which the
+     progress's reader drops, as no written wave has it. Left for A14.2,
+     whose Sectors row is that sector, with its round trip specced.
+  3. The plan's checks table said the Endless spec covered waves 31 to 200
+     and parsed each as a written wave; the game's `AGENTS.md` didn't name
+     `--endless`. Both say what holds.
+  4. Three spec titles claimed more than they checked. Each says what it
+     checks.
+  5. The frame spec of the way to a fast rock's path couldn't tell it from
+     the way to the rock. Its rock lies off to the side, and a second case
+     waits by its row.
+  6. `ENDLESS`'s chance of a pickup is Storm's, read from it; the boulder
+     wave's test is a remainder; the spec's waves are the autopilot's.
+     `app.component.spec.ts` still parses its Gift wave, which no Endless
+     reaches, so it is left.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (4,642),
+  `yarn prettier:check` and the skill references. 11 mutants: an Endless
+  game taken up without its constellation, a wave made from another seed,
+  a gathered formation of any size, the boulder waves off by one, iron
+  past its share, one stray past wave 50, the constellation drawn only
+  once, its eyes as dim as its specks, no waiting by a row, the last wave
+  again past it, and a constellation at the field's edge: all caught.

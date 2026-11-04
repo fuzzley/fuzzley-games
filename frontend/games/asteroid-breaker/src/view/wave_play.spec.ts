@@ -15,16 +15,23 @@ function deaf(): void {
 
 describe("WavePlay", () => {
   describe("frame", () => {
-    it("hands the scene the field, its events and the run's seed", () => {
+    it("hands the scene the field, its events and the run's seed, and no constellation unless given one", () => {
       const play = stillPlay();
 
-      const { field, events, seed } = play.frame();
+      const { field, events, seed, constellation } = play.frame();
 
-      expect({ field, events, seed }).toEqual({
+      expect({ field, events, seed, constellation }).toEqual({
         field: play.field,
         events: play.field.events,
         seed: 7,
+        constellation: null,
       });
+    });
+
+    it("hands the scene where an Endless wave's constellation lies", () => {
+      const play = new WavePlay(fieldFrom(KEEPER), 7, { x: 0.3, y: 0.6 });
+
+      expect(play.frame().constellation).toEqual({ x: 0.3, y: 0.6 });
     });
 
     it("hands the scene the same record each frame", () => {

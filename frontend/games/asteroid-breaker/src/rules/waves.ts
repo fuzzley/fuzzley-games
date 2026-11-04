@@ -120,19 +120,38 @@ export function wavesOf(sectors: readonly SectorData[]): WaveEntry[] {
 export const WAVES: readonly WaveEntry[] = wavesOf(SECTORS);
 
 /**
- * Returns a wave by its number, from 1; past the last, the last again,
- * numbered on.
+ * The sector after the last, which never ends: its waves are made as they
+ * are played, by `endless.ts`, so it lists none, and its chance of a
+ * pickup is the last sector's.
+ */
+export const ENDLESS: SectorData = {
+  id: "endless",
+  name: "Endless",
+  drops: storm.drops,
+  waves: [],
+};
+
+/** An Endless wave's data, which names it alone: its rocks are made as it is played. */
+const ENDLESS_WAVE: WaveData = { id: "endless", name: "Endless", rocks: [] };
+
+/**
+ * Returns a wave by its number, from 1; past the last, one of Endless's.
  *
- * @throws {RangeError} For a number below 1, or a game of no waves.
+ * @throws {RangeError} For a number below 1.
  */
 export function waveEntryOf(
   waves: readonly WaveEntry[],
   wave: number,
 ): WaveEntry {
-  const last = waves.length;
-  const entry = waves[Math.min(wave, last) - 1];
-  if (!entry) throw new RangeError(`No wave ${String(wave)}.`);
-  return wave > last ? { ...entry, number: wave } : entry;
+  if (wave < 1) throw new RangeError(`No wave ${String(wave)}.`);
+  return (
+    waves[wave - 1] ?? { number: wave, sector: ENDLESS, data: ENDLESS_WAVE }
+  );
+}
+
+/** Returns whether a wave is one of Endless's, made as it is played rather than written. */
+export function isEndless(entry: WaveEntry): boolean {
+  return entry.sector === ENDLESS;
 }
 
 /** The slowest and the fastest a wave's pace may be. */

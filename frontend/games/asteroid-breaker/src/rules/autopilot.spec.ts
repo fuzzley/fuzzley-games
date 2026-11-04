@@ -1,5 +1,7 @@
+import { waveToPlay } from "./endless";
 import {
   AUTOPILOT_LIMIT,
+  ENDLESS_PLAYED,
   NARROWEST,
   TALLEST,
   WIDEST,
@@ -115,6 +117,15 @@ describe("the autopilot", () => {
     );
 
     expect(first).toEqual(second);
+  });
+
+  it("plays an Endless wave made from the seed it is played from", () => {
+    const entry = ENDLESS_PLAYED[9];
+    if (!entry) throw new Error("No wave 40.");
+
+    const play = playWave(entry, "fast", { seed: 9 });
+
+    expect(play).toEqual(autoplay(waveToPlay(entry, 9), "fast", 9));
   });
 
   it("plays one of the game's waves on the narrowest field from its number, unless given a seed or a field", () => {
@@ -244,6 +255,31 @@ describe("a frame of the autopilot's", () => {
 
   // A chase at the ship's top speed gains on it too slowly, where the rock
   // comes round the field to a ship that waits.
+  it("crosses to the row of a rock beyond its shots' reach running along it nearly as fast as it, to wait by it", () => {
+    const field = fieldFrom(["........L", "", "", "", "", "", "", "", "^"], {
+      torus: { width: 72, height: 72 },
+    });
+    onlyRock(field).vx = 0.9 * TOP_SPEED;
+
+    const steer = steerOf(field);
+
+    expect([steer.heading, steer.thrust]).toEqual([
+      expect.closeTo(-Math.PI / 2),
+      0.5,
+    ]);
+  });
+
+  it("waits by the row of a fast rock beyond its shots' reach, near enough to it", () => {
+    const field = fieldFrom(["........L", "", "^"], {
+      torus: { width: 72, height: 72 },
+    });
+    onlyRock(field).vx = 0.9 * TOP_SPEED;
+
+    const steer = steerOf(field);
+
+    expect(steer).toMatchObject({ thrust: 0, fire: false });
+  });
+
   it.each([
     ["closes on", 0.7, 1, 0.5],
     ["waits for", 0.9, 1, 0],
@@ -480,13 +516,14 @@ describe("a frame of the autopilot's", () => {
   });
 });
 
-describe("every wave", () => {
-  const plays = WAVES.flatMap((entry) =>
+/** Returns every play of some waves the spec makes: each on every field, at every speed, named. */
+function playsOf(waves: readonly WaveEntry[]) {
+  return waves.flatMap((entry) =>
     FIELDS.flatMap((torus) =>
       SPEEDS.map(
         (speed) =>
           [
-            entry.data.name,
+            `${String(entry.number)}, ${entry.data.name},`,
             speed,
             `${String(torus.width)} by ${String(torus.height)}`,
             entry,
@@ -495,6 +532,10 @@ describe("every wave", () => {
       ),
     ),
   );
+}
+
+describe("every wave", () => {
+  const plays = playsOf(WAVES);
 
   it.each(plays)(
     "is cleared, %s at %s on a field %s, within four minutes of game time, meeting a comet and a stray if it sends them",
@@ -512,6 +553,32 @@ describe("every wave", () => {
         inTime: true,
         metComet: wave.cometEvery !== null,
         metStray: wave.strays > 0,
+      });
+    },
+  );
+});
+
+// Endless climbs until a run's ships run out, so its waves are held to
+// being fair, cleared with nothing able to take the ship, rather than to
+// what they cost; `yarn report:waves --endless` shows the cost.
+describe("every Endless wave the autopilot is held to", () => {
+  const plays = playsOf(ENDLESS_PLAYED);
+
+  it.each(plays)(
+    "can be cleared, wave %s at %s on a field %s, within four minutes of game time, meeting a comet and a stray",
+    (_, speed, __, entry, torus) => {
+      const report = playWave(entry, speed, { torus, invulnerable: true });
+
+      expect({
+        cleared: report.cleared,
+        inTime: report.steps < AUTOPILOT_LIMIT,
+        metComet: report.cometsCrossed > 0,
+        metStray: report.straysSent > 0,
+      }).toEqual({
+        cleared: true,
+        inTime: true,
+        metComet: true,
+        metStray: true,
       });
     },
   );

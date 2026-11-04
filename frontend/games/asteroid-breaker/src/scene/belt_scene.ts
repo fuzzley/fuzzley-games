@@ -223,12 +223,13 @@ export class BeltScene extends Scene {
     // Over the whole canvas, which Phaser keeps it to as the canvas changes size.
     this.deckCamera = this.cameras.add();
     this.deckCamera.ignore(FIELD_LAYERS.map((layer) => this.layers[layer]));
-    const { field, alpha, seed } = this.options.frame();
+    const { field, alpha, seed, constellation } = this.options.frame();
     this.startField(field);
     this.context = {
       field,
       alpha,
       seed,
+      constellation,
       deck: this.deckParts,
       metrics: this.metrics,
       palette: this.painted,
@@ -379,11 +380,12 @@ export class BeltScene extends Scene {
   }
 
   /** Has each painter draw the field as it stands, in its layer. */
-  private draw({ field, alpha, seed }: FieldFrame): void {
+  private draw({ field, alpha, seed, constellation }: FieldFrame): void {
     const context = this.context;
     context.field = field;
     context.alpha = alpha;
     context.seed = seed;
+    context.constellation = constellation;
     context.deck = this.deckParts;
     context.metrics = this.metrics;
     context.palette = this.painted;

@@ -8,7 +8,7 @@ import type { Rock } from "../rules/rocks";
 import type { Ship } from "../rules/ship";
 import type { Shot } from "../rules/shots";
 import { TURN } from "../rules/angles";
-import { type Torus, across, wrap } from "../rules/torus";
+import { type Place, type Torus, across, wrap } from "../rules/torus";
 
 export type { FieldEvent, FieldEventKind } from "../rules/events";
 export type { Steer } from "../rules/ship";
@@ -62,6 +62,12 @@ export interface FieldFrame {
   readonly events: EventsView;
   /** The run's seed, which the field's specks are strewn from, so they stay through its waves. */
   readonly seed: number;
+  /**
+   * Where the constellation lies in an Endless wave, its middle as shares
+   * of the field's width and height, or null in a sector's wave, which has
+   * none.
+   */
+  readonly constellation: Readonly<Place> | null;
 }
 
 /** Returns where a thing is drawn between its last place and its next, `alpha` of the way. */

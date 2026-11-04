@@ -1,11 +1,16 @@
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "../rules/tuning";
 import {
+  CONSTELLATION_SIZE,
   MOST_SPECKS,
   SPECKS_PER_AREA,
   SPECK_AREA,
+  constellationAt,
   speckCount,
   speckShares,
 } from "./specks";
+
+/** The seeds a spec lays constellations from. */
+const SEEDS = Array.from({ length: 24 }, (_, i) => i + 1);
 
 describe("speckCount", () => {
   it("strews three dozen specks over each 1,600 units² of the field", () => {
@@ -44,5 +49,29 @@ describe("speckShares", () => {
 
   it("strews other specks from another seed, as the next run's", () => {
     expect(speckShares(8)).not.toEqual(speckShares(7));
+  });
+});
+
+describe("constellationAt", () => {
+  it("lays it as far in from every edge of the smallest field as it is wide, so it never wraps", () => {
+    const margin = CONSTELLATION_SIZE / FIELD_SHORT_SIDE;
+
+    const out = SEEDS.map((seed) => constellationAt(seed, 31)).filter(
+      ({ x, y }) => Math.min(x, y) < margin || Math.max(x, y) > 1 - margin,
+    );
+
+    expect(out).toEqual([]);
+  });
+
+  it("lays it in the same place for the same run and wave", () => {
+    expect(constellationAt(7, 40)).toEqual(constellationAt(7, 40));
+  });
+
+  it("lays each wave's elsewhere", () => {
+    expect(constellationAt(7, 41)).not.toEqual(constellationAt(7, 40));
+  });
+
+  it("lays another run's elsewhere", () => {
+    expect(constellationAt(8, 40)).not.toEqual(constellationAt(7, 40));
   });
 });

@@ -3,19 +3,28 @@ import type { Place, Torus } from "../rules/torus";
 import { FRAMES } from "../view/art";
 import type { FieldMetrics } from "../view/field_metrics";
 import type { BeltPalette } from "../view/palette";
-import { MOST_SPECKS, speckCount, speckShares } from "../view/specks";
+import { CONSTELLATION } from "../view/pilot_art";
+import {
+  CONSTELLATION_SIZE,
+  MOST_SPECKS,
+  speckCount,
+  speckShares,
+} from "../view/specks";
 import { ATLAS } from "./atlas";
 import type { PaintContext, Painter } from "./painter";
 
 /**
  * Draws the field under everything: the specks strewn over it from the
- * run's seed, still, and the frame round it, which the deck's camera draws,
- * so it stays still as the field shakes; each drawn again only once the
- * layout, the palette, the field's size or the run changed.
+ * run's seed, still, an Endless wave's constellation among them, and the
+ * frame round it, which the deck's camera draws, so it stays still as the
+ * field shakes; each drawn again only once the layout, the palette, the
+ * field's size, the run or the constellation changed.
  */
 export class FieldPainter implements Painter {
   /** A speck for as many as the largest field holds, made once. */
   readonly specks: readonly GameObjects.Image[];
+  /** The constellation's specks, then its eyes, made once. */
+  readonly stars: readonly GameObjects.Image[];
   /** The frame round the field. */
   readonly frame: GameObjects.Graphics;
 
@@ -23,6 +32,7 @@ export class FieldPainter implements Painter {
   private palette: BeltPalette | null = null;
   private torus: Torus | null = null;
   private seed = Number.NaN;
+  private constellation: Readonly<Place> | null = null;
   /** Where the run's specks lie, as shares of the field's width and height. */
   private shares: readonly Place[] = [];
 
@@ -36,24 +46,32 @@ export class FieldPainter implements Painter {
     this.specks = Array.from({ length: MOST_SPECKS }, () =>
       scene.add.image(0, 0, ATLAS, FRAMES.speck).setVisible(false),
     );
-    layers.field.add([...this.specks]);
+    this.stars = Array.from(
+      { length: CONSTELLATION.specks.length + CONSTELLATION.eyes.length },
+      () => scene.add.image(0, 0, ATLAS, FRAMES.speck).setVisible(false),
+    );
+    layers.field.add([...this.specks, ...this.stars]);
     this.frame = scene.add.graphics();
     layers.frame.add(this.frame);
   }
 
   /** Takes up each speck's frame again, once the atlas has been baked again. */
   refresh(): void {
-    for (const speck of this.specks) speck.setFrame(FRAMES.speck);
+    for (const speck of [...this.specks, ...this.stars]) {
+      speck.setFrame(FRAMES.speck);
+    }
   }
 
-  /** Draws the specks and the frame where the metrics put the field, in a palette; again only once one of them changed. */
-  draw({ field, metrics, palette, seed, zoom }: Readonly<PaintContext>): void {
+  /** Draws the specks, the constellation and the frame where the metrics put the field, in a palette; again only once one of them changed. */
+  draw(context: Readonly<PaintContext>): void {
+    const { field, metrics, palette, seed, constellation, zoom } = context;
     const { torus } = field;
     if (
       metrics === this.metrics &&
       palette === this.palette &&
       torus === this.torus &&
-      seed === this.seed
+      seed === this.seed &&
+      constellation === this.constellation
     ) {
       return;
     }
@@ -62,6 +80,8 @@ export class FieldPainter implements Painter {
     this.palette = palette;
     this.torus = torus;
     this.seed = seed;
+    this.constellation = constellation;
+    this.drawStars(constellation, metrics, palette, zoom);
     const shown = speckCount(torus);
     for (let i = 0; i < this.specks.length; i++) {
       const speck = this.specks[i];
@@ -84,5 +104,34 @@ export class FieldPainter implements Painter {
       .fillRect(x - thick, y + height, width + 2 * thick, thick)
       .fillRect(x - thick, y, thick, height)
       .fillRect(x + width, y, thick, height);
+  }
+
+  /**
+   * Draws the constellation's specks as the field's, its eyes brighter,
+   * its middle where the frame lays it and its shape the fuzzball's,
+   * whatever the field's shape; or hides it, for a wave that has none.
+   */
+  private drawStars(
+    constellation: Readonly<Place> | null,
+    metrics: FieldMetrics,
+    palette: BeltPalette,
+    zoom: number,
+  ): void {
+    const places = [...CONSTELLATION.specks, ...CONSTELLATION.eyes];
+    const across = CONSTELLATION_SIZE * metrics.unit;
+    for (const [i, star] of this.stars.entries()) {
+      const place = places[i];
+      star.setVisible(constellation !== null);
+      if (!constellation || !place) continue;
+      star
+        .setPosition(
+          metrics.x + constellation.x * metrics.width + place.x * across,
+          metrics.y + constellation.y * metrics.height + place.y * across,
+        )
+        .setScale(zoom)
+        .setTint(
+          i < CONSTELLATION.specks.length ? palette.speck : palette.muted,
+        );
+    }
   }
 }

@@ -25,6 +25,7 @@ import {
   shoot,
 } from "../../testing/play";
 import type { BoardSetting } from "../../view/field_metrics";
+import { constellationAt } from "../../view/specks";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES } from "../tokens";
@@ -297,6 +298,26 @@ describe("SavedGameService", () => {
         rocks: rocksOf(game),
         waiting: game.waiting(),
       }).toEqual({ ...kept, outcome: "paused", waiting: false });
+    });
+
+    it("takes up a run in Endless, its wave made again from the run's seed, its constellation as it was", async () => {
+      const before = await startedAt(SPEC_WAVE.last + 1);
+      playFor(before, 500, STILL);
+      before.pause();
+      TestBed.tick();
+      const kept = {
+        wave: SPEC_WAVE.last + 1,
+        rocks: rocksOf(before),
+        constellation: constellationAt(before.run().seed, SPEC_WAVE.last + 1),
+      };
+
+      const game = reload();
+
+      expect({
+        wave: game.wave().number,
+        rocks: rocksOf(game),
+        constellation: game.frame().constellation,
+      }).toEqual(kept);
     });
 
     it("plays the wave taken up on as it goes on", async () => {

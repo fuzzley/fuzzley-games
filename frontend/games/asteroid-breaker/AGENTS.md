@@ -80,11 +80,13 @@ workspace's with the others'.
   the autopilot's spec does, through `playWave()`. It prints the game time
   each took and the strays it brought home, flown with nothing able to
   take the ship, and the ships each cost as the spec plays it, and fails
-  if any play didn't clear its wave in time (`-`), which makes it stricter
-  than the spec). It is how the climb from wave to wave is tuned;
-  `--seeds <n>` plays each wave from that many seeds of its own, since one
-  seed's rocks and pickups can make a wave look far easier or harder than
-  it is.
+  if any play didn't clear its wave in time (`-`). It is how the climb
+  from wave to wave is tuned; `--seeds <n>` plays each wave from that many
+  seeds of its own, since one seed's rocks and pickups can make a wave look
+  far easier or harder than it is. `--endless` plays Endless's waves 31 to
+  60 instead, each made from the seed it is played from, and fails only on
+  a play that didn't clear its wave in time with nothing able to take the
+  ship, as Endless is held to being fair, not to what it costs.
 
 ## Tests
 

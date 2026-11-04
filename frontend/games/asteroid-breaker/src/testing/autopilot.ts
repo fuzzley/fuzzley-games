@@ -3,6 +3,7 @@
 // `yarn report:waves` can show how the climb from wave to wave is tuned.
 
 import { RADIANS_PER_DEGREE, TURN } from "../rules/angles";
+import { ENDLESS_FROM, waveToPlay } from "../rules/endless";
 import { type Field, fieldFor, steerField, stepField } from "../rules/field";
 import type { Comet } from "../rules/hazards";
 import { createCrew } from "../rules/pilots";
@@ -25,10 +26,19 @@ import {
   STRAY_SPEED,
   TOP_SPEED,
 } from "../rules/tuning";
-import { type Wave, type WaveEntry, parseWave } from "../rules/waves";
+import { WAVES, type Wave, type WaveEntry, waveEntryOf } from "../rules/waves";
 
 /** The longest the autopilot plays a wave, in steps: four minutes of game time. */
 export const AUTOPILOT_LIMIT = stepsIn(4 * 60_000);
+
+/**
+ * Endless's waves the autopilot is held to, 31 to 60, by which every number
+ * Endless climbs by has come to its most.
+ */
+export const ENDLESS_PLAYED: readonly WaveEntry[] = Array.from(
+  { length: 30 },
+  (_, i) => waveEntryOf(WAVES, ENDLESS_FROM + i),
+);
 
 /** The narrowest field, which the autopilot plays on unless told another. */
 export const NARROWEST: Torus = {
@@ -88,6 +98,9 @@ const THREAT_AHEAD_S = 1;
 /** How soon a course must touch the ship for the autopilot to dash, in seconds. */
 const DASH_WITHIN_S = 0.25;
 
+/** How far a shot flies before it fades, at its own speed. */
+const SHOT_REACH = (SHOT_SPEED * SHOT_LIFE_MS) / 1000;
+
 /**
  * The share of the ship's top speed past which the autopilot waits for a
  * rock beyond its shots' reach to come round the field, rather than chase
@@ -95,8 +108,19 @@ const DASH_WITHIN_S = 0.25;
  */
 const CHASE_SHARE = 0.8;
 
-/** How far a shot flies before it fades, at its own speed. */
-const SHOT_REACH = (SHOT_SPEED * SHOT_LIFE_MS) / 1000;
+/**
+ * How near the row or the column a fast rock runs along the autopilot
+ * waits for it: near enough that it passes within the shots' reach, and
+ * far enough not to be run down.
+ */
+const WAIT_REACH = SHOT_REACH / 2;
+
+/**
+ * How slantwise a course may be, as the tangent of its angle off a side of
+ * the field, and still run along a row or a column of it, so that a rock on
+ * it never comes round to a ship off it.
+ */
+const ALONG_SIDE = Math.tan(15 * RADIANS_PER_DEGREE);
 
 /** How fast the ship turns toward a heading at most, in radians a second. */
 const TURN_RATE = HEADING_TURN_RATE * RADIANS_PER_DEGREE;
@@ -175,15 +199,16 @@ function isWarned(comet: Readonly<Comet>): boolean {
 /**
  * Plays one of the game's waves at a speed, from its number as the seed
  * unless given another, as `src/rules/autopilot.spec.ts` and
- * `yarn report:waves` both play it.
+ * `yarn report:waves` both play it; an Endless wave is made from the seed
+ * too, as the run's.
  */
 export function playWave(
   entry: WaveEntry,
   speed: Speed,
   options: { readonly seed?: number } & Omit<AutopilotOptions, "limit"> = {},
 ): AutopilotReport {
-  const { seed, ...rest } = options;
-  return autoplay(parseWave(entry), speed, seed ?? entry.number, rest);
+  const { seed = entry.number, ...rest } = options;
+  return autoplay(waveToPlay(entry, seed), speed, seed, rest);
 }
 
 /** Returns whether the autopilot is done with a wave: cleared, or its last ship lost. */
@@ -202,7 +227,8 @@ function hasShips(field: Field): boolean {
  * near the ship, dashing when one is about to meet it; else catches the
  * stray adrift, or the pickup it has time for; else turns toward the rock
  * it can hit soonest, leading it, and closes on it beyond its shots' reach,
- * but waits for one nearly as fast as the ship to come round the field. Whichever it does, it fires once lined up with that rock.
+ * but waits for one nearly as fast as the ship to come round the field,
+ * by the row or the column it runs along if it runs along one. Whichever it does, it fires once lined up with that rock.
  */
 export function pilot(field: Field, steer: Steer): void {
   const { ship } = field;
@@ -232,9 +258,13 @@ export function pilot(field: Field, steer: Steer): void {
   if (goal) {
     steer.heading = seek(field.torus, ship, goal);
     steer.thrust = 1;
+  } else if (target?.toPath && !target.inReach) {
+    const { heading, far } = target.toPath;
+    steer.heading = far > WAIT_REACH ? heading : target.heading;
+    steer.thrust = far > WAIT_REACH ? 0.5 : 0;
   } else if (target) {
     steer.heading = target.heading;
-    steer.thrust = target.inReach || target.tooFastToChase ? 0 : 0.5;
+    steer.thrust = target.inReach ? 0 : 0.5;
   }
 }
 
@@ -340,8 +370,13 @@ interface Target {
   readonly inReach: boolean;
   /** How far off the heading the nose may point and still hit it, in radians. */
   readonly slack: number;
-  /** Whether it flies nearly as fast as the ship can, so a chase would gain on it too slowly. */
-  readonly tooFastToChase: boolean;
+  /**
+   * For a rock flying nearly as fast as the ship can, which a chase would
+   * gain on too slowly, the way to where the ship waits for it to come
+   * round the field and how far it is from there, or null for a rock to
+   * close on.
+   */
+  readonly toPath: { readonly heading: number; readonly far: number } | null;
 }
 
 /**
@@ -373,11 +408,33 @@ function targetOf(field: Field, ship: Readonly<Ship>): Target | null {
       heading,
       inReach: flight !== null && along <= SHOT_REACH,
       slack: Math.atan2(rockHitRadius(rock.size), along),
-      tooFastToChase:
-        Math.hypot(rock.vx, rock.vy) * field.pace > CHASE_SHARE * TOP_SPEED,
+      toPath: pathOf(px, py, rock.vx * field.pace, rock.vy * field.pace),
     };
   }
   return best;
+}
+
+/**
+ * Returns where the ship waits for a rock flying nearly as fast as it can,
+ * from the way to the rock and its velocity: by the row or the column it
+ * runs along, which it never leaves, or where the ship is, for a rock
+ * crossing the field slantwise, which comes round to anywhere; or null for
+ * a slower rock.
+ */
+function pathOf(
+  px: number,
+  py: number,
+  vx: number,
+  vy: number,
+): Target["toPath"] {
+  if (Math.hypot(vx, vy) <= CHASE_SHARE * TOP_SPEED) return null;
+  if (Math.abs(vy) <= Math.abs(vx) * ALONG_SIDE) {
+    return { heading: (Math.sign(py) * TURN) / 4, far: Math.abs(py) };
+  }
+  if (Math.abs(vx) <= Math.abs(vy) * ALONG_SIDE) {
+    return { heading: px < 0 ? TURN / 2 : 0, far: Math.abs(px) };
+  }
+  return { heading: 0, far: 0 };
 }
 
 /**
