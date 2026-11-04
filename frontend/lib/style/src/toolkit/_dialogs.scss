@@ -41,6 +41,13 @@
   text-transform: uppercase;
 }
 
+// A tile chosen: the one checked, or the one of the run in play.
+@mixin -chosen {
+  border-color: var(--fz-accent);
+  background: var(--fz-accent-wash);
+  color: var(--fz-text);
+}
+
 /// Styles a choice drawn as a tile, such as a `role="radio"` button, which
 /// wears the accent when it is checked; the caller lays out what it holds.
 @mixin choice-tile {
@@ -60,9 +67,39 @@
   }
 
   &[aria-checked="true"] {
-    border-color: var(--fz-accent);
-    background: var(--fz-accent-wash);
-    color: var(--fz-text);
+    @include -chosen;
+  }
+}
+
+/// Styles a `choice-tile` that starts a run at a level or a sector, what it
+/// holds stacked, in the accent when it is the run's
+/// (`aria-current="true"`) and an outline when locked
+/// (`aria-disabled="true"`); the caller styles what it holds.
+@mixin start-tile {
+  @include choice-tile;
+
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--fz-tap-target);
+  font: inherit;
+  text-align: left;
+
+  &[aria-current="true"] {
+    @include -chosen;
+  }
+
+  // Locked: an outline only, its words as legible as an open one's, and
+  // unlit by a hover, as it can't be chosen.
+  &[aria-disabled="true"] {
+    border-style: dashed;
+    background: none;
+    cursor: default;
+
+    &:hover {
+      border-color: var(--fz-edge-2);
+    }
   }
 }
 
@@ -78,8 +115,8 @@
 
 /// Styles a card that says how to play a game: its heading, an `h3` over
 /// each list, paragraphs in the muted color with their bold words in the
-/// text's, a `.close` button
-/// in the corner, and a table of the controls with each key a keycap.
+/// text's, a `.close` button in the corner, and a table of the controls
+/// with each key a keycap.
 @mixin help-card($width: 580px) {
   @include dialog-card($width);
 

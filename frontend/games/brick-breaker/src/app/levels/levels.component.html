@@ -17,7 +17,8 @@
     @for (set of sets(); track set.id) {
       <section [attr.aria-labelledby]="set.headingId">
         <h3 [id]="set.headingId">{{ set.name }}</h3>
-        <ul class="grid">
+        <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+        <ul class="grid" role="list">
           @for (level of set.levels; track level.number) {
             <li>
               <!--
