@@ -5006,3 +5006,56 @@ and takes up a run by them.
   writes, what they follow, the take-up's every step, the player's setup,
   the step-0 field and the words: all caught but the effect following the
   runs begun, which every run begun also changes the outcome of; it goes.
+
+## A12: done
+
+2026-11-04. `yarn verify` passed on A12.2.2's commit, `8dfde4af`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 3,138
+tests among them.
+
+## A13.1: Inner belt's last five waves
+
+2026-11-04.
+
+- **Built.** Waves 6 to 10 in `inner-belt.json`, after the plan's table:
+  Scatter, Crossing in a wall, Frost, Crowd and Boulder, the pace rising
+  from 1.05 to 1.08. Scatter, Frost and Crowd let only the pickups they
+  bring come (`pickups`), so Lance and Magnet, Slow and Nova are each met
+  first alone, as "Waves" says each new thing is; the plan says so under
+  its table.
+- **Tuned.** By `yarn report:waves --seeds 12` on each field. The plan's
+  counts left Scatter, Crowd and Boulder clearing faster than Hail. Scatter
+  has 14 medium stones, not 8; Crossing 4 large stones, not 3; Crowd 9,
+  not 6, as 10 cost a ship at Relaxed; and Boulder 4 large stones and 2
+  large ice beside its boulder, not 2 stones. The plan's table says so.
+  Middle times at Normal for waves 5 to 10:
+
+  | Field     | Hail | Scatter | Crossing | Frost | Crowd | Boulder |
+  | --------- | ---- | ------- | -------- | ----- | ----- | ------- |
+  | Narrowest | 0:14 | 0:14    | 0:15     | 0:17  | 0:15  | 0:18    |
+  | Wide      | 0:41 | 0:35    | 0:36     | 0:48  | 0:45  | 0:45    |
+  | Upright   | 0:36 | 0:34    | 0:38     | 0:46  | 0:45  | 0:50    |
+
+  Scatter's dip on the larger fields is left: its medium stones fall to
+  the autopilot's aim at once, and a person's aim is no autopilot's. The
+  bar for ships is at most one lost in twelve seeds of any wave at any
+  speed, Crossing's two upright at Normal aside; the longest play, Frost
+  upright at Fast, took 3:06 of the four minutes the spec allows.
+
+- **Review.** No bugs; four comments, all taken.
+  1. Scatter still cleared faster than Hail, the reason given for the
+     raise, and Frost outlasted Boulder, the sector's test. Scatter has 14
+     stones and Boulder 4; Frost, tried with a stone more, is the plan's
+     again, as its Slow-only pool lengthens it. The dip left is said above.
+  2. The new pickups seldom came in the waves that bring them: Nova in 2
+     to 4 of 12 Crowd plays. Their pools hold only them; Nova came in 11
+     or 12 of 12.
+  3. One seed's lost ship was the reason Crowd has nine; the bar is said,
+     over twelve seeds.
+  4. The step had no entry. This is it.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (3,368, the
+  every-wave autopilot spec playing waves 6 to 10 on every field at every
+  speed), `yarn prettier:check` and the skill references.
