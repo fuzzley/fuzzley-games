@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
+import { booleanOr } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import { type Speed, isCustomPercent, isSpeed } from "../../rules/speed";
 import { type TouchSteering, isTouchSteering } from "../../view/steering";
@@ -55,7 +56,7 @@ export class SettingsService {
         ? customPercent
         : DEFAULT_SETTINGS.customPercent,
       touch: isTouchSteering(touch) ? touch : DEFAULT_SETTINGS.touch,
-      sound: typeof sound === "boolean" ? sound : DEFAULT_SETTINGS.sound,
+      sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
     };
   }
 }

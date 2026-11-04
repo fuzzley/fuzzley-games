@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
+import { booleanOr } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import { type Speed, isSpeed } from "../../rules/speed";
 
@@ -58,7 +59,7 @@ export class SettingsService {
       speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
       movement: oneOf(MOVEMENTS, movement) ?? DEFAULT_SETTINGS.movement,
       arrows: oneOf(ARROWS, arrows) ?? DEFAULT_SETTINGS.arrows,
-      sound: typeof sound === "boolean" ? sound : DEFAULT_SETTINGS.sound,
+      sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
     };
   }
 }

@@ -57,6 +57,17 @@ describe("SettingsService", () => {
     });
   });
 
+  it("takes notes kept uncleared, and the default for a setting not kept", () => {
+    store({ version: 1, clearNotes: false });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({
+      ...DEFAULT_SETTINGS,
+      clearNotes: false,
+    });
+  });
+
   it("starts afresh from settings stored in another shape", () => {
     store({ version: 2, level: "hard", markMistakes: true, clearNotes: false });
 
