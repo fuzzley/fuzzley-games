@@ -4701,3 +4701,75 @@ for line Brick Breaker's.
 - **Checks.** `@fz/phaser`'s and Brick Breaker's `lint`, `typecheck` and
   `test`, `yarn prettier:check` and the skill references. 3 mutants of the
   rise, the config handed on and Brick Breaker's frame: all caught.
+
+## A11.1: the sounds
+
+2026-11-04.
+
+- **Built.**
+  - `@fz/dev/sounds`: a `Sound` may `loop`, left unfaded and marked so in
+    the spritemap, and `looped(wave, seconds)` makes a wave of noise that
+    runs on unbroken when played over and over, its next stretch faded into
+    its first at an even loudness. Brick Breaker's sprite comes out byte for byte the same.
+  - `tools/build-sounds.mjs` (`yarn build:sounds`): the fourteen sounds,
+    a shot's tick, each size's break, iron's ring, a blast, a catch, a
+    dash, a comet's warning, a lost ship, the clearing's chord, a ship
+    gained, a stray home and the thrust's hum, into
+    `src/scene/sounds/`, 6.5 s and 208 KB in all.
+  - The scene plays each event's sound once a frame through `FrameSounds`
+    and the lifted `SpritePlayer.playRisen()`,
+    a break's risen a semitone for each break of its chain before it, up to
+    a fifth; mutes the game while the player wants no sound; and holds the
+    thrust's hum while the game says the ship thrusts, which `thrusting()`
+    says only while the wave plays on, so a pause, a lost ship, a cleared
+    wave and a run's end let it go.
+  - The sound setting, on by default (decision 19); the drawer's Play
+    sounds; the bar's Sound, a round toggle, pressed while the sound is on,
+    keeping the focus on the board through a press, and "Turn sound off"
+    or "on" in the overflow menu on a compact screen.
+- **Choices.**
+  - **The hum is a 120 Hz buzz with its overtones up to 720 Hz under a
+    looped rumble,** so a phone's speaker plays it, 36% of its power above
+    300 Hz; the buzz runs 60 whole cycles in its half second and the rumble
+    is crossfaded at an even loudness, so its seam is a step like its own
+    (below 95% of them) and never clicks, and its loudness holds within a
+    tenth across the loop.
+  - **The game says when the ship thrusts,** rather than the scene reading
+    the field: the scene can't tell a paused field from one between steps.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on the dev
+  server: the sprite loads; Sound mutes the game and lets it be heard
+  again; the hum plays while the thrust is held, stops on a pause, comes
+  back as the wave goes on and stops once let go, leaving no sound behind;
+  breaks play by their size, rising 100 cents a break along a chain, and a
+  lost ship sounds.
+- **Review.** Six comments, all taken.
+  1. `looped()` crossfaded in a straight line, so the two stretches of
+     unrelated noise dipped 3 dB halfway and the rumble throbbed twice a
+     second. It crossfades at an even power, and says it is for noise.
+  2. The hum's 60 Hz tone held 0.5% of its power above 300 Hz, and set
+     the peak the rumble was scaled under: a phone's speaker would play next
+     to nothing. It is the 120 Hz buzz above, the rumble at full share.
+  3. The board's hum case passed with the scene told the ship always
+     thrusts, its mute case with the sound always off, and the hum's cases
+     mocked `hold()`. The hum is read from the game's sounds, the sprite
+     put in the cache as a load would; cases hold no hum before the thrust,
+     none once the wave pauses with the thrust still held, and the game
+     heard while the settings want sound.
+  4. The scene's reused config and its function for a frame's sounds were
+     Brick Breaker's line for line: lifted first ("Lift: a frame's sounds,
+     played risen"). The Sound button and its menu entry are the third copy
+     of Snake's and Brick Breaker's: left for the bar's lift, which the
+     summary at the end raises.
+  5. `looped()`'s cases sat under a comment of the arpeggio's, one of them
+     repeating another. They come after `note()`'s, the repeat gone.
+  6. The drawer's sound case asserted as it arranged. It is two, as the
+     haptics' are.
+
+  These correct the change but the fourth, which the lift took; so it had
+  no second review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (2,990),
+  `@fz/dev`'s, `yarn prettier:check` and the skill references. 24 mutants
+  of the scene's sounds, the hum, the game's thrust, the board's options,
+  the setting, the drawer, the bar and `looped()`: all caught but turning
+  the sound back on from the bar, which no case held; one does now.

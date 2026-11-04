@@ -19,6 +19,8 @@ export interface Settings {
   readonly fireByItself: boolean;
   /** Whether the phone buzzes as a ship is lost and as a wave is cleared. */
   readonly haptics: boolean;
+  /** Whether the field plays its sounds. */
+  readonly sound: boolean;
 }
 
 /** The settings a player starts with. */
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   stickOnRight: false,
   fireByItself: false,
   haptics: true,
+  sound: true,
 };
 
 /** Holds the player's settings for the visit. */

@@ -56,8 +56,8 @@ const COPY_WORDS = {
 
 /**
  * Shows the settings in a drawer: the speed, when the deck shows, which side
- * holds its stick, whether the ship fires by itself, haptics and the
- * palette, and where `DEBUG_MENU` offers it the debug menu, the numbers that
+ * holds its stick, whether the ship fires by itself, haptics, the sound and
+ * the palette, and where `DEBUG_MENU` offers it the debug menu, the numbers that
  * set the feel, tuned on the field in play.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
@@ -165,6 +165,11 @@ export class SettingsComponent {
   /** Turns the haptics on or off, as their checkbox says. */
   protected setHaptics(haptics: boolean): void {
     this.store.update({ haptics });
+  }
+
+  /** Turns the sound on or off, as its checkbox says. */
+  protected setSound(sound: boolean): void {
+    this.store.update({ sound });
   }
 
   /** Tunes a number, as its slider says, which the clipboard no longer holds. */

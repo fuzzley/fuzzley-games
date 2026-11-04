@@ -1053,6 +1053,46 @@ describe("GameService", () => {
     });
   });
 
+  describe("the thrust", () => {
+    /** Returns a steer that thrusts at full, as a held key does. */
+    function thrusting(): Steer {
+      return { ...STILL, thrust: 1 };
+    }
+
+    it("is held while the ship thrusts and its wave plays on", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      game.tick(FRAME_MS, thrusting());
+
+      expect(game.thrusting()).toBe(true);
+    });
+
+    it("is let go once the ship coasts", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.tick(FRAME_MS, thrusting());
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.thrusting()).toBe(false);
+    });
+
+    it("is let go as the wave pauses, the key still held", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.tick(FRAME_MS, thrusting());
+
+      game.pause();
+      game.tick(FRAME_MS, thrusting());
+
+      expect(game.thrusting()).toBe(false);
+    });
+
+    it("is not held before the first move", async () => {
+      const game = await gameAt(SPEC_WAVE.gift);
+
+      expect(game.thrusting()).toBe(false);
+    });
+  });
+
   describe("a change of speed", () => {
     it("keeps the new speed in the settings", async () => {
       const game = await gameAt(SPEC_WAVE.gift);

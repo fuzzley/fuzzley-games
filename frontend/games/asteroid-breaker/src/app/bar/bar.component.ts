@@ -17,6 +17,7 @@ import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
 import { PilotComponent } from "../pilot/pilot.component";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
 const HOME_HREF = "/";
@@ -29,7 +30,7 @@ const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
 }));
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "sectors" | "help" | "settings";
+type MenuAction = "sound" | "sectors" | "help" | "settings";
 
 /** Describes the Pause button as the wave stands. */
 interface PauseButton {
@@ -51,9 +52,9 @@ interface PauseButton {
  * number beside the pilot at the controls, since a score runs to six
  * figures.
  *
- * On a compact screen, Pause and New game stay, and Sectors, How to play
- * and Settings move into the overflow menu, as on the narrowest the link
- * home does too.
+ * On a compact screen, Pause and New game stay, and Sound, Sectors, How to
+ * play and Settings move into the overflow menu, as on the narrowest the
+ * link home does too.
  */
 @Component({
   selector: "app-bar",
@@ -75,6 +76,7 @@ interface PauseButton {
 export class BarComponent {
   protected readonly game = inject(GameService);
   protected readonly viewport = inject(GameViewportService);
+  private readonly settings = inject(SettingsService);
 
   /** Emitted when the player asks for the sectors, to start at one. */
   readonly openSectors = output();
@@ -117,6 +119,14 @@ export class BarComponent {
     return times > 1 ? `×${String(times)}` : null;
   });
 
+  /** Whether the player wants sound. */
+  protected readonly sound = computed(() => this.settings.settings().sound);
+
+  /** The Sound button's icon, which shows whether the sound is on. */
+  protected readonly soundIcon = computed<IconName>(() =>
+    this.sound() ? "sound" : "sound-off",
+  );
+
   protected readonly pauseButton = computed<PauseButton>(() => {
     const outcome = this.game.outcome();
     return outcome === "paused"
@@ -129,6 +139,9 @@ export class BarComponent {
     readonly BarOverflowItem<MenuAction>[]
   >(() => {
     const actions: readonly BarOverflowAction<MenuAction>[] = [
+      this.sound()
+        ? { id: "sound", label: "Turn sound off", icon: "sound-off" }
+        : { id: "sound", label: "Turn sound on", icon: "sound" },
       { id: "sectors", label: "Sectors", icon: "grid" },
       { id: "help", label: "How to play", icon: "help" },
       { id: "settings", label: "Settings", icon: "settings" },
@@ -160,6 +173,11 @@ export class BarComponent {
     }
   }
 
+  /** Turns the sound on or off, which the settings keep. */
+  protected toggleSound(): void {
+    this.settings.update({ sound: !this.sound() });
+  }
+
   /** Starts a run at the speed chosen from the badge, asking first. */
   protected changeSpeed(speed: Speed): void {
     void this.game.changeSpeed(speed);
@@ -173,6 +191,9 @@ export class BarComponent {
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {
     switch (id) {
+      case "sound":
+        this.toggleSound();
+        break;
       case "sectors":
         this.openSectors.emit();
         break;

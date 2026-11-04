@@ -66,9 +66,9 @@
   </dl>
 
   <!--
-    Pause keeps the focus on the board through a press with a pointer, so
-    pressing it never pauses the wave by taking it. It is dimmed rather than
-    disabled, so the focus never falls off it.
+    Pause and Sound keep the focus on the board through a press with a
+    pointer, so pressing one never pauses the wave by taking it. Pause is
+    dimmed rather than disabled, so the focus never falls off it.
   -->
   <button
     fzBarActions
@@ -87,6 +87,21 @@
     A block apiece: the bar takes a block's element among its actions only
     while it is the block's one element.
   -->
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="Sound"
+      title="Sound"
+      [attr.aria-pressed]="sound()"
+      (pointerdown)="keepFocus($event)"
+      (click)="toggleSound()"
+    >
+      <fz-icon [name]="soundIcon()" />
+    </button>
+  }
+
   @if (!viewport.isCompact()) {
     <button
       fzBarActions

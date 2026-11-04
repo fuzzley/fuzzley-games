@@ -20,6 +20,7 @@ describe("SettingsService", () => {
       stickOnRight: true,
       fireByItself: false,
       haptics: true,
+      sound: true,
     });
   });
 });
