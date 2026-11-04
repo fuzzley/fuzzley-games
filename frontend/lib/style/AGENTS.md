@@ -54,21 +54,23 @@ relative to `frontend/lib/style/`.
   (`_controls.scss`); the games' dialogs (`_dialogs.scss`); and the cards a
   game shows over its board (`_boards.scss`). The dialogs are the parts a
   dialog is drawn from, `dialog-card($width)`, `close-button`,
-  `corner-close-button`, `field-label`, `choice-tile` and `start-tile`, a
-  tile that starts a run at a level or a sector, and three whole
-  dialogs a game fills in, which name the classes they style: `help-card`,
-  How to play's words, its lists' headings and its table of controls; `result-card`, the card a
-  finished game's result shows on, with its icon, figures and actions; and
-  `settings-drawer($width)`, a game's settings drawer, with the settings'
-  labels, descriptions, choice tiles and checkboxes. A game whose dialogs
-  differ writes its own from the parts, or adds to a whole one inside the
-  block that includes it, after the include, each selector nested as the
-  mixin nests it, so its rules weigh the same and win by coming later. The
-  cards over a board, such as Paused, are `board-card-layer($bottom)`, the
-  layer a grid centers them in, `board-card($room)`, the card, and
-  `board-card-small`, which a game includes in its own container query for a
-  small board. The toolkit emits no CSS, so any stylesheet can load it, and
-  `src/toolkit.spec.ts` checks what each mixin writes.
+  `corner-close-button`, `field-label`, `choice-tile` and `start-tile`, a tile
+  that starts a run at a level or a sector, and three whole dialogs a game
+  fills in, which name the classes they style: `help-card`, How to play's
+  words, its lists' headings and its table of controls, its words alone being
+  `help-text`, for a part of the card a component of its own draws;
+  `result-card`, the card a finished game's result shows on, with its icon,
+  figures and actions; and `settings-drawer($width)`, a game's settings
+  drawer, with the settings' labels, descriptions, choice tiles and
+  checkboxes. A game whose dialogs differ writes its own from the parts, or
+  adds to a whole one inside the block that includes it, after the include,
+  each selector nested as the mixin nests it, so its rules weigh the same and
+  win by coming later. The cards over a board, such as Paused, are
+  `board-card-layer($bottom)`, the layer a grid centers them in,
+  `board-card($room)`, the card, and `board-card-small`, which a game includes
+  in its own container query for a small board. The toolkit emits no CSS, so
+  any stylesheet can load it, and `src/toolkit.spec.ts` checks what each mixin
+  writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
   keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for

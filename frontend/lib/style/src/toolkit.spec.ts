@@ -105,6 +105,24 @@ describe("the toolkit's mixins", () => {
     expect(card).toContain("width:600px");
   });
 
+  it("head a help card's lists, its bold words in the text's color among its muted ones", () => {
+    const text = compiled("@include fz.help-text;");
+
+    expect(text).toContain(
+      ".it h3{margin:var(--fz-space-5) 0 var(--fz-space-2)",
+    );
+    expect(text).toContain(
+      ".it p{margin:0 0 var(--fz-space-3);color:var(--fz-muted)",
+    );
+    expect(text).toContain(".it strong{color:var(--fz-text)}");
+  });
+
+  it("give a help card its words", () => {
+    expect(compiled("@include fz.help-card;")).toContain(
+      compiled("@include fz.help-text;"),
+    );
+  });
+
   it("draw a help card's keys as keycaps", () => {
     expect(compiled("@include fz.help-card;")).toContain(
       ".it kbd{display:inline-block;padding:0 6px;border:1px solid var(--fz-edge-3);border-bottom-width:2px",

@@ -4517,3 +4517,44 @@ were Brick Breaker's Levels tiles, line for line.
   `lint` and its dialog's specs, `yarn prettier:check` and the skill
   references. 4 mutants of the mixin, the run's tile, the locked one and
   its hover, and the checked choice: all caught.
+
+## Lift: How to play's catalogs whole
+
+2026-11-04. The A10.2.4 review's second comment: each catalog's section,
+its heading, the heading's id, what to know first and the list, was Brick
+Breaker's line for line.
+
+- **Built.** `@fz/game-ui/help_catalog`'s `HelpCatalog`, a catalog's id,
+  heading, intro and entries, which `<fz-help-catalog [catalog]>` now draws
+  whole, as a section its heading names, the heading's id the library's
+  own rather than kept by hand. `@fz/style`'s `help-text`, the help card's
+  headings, paragraphs and bold words, which `help-card` includes and the
+  catalog takes too, as the card's rules can't reach inside a component of
+  its own; it drops the catalog's own rule for its names. Brick Breaker's
+  How to play takes it. The libraries' `AGENTS.md`, the toolkit and the
+  catalog's specs and the `fuzzley-ui` skill say so.
+- **Checks in a browser.** On a dev server of this worktree's Brick
+  Breaker: each catalog a region its heading names, the headings 16 px and
+  bold, 20 px over and 8 px under, the intro muted at 14 px, the names in
+  the text's color and the rest muted, as before.
+- **Review.** Nothing broken, `help-card`'s CSS byte for byte the same;
+  four comments, all taken.
+  1. The heading's id, `help-<id>`, carried no `fz`, and left the app to
+     keep each catalog's apart. It is `fz-help-catalog-<n>`, counted as the
+     confirmation's and the theme picker's are, and a case holds two
+     catalogs of the same id each named by its own heading.
+  2. No spec held `help-text`'s heading, which the catalog takes, or the
+     card holding the words whole. One holds the heading among the words,
+     and the card's holds all of them.
+  3. The intro's case found the paragraph anywhere. It finds it in the
+     catalog's section.
+  4. A `@let` named the catalog again. The template reads `catalog()`.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** `@fz/style`'s, `@fz/game-ui`'s and Brick Breaker's `lint`,
+  `typecheck` and `test`, `yarn prettier:check` and the skill references.
+  8 mutants of the catalog's heading, its id, its intro and the card's
+  words: all caught but the heading's id, which no case held; one does
+  now. The catalog's include of `help-text` no spec can see, as jsdom
+  computes no component's styles; the browser check holds it.
