@@ -1,4 +1,5 @@
 import {
+  booleanOr,
   countsByIdOf,
   isCount,
   isRecord,
@@ -38,6 +39,22 @@ describe("isCount", () => {
       expect(isCount(value)).toBe(false);
     },
   );
+});
+
+describe("booleanOr", () => {
+  it.each([true, false])("takes %j", (value) => {
+    expect(booleanOr(value, !value)).toBe(value);
+  });
+
+  it.each<[unknown, boolean]>([
+    ["true", false],
+    [1, false],
+    [0, true],
+    [null, true],
+    [undefined, false],
+  ])("takes the fallback for %j", (value, fallback) => {
+    expect(booleanOr(value, fallback)).toBe(fallback);
+  });
 });
 
 describe("unknownKey", () => {

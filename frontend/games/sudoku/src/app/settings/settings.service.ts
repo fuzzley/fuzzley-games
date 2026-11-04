@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
+import { booleanOr } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import { type Level, isLevel } from "../../rules/difficulty";
 
@@ -46,14 +47,8 @@ export class SettingsService {
     const { level, markMistakes, clearNotes } = saved;
     return {
       level: isLevel(level) ? level : DEFAULT_SETTINGS.level,
-      markMistakes:
-        typeof markMistakes === "boolean"
-          ? markMistakes
-          : DEFAULT_SETTINGS.markMistakes,
-      clearNotes:
-        typeof clearNotes === "boolean"
-          ? clearNotes
-          : DEFAULT_SETTINGS.clearNotes,
+      markMistakes: booleanOr(markMistakes, DEFAULT_SETTINGS.markMistakes),
+      clearNotes: booleanOr(clearNotes, DEFAULT_SETTINGS.clearNotes),
     };
   }
 }

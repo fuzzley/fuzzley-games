@@ -4710,19 +4710,20 @@ for line Brick Breaker's.
   - `@fz/dev/sounds`: a `Sound` may `loop`, left unfaded and marked so in
     the spritemap, and `looped(wave, seconds)` makes a wave of noise that
     runs on unbroken when played over and over, its next stretch faded into
-    its first at an even loudness. Brick Breaker's sprite comes out byte for byte the same.
+    its first at an even loudness. Brick Breaker's sprite comes out byte for
+    byte the same.
   - `tools/build-sounds.mjs` (`yarn build:sounds`): the fourteen sounds,
     a shot's tick, each size's break, iron's ring, a blast, a catch, a
     dash, a comet's warning, a lost ship, the clearing's chord, a ship
     gained, a stray home and the thrust's hum, into
     `src/scene/sounds/`, 6.5 s and 208 KB in all.
   - The scene plays each event's sound once a frame through `FrameSounds`
-    and the lifted `SpritePlayer.playRisen()`,
-    a break's risen a semitone for each break of its chain before it, up to
-    a fifth; mutes the game while the player wants no sound; and holds the
-    thrust's hum while the game says the ship thrusts, which `thrusting()`
-    says only while the wave plays on, so a pause, a lost ship, a cleared
-    wave and a run's end let it go.
+    and the lifted `SpritePlayer.playRisen()`, a break's risen a semitone
+    for each break of its chain before it, up to a fifth; mutes the game
+    while the player wants no sound; and holds the thrust's hum while the
+    game says the ship thrusts, which `thrusting()` says only while the wave
+    plays on, so a pause, a lost ship, a cleared wave and a run's end let it
+    go.
   - The sound setting, on by default (decision 19); the drawer's Play
     sounds; the bar's Sound, a round toggle, pressed while the sound is on,
     keeping the focus on the board through a press, and "Turn sound off"
@@ -4773,3 +4774,40 @@ for line Brick Breaker's.
   of the scene's sounds, the hum, the game's thrust, the board's options,
   the setting, the drawer, the bar and `looped()`: all caught but turning
   the sound back on from the bar, which no case held; one does now.
+
+## A11: done
+
+2026-11-04. `yarn verify` passed on A11.1's commit, `0d4584df`: lint,
+typecheck, test and build across every workspace, Asteroid Breaker's 2,990
+tests among them.
+
+## Lift: a stored yes or no
+
+2026-11-04. The A12.1 review's first comment: the settings' reader kept its
+own `booleanOr()`, a reader of stored JSON the games' rules have them share,
+and Brick Breaker's, Snake's and Sudoku's settings wrote the same check out
+by hand.
+
+- **Built.** `@fz/core/json`'s `booleanOr(value, fallback)`, a stored yes
+  or no, else a default, which Brick Breaker's and Snake's sound and
+  Sudoku's marked mistakes and cleared notes are read through. Its
+  `AGENTS.md` says so. Sudoku's stored cleared notes, which no case held,
+  has one, as Snake's stored sound of neither does.
+- **Review.** Nothing changed in how a setting is read; two comments
+  taken, one left.
+  1. Every fallback case passed `true`, so a reader that ignored its
+     fallback passed. Each case has its own.
+  2. Sudoku's new case read back the notes alone. It reads the whole of
+     the settings, and Snake has the case its sound lacked.
+  3. A stored choice is read the same way across the games (`isSpeed()`
+     in three, `isLevel()`, `isTouchSteering()`, Snake's `oneOf()`): an
+     `isOneOf()` in `@fz/core/json` could take them all. Left for the
+     summary at the end, as a lift across five apps rather than this
+     game's.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** `@fz/core`'s, Brick Breaker's, Snake's and Sudoku's `lint`,
+  `typecheck` and `test`, `yarn prettier:check` and the skill references.
+  9 mutants of the reader, its fallback and each game's reading: all
+  caught but Sudoku's cleared notes, which no case held; one does now.

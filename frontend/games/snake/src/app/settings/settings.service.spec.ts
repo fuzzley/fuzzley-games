@@ -60,6 +60,14 @@ describe("SettingsService", () => {
     });
   });
 
+  it("takes the default for a sound kept as neither on nor off", () => {
+    store({ version: 1, sound: "off" });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
+  });
+
   it("starts afresh from settings stored in another shape", () => {
     store({ version: 2, speed: "slow", movement: "step", sound: false });
 

@@ -17,6 +17,14 @@ export function isCount(value: unknown): value is number {
 }
 
 /**
+ * Returns a value read from JSON if it is a yes or a no, else a fallback,
+ * as a setting stored before it was offered takes its default.
+ */
+export function booleanOr(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+/**
  * Returns the first key of a value read from JSON that the known keys lack,
  * or null, so a key a typo misspells isn't left unread.
  *
