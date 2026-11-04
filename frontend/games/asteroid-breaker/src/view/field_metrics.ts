@@ -73,6 +73,12 @@ export interface FieldMetrics {
   readonly frame: number;
   /** Device pixels to a CSS pixel. */
   readonly pixelRatio: number;
+  /**
+   * The room the field is laid out in, inside its frame, in device pixels,
+   * which a field shaped for it fills both ways but for under a device
+   * pixel, or one way where its long side is the longest a field grows to.
+   */
+  readonly room: PixelRect;
   /** The field, without its frame, in CSS pixels. */
   readonly css: CssRect;
 }
@@ -168,6 +174,7 @@ export function fieldMetrics(
     height,
     frame: frameOf(viewport),
     pixelRatio,
+    room: inner,
     css: {
       x: x / pixelRatio,
       y: y / pixelRatio,

@@ -510,6 +510,22 @@ describe("the layout", () => {
     },
   );
 
+  it.each(boards)(
+    "gives the room of a %s at %f× %s the deck inside the frame of the room the field lies in",
+    (_, __, ___, canvas, board) => {
+      const torus = fieldShape(canvas, board, SQUARE);
+
+      const { room, frame } = fieldMetrics(canvas, board, torus);
+
+      expect({
+        x: room.x - frame,
+        y: room.y - frame,
+        width: room.width + 2 * frame,
+        height: room.height + 2 * frame,
+      }).toEqual(fieldRoom(canvas, board, torus));
+    },
+  );
+
   it.each(boards.filter(([, , , , board]) => board.deck))(
     "lays the deck of a %s at %f× out at its least size or more, on the canvas and clear of the field",
     (_, ratio, __, canvas, board) => {
