@@ -10,6 +10,20 @@ artifact, draws the look, the layouts, the art, the rules' diagrams, the
 cards and the pilots' colors, and has a sketch to fly; the sketch is
 throwaway code written for the mock, not the game's.
 
+Built from 2026-10-31, each step below a commit, and each change reviewed
+before it was committed. Part 1 was built on the branch
+`asteroid-breaker-lift`, cut from the plan's branch once that was rebased
+onto `main`, and Part 2 on `asteroid-breaker`, cut from Part 1's tip. On
+the user's ask, `main` was fast-forwarded early, on 2026-11-02, to
+`663ee4a4`, which held Part 1, Part 2 through A9 and the lifts made at Q3,
+and the game was listed on the site badged "In development". The rest
+merges into `main` on the user's word (A17.3), a fast-forward, as `main`
+hasn't moved since `663ee4a4`. "As built" gathers what the work log
+decided that the steps and the design reference don't say, and what it
+left open. The log itself is beside this plan, in
+`asteroid-breaker-worklog.md`. Both describe the code as it was, so check a
+path against the tree before following one.
+
 Asteroid Breaker is the sixth game hosted on fuzzley.games, at
 `/play/asteroid-breaker/`, in the Arcade category beside Snake and Brick
 Breaker: a small ship, flown by the site's fuzzball, drifts in a field of
@@ -108,6 +122,241 @@ marks the user's own:
 26. A stray brought home joins the crew: it waits at home and flies the next
     ship the run gains; ships still come only as decision 14 says.
 
+## As built
+
+The steps below are mostly as they were planned, a few edited as they
+were built, and the design reference was updated as the work went. This
+section holds what neither says: where the build left the steps, what the
+log decided that a later change could trip on, the numbers, and what was
+left for the user.
+
+### Where the build left the steps
+
+- **`main` took the game early, and Part 1 with it** (On the site early,
+  2026-11-02). The user asked to try the debug menu in production and to
+  list the game as still in development, so `main` was fast-forwarded to
+  `663ee4a4`, and Part 1 reached it with Part 2 through A9 rather than on
+  its own first, as decision 22 has it. The game went up with its debug
+  menu at `?debug`, two screenshots of wave 4 for the gallery, and
+  "Thirty waves, then Endless" dropped from its page until A17.1.
+- **More was lifted than Part 1's six.** At Q3, on the user's word, the
+  drawing vocabulary, the atlas's player and the field's play moved on a
+  worktree of their own, `asteroid-breaker-shared-lift`, so the dev server
+  the phones reached stayed as it was (Q3's lifts). Later steps found more
+  copies, each lifted in a reviewed commit of its own beside its step:
+  `unknownKey()` (A5.1), `knownIdsOf()` and `countsByIdOf()` (A10.2.1),
+  `start-tile` (A10.2.3), `<fz-help-catalog>` and `help-text` (A10.2.4),
+  `playRisen()` (A11.1) and `booleanOr()` (A12.1); and `@fz/ui` gained
+  `<fz-fuzzball>` within A10.1's commit. "The lifted pieces" names only
+  the records' helpers and Q3's three.
+- **Q3 changed no number.** The user played the five waves on their phones,
+  upright and on their side, and found the values "all look good for now"
+  (Q3), so `tuning.ts` keeps the first guesses nothing else settled: the
+  speeds' factors (A2.1), the dash's carry (A2.3), a lodestone's pull
+  (A3.1), a rock's spin and a piece's push (A3.2), the Shield's 1 s (A4.1)
+  and the comet's reach (A4.2).
+- **Q5 was narrower than its row.** It ran on `yarn preview`, each wave
+  flown by held keys, the mouse tried on wave 31 and touch on Crowd; the
+  trace set up neither a blast chain nor Spread, and 120 Hz couldn't be
+  emulated (Q5).
+- **The screenshots are of a run in play** (A16.1), not one taken up
+  paused with a stray adrift, as the step has it: a stray adrift isn't
+  kept, and rocks broken by hand left their pieces stacked where they lay.
+  The autopilot plays Crowd until a second before its first stray
+  (`keptRun()`), and the page goes on with it, firing, until the stray
+  drifts in and the ship's guard has ended, in Casino night at 2×. The
+  thumbnail keeps the field whole, and so the bar above it, as the field is
+  wider than a thumbnail.
+- **Q6 ran on the site's build,** not the Docker image, as Docker was off
+  on this machine (Q6): the game reached from its tile and its page in the
+  catalog, played at `/play/asteroid-breaker/` with the console open.
+  `yarn preview` sends no Content Security Policy, and CI checks only that
+  the image sends it, so what it lets load was left to the live site; the
+  tile's images are the site's own, and the game under `/play/` carries
+  none.
+- **A4.2's step still says the first stray comes at 20 s:** A13.3 brought
+  it sooner, 6 s on a field of 40 by 40, later on a larger one by its area
+  (`STRAY_FIRST_MS`), 12.3 s on 82 by 40.
+
+### What the log decided
+
+- **A timer counts down as its step starts,** so one set in a step counts
+  it, and `guardShip()` adds a step for a guard set between steps (A2.3);
+  a blast's beat runs by the field's count of steps instead, as blasts set
+  each other off in one loop (A3.2).
+- **A waiting ship goes only at a fresh move.** What the player holds as it
+  comes, `createShip()`'s `held`, which has no default, is no move until it
+  changes (A2.3). Fire by itself is `Steer.autoFire`, which never ends a
+  wait (A9.3). The mouse aims at a place, `Steer.aim`, kept from its last
+  move through a resize and a stretch (A2.3, A5.2).
+- **A weapon's most in flight counts its own shots,** in 42 slots, every
+  weapon's most at once, and the time since the last pull carries through
+  a change of weapon (A2.4).
+- **The cap is the slots.** At the cap a rock splits into as many pieces as
+  there are free slots, one at least, and a volatile rock keeps its slot
+  until it goes off. A broken rock's slot is free as it breaks, so scoring
+  and drops run inside `hitRock()`, before a piece takes it (A3.2).
+- **A blast reaches only rocks laid before its step** (`laidAt`), and
+  blasts go off first in a step, so their slots' order changes nothing
+  (A3.2). A Lance shot and a comet pass over what was laid in the steps
+  they broke rocks in, `passedAt` and the comet's latest eight (A3.3,
+  A4.2).
+- **A comet's smash gives nothing,** no points, no pickup, no drought's,
+  but a volatile rock it breaks still goes off, its blast giving as any
+  does. Strays and comets never wrap, and meet things only with their
+  middle on the field (A4.2).
+- **The crew is the field's through a wave:** only the field can give a
+  color, and it gains the ships points bring before the ship meets the
+  rocks, so a step's points can save the last ship. Once no one is flying,
+  nothing scores (A4.2, A4.3).
+- **A wave's number seeds it,** mixed with the run's seed (A4.3), and
+  Endless's waves are made from the two as well (A14.1).
+- **`reshapeField()` stretches only to a shape that differs,** and only
+  then guards the ship, so a pause buys no second untouchable; what is off
+  the field stays as far off it, so a comet warned of still comes (A5.2,
+  A5.3).
+- **The deck lies whichever way leaves the larger unit,** weighed on the
+  field in play, so a pixel's resize in play never turns it beside a field
+  kept from under it (A7.1). Its parts keep 16 CSS px from the stage's
+  sides, not the zones', as a small phone's side zone is 112 px wide
+  (A7.2). The layout spec spells out the bar's sizes, which live in Sass
+  alone (A7.1).
+- **The field flashes no more than every 0.34 s** (A7.4.2). The shake runs
+  at 13 and 17 Hz, as 29 Hz aliased into a slow beat at 60 frames a
+  second, and the exhaust and a dash's trail follow the field's steps, not
+  the scene's time, which runs on through a pause (A8.2.2).
+- **A run is retuned once its field steps on numbers the debug menu
+  changed,** even if they are put back before its end, and keeps no records
+  and no sectors reached, only its speed (A10.2.1, A12.1).
+- **Whether a build is a development one is the `DEV_BUILD` token,** so a
+  spec can stand for production, which `vi.stubEnv()` can't (On the site
+  early).
+- **A field added to a stored record is read as optional,** or its reader
+  would drop every player's records: `clearedAll` is false where it is
+  missing (A10.2.1, A14.2). The settings' spec stores under the key's own
+  words, so renaming it, which loses every player's settings, fails a case
+  (A12.1).
+- **The saved game keeps the size its field was laid out at** beside the
+  size it was stretched to, a volatile rock with its fuse lit, and a wave
+  not yet begun with no field (A12.2.1). It is written as the crew changes,
+  which a stray brought home does with no ship lost or gained, and as the
+  page is hidden, though "What it keeps" names only the ships and the page
+  going away (A12.2.2). The strays' colors are the shell's, beside the
+  run's `strays`, drawn only while the two agree (A10.2.2).
+- **Endless opens as wave 30 is cleared,** not as wave 31 begins, and only
+  a run begun at wave 1 that clears every written wave, never a tuned one,
+  has cleared all thirty (A14.2). The rule counts the written waves, but
+  "Cleared all thirty" is written in the words, and some of Endless's
+  numbers are waves of the game, so a sector more takes those too (the
+  `asteroid-breaker-content` skill lists them).
+- **A new run's first pilot is color 0,** which an `@if … as` reads as none
+  (A10.1).
+- **The result card opens on its title,** and a click beside it doesn't
+  close it, so a player still firing doesn't start the next run unread
+  (A10.2.2); the Sectors dialog opened from it takes the focus only
+  because the card comes first in the page (A10.2.3).
+- **The board publishes what the layout check reads,** `--across`,
+  `--down`, `data-room` and `data-deck`, from one signal the scene's layout
+  writes (A15.1), and measures itself as it is first drawn, handing the
+  game that room until the scene lays the field out, or the field jumps as
+  the page loads; above 2×, a pixel between the canvas and the board still
+  reshapes it by a fraction of a unit (Q5).
+
+### The numbers
+
+- **The rules alone** (Q2): the five waves over 20 seeds on three fields at
+  every speed, each flown untouchable and as the spec plays it, 1,800
+  plays, each cleared within four minutes; a thousand
+  seeded random flights, 2.8 million steps, nothing off the torus; and at
+  the widest field's cap, 105 rocks, 42 shots and three comets, 98 µs a
+  step at the median in Node and 1.6 ms at worst.
+- **The waves at Normal,** the middle of twelve seeds flown untouchable, on
+  the narrowest field, the widest and the widest upright. Each sector after
+  the first opens a step under the last one's test and climbs to its own:
+  - Inner belt, Hail's 0:14, 0:41 and 0:36 to Boulder's 0:18, 0:45 and
+    0:50 (A13.1);
+  - Iron reach, Ore's 0:15, 0:39 and 0:40 to Iron heart's 0:24, 0:56 and
+    0:54 (A13.2);
+  - Storm, Lodestar's 0:19, 0:42 and 0:46 to Eye of the storm's 0:29, 0:55
+    and 0:58, the longest written wave on every field (A13.3);
+  - Endless, wave 31's 0:15, 0:36 and 0:39 to wave 60's 0:37, 1:08 and 1:11
+    (A14.1).
+
+  The log's entries have each table. The first two sectors' predate
+  A13.3's sooner strays and its autopilot's wait for a fast rock, which
+  played every wave again, and Q4's ring, which moved Fuse's times on the
+  larger fields by up to 10 s.
+
+- **The ships.** The bar is the most lost in a play of twelve seeds: one at
+  Relaxed, two at Normal or Fast. Of 3,240 plays of the thirty waves, five
+  go past it, all on the larger fields (A13.3). In Endless some play loses
+  every ship from wave 49 at Fast, 55 at Normal and 57 at Relaxed (A14.1).
+- **Performance** (Q5), on the production build, the CPU throttled six
+  times, a frame's CPU time at the median, the 95th hundredth and worst:
+  Tempest at Fast on the widest field 1.61, 4.48 and 15.43 ms; Eye of the
+  storm at Normal there 1.20, 3.39 and 11.34 ms; Tempest on 2560 × 1440,
+  the atlas scaled up, 1.17, 2.88 and 12.99 ms. The medians are inside the
+  4 ms bar; Tempest's 95th hundredth on the widest field and every worst
+  frame, one catching up many steps, are over it. Unthrottled, Tempest
+  there took 0.65 ms at the median and 1.07 ms at the 95th hundredth, at
+  126 frames a second, its worst a 142 ms frame as the run went on.
+- **The bundle,** gzipped (Q5): the entry 106.5 kB, the scene 19.3 kB,
+  Phaser's chunk 357.1 kB and the sounds' WAV 203 kB, against Brick
+  Breaker's 99.7, 10.2, 357.1 and 119 kB.
+- **Lighthouse** (Q5): accessibility 100, best practices 100 and SEO 92,
+  failing only the preview's `/robots.txt` and `/llms.txt`; a layout shift
+  as the page loaded, which its performance audit failed, was fixed.
+
+### Left for the user
+
+- **Questions about the game.**
+  - **The feel is settled "for now"** (Q3), on the first guesses listed
+    above, and sound and haptics are untried by ear and hand (Q4).
+  - **The result card waits for the last ship's burst,** not its pilot's
+    1.4 s bail-out, which A8.2.2 left open and nothing settled.
+  - **The strays a larger field grows to mostly go unsent:** Lost and found
+    sends about four of its seven there, as the wave clears first (A13.3,
+    Q4).
+  - **Five waves dip under the climb,** Scatter (A13.1), Powder and Fuse
+    (A13.2), and Swarm and Pull (A13.3), their rocks falling at once to the
+    autopilot's aim or their blasts clearing for the player; a person aims
+    worse (Q2).
+  - **Five plays go past the ships' bar,** all on the larger fields, where
+    the earlier stray is chased through a full field; one each of Eye of
+    the storm and Tempest loses every ship (A13.3).
+  - **Clusters pack close:** Powder's twenty on a phone, and Endless's,
+    whose rocks overlap by up to 3.3 units (Q4).
+  - **How to play names the keys W A S D,** though they go by place, Z Q S
+    D on AZERTY, as the other games' do (Q4).
+  - **Frames over the 4 ms bar:** at ×6, Tempest's 95th hundredth on the
+    widest field and every worst frame, and, unthrottled, one of 142 ms as
+    a run went on; and no blast chain or Spread was traced, nor 120 Hz
+    (Q5).
+- **Follow-ups outside this game.**
+  - **Lifts across the games:** the bar's styles, its Pause and its Sound
+    button, kept by Snake, Brick Breaker and Asteroid Breaker (A10.1,
+    A11.1); in five apps, the result cards' figures (A10.2.2), the drawers'
+    described radios as a `<fz-choice-list>` (A10.2.5), an `isOneOf()` for
+    a stored choice (A12.1's lift) and the settings service (A12.1);
+    `rgbOf()` into `@fz/style/testing` once a third game's contrast spec
+    has it (A7.3); and `traitOf()` and `isFiniteNumber()`, one use each so
+    far (A12.2.1).
+  - **Brick Breaker's saved game** is written only from an effect, which a
+    hidden page may never run, and a phone may drop a hidden tab without
+    `pagehide`; Asteroid Breaker's is written as the page is hidden too
+    (A12.2.2).
+  - **The dev server** stopped serving components' stylesheets as new
+    component files came in (A10.2.2, A10.2.3). Q4's fix in `@fz/dev`
+    (`c10d8f33`), for an unencapsulated component's in every game's dev
+    server, may be the same fault; the log doesn't say.
+  - **The screenshot scripts:** `thumbRegion()` is in four games' scripts,
+    Asteroid Breaker's alone grown for a field wider than a thumbnail and
+    kept on the capture once rounded, and Vite's loader for the rules is in
+    five; both could be `@fz/dev`'s. Brick Breaker's script names its run
+    `KeptRun`, as its spec's input type is named too (A16.1).
+  - **The site's search box** has no `id` or `name`, which Chrome's Issues
+    panel notes on the home page (Q6).
+
 ## How the work runs
 
 This is the process every step follows, from the first commit to the last,
@@ -178,10 +427,11 @@ earns a second review before the commit.
 
 ### The work log
 
-`docs/asteroid-breaker-worklog.md`, committed with the step it records.
-Each step's entry gives the date, the commit, what was built, any choice
-made that this plan didn't make (and why), what the checks reported, the
-review's comments and what became of each, and numbers worth keeping:
+`docs/asteroid-breaker-worklog.md` while the work ran, now beside this
+plan, committed with the step it records. Each step's entry gives the
+date, the commit, what was built, any choice made that this plan didn't
+make (and why), what the checks reported, the review's comments and what
+became of each, and numbers worth keeping:
 bundle sizes, timings, the autopilot's report. QA checkpoints log what was
 tried, on what, and what was found. A design change found on the way is made
 in this plan too, so the plan stays true.
