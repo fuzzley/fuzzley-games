@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.catalog {
+  display: grid;
+  gap: var(--fz-space-2);
+  margin: 0;
+  padding: 0;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  line-height: var(--fz-leading-normal);
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: var(--fz-help-picture-width, 48px) 1fr;
+    gap: var(--fz-space-3);
+    align-items: center;
+    min-height: var(--fz-help-picture-height, 24px);
+
+    // Beside the picture's column, whether or not the picture has come.
+    > div {
+      grid-column: 2;
+    }
+  }
+
+  // Each name in the text's color, as a help card's bold words are, which
+  // the card's rule can't reach in this component.
+  strong {
+    color: var(--fz-text);
+  }
+
+  img {
+    justify-self: center;
+    max-width: var(--fz-help-picture-width, 48px);
+    max-height: var(--fz-help-picture-height, 24px);
+  }
+}

@@ -4375,3 +4375,46 @@ records read their stored JSON with Brick Breaker's code, line for line.
   strays: all caught. Every other workspace's specs pass on the new
   polyfill, Sudoku's bank once it ran alone: run beside Asteroid Breaker's
   suite, its slow case timed out.
+
+## Lift: How to play's lists
+
+2026-11-04. Ahead of A10.2.4: Asteroid Breaker's How to play lists its
+rocks, its pickups, a stray and the comet as Brick Breaker's lists its
+bricks, capsules and balls, each entry's picture beside its name and what
+it does.
+
+- **Built.** `@fz/game-ui/help_catalog`: `<fz-help-catalog>`, the list,
+  its pictures in a column `--fz-help-picture-width` by
+  `--fz-help-picture-height` (48 by 24 CSS px unless the game sets them,
+  as Asteroid Breaker's round pictures will), and `helpEntries()`, which
+  makes a catalog's entries, each with its picture once the game has
+  drawn it. `@fz/style`'s `help-card` styles each list's heading. Brick
+  Breaker's How to play uses both, and looks as it did; the library's
+  `AGENTS.md`, its package description, `@fz/style`'s `AGENTS.md` and the
+  `fuzzley-ui` skill say so.
+- **Review.** One change to how Brick Breaker's looked, and three
+  comments; all taken.
+  1. Each entry's name had taken the muted color of the words after it:
+     the help card colors its bold words in the text's, a rule that can't
+     reach into the new component. The list colors its names itself;
+     checked in Chrome, the names are in the text's color again. (The
+     first check in Chrome had looked at the list's color, not its
+     names'.)
+  2. Each list's heading was the game's to style, which Asteroid Breaker
+     would have copied for its three. `help-card` styles it, and Brick
+     Breaker's rule goes.
+  3. `helpEntries()` sat in the component's file, where the library's
+     other helpers each have their own. It is `help_entries.ts`, with its
+     spec.
+  4. A list with no markers is no list to Safari's VoiceOver. It has
+     `role="list"`.
+
+  These correct the change rather than reshape it, so it had no second
+  review.
+
+- **Checks.** `@fz/game-ui`'s and `@fz/style`'s `lint`, `typecheck` and
+  `test`, Brick Breaker's `lint`, `typecheck` and How to play's specs,
+  `yarn prettier:check` and the skill references. 4 mutants of the list
+  and the helper: all caught. In Chrome, on a dev server of this worktree's
+  Brick Breaker: the pictures' column 48 px, each line at least 24 px, the
+  words muted and the names in the text's color, each heading as before.

@@ -74,26 +74,13 @@
       </tbody>
     </table>
 
-    <!-- Each picture is beside its name, which says what it is. -->
     @for (catalog of catalogs(); track catalog.id) {
       <section [attr.aria-labelledby]="catalog.headingId">
         <h3 [id]="catalog.headingId">{{ catalog.heading }}</h3>
         @if (catalog.intro; as intro) {
           <p>{{ intro }}</p>
         }
-        <ul class="catalog">
-          @for (entry of catalog.entries; track entry.id) {
-            <li>
-              @if (entry.picture; as picture) {
-                <img [src]="picture" alt="" />
-              }
-              <div>
-                <strong>{{ entry.name }}.</strong>
-                {{ entry.about }}
-              </div>
-            </li>
-          }
-        </ul>
+        <fz-help-catalog [entries]="catalog.entries" />
       </section>
     }
   </div>

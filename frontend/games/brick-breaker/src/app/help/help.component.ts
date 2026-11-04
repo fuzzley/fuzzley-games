@@ -1,5 +1,10 @@
 import { Component, computed, input, output } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
+import {
+  HelpCatalogComponent,
+  type HelpEntry,
+  helpEntries,
+} from "@fz/game-ui/help_catalog";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
@@ -15,15 +20,6 @@ import {
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art";
 
-/** Describes one thing the field can hold, for How to play's lists. */
-interface Entry {
-  readonly id: string;
-  readonly name: string;
-  readonly about: string;
-  /** Its picture as the scene drew it, or null before the scene has. */
-  readonly picture: string | null;
-}
-
 /** Describes one of How to play's lists: a catalog under its heading. */
 interface Catalog {
   readonly id: string;
@@ -32,19 +28,7 @@ interface Catalog {
   readonly headingId: string;
   /** What to know before its entries, or null when there is nothing. */
   readonly intro: string | null;
-  readonly entries: readonly Entry[];
-}
-
-/** Returns a catalog's entries for How to play, each with its picture once there is one. */
-function entries<Id extends string>(
-  ids: readonly Id[],
-  describe: (id: Id) => { readonly name: string; readonly about: string },
-  pictures: Readonly<Record<Id, string>> | undefined,
-): readonly Entry[] {
-  return ids.map((id) => {
-    const { name, about } = describe(id);
-    return { id, name, about, picture: pictures?.[id] ?? null };
-  });
+  readonly entries: readonly HelpEntry[];
 }
 
 /** How a streak multiplies a hit's points, from the least, in the bar's words. */
@@ -71,7 +55,7 @@ const CAPSULES_INTRO =
  */
 @Component({
   selector: "app-help",
-  imports: [DialogComponent, IconComponent],
+  imports: [DialogComponent, HelpCatalogComponent, IconComponent],
   templateUrl: "./help.component.html",
   styleUrl: "./help.component.scss",
 })
@@ -95,21 +79,21 @@ export class HelpComponent {
         heading: "Bricks",
         headingId: "help-bricks",
         intro: null,
-        entries: entries(BRICK_KIND_IDS, brickKind, pictures?.bricks),
+        entries: helpEntries(BRICK_KIND_IDS, brickKind, pictures?.bricks),
       },
       {
         id: "capsules",
         heading: "Capsules",
         headingId: "help-capsules",
         intro: CAPSULES_INTRO,
-        entries: entries(CAPSULE_IDS, capsule, pictures?.capsules),
+        entries: helpEntries(CAPSULE_IDS, capsule, pictures?.capsules),
       },
       {
         id: "balls",
         heading: "Balls",
         headingId: "help-balls",
         intro: null,
-        entries: entries(BALL_KIND_IDS, ballKind, pictures?.balls),
+        entries: helpEntries(BALL_KIND_IDS, ballKind, pictures?.balls),
       },
     ];
   });

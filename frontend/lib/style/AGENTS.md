@@ -56,7 +56,7 @@ relative to `frontend/lib/style/`.
   dialog is drawn from, `dialog-card($width)`, `close-button`,
   `corner-close-button`, `field-label` and `choice-tile`, and three whole
   dialogs a game fills in, which name the classes they style: `help-card`,
-  How to play's words and table of controls; `result-card`, the card a
+  How to play's words, its lists' headings and its table of controls; `result-card`, the card a
   finished game's result shows on, with its icon, figures and actions; and
   `settings-drawer($width)`, a game's settings drawer, with the settings'
   labels, descriptions, choice tiles and checkboxes. A game whose dialogs

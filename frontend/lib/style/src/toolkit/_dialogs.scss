@@ -76,8 +76,9 @@
   right: var(--fz-space-3);
 }
 
-/// Styles a card that says how to play a game: its heading, paragraphs in
-/// the muted color with their bold words in the text's, a `.close` button
+/// Styles a card that says how to play a game: its heading, an `h3` over
+/// each list, paragraphs in the muted color with their bold words in the
+/// text's, a `.close` button
 /// in the corner, and a table of the controls with each key a keycap.
 @mixin help-card($width: 580px) {
   @include dialog-card($width);
@@ -85,6 +86,12 @@
   h2 {
     margin: 0 0 var(--fz-space-3);
     font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  h3 {
+    margin: var(--fz-space-5) 0 var(--fz-space-2);
+    font-size: var(--fz-font-md);
     font-weight: 700;
   }
 
