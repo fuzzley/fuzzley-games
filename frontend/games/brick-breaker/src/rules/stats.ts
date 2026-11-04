@@ -1,4 +1,4 @@
-import { isCount, isRecord } from "@fz/core/json";
+import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
 import type { LevelEntry } from "./levels";
 import type { Run } from "./run";
@@ -36,14 +36,12 @@ const NO_RUNS: SpeedStats = { runs: 0, best: 0, furthest: 0 };
 export function statsOf(value: unknown, levels: readonly LevelEntry[]): Stats {
   const saved = isRecord(value) ? value : {};
   const speeds = isRecord(saved["speeds"]) ? saved["speeds"] : {};
-  const stored = isRecord(saved["levels"]) ? saved["levels"] : {};
   return {
     speeds: recordOf(SPEEDS, (speed) => speedStatsOf(speeds[speed])),
-    levels: Object.fromEntries(
-      levels.flatMap(({ data: { id } }) => {
-        const bests = levelBestsOf(stored[id]);
-        return bests ? [[id, bests]] : [];
-      }),
+    levels: countsByIdOf(
+      saved["levels"],
+      levels.map(({ data: { id } }) => id),
+      SPEEDS,
     ),
   };
 }
@@ -111,15 +109,4 @@ function speedStatsOf(value: unknown): SpeedStats {
   const { runs, best, furthest } = value;
   if (!isCount(runs) || !isCount(best) || !isCount(furthest)) return NO_RUNS;
   return { runs, best, furthest };
-}
-
-/** Returns a level's bests as stored, each that makes sense, or null with none. */
-function levelBestsOf(value: unknown): LevelBests | null {
-  if (!isRecord(value)) return null;
-  const bests: Partial<Record<Speed, number>> = {};
-  for (const speed of SPEEDS) {
-    const points = value[speed];
-    if (isCount(points)) bests[speed] = points;
-  }
-  return Object.keys(bests).length > 0 ? bests : null;
 }

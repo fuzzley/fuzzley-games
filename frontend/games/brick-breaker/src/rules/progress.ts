@@ -1,3 +1,4 @@
+import { knownIdsOf } from "@fz/core/json";
 import type { LevelEntry } from "./levels";
 
 /**
@@ -21,11 +22,5 @@ export function clearedOf(
   value: unknown,
   levels: readonly LevelEntry[],
 ): ReadonlySet<string> {
-  if (!Array.isArray(value)) return new Set();
-  const known = new Set(levels.map((entry) => entry.data.id));
-  return new Set(
-    value.filter(
-      (id: unknown): id is string => typeof id === "string" && known.has(id),
-    ),
-  );
+  return knownIdsOf(value, new Set(levels.map((entry) => entry.data.id)));
 }

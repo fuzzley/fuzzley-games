@@ -4233,3 +4233,41 @@ each a commit, since each is a dialog of Brick Breaker's size.
   words: all caught but 2, the furthest wave and the new best's reset, each
   of which a case catches now; 4 more of the retuned rule after the review,
   the last caught once its spec flew a frame on the tuned numbers.
+
+## Lift: the stored readers
+
+2026-11-04. The A10.2.1 review's second comment: Asteroid Breaker's
+records read their stored JSON with Brick Breaker's code, line for line.
+
+- **Built.** `@fz/core/json` gains `knownIdsOf()`, the known ids of a
+  stored list, which both games' progress reads, and `countsByIdOf()`, the
+  counts a stored record holds for each known id under known keys, which
+  both games' records read their levels' or sectors' bests with. Both
+  games call them; neither game's behaviour changes. `lib/core/AGENTS.md`
+  lists them.
+- **Review.** Nothing broken; three comments, all taken.
+  1. A case of the single record's reader, a list under the speeds, would
+     pass with its guard gone, as no list has a speed for an index. The
+     cases now read a list under its own index, for the record and for an
+     id.
+  2. `lib/core/AGENTS.md` called Brick Breaker's levels reached; they are
+     cleared.
+  3. The rest of each game's `statsOf()` block, the stored record of every
+     level's or sector's bests, was still the same in both. The library
+     takes it as `countsByIdOf()`, and the reader of one record is its
+     own.
+
+  `countsByIdOf()` reshapes the change, so it had a second review, which
+  found the three answered and two small points, one taken.
+  1. `countsByIdOf()`'s counts could be changed in place, though both
+     games keep them read-only. Its type says each is read-only now.
+  2. `knownIdsOf()` takes its ids as a set and `countsByIdOf()` as a
+     list. Left: the one looks ids up and the other walks them in order,
+     so each takes the shape its work needs.
+
+- **Checks.** `@fz/core`'s `lint`, `typecheck` and `test` (100% covered),
+  both games' `lint`, `typecheck` and `test` (Brick Breaker 1,977,
+  Asteroid Breaker 2,890), `yarn prettier:check` and the skill references.
+  7 mutants of the two readers and 7 more after the review: all caught but
+  one, a guard that only narrows the type, as a set of strings has no other
+  member.
