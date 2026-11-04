@@ -88,6 +88,13 @@ const THREAT_AHEAD_S = 1;
 /** How soon a course must touch the ship for the autopilot to dash, in seconds. */
 const DASH_WITHIN_S = 0.25;
 
+/**
+ * The share of the ship's top speed past which the autopilot waits for a
+ * rock beyond its shots' reach to come round the field, rather than chase
+ * it: a chase gains on it too slowly.
+ */
+const CHASE_SHARE = 0.8;
+
 /** How far a shot flies before it fades, at its own speed. */
 const SHOT_REACH = (SHOT_SPEED * SHOT_LIFE_MS) / 1000;
 
@@ -194,8 +201,8 @@ function hasShips(field: Field): boolean {
  * the frame before wrote: it flees a rock or a comet whose course comes
  * near the ship, dashing when one is about to meet it; else catches the
  * stray adrift, or the pickup it has time for; else turns toward the rock
- * it can hit soonest, leading it. Whichever it does, it fires once lined up
- * with that rock.
+ * it can hit soonest, leading it, and closes on it beyond its shots' reach,
+ * but waits for one nearly as fast as the ship to come round the field. Whichever it does, it fires once lined up with that rock.
  */
 export function pilot(field: Field, steer: Steer): void {
   const { ship } = field;
@@ -227,7 +234,7 @@ export function pilot(field: Field, steer: Steer): void {
     steer.thrust = 1;
   } else if (target) {
     steer.heading = target.heading;
-    steer.thrust = target.inReach ? 0 : 0.5;
+    steer.thrust = target.inReach || target.tooFastToChase ? 0 : 0.5;
   }
 }
 
@@ -333,6 +340,8 @@ interface Target {
   readonly inReach: boolean;
   /** How far off the heading the nose may point and still hit it, in radians. */
   readonly slack: number;
+  /** Whether it flies nearly as fast as the ship can, so a chase would gain on it too slowly. */
+  readonly tooFastToChase: boolean;
 }
 
 /**
@@ -364,6 +373,8 @@ function targetOf(field: Field, ship: Readonly<Ship>): Target | null {
       heading,
       inReach: flight !== null && along <= SHOT_REACH,
       slack: Math.atan2(rockHitRadius(rock.size), along),
+      tooFastToChase:
+        Math.hypot(rock.vx, rock.vy) * field.pace > CHASE_SHARE * TOP_SPEED,
     };
   }
   return best;

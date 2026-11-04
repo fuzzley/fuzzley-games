@@ -25,7 +25,6 @@ import {
   SHIP_HIT_RADIUS,
   STEP_S,
   STRAY_CATCH_REACH,
-  STRAY_FIRST_MS,
   STRAY_NEXT_MS,
   STRAY_RADIUS,
   STRAY_SPEED,
@@ -38,6 +37,8 @@ import {
 export interface HazardSetup {
   /** How many strays it sends, one at a time. */
   readonly strays: number;
+  /** How far into the wave its first stray comes, in milliseconds. */
+  readonly strayFirstMs: number;
   /**
    * The time from one comet's warning to the next's, in milliseconds, drawn
    * from a span, or null for a wave without comets; the first's warning
@@ -109,12 +110,12 @@ export const COMET_RECORDS = 3;
  */
 export const COMET_PASSES = 8;
 
-/** Returns a wave's strays, none adrift and none sent, the first due {@link STRAY_FIRST_MS} into it. */
-export function createStrays(): Strays {
+/** Returns a wave's strays, none adrift and none sent, the first due a time into it, in milliseconds. */
+export function createStrays(firstMs: number): Strays {
   return {
     adrift: { ...blankCrossing(), pilot: 0, turn: 0 },
     sent: 0,
-    nextAt: stepsIn(STRAY_FIRST_MS),
+    nextAt: stepsIn(firstMs),
     broughtHome: 0,
   };
 }

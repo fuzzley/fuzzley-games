@@ -9,7 +9,12 @@ import { type Rock, addRock } from "../rules/rocks";
 import { STILL, type Ship, createShip } from "../rules/ship";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
-import { FIRST_SHIP_POINTS, PICKUP_LIFE_MS, type Span } from "../rules/tuning";
+import {
+  FIRST_SHIP_POINTS,
+  PICKUP_LIFE_MS,
+  STRAY_FIRST_MS,
+  type Span,
+} from "../rules/tuning";
 
 /** How many units across each of a picture's characters stands for. */
 export const CELL = 4;
@@ -37,6 +42,8 @@ export interface PictureOptions {
   readonly pickupsAtOnce?: number;
   /** How many strays it sends, none by default. */
   readonly strays?: number;
+  /** How far into the wave its first stray comes, {@link STRAY_FIRST_MS} by default, as on a field of 40 by 40. */
+  readonly strayFirstMs?: number;
   /** The time between its comets, none by default. */
   readonly cometEvery?: Span | null;
   /** The crew it starts with, a run's first by default. */
@@ -95,6 +102,7 @@ export function fieldFrom(
     pool: options.pool ?? [],
     pickupsAtOnce: options.pickupsAtOnce ?? 2,
     strays: options.strays ?? 0,
+    strayFirstMs: options.strayFirstMs ?? STRAY_FIRST_MS,
     cometEvery: options.cometEvery ?? null,
     crew: options.crew ?? createCrew(),
     banked: options.banked ?? 0,

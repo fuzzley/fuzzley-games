@@ -5139,3 +5139,117 @@ tests among them.
   `yarn prettier:check` and the skill references. 6 mutants of the first
   comet's rule and the comets counted: all caught, a first comet as late
   as any other among them.
+
+## A13.3: Storm
+
+2026-11-04.
+
+- **Built.** `src/rules/waves/storm.json`, waves 21 to 30, after the
+  plan's table, its pickups' chance the plan's 0.06, the pace rising from
+  1.16 to 1.25; `SECTORS` takes it third. Lodestones come first in
+  Lodestar, beside stone, as ice and iron were met; Tempest holds every
+  kind; Eye of the storm, two boulders and eleven large rocks under
+  comets, is the game's last written wave. The catalog spec now holds
+  every rock kind to being laid by a wave, every pickup to coming in the
+  wave it joins from and in none before; the waves spec holds every
+  sector to ten waves, a boulder in its last alone; and the every-wave
+  spec holds each wave that sends strays to sending one, on every field
+  at every speed. `iron-reach.json` is one rock a line, as Prettier
+  leaves it, its values as they were.
+- **Strays come sooner.** The review found that a stray, 20 s into a
+  wave, rarely came on the narrowest field, where most waves clear in 10
+  to 25 s: Adrift, the wave that brings the first, sent none there, and
+  Lost and found 1 of its 36 at Relaxed over twelve seeds. The first now
+  comes 6 s in on a field of 40 by 40, and later on a larger one by its
+  area, 13 s on the largest, as its waves last twice as long: `fillFor()`
+  grows it with the rest (`strayFirstMs`), and the field's setup takes it
+  to `createStrays()`; a flat 6 s on every field sent the autopilot across a
+  full field for it and cost ships on the larger ones. The plan's strays
+  row and paragraph say so.
+- **The autopilot waits for a rock nearly as fast as the ship.** Two
+  plays, untouchable, never cleared: the ship chased a last small ice
+  shard flying at 99.7% of its top speed and gained on it at 0.04 units a
+  second. Beyond its shots' reach, it now holds still for a rock faster
+  than 80% of its top speed (`CHASE_SHARE`), which comes round the field
+  to it.
+- **Tuned.** By `yarn report:waves --seeds 12` on each field, with the
+  two changes above, which played every wave again. Eye of the storm has
+  two more large stones, so it is the longest wave of the game at Normal
+  on every field. Middle times at Normal:
+
+  | Field     | Lodestar | Whiteout | Gauntlet | Wildfire | Swarm | Lost and found | Pull | Bulwark | Tempest | Eye of the storm |
+  | --------- | -------- | -------- | -------- | -------- | ----- | -------------- | ---- | ------- | ------- | ---------------- |
+  | Narrowest | 0:19     | 0:21     | 0:22     | 0:19     | 0:16  | 0:23           | 0:15 | 0:21    | 0:22    | 0:29             |
+  | Wide      | 0:42     | 0:44     | 0:45     | 0:52     | 0:36  | 0:53           | 0:33 | 0:51    | 0:54    | 0:55             |
+  | Upright   | 0:46     | 0:50     | 0:47     | 0:47     | 0:34  | 0:54           | 0:34 | 0:51    | 0:54    | 0:58             |
+
+  The sector opens a step under Iron heart, as Lodestar's new kind comes
+  beside stone, and climbs to Eye of the storm. Two waves dip, as Scatter
+  and Powder did: Swarm, its small rocks breaking at a shot into nothing
+  and its count 44 of the 48 a field holds; and Pull, whose lodestones fly
+  to the ship, into the autopilot's aim, where nine or ten of them cost
+  two ships at Relaxed in the review's plays.
+
+  The bar for ships is the most lost in a play of twelve seeds: one at
+  Relaxed and two at Normal or Fast, every play clearing. Of the 3,240
+  plays of every wave, five go past it, all on the larger fields, where
+  the earlier stray is flown for through a full field: Foundry and Eye of
+  the storm wide lose two at Relaxed; Wildfire upright three at Fast; and
+  one play each of Eye of the storm wide at Fast and Tempest upright at
+  Normal loses every ship. They are left: they are single seeds in the
+  game's hardest waves, and the every-wave spec's plays clear. Lost and
+  found sends two of its three strays on the narrowest field, its third
+  due after the wave clears, and about four of its seven on the larger
+  fields, which hold seven by their area but clear before the rest come:
+  for Q4, the strays a larger field grows to mostly go unsent.
+
+- **Review.** No bugs; seven comments, all taken.
+  1. Lost and found's strays, and Adrift's on the narrowest field, mostly
+     never came. Strays come sooner, as above, and the every-wave spec
+     holds each wave with strays to sending one.
+  2. Pull and Swarm dip. Said above, with why.
+  3. The finale wasn't the longest wave. It has two more large stones.
+  4. The pickup spec passed with a pickup joining past wave 30, and with
+     one offered before its wave. It reads the wave by its number, and a
+     new spec holds no pickup to coming before its wave.
+  5. The sector spec read only its last wave, so a boulder in Swarm
+     passed. It holds a boulder to the last alone, and to ten waves.
+  6. A kind no wave laid failed only as "expected false to be true"; the
+     spec lists the kinds laid. The sectors' table is made once.
+  7. The step had no entry. This is it.
+
+  Strays coming sooner reshapes the change, so it had a second review: no
+  bugs; seven comments, all taken but one, left.
+  1. The log said Lost and found sent every stray on the larger fields;
+     it sends about four of seven. Said above, with a note for Q4.
+  2. The first stray's time grew by area in `hazards.ts`, where `fill.ts`
+     holds everything that grows with the field. `Fill` and the field's
+     setup carry it (`strayFirstMs`), as they carry the comets' times;
+     `fill.ts`'s header and the plan say so.
+  3. A spec comment still said the first stray came 20 s in. It says
+     what holds now.
+  4. The spec of a larger field's later stray passed for any time later.
+     `fillFor()`'s spec holds the time to 2.2 times as late on the widest
+     field, either way up, and the strays' spec holds the first to its
+     setup's time, not a step sooner or later.
+  5. `outruns` named a rock no faster than the ship, and the specs held
+     its threshold only from above. It is `tooFastToChase`, and the frame
+     specs close on a rock at 70% of the top speed, wait for one at 90%,
+     and for one at 70% at a pace of 1.25.
+  6. A spec's strays for another field than its own, a field written out
+     twice, and the kinds laid built in each case: each fixed, the first
+     two gone with the strays' time in the setup.
+  7. The entry had no checks; they follow. Plan step A4.2 still says 20 s:
+     it is left, as it says what that step built.
+
+  These correct the change, so it had no third review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (4,317),
+  `yarn prettier:check` and the skill references. 17 mutants, all caught
+  but two: Lodestar's lodestone turned to stone, which the rock kinds'
+  spec rightly lets pass, as Gauntlet and others lay lodestone; and a
+  floor on the stray's area rule that no field needs, which went. A
+  pickup joining past wave 30 or offered before its wave, a boulder in
+  Swarm, the first stray at 20 s, the stray's time ungrown, shifted or
+  halved on its way to the field, and the autopilot's wait dropped, at
+  any speed, or blind to the pace, were caught.

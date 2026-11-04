@@ -302,6 +302,20 @@ describe("a wave's strays", () => {
     expect(field.strays.adrift.live).toBe(false);
   });
 
+  it.each([
+    [stepsIn(1000) - 1, 0],
+    [stepsIn(1000), 1],
+  ])(
+    "sends its first as late as its field's setup says, by step %d sending %d",
+    (steps, sent) => {
+      const field = fieldFrom(PICTURE, { strays: 1, strayFirstMs: 1000 });
+
+      stepTimes(field, steps);
+
+      expect(field.strays.sent).toBe(sent);
+    },
+  );
+
   it("sends its first once it is due, in the next color in turn, logging it", () => {
     const field = fieldFrom(PICTURE, { strays: 1 });
 

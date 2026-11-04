@@ -1,0 +1,106 @@
+{
+  "id": "storm",
+  "name": "Storm",
+  "drops": 0.06,
+  "waves": [
+    {
+      "id": "lodestar",
+      "name": "Lodestar",
+      "pace": 1.16,
+      "rocks": [
+        { "kind": "lodestone", "size": "large", "count": 5 },
+        { "kind": "stone", "size": "large", "count": 5 }
+      ]
+    },
+    {
+      "id": "whiteout",
+      "name": "Whiteout",
+      "pace": 1.17,
+      "rocks": [{ "kind": "ice", "size": "large", "count": 6 }],
+      "comets": { "every": [10, 13] }
+    },
+    {
+      "id": "gauntlet",
+      "name": "Gauntlet",
+      "pace": 1.18,
+      "rocks": [
+        { "kind": "iron", "size": "large", "count": 5 },
+        { "kind": "lodestone", "size": "large", "count": 4 }
+      ]
+    },
+    {
+      "id": "wildfire",
+      "name": "Wildfire",
+      "pace": 1.19,
+      "rocks": [
+        { "kind": "volatile", "size": "large", "count": 7 },
+        { "kind": "ice", "size": "large", "count": 7 }
+      ]
+    },
+    {
+      "id": "swarm",
+      "name": "Swarm",
+      "pace": 1.2,
+      "rocks": [
+        { "kind": "stone", "size": "small", "count": 22 },
+        { "kind": "ice", "size": "small", "count": 22 }
+      ]
+    },
+    {
+      "id": "lost-and-found",
+      "name": "Lost and found",
+      "pace": 1.21,
+      "strays": 3,
+      "rocks": [
+        { "kind": "stone", "size": "large", "count": 4 },
+        { "kind": "ice", "size": "large", "count": 2 },
+        { "kind": "iron", "size": "large", "count": 2 },
+        { "kind": "lodestone", "size": "large", "count": 2 }
+      ]
+    },
+    {
+      "id": "pull",
+      "name": "Pull",
+      "pace": 1.22,
+      "rocks": [{ "kind": "lodestone", "size": "large", "count": 7 }],
+      "comets": { "every": [8, 11] }
+    },
+    {
+      "id": "bulwark",
+      "name": "Bulwark",
+      "pace": 1.23,
+      "rocks": [
+        { "kind": "iron", "size": "large", "count": 8 },
+        { "kind": "crystal", "size": "large", "count": 2 }
+      ]
+    },
+    {
+      "id": "tempest",
+      "name": "Tempest",
+      "pace": 1.24,
+      "rocks": [
+        { "kind": "stone", "size": "large", "count": 3 },
+        { "kind": "crystal", "size": "large", "count": 1 },
+        { "kind": "ice", "size": "large", "count": 3 },
+        { "kind": "iron", "size": "large", "count": 3 },
+        { "kind": "volatile", "size": "large", "count": 2 },
+        { "kind": "lodestone", "size": "large", "count": 1 }
+      ],
+      "comets": { "every": [9, 12] }
+    },
+    {
+      "id": "eye-of-the-storm",
+      "name": "Eye of the storm",
+      "pace": 1.25,
+      "rocks": [
+        { "kind": "boulder", "size": "boulder", "count": 2 },
+        { "kind": "stone", "size": "large", "count": 2 },
+        { "kind": "ice", "size": "large", "count": 2 },
+        { "kind": "iron", "size": "large", "count": 2 },
+        { "kind": "volatile", "size": "large", "count": 3 },
+        { "kind": "lodestone", "size": "large", "count": 2 }
+      ],
+      "comets": { "every": [10, 13] }
+    }
+  ]
+}

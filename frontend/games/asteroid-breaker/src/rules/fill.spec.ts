@@ -12,7 +12,12 @@ import { type Field, steerField, stepField } from "./field";
 import { type Fill, areaShare, fillFor, stretchField } from "./fill";
 import { STILL, type Steer, createShip } from "./ship";
 import type { Torus } from "./torus";
-import { COMET_MARGIN, PICKUPS_AT_ONCE, ROCK_CAP } from "./tuning";
+import {
+  COMET_MARGIN,
+  PICKUPS_AT_ONCE,
+  ROCK_CAP,
+  STRAY_FIRST_MS,
+} from "./tuning";
 import type { Wave } from "./waves";
 
 /** A wave of three large stones and a medium ice, a stray and comets every 9 to 12 s, as written. */
@@ -64,9 +69,20 @@ describe("fillFor", () => {
       cap: ROCK_CAP,
       pickupsAtOnce: PICKUPS_AT_ONCE,
       strays: 1,
+      strayFirstMs: STRAY_FIRST_MS,
       cometEvery: WAVE.cometEvery,
     });
   });
+
+  it.each([
+    ["on its side", WIDEST],
+    ["upright", { width: 40, height: 88 }],
+  ])(
+    "brings the first stray later on the widest field %s, by its area",
+    (_, torus) => {
+      expect(filled(torus).strayFirstMs).toBeCloseTo(STRAY_FIRST_MS * 2.2);
+    },
+  );
 
   it("grows each count by the field's area, to the nearest: 3 large stone is 5 on a desktop's 73 by 40", () => {
     const fill = filled(DESKTOP);

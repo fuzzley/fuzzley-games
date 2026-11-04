@@ -17,6 +17,7 @@ import { WEAPONS } from "./catalog/weapons";
 import { EFFECT_KINDS } from "./pickups";
 import { stepsIn } from "./stepper";
 import { MAX_SHIPS, SHOT_LIFE_MS } from "./tuning";
+import { WAVES, parseWave } from "./waves";
 
 /** Every rock kind, with its id. */
 const ROCK_ENTRIES = ROCK_KIND_IDS.map((id) => [id, rockKind(id)] as const);
@@ -92,7 +93,17 @@ const BLASTING = ROCK_ENTRIES.flatMap(([id, kind]) =>
   ),
 );
 
+/** Every wave of the game, ready to play, in the order played. */
+const PARSED = WAVES.map(parseWave);
+
+/** Every kind of rock a wave lays. */
+const LAID = new Set(PARSED.flatMap((wave) => wave.rocks.map((r) => r.kind)));
+
 describe("ROCK_KINDS", () => {
+  it.each(ROCK_ENTRIES)("has %s laid by a wave", (id) => {
+    expect(LAID).toContain(id);
+  });
+
   it.each(ROCK_ENTRIES)("names %s in a word or a few", (_, kind) => {
     expect(kind.name).toMatch(/^[A-Z][a-z]+( [a-z]+)*$/);
   });
@@ -333,6 +344,28 @@ describe("PICKUPS", () => {
       expect(entry.from).toBeGreaterThan(1);
     },
   );
+
+  it.each(PICKUP_ENTRIES)(
+    "lets %s come in the wave it joins from",
+    (id, entry) => {
+      const wave = PARSED[entry.from - 1];
+
+      expect({
+        pooled: wave?.pool.includes(id),
+        dropped:
+          wave !== undefined &&
+          (wave.drops > 0 || wave.rocks.some((r) => r.kind === "crystal")),
+      }).toEqual({ pooled: true, dropped: true });
+    },
+  );
+
+  it("lets no pickup come before the wave it joins from", () => {
+    const early = PARSED.flatMap((wave, i) =>
+      wave.pool.filter((id) => pickup(id).from > i + 1),
+    );
+
+    expect(early).toEqual([]);
+  });
 
   it("lists the pickups in the order they join the pool", () => {
     const froms = PICKUP_ENTRIES.map(([, entry]) => entry.from);

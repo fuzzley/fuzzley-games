@@ -53,6 +53,7 @@ import {
   SHOT_RADIUS,
   SHOT_SPEED,
   STEP_S,
+  STRAY_FIRST_MS,
   STRETCH_GUARD_MS,
 } from "./tuning";
 import { type SectorData, type Wave, type WaveData, parseWave } from "./waves";
@@ -67,6 +68,7 @@ const SETUP: FieldSetup = {
   pool: [],
   pickupsAtOnce: 2,
   strays: 1,
+  strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
   crew: createCrew(),
   banked: 0,
@@ -280,7 +282,8 @@ describe("a shielded ship", () => {
 describe("fieldFor", () => {
   it("sets a wave's field up for its shape and the run's speed", () => {
     const wave = waveOf();
-    const sooner = Math.sqrt((73 * 40) / 1600);
+    const share = (73 * 40) / 1600;
+    const sooner = Math.sqrt(share);
 
     const field = fieldFor(wave, START);
 
@@ -294,6 +297,7 @@ describe("fieldFor", () => {
       pool: wave.pool,
       pickupsAtOnce: 4,
       strays: 2,
+      strayFirstMs: STRAY_FIRST_MS * share,
       cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
       crew: START.crew,
       banked: 1200,

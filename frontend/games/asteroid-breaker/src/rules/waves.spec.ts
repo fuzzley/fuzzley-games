@@ -289,14 +289,31 @@ describe("the waves", () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it.each(SECTORS.map((sector) => [sector.name, sector] as const))(
-    "never slow the pace within %s",
-    (_, sector) => {
-      const paces = sector.waves.map((wave) => wave.pace ?? 1);
+  const sectors = SECTORS.map((sector) => [sector.name, sector] as const);
 
-      expect(paces).toEqual([...paces].sort((a, b) => a - b));
+  it.each(sectors)("never slow the pace within %s", (_, sector) => {
+    const paces = sector.waves.map((wave) => wave.pace ?? 1);
+
+    expect(paces).toEqual([...paces].sort((a, b) => a - b));
+  });
+
+  it.each(sectors)(
+    "hold %s whole: ten waves, a boulder in the last alone, the sector's test",
+    (_, sector) => {
+      const boulders = sector.waves.map((wave) =>
+        wave.rocks.some((rocks) => rocks.kind === "boulder"),
+      );
+
+      expect(boulders).toEqual([...Array<boolean>(9).fill(false), true]);
     },
   );
+
+  it("are thirty, in three sectors", () => {
+    expect({ waves: WAVES.length, sectors: SECTORS.length }).toEqual({
+      waves: 30,
+      sectors: 3,
+    });
+  });
 
   it("number every wave in the order played, from 1", () => {
     expect(WAVES.map((entry) => entry.number)).toEqual(
