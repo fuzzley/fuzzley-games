@@ -1,4 +1,5 @@
 import { isCount, isRecord, isWhole } from "@fz/core/json";
+import { pick } from "@fz/core/records";
 import { type Brick, neededLeft } from "./bricks";
 import { hasTrait, isNeeded } from "./catalog/bricks";
 import type { Field } from "./field";
@@ -7,7 +8,6 @@ import type { LevelBrick } from "./level";
 import { type LevelEntry, parseLevel } from "./levels";
 import { type Run, isInProgress, nextLifeAfter, startLevel } from "./run";
 import { type Speed, isSpeed } from "./speed";
-import { pick } from "./tables";
 import { MAX_LIVES } from "./tuning";
 
 /** What of a brick play changes, and so what storage keeps of it. */

@@ -11,6 +11,16 @@ export function keysOf<K extends string>(
   return Object.keys(record) as K[];
 }
 
+/** Returns a copy of a record's entries under the keys given. */
+export function pick<T, K extends keyof T & string>(
+  record: T,
+  keys: readonly K[],
+): Pick<T, K> {
+  const entries = keys.map((key) => [key, record[key]] as const);
+  // Object.fromEntries() types its keys as strings; these are the keys given.
+  return Object.fromEntries(entries) as Pick<T, K>;
+}
+
 /** Returns a record with an entry for each key, made from the key, in the keys' order. */
 export function recordOf<K extends string, V>(
   keys: readonly K[],
