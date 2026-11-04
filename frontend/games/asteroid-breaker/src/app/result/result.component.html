@@ -23,6 +23,9 @@
       @if (game.newBest()) {
         <span class="fz-badge fz-badge-accent">New best</span>
       }
+      @if (game.clearedAll()) {
+        <span class="fz-badge fz-badge-accent">Cleared all thirty</span>
+      }
     </p>
 
     <!--

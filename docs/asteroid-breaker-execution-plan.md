@@ -982,8 +982,9 @@ met first alone.
 
 - **Clearing wave 30 opens Endless,** and the run goes on into it, wave 31,
   32 and on, until its ships run out. Wave 30's Cleared card says so
-  ("Storm cleared. Endless begins."), with the trophy and the chime, and the
-  run is marked as one that cleared all thirty.
+  ("Storm cleared. Endless begins."), with the trophy and the chime, and a
+  run that started at wave 1 is marked as one that cleared all thirty: one
+  started at a later sector cleared fewer.
 - **Endless's waves are made, not written,** by `src/rules/endless.ts`, from
   the run's seed and the wave's number, so a run that reaches a wave with
   the same seed meets the same wave, and a saved game makes its wave again

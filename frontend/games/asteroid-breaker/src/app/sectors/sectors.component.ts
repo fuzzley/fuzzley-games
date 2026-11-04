@@ -81,8 +81,9 @@ function statusOf(open: boolean, best: number | undefined): string | null {
   return best === undefined ? null : `Best ${formatPoints(best)}`;
 }
 
-/** Returns the waves a sector holds, in words: "Waves 1 to 5", or "Wave 6" for one. */
-function wavesInWords(first: number, last: number): string {
+/** Returns the waves a sector holds, in words: "Waves 1 to 5", "Wave 6" for one, or "From wave 31" for Endless. */
+function wavesInWords(first: number, last: number | null): string {
+  if (last === null) return `From wave ${String(first)}`;
   return first === last
     ? `Wave ${String(first)}`
     : `Waves ${String(first)} to ${String(last)}`;

@@ -154,6 +154,11 @@ export function isEndless(entry: WaveEntry): boolean {
   return entry.sector === ENDLESS;
 }
 
+/** Returns whether clearing a wave, with the one after it, takes a run into Endless: whether it is the last written one. */
+export function opensEndless(cleared: WaveEntry, next: WaveEntry): boolean {
+  return !isEndless(cleared) && isEndless(next);
+}
+
 /** The slowest and the fastest a wave's pace may be. */
 const PACE: Span = { least: 0.8, most: 1.4 };
 

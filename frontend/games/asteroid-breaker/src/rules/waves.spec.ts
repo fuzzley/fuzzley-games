@@ -8,6 +8,7 @@ import {
   type Wave,
   type WaveData,
   isEndless,
+  opensEndless,
   parseWave,
   waveEntryOf,
   wavesOf,
@@ -400,4 +401,20 @@ describe("isEndless", () => {
       isEndless(waveEntryOf(WAVES, WAVES.length + 1)),
     ]).toEqual([false, true]);
   });
+});
+
+describe("opensEndless", () => {
+  it.each([
+    ["a sector's last but the last sector's", 10, false],
+    ["the last sector's last", WAVES.length, true],
+    ["Endless's first", WAVES.length + 1, false],
+  ])(
+    "says whether clearing %s takes a run into Endless",
+    (_, number, opens) => {
+      const cleared = waveEntryOf(WAVES, number);
+      const next = waveEntryOf(WAVES, number + 1);
+
+      expect(opensEndless(cleared, next)).toBe(opens);
+    },
+  );
 });

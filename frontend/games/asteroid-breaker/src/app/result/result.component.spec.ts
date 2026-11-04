@@ -96,6 +96,38 @@ describe("ResultComponent", () => {
     ).toHaveAccessibleDescription("Lost on wave 2, at Normal speed");
   });
 
+  it("says a run lost in Endless was lost there", async () => {
+    const rendered = await renderAt(SPEC_WAVE.last + 1);
+
+    endAndOpen(rendered);
+
+    expect(
+      screen.getByRole("alertdialog", { name: "Game over" }),
+    ).toHaveAccessibleDescription("Lost on wave 4, Endless, at Normal speed");
+  });
+
+  it("says a run from the first wave that went on into Endless cleared all thirty", async () => {
+    const rendered = await renderAt(SPEC_WAVE.pebble);
+    clearToNext(rendered.game);
+    clearToNext(rendered.game);
+    clearToNext(rendered.game);
+
+    endAndOpen(rendered);
+
+    expect(screen.getByText("Cleared all thirty")).toBeVisible();
+  });
+
+  it("says nothing of clearing all thirty for a run from a later wave, however many it cleared", async () => {
+    const rendered = await renderAt(SPEC_WAVE.gift);
+    clearToNext(rendered.game);
+    clearToNext(rendered.game);
+    clearToNext(rendered.game);
+
+    endAndOpen(rendered);
+
+    expect(screen.queryByText("Cleared all thirty")).not.toBeInTheDocument();
+  });
+
   it("shows the score, the best, the wave reached and the waves cleared", async () => {
     await renderLost();
 

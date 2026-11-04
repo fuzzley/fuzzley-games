@@ -1,6 +1,6 @@
 // The records a player keeps at each speed: the runs started, the best
-// score, the furthest wave and the strays brought home, and each sector's
-// best run.
+// score, the furthest wave, whether a run has cleared all thirty and the
+// strays brought home, and each sector's best run.
 
 import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
@@ -17,6 +17,8 @@ export interface SpeedStats {
   readonly furthest: number;
   /** The strays brought home, all told. */
   readonly strays: number;
+  /** Whether a run has cleared every written wave, from the first. */
+  readonly clearedAll: boolean;
 }
 
 /** A sector's best: the score of the best run started there, at each speed one has ended at. */
@@ -34,7 +36,13 @@ export interface EndedRun extends Pick<Run, "speed" | "score" | "wave"> {
   readonly sector: string;
 }
 
-const NO_RUNS: SpeedStats = { runs: 0, best: 0, furthest: 0, strays: 0 };
+const NO_RUNS: SpeedStats = {
+  runs: 0,
+  best: 0,
+  furthest: 0,
+  strays: 0,
+  clearedAll: false,
+};
 
 /** A new player's records: no runs at any speed, and no bests. */
 export const NO_STATS: Stats = {
@@ -102,6 +110,15 @@ export function withStraysHome(
   }));
 }
 
+/** Returns the records with a run at a speed that has cleared every written wave kept, or the same records if one had. */
+export function withClearedAll(stats: Stats, speed: Speed): Stats {
+  if (stats.speeds[speed].clearedAll) return stats;
+  return withSpeedStats(stats, speed, (speedStats) => ({
+    ...speedStats,
+    clearedAll: true,
+  }));
+}
+
 /** Returns whether an ended run's score is a new best: more points than any run before at its speed. */
 export function isNewBest(stats: Stats, run: EndedRun): boolean {
   return run.score > stats.speeds[run.speed].best;
@@ -119,10 +136,13 @@ function withSpeedStats(
   };
 }
 
-/** Returns one speed's records as stored, or none if they make no sense. */
+/**
+ * Returns one speed's records as stored, or none if they make no sense;
+ * records kept before a run could clear all thirty read as none having.
+ */
 function speedStatsOf(value: unknown): SpeedStats {
   if (!isRecord(value)) return NO_RUNS;
-  const { runs, best, furthest, strays } = value;
+  const { runs, best, furthest, strays, clearedAll } = value;
   if (
     !isCount(runs) ||
     !isCount(best) ||
@@ -131,5 +151,5 @@ function speedStatsOf(value: unknown): SpeedStats {
   ) {
     return NO_RUNS;
   }
-  return { runs, best, furthest, strays };
+  return { runs, best, furthest, strays, clearedAll: clearedAll === true };
 }

@@ -33,6 +33,7 @@ import {
   type Run,
   catchUp,
   createRun,
+  hasClearedAll,
   hasEnded,
   isInProgress,
   pause,
@@ -53,9 +54,11 @@ import type { EndedRun } from "../../rules/stats";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import {
+  ENDLESS,
   type Wave,
   type WaveEntry,
   isEndless,
+  opensEndless,
   waveEntryOf,
 } from "../../rules/waves";
 import type { FieldCommand } from "../../view/controls";
@@ -153,6 +156,7 @@ export class GameService {
   private readonly tallyState = signal<WaveTally | null>(null);
   private readonly chainState = signal(1);
   private readonly newBestState = signal(false);
+  private readonly clearedAllState = signal(false);
   private readonly broughtHomeState = signal<readonly Pilot[]>([]);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
@@ -194,6 +198,26 @@ export class GameService {
 
   /** The pilots of the strays the run has brought home, in the order they came, for the result card. */
   readonly broughtHome = this.broughtHomeState.asReadonly();
+
+  /** The wave after the one in play, or the last one cleared, which the run goes on to. */
+  private readonly waveAfter = computed(() =>
+    this.waveEntry(this.waveNumber() + 1),
+  );
+
+  /**
+   * Whether the wave in play, or the last one cleared, is the last
+   * sector's last, after which Endless begins.
+   */
+  readonly beforeEndless = computed(() =>
+    opensEndless(this.wave(), this.waveAfter()),
+  );
+
+  /**
+   * Whether the run has cleared every written wave, from the first, as the
+   * records keep it: never for a run flown on tuned numbers, as no new best
+   * is.
+   */
+  readonly clearedAll = this.clearedAllState.asReadonly();
 
   /** The sector the run started in, which trying again starts at. */
   readonly firstSector = computed(
@@ -438,6 +462,7 @@ export class GameService {
     this.begin(run);
     this.broughtHomeState.set(broughtHome);
     this.retunedRun = tuned;
+    this.clearedAllState.set(!tuned && hasClearedAll(run, this.waves.length));
     if (field) {
       const taken = takeUpField(
         this.waveOf(run),
@@ -552,17 +577,29 @@ export class GameService {
     this.runState.set(after);
     if (!this.retunedRun) {
       this.stats.recordStrays(after.speed, after.strays - before.strays);
+      if (after.outcome === "cleared" && this.beforeEndless()) {
+        this.progress.recordReached(ENDLESS.id);
+        if (hasClearedAll(after, this.waves.length)) {
+          this.clearedAllState.set(true);
+          this.stats.recordClearedAll(after.speed);
+        }
+      }
     }
     if (after.outcome === "over") {
       this.wavePlay.startCardWait();
       if (!this.retunedRun) {
         this.newBestState.set(this.stats.recordEnd(this.endOf(after)));
       }
-      this.news.push(describeEnd(after, this.newBestState()));
+      this.news.push(
+        describeEnd(after, this.wave(), {
+          newBest: this.newBestState(),
+          clearedAll: this.clearedAllState(),
+        }),
+      );
     } else if (after.outcome === "cleared") {
       this.wavePlay.startCardWait();
       this.tallyState.set(tallyOf(this.wavePlay.field));
-      this.news.push(describeCleared(after));
+      this.news.push(describeCleared(after, this.wave(), this.waveAfter()));
     }
   }
 
@@ -667,6 +704,7 @@ export class GameService {
     this.runState.set(run);
     this.tallyState.set(null);
     this.newBestState.set(false);
+    this.clearedAllState.set(false);
     this.broughtHomeState.set([]);
     this.retunedRun = false;
     this.resultOpenState.set(false);

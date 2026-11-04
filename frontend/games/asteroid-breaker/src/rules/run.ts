@@ -103,6 +103,14 @@ export function wavesCleared(run: Run): number {
 }
 
 /**
+ * Returns whether a run has cleared every wave of a game of so many written
+ * ones, from the first, which takes it into Endless.
+ */
+export function hasClearedAll(run: Run, written: number): boolean {
+  return run.firstWave === 1 && wavesCleared(run) >= written;
+}
+
+/**
  * Returns the run with a wave under way: its first, or the one after the
  * wave just cleared. Any other run is returned as it is.
  */

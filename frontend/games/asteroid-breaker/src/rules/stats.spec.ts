@@ -4,6 +4,7 @@ import {
   type Stats,
   isNewBest,
   statsOf,
+  withClearedAll,
   withRunEnded,
   withRunStarted,
   withStraysHome,
@@ -25,7 +26,10 @@ describe("statsOf", () => {
   });
 
   it("takes back the records it stored", () => {
-    const stats = withStraysHome(after(ended(4200, 3)), "normal", 2);
+    const stats = withClearedAll(
+      withStraysHome(after(ended(4200, 3)), "normal", 2),
+      "normal",
+    );
 
     const read = statsOf(JSON.parse(JSON.stringify(stats)), ["inner-belt"]);
 
@@ -81,6 +85,21 @@ describe("statsOf", () => {
       statsOf({ sectors: { "inner-belt": 900 } }, ["inner-belt"]).sectors,
     ).toEqual({});
   });
+
+  it("reads a speed's records kept before a run could clear all thirty as none having", () => {
+    const read = statsOf(
+      { speeds: { normal: { runs: 2, best: 900, furthest: 4, strays: 1 } } },
+      ["inner-belt"],
+    );
+
+    expect(read.speeds.normal).toEqual({
+      runs: 2,
+      best: 900,
+      furthest: 4,
+      strays: 1,
+      clearedAll: false,
+    });
+  });
 });
 
 describe("withRunStarted", () => {
@@ -99,7 +118,13 @@ describe("withRunEnded", () => {
     const stats = after(ended(4200, 3));
 
     expect({ normal: stats.speeds.normal, sectors: stats.sectors }).toEqual({
-      normal: { runs: 1, best: 4200, furthest: 3, strays: 0 },
+      normal: {
+        runs: 1,
+        best: 4200,
+        furthest: 3,
+        strays: 0,
+        clearedAll: false,
+      },
       sectors: { "inner-belt": { normal: 4200 } },
     });
   });
@@ -158,6 +183,23 @@ describe("withRunEnded", () => {
     });
 
     expect(stats.sectors["iron-reach"]).toEqual({ normal: 4200 });
+  });
+});
+
+describe("withClearedAll", () => {
+  it("keeps that a run at a speed cleared all thirty, at that speed alone", () => {
+    const stats = withClearedAll(NO_STATS, "fast");
+
+    expect([
+      stats.speeds.fast.clearedAll,
+      stats.speeds.normal.clearedAll,
+    ]).toEqual([true, false]);
+  });
+
+  it("returns the same records where a run had", () => {
+    const stats = withClearedAll(NO_STATS, "fast");
+
+    expect(withClearedAll(stats, "fast")).toBe(stats);
   });
 });
 

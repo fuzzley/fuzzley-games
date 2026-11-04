@@ -21,6 +21,7 @@ describe("sectorSpans", () => {
     expect(sectorSpans(WAVES)).toEqual([
       { id: "near", name: "Near", firstWave: 1, lastWave: 2 },
       { id: "far", name: "Far", firstWave: 3, lastWave: 4 },
+      { id: "endless", name: "Endless", firstWave: 5, lastWave: null },
     ]);
   });
 });
@@ -37,11 +38,20 @@ describe("isOpen", () => {
   it("opens a later sector a run has reached", () => {
     expect(isOpen(WAVES, new Set(["far"]), "far")).toBe(true);
   });
+
+  it("keeps Endless shut until a run has reached it", () => {
+    expect([
+      isOpen(WAVES, new Set(["far"]), "endless"),
+      isOpen(WAVES, new Set(["far", "endless"]), "endless"),
+    ]).toEqual([false, true]);
+  });
 });
 
 describe("reachedOf", () => {
-  it("takes back the sectors it stored", () => {
-    expect(reachedOf(["far"], WAVES)).toEqual(new Set(["far"]));
+  it("takes back the sectors it stored, Endless among them", () => {
+    expect(reachedOf(["far", "endless"], WAVES)).toEqual(
+      new Set(["far", "endless"]),
+    );
   });
 
   it("drops a sector the game no longer has, and what isn't a sector's id", () => {

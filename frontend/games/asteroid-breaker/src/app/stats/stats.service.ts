@@ -7,6 +7,7 @@ import {
   type Stats,
   isNewBest,
   statsOf,
+  withClearedAll,
   withRunEnded,
   withRunStarted,
   withStraysHome,
@@ -21,7 +22,8 @@ const STATS_VERSION = 1;
 
 /**
  * Keeps the player's records at each speed: the runs, the best score, the
- * furthest wave and the strays brought home, and each sector's best run.
+ * furthest wave, whether a run has cleared all thirty and the strays
+ * brought home, and each sector's best run.
  */
 @Injectable({ providedIn: "root" })
 export class StatsService {
@@ -49,6 +51,11 @@ export class StatsService {
     const newBest = isNewBest(this.state(), run);
     this.keep(withRunEnded(this.state(), run));
     return newBest;
+  }
+
+  /** Keeps that a run at a speed has cleared every written wave. */
+  recordClearedAll(speed: Speed): void {
+    this.keep(withClearedAll(this.state(), speed));
   }
 
   /** Counts strays brought home at a speed. */

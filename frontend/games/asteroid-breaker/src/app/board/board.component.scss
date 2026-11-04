@@ -74,10 +74,21 @@
   margin-bottom: var(--margin);
 }
 
+// The trophy over the last sector's Cleared card.
+.card-icon {
+  --fz-icon-size: 40px;
+
+  color: var(--fz-warning);
+}
+
 // On a small board, as on the smallest phones, a card sets smaller.
 @container (width < 280px) or (height < 360px) {
   .card {
     @include board-card-small;
+  }
+
+  .card-icon {
+    --fz-icon-size: 28px;
   }
 }
 

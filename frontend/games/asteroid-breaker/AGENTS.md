@@ -106,11 +106,13 @@ can't trust rather than failing:
   deck shows, which side holds its stick, whether the ship fires by
   itself, haptics and sound.
 - `asteroid-breaker-stats`: for each speed, the runs, the best run's score,
-  the furthest wave reached and the strays brought home; and for each
-  sector's id, the score of the best run started there at each speed. Ids
+  the furthest wave reached, whether a run has cleared all thirty, from the
+  first, and the strays brought home; and for each sector's id, Endless's
+  among them, the score of the best run started there at each speed. Ids
   no sector has any more are dropped.
 - `asteroid-breaker-progress`: the ids of the sectors reached, at any
-  speed, which a run may start at. Ids no sector has any more are dropped.
+  speed, which a run may start at, Endless's among them once a run has
+  cleared the last written wave. Ids no sector has any more are dropped.
 - `asteroid-breaker-game`: the run under way, by `SavedGameService`: its
   wave, by number and id, its points, its crew's colors and those at home,
   the strays brought home, for the result card, and whether it was flown on

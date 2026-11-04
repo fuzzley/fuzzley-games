@@ -57,6 +57,18 @@ describe("ProgressService", () => {
     expect(stored()).toBeNull();
   });
 
+  it("takes up Endless reached, as a page loaded again would", () => {
+    TestBed.inject(ProgressService).recordReached("endless");
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: provideSpecWaves(SECTOR_WAVES),
+    });
+
+    const progress = TestBed.inject(ProgressService);
+
+    expect(progress.isOpen("endless")).toBe(true);
+  });
+
   it("takes up the sectors stored, dropping any the game no longer has", () => {
     store({ reached: ["far", "gone"] });
 
