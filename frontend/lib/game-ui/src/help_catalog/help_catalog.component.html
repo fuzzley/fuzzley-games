@@ -1,0 +1,14 @@
+<!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+<ul class="catalog" role="list">
+  @for (entry of entries(); track entry.id) {
+    <li>
+      @if (entry.picture; as picture) {
+        <img [src]="picture" alt="" />
+      }
+      <div>
+        <strong>{{ entry.name }}.</strong>
+        {{ entry.about }}
+      </div>
+    </li>
+  }
+</ul>
