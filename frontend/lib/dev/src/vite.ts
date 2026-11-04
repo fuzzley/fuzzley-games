@@ -146,6 +146,36 @@ export function componentUpdates(
   };
 }
 
+/** Returns a request's address with a bare `ngcomp` given an empty component ID. */
+function withEmptyComponentId(url: string): string {
+  return url.replace(/([?&])ngcomp(?=&|$)/, "$1ngcomp=");
+}
+
+/**
+ * Has the dev server serve the stylesheet of a component with no
+ * encapsulation ID, such as `@fz/phaser`'s canvas, unencapsulated.
+ *
+ * Angular's runtime links a component's stylesheet with `ngcomp=` and the
+ * ID it encapsulates the styles by, or with a bare `ngcomp` where there is
+ * none, as with `ViewEncapsulation.None`. Analog takes a stylesheet's
+ * request only with `ngcomp=` (its `isComponentStyleSheet()`), so a bare
+ * one falls through to the page, and the component goes unstyled; this
+ * gives a bare one an empty ID. An Analog that takes a bare `ngcomp` makes
+ * it unneeded.
+ */
+export function componentStylesheets(): Plugin {
+  return {
+    name: "fz-component-stylesheets",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        if (req.url !== undefined) req.url = withEmptyComponentId(req.url);
+        next();
+      });
+    },
+  };
+}
+
 /**
  * Has the dev server watch the libraries' folder, so it keeps seeing a
  * library's file that git replaces.
@@ -171,7 +201,12 @@ export function watchLibraries(folder: string = LIBRARIES): Plugin {
  * it and losing what is in play, a library's components included.
  */
 export function angularPlugins(): PluginOption[] {
-  return [componentUpdates(), watchLibraries(), angular({ liveReload: true })];
+  return [
+    componentUpdates(),
+    componentStylesheets(),
+    watchLibraries(),
+    angular({ liveReload: true }),
+  ];
 }
 
 /**

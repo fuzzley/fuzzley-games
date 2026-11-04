@@ -71,7 +71,12 @@ too. Paths are relative to `frontend/lib/dev/`.
   so `componentUpdates()` renames each update to Angular's ID, and the page's
   request for it back to Analog's. It takes the app's `rootDir` to be its
   folder, as `tsconfig/angular.json` sets it; an app that moves its `rootDir`
-  loses its updates without a word. The last of them, `watchLibraries()`,
+  loses its updates without a word. `componentStylesheets()` has the
+  server serve the stylesheet of a component with no encapsulation ID, as
+  with `ViewEncapsulation.None`, such as `@fz/phaser`'s canvas: Angular
+  links it with a bare `ngcomp`, which Analog takes only as `ngcomp=`, so
+  it gives the bare one an empty ID, where the component would otherwise
+  go unstyled. The last of them, `watchLibraries()`,
   watches `frontend/lib/` as a whole: Vite watches each file outside the app's
   folder on its own, and loses one that git replaces (a checkout, a stash, a
   branch switch), which a watched folder sees come back. A server logs a page
