@@ -193,6 +193,16 @@ describe("endlessWave", () => {
     expect(gathered).toEqual([]);
   });
 
+  it("scatters a wave of boulders, or lays it as a wall", () => {
+    const gathered = everyWave().filter(
+      (wave) =>
+        wave.rocks.some((rocks) => rocks.size === "boulder") &&
+        (wave.formation === "ring" || wave.formation === "cluster"),
+    );
+
+    expect(gathered).toEqual([]);
+  });
+
   it("lets every pickup come, at Endless's chance, its boulders breaking into stone", () => {
     const { pool, drops, waveKind } = endlessWave(1, 40);
 

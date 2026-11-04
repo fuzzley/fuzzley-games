@@ -1,9 +1,12 @@
+import { ENDLESS_PLAYED } from "../testing/autopilot";
 import {
   fieldFrom,
   placeRock,
   shipOf,
   wholeRocks,
 } from "../testing/field_picture";
+import { TURN } from "./angles";
+import { endlessWave } from "./endless";
 import {
   type Field,
   type FieldSetup,
@@ -50,6 +53,9 @@ const FIELDS: readonly Torus[] = [
 
 /** The seeds each wave is laid out from. */
 const SEEDS = Array.from({ length: 12 }, (_, i) => i * 7919 + 1);
+
+/** Endless's waves the autopilot is held to, by number. */
+const ENDLESS_NUMBERS = ENDLESS_PLAYED.map((entry) => entry.number);
 
 /** The middle of a field of 40 by 40, where its ship waits. */
 const MIDDLE: Place = { x: 20, y: 20 };
@@ -119,6 +125,46 @@ function speedOf(rock: Readonly<Rock>): number {
 function wayRound(rock: Readonly<Rock>): number {
   return Math.sign(
     across(20, rock.x, 40) * rock.vy - across(20, rock.y, 40) * rock.vx,
+  );
+}
+
+/**
+ * Returns how far it is along an ellipse of two half-axes from one angle it
+ * is drawn by to another, summed over fine steps.
+ */
+function lengthAlong(
+  halfAcross: number,
+  halfDown: number,
+  from: number,
+  to: number,
+): number {
+  const steps = 10_000;
+  let length = 0;
+  for (let step = 0; step < steps; step++) {
+    const before = from + ((to - from) * step) / steps;
+    const after = from + ((to - from) * (step + 1)) / steps;
+    length += Math.hypot(
+      halfAcross * (Math.cos(after) - Math.cos(before)),
+      halfDown * (Math.sin(after) - Math.sin(before)),
+    );
+  }
+  return length;
+}
+
+/** Returns how near any two of a field's rocks come, outline to outline: below 0 where they lie over each other. */
+function tightestGap(field: Field): number {
+  const rocks = wholeRocks(field);
+  return Math.min(
+    ...rocks.flatMap((rock, i) =>
+      rocks
+        .slice(i + 1)
+        .map(
+          (other) =>
+            distance(field.torus, rock.x, rock.y, other.x, other.y) -
+            ROCK_RADIUS[rock.size] -
+            ROCK_RADIUS[other.size],
+        ),
+    ),
   );
 }
 
@@ -232,6 +278,56 @@ describe("layOut", () => {
     ]);
   });
 
+  it("lays a ring on a long field along an ellipse as long and as wide as the field leaves a large rock inside it, every rock flying along it", () => {
+    const field = laidOut("ring", { width: 88, height: 40 });
+    const halfAcross = 44 - ROCK_RADIUS.large - 1;
+    const halfDown = 20 - ROCK_RADIUS.large - 1;
+
+    const rocks = wholeRocks(field);
+    const on = rocks.map(
+      (rock) =>
+        (across(44, rock.x, 88) / halfAcross) ** 2 +
+        (across(20, rock.y, 40) / halfDown) ** 2,
+    );
+    // The way out of an ellipse at a place on it, at right angles to the
+    // way along it.
+    const out = rocks.map((rock) => {
+      const outX = across(44, rock.x, 88) / halfAcross ** 2;
+      const outY = across(20, rock.y, 40) / halfDown ** 2;
+      return (
+        (outX * rock.vx + outY * rock.vy) /
+        (Math.hypot(outX, outY) * speedOf(rock))
+      );
+    });
+
+    expect([on, out]).toEqual([
+      rocks.map((): unknown => expect.closeTo(1, 9)),
+      rocks.map((): unknown => expect.closeTo(0, 9)),
+    ]);
+  });
+
+  it.each(FIELDS)(
+    "keeps every ring's rocks apart, written or Endless's, on a field of %o, at the count it grows to",
+    (torus) => {
+      const written = WAVES.map((entry) => ({
+        wave: parseWave(entry),
+        seed: 1,
+      }));
+      const endless = ENDLESS_NUMBERS.flatMap((number) =>
+        SEEDS.map((seed) => ({ wave: endlessWave(seed, number), seed })),
+      );
+      const rings = [...written, ...endless].filter(
+        ({ wave }) => wave.formation === "ring",
+      );
+
+      const gaps = rings.map(({ wave, seed }) =>
+        tightestGap(fieldFor(wave, startOn(torus, "normal", seed))),
+      );
+
+      expect(Math.min(...gaps)).toBeGreaterThan(0);
+    },
+  );
+
   it("flies a ring either way, as drawn", () => {
     const ways = new Set(
       SEEDS.map((seed) => {
@@ -272,6 +368,32 @@ describe("layOut", () => {
     expect(gaps).toEqual(
       gaps.map((): unknown => expect.closeTo(Math.PI / 2, 9)),
     );
+  });
+
+  it("spaces a ring's rocks evenly along its ellipse on a long field", () => {
+    const torus = { width: 88, height: 40 };
+    const field = waitingField(torus);
+    const halfAcross = 44 - ROCK_RADIUS.large - 1;
+    const halfDown = 20 - ROCK_RADIUS.large - 1;
+    const rocks = [{ kind: "stone", size: "large", count: 7 }] as const;
+
+    layOut(field, rocks, "ring", middleOf(torus));
+
+    const angles = wholeRocks(field)
+      .map((rock) =>
+        Math.atan2(
+          across(20, rock.y, 40) / halfDown,
+          across(44, rock.x, 88) / halfAcross,
+        ),
+      )
+      .sort((a, b) => a - b);
+    const [first = 0] = angles;
+    const gaps = angles.map((angle, i) =>
+      lengthAlong(halfAcross, halfDown, angle, angles[i + 1] ?? first + TURN),
+    );
+    const whole = lengthAlong(halfAcross, halfDown, 0, TURN);
+
+    expect(gaps).toEqual(gaps.map((): unknown => expect.closeTo(whole / 7, 2)));
   });
 
   it.each([

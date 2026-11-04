@@ -23,6 +23,9 @@ import type { Formation, WaveRocks } from "./waves";
 /** The golden angle, which spreads a cluster's rocks evenly about its middle. */
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
+/** How many steps round an ellipse its length is measured in, to space places evenly along it. */
+const ELLIPSE_STEPS = 720;
+
 /** How many times a rock's speed is halved at most to keep it clear, which leaves it all but still. */
 const HALVINGS = 20;
 
@@ -125,17 +128,25 @@ const LAYOUTS: Readonly<Record<Formation, Layout>> = {
       if (rock) keepClear(field, rock, ship);
     }
   },
-  // Evenly round the ship, all flying along the ring one way.
+  // Evenly along an ellipse round the ship, as long and as wide as the
+  // field leaves a large rock inside it, so a larger field's ring, of more
+  // rocks, spreads round it; all flying along it one way.
   ring: (field, rocks, ship) => {
     const { width, height } = field.torus;
-    const radius = Math.min(width, height) / 2 - ROCK_RADIUS.large - 1;
-    const from = nextDraw(field) * TURN;
+    const halfAcross = width / 2 - ROCK_RADIUS.large - 1;
+    const halfDown = height / 2 - ROCK_RADIUS.large - 1;
+    const from = nextDraw(field);
     const way = nextDraw(field) < 0.5 ? -1 : 1;
+    const angles = evenlyAlong(halfAcross, halfDown, rocks.length, from);
     rocks.forEach(({ kind, size }, i) => {
-      const angle = from + (i * TURN) / rocks.length;
-      const x = wrap(ship.x + Math.cos(angle) * radius, width);
-      const y = wrap(ship.y + Math.sin(angle) * radius, height);
-      const rock = addRock(field, kind, size, x, y, angle + (way * TURN) / 4);
+      const angle = angles[i] ?? 0;
+      const x = wrap(ship.x + Math.cos(angle) * halfAcross, width);
+      const y = wrap(ship.y + Math.sin(angle) * halfDown, height);
+      const along = Math.atan2(
+        way * halfDown * Math.cos(angle),
+        -way * halfAcross * Math.sin(angle),
+      );
+      const rock = addRock(field, kind, size, x, y, along);
       if (rock) keepClear(field, rock, ship);
     });
   },
@@ -197,6 +208,39 @@ const LAYOUTS: Readonly<Record<Formation, Layout>> = {
     }
   },
 };
+
+/**
+ * Returns places evenly spaced along an ellipse of two half-axes, as many as
+ * asked, the first a share of the way round it: each as the angle `t` the
+ * ellipse is drawn by, at (`halfAcross · cos t`, `halfDown · sin t`) from
+ * its middle, which is the angle seen from the middle only on a circle.
+ */
+function evenlyAlong(
+  halfAcross: number,
+  halfDown: number,
+  count: number,
+  from: number,
+): number[] {
+  const lengths = [0];
+  let whole = 0;
+  for (let step = 1; step <= ELLIPSE_STEPS; step++) {
+    const before = ((step - 1) * TURN) / ELLIPSE_STEPS;
+    const after = (step * TURN) / ELLIPSE_STEPS;
+    whole += Math.hypot(
+      halfAcross * (Math.cos(after) - Math.cos(before)),
+      halfDown * (Math.sin(after) - Math.sin(before)),
+    );
+    lengths.push(whole);
+  }
+  return Array.from({ length: count }, (_, i) => {
+    const goal = ((from + i / count) % 1) * whole;
+    const step = lengths.findIndex((length, at) => at > 0 && length >= goal);
+    const start = lengths[step - 1] ?? 0;
+    const span = (lengths[step] ?? start) - start;
+    const share = span > 0 ? (goal - start) / span : 0;
+    return ((step - 1 + share) * TURN) / ELLIPSE_STEPS;
+  });
+}
 
 /**
  * Returns a place drawn on the field far enough from the ship. A field is

@@ -5430,3 +5430,87 @@ tests among them.
   taken up as one that cleared all, a run taken up as none, `clearedAll`
   never set, never cleared as a run begins, the records not told, told of
   any run, and the end said without it: all caught.
+
+## A14: done
+
+2026-11-04. `yarn verify` passes at 75776fbd: lint, type-check, every
+workspace's tests and the build.
+
+## Q4: the whole shell
+
+2026-11-04, in the dev server, in the DevTools MCP's Chrome, at 1280 × 800,
+a 390 × 844 phone at 3× with touch, and 2560 × 1440.
+
+- **The dev server served no unencapsulated stylesheet.** The board drew
+  blank, its canvas at Phaser's 1280 × 960 rather than its room: Angular
+  links the stylesheet of a component with no encapsulation ID, as
+  `@fz/phaser`'s canvas is, with a bare `?ngcomp`, which Analog's live
+  reload takes only as `ngcomp=`, so the request fell through to the page.
+  It held in every game's dev server, never in a build. Fixed in `@fz/dev`
+  (`componentStylesheets()`, c10d8f33), reviewed on its own.
+- **Endless:** Sectors lists it, "From wave 31", once reached; Storm
+  cleared's card shows the trophy, "Storm cleared. Endless begins.", and the
+  announcer says "Storm cleared! Endless begins. Score 1,000."; wave 31's
+  Ready card reads "Wave 31: Endless", the board is named so, and the
+  constellation lies among the specks, a fuzzball in brighter specks with
+  two eyes, in Midnight blue, Casino night and Classic felt. A run in
+  Endless reloaded is taken up paused at wave 31, its constellation where
+  it was. Lost there, its result reads "Lost on wave 31, Endless, at Normal
+  speed", "Try again from Storm" for a run begun at wave 30, and the
+  announcer "Game over. Score 1,000, on wave 31, Endless. A new best!";
+  Storm's row then shows its best.
+- **The dialogs by keyboard and mouse:** Sectors, How to play and Settings
+  each open by Enter on their button and by a click, take focus inside,
+  shut by Escape, and hand focus back to the board, which flies on keys at
+  once; New game over a run waiting for its first move starts again at
+  the run's sector without asking; the current sector's row is marked
+  (`aria-current`).
+- **The bar** on the phone sits at the bottom, Home, the speed, the score
+  and ships, Pause, New game and the overflow, the deck over it under the
+  field, and the card says "Steer with the left pad, fire with the right."
+  On the wide screen the bar is whole along the top.
+- **Settings, records and progress** were kept across every reload:
+  Midnight blue to Classic felt, the sectors reached with Endless among
+  them, the runs and bests.
+- **Fuse lays a solid band on the larger fields.** Its ring kept the circle
+  the field's short side leaves it while its count grew with the area: on
+  2560 × 1440 (76 by 40 units), 25 rocks a third over each other; on the
+  widest, 29 at 3.5 units apart, where a large rock is 5.6 across. Fixed
+  in a commit of its own: the ring lies evenly along an ellipse as long and
+  as wide as the field leaves a large rock inside it, so on a square field
+  it is the circle it was, to 10⁻¹³ of a turn, and on every larger field
+  its large rocks lie over 6.1 units apart, their outlines clear of each
+  other, which a spec holds every ring to, written or Endless's. Fuse's
+  volatiles lie no farther apart than on the narrowest field, so its chain
+  holds. Over the report's twelve seeds the narrowest plays as before; the
+  middle time at Relaxed, Normal and Fast went from 0:38, 0:35 and 0:43 to
+  0:39, 0:45 and 0:42 on the widest, and from 0:38, 0:44 and 0:38 to 0:42,
+  0:40 and 0:42 upright, one ship lost at most where one was before;
+  `yarn report:waves --field wide` and `--field tall` pass.
+- **The ring fix's review.** No bugs; four comments, all taken.
+  1. Endless laid its waves of boulders in a ring or a cluster, a boulder,
+     9.2 units across, lying over the rocks beside it: in a ring
+     by up to 1.5 units on the narrowest field, as before the fix, and 2.9
+     on the larger ones. A wave of boulders is scattered or a wall, as one
+     of more than 13 rocks is, the plan says so, and the spec that keeps a
+     ring's rocks apart measures each pair by its own radii, over Endless's
+     rings too. Endless's clusters lie closer still, by up to 3.3 units
+     without boulders, but a cluster is meant to be packed: left.
+  2. Nothing held a ring's rocks evenly spaced by length on a long field,
+     only on the ellipse: rocks evenly spaced by the angle it is drawn by
+     passed. A spec measures the length between each two on 88 by 40.
+  3. `evenlyAlong()`'s doc called what it returns angles from the middle,
+     which they are not but on a circle, and its half-axes were `across`
+     and `down`, the names of a torus's way and its height elsewhere. It
+     says what the angle is, takes `halfAcross` and `halfDown`, keeps a
+     running total, and finds the step past its first by its index, not
+     by `Math.max()`.
+  4. The log said its rocks lay "6.2 units apart or more"; the nearest two
+     large rocks lie 6.17 apart. It says over 6.1.
+- **Powder** packs its cluster of twenty on the phone, each rock outlined
+  apart: as dense as a cluster is meant, left.
+- **Left:** AZERTY flies the ship by the keys' places (`event.code`), Z Q S
+  D, though How to play names them W A S D, as the other games do. Sound
+  and haptics can't be heard or felt in a headless page; their settings
+  hold. The strays a larger field grows to mostly go unsent, as A13.3
+  logged: for the summary, not changed here.
