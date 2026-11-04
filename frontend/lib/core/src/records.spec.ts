@@ -1,4 +1,4 @@
-import { keysOf, recordOf } from "./records";
+import { keysOf, pick, recordOf } from "./records";
 
 describe("keysOf", () => {
   it("returns a record's keys in the order they were written", () => {
@@ -13,6 +13,23 @@ describe("keysOf", () => {
     expectTypeOf(keysOf({ normal: 1, fire: 2 })).toEqualTypeOf<
       readonly ("normal" | "fire")[]
     >();
+  });
+});
+
+describe("pick", () => {
+  it("copies the entries under the keys given, and no others", () => {
+    const brick = { hits: 2, broken: false, cell: 7 };
+
+    expect(pick(brick, ["hits", "broken"])).toEqual({ hits: 2, broken: false });
+  });
+
+  it("types the copy as the record's entries under those keys alone", () => {
+    const brick = { hits: 2, broken: false, cell: 7 };
+
+    expectTypeOf(pick(brick, ["hits", "broken"])).toEqualTypeOf<{
+      hits: number;
+      broken: boolean;
+    }>();
   });
 });
 

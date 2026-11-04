@@ -4847,3 +4847,32 @@ by hand.
   `yarn prettier:check` and the skill references. 14 mutants of the write,
   each setting's reading, the yes-or-no reader, the key and the version: all
   caught.
+
+## Lift: a copy of some of a record's entries
+
+2026-11-04. The A12.2.1 review's seventh comment: the saved game listed a
+rock's ten keys in four places, where Brick Breaker's keeps a brick's in one
+tuple and copies them with its `pick()`, in its `tables.ts`.
+
+- **Built.** `pick()` is `@fz/core/records`', beside `keysOf()` and
+  `recordOf()`, moved with its spec from Brick Breaker's `tables.ts`, which
+  held nothing else and goes; Brick Breaker's saved game takes it from
+  there. `@fz/core`'s `AGENTS.md`, its package's description, the games'
+  `AGENTS.md` and the `fuzzley-ui` skill name it.
+- **Review.** The move is sound; four comments, all taken.
+  1. Nothing held its type, all it adds to `Object.fromEntries()`: one
+     typed as the whole record passed. A case holds it, as `keysOf()`'s
+     does.
+  2. The games' `AGENTS.md`, the skill's description, which a task is
+     matched against, and the package's description listed the helpers
+     without it, and the last two without `recordOf()`. They name both.
+  3. Its entry said a saved game keeps a rock by it, which none did yet.
+     It says a brick, until the saved game that keeps a rock.
+  4. The plan said `pick()` stays Brick Breaker's. Its row says when it
+     moved, and this entry is the log's.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** `@fz/core`'s and Brick Breaker's `lint`, `typecheck` and
+  `test`, `yarn prettier:check` and the skill references. 2 mutants, of
+  the copy and of Brick Breaker's use of it: both caught.

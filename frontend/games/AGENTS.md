@@ -56,7 +56,8 @@ are relative to `frontend/games/`.
   stored JSON and a data file's keys, counts in words, points grouped in thousands, a clamp, a
   clock of fixed steps, a log of numbered events, a field played by them, a
   frame's sounds gathered
-  and a record's keys typed as its own or a record made from them, rather
+  and a record's keys typed as its own, a record made from them or a copy
+  of some of its entries, rather
   than keeping copies
   (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
   import.
