@@ -23,6 +23,7 @@ import {
       [describedBy]="describedBy()"
       [dialogRole]="dialogRole()"
       [dismissible]="dismissible()"
+      [closesOnBackdrop]="closesOnBackdrop()"
       [backdrop]="backdrop()"
       (closed)="closeRequests.set(closeRequests() + 1); open.set(false)"
     >
@@ -40,6 +41,7 @@ class DialogHostComponent {
   readonly describedBy = signal("");
   readonly dialogRole = signal<DialogRole>("dialog");
   readonly dismissible = signal(true);
+  readonly closesOnBackdrop = signal(true);
   readonly backdrop = signal<DialogBackdrop>("glass");
 
   /** How many times the dialog has asked to be closed. */
@@ -52,6 +54,7 @@ type HostSettings = Partial<{
   describedBy: string;
   dialogRole: DialogRole;
   dismissible: boolean;
+  closesOnBackdrop: boolean;
   backdrop: DialogBackdrop;
 }>;
 
@@ -73,6 +76,7 @@ describe("DialogComponent", () => {
     host.describedBy.set(settings.describedBy ?? "");
     host.dialogRole.set(settings.dialogRole ?? "dialog");
     host.dismissible.set(settings.dismissible ?? true);
+    host.closesOnBackdrop.set(settings.closesOnBackdrop ?? true);
     host.backdrop.set(settings.backdrop ?? "glass");
     user = userEvent.setup();
   }
@@ -248,6 +252,23 @@ describe("DialogComponent", () => {
       await user.click(dialog());
 
       expect(dialog().open).toBe(true);
+    });
+
+    it("keeps open through a backdrop click when told to", async () => {
+      // A game's result over a board the player may still be tapping.
+      await openDialog({ closesOnBackdrop: false });
+
+      await user.click(dialog());
+
+      expect(dialog().open).toBe(true);
+    });
+
+    it("still asks to close on Escape when it keeps open through a backdrop click", async () => {
+      await openDialog({ closesOnBackdrop: false });
+
+      await user.keyboard("{Escape}");
+
+      expect(host.closeRequests()).toBe(1);
     });
 
     it("does not ask to close when its host closes it", async () => {

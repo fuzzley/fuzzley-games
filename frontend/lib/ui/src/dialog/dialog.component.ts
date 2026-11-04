@@ -47,6 +47,13 @@ export class DialogComponent {
   /** Whether Escape and a backdrop click dismiss the dialog. */
   readonly dismissible = input(true);
 
+  /**
+   * Whether a backdrop click dismisses a dismissible dialog, as Escape does;
+   * false for one a stray click must not put away, such as a game's result
+   * over a board the player may still be tapping.
+   */
+  readonly closesOnBackdrop = input(true);
+
   /** How the page behind looks while the dialog is open. */
   readonly backdrop = input<DialogBackdrop>("glass");
 
@@ -84,10 +91,15 @@ export class DialogComponent {
 
   /**
    * Asks to close a dismissible dialog on a backdrop click, which targets the
-   * `<dialog>` itself rather than anything inside it.
+   * `<dialog>` itself rather than anything inside it, unless it keeps open
+   * through one.
    */
   protected onClick(event: MouseEvent): void {
-    if (this.dismissible() && event.target === this.dialogRef().nativeElement) {
+    if (
+      this.dismissible() &&
+      this.closesOnBackdrop() &&
+      event.target === this.dialogRef().nativeElement
+    ) {
       this.closed.emit();
     }
   }

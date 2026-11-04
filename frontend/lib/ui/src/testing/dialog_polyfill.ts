@@ -7,9 +7,8 @@
  * without layout, so they are left out.
  */
 
-/** Elements a browser would consider for initial dialog focus. */
-const FOCUSABLE =
-  "[autofocus], button, a[href], input, select, textarea, [tabindex]";
+/** Elements that can take the focus, which a browser chooses among on opening a dialog. */
+const FOCUSABLE = "button, a[href], input, select, textarea, [tabindex]";
 
 /** The element focused before each dialog opened, restored on close. */
 const previouslyFocused = new WeakMap<HTMLDialogElement, HTMLElement>();
@@ -18,11 +17,15 @@ const previouslyFocused = new WeakMap<HTMLDialogElement, HTMLElement>();
 function focusableWithin(dialog: HTMLDialogElement): HTMLElement | undefined {
   const candidates = [
     ...dialog.querySelectorAll<HTMLElement>(FOCUSABLE),
-  ].filter((el) => el.tabIndex !== -1 && !el.hasAttribute("disabled"));
+  ].filter((el) => !el.hasAttribute("disabled"));
 
-  // A browser honours `autofocus` first, then falls back to the first
-  // focusable child.
-  return candidates.find((el) => el.hasAttribute("autofocus")) ?? candidates[0];
+  // A browser honours `autofocus` first, even on what only a script may
+  // focus (`tabindex="-1"`), then falls back to the first child the Tab key
+  // reaches.
+  return (
+    candidates.find((el) => el.hasAttribute("autofocus")) ??
+    candidates.find((el) => el.tabIndex !== -1)
+  );
 }
 
 /**

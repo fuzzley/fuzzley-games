@@ -5,6 +5,7 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import type { WaveEntry } from "../../rules/waves";
+import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
   CHAIN_WAVES,
   FRAME_MS,
@@ -17,7 +18,6 @@ import {
   provideSpecWaves,
   shoot,
 } from "../../testing/play";
-import { pilotInk } from "../../view/palette";
 import { GameService } from "../play/game.service";
 import { BarComponent } from "./bar.component";
 
@@ -90,21 +90,6 @@ function figure(term: string): string {
 /** Returns the terms of the figures the bar shows, in order. */
 function terms(): string[] {
   return screen.getAllByRole("term").map((dt) => dt.textContent.trim());
-}
-
-/** Returns the pilots an element draws, by their colors as the page writes them, in order. */
-function pilotsIn(element: HTMLElement): string[] {
-  return Array.from(
-    element.querySelectorAll<HTMLElement>("app-pilot"),
-    (pilot) => pilot.style.color,
-  );
-}
-
-/** Returns a pilot's color in a light palette, the specs' page's, as the page writes it. */
-function inkOf(pilot: number): string {
-  const probe = document.createElement("span");
-  probe.style.color = pilotInk(pilot, "light");
-  return probe.style.color;
 }
 
 /** Returns the badge that shows the speed and offers the others. */

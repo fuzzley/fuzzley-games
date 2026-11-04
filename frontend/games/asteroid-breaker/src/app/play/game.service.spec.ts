@@ -22,6 +22,7 @@ import {
   CHAIN_WAVE,
   CHAIN_WAVES,
   FRAME_MS,
+  GAINED_WAVES,
   SECTOR_WAVES,
   SPEC_RANDOM,
   SPEC_WAVE,
@@ -233,6 +234,39 @@ describe("GameService", () => {
       bringStraysHome(game, 1);
 
       expect(game.crew()).toMatchObject({ flying: [0, 1, 2], home: [3] });
+    });
+
+    it("keeps the pilots of the strays the run brings home, in the order they came", () => {
+      const game = gameOver(STRAY_WAVES);
+
+      bringStraysHome(game, 2);
+
+      expect(game.broughtHome()).toEqual([3, 4]);
+    });
+
+    it("keeps a stray among those brought home once it flies a ship gained", () => {
+      const game = gameOver(GAINED_WAVES);
+      bringStraysHome(game, 1);
+
+      playUntil(game, toPickup, () => game.crew().home.length === 0);
+
+      expect({
+        crew: game.crew(),
+        broughtHome: game.broughtHome(),
+      }).toMatchObject({
+        crew: { flying: [0, 1, 2, 3], home: [] },
+        broughtHome: [3],
+      });
+    });
+
+    it("starts a new run with no strays brought home", () => {
+      const game = gameOver(STRAY_WAVES);
+      bringStraysHome(game, 1);
+      endRun(game);
+
+      game.tryAgain();
+
+      expect(game.broughtHome()).toEqual([]);
     });
   });
 
@@ -709,6 +743,17 @@ describe("GameService", () => {
         wave: SPEC_WAVE.pebble,
         ships: FIRST_SHIPS,
       });
+    });
+
+    it("names the sector the run started in, which trying again starts at", () => {
+      const game = gameOver(SECTOR_WAVES);
+
+      clearToNext(game);
+
+      expect({
+        wave: game.wave().sector.name,
+        first: game.firstSector().name,
+      }).toEqual({ wave: "Far", first: "Near" });
     });
 
     it("tries nothing again while the run goes on", async () => {

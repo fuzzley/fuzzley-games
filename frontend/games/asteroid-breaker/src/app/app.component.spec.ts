@@ -3,10 +3,12 @@ import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { STILL } from "../rules/ship";
 import {
   FRAME_MS,
   SPEC_WAVE,
   endRun,
+  playUntil,
   provideSpecWaves,
   shoot,
 } from "../testing/play";
@@ -26,6 +28,16 @@ async function renderApp(): Promise<GameService> {
 async function startedApp(): Promise<GameService> {
   const game = await renderApp();
   game.tick(FRAME_MS, shoot(game));
+  return game;
+}
+
+/** Returns the game with a run at the specs' first wave ended, its result card open. */
+async function endedApp(): Promise<GameService> {
+  const game = await renderApp();
+  await game.startAt(SPEC_WAVE.pebble);
+  endRun(game);
+  playUntil(game, () => STILL, game.resultOpen);
+  await settle();
   return game;
 }
 
@@ -126,20 +138,26 @@ describe("AppComponent", () => {
   });
 
   describe("an ended run", () => {
-    it("has its result put away at once, leaving the board's card to offer another run", async () => {
-      const game = await renderApp();
-      await game.startAt(SPEC_WAVE.pebble);
-      endRun(game);
+    it("shows its result over the board", async () => {
+      await endedApp();
 
-      game.tick(FRAME_MS, shoot(game));
+      expect(
+        screen.getByRole("alertdialog", { name: "Game over" }),
+      ).toBeVisible();
+    });
+
+    it("leaves the board's card to offer another run once its result is put away", async () => {
+      await endedApp();
+
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
       await settle();
 
-      expect(game.resultClosed()).toBe(true);
       expect(
         within(screen.getByRole("application")).getByRole("button", {
           name: "New game",
         }),
       ).toBeVisible();
+      expect(screen.getByRole("application")).toHaveFocus();
     });
   });
 
@@ -178,11 +196,35 @@ describe("AppComponent", () => {
       expect(screen.getByRole("application")).toHaveFocus();
     });
 
-    it("goes to the board as a run begins from the card over an ended one", async () => {
+    it("goes back to the board as the result card closes, wherever it was before", async () => {
       const game = await renderApp();
       await game.startAt(SPEC_WAVE.pebble);
       endRun(game);
-      game.tick(FRAME_MS, shoot(game));
+      screen.getByRole("application").blur();
+      playUntil(game, () => STILL, game.resultOpen);
+      await settle();
+
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("goes to the board as a run begins from the result card", async () => {
+      const game = await endedApp();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /^Try again from/ }),
+      );
+      await settle();
+
+      expect(game.outcome()).toBe("ready");
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("goes to the board as a run begins from the board's card over an ended one", async () => {
+      const game = await endedApp();
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
       await settle();
 
       await userEvent.click(

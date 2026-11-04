@@ -4271,3 +4271,107 @@ records read their stored JSON with Brick Breaker's code, line for line.
   7 mutants of the two readers and 7 more after the review: all caught but
   one, a guard that only narrows the type, as a set of strings has no other
   member.
+
+## A10.2.2: the result card
+
+2026-11-04.
+
+- **Built.**
+  - `src/app/result/`: the result card, opened as the last ship's burst
+    fades, as Brick Breaker's is: "Game over", where the run was lost and
+    at what speed ("Lost on wave 4, at Normal speed"), "New best" and the
+    trophy when it set one, the score, the best, the wave reached and the
+    waves cleared, the fuzzballs the run brought home, each drawn in its
+    color, with how many; Try again from the sector the run started in,
+    and Close, which leaves the board's Ended card to offer a new game.
+  - `GameService` keeps `broughtHome`, the pilots of the strays the run
+    has brought home, from the field's "home" events, and `firstSector`,
+    the sector the run started in.
+  - `whereLost()` in `src/rules/describe.ts`, which the card and the
+    board's Ended card share.
+  - The page no longer puts the card away the moment it opens; the board
+    takes the focus back as it closes, wherever the focus was.
+  - `<app-pilot-row>` in `src/app/pilot/`, a row of pilots and what it is
+    given beside them, which the bar, the Paused card and the card draw
+    theirs with; `src/testing/pilots.ts`, the pilots' colors for the
+    specs.
+  - `@fz/ui`'s dialog polyfill for jsdom honors `autofocus` on what only a
+    script may focus, and passes over it on what can't take the focus, as
+    browsers do; `<fz-dialog>`'s `closesOnBackdrop` keeps a dialog open
+    through a click beside it, Escape still closing it.
+- **Choices.**
+  - **The colors of the strays brought home are the shell's,** gathered
+    from the field's events, as the card is all that shows them; the
+    run's `strays` counts them for the scoring and the records. The plan's
+    saved game (A12.2) keeps them, so a run taken up shows them still.
+  - **No fuzzballs, no line,** rather than "0 fuzzballs brought home".
+  - **Try again names the sector,** as the plan has it: a run starts at a
+    sector's first wave.
+  - **Choose a sector comes with the Sectors dialog,** A10.2.3, where it
+    has somewhere to go.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on the dev server
+  (restarted, as it had begun serving the page for its component
+  stylesheets): 1280 × 800, the card over the board with four fuzzballs;
+  360 × 640 at 2× with touch, the card filling the window, 22 fuzzballs
+  wrapping over two lines, and 80 scrolling the card, not the page.
+- **Review.** One bug and four comments, all taken.
+  1. The card opened on Try again, and Space fires: a player still holding
+     or tapping it as the card opened pressed the button, starting the
+     next run unread. The card opens on its title now, which no key
+     presses (`tabindex="-1"`, `autofocus`), so the polyfill had to let
+     `autofocus` through there, as browsers do; checked in Chrome, the
+     title takes the focus with no ring.
+  2. Nothing told the strays' colors, gathered from the events, from the
+     crew's home list, which a stray leaves to fly a ship gained. A spec
+     brings a stray home and catches an Extra ship, and holds it among
+     those brought home.
+  3. The card's spec passed with the pilots drawn in the wrong colors, and
+     with Try again naming the sector lost in. It checks the colors, as the
+     bar's does, through `src/testing/pilots.ts`, and starts a run in one
+     sector and loses it in the next.
+  4. The game's `AGENTS.md` said the shell had no other dialog. It names
+     the card.
+  5. The row of pilots was kept three times, in the bar, the Paused card
+     and the card, each with a comparison in its template. They draw
+     `<app-pilot-row>`, the bar keeping its row on one line, and each card
+     asks a `computed()` whether it has pilots to draw; the card's row has
+     its own margin rather than one that leant on the figures'.
+
+  The row and the opening focus reshape the change, so it had a second
+  review, which found the five answered, one bug more and four comments:
+  three taken and one left, with one left for later.
+  1. A click or tap beside the card put it away, so a player still
+     tapping Fire closed it, and the next tap started a run: the pointer's
+     side of the first review's bug. `<fz-dialog>` gains `closesOnBackdrop`,
+     which the card turns off, keeping Escape; specs in `@fz/ui` and the
+     card's hold it.
+  2. The card's spec couldn't tell the strays brought home from those at
+     home, which stay the same until a stray flies a ship gained. It has
+     that case now, from the waves the game's spec had, moved to
+     `src/testing/play.ts`.
+  3. The polyfill's change had no spec of its own, and let `autofocus` win
+     on what can't take the focus, which a browser passes over. It takes
+     `autofocus` only on what can, as a browser does, and
+     `src/testing/dialog_polyfill.spec.ts` holds the four ways it chooses.
+  4. The colors kept by the shell are a second record beside the run's
+     `strays`, which the saved game must keep in step. Left: the rules
+     count strays for the scoring and the records, which never need a
+     color, and the colors are the card's alone; A12.2 keeps them with the
+     run, and draws none if their count is not the run's.
+  5. Five games' result cards each keep their figures' list, its type and
+     markup, beside the shared Sass. Left for a lift of its own, which the
+     report at the end raises.
+
+  These correct the change, so it had no third review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (2,911),
+  `@fz/ui`'s, `yarn prettier:check` and the skill references. 14 mutants
+  of the card, the game's keeping and the page: all caught but 2, the
+  singular "1 fuzzball" and the board's focus as the card closes, which
+  the dialog's own return of the focus hid; each has a case now that
+  catches it. 8 more after the review, of the opening focus, the
+  polyfill, the strays' colors, the row and the label: all caught; and 6
+  after the second, of the backdrop, the polyfill's choice and the card's
+  strays: all caught. Every other workspace's specs pass on the new
+  polyfill, Sudoku's bank once it ran alone: run beside Asteroid Breaker's
+  suite, its slow case timed out.

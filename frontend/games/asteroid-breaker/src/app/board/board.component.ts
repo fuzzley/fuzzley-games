@@ -27,6 +27,7 @@ import {
   canvasPixelRatio,
 } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
+import { whereLost } from "../../rules/describe";
 import type { Torus } from "../../rules/torus";
 import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art";
@@ -37,7 +38,7 @@ import {
 } from "../../view/field_metrics";
 import { buzzOf } from "../../view/haptics";
 import { tallyLines } from "../../view/tally";
-import { PilotComponent } from "../pilot/pilot.component";
+import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
@@ -65,7 +66,7 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  */
 @Component({
   selector: "app-board",
-  imports: [KeepKeysDirective, PhaserCanvasComponent, PilotComponent],
+  imports: [KeepKeysDirective, PhaserCanvasComponent, PilotRowComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -201,6 +202,9 @@ export class BoardComponent {
   /** The strays brought home, waiting to fly the next ships, as the Paused card draws them. */
   protected readonly home = computed(() => this.game.crew().home);
 
+  /** Whether any stray waits at home, for the Paused card to draw. */
+  protected readonly hasHome = computed(() => this.home().length > 0);
+
   /** What the Paused card says of the strays at home, since their pictures say nothing. */
   protected readonly homeWords = computed(
     () =>
@@ -224,9 +228,7 @@ export class BoardComponent {
   });
 
   /** What the card over an ended run calls it: the wave it was lost on. */
-  protected readonly endTitle = computed(
-    () => `Lost on wave ${String(this.game.wave().number)}`,
-  );
+  protected readonly endTitle = computed(() => whereLost(this.game.run()));
 
   /** The field's colors, from the palette on the page. */
   private readonly palette = fieldPalette(inject(ThemeService));

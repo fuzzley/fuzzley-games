@@ -81,26 +81,6 @@
   }
 }
 
-// The strays at home on the Paused card, each in its color, before the words
-// that say how many.
-.home {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: var(--fz-space-2);
-}
-
-.home-pilots {
-  display: flex;
-  gap: 3px;
-
-  app-pilot {
-    width: 20px;
-    height: 20px;
-  }
-}
-
 // Each part of a cleared wave's points on a line, its name and its points at
 // either end.
 .tally {

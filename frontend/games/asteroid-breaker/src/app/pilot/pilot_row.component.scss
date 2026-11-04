@@ -1,0 +1,20 @@
+// The pilots, then what the row is given, centered.
+:host {
+  display: flex;
+  flex-wrap: var(--pilot-row-wrap, wrap);
+  align-items: center;
+  justify-content: center;
+  gap: var(--fz-space-2);
+}
+
+.pilots {
+  display: flex;
+  flex-wrap: var(--pilot-row-wrap, wrap);
+  justify-content: center;
+  gap: 3px;
+
+  app-pilot {
+    width: 20px;
+    height: 20px;
+  }
+}
