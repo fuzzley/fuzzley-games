@@ -7,6 +7,7 @@ import {
   createRun,
   hasEnded,
   isInProgress,
+  nextShipAfter,
   pause,
   resume,
   startWave,
@@ -290,6 +291,17 @@ describe("catchUp", () => {
     );
 
     expect([run.score, run.banked, run.outcome]).toEqual([2600, 2000, "over"]);
+  });
+});
+
+describe("nextShipAfter", () => {
+  it.each([
+    [0, FIRST_SHIP_POINTS],
+    [FIRST_SHIP_POINTS - 1, FIRST_SHIP_POINTS],
+    [FIRST_SHIP_POINTS, FIRST_SHIP_POINTS + SHIP_POINTS],
+    [FIRST_SHIP_POINTS + SHIP_POINTS + 1, FIRST_SHIP_POINTS + 2 * SHIP_POINTS],
+  ])("puts the next ship past a score of %i at %i", (score, mark) => {
+    expect(nextShipAfter(score)).toBe(mark);
   });
 });
 

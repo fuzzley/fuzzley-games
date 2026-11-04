@@ -117,6 +117,22 @@ export function wavesOf(sectors: readonly SectorData[]): WaveEntry[] {
 /** Every wave, in the order they are played. */
 export const WAVES: readonly WaveEntry[] = wavesOf(SECTORS);
 
+/**
+ * Returns a wave by its number, from 1; past the last, the last again,
+ * numbered on.
+ *
+ * @throws {RangeError} For a number below 1, or a game of no waves.
+ */
+export function waveEntryOf(
+  waves: readonly WaveEntry[],
+  wave: number,
+): WaveEntry {
+  const last = waves.length;
+  const entry = waves[Math.min(wave, last) - 1];
+  if (!entry) throw new RangeError(`No wave ${String(wave)}.`);
+  return wave > last ? { ...entry, number: wave } : entry;
+}
+
 /** The slowest and the fastest a wave's pace may be. */
 const PACE: Span = { least: 0.8, most: 1.4 };
 
