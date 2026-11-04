@@ -173,8 +173,14 @@ describe("describeResume", () => {
 
 describe("describeEnd", () => {
   it("says the game is over, the score and the wave it was lost on", () => {
-    expect(describeEnd(runAt(4, 9_020))).toBe(
+    expect(describeEnd(runAt(4, 9_020), false)).toBe(
       "Game over. Score 9,020, on wave 4.",
+    );
+  });
+
+  it("says a score is a new best", () => {
+    expect(describeEnd(runAt(4, 9_020), true)).toBe(
+      "Game over. Score 9,020, on wave 4. A new best!",
     );
   });
 });

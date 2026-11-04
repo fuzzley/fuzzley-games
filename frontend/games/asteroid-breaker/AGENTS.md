@@ -14,7 +14,7 @@ The game is being built from `docs/asteroid-breaker-execution-plan.md`, step
 by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
 shows the bar, with Pause, New game, the speed and the settings, and the
 board, with its cards and a first settings drawer, but no other dialog
-yet. The site serves it all the same, badged "In development"
+yet, and keeps the records and the sectors reached ("What It Keeps"). The site serves it all the same, badged "In development"
 (`inDevelopment` in `frontend/site/src/app/provider/games.ts`), and a
 production build offers the debug menu at `?debug`, as the user asked.
 
@@ -85,3 +85,20 @@ tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
 `@fz/phaser/testing`'s headless Phaser first, so a scene's spec runs real
 Phaser. The repository's `angular-testing` skill covers the patterns every
 Angular workspace's specs share, and `phaser-core` the harness.
+
+## What It Keeps
+
+Each entry is in `localStorage`, versioned
+(`LocalStorageService.writeVersioned()`), and its reader drops what it
+can't trust rather than failing:
+
+- `asteroid-breaker-stats`: for each speed, the runs, the best run's score,
+  the furthest wave reached and the strays brought home; and for each
+  sector's id, the score of the best run started there at each speed. Ids
+  no sector has any more are dropped.
+- `asteroid-breaker-progress`: the ids of the sectors reached, at any
+  speed, which a run may start at. Ids no sector has any more are dropped.
+
+A run flown on numbers the debug menu tuned, its field stepped with them,
+keeps none of either. A field added to an entry later is read as optional,
+so a reader never drops a player's records for lacking it.

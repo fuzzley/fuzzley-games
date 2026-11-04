@@ -548,11 +548,20 @@ more. Paths in Part 1 are under `frontend/lib/` or
   gone. Each other button comes with what it does: Sectors and How to
   play with their dialogs in A10.2, Sound with the sounds in A11.1.
   Specced. One commit.
-- **A10.2** `src/app/sectors/`, `result/`, `help/` and the rest of
-  `settings/`: the Sectors dialog, the result card with the fuzzballs
-  brought home, How to play from the catalogs with the scene's pictures,
-  every setting, and the bar's Sectors and How to play. Specced. One
-  commit, `yarn verify` with it.
+- **A10.2** The dialogs, in five steps, each specced and a commit of its
+  own, `yarn verify` with the last:
+  - **A10.2.1** The records and the sectors reached, kept in storage as
+    "What it keeps" says: `src/rules/stats.ts` and `src/rules/progress.ts`
+    with their services in `src/app/stats/`, kept by `GameService`, which
+    says a new best, but for a run flown on numbers the debug menu tuned.
+  - **A10.2.2** `src/app/result/`: the result card, with the fuzzballs
+    brought home, opened as the last ship's burst fades.
+  - **A10.2.3** `src/app/sectors/`: the Sectors dialog, and the bar's
+    Sectors and the result card's Choose a sector.
+  - **A10.2.4** `src/app/help/`: How to play from the catalogs with the
+    scene's pictures, and the bar's How to play.
+  - **A10.2.5** The rest of `settings/`: the speed, haptics and the
+    palette.
 
 #### A11: sound and haptics (small)
 
@@ -565,12 +574,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### A12: storage (medium)
 
-- **A12.1** `SettingsService`, `StatsService` and `src/rules/progress.ts`
-  with its service, under `asteroid-breaker-settings`,
-  `asteroid-breaker-stats` and `asteroid-breaker-progress`, each reader
-  dropping what it can't trust; a run flown on numbers the debug menu
-  tuned writes neither, as `?debug` reaches production. Specced with an
-  in-memory store. One commit.
+- **A12.1** `SettingsService` under `asteroid-breaker-settings`, its
+  reader dropping what it can't trust; the records and the progress are
+  kept from A10.2.1. Specced with an in-memory store. One commit.
 - **A12.2** `src/rules/saved_game.ts` and `SavedGameService` under
   `asteroid-breaker-game`, as "What it keeps" says, the crew and those at
   home among it: written as a wave starts, as a ship is lost or waits, on a
@@ -595,7 +601,8 @@ more. Paths in Part 1 are under `frontend/lib/` or
   drawn in Endless's waves, and the autopilot's spec and report over
   Endless's 31 to 60. One commit.
 - **A14.2** The Sectors dialog's fourth row, Storm cleared's card, and the
-  records' "cleared all thirty". Specced. One commit, `yarn verify` with it,
+  records' "cleared all thirty", read as optional and false where a
+  speed's record lacks it, so no player's records are dropped for it. Specced. One commit, `yarn verify` with it,
   then Q4.
 
 #### A15: the checks (medium)
@@ -1013,10 +1020,11 @@ for a field of 40 by 40; a larger field has more, by its area.
   starts one at any open sector. Both ask first when a run is under way.
 - **Records,** for each speed: the runs played, the best run's score, the
   furthest wave reached, Endless's waves counting on from 30, whether a run
-  has cleared all thirty, and the strays brought home, all told. A wider
-  field holds more rocks, so a wave is
-  worth more points on a desktop than on a phone; the bests are kept by
-  speed alone, as the player has one screen at a time.
+  has cleared all thirty, and the strays brought home, all told; and each
+  sector's best, the score of the best run started there. A wider field
+  holds more rocks, so a wave is worth more points on a desktop than on a
+  phone; the bests are kept by speed and sector, not by screen, as the
+  player has one screen at a time.
 
 ### Controls
 
@@ -1221,7 +1229,9 @@ dropping what it can't trust:
   holds the stick, fire by itself, haptics and sound.
 - `asteroid-breaker-stats`: for each speed, the runs, the best score, the
   furthest wave, whether a run has cleared all thirty, and the strays
-  brought home.
+  brought home; and for each sector, the best run started there, at each
+  speed. A run flown on numbers the debug menu tuned keeps none of it,
+  nor the sectors it reaches.
 - `asteroid-breaker-progress`: the sectors reached, Endless among them.
 - `asteroid-breaker-game`: the run under way (the wave, the score, the
   crew's colors, the pilot flying first, those at home, the last color

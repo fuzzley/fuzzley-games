@@ -35,6 +35,7 @@ import {
 import { type WaveTally, chainMultiplier, tallyOf } from "../../rules/scoring";
 import { STILL, type Steer } from "../../rules/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
+import type { EndedRun } from "../../rules/stats";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import { type WaveEntry, parseWave } from "../../rules/waves";
@@ -43,12 +44,15 @@ import {
   TUNED,
   type Tuning,
   fieldTuning,
+  isRetuned,
   tuneField,
 } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field_metrics";
 import type { FieldFrame } from "../../view/frame";
 import { clearedDelayMs, resultDelayMs } from "../../view/timing";
 import { WavePlay } from "../../view/wave_play";
+import { ProgressService } from "../stats/progress.service";
+import { StatsService } from "../stats/stats.service";
 import { GAME_RANDOM, GAME_WAVES } from "../tokens";
 
 /** What a new run asks before it throws away the one under way. */
@@ -77,7 +81,9 @@ const FIRST_TORUS: Torus = {
  * Plays the game: holds the run and the wave in play's field, moves the
  * field on by the time the board's frames take, steered as the player
  * steers, pauses, goes on and starts waves and runs as the player asks,
- * shapes each field to the board's room, and says what happened.
+ * shapes each field to the board's room, says what happened, and keeps the
+ * records and the sectors reached, but for a run flown on numbers the debug
+ * menu tuned.
  *
  * The run is a signal, which changes only when the field comes to
  * something the run takes: points, a ship, a stray, a clearing. The field
@@ -92,6 +98,8 @@ export class GameService {
   private readonly viewport = inject(GameViewportService);
   private readonly random = inject(GAME_RANDOM);
   private readonly waves = inject(GAME_WAVES);
+  private readonly stats = inject(StatsService);
+  private readonly progress = inject(ProgressService);
 
   /** The id the last run took, which the next one follows. */
   private lastId = 0;
@@ -105,11 +113,20 @@ export class GameService {
   private wavePlay = this.playOf(this.runState());
   /** What a frame calls to be said, gathered as it is worked out, and said at its end. */
   private readonly news: string[] = [];
+  /** Whether the numbers in use are off `tuning.ts`'s, as the debug menu tuned them. */
+  private retuned = false;
+  /**
+   * Whether the run in play has been flown on numbers the debug menu tuned,
+   * its field stepped with them, which keeps no records: the player's own,
+   * set at a feel of their own.
+   */
+  private retunedRun = false;
 
   private readonly waitingState = signal(true);
   private readonly clearedOpenState = signal(false);
   private readonly tallyState = signal<WaveTally | null>(null);
   private readonly chainState = signal(1);
+  private readonly newBestState = signal(false);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
   private readonly runsState = signal(0);
@@ -141,6 +158,12 @@ export class GameService {
    * once the chain's time is up, and whenever no wave is in play.
    */
   readonly chain = this.chainState.asReadonly();
+
+  /** The best score at the run's speed, as of the last run that ended. */
+  readonly best = computed(() => this.stats.stats().speeds[this.speed()].best);
+
+  /** Whether the run just ended set a new best score at its speed. */
+  readonly newBest = this.newBestState.asReadonly();
 
   /** Where the run stands. */
   readonly outcome = computed(() => this.runState().outcome);
@@ -304,6 +327,7 @@ export class GameService {
     const after = startWave(before);
     this.showField(after);
     this.runState.set(after);
+    this.reachWave();
     this.sayWave();
     this.sayNews();
   }
@@ -369,6 +393,7 @@ export class GameService {
    */
   tune(change: Partial<Tuning>): void {
     this.tuningState.update((tuning) => ({ ...tuning, ...change }));
+    this.retuned = isRetuned(this.tuningState());
     if (this.waitingState()) {
       this.showField(this.runState());
     } else {
@@ -401,8 +426,11 @@ export class GameService {
     const field = this.wavePlay.field;
     this.wavePlay.advance(deltaMs, steer, this.hear);
     const moved = field.steps > 0;
+    if (moved && this.retuned) this.retunedRun = true;
     if (moved && this.runState().outcome === "ready") {
       this.runState.update(startWave);
+      if (!this.retunedRun) this.stats.recordStart(this.runState().speed);
+      this.reachWave();
       this.sayWave();
     }
     this.waitingState.set(!moved);
@@ -419,20 +447,44 @@ export class GameService {
   };
 
   /**
-   * Takes the run the field brought it to, and gathers what to say of the
-   * change: its end, or its clearing, which come once each, as no frame
-   * plays a field past them.
+   * Takes the run the field brought it to, keeps the strays it brought home
+   * and its end in the records, and gathers what to say of the change: its
+   * end, or its clearing, which come once each, as no frame plays a field
+   * past them.
    */
   private takeIn(after: Run): void {
+    const before = this.runState();
+    if (after === before) return;
     this.runState.set(after);
+    if (!this.retunedRun) {
+      this.stats.recordStrays(after.speed, after.strays - before.strays);
+    }
     if (after.outcome === "over") {
       this.wavePlay.startCardWait();
-      this.news.push(describeEnd(after));
+      if (!this.retunedRun) {
+        this.newBestState.set(this.stats.recordEnd(this.endOf(after)));
+      }
+      this.news.push(describeEnd(after, this.newBestState()));
     } else if (after.outcome === "cleared") {
       this.wavePlay.startCardWait();
       this.tallyState.set(tallyOf(this.wavePlay.field));
       this.news.push(describeCleared(after));
     }
+  }
+
+  /** Keeps the sector of the wave begun as reached, which a run may start at from then on. */
+  private reachWave(): void {
+    if (!this.retunedRun) this.progress.recordReached(this.wave().sector.id);
+  }
+
+  /** Returns what an ended run brings to the records, the sector it started at among it. */
+  private endOf(run: Run): EndedRun {
+    return {
+      speed: run.speed,
+      score: run.score,
+      wave: run.wave,
+      sector: this.waveEntry(run.firstWave).sector.id,
+    };
   }
 
   /** Gathers what to say as a wave begins: which it is, and the rocks it holds. */
@@ -507,6 +559,8 @@ export class GameService {
     this.showField(run);
     this.runState.set(run);
     this.tallyState.set(null);
+    this.newBestState.set(false);
+    this.retunedRun = false;
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
     this.runsState.update((runs) => runs + 1);

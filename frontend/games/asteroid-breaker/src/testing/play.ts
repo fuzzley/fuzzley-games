@@ -99,6 +99,12 @@ export const CHAIN_WAVES: readonly WaveEntry[] = wavesOf([
  */
 export const CHAIN_WAVE = { long: 1, blasts: 2 } as const;
 
+/** Two sectors of a wave each, a small stone apiece, for a spec of the sectors a run reaches. */
+export const SECTOR_WAVES: readonly WaveEntry[] = wavesOf([
+  { id: "near", name: "Near", drops: 0, waves: [pebbleOf("near-1", "Near")] },
+  { id: "far", name: "Far", drops: 0, waves: [pebbleOf("far-1", "Far")] },
+]);
+
 /** Each of the specs' waves' numbers, by what it is set up for. */
 export const SPEC_WAVE = { pebble: 1, gift: 2, last: 3 } as const;
 
