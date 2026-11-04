@@ -4613,3 +4613,51 @@ Breaker's line for line.
   dialog, its ids, the bar and the page: all caught but the page's
   `[pictures]`, which the review's case catches now, and the recharge read
   from the tuning rather than written, the same number either way.
+
+## A10.2.5: the rest of the settings
+
+2026-11-04.
+
+- **Built.**
+  - The settings gain the speed, that of the last run started, at which a
+    visit's first run is played, and haptics, on by default (decision 20).
+    A new speed is kept once the player agrees to it, from the bar's menu
+    or the drawer.
+  - The board buzzes the phone only while the haptics are on.
+  - The drawer leads with the speed, radios that start a new run, asking
+    first while one is under way, and takes Haptics, a checkbox, and the
+    palette, `<fz-theme-picker>`, in the plan's order; Sound comes with the
+    sounds in A11.
+- **Choices.**
+  - **The speed's radios choose nothing as the arrow keys move between
+    them,** as Brick Breaker's do, since choosing one may cost the run.
+  - **The haptics setting lands here,** with the drawer it sits in, though
+    the plan gives it to A11.1 too; A11.1 builds the sound alone.
+- **Checks in a browser.** On the dev server: the drawer's settings in
+  order, Normal checked; Fast chosen starts a Fast run, the bar's badge
+  with it; Midnight blue chosen repaints the field.
+- **Review.** No bugs; five comments, four taken.
+  1. No case held a ship lost with the haptics off buzzing nothing once
+     they come back on, which an effect that kept its last run only while
+     they were on would. One does.
+  2. Any setting changed, the haptics among them, made a new board
+     setting, so the scene laid the field out again. The board reads the
+     three settings it lays out by through signals of their own, and a case
+     holds that the haptics lay nothing out.
+  3. The drawer's list of described radios, the speed's with its guard
+     against the speed in use, is Brick Breaker's and Snake's, as the other
+     settings' lists are across five drawers: a `<fz-choice-list>` in
+     `@fz/ui` could take them all. Left, for the summary at the end, as a
+     lift across five apps rather than this game's.
+  4. The haptics' case asserted as it arranged, and its name promised a
+     buzz. It is two, as the deck's are.
+  5. The first run's speed sat among a change of speed's cases, and the
+     plan gives the haptics to A11.1 too. The case is among a new run's, and
+     the choices above say where the haptics landed.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (2,964),
+  `yarn prettier:check` and the skill references. 14 mutants of the first
+  run's speed, the speed kept, the haptics, the board's settings, the
+  drawer's speed, haptics and palette: all caught.

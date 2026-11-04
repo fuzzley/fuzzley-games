@@ -1,7 +1,8 @@
 import { TestBed } from "@angular/core/testing";
+import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { provideSpecWaves } from "../../testing/play";
+import { FRAME_MS, provideSpecWaves, shoot } from "../../testing/play";
 import { TUNED, tuningLines } from "../../view/debug_tuning";
 import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
@@ -62,6 +63,42 @@ describe("SettingsComponent", () => {
     expect(closed).toHaveBeenCalledOnce();
   });
 
+  describe("the speed", () => {
+    it("shows the speed in use as chosen", async () => {
+      await renderSettings();
+
+      expect(screen.getByRole("radio", { name: /^Normal/ })).toBeChecked();
+    });
+
+    it("starts a run at the speed chosen", async () => {
+      const { user, game } = await renderSettings();
+
+      await user.click(screen.getByRole("radio", { name: /^Fast/ }));
+
+      expect(game.speed()).toBe("fast");
+      expect(screen.getByRole("radio", { name: /^Fast/ })).toBeChecked();
+    });
+
+    it("asks before a new speed throws away the run under way", async () => {
+      const { user, game } = await renderSettings();
+      game.tick(FRAME_MS, shoot(game));
+
+      await user.click(screen.getByRole("radio", { name: /^Relaxed/ }));
+
+      expect(TestBed.inject(ConfirmService).prompt().title).toBe(
+        "Start a new Relaxed game?",
+      );
+    });
+
+    it("starts no run at the speed in use", async () => {
+      const { user, game } = await renderSettings();
+
+      await user.click(screen.getByRole("radio", { name: /^Normal/ }));
+
+      expect(game.runs()).toBe(0);
+    });
+  });
+
   describe("the deck", () => {
     it("shows on a touch screen until another time is chosen", async () => {
       await renderSettings();
@@ -97,6 +134,29 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("checkbox", { name: "Fire by itself" }));
 
     expect(store.settings().fireByItself).toBe(true);
+  });
+
+  it("buzzes the phone until told otherwise", async () => {
+    await renderSettings();
+
+    expect(
+      screen.getByRole("checkbox", { name: "Buzz the phone" }),
+    ).toBeChecked();
+  });
+
+  it("turns the haptics off at its checkbox", async () => {
+    const { user, store } = await renderSettings();
+
+    await user.click(screen.getByRole("checkbox", { name: "Buzz the phone" }));
+
+    expect(store.settings().haptics).toBe(false);
+  });
+
+  it("offers the palettes", async () => {
+    await renderSettings();
+
+    expect(screen.getByText("Theme")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Midnight blue/ })).toBeVisible();
   });
 
   it("offers no debug menu in a build for players", async () => {

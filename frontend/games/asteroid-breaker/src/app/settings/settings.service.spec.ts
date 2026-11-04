@@ -15,9 +15,11 @@ describe("SettingsService", () => {
     store.update({ deck: "never" });
 
     expect(store.settings()).toEqual({
+      speed: "normal",
       deck: "never",
       stickOnRight: true,
       fireByItself: false,
+      haptics: true,
     });
   });
 });

@@ -57,8 +57,8 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  * to fly, that the wave is paused and who waits at home, how a wave cleared
  * added up, how to start again once an ended run's result is put away, that
  * the board is still loading on a slow connection, or that it couldn't be
- * drawn. It buzzes the phone, where it can, as a ship is lost and as a wave
- * is cleared.
+ * drawn. It buzzes the phone, where it can and the settings say to, as a
+ * ship is lost and as a wave is cleared.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the keys rather than reading with them; the canvas in it is
@@ -102,12 +102,22 @@ export class BoardComponent {
   );
 
   /**
+   * The settings the board lays the field and the deck out by, each a
+   * signal of its own, so another setting changed lays nothing out again.
+   */
+  private readonly deckShowing = computed(() => this.settings().deck);
+  private readonly stickOnRight = computed(() => this.settings().stickOnRight);
+  private readonly fireByItself = computed(() => this.settings().fireByItself);
+
+  /**
    * How the board lays the field and the deck out, as the settings say: the
    * deck where they have it show, on a touch screen unless they say
    * otherwise. Its margin is the stylesheet's too, which the cards keep.
    */
   protected readonly board = computed<BoardSetting>(() => {
-    const { deck, stickOnRight, fireByItself } = this.settings();
+    const deck = this.deckShowing();
+    const stickOnRight = this.stickOnRight();
+    const fireByItself = this.fireByItself();
     return {
       marginCss: this.viewport.isCompact()
         ? MARGIN_CSS_PX.compact
@@ -354,7 +364,7 @@ export class BoardComponent {
     }
   }
 
-  /** Buzzes the phone, where it can, as the run loses a ship and as it clears a wave. */
+  /** Buzzes the phone, where it can and the settings say to, as the run loses a ship and as it clears a wave. */
   private buzzAsTheRunChanges(): void {
     let last = this.game.run();
     effect(() => {
@@ -362,7 +372,11 @@ export class BoardComponent {
       const buzz = buzzOf(last, run);
       last = run;
       const navigator = this.document.defaultView?.navigator;
-      if (buzz && typeof navigator?.vibrate === "function") {
+      if (
+        buzz &&
+        this.settings().haptics &&
+        typeof navigator?.vibrate === "function"
+      ) {
         navigator.vibrate(buzz);
       }
     });

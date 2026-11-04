@@ -52,6 +52,7 @@ import { type BoardSetting, fieldShape } from "../../view/field_metrics";
 import type { FieldFrame } from "../../view/frame";
 import { clearedDelayMs, resultDelayMs } from "../../view/timing";
 import { WavePlay } from "../../view/wave_play";
+import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_RANDOM, GAME_WAVES } from "../tokens";
@@ -101,6 +102,7 @@ export class GameService {
   private readonly waves = inject(GAME_WAVES);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
+  private readonly settings = inject(SettingsService);
 
   /** The id the last run took, which the next one follows. */
   private lastId = 0;
@@ -109,7 +111,9 @@ export class GameService {
   /** What the player held as the last frame was handed over, which a new wave's ship takes as held. */
   private readonly held: Steer = { ...STILL };
   private readonly tuningState = signal(TUNED);
-  private readonly runState = signal<Run>(this.create("normal", 1));
+  private readonly runState = signal<Run>(
+    this.create(this.settings.settings().speed, 1),
+  );
   /** The wave in play: its field, stepped in place, and the beat before a card. */
   private wavePlay = this.playOf(this.runState());
   /** What a frame calls to be said, gathered as it is worked out, and said at its end. */
@@ -363,11 +367,13 @@ export class GameService {
   }
 
   /**
-   * Starts a new run at a speed, at the wave the last one started at, asking
-   * first if one is under way, and resolves to whether it did.
+   * Starts a new run at a speed, at the wave the last one started at, and
+   * keeps the speed in the settings, asking first if a run is under way, and
+   * resolves to whether it did.
    */
   async changeSpeed(speed: Speed): Promise<boolean> {
     if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
+    this.settings.update({ speed });
     this.begin(this.create(speed, this.runState().firstWave));
     return true;
   }
