@@ -1,4 +1,4 @@
-import { type Field, fieldFor, steerField } from "./field";
+import { type Field, type PlayerSetup, fieldFor, steerField } from "./field";
 import { fillFor, stretchField } from "./fill";
 import { nextStrayAfter } from "./hazards";
 import { rocksLeft } from "./rocks";
@@ -8,7 +8,6 @@ import {
   type SavedField,
   type SavedGame,
   type SavedRock,
-  type TakeUpSetup,
   restoreGame,
   saveGame,
   takeUpField,
@@ -32,7 +31,7 @@ const WAVE = 3;
 const KEEPING: RunKeeping = { broughtHome: [], tuned: false };
 
 /** What a field is taken up with beyond its wave and its run, as the specs have it: nothing held, nothing tuned. */
-const SETUP: TakeUpSetup = { held: STILL };
+const SETUP: PlayerSetup = { held: STILL };
 
 /** A large volatile broken a step before the specs' field was kept, its blast still to go off. */
 const FUSE_LIT: Partial<SavedRock> = {
@@ -418,6 +417,7 @@ describe("restoreGame", () => {
       tamperedField({ torus: { width: 89, height: 40 } }),
     ],
     ["a field with no rocks", tamperedField({ rocks: [] })],
+    ["a field not yet moved", tamperedField({ steps: 0, lastDropAt: 0 })],
     ["a field whose rocks aren't a list", tamperedField({ rocks: 5 })],
     ["a field of steps that aren't a count", tamperedField({ steps: 120.5 })],
     ["a count below nothing", tamperedField({ draws: -1 })],

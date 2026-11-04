@@ -121,6 +121,12 @@ export interface WaveSetup extends WaveStart {
   readonly rockSpeed?: number;
 }
 
+/**
+ * Says how a wave's field is set up beyond what its wave, its run and its
+ * size say: what the player holds, and the numbers the debug menu tunes.
+ */
+export type PlayerSetup = Omit<WaveSetup, keyof WaveStart | "torus" | "speed">;
+
 /** Describes a wave in play, which each step changes in place. */
 export interface Field extends RockField {
   readonly setup: FieldSetup;

@@ -15,8 +15,8 @@ by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
 shows the bar, with Pause, Sound, Sectors, New game, How to play, the speed
 and the settings, and the board, with its cards, the settings drawer, the
 Sectors dialog, How to play and the result card over an ended run, plays its
-sounds, and keeps the settings, the records and the sectors reached ("What
-It Keeps"). The site serves it all the same, badged "In development"
+sounds, and keeps the settings, the records, the sectors reached and the
+run under way, taken up after a reload ("What It Keeps"). The site serves it all the same, badged "In development"
 (`inDevelopment` in `frontend/site/src/app/provider/games.ts`), and a
 production build offers the debug menu at `?debug`, as the user asked.
 
@@ -109,6 +109,17 @@ can't trust rather than failing:
   no sector has any more are dropped.
 - `asteroid-breaker-progress`: the ids of the sectors reached, at any
   speed, which a run may start at. Ids no sector has any more are dropped.
+- `asteroid-breaker-game`: the run under way, by `SavedGameService`: its
+  wave, by number and id, its points, its crew's colors and those at home,
+  the strays brought home, for the result card, and whether it was flown on
+  tuned numbers; and its field's size as laid out and as it is now, its
+  rocks, whole or with a blast to go off, and the counts its draws, strays
+  and comets run by. A wave not yet moved is kept as not yet begun, and a
+  stray adrift, the comets, the pickups, the shots, the effects in play and
+  the chain go. It is written as a wave starts, as its crew changes, as it
+  pauses or goes on, and as the page is hidden or goes away, never at a
+  step, and taken up paused at startup, fitted to the board's room as a
+  pause is.
 
 A run flown on numbers the debug menu tuned, its field stepped with them,
 keeps neither the records nor the sectors it reaches. A field added to an

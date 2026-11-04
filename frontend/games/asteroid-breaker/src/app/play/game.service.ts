@@ -16,10 +16,16 @@ import {
   describeEvent,
   describePause,
   describeResume,
+  describeTakenUp,
   describeWave,
 } from "../../rules/describe";
 import type { FieldEvent } from "../../rules/events";
-import { type Field, fieldFor, reshapeField } from "../../rules/field";
+import {
+  type Field,
+  type PlayerSetup,
+  fieldFor,
+  reshapeField,
+} from "../../rules/field";
 import type { Pilot } from "../../rules/pilots";
 import { rocksLeft } from "../../rules/rocks";
 import {
@@ -33,6 +39,12 @@ import {
   startWave,
   waveStart,
 } from "../../rules/run";
+import {
+  type SavedGame,
+  type TakenUp,
+  saveGame,
+  takeUpField,
+} from "../../rules/saved_game";
 import { type WaveTally, chainMultiplier, tallyOf } from "../../rules/scoring";
 import { STILL, type Steer, thrustOf } from "../../rules/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
@@ -399,6 +411,38 @@ export class GameService {
   }
 
   /**
+   * Returns the run under way and its wave's field as storage keeps them,
+   * or null for a run with nothing to keep.
+   */
+  saved(): SavedGame | null {
+    return saveGame(this.runState(), this.wavePlay.field, this.waves, {
+      broughtHome: this.broughtHomeState(),
+      tuned: this.retunedRun,
+    });
+  }
+
+  /**
+   * Takes up a run where storage kept it, paused, and says so: its field as
+   * it was, fitted to the board's room, as a pause is, or a wave kept as not
+   * yet begun laid out afresh, waiting for its first move.
+   */
+  takeUp({ run, field, broughtHome, tuned }: TakenUp): void {
+    this.lastId = Math.max(this.lastId, run.id);
+    this.begin(run);
+    this.broughtHomeState.set(broughtHome);
+    this.retunedRun = tuned;
+    if (field) {
+      const wave = parseWave(this.waveEntry(run.wave));
+      const taken = takeUpField(wave, this.playerSetup(), field, run);
+      this.wavePlay = new WavePlay(taken, run.seed);
+      reshapeField(taken, this.torus);
+      this.waitingState.set(false);
+    }
+    this.reachWave();
+    this.announcer.say(describeTakenUp(run, this.wave()));
+  }
+
+  /**
    * Takes the room the board lays the field out in, which the next wave is
    * shaped for. A wave waiting for its first move is laid out again at
    * once, a paused one stretched to it, and one in play stretched as it
@@ -575,11 +619,15 @@ export class GameService {
   private fieldOf(run: Run): Field {
     return fieldFor(parseWave(this.waveEntry(run.wave)), {
       ...waveStart(run),
+      ...this.playerSetup(),
       torus: this.torus,
       speed: run.speed,
-      held: this.held,
-      ...fieldTuning(this.tuningState()),
     });
+  }
+
+  /** Returns how a wave's field is set up beyond what its wave, its run and its size say: what the player holds, and the numbers the debug menu tunes. */
+  private playerSetup(): PlayerSetup {
+    return { held: this.held, ...fieldTuning(this.tuningState()) };
   }
 
   /**

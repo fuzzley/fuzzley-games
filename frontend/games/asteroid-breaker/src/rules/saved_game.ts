@@ -7,14 +7,13 @@ import {
   isRockSize,
   rockKind,
 } from "./catalog/rocks";
-import { type Field, type WaveSetup, fieldFor } from "./field";
+import { type Field, type PlayerSetup, fieldFor } from "./field";
 import { fillFor, stretchField } from "./fill";
 import { nextStrayAfter } from "./hazards";
 import { PILOT_COLORS, type Pilot } from "./pilots";
 import { ROCK_OUTLINES, type Rock, isFree } from "./rocks";
 import {
   type Run,
-  type WaveStart,
   isInProgress,
   nextShipAfter,
   startWave,
@@ -145,13 +144,6 @@ export interface RunKeeping {
   readonly tuned: boolean;
 }
 
-/**
- * How a field taken up is set up beyond what its wave, its run and what
- * storage kept say: what the player holds, and the numbers the debug menu
- * tunes.
- */
-export type TakeUpSetup = Omit<WaveSetup, keyof WaveStart | "torus" | "speed">;
-
 /** What a field kept must agree with of its run: the wave's points and the strays it has brought home. */
 interface WaveSoFar {
   readonly points: number;
@@ -272,7 +264,7 @@ export function restoreGame(
  */
 export function takeUpField(
   wave: Wave,
-  setup: TakeUpSetup,
+  setup: PlayerSetup,
   saved: SavedField,
   run: Run,
 ): Field {
@@ -367,11 +359,12 @@ function sizeOf({ width, height }: Torus): Torus {
 
 /**
  * Returns a wave's field as storage kept it, or null if it can't be
- * trusted: a size no board lays a field out at, more rocks than the wave
- * holds at the size it was laid out at or none, a rock off the field or in
- * a state its kind never comes to, more strays home than the wave has sent
- * or more sent than it sends, fewer points than the chain and the strays
- * home have scored, or a count out of its range.
+ * trusted: one not yet moved, which is kept as none, a size no board lays
+ * a field out at, more rocks than the wave holds at the size it was laid
+ * out at or none, a rock off the field or in a state its kind never comes
+ * to, more strays home than the wave has sent or more sent than it sends,
+ * fewer points than the chain and the strays home have scored, or a count
+ * out of its range.
  */
 function restoredField(
   value: unknown,
@@ -387,6 +380,7 @@ function restoredField(
     !laidOut ||
     !torus ||
     !isCount(steps) ||
+    steps === 0 ||
     !isCount(draws) ||
     !isCount(straysSent) ||
     straysSent < straysHome ||

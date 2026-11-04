@@ -4957,3 +4957,52 @@ and takes up a run by them.
   helpers: all caught, once the cases six checks lacked were added, but
   `nextShipAfter()`'s guard below the first mark, which its sum gets right
   alone but which reads plainly, as Brick Breaker's does.
+
+## A12.2.2: the run kept and taken up
+
+2026-11-04.
+
+- **Built.** `src/app/play/saved_game.service.ts`: `SavedGameService`
+  keeps the run under way under `asteroid-breaker-game`, versioned, as
+  Brick Breaker's does, written through the rules' `saveGame()` as the
+  run's outcome, its wave's wait for the first move or its crew changes and
+  as the page is hidden or goes away, never at a step, and takes up a stored one at
+  startup, which `main.ts` injects it for. `GameService.saved()` hands it
+  the run, the strays brought home and whether it was tuned;
+  `GameService.takeUp()` puts a run taken up on the board, paused, its
+  field rebuilt by `takeUpField()` and fitted to the board's room as a
+  pause is, keeps its sector as reached, and says where it stands
+  (`describeTakenUp()`: "Your last run is paused on wave 4, Thaw, with a
+  score of 9,020 and 2 ships. Press Enter to go on."). The rules drop a
+  field kept at its first step, which `saveGame()` keeps as none. The game's
+  `AGENTS.md` lists the entry.
+- **Checks in a browser.** In the DevTools MCP's Chrome, on the dev
+  server: a run begun and paused, reloaded, came back paused, its five
+  rocks where they were to a hundredth of a unit, the Paused card over
+  it, the announcement as written; resumed, its rocks moved on and its ship
+  waited, and the console held nothing.
+- **Review.** One gap proved and one worry, both taken, and four comments,
+  three taken.
+  1. The write followed the ships, so a stray brought home, which changes
+     the crew at home, the strays and the points but no ship, waited for
+     the next write; and a reload before it gave the stray back, for the
+     records to count again. It follows the crew, which a stray brought
+     home, sent, gained or lost replaces, and nothing else does.
+  2. The write runs in an effect, which a hidden page, drawing no frame,
+     may never run, and a phone may drop a hidden tab without `pagehide`.
+     It writes as the page is hidden too. Brick Breaker's has the same gap:
+     for the summary at the end.
+  3. The guide's summary of the shell left out the run kept. It names it.
+  4. `TakeUpSetup` named what now sets up every wave's field: it is
+     `field.ts`' `PlayerSetup`. The field reader's doc was wrapped raggedly,
+     and is rewrapped. A spec helper's types are the alias's already. The
+     wave taken up is laid out twice, once by `begin()`: left, as it is
+     once, at startup.
+
+  These correct the change, so it had no second review.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (3,138),
+  `yarn prettier:check` and the skill references. 25 mutants of the
+  writes, what they follow, the take-up's every step, the player's setup,
+  the step-0 field and the words: all caught but the effect following the
+  runs begun, which every run begun also changes the outcome of; it goes.
