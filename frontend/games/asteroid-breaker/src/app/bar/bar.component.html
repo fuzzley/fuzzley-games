@@ -111,6 +111,19 @@
     <span class="btn-text">New game</span>
   </button>
 
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="How to play"
+      title="How to play"
+      (click)="openHelp.emit()"
+    >
+      <fz-icon name="help" />
+    </button>
+  }
+
   @if (viewport.isCompact()) {
     <fz-bar-overflow
       fzBarActions

@@ -13,6 +13,7 @@ import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
+import { HelpComponent } from "./help/help.component";
 import { GameService } from "./play/game.service";
 import { ResultComponent } from "./result/result.component";
 import { SectorsComponent } from "./sectors/sectors.component";
@@ -20,9 +21,9 @@ import { SettingsComponent } from "./settings/settings.component";
 
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the live
- * region that says what happens, the sectors and the settings the bar
- * opens, the result card over an ended run, and the question before a run
- * is thrown away.
+ * region that says what happens, the sectors, How to play and the settings
+ * the bar opens, the result card over an ended run, and the question
+ * before a run is thrown away.
  *
  * The board takes the focus as a run begins, as the page loads or after a
  * new game, and whenever the last dialog over it closes, so the keys steer
@@ -36,6 +37,7 @@ import { SettingsComponent } from "./settings/settings.component";
     BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
+    HelpComponent,
     PlayRoomDirective,
     ResultComponent,
     SectorsComponent,
@@ -55,12 +57,14 @@ export class AppComponent {
   private readonly board = viewChild.required(BoardComponent);
 
   protected readonly sectorsOpen = signal(false);
+  protected readonly helpOpen = signal(false);
   protected readonly settingsOpen = signal(false);
 
   /** Whether a dialog covers the board. */
   private readonly covered = computed(
     () =>
       this.sectorsOpen() ||
+      this.helpOpen() ||
       this.settingsOpen() ||
       this.game.resultOpen() ||
       this.confirm.isOpen(),

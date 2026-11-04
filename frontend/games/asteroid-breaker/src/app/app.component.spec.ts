@@ -1,6 +1,12 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
-import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import type { HostedScene } from "@fz/phaser/host";
+import {
+  FakePhaserCanvas,
+  type SceneRun,
+  provideFakePhaserCanvas,
+  runScene,
+} from "@fz/phaser/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { STILL } from "../rules/ship";
@@ -12,6 +18,7 @@ import {
   provideSpecWaves,
   shoot,
 } from "../testing/play";
+import { paintRoles } from "../testing/roles";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 
@@ -216,6 +223,67 @@ describe("AppComponent", () => {
 
       expect(game.outcome()).toBe("ready");
       expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
+  describe("How to play", () => {
+    it("opens from the bar", async () => {
+      await renderApp();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "How to play" }),
+      );
+
+      expect(screen.getByRole("dialog", { name: "How to play" })).toBeVisible();
+    });
+
+    it("hands the board the focus back as it closes", async () => {
+      await renderApp();
+      await userEvent.click(
+        screen.getByRole("button", { name: "How to play" }),
+      );
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Close How to play" }),
+      );
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    describe("with the scene it loads", () => {
+      let scene: SceneRun<HostedScene> | null = null;
+
+      beforeEach(() => {
+        paintRoles();
+      });
+
+      afterEach(() => {
+        scene?.destroy();
+        scene = null;
+        document.documentElement.removeAttribute("style");
+      });
+
+      it("shows the pictures the scene drew", async () => {
+        await renderApp();
+        const board = screen.getByRole("application");
+        const make =
+          await TestBed.inject(FakePhaserCanvas).host.latest.source();
+        scene = await runScene(make, {
+          config: { input: { keyboard: { target: board } } },
+        });
+        scene.advance(FRAME_MS);
+
+        await userEvent.click(
+          screen.getByRole("button", { name: "How to play" }),
+        );
+
+        expect(
+          within(
+            screen.getByRole("dialog", { name: "How to play" }),
+          ).queryAllByRole("presentation"),
+        ).not.toHaveLength(0);
+      });
     });
   });
 

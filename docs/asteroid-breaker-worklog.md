@@ -4558,3 +4558,58 @@ Breaker's line for line.
   words: all caught but the heading's id, which no case held; one does
   now. The catalog's include of `help-text` no spec can see, as jsdom
   computes no component's styles; the browser check holds it.
+
+## A10.2.4: How to play
+
+2026-11-04.
+
+- **Built.**
+  - `src/app/help/`: How to play, as Brick Breaker's is: the aim, the
+    scoring, a dash and pausing, a table of the controls by mouse, touch
+    and keys, and three catalogs on `@fz/game-ui/help_catalog`, Rocks,
+    Pickups, and Strays and comets, each entry with its name, what it does
+    and its picture once the scene has drawn it. Every figure it gives,
+    the chain's multipliers and window, a stray's, a clearing's and the
+    ships' points, the dash's recharge and the wave strays come from, is
+    read from `src/rules/tuning.ts`.
+  - The bar's How to play, a round button before the overflow, and an
+    item in the overflow menu on a compact screen, between Sectors and
+    Settings.
+  - The page holds the dialog, hands it the board's pictures, and gives
+    the board the focus back as it closes.
+- **Choices.**
+  - **A stray and the comet share a catalog,** "Strays and comets", as
+    neither is a rock or a pickup and a wave never needs either; the plan
+    lists them beside the catalogs.
+  - **The pictures' room is 36 px square,** as the rocks, the pickups and
+    a stray are drawn about as wide as they are tall.
+- **Checks in a browser.** On the dev server: the three catalogs, 17
+  pictures at 36 px once the scene has drawn, the names in the text's
+  color.
+- **Review.** No bugs; six comments, all taken.
+  1. Nothing held the page handing How to play the board's pictures, the
+     one binding between two halves each specced. A case runs the scene
+     the page hands its canvas and finds the pictures in the dialog.
+  2. The catalogs' sections were Brick Breaker's line for line. They are
+     the library's now, lifted first in a commit of their own ("Lift: How
+     to play's catalogs whole"). The chain's words and Brick Breaker's
+     streak's are one expression over each game's own table, in its own
+     noun, so they stay in each game.
+  3. `ADRIFT_IDS` restated `ADRIFT`'s keys. It is `keysOf(ADRIFT)`.
+  4. Dashing said nothing touches the ship while it dashes, but a pickup
+     and a stray still reach it. It says no rock or comet can take it, and
+     reads the recharge's 2.5 seconds from the tuning.
+  5. The Touch column gave "Move or fire" for the next wave alone, but a
+     finger on the deck also goes on with a paused wave and starts again
+     once a run has ended. Both rows say so.
+  6. The stylesheet called the pickups' pictures their tags, and the bar's
+     case of the overflow menu still named two of its three. Both fixed.
+
+  These correct the change but the second, which reshaped the library,
+  not this; the lift had a review of its own.
+
+- **Checks.** Asteroid Breaker's `lint`, `typecheck` and `test` (2,951),
+  `yarn prettier:check` and the skill references. 12 mutants of the
+  dialog, its ids, the bar and the page: all caught but the page's
+  `[pictures]`, which the review's case catches now, and the recharge read
+  from the tuning rather than written, the same number either way.

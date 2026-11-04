@@ -1,0 +1,13 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include help-card;
+}
+
+// The rocks, the pickups and a stray are drawn about as wide as they are
+// tall, so each picture's room is square; the comet, longer, fits its width.
+fz-help-catalog {
+  --fz-help-picture-width: 36px;
+  --fz-help-picture-height: 36px;
+}

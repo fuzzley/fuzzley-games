@@ -1,0 +1,93 @@
+<fz-dialog [open]="open()" label="How to play" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close How to play"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>How to play</h2>
+    <p>
+      Fly the ship and break every rock on the field to clear the wave. The
+      field wraps: what leaves by one edge comes back by the other. A rock that
+      touches the ship costs it; the run ends when the last ship is lost, and
+      the waves go on as long as it lasts.
+    </p>
+    <p>
+      <strong>Scoring.</strong> Each rock scores by its kind and its size, a
+      smaller one more. {{ scoring.chain }} {{ scoring.strays }}
+      {{ scoring.clearing }} {{ scoring.ships }}
+    </p>
+    <p><strong>Dashing.</strong> {{ dashing }}</p>
+    <p>
+      <strong>Pausing.</strong> The game pauses itself when you switch away,
+      turn the screen or open a dialog, and goes on only when you say.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <td></td>
+          <th scope="col">Mouse</th>
+          <th scope="col">Touch</th>
+          <th scope="col">Keyboard</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Turn</th>
+          <td>Point; the ship turns toward the pointer</td>
+          <td>Push the stick the way to face</td>
+          <td>
+            Hold <kbd>←</kbd> or <kbd>→</kbd>, or <kbd>A</kbd> or <kbd>D</kbd>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Thrust</th>
+          <td>Hold the right button</td>
+          <td>Push the stick further</td>
+          <td>Hold <kbd>↑</kbd> or <kbd>W</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Fire</th>
+          <td>Hold the left button</td>
+          <td>Hold Fire, or, in the settings, have the ship fire by itself</td>
+          <td>Hold <kbd>Space</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Dash</th>
+          <td><kbd>Shift</kbd></td>
+          <td>Dash</td>
+          <td><kbd>Shift</kbd>, <kbd>↓</kbd> or <kbd>S</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Pause, or go on</th>
+          <td>Pause, then Resume</td>
+          <td>Pause, then Resume, or move or fire</td>
+          <td>
+            <kbd>P</kbd>; <kbd>Esc</kbd> pauses, and <kbd>Enter</kbd> or a
+            flight key goes on
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Next wave</th>
+          <td>Next wave</td>
+          <td>Move or fire</td>
+          <td><kbd>Enter</kbd> or a flight key</td>
+        </tr>
+        <tr>
+          <th scope="row">Start again, once a run has ended</th>
+          <td>New game</td>
+          <td>New game, or move or fire</td>
+          <td><kbd>Enter</kbd>, <kbd>P</kbd> or a flight key</td>
+        </tr>
+      </tbody>
+    </table>
+
+    @for (catalog of catalogs(); track catalog.id) {
+      <fz-help-catalog [catalog]="catalog" />
+    }
+  </div>
+</fz-dialog>
