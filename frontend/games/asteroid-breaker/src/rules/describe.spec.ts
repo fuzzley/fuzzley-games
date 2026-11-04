@@ -6,6 +6,7 @@ import {
   describePause,
   describeResume,
   describeWave,
+  whereLost,
 } from "./describe";
 import { type FieldEvent, FieldEventLog } from "./events";
 import type { Crew, Pilot } from "./pilots";
@@ -168,6 +169,12 @@ describe("describePause", () => {
 describe("describeResume", () => {
   it("says the run goes on", () => {
     expect(describeResume()).toBe("Going on.");
+  });
+});
+
+describe("whereLost", () => {
+  it("says the wave a run was lost on", () => {
+    expect(whereLost(runAt(4, 9_020))).toBe("Lost on wave 4");
   });
 });
 

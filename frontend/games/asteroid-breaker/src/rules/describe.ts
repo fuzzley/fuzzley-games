@@ -63,6 +63,11 @@ export function describeResume(): string {
   return "Going on.";
 }
 
+/** Returns where a run was lost: the wave its last ship went down on. */
+export function whereLost(run: Run): string {
+  return `Lost on wave ${String(run.wave)}`;
+}
+
 /** Returns what is said as a run ends: the score, the wave it was lost on, and a new best. */
 export function describeEnd(run: Run, newBest: boolean): string {
   const best = newBest ? " A new best!" : "";

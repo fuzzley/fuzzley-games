@@ -55,7 +55,8 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   modal `<dialog>`, so the browser traps focus, makes the page behind it
   inert and gives focus back on close. The host owns `open`: the dialog
   asks to close through `closed`, on Escape or a backdrop click unless
-  `dismissible` is off, and never closes itself. It paints only the
+  `dismissible` is off, or on Escape alone with `closesOnBackdrop` off,
+  and never closes itself. It paints only the
   backdrop, which an app tints with `--fz-dialog-backdrop`, or leaves clear
   with `backdrop="clear"` for a panel about what the page shows; the host
   styles the panel.

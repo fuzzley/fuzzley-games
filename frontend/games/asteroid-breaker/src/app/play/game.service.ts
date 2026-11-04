@@ -20,6 +20,7 @@ import {
 } from "../../rules/describe";
 import type { FieldEvent } from "../../rules/events";
 import { type Field, fieldFor, reshapeField } from "../../rules/field";
+import type { Pilot } from "../../rules/pilots";
 import { rocksLeft } from "../../rules/rocks";
 import {
   type Run,
@@ -113,6 +114,8 @@ export class GameService {
   private wavePlay = this.playOf(this.runState());
   /** What a frame calls to be said, gathered as it is worked out, and said at its end. */
   private readonly news: string[] = [];
+  /** The pilots of the strays the frame brought home, gathered as it is heard. */
+  private readonly cameHome: Pilot[] = [];
   /** Whether the numbers in use are off `tuning.ts`'s, as the debug menu tuned them. */
   private retuned = false;
   /**
@@ -127,6 +130,7 @@ export class GameService {
   private readonly tallyState = signal<WaveTally | null>(null);
   private readonly chainState = signal(1);
   private readonly newBestState = signal(false);
+  private readonly broughtHomeState = signal<readonly Pilot[]>([]);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
   private readonly runsState = signal(0);
@@ -164,6 +168,14 @@ export class GameService {
 
   /** Whether the run just ended set a new best score at its speed. */
   readonly newBest = this.newBestState.asReadonly();
+
+  /** The pilots of the strays the run has brought home, in the order they came, for the result card. */
+  readonly broughtHome = this.broughtHomeState.asReadonly();
+
+  /** The sector the run started in, which trying again starts at. */
+  readonly firstSector = computed(
+    () => this.waveEntry(this.runState().firstWave).sector,
+  );
 
   /** Where the run stands. */
   readonly outcome = computed(() => this.runState().outcome);
@@ -425,6 +437,10 @@ export class GameService {
   private playOn(deltaMs: number, steer: Readonly<Steer>): void {
     const field = this.wavePlay.field;
     this.wavePlay.advance(deltaMs, steer, this.hear);
+    if (this.cameHome.length > 0) {
+      const came = this.cameHome.splice(0);
+      this.broughtHomeState.update((home) => [...home, ...came]);
+    }
     const moved = field.steps > 0;
     if (moved && this.retuned) this.retunedRun = true;
     if (moved && this.runState().outcome === "ready") {
@@ -440,8 +456,11 @@ export class GameService {
     );
   }
 
-  /** Hears an event of the field, and gathers what to say of it. Made once, so hearing makes nothing. */
+  /** Hears an event of the field, and gathers what to say of it and the strays brought home. Made once, so hearing makes nothing. */
   private readonly hear = (event: Readonly<FieldEvent>): void => {
+    if (event.kind === "home" && event.pilot !== null) {
+      this.cameHome.push(event.pilot);
+    }
     const said = describeEvent(event);
     if (said !== null) this.news.push(said);
   };
@@ -560,6 +579,7 @@ export class GameService {
     this.runState.set(run);
     this.tallyState.set(null);
     this.newBestState.set(false);
+    this.broughtHomeState.set([]);
     this.retunedRun = false;
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);

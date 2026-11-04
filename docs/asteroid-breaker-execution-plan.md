@@ -1235,15 +1235,15 @@ dropping what it can't trust:
 - `asteroid-breaker-progress`: the sectors reached, Endless among them.
 - `asteroid-breaker-game`: the run under way (the wave, the score, the
   crew's colors, the pilot flying first, those at home, the last color
-  given, the strays brought home, the next ship's mark, the speed, the
-  seed) and its field: its size in units, each rock's kind, size, outline,
-  place, speed, turn and hits left, the field's count of steps and draws,
-  and the time the wave has run and the strays it has sent, for its strays
-  and comets; a stray adrift goes, as the comets do. Written as a wave
-  starts, as a ship is lost
-  or waits, as the run pauses or goes on, and as the page goes away, never
-  at a step. Taken up paused, it stretches to the room it comes back to, as
-  a pause does.
+  given, the strays brought home and each one's color, for the result card,
+  the next ship's mark, the speed, the seed) and its field: its size in
+  units, each rock's kind, size, outline, place, speed, turn and hits left,
+  the field's count of steps and draws, and the time the wave has run and
+  the strays it has sent, for its strays and comets; a stray adrift goes, as
+  the comets do. Written as a wave starts, as a ship is lost or waits, as
+  the run pauses or goes on, and as the page goes away, never at a step.
+  Taken up paused, it stretches to the room it comes back to, as a pause
+  does.
 
 The debug menu's numbers are not kept: a reload starts from `tuning.ts`.
 

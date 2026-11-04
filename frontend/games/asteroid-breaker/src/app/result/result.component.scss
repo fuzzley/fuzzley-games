@@ -1,0 +1,28 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include result-card;
+
+  // Four figures, two by two: the score over the wave, the best over the
+  // waves cleared.
+  .figures {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card-icon {
+  color: var(--fz-warning);
+}
+
+// Focused only as the card opens, so a key still held presses nothing: no
+// button, so no ring.
+h2:focus {
+  outline: none;
+}
+
+// The fuzzballs brought home, above the buttons.
+.home {
+  margin: 0 0 var(--fz-space-6);
+  color: var(--fz-muted);
+}

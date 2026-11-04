@@ -13,8 +13,8 @@ says how any game here is drawn with Phaser. Paths are relative to
 The game is being built from `docs/asteroid-breaker-execution-plan.md`, step
 by step, each logged in `docs/asteroid-breaker-worklog.md`. So far the shell
 shows the bar, with Pause, New game, the speed and the settings, and the
-board, with its cards and a first settings drawer, but no other dialog
-yet, and keeps the records and the sectors reached ("What It Keeps"). The site serves it all the same, badged "In development"
+board, with its cards, a first settings drawer and the result card over an
+ended run, and keeps the records and the sectors reached ("What It Keeps"). The site serves it all the same, badged "In development"
 (`inDevelopment` in `frontend/site/src/app/provider/games.ts`), and a
 production build offers the debug menu at `?debug`, as the user asked.
 

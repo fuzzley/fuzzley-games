@@ -68,15 +68,11 @@
 }
 
 // A fuzzball for each ship, in its pilot's ink.
+// On one line, as a figure is.
 .pilots {
-  display: flex;
-  gap: 3px;
-  padding-block: 2px;
+  --pilot-row-wrap: nowrap;
 
-  app-pilot {
-    width: 20px;
-    height: 20px;
-  }
+  padding-block: 2px;
 }
 
 // The multiplier in the accent, so a chain catches the eye.

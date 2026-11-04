@@ -60,6 +60,28 @@ export const STRAY_WAVES: readonly WaveEntry[] = wavesOf([
   },
 ]);
 
+/**
+ * A wave of a crystal, which lets an Extra ship go as it breaks, and a
+ * stray, for a spec of a stray brought home that flies the ship gained.
+ */
+export const GAINED_WAVES: readonly WaveEntry[] = wavesOf([
+  {
+    id: "gained",
+    name: "Gained",
+    drops: 1,
+    waves: [
+      {
+        id: "gained",
+        name: "Gained",
+        rocks: [{ kind: "crystal", size: "medium", count: 1 }],
+        drops: 1,
+        pickups: ["ship"],
+        strays: 1,
+      },
+    ],
+  },
+]);
+
 /** Returns a wave of small stones in a cluster, near enough to each other that the ship breaks them in a chain. */
 function clusterOf(id: string, name: string, count: number): WaveData {
   return {

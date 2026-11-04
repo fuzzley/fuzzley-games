@@ -48,11 +48,7 @@
       </dt>
       <dd class="value">
         @if (fitsEveryFigure()) {
-          <span class="pilots">
-            @for (pilot of pilots(); track $index) {
-              <app-pilot [pilot]="pilot" />
-            }
-          </span>
+          <app-pilot-row class="pilots" [pilots]="pilots()" />
         } @else {
           <span aria-hidden="true">{{ game.ships() }}</span>
         }

@@ -15,6 +15,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent, type IconName } from "@fz/ui/icon";
 import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
 import { PilotComponent } from "../pilot/pilot.component";
+import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
@@ -61,6 +62,7 @@ interface PauseButton {
     GameBarComponent,
     IconComponent,
     PilotComponent,
+    PilotRowComponent,
   ],
   host: {
     "[class.score-and-ships]": "!fitsEveryFigure()",

@@ -30,15 +30,8 @@
       <div class="card">
         <p class="card-title">Paused</p>
         <p>Score {{ score() }}</p>
-        @if (home().length > 0) {
-          <p class="home">
-            <span class="home-pilots">
-              @for (pilot of home(); track $index) {
-                <app-pilot [pilot]="pilot" />
-              }
-            </span>
-            {{ homeWords() }}
-          </p>
+        @if (hasHome()) {
+          <app-pilot-row [pilots]="home()">{{ homeWords() }}</app-pilot-row>
         }
         <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
           Resume

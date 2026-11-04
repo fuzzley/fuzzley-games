@@ -14,18 +14,18 @@ import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { GameService } from "./play/game.service";
+import { ResultComponent } from "./result/result.component";
 import { SettingsComponent } from "./settings/settings.component";
 
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the live
- * region that says what happens, the settings the bar opens, and the
- * question before a run is thrown away.
+ * region that says what happens, the settings the bar opens, the result
+ * card over an ended run, and the question before a run is thrown away.
  *
  * The board takes the focus as a run begins, as the page loads or after a
  * new game, and whenever the last dialog over it closes, so the keys steer
  * at once. The wave in play pauses whenever the player looks away from the
- * room (`[fzPlayRoom]`). An ended run's result is put away as it opens,
- * leaving the board's card to offer another run.
+ * room (`[fzPlayRoom]`).
  */
 @Component({
   selector: "app-root",
@@ -35,6 +35,7 @@ import { SettingsComponent } from "./settings/settings.component";
     BoardComponent,
     ConfirmDialogComponent,
     PlayRoomDirective,
+    ResultComponent,
     SettingsComponent,
   ],
   host: {
@@ -54,7 +55,8 @@ export class AppComponent {
 
   /** Whether a dialog covers the board. */
   private readonly covered = computed(
-    () => this.settingsOpen() || this.confirm.isOpen(),
+    () =>
+      this.settingsOpen() || this.game.resultOpen() || this.confirm.isOpen(),
   );
 
   /** The last run the board took the focus for, by `GameService.runs`. */
@@ -76,9 +78,6 @@ export class AppComponent {
       untracked(() => {
         this.board().focus(options);
       });
-    });
-    effect(() => {
-      if (this.game.resultOpen()) this.game.closeResult();
     });
   }
 
