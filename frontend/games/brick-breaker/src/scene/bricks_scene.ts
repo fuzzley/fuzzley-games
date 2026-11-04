@@ -10,7 +10,7 @@ import {
   whenSceneEnds,
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
-import { Core, type GameObjects, Input, Scene, type Types } from "phaser";
+import { Core, type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
 import {
@@ -145,8 +145,6 @@ export class BricksScene extends Scene {
   private readonly frameSounds = createFrameSounds();
   /** How many chimes the game had called for as the scene last looked. */
   private chimed = 0;
-  /** How a sound is played, made once and changed for each: Phaser copies it as the sound starts. */
-  private readonly soundConfig: Types.Sound.SoundConfig = { detune: 0 };
 
   constructor(
     private readonly options: BricksSceneOptions,
@@ -243,15 +241,9 @@ export class BricksScene extends Scene {
       this.chimed = chimes;
       this.frameSounds.hear(CHIME, 0);
     }
-    this.frameSounds.playEach(this.playSound);
+    this.frameSounds.playEach(this.sounds.playRisen);
     this.draw(frame);
   }
-
-  /** Plays a sound, risen by some cents, for `FrameSounds.playEach()`, which takes it each frame. */
-  private readonly playSound = (name: SoundName, detune: number): void => {
-    this.soundConfig.detune = detune;
-    this.sounds.play(name, this.soundConfig);
-  };
 
   /** Has each painter draw the field as it stands, in its layer. */
   private draw({ field, alpha }: FieldFrame): void {

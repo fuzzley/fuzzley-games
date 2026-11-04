@@ -57,12 +57,14 @@ take the pure ones.
   an `ArtFrame` as `bakeAtlas()` draws one, its shapes played into the
   `Graphics` in turn. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
-  spritemap and its file's URL), made in `create()` so the scene never
-  waits for it, and plays its sounds, named by the spritemap, once it has
-  loaded while the player wants sound, muting the game while they don't;
-  `hold()` loops a sound while a scene says it is held, as a key held down
-  hums, and stops it once it is let go, sound is turned off or the scene
-  ends. It imports Phaser, never Angular.
+  spritemap and its file's URL), made in `create()` so the scene never waits
+  for it, and plays its sounds, named by the spritemap, once it has loaded
+  while the player wants sound, muting the game while they don't;
+  `playRisen()` plays one risen by some cents, through `play()`, made once
+  for `@fz/core`'s `FrameSounds.playEach()` to take each frame; `hold()`
+  loops a sound while a scene says it is held, as a key held down hums, and
+  stops it once it is let go, sound is turned off or the scene ends. It
+  imports Phaser, never Angular.
 - `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows its
   scenes in, which makes the one host it keeps, through the
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a function

@@ -40,9 +40,10 @@ capsule from one atlas baked at run time (`bakeAtlas()`).
 - **`@fz/phaser/sound`**: `SpritePlayer`, made in a scene's `create()` so
   the scene never waits for its sprite, which plays the sprite's sounds,
   named by its spritemap, while the player wants sound, muting the game
-  while they don't, and loops one while a scene holds it (`hold()`); a
-  sprite that fails to load leaves the game silent, not broken.
-  `@fz/dev/sounds` synthesizes the sprite.
+  while they don't, plays one risen by some cents (`playRisen()`), which a
+  scene hands to `@fz/core`'s `FrameSounds.playEach()`, and loops one while
+  a scene holds it (`hold()`); a sprite that fails to load leaves the game
+  silent, not broken. `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
 - **`@fz/phaser/insets`**, **`@fz/phaser/color`**, **`@fz/phaser/layout`**
   and **`@fz/phaser/shapes`** import nothing but each other, so a game's
