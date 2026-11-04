@@ -14,6 +14,33 @@
 
     <div class="drawer-content">
       <div class="setting">
+        <span class="setting-label" id="speed-label">Speed</span>
+        <!-- Each choice is named by all its text, as a voice command reads it. -->
+        <div
+          class="choice-list"
+          fzRadioGroup
+          aria-labelledby="speed-label"
+          aria-describedby="speed-desc"
+        >
+          @for (choice of speeds(); track choice.id) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              (click)="chooseSpeed(choice.id)"
+            >
+              <span class="name">{{ choice.name }}</span>
+              <span class="desc">{{ choice.says }}</span>
+            </button>
+          }
+        </div>
+        <p class="setting-desc" id="speed-desc">
+          Changing the speed starts a new run.
+        </p>
+      </div>
+
+      <div class="setting">
         <span class="setting-label" id="deck-label">Touch controls</span>
         <!-- Each choice is named by all its text, as a voice command reads it. -->
         <div class="choice-list" fzRadioGroup aria-labelledby="deck-label">
@@ -66,6 +93,30 @@
             The ship fires all the time, and the deck has Dash alone.
           </p>
         </div>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Haptics</span>
+        <div class="setting-check">
+          <input
+            #haptics
+            id="haptics"
+            type="checkbox"
+            aria-describedby="haptics-desc"
+            [checked]="settings().haptics"
+            (change)="setHaptics(haptics.checked)"
+          />
+          <label for="haptics">Buzz the phone</label>
+          <p class="setting-desc" id="haptics-desc">
+            Once as a ship is lost, and twice as a wave is cleared, on a phone
+            that can.
+          </p>
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Theme</span>
+        <fz-theme-picker />
       </div>
 
       @if (debugMenu) {

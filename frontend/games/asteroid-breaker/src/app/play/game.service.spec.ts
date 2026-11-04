@@ -42,6 +42,7 @@ import {
 import { TUNED } from "../../view/debug_tuning";
 import type { BoardSetting } from "../../view/field_metrics";
 import { CLEARED_MS, resultDelayMs } from "../../view/timing";
+import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES } from "../tokens";
@@ -122,6 +123,14 @@ beforeEach(() => {
 
 describe("GameService", () => {
   describe("a new run", () => {
+    it("starts a visit's first run at the speed the settings keep", () => {
+      TestBed.inject(SettingsService).update({ speed: "fast" });
+
+      const game = TestBed.inject(GameService);
+
+      expect(game.speed()).toBe("fast");
+    });
+
     it("waits at the first wave for its first move, with the first ships and no points", () => {
       const game = TestBed.inject(GameService);
 
@@ -1045,6 +1054,24 @@ describe("GameService", () => {
   });
 
   describe("a change of speed", () => {
+    it("keeps the new speed in the settings", async () => {
+      const game = await gameAt(SPEC_WAVE.gift);
+
+      await game.changeSpeed("relaxed");
+
+      expect(TestBed.inject(SettingsService).settings().speed).toBe("relaxed");
+    });
+
+    it("keeps the speed in the settings as it was when the player backs out", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      const starting = game.changeSpeed("relaxed");
+      TestBed.inject(ConfirmService).cancel();
+      await starting;
+
+      expect(TestBed.inject(SettingsService).settings().speed).toBe("normal");
+    });
+
     it("starts a run at the speed, at the wave the last run started at, without asking while none is under way", async () => {
       const game = await gameAt(SPEC_WAVE.gift);
 

@@ -737,6 +737,28 @@ describe("BoardComponent", () => {
       expect(vibrate.mock.calls).toEqual([[CLEARED_BUZZ]]);
     });
 
+    it("buzz nothing where the settings turn the haptics off", async () => {
+      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
+      useSettings({ haptics: false });
+
+      loseShip(game);
+      detectChanges();
+
+      expect(vibrate).not.toHaveBeenCalled();
+    });
+
+    it("buzz nothing for a ship lost while they were off, as they come back on", async () => {
+      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
+      useSettings({ haptics: false });
+      loseShip(game);
+      detectChanges();
+
+      useSettings({ haptics: true });
+      detectChanges();
+
+      expect(vibrate).not.toHaveBeenCalled();
+    });
+
     it("buzz nothing, and go on, where the phone can't buzz", async () => {
       const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
       Reflect.deleteProperty(navigator, "vibrate");
@@ -802,6 +824,16 @@ describe("BoardComponent", () => {
       const { game } = await runBoardScene({ width: 1280, height: 720 });
 
       expect(game.frame().field.torus.width).toBeGreaterThan(FIELD_SHORT_SIDE);
+    });
+
+    it("lays the field out again for no setting but those it is laid out by", async () => {
+      const { game, run } = await runBoardScene();
+      const setRoom = vi.spyOn(game, "setRoom");
+
+      useSettings({ haptics: false });
+      run.advance(FRAME_MS);
+
+      expect(setRoom).not.toHaveBeenCalled();
     });
 
     it("keeps the scene's pictures for How to play", async () => {

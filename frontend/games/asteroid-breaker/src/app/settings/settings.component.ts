@@ -10,6 +10,8 @@ import {
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
+import { ThemePickerComponent } from "@fz/ui/theme";
+import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
 import {
   TUNING_SLIDERS,
   type TuningNumber,
@@ -53,15 +55,23 @@ const COPY_WORDS = {
 } as const;
 
 /**
- * Shows the settings in a drawer: when the deck shows, which side holds its
- * stick and whether the ship fires by itself, and where `DEBUG_MENU` offers
- * it the debug menu, the numbers that set the feel, tuned on the field in play.
+ * Shows the settings in a drawer: the speed, when the deck shows, which side
+ * holds its stick, whether the ship fires by itself, haptics and the
+ * palette, and where `DEBUG_MENU` offers it the debug menu, the numbers that
+ * set the feel, tuned on the field in play.
  *
- * Each costs the run nothing, and applies at once.
+ * Choosing a speed starts a new run, after asking if one is under way, so
+ * the speeds are radios the arrow keys move between without choosing. The
+ * rest cost the run nothing, and apply at once.
  */
 @Component({
   selector: "app-settings",
-  imports: [DialogComponent, IconComponent, RadioGroupDirective],
+  imports: [
+    DialogComponent,
+    IconComponent,
+    RadioGroupDirective,
+    ThemePickerComponent,
+  ],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })
@@ -83,6 +93,16 @@ export class SettingsComponent {
 
   /** Emitted when the drawer asks to close. */
   readonly closed = output();
+
+  protected readonly speeds = computed(() => {
+    const current = this.game.speed();
+    return SPEEDS.map((id) => ({
+      id,
+      name: SPEED_INFO[id].name,
+      says: SPEED_INFO[id].says,
+      checked: id === current,
+    }));
+  });
 
   protected readonly deckChoices = computed(() => {
     const current = this.settings().deck;
@@ -121,6 +141,12 @@ export class SettingsComponent {
     return copied && COPY_WORDS[copied];
   });
 
+  /** Starts a run at the speed chosen, unless it is the speed in use. */
+  protected async chooseSpeed(speed: Speed): Promise<void> {
+    if (speed === this.game.speed()) return;
+    await this.game.changeSpeed(speed);
+  }
+
   /** Says when the deck shows. */
   protected chooseDeck(deck: DeckShowing): void {
     this.store.update({ deck });
@@ -134,6 +160,11 @@ export class SettingsComponent {
   /** Has the ship fire by itself, or as the player fires, as its checkbox says. */
   protected setFireByItself(fireByItself: boolean): void {
     this.store.update({ fireByItself });
+  }
+
+  /** Turns the haptics on or off, as their checkbox says. */
+  protected setHaptics(haptics: boolean): void {
+    this.store.update({ haptics });
   }
 
   /** Tunes a number, as its slider says, which the clipboard no longer holds. */
