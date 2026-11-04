@@ -198,6 +198,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
       pool: wave.pool,
       pickupsAtOnce: fill.pickupsAtOnce,
       strays: fill.strays,
+      strayFirstMs: fill.strayFirstMs,
       cometEvery: every && {
         least: every.least / cometRate,
         most: every.most / cometRate,
@@ -252,7 +253,7 @@ export function createField(
     lastBreakAt: 0,
     chainPoints: 0,
     nextShipAt: setup.nextShipAt,
-    strays: createStrays(),
+    strays: createStrays(setup.strayFirstMs),
     comets: createComets(),
     cleared: false,
     events: new FieldEventLog(),

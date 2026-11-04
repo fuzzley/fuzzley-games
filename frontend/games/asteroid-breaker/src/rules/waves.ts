@@ -15,6 +15,7 @@ import {
 import { ROCK_CAP, STRAYS_FROM, type Span } from "./tuning";
 import innerBelt from "./waves/inner-belt.json";
 import ironReach from "./waves/iron-reach.json";
+import storm from "./waves/storm.json";
 
 /** Every way a wave's rocks are laid out as it starts. */
 export const FORMATIONS = ["scatter", "ring", "wall", "cluster"] as const;
@@ -106,7 +107,7 @@ export interface Wave {
 }
 
 /** Every sector, in the order they are played. */
-export const SECTORS: readonly SectorData[] = [innerBelt, ironReach];
+export const SECTORS: readonly SectorData[] = [innerBelt, ironReach, storm];
 
 /** Returns the waves of sectors, in the order played, numbered from 1. */
 export function wavesOf(sectors: readonly SectorData[]): WaveEntry[] {

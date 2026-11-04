@@ -15,7 +15,7 @@ import {
   nextPilot,
 } from "./pilots";
 import type { Place } from "./torus";
-import { FIRST_SHIPS, MAX_SHIPS } from "./tuning";
+import { FIRST_SHIPS, MAX_SHIPS, STRAY_FIRST_MS } from "./tuning";
 
 /** Returns a crew of pilots flying and at home, the last color given 2 unless it says. */
 function crewOf(
@@ -133,7 +133,7 @@ describe("gainShipOn", () => {
       ship = null,
     }: { adrift?: boolean; ship?: Place | null } = {},
   ): CrewField {
-    const strays = createStrays();
+    const strays = createStrays(STRAY_FIRST_MS);
     Object.assign(strays.adrift, { live: adrift, pilot: 3 });
     const torus = { width: 60, height: 40 };
     return { crew, strays, ship, torus, events: new FieldEventLog() };

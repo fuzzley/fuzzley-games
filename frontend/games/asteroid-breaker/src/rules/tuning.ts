@@ -204,8 +204,12 @@ export const MAX_SHIPS = 6;
 /** The first wave a stray crosses, in a wave that doesn't say how many. */
 export const STRAYS_FROM = 3;
 
-/** How far into a wave its first stray comes. */
-export const STRAY_FIRST_MS = 20_000;
+/**
+ * How far into a wave on a field of 40 by 40 its first stray comes, so a
+ * wave cleared quickly on a phone still meets one; later on a larger field,
+ * by its area.
+ */
+export const STRAY_FIRST_MS = 6000;
 
 /** How long after a stray has gone, brought home or off the field, the next comes. */
 export const STRAY_NEXT_MS = 8000;

@@ -28,6 +28,7 @@ import {
   ROCK_RADIUS,
   ROCK_SPEED,
   SAFE_MIDDLE,
+  STRAY_FIRST_MS,
 } from "./tuning";
 import {
   FORMATIONS,
@@ -70,6 +71,7 @@ const SETUP: FieldSetup = {
   pool: [],
   pickupsAtOnce: 2,
   strays: 0,
+  strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
   crew: createCrew(),
   banked: 0,

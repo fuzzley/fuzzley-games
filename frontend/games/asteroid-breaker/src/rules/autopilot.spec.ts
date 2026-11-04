@@ -169,7 +169,7 @@ describe("the autopilot", () => {
   });
 
   // Twenty large iron rocks, and all they break into, outlast both strays'
-  // coming, the first 20 s in. Playing each seed's wave that long takes a
+  // coming, the second 8 s after the first has gone. Playing each seed's wave that long takes a
   // busy machine past the five seconds a case is given.
   it("brings most of the strays that cross home", { timeout: 20_000 }, () => {
     const wave = waveOf({
@@ -241,6 +241,24 @@ describe("a frame of the autopilot's", () => {
 
     expect(steer).toMatchObject({ heading: 0, thrust: 0.5, fire: false });
   });
+
+  // A chase at the ship's top speed gains on it too slowly, where the rock
+  // comes round the field to a ship that waits.
+  it.each([
+    ["closes on", 0.7, 1, 0.5],
+    ["waits for", 0.9, 1, 0],
+    ["waits for", 0.7, 1.25, 0],
+  ])(
+    "%s a rock beyond its shots' reach flying at %s of the ship's top speed, at a pace of %s",
+    (_, share, pace, thrust) => {
+      const field = fieldFrom(["^.......L"], { pace });
+      onlyRock(field).vx = share * TOP_SPEED;
+
+      const steer = steerOf(field);
+
+      expect(steer).toMatchObject({ thrust, fire: false });
+    },
+  );
 
   // A shot meets the rock if it flies across as fast as the rock does.
   it("aims ahead of a crossing rock, where a shot meets it", () => {
@@ -479,18 +497,21 @@ describe("every wave", () => {
   );
 
   it.each(plays)(
-    "is cleared, %s at %s on a field %s, within four minutes of game time, meeting a comet if it sends comets",
+    "is cleared, %s at %s on a field %s, within four minutes of game time, meeting a comet and a stray if it sends them",
     (_, speed, __, entry, torus) => {
       const report = playWave(entry, speed, { torus });
+      const wave = parseWave(entry);
 
       expect({
         cleared: report.cleared,
         inTime: report.steps < AUTOPILOT_LIMIT,
         metComet: report.cometsCrossed > 0,
+        metStray: report.straysSent > 0,
       }).toEqual({
         cleared: true,
         inTime: true,
-        metComet: parseWave(entry).cometEvery !== null,
+        metComet: wave.cometEvery !== null,
+        metStray: wave.strays > 0,
       });
     },
   );

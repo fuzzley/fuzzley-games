@@ -680,8 +680,9 @@ more. Paths in Part 1 are under `frontend/lib/` or
   40 (1,600 units²) and multiplied by the field's area over that, rounded
   to the nearest and never fewer than written: "3 large stone" is 5 on a
   desktop's 40 by 73. The cap on rocks, the pickups a field holds at once and
-  the strays grow the same way; comets come more often by the square
-  root of it, as they cross a longer field. The autopilot plays every wave
+  the strays grow the same way, and the first stray comes later by it;
+  comets come more often by the square root of it, as they cross a longer
+  field. The autopilot plays every wave
   on the narrowest field and the widest.
 - **The field takes the room's shape as a wave starts, and while the game
   is paused.** A pause, which turning the phone sets off, stretches every
@@ -741,7 +742,7 @@ the mock's sketch has sliders for the ship's.
 | A new ship            | 1 s after the last; untouchable while it waits and 2 s after                                                                                                                                                          |
 | Pickups               | drifting at 2 units a second for 8 s, blinking the last 2; drawn in from 3 units at 10 a second (14 with Magnet), caught at 2                                                                                         |
 | The Shield            | the rock that touches the ship breaks a size down, the ship untouchable 1 s after                                                                                                                                     |
-| Strays                | from wave 3, 20 s into a wave, the next 8 s after the last has gone; 3.2 units a second, turning 2° to 5° a second; a bubble of 1.15, brought home at 2; 500 points                                                   |
+| Strays                | from wave 3, 6 s into a wave on 40 by 40, later by a larger field's area, the next 8 s after the last has gone; 3.2 units a second, turning 2° to 5° a second; a bubble of 1.15, brought home at 2; 500 points        |
 | The comet             | warned of 1.5 s ahead, a wave's first warning starting 0.25 of its time between comets in; 26 units a second times the field's pace; meets what is within 1 unit; comes in from and leaves past 3 units off the field |
 | Coming in             | from 15% to 85% of the way along an edge, tilted toward its middle by up to 20° for a stray and 30° for a comet                                                                                                       |
 | The chain             | 1.5 s from one break to the next                                                                                                                                                                                      |
@@ -812,16 +813,18 @@ beat apart (90 ms), so a chain reads as a chain.
 #### Strays and the comet
 
 - **A stray fuzzball** comes from wave 3, as many times a wave as the wave
-  says (once by default, more on a larger field), the first 20 s into it if
-  the wave is still on and each after it 8 s after the last has gone, so one
-  is adrift at a time: in its bubble it comes in at an edge, crosses the
-  field once on a gentle curve at 3.2 units a second, slow enough to fly
-  to, its eyes on the ship, and leaves. Shots pass through its bubble. The
-  ship brings it home by touching it, its middle within 2 units of the
-  stray's, guarded, dashing or not, for 500 points, times the chain, and
-  the Magnet draws it in, the straight way, never across an edge. A wave
-  never needs it, and one that leaves costs nothing. Each run counts its
-  strays brought home, and the records count them all.
+  says (once by default, more on a larger field), the first 6 s into it,
+  so even a wave cleared quickly on a phone meets one, later on a larger
+  field by its area, as its wave lasts longer, and each after it 8 s after
+  the last has gone, while the wave is on, so one is adrift at a time: in
+  its bubble it comes in at an edge, crosses the field once on a gentle
+  curve at 3.2 units a second, slow enough to fly to, its eyes on the ship,
+  and leaves. Shots pass through its bubble. The ship brings it home by
+  touching it, its middle within 2 units of the stray's, guarded, dashing
+  or not, for 500 points, times the chain, and the Magnet draws it in, the
+  straight way, never across an edge. A wave never needs it, and one that
+  leaves costs nothing. Each run counts its strays brought home, and the
+  records count them all.
 - **The comet** comes from wave 13, as often as its wave says: a chevron in
   the danger color pulses at the edge it will come in by for 1.5 s, then it
   crosses the field in a straight line at 26 units a second, times the
@@ -962,18 +965,18 @@ met first alone.
 
 **Sector 3, Storm** (pace 1.16 to 1.25)
 
-| #   | Name             | Rocks                                      | What it brings               |
-| --- | ---------------- | ------------------------------------------ | ---------------------------- |
-| 21  | Lodestar         | 3 large lodestone, 2 large stone           | Lodestones                   |
-| 22  | Whiteout         | 6 large ice; comets every 10–13 s          | A crowd of shards            |
-| 23  | Gauntlet         | 3 large iron, 3 large lodestone            | Tough rocks that come to you |
-| 24  | Wildfire         | 4 large volatile, 3 large ice              | Chains through ice           |
-| 25  | Swarm            | 16 small stone and ice                     | Fast and many                |
-| 26  | Lost and found   | 5 large of four kinds; 3 strays            | Strays for the brave         |
-| 27  | Pull             | 4 large lodestone; comets every 8–11 s     | Pulled into the comets' path |
-| 28  | Bulwark          | 5 large iron, 2 large crystal              | Iron, with help              |
-| 29  | Tempest          | 8 large of every kind; comets every 9–12 s | Everything                   |
-| 30  | Eye of the storm | 2 boulders, 4 large of every kind; comets  | The finale, at the top pace  |
+| #   | Name             | Rocks                                                    | What it brings               |
+| --- | ---------------- | -------------------------------------------------------- | ---------------------------- |
+| 21  | Lodestar         | 5 large lodestone, 5 large stone                         | Lodestones                   |
+| 22  | Whiteout         | 6 large ice; comets every 10–13 s                        | A crowd of shards            |
+| 23  | Gauntlet         | 5 large iron, 4 large lodestone                          | Tough rocks that come to you |
+| 24  | Wildfire         | 7 large volatile, 7 large ice                            | Chains through ice           |
+| 25  | Swarm            | 44 small stone and ice                                   | Fast and many                |
+| 26  | Lost and found   | 10 large of four kinds; 3 strays                         | Strays for the brave         |
+| 27  | Pull             | 7 large lodestone; comets every 8–11 s                   | Pulled into the comets' path |
+| 28  | Bulwark          | 8 large iron, 2 large crystal                            | Iron, with help              |
+| 29  | Tempest          | 13 large of every kind; comets every 9–12 s              | Everything                   |
+| 30  | Eye of the storm | 2 boulders, 11 large of five kinds; comets every 10–13 s | The finale, at the top pace  |
 
 #### Endless
 
@@ -1548,7 +1551,7 @@ As Brick Breaker's, four folders under `src/`, fenced by
   one place to another across it, the distance, and the copies an object
   near an edge needs drawn (one to four), which the view reads.
 - `fill.ts`: a wave's counts for a field's area (`fillFor()`), the cap, the
-  pickups at once, the strays and the comets' times, and the stretch a
+  pickups at once, the strays, the first stray's time and the comets' times, and the stretch a
   pause makes (`stretchField()`), so the autopilot plays them as a player
   meets them.
 - `endless.ts`: Endless's waves, from the run's seed and the wave's number.
