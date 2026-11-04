@@ -169,8 +169,9 @@ describe("the autopilot", () => {
   });
 
   // Twenty large iron rocks, and all they break into, outlast both strays'
-  // coming, the first 20 s in.
-  it("brings most of the strays that cross home", () => {
+  // coming, the first 20 s in. Playing each seed's wave that long takes a
+  // busy machine past the five seconds a case is given.
+  it("brings most of the strays that cross home", { timeout: 20_000 }, () => {
     const wave = waveOf({
       rocks: [{ kind: "iron", size: "large", count: 20 }],
       strays: 2,

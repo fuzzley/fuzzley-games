@@ -3,6 +3,7 @@
 // and the rocks' speed, each starting at `tuning.ts`'s and written back as
 // its lines, so a feel found by playing is pasted straight in.
 
+import { keysOf } from "@fz/core/records";
 import { ROCK_SIZES } from "../rules/catalog/rocks";
 import type { Field } from "../rules/field";
 import { tuneRockSpeed } from "../rules/rocks";
@@ -22,6 +23,11 @@ export const TUNED: Tuning = {
   ...TUNED_GUNNERY,
   rockSpeed: 1,
 };
+
+/** Returns whether numbers differ from `tuning.ts`'s, as the debug menu has tuned them. */
+export function isRetuned(tuning: Tuning): boolean {
+  return keysOf(TUNED).some((key) => tuning[key] !== TUNED[key]);
+}
 
 /** Names a number the debug menu tunes by a slider: all but whether shots carry the ship's speed. */
 export type TuningNumber = Exclude<keyof Tuning, "carryShip">;

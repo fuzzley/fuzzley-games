@@ -4160,3 +4160,76 @@ A10 begins.
   it, the first on a wave of six volatiles that clear in one cascade
   while the chain counts. 7 more of the fuzzball, the wordmark and the
   pilot after the review: all caught.
+
+## A10.2.1: the records and the sectors reached
+
+2026-11-03. A10.2 is five steps now, as the plan says: the records first,
+then the result card, the Sectors dialog, How to play and the settings,
+each a commit, since each is a dialog of Brick Breaker's size.
+
+- **Built.**
+  - `src/rules/stats.ts`: each speed's runs, best score, furthest wave and
+    strays brought home, and each sector's best run at each speed;
+    `withRunStarted()`, `withRunEnded()`, `withStraysHome()`,
+    `isNewBest()`, and `statsOf()`, which takes back what storage holds,
+    dropping what makes no sense and a sector the game no longer has.
+  - `src/rules/progress.ts`: `sectorStarts()`, each sector with its first
+    wave, `isOpen()`, the first sector or one reached, and `reachedOf()`.
+  - `StatsService` and `ProgressService` in `src/app/stats/`, under
+    `asteroid-breaker-stats` and `asteroid-breaker-progress`, as Brick
+    Breaker's are, storing only a change.
+  - `GameService` counts a run at its first wave's first move, keeps the
+    sector of each wave begun as reached, counts the strays as they come
+    home, and keeps a run's end, its new best said with it ("A new best!")
+    and held for the result card (`best`, `newBest`). A run flown on
+    numbers the debug menu tuned keeps none of it: `isRetuned()` in the
+    debug tuning tells, and the next run keeps them again. A frame that
+    brings the run nothing returns at once.
+  - The specs start from empty storage, as Brick Breaker's do;
+    `src/testing/play.ts` has two sectors of a wave each.
+- **Choices.**
+  - **Each sector keeps its best,** at each speed, as Brick Breaker's
+    levels do: the plan's Sectors dialog shows the sectors "with their
+    bests", which its records didn't hold. "What it keeps" says so.
+  - **Kept in storage now,** rather than in memory until A12.1, so the
+    records are written once; A12.1 keeps the settings alone.
+  - **Strays count as they come home,** so a run thrown away by a new
+    game still counts its strays; its score and wave count only at its
+    end, as Brick Breaker's do.
+  - **A run is retuned once its field steps on numbers off `tuning.ts`'s,**
+    even if they are put back before its end: it was flown on them.
+  - **"Cleared all thirty" waits for A14.2,** which the plan gives it to;
+    no run can clear thirty yet.
+- **Review.** One bug and six comments; all taken but the second, which is
+  a step of its own.
+  1. A run was marked retuned as the slider moved, even with its wave still
+     waiting, so a player who put the numbers back before the first move,
+     having seen a run keep nothing, lost the next run's records too. A run
+     is retuned now only once its field steps on retuned numbers; a spec
+     puts the numbers back before the first move and keeps the run.
+  2. `reachedOf()` is Brick Breaker's `clearedOf()` and `sectorBestsOf()`
+     its `levelBestsOf()`, line for line, which `@fz/core`'s rule lifts at
+     two workspaces. Lifted next, in a reviewed commit of its own, as the
+     lifts before were.
+  3. The game's `AGENTS.md` didn't list the keys it now writes. Its "What
+     It Keeps" does, with the retuned run's rule.
+  4. A reader that drops a speed's record for any field it lacks would wipe
+     the records once A14.2 adds "cleared all thirty". A14.2 and "What It
+     Keeps" say a later field is read as optional.
+  5. One spec played two cycles. It is two specs.
+  6. `isRetuned()` had no spec, and none failed with the guard on the
+     strays gone. Each has one.
+  7. An import out of order, a doc comment not in the interface's form, and
+     a paragraph wrapped unevenly: fixed.
+
+  These correct the change rather than reshape it, so it had no second
+  review. The full suite once timed out the autopilot's strays case, which
+  plays every seed's wave for minutes of game time; it has 20 seconds now,
+  with a comment saying why.
+
+- **Checks.** Each touched workspace's `lint`, `typecheck` and `test`
+  (Asteroid Breaker 2,890), `yarn prettier:check` and the skill references.
+  31 mutants of the rules, the services, the game's keeping and the end's
+  words: all caught but 2, the furthest wave and the new best's reset, each
+  of which a case catches now; 4 more of the retuned rule after the review,
+  the last caught once its spec flew a frame on the tuned numbers.

@@ -18,3 +18,8 @@ getTestBed().initTestEnvironment(
 
 // jsdom has no modal dialogs, which the question before a new game is.
 installDialogPolyfill(window);
+
+// Each spec starts as a new player, with nothing stored.
+beforeEach(() => {
+  localStorage.clear();
+});

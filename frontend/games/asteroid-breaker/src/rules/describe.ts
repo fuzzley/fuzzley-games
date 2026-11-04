@@ -63,7 +63,8 @@ export function describeResume(): string {
   return "Going on.";
 }
 
-/** Returns what is said as a run ends: the score and the wave it was lost on. */
-export function describeEnd(run: Run): string {
-  return `Game over. Score ${formatPoints(run.score)}, on wave ${String(run.wave)}.`;
+/** Returns what is said as a run ends: the score, the wave it was lost on, and a new best. */
+export function describeEnd(run: Run, newBest: boolean): string {
+  const best = newBest ? " A new best!" : "";
+  return `Game over. Score ${formatPoints(run.score)}, on wave ${String(run.wave)}.${best}`;
 }

@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { formatPoints } from "@fz/core/format";
 import { randomSeed } from "@fz/core/random";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -7,6 +8,7 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import type { Rock } from "../../rules/rocks";
 import { STILL, type Steer } from "../../rules/ship";
+import type { SpeedStats } from "../../rules/stats";
 import { STEP_MS } from "../../rules/stepper";
 import {
   CHAIN_MS,
@@ -20,6 +22,7 @@ import {
   CHAIN_WAVE,
   CHAIN_WAVES,
   FRAME_MS,
+  SECTOR_WAVES,
   SPEC_RANDOM,
   SPEC_WAVE,
   STRAY_WAVES,
@@ -38,6 +41,8 @@ import {
 import { TUNED } from "../../view/debug_tuning";
 import type { BoardSetting } from "../../view/field_metrics";
 import { CLEARED_MS, resultDelayMs } from "../../view/timing";
+import { ProgressService } from "../stats/progress.service";
+import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES } from "../tokens";
 import { GameService } from "./game.service";
 
@@ -834,6 +839,163 @@ describe("GameService", () => {
       await game.startAt(SPEC_WAVE.pebble);
 
       expect(game.runs()).toBe(2);
+    });
+  });
+
+  describe("the records", () => {
+    /** Returns the records at Normal, the specs' runs' speed. */
+    function atNormal(): SpeedStats {
+      return TestBed.inject(StatsService).stats().speeds.normal;
+    }
+
+    it("counts no run before its first wave's first move", async () => {
+      await gameAt(SPEC_WAVE.gift);
+
+      expect(atNormal().runs).toBe(0);
+    });
+
+    it("counts a run as its first wave starts", async () => {
+      await startedAt(SPEC_WAVE.gift);
+
+      expect(atNormal().runs).toBe(1);
+    });
+
+    it("keeps an ended run's score and the wave it was lost on, and calls it a new best", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+
+      endRun(game);
+
+      expect({
+        normal: atNormal(),
+        best: game.best(),
+        newBest: game.newBest(),
+        said: said(),
+      }).toEqual({
+        normal: { runs: 1, best: game.score(), furthest: 2, strays: 0 },
+        best: game.score(),
+        newBest: true,
+        said: `Game over. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
+      });
+    });
+
+    it("keeps the sector's best of a run started there", async () => {
+      const game = await endedAt(SPEC_WAVE.gift);
+
+      expect(TestBed.inject(StatsService).stats().sectors).toEqual({
+        specs: { normal: game.score() },
+      });
+    });
+
+    it("calls a run that scores no more than the best no new best", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      endRun(game);
+      await game.startAt(SPEC_WAVE.gift);
+
+      endRun(game);
+
+      expect(game.newBest()).toBe(false);
+    });
+
+    it("forgets the last run's new best as a run begins", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+      endRun(game);
+
+      await game.newGame();
+
+      expect(game.newBest()).toBe(false);
+    });
+
+    it("counts the strays brought home", () => {
+      const game = gameOver(STRAY_WAVES);
+
+      bringStraysHome(game, 2);
+
+      expect(atNormal().strays).toBe(2);
+    });
+
+    it("keeps the first sector as the run's first wave starts", () => {
+      const game = gameOver(SECTOR_WAVES);
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(TestBed.inject(ProgressService).reached()).toEqual(
+        new Set(["near"]),
+      );
+    });
+
+    it("keeps the next sector as a run reaches it", () => {
+      const game = gameOver(SECTOR_WAVES);
+
+      clearToNext(game);
+
+      expect(TestBed.inject(ProgressService).reached()).toEqual(
+        new Set(["near", "far"]),
+      );
+    });
+
+    it("keeps nothing of a run flown on numbers the debug menu tuned", async () => {
+      const game = TestBed.inject(GameService);
+      game.tune({ rockSpeed: 1.5 });
+      await game.startAt(SPEC_WAVE.pebble);
+
+      clearToNext(game);
+      endRun(game);
+
+      expect({
+        normal: atNormal(),
+        reached: TestBed.inject(ProgressService).reached(),
+        newBest: game.newBest(),
+      }).toEqual({
+        normal: { runs: 0, best: 0, furthest: 0, strays: 0 },
+        reached: new Set(),
+        newBest: false,
+      });
+    });
+
+    it("keeps nothing of a run flown a frame on tuned numbers, though put back", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      game.tune({ rockSpeed: 1.5 });
+      game.tick(FRAME_MS, STILL);
+      game.resetTuning();
+      endRun(game);
+
+      expect(atNormal()).toMatchObject({ best: 0, furthest: 0 });
+    });
+
+    it("keeps the records of a run whose numbers were put back before its first move", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      game.tune({ rockSpeed: 1.5 });
+      game.resetTuning();
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(atNormal().runs).toBe(1);
+    });
+
+    it("counts no strays a run flown on tuned numbers brings home", () => {
+      const game = gameOver(STRAY_WAVES);
+      game.tune({ rockSpeed: 1.5 });
+
+      bringStraysHome(game, 1);
+
+      expect(atNormal().strays).toBe(0);
+    });
+
+    it("keeps the records again from a run begun after a retuned one", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      game.tune({ rockSpeed: 1.5 });
+      game.tick(FRAME_MS, STILL);
+      game.resetTuning();
+      endRun(game);
+
+      await game.startAt(SPEC_WAVE.gift);
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(atNormal().runs).toBe(2);
     });
   });
 
