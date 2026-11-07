@@ -12,17 +12,8 @@ import {
   wholeRocks,
 } from "../../testing/field_picture";
 import { ROCK_KINDS, rockPoints } from "../catalog/rocks";
-import { type Field, stepField } from "./field";
-import type { Crew } from "../ship/pilots";
 import { type Blow, type Rock, hitRock } from "../rocks/rocks";
-import {
-  chainCountOf,
-  chainMultiplier,
-  clearingPoints,
-  multiplier,
-  pointsOf,
-  tallyOf,
-} from "./scoring";
+import type { Crew } from "../ship/pilots";
 import { stepsIn } from "../stepper";
 import {
   CHAIN,
@@ -34,6 +25,15 @@ import {
   SHIP_POINTS,
   STRAY_POINTS,
 } from "../tuning";
+import { type Field, stepField } from "./field";
+import {
+  chainCountOf,
+  chainMultiplier,
+  clearingPoints,
+  multiplier,
+  pointsOf,
+  tallyOf,
+} from "./scoring";
 
 /** A small stone's points. */
 const SMALL = rockPoints("stone", "small");

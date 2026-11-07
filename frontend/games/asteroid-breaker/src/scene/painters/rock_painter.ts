@@ -1,9 +1,9 @@
 import type { GameObjects, Scene } from "phaser";
 import { ROCK_RADIUS } from "../../rules/tuning";
-import { flashAlpha, flashDue, shareDone } from "../../view/effects/flourish";
-import { betweenOnAxis } from "../../view/field/frame";
 import { rockFrame, takenFrame } from "../../view/art/rock_art";
+import { flashAlpha, flashDue, shareDone } from "../../view/effects/flourish";
 import { FLASH_MS } from "../../view/effects/timing";
+import { betweenOnAxis } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 

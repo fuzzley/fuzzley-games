@@ -1,4 +1,5 @@
 import { DASH_MS, DASH_SPEED } from "../../rules/tuning";
+import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BOB,
   BREATH,
@@ -34,7 +35,6 @@ import {
   trailReach,
   wayOf,
 } from "./flourish";
-import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,

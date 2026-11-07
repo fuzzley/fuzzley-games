@@ -1,17 +1,3 @@
-import {
-  type Flight,
-  type Ship,
-  type Steer,
-  STILL,
-  TUNED_FLIGHT,
-  createShip,
-  flyShip,
-  guardShip,
-  isGuarded,
-  rechargeShare,
-  thrustOf,
-  waitOn,
-} from "./ship";
 import { STEP_MS, stepsIn } from "../stepper";
 import { type Torus, across } from "../torus";
 import {
@@ -31,6 +17,20 @@ import {
   THRUST,
   TOP_SPEED,
 } from "../tuning";
+import {
+  type Flight,
+  type Ship,
+  type Steer,
+  STILL,
+  TUNED_FLIGHT,
+  createShip,
+  flyShip,
+  guardShip,
+  isGuarded,
+  rechargeShare,
+  thrustOf,
+  waitOn,
+} from "./ship";
 
 // The numbers are `tuning.ts`'s, which playing tunes, so every speed, time
 // and turn here is taken from them; these hold what the flight does with

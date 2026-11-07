@@ -2,13 +2,13 @@ import type { GameObjects, Scene } from "phaser";
 import type { BallKindId } from "../../rules/catalog/balls";
 import { MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame } from "../../view/art/art";
+import { EMBERS_MS } from "../../view/effects/timing";
 import {
   type FieldMetrics,
   toCanvasX,
   toCanvasY,
 } from "../../view/field/field_metrics";
 import { between } from "../../view/field/frame";
-import { EMBERS_MS } from "../../view/effects/timing";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 

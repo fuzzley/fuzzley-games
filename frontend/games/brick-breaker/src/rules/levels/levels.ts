@@ -7,12 +7,12 @@ import {
   isCapsuleId,
 } from "../catalog/capsules";
 import { CELLS, columnOf, rowOf } from "../grid";
+import { COLUMNS, ROWS } from "../tuning";
+import basics from "./basics.json";
 import { type BrickSpec, LEGEND, NO_BRICK, brickOf } from "./legend";
 import { type Level, type LevelBrick, TINTS } from "./level";
-import basics from "./basics.json";
 import steel from "./steel.json";
 import tricks from "./tricks.json";
-import { COLUMNS, ROWS } from "../tuning";
 
 /** Describes a brick a level's own legend adds, as its file holds it. */
 export interface BrickSpecData {

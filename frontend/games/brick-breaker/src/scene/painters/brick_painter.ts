@@ -2,19 +2,19 @@ import type { GameObjects, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY, rowOf } from "../../rules/grid";
 import { BRICK_HEIGHT, COLUMNS, ROWS } from "../../rules/tuning";
 import { brickFrame } from "../../view/art/brick_art";
-import {
-  type FieldMetrics,
-  toCanvasX,
-  toCanvasY,
-} from "../../view/field/field_metrics";
 import { growScale, popScale, shareDone } from "../../view/effects/flourish";
-import type { FieldView } from "../../view/field/frame";
 import {
   DROP_IN_MS,
   DROP_IN_STAGGER_MS,
   POP_MS,
   REGROW_MS,
 } from "../../view/effects/timing";
+import {
+  type FieldMetrics,
+  toCanvasX,
+  toCanvasY,
+} from "../../view/field/field_metrics";
+import type { FieldView } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 

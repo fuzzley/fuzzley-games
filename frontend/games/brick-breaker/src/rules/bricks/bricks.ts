@@ -1,5 +1,3 @@
-import { overlapsBox } from "../paddle/balls";
-import { dropFrom } from "./capsules";
 import {
   type BrickKindId,
   type BrickTrait,
@@ -9,6 +7,7 @@ import {
 } from "../catalog/bricks";
 import type { CapsuleId } from "../catalog/capsules";
 import type { Field } from "../field/field";
+import { scoreBreak, scoreHit } from "../field/scoring";
 import {
   type Box,
   brickBox,
@@ -20,8 +19,9 @@ import {
   rowOf,
 } from "../grid";
 import type { LevelBrick } from "../levels/level";
-import { scoreBreak, scoreHit } from "../field/scoring";
+import { overlapsBox } from "../paddle/balls";
 import { stepsIn } from "../stepper";
+import { dropFrom } from "./capsules";
 
 /**
  * Describes a brick in play.

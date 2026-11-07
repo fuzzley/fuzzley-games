@@ -1,3 +1,5 @@
+import { LEVELS } from "../levels/levels";
+import { MAX_LIVES } from "../tuning";
 import {
   describeCaught,
   describeCleared,
@@ -11,9 +13,7 @@ import {
   endTitle,
   formatCustomPercent,
 } from "./describe";
-import { LEVELS } from "../levels/levels";
 import { type Run, createRun } from "./run";
-import { MAX_LIVES } from "../tuning";
 
 /** Returns a run at a level, with a score and lives, where it stands as given. */
 function runAt(changes: Partial<Run> = {}): Run {

@@ -1,8 +1,8 @@
 import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
 import type { LevelEntry } from "../levels/levels";
-import type { Run } from "./run";
 import { SPEEDS, type Speed } from "../speed";
+import type { Run } from "./run";
 
 /** Counts one speed's runs. */
 export interface SpeedStats {

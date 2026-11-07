@@ -4,6 +4,12 @@ import type { Place, Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import { boardOf, viewport } from "../../testing/canvases";
 import {
+  type BoardSetting,
+  type PixelRect,
+  deckLayout,
+  fieldShape,
+} from "../field/field_metrics";
+import {
   BUTTON_SLACK_CSS_PX,
   type Circle,
   DECK_EDGE_CSS_PX,
@@ -14,12 +20,6 @@ import {
   deckOf,
   rechargeRing,
 } from "./deck";
-import {
-  type BoardSetting,
-  type PixelRect,
-  deckLayout,
-  fieldShape,
-} from "../field/field_metrics";
 
 /** A board with no margin, its deck showing, its stick on the left and its Fire button. */
 const BOARD: BoardSetting = {

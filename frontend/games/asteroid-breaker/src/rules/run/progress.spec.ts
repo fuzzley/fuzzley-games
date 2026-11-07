@@ -1,5 +1,5 @@
-import { isOpen, reachedOf, sectorSpans } from "./progress";
 import { type WaveData, wavesOf } from "../waves/waves";
+import { isOpen, reachedOf, sectorSpans } from "./progress";
 
 /** Returns a wave of one small stone. */
 function waveOf(id: string): WaveData {

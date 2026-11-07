@@ -2,9 +2,9 @@ import type { GameObjects, Scene } from "phaser";
 import { isNeeded } from "../../rules/catalog/bricks";
 import { cellMiddleX, cellMiddleY } from "../../rules/grid";
 import { FRAMES } from "../../view/art/art";
-import { toCanvasX, toCanvasY } from "../../view/field/field_metrics";
 import { glowAlpha } from "../../view/effects/flourish";
 import { GLOW_BRICKS } from "../../view/effects/timing";
+import { toCanvasX, toCanvasY } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 

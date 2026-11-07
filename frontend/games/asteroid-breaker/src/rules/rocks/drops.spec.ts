@@ -5,10 +5,8 @@ import {
   wholeRocks,
 } from "../../testing/field_picture";
 import type { PickupId } from "../catalog/pickups";
-import { type Floating, PICKUP_RECORDS, blinks } from "./drops";
 import type { FieldEvent } from "../field/events";
 import type { Field } from "../field/field";
-import { hitRock } from "./rocks";
 import { stepsIn } from "../stepper";
 import {
   DROUGHT_MS,
@@ -16,6 +14,8 @@ import {
   PICKUP_DRIFT,
   PICKUP_LIFE_MS,
 } from "../tuning";
+import { type Floating, PICKUP_RECORDS, blinks } from "./drops";
+import { hitRock } from "./rocks";
 
 /** Breaks each of a field's whole rocks, as many hits as each takes. */
 function breakAll(field: Field): void {

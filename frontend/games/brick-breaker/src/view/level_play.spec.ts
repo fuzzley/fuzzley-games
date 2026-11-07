@@ -6,8 +6,8 @@ import {
   fieldFrom,
   playWithoutBall,
 } from "../testing/field_picture";
-import { LevelPlay } from "./level_play";
 import { SERVE_MS } from "./effects/timing";
+import { LevelPlay } from "./level_play";
 
 /** Returns a level's play over a field that stays in play while nothing moves. */
 function stillPlay(): LevelPlay {

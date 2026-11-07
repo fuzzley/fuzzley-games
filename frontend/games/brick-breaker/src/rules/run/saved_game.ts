@@ -6,9 +6,9 @@ import type { Field } from "../field/field";
 import { CELLS } from "../grid";
 import type { LevelBrick } from "../levels/level";
 import { type LevelEntry, parseLevel } from "../levels/levels";
-import { type Run, isInProgress, nextLifeAfter, startLevel } from "./run";
 import { type Speed, isSpeed } from "../speed";
 import { MAX_LIVES } from "../tuning";
+import { type Run, isInProgress, nextLifeAfter, startLevel } from "./run";
 
 /** What of a brick play changes, and so what storage keeps of it. */
 const KEPT_OF_BRICK = [

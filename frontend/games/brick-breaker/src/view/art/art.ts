@@ -27,8 +27,8 @@ import {
   CAPSULE_WIDTH,
   PADDLE_HEIGHT,
 } from "../../rules/tuning";
-import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import type { BricksPalette } from "../colors/palette";
+import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import {
   frameAround,
   inset,

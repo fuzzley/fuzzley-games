@@ -20,11 +20,7 @@ import {
   mapPictures,
 } from "../view/art/art";
 import { brickColor } from "../view/art/brick_art";
-import {
-  type FieldCommand,
-  commandOfKey,
-  heldKeyOf,
-} from "../view/steering/controls";
+import type { BricksPalette } from "../view/colors/palette";
 import {
   CHIME,
   type Flourish,
@@ -37,7 +33,11 @@ import {
 import { type FieldMetrics, fieldMetrics } from "../view/field/field_metrics";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
-import type { BricksPalette } from "../view/colors/palette";
+import {
+  type FieldCommand,
+  commandOfKey,
+  heldKeyOf,
+} from "../view/steering/controls";
 import { Steering, type TouchSteering } from "../view/steering/steering";
 import { ATLAS, bakeBricksAtlas } from "./atlas";
 import { BallPainter } from "./painters/ball_painter";
@@ -49,9 +49,9 @@ import { FieldPainter } from "./painters/field_painter";
 import { GlowPainter } from "./painters/glow_painter";
 import { PaddlePainter } from "./painters/paddle_painter";
 import type { PaintContext, Painter } from "./painters/painter";
+import { TagPainter } from "./painters/tag_painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
-import { TagPainter } from "./painters/tag_painter";
 
 /** What the scene asks of the shell, and tells it. */
 export interface BricksSceneOptions {

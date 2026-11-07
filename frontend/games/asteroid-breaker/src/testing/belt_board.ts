@@ -15,7 +15,7 @@ import {
 import { SOUNDS_KEY } from "../scene/belt_scene";
 import type { Copies } from "../scene/painters/copies";
 import type { Pictures } from "../view/art/art";
-import type { FieldCommand } from "../view/steering/controls";
+import { type BeltPalette, beltPalette } from "../view/colors/palette";
 import {
   type BoardSetting,
   type FieldMetrics,
@@ -23,7 +23,7 @@ import {
 } from "../view/field/field_metrics";
 import type { FieldFrame } from "../view/field/frame";
 import { LAYERS } from "../view/field/layers";
-import { type BeltPalette, beltPalette } from "../view/colors/palette";
+import type { FieldCommand } from "../view/steering/controls";
 import { ART_PALETTE } from "./art_frames";
 import { viewport } from "./canvases";
 import { KEEPER, fieldFrom } from "./field_picture";

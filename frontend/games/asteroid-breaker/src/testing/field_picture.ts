@@ -1,11 +1,11 @@
 import type { PickupId } from "../rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../rules/catalog/rocks";
-import type { Floating } from "../rules/rocks/drops";
 import type { FieldEvent, FieldEventKind } from "../rules/field/events";
 import { type Field, createField, stepField } from "../rules/field/field";
 import type { Comet, Stray } from "../rules/hazards/hazards";
-import { type Crew, type Pilot, createCrew } from "../rules/ship/pilots";
+import type { Floating } from "../rules/rocks/drops";
 import { type Rock, addRock } from "../rules/rocks/rocks";
+import { type Crew, type Pilot, createCrew } from "../rules/ship/pilots";
 import { STILL, type Ship, createShip } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";

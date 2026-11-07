@@ -1,4 +1,8 @@
 import { stepsBetween } from "../../testing/numbers";
+import { EFFECT_KINDS } from "../rocks/pickups";
+import { stepsIn } from "../stepper";
+import { MAX_SHIPS, SHOT_LIFE_MS } from "../tuning";
+import { WAVES, parseWave } from "../waves/waves";
 import { PICKUPS, PICKUP_IDS, isPickupId, pickup } from "./pickups";
 import {
   type BySize,
@@ -14,10 +18,6 @@ import {
   sizeAfter,
 } from "./rocks";
 import { WEAPONS } from "./weapons";
-import { EFFECT_KINDS } from "../rocks/pickups";
-import { stepsIn } from "../stepper";
-import { MAX_SHIPS, SHOT_LIFE_MS } from "../tuning";
-import { WAVES, parseWave } from "../waves/waves";
 
 /** Every rock kind, with its id. */
 const ROCK_ENTRIES = ROCK_KIND_IDS.map((id) => [id, rockKind(id)] as const);

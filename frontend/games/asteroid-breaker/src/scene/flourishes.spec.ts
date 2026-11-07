@@ -27,6 +27,10 @@ import {
   shipOf,
 } from "../testing/field_picture";
 import { FLOURISH } from "../view/art/art";
+import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
+import { rockFrame } from "../view/art/rock_art";
+import { bakedScale } from "../view/art/shapes";
+import { flameTip } from "../view/art/ship_art";
 import {
   BAIL_OUT_SPEED,
   FLASH_MOST,
@@ -38,10 +42,6 @@ import {
   trailReach,
   wayOf,
 } from "../view/effects/flourish";
-import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
-import { rockFrame } from "../view/art/rock_art";
-import { bakedScale } from "../view/art/shapes";
-import { flameTip } from "../view/art/ship_art";
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,

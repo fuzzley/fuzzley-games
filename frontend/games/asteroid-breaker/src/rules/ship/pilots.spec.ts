@@ -1,6 +1,8 @@
 import { loggedOn } from "../../testing/field_picture";
 import { FieldEventLog } from "../field/events";
 import { createStrays } from "../hazards/hazards";
+import type { Place } from "../torus";
+import { FIRST_SHIPS, MAX_SHIPS, STRAY_FIRST_MS } from "../tuning";
 import {
   type Crew,
   type CrewField,
@@ -14,8 +16,6 @@ import {
   given,
   nextPilot,
 } from "./pilots";
-import type { Place } from "../torus";
-import { FIRST_SHIPS, MAX_SHIPS, STRAY_FIRST_MS } from "../tuning";
 
 /** Returns a crew of pilots flying and at home, the last color given 2 unless it says. */
 function crewOf(

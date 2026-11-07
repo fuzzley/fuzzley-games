@@ -4,11 +4,9 @@ import {
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
-import { fireBolts } from "./bolts";
 import { catchCapsule } from "../bricks/capsules";
 import type { Field } from "../field/field";
 import { cellIndex } from "../grid";
-import { paddleTopOf } from "./paddle";
 import { stepsIn } from "../stepper";
 import {
   BOLT_GAP_MS,
@@ -19,6 +17,8 @@ import {
   STEP_S,
   TALLEST_FIELD,
 } from "../tuning";
+import { fireBolts } from "./bolts";
+import { paddleTopOf } from "./paddle";
 
 /** The steps a bolt takes to rise from the paddle to the top wall. */
 const TO_TOP = Math.ceil(PADDLE_TOP / (BOLT_SPEED * STEP_S)) + 1;

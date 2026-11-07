@@ -9,6 +9,8 @@ import {
   stepField,
 } from "../field/field";
 import { levelsOf, parseLevel } from "../levels/levels";
+import { stepsIn } from "../stepper";
+import { FIELD_WIDTH, FIRST_LIFE_POINTS, MAX_LIVES } from "../tuning";
 import { type Run, catchUp, createRun, levelSeed, startLevel } from "./run";
 import {
   type SavedGame,
@@ -16,8 +18,6 @@ import {
   saveGame,
   takeUpField,
 } from "./saved_game";
-import { stepsIn } from "../stepper";
-import { FIELD_WIDTH, FIRST_LIFE_POINTS, MAX_LIVES } from "../tuning";
 
 /**
  * Three levels: a plain brick, a tough one, steel, a hidden brick, a

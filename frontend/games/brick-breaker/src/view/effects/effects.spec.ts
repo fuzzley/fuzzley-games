@@ -1,4 +1,5 @@
 import { fieldFrom } from "../../testing/field_picture";
+import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   SOUNDS,
   type SoundName,
@@ -7,7 +8,6 @@ import {
   effectsOf,
   flourishesOf,
 } from "./effects";
-import type { FieldEvent, FieldEventKind } from "../field/frame";
 
 /** Returns an event of a kind, at a cell or none, at a length of streak. */
 function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {

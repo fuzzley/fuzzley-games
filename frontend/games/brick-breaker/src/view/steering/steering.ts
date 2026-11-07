@@ -1,6 +1,6 @@
 import type { Steer } from "../../rules/paddle/paddle";
-import type { HeldKey } from "./controls";
 import { type FieldMetrics, toFieldX } from "../field/field_metrics";
+import type { HeldKey } from "./controls";
 
 /** Every way a finger may steer the paddle: by dragging it from anywhere, or by the paddle following it. */
 export const TOUCH_STEERINGS = ["drag", "follow"] as const;

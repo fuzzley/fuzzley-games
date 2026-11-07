@@ -16,13 +16,6 @@ import { PICKUPS } from "../catalog/pickups";
 import { ROCK_KINDS, type RockKindId } from "../catalog/rocks";
 import type { FieldEvent } from "../field/events";
 import { type Field, stepField } from "../field/field";
-import {
-  COMET_PASSES,
-  COMET_RECORDS,
-  type Comet,
-  type Crossing,
-  nextStrayAfter,
-} from "./hazards";
 import { hitRock, rockHitRadius } from "../rocks/rocks";
 import { guardShip } from "../ship/ship";
 import { stepsIn } from "../stepper";
@@ -50,6 +43,13 @@ import {
   STRAY_TURN,
   type Span,
 } from "../tuning";
+import {
+  COMET_PASSES,
+  COMET_RECORDS,
+  type Comet,
+  type Crossing,
+  nextStrayAfter,
+} from "./hazards";
 
 /** A rock in the field's corner, which keeps the wave from clearing, and the ship, far off it. */
 const PICTURE = ["L", "", "", "", "........^"];

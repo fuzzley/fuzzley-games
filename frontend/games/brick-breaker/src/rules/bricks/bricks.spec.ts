@@ -7,11 +7,11 @@ import {
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
-import { hitBrick, neededLeft } from "./bricks";
 import { BRICK_KINDS } from "../catalog/bricks";
 import type { Field } from "../field/field";
 import { cellIndex } from "../grid";
 import { stepsIn } from "../stepper";
+import { hitBrick, neededLeft } from "./bricks";
 
 /** The steps a blast waits before it goes off. */
 const FUSE_STEPS = stepsIn(BRICK_KINDS.blast.traits[0].delayMs);

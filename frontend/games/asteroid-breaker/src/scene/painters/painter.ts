@@ -1,8 +1,8 @@
 import type { Place } from "../../rules/torus";
-import type { Deck } from "../../view/steering/deck";
+import type { BeltPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { FieldView } from "../../view/field/frame";
-import type { BeltPalette } from "../../view/colors/palette";
+import type { Deck } from "../../view/steering/deck";
 
 /** Says what the atlas was last baked at: the field's layout and the palette. */
 export interface Baked {

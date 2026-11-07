@@ -8,8 +8,6 @@ import {
   shipOf,
 } from "../../testing/field_picture";
 import { TURN } from "../angles";
-import { type Field, steerField, stepField } from "./field";
-import { type Fill, areaShare, fillFor, stretchField } from "./fill";
 import { STILL, type Steer, createShip } from "../ship/ship";
 import type { Torus } from "../torus";
 import {
@@ -19,6 +17,8 @@ import {
   STRAY_FIRST_MS,
 } from "../tuning";
 import type { Wave } from "../waves/waves";
+import { type Field, steerField, stepField } from "./field";
+import { type Fill, areaShare, fillFor, stretchField } from "./fill";
 
 /** A wave of three large stones and a medium ice, a stray and comets every 9 to 12 s, as written. */
 const WAVE: Wave = {

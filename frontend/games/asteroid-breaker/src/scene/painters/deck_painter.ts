@@ -2,13 +2,13 @@ import type { GameObjects, Scene } from "phaser";
 import { rechargeShare } from "../../rules/ship/ship";
 import type { Place } from "../../rules/torus";
 import { DECK_FRAMES } from "../../view/art/art";
+import type { BeltPalette } from "../../view/colors/palette";
 import {
   type Circle,
   type Deck,
   type DeckButton,
   rechargeRing,
 } from "../../view/steering/deck";
-import type { BeltPalette } from "../../view/colors/palette";
 import type { Steering } from "../../view/steering/steering";
 import type { StickView } from "../../view/steering/stick";
 import { DECK_ATLAS } from "../atlas";

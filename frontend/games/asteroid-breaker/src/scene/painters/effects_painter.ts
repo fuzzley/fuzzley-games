@@ -4,7 +4,7 @@ import { stepsIn } from "../../rules/stepper";
 import { type Moving, type Torus, copyShift, wrap } from "../../rules/torus";
 import { STEP_S } from "../../rules/tuning";
 import { FLOURISH, FRAMES } from "../../view/art/art";
-import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
+import { SHIP_FRAMES, SHIP_REACH, flameTip } from "../../view/art/ship_art";
 import {
   SPARK_REACH,
   fadeAlpha,
@@ -16,8 +16,6 @@ import {
   trailLaidAfter,
   trailReach,
 } from "../../view/effects/flourish";
-import { angleBetween, betweenOnAxis } from "../../view/field/frame";
-import { SHIP_FRAMES, SHIP_REACH, flameTip } from "../../view/art/ship_art";
 import {
   DASH_TRAIL,
   DUST_MS,
@@ -29,6 +27,8 @@ import {
   SPARK_MS,
   TRAIL_MS,
 } from "../../view/effects/timing";
+import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
+import { angleBetween, betweenOnAxis } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";

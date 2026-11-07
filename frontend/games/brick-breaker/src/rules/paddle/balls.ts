@@ -1,6 +1,5 @@
 import { clamp } from "@fz/core/math";
 import type { Box } from "../grid";
-import type { Paddle } from "./paddle";
 import {
   BALL_RADIUS,
   FIELD_WIDTH,
@@ -8,6 +7,7 @@ import {
   PADDLE_ANGLE,
   SERVE_ANGLE,
 } from "../tuning";
+import type { Paddle } from "./paddle";
 
 /** Describes a ball: where it is, which way it goes, and what it has done. */
 export interface Ball {

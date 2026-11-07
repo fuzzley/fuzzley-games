@@ -1,6 +1,5 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import type { Speed } from "../../rules/speed";
 import {
   type EndedRun,
   type Stats,
@@ -10,6 +9,7 @@ import {
   withRunEnded,
   withRunStarted,
 } from "../../rules/run/stats";
+import type { Speed } from "../../rules/speed";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the stats are kept. Renaming it loses every player's. */
