@@ -115,9 +115,15 @@ take for the layer.
   `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
   group in play at a time.
 - **`src/rules/hazards/`** — what crosses the field once, from an edge,
-  without wrapping. `hazards.ts` sends the stray fuzzballs, which the ship
-  brings home by touching, and the comets, warned of at their edge, which
-  break the rocks they meet a size down and take a ship.
+  without wrapping. `strays.ts` sends the stray fuzzballs, one at a time,
+  which the ship brings home by touching (`stepStrays()`), and `comets.ts`
+  the comets, warned of at their edge, which break the rocks they meet a
+  size down and take a ship (`stepComets()`, `touchesComet()`); each says
+  what a wave sends of it (`StraySetup`, `CometSetup`). `crossing.ts` holds
+  what the two share, a `Crossing`: coming in off an edge by a margin,
+  heading across within a tilt (`comeIn()`), flying without wrapping
+  (`fly()`), leaving (`hasLeft()`), and reaching what lies on the field only
+  with its middle on it (`reaches()`).
 - **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
   replaces, from the wave it started at to its end: the wave in play, the
   points banked and the score, the crew, the next ship's mark, the strays
@@ -651,6 +657,10 @@ share is in `src/testing/`:
   pickup, a stray or a comet on it where a spec says (`placeRock()`,
   `placePickup()`, `placeStray()`, `placeComet()`), steps it and reads its
   events, so a spec of the field reads as the field it plays.
+- `crossings.ts` reads where a stray or a comet waits to come in
+  (`entryOf()`), whether a run of them came in off every edge within their
+  margin and tilt (`entriesOf()`), and where an event was logged against
+  one (`edgePlaceOf()`), for the specs of the hazards.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
   specs, and finds a frame by its name (`frameNamed()`).
 - `autopilot.ts` plays a wave as a fair player would (`autoplay()`,

@@ -1,5 +1,6 @@
 import { clamp } from "@fz/core/math";
-import type { Comet, Crossing } from "../../rules/hazards/hazards";
+import type { Comet } from "../../rules/hazards/comets";
+import type { Crossing } from "../../rules/hazards/crossing";
 import { STEP_MS, stepsIn } from "../../rules/stepper";
 import type { Moving, Torus } from "../../rules/torus";
 import { COMET_WARNING_MS } from "../../rules/tuning";

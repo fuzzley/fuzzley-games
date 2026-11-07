@@ -1,4 +1,4 @@
-import { waveToPlay } from "../waves/endless";
+import { stepTimes } from "../../testing/field_picture";
 import {
   type Field,
   type PlayerSetup,
@@ -6,8 +6,13 @@ import {
   steerField,
 } from "../field/field";
 import { fillFor, stretchField } from "../field/fill";
-import { nextStrayAfter } from "../hazards/hazards";
+import { safestPlace } from "../field/spawn";
+import { nextStrayAfter } from "../hazards/strays";
 import { rocksLeft } from "../rocks/rocks";
+import { STILL } from "../ship/ship";
+import { type Torus, middleOf } from "../torus";
+import { waveToPlay } from "../waves/endless";
+import { type Wave, WAVES, waveEntryOf } from "../waves/waves";
 import { type Run, createRun, waveStart } from "./run";
 import {
   type RunKeeping,
@@ -18,11 +23,6 @@ import {
   saveGame,
   takeUpField,
 } from "./saved_game";
-import { STILL } from "../ship/ship";
-import { safestPlace } from "../field/spawn";
-import { type Torus, middleOf } from "../torus";
-import { type Wave, WAVES, waveEntryOf } from "../waves/waves";
-import { stepTimes } from "../../testing/field_picture";
 
 /** The field's size the specs lay their waves out at. */
 const TORUS: Torus = { width: 72, height: 40 };

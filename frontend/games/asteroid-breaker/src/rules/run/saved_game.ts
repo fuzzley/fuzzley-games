@@ -10,7 +10,7 @@ import {
 import { type Field, type PlayerSetup, fieldFor } from "../field/field";
 import { fillFor, stretchField } from "../field/fill";
 import { safestPlace } from "../field/spawn";
-import { nextStrayAfter } from "../hazards/hazards";
+import { nextStrayAfter } from "../hazards/strays";
 import { ROCK_OUTLINES, type Rock, isFree } from "../rocks/rocks";
 import { PILOT_COLORS, type Pilot } from "../ship/pilots";
 import { createShip } from "../ship/ship";

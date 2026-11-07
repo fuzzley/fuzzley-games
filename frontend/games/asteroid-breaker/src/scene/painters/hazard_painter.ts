@@ -1,5 +1,5 @@
 import type { GameObjects, Scene } from "phaser";
-import { COMET_RECORDS } from "../../rules/hazards/hazards";
+import { COMET_RECORDS } from "../../rules/hazards/comets";
 import type { Moving } from "../../rules/torus";
 import { FRAMES } from "../../view/art/art";
 import { pulseAlpha } from "../../view/effects/flourish";

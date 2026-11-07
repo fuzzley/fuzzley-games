@@ -1,13 +1,14 @@
+import { TURN } from "../../rules/angles";
 import type { WeaponId } from "../../rules/catalog/weapons";
-import type { Floating } from "../../rules/rocks/drops";
 import type { FieldEventLog } from "../../rules/field/events";
-import type { Comet, Stray } from "../../rules/hazards/hazards";
+import type { Comet } from "../../rules/hazards/comets";
+import type { Stray } from "../../rules/hazards/strays";
+import type { Floating } from "../../rules/rocks/drops";
 import type { Effects } from "../../rules/rocks/pickups";
-import type { Crew } from "../../rules/ship/pilots";
 import type { Rock } from "../../rules/rocks/rocks";
+import type { Crew } from "../../rules/ship/pilots";
 import type { Ship } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
-import { TURN } from "../../rules/angles";
 import { type Place, type Torus, across, wrap } from "../../rules/torus";
 
 export type { FieldEvent, FieldEventKind } from "../../rules/field/events";

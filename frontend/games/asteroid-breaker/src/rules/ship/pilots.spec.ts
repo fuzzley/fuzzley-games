@@ -1,6 +1,6 @@
 import { loggedOn } from "../../testing/field_picture";
 import { FieldEventLog } from "../field/events";
-import { createStrays } from "../hazards/hazards";
+import { createStrays } from "../hazards/strays";
 import type { Place } from "../torus";
 import { FIRST_SHIPS, MAX_SHIPS, STRAY_FIRST_MS } from "../tuning";
 import {

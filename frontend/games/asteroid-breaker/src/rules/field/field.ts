@@ -8,17 +8,21 @@ import { type DropSetup, createPickups } from "../rocks/drops";
 import { FieldEventLog } from "./events";
 import { fillFor, stretchField } from "./fill";
 import {
+  type CometSetup,
   type Comets,
-  type HazardSetup,
-  type Strays,
-  clearHazards,
+  clearComets,
   createComets,
-  createStrays,
   scheduleFirstComet,
   stepComets,
-  stepStrays,
   touchesComet,
-} from "../hazards/hazards";
+} from "../hazards/comets";
+import {
+  type StraySetup,
+  type Strays,
+  clearStrays,
+  createStrays,
+  stepStrays,
+} from "../hazards/strays";
 import {
   type Effects,
   clearPickups,
@@ -83,7 +87,7 @@ import type { Wave } from "../waves/waves";
  * what it sends across the field, and the crew, the points banked and the
  * next ship's mark it starts with.
  */
-export interface FieldSetup extends DropSetup, HazardSetup {
+export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly torus: Torus;
   /** The most rocks the field holds at once. */
   readonly cap: number;
@@ -459,7 +463,8 @@ function clear(field: Field): void {
   scoreClearing(field);
   endEffects(field);
   clearPickups(field);
-  clearHazards(field);
+  clearStrays(field);
+  clearComets(field);
   const { ship } = field;
   const middle = middleOf(field.torus);
   field.events.add("cleared", middle.x, middle.y);

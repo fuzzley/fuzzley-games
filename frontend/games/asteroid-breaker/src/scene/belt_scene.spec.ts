@@ -5,7 +5,7 @@ import { Core, GameObjects } from "phaser";
 import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
 import type { Field } from "../rules/field/field";
-import { COMET_RECORDS } from "../rules/hazards/hazards";
+import { COMET_RECORDS } from "../rules/hazards/comets";
 import { hitRock } from "../rules/rocks/rocks";
 import type { Ship } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
@@ -59,11 +59,6 @@ import {
   pickupFrame,
   tagFrame,
 } from "../view/art/art";
-import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
-import type { BoardSetting } from "../view/field/field_metrics";
-import { SOUNDS } from "../view/effects/effects";
-import { PULSE_LEAST } from "../view/effects/flourish";
-import { LAYERS } from "../view/field/layers";
 import {
   CONSTELLATION,
   LOOK,
@@ -73,14 +68,19 @@ import {
 import { rockFrame, takenFrame } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
+import { SOUNDS } from "../view/effects/effects";
+import { PULSE_LEAST } from "../view/effects/flourish";
+import type { BoardSetting } from "../view/field/field_metrics";
+import { LAYERS } from "../view/field/layers";
 import {
   CONSTELLATION_SIZE,
   speckCount,
   speckShares,
 } from "../view/field/specks";
-import { MOST_FINGERS } from "../view/steering/steering";
 import { TAG_RADIUS, tagX, tagY } from "../view/field/tags";
 import { WARNING_INSET } from "../view/field/warning";
+import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
+import { MOST_FINGERS } from "../view/steering/steering";
 import { ATLAS } from "./atlas";
 import { type BeltScene, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";

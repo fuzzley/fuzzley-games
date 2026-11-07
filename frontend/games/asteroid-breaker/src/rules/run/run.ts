@@ -1,5 +1,5 @@
 import type { Field, FieldSetup } from "../field/field";
-import type { Strays } from "../hazards/hazards";
+import type { Strays } from "../hazards/strays";
 import { type Crew, createCrew } from "../ship/pilots";
 import type { Speed } from "../speed";
 import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
