@@ -139,8 +139,8 @@ Breaker's rocks and pilots in inks of their own beside them.
    notes on every shade of a square,
    `frontend/games/snake/src/view/contrast.spec.ts` Snake's snake and apple on
    both shades of square, and
-   `frontend/games/brick-breaker/src/view/contrast.spec.ts` Brick Breaker's
-   tints, bricks, balls and capsules on its field, and
+   `frontend/games/brick-breaker/src/view/colors/contrast.spec.ts` Brick
+   Breaker's tints, bricks, balls and capsules on its field, and
    `frontend/games/asteroid-breaker/src/view/contrast.spec.ts` Asteroid
    Breaker's rocks, ship, pickups and pilots on its field. Each compiles the
    app's global stylesheet and measures it with `@fz/style/testing`.

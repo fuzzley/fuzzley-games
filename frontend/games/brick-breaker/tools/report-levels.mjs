@@ -8,12 +8,12 @@
  * clear the level, the time of that it spent on the last three bricks the
  * level needed, how many times its paddle met a ball, and the lives it
  * lost. It plays each through the autopilot's `playLevel()`, as
- * `src/rules/autopilot.spec.ts` does, so the report and the spec play the
- * same games, and it fails as the spec does: when a play doesn't clear its
- * level (`-`), or takes longer than the spec allows over its last bricks
- * (`!`). It loads the rules and the autopilot through Vite, as the game's
- * build does. The report is how the difficulty ramp is tuned: a level that
- * takes long, or costs lives at Relaxed, is one to look at again.
+ * `src/rules/levels/autopilot.spec.ts` does, so the report and the spec
+ * play the same games, and it fails as the spec does: when a play doesn't
+ * clear its level (`-`), or takes longer than the spec allows over its last
+ * bricks (`!`). It loads the rules and the autopilot through Vite, as the
+ * game's build does. The report is how the difficulty ramp is tuned: a level
+ * that takes long, or costs lives at Relaxed, is one to look at again.
  *
  * With `--seeds`, it plays each level that many times at each speed, from
  * seeds of its own, and prints the middle time, the longest, the longest
@@ -183,7 +183,7 @@ async function load(file) {
  */
 async function loadGame(heightAsked) {
   const [levels, speed, tuning, autopilot] = await Promise.all([
-    load("src/rules/levels.ts"),
+    load("src/rules/levels/levels.ts"),
     load("src/rules/speed.ts"),
     load("src/rules/tuning.ts"),
     load("src/testing/autopilot.ts"),

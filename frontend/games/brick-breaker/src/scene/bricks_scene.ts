@@ -12,15 +12,19 @@ import {
 import { SpritePlayer } from "@fz/phaser/sound";
 import { Core, type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
-import type { Steer } from "../rules/paddle";
+import type { Steer } from "../rules/paddle/paddle";
 import {
   PICTURE_FRAMES,
   type Pictures,
   ballFrame,
   mapPictures,
-} from "../view/art";
-import { brickColor } from "../view/brick_art";
-import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
+} from "../view/art/art";
+import { brickColor } from "../view/art/brick_art";
+import {
+  type FieldCommand,
+  commandOfKey,
+  heldKeyOf,
+} from "../view/steering/controls";
 import {
   CHIME,
   type Flourish,
@@ -29,25 +33,25 @@ import {
   detuneOf,
   effectsOf,
   flourishesOf,
-} from "../view/effects";
-import { type FieldMetrics, fieldMetrics } from "../view/field_metrics";
-import type { FieldEvent, FieldFrame, FieldView } from "../view/frame";
-import { LAYERS, type Layer } from "../view/layers";
-import type { BricksPalette } from "../view/palette";
-import { Steering, type TouchSteering } from "../view/steering";
+} from "../view/effects/effects";
+import { type FieldMetrics, fieldMetrics } from "../view/field/field_metrics";
+import type { FieldEvent, FieldFrame, FieldView } from "../view/field/frame";
+import { LAYERS, type Layer } from "../view/field/layers";
+import type { BricksPalette } from "../view/colors/palette";
+import { Steering, type TouchSteering } from "../view/steering/steering";
 import { ATLAS, bakeBricksAtlas } from "./atlas";
-import { BallPainter } from "./ball_painter";
-import { BoltPainter } from "./bolt_painter";
-import { BrickPainter } from "./brick_painter";
-import { CapsulePainter } from "./capsule_painter";
-import { EffectsPainter } from "./effects_painter";
-import { FieldPainter } from "./field_painter";
-import { GlowPainter } from "./glow_painter";
-import { PaddlePainter } from "./paddle_painter";
-import type { PaintContext, Painter } from "./painter";
+import { BallPainter } from "./painters/ball_painter";
+import { BoltPainter } from "./painters/bolt_painter";
+import { BrickPainter } from "./painters/brick_painter";
+import { CapsulePainter } from "./painters/capsule_painter";
+import { EffectsPainter } from "./painters/effects_painter";
+import { FieldPainter } from "./painters/field_painter";
+import { GlowPainter } from "./painters/glow_painter";
+import { PaddlePainter } from "./painters/paddle_painter";
+import type { PaintContext, Painter } from "./painters/painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
-import { TagPainter } from "./tag_painter";
+import { TagPainter } from "./painters/tag_painter";
 
 /** What the scene asks of the shell, and tells it. */
 export interface BricksSceneOptions {

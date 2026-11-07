@@ -1,6 +1,6 @@
 import type { ArtFrame, ArtScale, DrawCommand } from "@fz/phaser/shapes";
-import { atlasFrames } from "../view/art";
-import { type PaletteRoles, bricksPalette } from "../view/palette";
+import { atlasFrames } from "../view/art/art";
+import { type PaletteRoles, bricksPalette } from "../view/colors/palette";
 
 /** The roles the art's specs draw in, each a color no other role takes. */
 const ROLES: PaletteRoles = {

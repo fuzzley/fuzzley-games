@@ -2,8 +2,8 @@ import { TestBed } from "@angular/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import { FEW_BRICKS } from "../../rules/describe";
-import { levelsOf } from "../../rules/levels";
+import { FEW_BRICKS } from "../../rules/run/describe";
+import { levelsOf } from "../../rules/levels/levels";
 import { STEP_MS } from "../../rules/stepper";
 import {
   FIELD_HEIGHT,
@@ -28,7 +28,7 @@ import {
   under,
   underCapsule,
 } from "../../testing/play";
-import { CLEARED_MS, FADE_MS, SERVE_MS } from "../../view/timing";
+import { CLEARED_MS, FADE_MS, SERVE_MS } from "../../view/effects/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";

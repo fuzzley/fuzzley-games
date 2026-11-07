@@ -1,6 +1,6 @@
 import { type Signal, computed } from "@angular/core";
 import type { ThemeService } from "@fz/ui/theme";
-import { type BricksPalette, bricksPalette } from "../../view/palette";
+import { type BricksPalette, bricksPalette } from "../../view/colors/palette";
 
 /**
  * Returns the field's colors from the palette on the page, its roles and its

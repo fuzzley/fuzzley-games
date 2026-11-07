@@ -1,6 +1,6 @@
 import { cellIndex } from "../rules/grid";
-import { LEVELS } from "../rules/levels";
-import { restoreGame } from "../rules/saved_game";
+import { LEVELS } from "../rules/levels/levels";
+import { restoreGame } from "../rules/run/saved_game";
 import { stepsIn } from "../rules/stepper";
 import { type KeptRun, type Place, keptRun } from "./kept_run";
 

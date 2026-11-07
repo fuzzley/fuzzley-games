@@ -20,7 +20,7 @@ import {
   playUntil,
   provideSpecLevels,
 } from "../../testing/play";
-import { paddleTopOf } from "../../rules/paddle";
+import { paddleTopOf } from "../../rules/paddle/paddle";
 import {
   FIELD_HEIGHT,
   FIELD_WIDTH,
@@ -28,7 +28,7 @@ import {
   TALLEST_FIELD,
 } from "../../rules/tuning";
 import { paintRoles } from "../../testing/roles";
-import { FINGER_ROOM_CSS_PX } from "../../view/field_metrics";
+import { FINGER_ROOM_CSS_PX } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";

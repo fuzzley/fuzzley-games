@@ -22,8 +22,8 @@ import type { HostOptions } from "@fz/phaser/host";
 import type { Insets } from "@fz/phaser/insets";
 import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
-import { endTitle } from "../../rules/describe";
-import { paddleTopOf } from "../../rules/paddle";
+import { endTitle } from "../../rules/run/describe";
+import { paddleTopOf } from "../../rules/paddle/paddle";
 import {
   BRICKS_TOP,
   BRICK_HEIGHT,
@@ -35,8 +35,8 @@ import {
   ROWS,
 } from "../../rules/tuning";
 import type { BricksSceneOptions } from "../../scene/bricks_scene";
-import type { Pictures } from "../../view/art";
-import { fieldHeightFor, fingerRoomOf } from "../../view/field_metrics";
+import type { Pictures } from "../../view/art/art";
+import { fieldHeightFor, fingerRoomOf } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";

@@ -1,4 +1,4 @@
-import type { Steer } from "../rules/paddle";
+import type { Steer } from "../rules/paddle/paddle";
 import { STEP_MS } from "../rules/stepper";
 import {
   KEEPER,
@@ -7,7 +7,7 @@ import {
   playWithoutBall,
 } from "../testing/field_picture";
 import { LevelPlay } from "./level_play";
-import { SERVE_MS } from "./timing";
+import { SERVE_MS } from "./effects/timing";
 
 /** Returns a level's play over a field that stays in play while nothing moves. */
 function stillPlay(): LevelPlay {

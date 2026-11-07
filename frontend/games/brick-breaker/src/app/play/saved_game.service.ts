@@ -7,7 +7,7 @@ import {
   untracked,
 } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { restoreGame } from "../../rules/saved_game";
+import { restoreGame } from "../../rules/run/saved_game";
 import { GameService } from "./game.service";
 import { GAME_LEVELS } from "../tokens";
 

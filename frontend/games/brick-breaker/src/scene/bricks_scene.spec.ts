@@ -3,12 +3,12 @@ import type { CssRect } from "@fz/phaser/layout";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { Core, type Game, GameObjects } from "phaser";
-import { hitBrick } from "../rules/bricks";
-import { catchCapsule } from "../rules/capsules";
-import type { Ball } from "../rules/balls";
-import { reshapeField } from "../rules/field";
+import { hitBrick } from "../rules/bricks/bricks";
+import { catchCapsule } from "../rules/bricks/capsules";
+import type { Ball } from "../rules/paddle/balls";
+import { reshapeField } from "../rules/field/field";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
-import { type Steer, paddleTopOf } from "../rules/paddle";
+import { type Steer, paddleTopOf } from "../rules/paddle/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
   BOLT_INSET,
@@ -35,23 +35,23 @@ import {
   ballFrame,
   capsuleFrame,
   tagFrame,
-} from "../view/art";
-import { brickColor, brickFrame } from "../view/brick_art";
-import type { FieldCommand } from "../view/controls";
+} from "../view/art/art";
+import { brickColor, brickFrame } from "../view/art/brick_art";
+import type { FieldCommand } from "../view/steering/controls";
 import {
   type FieldMetrics,
   fieldMetrics,
   toCanvasX,
   toCanvasY,
   toFieldX,
-} from "../view/field_metrics";
-import { SOUNDS } from "../view/effects";
-import type { FieldFrame } from "../view/frame";
-import { type BricksPalette, bricksPalette } from "../view/palette";
-import { lineWidth } from "../view/shapes";
-import type { TouchSteering } from "../view/steering";
-import { between } from "../view/frame";
-import { TAG_SPACING, firstTagX, tagY } from "../view/tags";
+} from "../view/field/field_metrics";
+import { SOUNDS } from "../view/effects/effects";
+import type { FieldFrame } from "../view/field/frame";
+import { type BricksPalette, bricksPalette } from "../view/colors/palette";
+import { lineWidth } from "../view/art/shapes";
+import type { TouchSteering } from "../view/steering/steering";
+import { between } from "../view/field/frame";
+import { TAG_SPACING, firstTagX, tagY } from "../view/field/tags";
 import {
   DROP_IN_MS,
   FADE_MS,
@@ -61,7 +61,7 @@ import {
   REGROW_MS,
   RING_MS,
   SHARDS,
-} from "../view/timing";
+} from "../view/effects/timing";
 import { ATLAS } from "./atlas";
 import spritemap from "./sounds/sounds.json";
 import {

@@ -1,5 +1,5 @@
 import { drawAt } from "@fz/core/random";
-import type { Field } from "./field";
+import type { Field } from "./field/field";
 
 /**
  * Returns the field's next random number, from 0 up to 1, seeded by its

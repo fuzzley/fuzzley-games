@@ -3,7 +3,7 @@ import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import type { LevelEntry } from "../../rules/levels";
+import type { LevelEntry } from "../../rules/levels/levels";
 import {
   SPEC_LEVEL,
   SPEC_LEVELS,

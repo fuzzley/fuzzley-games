@@ -2,7 +2,10 @@ import { Injectable, inject, signal } from "@angular/core";
 import { booleanOr } from "@fz/core/json";
 import { LocalStorageService } from "@fz/ui/storage";
 import { type Speed, isCustomPercent, isSpeed } from "../../rules/speed";
-import { type TouchSteering, isTouchSteering } from "../../view/steering";
+import {
+  type TouchSteering,
+  isTouchSteering,
+} from "../../view/steering/steering";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 export const SETTINGS_KEY = "brick-breaker-settings";

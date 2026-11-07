@@ -13,7 +13,7 @@ import {
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent, type IconName } from "@fz/ui/icon";
-import { formatCustomPercent } from "../../rules/describe";
+import { formatCustomPercent } from "../../rules/run/describe";
 import {
   CUSTOM_PERCENT,
   SPEEDS,

@@ -9,7 +9,7 @@ import {
   withLevelPoints,
   withRunEnded,
   withRunStarted,
-} from "../../rules/stats";
+} from "../../rules/run/stats";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the stats are kept. Renaming it loses every player's. */

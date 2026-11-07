@@ -1,4 +1,4 @@
-import type { PaletteRoles } from "../view/palette";
+import type { PaletteRoles } from "../view/colors/palette";
 
 /** The colors the page gives the field, as a palette's stylesheet would. */
 export const ROLES = {
