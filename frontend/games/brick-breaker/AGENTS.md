@@ -80,11 +80,15 @@ take for the layer.
   step, `launch()` serves the ball waiting on the paddle and `serve()` puts
   one there after the last is lost; held keys move its paddle faster with a
   Custom ball that climbs past every preset speed's top (`keySpeedOf()`).
-  A ball's travel gathers what it meets first, the walls, the paddle and
-  the bricks' exposed faces and corners, all at one moment, and turns once.
-  The field counts its steps (`Field.steps`), and a timer is the step its
-  thing happens at, `stepsIn()` steps on from when it was set, as
-  milliseconds summed step by step would creep.
+  `travel.ts` moves a ball on its way (`travel()`): it gathers what the ball
+  meets first, the walls, the paddle and the bricks' exposed faces and
+  corners, all at one moment, and turns it once, off the paddle by where it
+  landed, or as a mirror, by a lull's few degrees at a wall after too many
+  bounces, striking each brick it met; and lifts a ball the paddle is moved
+  into onto its top (`liftOffPaddle()`). Its spec plays the travel through
+  the field's steps. The field counts its steps (`Field.steps`), and a
+  timer is the step its thing happens at, `stepsIn()` steps on from when it
+  was set, as milliseconds summed step by step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
   times the streak's multiplier, keeps the streak, and says what clearing a
   level adds, and how a cleared level's points add up (`tallyOf()`) and come
