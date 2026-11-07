@@ -3,15 +3,6 @@ import type { Pilot } from "../../rules/ship/pilots";
 import type { Moving, Place } from "../../rules/torus";
 import { STRAY_RADIUS } from "../../rules/tuning";
 import { FRAMES, STRAY_DROP } from "../../view/art/art";
-import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
-import {
-  BAIL_OUT_SPEED,
-  bailOutShown,
-  bobShare,
-  eyesOpen,
-  shareDone,
-} from "../../view/effects/flourish";
-import { between, betweenOnAxis } from "../../view/field/frame";
 import {
   LOOK,
   PILOT_SIZES,
@@ -19,7 +10,16 @@ import {
   lookingFrom,
   pilotFrame,
 } from "../../view/art/pilot_art";
+import {
+  BAIL_OUT_SPEED,
+  bailOutShown,
+  bobShare,
+  eyesOpen,
+  shareDone,
+} from "../../view/effects/flourish";
 import { BAIL_OUT_MS } from "../../view/effects/timing";
+import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
+import { between, betweenOnAxis } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 

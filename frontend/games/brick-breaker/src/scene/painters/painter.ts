@@ -1,6 +1,6 @@
+import type { BricksPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { FieldView } from "../../view/field/frame";
-import type { BricksPalette } from "../../view/colors/palette";
 
 /** Says what the atlas was last baked at: the field's layout and the palette. */
 export interface Baked {

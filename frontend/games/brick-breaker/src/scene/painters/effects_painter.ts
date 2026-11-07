@@ -1,11 +1,6 @@
 import type { GameObjects, Scene } from "phaser";
 import { MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame } from "../../view/art/art";
-import {
-  type FieldMetrics,
-  toCanvasX,
-  toCanvasY,
-} from "../../view/field/field_metrics";
 import { fadeAlpha, ringScale, shareDone } from "../../view/effects/flourish";
 import {
   FADE_MS,
@@ -15,6 +10,11 @@ import {
   SHARDS,
   SHARDS_MS,
 } from "../../view/effects/timing";
+import {
+  type FieldMetrics,
+  toCanvasX,
+  toCanvasY,
+} from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 

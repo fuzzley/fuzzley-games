@@ -35,6 +35,8 @@ import {
   shoot,
 } from "../../testing/play";
 import { paintRoles } from "../../testing/roles";
+import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
+import { CLEARED_MS } from "../../view/effects/timing";
 import {
   type BoardSetting,
   type PixelRect,
@@ -42,8 +44,6 @@ import {
   fieldMetrics,
   fieldShape,
 } from "../../view/field/field_metrics";
-import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
-import { CLEARED_MS } from "../../view/effects/timing";
 import { GameService } from "../play/game.service";
 import { type Settings, SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";

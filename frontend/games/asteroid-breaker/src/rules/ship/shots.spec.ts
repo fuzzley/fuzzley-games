@@ -1,6 +1,17 @@
 import { RADIANS_PER_DEGREE } from "../angles";
 import { WEAPONS, WEAPON_IDS, type WeaponId } from "../catalog/weapons";
 import { rockHitRadius } from "../rocks/rocks";
+import { STEP_MS, stepsIn } from "../stepper";
+import { type Torus, wrap } from "../torus";
+import {
+  SHIP_LENGTH,
+  SHOT_EVERY_MS,
+  SHOT_LIFE_MS,
+  SHOT_RADIUS,
+  SHOT_SPEED,
+  STEP_S,
+  TOP_SPEED,
+} from "../tuning";
 import {
   type Flight,
   type Ship,
@@ -20,17 +31,6 @@ import {
   stepShots,
   sweepShot,
 } from "./shots";
-import { STEP_MS, stepsIn } from "../stepper";
-import { type Torus, wrap } from "../torus";
-import {
-  SHIP_LENGTH,
-  SHOT_EVERY_MS,
-  SHOT_LIFE_MS,
-  SHOT_RADIUS,
-  SHOT_SPEED,
-  STEP_S,
-  TOP_SPEED,
-} from "../tuning";
 
 // Every speed and time here is `tuning.ts`'s or the catalog's, as the
 // ship's specs take theirs.

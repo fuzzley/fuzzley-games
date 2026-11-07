@@ -1,13 +1,6 @@
 import type { GameObjects, Scene } from "phaser";
 import { isGuarded, thrustOf } from "../../rules/ship/ship";
 import type { Torus } from "../../rules/torus";
-import type { FieldMetrics } from "../../view/field/field_metrics";
-import {
-  blinkShown,
-  eyesOpen,
-  flickerShare,
-} from "../../view/effects/flourish";
-import { angleBetween, betweenOnAxis } from "../../view/field/frame";
 import {
   LOOK,
   PILOT_SIZES,
@@ -21,6 +14,13 @@ import {
   WINDOW,
   flameShare,
 } from "../../view/art/ship_art";
+import {
+  blinkShown,
+  eyesOpen,
+  flickerShare,
+} from "../../view/effects/flourish";
+import type { FieldMetrics } from "../../view/field/field_metrics";
+import { angleBetween, betweenOnAxis } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 

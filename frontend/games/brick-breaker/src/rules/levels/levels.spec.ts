@@ -1,6 +1,7 @@
 import { brickKind, isNeeded } from "../catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../catalog/capsules";
 import { CELLS, cellIndex, columnOf, rowOf } from "../grid";
+import { COLUMNS, ROWS } from "../tuning";
 import type { Level, LevelBrick } from "./level";
 import {
   LEVELS,
@@ -10,7 +11,6 @@ import {
   levelsOf,
   parseLevel,
 } from "./levels";
-import { COLUMNS, ROWS } from "../tuning";
 
 /** The set of a spec's levels, whose chance of a capsule is 0.1. */
 const SET: LevelSetData = { id: "spec", name: "Spec", drops: 0.1, levels: [] };

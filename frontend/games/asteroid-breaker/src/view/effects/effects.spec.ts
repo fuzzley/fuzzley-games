@@ -5,6 +5,7 @@ import {
 } from "../../rules/catalog/rocks";
 import { hitRock } from "../../rules/rocks/rocks";
 import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
+import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   type EventEffects,
   type Flourish,
@@ -18,7 +19,6 @@ import {
   rockKindOf,
   rockSizeOf,
 } from "./effects";
-import type { FieldEvent, FieldEventKind } from "../field/frame";
 
 /** Returns an event of a kind, of a rock of a kind and size or of none, at a count in its chain. */
 function eventOf(

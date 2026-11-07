@@ -12,10 +12,7 @@ import {
 } from "../../testing/field_picture";
 import { PICKUPS } from "../catalog/pickups";
 import { ROCK_KINDS } from "../catalog/rocks";
-import type { Floating } from "./drops";
 import { type Field, steerField, stepField } from "../field/field";
-import { EFFECT_KINDS, lasts } from "./pickups";
-import { rockHitRadius } from "./rocks";
 import { STILL } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
@@ -25,6 +22,9 @@ import {
   PICKUP_PULL_SPEED,
   STEP_S,
 } from "../tuning";
+import type { Floating } from "./drops";
+import { EFFECT_KINDS, lasts } from "./pickups";
+import { rockHitRadius } from "./rocks";
 
 /** A rock in the field's corner, which keeps the wave from clearing, and the ship, far off it. */
 const PICTURE = ["L", "", "", "", ".........^"];

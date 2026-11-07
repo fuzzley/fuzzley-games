@@ -13,12 +13,18 @@ import {
 import { PICKUP_IDS, type PickupId } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, type RockKindId } from "../../rules/catalog/rocks";
 import { STRAY_RADIUS } from "../../rules/tuning";
+import type { BeltPalette } from "../colors/palette";
+import { isTagged } from "../field/tags";
 import {
   DASH_RADIUS_CSS_PX,
   type DeckButton,
   FIRE_RADIUS_CSS_PX,
 } from "../steering/deck";
-import type { BeltPalette } from "../colors/palette";
+import {
+  KNOB_RADIUS_CSS_PX,
+  STICK_RADIUS_CSS_PX,
+  THRUST_RING,
+} from "../steering/stick";
 import {
   PILOT_SIZES,
   eyesCommands,
@@ -39,13 +45,7 @@ import {
   stroke,
 } from "./shapes";
 import { shipFrames } from "./ship_art";
-import {
-  KNOB_RADIUS_CSS_PX,
-  STICK_RADIUS_CSS_PX,
-  THRUST_RING,
-} from "../steering/stick";
 import { SYMBOLS } from "./symbols";
-import { isTagged } from "../field/tags";
 
 /** The names of the frames that aren't a rock's, a pilot's, the ship's or a pickup's. */
 export const FRAMES = {

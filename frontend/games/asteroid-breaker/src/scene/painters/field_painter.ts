@@ -1,9 +1,9 @@
 import type { GameObjects, Scene } from "phaser";
 import type { Place, Torus } from "../../rules/torus";
 import { FRAMES } from "../../view/art/art";
-import type { FieldMetrics } from "../../view/field/field_metrics";
-import type { BeltPalette } from "../../view/colors/palette";
 import { CONSTELLATION } from "../../view/art/pilot_art";
+import type { BeltPalette } from "../../view/colors/palette";
+import type { FieldMetrics } from "../../view/field/field_metrics";
 import {
   CONSTELLATION_SIZE,
   MOST_SPECKS,

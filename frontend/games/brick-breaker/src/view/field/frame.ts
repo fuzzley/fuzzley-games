@@ -1,11 +1,11 @@
-import type { Ball } from "../../rules/paddle/balls";
-import type { Bolt } from "../../rules/paddle/bolts";
 import type { Brick } from "../../rules/bricks/bricks";
 import type { Falling, InEffect } from "../../rules/bricks/capsules";
 import type { BallKindId } from "../../rules/catalog/balls";
 import type { EffectKind, PaddleMode } from "../../rules/catalog/capsules";
 import type { FieldEventLog } from "../../rules/field/events";
 import type { FieldState } from "../../rules/field/field";
+import type { Ball } from "../../rules/paddle/balls";
+import type { Bolt } from "../../rules/paddle/bolts";
 import type { Paddle } from "../../rules/paddle/paddle";
 
 export type { FieldEvent, FieldEventKind } from "../../rules/field/events";

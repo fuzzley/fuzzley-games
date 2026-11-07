@@ -1,4 +1,12 @@
 import {
+  CLEAN_POINTS,
+  CLEAR_POINTS,
+  FIRST_LIFE_POINTS,
+  FIRST_LIVES,
+  LIFE_POINTS,
+  MAX_LIVES,
+} from "../tuning";
+import {
   type LevelProgress,
   type Outcome,
   type Run,
@@ -14,14 +22,6 @@ import {
   resume,
   startLevel,
 } from "./run";
-import {
-  CLEAN_POINTS,
-  CLEAR_POINTS,
-  FIRST_LIFE_POINTS,
-  FIRST_LIVES,
-  LIFE_POINTS,
-  MAX_LIVES,
-} from "../tuning";
 
 /** Returns a run of ten levels at Normal, from the first, waiting, changed as given. */
 function runWith(changes: Partial<Run> = {}): Run {

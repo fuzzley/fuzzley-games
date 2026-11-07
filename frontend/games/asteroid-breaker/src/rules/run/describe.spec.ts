@@ -1,4 +1,7 @@
 import { loggedOn } from "../../testing/field_picture";
+import { type FieldEvent, FieldEventLog } from "../field/events";
+import type { Crew, Pilot } from "../ship/pilots";
+import { type WaveEntry, waveEntryOf } from "../waves/waves";
 import {
   type EndMarks,
   describeCleared,
@@ -10,10 +13,7 @@ import {
   describeWave,
   whereLost,
 } from "./describe";
-import { type FieldEvent, FieldEventLog } from "../field/events";
-import type { Crew, Pilot } from "../ship/pilots";
 import { type Run, createRun } from "./run";
-import { type WaveEntry, waveEntryOf } from "../waves/waves";
 
 /** Returns a crew of pilots flying and at home. */
 function crewOf(flying: readonly Pilot[], home: readonly Pilot[] = []): Crew {

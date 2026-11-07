@@ -1,4 +1,3 @@
-import type { Ball } from "../rules/paddle/balls";
 import type { Brick } from "../rules/bricks/bricks";
 import type { CapsuleId } from "../rules/catalog/capsules";
 import type { FieldEvent, FieldEventKind } from "../rules/field/events";
@@ -11,6 +10,7 @@ import {
 import { CELLS, cellIndex, columnOf, rowOf } from "../rules/grid";
 import { LEGEND, NO_BRICK, brickOf } from "../rules/levels/legend";
 import type { LevelBrick } from "../rules/levels/level";
+import type { Ball } from "../rules/paddle/balls";
 import type { Steer } from "../rules/paddle/paddle";
 import type { Speed } from "../rules/speed";
 import { COLUMNS, FIELD_HEIGHT, ROWS } from "../rules/tuning";

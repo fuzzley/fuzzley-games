@@ -1,13 +1,13 @@
 import type { Steer } from "../../rules/ship/ship";
 import type { Place } from "../../rules/torus";
-import { type HeldKey, heldKeyOf } from "./controls";
-import { type Deck, type DeckButton, buttonAt } from "./deck";
 import {
   type BoardSetting,
   type FieldMetrics,
   type PixelRect,
   toField,
 } from "../field/field_metrics";
+import { type HeldKey, heldKeyOf } from "./controls";
+import { type Deck, type DeckButton, buttonAt } from "./deck";
 import { STICK_RADIUS_CSS_PX, Stick, type StickView } from "./stick";
 
 /** The mouse's main button, which fires while it is held. */

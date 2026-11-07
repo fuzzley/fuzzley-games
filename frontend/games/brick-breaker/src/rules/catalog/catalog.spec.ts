@@ -1,3 +1,6 @@
+import type { Level } from "../levels/level";
+import { LEVELS, parseLevel } from "../levels/levels";
+import { CATCH_HOLD_MS, MAX_LIVES } from "../tuning";
 import { BALL_KIND_IDS, ballKind } from "./balls";
 import {
   BRICK_KINDS,
@@ -13,9 +16,6 @@ import {
   capsule,
   isCapsuleId,
 } from "./capsules";
-import type { Level } from "../levels/level";
-import { LEVELS, parseLevel } from "../levels/levels";
-import { CATCH_HOLD_MS, MAX_LIVES } from "../tuning";
 
 /** Every level, ready to play, with its number. */
 const PLAYED = LEVELS.map(

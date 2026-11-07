@@ -1,18 +1,5 @@
 import { clamp } from "@fz/core/math";
 import {
-  type Ball,
-  bounceOffPaddle,
-  createBall,
-  followPaddle,
-  holdBall,
-  overlapsBox,
-  reflectBall,
-  serveBall,
-  settleBall,
-  turnBall,
-} from "../paddle/balls";
-import { type Bolt, clearBolts, createBolts, stepBolts } from "../paddle/bolts";
-import {
   type Brick,
   canBreak,
   createBrick,
@@ -36,7 +23,6 @@ import { type BallKindId, ballKind } from "../catalog/balls";
 import { isNeeded } from "../catalog/bricks";
 import type { PaddleMode } from "../catalog/capsules";
 import { nextDraw } from "../draws";
-import { FieldEventLog } from "./events";
 import {
   ALL_SIDES,
   type Box,
@@ -55,6 +41,19 @@ import {
 } from "../grid";
 import type { Level } from "../levels/level";
 import {
+  type Ball,
+  bounceOffPaddle,
+  createBall,
+  followPaddle,
+  holdBall,
+  overlapsBox,
+  reflectBall,
+  serveBall,
+  settleBall,
+  turnBall,
+} from "../paddle/balls";
+import { type Bolt, clearBolts, createBolts, stepBolts } from "../paddle/bolts";
+import {
   type Paddle,
   type Steer,
   createPaddle,
@@ -63,7 +62,6 @@ import {
   paddleTopOf,
   steerPaddle,
 } from "../paddle/paddle";
-import { endStreak } from "./scoring";
 import {
   PRESET_SPEEDS,
   SPEED_INFO,
@@ -89,6 +87,8 @@ import {
   STEP_S,
   TALLEST_FIELD,
 } from "../tuning";
+import { FieldEventLog } from "./events";
+import { endStreak } from "./scoring";
 
 /**
  * Names where a level stands: its ball waiting on the paddle to be served,

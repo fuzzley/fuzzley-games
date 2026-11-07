@@ -22,8 +22,8 @@ import type { HostOptions } from "@fz/phaser/host";
 import type { Insets } from "@fz/phaser/insets";
 import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
-import { endTitle } from "../../rules/run/describe";
 import { paddleTopOf } from "../../rules/paddle/paddle";
+import { endTitle } from "../../rules/run/describe";
 import {
   BRICKS_TOP,
   BRICK_HEIGHT,

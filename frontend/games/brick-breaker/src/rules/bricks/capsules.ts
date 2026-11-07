@@ -1,6 +1,4 @@
 import { keysOf } from "@fz/core/records";
-import { splitOff } from "../paddle/balls";
-import type { Brick } from "./bricks";
 import { hasTrait, isNeeded } from "../catalog/bricks";
 import {
   type CapsuleEffect,
@@ -11,6 +9,7 @@ import {
 import { nextDraw } from "../draws";
 import type { Field } from "../field/field";
 import { type Box, cellMiddleX, cellMiddleY } from "../grid";
+import { splitOff } from "../paddle/balls";
 import { paddleBox } from "../paddle/paddle";
 import { SPEED_INFO } from "../speed";
 import { stepsIn } from "../stepper";
@@ -22,6 +21,7 @@ import {
   PADDLE_WIDTH,
   STEP_S,
 } from "../tuning";
+import type { Brick } from "./bricks";
 
 /** Describes a capsule falling down the field. */
 export interface Falling {

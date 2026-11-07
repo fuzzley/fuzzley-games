@@ -1,7 +1,5 @@
 import { clamp } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
-import type { Ball } from "../rules/paddle/balls";
-import { fireBolts } from "../rules/paddle/bolts";
 import type { Falling } from "../rules/bricks/capsules";
 import { isNeeded } from "../rules/catalog/bricks";
 import { capsule } from "../rules/catalog/capsules";
@@ -24,6 +22,8 @@ import {
 } from "../rules/grid";
 import type { Level } from "../rules/levels/level";
 import { type LevelEntry, parseLevel } from "../rules/levels/levels";
+import type { Ball } from "../rules/paddle/balls";
+import { fireBolts } from "../rules/paddle/bolts";
 import { paddleTopOf } from "../rules/paddle/paddle";
 import type { Speed } from "../rules/speed";
 import { stepsIn } from "../rules/stepper";

@@ -16,18 +16,8 @@ import {
 } from "../../testing/field_picture";
 import { PICKUPS } from "../catalog/pickups";
 import { ROCK_KINDS, type RockSize } from "../catalog/rocks";
-import {
-  type Field,
-  type FieldSetup,
-  type WaveSetup,
-  createField,
-  fieldFor,
-  reshapeField,
-  steerField,
-  stepField,
-} from "./field";
-import { createCrew } from "../ship/pilots";
 import { type Rock, hitRock, rockHitRadius, rocksLeft } from "../rocks/rocks";
+import { createCrew } from "../ship/pilots";
 import {
   STILL,
   type Steer,
@@ -38,7 +28,6 @@ import {
   isGuarded,
 } from "../ship/ship";
 import { TUNED_GUNNERY } from "../ship/shots";
-import { liesFairly, safestPlace } from "./spawn";
 import { STEP_MS, stepsIn } from "../stepper";
 import { across } from "../torus";
 import {
@@ -63,6 +52,17 @@ import {
   type WaveData,
   parseWave,
 } from "../waves/waves";
+import {
+  type Field,
+  type FieldSetup,
+  type WaveSetup,
+  createField,
+  fieldFor,
+  reshapeField,
+  steerField,
+  stepField,
+} from "./field";
+import { liesFairly, safestPlace } from "./spawn";
 
 const SETUP: FieldSetup = {
   torus: PICTURE_TORUS,

@@ -1,13 +1,4 @@
 import type { Box } from "../grid";
-import {
-  type Paddle,
-  type Steer,
-  createPaddle,
-  movePaddle,
-  paddleBox,
-  paddleTopOf,
-  steerPaddle,
-} from "./paddle";
 import { STEP_MS } from "../stepper";
 import {
   FIELD_HEIGHT,
@@ -21,6 +12,15 @@ import {
   STEP_S,
   TALLEST_FIELD,
 } from "../tuning";
+import {
+  type Paddle,
+  type Steer,
+  createPaddle,
+  movePaddle,
+  paddleBox,
+  paddleTopOf,
+  steerPaddle,
+} from "./paddle";
 
 /** The steps held keys take to bring the paddle to its fastest. */
 const RAMP_STEPS = Math.ceil(KEY_RAMP_MS / STEP_MS);

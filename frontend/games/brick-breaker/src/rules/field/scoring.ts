@@ -1,7 +1,7 @@
 import type { Brick } from "../bricks/bricks";
 import { brickKind } from "../catalog/bricks";
-import type { Field } from "./field";
 import { CLEAN_POINTS, CLEAR_POINTS, STREAK } from "../tuning";
+import type { Field } from "./field";
 
 /**
  * Returns how many times a hit scores, by how many bricks have broken since

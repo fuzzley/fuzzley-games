@@ -2,16 +2,16 @@ import { clamp } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
 import type { GameObjects, Scene } from "phaser";
 import type { Moving } from "../../rules/torus";
-import { toCanvas } from "../../view/field/field_metrics";
+import type { BeltPalette } from "../../view/colors/palette";
 import {
   fadeAlpha,
   pointsLabel,
   riseOf,
   shareDone,
 } from "../../view/effects/flourish";
-import type { FieldEvent } from "../../view/field/frame";
-import type { BeltPalette } from "../../view/colors/palette";
 import { POINTS_MS } from "../../view/effects/timing";
+import { toCanvas } from "../../view/field/field_metrics";
+import type { FieldEvent } from "../../view/field/frame";
 import type { PaintContext, Painter } from "./painter";
 import { Turns } from "./turns";
 

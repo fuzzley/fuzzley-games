@@ -7,21 +7,13 @@ import {
   isRockSize,
   rockKind,
 } from "../catalog/rocks";
-import { waveToPlay } from "../waves/endless";
 import { type Field, type PlayerSetup, fieldFor } from "../field/field";
 import { fillFor, stretchField } from "../field/fill";
-import { nextStrayAfter } from "../hazards/hazards";
-import { PILOT_COLORS, type Pilot } from "../ship/pilots";
-import { ROCK_OUTLINES, type Rock, isFree } from "../rocks/rocks";
-import {
-  type Run,
-  isInProgress,
-  nextShipAfter,
-  startWave,
-  waveStart,
-} from "./run";
-import { createShip } from "../ship/ship";
 import { safestPlace } from "../field/spawn";
+import { nextStrayAfter } from "../hazards/hazards";
+import { ROCK_OUTLINES, type Rock, isFree } from "../rocks/rocks";
+import { PILOT_COLORS, type Pilot } from "../ship/pilots";
+import { createShip } from "../ship/ship";
 import { type Speed, isSpeed } from "../speed";
 import { stepsIn } from "../stepper";
 import type { Torus } from "../torus";
@@ -31,7 +23,15 @@ import {
   MAX_SHIPS,
   STRAY_POINTS,
 } from "../tuning";
+import { waveToPlay } from "../waves/endless";
 import { type Wave, type WaveEntry, waveEntryOf } from "../waves/waves";
+import {
+  type Run,
+  isInProgress,
+  nextShipAfter,
+  startWave,
+  waveStart,
+} from "./run";
 
 /**
  * What of a rock storage keeps: what it is, where it is, how it flies and

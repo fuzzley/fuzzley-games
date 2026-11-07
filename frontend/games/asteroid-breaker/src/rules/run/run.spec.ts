@@ -1,4 +1,5 @@
 import { type Crew, createCrew } from "../ship/pilots";
+import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
 import {
   type Outcome,
   type Run,
@@ -16,7 +17,6 @@ import {
   waveStart,
   wavesCleared,
 } from "./run";
-import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
 
 /** Returns a run at Normal, from the first wave, waiting, changed as given. */
 function runWith(changes: Partial<Run> = {}): Run {

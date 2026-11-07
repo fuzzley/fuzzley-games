@@ -6,10 +6,10 @@ import {
   throwBall,
 } from "../../testing/field_picture";
 import { hitBrick } from "../bricks/bricks";
-import type { Field } from "./field";
-import { clearingPoints, multiplier, pointsOf, tallyOf } from "./scoring";
 import { stepsIn } from "../stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
+import type { Field } from "./field";
+import { clearingPoints, multiplier, pointsOf, tallyOf } from "./scoring";
 
 /** Hits the bricks of the first row once each, in the columns given, in turn. */
 function hitTop(field: Field, ...columns: number[]): void {

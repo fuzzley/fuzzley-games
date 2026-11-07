@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import type { Speed } from "../../rules/speed";
 import type { EndedRun } from "../../rules/run/stats";
+import type { Speed } from "../../rules/speed";
 import { provideSpecLevels } from "../../testing/play";
 import { STATS_KEY, StatsService } from "./stats.service";
 

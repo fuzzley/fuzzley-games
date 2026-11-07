@@ -6,13 +6,25 @@ import {
   type RockKindId,
   type RockSize,
 } from "../catalog/rocks";
-import { createPickups } from "./drops";
 import {
   type FieldEvent,
   type FieldEventKind,
   FieldEventLog,
 } from "../field/events";
 import { createCrew } from "../ship/pilots";
+import { stepsIn } from "../stepper";
+import type { Place, Torus } from "../torus";
+import {
+  CHAIN_MS,
+  PIECE_PUSH,
+  PIECE_TURN,
+  ROCK_RADIUS,
+  ROCK_SPEED,
+  ROCK_SPIN,
+  STEP_S,
+  type Span,
+} from "../tuning";
+import { createPickups } from "./drops";
 import {
   ROCK_OUTLINES,
   type Rock,
@@ -26,18 +38,6 @@ import {
   stepRocks,
   tuneRockSpeed,
 } from "./rocks";
-import { stepsIn } from "../stepper";
-import type { Place, Torus } from "../torus";
-import {
-  CHAIN_MS,
-  PIECE_PUSH,
-  PIECE_TURN,
-  ROCK_RADIUS,
-  ROCK_SPEED,
-  ROCK_SPIN,
-  STEP_S,
-  type Span,
-} from "../tuning";
 
 // Every speed, span and setting here is `tuning.ts`'s or the catalog's, as
 // the ship's and the shots' specs take theirs.

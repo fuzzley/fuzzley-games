@@ -33,6 +33,7 @@ import { whereLost } from "../../rules/run/describe";
 import type { Torus } from "../../rules/torus";
 import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art/art";
+import { buzzOf } from "../../view/effects/haptics";
 import {
   type BoardSetting,
   type PixelRect,
@@ -40,7 +41,6 @@ import {
   fieldMetrics,
   fieldShape,
 } from "../../view/field/field_metrics";
-import { buzzOf } from "../../view/effects/haptics";
 import { tallyLines } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";

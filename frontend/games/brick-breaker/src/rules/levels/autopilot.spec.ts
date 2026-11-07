@@ -5,11 +5,11 @@ import {
   limitsOf,
   playLevel,
 } from "../../testing/autopilot";
-import type { Level } from "./level";
-import { LEVELS, type LevelData, type LevelEntry, parseLevel } from "./levels";
 import { PRESET_SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
 import { COLUMNS, FIELD_HEIGHT, TALLEST_FIELD } from "../tuning";
+import type { Level } from "./level";
+import { LEVELS, type LevelData, type LevelEntry, parseLevel } from "./levels";
 
 /** The seeds a spec plays a level from, to judge the autopilot by more than one game. */
 const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);

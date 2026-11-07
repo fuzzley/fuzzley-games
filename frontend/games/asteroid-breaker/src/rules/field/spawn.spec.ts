@@ -6,19 +6,9 @@ import {
   wholeRocks,
 } from "../../testing/field_picture";
 import { TURN } from "../angles";
-import { endlessWave } from "../waves/endless";
-import {
-  type Field,
-  type FieldSetup,
-  type WaveSetup,
-  createField,
-  fieldFor,
-} from "./field";
-import { fillFor } from "./fill";
-import { createCrew } from "../ship/pilots";
 import { type Rock, stepRocks } from "../rocks/rocks";
+import { createCrew } from "../ship/pilots";
 import { STILL } from "../ship/ship";
-import { layOut, liesFairly, safestPlace } from "./spawn";
 import { SPEEDS, SPEED_INFO, type Speed } from "../speed";
 import { stepsIn } from "../stepper";
 import { type Place, type Torus, across, distance, middleOf } from "../torus";
@@ -33,6 +23,7 @@ import {
   SAFE_MIDDLE,
   STRAY_FIRST_MS,
 } from "../tuning";
+import { endlessWave } from "../waves/endless";
 import {
   FORMATIONS,
   type Formation,
@@ -40,6 +31,15 @@ import {
   type Wave,
   parseWave,
 } from "../waves/waves";
+import {
+  type Field,
+  type FieldSetup,
+  type WaveSetup,
+  createField,
+  fieldFor,
+} from "./field";
+import { fillFor } from "./fill";
+import { layOut, liesFairly, safestPlace } from "./spawn";
 
 /** The narrowest field. */
 const NARROWEST: Torus = { width: 40, height: 40 };

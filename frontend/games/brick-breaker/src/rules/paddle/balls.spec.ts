@@ -1,5 +1,12 @@
 import { headingOf } from "../../testing/field_picture";
 import {
+  BALL_RADIUS,
+  FIELD_WIDTH,
+  FLATTEST,
+  PADDLE_TOP,
+  SERVE_ANGLE,
+} from "../tuning";
+import {
   type Ball,
   createBall,
   followPaddle,
@@ -11,13 +18,6 @@ import {
   turnBall,
 } from "./balls";
 import { createPaddle } from "./paddle";
-import {
-  BALL_RADIUS,
-  FIELD_WIDTH,
-  FLATTEST,
-  PADDLE_TOP,
-  SERVE_ANGLE,
-} from "../tuning";
 
 /** Returns a ball in play heading a way, not yet of length 1. */
 function heading(dx: number, dy: number): Ball {

@@ -1,14 +1,14 @@
 import type { GameObjects, Scene } from "phaser";
 import { BOLT_INSET, PADDLE_HEIGHT } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/art";
+import { lineWidth } from "../../view/art/shapes";
+import type { BricksPalette } from "../../view/colors/palette";
 import {
   type FieldMetrics,
   toCanvasX,
   toCanvasY,
 } from "../../view/field/field_metrics";
 import { between } from "../../view/field/frame";
-import type { BricksPalette } from "../../view/colors/palette";
-import { lineWidth } from "../../view/art/shapes";
 import { ATLAS } from "../atlas";
 import type { Baked, PaintContext, Painter } from "./painter";
 

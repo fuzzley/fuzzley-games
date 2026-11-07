@@ -2,8 +2,8 @@ import { atlasSize } from "@fz/phaser/scene";
 import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
-import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { ROCK_OUTLINES } from "../../rules/rocks/rocks";
+import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
 import {
   ART_PALETTE,
@@ -13,6 +13,7 @@ import {
   edgeOf,
   frameNamed,
 } from "../../testing/art_frames";
+import { TAG_RADIUS, isTagged } from "../field/tags";
 import {
   DECK_FRAMES,
   FRAMES,
@@ -29,7 +30,6 @@ import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
 import { rockFrame, sizesOf, takenFrame } from "./rock_art";
 import { bakedScale, lineWidth, outlineWidth } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
-import { TAG_RADIUS, isTagged } from "../field/tags";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;

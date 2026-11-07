@@ -1,4 +1,3 @@
-import { waveToPlay } from "../rules/waves/endless";
 import { fieldFor } from "../rules/field/field";
 import { catchUp, createRun, startWave, waveStart } from "../rules/run/run";
 import { type SavedGame, saveGame } from "../rules/run/saved_game";
@@ -6,6 +5,7 @@ import { STILL } from "../rules/ship/ship";
 import type { Speed } from "../rules/speed";
 import { STEP_MS, stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
+import { waveToPlay } from "../rules/waves/endless";
 import { type WaveEntry, waveEntryOf } from "../rules/waves/waves";
 import { playField } from "./autopilot";
 
