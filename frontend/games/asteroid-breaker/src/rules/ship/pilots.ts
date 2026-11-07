@@ -4,7 +4,7 @@
 // brick's tint, and the view gives the number its ink.
 
 import type { FieldEventLog } from "../field/events";
-import type { Strays } from "../hazards/hazards";
+import type { Strays } from "../hazards/strays";
 import type { Place, Torus } from "../torus";
 import { FIRST_SHIPS, MAX_SHIPS } from "../tuning";
 

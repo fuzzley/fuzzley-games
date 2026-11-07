@@ -10,7 +10,7 @@ import {
   steerField,
   stepField,
 } from "../rules/field/field";
-import type { Comet } from "../rules/hazards/hazards";
+import type { Comet } from "../rules/hazards/comets";
 import { createCrew } from "../rules/ship/pilots";
 import { rockHitRadius } from "../rules/rocks/rocks";
 import { STILL, type Ship, type Steer, guardShip } from "../rules/ship/ship";

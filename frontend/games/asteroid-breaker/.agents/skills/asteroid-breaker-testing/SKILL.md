@@ -58,6 +58,11 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `placeComet()` put more on a field; `stepTimes(field, n)` steps it;
   `shipOf()`, `wholeRocks()`, `floatingPickups()`, `eventsOf()` and
   `loggedOn()` read it back.
+- A stray or a comet comes in off an edge as `comeIn()`
+  (`src/rules/hazards/crossing.ts`) puts it, and
+  `src/testing/crossings.ts` reads where it waits (`entryOf()`) and holds a
+  run of them, over many seeds, to every edge, their margin and their tilt
+  (`entriesOf()`).
 - A field changes in place, from records made once, so a spec asserts on
   the records after the steps, and on the events the field logged.
 - The rules and the view know no framework, so their specs call the
