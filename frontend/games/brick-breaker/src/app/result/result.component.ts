@@ -2,8 +2,8 @@ import { Component, computed, inject, output } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { endTitle } from "../../rules/describe";
-import { levelsCleared } from "../../rules/run";
+import { endTitle } from "../../rules/run/describe";
+import { levelsCleared } from "../../rules/run/run";
 import { SPEED_INFO } from "../../rules/speed";
 import { GameService } from "../play/game.service";
 

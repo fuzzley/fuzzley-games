@@ -6,8 +6,8 @@ import {
   type LevelEntry,
   type LevelSetData,
   levelsOf,
-} from "../rules/levels";
-import type { Steer } from "../rules/paddle";
+} from "../rules/levels/levels";
+import type { Steer } from "../rules/paddle/paddle";
 import { FIELD_WIDTH } from "../rules/tuning";
 
 /** How long a frame of the board takes, at 60 a second. */

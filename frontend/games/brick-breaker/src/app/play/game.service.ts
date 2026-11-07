@@ -9,7 +9,7 @@ import { randomSeed } from "@fz/core/random";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
-import { fireBolts } from "../../rules/bolts";
+import { fireBolts } from "../../rules/paddle/bolts";
 import { capsule } from "../../rules/catalog/capsules";
 import {
   describeCaught,
@@ -21,16 +21,16 @@ import {
   describePause,
   describeResume,
   describeTakenUp,
-} from "../../rules/describe";
-import type { FieldEvent } from "../../rules/events";
+} from "../../rules/run/describe";
+import type { FieldEvent } from "../../rules/field/events";
 import {
   type Field,
   createField,
   launch as launchBalls,
   reshapeField,
-} from "../../rules/field";
-import { type LevelEntry, parseLevel } from "../../rules/levels";
-import type { Steer } from "../../rules/paddle";
+} from "../../rules/field/field";
+import { type LevelEntry, parseLevel } from "../../rules/levels/levels";
+import type { Steer } from "../../rules/paddle/paddle";
 import {
   type Run,
   catchUp,
@@ -42,25 +42,25 @@ import {
   pause,
   resume,
   startLevel,
-} from "../../rules/run";
+} from "../../rules/run/run";
 import {
   type LevelTally,
   multiplier,
   pointsOf,
   tallyOf,
-} from "../../rules/scoring";
+} from "../../rules/field/scoring";
 import {
   type SavedGame,
   type TakenUp,
   saveGame,
   takeUpField,
-} from "../../rules/saved_game";
+} from "../../rules/run/saved_game";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { FIELD_HEIGHT } from "../../rules/tuning";
-import type { FieldCommand } from "../../view/controls";
-import type { FieldFrame } from "../../view/frame";
+import type { FieldCommand } from "../../view/steering/controls";
+import type { FieldFrame } from "../../view/field/frame";
 import { LevelPlay } from "../../view/level_play";
-import { clearedDelayMs, resultDelayMs } from "../../view/timing";
+import { clearedDelayMs, resultDelayMs } from "../../view/effects/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";

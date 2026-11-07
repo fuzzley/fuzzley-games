@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { FIRST_LIVES } from "../../rules/tuning";
-import type { LevelEntry } from "../../rules/levels";
+import type { LevelEntry } from "../../rules/levels/levels";
 import {
   FRAME_MS,
   SPEC_LEVEL,

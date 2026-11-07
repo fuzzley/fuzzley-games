@@ -22,18 +22,18 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   needs: its art, its symbol, its color, its rule. A new id that compiles
   has everything drawn and played.
 - **The levels** are JSON, a file for each set in `src/rules/levels/`,
-  listed in order in `src/rules/levels.ts` (`LEVEL_SETS`) and numbered from
-  1 across the sets (`LEVELS`).
+  listed in order in `src/rules/levels/levels.ts` (`LEVEL_SETS`) and
+  numbered from 1 across the sets (`LEVELS`).
 - **The checks** that hold it whole:
 
-  | Check              | Where                            | What it holds                                                                                                        |
-  | ------------------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-  | The compiler       | everywhere                       | Every trait and effect has its rule, and every brick, ball and capsule its art                                       |
-  | The catalog spec   | `src/rules/catalog.spec.ts`      | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level  |
-  | The levels spec    | `src/rules/levels.spec.ts`       | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set       |
-  | The autopilot spec | `src/rules/autopilot.spec.ts`    | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field |
-  | The contrast spec  | `src/view/contrast.spec.ts`      | Every color against the field, and the outline and the marks against what they cross, in every palette               |
-  | The scene spec     | `src/scene/bricks_scene.spec.ts` | Every kind, in every state, drawn from a frame of the atlas                                                          |
+  | Check              | Where                                | What it holds                                                                                                        |
+  | ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+  | The compiler       | everywhere                           | Every trait and effect has its rule, and every brick, ball and capsule its art                                       |
+  | The catalog spec   | `src/rules/catalog/catalog.spec.ts`  | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level  |
+  | The levels spec    | `src/rules/levels/levels.spec.ts`    | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set       |
+  | The autopilot spec | `src/rules/levels/autopilot.spec.ts` | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field |
+  | The contrast spec  | `src/view/colors/contrast.spec.ts`   | Every color against the field, and the outline and the marks against what they cross, in every palette               |
+  | The scene spec     | `src/scene/bricks_scene.spec.ts`     | Every kind, in every state, drawn from a frame of the atlas                                                          |
 
 ## A Level
 
@@ -42,9 +42,9 @@ Its block in a set's file:
 - `id`, kebab-case, for good: the records and the progress are kept by it,
   so it never changes once shipped. `name`, what the player sees.
 - `bricks`: a row of 13 characters for each of up to 16 rows, from the
-  top, in the shared legend's characters (`src/rules/legend.ts`): `o` plain,
-  `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost, `+`
-  regrowing, `.` none. A `legend` of its own adds characters, each a kind
+  top, in the shared legend's characters (`src/rules/levels/legend.ts`):
+  `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
+  `+` regrowing, `.` none. A `legend` of its own adds characters, each a kind
   with its hits or the capsule a gift gives.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
@@ -61,8 +61,8 @@ no brick.
 
 Then:
 
-1. `yarn vitest run src/rules/levels.spec.ts src/rules/catalog.spec.ts`.
-2. `yarn vitest run src/rules/autopilot.spec.ts`, which plays it from its
+1. `yarn vitest run src/rules/levels/levels.spec.ts src/rules/catalog/catalog.spec.ts`.
+2. `yarn vitest run src/rules/levels/autopilot.spec.ts`, which plays it from its
    number as the seed.
 3. `yarn report:levels`, then `yarn report:levels --seeds 20`: its middle
    time should sit with its set's, rising through the game, and a long
@@ -80,7 +80,7 @@ and clears them fast.
 
 Its file in `src/rules/levels/`, with its `id`, `name`, `drops` (the
 chance of a capsule its levels share) and `levels`, imported in
-`src/rules/levels.ts` and placed in `LEVEL_SETS`. The Levels dialog shows
+`src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. The Levels dialog shows
 each set under its name. The levels spec holds a set's paces from falling
 only within it, so a new set's paces start where the last set's end, kept
 so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
@@ -91,8 +91,8 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 - Its entry in `CAPSULES`: its `name` and `about`, its `tone` (`bad` ones
   never fall at Relaxed), its `weight` against the others in a pool, the
   level it first falls `from`, and its `effect`.
-- Its shape in `CAPSULE_ART` (`src/view/art.ts`) and its symbol in
-  `SYMBOLS` (`src/view/symbols.ts`); the compiler asks for both, and its
+- Its shape in `CAPSULE_ART` (`src/view/art/art.ts`) and its symbol in
+  `SYMBOLS` (`src/view/art/symbols.ts`); the compiler asks for both, and its
   tag under the paddle is drawn from the same.
 - The announcer says its name as it is caught; How to play lists it.
 
@@ -101,7 +101,7 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 - A member of the `CapsuleEffect` union (`src/rules/catalog/capsules.ts`):
   its kind is its group, so catching one replaces whatever of its kind is
   in play.
-- Its rule in `EFFECT_RULES` (`src/rules/capsules.ts`): `start` as it is
+- Its rule in `EFFECT_RULES` (`src/rules/bricks/capsules.ts`): `start` as it is
   caught, and `end` to undo it as its time runs out, the next of its group
   is caught, or a life is lost.
 - Its record in `createEffects()`. The compiler asks for each.
@@ -113,8 +113,8 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 - Its entry in `BALL_KINDS`: its `damage` (a number of hits, or `breaks`),
   whether it `passes` through what it breaks, whether it `reaches` the
   bricks around, and its `speed`.
-- Its look in `BALL_ART` (`src/view/art.ts`) and its color in
-  `bricksPalette()`'s `balls` (`src/view/palette.ts`); the compiler asks
+- Its look in `BALL_ART` (`src/view/art/art.ts`) and its color in
+  `bricksPalette()`'s `balls` (`src/view/colors/palette.ts`); the compiler asks
   for both.
 - A capsule whose effect is `{ kind: "ball", ball: "<id>", ms }`.
 - The physics needs nothing new while one that passes breaks what it
@@ -129,8 +129,8 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
   `mostHits`, whether a level `needed` it broken, its `points` for each hit,
   and its `traits`.
 - Its look in every tint and state in `BRICK_ART`
-  (`src/view/brick_art.ts`) and How to play's picture in `PICTURED_BRICKS`
-  (`src/view/art.ts`); the compiler asks for both. A color of its own, as
+  (`src/view/art/brick_art.ts`) and How to play's picture in `PICTURED_BRICKS`
+  (`src/view/art/art.ts`); the compiler asks for both. A color of its own, as
   steel's, blast's and gift's, goes in `bricksPalette()`'s `bricks`, which
   the contrast spec then needs to hold.
 - Its character in the shared legend, or a level's own legend.
@@ -140,16 +140,16 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 ## A Brick Trait
 
 - A member of the `BrickTrait` union (`src/rules/catalog/bricks.ts`).
-- Its rule in `TRAIT_RULES` (`src/rules/bricks.ts`), at the moments it
+- Its rule in `TRAIT_RULES` (`src/rules/bricks/bricks.ts`), at the moments it
   acts: `laid` as the level lays the brick out, `hit` before a hit's
   damage, `broken` as it breaks, and `step` at each step; the compiler asks
   for the rule.
 - Any state it keeps on `Brick`, set by its rule's `laid`.
-- **The saved game keeps that state:** in `src/rules/saved_game.ts`, its
+- **The saved game keeps that state:** in `src/rules/run/saved_game.ts`, its
   key joins `KEPT_OF_BRICK`, from which `SavedBrick` is typed and by which
   `savedField()` writes it and `takeUpField()` lays it on the new field,
   and `restoredBrick()` reads it and refuses a state no run comes to; the
-  compiler asks for that. In `src/rules/saved_game.spec.ts`, the round
+  compiler asks for that. In `src/rules/run/saved_game.spec.ts`, the round
   trip's crowd gains a brick with the trait, and `PLAYED_STATES` the
   state, so a take-up that drops it fails.
 - Its look in `BRICK_ART`, for each state a player must tell apart.

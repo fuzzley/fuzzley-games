@@ -43,6 +43,12 @@ doesn't see, so Phaser stays out of the first download.
 
 ## Layout
 
+Each layer's folder holds at its top what the rest of it builds on, and each
+part of it in a folder of its own below, named for what it holds, never for
+the kind of code in it; a spec sits beside the file it tests. No folder in a
+layer takes a layer's name, `view`, `scene` or `app`, which the fences would
+take for the layer.
+
 - **`src/rules/`** — the game, with no framework, physics included.
   `tuning.ts` holds the numbers that set its feel, in field units (the
   field is 26 wide and 30 tall, or up to 45 on a tall screen,
@@ -53,7 +59,9 @@ doesn't see, so Phaser stays out of the first download.
   `ballSpeed()`; and `stepper.ts` the field's step, 1/120 s (`STEP_MS`),
   `stepsIn(ms)`, a time in those steps (`@fz/core/clock`'s, bound to the
   field's step), and the field's clock (`createFieldClock()`), which turns
-  a frame's time into steps, twelve at most a frame.
+  a frame's time into steps, twelve at most a frame. `draws.ts` draws the
+  field's random numbers (`nextDraw()`) from its seed and how many came
+  before, so a field taken up draws as it would have.
   `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
@@ -62,11 +70,11 @@ doesn't see, so Phaser stays out of the first download.
   box, pushed out by its radius, or a corner, as a share of the move, so
   however fast a ball goes it can't pass through a brick; bricks, the walls
   and the paddle are all boxes.
-- **The field** — `src/rules/field.ts`: `Field`, a level in play, which
-  each step changes in place, from records made once, so a step makes
+- **`src/rules/field/`** — the field. `field.ts`: `Field`, a level in play,
+  which each step changes in place, from records made once, so a step makes
   nothing but a random draw's generator, for a lull or a capsule.
-  `createField()` lays out a `Level` (`level.ts`), 30 units tall,
-  `reshapeField()` makes it another height while its ball waits to be
+  `createField()` lays out a `Level` (`src/rules/levels/level.ts`), 30 units
+  tall, `reshapeField()` makes it another height while its ball waits to be
   served, the paddle as far above the floor (`paddleTopOf()`),
   `steerField()` takes a frame's steering, `stepField()` moves it on a
   step, `launch()` serves the ball waiting on the paddle and `serve()` puts
@@ -74,21 +82,9 @@ doesn't see, so Phaser stays out of the first download.
   Custom ball that climbs past every preset speed's top (`keySpeedOf()`).
   A ball's travel gathers what it meets first, the walls, the paddle and
   the bricks' exposed faces and corners, all at one moment, and turns once.
-  `paddle.ts` steers the paddle (`Steer`: a pointer's place, a finger's
-  drag, held keys) and `balls.ts` turns a ball: off the paddle by where it
-  landed, as a mirror, by a lull's few degrees, and back to the flattest it
-  travels. `bricks.ts` holds
-  `Brick`, `hitBrick()`, which a ball or a blast calls, and `TRAIT_RULES`,
-  what each trait of `catalog/bricks.ts` does as a brick is hit, breaks, and
-  at each step, typed so that a trait without its rule fails to compile.
-  `capsules.ts` drops capsules while the level is in play (`dropFrom()`), by
-  the level's chance or from a gift brick, by weight from the level's pool,
-  from `draws.ts`'s seeded draws; moves them down to be caught or missed; and
-  holds `EFFECT_RULES`, what each effect of `catalog/capsules.ts` does as
-  it starts and ends, one of each group in play at a time. `bolts.ts` fires
-  and moves the laser's bolts. The field counts its steps (`Field.steps`),
-  and a timer is the step its thing happens at, `stepsIn()` steps on from
-  when it was set, as milliseconds summed step by step would creep.
+  The field counts its steps (`Field.steps`), and a timer is the step its
+  thing happens at, `stepsIn()` steps on from when it was set, as
+  milliseconds summed step by step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
   times the streak's multiplier, keeps the streak, and says what clearing a
   level adds, and how a cleared level's points add up (`tallyOf()`) and come
@@ -97,18 +93,34 @@ doesn't see, so Phaser stays out of the first download.
   256 numbered records, which `add()` fills, the scene plays and the shell
   hears, each from the last one it read; a broken brick's carries the
   streak as it broke, as the scene plays it once the field has moved on.
-- **The run** — `src/rules/run.ts`: `Run`, a value each change replaces, as
-  Snake's is, from the first level to the end: the level in play, the points
-  banked and the score, the lives and the points of the next, and the outcome.
-  `catchUp()` takes what the level's field has come to since it last looked,
-  its points, then the lives gained, then those lost, then its clearing, which
-  it banks, the order they come in on a field, since a frame's steps can hold
-  them all; `levelSeed()` gives each level's field a seed of its own;
-  `levelsCleared()` counts the levels a run has cleared; and
-  `gainedLifeByPoints()` says whether a frame's points brought a life, for the
-  chime. A move that doesn't fit where the run stands returns it as it is, so
-  a run over stays over and a level is banked once, and so does a field with
-  nothing new, so the shell can tell a frame that changed the run.
+- **`src/rules/paddle/`** — the paddle and what it sends up the field.
+  `paddle.ts` steers the paddle (`Steer`: a pointer's place, a finger's
+  drag, held keys) and `balls.ts` turns a ball: off the paddle by where it
+  landed, as a mirror, by a lull's few degrees, and back to the flattest it
+  travels. `bolts.ts` fires and moves the laser's bolts.
+- **`src/rules/bricks/`** — the bricks and the capsules they let fall.
+  `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
+  and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
+  as a brick is hit, breaks, and at each step, typed so that a trait without
+  its rule fails to compile. `capsules.ts` drops capsules while the level is
+  in play (`dropFrom()`), by the level's chance or from a gift brick, by
+  weight from the level's pool, from `src/rules/draws.ts`'s seeded draws;
+  moves them down to be caught or missed; and holds `EFFECT_RULES`, what
+  each effect of `src/rules/catalog/capsules.ts` does as it starts and ends,
+  one of each group in play at a time.
+- **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
+  replaces, as Snake's is, from the first level to the end: the level in
+  play, the points banked and the score, the lives and the points of the
+  next, and the outcome. `catchUp()` takes what the level's field has come
+  to since it last looked, its points, then the lives gained, then those
+  lost, then its clearing, which it banks, the order they come in on a
+  field, since a frame's steps can hold them all; `levelSeed()` gives each
+  level's field a seed of its own; `levelsCleared()` counts the levels a run
+  has cleared; and `gainedLifeByPoints()` says whether a frame's points
+  brought a life, for the chime. A move that doesn't fit where the run
+  stands returns it as it is, so a run over stays over and a level is banked
+  once, and so does a field with nothing new, so the shell can tell a frame
+  that changed the run.
   `describe.ts` puts what happened into the words the announcer says: a
   level's start, a capsule caught, the lives a frame gained and lost
   (`describeLives()`, from the run before and after), the last few bricks, a
@@ -127,23 +139,24 @@ doesn't see, so Phaser stays out of the first download.
   whether a run's score beats the best. `saved_game.ts` turns a run under way
   and its field into what storage keeps (`saveGame()`), a run whose level was
   just cleared as the next level not yet begun, and back (`restoreGame()`),
-  paused, dropping a level the game doesn't have under that number, a field that
-  doesn't fit its level, a number out of its range, or a state no run comes to,
-  such as a brick broken with hits left or a level that needs nothing more;
-  `takeUpField()` lays the bricks and counts kept over a new field of the level.
-  `run.ts`'s `nextLifeAfter()` gives the mark the next life comes at from a
-  score, which a kept run's must match.
-- **The levels** — `src/rules/levels/`: a JSON file for each set of
+  paused, dropping a level the game doesn't have under that number, a field
+  that doesn't fit its level, a number out of its range, or a state no run
+  comes to, such as a brick broken with hits left or a level that needs
+  nothing more; `takeUpField()` lays the bricks and counts kept over a new
+  field of the level. `run.ts`'s `nextLifeAfter()` gives the mark the next
+  life comes at from a score, which a kept run's must match.
+- **`src/rules/levels/`** — the levels: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
   of its own, and, for a picture, a grid of tints: `basics.json`, levels 1
   to 10, `steel.json`, 11 to 20, and `tricks.json`, 21 to 30.
-  `src/rules/levels.ts` lists the sets in order (`LEVEL_SETS`), numbers
-  every level from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()`
-  turns one into a `Level` to play, or throws an error that names what is
+  `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every level
+  from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one into
+  a `Level` (`level.ts`) to play, or throws an error that names what is
   wrong with its data. Its spec holds every level to parsing, ids and names
   of their own, a brick it needs that a ball can reach, and a pace that
-  never falls within a set.
+  never falls within a set; `autopilot.spec.ts` holds every level to being
+  cleared by the autopilot, as Tests below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
@@ -152,7 +165,7 @@ doesn't see, so Phaser stays out of the first download.
   `capsules.ts` (`CAPSULES`, each capsule's tone, weight, first level and
   effect, whose kind is its group). Each has its ids in How to play's order
   and a function that returns an entry as the shape every entry has.
-  `src/rules/catalog.spec.ts` holds every entry to the catalogs' rules.
+  `catalog.spec.ts` holds every entry to the catalogs' rules.
 - **`src/view/`** — what to draw and when the field moves on, without
   Phaser, tested in Node.
   `level_play.ts` holds `LevelPlay`, a level in play, which `GameService`
@@ -160,60 +173,66 @@ doesn't see, so Phaser stays out of the first download.
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and the beat
   before the next serve.
-  `field_metrics.ts` lays the field on the canvas from `fitCells()`, a unit a
-  whole number of device pixels, with `toCanvasX()`/`toCanvasY()` and
-  `toFieldX()`/`toFieldY()` between the two, and says how tall a field a
-  canvas has room for (`fieldHeightFor()`) and the room a board with room
-  for a taller one leaves under the field for a finger
-  (`fingerRoomOf()`); `frame.ts` is what the scene
-  reads: `FieldView`, the field it can't change, `EventsView` and
-  `FieldFrame`; `layers.ts` the order the field is drawn in, back to front, in
-  one list; `timing.ts` how long each flourish lasts, how long the paddle
-  stands empty after the last ball is lost (`SERVE_MS`), and how long the
-  cards wait; `flourish.ts` how each flourish moves over its time, and how
-  bright the last bricks a level needs glow once none has broken for a while,
-  pulsing only where motion is welcome; `tags.ts` where the tags of the
+- **`src/view/field/`** — where the field lies, and what of it the scene
+  reads. `field_metrics.ts` lays the field on the canvas from `fitCells()`,
+  a unit a whole number of device pixels, with `toCanvasX()`/`toCanvasY()`
+  and `toFieldX()`/`toFieldY()` between the two, and says how tall a field
+  a canvas has room for (`fieldHeightFor()`) and the room a board with room
+  for a taller one leaves under the field for a finger (`fingerRoomOf()`);
+  `frame.ts` is what the scene reads: `FieldView`, the field it can't
+  change, `EventsView` and `FieldFrame`; `layers.ts` the order the field is
+  drawn in, back to front, in one list; and `tags.ts` where the tags of the
   effects in play lie under the paddle, and how much of each one's time is
-  left; `controls.ts` the keys by `event.code`, the commands and the held
-  pushes; `steering.ts` the `Steering` that turns keys, the mouse and fingers
-  into each frame's `Steer`, and a tap into a launch, and the ways a finger
-  may steer (`TOUCH_STEERINGS`, `isTouchSteering()`); and `palette.ts` the
-  field's colors from the palette's roles (`bricksPalette()`), with the brick
-  tints from `inks.ts`, the game's own eight for light palettes and eight for
-  dark, the outline every ball and capsule takes over the bricks it crosses,
-  and the marks a brick's kind and state are told apart by. `art.ts` draws
-  every frame of the atlas (`atlasFrames()`) as plain commands in device
-  pixels, each ball (`BALL_ART`), each capsule's shape (`CAPSULE_ART`), its
-  tag, the paddle and the flourishes, names the frame a ball, a capsule or a
-  tag shows (`ballFrame()` and the rest), and How to play's pictures
-  (`PICTURE_FRAMES`); `brick_art.ts` draws a brick kind in each tint and state
-  (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`) and the
-  color its shards take (`brickColor()`); `symbols.ts` draws each capsule's
-  symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s commands
-  (`DrawCommand`), whose builders take no size below nothing, since a canvas
-  not yet laid out gives a unit too small for the insets, and `shapes.ts`
-  holds the game's own helpers over them, the areas, points and stars its
-  frames are laid out by, and `lineWidth()`; `effects.ts` says what each
-  event calls for, its sound and the flourishes it plays where motion is
-  welcome, how far a broken brick's
+  left.
+- **`src/view/effects/`** — what each event calls for, and how long it
+  lasts. `effects.ts` says what each event calls for, its sound and the
+  flourishes it plays where motion is welcome, how far a broken brick's
   sound rises along a streak (`detuneOf()`), and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
-  sound once a frame at most, at the highest it was heard.
-  `contrast.spec.ts` holds every tint, the steel, blast and gift bricks, every
-  ball kind, both capsule tones, the paddle and the last bricks' glow to 3:1
-  against the field in every palette, a tough brick's deeper tints too, each
-  ball and capsule against its outline, the outline against every tint, brick
-  and the paddle, and the marks against every brick, capsule and the paddle;
-  its comment says why a ball isn't held against the tints.
+  sound once a frame at most, at the highest it was heard; `flourish.ts`
+  how each flourish moves over its time, and how bright the last bricks a
+  level needs glow once none has broken for a while, pulsing only where
+  motion is welcome; and `timing.ts` how long each flourish lasts, how long
+  the paddle stands empty after the last ball is lost (`SERVE_MS`), and how
+  long the cards wait.
+- **`src/view/steering/`** — the player's hands. `controls.ts` holds the
+  keys by `event.code`, the commands and the held pushes; `steering.ts` the
+  `Steering` that turns keys, the mouse and fingers into each frame's
+  `Steer`, and a tap into a launch, and the ways a finger may steer
+  (`TOUCH_STEERINGS`, `isTouchSteering()`).
+- **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
+  the palette's roles (`bricksPalette()`), with the brick tints from
+  `inks.ts`, the game's own eight for light palettes and eight for dark, the
+  outline every ball and capsule takes over the bricks it crosses, and the
+  marks a brick's kind and state are told apart by. `contrast.spec.ts` holds
+  every tint, the steel, blast and gift bricks, every ball kind, both
+  capsule tones, the paddle and the last bricks' glow to 3:1 against the
+  field in every palette, a tough brick's deeper tints too, each ball and
+  capsule against its outline, the outline against every tint, brick and
+  the paddle, and the marks against every brick, capsule and the paddle; its
+  comment says why a ball isn't held against the tints.
+- **`src/view/art/`** — the atlas's frames. `art.ts` draws every frame of
+  the atlas (`atlasFrames()`) as plain commands in device pixels, each ball
+  (`BALL_ART`), each capsule's shape (`CAPSULE_ART`), its tag, the paddle
+  and the flourishes, names the frame a ball, a capsule or a tag shows
+  (`ballFrame()` and the rest), and How to play's pictures
+  (`PICTURE_FRAMES`); `brick_art.ts` draws a brick kind in each tint and
+  state (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`)
+  and the color its shards take (`brickColor()`); `symbols.ts` draws each
+  capsule's symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s
+  commands (`DrawCommand`), whose builders take no size below nothing, since
+  a canvas not yet laid out gives a unit too small for the insets, and
+  `shapes.ts` holds the game's own helpers over them, the areas, points and
+  stars its frames are laid out by, and `lineWidth()`.
 - **`src/scene/`** — the Phaser scene. `BricksScene`
   (`bricks_scene.ts`) is handed plain functions over the game
   (`BricksSceneOptions`): each frame it hands the game the time and the
   steering its `Steering` read from the keys and the pointer, reads the
-  frame and the palette, and has its painters draw, each in its layer of
-  `LAYERS`: `FieldPainter` the field, its wall and the net,
-  `BrickPainter` an image for each cell, made once, dropped in as a level
-  starts, swollen at a hit a brick holds and grown back as it regrows,
-  `GlowPainter` the frames around the last bricks a level needs,
+  frame and the palette, and has its painters, in `src/scene/painters/`,
+  draw, each in its layer of `LAYERS`: `FieldPainter` the field, its wall
+  and the net, `BrickPainter` an image for each cell, made once, dropped in
+  as a level starts, swollen at a hit a brick holds and grown back as it
+  regrows, `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, a blast's ring, a lost ball's
   fade and the field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle as two round ends and a
@@ -221,14 +240,14 @@ doesn't see, so Phaser stays out of the first download.
   either renderer, with its cannons and rim, `TagPainter` the effects in
   play and their emptying rings, and `BallPainter` the balls, with a fire
   ball's embers, one for each ember's width it goes. Each is a `Painter`
-  (`painter.ts`), which draws from the one `PaintContext` the scene writes
-  over each frame and, where it draws from the atlas, takes up its frames
-  again after a bake, so the scene draws and refreshes them in a loop over
-  its list of painters, which a new one joins as `create()` makes it. Each
-  thing that moves is drawn between its last place and its next. Every
-  game object is made as the scene is created, and a new field stops what the
-  last one set off. The scene plays each of the field's events once, from
-  the last it played, and the flourishes an event calls for only where
+  (`painters/painter.ts`), which draws from the one `PaintContext` the scene
+  writes over each frame and, where it draws from the atlas, takes up its
+  frames again after a bake, so the scene draws and refreshes them in a loop
+  over its list of painters, which a new one joins as `create()` makes it.
+  Each thing that moves is drawn between its last place and its next. Every
+  game object is made as the scene is created, and a new field stops what
+  the last one set off. The scene plays each of the field's events once,
+  from the last it played, and the flourishes an event calls for only where
   motion is welcome. `atlas.ts` bakes the view's art with `@fz/phaser`'s
   `bakeAtlas()` and `atlasFrameOf()`, again on a new palette or a new unit,
   and the scene hands How to play its pictures from the atlas each time
@@ -325,8 +344,8 @@ doesn't see, so Phaser stays out of the first download.
     which `GameService.setBallSpeedScale()` gives the field in play and
     every one after it (`Field.ballSpeedScale`), and nothing keeps.
   - `stats/` — the records: `StatsService`, which holds and stores what
-    `stats.ts` reads and moves on, each speed's runs, best score and
-    furthest level, and each level's best points at each speed; and
+    `src/rules/run/stats.ts` reads and moves on, each speed's runs, best
+    score and furthest level, and each level's best points at each speed; and
     `ProgressService`, the levels cleared, at any speed, which open the
     levels after them.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
@@ -373,9 +392,9 @@ doesn't see, so Phaser stays out of the first download.
 - **Its colors are the palette's and its own inks'.** `bricksPalette()`
   takes the field, its wall, the paddle, the balls, the capsules and the
   steel, blast and gift bricks from the page's roles, which `ThemeService`
-  reads, and the bricks' tints from `inks.ts`, eight for light palettes and
-  eight for dark; `src/view/contrast.spec.ts` holds them apart in every
-  palette.
+  reads, and the bricks' tints from `src/view/colors/inks.ts`, eight for
+  light palettes and eight for dark; `src/view/colors/contrast.spec.ts`
+  holds them apart in every palette.
 - **The field takes the board's shape as it waits to serve.** On a board
   with room for more than 30 units of height, at the unit its width allows,
   over a finger's room to steer by, the field grows to as many as fit, up
@@ -530,7 +549,7 @@ is in `src/testing/`:
   keeps the paddle under the ball that will reach it first, lands it a
   seeded distance off the middle or toward a brick the level needs that it
   can see, catches the good capsules it has time for, and fires, serves and
-  launches at once. `src/rules/autopilot.spec.ts` holds every level, at
+  launches at once. `src/rules/levels/autopilot.spec.ts` holds every level, at
   every preset speed, to being cleared by it within eight minutes of
   game time, its last three bricks within one, and on the tallest field
   within those eight minutes stretched as far as the paddle lies farther

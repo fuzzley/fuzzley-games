@@ -5,10 +5,10 @@ import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { createField } from "../rules/field";
-import { parseLevel } from "../rules/levels";
-import { createRun, startLevel } from "../rules/run";
-import { saveGame } from "../rules/saved_game";
+import { createField } from "../rules/field/field";
+import { parseLevel } from "../rules/levels/levels";
+import { createRun, startLevel } from "../rules/run/run";
+import { saveGame } from "../rules/run/saved_game";
 import { FIRST_LIVES } from "../rules/tuning";
 import {
   FRAME_MS,

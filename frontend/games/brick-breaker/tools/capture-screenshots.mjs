@@ -122,7 +122,7 @@ async function keepRun() {
     return /** @type {Record<string, unknown>} */ (module);
   };
   const [levels, kept, format] = await Promise.all([
-    load(join(ROOT, "src/rules/levels.ts")),
+    load(join(ROOT, "src/rules/levels/levels.ts")),
     load(join(ROOT, "src/testing/kept_run.ts")),
     load("@fz/core/format"),
   ]);

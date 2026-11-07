@@ -1,9 +1,9 @@
-import { type Brick, hitBrick } from "../rules/bricks";
-import { createField } from "../rules/field";
+import { type Brick, hitBrick } from "../rules/bricks/bricks";
+import { createField } from "../rules/field/field";
 import { cellIndex, inGrid } from "../rules/grid";
-import { type LevelEntry, parseLevel } from "../rules/levels";
-import { catchUp, createRun, levelSeed, startLevel } from "../rules/run";
-import { type SavedGame, saveGame } from "../rules/saved_game";
+import { type LevelEntry, parseLevel } from "../rules/levels/levels";
+import { catchUp, createRun, levelSeed, startLevel } from "../rules/run/run";
+import { type SavedGame, saveGame } from "../rules/run/saved_game";
 import type { Speed } from "../rules/speed";
 import { stepsIn } from "../rules/stepper";
 

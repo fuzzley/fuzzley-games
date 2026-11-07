@@ -3,7 +3,7 @@ import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
-import { formatCustomPercent } from "../../rules/describe";
+import { formatCustomPercent } from "../../rules/run/describe";
 import {
   CUSTOM_PERCENT,
   SPEEDS,
@@ -11,7 +11,10 @@ import {
   type Speed,
   customFactor,
 } from "../../rules/speed";
-import { TOUCH_STEERINGS, type TouchSteering } from "../../view/steering";
+import {
+  TOUCH_STEERINGS,
+  type TouchSteering,
+} from "../../view/steering/steering";
 import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
 import { SettingsService } from "./settings.service";

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { clearedOf, isOpen as isLevelOpen } from "../../rules/progress";
+import { clearedOf, isOpen as isLevelOpen } from "../../rules/run/progress";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */

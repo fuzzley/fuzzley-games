@@ -1,10 +1,10 @@
 import { FieldPlay, type FieldRules } from "@fz/core/field_play";
-import type { FieldEvent } from "../rules/events";
-import { type Field, serve, steerField, stepField } from "../rules/field";
-import type { Steer } from "../rules/paddle";
+import type { FieldEvent } from "../rules/field/events";
+import { type Field, serve, steerField, stepField } from "../rules/field/field";
+import type { Steer } from "../rules/paddle/paddle";
 import { createFieldClock } from "../rules/stepper";
-import type { FieldFrame } from "./frame";
-import { SERVE_MS } from "./timing";
+import type { FieldFrame } from "./field/frame";
+import { SERVE_MS } from "./effects/timing";
 
 /** Describes the frame the scene is handed, one record whose `alpha` each frame writes again. */
 interface Frame extends FieldFrame {

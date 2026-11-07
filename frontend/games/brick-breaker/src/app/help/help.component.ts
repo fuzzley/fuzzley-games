@@ -18,7 +18,7 @@ import {
   MAX_LIVES,
   STREAK,
 } from "../../rules/tuning";
-import type { Pictures } from "../../view/art";
+import type { Pictures } from "../../view/art/art";
 
 /** How a streak multiplies a hit's points, from the least, in the bar's words. */
 const STREAK_WORDS = [...STREAK]

@@ -3,7 +3,7 @@ import { userEvent } from "@testing-library/user-event";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
-import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art";
+import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art/art";
 import { HelpComponent } from "./help.component";
 
 /** Pictures as the scene hands them over, each named for its frame. */

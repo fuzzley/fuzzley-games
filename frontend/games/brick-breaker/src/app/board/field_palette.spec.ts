@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import { ROLES, paintRoles } from "../../testing/roles";
-import { bricksPalette } from "../../view/palette";
+import { bricksPalette } from "../../view/colors/palette";
 import { fieldPalette } from "./field_palette";
 
 /** Returns the theme with a palette applied to the page. */

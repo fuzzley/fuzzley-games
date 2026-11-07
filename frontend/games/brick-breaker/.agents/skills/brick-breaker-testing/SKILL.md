@@ -42,11 +42,11 @@ Run these from `frontend/games/brick-breaker/`, or as
 - Draw a field rather than play to it: `fieldFrom(rows, options)`
   (`src/testing/field_picture.ts`) lays a field out from a picture of its
   bricks, a row of up to 13 characters from the top, in the shared legend's
-  characters (`src/rules/legend.ts`: `o` plain, `2` to `4` tough, `#` steel,
-  `*` blast, `?` gift, `~` ghost, `+` regrowing, `.` none). The options set
-  what a picture can't show: the speed, the seed, the pace, the chance of a
-  capsule, the capsules that may fall, the one every gift gives and the
-  field's height, 30 by default, as a tall screen makes it up to 45.
+  characters (`src/rules/levels/legend.ts`: `o` plain, `2` to `4` tough,
+  `#` steel, `*` blast, `?` gift, `~` ghost, `+` regrowing, `.` none). The
+  options set what a picture can't show: the speed, the seed, the pace, the
+  chance of a capsule, the capsules that may fall, the one every gift gives
+  and the field's height, 30 by default, as a tall screen makes it up to 45.
   `KEEPER` is a picture of one brick far down the field, so a level doesn't
   clear while a spec plays on.
 - A field is in play once a ball is: `throwBall(field, x, y, degrees)` puts
@@ -61,13 +61,13 @@ Run these from `frontend/games/brick-breaker/`, or as
 
 ## The Levels and the Autopilot
 
-- `src/rules/levels.spec.ts` holds every level to parsing, ids and names of
-  its own, a needed brick a ball can reach and a pace that never falls
-  within a set.
-- `src/rules/catalog.spec.ts` holds the catalogs to their rules, and the
+- `src/rules/levels/levels.spec.ts` holds every level to parsing, ids and
+  names of its own, a needed brick a ball can reach and a pace that never
+  falls within a set.
+- `src/rules/catalog/catalog.spec.ts` holds the catalogs to their rules, and the
   levels to using every brick kind and letting every capsule first fall at
   the level its `from` names.
-- `src/rules/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
+- `src/rules/levels/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
   level at every preset speed, all but Custom (`PRESET_SPEEDS`,
   `playLevel()`, from the level's number as the seed), and holds each to
   being cleared within eight minutes of game time, its last three bricks
@@ -84,7 +84,7 @@ Run these from `frontend/games/brick-breaker/`, or as
 
 ## The Saved Game
 
-- `src/rules/saved_game.spec.ts` builds its fields on three levels of its
+- `src/rules/run/saved_game.spec.ts` builds its fields on three levels of its
   own: one of every kind, a row, and a crowd of every brick that changes as
   it is played.
 - Its round trip plays the crowd in takes of 7 steps, keeping, reading back
@@ -105,7 +105,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   (`ART_PALETTE`) at one scale (`ART_SCALE`), and finds a frame by its name
   (`frameNamed()`), so the art's specs check the commands a frame is drawn
   with.
-- `src/view/contrast.spec.ts` checks every palette in `@fz/style`'s
+- `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES` with `@fz/style/testing`'s helpers: it compiles the global
   stylesheet, reads each palette's roles from it, builds `bricksPalette()`
   from them, and holds the tints, the kinds, the balls, the capsules, the
