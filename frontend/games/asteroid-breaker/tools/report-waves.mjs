@@ -5,7 +5,7 @@
  *   yarn report:waves [--seeds <n>] [--field <narrow|wide|tall>] [--endless]
  *
  * For each wave and speed it plays the wave twice through the autopilot's
- * `playWave()`, as `src/rules/autopilot.spec.ts` does, so the report and
+ * `playWave()`, as `src/rules/waves/autopilot.spec.ts` does, so the report and
  * the spec play the same games: once with nothing able to take the ship,
  * for the game time the wave took to clear and the strays brought home of
  * those sent, and once as the spec plays it, for the ships it cost. It
@@ -190,7 +190,7 @@ async function load(file) {
  */
 async function loadGame(fieldAsked, endless) {
   const [waves, speed, tuning, autopilot] = await Promise.all([
-    load("src/rules/waves.ts"),
+    load("src/rules/waves/waves.ts"),
     load("src/rules/speed.ts"),
     load("src/rules/tuning.ts"),
     load("src/testing/autopilot.ts"),

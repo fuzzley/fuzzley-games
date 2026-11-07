@@ -65,18 +65,18 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 ## The Waves and the Autopilot
 
-- `src/rules/waves.spec.ts` holds every wave to parsing, ids and names of
-  its own, and every sector to its ten; `src/rules/catalog.spec.ts` holds
-  the catalogs to their rules, and the waves to laying every rock kind and
-  letting every pickup first come at the wave its `from` names.
-- `src/rules/spawn.spec.ts` lays every wave out, in every formation, on the
-  narrowest and the widest fields, either way up, and holds each rock to
+- `src/rules/waves/waves.spec.ts` holds every wave to parsing, ids and names
+  of its own, and every sector to its ten; `src/rules/catalog/catalog.spec.ts`
+  holds the catalogs to their rules, and the waves to laying every rock kind
+  and letting every pickup first come at the wave its `from` names.
+- `src/rules/field/spawn.spec.ts` lays every wave out, in every formation, on
+  the narrowest and the widest fields, either way up, and holds each rock to
   starting far enough from the ship on a course that keeps clear of it.
-- `src/rules/endless.spec.ts` holds Endless's waves 31 to 60, over many
+- `src/rules/waves/endless.spec.ts` holds Endless's waves 31 to 60, over many
   seeds, and some past them, to their budget, their share of iron, their
   crystal and the cap, to the climb, and to being the same for the same
   seed.
-- `src/rules/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
+- `src/rules/waves/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
   wave at every speed (`playWave()`, from the wave's number as the seed) on
   the narrowest field and the widest, on its side and upright (`NARROWEST`,
   `WIDEST`, `TALLEST`), and holds each to being cleared within four minutes
@@ -90,7 +90,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 ## The Saved Game
 
-- `src/rules/saved_game.spec.ts` keeps a run and its field
+- `src/rules/run/saved_game.spec.ts` keeps a run and its field
   (`saveGame()`), takes it up (`restoreGame()`) and lays its field out
   again (`takeUpField()`), Endless's among them, its wave made again from
   the run's seed.
@@ -110,7 +110,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   (`ART_PALETTE`) at one scale (`ART_SCALE`), and finds a frame by its name
   (`frameNamed()`), so the art's specs check the commands a frame is drawn
   with.
-- `src/view/contrast.spec.ts` checks every palette in `@fz/style`'s
+- `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES`: it compiles the global stylesheet, reads each palette's roles
   from it, builds the field's palette from them, and holds every rock, the
   ship, the shots, the pickups, the comet, the strays and the pilots to 3:1

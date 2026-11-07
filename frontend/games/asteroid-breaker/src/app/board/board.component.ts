@@ -29,18 +29,18 @@ import {
 } from "@fz/phaser/layout";
 import { IconComponent } from "@fz/ui/icon";
 import { ThemeService } from "@fz/ui/theme";
-import { whereLost } from "../../rules/describe";
+import { whereLost } from "../../rules/run/describe";
 import type { Torus } from "../../rules/torus";
 import type { BeltSceneOptions } from "../../scene/belt_scene";
-import type { Pictures } from "../../view/art";
+import type { Pictures } from "../../view/art/art";
 import {
   type BoardSetting,
   type PixelRect,
   deckLayout,
   fieldMetrics,
   fieldShape,
-} from "../../view/field_metrics";
-import { buzzOf } from "../../view/haptics";
+} from "../../view/field/field_metrics";
+import { buzzOf } from "../../view/effects/haptics";
 import { tallyLines } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";

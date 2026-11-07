@@ -4,10 +4,10 @@ import type { SceneRun } from "@fz/phaser/testing";
 import { Core, GameObjects } from "phaser";
 import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
-import type { Field } from "../rules/field";
-import { COMET_RECORDS } from "../rules/hazards";
-import { hitRock } from "../rules/rocks";
-import type { Ship } from "../rules/ship";
+import type { Field } from "../rules/field/field";
+import { COMET_RECORDS } from "../rules/hazards/hazards";
+import { hitRock } from "../rules/rocks/rocks";
+import type { Ship } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
 import { across } from "../rules/torus";
 import {
@@ -58,29 +58,33 @@ import {
   atlasFrames,
   pickupFrame,
   tagFrame,
-} from "../view/art";
-import { type Deck, deckOf, rechargeRing } from "../view/deck";
-import type { BoardSetting } from "../view/field_metrics";
-import { SOUNDS } from "../view/effects";
-import { PULSE_LEAST } from "../view/flourish";
-import { LAYERS } from "../view/layers";
+} from "../view/art/art";
+import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
+import type { BoardSetting } from "../view/field/field_metrics";
+import { SOUNDS } from "../view/effects/effects";
+import { PULSE_LEAST } from "../view/effects/flourish";
+import { LAYERS } from "../view/field/layers";
 import {
   CONSTELLATION,
   LOOK,
   PILOT_SIZES,
   pilotFrame,
-} from "../view/pilot_art";
-import { rockFrame, takenFrame } from "../view/rock_art";
-import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/shapes";
-import { FLAME_BEHIND, WINDOW, flameShare } from "../view/ship_art";
-import { CONSTELLATION_SIZE, speckCount, speckShares } from "../view/specks";
-import { MOST_FINGERS } from "../view/steering";
-import { TAG_RADIUS, tagX, tagY } from "../view/tags";
-import { WARNING_INSET } from "../view/warning";
+} from "../view/art/pilot_art";
+import { rockFrame, takenFrame } from "../view/art/rock_art";
+import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/art/shapes";
+import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
+import {
+  CONSTELLATION_SIZE,
+  speckCount,
+  speckShares,
+} from "../view/field/specks";
+import { MOST_FINGERS } from "../view/steering/steering";
+import { TAG_RADIUS, tagX, tagY } from "../view/field/tags";
+import { WARNING_INSET } from "../view/field/warning";
 import { ATLAS } from "./atlas";
 import { type BeltScene, makeBeltScene } from "./belt_scene";
-import { REST_ALPHA, REST_KNOB_ALPHA } from "./deck_painter";
-import { GUARD_ALPHA } from "./ship_painter";
+import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
+import { GUARD_ALPHA } from "./painters/ship_painter";
 import spritemap from "./sounds/sounds.json";
 
 describe("the cameras", () => {

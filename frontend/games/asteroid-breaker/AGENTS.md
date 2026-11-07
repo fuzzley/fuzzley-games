@@ -48,6 +48,12 @@ which keeps Phaser out of the first download.
 
 ## Layout
 
+Each layer's folder holds at its top what the rest of it builds on, and each
+part of it in a folder of its own below, named for what it holds, never for
+the kind of code in it; a spec sits beside the file it tests. No folder in a
+layer takes a layer's name, `view`, `scene` or `app`, which the fences would
+take for the layer.
+
 - **`src/rules/`** — the game, with no framework, physics included.
   `tuning.ts` holds the numbers that set its feel, in field units (the
   field's short side is 40, `FIELD_SHORT_SIDE`, and its long side as many
@@ -60,59 +66,64 @@ which keeps Phaser out of the first download.
   most a frame. `torus.ts` is the wrap: the field for a room's shape
   (`torusFor()`), the shortest way and distance between two places across
   the edges (`across()`, `distance()`), and where a thing reaching past an
-  edge needs a copy drawn (`copyShift()`). `draws.ts` draws the field's
-  random numbers (`nextDraw()`, `drawIn()`) from its seed and how many came
-  before, so a field taken up draws as it would have.
-- **The field** — `src/rules/field.ts`: `Field`, a wave in play, which each
-  step changes in place, from records made once. `fieldFor()` lays a wave
-  out whole on a field of a shape at a speed, its counts grown by the
-  field's area (`fill.ts`'s `fillFor()`, from counts written for 40 by 40),
-  and its rocks laid fairly in its formation (`spawn.ts`'s `layOut()`): 12
-  units off the waiting ship at least, across the wrap, on courses that keep
-  5 units clear of it for their first 3 seconds (`liesFairly()`).
-  `steerField()` takes a frame's steering, `stepField()` moves it on a step,
-  and `reshapeField()` stretches a paused field to a new shape, every place
-  on it moving to the same share of the way across and down
-  (`stretchField()`). A wave holds still until the player's first move, and
-  a ship lost is followed a second later by the next in line, waiting where
-  it is safest (`safestPlace()`).
-  `ship.ts` flies the ship by a frame's `Steer`, the keys' turn, a stick's
-  heading or the mouse's aim, and a push (`flyShip()`): it turns, thrusts
-  along its heading, coasts, keeps under its top speed, wraps, or dashes.
-  `shots.ts` fires the weapon in hand from the ship's nose and sweeps each
-  shot as a segment against circles (`sweepShot()`), so however fast it
-  flies it can't pass through a rock between two steps. `rocks.ts` lays the
-  rocks in slots made once, as many as the field's cap (`addRock()`), flies
-  them (`stepRocks()`), and hits them (`hitRock()`), each holding or
+  edge needs a copy drawn (`copyShift()`); `angles.ts` the turn and the
+  degree in radians (`TURN`, `RADIANS_PER_DEGREE`). `draws.ts` draws the
+  field's random numbers (`nextDraw()`, `drawIn()`) from its seed and how
+  many came before, so a field taken up draws as it would have.
+- **`src/rules/field/`** — the field. `field.ts`: `Field`, a wave in play,
+  which each step changes in place, from records made once. `fieldFor()`
+  lays a wave out whole on a field of a shape at a speed, its counts grown
+  by the field's area (`fill.ts`'s `fillFor()`, from counts written for 40
+  by 40), and its rocks laid fairly in its formation (`spawn.ts`'s
+  `layOut()`): 12 units off the waiting ship at least, across the wrap, on
+  courses that keep 5 units clear of it for their first 3 seconds
+  (`liesFairly()`). `steerField()` takes a frame's steering, `stepField()`
+  moves it on a step, and `reshapeField()` stretches a paused field to a new
+  shape, every place on it moving to the same share of the way across and
+  down (`stretchField()`). A wave holds still until the player's first move,
+  and a ship lost is followed a second later by the next in line, waiting
+  where it is safest (`safestPlace()`). The field counts its steps
+  (`Field.steps`), and a timer is the step its thing happens at.
+  `scoring.ts` scores each break by its kind and size, times the chain's
+  multiplier (`CHAIN`), a stray brought home and a wave's clearing, gains
+  the crew a ship as the points pass each mark (`gainShipsByPoints()`), and
+  says how a cleared wave's points add up (`tallyOf()`) and come to
+  (`pointsOf()`). `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
+  `EventLog` of 512 numbered records, which the field fills, the scene plays
+  and the shell hears, each from the last one it read.
+- **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
+  the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
+  mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
+  heading, coasts, keeps under its top speed, wraps, or dashes. `shots.ts`
+  fires the weapon in hand from the ship's nose and sweeps each shot as a
+  segment against circles (`sweepShot()`), so however fast it flies it
+  can't pass through a rock between two steps. `pilots.ts` keeps the
+  `Crew`, who flies the run's ships, who waits at home to fly the next and
+  the color each new pilot is given, the next in turn that no pilot wears
+  (`nextPilot()`).
+- **`src/rules/rocks/`** — the rocks and what they let go. `rocks.ts` lays
+  the rocks in slots made once, as many as the field's cap (`addRock()`),
+  flies them (`stepRocks()`), and hits them (`hitRock()`), each holding or
   breaking into pieces of the size after its own; it holds `TRAIT_RULES`,
-  what each trait of `catalog/rocks.ts` does, typed so that a trait without
-  its rule fails to compile, and sets off the blasts (`setOffBlasts()`,
-  `hitWithin()`). `drops.ts` lets a pickup go from a broken rock
-  (`dropFrom()`), always from a crystal, after a drought and otherwise by
-  the wave's chance, drawn by weight from the wave's pool; `pickups.ts`
-  floats the pickups, draws them in to the ship and has it catch them, and
-  holds `EFFECT_RULES`, what each effect of `catalog/pickups.ts` does as it
-  starts and ends, one of each group in play at a time. `hazards.ts` sends
-  what crosses the field once, from an edge, without wrapping: the stray
-  fuzzballs, which the ship brings home by touching, and the comets, warned
-  of at their edge, which break the rocks they meet a size down and take a
-  ship. `pilots.ts` keeps the `Crew`, who flies the run's ships, who waits at
-  home to fly the next and the color each new pilot is given, the next in
-  turn that no pilot wears (`nextPilot()`). `scoring.ts` scores each break
-  by its kind and size, times the chain's multiplier (`CHAIN`), a stray
-  brought home and a wave's clearing, gains the crew a ship as the points
-  pass each mark (`gainShipsByPoints()`), and says how a cleared wave's
-  points add up (`tallyOf()`) and come to (`pointsOf()`). The field counts
-  its steps (`Field.steps`), and a timer is the step its thing happens at.
-  `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s `EventLog` of 512
-  numbered records, which the field fills, the scene plays and the shell
-  hears, each from the last one it read.
-- **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
-  from the wave it started at to its end: the wave in play, the points
-  banked and the score, the crew, the next ship's mark, the strays brought
-  home and the outcome. No run is won: Endless goes on until the ships run
-  out. `catchUp()` takes what the wave's field has come to since it last
-  looked, its points, its crew and its strays, then its end or its
+  what each trait of `src/rules/catalog/rocks.ts` does, typed so that a
+  trait without its rule fails to compile, and sets off the blasts
+  (`setOffBlasts()`, `hitWithin()`). `drops.ts` lets a pickup go from a
+  broken rock (`dropFrom()`), always from a crystal, after a drought and
+  otherwise by the wave's chance, drawn by weight from the wave's pool;
+  `pickups.ts` floats the pickups, draws them in to the ship and has it
+  catch them, and holds `EFFECT_RULES`, what each effect of
+  `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
+  group in play at a time.
+- **`src/rules/hazards/`** — what crosses the field once, from an edge,
+  without wrapping. `hazards.ts` sends the stray fuzzballs, which the ship
+  brings home by touching, and the comets, warned of at their edge, which
+  break the rocks they meet a size down and take a ship.
+- **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
+  replaces, from the wave it started at to its end: the wave in play, the
+  points banked and the score, the crew, the next ship's mark, the strays
+  brought home and the outcome. No run is won: Endless goes on until the
+  ships run out. `catchUp()` takes what the wave's field has come to since
+  it last looked, its points, its crew and its strays, then its end or its
   clearing, banked once; `waveSeed()` gives each wave's field a seed of its
   own; `wavesCleared()` counts the waves a run has cleared, and
   `hasClearedAll()` says whether it cleared every written one from the
@@ -144,13 +155,13 @@ which keeps Phaser out of the first download.
   or a state no run comes to; `takeUpField()` lays the wave out afresh at
   the size it was laid out at and stretches it to the size it was kept at,
   its rocks and counts as kept.
-- **The waves** — `src/rules/waves/`: a JSON file for each sector, its id,
+- **`src/rules/waves/`** — the waves: a JSON file for each sector, its id,
   its name, its chance of a pickup and its ten waves, each written for a
   field of 40 by 40: its id and name, its rocks by kind, size and count,
   and, where it says, its formation, its pace, the kind its boulders break
   into, its chance of a pickup, its pickups, its strays and its comets:
   `inner-belt.json`, waves 1 to 10, `iron-reach.json`, 11 to 20, and
-  `storm.json`, 21 to 30. `src/rules/waves.ts` lists the sectors in order
+  `storm.json`, 21 to 30. `waves.ts` lists the sectors in order
   (`SECTORS`), numbers every wave from 1 (`WAVES`, through `wavesOf()`),
   finds one by its number, one of Endless's past the last (`waveEntryOf()`),
   and `parseWave()` turns one into a `Wave` to play, or throws an error that
@@ -158,12 +169,13 @@ which keeps Phaser out of the first download.
   holds every wave to parsing, ids in kebab-case and names of their own, a
   pace that never slows within a sector, and each sector to ten waves, a
   boulder in its last alone.
-  `src/rules/endless.ts` makes Endless's waves, from wave 31
-  (`ENDLESS_FROM`), from the run's seed and the wave's number
-  (`endlessWave()`), so a run kept makes its wave again from the two: a
-  budget of rocks, a crystal among them, boulders every tenth wave and
-  comets in every one, climbing until wave 60 and holding there.
-  `waveToPlay()` gives a sector's wave or Endless's ready to play.
+  `endless.ts` makes Endless's waves, from wave 31 (`ENDLESS_FROM`), from
+  the run's seed and the wave's number (`endlessWave()`), so a run kept
+  makes its wave again from the two: a budget of rocks, a crystal among
+  them, boulders every tenth wave and comets in every one, climbing until
+  wave 60 and holding there. `waveToPlay()` gives a sector's wave or
+  Endless's ready to play. `autopilot.spec.ts` holds every wave to being
+  cleared by the autopilot, as Tests below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `rocks.ts`
   (`ROCK_KINDS`, each kind's hits and points at each size it comes in, what
@@ -174,59 +186,70 @@ which keeps Phaser out of the first download.
   the ship, each one's shots a pull, how far apart, how often, how many in
   flight and how many rocks a shot breaks). The rocks and the pickups have
   their ids in How to play's order and a function that returns an entry as
-  the shape every entry has (`rockKind()`, `pickup()`).
-  `src/rules/catalog.spec.ts` holds every entry to the catalogs' rules, the
-  waves to laying every kind of rock, and every pickup to coming in the
-  wave it joins from.
+  the shape every entry has (`rockKind()`, `pickup()`). `catalog.spec.ts`
+  holds every entry to the catalogs' rules, the waves to laying every kind
+  of rock, and every pickup to coming in the wave it joins from.
 - **`src/view/`** — what to draw and when the field moves on, without
   Phaser, tested in Node.
   `wave_play.ts` holds `WavePlay`, a wave in play, which `GameService`
   makes for each wave and drives: `@fz/core/field_play`'s `FieldPlay` over
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and hands the
-  scene the run's seed and, in Endless, the constellation.
-  `field_metrics.ts` lays the field and the deck on the canvas: the field's
-  shape for its room (`fieldShape()`), the room it fills (`fieldRoom()`),
-  where it lies (`fieldMetrics()`), a unit whatever fraction of a device
-  pixel its room makes, its edges on whole device pixels, where the deck's
-  zones lie (`deckLayout()`), and `toCanvas()` and `toField()` between the
-  two. `frame.ts` is what the scene reads: `FieldView`, the field it can't
-  change, `EventsView` and `FieldFrame`, and where a thing is drawn between
-  its last place and its next (`between()`), the shortest way across the
-  wrap for one that wraps (`betweenOnAxis()`), and its turn
-  (`angleBetween()`). `layers.ts` is the order the field is drawn in, back
-  to front, in one list (`LAYERS`); `timing.ts` how long each flourish lasts
-  and how long the cards wait (`clearedDelayMs()`, `resultDelayMs()`); and
-  `flourish.ts` how each flourish moves over its time, and how the pickups
-  breathe, a stray bobs, a comet's warning pulses, the flame flickers and
-  the pilots blink, each only where motion is welcome. `effects.ts` says
-  what each event calls for, its sound and its flourishes (`effectsOf()`),
-  how far a broken rock's sound rises along a chain (`detuneOf()`), and
-  `createFrameSounds()`, `@fz/core/frame_sounds`'s `FrameSounds` of its
-  `SOUNDS`, which plays each sound once a frame at most, at the highest it
-  was heard; the thrust's hum (`THRUST`) is one of them, which no event
-  plays.
-  `controls.ts` holds the keys by `event.code`, the commands and the keys
-  held to fly; `steering.ts` the `Steering` that turns the keys, the mouse
-  and up to three fingers (`MOST_FINGERS`) into each frame's `Steer`;
-  `stick.ts` the deck's `Stick`, which follows the one finger on it; and
-  `deck.ts` where the stick, Fire and Dash lie (`deckOf()`) and which button
-  a finger presses (`buttonAt()`). `tags.ts` says where the tags of the
-  lasting effects lie, at the field's bottom left, and how much of each
-  one's time is left; `warning.ts` where a comet's warning is drawn;
-  `specks.ts` where the specks lie, from the run's seed, and where an
-  Endless wave's constellation lies (`constellationAt()`); `tally.ts` the
-  Cleared card's lines (`tallyLines()`); `haptics.ts` how the phone buzzes
-  as a ship is lost or a wave cleared (`buzzOf()`); and `debug_tuning.ts`
-  the numbers the debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the
-  lines of `tuning.ts` they would replace (`tuningLines()`).
-  `palette.ts` takes the field's colors from the palette's roles
-  (`beltPalette()`), with the inks of `inks.ts`, the game's own for each
-  kind of rock and for eight pilots, in light palettes and in dark, and
-  gives a pilot's ink to the shell too (`pilotInk()`). `art.ts` draws every
-  frame of the field's atlas (`atlasFrames()`) as plain commands in device
-  pixels, at a unit of 32 device pixels at most (`bakedScale()`), the
-  deck's frames apart (`deckFrames()`), and names How to play's pictures
+  scene the run's seed and, in Endless, the constellation. `tally.ts` holds
+  the Cleared card's lines (`tallyLines()`), and `debug_tuning.ts` the
+  numbers the debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the lines of
+  `src/rules/tuning.ts` they would replace (`tuningLines()`).
+- **`src/view/field/`** — where the field and what lies on it are drawn, and
+  what of it the scene reads. `field_metrics.ts` lays the field and the deck
+  on the canvas: the field's shape for its room (`fieldShape()`), the room
+  it fills (`fieldRoom()`), where it lies (`fieldMetrics()`), a unit
+  whatever fraction of a device pixel its room makes, its edges on whole
+  device pixels, where the deck's zones lie (`deckLayout()`), and
+  `toCanvas()` and `toField()` between the two. `frame.ts` is what the scene
+  reads: `FieldView`, the field it can't change, `EventsView` and
+  `FieldFrame`, and where a thing is drawn between its last place and its
+  next (`between()`), the shortest way across the wrap for one that wraps
+  (`betweenOnAxis()`), and its turn (`angleBetween()`). `layers.ts` is the
+  order the field is drawn in, back to front, in one list (`LAYERS`).
+  `tags.ts` says where the tags of the lasting effects lie, at the field's
+  bottom left, and how much of each one's time is left; `warning.ts` where a
+  comet's warning is drawn; and `specks.ts` where the specks lie, from the
+  run's seed, and where an Endless wave's constellation lies
+  (`constellationAt()`).
+- **`src/view/effects/`** — what each event calls for, and how it moves.
+  `effects.ts` says what each event calls for, its sound and its flourishes
+  (`effectsOf()`), how far a broken rock's sound rises along a chain
+  (`detuneOf()`), and `createFrameSounds()`, `@fz/core/frame_sounds`'s
+  `FrameSounds` of its `SOUNDS`, which plays each sound once a frame at
+  most, at the highest it was heard; the thrust's hum (`THRUST`) is one of
+  them, which no event plays. `flourish.ts` says how each flourish moves
+  over its time, and how the pickups breathe, a stray bobs, a comet's
+  warning pulses, the flame flickers and the pilots blink, each only where
+  motion is welcome; `timing.ts` how long each flourish lasts and how long
+  the cards wait (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts`
+  how the phone buzzes as a ship is lost or a wave cleared (`buzzOf()`).
+- **`src/view/steering/`** — the player's hands. `controls.ts` holds the
+  keys by `event.code`, the commands and the keys held to fly;
+  `steering.ts` the `Steering` that turns the keys, the mouse and up to
+  three fingers (`MOST_FINGERS`) into each frame's `Steer`; `stick.ts` the
+  deck's `Stick`, which follows the one finger on it; and `deck.ts` where
+  the stick, Fire and Dash lie (`deckOf()`) and which button a finger
+  presses (`buttonAt()`).
+- **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
+  the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
+  game's own for each kind of rock and for eight pilots, in light palettes
+  and in dark, and gives a pilot's ink to the shell too (`pilotInk()`).
+  `contrast.spec.ts` holds each kind of rock's ink, the ship, the pickups,
+  the comet, the shots, the flame and a stray's bubble's rim to 3:1 against
+  the field in every palette, the outline against everything it outlines,
+  the marks against every rock, a pickup's symbol against the pickup, each
+  pilot against the field, a stray's bubble and the bar, the eyes against
+  each pilot, and the deck's knob and its buttons' symbols against the
+  deck.
+- **`src/view/art/`** — the atlases' frames. `art.ts` draws every frame of
+  the field's atlas (`atlasFrames()`) as plain commands in device pixels, at
+  a unit of 32 device pixels at most (`bakedScale()`), the deck's frames
+  apart (`deckFrames()`), and names How to play's pictures
   (`PICTURE_FRAMES`); `rock_art.ts` draws each kind of rock in each size it
   comes in and six outlines (`ROCK_OUTLINES`), and the hits it has taken;
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
@@ -235,37 +258,32 @@ which keeps Phaser out of the first download.
   drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), and `shapes.ts`
   holds the game's own helpers over them, `lineWidth()` and `stroke()`
   among them.
-  `contrast.spec.ts` holds each kind of rock's ink, the ship, the pickups,
-  the comet, the shots, the flame and a stray's bubble's rim to 3:1 against
-  the field in every palette, the outline against everything it outlines,
-  the marks against every rock, a pickup's symbol against the pickup, each
-  pilot against the field, a stray's bubble and the bar, the eyes against
-  each pilot, and the deck's knob and its buttons' symbols against the
-  deck.
 - **`src/scene/`** — the Phaser scene. `BeltScene` (`belt_scene.ts`, made
   by `makeBeltScene()`) is handed plain functions over the game
   (`BeltSceneOptions`): each frame it hands the game the time and the
   steering its `Steering` read from the keys, the mouse and the fingers,
-  reads the frame and the palette, and has its painters draw, each in its
-  layer of `LAYERS`: `FieldPainter` the specks, an Endless wave's
-  constellation and the frame, `TagPainter` the tags of the effects in play,
-  `RockPainter` the rocks, the hits they have taken and a held hit's flash,
-  `PickupPainter` the pickups, `StrayPainter` the stray adrift and a lost
-  ship's pilot bailing out, `HazardPainter` the comets and their warnings,
-  `ShotPainter` the shots, `ShipPainter` the ship, its flame, its pilot and
-  its rings, `EffectsPainter` the shards, the dust, the sparks, the rings, a
-  dash's trail, the exhaust and the field's kick and shake, `PointsPainter`
-  the points scored, and `DeckPainter` the deck. Each is a `Painter`
-  (`painter.ts`), which draws from the one `PaintContext` the scene writes
-  over each frame and takes up its frames again after a bake, so the scene
-  draws and refreshes them in a loop over its list of painters. A thing
-  that wraps is drawn through `Copies` (`copies.ts`), once, and again past
-  each edge it reaches across; a flourish's records are taken in turn
-  (`Turns`, `turns.ts`). Every game object is made as the scene is created,
-  or as a field of more slots is shown (`fit()`), so a frame of play makes
-  none, and a new field stops what the last one set off. The scene plays
-  each of the field's events once, from the last it played, and the
-  flourishes an event calls for only where motion is welcome. `atlas.ts`
+  reads the frame and the palette, and has its painters, in
+  `src/scene/painters/`, draw, each in its layer of `LAYERS`:
+  `FieldPainter` the specks, an Endless wave's constellation and the frame,
+  `TagPainter` the tags of the effects in play, `RockPainter` the rocks, the
+  hits they have taken and a held hit's flash, `PickupPainter` the pickups,
+  `StrayPainter` the stray adrift and a lost ship's pilot bailing out,
+  `HazardPainter` the comets and their warnings, `ShotPainter` the shots,
+  `ShipPainter` the ship, its flame, its pilot and its rings,
+  `EffectsPainter` the shards, the dust, the sparks, the rings, a dash's
+  trail, the exhaust and the field's kick and shake, `PointsPainter` the
+  points scored, and `DeckPainter` the deck. Each is a `Painter`
+  (`painters/painter.ts`), which draws from the one `PaintContext` the scene
+  writes over each frame and takes up its frames again after a bake, so the
+  scene draws and refreshes them in a loop over its list of painters. A
+  thing that wraps is drawn through `Copies` (`painters/copies.ts`), once,
+  and again past each edge it reaches across; a flourish's records are taken
+  in turn (`Turns`, `painters/turns.ts`). Every game object is made as the
+  scene is created, or as a field of more slots is shown (`fit()`), so a
+  frame of play makes none, and a new field stops what the last one set off.
+  The scene plays each of the field's events once, from the last it played,
+  and the flourishes an event calls for only where motion is welcome;
+  `flourishes.spec.ts` holds what it draws for each event. `atlas.ts`
   bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and
   `atlasFrameOf()` into two atlases: the field's, again on a new palette or
   a new unit, and the deck's, white for the scene to tint, again on a new
@@ -370,8 +388,8 @@ which keeps Phaser out of the first download.
     and `<app-pilot-row>`, pilots in a row, which the bar, the Paused card
     and the result draw.
   - `stats/` — the records: `StatsService`, which holds and stores what
-    `stats.ts` reads and moves on, and `ProgressService`, the sectors
-    reached, at any speed, which a run may start at.
+    `src/rules/run/stats.ts` reads and moves on, and `ProgressService`, the
+    sectors reached, at any speed, which a run may start at.
   - `styles/` — `global.scss`, loaded once from `src/main.ts`, and
     `_index.scss`, the toolkit the component stylesheets `@use`, which
     emits no CSS.
@@ -458,8 +476,9 @@ which keeps Phaser out of the first download.
 - **Its colors are the palette's and its own inks'.** `beltPalette()` takes
   the field, its line, the specks, the ship, the pickups, the shots, the
   flame and the comets from the page's roles, which `ThemeService` reads,
-  and the rocks' and the pilots' inks from `inks.ts`, for light palettes and
-  for dark; `src/view/contrast.spec.ts` holds them apart in every palette.
+  and the rocks' and the pilots' inks from `src/view/colors/inks.ts`, for
+  light palettes and for dark; `src/view/colors/contrast.spec.ts` holds them
+  apart in every palette.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
   `fieldMetrics()` does, at the window's pixel ratio, from the room the
   board measures as it is first drawn; they take the scene's own rectangle
@@ -639,13 +658,13 @@ share is in `src/testing/`:
   comet whose course comes near the ship, dashing when one is about to meet
   it; else brings the stray adrift home or catches the pickup it has time
   for; else turns toward the rock it can hit soonest, leading it.
-  `src/rules/autopilot.spec.ts` holds every wave, at every speed, on the
+  `src/rules/waves/autopilot.spec.ts` holds every wave, at every speed, on the
   narrowest field and the widest either way up (`NARROWEST`, `WIDEST`,
   `TALLEST`), to being cleared by it within four minutes of game time
   (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them, and
   Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to being cleared so with
-  nothing able to take the ship. `src/rules/spawn.spec.ts` holds every wave,
-  in every formation, on those fields, at every speed and from twelve
+  nothing able to take the ship. `src/rules/field/spawn.spec.ts` holds every
+  wave, in every formation, on those fields, at every speed and from twelve
   seeds, to being laid out fairly.
 - `belt_board.ts` runs the scene for a spec (`startBoard()`) on a
   `FakeShell` that plays the shell's part, and reads what it draws

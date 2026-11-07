@@ -1,4 +1,4 @@
-import { pilotInk } from "../view/palette";
+import { pilotInk } from "../view/colors/palette";
 
 /** Returns the colors of the pilots drawn in an element, in order, as the page writes them. */
 export function pilotsIn(element: Element): string[] {

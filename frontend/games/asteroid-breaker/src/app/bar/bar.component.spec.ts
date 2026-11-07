@@ -4,7 +4,7 @@ import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import type { WaveEntry } from "../../rules/waves";
+import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
   CHAIN_WAVES,

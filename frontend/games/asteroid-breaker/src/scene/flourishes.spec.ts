@@ -1,8 +1,8 @@
 import { cssHex } from "@fz/phaser/color";
 import type { SceneRun } from "@fz/phaser/testing";
 import { type GameObjects, TintModes } from "phaser";
-import type { Field } from "../rules/field";
-import type { Rock } from "../rules/rocks";
+import type { Field } from "../rules/field/field";
+import type { Rock } from "../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
@@ -26,7 +26,7 @@ import {
   placeStray,
   shipOf,
 } from "../testing/field_picture";
-import { FLOURISH } from "../view/art";
+import { FLOURISH } from "../view/art/art";
 import {
   BAIL_OUT_SPEED,
   FLASH_MOST,
@@ -37,11 +37,11 @@ import {
   trailLaidAfter,
   trailReach,
   wayOf,
-} from "../view/flourish";
-import { LOOK, PILOT_SIZES, pilotFrame } from "../view/pilot_art";
-import { rockFrame } from "../view/rock_art";
-import { bakedScale } from "../view/shapes";
-import { flameTip } from "../view/ship_art";
+} from "../view/effects/flourish";
+import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
+import { rockFrame } from "../view/art/rock_art";
+import { bakedScale } from "../view/art/shapes";
+import { flameTip } from "../view/art/ship_art";
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
@@ -55,13 +55,13 @@ import {
   SHAKE_MS,
   SPARK_MS,
   TRAIL_MS,
-} from "../view/timing";
+} from "../view/effects/timing";
 import type { BeltScene } from "./belt_scene";
 import {
   EXHAUST_MS,
   MOST_EXHAUST,
   MOST_SHARDS_FLYING,
-} from "./effects_painter";
+} from "./painters/effects_painter";
 
 /** A place on the field away from its edges and the keeper, where a spec's events happen. */
 const MIDDLE = { x: 30, y: 20 } as const;

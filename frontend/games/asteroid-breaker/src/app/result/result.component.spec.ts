@@ -1,8 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { STILL } from "../../rules/ship";
-import type { WaveEntry } from "../../rules/waves";
+import { STILL } from "../../rules/ship/ship";
+import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
   GAINED_WAVES,

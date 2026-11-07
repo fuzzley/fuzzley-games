@@ -138,7 +138,7 @@ async function loadRules() {
     return /** @type {Record<string, unknown>} */ (module);
   };
   const [waves, kept, tuning, format] = await Promise.all([
-    load(join(ROOT, "src/rules/waves.ts")),
+    load(join(ROOT, "src/rules/waves/waves.ts")),
     load(join(ROOT, "src/testing/kept_run.ts")),
     load(join(ROOT, "src/rules/tuning.ts")),
     load("@fz/core/format"),

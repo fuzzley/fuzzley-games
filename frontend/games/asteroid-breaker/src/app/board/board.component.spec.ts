@@ -17,9 +17,9 @@ import {
 } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { STILL } from "../../rules/ship";
+import { STILL } from "../../rules/ship/ship";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
-import type { WaveEntry } from "../../rules/waves";
+import type { WaveEntry } from "../../rules/waves/waves";
 import { cacheSounds, humsIn } from "../../testing/belt_board";
 import {
   FRAME_MS,
@@ -41,9 +41,9 @@ import {
   deckLayout,
   fieldMetrics,
   fieldShape,
-} from "../../view/field_metrics";
-import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/haptics";
-import { CLEARED_MS } from "../../view/timing";
+} from "../../view/field/field_metrics";
+import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
+import { CLEARED_MS } from "../../view/effects/timing";
 import { GameService } from "../play/game.service";
 import { type Settings, SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";

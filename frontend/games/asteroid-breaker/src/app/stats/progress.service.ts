@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { isOpen as isSectorOpen, reachedOf } from "../../rules/progress";
+import { isOpen as isSectorOpen, reachedOf } from "../../rules/run/progress";
 import { GAME_WAVES } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */

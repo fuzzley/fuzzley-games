@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { sectorSpans } from "../../rules/progress";
+import { sectorSpans } from "../../rules/run/progress";
 import type { Speed } from "../../rules/speed";
 import {
   type EndedRun,
@@ -11,7 +11,7 @@ import {
   withRunEnded,
   withRunStarted,
   withStraysHome,
-} from "../../rules/stats";
+} from "../../rules/run/stats";
 import { GAME_WAVES } from "../tokens";
 
 /** Where the records are kept. Renaming it loses every player's. */

@@ -22,7 +22,7 @@ import {
   STRAYS_FROM,
   STRAY_POINTS,
 } from "../../rules/tuning";
-import type { Pictures } from "../../view/art";
+import type { Pictures } from "../../view/art/art";
 
 /** How a chain multiplies a break's points, from the least, in the bar's words. */
 const CHAIN_WORDS = [...CHAIN]

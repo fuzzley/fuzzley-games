@@ -11,12 +11,12 @@ import {
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { fieldFor } from "../rules/field";
-import { createRun, startWave, waveStart } from "../rules/run";
-import { saveGame } from "../rules/saved_game";
-import { STILL } from "../rules/ship";
+import { fieldFor } from "../rules/field/field";
+import { createRun, startWave, waveStart } from "../rules/run/run";
+import { saveGame } from "../rules/run/saved_game";
+import { STILL } from "../rules/ship/ship";
 import { FIELD_SHORT_SIDE } from "../rules/tuning";
-import { parseWave, waveEntryOf } from "../rules/waves";
+import { parseWave, waveEntryOf } from "../rules/waves/waves";
 import {
   FRAME_MS,
   SPEC_WAVE,

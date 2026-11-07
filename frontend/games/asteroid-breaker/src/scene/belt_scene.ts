@@ -14,9 +14,13 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { ROCK_RADIUS } from "../rules/tuning";
-import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art";
-import { type FieldCommand, commandOfKey, heldKeyOf } from "../view/controls";
-import { type Deck, deckOf } from "../view/deck";
+import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art/art";
+import {
+  type FieldCommand,
+  commandOfKey,
+  heldKeyOf,
+} from "../view/steering/controls";
+import { type Deck, deckOf } from "../view/steering/deck";
 import {
   type Flourish,
   type SoundName,
@@ -27,32 +31,42 @@ import {
   flourishesOf,
   rockKindOf,
   rockSizeOf,
-} from "../view/effects";
+} from "../view/effects/effects";
 import {
   type BoardSetting,
   type FieldMetrics,
   fieldMetrics,
-} from "../view/field_metrics";
-import { ringColorOf, ringReachOf, shardCount, wayOf } from "../view/flourish";
-import type { FieldEvent, FieldFrame, FieldView, Steer } from "../view/frame";
-import { LAYERS, type Layer } from "../view/layers";
-import type { BeltPalette } from "../view/palette";
-import { bakedScale } from "../view/shapes";
-import { MOST_FINGERS, Steering } from "../view/steering";
-import { BURST_SHARDS } from "../view/timing";
+} from "../view/field/field_metrics";
+import {
+  ringColorOf,
+  ringReachOf,
+  shardCount,
+  wayOf,
+} from "../view/effects/flourish";
+import type {
+  FieldEvent,
+  FieldFrame,
+  FieldView,
+  Steer,
+} from "../view/field/frame";
+import { LAYERS, type Layer } from "../view/field/layers";
+import type { BeltPalette } from "../view/colors/palette";
+import { bakedScale } from "../view/art/shapes";
+import { MOST_FINGERS, Steering } from "../view/steering/steering";
+import { BURST_SHARDS } from "../view/effects/timing";
 import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
-import { DeckPainter } from "./deck_painter";
-import { EffectsPainter } from "./effects_painter";
-import { FieldPainter } from "./field_painter";
-import { HazardPainter } from "./hazard_painter";
-import type { PaintContext, Painter } from "./painter";
-import { PickupPainter } from "./pickup_painter";
-import { PointsPainter } from "./points_painter";
-import { RockPainter } from "./rock_painter";
-import { ShipPainter } from "./ship_painter";
-import { ShotPainter } from "./shot_painter";
-import { StrayPainter } from "./stray_painter";
-import { TagPainter } from "./tag_painter";
+import { DeckPainter } from "./painters/deck_painter";
+import { EffectsPainter } from "./painters/effects_painter";
+import { FieldPainter } from "./painters/field_painter";
+import { HazardPainter } from "./painters/hazard_painter";
+import type { PaintContext, Painter } from "./painters/painter";
+import { PickupPainter } from "./painters/pickup_painter";
+import { PointsPainter } from "./painters/points_painter";
+import { RockPainter } from "./painters/rock_painter";
+import { ShipPainter } from "./painters/ship_painter";
+import { ShotPainter } from "./painters/shot_painter";
+import { StrayPainter } from "./painters/stray_painter";
+import { TagPainter } from "./painters/tag_painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
 

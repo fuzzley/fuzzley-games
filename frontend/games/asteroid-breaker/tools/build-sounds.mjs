@@ -1,8 +1,8 @@
 // Writes Asteroid Breaker's sounds: fourteen short effects synthesized with
 // @fz/dev/sounds, the same bytes every run, into one WAV sprite and the
 // spritemap Phaser plays it by, both in src/scene/sounds/. Their names and
-// order are src/view/effects.ts's SOUNDS, which the scene's spec holds them
-// to.
+// order are src/view/effects/effects.ts's SOUNDS, which the scene's spec
+// holds them to.
 //
 //   yarn build:sounds
 

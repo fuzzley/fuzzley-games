@@ -6,11 +6,11 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import { endlessWave } from "../../rules/endless";
-import { fillFor } from "../../rules/fill";
-import type { Rock } from "../../rules/rocks";
-import { STILL, type Steer } from "../../rules/ship";
-import type { SpeedStats } from "../../rules/stats";
+import { endlessWave } from "../../rules/waves/endless";
+import { fillFor } from "../../rules/field/fill";
+import type { Rock } from "../../rules/rocks/rocks";
+import { STILL, type Steer } from "../../rules/ship/ship";
+import type { SpeedStats } from "../../rules/run/stats";
 import { STEP_MS } from "../../rules/stepper";
 import {
   CHAIN_MS,
@@ -19,7 +19,12 @@ import {
   FIELD_SHORT_SIDE,
   FIRST_SHIPS,
 } from "../../rules/tuning";
-import { WAVES, type WaveEntry, isEndless, wavesOf } from "../../rules/waves";
+import {
+  WAVES,
+  type WaveEntry,
+  isEndless,
+  wavesOf,
+} from "../../rules/waves/waves";
 import {
   CHAIN_WAVE,
   CHAIN_WAVES,
@@ -42,9 +47,9 @@ import {
   toPickup,
 } from "../../testing/play";
 import { TUNED } from "../../view/debug_tuning";
-import type { BoardSetting } from "../../view/field_metrics";
-import { constellationAt } from "../../view/specks";
-import { CLEARED_MS, resultDelayMs } from "../../view/timing";
+import type { BoardSetting } from "../../view/field/field_metrics";
+import { constellationAt } from "../../view/field/specks";
+import { CLEARED_MS, resultDelayMs } from "../../view/effects/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
