@@ -1,8 +1,8 @@
 import { Component, computed, inject, input } from "@angular/core";
 import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { ThemeService } from "@fz/ui/theme";
-import type { Pilot } from "../../rules/pilots";
-import { pilotInk } from "../../view/palette";
+import type { Pilot } from "../../rules/ship/pilots";
+import { pilotInk } from "../../view/colors/palette";
 
 /**
  * Draws a pilot as the fuzzball it is, in its ink in the palette on the

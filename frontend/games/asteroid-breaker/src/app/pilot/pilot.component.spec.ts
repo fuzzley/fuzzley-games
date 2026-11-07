@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import { render } from "@testing-library/angular";
-import { pilotInk } from "../../view/palette";
+import { pilotInk } from "../../view/colors/palette";
 import { PilotComponent } from "./pilot.component";
 
 /** The fourth pilot's color, green, whose ink differs between the modes. */

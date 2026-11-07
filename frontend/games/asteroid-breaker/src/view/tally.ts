@@ -1,5 +1,5 @@
 import { formatPoints } from "@fz/core/format";
-import type { WaveTally } from "../rules/scoring";
+import type { WaveTally } from "../rules/field/scoring";
 
 /** Describes a line of the Cleared card's sum: what it counts, and its points as written. */
 export interface TallyLine {

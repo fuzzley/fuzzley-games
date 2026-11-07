@@ -1,8 +1,8 @@
 import { atlasFrameOf, bakeAtlas } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { Scene } from "phaser";
-import { atlasFrames, deckFrames } from "../view/art";
-import type { BeltPalette } from "../view/palette";
+import { atlasFrames, deckFrames } from "../view/art/art";
+import type { BeltPalette } from "../view/colors/palette";
 
 /** The field's atlas's texture key, which every image on the field shows a frame of. */
 export const ATLAS = "belt-atlas";

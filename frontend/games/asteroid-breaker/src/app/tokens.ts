@@ -1,6 +1,6 @@
 import { DOCUMENT } from "@angular/common";
 import { InjectionToken, inject } from "@angular/core";
-import { WAVES, type WaveEntry } from "../rules/waves";
+import { WAVES, type WaveEntry } from "../rules/waves/waves";
 
 /** Where new runs take their seeds from: `Math.random` but in specs. */
 export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {

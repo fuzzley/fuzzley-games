@@ -2,9 +2,9 @@ import { advanceClock } from "@fz/core/clock";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { GameObjects, type Scene } from "phaser";
-import { type Field, stepField } from "../rules/field";
-import type { Rock } from "../rules/rocks";
-import type { Steer } from "../rules/ship";
+import { type Field, stepField } from "../rules/field/field";
+import type { Rock } from "../rules/rocks/rocks";
+import type { Steer } from "../rules/ship/ship";
 import { createFieldClock } from "../rules/stepper";
 import type { Place } from "../rules/torus";
 import {
@@ -13,17 +13,17 @@ import {
   makeBeltScene,
 } from "../scene/belt_scene";
 import { SOUNDS_KEY } from "../scene/belt_scene";
-import type { Copies } from "../scene/copies";
-import type { Pictures } from "../view/art";
-import type { FieldCommand } from "../view/controls";
+import type { Copies } from "../scene/painters/copies";
+import type { Pictures } from "../view/art/art";
+import type { FieldCommand } from "../view/steering/controls";
 import {
   type BoardSetting,
   type FieldMetrics,
   fieldMetrics,
-} from "../view/field_metrics";
-import type { FieldFrame } from "../view/frame";
-import { LAYERS } from "../view/layers";
-import { type BeltPalette, beltPalette } from "../view/palette";
+} from "../view/field/field_metrics";
+import type { FieldFrame } from "../view/field/frame";
+import { LAYERS } from "../view/field/layers";
+import { type BeltPalette, beltPalette } from "../view/colors/palette";
 import { ART_PALETTE } from "./art_frames";
 import { viewport } from "./canvases";
 import { KEEPER, fieldFrom } from "./field_picture";

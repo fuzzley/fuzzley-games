@@ -1,4 +1,4 @@
-import { STILL, type Steer } from "../rules/ship";
+import { STILL, type Steer } from "../rules/ship/ship";
 import { STEP_MS } from "../rules/stepper";
 import { KEEPER, fieldFrom, shipOf } from "../testing/field_picture";
 import { WavePlay } from "./wave_play";

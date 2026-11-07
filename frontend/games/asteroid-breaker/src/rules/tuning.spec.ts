@@ -2,7 +2,7 @@ import { stepsBetween } from "../testing/numbers";
 import { RADIANS_PER_DEGREE } from "./angles";
 import { PICKUPS } from "./catalog/pickups";
 import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
-import { PILOT_COLORS } from "./pilots";
+import { PILOT_COLORS } from "./ship/pilots";
 import { stepsIn } from "./stepper";
 import {
   CHAIN,

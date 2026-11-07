@@ -4,10 +4,10 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import type { Rock } from "../../rules/rocks";
-import { STILL } from "../../rules/ship";
+import type { Rock } from "../../rules/rocks/rocks";
+import { STILL } from "../../rules/ship/ship";
 import { FIELD_SHORT_SIDE, FIRST_SHIPS } from "../../rules/tuning";
-import type { WaveEntry } from "../../rules/waves";
+import type { WaveEntry } from "../../rules/waves/waves";
 import {
   FRAME_MS,
   SECTOR_WAVES,
@@ -24,8 +24,8 @@ import {
   provideSpecWaves,
   shoot,
 } from "../../testing/play";
-import type { BoardSetting } from "../../view/field_metrics";
-import { constellationAt } from "../../view/specks";
+import type { BoardSetting } from "../../view/field/field_metrics";
+import { constellationAt } from "../../view/field/specks";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES } from "../tokens";

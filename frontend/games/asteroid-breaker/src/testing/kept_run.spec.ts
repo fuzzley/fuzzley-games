@@ -1,6 +1,6 @@
-import { restoreGame } from "../rules/saved_game";
+import { restoreGame } from "../rules/run/saved_game";
 import { stepsIn } from "../rules/stepper";
-import { WAVES, type WaveEntry, waveEntryOf } from "../rules/waves";
+import { WAVES, type WaveEntry, waveEntryOf } from "../rules/waves/waves";
 import { type KeptRun, keptRun } from "./kept_run";
 
 /** A run on Crowd, wave 9, a second before its first stray, on a field of 72 by 40. */

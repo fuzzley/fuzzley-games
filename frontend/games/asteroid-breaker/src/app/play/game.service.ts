@@ -18,17 +18,17 @@ import {
   describeResume,
   describeTakenUp,
   describeWave,
-} from "../../rules/describe";
-import { waveToPlay } from "../../rules/endless";
-import type { FieldEvent } from "../../rules/events";
+} from "../../rules/run/describe";
+import { waveToPlay } from "../../rules/waves/endless";
+import type { FieldEvent } from "../../rules/field/events";
 import {
   type Field,
   type PlayerSetup,
   fieldFor,
   reshapeField,
-} from "../../rules/field";
-import type { Pilot } from "../../rules/pilots";
-import { rocksLeft } from "../../rules/rocks";
+} from "../../rules/field/field";
+import type { Pilot } from "../../rules/ship/pilots";
+import { rocksLeft } from "../../rules/rocks/rocks";
 import {
   type Run,
   catchUp,
@@ -40,17 +40,21 @@ import {
   resume,
   startWave,
   waveStart,
-} from "../../rules/run";
+} from "../../rules/run/run";
 import {
   type SavedGame,
   type TakenUp,
   saveGame,
   takeUpField,
-} from "../../rules/saved_game";
-import { type WaveTally, chainMultiplier, tallyOf } from "../../rules/scoring";
-import { STILL, type Steer, thrustOf } from "../../rules/ship";
+} from "../../rules/run/saved_game";
+import {
+  type WaveTally,
+  chainMultiplier,
+  tallyOf,
+} from "../../rules/field/scoring";
+import { STILL, type Steer, thrustOf } from "../../rules/ship/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
-import type { EndedRun } from "../../rules/stats";
+import type { EndedRun } from "../../rules/run/stats";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import {
@@ -60,8 +64,8 @@ import {
   isEndless,
   opensEndless,
   waveEntryOf,
-} from "../../rules/waves";
-import type { FieldCommand } from "../../view/controls";
+} from "../../rules/waves/waves";
+import type { FieldCommand } from "../../view/steering/controls";
 import {
   TUNED,
   type Tuning,
@@ -69,10 +73,10 @@ import {
   isRetuned,
   tuneField,
 } from "../../view/debug_tuning";
-import { type BoardSetting, fieldShape } from "../../view/field_metrics";
-import { constellationAt } from "../../view/specks";
-import type { FieldFrame } from "../../view/frame";
-import { clearedDelayMs, resultDelayMs } from "../../view/timing";
+import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
+import { constellationAt } from "../../view/field/specks";
+import type { FieldFrame } from "../../view/field/frame";
+import { clearedDelayMs, resultDelayMs } from "../../view/effects/timing";
 import { WavePlay } from "../../view/wave_play";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";

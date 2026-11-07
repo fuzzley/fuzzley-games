@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
-import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art";
+import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art/art";
 import { HelpComponent } from "./help.component";
 
 /** Pictures as the scene hands them over, each named for its frame. */

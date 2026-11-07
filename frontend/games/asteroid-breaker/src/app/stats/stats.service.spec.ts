@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import type { EndedRun } from "../../rules/stats";
+import type { EndedRun } from "../../rules/run/stats";
 import { provideSpecWaves } from "../../testing/play";
 import { STATS_KEY, StatsService } from "./stats.service";
 

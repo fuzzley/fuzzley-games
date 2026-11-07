@@ -1,11 +1,11 @@
 import type { Provider } from "@angular/core";
 import type { GameService } from "../app/play/game.service";
 import { GAME_RANDOM, GAME_WAVES } from "../app/tokens";
-import type { Rock } from "../rules/rocks";
-import { STILL, type Steer } from "../rules/ship";
+import type { Rock } from "../rules/rocks/rocks";
+import { STILL, type Steer } from "../rules/ship/ship";
 import { distanceSquared } from "../rules/torus";
-import { type WaveData, type WaveEntry, wavesOf } from "../rules/waves";
-import type { FieldView } from "../view/frame";
+import { type WaveData, type WaveEntry, wavesOf } from "../rules/waves/waves";
+import type { FieldView } from "../view/field/frame";
 
 /** How long a frame of the board takes, at 60 a second. */
 export const FRAME_MS = 1000 / 60;

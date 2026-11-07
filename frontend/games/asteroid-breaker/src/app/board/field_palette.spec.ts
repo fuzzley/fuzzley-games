@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import { ROLES, paintRoles } from "../../testing/roles";
-import { beltPalette } from "../../view/palette";
+import { beltPalette } from "../../view/colors/palette";
 import { fieldPalette } from "./field_palette";
 
 /** Returns the theme with a palette applied to the page. */

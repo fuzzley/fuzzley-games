@@ -5,10 +5,10 @@
 
 import { keysOf } from "@fz/core/records";
 import { ROCK_SIZES } from "../rules/catalog/rocks";
-import type { Field } from "../rules/field";
-import { tuneRockSpeed } from "../rules/rocks";
-import { type Flight, TUNED_FLIGHT } from "../rules/ship";
-import { type Gunnery, TUNED_GUNNERY } from "../rules/shots";
+import type { Field } from "../rules/field/field";
+import { tuneRockSpeed } from "../rules/rocks/rocks";
+import { type Flight, TUNED_FLIGHT } from "../rules/ship/ship";
+import { type Gunnery, TUNED_GUNNERY } from "../rules/ship/shots";
 import { ROCK_SPEED } from "../rules/tuning";
 
 /** Describes the numbers the debug menu tunes: how the ship flies, how its shots fly and fire, and how fast the rocks fly. */

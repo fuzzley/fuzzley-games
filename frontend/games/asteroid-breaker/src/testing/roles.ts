@@ -1,6 +1,6 @@
 import { keysOf } from "@fz/core/records";
 import type { PaletteRole } from "@fz/style/themes";
-import type { PaletteRoles } from "../view/palette";
+import type { PaletteRoles } from "../view/colors/palette";
 
 /** The colors the page gives the field, as a palette's stylesheet would. */
 export const ROLES = {

@@ -1,5 +1,5 @@
 import { Component, input } from "@angular/core";
-import type { Pilot } from "../../rules/pilots";
+import type { Pilot } from "../../rules/ship/pilots";
 import { PilotComponent } from "./pilot.component";
 
 /**

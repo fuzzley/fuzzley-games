@@ -3,12 +3,17 @@
 // `yarn report:waves` can show how the climb from wave to wave is tuned.
 
 import { RADIANS_PER_DEGREE, TURN } from "../rules/angles";
-import { ENDLESS_FROM, waveToPlay } from "../rules/endless";
-import { type Field, fieldFor, steerField, stepField } from "../rules/field";
-import type { Comet } from "../rules/hazards";
-import { createCrew } from "../rules/pilots";
-import { rockHitRadius } from "../rules/rocks";
-import { STILL, type Ship, type Steer, guardShip } from "../rules/ship";
+import { ENDLESS_FROM, waveToPlay } from "../rules/waves/endless";
+import {
+  type Field,
+  fieldFor,
+  steerField,
+  stepField,
+} from "../rules/field/field";
+import type { Comet } from "../rules/hazards/hazards";
+import { createCrew } from "../rules/ship/pilots";
+import { rockHitRadius } from "../rules/rocks/rocks";
+import { STILL, type Ship, type Steer, guardShip } from "../rules/ship/ship";
 import type { Speed } from "../rules/speed";
 import { STEP_MS, stepsIn } from "../rules/stepper";
 import { type Place, type Torus, across } from "../rules/torus";
@@ -26,7 +31,12 @@ import {
   STRAY_SPEED,
   TOP_SPEED,
 } from "../rules/tuning";
-import { WAVES, type Wave, type WaveEntry, waveEntryOf } from "../rules/waves";
+import {
+  WAVES,
+  type Wave,
+  type WaveEntry,
+  waveEntryOf,
+} from "../rules/waves/waves";
 
 /** The longest the autopilot plays a wave, in steps: four minutes of game time. */
 export const AUTOPILOT_LIMIT = stepsIn(4 * 60_000);
@@ -204,7 +214,7 @@ function isWarned(comet: Readonly<Comet>): boolean {
 
 /**
  * Plays one of the game's waves at a speed, from its number as the seed
- * unless given another, as `src/rules/autopilot.spec.ts` and
+ * unless given another, as `src/rules/waves/autopilot.spec.ts` and
  * `yarn report:waves` both play it; an Endless wave is made from the seed
  * too, as the run's.
  */
