@@ -311,19 +311,26 @@ describe("the events", () => {
 });
 
 describe("a broken rock", () => {
-  it("throws its shards in its ink", async () => {
-    const { shell, run, scene } = await startBoard();
-    shell.field.events.addBreak(keeperOf(shell.field), 1, 0, -1);
+  it.each([
+    ["an ice rock's in ice's ink", "ice", "ice"],
+    ["a crystal's in a stone's, not its gem's", "crystal", "stone"],
+  ] as const)(
+    "throws its shards in its body's color: %s",
+    async (_, kind, body) => {
+      const { shell, run, scene } = await startBoard();
+      const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, kind);
+      shell.field.events.addBreak(rock, 1, 0, -1);
 
-    run.advance(16);
+      run.advance(16);
 
-    expect(shardTints(scene)).toEqual(
-      Array.from(
-        { length: shardCount(lastSerial(shell)) },
-        () => ART_PALETTE.rocks.stone,
-      ),
-    );
-  });
+      expect(shardTints(scene)).toEqual(
+        Array.from(
+          { length: shardCount(lastSerial(shell)) },
+          () => ART_PALETTE.rocks[body],
+        ),
+      );
+    },
+  );
 
   it("throws them flying from the first frame, before the field is first drawn", async () => {
     const { scene } = await startBoard((shell) => {
@@ -337,7 +344,7 @@ describe("a broken rock", () => {
     }).toEqual({ some: true, flying: true });
   });
 
-  it("puffs dust in its ink at its middle", async () => {
+  it("puffs dust at its middle", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = keeperOf(shell.field);
     shell.field.events.addBreak(rock, 1, 0, -1);
@@ -345,11 +352,27 @@ describe("a broken rock", () => {
     run.advance(16);
 
     const [puff] = puffsOf(scene);
-    expect([puff && shownAt(puff), puff?.tintTopLeft]).toEqual([
+    expect(puff && shownAt(puff)).toEqual(
       onCanvas(metricsOf(shell), rock.x, rock.y),
-      ART_PALETTE.rocks.stone,
-    ]);
+    );
   });
+
+  it.each([
+    ["an ice rock's in ice's ink", "ice", "ice"],
+    ["a crystal's in a stone's, not its gem's", "crystal", "stone"],
+  ] as const)(
+    "puffs its dust in its body's color: %s",
+    async (_, kind, body) => {
+      const { shell, run, scene } = await startBoard();
+      const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, kind);
+      shell.field.events.addBreak(rock, 1, 0, -1);
+
+      run.advance(16);
+
+      const [puff] = puffsOf(scene);
+      expect(puff?.tintTopLeft).toBe(ART_PALETTE.rocks[body]);
+    },
+  );
 
   it("spreads the dust out to the rock's radius as it fades", async () => {
     const { shell, run, scene } = await startBoard();
