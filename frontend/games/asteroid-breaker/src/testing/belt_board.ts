@@ -2,7 +2,7 @@ import { advanceClock } from "@fz/core/clock";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { GameObjects, type Scene } from "phaser";
-import { type Field, stepField } from "../rules/field/field";
+import { type Field, reshapeField, stepField } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
 import type { Steer } from "../rules/ship/ship";
 import { createFieldClock } from "../rules/stepper";
@@ -15,11 +15,13 @@ import {
 import { SOUNDS_KEY } from "../scene/belt_scene";
 import type { Copies } from "../scene/painters/copies";
 import type { Pictures } from "../view/art/art";
+import { bakedScale } from "../view/art/shapes";
 import { type BeltPalette, beltPalette } from "../view/colors/palette";
 import {
   type BoardSetting,
   type FieldMetrics,
   fieldMetrics,
+  fieldShape,
 } from "../view/field/field_metrics";
 import type { FieldFrame } from "../view/field/frame";
 import { LAYERS } from "../view/field/layers";
@@ -98,10 +100,19 @@ export class FakeShell implements BeltSceneOptions {
    * spec leaves it.
    */
   stepsField = false;
+  /**
+   * Whether the field takes the shape of each room the scene lays it out in,
+   * there and then, as the game reshapes a paused one.
+   */
+  reshapesField = false;
   readonly ticks: Tick[] = [];
   readonly layouts: Layout[] = [];
   readonly commands: FieldCommand[] = [];
-  readonly pictures: Pictures[] = [];
+  /**
+   * What the scene handed over at each bake of the field's atlas to picture
+   * How to play's art with, a bake each, the last bake's last.
+   */
+  readonly bakes: (() => Pictures)[] = [];
 
   /** The time the field's steps run by, while it is stepped. */
   private readonly clock = createFieldClock();
@@ -126,13 +137,26 @@ export class FakeShell implements BeltSceneOptions {
   readonly board = (): BoardSetting => this.setting;
   readonly onLayout = (canvas: Viewport, field: CssRect): void => {
     this.layouts.push({ canvas, field });
+    if (!this.reshapesField) return;
+    const torus = fieldShape(canvas, this.setting, this.field.torus);
+    reshapeField(this.field, torus);
   };
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
   };
-  readonly onPictures = (pictures: Pictures): void => {
-    this.pictures.push(pictures);
+  readonly onPictures = (pictures: () => Pictures): void => {
+    this.bakes.push(pictures);
   };
+
+  /**
+   * Asks the scene for How to play's pictures of the atlas as last baked, as
+   * the board does as How to play opens.
+   */
+  askPictures(): Pictures {
+    const pictures = this.bakes.at(-1);
+    if (!pictures) throw new Error("No bake yet.");
+    return pictures();
+  }
 
   /** Returns the steering handed over on the last frame. */
   lastSteer(): Steer {
@@ -158,6 +182,14 @@ export function stillness(shell: FakeShell): void {
 /** Sets a shell up to move its field on by each frame's time, as the game does. */
 export function stepping(shell: FakeShell): void {
   shell.stepsField = true;
+}
+
+/**
+ * Sets a shell up to shape its field to each room the scene lays it out in,
+ * as the game does a paused one.
+ */
+export function reshaping(shell: FakeShell): void {
+  shell.reshapesField = true;
 }
 
 /**
@@ -209,6 +241,18 @@ export function metricsOf(
     shell.setting,
     shell.field.torus,
   );
+}
+
+/**
+ * Returns how much larger the field draws on the spec's canvas than its atlas
+ * is baked, as the scene zooms it.
+ */
+export function zoomOf(
+  shell: FakeShell,
+  canvas: { readonly width: number; readonly height: number } = CANVAS,
+): number {
+  const metrics = metricsOf(shell, canvas);
+  return metrics.unit / bakedScale(metrics).unit;
 }
 
 /** Returns where a place on the field lies on the canvas. */

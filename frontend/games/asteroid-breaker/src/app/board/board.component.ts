@@ -164,7 +164,10 @@ export class BoardComponent {
     return field ? rectWords(field) : null;
   });
 
-  /** The room the field fills inside its frame, for the layout check, written as the field's rectangle is. */
+  /**
+   * The room the field fills inside its frame, for the layout check, written as
+   * the field's rectangle is.
+   */
   protected readonly roomRect = computed(() => {
     const room = this.laid()?.room;
     return room ? rectWords(room) : null;
@@ -276,13 +279,17 @@ export class BoardComponent {
   /** The field's colors, from the palette on the page. */
   private readonly palette = fieldPalette(inject(ThemeService));
 
-  private readonly picturesState = signal<Pictures | null>(null);
+  /** Asks the scene for its pictures of the atlas it last baked, or null before it has baked. */
+  private readonly askPictures = signal<(() => Pictures) | null>(null);
 
   /**
    * The pictures of every rock kind, pickup, a stray and the comet as the
    * scene last drew them, for How to play, or null before it has drawn.
+   *
+   * The scene encodes them as this is first read after each bake, so only
+   * How to play reads it, as it opens.
    */
-  readonly pictures = this.picturesState.asReadonly();
+  readonly pictures = computed(() => this.askPictures()?.() ?? null);
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BeltSceneOptions = {
@@ -314,7 +321,7 @@ export class BoardComponent {
       this.game.command(command);
     },
     onPictures: (pictures) => {
-      this.picturesState.set(pictures);
+      this.askPictures.set(pictures);
     },
   };
 
@@ -430,7 +437,10 @@ export class BoardComponent {
     });
   }
 
-  /** Buzzes the phone, where it can and the settings say to, as the run loses a ship and as it clears a wave. */
+  /**
+   * Buzzes the phone, where it can and the settings say to, as the run loses a
+   * ship and as it clears a wave.
+   */
   private buzzAsTheRunChanges(): void {
     let last = this.game.run();
     effect(() => {
@@ -448,12 +458,18 @@ export class BoardComponent {
     });
   }
 
-  /** Returns the shape of the field the placeholder draws on a canvas: the one the scene will lay the waiting wave out in. */
+  /**
+   * Returns the shape of the field the placeholder draws on a canvas: the one
+   * the scene will lay the waiting wave out in.
+   */
   private shapeOn(room: Viewport): Torus {
     return fieldShape(room, this.board(), this.game.frame().field.torus);
   }
 
-  /** Returns where the placeholder draws the field, in CSS pixels, or null before the board is measured. */
+  /**
+   * Returns where the placeholder draws the field, in CSS pixels, or null
+   * before the board is measured.
+   */
   private placeholderField(): CssRect | null {
     const room = this.room();
     return room && fieldMetrics(room, this.board(), this.shapeOn(room)).css;
@@ -507,7 +523,10 @@ export class BoardComponent {
   }
 }
 
-/** Says how the scene last laid the field and the deck out, its rectangles in CSS pixels on the canvas. */
+/**
+ * Says how the scene last laid the field and the deck out, its rectangles in
+ * CSS pixels on the canvas.
+ */
 interface Laid {
   /** Where the field lies, inside its frame. */
   readonly field: CssRect;

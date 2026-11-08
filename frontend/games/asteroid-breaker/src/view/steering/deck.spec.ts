@@ -16,6 +16,7 @@ import {
   DECK_GAP_CSS_PX,
   type Deck,
   RECHARGE_RING_CSS_PX,
+  type Ring,
   buttonAt,
   deckOf,
   rechargeRing,
@@ -72,9 +73,17 @@ function along(from: Circle, to: Circle, distance: number): Place {
   };
 }
 
-/** Returns the place a distance to the right of a circle's middle, to its left for a distance under 0. */
+/**
+ * Returns the place a distance to the right of a circle's middle, to its left
+ * for a distance under 0.
+ */
 function aside(circle: Circle, distance: number): Place {
   return { x: circle.x + distance, y: circle.y };
+}
+
+/** Returns a ring with nothing written in it yet, for `rechargeRing()` to write into. */
+function emptyRing(): Ring {
+  return { x: 0, y: 0, radius: 0, width: 0 };
 }
 
 /** Returns a deck's Fire, which shows. */
@@ -264,7 +273,7 @@ describe("rechargeRing", () => {
     (pixelRatio) => {
       const dash: Circle = { x: 300, y: 200, radius: 24 * pixelRatio };
 
-      expect(rechargeRing(dash, pixelRatio)).toEqual({
+      expect(rechargeRing(dash, pixelRatio, emptyRing())).toEqual({
         x: 300,
         y: 200,
         radius: (24 + RECHARGE_RING_CSS_PX.gap) * pixelRatio,
@@ -272,6 +281,14 @@ describe("rechargeRing", () => {
       });
     },
   );
+
+  it("writes the ring into the record it is handed, making none", () => {
+    const into = emptyRing();
+
+    const ring = rechargeRing({ x: 300, y: 200, radius: 24 }, 1, into);
+
+    expect(ring).toBe(into);
+  });
 });
 
 describe("buttonAt", () => {

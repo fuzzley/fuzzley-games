@@ -30,7 +30,8 @@ export interface PaintContext {
   palette: BeltPalette;
   /**
    * How much larger the field draws than the atlas was baked: its unit over
-   * the baked unit, above 1 only past the bake's largest.
+   * the baked unit, which is its unit rounded down to a whole device pixel,
+   * up to the bake's largest.
    */
   zoom: number;
   /** The scene's time, in milliseconds, by which the flourishes and idle motions run. */

@@ -11,10 +11,16 @@ import type { Span } from "../../rules/tuning";
 /** How thick the field's frame is, in CSS pixels. */
 export const FRAME_CSS_PX = 2;
 
-/** How tall the deck is under the field, a quarter of the stage's height within this, in CSS pixels. */
+/**
+ * How tall the deck is under the field, a quarter of the stage's height within
+ * this, in CSS pixels.
+ */
 export const DECK_HEIGHT_CSS_PX: Span = { least: 136, most: 200 };
 
-/** How wide each part of the deck is beside the field, a sixth of the stage's width within this, in CSS pixels. */
+/**
+ * How wide each part of the deck is beside the field, a sixth of the stage's
+ * width within this, in CSS pixels.
+ */
 export const DECK_WIDTH_CSS_PX: Span = { least: 112, most: 176 };
 
 /** The share of the stage's height the deck takes under the field. */
@@ -88,7 +94,10 @@ export interface FieldMetrics {
   readonly css: CssRect;
 }
 
-/** Describes the deck's two zones, left and right, before the setting says which holds the stick. */
+/**
+ * Describes the deck's two zones, left and right, before the setting says which
+ * holds the stick.
+ */
 interface Zones {
   readonly under: boolean;
   readonly left: PixelRect;
@@ -148,6 +157,14 @@ export function fieldShape(
 }
 
 /**
+ * Returns a size in device pixels rounded down to whole ones, a hair under a
+ * whole pixel, which a fraction's rounding can leave, counting as it.
+ */
+export function wholePixels(size: number): number {
+  return Math.floor(size + WHOLE);
+}
+
+/**
  * Returns where a field of a shape lies on a canvas: the largest that fits
  * its room with its frame, a unit whatever fraction of a device pixel that
  * makes, centered on whole device pixels, so the frame is sharp.
@@ -166,9 +183,8 @@ export function fieldMetrics(
     1,
     Math.min(inner.width / torus.width, inner.height / torus.height),
   );
-  // A hair under a whole pixel, which the unit's rounding can leave, is one.
-  const width = Math.floor(unit * torus.width + WHOLE);
-  const height = Math.floor(unit * torus.height + WHOLE);
+  const width = wholePixels(unit * torus.width);
+  const height = wholePixels(unit * torus.height);
   const x = inner.x + Math.floor((inner.width - width) / 2);
   const y = inner.y + Math.floor((inner.height - height) / 2);
   return {

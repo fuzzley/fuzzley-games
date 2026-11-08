@@ -555,3 +555,76 @@ The review found nothing changed in what the rules do:
 1. _The one test couldn't see `reach`,_ since the event that refilled each
    record writes it: taken; a pickup's fading takes the blast's record.
 2. _The golden angle still used `Math.PI`:_ taken.
+
+### Step 11a: finding 15, the trace, and the bake it called for
+
+Measured on `ab-trace`, at the branch's tip after finding 3, on the game's
+production build served by `vite preview`, in headless Chrome at 2× with
+the CPU throttled ×6, through `@fz/dev/chrome`, sampling the main thread
+every 250 µs. Chrome's default WebGL here is SwiftShader, which made
+steady play itself 114 ms a frame, so the runs passed `--use-angle=gl-egl`
+to draw on the GPU; steady play is then 16.7 ms a frame, the main thread a
+third busy. The scripts are kept in `/tmp/ab-trace/` for the measure after.
+
+| Scenario                                    | Frames: mean / p95 / max        | Over 50 ms  | Rebakes | Bake, encodes in it | Encodes alone | Points' text |
+| ------------------------------------------- | ------------------------------- | ----------- | ------- | ------------------- | ------------- | ------------ |
+| A drag, 1280×720 to 800×600, a size a frame | 590–671 / 783–1000 / 850–1133   | 59–60 of 61 | 59–60   | 81–83%              | 6–7%          | 3%           |
+| A phone turned, 390×844 to 844×390, at 3×   | 21.4–21.7 / 16.8 / 583–600      | 2 of 140    | 1       | 515–519 ms          | 42–45 ms      | none         |
+| A chain of blasts, wave 15 (Fuse), 13 lit   | 18.3–19.3 / 16.8–33.3 / 100–117 | 3–4 of 160  | 0       | none                | none          | 3–4%         |
+
+- **The drag rebakes every frame,** at 510 to 575 ms a bake: 60 rebakes
+  through 59 distinct units, which pass only 12 whole device pixels. At
+  real speed Chrome merged the sizes into five over four frames, with three
+  rebakes, the bake still two thirds of the time.
+- **A quarter of the drag goes on a blank atlas.** `@fz/phaser`'s
+  `bakeTexture()` sizes and clears its canvas texture before drawing, which
+  uploads the empty atlas twice and reads it back once, before
+  `generateTexture()` uploads the real one.
+- **The turn bakes the same atlas again,** since the unit is the same both
+  ways up.
+- **The points' text shows in the chain:** in its worst frame, `setText()`
+  takes 27 to 35 ms of 100 to 117, the uploads 12 to 17 ms. A pool of 12
+  labels took 22 writes in one frame. And `PointsPainter.style()` restyles
+  all twelve on every change of the field's unit, so each frame of the drag
+  draws and uploads 36 texts.
+
+So by the plan's decision 5: the bake shows, and the baked unit is rounded
+down to a whole device pixel and How to play's pictures are encoded when
+asked for; the points' uploads show, and the points are drawn from digits
+baked into the atlas; and `rechargeRing()` takes an `into` record. The
+blank atlas is `@fz/phaser`'s, so its fix goes with the library's lifts,
+on `phaser-lifts`.
+
+Built on `ab-trace`, from that. `bakedScale()` bakes at the field's unit
+rounded down to a whole device pixel, from 1 to the most it bakes at, and
+the field's images are scaled up by what's left (`PaintContext.zoom`); the
+positions, the lines, the deck and the hit test keep the true unit. The
+scene checks the bake once a frame, after both fits, against the layout
+the frame draws, so a drag bakes once a pixel and a turn not at all. A
+bake no longer encodes How to play's pictures: it hands the shell a
+function that encodes them on its first call and keeps them until the next
+bake, which How to play calls only as it opens. `rechargeRing()` writes
+into the deck painter's own record. `wholePixels()` is the one tolerance a
+size is held to a whole pixel by.
+
+Where it went other than planned:
+
+- A turn still baked once: the first fit, before the field took its new
+  shape, asked for a bake, so the check moved after both.
+- `PointsPainter.style()` is left for the digits: keying it on the baked
+  unit would draw the text at a smaller size, scaled up.
+- Brick Breaker still encodes its pictures at every bake; finding 15 is
+  this game's.
+
+The review found the floor, the check and the pictures sound, every image
+in the field's camera scaled and nothing outside it:
+
+1. _No spec held a rebake at a new pixel ratio_ where the unit's whole
+   pixels stay the same, as a browser zoom does: taken, by the scaler's
+   zoom, the deck's atlas checked too; `AGENTS.md` says so.
+2. _A spec asked for the pictures twice within one frame,_ so it would pass
+   if every frame baked: taken; a frame passes between.
+3. _`picture()` encoded the `pictures` field, and the fake shell's
+   `pictures` counted bakes:_ taken; `encodePictures()` and `bakes`.
+4. _The same tolerance was written in two files:_ taken; `wholePixels()`.
+5. _A spec restored its mocks twice:_ taken.

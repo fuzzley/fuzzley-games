@@ -15,6 +15,7 @@ import {
   fieldShape,
   toCanvas,
   toField,
+  wholePixels,
 } from "./field_metrics";
 
 /** A board with no margin and no deck, as on a screen with no touch. */
@@ -363,6 +364,23 @@ describe("fieldShape", () => {
     const torus = fieldShape(canvas, board, last);
 
     expect(torus).toBe(last);
+  });
+});
+
+describe("wholePixels", () => {
+  it.each([
+    [12, 12],
+    [12.7, 12],
+    [11.99, 11],
+  ])("rounds %f device pixels down to %i", (size, whole) => {
+    expect(wholePixels(size)).toBe(whole);
+  });
+
+  it("counts a size a hair under a whole pixel, as a fraction's rounding leaves it, as that pixel", () => {
+    // 28.999999999999996.
+    const size = 0.29 * 100;
+
+    expect(wholePixels(size)).toBe(29);
   });
 });
 

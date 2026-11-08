@@ -7,6 +7,7 @@ import {
   type Circle,
   type Deck,
   type DeckButton,
+  type Ring,
   rechargeRing,
 } from "../../view/steering/deck";
 import type { Steering } from "../../view/steering/steering";
@@ -14,7 +15,10 @@ import type { StickView } from "../../view/steering/stick";
 import { DECK_ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
-/** How opaque the stick's dashed rings are where they don't light: where it waits, and its thrust ring while it doesn't thrust. */
+/**
+ * How opaque the stick's dashed rings are where they don't light: where it
+ * waits, and its thrust ring while it doesn't thrust.
+ */
 export const REST_ALPHA = 0.4;
 
 /** How opaque the stick's knob is at rest, fainter still. */
@@ -23,7 +27,10 @@ export const REST_KNOB_ALPHA = 0.25;
 /** Where a ring starts to fill from: its top. */
 const RING_TOP = -Math.PI / 2;
 
-/** Says what the deck's painter reads of the steering: the stick, and which buttons a finger presses. */
+/**
+ * Says what the deck's painter reads of the steering: the stick, and which
+ * buttons a finger presses.
+ */
 export type DeckView = Pick<Steering, "stickView" | "isPressed">;
 
 /** Holds a button's images: its disc, its ring and its symbol. */
@@ -56,6 +63,8 @@ export class DeckPainter implements Painter {
   readonly dash: ButtonImages;
   /** Dash's recharge, drawn again each frame it recharges. */
   readonly recharge: GameObjects.Graphics;
+  /** Where Dash's recharge is drawn, written each frame it recharges. */
+  private readonly ring: Ring = { x: 0, y: 0, radius: 0, width: 0 };
 
   /** Every image, back to front. */
   private readonly images: readonly GameObjects.Image[];
@@ -113,7 +122,11 @@ export class DeckPainter implements Painter {
     this.drawButton(this.dash, deck.dash, "dash", palette);
     const charged = field.ship ? rechargeShare(field.ship) : 1;
     if (charged >= 1) return;
-    const { x, y, radius, width } = rechargeRing(deck.dash, metrics.pixelRatio);
+    const { x, y, radius, width } = rechargeRing(
+      deck.dash,
+      metrics.pixelRatio,
+      this.ring,
+    );
     this.recharge
       .lineStyle(width, palette.accent)
       .beginPath()
@@ -143,7 +156,10 @@ export class DeckPainter implements Painter {
     place(this.knob, stick.knob, palette.accent, 1);
   }
 
-  /** Draws a button where it lies, filled in the accent while pressed, or nothing where the deck has none. */
+  /**
+   * Draws a button where it lies, filled in the accent while pressed, or
+   * nothing where the deck has none.
+   */
   private drawButton(
     images: ButtonImages,
     circle: Circle | null,

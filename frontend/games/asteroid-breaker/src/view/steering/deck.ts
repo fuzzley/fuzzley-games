@@ -23,7 +23,10 @@ export const BUTTON_SLACK_CSS_PX = 12;
  */
 export const DECK_EDGE_CSS_PX = 16;
 
-/** How far the stick at rest and the buttons keep from the top and bottom of their zones, in CSS pixels. */
+/**
+ * How far the stick at rest and the buttons keep from the top and bottom of
+ * their zones, in CSS pixels.
+ */
 export const DECK_GAP_CSS_PX = 10;
 
 /** Names a button on the deck. */
@@ -36,9 +39,15 @@ export interface Circle {
   readonly radius: number;
 }
 
-/** Describes a ring on the canvas, in device pixels: a circle drawn in a line so wide. */
-export interface Ring extends Circle {
-  readonly width: number;
+/**
+ * Describes a ring on the canvas, in device pixels: a circle drawn in a line
+ * so wide, written in place, so drawing one each frame makes nothing.
+ */
+export interface Ring {
+  x: number;
+  y: number;
+  radius: number;
+  width: number;
 }
 
 /** How far out from Dash's edge its recharge's ring lies, and how wide it is, in CSS pixels. */
@@ -58,7 +67,10 @@ export interface Deck {
   readonly slack: number;
 }
 
-/** Says where a part lies in its zone, in shares of the zone's width and height, with the stick on the left. */
+/**
+ * Says where a part lies in its zone, in shares of the zone's width and height,
+ * with the stick on the left.
+ */
 interface Spot {
   readonly across: number;
   readonly down: number;
@@ -72,7 +84,10 @@ interface Spots {
   readonly dashFromFireCss: Place;
 }
 
-/** Where the parts lie under the field: low in each zone, Dash up from Fire and toward the middle. */
+/**
+ * Where the parts lie under the field: low in each zone, Dash up from Fire and
+ * toward the middle.
+ */
 const UNDER: Spots = {
   stick: { across: 0.42, down: 0.58 },
   fire: { across: 0.66, down: 0.62 },
@@ -141,14 +156,21 @@ export function deckOf(
   };
 }
 
-/** Returns the ring Dash's recharge is drawn on, a little out from its edge, in device pixels. */
-export function rechargeRing(dash: Circle, pixelRatio: number): Ring {
-  return {
-    x: dash.x,
-    y: dash.y,
-    radius: dash.radius + RECHARGE_RING_CSS_PX.gap * pixelRatio,
-    width: RECHARGE_RING_CSS_PX.width * pixelRatio,
-  };
+/**
+ * Returns the ring Dash's recharge is drawn on, a little out from its edge,
+ * in device pixels, written into a record the caller keeps, so a frame
+ * allocates nothing.
+ */
+export function rechargeRing(
+  dash: Circle,
+  pixelRatio: number,
+  into: Ring,
+): Ring {
+  into.x = dash.x;
+  into.y = dash.y;
+  into.radius = dash.radius + RECHARGE_RING_CSS_PX.gap * pixelRatio;
+  into.width = RECHARGE_RING_CSS_PX.width * pixelRatio;
+  return into;
 }
 
 /**
