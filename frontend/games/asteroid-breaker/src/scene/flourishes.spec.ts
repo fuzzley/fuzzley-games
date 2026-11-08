@@ -107,27 +107,27 @@ function shownCount(images: readonly GameObjects.Components.Visible[]): number {
 
 /** Returns each puff of dust's image where it is, its copy past no edge. */
 function puffsOf(scene: BeltScene): readonly GameObjects.Image[] {
-  return scene.debris.puffs.all.flatMap(({ copies }) =>
+  return scene.kit.debris.puffs.all.flatMap(({ copies }) =>
     copies.images.slice(0, 1),
   );
 }
 
 /** Returns each spark's image where it is, its copy past no edge. */
 function sparksOf(scene: BeltScene): readonly GameObjects.Image[] {
-  return scene.debris.sparks.all.flatMap(({ copies }) =>
+  return scene.kit.debris.sparks.all.flatMap(({ copies }) =>
     copies.images.slice(0, 1),
   );
 }
 
 /** Returns the points' labels. */
 function labelsOf(scene: BeltScene): readonly GameObjects.Text[] {
-  return scene.points.scored.all.map(({ label }) => label);
+  return scene.kit.points.scored.all.map(({ label }) => label);
 }
 
 /** Returns how fast each shard alive flies. */
 function shardSpeeds(scene: BeltScene): readonly number[] {
   const speeds: number[] = [];
-  scene.debris.shards.forEachAlive((shard) => {
+  scene.kit.debris.shards.forEachAlive((shard) => {
     speeds.push(Math.hypot(shard.velocityX, shard.velocityY));
   }, null);
   return speeds;
@@ -140,7 +140,7 @@ function exhaustOf(scene: BeltScene): readonly {
   readonly across: number;
 }[] {
   const specks: { x: number; y: number; across: number }[] = [];
-  scene.exhaust.specks.forEachAlive((speck) => {
+  scene.kit.exhaust.specks.forEachAlive((speck) => {
     specks.push({ x: speck.x, y: speck.y, across: speck.velocityX });
   }, null);
   return specks;
@@ -201,14 +201,14 @@ describe("the events", () => {
     run.advance(SHAKE_DELAY_MS, 16);
 
     expect({
-      shards: scene.debris.shards.getAliveParticleCount(),
+      shards: scene.kit.debris.shards.getAliveParticleCount(),
       puffs: shownCount(puffsOf(scene)),
       sparks: shownCount(sparksOf(scene)),
-      rings: strokesOf(scene.rings.graphics).length,
-      trail: scene.trail.outlines
+      rings: strokesOf(scene.kit.rings.graphics).length,
+      trail: scene.kit.trail.outlines
         .flatMap(({ images }) => images)
         .some((image) => image.visible),
-      bailing: scene.strays.bailing.bubble.visible,
+      bailing: scene.kit.strays.bailing.bubble.visible,
       scrolled: scrolledBy(scene, shell),
       points: labelsOf(scene)
         .filter((label) => label.visible)
@@ -235,15 +235,15 @@ describe("the events", () => {
     run.advance(48);
 
     expect({
-      shards: scene.debris.shards.getAliveParticleCount(),
+      shards: scene.kit.debris.shards.getAliveParticleCount(),
       puffs: shownCount(puffsOf(scene)),
       sparks: shownCount(sparksOf(scene)),
-      flash: shownCount(scene.rocks.flash.images),
-      rings: strokesOf(scene.rings.graphics).length,
-      trail: scene.trail.outlines
+      flash: shownCount(scene.kit.rocks.flash.images),
+      rings: strokesOf(scene.kit.rings.graphics).length,
+      trail: scene.kit.trail.outlines
         .flatMap(({ images }) => images)
         .some((image) => image.visible),
-      bailing: scene.strays.bailing.bubble.visible,
+      bailing: scene.kit.strays.bailing.bubble.visible,
       scrolled: scrolledBy(scene, shell),
       points: shownCount(labelsOf(scene)),
     }).toEqual({
@@ -262,8 +262,8 @@ describe("the events", () => {
   it("makes every particle as the scene starts, and none as they play", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).held.thrust = 1;
-    const { shards } = scene.debris;
-    const { specks } = scene.exhaust;
+    const { shards } = scene.kit.debris;
+    const { specks } = scene.kit.exhaust;
     const before = [shards.getParticleCount(), specks.getParticleCount()];
 
     for (let i = 0; i < 20; i++) {
@@ -404,7 +404,7 @@ describe("a broken rock", () => {
 
     run.advance(100, 25);
 
-    const [puff] = scene.debris.puffs.all;
+    const [puff] = scene.kit.debris.puffs.all;
     const metrics = metricsOf(shell);
     expect(puff?.copies.images.slice(0, 2).map(shownAt)).toEqual([
       onCanvas(metrics, 1, MIDDLE.y),
@@ -461,7 +461,7 @@ describe("a held hit", () => {
 
     run.advance(16);
 
-    const [flash] = scene.rocks.flash.images;
+    const [flash] = scene.kit.rocks.flash.images;
     expect({
       at: flash && shownAt(flash),
       frame: flash?.frame.name,
@@ -483,7 +483,7 @@ describe("a held hit", () => {
 
     run.advance(FLASH_MS + 32);
 
-    expect(shownCount(scene.rocks.flash.images)).toBe(0);
+    expect(shownCount(scene.kit.rocks.flash.images)).toBe(0);
   });
 
   it("flashes no sooner after the last flash than is safe, but sparks each time", async () => {
@@ -496,7 +496,7 @@ describe("a held hit", () => {
     run.advance(16);
 
     expect({
-      flash: shownCount(scene.rocks.flash.images),
+      flash: shownCount(scene.kit.rocks.flash.images),
       sparks: shownCount(sparksOf(scene)),
     }).toEqual({ flash: 0, sparks: 2 });
   });
@@ -510,7 +510,7 @@ describe("a held hit", () => {
 
     run.advance(16);
 
-    expect(scene.rocks.flash.images[0]?.visible).toBe(true);
+    expect(scene.kit.rocks.flash.images[0]?.visible).toBe(true);
   });
 
   it("flies a spark off its edge the way the event's serial says, in the warning color", async () => {
@@ -585,7 +585,7 @@ describe("the rings", () => {
 
     run.advance(16);
 
-    const [ring] = strokesOf(scene.rings.graphics);
+    const [ring] = strokesOf(scene.kit.rings.graphics);
     expect(ring && { x: ring.x, y: ring.y, color: ring.color }).toEqual({
       ...onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
       color: ART_PALETTE.flame,
@@ -602,7 +602,7 @@ describe("the rings", () => {
       run,
       RING_MS - 50,
       25,
-      () => strokesOf(scene.rings.graphics)[0]?.radius ?? 0,
+      () => strokesOf(scene.kit.rings.graphics)[0]?.radius ?? 0,
     );
 
     expect({
@@ -618,7 +618,7 @@ describe("the rings", () => {
 
     run.advance(RING_MS + 32);
 
-    expect(strokesOf(scene.rings.graphics)).toEqual([]);
+    expect(strokesOf(scene.kit.rings.graphics)).toEqual([]);
   });
 
   it("sweeps a lost ship's ring out in the accent, to a lost ship's reach", async () => {
@@ -636,11 +636,11 @@ describe("the rings", () => {
       run,
       RING_MS - 50,
       25,
-      () => strokesOf(scene.rings.graphics)[0]?.radius ?? 0,
+      () => strokesOf(scene.kit.rings.graphics)[0]?.radius ?? 0,
     );
 
     expect({
-      color: strokesOf(scene.rings.graphics)[0]?.color,
+      color: strokesOf(scene.kit.rings.graphics)[0]?.color,
       within:
         (radii.at(-1) ?? Infinity) < LOST_RING_REACH * metricsOf(shell).unit,
       past: (radii.at(-1) ?? 0) > (LOST_RING_REACH / 2) * metricsOf(shell).unit,
@@ -656,7 +656,7 @@ describe("the rings", () => {
 
     const metrics = metricsOf(shell);
     expect(
-      strokesOf(scene.rings.graphics).map(({ x, y }) => ({ x, y })),
+      strokesOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
     ).toEqual([
       onCanvas(metrics, 1, MIDDLE.y),
       onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y),
@@ -768,7 +768,7 @@ describe("a dash", () => {
 
     run.advance(16);
 
-    const outlines = scene.trail.outlines.map(({ images }) => images[0]);
+    const outlines = scene.kit.trail.outlines.map(({ images }) => images[0]);
     expect(
       outlines.map(
         (image) =>
@@ -795,7 +795,7 @@ describe("a dash", () => {
 
     run.advance(trailLaidAfter(2) + 16);
 
-    const last = scene.trail.outlines.at(-1)?.images[0];
+    const last = scene.kit.trail.outlines.at(-1)?.images[0];
     const at = last && shownAt(last);
     const metrics = metricsOf(shell);
     expect(at && { x: at.x, y: Math.round(at.y) }).toEqual({
@@ -813,7 +813,7 @@ describe("a dash", () => {
     run.advance(trailLaidAfter(2) + 16);
 
     expect(
-      scene.trail.outlines.map(({ images }) => images[0]?.visible),
+      scene.kit.trail.outlines.map(({ images }) => images[0]?.visible),
     ).toEqual([true, false, false]);
   });
 
@@ -827,7 +827,7 @@ describe("a dash", () => {
     run.advance(16);
 
     expect(
-      scene.trail.outlines.map(({ images }) => images[0]?.visible),
+      scene.kit.trail.outlines.map(({ images }) => images[0]?.visible),
     ).toEqual([true, false, false]);
   });
 
@@ -835,7 +835,7 @@ describe("a dash", () => {
     const { shell, run, scene } = await startBoard(stepping);
     shell.field.events.addDash(MIDDLE.x, MIDDLE.y, 0);
     run.advance(trailLaidAfter(2) + 16);
-    const last = scene.trail.outlines.at(-1)?.images[0];
+    const last = scene.kit.trail.outlines.at(-1)?.images[0];
     const laid = last?.alpha ?? 0;
 
     const alphas = overTime(run, TRAIL_MS - 100, 25, () => last?.alpha ?? 0);
@@ -855,7 +855,9 @@ describe("a dash", () => {
     run.advance(16);
 
     expect(
-      scene.trail.outlines.map(({ images }) => images[0] && shownAt(images[0])),
+      scene.kit.trail.outlines.map(
+        ({ images }) => images[0] && shownAt(images[0]),
+      ),
     ).toEqual([onCanvas(metricsOf(shell), 10, 10), null, null]);
   });
 
@@ -866,7 +868,7 @@ describe("a dash", () => {
     run.advance(trailLaidAfter(2) + 300);
 
     expect(
-      scene.trail.outlines
+      scene.kit.trail.outlines
         .flatMap(({ images }) => images)
         .some((image) => image.visible),
     ).toBe(false);
@@ -1057,7 +1059,7 @@ describe("a lost ship", () => {
 
     run.advance(16);
 
-    const { bubble, pilot } = scene.strays.bailing;
+    const { bubble, pilot } = scene.kit.strays.bailing;
     expect([shownAt(bubble), pilot.frame.name]).toEqual([
       onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
       pilotFrame(2, "adrift"),
@@ -1079,7 +1081,7 @@ describe("a lost ship", () => {
 
     const { distance, way } = fromPlace(
       shell,
-      shownAt(scene.strays.bailing.bubble),
+      shownAt(scene.kit.strays.bailing.bubble),
       MIDDLE.x,
       MIDDLE.y,
     );
@@ -1101,7 +1103,7 @@ describe("a lost ship", () => {
 
     run.advance(16);
 
-    const { pilot, eyes } = scene.strays.bailing;
+    const { pilot, eyes } = scene.kit.strays.bailing;
     const way = wayOf(lastSerial(shell));
     const { unit } = metricsOf(shell);
     expect([(eyes.x - pilot.x) / unit, (eyes.y - pilot.y) / unit]).toEqual([
@@ -1119,7 +1121,7 @@ describe("a lost ship", () => {
       2,
       shell.field.crew,
     );
-    const { bubble } = scene.strays.bailing;
+    const { bubble } = scene.kit.strays.bailing;
 
     const steady = overTime(
       run,
@@ -1153,7 +1155,7 @@ describe("a lost ship", () => {
 
     run.advance(BAIL_OUT_MS + 32);
 
-    expect(shownCount(scene.strays.bailing.parts)).toBe(0);
+    expect(shownCount(scene.kit.strays.bailing.parts)).toBe(0);
   });
 });
 
@@ -1176,7 +1178,7 @@ describe("the pilots' eyes", () => {
   it("blink every few seconds at the controls where motion is welcome", async () => {
     const { run, scene } = await startBoard(withShip);
 
-    const seen = openings(run, scene.ship.eyes.images[0]);
+    const seen = openings(run, scene.kit.ship.eyes.images[0]);
 
     expect({ open: seen.has(1), shut: Math.min(...seen) < 0.5 }).toEqual({
       open: true,
@@ -1188,7 +1190,7 @@ describe("the pilots' eyes", () => {
     const { shell, run, scene } = await startBoard();
     placeStray(shell.field, MIDDLE.x, MIDDLE.y);
 
-    const seen = openings(run, scene.strays.adrift.eyes);
+    const seen = openings(run, scene.kit.strays.adrift.eyes);
 
     expect({ open: seen.has(1), shut: Math.min(...seen) < 0.5 }).toEqual({
       open: true,
@@ -1202,6 +1204,6 @@ describe("the pilots' eyes", () => {
       stillness(board);
     });
 
-    expect(openings(run, scene.ship.eyes.images[0])).toEqual(new Set([1]));
+    expect(openings(run, scene.kit.ship.eyes.images[0])).toEqual(new Set([1]));
   });
 });

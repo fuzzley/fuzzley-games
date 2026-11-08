@@ -105,6 +105,44 @@ const FIELD_LAYERS = LAYERS.filter(
   (layer) => layer !== "frame" && layer !== "deck",
 );
 
+/** Holds what the scene draws and sounds with, each made once, as it is created. */
+export interface BeltKit {
+  /** Draws the specks and the frame. */
+  readonly field: FieldPainter;
+  /** Draws the tags of the effects in play. */
+  readonly tags: TagPainter;
+  /** Draws the rocks. */
+  readonly rocks: RockPainter;
+  /** Draws the pickups. */
+  readonly pickups: PickupPainter;
+  /** Draws the stray adrift and a lost ship's pilot bailing out. */
+  readonly strays: StrayPainter;
+  /** Draws the comets and their warnings. */
+  readonly hazards: HazardPainter;
+  /** Draws the shots. */
+  readonly shots: ShotPainter;
+  /** Draws the ship, its pilot and its rings. */
+  readonly ship: ShipPainter;
+  /** Draws a dash's trail. */
+  readonly trail: TrailPainter;
+  /** Streams the exhaust off the flame. */
+  readonly exhaust: ExhaustPainter;
+  /** Draws what flies off a rock or a ship as it is hit: shards, dust and sparks. */
+  readonly debris: DebrisPainter;
+  /** Draws the rings that sweep out. */
+  readonly rings: RingPainter;
+  /** Draws the points scored. */
+  readonly points: PointsPainter;
+  /** Draws the deck, over the whole canvas. */
+  readonly deck: DeckPainter;
+  /** Points the field's camera at the field, fills it, and kicks and shakes it. */
+  readonly fieldCamera: FieldCamera;
+  /** Draws the frame and the deck, over the whole canvas. */
+  readonly deckCamera: Cameras.Scene2D.Camera;
+  /** Plays the sounds. */
+  readonly sounds: SpritePlayer<SoundName>;
+}
+
 /**
  * Draws a wave of Asteroid Breaker, handing the shell each frame's time and
  * steering before pulling the field to draw, and turns keys into commands.
@@ -121,46 +159,12 @@ export class BeltScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
   readonly key: string;
 
-  /** Draws the specks and the frame. */
-  field!: FieldPainter;
-  /** Draws the tags of the effects in play. */
-  tags!: TagPainter;
-  /** Draws the rocks. */
-  rocks!: RockPainter;
-  /** Draws the pickups. */
-  pickups!: PickupPainter;
-  /** Draws the stray adrift and a lost ship's pilot bailing out. */
-  strays!: StrayPainter;
-  /** Draws the comets and their warnings. */
-  hazards!: HazardPainter;
-  /** Draws the shots. */
-  shots!: ShotPainter;
-  /** Draws the ship, its pilot and its rings. */
-  ship!: ShipPainter;
-  /** Draws a dash's trail. */
-  trail!: TrailPainter;
-  /** Streams the exhaust off the flame. */
-  exhaust!: ExhaustPainter;
-  /** Draws what flies off a rock or a ship as it is hit: shards, dust and sparks. */
-  debris!: DebrisPainter;
-  /** Draws the rings that sweep out. */
-  rings!: RingPainter;
-  /** Draws the points scored. */
-  points!: PointsPainter;
-  /** Draws the deck, over the whole canvas. */
-  deck!: DeckPainter;
-  /** Points the field's camera at the field, and kicks and shakes it. */
-  fieldCamera!: FieldCamera;
-  /** Draws the frame and the deck, over the whole canvas. */
-  deckCamera!: Cameras.Scene2D.Camera;
-  /** Plays the sounds. */
-  sounds!: SpritePlayer<SoundName>;
-
+  private madeKit: BeltKit | null = null;
   /**
    * Every painter, back to front, and the field's camera, which each frame
-   * draws and each bake refreshes.
+   * draws, each new field starts and each bake refreshes.
    */
-  private painters: readonly Painter[] = [];
+  private painters!: readonly Painter[];
   /** Plays each event's flourishes on the painters and the field's camera. */
   private flourishPlayer!: FlourishPlayer;
   /**
@@ -170,8 +174,6 @@ export class BeltScene extends Scene {
   private context!: PaintContext;
   /** Turns the keys, the mouse and the fingers into each frame's steering. */
   private steering!: Steering;
-  /** The layers the field is drawn in, back to front. */
-  private layers!: Readonly<Record<Layer, GameObjects.Layer>>;
 
   /** The canvas as the field was last laid out on it. */
   private viewport: Viewport | null = null;
@@ -207,74 +209,62 @@ export class BeltScene extends Scene {
   }
 
   /**
+   * What the scene draws and sounds with, each made once, as it is created.
+   *
+   * @throws {Error} Before the scene is created.
+   */
+  get kit(): BeltKit {
+    if (!this.madeKit) throw new Error("BeltScene has no kit before create().");
+    return this.madeKit;
+  }
+
+  /**
    * Measures, bakes the atlases, builds the field in its layers, back to front,
    * sets the cameras up and starts listening.
    */
   create(): void {
     this.painted = this.options.palette();
-    this.fieldCamera = new FieldCamera(this.cameras.main);
     this.measure();
     this.bake();
     this.steering = new Steering(this.metrics, this.deckParts, this.board);
-    this.layers = recordOf(LAYERS, () => this.add.layer());
-    this.field = new FieldPainter(this, this.layers);
-    this.tags = new TagPainter(this, this.layers.tags);
-    this.rocks = new RockPainter(this, this.layers.rocks, this.layers.effects);
-    this.pickups = new PickupPainter(this, this.layers.pickups);
-    this.strays = new StrayPainter(this, this.layers.strays);
-    this.hazards = new HazardPainter(this, this.layers.hazards);
-    this.shots = new ShotPainter(this, this.layers.shots);
-    this.ship = new ShipPainter(this, this.layers.ship);
-    // Made back to front, as `layers.ts` lists the effects layer's
-    // flourishes: each joins the layer as it is made.
-    this.trail = new TrailPainter(this, this.layers.effects);
-    this.exhaust = new ExhaustPainter(this, this.layers.effects);
-    this.debris = new DebrisPainter(this, this.layers.effects);
-    this.rings = new RingPainter(this, this.layers.effects);
-    this.points = new PointsPainter(
-      this,
-      this.layers.points,
-      // The page's font, which the canvas takes from the board around it.
-      getComputedStyle(this.game.canvas).fontFamily || "sans-serif",
-    );
-    this.deck = new DeckPainter(this, this.layers.deck, this.steering);
+    const layers = recordOf(LAYERS, () => this.add.layer());
+    const kit = this.makeKit(layers, this.steering);
+    this.madeKit = kit;
+    this.cameras.main.ignore([layers.frame, layers.deck]);
+    kit.deckCamera.ignore(FIELD_LAYERS.map((layer) => layers[layer]));
     this.painters = [
-      this.field,
-      this.tags,
-      this.rocks,
-      this.pickups,
-      this.strays,
-      this.hazards,
-      this.shots,
-      this.ship,
-      this.trail,
-      this.exhaust,
-      this.debris,
-      this.rings,
-      this.points,
-      this.deck,
-      this.fieldCamera,
+      kit.field,
+      kit.tags,
+      kit.rocks,
+      kit.pickups,
+      kit.strays,
+      kit.hazards,
+      kit.shots,
+      kit.ship,
+      kit.trail,
+      kit.exhaust,
+      kit.debris,
+      kit.rings,
+      kit.points,
+      kit.deck,
+      kit.fieldCamera,
     ];
     this.flourishPlayer = new FlourishPlayer({
-      debris: this.debris,
-      rings: this.rings,
-      trail: this.trail,
-      rocks: this.rocks,
-      points: this.points,
-      strays: this.strays,
-      camera: this.fieldCamera,
+      debris: kit.debris,
+      rings: kit.rings,
+      trail: kit.trail,
+      rocks: kit.rocks,
+      points: kit.points,
+      strays: kit.strays,
+      camera: kit.fieldCamera,
     });
-    this.cameras.main.ignore([this.layers.frame, this.layers.deck]);
-    // Over the whole canvas, which Phaser keeps it to as the canvas changes size.
-    this.deckCamera = this.cameras.add();
-    this.deckCamera.ignore(FIELD_LAYERS.map((layer) => this.layers[layer]));
-    const { field, alpha, seed, constellation } = this.options.frame();
-    this.startField(field);
+    const frame = this.options.frame();
+    this.startField(frame.field);
     this.context = {
-      field,
-      alpha,
-      seed,
-      constellation,
+      field: frame.field,
+      alpha: frame.alpha,
+      seed: frame.seed,
+      constellation: frame.constellation,
       deck: this.deckParts,
       metrics: this.metrics,
       palette: this.painted,
@@ -282,11 +272,6 @@ export class BeltScene extends Scene {
       now: 0,
       motion: this.options.motion(),
     };
-    this.sounds = new SpritePlayer(this, {
-      key: SOUNDS_KEY,
-      spritemap,
-      url: spriteUrl,
-    });
     // The game outlives the scene, so a scene built after another adds none.
     this.input.addPointer(
       Math.max(0, MOST_FINGERS - this.input.manager.pointersTotal),
@@ -296,6 +281,48 @@ export class BeltScene extends Scene {
     onFirstFrame(this, () => {
       this.surroundings.ready();
     });
+  }
+
+  /**
+   * Makes each painter in its layers, the field camera's painter, the deck's
+   * camera and the sounds, in the order listed: each object joins its layer
+   * as it is made, so the effects layer's flourishes go in back to front, as
+   * `layers.ts` lists them.
+   */
+  private makeKit(
+    layers: Readonly<Record<Layer, GameObjects.Layer>>,
+    steering: Steering,
+  ): BeltKit {
+    return {
+      field: new FieldPainter(this, layers),
+      tags: new TagPainter(this, layers.tags),
+      rocks: new RockPainter(this, layers.rocks, layers.effects),
+      pickups: new PickupPainter(this, layers.pickups),
+      strays: new StrayPainter(this, layers.strays),
+      hazards: new HazardPainter(this, layers.hazards),
+      shots: new ShotPainter(this, layers.shots),
+      ship: new ShipPainter(this, layers.ship),
+      trail: new TrailPainter(this, layers.effects),
+      exhaust: new ExhaustPainter(this, layers.effects),
+      debris: new DebrisPainter(this, layers.effects),
+      rings: new RingPainter(this, layers.effects),
+      points: new PointsPainter(
+        this,
+        layers.points,
+        // The page's font, which the canvas takes from the board around it.
+        getComputedStyle(this.game.canvas).fontFamily || "sans-serif",
+      ),
+      deck: new DeckPainter(this, layers.deck, steering),
+      fieldCamera: new FieldCamera(this.cameras.main),
+      // Over the whole canvas, which Phaser keeps it to as the canvas changes
+      // size.
+      deckCamera: this.cameras.add(),
+      sounds: new SpritePlayer(this, {
+        key: SOUNDS_KEY,
+        spritemap,
+        url: spriteUrl,
+      }),
+    };
   }
 
   /**
@@ -310,7 +337,7 @@ export class BeltScene extends Scene {
     this.context.now = time;
     let stale = this.fit();
     this.options.tick(delta, this.steering.read());
-    this.sounds.follow(this.options.sound());
+    this.kit.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.context.motion = this.options.motion();
@@ -325,8 +352,8 @@ export class BeltScene extends Scene {
     this.stage(frame);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
-    this.frameSounds.playEach(this.sounds.playRisen);
-    this.sounds.hold(THRUST, this.options.thrusting());
+    this.frameSounds.playEach(this.kit.sounds.playRisen);
+    this.kit.sounds.hold(THRUST, this.options.thrusting());
     for (const painter of this.painters) painter.draw(this.context);
   }
 
@@ -430,7 +457,7 @@ export class BeltScene extends Scene {
    * the layout, and tells the shell where the field lies.
    */
   private layOut(): void {
-    this.fieldCamera.fit(this.metrics);
+    this.kit.fieldCamera.fit(this.metrics);
     this.steering.measure(this.metrics, this.deckParts, this.board);
     if (this.viewport) this.options.onLayout(this.viewport, this.metrics.css);
   }
@@ -446,7 +473,6 @@ export class BeltScene extends Scene {
       this.deckBaked = this.metrics.pixelRatio;
       bakeDeckAtlas(this, this.deckBaked);
     }
-    this.fieldCamera.fill(this.painted.field);
     this.options.onPictures(
       mapPictures(PICTURE_FRAMES, (frame) =>
         this.textures.getBase64(ATLAS, frame),
@@ -457,12 +483,7 @@ export class BeltScene extends Scene {
   /** Bakes the atlases again, and has every image take up its frame anew. */
   private rebake(): void {
     this.bake();
-    const baked = {
-      metrics: this.metrics,
-      palette: this.painted,
-      zoom: this.zoom(),
-    };
-    for (const painter of this.painters) painter.refresh?.(baked);
+    for (const painter of this.painters) painter.refresh?.();
   }
 
   /**
@@ -472,16 +493,7 @@ export class BeltScene extends Scene {
   private startField(field: FieldView): void {
     this.shownField = field;
     this.played = 0;
-    this.trail.reset();
-    this.exhaust.reset();
-    this.debris.reset();
-    this.rings.reset();
-    this.fieldCamera.reset();
-    this.points.reset();
-    this.rocks.reset();
-    this.strays.reset();
-    this.rocks.fit(field.rocks.length);
-    this.shots.fit(field.shots.slots.length);
+    for (const painter of this.painters) painter.start?.(field);
   }
 
   /** Turns the keys, the mouse and the fingers into steering, and keys into commands. */

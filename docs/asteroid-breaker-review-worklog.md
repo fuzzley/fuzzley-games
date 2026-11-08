@@ -300,3 +300,51 @@ the outcomes, the records, the words and their order unchanged:
 5. _A ternary hid `start()`'s work, `keep()` took a bare flag, one wait
    used `CLEARED_MS` where its sibling used the delay's function, and the
    testing skill's triggers left out `RunFrames`:_ taken.
+
+### Step 9c: finding 12, the painter contract
+
+Built on `ab-scene`. This game's `Painter.refresh?()` takes nothing, since
+none of its painters read the `Baked` it was handed, and `rebake()` builds
+none; its fields join `PaintContext`. `Painter` gains `start?(field)`, which
+`startField()` calls on every painter in its loop, the nine that were reset
+or fitted by name, `FieldCamera` among them. The scene's parts are one
+`BeltKit` record of `readonly` members behind a `kit` getter, made in
+`create()` by `makeKit()` as one literal, in the order the parts were made
+before, and `RockPainter`'s and `ShotPainter`'s slots are `readonly Copies[]`.
+Brick Breaker's `Painter`, whose paddle reads the `Baked`, keeps it. 4,811
+tests pass.
+
+Where it went other than planned:
+
+- **The parts are a record behind one getter,** not `readonly` fields: a
+  `readonly` field can be set only in the constructor, and Phaser's
+  `this.add` exists only once `create()` runs. The getter throws before
+  then, where a field would have read as `undefined`.
+- **`FieldCamera` fills the field's color as it draws,** whenever the
+  palette's changes, since `bake()` runs before the parts exist; the first
+  frame's color is still set before the first render.
+- **The sounds are made earlier in `create()`,** so every part goes into
+  the record at once; making them only queues a load.
+
+The review found no bug: the same nine painters start on a new field, in
+the same order, and the first frame's color comes before its render.
+
+1. _Seventeen getters passed a field through,_ against Google's guide, each
+   name written five times. Taken: one `kit` getter over the record, its
+   members documented on `BeltKit`, and the specs read `scene.kit.rocks`.
+2. _`AGENTS.md` said a new painter couldn't be left out,_ though the list
+   is written by hand, and `painters` defaulted to `[]`, so starting a
+   field too early would start nothing without a word. Taken.
+3. _The slots' hidden names were uneven, and three docs read two ways:_
+   taken.
+
+The fix to 1 reshaped the change, so it was reviewed again, and found no
+bug:
+
+1. _The `kit` getter only hid a field,_ and read `undefined` before
+   `create()`: taken; it throws a clear error until the kit is made.
+2. _`makeKit()` read `this.steering`:_ taken; it takes it.
+3. _Two docs were wrong:_ taken.
+4. _Some short doc comments were rewrapped beside long ones left alone:_
+   checked; each short one removed was rewritten, not rewrapped, and none
+   in the touched files now runs past 100 characters.

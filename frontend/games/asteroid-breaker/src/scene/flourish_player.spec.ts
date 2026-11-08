@@ -55,13 +55,13 @@ async function startPlayer(): Promise<
   const board = await startBoard();
   const { scene } = board;
   const player = new FlourishPlayer({
-    debris: scene.debris,
-    rings: scene.rings,
-    trail: scene.trail,
-    rocks: scene.rocks,
-    points: scene.points,
-    strays: scene.strays,
-    camera: scene.fieldCamera,
+    debris: scene.kit.debris,
+    rings: scene.kit.rings,
+    trail: scene.kit.trail,
+    rocks: scene.kit.rocks,
+    points: scene.kit.points,
+    strays: scene.kit.strays,
+    camera: scene.kit.fieldCamera,
   });
   return { ...board, player };
 }
@@ -91,7 +91,7 @@ function shardsOf(scene: BeltScene): {
   readonly scales: readonly number[];
 } {
   const scales: number[] = [];
-  scene.debris.shards.forEachAlive((shard) => {
+  scene.kit.debris.shards.forEachAlive((shard) => {
     scales.push(shard.scaleX);
   }, null);
   return { tints: shardTints(scene), scales };
@@ -150,7 +150,7 @@ describe("FlourishPlayer", () => {
 
     player.play("dust", event, contextAt(shell, NOW));
 
-    const puff = scene.debris.puffs.all.find(({ at }) => at === NOW);
+    const puff = scene.kit.debris.puffs.all.find(({ at }) => at === NOW);
     expect(
       puff && {
         x: puff.x,
@@ -174,7 +174,7 @@ describe("FlourishPlayer", () => {
 
     player.play("spark", event, contextAt(shell, NOW));
 
-    const spark = scene.debris.sparks.all.find(({ at }) => at === NOW);
+    const spark = scene.kit.debris.sparks.all.find(({ at }) => at === NOW);
     expect(
       spark && {
         x: spark.x,
@@ -202,9 +202,9 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("flash", event, context);
-    scene.rocks.draw(context);
+    scene.kit.rocks.draw(context);
 
-    const [flash] = scene.rocks.flash.images;
+    const [flash] = scene.kit.rocks.flash.images;
     expect(flash && shownAt(flash)).toEqual(
       onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
     );
@@ -219,7 +219,7 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("kick", event, context);
-    scene.fieldCamera.draw(context);
+    scene.kit.fieldCamera.draw(context);
 
     // The field moves the blow's way, so its camera scrolls the other.
     const { x, y } = scrolledBy(scene, shell);
@@ -233,7 +233,7 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("shake", event, contextAt(shell, NOW));
-    scene.fieldCamera.draw(
+    scene.kit.fieldCamera.draw(
       contextAt(shell, NOW + SHAKE_DELAY_MS + SHAKE_MS / 4),
     );
 
@@ -249,9 +249,9 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("ring", event, contextAt(shell, NOW));
-    scene.rings.draw(context);
+    scene.kit.rings.draw(context);
 
-    const [ring] = strokesOf(scene.rings.graphics);
+    const [ring] = strokesOf(scene.kit.rings.graphics);
     expect(
       ring && { x: ring.x, y: ring.y, radius: ring.radius, color: ring.color },
     ).toEqual({
@@ -269,7 +269,7 @@ describe("FlourishPlayer", () => {
 
     player.play("points", event, contextAt(shell, NOW));
 
-    const scored = scene.points.scored.all.find(({ at }) => at === NOW);
+    const scored = scene.kit.points.scored.all.find(({ at }) => at === NOW);
     expect(
       scored && { x: scored.x, y: scored.y, text: scored.label.text },
     ).toEqual({ ...MIDDLE, text: "+40 ×2" });
@@ -285,9 +285,9 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("trail", event, context);
-    scene.trail.draw(context);
+    scene.kit.trail.draw(context);
 
-    const shownOutlines = scene.trail.outlines.map(
+    const shownOutlines = scene.kit.trail.outlines.map(
       ({ images: [image] }) => image && shownAt(image),
     );
     expect(shownOutlines).toEqual([
@@ -305,9 +305,9 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("bailout", event, context);
-    scene.strays.draw(context);
+    scene.kit.strays.draw(context);
 
-    const { bubble, pilot } = scene.strays.bailing;
+    const { bubble, pilot } = scene.kit.strays.bailing;
     expect([shownAt(bubble), pilot.frame.name]).toEqual([
       onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
       pilotFrame(2, "adrift"),
@@ -322,8 +322,8 @@ describe("FlourishPlayer", () => {
     });
 
     player.play("bailout", { ...lost, pilot: null }, context);
-    scene.strays.draw(context);
+    scene.kit.strays.draw(context);
 
-    expect(scene.strays.bailing.bubble.visible).toBe(false);
+    expect(scene.kit.strays.bailing.bubble.visible).toBe(false);
   });
 });

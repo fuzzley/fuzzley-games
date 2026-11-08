@@ -102,7 +102,7 @@ export class ExhaustPainter implements Painter {
   }
 
   /** Stops every speck, as a new field starts. */
-  reset(): void {
+  start(): void {
     this.specks.killAll();
     this.carried = 0;
     this.stepsDrawn = null;

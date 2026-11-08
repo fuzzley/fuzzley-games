@@ -3,11 +3,14 @@ import { ROCK_RADIUS } from "../../rules/tuning";
 import { rockFrame, takenFrame } from "../../view/art/rock_art";
 import { flashAlpha, flashDue, shareDone } from "../../view/effects/flourish";
 import { FLASH_MS } from "../../view/effects/timing";
-import { betweenOnAxis } from "../../view/field/frame";
+import { type FieldView, betweenOnAxis } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
-/** How far past its radius a rock's frame reaches, its outline and its turn's corners, in field units. */
+/**
+ * How far past its radius a rock's frame reaches, its outline and its turn's
+ * corners, in field units.
+ */
 const RIM = 0.5;
 
 /** A frame any rock's images show till one is drawn: the smallest stone's first outline. */
@@ -20,13 +23,13 @@ const FIRST_FRAME = rockFrame({ kind: "stone", size: "small", outline: 0 });
  * its rock, no sooner after the last than is safe.
  */
 export class RockPainter implements Painter {
-  /** Each slot's body. */
-  readonly bodies: Copies[] = [];
-  /** Each slot's hits taken, over its body. */
-  readonly taken: Copies[] = [];
   /** A held hit's flash: its rock's body, filled light, over it. */
   readonly flash: Copies;
 
+  /** Each slot's body, made as a field of more slots starts. */
+  private readonly bodiesMade: Copies[] = [];
+  /** Each slot's hits taken, as many as its bodies. */
+  private readonly takenMade: Copies[] = [];
   /** The slot of the rock that last flashed, and when, in the scene's time. */
   private readonly flashed = { slot: -1, at: -Infinity };
 
@@ -38,14 +41,26 @@ export class RockPainter implements Painter {
     this.flash = new Copies(scene, flashes, FIRST_FRAME);
   }
 
+  /** Each slot's body. */
+  get bodies(): readonly Copies[] {
+    return this.bodiesMade;
+  }
+
+  /** Each slot's hits taken, over its body. */
+  get taken(): readonly Copies[] {
+    return this.takenMade;
+  }
+
   /**
-   * Makes the images a field of so many slots needs, those it lacks, as a
-   * new field is shown, so none is made in a frame of play.
+   * Stops a flash, and makes the images a new field's slots need, those it
+   * lacks, so none is made in a frame of play.
    */
-  fit(slots: number): void {
-    while (this.bodies.length < slots) {
-      this.bodies.push(new Copies(this.scene, this.layer, FIRST_FRAME));
-      this.taken.push(new Copies(this.scene, this.layer, FIRST_FRAME));
+  start(field: FieldView): void {
+    this.flashed.slot = -1;
+    this.flashed.at = -Infinity;
+    while (this.bodiesMade.length < field.rocks.length) {
+      this.bodiesMade.push(new Copies(this.scene, this.layer, FIRST_FRAME));
+      this.takenMade.push(new Copies(this.scene, this.layer, FIRST_FRAME));
     }
   }
 
@@ -63,13 +78,10 @@ export class RockPainter implements Painter {
     this.flashed.at = now;
   }
 
-  /** Stops a flash, as a new field starts. */
-  reset(): void {
-    this.flashed.slot = -1;
-    this.flashed.at = -Infinity;
-  }
-
-  /** Draws each whole rock between its last place and its next, and hides each slot that holds none. */
+  /**
+   * Draws each whole rock between its last place and its next, and hides each
+   * slot that holds none.
+   */
   draw({
     field,
     alpha,

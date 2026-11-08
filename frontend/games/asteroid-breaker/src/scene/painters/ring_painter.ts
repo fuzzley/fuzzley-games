@@ -86,7 +86,7 @@ export class RingPainter implements Painter {
   }
 
   /** Stops every ring, as a new field starts. */
-  reset(): void {
+  start(): void {
     for (const ring of this.rings.all) ring.at = -Infinity;
   }
 
