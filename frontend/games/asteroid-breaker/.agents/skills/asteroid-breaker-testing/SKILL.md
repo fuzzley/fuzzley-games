@@ -18,14 +18,16 @@ relative to `frontend/games/asteroid-breaker/`.
 Run these from `frontend/games/asteroid-breaker/`, or as
 `yarn workspace asteroid-breaker <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once, with coverage) or
-  `yarn test:watch`. `yarn vitest run <path>` runs one spec without
-  coverage. The whole suite takes minutes, most of them the autopilot
+- **Run Tests**: `yarn test` (the whole suite once: the `unit` project
+  with coverage, then the `sim` project without) or `yarn test:watch`.
+  `yarn vitest run <path>` runs one spec without coverage, in the project
+  that holds it. The whole suite takes minutes, most of them the autopilot
   playing every wave at every speed on three fields.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
   to 100% of statements, functions and lines and 95% of branches.
   `yarn test`, which CI runs, fails below either. The scene and the shell
-  have no floor of their own.
+  have no floor of their own. Coverage measures the `unit` project alone,
+  so what only the simulations reach counts as untested.
 - **Check the Layout**: `yarn build`, then `yarn check:layout`
   (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
   `@fz/dev/layout`'s shapes and turns, with the deck shown, and holds the
@@ -35,8 +37,13 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 ## Setup
 
 - `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the floor
-  and what coverage leaves out (`src/main.ts` and `src/testing/`).
-- A spec sits beside the file it tests, named after it, and runs in jsdom.
+  and what coverage leaves out (`src/main.ts` and `src/testing/`), with two
+  projects merged in: `sim`, the specs that play every wave or lay every
+  wave out (`SIMULATIONS`), in Node (`nodeSpecs()`), with neither the setup
+  below nor Analog's plugin, and `unit`, every other spec, as
+  `angularTests()` runs them.
+- A spec sits beside the file it tests, named after it, and runs in jsdom,
+  but for the simulations.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears

@@ -51,7 +51,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   for specs that run in Node. Each is given the workspace's floors and,
   where they differ, the files coverage measures or leaves out. The pieces
   they are made of, `angularSpecs()`, `nodeSpecs()` and `coverage()`, are
-  for a config of Vitest projects, such as the site's.
+  for a config of Vitest projects, such as the site's. A project of
+  `angularSpecs()` that shares the config's Vite server pins
+  `pool: "vmThreads"`, which Analog's plugin can't give it: the plugin sets
+  the pool in a config hook, after Vitest has taken the `test` options such
+  a project inherits.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
   build from `/play/<slug>/`, the Angular plugins, `@fz/style`'s
@@ -170,9 +174,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   rules, and its `tsconfig.json` extends `@fz/dev/tsconfig/angular.json`
   (`base.json` without Angular), as `frontend/games/minesweeper/` shows. A
   rule raised here is raised everywhere at once.
-- **Its `vitest.config.ts` is `angularTests()` or `nodeTests()`**, given
-  its floors, unless its specs run another way: the Solitaire Collection's
-  live under `test/`, mostly in Node, and keep a config of their own. A
+- **Its `vitest.config.ts` is `angularTests()` or `nodeTests()`**, given its
+  floors, unless its specs run another way: the Solitaire Collection's live
+  under `test/`, mostly in Node, and keep a config of their own, and Brick
+  Breaker's and Asteroid Breaker's merge in Vitest projects, so the specs
+  that play or lay out every level or wave run in Node, without coverage. A
   game's `vite.config.ts` is `gameConfig()`, with what is the game's own
   merged in by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does
   for the commit it was built from and its `@` alias. Analog's plugin, Vite
