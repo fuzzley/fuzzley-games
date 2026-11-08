@@ -86,11 +86,11 @@ export const NO_STATS: Stats = {
  * Returns the records as stored, keeping whatever of them still makes sense,
  * and the bests only of a sector the game still has.
  */
-export function statsOf(value: unknown, sectors: readonly string[]): Stats {
+export function readStats(value: unknown, sectors: readonly string[]): Stats {
   const saved = isRecord(value) ? value : {};
   const speeds = isRecord(saved["speeds"]) ? saved["speeds"] : {};
   return {
-    speeds: recordOf(SPEEDS, (speed) => speedStatsOf(speeds[speed])),
+    speeds: recordOf(SPEEDS, (speed) => readSpeedStats(speeds[speed])),
     sectors: countsByIdOf(saved["sectors"], sectors, SPEEDS),
   };
 }
@@ -247,7 +247,7 @@ function withSpeedStats(
  * Returns one speed's records as stored, or none if they make no sense;
  * records kept before a run could clear all thirty read as none having.
  */
-function speedStatsOf(value: unknown): SpeedStats {
+function readSpeedStats(value: unknown): SpeedStats {
   if (!isRecord(value)) return NO_RUNS;
   const { runs, best, furthest, strays, clearedAll } = value;
   if (

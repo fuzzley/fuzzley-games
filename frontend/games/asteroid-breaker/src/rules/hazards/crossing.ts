@@ -3,7 +3,7 @@
 // and reaching what lies on the field.
 
 import { clamp } from "@fz/core/math";
-import { RADIANS_PER_DEGREE } from "../angles";
+import { RADIANS_PER_DEGREE, TURN } from "../angles";
 import { type Draws, drawIn, nextDraw } from "../draws";
 import { type Place, type Torus, distanceSquared } from "../torus";
 import { ENTRY_ALONG, STEP_S } from "../tuning";
@@ -59,15 +59,15 @@ export function comeIn(
       break;
     case 1:
       // The right edge, heading left.
-      place(crossing, width + margin, along * height, Math.PI - off);
+      place(crossing, width + margin, along * height, TURN / 2 - off);
       break;
     case 2:
       // The top edge, heading down.
-      place(crossing, along * width, -margin, Math.PI / 2 - off);
+      place(crossing, along * width, -margin, TURN / 4 - off);
       break;
     default:
       // The bottom edge, heading up.
-      place(crossing, along * width, height + margin, 1.5 * Math.PI + off);
+      place(crossing, along * width, height + margin, (3 * TURN) / 4 + off);
   }
 }
 

@@ -1,5 +1,5 @@
 import { type WaveData, wavesOf } from "../waves/waves";
-import { isOpen, reachedOf, sectorSpans } from "./progress";
+import { isOpen, readReached, sectorSpans } from "./progress";
 
 /** Returns a wave of one small stone. */
 function waveOf(id: string): WaveData {
@@ -47,18 +47,18 @@ describe("isOpen", () => {
   });
 });
 
-describe("reachedOf", () => {
+describe("readReached", () => {
   it("takes back the sectors it stored, Endless among them", () => {
-    expect(reachedOf(["far", "endless"], WAVES)).toEqual(
+    expect(readReached(["far", "endless"], WAVES)).toEqual(
       new Set(["far", "endless"]),
     );
   });
 
   it("drops a sector the game no longer has, and what isn't a sector's id", () => {
-    expect(reachedOf(["far", "gone", 3], WAVES)).toEqual(new Set(["far"]));
+    expect(readReached(["far", "gone", 3], WAVES)).toEqual(new Set(["far"]));
   });
 
   it("starts a player who has none with none reached", () => {
-    expect(reachedOf(undefined, WAVES)).toEqual(new Set());
+    expect(readReached(undefined, WAVES)).toEqual(new Set());
   });
 });

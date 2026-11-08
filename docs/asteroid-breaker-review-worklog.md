@@ -524,3 +524,34 @@ more often:
    the record carried over by `begin()` fails at least one.
 3. _`takeUp()` called `begin()` in two branches, and `keep(state, before)`
    reversed `recordsOf()`'s order:_ taken.
+
+### Step 12b: finding 16, the rules' tidy-ups
+
+Built on `ab-rules`. An event's record is written once: `BLANK_EVENT`, a
+frozen record of every field but the serial, which `blankEvent()` spreads as
+the log is made and `record()` resets a reused record from with
+`Object.assign()`, so an event still makes nothing. `createEffects()` is
+`recordOf(EFFECT_KINDS, …)`, and the content skill loses the step that kept
+its list. `steerField()` copies the steer with `Object.assign()`. The names
+that collided are their own: Endless's `buyRocks` and `ENDLESS_PACE`, the
+lodestone's `pullTowardShip`; and every reader of stored records in the
+rules is `read…` (`readStats`, `readSpeedStats`, `readReached`). The ship's
+clamp is `clamp()`, every `Math.PI` outside `angles.ts` a fraction of
+`TURN`, the pilots' middle `middleOf()`, and the ring's margin `RING_GAP`.
+Every wave plays as before.
+
+Where it went other than planned:
+
+- The margin names the `1` alone, not `ROCK_RADIUS.large + 1`: subtracting
+  one combined constant rounds differently for about 4% of field widths,
+  so the rings would no longer lie where they did.
+- The events spec's table of every way a record is filled became one test
+  that fills five records between them with every field, then comes round
+  the ring and expects them blank; the compiler now keeps the blank whole.
+- `restoreGame()` keeps its name, as `saveGame()`'s pair.
+
+The review found nothing changed in what the rules do:
+
+1. _The one test couldn't see `reach`,_ since the event that refilled each
+   record writes it: taken; a pickup's fading takes the blast's record.
+2. _The golden angle still used `Math.PI`:_ taken.

@@ -5,7 +5,7 @@ import {
   type RunRecords,
   type Stats,
   isNewBest,
-  statsOf,
+  readStats,
   withRecords,
 } from "../../rules/run/stats";
 import { GAME_WAVES } from "../tokens";
@@ -25,7 +25,7 @@ const STATS_VERSION = 1;
 export class StatsService {
   private readonly storage = inject(LocalStorageService);
   private readonly state = signal<Stats>(
-    statsOf(
+    readStats(
       this.storage.readVersioned(STATS_KEY, STATS_VERSION),
       sectorSpans(inject(GAME_WAVES)).map(({ id }) => id),
     ),

@@ -1,7 +1,7 @@
 // The pickups floating on the field, drifting, drawn in to the ship and
 // caught, and the effects they start, one of each group at a time.
 
-import { keysOf } from "@fz/core/records";
+import { keysOf, recordOf } from "@fz/core/records";
 import {
   type EffectKind,
   type PickupEffect,
@@ -141,15 +141,7 @@ export function lasts(kind: EffectKind): boolean {
 
 /** Returns the records of the effects in play, none yet. */
 export function createEffects(): Effects {
-  const none = (): InEffect => ({ pickup: null, endsAt: 0 });
-  return {
-    weapon: none(),
-    guard: none(),
-    pull: none(),
-    pace: none(),
-    nova: none(),
-    ship: none(),
-  };
+  return recordOf(EFFECT_KINDS, (): InEffect => ({ pickup: null, endsAt: 0 }));
 }
 
 /**

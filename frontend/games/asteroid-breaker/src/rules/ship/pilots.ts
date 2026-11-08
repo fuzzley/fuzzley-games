@@ -5,7 +5,7 @@
 
 import type { FieldEventLog } from "../field/events";
 import type { Strays } from "../hazards/strays";
-import type { Place, Torus } from "../torus";
+import { type Place, type Torus, middleOf } from "../torus";
 import { FIRST_SHIPS, MAX_SHIPS } from "../tuning";
 
 /** A pilot, by its color's number, from 0 to under {@link PILOT_COLORS}. */
@@ -27,7 +27,10 @@ export interface Crew {
   readonly lastGiven: Pilot;
 }
 
-/** Describes what of the field a ship gained changes: its crew, by the stray adrift, and its log. */
+/**
+ * Describes what of the field a ship gained changes: its crew, by the stray
+ * adrift, and its log.
+ */
 export interface CrewField {
   crew: Crew;
   readonly strays: Readonly<Strays>;
@@ -37,7 +40,10 @@ export interface CrewField {
   readonly events: FieldEventLog;
 }
 
-/** Returns a run's first crew: a pilot for each of its first ships, in the first colors, and no one at home. */
+/**
+ * Returns a run's first crew: a pilot for each of its first ships, in the first
+ * colors, and no one at home.
+ */
 export function createCrew(): Crew {
   return {
     flying: Array.from({ length: FIRST_SHIPS }, (_, color) => color),
@@ -101,14 +107,16 @@ export function gainShipOn(field: CrewField): void {
   const { flying, home } = field.crew;
   field.crew = gainShip(field.crew, adrift.live ? adrift.pilot : null);
   const fromHome = field.crew.home.length < home.length;
-  const x = field.ship?.x ?? field.torus.width / 2;
-  const y = field.ship?.y ?? field.torus.height / 2;
+  const { x, y } = field.ship ?? middleOf(field.torus);
   for (const pilot of field.crew.flying.slice(flying.length)) {
     field.events.addGained(x, y, pilot, fromHome, field.crew);
   }
 }
 
-/** Returns the crew with the pilot at the controls bailed out of its lost ship, the next in line taking them. */
+/**
+ * Returns the crew with the pilot at the controls bailed out of its lost ship,
+ * the next in line taking them.
+ */
 export function bailOut(crew: Crew): Crew {
   return { ...crew, flying: crew.flying.slice(1) };
 }
