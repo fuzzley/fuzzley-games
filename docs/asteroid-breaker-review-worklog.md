@@ -1089,3 +1089,25 @@ The second review, of what the answers added, found no blocker:
 6. _Docs said `saveGame()` stamps the version, which the shell does:_
    taken.
 7. _The rules weren't fenced off `src/testing/`:_ taken.
+
+### Step 6e: finding 8, the lint configs linted and type-checked
+
+Built on `ab-tests`, the last of finding 8's small points.
+`eslint.config.js` and `stylelint.config.js` are linted as the scripts
+under `tools/` are, by `@fz/dev`'s `scripts()` block, and type-checked from
+their JSDoc in `tsconfig.scripts.json`, under `checkJs` and `strict`, which
+the solution now references, as the other games' do, so an editor checks
+them, and the scripts, as `tsc` does. Neither config needed a fix.
+
+Where it went other than planned:
+
+- The other games, the site, the libraries and the root's config have the
+  same gap, which finding 21 takes up with the fences: nothing in
+  `lib/dev` changes here.
+
+The review found both configs checked and nothing else matching them:
+
+1. _The solution didn't reference `tsconfig.scripts.json`, so an editor
+   checked the configs, and the scripts, without `checkJs`:_ taken.
+2. _`AGENTS.md`'s Linting line hung the configs off the wrong phrase and
+   left out `tools/`:_ taken.

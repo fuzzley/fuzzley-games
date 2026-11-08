@@ -695,11 +695,14 @@ workspace's with the others'.
   `src/testing/belt_board.ts`, and `sim` for a simulation. Without
   `--project`, Vitest starts every project, Analog's plugin among them,
   and a spec of the rules takes three times as long.
-- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the fences
-  between the layers and what keeps the rules and the view off the clock,
-  `Math.random()` and the page, then stylelint with `@fz/style`'s preset).
+- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
+  among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
+  the fences between the layers and what keeps the rules and the view off
+  the clock, `Math.random()` and the page, then stylelint with
+  `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
-  config, and the scripts under `tools/` from their JSDoc).
+  config, and the scripts under `tools/` and the two lint configs from
+  their JSDoc).
 - **Report the Waves:** `yarn report:waves` (runs `tools/report-waves.mjs`:
   the autopilot in `src/testing/autopilot.ts` plays every wave at every
   speed on the narrowest field, or the widest with `--field wide` on its

@@ -221,7 +221,9 @@ export default defineConfig(
     ],
   }),
   phaser({ files: ["src/scene/**/*.ts"] }),
-  scripts({ files: ["tools/**/*.mjs"] }),
+  scripts({
+    files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
+  }),
   // Each layer imports only the layers below it: rules, then view, then
   // scene, then app.
   fence(["src/rules/**/*.ts"], RULES_FENCE),
