@@ -726,3 +726,27 @@ reading the window it replaced:
 3. _The shell's spec still worked a ship's speed out by hand:_ not taken
    here, as another step was changing that spec; it goes with the shell's
    spec tidy-ups.
+
+### Step 7e: finding 9, a run's own state in the view
+
+Built on `ab-shell`, from the last review of finding 9. `RunState`,
+`newRunState()` and `withFrame()` moved from the shell to
+`src/view/run_state.ts`, beside `RunFrames`, `withFrame()` handed whether
+the numbers are tuned; so the fold of a frame into a run's state, and the
+rule that a run flown on tuned numbers keeps no records, are specced in
+Node under the view's floor, 19 specs that each fail if a clause of either
+is dropped. `GameService` keeps the signal and calls them, and is down
+from 739 lines to 655 (753 before step 7d).
+
+The review found the body of `withFrame()` the same, `retuned()` now read
+every frame outside any reactive context and making nothing, and the
+shell's wiring of it still held by its specs:
+
+1. _`nextWave()`, `takeUp()` and `closeResult()` still build their changes
+   to the record in the shell:_ not taken. The shell's specs hold each,
+   `keep()` needs the services' answers, and a new field takes its default
+   from `newRunState()` in the view already.
+2. _Eighteen calls in the spec ended in a bare `true` or `false`:_ taken;
+   `RETUNED` and `AS_WRITTEN`.
+3. _A paragraph of `AGENTS.md` had a short line, and a doc was rewrapped
+   in the move though it was under 100 characters:_ taken.

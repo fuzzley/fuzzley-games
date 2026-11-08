@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, check:layout, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -192,6 +192,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   what each frame changed and what it said. It takes nothing from
   `src/testing/play.ts`, which imports the shell's tokens, so it runs
   without Angular, as every spec of the view does.
+  `src/view/run_state.spec.ts` folds a frame's change, written by hand, into
+  what is a run's own (`withFrame()`), and holds which frames fly a run on
+  tuned numbers.
 - `src/testing/art_frames.ts` draws the atlas in one palette
   (`ART_PALETTE`) at one scale (`ART_SCALE`), and finds a frame by its name
   (`frameNamed()`), so the art's specs check the commands a frame is drawn
@@ -237,10 +240,11 @@ game through `runScene()`:
 - A component that shows the board runs it on
   `provideFakePhaserCanvas()`, which loads no Phaser. The board's spec also
   runs the scene the board hands its canvas for real, through `runScene()`.
-- What a frame of play comes to is `RunFrames`'s, which the view's spec
-  holds; the shell's spec holds `GameService` to taking it into the run
-  and what is its own, the records and the live region, and to beginning
-  each run with none of the last one's (`ownOf()`).
+- What a frame of play comes to is `RunFrames`'s, and how it folds into
+  what is a run's own `withFrame()`'s, which the view's specs hold; the
+  shell's spec holds `GameService` to taking it into its signals, the
+  records and the live region, and to beginning each run with none of the
+  last one's (`ownOf()`).
 - `GameService` plays the small waves of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
   numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless

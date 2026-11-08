@@ -237,10 +237,13 @@ take for the layer.
   with what its field came to, waits out the beat before a card, and
   returns what the frame changed (`FrameChange`), gathering what to say of
   it (`news()`), a run's end last, with what the shell's records say it
-  set. `tally.ts` holds the Cleared card's lines (`tallyLines()`), and
-  `debug_tuning.ts` the numbers the debug menu tunes (`Tuning`,
-  `TUNING_SLIDERS`) and the lines of `src/rules/tuning.ts` they would
-  replace (`tuningLines()`).
+  set. `run_state.ts` holds what is a run's own, which the shell keeps in
+  one signal (`RunState`): as a run begins (`newRunState()`), and with a
+  frame's change taken in (`withFrame()`), flown on tuned numbers from the
+  first frame that moves its field on them. `tally.ts` holds the Cleared
+  card's lines (`tallyLines()`), and `debug_tuning.ts` the numbers the
+  debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the lines of
+  `src/rules/tuning.ts` they would replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
   on the canvas: the field's shape for its room (`fieldShape()`), the room
@@ -361,20 +364,20 @@ take for the layer.
   play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked
   away.
   - `play/` — `GameService` holds the run and what is its own, its chain, its
-    cards and what it set, in one signal, replaced whole as a run begins or is
-    taken up, so nothing of one run reaches the next, and the wave in play
-    outside one, as the view's `WavePlay`, since the field changes 120 times a
-    second; it moves the field on through `tick()`, which the scene's frames
-    drive, steered as the player steers, taking what the view's `RunFrames` says
-    each frame changed into the run's state and the records; it pauses, goes on
-    and starts waves and runs, shapes each field to the board's room
-    (`setRoom()`), says what happened through `@fz/ui/announcer`, shows a
-    cleared wave's points (`tally`), keeps what each change in the run brings to
-    the records and the sectors reached (`recordsOf()`) through `stats/`, in one
-    place that keeps none of a run flown on tuned numbers, has the wave in play
-    take the numbers the debug menu tunes as `TuningService` tells it of them,
-    and asks through `@fz/ui/confirm` before a new game or speed throws a run
-    away.
+    cards and what it set, in one signal (the view's `RunState`), replaced
+    whole as a run begins or is taken up, so nothing of one run reaches the
+    next, and the wave in play outside one, as the view's `WavePlay`, since the
+    field changes 120 times a second; it moves the field on through `tick()`,
+    which the scene's frames drive, steered as the player steers, taking what
+    the view's `RunFrames` says each frame changed into the run's state
+    (`withFrame()`) and the records; it pauses, goes on and starts waves and
+    runs, shapes each field to the board's room (`setRoom()`), says what
+    happened through `@fz/ui/announcer`, shows a cleared wave's points
+    (`tally`), keeps what each change in the run brings to the records and the
+    sectors reached (`recordsOf()`) through `stats/`, in one place that keeps
+    none of a run flown on tuned numbers, has the wave in play take the
+    numbers the debug menu tunes as `TuningService` tells it of them, and asks
+    through `@fz/ui/confirm` before a new game or speed throws a run away.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
     the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and whether the
     build is a development one (`DEV_BUILD`) and the settings offer the debug

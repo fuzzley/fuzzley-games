@@ -25,7 +25,6 @@ import {
   fieldFor,
   reshapeField,
 } from "../../rules/field/field";
-import type { Pilot } from "../../rules/ship/pilots";
 import { rocksLeft } from "../../rules/rocks/rocks";
 import {
   type Run,
@@ -44,7 +43,6 @@ import {
   saveGame,
   takeUpField,
 } from "../../rules/run/saved_game";
-import type { WaveTally } from "../../rules/field/scoring";
 import { STILL, type Steer, thrustOf } from "../../rules/ship/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { recordsOf } from "../../rules/run/stats";
@@ -62,7 +60,8 @@ import { fieldTuning, tuneField } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
 import type { FieldFrame } from "../../view/field/frame";
-import { type FrameChange, RunFrames } from "../../view/run_frames";
+import { RunFrames } from "../../view/run_frames";
+import { type RunState, newRunState, withFrame } from "../../view/run_state";
 import { WavePlay } from "../../view/wave_play";
 import { SettingsService } from "../settings/settings.service";
 import { TuningService } from "../settings/tuning.service";
@@ -91,53 +90,6 @@ const FIRST_TORUS: Torus = {
   width: FIELD_SHORT_SIDE,
   height: FIELD_SHORT_SIDE,
 };
-
-/**
- * Holds what is a run's own, which each run begins afresh, so nothing of
- * one reaches the next: the run, how it was flown, the chain and the cards
- * over its wave in play, and what it set.
- */
-interface RunState {
-  readonly run: Run;
-  /**
-   * Whether it has been flown on numbers the debug menu tuned, its field
-   * stepped with them, which keeps no records: the player's own, set at a
-   * feel of their own.
-   */
-  readonly tuned: boolean;
-  /** How many times a break scores, by the chain the wave in play counts. */
-  readonly chain: number;
-  /** How the last wave cleared added up, for its card, or null until one is. */
-  readonly tally: WaveTally | null;
-  /** Whether the card over a cleared wave is showing. */
-  readonly clearedOpen: boolean;
-  /** Whether its end set a new best score at its speed. */
-  readonly newBest: boolean;
-  /** Whether it has cleared every written wave, from the first, as the records keep it. */
-  readonly clearedAll: boolean;
-  /** The pilots of the strays it has brought home, in the order they came. */
-  readonly broughtHome: readonly Pilot[];
-  /** Whether the card over its end is showing. */
-  readonly resultOpen: boolean;
-  /** Whether the card over its end has been put away. */
-  readonly resultClosed: boolean;
-}
-
-/** Returns what is a run's own as it begins: none of its chain, its cards or its marks yet. */
-function newRunState(run: Run): RunState {
-  return {
-    run,
-    tuned: false,
-    chain: 1,
-    tally: null,
-    clearedOpen: false,
-    newBest: false,
-    clearedAll: false,
-    broughtHome: [],
-    resultOpen: false,
-    resultClosed: false,
-  };
-}
 
 /**
  * Plays the game: holds the run and the wave in play's field, moves the
@@ -337,7 +289,7 @@ export class GameService {
       steer,
       this.viewport.allowsMotion(),
     );
-    let after = this.withFrame(before, change);
+    let after = withFrame(before, change, this.tuner.retuned());
     if (change.run !== null) after = this.keep(before.run, after);
     if (after !== before) this.runState.set(after);
     this.sayNews();
@@ -581,42 +533,6 @@ export class GameService {
       ...state,
       clearedAll: state.clearedAll || records.clearedAll,
       newBest: records.ended === null ? state.newBest : newBest,
-    };
-  }
-
-  /**
-   * Returns a run's state with what a frame came to taken in: the run it
-   * changed, whether it was flown on tuned numbers, the strays it brought
-   * home, the chain, a cleared wave's tally and the card it opens; or the
-   * same state for a frame that changed none of them, so a frame of play
-   * makes nothing.
-   */
-  private withFrame(state: RunState, change: FrameChange): RunState {
-    const tuned = state.tuned || (change.moved && this.tuner.retuned());
-    const chain = change.chain ?? state.chain;
-    const { cameHome, tally, opens } = change;
-    if (
-      change.run === null &&
-      tuned === state.tuned &&
-      chain === state.chain &&
-      cameHome.length === 0 &&
-      tally === null &&
-      opens === null
-    ) {
-      return state;
-    }
-    return {
-      ...state,
-      run: change.run ?? state.run,
-      tuned,
-      chain,
-      tally: tally ?? state.tally,
-      broughtHome:
-        cameHome.length > 0
-          ? [...state.broughtHome, ...cameHome]
-          : state.broughtHome,
-      clearedOpen: state.clearedOpen || opens === "cleared",
-      resultOpen: state.resultOpen || opens === "result",
     };
   }
 
