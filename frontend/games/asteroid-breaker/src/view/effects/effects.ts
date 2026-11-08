@@ -60,7 +60,10 @@ export type Flourish =
   | "bailout"
   | "shake";
 
-/** Says what an event calls for: the flourishes it plays, with motion and without, and its sound. */
+/**
+ * Says what an event calls for: the flourishes it plays, with motion and
+ * without, and its sound.
+ */
 export interface EventEffects {
   /** What it plays where motion is welcome. */
   readonly flourishes: readonly Flourish[];
@@ -73,7 +76,10 @@ export interface EventEffects {
 /** No flourish at all. */
 const NONE: readonly Flourish[] = [];
 
-/** Returns what an event calls for whose flourishes all move, so none plays where motion isn't welcome. */
+/**
+ * Returns what an event calls for whose flourishes all move, so none plays
+ * where motion isn't welcome.
+ */
 function moving(
   sound: SoundName | null,
   flourishes: readonly Flourish[] = NONE,
@@ -106,8 +112,8 @@ const BROKEN: Readonly<Record<RockSize, EventEffects>> = recordOf(
 
 /**
  * What a rock of each size that holds a hit calls for: its flash and
- * spark, and its size's break sound, as the plan's sounds name none for a
- * hit that holds, and the five a boulder holds would go unheard.
+ * spark, and its size's break sound, as no sound is a held hit's own, and
+ * the five hits a boulder holds would otherwise go unheard.
  */
 const HELD: Readonly<Record<RockSize, EventEffects>> = recordOf(
   ROCK_SIZES,
@@ -121,7 +127,10 @@ const RINGING: ReadonlySet<RockKindId> = new Set(
   ),
 );
 
-/** What each event calls for, but a rock's break and a hit it holds, which its kind and size decide. */
+/**
+ * What each event calls for, but a rock's break and a hit it holds, which its
+ * kind and size decide.
+ */
 const EVENT_EFFECTS: Readonly<
   Record<Exclude<FieldEventKind, "broken" | "hit">, EventEffects>
 > = {
@@ -202,7 +211,10 @@ export function createFrameSounds(): FrameSounds<SoundName> {
   return new FrameSounds(SOUNDS);
 }
 
-/** Returns the flourishes an event's effects play: all of them where motion is welcome, else those that don't move. */
+/**
+ * Returns the flourishes an event's effects play: all of them where motion is
+ * welcome, else those that don't move.
+ */
 export function flourishesOf(
   effects: EventEffects,
   motion: boolean,

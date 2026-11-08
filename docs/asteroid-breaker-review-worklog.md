@@ -838,3 +838,37 @@ The review found the move faithful:
    above.
 3. _The menu's own rule came before the copied rule it overrides:_ taken.
 4. _The class doc restated the code:_ taken.
+
+### Step 12e: finding 17, the layers, the deck and the specs' helpers
+
+Built on `ab-scene`, the second of finding 17's commits for the view and
+the scene. Each layer names the camera that draws it (`LAYER_CAMERAS` in
+`src/view/field/layers.ts`), and the scene's two cameras ignore what
+`drawnBy()` gives the other, where `FIELD_LAYERS` and an `ignore()` of the
+frame and deck said it twice. A held hit's flash is a layer of its own,
+between the ship's and the effects', just where its painter's order put it
+in the effects layer, so it draws the same; `depthOf()`, used only by its
+spec, is gone, and the spec holds `LAYERS` as it is. The deck painter
+reads the steering from the paint context, set once to the live steering
+(`SteeringView`), as every other painter reads what it draws; `press()`
+says whether the key flies the ship, so the scene looks it up once;
+`effects.ts` says why a held hit borrows a break's sound rather than how it
+came to; and `flourishes.spec.ts` logs a lost ship and reads what plays
+through helpers.
+
+Where it went other than planned:
+
+- The scene's font from its options goes with the points' digits (step
+  11b), which bake it.
+
+The review found every object drawn by the camera it was, in the same
+order, and the steering live:
+
+1. _The camera spec saw only layers,_ so an object left outside one would
+   be drawn by both cameras unseen: taken; the scene holds layers alone.
+2. _The layers' spec restated the code:_ taken; literal lists.
+3. _The order's doc spoke of depth, which nothing sets:_ taken.
+4. _The context's steering, set once, could be written over:_ taken;
+   `readonly`, and `AGENTS.md` says so.
+5. _Nits: a spec's interface named like `turns.ts`' own, a title leaving
+   out the flash, a steering title that said itself twice:_ taken.

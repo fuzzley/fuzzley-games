@@ -6,11 +6,9 @@ import type { BeltPalette } from "../../view/colors/palette";
 import {
   type Circle,
   type Deck,
-  type DeckButton,
   type Ring,
   rechargeRing,
 } from "../../view/steering/deck";
-import type { Steering } from "../../view/steering/steering";
 import type { StickView } from "../../view/steering/stick";
 import { DECK_ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
@@ -26,12 +24,6 @@ export const REST_KNOB_ALPHA = 0.25;
 
 /** Where a ring starts to fill from: its top. */
 const RING_TOP = -Math.PI / 2;
-
-/**
- * Says what the deck's painter reads of the steering: the stick, and which
- * buttons a finger presses.
- */
-export type DeckView = Pick<Steering, "stickView" | "isPressed">;
 
 /** Holds a button's images: its disc, its ring and its symbol. */
 interface ButtonImages {
@@ -71,11 +63,7 @@ export class DeckPainter implements Painter {
   /** The stick's images that show only while it is held. */
   private readonly held: readonly GameObjects.Image[];
 
-  constructor(
-    scene: Scene,
-    layer: GameObjects.Layer,
-    private readonly view: DeckView,
-  ) {
+  constructor(scene: Scene, layer: GameObjects.Layer) {
     const image = (frame: string): GameObjects.Image =>
       scene.add.image(0, 0, DECK_ATLAS, frame).setVisible(false);
     this.base = image(DECK_FRAMES.stickBase);
@@ -111,15 +99,21 @@ export class DeckPainter implements Painter {
   }
 
   /** Draws the deck where it lies, as the steering holds it, or nothing where it doesn't show. */
-  draw({ deck, field, metrics, palette }: Readonly<PaintContext>): void {
+  draw({
+    deck,
+    steering,
+    field,
+    metrics,
+    palette,
+  }: Readonly<PaintContext>): void {
     this.recharge.clear();
     if (!deck) {
       for (const image of this.images) image.setVisible(false);
       return;
     }
-    this.drawStick(deck, this.view.stickView, palette);
-    this.drawButton(this.fire, deck.fire, "fire", palette);
-    this.drawButton(this.dash, deck.dash, "dash", palette);
+    this.drawStick(deck, steering.stickView, palette);
+    this.drawButton(this.fire, deck.fire, steering.isPressed("fire"), palette);
+    this.drawButton(this.dash, deck.dash, steering.isPressed("dash"), palette);
     const charged = field.ship ? rechargeShare(field.ship) : 1;
     if (charged >= 1) return;
     const { x, y, radius, width } = rechargeRing(
@@ -163,13 +157,12 @@ export class DeckPainter implements Painter {
   private drawButton(
     images: ButtonImages,
     circle: Circle | null,
-    button: DeckButton,
+    pressed: boolean,
     palette: BeltPalette,
   ): void {
     for (const image of images.parts) image.setVisible(circle !== null);
     if (!circle) return;
     const { disc, ring, symbol } = images;
-    const pressed = this.view.isPressed(button);
     place(disc, circle, pressed ? palette.accent : palette.deck, 1);
     place(ring, circle, pressed ? palette.accent : palette.line, 1);
     place(symbol, circle, pressed ? palette.onAccent : palette.muted, 1);

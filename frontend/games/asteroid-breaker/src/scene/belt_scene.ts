@@ -14,11 +14,7 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art/art";
-import {
-  type FieldCommand,
-  commandOfKey,
-  heldKeyOf,
-} from "../view/steering/controls";
+import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
 import {
   type SoundName,
@@ -41,7 +37,7 @@ import {
   type Steer,
   shipAt,
 } from "../view/field/frame";
-import { LAYERS, type Layer } from "../view/field/layers";
+import { LAYERS, type Layer, drawnBy } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
 import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
@@ -103,11 +99,6 @@ export interface BeltSceneOptions {
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
 const CAPTURED_KEYS = "LEFT,RIGHT,UP,DOWN,SPACE";
-
-/** The layers the field's camera draws, every one but the frame's and the deck's. */
-const FIELD_LAYERS = LAYERS.filter(
-  (layer) => layer !== "frame" && layer !== "deck",
-);
 
 /** Holds what the scene draws and sounds with, each made once, as it is created. */
 export interface BeltKit {
@@ -236,10 +227,10 @@ export class BeltScene extends Scene {
     this.bake();
     this.steering = new Steering(this.metrics, this.deckParts, this.board);
     const layers = recordOf(LAYERS, () => this.add.layer());
-    const kit = this.makeKit(layers, this.steering);
+    const kit = this.makeKit(layers);
     this.madeKit = kit;
-    this.cameras.main.ignore([layers.frame, layers.deck]);
-    kit.deckCamera.ignore(FIELD_LAYERS.map((layer) => layers[layer]));
+    this.cameras.main.ignore(drawnBy("deck").map((layer) => layers[layer]));
+    kit.deckCamera.ignore(drawnBy("field").map((layer) => layers[layer]));
     this.painters = [
       kit.field,
       kit.tags,
@@ -275,6 +266,7 @@ export class BeltScene extends Scene {
       seed: frame.seed,
       constellation: frame.constellation,
       deck: this.deckParts,
+      steering: this.steering,
       metrics: this.metrics,
       palette: this.painted,
       zoom: this.zoom(),
@@ -298,14 +290,11 @@ export class BeltScene extends Scene {
    * as it is made, so the effects layer's flourishes go in back to front, as
    * `layers.ts` lists them.
    */
-  private makeKit(
-    layers: Readonly<Record<Layer, GameObjects.Layer>>,
-    steering: Steering,
-  ): BeltKit {
+  private makeKit(layers: Readonly<Record<Layer, GameObjects.Layer>>): BeltKit {
     return {
       field: new FieldPainter(this, layers),
       tags: new TagPainter(this, layers.tags),
-      rocks: new RockPainter(this, layers.rocks, layers.effects),
+      rocks: new RockPainter(this, layers.rocks, layers.flash),
       pickups: new PickupPainter(this, layers.pickups),
       strays: new StrayPainter(this, layers.strays),
       hazards: new HazardPainter(this, layers.hazards),
@@ -321,7 +310,7 @@ export class BeltScene extends Scene {
         // The page's font, which the canvas takes from the board around it.
         getComputedStyle(this.game.canvas).fontFamily || "sans-serif",
       ),
-      deck: new DeckPainter(this, layers.deck, steering),
+      deck: new DeckPainter(this, layers.deck),
       fieldCamera: new FieldCamera(this.cameras.main),
       // Over the whole canvas, which Phaser keeps it to as the canvas changes
       // size.
@@ -573,8 +562,7 @@ export class BeltScene extends Scene {
    */
   private press(event: KeyboardEvent): void {
     if (event.ctrlKey || event.altKey || event.metaKey) return;
-    if (heldKeyOf(event.code)) {
-      this.steering.press(event.code);
+    if (this.steering.press(event.code)) {
       if (!event.repeat) this.options.command("go");
       return;
     }

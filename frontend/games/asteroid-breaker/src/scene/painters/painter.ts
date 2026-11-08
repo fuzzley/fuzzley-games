@@ -3,6 +3,7 @@ import type { BeltPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { Drawn, FieldView } from "../../view/field/frame";
 import type { Deck } from "../../view/steering/deck";
+import type { SteeringView } from "../../view/steering/steering";
 
 /**
  * Says what a frame is drawn from: the field, and how the scene stands as
@@ -29,6 +30,12 @@ export interface PaintContext {
   constellation: Readonly<Place> | null;
   /** Where the deck's parts lie on the canvas, or null where it doesn't show. */
   deck: Deck | null;
+  /**
+   * What the deck's painter reads of the steering: the stick, and which of
+   * the deck's buttons a finger presses. The scene sets it once, the live
+   * steering it reads each frame.
+   */
+  readonly steering: SteeringView;
   /** Where the field lies on the canvas. */
   metrics: FieldMetrics;
   /** The palette the field is drawn in, which the atlas was baked in. */

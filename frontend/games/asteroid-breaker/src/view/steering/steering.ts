@@ -47,11 +47,20 @@ export interface PointerView {
   readonly button: number;
 }
 
+/**
+ * Says what the deck's painter reads of the steering: the stick, and which of
+ * the deck's buttons a finger presses.
+ */
+export type SteeringView = Pick<Steering, "stickView" | "isPressed">;
+
 /** Describes a finger off the stick, which presses whichever button it is on. */
 interface Finger {
   /** Its pointer's id, or null for a record no finger holds. */
   id: number | null;
-  /** Whether its place is on the canvas as it is, as it has moved since the canvas last changed under it. */
+  /**
+   * Whether its place is on the canvas as it is, as it has moved since the
+   * canvas last changed under it.
+   */
   placed: boolean;
   /** The button it pressed as the canvas last changed under it, which it presses until it moves. */
   latched: DeckButton | null;
@@ -75,7 +84,10 @@ interface Finger {
 export class Steering {
   /** How many keys are held for each thing a key flies the ship by. */
   private keys: Record<HeldKey, number> = { ...NO_KEYS };
-  /** The keys held, by `event.code`, so a key held repeats nothing and two held for one thing each count. */
+  /**
+   * The keys held, by `event.code`, so a key held repeats nothing and two held
+   * for one thing each count.
+   */
   private readonly codes = new Set<string>();
   /** The way of the turn key held last, which wins while both are held. */
   private lastTurn: -1 | 1 = 1;
@@ -137,17 +149,19 @@ export class Steering {
   /**
    * Takes a key pressed, by `event.code`, that flies the ship, but not one
    * held already, as a key held repeats; a turn key takes the heading back
-   * from the mouse.
+   * from the mouse. Returns whether the key flies the ship.
    */
-  press(code: string): void {
+  press(code: string): boolean {
     const key = heldKeyOf(code);
-    if (!key || this.codes.has(code)) return;
+    if (!key) return false;
+    if (this.codes.has(code)) return true;
     this.codes.add(code);
     this.keys[key] += 1;
     if (key === "left" || key === "right") {
       this.lastTurn = key === "left" ? -1 : 1;
       this.aiming = false;
     }
+    return true;
   }
 
   /** Takes a key let go, by `event.code`, that flew the ship. */
@@ -291,7 +305,10 @@ export class Steering {
     else if (button === SECOND_BUTTON) this.mouseThrust = held;
   }
 
-  /** Returns the record of the finger off the stick with a pointer's id, or a free one for null, or null where there is none. */
+  /**
+   * Returns the record of the finger off the stick with a pointer's id, or a
+   * free one for null, or null where there is none.
+   */
   private fingerOf(id: number | null): Finger | null {
     for (const finger of this.fingers) {
       if (finger.id === id) return finger;

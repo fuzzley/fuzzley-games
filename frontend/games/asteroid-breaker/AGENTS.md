@@ -257,7 +257,8 @@ take for the layer.
   next (`between()`), the shortest way across the wrap for one that wraps
   (`wrappedBetween()`), its turn (`angleBetween()`), and where the ship is
   drawn and turned (`shipAt()`). `layers.ts` is the order the field is
-  drawn in, back to front, in one list (`LAYERS`).
+  drawn in, back to front, in one list (`LAYERS`), and the camera that
+  draws each layer (`LAYER_CAMERAS`, `drawnBy()`).
   `tags.ts` says where the tags of the lasting effects lie, at the field's
   bottom left, and how much of each one's time is left; `warning.ts` where a
   comet's warning is drawn; and `specks.ts` where the specks lie, from the
@@ -333,16 +334,17 @@ take for the layer.
   fills it with the field's color and scrolls it as the field kicks and
   shakes, the one place its scroll is written. Each of them is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
-  writes over each frame, where the ship is drawn among it, starts on each
-  new field (`start()`) and takes up its frames again after a bake
-  (`refresh()`), so the scene draws, starts and refreshes them in a loop over
-  its list of painters. The scene's painters, cameras and sounds are made
-  once, as it is created, and read through its `kit` (`BeltKit`). A thing
-  that wraps is drawn through `Copies` (`painters/copies.ts`), once, and
-  again past each edge it reaches across; a flourish's records are taken in
-  turn (`Turns`, `painters/turns.ts`). Every game object is made as the scene
-  is created, or as a field of more slots starts, so a frame of play makes
-  none, and a new field stops what the last one set off.
+  writes over each frame, where the ship is drawn among it, and which holds
+  the steering the deck shows, set once; starts on each new field
+  (`start()`); and takes up its frames again after a bake (`refresh()`), so
+  the scene draws, starts and refreshes them in a loop over its list of
+  painters. The scene's painters, cameras and sounds are made once, as it is
+  created, and read through its `kit` (`BeltKit`). A thing that wraps is
+  drawn through `Copies` (`painters/copies.ts`), once, and again past each
+  edge it reaches across; a flourish's records are taken in turn (`Turns`,
+  `painters/turns.ts`). Every game object is made as the scene is created, or
+  as a field of more slots starts, so a frame of play makes none, and a new
+  field stops what the last one set off.
   The scene plays each of the field's events once, from the last it played,
   and the flourishes an event calls for only where motion is welcome, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
@@ -516,11 +518,11 @@ take for the layer.
   times (`copyOffsets()`, `Copies`). The strays and the comets cross rather
   than wrap, and a lost ship's pilot floats off, so each is drawn once, and
   the field's camera cuts it off at the edge.
-- **The frame and the deck stand still.** Two cameras draw the scene: the
-  field's, whose viewport is the field's rectangle, and the deck's, over the
-  whole canvas, which draws the frame, 2 CSS px in the field's line
-  (`FRAME_CSS_PX`), and the deck, so neither moves as the field kicks or
-  shakes.
+- **The frame and the deck stand still.** Two cameras draw the scene, each
+  the layers `LAYER_CAMERAS` gives it: the field's, whose viewport is the
+  field's rectangle, and the deck's, over the whole canvas, which draws the
+  frame, 2 CSS px in the field's line (`FRAME_CSS_PX`), and the deck, so
+  neither moves as the field kicks or shakes.
 - **The deck** shows on a touch screen, or always, or never, as the
   settings say (`DECK_SHOWINGS`). It lies at the canvas's edges, along its
   bottom, a quarter of its height, its two zones side by side, or a zone
