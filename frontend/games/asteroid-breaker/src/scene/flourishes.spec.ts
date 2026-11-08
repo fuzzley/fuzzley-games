@@ -1,6 +1,6 @@
 import { easeOutCubic } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
-import type { SceneRun } from "@fz/phaser/testing";
+import { type SceneRun, objectsIn, strokesOf } from "@fz/phaser/testing";
 import { GameObjects, Textures, TintModes } from "phaser";
 import type { Field } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
@@ -14,7 +14,6 @@ import {
   type FakeShell,
   layersOf,
   metricsOf,
-  objectsIn,
   onCanvas,
   pointsZoomOf,
   scrolledBy,
@@ -23,7 +22,6 @@ import {
   startBoard,
   stepping,
   stillness,
-  strokesOf,
   withShip,
 } from "../testing/belt_board";
 import {

@@ -6,9 +6,13 @@ import type { HostedScene } from "@fz/phaser/host";
 import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
+  FakeResizeObserver,
   type SceneRun,
+  collectErrors,
   provideFakePhaserCanvas,
+  resize,
   runScene,
+  watchResizes,
 } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
@@ -39,58 +43,6 @@ const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
 
 /** The longest the scene plays a level for before a spec gives up on it. */
 const LEVEL_LIMIT_MS = 10_000;
-
-/**
- * Stands in for the browser's `ResizeObserver`, which jsdom lacks: the spec
- * says when what it watches was laid out anew.
- */
-class FakeResizeObserver implements ResizeObserver {
-  /** Every one made since the spec stood them in. */
-  static made: FakeResizeObserver[] = [];
-  readonly watched = new Set<Element>();
-
-  constructor(private readonly callback: ResizeObserverCallback) {
-    FakeResizeObserver.made.push(this);
-  }
-
-  observe(target: Element): void {
-    this.watched.add(target);
-  }
-
-  unobserve(target: Element): void {
-    this.watched.delete(target);
-  }
-
-  disconnect(): void {
-    this.watched.clear();
-  }
-
-  /** Tells it what it watches was laid out anew, if it watches anything. */
-  resized(): void {
-    if (this.watched.size > 0) this.callback([], this);
-  }
-}
-
-/** Stands the fake `ResizeObserver` in for the specs of the describe it is called in. */
-function watchResizes(): void {
-  beforeEach(() => {
-    FakeResizeObserver.made = [];
-    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
-  });
-}
-
-/** Lays the board out at a size in CSS px, as a browser would, and tells what watches it. */
-function resize(board: HTMLElement, width: number, height: number): void {
-  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
-    new DOMRect(0, 0, width, height),
-  );
-  for (const observer of FakeResizeObserver.made) observer.resized();
-}
 
 /** Renders the board beside a button outside it, on a fake canvas. */
 async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
@@ -445,7 +397,8 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("ready");
     });
 
-    it("say when the board couldn't be drawn, offering to reload", async () => {
+    it("say when the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
+      const errors = collectErrors();
       const { fake, detectChanges } = await renderBoard({ readyAtOnce: false });
 
       fake.host.latest.fail();
@@ -456,6 +409,7 @@ describe("BoardComponent", () => {
         "The board couldn't be drawn",
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+      expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
     describe("on a slow connection", () => {

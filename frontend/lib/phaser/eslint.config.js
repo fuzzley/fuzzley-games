@@ -69,6 +69,72 @@ export default defineConfig(
     },
   },
   {
+    // A test setup imports the testing entry before installHeadlessPhaser()
+    // has given Phaser the page it needs to load, so the entry takes Phaser,
+    // and the entries that load it, by type alone, and loads Phaser with
+    // import() where it needs a class. Its pure helpers keep a fence of
+    // their own, below, which this block leaves to them.
+    files: ["src/testing/**/*.ts"],
+    ignores: ["**/*.spec.ts", "src/testing/pure/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "../host",
+                "../host/*",
+                "../scene",
+                "../scene/*",
+                "../sound",
+                "../sound/*",
+              ],
+              allowTypeImports: true,
+              message:
+                "The testing entry imports Phaser, and the entries that load it, by type, or Phaser with import() where it needs a class.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The specs' pure helpers are for a game's specs that run in Node, with
+    // no page, so they import nothing but the pure entries.
+    files: ["src/testing/pure/**/*.ts"],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "@angular/*",
+                "@fz/*",
+                "rxjs",
+                "rxjs/*",
+                "vitest",
+              ],
+              message:
+                "The specs' pure helpers import nothing but the pure entries, so a spec in Node can take them.",
+            },
+            {
+              // Outside this folder, a pure entry through its index alone:
+              // never "..", the testing entry, which takes Angular and Vitest.
+              regex: "^\\.\\.(?:/(?!\\.\\./(insets|color|layout|shapes)$)|$)",
+              message:
+                "The specs' pure helpers import nothing but the pure entries, so a spec in Node can take them.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // A host, a scene and its sounds run in any app, Angular or not.
     files: ["src/host/**/*.ts", "src/scene/**/*.ts", "src/sound/**/*.ts"],
     ignores: ["**/*.spec.ts"],

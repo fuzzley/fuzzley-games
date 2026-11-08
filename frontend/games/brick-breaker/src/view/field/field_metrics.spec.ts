@@ -1,5 +1,5 @@
 import { NO_INSETS } from "@fz/phaser/insets";
-import type { Viewport } from "@fz/phaser/layout";
+import { viewport } from "@fz/phaser/testing/pure";
 import { FIELD_HEIGHT, TALLEST_FIELD } from "../../rules/tuning";
 import {
   FINGER_ROOM_CSS_PX,
@@ -11,16 +11,6 @@ import {
   toFieldX,
   toFieldY,
 } from "./field_metrics";
-
-/** Returns a viewport of a CSS size at a pixel ratio, with no chrome over it. */
-function viewport(width: number, height: number, pixelRatio = 1): Viewport {
-  return {
-    width: Math.round(width * pixelRatio),
-    height: Math.round(height * pixelRatio),
-    pixelRatio,
-    insets: NO_INSETS,
-  };
-}
 
 describe("fieldMetrics", () => {
   it("fits the field of 26 by 30 units, the largest the canvas holds with its wall", () => {

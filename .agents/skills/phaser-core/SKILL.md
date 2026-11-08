@@ -155,7 +155,8 @@ out of the first download.
   for the JSON's URL, which needs a cast (`SpritePlayer` makes it); under
   `noAudio`, as the test harness's game has, it loads nothing, so a scene
   plays a sound only once the cache has it, and a spec that wants one
-  played adds the sprite to `cache.audio` itself.
+  played adds the sprite there itself, with `@fz/phaser/testing`'s
+  `cacheSounds()`.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
 
@@ -194,7 +195,12 @@ browser, through a game's screenshots and its `check:layout`.
   each scene they were shown. A scene it readies at once is ready only
   after the `show()` that asked has returned, as a real host's is, so a
   spec that needs the board drawn awaits `fixture.whenStable()` after
-  rendering it.
+  rendering it. A spec that fails a scene calls `collectErrors()` before
+  it renders, which keeps what the canvas hands Angular's `ErrorHandler`
+  rather than printing it, and asserts on it. jsdom has no
+  `ResizeObserver`, so a board that watches its size is specced inside a
+  describe that calls `watchResizes()`, which stands `FakeResizeObserver`
+  in, and `resize()` lays the board out at a size and tells it.
 - **A scene's specs** run real Phaser in jsdom, its WebGL renderer
   included, on a context that draws nothing. The test setup calls
   `installHeadlessPhaser()` before anything imports Phaser, which tests for
@@ -239,6 +245,25 @@ browser, through a game's screenshots and its `check:layout`.
 - **Code that only needs a scene,** such as a factory of sprites, runs in
   `runBareScene()`, a scene with nothing of its own, and the spec makes
   its objects there and reads them back, as Phaser made them.
+- **A scene run as a board shows it** takes `runKeyedScene()`, whose
+  keyboard listens on an element of the page that takes the focus, as a
+  board's does, and which destroys the run and removes the element once
+  the test finishes, so a spec's helper that starts the board needs no
+  `afterEach`.
+- **What a scene drew is read through the harness,** never by hand:
+  `objectsIn()` and `imagesIn()` count and find its game objects,
+  in its layers too, and a `Graphics` is read with `commandsOf()`, its
+  command buffer as commands by name, `strokesOf()`, the arcs it strokes,
+  as WebGL draws them, each in the width set as it is drawn and the color
+  set as its path is stroked, and `colorsOf()`, the colors it fills and
+  strokes in. Phaser doesn't export the numbers it writes for each
+  command, so `commandsOf()` keeps its own, and its spec
+  (`frontend/lib/phaser/src/testing/graphics_commands.spec.ts`) draws every
+  command and reads it back, so a release that numbers them anew fails
+  there first, and no spec reads a buffer by those numbers itself.
+- **A spec in Node,** of a game's view, takes `@fz/phaser/testing/pure`,
+  which loads no Phaser: `viewport()` is a canvas's `Viewport` from a CSS
+  size, a pixel ratio and its chrome.
 - **What a scene loads is served.** The harness answers every request
   itself, from `runScene()`'s `serve`, a function from the URL, resolved
   against the page's, to the file's text or bytes, or to nothing, which

@@ -1,7 +1,7 @@
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
 import { pixelRatioOf } from "@fz/phaser/scene";
-import { type SceneRun, runScene } from "@fz/phaser/testing";
+import { type SceneRun, colorsOf, runKeyedScene } from "@fz/phaser/testing";
 import { BOARD_SIZE } from "../rules/arena";
 import { type Run, createRun, step, turn } from "../rules/run";
 import { boardMetrics, centerX, centerY } from "../view/board_metrics";
@@ -90,27 +90,14 @@ interface Board {
   readonly keys: HTMLElement;
 }
 
-let running: SceneRun<SnakeScene> | null = null;
-
-afterEach(() => {
-  running?.destroy();
-  running = null;
-});
-
-/** Runs the scene for a shell, its first frame drawn. */
+/** Runs the scene for a shell, its first frame drawn, till the case that runs it finishes. */
 async function startBoard(
   setUp: (shell: FakeShell) => void = () => undefined,
   insets: Insets = NO_INSETS,
 ): Promise<Board> {
   const shell = new FakeShell();
   setUp(shell);
-  const keys = document.createElement("div");
-  document.body.append(keys);
-  const run = await runScene(makeSnakeScene(shell), {
-    insets,
-    config: { input: { keyboard: { target: keys } } },
-  });
-  running = run;
+  const { run, keys } = await runKeyedScene(makeSnakeScene(shell), { insets });
   run.advance(16);
   return { shell, run, scene: run.scene, keys };
 }
@@ -241,7 +228,7 @@ describe("SnakeScene", () => {
     it("is drawn in the snake's colors", async () => {
       const { scene } = await startBoard();
 
-      expect(scene.snake.graphics.commandBuffer).toEqual(
+      expect(colorsOf(scene.snake.graphics)).toEqual(
         expect.arrayContaining([LIGHT.snake, LIGHT.head]),
       );
     });
@@ -252,7 +239,7 @@ describe("SnakeScene", () => {
       shell.show(CRASHED);
       run.advance(16);
 
-      expect(scene.snake.graphics.commandBuffer).toEqual(
+      expect(colorsOf(scene.snake.graphics)).toEqual(
         expect.arrayContaining([LIGHT.faded]),
       );
     });

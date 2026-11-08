@@ -1,20 +1,15 @@
 import path from "node:path";
 import { THEMES } from "@fz/style/themes";
 import {
-  type Rgb,
   compileStylesheet,
   contrast,
   paletteRoles,
+  rgbOf,
 } from "@fz/style/testing";
 import { bricksPalette } from "./palette";
 
 // Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
 const GLOBAL = path.join(import.meta.dirname, "../../app/styles/global.scss");
-
-/** Returns a color Phaser takes as its red, green and blue. */
-function rgbOf(color: number): Rgb {
-  return [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff];
-}
 
 /** Returns a record's entries, each named by its key and what it is. */
 function named(

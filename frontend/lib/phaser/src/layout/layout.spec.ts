@@ -1,20 +1,5 @@
-import { NO_INSETS } from "../insets";
-import { type CellField, type Viewport, fitCells } from "./layout";
-
-/** Returns a viewport of a CSS size at a pixel ratio. */
-function viewport(
-  width: number,
-  height: number,
-  pixelRatio: number,
-  insets = NO_INSETS,
-): Viewport {
-  return {
-    width: Math.round(width * pixelRatio),
-    height: Math.round(height * pixelRatio),
-    pixelRatio,
-    insets,
-  };
-}
+import { viewport } from "../testing/pure";
+import { type CellField, fitCells } from "./layout";
 
 /** A field as tall as Brick Breaker's: 26 across, 30 down, a 2 px frame. */
 const TALL: CellField = { across: 26, down: 30, frameCss: 2 };

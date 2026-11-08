@@ -1,21 +1,16 @@
 import path from "node:path";
 import { THEMES } from "@fz/style/themes";
 import {
-  type Rgb,
   compileStylesheet,
   contrast,
   paint,
   paletteRoles,
+  rgbOf,
 } from "@fz/style/testing";
 import { type SnakePalette, snakePalette } from "./palette";
 
 // Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
 const GLOBAL = path.join(import.meta.dirname, "../app/styles/global.scss");
-
-/** Returns a color Phaser takes as its red, green and blue. */
-function rgbOf(color: number): Rgb {
-  return [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff];
-}
 
 // What the snake is told apart by is held to 3:1, the bar for graphics,
 // against both shades of square, in every palette.

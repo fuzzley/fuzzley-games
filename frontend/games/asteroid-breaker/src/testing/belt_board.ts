@@ -1,5 +1,6 @@
 import { advanceClock } from "@fz/core/clock";
-import { type SceneRun, runScene } from "@fz/phaser/testing";
+import { type SceneRun, runKeyedScene } from "@fz/phaser/testing";
+import { viewport } from "@fz/phaser/testing/pure";
 import { GameObjects, type Scene } from "phaser";
 import { type Field, reshapeField, stepField } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
@@ -29,7 +30,6 @@ import type { FieldFrame } from "../view/field/frame";
 import { LAYERS } from "../view/field/layers";
 import type { FieldCommand } from "../view/steering/controls";
 import { ART_PALETTE } from "./art_frames";
-import { viewport } from "./canvases";
 import { KEEPER, fieldFrom } from "./field_picture";
 
 /** A dark palette, for a scene to change to. */
@@ -216,19 +216,7 @@ export async function startBoard(
 ): Promise<Board> {
   const shell = new FakeShell();
   setUp(shell);
-  const keys = document.createElement("div");
-  keys.tabIndex = 0;
-  document.body.append(keys);
-  onTestFinished(() => {
-    keys.remove();
-  });
-  const run = await runScene(makeBeltScene(shell), {
-    ...canvas,
-    config: { input: { keyboard: { target: keys } } },
-  });
-  onTestFinished(() => {
-    run.destroy();
-  });
+  const { run, keys } = await runKeyedScene(makeBeltScene(shell), canvas);
   run.advance(16);
   return { shell, run, scene: run.scene, keys };
 }
@@ -325,72 +313,6 @@ export function shownAt(
 }
 
 /**
- * The numbers of the `Graphics` commands the painters give, as its command
- * buffer holds them, each followed by its arguments.
- */
-const COMMANDS = { arc: 0, beginPath: 1, lineStyle: 6, strokePath: 9 } as const;
-
-/**
- * Describes an arc a `Graphics` stroked: about where, how far out, between
- * which angles, and in what line.
- */
-export interface Stroke {
-  readonly x: number;
-  readonly y: number;
-  readonly radius: number;
-  readonly start: number;
-  readonly end: number;
-  readonly width: number;
-  readonly color: number;
-}
-
-/**
- * Returns each arc a `Graphics` stroked, a circle among them, in order,
- * each in the line it was drawn in, read from its command buffer.
- *
- * @throws {Error} For a command the painters give none of, whose
- *   arguments it can't step over.
- */
-export function strokesOf(graphics: GameObjects.Graphics): readonly Stroke[] {
-  const buffer: readonly unknown[] = graphics.commandBuffer;
-  const at = (i: number): number => Number(buffer[i]);
-  const strokes: Stroke[] = [];
-  let width = 0;
-  let color = 0;
-  let i = 0;
-  while (i < buffer.length) {
-    switch (buffer[i]) {
-      case COMMANDS.lineStyle:
-        width = at(i + 1);
-        color = at(i + 2);
-        // Its width, color and alpha.
-        i += 4;
-        break;
-      case COMMANDS.arc:
-        strokes.push({
-          x: at(i + 1),
-          y: at(i + 2),
-          radius: at(i + 3),
-          start: at(i + 4),
-          end: at(i + 5),
-          width,
-          color,
-        });
-        // Its middle, radius and angles, which way round and its overshoot.
-        i += 8;
-        break;
-      case COMMANDS.beginPath:
-      case COMMANDS.strokePath:
-        i += 1;
-        break;
-      default:
-        throw new Error(`No painter gives command ${String(buffer[i])}.`);
-    }
-  }
-  return strokes;
-}
-
-/**
  * Returns what a spec reads of the scene over a second, frame by frame, as
  * the set of what it read: ten frames of 100 ms, enough to see a blink or a
  * swing both ways.
@@ -423,39 +345,6 @@ export function layersOf(
         object instanceof GameObjects.Layer,
     );
   return new Map(layers.map((layer, i) => [LAYERS[i] ?? "", layer]));
-}
-
-/** Returns how many game objects a scene holds, those in its layers too. */
-export function objectsIn(scene: BeltScene): number {
-  return scene.children
-    .getChildren()
-    .reduce(
-      (sum, object) =>
-        sum +
-        1 +
-        (object instanceof GameObjects.Layer ? object.getChildren().length : 0),
-      0,
-    );
-}
-
-/** Returns every image the scene draws, in its layers. */
-export function imagesIn(scene: BeltScene): readonly GameObjects.Image[] {
-  return [...layersOf(scene).values()].flatMap((layer) =>
-    layer
-      .getChildren()
-      .filter(
-        (object): object is GameObjects.Image =>
-          object instanceof GameObjects.Image,
-      ),
-  );
-}
-
-/**
- * Puts the sounds' sprite in a scene's audio cache, as a load that worked
- * would, so the scene can hold its hum. The headless game loads no audio.
- */
-export function cacheSounds(scene: Scene): void {
-  scene.cache.audio.add(SOUNDS_KEY, {});
 }
 
 /** Returns how many of the scene's sounds it holds, looping, not yet let go: its hums. */

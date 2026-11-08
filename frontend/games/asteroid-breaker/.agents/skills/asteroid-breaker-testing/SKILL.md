@@ -22,8 +22,8 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   projects with coverage, then the `sim` project without) or
   `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
   spec without coverage, starting its project alone: `pure` for the rules,
-  the view, `src/testing/` and `tools/`, `dom` for the scene, the shell and
-  `src/testing/belt_board.ts`, and `sim` for the simulations. Without
+  the view, `src/testing/` and `tools/`, `dom` for the scene and the
+  shell, and `sim` for the simulations. Without
   `--project`, Vitest starts all three, Analog's plugin among them, and a
   spec of the rules takes three times as long. The whole suite takes
   minutes, most of them the autopilot playing every wave at every speed on
@@ -54,18 +54,19 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   setup) and the folders of its three Vitest projects, each a config of its
   own, so each starts only what its specs need:
   - `pure`, the specs of the rules, the view, `src/testing/` and the
-    scripts under `tools/`, in Node, but for the simulations and the specs
-    of the helpers that run the scene (`domSpecs`, `belt_board.spec.ts`);
+    scripts under `tools/`, in Node, but for the simulations;
   - `sim`, the specs that play every wave or lay every wave out, in Node
     too, without coverage;
-  - `dom`, every other spec, the scene's, the shell's and the scene
-    helpers', in jsdom after the setup below, with Analog's plugin. It
+  - `dom`, every other spec, the scene's and the shell's, in jsdom after
+    the setup below, with Analog's plugin. It
     takes whatever the other two don't, so a spec in a new folder runs in
     jsdom rather than in neither.
 - A spec sits beside the file it tests, named after it, and its folder
-  sets its project, but for a helper that runs the scene, whose spec's name
-  joins `domSpecs`. One of the rules, the view or `src/testing/` has no
-  page, so what needs one is the scene's or the shell's to test.
+  sets its project. A spec of a helper in `src/testing/` that needs a page
+  would join `domSpecs` to run in `dom`, but none has one: what
+  `belt_board.ts` reads a scene with is `@fz/phaser/testing`'s, specced
+  there. One of the rules, the view or `src/testing/` has no page, so what
+  needs one is the scene's or the shell's to test.
 - `dom` leaves the code of `pure`'s folders, but not their specs, to Vite's
   oxc rather than to Analog's plugin, as `frontend/lib/dev/AGENTS.md` says:
   coverage adds a file's two runs up only where both compiled it alike, and
@@ -78,9 +79,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `crossings.ts`'s `entryOf()` and `entriesOf()`, `every_layout.ts`'s
   `nearness()`, `canvases.ts`'s `boardOf()`, against the bar's and the
   rail's sizes compiled from the app's stylesheets, `numbers.ts`'s
-  `stepsBetween()`, `field_picture.ts`'s `fieldFrom()` and what it refuses,
-  and `belt_board.ts`'s `strokesOf()`, against a `Graphics` Phaser really
-  drew in.
+  `stepsBetween()` and `field_picture.ts`'s `fieldFrom()` and what it
+  refuses. `@fz/phaser/testing`'s readers, `strokesOf()` among them, are
+  held by the library's specs, against what Phaser really drew.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, gives the page
@@ -246,15 +247,17 @@ game through `runScene()`:
   `askPictures()` asks as the board does; `withShip`, `stillness`,
   `stepping` and `reshaping`, which shapes the field to each room the scene
   lays it out in, as the game does a paused one, set it up.
-- `startBoard()` runs the scene for a fake shell and draws the first frame,
-  and destroys the game and removes the board's element as the test
-  finishes (`onTestFinished`); a spec that calls `runScene()` itself
-  cleans up after itself.
+- `startBoard()` runs the scene for a fake shell through
+  `@fz/phaser/testing`'s `runKeyedScene()` and draws the first frame; the
+  game is destroyed and the board's element removed as the test finishes.
+  A spec that calls `runScene()` itself cleans up after itself.
 - Drive it with the run's `advance(ms)`, keys and the pointer, and change
   the shell's frame as the rules would; assert on the game objects
-  (`imagesIn()`, `strokesOf()`, `metricsOf()`, `zoomOf()`,
-  `pointsZoomOf()`, `shardTints()`, the field camera's `scrolledBy()`), the
-  sounds (`humsIn()` after `cacheSounds()`) or on what the shell kept. A
+  (`@fz/phaser/testing`'s `imagesIn()` and `strokesOf()`, and
+  `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the field
+  camera's `scrolledBy()`), the sounds (`humsIn()` after
+  `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`)
+  or on what the shell kept. A
   headless game draws no pixels and plays no sound.
 - `flourish_player.spec.ts` steps no frame: it plays each flourish through
   a `FlourishPlayer` of its own, on the running scene's painters, then has
@@ -270,7 +273,8 @@ game through `runScene()`:
   and how the ship flies); the board's spec holds only that it tells it so,
   and takes back the focus as the player goes on from a card. A spec that
   fails the scene on purpose has the app's `ErrorHandler` collect what the
-  canvas hands it, as the board's does (`collectErrors()`), and asserts on
+  canvas hands it, as the board's does (`@fz/phaser/testing`'s
+  `collectErrors()`), and asserts on
   that, so the run prints no error it expects.
 - What a frame of play comes to is `RunFrames`'s, and how it folds into
   what is a run's own `withFrame()`'s, which the view's specs hold; the

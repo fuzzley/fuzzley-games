@@ -6,6 +6,7 @@ import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
   type SceneRun,
+  collectErrors,
   provideFakePhaserCanvas,
   runScene,
 } from "@fz/phaser/testing";
@@ -190,7 +191,8 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("ready");
     });
 
-    it("say when the board couldn't be drawn, offering to reload", async () => {
+    it("say when the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
+      const errors = collectErrors();
       const { fake, detectChanges } = await renderBoard({ readyAtOnce: false });
 
       fake.host.latest.fail();
@@ -201,6 +203,7 @@ describe("BoardComponent", () => {
         "The board couldn't be drawn",
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+      expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
     describe("on a slow connection", () => {

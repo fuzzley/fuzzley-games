@@ -3,11 +3,12 @@ import {
   COMPACT_MAX_HEIGHT_PX,
   COMPACT_MAX_WIDTH_PX,
 } from "@fz/game-ui/breakpoints";
+import { viewport } from "@fz/phaser/testing/pure";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
 
 /** Returns a viewport of the given CSS size at a pixel ratio of 3. */
 function screen(cssWidth: number, cssHeight: number) {
-  return { width: cssWidth * 3, height: cssHeight * 3, pixelRatio: 3 };
+  return viewport(cssWidth, cssHeight, 3);
 }
 
 describe("formFactorOf", () => {

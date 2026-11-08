@@ -1,4 +1,4 @@
-import { Component, ErrorHandler, input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import type { ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { render, screen } from "@testing-library/angular";
@@ -6,6 +6,7 @@ import type { HostOptions } from "../host";
 import {
   FakePhaserCanvas,
   type FakeCanvasHost,
+  collectErrors,
   provideFakePhaserCanvas,
 } from "../testing";
 import type { SceneSource } from "./canvas_host";
@@ -49,20 +50,10 @@ interface RenderedCanvas {
 
 /** Renders a canvas whose scenes wait to be told they are ready. */
 async function renderCanvas(label?: string): Promise<RenderedCanvas> {
-  const errors: unknown[] = [];
+  const errors = collectErrors();
   const { fixture, rerender } = await render(TestCanvasHostComponent, {
     inputs: label === undefined ? {} : { label },
-    providers: [
-      provideFakePhaserCanvas({ readyAtOnce: false }),
-      {
-        provide: ErrorHandler,
-        useValue: {
-          handleError: (error: unknown) => {
-            errors.push(error);
-          },
-        },
-      },
-    ],
+    providers: [provideFakePhaserCanvas({ readyAtOnce: false })],
   });
   const debug = fixture.debugElement.query(By.directive(PhaserCanvasComponent));
   return {

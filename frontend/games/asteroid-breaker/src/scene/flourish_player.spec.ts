@@ -1,4 +1,5 @@
 import { easeOutCubic } from "@fz/core/math";
+import { strokesOf } from "@fz/phaser/testing";
 import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
 import { ROCK_RADIUS } from "../rules/tuning";
@@ -13,7 +14,6 @@ import {
   shardTints,
   shownAt,
   startBoard,
-  strokesOf,
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
 import { pilotFrame } from "../view/art/pilot_art";

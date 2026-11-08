@@ -1,7 +1,14 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import { lineWidth } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
-import type { SceneRun } from "@fz/phaser/testing";
+import {
+  type SceneRun,
+  cacheSounds,
+  imagesIn,
+  objectsIn,
+  strokesOf,
+} from "@fz/phaser/testing";
+import { viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
 import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
@@ -25,13 +32,10 @@ import {
   DARK,
   WIDER,
   type FakeShell,
-  cacheSounds,
   humsIn,
-  imagesIn,
   isShown,
   layersOf,
   metricsOf,
-  objectsIn,
   onCanvas,
   overASecond,
   reshaping,
@@ -40,11 +44,9 @@ import {
   slotOf,
   startBoard,
   stillness,
-  strokesOf,
   withShip,
   zoomOf,
 } from "../testing/belt_board";
-import { viewport } from "../testing/canvases";
 import {
   KEEPER,
   PICTURE_TORUS,
@@ -99,7 +101,7 @@ import { WARNING_INSET } from "../view/field/warning";
 import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
 import { MOST_FINGERS } from "../view/steering/steering";
 import { ATLAS, DECK_ATLAS } from "./atlas";
-import { type BeltScene, makeBeltScene } from "./belt_scene";
+import { type BeltScene, SOUNDS_KEY, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
 import { GUARD_ALPHA } from "./painters/ship_painter";
 import spritemap from "./sounds/sounds.json";
@@ -903,6 +905,7 @@ describe("the tags", () => {
     const ring = {
       ...onCanvas(metrics, tagX(0), tagY(shell.field.torus.height)),
       radius: TAG_RADIUS * metrics.unit,
+      anticlockwise: false,
       width: lineWidth(metrics),
     };
     expect(strokesOf(scene.kit.tags.rings)).toEqual([
@@ -1122,6 +1125,7 @@ describe("the deck", () => {
         }),
         start: -Math.PI / 2,
         end: Math.PI / 2,
+        anticlockwise: false,
         color: ART_PALETTE.accent,
       },
     ]);
@@ -1722,7 +1726,7 @@ describe("the sounds", () => {
 
   it("hum while the ship thrusts", async () => {
     const { shell, run, scene } = await startBoard();
-    cacheSounds(scene);
+    cacheSounds(scene, SOUNDS_KEY);
 
     shell.thrusts = true;
     run.advance(16);
@@ -1732,7 +1736,7 @@ describe("the sounds", () => {
 
   it("stop humming once the ship doesn't thrust", async () => {
     const { shell, run, scene } = await startBoard();
-    cacheSounds(scene);
+    cacheSounds(scene, SOUNDS_KEY);
     shell.thrusts = true;
     run.advance(16);
 

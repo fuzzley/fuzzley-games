@@ -1,8 +1,9 @@
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
 import type { Viewport } from "@fz/phaser/layout";
+import { viewport } from "@fz/phaser/testing/pure";
 import type { Place, Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
-import { boardOf, viewport } from "../../testing/canvases";
+import { boardOf } from "../../testing/canvases";
 import {
   type BoardSetting,
   type PixelRect,

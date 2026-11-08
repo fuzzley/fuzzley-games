@@ -95,10 +95,17 @@ Each library's `testing` entry point holds what specs need of it, and
 - `@fz/ui/testing`: `installDialogPolyfill()`.
 - `@fz/game-ui/testing`: `installFakeViewport()`.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
-  Phaser, and `installHeadlessPhaser()` and `runScene()`, which run a real
-  Phaser scene headless (the `phaser-core` skill).
+  Phaser, with `collectErrors()`, which keeps what a failed scene hands the
+  app's `ErrorHandler` for the spec to read, and `FakeResizeObserver`,
+  `watchResizes()` and `resize()`, for a board that watches its size;
+  `installHeadlessPhaser()`, `runScene()` and `runKeyedScene()`, which run
+  a real Phaser scene headless, and what reads back what it drew
+  (`objectsIn()`, `imagesIn()`, `commandsOf()`, `strokesOf()`,
+  `colorsOf()`); and, from `@fz/phaser/testing/pure`, which loads no
+  Phaser, `viewport()` for a spec in Node (the `phaser-core` skill).
 - `@fz/style/testing`: what a contrast spec needs to hold every palette in
   `THEMES` to WCAG. `compileStylesheet()` compiles an app's global
   stylesheet as its Vite does, `paletteRoles()` reads each palette's roles
   from the CSS, `paint()` works out the color a role or a tint lays down,
+  `rgbOf()` reads a color written as a number, as a canvas game draws it,
   and `contrast()` measures two colors.

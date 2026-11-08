@@ -102,10 +102,12 @@ relative to `frontend/lib/style/`.
 - `src/testing/index.ts`, `@fz/style/testing`: what a spec needs to check a
   stylesheet in Node. `compileStylesheet()` compiles one, loading the
   libraries' stylesheets as an app's Vite does; `paletteRoles()` reads each
-  palette's roles out of the CSS; and `paint()`, `over()` and `contrast()`
-  measure them as WCAG does, a translucent surface over what shows through
-  it. The library's specs use it, and so does every app's contrast spec,
-  so the math is written and tested once. It imports nothing of the
+  palette's roles out of the CSS; `rgbOf()` reads a color written as a
+  number, `0xrrggbb`, as a game drawn on a canvas keeps its inks; and
+  `paint()`, `over()` and `contrast()` measure them as WCAG does, a
+  translucent surface over what shows through it. The library's specs use
+  it, and so does every app's contrast spec, so the math is written and
+  tested once. It imports nothing of the
   library's, so an app's specs compile it as they are.
 
 ## How an app uses it

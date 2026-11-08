@@ -1878,3 +1878,54 @@ The review found every drawing command the same:
    That the games' own helpers still take a bare color: not taken; decision
    7 binds the library's builders, and a helper that works out its own
    widths has only a color to take.
+
+### Step 16b: finding 19, the specs' scaffolding, and one collecting `ErrorHandler`
+
+Built on `pl-testing`, with step 6f's third comment. `@fz/phaser/testing`
+reads a `Graphics` by name from its command buffer, `commandsOf()`,
+`strokesOf()` and `colorsOf()`, Phaser's private numbers for its 19
+commands pinned by a spec that draws each on real Phaser and reads it
+back, so a release that renumbers them fails there rather than in three
+games. `objectsIn()` and `imagesIn()` look into layers to any depth, by
+`type`; `runKeyedScene()` is `startBoard()`'s keyboard and teardown, which
+Snake's copy never removed; `cacheSounds()`, `collectErrors()` and a
+`FakeResizeObserver` with `watchResizes()` and `resize()` come beside them.
+`viewport()` sits in a new pure entry, `@fz/phaser/testing/pure`, fenced to
+the pure entries, since the specs that need it load no Phaser; `rgbOf()`
+in `@fz/style/testing`. Every game's copies give way, the Solitaire
+Collection's two viewports among them. Brick Breaker's raw buffers become
+named commands, so a coordinate can no longer pass as a color, and Brick
+Breaker's and Snake's board specs collect the error they fail the scene
+with and assert on it, so neither prints it; the other suites print what
+they printed. Asteroid Breaker's `belt_board.spec.ts` moves into the
+library, and its `domSpecs` with it.
+
+Where it went other than planned:
+
+- No `fail(error?)` seam: every spec asserts on the fake host's fixed
+  error.
+- The testing entry imports Phaser, and the host, the scene helpers and
+  the sound player that load it, by type alone, as lint now checks, and
+  Vitest at run time, declared an optional peer of `@fz/phaser`.
+- `@fz/dev`'s `domSpecs` option now has no workspace using it; left for
+  `phaser-lifts`' last step.
+- Sudoku's hint spec keeps its own `FakeResizeObserver`, which reports
+  heights, off `@fz/phaser`.
+
+The review found the opcodes right and the teardown in order:
+
+1. _`strokesOf()` took an arc's width from the line in force as its path
+   is stroked, which is Canvas's way; WebGL, which the games and the
+   harness draw with, keeps each arc's width as it is added:_ taken, after
+   checking `GraphicsWebGLRenderer.js`; each arc's width as drawn, its
+   color as stroked, and an arc stroked in a gradient of several colors
+   refused.
+2. _Brick Breaker's ring spec checked only where the arc ends:_ taken; its
+   start and direction too, `Stroke` carrying `anticlockwise`.
+3. _The pure entry's fence let `".."` through, the impure testing index:_
+   taken, a probe failing.
+4. _A teardown that only paused or slept the scene passed `status > 5`:_
+   taken; `DESTROYED`, in `runScene()`'s spec too.
+5. _The testing entry's rule on Phaser was written but unchecked, and
+   Vitest undeclared:_ taken, both.
+6. _One hand-built viewport left in Asteroid Breaker's board spec:_ taken.

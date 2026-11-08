@@ -150,15 +150,18 @@ game through `runScene()`:
   palette, the motion, touch and sound settings and the chimes, and keeps
   the frames' times and steering, the layouts, the commands and the
   pictures the scene hands back.
-- `startBoard(setUp, prepare)` runs the scene for a fake shell, with
-  Phaser's keyboard on an element of its own, and draws the first frame;
-  `stillness` sets the shell up for a player who prefers less motion.
-  `afterEach` destroys the game.
+- `startBoard(setUp, prepare)` runs the scene for a fake shell through
+  `@fz/phaser/testing`'s `runKeyedScene()`, with Phaser's keyboard on an
+  element of its own, and draws the first frame; `stillness` sets the shell
+  up for a player who prefers less motion. The game is destroyed and the
+  element removed as the test finishes.
 - Drive it with the run's `advance(ms)`, keys on the element Phaser's
   keyboard listens on (the board's `keys`) and the pointer, and change the
   shell's field as the rules would; assert on the game objects
-  (`imagesIn()`, `shardsOf()`, their frames, places and visibility) or on
-  what the shell kept. A headless game draws no pixels and plays no sound.
+  (`@fz/phaser/testing`'s `objectsIn()` and `imagesIn()`, `shardsOf()`,
+  their frames, places and visibility, and what a `Graphics` holds, read
+  with `commandsOf()`, `strokesOf()` and `colorsOf()`) or on what the shell
+  kept. A headless game draws no pixels and plays no sound.
 
 ## The Shell
 
@@ -166,7 +169,12 @@ game through `runScene()`:
   `provideFakePhaserCanvas()`, which loads no Phaser; `FakePhaserCanvas`
   keeps the hosts, to settle a scene ready or failed. The board's spec also
   runs the scene the board hands its canvas for real, through `runScene()`,
-  and plays a level to its end through it.
+  and plays a level to its end through it. A spec that fails the scene on
+  purpose has the app's `ErrorHandler` collect what the canvas hands it
+  (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the
+  run prints no error it expects. The board measures its room as a
+  `ResizeObserver` reports it, which jsdom lacks, so a describe of the room
+  calls `watchResizes()`, and `resize()` lays the board out at a size.
 - `GameService` plays the small levels of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecLevels()`): `SPEC_LEVELS`, each set
   up to come to one thing soon, by its number in `SPEC_LEVEL` (`blasts`,
