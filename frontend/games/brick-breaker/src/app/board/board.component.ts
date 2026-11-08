@@ -1,14 +1,15 @@
 import { DOCUMENT } from "@angular/common";
 import {
   Component,
-  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
   afterRenderEffect,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
@@ -17,14 +18,10 @@ import {
   KeepKeysDirective,
   PhaserCanvasComponent,
   type SceneSource,
+  canvasRoom,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
-import type { Insets } from "@fz/phaser/insets";
-import {
-  type CssRect,
-  canvasPixelRatio,
-  rectAttribute,
-} from "@fz/phaser/layout";
+import { type CssRect, rectAttribute } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import { endTitle } from "../../rules/run/describe";
@@ -86,7 +83,7 @@ const CARD_DROP =
     "[style.--down]": "game.fieldHeight()",
     "[style.--finger-room]": "fingerRoom()",
     "[style.--card-drop]": "cardDrop",
-    "[style.--pixel-ratio]": "pixelRatio",
+    "[style.--pixel-ratio]": "pixelRatio()",
     "(pointerdown)": "takeFocus()",
   },
   templateUrl: "./board.component.html",
@@ -99,14 +96,26 @@ export class BoardComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly canvas = viewChild.required(PhaserCanvasComponent);
 
   protected readonly across = FIELD_WIDTH;
   protected readonly cardDrop = CARD_DROP;
 
+  /**
+   * The canvas the board makes, as the host sizes it, and the ratio it
+   * renders at, as the board measures them as it is first drawn and as its
+   * size or the zoom changes.
+   */
+  private readonly measured = canvasRoom();
+
+  /** The canvas the board makes, as last measured, or null before it is. */
+  private readonly room = this.measured.viewport;
+
   /** How tall a field the board has room for, which the game gives the field as its ball waits to be served. */
-  private readonly roomFor = signal(FIELD_HEIGHT);
+  private readonly roomFor = computed(() => {
+    const room = this.room();
+    return room ? fieldHeightFor(room) : FIELD_HEIGHT;
+  });
 
   /**
    * The room the board leaves under the field for a finger, in CSS pixels,
@@ -124,13 +133,11 @@ export class BoardComponent {
   }));
 
   /**
-   * The device pixels to a CSS pixel, as the canvas most often renders at,
-   * so the placeholder sizes its unit in whole device pixels as the scene
-   * does.
+   * The device pixels to a CSS pixel the canvas renders at, as the board
+   * last measured it, or as the display has it until then, so the
+   * placeholder sizes its unit in whole device pixels as the scene does.
    */
-  protected readonly pixelRatio = canvasPixelRatio(
-    this.document.defaultView?.devicePixelRatio ?? 1,
-  );
+  protected readonly pixelRatio = this.measured.pixelRatio;
 
   /** Names the board for the level on it, as "Brick Breaker, level 3: Pyramid". */
   protected readonly label = computed(() => {
@@ -299,9 +306,7 @@ export class BoardComponent {
     afterRenderEffect(() => {
       this.game.setDrawn(this.canvas().state() === "ready");
     });
-    afterNextRender(() => {
-      this.watchSize();
-    });
+    this.askForTheRoom();
   }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */
@@ -332,47 +337,16 @@ export class BoardComponent {
   }
 
   /**
-   * Works out how tall a field the board has room for each time its size
-   * changes, where the browser can watch it, and asks the game for it.
+   * Asks the game for as tall a field as the canvas the board measures has
+   * room for, each time it is measured.
    */
-  private watchSize(): void {
-    if (typeof ResizeObserver === "undefined") return;
-    const board = this.host.nativeElement;
-    const observer = new ResizeObserver(() => {
-      const height = this.roomOf(board);
-      this.roomFor.set(height);
-      this.game.setFieldHeight(height);
-    });
-    observer.observe(board);
-    this.destroyRef.onDestroy(() => {
-      observer.disconnect();
-    });
-  }
-
-  /**
-   * Returns how tall a field the board has room for, in field units, inside
-   * the insets its stylesheet declares for the canvas, as the scene reads
-   * them, at the pixel ratio the placeholder is drawn at.
-   */
-  private roomOf(board: HTMLElement): number {
-    const { width, height } = board.getBoundingClientRect();
-    const style = getComputedStyle(board);
-    const inset = (edge: keyof Insets): number => {
-      const value = parseFloat(
-        style.getPropertyValue(`--fz-canvas-inset-${edge}`),
-      );
-      return Number.isFinite(value) ? value : 0;
-    };
-    return fieldHeightFor({
-      width: Math.floor(width * this.pixelRatio),
-      height: Math.floor(height * this.pixelRatio),
-      pixelRatio: this.pixelRatio,
-      insets: {
-        top: inset("top"),
-        right: inset("right"),
-        bottom: inset("bottom"),
-        left: inset("left"),
-      },
+  private askForTheRoom(): void {
+    effect(() => {
+      if (!this.room()) return;
+      const height = this.roomFor();
+      untracked(() => {
+        this.game.setFieldHeight(height);
+      });
     });
   }
 

@@ -1993,3 +1993,97 @@ the check it replaced:
 3. _`Pictured<T>`'s doc opened with two sentences:_ taken.
 4. _"Which a game leaves to them" overlooked the shortcuts games take,
    `picturesOf()` takes lists too, and a spec shadowed `run`:_ taken.
+
+### Step 16d: finding 19, the board measures what the scaler measures
+
+Built on `pl-canvas`. `ViewportScaler`'s rules leave it for the library's
+entries, and the scaler calls them. Its size rule goes to the pure
+`@fz/phaser/layout` as `canvasSizeFor()`: the device pixels the browser
+counted, where the canvas renders at the display's ratio; else whole CSS
+pixels at the ratio its budget allows, which it works out and hands back.
+Its device-pixel watcher, its re-armed `(resolution)` query and its inset
+reader go to a new entry, `@fz/phaser/measure`, which reads the page and so
+knows no Phaser and no framework, as ESLint checks, and which no game's view
+may import. All of it reads through the parent's own window, so
+`PhaserHost` no longer takes one. `@fz/phaser/canvas`'s `canvasRoom()`, an
+injection-context helper, measures a board's element by the same rules from
+its first render until it is destroyed, at once and then on every change of
+its size in CSS or device pixels, and gives the canvas and its ratio as
+signals; the three boards take it in place of their observers and inset
+readers. One table pins the host and a board to the same canvases. Every
+spec's fake `ResizeObserver` is `@fz/phaser/testing`'s, whose `resize()`
+now hands the device pixels counted, and `@fz/game-ui/testing`'s fake
+viewport answers resolution queries. `yarn check:layout` holds, and below 2×
+at whole CSS sizes every placeholder lies where it did.
+
+What a player sees change, each the bug the plan names or one of its kind:
+
+- Above 2× on a large window, each placeholder lays its board out at the
+  ratio the budget holds the canvas to, as the scene does, where it took
+  the display's 2.5 or 3 and missed the scene by 2 to 5 pixels.
+- After a zoom, at any ratio, each board publishes the new ratio and Snake's
+  and Brick Breaker's placeholders follow it; before, they kept the first.
+- The canvas itself follows a zoom out such as 90% to 80%, which leaves its
+  box's device pixels as they were: the host's query is armed at the
+  display's own ratio, below 1 too, where it kept a 1dppx query that never
+  fired.
+- Brick Breaker's field height is worked out at the canvas's ratio, and its
+  first frame on a tall board shows the field it has room for, where it
+  showed the shortest and grew at the first report; Asteroid Breaker hands
+  its waiting wave the room at the canvas's ratio from the start.
+- A box counted at no pixels no longer makes a 0×0 canvas, which left
+  Phaser's scale as NaN.
+
+Where it went other than planned:
+
+- The size rule moved too, and the watchers, so the board measures what the
+  scaler measures in size as well as ratio; the plan named the ratio and
+  the insets.
+- `@fz/phaser/measure` is an entry the plan didn't name: the inset reader
+  in `layout` would have let a game's view, which may import the pure
+  entries but no reading of the page, reach the page through it.
+- Brick Breaker asks for its field height from an effect, at the next change
+  detection after a resize, rather than inside the observer's callback, as
+  Asteroid Breaker hands its room.
+- Built in four rounds: three reviews, each answered, reshaped it.
+
+The first review found the ratio right and teardown whole:
+
+1. _The room was floored from the ratio, where the scaler takes the
+   browser's count or whole CSS pixels:_ taken; one size rule for both.
+2. _A zoom at every ratio, and Brick Breaker's field height, changed
+   unsaid:_ taken; said, and a spec at 2.5.
+3. _Brick Breaker and Snake drew a first frame at the display's ratio
+   above 2×:_ taken; the watcher measures at once.
+4. _Three specs passed with their code broken:_ taken; the ratio's clamp
+   kept, as it decides a canvas collapsed one way.
+5. _The device-pixel watcher was written twice:_ taken; one, which both
+   take.
+6. _Three shapes for the boards' ratio:_ taken.
+
+The second found the host sizing as before:
+
+1. _A zoom that left the board's device pixels alone went unheard, though
+   the docs promised it:_ taken; the scaler's resolution query lifted and
+   shared, and the fake viewport taught it.
+2. _The ratio and the size were two calls, with two easily swapped
+   numbers:_ taken; `canvasSizeFor()` works the ratio out.
+3. _Two watchers and a measurer where one would do, and three copies of a
+   board's wiring:_ taken; `canvasRoom()`.
+4. _Asteroid Breaker's room at the canvas's ratio went unsaid:_ taken.
+5. _A counted 0×0 made a 0×0 canvas:_ taken, a fix of the host's too.
+6. _Five fake observers:_ taken; the testing lift's one.
+7. _Nits:_ a first measurement that throws, a spec's scaler left running,
+   three ragged paragraphs: taken.
+
+The third found no blocking bug:
+
+1. _The page's readers in a pure entry let a game's view around its page
+   fence:_ taken; `@fz/phaser/measure`, a view's import of it failing lint.
+2. _The canvas following a zoom out went unsaid:_ taken.
+3. _The scaler read one element through two windows:_ taken; its parent's.
+4. _Brick Breaker's timing on a resize went unsaid:_ taken.
+5. _The fake viewport answered resolution queries at a ratio copied at
+   install:_ taken; read as each is asked.
+6. _`canvasRoom()` needs a component's injection context, unchecked:_
+   taken.

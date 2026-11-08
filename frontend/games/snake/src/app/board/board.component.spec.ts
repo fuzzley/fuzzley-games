@@ -5,10 +5,13 @@ import type { HostedScene } from "@fz/phaser/host";
 import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
+  FakeResizeObserver,
   type SceneRun,
   collectErrors,
   provideFakePhaserCanvas,
+  resize,
   runScene,
+  watchResizes,
 } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
@@ -85,6 +88,93 @@ describe("BoardComponent", () => {
       fireEvent.pointerDown(board);
 
       expect(board).toHaveFocus();
+    });
+  });
+
+  describe("the placeholder's pixel ratio", () => {
+    watchResizes();
+
+    it("is the display's where the browser can't watch the board", async () => {
+      vi.stubGlobal("ResizeObserver", undefined);
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+
+      const { board } = await renderBoard();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    it("is the canvas's as the board is first drawn, before the browser reports its size", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(
+        new DOMRect(0, 0, 1707, 960),
+      );
+
+      const { board } = await renderBoard();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    it("is the one the canvas renders at, which holds a large canvas to its budget above 2x", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, 1707, 960);
+      detectChanges();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    it("follows a change of zoom", async () => {
+      const { board, detectChanges } = await renderBoard();
+      resize(board, 1280, 720);
+      detectChanges();
+
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+      resize(board, 640, 360);
+      detectChanges();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    describe("as the page is zoomed", () => {
+      let viewport: FakeViewport | null = null;
+
+      beforeEach(() => {
+        viewport = installFakeViewport(1280, 720);
+      });
+
+      afterEach(() => {
+        viewport?.restore();
+        viewport = null;
+      });
+
+      it("follows a change of zoom that leaves the board's device pixels as they were", async () => {
+        const { board, detectChanges } = await renderBoard();
+        resize(board, 1280, 720, { width: 1280, height: 720 });
+        detectChanges();
+
+        // A zoom to 200% halves the board in CSS pixels and leaves its device
+        // pixels as they were, which the browser doesn't report.
+        vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+          new DOMRect(0, 0, 640, 360),
+        );
+        viewport?.setPixelRatio(2);
+        detectChanges();
+
+        expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+      });
+    });
+
+    it("stops being followed once the board is gone", async () => {
+      const { fixture } = await render(BoardComponent, {
+        providers: [provideFakePhaserCanvas(), provideFixedSeed()],
+      });
+
+      fixture.destroy();
+
+      expect(FakeResizeObserver.made.map((made) => made.watched.size)).toEqual([
+        0,
+      ]);
     });
   });
 

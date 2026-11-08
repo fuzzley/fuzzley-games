@@ -100,7 +100,6 @@ export class PhaserHost {
 
   /** Creates a host that mounts a canvas into `parent` when first shown a scene. */
   constructor(
-    private readonly window: Window,
     private readonly parent: HTMLElement,
     private readonly options: HostOptions,
     private readonly createGame: CreateGame = createPhaserGame,
@@ -175,7 +174,7 @@ export class PhaserHost {
       // Phaser starts the game's loop only once this listener returns, so
       // nothing thrown here may escape it.
       try {
-        const scaler = new ViewportScaler(this.window, game, this.parent);
+        const scaler = new ViewportScaler(game, this.parent);
         scaler.start();
         this.scaler = scaler;
       } catch (error) {

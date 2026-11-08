@@ -24,15 +24,32 @@ take the pure ones.
   insets, each cell a whole number of device pixels and the field centered
   on whole pixels, with the `Viewport` it reads and the `CssRect` it gives
   back; `canvasPixelRatio()`, the pixel ratio a canvas renders at on a
-  display, at least 1 and at most `MAX_PIXEL_RATIO`, which the host renders
-  by and an app's placeholder sizes its cells by; and `rectAttribute()`, a
-  `CssRect` as a board's element writes it into an attribute for the
-  layout check, "x y width height", and `namedRectsAttribute()`, a list of
-  them by name, in the order given, as
+  display, at least 1 and at most `MAX_PIXEL_RATIO`; `canvasSizeFor()`, the
+  size and the pixel ratio the host makes a canvas that fills a box at: the
+  display's ratio, but above `UNBUDGETED_PIXEL_RATIO` only as far as the
+  canvas holds no more than `MAX_BUDGETED_DEVICE_PIXELS`, and the device
+  pixels the browser counted (a `DevicePixelSize`), where the canvas
+  renders at the display's own ratio and the count agrees with the box and
+  has pixels in it, or else the box in whole CSS pixels at the ratio; and
+  `rectAttribute()`, a `CssRect` as a board's element writes it into an
+  attribute for the layout check, "x y width height", and
+  `namedRectsAttribute()`, a list of them by name, in the order given, as
   "stick 0 600 180 200, buttons 180 600 180 200", which throws for a name
   that isn't one word free of commas; `@fz/dev/board-page`'s `readRect()`
   and `readNamedRects()` read them back, as the spec holds them to. It
   imports nothing but `insets`.
+- `src/measure/`: what reads the page for a canvas, as the host sizes it
+  and a board's placeholder measures it: `watchDevicePixels()`, which
+  counts an element's device pixels, through a `ResizeObserver` on the
+  device-pixel box where the browser has one, or else on the CSS box;
+  `watchDevicePixelRatio()`, which hears the display's ratio change
+  through a `(resolution)` media query armed again for each new ratio,
+  below 1 too, so what watches both hears every change of zoom or of
+  display, one that leaves an element's device pixels as they were too;
+  and `canvasInsetsOf()`, the insets an element declares for the canvas
+  that fills it, in `CANVAS_INSET_PROPERTIES`, read through its own
+  window. It imports nothing but `insets` and `layout`, and no game's view
+  may import it, since it reads the page.
 - `src/shapes/`: the vocabulary a game's art is drawn in, each shape of a
   frame as plain data in device pixels: `DrawCommand`, a rectangle, a
   rounded one, a circle, a ring, a line, a polyline or a polygon, each with
@@ -66,10 +83,12 @@ take the pure ones.
   it, building the next before it lets go of the last, its `show()` settling
   once the scene is mounted or rejecting with what kept it from being (a
   scene that loads files first creates itself later, outside it), and
-  `ViewportScaler`, which keeps the canvas at the size and pixel ratio of its
-  box, as a `ResizeObserver` reports the box once it is laid out: the
-  window's `resize` comes before the app has moved what stands around it, so
-  it sizes the canvas only where nothing can watch the box.
+  `ViewportScaler`, which keeps the canvas at the size and pixel ratio
+  `canvasSizeFor()` gives its box, each time `watchDevicePixels()` reports
+  the box once it is laid out and each time `watchDevicePixelRatio()` hears
+  the display's ratio change, reading it all through the box's own window:
+  the window's `resize` comes before the app has moved what stands around
+  it, so it sizes the canvas only where nothing can watch the box.
   It imports Phaser, never Angular.
 - `src/scene/`: what a scene needs to live in a game that outlives it:
   `uniqueSceneKey()`, a key no other scene of the page shares, a prefix
@@ -109,6 +128,15 @@ take the pure ones.
   read-only to the app; and what the app projects as `[fzCanvasPlaceholder]`
   lies over the canvas until the scene is ready. It imports the host, and so
   Phaser, with `import()`, when it first shows a scene. Beside it,
+  `canvasRoom()`, called as a board is made, measures the canvas the
+  board's element makes for the canvas that fills it, as the host sizes it
+  (its size and the ratio the host renders it at, by `canvasSizeFor()`, and
+  the insets the element declares), as the board is first drawn and then
+  each time it changes size in CSS pixels or in device pixels, or the
+  display's ratio changes, as a change of zoom or of display does, until
+  the board is destroyed: its `viewport`, null until it is measured, and
+  its `pixelRatio`, the display's until then, so a placeholder lays its
+  board out as the scene will; and
   `fzKeepKeys` (`KeepKeysDirective`) stops key events on a button from
   reaching the element around it that Phaser's keyboard listens on, so the
   button takes the key rather than the scene, and Phaser's capture never
@@ -142,10 +170,13 @@ take the pure ones.
   handed rather than printing it, for a spec that fails a scene on purpose
   to read; and `FakeResizeObserver`, which `watchResizes()` stands in for
   jsdom's missing one through a describe, is told by `resize()` that an
-  element was laid out at a size. `src/testing/pure/`, imported as
-  `@fz/phaser/testing/pure`, holds what a game's specs in Node take, which
-  can't load Phaser: `viewport()`, a canvas's `Viewport` from a CSS size, a
-  pixel ratio and its chrome.
+  element was laid out at a size, and, where the spec gives them, the device
+  pixels the browser counted. The library's own specs also take
+  `src/testing/fake_display.ts`, a display whose pixel ratio a spec changes,
+  telling the `(resolution)` queries asked of it. `src/testing/pure/`,
+  imported as `@fz/phaser/testing/pure`, holds what a game's specs in Node
+  take, which can't load Phaser: `viewport()`, a canvas's `Viewport` from a
+  CSS size, a pixel ratio and its chrome.
 
 ## Rules
 
@@ -156,7 +187,11 @@ take the pure ones.
   `@fz/dev`'s does.
 - **The pure entries import nothing but each other,** as ESLint checks, so
   a game's Phaser-free code can take them; and `src/testing/pure/` nothing
-  but them, so a spec in Node can take it.
+  but them, so a spec in Node can take it. What reads the page, a
+  `ResizeObserver`, a media query, the display's ratio or a computed
+  style, belongs in `src/measure/`, never in a pure entry, which a game's
+  view takes; `measure` knows no Phaser and no framework, as ESLint checks,
+  so the host and the canvas both take it.
 - **`src/testing/` imports Phaser by type alone,** and the host, the
   scene helpers and the sound player, which load it, as ESLint checks,
   loading Phaser with `import()` where it needs a class, and tells a game

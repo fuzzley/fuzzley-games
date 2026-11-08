@@ -39,9 +39,10 @@ export const PHASER_CANVAS_HOST = new InjectionToken<CreateCanvasHost>(
   {
     providedIn: "root",
     factory: () => {
-      const view = inject(DOCUMENT).defaultView;
-      if (!view) throw new Error("A Phaser canvas needs a window");
-      return (parent, options) => new LazyPhaserHost(view, parent, options);
+      if (!inject(DOCUMENT).defaultView) {
+        throw new Error("A Phaser canvas needs a window");
+      }
+      return (parent, options) => new LazyPhaserHost(parent, options);
     },
   },
 );
@@ -54,7 +55,6 @@ class LazyPhaserHost implements CanvasHost {
   private destroyed = false;
 
   constructor(
-    private readonly view: Window,
     private readonly parent: HTMLElement,
     private readonly options: HostOptions,
   ) {}
@@ -66,7 +66,7 @@ class LazyPhaserHost implements CanvasHost {
       source(),
     ]);
     if (this.destroyed || asked !== this.asked) return;
-    this.host ??= new PhaserHost(this.view, this.parent, this.options);
+    this.host ??= new PhaserHost(this.parent, this.options);
     await this.host.show(make, onReady);
   }
 

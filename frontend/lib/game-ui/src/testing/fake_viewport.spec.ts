@@ -15,6 +15,7 @@ describe("installFakeViewport", () => {
   afterEach(() => {
     viewport?.restore();
     viewport = null;
+    vi.restoreAllMocks();
   });
 
   it("answers a width query against its size", () => {
@@ -84,6 +85,65 @@ describe("installFakeViewport", () => {
       matches: true,
       told: 1,
     });
+  });
+
+  it("answers a resolution query against the window's pixel ratio", () => {
+    viewport = installFakeViewport(1280);
+
+    expect(window.matchMedia("(resolution: 1dppx)").matches).toBe(true);
+  });
+
+  it("tells a resolution query when the pixel ratio changes, which the window reports", () => {
+    viewport = installFakeViewport(1280);
+    const query = window.matchMedia("(resolution: 1dppx)");
+    const heard = listen(query);
+
+    viewport.setPixelRatio(1.25);
+
+    expect({
+      matches: query.matches,
+      told: heard.told,
+      ratio: window.devicePixelRatio,
+    }).toEqual({ matches: false, told: 1, ratio: 1.25 });
+  });
+
+  it("answers a resolution query at the ratio a spec spied the window at", () => {
+    vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+    viewport = installFakeViewport(1280);
+
+    expect(window.matchMedia("(resolution: 2.5dppx)").matches).toBe(true);
+  });
+
+  it("answers a resolution query at the ratio the window reports as it is asked, though spied after installing", () => {
+    viewport = installFakeViewport(1280);
+
+    vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+
+    expect(window.matchMedia("(resolution: 2dppx)").matches).toBe(true);
+  });
+
+  it("tells a query held at a spied ratio as a spec sets another", () => {
+    vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+    viewport = installFakeViewport(1280);
+    const query = window.matchMedia("(resolution: 2dppx)");
+    const heard = listen(query);
+
+    viewport.setPixelRatio(1.5);
+
+    expect({
+      matches: query.matches,
+      told: heard.told,
+      ratio: window.devicePixelRatio,
+    }).toEqual({ matches: false, told: 1, ratio: 1.5 });
+  });
+
+  it("puts the window's own pixel ratio back", () => {
+    const fake = installFakeViewport(1280);
+    fake.setPixelRatio(2);
+
+    fake.restore();
+
+    expect(window.devicePixelRatio).toBe(1);
   });
 
   it("tells a query nothing when its answer stays the same", () => {

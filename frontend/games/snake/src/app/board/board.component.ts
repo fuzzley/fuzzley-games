@@ -16,13 +16,10 @@ import {
   KeepKeysDirective,
   PhaserCanvasComponent,
   type SceneSource,
+  canvasRoom,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
-import {
-  type CssRect,
-  canvasPixelRatio,
-  rectAttribute,
-} from "@fz/phaser/layout";
+import { type CssRect, rectAttribute } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { BOARD_SIZE } from "../../rules/arena";
 import type { SnakeSceneOptions } from "../../scene/snake_scene";
@@ -57,7 +54,7 @@ type Card = "start" | "paused" | "ended" | "slow" | "failed" | null;
     "[attr.data-board]": "boardRect()",
     "[attr.data-outcome]": "game.outcome()",
     "[style.--squares]": "squares",
-    "[style.--pixel-ratio]": "pixelRatio",
+    "[style.--pixel-ratio]": "pixelRatio()",
     "(pointerdown)": "takeFocus()",
   },
   templateUrl: "./board.component.html",
@@ -80,13 +77,12 @@ export class BoardComponent {
   protected readonly label = `Snake, ${BOARD_SIZE} by ${BOARD_SIZE}`;
 
   /**
-   * The device pixels to a CSS pixel, as the canvas most often renders at,
-   * so the placeholder sizes its squares in whole device pixels as the scene
-   * does.
+   * The device pixels to a CSS pixel the canvas renders at, as the board
+   * last measured it, as it was first drawn and as its size or the zoom
+   * changed, or as the display has it until then, so the placeholder sizes
+   * its squares in whole device pixels as the scene does.
    */
-  protected readonly pixelRatio = canvasPixelRatio(
-    this.document.defaultView?.devicePixelRatio ?? 1,
-  );
+  protected readonly pixelRatio = canvasRoom().pixelRatio;
 
   /** Where the scene last laid the board out, in CSS pixels on the canvas. */
   private readonly laidOut = signal<CssRect | null>(null);

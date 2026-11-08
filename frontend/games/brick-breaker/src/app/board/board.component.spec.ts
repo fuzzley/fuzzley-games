@@ -184,6 +184,28 @@ describe("BoardComponent", () => {
       });
     });
 
+    it("is all the board has room for as it is first drawn, before the browser reports its size", async () => {
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(
+        new DOMRect(0, 0, 390, 772),
+      );
+
+      const { game } = await renderBoard();
+
+      expect(game.fieldHeight()).toBe(TALLEST_FIELD);
+    });
+
+    it("is all the canvas has room for at the ratio the host renders it at, which holds a large canvas to its budget above 2x", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      const { board, game, detectChanges } = await renderBoard();
+
+      resize(board, 700, 1100);
+      detectChanges();
+
+      // The budget holds the canvas to 2.417x, whose unit leaves room for 38
+      // units down; at the display's 2.5, it would leave room for 39.
+      expect(game.fieldHeight()).toBe(38);
+    });
+
     it("is the least on a wide board, with no room under it", async () => {
       const { board, game, detectChanges } = await renderBoard();
 
@@ -197,10 +219,11 @@ describe("BoardComponent", () => {
     });
 
     it("counts the insets the board declares for the canvas out of its room", async () => {
-      const { board, game } = await renderBoard();
+      const { board, game, detectChanges } = await renderBoard();
       board.style.setProperty("--fz-canvas-inset-bottom", "200px");
 
       resize(board, 390, 772);
+      detectChanges();
 
       // 772 less the inset, a finger's room, the pixel in hand and the walls
       // leaves 503: 35 units of 14.
@@ -230,6 +253,70 @@ describe("BoardComponent", () => {
       expect(FakeResizeObserver.made.map((made) => made.watched.size)).toEqual([
         0,
       ]);
+    });
+  });
+
+  describe("the placeholder's pixel ratio", () => {
+    watchResizes();
+
+    it("is the display's where the browser can't watch the board", async () => {
+      vi.stubGlobal("ResizeObserver", undefined);
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+
+      const { board } = await renderBoard();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    it("is the one the canvas renders at, which holds a large canvas to its budget above 2x", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, 1707, 960);
+      detectChanges();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    it("follows a change of zoom", async () => {
+      const { board, detectChanges } = await renderBoard();
+      resize(board, 1280, 720);
+      detectChanges();
+
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+      resize(board, 640, 360);
+      detectChanges();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    describe("as the page is zoomed", () => {
+      let viewport: FakeViewport | null = null;
+
+      beforeEach(() => {
+        viewport = installFakeViewport(1280, 720);
+      });
+
+      afterEach(() => {
+        viewport?.restore();
+        viewport = null;
+      });
+
+      it("follows a change of zoom that leaves the board's device pixels as they were", async () => {
+        const { board, detectChanges } = await renderBoard();
+        resize(board, 1280, 720, { width: 1280, height: 720 });
+        detectChanges();
+
+        // A zoom to 200% halves the board in CSS pixels and leaves its device
+        // pixels as they were, which the browser doesn't report.
+        vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+          new DOMRect(0, 0, 640, 360),
+        );
+        viewport?.setPixelRatio(2);
+        detectChanges();
+
+        expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+      });
     });
   });
 

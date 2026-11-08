@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, vi } from "vitest";
+import type { DevicePixelSize } from "../layout";
 
 /**
  * Stands in for the browser's `ResizeObserver`, which jsdom lacks: the spec
@@ -57,11 +58,27 @@ export function watchResizes(): void {
 
 /**
  * Lays an element out at a size in CSS px, as a browser would, and tells
- * every fake observer that watches anything.
+ * every fake observer that watches anything, handing it the element's size
+ * in device pixels where the spec says the browser `counted` them.
  */
-export function resize(element: Element, width: number, height: number): void {
+export function resize(
+  element: Element,
+  width: number,
+  height: number,
+  counted?: DevicePixelSize,
+): void {
   vi.spyOn(element, "getBoundingClientRect").mockReturnValue(
     new DOMRect(0, 0, width, height),
   );
-  for (const observer of FakeResizeObserver.made) observer.resized();
+  const entries: Partial<ResizeObserverEntry>[] = counted
+    ? [
+        {
+          target: element,
+          devicePixelContentBoxSize: [
+            { inlineSize: counted.width, blockSize: counted.height },
+          ],
+        },
+      ]
+    : [];
+  for (const observer of FakeResizeObserver.made) observer.resized(entries);
 }

@@ -80,6 +80,22 @@ describe("resize", () => {
       heard,
     }).toEqual({ box: new DOMRect(0, 0, 320, 200), heard: [[]] });
   });
+
+  it("hands what watches it the element's device pixels where the browser counted them", () => {
+    const board = document.createElement("div");
+    const { heard } = watch(board, { box: "device-pixel-content-box" });
+
+    resize(board, 412, 915, { width: 1082, height: 2402 });
+
+    expect(heard).toEqual([
+      [
+        {
+          target: board,
+          devicePixelContentBoxSize: [{ inlineSize: 1082, blockSize: 2402 }],
+        },
+      ],
+    ]);
+  });
 });
 
 describe("watchResizes", () => {

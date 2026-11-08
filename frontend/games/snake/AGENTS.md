@@ -166,8 +166,10 @@ its seed and its frames, as a game taken up relies on.
   and `src/view/contrast.spec.ts` holds the snake, its head and the apple to
   3:1 against both shades of square in every palette.
 - **The placeholder, the ring and the cards work out the board's square in
-  CSS,** as `boardMetrics()` does, at the window's pixel ratio; the ring
-  takes the scene's own rectangle once it has drawn, which the board
+  CSS,** as `boardMetrics()` does, at the pixel ratio the canvas renders at,
+  which the board measures as it is first drawn and follows as its size, the
+  zoom or the display changes (`@fz/phaser/canvas`'s `canvasRoom()`); the
+  ring takes the scene's own rectangle once it has drawn, which the board
   writes for the layout check (`data-board`) with `@fz/phaser/layout`'s
   `rectAttribute()`, and the layout check holds the placeholder to it.
 - **Motion follows the player's preference** (`GameViewportService`'s

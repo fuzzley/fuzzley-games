@@ -73,7 +73,8 @@ repository's root.
   `localStorage` before the first `render` or `TestBed.inject`.
 - **No `matchMedia`:** `installFakeViewport(width, height)`, from
   `@fz/game-ui/testing`, answers the queries `GameViewportService` asks, and
-  its `restore()` belongs in an `afterEach`.
+  a board's `(resolution)`, at a ratio `setPixelRatio()` changes, and its
+  `restore()` belongs in an `afterEach`.
 - **No `<dialog>` methods:** `installDialogPolyfill()`, from
   `@fz/ui/testing`, in the setup file.
 - **No canvas and no component styles:** a shell around `<fz-phaser-canvas>`

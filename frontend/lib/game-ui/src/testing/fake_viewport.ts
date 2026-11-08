@@ -1,29 +1,41 @@
 /**
  * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
- * height and orientation queries against a size a spec sets, the color
- * scheme and motion queries as a light system's with no motion preference,
- * and the pointer query as a mouse's until a spec says it is a finger.
+ * height and orientation queries against a size a spec sets, resolution
+ * queries against the pixel ratio the window reports as each is asked, the
+ * color scheme and motion queries as a light system's with no motion
+ * preference, and the pointer query as a mouse's until a spec says it is a
+ * finger.
  */
 export interface FakeViewport {
   /** Sets the viewport width and tells every live query about it. */
   setWidth(px: number): void;
   /** Sets the viewport width and height and tells every live query. */
   setSize(width: number, height: number): void;
+  /**
+   * Sets the display's pixel ratio, as a zoom or another display does,
+   * which the window then reports, over any a spec spied, and tells every
+   * live query.
+   */
+  setPixelRatio(ratio: number): void;
   /** Says whether the main pointer is a finger, and tells every live query. */
   setCoarsePointer(coarse: boolean): void;
-  /** Takes the fake back off the window. */
+  /** Takes the fake back off the window, and the pixel ratio it set. */
   restore(): void;
 }
 
 /**
- * Holds what a fake answers against: the viewport's size, in CSS pixels, and
- * whether its main pointer is a finger.
+ * Holds what a fake answers against: the viewport's size, in CSS pixels,
+ * the display's pixel ratio, and whether its main pointer is a finger.
  */
 interface Display {
   width: number;
   height: number;
+  pixelRatio: number;
   coarse: boolean;
 }
+
+/** Holds what a spec sets of the display, all but its pixel ratio. */
+type SetDisplay = Omit<Display, "pixelRatio">;
 
 /** Records one query the code under test holds. */
 interface FakeQuery {
@@ -33,7 +45,7 @@ interface FakeQuery {
 }
 
 const CONDITION =
-  /^\(\s*(max-width|max-height|orientation|pointer|prefers-color-scheme|prefers-reduced-motion)\s*:\s*([\w.-]+?)(px)?\s*\)$/;
+  /^\(\s*(max-width|max-height|orientation|resolution|pointer|prefers-color-scheme|prefers-reduced-motion)\s*:\s*([\w.-]+?)(dppx|px)?\s*\)$/;
 
 /**
  * Returns whether a media query holds on a display: any of its comma-separated
@@ -54,6 +66,8 @@ function evaluate(query: string, display: Display): boolean {
           return display.width <= Number(value);
         case "max-height":
           return display.height <= Number(value);
+        case "resolution":
+          return display.pixelRatio === Number(value);
         case "pointer":
           return value === (display.coarse ? "coarse" : "fine");
         case "prefers-color-scheme":
@@ -69,19 +83,29 @@ function evaluate(query: string, display: Display): boolean {
 }
 
 /**
- * Installs the fake at a starting size, in CSS pixels; the height is tall
- * enough by default that only the width decides whether the viewport is
- * compact.
+ * Installs the fake at a starting size, in CSS pixels, on a display of the
+ * pixel ratio the window reports, however a spec sets it; the height is
+ * tall enough by default that only the width decides whether the viewport
+ * is compact.
  *
  * Call {@link FakeViewport.restore} in an `afterEach`, so a spec that never
  * asked for one still sees a host without `matchMedia`.
  */
 export function installFakeViewport(width: number, height = 900): FakeViewport {
   const queries: FakeQuery[] = [];
-  const current: Display = { width, height, coarse: false };
+  const current: SetDisplay = { width, height, coarse: false };
+  /** Returns the display as it is now, at the ratio the window reports. */
+  const now = (): Display => ({
+    ...current,
+    pixelRatio: window.devicePixelRatio,
+  });
+  const windowRatio = Object.getOwnPropertyDescriptor(
+    window,
+    "devicePixelRatio",
+  );
 
   window.matchMedia = (query: string) => {
-    const state = { matches: evaluate(query, current) };
+    const state = { matches: evaluate(query, now()) };
     const listeners = new Set<() => void>();
     queries.push({ query, state, listeners });
 
@@ -103,10 +127,10 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
     } as unknown as MediaQueryList;
   };
 
-  const change = (next: Partial<Display>): void => {
+  const change = (next: Partial<SetDisplay>): void => {
     Object.assign(current, next);
     for (const query of queries) {
-      const matches = evaluate(query.query, current);
+      const matches = evaluate(query.query, now());
       if (matches === query.state.matches) continue;
       query.state.matches = matches;
       for (const listener of query.listeners) listener();
@@ -120,11 +144,22 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
     setSize(nextWidth: number, nextHeight: number): void {
       change({ width: nextWidth, height: nextHeight });
     },
+    setPixelRatio(ratio: number): void {
+      Object.defineProperty(window, "devicePixelRatio", {
+        configurable: true,
+        get: () => ratio,
+      });
+      change({});
+    },
     setCoarsePointer(coarse: boolean): void {
       change({ coarse });
     },
     restore(): void {
       Reflect.deleteProperty(window, "matchMedia");
+      // A window holds its own ratio, as a global holds its attributes.
+      if (windowRatio) {
+        Object.defineProperty(window, "devicePixelRatio", windowRatio);
+      }
     },
   };
 }

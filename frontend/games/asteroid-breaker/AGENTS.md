@@ -465,15 +465,19 @@ takes for the specs' helpers.
     screen reader, and couldn't be drawn. The board is Phaser's keyboard
     target, so the cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
     `fzKeepKeys`); Resume and Next wave hand the board back the focus
-    (`handBack`). It measures its own size and hands the game the room the
-    field is laid out in (`GameService.setRoom()`), and publishes, for the
-    layout check, what the scene hands it as it lays the field out
-    (`FieldLayout`): where it laid the field (`data-field`), the room it
-    fills (`data-room`) and the deck's zones (`data-deck`), written with
-    `@fz/phaser/layout`'s `rectAttribute()` and `namedRectsAttribute()`,
-    which the layout check reads back with `@fz/dev`'s `readRect()` and
-    `readNamedRects()`; the board's spec reads the field's with
-    `readRect()`. `fieldPalette()`
+    (`handBack`). It measures the canvas it makes, as the host sizes it, at
+    the ratio the host renders it at, as it is first drawn and as its size,
+    the zoom or the display changes (`@fz/phaser/canvas`'s `canvasRoom()`),
+    and hands the game that room until the scene lays the field out
+    (`GameService.setRoom()`), so the waiting wave is shaped for the scene's
+    canvas from the start, above 2× on a large window too, and again as the
+    zoom changes until then; and it publishes, for the layout check, what the
+    scene hands it as it lays the field out (`FieldLayout`): where it laid the
+    field (`data-field`), the room it fills (`data-room`) and the deck's zones
+    (`data-deck`), written with `@fz/phaser/layout`'s `rectAttribute()` and
+    `namedRectsAttribute()`, which the layout check reads back with
+    `@fz/dev`'s `readRect()` and `readNamedRects()`; the board's spec reads
+    the field's with `readRect()`. `fieldPalette()`
     colors the field from `ThemeService`'s roles and `mode`. The board asks
     the scene for How to play's pictures as How to play opens (`pictures`),
     and keeps them until the scene bakes again. It is an application named
@@ -638,10 +642,10 @@ takes for the specs' helpers.
   light palettes and for dark; `src/view/colors/contrast.spec.ts` holds them
   apart in every palette.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
-  `fieldMetrics()` does, at the window's pixel ratio, from the room the
-  board measures as it is first drawn; they take the scene's own rectangle
-  once it has drawn (`data-field`), and the layout check holds the
-  placeholder to it.
+  `fieldMetrics()` does, from the canvas the board measures, as the host
+  sizes it, at the pixel ratio the canvas renders at; they take the scene's
+  own rectangle once it has drawn (`data-field`), and the layout check
+  holds the placeholder to it.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it every flourish but the points is left out,
   the points showing where they were scored without rising; the pickups'
