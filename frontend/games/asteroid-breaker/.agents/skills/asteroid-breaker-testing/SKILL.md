@@ -87,9 +87,11 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   one that answered wrongly can't let a spec pass that tests nothing:
   `art_frames.ts`'s `within()`, `distanceToEdge()` and `edgeOf()`,
   `crossings.ts`'s `entryOf()` and `entriesOf()`, `every_layout.ts`'s
-  `nearness()`, `canvases.ts`'s `boardOf()`, `field_picture.ts`'s
-  `fieldFrom()` and what it refuses, and `belt_board.ts`'s `strokesOf()`,
-  against a `Graphics` Phaser really drew in.
+  `nearness()`, `canvases.ts`'s `boardOf()`, against the bar's and the
+  rail's sizes compiled from the app's stylesheets, `numbers.ts`'s
+  `stepsBetween()`, `field_picture.ts`'s `fieldFrom()` and what it refuses,
+  and `belt_board.ts`'s `strokesOf()`, against a `Graphics` Phaser really
+  drew in.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears
@@ -124,6 +126,12 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 - A spec of the records, in the rules or the shell, gives what a change in
   a run brings to them with `src/testing/records.ts`'s `runRecords()`,
   nothing but what it names.
+- A spec that holds a table of the rules to rising or falling, the rocks'
+  sizes and speeds and the chain's rows in `src/rules/tuning.spec.ts` or
+  each kind's points in `src/rules/catalog/catalog.spec.ts`, takes how
+  much each number differs from the one before from
+  `src/testing/numbers.ts`'s `stepsBetween()`, and asserts none goes the
+  wrong way.
 
 ## The Waves and the Autopilot
 

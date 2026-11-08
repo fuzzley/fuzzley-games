@@ -30,6 +30,7 @@ import {
   isEndless,
   wavesOf,
 } from "../../rules/waves/waves";
+import { speedOf } from "../../testing/field_picture";
 import {
   CHAIN_WAVES,
   FRAME_MS,
@@ -1328,7 +1329,7 @@ describe("GameService", () => {
     /** Returns the ship's speed, or 0 with none in play. */
     function shipSpeed(game: GameService): number {
       const { ship } = game.frame().field;
-      return ship ? Math.hypot(ship.vx, ship.vy) : 0;
+      return ship ? speedOf(ship) : 0;
     }
 
     /** Returns the places and the velocities of the field's whole rocks. */
