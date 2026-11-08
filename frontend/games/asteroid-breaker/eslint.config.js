@@ -106,6 +106,17 @@ export default defineConfig(
       message: "The scene knows nothing of the shell.",
     },
   ]),
+  // The specs' helpers take Angular by type alone, so they declare nothing
+  // Analog's plugin must compile: every project compiles them with Vite's
+  // oxc, alike, and coverage adds their runs up (`vitest.config.ts`).
+  fence("testing", [
+    {
+      group: ["@angular/*"],
+      allowTypeImports: true,
+      message:
+        "The specs' helpers take Angular by type alone, since every project compiles them with oxc rather than Analog's plugin.",
+    },
+  ]),
   fence("app", [
     {
       group: PHASER,

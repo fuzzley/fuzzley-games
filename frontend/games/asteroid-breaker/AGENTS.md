@@ -465,7 +465,8 @@ take for the layer.
   palette, the autopilot, the scene run on a fake shell, the canvases a
   board makes, the palette's roles, the shell's small waves, a run under
   way for the saved game's specs and the run the screenshots keep, as Tests
-  below says. The app's tsconfig leaves it out.
+  below says. The app's tsconfig leaves it out, and lint lets it take
+  Angular by type alone.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
   synthesizes the sounds; `report-waves.mjs` reports how the autopilot plays
   every wave; `check-layout.mjs` checks the build's layout in headless
@@ -641,14 +642,16 @@ workspace's with the others'.
   Snake's 9003 and Brick Breaker's 9004).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
 - **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `dom`
-  and `pure` projects with coverage, failing below the floor
-  `vitest.config.ts` sets for the rules and the view, then its `sim`
-  project, the specs that play every wave or lay every wave out, without),
-  `yarn test:watch`, or `yarn vitest run --project <project> <path>` for one
-  spec, which leaves the floor alone: `pure` for one of the rules, the view
-  or `src/testing/`, `dom` for one of the scene or the shell, and `sim` for
-  a simulation. Without `--project`, Vitest starts every project, Analog's
-  plugin among them, and a spec of the rules takes three times as long.
+  and `pure` projects with coverage, failing below the floors
+  `vitest.config.ts` sets for the rules, the view, the scene and the shell,
+  then its `sim` project, the specs that play every wave or lay every wave
+  out, without), `yarn test:watch`, or
+  `yarn vitest run --project <project> <path>` for one spec, which leaves
+  the floors alone: `pure` for one of the rules, the view or
+  `src/testing/`, `dom` for one of the scene, the shell or
+  `src/testing/belt_board.ts`, and `sim` for a simulation. Without
+  `--project`, Vitest starts every project, Analog's plugin among them,
+  and a spec of the rules takes three times as long.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
   between the layers, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
@@ -713,20 +716,24 @@ for each speed (`src/rules/waves/every_wave/`,
 `src/rules/waves/every_endless_wave/`, `src/rules/field/every_layout/`), as
 Vitest plays a file's specs one after another but the files side by side,
 and the spec beside the folder holds it to a file for every speed and no
-other. Vitest runs the specs in three projects, each starting only what
-its own need. `sim` runs the specs that play every wave or lay every wave
-out, in Node, without the coverage that would triple their time, as the
-other rules specs alone hold the rules to their floor. `pure` runs the
-other specs of the rules, the view and `src/testing/` in Node too, which
-has no page, as nothing they test touches one. `dom` runs every other
-spec, the scene's and the shell's, in jsdom, after `src/test-setup.ts`,
-which installs `@fz/phaser/testing`'s headless Phaser first, so a scene's
-spec runs real Phaser through `runScene()`, with a fake shell over a
-pictured field. Coverage measures `dom` and `pure` together. This
-workspace's `asteroid-breaker-testing` skill covers its setup, floors and
-fixtures, the repository's `angular-testing` the patterns every Angular
-workspace's specs share, and `phaser-core` the harness. What the specs
-share is in `src/testing/`:
+other. Vitest runs the specs in three projects, each starting only what its
+own need. `sim` runs the specs that play every wave or lay every wave out,
+in Node, without the coverage that would triple their time, as the other
+rules specs alone hold the rules to their floor. `pure` runs the other specs
+of the rules, the view and `src/testing/` in Node too, which has no page, as
+nothing they test touches one. `dom` runs every other spec, the scene's, the
+shell's and that of `src/testing/belt_board.ts`, which runs the scene, in
+jsdom, after `src/test-setup.ts`, which installs `@fz/phaser/testing`'s
+headless Phaser first, so a scene's spec runs real Phaser through
+`runScene()`, with a fake shell over a pictured field. Coverage measures
+`dom` and `pure` together: the rules and the view to a floor near 100%, the
+scene and the shell to one a little under what their specs reach, raised as
+they rise, and `src/testing/` with none, so what of it goes untested shows.
+This workspace's `asteroid-breaker-testing` skill covers its setup, floors
+and fixtures, the repository's `angular-testing` the patterns every Angular
+workspace's specs share, and `phaser-core` the harness. What the specs share
+is in `src/testing/`, and each helper whose answer a spec trusts has a spec
+of its own beside it:
 
 - `field_picture.ts` lays a field out from a picture of its rocks and its
   ship (`fieldFrom()`), each character a cell 4 units across (`CELL`), on a

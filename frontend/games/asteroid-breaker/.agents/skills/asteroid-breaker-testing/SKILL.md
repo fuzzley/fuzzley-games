@@ -22,17 +22,22 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   projects with coverage, then the `sim` project without) or
   `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
   spec without coverage, starting its project alone: `pure` for the rules,
-  the view and `src/testing/`, `dom` for the scene and the shell, and `sim`
-  for the simulations. Without `--project`, Vitest starts all three,
-  Analog's plugin among them, and a spec of the rules takes three times as
-  long. The whole suite takes minutes, most of them the autopilot playing
-  every wave at every speed on three fields.
+  the view and `src/testing/`, `dom` for the scene, the shell and
+  `src/testing/belt_board.ts`, and `sim` for the simulations. Without
+  `--project`, Vitest starts all three, Analog's plugin among them, and a
+  spec of the rules takes three times as long. The whole suite takes
+  minutes, most of them the autopilot playing every wave at every speed on
+  three fields.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
-  to 100% of statements, functions and lines and 95% of branches.
-  `yarn test`, which CI runs, fails below either. The scene and the shell
-  have no floor of their own. Coverage measures the `dom` and `pure`
-  projects together, not `sim`, so what only the simulations reach counts
-  as untested.
+  to 100% of statements, functions and lines and 95% of branches, and
+  `src/scene/` and `src/app/` a little under what their specs reach (the
+  scene 98% of statements, 92% of branches, 100% of functions and 99% of
+  lines; the shell 98, 97, 97 and 98), raised as they rise, so a part
+  without specs fails the run. `yarn test`, which CI runs, fails below any
+  of them. `src/testing/` is measured with no floor, so what of it goes
+  untested shows. Coverage measures the `dom` and `pure` projects
+  together, not `sim`, so what only the simulations reach, `every_wave.ts`
+  and most of `every_layout.ts` among it, counts as untested.
 - **Check the Layout**: `yarn build`, then `yarn check:layout`
   (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
   `@fz/dev/layout`'s shapes and turns, with the deck shown, and holds the
@@ -42,32 +47,49 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 ## Setup
 
 - `vitest.config.ts` is three Vitest projects made of `@fz/dev/vitest`'s
-  pieces, under one `coverage()` given the floor and what coverage leaves
-  out (`src/main.ts`, the setup and `src/testing/`). Each is a config of
-  its own, so each starts only what its specs need:
-  - `pure`, the specs of the rules, the view and `src/testing/`
-    (`PURE_SPECS`), but for the simulations, in Node (`nodeSpecs()`);
+  pieces, under one `coverage()` given the floors and what coverage leaves
+  out (`src/main.ts` and the setup). Each is a config of its own, so each
+  starts only what its specs need:
+  - `pure`, the specs of the rules and the view (`LAYER_SPECS`) and of
+    `src/testing/`, but for the simulations and the specs of the helpers
+    that run the scene (`SCENE_HELPER_SPECS`, `belt_board.spec.ts`), in
+    Node (`nodeSpecs()`);
   - `sim`, the specs that play every wave or lay every wave out
     (`SIMULATIONS`), in Node too, without coverage;
-  - `dom`, every other spec, the scene's and the shell's, in jsdom after the
-    setup below, as `angularSpecs()` runs them, with Analog's plugin, which
-    gives it its pool. It takes whatever the other two don't, so a spec in
-    a new folder runs in jsdom rather than in neither.
+  - `dom`, every other spec, the scene's, the shell's and the scene
+    helpers', in jsdom after the setup below, as `angularSpecs()` runs
+    them, with Analog's plugin, which gives it its pool. It takes whatever
+    the other two don't, so a spec in a new folder runs in jsdom rather
+    than in neither.
 - A spec sits beside the file it tests, named after it, and its folder
-  sets its project. One of the rules, the view or `src/testing/` has no
-  page, so what needs one is the scene's or the shell's to test.
-- `dom` leaves the measured code both it and `pure` load, the rules' and
-  the view's, which lint keeps free of Angular (`SHARED_CODE`), to Vite's
-  oxc rather than to Analog's plugin: the plugin's `transformFilter` passes
-  it by, and `oxc.include` turns oxc back on for it, which the plugin turns
-  off. Coverage adds a file's two runs up only where both compiled it
-  alike: compiled two ways, each of its functions would count twice,
-  untested in the project that never calls it, and the rules would fall
-  below their floor.
+  sets its project, but for a helper that runs the scene, whose spec's name
+  joins `SCENE_HELPER_SPECS`. One of the rules, the view or `src/testing/`
+  has no page, so what needs one is the scene's or the shell's to test.
+- `dom` leaves the measured code both it and `pure` load, the rules', the
+  view's and `src/testing/`'s, but not their specs, which lint keeps free
+  of Angular but by type (`SHARED_CODE`), to Vite's oxc rather than to
+  Analog's plugin: the plugin's `transformFilter` passes it by, and
+  `oxc.include` turns oxc back on for it, which the plugin turns off.
+  Coverage adds a file's two runs up only where both compiled it alike:
+  compiled two ways, each of its functions would count twice, untested in
+  the project that never calls it, and the rules would fall below their
+  floor.
+- Vitest keys the modules it caches on disk without the config of a
+  project declared with `extends: false`, which has no config file of its
+  own, so `keyedByThisConfig()` adds `vitest.config.ts` to `dom`'s key: a
+  change to what Analog's plugin passes by is compiled afresh, not read
+  from the cache.
 - Vitest watches through the config's own Vite server, not `dom`'s, so
   `forwardAddedAndRemoved()` hands `dom`'s each file added or removed, for
   Analog's plugin to take a new component into its program while
   `yarn test:watch` runs.
+- A helper whose answer a spec trusts has a spec of its own beside it, so
+  one that answered wrongly can't let a spec pass that tests nothing:
+  `art_frames.ts`'s `within()`, `distanceToEdge()` and `edgeOf()`,
+  `crossings.ts`'s `entryOf()` and `entriesOf()`, `every_layout.ts`'s
+  `nearness()`, `canvases.ts`'s `boardOf()`, `field_picture.ts`'s
+  `fieldFrom()` and what it refuses, and `belt_board.ts`'s `strokesOf()`,
+  against a `Graphics` Phaser really drew in.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears
