@@ -1159,6 +1159,7 @@ __metadata:
   resolution: "@fz/core@workspace:lib/core"
   dependencies:
     "@fz/dev": "workspace:*"
+    "@types/node": "npm:^26.6.6"
     "@vitest/coverage-v8": "npm:^5.1.0"
     eslint: "npm:^10.14.0"
     typescript: "npm:~6.0.3"

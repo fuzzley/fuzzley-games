@@ -1512,3 +1512,57 @@ The review found no script's output changed:
    every index is bounded by its own loop over the buffer, and
    `readUInt8()` costs per pixel in loops of some 22 million. The
    contrast's defaults, which could never apply, go.
+
+### Step 15b: finding 21, the layer fences and every config linted
+
+Built on `dl-fences`. `@fz/dev`'s `eslint.ts` takes
+`phaserGameLayers({ viewAllows, heldAsRules })`, the rules → view → scene
+→ app fences the three games drawn with Phaser each wrote out, with step
+6a's `deterministic()` in it and `Math.imul()` refused beside it for
+`@fz/core/random`'s `mixSeed()`. Asteroid Breaker lets its view take
+`@fz/style/fuzzball` (`viewAllows`, an entry only, anything else thrown
+for) and holds the helpers its scripts load as the rules are
+(`heldAsRules`); Brick Breaker and Snake take the block whole, and their
+rules and views pass `deterministic()` as they are. The block is specced
+layer by layer, each fence, global and exemption failing a case once it is
+dropped. Every workspace's ESLint and Stylelint configs, and the root's,
+are linted by `scripts()` and type-checked from their JSDoc in a
+`tsconfig.scripts.json` that each solution references, each config going
+from no rules to the block's 142; `@fz/core`'s, `@fz/dev`'s and
+`@fz/style`'s `tsconfig.json` become solutions over a `tsconfig.lib.json`,
+as `@fz/ui`'s is, `tsc` checking the same files with the same options.
+
+Where it went other than planned:
+
+- The view's fence is an allow-list now, every `@fz/*/*` entry refused
+  but `@fz/core`'s, `@fz/phaser`'s pure ones and `viewAllows`, tighter
+  than any game's copy: bare `@fz/phaser`, `@fz/dev` and any library to
+  come are refused too, which no view imports.
+- Brick Breaker's and Snake's rules gain the fences only Asteroid Breaker
+  had, against the specs' helpers and `randomSeed()`.
+- `@fz/core` takes `@types/node` for its scripts' program.
+- A `tsconfig.json` with files of its own can't reference a `noEmit`
+  project (TS6306, TS6310), hence the three solutions.
+
+The review found no fence or message lost or loosened:
+
+1. _Parts of the block could be dropped with the specs green: the view's
+   `randomSeed()` case imported nothing, and the scene's and shell's
+   libraries, the rules' other libraries and a rules spec's import of the
+   view had no case:_ taken; each a case, and each dropped once to see it
+   fail.
+2. _Brick Breaker's autopilot and kept run, which its scripts load, are
+   held to nothing, though its new doc leans on their determinism:_ not
+   taken here; the autopilot imports the view's `GLOW_BRICKS`, which the
+   rules' fence refuses, so holding it means moving that first. Its doc
+   says lint doesn't hold it yet; a follow-up.
+3. _The three new solutions carried no compiler options, so a tool reading
+   the solution, Vite among them, saw none:_ taken; each extends the preset
+   its leaf used, the leaf the solution, as `@fz/ui`'s do.
+4. _A type named for a list held one pattern and allowed neither `group`
+   nor `regex`; `heldAsRules`' type was inline; a `viewAllows` path the
+   fence would still refuse was taken without a word:_ taken;
+   `RestrictedImportPattern`, `HeldAsRules` and the throw.
+5. _The docs didn't say `testing` is a name the fences keep, a line ran
+   past the width, and the two lists of `@fz/phaser`'s pure entries didn't
+   point at each other:_ taken.

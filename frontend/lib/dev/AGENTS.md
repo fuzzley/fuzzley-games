@@ -26,12 +26,39 @@ too. Paths are relative to `frontend/lib/dev/`.
   - `tests()`: what the specs, and the helpers only they use, may do that
     other code may not: assert with `!`, stub with an empty function, let a
     mock's type be what it builds, and import the libraries' testing helpers.
-  - `scripts()`: the `.mjs` scripts' rules, which require JSDoc types on
-    every parameter and returned value.
+  - `scripts()`: the rules of the `.mjs` scripts, and of the workspace's
+    own ESLint and Stylelint configs, which require JSDoc types on every
+    parameter and returned value.
   - `phaser()`: what code that drives Phaser may do that other code may
     not: keep the guards `no-unnecessary-condition` would take out, since
     Phaser types a scene's systems as always there, though they aren't
     before it boots or after it ends.
+  - `phaserGameLayers({ viewAllows, heldAsRules })`: the fences between the
+    four layers of a game drawn with Phaser, each a folder under the game's
+    `src/` importing only the layers below it: the rules (`rules/`), with
+    no framework and no library but `@fz/core`; the view (`view/`), with no
+    Phaser and no framework, and of the libraries only `@fz/core`,
+    `@fz/phaser`'s pure entries and the entries the game lets in
+    (`viewAllows`, each `@fz/<lib>/<entry>`, such as `@fz/style/fuzzball`:
+    it throws for a package or a path below an entry, which the fence
+    can't let in); the scene (`scene/`), which draws with Phaser and knows
+    no framework, no shell's library and no canvas; and the shell (`app/`),
+    which takes the scene and `@fz/phaser`'s host, scene helpers and sound
+    by type alone, so its board loads the scene with `import()`. The rules
+    know nothing of the specs' helpers either. The rules and the view, but
+    their specs, are kept to what they are handed, so a run plays the same
+    again from its seed and its frames, in Node as on the page: no clock or
+    timer (`Date.now()`, an argument-less `new Date()` or `Date()`,
+    `performance`, `setTimeout()`, frame callbacks), no number drawn from
+    no seed (`Math.random()`, `crypto`, `@fz/core/random`'s
+    `randomSeed()`), no seed mixed by hand (`Math.imul()`, where
+    `@fz/core/random`'s `mixSeed()` mixes one in a named stream), nothing
+    of the page (`window` under each of its names, `document`,
+    `navigator`, `matchMedia()`, the window's size and listeners) and
+    nothing stored or fetched (`localStorage`, `indexedDB`, `fetch()`).
+    `heldAsRules` names files outside the rules held to the rules' fence
+    and kept to what they are handed as the rules are, with patterns of
+    their own on top, as Asteroid Breaker's helpers its scripts load are.
 - `tsconfig/`, `@fz/dev/tsconfig/*.json`: the compiler options a
   workspace's `tsconfig.json` extends.
   - `base.json`: the strict flags every workspace's TypeScript is checked
@@ -210,10 +237,25 @@ too. Paths are relative to `frontend/lib/dev/`.
 - **A game's screenshot script writes the site's images with
   `writeSiteImages()`**, and keeps to itself how it stages its game and
   what else it writes.
+- **Its ESLint and Stylelint configs are checked as its scripts are:**
+  `eslint.config.js` and `stylelint.config.js` are named in its `lint`, or
+  under the folder it lints, and in its `scripts()` block, and type-checked
+  from their JSDoc in its `tsconfig.scripts.json`, which its `typecheck`
+  runs and its solution, `tsconfig.json`, references, so an editor checks
+  them as `tsc` does.
 - **A workspace's own import fences use
   `@typescript-eslint/no-restricted-imports`**, so that they add to the
   testing fence, which uses ESLint's own `no-restricted-imports`, rather
   than replace it.
+- **A game drawn with Phaser takes its layers' fences from
+  `phaserGameLayers()`**, rather than writing them again, so no game's
+  fence goes stale or is tightened alone. What is its own goes in the
+  options: what its view takes beyond the rest (`viewAllows`) and what it
+  holds as the rules (`heldAsRules`), as Asteroid Breaker's
+  `eslint.config.js` does. ESLint takes a rule's options from the last
+  block that sets it for a file, so a block of the game's own that
+  restricts imports, properties, globals or syntax in a layer's folder
+  would replace the layers' rules there rather than add to them.
 - **A loosening stays in the workspace, with its reason,** unless every
   workspace of a kind needs it: `phaser()` is the one here, since every
   folder that drives Phaser does.
@@ -237,9 +279,12 @@ too. Paths are relative to `frontend/lib/dev/`.
 The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/dev <script>` runs alone.
 
-- **`lint`** runs ESLint with its own blocks (`eslint.config.js`).
+- **`lint`** runs ESLint with its own blocks (`eslint.config.js`), over
+  that config too.
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
-  config.
+  config (`tsconfig.lib.json`), then over the ESLint config from its
+  JSDoc, with the blocks it imports (`tsconfig.scripts.json`); the
+  solution, `tsconfig.json`, references both.
   Asteroid Breaker's `typecheck` holds those it compiles to
   `exactOptionalPropertyTypes` too, until `tsconfig/base.json` takes it.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written

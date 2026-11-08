@@ -1,4 +1,4 @@
-import { tests, typescript } from "@fz/dev/eslint";
+import { scripts, tests, typescript } from "@fz/dev/eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig(
@@ -9,6 +9,7 @@ export default defineConfig(
     files: ["src/**/*.ts", "vitest.config.ts"],
   }),
   tests({ files: ["src/**/*.spec.ts"] }),
+  scripts({ files: ["eslint.config.js", "stylelint.config.js"] }),
   {
     // themes.ts and fuzzball.ts run in the apps' pages, so nothing that runs
     // only in Node, at build time, in a lint or in a spec gets in.

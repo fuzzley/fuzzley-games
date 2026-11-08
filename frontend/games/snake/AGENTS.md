@@ -24,17 +24,28 @@ says how any game here is drawn with Phaser. Paths are relative to
 ## Layers
 
 Four folders under `src/`, each importing only the layers below it, as
-`eslint.config.js` fences them:
+`@fz/dev`'s `phaserGameLayers()` fences them in `eslint.config.js`:
 
-| Folder       | May import                                                                                               | May not import                                                      |
-| ------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `src/rules/` | `@fz/core`                                                                                               | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes` | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
-| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                    | Angular, RxJS, the shell's libraries, the shell                     |
-| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser/host` by type          | Phaser, and the scene or the host by a value import                 |
+| Folder       | May import                                                                                                                 | May not import                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import                          |
 
 The shell loads the scene with `import()`, which the fence doesn't see, so
 Phaser stays out of the first download.
+
+The rules and the view, but their specs, read only what they are handed,
+as `phaserGameLayers()` holds them: no clock or timer (`Date.now()`,
+`new Date()`, `performance`, `setTimeout()`), no number drawn from no seed
+(`Math.random()`, `crypto`, `@fz/core/random`'s `randomSeed()`), no seed
+mixed by hand (`Math.imul()`, where `@fz/core/random`'s `mixSeed()` mixes
+one), nothing of the page (`window`, `document`, `navigator`,
+`matchMedia()`) and nothing stored or fetched (`localStorage`, `fetch()`).
+The scene hands them the frames' time and the room, the shell what is kept,
+and their numbers are drawn from a seed, so a run plays the same again from
+its seed and its frames, as a game taken up relies on.
 
 ## Layout
 
@@ -220,12 +231,14 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
   failing below the floor `vitest.config.ts` sets for `src/rules/` and
   `src/view/`), `yarn test:watch`, or `yarn vitest run <path>` for one
   spec, which leaves the floor alone.
-- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the fences
-  between the layers and the scripts' rules for `tools/`, then stylelint
-  with `@fz/style`'s preset).
+- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the scripts'
+  rules among them for `tools/`, `eslint.config.js` and
+  `stylelint.config.js`, and `phaserGameLayers()` for the fences between the
+  layers and what keeps the rules and the view off the clock,
+  `Math.random()` and the page, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite config,
-  and the scripts in `tools/` from their JSDoc, with
-  `tsconfig.scripts.json`).
+  and the scripts in `tools/` and the two lint configs from their JSDoc,
+  with `tsconfig.scripts.json`).
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a

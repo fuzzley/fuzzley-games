@@ -145,12 +145,13 @@ workspace's with the others'.
   the floor alone.
 - **Linting:** `yarn lint` (ESLint over `src`, `tools` and the configs:
   `@fz/dev`'s blocks, with Angular's template accessibility rules and JSDoc
-  types on every script, and the fence around `src/rules/`; then
+  types on every script and on `eslint.config.js` and
+  `stylelint.config.js`, and the fence around `src/rules/`; then
   `yarn lint:styles`, stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the Angular compiler over the app,
-  then `tsc` over the specs, the Vite configs and the scripts in `tools/`
-  from their JSDoc, emitting nothing, each with `@fz/dev`'s compiler
-  options).
+  then `tsc` over the specs, the Vite configs, and the scripts in `tools/`
+  and the two lint configs from their JSDoc, emitting nothing, each with
+  `@fz/dev`'s compiler options).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/chrome`: a seeded game, part played, at

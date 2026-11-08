@@ -216,10 +216,12 @@ Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
   `yarn test:watch`, or `yarn vitest run <path>` for one spec, which leaves
   the floor alone.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the fence
-  around `src/rules/` and the scripts' rules for `tools/`, then stylelint
-  with `@fz/style`'s preset).
+  around `src/rules/` and the scripts' rules for `tools/`,
+  `eslint.config.js` and `stylelint.config.js`, then stylelint with
+  `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, and the scripts
-  in `tools/` from their JSDoc, with `tsconfig.scripts.json`).
+  in `tools/` and the two lint configs from their JSDoc, with
+  `tsconfig.scripts.json`).
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a

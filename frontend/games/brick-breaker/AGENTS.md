@@ -28,26 +28,42 @@ a ball or a brick kind takes (`brick-breaker-content`).
 ## Layers
 
 Four folders under `src/`, each importing only the layers below it, as
-`eslint.config.js` fences them:
+`@fz/dev`'s `phaserGameLayers()` fences them in `eslint.config.js`:
 
-| Folder       | May import                                                                                                                 | May not import                                                      |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, the shell's libraries, the scene and shell   |
-| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                     |
-| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import      |
+| Folder       | May import                                                                                                                 | May not import                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import                          |
 
 The physics is the rules', so the whole game plays in Node, as the
 autopilot does. The shell loads the scene with `import()`, which the fence
 doesn't see, so Phaser stays out of the first download.
+
+The rules and the view, but their specs, read only what they are handed,
+as `phaserGameLayers()` holds them: no clock or timer (`Date.now()`,
+`new Date()`, `performance`, `setTimeout()`), no number drawn from no seed
+(`Math.random()`, `crypto`, `@fz/core/random`'s `randomSeed()`), no seed
+mixed by hand (`Math.imul()`, where `@fz/core/random`'s `mixSeed()` mixes
+one), nothing of the page (`window`, `document`, `navigator`,
+`matchMedia()`) and nothing stored or fetched (`localStorage`, `fetch()`).
+The scene hands them the frames' time and the room, the shell what is kept,
+and their numbers are drawn from a seed, so a run plays the same again from
+its seed and its frames, as a game taken up and a level made again from its
+run's seed rely on. So does the autopilot (`src/testing/autopilot.ts`),
+which plays the same from a seed only while it reads nothing else itself,
+but lint doesn't hold it to that yet: it is one of the specs' helpers, and
+no fence keeps them off the clock or `Math.random()`.
 
 ## Layout
 
 Each layer's folder holds at its top what the rest of it builds on, and each
 part of it in a folder of its own below, named for what it holds, never for
 the kind of code in it; a spec sits beside the file it tests. No folder in a
-layer takes a layer's name, `view`, `scene` or `app`, which the fences would
-take for the layer.
+layer takes a name the fences keep: a layer's, `view`, `scene` or `app`,
+which they would take for the layer, or `testing`, which the rules' fence
+takes for the specs' helpers.
 
 - **`src/rules/`** — the game, with no framework, physics included.
   `tuning.ts` holds the numbers that set its feel, in field units (the
@@ -483,10 +499,14 @@ workspace's with the others'.
   for the rules and the view, then its `sim` project, the specs that play
   every level, without), `yarn test:watch`, or `yarn vitest run <path>`
   for one spec, which leaves the floor alone.
-- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
-  between the layers, then stylelint with `@fz/style`'s preset).
+- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
+  among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
+  and `phaserGameLayers()` for the fences between the layers and what keeps
+  the rules and the view off the clock, `Math.random()` and the page, then
+  stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
-  config, and the scripts under `tools/` from their JSDoc).
+  config, and the scripts under `tools/` and the two lint configs from
+  their JSDoc).
 - **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
   the autopilot plays every level at every preset speed, all but Custom,
   from the level's number as the seed, as the autopilot's spec

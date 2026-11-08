@@ -1,4 +1,4 @@
-import { angular, templates, tests, typescript } from "@fz/dev/eslint";
+import { angular, scripts, templates, tests, typescript } from "@fz/dev/eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
@@ -11,4 +11,5 @@ export default defineConfig(
   angular({ files: ["src/**/*.ts"], prefix: "fz" }),
   templates({ files: ["src/**/*.html"] }),
   tests({ files: ["src/**/*.spec.ts", "src/test-setup.ts"] }),
+  scripts({ files: ["eslint.config.js", "stylelint.config.js"] }),
 );

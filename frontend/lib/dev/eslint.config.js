@@ -1,5 +1,5 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import { tests, typescript } from "./src/eslint.ts";
+import { scripts, tests, typescript } from "./src/eslint.ts";
 
 export default defineConfig(
   // The report `yarn test` writes.
@@ -9,4 +9,5 @@ export default defineConfig(
     files: ["src/**/*.ts", "vitest.config.ts"],
   }),
   tests({ files: ["src/**/*.spec.ts", "src/testing/**/*.ts"] }),
+  scripts({ files: ["eslint.config.js"] }),
 );

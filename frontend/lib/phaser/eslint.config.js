@@ -1,4 +1,11 @@
-import { angular, phaser, templates, tests, typescript } from "@fz/dev/eslint";
+import {
+  angular,
+  phaser,
+  scripts,
+  templates,
+  tests,
+  typescript,
+} from "@fz/dev/eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
@@ -11,6 +18,7 @@ export default defineConfig(
   angular({ files: ["src/**/*.ts"], prefix: "fz" }),
   templates({ files: ["src/**/*.html"] }),
   tests({ files: ["src/**/*.spec.ts", "src/test-setup.ts"] }),
+  scripts({ files: ["eslint.config.js", "stylelint.config.js"] }),
   phaser({
     files: [
       "src/host/**/*.ts",
@@ -21,7 +29,10 @@ export default defineConfig(
   }),
   {
     // The pure entries are for a game's code that knows no Phaser and no
-    // framework, so they import nothing but each other.
+    // framework, so they import nothing but each other. @fz/dev's
+    // phaserGameLayers() lets a game's view take the same entries
+    // (PURE_PHASER_ENTRIES in lib/dev/src/eslint.ts), so the two lists change
+    // together.
     files: [
       "src/insets/**/*.ts",
       "src/color/**/*.ts",

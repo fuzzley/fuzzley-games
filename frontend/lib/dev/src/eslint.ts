@@ -22,6 +22,57 @@ export interface AngularFiles extends Files {
 }
 
 /**
+ * Names the imports a fence refuses, and why, as one of
+ * `no-restricted-imports`' patterns: by a `group` of paths or by a `regex`.
+ */
+export type RestrictedImportPattern = (
+  | {
+      /** Paths as git's ignore rules write them, a `!` taking one back. */
+      readonly group: readonly string[];
+    }
+  | {
+      /** A regular expression the path matches. */
+      readonly regex: string;
+    }
+) & {
+  /** The names refused of what the pattern matches, where not all are. */
+  readonly importNames?: readonly string[];
+  /** Whether an import of types alone gets through. */
+  readonly allowTypeImports?: boolean;
+  readonly message: string;
+};
+
+/**
+ * Names files outside a game's rules that lint holds to the rules' fence and
+ * keeps to what they are handed, as it does the rules.
+ */
+export interface HeldAsRules {
+  /**
+   * The files, as an ESLint block's `files` names them, such as the specs'
+   * helpers a script runs in Node.
+   */
+  readonly files: readonly string[];
+  /** The imports they refuse on top of the rules' fence. */
+  readonly patterns?: readonly RestrictedImportPattern[];
+}
+
+/**
+ * Says which libraries' entries a game drawn with Phaser lets its view
+ * import beyond what every such game's does, and which files outside its
+ * rules it holds as the rules are.
+ */
+export interface PhaserGameLayers {
+  /**
+   * The libraries' entries the view may import beside `@fz/core` and
+   * `@fz/phaser`'s pure entries, such as `@fz/style/fuzzball`. Each is one
+   * entry, `@fz/<lib>/<entry>`, never a library's package or a path below an
+   * entry, which the view's fence can't let in.
+   */
+  readonly viewAllows?: readonly string[];
+  readonly heldAsRules?: HeldAsRules;
+}
+
+/**
  * Returns the rules for a workspace's TypeScript: typescript-eslint's strict
  * and stylistic type-checked rules, with the repository's own on top.
  *
@@ -192,6 +243,292 @@ export function phaser({ files }: Files): Config[] {
       "@typescript-eslint/no-unnecessary-condition": "off",
     },
   });
+}
+
+// Phaser itself, anchored, so @fz/phaser's entries aren't taken for it.
+const PHASER = ["/phaser", "/phaser/*"];
+
+// The frameworks the rules and the view are free of.
+const FRAMEWORKS = ["@angular/*", "rxjs", "rxjs/*"];
+
+// The libraries of the shell, which only it uses.
+const SHELL_LIBRARIES = [
+  "@fz/ui",
+  "@fz/ui/*",
+  "@fz/game-ui",
+  "@fz/game-ui/*",
+  "@fz/style",
+  "@fz/style/*",
+];
+
+// @fz/phaser's entries that know no Phaser and no framework, the folders
+// lib/phaser/eslint.config.js fences as its pure entries, so the two lists
+// change together.
+const PURE_PHASER_ENTRIES = [
+  "@fz/phaser/color",
+  "@fz/phaser/insets",
+  "@fz/phaser/layout",
+  "@fz/phaser/shapes",
+];
+
+// Why the rules and the view read only what they are handed: a game taken up,
+// a run played again from its seed, as an autopilot plays one, and a level or
+// a wave made again from it all rely on a run playing the same from the same
+// seed and the same frames.
+const CLOCK =
+  "The rules and the view keep time by the frames the scene hands them, never by the clock or a timer, so a run plays the same again from the same frames.";
+const RANDOM =
+  "The rules and the view draw their numbers from a seed they are handed, with @fz/core/random's createRandom() or drawAt(), so a run plays the same again from its seed.";
+const MIXED_SEED =
+  "The rules and the view mix a seed with a number through @fz/core/random's mixSeed(), in a stream named for what it is mixed for, never by hand, so no two streams draw from the same seeds and each stream's are pinned in its spec.";
+const PAGE =
+  "The rules and the view read nothing of the page, which the scene and the shell read and hand them, so a run plays the same in Node as on the page.";
+const STORAGE =
+  "The rules and the view read nothing stored or fetched: the shell reads what is kept and hands them the record, so a run plays the same from the record it is handed, in Node as on the page.";
+
+// The globals that read the clock, a number drawn from no seed, the page or
+// what is stored or fetched, each group with its reason. The page's global
+// object is among them under each of its names, so none of the others is
+// reached through it.
+const NONDETERMINISTIC_GLOBALS = [
+  {
+    names: [
+      "performance",
+      "setTimeout",
+      "setInterval",
+      "requestAnimationFrame",
+      "requestIdleCallback",
+    ],
+    message: CLOCK,
+  },
+  { names: ["crypto"], message: RANDOM },
+  {
+    names: [
+      "window",
+      "self",
+      "globalThis",
+      "top",
+      "parent",
+      "frames",
+      "opener",
+      "document",
+      "navigator",
+      "location",
+      "history",
+      "screen",
+      "visualViewport",
+      "matchMedia",
+      "devicePixelRatio",
+      "innerWidth",
+      "innerHeight",
+      "getComputedStyle",
+      "addEventListener",
+      "ResizeObserver",
+    ],
+    message: PAGE,
+  },
+  {
+    names: [
+      "localStorage",
+      "sessionStorage",
+      "indexedDB",
+      "caches",
+      "cookieStore",
+      "fetch",
+    ],
+    message: STORAGE,
+  },
+];
+
+// @fz/core/random's randomSeed(), which draws from Math.random() unless handed
+// another source. The rules' and the view's fences hold it, since a
+// no-restricted-imports of deterministic()'s own would replace theirs.
+const RANDOM_SEED: RestrictedImportPattern = {
+  group: ["@fz/core/random"],
+  importNames: ["randomSeed"],
+  message: RANDOM,
+};
+
+// The rules' fence, which what is held as the rules are holds to too.
+const RULES_FENCE: readonly RestrictedImportPattern[] = [
+  {
+    group: [...PHASER, ...FRAMEWORKS, "@fz/*", "!@fz/core", "!@fz/core/*"],
+    message: "The rules use no framework and no library but @fz/core.",
+  },
+  {
+    group: ["**/view", "**/view/**", "**/scene", "**/scene/**"],
+    message: "The rules know nothing of how the game is drawn.",
+  },
+  {
+    group: ["**/app", "**/app/**"],
+    message: "The rules know nothing of the shell.",
+  },
+  {
+    group: ["**/testing", "**/testing/**"],
+    message: "The rules know nothing of the specs' helpers.",
+  },
+  RANDOM_SEED,
+];
+
+// A library's entry, the one kind of path the view's fence can let back in.
+const LIBRARY_ENTRY = /^@fz\/[\w-]+\/[\w-]+$/;
+
+/**
+ * Returns the view's fence, which lets in, of the libraries, `@fz/core`,
+ * `@fz/phaser`'s pure entries and the entries given.
+ */
+function viewFence(allows: readonly string[]): RestrictedImportPattern[] {
+  const entries = [...PURE_PHASER_ENTRIES, ...allows];
+  return [
+    {
+      group: [
+        ...PHASER,
+        ...FRAMEWORKS,
+        // Every library's entries, never a package, where one is let back
+        // in: git's ignore rules can't take back a file whose folder is
+        // excluded.
+        "@fz/*/*",
+        "!@fz/core/*",
+        ...entries.map((entry) => `!${entry}`),
+      ],
+      message: `The view is plain TypeScript: no Phaser, no framework, and of the libraries only @fz/core, ${entries.join(", ")}.`,
+    },
+    {
+      // A library's package itself, but @fz/core, which a pattern of its own
+      // names without excluding the entries let in.
+      regex: "^@fz/(?!core$)[^/]+$",
+      message: `The view takes of the libraries only @fz/core, ${entries.join(", ")}.`,
+    },
+    {
+      group: ["**/scene", "**/scene/**", "**/app", "**/app/**"],
+      message: "The view knows nothing of the scene or the shell.",
+    },
+    RANDOM_SEED,
+  ];
+}
+
+const SCENE_FENCE: readonly RestrictedImportPattern[] = [
+  {
+    group: [...FRAMEWORKS, ...SHELL_LIBRARIES, "@fz/phaser/canvas"],
+    message: "The scene draws with Phaser alone, and knows no framework.",
+  },
+  {
+    group: ["**/app", "**/app/**"],
+    message: "The scene knows nothing of the shell.",
+  },
+];
+
+const APP_FENCE: readonly RestrictedImportPattern[] = [
+  {
+    group: PHASER,
+    message:
+      "The shell never imports Phaser: the board loads the scene with import().",
+  },
+  {
+    group: [
+      "**/scene",
+      "**/scene/**",
+      "@fz/phaser/host",
+      "@fz/phaser/scene",
+      "@fz/phaser/sound",
+    ],
+    allowTypeImports: true,
+    message:
+      "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",
+  },
+];
+
+/** Returns the block that fences files, but their specs, off from what they may not import. */
+function fence(
+  files: readonly string[],
+  patterns: readonly RestrictedImportPattern[],
+): Config {
+  return {
+    files: [...files],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": ["error", { patterns }],
+    },
+  };
+}
+
+/**
+ * Returns the block that keeps files, but their specs, from reading the
+ * clock, a number drawn from no seed, a seed mixed by hand, the page or what
+ * is stored or fetched.
+ */
+function deterministic(files: readonly string[]): Config {
+  return {
+    files: [...files],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        { object: "Math", property: "random", message: RANDOM },
+        { object: "Math", property: "imul", message: MIXED_SEED },
+        { object: "Date", property: "now", message: CLOCK },
+      ],
+      "no-restricted-globals": [
+        "error",
+        ...NONDETERMINISTIC_GLOBALS.flatMap(({ names, message }) =>
+          names.map((name) => ({ name, message })),
+        ),
+      ],
+      // A date made from a time it is given is the same every run; one made
+      // from nothing, or by calling `Date()`, is now.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+          message: `new Date() reads the clock. ${CLOCK}`,
+        },
+        {
+          selector: "CallExpression[callee.name='Date']",
+          message: `Date() reads the clock. ${CLOCK}`,
+        },
+      ],
+    },
+  };
+}
+
+/**
+ * Returns the fences between the layers of a game drawn with Phaser, each a
+ * folder under `src/` importing only the layers below it: the rules
+ * (`src/rules/`), then the view (`src/view/`), then the scene
+ * (`src/scene/`), then the shell (`src/app/`), whose board loads the scene
+ * with `import()`. The rules and the view, but their specs, are kept to what
+ * they are handed besides: no clock or timer, no number drawn from no seed,
+ * no seed mixed by hand, nothing of the page and nothing stored or fetched.
+ *
+ * ESLint takes a rule's options from the last block that sets it for a file,
+ * so a block of the game's own that restricts imports, properties, globals or
+ * syntax in these folders replaces these rather than adding to them; what the
+ * game lets in, or holds as the rules are, goes in the options instead.
+ *
+ * It throws for a path in `viewAllows` that is no library's entry, such as a
+ * library's package or a path below an entry, which the view's fence would
+ * name and yet still refuse.
+ */
+export function phaserGameLayers({
+  viewAllows = [],
+  heldAsRules,
+}: PhaserGameLayers = {}): Config[] {
+  const notEntry = viewAllows.find((allowed) => !LIBRARY_ENTRY.test(allowed));
+  if (notEntry !== undefined) {
+    throw new Error(
+      `phaserGameLayers()'s viewAllows takes only a library's entries, as @fz/<lib>/<entry>, which the view's fence can let in, not "${notEntry}".`,
+    );
+  }
+  const held = heldAsRules?.files ?? [];
+  const heldPatterns = heldAsRules?.patterns ?? [];
+  return defineConfig(
+    fence(["src/rules/**/*.ts"], RULES_FENCE),
+    fence(["src/view/**/*.ts"], viewFence(viewAllows)),
+    fence(["src/scene/**/*.ts"], SCENE_FENCE),
+    fence(["src/app/**/*.ts"], APP_FENCE),
+    held.length > 0 ? fence(held, [...RULES_FENCE, ...heldPatterns]) : [],
+    deterministic(["src/rules/**/*.ts", "src/view/**/*.ts", ...held]),
+  );
 }
 
 /**

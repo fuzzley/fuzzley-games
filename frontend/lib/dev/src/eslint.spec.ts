@@ -6,6 +6,7 @@ import type { Config } from "eslint/config";
 import {
   angular,
   phaser,
+  phaserGameLayers,
   scripts,
   templates,
   tests,
@@ -35,6 +36,9 @@ function workspace(root: string): Config[] {
     ...scripts({ files: ["tools/**/*.mjs"] }),
   ];
 }
+
+/** The rule each layer's fence is, which adds to the testing fence's. */
+const FENCE = "@typescript-eslint/no-restricted-imports";
 
 /** A guard on a value its type says is always there, as Phaser's are. */
 const GUARDED =
@@ -75,10 +79,12 @@ function leftSwitch(...blocks: string[]): string {
 
 /**
  * Writes files into a workspace of their own, lints them with
- * {@link workspace}'s blocks, and returns the rules each one breaks.
+ * {@link workspace}'s blocks and the blocks given, and returns the rules each
+ * one breaks.
  */
 async function lint(
   files: Readonly<Record<string, string>>,
+  blocks: readonly Config[] = [],
 ): Promise<Record<string, string[]>> {
   const root = await mkdtemp(join(tmpdir(), "fz-dev-eslint-"));
   try {
@@ -90,7 +96,7 @@ async function lint(
     const eslint = new ESLint({
       cwd: root,
       overrideConfigFile: true,
-      overrideConfig: workspace(root),
+      overrideConfig: [...workspace(root), ...blocks],
     });
     const results = await eslint.lintFiles(Object.keys(files));
     return Object.fromEntries(
@@ -259,5 +265,226 @@ describe("scripts", () => {
     });
 
     expect(problems["tools/run.mjs"]).toEqual([]);
+  });
+});
+
+describe("phaserGameLayers", () => {
+  it.each([
+    ["src/rules/run.ts", "../view/paint"],
+    ["src/rules/run.ts", "../testing/fields"],
+    ["src/rules/run.ts", "@fz/phaser/shapes"],
+    ["src/view/paint.ts", "../scene/belt"],
+    ["src/scene/belt.ts", "../app/board"],
+    ["src/scene/belt.ts", "@angular/core"],
+    ["src/scene/belt.ts", "@fz/phaser/canvas"],
+    ["src/scene/belt.ts", "@fz/ui/dialog"],
+    ["src/app/board.ts", "phaser"],
+    ["src/app/board.ts", "@fz/phaser/host"],
+  ])("keeps %s off %s", async (file, imported) => {
+    const problems = await lint(
+      { [file]: `import "${imported}";\n` },
+      phaserGameLayers(),
+    );
+
+    expect(problems[file]).toEqual([FENCE]);
+  });
+
+  it("lets the rules take @fz/core", async () => {
+    const problems = await lint(
+      { "src/rules/run.ts": 'import "@fz/core/math";\n' },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([]);
+  });
+
+  it("leaves a layer's specs free to import what the layer may not", async () => {
+    const problems = await lint(
+      { "src/rules/run.spec.ts": 'import "../view/paint";\n' },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/rules/run.spec.ts"]).toEqual([]);
+  });
+
+  it("keeps Phaser and the frameworks out of the rules and the view", async () => {
+    const problems = await lint(
+      {
+        "src/rules/run.ts": 'import "phaser";\n',
+        "src/view/paint.ts": 'import "@angular/core";\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/rules/run.ts": [FENCE],
+      "src/view/paint.ts": [FENCE],
+    });
+  });
+
+  it("lets the view take @fz/core and @fz/phaser's pure entries", async () => {
+    const problems = await lint(
+      {
+        "src/view/paint.ts":
+          'import "@fz/core/math";\nimport "@fz/phaser/shapes";\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/view/paint.ts"]).toEqual([]);
+  });
+
+  it("keeps the view off every other library's entries and packages", async () => {
+    const problems = await lint(
+      {
+        "src/view/paint.ts":
+          'import "@fz/style/fuzzball";\nimport "@fz/phaser";\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/view/paint.ts"]).toEqual([FENCE, FENCE]);
+  });
+
+  it("lets the view take an entry the game allows, but not its package", async () => {
+    const problems = await lint(
+      {
+        "src/view/paint.ts":
+          'import "@fz/style/fuzzball";\nimport "@fz/style";\n',
+      },
+      phaserGameLayers({ viewAllows: ["@fz/style/fuzzball"] }),
+    );
+
+    expect(problems["src/view/paint.ts"]).toEqual([FENCE]);
+  });
+
+  it("refuses the rules and the view @fz/core's unseeded randomSeed()", async () => {
+    const code =
+      'import { randomSeed } from "@fz/core/random";\nexport { randomSeed };\n';
+
+    const problems = await lint(
+      { "src/rules/run.ts": code, "src/view/paint.ts": code },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/rules/run.ts": [FENCE],
+      "src/view/paint.ts": [FENCE],
+    });
+  });
+
+  it.each(["@fz/style", "@fz/style/fuzzball/colors"])(
+    "refuses to let the view take %s, which is no library's entry",
+    (allowed) => {
+      expect(() => phaserGameLayers({ viewAllows: [allowed] })).toThrow(
+        `viewAllows takes only a library's entries, as @fz/<lib>/<entry>, which the view's fence can let in, not "${allowed}"`,
+      );
+    },
+  );
+
+  it("lets the shell take the scene by type alone", async () => {
+    const problems = await lint(
+      {
+        "src/app/board.ts":
+          'import type { Belt } from "../scene/belt";\nexport type Shown = Belt;\n',
+        "src/app/shell.ts": 'import "../scene/belt";\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/app/board.ts": [],
+      "src/app/shell.ts": [FENCE],
+    });
+  });
+
+  it.each([
+    ["Date.now()", "no-restricted-properties"],
+    ["new Date()", "no-restricted-syntax"],
+    ["performance.now()", "no-restricted-globals"],
+    ["setTimeout(() => undefined, 1)", "no-restricted-globals"],
+    ["Math.random()", "no-restricted-properties"],
+    ["Math.imul(7, 9)", "no-restricted-properties"],
+    ["window.innerWidth", "no-restricted-globals"],
+    ["globalThis.innerWidth", "no-restricted-globals"],
+    ['localStorage.getItem("run")', "no-restricted-globals"],
+  ])("keeps the rules and the view off %s", async (read, rule) => {
+    const code = `export const read = ${read};\n`;
+
+    const problems = await lint(
+      { "src/rules/run.ts": code, "src/view/paint.ts": code },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/rules/run.ts": [rule],
+      "src/view/paint.ts": [rule],
+    });
+  });
+
+  it("lets the rules make a date from a time they are handed", async () => {
+    const problems = await lint(
+      {
+        "src/rules/run.ts":
+          "export const at = (time: number): Date => new Date(time);\n",
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([]);
+  });
+
+  it("leaves the specs, the scene and the shell the clock", async () => {
+    const code = "export const now = Date.now();\n";
+
+    const problems = await lint(
+      {
+        "src/rules/run.spec.ts": code,
+        "src/scene/belt.ts": code,
+        "src/app/board.ts": code,
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/rules/run.spec.ts": [],
+      "src/scene/belt.ts": [],
+      "src/app/board.ts": [],
+    });
+  });
+
+  it("holds the files a game names as the rules are", async () => {
+    const problems = await lint(
+      {
+        "src/testing/autopilot.ts":
+          'import "@angular/core";\nexport const now = Date.now();\n',
+        "src/testing/fields.ts": 'import "@angular/core";\n',
+      },
+      phaserGameLayers({
+        heldAsRules: { files: ["src/testing/autopilot.ts"] },
+      }),
+    );
+
+    expect(problems).toEqual({
+      "src/testing/autopilot.ts": [FENCE, "no-restricted-properties"],
+      "src/testing/fields.ts": [],
+    });
+  });
+
+  it("holds the files a game names to its own patterns too", async () => {
+    const problems = await lint(
+      {
+        "src/testing/autopilot.ts":
+          'import "./kept_run";\nimport "./fields";\n',
+      },
+      phaserGameLayers({
+        heldAsRules: {
+          files: ["src/testing/autopilot.ts"],
+          patterns: [{ regex: "^\\./(?!kept_run$)", message: "Off the list." }],
+        },
+      }),
+    );
+
+    expect(problems["src/testing/autopilot.ts"]).toEqual([FENCE]);
   });
 });

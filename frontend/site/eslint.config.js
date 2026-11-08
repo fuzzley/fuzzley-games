@@ -16,5 +16,7 @@ export default defineConfig(
       "tools/**/*.spec.ts",
     ],
   }),
-  scripts({ files: ["tools/*.mjs"] }),
+  scripts({
+    files: ["tools/*.mjs", "eslint.config.js", "stylelint.config.js"],
+  }),
 );

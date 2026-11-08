@@ -122,8 +122,8 @@ relative to `frontend/lib/style/`.
   `.fz-visually-hidden` alone is `!important`, so nothing brings its text
   back into view.
 - **Imports go one way.** This library imports no workspace but another
-  library, and only by package name. `rootDir` in `tsconfig.json` fails a
-  relative import that climbs out of the library.
+  library, and only by package name. `rootDir` in `tsconfig.lib.json` fails
+  a relative import that climbs out of the library.
 
 ## Rules
 
@@ -179,11 +179,13 @@ own, which `yarn workspace @fz/style <script>` runs alone.
 - **`lint`** runs ESLint (`eslint.config.js`) with `@fz/dev`'s TypeScript
   block: typescript-eslint's strict and stylistic type-checked rules,
   explicit return types on exported functions, and `import type` for
-  type-only imports. Then `lint:styles` runs stylelint
+  type-only imports, and its `scripts()` block over `eslint.config.js` and
+  `stylelint.config.js`. Then `lint:styles` runs stylelint
   (`stylelint.config.js`, the library's own preset with the palettes and
   shadows let off its color rules).
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
-  config.
+  config (`tsconfig.lib.json`), then over the two lint configs from their
+  JSDoc (`tsconfig.scripts.json`).
 - **`test`** runs Vitest in Node. Each spec sits beside the file it tests. The
   stylesheets' specs compile them with Sass; the plugin's run a real Vite dev
   server and build in a temporary folder. It collects coverage too, and fails

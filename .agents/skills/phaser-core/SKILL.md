@@ -56,10 +56,12 @@ beside a deck of controls for a touch screen.
   data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
-  a `phaser` chunk of its own, and `phaser({ files })` from `@fz/dev/eslint`
+  a `phaser` chunk of its own, `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser
   types a scene's systems as always there, though they aren't before it
-  boots or after it ends.
+  boots or after it ends, and `phaserGameLayers()` fences the four layers
+  of a game laid out in them and keeps its rules and view off the clock,
+  unseeded numbers and the page.
 
 ## Where Phaser may be imported
 
@@ -72,7 +74,8 @@ view that works out what to draw without Phaser, so its specs are plain,
 the scene, the one folder that imports Phaser, and the shell. Brick
 Breaker keeps the same four (`frontend/games/brick-breaker/AGENTS.md`),
 its physics in its rules, and so does Asteroid Breaker
-(`frontend/games/asteroid-breaker/AGENTS.md`).
+(`frontend/games/asteroid-breaker/AGENTS.md`); all three take their fences
+from `@fz/dev`'s `phaserGameLayers()` (`frontend/lib/dev/AGENTS.md`).
 The Angular shell imports `@fz/phaser/canvas` and a scene source, never
 Phaser itself; a source that loads the scene with `import()` keeps Phaser
 out of the first download.
