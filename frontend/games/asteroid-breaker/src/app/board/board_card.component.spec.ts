@@ -1,7 +1,12 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { CanvasState } from "@fz/phaser/canvas";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import {
+  fireEvent,
+  isInaccessible,
+  render,
+  screen,
+} from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
@@ -36,6 +41,12 @@ interface CardInputs {
 /** What the board tells its card once the scene has drawn, on a screen with no touch. */
 const DRAWN: CardInputs = { canvasState: "ready", slow: false, board: ROOMY };
 
+/** What the board tells its card while the scene loads, before it is slow. */
+const LOADING: Partial<CardInputs> = { canvasState: "loading" };
+
+/** What the board tells its card once the scene has taken long enough to load to say so. */
+const SLOW: Partial<CardInputs> = { canvasState: "loading", slow: true };
+
 /** What a spec gets back from rendering the card. */
 interface RenderedCard {
   readonly user: UserEvent;
@@ -45,6 +56,8 @@ interface RenderedCard {
   /** Called each time the card says the board should take the focus. */
   readonly handBack: ReturnType<typeof vi.fn>;
   readonly detectChanges: () => void;
+  /** Tells the card what the board would as the scene loads, keeping what it was told before. */
+  readonly tell: (inputs: Partial<CardInputs>) => Promise<void>;
 }
 
 /**
@@ -56,7 +69,7 @@ async function renderCard(
   waves?: readonly WaveEntry[],
 ): Promise<RenderedCard> {
   const handBack = vi.fn();
-  const { container, fixture } = await render(BoardCardComponent, {
+  const { container, fixture, rerender } = await render(BoardCardComponent, {
     inputs: { ...DRAWN, ...inputs },
     on: { handBack },
     providers: provideSpecWaves(waves),
@@ -69,6 +82,8 @@ async function renderCard(
     detectChanges: () => {
       fixture.detectChanges();
     },
+    tell: (inputs) =>
+      rerender({ inputs, on: { handBack }, partialUpdate: true }),
   };
 }
 
@@ -356,12 +371,55 @@ describe("BoardCardComponent", () => {
     expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
   });
 
-  it("says the board is still loading on a slow connection, offering nothing to press", async () => {
-    await renderCard({ canvasState: "loading", slow: true });
+  describe("while the board loads", () => {
+    it("keeps a status region in the page, empty until the board is slow", async () => {
+      await renderCard(LOADING);
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Still loading the board",
+      expect(screen.getByRole("status")).toHaveTextContent(/^$/);
+    });
+
+    it("says in that region the board is still loading, once it is slow", async () => {
+      const { tell } = await renderCard(LOADING);
+      const region = screen.getByRole("status");
+
+      await tell({ slow: true });
+
+      expect(screen.getByRole("status")).toBe(region);
+      expect(region).toHaveTextContent(
+        "Still loading the board. It can take a while on a slow connection.",
+      );
+    });
+
+    it("shows the Still loading card once it is slow, offering nothing to press", async () => {
+      await renderCard(SLOW);
+
+      expect(screen.getByText("Still loading the board")).toBeVisible();
+      expect(
+        screen.getByText("It can take a while on a slow connection."),
+      ).toBeVisible();
+      expect(screen.queryAllByRole("button", { hidden: true })).toEqual([]);
+    });
+
+    it("hides the card from assistive technology, which reads its words in the region", async () => {
+      await renderCard(SLOW);
+
+      expect(isInaccessible(screen.getByText("Still loading the board"))).toBe(
+        true,
+      );
+    });
+
+    it.each<[string, CanvasState]>([
+      ["drawn", "ready"],
+      ["given up on", "failed"],
+    ])(
+      "empties the region once the slow board is %s, saying nothing more",
+      async (_, canvasState) => {
+        const { tell } = await renderCard(SLOW);
+
+        await tell({ canvasState, slow: false });
+
+        expect(screen.getByRole("status")).toHaveTextContent(/^$/);
+      },
     );
-    expect(screen.queryAllByRole("button")).toEqual([]);
   });
 });
