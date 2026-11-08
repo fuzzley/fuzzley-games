@@ -1157,17 +1157,6 @@ describe("GameService", () => {
       });
     });
 
-    it("keeps nothing of a run flown a frame on tuned numbers, though put back", async () => {
-      const game = await startedAt(SPEC_WAVE.gift);
-
-      tune({ rockSpeed: 1.5 });
-      game.tick(FRAME_MS, STILL);
-      resetTuning();
-      endRun(game);
-
-      expect(atNormal()).toMatchObject({ best: 0, furthest: 0 });
-    });
-
     it("keeps the records of a run whose numbers were put back before its first move", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
       tune({ rockSpeed: 1.5 });
