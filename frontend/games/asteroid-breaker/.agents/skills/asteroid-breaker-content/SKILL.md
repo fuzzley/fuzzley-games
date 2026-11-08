@@ -134,7 +134,9 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   moment it cares for: as a hit holds the rock, as it breaks, at each step,
   or as its blast goes off. What a trait leaves on a rock between steps,
   such as a blast's fuse, is kept by the saved game (`KEPT_OF_ROCK`,
-  `src/rules/run/saved_game.ts`), whose round trip must reach it.
+  `src/rules/field/kept_field.ts`), with the check its kept value must pass
+  in `ROCK_CHECKS`, which the compiler asks for, and its round trip must
+  reach it.
 
 ## A Pickup or an Effect
 

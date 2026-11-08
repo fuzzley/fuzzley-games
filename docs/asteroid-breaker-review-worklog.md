@@ -152,3 +152,67 @@ The review found it correct:
    Its events come from a `FieldEventLog`, but a lost ship with no pilot,
    which the log never makes, and the ring's radius is held.
 4. _A redundant `Readonly<>` and a long line in `AGENTS.md`:_ taken.
+
+### Step 10a: finding 13, the kept field a file of its own
+
+Built on `ab-rules`. The field's half of the saved game is
+`src/rules/field/kept_field.ts`: `SavedField`, `readField()`, its rocks
+checked from a table keyed by the saved rock's keys, and
+`layOutKeptField()`. `saved_game.ts` keeps the run's half, `readRun()`,
+`takeUpField()` and `waveSoFar()`, and `restoreGame()` joins them. The `||`
+chains are named, exported checks, each with a table of spoiled values
+held to failing it alone, and the same tables held to the reader's
+refusal. The readers moved here take finding 16's `read…` verb now, so
+they aren't renamed twice. 4,910 tests pass.
+
+Where it went other than planned:
+
+- **`bringShip()` stays in `field.ts`, exported,** where the plan moved it
+  to the kept field: `field.ts` would then import `kept_field.ts`, which
+  imports `fieldFor()` from it, a cycle at runtime the rules don't have.
+- **The kept field imports nothing from `run/`** but the `WaveStart` type
+  `field.ts` already did (review, 1). `layOutKeptField()` takes the wave,
+  its setup and `WaveSoFar`, and `saved_game.ts` works those out of the
+  run.
+- **The rock table types each key's own guard,** so a check of the wrong
+  type fails to compile, as a missing one does.
+- **`src/testing/run_under_way.ts`** holds the run and fields both specs
+  need, and the spoils' type.
+- **A stored run with no field at the wave it began at is refused**
+  (`hasClearedAWave()`, in `run.ts`), the comment finding 2's review left
+  here. The review's premise was wrong in one point: `saveGame()` could
+  write one, for a `"playing"` run whose field hadn't moved, a state the
+  shell never reaches but `app.component.spec.ts`'s `storeRun()` built. It
+  keeps nothing for that now, as its doc promised, and `storeRun()` steps
+  its field once. No player can hold such an entry, so none loses a run.
+
+The first review:
+
+1. _`field/` imported `run/` at runtime_ (`waveStart`, a whole `Run`,
+   `waveSoFar()`), a coupling finding 14 is set to remove. Taken, as above.
+2. _`hasMoved()` also checked `lastDropAt <= steps`:_ taken; that is
+   `hasDroppedInTime()`, with its own spoils.
+3. _The run's fixture had as many strays as were banked,_ so passing the
+   wrong count to `hasSoundCrew()` went unnoticed: taken, with a case where
+   they differ.
+4. _Two tables named `WAVE_SPOILS`, and `Spoil` written twice:_ taken.
+5. _`KeptRockKey` exported for no reader, and `AGENTS.md` calling the
+   private table exported:_ taken.
+6. _The first-wave entry_ (from finding 2's review): taken, as above.
+
+The fix to 1 reshaped the change, so it was reviewed again. It found every
+old clause in place with the same bounds:
+
+1. _`pilotsOf()` built copies only to drop them, and missed the rename:_
+   taken; `isPilots()` is a guard, with a spoil that tells `every` from
+   `some`.
+2. _Some spoils sat off the boundary,_ so a flipped comparison passed:
+   taken. They come from `fillFor()`, `stepsIn()`, `FIELD_LONGEST_SIDE`,
+   `FIELD_SHORT_SIDE` and `ROCK_OUTLINES`, at one past to fail and exact to
+   pass, and flipping each comparison fails a spec.
+3. _The spoils' tuple was written out six times:_ taken; `Spoil<T>`.
+4. _`hasClearedAWave()` repeated `isInProgress()`'s test:_ taken; it is in
+   `run.ts`, and `isInProgress()` calls it.
+5. _Two stale docs:_ taken.
+6. _`readRun()` takes a checked record and `readField()` takes `unknown`:_
+   not taken; `restoreGame()` needs the record for `tuned` and `field`.

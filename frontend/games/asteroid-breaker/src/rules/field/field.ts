@@ -362,7 +362,7 @@ function holdStill(field: Field): boolean {
  * player holds as it comes, so a key held since the last was lost is no
  * move.
  */
-function bringShip(field: Field): void {
+export function bringShip(field: Field): void {
   const { x, y } = safestPlace(field);
   field.ship = createShip(x, y, field.steer);
   field.shipDueAt = null;
