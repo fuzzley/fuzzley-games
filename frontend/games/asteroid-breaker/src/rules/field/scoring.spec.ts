@@ -11,7 +11,7 @@ import {
   stepTimes,
   wholeRocks,
 } from "../../testing/field_picture";
-import { ROCK_KINDS, rockPoints } from "../catalog/rocks";
+import { ROCK_KINDS, pointsFor } from "../catalog/rocks";
 import { type Blow, type Rock, hitRock } from "../rocks/rocks";
 import type { Crew } from "../ship/pilots";
 import { stepsIn } from "../stepper";
@@ -31,12 +31,11 @@ import {
   chainMultiplier,
   clearingPoints,
   multiplier,
-  pointsOf,
   tallyOf,
 } from "./scoring";
 
 /** A small stone's points. */
-const SMALL = rockPoints("stone", "small");
+const SMALL = pointsFor("stone", "small");
 
 /** The steps a chain's time lasts. */
 const CHAIN_STEPS = stepsIn(CHAIN_MS);
@@ -52,7 +51,10 @@ function crewOf(flying: readonly number[], home: readonly number[] = []): Crew {
   return { flying, home, lastGiven: 2 };
 }
 
-/** Returns a field of a row of small stones, as many as given, the keeper keeping its wave from clearing. */
+/**
+ * Returns a field of a row of small stones, as many as given, the keeper
+ * keeping its wave from clearing.
+ */
 function stones(count: number, options: PictureOptions = {}): Field {
   return fieldFrom([...KEEPER, "", "S".repeat(count)], options);
 }
@@ -85,7 +87,10 @@ function breakSmalls(field: Field, apart = 0): number[] {
   });
 }
 
-/** Returns a field whose small stone, broken, brought the run's points to the next ship's mark, banked and crew as the options say. */
+/**
+ * Returns a field whose small stone, broken, brought the run's points to the
+ * next ship's mark, banked and crew as the options say.
+ */
 function atMark(options: PictureOptions = {}): Field {
   const field = stones(1, { banked: FIRST_SHIP_POINTS - SMALL, ...options });
   breakSmalls(field);
@@ -137,7 +142,7 @@ describe("a broken rock", () => {
 
     hitRock(field, onlySmall(field), 0, 0);
 
-    expect(field.score).toBe(rockPoints("ice", "small"));
+    expect(field.score).toBe(pointsFor("ice", "small"));
   });
 
   it("scores nothing for a hit it holds", () => {
@@ -319,7 +324,11 @@ describe("a run over", () => {
 
     hitRock(field, onlySmall(field), 0, 0);
 
-    expect([field.score, eventsOf(field)]).toEqual([0, ["lost", "broken"]]);
+    expect([field.score, field.rockPoints, eventsOf(field)]).toEqual([
+      0,
+      0,
+      ["lost", "broken"],
+    ]);
   });
 
   it("scores nothing for a wave a blast clears once the last ship is lost, though a stray waits at home", () => {
@@ -357,7 +366,7 @@ describe("tallyOf", () => {
     });
   });
 
-  it("counts what the chain added to a stray's points among the chains'", () => {
+  it("counts what the chain added to a stray's points among the chains', the parts adding up to the wave's score", () => {
     const field = fieldFrom([
       "",
       ".........^",
@@ -371,13 +380,18 @@ describe("tallyOf", () => {
 
     stepField(field);
 
-    expect(tallyOf(field)).toEqual({
-      rocks: SMALL * SHORTEST.from,
-      chains: (SMALL + STRAY_POINTS) * (SHORTEST.times - 1),
-      strays: STRAY_POINTS,
-      cleared: CLEAR_POINTS,
-      clean: CLEAN_POINTS,
-    });
+    const rocks = SMALL * SHORTEST.from;
+    const chains = (SMALL + STRAY_POINTS) * (SHORTEST.times - 1);
+    expect([tallyOf(field), field.score]).toEqual([
+      {
+        rocks,
+        chains,
+        strays: STRAY_POINTS,
+        cleared: CLEAR_POINTS,
+        clean: CLEAN_POINTS,
+      },
+      rocks + chains + STRAY_POINTS + CLEAR_POINTS + CLEAN_POINTS,
+    ]);
   });
 
   it("counts no clean wave's points for one that lost a ship", () => {
@@ -394,20 +408,6 @@ describe("tallyOf", () => {
       cleared: CLEAR_POINTS,
       clean: 0,
     });
-  });
-});
-
-describe("pointsOf", () => {
-  it("adds up a wave's tally", () => {
-    const tally = {
-      rocks: 1,
-      chains: 20,
-      strays: 300,
-      cleared: 4000,
-      clean: 50000,
-    };
-
-    expect(pointsOf(tally)).toBe(54321);
   });
 });
 

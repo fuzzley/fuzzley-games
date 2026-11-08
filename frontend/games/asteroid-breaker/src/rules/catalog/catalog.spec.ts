@@ -13,8 +13,8 @@ import {
   type RockTrait,
   isRockKindId,
   isRockSize,
+  pointsFor,
   rockKind,
-  rockPoints,
   sizeAfter,
 } from "./rocks";
 import { WEAPONS } from "./weapons";
@@ -234,13 +234,13 @@ describe("ROCK_KINDS", () => {
   });
 });
 
-describe("rockPoints", () => {
+describe("pointsFor", () => {
   it("returns the points of a kind of rock at a size", () => {
-    expect(rockPoints("iron", "medium")).toBe(ROCK_KINDS.iron.points.medium);
+    expect(pointsFor("iron", "medium")).toBe(ROCK_KINDS.iron.points.medium);
   });
 
   it("throws for a size its kind doesn't come in", () => {
-    expect(() => rockPoints("volatile", "small")).toThrow(RangeError);
+    expect(() => pointsFor("volatile", "small")).toThrow(RangeError);
   });
 });
 

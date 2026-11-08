@@ -98,7 +98,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   the narrowest field and the widest, on its side and upright (`FIELDS`:
   `NARROWEST`, `WIDEST`, `TALLEST`), and holds each to being cleared within
   four minutes of game time (`AUTOPILOT_LIMIT`), meeting a comet and a stray
-  where the wave sends them; and `src/rules/waves/every_endless_wave/`
+  where the wave sends them, its tally adding up to its score; and `src/rules/waves/every_endless_wave/`
   Endless's 31 to 60 (`ENDLESS_PLAYED`) the same, with nothing able to take
   the ship. Each keeps a file for each speed, passing its own file
   (`import.meta.filename`) to `src/testing/every_wave.ts`'s `holdEveryWave()`

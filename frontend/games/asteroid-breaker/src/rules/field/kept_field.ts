@@ -102,6 +102,12 @@ export interface SavedField {
   readonly lastDropAt: number;
   /** What the chain's multiplier has added to the wave's points, for its tally. */
   readonly chainPoints: number;
+  /**
+   * The rocks' own points among the wave's, for its tally; a field kept
+   * before they were counted lacks them, and has them worked out from what
+   * its run has scored on it (`rockPointsKept()`).
+   */
+  readonly rockPoints?: number;
   /** How many ships the wave has lost, which a clean wave has none of. */
   readonly shipsLost: number;
 }
@@ -133,6 +139,7 @@ export type SavableField = Pick<
   | "comets"
   | "lastDropAt"
   | "chainPoints"
+  | "rockPoints"
   | "shipsLost"
 >;
 
@@ -166,6 +173,7 @@ export function savedField(field: SavableField): SavedField {
     nextCometAt: field.comets.nextAt,
     lastDropAt: field.lastDropAt,
     chainPoints: field.chainPoints,
+    rockPoints: field.rockPoints,
     shipsLost: field.shipsLost,
   };
 }
@@ -189,7 +197,14 @@ export function readField(
   if (!laidOut || !torus || !hasKeptCounts(value)) return null;
   const rocks = readRocks(kept, torus, value.steps);
   if (!rocks) return null;
-  const field = { laidOut, torus, rocks, ...pick(value, KEPT_COUNTS) };
+  const { rockPoints } = value;
+  const field: SavedField = {
+    laidOut,
+    torus,
+    rocks,
+    ...pick(value, KEPT_COUNTS),
+    ...(rockPoints === undefined ? {} : { rockPoints }),
+  };
   const sound =
     hasMoved(field) &&
     hasDroppedInTime(field) &&
@@ -212,11 +227,18 @@ export function readTorus(value: unknown): Torus | null {
   return { width, height };
 }
 
-/** Returns whether each count a field kept runs by is one. */
+/**
+ * Returns whether each count a field kept runs by is one, the rocks' points
+ * among them where it keeps them.
+ */
 export function hasKeptCounts(
   value: Readonly<Record<string, unknown>>,
-): value is Pick<SavedField, KeptCount> {
-  return KEPT_COUNTS.every((key) => isCount(value[key]));
+): value is Pick<SavedField, KeptCount | "rockPoints"> {
+  const { rockPoints } = value;
+  return (
+    KEPT_COUNTS.every((key) => isCount(value[key])) &&
+    (rockPoints === undefined || isCount(rockPoints))
+  );
 }
 
 /** Returns whether a field kept has moved, as one not yet moved is kept as none. */
@@ -247,16 +269,35 @@ export function fitsItsWave(
 
 /**
  * Returns whether a field kept agrees with what its run has scored on its
- * wave: no more strays brought home than it has sent, and no fewer points
- * than the chain and those strays have scored.
+ * wave: no more strays brought home than it has sent, and its points, the
+ * rocks', the chain's and those strays', adding up to the wave's, or, for a
+ * field kept before the rocks' were counted, the chain's and the strays'
+ * no more than the wave's.
  */
 export function fitsItsRun(
-  { straysSent, chainPoints }: Pick<SavedField, "straysSent" | "chainPoints">,
+  field: Pick<SavedField, "straysSent" | "chainPoints" | "rockPoints">,
   { points, straysHome }: WaveSoFar,
 ): boolean {
+  const { chainPoints, rockPoints } = field;
+  const scored = chainPoints + straysHome * STRAY_POINTS;
+  const adds =
+    rockPoints === undefined
+      ? scored <= points
+      : rockPoints + scored === points;
+  return straysHome <= field.straysSent && adds;
+}
+
+/**
+ * Returns the rocks' own points a field kept has scored on its wave: as
+ * kept, or, for one kept before they were counted, what its run has scored
+ * on it leaves beside the chain's and the strays'.
+ */
+export function rockPointsKept(
+  field: Pick<SavedField, "chainPoints" | "rockPoints">,
+  { points, straysHome }: WaveSoFar,
+): number {
   return (
-    straysHome <= straysSent &&
-    chainPoints + straysHome * STRAY_POINTS <= points
+    field.rockPoints ?? points - field.chainPoints - straysHome * STRAY_POINTS
   );
 }
 
@@ -310,7 +351,7 @@ export function layOutKeptField(
   wave: Wave,
   setup: Omit<WaveSetup, "torus">,
   saved: SavedField,
-  { points, straysHome }: WaveSoFar,
+  soFar: WaveSoFar,
 ): Field {
   const field = fieldFor(wave, { ...setup, torus: saved.laidOut });
   stretchField(field, saved.torus);
@@ -328,11 +369,12 @@ export function layOutKeptField(
   field.draws = saved.draws;
   field.strays.sent = saved.straysSent;
   field.strays.nextAt = saved.nextStrayAt;
-  field.strays.broughtHome = straysHome;
+  field.strays.broughtHome = soFar.straysHome;
   field.comets.nextAt = saved.nextCometAt;
   field.lastDropAt = saved.lastDropAt;
-  field.score = points;
+  field.score = soFar.points;
   field.chainPoints = saved.chainPoints;
+  field.rockPoints = rockPointsKept(saved, soFar);
   field.shipsLost = saved.shipsLost;
   bringShip(field);
   return field;

@@ -65,11 +65,14 @@ export function laidOutField(run: Run, torus = UNDER_WAY_TORUS): Field {
 
 /**
  * Returns a run's field, played a second, its ship turning from the first
- * step, as a wave holds still until the first move.
+ * step, as a wave holds still until the first move, its points the run's on
+ * the wave, each a rock's, as the field would have scored them.
  */
 export function playedField(run: Run): Field {
   const field = laidOutField(run);
   steerField(field, { ...STILL, turn: 1 });
   stepTimes(field, 120);
+  field.score = run.score - run.banked;
+  field.rockPoints = field.score;
   return field;
 }

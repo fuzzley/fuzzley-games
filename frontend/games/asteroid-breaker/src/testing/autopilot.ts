@@ -10,6 +10,7 @@ import {
   steerField,
   stepField,
 } from "../rules/field/field";
+import { tallyOf } from "../rules/field/scoring";
 import type { Comet } from "../rules/hazards/comets";
 import { createCrew } from "../rules/ship/pilots";
 import { rockHitRadius } from "../rules/rocks/rocks";
@@ -102,6 +103,11 @@ export interface AutopilotReport {
   readonly caught: number;
   /** The comets that crossed the field once their warning was up. */
   readonly cometsCrossed: number;
+  /**
+   * Whether the Cleared card's tally of a wave it cleared adds up to the
+   * wave's score, every point counted in one line; true for one it didn't.
+   */
+  readonly tallyAddsUp: boolean;
 }
 
 /** How near a course must come to the ship, beyond the two touching, for the autopilot to flee it. */
@@ -198,16 +204,24 @@ export function playField(
       warned[slot] = isWarned(comet);
     }
   }
+  // A wave cleared as its last ship went is lost, as the run has it.
+  const cleared = field.cleared && hasShips(field);
   return {
-    // A wave cleared as its last ship went is lost, as the run has it.
-    cleared: field.cleared && hasShips(field),
+    cleared,
     steps: field.steps,
     shipsLost: field.shipsLost,
     straysSent: field.strays.sent,
     straysHome: field.strays.broughtHome,
     caught,
     cometsCrossed,
+    tallyAddsUp: !cleared || addsUp(field),
   };
+}
+
+/** Returns whether a cleared wave's tally adds up to its score. */
+function addsUp(field: Field): boolean {
+  const { rocks, chains, strays, cleared, clean } = tallyOf(field);
+  return rocks + chains + strays + cleared + clean === field.score;
 }
 
 /** Returns whether a comet is warned of, waiting off its edge to cross. */

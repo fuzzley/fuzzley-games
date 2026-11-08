@@ -4,7 +4,7 @@
 // is flying the run is over, and nothing scores, so its score doesn't hang
 // on how its last steps fall into frames.
 
-import { rockPoints } from "../catalog/rocks";
+import { pointsFor } from "../catalog/rocks";
 import type { FieldEventLog } from "./events";
 import { type Crew, type CrewField, gainShipOn } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
@@ -31,6 +31,8 @@ export interface ScoreField {
   lastBreakAt: number;
   /** What the chain's multiplier added to the wave's points, beyond their own. */
   chainPoints: number;
+  /** The rocks' own points among the wave's, before the chain's multiplier. */
+  rockPoints: number;
   /** How many steps the field has taken, by which the chain's time runs. */
   readonly steps: number;
   /** Who flies the run's ships: with no one flying, the run is over. */
@@ -55,7 +57,7 @@ export interface MarkField extends CrewField {
 /** Describes what of a cleared wave's field says how its points add up. */
 export interface TallyField extends Pick<
   ScoreField,
-  "score" | "chainPoints" | "shipsLost"
+  "rockPoints" | "chainPoints" | "shipsLost"
 > {
   readonly strays: { readonly broughtHome: number };
 }
@@ -93,12 +95,14 @@ export function chainMultiplier(field: Readonly<ScoreField>): number {
 /**
  * Scores a broken rock its kind's points for its size, times the chain's
  * multiplier, counting it on in the chain, or starting the chain again if
- * the last break was too long ago, and logs them at the rock's place.
+ * the last break was too long ago, and logs them at the rock's place; its
+ * own points count among the rocks', for the tally.
  */
 export function scoreBreak(field: ScoreField, rock: Readonly<Rock>): void {
   field.chain = chainCountOf(field);
   field.lastBreakAt = field.steps;
-  score(field, rockPoints(rock.kind, rock.size), rock.x, rock.y);
+  const points = pointsFor(rock.kind, rock.size);
+  if (score(field, points, rock.x, rock.y)) field.rockPoints += points;
 }
 
 /**
@@ -147,24 +151,18 @@ export function gainShipsByPoints(field: MarkField): void {
   }
 }
 
-/** Returns how a cleared wave's points add up, as its field stands. */
+/**
+ * Returns how a cleared wave's points add up, as its field stands: each part
+ * as it was scored, so a part's points never land in another's.
+ */
 export function tallyOf(field: Readonly<TallyField>): WaveTally {
-  const strays = field.strays.broughtHome * STRAY_POINTS;
-  const clean = field.shipsLost === 0 ? CLEAN_POINTS : 0;
   return {
-    rocks: field.score - field.chainPoints - strays - CLEAR_POINTS - clean,
+    rocks: field.rockPoints,
     chains: field.chainPoints,
-    strays,
+    strays: field.strays.broughtHome * STRAY_POINTS,
     cleared: CLEAR_POINTS,
-    clean,
+    clean: field.shipsLost === 0 ? CLEAN_POINTS : 0,
   };
-}
-
-/** Returns the points a tally adds up to. */
-export function pointsOf(tally: WaveTally): number {
-  return (
-    tally.rocks + tally.chains + tally.strays + tally.cleared + tally.clean
-  );
 }
 
 /** Returns how many breaks the chain counts, or 0 once its time is up. */
@@ -175,14 +173,20 @@ function chainNow(field: Readonly<ScoreField>): number {
 
 /**
  * Adds points to the wave's, times the chain's multiplier, and logs them at a
- * place, unless the run is over.
+ * place, unless the run is over, and returns whether it did.
  */
-function score(field: ScoreField, points: number, x: number, y: number): void {
-  if (isOver(field)) return;
+function score(
+  field: ScoreField,
+  points: number,
+  x: number,
+  y: number,
+): boolean {
+  if (isOver(field)) return false;
   const times = chainMultiplier(field);
   field.score += points * times;
   field.chainPoints += points * (times - 1);
   field.events.addScore(x, y, points, times);
+  return true;
 }
 
 /** Returns whether the run is over, no one left flying. */

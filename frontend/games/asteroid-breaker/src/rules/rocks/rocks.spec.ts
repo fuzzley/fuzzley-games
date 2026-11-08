@@ -75,7 +75,10 @@ interface FieldOptions {
   readonly rockSpeed?: number;
 }
 
-/** Returns a field of free rock slots, no step taken, no chance of a pickup and, unless given one, no ship. */
+/**
+ * Returns a field of free rock slots, no step taken, no chance of a pickup and,
+ * unless given one, no ship.
+ */
 function fieldOf({
   cap = 8,
   seed = 1,
@@ -101,6 +104,7 @@ function fieldOf({
     chain: 0,
     lastBreakAt: 0,
     chainPoints: 0,
+    rockPoints: 0,
     crew: createCrew(),
     shipsLost: 0,
     events: new FieldEventLog(),
@@ -138,7 +142,10 @@ function logged(field: SpecField): FieldEventKind[] {
   return eventsOf(field).map((event) => event.kind);
 }
 
-/** Steps a field at a pace as the field does its rocks: the step counted, blasts due set off, then the rocks flown. */
+/**
+ * Steps a field at a pace as the field does its rocks: the step counted, blasts
+ * due set off, then the rocks flown.
+ */
 function stepFor(field: SpecField, steps: number, pace = 1): void {
   field.pace = pace;
   for (let step = 0; step < steps; step++) {
@@ -183,7 +190,10 @@ function coverOf(values: readonly number[], span: Span, times = 1): number {
   return covered / ((span.most - span.least) * times);
 }
 
-/** Returns the pieces a large stone flying a heading of 1 breaks into, hit with no push, on a field from a seed. */
+/**
+ * Returns the pieces a large stone flying a heading of 1 breaks into, hit with
+ * no push, on a field from a seed.
+ */
 function piecesFrom(seed: number): Rock[] {
   const field = fieldOf({ seed });
   hitRock(field, lay(field, "stone", "large", 36, 20, 1), 0, 0);
@@ -197,7 +207,10 @@ function iceSplitAlong(alongX: number, alongY: number): number[][] {
   return wholeOf(field).map((piece) => [piece.vx, piece.vy]);
 }
 
-/** Returns a field with a large stone beside a large volatile rock, nothing moving while a spec steps it at a pace of 0. */
+/**
+ * Returns a field with a large stone beside a large volatile rock, nothing
+ * moving while a spec steps it at a pace of 0.
+ */
 function stoneBesideVolatile(): {
   field: SpecField;
   volatile: Rock;
