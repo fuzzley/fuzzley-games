@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
@@ -522,7 +523,7 @@ describe("BoardComponent", () => {
 
       detectChanges();
 
-      expect(board.dataset["field"]).toMatch(/^[\d.]+ [\d.]+ [\d.]+ [\d.]+$/);
+      expect(readRect(board.getAttribute("data-field"))).not.toBeNull();
     });
 
     it("lays the focus ring where the scene laid the field out", async () => {
@@ -530,7 +531,9 @@ describe("BoardComponent", () => {
 
       detectChanges();
 
-      const [x, y, width, height] = (board.dataset["field"] ?? "").split(" ");
+      const { x, y, width, height } = readRect(
+        board.getAttribute("data-field"),
+      )!;
       // The ring is only drawn, so it has no role to find it by.
       expect(board.querySelector(".ring")).toHaveStyle({
         left: `${x}px`,
@@ -555,9 +558,7 @@ describe("BoardComponent", () => {
         run.advance(FRAME_MS);
         detectChanges();
 
-        const [, y = NaN, , height = NaN] = (board.dataset["field"] ?? "")
-          .split(" ")
-          .map(Number);
+        const { y, height } = readRect(board.getAttribute("data-field"))!;
         expect(700 - y - height).toBeGreaterThanOrEqual(FINGER_ROOM_CSS_PX);
       });
     });

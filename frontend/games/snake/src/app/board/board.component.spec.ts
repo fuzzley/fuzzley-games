@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
@@ -265,7 +266,7 @@ describe("BoardComponent", () => {
 
       detectChanges();
 
-      expect(board.dataset["board"]).toMatch(/^[\d.]+ [\d.]+ [\d.]+ [\d.]+$/);
+      expect(readRect(board.getAttribute("data-board"))).not.toBeNull();
     });
 
     it("lays the focus ring where the scene laid the board out", async () => {
@@ -273,7 +274,9 @@ describe("BoardComponent", () => {
 
       detectChanges();
 
-      const [x, y, width, height] = (board.dataset["board"] ?? "").split(" ");
+      const { x, y, width, height } = readRect(
+        board.getAttribute("data-board"),
+      )!;
       // The ring is only drawn, so it has no role to find it by.
       expect(board.querySelector(".ring")).toHaveStyle({
         left: `${x}px`,

@@ -29,6 +29,7 @@ import {
   TURNS,
   checkLayout,
   checkTurns,
+  readRect,
   runLayoutScript,
   shapesAt,
   turnsAt,
@@ -84,7 +85,8 @@ function showDeck() {
 /**
  * Returns what is wrong with the field's shape, its unit and how it fills
  * its room, given where the field lies. It runs in the page, so it uses
- * nothing from this module.
+ * nothing from this module, and reads the field's and the room's rectangles
+ * with `readRect()`, which is sent with it.
  *
  * @param {BoardBox} [field]
  * @returns {string[]}
@@ -108,15 +110,17 @@ function inspectField(field) {
   if (field.unit < 6) {
     problems.push(`The field's unit is ${field.unit} CSS px, under 6.`);
   }
-  const rectOf = (/** @type {string} */ name) =>
-    (board.getAttribute(name) ?? "").split(" ").map(Number);
-  const [x = 0, y = 0, width = 0, height = 0] = rectOf("data-field");
-  const room = rectOf("data-room");
-  const [roomX = NaN, roomY = NaN, roomWidth = NaN, roomHeight = NaN] = room;
-  if (room.length !== 4 || room.some((n) => !Number.isFinite(n))) {
+  const drawn = readRect(board.getAttribute("data-field"));
+  const room = readRect(board.getAttribute("data-room"));
+  // The board's own inspection says where the field doesn't say where it
+  // lies, and hands no box.
+  if (!drawn) return problems;
+  if (!room) {
     problems.push("app-board doesn't say where the field's room lies.");
     return problems;
   }
+  const { x, y, width, height } = drawn;
+  const { x: roomX, y: roomY, width: roomWidth, height: roomHeight } = room;
   // A CSS pixel each way for the field's rounding to whole device pixels.
   const leftAcross = roomWidth - width;
   const leftDown = roomHeight - height;

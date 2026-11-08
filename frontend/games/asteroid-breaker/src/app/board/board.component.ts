@@ -21,6 +21,8 @@ import {
   type CssRect,
   type Viewport,
   canvasPixelRatio,
+  namedRectsAttribute,
+  rectAttribute,
 } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import type { Torus } from "../../rules/torus";
@@ -162,7 +164,7 @@ export class BoardComponent {
   /** The field's rectangle, for the layout check: x, y, width and height. */
   protected readonly fieldRect = computed(() => {
     const laid = this.laid();
-    return laid ? rectWords(laid.metrics.css) : null;
+    return laid ? rectAttribute(laid.metrics.css) : null;
   });
 
   /**
@@ -172,7 +174,7 @@ export class BoardComponent {
   protected readonly roomRect = computed(() => {
     const laid = this.laid();
     return laid
-      ? rectWords(inCss(laid.metrics.room, laid.viewport.pixelRatio))
+      ? rectAttribute(inCss(laid.metrics.room, laid.viewport.pixelRatio))
       : null;
   });
 
@@ -184,9 +186,12 @@ export class BoardComponent {
   protected readonly deckZones = computed(() => {
     const laid = this.laid();
     if (!laid?.deck) return null;
-    const words = (zone: PixelRect): string =>
-      rectWords(inCss(zone, laid.viewport.pixelRatio));
-    return `stick ${words(laid.deck.stick)}, buttons ${words(laid.deck.buttons)}`;
+    const { stick, buttons } = laid.deck;
+    const { pixelRatio } = laid.viewport;
+    return namedRectsAttribute([
+      ["stick", inCss(stick, pixelRatio)],
+      ["buttons", inCss(buttons, pixelRatio)],
+    ]);
   });
 
   /**
@@ -454,11 +459,6 @@ function inCss(
     width: width / pixelRatio,
     height: height / pixelRatio,
   };
-}
-
-/** Returns a rectangle as the layout check reads one: "x y width height". */
-function rectWords({ x, y, width, height }: CssRect): string {
-  return `${String(x)} ${String(y)} ${String(width)} ${String(height)}`;
 }
 
 /** Returns the styles that lay an element over a rectangle, in CSS pixels. */

@@ -1,6 +1,7 @@
 import { ErrorHandler } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -8,6 +9,8 @@ import {
   type CssRect,
   type Viewport,
   canvasPixelRatio,
+  namedRectsAttribute,
+  rectAttribute,
 } from "@fz/phaser/layout";
 import {
   type FakeCanvasOptions,
@@ -146,14 +149,6 @@ function fieldOn(
     insets,
   };
   return fieldMetrics(canvas, board, fieldShape(canvas, board, SQUARE)).css;
-}
-
-/**
- * Returns a rectangle on a canvas at one device pixel to a CSS pixel as the
- * layout check reads it: "x y width height".
- */
-function wordsOf({ x, y, width, height }: PixelRect): string {
-  return `${String(x)} ${String(y)} ${String(width)} ${String(height)}`;
 }
 
 /** Returns a rectangle on a canvas in CSS pixels, given in device pixels at a pixel ratio. */
@@ -808,14 +803,9 @@ describe("BoardComponent", () => {
 
       detectChanges();
 
-      const [x, y, width, height] = (board.dataset["field"] ?? "").split(" ");
+      const field = readRect(board.getAttribute("data-field"));
       // The ring is only drawn, so it has no role to find it by.
-      expect(board.querySelector(".ring")).toHaveStyle({
-        left: `${String(x)}px`,
-        top: `${String(y)}px`,
-        width: `${String(width)}px`,
-        height: `${String(height)}px`,
-      });
+      expect(board.querySelector(".ring")).toHaveStyle(placedOver(field!));
     });
 
     it("publishes the field's shape in its units as the scene laid it out, its short side 40", async () => {
@@ -826,9 +816,7 @@ describe("BoardComponent", () => {
 
       detectChanges();
 
-      const [, , width = 0, height = 0] = (board.dataset["field"] ?? "")
-        .split(" ")
-        .map(Number);
+      const { width, height } = readRect(board.getAttribute("data-field"))!;
       const across = Number(board.style.getPropertyValue("--across"));
       const down = Number(board.style.getPropertyValue("--down"));
       expect({
@@ -853,7 +841,7 @@ describe("BoardComponent", () => {
         ROOMY,
         game.frame().field.torus,
       );
-      expect(board.dataset["room"]).toBe(wordsOf(room));
+      expect(board.dataset["room"]).toBe(rectAttribute(room));
     });
 
     it("publishes where the deck's zones lie, by their names, where the deck shows", async () => {
@@ -874,7 +862,10 @@ describe("BoardComponent", () => {
       );
       if (!deck) throw new Error("The deck shows on a canvas of 1280 by 720.");
       expect(board.dataset["deck"]).toBe(
-        `stick ${wordsOf(deck.stick)}, buttons ${wordsOf(deck.buttons)}`,
+        namedRectsAttribute([
+          ["stick", deck.stick],
+          ["buttons", deck.buttons],
+        ]),
       );
     });
 
@@ -897,13 +888,16 @@ describe("BoardComponent", () => {
       const { torus } = game.frame().field;
       const deck = deckLayout(canvas, setting, torus);
       if (!deck) throw new Error("The deck shows on a canvas of 1280 by 720.");
-      const words = (rect: PixelRect): string => wordsOf(inCssAt(rect, 2));
+      const css = (rect: PixelRect): PixelRect => inCssAt(rect, 2);
       expect({
         room: board.dataset["room"],
         deck: board.dataset["deck"],
       }).toEqual({
-        room: words(fieldMetrics(canvas, setting, torus).room),
-        deck: `stick ${words(deck.stick)}, buttons ${words(deck.buttons)}`,
+        room: rectAttribute(css(fieldMetrics(canvas, setting, torus).room)),
+        deck: namedRectsAttribute([
+          ["stick", css(deck.stick)],
+          ["buttons", css(deck.buttons)],
+        ]),
       });
     });
 

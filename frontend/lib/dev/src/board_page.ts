@@ -1,6 +1,18 @@
 // The inspections a layout check runs in the page of a board drawn with
-// Phaser, each sent as its source, so each uses nothing from outside itself,
-// and the selectors the scripts wait on for its canvas, which only they use.
+// Phaser, the readers of the rectangles a board writes, which the check sends
+// with each, and what a screenshot script reads of such a page, sent with
+// `readRect()`. Each is sent as its source, so each uses nothing from outside
+// itself but the readers. Beside them are the selectors the scripts wait on
+// for a board's canvas, which only they use.
+//
+// A function the page runs calls the readers as names of its own module, as
+// these do, or from a script Node runs, never through an import Vite
+// rewrites: Vitest's module runner turns an imported `readRect(…)` into
+// `(0, __vite_ssr_import_0__.readRect)(…)`, the source the page is then sent,
+// which names nothing there. So such a function of `@fz/dev`'s is kept here.
+//
+// The file imports nothing, so a spec takes the readers from
+// `@fz/dev/board-page` without loading Vite or Chrome.
 
 /** Matches a board's `<fz-phaser-canvas>` once its scene has drawn. */
 export const PHASER_CANVAS_READY = 'fz-phaser-canvas[data-state="ready"]';
@@ -28,8 +40,8 @@ export interface PhaserBoard {
   readonly element: string;
   /**
    * The attribute of the board's element that says where the scene drew the
-   * board on the canvas, as "x y width height" in CSS px, such as
-   * `data-field`.
+   * board on the canvas, as "x y width height" in CSS px, which
+   * {@link readRect} reads, such as `data-field`.
    */
   readonly drawnAt: string;
   /**
@@ -76,7 +88,8 @@ export interface PhaserDeck {
    * The attribute of the board's element that lists the zones, such as
    * `data-deck`: each a name of one word and where the zone lies on the
    * canvas, as "x y width height" in CSS px, the zones parted by commas, as
-   * "stick 0 600 180 200, buttons 180 600 180 200".
+   * "stick 0 600 180 200, buttons 180 600 180 200", which
+   * {@link readNamedRects} reads.
    */
   readonly drawnAt: string;
   /** The zones the deck shows, by the names it lists them by. */
@@ -140,16 +153,14 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
     );
   }
 
-  const drawnAt = (element.getAttribute(board.drawnAt) ?? "")
-    .split(" ")
-    .map(Number);
-  const [x = NaN, y = NaN, width = NaN, height = NaN] = drawnAt;
-  if (drawnAt.length !== 4 || drawnAt.some((n) => !Number.isFinite(n))) {
+  const drawnAt = readRect(element.getAttribute(board.drawnAt));
+  if (!drawnAt) {
     problems.push(
       `${board.element} doesn't say where the ${name} lies (${board.drawnAt}).`,
     );
     return { problems };
   }
+  const { x, y, width, height } = drawnAt;
   const unitsOf = (units: number | string): number =>
     typeof units === "number"
       ? units
@@ -266,17 +277,15 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
   const problems: string[] = [];
   /** Where each zone lies on the canvas, by its name. */
   const zones = new Map<string, Rect>();
-  for (const written of listed.split(",").map((zone) => zone.trim())) {
-    if (written === "") continue;
-    const [zone = "", ...at] = written.split(/\s+/);
-    const [left = NaN, top = NaN, width = NaN, height = NaN] = at.map(Number);
-    if (at.length !== 4 || ![left, top, width, height].every(Number.isFinite)) {
+  for (const { written, name: zone, rect } of readNamedRects(listed)) {
+    if (!rect) {
       problems.push(`The deck's zone "${written}" doesn't say where it lies.`);
     } else if (!deck.zones.includes(zone)) {
       problems.push(`The deck shows a zone its board doesn't name: ${zone}.`);
     } else if (zones.has(zone)) {
       problems.push(`The deck lists its ${zone} zone twice.`);
     } else {
+      const { x: left, y: top, width, height } = rect;
       zones.set(zone, { left, top, width, height });
     }
   }
@@ -336,4 +345,124 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
     }
   }
   return problems;
+}
+
+/**
+ * Says where a rectangle lies on a board's canvas, in CSS px from its top
+ * left, as the board's element writes it.
+ *
+ * It has the shape of `@fz/phaser/layout`'s `CssRect`, which a board writes
+ * it from, declared again here since this file imports nothing.
+ */
+export interface CanvasRect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Says what an entry of a list of named rectangles gives. */
+export interface NamedRect {
+  /** The entry as the list wrote it, but for the spaces around it. */
+  readonly written: string;
+  /** The entry's name, its first word. */
+  readonly name: string;
+  /** The rectangle the entry gives, or null where it gives none. */
+  readonly rect: CanvasRect | null;
+}
+
+/**
+ * Returns the rectangle an element's attribute gives as "x y width height",
+ * four numbers parted by spaces, or null for a missing attribute or one that
+ * gives no such rectangle. It runs in the page too, sent as its source, so it
+ * uses nothing from outside itself.
+ */
+export function readRect(written: string | null): CanvasRect | null {
+  const numbers = (written ?? "").trim().split(/\s+/).map(Number);
+  const [x = NaN, y = NaN, width = NaN, height = NaN] = numbers;
+  return numbers.length === 4 && numbers.every(Number.isFinite)
+    ? { x, y, width, height }
+    : null;
+}
+
+/**
+ * Returns the entries of an element's attribute that lists named rectangles,
+ * parted by commas, as "stick 0 600 180 200, buttons 180 600 180 200": each
+ * a name of one word and a rectangle as {@link readRect} reads one, an empty
+ * entry left out. It runs in the page too, sent as its source, so it uses
+ * nothing from outside itself but {@link readRect}.
+ */
+export function readNamedRects(listed: string): NamedRect[] {
+  return listed
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== "")
+    .map((written) => {
+      const [name = "", ...at] = written.split(/\s+/);
+      return { written, name, rect: readRect(at.join(" ")) };
+    });
+}
+
+/** Says what the page of a game drawn with Phaser shows, as a screenshot checks it. */
+export interface PhaserPageState {
+  /** What its `<fz-phaser-canvas>` says of the scene, such as "ready". */
+  readonly state: string;
+  /** What the board says of the game, its `data-outcome`, such as "paused". */
+  readonly outcome: string;
+  /** What the game bar's score reads. */
+  readonly score: string;
+  /**
+   * Where the scene drew the board on the page, in CSS px, as sharp's
+   * `Region` takes it; none without a canvas, or where the board doesn't say
+   * where it lies.
+   */
+  readonly board: Rect | null;
+}
+
+/** Says how a description of a page drawn with Phaser waits before it looks. */
+export interface PhaserPageWait {
+  /**
+   * How long it waits, in ms, 800 unless given: long enough for the
+   * placeholder's fade, and for what a scene pops in as it starts, such as
+   * Snake's apple.
+   */
+  readonly waitMs?: number;
+}
+
+/**
+ * Returns what the page of a game drawn with Phaser shows, once its scene
+ * has drawn or failed to, and a wait has passed: the canvas's state, the
+ * board's outcome, the score, and where the scene drew the board, as its
+ * element's `drawnAt` attribute says, read with {@link readRect}. It runs in
+ * the page, sent with `readRect()`.
+ */
+export async function describePhaserPage(
+  board: Pick<PhaserBoard, "element" | "drawnAt">,
+  { waitMs = 800 }: PhaserPageWait = {},
+): Promise<PhaserPageState> {
+  await new Promise((resolve) => setTimeout(resolve, waitMs));
+  const element = document.querySelector(board.element);
+  const canvas = document
+    .querySelector("fz-phaser-canvas canvas")
+    ?.getBoundingClientRect();
+  const drawn = readRect(element?.getAttribute(board.drawnAt) ?? null);
+  const score = [...document.querySelectorAll("dt")].find(
+    (term) => term.textContent.trim() === "Score",
+  );
+  return {
+    state:
+      document.querySelector("fz-phaser-canvas")?.getAttribute("data-state") ??
+      "",
+    outcome: element?.getAttribute("data-outcome") ?? "",
+    score: score?.nextElementSibling?.textContent.trim() ?? "",
+    board:
+      canvas && drawn
+        ? {
+            left: canvas.left + drawn.x,
+            top: canvas.top + drawn.y,
+            width: drawn.width,
+            height: drawn.height,
+          }
+        : null,
+  };
 }

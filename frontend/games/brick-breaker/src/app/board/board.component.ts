@@ -20,7 +20,11 @@ import {
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
 import type { Insets } from "@fz/phaser/insets";
-import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
+import {
+  type CssRect,
+  canvasPixelRatio,
+  rectAttribute,
+} from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import { endTitle } from "../../rules/run/describe";
@@ -145,7 +149,7 @@ export class BoardComponent {
   /** The field's rectangle, for the layout check: x, y, width and height. */
   protected readonly fieldRect = computed(() => {
     const rect = this.laidOut();
-    return rect && `${rect.x} ${rect.y} ${rect.width} ${rect.height}`;
+    return rect && rectAttribute(rect);
   });
 
   /**

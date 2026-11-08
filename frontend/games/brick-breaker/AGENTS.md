@@ -435,8 +435,9 @@ takes for the specs' helpers.
   follows the board at once.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
   `fieldMetrics()` does, at the window's pixel ratio; the ring takes the
-  scene's own rectangle once it has drawn (`data-field`), and the layout
-  check holds the placeholder to it.
+  scene's own rectangle once it has drawn, which the board writes for the
+  layout check (`data-field`) with `@fz/phaser/layout`'s
+  `rectAttribute()`, and the layout check holds the placeholder to it.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake and
   the last bricks' pulse, are left out, and the cards open without waiting.

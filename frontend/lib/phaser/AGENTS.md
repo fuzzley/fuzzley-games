@@ -23,10 +23,16 @@ take the pure ones.
   number across and down with a frame around them, inside a canvas's
   insets, each cell a whole number of device pixels and the field centered
   on whole pixels, with the `Viewport` it reads and the `CssRect` it gives
-  back; and `canvasPixelRatio()`, the pixel ratio a canvas renders at on a
+  back; `canvasPixelRatio()`, the pixel ratio a canvas renders at on a
   display, at least 1 and at most `MAX_PIXEL_RATIO`, which the host renders
-  by and an app's placeholder sizes its cells by. It imports nothing but
-  `insets`.
+  by and an app's placeholder sizes its cells by; and `rectAttribute()`, a
+  `CssRect` as a board's element writes it into an attribute for the
+  layout check, "x y width height", and `namedRectsAttribute()`, a list of
+  them by name, in the order given, as
+  "stick 0 600 180 200, buttons 180 600 180 200", which throws for a name
+  that isn't one word free of commas; `@fz/dev/board-page`'s `readRect()`
+  and `readNamedRects()` read them back, as the spec holds them to. It
+  imports nothing but `insets`.
 - `src/shapes/`: the vocabulary a game's art is drawn in, each shape of a
   frame as plain data in device pixels: `DrawCommand`, a rectangle, a
   rounded one, a circle, a ring, a line, a polyline or a polygon, each with

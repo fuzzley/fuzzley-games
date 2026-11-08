@@ -12,6 +12,12 @@ export interface Viewport {
   readonly deviceScaleFactor: number;
 }
 
+/**
+ * A function sent to a page as its source: one the page runs, or a helper
+ * one calls by its name.
+ */
+export type PageFunction = (...args: never) => unknown;
+
 /** Why a function run in a page threw, as DevTools reports it. */
 interface ExceptionDetails {
   readonly text: string;
@@ -223,8 +229,23 @@ export class Page {
     fn: (...args: A) => T,
     ...args: A
   ): Promise<Awaited<T>> {
+    return this.evaluateWith([], fn, ...args);
+  }
+
+  /**
+   * Runs a function in the page as {@link evaluate} does, with helpers it
+   * calls by their names, each sent as its source too, so each can use
+   * nothing from the module it is written in but the others. It throws,
+   * sending nothing, for a helper with no name it can be called by, as an
+   * anonymous or a bound function has none, or for a name two helpers share.
+   */
+  async evaluateWith<A extends unknown[], T>(
+    helpers: readonly PageFunction[],
+    fn: (...args: A) => T,
+    ...args: A
+  ): Promise<Awaited<T>> {
     const { result, exceptionDetails } = await this.send("Runtime.evaluate", {
-      expression: call(fn, args),
+      expression: call(fn, args, helpers),
       awaitPromise: true,
       returnByValue: true,
     });
@@ -251,9 +272,40 @@ export class Page {
   }
 }
 
-/** Returns the source of a call of a function with arguments, sent as JSON. */
-function call(fn: (...args: never) => unknown, args: unknown[]): string {
-  return `(${String(fn)})(...${JSON.stringify(args)})`;
+/** A name a helper sent to a page can be declared and called by. */
+const HELPER_NAME = /^[A-Za-z_$][\w$]*$/;
+
+/**
+ * Returns the source of a call of a function with arguments, sent as JSON,
+ * the function made where the helpers it calls are declared by their names.
+ * It throws for a helper with no name it can be declared by, as an
+ * anonymous or a bound function has none, and for a name two helpers share.
+ */
+function call(
+  fn: PageFunction,
+  args: unknown[],
+  helpers: readonly PageFunction[] = [],
+): string {
+  const names = new Set<string>();
+  for (const { name } of helpers) {
+    if (!HELPER_NAME.test(name)) {
+      throw new Error(
+        `A helper sent to a page is called by its name, and "${name}" isn't one it can be called by.`,
+      );
+    }
+    if (names.has(name)) {
+      throw new Error(`Two helpers sent to a page are named ${name}.`);
+    }
+    names.add(name);
+  }
+  const declared = helpers
+    .map((helper) => `const ${helper.name} = ${String(helper)};\n`)
+    .join("");
+  const made =
+    helpers.length === 0
+      ? `(${String(fn)})`
+      : `(() => {\n${declared}return (${String(fn)});\n})()`;
+  return `${made}(...${JSON.stringify(args)})`;
 }
 
 /**

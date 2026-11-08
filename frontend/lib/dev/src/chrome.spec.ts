@@ -1,3 +1,4 @@
+import { runInNewContext } from "node:vm";
 import {
   type ChromeSearch,
   DevToolsConnection,
@@ -13,6 +14,21 @@ async function onPage<T>(
   use: (page: Page) => Promise<T>,
 ): Promise<T> {
   return withPage(new DevToolsConnection(browser), VIEWPORT, use);
+}
+
+/** Returns twice a number: a helper a function run in a page calls. */
+function double(n: number): number {
+  return 2 * n;
+}
+
+/** Returns four times a number, through {@link double}: a helper that calls another. */
+function quadruple(n: number): number {
+  return double(double(n));
+}
+
+/** Returns four times the sum of two numbers, through {@link quadruple}. */
+function quadrupleSum(a: number, b: number): number {
+  return quadruple(a + b);
 }
 
 describe("DevToolsConnection", () => {
@@ -164,6 +180,49 @@ describe("Page", () => {
       awaitPromise: true,
       returnByValue: true,
     });
+  });
+
+  it("runs a function in the page beside the helpers it calls, each in reach of the others", async () => {
+    const browser = new FakeBrowser();
+
+    await onPage(browser, (page) =>
+      page.evaluateWith([quadruple, double], quadrupleSum, 1, 2),
+    );
+
+    const sent = browser.last("Runtime.evaluate")?.params["expression"];
+    expect(runInNewContext(String(sent))).toBe(12);
+  });
+
+  it.each<[string, (n: number) => number, string]>([
+    ["no name", (n) => n, ""],
+    ["a bound function's name", double.bind(undefined), "bound double"],
+  ])(
+    "throws, sending nothing, for a helper of %s, which it can't be called by",
+    async (_, helper, name) => {
+      const browser = new FakeBrowser();
+
+      const running = onPage(browser, (page) =>
+        page.evaluateWith([helper], double, 1),
+      );
+
+      await expect(running).rejects.toThrow(
+        `"${name}" isn't one it can be called by`,
+      );
+      expect(browser.last("Runtime.evaluate")).toBeUndefined();
+    },
+  );
+
+  it("throws, sending nothing, for two helpers of one name", async () => {
+    const browser = new FakeBrowser();
+
+    const running = onPage(browser, (page) =>
+      page.evaluateWith([double, quadruple, double], quadrupleSum, 1, 2),
+    );
+
+    await expect(running).rejects.toThrow(
+      "Two helpers sent to a page are named double.",
+    );
+    expect(browser.last("Runtime.evaluate")).toBeUndefined();
   });
 
   it("returns what a function run in the page resolves to", async () => {

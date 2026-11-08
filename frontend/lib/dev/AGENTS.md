@@ -154,8 +154,12 @@ too. Paths are relative to `frontend/lib/dev/`.
   Chrome needs. `withChrome()` starts Chrome on a throwaway profile and
   hands over a `DevToolsConnection`; `withPage()` opens a `Page` in a
   browser context of its own at a viewport, which navigates, reloads, runs
-  a function in the page before or after it loads, listens to its events
-  (`on()`), and takes a screenshot.
+  a function in the page, sent as its source, before the page loads
+  (`beforeLoad()`) or after (`evaluate()`), and after it with helpers the
+  function calls by their names sent beside it (`evaluateWith()`), which
+  throws for a helper with no name it can be called by, as an anonymous or
+  a bound function has none, or for a name two helpers share; listens to
+  its events (`on()`); and takes a screenshot.
   `findChrome()` picks the Chrome to run: the one asked for, `CHROME_PATH`,
   or the first installed in a usual place. The games' screenshot scripts
   are built on it, and so is the layout check.
@@ -197,7 +201,25 @@ too. Paths are relative to `frontend/lib/dev/`.
   browser runs, but for `settle()`, which its spec runs in jsdom, so
   coverage leaves it out, and the board's and the deck's inspections,
   `inspectPhaserBoard()` and `inspectPhaserDeck()`, in `src/board_page.ts`,
-  which its spec runs in jsdom. A game's
+  `@fz/dev/board-page`, which its spec runs in jsdom, beside the readers of
+  the rectangles a board writes into its element's attributes:
+  `readRect()`, one rectangle as "x y width height" in CSS px, as
+  `@fz/phaser/layout`'s `rectAttribute()` writes it, and `readNamedRects()`,
+  a list of them by name, as its `namedRectsAttribute()` writes one. That
+  file imports nothing, so a board's spec reads what its board writes with
+  the readers from `@fz/dev/board-page` without loading Vite or Chrome;
+  `@fz/dev/layout` exports both again for the scripts, and
+  `@fz/dev/screenshots` `readRect()`. The check sends both into the page
+  with each inspection, the game's own among them, so a game's `inspect()`
+  reads such an attribute by calling them by those names, as Asteroid
+  Breaker's reads the field's room. A function the page runs calls them as
+  names of its own module, as the inspections do, or from a script Node
+  runs, as a game's `tools/check-layout.mjs` is, never through an import
+  Vite rewrites: Vitest's module runner turns an imported `readRect(…)`
+  into `(0, __vite_ssr_import_0__.readRect)(…)`, which is the source the
+  page is sent, and which names nothing there. So such a function of this
+  library's is kept in `src/board_page.ts`, as the screenshots'
+  `describePhaserPage()` is. A game's
   `tools/check-layout.mjs` holds its inspection and which checks it runs, and
   hands them to `runLayoutScript()`, which reads the command line (`--chrome`,
   `--help`) with `@fz/dev/script`'s `readArgs()`, serves the build as
@@ -243,9 +265,13 @@ too. Paths are relative to `frontend/lib/dev/`.
   code. `describePhaserPage()` says what the page of a game drawn with
   Phaser shows once a wait has passed, 800 ms unless given (`waitMs`): its
   canvas's state, its board's outcome, the score, and where the scene drew
-  the board. What `setUpPage()` and `describePhaserPage()` run in the page
-  is in `src/screenshot_page.ts`, which its spec runs in jsdom, each as the
-  page is sent it, from its source alone.
+  the board, none where the page has no canvas or the board doesn't say
+  where it lies. It reads the board's rectangle with `readRect()`, so it
+  lives in `src/board_page.ts` beside it, and a capture sends it with that
+  helper (`page.evaluateWith([readRect], describePhaserPage, board)`). What
+  `setUpPage()` runs in the page is in `src/screenshot_page.ts`;
+  `src/screenshot_page.spec.ts` runs it and `describePhaserPage()` in
+  jsdom, each as the page is sent it, from its source alone.
 - `src/script.ts`, `@fz/dev/script`: what a workspace's Node scripts
   share. `readArgs()` reads a command line's options, `--help` (`-h`) among
   them, which every script takes, and the words after them where the
@@ -387,12 +413,13 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   and the layout check against a fake browser, `src/testing/fake_browser.ts`,
   and the layout spec serves a build it writes with Vite's `preview()`;
   `src/board_page.spec.ts` runs the inspection of a board drawn with
-  Phaser in jsdom, over the rectangles it hands each element, and
+  Phaser in jsdom, over the rectangles it hands each element, and holds
+  the readers to reading back what a board writes and nothing malformed;
   `src/screenshot_page.spec.ts` the setup of a screenshot's page and the
-  description of a page drawn with Phaser, and `src/layout_page.spec.ts`
-  the wait for a page to draw, each run from the source the page is sent
-  too, the three specs here that do. Coverage counts `src/testing/` too,
-  as `frontend/AGENTS.md` asks of every library. Starting a real Chrome is
-  left to the screenshot scripts, so `src/chrome.ts` stays short of the
-  rest; the floor in `vitest.config.ts` sits just under the figures, and
-  rises as they rise.
+  description of a page drawn with Phaser; and `src/layout_page.spec.ts`
+  the wait for a page to draw; each run from the source the page is sent
+  too, beside the readers where it calls them, the three specs here that
+  do. Coverage counts `src/testing/` too, as `frontend/AGENTS.md` asks of
+  every library. Starting a real Chrome is left to the screenshot scripts,
+  so `src/chrome.ts` stays short of the rest; the floor in
+  `vitest.config.ts` sits just under the figures, and rises as they rise.
