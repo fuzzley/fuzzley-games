@@ -3,11 +3,20 @@ import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
+  ORIGIN,
   type Point,
+  arcPoints,
+  bounded,
+  centered,
   circle,
+  lineWidth,
+  placed,
   polygon,
+  quadraticPoints,
   ring,
   roundRect,
+  shifted,
+  stroke,
   widthOf,
 } from "@fz/phaser/shapes";
 import { PICKUP_IDS, type PickupId } from "../../rules/catalog/pickups";
@@ -32,19 +41,7 @@ import {
   pilotFrames,
 } from "./pilot_art";
 import { largestOf, rockFrame, rockFrames } from "./rock_art";
-import {
-  MOST_LINE,
-  arcPoints,
-  bounded,
-  centered,
-  dashedRing,
-  lineWidth,
-  outlineWidth,
-  placed,
-  quadraticPoints,
-  shifted,
-  stroke,
-} from "./shapes";
+import { MOST_LINE, dashedRing, outlineWidth } from "./shapes";
 import { shipFrames } from "./ship_art";
 import { SYMBOLS } from "./symbols";
 
@@ -162,6 +159,9 @@ const DECK_DASH_CSS_PX = { dash: 5, gap: 5 } as const;
 /** How wide a button's symbol is, as a share of the button's radius. */
 const BUTTON_SYMBOL = 0.9;
 
+/** What the frames the scene tints are filled in. */
+const WHITE = { color: 0xffffff } as const;
+
 // Made once, so finding a frame's name makes nothing.
 const PICKUP_FRAMES: Readonly<Record<PickupId, string>> = recordOf(
   PICKUP_IDS,
@@ -205,8 +205,7 @@ function roundedRegular(
   return Array.from({ length: sides }, (_, i) => {
     const angle = first + 2 * half * i;
     return arcPoints(
-      Math.cos(angle) * reach,
-      Math.sin(angle) * reach,
+      { x: Math.cos(angle) * reach, y: Math.sin(angle) * reach },
       corner,
       angle - half,
       angle + half,
@@ -231,12 +230,11 @@ function pickupArt(
   const hexagon = (round: number): readonly Point[] =>
     roundedRegular(6, reach, round, Math.PI / 6);
   return centered(PICKUP_FRAMES[id], [
-    polygon(hexagon(corner + outlineWidth(scale)), palette.outline),
-    polygon(hexagon(corner), palette.accent),
+    polygon(hexagon(corner + outlineWidth(scale)), { color: palette.outline }),
+    polygon(hexagon(corner), { color: palette.accent }),
     ...SYMBOLS[id](
       { x: -side / 2, y: -side / 2, width: side, height: side },
-      palette.onAccent,
-      lineWidth(scale),
+      { color: palette.onAccent, width: lineWidth(scale) },
       palette.accent,
     ),
   ]);
@@ -249,8 +247,7 @@ function tagArt(id: PickupId, palette: BeltPalette, scale: ArtScale): ArtFrame {
     tagFrame(id),
     SYMBOLS[id](
       { x: -side / 2, y: -side / 2, width: side, height: side },
-      palette.accent,
-      lineWidth(scale),
+      { color: palette.accent, width: lineWidth(scale) },
       palette.field,
     ),
   );
@@ -264,13 +261,12 @@ function bubbleCommands(
   const radius = STRAY_RADIUS * scale.unit;
   const rim = widthOf(BUBBLE.rim, scale);
   return [
-    circle(0, 0, radius, palette.bubble),
-    ring(0, 0, radius - rim / 2, rim, palette.rim),
-    ...stroke(
-      arcPoints(0, 0, radius * GLINT.reach, GLINT.from, GLINT.to),
-      widthOf(BUBBLE.glint, scale),
-      palette.glint,
-    ),
+    circle(ORIGIN, radius, { color: palette.bubble }),
+    ring(ORIGIN, radius - rim / 2, { color: palette.rim, width: rim }),
+    ...stroke(arcPoints(ORIGIN, radius * GLINT.reach, GLINT.from, GLINT.to), {
+      color: palette.glint,
+      width: widthOf(BUBBLE.glint, scale),
+    }),
   ];
 }
 
@@ -289,9 +285,9 @@ function cometCommands(
     ...quadraticPoints(tip, { x: bend, y: 0.55 }, { x: 0, y: 1 }),
   ];
   return [
-    polygon(placed(tail, scale.unit), palette.comet),
-    circle(0, 0, head + outlineWidth(scale), palette.outline),
-    circle(0, 0, head, palette.comet),
+    polygon(placed(tail, scale.unit), { color: palette.comet }),
+    circle(ORIGIN, head + outlineWidth(scale), { color: palette.outline }),
+    circle(ORIGIN, head, { color: palette.comet }),
   ];
 }
 
@@ -300,9 +296,9 @@ function warningCommands(
   palette: BeltPalette,
   scale: ArtScale,
 ): readonly DrawCommand[] {
-  const width = widthOf(WARNING_LINE, scale);
+  const style = { color: palette.comet, width: widthOf(WARNING_LINE, scale) };
   const chevron = (points: readonly Point[]): readonly DrawCommand[] =>
-    stroke(placed(points, scale.unit), width, palette.comet);
+    stroke(placed(points, scale.unit), style);
   return [
     ...chevron([
       { x: -0.45, y: -0.8 },
@@ -340,18 +336,18 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
   const drop = STRAY_DROP * STRAY_RADIUS * scale.unit;
   return [
     centered(FRAMES.shot, [
-      roundRect(outlined, outlined.height / 2, palette.outline),
+      roundRect(outlined, outlined.height / 2, { color: palette.outline }),
       roundRect(
         { x: -shot.width / 2, y: -shot.height / 2, ...shot },
         shot.height / 2,
-        palette.shot,
+        { color: palette.shot },
       ),
     ]),
     centered(FRAMES.bubble, bubbleCommands(palette, scale)),
     centered(FRAMES.comet, cometCommands(palette, scale)),
     centered(FRAMES.warning, warningCommands(palette, scale)),
     centered(FRAMES.speck, [
-      circle(0, 0, FLOURISH.speck * scale.unit, 0xffffff),
+      circle(ORIGIN, FLOURISH.speck * scale.unit, WHITE),
     ]),
     centered(FRAMES.shard, [
       polygon(
@@ -363,7 +359,7 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
           ],
           shard,
         ),
-        0xffffff,
+        WHITE,
       ),
     ]),
     centered(FRAMES.spark, [
@@ -381,16 +377,16 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
           ],
           spark,
         ),
-        0xffffff,
+        WHITE,
       ),
     ]),
-    centered(FRAMES.puff, [circle(0, 0, FLOURISH.puff * scale.unit, 0xffffff)]),
+    centered(FRAMES.puff, [circle(ORIGIN, FLOURISH.puff * scale.unit, WHITE)]),
     centered(FRAMES.strayPicture, [
       ...bubbleCommands(palette, scale),
       ...[
         ...fuzzballCommands(adrift, palette.accent),
         ...eyesCommands(adrift, palette),
-      ].map((command) => shifted(command, 0, drop)),
+      ].map((command) => shifted(command, { x: 0, y: drop })),
     ]),
     bounded(FRAMES.cometPicture, cometCommands(palette, scale)),
   ];
@@ -398,8 +394,7 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
 
 /**
  * Returns every frame the field's atlas holds, drawn in a palette at a
- * scale, tallest first, so the rows the atlas packs them in waste little:
- * each rock in each kind, size, outline and hits taken, the ship and what
+ * scale: each rock in each kind, size, outline and hits taken, the ship and what
  * it carries, the pilots and their eyes, the pickups and their tags, the
  * shot, a stray's bubble, the comet and its warning, the flourishes and
  * the stray's picture.
@@ -418,7 +413,7 @@ export function atlasFrames(
     ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),
     ...[...TAG_FRAMES.keys()].map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
-  ].sort((a, b) => b.height - a.height);
+  ];
 }
 
 /** Returns a button's frames: its disc, its ring and its symbol, white. */
@@ -429,6 +424,7 @@ function buttonArt(
 ): readonly ArtFrame[] {
   const radius = radiusCss * pixelRatio;
   const line = Math.round(DECK_LINE_CSS_PX * pixelRatio);
+  const pen = { ...WHITE, width: line };
   const side = BUTTON_SYMBOL * radius;
   const names = {
     fire: [DECK_FRAMES.fireDisc, DECK_FRAMES.fireRing, DECK_FRAMES.fireSymbol],
@@ -436,14 +432,13 @@ function buttonArt(
   } as const;
   const [disc, edge, symbol] = names[button];
   return [
-    centered(disc, [circle(0, 0, radius, 0xffffff)]),
-    centered(edge, [ring(0, 0, radius - line / 2, line, 0xffffff)]),
+    centered(disc, [circle(ORIGIN, radius, WHITE)]),
+    centered(edge, [ring(ORIGIN, radius - line / 2, pen)]),
     centered(
       symbol,
       SYMBOLS[button](
         { x: -side / 2, y: -side / 2, width: side, height: side },
-        0xffffff,
-        line,
+        pen,
       ),
     ),
   ];
@@ -460,29 +455,25 @@ function buttonArt(
 export function deckFrames(pixelRatio: number): readonly ArtFrame[] {
   const reach = STICK_RADIUS_CSS_PX * pixelRatio;
   const line = Math.round(DECK_LINE_CSS_PX * pixelRatio);
+  const pen = { ...WHITE, width: line };
   const dash = {
     dash: DECK_DASH_CSS_PX.dash * pixelRatio,
     gap: DECK_DASH_CSS_PX.gap * pixelRatio,
   };
   return [
-    centered(DECK_FRAMES.stickBase, [circle(0, 0, reach, 0xffffff)]),
-    centered(DECK_FRAMES.stickRing, [
-      ring(0, 0, reach - line / 2, line, 0xffffff),
-    ]),
-    centered(
-      DECK_FRAMES.stickRest,
-      dashedRing(reach - line / 2, line, dash, 0xffffff),
-    ),
+    centered(DECK_FRAMES.stickBase, [circle(ORIGIN, reach, WHITE)]),
+    centered(DECK_FRAMES.stickRing, [ring(ORIGIN, reach - line / 2, pen)]),
+    centered(DECK_FRAMES.stickRest, dashedRing(reach - line / 2, dash, pen)),
     centered(
       DECK_FRAMES.stickThrust,
-      dashedRing(THRUST_RING * reach, line, dash, 0xffffff),
+      dashedRing(THRUST_RING * reach, dash, pen),
     ),
     centered(DECK_FRAMES.knob, [
-      circle(0, 0, KNOB_RADIUS_CSS_PX * pixelRatio, 0xffffff),
+      circle(ORIGIN, KNOB_RADIUS_CSS_PX * pixelRatio, WHITE),
     ]),
     ...buttonArt("fire", FIRE_RADIUS_CSS_PX, pixelRatio),
     ...buttonArt("dash", DASH_RADIUS_CSS_PX, pixelRatio),
-  ].sort((a, b) => b.height - a.height);
+  ];
 }
 
 /** Names a picture of each rock kind and pickup, a stray and the comet, for How to play. */

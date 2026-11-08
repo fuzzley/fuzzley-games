@@ -8,9 +8,17 @@ import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
+  type FillStyle,
+  ORIGIN,
   type Point,
+  centered,
   circle,
+  lineWidth,
+  placed,
   polygon,
+  quadraticPoints,
+  scaledBy,
+  stroke,
 } from "@fz/phaser/shapes";
 import {
   ROCK_KIND_IDS,
@@ -22,18 +30,7 @@ import {
 import { ROCK_OUTLINES, type Rock } from "../../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
-import {
-  MOST_LINE,
-  MOST_MITER,
-  centered,
-  lineWidth,
-  outlineWidth,
-  outward,
-  placed,
-  quadraticPoints,
-  scaledBy,
-  stroke,
-} from "./shapes";
+import { MOST_LINE, MOST_MITER, outlineWidth, outward } from "./shapes";
 
 /** Says how a kind of rock's outlines are drawn from their seeds. */
 interface OutlineStyle {
@@ -205,14 +202,14 @@ const ROCK_ART = {
     style: ROUNDED,
     // Two or three craters, as its first draw says.
     marks: (_, random, palette, line) =>
-      craters(random, random() < 0.5 ? 2 : 3, palette.mark, line),
+      craters(random, random() < 0.5 ? 2 : 3, line, { color: palette.mark }),
     hit: CRACK,
   },
   crystal: {
     style: ROUNDED,
     marks: (_, __, palette, line) => [
-      polygon(outward(GEM, line), palette.mark),
-      polygon(GEM, palette.rocks.crystal),
+      polygon(outward(GEM, line), { color: palette.mark }),
+      polygon(GEM, { color: palette.rocks.crystal }),
     ],
     hit: CRACK,
   },
@@ -224,18 +221,18 @@ const ROCK_ART = {
         .filter((__, i) => i % 2 === 0)
         .map((corner) => {
           const out = MARK_REACH / Math.hypot(corner.x, corner.y);
-          return stroke(
-            [ICE_HEART, { x: corner.x * out, y: corner.y * out }],
-            line,
-            palette.mark,
-          );
+          return stroke([ICE_HEART, { x: corner.x * out, y: corner.y * out }], {
+            color: palette.mark,
+            width: line,
+          });
         })
         .flat(),
     hit: CRACK,
   },
   boulder: {
     style: ROUNDED,
-    marks: (_, random, palette, line) => craters(random, 5, palette.mark, line),
+    marks: (_, random, palette, line) =>
+      craters(random, 5, line, { color: palette.mark }),
     hit: CRACK,
   },
   iron: {
@@ -247,10 +244,12 @@ const ROCK_ART = {
       return Array.from({ length: 4 }, (__, i) => {
         const angle = (turn + i / 4) * 2 * Math.PI;
         return circle(
-          Math.cos(angle) * (MARK_REACH - radius),
-          Math.sin(angle) * (MARK_REACH - radius),
+          {
+            x: Math.cos(angle) * (MARK_REACH - radius),
+            y: Math.sin(angle) * (MARK_REACH - radius),
+          },
           radius,
-          palette.mark,
+          { color: palette.mark },
         );
       });
     },
@@ -260,13 +259,12 @@ const ROCK_ART = {
     style: SMOOTH,
     // A glowing core, and three cracks out from it on its body, each in its own third of a turn.
     marks: (_, random, palette, line) => [
-      circle(0, 0, CORE, palette.core),
+      circle(ORIGIN, CORE, { color: palette.core }),
       ...[0, 1, 2].flatMap((third) =>
-        stroke(
-          zigzag((random() + third) * ((2 * Math.PI) / 3), CORE_CRACK),
-          line,
-          palette.mark,
-        ),
+        stroke(zigzag((random() + third) * ((2 * Math.PI) / 3), CORE_CRACK), {
+          color: palette.mark,
+          width: line,
+        }),
       ),
     ],
     hit: CRACK,
@@ -283,7 +281,7 @@ const ROCK_ART = {
             middle + BANDS.width / 2,
             Math.max(line, BANDS.inset),
           ),
-          palette.mark,
+          { color: palette.mark },
         ),
       ),
     hit: CRACK,
@@ -460,23 +458,22 @@ function rounded(corners: readonly Point[]): readonly Point[] {
 
 /**
  * Returns a rock's craters: dots of a size, at a distance and an angle, each as
- * it draws them, within {@link MARK_REACH}.
+ * it draws them, within {@link MARK_REACH}, none smaller than a line's width.
  */
 function craters(
   random: () => number,
   count: number,
-  color: number,
   line: number,
+  style: FillStyle,
 ): readonly DrawCommand[] {
   return Array.from({ length: count }, () => {
     const radius = Math.max(line, 0.1 + 0.08 * random());
     const reach = 0.15 + random() * (MARK_REACH - 0.15 - radius);
     const turn = random() * 2 * Math.PI;
     return circle(
-      Math.cos(turn) * reach,
-      Math.sin(turn) * reach,
+      { x: Math.cos(turn) * reach, y: Math.sin(turn) * reach },
       radius,
-      color,
+      style,
     );
   });
 }
@@ -540,8 +537,8 @@ function bodyArt(
   const radius = ROCK_RADIUS[size] * scale.unit;
   const body = placed(outline.body, radius);
   return centered(outline.name, [
-    polygon(outward(body, outlineWidth(scale)), palette.outline),
-    polygon(body, rockColor(kind, palette)),
+    polygon(outward(body, outlineWidth(scale)), { color: palette.outline }),
+    polygon(body, { color: rockColor(kind, palette) }),
     ...ROCK_ART[kind]
       .marks(
         outline,
@@ -563,15 +560,14 @@ function takenArt(
   scale: ArtScale,
 ): readonly ArtFrame[] {
   const radius = ROCK_RADIUS[size] * scale.unit;
-  const line = lineWidth(scale);
+  const style = { color: palette.mark, width: lineWidth(scale) };
   return taken.map((name, i) =>
     centered(
       name,
       Array.from({ length: i + 1 }, (_, hit) =>
         stroke(
           placed(zigzag(hit * HIT_TURN, ROCK_ART[kind].hit), radius),
-          line,
-          palette.mark,
+          style,
         ),
       ).flat(),
     ),

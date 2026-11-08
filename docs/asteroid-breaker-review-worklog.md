@@ -1819,3 +1819,62 @@ Seen and left: `yarn verify` still prints Node's warning that
 `localStorage` needs `--localstorage-file`, from the Solitaire
 Collection's test setup; and Vite serves only `[::1]` on this machine, so
 a capture here takes `--url http://[::1]:<port>/`.
+
+## Part 4, on `phaser-lifts`
+
+Four tracks built side by side from main at step 15h, each in a worktree of
+its own: the scenes' helpers, the boards' viewport and cards, the shapes,
+and the specs' scaffolding; each lands here once reviewed.
+
+### Step 16a: findings 19 and 22, the shapes' transforms and one builder convention
+
+Built on `pl-shapes`. Asteroid Breaker's `centered()`, `bounded()`,
+`shifted()`, `scaledBy()` and `placed()`, and the points of an arc, an
+ellipse and a curve, move into `@fz/phaser/shapes` (`transforms.ts`,
+`curves.ts`), where `shifted()`'s and `scaledBy()`'s `switch`es, and
+`edgesOf()`'s under `centered()` and `bounded()`, fail the library's build
+for a new kind of command rather than one game's. `LINE` and `lineWidth()`,
+`stroke()`, and the symbols' builders both breakers copied, as `dotIn()`,
+`discIn()`, `rimIn()` and `symbolLineStyle()`, their places and sizes shares
+of a square, come with them. Every builder takes its geometry first, an
+`Area`, a `Point` and a radius, or a list of `Point`s, and its style last,
+`{ color }` or `{ color, width }` (decision 7); `extentOf()` returns an
+`Area`. `pack()` lays frames tallest first, frames of one height in the
+order given, so Asteroid Breaker's art no longer sorts before it. Every
+frame's commands are the same as data, over 3,369 cases of both breakers'
+scales and pixel ratios, and Asteroid Breaker's 67 atlases, its belt light
+and dark and its deck at nine ratios, bake byte for byte as before.
+
+Where it went other than planned:
+
+- Brick Breaker never sorted its frames, so `pack()` sorting them moves its
+  40 atlases' frames: fed tallest first, the old code bakes them byte for
+  byte as the new does, but against the old order 326 of 5,240 frames
+  differ in 1,849 of about 7.6 million pixels, the anti-aliasing of a
+  curve's edge moving with where it is drawn, most by 1 or 2 of 255 and the
+  worst by 30, on a ring's edge. Kept: no player sees it, and the atlases
+  come out about 2% smaller in all.
+- Snake's art and the Solitaire Collection's have no copies; neither moves.
+- The painters' imports of `lineWidth()` and two specs' builder calls
+  outside `src/view/art/` change with the signatures.
+
+The review found every drawing command the same:
+
+1. _The packing spec passed with the sort removed, its atlas as wide either
+   way:_ taken; frames whose order changes the atlas's height, and each
+   frame's place pinned.
+2. _`dot`, `disc` and `rim` read as `circle` and `ring` but take shares of
+   a square, and their spec's square couldn't tell a width read for a
+   height:_ taken; `dotIn()`, `discIn()` and `rimIn()`, and a spec on a
+   tall area.
+3. _`scaledBy()` makes a negative size from a negative factor, which no
+   builder would:_ taken as a doc, its factor nothing or more; a throw on
+   its path every bake costs, and its one caller's factor is a radius.
+4. _`extentOf()`'s doc said games frame their drawings by it, which they
+   now do through `centered()` and `bounded()`:_ taken.
+5. _Nits:_ the skill's sentence with two "so"s, the transforms' header,
+   `shifted()`'s `by` as `offset`, a style spread over four lines, a spec
+   title and a spec that pinned the library's `lineWidth()` again: taken.
+   That the games' own helpers still take a bare color: not taken; decision
+   7 binds the library's builders, and a helper that works out its own
+   widths has only a color to take.

@@ -1,4 +1,4 @@
-import { ATLAS_GUTTER, type FrameSize, atlasSize } from "./packing";
+import { ATLAS_GUTTER, type FrameSize, atlasSize, pack } from "./packing";
 
 /** Returns a frame of a size. */
 function frame(name: string, width: number, height = width): FrameSize {
@@ -16,12 +16,28 @@ describe("atlasSize", () => {
   });
 
   it("is as wide as its widest frame, the others in rows below it", () => {
-    const frames = [frame("wall", 30, 8), frame("a", 10), frame("b", 14, 6)];
+    const frames = [frame("a", 10), frame("b", 14, 6), frame("wall", 30, 12)];
 
     const size = atlasSize(frames);
 
-    // The wall fills the first row; a and b share the next, 10 tall.
-    expect(size).toEqual({ width: 30, height: 8 + ATLAS_GUTTER + 10 });
+    // As wide as the wall, which no other frame fits beside: its row of 12,
+    // a gutter, and the row of 10 that a and b share.
+    expect(size).toEqual({ width: 30, height: 12 + ATLAS_GUTTER + 10 });
+  });
+
+  it("packs the tallest frames first, so a row of short ones wastes little", () => {
+    const frames = [
+      frame("short", 10, 4),
+      frame("tall", 10, 20),
+      frame("short2", 10, 4),
+      frame("tall2", 10, 20),
+    ];
+
+    const size = atlasSize(frames);
+
+    // Two frames fit across 26: the tall ones share a row and the short ones
+    // the next, where in the order given each row would be 20 tall, 42 in all.
+    expect(size).toEqual({ width: 22, height: 20 + ATLAS_GUTTER + 4 });
   });
 
   it("gives an atlas of no frames a pixel", () => {
@@ -53,5 +69,26 @@ describe("atlasSize", () => {
     expect(() => atlasSize([frame("wall", 5000, 10)])).toThrow(
       "larger than 4096 a side",
     );
+  });
+});
+
+describe("pack", () => {
+  it("packs the tallest frames first, those of one height in the order given", () => {
+    const frames = [
+      frame("short", 10, 4),
+      frame("first", 10, 8),
+      frame("tall", 10, 20),
+      frame("second", 10, 8),
+    ];
+
+    const { placed } = pack(frames);
+
+    // Two fit across 24, a gutter between them and between the rows.
+    expect(placed.map(({ frame, x, y }) => [frame.name, x, y])).toEqual([
+      ["tall", 0, 0],
+      ["first", 12, 0],
+      ["second", 0, 22],
+      ["short", 12, 22],
+    ]);
   });
 });

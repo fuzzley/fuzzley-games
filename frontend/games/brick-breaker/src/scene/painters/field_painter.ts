@@ -1,6 +1,6 @@
+import { lineWidth } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import { NET_DEPTH } from "../../rules/tuning";
-import { lineWidth } from "../../view/art/shapes";
 import type { BricksPalette } from "../../view/colors/palette";
 import { type FieldMetrics, toCanvasY } from "../../view/field/field_metrics";
 import type { PaintContext, Painter } from "./painter";

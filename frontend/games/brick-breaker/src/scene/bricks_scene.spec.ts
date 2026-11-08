@@ -1,6 +1,7 @@
 import { lerp } from "@fz/core/math";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
+import { lineWidth } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { Core, type Game, GameObjects } from "phaser";
@@ -49,7 +50,6 @@ import {
 import { SOUNDS } from "../view/effects/effects";
 import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
-import { lineWidth } from "../view/art/shapes";
 import type { TouchSteering } from "../view/steering/steering";
 import { TAG_SPACING, firstTagX, tagY } from "../view/field/tags";
 import {

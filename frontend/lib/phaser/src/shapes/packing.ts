@@ -54,8 +54,9 @@ export function atlasSize(frames: readonly FrameSize[]): {
 }
 
 /**
- * Packs frames into rows, in their order, about as wide as the atlas is
- * tall, with a gutter between.
+ * Packs frames into rows, tallest first, about as wide as the atlas is
+ * tall, with a gutter between, so the rows waste little; frames of one
+ * height keep the order they are given in.
  *
  * It throws for two frames of one name, a frame named as Phaser names a
  * texture's whole, a size that isn't a whole number of pixels above 0, or an
@@ -88,7 +89,7 @@ export function pack<T extends FrameSize>(frames: readonly T[]): Packing<T> {
   let y = 0;
   let rowHeight = 0;
   let width = 1;
-  for (const frame of frames) {
+  for (const frame of [...frames].sort((a, b) => b.height - a.height)) {
     if (x > 0 && x + frame.width > across) {
       x = 0;
       y += rowHeight + ATLAS_GUTTER;

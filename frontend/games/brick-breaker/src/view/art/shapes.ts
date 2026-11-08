@@ -1,38 +1,28 @@
 // Brick Breaker's own helpers for its art, over `@fz/phaser/shapes`: the
-// width its lines are drawn in, and the areas, points and stars its frames
-// are laid out by.
+// areas, points and stars its frames are laid out by.
 
 import {
   type Area,
-  type ArtScale,
   type DrawCommand,
+  type LineStyle,
   type Point,
   rect,
-  widthOf,
 } from "@fz/phaser/shapes";
 
-/** How wide a line is, in field units, where that is more than a CSS pixel. */
-const LINE = 0.06;
-
-/** Returns how wide a line is, in whole device pixels: a CSS pixel at least. */
-export function lineWidth(scale: ArtScale): number {
-  return widthOf(LINE, scale);
-}
-
-/** Returns the four bars of a frame around the inside of an area, a width thick. */
+/** Returns the four bars of a frame around the inside of an area, its style's width thick. */
 export function frameAround(
   area: Area,
-  width: number,
-  color: number,
+  style: LineStyle,
 ): readonly DrawCommand[] {
   const { x, y } = area;
+  const { width } = style;
   const right = x + area.width - width;
   const bottom = y + area.height - width;
   return [
-    rect({ x, y, width: area.width, height: width }, color),
-    rect({ x, y: bottom, width: area.width, height: width }, color),
-    rect({ x, y, width, height: area.height }, color),
-    rect({ x: right, y, width, height: area.height }, color),
+    rect({ x, y, width: area.width, height: width }, style),
+    rect({ x, y: bottom, width: area.width, height: width }, style),
+    rect({ x, y, width, height: area.height }, style),
+    rect({ x: right, y, width, height: area.height }, style),
   ];
 }
 
@@ -85,8 +75,7 @@ export function middleSquare(area: Area, side: number): Area {
 
 /** Returns the points of a star around a middle, its first point straight up. */
 export function star(
-  x: number,
-  y: number,
+  middle: Point,
   outer: number,
   inner: number,
   points: number,
@@ -94,6 +83,9 @@ export function star(
   return Array.from({ length: points * 2 }, (_, i) => {
     const angle = (i * Math.PI) / points - Math.PI / 2;
     const radius = i % 2 === 0 ? outer : inner;
-    return { x: x + Math.cos(angle) * radius, y: y + Math.sin(angle) * radius };
+    return {
+      x: middle.x + Math.cos(angle) * radius,
+      y: middle.y + Math.sin(angle) * radius,
+    };
   });
 }

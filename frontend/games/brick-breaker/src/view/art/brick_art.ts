@@ -4,6 +4,7 @@ import {
   type ArtScale,
   type DrawCommand,
   circle,
+  lineWidth,
   polygon,
   polyline,
   rect,
@@ -14,7 +15,7 @@ import { BRICK_KINDS, type BrickKindId } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { BRICK_HEIGHT, BRICK_WIDTH } from "../../rules/tuning";
 import type { BricksPalette } from "../colors/palette";
-import { inset, lineWidth, middleSquare, star, within } from "./shapes";
+import { inset, middleSquare, star, within } from "./shapes";
 
 /** Describes what a brick's frame shows of it. */
 export type BrickLook = Pick<
@@ -139,7 +140,7 @@ function drawBrick(
 
 /** Returns a brick's body filled in a color, its corners rounded. */
 function filled(body: Area, scale: ArtScale, color: number): DrawCommand {
-  return roundRect(body, Math.round(scale.unit * BRICK_CORNER), color);
+  return roundRect(body, Math.round(scale.unit * BRICK_CORNER), { color });
 }
 
 /** Returns a tough brick's pips, one for each hit it has left, across its middle. */
@@ -153,10 +154,12 @@ function pips(
   const middle = body.x + body.width / 2;
   return Array.from({ length: hits }, (_, i) =>
     circle(
-      middle + (i - (hits - 1) / 2) * spacing,
-      body.y + body.height / 2,
+      {
+        x: middle + (i - (hits - 1) / 2) * spacing,
+        y: body.y + body.height / 2,
+      },
       Math.max(1, scale.unit * DOT),
-      color,
+      { color },
     ),
   );
 }
@@ -171,7 +174,7 @@ function cracks(
   const width = lineWidth(scale);
   const inner = inset(body, width);
   return CRACKS.slice(0, taken).map((crack) =>
-    polyline(within(inner, crack), width, color),
+    polyline(within(inner, crack), { color, width }),
   );
 }
 
@@ -188,15 +191,19 @@ function dashes(
   const commands: DrawCommand[] = [];
   for (let x = body.x; x < right; x += 2 * dash) {
     const length = Math.min(dash, right - x);
-    commands.push(rect({ x, y: body.y, width: length, height: width }, color));
     commands.push(
-      rect({ x, y: bottom - width, width: length, height: width }, color),
+      rect({ x, y: body.y, width: length, height: width }, { color }),
+    );
+    commands.push(
+      rect({ x, y: bottom - width, width: length, height: width }, { color }),
     );
   }
   for (let y = body.y; y < bottom; y += 2 * dash) {
     const length = Math.min(dash, bottom - y);
-    commands.push(rect({ x: body.x, y, width, height: length }, color));
-    commands.push(rect({ x: right - width, y, width, height: length }, color));
+    commands.push(rect({ x: body.x, y, width, height: length }, { color }));
+    commands.push(
+      rect({ x: right - width, y, width, height: length }, { color }),
+    );
   }
   return commands;
 }
@@ -214,8 +221,7 @@ function sprout(
         [0.5, 1],
         [0.5, 0.35],
       ]),
-      lineWidth(scale),
-      color,
+      { color, width: lineWidth(scale) },
     ),
     polygon(
       within(square, [
@@ -223,7 +229,7 @@ function sprout(
         [0.1, 0.3],
         [0.35, 0.15],
       ]),
-      color,
+      { color },
     ),
     polygon(
       within(square, [
@@ -231,7 +237,7 @@ function sprout(
         [0.9, 0.15],
         [0.65, 0.05],
       ]),
-      color,
+      { color },
     ),
   ];
 }
@@ -246,8 +252,8 @@ function rivets(
   const y = body.y + body.height / 2;
   const fromEnd = body.height / 2;
   return [
-    circle(body.x + fromEnd, y, radius, color),
-    circle(body.x + body.width - fromEnd, y, radius, color),
+    circle({ x: body.x + fromEnd, y }, radius, { color }),
+    circle({ x: body.x + body.width - fromEnd, y }, radius, { color }),
   ];
 }
 
@@ -267,8 +273,8 @@ function giftMark(
     height,
   };
   return [
-    roundRect(outer, height / 2, color),
-    roundRect(inset(outer, width), height / 2 - width, bodyColor),
+    roundRect(outer, height / 2, { color }),
+    roundRect(inset(outer, width), height / 2 - width, { color: bodyColor }),
   ];
 }
 
@@ -276,13 +282,12 @@ function giftMark(
 function burst(body: Area, color: number): DrawCommand {
   return polygon(
     star(
-      body.x + body.width / 2,
-      body.y + body.height / 2,
+      { x: body.x + body.width / 2, y: body.y + body.height / 2 },
       body.height * 0.42,
       body.height * 0.18,
       8,
     ),
-    color,
+    { color },
   );
 }
 

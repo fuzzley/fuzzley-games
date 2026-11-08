@@ -54,7 +54,7 @@ describe("atlasFrameOf", () => {
   it.each<[string, DrawCommand, (graphics: GameObjects.Graphics) => void]>([
     [
       "a rectangle",
-      rect({ x: 1, y: 2, width: 3, height: 4 }, 0x112233),
+      rect({ x: 1, y: 2, width: 3, height: 4 }, { color: 0x112233 }),
       (graphics) => {
         graphics.fillStyle(0x112233);
         graphics.fillRect(1, 2, 3, 4);
@@ -62,7 +62,7 @@ describe("atlasFrameOf", () => {
     ],
     [
       "a rounded rectangle",
-      roundRect({ x: 1, y: 2, width: 9, height: 7 }, 3, 0x112233),
+      roundRect({ x: 1, y: 2, width: 9, height: 7 }, 3, { color: 0x112233 }),
       (graphics) => {
         graphics.fillStyle(0x112233);
         graphics.fillRoundedRect(1, 2, 9, 7, 3);
@@ -70,7 +70,7 @@ describe("atlasFrameOf", () => {
     ],
     [
       "a circle",
-      circle(5, 6, 3, 0x112233),
+      circle({ x: 5, y: 6 }, 3, { color: 0x112233 }),
       (graphics) => {
         graphics.fillStyle(0x112233);
         graphics.fillCircle(5, 6, 3);
@@ -78,7 +78,7 @@ describe("atlasFrameOf", () => {
     ],
     [
       "a ring",
-      ring(5, 6, 3, 2, 0x112233),
+      ring({ x: 5, y: 6 }, 3, { color: 0x112233, width: 2 }),
       (graphics) => {
         graphics.lineStyle(2, 0x112233);
         graphics.strokeCircle(5, 6, 3);
@@ -86,7 +86,7 @@ describe("atlasFrameOf", () => {
     ],
     [
       "a line",
-      line({ x: 1, y: 2 }, { x: 7, y: 9 }, 2, 0x112233),
+      line({ x: 1, y: 2 }, { x: 7, y: 9 }, { color: 0x112233, width: 2 }),
       (graphics) => {
         graphics.lineStyle(2, 0x112233);
         graphics.lineBetween(1, 2, 7, 9);
@@ -94,7 +94,7 @@ describe("atlasFrameOf", () => {
     ],
     [
       "a polyline",
-      polyline(POINTS, 2, 0x112233),
+      polyline(POINTS, { color: 0x112233, width: 2 }),
       (graphics) => {
         graphics.lineStyle(2, 0x112233);
         graphics.strokePoints(vectors());
@@ -102,7 +102,7 @@ describe("atlasFrameOf", () => {
     ],
     [
       "a polygon",
-      polygon(POINTS, 0x112233),
+      polygon(POINTS, { color: 0x112233 }),
       (graphics) => {
         graphics.fillStyle(0x112233);
         graphics.fillPoints(vectors(), true);
@@ -135,7 +135,10 @@ describe("atlasFrameOf", () => {
       name: "target",
       width: 10,
       height: 10,
-      commands: [circle(5, 5, 4, 1), ring(5, 5, 2, 1, 2)],
+      commands: [
+        circle({ x: 5, y: 5 }, 4, { color: 1 }),
+        ring({ x: 5, y: 5 }, 2, { color: 2, width: 1 }),
+      ],
     }).draw(drawn);
 
     expect(drawn.commandBuffer).toEqual(expected.commandBuffer);

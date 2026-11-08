@@ -18,6 +18,9 @@ import {
   within,
 } from "./art_frames";
 
+/** The style the specs draw lines in. */
+const PEN = { color: 0, width: 2 };
+
 /** A square 10 across, its corner at the origin. */
 const SQUARE: readonly Point[] = [
   { x: 0, y: 0 },
@@ -80,7 +83,9 @@ describe("distanceToEdge", () => {
 
 describe("edgeOf", () => {
   it("gives a rectangle's corners", () => {
-    expect(edgeOf(rect({ x: 1, y: 2, width: 3, height: 4 }, 0))).toEqual([
+    expect(
+      edgeOf(rect({ x: 1, y: 2, width: 3, height: 4 }, { color: 0 })),
+    ).toEqual([
       { x: 1, y: 2 },
       { x: 4, y: 2 },
       { x: 4, y: 6 },
@@ -89,7 +94,7 @@ describe("edgeOf", () => {
   });
 
   it("goes round a circle at its radius, out to every side", () => {
-    const edge = edgeOf(circle(5, 5, 3, 0));
+    const edge = edgeOf(circle({ x: 5, y: 5 }, 3, { color: 0 }));
 
     expect(reachesOf(edge)).toEqual([16, expect.closeTo(3), expect.closeTo(3)]);
     expect(spanOf(edge)).toEqual([
@@ -101,7 +106,7 @@ describe("edgeOf", () => {
   });
 
   it("goes round a ring at its outer side, out to every side", () => {
-    const edge = edgeOf(ring(5, 5, 3, 2, 0));
+    const edge = edgeOf(ring({ x: 5, y: 5 }, 3, PEN));
 
     expect(reachesOf(edge)).toEqual([16, expect.closeTo(4), expect.closeTo(4)]);
     expect(spanOf(edge)).toEqual([
@@ -113,7 +118,7 @@ describe("edgeOf", () => {
   });
 
   it("follows a line along both its sides", () => {
-    const edge = edgeOf(line({ x: 0, y: 0 }, { x: 10, y: 0 }, 2, 0));
+    const edge = edgeOf(line({ x: 0, y: 0 }, { x: 10, y: 0 }, PEN));
 
     expect(edge).toEqual([
       { x: 0, y: -1 },
@@ -124,39 +129,52 @@ describe("edgeOf", () => {
   });
 
   it("gives a polygon's corners", () => {
-    expect(edgeOf(polygon(ELL, 0))).toEqual(ELL);
+    expect(edgeOf(polygon(ELL, { color: 0 }))).toEqual(ELL);
   });
 
   it("refuses a polyline, whose corners a canvas joins past its width", () => {
-    expect(() => edgeOf(polyline(SQUARE, 1, 0))).toThrow("no polyline");
+    expect(() => edgeOf(polyline(SQUARE, { color: 0, width: 1 }))).toThrow(
+      "no polyline",
+    );
   });
 });
 
 describe("reachOf", () => {
   it("reaches a circle off the middle at its far side", () => {
-    expect(reachOf(frameOf(circle(13, 14, 2, 0)))).toBeCloseTo(7);
+    expect(
+      reachOf(frameOf(circle({ x: 13, y: 14 }, 2, { color: 0 }))),
+    ).toBeCloseTo(7);
   });
 
   it("reaches a ring at its far side, half its width past its radius", () => {
-    expect(reachOf(frameOf(ring(13, 14, 2, 2, 0)))).toBeCloseTo(8);
+    expect(reachOf(frameOf(ring({ x: 13, y: 14 }, 2, PEN)))).toBeCloseTo(8);
   });
 
   it("reaches a capsule at its end's arc, short of its box's corner", () => {
-    const capsule = roundRect({ x: 4, y: 8, width: 12, height: 4 }, 2, 0);
+    const capsule = roundRect({ x: 4, y: 8, width: 12, height: 4 }, 2, {
+      color: 0,
+    });
 
     expect(reachOf(frameOf(capsule))).toBeCloseTo(6);
   });
 
   it("reaches a line at its far end's corners", () => {
-    const stroked = line({ x: 10, y: 10 }, { x: 16, y: 10 }, 2, 0);
+    const stroked = line(
+      { x: 10, y: 10 },
+      { x: 16, y: 10 },
+      {
+        color: 0,
+        width: 2,
+      },
+    );
 
     expect(reachOf(frameOf(stroked))).toBeCloseTo(Math.hypot(6, 1));
   });
 
   it("refuses a polyline, whose corners a canvas joins past its width", () => {
-    expect(() => reachOf(frameOf(polyline(SQUARE, 1, 0)))).toThrow(
-      "no polyline",
-    );
+    expect(() =>
+      reachOf(frameOf(polyline(SQUARE, { color: 0, width: 1 }))),
+    ).toThrow("no polyline");
   });
 });
 
