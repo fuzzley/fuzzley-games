@@ -31,8 +31,7 @@ const ROOT = "/games/breaker";
 const PROJECTS: Projects = {
   root: ROOT,
   pure: ["src/rules", "src/testing", "tools"],
-  domSpecs: ["board.spec.ts"],
-  sim: ["src/rules/every_level"],
+  sim: ["src/rules/every_level", "src/every_wave"],
 };
 
 /** Returns the names of the plugins a config adds. */
@@ -370,7 +369,7 @@ describe("angularTests, given projects", () => {
     expect([...projects.keys()]).toEqual(["dom", "pure"]);
   });
 
-  it("leaves to oxc in dom the code of pure's folders, but not their specs or any other code", () => {
+  it("leaves to oxc in dom the code of pure's folders, but not any other code", () => {
     const shared = oxcCodeOf(
       projectsOf(
         angularTests({ thresholds: THRESHOLDS, projects: PROJECTS }),
@@ -381,12 +380,11 @@ describe("angularTests, given projects", () => {
       [
         `${ROOT}/src/rules/field.ts`,
         `${ROOT}/src/testing/picture.ts`,
-        `${ROOT}/src/rules/field.spec.ts`,
         `${ROOT}/src/app/board.component.ts`,
         `${ROOT}/src/rulesets/field.ts`,
         "/games/other/src/rules/field.ts",
       ].map((id) => shared.test(id)),
-    ).toEqual([true, true, false, false, false, false]);
+    ).toEqual([true, true, false, false, false]);
   });
 
   it("has Analog's plugin in dom pass by the code it leaves to oxc, without a look", async () => {
@@ -463,6 +461,7 @@ describe("angularTests, given projects", () => {
         "src/scene/scene.spec.ts",
         "src/rules/field.spec.ts",
         "src/rules/every_level/fast.spec.ts",
+        "src/every_wave/slow.spec.ts",
         "src/testing/picture.spec.ts",
         "tools/report.spec.ts",
       ],
@@ -474,27 +473,9 @@ describe("angularTests, given projects", () => {
       "src/scene/scene.spec.ts": ["dom"],
       "src/rules/field.spec.ts": ["pure"],
       "src/rules/every_level/fast.spec.ts": ["sim"],
+      "src/every_wave/slow.spec.ts": ["sim"],
       "src/testing/picture.spec.ts": ["pure"],
       "tools/report.spec.ts": ["pure"],
-    });
-  });
-
-  it("runs a spec of pure's folders named in domSpecs in dom, but not one whose name only begins with it", async () => {
-    const projects = await placed(
-      [
-        "src/testing/board.spec.ts",
-        "src/testing/board_frames.spec.ts",
-        "src/rules/board.spec.ts",
-        "tools/board.spec.ts",
-      ],
-      PROJECTS,
-    );
-
-    expect(projects).toEqual({
-      "src/testing/board.spec.ts": ["dom"],
-      "src/testing/board_frames.spec.ts": ["pure"],
-      "src/rules/board.spec.ts": ["dom"],
-      "tools/board.spec.ts": ["dom"],
     });
   });
 });
