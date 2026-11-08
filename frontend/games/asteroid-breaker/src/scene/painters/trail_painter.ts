@@ -115,7 +115,7 @@ export class TrailPainter implements Painter {
   }
 
   /** Puts the trail away, as a new field starts. */
-  reset(): void {
+  start(): void {
     this.dash.fromStep = Infinity;
     this.dash.laidAt.fill(-Infinity);
   }

@@ -23,6 +23,8 @@ export class FieldCamera implements Painter {
   };
   /** How far the camera is scrolled from where it rests, written each frame. */
   private readonly shift: Moving = { x: 0, y: 0 };
+  /** The color it last filled the field with, or null before it first drew. */
+  private filled: number | null = null;
 
   constructor(private readonly camera: Cameras.Scene2D.Camera) {}
 
@@ -31,11 +33,6 @@ export class FieldCamera implements Painter {
     const { x, y, width, height } = metrics;
     this.camera.setViewport(x, y, width, height);
     this.scrollOver(metrics);
-  }
-
-  /** Fills the field with a color, under all that is drawn on it. */
-  fill(color: number): void {
-    this.camera.setBackgroundColor(color);
   }
 
   /** Kicks the field the way a blow came, a share along each axis. */
@@ -51,19 +48,25 @@ export class FieldCamera implements Painter {
   }
 
   /**
-   * Scrolls the camera from where it rests by the field's kick and its shake at
-   * the scene's time.
+   * Fills the field with the palette's color, under all that is drawn on it,
+   * whenever it changes, and scrolls the camera from where it rests by the
+   * field's kick and its shake at the scene's time.
    */
   draw({
     metrics,
+    palette,
     now,
-  }: Readonly<Pick<PaintContext, "metrics" | "now">>): void {
+  }: Readonly<Pick<PaintContext, "metrics" | "palette" | "now">>): void {
+    if (palette.field !== this.filled) {
+      this.filled = palette.field;
+      this.camera.setBackgroundColor(palette.field);
+    }
     cameraShift(this.jolts, now, metrics.pixelRatio, this.shift);
     this.scrollOver(metrics);
   }
 
   /** Rests the field, as a new field starts. */
-  reset(): void {
+  start(): void {
     this.jolts.kickedAt = -Infinity;
     this.jolts.lostAt = -Infinity;
   }

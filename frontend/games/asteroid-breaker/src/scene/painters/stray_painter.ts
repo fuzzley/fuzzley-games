@@ -32,7 +32,10 @@ interface Bubbled {
   readonly parts: readonly GameObjects.Image[];
 }
 
-/** Describes a lost ship's pilot bailing out: when, from where, the way it floats off, in radians, and who. */
+/**
+ * Describes a lost ship's pilot bailing out: when, from where, the way it
+ * floats off, in radians, and who.
+ */
 interface BailOut {
   at: number;
   x: number;
@@ -82,7 +85,10 @@ export class StrayPainter implements Painter {
     }
   }
 
-  /** Floats a lost ship's pilot off in its bubble, from where the ship was lost, a way, in radians. */
+  /**
+   * Floats a lost ship's pilot off in its bubble, from where the ship was lost,
+   * a way, in radians.
+   */
   bailOut(x: number, y: number, pilot: Pilot, way: number, now: number): void {
     const bailOut = this.bailingOut;
     bailOut.at = now;
@@ -93,11 +99,14 @@ export class StrayPainter implements Painter {
   }
 
   /** Stops a pilot bailing out, as a new field starts. */
-  reset(): void {
+  start(): void {
     this.bailingOut.at = -Infinity;
   }
 
-  /** Draws the stray adrift between its last place and its next, and a pilot bailing out, or nothing of each while none is. */
+  /**
+   * Draws the stray adrift between its last place and its next, and a pilot
+   * bailing out, or nothing of each while none is.
+   */
   draw(context: Readonly<PaintContext>): void {
     this.drawAdrift(context);
     this.drawBailing(context);
@@ -120,7 +129,10 @@ export class StrayPainter implements Painter {
     this.drawPilot(this.adrift, x, y, stray.pilot, this.look, context);
   }
 
-  /** Draws a pilot bailing out, floating off the way it looks, steadily and then blinking, or nothing once it is gone. */
+  /**
+   * Draws a pilot bailing out, floating off the way it looks, steadily and then
+   * blinking, or nothing once it is gone.
+   */
   private drawBailing(context: Readonly<PaintContext>): void {
     const { now } = context;
     const bailOut = this.bailingOut;
@@ -135,7 +147,10 @@ export class StrayPainter implements Painter {
     this.drawPilot(this.bailing, x, y, bailOut.pilot, this.look, context);
   }
 
-  /** Draws a pilot in its bubble at a place on the field, in its ink, its eyes the way it looks, bobbing and blinking. */
+  /**
+   * Draws a pilot in its bubble at a place on the field, in its ink, its eyes
+   * the way it looks, bobbing and blinking.
+   */
   private drawPilot(
     images: Bubbled,
     x: number,

@@ -64,7 +64,7 @@ export class PointsPainter implements Painter {
   }
 
   /** Hides every label, as a new field starts. */
-  reset(): void {
+  start(): void {
     for (const scored of this.scored.all) scored.at = -Infinity;
   }
 

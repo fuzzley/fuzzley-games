@@ -114,7 +114,7 @@ describe("the cameras", () => {
   it("draw the frame and the deck with a camera over the whole canvas", async () => {
     const { scene } = await startBoard();
 
-    const camera = scene.deckCamera;
+    const camera = scene.kit.deckCamera;
 
     expect([camera.x, camera.y, camera.width, camera.height]).toEqual([
       0,
@@ -127,7 +127,7 @@ describe("the cameras", () => {
   it("keep the frame and the deck from the field's camera, and the field from the deck's", async () => {
     const { scene } = await startBoard();
     const field = scene.cameras.main.id;
-    const deck = scene.deckCamera.id;
+    const deck = scene.kit.deckCamera.id;
 
     const seen = [...layersOf(scene)].map(([name, layer]) => [
       name,
@@ -159,7 +159,7 @@ describe("the rocks", () => {
 
     run.advance(16);
 
-    const body = scene.rocks.bodies[slotOf(shell.field, rock)];
+    const body = scene.kit.rocks.bodies[slotOf(shell.field, rock)];
     expect(shown(body)).toEqual([
       onCanvas(metricsOf(shell), 30, 20),
       null,
@@ -181,7 +181,7 @@ describe("the rocks", () => {
 
     run.advance(16);
 
-    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])[0]).toEqual(
+    expect(shown(scene.kit.rocks.bodies[slotOf(shell.field, rock)])[0]).toEqual(
       onCanvas(metricsOf(shell), 29, 20),
     );
   });
@@ -194,7 +194,7 @@ describe("the rocks", () => {
     run.advance(16);
 
     const metrics = metricsOf(shell);
-    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
+    expect(shown(scene.kit.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
       onCanvas(metrics, 1, 20),
       onCanvas(metrics, 1 + width, 20),
       null,
@@ -210,7 +210,7 @@ describe("the rocks", () => {
     run.advance(16);
 
     const metrics = metricsOf(shell);
-    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
+    expect(shown(scene.kit.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
       onCanvas(metrics, 30, height - 1),
       null,
       onCanvas(metrics, 30, -1),
@@ -226,7 +226,7 @@ describe("the rocks", () => {
     run.advance(16);
 
     const metrics = metricsOf(shell);
-    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
+    expect(shown(scene.kit.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
       onCanvas(metrics, width - 1, 1),
       onCanvas(metrics, -1, 1),
       onCanvas(metrics, width - 1, 1 + height),
@@ -237,7 +237,7 @@ describe("the rocks", () => {
   it("draw nothing for a slot that holds no rock", async () => {
     const { scene } = await startBoard();
 
-    const drawn = scene.rocks.bodies.filter((body) =>
+    const drawn = scene.kit.rocks.bodies.filter((body) =>
       shown(body).some((place) => place !== null),
     );
 
@@ -253,7 +253,7 @@ describe("the rocks", () => {
 
     run.advance(16);
 
-    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
+    expect(shown(scene.kit.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
       null,
       null,
       null,
@@ -268,7 +268,7 @@ describe("the rocks", () => {
 
     run.advance(16);
 
-    const taken = scene.rocks.taken[slotOf(shell.field, rock)];
+    const taken = scene.kit.rocks.taken[slotOf(shell.field, rock)];
     expect([shown(taken)[0], taken?.images[0]?.frame.name]).toEqual([
       onCanvas(metricsOf(shell), 30, 20),
       takenFrame(rock),
@@ -281,7 +281,7 @@ describe("the rocks", () => {
 
     run.advance(16);
 
-    expect(shown(scene.rocks.taken[slotOf(shell.field, rock)])).toEqual([
+    expect(shown(scene.kit.rocks.taken[slotOf(shell.field, rock)])).toEqual([
       null,
       null,
       null,
@@ -300,8 +300,8 @@ describe("the rocks", () => {
     run.advance(16);
 
     expect([
-      scene.rocks.bodies[slot]?.images[0]?.visible,
-      shown(scene.rocks.taken[slot]),
+      scene.kit.rocks.bodies[slot]?.images[0]?.visible,
+      shown(scene.kit.rocks.taken[slot]),
     ]).toEqual([true, [null, null, null, null]]);
   });
 
@@ -310,7 +310,9 @@ describe("the rocks", () => {
     const { shell, scene } = await startBoard(undefined, big);
     const metrics = metricsOf(shell, big);
 
-    const keeper = scene.rocks.bodies.find((body) => body.images[0]?.visible);
+    const keeper = scene.kit.rocks.bodies.find(
+      (body) => body.images[0]?.visible,
+    );
 
     expect(keeper?.images[0]?.scale).toBeCloseTo(
       metrics.unit / MOST_BAKED_UNIT,
@@ -334,7 +336,7 @@ describe("the shots", () => {
 
     run.advance(16);
 
-    const shot = scene.shots.shots[0];
+    const shot = scene.kit.shots.shots[0];
     expect([shown(shot)[0], shot?.images[0]?.rotation]).toEqual([
       onCanvas(metricsOf(shell), 30, 20),
       -Math.PI / 2,
@@ -350,12 +352,15 @@ describe("the shots", () => {
 
     run.advance(16);
 
-    expect(shown(scene.shots.shots[0])).toEqual([null, null, null, null]);
+    expect(shown(scene.kit.shots.shots[0])).toEqual([null, null, null, null]);
   });
 });
 
 describe("the ship", () => {
-  /** Returns whether the hull, the guard's ring and the flame showed over a second, each as the set of what it was, the ship's blinks among them. */
+  /**
+   * Returns whether the hull, the guard's ring and the flame showed over a
+   * second, each as the set of what it was, the ship's blinks among them.
+   */
   function blinkingOf(
     run: SceneRun<BeltScene>,
     scene: BeltScene,
@@ -364,7 +369,7 @@ describe("the ship", () => {
     readonly ring: ReadonlySet<boolean>;
     readonly flame: ReadonlySet<boolean>;
   } {
-    const { hull, guard, flame } = scene.ship;
+    const { hull, guard, flame } = scene.kit.ship;
     return {
       hull: overASecond(run, () => isShown(hull)),
       ring: overASecond(run, () => isShown(guard)),
@@ -372,7 +377,10 @@ describe("the ship", () => {
     };
   }
 
-  /** What a ship nothing can touch shows over a second, with no thrust pushing it: its hull blinking within its ring, and no flame. */
+  /**
+   * What a ship nothing can touch shows over a second, with no thrust pushing
+   * it: its hull blinking within its ring, and no flame.
+   */
   const UNTOUCHABLE = {
     hull: new Set([true, false]),
     ring: new Set([true]),
@@ -391,12 +399,12 @@ describe("the ship", () => {
 
     // Phaser keeps a rotation within half a turn either way of none.
     const turnedOff = across(
-      scene.ship.hull.images[0]?.rotation ?? Number.NaN,
+      scene.kit.ship.hull.images[0]?.rotation ?? Number.NaN,
       ship.angle,
       TURN,
     );
 
-    expect(shown(scene.ship.hull)[0]).toEqual(
+    expect(shown(scene.kit.ship.hull)[0]).toEqual(
       onCanvas(metricsOf(shell), ship.x, ship.y),
     );
     expect(turnedOff).toBeCloseTo(0, 9);
@@ -410,9 +418,9 @@ describe("the ship", () => {
 
     run.advance(16);
 
-    const image = scene.ship.pilot.images[0];
+    const image = scene.kit.ship.pilot.images[0];
     expect([
-      shown(scene.ship.pilot)[0],
+      shown(scene.kit.ship.pilot)[0],
       image?.frame.name,
       image?.rotation,
     ]).toEqual([
@@ -432,7 +440,7 @@ describe("the ship", () => {
 
     run.advance(16);
 
-    const [pilot, eyes] = [scene.ship.pilot, scene.ship.eyes].map(
+    const [pilot, eyes] = [scene.kit.ship.pilot, scene.kit.ship.eyes].map(
       (part) => shown(part)[0],
     );
     const { unit } = metricsOf(shell);
@@ -457,7 +465,7 @@ describe("the ship", () => {
 
     run.advance(16);
 
-    const { flame } = scene.ship;
+    const { flame } = scene.kit.ship;
     expect([shown(flame)[0], flame.images[0]?.scaleX]).toEqual([
       onCanvas(
         metricsOf(shell),
@@ -471,7 +479,7 @@ describe("the ship", () => {
   it("draws no flame while the ship doesn't thrust", async () => {
     const { scene } = await startBoard(withShip);
 
-    expect(shown(scene.ship.flame)).toEqual([null, null, null, null]);
+    expect(shown(scene.kit.ship.flame)).toEqual([null, null, null, null]);
   });
 
   it("draws no flame for a waiting ship, however hard the thrust held as it came", async () => {
@@ -492,7 +500,7 @@ describe("the ship", () => {
     const seen = blinkingOf(run, scene);
 
     expect(seen).toEqual(UNTOUCHABLE);
-    expect(scene.ship.guard.images[0]?.alpha).toBe(GUARD_ALPHA);
+    expect(scene.kit.ship.guard.images[0]?.alpha).toBe(GUARD_ALPHA);
   });
 
   it("blinks a waiting ship within the same ring, as nothing can touch it either", async () => {
@@ -510,7 +518,7 @@ describe("the ship", () => {
 
     run.advance(16);
 
-    expect(shown(scene.ship.shield)[0]).toEqual(
+    expect(shown(scene.kit.ship.shield)[0]).toEqual(
       onCanvas(metricsOf(shell), shipOf(shell.field).x, shipOf(shell.field).y),
     );
   });
@@ -522,7 +530,9 @@ describe("the ship", () => {
     run.advance(16);
 
     expect(
-      [scene.ship.hull, scene.ship.pilot, scene.ship.eyes].flatMap(shown),
+      [scene.kit.ship.hull, scene.kit.ship.pilot, scene.kit.ship.eyes].flatMap(
+        shown,
+      ),
     ).toEqual(Array(12).fill(null));
   });
 });
@@ -534,7 +544,8 @@ describe("the pickups", () => {
 
     run.advance(16);
 
-    const copies = scene.pickups.pickups[shell.field.pickups.indexOf(floating)];
+    const copies =
+      scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)];
     expect([
       shown(copies),
       copies?.images[0]?.frame.name,
@@ -558,7 +569,7 @@ describe("the pickups", () => {
     const metrics = metricsOf(shell);
     const { width } = shell.field.torus;
     expect(
-      shown(scene.pickups.pickups[shell.field.pickups.indexOf(floating)]),
+      shown(scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)]),
     ).toEqual([
       onCanvas(metrics, 0.75, 20),
       onCanvas(metrics, 0.75 + width, 20),
@@ -574,7 +585,7 @@ describe("the pickups", () => {
 
     run.advance(16);
 
-    const [first, second] = scene.pickups.pickups.map(
+    const [first, second] = scene.kit.pickups.pickups.map(
       (copies) => copies.images[0]?.scale,
     );
     expect(first).not.toBe(second);
@@ -584,7 +595,8 @@ describe("the pickups", () => {
     const { shell, run, scene } = await startBoard();
     const floating = placePickup(shell.field, "spread", 30, 20);
     floating.lifeSteps = stepsIn(PICKUP_BLINK_MS);
-    const copies = scene.pickups.pickups[shell.field.pickups.indexOf(floating)];
+    const copies =
+      scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)];
 
     const seen = overASecond(run, () => isShown(copies));
 
@@ -595,7 +607,8 @@ describe("the pickups", () => {
     const { shell, run, scene } = await startBoard();
     const floating = placePickup(shell.field, "spread", 30, 20);
     floating.lifeSteps = stepsIn(PICKUP_BLINK_MS) + 1;
-    const copies = scene.pickups.pickups[shell.field.pickups.indexOf(floating)];
+    const copies =
+      scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)];
 
     const seen = overASecond(run, () => isShown(copies));
 
@@ -611,7 +624,7 @@ describe("the pickups", () => {
     run.advance(16);
 
     expect(
-      shown(scene.pickups.pickups[shell.field.pickups.indexOf(floating)]),
+      shown(scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)]),
     ).toEqual([null, null, null, null]);
   });
 });
@@ -626,7 +639,7 @@ describe("the stray", () => {
     const metrics = metricsOf(shell);
     const sits = 20 + STRAY_DROP * STRAY_RADIUS;
     const size = PILOT_SIZES.adrift;
-    const { bubble, pilot, eyes } = scene.strays.adrift;
+    const { bubble, pilot, eyes } = scene.kit.strays.adrift;
     expect({
       bubble: shownAt(bubble),
       pilot: shownAt(pilot),
@@ -658,7 +671,7 @@ describe("the stray", () => {
     run.advance(16);
 
     const sits = ship.y + 10 + STRAY_DROP * STRAY_RADIUS;
-    expect(shownAt(scene.strays.adrift.eyes)).toEqual(
+    expect(shownAt(scene.kit.strays.adrift.eyes)).toEqual(
       onCanvas(
         metricsOf(shell),
         ship.x - 1,
@@ -676,7 +689,7 @@ describe("the stray", () => {
 
     run.advance(16);
 
-    expect(shownAt(scene.strays.adrift.bubble)).toEqual(
+    expect(shownAt(scene.kit.strays.adrift.bubble)).toEqual(
       onCanvas(metricsOf(shell), -1.5, 20),
     );
   });
@@ -684,7 +697,7 @@ describe("the stray", () => {
   it("bobs its pilot in its bubble where motion is welcome", async () => {
     const { shell, run, scene } = await startBoard();
     placeStray(shell.field, 30, 20);
-    const { bubble, pilot } = scene.strays.adrift;
+    const { bubble, pilot } = scene.kit.strays.adrift;
 
     const seen = {
       bubble: overASecond(run, () => bubble.y).size,
@@ -698,7 +711,7 @@ describe("the stray", () => {
   it("draws nothing while no stray is adrift", async () => {
     const { scene } = await startBoard();
 
-    const { bubble, pilot, eyes } = scene.strays.adrift;
+    const { bubble, pilot, eyes } = scene.kit.strays.adrift;
 
     expect([bubble, pilot, eyes].map(shownAt)).toEqual([null, null, null]);
   });
@@ -711,8 +724,8 @@ describe("the comets", () => {
 
     run.advance(16);
 
-    const [comet] = scene.hazards.comets;
-    const [warning] = scene.hazards.warnings;
+    const [comet] = scene.kit.hazards.comets;
+    const [warning] = scene.kit.hazards.warnings;
     expect({
       comet: comet && shownAt(comet),
       turned: comet?.rotation,
@@ -733,7 +746,7 @@ describe("the comets", () => {
 
     run.advance(16);
 
-    const [image] = scene.hazards.comets;
+    const [image] = scene.kit.hazards.comets;
     expect(image && shownAt(image)).toEqual(
       onCanvas(metricsOf(shell), -1.5, 20),
     );
@@ -746,8 +759,8 @@ describe("the comets", () => {
 
     run.advance(16);
 
-    const [image] = scene.hazards.comets;
-    const [warning] = scene.hazards.warnings;
+    const [image] = scene.kit.hazards.comets;
+    const [warning] = scene.kit.hazards.warnings;
     expect({
       comet: image && shownAt(image),
       warning: warning && shownAt(warning),
@@ -773,7 +786,7 @@ describe("the comets", () => {
 
       run.advance(16);
 
-      expect(scene.hazards.warnings[0]?.alpha).toBeCloseTo(alpha, 9);
+      expect(scene.kit.hazards.warnings[0]?.alpha).toBeCloseTo(alpha, 9);
     },
   );
 
@@ -781,7 +794,7 @@ describe("the comets", () => {
     const { scene } = await startBoard();
 
     expect(
-      [...scene.hazards.comets, ...scene.hazards.warnings].map(shownAt),
+      [...scene.kit.hazards.comets, ...scene.kit.hazards.warnings].map(shownAt),
     ).toEqual(Array(2 * COMET_RECORDS).fill(null));
   });
 });
@@ -808,7 +821,7 @@ describe("the tags", () => {
 
     const metrics = metricsOf(shell);
     const y = tagY(shell.field.torus.height);
-    const { weapon, pace } = scene.tags.images;
+    const { weapon, pace } = scene.kit.tags.images;
     expect([
       [shownAt(weapon), weapon.frame.name],
       [shownAt(pace), pace.frame.name],
@@ -831,7 +844,7 @@ describe("the tags", () => {
       radius: TAG_RADIUS * metrics.unit,
       width: lineWidth(metrics),
     };
-    expect(strokesOf(scene.tags.rings)).toEqual([
+    expect(strokesOf(scene.kit.tags.rings)).toEqual([
       { ...ring, start: 0, end: 2 * Math.PI, color: ART_PALETTE.line },
       // Half the ring, from its top round to its foot.
       {
@@ -847,8 +860,10 @@ describe("the tags", () => {
     const { scene } = await startBoard();
 
     expect({
-      tags: Object.values(scene.tags.images).filter((image) => image.visible),
-      rings: strokesOf(scene.tags.rings),
+      tags: Object.values(scene.kit.tags.images).filter(
+        (image) => image.visible,
+      ),
+      rings: strokesOf(scene.kit.tags.rings),
     }).toEqual({ tags: [], rings: [] });
   });
 });
@@ -873,7 +888,10 @@ describe("the deck", () => {
     return deck;
   }
 
-  /** Returns how an image of the deck shows: where, in what color, how opaque; or null where it doesn't. */
+  /**
+   * Returns how an image of the deck shows: where, in what color, how opaque;
+   * or null where it doesn't.
+   */
   function look(
     image: GameObjects.Image,
   ): { x: number; y: number; tint: number; alpha: number } | null {
@@ -902,14 +920,14 @@ describe("the deck", () => {
     if (!fire) throw new Error("The deck has no Fire.");
     const waits = { x: stick.x, y: stick.y };
 
-    const { rest, knob, base } = scene.deck;
+    const { rest, knob, base } = scene.kit.deck;
 
     expect({
       rest: look(rest),
       knob: look(knob),
       base: look(base),
-      fire: look(scene.deck.fire.disc),
-      symbol: look(scene.deck.dash.symbol),
+      fire: look(scene.kit.deck.fire.disc),
+      symbol: look(scene.kit.deck.dash.symbol),
     }).toEqual({
       rest: { ...waits, tint: ART_PALETTE.muted, alpha: REST_ALPHA },
       knob: { ...waits, tint: ART_PALETTE.muted, alpha: REST_KNOB_ALPHA },
@@ -952,7 +970,7 @@ describe("the deck", () => {
     run.touch("start", x, y);
     run.advance(16);
 
-    const { base, knob, rest } = scene.deck;
+    const { base, knob, rest } = scene.kit.deck;
     expect({
       base: look(base),
       knob: look(knob),
@@ -978,7 +996,7 @@ describe("the deck", () => {
       run.touch("move", x + out * radius, y);
       run.advance(16);
 
-      const { deck } = scene;
+      const { deck } = scene.kit;
       expect({
         base: deck.base.x,
         knob: deck.knob.x,
@@ -995,7 +1013,7 @@ describe("the deck", () => {
     run.touch("start", x, y);
     run.advance(16);
 
-    const { disc, ring, symbol } = scene.deck.dash;
+    const { disc, ring, symbol } = scene.kit.deck.dash;
     expect([disc, ring, symbol].map((image) => image.tintTopLeft)).toEqual([
       ART_PALETTE.accent,
       ART_PALETTE.accent,
@@ -1008,7 +1026,7 @@ describe("the deck", () => {
       shell.setting = { ...WITH_DECK, fireByItself: true };
     });
 
-    const { disc, ring, symbol } = scene.deck.fire;
+    const { disc, ring, symbol } = scene.kit.deck.fire;
 
     expect([disc, ring, symbol].map(shownAt)).toEqual([null, null, null]);
   });
@@ -1023,7 +1041,7 @@ describe("the deck", () => {
     run.advance(16);
 
     // Half the ring, from its top round to its foot.
-    expect(strokesOf(scene.deck.recharge)).toEqual([
+    expect(strokesOf(scene.kit.deck.recharge)).toEqual([
       {
         ...rechargeRing(deckFor(shell).dash, 1),
         start: -Math.PI / 2,
@@ -1036,7 +1054,7 @@ describe("the deck", () => {
   it("draws no ring round Dash once it is charged", async () => {
     const { scene } = await startBoard(withDeck);
 
-    expect(strokesOf(scene.deck.recharge)).toEqual([]);
+    expect(strokesOf(scene.kit.deck.recharge)).toEqual([]);
   });
 
   it("shows the deck as the board comes to show it", async () => {
@@ -1045,7 +1063,7 @@ describe("the deck", () => {
     withDeck(shell);
     run.advance(16);
 
-    expect(shownAt(scene.deck.rest)).toEqual({
+    expect(shownAt(scene.kit.deck.rest)).toEqual({
       x: deckFor(shell).stick.x,
       y: deckFor(shell).stick.y,
     });
@@ -1057,10 +1075,9 @@ describe("the deck", () => {
     shell.setting = BOARD;
     run.advance(16);
 
-    expect([scene.deck.rest, scene.deck.dash.disc].map(shownAt)).toEqual([
-      null,
-      null,
-    ]);
+    expect(
+      [scene.kit.deck.rest, scene.kit.deck.dash.disc].map(shownAt),
+    ).toEqual([null, null]);
   });
 });
 
@@ -1070,7 +1087,7 @@ describe("the specks", () => {
     const metrics = metricsOf(shell);
     const [first] = speckShares(shell.seed);
 
-    const visible = scene.field.specks.filter((speck) => speck.visible);
+    const visible = scene.kit.field.specks.filter((speck) => speck.visible);
 
     expect(visible).toHaveLength(speckCount(shell.field.torus));
     expect([visible[0]?.x, visible[0]?.y]).toEqual([
@@ -1081,18 +1098,18 @@ describe("the specks", () => {
 
   it("strew them anew for another run", async () => {
     const { shell, run, scene } = await startBoard();
-    const before = scene.field.specks[0]?.x;
+    const before = scene.kit.field.specks[0]?.x;
     shell.seed = 8;
 
     run.advance(16);
 
-    expect(scene.field.specks[0]?.x).not.toBe(before);
+    expect(scene.kit.field.specks[0]?.x).not.toBe(before);
   });
 
   it("tint each in the specks' color", async () => {
     const { scene } = await startBoard();
 
-    expect(scene.field.specks[0]?.tintTopLeft).toBe(ART_PALETTE.speck);
+    expect(scene.kit.field.specks[0]?.tintTopLeft).toBe(ART_PALETTE.speck);
   });
 });
 
@@ -1100,7 +1117,7 @@ describe("the constellation", () => {
   it("lies nowhere in a sector's wave", async () => {
     const { scene } = await startBoard();
 
-    expect(scene.field.stars.filter((star) => star.visible)).toEqual([]);
+    expect(scene.kit.field.stars.filter((star) => star.visible)).toEqual([]);
   });
 
   it("traces the fuzzball where an Endless wave lays it, at its size in field units", async () => {
@@ -1110,11 +1127,11 @@ describe("the constellation", () => {
     const metrics = metricsOf(shell);
     const across = CONSTELLATION_SIZE * metrics.unit;
 
-    const [star] = scene.field.stars;
+    const [star] = scene.kit.field.stars;
     const [first] = CONSTELLATION.specks;
 
     expect({
-      shown: scene.field.stars.filter((each) => each.visible).length,
+      shown: scene.kit.field.stars.filter((each) => each.visible).length,
       x: star?.x,
       y: star?.y,
     }).toEqual({
@@ -1129,7 +1146,7 @@ describe("the constellation", () => {
       shell.constellation = { x: 0.5, y: 0.5 };
     });
 
-    const tints = scene.field.stars.map((star) => star.tintTopLeft);
+    const tints = scene.kit.field.stars.map((star) => star.tintTopLeft);
 
     expect({
       specks: new Set(tints.slice(0, CONSTELLATION.specks.length)),
@@ -1148,7 +1165,7 @@ describe("the constellation", () => {
 
     run.advance(16);
 
-    expect(scene.field.stars.filter((star) => star.visible)).toEqual([]);
+    expect(scene.kit.field.stars.filter((star) => star.visible)).toEqual([]);
   });
 });
 
@@ -1344,7 +1361,7 @@ describe("baking", () => {
 
     const metrics = metricsOf(shell, WIDER);
     const { main } = scene.cameras;
-    const deck = scene.deckCamera;
+    const deck = scene.kit.deckCamera;
     expect({
       field: [main.x, main.y, main.width, main.height],
       deck: [deck.width, deck.height],
@@ -1390,7 +1407,7 @@ describe("a new field", () => {
 
     run.advance(16);
 
-    expect(scene.rocks.bodies).toHaveLength(60);
+    expect(scene.kit.rocks.bodies).toHaveLength(60);
   });
 
   it.each([
@@ -1420,7 +1437,9 @@ describe("a new field", () => {
 
     run.advance(16);
 
-    const drawn = scene.rocks.bodies.filter((body) => body.images[0]?.visible);
+    const drawn = scene.kit.rocks.bodies.filter(
+      (body) => body.images[0]?.visible,
+    );
     expect(drawn.map((body) => shown(body)[0])).toEqual([
       onCanvas(metricsOf(shell), 38, 2),
     ]);
@@ -1532,8 +1551,8 @@ describe("the sounds", () => {
     hitRock(shell.field, rock, 0, 0);
     run.advance(16);
 
-    expect(scene.sounds.loaded).toBe(false);
-    expect(shown(scene.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
+    expect(scene.kit.sounds.loaded).toBe(false);
+    expect(shown(scene.kit.rocks.bodies[slotOf(shell.field, rock)])).toEqual([
       null,
       null,
       null,

@@ -168,7 +168,7 @@ export class DebrisPainter implements Painter {
   }
 
   /** Stops every shard, puff and spark, as a new field starts. */
-  reset(): void {
+  start(): void {
     this.shards.killAll();
     for (const turns of [this.puffs, this.sparks]) {
       for (const playing of turns.all) playing.at = -Infinity;

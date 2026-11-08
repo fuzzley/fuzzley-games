@@ -4,43 +4,57 @@ import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { FieldView } from "../../view/field/frame";
 import type { Deck } from "../../view/steering/deck";
 
-/** Says what the atlas was last baked at: the field's layout and the palette. */
-export interface Baked {
-  /** Where the field lies on the canvas. */
-  metrics: FieldMetrics;
-  /** The palette the atlas was baked in. */
-  palette: BeltPalette;
-  /** How much larger the field draws than the atlas was baked: its unit over the baked unit, above 1 only past the bake's largest. */
-  zoom: number;
-}
-
 /**
  * Says what a frame is drawn from: the field, and how the scene stands as
  * it draws it.
  *
  * The scene writes one over each frame, so drawing makes nothing.
  */
-export interface PaintContext extends Baked {
+export interface PaintContext {
   /** The field as of its last step. */
   field: FieldView;
   /** How far the field is from its last step to its next, from 0 to 1. */
   alpha: number;
   /** The run's seed, which the field's specks are strewn from. */
   seed: number;
-  /** Where an Endless wave's constellation lies, its middle as shares of the field's width and height, or null for none. */
+  /**
+   * Where an Endless wave's constellation lies, its middle as shares of the
+   * field's width and height, or null for none.
+   */
   constellation: Readonly<Place> | null;
   /** Where the deck's parts lie on the canvas, or null where it doesn't show. */
   deck: Deck | null;
+  /** Where the field lies on the canvas. */
+  metrics: FieldMetrics;
+  /** The palette the field is drawn in, which the atlas was baked in. */
+  palette: BeltPalette;
+  /**
+   * How much larger the field draws than the atlas was baked: its unit over
+   * the baked unit, above 1 only past the bake's largest.
+   */
+  zoom: number;
   /** The scene's time, in milliseconds, by which the flourishes and idle motions run. */
   now: number;
   /** Whether the player welcomes motion. */
   motion: boolean;
 }
 
-/** Draws a part of the field, in the layers it was given, each frame. */
+/**
+ * Draws a part of the field, in the layers it was given, each frame; the
+ * scene starts it on each new field and refreshes it after each bake.
+ */
 export interface Painter {
   /** Draws its part of the field as the frame has it. */
   draw(context: Readonly<PaintContext>): void;
-  /** Takes up its frames again, where it draws from the atlas, once the atlas has been baked again. */
-  refresh?(baked: Readonly<Baked>): void;
+  /**
+   * Starts on a new field: stops what the last one set off, and makes the
+   * images this one needs that the last didn't, so a frame of play makes
+   * none.
+   */
+  start?(field: FieldView): void;
+  /**
+   * Takes up its frames again, where it draws from the atlas, once the atlas
+   * has been baked again.
+   */
+  refresh?(): void;
 }

@@ -236,7 +236,7 @@ export function scrolledBy(
 /** Returns the tint of each shard alive. */
 export function shardTints(scene: BeltScene): readonly number[] {
   const tints: number[] = [];
-  scene.debris.shards.forEachAlive((shard) => {
+  scene.kit.debris.shards.forEachAlive((shard) => {
     tints.push(shard.tint);
   }, null);
   return tints;

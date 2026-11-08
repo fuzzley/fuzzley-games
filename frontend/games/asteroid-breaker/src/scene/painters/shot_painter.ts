@@ -1,25 +1,40 @@
 import type { GameObjects, Scene } from "phaser";
 import { FRAMES } from "../../view/art/art";
-import { betweenOnAxis } from "../../view/field/frame";
+import { type FieldView, betweenOnAxis } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
-/** How far a shot's frame reaches from its middle, its capsule's half length and outline, in field units. */
+/**
+ * How far a shot's frame reaches from its middle, its capsule's half length and
+ * outline, in field units.
+ */
 const SHOT_REACH = 0.5;
 
-/** Draws the shots in flight: for each slot of the field's, a capsule along its travel, on both sides of an edge it reaches across. */
+/**
+ * Draws the shots in flight: for each slot of the field's, a capsule along its
+ * travel, on both sides of an edge it reaches across.
+ */
 export class ShotPainter implements Painter {
-  readonly shots: Copies[] = [];
+  /** Each shot slot's capsule, made as a field of more slots starts. */
+  private readonly shotsMade: Copies[] = [];
 
   constructor(
     private readonly scene: Scene,
     private readonly layer: GameObjects.Layer,
   ) {}
 
-  /** Makes the images a field of so many shot slots needs, those it lacks, as a new field is shown. */
-  fit(slots: number): void {
-    while (this.shots.length < slots) {
-      this.shots.push(new Copies(this.scene, this.layer, FRAMES.shot));
+  /** Each shot slot's capsule. */
+  get shots(): readonly Copies[] {
+    return this.shotsMade;
+  }
+
+  /**
+   * Makes the images a new field's shot slots need, those it lacks, so none is
+   * made in a frame of play.
+   */
+  start(field: FieldView): void {
+    while (this.shotsMade.length < field.shots.slots.length) {
+      this.shotsMade.push(new Copies(this.scene, this.layer, FRAMES.shot));
     }
   }
 
@@ -28,7 +43,10 @@ export class ShotPainter implements Painter {
     for (const shot of this.shots) shot.refresh();
   }
 
-  /** Draws each shot in flight between its last place and its next, along its travel, and hides each slot that holds none. */
+  /**
+   * Draws each shot in flight between its last place and its next, along its
+   * travel, and hides each slot that holds none.
+   */
   draw({ field, alpha, metrics, zoom }: Readonly<PaintContext>): void {
     const { torus } = field;
     const { slots } = field.shots;
