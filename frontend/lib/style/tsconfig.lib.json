@@ -1,0 +1,19 @@
+{
+  // Two kinds of TypeScript, checked together with @fz/dev's options:
+  // themes.ts, which the apps import into the browser, and build/vite.ts,
+  // which their Vite configs run in Node.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Nothing here imports from outside the library but by package name: a
+    // relative import that climbs out of it fails here.
+    "rootDir": "./",
+    // An app's Vite config loads vite.ts in Node as it is, which strips the
+    // types but compiles nothing, and resolves only a full file name.
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "lib": ["ES2024", "DOM"],
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "vitest.config.ts"]
+}

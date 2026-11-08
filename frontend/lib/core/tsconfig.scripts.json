@@ -1,0 +1,5 @@
+{
+  // The ESLint config, type-checked from its JSDoc.
+  "extends": "@fz/dev/tsconfig/scripts.json",
+  "include": ["eslint.config.js"]
+}

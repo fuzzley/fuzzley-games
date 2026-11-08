@@ -1,17 +1,12 @@
 {
-  // TypeScript that Node runs as it is: an app's ESLint config and scripts
-  // import these files, and Node strips their types but compiles nothing.
+  // The base options this library gives every workspace, the strict flags
+  // its own TypeScript is checked with too.
   "extends": "./tsconfig/base.json",
-  "compilerOptions": {
-    "noEmit": true,
-    // Nothing here imports from outside the library but by package name: a
-    // relative import that climbs out of it fails here.
-    "rootDir": "./",
-    "erasableSyntaxOnly": true,
-    "allowImportingTsExtensions": true,
-    // The DOM for the functions a script runs in a page.
-    "lib": ["ES2024", "DOM"],
-    "types": ["node", "vitest/globals"]
-  },
-  "include": ["src/**/*.ts", "vitest.config.ts"]
+  // A solution: each file belongs to the project below that includes it, which
+  // is the one editors and ESLint's project service check it with.
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.lib.json" },
+    { "path": "./tsconfig.scripts.json" }
+  ]
 }

@@ -11,7 +11,9 @@ export default defineConfig(
   tests({
     files: ["src/**/*.spec.ts", "src/testing/**/*.ts", "src/test-setup.ts"],
   }),
-  scripts({ files: ["tools/**/*.mjs"] }),
+  scripts({
+    files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
+  }),
   {
     // The rules of the game know nothing of how it is shown, so specs drive
     // them directly and the shell can change around them.

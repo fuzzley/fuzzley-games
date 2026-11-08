@@ -21,7 +21,9 @@ export default defineConfig(
   angular({ files: ["src/ui/**/*.ts"], prefix: "app" }),
   templates({ files: ["src/ui/**/*.html"] }),
   tests({ files: ["test/**/*.ts"] }),
-  scripts({ files: ["tools/**/*.mjs"] }),
+  scripts({
+    files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
+  }),
   phaser({ files: ["src/engine/render/phaser/**/*.ts"] }),
   // --- Engine tier boundaries ---
   //

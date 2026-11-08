@@ -1,4 +1,4 @@
-import { tests, typescript } from "@fz/dev/eslint";
+import { scripts, tests, typescript } from "@fz/dev/eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig(
@@ -9,6 +9,7 @@ export default defineConfig(
     files: ["src/**/*.ts", "vitest.config.ts"],
   }),
   tests({ files: ["src/**/*.spec.ts"] }),
+  scripts({ files: ["eslint.config.js"] }),
   {
     // A game's rules import these behind a fence that keeps every framework
     // out, so nothing here imports anything but its own files.

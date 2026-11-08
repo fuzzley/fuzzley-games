@@ -14,8 +14,8 @@
   "sideEffects": false,
   "scripts": {
     "test": "vitest run --coverage",
-    "typecheck": "ngc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json",
-    "lint": "eslint src vitest.config.ts && yarn lint:styles",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
+    "lint": "eslint src eslint.config.js stylelint.config.js vitest.config.ts && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""
   },
   "dependencies": {

@@ -89,7 +89,7 @@ random and JSON reader in its engine for now.
 
 - **Nothing but plain TypeScript.** No framework, no DOM and no Node: the
   library imports nothing but its own files, as its ESLint config checks,
-  and its `tsconfig.json` gives it neither the DOM's types nor Node's. A
+  and its `tsconfig.lib.json` gives it neither the DOM's types nor Node's. A
   game's rules allow `@fz/core` past the fence that keeps every other
   library out of them.
 - **Mulberry32's sequence never changes,** nor do `drawAt()`'s numbers,
@@ -117,5 +117,8 @@ Run these from `frontend/lib/core/`, or as `yarn workspace @fz/core
 <script>` from `frontend/`.
 
 - **Run Tests:** `yarn test` (Vitest in Node, with coverage).
-- **Type Checking:** `yarn typecheck`.
-- **Linting:** `yarn lint`.
+- **Type Checking:** `yarn typecheck` (`tsc` over the sources, the specs
+  and the Vitest config, `tsconfig.lib.json`, then over `eslint.config.js`
+  from its JSDoc, `tsconfig.scripts.json`).
+- **Linting:** `yarn lint` (ESLint over the library, its config with
+  `@fz/dev`'s `scripts()` block).

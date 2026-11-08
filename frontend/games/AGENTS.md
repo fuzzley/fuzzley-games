@@ -79,8 +79,10 @@ to `frontend/games/`.
    Minesweeper is the one to copy.
 2. **Its configs from `@fz/dev`'s presets:** `vite.config.ts` is
    `gameConfig({ port, name })`, `vitest.config.ts` is `angularTests()`,
-   `eslint.config.js` is the blocks, and `tsconfig.json` extends
-   `@fz/dev/tsconfig/angular.json` (`frontend/lib/dev/AGENTS.md`).
+   `eslint.config.js` is the blocks, `phaserGameLayers()` among them for a
+   game drawn with Phaser in four layers, as Snake's is, and
+   `tsconfig.json` extends `@fz/dev/tsconfig/angular.json`
+   (`frontend/lib/dev/AGENTS.md`).
 3. **Its screenshots,** from a script on `@fz/dev/chrome` and
    `@fz/dev/screenshots`, as Minesweeper's `tools/capture-screenshots.mjs`
    is.
