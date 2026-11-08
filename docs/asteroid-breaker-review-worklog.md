@@ -809,3 +809,32 @@ The change had three reviews, the first two reshaping it:
 10. _Nits: the specs in two forms, a `Readonly` that added nothing, the
     autopilot's own `SHOT_REACH` meaning its range (now `SHOT_RANGE`), a
     spec's context with no ship, `AGENTS.md` missing the mitre:_ taken.
+
+### Step 12d: finding 17, the debug menu a component of its own
+
+Built on `ab-rules`, its own track's work done. The debug menu, half of the
+settings drawer's code and template, is `<app-debug-tuning>`, which reads
+and writes `TuningService` and keeps only what the last Copy said and
+whether its lines show; the drawer hosts it where the section was, and its
+own stylesheet is the shared drawer's alone, as Snake's is. Its spec moved
+with it, the drawer's keeping whether the menu shows. Every element of the
+drawer has the same box and computed style, and the same accessible tree,
+in Chrome before and after.
+
+Where it went other than planned:
+
+- The drawer's mixin can't reach into a child's view, so the menu's
+  stylesheet draws the parts of the drawer it is made of as the mixin
+  draws them. A mixin of those parts, split from the drawer's, as
+  `help-text` was from the help card, would leave no copy: it goes with
+  `@fz/style`'s lifts, on `ui-lifts`.
+- A spec covers a Copy the browser refuses, which none did.
+
+The review found the move faithful:
+
+1. _The copy left out how a check's description sits beside it,_ which no
+   check in the menu has yet: taken.
+2. _A mixin split out of the drawer's would remove the copy:_ later, as
+   above.
+3. _The menu's own rule came before the copied rule it overrides:_ taken.
+4. _The class doc restated the code:_ taken.
