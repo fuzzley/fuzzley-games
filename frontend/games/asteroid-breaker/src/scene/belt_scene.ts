@@ -33,11 +33,13 @@ import {
   type FieldMetrics,
   fieldMetrics,
 } from "../view/field/field_metrics";
-import type {
-  FieldEvent,
-  FieldFrame,
-  FieldView,
-  Steer,
+import {
+  type Drawn,
+  type FieldEvent,
+  type FieldFrame,
+  type FieldView,
+  type Steer,
+  shipAt,
 } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
@@ -202,6 +204,8 @@ export class BeltScene extends Scene {
   private played = 0;
   /** The sounds this frame's events call for, played once each after them. */
   private readonly frameSounds = createFrameSounds();
+  /** Where the ship is drawn and how far it is turned, written each frame. */
+  private readonly drawnShip: Drawn = { x: 0, y: 0, angle: 0 };
 
   constructor(
     private readonly options: BeltSceneOptions,
@@ -267,6 +271,7 @@ export class BeltScene extends Scene {
     this.context = {
       field: frame.field,
       alpha: frame.alpha,
+      shipDrawn: shipAt(frame.field, frame.alpha, this.drawnShip),
       seed: frame.seed,
       constellation: frame.constellation,
       deck: this.deckParts,
@@ -378,14 +383,15 @@ export class BeltScene extends Scene {
   };
 
   /**
-   * Writes the frame, and how the scene now lays the field out and paints
-   * it, into the context the frame's flourishes play from and its painters
-   * draw from.
+   * Writes the frame, where its ship is drawn, and how the scene now lays the
+   * field out and paints it, into the context the frame's flourishes play
+   * from and its painters draw from.
    */
   private stage({ field, alpha, seed, constellation }: FieldFrame): void {
     const context = this.context;
     context.field = field;
     context.alpha = alpha;
+    context.shipDrawn = shipAt(field, alpha, this.drawnShip);
     context.seed = seed;
     context.constellation = constellation;
     context.deck = this.deckParts;

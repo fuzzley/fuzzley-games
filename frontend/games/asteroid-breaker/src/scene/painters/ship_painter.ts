@@ -20,7 +20,6 @@ import {
   flickerShare,
 } from "../../view/effects/flourish";
 import type { FieldMetrics } from "../../view/field/field_metrics";
-import { angleBetween, betweenOnAxis } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
@@ -64,10 +63,13 @@ export class ShipPainter implements Painter {
     for (const part of this.parts) part.refresh();
   }
 
-  /** Draws the ship between its last place and turn and its next, or nothing between one ship and the next. */
+  /**
+   * Draws the ship between its last place and turn and its next, or nothing
+   * between one ship and the next.
+   */
   draw({
     field,
-    alpha,
+    shipDrawn,
     metrics,
     zoom,
     now,
@@ -75,12 +77,11 @@ export class ShipPainter implements Painter {
   }: Readonly<PaintContext>): void {
     const { ship, torus } = field;
     const pilot = field.crew.flying[0];
-    if (!ship || pilot === undefined) {
+    if (!ship || !shipDrawn || pilot === undefined) {
       for (const part of this.parts) part.hide();
       return;
     }
-    const x = betweenOnAxis(ship.lastX, ship.x, alpha, torus.width);
-    const y = betweenOnAxis(ship.lastY, ship.y, alpha, torus.height);
+    const { x, y, angle } = shipDrawn;
     const guarded = isGuarded(ship);
     showRing(this.guard, guarded, x, y, zoom, metrics, torus);
     showRing(this.shield, field.shielded, x, y, zoom, metrics, torus);
@@ -89,7 +90,6 @@ export class ShipPainter implements Painter {
       for (const part of this.body) part.hide();
       return;
     }
-    const angle = angleBetween(ship.lastAngle, ship.angle, alpha);
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     const thrust = thrustOf(ship);

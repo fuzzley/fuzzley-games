@@ -67,10 +67,11 @@ take for the layer.
   most a frame. `torus.ts` is the wrap: the field for a room's shape
   (`torusFor()`), the shortest way and distance between two places across
   the edges (`across()`, `distance()`), and where a thing reaching past an
-  edge needs a copy drawn (`copyShift()`); `angles.ts` the turn and the
-  degree in radians (`TURN`, `RADIANS_PER_DEGREE`). `draws.ts` draws the
-  field's random numbers (`nextDraw()`, `drawIn()`) from its seed and how
-  many came before, so a field taken up draws as it would have.
+  edge needs a copy drawn (`copyShift()`) and how far off each copy is
+  (`copyOffsets()`); `angles.ts` the turn and the degree in radians
+  (`TURN`, `RADIANS_PER_DEGREE`). `draws.ts` draws the field's random
+  numbers (`nextDraw()`, `drawIn()`) from its seed and how many came
+  before, so a field taken up draws as it would have.
 - **`src/rules/field/`** — the field. `field.ts`: `Field`, a wave in play,
   which each step changes in place, from records made once. `fieldFor()`
   lays a wave out whole on a field of a shape at a speed, its counts grown
@@ -254,8 +255,9 @@ take for the layer.
   reads: `FieldView`, the field it can't change, `EventsView` and
   `FieldFrame`, and where a thing is drawn between its last place and its
   next (`between()`), the shortest way across the wrap for one that wraps
-  (`betweenOnAxis()`), and its turn (`angleBetween()`). `layers.ts` is the
-  order the field is drawn in, back to front, in one list (`LAYERS`).
+  (`wrappedBetween()`), its turn (`angleBetween()`), and where the ship is
+  drawn and turned (`shipAt()`). `layers.ts` is the order the field is
+  drawn in, back to front, in one list (`LAYERS`).
   `tags.ts` says where the tags of the lasting effects lie, at the field's
   bottom left, and how much of each one's time is left; `warning.ts` where a
   comet's warning is drawn; and `specks.ts` where the specks lie, from the
@@ -305,7 +307,13 @@ take for the layer.
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
   drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), and `shapes.ts`
   holds the game's own helpers over them, `lineWidth()` and `stroke()`
-  among them.
+  among them. Each piece that wraps says how far its frame reaches from its
+  middle (`SHOT_REACH`, `PICKUP_REACH`, `ROCK_REACH`, `SHIP_REACH`), its own
+  extent and its outline at the widest a line gets (`MOST_LINE`), a rock's
+  and the ship's mitred out at a sharp corner as far as an outline may
+  reach (`MOST_MITER`), and the ship's covering its rings too, which the
+  scene draws its copies past the edges by, and its spec holds what it
+  draws within it.
 - **`src/scene/`** — the Phaser scene. `BeltScene` (`belt_scene.ts`, made
   by `makeBeltScene()`) is handed plain functions over the game
   (`BeltSceneOptions`): each frame it hands the game the time and the
@@ -325,16 +333,16 @@ take for the layer.
   fills it with the field's color and scrolls it as the field kicks and
   shakes, the one place its scroll is written. Each of them is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
-  writes over each frame, starts on each new field (`start()`) and takes up
-  its frames again after a bake (`refresh()`), so the scene draws, starts
-  and refreshes them in a loop over its list of painters. The scene's
-  painters, cameras and sounds are made once, as it is created, and read
-  through its `kit` (`BeltKit`). A thing that wraps is drawn through
-  `Copies` (`painters/copies.ts`), once, and again past each edge it reaches
-  across; a flourish's records are taken in turn (`Turns`,
-  `painters/turns.ts`). Every game object is made as the scene is created,
-  or as a field of more slots starts, so a frame of play makes none, and a
-  new field stops what the last one set off.
+  writes over each frame, where the ship is drawn among it, starts on each
+  new field (`start()`) and takes up its frames again after a bake
+  (`refresh()`), so the scene draws, starts and refreshes them in a loop over
+  its list of painters. The scene's painters, cameras and sounds are made
+  once, as it is created, and read through its `kit` (`BeltKit`). A thing
+  that wraps is drawn through `Copies` (`painters/copies.ts`), once, and
+  again past each edge it reaches across; a flourish's records are taken in
+  turn (`Turns`, `painters/turns.ts`). Every game object is made as the scene
+  is created, or as a field of more slots starts, so a frame of play makes
+  none, and a new field stops what the last one set off.
   The scene plays each of the field's events once, from the last it played,
   and the flourishes an event calls for only where motion is welcome, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
@@ -503,7 +511,7 @@ take for the layer.
 - **The field wraps** (`torus.ts`): what leaves by one edge comes in by the
   other, and every distance is the shortest across the edges. A thing
   reaching past an edge is drawn on both sides of it, and at a corner four
-  times (`copyShift()`, `Copies`). The strays and the comets cross rather
+  times (`copyOffsets()`, `Copies`). The strays and the comets cross rather
   than wrap, and a lost ship's pilot floats off, so each is drawn once, and
   the field's camera cuts it off at the edge.
 - **The frame and the deck stand still.** Two cameras draw the scene: the
@@ -752,7 +760,11 @@ of its own beside it:
   margin and tilt (`entriesOf()`), and where an event was logged against
   one (`edgePlaceOf()`), for the specs of the hazards.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
-  specs, and finds a frame by its name (`frameNamed()`).
+  specs, and finds a frame by its name (`frameNamed()`); it lists the pixel
+  ratios the specs check the art at (`PIXEL_RATIOS`) and the scales a field
+  is drawn at, as baked, the smallest unit the layout check holds a field to
+  at each among them (`ART_SCALES`), and says how far a frame's drawing
+  reaches from its middle (`reachOf()`).
 - `autopilot.ts` plays a wave as a fair player would (`autoplay()`,
   `playWave()`), steering each frame by `pilot()`: it flees a rock or a
   comet whose course comes near the ship, dashing when one is about to meet

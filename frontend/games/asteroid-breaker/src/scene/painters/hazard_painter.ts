@@ -22,9 +22,9 @@ export class HazardPainter implements Painter {
   /** Each record's warning. */
   readonly warnings: readonly GameObjects.Image[];
 
-  /** Where a comet or its warning is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written each frame. */
+  /** Where a comet's warning is on the field, at its edge, written each frame. */
+  private readonly edge: Moving = { x: 0, y: 0 };
+  /** Where a comet or its warning is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -43,7 +43,10 @@ export class HazardPainter implements Painter {
     for (const warning of this.warnings) warning.setFrame(FRAMES.warning);
   }
 
-  /** Draws each comet crossing between its last place and its next, and each warned of at its edge. */
+  /**
+   * Draws each comet crossing between its last place and its next, and each
+   * warned of at its edge.
+   */
   draw({ field, alpha, metrics, zoom, motion }: Readonly<PaintContext>): void {
     for (let i = 0; i < this.comets.length; i++) {
       const image = this.comets[i];
@@ -56,12 +59,16 @@ export class HazardPainter implements Painter {
       warning.setVisible(warned);
       if (!live) continue;
       if (warned) {
-        warningAt(comet, field.torus, this.place);
+        const { x, y } = warningAt(comet, field.torus, this.edge);
+        toCanvas(metrics, x, y, this.at);
       } else {
-        this.place.x = between(comet.lastX, comet.x, alpha);
-        this.place.y = between(comet.lastY, comet.y, alpha);
+        toCanvas(
+          metrics,
+          between(comet.lastX, comet.x, alpha),
+          between(comet.lastY, comet.y, alpha),
+          this.at,
+        );
       }
-      toCanvas(metrics, this.place, this.at);
       (warned ? warning : image)
         .setPosition(this.at.x, this.at.y)
         .setRotation(comet.heading)

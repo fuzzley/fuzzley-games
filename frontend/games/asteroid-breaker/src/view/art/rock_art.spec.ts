@@ -10,15 +10,18 @@ import { ROCK_RADIUS } from "../../rules/tuning";
 import {
   ART_PALETTE,
   ART_SCALE,
+  ART_SCALES,
   distanceToEdge,
   drawnIn,
   edgeOf,
   frameNamed,
+  reachOf,
   within,
 } from "../../testing/art_frames";
 import { atlasFrames } from "./art";
 import {
   MARK_REACH,
+  ROCK_REACH,
   largestOf,
   rockColor,
   rockFrame,
@@ -37,7 +40,10 @@ const KINDS_AND_SIZES: readonly (readonly [RockKindId, RockSize])[] =
     sizesOf(kind).map((size) => [kind, size] as const),
   );
 
-/** Every kind and size of rock that can take a hit and hold, with each count of hits it can have left, and the hits it has taken. */
+/**
+ * Every kind and size of rock that can take a hit and hold, with each count of
+ * hits it can have left, and the hits it has taken.
+ */
 const TAKEN: readonly (readonly [RockKindId, RockSize, number, number])[] =
   KINDS_AND_SIZES.flatMap(([kind, size]) => {
     const whole = rockKind(kind).hits[size] ?? 0;
@@ -47,14 +53,48 @@ const TAKEN: readonly (readonly [RockKindId, RockSize, number, number])[] =
     );
   });
 
-/** The scales the marks are held at: the smallest unit the layout allows, a phone's, and the largest baked. */
+/**
+ * The size of rock each rock's frame draws, by its name: each outline's, and
+ * each count of hits taken's.
+ */
+const SIZES_DRAWN: ReadonlyMap<string, RockSize> = new Map([
+  ...KINDS_AND_SIZES.flatMap(([kind, size]) =>
+    Array.from(
+      { length: ROCK_OUTLINES },
+      (_, outline) => [rockFrame({ kind, size, outline }), size] as const,
+    ),
+  ),
+  ...TAKEN.map(
+    ([kind, size, hits]) => [takenName(kind, size, hits), size] as const,
+  ),
+]);
+
+/**
+ * The scales the marks are held at: the smallest unit the layout allows, a
+ * phone's, and the largest baked.
+ */
 const SCALES: readonly ArtScale[] = [
   { unit: 6, pixelRatio: 1 },
   { unit: 27, pixelRatio: 3 },
   { unit: 32, pixelRatio: 2 },
 ];
 
-/** Returns the frames of each outline of a kind and size of rock, in the specs' palette at a scale. */
+/**
+ * Returns the size of rock a rock's frame draws, by its name: one of its
+ * outlines, or the hits it has taken.
+ *
+ * @throws {RangeError} For a name no rock's frame has.
+ */
+function sizeDrawnBy(name: string): RockSize {
+  const size = SIZES_DRAWN.get(name);
+  if (size === undefined) throw new RangeError(`No rock's frame is "${name}"`);
+  return size;
+}
+
+/**
+ * Returns the frames of each outline of a kind and size of rock, in the specs'
+ * palette at a scale.
+ */
 function outlinesOf(
   kind: RockKindId,
   size: RockSize,
@@ -77,7 +117,10 @@ function bodyOf(frame: ArtFrame): readonly Point[] {
   return placed(body.points, 1, -frame.width / 2, -frame.height / 2);
 }
 
-/** Returns the points round the edges of what some of a frame's commands draw, about the frame's middle. */
+/**
+ * Returns the points round the edges of what some of a frame's commands draw,
+ * about the frame's middle.
+ */
 function aboutMiddle(
   frame: ArtFrame,
   commands: readonly DrawCommand[],
@@ -87,7 +130,10 @@ function aboutMiddle(
     .map(({ x, y }) => ({ x: x - frame.width / 2, y: y - frame.height / 2 }));
 }
 
-/** Returns the points round the edges of a rock frame's marks, about the frame's middle: all it draws over its body. */
+/**
+ * Returns the points round the edges of a rock frame's marks, about the frame's
+ * middle: all it draws over its body.
+ */
 function marksOf(frame: ArtFrame): readonly Point[] {
   return aboutMiddle(frame, frame.commands.slice(2));
 }
@@ -403,6 +449,23 @@ describe("the hits a rock shows taken", () => {
   ] as const)("refuses a rock that can't be: %o", (rock) => {
     expect(() => takenFrame(rock)).toThrow(RangeError);
   });
+});
+
+describe("ROCK_REACH", () => {
+  it.each(ART_SCALES)(
+    "holds every rock and the hits it shows taken, at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const beyond = rockFrames(ART_PALETTE, scale)
+        .filter(
+          (frame) =>
+            reachOf(frame) >
+            ROCK_REACH[sizeDrawnBy(frame.name)] * scale.unit + SLACK,
+        )
+        .map((frame) => frame.name);
+
+      expect(beyond).toEqual([]);
+    },
+  );
 });
 
 describe("a rock's frame's name", () => {

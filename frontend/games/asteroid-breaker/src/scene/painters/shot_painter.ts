@@ -1,14 +1,8 @@
 import type { GameObjects, Scene } from "phaser";
-import { FRAMES } from "../../view/art/art";
-import { type FieldView, betweenOnAxis } from "../../view/field/frame";
+import { FRAMES, SHOT_REACH } from "../../view/art/art";
+import type { FieldView } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
-
-/**
- * How far a shot's frame reaches from its middle, its capsule's half length and
- * outline, in field units.
- */
-const SHOT_REACH = 0.5;
 
 /**
  * Draws the shots in flight: for each slot of the field's, a capsule along its
@@ -60,13 +54,7 @@ export class ShotPainter implements Painter {
       }
       copies.setRotation(Math.atan2(shot.vy, shot.vx));
       copies.setScale(zoom);
-      copies.show(
-        betweenOnAxis(shot.lastX, shot.x, alpha, torus.width),
-        betweenOnAxis(shot.lastY, shot.y, alpha, torus.height),
-        SHOT_REACH,
-        metrics,
-        torus,
-      );
+      copies.showBetween(shot, alpha, SHOT_REACH, metrics, torus);
     }
   }
 }

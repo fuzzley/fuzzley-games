@@ -23,9 +23,7 @@ export class TagPainter implements Painter {
   /** The rings, drawn again each frame. */
   readonly rings: GameObjects.Graphics;
 
-  /** Where a tag is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written each frame. */
+  /** Where a tag is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -49,7 +47,7 @@ export class TagPainter implements Painter {
     this.rings.clear();
     const radius = TAG_RADIUS * metrics.unit;
     const width = lineWidth(metrics);
-    this.place.y = tagY(field.torus.height);
+    const tagsY = tagY(field.torus.height);
     let shown = 0;
     for (const kind of EFFECT_KINDS) {
       const image = this.images[kind];
@@ -60,9 +58,7 @@ export class TagPainter implements Painter {
       if (id === null) continue;
       const frame = tagFrame(id);
       if (image.frame.name !== frame) image.setFrame(frame);
-      this.place.x = tagX(shown);
-      toCanvas(metrics, this.place, this.at);
-      const { x, y } = this.at;
+      const { x, y } = toCanvas(metrics, tagX(shown), tagsY, this.at);
       image.setPosition(x, y).setScale(zoom);
       this.rings
         .lineStyle(width, palette.line)

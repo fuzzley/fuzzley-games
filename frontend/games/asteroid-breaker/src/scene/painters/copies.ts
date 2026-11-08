@@ -1,9 +1,13 @@
 import { type GameObjects, type Scene, TintModes } from "phaser";
-import { type Moving, type Torus, copyShift } from "../../rules/torus";
+import { type Moving, type Torus, copyOffsets } from "../../rules/torus";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
+import { type Stepped, wrappedBetween } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 
-/** The most times a thing is drawn: once, once past each edge it reaches across, and once at the corner. */
+/**
+ * The most times a thing is drawn: once, once past each edge it reaches across,
+ * and once at the corner.
+ */
 const MOST_COPIES = 4;
 
 /**
@@ -16,8 +20,10 @@ export class Copies {
   /** Its images: where it is, past the edge across, past the edge down, and past both. */
   readonly images: readonly GameObjects.Image[];
 
-  /** Where each copy is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
+  /** Where it is drawn on the field, between two steps, written each frame. */
+  private readonly drawn: Moving = { x: 0, y: 0 };
+  /** How far its copies past the edges are from it on the field, written each frame. */
+  private readonly offsets: Moving = { x: 0, y: 0 };
   /** Where each copy is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
@@ -39,12 +45,33 @@ export class Copies {
     metrics: FieldMetrics,
     torus: Torus,
   ): void {
-    const across = copyShift(x, reach, torus.width) * torus.width;
-    const down = copyShift(y, reach, torus.height) * torus.height;
+    const { x: across, y: down } = copyOffsets(
+      x,
+      y,
+      reach,
+      torus,
+      this.offsets,
+    );
     this.showCopy(0, x, y, metrics, true);
     this.showCopy(1, x + across, y, metrics, across !== 0);
     this.showCopy(2, x, y + down, metrics, down !== 0);
     this.showCopy(3, x + across, y + down, metrics, across !== 0 && down !== 0);
+  }
+
+  /**
+   * Shows a thing that wraps `alpha` of the way from its last place to its
+   * next, the shortest way across the wrap, as {@link show} shows it at a
+   * place.
+   */
+  showBetween(
+    thing: Stepped,
+    alpha: number,
+    reach: number,
+    metrics: FieldMetrics,
+    torus: Torus,
+  ): void {
+    const { x, y } = wrappedBetween(thing, alpha, torus, this.drawn);
+    this.show(x, y, reach, metrics, torus);
   }
 
   /** Hides every copy. */
@@ -101,9 +128,7 @@ export class Copies {
   ): void {
     const image = this.images[index];
     if (!image) return;
-    this.place.x = x;
-    this.place.y = y;
-    toCanvas(metrics, this.place, this.at);
+    toCanvas(metrics, x, y, this.at);
     image.setVisible(shown).setPosition(this.at.x, this.at.y);
   }
 }

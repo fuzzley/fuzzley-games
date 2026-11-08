@@ -1,7 +1,7 @@
 import type { Place } from "../../rules/torus";
 import type { BeltPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
-import type { FieldView } from "../../view/field/frame";
+import type { Drawn, FieldView } from "../../view/field/frame";
 import type { Deck } from "../../view/steering/deck";
 
 /**
@@ -15,6 +15,11 @@ export interface PaintContext {
   field: FieldView;
   /** How far the field is from its last step to its next, from 0 to 1. */
   alpha: number;
+  /**
+   * Where the ship in play is drawn and how far it is turned, between its
+   * last place and turn and its next, or null between one ship and the next.
+   */
+  shipDrawn: Readonly<Drawn> | null;
   /** The run's seed, which the field's specks are strewn from. */
   seed: number;
   /**

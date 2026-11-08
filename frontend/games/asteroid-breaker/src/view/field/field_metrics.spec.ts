@@ -576,7 +576,7 @@ describe("toCanvas and toField", () => {
   });
 
   it("toCanvas places a point of the field on the canvas", () => {
-    expect(toCanvas(metrics, { x: 4, y: 59.5 }, { x: 0, y: 0 })).toEqual({
+    expect(toCanvas(metrics, 4, 59.5, { x: 0, y: 0 })).toEqual({
       x: 2 + 40,
       y: 2 + 595,
     });
@@ -593,7 +593,7 @@ describe("toCanvas and toField", () => {
     const fine = fieldMetrics(viewport(517, 517, 2.625), NO_DECK, SQUARE);
     const place = { x: 0, y: 0 };
 
-    toField(fine, toCanvas(fine, { x: 7.25, y: 21.5 }, place), place);
+    toField(fine, toCanvas(fine, 7.25, 21.5, place), place);
 
     expect([place.x, place.y]).toEqual([
       expect.closeTo(7.25),
@@ -605,7 +605,7 @@ describe("toCanvas and toField", () => {
     const into = { x: 0, y: 0 };
 
     const written = [
-      toCanvas(metrics, { x: 1, y: 1 }, into),
+      toCanvas(metrics, 1, 1, into),
       toField(metrics, { x: 1, y: 1 }, into),
     ];
 

@@ -9,8 +9,10 @@ import {
   ring,
   roundRect,
 } from "@fz/phaser/shapes";
+import { ART_SCALES } from "../../testing/art_frames";
 import {
   MOST_BAKED_UNIT,
+  MOST_LINE,
   arcPoints,
   bakedScale,
   bounded,
@@ -98,6 +100,15 @@ describe("the widths", () => {
     "draw a line and an outline in whole device pixels, a CSS pixel at least, at %o",
     (scale, line, outline) => {
       expect([lineWidth(scale), outlineWidth(scale)]).toEqual([line, outline]);
+    },
+  );
+
+  it.each(ART_SCALES)(
+    "draw a line and an outline no wider than the most, at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const widest = Math.max(lineWidth(scale), outlineWidth(scale));
+
+      expect(widest / scale.unit).toBeLessThanOrEqual(MOST_LINE);
     },
   );
 });

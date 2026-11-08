@@ -66,9 +66,7 @@ export class DebrisPainter implements Painter {
   /** The field's unit and zoom as shards were last thrown at, which they fly and are sized by. */
   private unit = 0;
   private zoom = 1;
-  /** Where a thing is on the field, written as shards are thrown. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written as shards are thrown. */
+  /** Where shards are thrown from on the canvas, written as they are thrown. */
   private readonly at: Moving = { x: 0, y: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -129,9 +127,7 @@ export class DebrisPainter implements Painter {
   ): void {
     this.unit = metrics.unit;
     this.zoom = zoom;
-    this.place.x = x;
-    this.place.y = y;
-    toCanvas(metrics, this.place, this.at);
+    toCanvas(metrics, x, y, this.at);
     this.shards.setParticleTint(color).explode(count, this.at.x, this.at.y);
   }
 

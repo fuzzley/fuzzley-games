@@ -33,6 +33,7 @@ import {
 } from "./pilot_art";
 import { largestOf, rockFrame, rockFrames } from "./rock_art";
 import {
+  MOST_LINE,
   arcPoints,
   bounded,
   centered,
@@ -64,9 +65,15 @@ export const FRAMES = {
   spark: "spark",
   /** A puff, white, which a break's dust and the ship's exhaust are drawn in. */
   puff: "puff",
-  /** How to play's picture of a stray, a fuzzball in the accent in its bubble, as the fuzzball is everywhere but in a pilot's ink. */
+  /**
+   * How to play's picture of a stray, a fuzzball in the accent in its bubble,
+   * as the fuzzball is everywhere but in a pilot's ink.
+   */
   strayPicture: "stray-picture",
-  /** How to play's picture of the comet, framed by its head and tail together, as a picture is taken whole. */
+  /**
+   * How to play's picture of the comet, framed by its head and tail together,
+   * as a picture is taken whole.
+   */
   cometPicture: "comet-picture",
 } as const;
 
@@ -92,8 +99,22 @@ export const DECK_FRAMES = {
 /** How wide a shot is, along its travel and across it, in field units. */
 const SHOT = { length: 0.72, width: 0.3 } as const;
 
+/**
+ * How far a shot's frame reaches from its middle, in field units: half its
+ * length, and its outline at its widest.
+ */
+export const SHOT_REACH = SHOT.length / 2 + MOST_LINE;
+
 /** How far a pickup's hexagon reaches to its corners, and how round they are, in field units. */
 const PICKUP = { reach: 0.95, corner: 0.27 } as const;
+
+/**
+ * How far a pickup's frame reaches from its middle, in field units, before
+ * it breathes: its hexagon's corners, rounded in from its sharp ones, and
+ * its outline at its widest.
+ */
+export const PICKUP_REACH =
+  PICKUP.reach - PICKUP.corner * (1 / Math.cos(Math.PI / 6) - 1) + MOST_LINE;
 
 /** How wide a pickup's symbol's square is, in field units. */
 const SYMBOL_SIDE = 1;
@@ -104,7 +125,10 @@ const TAG_SYMBOL_SIDE = 1.2;
 /** How wide a stray's bubble's rim is, and its glint, in field units. */
 const BUBBLE = { rim: 0.11, glint: 0.1 } as const;
 
-/** Where a stray's bubble's glint runs, along a circle a share of its radius, from an angle to another. */
+/**
+ * Where a stray's bubble's glint runs, along a circle a share of its radius,
+ * from an angle to another.
+ */
 const GLINT = { reach: 0.78, from: -2.5, to: -1.75 } as const;
 
 /** How far below its bubble's middle a stray's pilot sits, as a share of its radius. */
@@ -167,7 +191,10 @@ export function tagFrame(id: PickupId): string {
   return name;
 }
 
-/** Returns a regular polygon's outline with rounded corners: each corner an arc about a point that far from its middle, the first corner at an angle. */
+/**
+ * Returns a regular polygon's outline with rounded corners: each corner an arc
+ * about a point that far from its middle, the first corner at an angle.
+ */
 function roundedRegular(
   sides: number,
   reach: number,
@@ -187,14 +214,18 @@ function roundedRegular(
   }).flat();
 }
 
-/** Returns a pickup's frame: a rounded hexagon in the accent, outlined, with its symbol in the color on the accent. */
+/**
+ * Returns a pickup's frame: a rounded hexagon in the accent, outlined, with its
+ * symbol in the color on the accent.
+ */
 function pickupArt(
   id: PickupId,
   palette: BeltPalette,
   scale: ArtScale,
 ): ArtFrame {
   const corner = PICKUP.corner * scale.unit;
-  // How far a corner's arc's middle lies from the hexagon's, its arc touching the sharp hexagon's sides.
+  // How far a corner's arc's middle lies from the hexagon's, its arc touching
+  // the sharp hexagon's sides.
   const reach = PICKUP.reach * scale.unit - corner / Math.cos(Math.PI / 6);
   const side = SYMBOL_SIDE * scale.unit;
   const hexagon = (round: number): readonly Point[] =>
@@ -286,7 +317,11 @@ function warningCommands(
   ];
 }
 
-/** Returns the frames of what isn't a rock, a pilot, the ship or a pickup: the shot, a stray's bubble, the comet and its warning, the flourishes, and the stray's and the comet's pictures. */
+/**
+ * Returns the frames of what isn't a rock, a pilot, the ship or a pickup: the
+ * shot, a stray's bubble, the comet and its warning, the flourishes, and the
+ * stray's and the comet's pictures.
+ */
 function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
   const shot = {
     width: SHOT.length * scale.unit,
@@ -468,7 +503,10 @@ export const PICTURE_FRAMES: Pictures = {
   comet: FRAMES.cometPicture,
 };
 
-/** Returns a set of pictures with each turned into another, such as a frame's name into the image baked of it. */
+/**
+ * Returns a set of pictures with each turned into another, such as a frame's
+ * name into the image baked of it.
+ */
 export function mapPictures(
   pictures: Pictures,
   map: (picture: string) => string,

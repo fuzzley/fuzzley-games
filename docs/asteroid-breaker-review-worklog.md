@@ -750,3 +750,62 @@ shell's wiring of it still held by its specs:
    `RETUNED` and `AS_WRITTEN`.
 3. _A paragraph of `AGENTS.md` had a short line, and a doc was rewrapped
    in the move though it was under 100 characters:_ taken.
+
+### Step 12c: finding 17, how far each piece of the art reaches
+
+Built on `ab-scene`, the first of finding 17's commits for the view and the
+scene. Each piece of the art that wraps says how far it reaches, which its
+painter draws its copies across an edge by: its own extent, and the widest
+a line gets, `MOST_LINE`, a third of a unit, at the 6 CSS px a unit the
+layout check holds a field to, at any pixel ratio, once the bake rounds the
+unit down; mitred out at a sharp corner for the rocks and the ship
+(`MOST_MITER`), and the ship's covering its rings. The specs hold every
+frame within its reach at the layout check's smallest unit at each pixel
+ratio, through the bake, and at the baked scales. `copyOffsets()`, beside
+`copyShift()` in `src/rules/torus.ts`, works the copies across the edges
+out once, for the copies and the rings; `Copies.showBetween()`,
+`toCanvas()` taking coordinates and `wrappedBetween()` leave the painters
+no scratch place and none of the six hand-written `betweenOnAxis()` pairs;
+and where the ship is drawn goes into the paint context once a frame.
+
+Where it went other than planned, all seen only at an edge, where a copy
+now shows as soon as any of its pixels would:
+
+| Reach          | Was          | Now                                   |
+| -------------- | ------------ | ------------------------------------- |
+| `SHOT_REACH`   | 0.5          | 0.693                                 |
+| `PICKUP_REACH` | 1.1, at rest | 1.242, at rest, and breathing with it |
+| `RIM`          | 0.5          | 0.667                                 |
+| `SHIP_REACH`   | 2            | 2.187                                 |
+| A ring         | its radius   | and half its stroke                   |
+
+At 110% browser zoom on a 1× display, the shot's outline reached 0.663
+and a pickup's 1.21, and at the smallest unit the bake now draws, the
+ship's 2.04, so each copy showed late by a part of a pixel; a ring's
+showed 0.125 units late at any scale.
+
+The change had three reviews, the first two reshaping it:
+
+1. _The scales the specs held the reaches at left out the layout's
+   smallest unit at a fractional pixel ratio,_ where a line is widest in
+   units, so the reaches fell short there: taken; then _a ratio just above
+   1, as a browser's zoom gives, was wider still,_ and the bake about to
+   round the unit down: taken, as the bound `MOST_LINE` and the scales
+   built through the bake.
+2. _No spec held a pickup's reach breathing with it:_ taken.
+3. _`copyOffsets()` was put in the view's frame module,_ not beside
+   `copyShift()` as planned: taken.
+4. _The context's field was named like the function that works it out:_
+   taken; `shipDrawn`.
+5. _A ring's copies were drawn by its radius,_ though its stroke is
+   centred on it: taken.
+6. _The painters kept a scratch place still, only moved:_ taken;
+   `Copies.showBetween()`.
+7. _The ship's reach followed its fins alone,_ though its ring is farther
+   at most scales: taken; whichever is farther.
+8. _At the bake's smallest unit the shot reaches its bound exactly,_ so
+   the spec passed by rounding: taken; with a hair of slack, as the others.
+9. _`reachOf()`, which the reach specs trust, had no spec:_ taken.
+10. _Nits: the specs in two forms, a `Readonly` that added nothing, the
+    autopilot's own `SHOT_REACH` meaning its range (now `SHOT_RANGE`), a
+    spec's context with no ship, `AGENTS.md` missing the mitre:_ taken.

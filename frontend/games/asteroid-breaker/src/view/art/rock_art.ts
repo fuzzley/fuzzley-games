@@ -23,6 +23,8 @@ import { ROCK_OUTLINES, type Rock } from "../../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import {
+  MOST_LINE,
+  MOST_MITER,
   centered,
   lineWidth,
   outlineWidth,
@@ -45,17 +47,26 @@ interface OutlineStyle {
   readonly sharp: boolean;
 }
 
-/** Describes one of a rock's outlines, in shares of its radius about its middle, and its frame's name. */
+/**
+ * Describes one of a rock's outlines, in shares of its radius about its middle,
+ * and its frame's name.
+ */
 interface Outline {
   readonly name: string;
   readonly body: readonly Point[];
   /** Where its points were drawn, before any rounding, which an ice rock's facets run toward. */
   readonly corners: readonly Point[];
-  /** The seed its kind's marks are placed by, drawn from afresh at each bake, so each bake places them alike. */
+  /**
+   * The seed its kind's marks are placed by, drawn from afresh at each bake, so
+   * each bake places them alike.
+   */
   readonly marks: number;
 }
 
-/** Describes a kind and size of rock as the atlas draws it: its outlines, and the names of its frames with hits taken, from one. */
+/**
+ * Describes a kind and size of rock as the atlas draws it: its outlines, and
+ * the names of its frames with hits taken, from one.
+ */
 interface RockSet {
   readonly kind: RockKindId;
   readonly size: RockSize;
@@ -63,7 +74,10 @@ interface RockSet {
   readonly taken: readonly string[];
 }
 
-/** Says how a crack or a dent runs: each point's distance from a rock's middle, in shares of its radius, and its turn off the mark's angle, in radians. */
+/**
+ * Says how a crack or a dent runs: each point's distance from a rock's middle,
+ * in shares of its radius, and its turn off the mark's angle, in radians.
+ */
 type Steps = readonly (readonly [number, number])[];
 
 /**
@@ -78,7 +92,10 @@ type DrawMarks = (
   line: number,
 ) => readonly DrawCommand[];
 
-/** Describes how a kind of rock is drawn: its outlines, its marks, and how it shows the hits it has taken. */
+/**
+ * Describes how a kind of rock is drawn: its outlines, its marks, and how it
+ * shows the hits it has taken.
+ */
 interface RockArt {
   readonly style: OutlineStyle;
   readonly marks: DrawMarks;
@@ -96,10 +113,29 @@ interface RockArt {
  */
 export const MARK_REACH = 0.6;
 
+/**
+ * How far past its radius a rock's frame reaches, in field units: its
+ * outline at its widest, mitred out at a sharp corner as far as an outline
+ * may reach.
+ */
+const RIM = MOST_MITER * MOST_LINE;
+
+/**
+ * How far a rock's frame reaches from its middle at each size, its outline
+ * included, in field units.
+ */
+export const ROCK_REACH: Readonly<Record<RockSize, number>> = recordOf(
+  ROCK_SIZES,
+  (size) => ROCK_RADIUS[size] + RIM,
+);
+
 /** How far a point's angle may stray from its even place, as a share of the angle between two. */
 const ANGLE_STRAY = 0.55;
 
-/** How far each crack or dent a rock shows turns from the last, in radians, near the golden angle, so none lies on another. */
+/**
+ * How far each crack or dent a rock shows turns from the last, in radians, near
+ * the golden angle, so none lies on another.
+ */
 const HIT_TURN = 2.4;
 
 /**
@@ -268,7 +304,10 @@ function bySize<T>(make: (kind: RockKindId, size: RockSize) => T): BySize<T> {
 
 // Made once, so finding a frame's name makes nothing.
 const ROCK_FRAMES = bySize(outlineNames);
-/** The names of the frames over each kind and size of rock, by the hits it has taken and held, from one. */
+/**
+ * The names of the frames over each kind and size of rock, by the hits it has
+ * taken and held, from one.
+ */
 const TAKEN_FRAMES = bySize(takenNames);
 
 /** Every kind and size of rock, its outlines drawn once from their seeds. */
@@ -296,7 +335,10 @@ export function largestOf(kind: RockKindId): RockSize {
   );
 }
 
-/** Returns the hits a rock of a kind takes at a size, whole, or none at a size it doesn't come in. */
+/**
+ * Returns the hits a rock of a kind takes at a size, whole, or none at a size
+ * it doesn't come in.
+ */
 function hitsOf(kind: RockKindId, size: RockSize): number {
   return rockKind(kind).hits[size] ?? 0;
 }
@@ -309,7 +351,10 @@ function outlineNames(kind: RockKindId, size: RockSize): readonly string[] {
   );
 }
 
-/** Returns the names of the frames over a kind and size of rock, one for each count of hits it can take and hold, from one. */
+/**
+ * Returns the names of the frames over a kind and size of rock, one for each
+ * count of hits it can take and hold, from one.
+ */
 function takenNames(kind: RockKindId, size: RockSize): readonly string[] {
   return Array.from(
     { length: hitsOf(kind, size) - 1 },
@@ -330,7 +375,10 @@ export function rockFrame(
   return name;
 }
 
-/** Returns the name of the frame over a rock that shows the hits it has taken, or null for one that has taken none. */
+/**
+ * Returns the name of the frame over a rock that shows the hits it has taken,
+ * or null for one that has taken none.
+ */
 export function takenFrame(
   rock: Pick<Rock, "kind" | "size" | "hits">,
 ): string | null {
@@ -345,12 +393,18 @@ export function takenFrame(
   return name;
 }
 
-/** Returns the color a kind of rock's body is drawn in, which its shards and its dust take: a crystal's is a stone's, its gem set in it. */
+/**
+ * Returns the color a kind of rock's body is drawn in, which its shards and its
+ * dust take: a crystal's is a stone's, its gem set in it.
+ */
 export function rockColor(kind: RockKindId, palette: BeltPalette): number {
   return palette.rocks[kind === "crystal" ? "stone" : kind];
 }
 
-/** Returns every rock's frames: each kind in each size and outline, and the hits each shows taken. */
+/**
+ * Returns every rock's frames: each kind in each size and outline, and the hits
+ * each shows taken.
+ */
 export function rockFrames(
   palette: BeltPalette,
   scale: ArtScale,
@@ -404,7 +458,10 @@ function rounded(corners: readonly Point[]): readonly Point[] {
   );
 }
 
-/** Returns a rock's craters: dots of a size, at a distance and an angle, each as it draws them, within {@link MARK_REACH}. */
+/**
+ * Returns a rock's craters: dots of a size, at a distance and an angle, each as
+ * it draws them, within {@link MARK_REACH}.
+ */
 function craters(
   random: () => number,
   count: number,
@@ -432,7 +489,10 @@ function zigzag(angle: number, steps: Steps): readonly Point[] {
   }));
 }
 
-/** Returns where a level line through a rock's body leaves it, left and right of its middle, nearest it. */
+/**
+ * Returns where a level line through a rock's body leaves it, left and right of
+ * its middle, nearest it.
+ */
 function chord(body: readonly Point[], y: number): readonly [number, number] {
   let left = -Infinity;
   let right = Infinity;
@@ -447,7 +507,10 @@ function chord(body: readonly Point[], y: number): readonly [number, number] {
   return [left, right];
 }
 
-/** Returns a band across a rock's body, between two level lines, ending an inset short of its sides. */
+/**
+ * Returns a band across a rock's body, between two level lines, ending an inset
+ * short of its sides.
+ */
 function band(
   body: readonly Point[],
   top: number,
@@ -464,7 +527,10 @@ function band(
   ];
 }
 
-/** Returns a rock's frame in one outline: outlined in the palette's outline, in its ink, with its kind's marks. */
+/**
+ * Returns a rock's frame in one outline: outlined in the palette's outline, in
+ * its ink, with its kind's marks.
+ */
 function bodyArt(
   { kind, size }: RockSet,
   outline: Outline,
@@ -487,7 +553,10 @@ function bodyArt(
   ]);
 }
 
-/** Returns the frames over a kind and size of rock for each count of hits it can take and still hold, a crack or dent for each. */
+/**
+ * Returns the frames over a kind and size of rock for each count of hits it can
+ * take and still hold, a crack or dent for each.
+ */
 function takenArt(
   { kind, size, taken }: RockSet,
   palette: BeltPalette,

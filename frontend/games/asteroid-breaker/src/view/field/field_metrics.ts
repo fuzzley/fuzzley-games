@@ -211,11 +211,12 @@ export function fieldMetrics(
  */
 export function toCanvas(
   metrics: FieldMetrics,
-  place: Place,
+  x: number,
+  y: number,
   into: Moving,
 ): Moving {
-  into.x = metrics.x + place.x * metrics.unit;
-  into.y = metrics.y + place.y * metrics.unit;
+  into.x = metrics.x + x * metrics.unit;
+  into.y = metrics.y + y * metrics.unit;
   return into;
 }
 

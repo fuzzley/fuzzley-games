@@ -6,7 +6,6 @@ import { flameTip } from "../../view/art/ship_art";
 import { exhaustDue } from "../../view/effects/flourish";
 import { EXHAUST_MS } from "../../view/effects/timing";
 import { toCanvas } from "../../view/field/field_metrics";
-import { angleBetween, betweenOnAxis } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -44,9 +43,7 @@ export class ExhaustPainter implements Painter {
   private carried = 0;
   /** The field's steps as it was last drawn, or null before a field is first drawn. */
   private stepsDrawn: number | null = null;
-  /** Where the flame's tip is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written each frame. */
+  /** Where the flame's tip is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -70,7 +67,7 @@ export class ExhaustPainter implements Painter {
    */
   draw({
     field,
-    alpha,
+    shipDrawn,
     metrics,
     palette,
     zoom,
@@ -87,14 +84,15 @@ export class ExhaustPainter implements Painter {
     const due = exhaustDue(this.carried, thrust, stepped, motion);
     const streamed = Math.floor(due);
     this.carried = due - streamed;
-    if (!ship || streamed <= 0) return;
-    const x = betweenOnAxis(ship.lastX, ship.x, alpha, torus.width);
-    const y = betweenOnAxis(ship.lastY, ship.y, alpha, torus.height);
-    const angle = angleBetween(ship.lastAngle, ship.angle, alpha);
+    if (!shipDrawn || streamed <= 0) return;
+    const { x, y, angle } = shipDrawn;
     const behind = flameTip(thrust);
-    this.place.x = wrap(x - Math.cos(angle) * behind, torus.width);
-    this.place.y = wrap(y - Math.sin(angle) * behind, torus.height);
-    toCanvas(metrics, this.place, this.at);
+    toCanvas(
+      metrics,
+      wrap(x - Math.cos(angle) * behind, torus.width),
+      wrap(y - Math.sin(angle) * behind, torus.height),
+      this.at,
+    );
     this.angle = (angle * 180) / Math.PI + 180;
     this.specks
       .setParticleTint(palette.flame)

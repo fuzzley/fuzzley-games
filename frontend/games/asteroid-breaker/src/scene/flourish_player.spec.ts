@@ -28,7 +28,7 @@ import {
   SHAKE_DELAY_MS,
   SHAKE_MS,
 } from "../view/effects/timing";
-import type { FieldEvent } from "../view/field/frame";
+import { type FieldEvent, shipAt } from "../view/field/frame";
 import type { BeltScene } from "./belt_scene";
 import { FlourishPlayer } from "./flourish_player";
 import type { PaintContext } from "./painters/painter";
@@ -74,6 +74,7 @@ function contextAt(shell: FakeShell, now: number): PaintContext {
   return {
     field: shell.field,
     alpha: 0,
+    shipDrawn: shipAt(shell.field, 0, { x: 0, y: 0, angle: 0 }),
     seed: shell.seed,
     constellation: null,
     deck: null,

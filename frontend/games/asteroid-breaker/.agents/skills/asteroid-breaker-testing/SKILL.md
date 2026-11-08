@@ -198,7 +198,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 - `src/testing/art_frames.ts` draws the atlas in one palette
   (`ART_PALETTE`) at one scale (`ART_SCALE`), and finds a frame by its name
   (`frameNamed()`), so the art's specs check the commands a frame is drawn
-  with.
+  with; at every scale a field is drawn at (`ART_SCALES`), they hold what
+  each piece that wraps draws within the reach the scene draws its copies
+  by (`reachOf()`).
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES`: it compiles the global stylesheet, reads each palette's roles
   from it, builds the field's palette from them, and holds every rock, the

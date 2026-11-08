@@ -10,6 +10,8 @@ import {
 import { SHIP_LENGTH } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import {
+  MOST_LINE,
+  MOST_MITER,
   centered,
   cubicPoints,
   dashedRing,
@@ -44,11 +46,11 @@ export const SHIP_FRAMES = {
 /** Where the ship's nose is, in its own units. */
 const NOSE = 1.25;
 
-/** Where the tips of the ship's fins are, in its own units. */
-const FIN_TIPS = -1.12;
+/** Where the tip of the ship's fin on its right is, in its own units. */
+const FIN_TIP = { x: -1.12, y: 1 } as const;
 
 /** How many field units one of the ship's own is, so it spans {@link SHIP_LENGTH}. */
-const SHIP_UNIT = SHIP_LENGTH / (NOSE - FIN_TIPS);
+const SHIP_UNIT = SHIP_LENGTH / (NOSE - FIN_TIP.x);
 
 /** Where the ship's window is along it, and its radius, in its own units. */
 const OWN_WINDOW = { x: 0.38, radius: 0.4 } as const;
@@ -80,8 +82,17 @@ export const WINDOW = {
   radius: OWN_WINDOW.radius * SHIP_UNIT,
 } as const;
 
-/** How far the ship's frames reach from its middle, its rings the farthest, in field units. */
-export const SHIP_REACH = 2;
+/**
+ * How far each of the ship's frames reaches from where it is drawn, in field
+ * units: its fins' tips, their outline at its widest mitred out as far as an
+ * outline may reach, or its rings, at their widest, whichever is farther;
+ * its flame, from its base, reaches less.
+ */
+export const SHIP_REACH = Math.max(
+  Math.hypot(FIN_TIP.x, FIN_TIP.y) * SHIP_UNIT + MOST_MITER * MOST_LINE,
+  RINGS.guard.radius + MOST_LINE / 2,
+  RINGS.shield.radius + MOST_LINE / 2,
+);
 
 /** How far behind the ship's middle its flame's base is, in field units. */
 export const FLAME_BEHIND = -FLAME_BASE * SHIP_UNIT;
@@ -113,7 +124,7 @@ function hullOutline(): readonly Point[] {
 /** Returns a fin's outline, on the side a sign says: below the ship's line for 1, above for -1. */
 function finOutline(side: number): readonly Point[] {
   const root = { x: -0.25, y: 0.55 * side };
-  const tip = { x: FIN_TIPS, y: 1 * side };
+  const tip = { x: FIN_TIP.x, y: FIN_TIP.y * side };
   return [
     root,
     ...quadraticPoints(root, { x: -0.7, y: 1.05 * side }, tip),

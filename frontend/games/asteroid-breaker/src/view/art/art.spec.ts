@@ -1,6 +1,5 @@
 import {
   type ArtFrame,
-  type ArtScale,
   type DrawCommand,
   type Point,
   atlasSize,
@@ -13,18 +12,23 @@ import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
 import {
   ART_PALETTE,
   ART_SCALE,
+  ART_SCALES,
+  PIXEL_RATIOS,
   distanceToEdge,
   drawnIn,
   edgeOf,
   frameNamed,
+  reachOf,
 } from "../../testing/art_frames";
 import { TAG_RADIUS, isTagged } from "../field/tags";
 import {
   DECK_FRAMES,
   FRAMES,
-  STRAY_DROP,
+  PICKUP_REACH,
   PICTURE_FRAMES,
   type Pictures,
+  SHOT_REACH,
+  STRAY_DROP,
   atlasFrames,
   deckFrames,
   mapPictures,
@@ -33,28 +37,19 @@ import {
 } from "./art";
 import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
 import { rockFrame, sizesOf, takenFrame } from "./rock_art";
-import { bakedScale, lineWidth, outlineWidth } from "./shapes";
+import { lineWidth, outlineWidth } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
 
-/** The scales a field is drawn at, from the smallest unit the layout allows to the largest baked at a pixel ratio of 3. */
-const SCALES: readonly ArtScale[] = [
-  { unit: 6, pixelRatio: 1 },
-  { unit: 13, pixelRatio: 1.25 },
-  { unit: 24, pixelRatio: 2 },
-  bakedScale({ unit: 120, pixelRatio: 1 }),
-  bakedScale({ unit: 120, pixelRatio: 3 }),
-];
-
-/** The pixel ratios a canvas renders at, up to the most. */
-const PIXEL_RATIOS = [1, 1.25, 1.5, 2, 3];
-
 /** How far a size may stray from what it should be and still pass, for a rounding. */
 const SLACK = 1e-9;
 
-/** Returns whether a command draws within its frame, its edge's every point, give or take a rounding. */
+/**
+ * Returns whether a command draws within its frame, its edge's every point,
+ * give or take a rounding.
+ */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
   return edgeOf(command).every(
     ({ x, y }) =>
@@ -102,7 +97,10 @@ const FURRED: ReadonlySet<string> = new Set([
   pickupFrame("ship"),
 ]);
 
-/** Holds a set of frames to what every frame keeps: within its size, in whole pixels, named once, its lines a CSS pixel wide or more but the fur's. */
+/**
+ * Holds a set of frames to what every frame keeps: within its size, in whole
+ * pixels, named once, its lines a CSS pixel wide or more but the fur's.
+ */
 function holdsFrames(
   frames: () => readonly ArtFrame[],
   pixelRatio: number,
@@ -141,7 +139,8 @@ function holdsFrames(
         (frame) =>
           frame.commands.every((command) => {
             const width = widthOf(command);
-            // A rock's marks are drawn in shares of its radius, so a width comes back a rounding off.
+            // A rock's marks are drawn in shares of its radius, so a width
+            // comes back a rounding off.
             return width === null || width >= pixelRatio - SLACK;
           }),
       ),
@@ -168,7 +167,7 @@ describe("atlasFrames at every unit down to a device pixel", () => {
   );
 });
 
-describe.each(SCALES)(
+describe.each(ART_SCALES)(
   "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
     holdsFrames(() => atlasFrames(ART_PALETTE, scale), scale.pixelRatio);
@@ -188,6 +187,42 @@ describe.each(SCALES)(
     });
   },
 );
+
+describe("SHOT_REACH", () => {
+  it.each(ART_SCALES)(
+    "holds a shot, from its middle, at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const beyond = atlasFrames(ART_PALETTE, scale)
+        .filter(
+          (frame) =>
+            frame.name === FRAMES.shot &&
+            reachOf(frame) > SHOT_REACH * scale.unit + SLACK,
+        )
+        .map((frame) => frame.name);
+
+      expect(beyond).toEqual([]);
+    },
+  );
+});
+
+describe("PICKUP_REACH", () => {
+  it.each(ART_SCALES)(
+    "holds every pickup, from its middle, at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const pickups: readonly string[] = PICKUP_IDS.map(pickupFrame);
+
+      const beyond = atlasFrames(ART_PALETTE, scale)
+        .filter(
+          (frame) =>
+            pickups.includes(frame.name) &&
+            reachOf(frame) > PICKUP_REACH * scale.unit + SLACK,
+        )
+        .map((frame) => frame.name);
+
+      expect(beyond).toEqual([]);
+    },
+  );
+});
 
 describe.each(PIXEL_RATIOS)("deckFrames at %f to a CSS pixel", (pixelRatio) => {
   holdsFrames(() => deckFrames(pixelRatio), pixelRatio);
