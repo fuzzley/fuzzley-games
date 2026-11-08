@@ -1,7 +1,16 @@
-import { angularTests } from "@fz/dev/vitest";
-import { defineConfig } from "vitest/config";
+import { angularTests, nodeSpecs } from "@fz/dev/vitest";
+import { configDefaults, defineConfig, mergeConfig } from "vitest/config";
 
-export default defineConfig(
+// The specs that play every wave or lay every wave out run in Node, in a
+// project of their own, without the coverage that would triple their time:
+// the other rules specs alone hold the rules to their floor.
+const SIMULATIONS: readonly string[] = [
+  "src/rules/waves/every_wave/*.spec.ts",
+  "src/rules/waves/every_endless_wave/*.spec.ts",
+  "src/rules/field/every_layout/*.spec.ts",
+];
+
+export default mergeConfig(
   angularTests({
     exclude: ["src/main.ts", "src/testing/**"],
     thresholds: {
@@ -19,6 +28,25 @@ export default defineConfig(
         functions: 100,
         lines: 100,
       },
+    },
+  }),
+  defineConfig({
+    test: {
+      projects: [
+        {
+          extends: true,
+          test: {
+            name: "unit",
+            // Analog's plugin sets this pool in a config hook, after Vitest
+            // has taken the `test` a project sharing the server inherits, so
+            // without it `unit` would run in `forks`.
+            pool: "vmThreads",
+            exclude: [...configDefaults.exclude, ...SIMULATIONS],
+          },
+        },
+        // Takes nothing of the config above, whose setup needs jsdom.
+        { extends: false, test: { name: "sim", ...nodeSpecs(SIMULATIONS) } },
+      ],
     },
   }),
 );

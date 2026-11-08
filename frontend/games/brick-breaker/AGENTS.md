@@ -475,10 +475,11 @@ workspace's with the others'.
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002 and
   Snake's 9003).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
-  failing below the floor `vitest.config.ts` sets for the rules and the
-  view), `yarn test:watch`, or `yarn vitest run <path>` for one
-  spec, which leaves the floor alone.
+- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `unit`
+  project with coverage, failing below the floor `vitest.config.ts` sets
+  for the rules and the view, then its `sim` project, the specs that play
+  every level, without), `yarn test:watch`, or `yarn vitest run <path>`
+  for one spec, which leaves the floor alone.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
   between the layers, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
@@ -539,9 +540,12 @@ which test no one file: they have a folder of their own with a file for each
 preset speed (`src/rules/levels/every_level/`), as Vitest plays a file's
 specs one after another but the files side by side, and
 `src/rules/levels/autopilot.spec.ts` holds it to a file for every preset
-speed and no other. `src/test-setup.ts` installs `@fz/phaser/testing`'s
-headless Phaser first, so the scene's spec runs real Phaser through
-`runScene()`, with a fake shell over a pictured field. This
+speed and no other. They run in Node, in Vitest's `sim` project, without
+the coverage that would quadruple their time, as the other rules specs
+alone hold the rules to their floor; every other spec is the `unit`
+project's, which coverage measures. `src/test-setup.ts` installs
+`@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs real
+Phaser through `runScene()`, with a fake shell over a pictured field. This
 workspace's `brick-breaker-testing` skill covers its setup, floors and
 fixtures, the repository's `angular-testing` the patterns every Angular
 workspace's specs share, and `phaser-core` the harness. What the specs share

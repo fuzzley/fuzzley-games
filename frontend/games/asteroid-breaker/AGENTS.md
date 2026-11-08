@@ -611,10 +611,11 @@ workspace's with the others'.
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002,
   Snake's 9003 and Brick Breaker's 9004).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
-  failing below the floor `vitest.config.ts` sets for the rules and the
-  view), `yarn test:watch`, or `yarn vitest run <path>` for one spec, which
-  leaves the floor alone.
+- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `unit`
+  project with coverage, failing below the floor `vitest.config.ts` sets
+  for the rules and the view, then its `sim` project, the specs that play
+  every wave or lay every wave out, without), `yarn test:watch`, or
+  `yarn vitest run <path>` for one spec, which leaves the floor alone.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
   between the layers, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
@@ -679,9 +680,12 @@ own with a file for each speed (`src/rules/waves/every_wave/`,
 `src/rules/waves/every_endless_wave/`, `src/rules/field/every_layout/`), as
 Vitest plays a file's specs one after another but the files side by side,
 and the spec beside the folder holds it to a file for every speed and no
-other. `src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser
-first, so a scene's spec runs real Phaser through `runScene()`, with a fake
-shell over a pictured field. This
+other. They run in Node, in Vitest's `sim` project, without the coverage
+that would triple their time, as the other rules specs alone hold the
+rules to their floor; every other spec is the `unit` project's, which
+coverage measures. `src/test-setup.ts` installs `@fz/phaser/testing`'s
+headless Phaser first, so a scene's spec runs real Phaser through
+`runScene()`, with a fake shell over a pictured field. This
 workspace's `asteroid-breaker-testing` skill covers its setup, floors and
 fixtures, the repository's `angular-testing` the patterns every Angular
 workspace's specs share, and `phaser-core` the harness. What the specs

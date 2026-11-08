@@ -216,3 +216,53 @@ old clause in place with the same bounds:
 5. _Two stale docs:_ taken.
 6. _`readRun()` takes a checked record and `readField()` takes `unknown`:_
    not taken; `restoreGame()` needs the record for `tuned` and `field`.
+
+### Step 3: finding 3, the simulations out of the coverage run
+
+Built on `ab-tests`. Each breaker's Vitest config has two projects: `unit`,
+every spec as before, and `sim`, the specs that play or lay out every wave
+or level (this game's nine files in `every_wave/`, `every_endless_wave/`
+and `every_layout/`, Brick Breaker's three in `every_level/`), in Node and
+without coverage. `test` is the plan's two runs, each handed `"$@"`.
+
+Measured on this machine, with other work running beside it:
+
+| Workspace        | Before | After  | `--maxWorkers=1` before | after    |
+| ---------------- | ------ | ------ | ----------------------- | -------- |
+| Asteroid Breaker | 64.5 s | 42.8 s | 7 m 47 s                | 3 m 31 s |
+| Brick Breaker    | 47.7 s | 27.2 s | 1 m 50 s                | 1 m 28 s |
+
+This game's CPU fell from 546 s to 287 s. Scaling CI's 368 s by the
+single worker's ratio gives about 165 s, near the plan's 150 s. Brick
+Breaker's simulations were 4.2 times slower under coverage, not 3. Its
+branches fell from 97.8% to 97.53%, since only its simulations reach
+`hardSolid` in `field.ts`, still above the floor of 95; this game's
+figures are unchanged.
+
+Where it went other than planned:
+
+- **The plan's worry about `"$@"` held.** Yarn 4.18.1's shell appends a
+  script's arguments to its last command unless the script names them;
+  with `"$@"` both runs got `--maxWorkers=25%`, and with no arguments
+  neither got an empty one.
+- **Vitest 5's inline projects inherit the root's config,** so `sim` sets
+  `extends: false`; inheriting, it took `src/test-setup.ts` and crashed in
+  Node.
+- **`unit` pins `pool: "vmThreads"`.** A project sharing the root's server
+  takes the `test` Vitest captured before Analog's config hook sets the
+  pool, so it ran in `forks`, and 147 of the shell's specs failed. The
+  site's `app` project has the same gap today, running in `forks`; finding
+  21 takes it up with the projects' lift.
+- **`yarn vitest run <path>` stays in the docs** for now, since naming the
+  project saved nothing with one project holding the Analog plugin.
+
+The review found no bug, and confirmed `"$@"` in Yarn's bundle, that
+`extends: false` is needed, and that every spec but the simulations runs
+once, as before, under the same floors:
+
+1. _The `"$@"` rule sat inside the root's layout bullet,_ turning the next
+   sentence's "Its" to the workspace: taken; it is under Run Unit Tests.
+2. _The pool comment could be read as its opposite:_ taken.
+3. _The `vmThreads` rule holds for anyone building projects from
+   `@fz/dev`'s pieces,_ so it belongs in its `AGENTS.md` once: taken.
+4. _"Play every level or wave"_ left out the layouts: taken.
