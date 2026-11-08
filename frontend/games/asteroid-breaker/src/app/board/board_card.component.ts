@@ -13,6 +13,15 @@ import { GameService } from "../play/game.service";
 type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
 
 /**
+ * What the Still loading card says, its title and the line under it, which
+ * its status region says too.
+ */
+const STILL_LOADING = {
+  title: "Still loading the board",
+  line: "It can take a while on a slow connection.",
+} as const;
+
+/**
  * Shows the card over the field, if any: how to fly, while a wave waits for
  * its first move; that the wave is paused, and who waits at home; how a wave
  * cleared added up; how to start again, once an ended run's result is put
@@ -125,6 +134,19 @@ export class BoardCardComponent {
 
   /** What the card over an ended run calls it: the wave it was lost on. */
   protected readonly endTitle = computed(() => whereLost(this.game.wave()));
+
+  /** What the Still loading card says, its title and the line under it. */
+  protected readonly stillLoading = STILL_LOADING;
+
+  /**
+   * What the Still loading card's status region says: its words while the
+   * card shows, else nothing.
+   */
+  protected readonly loadingWords = computed(() =>
+    this.card() === "slow"
+      ? `${STILL_LOADING.title}. ${STILL_LOADING.line}`
+      : "",
+  );
 
   /** Goes on with the paused wave, and hands the board back the focus. */
   protected resume(): void {

@@ -416,8 +416,9 @@ take for the layer.
     with the score and the strays waiting at home; Cleared, with how the
     wave's points added up and Next wave, and a trophy over the last
     sector's last; Ended, once an ended run's result is put away; and still
-    loading and couldn't be drawn. The board is Phaser's keyboard target, so
-    the cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
+    loading, which a status region in the page from the start says to a
+    screen reader, and couldn't be drawn. The board is Phaser's keyboard
+    target, so the cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
     `fzKeepKeys`); Resume and Next wave hand the board back the focus
     (`handBack`). It measures its own size and hands the game the room the
     field is laid out in (`GameService.setRoom()`), and publishes, for the

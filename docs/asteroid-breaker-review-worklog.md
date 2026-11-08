@@ -954,3 +954,36 @@ The review:
    `AGENTS.md` described the wrong thing:_ taken. The board's margin,
    copied into `canvases.ts` from the board, waits for the board's own
    step to finish (step 8).
+
+### Step 12f: finding 17, the "Still loading" status region
+
+Built on `ab-rules`. The board's card holds a visually hidden status region
+from the start, empty until the board turns slow, then holding "Still
+loading the board. It can take a while on a slow connection." Words added
+to a region already in the page are announced, where a `role="status"`
+inserted with its words already in it may not be. The region empties once
+the board is drawn or fails, and a removal isn't announced. It uses no
+`@fz/ui`, so it moves with the card into `@fz/phaser/canvas` (finding 19).
+The words are a `loadingWords` computed, and the card's two lines and the
+region's words are read from one constant.
+
+Where it went other than planned:
+
+- The visible slow card loses its `role="status"` and is hidden from
+  assistive technology, so the words aren't read twice. It holds nothing
+  focusable, and the region keeps the same words, readable in browse mode.
+
+The review found the region announced, and once, nothing visible changed,
+and every other card state untouched:
+
+1. _The spec that the words are said once couldn't fail:_ its observer
+   threw the records away, and its act changed an input the slow card
+   ignores. Taken; the spec is gone, since the same-element check and the
+   card's being hidden already hold "once".
+2. _The check that the slow card offers nothing to press skipped the
+   hidden card:_ taken; it looks inside hidden elements.
+3. _The spec's `tell()` dropped the `handBack` listener on each rerender:_
+   taken.
+4. _The template compared the card's state itself, against "templates
+   bind, they do not compute", and the copy lived twice:_ taken; a
+   computed, and one constant for both.
