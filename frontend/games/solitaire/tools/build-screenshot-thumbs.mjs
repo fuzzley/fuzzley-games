@@ -78,7 +78,7 @@ async function findBoard(source) {
    */
   const feltAt = (x, y) => {
     const i = (y * info.width + x) * info.channels;
-    return isFelt(data[i], data[i + 1], data[i + 2]);
+    return isFelt(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0);
   };
 
   const column = Math.floor(info.width * 0.45);
@@ -95,7 +95,7 @@ async function findBoard(source) {
     info.channels;
   return {
     region: { left: 0, top, width: info.width, height: info.height - top },
-    felt: { r: data[i], g: data[i + 1], b: data[i + 2] },
+    felt: { r: data[i] ?? 0, g: data[i + 1] ?? 0, b: data[i + 2] ?? 0 },
   };
 }
 

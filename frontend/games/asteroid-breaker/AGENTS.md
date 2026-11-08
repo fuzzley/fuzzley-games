@@ -735,7 +735,9 @@ workspace's with the others'.
   `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` and the two lint configs from
-  their JSDoc).
+  their JSDoc, each with `@fz/dev`'s options and
+  `exactOptionalPropertyTypes` on top, so an optional property is left out
+  rather than set to `undefined`, unless its type says it may be).
 - **Report the Waves:** `yarn report:waves` (runs `tools/report-waves.mjs`:
   the autopilot in `src/testing/autopilot.ts` plays every wave at every
   speed on the narrowest field, or the widest with `--field wide` on its

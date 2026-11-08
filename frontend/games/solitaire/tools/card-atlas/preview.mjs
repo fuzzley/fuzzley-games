@@ -69,8 +69,7 @@ const LABEL_W = 170;
  */
 function artScaleFor(scale) {
   return (
-    ART_SCALES.find((artScale) => artScale >= scale) ??
-    ART_SCALES[ART_SCALES.length - 1]
+    ART_SCALES.find((artScale) => artScale >= scale) ?? Math.max(...ART_SCALES)
   );
 }
 

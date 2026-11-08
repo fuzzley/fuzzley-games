@@ -155,11 +155,6 @@ const RUN_FIT_SPOILS: readonly (readonly [
     { rockPoints: 200, chainPoints: 101 },
     SO_FAR,
   ],
-  [
-    "more points from the chain than its wave has, kept before the rocks' were counted",
-    { chainPoints: 301, rockPoints: undefined },
-    SO_FAR,
-  ],
 ];
 
 /** Values a rock kept may hold that aren't of their keys' kinds, each failing `isKeptRock()`. */
@@ -227,6 +222,12 @@ function keptOf(field: Field): SavedField {
 /** Returns the specs' run's field, played a second, as storage would read it back. */
 function kept(): SavedField {
   return keptOf(playedField(runUnderWay()));
+}
+
+/** Returns the specs' field as kept before the rocks' points were counted. */
+function keptUncounted(): SavedField {
+  const { rockPoints, ...uncounted } = kept();
+  return uncounted;
 }
 
 /** Lights the fuse of a field's first rock, as though it were a volatile broken a step before. */
@@ -405,6 +406,12 @@ describe("readField", () => {
     expect(read(keptWith(change), soFar)).toBeNull();
   });
 
+  it("drops a field of more points from the chain than its wave has, kept before the rocks' were counted", () => {
+    const value = { ...keptUncounted(), chainPoints: 301 };
+
+    expect(read(value)).toBeNull();
+  });
+
   it.each([...VALUE_SPOILS, ...KIND_SPOILS, ...STATE_SPOILS])(
     "drops a field with %s",
     (_, change) => {
@@ -500,16 +507,24 @@ describe("fitsItsRun", () => {
   it.each([
     ["chain", { chainPoints: 300, rockPoints: 0 }],
     ["rocks", { rockPoints: 300 }],
-    [
-      "chain, kept before the rocks' were counted,",
-      { chainPoints: 300, rockPoints: undefined },
-    ],
   ])("fits a field whose %s scored every point on its wave", (_, change) => {
     expect(fitsItsRun({ ...kept(), ...change }, SO_FAR)).toBe(true);
   });
 
+  it("fits a field whose chain, kept before the rocks' were counted, scored every point on its wave", () => {
+    const field = { ...keptUncounted(), chainPoints: 300 };
+
+    expect(fitsItsRun(field, SO_FAR)).toBe(true);
+  });
+
   it.each(RUN_FIT_SPOILS)("fails a field of %s", (_, change, soFar) => {
     expect(fitsItsRun({ ...kept(), ...change }, soFar)).toBe(false);
+  });
+
+  it("fails a field of more points from the chain than its wave has, kept before the rocks' were counted", () => {
+    const field = { ...keptUncounted(), chainPoints: 301 };
+
+    expect(fitsItsRun(field, SO_FAR)).toBe(false);
   });
 });
 
@@ -521,7 +536,7 @@ describe("rockPointsKept", () => {
   });
 
   it("works out the rocks' points of a field kept before they were counted from what its run scored beside the chain and the strays", () => {
-    const field = { ...kept(), chainPoints: 80, rockPoints: undefined };
+    const field = { ...keptUncounted(), chainPoints: 80 };
     const soFar = { points: 800, straysHome: 1 };
 
     expect(rockPointsKept(field, soFar)).toBe(800 - 80 - STRAY_POINTS);
@@ -646,7 +661,7 @@ describe("layOutKeptField", () => {
   });
 
   it("works out the rocks' points of a field kept before they were counted", () => {
-    const saved = { ...kept(), chainPoints: 80, rockPoints: undefined };
+    const saved = { ...keptUncounted(), chainPoints: 80 };
 
     const field = layOut(saved);
 

@@ -460,7 +460,7 @@ function assertIndicesAreClear() {
  * @returns {number}
  */
 function luminance(hex) {
-  const [r, g, b] = [1, 3, 5].map((start) => {
+  const [r = 0, g = 0, b = 0] = [1, 3, 5].map((start) => {
     const channel = parseInt(hex.slice(start, start + 2), 16) / 255;
     return channel <= 0.04045
       ? channel / 12.92
@@ -477,10 +477,8 @@ function luminance(hex) {
  * @returns {number}
  */
 function contrast(first, second) {
-  const [light, dark] = [luminance(first), luminance(second)].sort(
-    (a, b) => b - a,
-  );
-  return (light + 0.05) / (dark + 0.05);
+  const luminances = [luminance(first), luminance(second)];
+  return (Math.max(...luminances) + 0.05) / (Math.min(...luminances) + 0.05);
 }
 
 /**
@@ -490,10 +488,10 @@ function contrast(first, second) {
 function assertSuitColorsAreLegible() {
   const problems = [];
   for (const color of new Set(SUITS.map((suit) => suit.color))) {
-    for (const [ground, hex] of [
+    for (const [ground, hex] of /** @type {const} */ ([
       ["paper", COLORS.paper],
       ["panel", COLORS.panel[color]],
-    ]) {
+    ])) {
       const ratio = contrast(COLORS[color], hex);
       if (ratio < MIN_CONTRAST) {
         problems.push(`${color} on ${ground}: ${ratio.toFixed(2)}:1`);

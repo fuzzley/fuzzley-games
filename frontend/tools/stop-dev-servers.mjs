@@ -197,7 +197,7 @@ async function readLinuxProcess(pid) {
       // stat's name is the main thread's, which Node renames MainThread, so it
       // stands in only for a kernel thread, which has no command line.
       name: argv[0]
-        ? basename(argv[0].split(" ")[0])
+        ? basename(argv[0].split(" ")[0] ?? "")
         : stat.slice(stat.indexOf("(") + 1, nameEnd),
       cmdline: argv.join(" "),
       cwd,
@@ -220,8 +220,8 @@ function listPsProcesses() {
   return stdout.split("\n").flatMap((line) => {
     const match = /^\s*(\d+)\s+(\d+)\s+(.*)$/.exec(line);
     if (!match) return [];
-    const [, pid, ppid, cmdline] = match;
-    const name = basename(cmdline.split(" ")[0]);
+    const [, pid, ppid, cmdline = ""] = match;
+    const name = basename(cmdline.split(" ")[0] ?? "");
     return [{ pid: Number(pid), ppid: Number(ppid), name, cmdline }];
   });
 }

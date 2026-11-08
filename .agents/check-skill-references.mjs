@@ -220,7 +220,7 @@ function checkRelativeLinks(file, text, problems) {
  */
 function checkPaths(file, text, base, problems) {
   const topLevel = new Set(fs.readdirSync(base));
-  for (const [, token] of text.matchAll(/`([^`\n]+)`/g)) {
+  for (const [, token = ""] of text.matchAll(/`([^`\n]+)`/g)) {
     const candidate = token.trim().replace(/[.,;:)]+$/, "");
     // Skip prose and placeholder paths -- `src/games/<variant>/` names a
     // shape, not a file, and is meant to stand for any of them.

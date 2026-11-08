@@ -31,9 +31,9 @@ export const SITE_IMAGE_QUALITY = 80;
 /** Says how an image is made from a capture. */
 export interface ImageOptions {
   /** The part of the capture to keep; all of it unless given. */
-  readonly region?: Region;
+  readonly region?: Region | undefined;
   /** How the capture is fitted to the image's size: sharp's `cover` unless given. */
-  readonly resize?: ResizeOptions;
+  readonly resize?: ResizeOptions | undefined;
   /** The WebP quality, from 1 to 100: {@link SITE_IMAGE_QUALITY} unless given. */
   readonly quality?: number;
 }

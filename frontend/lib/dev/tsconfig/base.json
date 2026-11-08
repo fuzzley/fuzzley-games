@@ -2,7 +2,8 @@
   // The compiler options every workspace's TypeScript is checked with. An app
   // compiles the libraries' sources into its own program, with its own
   // options, so one set for every workspace is what lets a library's code
-  // pass in each of them.
+  // pass in each of them. The checks it shares with scripts.json are kept in
+  // step: a flag added to one is added to the other.
   "compilerOptions": {
     "strict": true,
     "noImplicitOverride": true,

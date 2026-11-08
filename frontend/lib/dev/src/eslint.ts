@@ -105,10 +105,17 @@ export function typescript({ files, root }: TypeScriptFiles): Config[] {
  * {@link templates} are.
  */
 export function angular({ files, prefix }: AngularFiles): Config[] {
+  // Asteroid Breaker's scripts config checks this file with
+  // exactOptionalPropertyTypes, which won't pass on a processor angular-eslint
+  // types as maybe missing, though its template plugin always has one.
+  const processor = angularEslint.processInlineTemplates;
+  if (!processor) {
+    throw new Error("angular-eslint has no processor for inline templates.");
+  }
   return defineConfig({
     files: [...files],
     extends: [angularEslint.configs.tsRecommended],
-    processor: angularEslint.processInlineTemplates,
+    processor,
     rules: {
       "@angular-eslint/component-selector": [
         "error",

@@ -188,12 +188,9 @@ const FRAMES_DRAWN_AT_ONCE = 8;
 export async function drawEach(items, draw) {
   /** @type {Frame[]} */
   const frames = new Array(items.length);
-  let next = 0;
+  const queue = items.entries();
   const worker = async () => {
-    while (next < items.length) {
-      const index = next++;
-      frames[index] = await draw(items[index]);
-    }
+    for (const [index, item] of queue) frames[index] = await draw(item);
   };
   await Promise.all(
     Array.from(
@@ -269,8 +266,10 @@ export async function edgeScorer(png, cornerPx) {
    */
   const isInk = (x, y) => {
     const i = (y * info.width + x) * 4;
-    if (data[i + 3] <= 250) return 0;
-    return (data[i] + data[i + 1] + data[i + 2]) / 3 < 190 ? 1 : 0;
+    if ((data[i + 3] ?? 0) <= 250) return 0;
+    return ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3 < 190
+      ? 1
+      : 0;
   };
 
   const from = cornerPx;
