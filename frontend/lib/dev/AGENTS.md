@@ -64,7 +64,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   counts twice. Vitest watches through the config's own server, so such a
   project hands its own the files added or removed, for the plugin to take
   a new component into its program, as Asteroid Breaker's
-  `forwardAddedAndRemoved()` does.
+  `forwardAddedAndRemoved()` does; and Vitest keys the modules it caches on
+  disk without the config of a project declared with `extends: false`, so
+  one with the plugin adds the config to its key, as `keyedByThisConfig()`
+  does, or a change to what the plugin passes by is read from the cache.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
   build from `/play/<slug>/`, the Angular plugins, `@fz/style`'s

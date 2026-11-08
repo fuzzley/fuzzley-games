@@ -628,3 +628,38 @@ in the field's camera scaled and nothing outside it:
    `pictures` counted bakes:_ taken; `encodePictures()` and `bakes`.
 4. _The same tolerance was written in two files:_ taken; `wholePixels()`.
 5. _A spec restored its mocks twice:_ taken.
+
+### Step 5: finding 5, floors under the scene and the shell
+
+Built on `ab-tests`. The scene is held to 98/92/100/99 and the shell to
+98/97/97/98, as planned; on the branch's tip they stand at
+98.82/93.07/100/100 and 99.42/98.73/98.56/99.33. `src/testing/` is
+measured, with no floor, and the helpers the specs trust have specs of
+their own: `art_frames`, `crossings`, `every_layout`'s `nearness()`,
+`canvases` and `field_picture` in Node, and `belt_board`'s `strokesOf()`
+against a `Graphics` Phaser really drew, in `dom`.
+
+Where it went other than planned:
+
+- The helpers both projects load are left to oxc in `dom` too, so their
+  functions aren't counted twice; lint lets `src/testing/` take Angular by
+  type alone, so none of it needs Analog's compile.
+- Vitest's module cache left a project declared with `extends: false` out
+  of its key, so `dom` kept old output after a config edit;
+  `keyedByThisConfig()` keys it by the config's text.
+
+The review found the floors as planned and covering every folder, each
+spec in exactly one project and no file counted twice:
+
+1. _Whether an entry heads toward the middle was tried on the left edge
+   alone,_ so a wrong branch for the other three passed: taken; all four,
+   both ways.
+2. _A circle's edge was held only to its radius,_ so sixteen copies of one
+   point passed: taken; the points reach every side.
+3. _The pattern that sends `belt_board.spec.ts` to `dom` sent any spec
+   whose name began with it:_ taken; the whole name, written so the folder
+   itself isn't matched.
+4. _The cache's reason was written for every inline project:_ taken; one
+   declared with `extends: false`.
+5. _The code left to oxc took in the helpers' specs:_ taken; not specs.
+6. _A line of `AGENTS.md` ran far past its paragraph:_ taken.
