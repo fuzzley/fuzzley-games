@@ -2,13 +2,10 @@
 // component works out where the field lies on it as the scene lays it out
 // (`fieldMetrics()`), so the placeholder, the focus ring and the cards sit
 // where the scene draws the field, before it has and after; until the board
-// is measured, they fill it, a margin in.
+// is measured, they fill it, the margin in that the scene keeps around the
+// field. The component sets that margin (`--margin`) and the frame's width
+// (`--frame`), as the scene draws them.
 :host {
-  // The margin around the field, which the component sets as the scene
-  // lays it out; this is its roomy screen's, for the first paint.
-  --margin: 24px;
-  --frame: 2px;
-
   position: relative;
   display: block;
   container-type: size;

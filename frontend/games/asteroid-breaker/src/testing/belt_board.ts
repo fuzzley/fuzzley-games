@@ -20,6 +20,7 @@ import {
   type BoardSetting,
   type FieldLayout,
   type FieldMetrics,
+  MARGIN_CSS_PX,
   fieldMetrics,
   fieldShape,
 } from "../view/field/field_metrics";
@@ -47,7 +48,7 @@ export const DARK = beltPalette(
 
 /** How the board lays the field out unless a spec says otherwise: no deck, a compact margin. */
 export const BOARD: BoardSetting = {
-  marginCss: 12,
+  marginCss: MARGIN_CSS_PX.compact,
   deck: false,
   stickOnRight: false,
   fireByItself: false,

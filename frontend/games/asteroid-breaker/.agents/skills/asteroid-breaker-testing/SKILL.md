@@ -274,7 +274,10 @@ game through `runScene()`:
   The cards over the field are `<app-board-card>`, whose spec renders it
   alone, with no canvas, given what the board tells it (where the scene is
   and how the ship flies); the board's spec holds only that it tells it so,
-  and takes back the focus as the player goes on from a card.
+  and takes back the focus as the player goes on from a card. A spec that
+  fails the scene on purpose has the app's `ErrorHandler` collect what the
+  canvas hands it, as the board's does (`collectErrors()`), and asserts on
+  that, so the run prints no error it expects.
 - What a frame of play comes to is `RunFrames`'s, and how it folds into
   what is a run's own `withFrame()`'s, which the view's specs hold; the
   shell's spec holds `GameService` to taking it into its signals, the
