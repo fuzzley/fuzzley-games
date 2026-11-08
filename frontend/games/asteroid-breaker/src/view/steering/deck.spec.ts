@@ -52,9 +52,9 @@ function shapedOn(canvas: Viewport, board: BoardSetting): Torus {
 
 /** Returns a deck that shows, around the field a canvas shapes. */
 function deckAt(canvas = UPRIGHT, board = BOARD): Deck {
-  const deck = deckOf(canvas, board, shapedOn(canvas, board));
-  if (!deck) throw new Error("No deck shows.");
-  return deck;
+  const zones = deckLayout(canvas, board, shapedOn(canvas, board));
+  if (!zones) throw new Error("No deck shows.");
+  return deckOf(zones, board, canvas.pixelRatio);
 }
 
 /** Returns a circle's middle and radius to the hundredth of a device pixel, or null for none. */
@@ -121,10 +121,6 @@ function keptIn(circle: Circle, zone: PixelRect, canvas: Viewport): boolean {
 }
 
 describe("deckOf", () => {
-  it("lays nothing out where the deck doesn't show", () => {
-    expect(deckOf(UPRIGHT, { ...BOARD, deck: false }, SQUARE)).toBeNull();
-  });
-
   it("lays the stick at rest low in its zone under the field, Fire low in the buttons', and Dash up from it, toward the middle", () => {
     const deck = deckAt();
 
@@ -243,25 +239,16 @@ describe("deckOf", () => {
   it.each(boards)(
     "keeps every part of the deck of a %s at %f×, its stick on the %s and fire %s, within its zone and Fire and Dash apart",
     (_, __, ___, ____, canvas, board) => {
-      const torus = shapedOn(canvas, board);
-      const layout = deckLayout(canvas, board, torus);
-      const deck = deckOf(canvas, board, torus);
+      const zones = deckLayout(canvas, board, shapedOn(canvas, board));
+      if (!zones) throw new Error("No deck shows.");
+
+      const deck = deckOf(zones, board, canvas.pixelRatio);
 
       expect({
-        stick:
-          layout !== null &&
-          deck !== null &&
-          keptIn(deck.stick, layout.stick, canvas),
-        fire:
-          layout !== null &&
-          deck !== null &&
-          (deck.fire === null || keptIn(deck.fire, layout.buttons, canvas)),
-        dash:
-          layout !== null &&
-          deck !== null &&
-          keptIn(deck.dash, layout.buttons, canvas),
-        apart:
-          deck !== null && (deck.fire === null || apart(deck.fire, deck.dash)),
+        stick: keptIn(deck.stick, zones.stick, canvas),
+        fire: deck.fire === null || keptIn(deck.fire, zones.buttons, canvas),
+        dash: keptIn(deck.dash, zones.buttons, canvas),
+        apart: deck.fire === null || apart(deck.fire, deck.dash),
       }).toEqual({ stick: true, fire: true, dash: true, apart: true });
     },
   );

@@ -94,6 +94,18 @@ export interface FieldMetrics {
   readonly css: CssRect;
 }
 
+/** Says how the field and the deck were laid out on a canvas, which the scene hands the shell. */
+export interface FieldLayout {
+  /** The canvas they were laid out on, which the next field is shaped for. */
+  readonly viewport: Viewport;
+  /** The field's shape they were laid out for, in its units. */
+  readonly torus: Torus;
+  /** Where the field lies, and the room it fills. */
+  readonly metrics: FieldMetrics;
+  /** Where the deck's zones lie, or null where it doesn't show. */
+  readonly deck: DeckLayout | null;
+}
+
 /**
  * Describes the deck's two zones, left and right, before the setting says which
  * holds the stick.

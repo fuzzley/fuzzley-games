@@ -148,6 +148,19 @@ function wordsOf({ x, y, width, height }: PixelRect): string {
   return `${String(x)} ${String(y)} ${String(width)} ${String(height)}`;
 }
 
+/** Returns a rectangle on a canvas in CSS pixels, given in device pixels at a pixel ratio. */
+function inCssAt(
+  { x, y, width, height }: PixelRect,
+  pixelRatio: number,
+): PixelRect {
+  return {
+    x: x / pixelRatio,
+    y: y / pixelRatio,
+    width: width / pixelRatio,
+    height: height / pixelRatio,
+  };
+}
+
 /** Returns the styles that lay an element over a rectangle, as the board writes them. */
 function placedOver(rect: CssRect): Record<string, string> {
   return {
@@ -671,6 +684,35 @@ describe("BoardComponent", () => {
       expect(board.dataset["deck"]).toBe(
         `stick ${wordsOf(deck.stick)}, buttons ${wordsOf(deck.buttons)}`,
       );
+    });
+
+    it("publishes the room and the deck's zones in CSS pixels on a canvas of two device pixels to one", async () => {
+      const { board, game, run, detectChanges } = await runBoardScene({
+        width: 1280,
+        height: 720,
+      });
+      useSettings({ deck: "always" });
+
+      // As a browser zoomed in has it: the canvas as many device pixels, each
+      // CSS pixel two of them.
+      run.game.scale.setZoom(1 / 2);
+      run.advance(FRAME_MS);
+      run.advance(FRAME_MS);
+      detectChanges();
+
+      const canvas = { ...CANVAS_1280, pixelRatio: 2 };
+      const setting = { ...ROOMY, deck: true };
+      const { torus } = game.frame().field;
+      const deck = deckLayout(canvas, setting, torus);
+      if (!deck) throw new Error("The deck shows on a canvas of 1280 by 720.");
+      const words = (rect: PixelRect): string => wordsOf(inCssAt(rect, 2));
+      expect({
+        room: board.dataset["room"],
+        deck: board.dataset["deck"],
+      }).toEqual({
+        room: words(fieldMetrics(canvas, setting, torus).room),
+        deck: `stick ${words(deck.stick)}, buttons ${words(deck.buttons)}`,
+      });
     });
 
     it("publishes no deck where it doesn't show", async () => {

@@ -1,5 +1,4 @@
 import { advanceClock } from "@fz/core/clock";
-import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { GameObjects, type Scene } from "phaser";
 import { type Field, reshapeField, stepField } from "../rules/field/field";
@@ -19,6 +18,7 @@ import { bakedScale } from "../view/art/shapes";
 import { type BeltPalette, beltPalette } from "../view/colors/palette";
 import {
   type BoardSetting,
+  type FieldLayout,
   type FieldMetrics,
   fieldMetrics,
   fieldShape,
@@ -71,15 +71,6 @@ interface Tick {
   readonly steer: Steer;
 }
 
-/**
- * What the scene told the shell as it laid the field out: the canvas, and where
- * the field lies on it.
- */
-interface Layout {
-  readonly canvas: Viewport;
-  readonly field: CssRect;
-}
-
 /** Plays the shell's part, keeping what the scene tells it. */
 export class FakeShell implements BeltSceneOptions {
   /** The field shown, which a spec may change as the rules would. */
@@ -106,7 +97,7 @@ export class FakeShell implements BeltSceneOptions {
    */
   reshapesField = false;
   readonly ticks: Tick[] = [];
-  readonly layouts: Layout[] = [];
+  readonly layouts: FieldLayout[] = [];
   readonly commands: FieldCommand[] = [];
   /**
    * What the scene handed over at each bake of the field's atlas to picture
@@ -135,10 +126,10 @@ export class FakeShell implements BeltSceneOptions {
   readonly sound = (): boolean => this.wantsSound;
   readonly thrusting = (): boolean => this.thrusts;
   readonly board = (): BoardSetting => this.setting;
-  readonly onLayout = (canvas: Viewport, field: CssRect): void => {
-    this.layouts.push({ canvas, field });
+  readonly onLayout = (layout: FieldLayout): void => {
+    this.layouts.push(layout);
     if (!this.reshapesField) return;
-    const torus = fieldShape(canvas, this.setting, this.field.torus);
+    const torus = fieldShape(layout.viewport, this.setting, this.field.torus);
     reshapeField(this.field, torus);
   };
   readonly command = (command: FieldCommand): void => {

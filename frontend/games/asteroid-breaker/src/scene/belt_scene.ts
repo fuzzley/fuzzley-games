@@ -1,7 +1,7 @@
 import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
-import type { CssRect, Viewport } from "@fz/phaser/layout";
+import type { Viewport } from "@fz/phaser/layout";
 import {
   onFirstFrame,
   onKeyDown,
@@ -26,7 +26,9 @@ import {
 } from "../view/effects/effects";
 import {
   type BoardSetting,
+  type FieldLayout,
   type FieldMetrics,
+  deckLayout,
   fieldMetrics,
 } from "../view/field/field_metrics";
 import {
@@ -82,10 +84,11 @@ export interface BeltSceneOptions {
   /** Returns how the board lays the field and the deck out; a new value lays them out again. */
   readonly board: () => BoardSetting;
   /**
-   * Takes the canvas as the field was last laid out on it, which the next
-   * field is shaped for, and where the field now lies on it, in CSS pixels.
+   * Takes how the field and the deck were last laid out: the canvas, which the
+   * next field is shaped for, the field's shape, where the field lies and the
+   * room it fills, and where the deck's zones lie.
    */
-  readonly onLayout: (viewport: Viewport, field: CssRect) => void;
+  readonly onLayout: (layout: FieldLayout) => void;
   /** Takes what a key asks of the game. */
   readonly command: (command: FieldCommand) => void;
   /**
@@ -179,6 +182,8 @@ export class BeltScene extends Scene {
   /** The field's size as it was last laid out. */
   private torus!: Torus;
   private metrics!: FieldMetrics;
+  /** How the field and the deck were last laid out, which the shell is told. */
+  private layout!: FieldLayout;
   /** Where the deck's parts lie, or null where it doesn't show. */
   private deckParts: Deck | null = null;
   /** The scale the field's atlas was last baked at. */
@@ -438,7 +443,9 @@ export class BeltScene extends Scene {
     };
     this.viewport = viewport;
     this.metrics = fieldMetrics(viewport, this.board, this.torus);
-    this.deckParts = deckOf(viewport, this.board, this.torus);
+    const deck = deckLayout(viewport, this.board, this.torus);
+    this.deckParts = deck && deckOf(deck, this.board, viewport.pixelRatio);
+    this.layout = { viewport, torus: this.torus, metrics: this.metrics, deck };
   }
 
   /**
@@ -455,12 +462,12 @@ export class BeltScene extends Scene {
 
   /**
    * Points the field's camera at the field as measured, hands the steering
-   * the layout, and tells the shell where the field lies.
+   * the layout, and tells the shell how the field and the deck lie.
    */
   private layOut(): void {
     this.kit.fieldCamera.fit(this.metrics);
     this.steering.measure(this.metrics, this.deckParts, this.board);
-    if (this.viewport) this.options.onLayout(this.viewport, this.metrics.css);
+    this.options.onLayout(this.layout);
   }
 
   /**

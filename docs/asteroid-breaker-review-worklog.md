@@ -1111,3 +1111,36 @@ The review found both configs checked and nothing else matching them:
    checked the configs, and the scripts, without `checkJs`:_ taken.
 2. _`AGENTS.md`'s Linting line hung the configs off the wrong phrase and
    left out `tools/`:_ taken.
+
+### Step 8c: finding 10, `onLayout` handed what the scene worked out
+
+Built on `ab-shell`, the last part of finding 10. The scene hands
+`onLayout` one `FieldLayout`, the canvas, the field's shape, its metrics,
+the room among them, and the deck's zones or none, which `measure()` builds
+once and keeps. The board publishes `data-field`, `data-room`, `data-deck`,
+`--across` and `--down` from it rather than working out `fieldMetrics()`
+and `deckLayout()` again from a torus read before `setRoom()`. `deckOf()`
+lays the deck's parts out in the zones the scene works out once, rather
+than working them out itself. Published on the old build and the new, at
+every layout shape and the smallest phone at one and two device pixels to
+one, both turns, with the deck shown and not, the board's values are the
+same.
+
+Where it went other than planned:
+
+- `deckOf()` takes the zones, as the scene kept only the deck's parts,
+  which carry the stick's zone but not the buttons'.
+- The record carries the torus, which `--across` and `--down` read.
+
+The review found no bug and nothing a player would see:
+
+1. _Every spec of the published room and zones ran at one device pixel to
+   one, where the board's conversion to CSS pixels changes nothing:_ taken;
+   a spec at two to one, which fails with the conversion dropped.
+2. _Guards in the deck's spec that followed from others:_ taken.
+3. _`deckOf()` could be handed a board its zones weren't laid out for:_
+   taken; its doc says it lays out in the zones `deckLayout()` laid out
+   for this board, and the parameter is `zones`.
+4. _A spec helper worked out the field's shape twice:_ taken.
+5. _The scene copied four fields into the record each layout:_ taken; it
+   keeps the record `measure()` builds.
