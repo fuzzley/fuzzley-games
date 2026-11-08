@@ -1428,3 +1428,23 @@ The review found every number the same:
 4. _The streams' doc claimed oddness keeps them apart:_ taken.
 5. _Mixing a seed by hand isn't kept out by lint:_ not taken here; it goes
    with finding 21's fences on `dev-lifts`.
+
+### Step 14d: QA of `core-lifts`
+
+`yarn verify` passes, in 2 min 38 s, and `yarn check:layout` holds every
+game it checks. Played in headed Chrome, Asteroid Breaker, Brick Breaker,
+Snake, Sudoku and Minesweeper each load with no error or warning, play,
+keep a setting changed and take a run up again after a reload, its save
+the same, a saved run from before the branch among them. The waits come
+in at their numbers: the result cards at 500, 600 and 600 ms, the Cleared
+cards at 800 and 700, Brick Breaker's serve a frame inside its second, as
+before. A run at 9,995 gains a ship at 10,000, its next at 30,000, and
+one at 19,950 a life at 20,000, its next at 60,000.
+
+`@fz/core`'s floor stays at 100 on every count. It has no `src/testing/`,
+so the rule that a library counts its own with no floor reaches it with
+its first helper, and is written down with `@fz/dev`'s, on `dev-lifts`.
+
+Seen and left: a rock's position taken up again can differ in its last
+digit once the field is laid out anew, which the branch's readers, passing
+the stored numbers through, don't touch.
