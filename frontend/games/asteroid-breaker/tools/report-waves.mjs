@@ -5,13 +5,13 @@
  *   yarn report:waves [--seeds <n>] [--field <narrow|wide|tall>] [--endless]
  *
  * For each wave and speed it plays the wave twice through the autopilot's
- * `playWave()`, as `src/rules/waves/autopilot.spec.ts` does, so the report and
- * the spec play the same games: once with nothing able to take the ship,
- * for the game time the wave took to clear and the strays brought home of
- * those sent, and once as the spec plays it, for the ships it cost. It
- * fails when a play doesn't clear its wave within the autopilot's limit
- * (`-`), as the spec does, but it counts the untouchable plays too, so it
- * is the stricter of the two. It loads the rules and the autopilot through
+ * `playWave()`, as the specs in `src/rules/waves/every_wave/` do, so the
+ * report and the specs play the same games: once with nothing able to take
+ * the ship, for the game time the wave took to clear and the strays brought
+ * home of those sent, and once as the specs play it, for the ships it cost.
+ * It fails when a play doesn't clear its wave within the autopilot's limit
+ * (`-`), as the specs do, but it counts the untouchable plays too, so it is
+ * the stricter of the two. It loads the rules and the autopilot through
  * Vite, as the game's build does. The report is how the climb from wave to
  * wave is tuned: a wave that takes long, or costs ships at Relaxed, is one
  * to look at again.

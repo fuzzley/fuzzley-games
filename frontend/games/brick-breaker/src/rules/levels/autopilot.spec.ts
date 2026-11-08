@@ -1,3 +1,5 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import {
   AUTOPILOT_LIMIT,
   ENDGAME_LIMIT,
@@ -9,7 +11,7 @@ import { PRESET_SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
 import { COLUMNS, FIELD_HEIGHT, TALLEST_FIELD } from "../tuning";
 import type { Level } from "./level";
-import { LEVELS, type LevelData, type LevelEntry, parseLevel } from "./levels";
+import { type LevelData, type LevelEntry, parseLevel } from "./levels";
 
 /** The seeds a spec plays a level from, to judge the autopilot by more than one game. */
 const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -135,38 +137,15 @@ describe("the autopilot", () => {
   });
 });
 
-describe("every level", () => {
-  const plays = LEVELS.flatMap((entry) =>
-    PRESET_SPEEDS.map((speed) => [entry.data.name, speed, entry] as const),
-  );
+// Vitest plays the specs of a file one after another, so the specs that
+// play every level keep a file for each preset speed, which it plays side
+// by side.
+describe("the specs that play every level", () => {
+  it("keep a file in every_level for each preset speed, and only those", () => {
+    const files = readdirSync(join(import.meta.dirname, "every_level"));
 
-  it.each(plays)(
-    "is cleared, %s at %s, within eight minutes of game time, its last bricks within one",
-    (_, speed, entry) => {
-      const report = playLevel(entry, speed);
-
-      expect({
-        cleared: report.cleared,
-        inTime: report.steps < AUTOPILOT_LIMIT,
-        endgameInTime: report.endgameSteps <= ENDGAME_LIMIT,
-      }).toEqual({ cleared: true, inTime: true, endgameInTime: true });
-    },
-  );
-
-  // A taller field lengthens every trip between the paddle and the bricks,
-  // and leaves more of how long the last bricks take to luck: across twenty
-  // seeds, its endgames drag past their stretched minute about three times
-  // as often. The spec above holds how each level is drawn; this one, that
-  // each is still cleared in its time on the tallest field.
-  it.each(plays)(
-    `is cleared, %s at %s, on a field ${String(TALLEST_FIELD)} tall, within eight minutes stretched as its ball's trips are`,
-    (_, speed, entry) => {
-      const report = playLevel(entry, speed, { height: TALLEST_FIELD });
-
-      expect({
-        cleared: report.cleared,
-        inTime: report.steps < limitsOf(TALLEST_FIELD).level,
-      }).toEqual({ cleared: true, inTime: true });
-    },
-  );
+    expect(new Set(files)).toEqual(
+      new Set(PRESET_SPEEDS.map((speed) => `${speed}.spec.ts`)),
+    );
+  });
 });

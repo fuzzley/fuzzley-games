@@ -7,10 +7,10 @@
  * For each level and speed it prints the game time the autopilot took to
  * clear the level, the time of that it spent on the last three bricks the
  * level needed, how many times its paddle met a ball, and the lives it
- * lost. It plays each through the autopilot's `playLevel()`, as
- * `src/rules/levels/autopilot.spec.ts` does, so the report and the spec
- * play the same games, and it fails as the spec does: when a play doesn't
- * clear its level (`-`), or takes longer than the spec allows over its last
+ * lost. It plays each through the autopilot's `playLevel()`, as the specs
+ * in `src/rules/levels/every_level/` do, so the report and the specs play
+ * the same games, and it fails as the specs do: when a play doesn't clear
+ * its level (`-`), or takes longer than the specs allow over its last
  * bricks (`!`). It loads the rules and the autopilot through Vite, as the
  * game's build does. The report is how the difficulty ramp is tuned: a level
  * that takes long, or costs lives at Relaxed, is one to look at again.

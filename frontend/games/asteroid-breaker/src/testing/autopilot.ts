@@ -68,6 +68,9 @@ export const TALLEST: Torus = {
   height: FIELD_LONGEST_SIDE,
 };
 
+/** The narrowest field and the widest, either way up, as the plan holds every wave to. */
+export const FIELDS: readonly Torus[] = [NARROWEST, WIDEST, TALLEST];
+
 /** Says how the autopilot plays a field, where a caller cares. */
 export interface PlayOptions {
   /** The most frames it plays, a step each once the wave starts, {@link AUTOPILOT_LIMIT} by default. */
@@ -214,7 +217,7 @@ function isWarned(comet: Readonly<Comet>): boolean {
 
 /**
  * Plays one of the game's waves at a speed, from its number as the seed
- * unless given another, as `src/rules/waves/autopilot.spec.ts` and
+ * unless given another, as the specs in `src/rules/waves/every_wave/` and
  * `yarn report:waves` both play it; an Endless wave is made from the seed
  * too, as the run's.
  */

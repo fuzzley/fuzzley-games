@@ -159,8 +159,8 @@ take for the layer.
   a `Level` (`level.ts`) to play, or throws an error that names what is
   wrong with its data. Its spec holds every level to parsing, ids and names
   of their own, a brick it needs that a ball can reach, and a pace that
-  never falls within a set; `autopilot.spec.ts` holds every level to being
-  cleared by the autopilot, as Tests below says.
+  never falls within a set; the specs in `every_level/` hold every level to
+  being cleared by the autopilot, as Tests below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
@@ -534,9 +534,14 @@ workspace's with the others'.
 ## Tests
 
 The repository's rules for specs apply. A spec sits beside the file it tests,
-named after it, and runs in jsdom; `src/test-setup.ts` installs
-`@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs real
-Phaser through `runScene()`, with a fake shell over a pictured field. This
+named after it, and runs in jsdom, but for the specs that play every level,
+which test no one file: they have a folder of their own with a file for each
+preset speed (`src/rules/levels/every_level/`), as Vitest plays a file's
+specs one after another but the files side by side, and
+`src/rules/levels/autopilot.spec.ts` holds it to a file for every preset
+speed and no other. `src/test-setup.ts` installs `@fz/phaser/testing`'s
+headless Phaser first, so the scene's spec runs real Phaser through
+`runScene()`, with a fake shell over a pictured field. This
 workspace's `brick-breaker-testing` skill covers its setup, floors and
 fixtures, the repository's `angular-testing` the patterns every Angular
 workspace's specs share, and `phaser-core` the harness. What the specs share
@@ -553,13 +558,16 @@ is in `src/testing/`:
   keeps the paddle under the ball that will reach it first, lands it a
   seeded distance off the middle or toward a brick the level needs that it
   can see, catches the good capsules it has time for, and fires, serves and
-  launches at once. `src/rules/levels/autopilot.spec.ts` holds every level, at
-  every preset speed, to being cleared by it within eight minutes of
-  game time, its last three bricks within one, and on the tallest field
-  within those eight minutes stretched as far as the paddle lies farther
-  from the bricks (`limitsOf()`), and the catalog spec holds the levels to
-  using every brick kind and letting every capsule first fall at the level
-  its `from` names.
+  launches at once. `src/rules/levels/autopilot.spec.ts` holds the autopilot
+  itself, and the catalog spec holds the levels to using every brick kind
+  and letting every capsule first fall at the level its `from` names.
+- `every_level.ts` holds every level, at a preset speed, to being cleared by
+  the autopilot within eight minutes of game time, its last three bricks
+  within one, and on the tallest field within those eight minutes stretched
+  as far as the paddle lies farther from the bricks (`limitsOf()`)
+  (`holdEveryLevel()`), which each preset speed's spec in
+  `src/rules/levels/every_level/` calls with its own file, whose name is the
+  speed it plays.
 - `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
   specs that color the field.
 - `play.ts` holds the small levels the shell's specs play, each set up to

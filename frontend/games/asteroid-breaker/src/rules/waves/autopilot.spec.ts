@@ -1,9 +1,8 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { waveToPlay } from "./endless";
 import {
-  AUTOPILOT_LIMIT,
   ENDLESS_PLAYED,
-  NARROWEST,
-  TALLEST,
   WIDEST,
   autoplay,
   pilot,
@@ -24,19 +23,14 @@ import type { Crew } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { STILL, type Steer } from "../ship/ship";
 import { SPEEDS } from "../speed";
-import type { Torus } from "../torus";
 import { SHOT_SPEED, STRAY_SPEED, TOP_SPEED } from "../tuning";
 import {
   type SectorData,
-  WAVES,
   type Wave,
   type WaveData,
   type WaveEntry,
   parseWave,
 } from "./waves";
-
-/** The narrowest field and the widest, either way up, as the plan holds every wave to. */
-const FIELDS: readonly Torus[] = [NARROWEST, WIDEST, TALLEST];
 
 /** The seeds a spec plays from, to judge the autopilot by more than one game. */
 const SEEDS = Array.from({ length: 8 }, (_, i) => i + 1);
@@ -525,70 +519,17 @@ describe("a frame of the autopilot's", () => {
   });
 });
 
-/** Returns every play of some waves the spec makes: each on every field, at every speed, named. */
-function playsOf(waves: readonly WaveEntry[]) {
-  return waves.flatMap((entry) =>
-    FIELDS.flatMap((torus) =>
-      SPEEDS.map(
-        (speed) =>
-          [
-            `${String(entry.number)}, ${entry.data.name},`,
-            speed,
-            `${String(torus.width)} by ${String(torus.height)}`,
-            entry,
-            torus,
-          ] as const,
-      ),
-    ),
-  );
-}
+// Vitest plays the specs of a file one after another, so the specs that
+// play every wave keep a file for each speed, which it plays side by side.
+describe("the specs that play every wave", () => {
+  it.each(["every_wave", "every_endless_wave"])(
+    "keep a file in %s for each speed, and only those",
+    (folder) => {
+      const files = readdirSync(join(import.meta.dirname, folder));
 
-describe("every wave", () => {
-  const plays = playsOf(WAVES);
-
-  it.each(plays)(
-    "is cleared, %s at %s on a field %s, within four minutes of game time, meeting a comet and a stray if it sends them",
-    (_, speed, __, entry, torus) => {
-      const report = playWave(entry, speed, { torus });
-      const wave = parseWave(entry);
-
-      expect({
-        cleared: report.cleared,
-        inTime: report.steps < AUTOPILOT_LIMIT,
-        metComet: report.cometsCrossed > 0,
-        metStray: report.straysSent > 0,
-      }).toEqual({
-        cleared: true,
-        inTime: true,
-        metComet: wave.cometEvery !== null,
-        metStray: wave.strays > 0,
-      });
-    },
-  );
-});
-
-// Endless climbs until a run's ships run out, so its waves are held to
-// being fair, cleared with nothing able to take the ship, rather than to
-// what they cost; `yarn report:waves --endless` shows the cost.
-describe("every Endless wave the autopilot is held to", () => {
-  const plays = playsOf(ENDLESS_PLAYED);
-
-  it.each(plays)(
-    "can be cleared, wave %s at %s on a field %s, within four minutes of game time, meeting a comet and a stray",
-    (_, speed, __, entry, torus) => {
-      const report = playWave(entry, speed, { torus, invulnerable: true });
-
-      expect({
-        cleared: report.cleared,
-        inTime: report.steps < AUTOPILOT_LIMIT,
-        metComet: report.cometsCrossed > 0,
-        metStray: report.straysSent > 0,
-      }).toEqual({
-        cleared: true,
-        inTime: true,
-        metComet: true,
-        metStray: true,
-      });
+      expect(new Set(files)).toEqual(
+        new Set(SPEEDS.map((speed) => `${speed}.spec.ts`)),
+      );
     },
   );
 });

@@ -180,8 +180,9 @@ take for the layer.
   makes its wave again from the two: a budget of rocks, a crystal among
   them, boulders every tenth wave and comets in every one, climbing until
   wave 60 and holding there. `waveToPlay()` gives a sector's wave or
-  Endless's ready to play. `autopilot.spec.ts` holds every wave to being
-  cleared by the autopilot, as Tests below says.
+  Endless's ready to play. The specs in `every_wave/` and
+  `every_endless_wave/` hold every wave to being cleared by the autopilot,
+  as Tests below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `rocks.ts`
   (`ROCK_KINDS`, each kind's hits and points at each size it comes in, what
@@ -643,9 +644,15 @@ workspace's with the others'.
 ## Tests
 
 The repository's rules for specs apply. A spec sits beside the file it
-tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
-`@fz/phaser/testing`'s headless Phaser first, so a scene's spec runs real
-Phaser through `runScene()`, with a fake shell over a pictured field. This
+tests, named after it, and runs in jsdom, but for the specs that play every
+wave or lay every wave out, which test no one file: each has a folder of its
+own with a file for each speed (`src/rules/waves/every_wave/`,
+`src/rules/waves/every_endless_wave/`, `src/rules/field/every_layout/`), as
+Vitest plays a file's specs one after another but the files side by side,
+and the spec beside the folder holds it to a file for every speed and no
+other. `src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser
+first, so a scene's spec runs real Phaser through `runScene()`, with a fake
+shell over a pictured field. This
 workspace's `asteroid-breaker-testing` skill covers its setup, floors and
 fixtures, the repository's `angular-testing` the patterns every Angular
 workspace's specs share, and `phaser-core` the harness. What the specs
@@ -668,14 +675,23 @@ share is in `src/testing/`:
   comet whose course comes near the ship, dashing when one is about to meet
   it; else brings the stray adrift home or catches the pickup it has time
   for; else turns toward the rock it can hit soonest, leading it.
-  `src/rules/waves/autopilot.spec.ts` holds every wave, at every speed, on the
-  narrowest field and the widest either way up (`NARROWEST`, `WIDEST`,
-  `TALLEST`), to being cleared by it within four minutes of game time
-  (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them, and
-  Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to being cleared so with
-  nothing able to take the ship. `src/rules/field/spawn.spec.ts` holds every
-  wave, in every formation, on those fields, at every speed and from twelve
-  seeds, to being laid out fairly.
+  `src/rules/waves/autopilot.spec.ts` holds the autopilot itself.
+- `every_wave.ts` holds every wave, at a speed, on the narrowest field and
+  the widest either way up (`FIELDS`: `NARROWEST`, `WIDEST`, `TALLEST`), to
+  being cleared by the autopilot within four minutes of game time
+  (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them
+  (`holdEveryWave()`), and Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to
+  being cleared so with nothing able to take the ship
+  (`holdEveryEndlessWave()`); each speed's spec in
+  `src/rules/waves/every_wave/` and `src/rules/waves/every_endless_wave/`
+  calls them with its own file, whose name is the speed it plays
+  (`speed_specs.ts`'s `speedOfSpec()`, which throws for a file named for no
+  speed or kept in another folder).
+- `every_layout.ts` holds every wave, in every formation, on those fields, at
+  a speed and from twelve seeds (`LAYOUT_SEEDS`), to being laid out fairly
+  (`holdEveryLayout()`), which each speed's spec in
+  `src/rules/field/every_layout/` calls with its own file, as those do;
+  `src/rules/field/spawn.spec.ts` takes its `startOn()` and `nearness()` too.
 - `belt_board.ts` runs the scene for a spec (`startBoard()`) on a
   `FakeShell` that plays the shell's part, and reads what it draws
   (`shown()`, `imagesIn()`, `strokesOf()`); `canvases.ts` makes the canvas a
