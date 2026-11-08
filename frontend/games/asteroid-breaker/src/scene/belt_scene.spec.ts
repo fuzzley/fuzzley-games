@@ -1,7 +1,7 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import { SpritePlayer } from "@fz/phaser/sound";
 import type { SceneRun } from "@fz/phaser/testing";
-import { Core, GameObjects } from "phaser";
+import { Core, GameObjects, Textures } from "phaser";
 import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
 import type { Field } from "../rules/field/field";
@@ -33,6 +33,7 @@ import {
   objectsIn,
   onCanvas,
   overASecond,
+  reshaping,
   shown,
   shownAt,
   slotOf,
@@ -40,6 +41,7 @@ import {
   stillness,
   strokesOf,
   withShip,
+  zoomOf,
 } from "../testing/belt_board";
 import { viewport } from "../testing/canvases";
 import {
@@ -53,9 +55,13 @@ import {
   shipOf,
 } from "../testing/field_picture";
 import {
+  DECK_FRAMES,
   FRAMES,
+  PICTURE_FRAMES,
   STRAY_DROP,
   atlasFrames,
+  deckFrames,
+  mapPictures,
   pickupFrame,
   tagFrame,
 } from "../view/art/art";
@@ -81,7 +87,7 @@ import { TAG_RADIUS, tagX, tagY } from "../view/field/tags";
 import { WARNING_INSET } from "../view/field/warning";
 import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
 import { MOST_FINGERS } from "../view/steering/steering";
-import { ATLAS } from "./atlas";
+import { ATLAS, DECK_ATLAS } from "./atlas";
 import { type BeltScene, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
 import { GUARD_ALPHA } from "./painters/ship_painter";
@@ -472,7 +478,7 @@ describe("the ship", () => {
         ship.x - Math.cos(0.5) * FLAME_BEHIND,
         ship.y - Math.sin(0.5) * FLAME_BEHIND,
       ),
-      flameShare(0.5),
+      flameShare(0.5) * zoomOf(shell),
     ]);
   });
 
@@ -553,7 +559,7 @@ describe("the pickups", () => {
     ]).toEqual([
       [onCanvas(metricsOf(shell), 30, 20), null, null, null],
       pickupFrame("magnet"),
-      1,
+      zoomOf(shell),
     ]);
   });
 
@@ -1043,7 +1049,12 @@ describe("the deck", () => {
     // Half the ring, from its top round to its foot.
     expect(strokesOf(scene.kit.deck.recharge)).toEqual([
       {
-        ...rechargeRing(deckFor(shell).dash, 1),
+        ...rechargeRing(deckFor(shell).dash, 1, {
+          x: 0,
+          y: 0,
+          radius: 0,
+          width: 0,
+        }),
         start: -Math.PI / 2,
         end: Math.PI / 2,
         color: ART_PALETTE.accent,
@@ -1304,10 +1315,127 @@ describe("the steering", () => {
 });
 
 describe("baking", () => {
-  it("hands How to play its pictures as the atlas is baked", async () => {
+  /**
+   * A canvas a little wider than the spec's, on which the field's unit, 10
+   * and a fraction device pixels, grows by less than one.
+   */
+  const NUDGED = { width: 805, height: CANVAS.height } as const;
+
+  /**
+   * The widths of a window dragged wider, a frame each, its field's unit
+   * passing 11 device pixels only at the last.
+   */
+  const DRAGGED = [805, 812, 818, 836] as const;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("bakes the atlas as it is created", async () => {
     const { shell } = await startBoard();
 
-    expect(shell.pictures).toHaveLength(1);
+    expect(shell.bakes).toHaveLength(1);
+  });
+
+  it("draws the field's art at its unit, zoomed from the atlas baked at its whole device pixels", async () => {
+    const { shell, scene } = await startBoard();
+    // The spec's canvas lays the field out at 10 and a fraction device pixels
+    // a unit.
+    const { unit } = metricsOf(shell);
+
+    const keeper = scene.kit.rocks.bodies.find(
+      (body) => body.images[0]?.visible,
+    );
+
+    expect(keeper?.images[0]?.scale).toBe(unit / Math.floor(unit));
+  });
+
+  it("bakes nothing again as the canvas grows by less than a device pixel of the unit", async () => {
+    const { shell, run } = await startBoard();
+
+    run.game.scale.resize(NUDGED.width, NUDGED.height);
+    run.advance(16);
+
+    expect(shell.bakes).toHaveLength(1);
+  });
+
+  it("bakes the atlas again once in a drag that takes the unit past a device pixel", async () => {
+    const { shell, run } = await startBoard();
+
+    for (const width of DRAGGED) {
+      run.game.scale.resize(width, CANVAS.height);
+      run.advance(16);
+    }
+
+    expect(shell.bakes).toHaveLength(2);
+  });
+
+  it("bakes both atlases again at a new pixel ratio, its unit's whole device pixels the same", async () => {
+    const { shell, run, scene } = await startBoard();
+
+    // As a browser zoomed in has it: the canvas as many device pixels, each
+    // CSS pixel two of them, which leaves the unit 10 and a fraction.
+    run.game.scale.setZoom(1 / 2);
+    run.advance(16);
+
+    const knob = deckFrames(2).find((frame) => frame.name === DECK_FRAMES.knob);
+    expect([
+      shell.bakes.length,
+      scene.textures.getFrame(DECK_ATLAS, DECK_FRAMES.knob).width,
+    ]).toEqual([2, knob?.width]);
+  });
+
+  it("bakes nothing again as the screen turns and the field takes its new shape, its unit the same", async () => {
+    const { shell, run } = await startBoard(reshaping);
+    const bakes = shell.bakes.length;
+
+    run.game.scale.resize(CANVAS.height, CANVAS.width);
+    run.advance(16);
+
+    expect(shell.bakes).toHaveLength(bakes);
+  });
+
+  it("encodes none of How to play's pictures as it bakes the atlas", async () => {
+    const encode = vi.spyOn(Textures.TextureManager.prototype, "getBase64");
+    const { shell, run } = await startBoard();
+    shell.colors = DARK;
+
+    run.advance(16);
+
+    expect(encode).not.toHaveBeenCalled();
+  });
+
+  it("encodes How to play's pictures of the atlas as the shell asks for them", async () => {
+    const { shell, scene } = await startBoard();
+
+    const pictures = shell.askPictures();
+
+    expect(pictures).toEqual(
+      mapPictures(PICTURE_FRAMES, (frame) =>
+        scene.textures.getBase64(ATLAS, frame),
+      ),
+    );
+  });
+
+  it("keeps How to play's pictures until it bakes the atlas again", async () => {
+    const { shell, run } = await startBoard();
+    const asked = shell.askPictures();
+    run.advance(16);
+
+    const again = shell.askPictures();
+
+    expect(again).toBe(asked);
+  });
+
+  it("encodes How to play's pictures anew once it has baked the atlas again", async () => {
+    const { shell, run } = await startBoard();
+    const asked = shell.askPictures();
+    run.game.scale.resize(WIDER.width, WIDER.height);
+    run.advance(16);
+
+    const again = shell.askPictures();
+
+    expect(again).not.toEqual(asked);
   });
 
   it("bakes the atlas again in a new palette, and fills the field with it", async () => {
@@ -1317,7 +1445,7 @@ describe("baking", () => {
     run.advance(16);
 
     expect([
-      shell.pictures.length,
+      shell.bakes.length,
       scene.cameras.main.backgroundColor.color,
     ]).toEqual([2, DARK.field]);
   });

@@ -4,6 +4,7 @@
 // drawing knows only straight lines and circles, and the frames that hold
 // a drawing about its middle.
 
+import { clamp } from "@fz/core/math";
 import {
   type ArtFrame,
   type ArtScale,
@@ -14,6 +15,7 @@ import {
   line,
   widthOf,
 } from "@fz/phaser/shapes";
+import { wholePixels } from "../field/field_metrics";
 
 /**
  * The most device pixels a field unit is baked at; the scene scales the
@@ -25,22 +27,36 @@ export const MOST_BAKED_UNIT = 32;
 /** How wide a line is, in field units, where that is more than a CSS pixel. */
 const LINE = 0.06;
 
-/** How wide the outline around a rock, the ship, a pickup or the comet is, in field units, where that is more than a CSS pixel. */
+/**
+ * How wide the outline around a rock, the ship, a pickup or the comet is, in
+ * field units, where that is more than a CSS pixel.
+ */
 const OUTLINE = 0.12;
 
 /** How many straight pieces a curve is drawn in. */
 const CURVE_PIECES = 8;
 
-/** How many straight pieces a whole turn of an arc is drawn in, and a share of them for a part of one. */
+/**
+ * How many straight pieces a whole turn of an arc is drawn in, and a share of
+ * them for a part of one.
+ */
 const TURN_PIECES = 40;
 
 /** How far an outline's corner may reach out, against its width, so a sharp corner can't spike. */
 const MOST_MITER = 2;
 
-/** Returns the scale the atlas is baked at for a field: its own, a unit of no more than {@link MOST_BAKED_UNIT}. */
+/**
+ * Returns the scale the atlas is baked at for a field: its unit rounded down
+ * to a whole device pixel, one at least and {@link MOST_BAKED_UNIT} at most,
+ * at its pixel ratio.
+ *
+ * The scene zooms the art the rest of the way, so a window dragged to
+ * another size bakes the atlas again only as its unit passes a whole device
+ * pixel, not at every frame of the drag.
+ */
 export function bakedScale(scale: ArtScale): ArtScale {
   return {
-    unit: Math.min(scale.unit, MOST_BAKED_UNIT),
+    unit: clamp(wholePixels(scale.unit), 1, MOST_BAKED_UNIT),
     pixelRatio: scale.pixelRatio,
   };
 }
@@ -74,7 +90,10 @@ export function stroke(
   ];
 }
 
-/** Returns a ring about the origin drawn as dashes, each an arc, as many as fit a dash and a gap apart. */
+/**
+ * Returns a ring about the origin drawn as dashes, each an arc, as many as fit
+ * a dash and a gap apart.
+ */
 export function dashedRing(
   radius: number,
   width: number,
@@ -95,7 +114,10 @@ export function dashedRing(
   }).flat();
 }
 
-/** Returns the points along an arc, from an angle to another, in radians clockwise from the right, both ends among them. */
+/**
+ * Returns the points along an arc, from an angle to another, in radians
+ * clockwise from the right, both ends among them.
+ */
 export function arcPoints(
   x: number,
   y: number,
@@ -126,7 +148,10 @@ export function ellipsePoints(
   });
 }
 
-/** Returns the points along a quadratic curve, past its start to its end, so curves in turn join without a point twice. */
+/**
+ * Returns the points along a quadratic curve, past its start to its end, so
+ * curves in turn join without a point twice.
+ */
 export function quadraticPoints(
   from: Point,
   control: Point,
@@ -142,7 +167,10 @@ export function quadraticPoints(
   });
 }
 
-/** Returns the points along a cubic curve, past its start to its end, as {@link quadraticPoints} does. */
+/**
+ * Returns the points along a cubic curve, past its start to its end, as
+ * {@link quadraticPoints} does.
+ */
 export function cubicPoints(
   from: Point,
   first: Point,
@@ -195,7 +223,10 @@ export function outward(
   });
 }
 
-/** Returns twice the area a closed outline holds, above nothing where its points run clockwise on the screen. */
+/**
+ * Returns twice the area a closed outline holds, above nothing where its points
+ * run clockwise on the screen.
+ */
 function signedArea(points: readonly Point[]): number {
   let sum = 0;
   points.forEach((point, i) => {
@@ -205,7 +236,10 @@ function signedArea(points: readonly Point[]): number {
   return sum;
 }
 
-/** Returns the unit normal of an edge on its outer side, for an outline whose points turn as `turn` says. */
+/**
+ * Returns the unit normal of an edge on its outer side, for an outline whose
+ * points turn as `turn` says.
+ */
 function normalOf(from: Point, to: Point, turn: number): Point {
   const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
   return {
@@ -224,7 +258,10 @@ export function placed(
   return points.map((point) => ({ x: x + point.x * by, y: y + point.y * by }));
 }
 
-/** Returns a frame of a drawing about its middle: as wide and as tall as the drawing reaches out from it either way, in whole pixels. */
+/**
+ * Returns a frame of a drawing about its middle: as wide and as tall as the
+ * drawing reaches out from it either way, in whole pixels.
+ */
 export function centered(
   name: string,
   commands: readonly DrawCommand[],
@@ -246,7 +283,10 @@ export function centered(
   };
 }
 
-/** Returns a frame of a drawing about the middle of its own bounds, as a picture is, which nothing places by a point of its own. */
+/**
+ * Returns a frame of a drawing about the middle of its own bounds, as a picture
+ * is, which nothing places by a point of its own.
+ */
 export function bounded(
   name: string,
   commands: readonly DrawCommand[],

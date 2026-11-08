@@ -45,19 +45,48 @@ function rounded(points: readonly Point[]): readonly Point[] {
 }
 
 describe("bakedScale", () => {
-  it("keeps a unit no larger than the most baked", () => {
+  it("keeps a whole unit no larger than the most baked", () => {
     expect(bakedScale({ unit: 24, pixelRatio: 2 })).toEqual({
       unit: 24,
       pixelRatio: 2,
     });
   });
 
-  it("bakes a larger unit at the most, keeping the pixel ratio", () => {
-    expect(bakedScale({ unit: 65, pixelRatio: 2 })).toEqual({
-      unit: MOST_BAKED_UNIT,
-      pixelRatio: 2,
-    });
+  it.each([
+    [12.7, 1, 12],
+    [11.99, 2, 11],
+    [10.5, 2.5, 10],
+    [29.25, 3, 29],
+  ])(
+    "rounds a unit of %f device pixels at a pixel ratio of %f down to %i, keeping the ratio",
+    (unit, pixelRatio, baked) => {
+      expect(bakedScale({ unit, pixelRatio })).toEqual({
+        unit: baked,
+        pixelRatio,
+      });
+    },
+  );
+
+  it("takes a unit a hair under a whole device pixel, as a fraction's rounding leaves it, for that pixel", () => {
+    // 28.999999999999996.
+    const unit = 0.29 * 100;
+
+    expect(bakedScale({ unit, pixelRatio: 3 }).unit).toBe(29);
   });
+
+  it("bakes a unit under a device pixel at one", () => {
+    expect(bakedScale({ unit: 0.4, pixelRatio: 1 }).unit).toBe(1);
+  });
+
+  it.each([32.5, 65])(
+    "bakes a unit of %f device pixels, past the most, at the most, keeping the pixel ratio",
+    (unit) => {
+      expect(bakedScale({ unit, pixelRatio: 2 })).toEqual({
+        unit: MOST_BAKED_UNIT,
+        pixelRatio: 2,
+      });
+    },
+  );
 });
 
 describe("the widths", () => {

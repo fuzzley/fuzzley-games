@@ -293,8 +293,8 @@ take for the layer.
   deck.
 - **`src/view/art/`** — the atlases' frames. `art.ts` draws every frame of
   the field's atlas (`atlasFrames()`) as plain commands in device pixels, at
-  a unit of 32 device pixels at most (`bakedScale()`), the deck's frames
-  apart (`deckFrames()`), and names How to play's pictures
+  its unit rounded down to whole device pixels, 32 at most (`bakedScale()`),
+  the deck's frames apart (`deckFrames()`), and names How to play's pictures
   (`PICTURE_FRAMES`); `rock_art.ts` draws each kind of rock in each size it
   comes in and six outlines (`ROCK_OUTLINES`), and the hits it has taken;
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
@@ -339,10 +339,14 @@ take for the layer.
   wrote for the frame; `flourish_player.spec.ts` holds what each flourish
   plays, and `flourishes.spec.ts` what the scene draws for each event.
   `atlas.ts` bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and
-  `atlasFrameOf()` into two atlases: the field's, again on a new palette or
-  a new unit, and the deck's, white for the scene to tint, again on a new
-  pixel ratio; and the scene hands How to play its pictures from the
-  field's each time (`onPictures()`).
+  `atlasFrameOf()` into two atlases: the field's, again on a new palette, a
+  new pixel ratio, or as the field's unit passes a whole device pixel, which
+  the scene zooms the rest of the way, so a window dragged to another size
+  bakes it once a device pixel rather than once a frame, and the deck's,
+  white for the scene to tint, again on a new pixel ratio. At each bake the
+  scene hands the shell what makes How to play's pictures from the field's
+  (`onPictures()`), which encodes them only as the board asks for them, as
+  How to play opens, and keeps them until the next bake.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
   sprite in `sounds/`, which `yarn build:sounds` writes, a broken rock's
   risen along its chain, holds the thrust's hum while the ship thrusts, and
@@ -394,9 +398,10 @@ take for the layer.
     (`data-field`), the room it fills (`data-room`) and the deck's zones
     (`data-deck`). `fieldPalette()` colors the field from `ThemeService`'s
     roles and `mode`. It buzzes the phone as a ship is lost and as a wave is
-    cleared, where it can and the settings say to. The board keeps the
-    scene's pictures for How to play (`pictures`). It is an application
-    named for its wave, "Asteroid Breaker, wave 4: Thaw".
+    cleared, where it can and the settings say to. The board asks the scene
+    for How to play's pictures as How to play opens (`pictures`), and keeps
+    them until the scene bakes again. It is an application named for its
+    wave, "Asteroid Breaker, wave 4: Thaw".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, whose menu asks before it starts a run at another, the
     figures, and Pause, Sound, Sectors, New game, How to play and Settings,
@@ -426,7 +431,7 @@ take for the layer.
     dashing, pausing, the controls by mouse, touch and keyboard, and every
     kind of rock and pickup from the catalogs, a stray and the comet, each
     with its name, its sentence and, once the scene has drawn, its picture,
-    which the app hands it from the board.
+    which the app asks the board for only while How to play is open.
   - `settings/` — the settings drawer (the speed, when the deck shows, which
     side holds its stick, whether the ship fires by itself, haptics, the
     sound and the palette) and `SettingsService`, which keeps what the player

@@ -60,6 +60,14 @@ export class AppComponent {
   protected readonly helpOpen = signal(false);
   protected readonly settingsOpen = signal(false);
 
+  /**
+   * The pictures How to play shows, asked of the board only while it is
+   * open, since the scene encodes them only as they are asked for.
+   */
+  protected readonly helpPictures = computed(() =>
+    this.helpOpen() ? this.board().pictures() : null,
+  );
+
   /** Whether a dialog covers the board. */
   private readonly covered = computed(
     () =>

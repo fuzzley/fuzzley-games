@@ -91,10 +91,12 @@ export interface BeltSceneOptions {
   /** Takes what a key asks of the game. */
   readonly command: (command: FieldCommand) => void;
   /**
-   * Takes a picture of every rock kind, pickup, a stray and the comet as drawn,
-   * for How to play, each time they are drawn anew.
+   * Takes, each time the field's atlas is baked, what returns a picture of
+   * every rock kind, pickup, a stray and the comet as drawn in it, for How to
+   * play; it encodes them only as it is first called after the bake, so call
+   * it only as How to play shows them.
    */
-  readonly onPictures: (pictures: Pictures) => void;
+  readonly onPictures: (pictures: () => Pictures) => void;
 }
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
@@ -192,6 +194,8 @@ export class BeltScene extends Scene {
   private deckBaked = 0;
   /** The palette the atlas was last baked in. */
   private painted!: BeltPalette;
+  /** How to play's pictures of the atlas as last baked, once asked for. */
+  private pictures: Pictures | null = null;
   /** The field the scene draws, which a new wave replaces. */
   private shownField!: FieldView;
   /** The serial of the last event of the field the scene played. */
@@ -335,19 +339,21 @@ export class BeltScene extends Scene {
    */
   override update(time: number, delta: number): void {
     this.context.now = time;
-    let stale = this.fit();
+    let moved = this.fit();
     this.options.tick(delta, this.steering.read());
     this.kit.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.context.motion = this.options.motion();
     // The tick may have started a wave on a field of a new shape.
-    stale = this.fit() || stale;
-    if (palette !== this.painted) {
+    moved = this.fit() || moved;
+    // The atlas is held to the field as this frame draws it, not as it was
+    // laid out on the way, as a turned screen's is before the field takes
+    // its new shape.
+    if (palette !== this.painted || (moved && !this.isBakedForLayout())) {
       this.painted = palette;
-      stale = true;
+      this.rebake();
     }
-    if (stale) this.rebake();
     if (frame.field !== this.shownField) this.startField(frame.field);
     this.stage(frame);
     frame.events.forEachSince(this.played, this.play);
@@ -396,15 +402,12 @@ export class BeltScene extends Scene {
     return this.metrics.unit / (this.baked?.unit ?? this.metrics.unit);
   }
 
-  /**
-   * Lays the field out again if it moved, and returns whether the art must
-   * be drawn again.
-   */
+  /** Lays the field out again if it moved, and returns whether it did. */
   private fit(): boolean {
     if (!this.moved()) return false;
-    const stale = this.measure();
+    this.measure();
     this.layOut();
-    return stale;
+    return true;
   }
 
   /**
@@ -427,12 +430,8 @@ export class BeltScene extends Scene {
     );
   }
 
-  /**
-   * Works out where the field and the deck lie on the canvas as it now is,
-   * and returns whether the art must be drawn again: at a new scale, or a
-   * new pixel ratio.
-   */
-  private measure(): boolean {
+  /** Works out where the field and the deck lie on the canvas as it now is. */
+  private measure(): void {
     this.chrome = this.surroundings.insets();
     this.board = this.options.board();
     this.torus = this.options.frame().field.torus;
@@ -445,10 +444,17 @@ export class BeltScene extends Scene {
     this.viewport = viewport;
     this.metrics = fieldMetrics(viewport, this.board, this.torus);
     this.deckParts = deckOf(viewport, this.board, this.torus);
+  }
+
+  /**
+   * Returns whether the field's atlas was baked at the scale the field is laid
+   * out at: the same whole device pixels to a unit, at the same pixel ratio.
+   */
+  private isBakedForLayout(): boolean {
     const scale = bakedScale(this.metrics);
     return (
-      scale.unit !== this.baked?.unit ||
-      scale.pixelRatio !== this.baked.pixelRatio
+      scale.unit === this.baked?.unit &&
+      scale.pixelRatio === this.baked.pixelRatio
     );
   }
 
@@ -464,7 +470,8 @@ export class BeltScene extends Scene {
 
   /**
    * Bakes the field's atlas at its scale, in the palette, and the deck's on a
-   * new pixel ratio, and hands How to play its pictures.
+   * new pixel ratio, dropping How to play's pictures of the last, and hands
+   * the shell what pictures the new one.
    */
   private bake(): void {
     this.baked = bakedScale(this.metrics);
@@ -473,11 +480,20 @@ export class BeltScene extends Scene {
       this.deckBaked = this.metrics.pixelRatio;
       bakeDeckAtlas(this, this.deckBaked);
     }
-    this.options.onPictures(
-      mapPictures(PICTURE_FRAMES, (frame) =>
-        this.textures.getBase64(ATLAS, frame),
-      ),
+    this.pictures = null;
+    // A new function each bake, so the shell can tell the pictures changed.
+    this.options.onPictures(() => this.encodePictures());
+  }
+
+  /**
+   * Returns How to play's pictures of the field's atlas, encoded as they are
+   * first asked for after each bake, and kept until the next.
+   */
+  private encodePictures(): Pictures {
+    this.pictures ??= mapPictures(PICTURE_FRAMES, (frame) =>
+      this.textures.getBase64(ATLAS, frame),
     );
+    return this.pictures;
   }
 
   /** Bakes the atlases again, and has every image take up its frame anew. */

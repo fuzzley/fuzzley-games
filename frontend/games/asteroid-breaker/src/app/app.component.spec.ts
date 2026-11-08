@@ -1,4 +1,4 @@
-import { inject, provideAppInitializer } from "@angular/core";
+import { ApplicationRef, inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
@@ -11,6 +11,7 @@ import {
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { Textures } from "phaser";
 import { fieldFor, steerField } from "../rules/field/field";
 import { createRun, startWave, waveStart } from "../rules/run/run";
 import { saveGame } from "../rules/run/saved_game";
@@ -357,15 +358,32 @@ describe("AppComponent", () => {
         document.documentElement.removeAttribute("style");
       });
 
-      it("shows the pictures the scene drew", async () => {
-        await renderApp();
+      /** Runs the scene the board hands its canvas, its first frame drawn. */
+      async function runBoardScene(): Promise<SceneRun<HostedScene>> {
         const board = screen.getByRole("application");
         const make =
           await TestBed.inject(FakePhaserCanvas).host.latest.source();
-        scene = await runScene(make, {
+        const run = await runScene(make, {
           config: { input: { keyboard: { target: board } } },
         });
-        scene.advance(FRAME_MS);
+        scene = run;
+        run.advance(FRAME_MS);
+        return run;
+      }
+
+      it("has the scene encode no picture before How to play opens", async () => {
+        const encode = vi.spyOn(Textures.TextureManager.prototype, "getBase64");
+        await renderApp();
+
+        await runBoardScene();
+        await TestBed.inject(ApplicationRef).whenStable();
+
+        expect(encode).not.toHaveBeenCalled();
+      });
+
+      it("shows the pictures the scene drew", async () => {
+        await renderApp();
+        await runBoardScene();
 
         await userEvent.click(
           screen.getByRole("button", { name: "How to play" }),

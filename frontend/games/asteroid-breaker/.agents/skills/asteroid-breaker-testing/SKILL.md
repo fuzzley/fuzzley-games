@@ -190,18 +190,21 @@ game through `runScene()`:
 - `FakeShell` (`src/testing/belt_board.ts`) plays the shell's part of
   `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,
   sound and board settings, and keeps the frames' times and steering, the
-  layouts, the commands and the pictures the scene hands back; `withShip`,
-  `stillness` and `stepping` set it up.
+  layouts, the commands and what the scene hands back at each bake to
+  picture How to play's art with (`bakes`), which `askPictures()` asks as
+  the board does; `withShip`, `stillness`, `stepping` and `reshaping`,
+  which shapes the field to each room the scene lays it out in, as the game
+  does a paused one, set it up.
 - `startBoard()` runs the scene for a fake shell and draws the first frame,
   and destroys the game and removes the board's element as the test
   finishes (`onTestFinished`); a spec that calls `runScene()` itself
   cleans up after itself.
 - Drive it with the run's `advance(ms)`, keys and the pointer, and change
   the shell's frame as the rules would; assert on the game objects
-  (`imagesIn()`, `strokesOf()`, `metricsOf()`, `shardTints()`, the field
-  camera's `scrolledBy()`), the sounds (`humsIn()` after `cacheSounds()`)
-  or on what the shell kept. A headless game draws no pixels and plays no
-  sound.
+  (`imagesIn()`, `strokesOf()`, `metricsOf()`, `zoomOf()`, `shardTints()`,
+  the field camera's `scrolledBy()`), the sounds (`humsIn()` after
+  `cacheSounds()`) or on what the shell kept. A headless game draws no
+  pixels and plays no sound.
 - `flourish_player.spec.ts` steps no frame: it plays each flourish through
   a `FlourishPlayer` of its own, on the running scene's painters, then has
   the painter draw from a `PaintContext` it writes, at a time of its own.

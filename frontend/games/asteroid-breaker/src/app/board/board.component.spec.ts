@@ -73,7 +73,10 @@ const CANVAS_1280: Viewport = {
   insets: NO_INSETS,
 };
 
-/** A canvas wider than a field of the longest shape fills: 2400 by 720 CSS px, at one device pixel to one. */
+/**
+ * A canvas wider than a field of the longest shape fills: 2400 by 720 CSS px,
+ * at one device pixel to one.
+ */
 const WIDE_CANVAS: Viewport = { ...CANVAS_1280, width: 2400 };
 
 /** A field of the narrowest shape, the first wave's before the board is measured. */
@@ -153,7 +156,10 @@ function fieldOn(
   return fieldMetrics(canvas, board, fieldShape(canvas, board, SQUARE)).css;
 }
 
-/** Returns a rectangle on a canvas at one device pixel to a CSS pixel as the layout check reads it: "x y width height". */
+/**
+ * Returns a rectangle on a canvas at one device pixel to a CSS pixel as the
+ * layout check reads it: "x y width height".
+ */
 function wordsOf({ x, y, width, height }: PixelRect): string {
   return `${String(x)} ${String(y)} ${String(width)} ${String(height)}`;
 }
@@ -877,7 +883,10 @@ describe("BoardComponent", () => {
       document.documentElement.removeAttribute("style");
     });
 
-    /** Runs the scene the board hands its canvas, as Phaser would, on a canvas of a size in CSS px. */
+    /**
+     * Runs the scene the board hands its canvas, as Phaser would, on a canvas
+     * of a size in CSS px.
+     */
     async function runBoardScene(
       canvas: { width?: number; height?: number } = {},
     ): Promise<{
@@ -1070,6 +1079,27 @@ describe("BoardComponent", () => {
       const { component } = await runBoardScene();
 
       expect(component.pictures()).not.toBeNull();
+    });
+
+    it("hands How to play the pictures the scene encoded until it bakes again", async () => {
+      const { component, run } = await runBoardScene();
+      const asked = component.pictures();
+      run.advance(FRAME_MS);
+
+      const again = component.pictures();
+
+      expect(again).toBe(asked);
+    });
+
+    it("hands How to play new pictures once the scene bakes again", async () => {
+      const { component, run } = await runBoardScene();
+      const asked = component.pictures();
+      run.game.scale.resize(1600, 1000);
+      run.advance(FRAME_MS);
+
+      const again = component.pictures();
+
+      expect(again).not.toEqual(asked);
     });
 
     it("starts the wave at a key that flies the ship", async () => {
