@@ -2,9 +2,12 @@ import {
   booleanOr,
   countsByIdOf,
   isCount,
+  isFiniteNumber,
+  isListOf,
   isRecord,
   isWhole,
   knownIdsOf,
+  listOf,
   unknownKey,
 } from "./json";
 
@@ -39,6 +42,82 @@ describe("isCount", () => {
       expect(isCount(value)).toBe(false);
     },
   );
+});
+
+describe("isFiniteNumber", () => {
+  it.each([0, -2.5, Number.MAX_VALUE])("accepts %j", (value) => {
+    expect(isFiniteNumber(value)).toBe(true);
+  });
+
+  it.each([
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    "3",
+    null,
+    undefined,
+  ])("refuses %s", (value) => {
+    expect(isFiniteNumber(value)).toBe(false);
+  });
+});
+
+describe("listOf", () => {
+  /** Reads a spec's item: a whole number, doubled. */
+  const doubled = (item: unknown): number | null =>
+    isWhole(item) ? item * 2 : null;
+
+  it("reads each item of a list, in its order", () => {
+    expect(listOf([3, 1, 2], doubled)).toEqual([6, 2, 4]);
+  });
+
+  it("reads an empty list as an empty list", () => {
+    expect(listOf([], doubled)).toEqual([]);
+  });
+
+  it("keeps an item that reads as nothing but null", () => {
+    expect(listOf([0, "", false], (item) => item)).toEqual([0, "", false]);
+  });
+
+  it("reads no list from one with an item that doesn't read", () => {
+    expect(listOf([3, 1.5, 2], doubled)).toBeNull();
+  });
+
+  it.each([undefined, null, "12", { 0: 1 }])(
+    "reads no list from %j, which isn't one",
+    (value) => {
+      expect(listOf(value, doubled)).toBeNull();
+    },
+  );
+
+  it("types the list as one of what each item reads as", () => {
+    expectTypeOf(listOf([3], doubled)).toEqualTypeOf<number[] | null>();
+  });
+});
+
+describe("isListOf", () => {
+  it.each([[[3, 0, -1]], [[]]])("accepts %j", (value) => {
+    expect(isListOf(value, isWhole)).toBe(true);
+  });
+
+  it.each([[[3, 1.5]], [[null]], [undefined], ["12"], [{ 0: 1 }]])(
+    "refuses %j",
+    (value) => {
+      expect(isListOf(value, isWhole)).toBe(false);
+    },
+  );
+
+  it("hands the check each item alone, not its index", () => {
+    const isZero = (item: unknown, index?: number): item is 0 =>
+      item === 0 && index === undefined;
+
+    expect(isListOf([0, 0], isZero)).toBe(true);
+  });
+
+  it("types the list as one of the items its check passes", () => {
+    expectTypeOf((value: unknown) =>
+      isListOf(value, isWhole),
+    ).guards.toEqualTypeOf<number[]>();
+  });
 });
 
 describe("booleanOr", () => {

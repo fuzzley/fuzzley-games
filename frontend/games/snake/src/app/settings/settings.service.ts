@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { booleanOr } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 import { LocalStorageService } from "@fz/ui/storage";
 import { type Speed, isSpeed } from "../../rules/speed";
 
@@ -57,17 +58,11 @@ export class SettingsService {
     const { speed, movement, arrows, sound } = saved;
     return {
       speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
-      movement: oneOf(MOVEMENTS, movement) ?? DEFAULT_SETTINGS.movement,
-      arrows: oneOf(ARROWS, arrows) ?? DEFAULT_SETTINGS.arrows,
+      movement: isOneOf(movement, MOVEMENTS)
+        ? movement
+        : DEFAULT_SETTINGS.movement,
+      arrows: isOneOf(arrows, ARROWS) ? arrows : DEFAULT_SETTINGS.arrows,
       sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
     };
   }
-}
-
-/** Returns a value if it is one of those given, else null. */
-function oneOf<T extends string>(
-  options: readonly T[],
-  value: unknown,
-): T | null {
-  return options.find((option) => option === value) ?? null;
 }

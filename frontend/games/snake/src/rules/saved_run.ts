@@ -1,4 +1,4 @@
-import { isCount, isRecord, isWhole } from "@fz/core/json";
+import { isCount, isListOf, isRecord, isWhole, listOf } from "@fz/core/json";
 import { BOARD_SIZE, onBoard } from "./arena";
 import {
   type Direction,
@@ -52,8 +52,8 @@ export function saveRun(run: Run): SavedRun | null {
 export function restoreRun(value: unknown, id: number): Run | null {
   if (!isRecord(value)) return null;
   const { heading, turns, seed, eaten, speed, steps } = value;
-  const snake = squares(value["snake"]);
-  const [apple] = squares([value["apple"]]) ?? [];
+  const snake = listOf(value["snake"], squareOf);
+  const apple = squareOf(value["apple"]);
   if (
     !snake ||
     !apple ||
@@ -63,8 +63,7 @@ export function restoreRun(value: unknown, id: number): Run | null {
     !isCount(eaten) ||
     !isCount(steps) ||
     snake.length !== START_LENGTH + eaten ||
-    !Array.isArray(turns) ||
-    !turns.every(isDirection) ||
+    !isListOf(turns, isDirection) ||
     turns.length > MAX_TURNS
   ) {
     return null;
@@ -90,19 +89,13 @@ export function restoreRun(value: unknown, id: number): Run | null {
   };
 }
 
-/** Returns `[x, y]` pairs as squares on the board, or null if any isn't one. */
-function squares(value: unknown): Square[] | null {
-  if (!Array.isArray(value)) return null;
-  const result: Square[] = [];
-  for (const pair of value) {
-    if (!Array.isArray(pair) || pair.length !== 2) return null;
-    const [x, y] = pair as unknown[];
-    if (!isWhole(x) || !isWhole(y)) return null;
-    const square = { x, y };
-    if (!onBoard(square, BOARD_SIZE)) return null;
-    result.push(square);
-  }
-  return result;
+/** Returns an `[x, y]` pair as a square on the board, or null if it isn't one. */
+function squareOf(pair: unknown): Square | null {
+  if (!Array.isArray(pair) || pair.length !== 2) return null;
+  const [x, y] = pair as unknown[];
+  if (!isWhole(x) || !isWhole(y)) return null;
+  const square = { x, y };
+  return onBoard(square, BOARD_SIZE) ? square : null;
 }
 
 /**

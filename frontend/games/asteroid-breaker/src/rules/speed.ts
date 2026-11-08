@@ -1,3 +1,5 @@
+import { isOneOf } from "@fz/core/records";
+
 /** The speeds a run is played at, slowest first. */
 export const SPEEDS = ["relaxed", "normal", "fast"] as const;
 
@@ -50,5 +52,5 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
 
 /** Returns whether a value names a speed. */
 export function isSpeed(value: unknown): value is Speed {
-  return SPEEDS.some((speed) => speed === value);
+  return isOneOf(value, SPEEDS);
 }

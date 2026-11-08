@@ -423,6 +423,14 @@ describe("restoreGame", () => {
       (saved) => withField(saved, { streakPoints: 1e6 }),
     ],
     ["a climb below nothing", (saved) => withField(saved, { climbed: -1 })],
+    [
+      "a climb that isn't a number",
+      (saved) => withField(saved, { climbed: "2.5" }),
+    ],
+    [
+      "a climb past any number",
+      (saved) => withField(saved, { climbed: Infinity }),
+    ],
     ["steps below none", (saved) => withField(saved, { steps: -1 })],
     [
       "more steps than can be counted",

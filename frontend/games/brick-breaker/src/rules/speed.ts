@@ -1,3 +1,5 @@
+import { isWhole } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 import { CLIMB } from "./tuning";
 
 /** Names how fast the ball goes. */
@@ -85,15 +87,14 @@ export function customFactor(speed: Speed, percent: number): number {
 
 /** Returns whether a value names a speed. */
 export function isSpeed(value: unknown): value is Speed {
-  return SPEEDS.includes(value as Speed);
+  return isOneOf(value, SPEEDS);
 }
 
 /** Returns whether a value is a percent a player may set Custom's speed to. */
 export function isCustomPercent(value: unknown): value is number {
   const { least, most, step } = CUSTOM_PERCENT;
   return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
+    isWhole(value) &&
     value >= least &&
     value <= most &&
     (value - least) % step === 0

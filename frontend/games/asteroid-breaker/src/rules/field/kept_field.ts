@@ -2,7 +2,13 @@
 // at and its size now, its rocks, and the counts it runs by, read back only
 // where each check of it holds, and laid out afresh as it was.
 
-import { isCount, isRecord, isWhole } from "@fz/core/json";
+import {
+  isCount,
+  isFiniteNumber,
+  isRecord,
+  isWhole,
+  listOf,
+} from "@fz/core/json";
 import { pick } from "@fz/core/records";
 import {
   type RockKindId,
@@ -195,7 +201,8 @@ export function readField(
   const torus = readTorus(value["torus"]);
   const kept = value["rocks"];
   if (!laidOut || !torus || !hasKeptCounts(value)) return null;
-  const rocks = readRocks(kept, torus, value.steps);
+  const { steps } = value;
+  const rocks = listOf(kept, (rock) => readRock(rock, torus, steps));
   if (!rocks) return null;
   const { rockPoints } = value;
   const field: SavedField = {
@@ -386,25 +393,6 @@ function sizeOf({ width, height }: Torus): Torus {
 }
 
 /**
- * Returns a field's rocks as storage kept them, on a field of a size after
- * its last step, or null if they aren't a list or a rock can't be trusted.
- */
-function readRocks(
-  value: unknown,
-  torus: Torus,
-  steps: number,
-): SavedRock[] | null {
-  if (!Array.isArray(value)) return null;
-  const rocks: SavedRock[] = [];
-  for (const rock of value) {
-    const read = readRock(rock, torus, steps);
-    if (!read) return null;
-    rocks.push(read);
-  }
-  return rocks;
-}
-
-/**
  * Returns a rock as storage kept it, on a field of a size after its last
  * step, or null if it fails a check: a key's value, its kind's sizes and
  * hits, or the states its kind comes to.
@@ -449,14 +437,6 @@ function isBlast(
  */
 function isOutline(value: unknown): value is number {
   return isWhole(value) && value >= 0 && value < ROCK_OUTLINES;
-}
-
-/**
- * Returns whether a value is a number JSON can hold: neither infinite nor
- * not a number.
- */
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 /**

@@ -17,6 +17,46 @@ export function isCount(value: unknown): value is number {
 }
 
 /**
+ * Returns whether a value read from JSON is a number JSON can hold: neither
+ * infinite nor not a number.
+ */
+export function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+/**
+ * Returns the items of a list read from JSON, each as it reads, or null for
+ * a value that isn't a list or holds an item that doesn't read, which
+ * `read` says by returning null.
+ */
+export function listOf<T>(
+  value: unknown,
+  read: (item: unknown) => T | null,
+): T[] | null {
+  if (!Array.isArray(value)) return null;
+  const stored: readonly unknown[] = value;
+  const items: T[] = [];
+  for (const each of stored) {
+    const item = read(each);
+    if (item === null) return null;
+    items.push(item);
+  }
+  return items;
+}
+
+/**
+ * Returns whether a value read from JSON is a list whose every item passes
+ * a check, for a list kept as it is rather than read into another.
+ */
+export function isListOf<T>(
+  value: unknown,
+  isItem: (item: unknown) => item is T,
+): value is T[] {
+  // The check is handed each item alone, not every()'s index and list too.
+  return Array.isArray(value) && value.every((item: unknown) => isItem(item));
+}
+
+/**
  * Returns a value read from JSON if it is a yes or a no, else a fallback,
  * as a setting stored before it was offered takes its default.
  */

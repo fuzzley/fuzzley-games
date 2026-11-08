@@ -1,4 +1,4 @@
-import { keysOf } from "@fz/core/records";
+import { isKeyOf, isOneOf, keysOf } from "@fz/core/records";
 
 /** The sizes a rock comes in, largest first; a rock breaks into pieces of the size after its own. */
 export const ROCK_SIZES = ["boulder", "large", "medium", "small"] as const;
@@ -8,7 +8,7 @@ export type RockSize = (typeof ROCK_SIZES)[number];
 
 /** Returns whether a value names a size of rock, as a wave's file may. */
 export function isRockSize(value: unknown): value is RockSize {
-  return ROCK_SIZES.some((size) => size === value);
+  return isOneOf(value, ROCK_SIZES);
 }
 
 /** Returns the size a rock's pieces are, the size after its own, or null for a small rock, which breaks into nothing. */
@@ -154,7 +154,7 @@ export const ROCK_KIND_IDS = keysOf(ROCK_KINDS);
 
 /** Returns whether a value names a kind of rock, as a wave's file may. */
 export function isRockKindId(value: unknown): value is RockKindId {
-  return typeof value === "string" && Object.hasOwn(ROCK_KINDS, value);
+  return isKeyOf(value, ROCK_KINDS);
 }
 
 /** Returns a rock kind, as the shape every kind has. */

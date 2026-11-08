@@ -1360,3 +1360,36 @@ The review found the lifts sound:
    taken.
 3. _`Countdown`'s handling of a negative or not-a-number frame was
    unstated:_ taken; its doc says it, and its spec pins both.
+
+### Step 14b: finding 18, the readers of stored JSON
+
+Built on `cl-json`. `@fz/core/json` takes `isFiniteNumber()`, `listOf()`,
+a list read item by item or `null`, and `isListOf()`, a list whose every
+item passes a check; `@fz/core/records` takes `isOneOf()` and `isKeyOf()`.
+Asteroid Breaker's kept rocks, crew and finite numbers, Brick Breaker's
+climb, Snake's squares and turns, Sudoku's history and notes, and each
+game's stored choices and catalog ids read through them, the copies gone,
+each game's own guards, such as `isSpeed()`, kept as their names over
+them. Brick Breaker's and Sudoku's whole-number checks take `isWhole()`.
+What each stored entry reads as is unchanged.
+
+Where it went other than planned:
+
+- `isListOf()` is new: the crew, Snake's turns and Sudoku's notes are
+  checked, not read, and finding 13's review refused building a copy only
+  to throw it away.
+- Left as they are: the Solitaire Collection's reader, as it takes nothing
+  from `@fz/core` and throws naming the path; Minesweeper's mines, which
+  build a mask and refuse a square twice; and Brick Breaker's bricks, whose
+  list holds empty cells by index.
+
+The review found every replaced reader the same on every input:
+
+1. _Snake's movement setting had no spec of a value it doesn't know:_
+   taken.
+2. _Snake's apple spec was refused before its length was checked:_ taken;
+   a square of three numbers.
+3. _An `it.each` titled a list case as a string:_ taken.
+4. _The `fuzzley-ui` skill's description ran past 1,024 characters:_
+   taken; 979, its `@fz/core` summary left to its table.
+5. _Two whole-number checks were `isWhole()` written out:_ taken.

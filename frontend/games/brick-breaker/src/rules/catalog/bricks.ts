@@ -1,4 +1,4 @@
-import { keysOf } from "@fz/core/records";
+import { isKeyOf, keysOf } from "@fz/core/records";
 
 /** Names something a brick does beyond taking hits, with its settings. */
 export type BrickTrait =
@@ -116,7 +116,7 @@ export function brickKind(id: BrickKindId): BrickKind {
 
 /** Returns whether a value names a brick kind. */
 export function isBrickKindId(value: unknown): value is BrickKindId {
-  return typeof value === "string" && Object.hasOwn(BRICK_KINDS, value);
+  return isKeyOf(value, BRICK_KINDS);
 }
 
 /** Returns whether a level needs a brick of a kind broken to be cleared. */

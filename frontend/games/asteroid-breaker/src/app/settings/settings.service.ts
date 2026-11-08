@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { booleanOr } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 import { LocalStorageService } from "@fz/ui/storage";
 import { type Speed, isSpeed } from "../../rules/speed";
 
@@ -14,11 +15,6 @@ export const DECK_SHOWINGS = ["auto", "always", "never"] as const;
 
 /** Names when the deck shows: on a touch screen, always or never. */
 export type DeckShowing = (typeof DECK_SHOWINGS)[number];
-
-/** Returns whether a value names when the deck shows. */
-function isDeckShowing(value: unknown): value is DeckShowing {
-  return DECK_SHOWINGS.some((showing) => showing === value);
-}
 
 /** Says how the player plays. */
 export interface Settings {
@@ -68,7 +64,7 @@ export class SettingsService {
     const { speed, deck, stickOnRight, fireByItself, haptics, sound } = saved;
     return {
       speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
-      deck: isDeckShowing(deck) ? deck : DEFAULT_SETTINGS.deck,
+      deck: isOneOf(deck, DECK_SHOWINGS) ? deck : DEFAULT_SETTINGS.deck,
       stickOnRight: booleanOr(stickOnRight, DEFAULT_SETTINGS.stickOnRight),
       fireByItself: booleanOr(fireByItself, DEFAULT_SETTINGS.fireByItself),
       haptics: booleanOr(haptics, DEFAULT_SETTINGS.haptics),

@@ -1,4 +1,5 @@
 import { isCount, unknownKey } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 import {
   PICKUP_IDS,
   type PickupId,
@@ -267,15 +268,10 @@ function rocksOf(data: WaveData, rocks: RocksData): WaveRocks {
 /** Returns how a wave's rocks are laid out, checked. */
 function formationOf(data: WaveData): Formation {
   const formation = data.formation ?? "scatter";
-  if (!isFormation(formation)) {
+  if (!isOneOf(formation, FORMATIONS)) {
     throw wrong(data, `its formation, "${formation}", is no formation`);
   }
   return formation;
-}
-
-/** Returns whether a name is one of {@link FORMATIONS}. */
-function isFormation(name: string): name is Formation {
-  return FORMATIONS.some((formation) => formation === name);
 }
 
 /** Returns the kind of rock a wave names, which its boulders break into, checked: one that comes large. */

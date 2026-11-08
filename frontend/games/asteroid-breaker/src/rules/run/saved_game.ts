@@ -1,4 +1,4 @@
-import { isCount, isRecord, isWhole } from "@fz/core/json";
+import { isCount, isListOf, isRecord, isWhole } from "@fz/core/json";
 import type { Field, PlayerSetup } from "../field/field";
 import {
   type SavableField,
@@ -121,7 +121,8 @@ export function restoreGame(
     return null;
   }
   const { broughtHome } = value;
-  const drawn = isPilots(broughtHome) && broughtHome.length === run.strays;
+  const drawn =
+    isListOf(broughtHome, isPilot) && broughtHome.length === run.strays;
   return { run, field, broughtHome: drawn ? broughtHome : [], tuned };
 }
 
@@ -253,10 +254,10 @@ export function hasSoundCrew(
 ): value is Pick<SavedGame, "flying" | "home" | "lastGiven"> {
   const { flying, home, lastGiven } = value;
   return (
-    isPilots(flying) &&
+    isListOf(flying, isPilot) &&
     flying.length > 0 &&
     flying.length <= MAX_SHIPS &&
-    isPilots(home) &&
+    isListOf(home, isPilot) &&
     home.length <= strays &&
     isPilot(lastGiven)
   );
@@ -300,11 +301,6 @@ function savedRun(
 /** Returns whether a value is a wave's number, from 1. */
 function isWaveNumber(value: unknown): value is number {
   return isCount(value) && value >= 1;
-}
-
-/** Returns whether a value is a list of pilots, each named by its color's number. */
-function isPilots(value: unknown): value is Pilot[] {
-  return Array.isArray(value) && value.every(isPilot);
 }
 
 /** Returns whether a value names a pilot, by its color's number. */

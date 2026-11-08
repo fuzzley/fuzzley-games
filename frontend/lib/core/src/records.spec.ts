@@ -1,4 +1,4 @@
-import { keysOf, pick, recordOf } from "./records";
+import { isKeyOf, isOneOf, keysOf, pick, recordOf } from "./records";
 
 describe("keysOf", () => {
   it("returns a record's keys in the order they were written", () => {
@@ -13,6 +13,65 @@ describe("keysOf", () => {
     expectTypeOf(keysOf({ normal: 1, fire: 2 })).toEqualTypeOf<
       readonly ("normal" | "fire")[]
     >();
+  });
+});
+
+describe("isKeyOf", () => {
+  /** A catalog whose ids a spec's values may name. */
+  const KINDS = { stone: 1, iron: 2 } as const;
+
+  it.each(["stone", "iron"])(
+    "accepts %j, a key of the record's own",
+    (value) => {
+      expect(isKeyOf(value, KINDS)).toBe(true);
+    },
+  );
+
+  it.each(["gold", "", "toString", "constructor", 1, null, undefined])(
+    "refuses %j",
+    (value) => {
+      expect(isKeyOf(value, KINDS)).toBe(false);
+    },
+  );
+
+  it("refuses a number, even one a record holds a key for", () => {
+    expect(isKeyOf(0, { 0: "zero" })).toBe(false);
+  });
+
+  it("types the key as the record's own", () => {
+    expectTypeOf((value: unknown) =>
+      isKeyOf(value, KINDS),
+    ).guards.toEqualTypeOf<"stone" | "iron">();
+  });
+});
+
+describe("isOneOf", () => {
+  /** The choices a spec's values may name. */
+  const SPEEDS = ["slow", "normal", "fast"] as const;
+
+  it.each(SPEEDS)("accepts %j", (value) => {
+    expect(isOneOf(value, SPEEDS)).toBe(true);
+  });
+
+  it.each(["Normal", "", "length", 0, null, undefined])(
+    "refuses %j",
+    (value) => {
+      expect(isOneOf(value, SPEEDS)).toBe(false);
+    },
+  );
+
+  it("refuses a list holding one", () => {
+    expect(isOneOf(["slow"], SPEEDS)).toBe(false);
+  });
+
+  it("refuses a value only loosely equal to one", () => {
+    expect(isOneOf("1", [1, 2])).toBe(false);
+  });
+
+  it("types the value as one of those given", () => {
+    expectTypeOf((value: unknown) =>
+      isOneOf(value, SPEEDS),
+    ).guards.toEqualTypeOf<"slow" | "normal" | "fast">();
   });
 });
 
