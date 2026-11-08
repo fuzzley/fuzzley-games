@@ -55,7 +55,8 @@ to `frontend/games/`.
   (`frontend/lib/game-ui/AGENTS.md`).
 - **It shares `@fz/core`'s helpers,** the seeded random, the readers for
   stored JSON and a data file's keys, counts in words, points grouped in thousands, a clamp, a
-  clock of fixed steps, a log of numbered events, a field played by them, a
+  clock of fixed steps, a count up to a mark, a log of numbered events, a
+  field played by them, a
   frame's sounds gathered
   and a record's keys typed as its own, a record made from them or a copy
   of some of its entries, rather

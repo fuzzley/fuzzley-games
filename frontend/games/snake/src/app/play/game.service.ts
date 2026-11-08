@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { Countdown } from "@fz/core/clock";
 import { randomSeed } from "@fz/core/random";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
@@ -96,8 +97,8 @@ export class GameService {
   private carried = 0;
   /** How far the run is from its last step to its next, from 0 to 1. */
   private progress = 0;
-  /** The time since the run ended, while the result card waits to open. */
-  private sinceEnd: number | null = null;
+  /** The wait before the result card opens, from the run's end. */
+  private readonly resultWait = new Countdown();
   private readonly shown: Frame = {
     run: this.runState(),
     progress: 0,
@@ -165,12 +166,8 @@ export class GameService {
       if (advanced.run !== run) this.stepTo(advanced.run);
       return;
     }
-    if (this.sinceEnd === null) return;
-    this.sinceEnd += deltaMs;
-    if (this.sinceEnd >= resultDelayMs(this.viewport.allowsMotion())) {
-      this.sinceEnd = null;
-      this.resultOpenState.set(true);
-    }
+    const waitMs = resultDelayMs(this.viewport.allowsMotion());
+    if (this.resultWait.count(deltaMs, waitMs)) this.resultOpenState.set(true);
   }
 
   /**
@@ -323,7 +320,7 @@ export class GameService {
     this.runState.set(run);
     this.carried = 0;
     this.progress = 0;
-    this.sinceEnd = null;
+    this.resultWait.stop();
     this.newBestState.set(false);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
@@ -345,7 +342,7 @@ export class GameService {
     this.newBestState.set(newBest);
     this.runState.set(run);
     this.progress = 0;
-    this.sinceEnd = 0;
+    this.resultWait.start();
     this.announcer.say(describeEnd(run, newBest));
   }
 

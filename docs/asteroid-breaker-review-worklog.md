@@ -1325,3 +1325,38 @@ Seen and left, none from this branch:
   `watchCanvasViewport()` answers on `phaser-lifts`.
 - `yarn verify` prints Node's warning that `localStorage` needs
   `--localstorage-file`, from the Solitaire Collection's test setup.
+
+## Part 4, on `core-lifts`
+
+### Step 14a: finding 18, the stepper and a count up to a mark
+
+Built on `cl-clock`. `@fz/core/clock`'s `createStepper(stepMs,
+maxStepsPerFrame)` is what each breaker's byte-identical `stepper.ts` was,
+which now binds it to its field's step, their specs gone for the
+library's, and each breaker's play holds the binding to the tuning's step
+and its most steps a frame. A `Countdown` there counts a frame's time up to
+a mark and says so once, which `FieldPlay`'s card wait, Brick Breaker's
+serve after a loss and Snake's result card take, each a counter of its own
+before. Each breaker's play writes its frame as its `FieldFrame` with
+`PlayFrame`, rather than restating `alpha`.
+
+Where it went other than planned:
+
+- Snake's stepper stays its own: its step's length changes as it eats,
+  worked out again within a frame, so a fixed step doesn't fit it. Its
+  result card's wait was a count up to a mark, which takes `Countdown`.
+- The frame is an intersection, `FieldFrame & PlayFrame`: an interface
+  extending both fails, as `alpha` is `readonly` in one and not the other.
+- On a frame whose time is not a number, Snake's result card now opens at
+  once, as the breakers' cards already did, where it never opened before;
+  Phaser hands no such frame. Treating one as no time, as `advanceClock()`
+  does, would change all three, and is left.
+
+The review found the lifts sound:
+
+1. _The breakers' stepper specs gone, nothing held each game's binding,
+   its most steps a frame or its unit:_ taken; two specs in each play.
+2. _Nothing held that Snake's new run stops the result card's wait:_
+   taken.
+3. _`Countdown`'s handling of a negative or not-a-number frame was
+   unstated:_ taken; its doc says it, and its spec pins both.

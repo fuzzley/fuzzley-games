@@ -56,12 +56,12 @@ take for the layer.
   paddle); `speed.ts` the three preset speeds (`PRESET_SPEEDS`), each a
   base and a top the ball climbs to, Custom, at the player's percent of
   Normal's, 50% to 200% (`CUSTOM_PERCENT`, `customFactor()`), and
-  `ballSpeed()`; and `stepper.ts` the field's step, 1/120 s (`STEP_MS`),
-  `stepsIn(ms)`, a time in those steps (`@fz/core/clock`'s, bound to the
-  field's step), and the field's clock (`createFieldClock()`), which turns
-  a frame's time into steps, twelve at most a frame. `draws.ts` draws the
-  field's random numbers (`nextDraw()`) from its seed and how many came
-  before, so a field taken up draws as it would have.
+  `ballSpeed()`; and `stepper.ts` binds `@fz/core/clock`'s
+  `createStepper()` to the field's step, 1/120 s (`STEP_MS`): `stepsIn(ms)`,
+  a time in those steps, and the field's clock (`createFieldClock()`),
+  which turns a frame's time into steps, twelve at most a frame.
+  `draws.ts` draws the field's random numbers (`nextDraw()`) from its seed
+  and how many came before, so a field taken up draws as it would have.
   `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
@@ -176,7 +176,7 @@ take for the layer.
   makes for each level and drives: `@fz/core/field_play`'s `FieldPlay` over
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and the beat
-  before the next serve.
+  before the next serve, a `Countdown` of `@fz/core/clock`'s.
 - **`src/view/field/`** — where the field lies, and what of it the scene
   reads. `field_metrics.ts` lays the field on the canvas from `fitCells()`,
   a unit a whole number of device pixels, with `toCanvasX()`/`toCanvasY()`

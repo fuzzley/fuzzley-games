@@ -1,4 +1,4 @@
-import { type Clock, advanceClock, progressOf } from "./clock";
+import { type Clock, Countdown, advanceClock, progressOf } from "./clock";
 import type { EventLog, NumberedEvent } from "./event_log";
 
 /** Describes how a game's rules move its field on: a frame's steering taken, and a step. */
@@ -31,8 +31,8 @@ export class FieldPlay<
 > {
   /** The serial of the last of the field's events handed on. */
   private heard = 0;
-  /** The time since the field's play came to an end, while a card waits to open, or null. */
-  private sinceDone: number | null = null;
+  /** The wait before a card opens, from when the field's play came to an end. */
+  private readonly cardWait = new Countdown();
 
   /**
    * Plays a field by a game's rules and clock, handing the scene a frame of
@@ -73,7 +73,7 @@ export class FieldPlay<
 
   /** Starts the wait before a card opens, as the field's play comes to an end. */
   startCardWait(): void {
-    this.sinceDone = 0;
+    this.cardWait.start();
   }
 
   /**
@@ -81,10 +81,6 @@ export class FieldPlay<
    * card opens now, which it does once; call it once a frame.
    */
   countCardWait(deltaMs: number, waitMs: number): boolean {
-    if (this.sinceDone === null) return false;
-    this.sinceDone += deltaMs;
-    if (this.sinceDone < waitMs) return false;
-    this.sinceDone = null;
-    return true;
+    return this.cardWait.count(deltaMs, waitMs);
   }
 }

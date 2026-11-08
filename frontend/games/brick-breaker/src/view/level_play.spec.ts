@@ -1,5 +1,6 @@
 import type { Steer } from "../rules/paddle/paddle";
 import { STEP_MS } from "../rules/stepper";
+import { MAX_STEPS_PER_FRAME, STEP_S } from "../rules/tuning";
 import {
   KEEPER,
   NO_STEER,
@@ -45,6 +46,22 @@ describe("LevelPlay", () => {
       const play = stillPlay();
 
       play.advance(3.6 * STEP_MS, NO_STEER, deaf);
+
+      expect(play.field.steps).toBe(3);
+    });
+
+    it("steps the field no more than its most a frame", () => {
+      const play = stillPlay();
+
+      play.advance((MAX_STEPS_PER_FRAME + 3) * STEP_MS, NO_STEER, deaf);
+
+      expect(play.field.steps).toBe(MAX_STEPS_PER_FRAME);
+    });
+
+    it("steps the field once for each of the tuning's steps a frame's time holds", () => {
+      const play = stillPlay();
+
+      play.advance(3 * STEP_S * 1000, NO_STEER, deaf);
 
       expect(play.field.steps).toBe(3);
     });
