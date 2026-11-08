@@ -56,9 +56,14 @@ too. Paths are relative to `frontend/lib/dev/`.
     of the page (`window` under each of its names, `document`,
     `navigator`, `matchMedia()`, the window's size and listeners) and
     nothing stored or fetched (`localStorage`, `indexedDB`, `fetch()`).
-    `heldAsRules` names files outside the rules held to the rules' fence
-    and kept to what they are handed as the rules are, with patterns of
-    their own on top, as Asteroid Breaker's helpers its scripts load are.
+    `heldAsRules` names the workspace's folder (`root`) and files of one
+    folder outside the rules, by their paths from it (`files`), held to the
+    rules' fence and kept to what they are handed as the rules are, as the
+    helpers the breakers' scripts load are; the block lets them import
+    nothing beside them but one another, so a file they import must join
+    them, and throws for a glob or files of two folders, which the sibling
+    pattern can't be built from, or a file the workspace doesn't have, which
+    ESLint would pass over without a word.
 - `tsconfig/`, `@fz/dev/tsconfig/*.json`: the compiler options a
   workspace's `tsconfig.json` extends.
   - `base.json`: the strict flags every workspace's TypeScript is checked
@@ -355,10 +360,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   `phaserGameLayers()`**, rather than writing them again, so no game's
   fence goes stale or is tightened alone. What is its own goes in the
   options: what its view takes beyond the rest (`viewAllows`) and what it
-  holds as the rules (`heldAsRules`), as Asteroid Breaker's
-  `eslint.config.js` does. ESLint takes a rule's options from the last
-  block that sets it for a file, so a block of the game's own that
-  restricts imports, properties, globals or syntax in a layer's folder
+  holds as the rules, by their paths from its folder (`heldAsRules`), as
+  Asteroid Breaker's `eslint.config.js` does. ESLint takes a rule's options
+  from the last block that sets it for a file, so a block of the game's own
+  that restricts imports, properties, globals or syntax in a layer's folder
   would replace the layers' rules there rather than add to them.
 - **A loosening stays in the workspace, with its reason,** unless every
   workspace of a kind needs it: `phaser()` is the one here, since every

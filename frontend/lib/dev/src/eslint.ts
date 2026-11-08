@@ -1,3 +1,5 @@
+import { statSync } from "node:fs";
+import { join, posix } from "node:path";
 import eslint from "@eslint/js";
 import angularEslint from "angular-eslint";
 import { type Config, defineConfig } from "eslint/config";
@@ -44,16 +46,17 @@ export type RestrictedImportPattern = (
 
 /**
  * Names files outside a game's rules that lint holds to the rules' fence and
- * keeps to what they are handed, as it does the rules.
+ * keeps to what they are handed, as it does the rules, and lets import
+ * nothing beside them but one another.
  */
 export interface HeldAsRules {
+  /** The workspace's folder: `import.meta.dirname` in its `eslint.config.js`. */
+  readonly root: string;
   /**
-   * The files, as an ESLint block's `files` names them, such as the specs'
-   * helpers a script runs in Node.
+   * The files, by their paths from the workspace's folder, all in one
+   * folder, such as the specs' helpers a script runs in Node.
    */
   readonly files: readonly string[];
-  /** The imports they refuse on top of the rules' fence. */
-  readonly patterns?: readonly RestrictedImportPattern[];
 }
 
 /**
@@ -352,7 +355,10 @@ const RANDOM_SEED: RestrictedImportPattern = {
 // The rules' fence, which what is held as the rules are holds to too.
 const RULES_FENCE: readonly RestrictedImportPattern[] = [
   {
-    group: [...PHASER, ...FRAMEWORKS, "@fz/*", "!@fz/core", "!@fz/core/*"],
+    // @fz/* names a library's package, and refuses its entries as a folder's
+    // files, so @fz/core taken back lets its entries in; the view's fence
+    // names the entries (@fz/*/*), so it takes them back by name.
+    group: [...PHASER, ...FRAMEWORKS, "@fz/*", "!@fz/core"],
     message: "The rules use no framework and no library but @fz/core.",
   },
   {
@@ -492,6 +498,66 @@ function deterministic(files: readonly string[]): Config {
 }
 
 /**
+ * Returns whether a path names one file from the workspace's folder, as a
+ * block's `files` matches it alone: no glob, nothing outside the folder and
+ * nothing to normalize.
+ */
+function isPlainPath(file: string): boolean {
+  return (
+    !/[*?[\]{}!\\]/.test(file) &&
+    !posix.isAbsolute(file) &&
+    !file.startsWith("../") &&
+    posix.normalize(file) === file
+  );
+}
+
+/**
+ * Returns text with exactly the syntax characters of a regular expression
+ * escaped: with `/`, the only identity escapes the `u` flag allows, which
+ * `no-restricted-imports` compiles a pattern with.
+ *
+ * Escaping more, such as `-`, would make ESLint's `new RegExp(…, "iu")`
+ * throw.
+ */
+function escapeRegExp(text: string): string {
+  return text.replaceAll(/[\\^$.*+?()[\]{}|]/g, "\\$&");
+}
+
+/**
+ * Returns the pattern that lets the files held as the rules are import
+ * nothing beside them but one another, once it has checked they are files of
+ * one folder, named by their paths from the workspace's folder, which it has.
+ */
+function heldTogether({ root, files }: HeldAsRules): RestrictedImportPattern {
+  const notPlain = files.find((file) => !isPlainPath(file));
+  if (notPlain !== undefined) {
+    throw new Error(
+      `phaserGameLayers()'s heldAsRules takes only files by their paths from the workspace's folder, as src/testing/autopilot.ts, never a glob, not "${notPlain}".`,
+    );
+  }
+  const folders = [...new Set(files.map((file) => posix.dirname(file)))];
+  if (folders.length > 1) {
+    throw new Error(
+      `phaserGameLayers()'s heldAsRules takes only files of one folder, which may import one another, not files of "${folders.join('" and "')}".`,
+    );
+  }
+  const missing = files.find(
+    (file) => !statSync(join(root, file), { throwIfNoEntry: false })?.isFile(),
+  );
+  if (missing !== undefined) {
+    throw new Error(
+      `phaserGameLayers()'s heldAsRules names "${missing}", which the workspace doesn't have, and ESLint would pass over without a word.`,
+    );
+  }
+  const names = files.map((file) => escapeRegExp(posix.basename(file, ".ts")));
+  return {
+    regex: `^\\.(?:$|/(?!(?:${names.join("|")})$))`,
+    message:
+      "What is held as the rules are, such as a helper the scripts load, imports nothing beside it but what is held with it: add the file to heldAsRules in eslint.config.js, which holds it to the rules' fence.",
+  };
+}
+
+/**
  * Returns the fences between the layers of a game drawn with Phaser, each a
  * folder under `src/` importing only the layers below it: the rules
  * (`src/rules/`), then the view (`src/view/`), then the scene
@@ -507,7 +573,9 @@ function deterministic(files: readonly string[]): Config {
  *
  * It throws for a path in `viewAllows` that is no library's entry, such as a
  * library's package or a path below an entry, which the view's fence would
- * name and yet still refuse.
+ * name and yet still refuse; and in `heldAsRules`, for a glob or files of two
+ * folders, which the sibling pattern can't be built from, or a file the
+ * workspace doesn't have, which ESLint would pass over without a word.
  */
 export function phaserGameLayers({
   viewAllows = [],
@@ -520,13 +588,14 @@ export function phaserGameLayers({
     );
   }
   const held = heldAsRules?.files ?? [];
-  const heldPatterns = heldAsRules?.patterns ?? [];
   return defineConfig(
     fence(["src/rules/**/*.ts"], RULES_FENCE),
     fence(["src/view/**/*.ts"], viewFence(viewAllows)),
     fence(["src/scene/**/*.ts"], SCENE_FENCE),
     fence(["src/app/**/*.ts"], APP_FENCE),
-    held.length > 0 ? fence(held, [...RULES_FENCE, ...heldPatterns]) : [],
+    heldAsRules && held.length > 0
+      ? fence(held, [...RULES_FENCE, heldTogether(heldAsRules)])
+      : [],
     deterministic(["src/rules/**/*.ts", "src/view/**/*.ts", ...held]),
   );
 }

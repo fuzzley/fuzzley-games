@@ -7,7 +7,6 @@ import {
   tests,
   typescript,
 } from "@fz/dev/eslint";
-import { basename } from "node:path";
 import { defineConfig } from "eslint/config";
 
 // The specs' helpers the scripts under tools/ load through Vite, and what
@@ -23,14 +22,6 @@ const SCRIPT_HELPERS = [
   "src/testing/autopilot.ts",
   "src/testing/kept_run.ts",
 ];
-
-// A file beside the helpers the scripts load, all in src/testing/, that is
-// none of them.
-const OFF_SCRIPT_HELPERS = {
-  regex: `^\\./(?!(?:${SCRIPT_HELPERS.map((file) => basename(file, ".ts")).join("|")})$)`,
-  message:
-    "The helpers the scripts load import no other file of src/testing/: add it to SCRIPT_HELPERS in eslint.config.js, which holds it to the rules' fence.",
-};
 
 export default defineConfig(
   typescript({
@@ -62,12 +53,13 @@ export default defineConfig(
   // though the messages speak of the rules and the view alone.
   phaserGameLayers({
     viewAllows: ["@fz/style/fuzzball"],
-    heldAsRules: { files: SCRIPT_HELPERS, patterns: [OFF_SCRIPT_HELPERS] },
+    heldAsRules: { root: import.meta.dirname, files: SCRIPT_HELPERS },
   }),
   // The specs' helpers take Angular by type alone, so they declare nothing
   // Analog's plugin must compile: every project compiles them with Vite's
-  // oxc, alike, and coverage adds their runs up (`vitest.config.ts`). The
-  // helpers the scripts load hold to the rules' fence instead.
+  // oxc, alike, and coverage adds their runs up (`@fz/dev`'s
+  // `angularTests({ projects })`, in its `src/vitest.ts`). The helpers the
+  // scripts load hold to the rules' fence instead.
   {
     files: ["src/testing/**/*.ts"],
     ignores: ["**/*.spec.ts", ...SCRIPT_HELPERS],

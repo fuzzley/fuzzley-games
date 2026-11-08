@@ -2,11 +2,13 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   AUTOPILOT_LIMIT,
+  ENDGAME,
   ENDGAME_LIMIT,
   autoplay,
   limitsOf,
   playLevel,
 } from "../../testing/autopilot";
+import { GLOW_BRICKS } from "../../view/effects/timing";
 import { PRESET_SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
 import { COLUMNS, FIELD_HEIGHT, TALLEST_FIELD } from "../tuning";
@@ -93,6 +95,10 @@ describe("the autopilot", () => {
       level: tallest.level > AUTOPILOT_LIMIT,
       endgame: tallest.endgame > ENDGAME_LIMIT,
     }).toEqual({ level: true, endgame: true });
+  });
+
+  it("starts a level's endgame at as few bricks as the view lets glow", () => {
+    expect(ENDGAME).toBe(GLOW_BRICKS);
   });
 
   it("counts a level of three bricks as endgame from its start", () => {

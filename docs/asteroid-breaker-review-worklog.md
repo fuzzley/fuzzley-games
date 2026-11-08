@@ -1739,3 +1739,43 @@ The review found every attribute's text the same:
 6. _A mutable list of readers, and a record whose integer-like names move
    to the front and whose names the reader could misread:_ taken;
    `readonly`, pairs, and a name refused unless one word free of commas.
+
+### Step 15f: finding 21, Brick Breaker's scripts' helpers held as the rules are
+
+Built on `dl-helpers`, step 15b's second comment taken up. Brick
+Breaker's autopilot and kept run, which its report and capture load, are
+held as the rules are, `phaserGameLayers()`' `heldAsRules` given the
+workspace's root and their paths, as Asteroid Breaker's five are: the
+rules' fence, `deterministic()`, and a pattern the block now builds
+itself, which lets a held file import nothing beside it but another held
+with it, `"."` included. It throws for a glob, files of two folders, a
+path from the disk's root or out of the workspace, backslashes, or a file
+the workspace doesn't have, which ESLint would pass over without a word.
+The autopilot's endgame is its own 3, pinned to the view's
+`GLOW_BRICKS` by its spec, since the rules' fence refuses the view; every
+level's report is the same, byte for byte. The rules' fence drops a
+`!@fz/core/*` that changed no verdict over 392 imports, and Asteroid
+Breaker's comment on the oxc split points to `angularTests({ projects })`.
+
+The first review found no fence lost:
+
+1. _The sibling pattern was a copy in both breakers' configs, specced
+   only by hand, and a mistyped path would hold nothing:_ taken; built in
+   `@fz/dev`, from plain paths it checks.
+2. _The comment on `@fz/core` didn't say why the view's fence keeps its
+   own:_ taken.
+3. _Two Linting bullets left the helpers out:_ taken.
+
+The second, on that reshape, found no bug:
+
+1. _`root` sat on the whole block, though only the held files need it:_
+   taken; `heldAsRules: { root, files }`, and the block's options
+   optional again.
+2. _Paths from the disk's root, out of the workspace or with backslashes
+   reach the file, so the existence check didn't back their refusal, and
+   none had a spec:_ taken, each failing once dropped.
+3. _The doc said ESLint would pass over a glob silently, which it
+   wouldn't:_ taken.
+4. _`import "."` got past the pattern:_ taken.
+5. _`escapeRegExp()`'s doc compared it with `RegExp.escape()`, which
+   escapes far more than the `u` flag allows:_ taken.

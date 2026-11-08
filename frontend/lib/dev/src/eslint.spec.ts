@@ -79,12 +79,12 @@ function leftSwitch(...blocks: string[]): string {
 
 /**
  * Writes files into a workspace of their own, lints them with
- * {@link workspace}'s blocks and the blocks given, and returns the rules each
- * one breaks.
+ * {@link workspace}'s blocks and the blocks given, or made from the
+ * workspace's folder, and returns the rules each one breaks.
  */
 async function lint(
   files: Readonly<Record<string, string>>,
-  blocks: readonly Config[] = [],
+  blocks: readonly Config[] | ((root: string) => readonly Config[]) = [],
 ): Promise<Record<string, string[]>> {
   const root = await mkdtemp(join(tmpdir(), "fz-dev-eslint-"));
   try {
@@ -93,10 +93,11 @@ async function lint(
       await mkdir(dirname(join(root, name)), { recursive: true });
       await writeFile(join(root, name), text);
     }
+    const given = typeof blocks === "function" ? blocks(root) : blocks;
     const eslint = new ESLint({
       cwd: root,
       overrideConfigFile: true,
-      overrideConfig: [...workspace(root), ...blocks],
+      overrideConfig: [...workspace(root), ...given],
     });
     const results = await eslint.lintFiles(Object.keys(files));
     return Object.fromEntries(
@@ -460,9 +461,10 @@ describe("phaserGameLayers", () => {
           'import "@angular/core";\nexport const now = Date.now();\n',
         "src/testing/fields.ts": 'import "@angular/core";\n',
       },
-      phaserGameLayers({
-        heldAsRules: { files: ["src/testing/autopilot.ts"] },
-      }),
+      (root) =>
+        phaserGameLayers({
+          heldAsRules: { root, files: ["src/testing/autopilot.ts"] },
+        }),
     );
 
     expect(problems).toEqual({
@@ -471,20 +473,115 @@ describe("phaserGameLayers", () => {
     });
   });
 
-  it("holds the files a game names to its own patterns too", async () => {
+  it("lets a file held as the rules are import another held with it", async () => {
     const problems = await lint(
       {
         "src/testing/autopilot.ts":
-          'import "./kept_run";\nimport "./fields";\n',
+          'import "./kept_run";\nimport "../rules/run";\n',
+        "src/testing/kept_run.ts": "export const kept = 1;\n",
       },
-      phaserGameLayers({
-        heldAsRules: {
-          files: ["src/testing/autopilot.ts"],
-          patterns: [{ regex: "^\\./(?!kept_run$)", message: "Off the list." }],
-        },
-      }),
+      (root) =>
+        phaserGameLayers({
+          heldAsRules: {
+            root,
+            files: ["src/testing/autopilot.ts", "src/testing/kept_run.ts"],
+          },
+        }),
+    );
+
+    expect(problems["src/testing/autopilot.ts"]).toEqual([]);
+  });
+
+  it("refuses a file held as the rules are anything else beside it", async () => {
+    const problems = await lint(
+      {
+        "src/testing/autopilot.ts":
+          'import "./fields";\nimport "./kept_run/sub";\nimport "./sub/x";\nimport ".";\n',
+        "src/testing/kept_run.ts": "export const kept = 1;\n",
+      },
+      (root) =>
+        phaserGameLayers({
+          heldAsRules: {
+            root,
+            files: ["src/testing/autopilot.ts", "src/testing/kept_run.ts"],
+          },
+        }),
+    );
+
+    expect(problems["src/testing/autopilot.ts"]).toEqual([
+      FENCE,
+      FENCE,
+      FENCE,
+      FENCE,
+    ]);
+  });
+
+  it("reads a held file's name as it is written, not as a pattern", async () => {
+    const problems = await lint(
+      {
+        "src/testing/autopilot.ts":
+          'import "./kept.run";\nimport "./kept-run";\n',
+        "src/testing/kept.run.ts": "export const kept = 1;\n",
+      },
+      (root) =>
+        phaserGameLayers({
+          heldAsRules: {
+            root,
+            files: ["src/testing/autopilot.ts", "src/testing/kept.run.ts"],
+          },
+        }),
     );
 
     expect(problems["src/testing/autopilot.ts"]).toEqual([FENCE]);
+  });
+
+  it.each([
+    [
+      "a glob",
+      ["src/testing/*.ts"],
+      'takes only files by their paths from the workspace\'s folder, as src/testing/autopilot.ts, never a glob, not "src/testing/*.ts"',
+    ],
+    [
+      "a path from the root of the disk",
+      ["/src/testing/autopilot.ts"],
+      'takes only files by their paths from the workspace\'s folder, as src/testing/autopilot.ts, never a glob, not "/src/testing/autopilot.ts"',
+    ],
+    [
+      "a path out of the workspace's folder",
+      ["../src/testing/autopilot.ts"],
+      'takes only files by their paths from the workspace\'s folder, as src/testing/autopilot.ts, never a glob, not "../src/testing/autopilot.ts"',
+    ],
+    [
+      "a path written with backslashes",
+      ["src\\testing\\autopilot.ts"],
+      'takes only files by their paths from the workspace\'s folder, as src/testing/autopilot.ts, never a glob, not "src\\testing\\autopilot.ts"',
+    ],
+    [
+      "a path that normalizes to another",
+      ["./src/testing/autopilot.ts"],
+      'takes only files by their paths from the workspace\'s folder, as src/testing/autopilot.ts, never a glob, not "./src/testing/autopilot.ts"',
+    ],
+    [
+      "files of two folders",
+      ["src/testing/autopilot.ts", "src/tools/report.ts"],
+      'takes only files of one folder, which may import one another, not files of "src/testing" and "src/tools"',
+    ],
+    [
+      "a file the workspace doesn't have",
+      ["src/testing/autopilot.ts", "src/testing/gone.ts"],
+      'names "src/testing/gone.ts", which the workspace doesn\'t have',
+    ],
+  ])("refuses to hold %s as the rules are", async (_, files, message) => {
+    const held = lint(
+      {
+        "src/testing/autopilot.ts": "export const auto = 1;\n",
+        "src/tools/report.ts": "export const report = 1;\n",
+      },
+      (root) => phaserGameLayers({ heldAsRules: { root, files } }),
+    );
+
+    await expect(held).rejects.toThrow(
+      `phaserGameLayers()'s heldAsRules ${message}`,
+    );
   });
 });
