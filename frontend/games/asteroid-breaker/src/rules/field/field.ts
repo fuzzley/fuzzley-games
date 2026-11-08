@@ -261,6 +261,7 @@ export function createField(
     chain: 0,
     lastBreakAt: 0,
     chainPoints: 0,
+    rockPoints: 0,
     nextShipAt: setup.nextShipAt,
     strays: createStrays(setup.strayFirstMs),
     comets: createComets(),

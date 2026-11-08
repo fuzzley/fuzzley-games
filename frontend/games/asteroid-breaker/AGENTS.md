@@ -93,8 +93,8 @@ take for the layer.
   `scoring.ts` scores each break by its kind and size, times the chain's
   multiplier (`CHAIN`), a stray brought home and a wave's clearing, gains
   the crew a ship as the points pass each mark (`gainShipsByPoints()`), and
-  says how a cleared wave's points add up (`tallyOf()`) and come to
-  (`pointsOf()`). `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
+  says how a cleared wave's points add up (`tallyOf()`), each part counted
+  as it scores. `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read. `kept_field.ts` is
   the field as storage keeps it: `savedField()` writes it; `readField()`
@@ -106,8 +106,9 @@ take for the layer.
   `fitsItsRun()`); and `layOutKeptField()` lays the wave out afresh at the
   size it was laid out at and stretches it to the size it was kept at, its
   rocks and counts as kept, its points and strays brought home as its run
-  has scored them, its ship brought as the next in line is (`field.ts`'s
-  `bringShip()`).
+  has scored them, a field kept before the rocks' points were counted
+  having them worked out from the run's (`rockPointsKept()`), and its ship
+  brought as the next in line is (`field.ts`'s `bringShip()`).
 - **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
   the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
@@ -728,8 +729,8 @@ share is in `src/testing/`:
 - `every_wave.ts` holds every wave, at a speed, on the narrowest field and
   the widest either way up (`FIELDS`: `NARROWEST`, `WIDEST`, `TALLEST`), to
   being cleared by the autopilot within four minutes of game time
-  (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them
-  (`holdEveryWave()`), and Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to
+  (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them, its
+  tally adding up to its score (`holdEveryWave()`), and Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to
   being cleared so with nothing able to take the ship
   (`holdEveryEndlessWave()`); each speed's spec in
   `src/rules/waves/every_wave/` and `src/rules/waves/every_endless_wave/`

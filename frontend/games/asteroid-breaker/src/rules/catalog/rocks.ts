@@ -167,7 +167,7 @@ export function rockKind(id: RockKindId): RockKind {
  *
  * @throws {RangeError} When its kind doesn't come in the size.
  */
-export function rockPoints(id: RockKindId, size: RockSize): number {
+export function pointsFor(id: RockKindId, size: RockSize): number {
   const points = rockKind(id).points[size];
   if (points === undefined) {
     throw new RangeError(`A ${id} rock doesn't come ${size}.`);

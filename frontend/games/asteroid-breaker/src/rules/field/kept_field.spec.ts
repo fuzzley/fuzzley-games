@@ -30,6 +30,7 @@ import {
   layOutKeptField,
   readField,
   readTorus,
+  rockPointsKept,
   savedField,
 } from "./kept_field";
 import { safestPlace } from "./spawn";
@@ -92,6 +93,7 @@ const COUNT_SPOILS: readonly Spoil[] = [
   ["a next comet's step that isn't a count", { nextCometAt: -1 }],
   ["a pickup let go at a step that isn't a count", { lastDropAt: -1 }],
   ["chain points that aren't a count", { chainPoints: -1 }],
+  ["rocks' points that aren't a count", { rockPoints: 0.5 }],
   ["ships lost that aren't a count", { shipsLost: -1 }],
 ];
 
@@ -140,6 +142,22 @@ const RUN_FIT_SPOILS: readonly (readonly [
   [
     "more points from the chain than its wave has",
     { chainPoints: 301 },
+    SO_FAR,
+  ],
+  ["more points from the rocks than its wave has", { rockPoints: 301 }, SO_FAR],
+  [
+    "fewer points from the rocks than its wave has",
+    { rockPoints: 299 },
+    SO_FAR,
+  ],
+  [
+    "more points from the rocks and the chain together than its wave has",
+    { rockPoints: 200, chainPoints: 101 },
+    SO_FAR,
+  ],
+  [
+    "more points from the chain than its wave has, kept before the rocks' were counted",
+    { chainPoints: 301, rockPoints: undefined },
     SO_FAR,
   ],
 ];
@@ -296,6 +314,7 @@ describe("savedField", () => {
       nextCometAt: field.comets.nextAt,
       lastDropAt: field.lastDropAt,
       chainPoints: field.chainPoints,
+      rockPoints: field.rockPoints,
       shipsLost: field.shipsLost,
     });
   });
@@ -333,6 +352,12 @@ describe("readField", () => {
     const saved = kept();
 
     expect(read(saved)).toEqual(saved);
+  });
+
+  it("reads a field kept before the rocks' points were counted", () => {
+    const value = keptWith({ rockPoints: undefined });
+
+    expect(read(value)).toEqual(value);
   });
 
   it("reads a field stretched since it was laid out, though it holds more rocks than one laid out at its size", () => {
@@ -408,6 +433,10 @@ describe("hasKeptCounts", () => {
     expect(hasKeptCounts(keptWith({}))).toBe(true);
   });
 
+  it("holds a field kept before the rocks' points were counted to the rest", () => {
+    expect(hasKeptCounts(keptWith({ rockPoints: undefined }))).toBe(true);
+  });
+
   it.each(COUNT_SPOILS)("fails a field of %s", (_, change) => {
     expect(hasKeptCounts(keptWith(change))).toBe(false);
   });
@@ -468,12 +497,34 @@ describe("fitsItsRun", () => {
     expect(fitsItsRun({ ...kept(), straysSent: 1 }, soFar)).toBe(true);
   });
 
-  it("fits a field whose chain scored every point on its wave", () => {
-    expect(fitsItsRun({ ...kept(), chainPoints: 300 }, SO_FAR)).toBe(true);
+  it.each([
+    ["chain", { chainPoints: 300, rockPoints: 0 }],
+    ["rocks", { rockPoints: 300 }],
+    [
+      "chain, kept before the rocks' were counted,",
+      { chainPoints: 300, rockPoints: undefined },
+    ],
+  ])("fits a field whose %s scored every point on its wave", (_, change) => {
+    expect(fitsItsRun({ ...kept(), ...change }, SO_FAR)).toBe(true);
   });
 
   it.each(RUN_FIT_SPOILS)("fails a field of %s", (_, change, soFar) => {
     expect(fitsItsRun({ ...kept(), ...change }, soFar)).toBe(false);
+  });
+});
+
+describe("rockPointsKept", () => {
+  it("takes the rocks' points a field kept", () => {
+    const field = { ...kept(), rockPoints: 40 };
+
+    expect(rockPointsKept(field, SO_FAR)).toBe(40);
+  });
+
+  it("works out the rocks' points of a field kept before they were counted from what its run scored beside the chain and the strays", () => {
+    const field = { ...kept(), chainPoints: 80, rockPoints: undefined };
+    const soFar = { points: 800, straysHome: 1 };
+
+    expect(rockPointsKept(field, soFar)).toBe(800 - 80 - STRAY_POINTS);
   });
 });
 
@@ -540,6 +591,7 @@ describe("layOutKeptField", () => {
       nextCometAt: 900,
       lastDropAt: 60,
       chainPoints: 80,
+      rockPoints: 120,
       shipsLost: 1,
     };
 
@@ -591,6 +643,14 @@ describe("layOutKeptField", () => {
       score: 800,
       home: 1,
     });
+  });
+
+  it("works out the rocks' points of a field kept before they were counted", () => {
+    const saved = { ...kept(), chainPoints: 80, rockPoints: undefined };
+
+    const field = layOut(saved);
+
+    expect(field.rockPoints).toBe(SO_FAR.points - 80);
   });
 
   it("sets off a blast whose fuse was lit before the page went away, clearing a wave that waited only on it", () => {

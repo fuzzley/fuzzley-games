@@ -265,6 +265,12 @@ describe("restoreGame", () => {
     expect(takenUp?.broughtHome).toEqual([5, 7, 1]);
   });
 
+  it("takes up a field kept before the rocks' points were counted", () => {
+    const value = tamperedField({ rockPoints: undefined });
+
+    expect(restoreGame(value, WAVES, 9)).not.toBeNull();
+  });
+
   it("draws no stray brought home where storage's count doesn't match the run's", () => {
     const saved = stored(runUnderWay(), { broughtHome: [5], tuned: false });
 
@@ -341,6 +347,15 @@ describe("takeUpField", () => {
     const field = takeUpField(waveOf(run), SETUP, savedField(before), run);
 
     expect(field.setup).toEqual(before.setup);
+  });
+
+  it("works out the rocks' points of a field kept before they were counted from the run's", () => {
+    const run = runUnderWay();
+    const saved = { ...savedField(playedField(run)), rockPoints: undefined };
+
+    const field = takeUpField(waveOf(run), SETUP, saved, run);
+
+    expect(field.rockPoints).toBe(run.score - run.banked);
   });
 
   it("takes the wave's points and strays brought home from the run", () => {

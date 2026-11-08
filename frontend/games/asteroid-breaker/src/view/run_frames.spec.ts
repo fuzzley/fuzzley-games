@@ -1,4 +1,4 @@
-import { rockPoints } from "../rules/catalog/rocks";
+import { pointsFor } from "../rules/catalog/rocks";
 import type { EndMarks } from "../rules/run/describe";
 import { type Run, createRun, pause, startWave } from "../rules/run/run";
 import type { Crew } from "../rules/ship/pilots";
@@ -345,7 +345,7 @@ describe("RunFrames", () => {
       playTo(game, "cleared", FIRE);
 
       expect({ score: game.run.score, said: game.said }).toEqual({
-        score: rockPoints("stone", "small") + CLEAR_POINTS + CLEAN_POINTS,
+        score: pointsFor("stone", "small") + CLEAR_POINTS + CLEAN_POINTS,
         said: ["Wave 1 cleared! Score 1,040."],
       });
     });
@@ -356,7 +356,7 @@ describe("RunFrames", () => {
       const { tally } = playTo(game, "cleared", FIRE);
 
       expect(tally).toEqual({
-        rocks: rockPoints("stone", "small"),
+        rocks: pointsFor("stone", "small"),
         chains: 0,
         strays: 0,
         cleared: CLEAR_POINTS,
@@ -372,7 +372,7 @@ describe("RunFrames", () => {
 
       expect({ chain, chains: tally?.chains }).toEqual({
         chain: 1,
-        chains: rockPoints("stone", "small"),
+        chains: pointsFor("stone", "small"),
       });
     });
 

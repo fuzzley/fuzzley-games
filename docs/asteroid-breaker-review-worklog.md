@@ -387,3 +387,36 @@ read, and the shots read the same gunnery and flight.
 4. _`EffectField` asked for a whole `Ship` and `TallyField` for writable
    counts:_ taken; a `Readonly<Place>` and a `Readonly<TallyField>`, and
    `EffectField` is `PickupField`, after its module.
+
+### Step 12a: finding 16, the rocks' points counted as they score
+
+Built on `ab-rules`. The field counts its rocks' points, `rockPoints`, as
+`scoreBreak()` scores them, only when `score()` did, so a run that is over
+counts none; and `tallyOf()` is a sum of the counts kept, no longer seeing
+the score. The saved field keeps the count as an optional `rockPoints`; a
+game saved before it works the count out as it did (`rockPointsKept()`),
+so no run is dropped. `pointsOf()` is gone, with its spec and its mention.
+The catalog's `rockPoints(kind, size)` is `pointsFor()`, so the name means
+one thing.
+
+The review found every way a rock scores counting exactly what it adds,
+and old saves, new ones, and a new save read by a build cached from
+before, all sound:
+
+1. _The run's check let a field kept with too few rocks' points through,_
+   which no build writes, since a kept field's points are its rocks', its
+   chain's and its strays' exactly; its tally would not add up. Taken,
+   after checking that: a kept count must make the sum exactly, and an old
+   save is held as before. The specs' played field now scored what its run
+   says.
+2. _No spoil tried the sum:_ taken; one overflows it by the rocks and the
+   chain together.
+3. _Nothing would catch a new source of points missing from the tally:_
+   taken. The autopilot's report says whether a cleared wave's tally adds up
+   to its score, and every wave's simulation holds it, Endless's too.
+4. _`rockPoints` named the catalog's points for one rock and the wave's
+   total:_ taken; the catalog's is `pointsFor()`.
+5. _Two specs repeated their neighbours' setup, and six docs were
+   rewrapped:_ the specs are folded into their neighbours. The docs ran
+   past 100 characters, so they are wrapped by finding 17's rule; not
+   taken.
