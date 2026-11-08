@@ -20,12 +20,87 @@ const UI_LIBRARIES = ["@fz/ui", "@fz/ui/*", "@fz/game-ui", "@fz/game-ui/*"];
 // The libraries of the shell, which only it uses.
 const SHELL_LIBRARIES = [...UI_LIBRARIES, "@fz/style", "@fz/style/*"];
 
+// Why the rules and the view read only what they are handed: the autopilot, a
+// game taken up and Endless's waves made again from their seed all rely on a
+// run playing the same from the same seed and the same frames.
+const CLOCK =
+  "The rules and the view keep time by the frames the scene hands them, never by the clock or a timer, so a run plays the same again from the same frames.";
+const RANDOM =
+  "The rules and the view draw their numbers from a seed they are handed, with @fz/core/random's createRandom() or drawAt(), so a run plays the same again from its seed.";
+const PAGE =
+  "The rules and the view read nothing of the page, which the scene and the shell read and hand them, so a run plays the same in Node as on the page.";
+const STORAGE =
+  "The rules and the view read nothing stored or fetched: the shell reads what is kept and hands them the record, so a run plays the same from the record it is handed, in Node as on the page.";
+
+// The globals that read the clock, a number drawn from no seed, the page or
+// what is stored or fetched, each group with its reason. The page's global
+// object is among them under each of its names, so none of the others is
+// reached through it.
+const NONDETERMINISTIC_GLOBALS = [
+  {
+    names: [
+      "performance",
+      "setTimeout",
+      "setInterval",
+      "requestAnimationFrame",
+      "requestIdleCallback",
+    ],
+    message: CLOCK,
+  },
+  { names: ["crypto"], message: RANDOM },
+  {
+    names: [
+      "window",
+      "self",
+      "globalThis",
+      "top",
+      "parent",
+      "frames",
+      "opener",
+      "document",
+      "navigator",
+      "location",
+      "history",
+      "screen",
+      "visualViewport",
+      "matchMedia",
+      "devicePixelRatio",
+      "innerWidth",
+      "innerHeight",
+      "getComputedStyle",
+      "addEventListener",
+      "ResizeObserver",
+    ],
+    message: PAGE,
+  },
+  {
+    names: [
+      "localStorage",
+      "sessionStorage",
+      "indexedDB",
+      "caches",
+      "cookieStore",
+      "fetch",
+    ],
+    message: STORAGE,
+  },
+];
+
+// @fz/core/random's randomSeed(), which draws from Math.random() unless handed
+// another source. The rules' and the view's fences hold it, since a
+// no-restricted-imports of deterministic()'s own would replace theirs.
+const RANDOM_SEED = {
+  group: ["@fz/core/random"],
+  importNames: ["randomSeed"],
+  message: RANDOM,
+};
+
 /**
  * Returns the block that fences a layer's files off from what it may not
  * import.
  *
  * @param {string} layer
- * @param {{ group?: string[], regex?: string, message: string, allowTypeImports?: boolean }[]} patterns
+ * @param {{ group?: string[], regex?: string, importNames?: string[], message: string, allowTypeImports?: boolean }[]} patterns
  * @returns {import("eslint").Linter.Config}
  */
 function fence(layer, patterns) {
@@ -34,6 +109,50 @@ function fence(layer, patterns) {
     ignores: ["**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": ["error", { patterns }],
+    },
+  };
+}
+
+/**
+ * Returns the block that keeps layers' files from reading the clock, a
+ * number drawn from no seed, the page or what is stored or fetched.
+ *
+ * ESLint takes a rule's options from the last block that sets it for a file,
+ * so another restriction of these three rules for these files joins this
+ * block rather than replacing it from one of its own.
+ *
+ * @param {string[]} layers
+ * @returns {import("eslint").Linter.Config}
+ */
+function deterministic(layers) {
+  return {
+    files: layers.map((layer) => `src/${layer}/**/*.ts`),
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        { object: "Math", property: "random", message: RANDOM },
+        { object: "Date", property: "now", message: CLOCK },
+      ],
+      "no-restricted-globals": [
+        "error",
+        ...NONDETERMINISTIC_GLOBALS.flatMap(({ names, message }) =>
+          names.map((name) => ({ name, message })),
+        ),
+      ],
+      // A date made from a time it is given is the same every run; one made
+      // from nothing, or by calling `Date()`, is now.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+          message: `new Date() reads the clock. ${CLOCK}`,
+        },
+        {
+          selector: "CallExpression[callee.name='Date']",
+          message: `Date() reads the clock. ${CLOCK}`,
+        },
+      ],
     },
   };
 }
@@ -65,6 +184,7 @@ export default defineConfig(
       group: ["**/app", "**/app/**"],
       message: "The rules know nothing of the shell.",
     },
+    RANDOM_SEED,
   ]),
   fence("view", [
     {
@@ -95,6 +215,7 @@ export default defineConfig(
       group: ["**/scene", "**/scene/**", "**/app", "**/app/**"],
       message: "The view knows nothing of the scene or the shell.",
     },
+    RANDOM_SEED,
   ]),
   fence("scene", [
     {
@@ -136,4 +257,6 @@ export default defineConfig(
         "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",
     },
   ]),
+  // The rules and the view read only what they are handed.
+  deterministic(["rules", "view"]),
 );

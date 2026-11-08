@@ -47,6 +47,17 @@ The physics is the rules', so the whole game plays in Node, as the
 autopilot does. The fence doesn't see the board's `import()` of the scene,
 which keeps Phaser out of the first download.
 
+The rules and the view, but their specs, read only what they are handed,
+as `eslint.config.js`'s `deterministic()` and their fences hold them: no
+clock or timer (`Date.now()`, `new Date()`, `performance`, `setTimeout()`),
+no number drawn from no seed (`Math.random()`, `crypto`, `@fz/core/random`'s
+`randomSeed()`), nothing of the page (`window`, `document`, `navigator`,
+`matchMedia()`) and nothing stored or fetched (`localStorage`, `fetch()`).
+The scene hands them the frames' time and the room, the shell what is kept,
+and their numbers are drawn from a seed, so a run plays the same again from
+its seed and its frames, as the autopilot, a game taken up and Endless's
+waves made again from their seed rely on.
+
 ## Layout
 
 Each layer's folder holds at its top what the rest of it builds on, and each
@@ -669,8 +680,9 @@ workspace's with the others'.
   `src/testing/belt_board.ts`, and `sim` for a simulation. Without
   `--project`, Vitest starts every project, Analog's plugin among them,
   and a spec of the rules takes three times as long.
-- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
-  between the layers, then stylelint with `@fz/style`'s preset).
+- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the fences
+  between the layers and what keeps the rules and the view off the clock,
+  `Math.random()` and the page, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` from their JSDoc).
 - **Report the Waves:** `yarn report:waves` (runs `tools/report-waves.mjs`:

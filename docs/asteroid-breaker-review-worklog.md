@@ -872,3 +872,31 @@ order, and the steering live:
    `readonly`, and `AGENTS.md` says so.
 5. _Nits: a spec's interface named like `turns.ts`' own, a title leaving
    out the flash, a steering title that said itself twice:_ taken.
+
+### Step 6a: finding 6, lint keeps the rules and the view to what they are handed
+
+Built on `ab-tests`. A `deterministic()` block in `eslint.config.js` holds
+the rules' and the view's code, but their specs, off the clock
+(`Date.now`, `performance`, an argument-less `new Date()` or `Date()`,
+timers and frame callbacks), off randomness (`Math.random`, `crypto`),
+off the page (`window` and every name it goes by, `document`,
+`navigator`, `location`, `matchMedia`, `getComputedStyle`, the window's
+size and ratio, its listeners) and off what is stored (`localStorage`,
+`sessionStorage`, `indexedDB`, `caches`, `cookieStore`, `fetch`), each with
+a message saying why: so a run plays the same again from its seed and its
+frames, in Node as on the page. The fences also refuse `@fz/core/random`'s
+`randomSeed()`, the one unseeded draw the rules could import. Nothing in
+the code trips any of it; Brick Breaker's and Snake's rules and view pass
+it too, so finding 21 can lift it as it is, its messages made general.
+
+The review found the rules' behaviour, the block's files and its place
+sound, nothing after it replacing a rule:
+
+1. _`randomSeed()` reached `Math.random` through an import the fences
+   allow:_ taken; refused in the fences, where a second import rule in this
+   block would have replaced them.
+2. _`performance` was caught only at `.now`:_ taken; the global.
+3. _The window's other names, and the page's readers that name no listed
+   global, got through:_ taken.
+4. _The commit's type:_ `build`, as the repository's lint changes are.
+5. _The storage message gave the rule as its reason:_ taken.
