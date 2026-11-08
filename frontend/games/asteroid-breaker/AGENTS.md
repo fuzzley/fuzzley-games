@@ -808,8 +808,9 @@ of its own beside it:
 - `belt_board.ts` runs the scene for a spec (`startBoard()`) on a
   `FakeShell` that plays the shell's part, and reads what it draws
   (`shown()`, `imagesIn()`, `strokesOf()`); `canvases.ts` makes the canvas a
-  board has in a window of a shape (`boardOf()`, `viewport()`), for the
-  specs of the layout, the steering and the scene.
+  board has in a window of a shape, less the bar and the rail at the sizes
+  its spec compiles from the app's stylesheets (`boardOf()`, `viewport()`),
+  for the specs of the layout, the steering and the scene.
 - `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
   specs that color the field, and `pilots.ts` reads the pilots an element
   draws (`pilotsIn()`).
@@ -830,6 +831,10 @@ of its own beside it:
   read back, with the shape of their spoiled entries (`Spoil`).
 - `records.ts` says what a change in a run brings to the records, nothing
   but what a spec gives (`runRecords()`), for the specs of the records.
+- `numbers.ts` says how much each of a list's numbers differs from the one
+  before (`stepsBetween()`), for the specs that hold a table of the rules
+  to rising or falling, the rocks' sizes and speeds, the chain's rows and
+  each kind's points.
 - `kept_run.ts` keeps a run begun at a wave and played by the autopilot
   until its first stray is near (`keptRun()`), for the screenshots' script.
 

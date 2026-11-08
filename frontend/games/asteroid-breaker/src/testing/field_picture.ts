@@ -12,7 +12,9 @@ import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
 import {
   FIRST_SHIP_POINTS,
+  PICKUPS_AT_ONCE,
   PICKUP_LIFE_MS,
+  ROCK_CAP,
   STRAY_FIRST_MS,
   type Span,
 } from "../rules/tuning";
@@ -29,7 +31,10 @@ export interface PictureOptions {
   readonly torus?: Torus;
   readonly seed?: number;
   readonly pace?: number;
-  /** The most rocks it holds at once, 48 by default. */
+  /**
+   * The most rocks it holds at once, {@link ROCK_CAP} by default, as on a
+   * field of 40 by 40.
+   */
   readonly cap?: number;
   /** The kind every pictured rock is, stone by default. */
   readonly kind?: RockKindId;
@@ -39,7 +44,10 @@ export interface PictureOptions {
   readonly drops?: number;
   /** The pickups its rocks may let go, none by default, so none ever do. */
   readonly pool?: readonly PickupId[];
-  /** How many pickups may float before chance lets no more go, 2 by default. */
+  /**
+   * How many pickups may float before chance lets no more go,
+   * {@link PICKUPS_AT_ONCE} by default, as on a field of 40 by 40.
+   */
   readonly pickupsAtOnce?: number;
   /** How many strays it sends, none by default. */
   readonly strays?: number;
@@ -98,13 +106,13 @@ export function fieldFrom(
   }
   const field = createField({
     torus,
-    cap: options.cap ?? 48,
+    cap: options.cap ?? ROCK_CAP,
     seed: options.seed ?? 1,
     pace: options.pace ?? 1,
     waveKind: options.waveKind ?? "stone",
     drops: options.drops ?? 0,
     pool: options.pool ?? [],
-    pickupsAtOnce: options.pickupsAtOnce ?? 2,
+    pickupsAtOnce: options.pickupsAtOnce ?? PICKUPS_AT_ONCE,
     strays: options.strays ?? 0,
     strayFirstMs: options.strayFirstMs ?? STRAY_FIRST_MS,
     cometEvery: options.cometEvery ?? null,

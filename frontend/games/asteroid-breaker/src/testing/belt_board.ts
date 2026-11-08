@@ -10,9 +10,9 @@ import type { Place } from "../rules/torus";
 import {
   type BeltScene,
   type BeltSceneOptions,
+  SOUNDS_KEY,
   makeBeltScene,
 } from "../scene/belt_scene";
-import { SOUNDS_KEY } from "../scene/belt_scene";
 import type { Copies } from "../scene/painters/copies";
 import type { Pictures } from "../view/art/art";
 import { bakedScale } from "../view/art/shapes";

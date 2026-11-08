@@ -928,3 +928,29 @@ The review found the same look, reading and focus:
    bar's words.
 2. _The `canvas` input held the canvas's state:_ taken; `canvasState`.
 3. _Both specs copied the same helpers:_ taken; `play.ts`.
+
+### Step 6d: finding 8, the helpers' copied numbers
+
+Built on `ab-rules`, the helpers' part of finding 8. The pictured field's
+cap on rocks and pickups at once are the rules' `ROCK_CAP` and
+`PICKUPS_AT_ONCE`, not copies of their numbers. `canvases.ts`'s bar and
+rail sizes, which can't be imported from `@fz/game-ui`'s Sass, are held to
+it by a spec that compiles the app's own stylesheets, the global one and
+the app component's, with `@fz/style/testing`'s `compileStylesheet()` and
+reads the sizes they publish, so a size changed in either, or an include
+of the bar's size dropped from the page, fails it. `stepsBetween()` has a
+spec of its own; `LAYOUT_SEEDS` is `readonly`; `numbers.ts` is in
+`AGENTS.md` and the testing skill; `belt_board.ts` imports the scene once;
+and the shell's spec reads a ship's speed through `speedOf()`.
+
+The review:
+
+1. _The spec compiled the bar's mixin alone, not the page's stylesheets,_
+   so the page could be wrong and the spec pass, and it found the package
+   by a route of its own: taken.
+2. _`stepsBetween()`, which four specs trust to find a step the wrong way,
+   had no spec:_ taken.
+3. _A doc spelled the sizes out a third time, and a sentence of
+   `AGENTS.md` described the wrong thing:_ taken. The board's margin,
+   copied into `canvases.ts` from the board, waits for the board's own
+   step to finish (step 8).

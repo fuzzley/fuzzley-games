@@ -25,10 +25,10 @@ export function chrome(css: number): Insets {
 
 /**
  * Returns the canvas a board has in a window of a shape, and its margin,
- * as `@fz/game-ui` and the board lay them out: the window less the bar, 73
- * CSS px tall, or 60 on a compact screen, or on a compact screen on its side
- * less the rail down its right, 64 wide; the margin 24 CSS px, or 12
- * compact.
+ * as `@fz/game-ui` and the board lay them out: the window less the bar, or
+ * on a compact screen on its side less the rail down its right, at the
+ * sizes the app's stylesheets publish, as its spec holds it to; the margin
+ * 24 CSS px, or 12 compact.
  */
 export function boardOf(shape: Shape): {
   canvas: Viewport;

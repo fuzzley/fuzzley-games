@@ -18,9 +18,15 @@ import { shipOf, wholeRocks } from "./field_picture";
 import { speedOfSpec } from "./speed_specs";
 
 /** The seeds the spawn's specs lay each wave out from. */
-export const LAYOUT_SEEDS = Array.from({ length: 12 }, (_, i) => i * 7919 + 1);
+export const LAYOUT_SEEDS: readonly number[] = Array.from(
+  { length: 12 },
+  (_, i) => i * 7919 + 1,
+);
 
-/** Returns how the spawn's specs start a wave on a field of a shape at a speed, from a seed, with a run's first crew. */
+/**
+ * Returns how the spawn's specs start a wave on a field of a shape at a
+ * speed, from a seed, with a run's first crew.
+ */
 export function startOn(torus: Torus, speed: Speed, seed: number): WaveSetup {
   return {
     torus,
