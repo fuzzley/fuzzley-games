@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, command_line.mjs, readArgs, shownRun, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -22,7 +22,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   projects with coverage, then the `sim` project without) or
   `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
   spec without coverage, starting its project alone: `pure` for the rules,
-  the view and `src/testing/`, `dom` for the scene, the shell and
+  the view, `src/testing/` and `tools/`, `dom` for the scene, the shell and
   `src/testing/belt_board.ts`, and `sim` for the simulations. Without
   `--project`, Vitest starts all three, Analog's plugin among them, and a
   spec of the rules takes three times as long. The whole suite takes
@@ -34,10 +34,13 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   scene 98% of statements, 92% of branches, 100% of functions and 99% of
   lines; the shell 98, 97, 97 and 98), raised as they rise, so a part
   without specs fails the run. `yarn test`, which CI runs, fails below any
-  of them. `src/testing/` is measured with no floor, so what of it goes
-  untested shows. Coverage measures the `dom` and `pure` projects
-  together, not `sim`, so what only the simulations reach, `every_wave.ts`
-  and most of `every_layout.ts` among it, counts as untested.
+  of them. `src/testing/` and the scripts under `tools/` are measured with
+  no floor, so what of them goes untested shows; what the scripts load
+  through Vite escapes it, so `src/testing/report_api.spec.ts` and
+  `src/testing/screenshot_api.spec.ts` measure their entries. Coverage
+  measures the `dom` and `pure` projects together, not `sim`, so what only
+  the simulations reach, `every_wave.ts` and most of `every_layout.ts`
+  among it, counts as untested.
 - **Check the Layout**: `yarn build`, then `yarn check:layout`
   (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
   `@fz/dev/layout`'s shapes and turns, with the deck shown, and holds the
@@ -50,10 +53,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   pieces, under one `coverage()` given the floors and what coverage leaves
   out (`src/main.ts` and the setup). Each is a config of its own, so each
   starts only what its specs need:
-  - `pure`, the specs of the rules and the view (`LAYER_SPECS`) and of
+  - `pure`, the specs of the rules and the view (`LAYER_SPECS`), of
     `src/testing/`, but for the simulations and the specs of the helpers
-    that run the scene (`SCENE_HELPER_SPECS`, `belt_board.spec.ts`), in
-    Node (`nodeSpecs()`);
+    that run the scene (`SCENE_HELPER_SPECS`, `belt_board.spec.ts`), and of
+    the scripts under `tools/`, in Node (`nodeSpecs()`);
   - `sim`, the specs that play every wave or lay every wave out
     (`SIMULATIONS`), in Node too, without coverage;
   - `dom`, every other spec, the scene's, the shell's and the scene
@@ -156,11 +159,12 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   the narrowest field and the widest, on its side and upright (`FIELDS`:
   `NARROWEST`, `WIDEST`, `TALLEST`), and holds each to being cleared within
   four minutes of game time (`AUTOPILOT_LIMIT`), meeting a comet and a stray
-  where the wave sends them, its tally adding up to its score; and `src/rules/waves/every_endless_wave/`
-  Endless's 31 to 60 (`ENDLESS_PLAYED`) the same, with nothing able to take
-  the ship. Each keeps a file for each speed, passing its own file
-  (`import.meta.filename`) to `src/testing/every_wave.ts`'s `holdEveryWave()`
-  or `holdEveryEndlessWave()`, which play the speed the file is named for,
+  where the wave sends them, its tally adding up to its score; and
+  `src/rules/waves/every_endless_wave/` Endless's 31 to 60
+  (`ENDLESS_PLAYED`) the same, with nothing able to take the ship. Each
+  keeps a file for each speed, passing its own file (`import.meta.filename`)
+  to `src/testing/every_wave.ts`'s `holdEveryWave()` or
+  `holdEveryEndlessWave()`, which play the speed the file is named for,
   since Vitest plays a file's specs one after another but the files side by
   side.
 - `src/rules/waves/autopilot.spec.ts` holds the autopilot itself, and those
@@ -168,7 +172,17 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   draws a field and reads the steering `pilot()` gives it.
 - `yarn report:waves` plays the same games, `--seeds <n>` many more,
   `--field wide` or `--field tall` on the larger fields, and `--endless`
-  Endless's, for tuning (the workspace's `AGENTS.md`).
+  Endless's, for tuning (the workspace's `AGENTS.md`). It loads them
+  through `src/testing/report_api.ts`'s `REPORT_API`, typed by
+  `src/testing/script_api.ts`, which imports nothing, so the script is
+  checked against it and a name changed in the autopilot fails to compile
+  there; `src/testing/report_api.spec.ts` holds `REPORT_API` to the waves,
+  the fields and the plays the autopilot's spec has.
+  `tools/report-waves.spec.ts` holds its command line, the lines it prints
+  and the code it exits with (`run()`, handed a small API of its own and
+  where to print), and that it loads the autopilot's `playWave()` through
+  Vite. Its command line and the screenshots' script's are read the same
+  way, by `tools/command_line.mjs`'s `readArgs()`.
 
 ## The Saved Game
 
@@ -191,7 +205,14 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 - `keptRun()` (`src/testing/kept_run.ts`) keeps a run begun at a wave, on
   a field of a shape, played by the autopilot until the wave's first stray
   is as near as it names (`playField()`'s `untilStep`), which the
-  screenshots take up (`tools/capture-screenshots.mjs`).
+  screenshots take up (`tools/capture-screenshots.mjs`), loading it through
+  `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the version the
+  run is kept under (`SAVED_GAME_VERSION`), which
+  `src/testing/screenshot_api.spec.ts` holds to the rules'.
+  `tools/capture-screenshots.spec.ts` keeps the script's run (`RUN`) so,
+  stamped with that version and taken up by the rules (`shownRun()`), and
+  holds its command line, `--url` among it, the code it exits with for one
+  that captures nothing (`run()`) and the thumbnail's region.
 
 ## The View
 

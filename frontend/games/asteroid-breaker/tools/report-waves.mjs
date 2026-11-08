@@ -11,10 +11,10 @@
  * home of those sent, and once as the specs play it, for the ships it cost.
  * It fails when a play doesn't clear its wave within the autopilot's limit
  * (`-`), as the specs do, but it counts the untouchable plays too, so it is
- * the stricter of the two. It loads the rules and the autopilot through
- * Vite, as the game's build does. The report is how the climb from wave to
- * wave is tuned: a wave that takes long, or costs ships at Relaxed, is one
- * to look at again.
+ * the stricter of the two. It loads what it plays, `REPORT_API` in
+ * `src/testing/report_api.ts`, through Vite, as the game's build loads the
+ * rules. The report is how the climb from wave to wave is tuned: a wave
+ * that takes long, or costs ships at Relaxed, is one to look at again.
  *
  * With `--seeds`, it plays each wave that many times at each speed, from
  * seeds of its own, and prints the middle time, the longest, the most ships
@@ -34,42 +34,56 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
 import { runnerImport } from "vite";
+
+import { CONSOLE, misread, readArgs, stopWith } from "./command_line.mjs";
+
+/** @import { FieldName, ReportApi, ReportedWave, ScriptSpeed, WavePlayed } from "../src/testing/script_api.ts" */
+/** @import { ScriptIo, Stop } from "./command_line.mjs" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** How wide the column of the waves' names is. */
-const NAME_WIDTH = 16;
+/**
+ * The fields `--field` names, each as the usage describes it.
+ *
+ * @type {Readonly<Record<FieldName, string>>}
+ */
+const FIELDS = {
+  narrow: "the narrowest field",
+  wide: "the widest, on its side",
+  tall: "the widest, upright",
+};
+
+/** Lists words as a message does, the last after "or". */
+const FIELD_LIST = new Intl.ListFormat("en-GB", { type: "disjunction" });
+
+const USAGE = `Usage: yarn report:waves [options]
+
+Prints how the autopilot plays every wave at every speed.
+
+  --seeds <n>     Play each wave from n seeds of its own (default: from its
+                  number alone)
+  --field <name>  The field to play on (default: narrow):
+${Object.entries(FIELDS)
+  .map(([name, field]) => `                    ${name.padEnd(6)}  ${field}`)
+  .join("\n")}
+  --endless       Play Endless's waves 31 to 60 instead
+  -h, --help      Show this message`;
+
+/** What lies between the names and each speed's columns. */
+const GAP = "   ";
 
 /** How far apart each wave's seeds start with `--seeds`, so no two waves share one. */
 const SEED_STRIDE = 1000;
 
 /**
- * A wave as the rules list it.
+ * What a command line asks the report for.
  *
- * @typedef {object} WaveEntry
- * @property {number} number Its place in the game, from 1.
- * @property {{ id: string, name: string }} data
- */
-
-/**
- * The shape of a field, in units.
- *
- * @typedef {object} Torus
- * @property {number} width
- * @property {number} height
- */
-
-/**
- * How the autopilot's play of a wave went.
- *
- * @typedef {object} AutopilotReport
- * @property {boolean} cleared
- * @property {number} steps
- * @property {number} shipsLost
- * @property {number} straysSent
- * @property {number} straysHome
+ * @typedef {object} Request
+ * @property {number | undefined} seeds How many seeds each wave is played
+ *   from, or none for its number alone.
+ * @property {FieldName} field
+ * @property {boolean} endless Whether it plays Endless's waves.
  */
 
 /**
@@ -77,34 +91,19 @@ const SEED_STRIDE = 1000;
  * take the ship, and as the spec plays it.
  *
  * @typedef {object} Play
- * @property {AutopilotReport} untouchable
- * @property {AutopilotReport} played
+ * @property {WavePlayed} untouchable
+ * @property {WavePlayed} played
  */
 
 /**
- * What the script takes from the rules and the autopilot.
- *
- * @typedef {object} Rules
- * @property {readonly WaveEntry[]} waves Every wave, in the order played.
- * @property {readonly WaveEntry[]} endless Endless's waves the spec plays.
- * @property {readonly string[]} speeds The speeds, slowest first.
- * @property {number} stepSeconds The game time a step takes, in seconds.
- * @property {number} limit The most steps the autopilot plays a wave.
- * @property {Torus} narrowest
- * @property {Torus} widest
- * @property {Torus} tallest
- * @property {(entry: WaveEntry, speed: string, options: { seed: number, torus: Torus, invulnerable: boolean }) => AutopilotReport} playWave
- */
-
-/**
- * The game as the report plays it: the rules, on the field asked.
+ * The game as the report plays it: the waves asked for, on the field asked.
  *
  * @typedef {object} Game
- * @property {readonly WaveEntry[]} waves Every wave, in the order played.
- * @property {readonly string[]} speeds The speeds, slowest first.
+ * @property {readonly ReportedWave[]} waves The waves, in the order played.
+ * @property {readonly ScriptSpeed[]} speeds The speeds, slowest first.
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} limit The most steps the autopilot plays a wave.
- * @property {(entry: WaveEntry, speed: string, seed: number) => Play} playWave
+ * @property {(wave: ReportedWave, speed: ScriptSpeed, seed: number) => Play} playWave
  */
 
 /**
@@ -112,7 +111,7 @@ const SEED_STRIDE = 1000;
  * it shows of them.
  *
  * @typedef {object} Layout
- * @property {(entry: WaveEntry) => number[]} seedsOf The seeds a wave is played from.
+ * @property {(wave: ReportedWave) => number[]} seedsOf The seeds a wave is played from.
  * @property {readonly string[]} headings The heading of each column.
  * @property {readonly number[]} widths How wide each column is.
  * @property {(plays: ReadonlyArray<Play>, game: Game) => string[]} cellsOf
@@ -121,7 +120,7 @@ const SEED_STRIDE = 1000;
 
 /** @type {Layout} */
 const ONE_PLAY = {
-  seedsOf: (entry) => [entry.number],
+  seedsOf: (wave) => [wave.number],
   headings: ["time", "lost", "home"],
   widths: [5, 5, 5],
   cellsOf: (plays, game) => {
@@ -145,8 +144,8 @@ const ONE_PLAY = {
  */
 function manyPlays(count) {
   return {
-    seedsOf: (entry) =>
-      Array.from({ length: count }, (_, i) => entry.number * SEED_STRIDE + i),
+    seedsOf: (wave) =>
+      Array.from({ length: count }, (_, i) => wave.number * SEED_STRIDE + i),
     headings: ["middle", "most", "lost", "home"],
     widths: [6, 5, 5, 7],
     cellsOf: (plays, game) => {
@@ -164,61 +163,97 @@ function manyPlays(count) {
 }
 
 /**
- * Returns a module of the game's source, loaded through Vite.
+ * Returns what a command line asks the report for, or, for `--help` or one
+ * the report can't read, what to print and the code to exit with.
  *
- * @param {string} file Its path from the workspace's folder.
- * @returns {Promise<Record<string, unknown>>}
+ * @param {readonly string[]} args
+ * @returns {Request | Stop}
  */
-async function load(file) {
-  const { module } = await runnerImport(join(ROOT, file), {
-    configFile: false,
-    root: ROOT,
-    logLevel: "silent",
-  });
-  return /** @type {Record<string, unknown>} */ (module);
+export function readCommandLine(args) {
+  const values = readArgs(
+    args,
+    {
+      seeds: { type: "string" },
+      field: { type: "string", default: "narrow" },
+      endless: { type: "boolean", default: false },
+    },
+    USAGE,
+  );
+  if ("code" in values) return values;
+  const seeds = values.seeds === undefined ? undefined : Number(values.seeds);
+  if (seeds !== undefined && (!Number.isInteger(seeds) || seeds < 1)) {
+    return misread(
+      `--seeds takes a whole number from 1, not "${String(values.seeds)}".`,
+      USAGE,
+    );
+  }
+  const { field } = values;
+  if (!isFieldName(field)) {
+    return misread(
+      `--field takes ${FIELD_LIST.format(Object.keys(FIELDS).map(quoted))}, not ${quoted(field)}.`,
+      USAGE,
+    );
+  }
+  return { seeds, field, endless: values.endless };
 }
 
 /**
- * Returns the game as the report plays it, on the field `--field` asks
- * for, the narrowest by default, and its sectors' waves or Endless's, as
- * `--endless` asks, or throws an error that says what is wrong with the
- * field.
+ * Returns whether `--field` names a field.
  *
- * @param {string | undefined} fieldAsked
- * @param {boolean} endless
- * @returns {Promise<Game>}
+ * @param {string} name
+ * @returns {name is FieldName}
  */
-async function loadGame(fieldAsked, endless) {
-  const [waves, speed, tuning, autopilot] = await Promise.all([
-    load("src/rules/waves/waves.ts"),
-    load("src/rules/speed.ts"),
-    load("src/rules/tuning.ts"),
-    load("src/testing/autopilot.ts"),
-  ]);
-  const rules = /** @type {Rules} */ ({
-    waves: waves["WAVES"],
-    endless: autopilot["ENDLESS_PLAYED"],
-    speeds: speed["SPEEDS"],
-    stepSeconds: tuning["STEP_S"],
-    limit: autopilot["AUTOPILOT_LIMIT"],
-    narrowest: autopilot["NARROWEST"],
-    widest: autopilot["WIDEST"],
-    tallest: autopilot["TALLEST"],
-    playWave: autopilot["playWave"],
-  });
-  const torus = fieldOf(fieldAsked, rules);
+function isFieldName(name) {
+  return Object.hasOwn(FIELDS, name);
+}
+
+/**
+ * Returns a word in double quotes, as a message quotes what was given.
+ *
+ * @param {string} word
+ * @returns {string}
+ */
+function quoted(word) {
+  return `"${word}"`;
+}
+
+/**
+ * Returns what the report plays, `REPORT_API`, loaded through Vite, since
+ * Node can't load the rules as they are: they name their modules without
+ * extensions and import JSON.
+ *
+ * @returns {Promise<ReportApi>}
+ */
+export async function loadReportApi() {
+  const { module } = await runnerImport(
+    join(ROOT, "src/testing/report_api.ts"),
+    { configFile: false, root: ROOT, logLevel: "silent" },
+  );
+  return /** @type {{ REPORT_API: ReportApi }} */ (module).REPORT_API;
+}
+
+/**
+ * Returns the game as a request plays it: its waves, the sectors' or
+ * Endless's, on its field.
+ *
+ * @param {ReportApi} api
+ * @param {Request} request
+ * @returns {Game}
+ */
+function gameOf(api, request) {
+  const torus = api.fields[request.field];
   return {
-    waves: endless ? rules.endless : rules.waves,
-    speeds: rules.speeds,
-    stepSeconds: rules.stepSeconds,
-    limit: rules.limit,
-    playWave: (entry, speed, seed) => ({
-      untouchable: rules.playWave(entry, speed, {
+    waves: request.endless ? api.endless : api.waves,
+    speeds: api.speeds,
+    stepSeconds: api.stepSeconds,
+    limit: api.limit,
+    playWave: (wave, speed, seed) => ({
+      untouchable: api.playWave(wave.number, speed, {
         seed,
         torus,
         invulnerable: true,
       }),
-      played: rules.playWave(entry, speed, {
+      played: api.playWave(wave.number, speed, {
         seed,
         torus,
         invulnerable: false,
@@ -228,41 +263,71 @@ async function loadGame(fieldAsked, endless) {
 }
 
 /**
- * Returns the layout `--seeds` asks for, or throws an error that says what
- * is wrong with it.
+ * Prints the report a request asks for, a line at a time, a wave's line as
+ * it is played, and returns how many plays didn't clear their wave in time.
  *
- * @param {string | undefined} seeds
- * @returns {Layout}
+ * @param {ReportApi} api
+ * @param {Request} request
+ * @param {(line: string) => void} print
+ * @returns {number}
  */
-function layoutAsked(seeds) {
-  if (seeds === undefined) return ONE_PLAY;
-  const count = Number(seeds);
-  if (!Number.isInteger(count) || count < 1) {
-    throw new Error(`--seeds takes a whole number from 1, not "${seeds}".`);
+export function report(api, request, print) {
+  const layout =
+    request.seeds === undefined ? ONE_PLAY : manyPlays(request.seeds);
+  const game = gameOf(api, request);
+  const nameWidth = Math.max(
+    0,
+    ...game.waves.map((wave) => nameOf(wave).length),
+  );
+  const headings = columns(layout.headings, layout);
+  print(
+    "".padEnd(nameWidth) +
+      GAP +
+      game.speeds
+        .map((speed) => speed.padEnd(headings.length))
+        .join(GAP)
+        .trimEnd(),
+  );
+  print("".padEnd(nameWidth) + GAP + game.speeds.map(() => headings).join(GAP));
+  let uncleared = 0;
+  for (const wave of game.waves) {
+    const cells = game.speeds.map((speed) => {
+      const plays = layout
+        .seedsOf(wave)
+        .map((seed) => game.playWave(wave, speed, seed));
+      uncleared += plays
+        .flatMap((play) =>
+          request.endless
+            ? [play.untouchable]
+            : [play.untouchable, play.played],
+        )
+        .filter((play) => !clearedInTime(play, game)).length;
+      return columns(layout.cellsOf(plays, game), layout);
+    });
+    print(nameOf(wave).padEnd(nameWidth) + GAP + cells.join(GAP));
   }
-  return manyPlays(count);
+  if (uncleared > 0) {
+    print("");
+    print(`${String(uncleared)} plays didn't clear their wave in time (-).`);
+  }
+  return uncleared;
 }
 
 /**
- * Returns the field `--field` asks for, the narrowest by default, or throws
- * an error that says what is wrong with it.
+ * Returns a wave's name as the report writes it, after its number.
  *
- * @param {string | undefined} field
- * @param {Rules} rules
- * @returns {Torus}
+ * @param {ReportedWave} wave
+ * @returns {string}
  */
-function fieldOf(field, rules) {
-  if (field === undefined || field === "narrow") return rules.narrowest;
-  if (field === "wide") return rules.widest;
-  if (field === "tall") return rules.tallest;
-  throw new Error(`--field takes "narrow", "wide" or "tall", not "${field}".`);
+function nameOf(wave) {
+  return `${String(wave.number).padStart(2)} ${wave.data.name}`;
 }
 
 /**
  * Returns whether a play cleared its wave within the autopilot's limit, as
  * the spec holds every wave to.
  *
- * @param {AutopilotReport} play
+ * @param {WavePlayed} play
  * @param {Game} game
  * @returns {boolean}
  */
@@ -274,7 +339,7 @@ function clearedInTime(play, game) {
  * Returns the steps a play took to clear its wave, or infinity if it
  * didn't clear it in time.
  *
- * @param {AutopilotReport} play
+ * @param {WavePlayed} play
  * @param {Game} game
  * @returns {number}
  */
@@ -340,43 +405,26 @@ function columns(cells, layout) {
   return cells.map((cell, i) => cell.padStart(layout.widths[i] ?? 0)).join(" ");
 }
 
-const { values: asked } = parseArgs({
-  options: {
-    seeds: { type: "string" },
-    field: { type: "string" },
-    endless: { type: "boolean", default: false },
-  },
-});
-const layout = layoutAsked(asked.seeds);
-const game = await loadGame(asked.field, asked.endless);
-const headings = columns(layout.headings, layout);
-console.log(
-  "".padEnd(NAME_WIDTH) +
-    game.speeds.map((speed) => speed.padEnd(headings.length)).join("   "),
-);
-console.log(
-  "".padEnd(NAME_WIDTH) + game.speeds.map(() => headings).join("   "),
-);
-let uncleared = 0;
-for (const entry of game.waves) {
-  const cells = game.speeds.map((speed) => {
-    const plays = layout
-      .seedsOf(entry)
-      .map((seed) => game.playWave(entry, speed, seed));
-    uncleared += plays
-      .flatMap((play) =>
-        asked.endless ? [play.untouchable] : [play.untouchable, play.played],
-      )
-      .filter((play) => !clearedInTime(play, game)).length;
-    return columns(layout.cellsOf(plays, game), layout);
-  });
-  const name = `${String(entry.number).padStart(2)} ${entry.data.name}`;
-  console.log(name.padEnd(NAME_WIDTH) + cells.join("   "));
+/**
+ * Prints the report a command line asks for, or its usage, and returns the
+ * code to exit with: 0, 1 if a play didn't clear its wave in time, or 2 for
+ * a command line it can't read, played nothing.
+ *
+ * @param {readonly string[]} args
+ * @param {ScriptIo<ReportApi>} [io]
+ * @returns {Promise<number>}
+ */
+export async function run(
+  args,
+  {
+    load = loadReportApi,
+    print = CONSOLE.print,
+    printError = CONSOLE.printError,
+  } = {},
+) {
+  const request = readCommandLine(args);
+  if ("code" in request) return stopWith(request, print, printError);
+  return report(await load(), request, print) > 0 ? 1 : 0;
 }
-if (uncleared > 0) {
-  console.log();
-  console.log(
-    `${String(uncleared)} plays didn't clear their wave in time (-).`,
-  );
-  process.exitCode = 1;
-}
+
+if (import.meta.main) process.exitCode = await run(process.argv.slice(2));

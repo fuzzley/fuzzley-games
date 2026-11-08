@@ -17,13 +17,15 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
 import { runnerImport } from "vite";
 import { withChrome, withPage } from "@fz/dev/chrome";
 import { SITE_IMAGES, writeSiteImages } from "@fz/dev/screenshots";
 import { THEME_STORAGE_KEY } from "@fz/style/themes";
+import { CONSOLE, misread, readArgs, stopWith } from "./command_line.mjs";
 
 /** @import { DevToolsConnection, Page } from "@fz/dev/chrome" */
+/** @import { FieldShape, ScreenshotApi, ScreenshotRun } from "../src/testing/script_api.ts" */
+/** @import { ScriptIo, Stop } from "./command_line.mjs" */
 
 const USAGE = `Usage: yarn capture:screenshots [options]
 
@@ -47,11 +49,12 @@ const THEME = "casino";
 /** The page kept around the field in the thumbnail, in CSS pixels. */
 const THUMB_MARGIN = 24;
 
-/** Where the game keeps the run under way. */
+/**
+ * Where the game keeps the run under way: a copy of `SAVED_GAME_KEY` in
+ * `src/app/play/saved_game.service.ts`, the shell's, which the scripts'
+ * entries, fenced as the rules are, can't import.
+ */
 const SAVED_GAME_KEY = "asteroid-breaker-game";
-
-/** The version the game keeps the run under, beside it. */
-const SAVED_GAME_VERSION = 1;
 
 /** What the announcer says as a stray comes in, which the screenshot waits for. */
 const STRAY_WORDS = "A stray fuzzball drifts in.";
@@ -63,8 +66,10 @@ const STRAY_SETTLE_MS = 500;
  * The run shown, as `keptRun()` keeps it, but for its field's shape, which
  * the page gives: begun on Crowd at Normal, played until a second before
  * the wave's first stray comes.
+ *
+ * @type {Omit<ScreenshotRun, "torus">}
  */
-const RUN = {
+export const RUN = {
   wave: 9,
   speed: "normal",
   seed: 9,
@@ -72,32 +77,16 @@ const RUN = {
 };
 
 /**
- * A field's shape, in its units.
+ * The run as storage keeps it, which the page is given, its score as the
+ * game writes points, and how long to wait once its stray is said.
  *
- * @typedef {{width: number, height: number}} Torus
+ * @typedef {{stored: string, score: string, afterStrayMs: number}} ShownRun
  */
 
 /**
- * A run as storage keeps it, so far as the script reads it.
+ * The options a command line gives.
  *
- * @typedef {{score: number}} SavedRun
- */
-
-/**
- * The run as the page is given it, and its score as the game writes points.
- *
- * @typedef {{saved: SavedRun, score: string}} ShownRun
- */
-
-/**
- * What the script takes from the game's own code: the run kept by
- * `keptRun()`, points in words, and how long a ship is guarded once it
- * first moves, which blinks it.
- *
- * @typedef {object} Rules
- * @property {(torus: Torus) => SavedRun} keepRun
- * @property {(points: number) => string} formatPoints
- * @property {number} newShipGuardMs
+ * @typedef {{url: string, chrome: string | undefined}} Options
  */
 
 /**
@@ -120,44 +109,20 @@ const RUN = {
  */
 
 /**
- * Returns what the script takes from the game's own code, loaded through
- * Vite.
+ * Returns what the script takes from the game's own code, `SCREENSHOT_API`
+ * in `src/testing/screenshot_api.ts`, loaded through Vite, since Node can't
+ * load the rules as they are: they name their modules without extensions
+ * and import JSON, and `@fz/core` isn't written for Node to strip its types.
  *
- * `@fz/core` isn't written for Node to strip its types, so it comes through
- * Vite as the rules do.
- *
- * @returns {Promise<Rules>}
+ * @returns {Promise<ScreenshotApi>}
  */
-async function loadRules() {
-  const load = async (/** @type {string} */ id) => {
-    const { module } = await runnerImport(id, {
-      configFile: false,
-      root: ROOT,
-      logLevel: "silent",
-    });
-    return /** @type {Record<string, unknown>} */ (module);
-  };
-  const [waves, kept, tuning, format] = await Promise.all([
-    load(join(ROOT, "src/rules/waves/waves.ts")),
-    load(join(ROOT, "src/testing/kept_run.ts")),
-    load(join(ROOT, "src/rules/tuning.ts")),
-    load("@fz/core/format"),
-  ]);
-  const keptRun =
-    /** @type {(waves: unknown, run: typeof RUN & {torus: Torus}) => SavedRun} */ (
-      kept["keptRun"]
-    );
-  const newShipGuardMs = tuning["NEW_SHIP_GUARD_MS"];
-  if (typeof newShipGuardMs !== "number") {
-    throw new Error("src/rules/tuning.ts exports no NEW_SHIP_GUARD_MS.");
-  }
-  return {
-    keepRun: (torus) => keptRun(waves["WAVES"], { ...RUN, torus }),
-    formatPoints: /** @type {(points: number) => string} */ (
-      format["formatPoints"]
-    ),
-    newShipGuardMs,
-  };
+export async function loadScreenshotApi() {
+  const { module } = await runnerImport(
+    join(ROOT, "src/testing/screenshot_api.ts"),
+    { configFile: false, root: ROOT, logLevel: "silent" },
+  );
+  return /** @type {{ SCREENSHOT_API: ScreenshotApi }} */ (module)
+    .SCREENSHOT_API;
 }
 
 /**
@@ -178,7 +143,7 @@ function preparePage(run, gameKey, theme, themeKey) {
  * Waits for the scene to draw, then returns the field's shape as the board
  * laid it out. It runs in the page, so it uses nothing from this module.
  *
- * @returns {Promise<Torus | null>}
+ * @returns {Promise<FieldShape | null>}
  */
 async function readShape() {
   const ready = () =>
@@ -280,7 +245,7 @@ async function goOn(strayWords, afterMs) {
  * @param {Region} field The field, in CSS pixels.
  * @returns {Region}
  */
-function thumbRegion(field) {
+export function thumbRegion(field) {
   const { width: thumbWidth, height: thumbHeight } = SITE_IMAGES.thumb;
   const scale = VIEWPORT.deviceScaleFactor;
   const pageWidth = VIEWPORT.width * scale;
@@ -321,7 +286,7 @@ function thumbRegion(field) {
  *
  * @param {Page} page
  * @param {string} url
- * @returns {Promise<Torus | null>}
+ * @returns {Promise<FieldShape | null>}
  */
 async function shapeOn(page, url) {
   await page.beforeLoad(
@@ -342,13 +307,12 @@ async function shapeOn(page, url) {
  * @param {Page} page
  * @param {string} url
  * @param {ShownRun} run
- * @param {number} afterStrayMs How long to wait once the stray is said.
  * @returns {Promise<Shot>}
  */
-async function capture(page, url, run, afterStrayMs) {
+async function capture(page, url, run) {
   await page.beforeLoad(
     preparePage,
-    JSON.stringify({ version: SAVED_GAME_VERSION, ...run.saved }),
+    run.stored,
     SAVED_GAME_KEY,
     THEME,
     THEME_STORAGE_KEY,
@@ -364,7 +328,7 @@ async function capture(page, url, run, afterStrayMs) {
   }
   const { field } = shown;
   if (!field) return { problem: "the field is missing" };
-  const goneOn = await page.evaluate(goOn, STRAY_WORDS, afterStrayMs);
+  const goneOn = await page.evaluate(goOn, STRAY_WORDS, run.afterStrayMs);
   if (goneOn.outcome !== "playing") {
     return { problem: `the run didn't go on: ${goneOn.outcome}` };
   }
@@ -378,75 +342,118 @@ async function capture(page, url, run, afterStrayMs) {
  *
  * @param {DevToolsConnection} devtools
  * @param {string} url
+ * @param {() => Promise<ScreenshotApi>} load
  * @returns {Promise<Shot>}
  */
-async function shapeAndCapture(devtools, url) {
+async function shapeAndCapture(devtools, url, load) {
   // Each on a page of its own, so the first page, going away, keeps no run
   // over the one the second takes up.
   const torus = await withPage(devtools, VIEWPORT, (page) =>
     shapeOn(page, url),
   );
   if (!torus) return { problem: "the board laid no field out" };
-  const rules = await loadRules();
-  const saved = rules.keepRun(torus);
-  const run = { saved, score: rules.formatPoints(saved.score) };
-  // The ship's guard, which blinks it, began as it first moved, the run's
-  // lead on the stray before the stray came.
-  const afterStrayMs =
-    Math.max(0, rules.newShipGuardMs - RUN.strayInMs) + STRAY_SETTLE_MS;
-  return withPage(devtools, VIEWPORT, (page) =>
-    capture(page, url, run, afterStrayMs),
-  );
+  const run = shownRun(await load(), torus);
+  return withPage(devtools, VIEWPORT, (page) => capture(page, url, run));
 }
 
 /**
- * Returns the options the command line sets.
+ * Returns the run shown on a field of a shape: kept as the game keeps it,
+ * stamped with the version the shell keeps it under, its score as the game
+ * writes it, and how long to wait once its stray is said.
  *
- * @returns {{url: string, chrome?: string} | undefined} Nothing when it asks
- *   only for help.
+ * @param {ScreenshotApi} api
+ * @param {FieldShape} torus
+ * @returns {ShownRun}
  */
-function parseCommandLine() {
-  const { values } = parseArgs({
-    options: {
+export function shownRun(api, torus) {
+  const saved = api.keptRun({ ...RUN, torus });
+  return {
+    stored: JSON.stringify({ version: api.savedGameVersion, ...saved }),
+    score: api.formatPoints(saved.score),
+    // The ship's guard, which blinks it, began as it first moved, the run's
+    // lead on the stray before the stray came.
+    afterStrayMs:
+      Math.max(0, api.newShipGuardMs - RUN.strayInMs) + STRAY_SETTLE_MS,
+  };
+}
+
+/**
+ * Returns the options a command line gives, or, for `--help`, or one the
+ * script can't read or whose `--url` is no http or https address, what to
+ * print and the code to exit with.
+ *
+ * @param {readonly string[]} args
+ * @returns {Options | Stop}
+ */
+export function readCommandLine(args) {
+  const values = readArgs(
+    args,
+    {
       url: { type: "string", default: "http://localhost:9005/" },
       chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
     },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
+    USAGE,
+  );
+  if ("code" in values) return values;
+  const protocol = URL.parse(values.url)?.protocol;
+  if (protocol !== "http:" && protocol !== "https:") {
+    return misread(
+      `--url takes an http or https address, not "${values.url}".`,
+      USAGE,
+    );
   }
   return { url: values.url, chrome: values.chrome };
 }
 
-async function main() {
-  const options = parseCommandLine();
-  if (!options) return;
-  await fetch(options.url).catch(() => {
-    throw new Error(
+/**
+ * Captures the screenshots a command line asks for, or prints its usage,
+ * and returns the code to exit with: 0, 1 if nothing answers at the server
+ * or the run couldn't be captured, or 2 for a command line it can't read,
+ * before Chrome starts.
+ *
+ * @param {readonly string[]} args
+ * @param {ScriptIo<ScreenshotApi>} [io]
+ * @returns {Promise<number>}
+ */
+export async function run(
+  args,
+  {
+    load = loadScreenshotApi,
+    print = CONSOLE.print,
+    printError = CONSOLE.printError,
+  } = {},
+) {
+  const options = readCommandLine(args);
+  if ("code" in options) return stopWith(options, print, printError);
+  const answers = await fetch(options.url).then(
+    () => true,
+    () => false,
+  );
+  if (!answers) {
+    printError(
       `Nothing answers at ${options.url}; start the game with yarn dev.`,
     );
-  });
+    return 1;
+  }
 
   const shot = await withChrome(
     { chrome: options.chrome, name: "asteroid-breaker" },
-    (devtools) => shapeAndCapture(devtools, options.url),
+    (devtools) => shapeAndCapture(devtools, options.url, load),
   );
   if ("problem" in shot) {
-    console.error(`Not captured: ${shot.problem}.`);
-    process.exitCode = 1;
-    return;
+    printError(`Not captured: ${shot.problem}.`);
+    return 1;
   }
-  console.log(
+  print(
     `Took up the run with a score of ${shot.page.score}, and went on with it as a stray drifted in.`,
   );
   const sizes = await writeSiteImages(shot.png, SCREENSHOT_DIR, {
     thumbRegion: thumbRegion(shot.page.field),
   });
   for (const [file, bytes] of sizes) {
-    console.log(`${file}: ${Math.round(bytes / 1024)} KB`);
+    print(`${file}: ${Math.round(bytes / 1024)} KB`);
   }
+  return 0;
 }
 
-await main();
+if (import.meta.main) process.exitCode = await run(process.argv.slice(2));

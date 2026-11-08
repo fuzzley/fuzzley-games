@@ -1030,3 +1030,62 @@ The review found no bug, and the specs failing for each clause removed:
    is gone.
 4. _No spec held that an ended run's frames buzz nothing:_ taken.
 5. _Names and wording:_ taken.
+
+### Step 6b: finding 7, the tools' contract with the source
+
+Built on `ab-tests`. `report:waves` and `capture:screenshots` each load one
+typed entry from `src/testing/`, `report_api.ts` and `screenshot_api.ts`,
+held to a contract, `script_api.ts`, that imports nothing, and the scripts
+`@import` its types, so a rename in the rules or the autopilot fails `tsc`
+on the entries and one in the contract fails it on the scripts. The entries'
+specs pin what they hand on, the fields, the waves, Endless and the speeds,
+since coverage can't see the entries as the scripts load them through
+Vite's `runnerImport`. The helpers the scripts load are fenced from Angular
+and kept off the clock as the rules are, by a named list, `SCRIPT_HELPERS`,
+whose fence flags an import of a file not on it. The saved game's version
+is the rules', beside `SavedGame`, and the screenshots stamp the run they
+keep with it through a pure `shownRun()`. Each script runs through a
+`run()` that returns its exit code, 0, 1 for a wave not cleared or nothing
+answering, and 2, with a usage, for an option it can't read or a `--url`
+that is no `http` or `https` address, its command line read by one shared
+`readArgs()` in `tools/command_line.mjs`.
+
+Where it went other than planned:
+
+- `tools/command_line.mjs` holds what both scripts read their command line
+  with, and moves into `@fz/dev` with finding 21, which `lib/dev` waits
+  for.
+- "Nothing answers at" was a thrown error with a stack; it is a printed one
+  now, still exit 1.
+- The rules are fenced off `src/testing/` too, which nothing held before.
+
+The first review found nothing broken:
+
+1. _Nothing pinned what the entries map to, and coverage shows them unrun:_
+   taken; the entries' own specs, in `pure`.
+2. _The exit codes lived in an unspecced `main()`:_ taken; `run()`, specced
+   for 0, 1 and 2.
+3. _`isUsageError()` three times and `Stop` twice, and a hand-typed
+   `values`:_ taken in the game, `tools/command_line.mjs`; `lib/dev`'s copy
+   waits for finding 21.
+4. _The fence named its files, and `deterministic()` didn't cover them:_
+   taken; both apply.
+5. _The saved game's key and version were copies:_ the version taken, into
+   the rules; the key stays a copy, naming its source, as the fenced
+   entries can't import the shell.
+6. _A list that could miss a field name, and long lines:_ taken.
+
+The second review, of what the answers added, found no blocker:
+
+1. _The list held only by a comment:_ taken; its fence flags an import of a
+   file not on it.
+2. _The version's stamping checked on one side only:_ taken; `shownRun()`.
+3. _A `--url` with no scheme read as a dead server, and exit 1 unspecced:_
+   taken.
+4. _Specs played the torus `playWave()` defaults to, so a dropped field
+   passed:_ taken; the widest.
+5. _The scripts shared the pieces of reading a command line but not the
+   pattern:_ taken; `readArgs()` and `CONSOLE`.
+6. _Docs said `saveGame()` stamps the version, which the shell does:_
+   taken.
+7. _The rules weren't fenced off `src/testing/`:_ taken.

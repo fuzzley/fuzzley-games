@@ -78,8 +78,9 @@ function keyedByThisConfig(): Plugin {
 export default defineConfig({
   test: {
     coverage: coverage({
-      // The specs' helpers are measured with no floor, so what of them goes
-      // untested shows.
+      // The specs' helpers and the scripts are measured with no floor, so
+      // what of them goes untested shows.
+      include: ["src/**/*.ts", "tools/**/*.mjs"],
       exclude: ["src/main.ts", "src/test-setup.ts"],
       thresholds: {
         // The rules and the view are held to a floor near 100%, since each
@@ -145,7 +146,11 @@ export default defineConfig({
         extends: false,
         test: {
           name: "pure",
-          ...nodeSpecs([...LAYER_SPECS, "src/testing/**/*.spec.ts"]),
+          ...nodeSpecs([
+            ...LAYER_SPECS,
+            "src/testing/**/*.spec.ts",
+            "tools/**/*.spec.ts",
+          ]),
           exclude: [
             ...configDefaults.exclude,
             ...SIMULATIONS,

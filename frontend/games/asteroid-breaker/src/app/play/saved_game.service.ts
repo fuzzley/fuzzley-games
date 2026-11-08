@@ -7,15 +7,12 @@ import {
   untracked,
 } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { restoreGame } from "../../rules/run/saved_game";
+import { SAVED_GAME_VERSION, restoreGame } from "../../rules/run/saved_game";
 import { GAME_WAVES } from "../tokens";
 import { GameService } from "./game.service";
 
 /** Where the run under way is kept. Renaming it loses every player's. */
 export const SAVED_GAME_KEY = "asteroid-breaker-game";
-
-/** The shape the run is kept in; a reader drops any other. */
-const SAVED_GAME_VERSION = 1;
 
 /**
  * Keeps the run under way, and takes it up again, paused, when the page

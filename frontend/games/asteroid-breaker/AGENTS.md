@@ -22,7 +22,8 @@ Endless (`asteroid-breaker-content`).
 - **UI:** [Angular](https://angular.dev/) (standalone components, signals,
   zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
   `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules and the view
-- **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
+- **Build Toolchain:** [Vite](https://vitejs.dev/) +
+  [AnalogJS Vite Angular Plugin](https://analogjs.org/)
 - **Test Framework:** [Vitest](https://vitest.dev/), in Node for the rules
   and the view, and in jsdom, with Testing Library and real Phaser run
   headless, for the scene and the shell
@@ -192,16 +193,17 @@ take for the layer.
   `withRecords()` moves them on by it, through `withRunStarted()`,
   `withRunEnded()`, `withStraysHome()` and `withClearedAll()`, and
   `isNewBest()` says whether a run's score beats the best. `saved_game.ts`
-  turns a run under way and its field into what storage keeps (`saveGame()`),
-  a run whose wave was just cleared as the next wave not yet begun, and back
+  turns a run under way and its field into what storage keeps
+  (`saveGame()`), which the shell keeps under `SAVED_GAME_VERSION`, a run
+  whose wave was just cleared as the next wave not yet begun, and back
   (`restoreGame()`), paused: the run read by `readRun()`, and its field by
   `src/rules/field/kept_field.ts`'s `readField()`, each dropping what fails
-  one of its checks, each named and exported, such as a wave the game doesn't
-  have under that number (`hasKnownWave()`), points or a crew that don't add
-  up (`hasSoundScore()`, `hasSoundCrew()`), or a wave kept as not yet begun
-  that is the one the run started at or has scored (`hasScored()`); and
-  `takeUpField()` lays the field kept out afresh as the run started its wave,
-  with what the run has scored on it (`waveSoFar()`).
+  one of its checks, each named and exported, such as a wave the game
+  doesn't have under that number (`hasKnownWave()`), points or a crew that
+  don't add up (`hasSoundScore()`, `hasSoundCrew()`), or a wave kept as not
+  yet begun that is the one the run started at or has scored
+  (`hasScored()`); and `takeUpField()` lays the field kept out afresh as the
+  run started its wave, with what the run has scored on it (`waveSoFar()`).
 - **`src/rules/waves/`** — the waves: a JSON file for each sector, its id,
   its name, its chance of a pickup and its ten waves, each written for a
   field of 40 by 40: its id and name, its rocks by kind, size and count,
@@ -498,11 +500,20 @@ take for the layer.
   board makes, the palette's roles, the shell's small waves, a run under
   way for the saved game's specs and the run the screenshots keep, as Tests
   below says. The app's tsconfig leaves it out, and lint lets it take
-  Angular by type alone.
+  Angular by type alone, but for what the scripts load (`SCRIPT_HELPERS`),
+  which lint holds to the rules' fence and keeps off the clock as it does
+  the rules, flagging a file of `src/testing/` they import off that list.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
   synthesizes the sounds; `report-waves.mjs` reports how the autopilot plays
   every wave; `check-layout.mjs` checks the build's layout in headless
   Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
+  A script that takes from the game loads one entry in `src/testing/`
+  through Vite, which exports one object of a type in
+  `src/testing/script_api.ts`. The report and the screenshots' script read
+  their command lines with `command_line.mjs`, export what they work out,
+  and run as `run()`, given what to load and where to print, which returns
+  the code to exit with, so their specs beside them, in `pure`, hold them
+  whole on an API of their own.
 
 ## The Field
 
@@ -679,8 +690,8 @@ workspace's with the others'.
   then its `sim` project, the specs that play every wave or lay every wave
   out, without), `yarn test:watch`, or
   `yarn vitest run --project <project> <path>` for one spec, which leaves
-  the floors alone: `pure` for one of the rules, the view or
-  `src/testing/`, `dom` for one of the scene, the shell or
+  the floors alone: `pure` for one of the rules, the view, `src/testing/`
+  or `tools/`, `dom` for one of the scene, the shell or
   `src/testing/belt_board.ts`, and `sim` for a simulation. Without
   `--project`, Vitest starts every project, Analog's plugin among them,
   and a spec of the rules takes three times as long.
@@ -693,16 +704,20 @@ workspace's with the others'.
   the autopilot in `src/testing/autopilot.ts` plays every wave at every
   speed on the narrowest field, or the widest with `--field wide` on its
   side or `--field tall` upright, from the wave's number as the seed, as
-  the autopilot's spec does, through `playWave()`. It prints the game time
-  each took and the strays it brought home, flown with nothing able to
-  take the ship, and the ships each cost as the spec plays it, and fails
-  if any play didn't clear its wave in time (`-`). It is how the climb
+  the autopilot's spec does, through `playWave()`, which it loads with the
+  rest of what it plays from `src/testing/report_api.ts` (`REPORT_API`).
+  It prints the game time each took and the strays it brought home, flown
+  with nothing able to take the ship, and the ships each cost as the spec
+  plays it, beside the waves' names, as wide as the longest, and fails if
+  any play didn't clear its wave in time (`-`). It is how the climb
   from wave to wave is tuned; `--seeds <n>` plays each wave from that many
   seeds of its own, since one seed's rocks and pickups can make a wave look
   far easier or harder than it is. `--endless` plays Endless's waves 31 to
   60 instead, each made from the seed it is played from, and fails only on
   a play that didn't clear its wave in time with nothing able to take the
-  ship, as Endless is held to being fair, not to what it costs).
+  ship, as Endless is held to being fair, not to what it costs. `--help`
+  prints its options, and an option it can't read exits with 2, saying
+  why, before anything is played).
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
@@ -727,18 +742,23 @@ workspace's with the others'.
   same bytes every run; their names and order are the view's `SOUNDS`,
   which the scene's spec holds them to).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
-  `tools/capture-screenshots.mjs` against the running dev server in headless
-  Chrome, through `@fz/dev/chrome`: it reads the field's shape the board lays
-  out at 1280 × 720, then a run kept by the rules on it (`keptRun()`, in
-  `src/testing/kept_run.ts`), begun on wave 9, Crowd, at Normal and played by
-  the autopilot until a second before its first stray, is taken up and gone on
-  with, firing, until the stray drifts in, at 2× on Casino night, written to
-  `public/docs/screenshots/asteroid-breaker/` as the site's `preview.webp`
-  (2560 × 1440), which `index.html` names as the link preview, and
-  `thumb.webp` (576 × 324, the field whole, with the bar above it, as the
-  field is wider than a thumbnail) by `@fz/dev/screenshots`; `--url` names
-  another server, such as `yarn preview`'s, and `--chrome <path>` or
-  `CHROME_PATH` picks the browser).
+  `tools/capture-screenshots.mjs` against the running dev server in
+  headless Chrome, through `@fz/dev/chrome`: it reads the field's shape the
+  board lays out at 1280 × 720, then a run kept by the rules on it
+  (`keptRun()`, in `src/testing/kept_run.ts`, which it loads through
+  `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the version the
+  shell keeps it under), begun on wave 9, Crowd, at Normal and played by
+  the autopilot until a second before its first stray, is taken up and
+  gone on with, firing, until the stray drifts in, at 2× on Casino night,
+  written to `public/docs/screenshots/asteroid-breaker/` as the site's
+  `preview.webp` (2560 × 1440), which `index.html` names as the link
+  preview, and `thumb.webp` (576 × 324, the field whole, with the bar above
+  it, as the field is wider than a thumbnail) by `@fz/dev/screenshots`;
+  `--url` names another server, an http or https address, such as
+  `yarn preview`'s, and `--chrome <path>` or `CHROME_PATH` picks the
+  browser. `--help` prints its options; an option it can't read exits with
+  2, saying why, and a server that doesn't answer with 1, both before
+  Chrome starts).
 
 ## Tests
 
@@ -753,15 +773,18 @@ other. Vitest runs the specs in three projects, each starting only what its
 own need. `sim` runs the specs that play every wave or lay every wave out,
 in Node, without the coverage that would triple their time, as the other
 rules specs alone hold the rules to their floor. `pure` runs the other specs
-of the rules, the view and `src/testing/` in Node too, which has no page, as
-nothing they test touches one. `dom` runs every other spec, the scene's, the
-shell's and that of `src/testing/belt_board.ts`, which runs the scene, in
-jsdom, after `src/test-setup.ts`, which installs `@fz/phaser/testing`'s
-headless Phaser first, so a scene's spec runs real Phaser through
-`runScene()`, with a fake shell over a pictured field. Coverage measures
-`dom` and `pure` together: the rules and the view to a floor near 100%, the
-scene and the shell to one a little under what their specs reach, raised as
-they rise, and `src/testing/` with none, so what of it goes untested shows.
+of the rules, the view, `src/testing/` and the scripts under `tools/` in
+Node too, which has no page, as nothing they test touches one. `dom` runs
+every other spec, the scene's, the shell's and that of
+`src/testing/belt_board.ts`, which runs the scene, in jsdom, after
+`src/test-setup.ts`, which installs `@fz/phaser/testing`'s headless Phaser
+first, so a scene's spec runs real Phaser through `runScene()`, with a fake
+shell over a pictured field. Coverage measures `dom` and `pure` together:
+the rules and the view to a floor near 100%, the scene and the shell to one
+a little under what their specs reach, raised as they rise, and
+`src/testing/` and the scripts with none, so what of them goes untested
+shows. It can't see what the scripts load through Vite, so the entries'
+own specs measure them.
 This workspace's `asteroid-breaker-testing` skill covers its setup, floors
 and fixtures, the repository's `angular-testing` the patterns every Angular
 workspace's specs share, and `phaser-core` the harness. What the specs share
@@ -795,9 +818,9 @@ of its own beside it:
   the widest either way up (`FIELDS`: `NARROWEST`, `WIDEST`, `TALLEST`), to
   being cleared by the autopilot within four minutes of game time
   (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them, its
-  tally adding up to its score (`holdEveryWave()`), and Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to
-  being cleared so with nothing able to take the ship
-  (`holdEveryEndlessWave()`); each speed's spec in
+  tally adding up to its score (`holdEveryWave()`), and Endless's waves 31
+  to 60 (`ENDLESS_PLAYED`) to being cleared so with nothing able to take
+  the ship (`holdEveryEndlessWave()`); each speed's spec in
   `src/rules/waves/every_wave/` and `src/rules/waves/every_endless_wave/`
   calls them with its own file, whose name is the speed it plays
   (`speed_specs.ts`'s `speedOfSpec()`, which throws for a file named for no
@@ -839,6 +862,16 @@ of its own beside it:
   each kind's points.
 - `kept_run.ts` keeps a run begun at a wave and played by the autopilot
   until its first stray is near (`keptRun()`), for the screenshots' script.
+- `report_api.ts` and `screenshot_api.ts` hold what `tools/report-waves.mjs`
+  and `tools/capture-screenshots.mjs` take from the game, each in one object
+  (`REPORT_API`, `SCREENSHOT_API`) the script loads through Vite, of a type
+  in `script_api.ts`, which imports nothing, so the scripts' JSDoc takes its
+  types and a name changed in the rules or the autopilot fails to compile;
+  their specs hold each to what it hands on. Lint holds them, the autopilot
+  and `kept_run.ts` (`SCRIPT_HELPERS` in `eslint.config.js`, which a file
+  of `src/testing/` they import must join, as lint says) to the rules'
+  fence and keeps them off the clock, as the scripts run them in Node and
+  the report counts on playing the same from a seed.
 
 The board's spec runs on `provideFakePhaserCanvas()`, and then with the real
 scene it loads; its card's spec renders the card alone, with no canvas, told

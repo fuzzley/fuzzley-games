@@ -68,11 +68,12 @@ Its block in a sector's file, its keys those of `WaveData`
 A sector holds ten waves, its last a boulder alone, so a new wave takes
 the place of one. Its number is its place across the sectors, and the
 waves each pickup first comes in go by number. The screenshots keep a run
-on wave 9, Crowd (`tools/capture-screenshots.mjs`).
+on wave 9, Crowd (`tools/capture-screenshots.mjs`), which
+`tools/capture-screenshots.spec.ts` keeps too.
 
 Then:
 
-1. `yarn vitest run --project pure --project sim src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/every_layout/`.
+1. `yarn vitest run --project pure --project sim src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/every_layout/ tools/capture-screenshots.spec.ts`.
 2. `yarn vitest run --project sim src/rules/waves/every_wave/ src/rules/waves/every_endless_wave/`, which plays it from its
    number as the seed.
 3. `yarn report:waves`, then with `--seeds 12`, and each again with
