@@ -1779,3 +1779,22 @@ The second, on that reshape, found no bug:
 4. _`import "."` got past the pattern:_ taken.
 5. _`escapeRegExp()`'s doc compared it with `RegExp.escape()`, which
    escapes far more than the `u` flag allows:_ taken.
+
+### Step 15g: finding 22, what `EventLog.next()` asks of its writer
+
+`next()`'s doc says its writer sets every field but the serial: once the
+ring has come round, the record still holds the oldest event, which the log
+doesn't clear, so as to cost nothing per event, and a field the writer
+skips keeps that event's value. Both breakers' writers already set every
+field, Brick Breaker's `add()` each by name and Asteroid Breaker's
+`record()` over a blank the type checker holds to every field; nothing
+else calls `next()`. `@fz/core`'s `AGENTS.md` and the `fuzzley-ui` skill
+say so too.
+
+The review found the doc right and both writers whole:
+
+1. _The new paragraph ran one 55-word sentence, put its warning last and
+   spoke of "every writer", which the library can't check:_ taken; its
+   writer's contract first, the reason after.
+2. _`@fz/core`'s `AGENTS.md` and the `fuzzley-ui` skill, which a new
+   game's author reads first, didn't carry the rule:_ taken.
