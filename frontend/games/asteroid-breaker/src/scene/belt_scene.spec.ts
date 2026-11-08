@@ -1,4 +1,5 @@
 import { NO_INSETS } from "@fz/phaser/insets";
+import { lineWidth } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import type { SceneRun } from "@fz/phaser/testing";
 import { Core, GameObjects, Textures } from "phaser";
@@ -73,7 +74,7 @@ import {
   pilotFrame,
 } from "../view/art/pilot_art";
 import { rockFrame, takenFrame } from "../view/art/rock_art";
-import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/art/shapes";
+import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
 import { SOUNDS } from "../view/effects/effects";
 import {

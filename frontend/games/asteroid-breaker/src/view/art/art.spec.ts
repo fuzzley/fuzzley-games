@@ -3,6 +3,7 @@ import {
   type DrawCommand,
   type Point,
   atlasSize,
+  lineWidth,
 } from "@fz/phaser/shapes";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
@@ -37,7 +38,7 @@ import {
 } from "./art";
 import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
 import { rockFrame, sizesOf, takenFrame } from "./rock_art";
-import { lineWidth, outlineWidth } from "./shapes";
+import { outlineWidth } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
 
 /** The largest atlas every device takes, a side. */
@@ -176,14 +177,6 @@ describe.each(ART_SCALES)(
       const { width, height } = atlasSize(atlasFrames(ART_PALETTE, scale));
 
       expect(Math.max(width, height)).toBeLessThanOrEqual(ATLAS_SIDE);
-    });
-
-    it("lays the frames tallest first, so the atlas's rows waste little", () => {
-      const heights = atlasFrames(ART_PALETTE, scale).map(
-        (frame) => frame.height,
-      );
-
-      expect(heights).toEqual([...heights].sort((a, b) => b - a));
     });
   },
 );

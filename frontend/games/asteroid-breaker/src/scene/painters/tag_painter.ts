@@ -1,10 +1,10 @@
 import { recordOf } from "@fz/core/records";
+import { lineWidth } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import type { EffectKind } from "../../rules/catalog/pickups";
 import { EFFECT_KINDS } from "../../rules/rocks/pickups";
 import type { Moving } from "../../rules/torus";
 import { tagFrame } from "../../view/art/art";
-import { lineWidth } from "../../view/art/shapes";
 import { toCanvas } from "../../view/field/field_metrics";
 import { TAG_RADIUS, tagX, tagY, timeLeft } from "../../view/field/tags";
 import { ATLAS } from "../atlas";

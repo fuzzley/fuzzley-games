@@ -1,4 +1,11 @@
-import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
+import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  lineWidth,
+  placed,
+} from "@fz/phaser/shapes";
 import {
   ROCK_KIND_IDS,
   type RockKindId,
@@ -29,7 +36,7 @@ import {
   sizesOf,
   takenFrame,
 } from "./rock_art";
-import { lineWidth, outlineWidth, placed } from "./shapes";
+import { outlineWidth } from "./shapes";
 
 /** How far a size may stray from what it should be and still pass, for a rounding. */
 const SLACK = 1e-9;
@@ -114,7 +121,7 @@ function outlinesOf(
 function bodyOf(frame: ArtFrame): readonly Point[] {
   const body = frame.commands[1];
   if (body?.kind !== "polygon") throw new Error(`${frame.name} has no body`);
-  return placed(body.points, 1, -frame.width / 2, -frame.height / 2);
+  return placed(body.points, 1, { x: -frame.width / 2, y: -frame.height / 2 });
 }
 
 /**

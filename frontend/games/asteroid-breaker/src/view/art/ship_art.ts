@@ -1,9 +1,14 @@
 import {
   type ArtFrame,
   type ArtScale,
+  ORIGIN,
   type Point,
+  centered,
   circle,
+  cubicPoints,
+  placed,
   polygon,
+  quadraticPoints,
   ring,
   widthOf,
 } from "@fz/phaser/shapes";
@@ -12,13 +17,9 @@ import type { BeltPalette } from "../colors/palette";
 import {
   MOST_LINE,
   MOST_MITER,
-  centered,
-  cubicPoints,
   dashedRing,
   outlineWidth,
   outward,
-  placed,
-  quadraticPoints,
 } from "./shapes";
 
 /** Describes the ship's outlines, in its own units, its nose along x. */
@@ -175,42 +176,37 @@ export function shipFrames(
   const body = (points: readonly Point[]): readonly Point[] =>
     placed(points, own);
   const parts = [...OUTLINES.fins, OUTLINES.hull].flatMap((points) => [
-    polygon(outward(body(points), outline), palette.outline),
-    polygon(body(points), palette.accent),
+    polygon(outward(body(points), outline), { color: palette.outline }),
+    polygon(body(points), { color: palette.accent }),
   ]);
   return [
     centered(SHIP_FRAMES.ship, [
       ...parts,
-      circle(
-        WINDOW.x * scale.unit,
-        0,
-        WINDOW.radius * scale.unit,
-        palette.field,
-      ),
+      circle({ x: WINDOW.x * scale.unit, y: 0 }, WINDOW.radius * scale.unit, {
+        color: palette.field,
+      }),
     ]),
     centered(SHIP_FRAMES.flame, [
-      polygon(placed(flameOutline(), own, -FLAME_BASE * own), palette.flame),
+      polygon(placed(flameOutline(), own, { x: -FLAME_BASE * own, y: 0 }), {
+        color: palette.flame,
+      }),
     ]),
     centered(
       SHIP_FRAMES.guard,
       dashedRing(
         RINGS.guard.radius * scale.unit,
-        widthOf(RINGS.guard.width, scale),
         {
           dash: GUARD_DASH.dash * scale.unit,
           gap: GUARD_DASH.gap * scale.unit,
         },
-        palette.accent,
+        { color: palette.accent, width: widthOf(RINGS.guard.width, scale) },
       ),
     ),
     centered(SHIP_FRAMES.shield, [
-      ring(
-        0,
-        0,
-        RINGS.shield.radius * scale.unit,
-        widthOf(RINGS.shield.width, scale),
-        palette.accent,
-      ),
+      ring(ORIGIN, RINGS.shield.radius * scale.unit, {
+        color: palette.accent,
+        width: widthOf(RINGS.shield.width, scale),
+      }),
     ]),
   ];
 }

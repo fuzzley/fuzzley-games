@@ -3,6 +3,7 @@ import {
   type ArtScale,
   type DrawCommand,
   extentOf,
+  lineWidth,
 } from "@fz/phaser/shapes";
 import { BALL_KIND_IDS } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
@@ -24,7 +25,6 @@ import {
   mapPictures,
   tagFrame,
 } from "./art";
-import { lineWidth } from "./shapes";
 
 /** The scales a field is drawn at, from the smallest unit the layout allows to a large one at a pixel ratio of 3. */
 const SCALES: readonly ArtScale[] = [
@@ -36,13 +36,13 @@ const SCALES: readonly ArtScale[] = [
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
-  const [left, top, right, bottom] = extentOf(command);
+  const { x, y, width, height } = extentOf(command);
   const slack = 1e-9;
   return (
-    left >= -slack &&
-    top >= -slack &&
-    right <= frame.width + slack &&
-    bottom <= frame.height + slack
+    x >= -slack &&
+    y >= -slack &&
+    x + width <= frame.width + slack &&
+    y + height <= frame.height + slack
   );
 }
 

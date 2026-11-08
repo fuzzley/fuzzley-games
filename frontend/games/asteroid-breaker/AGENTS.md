@@ -333,10 +333,12 @@ takes for the specs' helpers.
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
   pilots, each the fuzzball in its ink, in the ship's window or adrift;
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
-  drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), and `shapes.ts`
-  holds the game's own helpers over them, `lineWidth()` and `stroke()`
-  among them. Each piece that wraps says how far its frame reaches from its
-  middle (`SHOT_REACH`, `PICKUP_REACH`, `ROCK_REACH`, `SHIP_REACH`), its own
+  drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), with its
+  builders, curves and transforms, and `shapes.ts` holds the game's own
+  helpers over them: the scale the atlas is baked at, the outline's width,
+  the dashed rings and the outlines grown outward (`outward()`). Each piece
+  that wraps says how far its frame reaches from its middle (`SHOT_REACH`,
+  `PICKUP_REACH`, `ROCK_REACH`, `SHIP_REACH`), its own
   extent and its outline at the widest a line gets (`MOST_LINE`), a rock's
   and the ship's mitred out at a sharp corner as far as an outline may
   reach (`MOST_MITER`), and the ship's covering its rings too, which the

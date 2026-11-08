@@ -7,15 +7,19 @@ import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
+  ORIGIN,
   type Point,
+  centered,
   circle,
+  ellipsePoints,
   polygon,
+  quadraticPoints,
+  stroke,
 } from "@fz/phaser/shapes";
 import { PILOT_COLORS, type Pilot } from "../../rules/ship/pilots";
 import type { Moving, Place } from "../../rules/torus";
 import { STRAY_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
-import { centered, ellipsePoints, quadraticPoints, stroke } from "./shapes";
 import { WINDOW } from "./ship_art";
 
 /** Names where a pilot is drawn: in the ship's window, or adrift in a stray's bubble or bailing out. */
@@ -172,16 +176,15 @@ export function fuzzballCommands(
   color: number,
 ): readonly DrawCommand[] {
   const by = size / GRID;
-  const width = FUZZBALL.fur.width * by;
+  const fur = { color, width: FUZZBALL.fur.width * by };
   return [
-    circle(0, 0, FUZZBALL.body.r * by, color),
+    circle(ORIGIN, FUZZBALL.body.r * by, { color }),
     // Each strand round at its ends, as the fuzzball's path caps it.
     ...STRANDS.flatMap(({ from, control, to }) => {
       const start = onGrid(from, by);
       return stroke(
         [start, ...quadraticPoints(start, onGrid(control, by), onGrid(to, by))],
-        width,
-        color,
+        fur,
       );
     }),
   ];
@@ -195,17 +198,21 @@ export function eyesCommands(
   const by = size / GRID;
   const glints = FUZZBALL.glints.filter((glint) => glint.r * by >= LEAST_GLINT);
   return [
-    ...FUZZBALL.eyes.map((eye) => {
-      const middle = onGrid({ x: eye.cx, y: eye.cy }, by);
-      return polygon(
-        ellipsePoints(middle.x, middle.y, eye.rx * by, eye.ry * by),
-        palette.eyes,
-      );
-    }),
-    ...glints.map((glint) => {
-      const middle = onGrid({ x: glint.cx, y: glint.cy }, by);
-      return circle(middle.x, middle.y, glint.r * by, palette.glint);
-    }),
+    ...FUZZBALL.eyes.map((eye) =>
+      polygon(
+        ellipsePoints(
+          onGrid({ x: eye.cx, y: eye.cy }, by),
+          eye.rx * by,
+          eye.ry * by,
+        ),
+        { color: palette.eyes },
+      ),
+    ),
+    ...glints.map((glint) =>
+      circle(onGrid({ x: glint.cx, y: glint.cy }, by), glint.r * by, {
+        color: palette.glint,
+      }),
+    ),
   ];
 }
 

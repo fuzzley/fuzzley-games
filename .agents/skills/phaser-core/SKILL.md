@@ -59,6 +59,15 @@ beside a deck of controls for a touch screen.
   the vocabulary a game's art is drawn in, each shape of a frame as plain
   data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.
+  Its builders take the geometry first, an `Area`, a `Point` and a radius,
+  or a list of `Point`s, and the style last, `{ color }` to fill and
+  `{ color, width }` to stroke (`ring(ORIGIN, radius, { color, width })`),
+  and `extentOf()` gives back an `Area`. The art's line (`lineWidth()`),
+  round-ended lines (`stroke()`), the points of curves (`arcPoints()` and
+  the rest), what moves, scales and frames a drawing (`shifted()`,
+  `scaledBy()`, `centered()`, `bounded()`) and a symbol's dots and rims in
+  a square (`dotIn()`, `discIn()`, `rimIn()`) are there too, so a game draws
+  with them rather than its own copies.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
   a `phaser` chunk of its own, `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser
@@ -163,8 +172,9 @@ scene without shutting it down first, so the end is whichever comes first.
 - `bakeTexture()` draws a texture at run time, with a throwaway `Graphics`,
   and draws it again after a lost WebGL context, which Phaser restores only
   for textures it loaded. `bakeAtlas()` does the same for many frames in
-  one texture, packed in rows with a gutter, each a named frame of it, so
-  the objects showing them draw in one batch. Baked again, it moves its
+  one texture, each a named frame of it, so the objects showing them draw
+  in one batch. It packs them in rows with a gutter, tallest first, so a
+  game hands them over in any order. Baked again, it moves its
   frames and keeps their objects, but an object showing one takes its new
   size and origin only once it sets the frame again (`setFrame()`, or
   `setTexture()` for a `NineSlice`), and one left on a frame the new bake

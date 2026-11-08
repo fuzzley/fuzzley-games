@@ -114,20 +114,44 @@ export function widthOf(units: number, scale: ArtScale): number {
   return Math.max(Math.ceil(scale.pixelRatio), Math.round(scale.unit * units));
 }
 
-// The shapes with a size take none below nothing, and their radii clamp: a
-// unit too small for an inset, as a canvas has before it is laid out, would
-// give them one, and a canvas throws at a negative radius.
+/** How wide the art's lines are, in field units, where that is more than a CSS pixel. */
+const LINE = 0.06;
 
-/** Returns a rectangle filled in a color, no smaller than nothing. */
-export function rect(area: Area, color: number): RectCommand {
-  return { kind: "rect", ...sized(area), color };
+/** Returns how wide the art's lines are, in whole device pixels: a CSS pixel at least. */
+export function lineWidth(scale: ArtScale): number {
+  return widthOf(LINE, scale);
 }
 
-/** Returns a rectangle with rounded corners filled in a color, no smaller than nothing, its radius at most half its shorter side. */
+/** Says what a filled shape is filled in. */
+export interface FillStyle {
+  readonly color: number;
+}
+
+/** Says what a line is drawn in, and how wide it is. */
+export interface LineStyle {
+  readonly color: number;
+  readonly width: number;
+}
+
+/** The point a drawing about its middle is drawn about. */
+export const ORIGIN: Point = { x: 0, y: 0 };
+
+// Every builder takes its place as a named shape, an area, a point and a
+// radius or a list of points, then its style. The shapes with a size take
+// none below nothing, and their radii clamp: a unit too small for an inset,
+// as a canvas has before it is laid out, would give them one, and a canvas
+// throws at a negative radius.
+
+/** Returns a rectangle filled over an area, no smaller than nothing. */
+export function rect(area: Area, style: FillStyle): RectCommand {
+  return { kind: "rect", ...sized(area), color: style.color };
+}
+
+/** Returns a rectangle with rounded corners filled over an area, no smaller than nothing, its corners' radius at most half its shorter side. */
 export function roundRect(
   area: Area,
   radius: number,
-  color: number,
+  style: FillStyle,
 ): RoundRectCommand {
   const box = sized(area);
   const most = Math.min(box.width, box.height) / 2;
@@ -135,56 +159,85 @@ export function roundRect(
     kind: "roundRect",
     ...box,
     radius: Math.min(Math.max(radius, 0), most),
-    color,
+    color: style.color,
   };
 }
 
-/** Returns a circle filled in a color. */
+/** Returns a circle filled about a middle. */
 export function circle(
-  x: number,
-  y: number,
+  middle: Point,
   radius: number,
-  color: number,
+  style: FillStyle,
 ): CircleCommand {
-  return { kind: "circle", x, y, radius: Math.max(0, radius), color };
+  return {
+    kind: "circle",
+    x: middle.x,
+    y: middle.y,
+    radius: Math.max(0, radius),
+    color: style.color,
+  };
 }
 
-/** Returns a circle's outline in a color. */
+/** Returns a circle's outline about a middle. */
 export function ring(
-  x: number,
-  y: number,
+  middle: Point,
   radius: number,
-  width: number,
-  color: number,
+  style: LineStyle,
 ): RingCommand {
-  return { kind: "ring", x, y, radius: Math.max(0, radius), width, color };
+  return {
+    kind: "ring",
+    x: middle.x,
+    y: middle.y,
+    radius: Math.max(0, radius),
+    width: style.width,
+    color: style.color,
+  };
 }
 
-/** Returns a straight line from a point to another, in a color. */
-export function line(
-  from: Point,
-  to: Point,
-  width: number,
-  color: number,
-): LineCommand {
-  return { kind: "line", from, to, width, color };
+/** Returns a straight line from a point to another. */
+export function line(from: Point, to: Point, style: LineStyle): LineCommand {
+  return { kind: "line", from, to, width: style.width, color: style.color };
 }
 
-/** Returns a line through points in turn, in a color. */
+/** Returns a line through points in turn, drawn as one path. */
 export function polyline(
   points: readonly Point[],
-  width: number,
-  color: number,
+  style: LineStyle,
 ): PolylineCommand {
-  return { kind: "polyline", points, width, color };
+  return {
+    kind: "polyline",
+    points,
+    width: style.width,
+    color: style.color,
+  };
 }
 
-/** Returns a polygon filled in a color. */
+/** Returns a polygon filled within points. */
 export function polygon(
   points: readonly Point[],
-  color: number,
+  style: FillStyle,
 ): PolygonCommand {
-  return { kind: "polygon", points, color };
+  return { kind: "polygon", points, color: style.color };
+}
+
+/**
+ * Returns a line through points in turn, round at its ends and its
+ * corners: a straight line between each two, and a dot as wide at each.
+ *
+ * It is drawn so rather than as a {@link polyline}, as a canvas joins a
+ * path's corners in points that reach past its width, so what it draws,
+ * and so its frame's size, would hang on the renderer.
+ */
+export function stroke(
+  points: readonly Point[],
+  style: LineStyle,
+): readonly DrawCommand[] {
+  return [
+    ...points.flatMap((from, i) =>
+      points.slice(i + 1, i + 2).map((to) => line(from, to, style)),
+    ),
+    ...points.map((point) => circle(point, style.width / 2, style)),
+  ];
 }
 
 /** Returns an area no narrower and no shorter than nothing. */
@@ -198,33 +251,49 @@ function sized(area: Area): Area {
 }
 
 /**
- * Returns the left, top, right and bottom of what a command draws.
+ * Returns the area what a command draws covers.
  *
  * A polyline reaches half its width past its points, the points its
  * corners are joined in aside.
  */
-export function extentOf(
-  command: DrawCommand,
-): readonly [number, number, number, number] {
+export function extentOf(command: DrawCommand): Area {
+  const { left, top, right, bottom } = edgesOf(command);
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+/** Says how far a drawing reaches each way: its left, top, right and bottom. */
+export interface Edges {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+/**
+ * Returns how far what a command draws reaches each way, as
+ * {@link extentOf} does, its right and bottom as reached rather than worked
+ * out from a width, so a frame sized by them takes no rounding.
+ */
+export function edgesOf(command: DrawCommand): Edges {
   switch (command.kind) {
     case "rect":
     case "roundRect":
-      return [
-        command.x,
-        command.y,
-        command.x + command.width,
-        command.y + command.height,
-      ];
+      return {
+        left: command.x,
+        top: command.y,
+        right: command.x + command.width,
+        bottom: command.y + command.height,
+      };
     case "circle":
     case "ring": {
       const reach =
         command.radius + (command.kind === "ring" ? command.width / 2 : 0);
-      return [
-        command.x - reach,
-        command.y - reach,
-        command.x + reach,
-        command.y + reach,
-      ];
+      return {
+        left: command.x - reach,
+        top: command.y - reach,
+        right: command.x + reach,
+        bottom: command.y + reach,
+      };
     }
     case "line": {
       // An end is cut straight across the line, half its width either side of its point.
@@ -232,24 +301,24 @@ export function extentOf(
       const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
       const across = (Math.abs(to.y - from.y) / length) * (command.width / 2);
       const down = (Math.abs(to.x - from.x) / length) * (command.width / 2);
-      return [
-        Math.min(from.x, to.x) - across,
-        Math.min(from.y, to.y) - down,
-        Math.max(from.x, to.x) + across,
-        Math.max(from.y, to.y) + down,
-      ];
+      return {
+        left: Math.min(from.x, to.x) - across,
+        top: Math.min(from.y, to.y) - down,
+        right: Math.max(from.x, to.x) + across,
+        bottom: Math.max(from.y, to.y) + down,
+      };
     }
     case "polyline":
     case "polygon": {
       const half = command.kind === "polyline" ? command.width / 2 : 0;
       const xs = command.points.map((point) => point.x);
       const ys = command.points.map((point) => point.y);
-      return [
-        Math.min(...xs) - half,
-        Math.min(...ys) - half,
-        Math.max(...xs) + half,
-        Math.max(...ys) + half,
-      ];
+      return {
+        left: Math.min(...xs) - half,
+        top: Math.min(...ys) - half,
+        right: Math.max(...xs) + half,
+        bottom: Math.max(...ys) + half,
+      };
     }
   }
 }

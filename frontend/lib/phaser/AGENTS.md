@@ -37,13 +37,30 @@ take the pure ones.
   frame as plain data in device pixels: `DrawCommand`, a rectangle, a
   rounded one, a circle, a ring, a line, a polyline or a polygon, each with
   its builder, which takes no size and no radius below nothing, as a canvas
-  not yet laid out can give one; `ArtFrame`, a frame of an atlas drawn in
-  them; `extentOf()`, how far a shape reaches, which a game frames its
-  drawings by, short of a polyline's mitred corners; `ArtScale` and
-  `widthOf()`, a width in field units as whole device pixels; and
-  `atlasSize()`, how big the atlas of a set of frames is, packed as
-  `bakeAtlas()` packs them (`src/shapes/packing.ts`), so a game's spec can
-  hold it to a size without Phaser. It imports nothing.
+  not yet laid out can give one. Every builder takes its geometry first, as
+  an `Area`, a `Point` and a radius, or a list of `Point`s, and its style
+  last, a `FillStyle` (`{ color }`) for what it fills and a `LineStyle`
+  (`{ color, width }`) for what it strokes, so a line's style fills a dot
+  too: `circle(ORIGIN, radius, { color })`,
+  `ring(middle, radius, { color, width })`. `stroke()` draws a line through
+  points with round ends and corners; `ArtFrame` is a frame of an atlas
+  drawn in them; `extentOf()`, the `Area` a shape reaches over, short of a
+  polyline's mitred corners, which a spec holds a drawing inside its frame
+  by; `ArtScale` and `widthOf()`, a width in field units as whole device
+  pixels, and `lineWidth()`, the art's own line at a scale. Beside them,
+  `src/shapes/curves.ts` gives the points of an arc, an ellipse and a
+  quadratic or cubic curve, to draw as a polyline or a polygon;
+  `src/shapes/transforms.ts` moves (`shifted()`) and scales (`scaledBy()`)
+  a shape, and places points (`placed()`), and frames a drawing about its
+  origin (`centered()`) or about the middle of its own bounds
+  (`bounded()`), in whole pixels, which is how a game frames its drawings;
+  and `src/shapes/symbols.ts` draws in a square, as a pickup's or a
+  capsule's symbol is, its places and sizes as shares of the square:
+  `dotIn()` anywhere in it, `discIn()` and `rimIn()` about its middle, and
+  the lines' `symbolLineStyle()`. `atlasSize()` is how big the atlas of a set of
+  frames is, packed as `bakeAtlas()` packs them, in rows, tallest first,
+  frames of one height in the order given (`src/shapes/packing.ts`), so a
+  game's spec can hold it to a size without Phaser. It imports nothing.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
   it, building the next before it lets go of the last, its `show()` settling

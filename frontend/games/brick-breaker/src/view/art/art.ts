@@ -5,6 +5,7 @@ import {
   type DrawCommand,
   type Point,
   circle,
+  lineWidth,
   polygon,
   rect,
   ring,
@@ -29,20 +30,12 @@ import {
 } from "../../rules/tuning";
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
-import {
-  frameAround,
-  inset,
-  lineWidth,
-  middleSquare,
-  star,
-  within,
-} from "./shapes";
+import { frameAround, inset, middleSquare, star, within } from "./shapes";
 import { SYMBOLS } from "./symbols";
 
-/** Draws what lies inside a ball's outline, in a circle at a point. */
+/** Draws what lies inside a ball's outline, in a circle about a middle. */
 export type DrawBall = (
-  x: number,
-  y: number,
+  middle: Point,
   radius: number,
   palette: BricksPalette,
   scale: ArtScale,
@@ -117,17 +110,19 @@ const TAG_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
 
 /** How each kind of ball is drawn inside its outline: in its color, with its one mark. */
 export const BALL_ART = {
-  normal: (x, y, radius, palette) => [
-    circle(x, y, radius, palette.balls.normal),
+  normal: (middle, radius, palette) => [
+    circle(middle, radius, { color: palette.balls.normal }),
   ],
   // A spark, which holds still; where motion is welcome, embers trail it too.
-  fire: (x, y, radius, palette) => [
-    circle(x, y, radius, palette.balls.fire),
-    polygon(star(x, y, radius * 0.62, radius * 0.22, 4), palette.mark),
+  fire: (middle, radius, palette) => [
+    circle(middle, radius, { color: palette.balls.fire }),
+    polygon(star(middle, radius * 0.62, radius * 0.22, 4), {
+      color: palette.mark,
+    }),
   ],
-  blast: (x, y, radius, palette, scale) => [
-    circle(x, y, radius, palette.balls.blast),
-    ring(x, y, radius / 2, lineWidth(scale), palette.mark),
+  blast: (middle, radius, palette, scale) => [
+    circle(middle, radius, { color: palette.balls.blast }),
+    ring(middle, radius / 2, { color: palette.mark, width: lineWidth(scale) }),
   ],
 } as const satisfies Readonly<Record<BallKindId, DrawBall>>;
 
@@ -136,8 +131,8 @@ export const CAPSULE_ART = {
   good: ({ width, height, line, outline, body }) => {
     const whole = { x: 0, y: 0, width, height };
     return [
-      roundRect(whole, height / 2, outline),
-      roundRect(inset(whole, line), height / 2 - line, body),
+      roundRect(whole, height / 2, { color: outline }),
+      roundRect(inset(whole, line), height / 2 - line, { color: body }),
     ];
   },
   bad: ({ width, height, line, outline, body }) => {
@@ -159,8 +154,8 @@ export const CAPSULE_ART = {
       { x: toNotch, y: half },
     ];
     return [
-      polygon(shape(0, 0, notch), outline),
-      polygon(shape(line, corner, notch + across), body),
+      polygon(shape(0, 0, notch), { color: outline }),
+      polygon(shape(line, corner, notch + across), { color: body }),
     ];
   },
 } as const satisfies Readonly<Record<CapsuleTone, DrawCapsule>>;
@@ -187,20 +182,14 @@ function ballArt(
   scale: ArtScale,
 ): ArtFrame {
   const side = Math.max(3, Math.round(2 * BALL_RADIUS * scale.unit));
-  const middle = side / 2;
+  const middle = { x: side / 2, y: side / 2 };
   return {
     name: BALL_FRAMES[kind],
     width: side,
     height: side,
     commands: [
-      circle(middle, middle, middle, palette.outline),
-      ...BALL_ART[kind](
-        middle,
-        middle,
-        middle - lineWidth(scale),
-        palette,
-        scale,
-      ),
+      circle(middle, side / 2, { color: palette.outline }),
+      ...BALL_ART[kind](middle, side / 2 - lineWidth(scale), palette, scale),
     ],
   };
 }
@@ -229,7 +218,7 @@ function capsuleArt(
         outline: palette.outline,
         body: palette.capsules[tone],
       }),
-      ...SYMBOLS[id](square, palette.mark, line),
+      ...SYMBOLS[id](square, { color: palette.mark, width: line }),
     ],
   };
 }
@@ -247,8 +236,7 @@ function tagArt(
     height: side,
     commands: SYMBOLS[id](
       { x: 0, y: 0, width: side, height: side },
-      palette.capsules[capsule(id).tone],
-      lineWidth(scale),
+      { color: palette.capsules[capsule(id).tone], width: lineWidth(scale) },
     ),
   };
 }
@@ -286,14 +274,18 @@ function otherArt(
       name: FRAMES.paddle,
       width: paddle,
       height: paddle,
-      commands: [circle(paddle / 2, paddle / 2, paddle / 2, palette.paddle)],
+      commands: [
+        circle({ x: paddle / 2, y: paddle / 2 }, paddle / 2, {
+          color: palette.paddle,
+        }),
+      ],
     },
     {
       name: FRAMES.cannon,
       width: cannon.width,
       height: cannon.height,
       commands: [
-        roundRect(cannon, line, palette.paddle),
+        roundRect(cannon, line, { color: palette.paddle }),
         rect(
           {
             x: (cannon.width - line) / 2,
@@ -301,7 +293,7 @@ function otherArt(
             width: line,
             height: cannon.height - 2 * line,
           },
-          palette.mark,
+          { color: palette.mark },
         ),
       ],
     },
@@ -309,7 +301,7 @@ function otherArt(
       name: FRAMES.bolt,
       width: bolt.width,
       height: bolt.height,
-      commands: [roundRect(bolt, bolt.width / 2, palette.paddle)],
+      commands: [roundRect(bolt, bolt.width / 2, { color: palette.paddle })],
     },
     {
       name: FRAMES.shard,
@@ -322,7 +314,7 @@ function otherArt(
             [1, 0.6],
             [0.35, 0],
           ]),
-          0xffffff,
+          { color: 0xffffff },
         ),
       ],
     },
@@ -330,27 +322,28 @@ function otherArt(
       name: FRAMES.ember,
       width: ember,
       height: ember,
-      commands: [circle(ember / 2, ember / 2, ember / 2, palette.balls.fire)],
+      commands: [
+        circle({ x: ember / 2, y: ember / 2 }, ember / 2, {
+          color: palette.balls.fire,
+        }),
+      ],
     },
     {
       name: FRAMES.ring,
       width: blastRing,
       height: blastRing,
       commands: [
-        ring(
-          blastRing / 2,
-          blastRing / 2,
-          blastRing / 2 - line,
-          2 * line,
-          palette.bricks.blast,
-        ),
+        ring({ x: blastRing / 2, y: blastRing / 2 }, blastRing / 2 - line, {
+          color: palette.bricks.blast,
+          width: 2 * line,
+        }),
       ],
     },
     {
       name: FRAMES.glow,
       width: glow.width,
       height: glow.height,
-      commands: frameAround(glow, 2 * line, palette.glow),
+      commands: frameAround(glow, { color: palette.glow, width: 2 * line }),
     },
   ];
 }

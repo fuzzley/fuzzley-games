@@ -1,10 +1,10 @@
 import { lerp } from "@fz/core/math";
 import { recordOf } from "@fz/core/records";
+import { lineWidth } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_KINDS } from "../../rules/bricks/capsules";
 import { type EffectKind, capsule } from "../../rules/catalog/capsules";
 import { tagFrame } from "../../view/art/art";
-import { lineWidth } from "../../view/art/shapes";
 import { toCanvasX, toCanvasY } from "../../view/field/field_metrics";
 import {
   TAG_RADIUS,
