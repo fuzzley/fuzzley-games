@@ -13,7 +13,6 @@ import type { ArtScale } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
-import { ROCK_RADIUS } from "../rules/tuning";
 import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art/art";
 import {
   type FieldCommand,
@@ -22,27 +21,18 @@ import {
 } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
 import {
-  type Flourish,
   type SoundName,
   THRUST,
   createFrameSounds,
   detuneOf,
   effectsOf,
   flourishesOf,
-  rockKindOf,
-  rockSizeOf,
 } from "../view/effects/effects";
 import {
   type BoardSetting,
   type FieldMetrics,
   fieldMetrics,
 } from "../view/field/field_metrics";
-import {
-  ringColorOf,
-  ringReachOf,
-  shardCount,
-  wayOf,
-} from "../view/effects/flourish";
 import type {
   FieldEvent,
   FieldFrame,
@@ -51,12 +41,11 @@ import type {
 } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
-import { rockColor } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
-import { BURST_SHARDS } from "../view/effects/timing";
 import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
 import { FieldCamera } from "./field_camera";
+import { FlourishPlayer } from "./flourish_player";
 import { DebrisPainter } from "./painters/debris_painter";
 import { DeckPainter } from "./painters/deck_painter";
 import { ExhaustPainter } from "./painters/exhaust_painter";
@@ -172,7 +161,12 @@ export class BeltScene extends Scene {
    * draws and each bake refreshes.
    */
   private painters: readonly Painter[] = [];
-  /** What the painters draw each frame from, which the scene writes over. */
+  /** Plays each event's flourishes on the painters and the field's camera. */
+  private flourishPlayer!: FlourishPlayer;
+  /**
+   * What each frame's flourishes play from and its painters draw from, which
+   * the scene writes over.
+   */
   private context!: PaintContext;
   /** Turns the keys, the mouse and the fingers into each frame's steering. */
   private steering!: Steering;
@@ -261,6 +255,15 @@ export class BeltScene extends Scene {
       this.deck,
       this.fieldCamera,
     ];
+    this.flourishPlayer = new FlourishPlayer({
+      debris: this.debris,
+      rings: this.rings,
+      trail: this.trail,
+      rocks: this.rocks,
+      points: this.points,
+      strays: this.strays,
+      camera: this.fieldCamera,
+    });
     this.cameras.main.ignore([this.layers.frame, this.layers.deck]);
     // Over the whole canvas, which Phaser keeps it to as the canvas changes size.
     this.deckCamera = this.cameras.add();
@@ -319,11 +322,12 @@ export class BeltScene extends Scene {
     }
     if (stale) this.rebake();
     if (frame.field !== this.shownField) this.startField(frame.field);
+    this.stage(frame);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
     this.frameSounds.playEach(this.sounds.playRisen);
     this.sounds.hold(THRUST, this.options.thrusting());
-    this.draw(frame);
+    for (const painter of this.painters) painter.draw(this.context);
   }
 
   /**
@@ -336,93 +340,16 @@ export class BeltScene extends Scene {
     if (effects.sound) this.frameSounds.hear(effects.sound, detuneOf(event));
     const flourishes = flourishesOf(effects, this.context.motion);
     for (const flourish of flourishes) {
-      this.flourish(flourish, event, this.shownField);
+      this.flourishPlayer.play(flourish, event, this.context);
     }
   };
 
-  /** Plays one of an event's flourishes on the field it happened on. */
-  private flourish(
-    flourish: Flourish,
-    event: Readonly<FieldEvent>,
-    field: FieldView,
-  ): void {
-    const { now } = this.context;
-    const palette = this.painted;
-    const { x, y } = event;
-    switch (flourish) {
-      case "shards":
-        this.debris.shatter(
-          x,
-          y,
-          rockColor(rockKindOf(event), palette),
-          shardCount(event.serial),
-          this.metrics,
-          this.zoom(),
-        );
-        return;
-      case "dust":
-        this.debris.puff(
-          x,
-          y,
-          ROCK_RADIUS[rockSizeOf(event)],
-          rockColor(rockKindOf(event), palette),
-          now,
-        );
-        return;
-      case "kick":
-        this.fieldCamera.kick(event.wayX, event.wayY, now);
-        return;
-      case "flash":
-        this.rocks.flashSlot(event.slot, now);
-        return;
-      case "spark":
-        this.debris.spark(
-          x,
-          y,
-          ROCK_RADIUS[rockSizeOf(event)],
-          wayOf(event.serial),
-          palette.flame,
-          now,
-        );
-        return;
-      case "ring":
-        this.rings.ring(
-          x,
-          y,
-          ringReachOf(event),
-          ringColorOf(event, palette),
-          now,
-        );
-        return;
-      case "points":
-        this.points.show(event, now);
-        return;
-      case "trail":
-        this.trail.lay(x, y, event.wayX, event.wayY, field.steps);
-        return;
-      case "burst":
-        this.debris.shatter(
-          x,
-          y,
-          palette.accent,
-          BURST_SHARDS,
-          this.metrics,
-          this.zoom(),
-        );
-        return;
-      case "bailout":
-        if (event.pilot !== null) {
-          this.strays.bailOut(x, y, event.pilot, wayOf(event.serial), now);
-        }
-        return;
-      case "shake":
-        this.fieldCamera.shake(now);
-        return;
-    }
-  }
-
-  /** Has each painter draw the field as it stands, in its layer. */
-  private draw({ field, alpha, seed, constellation }: FieldFrame): void {
+  /**
+   * Writes the frame, and how the scene now lays the field out and paints
+   * it, into the context the frame's flourishes play from and its painters
+   * draw from.
+   */
+  private stage({ field, alpha, seed, constellation }: FieldFrame): void {
     const context = this.context;
     context.field = field;
     context.alpha = alpha;
@@ -432,7 +359,6 @@ export class BeltScene extends Scene {
     context.metrics = this.metrics;
     context.palette = this.painted;
     context.zoom = this.zoom();
-    for (const painter of this.painters) painter.draw(context);
   }
 
   /**

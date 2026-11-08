@@ -57,13 +57,22 @@ export const CANVAS = { width: 800, height: 500 } as const;
 /** A larger canvas, for the field to be laid out on again at a larger unit. */
 export const WIDER = { width: 1000, height: 600 } as const;
 
+/**
+ * A place on the field away from its edges and the keeper, where a spec's
+ * events happen.
+ */
+export const MIDDLE = { x: 30, y: 20 } as const;
+
 /** What the scene handed the shell on a frame. */
 interface Tick {
   readonly deltaMs: number;
   readonly steer: Steer;
 }
 
-/** What the scene told the shell as it laid the field out: the canvas, and where the field lies on it. */
+/**
+ * What the scene told the shell as it laid the field out: the canvas, and where
+ * the field lies on it.
+ */
 interface Layout {
   readonly canvas: Viewport;
   readonly field: CssRect;
@@ -151,7 +160,10 @@ export function stepping(shell: FakeShell): void {
   shell.stepsField = true;
 }
 
-/** A scene running for a spec: the shell it plays to, the run that steps it, its scene, and the element its keyboard listens on. */
+/**
+ * A scene running for a spec: the shell it plays to, the run that steps it, its
+ * scene, and the element its keyboard listens on.
+ */
 export interface Board {
   readonly shell: FakeShell;
   readonly run: SceneRun<BeltScene>;
@@ -160,7 +172,10 @@ export interface Board {
   readonly keys: HTMLElement;
 }
 
-/** Runs the scene for a shell on a canvas, its first frame drawn, till the case that runs it finishes. */
+/**
+ * Runs the scene for a shell on a canvas, its first frame drawn, till the case
+ * that runs it finishes.
+ */
 export async function startBoard(
   setUp: (shell: FakeShell) => void = () => undefined,
   canvas: { readonly width: number; readonly height: number } = CANVAS,
@@ -205,7 +220,32 @@ export function onCanvas(
   return { x: metrics.x + x * metrics.unit, y: metrics.y + y * metrics.unit };
 }
 
-/** Returns what a spec reads of the copies of a thing: where each shows, or null where it doesn't. */
+/**
+ * Returns how far the field's camera is scrolled from where it rests, in the
+ * canvas's pixels.
+ */
+export function scrolledBy(
+  scene: BeltScene,
+  shell: FakeShell,
+): { readonly x: number; readonly y: number } {
+  const metrics = metricsOf(shell);
+  const camera = scene.cameras.main;
+  return { x: camera.scrollX - metrics.x, y: camera.scrollY - metrics.y };
+}
+
+/** Returns the tint of each shard alive. */
+export function shardTints(scene: BeltScene): readonly number[] {
+  const tints: number[] = [];
+  scene.debris.shards.forEachAlive((shard) => {
+    tints.push(shard.tint);
+  }, null);
+  return tints;
+}
+
+/**
+ * Returns what a spec reads of the copies of a thing: where each shows, or null
+ * where it doesn't.
+ */
 export function shown(
   copies: Copies | undefined,
 ): readonly ({ readonly x: number; readonly y: number } | null)[] {
@@ -226,10 +266,16 @@ export function shownAt(
   return image.visible ? { x: image.x, y: image.y } : null;
 }
 
-/** The numbers of the `Graphics` commands the painters give, as its command buffer holds them, each followed by its arguments. */
+/**
+ * The numbers of the `Graphics` commands the painters give, as its command
+ * buffer holds them, each followed by its arguments.
+ */
 const COMMANDS = { arc: 0, beginPath: 1, lineStyle: 6, strokePath: 9 } as const;
 
-/** Describes an arc a `Graphics` stroked: about where, how far out, between which angles, and in what line. */
+/**
+ * Describes an arc a `Graphics` stroked: about where, how far out, between
+ * which angles, and in what line.
+ */
 export interface Stroke {
   readonly x: number;
   readonly y: number;

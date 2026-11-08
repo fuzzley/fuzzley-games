@@ -137,8 +137,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 ## The Scene
 
-`src/scene/belt_scene.spec.ts` and `src/scene/flourishes.spec.ts` run the
-real scene in a headless Phaser game through `runScene()`:
+`src/scene/belt_scene.spec.ts`, `src/scene/flourishes.spec.ts` and
+`src/scene/flourish_player.spec.ts` run the real scene in a headless Phaser
+game through `runScene()`:
 
 - `FakeShell` (`src/testing/belt_board.ts`) plays the shell's part of
   `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,
@@ -151,9 +152,13 @@ real scene in a headless Phaser game through `runScene()`:
   cleans up after itself.
 - Drive it with the run's `advance(ms)`, keys and the pointer, and change
   the shell's frame as the rules would; assert on the game objects
-  (`imagesIn()`, `strokesOf()`, `metricsOf()`), the sounds (`humsIn()`
-  after `cacheSounds()`) or on what the shell kept. A headless game draws
-  no pixels and plays no sound.
+  (`imagesIn()`, `strokesOf()`, `metricsOf()`, `shardTints()`, the field
+  camera's `scrolledBy()`), the sounds (`humsIn()` after `cacheSounds()`)
+  or on what the shell kept. A headless game draws no pixels and plays no
+  sound.
+- `flourish_player.spec.ts` steps no frame: it plays each flourish through
+  a `FlourishPlayer` of its own, on the running scene's painters, then has
+  the painter draw from a `PaintContext` it writes, at a time of its own.
 
 ## The Shell
 

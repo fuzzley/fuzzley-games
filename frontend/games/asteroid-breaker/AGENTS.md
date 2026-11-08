@@ -297,9 +297,12 @@ take for the layer.
   scene is created, or as a field of more slots is shown (`fit()`), so a
   frame of play makes none, and a new field stops what the last one set off.
   The scene plays each of the field's events once, from the last it played,
-  and the flourishes an event calls for only where motion is welcome;
-  `flourishes.spec.ts` holds what it draws for each event. `atlas.ts`
-  bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and
+  and the flourishes an event calls for only where motion is welcome, each
+  through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
+  painter that draws it, or on `FieldCamera`, from the context the scene
+  wrote for the frame; `flourish_player.spec.ts` holds what each flourish
+  plays, and `flourishes.spec.ts` what the scene draws for each event.
+  `atlas.ts` bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and
   `atlasFrameOf()` into two atlases: the field's, again on a new palette or
   a new unit, and the deck's, white for the scene to tint, again on a new
   pixel ratio; and the scene hands How to play its pictures from the
