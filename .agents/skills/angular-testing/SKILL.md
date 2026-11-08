@@ -19,10 +19,11 @@ repository's root.
 - **A workspace's `vitest.config.ts` is `@fz/dev/vitest`'s
   `angularTests()`**, given its floors: Analog's plugin, every `*.spec.ts`
   under `src/` in jsdom after the workspace's `src/test-setup.ts`, and V8
-  coverage of `src/`. A config of Vitest projects, as the site's, is built
-  from its pieces, `angularSpecs()`, `nodeSpecs()` and `coverage()`
-  (`frontend/lib/dev/AGENTS.md`). The Solitaire Collection keeps a config of
-  its own, its specs under `test/`, in Node unless one asks for jsdom.
+  coverage of `src/`. A config of Vitest projects, as the site's and
+  Asteroid Breaker's, is built from its pieces, `angularSpecs()`,
+  `nodeSpecs()` and `coverage()` (`frontend/lib/dev/AGENTS.md`). The
+  Solitaire Collection keeps a config of its own, its specs under `test/`,
+  in Node unless one asks for jsdom.
 - **The setup file** starts Angular's zoneless TestBed and loads jest-dom's
   matchers, and polyfills `<dialog>`, which jsdom lacks, where the app opens
   one.

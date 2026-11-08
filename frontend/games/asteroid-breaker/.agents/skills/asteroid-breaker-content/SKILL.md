@@ -73,8 +73,8 @@ on wave 9, Crowd (`tools/capture-screenshots.mjs`).
 
 Then:
 
-1. `yarn vitest run src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/every_layout/`.
-2. `yarn vitest run src/rules/waves/every_wave/ src/rules/waves/every_endless_wave/`, which plays it from its
+1. `yarn vitest run --project pure --project sim src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/every_layout/`.
+2. `yarn vitest run --project sim src/rules/waves/every_wave/ src/rules/waves/every_endless_wave/`, which plays it from its
    number as the seed.
 3. `yarn report:waves`, then with `--seeds 12`, and each again with
    `--field wide` and `--field tall`: its middle time should sit between
