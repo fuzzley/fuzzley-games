@@ -1,8 +1,10 @@
+import { stepsIn } from "../../rules/stepper";
 import { DASH_MS, DASH_SPEED } from "../../rules/tuning";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BOB,
   BREATH,
+  EXHAUST_RATE,
   EYES_SHUT,
   FLASH_MOST,
   FLICKER,
@@ -10,11 +12,14 @@ import {
   LOST_RING_REACH,
   PULSE_LEAST,
   SHIELD_RING_REACH,
+  type Jolts,
   TRAIL_MOST,
   bailOutShown,
   blinkShown,
   bobShare,
   breathScale,
+  cameraShift,
+  exhaustDue,
   eyesOpen,
   fadeAlpha,
   flashAlpha,
@@ -32,6 +37,7 @@ import {
   spread,
   trailAlpha,
   trailLaidAfter,
+  trailOutlinesLaid,
   trailReach,
   wayOf,
 } from "./flourish";
@@ -40,9 +46,12 @@ import {
   BAIL_OUT_MS,
   DASH_TRAIL,
   FLASH_GAP_MS,
+  KICK_CSS_PX,
+  KICK_MS,
   LEAST_SHARDS,
   MOST_SHARDS,
   POINTS_RISE,
+  SHAKE_CSS_PX,
   SHAKE_DELAY_MS,
   SHAKE_MS,
 } from "./timing";
@@ -142,6 +151,31 @@ describe("the trail's outlines", () => {
   });
 });
 
+describe("trailOutlinesLaid", () => {
+  it("lays none for no dash", () => {
+    expect(trailOutlinesLaid(-Infinity)).toBe(0);
+  });
+
+  it("lays the first as the dash starts", () => {
+    expect(trailOutlinesLaid(0)).toBe(1);
+  });
+
+  it.each([
+    ["just short of the second's", stepsIn(trailLaidAfter(1)) - 1, 1],
+    ["at the second's", stepsIn(trailLaidAfter(1)), 2],
+    ["at the third's", stepsIn(trailLaidAfter(2)), 3],
+  ])(
+    "lays each after it once the field has stepped the ship past where it lies: %s step",
+    (_, stepsSince, laid) => {
+      expect(trailOutlinesLaid(stepsSince)).toBe(laid);
+    },
+  );
+
+  it("lays no more than the trail's outlines however long the dash goes on", () => {
+    expect(trailOutlinesLaid(stepsIn(10 * DASH_MS))).toBe(DASH_TRAIL);
+  });
+});
+
 describe("flashDue", () => {
   it("flashes a field that hasn't flashed", () => {
     expect(flashDue(-Infinity, 0)).toBe(true);
@@ -238,7 +272,10 @@ describe("bailOutShown", () => {
 });
 
 describe("shakeOf", () => {
-  /** Returns the most the field is shaken along either axis over a stretch of a shake, from and to so many milliseconds after the ship was lost. */
+  /**
+   * Returns the most the field is shaken along either axis over a stretch of a
+   * shake, from and to so many milliseconds after the ship was lost.
+   */
   function mostShaken(from: number, to: number): number {
     return Math.max(
       ...Array.from({ length: to - from }, (_, ms) => {
@@ -311,6 +348,64 @@ describe("shakeOf", () => {
     const into = { x: 0, y: 0 };
 
     expect(shakeOf(SHAKE_DELAY_MS, into)).toBe(into);
+  });
+});
+
+describe("cameraShift", () => {
+  /** What jolted a field that nothing has jolted. */
+  const STILL: Jolts = {
+    kickedAt: -Infinity,
+    wayX: 0,
+    wayY: 0,
+    lostAt: -Infinity,
+  };
+
+  /** A blow that came down and to the left, a share along each axis. */
+  const BLOW = { wayX: -0.6, wayY: 0.8 } as const;
+
+  it("rests the camera on a field nothing has jolted", () => {
+    expect(cameraShift(STILL, 1000, 2, { x: 1, y: 1 })).toEqual({ x: 0, y: 0 });
+  });
+
+  it("scrolls the camera against a kick's blow, all its kick as it comes", () => {
+    const kicked = { ...STILL, ...BLOW, kickedAt: 1000 };
+
+    const { x, y } = cameraShift(kicked, 1000, 2, { x: 0, y: 0 });
+
+    expect([x, y]).toEqual([
+      expect.closeTo(-BLOW.wayX * KICK_CSS_PX * 2, 9),
+      expect.closeTo(-BLOW.wayY * KICK_CSS_PX * 2, 9),
+    ]);
+  });
+
+  it("settles the camera once the kick is over", () => {
+    const kicked = { ...STILL, ...BLOW, kickedAt: 1000 };
+
+    expect(cameraShift(kicked, 1000 + KICK_MS, 2, { x: 0, y: 0 })).toEqual({
+      x: 0,
+      y: 0,
+    });
+  });
+
+  it("shakes the camera as the field is shaken since a ship was lost, at the pixel ratio", () => {
+    const since = SHAKE_DELAY_MS + 50;
+    const shaken = shakeOf(since, { x: 0, y: 0 });
+
+    const { x, y } = cameraShift({ ...STILL, lostAt: 1000 }, 1000 + since, 2, {
+      x: 0,
+      y: 0,
+    });
+
+    expect([x, y]).toEqual([
+      expect.closeTo(shaken.x * SHAKE_CSS_PX * 2, 9),
+      expect.closeTo(shaken.y * SHAKE_CSS_PX * 2, 9),
+    ]);
+  });
+
+  it("writes the shift into the record it is given", () => {
+    const into = { x: 0, y: 0 };
+
+    expect(cameraShift(STILL, 0, 1, into)).toBe(into);
   });
 });
 
@@ -397,6 +492,34 @@ describe("flickerShare", () => {
     expect(
       new Set(overTime((seconds) => flickerShare(seconds, false))),
     ).toEqual(new Set([1]));
+  });
+});
+
+describe("exhaustDue", () => {
+  /** How many of the field's steps a second takes. */
+  const SECOND = stepsIn(1000);
+
+  it("streams its rate a second at full thrust", () => {
+    expect(exhaustDue(0, 1, SECOND, true)).toBeCloseTo(EXHAUST_RATE, 9);
+  });
+
+  it("streams fewer the less the ship thrusts", () => {
+    expect(exhaustDue(0, 0.25, SECOND, true)).toBeCloseTo(EXHAUST_RATE / 4, 9);
+  });
+
+  it("adds what is due to the part of a speck carried from before", () => {
+    expect(exhaustDue(0.5, 1, 1, true)).toBeCloseTo(
+      0.5 + EXHAUST_RATE / SECOND,
+      9,
+    );
+  });
+
+  it("is due none at no thrust, carrying nothing on", () => {
+    expect(exhaustDue(0.5, 0, SECOND, true)).toBe(0);
+  });
+
+  it("is due none where motion isn't welcome, carrying nothing on", () => {
+    expect(exhaustDue(0.5, 1, SECOND, false)).toBe(0);
   });
 });
 
