@@ -26,7 +26,6 @@ import { ThemeService } from "@fz/ui/theme";
 import type { Torus } from "../../rules/torus";
 import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art/art";
-import { buzzOf } from "../../view/effects/haptics";
 import {
   type BoardSetting,
   type PixelRect,
@@ -48,8 +47,7 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  * a drawing of the empty field in CSS, where the scene will draw it, clear
  * of the deck's room, until the scene has drawn, and the card over the
  * field (`<app-board-card>`), told where the scene is and how the ship
- * flies. It buzzes the phone, where it can and the settings say to, as a
- * ship is lost and as a wave is cleared.
+ * flies.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the keys rather than reading with them; the canvas in it is
@@ -274,7 +272,6 @@ export class BoardComponent {
       this.watchSize();
     });
     this.shapeForTheRoom();
-    this.buzzAsTheRunChanges();
   }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */
@@ -322,27 +319,6 @@ export class BoardComponent {
       untracked(() => {
         this.game.setRoom(room, board);
       });
-    });
-  }
-
-  /**
-   * Buzzes the phone, where it can and the settings say to, as the run loses a
-   * ship and as it clears a wave.
-   */
-  private buzzAsTheRunChanges(): void {
-    let last = this.game.run();
-    effect(() => {
-      const run = this.game.run();
-      const buzz = buzzOf(last, run);
-      last = run;
-      const navigator = this.document.defaultView?.navigator;
-      if (
-        buzz &&
-        this.settings().haptics &&
-        typeof navigator?.vibrate === "function"
-      ) {
-        navigator.vibrate(buzz);
-      }
     });
   }
 

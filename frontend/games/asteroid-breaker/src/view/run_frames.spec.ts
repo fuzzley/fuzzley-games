@@ -1,18 +1,27 @@
-import { pointsFor } from "../rules/catalog/rocks";
+import { ROCK_KINDS, pointsFor } from "../rules/catalog/rocks";
+import { hitRock } from "../rules/rocks/rocks";
 import type { EndMarks } from "../rules/run/describe";
 import { type Run, createRun, pause, startWave } from "../rules/run/run";
 import type { Crew } from "../rules/ship/pilots";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { STEP_MS, stepsIn } from "../rules/stepper";
-import { CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../rules/tuning";
+import {
+  CHAIN_MS,
+  CLEAN_POINTS,
+  CLEAR_POINTS,
+  FIRST_SHIP_POINTS,
+  SHIP_LENGTH,
+} from "../rules/tuning";
 import { type WaveData, wavesOf } from "../rules/waves/waves";
 import {
   KEEPER,
   fieldFrom,
   placePickup,
+  placeRock,
   placeStray,
   shipOf,
 } from "../testing/field_picture";
+import { CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
 import { clearedDelayMs, resultDelayMs } from "./effects/timing";
 import { type FrameChange, RunFrames } from "./run_frames";
 import { WavePlay } from "./wave_play";
@@ -44,6 +53,15 @@ const OPEN: readonly string[] = [...KEEPER, "", "", "", "....^"];
 /** A ship beside a boulder, which takes it at once. */
 const CRASH: readonly string[] = ["^B"];
 
+/** A ship above a boulder, which takes it at once, its nose turned away from it. */
+const ABOVE_A_BOULDER: readonly string[] = ["", "", "^", "B"];
+
+/** A ship alone, its wave cleared once a rock laid on it goes. */
+const ALONE: readonly string[] = ["^"];
+
+/** The time a volatile rock takes to go off once broken, which a frame of twelve steps holds. */
+const BLAST_MS = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs) * STEP_MS;
+
 /** A crew down to its last ship. */
 const LAST_SHIP: Crew = { flying: [0], home: [], lastGiven: 2 };
 
@@ -61,6 +79,7 @@ const NOTHING: FrameChange = {
   chain: null,
   tally: null,
   opens: null,
+  buzz: null,
 };
 
 /** The most frames a spec plays for something to happen: ten seconds' at 60 a second. */
@@ -162,6 +181,23 @@ function playToLoss(game: Game): FrameChange {
     if (game.run.crew.flying.length < ships) return change;
   }
   throw new Error("The run never lost a ship.");
+}
+
+/**
+ * Lays a small stone at the nose of a game's ship, which a shot fired breaks
+ * in the step it is fired, before a rock can take the ship.
+ */
+function stoneOnTheNose(game: Game): void {
+  const ship = shipOf(game.play.field);
+  placeRock(game.play.field, "small", ship.x, ship.y - SHIP_LENGTH / 2);
+}
+
+/** Returns a run at its first wave whose points are a small stone short of the next ship. */
+function aStoneShort(): Run {
+  return {
+    ...runAt(1),
+    banked: FIRST_SHIP_POINTS - pointsFor("stone", "small"),
+  };
 }
 
 /** Returns the run's first wave cleared, as the frame that cleared it left it. */
@@ -481,6 +517,96 @@ describe("RunFrames", () => {
       });
 
       expect(opens).toBe("result");
+    });
+  });
+
+  describe("buzzing the phone", () => {
+    it("buzzes once, firmly, as the run loses a ship", () => {
+      const game = underWay(CRASH);
+
+      const { buzz } = playToLoss(game);
+
+      expect(buzz).toBe(LOST_BUZZ);
+    });
+
+    it("buzzes once, firmly, as the run loses its last ship", () => {
+      const game = underWay(CRASH, { ...runAt(1), crew: LAST_SHIP });
+
+      const { buzz } = playTo(game, "over");
+
+      expect(buzz).toBe(LOST_BUZZ);
+    });
+
+    it("buzzes for a ship lost in the step a shot gains the crew another", () => {
+      const game = underWay(ABOVE_A_BOULDER, startWave(aStoneShort()));
+      stoneOnTheNose(game);
+
+      const { buzz } = tick(game, FIRE);
+
+      expect({ ships: game.run.crew.flying.length, buzz }).toEqual({
+        ships: 3,
+        buzz: LOST_BUZZ,
+      });
+    });
+
+    it("buzzes nothing as a shot gains the crew a ship", () => {
+      const game = underWay(OPEN, startWave(aStoneShort()));
+      stoneOnTheNose(game);
+
+      const { buzz } = tick(game, FIRE);
+
+      expect({ ships: game.run.crew.flying.length, buzz }).toEqual({
+        ships: 4,
+        buzz: null,
+      });
+    });
+
+    it("buzzes nothing at the frame after a ship is lost", () => {
+      const game = underWay(CRASH);
+      playToLoss(game);
+
+      const { buzz } = tick(game);
+
+      expect(buzz).toBeNull();
+    });
+
+    it("buzzes nothing at the frames after the run ends", () => {
+      const game = ended();
+
+      const { buzz } = tick(game);
+
+      expect(buzz).toBeNull();
+    });
+
+    it("buzzes twice, lightly, as the run clears a wave", () => {
+      const game = underWay(PEBBLE);
+
+      const { buzz } = playTo(game, "cleared", FIRE);
+
+      expect(buzz).toBe(CLEARED_BUZZ);
+    });
+
+    // The stone on the ship takes it at the frame's first step, and the blast
+    // breaks the stone at its last.
+    it("buzzes for a ship lost rather than the wave a blast then clears in the frame", () => {
+      const game = underWay(ALONE);
+      const ship = shipOf(game.play.field);
+      placeRock(game.play.field, "small", ship.x, ship.y);
+      const volatile = placeRock(
+        game.play.field,
+        "medium",
+        ship.x + 3,
+        ship.y,
+        "volatile",
+      );
+      hitRock(game.play.field, volatile, 0, 0);
+
+      const { buzz } = tick(game, STILL, { ms: BLAST_MS });
+
+      expect({ outcome: game.run.outcome, buzz }).toEqual({
+        outcome: "cleared",
+        buzz: LOST_BUZZ,
+      });
     });
   });
 

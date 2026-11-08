@@ -247,14 +247,15 @@ take for the layer.
   holds `RunFrames`, which `GameService` hands each frame of it: it plays
   the wave on, starting it at the player's first move, catches the run up
   with what its field came to, waits out the beat before a card, and
-  returns what the frame changed (`FrameChange`), gathering what to say of
-  it (`news()`), a run's end last, with what the shell's records say it
-  set. `run_state.ts` holds what is a run's own, which the shell keeps in
-  one signal (`RunState`): as a run begins (`newRunState()`), and with a
-  frame's change taken in (`withFrame()`), flown on tuned numbers from the
-  first frame that moves its field on them. `tally.ts` holds the Cleared
-  card's lines (`tallyLines()`), and `debug_tuning.ts` the numbers the
-  debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the lines of
+  returns what the frame changed (`FrameChange`) and how the phone buzzes
+  for it, as a ship is lost, or else as the wave is cleared, gathering what
+  to say of it (`news()`), a run's end last, with what the shell's records
+  say it set. `run_state.ts` holds what is a run's own, which the shell
+  keeps in one signal (`RunState`): as a run begins (`newRunState()`), and
+  with a frame's change taken in (`withFrame()`), flown on tuned numbers
+  from the first frame that moves its field on them. `tally.ts` holds the
+  Cleared card's lines (`tallyLines()`), and `debug_tuning.ts` the numbers
+  the debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the lines of
   `src/rules/tuning.ts` they would replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
@@ -289,7 +290,7 @@ take for the layer.
   (`exhaustDue()`) and the pilots blink, each only where motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
-  buzzes as a ship is lost or a wave cleared (`buzzOf()`).
+  buzzes as a ship is lost or a wave cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`, the commands and the keys held to fly;
   `steering.ts` the `Steering` that turns the keys, the mouse and up to
@@ -393,7 +394,9 @@ take for the layer.
     the view's `RunFrames` says each frame changed into the run's state
     (`withFrame()`) and the records; it pauses, goes on and starts waves and
     runs, shapes each field to the board's room (`setRoom()`), says what
-    happened through `@fz/ui/announcer`, shows a cleared wave's points
+    happened through `@fz/ui/announcer`, buzzes the phone as each frame
+    calls for through `HapticsService`, beside it, where the browser can and
+    the settings say to, shows a cleared wave's points
     (`tally`), keeps what each change in the run brings to the records and the
     sectors reached (`recordsOf()`) through `stats/`, in one place that keeps
     none of a run flown on tuned numbers, has the wave in play take the
@@ -424,12 +427,10 @@ take for the layer.
     field is laid out in (`GameService.setRoom()`), and publishes, for the
     layout check, where the scene laid the field (`data-field`), the room it
     fills (`data-room`) and the deck's zones (`data-deck`). `fieldPalette()`
-    colors the field from `ThemeService`'s roles and `mode`. It buzzes the
-    phone as a ship is lost and as a wave is cleared, where it can and the
-    settings say to. The board asks the scene for How to play's pictures as
-    How to play opens (`pictures`), and keeps them until the scene bakes
-    again. It is an application named for its wave, "Asteroid Breaker, wave 4:
-    Thaw".
+    colors the field from `ThemeService`'s roles and `mode`. The board asks
+    the scene for How to play's pictures as How to play opens (`pictures`),
+    and keeps them until the scene bakes again. It is an application named
+    for its wave, "Asteroid Breaker, wave 4: Thaw".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, whose menu asks before it starts a run at another, the
     figures, and Pause, Sound, Sectors, New game, How to play and Settings,

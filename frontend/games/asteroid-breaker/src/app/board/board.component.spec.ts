@@ -27,14 +27,11 @@ import {
   SPEC_WAVE,
   clearIn,
   clearToNext,
-  loseShip,
   pauseIn,
-  playToClear,
   provideSpecWaves,
   shoot,
 } from "../../testing/play";
 import { paintRoles } from "../../testing/roles";
-import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
 import {
   type BoardSetting,
   type PixelRect,
@@ -560,72 +557,6 @@ describe("BoardComponent", () => {
           "Still loading the board",
         );
       });
-    });
-  });
-
-  describe("haptics", () => {
-    let vibrate: ReturnType<typeof vi.fn<(pattern: VibratePattern) => boolean>>;
-
-    beforeEach(() => {
-      vibrate = vi.fn<(pattern: VibratePattern) => boolean>(() => true);
-      Object.defineProperty(navigator, "vibrate", {
-        value: vibrate,
-        configurable: true,
-      });
-    });
-
-    afterEach(() => {
-      Reflect.deleteProperty(navigator, "vibrate");
-    });
-
-    it("buzz the phone once, firmly, as a ship is lost", async () => {
-      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
-
-      loseShip(game);
-      detectChanges();
-
-      expect(vibrate.mock.calls).toEqual([[LOST_BUZZ]]);
-    });
-
-    it("buzz the phone twice, lightly, as a wave is cleared", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      playToClear(game);
-      detectChanges();
-
-      expect(vibrate.mock.calls).toEqual([[CLEARED_BUZZ]]);
-    });
-
-    it("buzz nothing where the settings turn the haptics off", async () => {
-      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
-      useSettings({ haptics: false });
-
-      loseShip(game);
-      detectChanges();
-
-      expect(vibrate).not.toHaveBeenCalled();
-    });
-
-    it("buzz nothing for a ship lost while they were off, as they come back on", async () => {
-      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
-      useSettings({ haptics: false });
-      loseShip(game);
-      detectChanges();
-
-      useSettings({ haptics: true });
-      detectChanges();
-
-      expect(vibrate).not.toHaveBeenCalled();
-    });
-
-    it("buzz nothing, and go on, where the phone can't buzz", async () => {
-      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
-      Reflect.deleteProperty(navigator, "vibrate");
-
-      loseShip(game);
-      detectChanges();
-
-      expect(game.ships()).toBe(2);
     });
   });
 

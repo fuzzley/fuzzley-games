@@ -68,6 +68,7 @@ import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_RANDOM, GAME_WAVES } from "../tokens";
+import { HapticsService } from "./haptics.service";
 
 /** What a new run asks before it throws away the one under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
@@ -96,8 +97,9 @@ const FIRST_TORUS: Torus = {
  * field on by the time the board's frames take, steered as the player
  * steers, and takes what each frame came to into the run, pauses, goes on
  * and starts waves and runs as the player asks, shapes each field to the
- * board's room, says what happened, and keeps the records and the sectors
- * reached, but for a run flown on numbers the debug menu tuned.
+ * board's room, says what happened, buzzes the phone as a ship is lost or a
+ * wave cleared, and keeps the records and the sectors reached, but for a
+ * run flown on numbers the debug menu tuned.
  *
  * The run and what is its own are one signal, replaced whole as each run
  * begins, which changes only when the field comes to something the run
@@ -117,6 +119,7 @@ export class GameService {
   private readonly progress = inject(ProgressService);
   private readonly settings = inject(SettingsService);
   private readonly tuner = inject(TuningService);
+  private readonly haptics = inject(HapticsService);
 
   /** The id the last run took, which the next one follows. */
   private lastId = 0;
@@ -274,10 +277,10 @@ export class GameService {
 
   /**
    * Moves the field on by the time a frame took, steered as the player
-   * steers it, starting the wave at the player's first move, and takes
-   * what it came to into the run and the records; or, with the wave
-   * cleared or the run ended, opens the card it waits for once its time
-   * has run. A paused wave stays as it is.
+   * steers it, starting the wave at the player's first move, takes what it
+   * came to into the run and the records, buzzing the phone as it calls
+   * for; or, with the wave cleared or the run ended, opens the card it waits
+   * for once its time has run. A paused wave stays as it is.
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
     Object.assign(this.held, steer);
@@ -292,6 +295,7 @@ export class GameService {
     let after = withFrame(before, change, this.tuner.retuned());
     if (change.run !== null) after = this.keep(before.run, after);
     if (after !== before) this.runState.set(after);
+    if (change.buzz !== null) this.haptics.buzz(change.buzz);
     this.sayNews();
   }
 
