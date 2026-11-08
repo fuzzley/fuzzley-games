@@ -25,6 +25,7 @@ import {
   type DeckShowing,
   SettingsService,
 } from "./settings.service";
+import { TuningService } from "./tuning.service";
 
 /** Describes one choice of a setting, as the drawer offers it. */
 interface ChoiceInfo {
@@ -78,6 +79,7 @@ const COPY_WORDS = {
 export class SettingsComponent {
   private readonly game = inject(GameService);
   private readonly store = inject(SettingsService);
+  private readonly tuner = inject(TuningService);
   private readonly document = inject(DOCUMENT);
 
   protected readonly settings = this.store.settings;
@@ -115,7 +117,7 @@ export class SettingsComponent {
 
   /** The debug menu's sliders, each with its input's id, at the number in use, and how it reads. */
   protected readonly sliders = computed(() => {
-    const tuning = this.game.tuning();
+    const tuning = this.tuner.tuning();
     return TUNING_SLIDERS.map((slider) => ({
       ...slider,
       inputId: `tune-${slider.id}`,
@@ -125,14 +127,17 @@ export class SettingsComponent {
   });
 
   /** Whether shots leave with the ship's speed, as the debug menu tunes it. */
-  protected readonly carryShip = computed(() => this.game.tuning().carryShip);
+  protected readonly carryShip = computed(() => this.tuner.tuning().carryShip);
 
   /** The numbers in use as the lines of `tuning.ts` they would replace. */
-  protected readonly lines = computed(() => tuningLines(this.game.tuning()));
+  protected readonly lines = computed(() => tuningLines(this.tuner.tuning()));
 
   private readonly copiedState = signal<keyof typeof COPY_WORDS | null>(null);
 
-  /** Whether the lines of `tuning.ts` show beneath, as a failed Copy opens them and the player opens or shuts them. */
+  /**
+   * Whether the lines of `tuning.ts` show beneath, as a failed Copy opens
+   * them and the player opens or shuts them.
+   */
   protected readonly linesShown = signal(false);
 
   /** What the debug menu says of the last Copy, or nothing before one. */
@@ -174,19 +179,22 @@ export class SettingsComponent {
 
   /** Tunes a number, as its slider says, which the clipboard no longer holds. */
   protected tune(id: TuningNumber, value: number): void {
-    this.game.tune({ [id]: value });
+    this.tuner.tune({ [id]: value });
     this.forgetCopied();
   }
 
-  /** Has shots leave with the ship's speed or not, as its checkbox says, which the clipboard no longer holds. */
+  /**
+   * Has shots leave with the ship's speed or not, as its checkbox says,
+   * which the clipboard no longer holds.
+   */
   protected setCarryShip(carryShip: boolean): void {
-    this.game.tune({ carryShip });
+    this.tuner.tune({ carryShip });
     this.forgetCopied();
   }
 
   /** Puts every number back to `tuning.ts`'s. */
   protected resetNumbers(): void {
-    this.game.resetTuning();
+    this.tuner.reset();
     this.forgetCopied();
   }
 
@@ -212,7 +220,10 @@ export class SettingsComponent {
     this.linesShown.set(true);
   }
 
-  /** Forgets a Copy the numbers have moved on from; where one failed, the lines shown are the numbers in use, so they stay. */
+  /**
+   * Forgets a Copy the numbers have moved on from; where one failed, the
+   * lines shown are the numbers in use, so they stay.
+   */
   private forgetCopied(): void {
     if (this.copiedState() === "copied") this.copiedState.set(null);
   }

@@ -1,4 +1,5 @@
 import {
+  DestroyRef,
   Injectable,
   type WritableSignal,
   computed,
@@ -57,19 +58,14 @@ import {
   waveEntryOf,
 } from "../../rules/waves/waves";
 import type { FieldCommand } from "../../view/steering/controls";
-import {
-  TUNED,
-  type Tuning,
-  fieldTuning,
-  isRetuned,
-  tuneField,
-} from "../../view/debug_tuning";
+import { fieldTuning, tuneField } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
 import type { FieldFrame } from "../../view/field/frame";
 import { type FrameChange, RunFrames } from "../../view/run_frames";
 import { WavePlay } from "../../view/wave_play";
 import { SettingsService } from "../settings/settings.service";
+import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_RANDOM, GAME_WAVES } from "../tokens";
@@ -168,6 +164,7 @@ export class GameService {
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
   private readonly settings = inject(SettingsService);
+  private readonly tuner = inject(TuningService);
 
   /** The id the last run took, which the next one follows. */
   private lastId = 0;
@@ -178,15 +175,12 @@ export class GameService {
    * wave's ship takes as held.
    */
   private readonly held: Steer = { ...STILL };
-  private readonly tuningState = signal(TUNED);
   /** What is the run on the board's own, replaced whole as each run begins. */
   private readonly runState: WritableSignal<RunState>;
   /** The wave in play: its field, stepped in place, and the beat before a card. */
   private wavePlay: WavePlay;
   /** What each frame of the wave in play comes to in the run, and what to say of it. */
   private readonly runFrames = new RunFrames(this.waves);
-  /** Whether the numbers in use are off `tuning.ts`'s, as the debug menu tuned them. */
-  private retuned = false;
   private readonly runsState = signal(0);
   private readonly drawnState = signal(true);
 
@@ -313,18 +307,17 @@ export class GameService {
    */
   readonly drawn = this.drawnState.asReadonly();
 
-  /**
-   * The numbers that set the feel, as the debug menu tunes them, which the
-   * field in play and every one after take: `tuning.ts`'s until it does.
-   */
-  readonly tuning = this.tuningState.asReadonly();
-
   constructor() {
     // Made here, once every field above is, so no field's place among them
     // decides what the first run's field is laid out with.
     const run = this.create(this.settings.settings().speed, 1);
     this.wavePlay = this.playOf(run);
     this.runState = signal(newRunState(run));
+    inject(DestroyRef).onDestroy(
+      this.tuner.onTune(() => {
+        this.retune();
+      }),
+    );
   }
 
   /**
@@ -558,26 +551,6 @@ export class GameService {
     }
   }
 
-  /**
-   * Tunes some of the numbers that set the feel, as the debug menu does. A
-   * wave yet to begin is laid out again with them, as the rocks' speed
-   * bears on a fair start, and one under way takes them at once.
-   */
-  tune(change: Partial<Tuning>): void {
-    this.tuningState.update((tuning) => ({ ...tuning, ...change }));
-    this.retuned = isRetuned(this.tuningState());
-    if (this.yetToBegin()) {
-      this.wavePlay = this.playOf(this.run());
-    } else {
-      tuneField(this.wavePlay.field, this.tuningState());
-    }
-  }
-
-  /** Puts the numbers that set the feel back to `tuning.ts`'s. */
-  resetTuning(): void {
-    this.tune(TUNED);
-  }
-
   /** Says whether the board is drawn yet, as the board's canvas reports it. */
   setDrawn(drawn: boolean): void {
     this.drawnState.set(drawn);
@@ -619,7 +592,7 @@ export class GameService {
    * makes nothing.
    */
   private withFrame(state: RunState, change: FrameChange): RunState {
-    const tuned = state.tuned || (change.moved && this.retuned);
+    const tuned = state.tuned || (change.moved && this.tuner.retuned());
     const chain = change.chain ?? state.chain;
     const { cameHome, tally, opens } = change;
     if (
@@ -645,6 +618,19 @@ export class GameService {
       clearedOpen: state.clearedOpen || opens === "cleared",
       resultOpen: state.resultOpen || opens === "result",
     };
+  }
+
+  /**
+   * Has the wave in play take the numbers the debug menu tuned: one yet to
+   * begin is laid out again with them, as the rocks' speed bears on a fair
+   * start, and one under way takes them at once.
+   */
+  private retune(): void {
+    if (this.yetToBegin()) {
+      this.wavePlay = this.playOf(this.run());
+    } else {
+      tuneField(this.wavePlay.field, this.tuner.tuning());
+    }
   }
 
   /** Puts the run on the board as it changed, keeping the rest of its state. */
@@ -704,7 +690,7 @@ export class GameService {
    * tunes.
    */
   private playerSetup(): PlayerSetup {
-    return { held: this.held, ...fieldTuning(this.tuningState()) };
+    return { held: this.held, ...fieldTuning(this.tuner.tuning()) };
   }
 
   /**
