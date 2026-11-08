@@ -1,91 +1,26 @@
 import { isCount, isRecord, isWhole } from "@fz/core/json";
-import { pick } from "@fz/core/records";
+import type { Field, PlayerSetup } from "../field/field";
 import {
-  type RockKindId,
-  type RockTrait,
-  isRockKindId,
-  isRockSize,
-  rockKind,
-} from "../catalog/rocks";
-import { type Field, type PlayerSetup, fieldFor } from "../field/field";
-import { fillFor, stretchField } from "../field/fill";
-import { safestPlace } from "../field/spawn";
-import { nextStrayAfter } from "../hazards/strays";
-import { ROCK_OUTLINES, type Rock, isFree } from "../rocks/rocks";
+  type SavableField,
+  type SavedField,
+  type WaveSoFar,
+  layOutKeptField,
+  readField,
+  savedField,
+} from "../field/kept_field";
 import { PILOT_COLORS, type Pilot } from "../ship/pilots";
-import { createShip } from "../ship/ship";
 import { type Speed, isSpeed } from "../speed";
-import { stepsIn } from "../stepper";
-import type { Torus } from "../torus";
-import {
-  FIELD_LONGEST_SIDE,
-  FIELD_SHORT_SIDE,
-  MAX_SHIPS,
-  STRAY_POINTS,
-} from "../tuning";
+import { MAX_SHIPS } from "../tuning";
 import { waveToPlay } from "../waves/endless";
 import { type Wave, type WaveEntry, waveEntryOf } from "../waves/waves";
 import {
   type Run,
+  hasClearedAWave,
   isInProgress,
   nextShipAfter,
   nextWave,
   waveStart,
 } from "./run";
-
-/**
- * What of a rock storage keeps: what it is, where it is, how it flies and
- * turns, how it is drawn, the hits it has left, and whether it is whole or
- * broken and waiting to go off, and when.
- */
-const KEPT_OF_ROCK = [
-  "kind",
-  "size",
-  "x",
-  "y",
-  "vx",
-  "vy",
-  "angle",
-  "spin",
-  "outline",
-  "hits",
-  "live",
-  "goesOffAt",
-] as const satisfies readonly (keyof Rock)[];
-
-/** A rock as storage keeps it: whole, or broken and waiting to go off. */
-export type SavedRock = Readonly<Pick<Rock, (typeof KEPT_OF_ROCK)[number]>>;
-
-/**
- * The wave in play's field as storage keeps it: the size it was laid out
- * at and its size now, its rocks, and the counts its draws, strays, comets
- * and points run by.
- *
- * A stray adrift, the comets on their way, the pickups, the shots, the
- * effects in play and the chain go.
- */
-export interface SavedField {
-  /** The size it was laid out at, which set its slots, its strays, the pickups it floats at once and its comets' times. */
-  readonly laidOut: Torus;
-  /** Its size now, which a pause may have stretched it to since. */
-  readonly torus: Torus;
-  /** Each rock whole, and each broken and waiting to go off, for its blast. */
-  readonly rocks: readonly SavedRock[];
-  readonly steps: number;
-  readonly draws: number;
-  /** How many strays the wave has sent. */
-  readonly straysSent: number;
-  /** The step the next stray comes at. */
-  readonly nextStrayAt: number;
-  /** The step the next comet's warning starts at. */
-  readonly nextCometAt: number;
-  /** The step a pickup was last let go at, from which a drought is counted. */
-  readonly lastDropAt: number;
-  /** What the chain's multiplier has added to the wave's points, for its tally. */
-  readonly chainPoints: number;
-  /** How many ships the wave has lost, which a clean wave has none of. */
-  readonly shipsLost: number;
-}
 
 /** A run under way as storage keeps it. */
 export interface SavedGame {
@@ -109,7 +44,10 @@ export interface SavedGame {
   readonly broughtHome: readonly Pilot[];
   /** Whether the run was flown on numbers the debug menu tuned, so it keeps no records. */
   readonly tuned: boolean;
-  /** The wave's field, or null for a wave not yet begun or not yet moved, which is laid out afresh. */
+  /**
+   * The wave's field, or null for a wave after the run's first not yet
+   * begun or not yet moved, which is laid out afresh.
+   */
   readonly field: SavedField | null;
 }
 
@@ -122,21 +60,6 @@ export interface TakenUp {
   readonly tuned: boolean;
 }
 
-/** What of a field storage keeps. */
-export type SavableField = Pick<
-  Field,
-  | "setup"
-  | "torus"
-  | "rocks"
-  | "steps"
-  | "draws"
-  | "strays"
-  | "comets"
-  | "lastDropAt"
-  | "chainPoints"
-  | "shipsLost"
->;
-
 /** What of the run the shell keeps beside it. */
 export interface RunKeeping {
   /** Each stray brought home, in the order they came. */
@@ -145,21 +68,15 @@ export interface RunKeeping {
   readonly tuned: boolean;
 }
 
-/** What a field kept must agree with of its run: the wave's points and the strays it has brought home. */
-interface WaveSoFar {
-  readonly points: number;
-  readonly straysHome: number;
-}
-
 /**
  * Returns a run under way and its field as storage keeps them, or null for
- * a run with nothing to keep: one waiting for its first wave's first move,
- * or one that has ended.
+ * a run with nothing to keep: one whose first wave hasn't moved yet, or one
+ * that has ended.
  *
  * A run whose wave was just cleared is kept at the start of the next, so
- * the page going away over the Cleared card loses nothing, and a wave not
- * yet moved as one not yet begun, so it is laid out afresh on the room it
- * comes back to, as a wave waiting for its first move is.
+ * the page going away over the Cleared card loses nothing, and a later
+ * wave not yet moved as one not yet begun, so it is laid out afresh on the
+ * room it comes back to, as a wave waiting for its first move is.
  */
 export function saveGame(
   run: Run,
@@ -171,8 +88,8 @@ export function saveGame(
   if (run.outcome === "cleared") {
     return savedRun(nextWave(run), null, waves, keeping);
   }
-  const kept = field.steps === 0 ? null : savedField(field);
-  return savedRun(run, kept, waves, keeping);
+  if (field.steps > 0) return savedRun(run, savedField(field), waves, keeping);
+  return hasClearedAWave(run) ? savedRun(run, null, waves, keeping) : null;
 }
 
 /**
@@ -187,42 +104,73 @@ export function restoreGame(
   id: number,
 ): TakenUp | null {
   if (!isRecord(value)) return null;
-  const { waveId, wave, firstWave, speed, seed, banked, score } = value;
-  const { straysBanked, strays, lastGiven, tuned } = value;
+  const run = readRun(value, waves, id);
+  const { tuned } = value;
+  if (!run || typeof tuned !== "boolean") return null;
+  const kept = value["field"];
+  const soFar = waveSoFar(run);
+  let field: SavedField | null = null;
+  if (kept !== null) {
+    const wave = waveToPlay(waveEntryOf(waves, run.wave), run.seed);
+    field = readField(kept, wave, soFar);
+    if (!field) return null;
+  } else if (!hasClearedAWave(run) || hasScored(soFar)) {
+    return null;
+  }
+  const { broughtHome } = value;
+  const drawn = isPilots(broughtHome) && broughtHome.length === run.strays;
+  return { run, field, broughtHome: drawn ? broughtHome : [], tuned };
+}
+
+/**
+ * Returns the wave in play's field as storage kept it, laid out afresh as
+ * the run started its wave, at the size it was laid out at, and stretched
+ * to the size it was kept at, its points and strays brought home on it
+ * from the run, as `layOutKeptField()` says.
+ */
+export function takeUpField(
+  wave: Wave,
+  setup: PlayerSetup,
+  saved: SavedField,
+  run: Run,
+): Field {
+  const start = { ...waveStart(run), ...setup, speed: run.speed };
+  return layOutKeptField(wave, start, saved, waveSoFar(run));
+}
+
+/**
+ * Returns what a run has scored on its wave in play: its points and the
+ * strays it has brought home.
+ */
+export function waveSoFar(run: Run): WaveSoFar {
+  return {
+    points: run.score - run.banked,
+    straysHome: run.strays - run.straysBanked,
+  };
+}
+
+/**
+ * Returns the run storage kept, paused, under a new id, or null if it
+ * fails a check: its wave, its speed and seed, its points, its strays or
+ * its crew.
+ */
+export function readRun(
+  value: Readonly<Record<string, unknown>>,
+  waves: readonly WaveEntry[],
+  id: number,
+): Run | null {
   if (
-    !isCount(wave) ||
-    wave < 1 ||
-    !isCount(firstWave) ||
-    !isSpeed(speed) ||
-    !isWhole(seed) ||
-    !isCount(banked) ||
-    !isCount(score) ||
-    !isCount(straysBanked) ||
-    !isCount(strays) ||
-    !isPilot(lastGiven) ||
-    typeof tuned !== "boolean"
+    !hasKnownWave(value, waves) ||
+    !hasSpeedAndSeed(value) ||
+    !hasSoundScore(value) ||
+    !hasSoundStrays(value) ||
+    !hasSoundCrew(value, value.strays)
   ) {
     return null;
   }
-  const entry = waveEntryOf(waves, wave);
-  const flying = pilotsOf(value["flying"]);
-  const home = pilotsOf(value["home"]);
-  if (
-    entry.data.id !== waveId ||
-    firstWave < 1 ||
-    firstWave > wave ||
-    score < banked ||
-    strays < straysBanked ||
-    value["nextShipAt"] !== nextShipAfter(score) ||
-    !flying ||
-    flying.length === 0 ||
-    flying.length > MAX_SHIPS ||
-    !home ||
-    home.length > strays
-  ) {
-    return null;
-  }
-  const run: Run = {
+  const { seed, speed, firstWave, wave, banked, score, nextShipAt } = value;
+  const { flying, home, lastGiven, straysBanked, strays } = value;
+  return {
     id,
     seed,
     speed,
@@ -231,74 +179,92 @@ export function restoreGame(
     banked,
     score,
     crew: { flying, home, lastGiven },
-    nextShipAt: nextShipAfter(score),
+    nextShipAt,
     straysBanked,
     strays,
     outcome: "paused",
   };
-  const kept = value["field"];
-  const soFar = { points: score - banked, straysHome: strays - straysBanked };
-  let field: SavedField | null = null;
-  if (kept !== null) {
-    field = restoredField(kept, waveToPlay(entry, seed), soFar);
-    if (!field) return null;
-  } else if (soFar.points > 0 || soFar.straysHome > 0) {
-    // A wave kept as not yet begun has scored nothing yet.
-    return null;
-  }
-  const broughtHome = pilotsOf(value["broughtHome"]);
-  return {
-    run,
-    field,
-    broughtHome: broughtHome?.length === strays ? broughtHome : [],
-    tuned,
-  };
 }
 
 /**
- * Returns the wave in play's field as storage kept it, laid out afresh at
- * the size it was laid out at, so its slots, strays and comets are as they
- * were, and stretched to the size it was kept at: its rocks in its first
- * slots, the rest free, the counts its draws, strays, comets and points
- * run by, its points from the run, and its ship waiting where it is
- * safest, as the next in line would.
+ * Returns whether a run kept names a wave the game has under its number,
+ * by the id the game gives it there, and a first wave from the first to
+ * it.
  */
-export function takeUpField(
-  wave: Wave,
-  setup: PlayerSetup,
-  saved: SavedField,
-  run: Run,
-): Field {
-  const field = fieldFor(wave, {
-    ...waveStart(run),
-    ...setup,
-    torus: saved.laidOut,
-    speed: run.speed,
-  });
-  stretchField(field, saved.torus);
-  for (const [slot, rock] of field.rocks.entries()) {
-    const kept = saved.rocks[slot];
-    if (!kept) {
-      rock.live = false;
-      continue;
-    }
-    Object.assign(rock, kept);
-    rock.lastX = kept.x;
-    rock.lastY = kept.y;
-  }
-  field.steps = saved.steps;
-  field.draws = saved.draws;
-  field.strays.sent = saved.straysSent;
-  field.strays.nextAt = saved.nextStrayAt;
-  field.strays.broughtHome = run.strays - run.straysBanked;
-  field.comets.nextAt = saved.nextCometAt;
-  field.lastDropAt = saved.lastDropAt;
-  field.score = run.score - run.banked;
-  field.chainPoints = saved.chainPoints;
-  field.shipsLost = saved.shipsLost;
-  const { x, y } = safestPlace(field);
-  field.ship = createShip(x, y, field.steer);
-  return field;
+export function hasKnownWave(
+  value: Readonly<Record<string, unknown>>,
+  waves: readonly WaveEntry[],
+): value is Pick<SavedGame, "waveId" | "wave" | "firstWave"> {
+  const { waveId, wave, firstWave } = value;
+  return (
+    isWaveNumber(wave) &&
+    isWaveNumber(firstWave) &&
+    firstWave <= wave &&
+    waveEntryOf(waves, wave).data.id === waveId
+  );
+}
+
+/** Returns whether a run kept is flown at a speed there is, from a whole seed. */
+export function hasSpeedAndSeed(
+  value: Readonly<Record<string, unknown>>,
+): value is Pick<SavedGame, "speed" | "seed"> {
+  const { speed, seed } = value;
+  return isSpeed(speed) && isWhole(seed);
+}
+
+/**
+ * Returns whether a run kept holds its points banked and a score of no
+ * fewer, with the next ship's mark past that score.
+ */
+export function hasSoundScore(
+  value: Readonly<Record<string, unknown>>,
+): value is Pick<SavedGame, "banked" | "score" | "nextShipAt"> {
+  const { banked, score, nextShipAt } = value;
+  return (
+    isCount(banked) &&
+    isCount(score) &&
+    score >= banked &&
+    nextShipAt === nextShipAfter(score)
+  );
+}
+
+/**
+ * Returns whether a run kept holds the strays it banked and a count of
+ * strays brought home of no fewer.
+ */
+export function hasSoundStrays(
+  value: Readonly<Record<string, unknown>>,
+): value is Pick<SavedGame, "straysBanked" | "strays"> {
+  const { straysBanked, strays } = value;
+  return isCount(straysBanked) && isCount(strays) && strays >= straysBanked;
+}
+
+/**
+ * Returns whether a run kept holds a sound crew, given the strays it has
+ * brought home: from one pilot flying to as many as a run has ships, no
+ * more at home than those strays, and a last color given, each a pilot's.
+ */
+export function hasSoundCrew(
+  value: Readonly<Record<string, unknown>>,
+  strays: number,
+): value is Pick<SavedGame, "flying" | "home" | "lastGiven"> {
+  const { flying, home, lastGiven } = value;
+  return (
+    isPilots(flying) &&
+    flying.length > 0 &&
+    flying.length <= MAX_SHIPS &&
+    isPilots(home) &&
+    home.length <= strays &&
+    isPilot(lastGiven)
+  );
+}
+
+/**
+ * Returns whether a run has scored on its wave in play, points or a stray
+ * brought home, which a wave kept as not yet begun can't have.
+ */
+export function hasScored({ points, straysHome }: WaveSoFar): boolean {
+  return points > 0 || straysHome > 0;
 }
 
 /** Returns a run and its field as storage keeps them, naming its wave by its id. */
@@ -328,207 +294,17 @@ function savedRun(
   };
 }
 
-/**
- * Returns what storage keeps of a field, a stray adrift counted as gone, so
- * the next comes as long after this step as it would after one gone.
- */
-function savedField(field: SavableField): SavedField {
-  const { strays } = field;
-  return {
-    laidOut: sizeOf(field.setup.torus),
-    torus: sizeOf(field.torus),
-    rocks: field.rocks
-      .filter((rock) => !isFree(rock))
-      .map((rock) => pick(rock, KEPT_OF_ROCK)),
-    steps: field.steps,
-    draws: field.draws,
-    straysSent: strays.sent,
-    nextStrayAt: strays.adrift.live
-      ? nextStrayAfter(field.steps)
-      : strays.nextAt,
-    nextCometAt: field.comets.nextAt,
-    lastDropAt: field.lastDropAt,
-    chainPoints: field.chainPoints,
-    shipsLost: field.shipsLost,
-  };
+/** Returns whether a value is a wave's number, from 1. */
+function isWaveNumber(value: unknown): value is number {
+  return isCount(value) && value >= 1;
 }
 
-/** Returns a copy of a field's size. */
-function sizeOf({ width, height }: Torus): Torus {
-  return { width, height };
-}
-
-/**
- * Returns a wave's field as storage kept it, or null if it can't be
- * trusted: one not yet moved, which is kept as none, a size no board lays
- * a field out at, more rocks than the wave holds at the size it was laid
- * out at or none, a rock off the field or in a state its kind never comes
- * to, more strays home than the wave has sent or more sent than it sends,
- * fewer points than the chain and the strays home have scored, or a count
- * out of its range.
- */
-function restoredField(
-  value: unknown,
-  wave: Wave,
-  { points, straysHome }: WaveSoFar,
-): SavedField | null {
-  if (!isRecord(value)) return null;
-  const { steps, draws, straysSent, nextStrayAt, nextCometAt } = value;
-  const { lastDropAt, chainPoints, shipsLost } = value;
-  const laidOut = torusOf(value["laidOut"]);
-  const torus = torusOf(value["torus"]);
-  if (
-    !laidOut ||
-    !torus ||
-    !isCount(steps) ||
-    steps === 0 ||
-    !isCount(draws) ||
-    !isCount(straysSent) ||
-    straysSent < straysHome ||
-    !isCount(nextStrayAt) ||
-    !isCount(nextCometAt) ||
-    !isCount(lastDropAt) ||
-    lastDropAt > steps ||
-    !isCount(chainPoints) ||
-    chainPoints + straysHome * STRAY_POINTS > points ||
-    !isCount(shipsLost)
-  ) {
-    return null;
-  }
-  const fill = fillFor(wave, laidOut);
-  const kept = value["rocks"];
-  if (straysSent > fill.strays || !Array.isArray(kept)) return null;
-  if (kept.length === 0 || kept.length > fill.cap) return null;
-  const rocks: SavedRock[] = [];
-  for (const rock of kept) {
-    const restored = restoredRock(rock, torus, steps);
-    if (!restored) return null;
-    rocks.push(restored);
-  }
-  return {
-    laidOut,
-    torus,
-    rocks,
-    steps,
-    draws,
-    straysSent,
-    nextStrayAt,
-    nextCometAt,
-    lastDropAt,
-    chainPoints,
-    shipsLost,
-  };
-}
-
-/**
- * Returns a rock as storage kept it, or null if it lies off the field, a
- * number isn't one, or it is in a state its kind never comes to: a size it
- * doesn't come in, an outline it hasn't, more hits left than it starts
- * with, or, whole, none, or, broken, a blast its kind doesn't set off or
- * one not due within its beat of the field's last step.
- */
-function restoredRock(
-  value: unknown,
-  torus: Torus,
-  steps: number,
-): SavedRock | null {
-  if (!isRecord(value)) return null;
-  const { kind, size, x, y, vx, vy, angle, spin, outline, hits } = value;
-  const { live, goesOffAt } = value;
-  if (
-    !isRockKindId(kind) ||
-    !isRockSize(size) ||
-    !isWithin(x, torus.width) ||
-    !isWithin(y, torus.height) ||
-    !isFiniteNumber(vx) ||
-    !isFiniteNumber(vy) ||
-    !isFiniteNumber(angle) ||
-    !isFiniteNumber(spin) ||
-    !isWhole(outline) ||
-    outline < 0 ||
-    outline >= ROCK_OUTLINES ||
-    !isCount(hits) ||
-    typeof live !== "boolean" ||
-    !isCount(goesOffAt)
-  ) {
-    return null;
-  }
-  const most = rockKind(kind).hits[size];
-  if (most === undefined || hits > most) return null;
-  const sound = live
-    ? hits > 0 && goesOffAt === 0
-    : hits === 0 && isFuseLit(kind, goesOffAt, steps);
-  if (!sound) return null;
-  return {
-    kind,
-    size,
-    x,
-    y,
-    vx,
-    vy,
-    angle,
-    spin,
-    outline,
-    hits,
-    live,
-    goesOffAt,
-  };
-}
-
-/** Returns whether a broken rock's blast is still to go off, after a field's last step, within its kind's beat of it. */
-function isFuseLit(
-  kind: RockKindId,
-  goesOffAt: number,
-  steps: number,
-): boolean {
-  const blast = rockKind(kind).traits.find(isBlast);
-  return (
-    blast !== undefined &&
-    goesOffAt > steps &&
-    goesOffAt <= steps + stepsIn(blast.delayMs)
-  );
-}
-
-/** Returns whether a trait is a blast's. */
-function isBlast(
-  trait: RockTrait,
-): trait is Extract<RockTrait, { kind: "blasts" }> {
-  return trait.kind === "blasts";
-}
-
-/** Returns a field's size as storage kept it, or null for one no board lays a field out at. */
-function torusOf(value: unknown): Torus | null {
-  if (!isRecord(value)) return null;
-  const { width, height } = value;
-  if (!isFiniteNumber(width) || !isFiniteNumber(height)) return null;
-  const short = Math.min(width, height);
-  const long = Math.max(width, height);
-  if (short !== FIELD_SHORT_SIDE || long > FIELD_LONGEST_SIDE) return null;
-  return { width, height };
-}
-
-/** Returns a list of pilots as storage kept it, or null if it isn't one. */
-function pilotsOf(value: unknown): Pilot[] | null {
-  if (!Array.isArray(value)) return null;
-  const pilots: Pilot[] = [];
-  for (const pilot of value) {
-    if (!isPilot(pilot)) return null;
-    pilots.push(pilot);
-  }
-  return pilots;
+/** Returns whether a value is a list of pilots, each named by its color's number. */
+function isPilots(value: unknown): value is Pilot[] {
+  return Array.isArray(value) && value.every(isPilot);
 }
 
 /** Returns whether a value names a pilot, by its color's number. */
 function isPilot(value: unknown): value is Pilot {
   return isWhole(value) && value >= 0 && value < PILOT_COLORS;
-}
-
-/** Returns whether a value is a number JSON can hold: neither infinite nor not a number. */
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-/** Returns whether a value is a place along an axis of a length, from 0 to under it. */
-function isWithin(value: unknown, length: number): value is number {
-  return isFiniteNumber(value) && value >= 0 && value < length;
 }

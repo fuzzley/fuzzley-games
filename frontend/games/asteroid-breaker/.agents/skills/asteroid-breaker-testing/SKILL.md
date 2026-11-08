@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, check:layout, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, check:layout, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -107,12 +107,19 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 ## The Saved Game
 
-- `src/rules/run/saved_game.spec.ts` keeps a run and its field
-  (`saveGame()`), takes it up (`restoreGame()`) and lays its field out
-  again (`takeUpField()`), Endless's among them, its wave made again from
-  the run's seed.
+- `src/rules/run/saved_game.spec.ts` keeps a run (`saveGame()`) and takes
+  it up (`restoreGame()`, `readRun()`) with its field (`takeUpField()`),
+  Endless's among them, its wave made again from the run's seed, and
+  `src/rules/field/kept_field.spec.ts` keeps its field (`savedField()`),
+  reads it back (`readField()`) and lays it out again
+  (`layOutKeptField()`). Both start from
+  `src/testing/run_under_way.ts`'s run under way and its field, played a
+  second (`runUnderWay()`, `playedField()`).
 - A spoiled entry is a stored game read back from JSON with one thing
-  changed, and each is expected to be refused.
+  changed (`Spoil`). Each is written once, in a table named for the check
+  it spoils (`KNOWN_WAVE_SPOILS`, `CREW_SPOILS`, `STATE_SPOILS` and the
+  rest), which that check's own spec holds to failing it, so a spoil can't
+  pass by failing another, and the reader's spec holds to being refused.
 - `src/app/play/saved_game.service.spec.ts` keeps a run through the
   service and takes it up after a reload (`reload()`, a new TestBed), as a
   page loaded again would.

@@ -11,12 +11,13 @@ import {
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { fieldFor } from "../rules/field/field";
+import { fieldFor, steerField } from "../rules/field/field";
 import { createRun, startWave, waveStart } from "../rules/run/run";
 import { saveGame } from "../rules/run/saved_game";
 import { STILL } from "../rules/ship/ship";
 import { FIELD_SHORT_SIDE } from "../rules/tuning";
 import { parseWave, waveEntryOf } from "../rules/waves/waves";
+import { stepTimes } from "../testing/field_picture";
 import {
   FRAME_MS,
   SPEC_WAVE,
@@ -58,7 +59,10 @@ async function endedApp(): Promise<GameService> {
   return game;
 }
 
-/** Stores a run just begun on the Gift wave, as a player's browser would hold it. */
+/**
+ * Stores a run just begun on the Gift wave, its first move made, as a
+ * player's browser would hold it.
+ */
 function storeRun(): void {
   const run = startWave(
     createRun({ id: 1, seed: 1, speed: "normal", wave: SPEC_WAVE.gift }),
@@ -69,6 +73,8 @@ function storeRun(): void {
     speed: run.speed,
     held: STILL,
   });
+  steerField(field, { ...STILL, turn: 1 });
+  stepTimes(field, 1);
   const saved = saveGame(run, field, SPEC_WAVES, {
     broughtHome: [],
     tuned: false,

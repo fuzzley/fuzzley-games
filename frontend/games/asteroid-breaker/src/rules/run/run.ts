@@ -95,13 +95,18 @@ export function hasEnded(run: Run): boolean {
  * a wave cleared.
  */
 export function isInProgress(run: Run): boolean {
-  if (run.outcome === "ready") return wavesCleared(run) > 0;
+  if (run.outcome === "ready") return hasClearedAWave(run);
   return isUnderWay(run) || run.outcome === "cleared";
 }
 
 /** Returns how many waves a run has cleared since its first. */
 export function wavesCleared(run: Run): number {
   return run.wave - run.firstWave + (run.outcome === "cleared" ? 1 : 0);
+}
+
+/** Returns whether a run has cleared a wave since its first. */
+export function hasClearedAWave(run: Run): boolean {
+  return wavesCleared(run) > 0;
 }
 
 /**

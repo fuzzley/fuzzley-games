@@ -90,7 +90,18 @@ take for the layer.
   says how a cleared wave's points add up (`tallyOf()`) and come to
   (`pointsOf()`). `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
-  and the shell hears, each from the last one it read.
+  and the shell hears, each from the last one it read. `kept_field.ts` is
+  the field as storage keeps it: `savedField()` writes it; `readField()`
+  reads it back, dropping what fails one of its checks, each named and
+  exported: its counts, its sizes, its steps (`hasMoved()`,
+  `hasDroppedInTime()`), a rock, each of its keys by its own check
+  (`isKeptRock()`, through `ROCK_CHECKS`), a rock's kind and state, and its
+  fit to its wave and to what its run has scored on it (`fitsItsWave()`,
+  `fitsItsRun()`); and `layOutKeptField()` lays the wave out afresh at the
+  size it was laid out at and stretches it to the size it was kept at, its
+  rocks and counts as kept, its points and strays brought home as its run
+  has scored them, its ship brought as the next in line is (`field.ts`'s
+  `bringShip()`).
 - **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
   the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
@@ -133,9 +144,10 @@ take for the layer.
   until the ships run out. `catchUp()` takes what the wave's field has come
   to since it last looked, its points, its crew and its strays, then its end
   or its clearing, banked once; `waveSeed()` gives each wave's field a seed
-  of its own; `wavesCleared()` counts the waves a run has cleared, and
-  `hasClearedAll()` says whether it cleared every written one from the
-  first; and `nextShipAfter()` gives the mark the next ship comes at. A move
+  of its own; `wavesCleared()` counts the waves a run has cleared,
+  `hasClearedAWave()` says whether it has cleared any, and
+  `hasClearedAll()` whether it cleared every written one from the first;
+  and `nextShipAfter()` gives the mark the next ship comes at. A move
   that doesn't fit where the run stands returns it as it is, and so does a
   field with nothing new, so the shell can tell a frame that changed the
   run. `describe.ts` puts what happened into the words the announcer says: a
@@ -158,11 +170,15 @@ take for the layer.
   says whether a run's score beats the best. `saved_game.ts` turns a run
   under way and its field into what storage keeps (`saveGame()`), a run
   whose wave was just cleared as the next wave not yet begun, and back
-  (`restoreGame()`), paused, dropping a wave the game doesn't have under
-  that number, a field that doesn't fit its wave, a number out of its range,
-  or a state no run comes to; `takeUpField()` lays the wave out afresh at
-  the size it was laid out at and stretches it to the size it was kept at,
-  its rocks and counts as kept.
+  (`restoreGame()`), paused: the run read by `readRun()`, and its field by
+  `src/rules/field/kept_field.ts`'s `readField()`, each dropping what fails
+  one of its checks, each named and exported, such as a wave the game
+  doesn't have under that number (`hasKnownWave()`), points or a crew that
+  don't add up (`hasSoundScore()`, `hasSoundCrew()`), or a wave kept as not
+  yet begun that is the one the run started at or has scored
+  (`hasScored()`); and `takeUpField()` lays the field kept out
+  afresh as the run started its wave, with what the run has scored on it
+  (`waveSoFar()`).
 - **`src/rules/waves/`** — the waves: a JSON file for each sector, its id,
   its name, its chance of a pickup and its ten waves, each written for a
   field of 40 by 40: its id and name, its rocks by kind, size and count,
@@ -418,8 +434,9 @@ take for the layer.
 - **`src/testing/`** — what the specs share, and what the scripts in
   `tools/` load through Vite: fields from pictures, the atlas in one
   palette, the autopilot, the scene run on a fake shell, the canvases a
-  board makes, the palette's roles, the shell's small waves and the run the
-  screenshots keep, as Tests below says. The app's tsconfig leaves it out.
+  board makes, the palette's roles, the shell's small waves, a run under
+  way for the saved game's specs and the run the screenshots keep, as Tests
+  below says. The app's tsconfig leaves it out.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
   synthesizes the sounds; `report-waves.mjs` reports how the autopilot plays
   every wave; `check-layout.mjs` checks the build's layout in headless
@@ -719,6 +736,11 @@ share is in `src/testing/`:
   steering the ship from the frame it reads (`shoot()`, `ram()`,
   `toPickup()`, `toStray()`, `playUntil()`, `loseShip()`, `endRun()`,
   `playToClear()`, `clearToNext()`).
+- `run_under_way.ts` holds a run under way on its third wave, with points,
+  strays and a crew (`runUnderWay()`), how it starts its wave
+  (`waveSetupOf()`), and its field laid out and played a second
+  (`laidOutField()`, `playedField()`), which the saved game's specs keep and
+  read back, with the shape of their spoiled entries (`Spoil`).
 - `kept_run.ts` keeps a run begun at a wave and played by the autopilot
   until its first stray is near (`keptRun()`), for the screenshots' script.
 
