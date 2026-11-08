@@ -21,6 +21,7 @@ import {
   turnsAt,
 } from "./layout.ts";
 import type { BoardInspection } from "./board_page.ts";
+import type { Printer } from "./script.ts";
 import { type Command, FakeBrowser } from "./testing/fake_browser.ts";
 
 /** Words only the game's inspection holds, for the fake browser to spot. */
@@ -60,6 +61,9 @@ const BOX: BoardBox = { left: 40, top: 60, width: 260, height: 300, unit: 10 };
 /** Words only the inspection of a board drawn with Phaser holds: its name. */
 const BOARD_INSPECTION = "function inspectPhaserBoard";
 
+/** Words only the wait for the page to draw holds: its name. */
+const SETTLE = "function settle(";
+
 /** Words only the inspection of a board's deck holds: its name. */
 const DECK_INSPECTION = "function inspectPhaserDeck";
 
@@ -84,7 +88,8 @@ function browserFinding(
 /**
  * Returns a fake browser whose pages find what the game's inspection, the
  * check of its bar and the inspections of its board and its deck each find,
- * and nothing else wrong.
+ * and nothing else wrong, once they have drawn, as they do unless `drawn`
+ * says otherwise.
  */
 function browserFindingIn(
   found: {
@@ -92,6 +97,7 @@ function browserFindingIn(
     readonly bar?: readonly string[];
     readonly board?: BoardInspection;
     readonly deck?: readonly string[];
+    readonly drawn?: boolean;
   },
   ...events: readonly object[]
 ): FakeBrowser {
@@ -103,6 +109,7 @@ function browserFindingIn(
     "Runtime.evaluate": (command: Command) => {
       const expression = String(command.params["expression"]);
       const answers: readonly (readonly [string, unknown])[] = [
+        [SETTLE, found.drawn ?? true],
         [OWN, found.own ?? []],
         [BAR, found.bar ?? []],
         [BOARD_INSPECTION, found.board ?? { problems: [] }],
@@ -145,6 +152,16 @@ describe("checkLayout", () => {
   it("opens the game at a small phone, upright and on its side", () => {
     expect(SHAPES.map((shape) => shape.name)).toEqual(
       expect.arrayContaining(["small phone portrait", "small phone landscape"]),
+    );
+  });
+
+  it("throws where nothing matches the check's selector in time, saying so", async () => {
+    const devtools = new DevToolsConnection(browserFindingIn({ drawn: false }));
+
+    const checking = checkLayout(devtools, CHECK, ROOMY);
+
+    await expect(checking).rejects.toThrow(
+      new Error("Nothing matched main in 10000 ms."),
     );
   });
 
@@ -472,18 +489,17 @@ describe("runLayoutScript", () => {
     root = await mkdtemp(join(tmpdir(), "fz-layout-"));
     printed = [];
     reported = [];
-    vi.spyOn(console, "log").mockImplementation((words: string) => {
-      printed.push(words);
-    });
-    vi.spyOn(console, "error").mockImplementation((words: string) => {
-      reported.push(words);
-    });
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
     await rm(root, { recursive: true, force: true });
   });
+
+  /** Where the script prints: its output into `printed`, and what went wrong into `reported`. */
+  const io: Printer = {
+    print: (line) => printed.push(line),
+    printError: (line) => reported.push(line),
+  };
 
   /** Writes a build into the game's folder, its page saying `words`. */
   async function build(words: string): Promise<void> {
@@ -537,6 +553,7 @@ describe("runLayoutScript", () => {
 
     await runLayoutScript(script([], check), {
       args: [],
+      ...io,
       runChrome: fakeChrome(),
     });
 
@@ -549,6 +566,7 @@ describe("runLayoutScript", () => {
 
     await runLayoutScript(script([], keepingAddress(kept)), {
       args: [],
+      ...io,
       runChrome: fakeChrome(),
     });
 
@@ -562,6 +580,7 @@ describe("runLayoutScript", () => {
 
     const running = runLayoutScript(script([], check), {
       args: [],
+      ...io,
       runChrome: fakeChrome(),
     });
 
@@ -574,6 +593,7 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(), {
       args: [],
+      ...io,
       runChrome: fakeChrome(),
     });
 
@@ -589,6 +609,7 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(found), {
       args: [],
+      ...io,
       runChrome: fakeChrome(),
     });
 
@@ -605,6 +626,7 @@ describe("runLayoutScript", () => {
 
     await runLayoutScript(script(), {
       args: ["--chrome", "/opt/chrome"],
+      ...io,
       runChrome: fakeChrome(started),
     });
 
@@ -616,6 +638,7 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(), {
       args: ["--help"],
+      ...io,
       runChrome: fakeChrome(started),
     });
 
@@ -630,6 +653,7 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(), {
       args: ["--bogus"],
+      ...io,
       runChrome: fakeChrome(started),
     });
 
@@ -642,6 +666,7 @@ describe("runLayoutScript", () => {
   it("throws for a game with no build, saying to build it first", async () => {
     const running = runLayoutScript(script(), {
       args: [],
+      ...io,
       runChrome: fakeChrome(),
     });
 

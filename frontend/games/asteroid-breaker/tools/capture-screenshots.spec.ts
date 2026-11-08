@@ -5,10 +5,8 @@ import { WAVES } from "../src/rules/waves/waves";
 import {
   RUN,
   loadScreenshotApi,
-  readCommandLine,
   run,
   shownRun,
-  thumbRegion,
 } from "./capture-screenshots.mjs";
 
 /** A field on its side, as a page of 1280 by 720 lays one out. */
@@ -30,65 +28,14 @@ async function ran(
   return { code, out, err };
 }
 
-describe("readCommandLine", () => {
-  it("takes the game's own dev server and the usual Chrome by default", () => {
-    expect(readCommandLine([])).toEqual({
-      url: "http://localhost:9005/",
-      chrome: undefined,
-    });
-  });
-
-  it("takes the server and the Chrome the command line names", () => {
-    expect(
-      readCommandLine([
-        "--url",
-        "http://127.0.0.1:4173/",
-        "--chrome",
-        "/opt/chrome",
-      ]),
-    ).toEqual({ url: "http://127.0.0.1:4173/", chrome: "/opt/chrome" });
-  });
-
-  it.each([["--help"], ["-h"]])("prints the usage for %s", (flag) => {
-    expect(readCommandLine([flag])).toEqual({
-      code: 0,
-      message: expect.stringMatching(
-        /^Usage: yarn capture:screenshots/,
-      ) as unknown,
-    });
-  });
-
-  it.each([
-    [["--port", "9005"], "Unknown option '--port'"],
-    [["--url"], "Option '--url <value>' argument missing"],
-    [["9005"], "Unexpected argument '9005'"],
-    [
-      ["--url", "localhost:9005"],
-      `--url takes an http or https address, not "localhost:9005".`,
-    ],
-  ])("exits with 2 for %j, saying why", (args, problem) => {
-    expect(readCommandLine(args)).toEqual({
-      code: 2,
-      message: expect.stringContaining(problem) as unknown,
-    });
-  });
-
-  it("follows what is wrong with the usage", () => {
-    expect(readCommandLine(["--port", "9005"])).toEqual({
-      code: 2,
-      message: expect.stringMatching(
-        /^Unknown option '--port'[^]*\n\nUsage: yarn capture:screenshots/,
-      ) as unknown,
-    });
-  });
-});
-
 describe("run", () => {
-  it("prints the usage asked for and exits with 0", async () => {
+  it("prints the usage asked for, the game's own dev server its default, and exits with 0", async () => {
     expect(await ran(["--help"])).toEqual({
       code: 0,
       out: [
-        expect.stringMatching(/^Usage: yarn capture:screenshots/) as unknown,
+        expect.stringMatching(
+          /^Usage: yarn capture:screenshots[^]*of Asteroid Breaker[^]*\(default: http:\/\/localhost:9005\/\)/,
+        ) as unknown,
       ],
       err: [],
     });
@@ -151,35 +98,6 @@ describe("shownRun", () => {
 
     const stored = JSON.parse(shown.stored) as { score: number };
     expect(shown.score).toBe(formatPoints(stored.score));
-  });
-});
-
-describe("thumbRegion", () => {
-  it("keeps the field and its margin in the middle, at the thumbnail's shape", () => {
-    expect(
-      thumbRegion({ left: 352, top: 216, width: 576, height: 320 }),
-    ).toEqual({ left: 626, top: 384, width: 1308, height: 736 });
-  });
-
-  it("keeps the region on the capture for a field at its top left", () => {
-    expect(thumbRegion({ left: 0, top: 0, width: 400, height: 225 })).toEqual({
-      left: 0,
-      top: 0,
-      width: 971,
-      height: 546,
-    });
-  });
-
-  it("keeps the region on the capture for a field at its bottom right", () => {
-    expect(
-      thumbRegion({ left: 880, top: 495, width: 400, height: 225 }),
-    ).toEqual({ left: 1589, top: 894, width: 971, height: 546 });
-  });
-
-  it("keeps the whole capture for a field as wide as the page", () => {
-    expect(thumbRegion({ left: 0, top: 48, width: 1280, height: 640 })).toEqual(
-      { left: 0, top: 0, width: 2560, height: 1440 },
-    );
   });
 });
 

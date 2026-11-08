@@ -22,9 +22,9 @@ export default defineConfig(
     },
     projects: {
       root: import.meta.dirname,
-      // The rules and the view touch no page. The specs' helpers stay with
-      // `dom`, as some hand the game Angular's providers.
-      pure: ["src/rules", "src/view"],
+      // The rules, the view and the scripts touch no page. The specs'
+      // helpers stay with `dom`, as some hand the game Angular's providers.
+      pure: ["src/rules", "src/view", "tools"],
       // The specs that play every level, without the coverage that would
       // quadruple their time: the other rules specs alone hold the rules to
       // their floor.

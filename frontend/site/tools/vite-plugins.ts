@@ -9,7 +9,8 @@ import {
   type GameManifest,
   isGameManifest,
 } from "@fz/dev/game-manifest";
-import { type Connect, type Plugin, runnerImport } from "vite";
+import { importThroughVite } from "@fz/dev/script";
+import type { Connect, Plugin } from "vite";
 import type { BuildInfo } from "../src/app/model/build.ts";
 import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
@@ -239,16 +240,12 @@ export function proxyGameServers(): Plugin {
  *
  * The app's modules resolve as the app's bundler does (no file extensions),
  * so Node can't import them itself, and importing them into this config
- * would bind it to how the app is written. `runnerImport` is experimental;
- * the spec of `loadCatalog` runs it on every test.
+ * would bind it to how the app is written. Vite's `runnerImport`, which
+ * `importThroughVite()` runs, is experimental; the spec of `loadCatalog`
+ * runs it on every test.
  */
 async function importApp<T>(file: string): Promise<T> {
-  const { module } = await runnerImport<T>(path.join(SITE_DIR, file), {
-    configFile: false,
-    root: SITE_DIR,
-    logLevel: "silent",
-  });
-  return module;
+  return importThroughVite<T>(path.join(SITE_DIR, file), SITE_DIR);
 }
 
 /** Loads the site's catalog from the app. */

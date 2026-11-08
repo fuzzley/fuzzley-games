@@ -28,19 +28,51 @@
  * the autopilot's limits for that height (`limitsOf()`). It marks the
  * endgames longer than those allow, but fails only on a play that doesn't
  * clear its level, as the spec holds the tallest field.
+ *
+ * It exits with 1 where it fails, and with 2, saying why, for a command line
+ * it can't read, before it plays anything.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { runnerImport } from "vite";
+import {
+  SEEDS_OPTION,
+  middleAndMost,
+  printReport,
+  readSeeds,
+  timeOf,
+} from "@fz/dev/report";
+import {
+  CONSOLE,
+  importThroughVite,
+  isStop,
+  misread,
+  readArgs,
+  stopWith,
+} from "@fz/dev/script";
+
+/** @import { ReportColumns } from "@fz/dev/report" */
+/** @import { ScriptIo, Stop } from "@fz/dev/script" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** How wide the column of the levels' names is. */
-const NAME_WIDTH = 18;
+const USAGE = `Usage: yarn report:levels [options]
 
-/** How far apart each level's seeds start with `--seeds`, so no two levels share one. */
-const SEED_STRIDE = 1000;
+Prints how the autopilot plays every level at every preset speed.
+
+  --seeds <n>     Play each level from n seeds of its own (default: from its
+                  number alone)
+  --height <n>    Play on a field n units tall (default: the shortest)
+  -h, --help      Show this message`;
+
+/**
+ * What a command line asks the report for.
+ *
+ * @typedef {object} Request
+ * @property {number | undefined} seeds How many seeds each level is played
+ *   from, or none for its number alone.
+ * @property {string | undefined} height How tall a field `--height` asks
+ *   for, as it was given, which the rules hold to their heights.
+ */
 
 /**
  * A level as the rules list it.
@@ -97,60 +129,37 @@ const SEED_STRIDE = 1000;
  */
 
 /**
- * The plays the report makes of each level at each speed, and the columns
- * it shows of them.
+ * Returns the columns the report shows of a level's plays at one speed,
+ * from its number alone or from many seeds.
  *
- * @typedef {object} Layout
- * @property {(entry: LevelEntry) => number[]} seedsOf The seeds a level is played from.
- * @property {readonly string[]} headings The heading of each column.
- * @property {readonly number[]} widths How wide each column is.
- * @property {boolean} strict Whether an endgame longer than the spec allows fails the report.
- * @property {(plays: ReadonlyArray<AutopilotReport>, game: Game) => string[]} cellsOf
- *   Returns the columns' cells for a level's plays at one speed.
+ * @param {number | undefined} seeds
+ * @param {Game} game
+ * @returns {ReportColumns<AutopilotReport>}
  */
-
-/** @type {Layout} */
-const ONE_PLAY = {
-  seedsOf: (entry) => [entry.number],
-  headings: ["time", "last", "bounces", "lost"],
-  widths: [5, 6, 8, 5],
-  strict: true,
-  cellsOf: ([play], game) =>
-    play
-      ? [
-          play.cleared ? timeOf(play.steps, game) : "-",
-          endgameOf(play.endgameSteps, game),
-          String(play.bounces),
-          String(play.livesLost),
-        ]
-      : [],
-};
-
-/**
- * Returns the layout of a report that plays each level from a number of
- * seeds at each speed.
- *
- * @param {number} count
- * @returns {Layout}
- */
-function manyPlays(count) {
+function columnsOf(seeds, game) {
+  if (seeds === undefined) {
+    return {
+      headings: ["time", "last", "bounces", "lost"],
+      widths: [5, 6, 8, 5],
+      cellsOf: ([play]) =>
+        play
+          ? [
+              timeOf(stepsOf(play), game.stepSeconds),
+              endgameOf(play.endgameSteps, game),
+              String(play.bounces),
+              String(play.livesLost),
+            ]
+          : [],
+    };
+  }
   return {
-    seedsOf: (entry) =>
-      Array.from({ length: count }, (_, i) => entry.number * SEED_STRIDE + i),
     headings: ["middle", "most", "last", "lost"],
     widths: [6, 5, 6, 5],
-    strict: false,
-    cellsOf: (plays, game) => {
-      const steps = plays
-        .map((play) => (play.cleared ? play.steps : Number.POSITIVE_INFINITY))
-        .sort((a, b) => a - b);
-      const time = (/** @type {number | undefined} */ value) =>
-        value === undefined || value === Number.POSITIVE_INFINITY
-          ? "-"
-          : timeOf(value, game);
+    cellsOf: (plays) => {
+      const [middle, most] = middleAndMost(plays.map(stepsOf));
       return [
-        time(steps[Math.floor(steps.length / 2)]),
-        time(steps.at(-1)),
+        timeOf(middle, game.stepSeconds),
+        timeOf(most, game.stepSeconds),
         endgameOf(Math.max(...plays.map((play) => play.endgameSteps)), game),
         String(Math.max(...plays.map((play) => play.livesLost))),
       ];
@@ -159,36 +168,48 @@ function manyPlays(count) {
 }
 
 /**
- * Returns a module of the game's source, loaded through Vite.
+ * Returns the steps a play took to clear its level, or infinity if it
+ * didn't clear it.
  *
- * @param {string} file Its path from the workspace's folder.
- * @returns {Promise<Record<string, unknown>>}
+ * @param {AutopilotReport} play
+ * @returns {number}
  */
-async function load(file) {
-  const { module } = await runnerImport(join(ROOT, file), {
-    configFile: false,
-    root: ROOT,
-    logLevel: "silent",
-  });
-  return /** @type {Record<string, unknown>} */ (module);
+function stepsOf(play) {
+  return play.cleared ? play.steps : Number.POSITIVE_INFINITY;
 }
 
 /**
- * Returns the game as the report plays it, on a field as tall as `--height`
- * asks, the least by default, or throws an error that says what is wrong
- * with the height.
+ * Returns what a command line asks the report for, or, for `--help` or one
+ * the report can't read, what to print and the code to exit with.
  *
- * @param {string | undefined} heightAsked
- * @returns {Promise<Game>}
+ * @param {readonly string[]} args
+ * @returns {Request | Stop}
  */
-async function loadGame(heightAsked) {
+function readCommandLine(args) {
+  const read = readArgs(args, {
+    options: { ...SEEDS_OPTION, height: { type: "string" } },
+    usage: USAGE,
+  });
+  if (isStop(read)) return read;
+  const seeds = readSeeds(read.values.seeds, USAGE);
+  if (isStop(seeds)) return seeds;
+  return { seeds, height: read.values.height };
+}
+
+/**
+ * Returns what the report takes from the rules and the autopilot, loaded
+ * through Vite.
+ *
+ * @returns {Promise<Rules>}
+ */
+async function loadRules() {
   const [levels, speed, tuning, autopilot] = await Promise.all([
-    load("src/rules/levels/levels.ts"),
-    load("src/rules/speed.ts"),
-    load("src/rules/tuning.ts"),
-    load("src/testing/autopilot.ts"),
+    importThroughVite(join(ROOT, "src/rules/levels/levels.ts"), ROOT),
+    importThroughVite(join(ROOT, "src/rules/speed.ts"), ROOT),
+    importThroughVite(join(ROOT, "src/rules/tuning.ts"), ROOT),
+    importThroughVite(join(ROOT, "src/testing/autopilot.ts"), ROOT),
   ]);
-  const rules = /** @type {Rules} */ ({
+  return /** @type {Rules} */ ({
     levels: levels["LEVELS"],
     speeds: speed["PRESET_SPEEDS"],
     stepSeconds: tuning["STEP_S"],
@@ -197,7 +218,20 @@ async function loadGame(heightAsked) {
     limitsOf: autopilot["limitsOf"],
     playLevel: autopilot["playLevel"],
   });
+}
+
+/**
+ * Returns the game as the report plays it, on a field as tall as `--height`
+ * asks, the least by default, or, for a height the rules don't allow, what
+ * to print and the code to exit with.
+ *
+ * @param {Rules} rules
+ * @param {string | undefined} heightAsked
+ * @returns {Game | Stop}
+ */
+function gameOf(rules, heightAsked) {
   const height = heightOf(heightAsked, rules);
+  if (isStop(height)) return height;
   return {
     levels: rules.levels,
     speeds: rules.speeds,
@@ -211,28 +245,12 @@ async function loadGame(heightAsked) {
 }
 
 /**
- * Returns the layout `--seeds` asks for, or throws an error that says what
- * is wrong with it.
- *
- * @param {string | undefined} seeds
- * @returns {Layout}
- */
-function layoutAsked(seeds) {
-  if (seeds === undefined) return ONE_PLAY;
-  const count = Number(seeds);
-  if (!Number.isInteger(count) || count < 1) {
-    throw new Error(`--seeds takes a whole number from 1, not "${seeds}".`);
-  }
-  return manyPlays(count);
-}
-
-/**
- * Returns the field's height `--height` asks for, the least by default, or
- * throws an error that says what is wrong with it.
+ * Returns the field's height `--height` asks for, the least by default, or,
+ * for one the rules don't allow, what to print and the code to exit with.
  *
  * @param {string | undefined} height
  * @param {Rules} rules
- * @returns {number}
+ * @returns {number | Stop}
  */
 function heightOf(height, rules) {
   if (height === undefined) return rules.leastHeight;
@@ -242,24 +260,12 @@ function heightOf(height, rules) {
     units < rules.leastHeight ||
     units > rules.tallest
   ) {
-    throw new Error(
+    return misread(
       `--height takes a whole number from ${String(rules.leastHeight)} to ${String(rules.tallest)}, not "${height}".`,
+      USAGE,
     );
   }
   return units;
-}
-
-/**
- * Returns a count of steps as the game time it takes, in minutes and
- * seconds.
- *
- * @param {number} steps
- * @param {Game} game
- * @returns {string}
- */
-function timeOf(steps, game) {
-  const seconds = Math.round(steps * game.stepSeconds);
-  return `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 /**
@@ -271,61 +277,76 @@ function timeOf(steps, game) {
  * @returns {string}
  */
 function endgameOf(steps, game) {
-  return timeOf(steps, game) + (steps > game.endgameLimit ? "!" : "");
+  return (
+    timeOf(steps, game.stepSeconds) + (steps > game.endgameLimit ? "!" : "")
+  );
 }
 
 /**
- * Returns a speed's cells, or their headings, each right-aligned in its
- * column.
+ * Prints the report of the game, a line at a time, a level's line as it is
+ * played, and how many plays didn't clear their level or took longer over
+ * their last bricks than the field allows, and returns the code to exit
+ * with: 1 where a play didn't clear its level, or, played from each level's
+ * number on the least field, took too long over its last bricks, and 0
+ * otherwise.
  *
- * @param {readonly string[]} cells
- * @param {Layout} layout
- * @returns {string}
+ * @param {Game} game
+ * @param {number | undefined} seeds
+ * @param {(line: string) => void} print
+ * @returns {number}
  */
-function columns(cells, layout) {
-  return cells.map((cell, i) => cell.padStart(layout.widths[i] ?? 0)).join(" ");
-}
-
-const { values: asked } = parseArgs({
-  options: { seeds: { type: "string" }, height: { type: "string" } },
-});
-const layout = layoutAsked(asked.seeds);
-const game = await loadGame(asked.height);
-const headings = columns(layout.headings, layout);
-console.log(
-  "".padEnd(NAME_WIDTH) +
-    game.speeds.map((speed) => speed.padEnd(headings.length)).join("   "),
-);
-console.log(
-  "".padEnd(NAME_WIDTH) + game.speeds.map(() => headings).join("   "),
-);
-let uncleared = 0;
-let slow = 0;
-for (const entry of game.levels) {
-  const cells = game.speeds.map((speed) => {
-    const plays = layout
-      .seedsOf(entry)
-      .map((seed) => game.playLevel(entry, speed, seed));
-    uncleared += plays.filter((play) => !play.cleared).length;
-    slow += plays.filter(
-      (play) => play.endgameSteps > game.endgameLimit,
-    ).length;
-    return columns(layout.cellsOf(plays, game), layout);
-  });
-  const name = `${String(entry.number).padStart(2)} ${entry.data.name}`;
-  console.log(name.padEnd(NAME_WIDTH) + cells.join("   "));
-}
-if (uncleared > 0 || slow > 0) console.log();
-if (uncleared > 0) {
-  console.log(`${String(uncleared)} plays didn't clear their level (-).`);
-}
-if (slow > 0) {
+function report(game, seeds, print) {
   const limit = game.tallerField
     ? `a field ${String(game.height)} tall allows`
     : "the spec allows";
-  console.log(
-    `${String(slow)} plays took longer than ${limit} over their level's last bricks (!).`,
+  return printReport(
+    {
+      entries: game.levels,
+      speeds: game.speeds,
+      seeds,
+      play: game.playLevel,
+      ...columnsOf(seeds, game),
+    },
+    (plays) => [
+      {
+        count: plays.filter((play) => !play.cleared).length,
+        says: "didn't clear their level (-)",
+        fails: true,
+      },
+      {
+        count: plays.filter((play) => play.endgameSteps > game.endgameLimit)
+          .length,
+        says: `took longer than ${limit} over their level's last bricks (!)`,
+        fails: seeds === undefined && !game.tallerField,
+      },
+    ],
+    print,
   );
 }
-const strict = layout.strict && !game.tallerField;
-if (uncleared > 0 || (strict && slow > 0)) process.exitCode = 1;
+
+/**
+ * Prints the report a command line asks for, or its usage, and returns the
+ * code to exit with: 0, 1 if it fails, or 2 for a command line it can't
+ * read, played nothing.
+ *
+ * @param {readonly string[]} args
+ * @param {ScriptIo<Rules>} [io]
+ * @returns {Promise<number>}
+ */
+export async function run(
+  args,
+  {
+    load = loadRules,
+    print = CONSOLE.print,
+    printError = CONSOLE.printError,
+  } = {},
+) {
+  const printer = { print, printError };
+  const request = readCommandLine(args);
+  if (isStop(request)) return stopWith(request, printer);
+  const game = gameOf(await load(), request.height);
+  if (isStop(game)) return stopWith(game, printer);
+  return report(game, request.seeds, print);
+}
+
+if (import.meta.main) process.exitCode = await run(process.argv.slice(2));

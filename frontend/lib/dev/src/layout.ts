@@ -1,6 +1,5 @@
 import { access } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { parseArgs } from "node:util";
 import { preview } from "vite";
 import {
   type BoardBox,
@@ -22,8 +21,10 @@ import {
   settle,
   settleTurn,
 } from "./layout_page.ts";
+import { CONSOLE, type Printer, isStop, readArgs, stopWith } from "./script.ts";
 
 export type { BoardBox, PhaserBoard, PhaserDeck } from "./board_page.ts";
+export { PHASER_CANVAS_READY } from "./board_page.ts";
 
 /** Names a shape of window a game is laid out for, and gives one. */
 export interface Shape {
@@ -219,7 +220,7 @@ export interface LayoutScript {
 }
 
 /** Says what a layout script runs on, where a spec stands in for it. */
-export interface LayoutScriptOptions {
+export interface LayoutScriptOptions extends Partial<Printer> {
   /** The command line's arguments, the process's by default. */
   readonly args?: readonly string[];
   /** Starts the headless Chrome, `withChrome()` by default. */
@@ -241,14 +242,16 @@ export async function runLayoutScript(
   {
     args = process.argv.slice(2),
     runChrome = withChrome,
+    print = CONSOLE.print,
+    printError = CONSOLE.printError,
   }: LayoutScriptOptions = {},
 ): Promise<number> {
-  const options = readCommandLine(args, script.game);
-  if (!options) return 2;
-  if (options.help) {
-    console.log(usage(script.game));
-    return 0;
-  }
+  const read = readArgs(args, {
+    options: { chrome: { type: "string" } },
+    usage: usage(script.game),
+  });
+  if (isStop(read)) return stopWith(read, { print, printError });
+  const options = read.values;
   await access(join(script.root, "dist/index.html")).catch(() => {
     throw new Error("Found no build to check; run yarn build first.");
   });
@@ -269,33 +272,13 @@ export async function runLayoutScript(
       (devtools) => script.check(devtools, url),
     );
     for (const { shape, problem } of problems) {
-      console.error(`${shape}: ${problem}`);
+      printError(`${shape}: ${problem}`);
     }
     if (problems.length > 0) return 1;
-    console.log(`${script.game}'s layout holds ${script.holds}.`);
+    print(`${script.game}'s layout holds ${script.holds}.`);
     return 0;
   } finally {
     await server.close();
-  }
-}
-
-/**
- * Returns the options a layout script's command line gives, or nothing once
- * it has reported an option it can't read, with the game's usage.
- */
-function readCommandLine(args: readonly string[], game: string) {
-  try {
-    return parseArgs({
-      args: [...args],
-      options: {
-        chrome: { type: "string" },
-        help: { type: "boolean", short: "h" },
-      },
-    }).values;
-  } catch (error) {
-    if (!isUsageError(error)) throw error;
-    console.error(`${error.message}\n\n${usage(game)}`);
-    return undefined;
   }
 }
 
@@ -310,16 +293,6 @@ Checks ${game}'s layout in headless Chrome, on the build yarn build made.
   -h, --help       Show this message`;
 }
 
-/** Returns whether `parseArgs()` threw for a command line it can't read. */
-function isUsageError(error: unknown): error is Error {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    typeof error.code === "string" &&
-    error.code.startsWith("ERR_PARSE_ARGS_")
-  );
-}
-
 /**
  * Loads the game on a page and waits for it to draw, and returns the list of
  * errors the page reports, which goes on filling.
@@ -328,7 +301,11 @@ async function load(page: Page, check: LayoutCheck): Promise<string[]> {
   const errors = await gatherErrors(page);
   if (check.before) await page.beforeLoad(check.before);
   await page.navigate(check.url);
-  await page.evaluate(settle, check.ready, READY_TIMEOUT_MS);
+  if (!(await page.evaluate(settle, check.ready, READY_TIMEOUT_MS))) {
+    throw new Error(
+      `Nothing matched ${check.ready} in ${String(READY_TIMEOUT_MS)} ms.`,
+    );
+  }
   return errors;
 }
 

@@ -17,23 +17,20 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { runnerImport } from "vite";
-import { withChrome, withPage } from "@fz/dev/chrome";
-import { SITE_IMAGES, writeSiteImages } from "@fz/dev/screenshots";
-import { THEME_STORAGE_KEY } from "@fz/style/themes";
+import { withPage } from "@fz/dev/chrome";
+import {
+  PHASER_CANVAS_SETTLED,
+  describePhaserPage,
+  keepShot,
+  runScreenshotScript,
+  setUpPage,
+  settled,
+  thumbRegionAround,
+} from "@fz/dev/screenshots";
+import { importThroughVite } from "@fz/dev/script";
 
 /** @import { Page } from "@fz/dev/chrome" */
-
-const USAGE = `Usage: yarn capture:screenshots [options]
-
-Captures the screenshots the site shows of Brick Breaker from a running
-server.
-
-  --url <url>      The server (default: http://localhost:9004/)
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
+/** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/brick-breaker");
@@ -52,6 +49,12 @@ const SAVED_GAME_KEY = "brick-breaker-game";
 
 /** The version the game keeps the run under, beside it. */
 const SAVED_GAME_VERSION = 1;
+
+/**
+ * The board's element, and its attribute that says where the scene drew the
+ * field on the canvas.
+ */
+const BOARD = { element: "app-board", drawnAt: "data-field" };
 
 /**
  * The run shown, as `keptRun()` keeps it: begun on Rocket at Normal, twenty
@@ -92,18 +95,6 @@ const RUN = {
  */
 
 /**
- * What the page shows once the run is taken up.
- *
- * @typedef {{state: string, outcome: string, score: string, field: Region | null}} PageState
- */
-
-/**
- * A part of the page, in CSS pixels.
- *
- * @typedef {{left: number, top: number, width: number, height: number}} Region
- */
-
-/**
  * Returns the run, kept by the game's own rules, loaded through Vite, with
  * its score as the game writes points.
  *
@@ -113,18 +104,10 @@ const RUN = {
  * @returns {Promise<KeptRun>}
  */
 async function keepRun() {
-  const load = async (/** @type {string} */ id) => {
-    const { module } = await runnerImport(id, {
-      configFile: false,
-      root: ROOT,
-      logLevel: "silent",
-    });
-    return /** @type {Record<string, unknown>} */ (module);
-  };
   const [levels, kept, format] = await Promise.all([
-    load(join(ROOT, "src/rules/levels/levels.ts")),
-    load(join(ROOT, "src/testing/kept_run.ts")),
-    load("@fz/core/format"),
+    importThroughVite(join(ROOT, "src/rules/levels/levels.ts"), ROOT),
+    importThroughVite(join(ROOT, "src/testing/kept_run.ts"), ROOT),
+    importThroughVite("@fz/core/format", ROOT),
   ]);
   const keptRun =
     /** @type {(levels: unknown, run: typeof RUN) => SavedRun} */ (
@@ -135,59 +118,6 @@ async function keepRun() {
   );
   const saved = keptRun(levels["LEVELS"], RUN);
   return { saved, score: formatPoints(saved.score) };
-}
-
-/**
- * Keeps the run and chooses the palette, before the game starts. It runs in
- * the page, so it uses nothing from this module.
- *
- * @param {string} run The run, as stored.
- * @param {string} gameKey Where the game keeps the run.
- * @param {string} theme
- * @param {string} themeKey Where the palette the player chose is kept.
- */
-function preparePage(run, gameKey, theme, themeKey) {
-  localStorage.setItem(gameKey, run);
-  localStorage.setItem(themeKey, theme);
-}
-
-/**
- * Waits for the scene to draw, then returns what the page shows. It runs in
- * the page, so it uses nothing from this module.
- *
- * @returns {Promise<PageState>}
- */
-async function describePage() {
-  const host = () => document.querySelector("fz-phaser-canvas");
-  // A host not yet rendered is still loading too.
-  const loading = () =>
-    (host()?.getAttribute("data-state") ?? "loading") === "loading";
-  for (let i = 0; i < 200 && loading(); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  await document.fonts.ready;
-  // Long enough for the placeholder's fade.
-  await new Promise((resolve) => setTimeout(resolve, 800));
-  const board = document.querySelector("app-board");
-  const canvas = document
-    .querySelector("fz-phaser-canvas canvas")
-    ?.getBoundingClientRect();
-  const [x = 0, y = 0, width = 0, height = 0] = (
-    board?.getAttribute("data-field") ?? ""
-  )
-    .split(" ")
-    .map(Number);
-  const score = [...document.querySelectorAll("dt")].find(
-    (term) => term.textContent?.trim() === "Score",
-  );
-  return {
-    state: host()?.getAttribute("data-state") ?? "",
-    outcome: board?.getAttribute("data-outcome") ?? "",
-    score: score?.nextElementSibling?.textContent?.trim() ?? "",
-    field: canvas
-      ? { left: canvas.left + x, top: canvas.top + y, width, height }
-      : null,
-  };
 }
 
 /**
@@ -212,120 +142,58 @@ async function goOn() {
 }
 
 /**
- * Returns the part of the capture the thumbnail keeps: the field with a
- * margin around it, widened to the thumbnail's shape and kept on the page,
- * in the capture's pixels.
- *
- * @param {Region} field The field, in CSS pixels.
- * @returns {Region}
- */
-function thumbRegion(field) {
-  const { width: thumbWidth, height: thumbHeight } = SITE_IMAGES.thumb;
-  const height = Math.min(field.height + 2 * THUMB_MARGIN, VIEWPORT.height);
-  const width = Math.min((height * thumbWidth) / thumbHeight, VIEWPORT.width);
-  const centerX = field.left + field.width / 2;
-  const centerY = field.top + field.height / 2;
-  const left = Math.min(
-    Math.max(0, centerX - width / 2),
-    VIEWPORT.width - width,
-  );
-  const top = Math.min(
-    Math.max(0, centerY - height / 2),
-    VIEWPORT.height - height,
-  );
-  const scale = VIEWPORT.deviceScaleFactor;
-  return {
-    left: Math.round(left * scale),
-    top: Math.round(top * scale),
-    width: Math.round(width * scale),
-    height: Math.round(height * scale),
-  };
-}
-
-/**
  * Opens the run on a page of its own and returns the screenshot, or why it
  * could not be taken.
  *
  * @param {Page} page
  * @param {string} url
  * @param {KeptRun} run
- * @returns {Promise<{png: Buffer, page: PageState & {field: Region}} | {problem: string}>}
+ * @returns {Promise<Shot | Missed>}
  */
 async function capture(page, url, run) {
-  await page.beforeLoad(
-    preparePage,
-    JSON.stringify({ version: SAVED_GAME_VERSION, ...run.saved }),
-    SAVED_GAME_KEY,
-    THEME,
-    THEME_STORAGE_KEY,
-  );
+  await setUpPage(page, {
+    theme: THEME,
+    stored: {
+      [SAVED_GAME_KEY]: JSON.stringify({
+        version: SAVED_GAME_VERSION,
+        ...run.saved,
+      }),
+    },
+  });
   await page.navigate(url);
-  const shown = await page.evaluate(describePage);
+  await settled(page, PHASER_CANVAS_SETTLED);
+  const shown = await page.evaluate(describePhaserPage, BOARD);
   if (shown.state !== "ready") return { problem: "the field did not draw" };
   if (shown.outcome !== "paused")
     return { problem: "the run was not taken up" };
   if (shown.score !== run.score) {
     return { problem: `the score reads ${shown.score}` };
   }
-  const { field } = shown;
+  const field = shown.board;
   if (!field) return { problem: "the field is missing" };
   const goneOn = await page.evaluate(goOn);
   if (goneOn.outcome !== "playing" || !goneOn.card.includes("to launch")) {
     return { problem: `the run didn't go on: ${goneOn.card}` };
   }
-  return { png: await page.screenshot(), page: { ...shown, field } };
+  return {
+    png: await page.screenshot(),
+    thumbRegion: thumbRegionAround(field, VIEWPORT, THUMB_MARGIN),
+    says: `Took up the run with a score of ${shown.score}, and went on with it.`,
+  };
 }
 
-/**
- * Returns the options the command line sets.
- *
- * @returns {{url: string, chrome?: string} | undefined} Nothing when it asks
- *   only for help.
- */
-function parseCommandLine() {
-  const { values } = parseArgs({
-    options: {
-      url: { type: "string", default: "http://localhost:9004/" },
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
-  }
-  return { url: values.url, chrome: values.chrome };
-}
-
-async function main() {
-  const options = parseCommandLine();
-  if (!options) return;
-  await fetch(options.url).catch(() => {
-    throw new Error(
-      `Nothing answers at ${options.url}; start the game with yarn dev.`,
+/** @type {ScreenshotScript} */
+const SCRIPT = {
+  game: "Brick Breaker",
+  root: ROOT,
+  port: 9004,
+  capture: async (devtools, { url }, printer) => {
+    const run = await keepRun();
+    const shot = await withPage(devtools, VIEWPORT, (page) =>
+      capture(page, url, run),
     );
-  });
+    return keepShot(shot, SCREENSHOT_DIR, printer);
+  },
+};
 
-  const run = await keepRun();
-  const shot = await withChrome(
-    { chrome: options.chrome, name: "brick-breaker" },
-    (devtools) =>
-      withPage(devtools, VIEWPORT, (page) => capture(page, options.url, run)),
-  );
-  if ("problem" in shot) {
-    console.error(`Not captured: ${shot.problem}.`);
-    process.exitCode = 1;
-    return;
-  }
-  console.log(
-    `Took up the run with a score of ${shot.page.score}, and went on with it.`,
-  );
-  const sizes = await writeSiteImages(shot.png, SCREENSHOT_DIR, {
-    thumbRegion: thumbRegion(shot.page.field),
-  });
-  for (const [file, bytes] of sizes) {
-    console.log(`${file}: ${Math.round(bytes / 1024)} KB`);
-  }
-}
-
-await main();
+process.exitCode = await runScreenshotScript(SCRIPT);

@@ -1,27 +1,29 @@
 // The functions a layout check runs in the page, each sent as its source, so
-// each uses nothing from outside itself. Only a browser runs them, so the
-// specs' coverage leaves this file out; the layout checks run them.
+// each uses nothing from outside itself; a screenshot script waits for its
+// page to draw with settle() too. Only a browser runs the rest, so the specs'
+// coverage leaves this file out, though its spec runs settle() in jsdom.
 
 /**
- * Resolves once the page matches a selector, its fonts have loaded and it
- * has drawn twice more, or rejects after a time. It runs in the page.
+ * Resolves to true once the page matches a selector, its fonts have loaded
+ * and it has drawn twice more, or to false once a time has passed with
+ * nothing matched. It runs in the page.
  */
-export function settle(selector: string, timeoutMs: number): Promise<void> {
-  return new Promise((resolve, reject) => {
+export function settle(selector: string, timeoutMs: number): Promise<boolean> {
+  return new Promise((resolve) => {
     const started = performance.now();
     const look = (): void => {
       if (document.querySelector(selector)) {
         void document.fonts.ready.then(() => {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              resolve();
+              resolve(true);
             });
           });
         });
         return;
       }
       if (performance.now() - started > timeoutMs) {
-        reject(new Error(`Nothing matched ${selector} in ${timeoutMs} ms.`));
+        resolve(false);
         return;
       }
       requestAnimationFrame(look);

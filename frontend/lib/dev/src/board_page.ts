@@ -1,5 +1,16 @@
 // The inspections a layout check runs in the page of a board drawn with
-// Phaser, each sent as its source, so each uses nothing from outside itself.
+// Phaser, each sent as its source, so each uses nothing from outside itself,
+// and the selectors the scripts wait on for its canvas, which only they use.
+
+/** Matches a board's `<fz-phaser-canvas>` once its scene has drawn. */
+export const PHASER_CANVAS_READY = 'fz-phaser-canvas[data-state="ready"]';
+
+/**
+ * Matches a board's `<fz-phaser-canvas>` once its scene has drawn or failed
+ * to, so a script can say which.
+ */
+export const PHASER_CANVAS_SETTLED =
+  'fz-phaser-canvas[data-state]:not([data-state="loading"])';
 
 /**
  * Describes a board drawn with Phaser, as the page shows it: an element that

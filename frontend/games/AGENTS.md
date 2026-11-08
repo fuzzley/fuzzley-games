@@ -43,7 +43,10 @@ to `frontend/games/`.
   the `thumb.webp` and `preview.webp` the site's catalog shows of each game
   it opens, written from a capture by `@fz/dev/screenshots`'s
   `writeSiteImages()`, and a preview is the link preview image in its
-  `index.html`.
+  `index.html`. Its `tools/capture-screenshots.mjs` holds only the states
+  it captures and how it sets them up, and hands them to
+  `runScreenshotScript()`, which reads the command line, checks that the
+  game's dev server answers, and runs the capture in a headless Chrome.
 - **It shares the palette with the site.** `index.html` loads `theme.js`
   first, which `@fz/style`'s Vite plugin writes (`gameConfig()` adds it):
   it puts the palette the player chose, on the site or in any game, on the
@@ -84,9 +87,10 @@ to `frontend/games/`.
    the blocks, `phaserGameLayers()` among them for a game drawn with Phaser
    in four layers, as Snake's is, and `tsconfig.json` extends
    `@fz/dev/tsconfig/angular.json` (`frontend/lib/dev/AGENTS.md`).
-3. **Its screenshots,** from a script on `@fz/dev/chrome` and
-   `@fz/dev/screenshots`, as Minesweeper's `tools/capture-screenshots.mjs`
-   is.
+3. **Its screenshots,** from a script on `@fz/dev/screenshots`'s
+   `runScreenshotScript()`, as Minesweeper's `tools/capture-screenshots.mjs`
+   is, or Snake's for a board drawn with Phaser, whose thumbnail
+   `thumbRegionAround()` crops around the board.
 4. **Its instructions:** an `AGENTS.md` for what is its own, with a
    `CLAUDE.md` beside it that imports it (`@AGENTS.md`), and any skills of
    its own in its `.agents/skills/`, their names starting with its own

@@ -1620,3 +1620,72 @@ The review found every spec placed once:
    libraries' bullet.
 6. _The key left out the tsconfigs Analog and oxc compile by:_ taken, the
    workspace's own two, the presets they extend not followed.
+
+### Step 15d: finding 21, the screenshot scripts and the reports
+
+Built on `dl-scripts`. `@fz/dev/script` takes what every Node script
+shares: step 6b's `readArgs()`, `misread()`, `stopWith()`, `isStop()` and
+`CONSOLE`, so every script has a `--help` and exits 2 with what is wrong
+and the usage, and `importThroughVite()`, the `runnerImport` loader five
+scripts and the site's catalog kept, loading Vite only when called, which
+lint now holds. `@fz/dev/screenshots`' `runScreenshotScript()`, shaped
+like `runLayoutScript()`, takes every game's capture: the command line, a
+server that must answer within five seconds, Chrome, the page set up
+before the game starts (palette, storage, clocks and a seeded
+`Math.random`, in one `preparePage()` specced from the source it sends),
+the wait for it to draw through the layout check's `settle()`, the Phaser
+canvas's selectors, `describePhaserPage()`, and `thumbRegionAround()`,
+which rounds before it keeps the region on the capture's whole pixels.
+`@fz/dev/report` prints Asteroid Breaker's and Brick Breaker's tables
+alike and returns the exit code. Each game's script keeps only the states
+it captures and how it sets them up, and Asteroid Breaker's
+`tools/command_line.mjs` goes. Every capture, report and puzzle bank is
+the same, byte for byte where the game draws the same twice, but for the
+fixes below.
+
+Where it went other than planned:
+
+- Fixed with the lift: Brick Breaker's, Snake's and Sudoku's thumbnails
+  could ask `sharp` for a pixel past a 2× capture's edge; every script
+  that threw a stack on a bad command line, Sudoku's puzzle generator
+  among them, exits 2 with the usage; a server that doesn't answer, and
+  Sudoku's or Minesweeper's board that never shows, end in one line and
+  exit 1.
+- Brick Breaker's report's names column is as wide as its longest name,
+  and its headings lose their trailing spaces, as Asteroid Breaker's do;
+  the Solitaire Collection's script says `yarn dev`.
+- `settle()` answers whether the page drew rather than throwing, and the
+  layout check throws its own "Nothing matched", word for word as before.
+- Brick Breaker's `tools/` specs run in its `pure` project, its report's
+  first spec among them.
+
+The first review found nothing a capture would show:
+
+1. _No spec ran the page's setup from the source sent, so a constant it
+   read from its module would fail only in Chrome:_ taken.
+2. _Vite was imported where the scripts load it:_ taken; lazily, and lint
+   refuses a value import of it in the modules the scripts take.
+3. _Two names meant two things each:_ taken; `allowPositionals` and
+   `nameLabel`.
+4. _Copies stayed: the region's typedef, the canvas's selectors, two
+   games' `describePage()`, the site's loader and Sudoku's generator's
+   command line:_ taken, each lifted or adopted.
+5. _The runner's doc didn't say what it throws, and its server check
+   could wait forever:_ taken; five seconds.
+6. _`settled()` read every failure as a timeout:_ taken.
+7. _Three nits:_ taken.
+
+The second found the fixes right, and:
+
+1. _`settled()` spotted a timeout by retyping `settle()`'s message:_
+   taken; `settle()` answers `true` or `false`.
+2. _Nothing ran `describePhaserPage()` from the source sent:_ taken.
+3. _Brick Breaker's rewritten report had no spec:_ taken; 15 cases on a
+   fake level set, its slow endgame's rule among them.
+4. _Sudoku and Minesweeper ignored whether the board showed:_ taken.
+5. _Nothing kept Vite lazy:_ taken; the lint rule above.
+6. _Nits: two ways to check for a stop, a usage helper in the wrong
+   module, the layout runner printing otherwise than the screenshots', a
+   wait tuned to one game:_ taken; `isStop()`, `wrapped()` in
+   `@fz/dev/script`, `runLayoutScript()` taking the same printers, and
+   the wait an option at 800 ms.

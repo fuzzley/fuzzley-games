@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, command_line.mjs, readArgs, shownRun, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -170,7 +170,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   and the code it exits with (`run()`, handed a small API of its own and
   where to print), and that it loads the autopilot's `playWave()` through
   Vite. Its command line and the screenshots' script's are read the same
-  way, by `tools/command_line.mjs`'s `readArgs()`.
+  way, by `@fz/dev/script`'s `readArgs()`, and its table is laid out by
+  `@fz/dev/report`'s `printReport()`, whose own specs, in `frontend/lib/dev`,
+  hold the layout and the readers every report shares.
 
 ## The Saved Game
 
@@ -199,8 +201,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `src/testing/screenshot_api.spec.ts` holds to the rules'.
   `tools/capture-screenshots.spec.ts` keeps the script's run (`RUN`) so,
   stamped with that version and taken up by the rules (`shownRun()`), and
-  holds its command line, `--url` among it, the code it exits with for one
-  that captures nothing (`run()`) and the thumbnail's region.
+  holds its command line, `--url` among it, and the code it exits with for
+  one that captures nothing (`run()`); the thumbnail's region, and the rest
+  of what `runScreenshotScript()` does for every game, are held by
+  `@fz/dev/screenshots`' own specs, in `frontend/lib/dev`.
 
 ## The View
 
