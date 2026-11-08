@@ -83,7 +83,7 @@ import {
   breathScale,
 } from "../view/effects/flourish";
 import type { BoardSetting } from "../view/field/field_metrics";
-import { LAYERS } from "../view/field/layers";
+import { LAYERS, LAYER_CAMERAS } from "../view/field/layers";
 import {
   CONSTELLATION_SIZE,
   speckCount,
@@ -148,24 +148,34 @@ describe("the cameras", () => {
     ]);
   });
 
-  it("keep the frame and the deck from the field's camera, and the field from the deck's", async () => {
+  it("draw each layer by the camera layers.ts names for it, and by no other", async () => {
     const { scene } = await startBoard();
     const field = scene.cameras.main.id;
     const deck = scene.kit.deckCamera.id;
 
     const seen = [...layersOf(scene)].map(([name, layer]) => [
       name,
-      (layer.cameraFilter & field) === 0 ? "field" : "deck",
+      (layer.cameraFilter & field) === 0,
       (layer.cameraFilter & deck) === 0,
     ]);
 
     expect(seen).toEqual(
-      LAYERS.map((name) =>
-        name === "frame" || name === "deck"
-          ? [name, "deck", true]
-          : [name, "field", false],
-      ),
+      LAYERS.map((name) => [
+        name,
+        LAYER_CAMERAS[name] === "field",
+        LAYER_CAMERAS[name] === "deck",
+      ]),
     );
+  });
+
+  it("hold every object in a layer, none outside one, which both would draw", async () => {
+    const { scene } = await startBoard();
+
+    const loose = scene.children
+      .getChildren()
+      .filter((object) => !(object instanceof GameObjects.Layer));
+
+    expect(loose).toEqual([]);
   });
 
   it("fill the field with its color", async () => {

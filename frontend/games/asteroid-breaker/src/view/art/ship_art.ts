@@ -32,7 +32,10 @@ interface ShipOutlines {
 export const SHIP_FRAMES = {
   /** Its hull, fins and window, its middle the frame's. */
   ship: "ship",
-  /** Its flame at full thrust, its base the frame's middle, so the scene stretches it from there. */
+  /**
+   * Its flame at full thrust, its base the frame's middle, so the scene
+   * stretches it from there.
+   */
   flame: "flame",
   /** The ring around a new ship while nothing can touch it. */
   guard: "guard",
@@ -58,7 +61,10 @@ const OWN_WINDOW = { x: 0.38, radius: 0.4 } as const;
 /** Where the flame's base is along the ship, in its own units. */
 const FLAME_BASE = -0.85;
 
-/** How long the flame is past its base at no thrust, and how much more at full, in the ship's own units. */
+/**
+ * How long the flame is past its base at no thrust, and how much more at full,
+ * in the ship's own units.
+ */
 const FLAME_LENGTH = { least: 0.55, more: 1.05 } as const;
 
 /** How far out the guard's ring and the Shield's are, and how wide, in field units. */
@@ -76,7 +82,10 @@ const OUTLINES: ShipOutlines = {
   fins: [finOutline(-1), finOutline(1)],
 };
 
-/** Where the ship's window lies, which its pilot sits in: how far along the ship its middle is, and its radius, in field units. */
+/**
+ * Where the ship's window lies, which its pilot sits in: how far along the ship
+ * its middle is, and its radius, in field units.
+ */
 export const WINDOW = {
   x: OWN_WINDOW.x * SHIP_UNIT,
   radius: OWN_WINDOW.radius * SHIP_UNIT,
@@ -97,13 +106,19 @@ export const SHIP_REACH = Math.max(
 /** How far behind the ship's middle its flame's base is, in field units. */
 export const FLAME_BEHIND = -FLAME_BASE * SHIP_UNIT;
 
-/** Returns how long the flame is drawn at a thrust from 0 to 1, as a share of its frame's: a little at none, all of it at full. */
+/**
+ * Returns how long the flame is drawn at a thrust from 0 to 1, as a share of
+ * its frame's: a little at none, all of it at full.
+ */
 export function flameShare(thrust: number): number {
   const full = FLAME_LENGTH.least + FLAME_LENGTH.more;
   return (FLAME_LENGTH.least + FLAME_LENGTH.more * thrust) / full;
 }
 
-/** Returns how far behind the ship's middle its flame's tip is at a thrust from 0 to 1, in field units, where its exhaust streams from. */
+/**
+ * Returns how far behind the ship's middle its flame's tip is at a thrust from
+ * 0 to 1, in field units, where its exhaust streams from.
+ */
 export function flameTip(thrust: number): number {
   const length = FLAME_LENGTH.least + FLAME_LENGTH.more * thrust;
   return FLAME_BEHIND + length * SHIP_UNIT;

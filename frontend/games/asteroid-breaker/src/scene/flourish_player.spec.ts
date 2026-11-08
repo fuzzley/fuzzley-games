@@ -29,6 +29,7 @@ import {
   SHAKE_MS,
 } from "../view/effects/timing";
 import { type FieldEvent, shipAt } from "../view/field/frame";
+import { Steering } from "../view/steering/steering";
 import type { BeltScene } from "./belt_scene";
 import { FlourishPlayer } from "./flourish_player";
 import type { PaintContext } from "./painters/painter";
@@ -78,6 +79,7 @@ function contextAt(shell: FakeShell, now: number): PaintContext {
     seed: shell.seed,
     constellation: null,
     deck: null,
+    steering: new Steering(metricsOf(shell), null, shell.setting),
     metrics: metricsOf(shell),
     palette: shell.colors,
     zoom: 1,

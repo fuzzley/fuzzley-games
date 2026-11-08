@@ -10,6 +10,7 @@ import {
   MIDDLE,
   WIDER,
   type FakeShell,
+  layersOf,
   metricsOf,
   objectsIn,
   onCanvas,
@@ -171,6 +172,51 @@ function normalized(angle: number): number {
   return Math.atan2(Math.sin(angle), Math.cos(angle));
 }
 
+/** Logs a ship lost in the middle of a shell's field, its pilot the third color. */
+function logShipLost(shell: FakeShell): void {
+  shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2, shell.field.crew);
+}
+
+/** Describes what the flourishes that move show at a moment. */
+interface Shown {
+  readonly shards: number;
+  readonly puffs: number;
+  readonly sparks: number;
+  readonly flash: number;
+  readonly rings: number;
+  readonly trail: boolean;
+  readonly bailing: boolean;
+  readonly scrolled: { readonly x: number; readonly y: number };
+}
+
+/** What the flourishes that move show while none plays. */
+const NOTHING_PLAYING: Shown = {
+  shards: 0,
+  puffs: 0,
+  sparks: 0,
+  flash: 0,
+  rings: 0,
+  trail: false,
+  bailing: false,
+  scrolled: { x: 0, y: 0 },
+};
+
+/** Returns what the flourishes that move show in a scene, as it now draws. */
+function playingIn(scene: BeltScene, shell: FakeShell): Shown {
+  return {
+    shards: scene.kit.debris.shards.getAliveParticleCount(),
+    puffs: shownCount(puffsOf(scene)),
+    sparks: shownCount(sparksOf(scene)),
+    flash: shownCount(scene.kit.rocks.flash.images),
+    rings: strokesOf(scene.kit.rings.graphics).length,
+    trail: scene.kit.trail.outlines
+      .flatMap(({ images }) => images)
+      .some((image) => image.visible),
+    bailing: scene.kit.strays.bailing.bubble.visible,
+    scrolled: scrolledBy(scene, shell),
+  };
+}
+
 /** Logs one of every event that plays a flourish on a shell's field, the keeper's. */
 function logEveryFlourish(shell: FakeShell): void {
   const { events } = shell.field;
@@ -179,7 +225,7 @@ function logEveryFlourish(shell: FakeShell): void {
   events.addRock("hit", rock);
   events.addRock("blast", rock, 6);
   events.addDash(MIDDLE.x, MIDDLE.y, 0);
-  events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2, shell.field.crew);
+  logShipLost(shell);
   events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
 }
 
@@ -203,28 +249,11 @@ describe("the events", () => {
     run.advance(SHAKE_DELAY_MS, 16);
 
     expect({
-      shards: scene.kit.debris.shards.getAliveParticleCount(),
-      puffs: shownCount(puffsOf(scene)),
-      sparks: shownCount(sparksOf(scene)),
-      rings: strokesOf(scene.kit.rings.graphics).length,
-      trail: scene.kit.trail.outlines
-        .flatMap(({ images }) => images)
-        .some((image) => image.visible),
-      bailing: scene.kit.strays.bailing.bubble.visible,
-      scrolled: scrolledBy(scene, shell),
+      ...playingIn(scene, shell),
       points: labelsOf(scene)
         .filter((label) => label.visible)
         .map((label) => label.text),
-    }).toEqual({
-      shards: 0,
-      puffs: 0,
-      sparks: 0,
-      rings: 0,
-      trail: false,
-      bailing: false,
-      scrolled: { x: 0, y: 0 },
-      points: ["+80"],
-    });
+    }).toEqual({ ...NOTHING_PLAYING, points: ["+80"] });
   });
 
   it("plays nothing that moves where motion isn't welcome, but shows the points", async () => {
@@ -237,28 +266,9 @@ describe("the events", () => {
     run.advance(48);
 
     expect({
-      shards: scene.kit.debris.shards.getAliveParticleCount(),
-      puffs: shownCount(puffsOf(scene)),
-      sparks: shownCount(sparksOf(scene)),
-      flash: shownCount(scene.kit.rocks.flash.images),
-      rings: strokesOf(scene.kit.rings.graphics).length,
-      trail: scene.kit.trail.outlines
-        .flatMap(({ images }) => images)
-        .some((image) => image.visible),
-      bailing: scene.kit.strays.bailing.bubble.visible,
-      scrolled: scrolledBy(scene, shell),
+      ...playingIn(scene, shell),
       points: shownCount(labelsOf(scene)),
-    }).toEqual({
-      shards: 0,
-      puffs: 0,
-      sparks: 0,
-      flash: 0,
-      rings: 0,
-      trail: false,
-      bailing: false,
-      scrolled: { x: 0, y: 0 },
-      points: 1,
-    });
+    }).toEqual({ ...NOTHING_PLAYING, points: 1 });
   });
 
   it("makes every particle as the scene starts, and none as they play", async () => {
@@ -455,6 +465,14 @@ describe("a broken rock", () => {
 });
 
 describe("a held hit", () => {
+  it("draws its flash in a layer of its own", async () => {
+    const { scene } = await startBoard();
+
+    const drawn = layersOf(scene).get("flash")?.getChildren();
+
+    expect(drawn).toEqual(scene.kit.rocks.flash.images);
+  });
+
   it("flashes its rock over it, its frame filled light", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
@@ -625,13 +643,7 @@ describe("the rings", () => {
 
   it("sweeps a lost ship's ring out in the accent, to a lost ship's reach", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
     run.advance(16);
 
     const radii = overTime(
@@ -1003,13 +1015,7 @@ describe("the exhaust", () => {
 describe("a lost ship", () => {
   it("bursts into shards in the accent", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
 
     run.advance(16);
 
@@ -1020,13 +1026,7 @@ describe("a lost ship", () => {
 
   it("holds the field still for a moment", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
 
     const scrolls = overTime(run, SHAKE_DELAY_MS - 16, 16, () =>
       scrolledBy(scene, shell),
@@ -1037,13 +1037,7 @@ describe("a lost ship", () => {
 
   it("shakes the field once the moment is past", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
     run.advance(SHAKE_DELAY_MS);
 
     const scrolls = overTime(run, SHAKE_MS - 50, 16, () =>
@@ -1055,13 +1049,7 @@ describe("a lost ship", () => {
 
   it("rests the field once the shake has died away", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
 
     run.advance(SHAKE_DELAY_MS + SHAKE_MS + 32);
 
@@ -1070,13 +1058,7 @@ describe("a lost ship", () => {
 
   it("pops its pilot out in a bubble where it was lost, in its ink", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
 
     run.advance(16);
 
@@ -1089,13 +1071,7 @@ describe("a lost ship", () => {
 
   it("floats the pilot off the way the event's serial says", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
     run.advance(16);
 
     run.advance(500, 25);
@@ -1114,13 +1090,7 @@ describe("a lost ship", () => {
 
   it("turns the pilot's eyes the way it floats off", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
 
     run.advance(16);
 
@@ -1135,13 +1105,7 @@ describe("a lost ship", () => {
 
   it("shows the pilot steadily, then blinks it as it goes", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
     const { bubble } = scene.kit.strays.bailing;
 
     const steady = overTime(
@@ -1166,13 +1130,7 @@ describe("a lost ship", () => {
 
   it("puts the pilot away once it has gone", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addPilot(
-      "lost",
-      MIDDLE.x,
-      MIDDLE.y,
-      2,
-      shell.field.crew,
-    );
+    logShipLost(shell);
 
     run.advance(BAIL_OUT_MS + 32);
 

@@ -1,34 +1,43 @@
-import { LAYERS, depthOf } from "./layers";
+import { LAYERS, drawnBy } from "./layers";
 
-describe("depthOf", () => {
-  it("draws the field at the back", () => {
-    expect(depthOf("field")).toBe(0);
+describe("LAYERS", () => {
+  it("lists the layers back to front: the field, the tags, the rocks, all that flies among them, the ship, a held hit's flash, the flourishes, the points, then the frame and the deck", () => {
+    expect(LAYERS).toEqual([
+      "field",
+      "tags",
+      "rocks",
+      "pickups",
+      "strays",
+      "hazards",
+      "shots",
+      "ship",
+      "flash",
+      "effects",
+      "points",
+      "frame",
+      "deck",
+    ]);
+  });
+});
+
+describe("drawnBy", () => {
+  it("gives the deck's camera, which stands still, the frame and the deck", () => {
+    expect(drawnBy("deck")).toEqual(["frame", "deck"]);
   });
 
-  it("draws the ship in front of its shots, and its flourishes in front of it", () => {
-    expect([
-      depthOf("shots") < depthOf("ship"),
-      depthOf("ship") < depthOf("effects"),
-    ]).toEqual([true, true]);
-  });
-
-  it("draws the rocks behind everything that flies among them", () => {
-    const flying = ["pickups", "strays", "hazards", "shots", "ship"] as const;
-
-    expect(flying.every((layer) => depthOf("rocks") < depthOf(layer))).toBe(
-      true,
-    );
-  });
-
-  it("draws the tags of the effects in play over the field, under the rocks and all that flies among them", () => {
-    expect(depthOf("tags")).toBe(depthOf("field") + 1);
-    expect(depthOf("rocks")).toBe(depthOf("tags") + 1);
-  });
-
-  it("draws the frame and the deck at the front, which nothing on the field hides", () => {
-    expect([depthOf("frame"), depthOf("deck")]).toEqual([
-      LAYERS.length - 2,
-      LAYERS.length - 1,
+  it("gives the field's camera every other layer, back to front", () => {
+    expect(drawnBy("field")).toEqual([
+      "field",
+      "tags",
+      "rocks",
+      "pickups",
+      "strays",
+      "hazards",
+      "shots",
+      "ship",
+      "flash",
+      "effects",
+      "points",
     ]);
   });
 });

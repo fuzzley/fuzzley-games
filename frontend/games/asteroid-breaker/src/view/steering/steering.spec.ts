@@ -165,6 +165,22 @@ describe("Steering's keys", () => {
     });
   });
 
+  it.each([
+    ["Up, which thrusts", "ArrowUp", true],
+    ["Enter, which flies nothing", "Enter", false],
+  ])("say whether a key flies the ship: %s", (_, code, flies) => {
+    const steering = steeringOf();
+
+    expect(steering.press(code)).toBe(flies);
+  });
+
+  it("say a held key that repeats flies the ship still", () => {
+    const steering = steeringOf();
+    steering.press("ArrowUp");
+
+    expect(steering.press("ArrowUp")).toBe(true);
+  });
+
   it("keep asking while another key held asks the same", () => {
     const steering = steeringOf();
     steering.press("ArrowUp");
