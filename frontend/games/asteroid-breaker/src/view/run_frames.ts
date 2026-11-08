@@ -31,11 +31,6 @@ export interface FrameChange {
    * frame, so the run is flown on the numbers in use.
    */
   readonly moved: boolean;
-  /**
-   * Whether the frame was the first move of the run's first wave, which
-   * begins the run.
-   */
-  readonly begun: boolean;
   /** The pilots of the strays the frame brought home, in the order they came. */
   readonly cameHome: readonly Pilot[];
   /**
@@ -73,7 +68,6 @@ export class RunFrames {
   private readonly change: Change = {
     run: null,
     moved: false,
-    begun: false,
     cameHome: this.cameHome,
     chain: null,
     tally: null,
@@ -104,7 +98,6 @@ export class RunFrames {
     const { change } = this;
     change.run = null;
     change.moved = false;
-    change.begun = false;
     this.cameHome.length = 0;
     change.chain = null;
     change.tally = null;
@@ -174,14 +167,13 @@ export class RunFrames {
 
   /**
    * Starts the wave waiting for the first move, and returns the run under
-   * way; at the run's first wave, it begins the run and gathers which wave
-   * it is to say, as going on to a later wave says it.
+   * way; at the run's first wave, it gathers which wave it is to say, as
+   * going on to a later wave says it.
    */
   private start(play: WavePlay, run: Run): Run {
     const started = startWave(run);
     this.change.run = started;
     if (started.wave === started.firstWave) {
-      this.change.begun = true;
       const entry = this.entryOf(started.wave);
       this.said.push(describeWave(entry, rocksLeft(play.field)));
     }

@@ -1,11 +1,15 @@
 import { TestBed } from "@angular/core/testing";
-import type { EndedRun } from "../../rules/run/stats";
+import type { RunRecords } from "../../rules/run/stats";
 import { provideSpecWaves } from "../../testing/play";
+import { runRecords } from "../../testing/records";
 import { STATS_KEY, StatsService } from "./stats.service";
 
-/** Returns a run ended at Normal, at a score and a wave, started at the specs' sector. */
-function ended(score: number, wave: number): EndedRun {
-  return { speed: "normal", score, wave, sector: "specs" };
+/**
+ * Returns what a run's end brings to the records, at a score and a wave,
+ * started at the specs' sector.
+ */
+function ended(score: number, wave: number): RunRecords["ended"] {
+  return { score, wave, sector: "specs" };
 }
 
 /** Returns what is stored, as a player's browser holds it. */
@@ -37,9 +41,9 @@ describe("StatsService", () => {
 
   it("calls a score above the best a new best, and keeps it", () => {
     const stats = TestBed.inject(StatsService);
-    stats.recordStart("normal");
+    stats.record(runRecords({ started: true }));
 
-    const newBest = stats.recordEnd(ended(900, 2));
+    const newBest = stats.record(runRecords({ ended: ended(900, 2) }));
 
     expect({ newBest, normal: stats.stats().speeds.normal }).toEqual({
       newBest: true,
@@ -49,15 +53,21 @@ describe("StatsService", () => {
 
   it("calls a score no more than the best no new best", () => {
     const stats = TestBed.inject(StatsService);
-    stats.recordEnd(ended(900, 2));
+    stats.record(runRecords({ ended: ended(900, 2) }));
 
-    expect(stats.recordEnd(ended(900, 1))).toBe(false);
+    expect(stats.record(runRecords({ ended: ended(900, 1) }))).toBe(false);
+  });
+
+  it("calls a change that ends no run no new best", () => {
+    const stats = TestBed.inject(StatsService);
+
+    expect(stats.record(runRecords({ started: true }))).toBe(false);
   });
 
   it("counts the strays brought home", () => {
     const stats = TestBed.inject(StatsService);
 
-    stats.recordStrays("normal", 2);
+    stats.record(runRecords({ strays: 2 }));
 
     expect(stats.stats().speeds.normal.strays).toBe(2);
   });
@@ -65,7 +75,7 @@ describe("StatsService", () => {
   it("stores the records as they change", () => {
     const stats = TestBed.inject(StatsService);
 
-    stats.recordStart("fast");
+    stats.record(runRecords({ speed: "fast", started: true }));
 
     expect(stored()).toMatchObject({
       version: 1,
@@ -76,7 +86,7 @@ describe("StatsService", () => {
   it("stores nothing for a change that changes nothing", () => {
     const stats = TestBed.inject(StatsService);
 
-    stats.recordStrays("normal", 0);
+    stats.record(runRecords({}));
 
     expect(stored()).toBeNull();
   });

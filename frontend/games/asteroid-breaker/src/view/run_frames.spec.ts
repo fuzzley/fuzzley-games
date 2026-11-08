@@ -57,7 +57,6 @@ const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 const NOTHING: FrameChange = {
   run: null,
   moved: false,
-  begun: false,
   cameHome: [],
   chain: null,
   tally: null,
@@ -208,41 +207,34 @@ describe("RunFrames", () => {
       }).toEqual({ outcome: "ready", steps: 0 });
     });
 
-    it("starts the wave at the first move, begins the run, and says which wave it is", () => {
+    it("starts the wave at the first move, and says which wave it is", () => {
       const game = waiting(runAt(1), OPEN);
 
-      const { moved, begun } = tick(game, TURN);
+      const { moved } = tick(game, TURN);
 
-      expect({
-        outcome: game.run.outcome,
-        moved,
-        begun,
-        said: game.said,
-      }).toEqual({
+      expect({ outcome: game.run.outcome, moved, said: game.said }).toEqual({
         outcome: "playing",
         moved: true,
-        begun: true,
         said: ["Wave 1, First. 1 rock."],
       });
     });
 
-    it("begins the run no more at the frame after its first move", () => {
+    it("says which wave it is no more at the frame after its first move", () => {
       const game = waiting(runAt(1), OPEN);
       tick(game, TURN);
 
-      const { begun } = tick(game, TURN);
+      tick(game, TURN);
 
-      expect(begun).toBe(false);
+      expect(game.said).toEqual(["Wave 1, First. 1 rock."]);
     });
 
     it("starts a later wave, saying nothing more of it, as going on to it said which it is", () => {
       const game = waiting({ ...runAt(1), wave: 2 }, OPEN);
 
-      const { begun } = tick(game, TURN);
+      tick(game, TURN);
 
-      expect({ outcome: game.run.outcome, begun, said: game.said }).toEqual({
+      expect({ outcome: game.run.outcome, said: game.said }).toEqual({
         outcome: "playing",
-        begun: false,
         said: [],
       });
     });

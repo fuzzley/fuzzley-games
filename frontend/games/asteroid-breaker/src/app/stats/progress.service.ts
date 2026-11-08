@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import { isOpen as isSectorOpen, reachedOf } from "../../rules/run/progress";
+import type { RunRecords } from "../../rules/run/stats";
 import { GAME_WAVES } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */
@@ -24,10 +25,16 @@ export class ProgressService {
     return isSectorOpen(this.waves, this.state(), sector);
   }
 
-  /** Keeps a sector reached, by its id, which a run may start at from then on. */
-  recordReached(sector: string): void {
-    if (this.state().has(sector)) return;
-    this.state.update((reached) => new Set([...reached, sector]));
+  /**
+   * Keeps the sectors a change in a run reached, by their ids, which a run
+   * may start at from then on, and stores them, unless each was reached
+   * before.
+   */
+  record({ reached }: Pick<RunRecords, "reached">): void {
+    const known = this.state();
+    const added = reached.filter((sector) => !known.has(sector));
+    if (added.length === 0) return;
+    this.state.set(new Set([...known, ...added]));
     this.storage.writeVersioned(PROGRESS_KEY, PROGRESS_VERSION, {
       reached: [...this.state()],
     });

@@ -1,11 +1,18 @@
 // The records a player keeps at each speed: the runs started, the best
 // score, the furthest wave, whether a run has cleared all thirty and the
-// strays brought home, and each sector's best run.
+// strays brought home, and each sector's best run; and what a change in a
+// run brings to them and to the sectors reached.
 
 import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
-import type { Run } from "./run";
+import { type Run, hasClearedAll } from "./run";
 import { SPEEDS, type Speed } from "../speed";
+import {
+  ENDLESS,
+  type WaveEntry,
+  opensEndless,
+  waveEntryOf,
+} from "../waves/waves";
 
 /** Counts one speed's runs. */
 export interface SpeedStats {
@@ -31,9 +38,34 @@ export interface Stats {
   readonly sectors: Readonly<Record<string, SectorBests>>;
 }
 
-/** Describes what an ended run brings to the records: its speed, its score, the wave it reached, and the sector it started at. */
+/**
+ * Describes what an ended run brings to the records: its speed, its score,
+ * the wave it reached, and the sector it started at.
+ */
 export interface EndedRun extends Pick<Run, "speed" | "score" | "wave"> {
   readonly sector: string;
+}
+
+/**
+ * Describes what a change in a run brings to the records at its speed, and
+ * to the sectors reached.
+ */
+export interface RunRecords {
+  readonly speed: Speed;
+  /** Whether the change started the run: its first wave's first move. */
+  readonly started: boolean;
+  /** How many strays the change brought home. */
+  readonly strays: number;
+  /**
+   * The ids of the sectors the change reached, which a run may start at
+   * from then on: its wave's, as the run starts, goes on to a wave or is
+   * taken up, and Endless, as the last written wave is cleared.
+   */
+  readonly reached: readonly string[];
+  /** Whether the change cleared every written wave, from the first. */
+  readonly clearedAll: boolean;
+  /** What the run brings to the records as the change ends it, at its speed, or null. */
+  readonly ended: Pick<EndedRun, "score" | "wave" | "sector"> | null;
 }
 
 const NO_RUNS: SpeedStats = {
@@ -61,6 +93,57 @@ export function statsOf(value: unknown, sectors: readonly string[]): Stats {
     speeds: recordOf(SPEEDS, (speed) => speedStatsOf(speeds[speed])),
     sectors: countsByIdOf(saved["sectors"], sectors, SPEEDS),
   };
+}
+
+/**
+ * Returns what a change in a run brings to the records, from the run before
+ * it to the run after, on a game's waves.
+ *
+ * A run taken up from storage has no run before it: it brings only its
+ * wave's sector reached, the rest kept as it was played.
+ */
+export function recordsOf(
+  before: Run | null,
+  after: Run,
+  waves: readonly WaveEntry[],
+): RunRecords {
+  const entry = waveEntryOf(waves, after.wave);
+  const started =
+    before?.outcome === "ready" &&
+    after.outcome !== "ready" &&
+    after.wave === after.firstWave;
+  const intoEndless =
+    before !== null &&
+    before.outcome !== "cleared" &&
+    after.outcome === "cleared" &&
+    opensEndless(entry, waveEntryOf(waves, after.wave + 1));
+  const reached: string[] = [];
+  if (before === null || started || before.wave !== after.wave) {
+    reached.push(entry.sector.id);
+  }
+  if (intoEndless) reached.push(ENDLESS.id);
+  const ended =
+    before !== null && before.outcome !== "over" && after.outcome === "over";
+  return {
+    speed: after.speed,
+    started,
+    strays: before === null ? 0 : after.strays - before.strays,
+    reached,
+    clearedAll: intoEndless && hasClearedAll(after, waves.length),
+    ended: ended ? endOf(after, waves) : null,
+  };
+}
+
+/**
+ * Returns the records with what a change in a run brings to them kept, or
+ * the same records if it brings nothing.
+ */
+export function withRecords(stats: Stats, records: RunRecords): Stats {
+  const { speed, ended } = records;
+  let kept = records.started ? withRunStarted(stats, speed) : stats;
+  kept = withStraysHome(kept, speed, records.strays);
+  if (records.clearedAll) kept = withClearedAll(kept, speed);
+  return ended === null ? kept : withRunEnded(kept, { ...ended, speed });
 }
 
 /** Returns the records with a run started at a speed counted. */
@@ -97,7 +180,10 @@ export function withRunEnded(stats: Stats, run: EndedRun): Stats {
   };
 }
 
-/** Returns the records with strays brought home at a speed counted, or the same records for none. */
+/**
+ * Returns the records with strays brought home at a speed counted, or the
+ * same records for none.
+ */
 export function withStraysHome(
   stats: Stats,
   speed: Speed,
@@ -110,7 +196,10 @@ export function withStraysHome(
   }));
 }
 
-/** Returns the records with a run at a speed that has cleared every written wave kept, or the same records if one had. */
+/**
+ * Returns the records with a run at a speed that has cleared every written
+ * wave kept, or the same records if one had.
+ */
 export function withClearedAll(stats: Stats, speed: Speed): Stats {
   if (stats.speeds[speed].clearedAll) return stats;
   return withSpeedStats(stats, speed, (speedStats) => ({
@@ -119,9 +208,27 @@ export function withClearedAll(stats: Stats, speed: Speed): Stats {
   }));
 }
 
-/** Returns whether an ended run's score is a new best: more points than any run before at its speed. */
+/**
+ * Returns whether an ended run's score is a new best: more points than any
+ * run before at its speed.
+ */
 export function isNewBest(stats: Stats, run: EndedRun): boolean {
   return run.score > stats.speeds[run.speed].best;
+}
+
+/**
+ * Returns what an ended run brings to the records but its speed: its score,
+ * the wave it reached and the sector it started at.
+ */
+function endOf(
+  run: Run,
+  waves: readonly WaveEntry[],
+): Pick<EndedRun, "score" | "wave" | "sector"> {
+  return {
+    score: run.score,
+    wave: run.wave,
+    sector: waveEntryOf(waves, run.firstWave).sector.id,
+  };
 }
 
 /** Returns the records with one speed's changed. */

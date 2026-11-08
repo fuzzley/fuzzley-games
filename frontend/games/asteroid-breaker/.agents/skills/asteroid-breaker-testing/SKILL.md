@@ -74,6 +74,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   the records after the steps, and on the events the field logged.
 - The rules and the view know no framework, so their specs call the
   functions directly and assert on what they return.
+- A spec of the records, in the rules or the shell, gives what a change in
+  a run brings to them with `src/testing/records.ts`'s `runRecords()`,
+  nothing but what it names.
 
 ## The Waves and the Autopilot
 

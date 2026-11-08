@@ -16,6 +16,7 @@ import {
   provideSpecWaves,
   toPickup,
 } from "../../testing/play";
+import { runRecords } from "../../testing/records";
 import { GameService } from "../play/game.service";
 import { StatsService } from "../stats/stats.service";
 import { ResultComponent } from "./result.component";
@@ -57,15 +58,15 @@ function endAndOpen({ game, detectChanges }: RenderedResult): void {
   detectChanges();
 }
 
-/** Renders the card over a run lost on its second wave, the card open, with a best kept before it if given. */
+/**
+ * Renders the card over a run lost on its second wave, the card open, with a
+ * best kept before it if given.
+ */
 async function renderLost(bestBefore = 0): Promise<RenderedResult> {
   const rendered = await renderAt(SPEC_WAVE.pebble);
-  TestBed.inject(StatsService).recordEnd({
-    speed: "normal",
-    score: bestBefore,
-    wave: 1,
-    sector: "specs",
-  });
+  TestBed.inject(StatsService).record(
+    runRecords({ ended: { score: bestBefore, wave: 1, sector: "specs" } }),
+  );
   clearToNext(rendered.game);
   endAndOpen(rendered);
   return rendered;

@@ -13,6 +13,7 @@ import {
   provideSpecWaves,
   shoot,
 } from "../../testing/play";
+import { runRecords } from "../../testing/records";
 import { GameService } from "../play/game.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
@@ -55,7 +56,7 @@ function sectorNames(): string[] {
 
 /** Opens the far sector, as reaching it would. */
 function reachFar(): void {
-  TestBed.inject(ProgressService).recordReached("far");
+  TestBed.inject(ProgressService).record({ reached: ["far"] });
 }
 
 describe("SectorsComponent", () => {
@@ -102,8 +103,15 @@ describe("SectorsComponent", () => {
     const { game, detectChanges } = await renderSectors();
     reachFar();
     const stats = TestBed.inject(StatsService);
-    stats.recordEnd({ speed: "normal", score: 4100, wave: 2, sector: "near" });
-    stats.recordEnd({ speed: "fast", score: 3000, wave: 2, sector: "far" });
+    stats.record(
+      runRecords({ ended: { score: 4100, wave: 2, sector: "near" } }),
+    );
+    stats.record(
+      runRecords({
+        speed: "fast",
+        ended: { score: 3000, wave: 2, sector: "far" },
+      }),
+    );
 
     await game.changeSpeed("fast");
     detectChanges();
@@ -139,7 +147,7 @@ describe("SectorsComponent", () => {
 
   it("starts a run in Endless once a run has reached it, at its first wave", async () => {
     const { user, game, detectChanges } = await renderSectors();
-    TestBed.inject(ProgressService).recordReached("endless");
+    TestBed.inject(ProgressService).record({ reached: ["endless"] });
     detectChanges();
 
     await user.click(

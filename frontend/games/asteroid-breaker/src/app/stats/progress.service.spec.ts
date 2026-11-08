@@ -31,20 +31,24 @@ describe("ProgressService", () => {
     ]);
   });
 
-  it("opens a sector once it is reached", () => {
+  it("opens the sectors a change in a run reached", () => {
     const progress = TestBed.inject(ProgressService);
 
-    progress.recordReached("far");
+    progress.record({ reached: ["far", "endless"] });
 
-    expect(progress.isOpen("far")).toBe(true);
+    expect([progress.isOpen("far"), progress.isOpen("endless")]).toEqual([
+      true,
+      true,
+    ]);
   });
 
-  it("stores the sectors reached", () => {
+  it("stores the sectors reached, in the order reached", () => {
     const progress = TestBed.inject(ProgressService);
+    progress.record({ reached: ["far"] });
 
-    progress.recordReached("far");
+    progress.record({ reached: ["far", "endless"] });
 
-    expect(stored()).toEqual({ version: 1, reached: ["far"] });
+    expect(stored()).toEqual({ version: 1, reached: ["far", "endless"] });
   });
 
   it("stores nothing for a sector already reached", () => {
@@ -52,13 +56,13 @@ describe("ProgressService", () => {
     const progress = TestBed.inject(ProgressService);
     localStorage.clear();
 
-    progress.recordReached("far");
+    progress.record({ reached: ["far"] });
 
     expect(stored()).toBeNull();
   });
 
   it("takes up Endless reached, as a page loaded again would", () => {
-    TestBed.inject(ProgressService).recordReached("endless");
+    TestBed.inject(ProgressService).record({ reached: ["endless"] });
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: provideSpecWaves(SECTOR_WAVES),
