@@ -5,9 +5,9 @@ import type { Speed } from "../speed";
 import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
 
 /**
- * Says where a run stands: waiting for its first wave to start, a wave under
- * way or paused, a wave cleared and the next waiting, or ended with no ship
- * left. No run is won: Endless goes on until the ships run out.
+ * Says where a run stands: a wave waiting for the player's first move, under
+ * way or paused, a wave cleared, or ended with no ship left. No run is won:
+ * Endless goes on until the ships run out.
  */
 export type Outcome = "ready" | "playing" | "paused" | "cleared" | "over";
 
@@ -91,9 +91,11 @@ export function hasEnded(run: Run): boolean {
 
 /**
  * Returns whether a run is in progress, which a new game would lose: a
- * wave under way or just cleared.
+ * wave under way or just cleared, or one waiting for its first move after
+ * a wave cleared.
  */
 export function isInProgress(run: Run): boolean {
+  if (run.outcome === "ready") return wavesCleared(run) > 0;
   return isUnderWay(run) || run.outcome === "cleared";
 }
 
@@ -110,14 +112,18 @@ export function hasClearedAll(run: Run, written: number): boolean {
   return run.firstWave === 1 && wavesCleared(run) >= written;
 }
 
-/**
- * Returns the run with a wave under way: its first, or the one after the
- * wave just cleared. Any other run is returned as it is.
- */
+/** Returns the run with its wave under way, if it was waiting for the first move. */
 export function startWave(run: Run): Run {
-  if (run.outcome === "ready") return { ...run, outcome: "playing" };
+  return run.outcome === "ready" ? { ...run, outcome: "playing" } : run;
+}
+
+/**
+ * Returns the run gone on to the wave after the one just cleared, waiting
+ * for its first move. Any other run is returned as it is.
+ */
+export function nextWave(run: Run): Run {
   if (run.outcome !== "cleared") return run;
-  return { ...run, wave: run.wave + 1, outcome: "playing" };
+  return { ...run, wave: run.wave + 1, outcome: "ready" };
 }
 
 /** Returns the run paused, if a wave is under way. */
@@ -125,9 +131,14 @@ export function pause(run: Run): Run {
   return run.outcome === "playing" ? { ...run, outcome: "paused" } : run;
 }
 
-/** Returns the run under way again, if it was paused. */
-export function resume(run: Run): Run {
-  return run.outcome === "paused" ? { ...run, outcome: "playing" } : run;
+/**
+ * Returns the run going on, if it was paused: under way again, or waiting
+ * again for the first move of a wave whose field hasn't moved, as one taken
+ * up before its first move is.
+ */
+export function resume(run: Run, field: Pick<Field, "steps">): Run {
+  if (run.outcome !== "paused") return run;
+  return { ...run, outcome: field.steps === 0 ? "ready" : "playing" };
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   hasEnded,
   isInProgress,
   nextShipAfter,
+  nextWave,
   pause,
   resume,
   startWave,
@@ -99,6 +100,12 @@ describe("isInProgress", () => {
   ] as const)("says a run %s is in progress: %s", (outcome, inProgress) => {
     expect(isInProgress(runWith({ outcome }))).toBe(inProgress);
   });
+
+  it("says a run waiting at a wave after one cleared is in progress", () => {
+    const run = runWith({ firstWave: 2, wave: 3 });
+
+    expect(isInProgress(run)).toBe(true);
+  });
 });
 
 describe("wavesCleared", () => {
@@ -136,24 +143,35 @@ describe("hasClearedAll", () => {
 });
 
 describe("startWave", () => {
-  it("starts the first wave", () => {
+  it("starts a wave waiting for its first move", () => {
     const run = startWave(runWith({ wave: 3 }));
 
     expect([run.wave, run.outcome]).toEqual([3, "playing"]);
   });
 
-  it("starts the wave after one cleared", () => {
-    const run = startWave(runWith({ wave: 3, outcome: "cleared" }));
-
-    expect([run.wave, run.outcome]).toEqual([4, "playing"]);
-  });
-
-  it.each(["playing", "paused", "over"] as const)(
+  it.each(["playing", "paused", "cleared", "over"] as const)(
     "leaves a run %s as it is",
     (outcome) => {
       const run = runWith({ outcome });
 
       expect(startWave(run)).toBe(run);
+    },
+  );
+});
+
+describe("nextWave", () => {
+  it("goes on to the wave after one cleared, waiting for its first move", () => {
+    const run = nextWave(runWith({ wave: 3, outcome: "cleared" }));
+
+    expect([run.wave, run.outcome]).toEqual([4, "ready"]);
+  });
+
+  it.each(["ready", "playing", "paused", "over"] as const)(
+    "leaves a run %s as it is",
+    (outcome) => {
+      const run = runWith({ outcome });
+
+      expect(nextWave(run)).toBe(run);
     },
   );
 });
@@ -174,8 +192,19 @@ describe("pause", () => {
 });
 
 describe("resume", () => {
+  /** A field moved on from its start. */
+  const MOVED = { steps: 120 };
+
   it("goes on with a paused wave", () => {
-    expect(resume(runWith({ outcome: "paused" })).outcome).toBe("playing");
+    const run = resume(runWith({ outcome: "paused" }), MOVED);
+
+    expect(run.outcome).toBe("playing");
+  });
+
+  it("waits again for the first move of a paused wave whose field hasn't moved", () => {
+    const run = resume(runWith({ outcome: "paused" }), { steps: 0 });
+
+    expect(run.outcome).toBe("ready");
   });
 
   it.each(["ready", "playing", "cleared", "over"] as const)(
@@ -183,7 +212,7 @@ describe("resume", () => {
     (outcome) => {
       const run = runWith({ outcome });
 
-      expect(resume(run)).toBe(run);
+      expect(resume(run, MOVED)).toBe(run);
     },
   );
 });

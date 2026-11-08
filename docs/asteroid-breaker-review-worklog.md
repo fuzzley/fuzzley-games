@@ -42,3 +42,45 @@ The review:
 2. _`puff()`'s doc told the caller's choice:_ taken. It says "in a color",
    as its siblings do, and `rockColor()`'s doc, where the choice is made,
    names the dust beside the shards.
+
+### Step 2: finding 2, every wave waits in "ready"
+
+Built on `ab-shell`. `startWave()` turns `"ready"` into `"playing"` only,
+and the new `nextWave()` turns `"cleared"` into the next wave, `"ready"`.
+The shell's first move of any wave calls `startWave()`; only the run's first
+wave counts the run, keeps its sector as reached and says the wave, as
+before. The Ready card shows by the outcome alone, and the crosshair only
+while `"playing"`. 4,778 tests pass.
+
+Where it went other than planned, each to keep what the player sees and
+what is kept as it was:
+
+- **`isInProgress()` counts a `"ready"` run past its first wave,** so New
+  game still asks before throwing away a run waiting at wave 2, and it
+  stays saved. Without it the saved game was dropped there.
+- **`resume()` takes the field's steps:** a paused wave whose field never
+  moved goes back to `"ready"`. A run reloaded between waves is taken up
+  paused, as before, and on going on shows the Ready card, as before;
+  without this it came back `"playing"` with no card.
+- **`setRoom()` and `tune()` ask `yetToBegin()`** (the field has no steps),
+  where they read `waitingState`, so a run reloaded paused between waves is
+  still laid out afresh for its room rather than stretched from the
+  startup layout.
+- **`saved_game.ts` changed in two lines,** to call `nextWave()`.
+- **`GameService.waiting` is gone** rather than a `computed` (review, 3).
+
+The review:
+
+1. _Forgetting a thrown-away run hung on `crew()` alone:_ throwing away a
+   run waiting at wave 2 goes `"ready"` to `"ready"`, so the saved game's
+   effect re-ran only because `createCrew()` makes a new record. Taken: the
+   effect tracks `runs()`, which changes exactly when another run begins,
+   with a spec.
+2. _`restoreGame()` accepts no field at the first wave,_ which `saveGame()`
+   never writes, and which would now count the run's start again on its
+   first move. Not taken here, since `restoreGame()` was being split into
+   named checks on `ab-rules` at the same time; it goes in with that.
+3. _`waiting` had no reader left but specs,_ which held it beside the
+   outcome. Taken: it goes, with those fields.
+4. _Three specs passed if their first move did nothing:_ taken; each holds
+   the outcome to `"playing"` too.

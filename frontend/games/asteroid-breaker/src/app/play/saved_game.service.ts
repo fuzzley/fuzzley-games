@@ -34,8 +34,8 @@ export class SavedGameService {
   constructor() {
     this.restore();
     effect(() => {
+      this.game.runs();
       this.game.outcome();
-      this.game.waiting();
       this.game.crew();
       untracked(() => {
         this.keep();

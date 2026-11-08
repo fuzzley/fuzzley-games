@@ -153,9 +153,7 @@ export class BoardComponent {
   });
 
   /** Whether a ship flies, over which the pointer marks where the mouse aims it. */
-  protected readonly inPlay = computed(
-    () => this.game.outcome() === "playing" && !this.game.waiting(),
-  );
+  protected readonly inPlay = computed(() => this.game.outcome() === "playing");
 
   /** How the scene last laid the field and the deck out, or null before it has. */
   protected readonly laid = signal<Laid | null>(null);
@@ -203,7 +201,7 @@ export class BoardComponent {
       case "ready":
         return "ready";
       case "playing":
-        return this.game.waiting() ? "ready" : null;
+        return null;
       case "paused":
         return "paused";
       case "cleared":

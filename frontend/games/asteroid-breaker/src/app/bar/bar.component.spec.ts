@@ -13,6 +13,7 @@ import {
   STRAY_WAVES,
   bringStraysHome,
   chainUp,
+  clearToNext,
   loseShip,
   playToClear,
   provideSpecWaves,
@@ -257,6 +258,17 @@ describe("BarComponent", () => {
 
     it("dims Pause while there is no wave in play", async () => {
       await renderBar();
+
+      expect(screen.getByRole("button", { name: "Pause" })).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
+    });
+
+    it("dims Pause while the next wave waits for its first move", async () => {
+      const { game, detectChanges } = await renderBar();
+      clearToNext(game);
+      detectChanges();
 
       expect(screen.getByRole("button", { name: "Pause" })).toHaveAttribute(
         "aria-disabled",

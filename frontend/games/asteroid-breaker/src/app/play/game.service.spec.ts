@@ -78,6 +78,9 @@ const SQUARE: Viewport = { ...WIDE, width: 800, height: 800 };
 /** Fire held, which a new wave's ship takes as held when it is held as the wave is laid out. */
 const FIRE: Readonly<Steer> = { ...STILL, fire: true };
 
+/** A turn of the keys, a first move that fires no shot. */
+const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
+
 /** The points the specs' small stone scores. */
 const PEBBLE_POINTS = 40;
 
@@ -148,14 +151,12 @@ describe("GameService", () => {
         speed: game.speed(),
         ships: game.ships(),
         score: game.score(),
-        waiting: game.waiting(),
       }).toEqual({
         outcome: "ready",
         wave: 1,
         speed: "normal",
         ships: FIRST_SHIPS,
         score: 0,
-        waiting: true,
       });
     });
 
@@ -164,10 +165,7 @@ describe("GameService", () => {
 
       playFor(game, 1000, { ...STILL, autoFire: true });
 
-      expect({ outcome: game.outcome(), waiting: game.waiting() }).toEqual({
-        outcome: "ready",
-        waiting: true,
-      });
+      expect(game.outcome()).toBe("ready");
     });
 
     it("holds its field still while nothing moves", () => {
@@ -186,13 +184,8 @@ describe("GameService", () => {
 
       game.tick(FRAME_MS, shoot(game));
 
-      expect({
-        outcome: game.outcome(),
-        waiting: game.waiting(),
-        said: said(),
-      }).toEqual({
+      expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "playing",
-        waiting: false,
         said: "Wave 1, Pebble. 1 rock.",
       });
     });
@@ -425,7 +418,7 @@ describe("GameService", () => {
       expect(game.wave().number).toBe(SPEC_WAVE.pebble);
     });
 
-    it("goes on to the next wave once the card shows, laid out afresh, and says which it is", async () => {
+    it("goes on to the next wave once the card shows, laid out afresh to wait for its first move, and says which it is", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
 
       clearToNext(game);
@@ -433,14 +426,12 @@ describe("GameService", () => {
       expect({
         wave: game.wave().number,
         outcome: game.outcome(),
-        waiting: game.waiting(),
         steps: game.frame().field.steps,
         clearedOpen: game.clearedOpen(),
         said: said(),
       }).toEqual({
         wave: SPEC_WAVE.gift,
-        outcome: "playing",
-        waiting: true,
+        outcome: "ready",
         steps: 0,
         clearedOpen: false,
         said: "Wave 2, Gift. 1 rock.",
@@ -463,7 +454,7 @@ describe("GameService", () => {
 
       game.tick(FRAME_MS, FIRE);
 
-      expect(game.waiting()).toBe(true);
+      expect(game.outcome()).toBe("ready");
     });
 
     it("starts the next wave at a fresh move", async () => {
@@ -473,7 +464,19 @@ describe("GameService", () => {
 
       game.tick(FRAME_MS, FIRE);
 
-      expect(game.waiting()).toBe(false);
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("says nothing more of the next wave at its first move", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+
+      game.tick(FRAME_MS, TURN);
+
+      expect({ outcome: game.outcome(), said: said() }).toEqual({
+        outcome: "playing",
+        said: "Wave 2, Gift. 1 rock.",
+      });
     });
 
     it("goes on into Endless past the last wave, and says so", async () => {
@@ -543,9 +546,12 @@ describe("GameService", () => {
       clearToNext(game);
       const wave = game.wave();
 
-      game.pause();
+      game.tick(FRAME_MS, TURN);
 
-      expect(game.wave()).toBe(wave);
+      expect({ outcome: game.outcome(), wave: game.wave() }).toEqual({
+        outcome: "playing",
+        wave,
+      });
     });
   });
 
@@ -602,6 +608,15 @@ describe("GameService", () => {
 
     it("has nothing to pause before the first move", () => {
       const game = TestBed.inject(GameService);
+
+      game.pause();
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("has nothing to pause before the next wave's first move", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
 
       game.pause();
 
@@ -880,6 +895,15 @@ describe("GameService", () => {
       expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
     });
 
+    it("asks before it throws away the next wave waiting for its first move", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+
+      void game.newGame();
+
+      expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
+    });
+
     it("keeps the run under way when the player backs out", async () => {
       const game = await startedAt(SPEC_WAVE.gift);
       const before = game.run();
@@ -907,13 +931,11 @@ describe("GameService", () => {
         outcome: game.outcome(),
         steps: game.frame().field.steps,
         alpha: game.frame().alpha,
-        waiting: game.waiting(),
       }).toEqual({
         newId: true,
         outcome: "ready",
         steps: 0,
         alpha: 0,
-        waiting: true,
       });
     });
 
@@ -977,6 +999,18 @@ describe("GameService", () => {
       await startedAt(SPEC_WAVE.gift);
 
       expect(atNormal().runs).toBe(1);
+    });
+
+    it("counts the run no more as the next wave starts", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+      clearToNext(game);
+
+      game.tick(FRAME_MS, TURN);
+
+      expect({ outcome: game.outcome(), runs: atNormal().runs }).toEqual({
+        outcome: "playing",
+        runs: 1,
+      });
     });
 
     it("keeps that a run from the first wave cleared all thirty as it clears the last", async () => {

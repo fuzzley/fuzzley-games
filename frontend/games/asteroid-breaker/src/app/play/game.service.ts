@@ -36,6 +36,7 @@ import {
   hasClearedAll,
   hasEnded,
   isInProgress,
+  nextWave,
   pause,
   resume,
   startWave,
@@ -155,7 +156,6 @@ export class GameService {
    */
   private retunedRun = false;
 
-  private readonly waitingState = signal(true);
   private readonly clearedOpenState = signal(false);
   private readonly tallyState = signal<WaveTally | null>(null);
   private readonly chainState = signal(1);
@@ -234,11 +234,12 @@ export class GameService {
   /** Whether the run has ended, its ships run out. */
   readonly ended = computed(() => hasEnded(this.runState()));
 
-  /** Whether a run is in progress, which a new game would lose: a wave under way, paused or just cleared. */
+  /**
+   * Whether a run is in progress, which a new game would lose: a wave under
+   * way, paused or just cleared, or one waiting for its first move after a
+   * wave cleared.
+   */
   readonly inProgress = computed(() => isInProgress(this.runState()));
-
-  /** Whether the wave in play waits for the player's first move, for the card that says how. */
-  readonly waiting = this.waitingState.asReadonly();
 
   /** Whether the card over a cleared wave is showing, which opens once its last shards have flown. */
   readonly clearedOpen = this.clearedOpenState.asReadonly();
@@ -276,10 +277,10 @@ export class GameService {
 
   /**
    * Moves the field on by the time a frame took, steered as the player
-   * steers it, starting the run's first wave at the player's first move,
-   * and takes what it came to into the run; or, with the wave cleared or
-   * the run ended, opens the card it waits for once its time has run. A
-   * paused wave stays as it is.
+   * steers it, starting the wave at the player's first move, and takes
+   * what it came to into the run; or, with the wave cleared or the run
+   * ended, opens the card it waits for once its time has run. A paused
+   * wave stays as it is.
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
     Object.assign(this.held, steer);
@@ -348,11 +349,14 @@ export class GameService {
     this.announcer.say(describePause(after));
   }
 
-  /** Goes on with a paused wave, once the board is drawn, and says so. */
+  /**
+   * Goes on with a paused wave, once the board is drawn, and says so: one
+   * taken up before its first move waits for it again.
+   */
   resume(): void {
     if (!this.drawnState()) return;
     const before = this.runState();
-    const after = resume(before);
+    const after = resume(before, this.wavePlay.field);
     if (after === before) return;
     this.runState.set(after);
     this.announcer.say(describeResume());
@@ -389,8 +393,8 @@ export class GameService {
 
   /**
    * Goes on to the wave after the one just cleared, once its card is
-   * showing and the board is drawn, laid out on the board's room, and says
-   * which it is.
+   * showing and the board is drawn, laid out on the board's room to wait
+   * for the first move, and says which it is.
    */
   nextWave(): void {
     const before = this.runState();
@@ -401,7 +405,7 @@ export class GameService {
     ) {
       return;
     }
-    const after = startWave(before);
+    const after = nextWave(before);
     this.showField(after);
     this.runState.set(after);
     this.reachWave();
@@ -476,7 +480,6 @@ export class GameService {
       );
       this.wavePlay = this.playOf(run, taken);
       reshapeField(taken, this.torus);
-      this.waitingState.set(false);
     }
     this.reachWave();
     this.announcer.say(describeTakenUp(run, this.wave()));
@@ -484,9 +487,9 @@ export class GameService {
 
   /**
    * Takes the room the board lays the field out in, which the next wave is
-   * shaped for. A wave waiting for its first move is laid out again at
-   * once, a paused one stretched to it, and one in play stretched as it
-   * pauses; a room that keeps the field's shape changes nothing.
+   * shaped for. A wave yet to begin is laid out again at once, a paused one
+   * stretched to it, and one in play stretched as it pauses; a room that
+   * keeps the field's shape changes nothing.
    */
   setRoom(viewport: Viewport, board: BoardSetting): void {
     const torus = fieldShape(viewport, board, this.torus);
@@ -494,7 +497,7 @@ export class GameService {
     if (torus.width === width && torus.height === height) return;
     this.torus = torus;
     const run = this.runState();
-    if (this.waitingState()) {
+    if (this.yetToBegin()) {
       this.showField(run);
     } else if (run.outcome === "paused") {
       reshapeField(this.wavePlay.field, torus);
@@ -503,14 +506,13 @@ export class GameService {
 
   /**
    * Tunes some of the numbers that set the feel, as the debug menu does. A
-   * wave waiting for its first move is laid out again with them, as the
-   * rocks' speed bears on a fair start, and one under way takes them at
-   * once.
+   * wave yet to begin is laid out again with them, as the rocks' speed
+   * bears on a fair start, and one under way takes them at once.
    */
   tune(change: Partial<Tuning>): void {
     this.tuningState.update((tuning) => ({ ...tuning, ...change }));
     this.retuned = isRetuned(this.tuningState());
-    if (this.waitingState()) {
+    if (this.yetToBegin()) {
       this.showField(this.runState());
     } else {
       tuneField(this.wavePlay.field, this.tuningState());
@@ -534,9 +536,9 @@ export class GameService {
   }
 
   /**
-   * Steps the field by a frame's time, starts the run's first wave at the
-   * first move, hears what happened, takes it into the run, and shows the
-   * chain the wave in play counts.
+   * Steps the field by a frame's time, starts the wave at the first move,
+   * hears what happened, takes it into the run, and shows the chain the
+   * wave in play counts.
    */
   private playOn(deltaMs: number, steer: Readonly<Steer>): void {
     const field = this.wavePlay.field;
@@ -547,17 +549,25 @@ export class GameService {
     }
     const moved = field.steps > 0;
     if (moved && this.retuned) this.retunedRun = true;
-    if (moved && this.runState().outcome === "ready") {
-      this.runState.update(startWave);
-      if (!this.retunedRun) this.stats.recordStart(this.runState().speed);
-      this.reachWave();
-      this.sayWave();
-    }
-    this.waitingState.set(!moved);
+    if (moved && this.runState().outcome === "ready") this.startWave();
     this.takeIn(catchUp(this.runState(), field));
     this.chainState.set(
       this.runState().outcome === "playing" ? chainMultiplier(field) : 1,
     );
+  }
+
+  /**
+   * Starts the wave waiting for the first move and, at the run's first
+   * wave, counts the run as started, keeps its sector as reached and says
+   * which wave it is, as going on to a later wave does.
+   */
+  private startWave(): void {
+    const run = startWave(this.runState());
+    this.runState.set(run);
+    if (run.wave !== run.firstWave) return;
+    if (!this.retunedRun) this.stats.recordStart(run.speed);
+    this.reachWave();
+    this.sayWave();
   }
 
   /** Hears an event of the field, and gathers what to say of it and the strays brought home. Made once, so hearing makes nothing. */
@@ -717,10 +727,17 @@ export class GameService {
     this.announcer.clear();
   }
 
+  /**
+   * Returns whether the wave in play is yet to begin, its field not moved:
+   * waiting for its first move, or taken up paused before it.
+   */
+  private yetToBegin(): boolean {
+    return this.wavePlay.field.steps === 0;
+  }
+
   /** Lays out the run's wave in play on a new field, with nothing of the last one left. */
   private showField(run: Run): void {
     this.wavePlay = this.playOf(run);
-    this.waitingState.set(true);
     this.clearedOpenState.set(false);
     this.chainState.set(1);
   }

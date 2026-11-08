@@ -21,6 +21,7 @@ import {
   FRAME_MS,
   SPEC_WAVE,
   SPEC_WAVES,
+  clearToNext,
   endRun,
   playUntil,
   provideSpecWaves,
@@ -164,6 +165,15 @@ describe("AppComponent", () => {
     setVisibility("visible");
 
     expect(game.outcome()).toBe("playing");
+  });
+
+  it("leaves the next wave waiting for its first move as the page goes out of sight", async () => {
+    const game = await renderApp();
+    clearToNext(game);
+
+    setVisibility("hidden");
+
+    expect(game.outcome()).toBe("ready");
   });
 
   describe("a run taken up", () => {
