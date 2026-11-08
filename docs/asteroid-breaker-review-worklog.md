@@ -697,3 +697,32 @@ The review found nothing changed for the player on any path:
    the signal.
 4. _The docs named the one listener and the effect not used:_ taken.
 5. _A spec's title promised the field, and checked the numbers:_ taken.
+
+### Step 6c: finding 8, the rules' specs tidied
+
+Built on `ab-rules`, the rules' part of finding 8. `describe("stepField")`
+nests its 57 tests by what they play: flying and firing, shots meeting
+rocks, losing a ship, clearing the wave, the order of a step, the player's
+first move and the next ship, three that never step the field moving to
+`describe("fieldFor")`. Each test moved as it was, but three titles that
+lose "in the step" to their block's name. `rocks.spec.ts` and
+`drops.spec.ts` read their events and rocks through `field_picture.ts`'s
+`loggedOn()`, `kindsLoggedOn()` and `wholeRocks()`, where they kept their
+own; one `speedOf()` there takes the place of three copies and four
+`Math.hypot()`s; and the four specs' `fieldOf()`s, which did four things,
+are named for what they return. The rules' specs run the same 1,511 tests.
+
+Where it went other than planned:
+
+- Finding 8 is split by whose files it touches: this is the rules' part;
+  the scene's, the shell's and the helpers' go with their tracks.
+
+The review found every moved test checking what it did, and each helper
+reading the window it replaced:
+
+1. _`drops.spec.ts` kept a copy of the last event's reader:_ taken.
+2. _`field_picture.ts`'s `eventsOf()` returned kinds, beside `loggedOn()`'s
+   events,_ which the skill had to explain: taken; `kindsLoggedOn()`.
+3. _The shell's spec still worked a ship's speed out by hand:_ not taken
+   here, as another step was changing that spec; it goes with the shell's
+   spec tidy-ups.

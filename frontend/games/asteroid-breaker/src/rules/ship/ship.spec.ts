@@ -1,3 +1,4 @@
+import { speedOf } from "../../testing/field_picture";
 import { STEP_MS, stepsIn } from "../stepper";
 import { type Torus, across } from "../torus";
 import {
@@ -55,7 +56,10 @@ function steer(given: Partial<Steer>): Steer {
   return { ...STILL, ...given };
 }
 
-/** Returns a ship that has stopped waiting, in the middle of the field, its nose at an angle in degrees. */
+/**
+ * Returns a ship that has stopped waiting, in the middle of the field, its nose
+ * at an angle in degrees.
+ */
 function flying(angle: number, vx = 0, vy = 0): Ship {
   return {
     ...createShip(36, 20, STILL),
@@ -94,11 +98,6 @@ function radians(degrees: number): number {
 /** Returns how far a ship has turned from an angle in radians, in degrees, clockwise above 0. */
 function turnedFrom(angle: number, ship: Ship): number {
   return (across(angle, ship.angle, 2 * Math.PI) * 180) / Math.PI;
-}
-
-/** Returns how fast a ship flies. */
-function speedOf(ship: Ship): number {
-  return Math.hypot(ship.vx, ship.vy);
 }
 
 describe("createShip", () => {

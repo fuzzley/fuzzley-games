@@ -31,8 +31,11 @@ function playing(changes: Partial<Run> = {}): Run {
   return runWith({ outcome: "playing", ...changes });
 }
 
-/** Returns what a wave's field in play hands the run: no points, the run's crew and mark, and no stray home, changed as given. */
-function fieldOf(
+/**
+ * Returns what a wave's field in play hands the run: no points, the run's crew
+ * and mark, and no stray home, changed as given.
+ */
+function progressOf(
   run: Run,
   changes: Partial<Omit<WaveProgress, "strays">> & {
     broughtHome?: number;
@@ -238,10 +241,10 @@ describe("catchUp", () => {
     const before = playing();
     const run = catchUp(
       before,
-      fieldOf(before, { score: 120, broughtHome: 1 }),
+      progressOf(before, { score: 120, broughtHome: 1 }),
     );
 
-    expect(catchUp(run, fieldOf(run, { score: 120, broughtHome: 1 }))).toBe(
+    expect(catchUp(run, progressOf(run, { score: 120, broughtHome: 1 }))).toBe(
       run,
     );
   });
@@ -249,13 +252,15 @@ describe("catchUp", () => {
   it.each(NOT_UNDER_WAY)("leaves a run %s as it is", (outcome) => {
     const run = runWith({ outcome });
 
-    expect(catchUp(run, fieldOf(run, { score: 450, cleared: true }))).toBe(run);
+    expect(catchUp(run, progressOf(run, { score: 450, cleared: true }))).toBe(
+      run,
+    );
   });
 
   it("takes the points of the wave under way, added to those banked", () => {
     const before = playing({ banked: 3000, score: 3200 });
 
-    const run = catchUp(before, fieldOf(before, { score: 450 }));
+    const run = catchUp(before, progressOf(before, { score: 450 }));
 
     expect([run.score, run.banked]).toEqual([3450, 3000]);
   });
@@ -263,7 +268,7 @@ describe("catchUp", () => {
   it("takes them from a paused wave too", () => {
     const before = runWith({ outcome: "paused" });
 
-    const run = catchUp(before, fieldOf(before, { score: 450 }));
+    const run = catchUp(before, progressOf(before, { score: 450 }));
 
     expect([run.score, run.outcome]).toEqual([450, "paused"]);
   });
@@ -273,7 +278,7 @@ describe("catchUp", () => {
 
     const run = catchUp(
       before,
-      fieldOf(before, {
+      progressOf(before, {
         crew: GAINED,
         nextShipAt: FIRST_SHIP_POINTS + SHIP_POINTS,
       }),
@@ -292,13 +297,13 @@ describe("catchUp", () => {
   ])("counts %s alone as news", (_, changes) => {
     const before = playing();
 
-    expect(catchUp(before, fieldOf(before, changes))).not.toBe(before);
+    expect(catchUp(before, progressOf(before, changes))).not.toBe(before);
   });
 
   it("counts the strays brought home in the wave under way on from those banked", () => {
     const before = playing({ straysBanked: 2, strays: 2 });
 
-    const run = catchUp(before, fieldOf(before, { broughtHome: 1 }));
+    const run = catchUp(before, progressOf(before, { broughtHome: 1 }));
 
     expect([run.strays, run.straysBanked]).toEqual([3, 2]);
   });
@@ -308,7 +313,7 @@ describe("catchUp", () => {
 
     const run = catchUp(
       before,
-      fieldOf(before, { score: 300, crew: NONE_FLYING }),
+      progressOf(before, { score: 300, crew: NONE_FLYING }),
     );
 
     expect([run.score, run.banked, run.crew, run.outcome]).toEqual([
@@ -329,7 +334,7 @@ describe("catchUp", () => {
 
     const run = catchUp(
       before,
-      fieldOf(before, { cleared: true, score: 600, broughtHome: 2 }),
+      progressOf(before, { cleared: true, score: 600, broughtHome: 2 }),
     );
 
     expect([
@@ -344,7 +349,7 @@ describe("catchUp", () => {
   it("clears a wave whose field has nothing else new", () => {
     const before = playing({ banked: 2000, score: 2000 });
 
-    const run = catchUp(before, fieldOf(before, { cleared: true }));
+    const run = catchUp(before, progressOf(before, { cleared: true }));
 
     expect([run.banked, run.outcome]).toEqual([2000, "cleared"]);
   });
@@ -355,7 +360,7 @@ describe("catchUp", () => {
 
     const run = catchUp(
       before,
-      fieldOf(before, { cleared: true, score: 600, crew: NONE_FLYING }),
+      progressOf(before, { cleared: true, score: 600, crew: NONE_FLYING }),
     );
 
     expect([run.score, run.banked, run.outcome]).toEqual([2600, 2000, "over"]);

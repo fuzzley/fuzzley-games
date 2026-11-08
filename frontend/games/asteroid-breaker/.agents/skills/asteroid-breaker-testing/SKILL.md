@@ -109,8 +109,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   rock, so a wave doesn't clear while a spec plays on.
 - `placeRock()`, `placePickup()`, `catchOn()`, `placeStray()` and
   `placeComet()` put more on a field; `stepTimes(field, n)` steps it;
-  `shipOf()`, `wholeRocks()`, `floatingPickups()`, `eventsOf()` and
-  `loggedOn()` read it back.
+  `shipOf()`, `wholeRocks()`, `floatingPickups()`, `loggedOn()` and
+  `kindsLoggedOn()` read it back, and `speedOf()` how fast a rock, the ship, a
+  shot or a pickup on it flies.
 - A stray or a comet comes in off an edge as `comeIn()`
   (`src/rules/hazards/crossing.ts`) puts it, and
   `src/testing/crossings.ts` reads where it waits (`entryOf()`) and holds a

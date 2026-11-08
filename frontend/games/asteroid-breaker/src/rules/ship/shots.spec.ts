@@ -1,3 +1,4 @@
+import { speedOf } from "../../testing/field_picture";
 import { RADIANS_PER_DEGREE } from "../angles";
 import { WEAPONS, WEAPON_IDS, type WeaponId } from "../catalog/weapons";
 import { rockHitRadius } from "../rocks/rocks";
@@ -293,7 +294,7 @@ describe("stepShots", () => {
 
       const shot = only(pulled(ship, "gun", CARRYING));
 
-      expect(Math.hypot(shot.vx, shot.vy)).toBeCloseTo(FASTEST);
+      expect(speedOf(shot)).toBeCloseTo(FASTEST);
     });
 
     it("fires from where the ship's nose is once the ship has flown its step", () => {

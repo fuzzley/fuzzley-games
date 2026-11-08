@@ -2,7 +2,12 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { ENDLESS_PLAYED, FIELDS } from "../../testing/autopilot";
 import { LAYOUT_SEEDS, nearness, startOn } from "../../testing/every_layout";
-import { fieldFrom, placeRock, wholeRocks } from "../../testing/field_picture";
+import {
+  fieldFrom,
+  placeRock,
+  speedOf,
+  wholeRocks,
+} from "../../testing/field_picture";
 import { TURN } from "../angles";
 import type { Rock } from "../rocks/rocks";
 import { createCrew } from "../ship/pilots";
@@ -45,7 +50,10 @@ const ROCKS = [
   { kind: "ice", size: "small", count: 2 },
 ] as const;
 
-/** How the spec's fields are played but for their shape, their pace and their seed: no pickups, strays or comets, and a run's first crew. */
+/**
+ * How the spec's fields are played but for their shape, their pace and their
+ * seed: no pickups, strays or comets, and a run's first crew.
+ */
 const SETUP: FieldSetup = {
   torus: NARROWEST,
   cap: ROCK_CAP,
@@ -63,12 +71,18 @@ const SETUP: FieldSetup = {
   nextShipAt: FIRST_SHIP_POINTS,
 };
 
-/** Returns a field of a shape at a pace, from a seed, its ship waiting in the middle and no rock laid yet. */
+/**
+ * Returns a field of a shape at a pace, from a seed, its ship waiting in the
+ * middle and no rock laid yet.
+ */
 function waitingField(torus: Torus, pace = 1, seed = 1): Field {
   return createField({ ...SETUP, torus, pace, seed });
 }
 
-/** Returns a field of a shape, 40 by 40 unless given, with the spec's rocks laid out in a formation as written. */
+/**
+ * Returns a field of a shape, 40 by 40 unless given, with the spec's rocks laid
+ * out in a formation as written.
+ */
 function laidOut(formation: Formation, torus: Torus = NARROWEST): Field {
   const field = waitingField(torus);
   layOut(field, ROCKS, formation, middleOf(torus));
@@ -82,12 +96,10 @@ function parsedFirst(): Wave {
   return parseWave(first);
 }
 
-/** Returns how fast a rock flies at a pace of 1. */
-function speedOf(rock: Readonly<Rock>): number {
-  return Math.hypot(rock.vx, rock.vy);
-}
-
-/** Returns which way round the middle of a field of 40 by 40 a rock flies: 1 one way, −1 the other. */
+/**
+ * Returns which way round the middle of a field of 40 by 40 a rock flies: 1 one
+ * way, −1 the other.
+ */
 function wayRound(rock: Readonly<Rock>): number {
   return Math.sign(
     across(20, rock.x, 40) * rock.vy - across(20, rock.y, 40) * rock.vx,
@@ -117,7 +129,10 @@ function lengthAlong(
   return length;
 }
 
-/** Returns how near any two of a field's rocks come, outline to outline: below 0 where they lie over each other. */
+/**
+ * Returns how near any two of a field's rocks come, outline to outline: below 0
+ * where they lie over each other.
+ */
 function tightestGap(field: Field): number {
   const rocks = wholeRocks(field);
   return Math.min(
@@ -443,7 +458,12 @@ describe("layOut", () => {
     },
   );
 
-  /** Returns a field of 40 by 40 with two dozen large stones laid out on it in a formation, scattered unless it says, so many that a cluster crowds and flying so fast that hardly a course they are drawn on keeps clear of the ship. */
+  /**
+   * Returns a field of 40 by 40 with two dozen large stones laid out on it in a
+   * formation, scattered unless it says, so many that a cluster crowds and
+   * flying so fast that hardly a course they are drawn on keeps clear of the
+   * ship.
+   */
   function laidFast(formation: Formation = "scatter"): Field {
     const field = waitingField(NARROWEST, 50, 3);
     const rocks = [{ kind: "stone", size: "large", count: 24 }] as const;

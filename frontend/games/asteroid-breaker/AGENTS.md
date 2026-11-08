@@ -741,8 +741,9 @@ of its own beside it:
   ship (`fieldFrom()`), each character a cell 4 units across (`CELL`), on a
   field of 72 by 40 unless it says another (`PICTURE_TORUS`), lays a rock, a
   pickup, a stray or a comet on it where a spec says (`placeRock()`,
-  `placePickup()`, `placeStray()`, `placeComet()`), steps it and reads its
-  events, so a spec of the field reads as the field it plays.
+  `placePickup()`, `placeStray()`, `placeComet()`), steps it and reads it
+  back, from its events to how fast a thing on it flies (`speedOf()`), so a
+  spec of the field reads as the field it plays.
 - `crossings.ts` reads where a stray or a comet waits to come in
   (`entryOf()`), whether a run of them came in off every edge within their
   margin and tilt (`entriesOf()`), and where an event was logged against
