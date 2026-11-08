@@ -5,10 +5,22 @@ import type { Rock } from "../rules/rocks/rocks";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { distanceSquared } from "../rules/torus";
 import { type WaveData, type WaveEntry, wavesOf } from "../rules/waves/waves";
+import type { BoardSetting } from "../view/field/field_metrics";
 import type { FieldView } from "../view/field/frame";
 
 /** How long a frame of the board takes, at 60 a second. */
 export const FRAME_MS = 1000 / 60;
+
+/** How the board lays the field out on a roomy screen with no touch, the ship flown by the keys. */
+export const ROOMY: BoardSetting = {
+  marginCss: 24,
+  deck: false,
+  stickOnRight: false,
+  fireByItself: false,
+};
+
+/** Space as a browser sends it, with the key code Phaser's capture reads. */
+export const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
 
 /** The most frames a spec plays for something to happen: a minute's at 60 a second. */
 const PLAY_LIMIT_FRAMES = 3600;
@@ -252,9 +264,27 @@ export function playToClear(game: GameService): void {
   playUntil(game, shoot, () => game.outcome() === "cleared");
 }
 
-/** Clears the wave in play, then goes on to the next once its card shows. */
-export function clearToNext(game: GameService): void {
+/** Starts the wave in play, then pauses it, for the Paused card. */
+export function pauseIn(game: GameService): void {
+  game.tick(FRAME_MS, shoot(game));
+  game.pause();
+}
+
+/** Clears the wave in play, until the Cleared card shows. */
+export function clearIn(game: GameService): void {
   playToClear(game);
   playUntil(game, () => STILL, game.clearedOpen);
+}
+
+/** Clears the wave in play, then goes on to the next once its card shows. */
+export function clearToNext(game: GameService): void {
+  clearIn(game);
   game.nextWave();
+}
+
+/** Ends the run, and puts its result away, for the Ended card. */
+export function endIn(game: GameService): void {
+  endRun(game);
+  playUntil(game, () => STILL, game.resultOpen);
+  game.closeResult();
 }

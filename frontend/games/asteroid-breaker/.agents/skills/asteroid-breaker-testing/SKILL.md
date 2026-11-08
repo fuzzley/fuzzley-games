@@ -242,6 +242,10 @@ game through `runScene()`:
 - A component that shows the board runs it on
   `provideFakePhaserCanvas()`, which loads no Phaser. The board's spec also
   runs the scene the board hands its canvas for real, through `runScene()`.
+  The cards over the field are `<app-board-card>`, whose spec renders it
+  alone, with no canvas, given what the board tells it (where the scene is
+  and how the ship flies); the board's spec holds only that it tells it so,
+  and takes back the focus as the player goes on from a card.
 - What a frame of play comes to is `RunFrames`'s, and how it folds into
   what is a run's own `withFrame()`'s, which the view's specs hold; the
   shell's spec holds `GameService` to taking it into its signals, the
@@ -255,7 +259,10 @@ game through `runScene()`:
   given: `game.tick(FRAME_MS, steer)`, steered `STILL`, by `shoot()`,
   `ram()`, `toPickup()` or `toStray()`; `playUntil()`, `playFor()`,
   `loseShip()`, `endRun()`, `bringStraysHome()`, `chainUp()`,
-  `playToClear()` and `clearToNext()` play on to a point. A run under way
+  `playToClear()` and `clearToNext()` play on to a point, and `pauseIn()`,
+  `clearIn()` and `endIn()` until the Paused, Cleared or Ended card shows.
+  `ROOMY` is how the board lays the field out on a roomy screen with no
+  touch, and `SPACE` the key as a browser sends it. A run under way
   asks before it is thrown away, which a spec answers through
   `ConfirmService`'s `accept()` or `cancel()`.
 - jsdom has no `matchMedia`, so motion isn't welcome and the board is no
