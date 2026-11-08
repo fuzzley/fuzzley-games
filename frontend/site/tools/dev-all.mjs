@@ -35,6 +35,13 @@ export const GAME_SERVERS_ENV = "FZ_GAME_SERVERS";
 /** The site's port when none is given, as its vite.config.ts sets it. */
 const SITE_PORT = 4200;
 
+/**
+ * The address each game's server listens on and the site's sends its folder
+ * to: the loopback address itself, as `localhost` can name ::1 to a server
+ * and 127.0.0.1 to the proxy dialing it.
+ */
+const LOOPBACK = "127.0.0.1";
+
 const log = logger("dev-all");
 
 /**
@@ -91,6 +98,8 @@ export function gameArgs({ slug, port }) {
   return [
     "--base",
     `/play/${slug}/`,
+    "--host",
+    LOOPBACK,
     "--port",
     String(port),
     "--strictPort",
@@ -107,7 +116,7 @@ export function gameArgs({ slug, port }) {
 export function gameServersEnv(games) {
   return JSON.stringify(
     Object.fromEntries(
-      games.map(({ slug, port }) => [slug, `http://localhost:${port}`]),
+      games.map(({ slug, port }) => [slug, `http://${LOOPBACK}:${port}`]),
     ),
   );
 }

@@ -135,11 +135,13 @@ too. Paths are relative to `frontend/lib/dev/`.
   `src/board_page.ts`, which its spec runs in jsdom. A game's
   `tools/check-layout.mjs` holds its inspection and which checks it runs, and
   hands them to `runLayoutScript()`, which reads the command line (`--chrome`,
-  `--help`), serves the build as `yarn preview` does, runs the checks in a
-  headless Chrome and prints what is wrong, or that the layout holds. It
-  returns the exit code, 1 for a layout that doesn't hold and 2 for an option
-  it doesn't know, and throws where it can't check at all, such as for a game
-  with no build, no Chrome to run, or a page that never draws.
+  `--help`), serves the build as `yarn preview` does, at 127.0.0.1 rather
+  than `localhost`, which can name ::1 to the server and 127.0.0.1 to a
+  client dialing it, runs the checks in a headless Chrome and prints what is
+  wrong, or that the layout holds. It returns the exit code, 1 for a layout
+  that doesn't hold and 2 for an option it doesn't know, and throws where it
+  can't check at all, such as for a game with no build, no Chrome to run, or
+  a page that never draws.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),

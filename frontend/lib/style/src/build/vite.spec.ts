@@ -57,7 +57,9 @@ async function served(
     configFile: false,
     logLevel: "silent",
     plugins: [plugin],
-    server: { port: 0, watch: null, hmr: false },
+    // The loopback address itself, not `localhost`, which can name ::1 to the
+    // server and 127.0.0.1 to `fetch`.
+    server: { host: "127.0.0.1", port: 0, watch: null, hmr: false },
   });
   try {
     await server.listen();
