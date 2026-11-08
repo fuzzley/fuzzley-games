@@ -449,3 +449,39 @@ The review found no change in what is kept:
    them with one write, and `recordReached()` is gone.
 3. _`keep()`'s doc opened with more than a sentence:_ taken.
 4. _Five docs were rewrapped:_ each ran past 100 characters; not taken.
+
+### Step 4: finding 4, the specs that touch no page run in Node
+
+Built on `ab-tests`. Asteroid Breaker's specs run in three Vitest projects:
+`dom`, with jsdom, the setup and Analog's plugin; `pure`, the rules', the
+view's and `src/testing/`'s specs, in Node with none of them; and `sim`, as
+step 3 left it. `dom` runs every spec the other two don't, so none runs in
+neither. `atlasSize()` moved from `@fz/phaser/scene` to `@fz/phaser/shapes`
+beside `pack()`, in `packing.ts`, so the art's spec loads no Phaser. The
+whole run's median went from 45.6 s to 37.6 s, and one rules spec run with
+`--project pure` from 8.5 s to 2.4 s.
+
+Where it went other than planned:
+
+- `dom` pins no pool: its own Analog plugin sets one.
+- Coverage counted the rules and the view twice, once as each project
+  compiled them, so `dom` leaves them to oxc, as `pure` does, through
+  Analog's `transformFilter`.
+- The projects are built from `@fz/dev`'s `angularSpecs()` and
+  `nodeSpecs()`, and one `atlasSize()` spec stays in the scene's, where
+  `bakeAtlas()` uses it.
+
+The review:
+
+1. _The code left to oxc took in `src/testing/`,_ which lint doesn't keep
+   free of Angular: taken; only the rules and the view.
+2. _A file added while `yarn test:watch` ran might not reach Analog's
+   plugin,_ which watches through the project's own server: taken; a plugin
+   hands each add and removal on.
+3. _The comments on oxc and the projects were out of date, and the pattern
+   was written by hand:_ taken; it is built from the config's folder.
+4. _A spec kept a comment about the jsdom it no longer runs in:_ taken.
+5. _`dom` listed its specs, so a new folder's would run in no project:_
+   taken; it runs every spec but the other two's.
+6. _`Packing<T>` wasn't exported, and the scene's spec reached past the
+   index:_ taken.

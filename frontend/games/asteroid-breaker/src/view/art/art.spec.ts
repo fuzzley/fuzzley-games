@@ -1,5 +1,10 @@
-import { atlasSize } from "@fz/phaser/scene";
-import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
+import {
+  type ArtFrame,
+  type ArtScale,
+  type DrawCommand,
+  type Point,
+  atlasSize,
+} from "@fz/phaser/shapes";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
 import { ROCK_OUTLINES } from "../../rules/rocks/rocks";

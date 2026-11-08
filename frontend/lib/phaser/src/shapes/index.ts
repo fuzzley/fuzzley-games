@@ -1,3 +1,4 @@
+export { type FrameSize, atlasSize } from "./packing";
 export {
   type Area,
   type ArtFrame,

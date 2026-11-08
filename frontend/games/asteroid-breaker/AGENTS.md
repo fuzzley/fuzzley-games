@@ -23,8 +23,9 @@ Endless (`asteroid-breaker-content`).
   zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
   `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules and the view
 - **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom, Testing
-  Library, and real Phaser run headless
+- **Test Framework:** [Vitest](https://vitest.dev/), in Node for the rules
+  and the view, and in jsdom, with Testing Library and real Phaser run
+  headless, for the scene and the shell
 - **Language:** TypeScript / HTML / Sass
 
 ## Layers
@@ -634,11 +635,15 @@ workspace's with the others'.
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002,
   Snake's 9003 and Brick Breaker's 9004).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `unit`
-  project with coverage, failing below the floor `vitest.config.ts` sets
-  for the rules and the view, then its `sim` project, the specs that play
-  every wave or lay every wave out, without), `yarn test:watch`, or
-  `yarn vitest run <path>` for one spec, which leaves the floor alone.
+- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `dom`
+  and `pure` projects with coverage, failing below the floor
+  `vitest.config.ts` sets for the rules and the view, then its `sim`
+  project, the specs that play every wave or lay every wave out, without),
+  `yarn test:watch`, or `yarn vitest run --project <project> <path>` for one
+  spec, which leaves the floor alone: `pure` for one of the rules, the view
+  or `src/testing/`, `dom` for one of the scene or the shell, and `sim` for
+  a simulation. Without `--project`, Vitest starts every project, Analog's
+  plugin among them, and a spec of the rules takes three times as long.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
   between the layers, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
@@ -697,18 +702,22 @@ workspace's with the others'.
 ## Tests
 
 The repository's rules for specs apply. A spec sits beside the file it
-tests, named after it, and runs in jsdom, but for the specs that play every
-wave or lay every wave out, which test no one file: each has a folder of its
-own with a file for each speed (`src/rules/waves/every_wave/`,
+tests, named after it, but for the specs that play every wave or lay every
+wave out, which test no one file: each has a folder of its own with a file
+for each speed (`src/rules/waves/every_wave/`,
 `src/rules/waves/every_endless_wave/`, `src/rules/field/every_layout/`), as
 Vitest plays a file's specs one after another but the files side by side,
 and the spec beside the folder holds it to a file for every speed and no
-other. They run in Node, in Vitest's `sim` project, without the coverage
-that would triple their time, as the other rules specs alone hold the
-rules to their floor; every other spec is the `unit` project's, which
-coverage measures. `src/test-setup.ts` installs `@fz/phaser/testing`'s
-headless Phaser first, so a scene's spec runs real Phaser through
-`runScene()`, with a fake shell over a pictured field. This
+other. Vitest runs the specs in three projects, each starting only what
+its own need. `sim` runs the specs that play every wave or lay every wave
+out, in Node, without the coverage that would triple their time, as the
+other rules specs alone hold the rules to their floor. `pure` runs the
+other specs of the rules, the view and `src/testing/` in Node too, which
+has no page, as nothing they test touches one. `dom` runs every other
+spec, the scene's and the shell's, in jsdom, after `src/test-setup.ts`,
+which installs `@fz/phaser/testing`'s headless Phaser first, so a scene's
+spec runs real Phaser through `runScene()`, with a fake shell over a
+pictured field. Coverage measures `dom` and `pure` together. This
 workspace's `asteroid-breaker-testing` skill covers its setup, floors and
 fixtures, the repository's `angular-testing` the patterns every Angular
 workspace's specs share, and `phaser-core` the harness. What the specs

@@ -9,7 +9,6 @@ import {
 import { colorNumber } from "@fz/phaser/color";
 import { beltPalette } from "./palette";
 
-// Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
 const GLOBAL = path.join(import.meta.dirname, "../../app/styles/global.scss");
 
 /** The contrast a graphic keeps against what it is drawn on, as WCAG asks of graphics. */

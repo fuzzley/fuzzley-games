@@ -1,12 +1,8 @@
 import { GameObjects, type Scene, type Textures } from "phaser";
 import type { HostedScene } from "../host";
+import { ATLAS_GUTTER, atlasSize } from "../shapes/packing";
 import { type SceneRun, runBareScene } from "../testing";
-import {
-  ATLAS_GUTTER,
-  type AtlasFrame,
-  atlasSize,
-  bakeAtlas,
-} from "./bake_atlas";
+import { type AtlasFrame, bakeAtlas } from "./bake_atlas";
 
 /** Returns a frame of a size that draws nothing. */
 function frame(name: string, width: number, height = width): AtlasFrame {
@@ -218,6 +214,19 @@ describe("bakeAtlas", () => {
     }).toThrow("larger than 4096 a side");
   });
 
+  it("bakes an atlas at the size atlasSize gives the same frames", async () => {
+    const { scene } = await startScene();
+    const frames = [frame("wall", 30, 8), frame("a", 10), frame("b", 14, 6)];
+
+    bakeAtlas(scene, "atlas", frames);
+
+    const source = scene.textures.get("atlas").source[0];
+    expect(atlasSize(frames)).toEqual({
+      width: source?.width,
+      height: source?.height,
+    });
+  });
+
   it("bakes no frames into a texture of a pixel", async () => {
     const { scene } = await startScene();
 
@@ -225,33 +234,5 @@ describe("bakeAtlas", () => {
 
     const texture: Textures.Texture = scene.textures.get("atlas");
     expect([texture.source[0]?.width, frameNames(scene)]).toEqual([1, []]);
-  });
-});
-
-describe("atlasSize", () => {
-  let run: SceneRun<HostedScene> | null = null;
-
-  afterEach(() => {
-    run?.destroy();
-    run = null;
-  });
-
-  it("gives the size bakeAtlas bakes the same frames at", async () => {
-    run = await runBareScene();
-    const frames = [frame("wall", 30, 8), frame("a", 10), frame("b", 14, 6)];
-
-    bakeAtlas(run.scene, "atlas", frames);
-
-    const source = run.scene.textures.get("atlas").source[0];
-    expect(atlasSize(frames)).toEqual({
-      width: source?.width,
-      height: source?.height,
-    });
-  });
-
-  it("refuses frames too large for any device, as bakeAtlas does", () => {
-    expect(() => atlasSize([frame("wall", 5000, 10)])).toThrow(
-      "larger than 4096 a side",
-    );
   });
 });

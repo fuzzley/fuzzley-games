@@ -33,8 +33,11 @@ take the pure ones.
   its builder, which takes no size and no radius below nothing, as a canvas
   not yet laid out can give one; `ArtFrame`, a frame of an atlas drawn in
   them; `extentOf()`, how far a shape reaches, which a game frames its
-  drawings by, short of a polyline's mitred corners; and `ArtScale` and `widthOf()`, a width in field units as
-  whole device pixels. It imports nothing.
+  drawings by, short of a polyline's mitred corners; `ArtScale` and
+  `widthOf()`, a width in field units as whole device pixels; and
+  `atlasSize()`, how big the atlas of a set of frames is, packed as
+  `bakeAtlas()` packs them (`src/shapes/packing.ts`), so a game's spec can
+  hold it to a size without Phaser. It imports nothing.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
   it, building the next before it lets go of the last, its `show()` settling
@@ -51,11 +54,10 @@ take the pure ones.
   ends; `onKeyDown()` and `onKeyUp()`, which hand a scene each key event its
   keyboard hears, once; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at
   run time and drawn again after a lost context; and `bakeAtlas()`, many named
-  frames drawn into one such texture, after which every object showing one of
-  its frames sets it again, with `atlasSize()`, how big the atlas of a set of
-  frames is, so a game's spec can hold it to a size; and `atlasFrameOf()`,
-  an `ArtFrame` as `bakeAtlas()` draws one, its shapes played into the
-  `Graphics` in turn. It imports Phaser, never Angular.
+  frames drawn into one such texture, packed as `atlasSize()` measures them,
+  after which every object showing one of its frames sets it again; and
+  `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()` draws one, its shapes
+  played into the `Graphics` in turn. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never waits
   for it, and plays its sounds, named by the spritemap, once it has loaded

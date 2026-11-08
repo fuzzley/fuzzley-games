@@ -55,7 +55,16 @@ too. Paths are relative to `frontend/lib/dev/`.
   `angularSpecs()` that shares the config's Vite server pins
   `pool: "vmThreads"`, which Analog's plugin can't give it: the plugin sets
   the pool in a config hook, after Vitest has taken the `test` options such
-  a project inherits.
+  a project inherits; one with the plugin among its own, as Asteroid
+  Breaker's `dom` is, takes the pool from it. Coverage adds up a file two
+  projects load only where both compiled it alike, so a project with the
+  plugin leaves the measured code a project in Node loads too to Vite's
+  oxc, passing it by in the plugin's `transformFilter` and naming it in
+  `oxc.include`, since the plugin turns oxc off, or each of its functions
+  counts twice. Vitest watches through the config's own server, so such a
+  project hands its own the files added or removed, for the plugin to take
+  a new component into its program, as Asteroid Breaker's
+  `forwardAddedAndRemoved()` does.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
   build from `/play/<slug>/`, the Angular plugins, `@fz/style`'s
@@ -176,13 +185,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   rule raised here is raised everywhere at once.
 - **Its `vitest.config.ts` is `angularTests()` or `nodeTests()`**, given its
   floors, unless its specs run another way: the Solitaire Collection's live
-  under `test/`, mostly in Node, and keep a config of their own, and Brick
-  Breaker's and Asteroid Breaker's merge in Vitest projects, so the specs
-  that play or lay out every level or wave run in Node, without coverage. A
-  game's `vite.config.ts` is `gameConfig()`, with what is the game's own
-  merged in by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does
-  for the commit it was built from and its `@` alias. Analog's plugin, Vite
-  and Vitest are peers, which the workspace lists and runs.
+  under `test/`, mostly in Node, and keep a config of their own; Brick
+  Breaker's merges in Vitest projects, so the specs that play every level
+  run in Node, without coverage; and Asteroid Breaker's is made of
+  projects, so those that play or lay out every wave do too, and the specs
+  of its rules and its view run in Node, with coverage. A game's
+  `vite.config.ts` is `gameConfig()`, with what is the game's own merged in
+  by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does for the
+  commit it was built from and its `@` alias. Analog's plugin, Vite and
+  Vitest are peers, which the workspace lists and runs.
 - **A game's screenshot script writes the site's images with
   `writeSiteImages()`**, and keeps to itself how it stages its game and
   what else it writes.

@@ -18,16 +18,21 @@ relative to `frontend/games/asteroid-breaker/`.
 Run these from `frontend/games/asteroid-breaker/`, or as
 `yarn workspace asteroid-breaker <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once: the `unit` project
-  with coverage, then the `sim` project without) or `yarn test:watch`.
-  `yarn vitest run <path>` runs one spec without coverage, in the project
-  that holds it. The whole suite takes minutes, most of them the autopilot
-  playing every wave at every speed on three fields.
+- **Run Tests**: `yarn test` (the whole suite once: the `dom` and `pure`
+  projects with coverage, then the `sim` project without) or
+  `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
+  spec without coverage, starting its project alone: `pure` for the rules,
+  the view and `src/testing/`, `dom` for the scene and the shell, and `sim`
+  for the simulations. Without `--project`, Vitest starts all three,
+  Analog's plugin among them, and a spec of the rules takes three times as
+  long. The whole suite takes minutes, most of them the autopilot playing
+  every wave at every speed on three fields.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
   to 100% of statements, functions and lines and 95% of branches.
   `yarn test`, which CI runs, fails below either. The scene and the shell
-  have no floor of their own. Coverage measures the `unit` project alone,
-  so what only the simulations reach counts as untested.
+  have no floor of their own. Coverage measures the `dom` and `pure`
+  projects together, not `sim`, so what only the simulations reach counts
+  as untested.
 - **Check the Layout**: `yarn build`, then `yarn check:layout`
   (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
   `@fz/dev/layout`'s shapes and turns, with the deck shown, and holds the
@@ -36,14 +41,33 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 ## Setup
 
-- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the floor
-  and what coverage leaves out (`src/main.ts` and `src/testing/`), with two
-  projects merged in: `sim`, the specs that play every wave or lay every
-  wave out (`SIMULATIONS`), in Node (`nodeSpecs()`), with neither the setup
-  below nor Analog's plugin, and `unit`, every other spec, as
-  `angularTests()` runs them.
-- A spec sits beside the file it tests, named after it, and runs in jsdom,
-  but for the simulations.
+- `vitest.config.ts` is three Vitest projects made of `@fz/dev/vitest`'s
+  pieces, under one `coverage()` given the floor and what coverage leaves
+  out (`src/main.ts`, the setup and `src/testing/`). Each is a config of
+  its own, so each starts only what its specs need:
+  - `pure`, the specs of the rules, the view and `src/testing/`
+    (`PURE_SPECS`), but for the simulations, in Node (`nodeSpecs()`);
+  - `sim`, the specs that play every wave or lay every wave out
+    (`SIMULATIONS`), in Node too, without coverage;
+  - `dom`, every other spec, the scene's and the shell's, in jsdom after the
+    setup below, as `angularSpecs()` runs them, with Analog's plugin, which
+    gives it its pool. It takes whatever the other two don't, so a spec in
+    a new folder runs in jsdom rather than in neither.
+- A spec sits beside the file it tests, named after it, and its folder
+  sets its project. One of the rules, the view or `src/testing/` has no
+  page, so what needs one is the scene's or the shell's to test.
+- `dom` leaves the measured code both it and `pure` load, the rules' and
+  the view's, which lint keeps free of Angular (`SHARED_CODE`), to Vite's
+  oxc rather than to Analog's plugin: the plugin's `transformFilter` passes
+  it by, and `oxc.include` turns oxc back on for it, which the plugin turns
+  off. Coverage adds a file's two runs up only where both compiled it
+  alike: compiled two ways, each of its functions would count twice,
+  untested in the project that never calls it, and the rules would fall
+  below their floor.
+- Vitest watches through the config's own Vite server, not `dom`'s, so
+  `forwardAddedAndRemoved()` hands `dom`'s each file added or removed, for
+  Analog's plugin to take a new component into its program while
+  `yarn test:watch` runs.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears
