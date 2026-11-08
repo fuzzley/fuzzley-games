@@ -56,11 +56,17 @@ export interface Rock {
   angle: number;
   /** How fast it turns, in radians a second at a pace of 1, either way. */
   spin: number;
-  /** Which of its kind and size's outlines it is drawn in, from 0 to under {@link ROCK_OUTLINES}. */
+  /**
+   * Which of its kind and size's outlines it is drawn in, from 0 to under
+   * {@link ROCK_OUTLINES}.
+   */
   outline: number;
   /** The hits left to break it. */
   hits: number;
-  /** The step it was laid at, by the field's count; a blast reaches only rocks laid before its own step. */
+  /**
+   * The step it was laid at, by the field's count; a blast reaches only rocks
+   * laid before its own step.
+   */
   laidAt: number;
   /**
    * The step a broken rock that blasts goes off at, or 0 for none; its slot
@@ -95,6 +101,15 @@ export interface RockField extends DropField, ScoreField {
 }
 
 /**
+ * Describes what a rock's course is flown by, and all a trait's step rule
+ * sees of the field: the ship a drawn rock drifts toward, the field's size,
+ * its pace and its rocks' speed, none of which a step may change.
+ */
+export type CourseField = Readonly<
+  Pick<RockField, "ship" | "torus" | "pace" | "rockSpeed">
+>;
+
+/**
  * Names how hard something hits a rock: a hit takes one of its hits off, as
  * a shot, a blast and the Nova do; a blow that breaks takes all it has
  * left, as the Shield's does; and one that smashes breaks it as well, but
@@ -113,15 +128,16 @@ interface TraitRule<T extends RockTrait> {
   readonly broken?: (field: RockField, rock: Rock, trait: T) => void;
   /**
    * Runs at each step it flies, before it moves, acting on the rock alone,
-   * as the placement flies a copy of it ahead by it too.
+   * as the placement flies a copy of it ahead by it too: it sees only the
+   * course the rock flies by.
    */
-  readonly step?: (field: RockField, rock: Rock, trait: T) => void;
+  readonly step?: (field: CourseField, rock: Rock, trait: T) => void;
   /** Runs as a broken rock's beat is up, before its slot is freed. */
   readonly goesOff?: (field: RockField, rock: Rock, trait: T) => void;
 }
 
-/** A moment in play a trait's rule may run at. */
-type Moment = keyof TraitRule<RockTrait>;
+/** A moment in play a trait's rule may run at with the rocks' field, every one but a step. */
+type Moment = Exclude<keyof TraitRule<RockTrait>, "step">;
 
 /** What each trait does, so a trait without its rule fails to compile. */
 const TRAIT_RULES: {
@@ -269,9 +285,9 @@ export function stepRocks(field: RockField): void {
  * Flies a rock a step on at the field's pace, its traits' rules first, and
  * wraps it: as play does, and as the placement follows a course ahead.
  */
-export function flyRock(field: RockField, rock: Rock): void {
+export function flyRock(field: CourseField, rock: Rock): void {
   const time = field.pace * STEP_S;
-  runTraits("step", field, rock);
+  runSteps(field, rock);
   rock.lastX = rock.x;
   rock.lastY = rock.y;
   rock.x = wrap(rock.x + rock.vx * time, field.torus.width);
@@ -420,7 +436,7 @@ function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
  * kind's and the field's rocks' speed; the cap never brakes a rock already
  * past that, as a pushed piece may be.
  */
-function drift(field: RockField, rock: Rock, pull: number): void {
+function drift(field: CourseField, rock: Rock, pull: number): void {
   const { ship, torus } = field;
   if (ship === null) return;
   const toX = across(rock.x, ship.x, torus.width);
@@ -457,4 +473,21 @@ function runRule<K extends RockTraitKind>(
   trait: TraitOf[K],
 ): void {
   TRAIT_RULES[kind][moment]?.(field, rock, trait);
+}
+
+/** Runs the step rules of a rock's traits, as it flies a step. */
+function runSteps(field: CourseField, rock: Rock): void {
+  for (const trait of rockKind(rock.kind).traits) {
+    runStep(field, rock, trait.kind, trait);
+  }
+}
+
+/** Runs one trait's step rule, if it has one. */
+function runStep<K extends RockTraitKind>(
+  field: CourseField,
+  rock: Rock,
+  kind: K,
+  trait: TraitOf[K],
+): void {
+  TRAIT_RULES[kind].step?.(field, rock, trait);
 }

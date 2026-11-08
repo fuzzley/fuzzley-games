@@ -70,7 +70,6 @@ import {
 import { layOut, safestPlace } from "./spawn";
 import { SPEED_INFO, type Speed } from "../speed";
 import { stepsIn } from "../stepper";
-import type { WaveStart } from "../run/run";
 import { type Torus, across, distanceSquared, middleOf } from "../torus";
 import {
   NEW_SHIP_MS,
@@ -104,10 +103,16 @@ export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly nextShipAt: number;
 }
 
+/** Describes what the field of a run's wave takes from the run as it starts. */
+export type WaveStart = Pick<
+  FieldSetup,
+  "seed" | "crew" | "banked" | "nextShipAt"
+>;
+
 /**
  * Says how a wave's field is set up beyond what the wave says: what the
- * run hands it ({@link waveStart}), its shape, the run's speed, and what the
- * player holds as it starts.
+ * run hands it (`run.ts`'s `waveStart()`), its shape, the run's speed, and
+ * what the player holds as it starts.
  */
 export interface WaveSetup extends WaveStart {
   readonly torus: Torus;
@@ -307,15 +312,7 @@ export function stepField(field: Field): void {
   if (ship && flyShip(ship, steer, torus, field.flight)) {
     field.events.addDash(ship.x, ship.y, ship.angle);
   }
-  const fired = stepShots(
-    field.shots,
-    ship,
-    steer.fire || steer.autoFire,
-    field.weapon,
-    torus,
-    field.gunnery,
-    field.flight,
-  );
+  const fired = stepShots(field, steer.fire || steer.autoFire);
   if (ship && fired) field.events.add("fired", ship.x, ship.y);
   stepRocks(field);
   for (const shot of field.shots.slots) {

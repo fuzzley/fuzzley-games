@@ -348,3 +348,42 @@ bug:
 4. _Some short doc comments were rewrapped beside long ones left alone:_
    checked; each short one removed was rewritten, not rewrapped, and none
    in the touched files now runs past 100 characters.
+
+### Step 10b: finding 14, each part of the rules takes only its part of the field
+
+Built on `ab-rules`. Each module declares the part of the field it acts on,
+beside it, as the rocks, the drops, the scoring and the crew already did:
+`CrossingField`, `CometField`, `StrayField`, `PickupField`, `StretchField`,
+`MarkField` and `TallyField`, and a function that needs less takes a `Pick`
+of its part. `WaveStart` is `field.ts`'s. A trait's step rule is typed over
+a read-only `CourseField` (the ship, the torus, the pace and the rocks'
+speed), which `liesFairly()` builds from those four keys alone, so the
+compiler keeps the promise the doc made. `stepShots(field, fire)` takes a
+`ShotField`, with no defaults, and `pull()` takes the field and the ship.
+`crossing.spec.ts` builds a `CrossingField` rather than a pictured field.
+The simulations pass unchanged.
+
+Where it went other than planned:
+
+- **Interfaces beside each module rather than `Pick`s of `Field`,** as the
+  rocks' and the others' are, so none of these modules imports `Field`.
+  `Field` and the run leave the cycle of type imports; seven modules that
+  were tied together already (the events, the pilots, the strays, the
+  scoring, the rocks, the drops and the pickups) stay in it.
+- **`flyFairly()` keeps its six parameters:** it has two private callers,
+  each argument means something else, and folding the direction and the
+  speed together risked how the halving rounds.
+
+The review found no bug: the course hands the step rules exactly what they
+read, and the shots read the same gunnery and flight.
+
+1. _`AGENTS.md` said a spec builds no more of a field than its part,_
+   though the comets', strays' and pickups' rightly play whole fields:
+   taken; "need build".
+2. _The content skill didn't say what a step rule can reach:_ taken; it
+   names `CourseField`, and an effect's rule `PickupField`.
+3. _The strays imported the pickups' `Effects` for one field,_ a new edge
+   in the cycle: taken; `StrayField` declares the one field it reads.
+4. _`EffectField` asked for a whole `Ship` and `TallyField` for writable
+   counts:_ taken; a `Readonly<Place>` and a `Readonly<TallyField>`, and
+   `EffectField` is `PickupField`, after its module.

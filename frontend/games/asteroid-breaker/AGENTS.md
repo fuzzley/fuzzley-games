@@ -83,7 +83,13 @@ take for the layer.
   down (`stretchField()`). A wave holds still until the player's first move,
   and a ship lost is followed a second later by the next in line, waiting
   where it is safest (`safestPlace()`). The field counts its steps
-  (`Field.steps`), and a timer is the step its thing happens at.
+  (`Field.steps`), and a timer is the step its thing happens at. Each part
+  of the rules takes only what of the field it acts on, a type declared
+  beside it (`RockField`, `CometField`, `StrayField`, `PickupField`,
+  `ShotField` and the others), so a spec need build no more of a field
+  than that, and a trait's step rule sees only the course its rock flies by
+  (`CourseField`), so the layout flies a copy of a rock ahead without
+  touching the field.
   `scoring.ts` scores each break by its kind and size, times the chain's
   multiplier (`CHAIN`), a stray brought home and a wave's clearing, gains
   the crew a ship as the points pass each mark (`gainShipsByPoints()`), and

@@ -2,13 +2,18 @@
 // the ship brings home by touching.
 
 import { RADIANS_PER_DEGREE } from "../angles";
+import type { PickupId } from "../catalog/pickups";
 import { drawIn, nextDraw } from "../draws";
-import type { Field } from "../field/field";
-import { scoreStray } from "../field/scoring";
-import { type Pilot, bringHome, given, nextPilot } from "../ship/pilots";
-import type { Ship } from "../ship/ship";
+import { type ScoreField, scoreStray } from "../field/scoring";
+import {
+  type Crew,
+  type Pilot,
+  bringHome,
+  given,
+  nextPilot,
+} from "../ship/pilots";
 import { stepsIn } from "../stepper";
-import { moveAlong } from "../torus";
+import { type Place, moveAlong } from "../torus";
 import {
   PICKUP_PULL_SPEED,
   STEP_S,
@@ -21,6 +26,7 @@ import {
 } from "../tuning";
 import {
   type Crossing,
+  type CrossingField,
   blankCrossing,
   comeIn,
   edgeOf,
@@ -57,7 +63,27 @@ export interface Strays {
   broughtHome: number;
 }
 
-/** Returns a wave's strays, none adrift and none sent, the first due a time into it, in milliseconds. */
+/**
+ * Describes what the strays act on: the points a stray brought home scores,
+ * the draws and the size it comes in by, its setup, which says how many
+ * come, their records, the ship that brings them home, the crew they join,
+ * and a Magnet's pull.
+ */
+export interface StrayField extends ScoreField, CrossingField {
+  readonly setup: StraySetup;
+  readonly strays: Strays;
+  readonly ship: Readonly<Place> | null;
+  crew: Crew;
+  /** The effects in play, of which a Magnet draws a stray in. */
+  readonly effects: { readonly pull: { readonly pickup: PickupId | null } };
+  /** How near the ship a stray is drawn in to it from. */
+  readonly pullReach: number;
+}
+
+/**
+ * Returns a wave's strays, none adrift and none sent, the first due a time into
+ * it, in milliseconds.
+ */
 export function createStrays(firstMs: number): Strays {
   return {
     adrift: { ...blankCrossing(), pilot: 0, turn: 0 },
@@ -73,7 +99,7 @@ export function createStrays(firstMs: number): Strays {
  * crosses on its curve until it has left the field, and the ship brings
  * home one that touches it, guarded or not.
  */
-export function stepStrays(field: Field): void {
+export function stepStrays(field: StrayField): void {
   const { strays, ship, torus } = field;
   const stray = strays.adrift;
   if (!stray.live) {
@@ -98,17 +124,20 @@ export function stepStrays(field: Field): void {
 }
 
 /** Lets the stray adrift go, as the wave is cleared. */
-export function clearStrays(field: Field): void {
+export function clearStrays(field: Pick<StrayField, "strays">): void {
   field.strays.adrift.live = false;
 }
 
-/** Returns the step the next stray comes at once one has gone at a step, brought home or off the field. */
+/**
+ * Returns the step the next stray comes at once one has gone at a step, brought
+ * home or off the field.
+ */
 export function nextStrayAfter(step: number): number {
   return step + stepsIn(STRAY_NEXT_MS);
 }
 
 /** Sends a stray in off an edge, in the next color in turn, on a curve drawn to one side. */
-function sendStray(field: Field): void {
+function sendStray(field: StrayField): void {
   const { strays } = field;
   const stray = strays.adrift;
   comeIn(field, stray, STRAY_RADIUS, STRAY_TILT);
@@ -127,7 +156,11 @@ function sendStray(field: Field): void {
  * an edge, as it doesn't wrap, while a Magnet is in effect and the ship is
  * within its reach that way, and returns whether it did.
  */
-function pullIn(field: Field, stray: Stray, ship: Readonly<Ship>): boolean {
+function pullIn(
+  field: StrayField,
+  stray: Stray,
+  ship: Readonly<Place>,
+): boolean {
   if (field.effects.pull.pickup === null) return false;
   const wayX = ship.x - stray.x;
   const wayY = ship.y - stray.y;
@@ -137,7 +170,7 @@ function pullIn(field: Field, stray: Stray, ship: Readonly<Ship>): boolean {
 }
 
 /** Brings the stray adrift home, where it waits behind those home before it, for its points. */
-function bringStrayHome(field: Field): void {
+function bringStrayHome(field: StrayField): void {
   const { strays } = field;
   const stray = strays.adrift;
   strays.broughtHome += 1;
@@ -148,7 +181,7 @@ function bringStrayHome(field: Field): void {
 }
 
 /** Ends the stray adrift's crossing, the next due a while after. */
-function strayGone(field: Field): void {
+function strayGone(field: Pick<StrayField, "strays" | "steps">): void {
   field.strays.adrift.live = false;
   field.strays.nextAt = nextStrayAfter(field.steps);
 }

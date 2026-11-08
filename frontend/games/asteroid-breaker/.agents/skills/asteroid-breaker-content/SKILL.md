@@ -132,7 +132,9 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 - **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
   rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
   moment it cares for: as a hit holds the rock, as it breaks, at each step,
-  or as its blast goes off. What a trait leaves on a rock between steps,
+  or as its blast goes off. A step rule acts on the rock alone, seeing only
+  the course it flies by (`CourseField`), since the layout flies a copy of
+  a rock ahead by it. What a trait leaves on a rock between steps,
   such as a blast's fuse, is kept by the saved game (`KEPT_OF_ROCK`,
   `src/rules/field/kept_field.ts`), with the check its kept value must pass
   in `ROCK_CHECKS`, which the compiler asks for, and its round trip must
@@ -147,7 +149,8 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   catalog spec holds every pickup to coming first at its `from`.
 - **An effect:** a case of `PickupEffect` (`src/rules/catalog/pickups.ts`),
   its rule in `EFFECT_RULES`, what it does as it starts and, where it
-  lasts, as it ends, and its record in `Effects` and `createEffects()`
+  lasts, as it ends, reaching only what of the field the pickups act on
+  (`PickupField`), and its record in `Effects` and `createEffects()`
   (`src/rules/rocks/pickups.ts`). The saved game keeps no effect in play, as it
   keeps no pickup or shot.
 - **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle

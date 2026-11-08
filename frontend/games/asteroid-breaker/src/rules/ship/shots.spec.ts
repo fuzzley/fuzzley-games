@@ -24,6 +24,7 @@ import {
   type Gunnery,
   MISSED,
   type Shot,
+  type ShotField,
   type Shots,
   TUNED_GUNNERY,
   createShots,
@@ -67,9 +68,32 @@ const CARRYING: Gunnery = { ...TUNED_GUNNERY, carryShip: true };
 /** How many steps a shot fired a unit short of an edge takes to fly past it. */
 const PAST_AN_EDGE = Math.ceil(1 / SHOT_STEP) + 1;
 
-/** Returns a ship that has stopped waiting, at a place, its nose at an angle in radians, at a velocity. */
+/**
+ * Returns a ship that has stopped waiting, at a place, its nose at an angle in
+ * radians, at a velocity.
+ */
 function flying(x: number, y: number, angle: number, vx = 0, vy = 0): Ship {
   return { ...createShip(x, y, STILL), angle, vx, vy, waiting: false };
+}
+
+/**
+ * Returns what shots fly and fire by: the shots, a ship, the gun in hand,
+ * on the specs' field, at `tuning.ts`'s numbers, changed as given.
+ */
+function shotField(
+  shots: Shots,
+  ship: Readonly<Ship> | null,
+  change: Partial<ShotField> = {},
+): ShotField {
+  return {
+    shots,
+    ship,
+    weapon: "gun",
+    torus: FIELD,
+    gunnery: TUNED_GUNNERY,
+    flight: TUNED_FLIGHT,
+    ...change,
+  };
 }
 
 /** Returns the shots in flight. */
@@ -100,21 +124,24 @@ function stepFor(
   steps: number,
   fire: boolean,
   weapon: WeaponId = "gun",
-  gunnery?: Gunnery,
+  gunnery: Gunnery = TUNED_GUNNERY,
 ): void {
   for (let step = 0; step < steps; step++) {
-    stepShots(shots, ship, fire, weapon, FIELD, gunnery);
+    stepShots(shotField(shots, ship, { weapon, gunnery }), fire);
   }
 }
 
-/** Returns the steps between the pulls of a weapon whose trigger is held, over a number of steps. */
+/**
+ * Returns the steps between the pulls of a weapon whose trigger is held, over a
+ * number of steps.
+ */
 function gapsBetweenPulls(weapon: WeaponId, steps: number): number[] {
   const shots = createShots();
   const ship = flying(36, 20, 0);
   const gaps: number[] = [];
   let last = 0;
   for (let step = 1; step <= steps; step++) {
-    stepShots(shots, ship, true, weapon, FIELD);
+    stepShots(shotField(shots, ship, { weapon }), true);
     const pulled = shots.slots.some(
       (shot) => shot.lifeSteps === stepsIn(SHOT_LIFE_MS),
     );
@@ -128,11 +155,11 @@ function gapsBetweenPulls(weapon: WeaponId, steps: number): number[] {
 function pulled(
   ship: Ship,
   weapon: WeaponId = "gun",
-  gunnery?: Gunnery,
-  flight?: Flight,
+  gunnery: Gunnery = TUNED_GUNNERY,
+  flight: Flight = TUNED_FLIGHT,
 ): Shot[] {
   const shots = createShots();
-  stepShots(shots, ship, true, weapon, FIELD, gunnery, flight);
+  stepShots(shotField(shots, ship, { weapon, gunnery, flight }), true);
   return inFlight(shots);
 }
 
@@ -185,7 +212,7 @@ describe("stepShots", () => {
       const ship = flying(36, 20, 0);
 
       const fired = [true, true, false].map((fire) =>
-        stepShots(shots, ship, fire, "gun", FIELD),
+        stepShots(shotField(shots, ship), fire),
       );
 
       expect(fired).toEqual([true, false, false]);
@@ -193,10 +220,14 @@ describe("stepShots", () => {
 
     it("flies the shots in flight on while there is no ship, and fires none", () => {
       const shots = createShots();
-      stepShots(shots, flying(36, 20, 0), true, "gun", FIELD, EVERY_STEP);
+      const ship = flying(36, 20, 0);
+      stepShots(shotField(shots, ship, { gunnery: EVERY_STEP }), true);
       const { x } = only(inFlight(shots));
 
-      const fired = stepShots(shots, null, true, "gun", FIELD, EVERY_STEP);
+      const fired = stepShots(
+        shotField(shots, null, { gunnery: EVERY_STEP }),
+        true,
+      );
 
       expect([fired, only(inFlight(shots)).x]).toEqual([
         false,
@@ -304,7 +335,7 @@ describe("stepShots", () => {
     it("fires nothing while fire isn't held", () => {
       const shots = createShots();
 
-      stepShots(shots, flying(36, 20, 0), false, "gun", FIELD);
+      stepShots(shotField(shots, flying(36, 20, 0)), false);
 
       expect(inFlight(shots)).toEqual([]);
     });
@@ -598,13 +629,16 @@ describe("landShot", () => {
 
   it("fires a shot from a slot passing nothing, whatever it passed before", () => {
     const shots = createShots();
-    const ship = flying(36, 20, 0);
-    stepShots(shots, ship, true, "lance", FIELD, EVERY_STEP);
+    const lanceField = shotField(shots, flying(36, 20, 0), {
+      weapon: "lance",
+      gunnery: EVERY_STEP,
+    });
+    stepShots(lanceField, true);
     const first = only(inFlight(shots));
     landShot(first, true, 1);
     first.lifeSteps = 0;
 
-    stepShots(shots, ship, true, "lance", FIELD, EVERY_STEP);
+    stepShots(lanceField, true);
 
     expect(only(inFlight(shots)).passedAt).toEqual([-1, -1]);
   });

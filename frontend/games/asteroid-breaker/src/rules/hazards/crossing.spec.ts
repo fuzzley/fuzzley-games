@@ -1,8 +1,9 @@
 import { entriesOf, entryOf } from "../../testing/crossings";
-import { PICTURE_TORUS, fieldFrom } from "../../testing/field_picture";
+import { PICTURE_TORUS } from "../../testing/field_picture";
 import { STEP_S } from "../tuning";
 import {
   type Crossing,
+  type CrossingField,
   blankCrossing,
   comeIn,
   edgeOf,
@@ -10,9 +11,6 @@ import {
   hasLeft,
   reaches,
 } from "./crossing";
-
-/** A rock in the field's corner and the ship, far off it. */
-const PICTURE = ["L", "", "", "", "........^"];
 
 /** The picture's field's width and height. */
 const { width: WIDTH, height: HEIGHT } = PICTURE_TORUS;
@@ -23,6 +21,14 @@ const TILT = 30;
 
 /** The seeds the specs of what is drawn try. */
 const SEEDS = Array.from({ length: 40 }, (_, seed) => seed + 1);
+
+/**
+ * Returns what a crossing comes in by: the picture's field's size, and
+ * draws from a seed, none made yet.
+ */
+function crossingField(seed = 1): CrossingField {
+  return { torus: PICTURE_TORUS, seed, draws: 0 };
+}
 
 /** Returns a crossing on its way at a place, heading a way. */
 function crossingAt(x: number, y: number, heading = 0): Crossing {
@@ -40,7 +46,7 @@ describe("blankCrossing", () => {
 describe("comeIn", () => {
   it("puts a crossing off any edge by its margin, heading across within its tilt", () => {
     const entries = SEEDS.map((seed) => {
-      const field = fieldFrom(PICTURE, { seed });
+      const field = crossingField(seed);
       const crossing = blankCrossing();
       comeIn(field, crossing, MARGIN, TILT);
       return entryOf(crossing, field.torus);
@@ -50,7 +56,7 @@ describe("comeIn", () => {
   });
 
   it("puts a crossing on its way, where it was a step ago", () => {
-    const field = fieldFrom(PICTURE);
+    const field = crossingField();
     const crossing = blankCrossing();
 
     comeIn(field, crossing, MARGIN, TILT);
