@@ -58,6 +58,21 @@ function countOf(wave: Wave, kind: RockKindId): number {
 }
 
 describe("endlessWave", () => {
+  it("keeps the wave a seed makes, which a game taken up in Endless relies on", () => {
+    const { rocks, formation } = endlessWave(1, 31);
+
+    expect({ rocks, formation }).toEqual({
+      rocks: [
+        { kind: "crystal", size: "large", count: 1 },
+        { kind: "stone", size: "large", count: 1 },
+        { kind: "ice", size: "large", count: 3 },
+        { kind: "lodestone", size: "large", count: 1 },
+        { kind: "iron", size: "large", count: 1 },
+      ],
+      formation: "scatter",
+    });
+  });
+
   it("makes the same wave from the same seed and number", () => {
     expect(endlessWave(5, 40)).toEqual(endlessWave(5, 40));
   });

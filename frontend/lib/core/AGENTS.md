@@ -16,8 +16,12 @@ Each file is an entry point of its own, imported by name, such as
 - `src/random.ts`: `createRandom(seed)`, a seeded source of numbers from 0
   up to 1 (Mulberry32), `drawAt(seed, n)`, the `n`th of a seed's draws made
   on its own, for a game that keeps a count of its draws rather than a
-  source, `randomSeed()`, a whole number of 32 bits for a new deal, and
-  `shuffled()`, a list in an order a source picks.
+  source, `mixSeed(seed, n, stream)`, a seed mixed with a number in a
+  stream named for what it seeds (a `SeedStream`: `"draw"`, `drawAt()`'s;
+  `"field"`, a level's or a wave's field; `"makeup"`, what a wave made from
+  a seed holds; `"scenery"`, what is drawn but never played), so each takes
+  a seed of its own from a run's, `randomSeed()`, a whole number of 32 bits
+  for a new deal, and `shuffled()`, a list in an order a source picks.
 - `src/json.ts`: `isRecord()`, `isWhole()`, `isCount()` and
   `isFiniteNumber()`, for reading back what was stored as JSON, which may
   have been edited or cut short; `listOf(value, read)`, a stored list read
@@ -32,7 +36,14 @@ Each file is an entry point of its own, imported by name, such as
   type doesn't name, as a typo would leave.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
   "2 hints", and `formatPoints()`, points grouped in thousands, "4,250".
-- `src/math.ts`: `clamp()`, a number kept between a least and a most.
+- `src/math.ts`: `clamp()`, a number kept between a least and a most;
+  `lerp()`, a number a share of the way from one to another, as a thing is
+  drawn between its last step and its next; `shareDone()`, how far through
+  its time something is, and the curves a flourish moves by over it,
+  `easeOutCubic()`, fast then slowing, and `fadeAlpha()`, from opaque to
+  nothing; and `nextMarkAfter(score, first, every)`, the first mark past a
+  score of those at `first` and every `every` after it, as the score a life
+  or a ship comes at.
 - `src/records.ts`: `keysOf()`, a record's keys typed as its own, as a
   catalog's ids are, which `Object.keys()` types as strings,
   `recordOf()`, a record with an entry made from each of its keys,
@@ -81,14 +92,20 @@ random and JSON reader in its engine for now.
   and its `tsconfig.json` gives it neither the DOM's types nor Node's. A
   game's rules allow `@fz/core` past the fence that keeps every other
   library out of them.
-- **Mulberry32's sequence never changes,** nor do `drawAt()`'s numbers or
-  the order `shuffled()` gives a seed. The screenshot scripts deal by seed
-  and play moves that fit only the deal it gives, a Minesweeper game saved
-  before its first move keeps only its seed, Snake's, Brick Breaker's and
-  Asteroid Breaker's runs keep a seed and a count of draws, and Asteroid
+- **Mulberry32's sequence never changes,** nor do `drawAt()`'s numbers,
+  the seeds `mixSeed()` mixes in each stream or the order `shuffled()`
+  gives a seed. The screenshot scripts deal by seed and play moves that fit
+  only the deal it gives, a Minesweeper game saved before its first move
+  keeps only its seed, Snake's, Brick Breaker's and Asteroid Breaker's runs
+  keep a seed and a count of draws, the breakers' fields draw from their
+  run's seed mixed with the level's or the wave's number, and Asteroid
   Breaker's Endless waves are made again from a seed, so the numbers a
   seed gives are a contract. `src/random.spec.ts` pins the first of them;
   a change that moves them is a new function, not an edit.
+- **A seed is mixed with `mixSeed()`,** never by hand as
+  `seed ^ Math.imul(n, …)`, and a new use takes a stream of its own, a new
+  name in `SeedStream`, so no two uses draw alike and the old streams keep
+  their numbers.
 - **A helper belongs here once two workspaces need it,** or beside one
   that does, as `shuffled()` sits by the seeded random. One only a game
   uses stays in that game.

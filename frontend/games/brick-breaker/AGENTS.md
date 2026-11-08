@@ -119,9 +119,10 @@ take for the layer.
   to since it last looked, its points, then the lives gained, then those
   lost, then its clearing, which it banks, the order they come in on a
   field, since a frame's steps can hold them all; `levelSeed()` gives each
-  level's field a seed of its own; `levelsCleared()` counts the levels a run
-  has cleared; and `gainedLifeByPoints()` says whether a frame's points
-  brought a life, for the chime. A move that doesn't fit where the run
+  level's field a seed of its own, in `@fz/core/random`'s `mixSeed()`'s
+  `"field"` stream; `levelsCleared()` counts the levels a run has cleared;
+  and `gainedLifeByPoints()` says whether a frame's points brought a life,
+  for the chime. A move that doesn't fit where the run
   stands returns it as it is, so a run over stays over and a level is banked
   once, and so does a field with nothing new, so the shell can tell a frame
   that changed the run.
@@ -148,7 +149,8 @@ take for the layer.
   comes to, such as a brick broken with hits left or a level that needs
   nothing more; `takeUpField()` lays the bricks and counts kept over a new
   field of the level. `run.ts`'s `nextLifeAfter()` gives the mark the next
-  life comes at from a score, which a kept run's must match.
+  life comes at from a score, through `@fz/core/math`'s `nextMarkAfter()`,
+  which a kept run's must match.
 - **`src/rules/levels/`** — the levels: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -194,11 +196,12 @@ take for the layer.
   sound rises along a streak (`detuneOf()`), and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
   sound once a frame at most, at the highest it was heard; `flourish.ts`
-  how each flourish moves over its time, and how bright the last bricks a
-  level needs glow once none has broken for a while, pulsing only where
-  motion is welcome; and `timing.ts` how long each flourish lasts, how long
-  the paddle stands empty after the last ball is lost (`SERVE_MS`), and how
-  long the cards wait.
+  how each flourish moves over its time, beside `@fz/core/math`'s
+  `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), and how
+  bright the last bricks a level needs glow once none has broken for a
+  while, pulsing only where motion is welcome; and `timing.ts` how long
+  each flourish lasts, how long the paddle stands empty after the last ball
+  is lost (`SERVE_MS`), and how long the cards wait.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`, the commands and the held pushes; `steering.ts` the
   `Steering` that turns keys, the mouse and fingers into each frame's

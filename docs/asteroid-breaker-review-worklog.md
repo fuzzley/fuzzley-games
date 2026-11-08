@@ -1393,3 +1393,38 @@ The review found every replaced reader the same on every input:
 4. _The `fuzzley-ui` skill's description ran past 1,024 characters:_
    taken; 979, its `@fz/core` summary left to its table.
 5. _Two whole-number checks were `isWhole()` written out:_ taken.
+
+### Step 14c: finding 18, the curves, the marks and the seeds
+
+Built on `cl-math`. `@fz/core/math` takes `lerp()`, `shareDone()`,
+`easeOutCubic()`, `fadeAlpha()` and `nextMarkAfter()`, and
+`@fz/core/random` takes `mixSeed(seed, n, stream)`, its streams named,
+`"draw"`, `"field"`, `"makeup"` and `"scenery"`, each keeping its old
+constant, and their first seeds pinned. Both breakers' `between()`,
+Endless's own copy of it, their curves, the next ship's and the next
+life's marks and every seed mixed by hand go for them, and Brick
+Breaker's lull and autopilot and Snake's glide lerp through `lerp()`.
+Every number is the same: each mixing site's first seeds are pinned in
+its own spec, and a dump of every seed, wave, constellation, curve and
+mark over 71 seeds, taken before and after, is the same to the byte.
+
+Where it went other than planned:
+
+- `nextShipAfter()` and `nextLifeAfter()` stay, a line each over
+  `nextMarkAfter()`, holding each game's marks, which its saved game is
+  checked against.
+- The ease is `easeOutCubic()`, neither game's word for it.
+- `a + (1 - a) * t`, from a floor up to full, is left as written at three
+  places.
+
+The review found every number the same:
+
+1. _No row of the marks' spec sat just below a later mark, so rounding
+   for flooring passed:_ taken.
+2. _Nothing held `lerp()` to its order, whose result can round short of
+   the second number:_ taken; pinned, and its doc says so.
+3. _A new stream could go unpinned:_ taken; the pins are a record of
+   every stream, which the type checker holds.
+4. _The streams' doc claimed oddness keeps them apart:_ taken.
+5. _Mixing a seed by hand isn't kept out by lint:_ not taken here; it goes
+   with finding 21's fences on `dev-lifts`.

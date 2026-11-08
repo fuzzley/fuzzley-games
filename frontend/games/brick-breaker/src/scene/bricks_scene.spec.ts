@@ -1,3 +1,4 @@
+import { lerp } from "@fz/core/math";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
 import { SpritePlayer } from "@fz/phaser/sound";
@@ -50,7 +51,6 @@ import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
 import { lineWidth } from "../view/art/shapes";
 import type { TouchSteering } from "../view/steering/steering";
-import { between } from "../view/field/frame";
 import { TAG_SPACING, firstTagX, tagY } from "../view/field/tags";
 import {
   DROP_IN_MS,
@@ -1057,7 +1057,7 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(scene.tags.images.net.x).toBe(
-        toCanvasX(metricsAt(), firstTagX(between(10, 12, 0.25), 1)),
+        toCanvasX(metricsAt(), firstTagX(lerp(10, 12, 0.25), 1)),
       );
     });
 

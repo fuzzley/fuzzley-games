@@ -1,6 +1,6 @@
+import { easeOutCubic, fadeAlpha, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, copyOffsets } from "../../rules/torus";
-import { fadeAlpha, shareDone, spread } from "../../view/effects/flourish";
 import { RING_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import type { PaintContext, Painter } from "./painter";
@@ -64,7 +64,7 @@ export class RingPainter implements Painter {
     for (const ring of this.rings.all) {
       const done = shareDone(ring.at, now, RING_MS);
       if (done === 1) continue;
-      const reach = ring.reach * spread(done);
+      const reach = ring.reach * easeOutCubic(done);
       graphics.lineStyle(
         RING_WIDTH * metrics.unit,
         ring.color,

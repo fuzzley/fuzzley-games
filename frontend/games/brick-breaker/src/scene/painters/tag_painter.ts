@@ -1,3 +1,4 @@
+import { lerp } from "@fz/core/math";
 import { recordOf } from "@fz/core/records";
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_KINDS } from "../../rules/bricks/capsules";
@@ -5,7 +6,6 @@ import { type EffectKind, capsule } from "../../rules/catalog/capsules";
 import { tagFrame } from "../../view/art/art";
 import { lineWidth } from "../../view/art/shapes";
 import { toCanvasX, toCanvasY } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import {
   TAG_RADIUS,
   TAG_SPACING,
@@ -52,7 +52,7 @@ export class TagPainter implements Painter {
     for (const kind of EFFECT_KINDS) {
       if (field.effects[kind].capsule !== null) count++;
     }
-    const paddleX = between(field.paddle.lastX, field.paddle.x, alpha);
+    const paddleX = lerp(field.paddle.lastX, field.paddle.x, alpha);
     let x = firstTagX(paddleX, count);
     const y = toCanvasY(metrics, tagY(field.height));
     const radius = TAG_RADIUS * metrics.unit;

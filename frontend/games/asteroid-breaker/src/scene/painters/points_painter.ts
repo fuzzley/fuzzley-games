@@ -1,4 +1,4 @@
-import { clamp } from "@fz/core/math";
+import { clamp, fadeAlpha, shareDone } from "@fz/core/math";
 import { onContextRestored } from "@fz/phaser/scene";
 import { type GameObjects, type Scene, Textures } from "phaser";
 import type { Moving } from "../../rules/torus";
@@ -15,10 +15,8 @@ import {
 import type { BeltPalette } from "../../view/colors/palette";
 import {
   MOST_POINTS_CHARACTERS,
-  fadeAlpha,
   pointsLabel,
   riseOf,
-  shareDone,
 } from "../../view/effects/flourish";
 import { POINTS_MS } from "../../view/effects/timing";
 import { toCanvas } from "../../view/field/field_metrics";

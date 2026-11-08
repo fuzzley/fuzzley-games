@@ -63,6 +63,13 @@ describe("constellationAt", () => {
     expect(out).toEqual([]);
   });
 
+  it("keeps the place a run's seed lays a wave's in", () => {
+    expect(constellationAt(1, 31)).toEqual({
+      x: 0.38208381342701614,
+      y: 0.47782566340174526,
+    });
+  });
+
   it("lays it in the same place for the same run and wave", () => {
     expect(constellationAt(7, 40)).toEqual(constellationAt(7, 40));
   });

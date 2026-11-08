@@ -1,3 +1,5 @@
+import { nextMarkAfter } from "@fz/core/math";
+import { mixSeed } from "@fz/core/random";
 import type { Field } from "../field/field";
 import { clearingPoints } from "../field/scoring";
 import type { Speed } from "../speed";
@@ -166,10 +168,10 @@ export function catchUp(run: Run, field: LevelProgress): Run {
 
 /**
  * Returns the seed of the level in play's field, the run's mixed with the
- * level's number, so no two levels draw alike.
+ * level's number in the `"field"` stream, so no two levels draw alike.
  */
 export function levelSeed(run: Run): number {
-  return run.seed ^ Math.imul(run.level, 0x85ebca6b);
+  return mixSeed(run.seed, run.level, "field");
 }
 
 /**
@@ -182,9 +184,7 @@ export function gainedLifeByPoints(before: Run, after: Run): boolean {
 
 /** Returns the score a run's next life comes at, from its score: the first mark above it. */
 export function nextLifeAfter(score: number): number {
-  if (score < FIRST_LIFE_POINTS) return FIRST_LIFE_POINTS;
-  const passed = Math.floor((score - FIRST_LIFE_POINTS) / LIFE_POINTS) + 1;
-  return FIRST_LIFE_POINTS + passed * LIFE_POINTS;
+  return nextMarkAfter(score, FIRST_LIFE_POINTS, LIFE_POINTS);
 }
 
 /** Returns whether a level's field has come to anything the run hasn't taken yet. */

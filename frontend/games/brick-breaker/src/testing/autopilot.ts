@@ -1,4 +1,4 @@
-import { clamp } from "@fz/core/math";
+import { clamp, lerp } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
 import type { Falling } from "../rules/bricks/capsules";
 import { isNeeded } from "../rules/catalog/bricks";
@@ -306,8 +306,8 @@ function inSight(field: Field, from: number, cell: number): boolean {
   const length = Math.hypot(x - from, line - y);
   for (let along = 0; along < length; along += SIGHT_STEP) {
     const t = along / length;
-    const column = columnAt(from + (x - from) * t);
-    const row = rowAt(line + (y - line) * t);
+    const column = columnAt(lerp(from, x, t));
+    const row = rowAt(lerp(line, y, t));
     if (cellIndex(column, row) !== cell && field.solid(column, row)) {
       return false;
     }

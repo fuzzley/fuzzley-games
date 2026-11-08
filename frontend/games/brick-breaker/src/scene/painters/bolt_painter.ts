@@ -1,8 +1,8 @@
+import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { BOLT_POOL } from "../../rules/paddle/bolts";
 import { FRAMES } from "../../view/art/art";
 import { toCanvasX, toCanvasY } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -35,7 +35,7 @@ export class BoltPainter implements Painter {
       if (!bolt?.live) continue;
       image.setPosition(
         toCanvasX(metrics, bolt.x),
-        toCanvasY(metrics, between(bolt.lastY, bolt.y, alpha)),
+        toCanvasY(metrics, lerp(bolt.lastY, bolt.y, alpha)),
       );
     }
   }

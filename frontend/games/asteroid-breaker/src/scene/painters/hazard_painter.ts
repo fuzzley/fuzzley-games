@@ -1,10 +1,10 @@
+import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { COMET_RECORDS } from "../../rules/hazards/comets";
 import type { Moving } from "../../rules/torus";
 import { FRAMES } from "../../view/art/art";
 import { pulseAlpha } from "../../view/effects/flourish";
 import { toCanvas } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import { warnedFor, warningAt } from "../../view/field/warning";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
@@ -64,8 +64,8 @@ export class HazardPainter implements Painter {
       } else {
         toCanvas(
           metrics,
-          between(comet.lastX, comet.x, alpha),
-          between(comet.lastY, comet.y, alpha),
+          lerp(comet.lastX, comet.x, alpha),
+          lerp(comet.lastY, comet.y, alpha),
           this.at,
         );
       }

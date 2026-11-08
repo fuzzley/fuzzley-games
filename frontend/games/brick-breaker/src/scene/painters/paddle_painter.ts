@@ -1,3 +1,4 @@
+import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { BOLT_INSET, PADDLE_HEIGHT } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/art";
@@ -8,7 +9,6 @@ import {
   toCanvasX,
   toCanvasY,
 } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { Baked, PaintContext, Painter } from "./painter";
 
@@ -63,7 +63,7 @@ export class PaddlePainter implements Painter {
   /** Draws the paddle between its last place and its next, at its width, with what its mode adds. */
   draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
     const { paddle, mode } = field;
-    const x = toCanvasX(metrics, between(paddle.lastX, paddle.x, alpha));
+    const x = toCanvasX(metrics, lerp(paddle.lastX, paddle.x, alpha));
     const top = toCanvasY(metrics, paddle.top);
     const width = Math.round(paddle.width * metrics.unit);
     const height = this.body.height;

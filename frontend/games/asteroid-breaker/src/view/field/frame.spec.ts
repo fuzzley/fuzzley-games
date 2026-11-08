@@ -7,7 +7,6 @@ import {
   type FieldView,
   type Stepped,
   angleBetween,
-  between,
   shipAt,
   wrappedBetween,
 } from "./frame";
@@ -47,21 +46,8 @@ describe("a field frame", () => {
   });
 });
 
-describe("between", () => {
-  it.each([
-    [0, 2],
-    [0.25, 2.5],
-    [1, 4],
-  ])(
-    "draws a thing %s of the way from its last place to its next at %s",
-    (alpha, at) => {
-      expect(between(2, 4, alpha)).toBe(at);
-    },
-  );
-});
-
 describe("wrappedBetween", () => {
-  it("draws a thing between its last place and its next as between does, away from the wrap", () => {
+  it("draws a thing between its last place and its next as lerp() does, away from the wrap", () => {
     expect(drawnAt({ lastX: 2, lastY: 6, x: 4, y: 10 }, 0.25)).toEqual({
       x: 2.5,
       y: 7,

@@ -3,29 +3,11 @@ import {
   GLOW_LEAST,
   POP_SWELL,
   RING_FROM,
-  fadeAlpha,
   glowAlpha,
-  growScale,
   popScale,
   ringScale,
-  shareDone,
 } from "./flourish";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
-
-describe("shareDone", () => {
-  it.each([
-    [1000, 0],
-    [1050, 0.5],
-    [1100, 1],
-    [1200, 1],
-    [900, 0],
-  ])(
-    "is, at %i, %s of the way through a flourish of 100 ms begun at 1000",
-    (now, done) => {
-      expect(shareDone(1000, now, 100)).toBe(done);
-    },
-  );
-});
 
 describe("the flourishes' curves", () => {
   it("swells a brick that holds a hit at the middle of its pop, and settles it back", () => {
@@ -36,16 +18,8 @@ describe("the flourishes' curves", () => {
     ]);
   });
 
-  it("grows a brick back from nothing to its size, quicker at first", () => {
-    expect([growScale(0), growScale(0.5), growScale(1)]).toEqual([0, 0.875, 1]);
-  });
-
   it("spreads a blast's ring from a share of its widest to all of it", () => {
     expect([ringScale(0), ringScale(1)]).toEqual([RING_FROM, 1]);
-  });
-
-  it("fades from opaque to nothing", () => {
-    expect([fadeAlpha(0), fadeAlpha(0.25), fadeAlpha(1)]).toEqual([1, 0.75, 0]);
   });
 });
 

@@ -1,4 +1,4 @@
-import { createRandom } from "@fz/core/random";
+import { createRandom, mixSeed } from "@fz/core/random";
 import type { Place, Torus } from "../../rules/torus";
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "../../rules/tuning";
 
@@ -45,7 +45,7 @@ export const CONSTELLATION_SIZE = 10;
  * is wide on the smallest field, so it never wraps.
  */
 export function constellationAt(seed: number, wave: number): Place {
-  const random = createRandom(seed ^ Math.imul(wave, 0x165667b1));
+  const random = createRandom(mixSeed(seed, wave, "scenery"));
   const margin = CONSTELLATION_SIZE / FIELD_SHORT_SIDE;
   const within = 1 - 2 * margin;
   return { x: margin + random() * within, y: margin + random() * within };

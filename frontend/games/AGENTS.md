@@ -53,14 +53,14 @@ to `frontend/games/`.
 - **It wears the games' chrome.** `@fz/game-ui`'s game bar, breakpoints and
   viewport frame every game alike and change its shape at the same widths
   (`frontend/lib/game-ui/AGENTS.md`).
-- **It shares `@fz/core`'s helpers,** the seeded random, the readers for
-  stored JSON and a data file's keys, counts in words, points grouped in thousands, a clamp, a
-  clock of fixed steps, a count up to a mark, a log of numbered events, a
-  field played by them, a
-  frame's sounds gathered
-  and a record's keys typed as its own, a value checked as one of them or
-  of a list, a record made from them or a copy of some of its entries, rather
-  than keeping copies
+- **It shares `@fz/core`'s helpers,** the seeded random and its seeds mixed
+  in named streams, the readers for stored JSON and a data file's keys,
+  counts in words, points grouped in thousands, a clamp, a lerp, the curves
+  a flourish moves by and the next mark on a ladder of points, a clock of
+  fixed steps, a count up to a mark, a log of numbered events, a field
+  played by them, a frame's sounds gathered and a record's keys typed as its
+  own, a value checked as one of them or of a list, a record made from them
+  or a copy of some of its entries, rather than keeping copies
   (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
   import.
 - **Saved games outlive the code.** What a game stores goes through

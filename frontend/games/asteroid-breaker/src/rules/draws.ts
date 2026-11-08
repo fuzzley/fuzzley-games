@@ -1,3 +1,4 @@
+import { lerp } from "@fz/core/math";
 import { drawAt } from "@fz/core/random";
 import type { Span } from "./tuning";
 
@@ -21,5 +22,5 @@ export function nextDraw(field: Draws): number {
 
 /** Returns a number drawn from a span, from its least up to its most. */
 export function drawIn(field: Draws, span: Span): number {
-  return span.least + (span.most - span.least) * nextDraw(field);
+  return lerp(span.least, span.most, nextDraw(field));
 }

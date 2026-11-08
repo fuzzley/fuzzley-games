@@ -1,7 +1,8 @@
+import { fadeAlpha, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame } from "../../view/art/art";
-import { fadeAlpha, ringScale, shareDone } from "../../view/effects/flourish";
+import { ringScale } from "../../view/effects/flourish";
 import {
   FADE_MS,
   RING_MS,

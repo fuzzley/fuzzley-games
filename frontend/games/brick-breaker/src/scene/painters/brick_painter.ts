@@ -1,8 +1,9 @@
+import { easeOutCubic, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY, rowOf } from "../../rules/grid";
 import { BRICK_HEIGHT, COLUMNS, ROWS } from "../../rules/tuning";
 import { brickFrame } from "../../view/art/brick_art";
-import { growScale, popScale, shareDone } from "../../view/effects/flourish";
+import { popScale } from "../../view/effects/flourish";
 import {
   DROP_IN_MS,
   DROP_IN_STAGGER_MS,
@@ -32,7 +33,7 @@ const MOVES: Readonly<
   >
 > = {
   pop: { ms: POP_MS, scale: popScale },
-  grow: { ms: REGROW_MS, scale: growScale },
+  grow: { ms: REGROW_MS, scale: easeOutCubic },
 };
 
 /**
