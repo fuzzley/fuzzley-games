@@ -255,7 +255,9 @@ export async function runLayoutScript(
   const server = await preview({
     root: script.root,
     logLevel: "silent",
-    preview: { port: 0, strictPort: true },
+    // The loopback address itself, not `localhost`, which can name ::1 to the
+    // server and 127.0.0.1 to a client dialing it.
+    preview: { host: "127.0.0.1", port: 0, strictPort: true },
   });
   try {
     const url = server.resolvedUrls?.local[0];

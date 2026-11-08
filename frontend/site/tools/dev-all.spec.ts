@@ -57,7 +57,7 @@ describe("gameServers", () => {
 });
 
 describe("gameArgs", () => {
-  it("serves a game at its folder in the site, on its port alone, without opening a browser", () => {
+  it("serves a game at its folder in the site, on its port alone at the loopback address, without opening a browser", () => {
     const args = gameArgs({
       slug: "minesweeper",
       workspace: "games/minesweeper",
@@ -67,6 +67,8 @@ describe("gameArgs", () => {
     expect(args).toEqual([
       "--base",
       "/play/minesweeper/",
+      "--host",
+      "127.0.0.1",
       "--port",
       "4302",
       "--strictPort",
@@ -82,8 +84,8 @@ describe("gameServersEnv", () => {
     };
 
     expect(gameServerTargets(env)).toEqual({
-      "/play/solitaire/": "http://localhost:4201",
-      "/play/minesweeper/": "http://localhost:4202",
+      "/play/solitaire/": "http://127.0.0.1:4201",
+      "/play/minesweeper/": "http://127.0.0.1:4202",
     });
   });
 });
@@ -102,6 +104,8 @@ describe("viteServers", () => {
           "vite.js",
           "--base",
           "/play/solitaire/",
+          "--host",
+          "127.0.0.1",
           "--port",
           "4201",
         ].concat(["--strictPort", "--no-open"]),
@@ -114,6 +118,8 @@ describe("viteServers", () => {
           "vite.js",
           "--base",
           "/play/minesweeper/",
+          "--host",
+          "127.0.0.1",
           "--port",
           "4202",
         ].concat(["--strictPort", "--no-open"]),

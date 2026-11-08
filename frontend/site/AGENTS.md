@@ -71,7 +71,9 @@ Sass rules every app keeps among them. Paths are relative to
   what they share in `script.mjs`, and the site's Vite plugins in
   `vite-plugins.ts`. When `dev-all.mjs` names the games' servers, the
   site's dev server sends each game's folder to the game's own
-  (`proxyGameServers()`), in place of its copy in `public/play/`.
+  (`proxyGameServers()`), in place of its copy in `public/play/`. Each
+  game's listens on 127.0.0.1, which the site dials by address, as
+  `localhost` can name ::1 to a server and 127.0.0.1 to the proxy.
   `vite.config.ts` takes the Angular plugins from `@fz/dev/vite`'s
   `angularPlugins()`, as the games do, so an edited component's template
   or styles swap into the running page.
