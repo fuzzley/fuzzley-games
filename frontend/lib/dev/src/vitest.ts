@@ -42,20 +42,14 @@ export interface Projects {
   readonly root: string;
   /**
    * The folders whose specs touch no page, such as the rules' and the
-   * view's, which run in `pure`, in Node; `dom` runs every other spec, in
-   * jsdom with Analog's plugin.
+   * view's, which run in `pure`, in Node; `dom` runs every other spec
+   * under `src/`, in jsdom with Analog's plugin.
    *
    * Their code must hold nothing Analog's plugin must compile, such as a
    * decorated class: `dom` compiles it with Vite's oxc, as `pure` does, so
    * that coverage counts it once.
    */
   readonly pure: readonly string[];
-  /**
-   * The specs in `pure`'s folders that need a page all the same, such as
-   * those of a helper that runs the scene, by their file names, which run
-   * in `dom`.
-   */
-  readonly domSpecs?: readonly string[];
   /**
    * The folders of the specs that play or lay out every level or wave,
    * which run in `sim`, in Node, and which a `test` script runs apart,
@@ -158,7 +152,6 @@ export function nodeTests(settings: Coverage): ViteUserConfig {
 function angularProjects({
   root,
   pure,
-  domSpecs = [],
   sim = [],
 }: Projects): TestProjectInlineConfiguration[] {
   const compilers = compilersOf(root, pure);
@@ -183,20 +176,9 @@ function angularProjects({
       test: {
         name: "dom",
         ...angularSpecs(),
-        include: [...specsIn(["src"]), ...specsIn(pure)],
-        // Every spec the other two don't run, so none runs in neither. An
-        // extglob checks only how a name starts, so it holds the specs'
-        // whole names, and `.spec.ts` follows it, since one at a pattern's
-        // end takes the folder itself too, dropping it whole.
-        exclude: [
-          ...configDefaults.exclude,
-          ...simulations,
-          ...pure.map((folder) =>
-            domSpecs.length === 0
-              ? `${folder}/**/*.spec.ts`
-              : `${folder}/**/!(${domSpecs.join("|")}).spec.ts`,
-          ),
-        ],
+        // Every spec under `src/` the other two don't run, so none there
+        // runs in neither.
+        exclude: [...configDefaults.exclude, ...simulations, ...specsIn(pure)],
       },
     },
     {
@@ -204,13 +186,7 @@ function angularProjects({
       test: {
         name: "pure",
         ...nodeSpecs(specsIn(pure)),
-        exclude: [
-          ...configDefaults.exclude,
-          ...simulations,
-          ...pure.flatMap((folder) =>
-            domSpecs.map((name) => `${folder}/**/${name}`),
-          ),
-        ],
+        exclude: [...configDefaults.exclude, ...simulations],
       },
     },
   ];
@@ -224,9 +200,9 @@ function angularProjects({
 }
 
 /**
- * Returns how `dom` compiles its code: that of `pure`'s folders, but not
- * their specs, with Vite's oxc, as `pure` does, and the rest with Analog's
- * plugin, which passes the first by.
+ * Returns how `dom` compiles its code: that of `pure`'s folders with Vite's
+ * oxc, as `pure` does, and the rest with Analog's plugin, which passes the
+ * first by.
  *
  * Coverage adds up a file's runs in two projects only where both compiled
  * it alike, or each of its functions would count twice, untested in the
@@ -240,7 +216,7 @@ function compilersOf(
   readonly oxc: { readonly include: RegExp };
 } {
   const shared = new RegExp(
-    `^${escaped(normalizePath(root))}/(?:${pure.map(escaped).join("|")})/.*(?<!\\.spec)\\.ts$`,
+    `^${escaped(normalizePath(root))}/(?:${pure.map(escaped).join("|")})/.*\\.ts$`,
   );
   return {
     analog: { transformFilter: (_code, id) => !shared.test(id) },

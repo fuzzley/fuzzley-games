@@ -58,21 +58,21 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   - `sim`, the specs that play every wave or lay every wave out, in Node
     too, without coverage;
   - `dom`, every other spec, the scene's and the shell's, in jsdom after
-    the setup below, with Analog's plugin. It
-    takes whatever the other two don't, so a spec in a new folder runs in
-    jsdom rather than in neither.
+    the setup below, with Analog's plugin. It takes whatever the other two
+    don't, so a spec in a new folder under `src/` runs in jsdom rather than
+    in neither.
 - A spec sits beside the file it tests, named after it, and its folder
-  sets its project. A spec of a helper in `src/testing/` that needs a page
-  would join `domSpecs` to run in `dom`, but none has one: what
-  `belt_board.ts` reads a scene with is `@fz/phaser/testing`'s, specced
-  there. One of the rules, the view or `src/testing/` has no page, so what
-  needs one is the scene's or the shell's to test.
-- `dom` leaves the code of `pure`'s folders, but not their specs, to Vite's
-  oxc rather than to Analog's plugin, as `frontend/lib/dev/AGENTS.md` says:
-  coverage adds a file's two runs up only where both compiled it alike, and
-  compiled two ways, each of its functions would count twice, untested in
-  the project that never calls it, and the rules would fall below their
-  floor. So lint lets `src/testing/` take Angular by type alone.
+  sets its project, so a spec of `src/testing/` runs in Node.
+  `belt_board.ts`, the one helper there that runs the scene, has no spec:
+  what it reads a scene with is `@fz/phaser/testing`'s, specced there. One
+  of the rules, the view or `src/testing/` has no page, so what needs one is
+  the scene's or the shell's to test.
+- `dom` leaves the code of `pure`'s folders to Vite's oxc rather than to
+  Analog's plugin, as `frontend/lib/dev/AGENTS.md` says: coverage adds a
+  file's two runs up only where both compiled it alike, and compiled two
+  ways, each of its functions would count twice, untested in the project
+  that never calls it, and the rules would fall below their floor. So lint
+  lets `src/testing/` take Angular by type alone.
 - A helper whose answer a spec trusts has a spec of its own beside it, so
   one that answered wrongly can't let a spec pass that tests nothing:
   `art_frames.ts`'s `within()`, `distanceToEdge()` and `edgeOf()`,

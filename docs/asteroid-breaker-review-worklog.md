@@ -2144,3 +2144,25 @@ context as before:
 6. _The rule, as written, would have a reader "fix" the Solitaire
    Collection's deck:_ taken; limited to a texture drawn again under its
    key.
+
+### Step 16f: `@fz/dev`'s `domSpecs`, which no workspace names any more
+
+`angularTests()` drops its `domSpecs` option, which step 16b left with no
+workspace naming it once `belt_board.spec.ts` moved into `@fz/phaser`, and
+with it `dom`'s `include` of the pure folders' specs, which it excluded all
+the same, and the lookbehind that kept a pure folder's spec from oxc, since
+no project now runs one through `compilersOf()`. `dom` runs every other spec
+under `src/`, as the docs now say, and every spec of Snake, Brick Breaker
+and Asteroid Breaker runs once, in the project it ran in before.
+
+The review found every spec placed as before:
+
+1. _The lookbehind in `compilersOf()` served only `domSpecs`, and six
+   places explained it:_ taken; `pure` and `sim` compile through no filter,
+   and `dom` runs none of the pure folders' specs.
+2. _Asteroid Breaker's testing skill kept a sentence that no longer
+   followed:_ taken.
+3. _"Every other spec" promised more than `dom`'s `src/**`, and a line was
+   ragged:_ taken.
+4. _The spec passed with `dom`'s exclude of the simulations dropped:_ taken;
+   a simulations folder outside the pure ones, which fails it.

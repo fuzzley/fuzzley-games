@@ -95,28 +95,27 @@ too. Paths are relative to `frontend/lib/dev/`.
   `pure`, the specs of the folders it names that touch no page, such as the
   rules' and the view's, in Node; `sim`, the specs of the folders that play
   or lay out every level or wave, in Node, where a game has any; and `dom`,
-  every other spec, those `domSpecs` names in `pure`'s folders among them,
-  in jsdom with Analog's plugin, so every spec runs in one project. A game
-  with simulations runs `dom` and `pure` with coverage, then `sim` without
-  (`yarn test` in `frontend/AGENTS.md`). Coverage adds up a file two
-  projects load only where both compiled it alike, so `dom` leaves the code
-  of `pure`'s folders, but not their specs, to Vite's oxc, as `pure`
-  compiles it: it passes it by in the plugin's `transformFilter` and names
-  it in `oxc.include`, since the plugin turns oxc off, or each of its
-  functions would count twice. So the code of a pure folder must hold
-  nothing Analog's plugin must compile, such as a decorated class. Vitest
-  watches through the config's own server, so `dom` hands its own each file
-  added or removed, for the plugin to take a new component into its program
-  (`forwardAddedAndRemoved()`); and Vitest keys the modules it caches on
-  disk without the config of a project declared with `extends: false`, so
-  `dom` adds `src/vitest.ts`, the code it leaves to oxc and the workspace's
-  `tsconfig.json` and `tsconfig.spec.json` to its key (`keyedBy()`), or a
-  change to how the plugin compiles would be read from the cache. The
-  pieces these are made of, `angularSpecs()`, `nodeSpecs()` and
-  `coverage()`, are for a config of Vitest projects built by hand, such as
-  the site's. `angularSpecs()` names Analog's pool, `vmThreads`: the plugin
-  sets it in a config hook, after Vitest has taken the `test` options a
-  project sharing the config's Vite server inherits, so such a project, as
+  every other spec under `src/`, in jsdom with Analog's plugin, so every
+  spec there runs in one project. A game with simulations runs `dom` and
+  `pure` with coverage, then `sim` without (`yarn test` in
+  `frontend/AGENTS.md`). Coverage adds up a file two projects load only
+  where both compiled it alike, so `dom` leaves the code of `pure`'s
+  folders to Vite's oxc, as `pure` compiles it: it passes it by in the
+  plugin's `transformFilter` and names it in `oxc.include`, since the
+  plugin turns oxc off, or each of its functions would count twice. So the
+  code of a pure folder must hold nothing Analog's plugin must compile, such
+  as a decorated class. Vitest watches through the config's own server, so
+  `dom` hands its own each file added or removed, for the plugin to take a
+  new component into its program (`forwardAddedAndRemoved()`); and Vitest
+  keys the modules it caches on disk without the config of a project declared
+  with `extends: false`, so `dom` adds `src/vitest.ts`, the code it leaves to
+  oxc and the workspace's `tsconfig.json` and `tsconfig.spec.json` to its key
+  (`keyedBy()`), or a change to how the plugin compiles would be read from
+  the cache. The pieces these are made of, `angularSpecs()`, `nodeSpecs()`
+  and `coverage()`, are for a config of Vitest projects built by hand, such
+  as the site's. `angularSpecs()` names Analog's pool, `vmThreads`: the
+  plugin sets it in a config hook, after Vitest has taken the `test` options
+  a project sharing the config's Vite server inherits, so such a project, as
   the site's `app` is, would run in `forks`.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
