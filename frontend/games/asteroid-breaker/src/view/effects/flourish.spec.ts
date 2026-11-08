@@ -1,5 +1,6 @@
+import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { stepsIn } from "../../rules/stepper";
-import { DASH_MS, DASH_SPEED } from "../../rules/tuning";
+import { CHAIN, DASH_MS, DASH_SPEED, STRAY_POINTS } from "../../rules/tuning";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BOB,
@@ -10,6 +11,7 @@ import {
   FLICKER,
   GOLDEN_ANGLE,
   LOST_RING_REACH,
+  MOST_POINTS_CHARACTERS,
   PULSE_LEAST,
   SHIELD_RING_REACH,
   type Jolts,
@@ -199,6 +201,26 @@ describe("pointsLabel", () => {
   ])("labels %i points at ×%i %s", (points, times, label) => {
     expect(pointsLabel({ ...reaching("scored", 0), points, times })).toBe(
       label,
+    );
+  });
+});
+
+describe("MOST_POINTS_CHARACTERS", () => {
+  /** Every label a rock's break or a stray brought home shows, at every multiplier. */
+  const labels = [
+    STRAY_POINTS,
+    ...ROCK_KIND_IDS.flatMap((id) =>
+      ROCK_SIZES.flatMap((size) => rockKind(id).points[size] ?? []),
+    ),
+  ].flatMap((points) =>
+    [1, ...CHAIN.map(({ times }) => times)].map((times) =>
+      pointsLabel({ points, times }),
+    ),
+  );
+
+  it("holds every label points show, the longest whole", () => {
+    expect(Math.max(...labels.map((label) => label.length))).toBe(
+      MOST_POINTS_CHARACTERS,
     );
   });
 });

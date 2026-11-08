@@ -185,9 +185,11 @@ browser, through a game's screenshots and its `check:layout`.
   frames, clock, input, context and loads the spec drives. `advance()`
   moves the clock Phaser's tweens read, so a spec fakes no `Date`. Filters,
   dynamic textures and gradients work as in a browser, a canvas is laid
-  out at its CSS size, and `await loseContext()` and
-  `await restoreContext()` lose and restore the context as a browser may,
-  its events on a later task, for a spec of what a scene draws again.
+  out at its CSS size, its 2D context measures text as a font whose every
+  character is alike, at the size its `font` names, and
+  `await loseContext()` and `await restoreContext()` lose and restore the
+  context as a browser may, its events on a later task, for a spec of what
+  a scene draws again.
 - **Input is a browser's.** `key()` sends a key with the `keyCode` a browser
   gives it, which Phaser hands the scene at once and keeps with the frame's
   other keys until the frame ends, so the keys sent before one `advance()` are

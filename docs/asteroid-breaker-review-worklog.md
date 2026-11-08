@@ -1176,3 +1176,117 @@ changed:
    too, and Brick Breaker's and Snake's board specs print the same
    error:_ not taken here; one helper in `@fz/phaser/testing`, adopted by
    all three, goes with finding 19's branch.
+
+### Step 11b: finding 15, the points from lettered digits
+
+Built on `ab-trace`, the points' half of finding 15 and finding 17's
+small point on the font. The points are lettered in the page's font,
+`fillText` and `strokeText` with a `Text`'s round joins, into an atlas of
+their own, `belt-points`, at the field's whole unit, uncapped, each glyph
+at each quarter-pixel step of the pen, which is what Chrome rounds a pen
+to; and lettered again only as that unit, the font or the palette
+changes. `src/view/art/points_art.ts` measures them, lays a label out as a
+`Text` would, its box, baseline and kerning, and packs the atlas, in pure
+code. Each label is stamped once, as it shows, into a room of its own on a
+`DynamicTexture`, its outlines and then its fills, and shown and faded as
+one image, zoomed by what the whole unit leaves, as a `Text`'s canvas is
+stretched. A score uploads no canvas, and a new unit restyles nothing. The
+board reads the page's font family and waits for its face with the
+scene's import, 1.5 s at most, and should the face come later, the points
+are lettered again; the family reaches the scene through its options,
+not the global `getComputedStyle()`.
+
+Compared in headless Chrome at 2× against the build before, at the same
+frames: at a whole unit the labels are the same to the pixel, fading ones
+too; at 29.75, lettered at 29 and zoomed, and at 44.85, above the field's
+cap, their ink is within a device pixel and as sharp.
+
+Where it went other than planned:
+
+- A first design lettered the digits into the field's atlas, at its unit,
+  capped at 32, and showed each character as an outline and a fill image,
+  through a write hook added to `@fz/phaser`'s bakes. Its review found
+  the points blurred above the cap and fading unlike a `Text`, so the
+  points have an atlas and a sheet of their own, and `@fz/phaser` is
+  touched only in its headless context, which measures text now.
+
+The first review, of the first design:
+
+1. _Above the cap the points were a blurred zoom of a small bake, where a
+   `Text` was always sharp:_ taken; an atlas of their own, uncapped.
+2. _Each character's images faded alone, their outlines overlapping the
+   next's, and the outline's cut left the fill's edge a ring:_ taken; a
+   label stamped once and faded as one image, its outline uncut.
+3. _The board could wait for ever for the face, and a face come late was
+   never used:_ taken; 1.5 s at most, and lettered again as it comes.
+4. _Specs checked a packing that never ships, and a layout by the
+   painter's own numbers:_ taken; one packing for both, and the images'
+   bounds.
+5. _`@fz/phaser`'s hook wrote without saving the context or clipping a
+   frame:_ moot; the hook is gone.
+6. _Nits:_ taken.
+
+The second review, of the rework, found no bug:
+
+1. _Nothing checked where the atlas writes each glyph, or where its frames
+   lie:_ taken.
+2. _Nothing held that a board gone stops waiting for the face:_ taken, and
+   the wait chained on the load itself rather than a listener.
+3. _The loop setting every image's frame after a lettering does nothing a
+   player sees:_ kept; it holds the scene's rule that every image takes
+   up its frame anew after a bake, which its spec checks for all.
+4. _Names that clashed or read twice:_ taken.
+5. _Small points:_ taken, but for lettering again after a lost context,
+   which Phaser's canvas texture would survive: kept, as `bakeTexture`
+   does.
+
+Measured again after step 11a, at the bake's commit, with the same scripts, flags
+and runs, before → after:
+
+| Scenario         | Frames: mean / p95 / max                                     | Over 50 ms    | Rebakes    | Bake, encodes in it                     | Encodes alone | Points' text     |
+| ---------------- | ------------------------------------------------------------ | ------------- | ---------- | --------------------------------------- | ------------- | ---------------- |
+| The drag         | 590–671 / 783–1000 / 850–1133 → 124–135 / 567–667 / 750–967  | 59–60 → 58–60 | 59–60 → 11 | 30.4–33.8 s, 81–83% → 5.2–6.2 s, 51–54% | 2.3–2.8 s → 0 | 3% → 11–12%      |
+| The phone turned | 21.4–21.7 / 16.8 / 583–600 → 17.3–17.5 / 16.8 / 83–100       | 2 → 1–2       | 1 → 0      | 515–539 ms → none                       | 42–45 ms → 0  | none             |
+| The chain        | 18.3–19.3 / 16.8–33.3 / 100–117 → 18.5–18.6 / 16.8 / 117–133 | 3–4 → 3–5     | 0          | none                                    | none          | 44–60 → 44–46 ms |
+
+- The drag bakes once a whole device pixel, 11 times for the 11 pixels it
+  passes, and takes 10.5 to 11.6 s where it took 36 to 40. A bake still
+  costs 475 to 560 ms, of which `@fz/phaser`'s blank atlas is 125 to 195.
+- Its frames without a bake still run over 50 ms: Phaser's own resize of
+  the canvas takes about 37 ms of each, and `PointsPainter.style()`, which
+  follows the field's unit and not the baked one, 18.5 ms.
+- The turn bakes nothing; its worst frame is the canvas's resize.
+
+And after this step, at the points' commit, after 11a → after 11b:
+
+| Scenario         | Frames: mean / p95 / max                                   | Over 50 ms    | Rebakes | Bake, encodes in it                   | Encodes alone | Points' text                                               |
+| ---------------- | ---------------------------------------------------------- | ------------- | ------- | ------------------------------------- | ------------- | ---------------------------------------------------------- |
+| The drag         | 124–135 / 567–667 / 750–967 → 112–134 / 650–683 / 800–1267 | 58–60 → 23–30 | 11 → 11 | 5.2–6.2 s, 51–54% → 5.5–6.8 s, 53–58% | 0 → 0         | 1.14–1.36 s, 11–12% → 0.61–0.75 s, 6%                      |
+| The phone turned | 17.3–17.5 / 16.8 / 83–100 → 17.1–17.2 / 16.7–16.8 / 83     | 1–2 → 1       | 0 → 0   | none                                  | none          | none                                                       |
+| The chain        | 18.5–18.6 / 16.8 / 117–133 → 18.5 / 16.8 / 100             | 3–5 → 3       | 0       | none                                  | none          | `setText` 44–46 ms → none; all the points 73–77 → 63–67 ms |
+
+- Frames without a bake: a mean of 38–48 ms, down from 56–59; over 50 ms in
+  10–16 of 72–79, down from 47–49 of 74–75.
+- Those still over 50 ms: Phaser's own resize of the canvas, 39–66 ms, and
+  Chrome's native work, 14–25 ms; nothing of the points.
+- A re-lettering of the points: 11 in the drag, each in a frame that
+  rebakes the field's atlas, at the same whole unit; 40–116 ms at ×6,
+  median 48–57; its atlas drawn in 40–50 ms, half of it the upload; 7–12% of
+  its frame. None at the turn, none at a score.
+- A score: no canvas uploaded; the label stamped, 5–8 ms in the chain's
+  worst frame, and the sheet rendered, 16.6 ms there and about 7 in a frame
+  of 12 scores.
+- The chain's points: 29–30 ms in its worst frame, of 22 scores, against
+  36–38 (`setText` 24–32 of it, uploads 12–14); 63–67 ms all told, against
+  73–77.
+- The worst frames: the drag's 11 bakes, 467–1267 ms, `@fz/phaser`'s blank
+  atlas still in them; the turn's resize of the canvas, 83 ms; the chain's
+  100 ms, Phaser's render 23–27, the points 29–30, the rules 16–17.
+- The drag at the speed of a hand: unchanged, 3 rebakes, its worst frame
+  850–867 ms against 800–817.
+- Unexpected: the sheet's render about as dear as the uploads it replaced,
+  so the chain's worst frame gains only 7–8 ms; the gain is the drag's.
+
+The chain's sheet, rendered once a frame of scores, and Phaser's resize of the
+canvas, and `@fz/phaser`'s blank atlas in a bake, are what is left; the last
+goes with `phaser-lifts`.

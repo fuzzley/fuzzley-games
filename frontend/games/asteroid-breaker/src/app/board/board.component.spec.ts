@@ -33,6 +33,7 @@ import {
   shoot,
 } from "../../testing/play";
 import { paintRoles } from "../../testing/roles";
+import type { PointsLettering } from "../../view/art/points_art";
 import {
   type BoardSetting,
   FRAME_CSS_PX,
@@ -44,7 +45,7 @@ import {
 } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { type Settings, SettingsService } from "../settings/settings.service";
-import { BoardComponent } from "./board.component";
+import { BoardComponent, POINTS_FACE_WAIT_MS } from "./board.component";
 
 /** The longest the scene plays a wave for before a spec gives up on it. */
 const WAVE_LIMIT_MS = 30_000;
@@ -188,6 +189,7 @@ async function renderBoard(
   game: GameService;
   fake: FakePhaserCanvas;
   detectChanges: () => void;
+  destroy: () => void;
 }> {
   const view = await render(
     `<app-board /><button type="button">Elsewhere</button>`,
@@ -205,6 +207,9 @@ async function renderBoard(
     fake: TestBed.inject(FakePhaserCanvas),
     detectChanges: () => {
       view.detectChanges();
+    },
+    destroy: () => {
+      view.fixture.destroy();
     },
   };
 }
@@ -660,6 +665,143 @@ describe("BoardComponent", () => {
       run.advance(FRAME_MS);
       return { board, component, game, run, detectChanges };
     }
+
+    describe("the points' font", () => {
+      afterEach(() => {
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+      });
+
+      /** Returns how a scene the board made last lettered the points. */
+      async function letteringOf(
+        hosted: HostedScene,
+      ): Promise<PointsLettering | null> {
+        const { BeltScene } = await import("../../scene/belt_scene");
+        if (!(hosted instanceof BeltScene)) throw new Error("Not the belt.");
+        return hosted.kit.points.lettering;
+      }
+
+      it("has the scene write the points in the board's font", async () => {
+        const { board, fake } = await renderBoard();
+        board.style.fontFamily = "Board Sans";
+        const make = await fake.host.latest.source();
+        scene = await runScene(make);
+
+        scene.advance(FRAME_MS);
+
+        expect((await letteringOf(scene.scene))?.family).toBe("Board Sans");
+      });
+
+      it("makes the scene only once the page has loaded the points' face", async () => {
+        const steps: string[] = [];
+        vi.spyOn(document.fonts, "load").mockImplementation(async (font) => {
+          // Once the scene's code has loaded, so a board that didn't wait
+          // would make the scene first.
+          await import("../../scene/belt_scene");
+          await new Promise((resolve) => setTimeout(resolve));
+          steps.push(`loaded ${font}`);
+          return [];
+        });
+        const { board, fake } = await renderBoard();
+        board.style.fontFamily = "Board Sans";
+
+        await fake.host.latest.source();
+        steps.push("made");
+
+        expect(steps).toEqual(["loaded 700 1px Board Sans", "made"]);
+      });
+
+      it("makes the scene without the points' face once it has waited long enough for it", async () => {
+        vi.spyOn(document.fonts, "load").mockReturnValue(
+          new Promise(() => undefined),
+        );
+        const { fake } = await renderBoard();
+        await import("../../scene/belt_scene");
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        let made = false;
+        const making = Promise.resolve(fake.host.latest.source()).then(() => {
+          made = true;
+        });
+        await vi.advanceTimersByTimeAsync(POINTS_FACE_WAIT_MS - 1);
+        const early = made;
+
+        await vi.advanceTimersByTimeAsync(1);
+        await making;
+
+        expect({ early, made }).toEqual({ early: false, made: true });
+      });
+
+      /**
+       * Runs the scene a board made once it had waited long enough for the
+       * points' face, which the page has yet to load, and returns how it
+       * lettered them, and what the spec does as the page loads it.
+       */
+      async function waitedForTheFace(): Promise<{
+        run: SceneRun<HostedScene>;
+        lettering: PointsLettering | null;
+        destroy: () => void;
+        loadTheFace: (found: boolean) => Promise<void>;
+      }> {
+        let load: () => void = () => undefined;
+        vi.spyOn(document.fonts, "load").mockReturnValue(
+          new Promise((resolve) => {
+            load = () => {
+              resolve([]);
+            };
+          }),
+        );
+        const check = vi.spyOn(document.fonts, "check").mockReturnValue(false);
+        const { fake, destroy } = await renderBoard();
+        await import("../../scene/belt_scene");
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        const making = Promise.resolve(fake.host.latest.source());
+        await vi.advanceTimersByTimeAsync(POINTS_FACE_WAIT_MS);
+        const make = await making;
+        vi.useRealTimers();
+        const run = await runScene(make);
+        scene = run;
+        run.advance(FRAME_MS);
+        return {
+          run,
+          lettering: await letteringOf(run.scene),
+          destroy,
+          loadTheFace: async (found) => {
+            check.mockReturnValue(found);
+            load();
+            await new Promise((resolve) => setTimeout(resolve));
+          },
+        };
+      }
+
+      it("has the scene write the points anew once the page loads the points' face late", async () => {
+        const { run, lettering, loadTheFace } = await waitedForTheFace();
+        await loadTheFace(true);
+
+        run.advance(FRAME_MS);
+
+        expect(await letteringOf(run.scene)).not.toBe(lettering);
+      });
+
+      it("goes on writing the points as they are where the page's late load doesn't bring the face", async () => {
+        const { run, lettering, loadTheFace } = await waitedForTheFace();
+        await loadTheFace(false);
+
+        run.advance(FRAME_MS);
+
+        expect(await letteringOf(run.scene)).toBe(lettering);
+      });
+
+      it("stops waiting for the points' face once the board is gone", async () => {
+        const { run, lettering, destroy, loadTheFace } =
+          await waitedForTheFace();
+        destroy();
+        await loadTheFace(true);
+
+        run.advance(FRAME_MS);
+
+        expect(await letteringOf(run.scene)).toBe(lettering);
+      });
+    });
 
     it("publishes where the scene laid the field out, and lays the focus ring there", async () => {
       const { board, detectChanges } = await runBoardScene();

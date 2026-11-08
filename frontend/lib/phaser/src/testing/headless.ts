@@ -110,6 +110,48 @@ function laidOut(canvas: HTMLCanvasElement): DOMRect {
   };
 }
 
+/**
+ * How a blank context measures text: in a font whose every character is as
+ * wide, 0.6 of the font's size, and inked from the baseline up to 0.7 of it,
+ * on a line that reaches 0.8 of it up and 0.2 down.
+ */
+const TEXT_SHARES = { advance: 0.6, ink: 0.7, ascent: 0.8, descent: 0.2 };
+
+/** The size a canvas writes in before it is set a font, in pixels. */
+const DEFAULT_FONT_SIZE = 10;
+
+/**
+ * Returns what a browser measures of a text in a font, the sizes a game
+ * reads, as in a font whose characters are alike ({@link TEXT_SHARES}), at
+ * the size the font names in pixels.
+ */
+function measured(
+  text: string,
+  font: unknown,
+): Pick<
+  TextMetrics,
+  | "width"
+  | "actualBoundingBoxLeft"
+  | "actualBoundingBoxRight"
+  | "actualBoundingBoxAscent"
+  | "actualBoundingBoxDescent"
+  | "fontBoundingBoxAscent"
+  | "fontBoundingBoxDescent"
+> {
+  const named = typeof font === "string" ? /(\d*\.?\d+)px/.exec(font) : null;
+  const size = named ? Number(named[1]) : DEFAULT_FONT_SIZE;
+  const width = text.length * TEXT_SHARES.advance * size;
+  return {
+    width,
+    actualBoundingBoxLeft: 0,
+    actualBoundingBoxRight: width,
+    actualBoundingBoxAscent: TEXT_SHARES.ink * size,
+    actualBoundingBoxDescent: 0,
+    fontBoundingBoxAscent: TEXT_SHARES.ascent * size,
+    fontBoundingBoxDescent: TEXT_SHARES.descent * size,
+  };
+}
+
 /** Does nothing, as every drawing call on a blank context does. */
 const doNothing = (): undefined => undefined;
 
@@ -118,8 +160,8 @@ const BLANK_PAINT = { addColorStop: doNothing };
 
 /**
  * Returns a 2D context that draws nothing: every method does nothing, but
- * those Phaser reads an answer from, and every property keeps what it was
- * last set to.
+ * those Phaser reads an answer from and `measureText()`, and every property
+ * keeps what it was last set to.
  */
 function blankContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   const state: Record<PropertyKey, unknown> = { canvas };
@@ -136,7 +178,7 @@ function blankContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   const answers: Record<PropertyKey, unknown> = {
     getImageData: pixels,
     createImageData: (width = 1, height = 1) => pixels(0, 0, width, height),
-    measureText: () => ({ width: 0 }),
+    measureText: (text: string) => measured(text, state["font"]),
     createLinearGradient: () => BLANK_PAINT,
     createRadialGradient: () => BLANK_PAINT,
     createPattern: () => BLANK_PAINT,

@@ -1,4 +1,5 @@
 import type { Place } from "../../rules/torus";
+import type { PointsFont } from "../../view/art/points_art";
 import type { BeltPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { Drawn, FieldView } from "../../view/field/frame";
@@ -40,6 +41,8 @@ export interface PaintContext {
   metrics: FieldMetrics;
   /** The palette the field is drawn in, which the atlas was baked in. */
   palette: BeltPalette;
+  /** The font the points are written in, which a new record letters anew. */
+  font: PointsFont;
   /**
    * How much larger the field draws than the atlas was baked: its unit over
    * the baked unit, which is its unit rounded down to a whole device pixel,

@@ -7,9 +7,16 @@
 
 import { formatPoints } from "@fz/core/format";
 import { clamp } from "@fz/core/math";
+import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { stepsIn } from "../../rules/stepper";
 import type { Moving } from "../../rules/torus";
-import { DASH_MS, DASH_SPEED, STEP_S } from "../../rules/tuning";
+import {
+  CHAIN,
+  DASH_MS,
+  DASH_SPEED,
+  STEP_S,
+  STRAY_POINTS,
+} from "../../rules/tuning";
 import type { FieldEvent } from "../field/frame";
 import type { BeltPalette } from "../colors/palette";
 import {
@@ -177,10 +184,26 @@ export function trailOutlinesLaid(stepsSince: number): number {
  * Returns the label points scored show, as "+40", or "+40 ×2" where the chain's
  * multiplier scored them more.
  */
-export function pointsLabel(event: Readonly<FieldEvent>): string {
+export function pointsLabel(
+  event: Readonly<Pick<FieldEvent, "points" | "times">>,
+): string {
   const points = `+${formatPoints(event.points)}`;
   return event.times > 1 ? `${points} ×${String(event.times)}` : points;
 }
+
+/**
+ * The most characters a label of points runs to: the most a rock or a stray
+ * scores, at the chain's highest multiplier.
+ */
+export const MOST_POINTS_CHARACTERS = pointsLabel({
+  points: Math.max(
+    STRAY_POINTS,
+    ...ROCK_KIND_IDS.flatMap((id) =>
+      ROCK_SIZES.map((size) => rockKind(id).points[size] ?? 0),
+    ),
+  ),
+  times: Math.max(...CHAIN.map(({ times }) => times)),
+}).length;
 
 /**
  * Returns how far points have risen above where they were scored, in field

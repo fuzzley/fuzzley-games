@@ -82,6 +82,7 @@ function contextAt(shell: FakeShell, now: number): PaintContext {
     steering: new Steering(metricsOf(shell), null, shell.setting),
     metrics: metricsOf(shell),
     palette: shell.colors,
+    font: shell.typeface,
     zoom: 1,
     now,
     motion: true,
@@ -273,9 +274,10 @@ describe("FlourishPlayer", () => {
     player.play("points", event, contextAt(shell, NOW));
 
     const scored = scene.kit.points.scored.all.find(({ at }) => at === NOW);
-    expect(
-      scored && { x: scored.x, y: scored.y, text: scored.label.text },
-    ).toEqual({ ...MIDDLE, text: "+40 ×2" });
+    expect(scored && { x: scored.x, y: scored.y, text: scored.label }).toEqual({
+      ...MIDDLE,
+      text: "+40 ×2",
+    });
   });
 
   it("lays a dash's trail from where it started, from the step the field is at", async () => {

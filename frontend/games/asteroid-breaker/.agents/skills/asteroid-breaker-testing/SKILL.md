@@ -97,8 +97,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   drew in.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
-  TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears
-  `localStorage` before every test.
+  TestBed, loads jest-dom's matchers, polyfills `<dialog>`, gives the page
+  `document.fonts`, which jsdom lacks and the board waits on, its faces
+  there at once, which a spec makes arrive late by holding back `load()`
+  and answering `check()`, and clears `localStorage` before every test.
 
 ## The Rules
 
@@ -246,22 +248,24 @@ game through `runScene()`:
 
 - `FakeShell` (`src/testing/belt_board.ts`) plays the shell's part of
   `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,
-  sound and board settings, and keeps the frames' times and steering, the
-  layouts the scene hands it (`FieldLayout`), the commands and what the
-  scene hands back at each bake to picture How to play's art with
-  (`bakes`), which `askPictures()` asks as the board does; `withShip`,
-  `stillness`, `stepping` and `reshaping`, which shapes the field to each
-  room the scene lays it out in, as the game does a paused one, set it up.
+  sound and board settings and the points' font (`typeface`, in
+  `SHELL_FONT`, which a spec replaces as the page would on loading a face
+  late), and keeps the frames' times and steering, the layouts the scene
+  hands it (`FieldLayout`), the commands and what the scene hands back at
+  each bake to picture How to play's art with (`bakes`), which
+  `askPictures()` asks as the board does; `withShip`, `stillness`,
+  `stepping` and `reshaping`, which shapes the field to each room the scene
+  lays it out in, as the game does a paused one, set it up.
 - `startBoard()` runs the scene for a fake shell and draws the first frame,
   and destroys the game and removes the board's element as the test
   finishes (`onTestFinished`); a spec that calls `runScene()` itself
   cleans up after itself.
 - Drive it with the run's `advance(ms)`, keys and the pointer, and change
   the shell's frame as the rules would; assert on the game objects
-  (`imagesIn()`, `strokesOf()`, `metricsOf()`, `zoomOf()`, `shardTints()`,
-  the field camera's `scrolledBy()`), the sounds (`humsIn()` after
-  `cacheSounds()`) or on what the shell kept. A headless game draws no
-  pixels and plays no sound.
+  (`imagesIn()`, `strokesOf()`, `metricsOf()`, `zoomOf()`,
+  `pointsZoomOf()`, `shardTints()`, the field camera's `scrolledBy()`), the
+  sounds (`humsIn()` after `cacheSounds()`) or on what the shell kept. A
+  headless game draws no pixels and plays no sound.
 - `flourish_player.spec.ts` steps no frame: it plays each flourish through
   a `FlourishPlayer` of its own, on the running scene's painters, then has
   the painter draw from a `PaintContext` it writes, at a time of its own.
