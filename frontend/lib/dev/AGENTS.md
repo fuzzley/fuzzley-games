@@ -60,7 +60,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   (`PHASER_CHUNK`), and a dev server on the game's own port, which its
   screenshot script defaults to: 9000 for the Solitaire Collection, 9001 for
   Minesweeper, 9002 for Sudoku, 9003 for Snake, 9004 for Brick Breaker and 9005
-  for Asteroid Breaker. The Angular plugins, `angularPlugins()`, which the
+  for Asteroid Breaker; it opens no browser unless started with `--open`.
+  The Angular plugins, `angularPlugins()`, which the
   site's config takes too, are Analog's with its live reload, which swaps an
   edited component's template or styles into the running page, and
   `componentUpdates()`, which makes that hold for every component and reloads
@@ -137,7 +138,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   hands them to `runLayoutScript()`, which reads the command line (`--chrome`,
   `--help`), serves the build as `yarn preview` does, at 127.0.0.1 rather
   than `localhost`, which can name ::1 to the server and 127.0.0.1 to a
-  client dialing it, runs the checks in a headless Chrome and prints what is
+  client dialing it, and opening no browser of the desktop's, whatever the
+  game's config asks, runs the checks in a headless Chrome and prints what is
   wrong, or that the layout holds. It returns the exit code, 1 for a layout
   that doesn't hold and 2 for an option it doesn't know, and throws where it
   can't check at all, such as for a game with no build, no Chrome to run, or

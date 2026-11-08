@@ -230,10 +230,7 @@ export function gameConfig({ port, ...manifest }: Game): UserConfig {
     // it is relative to its index.html.
     base: "./",
     plugins: [angularPlugins(), fuzzleyStyle(), gameManifest(manifest)],
-    server: {
-      port,
-      open: true,
-    },
+    server: { port },
     build: {
       outDir: "dist",
       assetsDir: "assets",

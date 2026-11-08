@@ -139,10 +139,10 @@ describe("gameConfig", () => {
     });
   });
 
-  it("serves the game on its own port and opens it", () => {
+  it("serves the game on its own port, opening no browser unless asked", () => {
     const config = gameConfig({ port: 9001, name: "Minesweeper" });
 
-    expect(config.server).toEqual({ port: 9001, open: true });
+    expect(config.server).toEqual({ port: 9001 });
   });
 
   it("compiles Angular and writes @fz/style's palettes and icons and the game's manifest", () => {
