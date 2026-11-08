@@ -1689,3 +1689,53 @@ The second found the fixes right, and:
    wait tuned to one game:_ taken; `isStop()`, `wrapped()` in
    `@fz/dev/script`, `runLayoutScript()` taking the same printers, and
    the wait an option at 800 ms.
+
+### Step 15e: finding 21, the rectangles a board writes for the layout check
+
+Built on `dl-rects`, a copy step 7e's review left to this finding. The
+three games drawn with Phaser each wrote a rectangle as "x y width height"
+into `data-field`, `data-board`, `data-room` and `data-deck`, Asteroid
+Breaker through its own `rectWords()`, the others inline, and five places
+split it back by hand. The format has one writer now,
+`@fz/phaser/layout`'s `rectAttribute()` and `namedRectsAttribute()`
+beside `CssRect`, the latter taking `[name, rect]` pairs in their order,
+and one reader, `readRect()` and `readNamedRects()` in `@fz/dev`'s
+`board_page.ts`, an entry of its own, `@fz/dev/board-page`, which imports
+nothing, so the board specs read with it without loading Vite. A function
+the page runs reaches its helpers through `Page.evaluateWith()`, which
+declares them by their names around it, and the layout check's
+inspections, Asteroid Breaker's `check-layout.mjs` and
+`describePhaserPage()` read through them. Every attribute is the same
+text, byte for byte over 6,048 rectangles against the old writers, and
+`check:layout` holds.
+
+Where it went other than planned:
+
+- `@fz/dev` writes `CssRect`'s shape out again as `CanvasRect`: importing
+  `@fz/phaser` would make the two libraries need each other.
+- A page function calls the readers as names of its own module: Vitest
+  rewrites an imported call (`(0, __vite_ssr_import_0__.readRect)(…)`),
+  and that text is what `String(fn)` sends. So `describePhaserPage()`
+  moves into `board_page.ts`.
+- The board's reader takes any run of spaces, as the deck's always did,
+  and refuses `" 20 25 260"`, which it read as x = 0; a canvas whose board
+  writes no rectangle reads as no board, not a 0×0 one at its corner.
+- Brick Breaker's and Snake's board specs read the attribute back rather
+  than matching a pattern; `@fz/phaser`'s spec pins the text.
+
+The review found every attribute's text the same:
+
+1. _The readers came through `@fz/dev/layout`, which loads Vite, and three
+   spec tsconfigs changed only for that:_ taken; `@fz/dev/board-page`, and
+   the three tsconfigs as they were.
+2. _"Call them by those names" hid a trap, a call through an import that
+   Vitest rewrites:_ taken; written where the names are promised, and the
+   page's functions kept in `board_page.ts`.
+3. _The inspection with no box handed, how the helpers are declared and
+   their order weren't held:_ taken.
+4. _Two docs claimed more than the code does:_ taken.
+5. _A helper with no name, or one given twice, would send broken source
+   the page reports as its own:_ taken; thrown for in Node.
+6. _A mutable list of readers, and a record whose integer-like names move
+   to the front and whose names the reader could misread:_ taken;
+   `readonly`, pairs, and a name refused unless one word free of commas.

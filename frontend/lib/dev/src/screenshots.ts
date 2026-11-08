@@ -29,13 +29,14 @@ import {
 } from "./script.ts";
 
 export type { Region } from "sharp";
-export { PHASER_CANVAS_READY, PHASER_CANVAS_SETTLED } from "./board_page.ts";
-export { describePhaserPage } from "./screenshot_page.ts";
-export type {
-  PageSetup,
-  PhaserPageState,
-  PhaserPageWait,
-} from "./screenshot_page.ts";
+export {
+  PHASER_CANVAS_READY,
+  PHASER_CANVAS_SETTLED,
+  describePhaserPage,
+  readRect,
+} from "./board_page.ts";
+export type { PhaserPageState, PhaserPageWait } from "./board_page.ts";
+export type { PageSetup } from "./screenshot_page.ts";
 
 /** An image to write: its file's name and its size in pixels. */
 export interface Image {

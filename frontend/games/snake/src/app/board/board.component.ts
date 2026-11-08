@@ -18,7 +18,11 @@ import {
   type SceneSource,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
-import { type CssRect, canvasPixelRatio } from "@fz/phaser/layout";
+import {
+  type CssRect,
+  canvasPixelRatio,
+  rectAttribute,
+} from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { BOARD_SIZE } from "../../rules/arena";
 import type { SnakeSceneOptions } from "../../scene/snake_scene";
@@ -90,7 +94,7 @@ export class BoardComponent {
   /** The board's rectangle, for the layout check: x, y, width and height. */
   protected readonly boardRect = computed(() => {
     const rect = this.laidOut();
-    return rect && `${rect.x} ${rect.y} ${rect.width} ${rect.height}`;
+    return rect && rectAttribute(rect);
   });
 
   /**

@@ -464,7 +464,11 @@ takes for the specs' helpers.
     field is laid out in (`GameService.setRoom()`), and publishes, for the
     layout check, what the scene hands it as it lays the field out
     (`FieldLayout`): where it laid the field (`data-field`), the room it
-    fills (`data-room`) and the deck's zones (`data-deck`). `fieldPalette()`
+    fills (`data-room`) and the deck's zones (`data-deck`), written with
+    `@fz/phaser/layout`'s `rectAttribute()` and `namedRectsAttribute()`,
+    which the layout check reads back with `@fz/dev`'s `readRect()` and
+    `readNamedRects()`; the board's spec reads the field's with
+    `readRect()`. `fieldPalette()`
     colors the field from `ThemeService`'s roles and `mode`. The board asks
     the scene for How to play's pictures as How to play opens (`pictures`),
     and keeps them until the scene bakes again. It is an application named

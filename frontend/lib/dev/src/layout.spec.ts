@@ -20,7 +20,11 @@ import {
   shapesAt,
   turnsAt,
 } from "./layout.ts";
-import type { BoardInspection } from "./board_page.ts";
+import {
+  type BoardInspection,
+  readNamedRects,
+  readRect,
+} from "./board_page.ts";
 import type { Printer } from "./script.ts";
 import { type Command, FakeBrowser } from "./testing/fake_browser.ts";
 
@@ -330,6 +334,32 @@ describe("checkLayout", () => {
 
     expect(evaluatedWith(browser, DECK_INSPECTION)).toEqual([]);
   });
+
+  it.each<[string, string, LayoutCheck]>([
+    ["the board's", BOARD_INSPECTION, { ...CHECK, board: DECKED }],
+    ["its deck's", DECK_INSPECTION, { ...CHECK, board: DECKED }],
+    [
+      "the game's own, handed where the board lies,",
+      OWN,
+      { ...CHECK, board: DECKED },
+    ],
+    [
+      "the game's own, handed nothing where the check has no board,",
+      OWN,
+      CHECK,
+    ],
+  ])(
+    "sends %s inspection into the page beside the readers of the rectangles a board writes",
+    async (_, words, check) => {
+      const browser = browserFindingIn({ board: { problems: [], box: BOX } });
+
+      await checkLayout(new DevToolsConnection(browser), check, ROOMY);
+
+      const sent = evaluatedWith(browser, words);
+      expect(sent).toEqual([expect.stringContaining(String(readRect))]);
+      expect(sent).toEqual([expect.stringContaining(String(readNamedRects))]);
+    },
+  );
 
   it("hands the game's inspection where the board lies", async () => {
     const browser = browserFindingIn({ board: { problems: [], box: BOX } });

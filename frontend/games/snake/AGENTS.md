@@ -164,8 +164,9 @@ its seed and its frames, as a game taken up relies on.
   3:1 against both shades of square in every palette.
 - **The placeholder, the ring and the cards work out the board's square in
   CSS,** as `boardMetrics()` does, at the window's pixel ratio; the ring
-  takes the scene's own rectangle once it has drawn, and the layout check
-  holds the placeholder to it.
+  takes the scene's own rectangle once it has drawn, which the board
+  writes for the layout check (`data-board`) with `@fz/phaser/layout`'s
+  `rectAttribute()`, and the layout check holds the placeholder to it.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the apple appears without its pop, the crumbs
   and the shake are left out, a crashed snake fades at once, and the result

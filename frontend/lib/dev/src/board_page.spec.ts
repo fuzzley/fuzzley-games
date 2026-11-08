@@ -1,10 +1,16 @@
 // @vitest-environment jsdom
+import { runInThisContext } from "node:vm";
 import {
   type BoardBox,
+  type CanvasRect,
   type PhaserBoard,
   inspectPhaserBoard,
   inspectPhaserDeck,
+  readNamedRects,
+  readRect,
 } from "./board_page.ts";
+import { DevToolsConnection, withPage } from "./chrome.ts";
+import { FakeBrowser, VIEWPORT } from "./testing/fake_browser.ts";
 
 /** A rectangle on the page, in CSS px. */
 interface Rect {
@@ -754,5 +760,141 @@ describe("inspectPhaserDeck", () => {
     element("canvas").remove();
 
     expect(inspectPhaserDeck(DECKED, FIELD_BOX)).toEqual([]);
+  });
+});
+
+/**
+ * Returns what a function resolves to run as a layout check sends it into a
+ * page, beside the readers, on a fake browser that runs what it is sent in
+ * this document.
+ */
+async function runAsSent<A extends unknown[], T>(
+  fn: (...args: A) => T,
+  ...args: A
+): Promise<Awaited<T>> {
+  const browser = new FakeBrowser({
+    "Runtime.evaluate": ({ params }) => ({
+      result: {
+        result: {
+          value: runInThisContext(String(params["expression"])) as unknown,
+        },
+      },
+    }),
+  });
+  return withPage(new DevToolsConnection(browser), VIEWPORT, (page) =>
+    page.evaluateWith([readRect, readNamedRects], fn, ...args),
+  );
+}
+
+describe("the inspections, sent into a page beside the readers", () => {
+  it("find where a board lies, as the board's element says", async () => {
+    lay(FITTING);
+
+    const inspection = await runAsSent(inspectPhaserBoard, FIELD);
+
+    expect(inspection).toEqual({ problems: [], box: FIELD_BOX });
+  });
+
+  it("read each zone of a deck, as the board's element lists them", async () => {
+    lay({ ...BESIDE, deck: "stick 280 25 120, buttons 280 175 120 150" });
+
+    const problems = await runAsSent(inspectPhaserDeck, DECKED, FIELD_BOX);
+
+    expect(problems).toEqual([
+      "The deck's zone \"stick 280 25 120\" doesn't say where it lies.",
+      "The deck shows no stick zone.",
+    ]);
+  });
+});
+
+/** Returns a rectangle written as a board writes one, "x y width height". */
+function written({ x, y, width, height }: CanvasRect): string {
+  return `${String(x)} ${String(y)} ${String(width)} ${String(height)}`;
+}
+
+describe("readRect", () => {
+  it.each<[string, CanvasRect]>([
+    ["whole numbers", { x: 20, y: 25, width: 260, height: 300 }],
+    ["fractions", { x: 0.1 + 0.2, y: 1 / 3, width: 260.5, height: 299.75 }],
+    ["numbers past the canvas", { x: -12.5, y: -3, width: 1e21, height: 5e-7 }],
+  ])("reads back a rectangle of %s as it was written", (_, rect) => {
+    expect(readRect(written(rect))).toEqual(rect);
+  });
+
+  it("reads a rectangle with more spaces around and between its numbers", () => {
+    expect(readRect(" 20  25\t260 300 ")).toEqual({
+      x: 20,
+      y: 25,
+      width: 260,
+      height: 300,
+    });
+  });
+
+  it.each<[string, string | null]>([
+    ["no attribute", null],
+    ["nothing", ""],
+    ["three numbers", "20 25 260"],
+    ["five numbers", "20 25 260 300 1"],
+    ["what isn't a number", "20 25 260 tall"],
+    ["a number past any size", "20 25 260 Infinity"],
+    ["numbers parted by commas", "20,25,260,300"],
+  ])("reads no rectangle from %s", (_, text) => {
+    expect(readRect(text)).toBeNull();
+  });
+});
+
+describe("readNamedRects", () => {
+  it("reads back each named rectangle of a list, in its order", () => {
+    const stick = { x: 280, y: 25, width: 120, height: 150 };
+    const buttons = { x: 280, y: 175.5, width: 120, height: 1 / 3 };
+
+    const read = readNamedRects(
+      `stick ${written(stick)}, buttons ${written(buttons)}`,
+    );
+
+    expect(read).toEqual([
+      { written: `stick ${written(stick)}`, name: "stick", rect: stick },
+      {
+        written: `buttons ${written(buttons)}`,
+        name: "buttons",
+        rect: buttons,
+      },
+    ]);
+  });
+
+  it("leaves out an empty entry and the spaces around each", () => {
+    const read = readNamedRects(" stick  280 25 120 150 ,, buttons 1 2 3 4 ,");
+
+    expect(read).toEqual([
+      {
+        written: "stick  280 25 120 150",
+        name: "stick",
+        rect: { x: 280, y: 25, width: 120, height: 150 },
+      },
+      {
+        written: "buttons 1 2 3 4",
+        name: "buttons",
+        rect: { x: 1, y: 2, width: 3, height: 4 },
+      },
+    ]);
+  });
+
+  it.each([
+    ["a name alone", "stick"],
+    ["three numbers", "stick 280 25 120"],
+    ["what isn't a number", "stick 280 25 120 tall"],
+  ])("reads an entry of %s as giving no rectangle", (_, entry) => {
+    expect(readNamedRects(`${entry}, buttons 1 2 3 4`)).toEqual([
+      { written: entry, name: "stick", rect: null },
+      {
+        written: "buttons 1 2 3 4",
+        name: "buttons",
+        rect: { x: 1, y: 2, width: 3, height: 4 },
+      },
+    ]);
+  });
+
+  it("reads nothing from an empty list", () => {
+    expect(readNamedRects("")).toEqual([]);
   });
 });

@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { THEME_STORAGE_KEY } from "@fz/style/themes";
-import { DevToolsConnection, Page } from "./chrome.ts";
 import {
   type PhaserPageState,
   describePhaserPage,
-  preparePage,
-} from "./screenshot_page.ts";
+  readRect,
+} from "./board_page.ts";
+import { DevToolsConnection, Page } from "./chrome.ts";
+import { preparePage } from "./screenshot_page.ts";
 import { setUpPage } from "./screenshots.ts";
 import { FakeBrowser } from "./testing/fake_browser.ts";
 
@@ -184,26 +185,36 @@ describe("describePhaserPage", () => {
       board: null,
     });
   });
+
+  it("says no board where the board doesn't say where the scene drew it", async () => {
+    layOut();
+    document.querySelector("app-board")!.removeAttribute("data-field");
+
+    expect((await described()).board).toBeNull();
+  });
 });
 
-describe("describePhaserPage, as page.evaluate() sends it", () => {
+describe("describePhaserPage, as a capture sends it, beside readRect()", () => {
   afterEach(() => {
     vi.useRealTimers();
     document.body.innerHTML = "";
   });
 
-  /** Returns the expression page.evaluate() has the page run for describePhaserPage. */
+  /**
+   * Returns the expression a capture has the page run for describePhaserPage,
+   * sent with the reader it calls.
+   */
   async function sentExpression(
     ...args: Parameters<typeof describePhaserPage>
   ): Promise<string> {
     const browser = new FakeBrowser();
     const page = new Page(new DevToolsConnection(browser), "page");
-    await page.evaluate(describePhaserPage, ...args);
+    await page.evaluateWith([readRect], describePhaserPage, ...args);
     return String(browser.last("Runtime.evaluate")?.params["expression"]);
   }
 
   // Run as the page runs it, from its source alone, so it fails if the
-  // function reaches for anything outside itself.
+  // function reaches for anything outside itself but the reader sent with it.
   it("runs on its own in the page, saying what the page shows once its wait is over", async () => {
     layOut();
     const expression = await sentExpression(BOARD);

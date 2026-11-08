@@ -12,6 +12,7 @@
     "./game-manifest": "./src/game_manifest.ts",
     "./chrome": "./src/chrome.ts",
     "./layout": "./src/layout.ts",
+    "./board-page": "./src/board_page.ts",
     "./report": "./src/report.ts",
     "./screenshots": "./src/screenshots.ts",
     "./script": "./src/script.ts",

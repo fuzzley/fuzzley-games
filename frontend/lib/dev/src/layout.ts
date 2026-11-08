@@ -7,10 +7,13 @@ import {
   type PhaserBoard,
   inspectPhaserBoard,
   inspectPhaserDeck,
+  readNamedRects,
+  readRect,
 } from "./board_page.ts";
 import {
   type DevToolsConnection,
   type Page,
+  type PageFunction,
   type Viewport,
   withChrome,
   withPage,
@@ -23,8 +26,14 @@ import {
 } from "./layout_page.ts";
 import { CONSOLE, type Printer, isStop, readArgs, stopWith } from "./script.ts";
 
-export type { BoardBox, PhaserBoard, PhaserDeck } from "./board_page.ts";
-export { PHASER_CANVAS_READY } from "./board_page.ts";
+export type {
+  BoardBox,
+  CanvasRect,
+  NamedRect,
+  PhaserBoard,
+  PhaserDeck,
+} from "./board_page.ts";
+export { PHASER_CANVAS_READY, readNamedRects, readRect } from "./board_page.ts";
 
 /** Names a shape of window a game is laid out for, and gives one. */
 export interface Shape {
@@ -119,8 +128,15 @@ export interface LayoutCheck {
   /**
    * Returns what is wrong with the game's layout, in words, or nothing. It is
    * given where the check's board lies, where it has one and the page says
-   * where, and nothing otherwise. It runs in the page, sent as its source, so
-   * it can use nothing from the module it is written in.
+   * where, and nothing otherwise. It runs in the page, sent as its source
+   * with {@link readRect} and {@link readNamedRects}, which it may call by
+   * those names, so it can use nothing else from the module it is written in.
+   *
+   * It calls them as names of its own module, or from a script Node runs, as
+   * a game's `tools/check-layout.mjs` is, never through an import Vite
+   * rewrites: Vitest's module runner turns an imported `readRect(…)` into
+   * `(0, __vite_ssr_import_0__.readRect)(…)`, the source the page is then
+   * sent, which names nothing there.
    */
   readonly inspect: (box?: BoardBox) => string[];
   /**
@@ -309,19 +325,30 @@ async function load(page: Page, check: LayoutCheck): Promise<string[]> {
   return errors;
 }
 
+/**
+ * The readers of the rectangles a board writes, which the inspections, the
+ * board's, its deck's and the game's own, are sent into the page with.
+ */
+const READERS: readonly PageFunction[] = [readRect, readNamedRects];
+
 /** Returns what is wrong with the game's layout as the page now stands. */
 async function inspect(page: Page, check: LayoutCheck): Promise<string[]> {
   const board: BoardInspection = check.board
-    ? await page.evaluate(inspectPhaserBoard, check.board)
+    ? await page.evaluateWith(READERS, inspectPhaserBoard, check.board)
     : { problems: [] };
   const deck =
     check.board?.deck && board.box
-      ? await page.evaluate(inspectPhaserDeck, check.board, board.box)
+      ? await page.evaluateWith(
+          READERS,
+          inspectPhaserDeck,
+          check.board,
+          board.box,
+        )
       : [];
   // An argument goes to the page as JSON, which turns undefined into null.
   const own = board.box
-    ? await page.evaluate(check.inspect, board.box)
-    : await page.evaluate(check.inspect);
+    ? await page.evaluateWith(READERS, check.inspect, board.box)
+    : await page.evaluateWith(READERS, check.inspect);
   const scrolls = await page.evaluate(scrolling);
   const bar = await page.evaluate(barOutOfWindow);
   return [...scrolls, ...bar, ...board.problems, ...deck, ...own];

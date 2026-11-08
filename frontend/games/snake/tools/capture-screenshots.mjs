@@ -20,6 +20,7 @@ import {
   PHASER_CANVAS_SETTLED,
   describePhaserPage,
   keepShot,
+  readRect,
   runScreenshotScript,
   setUpPage,
   settled,
@@ -111,7 +112,7 @@ async function capture(page, url) {
   });
   await page.navigate(url);
   await settled(page, PHASER_CANVAS_SETTLED);
-  const shown = await page.evaluate(describePhaserPage, BOARD);
+  const shown = await page.evaluateWith([readRect], describePhaserPage, BOARD);
   if (shown.state !== "ready") return { problem: "the board did not draw" };
   if (shown.outcome !== "paused")
     return { problem: "the run was not taken up" };
