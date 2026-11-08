@@ -83,25 +83,36 @@ too. Paths are relative to `frontend/lib/dev/`.
   the globals TestBed needs, after the workspace's `test-setup.ts` there,
   and V8 coverage of `src/`, less the setup file. `nodeTests()` is the same
   for specs that run in Node. Each is given the workspace's floors and,
-  where they differ, the files coverage measures or leaves out. The pieces
-  they are made of, `angularSpecs()`, `nodeSpecs()` and `coverage()`, are
-  for a config of Vitest projects, such as the site's. A project of
-  `angularSpecs()` that shares the config's Vite server pins
-  `pool: "vmThreads"`, which Analog's plugin can't give it: the plugin sets
-  the pool in a config hook, after Vitest has taken the `test` options such
-  a project inherits; one with the plugin among its own, as Asteroid
-  Breaker's `dom` is, takes the pool from it. Coverage adds up a file two
-  projects load only where both compiled it alike, so a project with the
-  plugin leaves the measured code a project in Node loads too to Vite's
-  oxc, passing it by in the plugin's `transformFilter` and naming it in
-  `oxc.include`, since the plugin turns oxc off, or each of its functions
-  counts twice. Vitest watches through the config's own server, so such a
-  project hands its own the files added or removed, for the plugin to take
-  a new component into its program, as Asteroid Breaker's
-  `forwardAddedAndRemoved()` does; and Vitest keys the modules it caches on
+  where they differ, the files coverage measures or leaves out.
+  `angularTests()` given `projects`, as Snake, Brick Breaker and Asteroid
+  Breaker give it, splits the specs into Vitest projects, each a config of
+  its own (`extends: false`), so each starts only what its specs need:
+  `pure`, the specs of the folders it names that touch no page, such as the
+  rules' and the view's, in Node; `sim`, the specs of the folders that play
+  or lay out every level or wave, in Node, where a game has any; and `dom`,
+  every other spec, those `domSpecs` names in `pure`'s folders among them,
+  in jsdom with Analog's plugin, so every spec runs in one project. A game
+  with simulations runs `dom` and `pure` with coverage, then `sim` without
+  (`yarn test` in `frontend/AGENTS.md`). Coverage adds up a file two
+  projects load only where both compiled it alike, so `dom` leaves the code
+  of `pure`'s folders, but not their specs, to Vite's oxc, as `pure`
+  compiles it: it passes it by in the plugin's `transformFilter` and names
+  it in `oxc.include`, since the plugin turns oxc off, or each of its
+  functions would count twice. So the code of a pure folder must hold
+  nothing Analog's plugin must compile, such as a decorated class. Vitest
+  watches through the config's own server, so `dom` hands its own each file
+  added or removed, for the plugin to take a new component into its program
+  (`forwardAddedAndRemoved()`); and Vitest keys the modules it caches on
   disk without the config of a project declared with `extends: false`, so
-  one with the plugin adds the config to its key, as `keyedByThisConfig()`
-  does, or a change to what the plugin passes by is read from the cache.
+  `dom` adds `src/vitest.ts`, the code it leaves to oxc and the workspace's
+  `tsconfig.json` and `tsconfig.spec.json` to its key (`keyedBy()`), or a
+  change to how the plugin compiles would be read from the cache. The
+  pieces these are made of, `angularSpecs()`, `nodeSpecs()` and
+  `coverage()`, are for a config of Vitest projects built by hand, such as
+  the site's. `angularSpecs()` names Analog's pool, `vmThreads`: the plugin
+  sets it in a config hook, after Vitest has taken the `test` options a
+  project sharing the config's Vite server inherits, so such a project, as
+  the site's `app` is, would run in `forks`.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
   build from `/play/<slug>/`, the Angular plugins, `@fz/style`'s
@@ -225,11 +236,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   rule raised here is raised everywhere at once.
 - **Its `vitest.config.ts` is `angularTests()` or `nodeTests()`**, given its
   floors, unless its specs run another way: the Solitaire Collection's live
-  under `test/`, mostly in Node, and keep a config of their own; Brick
-  Breaker's merges in Vitest projects, so the specs that play every level
-  run in Node, without coverage; and Asteroid Breaker's is made of
-  projects, so those that play or lay out every wave do too, and the specs
-  of its rules and its view run in Node, with coverage. A game's
+  under `test/`, mostly in Node, and keep a config of their own, and the
+  site's are the projects of the `test` block in its `vite.config.ts`.
+  Snake, Brick Breaker and Asteroid Breaker give `angularTests()` the
+  folders of their projects, so the specs of their rules and their view
+  run in Node, and the breakers' simulations without coverage. A game's
   `vite.config.ts` is `gameConfig()`, with what is the game's own merged in
   by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does for the
   commit it was built from and its `@` alias. Analog's plugin, Vite and
@@ -290,15 +301,19 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written
   into a folder of their own with the blocks, so a block that stops catching
   what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`
-  check the configs the presets return; `src/game_manifest.spec.ts` builds
-  games with Vite in a folder of their own and reads the manifests they
-  write; `src/screenshots.spec.ts` writes the site's images from a capture
-  it draws; `src/sounds.spec.ts` renders sprites and reads them back;
-  `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
-  and the layout check against a fake browser, `src/testing/fake_browser.ts`,
-  and the layout spec serves a build it writes with Vite's `preview()`;
+  check the configs the presets return, and the first has Vitest itself
+  place specs written into a folder of their own in a game's projects;
+  `src/game_manifest.spec.ts` builds games with Vite in a folder of their
+  own and reads the manifests they write; `src/screenshots.spec.ts` writes
+  the site's images from a capture it draws; `src/sounds.spec.ts` renders
+  sprites and reads them back; `src/chrome.spec.ts` and
+  `src/layout.spec.ts` drive the DevTools helpers and the layout check
+  against a fake browser, `src/testing/fake_browser.ts`, and the layout
+  spec serves a build it writes with Vite's `preview()`;
   `src/board_page.spec.ts` runs the inspection of a board drawn with
   Phaser in jsdom, the one spec here that does, over the rectangles it
-  hands each element.
-  Starting a real Chrome is left to the screenshot scripts, so the coverage
-  floor in `vitest.config.ts` sits under it.
+  hands each element. Coverage counts `src/testing/` too, as
+  `frontend/AGENTS.md` asks of every library. Starting a real Chrome is
+  left to the screenshot scripts, so `src/chrome.ts` stays short of the
+  rest; the floor in `vitest.config.ts` sits just under the figures, and
+  rises as they rise.

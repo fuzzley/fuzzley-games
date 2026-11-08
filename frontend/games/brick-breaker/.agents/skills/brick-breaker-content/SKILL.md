@@ -61,9 +61,9 @@ no brick.
 
 Then:
 
-1. `yarn vitest run src/rules/levels/levels.spec.ts src/rules/catalog/catalog.spec.ts`.
-2. `yarn vitest run src/rules/levels/every_level/`, which plays it from its
-   number as the seed.
+1. `yarn vitest run --project pure src/rules/levels/levels.spec.ts src/rules/catalog/catalog.spec.ts`.
+2. `yarn vitest run --project sim src/rules/levels/every_level/`, which
+   plays it from its number as the seed.
 3. `yarn report:levels`, then `yarn report:levels --seeds 20`: its middle
    time should sit with its set's, rising through the game, and a long
    endgame (`!`) on one seed in many is luck, but on many seeds, leaving
