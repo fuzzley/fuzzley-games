@@ -26,7 +26,6 @@ import {
   wavesOf,
 } from "../../rules/waves/waves";
 import {
-  CHAIN_WAVE,
   CHAIN_WAVES,
   FRAME_MS,
   GAINED_WAVES,
@@ -38,7 +37,6 @@ import {
   chainUp,
   clearToNext,
   endRun,
-  loseShip,
   playFor,
   playToClear,
   playUntil,
@@ -47,7 +45,7 @@ import {
   toPickup,
 } from "../../testing/play";
 import { TUNED } from "../../view/debug_tuning";
-import { CLEARED_MS, resultDelayMs } from "../../view/effects/timing";
+import { CLEARED_MS } from "../../view/effects/timing";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
 import { SettingsService } from "../settings/settings.service";
@@ -160,25 +158,6 @@ describe("GameService", () => {
       });
     });
 
-    it("goes on waiting as the ship comes to fire by itself, as the setting turned on asks", () => {
-      const game = TestBed.inject(GameService);
-
-      playFor(game, 1000, { ...STILL, autoFire: true });
-
-      expect(game.outcome()).toBe("ready");
-    });
-
-    it("holds its field still while nothing moves", () => {
-      const game = TestBed.inject(GameService);
-
-      playFor(game, 1000, STILL);
-
-      expect({
-        outcome: game.outcome(),
-        steps: game.frame().field.steps,
-      }).toEqual({ outcome: "ready", steps: 0 });
-    });
-
     it("starts its wave at the first move, and says which it is", () => {
       const game = TestBed.inject(GameService);
 
@@ -215,19 +194,6 @@ describe("GameService", () => {
       game.tick(1.25 * STEP_MS, shoot(game));
 
       expect(game.frame().alpha).toBeCloseTo(0.25);
-    });
-  });
-
-  describe("a lost ship", () => {
-    it("costs the run a ship, and says how many are left", async () => {
-      const game = await startedAt(SPEC_WAVE.pebble);
-
-      loseShip(game);
-
-      expect({ ships: game.ships(), said: said() }).toEqual({
-        ships: FIRST_SHIPS - 1,
-        said: "Ship lost. 2 ships left.",
-      });
     });
   });
 
@@ -295,18 +261,6 @@ describe("GameService", () => {
       expect(game.chain()).toBe(2);
     });
 
-    it("scores once again when the chain's time is up, its shots flown", () => {
-      const game = gameOver(CHAIN_WAVES);
-      chainUp(game);
-
-      playFor(game, 3 * CHAIN_MS, STILL);
-
-      expect({ chain: game.chain(), ships: game.ships() }).toEqual({
-        chain: 1,
-        ships: FIRST_SHIPS,
-      });
-    });
-
     it("keeps the chain through a pause, as its time stands still", () => {
       const game = gameOver(CHAIN_WAVES);
       chainUp(game);
@@ -315,15 +269,6 @@ describe("GameService", () => {
       playFor(game, 2 * CHAIN_MS, STILL);
 
       expect(game.chain()).toBe(2);
-    });
-
-    it("ends the chain as the wave is cleared, though it counts as the last rock breaks", async () => {
-      const game = gameOver(CHAIN_WAVES);
-      await game.startAt(CHAIN_WAVE.blasts);
-
-      playToClear(game);
-
-      expect(game.chain()).toBe(1);
     });
 
     it("ends the chain as a new run begins", async () => {
@@ -338,28 +283,7 @@ describe("GameService", () => {
     });
   });
 
-  describe("pickups", () => {
-    it("says a pickup caught by its name", async () => {
-      const game = await startedAt(SPEC_WAVE.gift);
-
-      playUntil(game, toPickup, () => game.frame().field.shielded);
-
-      expect(said()).toBe("Shield.");
-    });
-  });
-
   describe("clearing a wave", () => {
-    it("banks the wave's points, and says so", async () => {
-      const game = await gameAt(SPEC_WAVE.pebble);
-
-      playToClear(game);
-
-      expect({ score: game.score(), said: said() }).toEqual({
-        score: PEBBLE_POINTS + CLEAR_POINTS + CLEAN_POINTS,
-        said: "Wave 1 cleared! Score 1,040.",
-      });
-    });
-
     it("adds up the wave's points for its card", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
 
@@ -399,14 +323,6 @@ describe("GameService", () => {
         game.tick(CLEARED_MS - 1, STILL);
 
         expect(game.clearedOpen()).toBe(false);
-      });
-
-      it("opens the card once the last shards have flown", async () => {
-        const game = await clearedAt(SPEC_WAVE.pebble);
-
-        game.tick(CLEARED_MS, STILL);
-
-        expect(game.clearedOpen()).toBe(true);
       });
     });
 
@@ -467,18 +383,6 @@ describe("GameService", () => {
       expect(game.outcome()).toBe("playing");
     });
 
-    it("says nothing more of the next wave at its first move", async () => {
-      const game = await gameAt(SPEC_WAVE.pebble);
-      clearToNext(game);
-
-      game.tick(FRAME_MS, TURN);
-
-      expect({ outcome: game.outcome(), said: said() }).toEqual({
-        outcome: "playing",
-        said: "Wave 2, Gift. 1 rock.",
-      });
-    });
-
     it("goes on into Endless past the last wave, and says so", async () => {
       const game = await gameAt(SPEC_WAVE.last);
 
@@ -505,14 +409,6 @@ describe("GameService", () => {
       const game = gameOver(SECTOR_WAVES);
 
       expect(game.beforeEndless()).toBe(false);
-    });
-
-    it("says the last sector is cleared and Endless begins", async () => {
-      const game = await gameAt(SPEC_WAVE.last);
-
-      playToClear(game);
-
-      expect(said()).toContain("Specs cleared! Endless begins.");
     });
 
     it("lays an Endless wave made from the run's seed, its constellation among the specks", async () => {
@@ -565,16 +461,6 @@ describe("GameService", () => {
         outcome: "paused",
         said: "Paused, with a score of 0. Press Enter to go on.",
       });
-    });
-
-    it("keeps a paused field still", async () => {
-      const game = await startedAt(SPEC_WAVE.gift);
-      game.pause();
-      const steps = game.frame().field.steps;
-
-      game.tick(10 * STEP_MS, FIRE);
-
-      expect(game.frame().field.steps).toBe(steps);
     });
 
     it("goes on at Enter, and says so", async () => {
@@ -746,34 +632,6 @@ describe("GameService", () => {
       game.tick(FRAME_MS, STILL);
 
       expect(game.resultOpen()).toBe(true);
-    });
-
-    describe("where motion is welcome", () => {
-      let viewport: ReturnType<typeof installFakeViewport>;
-
-      beforeEach(() => {
-        viewport = installFakeViewport(1024, 768);
-      });
-
-      afterEach(() => {
-        viewport.restore();
-      });
-
-      it("waits for the last ship's burst before the result card", async () => {
-        const game = await endedAt(SPEC_WAVE.pebble);
-
-        game.tick(resultDelayMs(true) - 1, STILL);
-
-        expect(game.resultOpen()).toBe(false);
-      });
-
-      it("opens the result card once the last ship's burst has flown", async () => {
-        const game = await endedAt(SPEC_WAVE.pebble);
-
-        game.tick(resultDelayMs(true), STILL);
-
-        expect(game.resultOpen()).toBe(true);
-      });
     });
 
     it("puts the result card away", async () => {

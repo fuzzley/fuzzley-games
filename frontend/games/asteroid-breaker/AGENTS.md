@@ -220,10 +220,16 @@ take for the layer.
   makes for each wave and drives: `@fz/core/field_play`'s `FieldPlay` over
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and hands the
-  scene the run's seed and, in Endless, the constellation. `tally.ts` holds
-  the Cleared card's lines (`tallyLines()`), and `debug_tuning.ts` the
-  numbers the debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the lines of
-  `src/rules/tuning.ts` they would replace (`tuningLines()`).
+  scene the run's seed and, in Endless, the constellation. `run_frames.ts`
+  holds `RunFrames`, which `GameService` hands each frame of it: it plays
+  the wave on, starting it at the player's first move, catches the run up
+  with what its field came to, waits out the beat before a card, and
+  returns what the frame changed (`FrameChange`), gathering what to say of
+  it (`news()`), a run's end last, with what the shell's records say it
+  set. `tally.ts` holds the Cleared card's lines (`tallyLines()`), and
+  `debug_tuning.ts` the numbers the debug menu tunes (`Tuning`,
+  `TUNING_SLIDERS`) and the lines of `src/rules/tuning.ts` they would
+  replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
   on the canvas: the field's shape for its room (`fieldShape()`), the room
@@ -339,10 +345,11 @@ take for the layer.
   - `play/` — `GameService` holds the run in a signal and the wave in play
     outside one, as the view's `WavePlay`, since the field changes 120 times
     a second, and moves the field on through `tick()`, which the scene's
-    frames drive, steered as the player steers; it starts each wave at the
-    player's first move, pauses, goes on and starts waves and runs, shapes
+    frames drive, steered as the player steers, taking what the view's
+    `RunFrames` says each frame changed into the run, the records and the
+    signals beside it; it pauses, goes on and starts waves and runs, shapes
     each field to the board's room (`setRoom()`), says what
-    happened through `@fz/ui/announcer`, adds up a cleared wave's points
+    happened through `@fz/ui/announcer`, shows a cleared wave's points
     (`tally`), keeps the records and the sectors reached through `stats/`,
     tunes the field as the debug menu says (`tune()`, `resetTuning()`), and
     asks through `@fz/ui/confirm` before a new game or speed throws a run

@@ -266,3 +266,37 @@ once, as before, under the same floors:
 3. _The `vmThreads` rule holds for anyone building projects from
    `@fz/dev`'s pieces,_ so it belongs in its `AGENTS.md` once: taken.
 4. _"Play every level or wave"_ left out the layouts: taken.
+
+### Step 7a: finding 9, the frame step in the view
+
+Built on `ab-shell`, the first of finding 9's four commits. What
+`GameService` did each frame, `playOn()`, `startWave()`, `hear()`,
+`takeIn()`, `sayWave()`, `openAfter()` and the gathered news, is
+`RunFrames` (`src/view/run_frames.ts`): `advance()` plays a frame and
+returns what it changed in the run, in one record used again each frame,
+and `news()` what to say. `tick()` applies it: the run, the records, the
+signals and the words. Thirteen of the shell's specs moved to the view's,
+which covers it whole; `src/testing/play.ts` lost the chain's fixtures only
+those used. 4,956 tests pass.
+
+The records are now kept once a frame, from the run before and after it,
+where they were kept at a wave's start and again as the frame's news was
+taken in. The one call that adds, a `recordStrays()` of nothing on a
+frame where only the first move changed the run, changes nothing, and no
+record is kept twice.
+
+The review compared every path through the old `GameService`, and found
+the outcomes, the records, the words and their order unchanged:
+
+1. _The deviation as first written was wrong:_ the records were never kept
+   at each step within a frame. Taken: written as above.
+2. _No spec held where a run's end falls in a frame's words,_ since a lost
+   last ship says nothing, so putting the end first passed. Taken: a frame
+   where the run begins and ends hears the wave, then the end; and a spec
+   that a run begun isn't begun again the frame after.
+3. _`step()` clashed with the game's step,_ the field's 1/120 s: taken;
+   `advance()`, as `FieldPlay` calls a frame.
+4. _The docs of `chain` and `moved` were wrong:_ taken.
+5. _A ternary hid `start()`'s work, `keep()` took a bare flag, one wait
+   used `CLEARED_MS` where its sibling used the delay's function, and the
+   testing skill's triggers left out `RunFrames`:_ taken.
