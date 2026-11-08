@@ -18,11 +18,9 @@ import {
 import {
   FRAMES,
   PICTURE_FRAMES,
-  type Pictures,
   atlasFrames,
   ballFrame,
   capsuleFrame,
-  mapPictures,
   tagFrame,
 } from "./art";
 
@@ -300,24 +298,5 @@ describe("PICTURE_FRAMES", () => {
 
   it("pictures a ghost brick still hidden", () => {
     expect(PICTURE_FRAMES.bricks.ghost).toMatch(/^ghost-/);
-  });
-});
-
-describe("mapPictures", () => {
-  it("turns every picture into another, keeping what it pictures", () => {
-    const pictures: Pictures = {
-      bricks: { ...PICTURE_FRAMES.bricks, plain: "a" },
-      balls: { ...PICTURE_FRAMES.balls, fire: "b" },
-      capsules: { ...PICTURE_FRAMES.capsules, net: "c" },
-    };
-
-    const mapped = mapPictures(pictures, (name) => `${name}!`);
-
-    expect([
-      mapped.bricks.plain,
-      mapped.balls.fire,
-      mapped.capsules.net,
-      Object.keys(mapped.capsules),
-    ]).toEqual(["a!", "b!", "c!", Object.keys(pictures.capsules)]);
   });
 });

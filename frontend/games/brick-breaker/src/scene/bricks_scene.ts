@@ -1,3 +1,4 @@
+import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
@@ -6,19 +7,17 @@ import {
   onFirstFrame,
   onKeyDown,
   onKeyUp,
+  onPlayerAway,
+  picturesOf,
   pixelRatioOf,
-  whenSceneEnds,
+  retakeFrames,
+  uniqueSceneKey,
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
-import { Core, type GameObjects, Input, Scene } from "phaser";
+import { type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Steer } from "../rules/paddle/paddle";
-import {
-  PICTURE_FRAMES,
-  type Pictures,
-  ballFrame,
-  mapPictures,
-} from "../view/art/art";
+import { PICTURE_FRAMES, type Pictures, ballFrame } from "../view/art/art";
 import { brickColor } from "../view/art/brick_art";
 import type { BricksPalette } from "../view/colors/palette";
 import {
@@ -92,9 +91,6 @@ const CAPTURED_KEYS = "LEFT,RIGHT,UP,SPACE";
  * it, and turns keys, clicks and taps into commands.
  */
 export class BricksScene extends Scene {
-  /** How many scenes have been built, which numbers each one's key. */
-  private static built = 0;
-
   /** The key the scene is registered under, which no other shares. */
   readonly key: string;
 
@@ -154,7 +150,7 @@ export class BricksScene extends Scene {
     private readonly options: BricksSceneOptions,
     private readonly surroundings: SceneSurroundings,
   ) {
-    const key = `bricks-scene-${String(++BricksScene.built)}`;
+    const key = uniqueSceneKey("bricks-scene");
     super(key);
     this.key = key;
   }
@@ -390,16 +386,16 @@ export class BricksScene extends Scene {
   /** Bakes the atlas at the field's scale, in the palette, and hands How to play its pictures. */
   private bake(): void {
     bakeBricksAtlas(this, this.painted, this.metrics);
-    this.options.onPictures(
-      mapPictures(PICTURE_FRAMES, (frame) =>
-        this.textures.getBase64(ATLAS, frame),
-      ),
-    );
+    this.options.onPictures(picturesOf(this, ATLAS, PICTURE_FRAMES));
   }
 
-  /** Bakes the atlas again, and has every image take up its frame anew. */
+  /**
+   * Bakes the atlas again, has every image take up its frame anew, and every
+   * painter match the rest of what it draws to the bake.
+   */
   private rebake(): void {
     this.bake();
+    retakeFrames(this, ATLAS);
     const baked = { metrics: this.metrics, palette: this.painted };
     for (const painter of this.painters) painter.refresh?.(baked);
   }
@@ -421,7 +417,10 @@ export class BricksScene extends Scene {
     else this.bricks.layout(this.metrics);
   }
 
-  /** Turns the keys and the pointer into steering and commands. */
+  /**
+   * Turns the keys and the pointer into steering and commands, and lets go of
+   * every key and finger as the player looks away, so none sticks.
+   */
   private listen(): void {
     this.input.keyboard?.addCapture(CAPTURED_KEYS);
     onKeyDown(this, (event) => {
@@ -444,28 +443,8 @@ export class BricksScene extends Scene {
     };
     this.input.on(Input.Events.POINTER_UP, up);
     this.input.on(Input.Events.POINTER_UP_OUTSIDE, up);
-    this.letGoWhenAway();
-  }
-
-  /** Lets go of every key and finger as the window, the page or the field loses the player, so none sticks. */
-  private letGoWhenAway(): void {
-    const letGo = (): void => {
+    onPlayerAway(this, () => {
       this.steering.letGo();
-    };
-    // Phaser types the keyboard's target as anything; the game's is the board.
-    const listened: unknown = this.game.input.keyboard?.target;
-    const board = listened instanceof HTMLElement ? listened : null;
-    const leave = (event: FocusEvent): void => {
-      const to = event.relatedTarget;
-      if (!(to instanceof Node && board?.contains(to))) letGo();
-    };
-    this.game.events.on(Core.Events.BLUR, letGo);
-    this.game.events.on(Core.Events.HIDDEN, letGo);
-    board?.addEventListener("focusout", leave);
-    whenSceneEnds(this, () => {
-      this.game.events.off(Core.Events.BLUR, letGo);
-      this.game.events.off(Core.Events.HIDDEN, letGo);
-      board?.removeEventListener("focusout", leave);
     });
   }
 
@@ -474,7 +453,7 @@ export class BricksScene extends Scene {
    * asks, once per press, leaving the browser its shortcuts.
    */
   private press(event: KeyboardEvent): void {
-    if (event.ctrlKey || event.altKey || event.metaKey) return;
+    if (isShortcut(event)) return;
     const held = heldKeyOf(event.code);
     if (held) {
       this.steering.press(held);

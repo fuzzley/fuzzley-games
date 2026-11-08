@@ -32,7 +32,7 @@ export class GameBrowserService {
   }
 
   /** Returns whether a key press is the browser's shortcut, Ctrl or Command with K. */
-  isShortcut(event: KeyboardEvent): boolean {
+  opensBrowser(event: KeyboardEvent): boolean {
     const modified = event.ctrlKey || event.metaKey;
     if (!modified || event.altKey || event.shiftKey) return false;
     return event.key.toLowerCase() === "k";
@@ -43,7 +43,7 @@ export class GameBrowserService {
    * browser's own use of it.
    */
   openOnShortcut(event: KeyboardEvent): void {
-    if (!this.isShortcut(event)) return;
+    if (!this.opensBrowser(event)) return;
 
     event.preventDefault();
     this.open();

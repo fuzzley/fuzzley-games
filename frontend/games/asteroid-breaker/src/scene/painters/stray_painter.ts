@@ -73,13 +73,6 @@ export class StrayPainter implements Painter {
     this.bailing = bubbled(scene, layer);
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const part of [...this.adrift.parts, ...this.bailing.parts]) {
-      part.setFrame(part.frame.name);
-    }
-  }
-
   /**
    * Floats a lost ship's pilot off in its bubble, from where the ship was lost,
    * a way, in radians.

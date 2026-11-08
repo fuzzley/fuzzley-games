@@ -1,4 +1,4 @@
-import { keysOf, recordOf } from "@fz/core/records";
+import { recordOf } from "@fz/core/records";
 import {
   type ArtFrame,
   type ArtScale,
@@ -390,23 +390,3 @@ export const PICTURE_FRAMES: Pictures = {
   balls: BALL_FRAMES,
   capsules: CAPSULE_FRAMES,
 };
-
-/** Returns a set of pictures with each turned into another, such as a frame's name into the image baked of it. */
-export function mapPictures(
-  pictures: Pictures,
-  map: (picture: string) => string,
-): Pictures {
-  return {
-    bricks: mapRecord(pictures.bricks, map),
-    balls: mapRecord(pictures.balls, map),
-    capsules: mapRecord(pictures.capsules, map),
-  };
-}
-
-/** Returns a record with each of its values turned into another. */
-function mapRecord<K extends string>(
-  record: Readonly<Record<K, string>>,
-  map: (value: string) => string,
-): Record<K, string> {
-  return recordOf(keysOf(record), (key) => map(record[key]));
-}

@@ -4,6 +4,7 @@ import {
   onFirstFrame,
   onScaleResize,
   pixelRatioOf,
+  uniqueSceneKey,
   whenSceneEnds,
 } from "@fz/phaser/scene";
 
@@ -107,9 +108,6 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
-  /** How many boards have been built, which numbers each one's key. */
-  private static boardsBuilt = 0;
-
   /**
    * The key the scene is registered under, which no other board shares.
    *
@@ -156,7 +154,7 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Creates a scene that draws the game `options` describes. */
   constructor(options: BoardSceneOptions) {
-    const key = `board-scene-${++BoardScene.boardsBuilt}`;
+    const key = uniqueSceneKey("board-scene");
     super(key);
 
     this.key = key;

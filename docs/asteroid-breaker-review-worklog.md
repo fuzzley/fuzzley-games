@@ -1929,3 +1929,67 @@ The review found the opcodes right and the teardown in order:
 5. _The testing entry's rule on Phaser was written but unchecked, and
    Vitest undeclared:_ taken, both.
 6. _One hand-built viewport left in Asteroid Breaker's board spec:_ taken.
+
+### Step 16c: findings 19 and 12, the scenes' helpers and the frames after a bake
+
+Built on `pl-scene`. `@fz/phaser/scene` takes what the scenes copied:
+`onPlayerAway()`, the breakers' `letGoWhenAway()`, word for word but for a
+comment, letting go as the window loses the focus, the page is hidden or
+the focus leaves the board, and releasing all three when the scene ends;
+`uniqueSceneKey()`, the four scenes' static counters, every key the same
+text as before; `picturesOf()`, How to play's pictures, in a record of the
+shape it is given; and `retakeFrames()`, which points every image on a
+texture, into layers and containers, at its frame again after a rebake
+(finding 12), in place of `refresh()` in 11 of Asteroid Breaker's
+painters, 7 of Brick Breaker's and Snake's two. Brick Breaker's paddle
+keeps its own, which sizes the body and rim too. `isShortcut()`, the
+check that leaves Ctrl, Alt and Meta to the browser, goes to `@fz/core/keys`
+over a structural `ShortcutModifiers`, so the shells take it too: the three
+scenes, Snake's arrows, Minesweeper's board and Sudoku's board keys. Played
+in headed Chrome, each game's keys, its letting go and its frames after a
+resize were as before.
+
+Where it went other than planned:
+
+- `isShortcut()` lives in `@fz/core`, not `@fz/phaser/scene`: Snake's
+  arrows, in the shell, may import the scene helpers only by type, and the
+  check imports nothing.
+- Sudoku's Ctrl+Z and the Solitaire Collection's Ctrl+K are shortcuts the
+  game takes, the opposite meaning, so they keep their own checks; the
+  latter's `isShortcut()` is `opensBrowser()` now.
+- Snake never held a key, so it has no `onPlayerAway()`; its emitter's
+  `refresh()` set the texture it had, which did nothing, and goes too.
+- Brick Breaker still pictures How to play's frames in every bake, PNGs of
+  each through a resize's drag, as `mapPictures` did; giving its shell
+  Asteroid Breaker's way of asking for them is left as a follow-up.
+
+The first review found no bug, each retake reaching every image the
+`refresh()`s did and no other:
+
+1. _Snake's arrows kept the plan's fourth modifier check, which the shell
+   can't import from a Phaser entry:_ taken; `@fz/core/keys`, and the two
+   other games whose check means the same.
+2. _`picturesOf()`'s doc said a scene calls it only once the page wants
+   them, which Brick Breaker's `bake()` doesn't:_ taken as its cost, every
+   frame encoded each call.
+3. _The help specs' pictures were the frames' names, so a component
+   showing the frames itself would pass:_ taken; `data:` strings of their
+   own.
+4. _A spec's button leaked on failure, and a clause in the library's
+   `AGENTS.md` read as if only `onPlayerAway()` let go:_ taken.
+5. _`bakeAtlas()` could retake its frames itself:_ not taken;
+   `bakeTexture()`'s callers need the same step, and one rule for both
+   reads simpler than a bake that sometimes does it.
+
+The second, on that reshape, found each adoption giving the same verdict as
+the check it replaced:
+
+1. _One look-away may call the listener two or three times, which a later
+   listener that counts or toggles would get wrong:_ taken; said in its
+   doc and the skill.
+2. _`KeyModifiers` was a name `@fz/phaser/testing` already gives another
+   type, and the Solitaire Collection's `isShortcut()` meant the
+   opposite:_ taken; `ShortcutModifiers`, and `opensBrowser()`.
+3. _`Pictured<T>`'s doc opened with two sentences:_ taken.
+4. _"Which a game leaves to them" overlooked the shortcuts games take,
+   `picturesOf()` takes lists too, and a spec shadowed `run`:_ taken.

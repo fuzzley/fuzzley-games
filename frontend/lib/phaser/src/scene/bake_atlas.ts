@@ -17,7 +17,8 @@ export interface AtlasFrame extends FrameSize {
  * each frame's object, but an object showing one takes the frame's new size
  * and origin only once it sets the frame again, and one left showing a
  * frame the new bake leaves out throws as it draws. So a scene sets every
- * object's frame again after a bake.
+ * object's frame again after a bake, as `retakeFrames()` has every image
+ * and sprite do.
  */
 export function bakeAtlas(
   scene: Scene,

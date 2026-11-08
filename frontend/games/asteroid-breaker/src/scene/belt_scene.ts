@@ -1,3 +1,4 @@
+import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
@@ -6,14 +7,17 @@ import {
   onFirstFrame,
   onKeyDown,
   onKeyUp,
+  onPlayerAway,
+  picturesOf,
   pixelRatioOf,
-  whenSceneEnds,
+  retakeFrames,
+  uniqueSceneKey,
 } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
-import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
+import { type Cameras, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
-import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art/art";
+import { PICTURE_FRAMES, type Pictures } from "../view/art/art";
 import type { PointsFont } from "../view/art/points_art";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
@@ -44,7 +48,7 @@ import { LAYERS, type Layer, drawnBy } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
 import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
-import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
+import { ATLAS, DECK_ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
 import { FieldCamera } from "./field_camera";
 import { FlourishPlayer } from "./flourish_player";
 import { DebrisPainter } from "./painters/debris_painter";
@@ -157,16 +161,13 @@ export interface BeltKit {
  * so they stay still as the field shakes.
  */
 export class BeltScene extends Scene {
-  /** How many scenes have been built, which numbers each one's key. */
-  private static built = 0;
-
   /** The key the scene is registered under, which no other shares. */
   readonly key: string;
 
   private madeKit: BeltKit | null = null;
   /**
    * Every painter, back to front, and the field's camera, which each frame
-   * draws, each new field starts and each bake refreshes.
+   * draws and each new field starts.
    */
   private painters!: readonly Painter[];
   /** Plays each event's flourishes on the painters and the field's camera. */
@@ -213,7 +214,7 @@ export class BeltScene extends Scene {
     private readonly options: BeltSceneOptions,
     private readonly surroundings: SceneSurroundings,
   ) {
-    const key = `belt-scene-${String(++BeltScene.built)}`;
+    const key = uniqueSceneKey("belt-scene");
     super(key);
     this.key = key;
   }
@@ -496,16 +497,15 @@ export class BeltScene extends Scene {
    * first asked for after each bake, and kept until the next.
    */
   private encodePictures(): Pictures {
-    this.pictures ??= mapPictures(PICTURE_FRAMES, (frame) =>
-      this.textures.getBase64(ATLAS, frame),
-    );
+    this.pictures ??= picturesOf(this, ATLAS, PICTURE_FRAMES);
     return this.pictures;
   }
 
   /** Bakes the atlases again, and has every image take up its frame anew. */
   private rebake(): void {
     this.bake();
-    for (const painter of this.painters) painter.refresh?.();
+    retakeFrames(this, ATLAS);
+    retakeFrames(this, DECK_ATLAS);
   }
 
   /**
@@ -518,7 +518,11 @@ export class BeltScene extends Scene {
     for (const painter of this.painters) painter.start?.(field);
   }
 
-  /** Turns the keys, the mouse and the fingers into steering, and keys into commands. */
+  /**
+   * Turns the keys, the mouse and the fingers into steering, and keys into
+   * commands, and lets go of every key and finger as the player looks away,
+   * so none sticks.
+   */
   private listen(): void {
     this.input.keyboard?.addCapture(CAPTURED_KEYS);
     onKeyDown(this, (event) => {
@@ -538,31 +542,8 @@ export class BeltScene extends Scene {
     };
     this.input.on(Input.Events.POINTER_UP, up);
     this.input.on(Input.Events.POINTER_UP_OUTSIDE, up);
-    this.letGoWhenAway();
-  }
-
-  /**
-   * Lets go of every key and finger as the window, the page or the field loses
-   * the player, so none sticks.
-   */
-  private letGoWhenAway(): void {
-    const letGo = (): void => {
+    onPlayerAway(this, () => {
       this.steering.letGo();
-    };
-    // Phaser types the keyboard's target as anything; the game's is the board.
-    const listened: unknown = this.game.input.keyboard?.target;
-    const board = listened instanceof HTMLElement ? listened : null;
-    const leave = (event: FocusEvent): void => {
-      const to = event.relatedTarget;
-      if (!(to instanceof Node && board?.contains(to))) letGo();
-    };
-    this.game.events.on(Core.Events.BLUR, letGo);
-    this.game.events.on(Core.Events.HIDDEN, letGo);
-    board?.addEventListener("focusout", leave);
-    whenSceneEnds(this, () => {
-      this.game.events.off(Core.Events.BLUR, letGo);
-      this.game.events.off(Core.Events.HIDDEN, letGo);
-      board?.removeEventListener("focusout", leave);
     });
   }
 
@@ -572,7 +553,7 @@ export class BeltScene extends Scene {
    * browser its shortcuts.
    */
   private press(event: KeyboardEvent): void {
-    if (event.ctrlKey || event.altKey || event.metaKey) return;
+    if (isShortcut(event)) return;
     if (this.steering.press(event.code)) {
       if (!event.repeat) this.options.command("go");
       return;

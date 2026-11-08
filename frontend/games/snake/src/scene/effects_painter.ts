@@ -46,11 +46,6 @@ export class EffectsPainter {
     this.square = metrics.square;
   }
 
-  /** Takes up the crumb's texture again, once it has been baked again. */
-  refresh(): void {
-    this.crumbs.setTexture(CRUMB_TEXTURE);
-  }
-
   /**
    * Plays what a step calls for, but its pop and its sound: the fade over
    * time where the player welcomes motion.

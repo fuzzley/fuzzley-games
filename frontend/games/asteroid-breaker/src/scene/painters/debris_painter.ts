@@ -101,13 +101,6 @@ export class DebrisPainter implements Painter {
     }));
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const { copies } of [...this.puffs.all, ...this.sparks.all]) {
-      copies.refresh();
-    }
-  }
-
   /**
    * Throws so many shards from a place on the field, in a color, at the
    * field's unit and zoom as it is now laid out, which a frame's events may

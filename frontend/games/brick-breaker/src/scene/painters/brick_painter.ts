@@ -77,11 +77,6 @@ export class BrickPainter implements Painter {
     });
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const image of this.images) image.setFrame(image.frame.name);
-  }
-
   /** Shows each cell's brick as it stands, changing only the images whose brick changed. */
   show(field: FieldView): void {
     for (let cell = 0; cell < this.images.length; cell++) {

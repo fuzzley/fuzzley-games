@@ -27,12 +27,10 @@ import {
   FRAMES,
   PICKUP_REACH,
   PICTURE_FRAMES,
-  type Pictures,
   SHOT_REACH,
   STRAY_DROP,
   atlasFrames,
   deckFrames,
-  mapPictures,
   pickupFrame,
   tagFrame,
 } from "./art";
@@ -564,27 +562,5 @@ describe("PICTURE_FRAMES", () => {
       rockFrame({ kind: "boulder", size: "boulder", outline: 0 }),
       rockFrame({ kind: "volatile", size: "large", outline: 0 }),
     ]);
-  });
-});
-
-describe("mapPictures", () => {
-  it("turns every picture into another, keeping what it pictures", () => {
-    const pictures: Pictures = {
-      ...PICTURE_FRAMES,
-      rocks: { ...PICTURE_FRAMES.rocks, iron: "a" },
-      pickups: { ...PICTURE_FRAMES.pickups, nova: "b" },
-      stray: "c",
-      comet: "d",
-    };
-
-    const mapped = mapPictures(pictures, (name) => `${name}!`);
-
-    expect([
-      mapped.rocks.iron,
-      mapped.pickups.nova,
-      mapped.stray,
-      mapped.comet,
-      Object.keys(mapped.pickups),
-    ]).toEqual(["a!", "b!", "c!", "d!", Object.keys(pictures.pickups)]);
   });
 });

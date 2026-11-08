@@ -37,14 +37,6 @@ export class TagPainter implements Painter {
     layer.add([this.rings, ...Object.values(this.images)]);
   }
 
-  /** Takes up each tag's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const kind of EFFECT_KINDS) {
-      const image = this.images[kind];
-      image.setFrame(image.frame.name);
-    }
-  }
-
   /** Draws the tags of the effects in play, under the paddle between its last place and its next. */
   draw({ field, alpha, metrics, palette }: Readonly<PaintContext>): void {
     this.rings.clear();

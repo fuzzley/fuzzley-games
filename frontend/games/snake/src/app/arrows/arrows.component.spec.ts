@@ -107,6 +107,25 @@ describe("ArrowsComponent with the focus on an arrow", () => {
 
     expect(game.run().turns).toEqual(["up"]);
   });
+
+  it.each([
+    ["Ctrl", { ctrlKey: true }],
+    ["Alt", { altKey: true }],
+    ["Meta", { metaKey: true }],
+  ])("leaves the browser a key pressed with %s", async (_, modifiers) => {
+    const game = await renderArrows();
+    game.turn("up");
+
+    const pressed = fireEvent.keyDown(
+      screen.getByRole("button", { name: "Up" }),
+      { code: "ArrowLeft", ...modifiers },
+    );
+
+    expect({ pressed, turns: game.run().turns }).toEqual({
+      pressed: true,
+      turns: ["up"],
+    });
+  });
 });
 
 describe("ArrowsComponent before the board is drawn", () => {

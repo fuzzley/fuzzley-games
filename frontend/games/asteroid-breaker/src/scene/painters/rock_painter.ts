@@ -58,13 +58,6 @@ export class RockPainter implements Painter {
     }
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const body of this.bodies) body.refresh();
-    for (const taken of this.taken) taken.refresh();
-    this.flash.refresh();
-  }
-
   /** Flashes the rock in a slot that held a hit, unless the field flashed too lately. */
   flashSlot(slot: number, now: number): void {
     if (!flashDue(this.flashed.at, now)) return;

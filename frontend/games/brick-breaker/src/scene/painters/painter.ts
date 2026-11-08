@@ -33,6 +33,10 @@ export interface PaintContext extends Baked {
 export interface Painter {
   /** Draws its part of the field as the frame has it. */
   draw(context: Readonly<PaintContext>): void;
-  /** Takes up its frames again, where it draws from the atlas, once the atlas has been baked again. */
+  /**
+   * Matches what it draws itself, beside its images of the atlas, to the
+   * atlas baked again, once the scene has had every image take up its frame
+   * anew.
+   */
   refresh?(baked: Readonly<Baked>): void;
 }

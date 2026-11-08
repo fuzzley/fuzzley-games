@@ -17,11 +17,6 @@ export class CapsulePainter implements Painter {
     layer.add([...this.images]);
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const image of this.images) image.setFrame(image.frame.name);
-  }
-
   /** Draws each capsule falling between its last place and its next, and hides the rest. */
   draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
     for (let i = 0; i < this.images.length; i++) {

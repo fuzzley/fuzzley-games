@@ -58,11 +58,6 @@ export class ShipPainter implements Painter {
     this.parts = [this.guard, this.shield, ...this.body];
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const part of this.parts) part.refresh();
-  }
-
   /**
    * Draws the ship between its last place and turn and its next, or nothing
    * between one ship and the next.

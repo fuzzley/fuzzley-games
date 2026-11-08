@@ -32,11 +32,6 @@ export class ShotPainter implements Painter {
     }
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const shot of this.shots) shot.refresh();
-  }
-
   /**
    * Draws each shot in flight between its last place and its next, along its
    * travel, and hides each slot that holds none.

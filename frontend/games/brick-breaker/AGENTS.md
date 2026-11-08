@@ -35,7 +35,7 @@ Four folders under `src/`, each importing only the layers below it, as
 | ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
 | `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                          | Angular, RxJS, the shell's libraries, the shell                                         |
 | `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import                          |
 
 The physics is the rules', so the whole game plays in Node, as the
@@ -270,9 +270,11 @@ takes for the specs' helpers.
   play and their emptying rings, and `BallPainter` the balls, with a fire
   ball's embers, one for each ember's width it goes. Each is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
-  writes over each frame and, where it draws from the atlas, takes up its
-  frames again after a bake, so the scene draws and refreshes them in a loop
-  over its list of painters, which a new one joins as `create()` makes it.
+  writes over each frame, so the scene draws them in a loop over its list
+  of painters, which a new one joins as `create()` makes it. After a bake,
+  `@fz/phaser/scene`'s `retakeFrames()` has every image take up its frame
+  anew, and the paddle's painter sizes and paints its body and rim to match
+  (`refresh()`).
   Each thing that moves is drawn between its last place and its next. Every
   game object is made as the scene is created, and a new field stops what
   the last one set off. The scene plays each of the field's events once,
@@ -280,13 +282,15 @@ takes for the specs' helpers.
   motion is welcome. `atlas.ts` bakes the view's art with `@fz/phaser`'s
   `bakeAtlas()` and `atlasFrameOf()`, again on a new palette or a new unit,
   and the scene hands How to play its pictures from the atlas each time
-  (`onPictures()`).
+  (`onPictures()`), encoded with `@fz/phaser/scene`'s `picturesOf()`.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
   settings want none; it plays the chime, the level cleared's, each time the
   game's count of `chimes()` goes up. The keys, clicks and taps go back
   through `command()`, the keys heard through `@fz/phaser/scene`'s
-  `onKeyDown()` and `onKeyUp()`, which hand over each key event once.
+  `onKeyDown()` and `onKeyUp()`, which hand over each key event once, and
+  every key and finger held is let go as the player looks away
+  (`onPlayerAway()`).
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
@@ -418,8 +422,9 @@ takes for the specs' helpers.
   element, so the keys reach the game only while it has the focus. Phaser
   cancels a captured key's default there, which is why the scene captures only
   Left, Right, Up and Space, the keys it uses that would scroll the page, and
-  ignores a key pressed with Ctrl, Alt or Meta. Keys go by `event.code`, so an
-  AZERTY keyboard steers with Q and D.
+  ignores a key pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
+  `isShortcut()`). Keys go by `event.code`, so an AZERTY keyboard steers
+  with Q and D.
 - **The level waits for the player.** A ball waits on the paddle until it is
   launched. The level pauses when the focus leaves the room, the page is
   hidden, the screen turns or a dialog opens, and goes on only when the

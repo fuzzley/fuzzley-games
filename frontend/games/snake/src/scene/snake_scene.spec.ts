@@ -222,6 +222,22 @@ describe("SnakeScene", () => {
 
       expect(scene.apple.image.scale).toBe(1);
     });
+
+    it("takes the size of its square anew as the squares grow", async () => {
+      const { run, scene } = await startBoard();
+
+      run.game.scale.resize(600, 600);
+      run.advance(16);
+
+      const { square } = boardMetrics(
+        { width: 600, height: 600, pixelRatio: 1, insets: NO_INSETS },
+        BOARD_SIZE,
+      );
+      expect([scene.apple.image.width, scene.apple.image.height]).toEqual([
+        square,
+        square,
+      ]);
+    });
   });
 
   describe("the snake", () => {

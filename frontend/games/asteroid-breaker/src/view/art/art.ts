@@ -493,19 +493,3 @@ export const PICTURE_FRAMES: Pictures = {
   stray: FRAMES.strayPicture,
   comet: FRAMES.cometPicture,
 };
-
-/**
- * Returns a set of pictures with each turned into another, such as a frame's
- * name into the image baked of it.
- */
-export function mapPictures(
-  pictures: Pictures,
-  map: (picture: string) => string,
-): Pictures {
-  return {
-    rocks: recordOf(ROCK_KIND_IDS, (kind) => map(pictures.rocks[kind])),
-    pickups: recordOf(PICKUP_IDS, (id) => map(pictures.pickups[id])),
-    stray: map(pictures.stray),
-    comet: map(pictures.comet),
-  };
-}

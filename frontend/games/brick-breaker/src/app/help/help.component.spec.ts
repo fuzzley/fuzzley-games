@@ -3,14 +3,24 @@ import { userEvent } from "@testing-library/user-event";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
-import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art/art";
+import { PICTURE_FRAMES, type Pictures } from "../../view/art/art";
 import { HelpComponent } from "./help.component";
 
-/** Pictures as the scene hands them over, each named for its frame. */
-const PICTURES: Pictures = mapPictures(
-  PICTURE_FRAMES,
-  (frame) => `pictures/${frame}.png`,
-);
+/** Returns a picture as the scene encodes one, holding nothing but a name. */
+function pictureOf(name: string): string {
+  return `data:image/png;base64,${btoa(name)}`;
+}
+
+/**
+ * Pictures as the scene hands them over: the frames' names, but a picture of
+ * its own for each the specs look for, so one shown is the one handed over.
+ */
+const PICTURES: Pictures = {
+  ...PICTURE_FRAMES,
+  bricks: { ...PICTURE_FRAMES.bricks, steel: pictureOf("steel") },
+  capsules: { ...PICTURE_FRAMES.capsules, wide: pictureOf("wide") },
+  balls: { ...PICTURE_FRAMES.balls, normal: pictureOf("normal") },
+};
 
 describe("HelpComponent", () => {
   it("stays shut until asked to open", async () => {

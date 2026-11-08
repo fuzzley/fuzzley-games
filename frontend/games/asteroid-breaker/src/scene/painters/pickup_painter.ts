@@ -25,11 +25,6 @@ export class PickupPainter implements Painter {
     );
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const pickup of this.pickups) pickup.refresh();
-  }
-
   /**
    * Draws each pickup floating between its last place and its next, and hides
    * each record out of play.

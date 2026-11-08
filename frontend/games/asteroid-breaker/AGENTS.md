@@ -42,7 +42,7 @@ scene's, `src/scene/`, which draws the field on Phaser, and the shell's,
 | ----- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
 | rules | `@fz/core`                                                                                                                     | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
 | view  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/style/fuzzball` | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| scene | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                          | Angular, RxJS, the shell's libraries, the shell                                         |
+| scene | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                              | Angular, RxJS, the shell's libraries, the shell                                         |
 | app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type     | Phaser, and the scene or those three entries by a value import                          |
 
 The physics is the rules', so the whole game plays in Node, as the
@@ -376,11 +376,12 @@ takes for the specs' helpers.
   shakes, the one place its scroll is written. Each of them is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
   writes over each frame, where the ship is drawn among it, and which holds
-  the steering the deck shows, set once; starts on each new field
-  (`start()`); and takes up its frames again after a bake (`refresh()`), so
-  the scene draws, starts and refreshes them in a loop over its list of
-  painters. The scene's painters, cameras and sounds are made once, as it is
-  created, and read through its `kit` (`BeltKit`). A thing that wraps is
+  the steering the deck shows, set once; and starts on each new field
+  (`start()`), so the scene draws and starts them in a loop over its list
+  of painters. After a bake, `@fz/phaser/scene`'s `retakeFrames()` has
+  every image on either atlas take up its frame anew. The scene's painters,
+  cameras and sounds are made once, as it is created, and read through its
+  `kit` (`BeltKit`). A thing that wraps is
   drawn through `Copies` (`painters/copies.ts`), once, and again past each
   edge it reaches across; a flourish's records are taken in turn (`Turns`,
   `painters/turns.ts`). Every game object is made as the scene is created, or
@@ -399,9 +400,10 @@ takes for the specs' helpers.
   bakes it once a device pixel rather than once a frame, and the deck's,
   white for the scene to tint, again on a new pixel ratio. At each bake the
   scene hands the shell what makes How to play's pictures from the field's
-  (`onPictures()`), which encodes them only as the board asks for them, as
-  How to play opens, and keeps them until the next bake. `PointsAtlas`
-  (`points_atlas.ts`) letters the points into an atlas of their own,
+  (`onPictures()`), which encodes them with `@fz/phaser/scene`'s
+  `picturesOf()` only as the board asks for them, as How to play opens, and
+  keeps them until the next bake. `PointsAtlas` (`points_atlas.ts`)
+  letters the points into an atlas of their own,
   written with a canvas's own `fillText()` and `strokeText()`, at the
   field's whole unit past the field's cap, so they stay sharp on a large
   field, again on a new palette, a new font, or as the field's unit passes
@@ -411,7 +413,8 @@ takes for the specs' helpers.
   risen along its chain, holds the thrust's hum while the ship thrusts, and
   mutes the game while the settings want none. The keys go back through
   `command()`, heard through `@fz/phaser/scene`'s `onKeyDown()` and
-  `onKeyUp()`, which hand over each key event once.
+  `onKeyUp()`, which hand over each key event once, and every key and
+  finger held is let go as the player looks away (`onPlayerAway()`).
 - **`src/app/`** — the shell, one folder per feature, as in Brick Breaker.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
@@ -613,8 +616,9 @@ takes for the specs' helpers.
   element, so the keys reach the game only while it has the focus. Phaser
   cancels a captured key's default there, which is why the scene captures
   only Left, Right, Up, Down and Space, the keys it uses that would scroll
-  the page, and ignores a key pressed with Ctrl, Alt or Meta. Keys go by
-  `event.code`, so an AZERTY keyboard flies with Z, Q, S and D. The mouse
+  the page, and ignores a key pressed with Ctrl, Alt or Meta
+  (`@fz/core/keys`'s `isShortcut()`). Keys go by `event.code`, so an
+  AZERTY keyboard flies with Z, Q, S and D. The mouse
   aims the ship once it moves over the field, its main button fires and its
   second thrusts, so the board keeps the browser's menu shut.
 - **The wave waits for the player.** A wave holds still, its ship waiting
