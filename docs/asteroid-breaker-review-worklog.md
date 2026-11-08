@@ -485,3 +485,42 @@ The review:
    taken; it runs every spec but the other two's.
 6. _`Packing<T>` wasn't exported, and the scene's spec reached past the
    index:_ taken.
+
+### Step 7c: finding 9, a run's own state one record
+
+Built on `ab-shell`, the third of finding 9's four commits. What is a run's
+own, the run, whether it was flown on tuned numbers, its chain, its tally,
+the Cleared card, a new best, every wave cleared, the strays brought home
+and the result card, is one `RunState` record in one signal, which
+`begin()` replaces whole as a run starts, changes speed, tries again or is
+taken up, so nothing of one run reaches the next. The public signals are
+`computed` views of it. A frame folds into it through `withFrame()`, which
+returns the same record on a quiet frame, so a frame of play still makes
+nothing. `show()`, `showField()` and the eight signals are gone, and the
+service's fields are made in its constructor, so their order can't break
+startup. 3,375 tests pass.
+
+Where it went other than planned:
+
+- `takeUp()` hands `begin()` the kept field, where it laid out a fresh one
+  first and threw it away.
+- `setRoom()` and `tune()` only lay the wave out again: the resets
+  `showField()` made there never changed anything, as a field that hasn't
+  moved always has a chain of 1 and no Cleared card.
+- Brick Breaker's `GameService` keeps its signals, as finding 9 asked of
+  this game alone.
+
+The review compared each public method's signals with the old service, and
+found them the same, the quiet frame making nothing and the views drawn no
+more often:
+
+1. _`nextWave()` and `takeUp()` built their records untyped,_ so a
+   misspelt key would compile and skip its reset: taken; both are
+   `RunState`.
+2. _The new specs tested fewer fields than their titles,_ as most held
+   their starting values before the act: taken. They try again with the
+   result card open and a stray brought home, and take up a run with the
+   result card open, put away, or the Cleared card showing. Each field of
+   the record carried over by `begin()` fails at least one.
+3. _`takeUp()` called `begin()` in two branches, and `keep(state, before)`
+   reversed `recordsOf()`'s order:_ taken.
