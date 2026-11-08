@@ -261,7 +261,8 @@ function hasShips(field: Field): boolean {
  * stray adrift, or the pickup it has time for; else turns toward the rock
  * it can hit soonest, leading it, and closes on it beyond its shots' reach,
  * but waits for one nearly as fast as the ship to come round the field,
- * by the row or the column it runs along if it runs along one. Whichever it does, it fires once lined up with that rock.
+ * by the row or the column it runs along if it runs along one. Whichever
+ * it does, it fires once lined up with that rock.
  */
 export function pilot(field: Field, steer: Steer): void {
   const { ship } = field;

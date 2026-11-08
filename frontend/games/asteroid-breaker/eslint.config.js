@@ -6,6 +6,7 @@ import {
   tests,
   typescript,
 } from "@fz/dev/eslint";
+import { basename } from "node:path";
 import { defineConfig } from "eslint/config";
 
 // Phaser itself, anchored, so @fz/phaser's entries aren't taken for it.
@@ -95,17 +96,59 @@ const RANDOM_SEED = {
   message: RANDOM,
 };
 
+// The rules' fence, which the specs' helpers the scripts load hold to too.
+const RULES_FENCE = [
+  {
+    group: [...PHASER, ...FRAMEWORKS, "@fz/*", "!@fz/core", "!@fz/core/*"],
+    message: "The rules use no framework and no library but @fz/core.",
+  },
+  {
+    group: ["**/view", "**/view/**", "**/scene", "**/scene/**"],
+    message: "The rules know nothing of how the game is drawn.",
+  },
+  {
+    group: ["**/app", "**/app/**"],
+    message: "The rules know nothing of the shell.",
+  },
+  {
+    group: ["**/testing", "**/testing/**"],
+    message: "The rules know nothing of the specs' helpers.",
+  },
+  RANDOM_SEED,
+];
+
+// The specs' helpers the scripts under tools/ load through Vite, and what
+// they import of src/testing/, which Node runs without Angular's plugin, as
+// it runs the rules, and the report counts on playing the same from a seed.
+// A file of src/testing/ off this list is held only to the helpers' fence,
+// which lets Angular in by type, so one they import is flagged until it
+// joins the list.
+const SCRIPT_HELPERS = [
+  "src/testing/script_api.ts",
+  "src/testing/report_api.ts",
+  "src/testing/screenshot_api.ts",
+  "src/testing/autopilot.ts",
+  "src/testing/kept_run.ts",
+];
+
+// A file beside the helpers the scripts load, all in src/testing/, that is
+// none of them.
+const OFF_SCRIPT_HELPERS = {
+  regex: `^\\./(?!(?:${SCRIPT_HELPERS.map((file) => basename(file, ".ts")).join("|")})$)`,
+  message:
+    "The helpers the scripts load import no other file of src/testing/: add it to SCRIPT_HELPERS in eslint.config.js, which holds it to the rules' fence.",
+};
+
 /**
- * Returns the block that fences a layer's files off from what it may not
- * import.
+ * Returns the block that fences files off from what they may not import.
  *
- * @param {string} layer
+ * @param {string[]} files
  * @param {{ group?: string[], regex?: string, importNames?: string[], message: string, allowTypeImports?: boolean }[]} patterns
  * @returns {import("eslint").Linter.Config}
  */
-function fence(layer, patterns) {
+function fence(files, patterns) {
   return {
-    files: [`src/${layer}/**/*.ts`],
+    files,
     ignores: ["**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": ["error", { patterns }],
@@ -114,19 +157,19 @@ function fence(layer, patterns) {
 }
 
 /**
- * Returns the block that keeps layers' files from reading the clock, a
- * number drawn from no seed, the page or what is stored or fetched.
+ * Returns the block that keeps files from reading the clock, a number drawn
+ * from no seed, the page or what is stored or fetched.
  *
  * ESLint takes a rule's options from the last block that sets it for a file,
  * so another restriction of these three rules for these files joins this
  * block rather than replacing it from one of its own.
  *
- * @param {string[]} layers
+ * @param {string[]} files
  * @returns {import("eslint").Linter.Config}
  */
-function deterministic(layers) {
+function deterministic(files) {
   return {
-    files: layers.map((layer) => `src/${layer}/**/*.ts`),
+    files,
     ignores: ["**/*.spec.ts"],
     rules: {
       "no-restricted-properties": [
@@ -160,103 +203,116 @@ function deterministic(layers) {
 export default defineConfig(
   typescript({
     root: import.meta.dirname,
-    files: ["src/**/*.ts", "vite.config.ts", "vitest.config.ts"],
+    files: [
+      "src/**/*.ts",
+      "tools/**/*.ts",
+      "vite.config.ts",
+      "vitest.config.ts",
+    ],
   }),
   angular({ files: ["src/**/*.ts"], prefix: "app" }),
   templates({ files: ["src/**/*.html"] }),
   tests({
-    files: ["src/**/*.spec.ts", "src/testing/**/*.ts", "src/test-setup.ts"],
+    files: [
+      "src/**/*.spec.ts",
+      "src/testing/**/*.ts",
+      "src/test-setup.ts",
+      "tools/**/*.spec.ts",
+    ],
   }),
   phaser({ files: ["src/scene/**/*.ts"] }),
   scripts({ files: ["tools/**/*.mjs"] }),
   // Each layer imports only the layers below it: rules, then view, then
   // scene, then app.
-  fence("rules", [
-    {
-      group: [...PHASER, ...FRAMEWORKS, "@fz/*", "!@fz/core", "!@fz/core/*"],
-      message: "The rules use no framework and no library but @fz/core.",
-    },
-    {
-      group: ["**/view", "**/view/**", "**/scene", "**/scene/**"],
-      message: "The rules know nothing of how the game is drawn.",
-    },
-    {
-      group: ["**/app", "**/app/**"],
-      message: "The rules know nothing of the shell.",
-    },
-    RANDOM_SEED,
-  ]),
-  fence("view", [
-    {
-      group: [
-        ...PHASER,
-        ...FRAMEWORKS,
-        ...UI_LIBRARIES,
-        // Entries, never the package, where one is let back in: git's ignore
-        // rules can't take back a file whose folder is excluded.
-        "@fz/style/*",
-        "!@fz/style/fuzzball",
-        "@fz/phaser/*",
-        "!@fz/phaser/color",
-        "!@fz/phaser/insets",
-        "!@fz/phaser/layout",
-        "!@fz/phaser/shapes",
-      ],
-      message:
-        "The view is plain TypeScript: no Phaser, no framework, of @fz/style only the fuzzball, and of @fz/phaser only its pure entries.",
-    },
-    {
-      // The package alone, which a pattern of its own can name without
-      // excluding the fuzzball.
-      regex: "^@fz/style$",
-      message: "The view takes of @fz/style only the fuzzball.",
-    },
-    {
-      group: ["**/scene", "**/scene/**", "**/app", "**/app/**"],
-      message: "The view knows nothing of the scene or the shell.",
-    },
-    RANDOM_SEED,
-  ]),
-  fence("scene", [
-    {
-      group: [...FRAMEWORKS, ...SHELL_LIBRARIES, "@fz/phaser/canvas"],
-      message: "The scene draws with Phaser alone, and knows no framework.",
-    },
-    {
-      group: ["**/app", "**/app/**"],
-      message: "The scene knows nothing of the shell.",
-    },
-  ]),
+  fence(["src/rules/**/*.ts"], RULES_FENCE),
+  fence(
+    ["src/view/**/*.ts"],
+    [
+      {
+        group: [
+          ...PHASER,
+          ...FRAMEWORKS,
+          ...UI_LIBRARIES,
+          // Entries, never the package, where one is let back in: git's ignore
+          // rules can't take back a file whose folder is excluded.
+          "@fz/style/*",
+          "!@fz/style/fuzzball",
+          "@fz/phaser/*",
+          "!@fz/phaser/color",
+          "!@fz/phaser/insets",
+          "!@fz/phaser/layout",
+          "!@fz/phaser/shapes",
+        ],
+        message:
+          "The view is plain TypeScript: no Phaser, no framework, of @fz/style only the fuzzball, and of @fz/phaser only its pure entries.",
+      },
+      {
+        // The package alone, which a pattern of its own can name without
+        // excluding the fuzzball.
+        regex: "^@fz/style$",
+        message: "The view takes of @fz/style only the fuzzball.",
+      },
+      {
+        group: ["**/scene", "**/scene/**", "**/app", "**/app/**"],
+        message: "The view knows nothing of the scene or the shell.",
+      },
+      RANDOM_SEED,
+    ],
+  ),
+  fence(
+    ["src/scene/**/*.ts"],
+    [
+      {
+        group: [...FRAMEWORKS, ...SHELL_LIBRARIES, "@fz/phaser/canvas"],
+        message: "The scene draws with Phaser alone, and knows no framework.",
+      },
+      {
+        group: ["**/app", "**/app/**"],
+        message: "The scene knows nothing of the shell.",
+      },
+    ],
+  ),
   // The specs' helpers take Angular by type alone, so they declare nothing
   // Analog's plugin must compile: every project compiles them with Vite's
   // oxc, alike, and coverage adds their runs up (`vitest.config.ts`).
-  fence("testing", [
-    {
-      group: ["@angular/*"],
-      allowTypeImports: true,
-      message:
-        "The specs' helpers take Angular by type alone, since every project compiles them with oxc rather than Analog's plugin.",
-    },
-  ]),
-  fence("app", [
-    {
-      group: PHASER,
-      message:
-        "The shell never imports Phaser: the board loads the scene with import().",
-    },
-    {
-      group: [
-        "**/scene",
-        "**/scene/**",
-        "@fz/phaser/host",
-        "@fz/phaser/scene",
-        "@fz/phaser/sound",
-      ],
-      allowTypeImports: true,
-      message:
-        "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",
-    },
-  ]),
-  // The rules and the view read only what they are handed.
-  deterministic(["rules", "view"]),
+  fence(
+    ["src/testing/**/*.ts"],
+    [
+      {
+        group: ["@angular/*"],
+        allowTypeImports: true,
+        message:
+          "The specs' helpers take Angular by type alone, since every project compiles them with oxc rather than Analog's plugin.",
+      },
+    ],
+  ),
+  // The helpers the scripts load hold to the rules' fence, which replaces the
+  // one above for them, as the last block to set a rule for a file does.
+  fence(SCRIPT_HELPERS, [...RULES_FENCE, OFF_SCRIPT_HELPERS]),
+  fence(
+    ["src/app/**/*.ts"],
+    [
+      {
+        group: PHASER,
+        message:
+          "The shell never imports Phaser: the board loads the scene with import().",
+      },
+      {
+        group: [
+          "**/scene",
+          "**/scene/**",
+          "@fz/phaser/host",
+          "@fz/phaser/scene",
+          "@fz/phaser/sound",
+        ],
+        allowTypeImports: true,
+        message:
+          "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",
+      },
+    ],
+  ),
+  // The rules and the view read only what they are handed, and so do the
+  // helpers the scripts load, though the messages speak of the rules and the
+  // view alone.
+  deterministic(["src/rules/**/*.ts", "src/view/**/*.ts", ...SCRIPT_HELPERS]),
 );

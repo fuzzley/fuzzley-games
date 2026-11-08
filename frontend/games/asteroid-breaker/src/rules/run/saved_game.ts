@@ -22,6 +22,9 @@ import {
   waveStart,
 } from "./run";
 
+/** The version of `SavedGame`, which the shell keeps a run under; the shell's reader drops any other. */
+export const SAVED_GAME_VERSION = 1;
+
 /** A run under way as storage keeps it. */
 export interface SavedGame {
   /** The id of the wave in play, which must still be the wave of its number. */
