@@ -67,16 +67,21 @@ Run these from `frontend/games/brick-breaker/`, or as
 - `src/rules/catalog/catalog.spec.ts` holds the catalogs to their rules, and the
   levels to using every brick kind and letting every capsule first fall at
   the level its `from` names.
-- `src/rules/levels/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
+- `src/rules/levels/every_level/` has `src/testing/autopilot.ts` play every
   level at every preset speed, all but Custom (`PRESET_SPEEDS`,
   `playLevel()`, from the level's number as the seed), and holds each to
   being cleared within eight minutes of game time, its last three bricks
   within one; and plays them again on the tallest
   field (`TALLEST_FIELD`), held only to being cleared within eight minutes
   stretched as far as the paddle lies farther from the bricks
-  (`limitsOf()`), since luck decides more of a taller field's endgames. A
-  spec of the autopilot itself lays a level out of the bricks it draws
-  (`entryOf()`).
+  (`limitsOf()`), since luck decides more of a taller field's endgames. It
+  keeps a file for each preset speed, each passing its own file
+  (`import.meta.filename`) to `src/testing/every_level.ts`'s
+  `holdEveryLevel()`, which plays the speed the file is named for, since
+  Vitest plays a file's specs one after another but the files side by side.
+- `src/rules/levels/autopilot.spec.ts` holds that folder to a file for every
+  preset speed, and the autopilot itself: a spec of it lays a level out of
+  the bricks it draws (`entryOf()`).
 - `yarn report:levels` plays the same games, `--seeds <n>` many more, and
   `--height <n>` on a taller field, for tuning; a slow endgame on one seed
   in many is luck, but one that leaves the same bricks for last is a level

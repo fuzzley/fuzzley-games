@@ -181,7 +181,7 @@ export function autoplay(
 
 /**
  * Plays one of the game's levels at a speed, from its number as the seed
- * unless given another, as `src/rules/levels/autopilot.spec.ts` and
+ * unless given another, as the specs in `src/rules/levels/every_level/` and
  * `yarn report:levels` both play it.
  */
 export function playLevel(

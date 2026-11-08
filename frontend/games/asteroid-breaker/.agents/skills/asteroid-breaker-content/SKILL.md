@@ -39,15 +39,15 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   `waveToPlay()` makes any wave ready to play.
 - **The checks** that hold it whole:
 
-  | Check              | Where                               | What it holds                                                                                                                                                          |
-  | ------------------ | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler       | everywhere                          | Every rock kind has its art and ink, every trait its rule, every pickup its symbol, every effect its rule and its record, every formation its layout                   |
-  | The catalog spec   | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before |
-  | The waves spec     | `src/rules/waves/waves.spec.ts`     | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                 |
-  | The spawn spec     | `src/rules/field/spawn.spec.ts`     | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                  |
-  | The Endless spec   | `src/rules/waves/endless.spec.ts`   | Endless's waves keep to their budget, their share of iron, their crystal and the cap, climb as written, and are the same for the same seed                             |
-  | The autopilot spec | `src/rules/waves/autopilot.spec.ts` | Every wave at every speed, on the narrowest and widest fields, cleared within four minutes; Endless's 31 to 60 too, with nothing able to take the ship                 |
-  | The contrast spec  | `src/view/colors/contrast.spec.ts`  | Every rock's ink, every pickup and the pilots against the field, in every palette                                                                                      |
+  | Check               | Where                                                                | What it holds                                                                                                                                                          |
+  | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | The compiler        | everywhere                                                           | Every rock kind has its art and ink, every trait its rule, every pickup its symbol, every effect its rule and its record, every formation its layout                   |
+  | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before |
+  | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                 |
+  | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                  |
+  | The Endless spec    | `src/rules/waves/endless.spec.ts`                                    | Endless's waves keep to their budget, their share of iron, their crystal and the cap, climb as written, and are the same for the same seed                             |
+  | The autopilot specs | `src/rules/waves/every_wave/`, `src/rules/waves/every_endless_wave/` | Every wave at every speed, on the narrowest and widest fields, cleared within four minutes; Endless's 31 to 60 too, with nothing able to take the ship                 |
+  | The contrast spec   | `src/view/colors/contrast.spec.ts`                                   | Every rock's ink, every pickup and the pilots against the field, in every palette                                                                                      |
 
 ## A Wave
 
@@ -73,8 +73,8 @@ on wave 9, Crowd (`tools/capture-screenshots.mjs`).
 
 Then:
 
-1. `yarn vitest run src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/spawn.spec.ts`.
-2. `yarn vitest run src/rules/waves/autopilot.spec.ts`, which plays it from its
+1. `yarn vitest run src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/every_layout/`.
+2. `yarn vitest run src/rules/waves/every_wave/ src/rules/waves/every_endless_wave/`, which plays it from its
    number as the seed.
 3. `yarn report:waves`, then with `--seeds 12`, and each again with
    `--field wide` and `--field tall`: its middle time should sit between

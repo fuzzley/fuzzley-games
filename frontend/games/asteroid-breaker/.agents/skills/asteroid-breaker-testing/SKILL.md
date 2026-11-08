@@ -74,21 +74,33 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   of its own, and every sector to its ten; `src/rules/catalog/catalog.spec.ts`
   holds the catalogs to their rules, and the waves to laying every rock kind
   and letting every pickup first come at the wave its `from` names.
-- `src/rules/field/spawn.spec.ts` lays every wave out, in every formation, on
+- `src/rules/field/every_layout/` lays every wave out, in every formation, on
   the narrowest and the widest fields, either way up, and holds each rock to
-  starting far enough from the ship on a course that keeps clear of it.
+  starting far enough from the ship on a course that keeps clear of it: a
+  file for each speed, each passing its own file to
+  `src/testing/every_layout.ts`'s `holdEveryLayout()`, which lays out the
+  speed the file is named for, so Vitest lays the speeds out side by side.
+  `src/rules/field/spawn.spec.ts` holds the rest of `layOut()`, and that the
+  folder keeps a file for every speed.
 - `src/rules/waves/endless.spec.ts` holds Endless's waves 31 to 60, over many
   seeds, and some past them, to their budget, their share of iron, their
   crystal and the cap, to the climb, and to being the same for the same
   seed.
-- `src/rules/waves/autopilot.spec.ts` has `src/testing/autopilot.ts` play every
+- `src/rules/waves/every_wave/` has `src/testing/autopilot.ts` play every
   wave at every speed (`playWave()`, from the wave's number as the seed) on
-  the narrowest field and the widest, on its side and upright (`NARROWEST`,
-  `WIDEST`, `TALLEST`), and holds each to being cleared within four minutes
-  of game time (`AUTOPILOT_LIMIT`), meeting a comet and a stray where the
-  wave sends them; and Endless's 31 to 60 (`ENDLESS_PLAYED`) the same, with
-  nothing able to take the ship. A spec of a frame of the autopilot's draws
-  a field and reads the steering `pilot()` gives it.
+  the narrowest field and the widest, on its side and upright (`FIELDS`:
+  `NARROWEST`, `WIDEST`, `TALLEST`), and holds each to being cleared within
+  four minutes of game time (`AUTOPILOT_LIMIT`), meeting a comet and a stray
+  where the wave sends them; and `src/rules/waves/every_endless_wave/`
+  Endless's 31 to 60 (`ENDLESS_PLAYED`) the same, with nothing able to take
+  the ship. Each keeps a file for each speed, passing its own file
+  (`import.meta.filename`) to `src/testing/every_wave.ts`'s `holdEveryWave()`
+  or `holdEveryEndlessWave()`, which play the speed the file is named for,
+  since Vitest plays a file's specs one after another but the files side by
+  side.
+- `src/rules/waves/autopilot.spec.ts` holds the autopilot itself, and those
+  folders to a file for every speed: a spec of a frame of the autopilot's
+  draws a field and reads the steering `pilot()` gives it.
 - `yarn report:waves` plays the same games, `--seeds <n>` many more,
   `--field wide` or `--field tall` on the larger fields, and `--endless`
   Endless's, for tuning (the workspace's `AGENTS.md`).

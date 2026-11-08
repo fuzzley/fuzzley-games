@@ -1,16 +1,12 @@
-import { ENDLESS_PLAYED } from "../../testing/autopilot";
-import {
-  fieldFrom,
-  placeRock,
-  shipOf,
-  wholeRocks,
-} from "../../testing/field_picture";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
+import { ENDLESS_PLAYED, FIELDS } from "../../testing/autopilot";
+import { LAYOUT_SEEDS, nearness, startOn } from "../../testing/every_layout";
+import { fieldFrom, placeRock, wholeRocks } from "../../testing/field_picture";
 import { TURN } from "../angles";
-import { type Rock, stepRocks } from "../rocks/rocks";
+import type { Rock } from "../rocks/rocks";
 import { createCrew } from "../ship/pilots";
-import { STILL } from "../ship/ship";
-import { SPEEDS, SPEED_INFO, type Speed } from "../speed";
-import { stepsIn } from "../stepper";
+import { SPEEDS, SPEED_INFO } from "../speed";
 import { type Place, type Torus, across, distance, middleOf } from "../torus";
 import {
   FAIR_COURSE,
@@ -31,28 +27,11 @@ import {
   type Wave,
   parseWave,
 } from "../waves/waves";
-import {
-  type Field,
-  type FieldSetup,
-  type WaveSetup,
-  createField,
-  fieldFor,
-} from "./field";
-import { fillFor } from "./fill";
+import { type Field, type FieldSetup, createField, fieldFor } from "./field";
 import { layOut, liesFairly, safestPlace } from "./spawn";
 
 /** The narrowest field. */
 const NARROWEST: Torus = { width: 40, height: 40 };
-
-/** The narrowest field and the widest, either way up. */
-const FIELDS: readonly Torus[] = [
-  NARROWEST,
-  { width: 88, height: 40 },
-  { width: 40, height: 88 },
-];
-
-/** The seeds each wave is laid out from. */
-const SEEDS = Array.from({ length: 12 }, (_, i) => i * 7919 + 1);
 
 /** Endless's waves the autopilot is held to, by number. */
 const ENDLESS_NUMBERS = ENDLESS_PLAYED.map((entry) => entry.number);
@@ -87,19 +66,6 @@ const SETUP: FieldSetup = {
 /** Returns a field of a shape at a pace, from a seed, its ship waiting in the middle and no rock laid yet. */
 function waitingField(torus: Torus, pace = 1, seed = 1): Field {
   return createField({ ...SETUP, torus, pace, seed });
-}
-
-/** Returns how the spec starts a wave on a field of a shape at a speed, from a seed, with a run's first crew. */
-function startOn(torus: Torus, speed: Speed, seed: number): WaveSetup {
-  return {
-    torus,
-    speed,
-    seed,
-    crew: createCrew(),
-    banked: 0,
-    nextShipAt: FIRST_SHIP_POINTS,
-    held: STILL,
-  };
 }
 
 /** Returns a field of a shape, 40 by 40 unless given, with the spec's rocks laid out in a formation as written. */
@@ -173,65 +139,15 @@ function emptyField(pace = 1): Field {
   return fieldFrom([], { torus: NARROWEST, pace });
 }
 
-/** Says how near a laid field's rocks lie to its ship. */
-interface Nearness {
-  /** How far off the nearest lies. */
-  readonly off: number;
-  /** How near the nearest course comes, as play flies them, in the time a course is judged by. */
-  readonly flown: number;
-}
-
-/** Returns how near a laid field's rocks lie to its ship, flying them on as play does to see. */
-function nearness(field: Field): Nearness {
-  const ship = shipOf(field);
-  const nearest = (): number =>
-    Math.min(
-      ...wholeRocks(field).map((rock) =>
-        distance(field.torus, ship.x, ship.y, rock.x, rock.y),
-      ),
-    );
-  const off = nearest();
-  let flown = Infinity;
-  for (let step = 0; step < stepsIn(FAIR_COURSE_MS); step++) {
-    stepRocks(field);
-    flown = Math.min(flown, nearest());
-  }
-  return { off, flown };
-}
-
 describe("layOut", () => {
-  // Every wave in every formation, on the narrowest field and the widest,
-  // at every speed, from many seeds.
-  const cases = WAVES.flatMap((entry) =>
-    FORMATIONS.flatMap((formation) =>
-      FIELDS.flatMap((torus) =>
-        SPEEDS.map(
-          (speed) =>
-            [
-              `${entry.data.name} as a ${formation}, ${String(torus.width)} by ${String(torus.height)}, at ${speed}`,
-              { ...parseWave(entry), formation },
-              torus,
-              speed,
-            ] as const,
-        ),
-      ),
-    ),
-  );
+  // Every wave in every formation on every field, from many seeds, is laid
+  // out at each speed by the specs in `every_layout/`, a file for each.
+  it("lays every wave out at each speed in a file of its own, and only those", () => {
+    const files = readdirSync(join(import.meta.dirname, "every_layout"));
 
-  it.each(cases)("lays %s out fairly, every rock", (_, wave, torus, speed) => {
-    const unfair: number[] = [];
-    let short = 0;
-
-    for (const seed of SEEDS) {
-      const field = fieldFor(wave, startOn(torus, speed, seed));
-      const fill = fillFor(wave, torus);
-      const laid = fill.rocks.reduce((sum, each) => sum + each.count, 0);
-      short += laid - wholeRocks(field).length;
-      const { off, flown } = nearness(field);
-      if (off < FAIR_DISTANCE || flown < FAIR_COURSE) unfair.push(seed);
-    }
-
-    expect({ short, unfair }).toEqual({ short: 0, unfair: [] });
+    expect(new Set(files)).toEqual(
+      new Set(SPEEDS.map((speed) => `${speed}.spec.ts`)),
+    );
   });
 
   it.each(FORMATIONS)(
@@ -242,7 +158,7 @@ describe("layOut", () => {
       const wave = { ...parseWave(entry), formation };
       const unfair: number[] = [];
 
-      for (const seed of SEEDS) {
+      for (const seed of LAYOUT_SEEDS) {
         const setup = startOn(NARROWEST, "normal", seed);
         const field = fieldFor(wave, { ...setup, rockSpeed: 2 });
         const { off, flown } = nearness(field);
@@ -314,7 +230,7 @@ describe("layOut", () => {
         seed: 1,
       }));
       const endless = ENDLESS_NUMBERS.flatMap((number) =>
-        SEEDS.map((seed) => ({ wave: endlessWave(seed, number), seed })),
+        LAYOUT_SEEDS.map((seed) => ({ wave: endlessWave(seed, number), seed })),
       );
       const rings = [...written, ...endless].filter(
         ({ wave }) => wave.formation === "ring",
@@ -330,7 +246,7 @@ describe("layOut", () => {
 
   it("flies a ring either way, as drawn", () => {
     const ways = new Set(
-      SEEDS.map((seed) => {
+      LAYOUT_SEEDS.map((seed) => {
         const field = waitingField(NARROWEST, 1, seed);
         layOut(field, ROCKS, "ring", MIDDLE);
         const [rock] = wholeRocks(field);
@@ -345,13 +261,13 @@ describe("layOut", () => {
   // So fast that some of a ring's rocks come round the wrap at the ship
   // and are turned to keep clear of it.
   it("flies a ring one way though some of its rocks were turned to keep clear", () => {
-    const ways = SEEDS.map((seed) => {
+    const ways = LAYOUT_SEEDS.map((seed) => {
       const field = waitingField(NARROWEST, 1.5, seed);
       layOut(field, ROCKS, "ring", MIDDLE);
       return new Set(wholeRocks(field).map(wayRound)).size;
     });
 
-    expect(ways).toEqual(SEEDS.map(() => 1));
+    expect(ways).toEqual(LAYOUT_SEEDS.map(() => 1));
   });
 
   it("spaces a ring's rocks evenly", () => {
@@ -563,7 +479,7 @@ describe("layOut", () => {
       const rocks = [{ kind: "lodestone", size: "large", count: 6 }] as const;
       const wave = { ...parsedFirst(), rocks, formation, pace: 1.4 };
 
-      const unfair = SEEDS.filter((seed) => {
+      const unfair = LAYOUT_SEEDS.filter((seed) => {
         const field = fieldFor(wave, startOn(torus, "fast", seed));
         const { off, flown } = nearness(field);
         return off < FAIR_DISTANCE || flown < FAIR_COURSE;

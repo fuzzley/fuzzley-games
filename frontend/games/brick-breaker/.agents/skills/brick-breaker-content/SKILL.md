@@ -26,14 +26,14 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   numbered from 1 across the sets (`LEVELS`).
 - **The checks** that hold it whole:
 
-  | Check              | Where                                | What it holds                                                                                                        |
-  | ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-  | The compiler       | everywhere                           | Every trait and effect has its rule, and every brick, ball and capsule its art                                       |
-  | The catalog spec   | `src/rules/catalog/catalog.spec.ts`  | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level  |
-  | The levels spec    | `src/rules/levels/levels.spec.ts`    | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set       |
-  | The autopilot spec | `src/rules/levels/autopilot.spec.ts` | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field |
-  | The contrast spec  | `src/view/colors/contrast.spec.ts`   | Every color against the field, and the outline and the marks against what they cross, in every palette               |
-  | The scene spec     | `src/scene/bricks_scene.spec.ts`     | Every kind, in every state, drawn from a frame of the atlas                                                          |
+  | Check               | Where                               | What it holds                                                                                                        |
+  | ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+  | The compiler        | everywhere                          | Every trait and effect has its rule, and every brick, ball and capsule its art                                       |
+  | The catalog spec    | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level  |
+  | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set       |
+  | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field |
+  | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette               |
+  | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                          |
 
 ## A Level
 
@@ -62,7 +62,7 @@ no brick.
 Then:
 
 1. `yarn vitest run src/rules/levels/levels.spec.ts src/rules/catalog/catalog.spec.ts`.
-2. `yarn vitest run src/rules/levels/autopilot.spec.ts`, which plays it from its
+2. `yarn vitest run src/rules/levels/every_level/`, which plays it from its
    number as the seed.
 3. `yarn report:levels`, then `yarn report:levels --seeds 20`: its middle
    time should sit with its set's, rising through the game, and a long
