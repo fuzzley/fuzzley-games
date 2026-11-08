@@ -1,6 +1,11 @@
 import { easeOutCubic } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
-import { type SceneRun, objectsIn, strokesOf } from "@fz/phaser/testing";
+import {
+  type SceneRun,
+  objectsIn,
+  strokesOf,
+  watchUploads,
+} from "@fz/phaser/testing";
 import { GameObjects, Textures, TintModes } from "phaser";
 import type { Field } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
@@ -779,13 +784,21 @@ describe("the points", () => {
     readonly y: number;
   }
 
-  /** Records each character the points' atlas writes as it is lettered, and how. */
-  function recordWrites(scene: BeltScene): readonly Written[] {
+  /** Returns the points' atlas, failing where it has no canvas. */
+  function atlasOf(scene: BeltScene): Textures.CanvasTexture {
     const atlas = scene.textures.get(POINTS_ATLAS);
     if (!(atlas instanceof Textures.CanvasTexture)) {
       throw new Error("No canvas for the points' atlas.");
     }
-    const context = atlas.getContext();
+    return atlas;
+  }
+
+  /**
+   * Records each character the points' atlas writes as it is lettered, and
+   * how, until the test finishes.
+   */
+  function recordWrites(scene: BeltScene): readonly Written[] {
+    const context = atlasOf(scene).getContext();
     const written: Written[] = [];
     const style = (): Omit<Written, "text" | "how" | "x" | "y"> => ({
       font: context.font,
@@ -800,6 +813,12 @@ describe("the points", () => {
     context.strokeText = (text, x, y) => {
       written.push({ text, how: "stroke", x, y, ...style() });
     };
+    // The canvas goes back to Phaser's pool, for the next texture made.
+    onTestFinished(() => {
+      for (const name of ["fillText", "strokeText"]) {
+        Reflect.deleteProperty(context, name);
+      }
+    });
     return written;
   }
 
@@ -1076,6 +1095,28 @@ describe("the points", () => {
     }).toEqual({
       lettered: letteringUnit(metricsOf(shell, WIDER).unit),
       stamps: stampsOf(scene, firstScored(scene)),
+    });
+  });
+
+  it("uploads the atlas once, every character written, as it letters them anew at a new size", async () => {
+    const { run, scene } = await startBoard();
+    const atlas = atlasOf(scene);
+    const before = { width: atlas.width, height: atlas.height };
+    const written = recordWrites(scene);
+    const uploads: number[] = [];
+    watchUploads(scene, (canvas) => {
+      if (canvas === atlas.canvas) uploads.push(written.length);
+    });
+    run.game.scale.resize(WIDER.width, WIDER.height);
+
+    run.advance(16);
+
+    expect({
+      resized: atlas.width !== before.width || atlas.height !== before.height,
+      uploads,
+    }).toEqual({
+      resized: true,
+      uploads: [packPoints(letteringOf(scene)).frames.length],
     });
   });
 

@@ -182,6 +182,27 @@ out of the first download.
   `cacheSounds()`.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
+- A `CanvasTexture`'s `setSize()` uploads its canvas, blank, whenever the
+  size changes; its `clear()` reads the canvas back and uploads it, unless
+  its last argument is `false`; and `createCanvas()` uploads a new one
+  blank and reads it back. So a canvas texture drawn again under its own
+  key, as a bake is, goes through `drawCanvasTexture()`, from
+  `@fz/phaser/scene`, each time: it sizes the canvas, its source and its
+  whole frame by hand at a new size, clears it with `clear(…, false)` at
+  the same one, and draws a new texture on a canvas of Phaser's pool
+  before making it, so each drawing uploads once. The drawing touches
+  nothing but the context it is handed, which is saved before it and
+  restored after, so no transform or clip it leaves narrows the next
+  clear. A `Graphics` draws there with
+  `generateTexture(context.canvas, width, height)`: its
+  `generateTexture()` of the key would upload the texture again, as its
+  `refresh()` would, and on a first drawing, where the key has no texture
+  yet, make one of its own, for which `drawCanvasTexture()` throws.
+  `bakeTexture()` draws through it, and so do Asteroid Breaker's points. A
+  canvas drawn once, then added under a fresh key with `addCanvas()`, as
+  the Solitaire Collection's deck is
+  (`frontend/games/solitaire/src/engine/render/phaser/deck/drawn_deck_painter.ts`),
+  uploads once already, and needs none of it.
 
 ## A scene ends; its game doesn't
 

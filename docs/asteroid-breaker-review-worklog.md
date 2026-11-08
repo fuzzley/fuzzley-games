@@ -2087,3 +2087,60 @@ The third found no blocking bug:
    install:_ taken; read as each is asked.
 6. _`canvasRoom()` needs a component's injection context, unchecked:_
    taken.
+
+### Step 16e: steps 11a and 11b's blank atlas, a canvas texture drawn once
+
+Built on `pl-bake`. `@fz/phaser/scene`'s `drawCanvasTexture()` draws a key's
+canvas texture anew at a size and uploads it once, drawn: the one there sized
+by hand, its canvas, source, whole frame and own size, or cleared with
+`clear(…, false)` at the same size; or a new one drawn on a canvas of Phaser's
+pool before `addCanvas()` makes it, the key checked first. Phaser's
+`setSize()` and `clear()` had uploaded the blank canvas twice and read it
+back once before each bake, and `createCanvas()` once. Each drawing runs in a
+context saved before and restored after, and the canvas goes back to the pool
+where a drawing throws or makes a texture of its own. `bakeTexture()` draws
+its `Graphics` through it, and Asteroid Breaker's points atlas its
+characters. In Asteroid Breaker's drag from 1280×720 to 800×600, at 2× with
+the CPU throttled ×6, a rebake of the field's atlas takes 292 to 456 ms
+against 394 to 657, the blank atlas's 101 to 235 gone; unthrottled, a median
+of 54 ms against 84. The points atlas, lettered anew six times on the way,
+uploads six times rather than twelve. Both atlases are byte-identical.
+`@fz/phaser/testing`'s `watchUploads()` lets a spec count them.
+
+Where it went other than planned:
+
+- The plan named `bakeTexture()`; the points atlas copied the same calls, so
+  the fix is a helper both take.
+- A canvas drawn once and added under a fresh key, as the Solitaire
+  Collection's deck is, already uploads once and keeps its own way.
+- `addCanvas()`'s refusal is unreachable now the key is checked first; its
+  guard stays for the type checker, uncovered.
+
+The first review found the core right:
+
+1. _No spec held that a new texture is drawn before it is uploaded:_ taken.
+2. _Asteroid Breaker's points atlas still uploaded a blank canvas, copying
+   the find-or-make:_ taken; `drawCanvasTexture()`, which it takes.
+3. _`Object.assign` to Phaser's read-only size checked nothing:_ taken; a
+   typed view.
+4. _The pooled canvas wasn't taken as Phaser takes it, and a refused key
+   left it taken:_ taken.
+5. _A spec's patches to a pooled canvas's context outlived it:_ taken.
+6. _The skill's bullet said more than the code did:_ taken.
+7. _Two helpers watched uploads, two atlas specs retested the texture's, and
+   `clearTo()` read like a color:_ taken.
+
+The second, on that reshape, found the pictures, the points and a lost
+context as before:
+
+1. _A drawing that left a transform or clip would narrow the next clear:_
+   taken; saved and restored.
+2. _A drawing that made its own texture failed as a refused key:_ taken;
+   said, and thrown for by name.
+3. _A drawing that threw kept its pooled canvas, and a refused key was drawn
+   before it was checked:_ taken.
+4. _The context's settings and the canvas drawn on were unchecked:_ taken.
+5. _Watching uploads twice in a test recursed:_ taken; thrown for.
+6. _The rule, as written, would have a reader "fix" the Solitaire
+   Collection's deck:_ taken; limited to a texture drawn again under its
+   key.

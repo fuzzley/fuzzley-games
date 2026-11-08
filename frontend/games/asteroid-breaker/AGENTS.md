@@ -407,7 +407,9 @@ takes for the specs' helpers.
   written with a canvas's own `fillText()` and `strokeText()`, at the
   field's whole unit past the field's cap, so they stay sharp on a large
   field, again on a new palette, a new font, or as the field's unit passes
-  a whole device pixel, and after a lost context.
+  a whole device pixel, and after a lost context, each time through
+  `@fz/phaser/scene`'s `drawCanvasTexture()`, which uploads the atlas once,
+  written.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
   sprite in `sounds/`, which `yarn build:sounds` writes, a broken rock's
   risen along its chain, holds the thrust's hum while the ship thrusts, and

@@ -128,6 +128,24 @@ describe("bakeAtlas", () => {
     });
   });
 
+  it("keeps its texture when baked again, at the size of the new frames", async () => {
+    const { scene } = await startScene();
+    bakeAtlas(scene, "atlas", [frame("brick", 20, 10), frame("ball", 6)]);
+    const first = scene.textures.get("atlas");
+    const frames = [frame("brick", 40, 20), frame("ball", 12)];
+
+    bakeAtlas(scene, "atlas", frames);
+
+    const texture = scene.textures.get("atlas");
+    const whole = texture.get("__BASE");
+    const { width, height } = atlasSize(frames);
+    expect({
+      same: texture === first,
+      source: [texture.source[0]?.width, texture.source[0]?.height],
+      whole: [whole.cutWidth, whole.cutHeight],
+    }).toEqual({ same: true, source: [width, height], whole: [width, height] });
+  });
+
   it("maps a moved frame onto the atlas at its new size", async () => {
     const { scene } = await startScene();
     bakeAtlas(scene, "atlas", [frame("brick", 20, 10), frame("ball", 6)]);

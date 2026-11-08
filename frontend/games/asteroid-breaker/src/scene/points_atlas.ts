@@ -1,5 +1,6 @@
 import { cssHex } from "@fz/phaser/color";
-import { type Scene, Textures } from "phaser";
+import { drawCanvasTexture } from "@fz/phaser/scene";
+import type { Scene } from "phaser";
 import {
   type PointsLettering,
   letterPoints,
@@ -46,50 +47,35 @@ export class PointsAtlas {
       measuring.measureText(text),
     );
     const { width, height, frames } = packPoints(lettering);
-    const texture = canvasTexture(this.scene, POINTS_ATLAS, width, height);
-    const context = texture.getContext();
-    context.clearRect(0, 0, width, height);
-    // As Phaser's `Text` writes a line: its outline's joins and ends round.
-    context.font = lettering.font;
-    context.textAlign = "left";
-    context.textBaseline = "alphabetic";
-    context.lineWidth = lettering.outline;
-    context.lineJoin = "round";
-    context.lineCap = "round";
-    context.fillStyle = cssHex(palette.shot);
-    context.strokeStyle = cssHex(palette.outline);
+    const texture = drawCanvasTexture(
+      this.scene,
+      POINTS_ATLAS,
+      width,
+      height,
+      (context) => {
+        // As Phaser's `Text` writes a line: its outline's joins and ends round.
+        context.font = lettering.font;
+        context.textAlign = "left";
+        context.textBaseline = "alphabetic";
+        context.lineWidth = lettering.outline;
+        context.lineJoin = "round";
+        context.lineCap = "round";
+        context.fillStyle = cssHex(palette.shot);
+        context.strokeStyle = cssHex(palette.outline);
+        for (const { character, outlined, penX, penY } of frames) {
+          if (outlined) context.strokeText(character, penX, penY);
+          else context.fillText(character, penX, penY);
+        }
+      },
+    );
     for (const frame of frames) {
-      const { name, character, x, y, penX, penY } = frame;
-      if (frame.outlined) context.strokeText(character, penX, penY);
-      else context.fillText(character, penX, penY);
+      const { name, x, y } = frame;
       if (texture.has(name)) {
         texture.get(name).setSize(frame.width, frame.height, x, y);
       } else {
         texture.add(name, 0, x, y, frame.width, frame.height);
       }
     }
-    texture.refresh();
     return lettering;
   }
-}
-
-/**
- * Returns the canvas texture of a key, at a size: the one there, which an
- * earlier scene of the game may have made, or a new one.
- */
-function canvasTexture(
-  scene: Scene,
-  key: string,
-  width: number,
-  height: number,
-): Textures.CanvasTexture {
-  const textures = scene.textures;
-  const existing = textures.exists(key) ? textures.get(key) : null;
-  if (existing instanceof Textures.CanvasTexture) {
-    return existing.setSize(width, height);
-  }
-  if (existing) textures.remove(key);
-  const made = textures.createCanvas(key, width, height);
-  if (!made) throw new Error(`The texture "${key}" could not be made.`);
-  return made;
 }

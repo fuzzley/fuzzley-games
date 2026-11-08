@@ -1,5 +1,5 @@
-import { type GameObjects, type Scene, Textures } from "phaser";
-import { runBareScene } from "../testing";
+import { GameObjects, type Scene, Textures } from "phaser";
+import { runBareScene, watchUploads } from "../testing";
 import { bakeTexture } from "./bake_texture";
 
 /** Returns the canvas texture under a key, failing if there is none. */
@@ -9,6 +9,42 @@ function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
     throw new Error(`No canvas texture "${key}"`);
   }
   return texture;
+}
+
+/** What a scene's bakes did, from when {@link recordBakes} began to watch them. */
+interface Bakes {
+  /**
+   * Returns each picture a `Graphics` drew, as "draw", and each canvas the
+   * game uploaded, as "upload", in turn.
+   */
+  steps(): string[];
+  /** Returns what the last picture was drawn on. */
+  drawnOn(): unknown;
+}
+
+/**
+ * Watches each picture a `Graphics` draws from now on, and each canvas the
+ * game uploads, until the test finishes.
+ */
+function recordBakes(scene: Scene): Bakes {
+  const draws = vi.spyOn(GameObjects.Graphics.prototype, "generateTexture");
+  onTestFinished(() => {
+    draws.mockRestore();
+  });
+  const uploads = vi.fn<(canvas: HTMLCanvasElement) => void>();
+  watchUploads(scene, uploads);
+  const stepsOf = (calls: readonly number[], step: string) =>
+    calls.map((order) => ({ order, step }));
+  return {
+    steps: () =>
+      [
+        ...stepsOf(draws.mock.invocationCallOrder, "draw"),
+        ...stepsOf(uploads.mock.invocationCallOrder, "upload"),
+      ]
+        .sort((a, b) => a.order - b.order)
+        .map(({ step }) => step),
+    drawnOn: () => draws.mock.lastCall?.[0],
+  };
 }
 
 describe("bakeTexture", () => {
@@ -33,16 +69,51 @@ describe("bakeTexture", () => {
     run.destroy();
   });
 
-  it("draws over the texture already there", async () => {
+  it.each([
+    [24, 24],
+    [40, 30],
+  ])(
+    "draws over the texture already there, baked again at %i × %i",
+    async (width, height) => {
+      const run = await runBareScene();
+      bakeTexture(run.scene, "apple", 24, 24, vi.fn());
+      const first = run.scene.textures.get("apple");
+
+      bakeTexture(run.scene, "apple", width, height, vi.fn());
+
+      expect(run.scene.textures.get("apple")).toBe(first);
+      run.destroy();
+    },
+  );
+
+  it("draws a new texture on its canvas, then uploads it once", async () => {
     const run = await runBareScene();
-    bakeTexture(run.scene, "apple", 24, 24, vi.fn());
-    const first = run.scene.textures.get("apple");
+    const bakes = recordBakes(run.scene);
 
     bakeTexture(run.scene, "apple", 24, 24, vi.fn());
 
-    expect(run.scene.textures.get("apple")).toBe(first);
+    expect(bakes.steps()).toEqual(["draw", "upload"]);
+    expect(bakes.drawnOn()).toBe(canvasTexture(run.scene, "apple").canvas);
     run.destroy();
   });
+
+  it.each([
+    [24, 24],
+    [40, 30],
+  ])(
+    "draws the texture already there anew on its canvas, then uploads it once, baked again at %i × %i",
+    async (width, height) => {
+      const run = await runBareScene();
+      bakeTexture(run.scene, "apple", 24, 24, vi.fn());
+      const bakes = recordBakes(run.scene);
+
+      bakeTexture(run.scene, "apple", width, height, vi.fn());
+
+      expect(bakes.steps()).toEqual(["draw", "upload"]);
+      expect(bakes.drawnOn()).toBe(canvasTexture(run.scene, "apple").canvas);
+      run.destroy();
+    },
+  );
 
   it("replaces a texture of the key that isn't a canvas", async () => {
     const run = await runBareScene();
