@@ -4,7 +4,6 @@
 // comes later by it, as its wave lasts longer; comets come more often by
 // the square root of it, as each crosses a longer field.
 
-import type { Field } from "./field";
 import { type Torus, wrap } from "../torus";
 import {
   FIELD_SHORT_SIDE,
@@ -28,6 +27,29 @@ export interface Fill {
   readonly strayFirstMs: number;
   /** The time from one comet to the next, in milliseconds, or null for a wave without comets. */
   readonly cometEvery: Span | null;
+}
+
+/**
+ * Describes what of the field a stretch moves: its size, and every place on
+ * it, the ship's, the shots', the rocks', the pickups', the stray's and the
+ * comets'.
+ */
+export interface StretchField {
+  torus: Torus;
+  readonly ship: Stretched | null;
+  readonly shots: { readonly slots: readonly Stretched[] };
+  readonly rocks: readonly Stretched[];
+  readonly pickups: readonly Stretched[];
+  readonly strays: { readonly adrift: Stretched };
+  readonly comets: { readonly slots: readonly Stretched[] };
+}
+
+/** Describes a place on the field and where it was a step ago, which a stretch moves. */
+interface Stretched {
+  x: number;
+  y: number;
+  lastX: number;
+  lastY: number;
 }
 
 /** The area a wave's counts are written for, a field of 40 by 40. */
@@ -76,7 +98,7 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
  * place the mouse last pointed at through a stretch, so a still mouse
  * doesn't end a ship's wait.
  */
-export function stretchField(field: Field, torus: Torus): void {
+export function stretchField(field: StretchField, torus: Torus): void {
   const from = field.torus;
   const wrapping = [
     ...(field.ship ? [field.ship] : []),
@@ -96,14 +118,6 @@ export function stretchField(field: Field, torus: Torus): void {
     stretch(place, from, torus);
   }
   field.torus = torus;
-}
-
-/** Describes a place on the field and where it was a step ago, which a stretch moves. */
-interface Stretched {
-  x: number;
-  y: number;
-  lastX: number;
-  lastY: number;
 }
 
 /** Moves a place and where it was a step ago by a stretch from one shape to another. */

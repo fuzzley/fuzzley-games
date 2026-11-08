@@ -8,13 +8,18 @@ import {
   type PickupId,
   pickup,
 } from "../catalog/pickups";
-import type { Floating } from "./drops";
-import type { Field } from "../field/field";
-import { gainShipOn } from "../ship/pilots";
-import { hitWithin } from "./rocks";
-import type { Ship } from "../ship/ship";
+import type { WeaponId } from "../catalog/weapons";
+import type { DropSetup, Floating } from "./drops";
+import { type Crew, type CrewField, gainShipOn } from "../ship/pilots";
+import { type RockField, hitWithin } from "./rocks";
 import { stepsIn } from "../stepper";
-import { type Torus, distanceSquared, pullToward, wrap } from "../torus";
+import {
+  type Place,
+  type Torus,
+  distanceSquared,
+  pullToward,
+  wrap,
+} from "../torus";
 import {
   PICKUP_CATCH_REACH,
   PICKUP_PULL_REACH,
@@ -33,19 +38,47 @@ export interface InEffect {
 /** The effects in play, one for each group. */
 export type Effects = Readonly<Record<EffectKind, InEffect>>;
 
+/** Says how a wave lets pickups go, and the pace its rocks go at, which Slow scales. */
+interface EffectSetup extends DropSetup {
+  readonly pace: number;
+}
+
+/**
+ * Describes what the pickups and their effects act on: the rocks' field,
+ * which the Nova hits, the crew, which a ship caught joins, the ship
+ * catching them, the effects in play, and what each effect changes.
+ */
+export interface PickupField extends RockField, CrewField {
+  readonly setup: EffectSetup;
+  readonly ship: Readonly<Place> | null;
+  crew: Crew;
+  readonly effects: Effects;
+  /** The weapon in hand. */
+  weapon: WeaponId;
+  /** Whether a Shield guards the ship from the next rock to touch it. */
+  shielded: boolean;
+  /** How near the ship a pickup is drawn in to it from. */
+  pullReach: number;
+  pace: number;
+}
+
 /** An effect of each kind, by its kind. */
 type EffectOf = { readonly [E in PickupEffect as E["kind"]]: E };
 
 /** Says what the field does for one kind of effect, as it starts and as it ends. */
 interface EffectRule<E extends PickupEffect> {
   /** Runs as the ship catches a pickup with it. */
-  readonly start: (field: Field, effect: E, ship: Readonly<Ship>) => void;
+  readonly start: (
+    field: PickupField,
+    effect: E,
+    ship: Readonly<Place>,
+  ) => void;
   /**
    * Undoes it, as its time runs out, the next pickup of its group is
    * caught, a ship is lost or the wave is cleared. An effect without one is
    * over as it starts.
    */
-  readonly end?: (field: Field) => void;
+  readonly end?: (field: PickupField) => void;
 }
 
 /** What each effect does, so an effect without its rule fails to compile. */
@@ -98,7 +131,10 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
 /** Every kind of effect, in the order the field shows their tags. */
 export const EFFECT_KINDS = keysOf(EFFECT_RULES);
 
-/** Returns whether an effect of a kind lasts, until its time runs out or it is used, rather than being over as it starts. */
+/**
+ * Returns whether an effect of a kind lasts, until its time runs out or it is
+ * used, rather than being over as it starts.
+ */
 export function lasts(kind: EffectKind): boolean {
   return EFFECT_RULES[kind].end !== undefined;
 }
@@ -121,7 +157,7 @@ export function createEffects(): Effects {
  * one within the field's reach of the ship is drawn in toward it, any other
  * drifts, and the ship catches one that touches it.
  */
-export function stepPickups(field: Field): void {
+export function stepPickups(field: PickupField): void {
   const { ship, torus } = field;
   for (const floating of field.pickups) {
     if (!floating.live) continue;
@@ -144,7 +180,7 @@ export function stepPickups(field: Field): void {
 }
 
 /** Ends the effects whose time has run out. */
-export function stepEffects(field: Field): void {
+export function stepEffects(field: PickupField): void {
   for (const kind of EFFECT_KINDS) {
     const inEffect = field.effects[kind];
     if (inEffect.pickup === null || inEffect.endsAt === 0) continue;
@@ -153,7 +189,7 @@ export function stepEffects(field: Field): void {
 }
 
 /** Ends an effect of a group, if one is in play. */
-export function endEffect(field: Field, kind: EffectKind): void {
+export function endEffect(field: PickupField, kind: EffectKind): void {
   const inEffect = field.effects[kind];
   if (inEffect.pickup === null) return;
   inEffect.pickup = null;
@@ -162,12 +198,12 @@ export function endEffect(field: Field, kind: EffectKind): void {
 }
 
 /** Ends every effect, as a ship is lost or the wave is cleared. */
-export function endEffects(field: Field): void {
+export function endEffects(field: PickupField): void {
   for (const kind of EFFECT_KINDS) endEffect(field, kind);
 }
 
 /** Lets go of the floating pickups, as a ship is lost or the wave is cleared. */
-export function clearPickups(field: Field): void {
+export function clearPickups(field: Pick<PickupField, "pickups">): void {
   for (const floating of field.pickups) floating.live = false;
 }
 
@@ -176,9 +212,9 @@ export function clearPickups(field: Field): void {
  * any, so the same pickup again starts its time over.
  */
 function catchPickup(
-  field: Field,
+  field: PickupField,
   floating: Readonly<Floating>,
-  ship: Readonly<Ship>,
+  ship: Readonly<Place>,
 ): void {
   const { id } = floating;
   const { effect } = pickup(id);
@@ -194,19 +230,22 @@ function catchPickup(
 
 /** Runs an effect's start rule. */
 function startEffect<K extends EffectKind>(
-  field: Field,
+  field: PickupField,
   kind: K,
   effect: EffectOf[K],
-  ship: Readonly<Ship>,
+  ship: Readonly<Place>,
 ): void {
   EFFECT_RULES[kind].start(field, effect, ship);
 }
 
-/** Draws a pickup a step in toward the ship, if it is within the field's reach of it, and returns whether it did. */
+/**
+ * Draws a pickup a step in toward the ship, if it is within the field's reach
+ * of it, and returns whether it did.
+ */
 function pullIn(
-  field: Field,
+  field: PickupField,
   floating: Floating,
-  ship: Readonly<Ship>,
+  ship: Readonly<Place>,
 ): boolean {
   return pullToward(
     floating,
@@ -226,7 +265,7 @@ function drift(floating: Floating, torus: Torus): void {
 /** Returns whether a pickup touches the ship, near enough to its middle to be caught. */
 function touches(
   floating: Readonly<Floating>,
-  ship: Readonly<Ship>,
+  ship: Readonly<Place>,
   torus: Torus,
 ): boolean {
   const apart = distanceSquared(torus, floating.x, floating.y, ship.x, ship.y);

@@ -6,8 +6,7 @@
 
 import { rockPoints } from "../catalog/rocks";
 import type { FieldEventLog } from "./events";
-import type { Field } from "./field";
-import { type Crew, gainShipOn } from "../ship/pilots";
+import { type Crew, type CrewField, gainShipOn } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { stepsIn } from "../stepper";
 import {
@@ -19,7 +18,10 @@ import {
   STRAY_POINTS,
 } from "../tuning";
 
-/** Describes what of the field its points change, which the rocks' rules hand on as a rock breaks. */
+/**
+ * Describes what of the field its points change, which the rocks' rules hand on
+ * as a rock breaks.
+ */
 export interface ScoreField {
   /** The wave's points, its clearing's among them once it is cleared. */
   score: number;
@@ -37,6 +39,25 @@ export interface ScoreField {
   readonly shipsLost: number;
   /** What happened, for the scene to play. */
   readonly events: FieldEventLog;
+}
+
+/**
+ * Describes what of the field the ships its points bring act on: the crew
+ * they join, the run's points banked as the wave started and the wave's
+ * own, and the next ship's mark, which each moves on.
+ */
+export interface MarkField extends CrewField {
+  readonly setup: { readonly banked: number };
+  readonly score: number;
+  nextShipAt: number;
+}
+
+/** Describes what of a cleared wave's field says how its points add up. */
+export interface TallyField extends Pick<
+  ScoreField,
+  "score" | "chainPoints" | "shipsLost"
+> {
+  readonly strays: { readonly broughtHome: number };
 }
 
 /** Describes how a cleared wave's points add up, for its card. */
@@ -61,7 +82,10 @@ export function multiplier(count: number): number {
   return 1;
 }
 
-/** Returns the multiplier the field's chain stands at, its last break's, which a stray brought home scores at, or 1 once its time is up. */
+/**
+ * Returns the multiplier the field's chain stands at, its last break's, which a
+ * stray brought home scores at, or 1 once its time is up.
+ */
 export function chainMultiplier(field: Readonly<ScoreField>): number {
   return multiplier(chainNow(field));
 }
@@ -77,12 +101,18 @@ export function scoreBreak(field: ScoreField, rock: Readonly<Rock>): void {
   score(field, rockPoints(rock.kind, rock.size), rock.x, rock.y);
 }
 
-/** Returns the count in its chain a break now would be: the next of the chain's, or the first of a new one once its time is up. */
+/**
+ * Returns the count in its chain a break now would be: the next of the chain's,
+ * or the first of a new one once its time is up.
+ */
 export function chainCountOf(field: Readonly<ScoreField>): number {
   return chainNow(field) + 1;
 }
 
-/** Scores a stray brought home at a place, times the chain's multiplier, without counting it on in the chain. */
+/**
+ * Scores a stray brought home at a place, times the chain's multiplier, without
+ * counting it on in the chain.
+ */
 export function scoreStray(field: ScoreField, x: number, y: number): void {
   score(field, STRAY_POINTS, x, y);
 }
@@ -107,7 +137,7 @@ export function scoreClearing(field: ScoreField): void {
  * flown by the first stray at home if one waits, the next mark coming the
  * points between ships after. A run over gains none.
  */
-export function gainShipsByPoints(field: Field): void {
+export function gainShipsByPoints(field: MarkField): void {
   while (
     !isOver(field) &&
     field.setup.banked + field.score >= field.nextShipAt
@@ -118,9 +148,7 @@ export function gainShipsByPoints(field: Field): void {
 }
 
 /** Returns how a cleared wave's points add up, as its field stands. */
-export function tallyOf(
-  field: Pick<Field, "score" | "chainPoints" | "shipsLost" | "strays">,
-): WaveTally {
+export function tallyOf(field: Readonly<TallyField>): WaveTally {
   const strays = field.strays.broughtHome * STRAY_POINTS;
   const clean = field.shipsLost === 0 ? CLEAN_POINTS : 0;
   return {
@@ -145,7 +173,10 @@ function chainNow(field: Readonly<ScoreField>): number {
   return within ? field.chain : 0;
 }
 
-/** Adds points to the wave's, times the chain's multiplier, and logs them at a place, unless the run is over. */
+/**
+ * Adds points to the wave's, times the chain's multiplier, and logs them at a
+ * place, unless the run is over.
+ */
 function score(field: ScoreField, points: number, x: number, y: number): void {
   if (isOver(field)) return;
   const times = chainMultiplier(field);

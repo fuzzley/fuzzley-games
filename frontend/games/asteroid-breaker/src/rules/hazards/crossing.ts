@@ -4,8 +4,7 @@
 
 import { clamp } from "@fz/core/math";
 import { RADIANS_PER_DEGREE } from "../angles";
-import { drawIn, nextDraw } from "../draws";
-import type { Field } from "../field/field";
+import { type Draws, drawIn, nextDraw } from "../draws";
 import { type Place, type Torus, distanceSquared } from "../torus";
 import { ENTRY_ALONG, STEP_S } from "../tuning";
 
@@ -22,6 +21,14 @@ export interface Crossing {
   lastY: number;
 }
 
+/**
+ * Describes what of the field a crossing comes in by: its size, and the
+ * draws its edge, its place and its tilt come from.
+ */
+export interface CrossingField extends Draws {
+  readonly torus: Torus;
+}
+
 /** Returns a crossing's record, not on its way. */
 export function blankCrossing(): Crossing {
   return { live: false, x: 0, y: 0, heading: 0, lastX: 0, lastY: 0 };
@@ -33,7 +40,7 @@ export function blankCrossing(): Crossing {
  * tilt, in degrees, the edge, the place and the tilt each drawn.
  */
 export function comeIn(
-  field: Field,
+  field: CrossingField,
   crossing: Crossing,
   margin: number,
   tilt: number,
@@ -78,7 +85,10 @@ export function fly(crossing: Crossing, speed: number): void {
   crossing.y += Math.sin(crossing.heading) * speed * STEP_S;
 }
 
-/** Returns whether a crossing's middle is farther than a margin off the field, so it is out of sight. */
+/**
+ * Returns whether a crossing's middle is farther than a margin off the field,
+ * so it is out of sight.
+ */
 export function hasLeft(
   crossing: Readonly<Crossing>,
   margin: number,

@@ -4,7 +4,7 @@
 
 import { RADIANS_PER_DEGREE } from "../angles";
 import { WEAPONS, type WeaponId } from "../catalog/weapons";
-import { type Flight, type Ship, TUNED_FLIGHT } from "./ship";
+import type { Flight, Ship } from "./ship";
 import { stepsIn } from "../stepper";
 import { type Torus, across, wrap } from "../torus";
 import {
@@ -51,7 +51,10 @@ export interface Shot {
   readonly passedAt: number[];
 }
 
-/** Describes the ship's shots: a slot for each it can have in flight, made once, and the time until it can fire again. */
+/**
+ * Describes the ship's shots: a slot for each it can have in flight, made once,
+ * and the time until it can fire again.
+ */
 export interface Shots {
   /**
    * A slot for each shot every weapon can have in flight at once, so a pull
@@ -67,10 +70,27 @@ export interface Shots {
 export interface Gunnery {
   /** How fast a shot flies, before the ship's velocity is added, in units a second. */
   readonly shotSpeed: number;
-  /** The time between the gun's pulls; every weapon's scales with it, so Rapid's stays half of it. */
+  /**
+   * The time between the gun's pulls; every weapon's scales with it, so Rapid's
+   * stays half of it.
+   */
   readonly gunEveryMs: number;
   /** Whether a shot leaves with the ship's velocity added to its own. */
   readonly carryShip: boolean;
+}
+
+/**
+ * Describes what of the field its shots fly and fire by: the shots, the
+ * ship firing them, the weapon in hand, the field's size, and how the
+ * shots and the ship fly, as the debug menu may tune them.
+ */
+export interface ShotField {
+  readonly shots: Shots;
+  readonly ship: Readonly<Ship> | null;
+  readonly weapon: WeaponId;
+  readonly torus: Torus;
+  readonly gunnery: Gunnery;
+  readonly flight: Flight;
 }
 
 /** The gunnery `tuning.ts` gives, which every check fires. */
@@ -123,15 +143,8 @@ export function createShots(): Shots {
  * its first step at once. A shot carries the ship's velocity only up to its
  * flight's top speed, so a dash throws the ship but not its shots.
  */
-export function stepShots(
-  shots: Shots,
-  ship: Readonly<Ship> | null,
-  fire: boolean,
-  weaponId: WeaponId,
-  torus: Torus,
-  gunnery: Gunnery = TUNED_GUNNERY,
-  flight: Flight = TUNED_FLIGHT,
-): boolean {
+export function stepShots(field: ShotField, fire: boolean): boolean {
+  const { shots, ship, torus } = field;
   if (shots.reloadSteps > 0) shots.reloadSteps -= 1;
   let flying = 0;
   for (const shot of shots.slots) {
@@ -139,9 +152,9 @@ export function stepShots(
     shot.lifeSteps -= 1;
     if (shot.lifeSteps === 0) continue;
     flyShot(shot, torus);
-    if (shot.weapon === weaponId) flying += 1;
+    if (shot.weapon === field.weapon) flying += 1;
   }
-  const weapon = WEAPONS[weaponId];
+  const weapon = WEAPONS[field.weapon];
   if (
     !fire ||
     ship === null ||
@@ -151,7 +164,7 @@ export function stepShots(
   ) {
     return false;
   }
-  pull(shots, ship, weaponId, torus, gunnery, flight);
+  pull(field, ship);
   return true;
 }
 
@@ -202,15 +215,12 @@ export function sweepShot(
   return met <= 1 ? met : MISSED;
 }
 
-/** Fires a pull of a weapon from a ship's nose, fanned about its heading, each shot flying its first step at once. */
-function pull(
-  shots: Shots,
-  ship: Readonly<Ship>,
-  weaponId: WeaponId,
-  torus: Torus,
-  gunnery: Gunnery,
-  flight: Flight,
-): void {
+/**
+ * Fires a pull of the weapon in hand from the ship's nose, fanned about its
+ * heading, each shot flying its first step at once.
+ */
+function pull(field: ShotField, ship: Readonly<Ship>): void {
+  const { shots, torus, gunnery, flight, weapon: weaponId } = field;
   const weapon = WEAPONS[weaponId];
   const noseX = wrap(ship.x + Math.cos(ship.angle) * NOSE, torus.width);
   const noseY = wrap(ship.y + Math.sin(ship.angle) * NOSE, torus.height);

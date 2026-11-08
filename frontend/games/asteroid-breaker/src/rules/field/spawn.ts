@@ -6,7 +6,13 @@
 import { TURN } from "../angles";
 import type { RockKindId, RockSize } from "../catalog/rocks";
 import { drawIn, nextDraw } from "../draws";
-import { type Rock, type RockField, addRock, flyRock } from "../rocks/rocks";
+import {
+  type CourseField,
+  type Rock,
+  type RockField,
+  addRock,
+  flyRock,
+} from "../rocks/rocks";
 import { stepsIn } from "../stepper";
 import { type Place, across, distanceSquared, middleOf, wrap } from "../torus";
 import {
@@ -26,10 +32,16 @@ const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 /** How many steps round an ellipse its length is measured in, to space places evenly along it. */
 const ELLIPSE_STEPS = 720;
 
-/** How many times a rock's speed is halved at most to keep it clear, which leaves it all but still. */
+/**
+ * How many times a rock's speed is halved at most to keep it clear, which
+ * leaves it all but still.
+ */
 const HALVINGS = 20;
 
-/** How far inside a bound a course aimed at it is kept, in units, so its steps' rounding can't cross it. */
+/**
+ * How far inside a bound a course aimed at it is kept, in units, so its steps'
+ * rounding can't cross it.
+ */
 const HAIR = 1e-6;
 
 /**
@@ -55,11 +67,11 @@ export function layOut(
  * flies it with the ship waiting there, a drawn rock's pull among it.
  */
 export function liesFairly(
-  field: RockField,
+  field: Omit<CourseField, "ship">,
   rock: Readonly<Rock>,
   ship: Place,
 ): boolean {
-  const { torus } = field;
+  const { torus, pace, rockSpeed } = field;
   if (
     distanceSquared(torus, ship.x, ship.y, rock.x, rock.y) <
     FAIR_DISTANCE ** 2
@@ -67,7 +79,7 @@ export function liesFairly(
     return false;
   }
   // Step by step, as a course so long may cross the wrap.
-  const ahead: RockField = { ...field, ship };
+  const ahead: CourseField = { ship, torus, pace, rockSpeed };
   const course = { ...rock };
   for (let step = 0; step < stepsIn(FAIR_COURSE_MS); step++) {
     flyRock(ahead, course);
@@ -304,7 +316,10 @@ function speedOf(rock: Readonly<Rock>): number {
   return Math.hypot(rock.vx, rock.vy);
 }
 
-/** Returns how far the nearest whole rock's middle will be from a place a time ahead, or Infinity with none. */
+/**
+ * Returns how far the nearest whole rock's middle will be from a place a time
+ * ahead, or Infinity with none.
+ */
 function nearestRock(field: RockField, place: Place, ms: number): number {
   const time = (ms / 1000) * field.pace;
   let nearest = Infinity;

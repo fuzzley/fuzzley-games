@@ -2,8 +2,8 @@
 // break the rocks they meet a size down and take a ship.
 
 import { drawIn } from "../draws";
-import type { Field } from "../field/field";
-import { hitRock, rockHitRadius } from "../rocks/rocks";
+import type { DropSetup } from "../rocks/drops";
+import { type RockField, hitRock, rockHitRadius } from "../rocks/rocks";
 import type { Ship } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
@@ -36,7 +36,10 @@ export interface CometSetup {
   readonly cometEvery: Span | null;
 }
 
-/** Describes a comet, warned of off the edge it will come in by, then crossing the field in a straight line. */
+/**
+ * Describes a comet, warned of off the edge it will come in by, then crossing
+ * the field in a straight line.
+ */
 export interface Comet extends Crossing {
   /** The steps left of its warning, which it waits through off its edge; 0 once it crosses. */
   warnSteps: number;
@@ -57,7 +60,19 @@ export interface Comets {
   nextAt: number;
 }
 
-/** How many comets can be on their way at once, warned of or crossing; one due while every record is taken doesn't come. */
+/**
+ * Describes what the comets act on: the rocks' field, which they break
+ * rocks on, its setup, which says how often they come, and their records.
+ */
+export interface CometField extends RockField {
+  readonly setup: DropSetup & CometSetup;
+  readonly comets: Comets;
+}
+
+/**
+ * How many comets can be on their way at once, warned of or crossing; one due
+ * while every record is taken doesn't come.
+ */
 export const COMET_RECORDS = 3;
 
 /**
@@ -84,7 +99,7 @@ export function createComets(): Comets {
  * a time from its span, {@link COMET_FIRST_SHARE}, so a wave cleared quickly
  * still meets one.
  */
-export function scheduleFirstComet(field: Field): void {
+export function scheduleFirstComet(field: CometField): void {
   scheduleComet(field, COMET_FIRST_SHARE);
 }
 
@@ -94,7 +109,7 @@ export function scheduleFirstComet(field: Field): void {
  * field's pace, breaking each rock it meets a size down, until it has left
  * the field.
  */
-export function stepComets(field: Field): void {
+export function stepComets(field: CometField): void {
   const { comets, torus } = field;
   if (field.setup.cometEvery !== null && field.steps >= comets.nextAt) {
     sendComet(field);
@@ -115,7 +130,10 @@ export function stepComets(field: Field): void {
 }
 
 /** Returns whether a crossing comet touches a ship. */
-export function touchesComet(field: Field, ship: Readonly<Ship>): boolean {
+export function touchesComet(
+  field: Pick<CometField, "comets" | "torus">,
+  ship: Readonly<Ship>,
+): boolean {
   for (const comet of field.comets.slots) {
     if (!comet.live || comet.warnSteps > 0) continue;
     if (reaches(comet, ship, COMET_RADIUS + SHIP_HIT_RADIUS, field.torus)) {
@@ -126,12 +144,15 @@ export function touchesComet(field: Field, ship: Readonly<Ship>): boolean {
 }
 
 /** Lets the comets go, as the wave is cleared. */
-export function clearComets(field: Field): void {
+export function clearComets(field: Pick<CometField, "comets">): void {
   for (const comet of field.comets.slots) comet.live = false;
 }
 
-/** Draws when a wave with comets warns of its next: a time from its span, or a share of one, after the step under way. */
-function scheduleComet(field: Field, share = 1): void {
+/**
+ * Draws when a wave with comets warns of its next: a time from its span, or a
+ * share of one, after the step under way.
+ */
+function scheduleComet(field: CometField, share = 1): void {
   const every = field.setup.cometEvery;
   if (every === null) return;
   const span = { least: every.least * share, most: every.most * share };
@@ -142,7 +163,7 @@ function scheduleComet(field: Field, share = 1): void {
  * Warns of a comet off an edge, in a free record, and draws when the next
  * comes; one due while every record is taken doesn't come.
  */
-function sendComet(field: Field): void {
+function sendComet(field: CometField): void {
   scheduleComet(field);
   const comet = field.comets.slots.find((each) => !each.live);
   if (comet === undefined) return;
@@ -154,8 +175,11 @@ function sendComet(field: Field): void {
   field.events.add("warned", at.x, at.y);
 }
 
-/** Breaks each rock a comet touches a size down, for nothing, passing what was laid in the steps it broke rocks in, those rocks' pieces. */
-function smashRocks(field: Field, comet: Comet): void {
+/**
+ * Breaks each rock a comet touches a size down, for nothing, passing what was
+ * laid in the steps it broke rocks in, those rocks' pieces.
+ */
+function smashRocks(field: CometField, comet: Comet): void {
   const alongX = Math.cos(comet.heading);
   const alongY = Math.sin(comet.heading);
   for (const rock of field.rocks) {

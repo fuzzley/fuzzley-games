@@ -1,4 +1,4 @@
-import type { Field, FieldSetup } from "../field/field";
+import type { Field, WaveStart } from "../field/field";
 import type { Strays } from "../hazards/strays";
 import { type Crew, createCrew } from "../ship/pilots";
 import type { Speed } from "../speed";
@@ -50,12 +50,6 @@ export interface WaveProgress extends Pick<
 > {
   readonly strays: Pick<Strays, "broughtHome">;
 }
-
-/** Describes what the field of a run's wave takes from the run as it starts. */
-export type WaveStart = Pick<
-  FieldSetup,
-  "seed" | "crew" | "banked" | "nextShipAt"
->;
 
 /** Says how a new run starts. */
 export interface RunStart {
