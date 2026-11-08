@@ -1798,3 +1798,24 @@ The review found the doc right and both writers whole:
    writer's contract first, the reason after.
 2. _`@fz/core`'s `AGENTS.md` and the `fuzzley-ui` skill, which a new
    game's author reads first, didn't carry the rule:_ taken.
+
+### Step 15h: QA of `dev-lifts`
+
+`yarn verify` passes, in 3 min 12 s against core-lifts' 2 min 38 s, its
+CPU time up by a fifth. Most of that is the machine: the Solitaire
+Collection's suite, which the branch touched only in its scripts, took
+33.9 s against 26.6, and Asteroid Breaker's simulations, untouched, 28.4
+against 24.5. What the branch adds is `@fz/dev`'s own specs, 4.3 s to
+7.2 s, which now place specs through Vitest itself and run the scripts'
+helpers, and lint and `tsc` over every config. `yarn check:layout` holds
+Sudoku, Brick Breaker, Asteroid Breaker and Snake at each shape and turn.
+Played from the preview build in headed Chrome, Asteroid Breaker, Brick
+Breaker and Snake load, play and end a run with no error or warning, each
+board's rectangle written as before, and the site lists every game. The
+captures, the reports and the puzzle bank were run against the games by
+the steps that changed them.
+
+Seen and left: `yarn verify` still prints Node's warning that
+`localStorage` needs `--localstorage-file`, from the Solitaire
+Collection's test setup; and Vite serves only `[::1]` on this machine, so
+a capture here takes `--url http://[::1]:<port>/`.
