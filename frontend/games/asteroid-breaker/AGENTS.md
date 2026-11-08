@@ -73,10 +73,11 @@ take for the layer.
   as its room's shape holds, up to 88, `FIELD_LONGEST_SIDE`); `speed.ts`
   the three speeds (`SPEEDS`, `SPEED_INFO`), Relaxed, Normal and Fast, each
   how fast the rocks and the comets go, how often a comet comes and how
-  likely a pickup is; and `stepper.ts` the field's step, 1/120 s
-  (`STEP_MS`), `stepsIn(ms)`, a time in those steps, and the field's clock
-  (`createFieldClock()`), which turns a frame's time into steps, twelve at
-  most a frame. `torus.ts` is the wrap: the field for a room's shape
+  likely a pickup is; and `stepper.ts` binds `@fz/core/clock`'s
+  `createStepper()` to the field's step, 1/120 s (`STEP_MS`): `stepsIn(ms)`,
+  a time in those steps, and the field's clock (`createFieldClock()`),
+  which turns a frame's time into steps, twelve at most a frame.
+  `torus.ts` is the wrap: the field for a room's shape
   (`torusFor()`), the shortest way and distance between two places across
   the edges (`across()`, `distance()`), and where a thing reaching past an
   edge needs a copy drawn (`copyShift()`) and how far off each copy is

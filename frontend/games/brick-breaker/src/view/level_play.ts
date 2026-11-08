@@ -1,4 +1,9 @@
-import { FieldPlay, type FieldRules } from "@fz/core/field_play";
+import { Countdown } from "@fz/core/clock";
+import {
+  FieldPlay,
+  type FieldRules,
+  type PlayFrame,
+} from "@fz/core/field_play";
 import type { FieldEvent } from "../rules/field/events";
 import { type Field, serve, steerField, stepField } from "../rules/field/field";
 import type { Steer } from "../rules/paddle/paddle";
@@ -7,9 +12,7 @@ import { SERVE_MS } from "./effects/timing";
 import type { FieldFrame } from "./field/frame";
 
 /** Describes the frame the scene is handed, one record whose `alpha` each frame writes again. */
-interface Frame extends FieldFrame {
-  alpha: number;
-}
+type Frame = FieldFrame & PlayFrame;
 
 /** How the rules move a level's field on. */
 const LEVEL_RULES: FieldRules<Field, Steer> = {
@@ -25,8 +28,8 @@ const LEVEL_RULES: FieldRules<Field, Steer> = {
  * next.
  */
 export class LevelPlay extends FieldPlay<Field, Steer, FieldEvent, Frame> {
-  /** The time the paddle has stood empty since the last ball was lost. */
-  private sinceLost = 0;
+  /** The beat the paddle stands empty for once the last ball is lost. */
+  private readonly beforeServe = new Countdown();
 
   constructor(field: Field) {
     super(field, LEVEL_RULES, createFieldClock(), {
@@ -39,9 +42,7 @@ export class LevelPlay extends FieldPlay<Field, Steer, FieldEvent, Frame> {
   /** Puts the next ball on the paddle once the last one lost has had its beat. */
   serveAfterLoss(deltaMs: number): void {
     if (this.field.state !== "lost") return;
-    this.sinceLost += deltaMs;
-    if (this.sinceLost < SERVE_MS) return;
-    serve(this.field);
-    this.sinceLost = 0;
+    if (!this.beforeServe.running) this.beforeServe.start();
+    if (this.beforeServe.count(deltaMs, SERVE_MS)) serve(this.field);
   }
 }

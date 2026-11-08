@@ -1,5 +1,6 @@
 import { STILL, type Steer } from "../rules/ship/ship";
 import { STEP_MS } from "../rules/stepper";
+import { MAX_STEPS_PER_FRAME, STEP_S } from "../rules/tuning";
 import { KEEPER, fieldFrom, shipOf } from "../testing/field_picture";
 import { WavePlay } from "./wave_play";
 
@@ -48,6 +49,22 @@ describe("WavePlay", () => {
       const play = stillPlay();
 
       play.advance(3.6 * STEP_MS, STILL, deaf);
+
+      expect(play.field.steps).toBe(3);
+    });
+
+    it("steps the field no more than its most a frame", () => {
+      const play = stillPlay();
+
+      play.advance((MAX_STEPS_PER_FRAME + 3) * STEP_MS, STILL, deaf);
+
+      expect(play.field.steps).toBe(MAX_STEPS_PER_FRAME);
+    });
+
+    it("steps the field once for each of the tuning's steps a frame's time holds", () => {
+      const play = stillPlay();
+
+      play.advance(3 * STEP_S * 1000, STILL, deaf);
 
       expect(play.field.steps).toBe(3);
     });

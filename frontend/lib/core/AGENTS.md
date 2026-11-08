@@ -37,7 +37,13 @@ Each file is an entry point of its own, imported by name, such as
   turns a frame's time into fixed steps, `advanceClock()`, how many a frame
   holds, at most its most, `progressOf()`, how far it is toward the next,
   for drawing between steps, and `stepsIn()`, a time as a count of steps,
-  for a game that keeps its timers in steps.
+  for a game that keeps its timers in steps;
+  `createStepper(stepMs, maxStepsPerFrame)`, a `Stepper`, which binds
+  `stepsIn()` and its clocks to a game's step once, as each breaker's
+  `stepper.ts` binds its field's; and `Countdown`, which counts frames'
+  time up to a mark and says once that it is reached: the wait before
+  `FieldPlay`'s card or Snake's result card, and the beat Brick Breaker's
+  paddle stands empty before a serve.
 - `src/event_log.ts`: `EventLog<E>`, a ring of a game's latest events,
   each a `NumberedEvent`, made with the log: `next()` hands its writer the
   next event's record, numbered, to fill in place, so nothing is made per

@@ -1,4 +1,8 @@
-import { FieldPlay, type FieldRules } from "@fz/core/field_play";
+import {
+  FieldPlay,
+  type FieldRules,
+  type PlayFrame,
+} from "@fz/core/field_play";
 import type { FieldEvent } from "../rules/field/events";
 import { type Field, steerField, stepField } from "../rules/field/field";
 import type { Steer } from "../rules/ship/ship";
@@ -7,9 +11,7 @@ import type { Place } from "../rules/torus";
 import type { FieldFrame } from "./field/frame";
 
 /** Describes the frame the scene is handed, one record whose `alpha` each frame writes again. */
-interface Frame extends FieldFrame {
-  alpha: number;
-}
+type Frame = FieldFrame & PlayFrame;
 
 /** How the rules move a wave's field on. */
 const WAVE_RULES: FieldRules<Field, Steer> = {

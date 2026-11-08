@@ -337,6 +337,15 @@ describe("GameService", () => {
 
         expect(game.resultOpen()).toBe(true);
       });
+
+      it("opens no result card for a run ended before a new one began", async () => {
+        const game = endedGame();
+        await game.newGame();
+
+        game.tick(FADE_MS);
+
+        expect(game.resultOpen()).toBe(false);
+      });
     });
 
     it("starts another run at the key that toggles once the result card is put away", async () => {
