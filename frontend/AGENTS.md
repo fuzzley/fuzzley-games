@@ -12,10 +12,16 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
 - **The root** runs the workspaces and holds nothing of their own. Its
   `package.json` declares the workspaces and pins Yarn and Node. Its scripts
   run the workspaces' own (`yarn build`, `yarn verify`), picking them by path
-  (`--include "games/*"`), and its dependencies are only the tools that run
-  from here: Prettier, ESLint, TypeScript and `@fz/dev` for the `.agents/`
-  scripts and its own `tools/`, with the `eslint.config.js` and
-  `tsconfig.scripts.json` beside it, and `semver` for the constraints.
+  (`--include "games/*"`), each `foreach` running them side by side
+  (`--parallel`, as many at once as half the machine's cores), each
+  workspace's output printed whole once it is done, so no workspace's step
+  may wait on another's. `yarn test` runs four at a time, each Vitest on a
+  quarter of the cores (`--maxWorkers=25%`), which fits a machine of four
+  cores or more, as CI's is; more would starve the specs of their five
+  seconds. Its dependencies are only the tools that run from here: Prettier, ESLint, TypeScript and `@fz/dev`
+  for the `.agents/` scripts and its own `tools/`, with the
+  `eslint.config.js` and `tsconfig.scripts.json` beside it, and `semver` for
+  the constraints.
   `tools/` holds the scripts that act on every workspace at once, such as
   `yarn stop`'s. `yarn.lock` and `.yarnrc.yml` exist only here. A backend,
   when there is one, goes in a folder of its own beside `frontend/`.
