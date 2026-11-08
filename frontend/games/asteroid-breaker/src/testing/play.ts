@@ -82,7 +82,10 @@ export const GAINED_WAVES: readonly WaveEntry[] = wavesOf([
   },
 ]);
 
-/** Returns a wave of small stones in a cluster, near enough to each other that the ship breaks them in a chain. */
+/**
+ * Returns a wave of small stones in a cluster, near enough to each other
+ * that the ship breaks them in a chain.
+ */
 function clusterOf(id: string, name: string, count: number): WaveData {
   return {
     id,
@@ -94,32 +97,15 @@ function clusterOf(id: string, name: string, count: number): WaveData {
   };
 }
 
-/** The waves the specs of the chain's multiplier play, by {@link CHAIN_WAVE}. */
+/** A wave of a dozen small stones in a cluster, for the specs of the chain's multiplier. */
 export const CHAIN_WAVES: readonly WaveEntry[] = wavesOf([
   {
     id: "chains",
     name: "Chains",
     drops: 0,
-    waves: [
-      clusterOf("long", "Long", 12),
-      {
-        id: "blasts",
-        name: "Blasts",
-        rocks: [{ kind: "volatile", size: "large", count: 6 }],
-        formation: "cluster",
-        drops: 0,
-        strays: 0,
-      },
-    ],
+    waves: [clusterOf("long", "Long", 12)],
   },
 ]);
-
-/**
- * Each of the chain's waves' numbers: the long one's stones outlast a
- * chain, and the blasts one's volatiles set each other off, so the wave is
- * cleared while the chain scores twice.
- */
-export const CHAIN_WAVE = { long: 1, blasts: 2 } as const;
 
 /**
  * Two sectors, of a wave and of two, a small stone apiece, for a spec of the
@@ -141,7 +127,10 @@ export const SPEC_WAVE = { pebble: 1, gift: 2, last: 3 } as const;
 /** Where the specs' runs take their seeds from: always the same. */
 export const SPEC_RANDOM = (): number => 0.5;
 
-/** Returns the providers that hand `GameService` the specs' waves, or those given, and {@link SPEC_RANDOM}. */
+/**
+ * Returns the providers that hand `GameService` the specs' waves, or those
+ * given, and {@link SPEC_RANDOM}.
+ */
 export function provideSpecWaves(
   waves: readonly WaveEntry[] = SPEC_WAVES,
 ): Provider[] {
@@ -151,19 +140,28 @@ export function provideSpecWaves(
   ];
 }
 
-/** Returns the steering that turns the ship toward the nearest rock and fires, or none with no ship or no rock. */
+/**
+ * Returns the steering that turns the ship toward the nearest rock and
+ * fires, or none with no ship or no rock.
+ */
 export function shoot(game: GameService): Readonly<Steer> {
   const rock = nearestRock(game.frame().field);
   return rock ? { ...STILL, aim: { x: rock.x, y: rock.y }, fire: true } : STILL;
 }
 
-/** Returns the steering that flies the ship into the nearest rock, or none with no ship or no rock. */
+/**
+ * Returns the steering that flies the ship into the nearest rock, or none
+ * with no ship or no rock.
+ */
 export function ram(game: GameService): Readonly<Steer> {
   const rock = nearestRock(game.frame().field);
   return rock ? { ...STILL, aim: { x: rock.x, y: rock.y }, thrust: 1 } : STILL;
 }
 
-/** Returns the steering that flies the ship to the pickup floating, else shoots at the nearest rock. */
+/**
+ * Returns the steering that flies the ship to the pickup floating, else
+ * shoots at the nearest rock.
+ */
 export function toPickup(game: GameService): Readonly<Steer> {
   const floating = game.frame().field.pickups.find((each) => each.live);
   if (!floating) return shoot(game);
@@ -182,7 +180,10 @@ export function toStray(game: GameService): Readonly<Steer> {
     : { ...STILL, turn: 1 };
 }
 
-/** Returns the whole rock nearest the ship, across the field's edges, or null with no ship or no rock. */
+/**
+ * Returns the whole rock nearest the ship, across the field's edges, or
+ * null with no ship or no rock.
+ */
 function nearestRock(field: FieldView): Readonly<Rock> | null {
   const { ship, torus } = field;
   if (!ship) return null;
