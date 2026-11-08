@@ -987,3 +987,46 @@ and every other card state untouched:
 4. _The template compared the card's state itself, against "templates
    bind, they do not compute", and the copy lived twice:_ taken; a
    computed, and one constant for both.
+
+### Step 8b: finding 10, the haptics driven by the field's events
+
+Built on `ab-shell`, the second part of finding 10. The phone buzzes as
+each frame calls for: `RunFrames` sets a frame's buzz from the field's
+`"lost"` event and from the run's clearing as it takes the field in, a loss
+outranking a clearing in the same frame, and `HapticsService`, beside
+`GameService` in `src/app/play/`, buzzes it from `GameService.tick()` if
+the setting allows and the device can. The board's effect and `buzzOf()`,
+which compared two runs, are gone, with their specs, which moved to
+`RunFrames`', `GameService`'s and the service's.
+
+Both of the plan's suspicions held, reproduced through the old code before
+the change: a ship lost in the step a shot's points gain another buzzed
+nothing, the two cancelling in the ship count, and a ship lost early in a
+frame that a blast's clearing ends buzzed for the loss alone, which is
+kept on purpose, the loss being the one a player can miss.
+
+Where it went other than planned:
+
+- The cleared buzz comes from the run's clearing, not the field's
+  `"cleared"` event, since a field also logs `"cleared"` when a shot or a
+  blast clears it after its last ship is lost, which ends the run rather
+  than clearing it.
+- The buzz comes in the frame's own tick rather than at Angular's next
+  change detection, at most a frame sooner.
+
+The review found no bug, and the specs failing for each clause removed:
+
+1. _A loss outranks a clearing only within one frame, so at 60 Hz a
+   clearing a few frames after a loss buzzes and cuts the loss's buzz
+   short:_ the doc says "in the same frame" now. A rule by time, a
+   clearing within the loss's buzz not buzzing, would change what a
+   player feels beyond the plan, as it did before this change too, so it
+   is left for the user.
+2. _Most of the service's spec tested `GameService`, with copies of its
+   helpers, and the service sat in `settings/` though only `GameService`
+   calls it:_ taken; the play-driven specs are in `GameService`'s spec,
+   with its helpers, and the service is in `play/`.
+3. _Half of a spec tested a late effect that no longer exists:_ taken; it
+   is gone.
+4. _No spec held that an ended run's frames buzz nothing:_ taken.
+5. _Names and wording:_ taken.

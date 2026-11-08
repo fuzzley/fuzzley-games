@@ -197,9 +197,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 - `src/view/run_frames.spec.ts` plays a run's frames as the shell does,
   over fields drawn with `fieldFrom()` and waves of its own, and asserts on
-  what each frame changed and what it said. It takes nothing from
-  `src/testing/play.ts`, which imports the shell's tokens, so it runs
-  without Angular, as every spec of the view does.
+  what each frame changed, its buzz among it, and what it said. It takes
+  nothing from `src/testing/play.ts`, which imports the shell's tokens, so
+  it runs without Angular, as every spec of the view does.
   `src/view/run_state.spec.ts` folds a frame's change, written by hand, into
   what is a run's own (`withFrame()`), and holds which frames fly a run on
   tuned numbers.
@@ -257,8 +257,10 @@ game through `runScene()`:
 - What a frame of play comes to is `RunFrames`'s, and how it folds into
   what is a run's own `withFrame()`'s, which the view's specs hold; the
   shell's spec holds `GameService` to taking it into its signals, the
-  records and the live region, and to beginning each run with none of the
-  last one's (`ownOf()`).
+  records, the live region and the phone's buzz, and to beginning each run
+  with none of the last one's (`ownOf()`); `HapticsService`'s holds the
+  buzz to where the settings say to. Both stand a buzzer in for
+  `navigator.vibrate()`, which jsdom lacks.
 - `GameService` plays the small waves of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
   numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless

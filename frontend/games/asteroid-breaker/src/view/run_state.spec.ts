@@ -20,6 +20,7 @@ const QUIET: FrameChange = {
   chain: null,
   tally: null,
   opens: null,
+  buzz: null,
 };
 
 /** What a frame of a wave under way hands the shell that changed nothing of it. */

@@ -44,6 +44,7 @@ import {
   chainUp,
   clearToNext,
   endRun,
+  loseShip,
   playFor,
   playToClear,
   playUntil,
@@ -52,6 +53,7 @@ import {
   toPickup,
 } from "../../testing/play";
 import type { Tuning } from "../../view/debug_tuning";
+import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
 import { CLEARED_MS } from "../../view/effects/timing";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
@@ -1242,6 +1244,47 @@ describe("GameService", () => {
       const game = await gameAt(SPEC_WAVE.gift);
 
       expect(game.thrusting()).toBe(false);
+    });
+  });
+
+  describe("haptics", () => {
+    let vibrate: ReturnType<typeof vi.fn<(pattern: VibratePattern) => boolean>>;
+
+    beforeEach(() => {
+      vibrate = vi.fn<(pattern: VibratePattern) => boolean>(() => true);
+      Object.defineProperty(navigator, "vibrate", {
+        value: vibrate,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Reflect.deleteProperty(navigator, "vibrate");
+    });
+
+    it("buzzes the phone once, firmly, as a ship is lost", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+
+      loseShip(game);
+
+      expect(vibrate.mock.calls).toEqual([[LOST_BUZZ]]);
+    });
+
+    it("buzzes the phone twice, lightly, as a wave is cleared", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      playToClear(game);
+
+      expect(vibrate.mock.calls).toEqual([[CLEARED_BUZZ]]);
+    });
+
+    it("buzzes nothing, and goes on, where the phone can't buzz", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      Reflect.deleteProperty(navigator, "vibrate");
+
+      loseShip(game);
+
+      expect(game.ships()).toBe(2);
     });
   });
 

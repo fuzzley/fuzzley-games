@@ -16,6 +16,7 @@ import { type Run, catchUp, startWave } from "../rules/run/run";
 import type { Pilot } from "../rules/ship/pilots";
 import type { Steer } from "../rules/ship/ship";
 import { type WaveEntry, waveEntryOf } from "../rules/waves/waves";
+import { type Buzz, CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
 import { clearedDelayMs, resultDelayMs } from "./effects/timing";
 import type { WavePlay } from "./wave_play";
 
@@ -46,6 +47,16 @@ export interface FrameChange {
    * run ended: the Cleared card or the result; else null.
    */
   readonly opens: "cleared" | "result" | null;
+  /**
+   * How the phone buzzes for the frame: as it loses a ship, whatever it
+   * gained in it, or else as it clears the wave; or null for neither.
+   *
+   * A loss outranks a clearing in the same frame, which buzzes for the loss
+   * alone, as a second buzz would cut the first short and the Cleared card
+   * shows the clearing. A clearing a frame or more after a loss buzzes all
+   * the same, and may cut the loss's buzz short.
+   */
+  readonly buzz: Buzz | null;
 }
 
 /** Describes the record each frame's change is written to: a writable {@link FrameChange}. */
@@ -55,7 +66,7 @@ type Change = { -readonly [Key in keyof FrameChange]: FrameChange[Key] };
  * Takes each frame of a wave's play into its run: plays the wave on,
  * starting it at the player's first move, catches the run up with what its
  * field came to, waits out the beat before a card opens, and gathers what
- * to say of it.
+ * to say of it and how the phone buzzes for it.
  */
 export class RunFrames {
   /** What the frames call to be said, gathered as each is worked out, and said at its end. */
@@ -72,6 +83,7 @@ export class RunFrames {
     chain: null,
     tally: null,
     opens: null,
+    buzz: null,
   };
 
   /**
@@ -102,6 +114,7 @@ export class RunFrames {
     change.chain = null;
     change.tally = null;
     change.opens = null;
+    change.buzz = null;
     switch (run.outcome) {
       case "ready":
       case "playing":
@@ -181,13 +194,15 @@ export class RunFrames {
   }
 
   /**
-   * Hears an event of the field, and gathers what to say of it and the
-   * strays brought home. Made once, so hearing makes nothing.
+   * Hears an event of the field, and gathers what to say of it, the strays
+   * brought home and the buzz of a ship lost. Made once, so hearing makes
+   * nothing.
    */
   private readonly hear = (event: Readonly<FieldEvent>): void => {
     if (event.kind === "home" && event.pilot !== null) {
       this.cameHome.push(event.pilot);
     }
+    if (event.kind === "lost") this.change.buzz = LOST_BUZZ;
     const said = describeEvent(event);
     if (said !== null) this.said.push(said);
   };
@@ -195,8 +210,9 @@ export class RunFrames {
   /**
    * Takes the run the field brought it to and, as the run ends or the wave
    * is cleared, starts the wait before the card over it: a clearing is said
-   * at once, with its tally, and an end once the shell's records say what it
-   * set. Each comes once, as no frame plays a field past them.
+   * at once, with its tally, and buzzes unless a ship was lost in the frame,
+   * and an end is said once the shell's records say what it set. Each comes
+   * once, as no frame plays a field past them.
    */
   private takeIn(play: WavePlay, before: Run, after: Run): void {
     if (after === before) return;
@@ -207,6 +223,7 @@ export class RunFrames {
     } else if (after.outcome === "cleared") {
       play.startCardWait();
       this.change.tally = tallyOf(play.field);
+      this.change.buzz ??= CLEARED_BUZZ;
       const cleared = this.entryOf(after.wave);
       const next = this.entryOf(after.wave + 1);
       this.said.push(describeCleared(after, cleared, next));
