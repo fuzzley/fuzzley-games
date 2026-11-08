@@ -29,7 +29,7 @@ import {
   type Run,
   isInProgress,
   nextShipAfter,
-  startWave,
+  nextWave,
   waveStart,
 } from "./run";
 
@@ -153,8 +153,8 @@ interface WaveSoFar {
 
 /**
  * Returns a run under way and its field as storage keeps them, or null for
- * a run with nothing to keep: one waiting for its first move, or one that
- * has ended.
+ * a run with nothing to keep: one waiting for its first wave's first move,
+ * or one that has ended.
  *
  * A run whose wave was just cleared is kept at the start of the next, so
  * the page going away over the Cleared card loses nothing, and a wave not
@@ -169,7 +169,7 @@ export function saveGame(
 ): SavedGame | null {
   if (!isInProgress(run)) return null;
   if (run.outcome === "cleared") {
-    return savedRun(startWave(run), null, waves, keeping);
+    return savedRun(nextWave(run), null, waves, keeping);
   }
   const kept = field.steps === 0 ? null : savedField(field);
   return savedRun(run, kept, waves, keeping);

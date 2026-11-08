@@ -251,10 +251,36 @@ describe("SavedGameService", () => {
       });
     });
 
+    it("keeps a run gone on to the next wave as that wave not yet begun", () => {
+      const game = start();
+
+      clearToNext(game);
+      TestBed.tick();
+
+      expect(stored()).toMatchObject({
+        waveId: "gift",
+        wave: SPEC_WAVE.gift,
+        field: null,
+      });
+    });
+
     it("forgets a run that has ended", async () => {
       const game = await startedAt(SPEC_WAVE.gift);
 
       endRun(game);
+      TestBed.tick();
+
+      expect(stored()).toBeNull();
+    });
+
+    it("forgets a run waiting at the next wave, thrown away for a new one", async () => {
+      const game = start();
+      clearToNext(game);
+      TestBed.tick();
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
       TestBed.tick();
 
       expect(stored()).toBeNull();
@@ -271,7 +297,7 @@ describe("SavedGameService", () => {
       expect(stored()).toBeNull();
     });
 
-    it("keeps nothing of a run waiting for its first move", () => {
+    it("keeps nothing of a run waiting for its first wave's first move", () => {
       start();
 
       expect(stored()).toBeNull();
@@ -296,8 +322,7 @@ describe("SavedGameService", () => {
         score: game.score(),
         ships: game.ships(),
         rocks: rocksOf(game),
-        waiting: game.waiting(),
-      }).toEqual({ ...kept, outcome: "paused", waiting: false });
+      }).toEqual({ ...kept, outcome: "paused" });
     });
 
     it("takes up a run in Endless, its wave made again from the run's seed, its constellation as it was", async () => {
@@ -343,17 +368,43 @@ describe("SavedGameService", () => {
       expect(rocksOf(game)).not.toEqual(kept);
     });
 
-    it("takes up a wave kept as not yet begun, waiting for its first move", () => {
-      playToClear(start());
+    it.each([
+      ["cleared", playToClear],
+      ["gone on to the next wave", clearToNext],
+    ])("takes up a run %s paused, at the next wave", (_, play) => {
+      play(start());
       TestBed.tick();
 
       const game = reload();
 
+      expect({ outcome: game.outcome(), wave: game.wave().number }).toEqual({
+        outcome: "paused",
+        wave: SPEC_WAVE.gift,
+      });
+    });
+
+    it("waits for the first move of a wave kept as not yet begun as it goes on", () => {
+      clearToNext(start());
+      TestBed.tick();
+      const game = reload();
+
+      game.resume();
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("lays a wave kept as not yet begun out afresh on the board's room", () => {
+      clearToNext(start());
+      TestBed.tick();
+      const game = reload();
+      const { field } = game.frame();
+
+      game.setRoom(WIDE, BOARD);
+
       expect({
-        outcome: game.outcome(),
-        wave: game.wave().number,
-        waiting: game.waiting(),
-      }).toEqual({ outcome: "paused", wave: SPEC_WAVE.gift, waiting: true });
+        kept: game.frame().field === field,
+        wide: game.frame().field.torus.width > FIELD_SHORT_SIDE,
+      }).toEqual({ kept: false, wide: true });
     });
 
     it("keeps the sector of a wave taken up as reached", () => {

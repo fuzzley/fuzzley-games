@@ -1,4 +1,4 @@
-import { type Run, createRun, startWave } from "../../rules/run/run";
+import { type Run, createRun, nextWave, startWave } from "../../rules/run/run";
 import { CLEARED_BUZZ, LOST_BUZZ, buzzOf } from "./haptics";
 
 /** Returns a run with a wave under way, its first crew flying. */
@@ -44,7 +44,7 @@ describe("buzzOf", () => {
     ],
     [
       "the next wave",
-      (run: Run): Run => startWave({ ...run, outcome: "cleared" }),
+      (run: Run): Run => nextWave({ ...run, outcome: "cleared" }),
     ],
   ])("buzzes nothing for %s", (_, change) => {
     const run = underWay();

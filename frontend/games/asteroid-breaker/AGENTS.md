@@ -127,11 +127,13 @@ take for the layer.
 - **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
   replaces, from the wave it started at to its end: the wave in play, the
   points banked and the score, the crew, the next ship's mark, the strays
-  brought home and the outcome. No run is won: Endless goes on until the
-  ships run out. `catchUp()` takes what the wave's field has come to since
-  it last looked, its points, its crew and its strays, then its end or its
-  clearing, banked once; `waveSeed()` gives each wave's field a seed of its
-  own; `wavesCleared()` counts the waves a run has cleared, and
+  brought home and the outcome. Every wave waits, `"ready"`, until the
+  player's first move starts it (`startWave()`), and a wave cleared goes on
+  to the next, waiting so (`nextWave()`). No run is won: Endless goes on
+  until the ships run out. `catchUp()` takes what the wave's field has come
+  to since it last looked, its points, its crew and its strays, then its end
+  or its clearing, banked once; `waveSeed()` gives each wave's field a seed
+  of its own; `wavesCleared()` counts the waves a run has cleared, and
   `hasClearedAll()` says whether it cleared every written one from the
   first; and `nextShipAfter()` gives the mark the next ship comes at. A move
   that doesn't fit where the run stands returns it as it is, and so does a
@@ -312,9 +314,9 @@ take for the layer.
   - `play/` — `GameService` holds the run in a signal and the wave in play
     outside one, as the view's `WavePlay`, since the field changes 120 times
     a second, and moves the field on through `tick()`, which the scene's
-    frames drive, steered as the player steers; it starts the run's first
-    wave at the player's first move, pauses, goes on and starts waves and
-    runs, shapes each field to the board's room (`setRoom()`), says what
+    frames drive, steered as the player steers; it starts each wave at the
+    player's first move, pauses, goes on and starts waves and runs, shapes
+    each field to the board's room (`setRoom()`), says what
     happened through `@fz/ui/announcer`, adds up a cleared wave's points
     (`tally`), keeps the records and the sectors reached through `stats/`,
     tunes the field as the debug menu says (`tune()`, `resetTuning()`), and
@@ -323,9 +325,9 @@ take for the layer.
     game's own: the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and
     whether the build is a development one (`DEV_BUILD`) and the settings
     offer the debug menu (`DEBUG_MENU`). `SavedGameService` keeps the run
-    under way, through `GameService.saved()`, as its outcome, its first move
-    or its crew changes and as the page is hidden or goes away, never at a
-    step, and forgets it once the run ends or another begins; `src/main.ts`
+    under way, through `GameService.saved()`, as its outcome or its crew
+    changes and as the page is hidden or goes away, never at a step, and
+    forgets it once the run ends or another begins; `src/main.ts`
     starts it before the board first shows, and it takes up the run kept
     (`takeUp()`), paused.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
@@ -476,8 +478,9 @@ take for the layer.
   second later by the next in line, waiting where it is safest, untouchable
   until it moves and for two seconds after. The wave pauses when the focus
   leaves the room, the page is hidden, the screen turns or a dialog opens,
-  and goes on only when the player says; a run taken up after a reload
-  starts paused. Nothing goes on until the field is drawn
+  and goes on only when the player says; one waiting for its first move has
+  nothing to pause, and a run taken up after a reload starts paused.
+  Nothing goes on until the field is drawn
   (`GameService.setDrawn()`, which the board calls from its canvas), since a
   wave nobody can see would be lost.
 - **Its colors are the palette's and its own inks'.** `beltPalette()` takes

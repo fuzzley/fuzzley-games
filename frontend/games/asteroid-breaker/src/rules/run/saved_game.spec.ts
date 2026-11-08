@@ -169,7 +169,7 @@ function strayHomeAt(score: number): unknown {
 }
 
 describe("saveGame", () => {
-  it("keeps nothing of a run waiting for its first move", () => {
+  it("keeps nothing of a run waiting for its first wave's first move", () => {
     const run = createRun({ id: 1, seed: 7, speed: "normal", wave: 1 });
 
     expect(saveGame(run, fieldOf(run), WAVES, KEEPING)).toBeNull();
@@ -277,7 +277,7 @@ describe("saveGame", () => {
   });
 
   it("keeps a wave not yet moved as not yet begun, to be laid out afresh on the room it comes back to", () => {
-    const run = runUnderWay({ score: 500 });
+    const run = runUnderWay({ score: 500, outcome: "ready" });
 
     const saved = saveGame(run, fieldOf(run), WAVES, KEEPING);
 
