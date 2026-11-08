@@ -6,11 +6,15 @@ import type { Rock } from "../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
+  DARK,
+  MIDDLE,
   WIDER,
   type FakeShell,
   metricsOf,
   objectsIn,
   onCanvas,
+  scrolledBy,
+  shardTints,
   shownAt,
   startBoard,
   stepping,
@@ -60,9 +64,6 @@ import {
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
 import { MOST_EXHAUST } from "./painters/exhaust_painter";
-
-/** A place on the field away from its edges and the keeper, where a spec's events happen. */
-const MIDDLE = { x: 30, y: 20 } as const;
 
 /** Returns the rock in a field's first slot, the keeper's large stone. */
 function keeperOf(field: Field): Rock {
@@ -132,15 +133,6 @@ function shardSpeeds(scene: BeltScene): readonly number[] {
   return speeds;
 }
 
-/** Returns the tint of each shard alive. */
-function shardTints(scene: BeltScene): readonly number[] {
-  const tints: number[] = [];
-  scene.debris.shards.forEachAlive((shard) => {
-    tints.push(shard.tint);
-  }, null);
-  return tints;
-}
-
 /** Returns where each exhaust speck alive is, and how fast it streams across. */
 function exhaustOf(scene: BeltScene): readonly {
   readonly x: number;
@@ -152,16 +144,6 @@ function exhaustOf(scene: BeltScene): readonly {
     specks.push({ x: speck.x, y: speck.y, across: speck.velocityX });
   }, null);
   return specks;
-}
-
-/** Returns how far the field's camera is scrolled from where it rests, in the canvas's pixels. */
-function scrolledBy(
-  scene: BeltScene,
-  shell: FakeShell,
-): { readonly x: number; readonly y: number } {
-  const metrics = metricsOf(shell);
-  const camera = scene.cameras.main;
-  return { x: camera.scrollX - metrics.x, y: camera.scrollY - metrics.y };
 }
 
 /**
@@ -333,6 +315,21 @@ describe("a broken rock", () => {
       );
     },
   );
+
+  it("throws its shards in the palette the frame it breaks on changed to", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.colors = DARK;
+    shell.field.events.addBreak(keeperOf(shell.field), 1, 0, -1);
+
+    run.advance(16);
+
+    expect(shardTints(scene)).toEqual(
+      Array.from(
+        { length: shardCount(lastSerial(shell)) },
+        () => DARK.rocks.stone,
+      ),
+    );
+  });
 
   it("throws them flying from the first frame, before the field is first drawn", async () => {
     const { scene } = await startBoard((shell) => {
@@ -814,6 +811,20 @@ describe("a dash", () => {
     shell.field.events.addDash(MIDDLE.x, MIDDLE.y, 0);
 
     run.advance(trailLaidAfter(2) + 16);
+
+    expect(
+      scene.trail.outlines.map(({ images }) => images[0]?.visible),
+    ).toEqual([true, false, false]);
+  });
+
+  it("lays a dash on a new field's first frame from that field's step, not the last field's", async () => {
+    const { shell, run, scene } = await startBoard((shell) => {
+      shell.field.steps = 100;
+    });
+    shell.field = fieldFrom(KEEPER);
+    shell.field.events.addDash(MIDDLE.x, MIDDLE.y, 0);
+
+    run.advance(16);
 
     expect(
       scene.trail.outlines.map(({ images }) => images[0]?.visible),

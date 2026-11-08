@@ -126,3 +126,29 @@ every reset line by line:
    takes, starts and returns the next record, and `Scored` extends
    `Playing`.
 3. _`ExhaustPainter.draw`'s doc read two ways:_ taken.
+
+### Step 9b: finding 11, the flourish player
+
+Built on `ab-scene`. `BeltScene.flourish()`'s switch is a `FlourishPlayer`
+(`src/scene/flourish_player.ts`), given the painters and the field's camera
+it plays each `Flourish` on, with a spec of its own. The scene writes its
+`PaintContext` in `stage()`, before the frame's events play rather than as
+it draws, so the player reads it; the values are the same at both points.
+The scene's field is `flourishPlayer`, so it isn't taken for an event's
+list of flourishes. 4,793 tests pass, and the player is covered whole.
+
+The review found it correct:
+
+1. _No spec held that the context is written before the events play:_
+   moving `stage()` below them passed every spec, though a theme change
+   would then color the shards in the old palette and a dash on a new
+   field would lay no outline. Taken: two scene specs, a palette changed
+   on the frame a rock breaks and a dash on a new field's first frame,
+   which fail exactly when `stage()` is moved.
+2. _`scrolledBy()`, `MIDDLE` and the shards' tints were copied between
+   two specs:_ taken; they are in `src/testing/belt_board.ts`.
+3. _The player's spec built its events by hand, two with a kind that
+   never calls for shards or dust, and didn't hold a ring's radius:_ taken.
+   Its events come from a `FieldEventLog`, but a lost ship with no pilot,
+   which the log never makes, and the ring's radius is held.
+4. _A redundant `Readonly<>` and a long line in `AGENTS.md`:_ taken.
