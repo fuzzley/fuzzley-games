@@ -60,7 +60,7 @@ function remeasure(steering: Steering, layout: Layout): void {
 
 /** Returns where a place on the field lies on the canvas. */
 function onCanvas(place: Place, { metrics } = layoutOf()): Place {
-  return toCanvas(metrics, place, { x: 0, y: 0 });
+  return toCanvas(metrics, place.x, place.y, { x: 0, y: 0 });
 }
 
 /** Returns the mouse at a place on the canvas, its button as given. */

@@ -1,12 +1,23 @@
 import { SHIP_LENGTH } from "../../rules/tuning";
-import { ART_PALETTE, ART_SCALE, frameNamed } from "../../testing/art_frames";
+import {
+  ART_PALETTE,
+  ART_SCALE,
+  ART_SCALES,
+  frameNamed,
+  reachOf,
+} from "../../testing/art_frames";
 import {
   FLAME_BEHIND,
   SHIP_FRAMES,
+  SHIP_REACH,
   WINDOW,
   flameShare,
   flameTip,
+  shipFrames,
 } from "./ship_art";
+
+/** How far a size may stray from what it should be and still pass, for a rounding. */
+const SLACK = 1e-9;
 
 describe("the ship's frame", () => {
   const ship = frameNamed(SHIP_FRAMES.ship);
@@ -113,4 +124,17 @@ describe("the ship's rings", () => {
       { kind: "ring", color: ART_PALETTE.accent },
     ]);
   });
+});
+
+describe("SHIP_REACH", () => {
+  it.each(ART_SCALES)(
+    "holds the ship, its flame and its rings, each from where it is drawn, at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const beyond = shipFrames(ART_PALETTE, scale)
+        .filter((frame) => reachOf(frame) > SHIP_REACH * scale.unit + SLACK)
+        .map((frame) => frame.name);
+
+      expect(beyond).toEqual([]);
+    },
+  );
 });

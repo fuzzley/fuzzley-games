@@ -9,7 +9,13 @@ import type { Rock } from "../../rules/rocks/rocks";
 import type { Crew } from "../../rules/ship/pilots";
 import type { Ship } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
-import { type Place, type Torus, across, wrap } from "../../rules/torus";
+import {
+  type Moving,
+  type Place,
+  type Torus,
+  across,
+  wrap,
+} from "../../rules/torus";
 
 export type { FieldEvent, FieldEventKind } from "../../rules/field/events";
 export type { Steer } from "../../rules/ship/ship";
@@ -47,7 +53,10 @@ export interface FieldView {
   readonly cleared: boolean;
 }
 
-/** Describes the field's log of events as the scene reads it: from a serial on, never adding to it. */
+/**
+ * Describes the field's log of events as the scene reads it: from a serial on,
+ * never adding to it.
+ */
 export type EventsView = Pick<FieldEventLog, "latest" | "forEachSince">;
 
 /** Describes the field between one step and the next. */
@@ -71,35 +80,85 @@ export interface FieldFrame {
   readonly constellation: Readonly<Place> | null;
 }
 
+/**
+ * Describes a thing the field steps: its last place and its next, which a frame
+ * draws it between.
+ */
+export interface Stepped {
+  readonly lastX: number;
+  readonly lastY: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+/** Describes where a thing is drawn on the field, and how far it is turned, in radians. */
+export interface Drawn extends Moving {
+  angle: number;
+}
+
 /** Returns where a thing is drawn between its last place and its next, `alpha` of the way. */
 export function between(last: number, next: number, alpha: number): number {
   return last + (next - last) * alpha;
 }
 
 /**
- * Returns where a thing that wraps is drawn between its last place on an
- * axis of a length and its next, `alpha` of the way the shortest way
- * across the wrap, so one a step took across an edge is drawn at it rather
- * than across the field.
+ * Returns where a thing that wraps is drawn between its last place and its
+ * next, `alpha` of the way the shortest way across the wrap, written into a
+ * record the caller keeps, so one a step took across an edge is drawn at it
+ * rather than across the field.
  *
  * The comets and the strays cross rather than wrap, and lie off the field
  * as they come in and leave, which this would wrap onto its far side;
  * {@link between} draws them.
  */
-export function betweenOnAxis(
-  last: number,
-  next: number,
+export function wrappedBetween(
+  thing: Stepped,
   alpha: number,
-  length: number,
-): number {
-  return wrap(last + across(last, next, length) * alpha, length);
+  torus: Torus,
+  into: Moving,
+): Moving {
+  into.x = betweenOnAxis(thing.lastX, thing.x, alpha, torus.width);
+  into.y = betweenOnAxis(thing.lastY, thing.y, alpha, torus.height);
+  return into;
 }
 
-/** Returns where a thing's turn is drawn between its last angle and its next, in radians, `alpha` of the way the shorter way round. */
+/**
+ * Returns where a thing's turn is drawn between its last angle and its next, in
+ * radians, `alpha` of the way the shorter way round.
+ */
 export function angleBetween(
   last: number,
   next: number,
   alpha: number,
 ): number {
   return last + across(last, next, TURN) * alpha;
+}
+
+/**
+ * Returns where the field's ship is drawn and how far it is turned, `alpha`
+ * of the way from its last place and turn to its next, written into a
+ * record the caller keeps, or null between one ship and the next.
+ */
+export function shipAt(
+  { ship, torus }: Pick<FieldView, "ship" | "torus">,
+  alpha: number,
+  into: Drawn,
+): Drawn | null {
+  if (!ship) return null;
+  wrappedBetween(ship, alpha, torus, into);
+  into.angle = angleBetween(ship.lastAngle, ship.angle, alpha);
+  return into;
+}
+
+/**
+ * Returns where a thing that wraps is drawn on an axis of a length, as
+ * {@link wrappedBetween} does on both.
+ */
+function betweenOnAxis(
+  last: number,
+  next: number,
+  alpha: number,
+  length: number,
+): number {
+  return wrap(last + across(last, next, length) * alpha, length);
 }

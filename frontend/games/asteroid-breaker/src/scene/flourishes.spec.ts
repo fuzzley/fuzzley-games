@@ -41,6 +41,7 @@ import {
   LOST_RING_REACH,
   SPARK_REACH,
   shardCount,
+  spread,
   trailAlpha,
   trailLaidAfter,
   trailReach,
@@ -64,6 +65,7 @@ import {
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
 import { MOST_EXHAUST } from "./painters/exhaust_painter";
+import { RING_WIDTH } from "./painters/ring_painter";
 
 /** Returns the rock in a field's first slot, the keeper's large stone. */
 function keeperOf(field: Field): Rock {
@@ -660,6 +662,25 @@ describe("the rings", () => {
     ).toEqual([
       onCanvas(metrics, 1, MIDDLE.y),
       onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y),
+    ]);
+  });
+
+  it("sweeps a ring across an edge once its stroke reaches across it, before its middle line does", async () => {
+    const { shell, run, scene } = await startBoard();
+    // Two frames after the blast, the ring's middle line stops a quarter of
+    // its stroke's width short of the edge.
+    const x = 6 * spread(32 / RING_MS) + RING_WIDTH / 4;
+    const rock = placeRock(shell.field, "medium", x, MIDDLE.y);
+    shell.field.events.addRock("blast", rock, 6);
+
+    run.advance(48);
+
+    const metrics = metricsOf(shell);
+    expect(
+      strokesOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
+    ).toEqual([
+      onCanvas(metrics, x, MIDDLE.y),
+      onCanvas(metrics, x + PICTURE_TORUS.width, MIDDLE.y),
     ]);
   });
 });

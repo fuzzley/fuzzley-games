@@ -120,7 +120,7 @@ const THREAT_AHEAD_S = 1;
 const DASH_WITHIN_S = 0.25;
 
 /** How far a shot flies before it fades, at its own speed. */
-const SHOT_REACH = (SHOT_SPEED * SHOT_LIFE_MS) / 1000;
+const SHOT_RANGE = (SHOT_SPEED * SHOT_LIFE_MS) / 1000;
 
 /**
  * The share of the ship's top speed past which the autopilot waits for a
@@ -134,7 +134,7 @@ const CHASE_SHARE = 0.8;
  * waits for it: near enough that it passes within the shots' reach, and
  * far enough not to be run down.
  */
-const WAIT_REACH = SHOT_REACH / 2;
+const WAIT_REACH = SHOT_RANGE / 2;
 
 /**
  * How slantwise a course may be, as the tangent of its angle off a side of
@@ -439,7 +439,7 @@ function targetOf(field: Field, ship: Readonly<Ship>): Target | null {
     const along = SHOT_SPEED * at;
     best = {
       heading,
-      inReach: flight !== null && along <= SHOT_REACH,
+      inReach: flight !== null && along <= SHOT_RANGE,
       slack: Math.atan2(rockHitRadius(rock.size), along),
       toPath: pathOf(px, py, rock.vx * field.pace, rock.vy * field.pace),
     };

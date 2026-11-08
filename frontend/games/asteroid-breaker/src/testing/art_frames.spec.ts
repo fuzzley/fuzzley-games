@@ -1,4 +1,6 @@
 import {
+  type ArtFrame,
+  type DrawCommand,
   type Point,
   circle,
   line,
@@ -6,8 +8,15 @@ import {
   polyline,
   rect,
   ring,
+  roundRect,
 } from "@fz/phaser/shapes";
-import { distanceToEdge, edgeOf, frameNamed, within } from "./art_frames";
+import {
+  distanceToEdge,
+  edgeOf,
+  frameNamed,
+  reachOf,
+  within,
+} from "./art_frames";
 
 /** A square 10 across, its corner at the origin. */
 const SQUARE: readonly Point[] = [
@@ -31,6 +40,11 @@ const ELL: readonly Point[] = [
 function reachesOf(points: readonly Point[]): number[] {
   const reaches = points.map(({ x, y }) => Math.hypot(x - 5, y - 5));
   return [reaches.length, Math.min(...reaches), Math.max(...reaches)];
+}
+
+/** Returns a frame of a command alone, 20 across and down, its middle at (10, 10). */
+function frameOf(command: DrawCommand): ArtFrame {
+  return { name: "spec", width: 20, height: 20, commands: [command] };
 }
 
 /** Returns the least and most x of points, then the least and most y. */
@@ -115,6 +129,34 @@ describe("edgeOf", () => {
 
   it("refuses a polyline, whose corners a canvas joins past its width", () => {
     expect(() => edgeOf(polyline(SQUARE, 1, 0))).toThrow("no polyline");
+  });
+});
+
+describe("reachOf", () => {
+  it("reaches a circle off the middle at its far side", () => {
+    expect(reachOf(frameOf(circle(13, 14, 2, 0)))).toBeCloseTo(7);
+  });
+
+  it("reaches a ring at its far side, half its width past its radius", () => {
+    expect(reachOf(frameOf(ring(13, 14, 2, 2, 0)))).toBeCloseTo(8);
+  });
+
+  it("reaches a capsule at its end's arc, short of its box's corner", () => {
+    const capsule = roundRect({ x: 4, y: 8, width: 12, height: 4 }, 2, 0);
+
+    expect(reachOf(frameOf(capsule))).toBeCloseTo(6);
+  });
+
+  it("reaches a line at its far end's corners", () => {
+    const stroked = line({ x: 10, y: 10 }, { x: 16, y: 10 }, 2, 0);
+
+    expect(reachOf(frameOf(stroked))).toBeCloseTo(Math.hypot(6, 1));
+  });
+
+  it("refuses a polyline, whose corners a canvas joins past its width", () => {
+    expect(() => reachOf(frameOf(polyline(SQUARE, 1, 0)))).toThrow(
+      "no polyline",
+    );
   });
 });
 

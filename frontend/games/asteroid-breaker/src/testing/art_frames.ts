@@ -1,5 +1,6 @@
 import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
 import { atlasFrames } from "../view/art/art";
+import { bakedScale } from "../view/art/shapes";
 import { type PaletteRoles, beltPalette } from "../view/colors/palette";
 
 /** The roles the art's specs draw in, each a color no other role takes, and none white. */
@@ -19,6 +20,27 @@ export const ART_PALETTE = beltPalette(ROLES, "light");
 
 /** The scale the art's specs draw at, a field unit of 24 device pixels at 2 to a CSS pixel. */
 export const ART_SCALE: ArtScale = { unit: 24, pixelRatio: 2 };
+
+/**
+ * The pixel ratios the specs check the art at, from the least a canvas
+ * renders at to the most, a browser zoomed to 110% on a screen of 1 among
+ * them.
+ */
+export const PIXEL_RATIOS: readonly number[] = [1, 1.1, 1.25, 1.5, 2, 3];
+
+/**
+ * The scales a field is drawn at, each as it is baked: the smallest unit the
+ * layout check holds a field to, 6 CSS px, at each pixel ratio, the specs'
+ * own, and the largest at the least pixel ratio and the most.
+ */
+export const ART_SCALES: readonly ArtScale[] = [
+  ...PIXEL_RATIOS.map((pixelRatio) =>
+    bakedScale({ unit: 6 * pixelRatio, pixelRatio }),
+  ),
+  ART_SCALE,
+  bakedScale({ unit: 120, pixelRatio: 1 }),
+  bakedScale({ unit: 120, pixelRatio: 3 }),
+];
 
 /** Returns a frame of the atlas in the specs' palette, at their scale, by its name. */
 export function frameNamed(name: string): ArtFrame {
@@ -40,7 +62,10 @@ export function drawnIn(
   );
 }
 
-/** Returns whether a point lies inside a polygon or on its edge, by how many of its sides a ray from it crosses. */
+/**
+ * Returns whether a point lies inside a polygon or on its edge, by how many of
+ * its sides a ray from it crosses.
+ */
 export function within(point: Point, polygon: readonly Point[]): boolean {
   const sides = polygon.map(
     (a, i) => [a, polygon[(i + 1) % polygon.length] ?? a] as const,
@@ -124,4 +149,38 @@ export function edgeOf(command: DrawCommand): readonly Point[] {
     case "polygon":
       return command.points;
   }
+}
+
+/**
+ * Returns how far from a frame's middle what it draws reaches, in device
+ * pixels, however it is turned.
+ */
+export function reachOf(frame: ArtFrame): number {
+  const middle = { x: frame.width / 2, y: frame.height / 2 };
+  const from = (x: number, y: number): number =>
+    Math.hypot(x - middle.x, y - middle.y);
+  return Math.max(
+    ...frame.commands.map((command) => {
+      switch (command.kind) {
+        case "circle":
+          return from(command.x, command.y) + command.radius;
+        case "ring":
+          return (
+            from(command.x, command.y) + command.radius + command.width / 2
+          );
+        case "roundRect": {
+          const { x, y, width, height, radius } = command;
+          const corners = [
+            from(x + radius, y + radius),
+            from(x + width - radius, y + radius),
+            from(x + width - radius, y + height - radius),
+            from(x + radius, y + height - radius),
+          ];
+          return Math.max(...corners) + radius;
+        }
+        default:
+          return Math.max(...edgeOf(command).map(({ x, y }) => from(x, y)));
+      }
+    }),
+  );
 }

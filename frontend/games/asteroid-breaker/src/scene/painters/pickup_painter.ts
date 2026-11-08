@@ -1,17 +1,13 @@
 import type { GameObjects, Scene } from "phaser";
 import { PICKUP_RECORDS, blinks } from "../../rules/rocks/drops";
-import { pickupFrame } from "../../view/art/art";
+import { PICKUP_REACH, pickupFrame } from "../../view/art/art";
 import {
   GOLDEN_ANGLE,
   blinkShown,
   breathScale,
 } from "../../view/effects/flourish";
-import { betweenOnAxis } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
-
-/** How far a pickup's frame reaches from its middle, its outline and its breath included, in field units. */
-const PICKUP_REACH = 1.1;
 
 /**
  * Draws the pickups floating on the field: each in its frame, breathing
@@ -34,7 +30,10 @@ export class PickupPainter implements Painter {
     for (const pickup of this.pickups) pickup.refresh();
   }
 
-  /** Draws each pickup floating between its last place and its next, and hides each record out of play. */
+  /**
+   * Draws each pickup floating between its last place and its next, and hides
+   * each record out of play.
+   */
   draw({
     field,
     alpha,
@@ -53,12 +52,13 @@ export class PickupPainter implements Painter {
         copies.hide();
         continue;
       }
+      const breath = breathScale(seconds, i * GOLDEN_ANGLE, motion);
       copies.setFrame(pickupFrame(floating.id));
-      copies.setScale(zoom * breathScale(seconds, i * GOLDEN_ANGLE, motion));
-      copies.show(
-        betweenOnAxis(floating.lastX, floating.x, alpha, torus.width),
-        betweenOnAxis(floating.lastY, floating.y, alpha, torus.height),
-        PICKUP_REACH,
+      copies.setScale(zoom * breath);
+      copies.showBetween(
+        floating,
+        alpha,
+        PICKUP_REACH * breath,
         metrics,
         torus,
       );

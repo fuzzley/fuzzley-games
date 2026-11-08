@@ -33,6 +33,14 @@ const LINE = 0.06;
  */
 const OUTLINE = 0.12;
 
+/**
+ * The widest a line or an outline gets, in field units: at the 6 CSS px a
+ * unit the layout check holds a field to, at any pixel ratio, whether or
+ * not the bake rounds the unit down to a whole device pixel, 2 device
+ * pixels on 6 or more, or 3 on 12 or more.
+ */
+export const MOST_LINE = 1 / 3;
+
 /** How many straight pieces a curve is drawn in. */
 const CURVE_PIECES = 8;
 
@@ -43,7 +51,7 @@ const CURVE_PIECES = 8;
 const TURN_PIECES = 40;
 
 /** How far an outline's corner may reach out, against its width, so a sharp corner can't spike. */
-const MOST_MITER = 2;
+export const MOST_MITER = 2;
 
 /**
  * Returns the scale the atlas is baked at for a field: its unit rounded down

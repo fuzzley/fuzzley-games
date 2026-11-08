@@ -1,17 +1,10 @@
 import type { GameObjects, Scene } from "phaser";
-import { ROCK_RADIUS } from "../../rules/tuning";
-import { rockFrame, takenFrame } from "../../view/art/rock_art";
+import { ROCK_REACH, rockFrame, takenFrame } from "../../view/art/rock_art";
 import { flashAlpha, flashDue, shareDone } from "../../view/effects/flourish";
 import { FLASH_MS } from "../../view/effects/timing";
-import { type FieldView, betweenOnAxis } from "../../view/field/frame";
+import type { FieldView } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
-
-/**
- * How far past its radius a rock's frame reaches, its outline and its turn's
- * corners, in field units.
- */
-const RIM = 0.5;
 
 /** A frame any rock's images show till one is drawn: the smallest stone's first outline. */
 const FIRST_FRAME = rockFrame({ kind: "stone", size: "small", outline: 0 });
@@ -103,21 +96,19 @@ export class RockPainter implements Painter {
         taken.hide();
         continue;
       }
-      const x = betweenOnAxis(rock.lastX, rock.x, alpha, torus.width);
-      const y = betweenOnAxis(rock.lastY, rock.y, alpha, torus.height);
-      const reach = ROCK_RADIUS[rock.size] + RIM;
+      const reach = ROCK_REACH[rock.size];
       const frame = rockFrame(rock);
       body.setFrame(frame);
       body.setRotation(rock.angle);
       body.setScale(zoom);
-      body.show(x, y, reach, metrics, torus);
+      body.showBetween(rock, alpha, reach, metrics, torus);
       if (i === this.flashed.slot && flashed < 1) {
         this.flash.setFrame(frame);
         this.flash.setTintFill(palette.glint);
         this.flash.setRotation(rock.angle);
         this.flash.setScale(zoom);
         this.flash.setAlpha(flashAlpha(flashed));
-        this.flash.show(x, y, reach, metrics, torus);
+        this.flash.showBetween(rock, alpha, reach, metrics, torus);
       }
       const hits = takenFrame(rock);
       if (hits === null) {
@@ -127,7 +118,7 @@ export class RockPainter implements Painter {
       taken.setFrame(hits);
       taken.setRotation(rock.angle);
       taken.setScale(zoom);
-      taken.show(x, y, reach, metrics, torus);
+      taken.showBetween(rock, alpha, reach, metrics, torus);
     }
   }
 }

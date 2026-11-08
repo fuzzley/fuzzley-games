@@ -152,3 +152,21 @@ export function copyShift(
   if (at > length - reach) return -1;
   return 0;
 }
+
+/**
+ * Returns how far off a thing at a place on the field, reaching so far, has
+ * its copies past the edges drawn, written into a record the caller keeps:
+ * across, `x`, and down, `y`, each 0 where it reaches past no edge that way,
+ * and both off for its copy at the corner where it reaches past two.
+ */
+export function copyOffsets(
+  x: number,
+  y: number,
+  reach: number,
+  torus: Torus,
+  into: Moving,
+): Moving {
+  into.x = copyShift(x, reach, torus.width) * torus.width;
+  into.y = copyShift(y, reach, torus.height) * torus.height;
+  return into;
+}

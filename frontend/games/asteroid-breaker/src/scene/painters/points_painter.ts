@@ -40,9 +40,7 @@ export class PointsPainter implements Painter {
   /** The palette the labels were last written in, and the unit. */
   private styledIn: BeltPalette | null = null;
   private styledAt = 0;
-  /** Where a label is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written each frame. */
+  /** Where a label is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer, fontFamily: string) {
@@ -77,9 +75,7 @@ export class PointsPainter implements Painter {
       const done = shareDone(at, now, POINTS_MS);
       label.setVisible(done < 1);
       if (done === 1) continue;
-      this.place.x = x;
-      this.place.y = y - riseOf(done, motion);
-      toCanvas(metrics, this.place, this.at);
+      toCanvas(metrics, x, y - riseOf(done, motion), this.at);
       label
         .setPosition(
           within(this.at.x, label.width, metrics.x, metrics.width),

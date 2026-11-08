@@ -57,6 +57,7 @@ import {
 import {
   DECK_FRAMES,
   FRAMES,
+  PICKUP_REACH,
   PICTURE_FRAMES,
   STRAY_DROP,
   atlasFrames,
@@ -75,7 +76,12 @@ import { rockFrame, takenFrame } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale, lineWidth } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
 import { SOUNDS } from "../view/effects/effects";
-import { PULSE_LEAST } from "../view/effects/flourish";
+import {
+  BREATH,
+  GOLDEN_ANGLE,
+  PULSE_LEAST,
+  breathScale,
+} from "../view/effects/flourish";
 import type { BoardSetting } from "../view/field/field_metrics";
 import { LAYERS } from "../view/field/layers";
 import {
@@ -92,6 +98,18 @@ import { type BeltScene, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
 import { GUARD_ALPHA } from "./painters/ship_painter";
 import spritemap from "./sounds/sounds.json";
+
+/**
+ * Returns the time of the first frame, a frame of 16 ms at a time on from a
+ * time, at which a pickup in a slot has breathed out past half its breath.
+ */
+function breathingOut(now: number, slot: number): number {
+  let at = now + 16;
+  while (breathScale(at / 1000, slot * GOLDEN_ANGLE, true) < 1 + BREATH / 2) {
+    at += 16;
+  }
+  return at;
+}
 
 describe("the cameras", () => {
   it("point the field's at the field, showing the canvas's own pixels", async () => {
@@ -579,6 +597,28 @@ describe("the pickups", () => {
     ).toEqual([
       onCanvas(metrics, 0.75, 20),
       onCanvas(metrics, 0.75 + width, 20),
+      null,
+      null,
+    ]);
+  });
+
+  it("draw a pickup breathing out on both sides of an edge it reaches across only as it breathes", async () => {
+    const { shell, run, scene } = await startBoard();
+    const floating = placePickup(shell.field, "spread", 30, 20);
+    const slot = shell.field.pickups.indexOf(floating);
+    const at = breathingOut(scene.time.now, slot);
+    const breath = breathScale(at / 1000, slot * GOLDEN_ANGLE, true);
+    // Halfway between its reach at rest and its reach as it breathes.
+    const x = (PICKUP_REACH * (1 + breath)) / 2;
+    floating.x = x;
+    floating.lastX = x;
+
+    run.advance(at - scene.time.now);
+
+    const metrics = metricsOf(shell);
+    expect(shown(scene.kit.pickups.pickups[slot])).toEqual([
+      onCanvas(metrics, x, 20),
+      onCanvas(metrics, x + shell.field.torus.width, 20),
       null,
       null,
     ]);

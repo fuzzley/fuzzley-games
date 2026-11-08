@@ -1,5 +1,5 @@
 import type { GameObjects, Scene } from "phaser";
-import { type Moving, copyShift } from "../../rules/torus";
+import { type Moving, copyOffsets } from "../../rules/torus";
 import { fadeAlpha, shareDone, spread } from "../../view/effects/flourish";
 import { RING_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
@@ -13,7 +13,7 @@ const POOL = 12;
 const RING_ALPHA = 0.9;
 
 /** How wide a ring is drawn, in field units. */
-const RING_WIDTH = 0.25;
+export const RING_WIDTH = 0.25;
 
 /** Describes a ring sweeping out to its reach, in its color. */
 interface Ring extends Playing {
@@ -37,9 +37,9 @@ export class RingPainter implements Painter {
     reach: 0,
     color: 0,
   }));
-  /** Where a ring's middle is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written each frame. */
+  /** How far a ring's copies past the edges are from it on the field, written each frame. */
+  private readonly offsets: Moving = { x: 0, y: 0 };
+  /** Where a copy's middle is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
@@ -70,8 +70,14 @@ export class RingPainter implements Painter {
         ring.color,
         RING_ALPHA * fadeAlpha(done),
       );
-      const across = copyShift(ring.x, reach, torus.width) * torus.width;
-      const down = copyShift(ring.y, reach, torus.height) * torus.height;
+      // The stroke is centered on the circle, so half its width lies past it.
+      const { x: across, y: down } = copyOffsets(
+        ring.x,
+        ring.y,
+        reach + RING_WIDTH / 2,
+        torus,
+        this.offsets,
+      );
       this.stroke(ring.x, ring.y, reach, metrics);
       if (across !== 0) {
         this.stroke(ring.x + across, ring.y, reach, metrics);
@@ -97,9 +103,7 @@ export class RingPainter implements Painter {
     reach: number,
     metrics: FieldMetrics,
   ): void {
-    this.place.x = x;
-    this.place.y = y;
-    toCanvas(metrics, this.place, this.at);
+    toCanvas(metrics, x, y, this.at);
     this.graphics.strokeCircle(this.at.x, this.at.y, reach * metrics.unit);
   }
 }

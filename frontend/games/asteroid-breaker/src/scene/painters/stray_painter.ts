@@ -19,7 +19,7 @@ import {
 } from "../../view/effects/flourish";
 import { BAIL_OUT_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
-import { between, betweenOnAxis } from "../../view/field/frame";
+import { between } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -64,12 +64,8 @@ export class StrayPainter implements Painter {
     way: 0,
     pilot: 0,
   };
-  /** Where a part is on the field, written each frame. */
-  private readonly place: Moving = { x: 0, y: 0 };
-  /** Where it is on the canvas, written each frame. */
+  /** Where a part is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
-  /** Where the ship the stray watches is, written each frame. */
-  private readonly watched: Moving = { x: 0, y: 0 };
   /** The way a pilot looks, written each frame. */
   private readonly look: Moving = { x: 0, y: 0 };
 
@@ -114,18 +110,13 @@ export class StrayPainter implements Painter {
 
   /** Draws the stray adrift, its eyes on the ship, or nothing while none is. */
   private drawAdrift(context: Readonly<PaintContext>): void {
-    const { field, alpha } = context;
+    const { field, alpha, shipDrawn } = context;
     const stray = field.strays.adrift;
     for (const part of this.adrift.parts) part.setVisible(stray.live);
     if (!stray.live) return;
     const x = between(stray.lastX, stray.x, alpha);
     const y = between(stray.lastY, stray.y, alpha);
-    const { ship, torus } = field;
-    if (ship) {
-      this.watched.x = betweenOnAxis(ship.lastX, ship.x, alpha, torus.width);
-      this.watched.y = betweenOnAxis(ship.lastY, ship.y, alpha, torus.height);
-    }
-    lookingFrom(x, y, ship ? this.watched : null, stray.heading, this.look);
+    lookingFrom(x, y, shipDrawn, stray.heading, this.look);
     this.drawPilot(this.adrift, x, y, stray.pilot, this.look, context);
   }
 
@@ -182,9 +173,7 @@ export class StrayPainter implements Painter {
     y: number,
     metrics: FieldMetrics,
   ): GameObjects.Image {
-    this.place.x = x;
-    this.place.y = y;
-    toCanvas(metrics, this.place, this.at);
+    toCanvas(metrics, x, y, this.at);
     return part.setPosition(this.at.x, this.at.y);
   }
 }

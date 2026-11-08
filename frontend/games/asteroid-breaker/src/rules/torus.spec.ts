@@ -1,6 +1,8 @@
 import {
+  type Moving,
   type Torus,
   across,
+  copyOffsets,
   copyShift,
   distance,
   distanceSquared,
@@ -15,6 +17,14 @@ const SQUARE: Torus = { width: 40, height: 40 };
 
 /** The widest field, on its side. */
 const WIDEST: Torus = { width: 88, height: 40 };
+
+/**
+ * Returns how far off a thing at a place on the widest field, reaching so
+ * far, has its copies drawn.
+ */
+function offsetsOf(x: number, y: number, reach: number): Moving {
+  return copyOffsets(x, y, reach, WIDEST, { x: 0, y: 0 });
+}
 
 describe("middleOf", () => {
   it("is halfway across a field and halfway down", () => {
@@ -135,6 +145,34 @@ describe("copyShift", () => {
       expect(copyShift(at, 2, 40)).toBe(shift);
     },
   );
+});
+
+describe("copyOffsets", () => {
+  it("draws no copy of a thing that reaches past no edge", () => {
+    expect(offsetsOf(44, 20, 1)).toEqual({ x: 0, y: 0 });
+  });
+
+  it.each([
+    ["the left edge", 0.5, 20, { x: 88, y: 0 }],
+    ["the right edge", 87.5, 20, { x: -88, y: 0 }],
+    ["the top edge", 44, 0.5, { x: 0, y: 40 }],
+    ["the bottom edge", 44, 39.5, { x: 0, y: -40 }],
+  ])(
+    "draws a copy of a thing past %s on the field's far side, a side's length off",
+    (_, x, y, offsets) => {
+      expect(offsetsOf(x, y, 1)).toEqual(offsets);
+    },
+  );
+
+  it("draws copies of a thing at a corner both ways off, for the copy at the far corner too", () => {
+    expect(offsetsOf(87.5, 0.5, 1)).toEqual({ x: -88, y: 40 });
+  });
+
+  it("writes into the record it is given", () => {
+    const into = { x: 0, y: 0 };
+
+    expect(copyOffsets(44, 20, 1, WIDEST, into)).toBe(into);
+  });
 });
 
 describe("pullToward", () => {
