@@ -45,8 +45,10 @@ export class EventLog<E extends NumberedEvent> {
    * Returns the record of the next event, numbered one more than the latest,
    * for its writer to fill in place.
    *
-   * Once the ring has come round, the record still holds the oldest event,
-   * which it now replaces, so the writer sets every field but the serial.
+   * Its writer sets every field but the serial. Once the ring has come
+   * round, the record still holds the oldest event, which the log doesn't
+   * clear, so as to cost nothing per event: a field the writer skips keeps
+   * that event's value.
    */
   next(): E {
     this.last++;

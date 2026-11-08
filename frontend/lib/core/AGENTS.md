@@ -65,9 +65,10 @@ Each file is an entry point of its own, imported by name, such as
   paddle stands empty before a serve.
 - `src/event_log.ts`: `EventLog<E>`, a ring of a game's latest events,
   each a `NumberedEvent`, made with the log: `next()` hands its writer the
-  next event's record, numbered, to fill in place, so nothing is made per
-  event, and `forEachSince()` hands each reader the events past the last
-  it read, however many steps a frame took.
+  next event's record, numbered, to fill in place, every field of it but
+  the serial, so nothing is made per event, and `forEachSince()` hands
+  each reader the events past the last it read, however many steps a
+  frame took.
 - `src/field_play.ts`: `FieldPlay`, a game's field in play, made for each
   field over its `FieldRules` (a frame's steering taken, a step), a
   `Clock` and the frame its scene draws: `advance()` moves the field on by a
