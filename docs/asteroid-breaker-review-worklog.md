@@ -663,3 +663,37 @@ spec in exactly one project and no file counted twice:
    declared with `extends: false`.
 5. _The code left to oxc took in the helpers' specs:_ taken; not specs.
 6. _A line of `AGENTS.md` ran far past its paragraph:_ taken.
+
+### Step 7d: finding 9, the debug menu's numbers a service of their own
+
+Built on `ab-shell`, the last of finding 9's four planned commits.
+`TuningService` (`src/app/settings/tuning.service.ts`), beside the menu
+that writes to it, holds the numbers, `retuned` as a `computed` of them in
+place of the copy `GameService` kept by hand, `tune()`, `reset()`, and
+`onTune()`, which tells a listener of each tuning at once and returns the
+function that stops it. `GameService` listens for as long as it lives:
+a wave yet to begin is laid out again, and one under way takes the numbers
+at once, as before. The settings drawer reads and writes the service, and
+its specs moved with it.
+
+Where it went other than planned:
+
+- A listener, not an `effect`: an effect runs at the next change
+  detection, so the field could step a frame on the old numbers, and a run
+  whose numbers were put back before its first move would keep records it
+  shouldn't.
+- Whether a run was flown on tuned numbers is still set by a frame on
+  which the field moved, not as a run begins, for the same run.
+
+The review found nothing changed for the player on any path:
+
+1. _`onTune()` gave back no way to stop listening,_ and nothing tied the
+   game's listener to its life: taken; a `Set`, an unsubscribe, and
+   `DestroyRef`.
+2. _What was left in `GameService` of a run's state is pure:_ taken, as a
+   commit of its own (step 7e).
+3. _`retune()` took the numbers from its argument in one branch and the
+   signal in the other:_ taken; the listener is told nothing, and reads
+   the signal.
+4. _The docs named the one listener and the effect not used:_ taken.
+5. _A spec's title promised the field, and checked the numbers:_ taken.

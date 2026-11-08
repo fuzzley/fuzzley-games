@@ -371,9 +371,10 @@ take for the layer.
     (`setRoom()`), says what happened through `@fz/ui/announcer`, shows a
     cleared wave's points (`tally`), keeps what each change in the run brings to
     the records and the sectors reached (`recordsOf()`) through `stats/`, in one
-    place that keeps none of a run flown on tuned numbers, tunes the field as
-    the debug menu says (`tune()`, `resetTuning()`), and asks through
-    `@fz/ui/confirm` before a new game or speed throws a run away.
+    place that keeps none of a run flown on tuned numbers, has the wave in play
+    take the numbers the debug menu tunes as `TuningService` tells it of them,
+    and asks through `@fz/ui/confirm` before a new game or speed throws a run
+    away.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
     the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and whether the
     build is a development one (`DEV_BUILD`) and the settings offer the debug
@@ -442,9 +443,10 @@ take for the layer.
     debug menu: a slider for each number of the ship's flight, its gunnery
     and the rocks' speed (`TUNING_SLIDERS`), whether shots carry the ship's
     speed, Reset the numbers, and Copy the numbers, the lines of `tuning.ts`
-    they would replace. `GameService.tune()` gives them to the field in play
-    and every one after it, nothing keeps them, and a run flown on them
-    keeps no records.
+    they would replace. `TuningService` holds them, says whether they are off
+    `tuning.ts`'s (`retuned`) and tells `GameService` of each tuning as it is
+    made (`onTune()`), which gives them to the field in play and every one
+    after it; nothing keeps them, and a run flown on them keeps no records.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
     and `<app-pilot-row>`, pilots in a row, which the bar, the Paused card

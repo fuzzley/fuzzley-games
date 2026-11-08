@@ -26,6 +26,7 @@ import {
 } from "../../testing/play";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
+import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES } from "../tokens";
@@ -85,7 +86,10 @@ function start(): GameService {
   return TestBed.inject(GameService);
 }
 
-/** Loads the page again over the same waves, keeping what the browser stored, and starts the service. */
+/**
+ * Loads the page again over the same waves, keeping what the browser stored,
+ * and starts the service.
+ */
 function reload(waves: readonly WaveEntry[] = SPEC_WAVES): GameService {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({ providers: provideSpecWaves(waves) });
@@ -133,7 +137,10 @@ function rocksOf(game: GameService): readonly RockPlace[] {
     .map(({ kind, size, x, y }) => ({ kind, size, x, y }));
 }
 
-/** Returns rocks with their places to a millionth of a unit, so a stretch there and back reads as the same. */
+/**
+ * Returns rocks with their places to a millionth of a unit, so a stretch
+ * there and back reads as the same.
+ */
 function rounded(
   rocks: ReturnType<typeof rocksOf>,
 ): ReturnType<typeof rocksOf> {
@@ -445,7 +452,7 @@ describe("SavedGameService", () => {
 
     it("takes up a run flown on tuned numbers as none that has cleared every written wave", async () => {
       const before = start();
-      before.tune({ rockSpeed: 1.5 });
+      TestBed.inject(TuningService).tune({ rockSpeed: 1.5 });
       await before.startAt(SPEC_WAVE.pebble);
       clearToNext(before);
       clearToNext(before);
@@ -459,7 +466,7 @@ describe("SavedGameService", () => {
 
     it("keeps no records of a run flown on numbers the debug menu tuned", async () => {
       const before = start();
-      before.tune({ rockSpeed: 1.5 });
+      TestBed.inject(TuningService).tune({ rockSpeed: 1.5 });
       await before.startAt(SPEC_WAVE.gift);
       before.tick(FRAME_MS, shoot(before));
       before.pause();

@@ -8,12 +8,14 @@ import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
 import { SettingsComponent } from "./settings.component";
 import { SettingsService } from "./settings.service";
+import { TuningService } from "./tuning.service";
 
 /** What a spec gets back from rendering the settings. */
 interface RenderedSettings {
   readonly user: UserEvent;
   readonly game: GameService;
   readonly store: SettingsService;
+  readonly tuner: TuningService;
   readonly closed: ReturnType<typeof vi.fn>;
 }
 
@@ -34,6 +36,7 @@ async function renderSettings({
     user: userEvent.setup(),
     game: TestBed.inject(GameService),
     store: TestBed.inject(SettingsService),
+    tuner: TestBed.inject(TuningService),
     closed,
   };
 }
@@ -189,29 +192,29 @@ describe("SettingsComponent", () => {
       expect(thrust).toHaveAttribute("aria-valuetext", "24 u/s²");
     });
 
-    it("tunes the field in play as a slider moves", async () => {
-      const { game } = await renderSettings({ debugMenu: true });
+    it("tunes the numbers as a slider moves", async () => {
+      const { tuner } = await renderSettings({ debugMenu: true });
 
       slide("Rocks' speed", 1.5);
 
-      expect(game.tuning().rockSpeed).toBe(1.5);
+      expect(tuner.tuning().rockSpeed).toBe(1.5);
       expect(
         screen.getByRole("slider", { name: "Rocks' speed" }),
       ).toHaveAttribute("aria-valuetext", "×1.50");
     });
 
     it("lets shots leave without the ship's speed at its checkbox", async () => {
-      const { user, game } = await renderSettings({ debugMenu: true });
+      const { user, tuner } = await renderSettings({ debugMenu: true });
 
       await user.click(
         screen.getByRole("checkbox", { name: "Shots carry the ship's speed" }),
       );
 
-      expect(game.tuning().carryShip).toBe(false);
+      expect(tuner.tuning().carryShip).toBe(false);
     });
 
     it("puts every number back to tuning.ts's at Reset the numbers", async () => {
-      const { user, game } = await renderSettings({ debugMenu: true });
+      const { user, tuner } = await renderSettings({ debugMenu: true });
       slide("Thrust", 40);
       slide("A shot every", 90);
 
@@ -219,11 +222,11 @@ describe("SettingsComponent", () => {
         screen.getByRole("button", { name: "Reset the numbers" }),
       );
 
-      expect(game.tuning()).toEqual(TUNED);
+      expect(tuner.tuning()).toEqual(TUNED);
     });
 
     it("puts the numbers on the clipboard as tuning.ts's lines at Copy the numbers, and says so", async () => {
-      const { user, game } = await renderSettings({ debugMenu: true });
+      const { user, tuner } = await renderSettings({ debugMenu: true });
       slide("Top speed", 18);
 
       await user.click(
@@ -231,7 +234,7 @@ describe("SettingsComponent", () => {
       );
 
       expect(await navigator.clipboard.readText()).toBe(
-        tuningLines(game.tuning()),
+        tuningLines(tuner.tuning()),
       );
       expect(screen.getByRole("status")).toHaveTextContent(
         "Copied the numbers.",
