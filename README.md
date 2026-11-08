@@ -52,6 +52,10 @@ yarn workspace brick-breaker dev    # work on Brick Breaker alone, on http://loc
 yarn workspace asteroid-breaker dev # work on Asteroid Breaker alone, on http://localhost:9005
 ```
 
+No dev server opens a browser by itself. Add `--open` to any of them
+(`yarn dev --open`, `yarn dev:all --open`, `yarn workspace snake dev --open`)
+to open its page once the server is up.
+
 `yarn dev` and `yarn build` first build the games in `frontend/games/`. The
 Solitaire Collection is then at
 http://localhost:4200/play/solitaire/, Minesweeper at

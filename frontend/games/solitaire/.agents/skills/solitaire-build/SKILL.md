@@ -9,8 +9,8 @@ description: The Solitaire Collection's build — its Vite config on @fz/dev's g
 
 ## Commands
 
-- **`yarn start` / `yarn dev`** — Vite dev server on `http://localhost:9000/`,
-  opens a browser.
+- **`yarn start` / `yarn dev`** — Vite dev server on `http://localhost:9000/`;
+  `--open` opens it in a browser.
 - **`yarn build`** — production assets into `dist/`.
 - **`yarn preview`** — serves the production output locally.
 - **`yarn build:atlas`** — regenerates the card atlas (see below).

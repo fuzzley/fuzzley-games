@@ -2,10 +2,12 @@
 // under the site's /play/<slug>/, so an edit to the site, a game or a library
 // they share shows on the page as soon as it is saved.
 //
-//   node tools/dev-all.mjs [--port <port>]
+//   node tools/dev-all.mjs [--port <port>] [--open]
 //
 //   --port  The site's port, 4200 unless given. The games take the ones after
 //           it, in the order games.json lists them.
+//   --open  Opens the site in the browser once its server is up; the games'
+//           servers never open one.
 //
 // Each app runs its own Vite, in its own folder, because Analog's Angular
 // plugin finds the app's files from the folder it starts in. The site's sends
@@ -128,9 +130,10 @@ export function gameServersEnv(games) {
  * @param {GameServer[]} games
  * @param {number} sitePort
  * @param {string} vite The script that runs Vite.
+ * @param {boolean} [open] Whether the site's opens it in the browser.
  * @returns {Server[]}
  */
-export function viteServers(games, sitePort, vite) {
+export function viteServers(games, sitePort, vite, open = false) {
   return [
     ...games.map((game) => ({
       name: game.slug,
@@ -141,7 +144,13 @@ export function viteServers(games, sitePort, vite) {
     {
       name: "site",
       cwd: SITE_DIR,
-      args: [vite, "--port", String(sitePort), "--strictPort"],
+      args: [
+        vite,
+        "--port",
+        String(sitePort),
+        "--strictPort",
+        ...(open ? ["--open"] : []),
+      ],
       env: { [GAME_SERVERS_ENV]: gameServersEnv(games) },
     },
   ];
@@ -235,7 +244,9 @@ export function runServers(servers, printer = console) {
 }
 
 async function main() {
-  const { values } = parseArgs({ options: { port: { type: "string" } } });
+  const { values } = parseArgs({
+    options: { port: { type: "string" }, open: { type: "boolean" } },
+  });
   const sitePort = parsePort(values.port ?? String(SITE_PORT));
   const games = gameServers(readManifest(), sitePort);
   // Vite only colors what it writes to a terminal, and its output comes here.
@@ -245,7 +256,9 @@ async function main() {
   log(`the site will be at ${site}/, with the games at:`);
   for (const { slug } of games) log(`  ${site}/play/${slug}/`);
 
-  const running = runServers(viteServers(games, sitePort, viteBin()));
+  const running = runServers(
+    viteServers(games, sitePort, viteBin(), values.open),
+  );
   process.on("SIGINT", running.stop);
   process.on("SIGTERM", running.stop);
   process.exitCode = await running.done;

@@ -256,8 +256,10 @@ export async function runLayoutScript(
     root: script.root,
     logLevel: "silent",
     // The loopback address itself, not `localhost`, which can name ::1 to the
-    // server and 127.0.0.1 to a client dialing it.
-    preview: { host: "127.0.0.1", port: 0, strictPort: true },
+    // server and 127.0.0.1 to a client dialing it; and no browser of the
+    // desktop's, whatever the game's own config asks, as the checks bring
+    // their own.
+    preview: { host: "127.0.0.1", port: 0, strictPort: true, open: false },
   });
   try {
     const url = server.resolvedUrls?.local[0];

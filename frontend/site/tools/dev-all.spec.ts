@@ -133,6 +133,18 @@ describe("viteServers", () => {
       },
     ]);
   });
+
+  it("opens the site in the browser when asked, and never a game", () => {
+    const games = gameServers(MANIFEST, 4200);
+
+    const servers = viteServers(games, 4200, "vite.js", true);
+
+    expect(servers.map(({ name, args }) => [name, args.at(-1)])).toEqual([
+      ["solitaire", "--no-open"],
+      ["minesweeper", "--no-open"],
+      ["site", "--open"],
+    ]);
+  });
 });
 
 describe("parsePort", () => {
