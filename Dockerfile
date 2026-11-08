@@ -3,7 +3,7 @@
 # Both base images are pinned by version and digest, so a rebuild of the same
 # commit gets the same image; Dependabot proposes the updates. The Node major
 # version here matches .node-version, which verify.yml checks.
-FROM node:26.12.1-alpine3.24@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS build
+FROM node:26.13.0-alpine3.24@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS build
 
 ARG COMMIT_SHA
 ARG GITHUB_SHA
@@ -24,7 +24,7 @@ RUN npm install -g corepack@0.36.0 && corepack enable && yarn install --immutabl
 RUN yarn build
 
 # Stage 2: Serve the application using Nginx
-FROM nginx:1.31.8-alpine3.24@sha256:1ef7ca94d7879df82421428ce13bd1eaa412404953859cf7a5b6512c25e67a60
+FROM nginx:1.31.8-alpine3.24@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11
 
 # Copy the build output to Nginx's default public directory
 COPY --from=build /app/frontend/site/dist /usr/share/nginx/html
