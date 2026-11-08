@@ -22,5 +22,11 @@ export default defineConfig(
         lines: 100,
       },
     },
+    projects: {
+      root: import.meta.dirname,
+      // The rules and the view touch no page. The specs' helpers stay with
+      // `dom`, as they set the game up in Angular's TestBed.
+      pure: ["src/rules", "src/view"],
+    },
   }),
 );

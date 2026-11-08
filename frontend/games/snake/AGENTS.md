@@ -17,8 +17,9 @@ says how any game here is drawn with Phaser. Paths are relative to
   zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
   `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules
 - **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom, Testing
-  Library, and real Phaser run headless
+- **Test Framework:** [Vitest](https://vitest.dev/), in Node for the rules
+  and the view, and in jsdom, with Testing Library and real Phaser run
+  headless, for the scene and the shell
 - **Language:** TypeScript / HTML / Sass
 
 ## Layers
@@ -227,10 +228,13 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
   `yarn dev:all`, from `frontend/`, serves this dev server there instead.
 - **Production Build:** `yarn build`, into `dist/`, with Phaser in a chunk of
   its own, which the scene loads; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
-  failing below the floor `vitest.config.ts` sets for `src/rules/` and
-  `src/view/`), `yarn test:watch`, or `yarn vitest run <path>` for one
-  spec, which leaves the floor alone.
+- **Run Unit Tests:** `yarn test` (the whole suite once, Vitest's `dom`
+  and `pure` projects, with coverage, failing below the floor
+  `vitest.config.ts` sets for `src/rules/` and `src/view/`),
+  `yarn test:watch`, or `yarn vitest run --project <project> <path>` for
+  one spec, which leaves the floor alone: `pure` for one of the rules or
+  the view, `dom` for one of the scene or the shell. Without `--project`,
+  Vitest starts both, Analog's plugin among them.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the scripts'
   rules among them for `tools/`, `eslint.config.js` and
   `stylelint.config.js`, and `phaserGameLayers()` for the fences between the
@@ -267,9 +271,13 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
 ## Tests
 
 The repository's rules for specs apply. A spec sits beside the file it
-tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
-`@fz/phaser/testing`'s headless Phaser first, so the scene's specs run real
-Phaser. This workspace's `snake-testing` skill, in `.agents/skills/`, covers
+tests, named after it. Vitest runs the specs in two projects, each starting
+only what its own need: `pure` runs those of the rules and the view in
+Node, which has no page, as nothing they test touches one, and `dom` every
+other, the scene's and the shell's, in jsdom, after
+`src/test-setup.ts`, which installs `@fz/phaser/testing`'s headless Phaser
+first, so the scene's specs run real Phaser. Coverage measures the two
+together. This workspace's `snake-testing` skill, in `.agents/skills/`, covers
 its setup and fixtures, the repository's `angular-testing` the patterns
 every Angular workspace's specs share, and `phaser-core` the harness. The
 rules' specs draw their runs with `runFrom`, rather than playing to a

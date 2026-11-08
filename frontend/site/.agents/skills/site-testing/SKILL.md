@@ -34,7 +34,9 @@ projects, built from `@fz/dev/vitest`'s pieces: `angularSpecs()` and
 
 - **`app`**: every `*.spec.ts` under `src/`, in `jsdom`, with the Angular
   plugin and `src/test-setup.ts`, which starts Angular's test environment and
-  loads jest-dom's matchers.
+  loads jest-dom's matchers, in the plugin's pool, `vmThreads`, which
+  `angularSpecs()` names, since a project sharing the config's Vite server
+  misses the pool the plugin sets.
 - **`tools`**: every `*.spec.ts` under `tools/`, in Node, for the build
   scripts and Vite plugins. `yarn workspace site vitest run --project tools`
   runs only these. A plugin's logic is a function the spec calls, such as

@@ -18,9 +18,12 @@ relative to `frontend/games/snake/`.
 Run these from `frontend/games/snake/`, or as
 `yarn workspace snake <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once, with coverage) or
-  `yarn test:watch`. `yarn vitest run <path>` runs one spec without
-  coverage.
+- **Run Tests**: `yarn test` (the whole suite once, the `dom` and `pure`
+  projects, with coverage) or `yarn test:watch`.
+  `yarn vitest run --project <project> <path>` runs one spec without
+  coverage, starting its project alone: `pure` for the rules and the view,
+  `dom` for the scene and the shell. Without `--project`, Vitest starts
+  both, Analog's plugin among them.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` to 100% of
   statements, functions and lines and 95% of branches, and `src/view/` to
   the same but 99% of statements, short by a throw for a square a snake must
@@ -29,9 +32,21 @@ Run these from `frontend/games/snake/`, or as
 
 ## Setup
 
-- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the floor
-  and what coverage leaves out (`src/main.ts` and `src/testing/`).
-- A spec sits beside the file it tests, named after it, and runs in jsdom.
+- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the floor,
+  what coverage leaves out (`src/main.ts` and `src/testing/`) and the
+  folders of its two Vitest projects, each a config of its own, so each
+  starts only what its specs need: `pure`, the specs of the rules and the
+  view, in Node, with neither the setup below nor Analog's plugin; and
+  `dom`, every other spec, the scene's and the shell's, in jsdom after the
+  setup below, with Analog's plugin, so a spec in a new folder runs in
+  jsdom rather than in neither. `src/testing/`, which sets the game up in
+  Angular's TestBed, is `dom`'s too. Snake has no simulations, so no `sim`.
+- A spec sits beside the file it tests, named after it, and its folder
+  sets its project. One of the rules or the view has no page, so what
+  needs one is the scene's or the shell's to test. Their code must hold
+  nothing Analog's plugin must compile, such as a decorated class: `dom`
+  compiles it, but not their specs, with Vite's oxc, as `pure` does, so
+  that coverage counts it once (`frontend/lib/dev/AGENTS.md`).
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears

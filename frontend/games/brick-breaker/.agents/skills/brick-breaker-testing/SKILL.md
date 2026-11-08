@@ -18,27 +18,42 @@ relative to `frontend/games/brick-breaker/`.
 Run these from `frontend/games/brick-breaker/`, or as
 `yarn workspace brick-breaker <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once: the `unit` project
-  with coverage, then the `sim` project without) or `yarn test:watch`.
-  `yarn vitest run <path>` runs one spec without coverage, in the project
-  that holds it. The whole suite takes minutes, most of them the autopilot
-  playing every level at every preset speed.
+- **Run Tests**: `yarn test` (the whole suite once: the `dom` and `pure`
+  projects with coverage, then the `sim` project without) or
+  `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
+  spec without coverage, starting its project alone: `pure` for the rules
+  and the view, `dom` for the scene, the shell and `src/testing/`, and
+  `sim` for the simulations. Without `--project`, Vitest starts all three,
+  Analog's plugin among them. The whole suite takes minutes, most of them
+  the autopilot playing every level at every preset speed.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
   to 100% of statements, functions and lines and 95% of branches.
   `yarn test`, which CI runs, fails below either. The scene and the shell
-  have no floor of their own. Coverage measures the `unit` project alone,
-  so what only the simulations reach counts as untested.
+  have no floor of their own. Coverage measures the `dom` and `pure`
+  projects together, not `sim`, so what only the simulations reach counts
+  as untested.
 
 ## Setup
 
-- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the floor
-  and what coverage leaves out (`src/main.ts` and `src/testing/`), with two
-  projects merged in: `sim`, the specs that play every level
-  (`SIMULATIONS`), in Node (`nodeSpecs()`), with neither the setup below
-  nor Analog's plugin, and `unit`, every other spec, as `angularTests()`
-  runs them.
-- A spec sits beside the file it tests, named after it, and runs in jsdom,
-  but for the simulations.
+- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the floor,
+  what coverage leaves out (`src/main.ts` and `src/testing/`) and the
+  folders of its three Vitest projects, each a config of its own, so each
+  starts only what its specs need:
+  - `pure`, the specs of the rules and the view, but for the simulations,
+    in Node, with neither the setup below nor Analog's plugin;
+  - `sim`, the specs that play every level
+    (`src/rules/levels/every_level/`), in Node too, without coverage;
+  - `dom`, every other spec, the scene's, the shell's and
+    `src/testing/`'s, in jsdom after the setup below, with Analog's plugin.
+    It takes whatever the other two don't, so a spec in a new folder runs
+    in jsdom rather than in neither. `src/testing/` is its, not `pure`'s,
+    as `play.ts` hands the game Angular's providers.
+- A spec sits beside the file it tests, named after it, and its folder
+  sets its project. One of the rules or the view has no page, so what
+  needs one is the scene's or the shell's to test. Their code must hold
+  nothing Analog's plugin must compile, such as a decorated class: `dom`
+  compiles it, but not their specs, with Vite's oxc, as `pure` does, so
+  that coverage counts it once (`frontend/lib/dev/AGENTS.md`).
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears

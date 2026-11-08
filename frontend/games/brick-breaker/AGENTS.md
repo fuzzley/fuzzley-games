@@ -21,8 +21,9 @@ a ball or a brick kind takes (`brick-breaker-content`).
   zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
   `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules
 - **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom, Testing
-  Library, and real Phaser run headless
+- **Test Framework:** [Vitest](https://vitest.dev/), in Node for the rules
+  and the view, and in jsdom, with Testing Library and real Phaser run
+  headless, for the scene and the shell
 - **Language:** TypeScript / HTML / Sass
 
 ## Layers
@@ -494,11 +495,15 @@ workspace's with the others'.
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002 and
   Snake's 9003).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `unit`
-  project with coverage, failing below the floor `vitest.config.ts` sets
-  for the rules and the view, then its `sim` project, the specs that play
-  every level, without), `yarn test:watch`, or `yarn vitest run <path>`
-  for one spec, which leaves the floor alone.
+- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `dom`
+  and `pure` projects with coverage, failing below the floor
+  `vitest.config.ts` sets for the rules and the view, then its `sim`
+  project, the specs that play every level, without), `yarn test:watch`,
+  or `yarn vitest run --project <project> <path>` for one spec, which
+  leaves the floor alone: `pure` for one of the rules or the view, `dom`
+  for one of the scene, the shell or `src/testing/`, and `sim` for a
+  simulation. Without `--project`, Vitest starts every project, Analog's
+  plugin among them.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
   among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
   and `phaserGameLayers()` for the fences between the layers and what keeps
@@ -558,21 +563,24 @@ workspace's with the others'.
 ## Tests
 
 The repository's rules for specs apply. A spec sits beside the file it tests,
-named after it, and runs in jsdom, but for the specs that play every level,
-which test no one file: they have a folder of their own with a file for each
-preset speed (`src/rules/levels/every_level/`), as Vitest plays a file's
-specs one after another but the files side by side, and
-`src/rules/levels/autopilot.spec.ts` holds it to a file for every preset
-speed and no other. They run in Node, in Vitest's `sim` project, without
-the coverage that would quadruple their time, as the other rules specs
-alone hold the rules to their floor; every other spec is the `unit`
-project's, which coverage measures. `src/test-setup.ts` installs
-`@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs real
-Phaser through `runScene()`, with a fake shell over a pictured field. This
-workspace's `brick-breaker-testing` skill covers its setup, floors and
-fixtures, the repository's `angular-testing` the patterns every Angular
-workspace's specs share, and `phaser-core` the harness. What the specs share
-is in `src/testing/`:
+named after it, but for the specs that play every level, which test no one
+file: they have a folder of their own with a file for each preset speed
+(`src/rules/levels/every_level/`), as Vitest plays a file's specs one after
+another but the files side by side, and `src/rules/levels/autopilot.spec.ts`
+holds it to a file for every preset speed and no other. Vitest runs the
+specs in three projects, each starting only what its own need. `sim` runs
+the specs that play every level, in Node, without the coverage that would
+quadruple their time, as the other rules specs alone hold the rules to
+their floor. `pure` runs the other specs of the rules and the view in Node
+too, which has no page, as nothing they test touches one. `dom` runs every
+other spec, the scene's, the shell's and `src/testing/`'s, in jsdom, after
+`src/test-setup.ts`, which installs `@fz/phaser/testing`'s headless
+Phaser first, so the scene's spec runs real Phaser through `runScene()`,
+with a fake shell over a pictured field. Coverage measures `dom` and `pure`
+together, leaving `src/testing/` out. This workspace's `brick-breaker-testing`
+skill covers its setup, floors and fixtures, the repository's
+`angular-testing` the patterns every Angular workspace's specs share, and
+`phaser-core` the harness. What the specs share is in `src/testing/`:
 
 - `field_picture.ts` lays a field out from a picture of its bricks
   (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in play

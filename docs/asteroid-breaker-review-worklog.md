@@ -1566,3 +1566,57 @@ The review found no fence or message lost or loosened:
 5. _The docs didn't say `testing` is a name the fences keep, a line ran
    past the width, and the two lists of `@fz/phaser`'s pure entries didn't
    point at each other:_ taken.
+
+### Step 15c: finding 21, the test projects, and `@fz/dev`'s floors
+
+Built on `dl-projects`. `@fz/dev`'s `angularTests()` takes
+`projects: { root, pure, domSpecs?, sim? }` and builds steps 3 to 5's
+`dom`, `pure` and `sim` from them, each with `extends: false`: `dom` in
+jsdom through Analog, `pure` in Node over the folders given, minus the
+`domSpecs` names and the simulations, and `sim` in Node without coverage.
+Step 5's cache key and the watcher's forwarding move with them, the key,
+`keyedBy()`, now over `@fz/dev`'s `vitest.ts`, the pure folders and the
+workspace's `tsconfig.json` and `tsconfig.spec.json`. Asteroid Breaker's
+config moves onto it, its 99 spec files placed as before, and Brick
+Breaker and Snake take it: their rules and views run in Node, Brick
+Breaker's `every_level/` in `sim` from a `test` script that runs Vitest
+twice, as Asteroid Breaker's does. `angularSpecs()` names Analog's pool,
+so the site's `app` runs in `vmThreads` as Analog means it to, not in
+`forks`. `@fz/dev` counts its `src/testing/`, under floors raised to just
+under its figures, 93/95/95/93, and `frontend/AGENTS.md` says once that
+every library counts its own with no floor of its own. Every spec runs
+once, each game's coverage is the same row for row, and the root's
+`yarn test` takes 65 s against 68 s.
+
+Where it went other than planned:
+
+- The projects are an option of `angularTests()`, not a function of
+  their own.
+- Brick Breaker's and Snake's `src/testing/` stay with `dom`: Brick
+  Breaker's reaches Angular's tokens and providers, Snake's `TestBed`, and
+  a pure folder must hold nothing Analog's plugin must compile.
+- `@fz/dev`'s floors went up twice, once its specs reached the moved
+  filter and key.
+- A root run under a load of 31 timed Brick Breaker's first app spec out
+  at 5 s; it takes 0.4 s alone, before and after, and every other run
+  passed.
+
+The review found every spec placed once:
+
+1. _A `domSpecs` name in a pure folder outside `src/` ran in no project:_
+   taken; `dom` takes the pure folders' specs too, its exclude keeping
+   only those names, and the placement spec holds a `tools/` one.
+2. _Nothing failed with the cache key or Analog's filter dropped:_ taken;
+   the filter and oxc's pattern come from one function, a spec calls
+   Analog's own transform at a pure path and at a control, and two specs
+   hold the key to the pure folders and the tsconfigs, each safeguard
+   dropped once to see it fail.
+3. _The rule a pure folder keeps read as a consequence, only Asteroid
+   Breaker's lint holds it, and two doc comments opened with two
+   sentences:_ taken; written as a requirement, and Brick Breaker's and
+   Snake's `src/testing/` left to `dom`.
+4. _Three slips of wording:_ taken.
+5. _The `src/testing/` rule sat in how to run the specs:_ taken; in the
+   libraries' bullet.
+6. _The key left out the tsconfigs Analog and oxc compile by:_ taken, the
+   workspace's own two, the presets they extend not followed.
