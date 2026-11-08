@@ -351,7 +351,7 @@ describe("takeUpField", () => {
 
   it("works out the rocks' points of a field kept before they were counted from the run's", () => {
     const run = runUnderWay();
-    const saved = { ...savedField(playedField(run)), rockPoints: undefined };
+    const { rockPoints, ...saved } = savedField(playedField(run));
 
     const field = takeUpField(waveOf(run), SETUP, saved, run);
 

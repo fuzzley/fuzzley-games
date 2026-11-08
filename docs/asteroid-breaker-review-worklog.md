@@ -1448,3 +1448,67 @@ its first helper, and is written down with `@fz/dev`'s, on `dev-lifts`.
 Seen and left: a rock's position taken up again can differ in its last
 digit once the field is laid out anew, which the branch's readers, passing
 the stored numbers through, don't touch.
+
+## Part 4, on `dev-lifts`
+
+### Step 15a: finding 22, the compiler
+
+Built on `dl-compiler`. `@fz/dev/tsconfig/scripts.json` takes the base
+preset's `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`,
+`noImplicitReturns` and `noFallthroughCasesInSwitch`, the two presets each
+saying their checks are kept in step. All 27 errors come from the first
+flag, 5 in the root's scripts and 22 in the Solitaire Collection's, as the
+plan counted: a match's groups and a split's first piece given a default, a
+pixel's channels read as 0 past the buffer, a contrast taken through
+`Math.max()` and `Math.min()`, the sheet's cut walking the rows and columns
+`findCards()` already counted, and `drawEach()`'s workers sharing one
+iterator. The atlas, its preview and the 41 games' thumbnails are written
+again byte for byte. Asteroid Breaker's app, specs, configs and scripts take
+`exactOptionalPropertyTypes`: `PhaserHost`'s four fields that are set back
+to `undefined` and `ImageOptions`' `region` and `resize` allow it, as their
+readers do, and `angular()` reads angular-eslint's processor once, thrown
+for where it is missing, since the flag won't pass on one typed as maybe
+missing.
+
+Where it went other than planned:
+
+- 12 errors, not 7: the rocks' points' specs, newer than the plan, set
+  `rockPoints: undefined` five times, and `angular()` is reached once the
+  game's scripts program takes `eslint.config.js`. The specs now leave the
+  key out, as a field kept before the points were counted does.
+- Measured for the base preset's "later", distinct errors after this step,
+  a dash where the workspace has no such program:
+
+  | Workspace                                                   | Base-preset programs                                        | Scripts, if `scripts.json` took it too |
+  | ----------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------- |
+  | Solitaire Collection                                        | 61, 29 of them one optional `random` in `DeckSourceOptions` | 2                                      |
+  | Brick Breaker                                               | 3                                                           | 1                                      |
+  | `@fz/phaser`                                                | 1                                                           | —                                      |
+  | site                                                        | 1                                                           | 0                                      |
+  | Minesweeper, Snake, Sudoku                                  | 0                                                           | 1 each                                 |
+  | root                                                        | —                                                           | 2                                      |
+  | `@fz/core`, `@fz/dev`, `@fz/style`, `@fz/ui`, `@fz/game-ui` | 0                                                           | —                                      |
+
+- A heading in `@fz/dev`'s `AGENTS.md`, run into the bullet above it, set
+  apart again.
+
+The review found no script's output changed:
+
+1. _Widening `rockPoints` to `number | undefined` made a spec shortcut the
+   saved type, which no real data holds:_ taken; the type stays `?: number`,
+   the specs leave the key out through `keptUncounted()`, the two table
+   rows their own cases on it, and each rewritten spec fails with the
+   uncounted branch broken.
+2. _The libraries' sources are held to a flag only this game's typecheck
+   turns on:_ taken; `angular()`'s comment names it, and `@fz/dev`'s and
+   `@fz/phaser`'s `AGENTS.md` say so in their checks.
+3. _`scripts.json` copies the base's checks rather than extending it:_
+   taken in its smaller form; each preset says the two are kept in step,
+   since extending would bring the base's `noImplicitOverride` and emit
+   options with it.
+4. _`drawEach()`'s one cast could go:_ taken; the workers share one
+   iterator, the cast, its counter and its comment gone.
+5. _A pixel read as 0 past the buffer would hide a future bug:_ not taken;
+   every index is bounded by its own loop over the buffer, and
+   `readUInt8()` costs per pixel in loops of some 22 million. The
+   contrast's defaults, which could never apply, go.

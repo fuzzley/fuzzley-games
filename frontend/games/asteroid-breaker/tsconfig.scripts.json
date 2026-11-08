@@ -4,7 +4,9 @@
   // script runs in a page.
   "extends": "@fz/dev/tsconfig/scripts.json",
   "compilerOptions": {
-    "lib": ["es2024", "dom", "dom.iterable"]
+    "lib": ["es2024", "dom", "dom.iterable"],
+    // As in tsconfig.json.
+    "exactOptionalPropertyTypes": true
   },
   "include": ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"]
 }

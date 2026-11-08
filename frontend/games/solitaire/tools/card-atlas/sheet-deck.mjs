@@ -97,7 +97,7 @@ function paintedMask(sheet) {
   const { data, info } = sheet;
   const mask = new Uint8Array(info.width * info.height);
   for (let pixel = 0; pixel < mask.length; pixel++) {
-    mask[pixel] = data[pixel * 4 + 3] > 16 ? 1 : 0;
+    mask[pixel] = (data[pixel * 4 + 3] ?? 0) > 16 ? 1 : 0;
   }
   return mask;
 }
@@ -112,7 +112,7 @@ function paintedRuns(painted) {
   const runs = [];
   let start = -1;
   for (let i = 0; i < painted.length; i++) {
-    if (painted[i] > 0 && start < 0) start = i;
+    if ((painted[i] ?? 0) > 0 && start < 0) start = i;
     if (painted[i] === 0 && start >= 0) {
       runs.push({ start, end: i - 1 });
       start = -1;
@@ -255,15 +255,13 @@ export async function cutSheetDeck(source) {
   // keeping the gutter out of the crop.
   const survey = frameSize(SHEET_PPU);
   const cuts = [];
-  for (let row = 0; row < SHEET.rows; row++) {
-    for (let col = 0; col < SHEET.cols; col++) {
+  for (const [row, line] of cards.rows.entries()) {
+    for (const [col, column] of cards.columns.entries()) {
       const name =
         row < SHEET_SUITS.length
           ? `card-${SHEET_SUITS[row]}-${SHEET_RANKS[col]}`
           : SHEET_BACKS[col];
       if (!name) continue;
-      const column = cards.columns[col];
-      const line = cards.rows[row];
       cuts.push({
         name,
         left: Math.round(

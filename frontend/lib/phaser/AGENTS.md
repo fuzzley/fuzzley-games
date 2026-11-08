@@ -131,4 +131,6 @@ beside the file it tests. The specs run real Phaser, headless: the test
 setup calls `installHeadlessPhaser()`, and the scene helpers' specs run
 through `runScene()`, so the harness is checked by its own use. jsdom gets
 no component styles, so what the canvas's stylesheet does is checked in a
-browser, through a game's screenshots.
+browser, through a game's screenshots. Asteroid Breaker's `typecheck` holds
+the sources it compiles to `exactOptionalPropertyTypes` too, until
+`@fz/dev`'s base preset takes it.

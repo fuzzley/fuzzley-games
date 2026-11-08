@@ -81,19 +81,19 @@ interface PendingScene {
  * context to make room for a new one.
  */
 export class PhaserHost {
-  private game?: Phaser.Game;
+  private game?: Phaser.Game | undefined;
 
   /** Keeps the canvas sized to the display's true pixel resolution. */
-  private scaler?: ViewportScaler;
+  private scaler?: ViewportScaler | undefined;
 
   /** Whether the game has booted, after which a scene is swapped in at once. */
   private booted = false;
 
   /** The scene on the canvas. */
-  private scene?: HostedScene;
+  private scene?: HostedScene | undefined;
 
   /** The scene to mount once the game has booted. */
-  private pending?: PendingScene;
+  private pending?: PendingScene | undefined;
 
   /** What kept the game's canvas from being sized as it booted, if anything did. */
   private bootError?: Error;

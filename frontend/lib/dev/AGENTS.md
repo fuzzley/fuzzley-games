@@ -37,12 +37,19 @@ too. Paths are relative to `frontend/lib/dev/`.
   - `base.json`: the strict flags every workspace's TypeScript is checked
     with. An app compiles the libraries' sources into its own program, with
     its own options, so one set for all of them is what lets a library's code
-    pass in every app.
+    pass in every app. An app may add a flag of its own where the libraries'
+    code it compiles passes it too, as Asteroid Breaker's configs add
+    `exactOptionalPropertyTypes`, which this one leaves out until every
+    workspace passes it.
   - `angular.json`: the base, with Angular's decorators and the Angular
     compiler's strictest checks, every extended diagnostic an error. Its
     `outDir` and `rootDir` are the extending workspace's own folder
     (`${configDir}`).
-  - `scripts.json`: the `.mjs` scripts, type-checked from their JSDoc.
+  - `scripts.json`: the `.mjs` scripts, type-checked from their JSDoc with
+    the base's checks of indexes, returns and `switch` cases
+    (`noUncheckedIndexedAccess` among them), so a script reads an index as
+    maybe missing, as the TypeScript does. The checks the two share are kept
+    in step: a flag added to one is added to the other.
 - `src/vitest.ts`, `@fz/dev/vitest`: the Vitest settings every workspace's
   specs share. `angularTests()` is the whole config of a workspace that
   tests Angular code: Analog's plugin, every spec under `src/` in jsdom with
@@ -178,7 +185,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   each but a looping one faded out at its end, a tenth of a second apart,
   into `sounds.wav` and the spritemap Phaser plays it by, `sounds.json`, the
   same bytes every run. A game's `tools/build-sounds.mjs` holds its recipes
-  and calls it. ## How a workspace uses it
+  and calls it.
+
+## How a workspace uses it
+
 - **A workspace's configs extend it, and add only what is their own.** Its
   `package.json` lists `"@fz/dev": "workspace:*"` beside `eslint` and
   `typescript`, which it runs. Its `eslint.config.js` passes the blocks to
@@ -230,6 +240,8 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
 - **`lint`** runs ESLint with its own blocks (`eslint.config.js`).
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
   config.
+  Asteroid Breaker's `typecheck` holds those it compiles to
+  `exactOptionalPropertyTypes` too, until `tsconfig/base.json` takes it.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written
   into a folder of their own with the blocks, so a block that stops catching
   what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`
