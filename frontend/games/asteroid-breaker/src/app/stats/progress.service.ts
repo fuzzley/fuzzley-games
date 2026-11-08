@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { isOpen as isSectorOpen, reachedOf } from "../../rules/run/progress";
+import { isOpen as isSectorOpen, readReached } from "../../rules/run/progress";
 import type { RunRecords } from "../../rules/run/stats";
 import { GAME_WAVES } from "../tokens";
 
@@ -43,6 +43,6 @@ export class ProgressService {
   /** Returns the sectors reached as stored, dropping any the game no longer has. */
   private read(): ReadonlySet<string> {
     const saved = this.storage.readVersioned(PROGRESS_KEY, PROGRESS_VERSION);
-    return reachedOf(saved?.["reached"], this.waves);
+    return readReached(saved?.["reached"], this.waves);
   }
 }

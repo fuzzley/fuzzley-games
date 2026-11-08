@@ -2,6 +2,7 @@
 // it turns, thrusts along its heading, coasts, keeps under its top speed and
 // wraps, or dashes.
 
+import { clamp } from "@fz/core/math";
 import { RADIANS_PER_DEGREE, TURN } from "../angles";
 import { STEP_MS, stepsIn } from "../stepper";
 import { type Place, type Torus, across, wrap } from "../torus";
@@ -154,7 +155,7 @@ export interface Ship {
  * it moves, and a stick until it turns past a slack.
  */
 export function createShip(x: number, y: number, held: Readonly<Steer>): Ship {
-  const angle = (3 * Math.PI) / 2;
+  const angle = (3 * TURN) / 4;
   const ship: Ship = {
     x,
     y,
@@ -192,7 +193,10 @@ export function isGuarded(ship: Readonly<Ship>): boolean {
   return ship.waiting || ship.guardSteps > 0;
 }
 
-/** Returns how hard a ship's thrust pushed it in its last step: as hard as it was held, but not at all while it waits or a dash throws it. */
+/**
+ * Returns how hard a ship's thrust pushed it in its last step: as hard as it
+ * was held, but not at all while it waits or a dash throws it.
+ */
 export function thrustOf(ship: Readonly<Ship>): number {
   return ship.waiting || ship.dashSteps > 0 ? 0 : ship.held.thrust;
 }
@@ -355,10 +359,13 @@ function turnToward(ship: Ship, heading: number, flight: Flight): void {
     Math.abs(left) / (HEADING_EASE * RADIANS_PER_DEGREE),
   );
   const most = flight.headingTurnRate * RADIANS_PER_DEGREE * STEP_S * ease;
-  ship.angle = wrap(ship.angle + Math.max(-most, Math.min(most, left)), TURN);
+  ship.angle = wrap(ship.angle + clamp(left, -most, most), TURN);
 }
 
-/** Pushes a ship a step along its heading, slows it as it coasts, and keeps it under its top speed. */
+/**
+ * Pushes a ship a step along its heading, slows it as it coasts, and keeps it
+ * under its top speed.
+ */
 function pushShip(ship: Ship, thrust: number, flight: Flight): void {
   const push = flight.thrust * thrust * STEP_S;
   const coast = 0.5 ** (STEP_MS / flight.coastHalfLifeMs);

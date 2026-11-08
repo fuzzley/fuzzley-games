@@ -6,8 +6,8 @@ import {
   NO_STATS,
   type Stats,
   isNewBest,
+  readStats,
   recordsOf,
-  statsOf,
   withClearedAll,
   withRecords,
   withRunEnded,
@@ -46,9 +46,9 @@ function after(run: EndedRun): Stats {
   return withRunEnded(withRunStarted(NO_STATS, run.speed), run);
 }
 
-describe("statsOf", () => {
+describe("readStats", () => {
   it("starts a player who has none with no runs and no bests", () => {
-    expect(statsOf(null, ["inner-belt"])).toEqual(NO_STATS);
+    expect(readStats(null, ["inner-belt"])).toEqual(NO_STATS);
   });
 
   it("takes back the records it stored", () => {
@@ -57,7 +57,7 @@ describe("statsOf", () => {
       "normal",
     );
 
-    const read = statsOf(JSON.parse(JSON.stringify(stats)), ["inner-belt"]);
+    const read = readStats(JSON.parse(JSON.stringify(stats)), ["inner-belt"]);
 
     expect(read).toEqual(stats);
   });
@@ -78,7 +78,7 @@ describe("statsOf", () => {
     ],
     ["a speed's strays that aren't a count", { runs: 1, best: 0, furthest: 0 }],
   ])("drops %s for a speed", (_, normal) => {
-    expect(statsOf({ speeds: { normal } }, []).speeds.normal).toEqual(
+    expect(readStats({ speeds: { normal } }, []).speeds.normal).toEqual(
       NO_STATS.speeds.normal,
     );
   });
@@ -88,7 +88,7 @@ describe("statsOf", () => {
       sectors: { "inner-belt": { normal: 900 }, gone: { normal: 50 } },
     };
 
-    expect(statsOf(stored, ["inner-belt"]).sectors).toEqual({
+    expect(readStats(stored, ["inner-belt"]).sectors).toEqual({
       "inner-belt": { normal: 900 },
     });
   });
@@ -101,19 +101,19 @@ describe("statsOf", () => {
       },
     };
 
-    expect(statsOf(stored, ["inner-belt", "storm"]).sectors).toEqual({
+    expect(readStats(stored, ["inner-belt", "storm"]).sectors).toEqual({
       "inner-belt": { normal: 900 },
     });
   });
 
   it("drops sectors that aren't a record", () => {
     expect(
-      statsOf({ sectors: { "inner-belt": 900 } }, ["inner-belt"]).sectors,
+      readStats({ sectors: { "inner-belt": 900 } }, ["inner-belt"]).sectors,
     ).toEqual({});
   });
 
   it("reads a speed's records kept before a run could clear all thirty as none having", () => {
-    const read = statsOf(
+    const read = readStats(
       { speeds: { normal: { runs: 2, best: 900, furthest: 4, strays: 1 } } },
       ["inner-belt"],
     );

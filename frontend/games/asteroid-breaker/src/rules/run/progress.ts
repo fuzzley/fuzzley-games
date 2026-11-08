@@ -46,8 +46,11 @@ export function isOpen(
   return waves[0]?.sector.id === sector || reached.has(sector);
 }
 
-/** Returns the ids of the sectors reached, as stored, keeping only those the game still has, Endless among them. */
-export function reachedOf(
+/**
+ * Returns the ids of the sectors reached, as stored, keeping only those the
+ * game still has, Endless among them.
+ */
+export function readReached(
   value: unknown,
   waves: readonly WaveEntry[],
 ): ReadonlySet<string> {

@@ -274,13 +274,7 @@ export function createField(
 
 /** Takes a frame's steering, which the steps until the next frame follow. */
 export function steerField(field: Field, steer: Readonly<Steer>): void {
-  field.steer.turn = steer.turn;
-  field.steer.heading = steer.heading;
-  field.steer.aim = steer.aim;
-  field.steer.thrust = steer.thrust;
-  field.steer.fire = steer.fire;
-  field.steer.autoFire = steer.autoFire;
-  field.steer.dash = steer.dash;
+  Object.assign(field.steer, steer);
 }
 
 /**

@@ -76,14 +76,20 @@ export interface FieldEvent extends NumberedEvent {
   /** Where it happened, in field units. */
   x: number;
   y: number;
-  /** The kind of rock it happened to, for its ink and its sound, or null for an event of no rock. */
+  /**
+   * The kind of rock it happened to, for its ink and its sound, or null for an
+   * event of no rock.
+   */
   rock: RockKindId | null;
   size: RockSize | null;
   /** The pickup it happened to, or null for an event of none. */
   pickup: PickupId | null;
   /** The pilot it happened to, or null for an event of none. */
   pilot: Pilot | null;
-  /** Whether the pilot of a ship gained was brought home, rather than new; false for any other event. */
+  /**
+   * Whether the pilot of a ship gained was brought home, rather than new; false
+   * for any other event.
+   */
   fromHome: boolean;
   /**
    * The ships the crew has as the event leaves it: after a ship lost, those
@@ -91,7 +97,10 @@ export interface FieldEvent extends NumberedEvent {
    * caught, before its effect starts; 0 for any other event.
    */
   ships: number;
-  /** The strays waiting at home as the event leaves them, counted when `ships` is; 0 for any other event. */
+  /**
+   * The strays waiting at home as the event leaves them, counted when `ships`
+   * is; 0 for any other event.
+   */
   waiting: number;
   /** The points it scored before the chain's multiplier, 0 for an event that scored none. */
   points: number;
@@ -99,9 +108,15 @@ export interface FieldEvent extends NumberedEvent {
   times: number;
   /** How far a blast or the Nova reaches, 0 for any other event. */
   reach: number;
-  /** The count a broken rock is in its chain, 0 for one smashed, which counts in none, and for any other event. */
+  /**
+   * The count a broken rock is in its chain, 0 for one smashed, which counts in
+   * none, and for any other event.
+   */
   chain: number;
-  /** The slot of the rock it happened to, where a hit it holds flashes, or −1 for an event of no rock. */
+  /**
+   * The slot of the rock it happened to, where a hit it holds flashes, or −1
+   * for an event of no rock.
+   */
   slot: number;
   /**
    * The way it went, a share along each axis: the blow that broke a rock,
@@ -118,28 +133,33 @@ export interface FieldEvent extends NumberedEvent {
  */
 export const EVENT_LOG_SIZE = 512;
 
+/**
+ * A record of no event, but for its serial, which each event's record
+ * starts from, so nothing of an older event is left in it.
+ */
+const BLANK_EVENT: Readonly<Omit<FieldEvent, "serial">> = Object.freeze({
+  kind: "hit",
+  x: 0,
+  y: 0,
+  rock: null,
+  size: null,
+  pickup: null,
+  pilot: null,
+  fromHome: false,
+  ships: 0,
+  waiting: 0,
+  points: 0,
+  times: 0,
+  reach: 0,
+  chain: 0,
+  slot: -1,
+  wayX: 0,
+  wayY: 0,
+});
+
 /** Returns a record for the log's ring, before an event fills it. */
 function blankEvent(): FieldEvent {
-  return {
-    serial: 0,
-    kind: "hit",
-    x: 0,
-    y: 0,
-    rock: null,
-    size: null,
-    pickup: null,
-    pilot: null,
-    fromHome: false,
-    ships: 0,
-    waiting: 0,
-    points: 0,
-    times: 0,
-    reach: 0,
-    chain: 0,
-    slot: -1,
-    wayX: 0,
-    wayY: 0,
-  };
+  return { serial: 0, ...BLANK_EVENT };
 }
 
 /** Writes into an event the ships a crew has and the strays waiting at home. */
@@ -173,7 +193,10 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.wayY = Math.sin(heading);
   }
 
-  /** Records an event that happened to a rock but its break, at its place, with its kind, size and slot and, for a blast, its reach. */
+  /**
+   * Records an event that happened to a rock but its break, at its place, with
+   * its kind, size and slot and, for a blast, its reach.
+   */
   addRock(
     kind: Exclude<RockEventKind, "broken">,
     rock: LoggedRock,
@@ -211,7 +234,10 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.record(kind, x, y).pickup = pickup;
   }
 
-  /** Records a pickup caught, and the crew as the catch found it, before the pickup's effect starts. */
+  /**
+   * Records a pickup caught, and the crew as the catch found it, before the
+   * pickup's effect starts.
+   */
   addCaught(x: number, y: number, pickup: PickupId, crew: Crew): void {
     const event = this.record("caught", x, y);
     event.pickup = pickup;
@@ -229,7 +255,10 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.recordPilot(kind, x, y, pilot, crew);
   }
 
-  /** Records a ship gained, with its pilot, whether the pilot was brought home, and the crew as it left it. */
+  /**
+   * Records a ship gained, with its pilot, whether the pilot was brought home,
+   * and the crew as it left it.
+   */
   addGained(
     x: number,
     y: number,
@@ -247,7 +276,10 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.times = times;
   }
 
-  /** Returns the next record for an event of a pilot, its kind, place and pilot and the crew's counts filled in. */
+  /**
+   * Returns the next record for an event of a pilot, its kind, place and pilot
+   * and the crew's counts filled in.
+   */
   private recordPilot(
     kind: PilotEventKind,
     x: number,
@@ -261,7 +293,10 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     return event;
   }
 
-  /** Returns the next record for an event of a rock, its kind and the rock's place, kind, size and slot filled in. */
+  /**
+   * Returns the next record for an event of a rock, its kind and the rock's
+   * place, kind, size and slot filled in.
+   */
   private recordRock(kind: RockEventKind, rock: LoggedRock): FieldEvent {
     const event = this.record(kind, rock.x, rock.y);
     event.rock = rock.kind;
@@ -270,26 +305,15 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     return event;
   }
 
-  /** Returns the next record, its kind and place filled in and nothing of an older event left in it. */
+  /**
+   * Returns the next record, its kind and place filled in and nothing of an
+   * older event left in it.
+   */
   private record(kind: FieldEventKind, x: number, y: number): FieldEvent {
-    const event = this.next();
+    const event = Object.assign(this.next(), BLANK_EVENT);
     event.kind = kind;
     event.x = x;
     event.y = y;
-    event.rock = null;
-    event.size = null;
-    event.pickup = null;
-    event.pilot = null;
-    event.fromHome = false;
-    event.ships = 0;
-    event.waiting = 0;
-    event.points = 0;
-    event.times = 0;
-    event.reach = 0;
-    event.chain = 0;
-    event.slot = -1;
-    event.wayX = 0;
-    event.wayY = 0;
     return event;
   }
 }

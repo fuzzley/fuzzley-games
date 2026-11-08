@@ -168,11 +168,11 @@ take for the layer.
   `progress.ts` says which sectors a run may start at (`isOpen()`): the
   first, and each a run has reached, at any speed, Endless among them once a
   run has cleared the last written wave; `sectorSpans()` gives each
-  sector's first and last waves, and `reachedOf()` reads the ids stored,
+  sector's first and last waves, and `readReached()` reads the ids stored,
   keeping those the game still has. `stats.ts` holds the records, each
   speed's runs, best score, furthest wave, strays brought home and whether a
   run has cleared all thirty, and each sector's best at each speed:
-  `statsOf()` reads them as stored, keeping what makes sense and the bests
+  `readStats()` reads them as stored, keeping what makes sense and the bests
   of a sector the game still has, `recordsOf()` says what a change in a run
   brings to them and to the sectors reached (`RunRecords`), from the run
   before it to the run after: a run started, the strays brought home, its

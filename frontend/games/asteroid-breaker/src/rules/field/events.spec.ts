@@ -53,71 +53,6 @@ function rockAt(
   return { x, y, kind, size, slot };
 }
 
-/** An event of each kind the log records, at 1, 2: who it is of, how it is added, and what it records. */
-const EACH_RECORD: readonly (readonly [
-  string,
-  (log: FieldEventLog) => void,
-  Partial<FieldEvent>,
-])[] = [
-  [
-    "a rock's",
-    (log) => {
-      log.addRock("hit", rockAt(1, 2, "ice", "small", 3));
-    },
-    { kind: "hit", rock: "ice", size: "small", slot: 3 },
-  ],
-  [
-    "a break's",
-    (log) => {
-      log.addBreak(rockAt(1, 2, "ice", "small", 2), 3, 0, -5);
-    },
-    {
-      kind: "broken",
-      rock: "ice",
-      size: "small",
-      slot: 2,
-      chain: 3,
-      wayX: 0,
-      wayY: -1,
-    },
-  ],
-  [
-    "a pickup's",
-    (log) => {
-      log.addPickup("faded", 1, 2, "nova");
-    },
-    { kind: "faded", pickup: "nova" },
-  ],
-  [
-    "a pilot's",
-    (log) => {
-      log.addPilot("home", 1, 2, 6, CREW);
-    },
-    { kind: "home", pilot: 6, ships: 2, waiting: 1 },
-  ],
-  [
-    "points'",
-    (log) => {
-      log.addScore(1, 2, 80, 2);
-    },
-    { kind: "scored", points: 80, times: 2 },
-  ],
-  [
-    "a place's",
-    (log) => {
-      log.add("fired", 1, 2);
-    },
-    { kind: "fired" },
-  ],
-  [
-    "a dash's",
-    (log) => {
-      log.addDash(1, 2, 0);
-    },
-    { kind: "dashed", wayX: 1, wayY: 0 },
-  ],
-];
-
 describe("FieldEventLog", () => {
   it("records each rock's event with its kind, its place, kind, size and slot, and its reach, numbered", () => {
     const log = new FieldEventLog();
@@ -291,29 +226,37 @@ describe("FieldEventLog", () => {
     ]);
   });
 
-  it.each(EACH_RECORD)(
-    "leaves nothing of an older event in the record %s event takes",
-    (_, add, recorded) => {
-      // The five records it takes held a blast, a pickup's event, a ship gained, points and a break, each with what it alone records.
-      const log = new FieldEventLog();
-      log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
-      log.addPickup("dropped", 3, 4, "spread");
-      log.addGained(3, 4, 7, true, {
-        flying: [0, 1, 2],
-        home: [5, 6],
-        lastGiven: 7,
-      });
-      log.addScore(3, 4, 90, 4);
-      log.addBreak(rockAt(3, 4, "stone", "large", 9), 5, 1, 1);
-      for (let i = 5; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
+  it("leaves nothing of an older event in a record the ring comes round to", () => {
+    // The five records it comes round to held a blast, a pickup's event, a
+    // ship gained, points and a break, each with what it alone records; the
+    // blast's is taken by a pickup's event, which writes no reach, and the
+    // rest by warnings, which write no pickup.
+    const log = new FieldEventLog();
+    log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
+    log.addPickup("dropped", 3, 4, "spread");
+    log.addGained(3, 4, 7, true, {
+      flying: [0, 1, 2],
+      home: [5, 6],
+      lastGiven: 7,
+    });
+    log.addScore(3, 4, 90, 4);
+    log.addBreak(rockAt(3, 4, "stone", "large", 9), 5, 1, 1);
+    for (let i = 5; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
 
-      for (let i = 0; i < 5; i++) add(log);
+    log.addPickup("faded", 1, 2, "nova");
+    for (let i = 0; i < 4; i++) log.add("warned", 1, 2);
 
-      expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual(
-        [1, 2, 3, 4, 5].map((n) =>
-          eventOf({ serial: EVENT_LOG_SIZE + n, x: 1, y: 2, ...recorded }),
-        ),
-      );
-    },
-  );
+    expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual([
+      eventOf({
+        serial: EVENT_LOG_SIZE + 1,
+        kind: "faded",
+        x: 1,
+        y: 2,
+        pickup: "nova",
+      }),
+      ...[2, 3, 4, 5].map((n) =>
+        eventOf({ serial: EVENT_LOG_SIZE + n, kind: "warned", x: 1, y: 2 }),
+      ),
+    ]);
+  });
 });

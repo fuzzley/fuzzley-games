@@ -27,7 +27,7 @@ import {
 import type { Formation, WaveRocks } from "../waves/waves";
 
 /** The golden angle, which spreads a cluster's rocks evenly about its middle. */
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+const GOLDEN_ANGLE = (TURN / 2) * (3 - Math.sqrt(5));
 
 /** How many steps round an ellipse its length is measured in, to space places evenly along it. */
 const ELLIPSE_STEPS = 720;
@@ -43,6 +43,9 @@ const HALVINGS = 20;
  * rounding can't cross it.
  */
 const HAIR = 1e-6;
+
+/** How far inside the field's edges a ring keeps the outline of a large rock on it, in units. */
+const RING_GAP = 1;
 
 /**
  * Lays a wave's rocks out on the field in a formation, fairly, as the ship
@@ -145,8 +148,8 @@ const LAYOUTS: Readonly<Record<Formation, Layout>> = {
   // rocks, spreads round it; all flying along it one way.
   ring: (field, rocks, ship) => {
     const { width, height } = field.torus;
-    const halfAcross = width / 2 - ROCK_RADIUS.large - 1;
-    const halfDown = height / 2 - ROCK_RADIUS.large - 1;
+    const halfAcross = width / 2 - ROCK_RADIUS.large - RING_GAP;
+    const halfDown = height / 2 - ROCK_RADIUS.large - RING_GAP;
     const from = nextDraw(field);
     const way = nextDraw(field) < 0.5 ? -1 : 1;
     const angles = evenlyAlong(halfAcross, halfDown, rocks.length, from);

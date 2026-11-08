@@ -155,7 +155,7 @@ const TRAIT_RULES: {
   gives: {},
   drawn: {
     step: (field, rock, { pull }) => {
-      drift(field, rock, pull);
+      pullTowardShip(field, rock, pull);
     },
   },
   rings: {
@@ -436,7 +436,7 @@ function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
  * kind's and the field's rocks' speed; the cap never brakes a rock already
  * past that, as a pushed piece may be.
  */
-function drift(field: CourseField, rock: Rock, pull: number): void {
+function pullTowardShip(field: CourseField, rock: Rock, pull: number): void {
   const { ship, torus } = field;
   if (ship === null) return;
   const toX = across(rock.x, ship.x, torus.width);

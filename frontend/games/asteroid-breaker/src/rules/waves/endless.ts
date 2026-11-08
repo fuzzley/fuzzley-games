@@ -22,7 +22,10 @@ import {
 /** The number of Endless's first wave: the one after the last sector's. */
 export const ENDLESS_FROM = WAVES.length + 1;
 
-/** Describes a number that climbs from Endless's first wave: by a step a wave from its first, until its most. */
+/**
+ * Describes a number that climbs from Endless's first wave: by a step a wave
+ * from its first, until its most.
+ */
 interface Climb {
   readonly first: number;
   readonly rise: number;
@@ -33,7 +36,7 @@ interface Climb {
 const BUDGET: Climb = { first: 10, rise: 0.5, most: 24 };
 
 /** The rocks' speed against their own. */
-const PACE: Climb = { first: 1.25, rise: 0.015, most: 1.6 };
+const ENDLESS_PACE: Climb = { first: 1.25, rise: 0.015, most: 1.6 };
 
 /** The time from one comet to the next at Endless's first wave, in seconds. */
 const FIRST_COMETS: Span = { least: 12, most: 15 };
@@ -44,7 +47,10 @@ const CLOSED_COMETS: Span = { least: 6, most: 8 };
 /** The wave by which the comets have closed from {@link FIRST_COMETS} to {@link CLOSED_COMETS}. */
 const COMETS_CLOSED_AT = 60;
 
-/** How many waves apart the boulder waves come: every tenth, counting from the last sector's last. */
+/**
+ * How many waves apart the boulder waves come: every tenth, counting from the
+ * last sector's last.
+ */
 const BOULDER_EVERY = 10;
 
 /** The most boulders a wave lays: one for each ten waves past the last sector's, up to three. */
@@ -61,7 +67,10 @@ const TWO_STRAYS_FROM = 50;
  */
 const GATHERED_MOST = 13;
 
-/** The formations a wave of more than {@link GATHERED_MOST} rocks, or of boulders, is drawn from. */
+/**
+ * The formations a wave of more than {@link GATHERED_MOST} rocks, or of
+ * boulders, is drawn from.
+ */
 const SPREAD_FORMATIONS: readonly Formation[] = ["scatter", "wall"];
 
 /** The share of a wave's budget at most spent on iron, its toughest rocks. */
@@ -125,7 +134,7 @@ export function endlessWave(seed: number, number: number): Wave {
       ? Math.min((past + 1) / BOULDER_EVERY, MOST_BOULDERS)
       : 0;
   const closed = Math.min(1, past / (COMETS_CLOSED_AT - ENDLESS_FROM));
-  const rocks = rocksOf(climbed(BUDGET, past), boulders, random);
+  const rocks = buyRocks(climbed(BUDGET, past), boulders, random);
   const laid = rocks.reduce((sum, each) => sum + each.count, 0);
   const formations =
     boulders > 0 || laid > GATHERED_MOST ? SPREAD_FORMATIONS : FORMATIONS;
@@ -133,7 +142,7 @@ export function endlessWave(seed: number, number: number): Wave {
     rocks,
     formation:
       formations[Math.floor(random() * formations.length)] ?? "scatter",
-    pace: climbed(PACE, past),
+    pace: climbed(ENDLESS_PACE, past),
     waveKind: "stone",
     drops: ENDLESS.drops,
     pool: PICKUP_IDS,
@@ -160,7 +169,7 @@ function between(from: number, to: number, share: number): number {
  * rocks drawn alike from those the rest still buys, no more of it on iron
  * than its share, until it buys none.
  */
-function rocksOf(
+function buyRocks(
   budget: number,
   boulders: number,
   random: () => number,

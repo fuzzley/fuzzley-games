@@ -23,14 +23,13 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   needs: a rock's art (`ROCK_ART`, `src/view/art/rock_art.ts`) and its ink in
   each set of inks (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
   `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
-  `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`) and its
-  record in play (`Effects`, made by `createEffects()`,
+  `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`,
   `src/rules/rocks/pickups.ts`), a formation's layout (`LAYOUTS`,
   `src/rules/field/spawn.ts`), and a size's radius and speed
   (`src/rules/tuning.ts`) and its sounds (`src/view/effects/effects.ts`).
-  The rest is made from the ids, a pickup's frame and a lasting effect's
-  tag among them, so a new id that compiles has everything drawn and
-  played.
+  The rest is made from the ids, a pickup's frame, an effect's record in
+  play and a lasting effect's tag among them, so a new id that compiles has
+  everything drawn and played.
 - **The waves** are JSON, a file for each sector in `src/rules/waves/`,
   listed in order in `src/rules/waves/waves.ts` (`SECTORS`) and numbered
   from 1 across the sectors (`WAVES`), ten to a sector, each sector ending
@@ -41,7 +40,7 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
 
   | Check               | Where                                                                | What it holds                                                                                                                                                          |
   | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                                                           | Every rock kind has its art and ink, every trait its rule, every pickup its symbol, every effect its rule and its record, every formation its layout                   |
+  | The compiler        | everywhere                                                           | Every rock kind has its art and ink, every trait its rule, every pickup its symbol, every effect its rule, every formation its layout                                  |
   | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before |
   | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                 |
   | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                  |
@@ -147,12 +146,12 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   `SYMBOLS` (`src/view/art/symbols.ts`); its frame, and its tag in the row at
   the field's bottom left where its effect lasts, are made from it. The
   catalog spec holds every pickup to coming first at its `from`.
-- **An effect:** a case of `PickupEffect` (`src/rules/catalog/pickups.ts`),
-  its rule in `EFFECT_RULES`, what it does as it starts and, where it
-  lasts, as it ends, reaching only what of the field the pickups act on
-  (`PickupField`), and its record in `Effects` and `createEffects()`
-  (`src/rules/rocks/pickups.ts`). The saved game keeps no effect in play, as it
-  keeps no pickup or shot.
+- **An effect:** a case of `PickupEffect` (`src/rules/catalog/pickups.ts`)
+  and its rule in `EFFECT_RULES` (`src/rules/rocks/pickups.ts`), what it
+  does as it starts and, where it lasts, as it ends, reaching only what of
+  the field the pickups act on (`PickupField`); its record in play is made
+  from its kind. The saved game keeps no effect in play, as it keeps no
+  pickup or shot.
 - **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle
   between them, the time between pulls, how many may be in flight and how
   many rocks a shot breaks; a `weapon` effect arms the ship with it for its
