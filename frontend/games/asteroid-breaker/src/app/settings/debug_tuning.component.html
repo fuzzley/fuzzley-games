@@ -1,0 +1,59 @@
+<section class="debug" aria-labelledby="debug-heading">
+  <h3 id="debug-heading">Debug</h3>
+  <p class="setting-desc">
+    The field in play takes each number at once, and every wave after it, until
+    the page is loaded again.
+  </p>
+
+  @for (slider of sliders(); track slider.id) {
+    <div class="setting">
+      <label class="setting-label" [for]="slider.inputId">
+        {{ slider.name }}
+      </label>
+      <div class="slider">
+        <input
+          #range
+          class="range"
+          type="range"
+          [id]="slider.inputId"
+          [min]="slider.least"
+          [max]="slider.most"
+          [step]="slider.step"
+          [attr.aria-valuetext]="slider.valueText"
+          [value]="slider.value"
+          (input)="tune(slider.id, range.valueAsNumber)"
+        />
+        <span class="value" aria-hidden="true">{{ slider.valueText }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="setting-check">
+    <input
+      #carry
+      id="carry-ship"
+      type="checkbox"
+      [checked]="carryShip()"
+      (change)="setCarryShip(carry.checked)"
+    />
+    <label for="carry-ship">Shots carry the ship's speed</label>
+  </div>
+
+  <div class="debug-actions">
+    <button type="button" class="fz-button" (click)="resetNumbers()">
+      Reset the numbers
+    </button>
+    <button type="button" class="fz-button" (click)="copyNumbers()">
+      Copy the numbers
+    </button>
+  </div>
+  <p class="setting-desc" role="status">{{ copyWords() }}</p>
+  <details
+    #linesBox
+    [open]="linesShown()"
+    (toggle)="linesShown.set(linesBox.open)"
+  >
+    <summary>The lines of <code>tuning.ts</code></summary>
+    <pre>{{ lines() }}</pre>
+  </details>
+</section>

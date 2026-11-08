@@ -451,13 +451,15 @@ take for the layer.
     says so, in a development build (`DEV_BUILD`, from
     `import.meta.env.DEV`, as a game's own dev server runs it) and in a
     production one whose address has `?debug`, the drawer also offers the
-    debug menu: a slider for each number of the ship's flight, its gunnery
-    and the rocks' speed (`TUNING_SLIDERS`), whether shots carry the ship's
-    speed, Reset the numbers, and Copy the numbers, the lines of `tuning.ts`
-    they would replace. `TuningService` holds them, says whether they are off
-    `tuning.ts`'s (`retuned`) and tells `GameService` of each tuning as it is
-    made (`onTune()`), which gives them to the field in play and every one
-    after it; nothing keeps them, and a run flown on them keeps no records.
+    debug menu, `<app-debug-tuning>`, below the rest: a slider for each
+    number of the ship's flight, its gunnery and the rocks' speed
+    (`TUNING_SLIDERS`), whether shots carry the ship's speed, Reset the
+    numbers, and Copy the numbers, the lines of `tuning.ts` they would
+    replace. `TuningService`, which the menu reads and writes, holds them,
+    says whether they are off `tuning.ts`'s (`retuned`) and tells
+    `GameService` of each tuning as it is made (`onTune()`), which gives
+    them to the field in play and every one after it; nothing keeps them,
+    and a run flown on them keeps no records.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
     and `<app-pilot-row>`, pilots in a row, which the bar, the Paused card
