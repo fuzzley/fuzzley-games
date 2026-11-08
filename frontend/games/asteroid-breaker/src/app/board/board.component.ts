@@ -14,13 +14,15 @@ import {
   viewChild,
 } from "@angular/core";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { PhaserCanvasComponent, type SceneSource } from "@fz/phaser/canvas";
+import {
+  PhaserCanvasComponent,
+  type SceneSource,
+  canvasRoom,
+} from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
-import type { Insets } from "@fz/phaser/insets";
 import {
   type CssRect,
   type Viewport,
-  canvasPixelRatio,
   namedRectsAttribute,
   rectAttribute,
 } from "@fz/phaser/layout";
@@ -83,7 +85,7 @@ const POINTS_SAMPLE = POINTS_CHARACTERS.join("");
     "[attr.data-deck]": "deckZones()",
     "[style.--across]": "laid()?.torus.width",
     "[style.--down]": "laid()?.torus.height",
-    "[style.--pixel-ratio]": "pixelRatio",
+    "[style.--pixel-ratio]": "pixelRatio()",
     "[attr.data-outcome]": "game.outcome()",
     "[class.in-play]": "inPlay()",
     "[style.--margin.px]": "board().marginCss",
@@ -104,13 +106,19 @@ export class BoardComponent {
   protected readonly canvas = viewChild.required(PhaserCanvasComponent);
 
   /**
-   * The device pixels to a CSS pixel, as the canvas most often renders at,
-   * so the placeholder lays the field out in whole device pixels as the
-   * scene does.
+   * The canvas the board makes, as the host sizes it, and the ratio it
+   * renders at, as the board measures them as it is first drawn and as its
+   * size or the zoom changes.
    */
-  protected readonly pixelRatio = canvasPixelRatio(
-    this.document.defaultView?.devicePixelRatio ?? 1,
-  );
+  private readonly measured = canvasRoom();
+
+  /**
+   * The device pixels to a CSS pixel the canvas renders at, as the board
+   * last measured it, or as the display has it until then: the ratio the
+   * placeholder lays the field out at, in whole device pixels as the scene
+   * does, which the board publishes for the layout check.
+   */
+  protected readonly pixelRatio = this.measured.pixelRatio;
 
   /**
    * How thick the field's frame is, in CSS pixels, as the scene draws it,
@@ -146,8 +154,8 @@ export class BoardComponent {
     };
   });
 
-  /** The canvas the board makes, as its size last changed, or null before it is measured. */
-  private readonly room = signal<Viewport | null>(null);
+  /** The canvas the board makes, as last measured, or null before it is. */
+  private readonly room = this.measured.viewport;
 
   /** Names the board for the wave on it, as "Asteroid Breaker, wave 4: Thaw". */
   protected readonly label = computed(() => {
@@ -296,9 +304,6 @@ export class BoardComponent {
     afterRenderEffect(() => {
       this.game.setDrawn(this.canvas().state() === "ready");
     });
-    afterNextRender(() => {
-      this.watchSize();
-    });
     this.shapeForTheRoom();
   }
 
@@ -365,53 +370,6 @@ export class BoardComponent {
   private placeholderField(): CssRect | null {
     const room = this.room();
     return room && fieldMetrics(room, this.board(), this.shapeOn(room)).css;
-  }
-
-  /**
-   * Measures the board as it is first drawn, then each time its size
-   * changes, where the browser can watch it, as the canvas the scene will
-   * lay the field out on.
-   */
-  private watchSize(): void {
-    if (typeof ResizeObserver === "undefined") return;
-    const board = this.host.nativeElement;
-    // The browser first reports the size after a paint, which would show
-    // the cards over the whole board for a frame before the field.
-    this.room.set(this.canvasOf(board));
-    const observer = new ResizeObserver(() => {
-      this.room.set(this.canvasOf(board));
-    });
-    observer.observe(board);
-    this.destroyRef.onDestroy(() => {
-      observer.disconnect();
-    });
-  }
-
-  /**
-   * Returns the canvas a board's box makes, at the pixel ratio the
-   * placeholder is drawn at, inside the insets its stylesheet declares for
-   * the canvas, as the scene reads them.
-   */
-  private canvasOf(board: HTMLElement): Viewport {
-    const { width, height } = board.getBoundingClientRect();
-    const style = getComputedStyle(board);
-    const inset = (edge: keyof Insets): number => {
-      const value = parseFloat(
-        style.getPropertyValue(`--fz-canvas-inset-${edge}`),
-      );
-      return Number.isFinite(value) ? value : 0;
-    };
-    return {
-      width: Math.floor(width * this.pixelRatio),
-      height: Math.floor(height * this.pixelRatio),
-      pixelRatio: this.pixelRatio,
-      insets: {
-        top: inset("top"),
-        right: inset("right"),
-        bottom: inset("bottom"),
-        left: inset("left"),
-      },
-    };
   }
 
   /**

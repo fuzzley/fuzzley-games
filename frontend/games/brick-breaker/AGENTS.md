@@ -326,10 +326,12 @@ takes for the specs' helpers.
     cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
     `fzKeepKeys`), and take Space and Enter themselves; Resume and Next level
     hand the board back the focus, and the board takes it as New game's run
-    begins. It watches its own size and asks the game for the field's height
-    it has room for (`GameService.setFieldHeight()`), and, where it has room
-    for a taller field, leaves a finger's room under the field, which the
-    scene lays the field out above.
+    begins. It measures the canvas it makes, as the host sizes it, as it is
+    first drawn and as its size, the zoom or the display changes
+    (`@fz/phaser/canvas`'s `canvasRoom()`), asks the game for the field's
+    height that canvas has room for (`GameService.setFieldHeight()`), and,
+    where it has room for a taller field, leaves a finger's room under the
+    field, which the scene lays the field out above.
     `fieldPalette()` colors the field from `ThemeService`'s roles and
     `mode`, and a finger steers as the settings say. The board keeps the
     scene's pictures for How to play (`pictures`). It is an application named
@@ -443,12 +445,15 @@ takes for the specs' helpers.
   to 45, the room it gains between the bricks and the paddle. It changes
   only while the ball waits on the paddle, so a screen turned mid-rally
   keeps its field, fitted whole, until the next serve; the finger's room
-  follows the board at once.
+  follows the board at once. The room is the canvas's at the ratio the host
+  renders it at, which above 2× on a large window is the one the budget
+  holds it to, and which follows a change of zoom.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
-  `fieldMetrics()` does, at the window's pixel ratio; the ring takes the
-  scene's own rectangle once it has drawn, which the board writes for the
-  layout check (`data-field`) with `@fz/phaser/layout`'s
-  `rectAttribute()`, and the layout check holds the placeholder to it.
+  `fieldMetrics()` does, at the pixel ratio the canvas renders at, as the
+  board measures it; the ring takes the scene's own rectangle once it has
+  drawn, which the board writes for the layout check (`data-field`) with
+  `@fz/phaser/layout`'s `rectAttribute()`, and the layout check holds the
+  placeholder to it.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake and
   the last bricks' pulse, are left out, and the cards open without waiting.

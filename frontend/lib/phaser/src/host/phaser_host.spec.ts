@@ -91,7 +91,7 @@ describe("PhaserHost", () => {
     options = OPTIONS,
     onGame?: (game: Game) => void,
   ): PhaserHost {
-    const made = new PhaserHost(window, parent, options, (config) => {
+    const made = new PhaserHost(parent, options, (config) => {
       const game = new Game(config);
       onGame?.(game);
       started.push({
@@ -225,7 +225,7 @@ describe("PhaserHost", () => {
 
   it("boots a game of its own when given no way to make one", async () => {
     const parent = attached();
-    const real = new PhaserHost(window, parent, OPTIONS);
+    const real = new PhaserHost(parent, OPTIONS);
     hosts.push(real);
     const created = new Promise<void>((resolve) => {
       void real.show(

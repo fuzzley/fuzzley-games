@@ -353,6 +353,86 @@ describe("BoardComponent", () => {
       );
     });
 
+    it("draws the empty field at the ratio the canvas renders at, which holds a large canvas to its budget above 2x", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, 1707, 960);
+      detectChanges();
+
+      expect(board.querySelector(".field")).toHaveStyle(
+        placedOver(fieldOn(1707, 960, ROOMY, { pixelRatio: 2 })),
+      );
+    });
+
+    it("publishes the ratio the canvas renders at, which holds a large canvas to its budget above 2x", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, 1707, 960);
+      detectChanges();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    it("draws the empty field again at the new ratio as the page is zoomed", async () => {
+      const { board, detectChanges } = await renderBoard();
+      resize(board, 1707, 960);
+      detectChanges();
+
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2.5);
+      resize(board, 683, 384, { width: 1708, height: 960 });
+      detectChanges();
+
+      // In whole device pixels at 2.5, a field 631.2 CSS px wide; at 1, 631.
+      expect(board.querySelector(".field")).toHaveStyle(
+        placedOver(fieldOn(683, 384, ROOMY, { pixelRatio: 2.5 })),
+      );
+    });
+
+    it("publishes the new ratio as the page is zoomed", async () => {
+      const { board, detectChanges } = await renderBoard();
+      resize(board, 1280, 720);
+      detectChanges();
+
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+      resize(board, 640, 360);
+      detectChanges();
+
+      expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+    });
+
+    describe("as the page is zoomed", () => {
+      let viewport: FakeViewport | null = null;
+
+      beforeEach(() => {
+        viewport = installFakeViewport(1280, 720);
+      });
+
+      afterEach(() => {
+        viewport?.restore();
+        viewport = null;
+      });
+
+      it("draws the empty field again at the new ratio, though the board's device pixels stay as they were", async () => {
+        const { board, detectChanges } = await renderBoard();
+        resize(board, 1280, 720, { width: 1280, height: 720 });
+        detectChanges();
+
+        // A zoom to 250% shrinks the board in CSS pixels and leaves its
+        // device pixels as they were, which the browser doesn't report.
+        vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
+          new DOMRect(0, 0, 512, 288),
+        );
+        viewport?.setPixelRatio(2.5);
+        detectChanges();
+
+        expect(board.querySelector(".field")).toHaveStyle(
+          placedOver(fieldOn(512, 288, ROOMY, { pixelRatio: 2.5 })),
+        );
+      });
+    });
+
     it("draws the empty field clear of the deck where the settings always show it", async () => {
       const { board, detectChanges } = await renderBoard();
       useSettings({ deck: "always" });

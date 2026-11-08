@@ -1,50 +1,27 @@
 import type { Game } from "phaser";
-import { afterEach, describe, it, expect, vi } from "vitest";
-import { FakeResizeObserver } from "../testing/fake_resize_observer";
+import { afterEach, describe, it, expect } from "vitest";
+import { FakeDisplay } from "../testing/fake_display";
 import { startGame, stopGame } from "../testing/start_game";
 import {
-  type DevicePixelSize,
   type MeasurableParent,
-  type PixelRatioQuery,
   type ScalerWindow,
   ViewportScaler,
-  watchDevicePixels,
 } from "./viewport_scaler";
 import { NO_INSETS } from "../insets";
-import { MAX_PIXEL_RATIO } from "../layout";
+import {
+  type DevicePixelSize,
+  MAX_BUDGETED_DEVICE_PIXELS,
+  MAX_PIXEL_RATIO,
+  UNBUDGETED_PIXEL_RATIO,
+} from "../layout";
+import { CANVAS_INSET_PROPERTIES } from "../measure";
 
-/** Stands in for a media query, recording listeners to fire a DPR change. */
-class FakePixelRatioQuery implements PixelRatioQuery {
-  readonly listeners: (() => void)[] = [];
-
-  constructor(readonly query: string) {}
-
-  addEventListener(_type: "change", listener: () => void): void {
-    this.listeners.push(listener);
-  }
-
-  removeEventListener(_type: "change", listener: () => void): void {
-    const index = this.listeners.indexOf(listener);
-    if (index !== -1) this.listeners.splice(index, 1);
-  }
-
-  /** Fires the change event, as the browser does when the DPR stops matching. */
-  fireChange(): void {
-    for (const listener of [...this.listeners]) listener();
-  }
-}
-
-/** Stands in for a window whose pixel ratio and size a test drives. */
-class FakeWindow implements ScalerWindow {
-  devicePixelRatio: number;
+/**
+ * Stands in for a parent's window, whose pixel ratio and size a test drives,
+ * and which computes the style the parent declares.
+ */
+class FakeWindow extends FakeDisplay implements ScalerWindow {
   readonly resizeListeners: (() => void)[] = [];
-  readonly queries: FakePixelRatioQuery[] = [];
-  /** The custom properties the parent declares, by name. */
-  readonly parentStyle = new Map<string, string>();
-
-  constructor(devicePixelRatio: number) {
-    this.devicePixelRatio = devicePixelRatio;
-  }
 
   addEventListener(_type: "resize", listener: () => void): void {
     this.resizeListeners.push(listener);
@@ -55,26 +32,17 @@ class FakeWindow implements ScalerWindow {
     if (index !== -1) this.resizeListeners.splice(index, 1);
   }
 
-  matchMedia(query: string): PixelRatioQuery {
-    const created = new FakePixelRatioQuery(query);
-    this.queries.push(created);
-    return created;
-  }
-
-  getComputedStyle(): { getPropertyValue(property: string): string } {
+  getComputedStyle(parent: FakeParent): {
+    getPropertyValue(property: string): string;
+  } {
     return {
-      getPropertyValue: (property) => this.parentStyle.get(property) ?? "",
+      getPropertyValue: (property) => parent.declared.get(property) ?? "",
     };
   }
 
   /** Fires the resize event, as the browser does when the window changes size. */
   fireResize(): void {
     for (const listener of [...this.resizeListeners]) listener();
-  }
-
-  /** The most recently armed pixel ratio query. */
-  get latestQuery(): FakePixelRatioQuery {
-    return this.queries[this.queries.length - 1]!;
   }
 }
 
@@ -92,12 +60,22 @@ async function startScaledGame(): Promise<Game> {
   return game;
 }
 
-/** Stands in for a parent element of a fixed CSS size. */
+/**
+ * Stands in for a parent element of a fixed CSS size, in a document whose
+ * window, if any, measures it.
+ */
 class FakeParent implements MeasurableParent {
+  readonly ownerDocument: { readonly defaultView: ScalerWindow | null };
+  /** The custom properties the parent declares, by name. */
+  readonly declared = new Map<string, string>();
+
   constructor(
     public width: number,
     public height: number,
-  ) {}
+    view: ScalerWindow | null,
+  ) {
+    this.ownerDocument = { defaultView: view };
+  }
 
   getBoundingClientRect(): { width: number; height: number } {
     return { width: this.width, height: this.height };
@@ -110,7 +88,7 @@ class FakeParentWatch {
   stopped = false;
 
   readonly watch = (
-    _target: MeasurableParent,
+    _target: object,
     onResize: (size: DevicePixelSize | null) => void,
   ): (() => void) => {
     this.onResize = onResize;
@@ -146,10 +124,9 @@ async function startScaler(
 }> {
   const window = new FakeWindow(devicePixelRatio);
   const game = await startScaledGame();
-  const parent = new FakeParent(cssWidth, cssHeight);
+  const parent = new FakeParent(cssWidth, cssHeight, window);
   const parentWatch = new FakeParentWatch();
   const scaler = new ViewportScaler(
-    window,
     game,
     parent,
     watching ? parentWatch.watch : watchNothing,
@@ -159,11 +136,11 @@ async function startScaler(
 }
 
 describe("ViewportScaler's insets", () => {
-  const { top, right, bottom, left } = ViewportScaler.INSET_PROPERTIES;
+  const { top, right, bottom, left } = CANVAS_INSET_PROPERTIES;
 
   it("reads the inset its parent declares", async () => {
-    const { window, scaler } = await startScaler(1);
-    window.parentStyle.set(top, "73px");
+    const { parent, scaler } = await startScaler(1);
+    parent.declared.set(top, "73px");
 
     scaler.apply();
 
@@ -171,11 +148,11 @@ describe("ViewportScaler's insets", () => {
   });
 
   it("reads an inset on every edge", async () => {
-    const { window, scaler } = await startScaler(1);
-    window.parentStyle.set(top, "1px");
-    window.parentStyle.set(right, "2px");
-    window.parentStyle.set(bottom, "3px");
-    window.parentStyle.set(left, "4px");
+    const { parent, scaler } = await startScaler(1);
+    parent.declared.set(top, "1px");
+    parent.declared.set(right, "2px");
+    parent.declared.set(bottom, "3px");
+    parent.declared.set(left, "4px");
 
     scaler.apply();
 
@@ -189,11 +166,11 @@ describe("ViewportScaler's insets", () => {
   });
 
   it("reads the inset afresh when the parent changes size", async () => {
-    const { window, scaler, parentWatch } = await startScaler(1);
-    window.parentStyle.set(top, "73px");
+    const { parent, scaler, parentWatch } = await startScaler(1);
+    parent.declared.set(top, "73px");
     scaler.apply();
-    window.parentStyle.set(top, "0px");
-    window.parentStyle.set(left, "60px");
+    parent.declared.set(top, "0px");
+    parent.declared.set(left, "60px");
 
     parentWatch.report(null);
 
@@ -201,11 +178,11 @@ describe("ViewportScaler's insets", () => {
   });
 
   it("reads the inset afresh when the window changes size, where nothing watches the parent", async () => {
-    const { window, scaler } = await startScaler(1, 800, 600, false);
-    window.parentStyle.set(top, "73px");
+    const { window, parent, scaler } = await startScaler(1, 800, 600, false);
+    parent.declared.set(top, "73px");
     scaler.apply();
-    window.parentStyle.set(top, "0px");
-    window.parentStyle.set(left, "60px");
+    parent.declared.set(top, "0px");
+    parent.declared.set(left, "60px");
 
     window.fireResize();
 
@@ -213,26 +190,21 @@ describe("ViewportScaler's insets", () => {
   });
 
   it("reads the insets again when asked, without the window resizing", async () => {
-    const { window, scaler } = await startScaler(1);
-    window.parentStyle.set(left, "64px");
+    const { parent, scaler } = await startScaler(1);
+    parent.declared.set(left, "64px");
     scaler.apply();
-    window.parentStyle.set(left, "0px");
-    window.parentStyle.set(right, "64px");
+    parent.declared.set(left, "0px");
+    parent.declared.set(right, "64px");
 
     scaler.refreshInsets();
 
     expect([scaler.insets.left, scaler.insets.right]).toEqual([0, 64]);
   });
 
-  it("reads no inset from a host that cannot read styles", async () => {
-    const window = Object.assign(new FakeWindow(1), {
-      getComputedStyle: undefined,
-    });
-    const scaler = new ViewportScaler(
-      window,
-      await startScaledGame(),
-      new FakeParent(800, 600),
-    );
+  it("reads no insets of a parent in a document with no window", async () => {
+    const parent = new FakeParent(800, 600, null);
+    parent.declared.set(top, "73px");
+    const scaler = new ViewportScaler(await startScaledGame(), parent);
 
     scaler.start();
 
@@ -295,14 +267,14 @@ describe("ViewportScaler", () => {
     const { scaler } = await startScaler(3, 1280, 720);
 
     expect(scaler.pixelRatio).toBeCloseTo(
-      Math.sqrt(ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS / (1280 * 720)),
+      Math.sqrt(MAX_BUDGETED_DEVICE_PIXELS / (1280 * 720)),
     );
   });
 
   it("never holds a canvas below 2x, however large", async () => {
     const { scaler } = await startScaler(3, 2560, 1440);
 
-    expect(scaler.pixelRatio).toBe(ViewportScaler.UNBUDGETED_PIXEL_RATIO);
+    expect(scaler.pixelRatio).toBe(UNBUDGETED_PIXEL_RATIO);
   });
 
   it("renders at 2x whatever the canvas size, as before the budget", async () => {
@@ -318,17 +290,25 @@ describe("ViewportScaler", () => {
 
     parentWatch.report({ width: 7680, height: 4320 });
 
-    expect(scaler.pixelRatio).toBe(ViewportScaler.UNBUDGETED_PIXEL_RATIO);
+    expect(scaler.pixelRatio).toBe(UNBUDGETED_PIXEL_RATIO);
   });
 
   it("reports a ratio of 1 before the canvas has been sized", async () => {
     const scaler = new ViewportScaler(
-      new FakeWindow(3),
       await startScaledGame(),
-      new FakeParent(390, 844),
+      new FakeParent(390, 844, new FakeWindow(3)),
     );
 
     expect(scaler.pixelRatio).toBe(1);
+  });
+
+  it("sizes the canvas at a device pixel to a CSS pixel for a parent in a document with no window", async () => {
+    const game = await startScaledGame();
+    const scaler = new ViewportScaler(game, new FakeParent(800, 600, null));
+
+    scaler.start();
+
+    expect([scaler.pixelRatio, game.canvas.width]).toEqual([1, 800]);
   });
 
   it("treats a non-conforming pixel ratio as 1", async () => {
@@ -407,28 +387,18 @@ describe("ViewportScaler", () => {
     expect(game.canvas.style.width).toBe("1000px");
   });
 
-  it("observes the pixel ratio currently in effect", async () => {
+  it("watches the pixel ratio currently in effect", async () => {
     const { window } = await startScaler(2);
 
-    expect(window.latestQuery.query).toBe("(resolution: 2dppx)");
+    expect(window.listenedTo).toEqual(["(resolution: 2dppx)"]);
   });
 
   it("re-sizes the canvas when the display's pixel ratio changes", async () => {
     const { window, game } = await startScaler(2, 800, 600);
-    window.devicePixelRatio = 1;
 
-    window.latestQuery.fireChange();
+    window.setPixelRatio(1);
 
     expect([game.canvas.width, game.canvas.height]).toEqual([800, 600]);
-  });
-
-  it("re-arms the query against the new ratio after a change", async () => {
-    const { window } = await startScaler(2);
-    window.devicePixelRatio = 1;
-
-    window.latestQuery.fireChange();
-
-    expect(window.latestQuery.query).toBe("(resolution: 1dppx)");
   });
 
   it("keeps the query it watches while the ratio stays as it is", async () => {
@@ -438,7 +408,7 @@ describe("ViewportScaler", () => {
 
     parentWatch.report({ width: 2000, height: 1500 });
 
-    expect(window.queries.map((query) => query.listeners.length)).toEqual([1]);
+    expect(window.queries.map((query) => query.listeners.size)).toEqual([1]);
   });
 
   it("watches the ratio afresh once started again", async () => {
@@ -447,20 +417,7 @@ describe("ViewportScaler", () => {
 
     scaler.start();
 
-    expect(window.queries.map((query) => query.listeners.length)).toEqual([
-      0, 1,
-    ]);
-  });
-
-  it("leaves only one live pixel ratio query after a change", async () => {
-    const { window } = await startScaler(2);
-    window.devicePixelRatio = 1;
-
-    window.latestQuery.fireChange();
-
-    expect(window.queries.map((query) => query.listeners.length)).toEqual([
-      0, 1,
-    ]);
+    expect(window.queries.map((query) => query.listeners.size)).toEqual([0, 1]);
   });
 
   it("releases every listener on stop", async () => {
@@ -468,10 +425,7 @@ describe("ViewportScaler", () => {
 
     scaler.stop();
 
-    expect([
-      window.resizeListeners.length,
-      window.latestQuery.listeners.length,
-    ]).toEqual([0, 0]);
+    expect([window.resizeListeners.length, window.listenedTo]).toEqual([0, []]);
   });
 
   it("still sizes the canvas on a host without media query support", async () => {
@@ -479,9 +433,10 @@ describe("ViewportScaler", () => {
       devicePixelRatio: 2,
       addEventListener: () => {},
       removeEventListener: () => {},
+      getComputedStyle: () => ({ getPropertyValue: () => "" }),
     };
     const game = await startScaledGame();
-    const scaler = new ViewportScaler(window, game, new FakeParent(800, 600));
+    const scaler = new ViewportScaler(game, new FakeParent(800, 600, window));
 
     scaler.start();
 
@@ -511,7 +466,7 @@ describe("ViewportScaler in device pixels", () => {
   });
 
   it("ignores a count from before a resize the browser has yet to report", async () => {
-    const { window, game, parent, parentWatch } = await startScaler(
+    const { scaler, game, parent, parentWatch } = await startScaler(
       3,
       390,
       844,
@@ -519,9 +474,27 @@ describe("ViewportScaler in device pixels", () => {
     parentWatch.report({ width: 1170, height: 2532 });
     parent.width = 500;
 
-    window.latestQuery.fireChange();
+    scaler.apply();
 
     expect(game.canvas.width).toBe(1500);
+  });
+
+  it("keeps the device pixels the browser counted as the page is zoomed, which leaves them as they were", async () => {
+    const { window, game, parent, parentWatch } = await startScaler(
+      1,
+      800,
+      600,
+    );
+    parentWatch.report({ width: 800, height: 600 });
+    parent.width = 400;
+    parent.height = 300;
+
+    window.setPixelRatio(2);
+
+    expect([game.canvas.width, game.canvas.style.width]).toEqual([
+      800,
+      "400px",
+    ]);
   });
 
   it("ignores the count while the budget holds the ratio down", async () => {
@@ -560,88 +533,5 @@ describe("ViewportScaler in device pixels", () => {
     scaler.stop();
 
     expect(parentWatch.stopped).toBe(true);
-  });
-});
-
-describe("watchDevicePixels", () => {
-  /** Stands in for a browser that can't count the device pixel box, such as Safari. */
-  class BoxlessResizeObserver extends FakeResizeObserver {
-    override observe(target: Element, options?: ResizeObserverOptions): void {
-      if (options) throw new TypeError("Unsupported box");
-      super.observe(target);
-    }
-  }
-
-  /** Stands in for an element, so the watcher accepts it. */
-  class FakeElement {
-    getBoundingClientRect(): { width: number; height: number } {
-      return { width: 0, height: 0 };
-    }
-  }
-
-  /** Watches a fake element with a fake observer and returns what it reported. */
-  function watchFakeElement(
-    observer: typeof FakeResizeObserver = FakeResizeObserver,
-  ): {
-    sizes: (DevicePixelSize | null)[];
-    stop: (() => void) | null;
-  } {
-    vi.stubGlobal("ResizeObserver", observer);
-    vi.stubGlobal("Element", FakeElement);
-    const sizes: (DevicePixelSize | null)[] = [];
-    const stop = watchDevicePixels(new FakeElement(), (size) => {
-      sizes.push(size);
-    });
-    return { sizes, stop };
-  }
-
-  /** Returns the observer the watcher made last. */
-  function latest(): FakeResizeObserver | undefined {
-    return FakeResizeObserver.made.at(-1);
-  }
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    FakeResizeObserver.made = [];
-  });
-
-  it("does not watch a host without elements", () => {
-    const stop = watchDevicePixels(new FakeParent(800, 600), () => {});
-
-    expect(stop).toBeNull();
-  });
-
-  it("asks the browser to count the device pixel box", () => {
-    watchFakeElement();
-
-    expect([...(latest()?.watched.values() ?? [])]).toEqual([
-      { box: "device-pixel-content-box" },
-    ]);
-  });
-
-  it("reports the size the browser counted", () => {
-    const { sizes } = watchFakeElement();
-
-    latest()?.resized([
-      { devicePixelContentBoxSize: [{ inlineSize: 1082, blockSize: 2402 }] },
-    ]);
-
-    expect(sizes).toEqual([{ width: 1082, height: 2402 }]);
-  });
-
-  it("still reports a resize where the browser has no device pixel box", () => {
-    const { sizes } = watchFakeElement(BoxlessResizeObserver);
-
-    latest()?.resized([{}]);
-
-    expect(sizes).toEqual([null]);
-  });
-
-  it("stops the observer when asked", () => {
-    const { stop } = watchFakeElement();
-
-    stop?.();
-
-    expect(latest()?.watched.size).toBe(0);
   });
 });

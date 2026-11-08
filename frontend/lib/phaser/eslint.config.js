@@ -69,6 +69,40 @@ export default defineConfig(
     },
   },
   {
+    // What measures the page for a canvas knows no Phaser and no framework,
+    // so the host and the canvas both take it. It reads the page, so it is
+    // no pure entry, and a game's view, which reads none, can't take it.
+    files: ["src/measure/**/*.ts"],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "@angular/*",
+                "@fz/*",
+                "rxjs",
+                "rxjs/*",
+                "../canvas",
+                "../host",
+                "../scene",
+                "../sound",
+                "../testing",
+                // An entry through its index alone, never its files.
+                "../*/*",
+              ],
+              message:
+                "The measure entry knows no Phaser and no framework, and nothing of the entries built on it, so the host and the canvas both take it.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // A test setup imports the testing entry before installHeadlessPhaser()
     // has given Phaser the page it needs to load, so the entry takes Phaser,
     // and the entries that load it, by type alone, and loads Phaser with

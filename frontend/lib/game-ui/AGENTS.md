@@ -109,7 +109,9 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
 - `src/testing/`: what a game's specs share. `installFakeViewport()` stands
   in for the `matchMedia` jsdom lacks, at a size a spec sets and changes,
   for a light system with no wish for less motion, pointed at with a mouse
-  until a spec says a finger (`setCoarsePointer()`).
+  until a spec says a finger (`setCoarsePointer()`), at the window's pixel
+  ratio until a spec zooms the page (`setPixelRatio()`), which changes
+  `devicePixelRatio` and the `resolution` a query matches.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
   forwards the breakpoints' mixins, and its `bar-size()` mixin publishes the
   bar's size as `--fz-bar-height` and `--fz-rail-width` for what lays itself

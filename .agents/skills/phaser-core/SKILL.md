@@ -30,8 +30,13 @@ beside a deck of controls for a touch screen.
   loading, which the app says to the player. What the app projects as
   `[fzCanvasPlaceholder]` lies over the canvas until the scene is ready. It
   loads the host, and Phaser with it, with `import()` when it first shows a
-  scene (`frontend/lib/phaser/src/canvas/`). Beside it, `fzKeepKeys` keeps a
-  button's keys from the board around it.
+  scene (`frontend/lib/phaser/src/canvas/`). Beside it, `canvasRoom()`,
+  called as a board is made, gives it the canvas it makes, as the host
+  sizes it, and the ratio it renders at, as signals (`viewport`,
+  `pixelRatio`), measured as it is first drawn and each time its size, the
+  zoom or the display changes, so its placeholder lays the board out as the
+  scene will, and `fzKeepKeys` keeps a button's keys from the board around
+  it.
 - **`@fz/phaser/host`**: `PhaserHost`, which keeps one Phaser game, and so
   one WebGL context, for the canvas's whole life, and `ViewportScaler`,
   which keeps the canvas at its box's size in device pixels. Only the canvas
@@ -45,17 +50,26 @@ beside a deck of controls for a touch screen.
   scene hands to `@fz/core`'s `FrameSounds.playEach()`, and loops one while
   a scene holds it (`hold()`); a sprite that fails to load leaves the game
   silent, not broken. `@fz/dev/sounds` synthesizes the sprite.
+- **`@fz/phaser/measure`**: what reads the page for a canvas, as the host
+  sizes it and `canvasRoom()` measures it: `watchDevicePixels()` counts an
+  element's device pixels, `watchDevicePixelRatio()` hears the display's
+  ratio change, as a zoom that leaves the device pixels as they were
+  changes it, and `canvasInsetsOf()` reads the insets an element declares
+  for the canvas through its own window. It knows no Phaser and no
+  framework, and a game's view can't take it, since it reads the page.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
 - **`@fz/phaser/insets`**, **`@fz/phaser/color`**, **`@fz/phaser/layout`**
   and **`@fz/phaser/shapes`** import nothing but each other, so a game's
   code without Phaser can take them. `fitCells()` in `layout` fits a field
   of cells, across by down, inside a canvas's insets, each cell whole device
   pixels, `canvasPixelRatio()` is the ratio a canvas renders at on a
-  display, which a placeholder drawn in CSS sizes its cells by, and
-  `rectAttribute()` and `namedRectsAttribute()` write where the scene drew
-  a board, or a deck's zones, into the board's attributes, as
-  `@fz/dev/layout`'s layout check reads them (`readRect()`,
-  `readNamedRects()`). `shapes` is
+  display, `canvasSizeFor()` the size the host makes a canvas of a box, in
+  the device pixels the browser counted where it can, and the ratio it
+  renders it at, past 2× only within a budget of device pixels, which a
+  placeholder drawn in CSS sizes its cells by, and `rectAttribute()` and
+  `namedRectsAttribute()` write where the scene drew a board, or a deck's
+  zones, into the board's attributes, as `@fz/dev/layout`'s layout check
+  reads them (`readRect()`, `readNamedRects()`). `shapes` is
   the vocabulary a game's art is drawn in, each shape of a frame as plain
   data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.
@@ -115,8 +129,9 @@ out of the first download.
   the scene then.
 - **The chrome over the canvas** is declared on the canvas's parent, as
   `--fz-canvas-inset-top`, `-right`, `-bottom` and `-left`, and a scene
-  reads it with `insets()`. Chrome that moves without the canvas changing
-  size calls the canvas's `refreshInsets()`.
+  reads it with `insets()`, a board's placeholder with `canvasRoom()`.
+  Chrome that moves without the canvas changing size calls the canvas's
+  `refreshInsets()`.
 - **Every scene is a `HostedScene`,** a Phaser scene with a key no other
   shares, since Phaser throws on a key in use:
   `uniqueSceneKey("snake-scene")` numbers the scenes of a prefix as they
@@ -213,7 +228,11 @@ browser, through a game's screenshots and its `check:layout`.
   rather than printing it, and asserts on it. jsdom has no
   `ResizeObserver`, so a board that watches its size is specced inside a
   describe that calls `watchResizes()`, which stands `FakeResizeObserver`
-  in, and `resize()` lays the board out at a size and tells it.
+  in, and `resize()` lays the board out at a size and tells it, with the
+  device pixels the browser counted where the spec gives them. A change of
+  zoom that leaves those as they were reaches the board through a
+  `(resolution)` query, which `@fz/game-ui/testing`'s fake viewport answers
+  and changes (`setPixelRatio()`).
 - **A scene's specs** run real Phaser in jsdom, its WebGL renderer
   included, on a context that draws nothing. The test setup calls
   `installHeadlessPhaser()` before anything imports Phaser, which tests for
