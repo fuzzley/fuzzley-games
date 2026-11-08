@@ -2,7 +2,7 @@
 /**
  * Captures each game's rules-page screenshot from the running dev server.
  *
- *   yarn start
+ *   yarn dev
  *   yarn capture:screenshots [game id ...]
  *   yarn build:thumbs
  *
@@ -16,21 +16,13 @@
 import { mkdir, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { withChrome, withPage } from "@fz/dev/chrome";
+import { withPage } from "@fz/dev/chrome";
+import { runScreenshotScript } from "@fz/dev/screenshots";
 import sharp from "sharp";
 
-/** @import { Page } from "@fz/dev/chrome" */
-
-const USAGE = `Usage: yarn capture:screenshots [options] [game id ...]
-
-Captures each game's rules-page screenshot from the running dev server, or
-only the games named. Run yarn build:thumbs afterwards.
-
-  --url <url>      The dev server (default: http://localhost:9000/)
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
+/** @import { DevToolsConnection, Page } from "@fz/dev/chrome" */
+/** @import { ScreenshotRequest, ScreenshotScript } from "@fz/dev/screenshots" */
+/** @import { Printer } from "@fz/dev/script" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCREENSHOT_DIR = join(ROOT, "docs/screenshots");
@@ -90,73 +82,63 @@ async function capture(page, baseUrl, id) {
 }
 
 /**
- * Returns the games the command line names, or every game with a screenshot,
- * and the options it sets.
+ * Returns every game with a screenshot, by the folder its original keeps.
  *
- * @returns {Promise<{ids: string[], baseUrl: string, chrome?: string} | undefined>}
- *   Nothing when it asks only for help.
+ * @returns {Promise<string[]>}
  */
-async function parseCommandLine() {
-  const { values, positionals } = parseArgs({
-    allowPositionals: true,
-    options: {
-      url: { type: "string", default: "http://localhost:9000/" },
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
-  }
-  const ids = positionals.length
-    ? positionals
-    : (await readdir(SCREENSHOT_DIR, { withFileTypes: true }))
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name);
-  return { ids, baseUrl: values.url, chrome: values.chrome };
+async function everyGame() {
+  return (await readdir(SCREENSHOT_DIR, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
 }
 
-async function main() {
-  const options = await parseCommandLine();
-  if (!options) return;
-  await fetch(options.baseUrl).catch(() => {
-    throw new Error(
-      `Nothing answers at ${options.baseUrl}; start the dev server with yarn start.`,
+/**
+ * Captures each game the command line names, or every game with a
+ * screenshot, each on a page of its own, says which it captured and which
+ * it skipped, and returns the code to exit with: 1 if it skipped any.
+ *
+ * @param {DevToolsConnection} devtools
+ * @param {ScreenshotRequest} request
+ * @param {Printer} printer
+ * @returns {Promise<number>}
+ */
+async function captureEach(devtools, { url, names }, { print, printError }) {
+  const ids = names.length > 0 ? names : await everyGame();
+  const skipped = [];
+  for (const id of ids) {
+    const shot = await withPage(devtools, VIEWPORT, (page) =>
+      capture(page, url, id),
     );
-  });
-
-  const failed = await withChrome(
-    { chrome: options.chrome, name: "fsolitaire" },
-    async (devtools) => {
-      const skipped = [];
-      for (const id of options.ids) {
-        const shot = await withPage(devtools, VIEWPORT, (page) =>
-          capture(page, options.baseUrl, id),
-        );
-        if ("problem" in shot) {
-          skipped.push(id);
-          console.log(`${id}: skipped, ${shot.problem}`);
-          continue;
-        }
-        const target = join(SCREENSHOT_DIR, id, TARGET);
-        await mkdir(dirname(target), { recursive: true });
-        await sharp(shot.png).png({ compressionLevel: 9 }).toFile(target);
-        console.log(`${id}: ${TARGET}`);
-      }
-      return skipped;
-    },
-  );
-
-  console.log(
-    `Captured ${options.ids.length - failed.length} of ${options.ids.length}.`,
-  );
-  if (failed.length > 0) {
-    console.error(`Not captured: ${failed.join(", ")}`);
-    process.exitCode = 1;
-  } else {
-    console.log("Run yarn build:thumbs to make the images the site serves.");
+    if ("problem" in shot) {
+      skipped.push(id);
+      print(`${id}: skipped, ${shot.problem}`);
+      continue;
+    }
+    const target = join(SCREENSHOT_DIR, id, TARGET);
+    await mkdir(dirname(target), { recursive: true });
+    await sharp(shot.png).png({ compressionLevel: 9 }).toFile(target);
+    print(`${id}: ${TARGET}`);
   }
+
+  print(`Captured ${ids.length - skipped.length} of ${ids.length}.`);
+  if (skipped.length > 0) {
+    printError(`Not captured: ${skipped.join(", ")}`);
+    return 1;
+  }
+  print("Run yarn build:thumbs to make the images the site serves.");
+  return 0;
 }
 
-await main();
+/** @type {ScreenshotScript} */
+const SCRIPT = {
+  game: "the Solitaire Collection",
+  root: ROOT,
+  port: 9000,
+  about:
+    "Captures each game's rules-page screenshot from the running dev server, " +
+    "or only the games named. Run yarn build:thumbs afterwards.",
+  nameLabel: "game id",
+  capture: captureEach,
+};
+
+process.exitCode = await runScreenshotScript(SCRIPT);

@@ -34,12 +34,25 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runnerImport } from "vite";
+import {
+  SEEDS_OPTION,
+  middleAndMost,
+  printReport,
+  readSeeds,
+  timeOf,
+} from "@fz/dev/report";
+import {
+  CONSOLE,
+  importThroughVite,
+  isStop,
+  misread,
+  readArgs,
+  stopWith,
+} from "@fz/dev/script";
 
-import { CONSOLE, misread, readArgs, stopWith } from "./command_line.mjs";
-
+/** @import { ReportColumns } from "@fz/dev/report" */
+/** @import { ScriptIo, Stop } from "@fz/dev/script" */
 /** @import { FieldName, ReportApi, ReportedWave, ScriptSpeed, WavePlayed } from "../src/testing/script_api.ts" */
-/** @import { ScriptIo, Stop } from "./command_line.mjs" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -69,12 +82,6 @@ ${Object.entries(FIELDS)
   .join("\n")}
   --endless       Play Endless's waves 31 to 60 instead
   -h, --help      Show this message`;
-
-/** What lies between the names and each speed's columns. */
-const GAP = "   ";
-
-/** How far apart each wave's seeds start with `--seeds`, so no two waves share one. */
-const SEED_STRIDE = 1000;
 
 /**
  * What a command line asks the report for.
@@ -107,54 +114,40 @@ const SEED_STRIDE = 1000;
  */
 
 /**
- * The plays the report makes of each wave at each speed, and the columns
- * it shows of them.
+ * Returns the columns the report shows of a wave's plays at one speed, from
+ * its number alone or from many seeds.
  *
- * @typedef {object} Layout
- * @property {(wave: ReportedWave) => number[]} seedsOf The seeds a wave is played from.
- * @property {readonly string[]} headings The heading of each column.
- * @property {readonly number[]} widths How wide each column is.
- * @property {(plays: ReadonlyArray<Play>, game: Game) => string[]} cellsOf
- *   Returns the columns' cells for a wave's plays at one speed.
+ * @param {Request} request
+ * @param {Game} game
+ * @returns {ReportColumns<Play>}
  */
-
-/** @type {Layout} */
-const ONE_PLAY = {
-  seedsOf: (wave) => [wave.number],
-  headings: ["time", "lost", "home"],
-  widths: [5, 5, 5],
-  cellsOf: (plays, game) => {
-    const [play] = plays;
-    return play
-      ? [
-          timeOf(stepsOf(play.untouchable, game), game),
-          lostOf(plays, game),
-          homeOf(plays),
-        ]
-      : [];
-  },
-};
-
-/**
- * Returns the layout of a report that plays each wave from a number of
- * seeds at each speed.
- *
- * @param {number} count
- * @returns {Layout}
- */
-function manyPlays(count) {
+function columnsOf(request, game) {
+  if (request.seeds === undefined) {
+    return {
+      headings: ["time", "lost", "home"],
+      widths: [5, 5, 5],
+      cellsOf: (plays) => {
+        const [play] = plays;
+        return play
+          ? [
+              timeOf(stepsOf(play.untouchable, game), game.stepSeconds),
+              lostOf(plays, game),
+              homeOf(plays),
+            ]
+          : [];
+      },
+    };
+  }
   return {
-    seedsOf: (wave) =>
-      Array.from({ length: count }, (_, i) => wave.number * SEED_STRIDE + i),
     headings: ["middle", "most", "lost", "home"],
     widths: [6, 5, 5, 7],
-    cellsOf: (plays, game) => {
-      const steps = plays
-        .map((play) => stepsOf(play.untouchable, game))
-        .sort((a, b) => a - b);
+    cellsOf: (plays) => {
+      const [middle, most] = middleAndMost(
+        plays.map((play) => stepsOf(play.untouchable, game)),
+      );
       return [
-        timeOf(steps[Math.floor(steps.length / 2)], game),
-        timeOf(steps.at(-1), game),
+        timeOf(middle, game.stepSeconds),
+        timeOf(most, game.stepSeconds),
         lostOf(plays, game),
         homeOf(plays),
       ];
@@ -170,23 +163,18 @@ function manyPlays(count) {
  * @returns {Request | Stop}
  */
 export function readCommandLine(args) {
-  const values = readArgs(
-    args,
-    {
-      seeds: { type: "string" },
+  const read = readArgs(args, {
+    options: {
+      ...SEEDS_OPTION,
       field: { type: "string", default: "narrow" },
       endless: { type: "boolean", default: false },
     },
-    USAGE,
-  );
-  if ("code" in values) return values;
-  const seeds = values.seeds === undefined ? undefined : Number(values.seeds);
-  if (seeds !== undefined && (!Number.isInteger(seeds) || seeds < 1)) {
-    return misread(
-      `--seeds takes a whole number from 1, not "${String(values.seeds)}".`,
-      USAGE,
-    );
-  }
+    usage: USAGE,
+  });
+  if (isStop(read)) return read;
+  const { values } = read;
+  const seeds = readSeeds(values.seeds, USAGE);
+  if (isStop(seeds)) return seeds;
   const { field } = values;
   if (!isFieldName(field)) {
     return misread(
@@ -218,18 +206,16 @@ function quoted(word) {
 }
 
 /**
- * Returns what the report plays, `REPORT_API`, loaded through Vite, since
- * Node can't load the rules as they are: they name their modules without
- * extensions and import JSON.
+ * Returns what the report plays, `REPORT_API`, loaded through Vite.
  *
  * @returns {Promise<ReportApi>}
  */
 export async function loadReportApi() {
-  const { module } = await runnerImport(
+  const module = await importThroughVite(
     join(ROOT, "src/testing/report_api.ts"),
-    { configFile: false, root: ROOT, logLevel: "silent" },
+    ROOT,
   );
-  return /** @type {{ REPORT_API: ReportApi }} */ (module).REPORT_API;
+  return /** @type {ReportApi} */ (module["REPORT_API"]);
 }
 
 /**
@@ -264,7 +250,8 @@ function gameOf(api, request) {
 
 /**
  * Prints the report a request asks for, a line at a time, a wave's line as
- * it is played, and returns how many plays didn't clear their wave in time.
+ * it is played, and how many plays didn't clear their wave in time, and
+ * returns the code to exit with: 1 where any didn't, and 0 otherwise.
  *
  * @param {ReportApi} api
  * @param {Request} request
@@ -272,55 +259,30 @@ function gameOf(api, request) {
  * @returns {number}
  */
 export function report(api, request, print) {
-  const layout =
-    request.seeds === undefined ? ONE_PLAY : manyPlays(request.seeds);
   const game = gameOf(api, request);
-  const nameWidth = Math.max(
-    0,
-    ...game.waves.map((wave) => nameOf(wave).length),
+  return printReport(
+    {
+      entries: game.waves,
+      speeds: game.speeds,
+      seeds: request.seeds,
+      play: game.playWave,
+      ...columnsOf(request, game),
+    },
+    (plays) => [
+      {
+        count: plays
+          .flatMap((play) =>
+            request.endless
+              ? [play.untouchable]
+              : [play.untouchable, play.played],
+          )
+          .filter((play) => !clearedInTime(play, game)).length,
+        says: "didn't clear their wave in time (-)",
+        fails: true,
+      },
+    ],
+    print,
   );
-  const headings = columns(layout.headings, layout);
-  print(
-    "".padEnd(nameWidth) +
-      GAP +
-      game.speeds
-        .map((speed) => speed.padEnd(headings.length))
-        .join(GAP)
-        .trimEnd(),
-  );
-  print("".padEnd(nameWidth) + GAP + game.speeds.map(() => headings).join(GAP));
-  let uncleared = 0;
-  for (const wave of game.waves) {
-    const cells = game.speeds.map((speed) => {
-      const plays = layout
-        .seedsOf(wave)
-        .map((seed) => game.playWave(wave, speed, seed));
-      uncleared += plays
-        .flatMap((play) =>
-          request.endless
-            ? [play.untouchable]
-            : [play.untouchable, play.played],
-        )
-        .filter((play) => !clearedInTime(play, game)).length;
-      return columns(layout.cellsOf(plays, game), layout);
-    });
-    print(nameOf(wave).padEnd(nameWidth) + GAP + cells.join(GAP));
-  }
-  if (uncleared > 0) {
-    print("");
-    print(`${String(uncleared)} plays didn't clear their wave in time (-).`);
-  }
-  return uncleared;
-}
-
-/**
- * Returns a wave's name as the report writes it, after its number.
- *
- * @param {ReportedWave} wave
- * @returns {string}
- */
-function nameOf(wave) {
-  return `${String(wave.number).padStart(2)} ${wave.data.name}`;
 }
 
 /**
@@ -345,20 +307,6 @@ function clearedInTime(play, game) {
  */
 function stepsOf(play, game) {
   return clearedInTime(play, game) ? play.steps : Number.POSITIVE_INFINITY;
-}
-
-/**
- * Returns a count of steps as the game time it takes, in minutes and
- * seconds, or `-` for a wave not cleared in time.
- *
- * @param {number | undefined} steps
- * @param {Game} game
- * @returns {string}
- */
-function timeOf(steps, game) {
-  if (steps === undefined || steps === Number.POSITIVE_INFINITY) return "-";
-  const seconds = Math.round(steps * game.stepSeconds);
-  return `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 /**
@@ -394,18 +342,6 @@ function homeOf(plays) {
 }
 
 /**
- * Returns a speed's cells, or their headings, each right-aligned in its
- * column.
- *
- * @param {readonly string[]} cells
- * @param {Layout} layout
- * @returns {string}
- */
-function columns(cells, layout) {
-  return cells.map((cell, i) => cell.padStart(layout.widths[i] ?? 0)).join(" ");
-}
-
-/**
  * Prints the report a command line asks for, or its usage, and returns the
  * code to exit with: 0, 1 if a play didn't clear its wave in time, or 2 for
  * a command line it can't read, played nothing.
@@ -423,8 +359,8 @@ export async function run(
   } = {},
 ) {
   const request = readCommandLine(args);
-  if ("code" in request) return stopWith(request, print, printError);
-  return report(await load(), request, print) > 0 ? 1 : 0;
+  if (isStop(request)) return stopWith(request, { print, printError });
+  return report(await load(), request, print);
 }
 
 if (import.meta.main) process.exitCode = await run(process.argv.slice(2));

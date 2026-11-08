@@ -162,7 +162,9 @@ too. Paths are relative to `frontend/lib/dev/`.
 - `src/layout.ts`, `@fz/dev/layout`: a game's layout checked in a real
   browser. `checkLayout()` opens a game's page at each of `SHAPES` (a roomy
   window, and a large and a small phone, upright and on its side), waits for a
-  selector and the fonts, and returns what is wrong at each: an error the page
+  selector and the fonts (for a board drawn with Phaser,
+  `PHASER_CANVAS_READY`, which its canvas matches once the scene has drawn),
+  and returns what is wrong at each: an error the page
   reports (an exception, `console.error`, or the browser's own, such as a
   refused resource), a page that scrolls, a control of the game bar out of the
   window, what is wrong with the check's `board`, where it has one, and what
@@ -192,26 +194,88 @@ too. Paths are relative to `frontend/lib/dev/`.
   with its deck shown. The game's `inspect()` is then handed where the board
   lies, a `BoardBox`, for what is its own, such as the least its unit may be.
   The functions it runs in the page are in `src/layout_page.ts`, which only a
-  browser runs, so coverage leaves it out, and the board's and the deck's
-  inspections, `inspectPhaserBoard()` and `inspectPhaserDeck()`, in
-  `src/board_page.ts`, which its spec runs in jsdom. A game's
+  browser runs, but for `settle()`, which its spec runs in jsdom, so
+  coverage leaves it out, and the board's and the deck's inspections,
+  `inspectPhaserBoard()` and `inspectPhaserDeck()`, in `src/board_page.ts`,
+  which its spec runs in jsdom. A game's
   `tools/check-layout.mjs` holds its inspection and which checks it runs, and
   hands them to `runLayoutScript()`, which reads the command line (`--chrome`,
-  `--help`), serves the build as `yarn preview` does, at 127.0.0.1 rather
-  than `localhost`, which can name ::1 to the server and 127.0.0.1 to a
-  client dialing it, and opening no browser of the desktop's, whatever the
-  game's config asks, runs the checks in a headless Chrome and prints what is
-  wrong, or that the layout holds. It returns the exit code, 1 for a layout
-  that doesn't hold and 2 for an option it doesn't know, and throws where it
-  can't check at all, such as for a game with no build, no Chrome to run, or
-  a page that never draws.
-- `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
-  of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
+  `--help`) with `@fz/dev/script`'s `readArgs()`, serves the build as
+  `yarn preview` does, at 127.0.0.1 rather than `localhost`, which can name
+  ::1 to the server and 127.0.0.1 to a client dialing it, and opening no
+  browser of the desktop's, whatever the game's config asks, runs the checks
+  in a headless Chrome and prints what is wrong, or that the layout holds,
+  to the console unless a spec hands it a `Printer`, as
+  `runScreenshotScript()` takes one. It returns the exit code, 1 for a
+  layout that doesn't hold and 2 for an option it doesn't know, and throws
+  where it can't check at all, such as for a game with no build, no Chrome
+  to run, or a page that never draws: `settle()`, which waits in the page,
+  resolves to false where nothing matched in time, and the check throws,
+  naming the selector.
+- `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows of
+  a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),
-  and the sharp calls that write them. `writeSiteImages()` writes both from
-  a capture into a folder, the thumbnail cropped to a region when given
-  one; `writeImage()` writes one image of any size, as the Solitaire
-  Collection's rules-page image is.
+  the sharp calls that write them, and the screenshot scripts' runner.
+  `writeSiteImages()` writes both from a capture into a folder, the
+  thumbnail cropped to a region when given one, which `thumbRegionAround()`
+  works out from a box on the page (a `Region`, sharp's): the box and a
+  margin, grown to the thumbnail's shape and kept on the capture's whole
+  pixels, rounded before it is kept there, so it never runs past the
+  capture's edge; `writeImage()` writes one image of any size, as the
+  Solitaire Collection's rules-page image is. A game's
+  `tools/capture-screenshots.mjs` says what it captures and hands it to
+  `runScreenshotScript()`, which reads the command line (`--url`, an http or
+  https address, the game's own dev server by default, `--chrome`, `--help`,
+  and the names after them for a script that takes them, as the Solitaire
+  Collection's game ids), checks that a server answers there, starts a
+  headless Chrome and hands it to the script's `capture()`, which returns
+  the code to exit with; it returns 1, before Chrome starts, where nothing
+  answers within five seconds, and 2 for a command line it can't read, and
+  throws where it can't capture at all, such as for no Chrome to run. A
+  capture sets its page up before the game starts with `setUpPage()`, given
+  a `PageSetup` (the palette, entries stored, fields merged into what a game
+  stores as it goes, such as its clock, and a seed for `Math.random`), waits
+  for it to draw with `settled()`, which runs the layout check's `settle()`
+  and returns false where nothing matched in time, a board drawn with Phaser
+  waiting on `PHASER_CANVAS_SETTLED` or `PHASER_CANVAS_READY`, and hands its
+  `Shot`, or why it `Missed`, to `keepShot()`, which writes the site's
+  images, prints what the shot shows and each image's size, and returns the
+  code. `describePhaserPage()` says what the page of a game drawn with
+  Phaser shows once a wait has passed, 800 ms unless given (`waitMs`): its
+  canvas's state, its board's outcome, the score, and where the scene drew
+  the board. What `setUpPage()` and `describePhaserPage()` run in the page
+  is in `src/screenshot_page.ts`, which its spec runs in jsdom, each as the
+  page is sent it, from its source alone.
+- `src/script.ts`, `@fz/dev/script`: what a workspace's Node scripts
+  share. `readArgs()` reads a command line's options, `--help` (`-h`) among
+  them, which every script takes, and the words after them where the
+  script takes any, or returns a `Stop`: the usage and 0 for `--help`, and
+  what is wrong, a blank line, the usage and 2 for one it can't read, as
+  `misread()` returns for a value the script itself refuses; `isStop()`
+  tells a stop from what the script asked for. `stopWith()` prints a stop,
+  the usage as output and the rest as what went wrong, and returns its
+  code, and `wrapped()` breaks what a usage says into lines of 78 columns.
+  A script's `run()` takes a `ScriptIo`: where it prints,
+  `CONSOLE` unless a spec hands it another `Printer`, and what it loads, so
+  its spec holds it whole. `importThroughVite()` loads a module of an app's
+  TypeScript through Vite's `runnerImport()`, as Node can't load it as it
+  is: its modules are named without extensions and import JSON, and
+  `@fz/core` isn't written for Node to strip its types. It loads Vite only
+  once called, so a script that loads nothing through it doesn't wait on
+  Vite; the site loads its catalog with it too.
+- `src/report.ts`, `@fz/dev/report`: the table a game's report prints of
+  how its autopilot plays each wave or level at each speed, as Asteroid
+  Breaker's `report:waves` and Brick Breaker's `report:levels` print
+  theirs. `printReport()` is handed the entries, the speeds, how many seeds
+  each is played from (`--seeds`, which `readSeeds()` reads, an option
+  `SEEDS_OPTION` declares), how to play one, and the columns a speed shows
+  of an entry's plays (`ReportColumns`). It plays each entry from its
+  number, or from seeds of its own `SEED_STRIDE` apart, prints its line as
+  it is played, the names as wide as the longest, then, under a blank line,
+  each `Tally` that marked a play, and returns the code to exit with: 1
+  where a tally that fails the report marked one. `timeOf()` writes steps
+  as minutes and seconds, `-` for a play that didn't clear, and
+  `middleAndMost()` gives the middle and the most of many plays' counts.
 - `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized. A
   `Sound` is a name, a length, a peak and a wave, made of `glide()` (a tone
   gliding between two pitches), `envelope()`, `thud()` (seeded noise),
@@ -245,9 +309,12 @@ too. Paths are relative to `frontend/lib/dev/`.
   by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does for the
   commit it was built from and its `@` alias. Analog's plugin, Vite and
   Vitest are peers, which the workspace lists and runs.
-- **A game's screenshot script writes the site's images with
-  `writeSiteImages()`**, and keeps to itself how it stages its game and
-  what else it writes.
+- **A game's screenshot script is run by `runScreenshotScript()`**, and
+  keeps to itself which states it captures and how it sets them up; it
+  writes the site's images with `keepShot()`, or, as the Solitaire
+  Collection's does, what it writes of its own. A game's report on its
+  autopilot prints its table with `printReport()`, and both read their
+  command lines with `readArgs()`.
 - **Its ESLint and Stylelint configs are checked as its scripts are:**
   `eslint.config.js` and `stylelint.config.js` are named in its `lint`, or
   under the folder it lints, and in its `scripts()` block, and type-checked
@@ -277,6 +344,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   these files, so relative imports name the file (`./eslint.ts`) and the
   TypeScript is only the kind Node can strip (`erasableSyntaxOnly`), as in
   `@fz/style`.
+- **The scripts' helpers load Vite only when asked.** What
+  `@fz/dev/script`, `/report` and `/screenshots` load imports Vite, and the
+  modules here that import it, by type alone, so a script that loads
+  nothing through `importThroughVite()` doesn't wait on Vite; lint holds
+  them to it.
 - **Nothing here reaches an app's bundle.** It holds only what checks,
   builds or scripts a workspace; what an app runs belongs in the other
   libraries.
@@ -291,7 +363,8 @@ The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/dev <script>` runs alone.
 
 - **`lint`** runs ESLint with its own blocks (`eslint.config.js`), over
-  that config too.
+  that config too, and holds the modules the scripts load to Vite's types
+  alone.
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
   config (`tsconfig.lib.json`), then over the ESLint config from its
   JSDoc, with the blocks it imports (`tsconfig.scripts.json`); the
@@ -305,15 +378,21 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   place specs written into a folder of their own in a game's projects;
   `src/game_manifest.spec.ts` builds games with Vite in a folder of their
   own and reads the manifests they write; `src/screenshots.spec.ts` writes
-  the site's images from a capture it draws; `src/sounds.spec.ts` renders
-  sprites and reads them back; `src/chrome.spec.ts` and
-  `src/layout.spec.ts` drive the DevTools helpers and the layout check
-  against a fake browser, `src/testing/fake_browser.ts`, and the layout
-  spec serves a build it writes with Vite's `preview()`;
+  the site's images from a capture it draws, works out thumbnails' regions,
+  and runs a screenshot script against a server it starts and a fake
+  browser; `src/script.spec.ts` reads command lines and loads TypeScript it
+  writes through Vite; `src/report.spec.ts` prints reports of plays it
+  makes up; `src/sounds.spec.ts` renders sprites and reads them back;
+  `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
+  and the layout check against a fake browser, `src/testing/fake_browser.ts`,
+  and the layout spec serves a build it writes with Vite's `preview()`;
   `src/board_page.spec.ts` runs the inspection of a board drawn with
-  Phaser in jsdom, the one spec here that does, over the rectangles it
-  hands each element. Coverage counts `src/testing/` too, as
-  `frontend/AGENTS.md` asks of every library. Starting a real Chrome is
+  Phaser in jsdom, over the rectangles it hands each element, and
+  `src/screenshot_page.spec.ts` the setup of a screenshot's page and the
+  description of a page drawn with Phaser, and `src/layout_page.spec.ts`
+  the wait for a page to draw, each run from the source the page is sent
+  too, the three specs here that do. Coverage counts `src/testing/` too,
+  as `frontend/AGENTS.md` asks of every library. Starting a real Chrome is
   left to the screenshot scripts, so `src/chrome.ts` stays short of the
   rest; the floor in `vitest.config.ts` sits just under the figures, and
   rises as they rise.

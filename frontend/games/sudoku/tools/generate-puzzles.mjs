@@ -19,11 +19,18 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
 import { Worker, isMainThread, parentPort } from "node:worker_threads";
-import { runnerImport } from "vite";
+import {
+  CONSOLE,
+  importThroughVite,
+  isStop,
+  misread,
+  readArgs,
+  stopWith,
+} from "@fz/dev/script";
 
 /** @import { MessagePort } from "node:worker_threads" */
+/** @import { Stop } from "@fz/dev/script" */
 
 const USAGE = `Usage: yarn generate:puzzles [options]
 
@@ -73,24 +80,10 @@ const BATCH = 4;
  * @returns {Promise<Rules>}
  */
 async function loadRules() {
-  /**
-   * Returns one of the rules' modules.
-   *
-   * @param {string} file
-   * @returns {Promise<Record<string, unknown>>}
-   */
-  async function load(file) {
-    const { module } = await runnerImport(join(RULES, file), {
-      configFile: false,
-      root: ROOT,
-      logLevel: "silent",
-    });
-    return /** @type {Record<string, unknown>} */ (module);
-  }
   const [generate, difficulty, puzzle] = await Promise.all([
-    load("generate.ts"),
-    load("difficulty.ts"),
-    load("puzzle.ts"),
+    importThroughVite(join(RULES, "generate.ts"), ROOT),
+    importThroughVite(join(RULES, "difficulty.ts"), ROOT),
+    importThroughVite(join(RULES, "puzzle.ts"), ROOT),
   ]);
   return /** @type {Rules} */ ({
     levels: difficulty["LEVELS"],
@@ -236,32 +229,42 @@ async function main(count, workerCount) {
   }
 }
 
-if (isMainThread) {
-  const { values } = parseArgs({
+/**
+ * Returns the puzzles a level and the workers a command line asks for, or,
+ * for `--help` or one it can't read, what to print and the code to exit
+ * with.
+ *
+ * @param {readonly string[]} args
+ * @returns {{count: number, workers: number} | Stop}
+ */
+function readCommandLine(args) {
+  const read = readArgs(args, {
     options: {
       count: { type: "string", default: "100" },
       workers: {
         type: "string",
         default: String(Math.max(1, Math.min(8, availableParallelism() - 1))),
       },
-      help: { type: "boolean", short: "h" },
     },
+    usage: USAGE,
   });
-  if (values.help) {
-    console.log(USAGE);
-    process.exit(0);
-  }
+  if (isStop(read)) return read;
+  const { values } = read;
   const count = Number(values.count);
-  const workerCount = Number(values.workers);
+  const workers = Number(values.workers);
   if (!Number.isInteger(count) || count < 1) {
-    console.error(`${values.count} isn't a count of puzzles.\n\n${USAGE}`);
-    process.exit(1);
+    return misread(`${values.count} isn't a count of puzzles.`, USAGE);
   }
-  if (!Number.isInteger(workerCount) || workerCount < 1) {
-    console.error(`${values.workers} isn't a count of workers.\n\n${USAGE}`);
-    process.exit(1);
+  if (!Number.isInteger(workers) || workers < 1) {
+    return misread(`${values.workers} isn't a count of workers.`, USAGE);
   }
-  await main(count, workerCount);
+  return { count, workers };
+}
+
+if (isMainThread) {
+  const asked = readCommandLine(process.argv.slice(2));
+  if (isStop(asked)) process.exitCode = stopWith(asked, CONSOLE);
+  else await main(asked.count, asked.workers);
 } else if (parentPort) {
   await serve(parentPort);
 }

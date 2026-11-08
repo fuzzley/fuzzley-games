@@ -388,6 +388,13 @@ takes for the specs' helpers.
   synthesizes the sounds; `report-levels.mjs` reports how the autopilot plays
   every level; `check-layout.mjs` checks the build's layout in headless
   Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
+  The report and the screenshots' script read their command lines with
+  `@fz/dev/script`'s `readArgs()` and load what they take from the game
+  through Vite, with its `importThroughVite()`; the report prints its table
+  with `@fz/dev/report`, as Asteroid Breaker's does, and runs as `run()`,
+  given what to load and where to print, which returns the code to exit
+  with, so its spec beside it, in `pure`, holds it whole over levels it
+  makes up.
 
 ## The Field
 
@@ -500,10 +507,10 @@ workspace's with the others'.
   `vitest.config.ts` sets for the rules and the view, then its `sim`
   project, the specs that play every level, without), `yarn test:watch`,
   or `yarn vitest run --project <project> <path>` for one spec, which
-  leaves the floor alone: `pure` for one of the rules or the view, `dom`
-  for one of the scene, the shell or `src/testing/`, and `sim` for a
-  simulation. Without `--project`, Vitest starts every project, Analog's
-  plugin among them.
+  leaves the floor alone: `pure` for one of the rules, the view or
+  `tools/`, `dom` for one of the scene, the shell or `src/testing/`, and
+  `sim` for a simulation. Without `--project`, Vitest starts every project,
+  Analog's plugin among them.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
   among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
   and `phaserGameLayers()` for the fences between the layers and what keeps
@@ -528,7 +535,9 @@ workspace's with the others'.
   plays them on a field that many units tall, up to 45, to the autopilot's
   limits for that height, stretched as far as the paddle lies farther from
   the bricks (`limitsOf()`), and fails, as the spec does there, only on a
-  level not cleared.
+  level not cleared. `--help` prints its options, and an option it can't
+  read, or a height the field can't take, exits with 2, saying why, before
+  anything is played.
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
@@ -549,16 +558,19 @@ workspace's with the others'.
   are the view's `SOUNDS`, which the scene's spec holds them to).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
-  Chrome, through `@fz/dev/chrome`: a run kept by the rules (`keptRun()`, in
-  `src/testing/kept_run.ts`), begun on level 9, Rocket, at Normal, with
-  three bricks of its body's foot, three flames and a brick of each fin
-  broken, taken up and gone on with, so the ball waits on the paddle under
-  the card that says how to launch it, at 1280 × 720 and 2× on Midnight
-  blue, written to `public/docs/screenshots/brick-breaker/` as the site's
-  `preview.webp` (2560 × 1440), which `index.html` names as the link
-  preview, and `thumb.webp` (576 × 324, the field) by
-  `@fz/dev/screenshots`; `--url` names another server, and
-  `--chrome <path>` or `CHROME_PATH` picks the browser).
+  Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a run kept
+  by the rules (`keptRun()`, in `src/testing/kept_run.ts`), begun on level
+  9, Rocket, at Normal, with three bricks of its body's foot, three flames
+  and a brick of each fin broken, taken up and gone on with, so the ball
+  waits on the paddle under the card that says how to launch it, at
+  1280 × 720 and 2× on Midnight blue, written to
+  `public/docs/screenshots/brick-breaker/` as the site's `preview.webp`
+  (2560 × 1440), which `index.html` names as the link preview, and
+  `thumb.webp` (576 × 324, the field) by `@fz/dev/screenshots`; `--url`
+  names another server, an http or https address, and `--chrome <path>` or
+  `CHROME_PATH` picks the browser. `--help` prints its options; an option it
+  can't read exits with 2, saying why, and a server that doesn't answer with
+  1, both before Chrome starts).
 
 ## Tests
 
@@ -571,13 +583,14 @@ holds it to a file for every preset speed and no other. Vitest runs the
 specs in three projects, each starting only what its own need. `sim` runs
 the specs that play every level, in Node, without the coverage that would
 quadruple their time, as the other rules specs alone hold the rules to
-their floor. `pure` runs the other specs of the rules and the view in Node
-too, which has no page, as nothing they test touches one. `dom` runs every
-other spec, the scene's, the shell's and `src/testing/`'s, in jsdom, after
-`src/test-setup.ts`, which installs `@fz/phaser/testing`'s headless
-Phaser first, so the scene's spec runs real Phaser through `runScene()`,
-with a fake shell over a pictured field. Coverage measures `dom` and `pure`
-together, leaving `src/testing/` out. This workspace's `brick-breaker-testing`
+their floor. `pure` runs the other specs of the rules and the view, and the
+report's in `tools/`, in Node too, which has no page, as nothing they test
+touches one. `dom` runs every other spec, the scene's, the shell's and
+`src/testing/`'s, in jsdom, after `src/test-setup.ts`, which installs
+`@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs
+real Phaser through `runScene()`, with a fake shell over a pictured field.
+Coverage measures `dom` and `pure` together, leaving `src/testing/` and
+`tools/` out. This workspace's `brick-breaker-testing`
 skill covers its setup, floors and fixtures, the repository's
 `angular-testing` the patterns every Angular workspace's specs share, and
 `phaser-core` the harness. What the specs share is in `src/testing/`:

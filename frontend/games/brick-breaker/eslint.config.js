@@ -12,12 +12,22 @@ import { defineConfig } from "eslint/config";
 export default defineConfig(
   typescript({
     root: import.meta.dirname,
-    files: ["src/**/*.ts", "vite.config.ts", "vitest.config.ts"],
+    files: [
+      "src/**/*.ts",
+      "tools/**/*.ts",
+      "vite.config.ts",
+      "vitest.config.ts",
+    ],
   }),
   angular({ files: ["src/**/*.ts"], prefix: "app" }),
   templates({ files: ["src/**/*.html"] }),
   tests({
-    files: ["src/**/*.spec.ts", "src/testing/**/*.ts", "src/test-setup.ts"],
+    files: [
+      "src/**/*.spec.ts",
+      "src/testing/**/*.ts",
+      "src/test-setup.ts",
+      "tools/**/*.spec.ts",
+    ],
   }),
   phaser({ files: ["src/scene/**/*.ts"] }),
   scripts({

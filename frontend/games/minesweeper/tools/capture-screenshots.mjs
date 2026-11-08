@@ -16,21 +16,16 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { withChrome, withPage } from "@fz/dev/chrome";
-import { writeSiteImages } from "@fz/dev/screenshots";
-import { THEME_STORAGE_KEY } from "@fz/style/themes";
+import { withPage } from "@fz/dev/chrome";
+import {
+  keepShot,
+  runScreenshotScript,
+  setUpPage,
+  settled,
+} from "@fz/dev/screenshots";
 
 /** @import { Page } from "@fz/dev/chrome" */
-
-const USAGE = `Usage: yarn capture:screenshots [options]
-
-Captures the screenshots the site shows of Minesweeper from a running server.
-
-  --url <url>      The server (default: http://localhost:9001/)
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
+/** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/minesweeper");
@@ -53,6 +48,9 @@ const CLOCK_SECONDS = 84;
 /** Where the game keeps the game in progress, which sets the clock. */
 const SAVED_GAME_KEY = "minesweeper-game";
 
+/** The selector the page matches once the game shows. */
+const BOARD = ".board";
+
 /**
  * What the opening left on the board.
  *
@@ -66,40 +64,10 @@ const SAVED_GAME_KEY = "minesweeper-game";
  */
 
 /**
- * Seeds `Math.random`, chooses the palette, and sets the clock of a game in
- * progress, before the game starts. It runs in the page, so it uses nothing
- * from this module.
- *
- * @param {number} seed
- * @param {number} seconds
- * @param {string} key Where the game keeps the game in progress.
- * @param {string} theme
- * @param {string} themeKey Where the palette the player chose is kept.
- */
-function preparePage(seed, seconds, key, theme, themeKey) {
-  // Mulberry32, as the game's own random numbers are.
-  let state = seed;
-  Math.random = () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32;
-  };
-  localStorage.setItem(themeKey, theme);
-  const saved = localStorage.getItem(key);
-  if (saved) {
-    localStorage.setItem(
-      key,
-      JSON.stringify({ ...JSON.parse(saved), seconds }),
-    );
-  }
-}
-
-/**
  * Plays the opening of a game: reveals the middle square, then flags the
  * mines the numbers give away and opens the squares they clear until enough
- * of the field is open, and steps on the last mine it flagged. It runs in the
- * page, so it uses nothing from this module.
+ * of the field is open, and steps on the last mine it flagged, once the game
+ * shows. It runs in the page, so it uses nothing from this module.
  *
  * @param {number} share How much of the field to clear, from 0 to 1.
  * @returns {Promise<Opening>}
@@ -110,11 +78,10 @@ async function playOpening(share) {
     new Promise((resolve) =>
       requestAnimationFrame(() => setTimeout(resolve, 0)),
     );
-  for (let i = 0; i < 100 && !document.querySelector(".board"); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
   const board = document.querySelector(".board");
-  if (!(board instanceof HTMLElement)) throw new Error("No board showed.");
+  if (!(board instanceof HTMLElement)) {
+    return { open: 0, flagged: 0, tripped: 0 };
+  }
   const cols = Number(board.style.getPropertyValue("--cols"));
 
   /** @returns {HTMLElement[]} */
@@ -157,8 +124,7 @@ async function playOpening(share) {
 
   const rows = squares().length / cols;
   const middle = squares()[Math.floor(rows / 2) * cols + Math.floor(cols / 2)];
-  if (!middle) throw new Error("The board has no squares.");
-  press(middle, "click");
+  if (middle) press(middle, "click");
   await settle();
 
   /** @type {HTMLElement | undefined} */
@@ -210,19 +176,12 @@ async function playOpening(share) {
 }
 
 /**
- * Waits for the reloaded game to show and paint, and returns what it shows.
- * It runs in the page, so it uses nothing from this module.
+ * Returns what the reloaded game shows, once it shows and has painted. It
+ * runs in the page, so it uses nothing from this module.
  *
- * @returns {Promise<PageState>}
+ * @returns {PageState}
  */
-async function describePage() {
-  for (let i = 0; i < 100 && !document.querySelector(".board"); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  await document.fonts.ready;
-  for (let i = 0; i < 2; i++) {
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-  }
+function describePage() {
   const timer = [...document.querySelectorAll("dt")].find(
     (term) => term.textContent?.trim() === "Time",
   );
@@ -240,80 +199,51 @@ async function describePage() {
  *
  * @param {Page} page
  * @param {string} url
- * @returns {Promise<{png: Buffer, opening: Opening, page: PageState} | {problem: string}>}
+ * @returns {Promise<Shot | Missed>}
  */
 async function capture(page, url) {
-  await page.beforeLoad(
-    preparePage,
-    SEED,
-    CLOCK_SECONDS,
-    SAVED_GAME_KEY,
-    THEME,
-    THEME_STORAGE_KEY,
-  );
+  // The deal is seeded, and the clock is set once the game has saved itself.
+  await setUpPage(page, {
+    theme: THEME,
+    seed: SEED,
+    merged: { [SAVED_GAME_KEY]: { seconds: CLOCK_SECONDS } },
+  });
   await page.navigate(url);
+  if (!(await settled(page, BOARD))) {
+    return { problem: "the board did not show" };
+  }
   const opening = await page.evaluate(playOpening, OPEN_SHARE);
   if (opening.tripped !== 1) return { problem: "no mine was stepped on" };
 
   // The game saves itself as it goes; the reload takes the clock from it.
   await page.reload();
+  if (!(await settled(page, BOARD))) {
+    return { problem: "the board did not show" };
+  }
   const shown = await page.evaluate(describePage);
   if (shown.boards !== 1) return { problem: "the board did not show" };
   if (shown.tripped !== 1) return { problem: "the game was not restored" };
   if (shown.openDialogs > 0) return { problem: "a dialog is open" };
 
-  return { png: await page.screenshot(), opening, page: shown };
+  return {
+    png: await page.screenshot(),
+    says:
+      `Cleared ${Math.round(opening.open * 100)}%, ${opening.flagged} flags, ` +
+      `the clock at ${shown.time}.`,
+  };
 }
 
-/**
- * Returns the options the command line sets.
- *
- * @returns {{url: string, chrome?: string} | undefined} Nothing when it asks
- *   only for help.
- */
-function parseCommandLine() {
-  const { values } = parseArgs({
-    options: {
-      url: { type: "string", default: "http://localhost:9001/" },
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
-  }
-  return { url: values.url, chrome: values.chrome };
-}
+/** @type {ScreenshotScript} */
+const SCRIPT = {
+  game: "Minesweeper",
+  root: ROOT,
+  port: 9001,
+  capture: async (devtools, { url }, printer) =>
+    keepShot(
+      await withPage(devtools, VIEWPORT, (page) => capture(page, url)),
+      SCREENSHOT_DIR,
+      printer,
+    ),
+};
 
-async function main() {
-  const options = parseCommandLine();
-  if (!options) return;
-  await fetch(options.url).catch(() => {
-    throw new Error(
-      `Nothing answers at ${options.url}; start the game with yarn dev.`,
-    );
-  });
-
-  const shot = await withChrome(
-    { chrome: options.chrome, name: "minesweeper" },
-    (devtools) =>
-      withPage(devtools, VIEWPORT, (page) => capture(page, options.url)),
-  );
-  if ("problem" in shot) {
-    console.error(`Not captured: ${shot.problem}.`);
-    process.exitCode = 1;
-    return;
-  }
-  const { opening, page } = shot;
-  console.log(
-    `Cleared ${Math.round(opening.open * 100)}%, ${opening.flagged} flags, ` +
-      `the clock at ${page.time}.`,
-  );
-  const sizes = await writeSiteImages(shot.png, SCREENSHOT_DIR);
-  for (const [file, bytes] of sizes) {
-    console.log(`${file}: ${Math.round(bytes / 1024)} KB`);
-  }
-}
-
-await main();
+process.exitCode = await runScreenshotScript(SCRIPT);

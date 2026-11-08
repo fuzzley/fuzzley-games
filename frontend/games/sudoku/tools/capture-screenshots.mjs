@@ -14,21 +14,17 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
-import { withChrome, withPage } from "@fz/dev/chrome";
-import { SITE_IMAGES, writeSiteImages } from "@fz/dev/screenshots";
-import { THEME_STORAGE_KEY } from "@fz/style/themes";
+import { withPage } from "@fz/dev/chrome";
+import {
+  keepShot,
+  runScreenshotScript,
+  setUpPage,
+  settled,
+  thumbRegionAround,
+} from "@fz/dev/screenshots";
 
 /** @import { Page } from "@fz/dev/chrome" */
-
-const USAGE = `Usage: yarn capture:screenshots [options]
-
-Captures the screenshots the site shows of Sudoku from a running server.
-
-  --url <url>      The server (default: http://localhost:9002/)
-  --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
-                   install location)
-  -h, --help       Show this message`;
+/** @import { Missed, Region, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/sudoku");
@@ -60,6 +56,17 @@ const SETTINGS_KEY = "sudoku-settings";
 /** Where the game keeps the game in progress, which sets the clock. */
 const SAVED_GAME_KEY = "sudoku-game";
 
+/** The settings the game is dealt at: Medium, with nothing marked. */
+const SETTINGS = {
+  version: 1,
+  level: "medium",
+  markMistakes: false,
+  clearNotes: true,
+};
+
+/** The selector the page matches once the game shows. */
+const BOARD = ".board";
+
 /**
  * What the opening left on the board.
  *
@@ -73,56 +80,10 @@ const SAVED_GAME_KEY = "sudoku-game";
  */
 
 /**
- * A part of the page, in CSS pixels.
- *
- * @typedef {{left: number, top: number, width: number, height: number}} Region
- */
-
-/**
- * Seeds `Math.random`, chooses the palette and the level, and sets the clock
- * of a game in progress, before the game starts. It runs in the page, so it
- * uses nothing from this module.
- *
- * @param {number} seed
- * @param {number} seconds
- * @param {string} settingsKey Where the game keeps the settings.
- * @param {string} gameKey Where the game keeps the game in progress.
- * @param {string} theme
- * @param {string} themeKey Where the palette the player chose is kept.
- */
-function preparePage(seed, seconds, settingsKey, gameKey, theme, themeKey) {
-  // Mulberry32, as the game's own random numbers are.
-  let state = seed;
-  Math.random = () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32;
-  };
-  localStorage.setItem(themeKey, theme);
-  localStorage.setItem(
-    settingsKey,
-    JSON.stringify({
-      version: 1,
-      level: "medium",
-      markMistakes: false,
-      clearNotes: true,
-    }),
-  );
-  const saved = localStorage.getItem(gameKey);
-  if (saved) {
-    localStorage.setItem(
-      gameKey,
-      JSON.stringify({ ...JSON.parse(saved), seconds }),
-    );
-  }
-}
-
-/**
  * Plays the opening of a game: asks for a hint and fills it in, as often as
  * asked, then notes every candidate in the first blank squares, working
- * them out from the digits around each. It runs in the page, so it uses
- * nothing from this module.
+ * them out from the digits around each, once the game shows. It runs in the
+ * page, so it uses nothing from this module.
  *
  * @param {number} fills How many squares the hints fill in.
  * @param {number} noted How many blank squares get their notes.
@@ -134,9 +95,6 @@ async function playOpening(fills, noted) {
     new Promise((resolve) =>
       requestAnimationFrame(() => setTimeout(resolve, 0)),
     );
-  for (let i = 0; i < 100 && !document.querySelector(".board"); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
   /** @returns {HTMLElement[]} */
   const squares = () =>
     [...document.querySelectorAll('[role="gridcell"]')].map(
@@ -160,9 +118,10 @@ async function playOpening(fills, noted) {
     );
   };
 
-  const first = squares()[0];
-  if (!first) throw new Error("No board showed.");
-  for (let i = 0; i < fills * 2; i++) press(first, "KeyH", "h", false);
+  const [first] = squares();
+  if (first) {
+    for (let i = 0; i < fills * 2; i++) press(first, "KeyH", "h", false);
+  }
   await settle();
 
   let done = 0;
@@ -199,23 +158,19 @@ async function playOpening(fills, noted) {
 }
 
 /**
- * Waits for the reloaded game to show and paint, selects a square in the
- * middle that holds a digit, so the board shows its shading, and returns
- * what the page shows. It runs in the page, so it uses nothing from this
- * module.
+ * Selects a square in the middle of the reloaded game that holds a digit,
+ * once the game shows, so the board shows its shading, and returns what the
+ * page shows once it has painted. It runs in the page, so it uses nothing
+ * from this module.
  *
  * @returns {Promise<PageState>}
  */
 async function describePage() {
-  for (let i = 0; i < 100 && !document.querySelector(".board"); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
   const squares = [...document.querySelectorAll('[role="gridcell"]')];
   const middle = squares
     .slice(36, 45)
     .find((square) => /^\d/.test(square.getAttribute("aria-label") ?? ""));
   if (middle instanceof HTMLElement) middle.click();
-  await document.fonts.ready;
   for (let i = 0; i < 2; i++) {
     await new Promise((resolve) => requestAnimationFrame(resolve));
   }
@@ -243,119 +198,58 @@ async function describePage() {
 }
 
 /**
- * Returns the part of the capture the thumbnail keeps: the board and the pad
- * with a margin around them, widened to the thumbnail's shape and kept on
- * the page, in the capture's pixels.
- *
- * @param {Region} room The board and the pad, in CSS pixels.
- * @returns {Region}
- */
-function thumbRegion(room) {
-  const { width: thumbWidth, height: thumbHeight } = SITE_IMAGES.thumb;
-  const height = Math.min(room.height + 2 * THUMB_MARGIN, VIEWPORT.height);
-  const width = Math.min((height * thumbWidth) / thumbHeight, VIEWPORT.width);
-  const centerX = room.left + room.width / 2;
-  const centerY = room.top + room.height / 2;
-  const left = Math.min(
-    Math.max(0, centerX - width / 2),
-    VIEWPORT.width - width,
-  );
-  const top = Math.min(
-    Math.max(0, centerY - height / 2),
-    VIEWPORT.height - height,
-  );
-  const scale = VIEWPORT.deviceScaleFactor;
-  return {
-    left: Math.round(left * scale),
-    top: Math.round(top * scale),
-    width: Math.round(width * scale),
-    height: Math.round(height * scale),
-  };
-}
-
-/**
  * Plays the opening on a page of its own and returns the screenshot, or why
  * it could not be taken.
  *
  * @param {Page} page
  * @param {string} url
- * @returns {Promise<{png: Buffer, opening: Opening, page: PageState} | {problem: string}>}
+ * @returns {Promise<Shot | Missed>}
  */
 async function capture(page, url) {
-  await page.beforeLoad(
-    preparePage,
-    SEED,
-    CLOCK_SECONDS,
-    SETTINGS_KEY,
-    SAVED_GAME_KEY,
-    THEME,
-    THEME_STORAGE_KEY,
-  );
+  // The deal is seeded, and the clock is set once the game has saved itself.
+  await setUpPage(page, {
+    theme: THEME,
+    seed: SEED,
+    stored: { [SETTINGS_KEY]: JSON.stringify(SETTINGS) },
+    merged: { [SAVED_GAME_KEY]: { seconds: CLOCK_SECONDS } },
+  });
   await page.navigate(url);
+  if (!(await settled(page, BOARD))) {
+    return { problem: "the board did not show" };
+  }
   const opening = await page.evaluate(playOpening, FILLS, NOTED);
   if (opening.noted !== NOTED) return { problem: "too few squares were noted" };
 
   // The game saves itself as it goes; the reload takes the clock from it.
   await page.reload();
+  if (!(await settled(page, BOARD))) {
+    return { problem: "the board did not show" };
+  }
   const shown = await page.evaluate(describePage);
   if (shown.boards !== 1) return { problem: "the board did not show" };
   if (shown.noted !== NOTED) return { problem: "the game was not restored" };
   if (shown.openDialogs > 0) return { problem: "a dialog is open" };
 
-  return { png: await page.screenshot(), opening, page: shown };
+  return {
+    png: await page.screenshot(),
+    thumbRegion: thumbRegionAround(shown.room, VIEWPORT, THUMB_MARGIN),
+    says:
+      `Filled ${opening.filled} squares, noted ${opening.noted}, ` +
+      `the clock at ${shown.time}.`,
+  };
 }
 
-/**
- * Returns the options the command line sets.
- *
- * @returns {{url: string, chrome?: string} | undefined} Nothing when it asks
- *   only for help.
- */
-function parseCommandLine() {
-  const { values } = parseArgs({
-    options: {
-      url: { type: "string", default: "http://localhost:9002/" },
-      chrome: { type: "string" },
-      help: { type: "boolean", short: "h" },
-    },
-  });
-  if (values.help) {
-    console.log(USAGE);
-    return undefined;
-  }
-  return { url: values.url, chrome: values.chrome };
-}
+/** @type {ScreenshotScript} */
+const SCRIPT = {
+  game: "Sudoku",
+  root: ROOT,
+  port: 9002,
+  capture: async (devtools, { url }, printer) =>
+    keepShot(
+      await withPage(devtools, VIEWPORT, (page) => capture(page, url)),
+      SCREENSHOT_DIR,
+      printer,
+    ),
+};
 
-async function main() {
-  const options = parseCommandLine();
-  if (!options) return;
-  await fetch(options.url).catch(() => {
-    throw new Error(
-      `Nothing answers at ${options.url}; start the game with yarn dev.`,
-    );
-  });
-
-  const shot = await withChrome(
-    { chrome: options.chrome, name: "sudoku" },
-    (devtools) =>
-      withPage(devtools, VIEWPORT, (page) => capture(page, options.url)),
-  );
-  if ("problem" in shot) {
-    console.error(`Not captured: ${shot.problem}.`);
-    process.exitCode = 1;
-    return;
-  }
-  const { opening, page } = shot;
-  console.log(
-    `Filled ${opening.filled} squares, noted ${opening.noted}, ` +
-      `the clock at ${page.time}.`,
-  );
-  const sizes = await writeSiteImages(shot.png, SCREENSHOT_DIR, {
-    thumbRegion: thumbRegion(page.room),
-  });
-  for (const [file, bytes] of sizes) {
-    console.log(`${file}: ${Math.round(bytes / 1024)} KB`);
-  }
-}
-
-await main();
+process.exitCode = await runScreenshotScript(SCRIPT);

@@ -21,6 +21,7 @@
  */
 import { join } from "node:path";
 import {
+  PHASER_CANVAS_READY,
   SHAPES,
   SMALLEST,
   TURNS,
@@ -41,9 +42,6 @@ const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
 
 /** The turns, at twice the pixels. */
 const TURNS_2X = turnsAt(2, TURNS);
-
-/** The selector the page matches once the scene has drawn. */
-const READY = 'fz-phaser-canvas[data-state="ready"]';
 
 /** The names of the shapes and turns the layout is checked at. */
 const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
@@ -111,7 +109,12 @@ process.exitCode = await runLayoutScript({
   game: "Brick Breaker",
   root: join(import.meta.dirname, ".."),
   check: async (devtools, url) => {
-    const check = { url, ready: READY, board: FIELD, inspect: inspectField };
+    const check = {
+      url,
+      ready: PHASER_CANVAS_READY,
+      board: FIELD,
+      inspect: inspectField,
+    };
     const shaped = await checkLayout(devtools, check, SHAPES_2X);
     const turned = await checkTurns(devtools, check, TURNS_2X);
     return [...shaped, ...turned];

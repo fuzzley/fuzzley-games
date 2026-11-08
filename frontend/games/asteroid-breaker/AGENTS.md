@@ -545,12 +545,14 @@ takes for the specs' helpers.
   every wave; `check-layout.mjs` checks the build's layout in headless
   Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
   A script that takes from the game loads one entry in `src/testing/`
-  through Vite, which exports one object of a type in
-  `src/testing/script_api.ts`. The report and the screenshots' script read
-  their command lines with `command_line.mjs`, export what they work out,
-  and run as `run()`, given what to load and where to print, which returns
-  the code to exit with, so their specs beside them, in `pure`, hold them
-  whole on an API of their own.
+  through Vite (`@fz/dev/script`'s `importThroughVite()`), which exports
+  one object of a type in `src/testing/script_api.ts`. The report and the
+  screenshots' script read their command lines with `@fz/dev/script`'s
+  `readArgs()`, the report printing its table with `@fz/dev/report` and
+  the screenshots run by `@fz/dev/screenshots`' `runScreenshotScript()`,
+  export what they work out, and run as `run()`, given what to load and
+  where to print, which returns the code to exit with, so their specs
+  beside them, in `pure`, hold them whole on an API of their own.
 
 ## The Field
 
@@ -784,23 +786,23 @@ workspace's with the others'.
   same bytes every run; their names and order are the view's `SOUNDS`,
   which the scene's spec holds them to).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
-  `tools/capture-screenshots.mjs` against the running dev server in
-  headless Chrome, through `@fz/dev/chrome`: it reads the field's shape the
-  board lays out at 1280 × 720, then a run kept by the rules on it
-  (`keptRun()`, in `src/testing/kept_run.ts`, which it loads through
-  `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the version the
-  shell keeps it under), begun on wave 9, Crowd, at Normal and played by
-  the autopilot until a second before its first stray, is taken up and
-  gone on with, firing, until the stray drifts in, at 2× on Casino night,
-  written to `public/docs/screenshots/asteroid-breaker/` as the site's
-  `preview.webp` (2560 × 1440), which `index.html` names as the link
+  `tools/capture-screenshots.mjs` against the running dev server in headless
+  Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: it reads
+  the field's shape the board lays out at 1280 × 720, then a run kept by the
+  rules on it (`keptRun()`, in `src/testing/kept_run.ts`, which it loads
+  through `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the
+  version the shell keeps it under), begun on wave 9, Crowd, at Normal and
+  played by the autopilot until a second before its first stray, is taken up
+  and gone on with, firing, until the stray drifts in, at 2× on Casino
+  night, written to `public/docs/screenshots/asteroid-breaker/` as the
+  site's `preview.webp` (2560 × 1440), which `index.html` names as the link
   preview, and `thumb.webp` (576 × 324, the field whole, with the bar above
-  it, as the field is wider than a thumbnail) by `@fz/dev/screenshots`;
-  `--url` names another server, an http or https address, such as
-  `yarn preview`'s, and `--chrome <path>` or `CHROME_PATH` picks the
-  browser. `--help` prints its options; an option it can't read exits with
-  2, saying why, and a server that doesn't answer with 1, both before
-  Chrome starts).
+  it, as the field is wider than a thumbnail, `thumbRegionAround()`) by
+  `@fz/dev/screenshots`; `--url` names another server, an http or https
+  address, such as `yarn preview`'s, and `--chrome <path>` or `CHROME_PATH`
+  picks the browser. `--help` prints its options; an option it can't read
+  exits with 2, saying why, and a server that doesn't answer with 1, both
+  before Chrome starts).
 
 ## Tests
 

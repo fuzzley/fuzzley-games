@@ -63,14 +63,14 @@ function apiOf(
   };
 }
 
-/** Returns the lines a report prints, and how many plays it says didn't clear their wave in time. */
+/** Returns the lines a report prints, and the code it returns to exit with. */
 function reported(
   api: ReportApi,
   request: Request,
-): { lines: string[]; uncleared: number } {
+): { lines: string[]; code: number } {
   const lines: string[] = [];
-  const uncleared = report(api, request, (line) => lines.push(line));
-  return { lines, uncleared };
+  const code = report(api, request, (line) => lines.push(line));
+  return { lines, code };
 }
 
 /**
@@ -183,7 +183,7 @@ describe("report", () => {
     ]);
   });
 
-  it("marks a play that didn't clear its wave, or not before the limit, and says how many", () => {
+  it("marks a play that didn't clear its wave, or not before the limit, says how many, and fails", () => {
     const api = apiOf((wave, speed, how) => {
       if (wave === 1 && speed === "fast") return cleared(240);
       if (wave === 30 && speed === "fast" && !how.invulnerable) return lost();
@@ -199,7 +199,7 @@ describe("report", () => {
         "",
         "3 plays didn't clear their wave in time (-).",
       ],
-      uncleared: 3,
+      code: 1,
     });
   });
 
@@ -208,7 +208,14 @@ describe("report", () => {
       how.invulnerable ? cleared(75) : lost(),
     );
 
-    expect(reported(api, { ...EVERY_WAVE, endless: true }).uncleared).toBe(0);
+    expect(reported(api, { ...EVERY_WAVE, endless: true })).toEqual({
+      lines: [
+        "             relaxed             fast",
+        "              time  lost  home    time  lost  home",
+        "31 Endless    1:15     -   1/2    1:15     -   1/2",
+      ],
+      code: 0,
+    });
   });
 });
 

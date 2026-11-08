@@ -21,10 +21,10 @@ Run these from `frontend/games/brick-breaker/`, or as
 - **Run Tests**: `yarn test` (the whole suite once: the `dom` and `pure`
   projects with coverage, then the `sim` project without) or
   `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
-  spec without coverage, starting its project alone: `pure` for the rules
-  and the view, `dom` for the scene, the shell and `src/testing/`, and
-  `sim` for the simulations. Without `--project`, Vitest starts all three,
-  Analog's plugin among them. The whole suite takes minutes, most of them
+  spec without coverage, starting its project alone: `pure` for the rules,
+  the view and `tools/`, `dom` for the scene, the shell and `src/testing/`,
+  and `sim` for the simulations. Without `--project`, Vitest starts all
+  three, Analog's plugin among them. The whole suite takes minutes, most of them
   the autopilot playing every level at every preset speed.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
   to 100% of statements, functions and lines and 95% of branches.
@@ -40,7 +40,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   folders of its three Vitest projects, each a config of its own, so each
   starts only what its specs need:
   - `pure`, the specs of the rules and the view, but for the simulations,
-    in Node, with neither the setup below nor Analog's plugin;
+    and the report's in `tools/`, which plays levels it makes up, in Node,
+    with neither the setup below nor Analog's plugin;
   - `sim`, the specs that play every level
     (`src/rules/levels/every_level/`), in Node too, without coverage;
   - `dom`, every other spec, the scene's, the shell's and

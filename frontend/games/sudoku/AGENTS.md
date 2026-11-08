@@ -230,16 +230,20 @@ Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
   with 81 squares of one size, and the board and the pad lie in the window).
 - **Fill the Bank:** `yarn generate:puzzles` (`--workers <n>` to run more
   or fewer threads than the default 8, `--count <n>` for another
-  number per level).
+  number per level; `--help` prints its options, and an option it can't
+  read exits with 2, saying why, before anything is generated).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
-  Chrome, through `@fz/dev/chrome`: a Medium deal from a fixed seed, a
-  third of it filled by hints, with notes in a few squares and a square
-  selected, at 1280 × 720 and 2× on Midnight blue, written to
-  `public/docs/screenshots/sudoku/` as the site's `preview.webp`
+  Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a Medium
+  deal from a fixed seed, a third of it filled by hints, with notes in a few
+  squares and a square selected, at 1280 × 720 and 2× on Midnight blue,
+  written to `public/docs/screenshots/sudoku/` as the site's `preview.webp`
   (2560 × 1440) and `thumb.webp` (576 × 324, the board and the pad) by
-  `@fz/dev/screenshots`; `--url` names another server, and
-  `--chrome <path>` or `CHROME_PATH` picks the browser).
+  `@fz/dev/screenshots`; `--url` names another server, an http or https
+  address, and `--chrome <path>` or `CHROME_PATH` picks the browser.
+  `--help` prints its options; an option it can't read exits with 2, saying
+  why, and a server that doesn't answer with 1, both before Chrome starts;
+  a board that never shows exits with 1 too, saying so).
 
 ## Tests
 
