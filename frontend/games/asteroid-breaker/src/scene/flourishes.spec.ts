@@ -47,6 +47,7 @@ import {
   BAIL_OUT_MS,
   BURST_SHARDS,
   DUST_MS,
+  EXHAUST_MS,
   FLASH_MS,
   KICK_MS,
   POINTS_MS,
@@ -57,11 +58,8 @@ import {
   TRAIL_MS,
 } from "../view/effects/timing";
 import type { BeltScene } from "./belt_scene";
-import {
-  EXHAUST_MS,
-  MOST_EXHAUST,
-  MOST_SHARDS_FLYING,
-} from "./painters/effects_painter";
+import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
+import { MOST_EXHAUST } from "./painters/exhaust_painter";
 
 /** A place on the field away from its edges and the keeper, where a spec's events happen. */
 const MIDDLE = { x: 30, y: 20 } as const;
@@ -108,14 +106,14 @@ function shownCount(images: readonly GameObjects.Components.Visible[]): number {
 
 /** Returns each puff of dust's image where it is, its copy past no edge. */
 function puffsOf(scene: BeltScene): readonly GameObjects.Image[] {
-  return scene.effects.puffs.all.flatMap(({ copies }) =>
+  return scene.debris.puffs.all.flatMap(({ copies }) =>
     copies.images.slice(0, 1),
   );
 }
 
 /** Returns each spark's image where it is, its copy past no edge. */
 function sparksOf(scene: BeltScene): readonly GameObjects.Image[] {
-  return scene.effects.sparks.all.flatMap(({ copies }) =>
+  return scene.debris.sparks.all.flatMap(({ copies }) =>
     copies.images.slice(0, 1),
   );
 }
@@ -128,7 +126,7 @@ function labelsOf(scene: BeltScene): readonly GameObjects.Text[] {
 /** Returns how fast each shard alive flies. */
 function shardSpeeds(scene: BeltScene): readonly number[] {
   const speeds: number[] = [];
-  scene.effects.shards.forEachAlive((shard) => {
+  scene.debris.shards.forEachAlive((shard) => {
     speeds.push(Math.hypot(shard.velocityX, shard.velocityY));
   }, null);
   return speeds;
@@ -137,7 +135,7 @@ function shardSpeeds(scene: BeltScene): readonly number[] {
 /** Returns the tint of each shard alive. */
 function shardTints(scene: BeltScene): readonly number[] {
   const tints: number[] = [];
-  scene.effects.shards.forEachAlive((shard) => {
+  scene.debris.shards.forEachAlive((shard) => {
     tints.push(shard.tint);
   }, null);
   return tints;
@@ -150,7 +148,7 @@ function exhaustOf(scene: BeltScene): readonly {
   readonly across: number;
 }[] {
   const specks: { x: number; y: number; across: number }[] = [];
-  scene.effects.exhaust.forEachAlive((speck) => {
+  scene.exhaust.specks.forEachAlive((speck) => {
     specks.push({ x: speck.x, y: speck.y, across: speck.velocityX });
   }, null);
   return specks;
@@ -166,7 +164,10 @@ function scrolledBy(
   return { x: camera.scrollX - metrics.x, y: camera.scrollY - metrics.y };
 }
 
-/** Returns how far a place on the canvas lies from a place on the field, and the way, in radians. */
+/**
+ * Returns how far a place on the canvas lies from a place on the field, and the
+ * way, in radians.
+ */
 function fromPlace(
   shell: FakeShell,
   at: { readonly x: number; readonly y: number } | null,
@@ -218,11 +219,11 @@ describe("the events", () => {
     run.advance(SHAKE_DELAY_MS, 16);
 
     expect({
-      shards: scene.effects.shards.getAliveParticleCount(),
+      shards: scene.debris.shards.getAliveParticleCount(),
       puffs: shownCount(puffsOf(scene)),
       sparks: shownCount(sparksOf(scene)),
-      rings: strokesOf(scene.effects.rings).length,
-      trail: scene.effects.trail
+      rings: strokesOf(scene.rings.graphics).length,
+      trail: scene.trail.outlines
         .flatMap(({ images }) => images)
         .some((image) => image.visible),
       bailing: scene.strays.bailing.bubble.visible,
@@ -252,12 +253,12 @@ describe("the events", () => {
     run.advance(48);
 
     expect({
-      shards: scene.effects.shards.getAliveParticleCount(),
+      shards: scene.debris.shards.getAliveParticleCount(),
       puffs: shownCount(puffsOf(scene)),
       sparks: shownCount(sparksOf(scene)),
       flash: shownCount(scene.rocks.flash.images),
-      rings: strokesOf(scene.effects.rings).length,
-      trail: scene.effects.trail
+      rings: strokesOf(scene.rings.graphics).length,
+      trail: scene.trail.outlines
         .flatMap(({ images }) => images)
         .some((image) => image.visible),
       bailing: scene.strays.bailing.bubble.visible,
@@ -279,8 +280,9 @@ describe("the events", () => {
   it("makes every particle as the scene starts, and none as they play", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).held.thrust = 1;
-    const { shards, exhaust } = scene.effects;
-    const before = [shards.getParticleCount(), exhaust.getParticleCount()];
+    const { shards } = scene.debris;
+    const { specks } = scene.exhaust;
+    const before = [shards.getParticleCount(), specks.getParticleCount()];
 
     for (let i = 0; i < 20; i++) {
       logEveryFlourish(shell);
@@ -289,7 +291,7 @@ describe("the events", () => {
 
     expect({
       before,
-      after: [shards.getParticleCount(), exhaust.getParticleCount()],
+      after: [shards.getParticleCount(), specks.getParticleCount()],
     }).toEqual({
       before: [MOST_SHARDS_FLYING, MOST_EXHAUST],
       after: [MOST_SHARDS_FLYING, MOST_EXHAUST],
@@ -405,7 +407,7 @@ describe("a broken rock", () => {
 
     run.advance(100, 25);
 
-    const [puff] = scene.effects.puffs.all;
+    const [puff] = scene.debris.puffs.all;
     const metrics = metricsOf(shell);
     expect(puff?.copies.images.slice(0, 2).map(shownAt)).toEqual([
       onCanvas(metrics, 1, MIDDLE.y),
@@ -586,7 +588,7 @@ describe("the rings", () => {
 
     run.advance(16);
 
-    const [ring] = strokesOf(scene.effects.rings);
+    const [ring] = strokesOf(scene.rings.graphics);
     expect(ring && { x: ring.x, y: ring.y, color: ring.color }).toEqual({
       ...onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
       color: ART_PALETTE.flame,
@@ -603,7 +605,7 @@ describe("the rings", () => {
       run,
       RING_MS - 50,
       25,
-      () => strokesOf(scene.effects.rings)[0]?.radius ?? 0,
+      () => strokesOf(scene.rings.graphics)[0]?.radius ?? 0,
     );
 
     expect({
@@ -619,7 +621,7 @@ describe("the rings", () => {
 
     run.advance(RING_MS + 32);
 
-    expect(strokesOf(scene.effects.rings)).toEqual([]);
+    expect(strokesOf(scene.rings.graphics)).toEqual([]);
   });
 
   it("sweeps a lost ship's ring out in the accent, to a lost ship's reach", async () => {
@@ -637,11 +639,11 @@ describe("the rings", () => {
       run,
       RING_MS - 50,
       25,
-      () => strokesOf(scene.effects.rings)[0]?.radius ?? 0,
+      () => strokesOf(scene.rings.graphics)[0]?.radius ?? 0,
     );
 
     expect({
-      color: strokesOf(scene.effects.rings)[0]?.color,
+      color: strokesOf(scene.rings.graphics)[0]?.color,
       within:
         (radii.at(-1) ?? Infinity) < LOST_RING_REACH * metricsOf(shell).unit,
       past: (radii.at(-1) ?? 0) > (LOST_RING_REACH / 2) * metricsOf(shell).unit,
@@ -657,7 +659,7 @@ describe("the rings", () => {
 
     const metrics = metricsOf(shell);
     expect(
-      strokesOf(scene.effects.rings).map(({ x, y }) => ({ x, y })),
+      strokesOf(scene.rings.graphics).map(({ x, y }) => ({ x, y })),
     ).toEqual([
       onCanvas(metrics, 1, MIDDLE.y),
       onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y),
@@ -769,7 +771,7 @@ describe("a dash", () => {
 
     run.advance(16);
 
-    const outlines = scene.effects.trail.map(({ images }) => images[0]);
+    const outlines = scene.trail.outlines.map(({ images }) => images[0]);
     expect(
       outlines.map(
         (image) =>
@@ -796,7 +798,7 @@ describe("a dash", () => {
 
     run.advance(trailLaidAfter(2) + 16);
 
-    const last = scene.effects.trail.at(-1)?.images[0];
+    const last = scene.trail.outlines.at(-1)?.images[0];
     const at = last && shownAt(last);
     const metrics = metricsOf(shell);
     expect(at && { x: at.x, y: Math.round(at.y) }).toEqual({
@@ -813,16 +815,16 @@ describe("a dash", () => {
 
     run.advance(trailLaidAfter(2) + 16);
 
-    expect(scene.effects.trail.map(({ images }) => images[0]?.visible)).toEqual(
-      [true, false, false],
-    );
+    expect(
+      scene.trail.outlines.map(({ images }) => images[0]?.visible),
+    ).toEqual([true, false, false]);
   });
 
   it("fades each outline from as it is laid, the nearest the ship the most opaque", async () => {
     const { shell, run, scene } = await startBoard(stepping);
     shell.field.events.addDash(MIDDLE.x, MIDDLE.y, 0);
     run.advance(trailLaidAfter(2) + 16);
-    const last = scene.effects.trail.at(-1)?.images[0];
+    const last = scene.trail.outlines.at(-1)?.images[0];
     const laid = last?.alpha ?? 0;
 
     const alphas = overTime(run, TRAIL_MS - 100, 25, () => last?.alpha ?? 0);
@@ -842,7 +844,7 @@ describe("a dash", () => {
     run.advance(16);
 
     expect(
-      scene.effects.trail.map(({ images }) => images[0] && shownAt(images[0])),
+      scene.trail.outlines.map(({ images }) => images[0] && shownAt(images[0])),
     ).toEqual([onCanvas(metricsOf(shell), 10, 10), null, null]);
   });
 
@@ -853,7 +855,7 @@ describe("a dash", () => {
     run.advance(trailLaidAfter(2) + 300);
 
     expect(
-      scene.effects.trail
+      scene.trail.outlines
         .flatMap(({ images }) => images)
         .some((image) => image.visible),
     ).toBe(false);
@@ -861,7 +863,10 @@ describe("a dash", () => {
 });
 
 describe("the exhaust", () => {
-  /** Returns what sets a shell up with a ship heading right on a field that steps, thrusting so hard. */
+  /**
+   * Returns what sets a shell up with a ship heading right on a field that
+   * steps, thrusting so hard.
+   */
   function thrusting(thrust: number): (shell: FakeShell) => void {
     return (shell) => {
       withShip(shell);
@@ -1142,7 +1147,10 @@ describe("a lost ship", () => {
 });
 
 describe("the pilots' eyes", () => {
-  /** Returns how far open a pilot's eyes are drawn over a few seconds' frames, as a share of their size. */
+  /**
+   * Returns how far open a pilot's eyes are drawn over a few seconds' frames,
+   * as a share of their size.
+   */
   function openings(
     run: SceneRun<BeltScene>,
     eyes: GameObjects.Image | undefined,

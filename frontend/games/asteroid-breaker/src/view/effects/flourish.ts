@@ -1,14 +1,15 @@
 // How each flourish moves over its time, and how what idles on the field
 // moves while motion is welcome: a pickup's breath, a stray's bob, a
-// pilot's eyes, a comet's warning's pulse and the flame's flicker. Where
-// motion isn't welcome each holds still at its look at rest. A sign that
-// blinks, a pickup about to fade or a guarded ship, is no motion, so it
-// blinks either way.
+// pilot's eyes, a comet's warning's pulse, the flame's flicker and the
+// exhaust it streams. Where motion isn't welcome each holds still at its
+// look at rest. A sign that blinks, a pickup about to fade or a guarded
+// ship, is no motion, so it blinks either way.
 
 import { formatPoints } from "@fz/core/format";
 import { clamp } from "@fz/core/math";
+import { stepsIn } from "../../rules/stepper";
 import type { Moving } from "../../rules/torus";
-import { DASH_MS, DASH_SPEED } from "../../rules/tuning";
+import { DASH_MS, DASH_SPEED, STEP_S } from "../../rules/tuning";
 import type { FieldEvent } from "../field/frame";
 import type { BeltPalette } from "../colors/palette";
 import {
@@ -16,9 +17,12 @@ import {
   BAIL_OUT_MS,
   DASH_TRAIL,
   FLASH_GAP_MS,
+  KICK_CSS_PX,
+  KICK_MS,
   LEAST_SHARDS,
   MOST_SHARDS,
   POINTS_RISE,
+  SHAKE_CSS_PX,
   SHAKE_DELAY_MS,
   SHAKE_MS,
 } from "./timing";
@@ -41,7 +45,10 @@ export const FLASH_MOST = 0.7;
 /** How opaque the first of a dash's fading outlines is; each after it fainter. */
 export const TRAIL_MOST = 0.5;
 
-/** How far a spent Shield's ring sweeps out from the ship, in field units, past the Shield's own ring. */
+/**
+ * How far a spent Shield's ring sweeps out from the ship, in field units, past
+ * the Shield's own ring.
+ */
 export const SHIELD_RING_REACH = 3;
 
 /** How far a lost ship's ring sweeps out from where it was lost, in field units. */
@@ -53,6 +60,9 @@ export const SPARK_REACH = 1.2;
 /** How fast a pilot bailing out floats off, in field units a second. */
 export const BAIL_OUT_SPEED = 2.2;
 
+/** How many specks of exhaust the flame streams a second at full thrust. */
+export const EXHAUST_RATE = 40;
+
 /** How shut a pilot's eyes get as it blinks, a share of their height. */
 export const EYES_SHUT = 0.1;
 
@@ -62,7 +72,10 @@ export const EYES_SHUT = 0.1;
  */
 export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-/** How often a pilot blinks, and how long a blink takes, in seconds, and how far each pilot's blink comes after the one before's. */
+/**
+ * How often a pilot blinks, and how long a blink takes, in seconds, and how far
+ * each pilot's blink comes after the one before's.
+ */
 const EYE_BLINK = { every: 4, takes: 0.16, lag: 0.7 } as const;
 
 /**
@@ -75,7 +88,10 @@ const SHAKE_RATES = { x: 13, y: 17 } as const;
 /** How fast each idle motion turns, in turns a second: a breath, a bob, a pulse and a flicker. */
 const RATES = { breath: 0.64, bob: 0.35, pulse: 0.8, flicker: 7.5 } as const;
 
-/** How many times a second a blinking thing blinks, under the three flashes a second that are safe. */
+/**
+ * How many times a second a blinking thing blinks, under the three flashes a
+ * second that are safe.
+ */
 const BLINK_RATE = 2.5;
 
 /** Returns how far through its time a flourish is, from 0 as it starts to 1 once it is over. */
@@ -83,7 +99,10 @@ export function shareDone(startedAt: number, now: number, ms: number): number {
   return clamp((now - startedAt) / ms, 0, 1);
 }
 
-/** Returns how far out something that spreads has gone, a share through its time: fast, then slowing. */
+/**
+ * Returns how far out something that spreads has gone, a share through its
+ * time: fast, then slowing.
+ */
 export function spread(done: number): number {
   return 1 - (1 - done) ** 3;
 }
@@ -93,12 +112,19 @@ export function fadeAlpha(done: number): number {
   return 1 - done;
 }
 
-/** Returns how far the field is from where it rests, a share through a kick: all of it as it starts, settling. */
+/**
+ * Returns how far the field is from where it rests, a share through a kick: all
+ * of it as it starts, settling.
+ */
 export function kickShare(done: number): number {
   return (1 - done) ** 2;
 }
 
-/** Returns whether a held hit may flash at a time, in milliseconds, after the field's last flash, or −Infinity before its first: once that last is {@link FLASH_GAP_MS} past. */
+/**
+ * Returns whether a held hit may flash at a time, in milliseconds, after the
+ * field's last flash, or −Infinity before its first: once that last is
+ * {@link FLASH_GAP_MS} past.
+ */
 export function flashDue(lastFlashAt: number, now: number): boolean {
   return now - lastFlashAt >= FLASH_GAP_MS;
 }
@@ -108,33 +134,66 @@ export function flashAlpha(done: number): number {
   return FLASH_MOST * (1 - done);
 }
 
-/** Returns how opaque each of a dash's fading outlines is as it is laid, counting from the dash's start: the last, nearest the ship, the most. */
+/**
+ * Returns how opaque each of a dash's fading outlines is as it is laid,
+ * counting from the dash's start: the last, nearest the ship, the most.
+ */
 export function trailAlpha(index: number): number {
   return (TRAIL_MOST * (index + 1)) / DASH_TRAIL;
 }
 
-/** Returns how long into a dash each of its outlines is laid, in milliseconds, counting from the dash's start, as the ship passes where it lies: the first as the dash starts. */
+/**
+ * Returns how long into a dash each of its outlines is laid, in milliseconds,
+ * counting from the dash's start, as the ship passes where it lies: the first
+ * as the dash starts.
+ */
 export function trailLaidAfter(index: number): number {
   return (DASH_MS * index) / DASH_TRAIL;
 }
 
-/** Returns how far along a dash each of its outlines lies from where the dash started, in field units, counting from the dash's start. */
+/**
+ * Returns how far along a dash each of its outlines lies from where the dash
+ * started, in field units, counting from the dash's start.
+ */
 export function trailReach(index: number): number {
   return (DASH_SPEED * trailLaidAfter(index)) / 1000;
 }
 
-/** Returns the label points scored show, as "+40", or "+40 ×2" where the chain's multiplier scored them more. */
+/**
+ * Returns how many of a dash's outlines are laid once the field has taken
+ * so many steps since the dash started: the first as it starts, and each
+ * after it once the field has stepped the ship past where it lies; none
+ * before the dash starts, or for no dash, −Infinity steps since.
+ */
+export function trailOutlinesLaid(stepsSince: number): number {
+  let laid = 0;
+  while (laid < DASH_TRAIL && stepsSince >= stepsIn(trailLaidAfter(laid))) {
+    laid++;
+  }
+  return laid;
+}
+
+/**
+ * Returns the label points scored show, as "+40", or "+40 ×2" where the chain's
+ * multiplier scored them more.
+ */
 export function pointsLabel(event: Readonly<FieldEvent>): string {
   const points = `+${formatPoints(event.points)}`;
   return event.times > 1 ? `${points} ×${String(event.times)}` : points;
 }
 
-/** Returns how far points have risen above where they were scored, in field units, a share through their time: none where motion isn't welcome. */
+/**
+ * Returns how far points have risen above where they were scored, in field
+ * units, a share through their time: none where motion isn't welcome.
+ */
 export function riseOf(done: number, motion: boolean): number {
   return motion ? POINTS_RISE * done : 0;
 }
 
-/** Returns how far an event's ring sweeps out, in field units: a blast's or the Nova's to its reach, a spent Shield's and a lost ship's to their own. */
+/**
+ * Returns how far an event's ring sweeps out, in field units: a blast's or the
+ * Nova's to its reach, a spent Shield's and a lost ship's to their own.
+ */
 export function ringReachOf(event: Readonly<FieldEvent>): number {
   switch (event.kind) {
     case "shielded":
@@ -146,7 +205,10 @@ export function ringReachOf(event: Readonly<FieldEvent>): number {
   }
 }
 
-/** Returns the color an event's ring sweeps out in: a blast's in the warning color, and the Nova's, a spent Shield's and a lost ship's in the accent. */
+/**
+ * Returns the color an event's ring sweeps out in: a blast's in the warning
+ * color, and the Nova's, a spent Shield's and a lost ship's in the accent.
+ */
 export function ringColorOf(
   event: Readonly<FieldEvent>,
   palette: Pick<BeltPalette, "flame" | "accent">,
@@ -154,12 +216,18 @@ export function ringColorOf(
   return event.kind === "blast" ? palette.flame : palette.accent;
 }
 
-/** Returns the way an event's flourish flies, in radians, by its serial, so the flourishes of events one after another fly apart. */
+/**
+ * Returns the way an event's flourish flies, in radians, by its serial, so the
+ * flourishes of events one after another fly apart.
+ */
 export function wayOf(serial: number): number {
   return serial * GOLDEN_ANGLE;
 }
 
-/** Returns whether a pilot bailing out shows, a share through its bail-out, at a time, in seconds: steadily, then blinking as it goes. */
+/**
+ * Returns whether a pilot bailing out shows, a share through its bail-out, at a
+ * time, in seconds: steadily, then blinking as it goes.
+ */
 export function bailOutShown(done: number, seconds: number): boolean {
   return done < BAIL_OUT_BLINK_MS / BAIL_OUT_MS || blinkShown(seconds);
 }
@@ -181,7 +249,46 @@ export function shakeOf(sinceMs: number, into: Moving): Moving {
   return into;
 }
 
-/** Returns how many shards a broken rock scatters, from the fewest to the most, as its event's serial says. */
+/**
+ * Says what last jolted the field, each at a time, in milliseconds, or
+ * −Infinity for none: a kick, as a large rock broke, and the way its blow
+ * came, a share along each axis; and a ship lost, which shakes it.
+ */
+export interface Jolts {
+  kickedAt: number;
+  wayX: number;
+  wayY: number;
+  lostAt: number;
+}
+
+/**
+ * Writes how far the field's camera is scrolled from where it rests into a
+ * record and returns it, in device pixels at a pixel ratio, at a time:
+ * against the way the last kick's blow came, settling, and as far as
+ * {@link shakeOf} shakes it since the last ship was lost.
+ */
+export function cameraShift(
+  jolts: Readonly<Jolts>,
+  now: number,
+  pixelRatio: number,
+  into: Moving,
+): Moving {
+  const kick =
+    KICK_CSS_PX *
+    pixelRatio *
+    kickShare(shareDone(jolts.kickedAt, now, KICK_MS));
+  const shake = SHAKE_CSS_PX * pixelRatio;
+  shakeOf(now - jolts.lostAt, into);
+  // The field moves the way the blow came, so its camera the other.
+  into.x = into.x * shake - jolts.wayX * kick;
+  into.y = into.y * shake - jolts.wayY * kick;
+  return into;
+}
+
+/**
+ * Returns how many shards a broken rock scatters, from the fewest to the most,
+ * as its event's serial says.
+ */
 export function shardCount(serial: number): number {
   return LEAST_SHARDS + (serial % (MOST_SHARDS - LEAST_SHARDS + 1));
 }
@@ -198,7 +305,10 @@ function wave(rate: number, seconds: number, phase: number): number {
   return Math.sin(2 * Math.PI * rate * seconds + phase);
 }
 
-/** Returns how large a pickup is drawn as it breathes, against its size, a phase on, as its slot's own. */
+/**
+ * Returns how large a pickup is drawn as it breathes, against its size, a phase
+ * on, as its slot's own.
+ */
 export function breathScale(
   seconds: number,
   phase: number,
@@ -207,7 +317,10 @@ export function breathScale(
   return motion ? 1 + BREATH * wave(RATES.breath, seconds, phase) : 1;
 }
 
-/** Returns how far below its place a stray is drawn as it bobs, as a share of its radius, a phase on, as its own. */
+/**
+ * Returns how far below its place a stray is drawn as it bobs, as a share of
+ * its radius, a phase on, as its own.
+ */
 export function bobShare(
   seconds: number,
   phase: number,
@@ -216,21 +329,47 @@ export function bobShare(
   return motion ? BOB * wave(RATES.bob, seconds, phase) : 0;
 }
 
-/** Returns how far through its swing an idle motion is at a time, from 0 to 1 and back once a turn, 1 as it starts. */
+/**
+ * Returns how far through its swing an idle motion is at a time, from 0 to 1
+ * and back once a turn, 1 as it starts.
+ */
 function swing(rate: number, seconds: number): number {
   return (1 + wave(rate, seconds, Math.PI / 2)) / 2;
 }
 
-/** Returns how opaque a comet's warning is as it pulses, full as it starts: full where motion isn't welcome. */
+/**
+ * Returns how opaque a comet's warning is as it pulses, full as it starts: full
+ * where motion isn't welcome.
+ */
 export function pulseAlpha(seconds: number, motion: boolean): number {
   if (!motion) return 1;
   return PULSE_LEAST + (1 - PULSE_LEAST) * swing(RATES.pulse, seconds);
 }
 
-/** Returns how much of its length the flame is drawn at as it flickers: all of it where motion isn't welcome. */
+/**
+ * Returns how much of its length the flame is drawn at as it flickers: all of
+ * it where motion isn't welcome.
+ */
 export function flickerShare(seconds: number, motion: boolean): number {
   if (!motion) return 1;
   return 1 - FLICKER * swing(RATES.flicker, seconds);
+}
+
+/**
+ * Returns how many specks of exhaust are due, whole and in part, once the
+ * field has taken so many steps at a thrust, the part of one carried from
+ * before among them, for the whole ones to stream and the part to carry
+ * on: none at no thrust, or where motion isn't welcome, which carry
+ * nothing on.
+ */
+export function exhaustDue(
+  carried: number,
+  thrust: number,
+  steps: number,
+  motion: boolean,
+): number {
+  if (!motion || thrust <= 0) return 0;
+  return carried + thrust * EXHAUST_RATE * steps * STEP_S;
 }
 
 /**
@@ -249,7 +388,10 @@ export function eyesOpen(
   return 1 - (1 - EYES_SHUT) * Math.sin((Math.PI * into) / EYE_BLINK.takes);
 }
 
-/** Returns whether a blinking thing, a pickup about to fade or a guarded ship, is shown at a time, in seconds: for the first half of each blink. */
+/**
+ * Returns whether a blinking thing, a pickup about to fade or a guarded ship,
+ * is shown at a time, in seconds: for the first half of each blink.
+ */
 export function blinkShown(seconds: number): boolean {
   return (seconds * BLINK_RATE) % 1 < 0.5;
 }

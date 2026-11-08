@@ -84,3 +84,45 @@ The review:
    outcome. Taken: it goes, with those fields.
 4. _Three specs passed if their first move did nothing:_ taken; each holds
    the outcome to `"playing"` too.
+
+### Step 9a: finding 11, the effects painter split and the field's camera
+
+Built on `ab-scene`, the first of two commits for finding 11.
+`EffectsPainter` is four painters, `TrailPainter`, `ExhaustPainter`,
+`DebrisPainter` (the shards, the dust and the sparks) and `RingPainter`,
+sharing `Turns.play()`, and a `FieldCamera` owns the field camera's
+viewport, color, kick and shake, the one place its scroll is written.
+`EXHAUST_MS` joins `timing.ts`, and the arithmetic moves to
+`src/view/effects/flourish.ts`, under the view's floor: `exhaustDue()`,
+`trailOutlinesLaid()` and `cameraShift()`. 4,779 tests pass, and
+`view/effects` is covered whole.
+
+Where it went other than planned:
+
+- **Two commits,** this and the flourish player.
+- **The exhaust is a painter of its own,** which the plan didn't place,
+  and the sparks go with the shards and the dust.
+- **`FieldCamera` also owns the field's color,** and is a `Painter`, last in
+  the list, so finding 12's `start?()` reaches it. The camera's `ignore()`
+  of the frame and the deck stays in the scene for finding 17.
+- **The helpers take steps,** as the field counts them: `exhaustDue()`
+  takes the steps since the last draw, `trailOutlinesLaid()` those since
+  the dash.
+- **No spec of `FieldCamera`'s own:** its viewport and color are held by
+  the scene's "the cameras" specs, its kick and shake by the flourishes',
+  and its arithmetic by `cameraShift()`'s.
+- **The scroll is summed in another order,** the shift added to the rest
+  rather than the kick taken off first, which can differ in the last bit
+  only.
+
+The review found no bug, and checked the draw order, the arithmetic and
+every reset line by line:
+
+1. _`exhaustDue()` was listed among the motions held still where motion
+   isn't welcome, but didn't take `motion`;_ the scene checked it, outside
+   any floor. Taken: it takes `motion`, with a spec.
+2. _The shared `play()` was half used:_ `PointsPainter` set its record by
+   hand, and every caller paired `take()` with `play()`. Taken: `Turns.play()`
+   takes, starts and returns the next record, and `Scored` extends
+   `Playing`.
+3. _`ExhaustPainter.draw`'s doc read two ways:_ taken.

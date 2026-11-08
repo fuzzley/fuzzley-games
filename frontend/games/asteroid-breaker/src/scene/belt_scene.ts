@@ -56,18 +56,22 @@ import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
 import { BURST_SHARDS } from "../view/effects/timing";
 import { ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
+import { FieldCamera } from "./field_camera";
+import { DebrisPainter } from "./painters/debris_painter";
 import { DeckPainter } from "./painters/deck_painter";
-import { EffectsPainter } from "./painters/effects_painter";
+import { ExhaustPainter } from "./painters/exhaust_painter";
 import { FieldPainter } from "./painters/field_painter";
 import { HazardPainter } from "./painters/hazard_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PickupPainter } from "./painters/pickup_painter";
 import { PointsPainter } from "./painters/points_painter";
+import { RingPainter } from "./painters/ring_painter";
 import { RockPainter } from "./painters/rock_painter";
 import { ShipPainter } from "./painters/ship_painter";
 import { ShotPainter } from "./painters/shot_painter";
 import { StrayPainter } from "./painters/stray_painter";
 import { TagPainter } from "./painters/tag_painter";
+import { TrailPainter } from "./painters/trail_painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
 
@@ -97,7 +101,10 @@ export interface BeltSceneOptions {
   readonly onLayout: (viewport: Viewport, field: CssRect) => void;
   /** Takes what a key asks of the game. */
   readonly command: (command: FieldCommand) => void;
-  /** Takes a picture of every rock kind, pickup, a stray and the comet as drawn, for How to play, each time they are drawn anew. */
+  /**
+   * Takes a picture of every rock kind, pickup, a stray and the comet as drawn,
+   * for How to play, each time they are drawn anew.
+   */
   readonly onPictures: (pictures: Pictures) => void;
 }
 
@@ -141,18 +148,29 @@ export class BeltScene extends Scene {
   shots!: ShotPainter;
   /** Draws the ship, its pilot and its rings. */
   ship!: ShipPainter;
-  /** Draws what bursts from the field as things happen on it, and kicks and shakes it. */
-  effects!: EffectsPainter;
+  /** Draws a dash's trail. */
+  trail!: TrailPainter;
+  /** Streams the exhaust off the flame. */
+  exhaust!: ExhaustPainter;
+  /** Draws what flies off a rock or a ship as it is hit: shards, dust and sparks. */
+  debris!: DebrisPainter;
+  /** Draws the rings that sweep out. */
+  rings!: RingPainter;
   /** Draws the points scored. */
   points!: PointsPainter;
   /** Draws the deck, over the whole canvas. */
   deck!: DeckPainter;
+  /** Points the field's camera at the field, and kicks and shakes it. */
+  fieldCamera!: FieldCamera;
   /** Draws the frame and the deck, over the whole canvas. */
   deckCamera!: Cameras.Scene2D.Camera;
   /** Plays the sounds. */
   sounds!: SpritePlayer<SoundName>;
 
-  /** Every painter, back to front, which each frame draws and each bake refreshes. */
+  /**
+   * Every painter, back to front, and the field's camera, which each frame
+   * draws and each bake refreshes.
+   */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
   private context!: PaintContext;
@@ -194,9 +212,13 @@ export class BeltScene extends Scene {
     this.key = key;
   }
 
-  /** Measures, bakes the atlases, builds the field in its layers, back to front, sets the cameras up and starts listening. */
+  /**
+   * Measures, bakes the atlases, builds the field in its layers, back to front,
+   * sets the cameras up and starts listening.
+   */
   create(): void {
     this.painted = this.options.palette();
+    this.fieldCamera = new FieldCamera(this.cameras.main);
     this.measure();
     this.bake();
     this.steering = new Steering(this.metrics, this.deckParts, this.board);
@@ -209,11 +231,12 @@ export class BeltScene extends Scene {
     this.hazards = new HazardPainter(this, this.layers.hazards);
     this.shots = new ShotPainter(this, this.layers.shots);
     this.ship = new ShipPainter(this, this.layers.ship);
-    this.effects = new EffectsPainter(
-      this,
-      this.layers.effects,
-      this.cameras.main,
-    );
+    // Made back to front, as `layers.ts` lists the effects layer's
+    // flourishes: each joins the layer as it is made.
+    this.trail = new TrailPainter(this, this.layers.effects);
+    this.exhaust = new ExhaustPainter(this, this.layers.effects);
+    this.debris = new DebrisPainter(this, this.layers.effects);
+    this.rings = new RingPainter(this, this.layers.effects);
     this.points = new PointsPainter(
       this,
       this.layers.points,
@@ -230,9 +253,13 @@ export class BeltScene extends Scene {
       this.hazards,
       this.shots,
       this.ship,
-      this.effects,
+      this.trail,
+      this.exhaust,
+      this.debris,
+      this.rings,
       this.points,
       this.deck,
+      this.fieldCamera,
     ];
     this.cameras.main.ignore([this.layers.frame, this.layers.deck]);
     // Over the whole canvas, which Phaser keeps it to as the canvas changes size.
@@ -324,7 +351,7 @@ export class BeltScene extends Scene {
     const { x, y } = event;
     switch (flourish) {
       case "shards":
-        this.effects.shatter(
+        this.debris.shatter(
           x,
           y,
           rockColor(rockKindOf(event), palette),
@@ -334,7 +361,7 @@ export class BeltScene extends Scene {
         );
         return;
       case "dust":
-        this.effects.puff(
+        this.debris.puff(
           x,
           y,
           ROCK_RADIUS[rockSizeOf(event)],
@@ -343,13 +370,13 @@ export class BeltScene extends Scene {
         );
         return;
       case "kick":
-        this.effects.kick(event.wayX, event.wayY, now);
+        this.fieldCamera.kick(event.wayX, event.wayY, now);
         return;
       case "flash":
         this.rocks.flashSlot(event.slot, now);
         return;
       case "spark":
-        this.effects.spark(
+        this.debris.spark(
           x,
           y,
           ROCK_RADIUS[rockSizeOf(event)],
@@ -359,7 +386,7 @@ export class BeltScene extends Scene {
         );
         return;
       case "ring":
-        this.effects.ring(
+        this.rings.ring(
           x,
           y,
           ringReachOf(event),
@@ -371,10 +398,10 @@ export class BeltScene extends Scene {
         this.points.show(event, now);
         return;
       case "trail":
-        this.effects.trailDash(x, y, event.wayX, event.wayY, field.steps);
+        this.trail.lay(x, y, event.wayX, event.wayY, field.steps);
         return;
       case "burst":
-        this.effects.shatter(
+        this.debris.shatter(
           x,
           y,
           palette.accent,
@@ -389,7 +416,7 @@ export class BeltScene extends Scene {
         }
         return;
       case "shake":
-        this.effects.shake(now);
+        this.fieldCamera.shake(now);
         return;
     }
   }
@@ -408,7 +435,10 @@ export class BeltScene extends Scene {
     for (const painter of this.painters) painter.draw(context);
   }
 
-  /** Returns how much larger the field draws than its atlas was baked: its unit over the baked unit. */
+  /**
+   * Returns how much larger the field draws than its atlas was baked: its unit
+   * over the baked unit.
+   */
   private zoom(): number {
     return this.metrics.unit / (this.baked?.unit ?? this.metrics.unit);
   }
@@ -424,7 +454,10 @@ export class BeltScene extends Scene {
     return stale;
   }
 
-  /** Returns whether the canvas, its pixel ratio, the chrome over it, the board's setting or the field's size changed. */
+  /**
+   * Returns whether the canvas, its pixel ratio, the chrome over it, the
+   * board's setting or the field's size changed.
+   */
   private moved(): boolean {
     const viewport = this.viewport;
     if (!viewport) return true;
@@ -466,16 +499,20 @@ export class BeltScene extends Scene {
     );
   }
 
-  /** Points the field's camera at the field as measured, hands the steering the layout, and tells the shell where the field lies. */
+  /**
+   * Points the field's camera at the field as measured, hands the steering
+   * the layout, and tells the shell where the field lies.
+   */
   private layOut(): void {
-    const { x, y, width, height } = this.metrics;
-    // The field's camera shows the canvas's own pixels, so a place on the canvas is the same in its world.
-    this.cameras.main.setViewport(x, y, width, height).setScroll(x, y);
+    this.fieldCamera.fit(this.metrics);
     this.steering.measure(this.metrics, this.deckParts, this.board);
     if (this.viewport) this.options.onLayout(this.viewport, this.metrics.css);
   }
 
-  /** Bakes the field's atlas at its scale, in the palette, and the deck's on a new pixel ratio, and hands How to play its pictures. */
+  /**
+   * Bakes the field's atlas at its scale, in the palette, and the deck's on a
+   * new pixel ratio, and hands How to play its pictures.
+   */
   private bake(): void {
     this.baked = bakedScale(this.metrics);
     bakeBeltAtlas(this, this.painted, this.baked);
@@ -483,7 +520,7 @@ export class BeltScene extends Scene {
       this.deckBaked = this.metrics.pixelRatio;
       bakeDeckAtlas(this, this.deckBaked);
     }
-    this.cameras.main.setBackgroundColor(this.painted.field);
+    this.fieldCamera.fill(this.painted.field);
     this.options.onPictures(
       mapPictures(PICTURE_FRAMES, (frame) =>
         this.textures.getBase64(ATLAS, frame),
@@ -509,7 +546,11 @@ export class BeltScene extends Scene {
   private startField(field: FieldView): void {
     this.shownField = field;
     this.played = 0;
-    this.effects.reset();
+    this.trail.reset();
+    this.exhaust.reset();
+    this.debris.reset();
+    this.rings.reset();
+    this.fieldCamera.reset();
     this.points.reset();
     this.rocks.reset();
     this.strays.reset();
@@ -540,7 +581,10 @@ export class BeltScene extends Scene {
     this.letGoWhenAway();
   }
 
-  /** Lets go of every key and finger as the window, the page or the field loses the player, so none sticks. */
+  /**
+   * Lets go of every key and finger as the window, the page or the field loses
+   * the player, so none sticks.
+   */
   private letGoWhenAway(): void {
     const letGo = (): void => {
       this.steering.letGo();

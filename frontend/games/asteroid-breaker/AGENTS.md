@@ -232,11 +232,14 @@ take for the layer.
   `FrameSounds` of its `SOUNDS`, which plays each sound once a frame at
   most, at the highest it was heard; the thrust's hum (`THRUST`) is one of
   them, which no event plays. `flourish.ts` says how each flourish moves
-  over its time, and how the pickups breathe, a stray bobs, a comet's
-  warning pulses, the flame flickers and the pilots blink, each only where
-  motion is welcome; `timing.ts` how long each flourish lasts and how long
-  the cards wait (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts`
-  how the phone buzzes as a ship is lost or a wave cleared (`buzzOf()`).
+  over its time, among them how far the kick and the shake scroll the
+  field's camera (`cameraShift()`) and when a dash lays each of its
+  outlines (`trailOutlinesLaid()`), and how the pickups breathe, a stray
+  bobs, a comet's warning pulses, the flame flickers, its exhaust streams
+  (`exhaustDue()`) and the pilots blink, each only where motion is welcome;
+  `timing.ts` how long each flourish lasts and how long the cards wait
+  (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
+  buzzes as a ship is lost or a wave cleared (`buzzOf()`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`, the commands and the keys held to fly;
   `steering.ts` the `Steering` that turns the keys, the mouse and up to
@@ -279,9 +282,12 @@ take for the layer.
   `StrayPainter` the stray adrift and a lost ship's pilot bailing out,
   `HazardPainter` the comets and their warnings, `ShotPainter` the shots,
   `ShipPainter` the ship, its flame, its pilot and its rings,
-  `EffectsPainter` the shards, the dust, the sparks, the rings, a dash's
-  trail, the exhaust and the field's kick and shake, `PointsPainter` the
-  points scored, and `DeckPainter` the deck. Each is a `Painter`
+  `TrailPainter` a dash's trail, `ExhaustPainter` the exhaust,
+  `DebrisPainter` the shards, the dust and the sparks, `RingPainter` the
+  rings, `PointsPainter` the points scored, and `DeckPainter` the deck.
+  `FieldCamera` (`field_camera.ts`) points the field's camera at the field,
+  fills it with the field's color and scrolls it as the field kicks and
+  shakes, the one place its scroll is written. Each of them is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
   writes over each frame and takes up its frames again after a bake, so the
   scene draws and refreshes them in a loop over its list of painters. A

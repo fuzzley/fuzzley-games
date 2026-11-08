@@ -13,20 +13,20 @@ import { POINTS_MS } from "../../view/effects/timing";
 import { toCanvas } from "../../view/field/field_metrics";
 import type { FieldEvent } from "../../view/field/frame";
 import type { PaintContext, Painter } from "./painter";
-import { Turns } from "./turns";
+import { type Playing, Turns } from "./turns";
 
 /** How many points may show at once: a blast scores a crowd of rocks at once. */
 const POOL = 12;
 
-/** How tall the points are written, and how wide the stroke round them in the field's color, in field units. */
+/**
+ * How tall the points are written, and how wide the stroke round them in the
+ * field's color, in field units.
+ */
 const POINTS_TEXT = { size: 0.95, stroke: 0.28 } as const;
 
 /** Describes points scored, showing from a time at the place they were scored. */
-interface Scored {
+interface Scored extends Playing {
   readonly label: GameObjects.Text;
-  at: number;
-  x: number;
-  y: number;
 }
 
 /**
@@ -60,11 +60,7 @@ export class PointsPainter implements Painter {
 
   /** Shows the points an event scored where it scored them. */
   show(event: Readonly<FieldEvent>, now: number): void {
-    const scored = this.scored.take();
-    scored.at = now;
-    scored.x = event.x;
-    scored.y = event.y;
-    scored.label.setText(pointsLabel(event));
+    this.scored.play(event.x, event.y, now).label.setText(pointsLabel(event));
   }
 
   /** Hides every label, as a new field starts. */
@@ -108,7 +104,10 @@ export class PointsPainter implements Painter {
   }
 }
 
-/** Returns where a label's middle lies along an axis, moved in from an edge so all of it, so long, lies within a span from a start. */
+/**
+ * Returns where a label's middle lies along an axis, moved in from an edge so
+ * all of it, so long, lies within a span from a start.
+ */
 function within(
   middle: number,
   length: number,
