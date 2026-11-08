@@ -125,8 +125,11 @@ describe("gainShip", () => {
 });
 
 describe("gainShipOn", () => {
-  /** Returns what of a field a ship gained changes: a crew, a stray adrift in color 3 or gone, a ship's place, and a log. */
-  function fieldOf(
+  /**
+   * Returns what of a field a ship gained changes: a crew, a stray adrift in
+   * color 3 or gone, a ship's place, and a log.
+   */
+  function crewFieldOf(
     crew: Crew,
     {
       adrift = false,
@@ -140,7 +143,7 @@ describe("gainShipOn", () => {
   }
 
   it("gives a new pilot a color the stray adrift doesn't wear", () => {
-    const field = fieldOf(crewOf([0, 1, 2]), { adrift: true });
+    const field = crewFieldOf(crewOf([0, 1, 2]), { adrift: true });
 
     gainShipOn(field);
 
@@ -148,7 +151,7 @@ describe("gainShipOn", () => {
   });
 
   it("gives a new pilot the color of a stray that has gone", () => {
-    const field = fieldOf(crewOf([0, 1, 2]));
+    const field = crewFieldOf(crewOf([0, 1, 2]));
 
     gainShipOn(field);
 
@@ -159,7 +162,7 @@ describe("gainShipOn", () => {
     ["at the ship", { x: 12, y: 9 }, { x: 12, y: 9 }],
     ["at the field's middle between ships", null, { x: 30, y: 20 }],
   ])("logs the ship gained and its pilot %s", (_, ship, place) => {
-    const field = fieldOf(crewOf([0], [6]), { ship });
+    const field = crewFieldOf(crewOf([0], [6]), { ship });
 
     gainShipOn(field);
 
@@ -172,7 +175,7 @@ describe("gainShipOn", () => {
     ["one brought home", crewOf([0], [6]), true],
     ["a new one", crewOf([0]), false],
   ])("logs whether the pilot is %s", (_, crew, fromHome) => {
-    const field = fieldOf(crew);
+    const field = crewFieldOf(crew);
 
     gainShipOn(field);
 
@@ -180,7 +183,7 @@ describe("gainShipOn", () => {
   });
 
   it("logs the ships the crew has once gained, and those still waiting", () => {
-    const field = fieldOf(crewOf([0], [6, 2]));
+    const field = crewFieldOf(crewOf([0], [6, 2]));
 
     gainShipOn(field);
 
@@ -190,7 +193,7 @@ describe("gainShipOn", () => {
   });
 
   it("logs nothing past the most ships", () => {
-    const field = fieldOf(fullCrew([6]));
+    const field = crewFieldOf(fullCrew([6]));
 
     gainShipOn(field);
 

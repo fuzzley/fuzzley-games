@@ -1,11 +1,12 @@
 import {
   fieldFrom,
   floatingPickups,
+  loggedOn,
   placePickup,
+  speedOf,
   wholeRocks,
 } from "../../testing/field_picture";
 import type { PickupId } from "../catalog/pickups";
-import type { FieldEvent } from "../field/events";
 import type { Field } from "../field/field";
 import { stepsIn } from "../stepper";
 import {
@@ -29,16 +30,10 @@ function onlyPickup(field: Field): Floating {
   return floating;
 }
 
-/** Returns a copy of a field's latest event. */
-function lastEvent(field: Field): FieldEvent | undefined {
-  let last: FieldEvent | undefined;
-  field.events.forEachSince(0, (event) => {
-    last = { ...event };
-  });
-  return last;
-}
-
-/** Returns the pickups a broken small stone lets go on a field from a seed, by a chance, from a pool. */
+/**
+ * Returns the pickups a broken small stone lets go on a field from a seed, by a
+ * chance, from a pool.
+ */
 function droppedFrom(seed: number, drops = 1): PickupId[] {
   const field = fieldFrom(["S"], { seed, drops, pool: ["spread", "ship"] });
   breakAll(field);
@@ -58,7 +53,7 @@ describe("a broken rock", () => {
       floating.y,
       floating.lastX,
       floating.lastY,
-      Math.hypot(floating.vx, floating.vy),
+      speedOf(floating),
       floating.lifeSteps,
     ]).toEqual([
       "rapid",
@@ -76,7 +71,7 @@ describe("a broken rock", () => {
 
     breakAll(field);
 
-    expect(lastEvent(field)).toMatchObject({
+    expect(loggedOn(field).at(-1)).toMatchObject({
       kind: "dropped",
       x: 6,
       y: 10,

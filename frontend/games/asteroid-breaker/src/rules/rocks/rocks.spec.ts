@@ -1,3 +1,9 @@
+import {
+  kindsLoggedOn,
+  loggedOn,
+  speedOf,
+  wholeRocks,
+} from "../../testing/field_picture";
 import { RADIANS_PER_DEGREE, TURN } from "../angles";
 import type { PickupId } from "../catalog/pickups";
 import {
@@ -6,11 +12,7 @@ import {
   type RockKindId,
   type RockSize,
 } from "../catalog/rocks";
-import {
-  type FieldEvent,
-  type FieldEventKind,
-  FieldEventLog,
-} from "../field/events";
+import { FieldEventLog } from "../field/events";
 import { createCrew } from "../ship/pilots";
 import { stepsIn } from "../stepper";
 import type { Place, Torus } from "../torus";
@@ -79,7 +81,7 @@ interface FieldOptions {
  * Returns a field of free rock slots, no step taken, no chance of a pickup and,
  * unless given one, no ship.
  */
-function fieldOf({
+function rockField({
   cap = 8,
   seed = 1,
   waveKind = "stone",
@@ -125,23 +127,6 @@ function lay(
   return rock;
 }
 
-/** Returns the whole rocks on a field, in their slots' order. */
-function wholeOf(field: SpecField): Rock[] {
-  return field.rocks.filter((rock) => rock.live);
-}
-
-/** Returns a field's events, oldest first, each a copy. */
-function eventsOf(field: SpecField): FieldEvent[] {
-  const events: FieldEvent[] = [];
-  field.events.forEachSince(0, (event) => events.push({ ...event }));
-  return events;
-}
-
-/** Returns the kinds of a field's events, oldest first. */
-function logged(field: SpecField): FieldEventKind[] {
-  return eventsOf(field).map((event) => event.kind);
-}
-
 /**
  * Steps a field at a pace as the field does its rocks: the step counted, blasts
  * due set off, then the rocks flown.
@@ -159,16 +144,11 @@ function stepFor(field: SpecField, steps: number, pace = 1): void {
 function blastSteps(field: SpecField, steps: number): number[] {
   const at: number[] = [];
   for (let step = 1; step <= steps; step++) {
-    const before = logged(field).length;
+    const before = kindsLoggedOn(field).length;
     stepFor(field, 1);
-    if (logged(field).slice(before).includes("blast")) at.push(step);
+    if (kindsLoggedOn(field).slice(before).includes("blast")) at.push(step);
   }
   return at;
-}
-
-/** Returns how fast a rock flies at a pace of 1. */
-function speedOf(rock: Readonly<Rock>): number {
-  return Math.hypot(rock.vx, rock.vy);
 }
 
 /** Returns how far a rock's travel turns off a heading, in degrees, from −180 to 180. */
@@ -195,16 +175,16 @@ function coverOf(values: readonly number[], span: Span, times = 1): number {
  * no push, on a field from a seed.
  */
 function piecesFrom(seed: number): Rock[] {
-  const field = fieldOf({ seed });
+  const field = rockField({ seed });
   hitRock(field, lay(field, "stone", "large", 36, 20, 1), 0, 0);
-  return wholeOf(field);
+  return wholeRocks(field);
 }
 
 /** Returns the velocities of the pieces a large ice rock breaks into, hit along a way. */
 function iceSplitAlong(alongX: number, alongY: number): number[][] {
-  const field = fieldOf({ seed: 3 });
+  const field = rockField({ seed: 3 });
   hitRock(field, lay(field, "ice", "large"), alongX, alongY);
-  return wholeOf(field).map((piece) => [piece.vx, piece.vy]);
+  return wholeRocks(field).map((piece) => [piece.vx, piece.vy]);
 }
 
 /**
@@ -216,7 +196,7 @@ function stoneBesideVolatile(): {
   volatile: Rock;
   stone: Rock;
 } {
-  const field = fieldOf({ seed: 5 });
+  const field = rockField({ seed: 5 });
   const volatile = lay(field, "volatile", "large", 20, 20);
   const stone = lay(field, "stone", "large", 23, 24);
   return { field, volatile, stone };
@@ -228,7 +208,7 @@ function stoneBesideVolatile(): {
  * would reach, laid in an order.
  */
 function blastsAround(order: "nearer first" | "farther first"): SpecField {
-  const field = fieldOf();
+  const field = rockField();
   const nearer = { x: 20, y: 20 };
   const farther = { x: 35, y: 20 };
   const [first, second] =
@@ -247,7 +227,7 @@ function blastsAround(order: "nearer first" | "farther first"): SpecField {
  * an ice rock by one and a stone by the other.
  */
 function blastsAtTheCap(order: "ice's first" | "stone's first"): SpecField {
-  const field = fieldOf({ cap: 4 });
+  const field = rockField({ cap: 4 });
   const byIce = { x: 10, y: 20 };
   const byStone = { x: 40, y: 20 };
   const [first, second] =
@@ -263,7 +243,7 @@ function blastsAtTheCap(order: "ice's first" | "stone's first"): SpecField {
 
 /** Returns where a drawn rock is and how it flies after a second of its own time at a pace. */
 function driftedAt(pace: number): number[] {
-  const field = fieldOf({ ship: { x: 40, y: 30 } });
+  const field = rockField({ ship: { x: 40, y: 30 } });
   const rock = lay(field, "lodestone", "large", 20, 20, 2);
   stepFor(field, 120 / pace, pace);
   return [rock.x, rock.y, rock.vx, rock.vy];
@@ -271,7 +251,7 @@ function driftedAt(pace: number): number[] {
 
 /** Returns the velocities of a field's whole stones. */
 function stonesFlying(field: SpecField): number[][] {
-  return wholeOf(field)
+  return wholeRocks(field)
     .filter((rock) => rock.kind === "stone")
     .map((rock) => [rock.vx, rock.vy]);
 }
@@ -296,7 +276,7 @@ describe("createRocks", () => {
 
 describe("rocksLeft", () => {
   it("counts the rocks a field holds, one waiting to go off among them", () => {
-    const field = fieldOf();
+    const field = rockField();
     lay(field, "stone", "large");
     hitRock(field, lay(field, "volatile", "large", 60, 20), 1, 0);
 
@@ -306,7 +286,7 @@ describe("rocksLeft", () => {
   });
 
   it("counts none once the last has gone off", () => {
-    const field = fieldOf();
+    const field = rockField();
     hitRock(field, lay(field, "volatile", "large"), 1, 0);
     stepFor(field, stepsIn(BLAST.delayMs));
 
@@ -327,7 +307,7 @@ describe("rockHitRadius", () => {
 
 describe("addRock", () => {
   it("lays a whole rock of a kind and size at a place, as a step ago, in the field's step", () => {
-    const field = fieldOf();
+    const field = rockField();
     field.steps = 5;
 
     const rock = lay(field, "iron", "medium", 10, 30);
@@ -347,7 +327,7 @@ describe("addRock", () => {
   });
 
   it("flies a rock along its heading", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     const rock = lay(field, "stone", "large", 36, 20, 2);
 
@@ -356,7 +336,7 @@ describe("addRock", () => {
 
   it("flies a rock at its size's speed, times its kind's", () => {
     const speeds = SEEDS.map((seed) =>
-      speedOf(lay(fieldOf({ seed }), "ice", "large")),
+      speedOf(lay(rockField({ seed }), "ice", "large")),
     );
 
     expect(outside(speeds, ROCK_SPEED.large, ROCK_KINDS.ice.speed)).toEqual([]);
@@ -364,7 +344,7 @@ describe("addRock", () => {
 
   it("flies a rock at the field's rocks' speed too, as the debug menu tunes it", () => {
     const speeds = SEEDS.map((seed) =>
-      speedOf(lay(fieldOf({ seed, rockSpeed: 1.5 }), "ice", "large")),
+      speedOf(lay(rockField({ seed, rockSpeed: 1.5 }), "ice", "large")),
     );
 
     expect(
@@ -374,7 +354,7 @@ describe("addRock", () => {
 
   it("draws a rock's speed from across its size's", () => {
     const speeds = SEEDS.map((seed) =>
-      speedOf(lay(fieldOf({ seed }), "stone", "medium")),
+      speedOf(lay(rockField({ seed }), "stone", "medium")),
     );
 
     expect(coverOf(speeds, ROCK_SPEED.medium)).toBeGreaterThan(0.9);
@@ -382,7 +362,7 @@ describe("addRock", () => {
 
   it("draws each of its kind and size's outlines", () => {
     const outlines = SEEDS.map(
-      (seed) => lay(fieldOf({ seed }), "stone", "small").outline,
+      (seed) => lay(rockField({ seed }), "stone", "small").outline,
     );
 
     expect([...new Set(outlines)].sort()).toEqual(
@@ -392,7 +372,7 @@ describe("addRock", () => {
 
   it("turns a rock to a place within a turn", () => {
     const angles = SEEDS.map(
-      (seed) => lay(fieldOf({ seed }), "stone", "small").angle,
+      (seed) => lay(rockField({ seed }), "stone", "small").angle,
     );
 
     expect(outside(angles, { least: 0, most: TURN })).toEqual([]);
@@ -401,7 +381,7 @@ describe("addRock", () => {
 
   it("spins a rock either way, at a speed from its span", () => {
     const spins = SEEDS.map(
-      (seed) => lay(fieldOf({ seed }), "stone", "small").spin,
+      (seed) => lay(rockField({ seed }), "stone", "small").spin,
     );
 
     expect(outside(spins.map(Math.abs), ROCK_SPIN, RADIANS_PER_DEGREE)).toEqual(
@@ -411,7 +391,7 @@ describe("addRock", () => {
   });
 
   it("lays a rock in the first free slot", () => {
-    const field = fieldOf();
+    const field = rockField();
     hitRock(field, lay(field, "stone", "small"), 0, 0);
 
     const rock = lay(field, "stone", "large");
@@ -420,22 +400,22 @@ describe("addRock", () => {
   });
 
   it("lays nothing once every slot is taken", () => {
-    const field = fieldOf({ cap: 1 });
+    const field = rockField({ cap: 1 });
     lay(field, "stone", "large");
 
     expect(addRock(field, "stone", "large", 36, 20, 0)).toBeNull();
   });
 
   it("lays the same rock from the same seed and draws", () => {
-    const rocks = [fieldOf({ seed: 7 }), fieldOf({ seed: 7 })].map((field) =>
-      lay(field, "ice", "medium", 5, 6, 1),
+    const rocks = [rockField({ seed: 7 }), rockField({ seed: 7 })].map(
+      (field) => lay(field, "ice", "medium", 5, 6, 1),
     );
 
     expect(rocks[0]).toEqual(rocks[1]);
   });
 
   it("throws for a size the rock's kind doesn't come in", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     expect(() => addRock(field, "crystal", "small", 36, 20, 0)).toThrow(
       RangeError,
@@ -445,7 +425,7 @@ describe("addRock", () => {
 
 describe("tuneRockSpeed", () => {
   it("speeds the rocks in flight to a new speed at once", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "large", 36, 20, Math.PI / 3);
     const { vx, vy } = rock;
 
@@ -459,7 +439,7 @@ describe("tuneRockSpeed", () => {
   });
 
   it("speeds them by the change from the speed in use", () => {
-    const field = fieldOf({ rockSpeed: 2 });
+    const field = rockField({ rockSpeed: 2 });
     const rock = lay(field, "stone", "large");
     const { vx } = rock;
 
@@ -471,12 +451,12 @@ describe("tuneRockSpeed", () => {
 
 describe("hitRock", () => {
   it("takes a hit off a rock, which holds and flashes", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "lodestone", "large");
 
     const broke = hitRock(field, rock, 1, 0);
 
-    expect([broke, rock.live, rock.hits, logged(field)]).toEqual([
+    expect([broke, rock.live, rock.hits, kindsLoggedOn(field)]).toEqual([
       false,
       true,
       ROCK_KINDS.lodestone.hits.large - 1,
@@ -485,12 +465,12 @@ describe("hitRock", () => {
   });
 
   it("breaks a rock with its last hit", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "small");
 
     const broke = hitRock(field, rock, 1, 0);
 
-    expect([broke, rock.live, logged(field)]).toEqual([
+    expect([broke, rock.live, kindsLoggedOn(field)]).toEqual([
       true,
       false,
       ["broken", "scored"],
@@ -498,7 +478,7 @@ describe("hitRock", () => {
   });
 
   it("breaks a rock with hits to spare by a blow that breaks", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "iron", "small");
     rock.hits = 3;
 
@@ -506,7 +486,7 @@ describe("hitRock", () => {
   });
 
   it("breaks a rock with hits to spare by a blow that smashes", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "iron", "small");
     rock.hits = 3;
 
@@ -514,21 +494,24 @@ describe("hitRock", () => {
   });
 
   it("takes nothing from a rock that isn't whole", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "small");
     hitRock(field, rock, 1, 0);
 
     const broke = hitRock(field, rock, 1, 0);
 
-    expect([broke, logged(field)]).toEqual([false, ["broken", "scored"]]);
+    expect([broke, kindsLoggedOn(field)]).toEqual([
+      false,
+      ["broken", "scored"],
+    ]);
   });
 
   it("logs a hit at the rock's place, with its kind and size", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "iron", "large", 10, 30), 1, 0);
 
-    expect(eventsOf(field)[0]).toMatchObject({
+    expect(loggedOn(field)[0]).toMatchObject({
       kind: "hit",
       x: 10,
       y: 30,
@@ -538,21 +521,21 @@ describe("hitRock", () => {
   });
 
   it("logs a hit with the slot of the rock that holds it, where it flashes", () => {
-    const field = fieldOf();
+    const field = rockField();
     lay(field, "stone", "large", 30, 30);
     const rock = lay(field, "lodestone", "large", 10, 30);
 
     hitRock(field, rock, 1, 0);
 
-    expect(eventsOf(field)[0]).toMatchObject({ kind: "hit", slot: rock.slot });
+    expect(loggedOn(field)[0]).toMatchObject({ kind: "hit", slot: rock.slot });
   });
 
   it("logs a break with the way the blow came, a share along each axis", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "stone", "small", 10, 30), -3, 4);
 
-    expect(eventsOf(field)[0]).toMatchObject({
+    expect(loggedOn(field)[0]).toMatchObject({
       kind: "broken",
       wayX: -0.6,
       wayY: 0.8,
@@ -560,47 +543,47 @@ describe("hitRock", () => {
   });
 
   it("logs each break with the count it is in its chain", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
     hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0);
 
     expect(
-      eventsOf(field)
+      loggedOn(field)
         .filter((event) => event.kind === "broken")
         .map((event) => event.chain),
     ).toEqual([1, 2]);
   });
 
   it("logs a break past the chain's time as the first of a new one", () => {
-    const field = fieldOf();
+    const field = rockField();
     hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
     field.steps += stepsIn(CHAIN_MS) + 1;
 
     hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0);
 
     expect(
-      eventsOf(field)
+      loggedOn(field)
         .filter((event) => event.kind === "broken")
         .at(-1),
     ).toMatchObject({ chain: 1 });
   });
 
   it("logs a smashed rock's break as counting in no chain", () => {
-    const field = fieldOf();
+    const field = rockField();
     hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
 
     hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0, "smashes");
 
-    expect(eventsOf(field).at(-1)).toMatchObject({ kind: "broken", chain: 0 });
+    expect(loggedOn(field).at(-1)).toMatchObject({ kind: "broken", chain: 0 });
   });
 
   it("logs a break at the rock's place, with its kind and size", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "ice", "small", 10, 30), 1, 0);
 
-    expect(eventsOf(field)[0]).toMatchObject({
+    expect(loggedOn(field)[0]).toMatchObject({
       kind: "broken",
       x: 10,
       y: 30,
@@ -621,41 +604,41 @@ describe("a broken rock's split", () => {
   ])(
     "breaks a %s %s rock into %s %s pieces",
     (kind, size, pieceKind, pieceSize, count) => {
-      const field = fieldOf({ waveKind: "ice" });
+      const field = rockField({ waveKind: "ice" });
 
       hitRock(field, lay(field, kind, size), 1, 0, "breaks");
 
-      expect(wholeOf(field).map((piece) => [piece.kind, piece.size])).toEqual(
-        Array.from({ length: count }, () => [pieceKind, pieceSize]),
-      );
+      expect(
+        wholeRocks(field).map((piece) => [piece.kind, piece.size]),
+      ).toEqual(Array.from({ length: count }, () => [pieceKind, pieceSize]));
     },
   );
 
   it.each(["stone", "ice", "iron", "lodestone"] as const)(
     "breaks a small %s rock into nothing",
     (kind) => {
-      const field = fieldOf();
+      const field = rockField();
 
       hitRock(field, lay(field, kind, "small"), 1, 0, "breaks");
 
-      expect(wholeOf(field)).toEqual([]);
+      expect(wholeRocks(field)).toEqual([]);
     },
   );
 
   it("breaks a large rock that splits into nothing into nothing", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "volatile", "large"), 1, 0);
 
-    expect(wholeOf(field)).toEqual([]);
+    expect(wholeRocks(field)).toEqual([]);
   });
 
   it("sends the pieces from where the rock broke", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "ice", "large", 10, 30), 1, 0);
 
-    expect(wholeOf(field).map((piece) => [piece.x, piece.y])).toEqual([
+    expect(wholeRocks(field).map((piece) => [piece.x, piece.y])).toEqual([
       [10, 30],
       [10, 30],
       [10, 30],
@@ -689,11 +672,11 @@ describe("a broken rock's split", () => {
   });
 
   it("turns three pieces to one side, the other, then the first", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "ice", "large", 36, 20, 1), 0, 0);
 
-    const sides = wholeOf(field).map((piece) =>
+    const sides = wholeRocks(field).map((piece) =>
       Math.sign(degreesOff(1, piece)),
     );
     expect(sides).toEqual([sides[0], -(sides[0] ?? 0), sides[0]]);
@@ -701,9 +684,9 @@ describe("a broken rock's split", () => {
 
   it("flies the pieces at their size's speed, times their kind's", () => {
     const speeds = SEEDS.flatMap((seed) => {
-      const field = fieldOf({ seed });
+      const field = rockField({ seed });
       hitRock(field, lay(field, "ice", "large"), 0, 0);
-      return wholeOf(field).map(speedOf);
+      return wholeRocks(field).map(speedOf);
     });
 
     expect(outside(speeds, ROCK_SPEED.medium, ROCK_KINDS.ice.speed)).toEqual(
@@ -731,14 +714,14 @@ describe("a broken rock's split", () => {
   );
 
   it("splits a rock at the cap into one piece, in its own slot", () => {
-    const field = fieldOf({ cap: 3 });
+    const field = rockField({ cap: 3 });
     const rock = lay(field, "stone", "large");
     lay(field, "iron", "large");
     lay(field, "iron", "large");
 
     hitRock(field, rock, 1, 0);
 
-    expect(wholeOf(field).map((piece) => [piece.kind, piece.size])).toEqual([
+    expect(wholeRocks(field).map((piece) => [piece.kind, piece.size])).toEqual([
       ["stone", "medium"],
       ["iron", "large"],
       ["iron", "large"],
@@ -746,13 +729,13 @@ describe("a broken rock's split", () => {
   });
 
   it("splits a rock into as many pieces as the free slots hold, its own among them", () => {
-    const field = fieldOf({ cap: 3 });
+    const field = rockField({ cap: 3 });
     const rock = lay(field, "ice", "large");
     lay(field, "iron", "large");
 
     hitRock(field, rock, 1, 0);
 
-    expect(wholeOf(field).map((piece) => [piece.kind, piece.size])).toEqual([
+    expect(wholeRocks(field).map((piece) => [piece.kind, piece.size])).toEqual([
       ["ice", "medium"],
       ["iron", "large"],
       ["ice", "medium"],
@@ -760,7 +743,7 @@ describe("a broken rock's split", () => {
   });
 
   it("lays a broken rock's first piece in its own slot, the first free", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "crystal", "large");
 
     hitRock(field, rock, 1, 0);
@@ -773,12 +756,13 @@ describe("a broken rock's split", () => {
   });
 
   it("splits the same way from the same seed", () => {
-    const [first, second] = [fieldOf({ seed: 9 }), fieldOf({ seed: 9 })].map(
-      (field) => {
-        hitRock(field, lay(field, "ice", "large"), 2, 1);
-        return field.rocks;
-      },
-    );
+    const [first, second] = [
+      rockField({ seed: 9 }),
+      rockField({ seed: 9 }),
+    ].map((field) => {
+      hitRock(field, lay(field, "ice", "large"), 2, 1);
+      return field.rocks;
+    });
 
     expect(first).toEqual(second);
   });
@@ -786,7 +770,7 @@ describe("a broken rock's split", () => {
 
 describe("stepRocks", () => {
   it("flies each whole rock along its velocity", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "large", 20, 10, 0.5);
     const { vx, vy } = rock;
 
@@ -799,7 +783,7 @@ describe("stepRocks", () => {
   });
 
   it("scales a rock's flight and turn by the pace", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "large", 20, 10, 0.5);
     const { vx, vy, angle, spin } = rock;
 
@@ -813,7 +797,7 @@ describe("stepRocks", () => {
   });
 
   it("keeps where a rock was a step ago", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "large", 20, 10, 0.5);
     stepFor(field, 5);
     const { x, y } = rock;
@@ -829,7 +813,7 @@ describe("stepRocks", () => {
     ["the bottom", 36, 39.99, Math.PI / 2, 0, -40],
     ["the top", 36, 0.01, -Math.PI / 2, 0, 40],
   ])("wraps a rock across %s edge", (_, x, y, heading, shiftX, shiftY) => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "stone", "small", x, y, heading);
 
     stepFor(field, 1);
@@ -842,7 +826,7 @@ describe("stepRocks", () => {
 
   it("turns a rock by its spin, kept within a turn", () => {
     const angles = SEEDS.map((seed) => {
-      const field = fieldOf({ seed });
+      const field = rockField({ seed });
       const rock = lay(field, "stone", "large");
       stepFor(field, 600);
       return rock.angle;
@@ -852,7 +836,7 @@ describe("stepRocks", () => {
   });
 
   it("leaves a broken rock waiting to go off where it broke", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "volatile", "large", 20, 10, 0.5);
     hitRock(field, rock, 1, 0);
 
@@ -864,14 +848,14 @@ describe("stepRocks", () => {
 
 describe("a rock that blasts", () => {
   it("goes off its beat after it breaks", () => {
-    const field = fieldOf();
+    const field = rockField();
     hitRock(field, lay(field, "volatile", "large"), 1, 0);
 
     expect(blastSteps(field, 40)).toEqual([stepsIn(BLAST.delayMs)]);
   });
 
   it("keeps its slot while it waits to go off", () => {
-    const field = fieldOf({ cap: 1 });
+    const field = rockField({ cap: 1 });
     hitRock(field, lay(field, "volatile", "large"), 1, 0);
     stepFor(field, stepsIn(BLAST.delayMs) - 1);
 
@@ -881,7 +865,7 @@ describe("a rock that blasts", () => {
   });
 
   it("frees its slot as it goes off", () => {
-    const field = fieldOf({ cap: 1 });
+    const field = rockField({ cap: 1 });
     hitRock(field, lay(field, "volatile", "large"), 1, 0);
     stepFor(field, stepsIn(BLAST.delayMs));
 
@@ -891,12 +875,12 @@ describe("a rock that blasts", () => {
   });
 
   it("logs its blast at its place, with its reach", () => {
-    const field = fieldOf();
+    const field = rockField();
     hitRock(field, lay(field, "volatile", "medium", 10, 30), 1, 0);
 
     stepFor(field, stepsIn(BLAST.delayMs));
 
-    expect(eventsOf(field).at(-1)).toMatchObject({
+    expect(loggedOn(field).at(-1)).toMatchObject({
       kind: "blast",
       x: 10,
       y: 30,
@@ -909,7 +893,7 @@ describe("a rock that blasts", () => {
   it.each(["large", "medium"] as const)(
     "hits each whole rock its reach from a %s one touches, and no other",
     (size) => {
-      const field = fieldOf();
+      const field = rockField();
       const touch = BLAST.reach[size] + rockHitRadius("large");
       const volatile = lay(field, "volatile", size, 20, 20);
       const near = lay(field, "lodestone", "large", 20 + touch - SLIVER, 20);
@@ -926,7 +910,7 @@ describe("a rock that blasts", () => {
   );
 
   it("reaches across the wrap", () => {
-    const field = fieldOf();
+    const field = rockField();
     const volatile = lay(field, "volatile", "large", 1, 20);
     const across = lay(field, "lodestone", "large", 71, 20);
     hitRock(field, volatile, 1, 0);
@@ -937,7 +921,7 @@ describe("a rock that blasts", () => {
   });
 
   it("reaches the pieces a hit laid the step before it goes off", () => {
-    const field = fieldOf();
+    const field = rockField();
     const volatile = lay(field, "volatile", "large", 20, 20);
     const stone = lay(field, "stone", "large", 22, 20);
     hitRock(field, volatile, 1, 0);
@@ -946,7 +930,7 @@ describe("a rock that blasts", () => {
 
     stepFor(field, 1, 0);
 
-    expect(wholeOf(field).map((piece) => piece.size)).toEqual([
+    expect(wholeRocks(field).map((piece) => piece.size)).toEqual([
       "small",
       "small",
       "small",
@@ -955,14 +939,14 @@ describe("a rock that blasts", () => {
   });
 
   it("hits the rocks it reaches, not the pieces it breaks them into", () => {
-    const field = fieldOf();
+    const field = rockField();
     const volatile = lay(field, "volatile", "large", 20, 20);
     lay(field, "stone", "large", 22, 20);
     hitRock(field, volatile, 1, 0);
 
     stepFor(field, stepsIn(BLAST.delayMs), 0);
 
-    expect(wholeOf(field).map((piece) => piece.size)).toEqual([
+    expect(wholeRocks(field).map((piece) => piece.size)).toEqual([
       "medium",
       "medium",
     ]);
@@ -980,7 +964,7 @@ describe("a rock that blasts", () => {
   });
 
   it("sets off another, which goes off a beat later", () => {
-    const field = fieldOf();
+    const field = rockField();
     const first = lay(field, "volatile", "large", 20, 20);
     lay(field, "volatile", "large", 24, 20);
     hitRock(field, first, 1, 0);
@@ -992,7 +976,7 @@ describe("a rock that blasts", () => {
   });
 
   it("hits only what its own reach touches, whatever a blast before it reached", () => {
-    const field = fieldOf();
+    const field = rockField();
     const first = lay(field, "volatile", "large", 20, 20);
     lay(field, "volatile", "large", 27, 20);
     lay(field, "lodestone", "large", 14, 20);
@@ -1001,19 +985,19 @@ describe("a rock that blasts", () => {
     stepFor(field, 2 * stepsIn(BLAST.delayMs), 0);
 
     expect(
-      wholeOf(field).map((rock) => [rock.kind, rock.size, rock.hits]),
+      wholeRocks(field).map((rock) => [rock.kind, rock.size, rock.hits]),
     ).toEqual([["lodestone", "large", ROCK_KINDS.lodestone.hits.large - 1]]);
   });
 
   it("holds its slot through its blast, so what it breaks at the cap splits into fewer", () => {
-    const field = fieldOf({ cap: 2 });
+    const field = rockField({ cap: 2 });
     const volatile = lay(field, "volatile", "large", 20, 20);
     lay(field, "stone", "large", 22, 20);
     hitRock(field, volatile, 1, 0);
 
     stepFor(field, stepsIn(BLAST.delayMs), 0);
 
-    expect(wholeOf(field).map((piece) => piece.size)).toEqual(["medium"]);
+    expect(wholeRocks(field).map((piece) => piece.size)).toEqual(["medium"]);
   });
 
   it.each(["nearer first", "farther first"] as const)(
@@ -1023,7 +1007,7 @@ describe("a rock that blasts", () => {
 
       stepFor(field, stepsIn(BLAST.delayMs), 0);
 
-      expect(wholeOf(field).map((piece) => piece.size)).toEqual([
+      expect(wholeRocks(field).map((piece) => piece.size)).toEqual([
         "medium",
         "medium",
       ]);
@@ -1040,7 +1024,7 @@ describe("blasts going off together", () => {
       stepFor(field, stepsIn(BLAST.delayMs), 0);
 
       expect(
-        wholeOf(field)
+        wholeRocks(field)
           .map((piece) => `${piece.kind} ${piece.size}`)
           .sort(),
       ).toEqual(["ice medium", "stone medium"]);
@@ -1050,7 +1034,7 @@ describe("blasts going off together", () => {
 
 describe("a rock that is drawn", () => {
   it("speeds toward the ship by its pull each second", () => {
-    const field = fieldOf({ ship: { x: 40, y: 20 } });
+    const field = rockField({ ship: { x: 40, y: 20 } });
     const rock = lay(field, "lodestone", "large", 20, 20, Math.PI);
     const { vx } = rock;
 
@@ -1068,7 +1052,7 @@ describe("a rock that is drawn", () => {
   ])(
     "speeds toward the ship the shortest way along %s, across the wrap",
     (_, from, heading, ship, [wayX = 0, wayY = 0]) => {
-      const field = fieldOf({ ship });
+      const field = rockField({ ship });
       const rock = lay(field, "lodestone", "large", from.x, from.y, heading);
       const { vx, vy } = rock;
 
@@ -1083,7 +1067,7 @@ describe("a rock that is drawn", () => {
 
   it("turns toward the ship at its size's most speed, times its kind's, and no faster", () => {
     const top = ROCK_SPEED.large.most * ROCK_KINDS.lodestone.speed;
-    const field = fieldOf({ ship: { x: 36, y: 20 } });
+    const field = rockField({ ship: { x: 36, y: 20 } });
     const rock = lay(field, "lodestone", "large", 0, 20, Math.PI / 2);
     rock.vx = 0;
     rock.vy = top;
@@ -1103,7 +1087,7 @@ describe("a rock that is drawn", () => {
 
   it("speeds toward the ship past its most speed, to that at the field's rocks' speed and no faster", () => {
     const most = ROCK_SPEED.large.most * ROCK_KINDS.lodestone.speed;
-    const field = fieldOf({ ship: { x: 36, y: 20 }, rockSpeed: 1.25 });
+    const field = rockField({ ship: { x: 36, y: 20 }, rockSpeed: 1.25 });
     const rock = lay(field, "lodestone", "large", 0, 20, Math.PI / 2);
     rock.vx = 0;
     rock.vy = most;
@@ -1119,7 +1103,7 @@ describe("a rock that is drawn", () => {
 
   it("turns a rock already past its most speed without slowing it", () => {
     const top = ROCK_SPEED.large.most * ROCK_KINDS.lodestone.speed;
-    const field = fieldOf({ ship: { x: 36, y: 20 } });
+    const field = rockField({ ship: { x: 36, y: 20 } });
     const rock = lay(field, "lodestone", "large", 0, 20, Math.PI / 2);
     rock.vx = 0;
     rock.vy = top + 1;
@@ -1143,7 +1127,7 @@ describe("a rock that is drawn", () => {
   });
 
   it("keeps its course while there is no ship", () => {
-    const field = fieldOf();
+    const field = rockField();
     const rock = lay(field, "lodestone", "large", 20, 20, 1);
     const { vx, vy } = rock;
 
@@ -1153,7 +1137,7 @@ describe("a rock that is drawn", () => {
   });
 
   it("keeps its course on the ship's own place", () => {
-    const field = fieldOf({ ship: { x: 20, y: 20 } });
+    const field = rockField({ ship: { x: 20, y: 20 } });
     const rock = lay(field, "lodestone", "large", 20, 20, 1);
     const { vx, vy } = rock;
 
@@ -1163,7 +1147,7 @@ describe("a rock that is drawn", () => {
   });
 
   it("leaves a rock that isn't drawn on its course", () => {
-    const field = fieldOf({ ship: { x: 40, y: 20 } });
+    const field = rockField({ ship: { x: 40, y: 20 } });
     const rock = lay(field, "stone", "large", 20, 20, 1);
     const { vx, vy } = rock;
 
@@ -1175,29 +1159,29 @@ describe("a rock that is drawn", () => {
 
 describe("a rock that rings", () => {
   it("rings as it holds a hit", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "iron", "large"), 1, 0);
 
-    expect(logged(field)).toEqual(["hit", "rung"]);
+    expect(kindsLoggedOn(field)).toEqual(["hit", "rung"]);
   });
 
   it("doesn't ring as it breaks", () => {
-    const field = fieldOf();
+    const field = rockField();
 
     hitRock(field, lay(field, "iron", "small"), 1, 0);
 
-    expect(logged(field)).toEqual(["broken", "scored"]);
+    expect(kindsLoggedOn(field)).toEqual(["broken", "scored"]);
   });
 
   it("logs its ring at its place, with its kind, size and slot", () => {
-    const field = fieldOf();
+    const field = rockField();
     lay(field, "stone", "large", 30, 30);
     const rock = lay(field, "iron", "medium", 10, 30);
 
     hitRock(field, rock, 1, 0);
 
-    expect(eventsOf(field).at(-1)).toMatchObject({
+    expect(loggedOn(field).at(-1)).toMatchObject({
       kind: "rung",
       x: 10,
       y: 30,
@@ -1210,22 +1194,22 @@ describe("a rock that rings", () => {
 
 describe("a rock that gives", () => {
   it("lets a pickup go as it breaks, whatever the chance", () => {
-    const field = fieldOf({ pool: ["spread"] });
+    const field = rockField({ pool: ["spread"] });
 
     hitRock(field, lay(field, "crystal", "medium"), 1, 0);
 
-    expect([logged(field), wholeOf(field).length]).toEqual([
+    expect([kindsLoggedOn(field), wholeRocks(field).length]).toEqual([
       ["broken", "scored", "dropped"],
       ROCK_KINDS.crystal.splits.count,
     ]);
   });
 
   it("lets none go as a blow that smashes breaks it, its pieces flying as ever", () => {
-    const field = fieldOf({ pool: ["spread"] });
+    const field = rockField({ pool: ["spread"] });
 
     hitRock(field, lay(field, "crystal", "medium"), 1, 0, "smashes");
 
-    expect([logged(field), wholeOf(field).length]).toEqual([
+    expect([kindsLoggedOn(field), wholeRocks(field).length]).toEqual([
       ["broken"],
       ROCK_KINDS.crystal.splits.count,
     ]);

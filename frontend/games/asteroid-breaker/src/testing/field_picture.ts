@@ -43,7 +43,10 @@ export interface PictureOptions {
   readonly pickupsAtOnce?: number;
   /** How many strays it sends, none by default. */
   readonly strays?: number;
-  /** How far into the wave its first stray comes, {@link STRAY_FIRST_MS} by default, as on a field of 40 by 40. */
+  /**
+   * How far into the wave its first stray comes, {@link STRAY_FIRST_MS} by
+   * default, as on a field of 40 by 40.
+   */
   readonly strayFirstMs?: number;
   /** The time between its comets, none by default. */
   readonly cometEvery?: Span | null;
@@ -156,7 +159,7 @@ export function shipOf(field: Field): Ship {
 }
 
 /** Returns the field's whole rocks, in their slots' order. */
-export function wholeRocks(field: Field): Rock[] {
+export function wholeRocks(field: Pick<Field, "rocks">): Rock[] {
   return field.rocks.filter((rock) => rock.live);
 }
 
@@ -250,7 +253,7 @@ export function stepTimes(field: Field, steps: number): void {
 }
 
 /** Returns the kinds of every event the field's log still holds, oldest first. */
-export function eventsOf(field: Pick<Field, "events">): FieldEventKind[] {
+export function kindsLoggedOn(field: Pick<Field, "events">): FieldEventKind[] {
   const kinds: FieldEventKind[] = [];
   field.events.forEachSince(0, (event) => kinds.push(event.kind));
   return kinds;
@@ -261,6 +264,14 @@ export function loggedOn(field: Pick<Field, "events">): FieldEvent[] {
   const events: FieldEvent[] = [];
   field.events.forEachSince(0, (event) => events.push({ ...event }));
   return events;
+}
+
+/** Returns how fast a thing on a field flies, in units a second, a rock's at a pace of 1. */
+export function speedOf(thing: {
+  readonly vx: number;
+  readonly vy: number;
+}): number {
+  return Math.hypot(thing.vx, thing.vy);
 }
 
 /** Puts a flying ship on a field at a place, its nose up. */

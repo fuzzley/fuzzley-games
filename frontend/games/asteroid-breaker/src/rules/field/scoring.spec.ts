@@ -2,7 +2,7 @@ import {
   type PictureOptions,
   KEEPER,
   PICTURE_TORUS,
-  eventsOf,
+  kindsLoggedOn,
   fieldFrom,
   loggedOn,
   placeRock,
@@ -324,7 +324,7 @@ describe("a run over", () => {
 
     hitRock(field, onlySmall(field), 0, 0);
 
-    expect([field.score, field.rockPoints, eventsOf(field)]).toEqual([
+    expect([field.score, field.rockPoints, kindsLoggedOn(field)]).toEqual([
       0,
       0,
       ["lost", "broken"],
@@ -474,7 +474,7 @@ describe("the ships points bring", () => {
 
     stepField(field);
 
-    expect([field.crew, field.nextShipAt, eventsOf(field)]).toEqual([
+    expect([field.crew, field.nextShipAt, kindsLoggedOn(field)]).toEqual([
       crew,
       FIRST_SHIP_POINTS + SHIP_POINTS,
       ["broken", "scored"],
