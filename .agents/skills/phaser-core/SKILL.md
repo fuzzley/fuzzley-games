@@ -118,7 +118,9 @@ out of the first download.
   reads it with `insets()`. Chrome that moves without the canvas changing
   size calls the canvas's `refreshInsets()`.
 - **Every scene is a `HostedScene`,** a Phaser scene with a key no other
-  shares, since Phaser throws on a key in use.
+  shares, since Phaser throws on a key in use:
+  `uniqueSceneKey("snake-scene")` numbers the scenes of a prefix as they
+  are built.
 
 ## Input
 
@@ -134,8 +136,14 @@ out of the first download.
 - **A captured key's default is cancelled only on the keyboard's target,**
   pressed there or on anything inside it. The captures are the game's,
   shared by every scene. Capture only the keys the game uses, and ignore a
-  held key and one pressed with Ctrl, Alt or Meta, so the browser's
-  shortcuts still work.
+  held key and one pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
+  `isShortcut()`), so the browser's shortcuts still work.
+- **Let go as the player looks away.** A scene that holds a key or a
+  finger while it is down lets go of it through `onPlayerAway()`, as the
+  window loses the focus, the page is hidden or the focus leaves the
+  keyboard's target for anything outside it, since the key's or the
+  finger's release may never reach it. One look-away may call the listener
+  more than once, so letting go must be safe to repeat.
 - **A button over the board keeps its keys with `fzKeepKeys`,** from
   `@fz/phaser/canvas`. Without it, a key pressed on the button reaches the
   scene too, which acts on Enter or Space besides the button, and Phaser
@@ -167,9 +175,10 @@ follows when it ends, or the game keeps it alive. Phaser destroys a removed
 scene without shutting it down first, so the end is whichever comes first.
 
 - `whenSceneEnds(scene, release)` runs `release` then.
-- `onScaleResize()`, `onContextRestored()` and `onFirstFrame()` subscribe
-  until the scene ends, for the game's scale manager, its renderer and the
-  scene's first frame drawn.
+- `onScaleResize()`, `onContextRestored()`, `onFirstFrame()` and
+  `onPlayerAway()` subscribe until the scene ends, for the game's scale
+  manager, its renderer, the scene's first frame drawn, and the window,
+  the page and the keyboard's target.
 - `bakeTexture()` draws a texture at run time, with a throwaway `Graphics`,
   and draws it again after a lost WebGL context, which Phaser restores only
   for textures it loaded. `bakeAtlas()` does the same for many frames in
@@ -180,8 +189,12 @@ scene without shutting it down first, so the end is whichever comes first.
   size and origin only once it sets the frame again (`setFrame()`, or
   `setTexture()` for a `NineSlice`), and one left on a frame the new bake
   dropped throws as it draws: a scene sets every frame again after a
-  bake. Anything else drawn at run time redraws
-  itself through `onContextRestored()`.
+  bake, as `retakeFrames(scene, key)` has every image and sprite on the
+  texture do, in layers and containers too; a particle emitter reads its
+  frames as it emits and needs nothing. `picturesOf()` encodes the frames
+  that records and lists of names give, as How to play shows them, each
+  time it is called. Anything else drawn at run time redraws itself through
+  `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
   device pixels.
 

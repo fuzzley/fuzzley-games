@@ -31,7 +31,7 @@ Four folders under `src/`, each importing only the layers below it, as
 | ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
 | `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| `src/scene/` | Phaser, `@fz/phaser`'s entries but the canvas, the view and the rules                                                      | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                          | Angular, RxJS, the shell's libraries, the shell                                         |
 | `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import                          |
 
 The shell loads the scene with `import()`, which the fence doesn't see, so
@@ -78,8 +78,10 @@ its seed and its frames, as a game taken up relies on.
   shake and the fade. Its keys, heard through `@fz/phaser/scene`'s
   `onKeyDown()`, and its swipes go back through `command()`.
   `textures.ts` bakes the apple and the crumb through `@fz/phaser`'s
-  `bakeTexture()`, and `@fz/phaser/sound`'s `SpritePlayer` plays the sprite
-  in `sounds/`, which `yarn build:sounds` writes.
+  `bakeTexture()`, again as the squares change size or the palette does,
+  after which `retakeFrames()` has the apple take up its texture anew, and
+  `@fz/phaser/sound`'s `SpritePlayer` plays the sprite in `sounds/`, which
+  `yarn build:sounds` writes.
 - **`src/app/`** — the shell, one folder per feature, as in Minesweeper and
   Sudoku. `app.component` lays out the board, the arrows and the bar, with
   the `<fz-announcer>` the run is announced through; it hands the board the
@@ -147,10 +149,11 @@ its seed and its frames, as a game taken up relies on.
   element, so the keys reach the game only while it has the focus. Phaser
   cancels a captured key's default there, which is why the scene captures
   only the arrows and Space, which would scroll the page, and ignores a held
-  key and one pressed with Ctrl, Alt or Meta. A card's button, Resume or New
-  Game, keeps its keys from the board with `@fz/phaser/canvas`'s
-  `fzKeepKeys`, so it takes Space and Enter itself: Resume hands the board
-  the focus, and the board takes it as New Game's run begins.
+  key and one pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
+  `isShortcut()`), as the arrows do. A card's button, Resume or New Game,
+  keeps its keys from the board with `@fz/phaser/canvas`'s `fzKeepKeys`, so
+  it takes Space and Enter itself: Resume hands the board the focus, and the
+  board takes it as New Game's run begins.
 - **The run waits for the player.** It starts at the first direction, pauses
   when the focus leaves the room, the page is hidden or the screen turns, and
   goes on at once at a direction, Space or P; a run taken up after a reload

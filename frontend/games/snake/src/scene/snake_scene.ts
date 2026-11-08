@@ -1,6 +1,13 @@
+import { isShortcut } from "@fz/core/keys";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
-import { onFirstFrame, onKeyDown, pixelRatioOf } from "@fz/phaser/scene";
+import {
+  onFirstFrame,
+  onKeyDown,
+  pixelRatioOf,
+  retakeFrames,
+  uniqueSceneKey,
+} from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { Input, Scene } from "phaser";
 import { BOARD_SIZE } from "../rules/arena";
@@ -20,7 +27,7 @@ import { EffectsPainter } from "./effects_painter";
 import { SnakePainter } from "./snake_painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
-import { bakeApple, bakeCrumb } from "./textures";
+import { APPLE_TEXTURE, bakeApple, bakeCrumb } from "./textures";
 
 /** What the scene asks of the shell, and tells it. */
 export interface SnakeSceneOptions {
@@ -48,9 +55,6 @@ const CAPTURED_KEYS = "UP,RIGHT,DOWN,LEFT,SPACE";
  * the time the frame took, and turns keys and swipes into commands.
  */
 export class SnakeScene extends Scene {
-  /** How many scenes have been built, which numbers each one's key. */
-  private static built = 0;
-
   /** The key the scene is registered under, which no other shares. */
   readonly key: string;
 
@@ -79,7 +83,7 @@ export class SnakeScene extends Scene {
     private readonly options: SnakeSceneOptions,
     private readonly surroundings: SceneSurroundings,
   ) {
-    const key = `snake-scene-${++SnakeScene.built}`;
+    const key = uniqueSceneKey("snake-scene");
     super(key);
     this.key = key;
   }
@@ -176,11 +180,13 @@ export class SnakeScene extends Scene {
     bakeCrumb(this, this.metrics.square, this.painted);
   }
 
-  /** Bakes the textures again, and has what shows them take them up. */
+  /**
+   * Bakes the textures again, and has the apple take up its texture anew; the
+   * crumbs read theirs as they fly.
+   */
   private rebake(): void {
     this.bake();
-    this.apple.refresh();
-    this.effects.refresh();
+    retakeFrames(this, APPLE_TEXTURE);
   }
 
   /** Stops what the last run left playing, for a new one. */
@@ -234,7 +240,7 @@ export class SnakeScene extends Scene {
    * shortcuts.
    */
   private press(event: KeyboardEvent): void {
-    if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+    if (event.repeat || isShortcut(event)) return;
     const command = commandOfKey(event.code);
     if (command) this.options.command(command);
   }

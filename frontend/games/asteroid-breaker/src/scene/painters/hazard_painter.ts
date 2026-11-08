@@ -37,12 +37,6 @@ export class HazardPainter implements Painter {
     layer.add([...this.comets, ...this.warnings]);
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const comet of this.comets) comet.setFrame(FRAMES.comet);
-    for (const warning of this.warnings) warning.setFrame(FRAMES.warning);
-  }
-
   /**
    * Draws each comet crossing between its last place and its next, and each
    * warned of at its edge.

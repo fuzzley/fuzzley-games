@@ -50,10 +50,11 @@ export class PaddlePainter implements Painter {
     this.refresh({ metrics, palette });
   }
 
-  /** Takes up the frames again, once the atlas has been baked again, and sizes and paints the body and the rim to match. */
+  /**
+   * Sizes the body and the rim at the unit the atlas was baked at, and paints
+   * them in its palette, so they match the ends.
+   */
   refresh({ metrics, palette }: Readonly<Baked>): void {
-    for (const end of this.ends) end.setFrame(FRAMES.paddle);
-    for (const cannon of this.cannons) cannon.setFrame(FRAMES.cannon);
     this.body
       .setSize(1, Math.round(PADDLE_HEIGHT * metrics.unit))
       .setFillStyle(palette.paddle);

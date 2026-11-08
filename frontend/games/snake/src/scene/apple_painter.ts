@@ -16,11 +16,6 @@ export class ApplePainter {
     layer.add(this.image);
   }
 
-  /** Takes up the apple's texture again, once it has been baked again. */
-  refresh(): void {
-    this.image.setTexture(APPLE_TEXTURE);
-  }
-
   /** Puts the apple on its square, or hides it where there is none. */
   place(apple: Square | null, metrics: BoardMetrics): void {
     this.image.setVisible(apple !== null);

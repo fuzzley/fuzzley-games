@@ -65,7 +65,6 @@ import {
   STRAY_DROP,
   atlasFrames,
   deckFrames,
-  mapPictures,
   pickupFrame,
   tagFrame,
 } from "../view/art/art";
@@ -1355,6 +1354,16 @@ describe("the steering", () => {
     expect(shell.lastSteer().thrust).toBe(0);
   });
 
+  it("lets go of every key held as the page hides", async () => {
+    const { shell, run } = await startBoard();
+    run.key("keydown", "ArrowUp");
+
+    run.game.events.emit(Core.Events.HIDDEN);
+    run.advance(16);
+
+    expect(shell.lastSteer().thrust).toBe(0);
+  });
+
   it("goes on with a paused game at a key that flies the ship, once a press", async () => {
     const { shell, run } = await startBoard();
 
@@ -1373,10 +1382,30 @@ describe("the steering", () => {
     expect(shell.commands).toEqual(["pause"]);
   });
 
-  it("leaves the browser its shortcuts", async () => {
+  it.each([
+    ["Ctrl", { ctrlKey: true }],
+    ["Alt", { altKey: true }],
+    ["Meta", { metaKey: true }],
+  ] as const)(
+    "leaves the browser its shortcuts with %s",
+    async (_, modifiers) => {
+      const { shell, run } = await startBoard();
+
+      run.key("keydown", "KeyP", "p", modifiers);
+      run.key("keydown", "ArrowUp", "ArrowUp", modifiers);
+      run.advance(16);
+
+      expect({
+        commands: shell.commands,
+        thrust: shell.lastSteer().thrust,
+      }).toEqual({ commands: [], thrust: 0 });
+    },
+  );
+
+  it("ignores a key the game doesn't use", async () => {
     const { shell, run } = await startBoard();
 
-    run.key("keydown", "KeyP", "p", { ctrlKey: true });
+    run.key("keydown", "KeyQ", "q");
     run.advance(16);
 
     expect(shell.commands).toEqual([]);
@@ -1476,14 +1505,22 @@ describe("baking", () => {
 
   it("encodes How to play's pictures of the atlas as the shell asks for them", async () => {
     const { shell, scene } = await startBoard();
+    const baked = (frame: string): string =>
+      scene.textures.getBase64(ATLAS, frame);
 
     const pictures = shell.askPictures();
 
-    expect(pictures).toEqual(
-      mapPictures(PICTURE_FRAMES, (frame) =>
-        scene.textures.getBase64(ATLAS, frame),
-      ),
-    );
+    expect([
+      pictures.rocks.iron,
+      pictures.pickups.shield,
+      pictures.stray,
+      pictures.comet,
+    ]).toEqual([
+      baked(PICTURE_FRAMES.rocks.iron),
+      baked(PICTURE_FRAMES.pickups.shield),
+      baked(PICTURE_FRAMES.stray),
+      baked(PICTURE_FRAMES.comet),
+    ]);
   });
 
   it("keeps How to play's pictures until it bakes the atlas again", async () => {

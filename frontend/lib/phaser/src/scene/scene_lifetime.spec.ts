@@ -4,6 +4,7 @@ import { type SceneRun, runScene } from "../testing";
 import {
   onContextRestored,
   onFirstFrame,
+  onPlayerAway,
   onScaleResize,
   pixelRatioOf,
   whenSceneEnds,
@@ -121,6 +122,123 @@ describe("onContextRestored", () => {
 
     expect(listener).not.toHaveBeenCalled();
     run.destroy();
+  });
+});
+
+describe("onPlayerAway", () => {
+  let run: SceneRun<BareScene> | null = null;
+  let board: HTMLElement | null = null;
+  let outside: HTMLElement | null = null;
+
+  /**
+   * Runs a bare scene whose keyboard listens on a board of the page, or on
+   * the window, and has it count the times the player looked away.
+   */
+  async function followAway(onBoard = true): Promise<{ away: () => number }> {
+    let looked = 0;
+    board = document.createElement("div");
+    document.body.append(board);
+    const target = onBoard ? board : window;
+    run = await runScene((surroundings) => new BareScene(surroundings), {
+      config: { input: { keyboard: { target } } },
+    });
+    onPlayerAway(run.scene, () => {
+      looked++;
+    });
+    return { away: () => looked };
+  }
+
+  /** Returns a button on the page, outside the board. */
+  function buttonOutside(): HTMLElement {
+    outside = document.createElement("button");
+    document.body.append(outside);
+    return outside;
+  }
+
+  /** Moves the focus off the board, to an element or to nothing. */
+  function leaveBoard(to: Element | null): void {
+    board?.dispatchEvent(
+      new FocusEvent("focusout", { relatedTarget: to, bubbles: true }),
+    );
+  }
+
+  /** Hides the page, as a browser does when its tab is put away. */
+  function hidePage(): void {
+    vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    document.dispatchEvent(new Event("visibilitychange"));
+  }
+
+  afterEach(() => {
+    run?.destroy();
+    run = null;
+    board?.remove();
+    board = null;
+    outside?.remove();
+    outside = null;
+    vi.restoreAllMocks();
+  });
+
+  it("calls the listener as the window loses the focus", async () => {
+    const { away } = await followAway();
+
+    window.dispatchEvent(new Event("blur"));
+
+    expect(away()).toBe(1);
+  });
+
+  it("calls the listener as the page is hidden", async () => {
+    const { away } = await followAway();
+
+    hidePage();
+
+    expect(away()).toBe(1);
+  });
+
+  it("calls the listener as the focus leaves the board for the page", async () => {
+    const { away } = await followAway();
+
+    leaveBoard(buttonOutside());
+
+    expect(away()).toBe(1);
+  });
+
+  it("calls the listener as the focus leaves the board for nothing", async () => {
+    const { away } = await followAway();
+
+    leaveBoard(null);
+
+    expect(away()).toBe(1);
+  });
+
+  it("stays quiet as the focus moves within the board", async () => {
+    const { away } = await followAway();
+    const button = document.createElement("button");
+    board?.append(button);
+
+    leaveBoard(button);
+
+    expect(away()).toBe(0);
+  });
+
+  it("follows the window where the keyboard listens on no element", async () => {
+    const { away } = await followAway(false);
+
+    window.dispatchEvent(new Event("blur"));
+    leaveBoard(null);
+
+    expect(away()).toBe(1);
+  });
+
+  it("stops once the scene has ended", async () => {
+    const { away } = await followAway();
+    run?.game.scene.stop("bare");
+    run?.advance(16);
+
+    window.dispatchEvent(new Event("blur"));
+    hidePage();
+    leaveBoard(null);
+
+    expect(away()).toBe(0);
   });
 });
 

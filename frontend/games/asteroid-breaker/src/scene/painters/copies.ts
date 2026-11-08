@@ -86,11 +86,6 @@ export class Copies {
     }
   }
 
-  /** Takes up each copy's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const image of this.images) image.setFrame(image.frame.name);
-  }
-
   /** Turns each copy to an angle, in radians. */
   setRotation(angle: number): void {
     for (const image of this.images) image.setRotation(angle);

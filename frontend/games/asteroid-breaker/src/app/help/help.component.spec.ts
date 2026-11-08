@@ -2,14 +2,25 @@ import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
-import { PICTURE_FRAMES, type Pictures, mapPictures } from "../../view/art/art";
+import { PICTURE_FRAMES, type Pictures } from "../../view/art/art";
 import { HelpComponent } from "./help.component";
 
-/** Pictures as the scene hands them over, each named for its frame. */
-const PICTURES: Pictures = mapPictures(
-  PICTURE_FRAMES,
-  (frame) => `pictures/${frame}.png`,
-);
+/** Returns a picture as the scene encodes one, holding nothing but a name. */
+function pictureOf(name: string): string {
+  return `data:image/png;base64,${btoa(name)}`;
+}
+
+/**
+ * Pictures as the scene hands them over: the frames' names, but a picture of
+ * its own for each the specs look for, so one shown is the one handed over.
+ */
+const PICTURES: Pictures = {
+  ...PICTURE_FRAMES,
+  rocks: { ...PICTURE_FRAMES.rocks, iron: pictureOf("iron") },
+  pickups: { ...PICTURE_FRAMES.pickups, shield: pictureOf("shield") },
+  stray: pictureOf("stray"),
+  comet: pictureOf("comet"),
+};
 
 describe("HelpComponent", () => {
   it("stays shut until asked to open", async () => {

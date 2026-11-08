@@ -55,13 +55,6 @@ export class FieldPainter implements Painter {
     layers.frame.add(this.frame);
   }
 
-  /** Takes up each speck's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const speck of [...this.specks, ...this.stars]) {
-      speck.setFrame(FRAMES.speck);
-    }
-  }
-
   /** Draws the specks, the constellation and the frame where the metrics put the field, in a palette; again only once one of them changed. */
   draw(context: Readonly<PaintContext>): void {
     const { field, metrics, palette, seed, constellation, zoom } = context;

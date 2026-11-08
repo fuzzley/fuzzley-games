@@ -81,6 +81,11 @@ Each file is an entry point of its own, imported by name, such as
   sprite's sounds, which gathers the sounds a frame's events call for
   (`hear()`) and plays each once (`playEach()`), at the most it rose, in
   the sprite's order.
+- `src/keys.ts`: `isShortcut()`, whether a key was pressed with Ctrl, Alt
+  or Meta held, as the browser's and the system's shortcuts are, which a
+  game leaves to them unless it takes one as its own, in its scene and in
+  its shell alike. It takes the `ShortcutModifiers` a `KeyboardEvent`
+  holds, so it needs no DOM.
 
 Every game but the Solitaire Collection takes some of them, and `@fz/ui`'s
 storage takes `isRecord()`. The Solitaire Collection keeps its own seeded

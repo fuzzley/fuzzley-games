@@ -56,11 +56,6 @@ export class BallPainter implements Painter {
     layer.add([this.embers, ...this.images]);
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const image of this.images) image.setFrame(image.frame.name);
-  }
-
   /**
    * Draws each ball in play between its last place and its next, and hides
    * the rest, leaving embers along each fire ball's way if motion is

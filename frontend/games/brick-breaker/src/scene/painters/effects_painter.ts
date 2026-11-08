@@ -87,12 +87,6 @@ export class EffectsPainter implements Painter {
     });
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const ring of this.rings) ring.setFrame(FRAMES.ring);
-    for (const fade of this.fades) fade.setFrame(fade.frame.name);
-  }
-
   /** Throws a broken brick's shards from its middle, in its color. */
   shatter(x: number, y: number, color: number, metrics: FieldMetrics): void {
     this.shards

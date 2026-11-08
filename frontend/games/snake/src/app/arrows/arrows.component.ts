@@ -1,4 +1,5 @@
 import { Component, inject, output } from "@angular/core";
+import { isShortcut } from "@fz/core/keys";
 import { IconComponent } from "@fz/ui/icon";
 import type { Direction } from "../../rules/geometry";
 import { commandOfKey } from "../../view/controls";
@@ -61,7 +62,7 @@ export class ArrowsComponent {
    */
   protected onKeyDown(event: KeyboardEvent): void {
     if (event.code === "Enter") return;
-    if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+    if (event.repeat || isShortcut(event)) return;
     const command = commandOfKey(event.code);
     if (!command) return;
     event.preventDefault();

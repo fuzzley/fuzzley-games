@@ -1,4 +1,4 @@
-import { Renderer, Scale, type Scene, Scenes } from "phaser";
+import { Core, Renderer, Scale, type Scene, Scenes } from "phaser";
 
 /**
  * Runs `release` once, when the scene shuts down or is destroyed, whichever
@@ -38,6 +38,38 @@ export function onContextRestored(scene: Scene, listener: () => void): void {
   renderer.on(Renderer.Events.RESTORE_WEBGL, listener);
   whenSceneEnds(scene, () => {
     renderer.off(Renderer.Events.RESTORE_WEBGL, listener);
+  });
+}
+
+/**
+ * Calls `listener` whenever the player looks away, until the scene ends: as
+ * the window loses the focus, the page is hidden, or the focus leaves the
+ * element the game's keyboard listens on for anything outside it, so a scene
+ * lets go of a key or a finger it would otherwise hold for good.
+ *
+ * One look-away may call the listener more than once, since leaving the
+ * window takes the focus from the board and then from the window, and
+ * leaving the tab hides the page too, so the listener must be safe to repeat.
+ */
+export function onPlayerAway(scene: Scene, listener: () => void): void {
+  const away = (): void => {
+    listener();
+  };
+  // Phaser types the keyboard's target as anything; a game's is its board.
+  const listened: unknown = scene.game.input.keyboard?.target;
+  const board = listened instanceof HTMLElement ? listened : null;
+  const leave = (event: FocusEvent): void => {
+    const to = event.relatedTarget;
+    if (!(to instanceof Node && board?.contains(to))) away();
+  };
+  const events = scene.game.events;
+  events.on(Core.Events.BLUR, away);
+  events.on(Core.Events.HIDDEN, away);
+  board?.addEventListener("focusout", leave);
+  whenSceneEnds(scene, () => {
+    events.off(Core.Events.BLUR, away);
+    events.off(Core.Events.HIDDEN, away);
+    board?.removeEventListener("focusout", leave);
   });
 }
 

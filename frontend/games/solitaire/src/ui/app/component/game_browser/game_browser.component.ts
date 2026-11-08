@@ -341,7 +341,7 @@ export class GameBrowserComponent {
    * wherever focus is in it, selecting the search so typing replaces it.
    */
   protected onKeydown(event: KeyboardEvent): void {
-    if (!this.browser.isShortcut(event)) return;
+    if (!this.browser.opensBrowser(event)) return;
 
     event.preventDefault();
     this.showingDetail.set(false);

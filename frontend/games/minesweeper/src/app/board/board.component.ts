@@ -7,6 +7,7 @@ import {
   inject,
 } from "@angular/core";
 import { Grid, GridCell, GridRow } from "@angular/aria/grid";
+import { isShortcut } from "@fz/core/keys";
 import { IconComponent } from "@fz/ui/icon";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { describeSquare, type Showing, showing } from "../../rules/describe";
@@ -150,9 +151,7 @@ export class BoardComponent {
    */
   protected onKeydown(event: KeyboardEvent): void {
     const index = squareOf(event);
-    if (index === null || event.ctrlKey || event.metaKey || event.altKey) {
-      return;
-    }
+    if (index === null || isShortcut(event)) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       this.game.reveal(index);

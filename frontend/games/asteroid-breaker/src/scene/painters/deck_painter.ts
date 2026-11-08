@@ -93,11 +93,6 @@ export class DeckPainter implements Painter {
     layer.add([...this.images, this.recharge]);
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const image of this.images) image.setFrame(image.frame.name);
-  }
-
   /** Draws the deck where it lies, as the steering holds it, or nothing where it doesn't show. */
   draw({
     deck,

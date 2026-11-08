@@ -19,11 +19,6 @@ export class GlowPainter implements Painter {
     layer.add([...this.images]);
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const image of this.images) image.setFrame(FRAMES.glow);
-  }
-
   /** Frames each brick the level still needs, as bright as the glow is, or hides the frames while it is dark. */
   draw({ field, metrics, brokeAt, motion }: Readonly<PaintContext>): void {
     const glow = glowAlpha(field, brokeAt, motion);

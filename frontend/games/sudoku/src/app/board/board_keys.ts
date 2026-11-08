@@ -1,3 +1,5 @@
+import { isShortcut } from "@fz/core/keys";
+
 /** Says what a key pressed on a square asks the game to do. */
 export type BoardKey =
   /** Places a digit, or with `note` adds or takes away a note. */
@@ -37,7 +39,7 @@ const ERASE_CODES: ReadonlySet<string> = new Set([
  * labels them.
  */
 export function boardKey(press: KeyPress): BoardKey | null {
-  if (press.ctrlKey || press.metaKey || press.altKey) return null;
+  if (isShortcut(press)) return null;
   const digit = digitOf(press);
   if (digit !== null) return { kind: "digit", digit, note: press.shiftKey };
   if (ERASE_CODES.has(press.code)) return { kind: "erase" };

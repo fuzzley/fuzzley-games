@@ -57,7 +57,7 @@ export interface PaintContext {
 
 /**
  * Draws a part of the field, in the layers it was given, each frame; the
- * scene starts it on each new field and refreshes it after each bake.
+ * scene starts it on each new field.
  */
 export interface Painter {
   /** Draws its part of the field as the frame has it. */
@@ -68,9 +68,4 @@ export interface Painter {
    * none.
    */
   start?(field: FieldView): void;
-  /**
-   * Takes up its frames again, where it draws from the atlas, once the atlas
-   * has been baked again.
-   */
-  refresh?(): void;
 }

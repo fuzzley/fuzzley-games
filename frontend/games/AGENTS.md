@@ -61,9 +61,10 @@ to `frontend/games/`.
   counts in words, points grouped in thousands, a clamp, a lerp, the curves
   a flourish moves by and the next mark on a ladder of points, a clock of
   fixed steps, a count up to a mark, a log of numbered events, a field
-  played by them, a frame's sounds gathered and a record's keys typed as its
-  own, a value checked as one of them or of a list, a record made from them
-  or a copy of some of its entries, rather than keeping copies
+  played by them, a frame's sounds gathered, a key pressed as a shortcut,
+  and a record's keys typed as its own, a value checked as one of them or
+  of a list, a record made from them or a copy of some of its entries,
+  rather than keeping copies
   (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
   import.
 - **Saved games outlive the code.** What a game stores goes through

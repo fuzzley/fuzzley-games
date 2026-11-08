@@ -58,11 +58,6 @@ export class TrailPainter implements Painter {
     );
   }
 
-  /** Takes up each image's frame again, once the atlas has been baked again. */
-  refresh(): void {
-    for (const outline of this.outlines) outline.refresh();
-  }
-
   /**
    * Lays a dash's trail from where it started, the way it went, a share
    * along each axis, its outlines laid as the field steps on from the step
