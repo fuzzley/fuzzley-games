@@ -1,9 +1,10 @@
 {
-  // The Node scripts under tools/, type-checked from their JSDoc. The DOM's
-  // types are for the functions a script runs in a page.
+  // The Node scripts under tools/, and the ESLint and Stylelint configs,
+  // type-checked from their JSDoc. The DOM's types are for the functions a
+  // script runs in a page.
   "extends": "@fz/dev/tsconfig/scripts.json",
   "compilerOptions": {
     "lib": ["es2024", "dom", "dom.iterable"]
   },
-  "include": ["tools/**/*.mjs"]
+  "include": ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"]
 }
