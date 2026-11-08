@@ -345,7 +345,7 @@ export function takenFrame(
   return name;
 }
 
-/** Returns the color a kind of rock's body is drawn in, which its shards take: a crystal's is a stone's, its gem set in it. */
+/** Returns the color a kind of rock's body is drawn in, which its shards and its dust take: a crystal's is a stone's, its gem set in it. */
 export function rockColor(kind: RockKindId, palette: BeltPalette): number {
   return palette.rocks[kind === "crystal" ? "stone" : kind];
 }

@@ -263,7 +263,7 @@ export class EffectsPainter implements Painter {
     this.shards.setParticleTint(color).explode(count, this.at.x, this.at.y);
   }
 
-  /** Spreads a puff of dust from a broken rock's middle, out to its radius, in its ink. */
+  /** Spreads a puff of dust from a broken rock's middle, out to its radius, in a color. */
   puff(x: number, y: number, radius: number, color: number, now: number): void {
     const puff = this.puffs.take();
     play(puff, x, y, now);

@@ -51,6 +51,7 @@ import type {
 } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
+import { rockColor } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
 import { BURST_SHARDS } from "../view/effects/timing";
@@ -326,7 +327,7 @@ export class BeltScene extends Scene {
         this.effects.shatter(
           x,
           y,
-          palette.rocks[rockKindOf(event)],
+          rockColor(rockKindOf(event), palette),
           shardCount(event.serial),
           this.metrics,
           this.zoom(),
@@ -337,7 +338,7 @@ export class BeltScene extends Scene {
           x,
           y,
           ROCK_RADIUS[rockSizeOf(event)],
-          palette.rocks[rockKindOf(event)],
+          rockColor(rockKindOf(event), palette),
           now,
         );
         return;
