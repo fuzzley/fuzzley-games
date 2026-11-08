@@ -736,10 +736,9 @@ workspace's with the others'.
   out, without), `yarn test:watch`, or
   `yarn vitest run --project <project> <path>` for one spec, which leaves
   the floors alone: `pure` for one of the rules, the view, `src/testing/`
-  or `tools/`, `dom` for one of the scene, the shell or
-  `src/testing/belt_board.ts`, and `sim` for a simulation. Without
-  `--project`, Vitest starts every project, Analog's plugin among them,
-  and a spec of the rules takes three times as long.
+  or `tools/`, `dom` for one of the scene or the shell, and `sim` for a
+  simulation. Without `--project`, Vitest starts every project, Analog's
+  plugin among them, and a spec of the rules takes three times as long.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
   among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
   and `phaserGameLayers()` for the fences between the layers and what keeps
@@ -825,8 +824,7 @@ in Node, without the coverage that would triple their time, as the other
 rules specs alone hold the rules to their floor. `pure` runs the other specs
 of the rules, the view, `src/testing/` and the scripts under `tools/` in
 Node too, which has no page, as nothing they test touches one. `dom` runs
-every other spec, the scene's, the shell's and that of
-`src/testing/belt_board.ts`, which runs the scene, in jsdom, after
+every other spec, the scene's and the shell's, in jsdom, after
 `src/test-setup.ts`, which installs `@fz/phaser/testing`'s headless Phaser
 first, so a scene's spec runs real Phaser through `runScene()`, with a fake
 shell over a pictured field. Coverage measures `dom` and `pure` together:
@@ -880,12 +878,15 @@ of its own beside it:
   (`holdEveryLayout()`), which each speed's spec in
   `src/rules/field/every_layout/` calls with its own file, as those do;
   `src/rules/field/spawn.spec.ts` takes its `startOn()` and `nearness()` too.
-- `belt_board.ts` runs the scene for a spec (`startBoard()`) on a
-  `FakeShell` that plays the shell's part, and reads what it draws
-  (`shown()`, `imagesIn()`, `strokesOf()`); `canvases.ts` makes the canvas a
-  board has in a window of a shape, less the bar and the rail at the sizes
-  its spec compiles from the app's stylesheets (`boardOf()`, `viewport()`),
-  for the specs of the layout, the steering and the scene.
+- `belt_board.ts` runs the scene for a spec (`startBoard()`, through
+  `@fz/phaser/testing`'s `runKeyedScene()`) on a `FakeShell` that plays the
+  shell's part, and reads what it draws (`shown()`, `layersOf()`,
+  `humsIn()`), beside what `@fz/phaser/testing` reads any scene with
+  (`imagesIn()`, `strokesOf()`), whose specs are the library's;
+  `canvases.ts` makes the canvas a board has in a window of a shape, less
+  the bar and the rail at the sizes its spec compiles from the app's
+  stylesheets (`boardOf()`), its viewport `@fz/phaser/testing/pure`'s
+  `viewport()`, for the specs of the layout, the steering and the scene.
 - `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
   specs that color the field, and `pilots.ts` reads the pilots an element
   draws (`pilotsIn()`).

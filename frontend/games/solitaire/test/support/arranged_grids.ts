@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { viewport } from "@fz/phaser/testing/pure";
 import {
   type ArrangedLayouts,
   chooseTableLayout,
@@ -34,7 +35,7 @@ import { PHONE_FAN_FIT } from "@/games/common/pile_layouts";
 
 /** Returns a phone screen of a CSS size at a pixel ratio of 3. */
 export function phone(width: number, height: number, insets: Insets): Viewport {
-  return { width: width * 3, height: height * 3, pixelRatio: 3, insets };
+  return viewport(width, height, 3, insets);
 }
 
 /** The bottom bar on an upright phone. */

@@ -1,5 +1,6 @@
 import type { Game } from "phaser";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { FakeResizeObserver } from "../testing/fake_resize_observer";
 import { startGame, stopGame } from "../testing/start_game";
 import {
   type DevicePixelSize,
@@ -563,34 +564,11 @@ describe("ViewportScaler in device pixels", () => {
 });
 
 describe("watchDevicePixels", () => {
-  /** Stands in for a browser's ResizeObserver, recording how it was asked. */
-  class FakeResizeObserver {
-    static latest: FakeResizeObserver | null = null;
-    static acceptsDevicePixelBox = true;
-    options: ResizeObserverOptions | undefined;
-    disconnected = false;
-
-    constructor(readonly callback: ResizeObserverCallback) {
-      FakeResizeObserver.latest = this;
-    }
-
-    observe(_target: Element, options?: ResizeObserverOptions): void {
-      if (options && !FakeResizeObserver.acceptsDevicePixelBox) {
-        throw new TypeError("Unsupported box");
-      }
-      this.options = options;
-    }
-
-    disconnect(): void {
-      this.disconnected = true;
-    }
-
-    /** Reports entries, as the browser does after laying the page out. */
-    report(entry: Partial<ResizeObserverEntry>): void {
-      this.callback(
-        [entry as ResizeObserverEntry],
-        this as unknown as ResizeObserver,
-      );
+  /** Stands in for a browser that can't count the device pixel box, such as Safari. */
+  class BoxlessResizeObserver extends FakeResizeObserver {
+    override observe(target: Element, options?: ResizeObserverOptions): void {
+      if (options) throw new TypeError("Unsupported box");
+      super.observe(target);
     }
   }
 
@@ -601,12 +579,14 @@ describe("watchDevicePixels", () => {
     }
   }
 
-  /** Watches a fake element and returns what it reported. */
-  function watchFakeElement(): {
+  /** Watches a fake element with a fake observer and returns what it reported. */
+  function watchFakeElement(
+    observer: typeof FakeResizeObserver = FakeResizeObserver,
+  ): {
     sizes: (DevicePixelSize | null)[];
     stop: (() => void) | null;
   } {
-    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+    vi.stubGlobal("ResizeObserver", observer);
     vi.stubGlobal("Element", FakeElement);
     const sizes: (DevicePixelSize | null)[] = [];
     const stop = watchDevicePixels(new FakeElement(), (size) => {
@@ -615,10 +595,14 @@ describe("watchDevicePixels", () => {
     return { sizes, stop };
   }
 
+  /** Returns the observer the watcher made last. */
+  function latest(): FakeResizeObserver | undefined {
+    return FakeResizeObserver.made.at(-1);
+  }
+
   afterEach(() => {
     vi.unstubAllGlobals();
-    FakeResizeObserver.latest = null;
-    FakeResizeObserver.acceptsDevicePixelBox = true;
+    FakeResizeObserver.made = [];
   });
 
   it("does not watch a host without elements", () => {
@@ -630,26 +614,25 @@ describe("watchDevicePixels", () => {
   it("asks the browser to count the device pixel box", () => {
     watchFakeElement();
 
-    expect(FakeResizeObserver.latest?.options).toEqual({
-      box: "device-pixel-content-box",
-    });
+    expect([...(latest()?.watched.values() ?? [])]).toEqual([
+      { box: "device-pixel-content-box" },
+    ]);
   });
 
   it("reports the size the browser counted", () => {
     const { sizes } = watchFakeElement();
 
-    FakeResizeObserver.latest?.report({
-      devicePixelContentBoxSize: [{ inlineSize: 1082, blockSize: 2402 }],
-    });
+    latest()?.resized([
+      { devicePixelContentBoxSize: [{ inlineSize: 1082, blockSize: 2402 }] },
+    ]);
 
     expect(sizes).toEqual([{ width: 1082, height: 2402 }]);
   });
 
   it("still reports a resize where the browser has no device pixel box", () => {
-    FakeResizeObserver.acceptsDevicePixelBox = false;
-    const { sizes } = watchFakeElement();
+    const { sizes } = watchFakeElement(BoxlessResizeObserver);
 
-    FakeResizeObserver.latest?.report({});
+    latest()?.resized([{}]);
 
     expect(sizes).toEqual([null]);
   });
@@ -659,6 +642,6 @@ describe("watchDevicePixels", () => {
 
     stop?.();
 
-    expect(FakeResizeObserver.latest?.disconnected).toBe(true);
+    expect(latest()?.watched.size).toBe(0);
   });
 });

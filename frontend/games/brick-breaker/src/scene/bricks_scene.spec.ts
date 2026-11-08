@@ -3,8 +3,16 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
 import { lineWidth } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
-import { type SceneRun, runScene } from "@fz/phaser/testing";
-import { Core, type Game, GameObjects } from "phaser";
+import {
+  type SceneRun,
+  colorsOf,
+  commandsOf,
+  imagesIn,
+  objectsIn,
+  runKeyedScene,
+  strokesOf,
+} from "@fz/phaser/testing";
+import { Core, type Game, type GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks/bricks";
 import { catchCapsule } from "../rules/bricks/capsules";
 import type { Ball } from "../rules/paddle/balls";
@@ -170,51 +178,21 @@ interface Board {
   readonly keys: HTMLElement;
 }
 
-let running: SceneRun<BricksScene> | null = null;
-/** The element the running scene's keyboard listens on. */
-let listening: HTMLElement | null = null;
-
-afterEach(() => {
-  running?.destroy();
-  running = null;
-  listening?.remove();
-  listening = null;
-});
-
-/** Runs the scene for a shell, its first frame drawn, in a game readied first as a spec asks. */
+/**
+ * Runs the scene for a shell, its first frame drawn, in a game readied first
+ * as a spec asks, till the case that runs it finishes.
+ */
 async function startBoard(
   setUp: (shell: FakeShell) => void = () => undefined,
   prepare: (game: Game) => void = () => undefined,
 ): Promise<Board> {
   const shell = new FakeShell();
   setUp(shell);
-  const keys = document.createElement("div");
-  keys.tabIndex = 0;
-  document.body.append(keys);
-  listening = keys;
-  const run = await runScene(makeBricksScene(shell), {
-    config: { input: { keyboard: { target: keys } } },
+  const { run, keys } = await runKeyedScene(makeBricksScene(shell), {
     prepare,
   });
-  running = run;
   run.advance(16);
   return { shell, run, scene: run.scene, keys };
-}
-
-/** Returns how many game objects a scene holds, those in its layers too. */
-function objectsIn(scene: BricksScene): number {
-  const count = (objects: readonly GameObjects.GameObject[]): number =>
-    objects.reduce(
-      (sum, object) =>
-        sum + 1 + (isLayer(object) ? count(object.getChildren()) : 0),
-      0,
-    );
-  return count(scene.children.getChildren());
-}
-
-/** Returns whether a game object is a layer, which holds others. */
-function isLayer(object: GameObjects.GameObject): object is GameObjects.Layer {
-  return object.type === "Layer";
 }
 
 /** Returns what a spec reads of an image: whether it shows, its frame and its place. */
@@ -225,20 +203,6 @@ function placed(image: GameObjects.Image | undefined): object {
     x: image?.x,
     y: image?.y,
   };
-}
-
-/** Returns every image a scene holds, those in its layers too. */
-function imagesIn(scene: BricksScene): GameObjects.Image[] {
-  const walk = (
-    objects: readonly GameObjects.GameObject[],
-  ): GameObjects.GameObject[] =>
-    objects.flatMap((object) =>
-      isLayer(object) ? walk(object.getChildren()) : [object],
-    );
-  return walk(scene.children.getChildren()).filter(
-    (object): object is GameObjects.Image =>
-      object instanceof GameObjects.Image,
-  );
 }
 
 /** Returns where each shard alive is, and how fast it falls. */
@@ -427,7 +391,7 @@ describe("BricksScene", () => {
     it("is painted in the palette, its wall around it", async () => {
       const { scene } = await startBoard();
 
-      expect(scene.field.graphics.commandBuffer).toEqual(
+      expect(colorsOf(scene.field.graphics)).toEqual(
         expect.arrayContaining([LIGHT.field, LIGHT.wall]),
       );
     });
@@ -438,7 +402,7 @@ describe("BricksScene", () => {
       shell.colors = DARK;
       run.advance(16);
 
-      expect(scene.field.graphics.commandBuffer).toEqual(
+      expect(colorsOf(scene.field.graphics)).toEqual(
         expect.arrayContaining([DARK.field, DARK.wall]),
       );
     });
@@ -449,7 +413,7 @@ describe("BricksScene", () => {
       shell.field.net = true;
       run.advance(16);
 
-      expect(scene.field.graphics.commandBuffer).toEqual(
+      expect(colorsOf(scene.field.graphics)).toEqual(
         expect.arrayContaining([LIGHT.capsules.good]),
       );
     });
@@ -461,14 +425,18 @@ describe("BricksScene", () => {
 
       run.advance(16);
 
-      // A fill is its color, its alpha, then the rectangle's command, x, y.
-      const buffer = scene.field.graphics.commandBuffer;
-      const net = buffer.indexOf(LIGHT.capsules.good);
-      expect(buffer[net + 4]).toBe(
-        Math.round(
+      // The net is the rectangle filled after its color is taken up.
+      const commands = commandsOf(scene.field.graphics);
+      const net = commands.findIndex(
+        (command) =>
+          command.kind === "fillStyle" && command.color === LIGHT.capsules.good,
+      );
+      expect(commands[net + 1]).toMatchObject({
+        kind: "fillRect",
+        y: Math.round(
           toCanvasY(tallestMetrics(), paddleTopOf(TALLEST_FIELD) + NET_DEPTH),
         ),
-      );
+      });
     });
   });
 
@@ -1042,7 +1010,7 @@ describe("BricksScene", () => {
 
       run.advance(16);
 
-      expect(scene.tags.rings.commandBuffer).toEqual(
+      expect(colorsOf(scene.tags.rings)).toEqual(
         expect.arrayContaining([LIGHT.wall, LIGHT.capsules.bad]),
       );
     });
@@ -1070,12 +1038,13 @@ describe("BricksScene", () => {
       run.advance(16);
 
       // Half the time left draws half the ring, from its top round to its foot.
-      expect(
-        scene.tags.rings.commandBuffer.some(
-          (value: unknown) =>
-            typeof value === "number" && Math.abs(value - Math.PI / 2) < 1e-9,
-        ),
-      ).toBe(true);
+      expect(strokesOf(scene.tags.rings)).toContainEqual(
+        expect.objectContaining({
+          start: -Math.PI / 2,
+          end: expect.closeTo(Math.PI / 2, 9) as unknown,
+          anticlockwise: false,
+        }),
+      );
     });
 
     it("show none, and no rings, while no effect is in play", async () => {
@@ -1083,7 +1052,7 @@ describe("BricksScene", () => {
 
       expect({
         tags: showing(Object.values(scene.tags.images)),
-        rings: scene.tags.rings.commandBuffer.length,
+        rings: commandsOf(scene.tags.rings).length,
       }).toEqual({ tags: 0, rings: 0 });
     });
   });

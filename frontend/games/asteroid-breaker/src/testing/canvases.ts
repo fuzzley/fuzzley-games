@@ -1,23 +1,9 @@
 import type { Shape } from "@fz/dev/layout";
 import { formFactorAt } from "@fz/game-ui/breakpoints";
-import { type Insets, NO_INSETS } from "@fz/phaser/insets";
+import type { Insets } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
+import { viewport } from "@fz/phaser/testing/pure";
 import { MARGIN_CSS_PX } from "../view/field/field_metrics";
-
-/** Returns a viewport of a CSS size at a pixel ratio, its chrome as given. */
-export function viewport(
-  width: number,
-  height: number,
-  pixelRatio = 1,
-  insets: Insets = NO_INSETS,
-): Viewport {
-  return {
-    width: Math.round(width * pixelRatio),
-    height: Math.round(height * pixelRatio),
-    pixelRatio,
-    insets,
-  };
-}
 
 /** Returns chrome of the same CSS size over each edge. */
 export function chrome(css: number): Insets {

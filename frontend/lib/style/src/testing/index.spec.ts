@@ -8,6 +8,7 @@ import {
   paint,
   paletteRoles,
   rgb,
+  rgbOf,
 } from "./index.ts";
 
 const FIXTURES = path.join(import.meta.dirname, "fixtures");
@@ -90,6 +91,12 @@ describe("rgb", () => {
 
   it("throws on anything but a hex color", () => {
     expect(() => rgb("red")).toThrow("red is no hex color");
+  });
+});
+
+describe("rgbOf", () => {
+  it("reads a color written as a number, 0xrrggbb", () => {
+    expect(rgbOf(0x2f7d4f)).toEqual([47, 125, 79]);
   });
 });
 

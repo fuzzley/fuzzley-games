@@ -1,6 +1,6 @@
 import { type Scene, Sound } from "phaser";
 import type { HostedScene } from "../host";
-import { type SceneRun, runBareScene } from "../testing";
+import { type SceneRun, cacheSounds, runBareScene } from "../testing";
 import { type SoundSprite, SpritePlayer } from "./sprite_player";
 
 /** A sprite of two sounds. */
@@ -14,14 +14,6 @@ const SPRITE: SoundSprite<"ping" | "pong"> = {
   },
   url: "sounds.wav",
 };
-
-/**
- * Puts the sprite in the scene's audio cache, as a load that worked would.
- * The headless game has no audio, so Phaser never queues a load of its own.
- */
-function cacheSprite(scene: Scene): void {
-  scene.cache.audio.add(SPRITE.key, {});
-}
 
 describe("SpritePlayer", () => {
   let run: SceneRun<HostedScene> | null = null;
@@ -51,7 +43,7 @@ describe("SpritePlayer", () => {
   it("plays a sound of the sprite, with its config", async () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
-    cacheSprite(scene);
+    cacheSounds(scene, SPRITE.key);
     player.follow(true);
     const play = vi.spyOn(scene.sound, "playAudioSprite");
 
@@ -63,7 +55,7 @@ describe("SpritePlayer", () => {
   it("plays a sound risen by some cents, for a frame's sounds", async () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
-    cacheSprite(scene);
+    cacheSounds(scene, SPRITE.key);
     player.follow(true);
     const play = vi.spyOn(scene.sound, "playAudioSprite");
     const { playRisen } = player;
@@ -76,7 +68,7 @@ describe("SpritePlayer", () => {
   it("plays nothing risen while the player wants no sound", async () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
-    cacheSprite(scene);
+    cacheSounds(scene, SPRITE.key);
     player.follow(false);
     const play = vi.spyOn(scene.sound, "playAudioSprite");
 
@@ -99,7 +91,7 @@ describe("SpritePlayer", () => {
   it("plays nothing while the player wants no sound", async () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
-    cacheSprite(scene);
+    cacheSounds(scene, SPRITE.key);
     player.follow(false);
     const play = vi.spyOn(scene.sound, "playAudioSprite");
 
@@ -111,7 +103,7 @@ describe("SpritePlayer", () => {
   it("plays nothing before the player has been asked", async () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
-    cacheSprite(scene);
+    cacheSounds(scene, SPRITE.key);
     const play = vi.spyOn(scene.sound, "playAudioSprite");
 
     player.play("ping");
@@ -131,7 +123,7 @@ describe("SpritePlayer", () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
 
-    cacheSprite(scene);
+    cacheSounds(scene, SPRITE.key);
 
     expect(player.loaded).toBe(true);
   });
@@ -177,7 +169,7 @@ describe("SpritePlayer's held sounds", () => {
   }> {
     run = await runBareScene();
     const player = new SpritePlayer(run.scene, SPRITE);
-    cacheSprite(run.scene);
+    cacheSounds(run.scene, SPRITE.key);
     player.follow(true);
     return { scene: run.scene, player };
   }
@@ -286,7 +278,7 @@ describe("SpritePlayer's held sounds", () => {
   it("holds nothing before the player has been asked", async () => {
     run = await runBareScene();
     const player = new SpritePlayer(run.scene, SPRITE);
-    cacheSprite(run.scene);
+    cacheSounds(run.scene, SPRITE.key);
 
     player.hold("ping", true);
 

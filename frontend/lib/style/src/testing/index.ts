@@ -103,6 +103,14 @@ export function rgb(hex: string): Rgb {
 }
 
 /**
+ * Returns the red, green and blue of a color written as a number, `0xrrggbb`,
+ * as a canvas game, such as one drawn with Phaser, takes it.
+ */
+export function rgbOf(color: number): Rgb {
+  return [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff];
+}
+
+/**
  * Returns a color laid over another at an opacity from 0 to 1, as the browser
  * blends it, which is also how `color-mix(in srgb, …)` mixes two colors.
  */

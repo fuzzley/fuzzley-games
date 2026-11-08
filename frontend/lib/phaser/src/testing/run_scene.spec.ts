@@ -509,6 +509,6 @@ describe("runScene", () => {
 
     run.destroy();
 
-    expect(run.scene.sys.settings.status).toBeGreaterThan(5);
+    expect(run.scene.sys.settings.status).toBe(Scenes.DESTROYED);
   });
 });

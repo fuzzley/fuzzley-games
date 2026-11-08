@@ -1,4 +1,3 @@
-import { ErrorHandler } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { readRect } from "@fz/dev/board-page";
@@ -15,15 +14,22 @@ import {
 import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
+  FakeResizeObserver,
   type SceneRun,
+  cacheSounds,
+  collectErrors,
   provideFakePhaserCanvas,
+  resize,
   runScene,
+  watchResizes,
 } from "@fz/phaser/testing";
+import { viewport } from "@fz/phaser/testing/pure";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
-import { cacheSounds, humsIn } from "../../testing/belt_board";
+import { SOUNDS_KEY } from "../../scene/belt_scene";
+import { humsIn } from "../../testing/belt_board";
 import {
   FRAME_MS,
   ROOMY,
@@ -78,58 +84,6 @@ const WIDE_CANVAS: Viewport = { ...CANVAS_1280, width: 2400 };
 const SQUARE = { width: FIELD_SHORT_SIDE, height: FIELD_SHORT_SIDE };
 
 /**
- * Stands in for the browser's `ResizeObserver`, which jsdom lacks: the spec
- * says when what it watches was laid out anew.
- */
-class FakeResizeObserver implements ResizeObserver {
-  /** Every one made since the spec stood them in. */
-  static made: FakeResizeObserver[] = [];
-  readonly watched = new Set<Element>();
-
-  constructor(private readonly callback: ResizeObserverCallback) {
-    FakeResizeObserver.made.push(this);
-  }
-
-  observe(target: Element): void {
-    this.watched.add(target);
-  }
-
-  unobserve(target: Element): void {
-    this.watched.delete(target);
-  }
-
-  disconnect(): void {
-    this.watched.clear();
-  }
-
-  /** Tells it what it watches was laid out anew, if it watches anything. */
-  resized(): void {
-    if (this.watched.size > 0) this.callback([], this);
-  }
-}
-
-/** Stands the fake `ResizeObserver` in for the specs of the describe it is called in. */
-function watchResizes(): void {
-  beforeEach(() => {
-    FakeResizeObserver.made = [];
-    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
-  });
-}
-
-/** Lays the board out at a size in CSS px, as a browser would, and tells what watches it. */
-function resize(board: HTMLElement, width: number, height: number): void {
-  vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
-    new DOMRect(0, 0, width, height),
-  );
-  for (const observer of FakeResizeObserver.made) observer.resized();
-}
-
-/**
  * Returns where the scene lays the first wave's field out on a canvas of a
  * size in CSS px, at a pixel ratio, 1 unless given, inside its insets.
  */
@@ -142,12 +96,7 @@ function fieldOn(
     insets = NO_INSETS,
   }: Partial<Omit<Viewport, "width" | "height">> = {},
 ): CssRect {
-  const canvas = {
-    width: width * pixelRatio,
-    height: height * pixelRatio,
-    pixelRatio,
-    insets,
-  };
+  const canvas = viewport(width, height, pixelRatio, insets);
   return fieldMetrics(canvas, board, fieldShape(canvas, board, SQUARE)).css;
 }
 
@@ -236,27 +185,6 @@ async function startedAt(wave: number): Promise<{
 /** Changes the player's settings, once the board is rendered. */
 function useSettings(change: Partial<Settings>): void {
   TestBed.inject(SettingsService).update(change);
-}
-
-/**
- * Has the app's error handler collect what it is handed, rather than print
- * it, and returns what it collects; called before the board is rendered.
- */
-function collectErrors(): readonly unknown[] {
-  const errors: unknown[] = [];
-  TestBed.configureTestingModule({
-    providers: [
-      {
-        provide: ErrorHandler,
-        useValue: {
-          handleError: (error: unknown) => {
-            errors.push(error);
-          },
-        },
-      },
-    ],
-  });
-  return errors;
 }
 
 describe("BoardComponent", () => {
@@ -962,7 +890,7 @@ describe("BoardComponent", () => {
 
     it("has the scene hum nothing before the ship thrusts", async () => {
       const { run } = await runBoardScene();
-      cacheSounds(run.scene);
+      cacheSounds(run.scene, SOUNDS_KEY);
 
       run.advance(FRAME_MS);
 
@@ -971,7 +899,7 @@ describe("BoardComponent", () => {
 
     it("has the scene hum while the ship thrusts", async () => {
       const { run } = await runBoardScene();
-      cacheSounds(run.scene);
+      cacheSounds(run.scene, SOUNDS_KEY);
 
       run.key("keydown", "ArrowUp", "ArrowUp");
       run.advance(FRAME_MS);
@@ -982,7 +910,7 @@ describe("BoardComponent", () => {
 
     it("has the scene hum no more as the wave pauses, the thrust still held", async () => {
       const { game, run } = await runBoardScene();
-      cacheSounds(run.scene);
+      cacheSounds(run.scene, SOUNDS_KEY);
       run.key("keydown", "ArrowUp", "ArrowUp");
       run.advance(FRAME_MS);
       run.advance(FRAME_MS);

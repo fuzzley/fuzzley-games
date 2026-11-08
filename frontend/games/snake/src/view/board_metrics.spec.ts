@@ -1,21 +1,5 @@
-import { NO_INSETS } from "@fz/phaser/insets";
-import type { Viewport } from "@fz/phaser/layout";
+import { viewport } from "@fz/phaser/testing/pure";
 import { boardMetrics, centerX, centerY } from "./board_metrics";
-
-/** Returns a viewport of a CSS size at a pixel ratio. */
-function viewport(
-  width: number,
-  height: number,
-  pixelRatio: number,
-  insets = NO_INSETS,
-): Viewport {
-  return {
-    width: Math.round(width * pixelRatio),
-    height: Math.round(height * pixelRatio),
-    pixelRatio,
-    insets,
-  };
-}
 
 describe("boardMetrics", () => {
   it.each([

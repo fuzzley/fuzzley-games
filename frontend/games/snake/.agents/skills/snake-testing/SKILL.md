@@ -80,14 +80,16 @@ game through `runScene()`:
 - `FakeShell` plays the shell's part of `SnakeSceneOptions`: it hands the
   scene a frame (`show(run)`), a palette and the motion and sound
   settings, and keeps the times, layouts and commands the scene hands back.
-- `startBoard(setUp, insets)` runs the scene for a fake shell, with Phaser's
-  keyboard on an element of its own, and draws the first frame;
-  `stillness` sets the shell up for a player who prefers less motion.
-  `afterEach` destroys the game.
+- `startBoard(setUp, insets)` runs the scene for a fake shell through
+  `@fz/phaser/testing`'s `runKeyedScene()`, with Phaser's keyboard on an
+  element of its own, and draws the first frame; `stillness` sets the
+  shell up for a player who prefers less motion. The game is destroyed and
+  the element removed as the test finishes.
 - Drive it with the run's `advance(ms)`, `key()` and the pointer, and
-  assert on the game objects (the grid's size and colors, the apple's
-  place and scale, the emitter's particles, the camera's effects) or on
-  what the shell kept. A headless game draws no pixels and plays no sound.
+  assert on the game objects (the grid's size and colors, the snake's
+  colors, read with `@fz/phaser/testing`'s `colorsOf()`, the apple's place
+  and scale, the emitter's particles, the camera's effects) or on what the
+  shell kept. A headless game draws no pixels and plays no sound.
 - `START`, `EATEN` and `CRASHED` are runs at the points a spec needs, built
   with the rules' own `turn()` and `step()`.
 
@@ -98,7 +100,10 @@ game through `runScene()`:
   keeps the hosts, to settle a scene ready or failed. The board's spec also
   runs the scene the board hands its canvas for real, through `runScene()`,
   to check the two are wired: the layout it publishes, the keys and the
-  time.
+  time. A spec that fails the scene on purpose has the app's
+  `ErrorHandler` collect what the canvas hands it (`@fz/phaser/testing`'s
+  `collectErrors()`), and asserts on that, so the run prints no error it
+  expects.
 - `GameService` runs on the time it is given: `game.tick(ms)`, with
   `stepMs(speed, eaten)` for one step. `playToTheEnd(game)`,
   `endedGame(direction)` and `wonGame()` (`src/testing/play.ts`) play a

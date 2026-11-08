@@ -1,10 +1,10 @@
 import path from "node:path";
 import { THEMES } from "@fz/style/themes";
 import {
-  type Rgb,
   compileStylesheet,
   contrast,
   paletteRoles,
+  rgbOf,
 } from "@fz/style/testing";
 import { colorNumber } from "@fz/phaser/color";
 import { beltPalette } from "./palette";
@@ -13,11 +13,6 @@ const GLOBAL = path.join(import.meta.dirname, "../../app/styles/global.scss");
 
 /** The contrast a graphic keeps against what it is drawn on, as WCAG asks of graphics. */
 const GRAPHIC = 3;
-
-/** Returns a color Phaser takes as its red, green and blue. */
-function rgbOf(color: number): Rgb {
-  return [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff];
-}
 
 /** Returns the contrast between two colors Phaser takes. */
 function between(one: number, other: number): number {

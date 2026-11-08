@@ -1,7 +1,8 @@
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
 import type { Viewport } from "@fz/phaser/layout";
+import { viewport } from "@fz/phaser/testing/pure";
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "../../rules/tuning";
-import { boardOf, chrome, viewport } from "../../testing/canvases";
+import { boardOf, chrome } from "../../testing/canvases";
 import {
   type BoardSetting,
   DECK_HEIGHT_CSS_PX,

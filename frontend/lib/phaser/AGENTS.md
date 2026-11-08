@@ -115,16 +115,47 @@ take the pure ones.
   `runScene()` runs a scene in a WebGL game on them whose frames, clock,
   keys, pointer, context and served files a spec drives, and
   `runBareScene()` one that does nothing of its own, to make game objects
-  in. `pngOfSize()` is an image to serve. `provideFakePhaserCanvas()`
-  gives an app's shell specs a canvas that loads no Phaser, whose hosts
-  `FakePhaserCanvas` keeps, to settle each scene they were shown.
+  in. `runKeyedScene()` runs one as a board shows it, Phaser's keyboard
+  listening on an element of the page that takes the focus, and lets go of
+  both once the test that ran it finishes; `cacheSounds()` puts a sound
+  sprite in a scene's audio cache, as a load that worked would, which the
+  headless game never does. What a scene drew is read back:
+  `commandsOf()` reads a `Graphics`'s command buffer, by Phaser's own
+  numbers for its commands, which its spec pins against Phaser, into
+  commands by name, `strokesOf()` the arcs it strokes, as WebGL draws
+  them, each in the width set as it is drawn and the color set as its path
+  is stroked, refusing one stroked in a gradient no one color describes,
+  and `colorsOf()` the colors it fills and strokes in; `objectsIn()`
+  counts a scene's game objects and `imagesIn()` finds its images, each
+  looking into its layers, however deep.
+  `pngOfSize()` is an image to serve. `provideFakePhaserCanvas()` gives an
+  app's shell specs a canvas that loads no Phaser, whose hosts
+  `FakePhaserCanvas` keeps, to settle each scene they were shown;
+  `collectErrors()` gives them an `ErrorHandler` that keeps what it is
+  handed rather than printing it, for a spec that fails a scene on purpose
+  to read; and `FakeResizeObserver`, which `watchResizes()` stands in for
+  jsdom's missing one through a describe, is told by `resize()` that an
+  element was laid out at a size. `src/testing/pure/`, imported as
+  `@fz/phaser/testing/pure`, holds what a game's specs in Node take, which
+  can't load Phaser: `viewport()`, a canvas's `Viewport` from a CSS size, a
+  pixel ratio and its chrome.
 
 ## Rules
 
 - **Imports go one way.** The library imports Phaser, Angular and
-  `@fz/style`, never a game or the site.
+  `@fz/style`, never a game or the site; its testing entry imports Vitest
+  too, whose hooks and stubs `runKeyedScene()`, `watchResizes()` and
+  `resize()` use, and which `package.json` declares an optional peer, as
+  `@fz/dev`'s does.
 - **The pure entries import nothing but each other,** as ESLint checks, so
-  a game's Phaser-free code can take them.
+  a game's Phaser-free code can take them; and `src/testing/pure/` nothing
+  but them, so a spec in Node can take it.
+- **`src/testing/` imports Phaser by type alone,** and the host, the
+  scene helpers and the sound player, which load it, as ESLint checks,
+  loading Phaser with `import()` where it needs a class, and tells a game
+  object by its `type`, never by `instanceof`, since a test setup imports
+  it before `installHeadlessPhaser()` has given Phaser the page it needs
+  to load.
 - **The host, the scene helpers and the sound player know no framework,**
   as ESLint checks, so a scene runs the same in any app, and in a spec.
 - **Only the canvas makes a host,** and it imports `host` with `import()`:
