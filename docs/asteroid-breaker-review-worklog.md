@@ -1290,3 +1290,38 @@ And after this step, at the points' commit, after 11a → after 11b:
 The chain's sheet, rendered once a frame of scores, and Phaser's resize of the
 canvas, and `@fz/phaser`'s blank atlas in a bake, are what is left; the last
 goes with `phaser-lifts`.
+
+### Step 13: QA of the branch
+
+`yarn verify` passes, in 2 min 35 s, and `yarn check:layout` holds every
+game at each shape and turn. Played in headed Chrome on the site's
+production build, Asteroid Breaker passes all nine checks and Brick Breaker
+plays as before, with no error or warning in either console:
+
+- **The waves:** wave 1 and, after a clear, wave 2 wait in "ready" for a
+  move, and a crystal breaks in its body's ink, no violet left in the
+  frames after it.
+- **The points:** labels rise and fade as plain outlined text, sharp at 1×
+  and at 2560×1440.
+- **The cards:** Paused, Cleared, Ended and, with the CPU throttled 20× on
+  slow 3G, Still loading show, and the focus stays on the board through
+  every card and dialog.
+- **The rest:** How to play shows its 17 pictures; the debug menu shows
+  with `?debug` and not without; the haptics toggle, and buzz `[80]` for a
+  ship lost and `[30, 60, 30]` for a wave cleared; the field lays out again
+  at each size, with the deck on a phone; a reload takes the run up paused;
+  and a run lost shows its result and the Ended card.
+
+Seen and left, none from this branch:
+
+- A key pressed and released within one frame doesn't start a waiting wave,
+  since the first move is read from what is held at a frame; a player's
+  press lasts longer.
+- Two labels clamped to the same spot at the field's edge overlap.
+- On a slow load the Ready card shows over the placeholder until Still
+  loading takes its place at 8 s.
+- The Cleared tally reads "No ship lost 0" in a wave a ship was lost in.
+- Both boards read the pixel ratio once, which finding 19's
+  `watchCanvasViewport()` answers on `phaser-lifts`.
+- `yarn verify` prints Node's warning that `localStorage` needs
+  `--localstorage-file`, from the Solitaire Collection's test setup.
