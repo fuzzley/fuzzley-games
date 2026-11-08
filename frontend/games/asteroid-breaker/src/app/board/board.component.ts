@@ -28,8 +28,8 @@ import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art/art";
 import {
   type BoardSetting,
+  type FieldLayout,
   type PixelRect,
-  deckLayout,
   fieldMetrics,
   fieldShape,
 } from "../../view/field/field_metrics";
@@ -136,12 +136,12 @@ export class BoardComponent {
   protected readonly inPlay = computed(() => this.game.outcome() === "playing");
 
   /** How the scene last laid the field and the deck out, or null before it has. */
-  protected readonly laid = signal<Laid | null>(null);
+  protected readonly laid = signal<FieldLayout | null>(null);
 
   /** The field's rectangle, for the layout check: x, y, width and height. */
   protected readonly fieldRect = computed(() => {
-    const field = this.laid()?.field;
-    return field ? rectWords(field) : null;
+    const laid = this.laid();
+    return laid ? rectWords(laid.metrics.css) : null;
   });
 
   /**
@@ -149,8 +149,10 @@ export class BoardComponent {
    * the field's rectangle is.
    */
   protected readonly roomRect = computed(() => {
-    const room = this.laid()?.room;
-    return room ? rectWords(room) : null;
+    const laid = this.laid();
+    return laid
+      ? rectWords(inCss(laid.metrics.room, laid.viewport.pixelRatio))
+      : null;
   });
 
   /**
@@ -159,10 +161,11 @@ export class BoardComponent {
    * or null where the deck doesn't show.
    */
   protected readonly deckZones = computed(() => {
-    const deck = this.laid()?.deck;
-    return deck
-      ? `stick ${rectWords(deck.stick)}, buttons ${rectWords(deck.buttons)}`
-      : null;
+    const laid = this.laid();
+    if (!laid?.deck) return null;
+    const words = (zone: PixelRect): string =>
+      rectWords(inCss(zone, laid.viewport.pixelRatio));
+    return `stick ${words(laid.deck.stick)}, buttons ${words(laid.deck.buttons)}`;
   });
 
   /**
@@ -172,7 +175,7 @@ export class BoardComponent {
    * stylesheet fills the board.
    */
   protected readonly fieldStyle = computed(() => {
-    const rect = this.laid()?.field ?? this.placeholderField();
+    const rect = this.laid()?.metrics.css ?? this.placeholderField();
     return rect && rectStyle(rect);
   });
 
@@ -202,20 +205,9 @@ export class BoardComponent {
     sound: () => this.settings().sound,
     thrusting: () => this.game.thrusting(),
     board: () => this.board(),
-    onLayout: (viewport, field) => {
-      const board = this.board();
-      // The shape the scene laid out, before the room reshapes the field.
-      const { torus } = this.game.frame().field;
-      const css = (rect: PixelRect): CssRect =>
-        inCss(rect, viewport.pixelRatio);
-      const deck = deckLayout(viewport, board, torus);
-      this.laid.set({
-        field,
-        room: css(fieldMetrics(viewport, board, torus).room),
-        torus,
-        deck: deck && { stick: css(deck.stick), buttons: css(deck.buttons) },
-      });
-      this.game.setRoom(viewport, board);
+    onLayout: (layout) => {
+      this.laid.set(layout);
+      this.game.setRoom(layout.viewport, this.board());
     },
     command: (command) => {
       this.game.command(command);
@@ -385,27 +377,6 @@ export class BoardComponent {
       },
     };
   }
-}
-
-/**
- * Says how the scene last laid the field and the deck out, its rectangles in
- * CSS pixels on the canvas.
- */
-interface Laid {
-  /** Where the field lies, inside its frame. */
-  readonly field: CssRect;
-  /** The room the field fills, inside its frame. */
-  readonly room: CssRect;
-  /** The field's shape, in its units. */
-  readonly torus: Torus;
-  /** Where the deck's zones lie, or null where the deck doesn't show. */
-  readonly deck: DeckZones | null;
-}
-
-/** Says where the deck's zones lie, in CSS pixels on the canvas. */
-interface DeckZones {
-  readonly stick: CssRect;
-  readonly buttons: CssRect;
 }
 
 /** Returns a rectangle on the canvas in CSS pixels, given in device pixels at a pixel ratio. */

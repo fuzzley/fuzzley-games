@@ -1,11 +1,12 @@
 import type { Viewport } from "@fz/phaser/layout";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
-import type { Place } from "../../rules/torus";
+import type { Place, Torus } from "../../rules/torus";
 import { viewport } from "../../testing/canvases";
 import { type Circle, type Deck, deckOf } from "./deck";
 import {
   type BoardSetting,
   type FieldMetrics,
+  deckLayout,
   fieldMetrics,
   fieldShape,
   toCanvas,
@@ -35,11 +36,18 @@ interface Layout {
 /** A field of the narrowest shape. */
 const SQUARE = { width: FIELD_SHORT_SIDE, height: FIELD_SHORT_SIDE };
 
+/** Returns where the deck's parts lie on a canvas, around a field of a shape. */
+function deckOn(canvas: Viewport, board: BoardSetting, torus: Torus): Deck {
+  const zones = deckLayout(canvas, board, torus);
+  if (!zones) throw new Error("No deck shows.");
+  return deckOf(zones, board, canvas.pixelRatio);
+}
+
 /** Returns where the field and the deck lie on a canvas. */
 function layoutOf(canvas: Viewport = CANVAS, board = BOARD): Layout {
   const torus = fieldShape(canvas, board, SQUARE);
-  const deck = deckOf(canvas, board, torus);
-  if (!deck?.fire) throw new Error("No deck with Fire shows.");
+  const deck = deckOn(canvas, board, torus);
+  if (!deck.fire) throw new Error("No deck with Fire shows.");
   return {
     metrics: fieldMetrics(canvas, board, torus),
     deck,
@@ -632,7 +640,7 @@ describe("Steering's buttons", () => {
     const steering = steeringOf(layout);
     steering.pointerDown(finger(2, layout.fire));
     const byItself = { ...BOARD, fireByItself: true };
-    const deck = deckOf(CANVAS, byItself, fieldShape(CANVAS, byItself, SQUARE));
+    const deck = deckOn(CANVAS, byItself, fieldShape(CANVAS, byItself, SQUARE));
 
     steering.measure(layout.metrics, deck, byItself);
 

@@ -1,10 +1,9 @@
 import { clamp } from "@fz/core/math";
-import type { Viewport } from "@fz/phaser/layout";
-import type { Place, Torus } from "../../rules/torus";
-import {
-  type BoardSetting,
-  type PixelRect,
-  deckLayout,
+import type { Place } from "../../rules/torus";
+import type {
+  BoardSetting,
+  DeckLayout,
+  PixelRect,
 } from "../field/field_metrics";
 import { STICK_RADIUS_CSS_PX } from "./stick";
 
@@ -102,29 +101,26 @@ const BESIDE: Spots = {
 };
 
 /**
- * Returns where the deck's parts lie on a canvas around a field of a
- * shape, or null where it doesn't show: the stick at rest low in its zone,
+ * Returns where the deck's parts lie in the zones `deckLayout()` laid out
+ * for this board, at their pixel ratio: the stick at rest low in its zone,
  * and Fire low in the buttons' with Dash above it, or Dash in Fire's place
  * where fire is held by itself; each mirrored with the stick on the right,
  * and kept within its zone.
  */
 export function deckOf(
-  viewport: Viewport,
+  zones: DeckLayout,
   board: BoardSetting,
-  torus: Torus,
-): Deck | null {
-  const layout = deckLayout(viewport, board, torus);
-  if (!layout) return null;
-  const { pixelRatio } = viewport;
-  const spots = layout.under ? UNDER : BESIDE;
+  pixelRatio: number,
+): Deck {
+  const spots = zones.under ? UNDER : BESIDE;
   const mirror = board.stickOnRight ? -1 : 1;
   // Each zone has one side at the stage's: the left one's left, and the
   // right one's right.
   const stickSide = board.stickOnRight ? "right" : "left";
   const buttonsSide = board.stickOnRight ? "left" : "right";
   const fire = circleIn(
-    layout.buttons,
-    spotIn(layout.buttons, spots.fire, mirror),
+    zones.buttons,
+    spotIn(zones.buttons, spots.fire, mirror),
     FIRE_RADIUS_CSS_PX,
     pixelRatio,
     buttonsSide,
@@ -136,17 +132,17 @@ export function deckOf(
         y: fire.y + spots.dashFromFireCss.y * pixelRatio,
       };
   return {
-    stickZone: layout.stick,
+    stickZone: zones.stick,
     stick: circleIn(
-      layout.stick,
-      spotIn(layout.stick, spots.stick, mirror),
+      zones.stick,
+      spotIn(zones.stick, spots.stick, mirror),
       STICK_RADIUS_CSS_PX,
       pixelRatio,
       stickSide,
     ),
     fire: board.fireByItself ? null : fire,
     dash: circleIn(
-      layout.buttons,
+      zones.buttons,
       dashAt,
       DASH_RADIUS_CSS_PX,
       pixelRatio,

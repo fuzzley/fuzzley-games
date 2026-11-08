@@ -265,8 +265,9 @@ take for the layer.
   it fills (`fieldRoom()`), where it lies (`fieldMetrics()`), a unit
   whatever fraction of a device pixel its room makes, its edges on whole
   device pixels, where the deck's zones lie (`deckLayout()`), and
-  `toCanvas()` and `toField()` between the two. `frame.ts` is what the scene
-  reads: `FieldView`, the field it can't change, `EventsView` and
+  `toCanvas()` and `toField()` between the two; and how the scene laid them
+  out, which it hands the shell (`FieldLayout`). `frame.ts` is what the
+  scene reads: `FieldView`, the field it can't change, `EventsView` and
   `FieldFrame`, and where a thing is drawn between its last place and its
   next (`between()`), the shortest way across the wrap for one that wraps
   (`wrappedBetween()`), its turn (`angleBetween()`), and where the ship is
@@ -298,8 +299,8 @@ take for the layer.
   `steering.ts` the `Steering` that turns the keys, the mouse and up to
   three fingers (`MOST_FINGERS`) into each frame's `Steer`; `stick.ts` the
   deck's `Stick`, which follows the one finger on it; and `deck.ts` where
-  the stick, Fire and Dash lie (`deckOf()`) and which button a finger
-  presses (`buttonAt()`).
+  the stick, Fire and Dash lie in the deck's zones (`deckOf()`) and which
+  button a finger presses (`buttonAt()`).
 - **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
   the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
   game's own for each kind of rock and for eight pilots, in light palettes
@@ -427,7 +428,8 @@ take for the layer.
     `fzKeepKeys`); Resume and Next wave hand the board back the focus
     (`handBack`). It measures its own size and hands the game the room the
     field is laid out in (`GameService.setRoom()`), and publishes, for the
-    layout check, where the scene laid the field (`data-field`), the room it
+    layout check, what the scene hands it as it lays the field out
+    (`FieldLayout`): where it laid the field (`data-field`), the room it
     fills (`data-room`) and the deck's zones (`data-deck`). `fieldPalette()`
     colors the field from `ThemeService`'s roles and `mode`. The board asks
     the scene for How to play's pictures as How to play opens (`pictures`),

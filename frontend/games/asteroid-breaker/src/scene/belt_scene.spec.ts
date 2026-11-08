@@ -82,7 +82,11 @@ import {
   PULSE_LEAST,
   breathScale,
 } from "../view/effects/flourish";
-import type { BoardSetting } from "../view/field/field_metrics";
+import {
+  type BoardSetting,
+  type DeckLayout,
+  deckLayout,
+} from "../view/field/field_metrics";
 import { LAYERS, LAYER_CAMERAS } from "../view/field/layers";
 import {
   CONSTELLATION_SIZE,
@@ -933,15 +937,19 @@ describe("the deck", () => {
     shell.setting = WITH_DECK;
   }
 
+  /** The spec's canvas, as the scene measures it. */
+  const MEASURED = viewport(CANVAS.width, CANVAS.height);
+
+  /** Returns where the deck's zones lie on the spec's canvas, as the scene lays them out. */
+  function zonesFor(shell: FakeShell): DeckLayout {
+    const zones = deckLayout(MEASURED, shell.setting, shell.field.torus);
+    if (!zones) throw new Error("The board shows no deck.");
+    return zones;
+  }
+
   /** Returns where the deck's parts lie on the spec's canvas, as the scene lays them out. */
   function deckFor(shell: FakeShell): Deck {
-    const deck = deckOf(
-      viewport(CANVAS.width, CANVAS.height),
-      shell.setting,
-      shell.field.torus,
-    );
-    if (!deck) throw new Error("The board shows no deck.");
-    return deck;
+    return deckOf(zonesFor(shell), shell.setting, MEASURED.pixelRatio);
   }
 
   /**
@@ -955,6 +963,12 @@ describe("the deck", () => {
       ? { x: image.x, y: image.y, tint: image.tintTopLeft, alpha: image.alpha }
       : null;
   }
+
+  it("tells the shell where the deck's zones lie", async () => {
+    const { shell } = await startBoard(withDeck);
+
+    expect(shell.layouts.at(-1)?.deck).toEqual(zonesFor(shell));
+  });
 
   it("draws nothing on a board with no deck", async () => {
     const { scene } = await startBoard();
@@ -1548,8 +1562,10 @@ describe("baking", () => {
       field: [metrics.x, metrics.y, metrics.width, metrics.height],
       deck: [WIDER.width, WIDER.height],
       told: {
-        canvas: viewport(WIDER.width, WIDER.height),
-        field: metrics.css,
+        viewport: viewport(WIDER.width, WIDER.height),
+        torus: shell.field.torus,
+        metrics,
+        deck: null,
       },
     });
   });
@@ -1563,9 +1579,9 @@ describe("baking", () => {
     const metrics = metricsOf(shell);
     expect([
       shell.layouts.length,
-      shell.layouts.at(-1)?.field,
+      shell.layouts.at(-1)?.metrics,
       scene.cameras.main.x,
-    ]).toEqual([2, metrics.css, metrics.x]);
+    ]).toEqual([2, metrics, metrics.x]);
   });
 });
 
@@ -1597,7 +1613,11 @@ describe("a new field", () => {
 
     run.advance(16);
 
-    expect(shell.layouts.at(-1)?.field).toEqual(metricsOf(shell).css);
+    const told = shell.layouts.at(-1);
+    expect({ torus: told?.torus, metrics: told?.metrics }).toEqual({
+      torus,
+      metrics: metricsOf(shell),
+    });
   });
 
   it("keeps the layout for a field of the last's size", async () => {
