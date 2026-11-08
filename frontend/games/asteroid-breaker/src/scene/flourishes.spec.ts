@@ -1,6 +1,6 @@
 import { cssHex } from "@fz/phaser/color";
 import type { SceneRun } from "@fz/phaser/testing";
-import { type GameObjects, TintModes } from "phaser";
+import { GameObjects, Textures, TintModes } from "phaser";
 import type { Field } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../rules/tuning";
@@ -8,12 +8,14 @@ import { ART_PALETTE } from "../testing/art_frames";
 import {
   DARK,
   MIDDLE,
+  SHELL_FONT,
   WIDER,
   type FakeShell,
   layersOf,
   metricsOf,
   objectsIn,
   onCanvas,
+  pointsZoomOf,
   scrolledBy,
   shardTints,
   shownAt,
@@ -32,6 +34,15 @@ import {
   shipOf,
 } from "../testing/field_picture";
 import { FLOURISH } from "../view/art/art";
+import {
+  PEN_STEPS,
+  POINTS_TEXT,
+  type PointsLettering,
+  layOutPoints,
+  letteringUnit,
+  packPoints,
+  pointsLayout,
+} from "../view/art/points_art";
 import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
 import { rockFrame } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
@@ -40,6 +51,7 @@ import {
   BAIL_OUT_SPEED,
   FLASH_MOST,
   LOST_RING_REACH,
+  MOST_POINTS_CHARACTERS,
   SPARK_REACH,
   shardCount,
   spread,
@@ -66,7 +78,9 @@ import {
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
 import { MOST_EXHAUST } from "./painters/exhaust_painter";
+import { POINTS_SHEET, type Scored } from "./painters/points_painter";
 import { RING_WIDTH } from "./painters/ring_painter";
+import { POINTS_ATLAS } from "./points_atlas";
 
 /** Returns the rock in a field's first slot, the keeper's large stone. */
 function keeperOf(field: Field): Rock {
@@ -122,9 +136,11 @@ function sparksOf(scene: BeltScene): readonly GameObjects.Image[] {
   );
 }
 
-/** Returns the points' labels. */
-function labelsOf(scene: BeltScene): readonly GameObjects.Text[] {
-  return scene.kit.points.scored.all.map(({ label }) => label);
+/** Returns what each label of points that shows reads. */
+function pointsShown(scene: BeltScene): readonly string[] {
+  return scene.kit.points.scored.all
+    .filter(({ image }) => image.visible)
+    .map(({ label }) => label);
 }
 
 /** Returns how fast each shard alive flies. */
@@ -236,7 +252,7 @@ describe("the events", () => {
 
     run.advance(48);
 
-    expect(shownCount(labelsOf(scene))).toBe(1);
+    expect(pointsShown(scene)).toHaveLength(1);
   });
 
   it("plays a new field's from its first, stopping what the last set off", async () => {
@@ -250,9 +266,7 @@ describe("the events", () => {
 
     expect({
       ...playingIn(scene, shell),
-      points: labelsOf(scene)
-        .filter((label) => label.visible)
-        .map((label) => label.text),
+      points: pointsShown(scene),
     }).toEqual({ ...NOTHING_PLAYING, points: ["+80"] });
   });
 
@@ -267,7 +281,7 @@ describe("the events", () => {
 
     expect({
       ...playingIn(scene, shell),
-      points: shownCount(labelsOf(scene)),
+      points: pointsShown(scene).length,
     }).toEqual({ ...NOTHING_PLAYING, points: 1 });
   });
 
@@ -698,59 +712,330 @@ describe("the rings", () => {
 });
 
 describe("the points", () => {
-  it("shows the points scored where they were scored, in the field's text stroked in its color", async () => {
+  /** A canvas on which the field's unit passes the cap the atlas is baked under. */
+  const ROOMY = { width: 3000, height: 1500 } as const;
+
+  /** Returns the points a spec scored first, the first a scene shows. */
+  function firstScored(scene: BeltScene): Scored {
+    const [scored] = scene.kit.points.scored.all;
+    if (!scored) throw new Error("No points to show.");
+    return scored;
+  }
+
+  /** Returns how the scene last lettered the points. */
+  function letteringOf(scene: BeltScene): PointsLettering {
+    const { lettering } = scene.kit.points;
+    if (!lettering) throw new Error("The points aren't lettered.");
+    return lettering;
+  }
+
+  /** Returns the sheet each label of points is stamped on. */
+  function sheetOf(scene: BeltScene): Textures.DynamicTexture {
+    const sheet = scene.textures.get(POINTS_SHEET);
+    if (!(sheet instanceof Textures.DynamicTexture)) {
+      throw new Error("No sheet for the points.");
+    }
+    return sheet;
+  }
+
+  /** Records each frame of the points' atlas stamped on the sheet from now on, and where. */
+  function recordStamps(scene: BeltScene): readonly Stamp[] {
+    const sheet = sheetOf(scene);
+    const stamp = sheet.stamp.bind(sheet);
+    const stamps: Stamp[] = [];
+    sheet.stamp = (key, frame, x = 0, y = 0, config) => {
+      stamps.push({ frame: `${key}/${String(frame)}`, x, y });
+      return stamp(key, frame, x, y, config);
+    };
+    return stamps;
+  }
+
+  /**
+   * Returns the stamps that spell out a label as the font as last lettered
+   * sets it, from its box's corner on the sheet: every outline, then every
+   * fill, none for a space.
+   */
+  function stampsOf(scene: BeltScene, scored: Scored): readonly Stamp[] {
+    const layout = pointsLayout(MOST_POINTS_CHARACTERS);
+    layOutPoints(scored.label, letteringOf(scene), layout);
+    const box = sheetOf(scene).get(scored.frame);
+    const stampsFrom = (frames: readonly (string | null)[]): Stamp[] =>
+      frames.slice(0, layout.length).flatMap((frame, i) =>
+        frame
+          ? [
+              {
+                frame: `${POINTS_ATLAS}/${frame}`,
+                x: box.cutX + (layout.xs[i] ?? 0),
+                y: box.cutY + (layout.ys[i] ?? 0),
+              },
+            ]
+          : [],
+      );
+    return [...stampsFrom(layout.outlines), ...stampsFrom(layout.fills)];
+  }
+
+  /** Describes a frame of the points' atlas stamped on the sheet. */
+  interface Stamp {
+    readonly frame: string;
+    readonly x: number;
+    readonly y: number;
+  }
+
+  /** Records each character the points' atlas writes as it is lettered, and how. */
+  function recordWrites(scene: BeltScene): readonly Written[] {
+    const atlas = scene.textures.get(POINTS_ATLAS);
+    if (!(atlas instanceof Textures.CanvasTexture)) {
+      throw new Error("No canvas for the points' atlas.");
+    }
+    const context = atlas.getContext();
+    const written: Written[] = [];
+    const style = (): Omit<Written, "text" | "how" | "x" | "y"> => ({
+      font: context.font,
+      fill: colorOf(context.fillStyle),
+      stroke: colorOf(context.strokeStyle),
+      width: context.lineWidth,
+      join: context.lineJoin,
+    });
+    context.fillText = (text, x, y) => {
+      written.push({ text, how: "fill", x, y, ...style() });
+    };
+    context.strokeText = (text, x, y) => {
+      written.push({ text, how: "stroke", x, y, ...style() });
+    };
+    return written;
+  }
+
+  /** Returns the color a context fills or strokes in, or nothing for a gradient or a pattern. */
+  function colorOf(style: string | CanvasGradient | CanvasPattern): string {
+    return typeof style === "string" ? style : "";
+  }
+
+  /** Describes a character the points' atlas wrote, and how. */
+  interface Written {
+    readonly text: string;
+    readonly how: "fill" | "stroke";
+    /** Where its pen started, on the atlas's canvas. */
+    readonly x: number;
+    readonly y: number;
+    readonly font: string;
+    readonly fill: string;
+    readonly stroke: string;
+    readonly width: number;
+    readonly join: CanvasLineJoin;
+  }
+
+  it("shows the points scored about where they were scored", async () => {
     const { shell, run, scene } = await startBoard();
     shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 2);
 
     run.advance(16);
 
-    const [label] = labelsOf(scene);
-    expect({
-      text: label?.text,
-      at: label && { x: label.x, y: label.y },
-      color: label?.style.color,
-      stroke: label?.style.stroke,
-    }).toEqual({
-      text: "+40 ×2",
-      at: onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
-      color: cssHex(ART_PALETTE.shot),
-      stroke: cssHex(ART_PALETTE.outline),
+    const scored = firstScored(scene);
+    expect({ label: scored.label, middle: { ...scored.middle } }).toEqual({
+      label: "+40 ×2",
+      middle: onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
     });
+  });
+
+  it("stamps every character's outline on the sheet, then every fill, from the points' atlas, as the font sets them, none for a space", async () => {
+    const { shell, run, scene } = await startBoard();
+    const stamps = recordStamps(scene);
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 2);
+
+    run.advance(16);
+
+    expect({ stamps, inked: stamps.length }).toEqual({
+      stamps: stampsOf(scene, firstScored(scene)),
+      inked: 2 * "+40×2".length,
+    });
+  });
+
+  it("stamps a label once, as it first shows", async () => {
+    const { shell, run, scene } = await startBoard();
+    const stamps = recordStamps(scene);
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
+
+    for (let i = 0; i < 5; i++) run.advance(16);
+
+    expect(stamps).toHaveLength(2 * "+40".length);
+  });
+
+  it("shows each label as one image of its box on the sheet, cut to whole pixels and drawn at its size at the points' zoom", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 200, 4);
+
+    run.advance(16);
+
+    const { image, frame, layout } = firstScored(scene);
+    const zoom = pointsZoomOf(shell);
+    const shown = layersOf(scene)
+      .get("points")
+      ?.getChildren()
+      .filter(
+        (object) => object instanceof GameObjects.Image && object.visible,
+      );
+    expect({
+      shown: shown?.length,
+      frame: `${image.texture.key}/${image.frame.name}`,
+      box: { width: image.frame.width, height: image.frame.height },
+      size: { width: image.displayWidth, height: image.displayHeight },
+    }).toEqual({
+      shown: 1,
+      frame: `${POINTS_SHEET}/${frame}`,
+      box: { width: layout.width, height: Math.floor(layout.height) },
+      size: { width: layout.width * zoom, height: layout.height * zoom },
+    });
+  });
+
+  it("letters them at the field's whole unit above the atlas's cap, zooming them by no more than a pixel in a unit", async () => {
+    const { shell, run, scene } = await startBoard(undefined, ROOMY);
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 2);
+
+    run.advance(16);
+
+    const { unit } = metricsOf(shell, ROOMY);
+    const zoom = firstScored(scene).image.scaleX;
+    expect({
+      capped: unit > bakedScale(metricsOf(shell, ROOMY)).unit,
+      lettered: letteringOf(scene).unit,
+      zoom: zoom >= 1 && zoom <= 1 + 1 / unit,
+    }).toEqual({ capped: true, lettered: Math.floor(unit), zoom: true });
+  });
+
+  it("writes each character into the points' atlas in the shell's font at the lettered unit, filled in the shots' color and outlined in the field's, at each step of a pixel", async () => {
+    const { shell, run, scene } = await startBoard();
+    const written = recordWrites(scene);
+    shell.colors = DARK;
+
+    run.advance(16);
+
+    const unit = letteringUnit(metricsOf(shell).unit);
+    const font = `700 ${String(POINTS_TEXT.size * unit)}px ${SHELL_FONT}`;
+    const fill = cssHex(DARK.shot);
+    const stroke = cssHex(DARK.outline);
+    const width = POINTS_TEXT.outline * unit;
+    expect(
+      written
+        .filter(({ text }) => text === "4")
+        .map(({ how, font, fill, stroke, width, join }) =>
+          how === "fill"
+            ? { how, font, fill }
+            : { how, font, stroke, width, join },
+        ),
+    ).toEqual([
+      ...Array.from({ length: PEN_STEPS }, () => ({
+        how: "fill",
+        font,
+        fill,
+      })),
+      ...Array.from({ length: PEN_STEPS }, () => ({
+        how: "stroke",
+        font,
+        stroke,
+        width,
+        join: "round",
+      })),
+    ]);
+  });
+
+  it("writes each character into the points' atlas at its pen in the frame packed for it, and names each frame's rectangle there", async () => {
+    const { shell, run, scene } = await startBoard();
+    const written = recordWrites(scene);
+    shell.colors = DARK;
+
+    run.advance(16);
+
+    const { frames } = packPoints(letteringOf(scene));
+    const atlas = scene.textures.get(POINTS_ATLAS);
+    expect({
+      writes: written.map(({ text, how, x, y }) => ({ text, how, x, y })),
+      frames: frames.map(({ name }) => {
+        const frame = atlas.get(name);
+        return {
+          name: frame.name,
+          x: frame.cutX,
+          y: frame.cutY,
+          width: frame.cutWidth,
+          height: frame.cutHeight,
+        };
+      }),
+    }).toEqual({
+      writes: frames.map(({ character, outlined, penX, penY }) => ({
+        text: character,
+        how: outlined ? "stroke" : "fill",
+        x: penX,
+        y: penY,
+      })),
+      frames: frames.map(({ name, x, y, width, height }) => ({
+        name,
+        x,
+        y,
+        width,
+        height,
+      })),
+    });
+  });
+
+  it("letters them anew, and stamps the points showing again, as the page loads a face of the font late", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 2);
+    run.advance(16);
+    const lettering = letteringOf(scene);
+    const stamps = recordStamps(scene);
+    shell.typeface = { family: SHELL_FONT };
+
+    run.advance(16);
+
+    expect({
+      anew: letteringOf(scene) !== lettering,
+      stamps,
+    }).toEqual({ anew: true, stamps: stampsOf(scene, firstScored(scene)) });
   });
 
   it("raises them as they fade where motion is welcome", async () => {
     const { shell, run, scene } = await startBoard();
     shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
     run.advance(16);
-    const [label] = labelsOf(scene);
+    const { image } = firstScored(scene);
 
     const looks = overTime(run, POINTS_MS - 100, 50, () => ({
-      y: label?.y ?? 0,
-      alpha: label?.alpha ?? 0,
+      x: image.x,
+      y: image.y,
+      alpha: image.alpha,
     }));
 
+    const scoredAt = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
     expect({
+      xs: new Set(looks.map(({ x }) => x)),
+      above: looks.every(({ y }) => y < scoredAt.y),
       rises: falling(looks.map(({ y }) => y)),
       fades: falling(looks.map(({ alpha }) => alpha)),
-    }).toEqual({ rises: true, fades: true });
+    }).toEqual({
+      xs: new Set([scoredAt.x]),
+      above: true,
+      rises: true,
+      fades: true,
+    });
   });
 
   it("holds them where they were scored where motion isn't welcome, fading", async () => {
     const { shell, run, scene } = await startBoard(stillness);
     shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
     run.advance(16);
-    const [label] = labelsOf(scene);
+    const { image } = firstScored(scene);
 
     const looks = overTime(run, POINTS_MS - 100, 50, () => ({
-      y: label?.y ?? 0,
-      alpha: label?.alpha ?? 0,
+      x: image.x,
+      y: image.y,
+      alpha: image.alpha,
     }));
 
+    const scoredAt = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
     expect({
-      ys: new Set(looks.map(({ y }) => y)),
+      places: new Set(looks.map(({ x, y }) => `${String(x)},${String(y)}`)),
       fades: falling(looks.map(({ alpha }) => alpha)),
     }).toEqual({
-      ys: new Set([onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y).y]),
+      places: new Set([`${String(scoredAt.x)},${String(scoredAt.y)}`]),
       fades: true,
     });
   });
@@ -761,20 +1046,52 @@ describe("the points", () => {
 
     run.advance(POINTS_MS + 32);
 
-    expect(shownCount(labelsOf(scene))).toBe(0);
+    expect(firstScored(scene).image.visible).toBe(false);
   });
 
-  it("writes them anew at the field's new unit as it is laid out again", async () => {
+  it("draws them from the points' atlas and sheet alone at the new unit as the field is laid out again, adding no texture", async () => {
     const { shell, run, scene } = await startBoard();
+    const textures = scene.textures.getTextureKeys();
     run.game.scale.resize(WIDER.width, WIDER.height);
     shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
 
     run.advance(16);
 
-    const [label] = labelsOf(scene);
-    expect(label?.style.fontSize).toBe(
-      `${String(0.95 * metricsOf(shell, WIDER).unit)}px`,
-    );
+    expect({
+      textures: scene.textures.getTextureKeys(),
+      zoom: firstScored(scene).image.scaleX,
+    }).toEqual({ textures, zoom: pointsZoomOf(shell, WIDER) });
+  });
+
+  it("stamps the points showing anew as the field is laid out at a new whole unit", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
+    run.advance(16);
+    const stamps = recordStamps(scene);
+    run.game.scale.resize(WIDER.width, WIDER.height);
+
+    run.advance(16);
+
+    expect({
+      lettered: letteringOf(scene).unit,
+      stamps,
+    }).toEqual({
+      lettered: letteringUnit(metricsOf(shell, WIDER).unit),
+      stamps: stampsOf(scene, firstScored(scene)),
+    });
+  });
+
+  it("stamps the points showing anew once a lost context is restored", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
+    run.advance(16);
+    const stamps = recordStamps(scene);
+    await run.loseContext();
+    await run.restoreContext();
+
+    run.advance(16);
+
+    expect(stamps).toEqual(stampsOf(scene, firstScored(scene)));
   });
 
   it("keeps them whole inside the field at its edge", async () => {
@@ -783,14 +1100,17 @@ describe("the points", () => {
 
     run.advance(16);
 
-    const [label] = labelsOf(scene);
+    const bounds = firstScored(scene).image.getBounds();
     const metrics = metricsOf(shell);
-    expect(
-      label && {
-        left: label.x - label.width / 2,
-        top: label.y - label.height / 2,
-      },
-    ).toEqual({ left: metrics.x, top: metrics.y });
+    expect({
+      left: bounds.left,
+      top: bounds.top,
+      drawn: bounds.width > 0 && bounds.height > 0,
+    }).toEqual({
+      left: metrics.x,
+      top: metrics.y,
+      drawn: true,
+    });
   });
 });
 

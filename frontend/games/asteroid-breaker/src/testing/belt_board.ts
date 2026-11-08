@@ -14,6 +14,7 @@ import {
 } from "../scene/belt_scene";
 import type { Copies } from "../scene/painters/copies";
 import type { Pictures } from "../view/art/art";
+import { type PointsFont, letteringUnit } from "../view/art/points_art";
 import { bakedScale } from "../view/art/shapes";
 import { type BeltPalette, beltPalette } from "../view/colors/palette";
 import {
@@ -72,6 +73,9 @@ interface Tick {
   readonly steer: Steer;
 }
 
+/** The font family a fake shell hands the scene to write the points in. */
+export const SHELL_FONT = "Spec Sans";
+
 /** Plays the shell's part, keeping what the scene tells it. */
 export class FakeShell implements BeltSceneOptions {
   /** The field shown, which a spec may change as the rules would. */
@@ -105,6 +109,11 @@ export class FakeShell implements BeltSceneOptions {
    * How to play's art with, a bake each, the last bake's last.
    */
   readonly bakes: (() => Pictures)[] = [];
+  /**
+   * The font the points are written in, as the board reads the page's,
+   * which a spec replaces as the page loads a face of it late.
+   */
+  typeface: PointsFont = { family: SHELL_FONT };
 
   /** The time the field's steps run by, while it is stepped. */
   private readonly clock = createFieldClock();
@@ -127,6 +136,7 @@ export class FakeShell implements BeltSceneOptions {
   readonly sound = (): boolean => this.wantsSound;
   readonly thrusting = (): boolean => this.thrusts;
   readonly board = (): BoardSetting => this.setting;
+  readonly font = (): PointsFont => this.typeface;
   readonly onLayout = (layout: FieldLayout): void => {
     this.layouts.push(layout);
     if (!this.reshapesField) return;
@@ -245,6 +255,18 @@ export function zoomOf(
 ): number {
   const metrics = metricsOf(shell, canvas);
   return metrics.unit / bakedScale(metrics).unit;
+}
+
+/**
+ * Returns how much larger the points draw on the spec's canvas than they are
+ * lettered, as the scene zooms them.
+ */
+export function pointsZoomOf(
+  shell: FakeShell,
+  canvas: { readonly width: number; readonly height: number } = CANVAS,
+): number {
+  const { unit } = metricsOf(shell, canvas);
+  return unit / letteringUnit(unit);
 }
 
 /** Returns where a place on the field lies on the canvas. */

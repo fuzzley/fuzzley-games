@@ -330,13 +330,22 @@ take for the layer.
   and the ship's mitred out at a sharp corner as far as an outline may
   reach (`MOST_MITER`), and the ship's covering its rings too, which the
   scene draws its copies past the edges by, and its spec holds what it
-  draws within it.
+  draws within it. `points_art.ts` letters the points scored instead, in the
+  page's font, from what a canvas measures of it (`letterPoints()`), at the
+  field's unit rounded down to whole device pixels, with no cap
+  (`letteringUnit()`): each character but the space a frame filled in the
+  shots' color and one outlined in the field's, at each quarter of a pixel a
+  canvas sets a pen at, packed into an atlas of their own (`packPoints()`);
+  where a label's characters are stamped from them, as a `Text` sets a line
+  (`layOutPoints()`); and the sheet the labels are stamped on, a room each
+  (`pointsSheet()`).
 - **`src/scene/`** — the Phaser scene. `BeltScene` (`belt_scene.ts`, made
   by `makeBeltScene()`) is handed plain functions over the game
-  (`BeltSceneOptions`): each frame it hands the game the time and the
-  steering its `Steering` read from the keys, the mouse and the fingers,
-  reads the frame and the palette, and has its painters, in
-  `src/scene/painters/`, draw, each in its layer of `LAYERS`:
+  (`BeltSceneOptions`), the font the points are written in among them, a
+  new record of it as the page loads its face late: each frame it hands
+  the game the time and the steering its `Steering` read from the keys, the
+  mouse and the fingers, reads the frame and the palette, and has its
+  painters, in `src/scene/painters/`, draw, each in its layer of `LAYERS`:
   `FieldPainter` the specks, an Endless wave's constellation and the frame,
   `TagPainter` the tags of the effects in play, `RockPainter` the rocks, the
   hits they have taken and a held hit's flash, `PickupPainter` the pickups,
@@ -345,7 +354,10 @@ take for the layer.
   `ShipPainter` the ship, its flame, its pilot and its rings,
   `TrailPainter` a dash's trail, `ExhaustPainter` the exhaust,
   `DebrisPainter` the shards, the dust and the sparks, `RingPainter` the
-  rings, `PointsPainter` the points scored, and `DeckPainter` the deck.
+  rings, `PointsPainter` the points scored, each label stamped once on a
+  room of a sheet (a `DynamicTexture`), every outline and then every fill,
+  as a canvas writes a line, and shown and faded as one image, and
+  `DeckPainter` the deck.
   `FieldCamera` (`field_camera.ts`) points the field's camera at the field,
   fills it with the field's color and scrolls it as the field kicks and
   shakes, the one place its scroll is written. Each of them is a `Painter`
@@ -375,7 +387,12 @@ take for the layer.
   white for the scene to tint, again on a new pixel ratio. At each bake the
   scene hands the shell what makes How to play's pictures from the field's
   (`onPictures()`), which encodes them only as the board asks for them, as
-  How to play opens, and keeps them until the next bake.
+  How to play opens, and keeps them until the next bake. `PointsAtlas`
+  (`points_atlas.ts`) letters the points into an atlas of their own,
+  written with a canvas's own `fillText()` and `strokeText()`, at the
+  field's whole unit past the field's cap, so they stay sharp on a large
+  field, again on a new palette, a new font, or as the field's unit passes
+  a whole device pixel, and after a lost context.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
   sprite in `sounds/`, which `yarn build:sounds` writes, a broken rock's
   risen along its chain, holds the thrust's hum while the ship thrusts, and
@@ -414,7 +431,12 @@ take for the layer.
     hidden or goes away, never at a step, and forgets it once the run ends or
     another begins; `src/main.ts` starts it before the board first shows, and it
     takes up the run kept (`takeUp()`), paused.
-  - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
+  - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`
+    as the page loads the face the points are written in, in the board's
+    font (`document.fonts.load()`), for 1.5 s at most
+    (`POINTS_FACE_WAIT_MS`), so the scene first letters them in it, and has
+    the scene letter them again should the face come later, while the board
+    is there;
     the empty field drawn in CSS until the scene has drawn, clear of the
     deck's room; the focus ring; a crosshair for the pointer while a ship
     flies, as the mouse aims it; and the cards, `<app-board-card>`, which

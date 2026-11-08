@@ -27,6 +27,11 @@ import type { Torus } from "../../rules/torus";
 import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art/art";
 import {
+  POINTS_CHARACTERS,
+  type PointsFont,
+  pointsFace,
+} from "../../view/art/points_art";
+import {
   type BoardSetting,
   FRAME_CSS_PX,
   type FieldLayout,
@@ -39,6 +44,16 @@ import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BoardCardComponent } from "./board_card.component";
 import { fieldPalette } from "./field_palette";
+
+/**
+ * How long the board waits for the page to load the points' face before the
+ * scene starts without it, in milliseconds; the scene writes them again in
+ * it once it arrives.
+ */
+export const POINTS_FACE_WAIT_MS = 1500;
+
+/** The characters the points are written in, which the page loads their face for. */
+const POINTS_SAMPLE = POINTS_CHARACTERS.join("");
 
 /**
  * Shows the board: the canvas the scene draws the field and the deck on,
@@ -200,6 +215,12 @@ export class BoardComponent {
    */
   readonly pictures = computed(() => this.askPictures()?.() ?? null);
 
+  /**
+   * The font the points are written in: the board's, a new record as the page
+   * loads their face late.
+   */
+  private readonly pointsFont = signal<PointsFont>({ family: "sans-serif" });
+
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BeltSceneOptions = {
     tick: (deltaMs, steer) => {
@@ -221,14 +242,18 @@ export class BoardComponent {
     onPictures: (pictures) => {
       this.askPictures.set(pictures);
     },
+    font: () => this.pointsFont(),
   };
 
   /**
    * Loads the scene, and Phaser with it, only once the canvas asks, so the
-   * shell paints first.
+   * shell paints first, and the face the points are written in beside it.
    */
   protected readonly scene: SceneSource = async () => {
-    const { makeBeltScene } = await import("../../scene/belt_scene");
+    const [{ makeBeltScene }] = await Promise.all([
+      import("../../scene/belt_scene"),
+      this.loadPointsFace(),
+    ]);
     return makeBeltScene(this.sceneOptions);
   };
 
@@ -382,6 +407,39 @@ export class BoardComponent {
         left: inset("left"),
       },
     };
+  }
+
+  /**
+   * Takes the board's font family for the points, and waits until the page
+   * has loaded their face, failed to, or taken {@link POINTS_FACE_WAIT_MS}:
+   * a canvas writes in a fallback rather than wait for a face to load, so
+   * where the face isn't in yet, the scene writes the points again once it
+   * is, unless the board has gone.
+   */
+  private async loadPointsFace(): Promise<void> {
+    const fonts = this.document.fonts;
+    const style = this.document.defaultView?.getComputedStyle(
+      this.host.nativeElement,
+    );
+    const family = (style?.fontFamily ?? "") || "sans-serif";
+    const face = pointsFace(family);
+    this.pointsFont.set({ family });
+    const loaded = fonts.load(face, POINTS_SAMPLE).catch(() => []);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      loaded,
+      new Promise((resolve) => {
+        timer = setTimeout(resolve, POINTS_FACE_WAIT_MS);
+      }),
+    ]);
+    clearTimeout(timer);
+    if (fonts.check(face, POINTS_SAMPLE)) return;
+    void loaded.then(() => {
+      if (this.destroyRef.destroyed || !fonts.check(face, POINTS_SAMPLE)) {
+        return;
+      }
+      this.pointsFont.set({ family });
+    });
   }
 }
 

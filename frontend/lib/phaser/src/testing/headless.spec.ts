@@ -27,16 +27,33 @@ describe("installHeadlessPhaser", () => {
     const answers = {
       pixels: context.getImageData(0, 0, 2, 3).data.length,
       created: context.createImageData(1, 2).data.length,
-      text: context.measureText("snake").width,
       gradient: typeof context.createLinearGradient(0, 0, 1, 1).addColorStop,
     };
 
     expect(answers).toEqual({
       pixels: 24,
       created: 8,
-      text: 0,
       gradient: "function",
     });
+  });
+
+  it("measures text as in a font whose every character is as wide, at the size its font names", () => {
+    const context = document.createElement("canvas").getContext("2d")!;
+    context.font = "700 20px Figtree";
+
+    const { width, actualBoundingBoxRight, fontBoundingBoxAscent } =
+      context.measureText("+40");
+
+    // Each character is 0.6 of the size wide; the line reaches 0.8 of it up.
+    expect([width, actualBoundingBoxRight, fontBoundingBoxAscent]).toEqual([
+      36, 36, 16,
+    ]);
+  });
+
+  it("measures text at a canvas's own size before it is set a font", () => {
+    const context = document.createElement("canvas").getContext("2d")!;
+
+    expect(context.measureText("snake").width).toBe(30);
   });
 
   it("gives a canvas a picture that names its size", () => {

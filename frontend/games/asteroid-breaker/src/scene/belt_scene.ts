@@ -14,6 +14,7 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { type Cameras, Core, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { PICTURE_FRAMES, type Pictures, mapPictures } from "../view/art/art";
+import type { PointsFont } from "../view/art/points_art";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
 import {
@@ -98,6 +99,11 @@ export interface BeltSceneOptions {
    * it only as How to play shows them.
    */
   readonly onPictures: (pictures: () => Pictures) => void;
+  /**
+   * Returns the font the points are written in, the board's; a new record
+   * writes them anew, as the page loads a face of it late.
+   */
+  readonly font: () => PointsFont;
 }
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
@@ -274,6 +280,7 @@ export class BeltScene extends Scene {
       steering: this.steering,
       metrics: this.metrics,
       palette: this.painted,
+      font: this.options.font(),
       zoom: this.zoom(),
       now: 0,
       motion: this.options.motion(),
@@ -309,12 +316,7 @@ export class BeltScene extends Scene {
       exhaust: new ExhaustPainter(this, layers.effects),
       debris: new DebrisPainter(this, layers.effects),
       rings: new RingPainter(this, layers.effects),
-      points: new PointsPainter(
-        this,
-        layers.points,
-        // The page's font, which the canvas takes from the board around it.
-        getComputedStyle(this.game.canvas).fontFamily || "sans-serif",
-      ),
+      points: new PointsPainter(this, layers.points),
       deck: new DeckPainter(this, layers.deck),
       fieldCamera: new FieldCamera(this.cameras.main),
       // Over the whole canvas, which Phaser keeps it to as the canvas changes
@@ -333,8 +335,9 @@ export class BeltScene extends Scene {
    * what happened on the field since the last frame, once each, hums while
    * the ship thrusts, and draws the field as it now stands.
    *
-   * It allocates nothing of its own but on a new layout, a new palette or a
-   * new wave; Phaser makes a sound object for each sound it plays.
+   * It allocates nothing of its own but on a new layout, a new palette, a
+   * new font or a new wave; Phaser makes a sound object for each sound it
+   * plays, and a drawing context for each label of points it stamps.
    */
   override update(time: number, delta: number): void {
     this.context.now = time;
@@ -391,6 +394,7 @@ export class BeltScene extends Scene {
     context.deck = this.deckParts;
     context.metrics = this.metrics;
     context.palette = this.painted;
+    context.font = this.options.font();
     context.zoom = this.zoom();
   }
 
