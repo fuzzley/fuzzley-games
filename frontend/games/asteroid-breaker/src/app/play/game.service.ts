@@ -40,11 +40,10 @@ import {
 import type { WaveTally } from "../../rules/field/scoring";
 import { STILL, type Steer, thrustOf } from "../../rules/ship/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
-import type { EndedRun } from "../../rules/run/stats";
+import { recordsOf } from "../../rules/run/stats";
 import type { Torus } from "../../rules/torus";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import {
-  ENDLESS,
   type Wave,
   type WaveEntry,
   isEndless,
@@ -300,8 +299,10 @@ export class GameService {
       this.viewport.allowsMotion(),
     );
     if (change.moved && this.retuned) this.retunedRun = true;
-    if (change.run !== null) this.runState.set(change.run);
-    this.keep(before, change);
+    if (change.run !== null) {
+      this.runState.set(change.run);
+      this.keep(before, change.run);
+    }
     this.show(change);
     this.sayNews();
   }
@@ -416,7 +417,7 @@ export class GameService {
     const after = nextWave(before);
     this.showField(after);
     this.runState.set(after);
-    this.reachWave();
+    this.keep(before, after);
     const rocks = rocksLeft(this.wavePlay.field);
     this.announcer.say(describeWave(this.wave(), rocks));
   }
@@ -489,7 +490,7 @@ export class GameService {
       this.wavePlay = this.playOf(run, taken);
       reshapeField(taken, this.torus);
     }
-    this.reachWave();
+    this.keep(null, run);
     this.announcer.say(describeTakenUp(run, this.wave()));
   }
 
@@ -544,28 +545,18 @@ export class GameService {
   }
 
   /**
-   * Keeps what a frame brought the run to in the records, but for a run
-   * flown on numbers the debug menu tuned: the run begun and its sector
-   * reached, the strays it brought home, Endless reached and every written
-   * wave cleared, and its end, which may set a new best.
+   * Keeps what a change in the run, from the run before it, or none for a
+   * run taken up, brings to the records and the sectors reached, but for a
+   * run flown on numbers the debug menu tuned, and shows whether it cleared
+   * every written wave and whether its end set a new best.
    */
-  private keep(before: Run, { run: after, begun }: FrameChange): void {
-    if (after === null || this.retunedRun) return;
-    if (begun) {
-      this.stats.recordStart(after.speed);
-      this.reachWave();
-    }
-    this.stats.recordStrays(after.speed, after.strays - before.strays);
-    if (after.outcome === "cleared" && this.beforeEndless()) {
-      this.progress.recordReached(ENDLESS.id);
-      if (hasClearedAll(after, this.waves.length)) {
-        this.clearedAllState.set(true);
-        this.stats.recordClearedAll(after.speed);
-      }
-    }
-    if (after.outcome === "over") {
-      this.newBestState.set(this.stats.recordEnd(this.endOf(after)));
-    }
+  private keep(before: Run | null, after: Run): void {
+    if (this.retunedRun) return;
+    const records = recordsOf(before, after, this.waves);
+    this.progress.record(records);
+    const newBest = this.stats.record(records);
+    if (records.clearedAll) this.clearedAllState.set(true);
+    if (records.ended !== null) this.newBestState.set(newBest);
   }
 
   /**
@@ -580,24 +571,6 @@ export class GameService {
     if (change.tally !== null) this.tallyState.set(change.tally);
     if (change.opens === "cleared") this.clearedOpenState.set(true);
     if (change.opens === "result") this.resultOpenState.set(true);
-  }
-
-  /**
-   * Keeps the sector of the wave begun as reached, which a run may start at
-   * from then on.
-   */
-  private reachWave(): void {
-    if (!this.retunedRun) this.progress.recordReached(this.wave().sector.id);
-  }
-
-  /** Returns what an ended run brings to the records, the sector it started at among it. */
-  private endOf(run: Run): EndedRun {
-    return {
-      speed: run.speed,
-      score: run.score,
-      wave: run.wave,
-      sector: this.waveEntry(run.firstWave).sector.id,
-    };
   }
 
   /** Says what the frame gathered, all at once, a run's end with what it set. */

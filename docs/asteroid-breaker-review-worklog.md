@@ -420,3 +420,32 @@ before, all sound:
    rewrapped:_ the specs are folded into their neighbours. The docs ran
    past 100 characters, so they are wrapped by finding 17's rule; not
    taken.
+
+### Step 7b: finding 9, the records a function of the run
+
+Built on `ab-shell`, the second of finding 9's four commits. What a change
+in a run brings to the records is `recordsOf(before, after, waves)` in
+`src/rules/run/stats.ts`: the run started, the strays brought home, the
+sectors reached, every written wave cleared, and its end, or none of it for
+a run taken up, which brings only its wave's sector. `withRecords()` keeps
+it. `StatsService.record()` and `ProgressService.record()` take the record
+whole, each with one write, and `GameService.keep()` hands it to them
+behind its one check of a run flown on tuned numbers. `recordStart()`,
+`recordEnd()`, `recordClearedAll()`, `recordStrays()`, `reachWave()` and
+`endOf()` are gone; the rules' spec covers every way a run changes.
+
+Where it went other than planned:
+
+- `FrameChange` lost `begun`: a run started is read from the runs before
+  and after, as the rest is.
+- The records are written once a frame, where each part was its own write.
+
+The review found no change in what is kept:
+
+1. _`RunRecords` held the speed twice,_ once and in its end: taken; the end
+   is the score, wave and sector, and `withRecords()` and `record()` add the
+   speed.
+2. _`ProgressService` wrote once per sector reached:_ taken; `record()` adds
+   them with one write, and `recordReached()` is gone.
+3. _`keep()`'s doc opened with more than a sentence:_ taken.
+4. _Five docs were rewrapped:_ each ran past 100 characters; not taken.

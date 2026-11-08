@@ -1,14 +1,40 @@
+import { runRecords } from "../../testing/records";
+import { type WaveData, wavesOf } from "../waves/waves";
+import { type Run, createRun, nextWave, startWave } from "./run";
 import {
   type EndedRun,
   NO_STATS,
   type Stats,
   isNewBest,
+  recordsOf,
   statsOf,
   withClearedAll,
+  withRecords,
   withRunEnded,
   withRunStarted,
   withStraysHome,
 } from "./stats";
+
+/** Returns a wave of the specs', by its id: what it holds is never played. */
+function waveOf(id: string): WaveData {
+  return { id, name: id, rocks: [] };
+}
+
+/** The specs' waves: two sectors, of two waves and of one, so Endless begins at wave 4. */
+const WAVES = wavesOf([
+  { id: "near", name: "Near", drops: 0, waves: [waveOf("n1"), waveOf("n2")] },
+  { id: "far", name: "Far", drops: 0, waves: [waveOf("f1")] },
+]);
+
+/** Returns a run at Normal started at a wave, waiting there for its first move. */
+function runFrom(firstWave: number): Run {
+  return createRun({ id: 1, seed: 1, speed: "normal", wave: firstWave });
+}
+
+/** Returns a run at Normal under way at a wave, started at another. */
+function playingAt(wave: number, firstWave = wave): Run {
+  return { ...startWave(runFrom(firstWave)), wave };
+}
 
 /** Returns a run ended at Normal, at a score and a wave, started at the inner belt. */
 function ended(score: number, wave: number): EndedRun {
@@ -99,6 +125,137 @@ describe("statsOf", () => {
       strays: 1,
       clearedAll: false,
     });
+  });
+});
+
+describe("recordsOf", () => {
+  it("counts a run started at its first wave's first move, and keeps its sector reached", () => {
+    const before = runFrom(1);
+
+    const records = recordsOf(before, startWave(before), WAVES);
+
+    expect(records).toEqual(runRecords({ started: true, reached: ["near"] }));
+  });
+
+  it("counts no start at a later wave's first move, as going on to it kept its sector", () => {
+    const before = { ...runFrom(1), wave: 2 };
+
+    const records = recordsOf(before, startWave(before), WAVES);
+
+    expect(records).toEqual(runRecords({}));
+  });
+
+  it("counts no start for a run under way", () => {
+    const before = playingAt(1);
+
+    const records = recordsOf(before, { ...before, score: 40 }, WAVES);
+
+    expect(records).toEqual(runRecords({}));
+  });
+
+  it("counts the strays a change brought home", () => {
+    const before = playingAt(1);
+
+    const records = recordsOf(before, { ...before, strays: 2 }, WAVES);
+
+    expect(records.strays).toBe(2);
+  });
+
+  it("keeps the sector of the wave a run goes on to as reached", () => {
+    const before: Run = { ...playingAt(2, 1), outcome: "cleared" };
+
+    const records = recordsOf(before, nextWave(before), WAVES);
+
+    expect(records).toEqual(runRecords({ reached: ["far"] }));
+  });
+
+  it("keeps Endless reached as the last written wave is cleared, and every one cleared by a run from the first", () => {
+    const before = playingAt(3, 1);
+
+    const records = recordsOf(before, { ...before, outcome: "cleared" }, WAVES);
+
+    expect(records).toEqual(
+      runRecords({ reached: ["endless"], clearedAll: true }),
+    );
+  });
+
+  it("keeps Endless reached, but not every written wave cleared, by a run from a later wave", () => {
+    const before = playingAt(3, 2);
+
+    const records = recordsOf(before, { ...before, outcome: "cleared" }, WAVES);
+
+    expect(records).toEqual(runRecords({ reached: ["endless"] }));
+  });
+
+  it("keeps nothing more of a wave cleared before the last written", () => {
+    const before = playingAt(2, 1);
+
+    const records = recordsOf(before, { ...before, outcome: "cleared" }, WAVES);
+
+    expect(records).toEqual(runRecords({}));
+  });
+
+  it("keeps Endless reached once, at the change that clears the last written wave", () => {
+    const before: Run = { ...playingAt(3, 1), outcome: "cleared" };
+
+    const records = recordsOf(before, { ...before }, WAVES);
+
+    expect(records).toEqual(runRecords({}));
+  });
+
+  it("keeps an ended run's score, the wave it reached and the sector it started at", () => {
+    const before: Run = { ...playingAt(3, 2), score: 900 };
+
+    const records = recordsOf(before, { ...before, outcome: "over" }, WAVES);
+
+    expect(records.ended).toEqual({ score: 900, wave: 3, sector: "near" });
+  });
+
+  it("keeps a run's end once, at the change that ends it", () => {
+    const before: Run = { ...playingAt(3, 2), outcome: "over" };
+
+    const records = recordsOf(before, { ...before }, WAVES);
+
+    expect(records.ended).toBeNull();
+  });
+
+  it("keeps nothing of a run taken up but its wave's sector reached", () => {
+    const run: Run = { ...playingAt(3, 1), outcome: "paused", strays: 2 };
+
+    const records = recordsOf(null, run, WAVES);
+
+    expect(records).toEqual(runRecords({ reached: ["far"] }));
+  });
+});
+
+describe("withRecords", () => {
+  it("keeps all a change brings: a run started, strays, every written wave cleared and its end", () => {
+    const records = runRecords({
+      started: true,
+      strays: 2,
+      clearedAll: true,
+      ended: { score: 900, wave: 3, sector: "inner-belt" },
+    });
+
+    const stats = withRecords(NO_STATS, records);
+
+    expect(stats).toEqual({
+      speeds: {
+        ...NO_STATS.speeds,
+        normal: {
+          runs: 1,
+          best: 900,
+          furthest: 3,
+          strays: 2,
+          clearedAll: true,
+        },
+      },
+      sectors: { "inner-belt": { normal: 900 } },
+    });
+  });
+
+  it("returns the same records for a change that brings nothing", () => {
+    expect(withRecords(NO_STATS, runRecords({}))).toBe(NO_STATS);
   });
 });
 

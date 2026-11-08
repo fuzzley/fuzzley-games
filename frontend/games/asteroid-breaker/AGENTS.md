@@ -172,20 +172,23 @@ take for the layer.
   speed's runs, best score, furthest wave, strays brought home and whether a
   run has cleared all thirty, and each sector's best at each speed:
   `statsOf()` reads them as stored, keeping what makes sense and the bests
-  of a sector the game still has, `withRunStarted()`, `withRunEnded()`,
-  `withStraysHome()` and `withClearedAll()` move them on, and `isNewBest()`
-  says whether a run's score beats the best. `saved_game.ts` turns a run
-  under way and its field into what storage keeps (`saveGame()`), a run
-  whose wave was just cleared as the next wave not yet begun, and back
+  of a sector the game still has, `recordsOf()` says what a change in a run
+  brings to them and to the sectors reached (`RunRecords`), from the run
+  before it to the run after: a run started, the strays brought home, its
+  wave's sector, Endless and every written wave cleared, and its end;
+  `withRecords()` moves them on by it, through `withRunStarted()`,
+  `withRunEnded()`, `withStraysHome()` and `withClearedAll()`, and
+  `isNewBest()` says whether a run's score beats the best. `saved_game.ts`
+  turns a run under way and its field into what storage keeps (`saveGame()`),
+  a run whose wave was just cleared as the next wave not yet begun, and back
   (`restoreGame()`), paused: the run read by `readRun()`, and its field by
   `src/rules/field/kept_field.ts`'s `readField()`, each dropping what fails
-  one of its checks, each named and exported, such as a wave the game
-  doesn't have under that number (`hasKnownWave()`), points or a crew that
-  don't add up (`hasSoundScore()`, `hasSoundCrew()`), or a wave kept as not
-  yet begun that is the one the run started at or has scored
-  (`hasScored()`); and `takeUpField()` lays the field kept out
-  afresh as the run started its wave, with what the run has scored on it
-  (`waveSoFar()`).
+  one of its checks, each named and exported, such as a wave the game doesn't
+  have under that number (`hasKnownWave()`), points or a crew that don't add
+  up (`hasSoundScore()`, `hasSoundCrew()`), or a wave kept as not yet begun
+  that is the one the run started at or has scored (`hasScored()`); and
+  `takeUpField()` lays the field kept out afresh as the run started its wave,
+  with what the run has scored on it (`waveSoFar()`).
 - **`src/rules/waves/`** — the waves: a JSON file for each sector, its id,
   its name, its chance of a pickup and its ten waves, each written for a
   field of 40 by 40: its id and name, its rocks by kind, size and count,
@@ -360,8 +363,10 @@ take for the layer.
     signals beside it; it pauses, goes on and starts waves and runs, shapes
     each field to the board's room (`setRoom()`), says what
     happened through `@fz/ui/announcer`, shows a cleared wave's points
-    (`tally`), keeps the records and the sectors reached through `stats/`,
-    tunes the field as the debug menu says (`tune()`, `resetTuning()`), and
+    (`tally`), keeps what each change in the run brings to the records and
+    the sectors reached (`recordsOf()`) through `stats/`, in one place that
+    keeps none of a run flown on tuned numbers, tunes the field as the debug
+    menu says (`tune()`, `resetTuning()`), and
     asks through `@fz/ui/confirm` before a new game or speed throws a run
     away. `src/app/tokens.ts` holds what a spec hands it instead of the
     game's own: the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and
@@ -440,7 +445,8 @@ take for the layer.
     and the result draw.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `src/rules/run/stats.ts` reads and moves on, and `ProgressService`, the
-    sectors reached, at any speed, which a run may start at.
+    sectors reached, at any speed, which a run may start at; each keeps its
+    part of what a change in a run brings (`record()`).
   - `styles/` — `global.scss`, loaded once from `src/main.ts`, and
     `_index.scss`, the toolkit the component stylesheets `@use`, which
     emits no CSS.
@@ -762,6 +768,8 @@ share is in `src/testing/`:
   (`waveSetupOf()`), and its field laid out and played a second
   (`laidOutField()`, `playedField()`), which the saved game's specs keep and
   read back, with the shape of their spoiled entries (`Spoil`).
+- `records.ts` says what a change in a run brings to the records, nothing
+  but what a spec gives (`runRecords()`), for the specs of the records.
 - `kept_run.ts` keeps a run begun at a wave and played by the autopilot
   until its first stray is near (`keptRun()`), for the screenshots' script.
 
