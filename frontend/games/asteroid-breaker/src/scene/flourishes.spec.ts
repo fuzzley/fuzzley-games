@@ -1,3 +1,4 @@
+import { easeOutCubic } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
 import type { SceneRun } from "@fz/phaser/testing";
 import { GameObjects, Textures, TintModes } from "phaser";
@@ -54,7 +55,6 @@ import {
   MOST_POINTS_CHARACTERS,
   SPARK_REACH,
   shardCount,
-  spread,
   trailAlpha,
   trailLaidAfter,
   trailReach,
@@ -695,7 +695,7 @@ describe("the rings", () => {
     const { shell, run, scene } = await startBoard();
     // Two frames after the blast, the ring's middle line stops a quarter of
     // its stroke's width short of the edge.
-    const x = 6 * spread(32 / RING_MS) + RING_WIDTH / 4;
+    const x = 6 * easeOutCubic(32 / RING_MS) + RING_WIDTH / 4;
     const rock = placeRock(shell.field, "medium", x, MIDDLE.y);
     shell.field.events.addRock("blast", rock, 6);
 

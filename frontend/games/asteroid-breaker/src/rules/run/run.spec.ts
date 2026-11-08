@@ -372,6 +372,8 @@ describe("nextShipAfter", () => {
     [0, FIRST_SHIP_POINTS],
     [FIRST_SHIP_POINTS - 1, FIRST_SHIP_POINTS],
     [FIRST_SHIP_POINTS, FIRST_SHIP_POINTS + SHIP_POINTS],
+    [FIRST_SHIP_POINTS + SHIP_POINTS / 2, FIRST_SHIP_POINTS + SHIP_POINTS],
+    [FIRST_SHIP_POINTS + SHIP_POINTS - 1, FIRST_SHIP_POINTS + SHIP_POINTS],
     [FIRST_SHIP_POINTS + SHIP_POINTS + 1, FIRST_SHIP_POINTS + 2 * SHIP_POINTS],
   ])("puts the next ship past a score of %i at %i", (score, mark) => {
     expect(nextShipAfter(score)).toBe(mark);
@@ -379,6 +381,12 @@ describe("nextShipAfter", () => {
 });
 
 describe("waveSeed", () => {
+  it("keeps the seed each wave's field draws from, which a saved game relies on", () => {
+    const seeds = [1, 2, 3].map((wave) => waveSeed(runWith({ seed: 1, wave })));
+
+    expect(seeds).toEqual([-2048144790, 198677719, -1849467072]);
+  });
+
   it("draws each wave of a run alike every time", () => {
     expect(waveSeed(runWith({ wave: 3 }))).toBe(waveSeed(runWith({ wave: 3 })));
   });

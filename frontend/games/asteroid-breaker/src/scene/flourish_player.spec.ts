@@ -1,3 +1,4 @@
+import { easeOutCubic } from "@fz/core/math";
 import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
 import { ROCK_RADIUS } from "../rules/tuning";
@@ -16,12 +17,7 @@ import {
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
 import { pilotFrame } from "../view/art/pilot_art";
-import {
-  ringReachOf,
-  shardCount,
-  spread,
-  wayOf,
-} from "../view/effects/flourish";
+import { ringReachOf, shardCount, wayOf } from "../view/effects/flourish";
 import {
   BURST_SHARDS,
   RING_MS,
@@ -260,7 +256,7 @@ describe("FlourishPlayer", () => {
       ring && { x: ring.x, y: ring.y, radius: ring.radius, color: ring.color },
     ).toEqual({
       ...onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
-      radius: ringReachOf(event) * spread(1 / 2) * context.metrics.unit,
+      radius: ringReachOf(event) * easeOutCubic(1 / 2) * context.metrics.unit,
       color: ART_PALETTE.flame,
     });
   });

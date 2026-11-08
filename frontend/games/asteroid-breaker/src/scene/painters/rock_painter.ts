@@ -1,6 +1,7 @@
+import { shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { ROCK_REACH, rockFrame, takenFrame } from "../../view/art/rock_art";
-import { flashAlpha, flashDue, shareDone } from "../../view/effects/flourish";
+import { flashAlpha, flashDue } from "../../view/effects/flourish";
 import { FLASH_MS } from "../../view/effects/timing";
 import type { FieldView } from "../../view/field/frame";
 import { Copies } from "./copies";

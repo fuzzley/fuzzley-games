@@ -1,9 +1,8 @@
+import { fadeAlpha, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { wrap } from "../../rules/torus";
 import { SHIP_FRAMES, SHIP_REACH } from "../../view/art/ship_art";
 import {
-  fadeAlpha,
-  shareDone,
   trailAlpha,
   trailOutlinesLaid,
   trailReach,

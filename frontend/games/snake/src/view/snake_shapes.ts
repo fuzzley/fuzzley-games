@@ -1,4 +1,4 @@
-import { clamp } from "@fz/core/math";
+import { clamp, lerp } from "@fz/core/math";
 import { landing } from "../rules/arena";
 import { type Direction, type Square, sameSquare } from "../rules/geometry";
 import type { BoardMetrics } from "./board_metrics";
@@ -113,8 +113,8 @@ export function snakeShapes(
 
   const hx = centerX(metrics, head);
   const hy = centerY(metrics, head);
-  out.head.x = next ? hx + (centerX(metrics, next) - hx) * glide : hx;
-  out.head.y = next ? hy + (centerY(metrics, next) - hy) * glide : hy;
+  out.head.x = next ? lerp(hx, centerX(metrics, next), glide) : hx;
+  out.head.y = next ? lerp(hy, centerY(metrics, next), glide) : hy;
   out.add(out.head.x, out.head.y);
   out.add(hx, hy);
   for (let i = 1; i < last; i++) {
@@ -128,8 +128,8 @@ export function snakeShapes(
     const ty = centerY(metrics, tail);
     const moves = next !== null && !grows;
     out.add(
-      moves ? tx + (centerX(metrics, toward) - tx) * glide : tx,
-      moves ? ty + (centerY(metrics, toward) - ty) * glide : ty,
+      moves ? lerp(tx, centerX(metrics, toward), glide) : tx,
+      moves ? lerp(ty, centerY(metrics, toward), glide) : ty,
     );
   }
 

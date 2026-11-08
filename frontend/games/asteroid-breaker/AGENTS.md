@@ -166,10 +166,12 @@ take for the layer.
   until the ships run out. `catchUp()` takes what the wave's field has come
   to since it last looked, its points, its crew and its strays, then its end
   or its clearing, banked once; `waveSeed()` gives each wave's field a seed
-  of its own; `wavesCleared()` counts the waves a run has cleared,
+  of its own, in `@fz/core/random`'s `mixSeed()`'s `"field"` stream;
+  `wavesCleared()` counts the waves a run has cleared,
   `hasClearedAWave()` says whether it has cleared any, and
   `hasClearedAll()` whether it cleared every written one from the first;
-  and `nextShipAfter()` gives the mark the next ship comes at. A move
+  and `nextShipAfter()` gives the mark the next ship comes at, its marks
+  through `@fz/core/math`'s `nextMarkAfter()`. A move
   that doesn't fit where the run stands returns it as it is, and so does a
   field with nothing new, so the shell can tell a frame that changed the
   run. `describe.ts` puts what happened into the words the announcer says: a
@@ -220,7 +222,8 @@ take for the layer.
   pace that never slows within a sector, and each sector to ten waves, a
   boulder in its last alone.
   `endless.ts` makes Endless's waves, from wave 31 (`ENDLESS_FROM`), from
-  the run's seed and the wave's number (`endlessWave()`), so a run kept
+  the run's seed and the wave's number, mixed in `mixSeed()`'s `"makeup"`
+  stream, apart from its field's (`endlessWave()`), so a run kept
   makes its wave again from the two: a budget of rocks, a crystal among
   them, boulders every tenth wave and comets in every one, climbing until
   wave 60 and holding there. `waveToPlay()` gives a sector's wave or
@@ -270,17 +273,19 @@ take for the layer.
   `toCanvas()` and `toField()` between the two; and how the scene laid them
   out, which it hands the shell (`FieldLayout`). `frame.ts` is what the
   scene reads: `FieldView`, the field it can't change, `EventsView` and
-  `FieldFrame`, and where a thing is drawn between its last place and its
-  next (`between()`), the shortest way across the wrap for one that wraps
-  (`wrappedBetween()`), its turn (`angleBetween()`), and where the ship is
-  drawn and turned (`shipAt()`). `layers.ts` is the order the field is
+  `FieldFrame`, and where a thing that wraps is drawn between its last
+  place and its next, the shortest way across the wrap (`wrappedBetween()`;
+  one that crosses, as a comet or a stray, is drawn with `@fz/core/math`'s
+  `lerp()`), its turn (`angleBetween()`), and where the ship is drawn and
+  turned (`shipAt()`). `layers.ts` is the order the field is
   drawn in, back to front, in one list (`LAYERS`), and the camera that
   draws each layer (`LAYER_CAMERAS`, `drawnBy()`).
   `tags.ts` says where the tags of the lasting effects lie, at the field's
   bottom left, and how much of each one's time is left; `warning.ts` where a
   comet's warning is drawn; and `specks.ts` where the specks lie, from the
-  run's seed, and where an Endless wave's constellation lies
-  (`constellationAt()`).
+  run's seed, and where an Endless wave's constellation lies, from the
+  run's seed mixed with the wave's number in `mixSeed()`'s `"scenery"`
+  stream (`constellationAt()`).
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says what each event calls for, its sound and its flourishes
   (`effectsOf()`), how far a broken rock's sound rises along a chain
@@ -288,11 +293,13 @@ take for the layer.
   `FrameSounds` of its `SOUNDS`, which plays each sound once a frame at
   most, at the highest it was heard; the thrust's hum (`THRUST`) is one of
   them, which no event plays. `flourish.ts` says how each flourish moves
-  over its time, among them how far the kick and the shake scroll the
-  field's camera (`cameraShift()`) and when a dash lays each of its
-  outlines (`trailOutlinesLaid()`), and how the pickups breathe, a stray
-  bobs, a comet's warning pulses, the flame flickers, its exhaust streams
-  (`exhaustDue()`) and the pilots blink, each only where motion is welcome;
+  over its time, beside `@fz/core/math`'s `shareDone()` and its curves
+  (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick and the
+  shake scroll the field's camera (`cameraShift()`) and when a dash lays
+  each of its outlines (`trailOutlinesLaid()`), and how the pickups
+  breathe, a stray bobs, a comet's warning pulses, the flame flickers, its
+  exhaust streams (`exhaustDue()`) and the pilots blink, each only where
+  motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as a ship is lost or a wave cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).

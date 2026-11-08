@@ -1,3 +1,4 @@
+import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import type { BallKindId } from "../../rules/catalog/balls";
 import { MAX_BALLS } from "../../rules/tuning";
@@ -8,7 +9,6 @@ import {
   toCanvasX,
   toCanvasY,
 } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -82,8 +82,8 @@ export class BallPainter implements Painter {
       }
       if (image.frame.name !== frame) image.setFrame(frame);
       image.setPosition(
-        toCanvasX(metrics, between(ball.lastX, ball.x, alpha)),
-        toCanvasY(metrics, between(ball.lastY, ball.y, alpha)),
+        toCanvasX(metrics, lerp(ball.lastX, ball.x, alpha)),
+        toCanvasY(metrics, lerp(ball.lastY, ball.y, alpha)),
       );
       if (trails && !ember.fresh) {
         this.trail(ember, image.x, image.y, metrics);

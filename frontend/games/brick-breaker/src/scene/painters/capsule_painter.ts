@@ -1,8 +1,8 @@
+import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { FALLING_POOL } from "../../rules/bricks/capsules";
 import { capsuleFrame } from "../../view/art/art";
 import { toCanvasX, toCanvasY } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -34,7 +34,7 @@ export class CapsulePainter implements Painter {
       if (image.frame.name !== frame) image.setFrame(frame);
       image.setPosition(
         toCanvasX(metrics, falling.x),
-        toCanvasY(metrics, between(falling.lastY, falling.y, alpha)),
+        toCanvasY(metrics, lerp(falling.lastY, falling.y, alpha)),
       );
     }
   }

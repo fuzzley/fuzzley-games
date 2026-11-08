@@ -1,6 +1,7 @@
 // A ball's travel: what it meets first of the walls, the paddle and the
 // bricks, all at one moment, and how it turns there.
 
+import { lerp } from "@fz/core/math";
 import { type Brick, canBreak, hitAround, hitBrick } from "../bricks/bricks";
 import { ballKind } from "../catalog/balls";
 import { isNeeded } from "../catalog/bricks";
@@ -351,6 +352,6 @@ function strike(field: Field, ball: Ball, brick: Brick): void {
 function lullTurn(field: Field): number {
   const draw = nextDraw(field);
   const { least, most } = LULL_TURN;
-  const size = least + (most - least) * ((draw * 2) % 1);
+  const size = lerp(least, most, (draw * 2) % 1);
   return draw < 0.5 ? -size : size;
 }

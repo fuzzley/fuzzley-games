@@ -1,4 +1,4 @@
-import { clamp } from "@fz/core/math";
+import { easeOutCubic } from "@fz/core/math";
 import { STEP_MS, stepsIn } from "../../rules/stepper";
 import type { FieldView } from "../field/frame";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
@@ -12,29 +12,14 @@ export const RING_FROM = 0.25;
 /** How faint the last bricks' glow gets between pulses. */
 export const GLOW_LEAST = 0.35;
 
-/** Returns how far through its time a flourish is, from 0 as it starts to 1 once it is over. */
-export function shareDone(startedAt: number, now: number, ms: number): number {
-  return clamp((now - startedAt) / ms, 0, 1);
-}
-
 /** Returns the scale of a brick that holds a hit, a share through its pop: swelling, then settling back. */
 export function popScale(done: number): number {
   return 1 + POP_SWELL * Math.sin(Math.PI * done);
 }
 
-/** Returns the scale of a brick growing back, from nothing, slowing into its size. */
-export function growScale(done: number): number {
-  return 1 - (1 - done) ** 3;
-}
-
 /** Returns the scale of a blast's ring, spreading fast, then slowing. */
 export function ringScale(done: number): number {
-  return RING_FROM + (1 - RING_FROM) * growScale(done);
-}
-
-/** Returns how opaque a fading thing is, a blast's ring or a lost ball, a share through its fade. */
-export function fadeAlpha(done: number): number {
-  return 1 - done;
+  return RING_FROM + (1 - RING_FROM) * easeOutCubic(done);
 }
 
 /**

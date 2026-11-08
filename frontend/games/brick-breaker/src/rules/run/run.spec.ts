@@ -469,6 +469,14 @@ describe("levelsCleared", () => {
 });
 
 describe("levelSeed", () => {
+  it("keeps the seed each level's field draws from, which a saved game relies on", () => {
+    const seeds = [1, 2, 3].map((level) =>
+      levelSeed(runWith({ seed: 1, level })),
+    );
+
+    expect(seeds).toEqual([-2048144790, 198677719, -1849467072]);
+  });
+
   it("gives each level a seed of its own", () => {
     const seeds = [1, 2, 3].map((level) => levelSeed(runWith({ level })));
 
@@ -487,6 +495,8 @@ describe("nextLifeAfter", () => {
     [0, FIRST_LIFE_POINTS],
     [FIRST_LIFE_POINTS - 1, FIRST_LIFE_POINTS],
     [FIRST_LIFE_POINTS, FIRST_LIFE_POINTS + LIFE_POINTS],
+    [FIRST_LIFE_POINTS + LIFE_POINTS / 2, FIRST_LIFE_POINTS + LIFE_POINTS],
+    [FIRST_LIFE_POINTS + LIFE_POINTS - 1, FIRST_LIFE_POINTS + LIFE_POINTS],
     [FIRST_LIFE_POINTS + LIFE_POINTS, FIRST_LIFE_POINTS + 2 * LIFE_POINTS],
   ])("puts the next life after %i points at %i", (score, next) => {
     expect(nextLifeAfter(score)).toBe(next);

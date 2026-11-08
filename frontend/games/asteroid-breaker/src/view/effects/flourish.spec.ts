@@ -23,7 +23,6 @@ import {
   cameraShift,
   exhaustDue,
   eyesOpen,
-  fadeAlpha,
   flashAlpha,
   flashDue,
   flickerShare,
@@ -35,8 +34,6 @@ import {
   ringReachOf,
   shakeOf,
   shardCount,
-  shareDone,
-  spread,
   trailAlpha,
   trailLaidAfter,
   trailOutlinesLaid,
@@ -87,30 +84,7 @@ function overTime<T>(motion: (seconds: number) => T): readonly T[] {
   return Array.from({ length: 1000 }, (_, i) => motion(i / 100));
 }
 
-describe("shareDone", () => {
-  it.each([
-    [1000, 0],
-    [1050, 0.5],
-    [1100, 1],
-    [1200, 1],
-    [900, 0],
-  ])(
-    "is, at %i, %s of the way through a flourish of 100 ms begun at 1000",
-    (now, done) => {
-      expect(shareDone(1000, now, 100)).toBe(done);
-    },
-  );
-});
-
 describe("the flourishes' curves", () => {
-  it("spreads from nothing to all of it, fast and then slowing", () => {
-    expect([spread(0), spread(0.5), spread(1)]).toEqual([0, 0.875, 1]);
-  });
-
-  it("fades from opaque to nothing", () => {
-    expect([fadeAlpha(0), fadeAlpha(0.25), fadeAlpha(1)]).toEqual([1, 0.75, 0]);
-  });
-
   it("kicks the field all the way at first, and settles it, quicker at first", () => {
     expect([kickShare(0), kickShare(0.5), kickShare(1)]).toEqual([1, 0.25, 0]);
   });

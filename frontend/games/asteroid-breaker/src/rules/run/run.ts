@@ -1,3 +1,5 @@
+import { nextMarkAfter } from "@fz/core/math";
+import { mixSeed } from "@fz/core/random";
 import type { Field, WaveStart } from "../field/field";
 import type { Strays } from "../hazards/strays";
 import { type Crew, createCrew } from "../ship/pilots";
@@ -171,10 +173,10 @@ export function catchUp(run: Run, field: WaveProgress): Run {
 
 /**
  * Returns the seed of the wave in play's field, the run's mixed with the
- * wave's number, so no two waves draw alike.
+ * wave's number in the `"field"` stream, so no two waves draw alike.
  */
 export function waveSeed(run: Run): number {
-  return run.seed ^ Math.imul(run.wave, 0x85ebca6b);
+  return mixSeed(run.seed, run.wave, "field");
 }
 
 /** Returns what the field of the run's wave in play takes from the run as it starts. */
@@ -193,9 +195,7 @@ export function waveStart(run: Run): WaveStart {
  * moves the mark on, at a full crew too.
  */
 export function nextShipAfter(score: number): number {
-  if (score < FIRST_SHIP_POINTS) return FIRST_SHIP_POINTS;
-  const passed = Math.floor((score - FIRST_SHIP_POINTS) / SHIP_POINTS) + 1;
-  return FIRST_SHIP_POINTS + passed * SHIP_POINTS;
+  return nextMarkAfter(score, FIRST_SHIP_POINTS, SHIP_POINTS);
 }
 
 /** Returns whether a wave's field has come to anything the run hasn't taken yet. */

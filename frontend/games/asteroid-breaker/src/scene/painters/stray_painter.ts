@@ -1,3 +1,4 @@
+import { lerp, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import type { Pilot } from "../../rules/ship/pilots";
 import type { Moving, Place } from "../../rules/torus";
@@ -15,11 +16,9 @@ import {
   bailOutShown,
   bobShare,
   eyesOpen,
-  shareDone,
 } from "../../view/effects/flourish";
 import { BAIL_OUT_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
-import { between } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -114,8 +113,8 @@ export class StrayPainter implements Painter {
     const stray = field.strays.adrift;
     for (const part of this.adrift.parts) part.setVisible(stray.live);
     if (!stray.live) return;
-    const x = between(stray.lastX, stray.x, alpha);
-    const y = between(stray.lastY, stray.y, alpha);
+    const x = lerp(stray.lastX, stray.x, alpha);
+    const y = lerp(stray.lastY, stray.y, alpha);
     lookingFrom(x, y, shipDrawn, stray.heading, this.look);
     this.drawPilot(this.adrift, x, y, stray.pilot, this.look, context);
   }

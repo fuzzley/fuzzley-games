@@ -96,11 +96,6 @@ export interface Drawn extends Moving {
   angle: number;
 }
 
-/** Returns where a thing is drawn between its last place and its next, `alpha` of the way. */
-export function between(last: number, next: number, alpha: number): number {
-  return last + (next - last) * alpha;
-}
-
 /**
  * Returns where a thing that wraps is drawn between its last place and its
  * next, `alpha` of the way the shortest way across the wrap, written into a
@@ -109,7 +104,7 @@ export function between(last: number, next: number, alpha: number): number {
  *
  * The comets and the strays cross rather than wrap, and lie off the field
  * as they come in and leave, which this would wrap onto its far side;
- * {@link between} draws them.
+ * `@fz/core/math`'s `lerp()` draws them.
  */
 export function wrappedBetween(
   thing: Stepped,

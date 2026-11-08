@@ -1,12 +1,8 @@
+import { easeOutCubic, fadeAlpha, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, wrap } from "../../rules/torus";
 import { FLOURISH, FRAMES } from "../../view/art/art";
-import {
-  SPARK_REACH,
-  fadeAlpha,
-  shareDone,
-  spread,
-} from "../../view/effects/flourish";
+import { SPARK_REACH } from "../../view/effects/flourish";
 import { DUST_MS, SHARDS_MS, SPARK_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
@@ -185,7 +181,9 @@ function drawPuff(
     puff.copies.hide();
     return;
   }
-  puff.copies.setScale((zoom * spread(done) * puff.radius) / FLOURISH.puff);
+  puff.copies.setScale(
+    (zoom * easeOutCubic(done) * puff.radius) / FLOURISH.puff,
+  );
   puff.copies.setAlpha(DUST_ALPHA * fadeAlpha(done));
   puff.copies.show(puff.x, puff.y, puff.radius, metrics, field.torus);
 }
@@ -204,7 +202,7 @@ function drawSpark(
     return;
   }
   const { torus } = field;
-  const out = spark.radius + SPARK_REACH * spread(done);
+  const out = spark.radius + SPARK_REACH * easeOutCubic(done);
   spark.copies.setScale(zoom);
   spark.copies.setAlpha(fadeAlpha(done));
   spark.copies.show(

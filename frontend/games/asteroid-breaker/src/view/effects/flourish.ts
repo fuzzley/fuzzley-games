@@ -6,7 +6,7 @@
 // ship, is no motion, so it blinks either way.
 
 import { formatPoints } from "@fz/core/format";
-import { clamp } from "@fz/core/math";
+import { shareDone } from "@fz/core/math";
 import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { stepsIn } from "../../rules/stepper";
 import type { Moving } from "../../rules/torus";
@@ -100,24 +100,6 @@ const RATES = { breath: 0.64, bob: 0.35, pulse: 0.8, flicker: 7.5 } as const;
  * second that are safe.
  */
 const BLINK_RATE = 2.5;
-
-/** Returns how far through its time a flourish is, from 0 as it starts to 1 once it is over. */
-export function shareDone(startedAt: number, now: number, ms: number): number {
-  return clamp((now - startedAt) / ms, 0, 1);
-}
-
-/**
- * Returns how far out something that spreads has gone, a share through its
- * time: fast, then slowing.
- */
-export function spread(done: number): number {
-  return 1 - (1 - done) ** 3;
-}
-
-/** Returns how opaque a fading thing is, a share through its fade. */
-export function fadeAlpha(done: number): number {
-  return 1 - done;
-}
 
 /**
  * Returns how far the field is from where it rests, a share through a kick: all

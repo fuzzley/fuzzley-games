@@ -4,7 +4,8 @@
 // game makes its wave again from the two. Each climbs from the last
 // sector's last wave until wave 60, and holds there.
 
-import { createRandom } from "@fz/core/random";
+import { lerp } from "@fz/core/math";
+import { createRandom, mixSeed } from "@fz/core/random";
 import { PICKUP_IDS } from "../catalog/pickups";
 import type { Span } from "../tuning";
 import {
@@ -125,9 +126,9 @@ export function waveToPlay(entry: WaveEntry, seed: number): Wave {
  * A number before Endless's first makes its first.
  */
 export function endlessWave(seed: number, number: number): Wave {
-  // Mixed apart from the field's seed, so the wave's makeup draws nothing
-  // alike with its field.
-  const random = createRandom(seed ^ Math.imul(number, 0xc2b2ae35));
+  // Mixed in a stream apart from the field's seed, so the wave's makeup draws
+  // nothing alike with its field.
+  const random = createRandom(mixSeed(seed, number, "makeup"));
   const past = Math.max(0, number - ENDLESS_FROM);
   const boulders =
     (past + 1) % BOULDER_EVERY === 0
@@ -148,8 +149,8 @@ export function endlessWave(seed: number, number: number): Wave {
     pool: PICKUP_IDS,
     strays: number >= TWO_STRAYS_FROM ? 2 : 1,
     cometEvery: {
-      least: 1000 * between(FIRST_COMETS.least, CLOSED_COMETS.least, closed),
-      most: 1000 * between(FIRST_COMETS.most, CLOSED_COMETS.most, closed),
+      least: 1000 * lerp(FIRST_COMETS.least, CLOSED_COMETS.least, closed),
+      most: 1000 * lerp(FIRST_COMETS.most, CLOSED_COMETS.most, closed),
     },
   };
 }
@@ -157,11 +158,6 @@ export function endlessWave(seed: number, number: number): Wave {
 /** Returns a number that climbs, as it stands a number of waves past Endless's first. */
 function climbed({ first, rise, most }: Climb, past: number): number {
   return Math.min(most, first + rise * past);
-}
-
-/** Returns the number a share of the way from one to another. */
-function between(from: number, to: number, share: number): number {
-  return from + (to - from) * share;
 }
 
 /**
