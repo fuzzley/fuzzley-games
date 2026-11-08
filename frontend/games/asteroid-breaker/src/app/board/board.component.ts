@@ -13,13 +13,8 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
-import { count, formatPoints } from "@fz/core/format";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import {
-  KeepKeysDirective,
-  PhaserCanvasComponent,
-  type SceneSource,
-} from "@fz/phaser/canvas";
+import { PhaserCanvasComponent, type SceneSource } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
 import type { Insets } from "@fz/phaser/insets";
 import {
@@ -27,9 +22,7 @@ import {
   type Viewport,
   canvasPixelRatio,
 } from "@fz/phaser/layout";
-import { IconComponent } from "@fz/ui/icon";
 import { ThemeService } from "@fz/ui/theme";
-import { whereLost } from "../../rules/run/describe";
 import type { Torus } from "../../rules/torus";
 import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art/art";
@@ -41,14 +34,10 @@ import {
   fieldMetrics,
   fieldShape,
 } from "../../view/field/field_metrics";
-import { tallyLines } from "../../view/tally";
-import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
+import { BoardCardComponent } from "./board_card.component";
 import { fieldPalette } from "./field_palette";
-
-/** Names a card laid over the field, or none. */
-type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
 
 /** The margin around the field on a compact screen and on a roomy one, in CSS pixels. */
 const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
@@ -57,11 +46,9 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  * Shows the board: the canvas the scene draws the field and the deck on,
  * which hears the keys, the mouse and fingers while the board has the focus,
  * a drawing of the empty field in CSS, where the scene will draw it, clear
- * of the deck's room, until the scene has drawn, and the cards that say how
- * to fly, that the wave is paused and who waits at home, how a wave cleared
- * added up, how to start again once an ended run's result is put away, that
- * the board is still loading on a slow connection, or that it couldn't be
- * drawn. It buzzes the phone, where it can and the settings say to, as a
+ * of the deck's room, until the scene has drawn, and the card over the
+ * field (`<app-board-card>`), told where the scene is and how the ship
+ * flies. It buzzes the phone, where it can and the settings say to, as a
  * ship is lost and as a wave is cleared.
  *
  * The board is an application to assistive technology, so a screen reader
@@ -70,12 +57,7 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
  */
 @Component({
   selector: "app-board",
-  imports: [
-    IconComponent,
-    KeepKeysDirective,
-    PhaserCanvasComponent,
-    PilotRowComponent,
-  ],
+  imports: [BoardCardComponent, PhaserCanvasComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -104,7 +86,7 @@ export class BoardComponent {
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly canvas = viewChild.required(PhaserCanvasComponent);
+  protected readonly canvas = viewChild.required(PhaserCanvasComponent);
 
   /**
    * The device pixels to a CSS pixel, as the canvas most often renders at,
@@ -195,86 +177,6 @@ export class BoardComponent {
     const rect = this.laid()?.field ?? this.placeholderField();
     return rect && rectStyle(rect);
   });
-
-  /** The card over the field, if any. */
-  protected readonly card = computed<Card>(() => {
-    if (this.canvas().state() === "failed") return "failed";
-    if (this.canvas().slow()) return "slow";
-    switch (this.game.outcome()) {
-      case "ready":
-        return "ready";
-      case "playing":
-        return null;
-      case "paused":
-        return "paused";
-      case "cleared":
-        return this.game.clearedOpen() ? "cleared" : null;
-      case "over":
-        return this.game.resultClosed() ? "ended" : null;
-    }
-  });
-
-  /** What the Ready card calls the wave: its number and its name. */
-  protected readonly waveTitle = computed(() => {
-    const { number, data } = this.game.wave();
-    return `Wave ${String(number)}: ${data.name}`;
-  });
-
-  /**
-   * What the Ready card says flies the ship: the deck where it shows, its
-   * stick on the side the settings say, else the keys; and how it fires.
-   */
-  protected readonly flyWords = computed(() => {
-    const { deck, stickOnRight, fireByItself } = this.board();
-    if (!deck) {
-      return fireByItself
-        ? "Arrows or W A D to fly; the ship fires by itself."
-        : "Arrows or W A D to fly, Space to fire.";
-    }
-    const [stick, buttons] = stickOnRight
-      ? ["right", "left"]
-      : ["left", "right"];
-    return fireByItself
-      ? `Steer with the ${stick} pad; the ship fires by itself.`
-      : `Steer with the ${stick} pad, fire with the ${buttons}.`;
-  });
-
-  /** The run's score, as the cards write it. */
-  protected readonly score = computed(() => formatPoints(this.game.score()));
-
-  /** The strays brought home, waiting to fly the next ships, as the Paused card draws them. */
-  protected readonly home = computed(() => this.game.crew().home);
-
-  /** Whether any stray waits at home, for the Paused card to draw. */
-  protected readonly hasHome = computed(() => this.home().length > 0);
-
-  /** What the Paused card says of the strays at home, since their pictures say nothing. */
-  protected readonly homeWords = computed(
-    () =>
-      `${count(this.home().length, "fuzzball", "fuzzballs")} waiting at home`,
-  );
-
-  /** What the Cleared card calls the wave, or the last sector and Endless after it. */
-  protected readonly clearedTitle = computed(() => {
-    const { number, sector } = this.game.wave();
-    return this.game.beforeEndless()
-      ? `${sector.name} cleared. Endless begins.`
-      : `Wave ${String(number)} cleared`;
-  });
-
-  /** What the Cleared card says goes on to the next wave, besides its button. */
-  protected readonly nextWords = computed(
-    () => `Move or fire for wave ${String(this.game.wave().number + 1)}.`,
-  );
-
-  /** How the wave just cleared added up, a line for each part, for its card. */
-  protected readonly tallyLines = computed(() => {
-    const tally = this.game.tally();
-    return tally ? tallyLines(tally) : [];
-  });
-
-  /** What the card over an ended run calls it: the wave it was lost on. */
-  protected readonly endTitle = computed(() => whereLost(this.game.wave()));
 
   /** The field's colors, from the palette on the page. */
   private readonly palette = fieldPalette(inject(ThemeService));
@@ -385,26 +287,12 @@ export class BoardComponent {
     );
   }
 
-  /** Goes on with the paused wave, and hands the focus back to the board. */
-  protected resume(): void {
-    this.game.resume();
+  /**
+   * Takes the focus back as the player goes on from a card, whose button
+   * held it and goes with the card.
+   */
+  protected takeFocusBack(): void {
     this.host.nativeElement.focus();
-  }
-
-  /** Goes on to the next wave, and hands the focus back to the board. */
-  protected nextWave(): void {
-    this.game.nextWave();
-    this.host.nativeElement.focus();
-  }
-
-  /** Starts another run, from the card over an ended one. */
-  protected newGame(): void {
-    void this.game.newGame();
-  }
-
-  /** Loads the page again, for a board that couldn't be drawn. */
-  protected reload(): void {
-    this.document.defaultView?.location.reload();
   }
 
   /**

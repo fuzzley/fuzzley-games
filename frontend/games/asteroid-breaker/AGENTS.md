@@ -410,23 +410,25 @@ take for the layer.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty field drawn in CSS until the scene has drawn, clear of the
     deck's room; the focus ring; a crosshair for the pointer while a ship
-    flies, as the mouse aims it; and the cards: Ready, with the wave and how
-    to fly, while a wave waits for its first move; Paused, with the score and
-    the strays waiting at home; Cleared, with how the wave's points added up
-    and Next wave, and a trophy over the last sector's last; Ended, once an
-    ended run's result is put away; and still loading and couldn't be
-    drawn. The board is Phaser's keyboard target, so the cards' buttons keep
-    their keys from it (`@fz/phaser/canvas`'s `fzKeepKeys`); Resume and Next
-    wave hand the board back the focus. It measures its own size and hands
-    the game the room the field is laid out in (`GameService.setRoom()`),
-    and publishes, for the layout check, where the scene laid the field
-    (`data-field`), the room it fills (`data-room`) and the deck's zones
-    (`data-deck`). `fieldPalette()` colors the field from `ThemeService`'s
-    roles and `mode`. It buzzes the phone as a ship is lost and as a wave is
-    cleared, where it can and the settings say to. The board asks the scene
-    for How to play's pictures as How to play opens (`pictures`), and keeps
-    them until the scene bakes again. It is an application named for its
-    wave, "Asteroid Breaker, wave 4: Thaw".
+    flies, as the mouse aims it; and the cards, `<app-board-card>`, which
+    the board tells where the scene is and how the ship flies: Ready, with
+    the wave and how to fly, while a wave waits for its first move; Paused,
+    with the score and the strays waiting at home; Cleared, with how the
+    wave's points added up and Next wave, and a trophy over the last
+    sector's last; Ended, once an ended run's result is put away; and still
+    loading and couldn't be drawn. The board is Phaser's keyboard target, so
+    the cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
+    `fzKeepKeys`); Resume and Next wave hand the board back the focus
+    (`handBack`). It measures its own size and hands the game the room the
+    field is laid out in (`GameService.setRoom()`), and publishes, for the
+    layout check, where the scene laid the field (`data-field`), the room it
+    fills (`data-room`) and the deck's zones (`data-deck`). `fieldPalette()`
+    colors the field from `ThemeService`'s roles and `mode`. It buzzes the
+    phone as a ship is lost and as a wave is cleared, where it can and the
+    settings say to. The board asks the scene for How to play's pictures as
+    How to play opens (`pictures`), and keeps them until the scene bakes
+    again. It is an application named for its wave, "Asteroid Breaker, wave 4:
+    Thaw".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, whose menu asks before it starts a run at another, the
     figures, and Pause, Sound, Sectors, New game, How to play and Settings,
@@ -817,7 +819,10 @@ of its own beside it:
   `GAME_RANDOM` (`provideSpecWaves()`), and plays them through `tick()`,
   steering the ship from the frame it reads (`shoot()`, `ram()`,
   `toPickup()`, `toStray()`, `playUntil()`, `loseShip()`, `endRun()`,
-  `playToClear()`, `clearToNext()`).
+  `playToClear()`, `clearToNext()`), up to a card if a spec wants one
+  (`pauseIn()`, `clearIn()`, `endIn()`); with how the board lays the field
+  out on a roomy screen with no touch (`ROOMY`), and Space as a browser
+  sends it (`SPACE`).
 - `run_under_way.ts` holds a run under way on its third wave, with points,
   strays and a crew (`runUnderWay()`), how it starts its wave
   (`waveSetupOf()`), and its field laid out and played a second
@@ -829,4 +834,5 @@ of its own beside it:
   until its first stray is near (`keptRun()`), for the screenshots' script.
 
 The board's spec runs on `provideFakePhaserCanvas()`, and then with the real
-scene it loads.
+scene it loads; its card's spec renders the card alone, with no canvas, told
+what the board would tell it.

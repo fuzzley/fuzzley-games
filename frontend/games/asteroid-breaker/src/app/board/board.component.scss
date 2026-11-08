@@ -1,5 +1,3 @@
-@use "../styles" as *;
-
 // The board takes the room the stage gives it, and the canvas fills it. The
 // component works out where the field lies on it as the scene lays it out
 // (`fieldMetrics()`), so the placeholder, the focus ring and the cards sit
@@ -56,58 +54,4 @@
 
 :host(:focus-visible) .ring {
   outline-color: var(--fz-focus-ring-color);
-}
-
-// Over the field, a card in its middle, but for the Ready card.
-.cards {
-  @include board-card-layer;
-}
-
-.card {
-  @include board-card(var(--margin));
-}
-
-// At the foot of the field, clear of the middle, where a wave's first ship
-// waits for the first move.
-.ready {
-  align-self: end;
-  margin-bottom: var(--margin);
-}
-
-// The trophy over the last sector's Cleared card.
-.card-icon {
-  --fz-icon-size: 40px;
-
-  color: var(--fz-warning);
-}
-
-// On a small board, as on the smallest phones, a card sets smaller.
-@container (width < 280px) or (height < 360px) {
-  .card {
-    @include board-card-small;
-  }
-
-  .card-icon {
-    --fz-icon-size: 28px;
-  }
-}
-
-// Each part of a cleared wave's points on a line, its name and its points at
-// either end.
-.tally {
-  display: grid;
-  gap: var(--fz-space-1);
-  min-width: 14em;
-  margin: 0;
-
-  > div {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--fz-space-4);
-  }
-
-  dd {
-    margin: 0;
-    font-variant-numeric: tabular-nums;
-  }
 }

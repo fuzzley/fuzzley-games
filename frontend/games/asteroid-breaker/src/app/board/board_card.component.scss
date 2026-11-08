@@ -1,0 +1,58 @@
+@use "../styles" as *;
+
+// Over the field, where the board lays the layer, a card in its middle, but
+// for the Ready card. A card keeps the margin the board keeps around the
+// field (`--margin`), and sizes itself by the board, the size container
+// around it.
+:host {
+  @include board-card-layer;
+}
+
+.card {
+  @include board-card(var(--margin));
+}
+
+// At the foot of the field, clear of the middle, where a wave's first ship
+// waits for the first move.
+.ready {
+  align-self: end;
+  margin-bottom: var(--margin);
+}
+
+// The trophy over the last sector's Cleared card.
+.card-icon {
+  --fz-icon-size: 40px;
+
+  color: var(--fz-warning);
+}
+
+// On a small board, as on the smallest phones, a card sets smaller.
+@container (width < 280px) or (height < 360px) {
+  .card {
+    @include board-card-small;
+  }
+
+  .card-icon {
+    --fz-icon-size: 28px;
+  }
+}
+
+// Each part of a cleared wave's points on a line, its name and its points at
+// either end.
+.tally {
+  display: grid;
+  gap: var(--fz-space-1);
+  min-width: 14em;
+  margin: 0;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--fz-space-4);
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}

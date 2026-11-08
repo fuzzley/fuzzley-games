@@ -900,3 +900,31 @@ sound, nothing after it replacing a rule:
    global, got through:_ taken.
 4. _The commit's type:_ `build`, as the repository's lint changes are.
 5. _The storage message gave the rule as its reason:_ taken.
+
+### Step 8a: finding 10, the board's cards a component of their own
+
+Built on `ab-shell`, the first of finding 10's commits. The cards over the
+field, the ready, paused, cleared, failed and slow ones, with the eleven
+computeds that pick and word them and their buttons, are
+`<app-board-card>`. The board tells it where the scene is
+(`canvasState`, `slow`) and how the ship flies (`board`), and it hands the
+board back the focus after Resume or Next wave (`handBack`), as the bar
+does. Its host is the layer the board places over the field, its styles
+moved with it unchanged, so the cards look and read as before and the
+focus moves in the same click. Its 28 specs run with no canvas; the
+board's keep seven, for what it tells the card and the focus it takes
+back. The specs' `SPACE`, `ROOMY`, `pauseIn()`, `clearIn()` and `endIn()`,
+which both specs need, are `src/testing/play.ts`'s.
+
+Where it went other than planned:
+
+- `play.ts` has no spec of its own, as the helpers that drive the shell
+  have none: it needs the shell's tokens, which `pure` can't load.
+
+The review found the same look, reading and focus:
+
+1. _The card said the player went on, which the bar calls handing back,
+   and said it even when nothing went on:_ taken; `handBack`, with the
+   bar's words.
+2. _The `canvas` input held the canvas's state:_ taken; `canvasState`.
+3. _Both specs copied the same helpers:_ taken; `play.ts`.

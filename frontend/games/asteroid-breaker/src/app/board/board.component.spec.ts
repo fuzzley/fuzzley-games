@@ -17,26 +17,24 @@ import {
 } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { STILL } from "../../rules/ship/ship";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
 import { cacheSounds, humsIn } from "../../testing/belt_board";
 import {
   FRAME_MS,
+  ROOMY,
+  SPACE,
   SPEC_WAVE,
-  STRAY_WAVES,
-  bringStraysHome,
+  clearIn,
   clearToNext,
-  endRun,
   loseShip,
+  pauseIn,
   playToClear,
-  playUntil,
   provideSpecWaves,
   shoot,
 } from "../../testing/play";
 import { paintRoles } from "../../testing/roles";
 import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
-import { CLEARED_MS } from "../../view/effects/timing";
 import {
   type BoardSetting,
   type PixelRect,
@@ -48,19 +46,8 @@ import { GameService } from "../play/game.service";
 import { type Settings, SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";
 
-/** Space as a browser sends it, with the key code Phaser's capture reads. */
-const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
-
 /** The longest the scene plays a wave for before a spec gives up on it. */
 const WAVE_LIMIT_MS = 30_000;
-
-/** How the board lays the field out on a roomy screen with no touch. */
-const ROOMY: BoardSetting = {
-  marginCss: 24,
-  deck: false,
-  stickOnRight: false,
-  fireByItself: false,
-};
 
 /** How the board lays the field out on a compact touch screen, its deck showing. */
 const TOUCH: BoardSetting = { ...ROOMY, marginCss: 12, deck: true };
@@ -234,35 +221,6 @@ function useSettings(change: Partial<Settings>): void {
   TestBed.inject(SettingsService).update(change);
 }
 
-/** Starts the wave in play, then pauses it, for the Paused card. */
-function pauseIn(game: GameService): void {
-  game.tick(FRAME_MS, shoot(game));
-  game.pause();
-}
-
-/** Clears the wave in play, until the Cleared card shows. */
-function clearIn(game: GameService): void {
-  playToClear(game);
-  playUntil(game, () => STILL, game.clearedOpen);
-}
-
-/** Ends the run, and puts its result away, for the Ended card. */
-function endIn(game: GameService): void {
-  endRun(game);
-  playUntil(game, () => STILL, game.resultOpen);
-  game.closeResult();
-}
-
-/** Returns the cleared card's sum, each line as its term and its points. */
-function tallyLines(): [string, string][] {
-  return screen
-    .getAllByRole("term")
-    .map((term) => [
-      term.textContent.trim(),
-      term.nextElementSibling?.textContent.trim() ?? "",
-    ]);
-}
-
 describe("BoardComponent", () => {
   describe("the board", () => {
     it("is named for the wave on it, and described by its keys", async () => {
@@ -363,8 +321,8 @@ describe("BoardComponent", () => {
       resize(board, 1280, 720);
       detectChanges();
 
-      // The layer only places the cards, so it has no role to find it by.
-      expect(board.querySelector(".cards")).toHaveStyle(
+      // The card's element is only the layer a card shows in, with no role.
+      expect(board.querySelector("app-board-card")).toHaveStyle(
         placedOver(fieldOn(1280, 720, ROOMY)),
       );
     });
@@ -465,8 +423,8 @@ describe("BoardComponent", () => {
 
       const { board } = await renderBoard();
 
-      // The layer only places the cards, so it has no role to find it by.
-      expect(board.querySelector(".cards")).toHaveStyle(
+      // The card's element is only the layer a card shows in, with no role.
+      expect(board.querySelector("app-board-card")).toHaveStyle(
         placedOver(fieldOn(1280, 720, ROOMY)),
       );
     });
@@ -507,11 +465,10 @@ describe("BoardComponent", () => {
     });
   });
 
-  describe("the cards", () => {
-    it("name the wave, and say how to fly by the keys, while it waits", async () => {
+  describe("its card", () => {
+    it("is told the ship flies by the keys, on a screen with no touch", async () => {
       await renderBoard();
 
-      expect(screen.getByText("Wave 1: Pebble")).toBeInTheDocument();
       expect(
         screen.getByText("Arrows or W A D to fly, Space to fire."),
       ).toBeInTheDocument();
@@ -530,7 +487,7 @@ describe("BoardComponent", () => {
         viewport = null;
       });
 
-      it("say how to fly by the deck", async () => {
+      it("is told the ship flies by the deck", async () => {
         await renderBoard();
 
         expect(
@@ -538,235 +495,41 @@ describe("BoardComponent", () => {
         ).toBeInTheDocument();
       });
 
-      it.each<[string, Partial<Settings>, string]>([
-        [
-          "with the stick on the right",
-          { stickOnRight: true },
-          "Steer with the right pad, fire with the left.",
-        ],
-        [
-          "firing by itself",
-          { fireByItself: true },
-          "Steer with the left pad; the ship fires by itself.",
-        ],
-        [
-          "with the stick on the right, firing by itself",
-          { stickOnRight: true, fireByItself: true },
-          "Steer with the right pad; the ship fires by itself.",
-        ],
-      ])("say how to fly by the deck %s", async (_, change, words) => {
+      it("is told which side the settings put the stick on, and that the ship fires by itself", async () => {
         const { detectChanges } = await renderBoard();
 
-        useSettings(change);
+        useSettings({ stickOnRight: true, fireByItself: true });
         detectChanges();
 
-        expect(screen.getByText(words)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            "Steer with the right pad; the ship fires by itself.",
+          ),
+        ).toBeInTheDocument();
       });
     });
 
-    it("say the ship fires by itself, where the settings have it", async () => {
-      const { detectChanges } = await renderBoard();
-
-      useSettings({ fireByItself: true });
-      detectChanges();
-
-      expect(
-        screen.getByText("Arrows or W A D to fly; the ship fires by itself."),
-      ).toBeInTheDocument();
-    });
-
-    it("show nothing over a ship in flight", async () => {
-      await startedAt(SPEC_WAVE.gift);
-
-      expect(screen.queryByText(/to fly/)).not.toBeInTheDocument();
-    });
-
-    it("say the wave is paused, with the score", async () => {
-      const { game, detectChanges } = await startedAt(SPEC_WAVE.gift);
-
-      game.pause();
-      detectChanges();
-
-      expect(screen.getByText("Paused")).toBeInTheDocument();
-      expect(screen.getByText("Score 0")).toBeInTheDocument();
-    });
-
-    it("draw the strays waiting at home on a paused wave, and say how many", async () => {
-      const { game, detectChanges } = await renderBoard({}, STRAY_WAVES);
-      bringStraysHome(game, 2);
-
-      game.pause();
-      detectChanges();
-
-      const home = screen.getByText("2 fuzzballs waiting at home");
-      expect(home.querySelectorAll("app-pilot")).toHaveLength(2);
-    });
-
-    it("say nothing of home on a paused wave with no one waiting there", async () => {
-      const { game, detectChanges } = await startedAt(SPEC_WAVE.gift);
-
-      game.pause();
-      detectChanges();
-
-      expect(screen.queryByText(/waiting at home/)).not.toBeInTheDocument();
-    });
-
-    it("go on at Resume, handing the board the focus", async () => {
+    it("hands the board back the focus as Resume goes on", async () => {
       const { board, game, detectChanges } = await startedAt(SPEC_WAVE.gift);
       game.pause();
       detectChanges();
 
       await userEvent.click(screen.getByRole("button", { name: "Resume" }));
 
-      expect(game.outcome()).toBe("playing");
       expect(board).toHaveFocus();
     });
 
-    it("add up a cleared wave's points", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      clearIn(game);
-      detectChanges();
-
-      expect(tallyLines()).toEqual([
-        ["Rocks", "40"],
-        ["Chains", "0"],
-        ["Strays brought home", "0"],
-        ["Wave cleared", "500"],
-        ["No ship lost", "500"],
-      ]);
-    });
-
-    it("say the last sector is cleared and Endless begins, with the trophy", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.last);
-
-      clearIn(game);
-      detectChanges();
-
-      expect(screen.getByText("Specs cleared. Endless begins.")).toBeVisible();
-      // The trophy is hidden from assistive technology, which the title tells.
-      expect(document.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
-    });
-
-    it("show no trophy over a wave of a sector's but its last", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      clearIn(game);
-      detectChanges();
-
-      expect(document.querySelector('fz-icon[name="trophy"]')).toBeNull();
-    });
-
-    it("say a move or a shot goes on to the next wave", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      clearIn(game);
-      detectChanges();
-
-      expect(screen.getByText("Move or fire for wave 2.")).toBeInTheDocument();
-    });
-
-    it("go on to the next wave at the cleared card's button, handing the board the focus", async () => {
+    it("hands the board back the focus as Next wave goes on", async () => {
       const { board, game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
       clearIn(game);
       detectChanges();
 
       await userEvent.click(screen.getByRole("button", { name: "Next wave" }));
 
-      expect(game.wave().number).toBe(SPEC_WAVE.gift);
       expect(board).toHaveFocus();
     });
 
-    it("name the next wave while it waits for its first move", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      clearToNext(game);
-      detectChanges();
-
-      expect(screen.getByText("Wave 2: Gift")).toBeInTheDocument();
-    });
-
-    it.each([
-      ["Resume", pauseIn],
-      ["Next wave", clearIn],
-      ["New game", endIn],
-    ])(
-      "keep the keys on %s from the board, which would fly the ship",
-      async (name, show) => {
-        const { board, game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-        show(game);
-        detectChanges();
-        const heard = vi.fn();
-        board.addEventListener("keydown", heard);
-
-        fireEvent.keyDown(screen.getByRole("button", { name }), SPACE);
-
-        expect(heard).not.toHaveBeenCalled();
-      },
-    );
-
-    describe("where motion is welcome", () => {
-      let viewport: FakeViewport | null = null;
-
-      beforeEach(() => {
-        viewport = installFakeViewport(1024, 768);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
-      });
-
-      it("say nothing over a cleared wave while its last shards fly", async () => {
-        const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-        playToClear(game);
-
-        game.tick(CLEARED_MS / 2, STILL);
-        detectChanges();
-
-        expect(screen.queryByText("Wave 1 cleared")).not.toBeInTheDocument();
-      });
-    });
-
-    it("say nothing over an ended run while its result is to come", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      endRun(game);
-      detectChanges();
-
-      expect(screen.queryByText("Lost on wave 1")).not.toBeInTheDocument();
-    });
-
-    it("say a run lost in Endless was lost there, once its result is put away", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.last + 1);
-
-      endIn(game);
-      detectChanges();
-
-      expect(screen.getByText("Lost on wave 4, Endless")).toBeInTheDocument();
-    });
-
-    it("offer a new game once an ended run's result is put away", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-      endIn(game);
-      detectChanges();
-
-      expect(screen.getByText("Lost on wave 1")).toBeInTheDocument();
-      expect(screen.getByText("Score 0")).toBeInTheDocument();
-    });
-
-    it("start a new game from the card over an ended run", async () => {
-      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-      endIn(game);
-      detectChanges();
-
-      await userEvent.click(screen.getByRole("button", { name: "New game" }));
-
-      expect(game.outcome()).toBe("ready");
-    });
-
-    it("say when the board couldn't be drawn, offering to reload", async () => {
+    it("is told the board couldn't be drawn", async () => {
       const { fake, detectChanges } = await renderBoard({ readyAtOnce: false });
 
       fake.host.latest.fail();
@@ -776,7 +539,6 @@ describe("BoardComponent", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(
         "The board couldn't be drawn",
       );
-      expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
     });
 
     describe("on a slow connection", () => {
@@ -788,7 +550,7 @@ describe("BoardComponent", () => {
         vi.useRealTimers();
       });
 
-      it("say the board is still loading, offering nothing to press", async () => {
+      it("is told the board is still loading", async () => {
         const { detectChanges } = await renderBoard({ readyAtOnce: false });
 
         vi.advanceTimersByTime(8_000);
@@ -797,9 +559,6 @@ describe("BoardComponent", () => {
         expect(screen.getByRole("status")).toHaveTextContent(
           "Still loading the board",
         );
-        expect(
-          screen.getAllByRole("button").map((button) => button.textContent),
-        ).toEqual(["Elsewhere"]);
       });
     });
   });
