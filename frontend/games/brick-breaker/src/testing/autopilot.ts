@@ -40,7 +40,6 @@ import {
   POINTER_SPEED,
   ROWS,
 } from "../rules/tuning";
-import { GLOW_BRICKS } from "../view/effects/timing";
 
 /**
  * The longest the autopilot plays a level, in steps: eight minutes on a
@@ -118,8 +117,15 @@ interface Aim {
   reach: number;
 }
 
-/** How few needed bricks are left when a level's endgame starts: those that may glow. */
-export const ENDGAME = GLOW_BRICKS;
+/**
+ * How few needed bricks are left when a level's endgame starts: those that
+ * may glow.
+ *
+ * It is the view's `GLOW_BRICKS` written out, since lint holds the autopilot
+ * to the rules' fence, which keeps it out of the view; its spec holds the two
+ * alike.
+ */
+export const ENDGAME = 3;
 
 /** How often the autopilot aims a ball at a brick the level needs, rather than at a place on the paddle. */
 const AIM_AT_BRICK = 0.5;

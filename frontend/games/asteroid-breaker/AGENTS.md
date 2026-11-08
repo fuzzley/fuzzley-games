@@ -741,8 +741,8 @@ workspace's with the others'.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
   among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
   and `phaserGameLayers()` for the fences between the layers and what keeps
-  the rules and the view off the clock, `Math.random()` and the page, then
-  stylelint with `@fz/style`'s preset).
+  the rules, the view and the helpers the scripts load off the clock,
+  `Math.random()` and the page, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` and the two lint configs from
   their JSDoc, each with `@fz/dev`'s options and

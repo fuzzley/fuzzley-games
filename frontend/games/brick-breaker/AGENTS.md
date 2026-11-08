@@ -52,10 +52,15 @@ one), nothing of the page (`window`, `document`, `navigator`,
 The scene hands them the frames' time and the room, the shell what is kept,
 and their numbers are drawn from a seed, so a run plays the same again from
 its seed and its frames, as a game taken up and a level made again from its
-run's seed rely on. So does the autopilot (`src/testing/autopilot.ts`),
-which plays the same from a seed only while it reads nothing else itself,
-but lint doesn't hold it to that yet: it is one of the specs' helpers, and
-no fence keeps them off the clock or `Math.random()`.
+run's seed rely on. So do the helpers the scripts in `tools/` load, the
+autopilot (`src/testing/autopilot.ts`) and the run the screenshots keep
+(`src/testing/kept_run.ts`), as a report or a capture must play the same
+from its seed: lint holds them as it does the rules, to the rules' fence
+and off the clock, `Math.random()` and the page (`SCRIPT_HELPERS` in
+`eslint.config.js`, handed to `phaserGameLayers()` as `heldAsRules`), and a
+file of `src/testing/` they import must join that list, as lint says. So
+the autopilot's endgame, as few bricks as the view lets glow, is a number
+of its own (`ENDGAME`), which its spec holds to the view's `GLOW_BRICKS`.
 
 ## Layout
 
@@ -383,7 +388,8 @@ takes for the specs' helpers.
   `tools/` load through Vite: fields from pictures, the atlas in one palette,
   the autopilot, the palette's roles, the shell's small levels and the run
   the screenshots keep, as Tests below says. The app's tsconfig leaves it
-  out.
+  out, and lint holds what the scripts load as it does the rules
+  (`SCRIPT_HELPERS`), as Layers above says.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
   synthesizes the sounds; `report-levels.mjs` reports how the autopilot plays
   every level; `check-layout.mjs` checks the build's layout in headless
@@ -515,8 +521,8 @@ workspace's with the others'.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, `scripts()`
   among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
   and `phaserGameLayers()` for the fences between the layers and what keeps
-  the rules and the view off the clock, `Math.random()` and the page, then
-  stylelint with `@fz/style`'s preset).
+  the rules, the view and the helpers the scripts load off the clock,
+  `Math.random()` and the page, then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` and the two lint configs from
   their JSDoc).
