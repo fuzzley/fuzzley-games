@@ -212,8 +212,9 @@ game through `runScene()`:
   `provideFakePhaserCanvas()`, which loads no Phaser. The board's spec also
   runs the scene the board hands its canvas for real, through `runScene()`.
 - What a frame of play comes to is `RunFrames`'s, which the view's spec
-  holds; the shell's spec holds `GameService` to taking it into the run,
-  the records, the signals and the live region.
+  holds; the shell's spec holds `GameService` to taking it into the run
+  and what is its own, the records and the live region, and to beginning
+  each run with none of the last one's (`ownOf()`).
 - `GameService` plays the small waves of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
   numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless

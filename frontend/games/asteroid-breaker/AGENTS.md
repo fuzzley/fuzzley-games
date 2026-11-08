@@ -356,28 +356,28 @@ take for the layer.
   run begins and whenever the last dialog closes, and pauses the wave in
   play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked
   away.
-  - `play/` — `GameService` holds the run in a signal and the wave in play
-    outside one, as the view's `WavePlay`, since the field changes 120 times
-    a second, and moves the field on through `tick()`, which the scene's
-    frames drive, steered as the player steers, taking what the view's
-    `RunFrames` says each frame changed into the run, the records and the
-    signals beside it; it pauses, goes on and starts waves and runs, shapes
-    each field to the board's room (`setRoom()`), says what
-    happened through `@fz/ui/announcer`, shows a cleared wave's points
-    (`tally`), keeps what each change in the run brings to the records and
-    the sectors reached (`recordsOf()`) through `stats/`, in one place that
-    keeps none of a run flown on tuned numbers, tunes the field as the debug
-    menu says (`tune()`, `resetTuning()`), and
-    asks through `@fz/ui/confirm` before a new game or speed throws a run
-    away. `src/app/tokens.ts` holds what a spec hands it instead of the
-    game's own: the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and
-    whether the build is a development one (`DEV_BUILD`) and the settings
-    offer the debug menu (`DEBUG_MENU`). `SavedGameService` keeps the run
-    under way, through `GameService.saved()`, as its outcome or its crew
-    changes and as the page is hidden or goes away, never at a step, and
-    forgets it once the run ends or another begins; `src/main.ts`
-    starts it before the board first shows, and it takes up the run kept
-    (`takeUp()`), paused.
+  - `play/` — `GameService` holds the run and what is its own, its chain, its
+    cards and what it set, in one signal, replaced whole as a run begins or is
+    taken up, so nothing of one run reaches the next, and the wave in play
+    outside one, as the view's `WavePlay`, since the field changes 120 times a
+    second; it moves the field on through `tick()`, which the scene's frames
+    drive, steered as the player steers, taking what the view's `RunFrames` says
+    each frame changed into the run's state and the records; it pauses, goes on
+    and starts waves and runs, shapes each field to the board's room
+    (`setRoom()`), says what happened through `@fz/ui/announcer`, shows a
+    cleared wave's points (`tally`), keeps what each change in the run brings to
+    the records and the sectors reached (`recordsOf()`) through `stats/`, in one
+    place that keeps none of a run flown on tuned numbers, tunes the field as
+    the debug menu says (`tune()`, `resetTuning()`), and asks through
+    `@fz/ui/confirm` before a new game or speed throws a run away.
+    `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
+    the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and whether the
+    build is a development one (`DEV_BUILD`) and the settings offer the debug
+    menu (`DEBUG_MENU`). `SavedGameService` keeps the run under way, through
+    `GameService.saved()`, as its outcome or its crew changes and as the page is
+    hidden or goes away, never at a step, and forgets it once the run ends or
+    another begins; `src/main.ts` starts it before the board first shows, and it
+    takes up the run kept (`takeUp()`), paused.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty field drawn in CSS until the scene has drawn, clear of the
     deck's room; the focus ring; a crosshair for the pointer while a ship

@@ -8,6 +8,11 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fillFor } from "../../rules/field/fill";
 import type { Rock } from "../../rules/rocks/rocks";
+import {
+  type SavedGame,
+  type TakenUp,
+  restoreGame,
+} from "../../rules/run/saved_game";
 import type { SpeedStats } from "../../rules/run/stats";
 import { STILL, type Steer } from "../../rules/ship/ship";
 import { STEP_MS } from "../../rules/stepper";
@@ -32,6 +37,7 @@ import {
   SECTOR_WAVES,
   SPEC_RANDOM,
   SPEC_WAVE,
+  SPEC_WAVES,
   STRAY_WAVES,
   bringStraysHome,
   chainUp,
@@ -82,6 +88,18 @@ const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 /** The points the specs' small stone scores. */
 const PEBBLE_POINTS = 40;
 
+/** What a run has of its own as it begins: no chain, no cards, nothing set. */
+const BEGUN_OWN = {
+  chain: 1,
+  tally: null,
+  clearedOpen: false,
+  newBest: false,
+  clearedAll: false,
+  broughtHome: [],
+  resultOpen: false,
+  resultClosed: false,
+};
+
 /** Lets every promise the game is waiting on settle. */
 async function flush(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -124,6 +142,31 @@ async function endedAt(wave: number): Promise<GameService> {
   const game = await gameAt(wave);
   endRun(game);
   return game;
+}
+
+/** Returns what the run on the board has of its own: its chain, its cards and what it set. */
+function ownOf(game: GameService): Record<string, unknown> {
+  return {
+    chain: game.chain(),
+    tally: game.tally(),
+    clearedOpen: game.clearedOpen(),
+    newBest: game.newBest(),
+    clearedAll: game.clearedAll(),
+    broughtHome: game.broughtHome(),
+    resultOpen: game.resultOpen(),
+    resultClosed: game.resultClosed(),
+  };
+}
+
+/** Returns a run the game kept, as a page would take it up, under the id its next run takes. */
+function takenUp(
+  game: GameService,
+  saved: SavedGame | null,
+  waves: readonly WaveEntry[] = SPEC_WAVES,
+): TakenUp {
+  const taken = restoreGame(saved, waves, game.run().id + 1);
+  if (!taken) throw new Error("The run kept can't be taken up.");
+  return taken;
 }
 
 beforeEach(() => {
@@ -841,6 +884,84 @@ describe("GameService", () => {
     });
   });
 
+  describe("one run after another", () => {
+    /**
+     * Returns the game with a run over the strays' wave begun by a turn, and
+     * that run as kept then.
+     */
+    function begunAndKept(): { game: GameService; saved: SavedGame | null } {
+      const game = gameOver(STRAY_WAVES);
+      game.tick(FRAME_MS, TURN);
+      return { game, saved: game.saved() };
+    }
+
+    /** Brings a stray home and clears the strays' wave, the one written, until its card shows. */
+    function clearWithStray(game: GameService): void {
+      bringStraysHome(game, 1);
+      playToClear(game);
+      playUntil(game, () => STILL, game.clearedOpen);
+    }
+
+    /**
+     * Brings a stray home, clears every written wave, and ends the run until
+     * its result card shows.
+     */
+    function endWithAllCleared(game: GameService): void {
+      clearWithStray(game);
+      game.nextWave();
+      endRun(game);
+      playUntil(game, () => STILL, game.resultOpen);
+    }
+
+    it("tries again with none of the last run's chain, cards or marks", () => {
+      const game = gameOver(STRAY_WAVES);
+      endWithAllCleared(game);
+
+      game.tryAgain();
+
+      expect(ownOf(game)).toEqual(BEGUN_OWN);
+    });
+
+    it("takes up a run with none of the last run's chain, cards or marks", () => {
+      const { game, saved } = begunAndKept();
+      endWithAllCleared(game);
+
+      game.takeUp(takenUp(game, saved, STRAY_WAVES));
+
+      expect(ownOf(game)).toEqual(BEGUN_OWN);
+    });
+
+    it("takes up a run with none of the card over the last run's wave cleared", () => {
+      const { game, saved } = begunAndKept();
+      clearWithStray(game);
+
+      game.takeUp(takenUp(game, saved, STRAY_WAVES));
+
+      expect(ownOf(game)).toEqual(BEGUN_OWN);
+    });
+
+    it("takes up a run with none of the last run's result card put away", () => {
+      const { game, saved } = begunAndKept();
+      endWithAllCleared(game);
+      game.closeResult();
+
+      game.takeUp(takenUp(game, saved, STRAY_WAVES));
+
+      expect(ownOf(game)).toEqual(BEGUN_OWN);
+    });
+
+    it("ends the chain as a run is taken up", () => {
+      const game = gameOver(CHAIN_WAVES);
+      game.tick(FRAME_MS, shoot(game));
+      const saved = game.saved();
+      chainUp(game);
+
+      game.takeUp(takenUp(game, saved, CHAIN_WAVES));
+
+      expect(game.chain()).toBe(1);
+    });
+  });
+
   describe("the records", () => {
     /** Returns the records at Normal, the specs' runs' speed. */
     function atNormal(): SpeedStats {
@@ -1066,6 +1187,20 @@ describe("GameService", () => {
       game.tick(FRAME_MS, shoot(game));
 
       expect(atNormal().runs).toBe(2);
+    });
+
+    it("keeps the records of a run taken up after one flown on tuned numbers", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+      const saved = game.saved();
+      game.tune({ rockSpeed: 1.5 });
+      game.tick(FRAME_MS, STILL);
+      game.resetTuning();
+
+      game.takeUp(takenUp(game, saved));
+      game.resume();
+      endRun(game);
+
+      expect(atNormal().furthest).toBe(SPEC_WAVE.gift);
     });
   });
 
