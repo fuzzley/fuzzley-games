@@ -1,4 +1,5 @@
-import { type GameObjects, type Scene, Textures } from "phaser";
+import type { GameObjects, Scene } from "phaser";
+import { drawCanvasTexture } from "./canvas_texture";
 import { onContextRestored, whenSceneEnds } from "./scene_lifetime";
 
 /** Draws a texture's picture, in its own pixels, from its top left corner. */
@@ -44,20 +45,12 @@ export function bakeTexture(
   paint(scene, bake);
 }
 
-/** Draws a texture into its canvas, clearing it first, at its size. */
+/** Draws a texture with a throwaway `Graphics` into the canvas texture of its key. */
 function paint(scene: Scene, { key, width, height, draw }: Bake): void {
-  const textures = scene.textures;
-  const existing = textures.exists(key) ? textures.get(key) : null;
-  if (existing instanceof Textures.CanvasTexture) {
-    existing.setSize(width, height);
-    existing.clear();
-  } else {
-    if (existing) textures.remove(key);
-    textures.createCanvas(key, width, height);
-  }
-
   const graphics = scene.make.graphics({}, false);
   draw(graphics);
-  graphics.generateTexture(key, width, height);
+  drawCanvasTexture(scene, key, width, height, ({ canvas }) => {
+    graphics.generateTexture(canvas, width, height);
+  });
   graphics.destroy();
 }

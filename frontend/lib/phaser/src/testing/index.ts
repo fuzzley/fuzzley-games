@@ -30,3 +30,4 @@ export {
 } from "./run_scene";
 export { imagesIn, objectsIn } from "./scene_objects";
 export { type FileServer, pngOfSize, type ServedFile } from "./served_files";
+export { watchUploads } from "./uploads";

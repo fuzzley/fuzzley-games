@@ -98,7 +98,12 @@ take the pure ones.
   keyboard's element), which let go of what they subscribe to when the
   scene ends; `onKeyDown()` and `onKeyUp()`, which hand a scene each key
   event its keyboard hears, once; `pixelRatioOf()`;
-  `bakeTexture()`, a texture drawn at run time and drawn again after a lost
+  `drawCanvasTexture()`, the canvas texture of a key drawn anew at a size,
+  through the context it draws with, and uploaded once, drawn: the one there
+  cleared at the size without its own `setSize()` and `clear()`, which
+  upload it blank, or a new one drawn on a canvas of Phaser's pool before it
+  is made, since making one uploads it; `bakeTexture()`, a texture drawn at
+  run time with a `Graphics`, through it, and drawn again after a lost
   context; `bakeAtlas()`, many named frames drawn into one such texture,
   packed as `atlasSize()` measures them, after which every object showing
   one of its frames sets it again, as `retakeFrames()` has every image and
@@ -162,7 +167,9 @@ take the pure ones.
   is stroked, refusing one stroked in a gradient no one color describes,
   and `colorsOf()` the colors it fills and strokes in; `objectsIn()`
   counts a scene's game objects and `imagesIn()` finds its images, each
-  looking into its layers, however deep.
+  looking into its layers, however deep; `watchUploads()` hands a spec each
+  canvas the game uploads to the GPU, as it uploads it, until the test
+  finishes.
   `pngOfSize()` is an image to serve. `provideFakePhaserCanvas()` gives an
   app's shell specs a canvas that loads no Phaser, whose hosts
   `FakePhaserCanvas` keeps, to settle each scene they were shown;
@@ -182,9 +189,9 @@ take the pure ones.
 
 - **Imports go one way.** The library imports Phaser, Angular and
   `@fz/style`, never a game or the site; its testing entry imports Vitest
-  too, whose hooks and stubs `runKeyedScene()`, `watchResizes()` and
-  `resize()` use, and which `package.json` declares an optional peer, as
-  `@fz/dev`'s does.
+  too, whose hooks and stubs `runKeyedScene()`, `watchResizes()`,
+  `resize()` and `watchUploads()` use, and which `package.json` declares
+  an optional peer, as `@fz/dev`'s does.
 - **The pure entries import nothing but each other,** as ESLint checks, so
   a game's Phaser-free code can take them; and `src/testing/pure/` nothing
   but them, so a spec in Node can take it. What reads the page, a
@@ -210,7 +217,11 @@ take the pure ones.
 - **A texture drawn at run time with a `Graphics` goes through
   `bakeTexture()` or `bakeAtlas()`,** so it is drawn again after a lost
   context; one drawn otherwise, such as a filtered `DynamicTexture`,
-  redraws itself through `onContextRestored()`.
+  redraws itself through `onContextRestored()`. A canvas texture drawn by
+  hand again under its own key goes through `drawCanvasTexture()` each
+  time, so each drawing uploads once, drawn; a canvas drawn once, then
+  added under a fresh key, as the Solitaire Collection's deck is
+  (`DrawnDeckPainter`), uploads once already and needs none of it.
 - **No code bends to its specs.** The harness runs the renderer a browser
   does, so the library's code has no branch for a game with none.
 - **The canvas's stylesheet is unencapsulated,** to reach what an app
