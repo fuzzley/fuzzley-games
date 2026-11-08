@@ -2,6 +2,7 @@ import type { Shape } from "@fz/dev/layout";
 import { formFactorAt } from "@fz/game-ui/breakpoints";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
+import { MARGIN_CSS_PX } from "../view/field/field_metrics";
 
 /** Returns a viewport of a CSS size at a pixel ratio, its chrome as given. */
 export function viewport(
@@ -27,8 +28,8 @@ export function chrome(css: number): Insets {
  * Returns the canvas a board has in a window of a shape, and its margin,
  * as `@fz/game-ui` and the board lay them out: the window less the bar, or
  * on a compact screen on its side less the rail down its right, at the
- * sizes the app's stylesheets publish, as its spec holds it to; the margin
- * 24 CSS px, or 12 compact.
+ * sizes the app's stylesheets publish, as its spec holds it to; and the
+ * margin the board keeps on that screen (`MARGIN_CSS_PX`).
  */
 export function boardOf(shape: Shape): {
   canvas: Viewport;
@@ -44,5 +45,8 @@ export function boardOf(shape: Shape): {
           height - (form === "roomy" ? 73 : 60),
           deviceScaleFactor,
         );
-  return { canvas, marginCss: form === "roomy" ? 24 : 12 };
+  return {
+    canvas,
+    marginCss: form === "roomy" ? MARGIN_CSS_PX.roomy : MARGIN_CSS_PX.compact,
+  };
 }

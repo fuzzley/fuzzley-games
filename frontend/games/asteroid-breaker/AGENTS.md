@@ -262,7 +262,8 @@ take for the layer.
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
   on the canvas: the field's shape for its room (`fieldShape()`), the room
-  it fills (`fieldRoom()`), where it lies (`fieldMetrics()`), a unit
+  it fills (`fieldRoom()`), inside the margin the board keeps around it
+  (`MARGIN_CSS_PX`), where it lies (`fieldMetrics()`), a unit
   whatever fraction of a device pixel its room makes, its edges on whole
   device pixels, where the deck's zones lie (`deckLayout()`), and
   `toCanvas()` and `toField()` between the two; and how the scene laid them
@@ -528,12 +529,12 @@ take for the layer.
 - **The field fills its room.** Its short side is 40 units, and its long
   side as many as the room holds at that unit, up to 88 (`fieldShape()`).
   The room is the canvas inside its chrome, less the deck where it shows,
-  inside a margin of 12 CSS px on a compact screen and 24 on a roomy one; a
-  room longer than 88 by 40 shows the page at the field's ends. The
-  unit is whatever fraction of a device pixel that makes, and the field is
-  centered on whole device pixels, so its frame is sharp. A wave's counts
-  are written for a field of 40 by 40, and a larger one holds more by its
-  area (`fillFor()`).
+  inside a margin of 12 CSS px on a compact screen and 24 on a roomy one
+  (`MARGIN_CSS_PX`); a room longer than 88 by 40 shows the page at the
+  field's ends. The unit is whatever fraction of a device pixel that makes,
+  and the field is centered on whole device pixels, so its frame is sharp.
+  A wave's counts are written for a field of 40 by 40, and a larger one
+  holds more by its area (`fillFor()`).
 - **It takes a new shape only as a wave starts or while it is paused.** A
   wave waiting for its first move is laid out again on a new room at once, a
   paused one is stretched to it, and one in play keeps its field, fitted
@@ -615,9 +616,9 @@ rules apply; on top of them:
   draws with the palette's tokens.
 - **The size comes from the stage,** a size container: the board fills it,
   and the component lays the field out in it as the scene does, the margin
-  (`--margin`) and the frame (`--frame`) around it, clear of the deck. The
-  board is a size container too, and its cards set smaller on a small
-  board.
+  (`--margin`) and the frame (`--frame`) around it, clear of the deck, each
+  set from the view's own (`MARGIN_CSS_PX`, `FRAME_CSS_PX`). The board is a
+  size container too, and its cards set smaller on a small board.
 
 ## What It Keeps
 

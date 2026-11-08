@@ -1,3 +1,4 @@
+import { ErrorHandler } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
@@ -34,6 +35,8 @@ import {
 import { paintRoles } from "../../testing/roles";
 import {
   type BoardSetting,
+  FRAME_CSS_PX,
+  MARGIN_CSS_PX,
   type PixelRect,
   deckLayout,
   fieldMetrics,
@@ -47,7 +50,11 @@ import { BoardComponent } from "./board.component";
 const WAVE_LIMIT_MS = 30_000;
 
 /** How the board lays the field out on a compact touch screen, its deck showing. */
-const TOUCH: BoardSetting = { ...ROOMY, marginCss: 12, deck: true };
+const TOUCH: BoardSetting = {
+  ...ROOMY,
+  marginCss: MARGIN_CSS_PX.compact,
+  deck: true,
+};
 
 /** A canvas of 1280 by 720 CSS px, at one device pixel to one, with no insets. */
 const CANVAS_1280: Viewport = {
@@ -231,6 +238,27 @@ function useSettings(change: Partial<Settings>): void {
   TestBed.inject(SettingsService).update(change);
 }
 
+/**
+ * Has the app's error handler collect what it is handed, rather than print
+ * it, and returns what it collects; called before the board is rendered.
+ */
+function collectErrors(): readonly unknown[] {
+  const errors: unknown[] = [];
+  TestBed.configureTestingModule({
+    providers: [
+      {
+        provide: ErrorHandler,
+        useValue: {
+          handleError: (error: unknown) => {
+            errors.push(error);
+          },
+        },
+      },
+    ],
+  });
+  return errors;
+}
+
 describe("BoardComponent", () => {
   describe("the board", () => {
     it("is named for the wave on it, and described by its keys", async () => {
@@ -282,23 +310,43 @@ describe("BoardComponent", () => {
       expect(board).not.toHaveClass("in-play");
     });
 
-    describe("on a compact screen", () => {
+    describe("as the scene keeps the field", () => {
       let viewport: FakeViewport | null = null;
-
-      beforeEach(() => {
-        viewport = installFakeViewport(390, 844);
-      });
 
       afterEach(() => {
         viewport?.restore();
         viewport = null;
       });
 
-      it("keeps its cards the margin in that the scene keeps the field", async () => {
+      // jsdom answers no media query, so its screen is a roomy one.
+      it.each([
+        {
+          screen: "compact",
+          size: (): FakeViewport | null => installFakeViewport(390, 844),
+          margin: MARGIN_CSS_PX.compact,
+        },
+        {
+          screen: "roomy",
+          size: (): FakeViewport | null => null,
+          margin: MARGIN_CSS_PX.roomy,
+        },
+      ])(
+        "keeps its cards the margin in that the scene keeps the field on a $screen screen",
+        async ({ size, margin }) => {
+          viewport = size();
+          const { board } = await renderBoard();
+
+          expect(board.style.getPropertyValue("--margin")).toBe(
+            `${String(margin)}px`,
+          );
+        },
+      );
+
+      it("frames the placeholder's field as thick as the scene frames it", async () => {
         const { board } = await renderBoard();
 
-        expect(board.style.getPropertyValue("--margin")).toBe(
-          `${String(TOUCH.marginCss)}px`,
+        expect(board.style.getPropertyValue("--frame")).toBe(
+          `${String(FRAME_CSS_PX)}px`,
         );
       });
     });
@@ -539,7 +587,8 @@ describe("BoardComponent", () => {
       expect(board).toHaveFocus();
     });
 
-    it("is told the board couldn't be drawn", async () => {
+    it("is told the board couldn't be drawn, as the app's error handler is told why", async () => {
+      const errors = collectErrors();
       const { fake, detectChanges } = await renderBoard({ readyAtOnce: false });
 
       fake.host.latest.fail();
@@ -549,6 +598,7 @@ describe("BoardComponent", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(
         "The board couldn't be drawn",
       );
+      expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
     describe("on a slow connection", () => {

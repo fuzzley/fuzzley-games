@@ -1144,3 +1144,35 @@ The review found no bug and nothing a player would see:
 4. _A spec helper worked out the field's shape twice:_ taken.
 5. _The scene copied four fields into the record each layout:_ taken; it
    keeps the record `measure()` builds.
+
+### Step 6f: finding 8, the board spec's noise and the field's margin
+
+Built on `ab-shell`, once the board's own step was done. The board spec
+that fails the scene on purpose provides an `ErrorHandler` that collects
+what it is handed, `collectErrors()`, and asserts on it, so the suite
+prints no error it expects. The field's margin, `MARGIN_CSS_PX`, is in the
+view's `field_metrics.ts` beside the frame, which the board and
+`canvases.ts` both read, rather than a copy of its numbers in the
+specs' helpers, and the board binds `--margin` and `--frame` from the two
+constants, where its stylesheet wrote them out again.
+
+Where it went other than planned:
+
+- The stylesheet's own `--margin` and `--frame` are gone: the board's
+  bindings are set in the tick that creates it, before any paint, so they
+  never showed.
+- The noise didn't show where an agent ran the suite: Vitest's reporter
+  for agents hides a passing spec's output. Run with
+  `--reporter=default`, the suite printed this one error and nothing else.
+
+The review found it correct, and nothing a player or the layout check sees
+changed:
+
+1. _`--frame` was a copy of `FRAME_CSS_PX` in the stylesheet, as the
+   margin had been:_ taken.
+2. _The margin's binding was specced for compact screens alone, through a
+   fixture:_ taken; both, against the constant.
+3. _The collecting `ErrorHandler` is written out in `@fz/phaser`'s spec
+   too, and Brick Breaker's and Snake's board specs print the same
+   error:_ not taken here; one helper in `@fz/phaser/testing`, adopted by
+   all three, goes with finding 19's branch.

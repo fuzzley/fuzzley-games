@@ -11,6 +11,9 @@ import type { Span } from "../../rules/tuning";
 /** How thick the field's frame is, in CSS pixels. */
 export const FRAME_CSS_PX = 2;
 
+/** The margin around the field on a compact screen and on a roomy one, in CSS pixels. */
+export const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
+
 /**
  * How tall the deck is under the field, a quarter of the stage's height within
  * this, in CSS pixels.
@@ -44,7 +47,7 @@ export interface PixelRect {
 export interface BoardSetting {
   /**
    * The margin around the field, inside the room the deck leaves, in CSS
-   * pixels: 12 on a compact screen, 24 on a roomy one.
+   * pixels, which the board takes from {@link MARGIN_CSS_PX} for its screen.
    */
   readonly marginCss: number;
   /** Whether the deck shows: on a touch screen, or as the settings say. */

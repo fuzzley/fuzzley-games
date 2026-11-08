@@ -5,7 +5,7 @@ import type { Rock } from "../rules/rocks/rocks";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { distanceSquared } from "../rules/torus";
 import { type WaveData, type WaveEntry, wavesOf } from "../rules/waves/waves";
-import type { BoardSetting } from "../view/field/field_metrics";
+import { type BoardSetting, MARGIN_CSS_PX } from "../view/field/field_metrics";
 import type { FieldView } from "../view/field/frame";
 
 /** How long a frame of the board takes, at 60 a second. */
@@ -13,7 +13,7 @@ export const FRAME_MS = 1000 / 60;
 
 /** How the board lays the field out on a roomy screen with no touch, the ship flown by the keys. */
 export const ROOMY: BoardSetting = {
-  marginCss: 24,
+  marginCss: MARGIN_CSS_PX.roomy,
   deck: false,
   stickOnRight: false,
   fireByItself: false,

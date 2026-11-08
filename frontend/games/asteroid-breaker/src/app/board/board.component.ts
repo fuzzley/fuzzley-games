@@ -28,7 +28,9 @@ import type { BeltSceneOptions } from "../../scene/belt_scene";
 import type { Pictures } from "../../view/art/art";
 import {
   type BoardSetting,
+  FRAME_CSS_PX,
   type FieldLayout,
+  MARGIN_CSS_PX,
   type PixelRect,
   fieldMetrics,
   fieldShape,
@@ -37,9 +39,6 @@ import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BoardCardComponent } from "./board_card.component";
 import { fieldPalette } from "./field_palette";
-
-/** The margin around the field on a compact screen and on a roomy one, in CSS pixels. */
-const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
 
 /**
  * Shows the board: the canvas the scene draws the field and the deck on,
@@ -71,6 +70,7 @@ const MARGIN_CSS_PX = { compact: 12, roomy: 24 } as const;
     "[attr.data-outcome]": "game.outcome()",
     "[class.in-play]": "inPlay()",
     "[style.--margin.px]": "board().marginCss",
+    "[style.--frame.px]": "frameCss",
     "(pointerdown)": "takeFocus()",
   },
   templateUrl: "./board.component.html",
@@ -94,6 +94,12 @@ export class BoardComponent {
   protected readonly pixelRatio = canvasPixelRatio(
     this.document.defaultView?.devicePixelRatio ?? 1,
   );
+
+  /**
+   * How thick the field's frame is, in CSS pixels, as the scene draws it,
+   * for the placeholder's frame and the focus ring outside it.
+   */
+  protected readonly frameCss = FRAME_CSS_PX;
 
   /**
    * The settings the board lays the field and the deck out by, each a
