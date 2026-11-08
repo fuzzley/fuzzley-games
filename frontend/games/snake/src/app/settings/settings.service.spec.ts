@@ -60,6 +60,14 @@ describe("SettingsService", () => {
     });
   });
 
+  it("takes the default for a movement the game doesn't offer", () => {
+    store({ version: 1, movement: "slither" });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
+  });
+
   it("takes the default for a sound kept as neither on nor off", () => {
     store({ version: 1, sound: "off" });
 

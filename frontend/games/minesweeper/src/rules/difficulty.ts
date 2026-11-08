@@ -1,5 +1,6 @@
 import { count } from "@fz/core/format";
 import { isWhole } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 
 /** Says how big a field is and how many mines it hides. */
 export interface FieldSize {
@@ -90,7 +91,7 @@ export function isValidLives(lives: unknown): lives is number {
 
 /** Returns whether a value names a difficulty. */
 export function isDifficultyId(value: unknown): value is DifficultyId {
-  return DIFFICULTY_IDS.some((id) => id === value);
+  return isOneOf(value, DIFFICULTY_IDS);
 }
 
 /** Returns the field a difficulty deals, given the player's custom one. */

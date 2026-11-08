@@ -1,3 +1,4 @@
+import { isOneOf } from "@fz/core/records";
 import type { Steer } from "../../rules/paddle/paddle";
 import { type FieldMetrics, toFieldX } from "../field/field_metrics";
 import type { HeldKey } from "./controls";
@@ -10,7 +11,7 @@ export type TouchSteering = (typeof TOUCH_STEERINGS)[number];
 
 /** Returns whether a value is a way a finger may steer the paddle. */
 export function isTouchSteering(value: unknown): value is TouchSteering {
-  return TOUCH_STEERINGS.some((steering) => steering === value);
+  return isOneOf(value, TOUCH_STEERINGS);
 }
 
 /** How long a press of a finger may last to be a tap, in milliseconds. */

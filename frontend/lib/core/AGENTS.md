@@ -18,21 +18,29 @@ Each file is an entry point of its own, imported by name, such as
   on its own, for a game that keeps a count of its draws rather than a
   source, `randomSeed()`, a whole number of 32 bits for a new deal, and
   `shuffled()`, a list in an order a source picks.
-- `src/json.ts`: `isRecord()`, `isWhole()` and `isCount()`, for reading back
-  what was stored as JSON, which may have been edited or cut short;
-  `booleanOr()`, a stored yes or no, else a default; `knownIdsOf()`, the
-  known ids of a stored list, as the levels cleared or the sectors reached;
-  `countsByIdOf()`, the counts a stored record holds for each known id under
-  known keys, as each level's bests at each speed; and `unknownKey()`, a key
-  a data file holds that its type doesn't name, as a typo would leave.
+- `src/json.ts`: `isRecord()`, `isWhole()`, `isCount()` and
+  `isFiniteNumber()`, for reading back what was stored as JSON, which may
+  have been edited or cut short; `listOf(value, read)`, a stored list read
+  item by item, or null if it isn't one or an item doesn't read, as a
+  saved run's rocks or a snake's squares, and `isListOf(value, isItem)`,
+  whether every item of a stored list passes a check, for a list kept as
+  it is, as a crew's pilots or a snake's turns; `booleanOr()`, a stored yes
+  or no, else a default; `knownIdsOf()`, the known ids of a stored list, as
+  the levels cleared or the sectors reached; `countsByIdOf()`, the counts a
+  stored record holds for each known id under known keys, as each level's
+  bests at each speed; and `unknownKey()`, a key a data file holds that its
+  type doesn't name, as a typo would leave.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
   "2 hints", and `formatPoints()`, points grouped in thousands, "4,250".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most.
 - `src/records.ts`: `keysOf()`, a record's keys typed as its own, as a
   catalog's ids are, which `Object.keys()` types as strings,
-  `recordOf()`, a record with an entry made from each of its keys, and
+  `recordOf()`, a record with an entry made from each of its keys,
   `pick()`, a copy of a record's entries under the keys given, as a saved
-  game keeps what play changes of each brick.
+  game keeps what play changes of each brick; `isKeyOf(value, record)`,
+  whether a value is a key of a record's own, as a catalog's id read from
+  a data file must be; and `isOneOf(value, options)`, whether it is one of
+  a list, as a stored speed or setting must be.
 - `src/clock.ts`: `createClock(stepMs, maxStepsPerFrame)`, a `Clock` that
   turns a frame's time into fixed steps, `advanceClock()`, how many a frame
   holds, at most its most, `progressOf()`, how far it is toward the next,

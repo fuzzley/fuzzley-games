@@ -1,6 +1,8 @@
 // Sets of the digits 1 to 9, as nine bits: 1 is the lowest bit, 9 the highest.
 // A square's notes and its candidates are sets.
 
+import { isWhole } from "@fz/core/json";
+
 /** The digits a square can hold, in order. */
 export const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
@@ -43,10 +45,5 @@ export function firstDigit(set: number): number {
 
 /** Returns whether a value is a set of digits: a whole number of nine bits. */
 export function isDigitSet(value: unknown): value is number {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0 &&
-    value <= ALL_DIGITS
-  );
+  return isWhole(value) && value >= 0 && value <= ALL_DIGITS;
 }

@@ -1,4 +1,4 @@
-import { isCount, isRecord, isWhole } from "@fz/core/json";
+import { isCount, isFiniteNumber, isRecord, isWhole } from "@fz/core/json";
 import { pick } from "@fz/core/records";
 import { type Brick, neededLeft } from "../bricks/bricks";
 import { hasTrait, isNeeded } from "../catalog/bricks";
@@ -227,8 +227,7 @@ function restoredField(
   if (
     !isCount(streakPoints) ||
     streakPoints > levelScore ||
-    typeof climbed !== "number" ||
-    !Number.isFinite(climbed) ||
+    !isFiniteNumber(climbed) ||
     climbed < 0 ||
     !isCount(steps) ||
     !isCount(draws)

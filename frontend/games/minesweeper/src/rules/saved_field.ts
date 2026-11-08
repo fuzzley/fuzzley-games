@@ -8,6 +8,7 @@ import {
   layoutOf,
 } from "./field";
 import { isCount, isRecord, isWhole } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 
 /** A field as it is stored: plain JSON, a letter a square. */
 export interface SavedField {
@@ -74,9 +75,9 @@ export function restoreField(saved: unknown): Field | null {
     return null;
   }
   const size: FieldSize = { rows, cols, mines };
-  const outcome = OUTCOMES.find((each) => each === saved["outcome"]);
+  const outcome = saved["outcome"];
   const squares = parseSquares(saved["squares"], rows * cols);
-  if (!outcome || !squares) return null;
+  if (!isOneOf(outcome, OUTCOMES) || !squares) return null;
   const mineSquares = saved["mineSquares"];
   if (mineSquares === null) {
     const untouched = squares.every((s) => s === "hidden" || s === "flagged");

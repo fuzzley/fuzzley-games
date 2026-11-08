@@ -3,7 +3,7 @@ import { type Level, isLevel } from "./difficulty";
 import { isDigitSet } from "./digits";
 import { type Grid, isGiven } from "./grid";
 import type { Change, Move, Square } from "./history";
-import { isCount, isRecord } from "@fz/core/json";
+import { isCount, isListOf, isRecord, listOf } from "@fz/core/json";
 import { digitsText, parseDigits, puzzleFrom } from "./puzzle";
 
 /** A grid as it is stored: plain JSON. */
@@ -46,7 +46,7 @@ export function restoreGrid(saved: unknown): Grid | null {
   const { level, hints, notes } = saved;
   const givens = parseText(saved["givens"]);
   const digits = parseText(saved["digits"]);
-  const history = unpackHistory(saved["history"]);
+  const history = listOf(saved["history"], unpackMove);
   if (
     !isLevel(level) ||
     !isCount(hints) ||
@@ -91,9 +91,7 @@ function parseText(value: unknown): number[] | null {
 
 /** Returns whether a stored value is 81 sets of notes. */
 function isNotes(value: unknown): value is number[] {
-  return (
-    Array.isArray(value) && value.length === CELLS && value.every(isDigitSet)
-  );
+  return isListOf(value, isDigitSet) && value.length === CELLS;
 }
 
 /** Returns the moves as they are stored: five numbers for each change. */
@@ -110,20 +108,9 @@ function packHistory(history: readonly Move[]): number[][] {
 }
 
 /**
- * Returns the moves a stored history holds, or null if it isn't one the game
- * could have stored.
+ * Returns a move a stored history holds, five numbers for each square it
+ * changed, or null if it isn't one the game could have stored.
  */
-function unpackHistory(value: unknown): Move[] | null {
-  if (!Array.isArray(value)) return null;
-  const history: Move[] = [];
-  for (const packed of value) {
-    const move = unpackMove(packed);
-    if (!move) return null;
-    history.push(move);
-  }
-  return history;
-}
-
 function unpackMove(value: unknown): Move | null {
   if (!Array.isArray(value) || value.length === 0 || value.length % 5 !== 0) {
     return null;

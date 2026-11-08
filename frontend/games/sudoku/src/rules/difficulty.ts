@@ -1,3 +1,4 @@
+import { isOneOf } from "@fz/core/records";
 import type { Technique } from "./logic";
 
 /** The levels, easiest first, each allowing the techniques of those before it. */
@@ -49,5 +50,5 @@ export function allows(level: Level, technique: Technique): boolean {
 
 /** Returns whether a value names a level. */
 export function isLevel(value: unknown): value is Level {
-  return LEVELS.some((level) => level === value);
+  return isOneOf(value, LEVELS);
 }

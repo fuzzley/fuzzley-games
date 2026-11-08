@@ -85,8 +85,13 @@ describe("restoreGrid", () => {
       "a digit over a given",
       edited({ digits: `6..4${SAVED.digits.slice(4)}` }),
     ],
+    ["notes that aren't a list", edited({ notes: 0 })],
     ["notes cut short", edited({ notes: SAVED.notes.slice(1) })],
     ["notes past 9", edited({ notes: [512, ...SAVED.notes.slice(1)] })],
+    [
+      "notes past 9 on the last square, a blank one",
+      edited({ notes: [...SAVED.notes.slice(0, -1), 512] }),
+    ],
     ["notes under a digit", edited({ notes: [1, ...SAVED.notes.slice(1)] })],
     ["a history that isn't a list", edited({ history: "1,0,0,7,0" })],
     ["a move that isn't a list", edited({ history: [{}] })],

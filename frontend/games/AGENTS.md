@@ -58,8 +58,8 @@ to `frontend/games/`.
   clock of fixed steps, a count up to a mark, a log of numbered events, a
   field played by them, a
   frame's sounds gathered
-  and a record's keys typed as its own, a record made from them or a copy
-  of some of its entries, rather
+  and a record's keys typed as its own, a value checked as one of them or
+  of a list, a record made from them or a copy of some of its entries, rather
   than keeping copies
   (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
   import.

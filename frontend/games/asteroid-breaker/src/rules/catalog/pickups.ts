@@ -1,4 +1,4 @@
-import { keysOf } from "@fz/core/records";
+import { isKeyOf, keysOf } from "@fz/core/records";
 import type { WeaponId } from "./weapons";
 
 /**
@@ -109,7 +109,7 @@ export const PICKUP_IDS = keysOf(PICKUPS);
 
 /** Returns whether a value names a pickup, as a wave's file may. */
 export function isPickupId(value: unknown): value is PickupId {
-  return typeof value === "string" && Object.hasOwn(PICKUPS, value);
+  return isKeyOf(value, PICKUPS);
 }
 
 /** Returns a pickup, as the shape every pickup has. */

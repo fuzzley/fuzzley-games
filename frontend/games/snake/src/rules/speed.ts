@@ -1,3 +1,5 @@
+import { isOneOf } from "@fz/core/records";
+
 /** Names how fast the snake goes. */
 export type Speed = "slow" | "normal" | "fast";
 
@@ -47,5 +49,5 @@ export function stepMs(speed: Speed, eaten: number): number {
 
 /** Returns whether a value names a speed. */
 export function isSpeed(value: unknown): value is Speed {
-  return SPEEDS.includes(value as Speed);
+  return isOneOf(value, SPEEDS);
 }

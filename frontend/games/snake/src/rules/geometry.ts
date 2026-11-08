@@ -1,3 +1,5 @@
+import { isOneOf } from "@fz/core/records";
+
 /** Names a square of the board by its column and row, from the top left. */
 export interface Square {
   readonly x: number;
@@ -51,5 +53,5 @@ export function directionTo(from: Square, to: Square): Direction | null {
 
 /** Returns whether a value names a direction. */
 export function isDirection(value: unknown): value is Direction {
-  return DIRECTIONS.includes(value as Direction);
+  return isOneOf(value, DIRECTIONS);
 }

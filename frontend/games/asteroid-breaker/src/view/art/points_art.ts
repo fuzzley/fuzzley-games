@@ -5,7 +5,7 @@
 // the label stamped from them, outlines first, is the picture a Phaser
 // `Text` of it draws.
 
-import { keysOf, recordOf } from "@fz/core/records";
+import { isKeyOf, keysOf, recordOf } from "@fz/core/records";
 import { wholePixels } from "../field/field_metrics";
 
 /**
@@ -483,13 +483,8 @@ function glyphOf(
   character: string,
   glyphs: Readonly<Record<PointsCharacter, Glyph>>,
 ): Glyph {
-  if (!isPointsCharacter(character)) {
+  if (!isKeyOf(character, NAMES)) {
     throw new RangeError(`The points aren't written with "${character}".`);
   }
   return glyphs[character];
-}
-
-/** Returns whether a character is one the points are written in. */
-function isPointsCharacter(character: string): character is PointsCharacter {
-  return Object.hasOwn(NAMES, character);
 }

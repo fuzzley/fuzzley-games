@@ -1,4 +1,4 @@
-import { keysOf } from "@fz/core/records";
+import { isKeyOf, keysOf } from "@fz/core/records";
 import type { BallKindId } from "./balls";
 
 /**
@@ -186,5 +186,5 @@ export function capsule(id: CapsuleId): Capsule {
 
 /** Returns whether a value names a capsule. */
 export function isCapsuleId(value: unknown): value is CapsuleId {
-  return typeof value === "string" && Object.hasOwn(CAPSULES, value);
+  return isKeyOf(value, CAPSULES);
 }

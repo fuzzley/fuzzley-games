@@ -11,6 +11,25 @@ export function keysOf<K extends string>(
   return Object.keys(record) as K[];
 }
 
+/**
+ * Returns whether a value is a key of a record's own, as an id read from
+ * storage or a data file must be one its catalog has.
+ */
+export function isKeyOf<K extends string>(
+  value: unknown,
+  record: Readonly<Record<K, unknown>>,
+): value is K {
+  return typeof value === "string" && Object.hasOwn(record, value);
+}
+
+/**
+ * Returns whether a value is one of those given, as a choice read from
+ * storage must be one on offer.
+ */
+export function isOneOf<T>(value: unknown, options: readonly T[]): value is T {
+  return options.some((option) => option === value);
+}
+
 /** Returns a copy of a record's entries under the keys given. */
 export function pick<T, K extends keyof T & string>(
   record: T,
