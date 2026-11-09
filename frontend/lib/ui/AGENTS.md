@@ -70,7 +70,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   and never closes itself. It paints only the
   backdrop, which an app tints with `--fz-dialog-backdrop`, or leaves clear
   with `backdrop="clear"` for a panel about what the page shows; the host
-  styles the panel.
+  styles the panel. `DialogService` says whether any `<fz-dialog>` in the
+  page is open (`anyOpen`): each counts while its `open` input holds,
+  `<fz-confirm-dialog>`'s among them, so an app lists none of its dialogs.
 - `src/fuzzball/`: `<fz-fuzzball>`, `@fz/style`'s fuzzball drawn inline,
   its body and fur in the text's color and its eyes dark, which the
   wordmark and a game's own fuzzballs draw; 16 device pixels across or

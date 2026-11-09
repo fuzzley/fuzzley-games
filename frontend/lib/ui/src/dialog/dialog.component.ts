@@ -1,11 +1,15 @@
 import {
   Component,
+  DestroyRef,
   type ElementRef,
+  type OnInit,
   effect,
+  inject,
   input,
   output,
   viewChild,
 } from "@angular/core";
+import { DIALOG_OPEN_STATES } from "./dialog.service";
 
 /** Names the role a dialog takes. */
 export type DialogRole = "dialog" | "alertdialog";
@@ -21,14 +25,15 @@ export type DialogBackdrop = "glass" | "clear";
  * trap, Escape, focus restore and inert background.
  *
  * The host owns the open state: the dialog never closes itself, only asks to
- * through `closed`, so the host lowers `open` in return.
+ * through `closed`, so the host lowers `open` in return. While `open` holds,
+ * the dialog counts in `DialogService.anyOpen`.
  */
 @Component({
   selector: "fz-dialog",
   templateUrl: "./dialog.component.html",
   styleUrl: "./dialog.component.scss",
 })
-export class DialogComponent {
+export class DialogComponent implements OnInit {
   /** Whether the dialog is showing. */
   readonly open = input.required<boolean>();
 
@@ -63,6 +68,9 @@ export class DialogComponent {
   private readonly dialogRef =
     viewChild.required<ElementRef<HTMLDialogElement>>("dialog");
 
+  private readonly openStates = inject(DIALOG_OPEN_STATES);
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
     effect(() => {
       const dialog = this.dialogRef().nativeElement;
@@ -75,6 +83,20 @@ export class DialogComponent {
       } else if (!shouldBeOpen && dialog.open) {
         dialog.close();
       }
+    });
+  }
+
+  /**
+   * Joins the page's dialogs, once `open` has its first value, which reading
+   * before then throws, and leaves them as the dialog goes.
+   */
+  ngOnInit(): void {
+    const open = this.open;
+    this.openStates.update((states) => [...states, open]);
+    this.destroyRef.onDestroy(() => {
+      this.openStates.update((states) =>
+        states.filter((state) => state !== open),
+      );
     });
   }
 

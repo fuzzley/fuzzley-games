@@ -294,10 +294,10 @@ takes for the specs' helpers.
 - **`src/app/`** — the shell, one folder per feature, as in Snake.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
-  question before a run is thrown away; it hands the board the focus as each
-  run begins and whenever the last dialog closes, and pauses the level in
-  play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player
-  looked away.
+  question before a run is thrown away; through `@fz/game-ui/play_room`, it
+  hands the board the focus as each run begins and whenever the last dialog
+  closes (`refocusWhenUncovered()`), and pauses the level in play when
+  `[fzPlayRoom]` says the player looked away.
   - `play/` — `GameService` holds the run in a signal and the level in play
     outside one, as the view's `LevelPlay`, and moves the field on through
     `tick()`, which the scene's frames drive, steered as the player steers,

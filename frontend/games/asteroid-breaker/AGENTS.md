@@ -420,10 +420,10 @@ takes for the specs' helpers.
 - **`src/app/`** — the shell, one folder per feature, as in Brick Breaker.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
-  question before a run is thrown away; it hands the board the focus as each
-  run begins and whenever the last dialog closes, and pauses the wave in
-  play when `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked
-  away.
+  question before a run is thrown away; through `@fz/game-ui/play_room`, it
+  hands the board the focus as each run begins and whenever the last dialog
+  closes (`refocusWhenUncovered()`), and pauses the wave in play when
+  `[fzPlayRoom]` says the player looked away.
   - `play/` — `GameService` holds the run and what is its own, its chain, its
     cards and what it set, in one signal (the view's `RunState`), replaced
     whole as a run begins or is taken up, so nothing of one run reaches the
