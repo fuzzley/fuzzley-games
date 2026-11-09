@@ -1,4 +1,5 @@
 <fz-phaser-canvas
+  #canvas
   [scene]="board()"
   [options]="hostOptions"
   [label]="boardLabel()"
@@ -22,23 +23,28 @@
       </div>
     </div>
 
-    <div class="loading-badge">
+    <!--
+      Out of the way while the canvas's own card says the board is slow, and
+      once it is no longer loading.
+    -->
+    <div class="loading-badge" [class.hidden]="isBadgeAside()">
       <div class="spinner-ring" aria-hidden="true">
         <div class="mini-card-icon">♠</div>
       </div>
       <!-- Always present, so the status is announced when it arrives. -->
       <p class="loading-text" role="status">
-        @if (hasInitializationFailed()) {
-          The board couldn't be loaded. Reloading the page may help.
-        } @else if (isSlow()) {
-          Still loading {{ gameName() }}...
-        } @else if (isInitializing()) {
+        @if (isInitializing()) {
           Loading {{ gameName() }}...
         }
       </p>
     </div>
   </div>
 </fz-phaser-canvas>
+
+<!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
+<div class="cards">
+  <fz-canvas-cards [canvas]="canvas" />
+</div>
 
 <!--
   A corner badge rather than the overlay, because the board stays playable

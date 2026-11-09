@@ -4,7 +4,7 @@
 // header across the top, along the bottom of a phone held upright, or down the
 // left of a phone on its side. The
 // board reads them through `ViewportScaler` and lays itself out inside; the
-// loading overlay and the deck badge keep inside them too.
+// loading overlay, the canvas's cards and the deck badge keep inside them too.
 :host {
   --fz-canvas-inset-top: var(--fz-bar-height);
   --fz-canvas-inset-right: 0px;
@@ -141,6 +141,11 @@
 
   // The glow is the animation's own first frame; see `pulse-glow`.
   animation: pulse-glow 2.5s infinite ease-in-out;
+
+  // Hidden rather than removed, so its status region stays in the page.
+  &.hidden {
+    visibility: hidden;
+  }
 }
 
 // The spinner, with a micro suit glyph counter-rotating inside it so that it
@@ -158,6 +163,18 @@
 .loading-text {
   color: var(--fz-text);
   white-space: nowrap;
+}
+
+// The canvas's own cards, Still loading and couldn't be drawn, centred on the
+// board inside the chrome, as the loading badge is, and over the scrim. The
+// layer is the size container a card keeps to.
+.cards {
+  @include board-card-layer;
+
+  z-index: var(--z-board-cards);
+  container-type: size;
+  padding: var(--fz-canvas-inset-top) var(--fz-canvas-inset-right)
+    var(--fz-canvas-inset-bottom) var(--fz-canvas-inset-left);
 }
 
 // The deck swap's badge, tucked into a corner inside the chrome because the
