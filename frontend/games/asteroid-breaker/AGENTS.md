@@ -575,6 +575,15 @@ takes for the specs' helpers.
   export what they work out, and run as `run()`, given what to load and
   where to print, which returns the code to exit with, so their specs
   beside them, in `pure`, hold them whole on an API of their own.
+  `sound-lab.ts` is no script but the sound lab's page, which the dev
+  server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
+  `vite.config.ts`): the sprite in `src/scene/sounds/` beside a candidate
+  designed with ZzFX for each of the shot, the three breaks, the blast and
+  the thrust, and scenes played as the game plays them, the gun at
+  `SHOT_EVERY_MS` and a chain raised by the view's `CHAIN_STEP_CENTS` up to
+  `CHAIN_MOST_CENTS`, as `detuneOf()` raises it. The app's tsconfig leaves
+  it out; `tsconfig.node.json` checks it, with Vite's client types for the
+  sprite's address.
 
 ## The Field
 
@@ -808,6 +817,12 @@ workspace's with the others'.
   `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the
   same bytes every run; their names and order are the view's `SOUNDS`,
   which the scene's spec holds them to).
+- **Open the Sound Lab:** `yarn dev`, then
+  `http://localhost:9005/sound-lab/`, or
+  `http://localhost:4200/play/asteroid-breaker/sound-lab/` under the root's
+  `yarn dev:all` (`tools/sound-lab.ts`: the sounds the game ships beside
+  the candidates, alone and in scenes, varied, panned and limited or not,
+  and the notes on better sounds; no build holds it).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: it reads
