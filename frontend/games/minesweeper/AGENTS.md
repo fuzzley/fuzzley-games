@@ -58,9 +58,10 @@ workspace keeps its own for its code. Paths are relative to
     chose.
   - `stats/` — `StatsService`, the games played and won and the best times.
   - `result/` — the card over a finished game. `help/` — How to play.
-  - `styles/` — `global.scss`, loaded once from `main.ts`, loads
-    `@fz/style`'s global stylesheet and publishes the bar's size.
-    `_index.scss` is the toolkit every component `@use`s, and emits no CSS.
+  - `styles/` — `global.scss`, loaded once from `main.ts`, is
+    `@fz/game-ui/global`, which loads `@fz/style`'s global stylesheet and
+    publishes the bar's size. `_index.scss` is the toolkit every component
+    `@use`s, `@fz/game-ui/toolkit`, and emits no CSS.
 
   A new feature gets a folder of its own, named for what it does, never for
   the kind of code in it (no `services/` or `components/`). What it stores

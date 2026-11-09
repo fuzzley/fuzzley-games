@@ -675,8 +675,8 @@ takes for the specs' helpers.
 A component stylesheet that needs the toolkit opens with
 `@use "../styles" as *;`, which brings in `@fz/style`'s mixins and
 `@fz/game-ui`'s breakpoints and bar mixins, and nothing else; the app's
-own takes `@fz/game-ui` alone, for the bar's size. The frontend's Angular
-and Sass rules apply; on top of them:
+own takes `@fz/game-ui` alone, for the page's frame (`game-frame`). The
+frontend's Angular and Sass rules apply; on top of them:
 
 - **No color is written in a stylesheet.** The field's, the rocks' and the
   pilots' are the palette's and the inks', which the scene draws, and which

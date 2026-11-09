@@ -1,5 +1,8 @@
 // The game chrome's toolkit, which a stylesheet reaches with
-// `@use "@fz/game-ui" as game-ui;`. It emits no CSS of its own.
+// `@use "@fz/game-ui" as game-ui;`. It emits no CSS of its own. A game's
+// component stylesheets take the breakpoints and the bar's mixins through
+// `@fz/game-ui/toolkit` instead, with @fz/style's, and its global stylesheet
+// is `@fz/game-ui/global`.
 
 // The breakpoints every game changes shape at: `below()`, `from()`,
 // `compact`, `phone-portrait` and `phone-landscape`.
@@ -21,9 +24,11 @@ $rail-width: 64px;
 /// Publishes the bar's size as `--fz-bar-height` and `--fz-rail-width`, for
 /// what lays itself out around the bar, such as a game's board.
 ///
-/// An app includes it on `:root`, and again with `$compact: true` wherever it
-/// sets the bar's `compact`. The bar can't declare them itself: a custom
-/// property reaches only what sits inside the element declaring it.
+/// `@fz/game-ui/global` includes it on `:root`, and `game-frame` again with
+/// `$compact: true` on a compact host; an app without them, such as the
+/// Solitaire Collection, includes it itself in the same places. The bar can't
+/// declare them itself: a custom property reaches only what sits inside the
+/// element declaring it.
 @mixin bar-size($compact: false) {
   @if $compact {
     --fz-bar-height: #{$bar-height-compact};
@@ -32,4 +37,40 @@ $rail-width: 64px;
   }
 
   --fz-rail-width: #{$rail-width};
+}
+
+/// Frames a game's page: the app's `:host` fills the window, and its `.stage`
+/// takes what the bar leaves of it, a size container named `stage`, which the
+/// game's layout follows.
+///
+/// The app's stylesheet includes it at its top, then adds its own rules for
+/// `.stage` and what is in it. The app binds its host's `compact` class to
+/// `GameViewportService`'s `isCompact`, where the bar shrinks, and its
+/// `data-bar` to `barPlacement`: across the top, along the `bottom`, or down
+/// the `end` as a rail.
+@mixin game-frame {
+  :host {
+    position: fixed;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+  }
+
+  :host(.compact) {
+    @include bar-size($compact: true);
+  }
+
+  .stage {
+    position: absolute;
+    inset: var(--fz-bar-height) 0 0;
+    container: stage / size;
+  }
+
+  :host([data-bar="bottom"]) .stage {
+    inset: 0 0 var(--fz-bar-height);
+  }
+
+  :host([data-bar="end"]) .stage {
+    inset: 0 var(--fz-rail-width) 0 0;
+  }
 }

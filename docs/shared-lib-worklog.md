@@ -236,3 +236,60 @@ The review:
    let in, with a spec, and its doc and `@fz/dev`'s `AGENTS.md` say so.
 3. _A line of `@fz/dev`'s `AGENTS.md` ran to 90 columns:_ taken. The
    paragraph is reflowed.
+
+### Step 4.1: the games' page frame, written once in `@fz/game-ui`
+
+Built as planned on `sl-frame`. `@fz/game-ui` gains three Sass entries:
+
+- `@fz/game-ui/toolkit` (`src/_toolkit.scss`) forwards `@fz/style`'s
+  mixins, the breakpoints' and the bar's. Each game's `styles/_index.scss`
+  is now that one `@forward`, so the hand-kept `show` list is gone.
+- `@fz/game-ui/global` (`src/global.scss`) loads `@fz/style`'s global
+  stylesheet. It then puts the bar's size on `:root` in `fz.tokens`, and
+  `overscroll-behavior: none` in `fz.base`. Each game's `global.scss` is
+  that one `@use`.
+- `game-frame` (in `src/_index.scss`) writes the fixed host, the compact
+  bar's size and the stage, inset by the bar on the side `data-bar` names.
+  Each app's stylesheet includes it and adds its own stage rules after it.
+
+The five games lose 194 lines between them. `src/frame.spec.ts` compiles
+the three through fixtures, as a game loads them. Tests pass: `@fz/game-ui`
+265, Minesweeper 373, Sudoku 592, Snake 421, Brick Breaker 1829 and 180,
+Asteroid Breaker 3630 and 1620.
+
+To check the pages look the same, every stylesheet of the five games was
+compiled before and after, and the five builds' bundles diffed:
+
+- Snake, Brick Breaker and Asteroid Breaker compile to the same CSS. Their
+  bundles differ only in chunk hashes.
+- Minesweeper's and Sudoku's app rules come out as the frame's and then
+  their own, with no property in both.
+- The global's two rules move into layers. Nothing else declares those
+  properties on `:root`.
+
+Where it went other than planned:
+
+- `game-frame` takes no `$stage`. All five games call it `.stage`, and the
+  bar's mixins also name the classes they style.
+- The frame makes the stage `container: stage / size`. All five games made
+  it a size container. Minesweeper's was unnamed, and nothing in
+  Minesweeper queries a container by name.
+- The global's rules sit in `@fz/style`'s layers, unlike the games' copies,
+  so a library's global rules lose to a game's own as `@fz/style`'s do.
+- The toolkit hides the breakpoints' three variables, so a component's
+  stylesheet gets their mixins alone.
+
+The review:
+
+1. _The global's spec dropped every top-level node that wasn't a layer, so
+   an unlayered rule would pass:_ taken. The spec keeps every node, and
+   checks that the layers written into are ones `@fz/style`'s order
+   statement declares. Adding an unlayered `:root` rule now fails both
+   tests.
+2. _The games' copied comments said the global "keeps the page from
+   scrolling", and "every game" leaves out the Solitaire Collection:_
+   taken. Each game's `global.scss` and `_index.scss` comment is two lines
+   naming the library entry. The library says "a game on @fz/game-ui".
+3. _Docs out of step: "one folder per entry point" in `AGENTS.md`,
+   `bar-size()`'s doc on who includes it, and a long line in the skill:_
+   taken. All three now describe the code as it is.
