@@ -2721,3 +2721,19 @@ things, all taken:
    `.btn-text` nothing styles:_ taken.
 5. _The skill didn't say the app hands the board the focus on Resume:_
    taken.
+
+### Step 17l: finding 22, `@fz/game-ui`'s floor
+
+Built on `ul-floors2`, once Pause and Sound had landed. `@fz/game-ui`'s
+floor held its branches at 95 against 99.2. It rises to each figure rounded
+down, 100, 99, 100 and 100; the one branch untested is in `<fz-bar-choice>`.
+Coverage already counted `src/testing/`, which hands on `@fz/ui`'s and
+counts nothing of its own; the library's `AGENTS.md` now says so, and how
+the floor is set, as `@fz/ui`'s does.
+
+The review found the floor right, and two things in its wording:
+
+1. _"Just under the figures" holds only for branches, the rest being at
+   100:_ not taken; `@fz/ui`, `@fz/phaser` and `@fz/dev` say the same, and
+   the four should read alike.
+2. _"The tests fail" where it is the `test` run that fails:_ taken.
