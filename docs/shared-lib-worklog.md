@@ -1479,3 +1479,34 @@ The review:
    `run.game.scale.resize()`. `sceneAt()` stays only for the pixel ratio,
    which the harness holds at 1. Mutants that skip the width or the height
    check each fail their row.
+
+### Step 5.9: `recordingPrinter()` in `@fz/dev/script`
+
+Built as planned on `sl-sol`, as `a39dc15e`, taken over from `sl-tools`.
+`recordingPrinter()` returns a `Printer` that keeps each line it prints:
+output goes to `out`, what went wrong to `err`. Six specs used to build
+that printer by hand:
+
+- the layout check's runner;
+- the screenshot runner and `keepShot()`;
+- `stopWith()`;
+- Asteroid Breaker's wave report and capture script;
+- Brick Breaker's level report.
+
+Each now hands the script a `recordingPrinter()` and asserts exactly what
+it did before. Its helper body is two to four lines shorter. One new spec
+holds the two streams apart and in order. `lib/dev/AGENTS.md` names it in
+the script bullet. `@fz/dev` passes 476 tests. Both breakers lint and
+type-check. Their tool specs pass (17 and 30), and so does the root lint.
+Nothing needs a run, since only specs and docs changed.
+
+Where it went other than planned:
+
+- The plan counted 4 copies in the tools' specs. There were six, three of
+  them in `@fz/dev`'s own specs, and all six use it now.
+- The site's `dev-all.spec.ts` keeps its own `recorder()`. It stands in for
+  the console's `log` and `error`, not for a `Printer`.
+- `RecordingPrinter` is exported as the function's return type, extending
+  `Printer` beside it.
+
+The review: it found nothing to change.

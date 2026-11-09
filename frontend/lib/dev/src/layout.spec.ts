@@ -27,7 +27,7 @@ import {
   readNamedRects,
   readRect,
 } from "./board_page.ts";
-import type { Printer } from "./script.ts";
+import { recordingPrinter } from "./script.ts";
 import { type Command, FakeBrowser } from "./testing/fake_browser.ts";
 
 /** Words only the game's inspection holds, for the fake browser to spot. */
@@ -547,24 +547,16 @@ describe("shapesAt", () => {
 
 describe("runLayoutScript", () => {
   let root = "";
-  let printed: string[] = [];
-  let reported: string[] = [];
+  let printer = recordingPrinter();
 
   beforeEach(async () => {
     root = await mkdtemp(join(tmpdir(), "fz-layout-"));
-    printed = [];
-    reported = [];
+    printer = recordingPrinter();
   });
 
   afterEach(async () => {
     await rm(root, { recursive: true, force: true });
   });
-
-  /** Where the script prints: its output into `printed`, and what went wrong into `reported`. */
-  const io: Printer = {
-    print: (line) => printed.push(line),
-    printError: (line) => reported.push(line),
-  };
 
   /** Writes a build into the game's folder, its page saying `words`. */
   async function build(words: string): Promise<void> {
@@ -618,7 +610,7 @@ describe("runLayoutScript", () => {
 
     await runLayoutScript(script([], check), {
       args: [],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(),
     });
 
@@ -631,7 +623,7 @@ describe("runLayoutScript", () => {
 
     await runLayoutScript(script([], keepingAddress(kept)), {
       args: [],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(),
     });
 
@@ -645,7 +637,7 @@ describe("runLayoutScript", () => {
 
     const running = runLayoutScript(script([], check), {
       args: [],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(),
     });
 
@@ -658,13 +650,13 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(), {
       args: [],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(),
     });
 
-    expect({ code, printed }).toEqual({
+    expect({ code, out: printer.out }).toEqual({
       code: 0,
-      printed: ["Game's layout holds at each shape."],
+      out: ["Game's layout holds at each shape."],
     });
   });
 
@@ -674,14 +666,14 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(found), {
       args: [],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(),
     });
 
-    expect({ code, reported, printed }).toEqual({
+    expect({ code, out: printer.out, err: printer.err }).toEqual({
       code: 1,
-      reported: ["roomy: The board is missing."],
-      printed: [],
+      out: [],
+      err: ["roomy: The board is missing."],
     });
   });
 
@@ -691,7 +683,7 @@ describe("runLayoutScript", () => {
 
     await runLayoutScript(script(), {
       args: ["--chrome", "/opt/chrome"],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(started),
     });
 
@@ -703,12 +695,12 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(), {
       args: ["--help"],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(started),
     });
 
     expect({ code, started }).toEqual({ code: 0, started: [] });
-    expect(printed.join("\n")).toMatch(
+    expect(printer.out.join("\n")).toMatch(
       /^Usage: yarn check:layout.*\n\nChecks Game's layout[^]*--chrome <path>/,
     );
   });
@@ -718,12 +710,12 @@ describe("runLayoutScript", () => {
 
     const code = await runLayoutScript(script(), {
       args: ["--bogus"],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(started),
     });
 
     expect({ code, started }).toEqual({ code: 2, started: [] });
-    expect(reported.join("\n")).toMatch(
+    expect(printer.err.join("\n")).toMatch(
       /^Unknown option '--bogus'[^]*Usage: yarn check:layout/,
     );
   });
@@ -731,7 +723,7 @@ describe("runLayoutScript", () => {
   it("throws for a game with no build, saying to build it first", async () => {
     const running = runLayoutScript(script(), {
       args: [],
-      ...io,
+      ...printer,
       runChrome: fakeChrome(),
     });
 

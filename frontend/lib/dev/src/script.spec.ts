@@ -9,6 +9,7 @@ import {
   isStop,
   misread,
   readArgs,
+  recordingPrinter,
   stopWith,
   wrapped,
 } from "./script.ts";
@@ -31,14 +32,14 @@ function read(
 }
 
 /** Returns the lines a stop printed, as output and as what went wrong, and the code it returned. */
-function stopped(stop: Stop): { code: number; out: string[]; err: string[] } {
-  const out: string[] = [];
-  const err: string[] = [];
-  const code = stopWith(stop, {
-    print: (line) => out.push(line),
-    printError: (line) => err.push(line),
-  });
-  return { code, out, err };
+function stopped(stop: Stop): {
+  code: number;
+  out: readonly string[];
+  err: readonly string[];
+} {
+  const printer = recordingPrinter();
+  const code = stopWith(stop, printer);
+  return { code, out: printer.out, err: printer.err };
 }
 
 describe("readArgs", () => {
@@ -168,6 +169,21 @@ describe("CONSOLE", () => {
     CONSOLE.printError("wrong");
 
     expect({ logged, errors }).toEqual({ logged: ["out"], errors: ["wrong"] });
+  });
+});
+
+describe("recordingPrinter", () => {
+  it("keeps each line in the order printed, its output apart from what went wrong", () => {
+    const printer = recordingPrinter();
+
+    printer.print("first");
+    printer.printError("wrong");
+    printer.print("second");
+
+    expect({ out: printer.out, err: printer.err }).toEqual({
+      out: ["first", "second"],
+      err: ["wrong"],
+    });
   });
 });
 

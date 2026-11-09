@@ -321,14 +321,16 @@ too. Paths are relative to `frontend/lib/dev/`.
   tells a stop from what the script asked for. `stopWith()` prints a stop,
   the usage as output and the rest as what went wrong, and returns its
   code, and `wrapped()` breaks what a usage says into lines of 78 columns.
-  A script's `run()` takes a `ScriptIo`: where it prints,
-  `CONSOLE` unless a spec hands it another `Printer`, and what it loads, so
-  its spec holds it whole. `importThroughVite()` loads a module of an app's
-  TypeScript through Vite's `runnerImport()`, as Node can't load it as it
-  is: its modules are named without extensions and import JSON, and
-  `@fz/core` isn't written for Node to strip its types. It loads Vite only
-  once called, so a script that loads nothing through it doesn't wait on
-  Vite; the site loads its catalog with it too.
+  A script's `run()` takes a `ScriptIo`: where it prints, `CONSOLE` unless a
+  spec hands it another `Printer`, and what it loads, so its spec holds it
+  whole. A spec hands it `recordingPrinter()`'s, which keeps each line
+  printed, its output in `out` and what went wrong in `err`, for the spec to
+  read back. `importThroughVite()` loads a module of an app's TypeScript
+  through Vite's `runnerImport()`, as Node can't load it as it is: its modules
+  are named without extensions and import JSON, and `@fz/core` isn't written
+  for Node to strip its types. It loads Vite only once called, so a script
+  that loads nothing through it doesn't wait on Vite; the site loads its
+  catalog with it too.
 - `src/report.ts`, `@fz/dev/report`: the table a game's report prints of
   how its autopilot plays each wave or level at each speed, as Asteroid
   Breaker's `report:waves` and Brick Breaker's `report:levels` print
