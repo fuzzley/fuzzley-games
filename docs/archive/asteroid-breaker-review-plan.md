@@ -3,7 +3,7 @@
 Reviewed 2026-11-08 at `f896a336`, `main`'s tip, eight days after Asteroid
 Breaker shipped. The same day the user took every recommendation, so each
 finding below states the change as decided, and the decisions are listed at
-the end. Nothing is built yet. The review covers `frontend/games/asteroid-breaker/` (its rules, view,
+the end. The review covers `frontend/games/asteroid-breaker/` (its rules, view,
 scene, shell, specs, tools and configs) and the shared code it stands on
 (`@fz/core`, `@fz/phaser`, `@fz/game-ui`, the `@fz/ui` entries it imports
 and `@fz/dev`), read beside Brick Breaker and Snake, which share its shape.
@@ -12,6 +12,14 @@ change, and for where it strays from the repository's rules, Google's
 TypeScript style guide, and Angular's, Phaser's and Vitest's own practice.
 Paths are relative to `frontend/games/asteroid-breaker/` unless they start
 with `frontend/`, and line numbers are as of `f896a336`.
+
+It was built on 2026-11-08 on the branches `asteroid-breaker-review`,
+`core-lifts`, `dev-lifts`, `phaser-lifts`, `ui-lifts` and `run-lifecycle`,
+each commit reviewed before it was made, and each branch merged into `main`
+once its QA passed. "As built" gathers what the work log decided that the
+findings don't say, and what it left open. The log was then deleted;
+`git show ecbf4785:docs/asteroid-breaker-review-worklog.md` reads it, step by
+step.
 
 Each finding gives a **priority** (High, Medium or Low), a rough **effort**
 (S under an hour, M a few hours, L a day or more), what was found, and the
@@ -958,6 +966,142 @@ As the earlier reviews ran:
   is kept beyond what this plan says waits for the user.
 - **Each branch is merged into `main` locally once its QA passes,** and
   pushed once every branch is built, as the user said on 2026-11-08.
+
+## As built
+
+Every finding was built. A letter after a step's number marks each of its
+commits (step 16d).
+
+### Where it went other than planned
+
+- **Finding 2.** `GameService.waiting` went rather than becoming a
+  `computed`. So that nothing saved or shown changed, `isInProgress()`
+  counts a `"ready"` run past its first wave, and `resume()` returns an
+  unmoved paused wave to `"ready"`.
+- **Finding 9** took five commits. The frame step is `RunFrames`, and a
+  run's own state, `RunState` with `withFrame()`, went to the view too, so a
+  tuned run keeping no records is specced in Node. `TuningService` tells
+  `GameService` of a change through a listener, `onTune()`, as an effect
+  would let a frame step on the old numbers.
+- **Finding 10.** `RunFrames` sets each frame's buzz from the field's
+  `"lost"` event and the run's clearing, not the field's `"cleared"`, also
+  logged when it is cleared after its last ship is lost. The rectangles'
+  strings are written by `@fz/phaser/layout` and read by a new entry,
+  `@fz/dev/board-page` (step 15e).
+- **Finding 11.** The effects painter became four, `TrailPainter`,
+  `ExhaustPainter`, `DebrisPainter` and `RingPainter`, and `FieldCamera`,
+  which also owns the field's color, is a painter, last in the list.
+- **Finding 12.** The scene's parts are a `BeltKit` record behind a `kit`
+  getter, as `readonly` fields can't wait for `create()`.
+- **Finding 13.** `bringShip()` stayed in `field.ts`, as moving it made a
+  cycle at runtime. `restoreGame()` joins `readRun()` and `readField()`,
+  refusing a run kept with no field at the wave it began at.
+- **Finding 14.** Each part is an interface beside its module (`CometField`,
+  `StrayField` and the rest), not a `Pick` of `Field`. `Field` and the run
+  left the cycle of type imports, but seven modules stay in it.
+- **Finding 15.** The trace showed both costs. The points are lettered in
+  the page's font into an atlas of their own, not digits in the field's,
+  which blurred above its cap, and each label is stamped once onto a
+  `DynamicTexture`. The trace also found `@fz/phaser` uploading a blank
+  atlas before each bake, which `drawCanvasTexture()` ended (step 16e).
+- **Finding 17.** The art's reaches grew, `SHIP_REACH` from 2 to 2.187 and
+  `SHOT_REACH` from 0.5 to 0.693 among them, so a copy at an edge shows as
+  soon as a pixel of it would.
+- **Finding 18.** Snake's stepper stayed its own, its step changing as it
+  eats, and `@fz/core/json` also gained `isListOf()`. A breaker's frame is
+  `FieldFrame & PlayFrame`, as an interface extending both fails on `alpha`,
+  `readonly` in one alone (step 14a).
+- **Finding 19.** `isShortcut()` went to `@fz/core/keys`, so the shells take
+  it too. `watchCanvasViewport()` became `@fz/phaser/canvas`'s
+  `canvasRoom()`, the scaler's size rule moving with its ratio into
+  `canvasSizeFor()`, and its watchers and inset reader into a new entry,
+  `@fz/phaser/measure`, which no game's view may import (step 16d). The slow
+  and failed cards are `<fz-canvas-cards>`, in each board's own card layer.
+- **Finding 20.** `storedSignal()` took 14 of the 19 services, not the five
+  saved games'. The focus is `DialogService.anyOpen` with
+  `refocusWhenUncovered()`, which looks after a render. The bar's styles are
+  mixins in `@fz/game-ui`'s `_bar.scss`, with no `<fz-bar-metric>`, and
+  Pause and Sound are attribute components on each game's own buttons.
+- **The run's lifecycle (step 18).** After finding 9 the breakers still
+  shared 231 non-blank lines, so it was lifted: `RunNumbers`, a run's id and
+  seed, in `@fz/core/run_numbers`, and `RunLifecycle`, an abstract class
+  each `GameService` extends, in `@fz/game-ui/run_lifecycle`. Each game
+  keeps its result card's flags and its rule for a run ended.
+- **Finding 21.** `phaserGameLayers({ viewAllows, heldAsRules })` holds the
+  fences, the view's an allow-list. The test projects are an option,
+  `angularTests({ projects })`, and the scripts share `@fz/dev/script`.
+- **Finding 22.** The fake viewport is `@fz/ui/testing`'s, and each game's
+  setup gives every test's app a store in memory. `MAX_PIXEL_RATIO` and
+  `pngOfSize()` left their entries but stay exported from their files, whose
+  specs use them (step 16g).
+
+### Beyond the plan
+
+- **"New game".** At the user's ask once `ui-lifts`' QA found the two
+  spellings, the four games whose button said "New Game" say "New game", as
+  the breakers do and as five games' question before a run is lost does.
+  The Solitaire Collection's win card's "Play Again" says "New game" too,
+  and its bar's button is named so, where its `aria-label` said "Start a
+  brand new game" (`ecbf4785`, on `new-game-label`).
+
+### Left open
+
+- **CI's time after finding 3,** which its esbuild bundling waits on, is
+  unmeasured until `main` is pushed; scaling CI's 368 s by this machine's
+  single worker gives about 165 s, against the plan's 150 s (step 3).
+- **Brick Breaker's `bake()`** still calls `picturesOf()`, encoding How to
+  play's frames at every bake, through a drag too, where Asteroid Breaker
+  encodes them as How to play opens (step 16c).
+- **The points' sheet** renders in about 16.6 ms of a chain's worst frame at
+  ×6, about what the uploads it replaced cost, and Phaser's own resize of
+  the canvas in 39 to 66 ms of a drag's slow frames (step 11b).
+- **The base preset's `exactOptionalPropertyTypes`** (decision 8) would
+  raise 61 errors in the Solitaire Collection, 29 from one optional
+  `random`, 3 in Brick Breaker and 1 each in `@fz/phaser` and the site.
+- **The floors' wording:** `@fz/style`'s `AGENTS.md`, for a floor the plan
+  never named, still says "a little under" the figures (step 17h); the other
+  four say "just under", true in `@fz/game-ui` of branches alone (step 17l).
+- **The five games' toolkits** are the same byte for byte, each forwarding
+  `@fz/game-ui` with a `show` list of ten names (step 17j).
+- **`SavedGameService`'s `run().id + 1`:** each of the three games still
+  gives a run taken up the id one past the current run's, so `RunNumbers`
+  owns half that rule (step 18a).
+- **`GAME_RANDOM`**, copied in five games, as lifting it would pull in
+  Minesweeper and Sudoku.
+- **Snake's result card** opens at once on a frame whose time is not a
+  number, as the breakers' do. Reading it as no time, as `advanceClock()`
+  does, would change all three games, and Phaser hands no such frame
+  (step 14a).
+- **Specs that time out at 5 s under load,** not from their code: Brick
+  Breaker's first app spec at a load of 31, and six of `@fz/phaser`'s, each
+  first in its file to import Phaser, near 35 (steps 15c, 16j).
+
+### Waiting for the user
+
+- **The haptics' rule is by frame.** A loss outranks a clearing only within
+  one frame, so a wave cleared a few frames after a ship is lost buzzes and
+  cuts the loss's buzz short (step 8b).
+- **A key pressed and released within one frame** doesn't start Asteroid
+  Breaker's waiting wave, as the first move is read from what is held at a
+  frame; a player's press lasts longer (step 13).
+- **Two points' labels clamped to one spot** at the field's edge overlap
+  (step 13).
+- **On a slow load the Ready card shows** over the placeholder until Still
+  loading takes its place at 8 s (step 13).
+- **The Cleared tally reads "No ship lost 0"** in a wave a ship was lost in
+  (step 13).
+- **A rock taken up again** can lie a last digit off where it was kept, once
+  the field is laid out anew (step 14d).
+- **Asteroid Breaker's ship can't be hit in its home ring,** so a run left
+  alone never ends (step 18f).
+- **The Solitaire Collection's question before a new deal** is "Confirm
+  Action", with "Confirm", where the other five ask "Start a new game?" with
+  "New game"; it asks the same before a change of variant, draw or scoring
+  (`ecbf4785`).
+- **The Solitaire Collection's other labels are in title case** ("How to
+  Play", "Report a Bug", "Game Settings"), and the sentence case the other
+  games keep is written down nowhere; the rule belongs in
+  `frontend/games/AGENTS.md` once the code holds it (`ecbf4785`).
 
 ## Decisions
 
