@@ -1,4 +1,4 @@
-import type { ArtFrame, ArtScale, DrawCommand } from "@fz/phaser/shapes";
+import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
 import { atlasFrames } from "../view/art/art";
 import { type PaletteRoles, bricksPalette } from "../view/colors/palette";
 
@@ -17,22 +17,11 @@ export const ART_PALETTE = bricksPalette(ROLES, "light");
 /** The scale the art's specs draw at, a field unit of 24 device pixels at 2 to a CSS pixel. */
 export const ART_SCALE: ArtScale = { unit: 24, pixelRatio: 2 };
 
-/** Returns a frame of the atlas in the specs' palette, at their scale, by its name. */
-export function frameNamed(name: string): ArtFrame {
-  const frame = atlasFrames(ART_PALETTE, ART_SCALE).find(
-    (each) => each.name === name,
-  );
-  if (!frame) throw new Error(`No frame "${name}"`);
-  return frame;
-}
-
-/** Returns the commands of a frame that draw in a color, of a kind. */
-export function drawnIn(
-  frame: ArtFrame,
-  kind: DrawCommand["kind"],
-  color: number,
-): readonly DrawCommand[] {
-  return frame.commands.filter(
-    (command) => command.kind === kind && command.color === color,
-  );
-}
+/**
+ * The atlas's frames in the specs' palette, at their scale, among which a
+ * spec finds one by its name with `@fz/phaser/testing/pure`'s `frameNamed()`.
+ */
+export const ART_FRAMES: readonly ArtFrame[] = atlasFrames(
+  ART_PALETTE,
+  ART_SCALE,
+);

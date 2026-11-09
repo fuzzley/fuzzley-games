@@ -1,12 +1,12 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { FIRST_SHIPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
 import {
-  FRAME_MS,
   SECTOR_WAVES,
   SPEC_WAVES,
   clearToNext,

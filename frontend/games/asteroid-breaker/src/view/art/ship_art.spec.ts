@@ -1,9 +1,10 @@
+import { frameNamed } from "@fz/phaser/testing/pure";
 import { SHIP_LENGTH } from "../../rules/tuning";
 import {
+  ART_FRAMES,
   ART_PALETTE,
   ART_SCALE,
   ART_SCALES,
-  frameNamed,
   reachOf,
 } from "../../testing/art_frames";
 import {
@@ -20,7 +21,7 @@ import {
 const SLACK = 1e-9;
 
 describe("the ship's frame", () => {
-  const ship = frameNamed(SHIP_FRAMES.ship);
+  const ship = frameNamed(ART_FRAMES, SHIP_FRAMES.ship);
 
   it("sets a fin on each side of the ship's line, its left first", () => {
     const [left, right] = ship.commands
@@ -73,7 +74,7 @@ describe("the ship's frame", () => {
 
 describe("the flame", () => {
   it("draws the flame in its color, its base the frame's middle and its tip behind", () => {
-    const flame = frameNamed(SHIP_FRAMES.flame);
+    const flame = frameNamed(ART_FRAMES, SHIP_FRAMES.flame);
     const [shape] = flame.commands;
     const xs = shape?.kind === "polygon" ? shape.points.map(({ x }) => x) : [];
 
@@ -111,7 +112,7 @@ describe("the flame", () => {
 
 describe("the ship's rings", () => {
   it("dashes the guard's ring in the accent", () => {
-    const guard = frameNamed(SHIP_FRAMES.guard);
+    const guard = frameNamed(ART_FRAMES, SHIP_FRAMES.guard);
 
     expect({
       dashes: guard.commands.length > 10,
@@ -120,7 +121,7 @@ describe("the ship's rings", () => {
   });
 
   it("rings the Shield in the accent", () => {
-    expect(frameNamed(SHIP_FRAMES.shield).commands).toMatchObject([
+    expect(frameNamed(ART_FRAMES, SHIP_FRAMES.shield).commands).toMatchObject([
       { kind: "ring", color: ART_PALETTE.accent },
     ]);
   });

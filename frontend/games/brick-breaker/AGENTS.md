@@ -652,7 +652,8 @@ skill covers its setup, floors and fixtures, the repository's
   of the field reads as the field it plays; a field may be drawn taller
   (`height`).
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
-  specs, and finds a frame by its name (`frameNamed()`).
+  specs (`ART_FRAMES`), among which `@fz/phaser/testing/pure`'s
+  `frameNamed()` finds a frame by its name.
 - `autopilot.ts` plays a level as a good player would (`autoplay()`): it
   keeps the paddle under the ball that will reach it first, lands it a
   seeded distance off the middle or toward a brick the level needs that it
@@ -676,9 +677,9 @@ skill covers its setup, floors and fixtures, the repository's
   come to one thing soon, and two sets, of two levels and then one
   (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with a seed of
   its own through `GAME_RANDOM` (`provideSpecLevels()`), and plays them
-  through `tick()`, steering the paddle from the frame it reads (`under()`,
-  `awayFrom()`, `playUntil()`, `loseBall()`, `playToClear()`,
-  `clearToNext()`).
+  through `tick()`, with `@fz/core/testing`'s `playUntil()`, steering the
+  paddle from the frame it reads (`under()`, `awayFrom()`, `loseBall()`,
+  `playToClear()`, `clearToNext()`).
 - `kept_run.ts` keeps a run begun at a level, the bricks it names broken or
   worn through the rules (`keptRun()`), for the screenshots' script.
 - `screenshot_api.ts` holds what `tools/capture-screenshots.mjs` takes from

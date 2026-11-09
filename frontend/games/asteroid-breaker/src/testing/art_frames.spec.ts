@@ -10,13 +10,7 @@ import {
   ring,
   roundRect,
 } from "@fz/phaser/shapes";
-import {
-  distanceToEdge,
-  edgeOf,
-  frameNamed,
-  reachOf,
-  within,
-} from "./art_frames";
+import { distanceToEdge, edgeOf, reachOf, within } from "./art_frames";
 
 /** The style the specs draw lines in. */
 const PEN = { color: 0, width: 2 };
@@ -175,13 +169,5 @@ describe("reachOf", () => {
     expect(() =>
       reachOf(frameOf(polyline(SQUARE, { color: 0, width: 1 }))),
     ).toThrow("no polyline");
-  });
-});
-
-describe("frameNamed", () => {
-  it("refuses a name no frame has", () => {
-    expect(() => frameNamed("no-such-frame")).toThrow(
-      'No frame "no-such-frame"',
-    );
   });
 });

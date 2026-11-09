@@ -1,8 +1,9 @@
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { FRAME_MS, provideSpecWaves, shoot } from "../../testing/play";
+import { provideSpecWaves, shoot } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
 import { SettingsComponent } from "./settings.component";

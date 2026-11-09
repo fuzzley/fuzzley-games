@@ -239,7 +239,9 @@ take the pure ones.
   a PNG of a size to serve. `src/testing/pure/`, imported as
   `@fz/phaser/testing/pure`, holds what a game's specs in Node take, which
   can't load Phaser: `viewport()`, a canvas's `Viewport` from a CSS size, a
-  pixel ratio and its chrome.
+  pixel ratio and its chrome; and what the art's specs read a game's atlas
+  with, `frameNamed()`, a frame of it by its name, and `drawnIn()`, the
+  commands of a frame of a kind that draw in a color.
 
 ## Rules
 

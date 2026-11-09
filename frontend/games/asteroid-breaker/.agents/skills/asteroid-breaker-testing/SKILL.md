@@ -218,12 +218,13 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `src/view/run_state.spec.ts` folds a frame's change, written by hand, into
   what is a run's own (`withFrame()`), and holds which frames fly a run on
   tuned numbers.
-- `src/testing/art_frames.ts` draws the atlas in one palette
-  (`ART_PALETTE`) at one scale (`ART_SCALE`), and finds a frame by its name
-  (`frameNamed()`), so the art's specs check the commands a frame is drawn
-  with; at every scale a field is drawn at (`ART_SCALES`), they hold what
-  each piece that wraps draws within the reach the scene draws its copies
-  by (`reachOf()`).
+- `src/testing/art_frames.ts` draws the atlas in one palette (`ART_PALETTE`)
+  at one scale (`ART_SCALE`), as `ART_FRAMES`, so the art's specs check the
+  commands a frame is drawn with, finding the frame by its name and its
+  commands by their kind and color with `@fz/phaser/testing/pure`'s
+  `frameNamed()` and `drawnIn()`; at every scale a field is drawn at
+  (`ART_SCALES`), they hold what each piece that wraps draws within the
+  reach the scene draws its copies by (`reachOf()`).
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES`: it reads each palette's roles from the global stylesheet, by
   the names the board reads them by (`PALETTES.rolesIn()`, from
@@ -298,8 +299,10 @@ game through `runScene()`:
   `loseShip()`, `endRun()`, `bringStraysHome()`, `chainUp()`,
   `playToClear()` and `clearToNext()` play on to a point, and `pauseIn()`,
   `clearIn()` and `endIn()` until the Paused, Cleared or Ended card shows.
+  `FRAME_MS`, `playUntil()` and `playFor()` are `@fz/core/testing`'s.
   `ROOMY` is how the board lays the field out on a roomy screen with no
-  touch, and `SPACE` the key as a browser sends it. A run under way
+  touch, and `SPACE` the key as a browser sends it, made by
+  `@fz/phaser/testing`'s `browserKey()`. A run under way
   asks before it is thrown away, which a spec answers through
   `ConfirmService`'s `accept()` or `cancel()`.
 - jsdom has no `matchMedia`, so motion isn't welcome and the board is no

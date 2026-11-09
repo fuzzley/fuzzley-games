@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { playFor, playUntil } from "@fz/core/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import {
@@ -11,9 +12,7 @@ import {
   SPEC_LEVEL,
   STILL,
   loseBall,
-  playFor,
   playToClear,
-  playUntil,
   provideSpecLevels,
   travelled,
   under,

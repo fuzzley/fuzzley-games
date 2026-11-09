@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { formatPoints } from "@fz/core/format";
+import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
@@ -14,7 +15,6 @@ import { STILL } from "../../rules/ship/ship";
 import { FIELD_SHORT_SIDE, FIRST_SHIPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
 import {
-  FRAME_MS,
   SECTOR_WAVES,
   SPEC_WAVE,
   SPEC_WAVES,
@@ -23,9 +23,7 @@ import {
   clearToNext,
   endRun,
   loseShip,
-  playFor,
   playToClear,
-  playUntil,
   provideSpecWaves,
   shoot,
 } from "../../testing/play";

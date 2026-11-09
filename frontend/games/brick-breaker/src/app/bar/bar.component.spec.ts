@@ -1,5 +1,6 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { playUntil } from "@fz/core/testing";
 import {
   type FakeViewport,
   barChoice,
@@ -20,7 +21,6 @@ import {
   SPEC_LEVEL,
   loseBall,
   playToClear,
-  playUntil,
   provideSpecLevels,
   under,
 } from "../../testing/play";

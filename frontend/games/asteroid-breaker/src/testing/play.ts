@@ -1,5 +1,7 @@
 import type { Provider } from "@angular/core";
+import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { GAME_RANDOM } from "@fz/game-ui/random";
+import { browserKey } from "@fz/phaser/testing";
 import type { GameService } from "../app/play/game.service";
 import { GAME_WAVES } from "../app/tokens";
 import type { Rock } from "../rules/rocks/rocks";
@@ -8,9 +10,6 @@ import { distanceSquared } from "../rules/torus";
 import { type WaveData, type WaveEntry, wavesOf } from "../rules/waves/waves";
 import { type BoardSetting, MARGIN_CSS_PX } from "../view/field/field_metrics";
 import type { FieldView } from "../view/field/frame";
-
-/** How long a frame of the board takes, at 60 a second. */
-export const FRAME_MS = 1000 / 60;
 
 /** How the board lays the field out on a roomy screen with no touch, the ship flown by the keys. */
 export const ROOMY: BoardSetting = {
@@ -21,10 +20,7 @@ export const ROOMY: BoardSetting = {
 };
 
 /** Space as a browser sends it, with the key code Phaser's capture reads. */
-export const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
-
-/** The most frames a spec plays for something to happen: a minute's at 60 a second. */
-const PLAY_LIMIT_FRAMES = 3600;
+export const SPACE = browserKey("Space", " ");
 
 /** Returns a wave of one small stone, which a shot clears, and nothing else to come. */
 function pebbleOf(id: string, name: string): WaveData {
@@ -211,32 +207,6 @@ function nearestRock(field: FieldView): Readonly<Rock> | null {
     }
   }
   return nearest;
-}
-
-/**
- * Ticks the game a frame at a time, steered as a rule says, until something
- * comes to pass, failing past a minute's frames.
- */
-export function playUntil(
-  game: GameService,
-  steer: (game: GameService) => Readonly<Steer>,
-  done: () => boolean,
-): void {
-  for (let frame = 0; !done(); frame++) {
-    if (frame > PLAY_LIMIT_FRAMES) throw new Error("It never came to pass.");
-    game.tick(FRAME_MS, steer(game));
-  }
-}
-
-/** Ticks the game a frame at a time for a while, steered the same way throughout. */
-export function playFor(
-  game: GameService,
-  ms: number,
-  steer: Readonly<Steer>,
-): void {
-  for (let played = 0; played < ms; played += FRAME_MS) {
-    game.tick(FRAME_MS, steer);
-  }
 }
 
 /** Flies the ship in play, or the next once it comes, into a rock until it is lost. */

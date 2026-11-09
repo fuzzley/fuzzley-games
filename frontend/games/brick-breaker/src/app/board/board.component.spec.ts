@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
@@ -19,12 +20,10 @@ import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { figures } from "@fz/ui/testing";
 import {
-  FRAME_MS,
   SPEC_LEVEL,
   STILL,
   loseBall,
   playToClear,
-  playUntil,
   provideSpecLevels,
 } from "../../testing/play";
 import { paddleTopOf } from "../../rules/paddle/paddle";

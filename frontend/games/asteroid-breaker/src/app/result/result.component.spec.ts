@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { playUntil } from "@fz/core/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figures } from "@fz/ui/testing";
@@ -13,7 +14,6 @@ import {
   bringStraysHome,
   clearToNext,
   endRun,
-  playUntil,
   provideSpecWaves,
   toPickup,
 } from "../../testing/play";

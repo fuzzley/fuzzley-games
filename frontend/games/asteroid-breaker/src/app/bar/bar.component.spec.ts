@@ -1,5 +1,6 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
 import {
   type FakeViewport,
   barChoice,
@@ -15,7 +16,6 @@ import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
   CHAIN_WAVES,
-  FRAME_MS,
   SPEC_WAVE,
   STRAY_WAVES,
   bringStraysHome,

@@ -1,4 +1,5 @@
 import type { ArtFrame } from "@fz/phaser/shapes";
+import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import {
   BRICK_KINDS,
   BRICK_KIND_IDS,
@@ -6,12 +7,7 @@ import {
   hasTrait,
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
-import {
-  ART_PALETTE,
-  ART_SCALE,
-  drawnIn,
-  frameNamed,
-} from "../../testing/art_frames";
+import { ART_FRAMES, ART_PALETTE, ART_SCALE } from "../../testing/art_frames";
 import { atlasFrames } from "./art";
 import { type BrickLook, brickColor, brickFrame } from "./brick_art";
 
@@ -109,6 +105,7 @@ describe("a tough brick's frame", () => {
   /** Returns the frame a tough brick of four hits shows with some left. */
   function toughWith(hits: number): ArtFrame {
     return frameNamed(
+      ART_FRAMES,
       brickFrame({ kind: "tough", tint: 0, whole: 4, hits, shown: true }),
     );
   }
@@ -151,6 +148,7 @@ describe("a brick's mark", () => {
     "is drawn on a %s brick's body in the marks' color",
     (kind, stands) => {
       const frame = frameNamed(
+        ART_FRAMES,
         brickFrame({
           kind,
           tint: 0,
@@ -169,6 +167,7 @@ describe("a brick's mark", () => {
 
   it("is cut out of a gift brick in its body's color", () => {
     const gift = frameNamed(
+      ART_FRAMES,
       brickFrame({ kind: "gift", tint: 0, whole: 1, hits: 1, shown: true }),
     );
 

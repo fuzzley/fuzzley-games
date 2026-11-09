@@ -6,6 +6,7 @@ import {
   lineWidth,
   placed,
 } from "@fz/phaser/shapes";
+import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import {
   ROCK_KIND_IDS,
   type RockKindId,
@@ -15,13 +16,12 @@ import {
 import { ROCK_OUTLINES } from "../../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import {
+  ART_FRAMES,
   ART_PALETTE,
   ART_SCALE,
   ART_SCALES,
   distanceToEdge,
-  drawnIn,
   edgeOf,
-  frameNamed,
   reachOf,
   within,
 } from "../../testing/art_frames";
@@ -158,7 +158,7 @@ function takenName(kind: RockKindId, size: RockSize, hits: number): string {
 /** Returns the marks' commands of a rock's frame: all it draws over its body. */
 function markKinds(kind: RockKindId, outline = 0): readonly string[] {
   const size = largestOf(kind);
-  return frameNamed(rockFrame({ kind, size, outline }))
+  return frameNamed(ART_FRAMES, rockFrame({ kind, size, outline }))
     .commands.slice(2)
     .map((command) => command.kind);
 }
@@ -265,6 +265,7 @@ describe("each kind's marks", () => {
 
   it("sets a crystal's gem in its stone body, outlined in the marks' color", () => {
     const frame = frameNamed(
+      ART_FRAMES,
       rockFrame({ kind: "crystal", size: "large", outline: 0 }),
     );
 
@@ -279,6 +280,7 @@ describe("each kind's marks", () => {
     "draws ice outline %i sharp-cornered, seven to nine corners, a facet in the marks' color toward every other one",
     (outline) => {
       const frame = frameNamed(
+        ART_FRAMES,
         rockFrame({ kind: "ice", size: "large", outline }),
       );
       const corners = bodyOf(frame).length;
@@ -295,6 +297,7 @@ describe("each kind's marks", () => {
     "rounds a %s rock's outline through its sides' middles, a curve for each corner",
     (kind) => {
       const frame = frameNamed(
+        ART_FRAMES,
         rockFrame({ kind, size: largestOf(kind), outline: 0 }),
       );
 
@@ -308,6 +311,7 @@ describe("each kind's marks", () => {
 
   it("sets an iron rock's rivets with their edges at the marks' reach", () => {
     const frame = frameNamed(
+      ART_FRAMES,
       rockFrame({ kind: "iron", size: "large", outline: 0 }),
     );
 
@@ -332,6 +336,7 @@ describe("each kind's marks", () => {
 
   it("draws a volatile rock's core in its glow and three cracks out from it in the marks' color", () => {
     const frame = frameNamed(
+      ART_FRAMES,
       rockFrame({ kind: "volatile", size: "large", outline: 0 }),
     );
 
@@ -348,6 +353,7 @@ describe("each kind's marks", () => {
 
   it("lays a volatile rock's cracks outside its core", () => {
     const frame = frameNamed(
+      ART_FRAMES,
       rockFrame({ kind: "volatile", size: "large", outline: 0 }),
     );
     const [core, ...cracks] = frame.commands.slice(2);
@@ -392,7 +398,7 @@ describe("the hits a rock shows taken", () => {
     "shows a %s %s rock with %i hits left a crack or dent for each of its %i taken, in the marks' color",
     (kind, size, hits, taken) => {
       const linesOf = (name: string): readonly DrawCommand[] =>
-        drawnIn(frameNamed(name), "line", ART_PALETTE.mark);
+        drawnIn(frameNamed(ART_FRAMES, name), "line", ART_PALETTE.mark);
       const one = linesOf(
         takenName(kind, size, (rockKind(kind).hits[size] ?? 0) - 1),
       );
@@ -405,7 +411,7 @@ describe("the hits a rock shows taken", () => {
           lines.map((command) => command.kind === "line" && command.width),
         ),
         colors: new Set(
-          frameNamed(takenName(kind, size, hits)).commands.map(
+          frameNamed(ART_FRAMES, takenName(kind, size, hits)).commands.map(
             (command) => command.color,
           ),
         ),
@@ -437,7 +443,7 @@ describe("the hits a rock shows taken", () => {
   );
 
   it("starts an iron rock's dent at the marks' reach, in from its side", () => {
-    const frame = frameNamed(takenName("iron", "large", 2));
+    const frame = frameNamed(ART_FRAMES, takenName("iron", "large", 2));
 
     const reaches = frame.commands
       .flatMap((command) => (command.kind === "line" ? [command.from] : []))

@@ -42,25 +42,14 @@ export const ART_SCALES: readonly ArtScale[] = [
   bakedScale({ unit: 120, pixelRatio: 3 }),
 ];
 
-/** Returns a frame of the atlas in the specs' palette, at their scale, by its name. */
-export function frameNamed(name: string): ArtFrame {
-  const frame = atlasFrames(ART_PALETTE, ART_SCALE).find(
-    (each) => each.name === name,
-  );
-  if (!frame) throw new Error(`No frame "${name}"`);
-  return frame;
-}
-
-/** Returns the commands of a frame that draw in a color, of a kind. */
-export function drawnIn(
-  frame: ArtFrame,
-  kind: DrawCommand["kind"],
-  color: number,
-): readonly DrawCommand[] {
-  return frame.commands.filter(
-    (command) => command.kind === kind && command.color === color,
-  );
-}
+/**
+ * The atlas's frames in the specs' palette, at their scale, among which a
+ * spec finds one by its name with `@fz/phaser/testing/pure`'s `frameNamed()`.
+ */
+export const ART_FRAMES: readonly ArtFrame[] = atlasFrames(
+  ART_PALETTE,
+  ART_SCALE,
+);
 
 /**
  * Returns whether a point lies inside a polygon or on its edge, by how many of

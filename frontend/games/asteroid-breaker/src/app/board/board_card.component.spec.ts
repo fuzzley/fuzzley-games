@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
@@ -6,7 +7,6 @@ import { figures } from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
 import {
-  FRAME_MS,
   ROOMY,
   SPACE,
   SPEC_WAVE,

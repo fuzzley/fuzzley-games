@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
@@ -12,7 +13,6 @@ import {
   TALLEST_FIELD,
 } from "../../rules/tuning";
 import {
-  FRAME_MS,
   SPEC_LEVEL,
   SPEC_LEVELS,
   STILL,
@@ -21,9 +21,7 @@ import {
   awayFrom,
   clearToNext,
   loseBall,
-  playFor,
   playToClear,
-  playUntil,
   provideSpecLevels,
   under,
   underCapsule,
