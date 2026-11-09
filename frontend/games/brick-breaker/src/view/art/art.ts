@@ -1,9 +1,11 @@
 import { recordOf } from "@fz/core/records";
+import { eyesCommands, fuzzballCommands } from "@fz/phaser/fuzzball";
 import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
   type Point,
+  centered,
   circle,
   lineWidth,
   polygon,
@@ -30,16 +32,9 @@ import {
 } from "../../rules/tuning";
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
-import { frameAround, inset, middleSquare, star, within } from "./shapes";
+import { FUR, REACH } from "./fuzzball_art";
+import { frameAround, inset, middleSquare, within } from "./shapes";
 import { SYMBOLS } from "./symbols";
-
-/** Draws what lies inside a ball's outline, in a circle about a middle. */
-export type DrawBall = (
-  middle: Point,
-  radius: number,
-  palette: BricksPalette,
-  scale: ArtScale,
-) => readonly DrawCommand[];
 
 /** Describes a capsule's shape as drawn: its size, its outline's width, and its outline's and its body's colors. */
 export interface CapsuleShape {
@@ -62,6 +57,8 @@ export const FRAMES = {
   bolt: "bolt",
   /** A broken brick's shard, white, so the scene tints it as the brick was. */
   shard: "shard",
+  /** A ball's eyes, about its body's middle, which the scene turns the way it goes. */
+  eyes: "ball-eyes",
   /** A fire ball's ember. */
   ember: "ember",
   /** A blast's ring, at its widest. */
@@ -99,6 +96,10 @@ const BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
   BALL_KIND_IDS,
   (kind) => `ball-${kind}`,
 );
+const FACED_BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
+  BALL_KIND_IDS,
+  (kind) => `ball-${kind}-faced`,
+);
 const CAPSULE_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
   CAPSULE_IDS,
   (id) => `capsule-${id}`,
@@ -107,24 +108,6 @@ const TAG_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
   CAPSULE_IDS,
   (id) => `tag-${id}`,
 );
-
-/** How each kind of ball is drawn inside its outline: in its color, with its one mark. */
-export const BALL_ART = {
-  normal: (middle, radius, palette) => [
-    circle(middle, radius, { color: palette.balls.normal }),
-  ],
-  // A spark, which holds still; where motion is welcome, embers trail it too.
-  fire: (middle, radius, palette) => [
-    circle(middle, radius, { color: palette.balls.fire }),
-    polygon(star(middle, radius * 0.62, radius * 0.22, 4), {
-      color: palette.mark,
-    }),
-  ],
-  blast: (middle, radius, palette, scale) => [
-    circle(middle, radius, { color: palette.balls.blast }),
-    ring(middle, radius / 2, { color: palette.mark, width: lineWidth(scale) }),
-  ],
-} as const satisfies Readonly<Record<BallKindId, DrawBall>>;
 
 /** How each tone of capsule is shaped: a good one with rounded ends, a bad one with notched ends. */
 export const CAPSULE_ART = {
@@ -160,9 +143,22 @@ export const CAPSULE_ART = {
   },
 } as const satisfies Readonly<Record<CapsuleTone, DrawCapsule>>;
 
-/** Returns the name of a kind of ball's frame. */
+/** Returns the name of a kind of ball's frame as it flies: its body and fur, without its eyes. */
 export function ballFrame(kind: BallKindId): string {
   return BALL_FRAMES[kind];
+}
+
+/** Returns the name of a kind of ball's frame with its eyes looking ahead, for a ball shown still. */
+export function facedBallFrame(kind: BallKindId): string {
+  return FACED_BALL_FRAMES[kind];
+}
+
+/**
+ * Returns how many device pixels a unit of the fuzzball's grid is drawn at,
+ * so a normal ball's fur, outlined, reaches the ball's edge.
+ */
+export function ballGrid(scale: ArtScale): number {
+  return Math.max(0, BALL_RADIUS * scale.unit - lineWidth(scale)) / REACH;
 }
 
 /** Returns the name of a capsule's frame, as it falls. */
@@ -175,23 +171,28 @@ export function tagFrame(id: CapsuleId): string {
   return TAG_FRAMES[id];
 }
 
-/** Returns a kind of ball's frame, outlined in the palette's outline. */
+/**
+ * Returns a kind of ball's frames: the fuzzball in its kind's fur and color,
+ * outlined in the palette's outline, as it flies and with its eyes.
+ */
 function ballArt(
   kind: BallKindId,
   palette: BricksPalette,
   scale: ArtScale,
-): ArtFrame {
-  const side = Math.max(3, Math.round(2 * BALL_RADIUS * scale.unit));
-  const middle = { x: side / 2, y: side / 2 };
-  return {
-    name: BALL_FRAMES[kind],
-    width: side,
-    height: side,
-    commands: [
-      circle(middle, side / 2, { color: palette.outline }),
-      ...BALL_ART[kind](middle, side / 2 - lineWidth(scale), palette, scale),
-    ],
-  };
+): readonly ArtFrame[] {
+  const by = ballGrid(scale);
+  const body = fuzzballCommands(by, {
+    color: palette.balls[kind],
+    outline: { color: palette.outline, width: lineWidth(scale) },
+    fur: FUR[kind],
+  });
+  return [
+    centered(BALL_FRAMES[kind], body),
+    centered(FACED_BALL_FRAMES[kind], [
+      ...body,
+      ...eyesCommands(by, { color: palette.mark }),
+    ]),
+  ];
 }
 
 /** Returns a capsule's frame: its tone's shape and color, outlined, with its symbol. */
@@ -241,7 +242,7 @@ function tagArt(
   };
 }
 
-/** Returns the frames of the paddle and what it carries, the bolts and the flourishes. */
+/** Returns the frames of the balls' eyes, the paddle and what it carries, the bolts and the flourishes. */
 function otherArt(
   palette: BricksPalette,
   scale: ArtScale,
@@ -270,6 +271,10 @@ function otherArt(
     height: Math.round(BRICK_HEIGHT * scale.unit) + 2 * line,
   };
   return [
+    centered(
+      FRAMES.eyes,
+      eyesCommands(ballGrid(scale), { color: palette.mark }),
+    ),
     {
       name: FRAMES.paddle,
       width: paddle,
@@ -350,8 +355,9 @@ function otherArt(
 
 /**
  * Returns every frame the atlas holds, drawn in a palette at a scale: each
- * brick kind in each tint and state, each ball, each capsule and its tag,
- * the paddle and what it carries, the bolt and the flourishes.
+ * brick kind in each tint and state, each ball as it flies and with its
+ * eyes, each capsule and its tag, the balls' eyes, the paddle and what it
+ * carries, the bolt and the flourishes.
  */
 export function atlasFrames(
   palette: BricksPalette,
@@ -359,7 +365,7 @@ export function atlasFrames(
 ): readonly ArtFrame[] {
   return [
     ...BRICK_KIND_IDS.flatMap((kind) => BRICK_ART[kind].frames(palette, scale)),
-    ...BALL_KIND_IDS.map((kind) => ballArt(kind, palette, scale)),
+    ...BALL_KIND_IDS.flatMap((kind) => ballArt(kind, palette, scale)),
     ...CAPSULE_IDS.map((id) => capsuleArt(id, palette, scale)),
     ...CAPSULE_IDS.map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
@@ -387,6 +393,6 @@ const PICTURED_BRICKS: Readonly<Record<BrickKindId, BrickLook>> = {
 /** The frames How to play's pictures are taken from. */
 export const PICTURE_FRAMES: Pictures = {
   bricks: recordOf(BRICK_KIND_IDS, (kind) => brickFrame(PICTURED_BRICKS[kind])),
-  balls: BALL_FRAMES,
+  balls: FACED_BALL_FRAMES,
   capsules: CAPSULE_FRAMES,
 };

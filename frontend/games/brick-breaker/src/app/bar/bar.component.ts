@@ -14,6 +14,7 @@ import { BarPauseComponent } from "@fz/game-ui/bar_pause";
 import { BarSoundComponent, soundMenuAction } from "@fz/game-ui/bar_sound";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
+import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { formatCustomPercent } from "../../rules/run/describe";
 import {
@@ -42,10 +43,11 @@ type MenuAction = "sound" | "levels" | "help" | "settings";
  * The speed shows at every size, as a menu of the speeds, which at Custom
  * offers a slider for its ball's speed beneath them; the name only for a
  * screen reader on a compact screen. From the width the actions keep their
- * labels at, the figures are the level, the score, the lives as hearts and
- * the streak's multiplier while it counts; below it, the score and the lives
- * alone, the lives as a number, since a score runs to six figures and the
- * lives to six.
+ * labels at, the figures are the level, the score, the lives as the balls
+ * still to play, each the fuzzball the field draws, and the streak's
+ * multiplier while it counts; below it, the score and the lives alone, the
+ * lives as a number beside a ball, since a score runs to six figures and
+ * the lives to six.
  *
  * On a compact screen, Pause and New game stay, and Sound, Levels, How to
  * play and Settings move into the overflow menu, as on the narrowest the
@@ -58,6 +60,7 @@ type MenuAction = "sound" | "levels" | "help" | "settings";
     BarOverflowComponent,
     BarPauseComponent,
     BarSoundComponent,
+    FuzzballComponent,
     GameBarComponent,
     IconComponent,
   ],
@@ -102,17 +105,17 @@ export class BarComponent {
         };
   });
 
-  /** Whether the bar has room for the level, the hearts and the streak. */
+  /** Whether the bar has room for the level, the balls and the streak. */
   protected readonly fitsEveryFigure = computed(
     () => !this.viewport.isCompact() && this.viewport.fitsActionLabels(),
   );
 
-  /** A heart for each life the run has. */
-  protected readonly hearts = computed(() =>
+  /** A ball for each life the run has. */
+  protected readonly balls = computed(() =>
     Array.from({ length: this.game.lives() }, (_, i) => i),
   );
 
-  /** The lives as words, since the hearts are pictures. */
+  /** The lives as words, since the balls are pictures. */
   protected readonly livesText = computed(() =>
     count(this.game.lives(), "life", "lives"),
   );

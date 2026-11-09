@@ -63,12 +63,12 @@
       <dd class="value">{{ score() }}</dd>
     </div>
     <div class="metric">
-      <dt><fz-icon name="heart" /><span class="label">Lives</span></dt>
+      <dt><fz-fuzzball class="ball" /><span class="label">Lives</span></dt>
       <dd class="value">
         @if (fitsEveryFigure()) {
-          <span class="hearts">
-            @for (heart of hearts(); track heart) {
-              <fz-icon name="heart" />
+          <span class="balls">
+            @for (ball of balls(); track ball) {
+              <fz-fuzzball class="ball" />
             }
           </span>
         } @else {

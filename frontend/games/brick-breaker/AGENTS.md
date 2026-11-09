@@ -31,12 +31,12 @@ a ball or a brick kind takes (`brick-breaker-content`).
 Four folders under `src/`, each importing only the layers below it, as
 `@fz/dev`'s `phaserGameLayers()` fences them in `eslint.config.js`:
 
-| Folder       | May import                                                                                                                 | May not import                                                                          |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                          | Angular, RxJS, the shell's libraries, the shell                                         |
-| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import                          |
+| Folder       | May import                                                                                                                      | May not import                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                      | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/phaser/fuzzball` | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                               | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type      | Phaser, and the scene or those three entries by a value import                          |
 
 The physics is the rules', so the whole game plays in Node, as the
 autopilot does. The shell loads the scene with `import()`, which the fence
@@ -242,10 +242,17 @@ takes for the specs' helpers.
   comment says why a ball isn't held against the tints.
 - **`src/view/art/`** — the atlas's frames. `art.ts` draws every frame of
   the atlas (`atlasFrames()`) as plain commands in device pixels, each ball
-  (`BALL_ART`), each capsule's shape (`CAPSULE_ART`), its tag, the paddle
-  and the flourishes, names the frame a ball, a capsule or a tag shows
-  (`ballFrame()` and the rest), and How to play's pictures
-  (`PICTURE_FRAMES`); `brick_art.ts` draws a brick kind in each tint and
+  as it flies and with its eyes, the balls' eyes, each capsule's shape
+  (`CAPSULE_ART`), its tag, the paddle and the flourishes, names the frame
+  a ball, a capsule or a tag shows (`ballFrame()`, `facedBallFrame()` and
+  the rest), and How to play's pictures (`PICTURE_FRAMES`);
+  each ball is `@fz/phaser/fuzzball`'s fuzzball, outlined, its fur
+  reaching the ball's edge (`REACH`), and its eyes in the marks' color, a
+  frame of their own the scene moves toward the way the ball goes
+  (`FUZZBALL_LOOK`); `fuzzball_art.ts` combs the fur for each kind
+  (`FUR`): the fuzzball's own for a normal ball, risen into a flame for a
+  fire ball and stood on end for a blast ball, so a kind shows by its shape
+  as well as its color; `brick_art.ts` draws a brick kind in each tint and
   state (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`)
   and the color its shards take (`brickColor()`); `symbols.ts` draws each
   capsule's symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s
@@ -267,8 +274,9 @@ takes for the specs' helpers.
   falls and rises, `PaddlePainter` the paddle as two round ends and a
   rectangle between their middles, which keep their shape at any width on
   either renderer, with its cannons and rim, `TagPainter` the effects in
-  play and their emptying rings, and `BallPainter` the balls, with a fire
-  ball's embers, one for each ember's width it goes. Each is a `Painter`
+  play and their emptying rings, and `BallPainter` the balls, each with
+  its eyes looking the way it goes, with a fire ball's embers, one for each
+  ember's width it goes. Each is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
   writes over each frame, so the scene draws them in a loop over its list
   of painters, which a new one joins as `create()` makes it. After a bake,
@@ -351,10 +359,12 @@ takes for the specs' helpers.
     Pause, Sound, Levels, New game, How to play and Settings, all but Pause
     and New game in the overflow menu on a compact screen.
     From the width the actions keep their labels at (`fitsActionLabels`),
-    the figures are the level, the score, the lives as hearts and the
-    streak's multiplier while it counts; below it, the score and the lives
-    alone, the lives as a number, one over the other across the bar, as a
-    score runs to six figures. Pause and Sound are `@fz/game-ui`'s
+    the figures are the level, the score, the lives as balls, each
+    `@fz/ui`'s fuzzball in the text's color with its eyes in the panel's, as
+    the field draws a ball, and the streak's multiplier while it counts;
+    below it, the score and the lives alone, the lives as a number beside a
+    ball, one over the other across the bar, as a score runs to six
+    figures. Pause and Sound are `@fz/game-ui`'s
     (`fzBarPause`, `fzBarSound`), which keep the focus on the board when
     pressed with a mouse or a finger. It hands the board back the focus
     as Resume goes on, and asks the app for the levels, How to play and the

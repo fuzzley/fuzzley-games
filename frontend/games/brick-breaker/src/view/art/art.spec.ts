@@ -8,7 +8,7 @@ import {
 import { BALL_KIND_IDS } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS } from "../../rules/catalog/capsules";
-import { PADDLE_HEIGHT } from "../../rules/tuning";
+import { BALL_RADIUS, PADDLE_HEIGHT } from "../../rules/tuning";
 import {
   ART_PALETTE,
   ART_SCALE,
@@ -21,6 +21,7 @@ import {
   atlasFrames,
   ballFrame,
   capsuleFrame,
+  facedBallFrame,
   tagFrame,
 } from "./art";
 
@@ -126,41 +127,64 @@ describe.each(SCALES)(
   },
 );
 
-describe("a ball's frame", () => {
+describe("a ball's frames", () => {
   it.each(BALL_KIND_IDS)(
-    "outlines a %s ball in the outline's color, a line's width wide",
+    "draws a %s ball as the fuzzball in its color over its outline, its eyes left to a frame of their own",
     (kind) => {
       const frame = frameNamed(ballFrame(kind));
-      const middle = frame.width / 2;
 
-      expect(frame.commands.slice(0, 2)).toMatchObject([
-        { kind: "circle", radius: middle, color: ART_PALETTE.outline },
-        {
-          kind: "circle",
-          radius: middle - lineWidth(ART_SCALE),
-          color: ART_PALETTE.balls[kind],
-        },
-      ]);
+      expect({
+        under: frame.commands[0]?.color,
+        colors: new Set(frame.commands.map((command) => command.color)),
+      }).toEqual({
+        under: ART_PALETTE.outline,
+        colors: new Set([ART_PALETTE.outline, ART_PALETTE.balls[kind]]),
+      });
     },
   );
 
-  it.each([
-    ["normal", []],
-    ["fire", ["polygon"]],
-    ["blast", ["ring"]],
-  ] as const)(
-    "marks a %s ball in the marks' color with its own shape, which holds still",
-    (kind, marks) => {
-      const frame = frameNamed(ballFrame(kind));
+  it.each(BALL_KIND_IDS)(
+    "draws a %s ball with its eyes in the marks' color, as large as it flies",
+    (kind) => {
+      const faced = frameNamed(facedBallFrame(kind));
+      const flying = frameNamed(ballFrame(kind));
 
-      expect(
-        frame.commands
-          .slice(2)
-          .filter((command) => command.color === ART_PALETTE.mark)
-          .map((command) => command.kind),
-      ).toEqual(marks);
+      expect({
+        size: [faced.width, faced.height],
+        eyes: drawnIn(faced, "polygon", ART_PALETTE.mark).length,
+      }).toEqual({ size: [flying.width, flying.height], eyes: 2 });
     },
   );
+
+  it.each(SCALES)(
+    "keeps a normal ball's fur within the ball's edge at a unit of $unit device pixels",
+    (scale) => {
+      const frame = atlasFrames(ART_PALETTE, scale).find(
+        (each) => each.name === ballFrame("normal"),
+      );
+
+      expect(frame?.width).toBeLessThanOrEqual(
+        2 * Math.ceil(BALL_RADIUS * scale.unit + 1e-9),
+      );
+    },
+  );
+
+  it("tells the kinds apart by shape: a fire ball's flame stands taller, a blast ball's spikes reach wider", () => {
+    const [normal, fire, blast] = BALL_KIND_IDS.map((kind) =>
+      frameNamed(ballFrame(kind)),
+    );
+
+    expect({
+      taller: (fire?.height ?? 0) > (normal?.height ?? 0),
+      wider: (blast?.width ?? 0) > (normal?.width ?? 0),
+    }).toEqual({ taller: true, wider: true });
+  });
+
+  it("draws the balls' eyes, two of them, in the marks' color", () => {
+    const eyes = frameNamed(FRAMES.eyes);
+
+    expect(drawnIn(eyes, "polygon", ART_PALETTE.mark)).toHaveLength(2);
+  });
 });
 
 describe("a capsule's frame", () => {
@@ -293,6 +317,14 @@ describe("PICTURE_FRAMES", () => {
     }).toEqual({
       count: BRICK_KIND_IDS.length + BALL_KIND_IDS.length + CAPSULE_IDS.length,
       missing: [],
+    });
+  });
+
+  it("pictures each ball with its eyes", () => {
+    expect(PICTURE_FRAMES.balls).toEqual({
+      normal: facedBallFrame("normal"),
+      fire: facedBallFrame("fire"),
+      blast: facedBallFrame("blast"),
     });
   });
 

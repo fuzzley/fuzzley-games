@@ -1,7 +1,7 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { MAX_BALLS } from "../../rules/tuning";
-import { FRAMES, ballFrame } from "../../view/art/art";
+import { FRAMES, facedBallFrame } from "../../view/art/art";
 import { ringScale } from "../../view/effects/flourish";
 import {
   FADE_MS,
@@ -68,7 +68,7 @@ export class EffectsPainter implements Painter {
       scene.add.image(0, 0, ATLAS, FRAMES.ring).setVisible(false),
     );
     this.fades = Array.from({ length: MAX_BALLS }, () =>
-      scene.add.image(0, 0, ATLAS, ballFrame("normal")).setVisible(false),
+      scene.add.image(0, 0, ATLAS, facedBallFrame("normal")).setVisible(false),
     );
     this.ringsAt = this.rings.map(() => 0);
     this.fadesAt = this.fades.map(() => 0);

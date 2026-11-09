@@ -1,8 +1,9 @@
 import { lerp } from "@fz/core/math";
+import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
 import type { BallKindId } from "../../rules/catalog/balls";
 import { MAX_BALLS } from "../../rules/tuning";
-import { FRAMES, ballFrame } from "../../view/art/art";
+import { FRAMES, ballFrame, ballGrid } from "../../view/art/art";
 import { EMBERS_MS } from "../../view/effects/timing";
 import {
   type FieldMetrics,
@@ -27,12 +28,15 @@ interface EmberPlace {
 }
 
 /**
- * Draws the balls: an image for each the field may hold, made once, each in
- * the balls' kind, with a fire ball's trail of embers where motion is
- * welcome, an ember for each gap it goes, however often it is drawn.
+ * Draws the balls: an image for each the field may hold, made once, each
+ * the fuzzball in the balls' kind, its eyes looking the way it goes, with a
+ * fire ball's trail of embers where motion is welcome, an ember for each
+ * gap it goes, however often it is drawn.
  */
 export class BallPainter implements Painter {
   readonly images: readonly GameObjects.Image[];
+  /** Each ball's eyes, over it. */
+  readonly eyes: readonly GameObjects.Image[];
   /** Leaves a fire ball's embers behind it, fading as they shrink. */
   readonly embers: GameObjects.Particles.ParticleEmitter;
   /** The balls' kind as last drawn, which a lost ball fades in, though its effect ended as it was lost. */
@@ -52,8 +56,11 @@ export class BallPainter implements Painter {
     this.images = Array.from({ length: MAX_BALLS }, () =>
       scene.add.image(0, 0, ATLAS, ballFrame("normal")).setVisible(false),
     );
+    this.eyes = this.images.map(() =>
+      scene.add.image(0, 0, ATLAS, FRAMES.eyes).setVisible(false),
+    );
     this.embersAt = this.images.map(() => ({ x: 0, y: 0, fresh: true }));
-    layer.add([this.embers, ...this.images]);
+    layer.add([this.embers, ...this.images, ...this.eyes]);
   }
 
   /**
@@ -65,12 +72,15 @@ export class BallPainter implements Painter {
     this.drawnKind = field.ballKind;
     const frame = ballFrame(field.ballKind);
     const trails = motion && field.ballKind === "fire";
+    const by = ballGrid(metrics);
     for (let i = 0; i < this.images.length; i++) {
       const image = this.images[i];
+      const eyes = this.eyes[i];
       const ball = field.balls[i];
       const ember = this.embersAt[i];
-      if (!image || !ember) continue;
+      if (!image || !eyes || !ember) continue;
       image.setVisible(ball?.live === true);
+      eyes.setVisible(ball?.live === true);
       if (!ball?.live) {
         ember.fresh = true;
         continue;
@@ -79,6 +89,10 @@ export class BallPainter implements Painter {
       image.setPosition(
         toCanvasX(metrics, lerp(ball.lastX, ball.x, alpha)),
         toCanvasY(metrics, lerp(ball.lastY, ball.y, alpha)),
+      );
+      eyes.setPosition(
+        image.x + ball.dx * FUZZBALL_LOOK.across * by,
+        image.y + ball.dy * FUZZBALL_LOOK.down * by,
       );
       if (trails && !ember.fresh) {
         this.trail(ember, image.x, image.y, metrics);
