@@ -42,13 +42,16 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
                [ engine/render ]       Layout Math, View Contracts, Drag Mathematics (Phaser-free)
                        |
                        v
-                [ engine/core ]        Cards, Piles, Decks, Suits, Ranks, RNG (Framework-free)
+                [ engine/core ]        Cards, Piles, Decks, Suits, Ranks, Shuffling (Framework-free)
 ```
 
 ### Layer Breakdown
 
 1. **`src/engine/core`** _(Bottom Tier)_
-   - Pure card, suit, rank, deck, pile, and RNG primitives.
+   - Pure card, suit, rank, deck, pile, and shuffling primitives. `random/`
+     holds `shuffle()` and `seedFrom()`, which, with `@fz/core/random`'s
+     `createRandom()`, draw Montana's gaps again from the order kept on each
+     restart, so none of the three may change what it gives.
    - `common/` holds the helpers every tier shares: an event emitter, readers
      for untrusted JSON, gzip, and base64url.
    - Free of all external dependencies, frameworks, rendering logic, RxJS, Phaser, or Angular.
@@ -196,15 +199,20 @@ skill says more; on top of them:
 
 Architecture guidelines are enforced as hard build errors rather than conventions via ESLint (`eslint.config.js`, on top of `@fz/dev`'s shared blocks) using `@typescript-eslint/no-restricted-imports`. Each tier may depend only on the tiers below it:
 
-| Tier / Directory                      | Allowed Dependencies                             | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`)                                                  |
-| :------------------------------------ | :----------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
-| `src/engine/core`                     | Standard TS primitives                           | `@/engine/board/*`, `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
-| `src/engine/render` _(excl. phaser/)_ | `engine/core`                                    | `phaser`, `@/engine/board/*`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render`         | `@/engine/board/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                       |
-| `src/engine/tableau`                  | `engine/core`, `engine/render`                   | `phaser`, `@/engine/board/*`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
-| `src/engine/board`                    | every `engine/*` tier, Phaser 4                  | `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                                                                 |
-| `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                                    |
-| `src/ui` _(excl. app/provider/)_      | everything but games                             | `@/games/*`                                                                                                                 |
+| Tier / Directory                      | Allowed Dependencies                                         | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`)                                                    |
+| :------------------------------------ | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `src/engine/core`                     | Standard TS primitives                                       | `@/engine/board/*`, `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`, `@fz/*` |
+| `src/engine/render` _(excl. phaser/)_ | `engine/core`                                                | `phaser`, `@/engine/board/*`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`   |
+| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render`                     | `@/engine/board/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                         |
+| `src/engine/tableau`                  | `engine/core`, `engine/render`, `@fz/core`                   | `phaser`, `@/engine/board/*`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`, `@fz/*` but `@fz/core` |
+| `src/engine/board`                    | every `engine/*` tier, Phaser 4                              | `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                                                                   |
+| `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau`, `@fz/core` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`, `@fz/*` but `@fz/core`              |
+| `src/ui` _(excl. app/provider/)_      | everything but games                                         | `@/games/*`                                                                                                                   |
+
+`@fz/core` (`frontend/lib/core/AGENTS.md`), whose helpers need no framework
+and no platform, is the one library the tableau runtime and the games may
+import, as it is the one every game's rules may; `engine/core` imports
+none. The other tiers' fences name no library.
 
 Note that the board is shown in `@fz/phaser`'s `<fz-phaser-canvas>`
 ([frontend/lib/phaser/AGENTS.md](../../lib/phaser/AGENTS.md)), which

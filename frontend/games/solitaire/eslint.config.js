@@ -33,7 +33,7 @@ export default defineConfig(
   //   engine/board        joins a table game to the Phaser board scene
   //     -> engine/tableau   solitaire-family runtime: zones, moves, undo, view
   //     -> engine/render    view contract, layout maths, input, Phaser adapter
-  //     -> engine/core      cards, piles, decks, RNG
+  //     -> engine/core      cards, piles, decks, shuffling
   //
   // Games and engine/board sit side by side: neither names the other, and the
   // shell's provider folder is where a game meets its board.
@@ -56,9 +56,10 @@ export default defineConfig(
                 "@angular/*",
                 "rxjs",
                 "rxjs/*",
+                "@fz/*",
               ],
               message:
-                "engine/core is the bottom tier: no rendering, no game rules, no frameworks.",
+                "engine/core is the bottom tier: no rendering, no game rules, no frameworks, no library.",
             },
           ],
         },
@@ -146,6 +147,14 @@ export default defineConfig(
               message:
                 "engine/tableau runs any solitaire: no game, no renderer backend, no UI, and no reactive library — every game inherits this tier, so a dependency here is a dependency of all of them.",
             },
+            {
+              // @fz/* names a library's package and refuses its entries with
+              // it, so @fz/core taken back lets its entries in, as the rules'
+              // fence of a game drawn in layers does.
+              group: ["@fz/*", "!@fz/core"],
+              message:
+                "engine/tableau takes no library but @fz/core, which needs no framework.",
+            },
           ],
         },
       ],
@@ -193,6 +202,12 @@ export default defineConfig(
               ],
               message:
                 "A game is drawn by whatever board it is handed: engine/board builds the Phaser one, and the shell's provider joins the two.",
+            },
+            {
+              // As engine/tableau's: @fz/core's entries, and no other library.
+              group: ["@fz/*", "!@fz/core"],
+              message:
+                "A game's rules take no library but @fz/core, which needs no framework.",
             },
           ],
         },

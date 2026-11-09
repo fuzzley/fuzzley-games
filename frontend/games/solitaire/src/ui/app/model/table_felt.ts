@@ -1,3 +1,4 @@
+import { isKeyOf, keysOf } from "@fz/core/records";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 
 /** Describes a table felt a player can choose: its name and board colour. */
@@ -18,7 +19,7 @@ export const TABLE_FELTS = {
 export type FeltKey = keyof typeof TABLE_FELTS;
 
 /** Every felt's key, in the order they are shown. */
-export const FELT_KEYS = Object.keys(TABLE_FELTS) as FeltKey[];
+export const FELT_KEYS = keysOf(TABLE_FELTS);
 
 /**
  * Names the felt a player chose: one on offer, or the palette's own, which
@@ -31,7 +32,7 @@ export const DEFAULT_FELT: FeltChoice = "theme";
 
 /** Returns whether a value names a felt on offer. */
 export function isFeltKey(value: unknown): value is FeltKey {
-  return FELT_KEYS.some((key) => key === value);
+  return isKeyOf(value, TABLE_FELTS);
 }
 
 /** Returns whether a value names a felt a player can choose. */

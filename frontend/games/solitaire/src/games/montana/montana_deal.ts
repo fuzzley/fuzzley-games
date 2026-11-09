@@ -1,8 +1,9 @@
+import { createRandom } from "@fz/core/random";
 import type { Deal } from "@/engine/tableau/dealing/deal";
 import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import type { DeckSpec } from "@/engine/core/card/deck";
 import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { seedFrom, seededRandom } from "@/engine/core/random/seeded_random";
+import { seedFrom } from "@/engine/core/random/seed_from";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { itemAt } from "@/engine/core/common/item_at";
 import {
@@ -53,7 +54,7 @@ export function dealMontanaLayout(
   deal: Deal,
   cells: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
-  const random = seededRandom(seedFrom(deal.undealt.map((card) => card.id)));
+  const random = createRandom(seedFrom(deal.undealt.map((card) => card.id)));
   const gaps = chooseGaps(cells.length, GAP_COUNT, random);
 
   for (const [index, cell] of cells.entries()) {

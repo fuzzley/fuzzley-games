@@ -534,7 +534,7 @@ Each tier may depend only on the tiers below it, enforced as build errors by
    [ engine/render ]           Layout math, view contracts, drag math (Phaser-free)
            |
            v
-    [ engine/core ]            Cards, piles, decks, suits, ranks, RNG
+    [ engine/core ]            Cards, piles, decks, suits, ranks, shuffling
 ```
 
 | Tier                                  | May import                                       | Must not import                                                                                         |

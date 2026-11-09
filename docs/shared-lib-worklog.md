@@ -293,3 +293,40 @@ The review:
 3. _Docs out of step: "one folder per entry point" in `AGENTS.md`,
    `bar-size()`'s doc on who includes it, and a long line in the skill:_
    taken. All three now describe the code as it is.
+
+### Step 6.2: the Solitaire Collection on @fz/core
+
+Built as planned on `sl-sol`, as `bbb1dafa`. A spec first pins Montana's
+gaps for a fixed deal, `[16, 26, 35, 43]`, green against the old
+`seededRandom()`; Montana then draws them with `createRandom()`, which gives
+the same numbers for every seed. `shuffle()` and `seedFrom()` stay. The
+layout's and the game browser's clamps take `clamp()`, the felts `keysOf()`
+and `isKeyOf()`, and the browser's plurals `count()`. `lib/core/AGENTS.md`
+no longer says the Solitaire Collection keeps its own seeded random, and
+its contract rule names Montana's gaps. 6873 tests pass: one pin added,
+and `seededRandom()`'s three specs gone with it.
+
+Where it went other than planned:
+
+- `seeded_random.ts`, left holding `seedFrom()` alone, became
+  `seed_from.ts`, and its spec with it.
+- At the review's asking, the fences now hold what the docs claim:
+  `engine/core` refuses every library, and the tableau runtime and the
+  games refuse every one but `@fz/core`, as `RULES_FENCE` does for the
+  games drawn in layers. No tier imported one it now refuses.
+
+The review:
+
+1. _`engine/core` "keeps free of every dependency", but no lint rule
+   holds it:_ taken. `@fz/*` added to `engine/core`'s fence, and
+   `@fz/*` but `@fz/core` to `engine/tableau`'s and the games', each
+   checked with a throwaway import; the table and the note under it list
+   them.
+2. _The docs give the wrong reason `shuffle()` keeps its order:_ taken.
+   The Solitaire `AGENTS.md`, `lib/core/AGENTS.md` and the doc comments of
+   `shuffle()` and `seedFrom()` say Montana's kept gaps hang on them with
+   `createRandom()`. "RNG" in the tier diagrams is now shuffling.
+3. _The contract spec's private `shuffled()` shadows core's:_ taken. It
+   calls the engine's `shuffle()`, the same loop, so it plays alike.
+4. _`@fz/core/random` imported among the `@/` imports:_ taken. Packages
+   come first in the three files.
