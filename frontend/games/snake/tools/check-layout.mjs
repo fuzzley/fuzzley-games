@@ -20,31 +20,12 @@
 import { join } from "node:path";
 import {
   PHASER_CANVAS_READY,
-  SHAPES,
-  SMALLEST,
-  TURNS,
-  checkLayout,
-  checkTurns,
+  PHASER_CHECKED_AT,
+  checkPhaserLayout,
   runLayoutScript,
-  shapesAt,
-  turnsAt,
 } from "@fz/dev/layout";
 
 /** @import { BoardBox, PhaserBoard } from "@fz/dev/layout" */
-
-/**
- * The shapes and the smallest phone, at twice the pixels, so the canvas's
- * backing size is tested.
- */
-const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
-
-/** The turns, at twice the pixels. */
-const TURNS_2X = turnsAt(2, TURNS);
-
-/** The names of the shapes and turns the layout is checked at. */
-const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
-  .map((shape) => shape.name)
-  .join(", ");
 
 /**
  * Stores settings that show the on-screen arrows with a mouse too. It runs
@@ -132,14 +113,8 @@ process.exitCode = await runLayoutScript({
       inspect: inspectSquaresAndArrows,
     };
     const arrowed = { ...bare, before: wantArrows };
-    const withoutArrows = [
-      ...(await checkLayout(devtools, bare, SHAPES_2X)),
-      ...(await checkTurns(devtools, bare, TURNS_2X)),
-    ];
-    const withArrows = [
-      ...(await checkLayout(devtools, arrowed, SHAPES_2X)),
-      ...(await checkTurns(devtools, arrowed, TURNS_2X)),
-    ];
+    const withoutArrows = await checkPhaserLayout(devtools, bare);
+    const withArrows = await checkPhaserLayout(devtools, arrowed);
     return [
       ...withoutArrows,
       ...withArrows.map((found) => ({
@@ -148,5 +123,5 @@ process.exitCode = await runLayoutScript({
       })),
     ];
   },
-  holds: `at each shape and turn, with and without the arrows: ${CHECKED}`,
+  holds: `at each shape and turn, with and without the arrows: ${PHASER_CHECKED_AT}`,
 });

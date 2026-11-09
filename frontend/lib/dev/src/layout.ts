@@ -105,13 +105,31 @@ export const TURNS: readonly Turn[] = [
 ];
 
 /** Returns copies of turns at a pixel ratio, as {@link shapesAt} does shapes. */
-export function turnsAt(ratio: number, turns: readonly Turn[]): Turn[] {
+function turnsAt(ratio: number, turns: readonly Turn[]): Turn[] {
   return turns.map((turn) => ({
     ...turn,
     from: { ...turn.from, deviceScaleFactor: ratio },
     to: { ...turn.to, deviceScaleFactor: ratio },
   }));
 }
+
+/**
+ * The shapes a game drawn with Phaser is checked at: every shape and the
+ * smallest phone, at twice the pixels, so the canvas's backing size is
+ * tested.
+ */
+const PHASER_SHAPES: readonly Shape[] = shapesAt(2, [...SHAPES, SMALLEST]);
+
+/** The turns a game drawn with Phaser is checked through, at twice the pixels. */
+const PHASER_TURNS: readonly Turn[] = turnsAt(2, TURNS);
+
+/**
+ * The names of the shapes and turns {@link checkPhaserLayout} checks at, for
+ * a layout script to say where the layout holds.
+ */
+export const PHASER_CHECKED_AT: string = [...PHASER_SHAPES, ...PHASER_TURNS]
+  .map((shape) => shape.name)
+  .join(", ");
 
 /** Says how to check a game's layout. */
 export interface LayoutCheck {
@@ -211,6 +229,21 @@ export async function checkTurns(
     problems.push(...found.map((problem) => ({ shape: turn.name, problem })));
   }
   return problems;
+}
+
+/**
+ * Checks a game drawn with Phaser as {@link checkLayout} does, at every
+ * shape and the smallest phone, then as {@link checkTurns} does, through
+ * every turn, all at twice the pixels, so the canvas's backing size is
+ * tested, and returns what is wrong.
+ */
+export async function checkPhaserLayout(
+  devtools: DevToolsConnection,
+  check: LayoutCheck,
+): Promise<LayoutProblem[]> {
+  const shaped = await checkLayout(devtools, check, PHASER_SHAPES);
+  const turned = await checkTurns(devtools, check, PHASER_TURNS);
+  return [...shaped, ...turned];
 }
 
 /** Says what a game's `tools/check-layout.mjs` checks its build with. */

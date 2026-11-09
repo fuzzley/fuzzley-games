@@ -12,13 +12,15 @@ import {
   type LayoutProblem,
   type LayoutScript,
   type PhaserBoard,
+  PHASER_CHECKED_AT,
   SHAPES,
+  SMALLEST,
   TURNS,
   checkLayout,
+  checkPhaserLayout,
   checkTurns,
   runLayoutScript,
   shapesAt,
-  turnsAt,
 } from "./layout.ts";
 import {
   type BoardInspection,
@@ -140,6 +142,17 @@ function widthsSet(browser: FakeBrowser): unknown[] {
   return browser.sent
     .filter(({ method }) => method === "Emulation.setDeviceMetricsOverride")
     .map(({ params }) => params["width"]);
+}
+
+/** Returns the width, height and pixel ratio a page was set to, in order. */
+function viewportsSet(browser: FakeBrowser): unknown[][] {
+  return browser.sent
+    .filter(({ method }) => method === "Emulation.setDeviceMetricsOverride")
+    .map(({ params }) => [
+      params["width"],
+      params["height"],
+      params["deviceScaleFactor"],
+    ]);
 }
 
 describe("checkLayout", () => {
@@ -488,6 +501,38 @@ describe("checkTurns", () => {
   });
 });
 
+describe("checkPhaserLayout", () => {
+  it("opens the game at every shape and the smallest phone, then through every turn, all at twice the pixels", async () => {
+    const browser = browserFinding([]);
+
+    await checkPhaserLayout(new DevToolsConnection(browser), CHECK);
+
+    expect(viewportsSet(browser)).toEqual([
+      ...[...SHAPES, SMALLEST].map(({ viewport }) => [
+        viewport.width,
+        viewport.height,
+        2,
+      ]),
+      ...TURNS.flatMap(({ from, to }) => [
+        [from.width, from.height, 2],
+        [to.width, to.height, 2],
+      ]),
+    ]);
+  });
+
+  it("reports what is wrong at each shape and after each turn, by the names it says it checks at", async () => {
+    const devtools = new DevToolsConnection(
+      browserFinding(["The board is drawn small."]),
+    );
+
+    const problems = await checkPhaserLayout(devtools, CHECK);
+
+    expect(problems.map((found) => found.shape).join(", ")).toBe(
+      PHASER_CHECKED_AT,
+    );
+  });
+});
+
 describe("shapesAt", () => {
   it("sets each shape's pixel ratio, keeping its size", () => {
     const [roomy] = shapesAt(2, SHAPES);
@@ -497,16 +542,6 @@ describe("shapesAt", () => {
       height: 800,
       deviceScaleFactor: 2,
     });
-  });
-});
-
-describe("turnsAt", () => {
-  it("sets the pixel ratio a turn starts and ends at", () => {
-    const [turn] = turnsAt(2, TURNS);
-
-    expect([turn?.from.deviceScaleFactor, turn?.to.deviceScaleFactor]).toEqual([
-      2, 2,
-    ]);
   });
 });
 
