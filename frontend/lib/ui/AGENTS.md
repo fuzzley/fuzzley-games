@@ -92,7 +92,14 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   Angular Aria has no radio group. The arrows move focus without choosing,
   since a choice can cost something, such as a game's rule dealing a new
   game; a group where choosing is free can use native radios instead, as
-  `<fz-theme-picker>` does.
+  `<fz-theme-picker>` does. `<fz-choice-list>` is a `[fzRadioGroup]` of tiles,
+  drawn with `@fz/style`'s `choice-list`: a setting's choices, each its name
+  over a few words of detail, each named by all its words, as a voice command
+  reads it. Its `options` are `ChoiceOption<Id>` data, the shape of
+  `@fz/game-ui`'s `BarChoiceOption`, so one list feeds a bar's menu too;
+  `value` is the one checked, `labelledBy` and `describedBy` name the elements
+  that name and describe it, and `choose` emits every press, the checked
+  choice's too, for the app to decide what pressing it again does.
 - `src/testing/`: what an app's specs need to drive these components, for
   its specs only: `installDialogPolyfill`, for its spec setup file, which
   gives jsdom's `<dialog>` the `showModal()`, `close()` and Escape it lacks;

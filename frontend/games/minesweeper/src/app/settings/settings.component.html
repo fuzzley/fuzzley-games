@@ -15,25 +15,12 @@
     <div class="drawer-content">
       <div class="setting">
         <span class="setting-label" id="difficulty-label">Difficulty</span>
-        <!-- Each choice is named by all its text, as a voice command reads it. -->
-        <div
-          class="choice-list"
-          fzRadioGroup
-          aria-labelledby="difficulty-label"
-        >
-          @for (choice of difficulties(); track choice.id) {
-            <button
-              type="button"
-              class="choice"
-              role="radio"
-              [attr.aria-checked]="choice.checked"
-              (click)="chooseDifficulty(choice.id)"
-            >
-              <span class="name">{{ choice.name }}</span>
-              <span class="desc">{{ choice.description }}</span>
-            </button>
-          }
-        </div>
+        <fz-choice-list
+          labelledBy="difficulty-label"
+          [options]="difficulties"
+          [value]="difficulty()"
+          (choose)="chooseDifficulty($event)"
+        />
 
         @if (showCustom()) {
           <form class="custom" novalidate (submit)="startCustom($event)">

@@ -1,12 +1,11 @@
 import { Component, computed, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { RadioGroupDirective } from "@fz/ui/radio_group";
+import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import { formatCustomPercent } from "../../rules/run/describe";
 import {
   CUSTOM_PERCENT,
-  SPEEDS,
   SPEED_INFO,
   type Speed,
   customFactor,
@@ -17,25 +16,27 @@ import {
 } from "../../view/steering/steering";
 import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
+import { SPEED_CHOICES } from "./choices";
 import { SettingsService } from "./settings.service";
 
-/** Describes one choice of a setting, as the drawer offers it. */
-interface ChoiceInfo {
-  readonly name: string;
-  readonly says: string;
-}
-
 /** What the drawer says of each way a finger may steer the paddle. */
-const TOUCH_INFO: Readonly<Record<TouchSteering, ChoiceInfo>> = {
+const TOUCH_INFO: Readonly<
+  Record<TouchSteering, Omit<ChoiceOption<TouchSteering>, "id">>
+> = {
   drag: {
     name: "Drag",
-    says: "The paddle moves as far as your finger does, from anywhere on the field.",
+    detail:
+      "The paddle moves as far as your finger does, from anywhere on the field.",
   },
   follow: {
     name: "Follow the finger",
-    says: "The paddle goes wherever your finger is.",
+    detail: "The paddle goes wherever your finger is.",
   },
 };
+
+/** The ways a finger may steer the paddle, as the drawer offers them. */
+const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
+  TOUCH_STEERINGS.map((id) => ({ id, ...TOUCH_INFO[id] }));
 
 /** Returns a speed in units a second as the debug menu writes it, to a tenth. */
 function unitsOf(speed: number): string {
@@ -54,9 +55,9 @@ function unitsOf(speed: number): string {
 @Component({
   selector: "app-settings",
   imports: [
+    ChoiceListComponent,
     DialogComponent,
     IconComponent,
-    RadioGroupDirective,
     ThemePickerComponent,
   ],
   templateUrl: "./settings.component.html",
@@ -77,15 +78,10 @@ export class SettingsComponent {
   /** Emitted when the drawer asks to close. */
   readonly closed = output();
 
-  protected readonly speeds = computed(() => {
-    const current = this.game.speed();
-    return SPEEDS.map((id) => ({
-      id,
-      name: SPEED_INFO[id].name,
-      says: SPEED_INFO[id].says,
-      checked: id === current,
-    }));
-  });
+  protected readonly speeds = SPEED_CHOICES;
+
+  /** The run's speed, the one the speeds check. */
+  protected readonly speed = this.game.speed;
 
   /** The bounds and steps of Custom's slider. */
   protected readonly customRange = CUSTOM_PERCENT;
@@ -98,14 +94,7 @@ export class SettingsComponent {
       : { value, valueText: formatCustomPercent(value) };
   });
 
-  protected readonly touchSteerings = computed(() => {
-    const current = this.settings().touch;
-    return TOUCH_STEERINGS.map((id) => ({
-      id,
-      ...TOUCH_INFO[id],
-      checked: id === current,
-    }));
-  });
+  protected readonly touchSteerings = TOUCH_CHOICES;
 
   /** The ball's speed as the debug menu scales it, and what it comes to at the run's speed. */
   protected readonly ballSpeedScale = computed(() => {

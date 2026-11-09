@@ -658,3 +658,73 @@ The review:
    menu with `getByRole()`, as `chooseInBar()` does; its items prove it
    opened.
 7. _`chooseInBar()`'s doc:_ taken, with why the name is matched as a start.
+
+### Step 4.2b: the settings' choice lists drawn by `<fz-choice-list>`
+
+Built as planned on `sl-frame`. `@fz/ui/radio_group` gains
+`<fz-choice-list [options] [value] labelledBy describedBy (choose)>` and
+`ChoiceOption<Id>`. The component is a `[fzRadioGroup]` of tiles, styled by
+`@fz/style`'s `choice-list` in its own stylesheet. Each tile is named by
+all its words, and every press emits, the checked choice's too. All nine
+lists use it: three in Snake, two each in Brick Breaker and Asteroid
+Breaker, and one each in Sudoku and Minesweeper. Each game keeps its own
+guard against the choice in use.
+
+`BarChoiceOption` is now an alias of `ChoiceOption`, so one list feeds a
+bar's badge and its drawer. The speeds of Snake, Brick Breaker and
+Asteroid Breaker (`SPEED_CHOICES`), and Sudoku's levels (`LEVEL_CHOICES`),
+moved out of the bars into each game's new `src/app/settings/choices.ts`.
+In the bars, only the imports and the deleted constant change.
+
+To check the pages look the same, all 84 stylesheets of the games, the
+site and the libraries were compiled before and after, and the five games
+built:
+
+- Only the five settings stylesheets changed. Each lost exactly the
+  `.drawer`-scoped copy of the rules the component now holds. No other
+  drawer rule or unlayered rule styles those buttons, so the lower
+  specificity changes nothing.
+- The five builds' global CSS is byte-identical.
+- The component's host is `display: block`, so the extra element adds no
+  box.
+
+Tests pass: `@fz/ui` 280, `@fz/style` 273, `@fz/game-ui` 265, Minesweeper
+375, Sudoku 592, Snake 422, Brick Breaker 1829 and 180, Asteroid Breaker
+3630 and 1620.
+
+Where it went other than planned:
+
+- `settings-drawer` no longer includes `choice-list`. 4.2a's review put
+  that at 4.3, but this step is what leaves the drawer's copy styling
+  nothing: with the markup inside the component, the drawer's rules can't
+  reach it. Its spec test went with it.
+- Minesweeper keeps two lists. Its bar says Custom's size, where the drawer
+  says what Custom is. The drawer's `value` is Custom while Custom's field
+  is open.
+- A choice with no detail has no `.desc`. None of the nine lacks one.
+- The shared lists sit in `settings/`, not in `rules/`. The rules' fence
+  keeps a game's rules free of the libraries' types.
+
+The review:
+
+1. _Snake's and Minesweeper's guards against the choice in use had no
+   spec:_ taken. Snake gains "starts no run at the speed in use".
+   Minesweeper gains "neither asks nor deals at the difficulty in use" and
+   "closes Custom's field for the difficulty in use, dealing nothing".
+   With each guard deleted, its specs fail.
+2. _The template compared `option.id === value()`, where templates only
+   bind:_ taken. A `choices` computed marks the checked one, as
+   `BarChoiceComponent.items` does.
+3. _`lib/ui/AGENTS.md` read as if `<fz-choice-list>` were native radios,
+   and the accessibility skill ran it into the list of keys:_ taken. The
+   doc calls it "a `[fzRadioGroup]` of tiles", and the skill puts a
+   semicolon before it.
+4. _The arrow-key spec would pass without the arrows working:_ taken. It
+   now checks that the focus moves too, and is named "moves focus with the
+   arrows without choosing".
+5. _The breakers kept a `ChoiceInfo { name; says }` only to rename a
+   field:_ taken. Their records are typed as `ChoiceOption` without `id`,
+   keyed by `detail`, and spread into the list.
+6. _Edited prose left ragged:_ taken. The edited lines are rewrapped to 78
+   columns, down to where the old breaks pick up again. Lines that were
+   already long elsewhere in those files are left as they were.

@@ -71,8 +71,9 @@ than from a separate class, so the look and the announcement cannot disagree.
     `ConfirmService` (`@fz/ui/confirm`) asks a question in one, with Cancel
     focused first;
   - `[fzRadioGroup]` (`@fz/ui/radio_group`) gives a group of `role="radio"`
-    buttons one tab stop, the arrow keys, Home and End, and native radios
-    serve where choosing costs nothing, as in `<fz-theme-picker>`;
+    buttons one tab stop, the arrow keys, Home and End; `<fz-choice-list>`
+    offers a setting's choices as one; and native radios serve where
+    choosing costs nothing, as in `<fz-theme-picker>`;
   - `<fz-theme-menu>` (`@fz/ui/theme`) and `<fz-bar-overflow>`
     (`@fz/game-ui/bar_overflow`) are menus on Angular Aria, with its
     keyboard model, so a new menu is built on it too.

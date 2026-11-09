@@ -1,11 +1,12 @@
-import { Component, computed, inject, input, output } from "@angular/core";
+import { Component, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { RadioGroupDirective } from "@fz/ui/radio_group";
+import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
-import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
+import type { Speed } from "../../rules/speed";
 import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
+import { SPEED_CHOICES } from "./choices";
 import { DebugTuningComponent } from "./debug_tuning.component";
 import {
   DECK_SHOWINGS,
@@ -13,27 +14,29 @@ import {
   SettingsService,
 } from "./settings.service";
 
-/** Describes one choice of a setting, as the drawer offers it. */
-interface ChoiceInfo {
-  readonly name: string;
-  readonly says: string;
-}
-
 /** What the drawer says of each time the deck may show. */
-const DECK_INFO: Readonly<Record<DeckShowing, ChoiceInfo>> = {
+const DECK_INFO: Readonly<
+  Record<DeckShowing, Omit<ChoiceOption<DeckShowing>, "id">>
+> = {
   auto: {
     name: "On a touch screen",
-    says: "The stick, Fire and Dash show beside the field where the screen takes a finger.",
+    detail:
+      "The stick, Fire and Dash show beside the field where the screen takes a finger.",
   },
   always: {
     name: "Always",
-    says: "They show on every screen, and a mouse can press them.",
+    detail: "They show on every screen, and a mouse can press them.",
   },
   never: {
     name: "Never",
-    says: "The keys and the mouse fly the ship.",
+    detail: "The keys and the mouse fly the ship.",
   },
 };
+
+/** The times the deck may show, as the drawer offers them. */
+const DECK_CHOICES: readonly ChoiceOption<DeckShowing>[] = DECK_SHOWINGS.map(
+  (id) => ({ id, ...DECK_INFO[id] }),
+);
 
 /**
  * Shows the settings in a drawer: the speed, when the deck shows, which side
@@ -49,10 +52,10 @@ const DECK_INFO: Readonly<Record<DeckShowing, ChoiceInfo>> = {
 @Component({
   selector: "app-settings",
   imports: [
+    ChoiceListComponent,
     DebugTuningComponent,
     DialogComponent,
     IconComponent,
-    RadioGroupDirective,
     ThemePickerComponent,
   ],
   templateUrl: "./settings.component.html",
@@ -76,24 +79,12 @@ export class SettingsComponent {
   /** Emitted when the drawer asks to close. */
   readonly closed = output();
 
-  protected readonly speeds = computed(() => {
-    const current = this.game.speed();
-    return SPEEDS.map((id) => ({
-      id,
-      name: SPEED_INFO[id].name,
-      says: SPEED_INFO[id].says,
-      checked: id === current,
-    }));
-  });
+  protected readonly speeds = SPEED_CHOICES;
 
-  protected readonly deckChoices = computed(() => {
-    const current = this.settings().deck;
-    return DECK_SHOWINGS.map((id) => ({
-      id,
-      ...DECK_INFO[id],
-      checked: id === current,
-    }));
-  });
+  /** The run's speed, the one the speeds check. */
+  protected readonly speed = this.game.speed;
+
+  protected readonly deckChoices = DECK_CHOICES;
 
   /** Starts a run at the speed chosen, unless it is the speed in use. */
   protected async chooseSpeed(speed: Speed): Promise<void> {

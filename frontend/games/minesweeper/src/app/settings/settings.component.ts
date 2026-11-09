@@ -17,7 +17,11 @@ import {
 } from "@angular/forms/signals";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { RadioGroupDirective } from "@fz/ui/radio_group";
+import {
+  ChoiceListComponent,
+  type ChoiceOption,
+  RadioGroupDirective,
+} from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import {
   CUSTOM_SIDE,
@@ -62,6 +66,14 @@ function describeDifficulty(difficulty: DifficultyId): string {
   return describeSize(PRESETS[difficulty].size);
 }
 
+/** The difficulties, each with the field it deals, as the drawer offers them. */
+const DIFFICULTY_CHOICES: readonly ChoiceOption<DifficultyId>[] =
+  DIFFICULTY_IDS.map((id) => ({
+    id,
+    name: difficultyName(id),
+    detail: describeDifficulty(id),
+  }));
+
 /**
  * Shows the settings in a drawer: the difficulty, with Custom's own field,
  * the lives, and the palette.
@@ -73,6 +85,7 @@ function describeDifficulty(difficulty: DifficultyId): string {
 @Component({
   selector: "app-settings",
   imports: [
+    ChoiceListComponent,
     DialogComponent,
     FormField,
     IconComponent,
@@ -100,19 +113,12 @@ export class SettingsComponent {
     () => this.settings.settings().custom,
   );
 
-  protected readonly difficulties = computed(() => {
-    const current = this.settings.settings().difficulty;
-    const editing = this.editingCustom();
-    return DIFFICULTY_IDS.map((id) => ({
-      id,
-      name: difficultyName(id),
-      description: describeDifficulty(id),
-      checked:
-        id === "custom"
-          ? editing || current === id
-          : !editing && current === id,
-    }));
-  });
+  protected readonly difficulties = DIFFICULTY_CHOICES;
+
+  /** The difficulty checked: Custom while its field is open, else the game's. */
+  protected readonly difficulty = computed<DifficultyId>(() =>
+    this.editingCustom() ? "custom" : this.settings.settings().difficulty,
+  );
 
   /** Whether the custom field's inputs show. */
   protected readonly showCustom = computed(

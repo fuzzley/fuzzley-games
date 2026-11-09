@@ -1,0 +1,7 @@
+@use "@fz/style" as fz;
+
+:host {
+  display: block;
+}
+
+@include fz.choice-list;

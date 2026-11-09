@@ -57,6 +57,15 @@ describe("SettingsComponent", () => {
     );
   });
 
+  it("starts no run at the speed in use", async () => {
+    const { user } = await renderSettings();
+    const run = TestBed.inject(GameService).run();
+
+    await user.click(screen.getByRole("radio", { name: /^Normal/ }));
+
+    expect(TestBed.inject(GameService).run()).toBe(run);
+  });
+
   it("makes the snake step rather than glide", async () => {
     const { user } = await renderSettings();
 

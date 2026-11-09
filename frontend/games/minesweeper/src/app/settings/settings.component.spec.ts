@@ -76,6 +76,17 @@ describe("SettingsComponent", () => {
     expect(settings().difficulty).toBe("medium");
   });
 
+  it("neither asks nor deals at the difficulty in use", async () => {
+    const { user } = await renderSettings();
+    const game = playOn(["*..", "...", "..*"]);
+    const field = game.field();
+
+    await user.click(screen.getByRole("radio", { name: /^Medium/ }));
+
+    expect(TestBed.inject(ConfirmService).isOpen()).toBe(false);
+    expect(game.field()).toBe(field);
+  });
+
   it("deals a game with the lives chosen", async () => {
     const { user } = await renderSettings();
 
@@ -93,6 +104,18 @@ describe("SettingsComponent", () => {
     expect(screen.getByRole("radio", { name: /^Custom/ })).toBeChecked();
     expect(screen.getByRole("spinbutton", { name: "Rows" })).toHaveValue(20);
     expect(settings().difficulty).toBe("medium");
+  });
+
+  it("closes Custom's field for the difficulty in use, dealing nothing", async () => {
+    const { user } = await renderSettings();
+    const field = TestBed.inject(GameService).field();
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+
+    await user.click(screen.getByRole("radio", { name: /^Medium/ }));
+
+    expect(screen.getByRole("radio", { name: /^Medium/ })).toBeChecked();
+    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    expect(TestBed.inject(GameService).field()).toBe(field);
   });
 
   it("deals the custom field typed", async () => {

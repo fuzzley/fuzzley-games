@@ -1,8 +1,5 @@
 import { Component, computed, inject, output } from "@angular/core";
-import {
-  BarChoiceComponent,
-  type BarChoiceOption,
-} from "@fz/game-ui/bar_choice";
+import { BarChoiceComponent } from "@fz/game-ui/bar_choice";
 import {
   type BarOverflowAction,
   BarOverflowComponent,
@@ -13,15 +10,9 @@ import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent } from "@fz/ui/icon";
-import { LEVELS, LEVEL_INFO, type Level } from "../../rules/difficulty";
+import type { Level } from "../../rules/difficulty";
 import { GameService } from "../play/game.service";
-
-/** The levels the badge offers, each with what it asks of the player. */
-const LEVEL_CHOICES: readonly BarChoiceOption<Level>[] = LEVELS.map((id) => ({
-  id,
-  name: LEVEL_INFO[id].name,
-  detail: LEVEL_INFO[id].asks,
-}));
+import { LEVEL_CHOICES } from "../settings/choices";
 
 /** Names an action the overflow menu offers. */
 type MenuAction = "notes" | "restart" | "help" | "settings";

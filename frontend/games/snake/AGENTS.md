@@ -121,7 +121,8 @@ its seed and its frames, as a game taken up relies on.
     `fzBarSound`), and moves the actions into `<fz-bar-overflow>` on a
     compact screen.
   - `settings/` — the settings drawer (the speed, the movement, the arrows,
-    the sound and the palette) and `SettingsService`, which keeps what the
+    the sound and the palette), `SPEED_CHOICES`, the speeds as the drawer
+    and the bar both offer them, and `SettingsService`, which keeps what the
     player chose.
   - `stats/` — `StatsService`, each speed's runs, best score and longest
     snake.

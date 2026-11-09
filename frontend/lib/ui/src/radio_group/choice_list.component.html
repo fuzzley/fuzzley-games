@@ -1,0 +1,22 @@
+<!-- Each choice is named by all its text, as a voice command reads it. -->
+<div
+  class="choice-list"
+  fzRadioGroup
+  [attr.aria-labelledby]="labelledBy()"
+  [attr.aria-describedby]="describedBy()"
+>
+  @for (choice of choices(); track choice.id) {
+    <button
+      type="button"
+      class="choice"
+      role="radio"
+      [attr.aria-checked]="choice.checked"
+      (click)="choose.emit(choice.id)"
+    >
+      <span class="name">{{ choice.name }}</span>
+      @if (choice.detail) {
+        <span class="desc">{{ choice.detail }}</span>
+      }
+    </button>
+  }
+</div>

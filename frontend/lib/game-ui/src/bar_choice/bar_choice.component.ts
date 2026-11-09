@@ -1,17 +1,16 @@
 import { Component, computed, inject, input, output } from "@angular/core";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@angular/aria/menu";
 import { IconComponent } from "@fz/ui/icon";
+import type { ChoiceOption } from "@fz/ui/radio_group";
 import { GameBarComponent } from "../game_bar";
 import { type MenuSide, menuSide, opensFromRail } from "../game_bar/menu_side";
 
-/** Describes one choice a bar's choice menu offers. */
-export interface BarChoiceOption<Id extends string = string> {
-  /** What `choose` emits when the choice is made. */
-  readonly id: Id;
-  readonly name: string;
-  /** A few words after the name, such as what a level asks of the player. */
-  readonly detail?: string;
-}
+/**
+ * Describes one choice a bar's choice menu offers: a `ChoiceOption`, so one
+ * list of a setting's choices feeds both the bar's menu and the settings'
+ * `<fz-choice-list>`.
+ */
+export type BarChoiceOption<Id extends string = string> = ChoiceOption<Id>;
 
 /**
  * Shows a badge in a game bar's title that opens a menu of choices, one of

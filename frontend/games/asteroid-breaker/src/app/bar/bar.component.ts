@@ -1,9 +1,6 @@
 import { Component, computed, inject, output } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
-import {
-  BarChoiceComponent,
-  type BarChoiceOption,
-} from "@fz/game-ui/bar_choice";
+import { BarChoiceComponent } from "@fz/game-ui/bar_choice";
 import {
   type BarOverflowAction,
   BarOverflowComponent,
@@ -15,18 +12,12 @@ import { BarSoundComponent, soundMenuAction } from "@fz/game-ui/bar_sound";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent } from "@fz/ui/icon";
-import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
+import type { Speed } from "../../rules/speed";
 import { PilotComponent } from "../pilot/pilot.component";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
+import { SPEED_CHOICES } from "../settings/choices";
 import { SettingsService } from "../settings/settings.service";
-
-/** The speeds the badge offers, each with what it is like. */
-const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
-  id,
-  name: SPEED_INFO[id].name,
-  detail: SPEED_INFO[id].says,
-}));
 
 /** Names an action the overflow menu offers. */
 type MenuAction = "sound" | "sectors" | "help" | "settings";

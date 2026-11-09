@@ -55,16 +55,17 @@ relative to `frontend/lib/style/`.
   game shows over its board (`_boards.scss`). The dialogs are the parts a
   dialog is drawn from, `dialog-card($width)`, `close-button`,
   `corner-close-button`, `field-label`, `choice-tile`, `choice-list`, a list
-  of choice tiles, each its name over a few words, and `start-tile`, a tile
-  that starts a run at a level or a sector, and three whole dialogs a game
-  fills in, which name the classes they style: `help-card`, How to play's
-  words, its lists' headings and its table of controls, its words alone being
+  of choice tiles, each its name over a few words, as `@fz/ui`'s
+  `<fz-choice-list>` draws it, and `start-tile`, a tile that starts a run at a
+  level or a sector, and three whole dialogs a game fills in, which name the
+  classes they style: `help-card`, How to play's words, its lists' headings
+  and its table of controls, its words alone being
   `help-text`, for a part of the card a component of its own draws;
   `result-card`, the card a finished game's result shows on, with its icon,
   figures and actions; and `settings-drawer($width)`, a game's settings
-  drawer, with its choice list and the settings' labels, descriptions and
-  checkboxes, the settings alone being `setting-fields`, for a part of the
-  drawer a component of its own draws. A game whose dialogs differ writes
+  drawer, with the settings' labels, descriptions and checkboxes, the settings
+  alone being `setting-fields`, for a part of the drawer a component of its
+  own draws. A game whose dialogs differ writes
   its own from the parts, or adds to a whole one inside the block that
   includes it, after the include, each selector nested as the mixin nests
   it, so its rules weigh the same and win by coming later. The cards over a

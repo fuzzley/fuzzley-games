@@ -15,26 +15,13 @@
     <div class="drawer-content">
       <div class="setting">
         <span class="setting-label" id="speed-label">Speed</span>
-        <!-- Each choice is named by all its text, as a voice command reads it. -->
-        <div
-          class="choice-list"
-          fzRadioGroup
-          aria-labelledby="speed-label"
-          aria-describedby="speed-desc"
-        >
-          @for (choice of speeds(); track choice.id) {
-            <button
-              type="button"
-              class="choice"
-              role="radio"
-              [attr.aria-checked]="choice.checked"
-              (click)="chooseSpeed(choice.id)"
-            >
-              <span class="name">{{ choice.name }}</span>
-              <span class="desc">{{ choice.says }}</span>
-            </button>
-          }
-        </div>
+        <fz-choice-list
+          labelledBy="speed-label"
+          describedBy="speed-desc"
+          [options]="speeds"
+          [value]="speed()"
+          (choose)="chooseSpeed($event)"
+        />
         <p class="setting-desc" id="speed-desc">
           Changing the speed starts a new run.
         </p>
@@ -42,21 +29,12 @@
 
       <div class="setting">
         <span class="setting-label" id="deck-label">Touch controls</span>
-        <!-- Each choice is named by all its text, as a voice command reads it. -->
-        <div class="choice-list" fzRadioGroup aria-labelledby="deck-label">
-          @for (choice of deckChoices(); track choice.id) {
-            <button
-              type="button"
-              class="choice"
-              role="radio"
-              [attr.aria-checked]="choice.checked"
-              (click)="chooseDeck(choice.id)"
-            >
-              <span class="name">{{ choice.name }}</span>
-              <span class="desc">{{ choice.says }}</span>
-            </button>
-          }
-        </div>
+        <fz-choice-list
+          labelledBy="deck-label"
+          [options]="deckChoices"
+          [value]="settings().deck"
+          (choose)="chooseDeck($event)"
+        />
       </div>
 
       <div class="setting">
