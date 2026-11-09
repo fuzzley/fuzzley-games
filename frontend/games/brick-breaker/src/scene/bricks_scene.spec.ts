@@ -1,4 +1,5 @@
 import { lerp } from "@fz/core/math";
+import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
 import { lineWidth } from "@fz/phaser/shapes";
@@ -39,11 +40,14 @@ import {
   throwBall,
 } from "../testing/field_picture";
 import {
+  FRAMES,
   PICTURE_FRAMES,
   type Pictures,
   atlasFrames,
   ballFrame,
+  ballGrid,
   capsuleFrame,
+  facedBallFrame,
   tagFrame,
 } from "../view/art/art";
 import { brickColor, brickFrame } from "../view/art/brick_art";
@@ -727,6 +731,30 @@ describe("BricksScene", () => {
 
       expect(scene.balls.images[0]?.visible).toBe(false);
     });
+
+    it("look the way they go, their eyes moved off their middle toward it", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 3, 20, 90);
+
+      run.advance(16);
+
+      const by = ballGrid(metricsAt());
+      expect(scene.balls.eyes[0]).toMatchObject({
+        visible: true,
+        frame: { name: FRAMES.eyes },
+        x: toCanvasX(metricsAt(), 3) + FUZZBALL_LOOK.across * by,
+        y: toCanvasY(metricsAt(), 20),
+      });
+    });
+
+    it("hide a ball's eyes with it once it is lost", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      ballOf(shell.field).live = false;
+      run.advance(16);
+
+      expect(scene.balls.eyes[0]?.visible).toBe(false);
+    });
   });
 
   describe("the keys", () => {
@@ -1172,7 +1200,7 @@ describe("BricksScene", () => {
         after: fading?.visible,
       }).toEqual({
         visible: true,
-        frame: ballFrame("blast"),
+        frame: facedBallFrame("blast"),
         x: toCanvasX(metricsAt(), 6),
         y: toCanvasY(metricsAt(), FIELD_HEIGHT),
         halfway: true,
@@ -1194,7 +1222,7 @@ describe("BricksScene", () => {
         fading: scene.effects.fades
           .filter((fade) => fade.visible)
           .map((fade) => fade.frame.name),
-      }).toEqual({ kind: "normal", fading: [ballFrame("fire")] });
+      }).toEqual({ kind: "normal", fading: [facedBallFrame("fire")] });
     });
 
     it("grows a regrown brick back from nothing", async () => {

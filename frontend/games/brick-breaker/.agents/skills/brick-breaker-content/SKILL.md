@@ -113,9 +113,10 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 - Its entry in `BALL_KINDS`: its `damage` (a number of hits, or `breaks`),
   whether it `passes` through what it breaks, whether it `reaches` the
   bricks around, and its `speed`.
-- Its look in `BALL_ART` (`src/view/art/art.ts`) and its color in
-  `bricksPalette()`'s `balls` (`src/view/colors/palette.ts`); the compiler asks
-  for both.
+- Its fur in `FUR` (`src/view/art/fuzzball_art.ts`), combed into a shape
+  of its own so it shows apart from the other kinds without its color, and
+  its color in `bricksPalette()`'s `balls` (`src/view/colors/palette.ts`);
+  the compiler asks for both.
 - A capsule whose effect is `{ kind: "ball", ball: "<id>", ms }`.
 - The physics needs nothing new while one that passes breaks what it
   passes through at a hit, as the catalog spec holds. Every ball's radius

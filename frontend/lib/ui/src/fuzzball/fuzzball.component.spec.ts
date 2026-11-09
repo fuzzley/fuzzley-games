@@ -40,6 +40,19 @@ describe("FuzzballComponent", () => {
     }).toEqual({ eyes: [FUZZBALL.ink, FUZZBALL.ink], glints: 2 });
   });
 
+  it("colors its eyes by --fz-fuzzball-eyes where it is set", async () => {
+    const fuzzball = await renderFuzzball();
+
+    expect(
+      Array.from(fuzzball.querySelectorAll("ellipse"), (eye) =>
+        eye.style.getPropertyValue("fill"),
+      ),
+    ).toEqual([
+      `var(--fz-fuzzball-eyes, ${FUZZBALL.ink})`,
+      `var(--fz-fuzzball-eyes, ${FUZZBALL.ink})`,
+    ]);
+  });
+
   it("is hidden from assistive technology", async () => {
     const fuzzball = await renderFuzzball();
 

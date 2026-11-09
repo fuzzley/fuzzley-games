@@ -264,11 +264,13 @@ describe("BarComponent", () => {
       expect(terms()).not.toContain("Streak");
     });
 
-    it("draws a heart for each life", async () => {
+    it("draws a ball for each life, the fuzzball the field draws", async () => {
       await renderInPlay();
 
-      // The hearts are pictures, hidden from a screen reader, so no role finds them.
-      expect(figureValue("Lives").querySelectorAll("fz-icon")).toHaveLength(3);
+      // The balls are pictures, hidden from a screen reader, so no role finds them.
+      expect(figureValue("Lives").querySelectorAll("fz-fuzzball")).toHaveLength(
+        3,
+      );
     });
 
     it("shows how many times a hit scores while a streak counts", async () => {
@@ -402,6 +404,14 @@ describe("BarComponent", () => {
       detectChanges();
 
       expect(within(figureValue("Lives")).getByText("2")).toBeInTheDocument();
+    });
+
+    it("leaves out a ball for each life", async () => {
+      await renderInPlay();
+
+      expect(figureValue("Lives").querySelectorAll("fz-fuzzball")).toHaveLength(
+        0,
+      );
     });
 
     it("leaves out the streak while one counts", async () => {

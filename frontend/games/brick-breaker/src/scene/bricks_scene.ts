@@ -17,7 +17,7 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Steer } from "../rules/paddle/paddle";
-import { PICTURE_FRAMES, type Pictures, ballFrame } from "../view/art/art";
+import { PICTURE_FRAMES, type Pictures, facedBallFrame } from "../view/art/art";
 import { brickColor } from "../view/art/brick_art";
 import type { BricksPalette } from "../view/colors/palette";
 import {
@@ -307,7 +307,7 @@ export class BricksScene extends Scene {
         this.effects.fade(
           event.x,
           event.y,
-          ballFrame(this.balls.drawnKind),
+          facedBallFrame(this.balls.drawnKind),
           this.context.now,
           this.metrics,
         );

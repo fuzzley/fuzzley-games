@@ -74,8 +74,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   page is open (`anyOpen`): each counts while its `open` input holds,
   `<fz-confirm-dialog>`'s among them, so an app lists none of its dialogs.
 - `src/fuzzball/`: `<fz-fuzzball>`, `@fz/style`'s fuzzball drawn inline,
-  its body and fur in the text's color and its eyes dark, which the
-  wordmark and a game's own fuzzballs draw; 16 device pixels across or
+  its body and fur in the text's color and its eyes dark, or in
+  `--fz-fuzzball-eyes` where it is set, which the wordmark and a game's own
+  fuzzballs draw; 16 device pixels across or
   less, as 16 px is at about a device pixel to a CSS pixel, it leaves out
   the glints, as `fuzzballSvg()` says to. It is hidden from assistive
   technology.
