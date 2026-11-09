@@ -13,7 +13,7 @@ import {
   runKeyedScene,
   strokesOf,
 } from "@fz/phaser/testing";
-import { Core, type Game, type GameObjects } from "phaser";
+import { Core, type Game, type GameObjects, Textures } from "phaser";
 import { hitBrick } from "../rules/bricks/bricks";
 import { catchCapsule } from "../rules/bricks/capsules";
 import type { Ball } from "../rules/paddle/balls";
@@ -129,7 +129,11 @@ class FakeShell implements BricksSceneOptions {
   readonly ticks: Tick[] = [];
   readonly layouts: CssRect[] = [];
   readonly commands: FieldCommand[] = [];
-  readonly pictures: Pictures[] = [];
+  /**
+   * What the scene handed over at each bake of the atlas to picture How to
+   * play's art with, a bake each, the last bake's last.
+   */
+  readonly bakes: (() => Pictures)[] = [];
 
   readonly tick = (deltaMs: number, steer: Readonly<Steer>): void => {
     this.ticks.push({ deltaMs, steer: { ...steer } });
@@ -152,9 +156,19 @@ class FakeShell implements BricksSceneOptions {
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
   };
-  readonly onPictures = (pictures: Pictures): void => {
-    this.pictures.push(pictures);
+  readonly onPictures = (pictures: () => Pictures): void => {
+    this.bakes.push(pictures);
   };
+
+  /**
+   * Asks the scene for How to play's pictures of the atlas as last baked, as
+   * the board does as How to play opens.
+   */
+  askPictures(): Pictures {
+    const pictures = this.bakes.at(-1);
+    if (!pictures) throw new Error("No bake yet.");
+    return pictures();
+  }
 
   /** Shows a new field, as a new level does. */
   showField(rows: readonly string[]): void {
@@ -368,13 +382,13 @@ describe("BricksScene", () => {
 
     it("bakes once for a new unit and a new palette in the same frame", async () => {
       const { shell, run } = await startBoard();
-      const baked = shell.pictures.length;
+      const baked = shell.bakes.length;
 
       run.game.scale.resize(600, 600);
       shell.colors = DARK;
       run.advance(16);
 
-      expect(shell.pictures.length - baked).toBe(1);
+      expect(shell.bakes.length - baked).toBe(1);
     });
   });
 
@@ -1453,17 +1467,31 @@ describe("BricksScene", () => {
   });
 
   describe("the pictures", () => {
-    it("hand How to play the atlas's picture of each brick, ball and capsule", async () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("are none of them encoded as the atlas is baked", async () => {
+      const encode = vi.spyOn(Textures.TextureManager.prototype, "getBase64");
+      const { shell, run } = await startBoard();
+      shell.colors = DARK;
+
+      run.advance(16);
+
+      expect(encode).not.toHaveBeenCalled();
+    });
+
+    it("hand How to play the atlas's picture of each brick, ball and capsule as the shell asks for them", async () => {
       const { shell, scene } = await startBoard();
       const baked = (frame: string): string =>
         scene.textures.getBase64(ATLAS, frame);
 
-      const pictures = shell.pictures.at(-1);
+      const pictures = shell.askPictures();
 
       expect([
-        pictures?.bricks.tough,
-        pictures?.balls.fire,
-        pictures?.capsules.net,
+        pictures.bricks.tough,
+        pictures.balls.fire,
+        pictures.capsules.net,
       ]).toEqual([
         baked(PICTURE_FRAMES.bricks.tough),
         baked(PICTURE_FRAMES.balls.fire),
@@ -1471,13 +1499,27 @@ describe("BricksScene", () => {
       ]);
     });
 
-    it("are handed over again in a new palette", async () => {
+    it("are kept until the atlas is baked again", async () => {
       const { shell, run } = await startBoard();
+      const asked = shell.askPictures();
+      run.advance(16);
 
+      const again = shell.askPictures();
+
+      expect(again).toBe(asked);
+    });
+
+    it("are encoded anew once the atlas is baked again, as in a new palette", async () => {
+      const { shell, run } = await startBoard();
+      const asked = shell.askPictures();
       shell.colors = DARK;
       run.advance(16);
 
-      expect(shell.pictures).toHaveLength(2);
+      const again = shell.askPictures();
+
+      // The headless canvas encodes a picture as its size alone, so only a
+      // new encoding tells this bake's from the last.
+      expect(again).not.toBe(asked);
     });
   });
 
@@ -1576,7 +1618,7 @@ describe("BricksScene", () => {
         listening = awayEvents.map((name) => game.events.listenerCount(name));
       });
       const calls = (): number =>
-        shell.ticks.length + shell.layouts.length + shell.pictures.length;
+        shell.ticks.length + shell.layouts.length + shell.bakes.length;
 
       run.game.scene.stop(scene.key);
       const before = calls();

@@ -1,7 +1,13 @@
-import { inject, provideAppInitializer } from "@angular/core";
+import { ApplicationRef, inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
-import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import type { HostedScene } from "@fz/phaser/host";
+import {
+  FakePhaserCanvas,
+  type SceneRun,
+  provideFakePhaserCanvas,
+  runScene,
+} from "@fz/phaser/testing";
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
@@ -10,6 +16,7 @@ import {
   provideMemoryStorage,
   setPageVisibility,
 } from "@fz/ui/testing";
+import { Textures } from "phaser";
 import { createField } from "../rules/field/field";
 import { parseLevel } from "../rules/levels/levels";
 import { createRun, startLevel } from "../rules/run/run";
@@ -23,6 +30,7 @@ import {
   loseBall,
   provideSpecLevels,
 } from "../testing/play";
+import { paintRoles } from "../testing/roles";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
@@ -237,6 +245,58 @@ describe("AppComponent", () => {
       );
 
       expect(screen.getByRole("dialog", { name: "Levels" })).toBeVisible();
+    });
+  });
+
+  describe("How to play, with the scene the board loads", () => {
+    let scene: SceneRun<HostedScene> | null = null;
+
+    beforeEach(() => {
+      paintRoles();
+    });
+
+    afterEach(() => {
+      scene?.destroy();
+      scene = null;
+      document.documentElement.removeAttribute("style");
+      vi.restoreAllMocks();
+    });
+
+    /** Runs the scene the board hands its canvas, its first frame drawn. */
+    async function runBoardScene(): Promise<SceneRun<HostedScene>> {
+      const board = screen.getByRole("application");
+      const make = await TestBed.inject(FakePhaserCanvas).host.latest.source();
+      const run = await runScene(make, {
+        config: { input: { keyboard: { target: board } } },
+      });
+      scene = run;
+      run.advance(FRAME_MS);
+      return run;
+    }
+
+    it("has the scene encode no picture before it opens", async () => {
+      const encode = vi.spyOn(Textures.TextureManager.prototype, "getBase64");
+      await renderApp();
+
+      await runBoardScene();
+      await TestBed.inject(ApplicationRef).whenStable();
+
+      expect(encode).not.toHaveBeenCalled();
+    });
+
+    it("shows the pictures the scene drew", async () => {
+      await renderApp();
+      await runBoardScene();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "How to play" }),
+      );
+
+      expect(
+        within(
+          screen.getByRole("dialog", { name: "How to play" }),
+        ).queryAllByRole("presentation"),
+      ).not.toHaveLength(0);
     });
   });
 

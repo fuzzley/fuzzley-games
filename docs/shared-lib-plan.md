@@ -468,7 +468,7 @@ parameters to bridge games that differ on purpose:
 - **A base scene class.** The three scenes share an outline (create,
   measure, bake, paint, listen), but every step diverges:
   - Brick Breaker: finger room and a field that reshapes.
-  - Asteroid Breaker: two cameras, the deck, the torus and lazy pictures.
+  - Asteroid Breaker: two cameras, the deck and the torus.
   - Snake: no `FieldPlay` and no held keys.
 
   A base would need about eight hooks. 3.2 and 2.6 take what is truly common.
