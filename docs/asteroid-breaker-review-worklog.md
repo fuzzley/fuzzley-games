@@ -2254,3 +2254,18 @@ as they were:
    `0 0` translation makes each card a stacking context and a containing
    block, which none was, and the comment says how an unset drop leaves it
    at `none`.
+
+### Step 16i: finding 22, `@fz/phaser`'s floor
+
+`@fz/phaser`'s floor rises from 98, 93, 98 and 98 to 99, 95, 99 and 99, just
+under the figures at the branch's head, 99.13, 95.26, 99.70 and 99.53,
+rounded down. Its `src/testing/` was already counted, as `frontend/AGENTS.md`
+asks of every library, and `AGENTS.md` says so.
+
+The review found the floor as the rule asks:
+
+1. _The sentence in `AGENTS.md` was hard to parse and restated a rule
+   without naming where it lives:_ taken; in `@fz/dev`'s words.
+2. _The step's entry wasn't staged:_ taken; this.
+3. _Statements and branches have one to spare, so a deleted spec fails the
+   suite:_ as the rule means; nothing to change.
