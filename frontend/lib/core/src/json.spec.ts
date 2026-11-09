@@ -1,4 +1,5 @@
 import {
+  type CountsById,
   booleanOr,
   countsByIdOf,
   isCount,
@@ -9,6 +10,7 @@ import {
   knownIdsOf,
   listOf,
   unknownKey,
+  withHigherCount,
 } from "./json";
 
 describe("isRecord", () => {
@@ -225,5 +227,49 @@ describe("countsByIdOf", () => {
 
   it("takes none from a list, even with an id that is its index", () => {
     expect(countsByIdOf([{ relaxed: 40 }], ["0"], KEYS)).toEqual({});
+  });
+});
+
+describe("withHigherCount", () => {
+  /** Counts as a game's bests at each speed for each of its levels. */
+  const BESTS: CountsById<"relaxed" | "normal" | "fast"> = {
+    near: { normal: 900, fast: 400 },
+    far: { relaxed: 40 },
+  };
+
+  it("raises an id's count under a key to a higher value", () => {
+    const counts = withHigherCount(BESTS, "near", "normal", 1200);
+
+    expect(counts).toEqual({
+      near: { normal: 1200, fast: 400 },
+      far: { relaxed: 40 },
+    });
+  });
+
+  it("keeps a first count under a key an id holds none under", () => {
+    const counts = withHigherCount(BESTS, "far", "fast", 0);
+
+    expect(counts["far"]).toEqual({ relaxed: 40, fast: 0 });
+  });
+
+  it("keeps a first count for an id it holds none for", () => {
+    const counts = withHigherCount(BESTS, "new", "normal", 0);
+
+    expect(counts["new"]).toEqual({ normal: 0 });
+  });
+
+  it.each([
+    ["the same", 900],
+    ["a lower", 899],
+  ])("returns the same counts for %s value", (_, value) => {
+    const counts = withHigherCount(BESTS, "near", "normal", value);
+
+    expect(counts).toBe(BESTS);
+  });
+
+  it("leaves the counts it was given as they were", () => {
+    withHigherCount(BESTS, "near", "normal", 1200);
+
+    expect(BESTS["near"]?.normal).toBe(900);
   });
 });

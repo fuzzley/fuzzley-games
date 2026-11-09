@@ -1,8 +1,9 @@
+import type { EventLogView } from "@fz/core/event_log";
 import type { Brick } from "../../rules/bricks/bricks";
 import type { Falling, InEffect } from "../../rules/bricks/capsules";
 import type { BallKindId } from "../../rules/catalog/balls";
 import type { EffectKind, PaddleMode } from "../../rules/catalog/capsules";
-import type { FieldEventLog } from "../../rules/field/events";
+import type { FieldEvent } from "../../rules/field/events";
 import type { FieldState } from "../../rules/field/field";
 import type { Ball } from "../../rules/paddle/balls";
 import type { Bolt } from "../../rules/paddle/bolts";
@@ -44,9 +45,6 @@ export interface FieldView {
   readonly steps: number;
 }
 
-/** Describes the field's log of events as the scene reads it: from a serial on, never adding to it. */
-export type EventsView = Pick<FieldEventLog, "latest" | "forEachSince">;
-
 /** Describes the field between one step and the next. */
 export interface FieldFrame {
   /** The field as of its last step. */
@@ -57,5 +55,5 @@ export interface FieldFrame {
    * What happened, each event numbered, for the scene to play the new ones
    * once; a new log comes with a new field, and stops what the last set off.
    */
-  readonly events: EventsView;
+  readonly events: EventLogView<FieldEvent>;
 }

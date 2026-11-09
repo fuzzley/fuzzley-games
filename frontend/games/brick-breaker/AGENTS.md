@@ -165,18 +165,18 @@ takes for the specs' helpers.
   records, each speed's runs, best score and furthest level, and each level's
   best points at each speed: `statsOf()` reads them as stored, keeping what
   makes sense and the bests of a level the game still has, `withRunStarted()`,
-  `withRunEnded()` and `withLevelPoints()` move them on, and `isNewBest()` says
-  whether a run's score beats the best. `saved_game.ts` turns a run under way
-  and its field into what storage keeps (`saveGame()`), which the shell keeps
-  under `SAVED_GAME_VERSION`, a run whose level was just cleared as the next
-  level not yet begun, and back (`restoreGame()`),
-  paused, dropping a level the game doesn't have under that number, a field
-  that doesn't fit its level, a number out of its range, or a state no run
-  comes to, such as a brick broken with hits left or a level that needs
-  nothing more; `takeUpField()` lays the bricks and counts kept over a new
-  field of the level. `run.ts`'s `nextLifeAfter()` gives the mark the next
-  life comes at from a score, through `@fz/core/math`'s `nextMarkAfter()`,
-  which a kept run's must match.
+  `withRunEnded()` and `withLevelPoints()` (through `@fz/core/json`'s
+  `withHigherCount()`) move them on, and `isNewBest()` says whether a run's
+  score beats the best. `saved_game.ts` turns a run under way and its field
+  into what storage keeps (`saveGame()`), which the shell keeps under
+  `SAVED_GAME_VERSION`, a run whose level was just cleared as the next level
+  not yet begun, and back (`restoreGame()`), paused, dropping a level the game
+  doesn't have under that number, a field that doesn't fit its level, a number
+  out of its range, or a state no run comes to, such as a brick broken with
+  hits left or a level that needs nothing more; `takeUpField()` lays the
+  bricks and counts kept over a new field of the level. `run.ts`'s
+  `nextLifeAfter()` gives the mark the next life comes at from a score,
+  through `@fz/core/math`'s `nextMarkAfter()`, which a kept run's must match.
 - **`src/rules/levels/`** — the levels: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -212,10 +212,10 @@ takes for the specs' helpers.
   a canvas has room for (`fieldHeightFor()`) and the room a board with room
   for a taller one leaves under the field for a finger (`fingerRoomOf()`);
   `frame.ts` is what the scene reads: `FieldView`, the field it can't
-  change, `EventsView` and `FieldFrame`; `layers.ts` the order the field is
-  drawn in, back to front, in one list; and `tags.ts` where the tags of the
-  effects in play lie under the paddle, and how much of each one's time is
-  left.
+  change, and `FieldFrame`, whose events are `@fz/core/event_log`'s
+  `EventLogView`; `layers.ts` the order the field is drawn in, back to front,
+  in one list; and `tags.ts` where the tags of the effects in play lie under
+  the paddle, and how much of each one's time is left.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, how far a broken brick's

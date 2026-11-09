@@ -1,6 +1,7 @@
+import type { EventLogView } from "@fz/core/event_log";
 import { TURN } from "../../rules/angles";
 import type { WeaponId } from "../../rules/catalog/weapons";
-import type { FieldEventLog } from "../../rules/field/events";
+import type { FieldEvent } from "../../rules/field/events";
 import type { Comet } from "../../rules/hazards/comets";
 import type { Stray } from "../../rules/hazards/strays";
 import type { Floating } from "../../rules/rocks/drops";
@@ -53,12 +54,6 @@ export interface FieldView {
   readonly cleared: boolean;
 }
 
-/**
- * Describes the field's log of events as the scene reads it: from a serial on,
- * never adding to it.
- */
-export type EventsView = Pick<FieldEventLog, "latest" | "forEachSince">;
-
 /** Describes the field between one step and the next. */
 export interface FieldFrame {
   /** The field as of its last step. */
@@ -69,7 +64,7 @@ export interface FieldFrame {
    * What happened, each event numbered, for the scene to play the new ones
    * once; a new log comes with a new field, and stops what the last set off.
    */
-  readonly events: EventsView;
+  readonly events: EventLogView<FieldEvent>;
   /** The run's seed, which the field's specks are strewn from, so they stay through its waves. */
   readonly seed: number;
   /**

@@ -1,4 +1,4 @@
-import { EventLog, type NumberedEvent } from "./event_log";
+import { EventLog, type EventLogView, type NumberedEvent } from "./event_log";
 
 /** An event of the logs here: a word noted. */
 interface Note extends NumberedEvent {
@@ -123,5 +123,15 @@ describe("EventLog", () => {
     const fifth = log.next();
 
     expect(fifth).toBe(first);
+  });
+});
+
+describe("EventLogView", () => {
+  it("is what a log's readers see of it", () => {
+    expectTypeOf<EventLog<Note>>().toExtend<EventLogView<Note>>();
+  });
+
+  it("keeps its readers from adding an event", () => {
+    expectTypeOf<EventLogView<Note>>().not.toHaveProperty("next");
   });
 });
