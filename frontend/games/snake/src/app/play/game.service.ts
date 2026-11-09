@@ -7,9 +7,8 @@ import {
 } from "@angular/core";
 import { Countdown } from "@fz/core/clock";
 import { RunNumbers } from "@fz/core/run_numbers";
+import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { AnnouncerService } from "@fz/ui/announcer";
-import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import {
   describeEnd,
   describePause,
@@ -40,22 +39,6 @@ export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
   factory: () => Math.random,
 });
 
-/** What a new run asks before it throws away the one under way. */
-const NEW_GAME_QUESTION: ConfirmRequest = {
-  title: "Start a new game?",
-  message: "The run in progress will be lost.",
-  confirmLabel: "New game",
-  tone: "danger",
-};
-
-/** What a run at another speed asks: New Game's question, naming the speed. */
-function speedQuestion(speed: Speed): ConfirmRequest {
-  return {
-    ...NEW_GAME_QUESTION,
-    title: `Start a new ${SPEED_INFO[speed].name} game?`,
-  };
-}
-
 /** The frame the scene is handed, one object written again each frame. */
 interface Frame {
   run: Run;
@@ -74,11 +57,9 @@ interface Frame {
  * a signal a template would follow.
  */
 @Injectable({ providedIn: "root" })
-export class GameService {
+export class GameService extends RunLifecycle {
   private readonly settings = inject(SettingsService);
   private readonly stats = inject(StatsService);
-  private readonly confirm = inject(ConfirmService);
-  private readonly announcer = inject(AnnouncerService);
   private readonly viewport = inject(GameViewportService);
   private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
 
@@ -87,8 +68,6 @@ export class GameService {
   );
   private readonly newBestState = signal(false);
   private readonly resultOpenState = signal(false);
-  private readonly runsState = signal(0);
-  private readonly drawnState = signal(true);
   private readonly resultClosedState = signal(false);
 
   /** The time since the last step, toward the next, in milliseconds. */
@@ -117,19 +96,6 @@ export class GameService {
    * to look at, from which another run starts at a key.
    */
   readonly resultClosed = this.resultClosedState.asReadonly();
-
-  /**
-   * How many runs have begun since the page loaded, each new game or run
-   * taken up adding one, for the board to take the focus after.
-   */
-  readonly runs = this.runsState.asReadonly();
-
-  /**
-   * Whether the board is drawn, so the player can watch the snake move. Until
-   * it is, nothing starts or goes on: the board, in its scene, is what moves
-   * the run on, and a run under way that nobody can see would be lost.
-   */
-  readonly drawn = this.drawnState.asReadonly();
 
   /** The apples eaten this run. */
   readonly score = computed(() => this.runState().eaten);
@@ -181,16 +147,12 @@ export class GameService {
   }
 
   /** Does what a key or a swipe on the board asks. */
-  command(command: BoardCommand): void {
+  override command(command: BoardCommand): void {
     switch (command) {
       case "pause":
-        this.pause();
-        break;
       case "toggle":
-        this.toggle();
-        break;
       case "go":
-        this.go();
+        super.command(command);
         break;
       default:
         this.turn(command);
@@ -204,7 +166,7 @@ export class GameService {
    */
   turn(direction: Direction): void {
     const before = this.runState();
-    if (before.outcome !== "playing" && !this.drawnState()) return;
+    if (before.outcome !== "playing" && !this.drawn()) return;
     const after = turn(before, direction);
     if (after === before) return;
     this.runState.set(after);
@@ -227,38 +189,12 @@ export class GameService {
 
   /** Goes on with a paused run, once the board is drawn, and says so. */
   resume(): void {
-    if (!this.drawnState()) return;
+    if (!this.drawn()) return;
     const before = this.runState();
     const after = resume(before);
     if (after === before) return;
     this.runState.set(after);
     this.announcer.say(describeResume());
-  }
-
-  /**
-   * Pauses the run under way, or goes on with one paused, or starts another
-   * once an ended run's card is put away.
-   */
-  toggle(): void {
-    if (this.mayStartAnother()) {
-      void this.newGame();
-    } else if (this.runState().outcome === "paused") {
-      this.resume();
-    } else {
-      this.pause();
-    }
-  }
-
-  /**
-   * Goes on with a paused run, or starts another once an ended run's card is
-   * put away, as the card over the board offers.
-   */
-  go(): void {
-    if (this.mayStartAnother()) {
-      void this.newGame();
-    } else {
-      this.resume();
-    }
   }
 
   /**
@@ -276,7 +212,8 @@ export class GameService {
    * first if one is under way, and resolves to whether it did.
    */
   async changeSpeed(speed: Speed): Promise<boolean> {
-    if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
+    const question = speedQuestion(SPEED_INFO[speed].name);
+    if (!(await this.mayLoseRun(question))) return false;
     this.settings.update({ speed });
     this.begin(this.create(speed));
     return true;
@@ -289,20 +226,10 @@ export class GameService {
     this.announcer.say(describeTakenUp(run));
   }
 
-  /** Says whether the board is drawn yet, as the board's canvas reports it. */
-  setDrawn(drawn: boolean): void {
-    this.drawnState.set(drawn);
-  }
-
   /** Puts away the card over an ended run, leaving the board to look at. */
   closeResult(): void {
     this.resultOpenState.set(false);
     this.resultClosedState.set(true);
-  }
-
-  /** Whether a key may start another run: once an ended run's card is away. */
-  private mayStartAnother(): boolean {
-    return this.ended() && this.resultClosedState();
   }
 
   /** Returns a new run at a speed, waiting for its first direction. */
@@ -318,8 +245,7 @@ export class GameService {
     this.newBestState.set(false);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
-    this.runsState.update((runs) => runs + 1);
-    this.announcer.clear();
+    this.began();
   }
 
   /** Takes a step's run, and keeps the score of one that ended there. */
@@ -338,11 +264,5 @@ export class GameService {
     this.progress = 0;
     this.resultWait.start();
     this.announcer.say(describeEnd(run, newBest));
-  }
-
-  /** Resolves to whether to go ahead: at once with no run under way to lose. */
-  private async mayLoseRun(question = NEW_GAME_QUESTION): Promise<boolean> {
-    if (!this.inProgress()) return true;
-    return this.confirm.ask(question);
   }
 }

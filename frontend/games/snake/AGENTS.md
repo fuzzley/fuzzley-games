@@ -93,10 +93,14 @@ its seed and its frames, as a game taken up relies on.
   press on what can't take it.
   - `play/` — `GameService` holds the run and its clock, which the scene's
     frames drive through `tick()`, makes every command, says what happened,
-    keeps the stats, and asks through `@fz/ui/confirm` before a new game or
-    speed throws a run away; `SavedGameService`, which `main.ts` starts
-    before the board shows, keeps the run under way and takes it up, paused,
-    after a reload.
+    and keeps the stats. It extends `@fz/game-ui/run_lifecycle`'s
+    `RunLifecycle`, which holds what every game's run does around its play:
+    the keys' `command()` (Snake's overrides it for the directions and hands
+    it the other three), the drawn gate (`drawn`, `setDrawn()`), the runs
+    begun (`runs`, raised as each run begins) and the question, through
+    `@fz/ui/confirm`, before a new game or speed throws a run away.
+    `SavedGameService`, which `main.ts` starts before the board shows, keeps
+    the run under way and takes it up, paused, after a reload.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty board drawn in CSS until the scene has drawn; the focus ring;
     and the cards that say how to start, that the run is paused, or how to
