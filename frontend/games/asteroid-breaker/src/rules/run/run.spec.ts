@@ -8,7 +8,6 @@ import {
   createRun,
   hasClearedAWave,
   hasClearedAll,
-  hasEnded,
   isInProgress,
   nextShipAfter,
   nextWave,
@@ -79,18 +78,6 @@ describe("createRun", () => {
       strays: 0,
       outcome: "ready",
     });
-  });
-});
-
-describe("hasEnded", () => {
-  it.each([
-    ["over", true],
-    ["ready", false],
-    ["playing", false],
-    ["paused", false],
-    ["cleared", false],
-  ] as const)("says a run %s has ended: %s", (outcome, ended) => {
-    expect(hasEnded(runWith({ outcome }))).toBe(ended);
   });
 });
 

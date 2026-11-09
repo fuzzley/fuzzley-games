@@ -4,7 +4,6 @@ import {
   type Run,
   START_LENGTH,
   createRun,
-  hasEnded,
   pause,
   resume,
   step,
@@ -225,13 +224,11 @@ describe("step", () => {
       crash: after.crash,
       last: after.last,
       snake: after.snake,
-      ended: hasEnded(after),
     }).toEqual({
       outcome: "over",
       crash: "wall",
       last: "crashed",
       snake: run.snake,
-      ended: true,
     });
   });
 

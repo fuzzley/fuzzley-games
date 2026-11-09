@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -35,7 +36,6 @@ import {
   catchUp,
   createRun,
   gainedLifeByPoints,
-  hasEnded,
   isInProgress,
   levelSeed,
   pause,
@@ -150,7 +150,7 @@ export class GameService extends RunLifecycle {
   readonly outcome = computed(() => this.runState().outcome);
 
   /** Whether the run has ended, lost or won. */
-  readonly ended = computed(() => hasEnded(this.runState()));
+  readonly ended = computed(() => hasEnded(this.runState().outcome));
 
   /** Whether a run is in progress, which a new game would lose: a level in play, paused or just cleared. */
   readonly inProgress = computed(() => isInProgress(this.runState()));
@@ -330,7 +330,7 @@ export class GameService extends RunLifecycle {
   /** Starts a new run at the level an ended run reached, as its card offers. */
   tryAgain(): void {
     const run = this.runState();
-    if (hasEnded(run)) this.begin(this.create(run.speed, run.level));
+    if (hasEnded(run.outcome)) this.begin(this.create(run.speed, run.level));
   }
 
   /**

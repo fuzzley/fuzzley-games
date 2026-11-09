@@ -25,6 +25,7 @@
     "lint:styles": "stylelint \"src/**/*.scss\""
   },
   "dependencies": {
+    "@fz/core": "workspace:*",
     "@fz/style": "workspace:*",
     "@fz/ui": "workspace:*"
   },

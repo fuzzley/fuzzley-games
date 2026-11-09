@@ -1,4 +1,5 @@
 import { isCount, isListOf, isRecord, isWhole, listOf } from "@fz/core/json";
+import { isUnderWay } from "@fz/core/run";
 import { BOARD_SIZE, onBoard } from "./arena";
 import {
   type Direction,
@@ -29,7 +30,7 @@ export interface SavedRun {
  * one waiting for its first direction, or one that has ended.
  */
 export function saveRun(run: Run): SavedRun | null {
-  if (run.outcome !== "playing" && run.outcome !== "paused") return null;
+  if (!isUnderWay(run.outcome)) return null;
   if (!run.apple) return null;
   return {
     snake: run.snake.map(({ x, y }) => [x, y] as const),

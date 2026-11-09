@@ -7,7 +7,7 @@ import {
   RunLifecycle,
   type RunStage,
   speedQuestion,
-} from "./run_lifecycle";
+} from "./index";
 
 /**
  * Plays a run as a game whose runs clear no stage does, from where a spec

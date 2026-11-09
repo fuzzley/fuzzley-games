@@ -6,6 +6,7 @@ import {
   signal,
 } from "@angular/core";
 import { Countdown } from "@fz/core/clock";
+import { hasEnded, isUnderWay } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -17,14 +18,7 @@ import {
   describeTakenUp,
 } from "../../rules/describe";
 import type { Direction } from "../../rules/geometry";
-import {
-  type Run,
-  createRun,
-  hasEnded,
-  pause,
-  resume,
-  turn,
-} from "../../rules/run";
+import { type Run, createRun, pause, resume, turn } from "../../rules/run";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { advance } from "../../rules/stepper";
 import type { BoardCommand } from "../../view/controls";
@@ -109,13 +103,10 @@ export class GameService extends RunLifecycle {
   readonly outcome = computed(() => this.runState().outcome);
 
   /** Whether the run has ended, by a crash or a full board. */
-  readonly ended = computed(() => hasEnded(this.runState()));
+  readonly ended = computed(() => hasEnded(this.runState().outcome));
 
   /** Whether a run is under way, which a new game would lose. */
-  readonly inProgress = computed(() => {
-    const outcome = this.runState().outcome;
-    return outcome === "playing" || outcome === "paused";
-  });
+  readonly inProgress = computed(() => isUnderWay(this.runState().outcome));
 
   /**
    * Moves the run on by the time a frame took, stepping it as often as the
@@ -250,7 +241,7 @@ export class GameService extends RunLifecycle {
 
   /** Takes a step's run, and keeps the score of one that ended there. */
   private stepTo(run: Run): void {
-    if (!hasEnded(run)) {
+    if (!hasEnded(run.outcome)) {
       this.runState.set(run);
       return;
     }

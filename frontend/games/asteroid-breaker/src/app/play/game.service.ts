@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -29,7 +30,6 @@ import {
   type Run,
   createRun,
   hasClearedAll,
-  hasEnded,
   isInProgress,
   nextWave,
   pause,
@@ -192,7 +192,7 @@ export class GameService extends RunLifecycle {
   readonly outcome = computed(() => this.run().outcome);
 
   /** Whether the run has ended, its ships run out. */
-  readonly ended = computed(() => hasEnded(this.run()));
+  readonly ended = computed(() => hasEnded(this.run().outcome));
 
   /**
    * Whether a run is in progress, which a new game would lose: a wave under
@@ -374,7 +374,7 @@ export class GameService extends RunLifecycle {
   /** Starts a new run at the wave an ended run started at, as its card offers. */
   tryAgain(): void {
     const run = this.run();
-    if (hasEnded(run)) {
+    if (hasEnded(run.outcome)) {
       this.begin(newRunState(this.create(run.speed, run.firstWave)));
     }
   }
