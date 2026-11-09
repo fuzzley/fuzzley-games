@@ -1,5 +1,10 @@
 import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
+import {
+  MemoryStorage,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { saveGrid } from "../../rules/saved_grid";
 import { playOn } from "../../testing/game";
 import { EASY, gridFrom, rowsOf, solvedBut } from "../../testing/grid_picture";
@@ -9,23 +14,24 @@ import { SAVED_GAME_KEY, SavedGameService } from "./saved_game.service";
 /** The player's digits on `EASY`: two of the solution's, in row 1. */
 const DIGITS = ["69.......", ...new Array<string>(8).fill(".........")];
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
+
 /** Stores a game as a player's browser would hold it. */
 function store(value: unknown): void {
-  localStorage.setItem(SAVED_GAME_KEY, JSON.stringify(value));
+  storage.setItem(SAVED_GAME_KEY, JSON.stringify(value));
 }
 
 /** Returns the game as stored, or null. */
 function stored(): unknown {
-  return JSON.parse(localStorage.getItem(SAVED_GAME_KEY) ?? "null");
-}
-
-/** Sets the page's visibility, as switching tabs does, and says so. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
+  return JSON.parse(storage.getItem(SAVED_GAME_KEY) ?? "null");
 }
 
 /** Starts the service, as the app does on load, and lets it keep the game. */
@@ -94,7 +100,6 @@ describe("SavedGameService", () => {
 
     afterEach(() => {
       vi.useRealTimers();
-      Reflect.deleteProperty(document, "visibilityState");
     });
 
     /** Starts a game ten seconds in, kept, and lets three more go by. */
@@ -115,7 +120,7 @@ describe("SavedGameService", () => {
     it("keeps the time as the page goes out of sight", () => {
       playThreeSeconds();
 
-      setVisibility("hidden");
+      setPageVisibility("hidden");
 
       expect(stored()).toMatchObject({ seconds: 13 });
     });
@@ -131,7 +136,7 @@ describe("SavedGameService", () => {
     it("writes nothing more as the page comes back in sight", () => {
       playThreeSeconds();
 
-      setVisibility("visible");
+      setPageVisibility("visible");
 
       expect(stored()).toMatchObject({ seconds: 10 });
     });

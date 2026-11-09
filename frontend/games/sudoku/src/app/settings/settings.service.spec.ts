@@ -1,13 +1,24 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import {
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
   SettingsService,
 } from "./settings.service";
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
+
 /** Stores settings as a player's browser would hold them. */
 function store(value: unknown): void {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(value));
+  storage.setItem(SETTINGS_KEY, JSON.stringify(value));
 }
 
 describe("SettingsService", () => {
@@ -36,6 +47,9 @@ describe("SettingsService", () => {
     TestBed.inject(SettingsService).update({ level: "expert" });
 
     TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage)],
+    });
 
     expect(TestBed.inject(SettingsService).settings().level).toBe("expert");
   });

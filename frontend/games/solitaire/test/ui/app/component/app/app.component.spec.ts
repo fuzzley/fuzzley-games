@@ -23,7 +23,6 @@ describe("AppComponent Composition", () => {
   });
 
   afterEach(() => {
-    localStorage.clear();
     delete document.documentElement.dataset["theme"];
     document.head.querySelector('meta[name="theme-color"]')?.remove();
   });

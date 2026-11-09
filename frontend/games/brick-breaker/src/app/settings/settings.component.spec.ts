@@ -3,11 +3,22 @@ import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { DEBUG_MENU } from "../tokens";
 import { SettingsComponent } from "./settings.component";
 import { SETTINGS_KEY, SettingsService } from "./settings.service";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** What a spec gets back from rendering the settings. */
 interface RenderedSettings {
@@ -35,10 +46,7 @@ async function renderSettings(
 
 /** Stores settings with the sound off, as a player's browser would keep them. */
 function keepSoundOff(): void {
-  localStorage.setItem(
-    SETTINGS_KEY,
-    JSON.stringify({ version: 1, sound: false }),
-  );
+  storage.setItem(SETTINGS_KEY, JSON.stringify({ version: 1, sound: false }));
 }
 
 describe("SettingsComponent", () => {
@@ -106,7 +114,7 @@ describe("SettingsComponent", () => {
     });
 
     it("is at the percent the settings keep", async () => {
-      localStorage.setItem(
+      storage.setItem(
         SETTINGS_KEY,
         JSON.stringify({ version: 1, speed: "custom", customPercent: 150 }),
       );

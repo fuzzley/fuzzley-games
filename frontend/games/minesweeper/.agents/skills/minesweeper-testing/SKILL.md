@@ -30,7 +30,8 @@ Run these from `frontend/games/minesweeper/`, or as
   and what coverage leaves out.
 - A spec sits beside the file it tests, named after it.
 - `src/test-setup.ts` starts Angular's TestBed, loads jest-dom's matchers,
-  polyfills `<dialog>`, and clears `localStorage` before every test.
+  polyfills `<dialog>`, and gives each test's app a store of its own in
+  memory (`provideMemoryStorage()`).
 
 ## The Rules
 

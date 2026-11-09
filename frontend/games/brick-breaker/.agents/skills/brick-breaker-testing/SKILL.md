@@ -57,8 +57,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   once (`frontend/lib/dev/AGENTS.md`).
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
-  TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and clears
-  `localStorage` before every test.
+  TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and gives each
+  test's app a store of its own in memory (`provideMemoryStorage()`).
 
 ## The Rules
 

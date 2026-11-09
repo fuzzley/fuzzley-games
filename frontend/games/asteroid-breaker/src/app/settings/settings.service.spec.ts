@@ -1,9 +1,20 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { DEFAULT_SETTINGS, SettingsService } from "./settings.service";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** Stores settings as a player's browser would hold them, under the key every player's are kept by. */
 function store(value: unknown): void {
-  localStorage.setItem("asteroid-breaker-settings", JSON.stringify(value));
+  storage.setItem("asteroid-breaker-settings", JSON.stringify(value));
 }
 
 describe("SettingsService", () => {
@@ -45,6 +56,9 @@ describe("SettingsService", () => {
     TestBed.inject(SettingsService).update(kept);
 
     TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage)],
+    });
 
     expect(TestBed.inject(SettingsService).settings()).toEqual(kept);
   });

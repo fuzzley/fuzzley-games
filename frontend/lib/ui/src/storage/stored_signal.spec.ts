@@ -1,5 +1,6 @@
 import type { WritableSignal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "../testing";
 import type { StoredFields } from "./local_storage.service";
 import { storedSignal } from "./stored_signal";
 
@@ -36,24 +37,29 @@ function storedNames(): WritableSignal<ReadonlySet<string>> {
   );
 }
 
-/** Stores a value under `key` as JSON, as a browser holds it. */
-function store(value: unknown): void {
-  localStorage.setItem("key", JSON.stringify(value));
-}
-
-/** Returns what is stored under `key`, read back from JSON. */
-function stored(): unknown {
-  return JSON.parse(localStorage.getItem("key") ?? "null");
-}
-
 describe("storedSignal", () => {
+  let storage: MemoryStorage;
+
   beforeEach(() => {
-    localStorage.clear();
+    storage = new MemoryStorage();
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage)],
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
+
+  /** Stores a value under `key` as JSON, as a browser holds it. */
+  function store(value: unknown): void {
+    storage.setItem("key", JSON.stringify(value));
+  }
+
+  /** Returns what is stored under `key`, read back from JSON. */
+  function stored(): unknown {
+    return JSON.parse(storage.getItem("key") ?? "null");
+  }
 
   describe("reading", () => {
     it("reads what was stored at its version", () => {
@@ -73,7 +79,7 @@ describe("storedSignal", () => {
     });
 
     it("reads a corrupt entry as what a player starts with", () => {
-      localStorage.setItem("key", "{ not json");
+      storage.setItem("key", "{ not json");
       vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
       expect(storedLives()()).toBe(FRESH);
@@ -146,6 +152,9 @@ describe("storedSignal", () => {
     it("gives the next visit back what it stored", () => {
       storedLives().set({ lives: 1 });
       TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [provideMemoryStorage(storage)],
+      });
 
       expect(storedLives()()).toEqual({ lives: 1 });
     });

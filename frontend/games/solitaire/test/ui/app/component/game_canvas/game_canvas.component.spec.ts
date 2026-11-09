@@ -27,7 +27,6 @@ describe("GameCanvasComponent", () => {
   let run: SceneRun<BoardScene> | undefined;
 
   beforeEach(async () => {
-    localStorage.clear();
     location.hash = "";
 
     await TestBed.configureTestingModule({

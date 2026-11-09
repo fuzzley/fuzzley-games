@@ -1,12 +1,23 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import type { EndedRun } from "../../rules/run/stats";
 import type { Speed } from "../../rules/speed";
 import { provideSpecLevels } from "../../testing/play";
 import { STATS_KEY, StatsService } from "./stats.service";
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecLevels()],
+  });
+});
+
 /** Stores stats as a player's browser would hold them. */
 function store(value: unknown): void {
-  localStorage.setItem(STATS_KEY, JSON.stringify(value));
+  storage.setItem(STATS_KEY, JSON.stringify(value));
 }
 
 /** Returns a run ended at a speed, a score and a level. */
@@ -16,14 +27,10 @@ function endedRun(speed: Speed, score: number, level: number): EndedRun {
 
 /** Returns what is stored, as a player's browser holds it. */
 function stored(): unknown {
-  return JSON.parse(localStorage.getItem(STATS_KEY) ?? "null");
+  return JSON.parse(storage.getItem(STATS_KEY) ?? "null");
 }
 
 const NONE = { runs: 0, best: 0, furthest: 0 };
-
-beforeEach(() => {
-  TestBed.configureTestingModule({ providers: provideSpecLevels() });
-});
 
 describe("StatsService", () => {
   it("starts a new player with no runs and no bests", () => {
@@ -90,7 +97,9 @@ describe("StatsService", () => {
     TestBed.inject(StatsService).recordLevel("wide", "relaxed", 1200);
 
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: provideSpecLevels() });
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage), ...provideSpecLevels()],
+    });
 
     expect(TestBed.inject(StatsService).stats().levels).toEqual({
       wide: { relaxed: 1200 },

@@ -1,15 +1,22 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
 import { PROGRESS_KEY, ProgressService } from "./progress.service";
 
-/** Stores progress as a player's browser would hold it. */
-function store(value: unknown): void {
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(value));
-}
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
 
 beforeEach(() => {
-  TestBed.configureTestingModule({ providers: provideSpecLevels() });
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecLevels()],
+  });
 });
+
+/** Stores progress as a player's browser would hold it. */
+function store(value: unknown): void {
+  storage.setItem(PROGRESS_KEY, JSON.stringify(value));
+}
 
 describe("ProgressService", () => {
   it("opens only the first level to a new player", () => {
@@ -33,7 +40,9 @@ describe("ProgressService", () => {
     TestBed.inject(ProgressService).recordCleared("steel");
 
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: provideSpecLevels() });
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage), ...provideSpecLevels()],
+    });
 
     expect(TestBed.inject(ProgressService).cleared()).toEqual(
       new Set(["steel"]),

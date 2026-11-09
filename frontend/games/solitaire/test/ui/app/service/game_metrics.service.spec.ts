@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { setPageVisibility } from "@fz/ui/testing";
 import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
@@ -41,7 +42,6 @@ describe("GameMetricsService", () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    Reflect.deleteProperty(document, "visibilityState");
   });
 
   describe("following the game on the table", () => {
@@ -116,11 +116,7 @@ describe("GameMetricsService", () => {
       TestBed.tick();
       vi.advanceTimersByTime(2000);
 
-      Object.defineProperty(document, "visibilityState", {
-        configurable: true,
-        get: () => "hidden",
-      });
-      document.dispatchEvent(new Event("visibilitychange"));
+      setPageVisibility("hidden");
       vi.advanceTimersByTime(5000);
 
       expect(metrics.timerText()).toBe("00:02");

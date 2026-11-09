@@ -17,9 +17,20 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import type { MockGameModelOverrides } from "@test/support/ui/game_mock";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { query, queryAll, queryRequired, queryText } from "@test/support/dom";
 import { isDialogOpen, pressEscape } from "@test/support/dialog";
 import { flushMicrotasks } from "@test/support/async";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** A width with room for the list and the preview side by side. */
 const WIDE = 1280;
@@ -408,7 +419,7 @@ describe("GameBrowserComponent", () => {
 
   describe("recent games", () => {
     it("lists them once there are two", async () => {
-      localStorage.setItem(
+      storage.setItem(
         "fsolitaire-recent-games",
         JSON.stringify([{ gameId: "freecell", values: {} }]),
       );
@@ -424,7 +435,7 @@ describe("GameBrowserComponent", () => {
     });
 
     it("leaves them out while a filter is on", async () => {
-      localStorage.setItem(
+      storage.setItem(
         "fsolitaire-recent-games",
         JSON.stringify([{ gameId: "freecell", values: {} }]),
       );
@@ -438,7 +449,7 @@ describe("GameBrowserComponent", () => {
     });
 
     it("names the rules a recent game was played by", async () => {
-      localStorage.setItem(
+      storage.setItem(
         "fsolitaire-recent-games",
         JSON.stringify([{ gameId: "freecell", values: {} }]),
       );

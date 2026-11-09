@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { SavedGameService } from "@/ui/app/service/saved_game.service";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import type { GamePosition } from "@/ui/app/model/game_position";
@@ -33,6 +34,16 @@ const SAVED: GamePosition = {
   snapshot: SNAPSHOT,
 };
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
+
 interface Harness {
   readonly model: MockGameModel;
   readonly catalog: MockCatalogHarness;
@@ -44,7 +55,7 @@ function start(
   model: MockGameModel = createMockGameModel(),
 ): Harness {
   if (saved !== undefined) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    storage.setItem(STORAGE_KEY, JSON.stringify(saved));
   }
   const catalog = createMockCatalog(model);
   TestBed.configureTestingModule({
@@ -59,7 +70,7 @@ function start(
 
 /** Returns the game in storage, or null when there is none. */
 function stored(): GamePosition | null {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = storage.getItem(STORAGE_KEY);
   return raw ? (JSON.parse(raw) as GamePosition) : null;
 }
 
@@ -129,7 +140,7 @@ describe("SavedGameService", () => {
     it("saves a freshly dealt game", async () => {
       const { model } = start();
       await flushMicrotasks();
-      localStorage.clear();
+      storage.clear();
 
       model.emit("game-reset");
       await flushMicrotasks();

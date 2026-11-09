@@ -1,7 +1,8 @@
 import "@angular/compiler";
+import { TestBed } from "@angular/core/testing";
 import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
 import { installHeadlessPhaser } from "@fz/phaser/testing";
-import { installDialogPolyfill } from "@fz/ui/testing";
+import { installDialogPolyfill, provideMemoryStorage } from "@fz/ui/testing";
 import { installCompressionStreams } from "./support/compression_streams";
 
 setupTestBed({
@@ -19,42 +20,8 @@ if (typeof window !== "undefined") {
 
 installCompressionStreams();
 
-/**
- * Returns an in-memory Storage for the node test environment, which has no
- * localStorage.
- */
-function createMemoryStorage(): Storage {
-  const entries = new Map<string, string>();
-  return {
-    getItem: (key: string) => entries.get(key) ?? null,
-    setItem: (key: string, value: string) => {
-      entries.set(key, value);
-    },
-    removeItem: (key: string) => {
-      entries.delete(key);
-    },
-    clear: () => {
-      entries.clear();
-    },
-    key: (index: number) => [...entries.keys()][index] ?? null,
-    get length() {
-      return entries.size;
-    },
-  };
-}
-
-// Node declares localStorage, but leaves it undefined unless it is given a
-// file to keep it in.
-if (typeof globalThis.localStorage === "undefined") {
-  Object.defineProperty(globalThis, "localStorage", {
-    value: createMemoryStorage(),
-    writable: true,
-    configurable: true,
-  });
-}
-
-// Every test shares one store, so clear it before a setting leaks into the
-// next test.
+// Each test's app stores in a store of its own, so nothing it keeps leaks
+// into the next.
 beforeEach(() => {
-  localStorage.clear();
+  TestBed.configureTestingModule({ providers: [provideMemoryStorage()] });
 });

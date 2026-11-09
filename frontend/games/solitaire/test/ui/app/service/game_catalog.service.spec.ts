@@ -7,6 +7,17 @@ import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GAME_CATALOG, catalogEntry } from "@/ui/app/provider/game_catalog";
 import { provideAppRouter } from "@/ui/app/routes";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 interface Harness {
   catalog: GameCatalogService;
@@ -30,7 +41,6 @@ function buildCatalog(): Harness {
 
 describe("GameCatalogService", () => {
   beforeEach(() => {
-    localStorage.clear();
     location.hash = "";
   });
 
@@ -40,19 +50,19 @@ describe("GameCatalogService", () => {
     });
 
     it("opens on the game last played", () => {
-      localStorage.setItem("fsolitaire-game", "freecell");
+      storage.setItem("fsolitaire-game", "freecell");
 
       expect(buildCatalog().catalog.initialGameId).toBe("freecell");
     });
 
     it("ignores a stored game it no longer has", () => {
-      localStorage.setItem("fsolitaire-game", "poker");
+      storage.setItem("fsolitaire-game", "poker");
 
       expect(buildCatalog().catalog.initialGameId).toBe(GAME_CATALOG[0].id);
     });
 
     it("sends an empty URL to the game it opens on", async () => {
-      localStorage.setItem("fsolitaire-game", "spider");
+      storage.setItem("fsolitaire-game", "spider");
       const harness = buildCatalog();
 
       await harness.router.navigateByUrl("/");
@@ -71,7 +81,7 @@ describe("GameCatalogService", () => {
     });
 
     it("lets the URL win over the game last played, so a link is honoured", async () => {
-      localStorage.setItem("fsolitaire-game", "freecell");
+      storage.setItem("fsolitaire-game", "freecell");
       const harness = buildCatalog();
 
       await harness.router.navigateByUrl("/spider");
@@ -153,7 +163,7 @@ describe("GameCatalogService", () => {
 
       harness.catalog.select("spider");
 
-      expect(localStorage.getItem("fsolitaire-game")).toBe("spider");
+      expect(storage.getItem("fsolitaire-game")).toBe("spider");
     });
 
     it("ignores the game already in play, which would throw it away", () => {

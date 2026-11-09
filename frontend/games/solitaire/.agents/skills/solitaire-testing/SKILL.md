@@ -37,8 +37,8 @@ Run these from `frontend/games/solitaire/`, or as
   `test/test-setup.ts` starts Angular's zoneless TestBed; under jsdom it
   polyfills `<dialog>` (with `@fz/ui/testing`'s `installDialogPolyfill`)
   and installs `@fz/phaser/testing`'s headless Phaser, before anything
-  imports Phaser; and it gives Node an in-memory `localStorage`, cleared
-  before every test.
+  imports Phaser; and it gives each test's app a store of its own in
+  memory (`@fz/ui/testing`'s `provideMemoryStorage()`).
 - Specs use Vitest's globals (`describe`, `it`, `expect`, `vi`).
 
 ## Engine Specs

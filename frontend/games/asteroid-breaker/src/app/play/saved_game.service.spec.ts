@@ -4,6 +4,11 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import {
+  MemoryStorage,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import type { Rock } from "../../rules/rocks/rocks";
 import { STILL } from "../../rules/ship/ship";
 import { FIELD_SHORT_SIDE, FIRST_SHIPS } from "../../rules/tuning";
@@ -49,14 +54,24 @@ const WIDE: Viewport = {
   insets: NO_INSETS,
 };
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecWaves()],
+  });
+});
+
 /** Stores a game as a player's browser would hold it. */
 function store(value: unknown): void {
-  localStorage.setItem(SAVED_GAME_KEY, JSON.stringify(value));
+  storage.setItem(SAVED_GAME_KEY, JSON.stringify(value));
 }
 
 /** Returns the game as stored, or null. */
 function stored(): Record<string, unknown> | null {
-  return JSON.parse(localStorage.getItem(SAVED_GAME_KEY) ?? "null") as Record<
+  return JSON.parse(storage.getItem(SAVED_GAME_KEY) ?? "null") as Record<
     string,
     unknown
   > | null;
@@ -68,15 +83,6 @@ function current(game: GameService): Record<string, unknown> {
     string,
     unknown
   >;
-}
-
-/** Says the page went out of sight, or came back. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
 }
 
 /** Starts the service, as the app does on load, and returns the game. */
@@ -92,7 +98,9 @@ function start(): GameService {
  */
 function reload(waves: readonly WaveEntry[] = SPEC_WAVES): GameService {
   TestBed.resetTestingModule();
-  TestBed.configureTestingModule({ providers: provideSpecWaves(waves) });
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecWaves(waves)],
+  });
   return start();
 }
 
@@ -150,14 +158,6 @@ function rounded(
     y: Number(rock.y.toFixed(6)),
   }));
 }
-
-beforeEach(() => {
-  TestBed.configureTestingModule({ providers: provideSpecWaves() });
-});
-
-afterEach(() => {
-  Reflect.deleteProperty(document, "visibilityState");
-});
 
 describe("SavedGameService", () => {
   describe("keeping", () => {
@@ -231,7 +231,7 @@ describe("SavedGameService", () => {
       const game = await startedAt(SPEC_WAVE.gift);
       playFor(game, 500, STILL);
 
-      setVisibility("hidden");
+      setPageVisibility("hidden");
 
       expect(stored()).toEqual(current(game));
     });

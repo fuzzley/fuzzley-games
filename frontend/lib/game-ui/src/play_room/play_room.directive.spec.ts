@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { setPageVisibility } from "@fz/ui/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type FakeViewport, installFakeViewport } from "../testing";
@@ -20,15 +21,6 @@ class TestRoomHostComponent {
   readonly reasons: AwayReason[] = [];
 }
 
-/** Shows the page as in sight or hidden, and says so as a browser does. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
-}
-
 /** Lets the queries' changes reach the signals and their effects. */
 async function settle(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -44,7 +36,6 @@ describe("PlayRoomDirective", () => {
   afterEach(() => {
     viewport?.restore();
     viewport = null;
-    Reflect.deleteProperty(document, "visibilityState");
   });
 
   /** Renders a room with the board in it focused. */
@@ -94,7 +85,7 @@ describe("PlayRoomDirective", () => {
     it("is away as it goes out of sight", async () => {
       const { reasons } = await renderRoom();
 
-      setVisibility("hidden");
+      setPageVisibility("hidden");
 
       expect(reasons).toEqual(["hidden"]);
     });
@@ -102,7 +93,7 @@ describe("PlayRoomDirective", () => {
     it("isn't as it comes back into sight", async () => {
       const { reasons } = await renderRoom();
 
-      setVisibility("visible");
+      setPageVisibility("visible");
 
       expect(reasons).toEqual([]);
     });

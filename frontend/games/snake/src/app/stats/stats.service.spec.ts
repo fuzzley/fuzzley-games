@@ -1,9 +1,20 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { STATS_KEY, StatsService } from "./stats.service";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** Stores stats as a player's browser would hold them. */
 function store(value: unknown): void {
-  localStorage.setItem(STATS_KEY, JSON.stringify(value));
+  storage.setItem(STATS_KEY, JSON.stringify(value));
 }
 
 const NONE = { runs: 0, best: 0, longest: 0 };
@@ -69,6 +80,9 @@ describe("StatsService", () => {
     TestBed.inject(StatsService).recordEnd("slow", 4, 7);
 
     TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage)],
+    });
 
     expect(TestBed.inject(StatsService).stats().slow.best).toBe(4);
   });

@@ -67,10 +67,16 @@ repository's root.
 ## What jsdom Keeps and Lacks
 
 - **One document for a whole spec file,** so reset any browser state a test
-  touches (`localStorage`, attributes on `document.documentElement`) in a
-  `beforeEach`, or in the setup file for every spec.
-- **A service reads what is stored when it is made,** so write
-  `localStorage` before the first `render` or `TestBed.inject`.
+  touches (attributes on `document.documentElement`) in a `beforeEach`, or
+  in the setup file for every spec.
+- **No `localStorage` of a test's own:** `provideMemoryStorage()`, from
+  `@fz/ui/testing`, gives the app a store in memory for the browser's, which
+  a game's setup file hands each test. A spec that stores an entry for the
+  app, reads back what it stored, or loads it again after
+  `TestBed.resetTestingModule()` holds a `MemoryStorage` of its own and
+  hands it to `provideMemoryStorage()` each time.
+- **A service reads what is stored when it is made,** so store an entry
+  before the first `render` or `TestBed.inject`.
 - **No `matchMedia`:** `installFakeViewport(width, height)`, from
   `@fz/ui/testing`, or `@fz/game-ui/testing` in a game, answers the queries
   `GameViewportService` and `ThemeService` ask, and a board's
@@ -95,9 +101,10 @@ repository's root.
 Each library's `testing` entry point holds what specs need of it, and
 `@fz/dev`'s ESLint lets only specs and their helpers import one:
 
-- `@fz/ui/testing`: `installDialogPolyfill()`, `installFakeViewport()`,
-  and `setPageVisibility()`, which hides the page or shows it again, as
-  switching tabs does, until the test finishes.
+- `@fz/ui/testing`: `installDialogPolyfill()`; `installFakeViewport()`;
+  `provideMemoryStorage()` and `MemoryStorage`, a store in memory for the
+  browser's; and `setPageVisibility()`, which hides the page or shows it
+  again, as switching tabs does, until the test finishes.
 - `@fz/game-ui/testing`: `installFakeViewport()`, handed on from
   `@fz/ui/testing`.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no

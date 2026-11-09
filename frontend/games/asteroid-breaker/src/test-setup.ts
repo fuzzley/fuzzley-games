@@ -1,12 +1,12 @@
 import "@angular/compiler";
 import "@testing-library/jest-dom/vitest";
-import { getTestBed } from "@angular/core/testing";
+import { TestBed, getTestBed } from "@angular/core/testing";
 import {
   BrowserTestingModule,
   platformBrowserTesting,
 } from "@angular/platform-browser/testing";
 import { installHeadlessPhaser } from "@fz/phaser/testing";
-import { installDialogPolyfill } from "@fz/ui/testing";
+import { installDialogPolyfill, provideMemoryStorage } from "@fz/ui/testing";
 
 // Before anything imports Phaser, so the scene's specs run it for real.
 installHeadlessPhaser();
@@ -27,7 +27,8 @@ Object.defineProperty(document, "fonts", {
   value: { load: () => Promise.resolve([]), check: () => true },
 });
 
-// Each spec starts as a new player, with nothing stored.
+// Each test's app stores in a store of its own, so nothing it keeps leaks
+// into the next.
 beforeEach(() => {
-  localStorage.clear();
+  TestBed.configureTestingModule({ providers: [provideMemoryStorage()] });
 });

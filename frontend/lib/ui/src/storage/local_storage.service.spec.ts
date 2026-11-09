@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "../testing";
 import { BROWSER_STORAGE } from "./browser_storage";
 import { LocalStorageService } from "./local_storage.service";
 
@@ -28,21 +29,25 @@ class RefusingStorage implements Storage {
 }
 
 describe("LocalStorageService", () => {
+  let memory: MemoryStorage;
+
   beforeEach(() => {
-    localStorage.clear();
+    memory = new MemoryStorage();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  /** Returns the service, over the given store if there is one. */
+  /** Returns the service, over the given store, or one in memory. */
   function service(storage?: Storage | null): LocalStorageService {
-    if (storage !== undefined) {
-      TestBed.configureTestingModule({
-        providers: [{ provide: BROWSER_STORAGE, useValue: storage }],
-      });
-    }
+    TestBed.configureTestingModule({
+      providers: [
+        storage === undefined
+          ? provideMemoryStorage(memory)
+          : { provide: BROWSER_STORAGE, useValue: storage },
+      ],
+    });
     return TestBed.inject(LocalStorageService);
   }
 
@@ -60,10 +65,10 @@ describe("LocalStorageService", () => {
       expect(storage.readString("key")).toBe("value");
     });
 
-    it("writes to the browser's local storage", () => {
+    it("writes to the store it is given", () => {
       service().writeString("key", "value");
 
-      expect(localStorage.getItem("key")).toBe("value");
+      expect(memory.getItem("key")).toBe("value");
     });
 
     it("reads an absent key as null", () => {
@@ -81,14 +86,14 @@ describe("LocalStorageService", () => {
     });
 
     it("reads unparseable JSON as null rather than throwing", () => {
-      localStorage.setItem("key", "{ not json");
+      memory.setItem("key", "{ not json");
       quietly();
 
       expect(service().readObject("key")).toBeNull();
     });
 
     it("reads a stored non-object as null, since callers expect a shape", () => {
-      localStorage.setItem("key", "42");
+      memory.setItem("key", "42");
 
       expect(service().readObject("key")).toBeNull();
     });
@@ -109,7 +114,7 @@ describe("LocalStorageService", () => {
     it("stores the version beside the fields", () => {
       service().writeVersioned("key", 2, { lives: 3 });
 
-      expect(JSON.parse(localStorage.getItem("key") ?? "")).toEqual({
+      expect(JSON.parse(memory.getItem("key") ?? "")).toEqual({
         version: 2,
         lives: 3,
       });
@@ -119,7 +124,7 @@ describe("LocalStorageService", () => {
       // @ts-expect-error A value with a version of its own is refused.
       service().writeVersioned("key", 2, { version: 9, lives: 3 });
 
-      expect(JSON.parse(localStorage.getItem("key") ?? "")).toEqual({
+      expect(JSON.parse(memory.getItem("key") ?? "")).toEqual({
         version: 2,
         lives: 3,
       });
@@ -133,13 +138,13 @@ describe("LocalStorageService", () => {
     });
 
     it("reads an object stored with no version as null", () => {
-      localStorage.setItem("key", JSON.stringify({ lives: 3 }));
+      memory.setItem("key", JSON.stringify({ lives: 3 }));
 
       expect(service().readVersioned("key", 1)).toBeNull();
     });
 
     it("reads a stored list as null", () => {
-      localStorage.setItem("key", "[1]");
+      memory.setItem("key", "[1]");
 
       expect(service().readVersioned("key", 1)).toBeNull();
     });

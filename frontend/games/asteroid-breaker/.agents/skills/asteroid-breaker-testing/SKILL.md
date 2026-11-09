@@ -87,7 +87,8 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, gives the page
   `document.fonts`, which jsdom lacks and the board waits on, its faces
   there at once, which a spec makes arrive late by holding back `load()`
-  and answering `check()`, and clears `localStorage` before every test.
+  and answering `check()`, and gives each test's app a store of its own in
+  memory (`provideMemoryStorage()`).
 
 ## The Rules
 

@@ -5,6 +5,11 @@ import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import {
+  MemoryStorage,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { createField } from "../rules/field/field";
 import { parseLevel } from "../rules/levels/levels";
 import { createRun, startLevel } from "../rules/run/run";
@@ -21,6 +26,16 @@ import {
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** Renders the game on a fake canvas, and waits for its scene to be drawn. */
 async function renderApp(): Promise<GameService> {
@@ -45,7 +60,7 @@ function storeRun(): void {
     }),
   );
   const field = createField(parseLevel(entry), { speed: "normal", seed: 1 });
-  localStorage.setItem(
+  storage.setItem(
     SAVED_GAME_KEY,
     JSON.stringify({ version: 1, ...saveGame(run, field, SPEC_LEVELS) }),
   );
@@ -80,19 +95,9 @@ async function settle(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-/** Says the page went out of sight, or came back. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
-}
-
 describe("AppComponent", () => {
   afterEach(() => {
     vi.useRealTimers();
-    Reflect.deleteProperty(document, "visibilityState");
   });
 
   it("puts the board in the page's main landmark", async () => {
@@ -143,7 +148,7 @@ describe("AppComponent", () => {
   it("pauses the level in play as the page goes out of sight", async () => {
     const game = await launchedApp();
 
-    setVisibility("hidden");
+    setPageVisibility("hidden");
 
     expect(game.outcome()).toBe("paused");
   });
@@ -151,7 +156,7 @@ describe("AppComponent", () => {
   it("leaves the level going as the page comes back into sight", async () => {
     const game = await launchedApp();
 
-    setVisibility("visible");
+    setPageVisibility("visible");
 
     expect(game.outcome()).toBe("playing");
   });

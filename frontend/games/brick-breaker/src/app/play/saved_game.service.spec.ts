@@ -1,7 +1,11 @@
 import { TestBed } from "@angular/core/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import { setPageVisibility } from "@fz/ui/testing";
+import {
+  MemoryStorage,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { FIRST_LIVES } from "../../rules/tuning";
 import {
   SPEC_LEVEL,
@@ -17,14 +21,24 @@ import {
 import { GameService } from "./game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./saved_game.service";
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecLevels()],
+  });
+});
+
 /** Stores a game as a player's browser would hold it. */
 function store(value: unknown): void {
-  localStorage.setItem(SAVED_GAME_KEY, JSON.stringify(value));
+  storage.setItem(SAVED_GAME_KEY, JSON.stringify(value));
 }
 
 /** Returns the game as stored, or null. */
 function stored(): Record<string, unknown> | null {
-  return JSON.parse(localStorage.getItem(SAVED_GAME_KEY) ?? "null") as Record<
+  return JSON.parse(storage.getItem(SAVED_GAME_KEY) ?? "null") as Record<
     string,
     unknown
   > | null;
@@ -48,7 +62,9 @@ function start(): GameService {
 /** Loads the page again, keeping what the browser stored, and starts the service. */
 function reload(): GameService {
   TestBed.resetTestingModule();
-  TestBed.configureTestingModule({ providers: provideSpecLevels() });
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecLevels()],
+  });
   return start();
 }
 
@@ -76,10 +92,6 @@ async function brokeSome(): Promise<GameService> {
   TestBed.tick();
   return game;
 }
-
-beforeEach(() => {
-  TestBed.configureTestingModule({ providers: provideSpecLevels() });
-});
 
 describe("SavedGameService", () => {
   describe("keeping", () => {
