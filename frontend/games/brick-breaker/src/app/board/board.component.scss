@@ -10,6 +10,8 @@
 // (`fieldMetrics()`). `--across`, `--down` and `--finger-room` come
 // from the component, the first two the field's size in units.
 :host {
+  @include canvas-board-host;
+
   --room: var(--fz-space-6);
   --wall: 2px;
   --pixel-ratio: 1;
@@ -19,16 +21,6 @@
   --fz-canvas-inset-right: var(--room);
   --fz-canvas-inset-bottom: var(--room);
   --fz-canvas-inset-left: var(--room);
-
-  position: relative;
-  display: block;
-  container-type: size;
-  overflow: hidden;
-  outline: none;
-  touch-action: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 // The pointer would hide the ball near the paddle.
@@ -81,19 +73,13 @@
 
 // Around the wall, while the board has the focus from the keyboard.
 .ring {
+  @include board-focus-ring(var(--wall));
+
   position: absolute;
   inset: 0 0 var(--finger);
   width: calc(var(--across) * var(--unit));
   height: calc(var(--down) * var(--unit));
   margin: auto;
-  border-radius: var(--fz-radius-sm);
-  outline: var(--fz-focus-ring-width) solid transparent;
-  outline-offset: calc(var(--wall) + var(--fz-focus-ring-offset));
-  pointer-events: none;
-}
-
-:host(:focus-visible) .ring {
-  outline-color: var(--fz-focus-ring-color);
 }
 
 // Over the field, a card in its middle, clear of the finger's room.
