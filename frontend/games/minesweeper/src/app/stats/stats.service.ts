@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
-import type { DifficultyId } from "../../rules/difficulty";
+import { DIFFICULTY_IDS, type DifficultyId } from "../../rules/difficulty";
 import { isCount, isRecord } from "@fz/core/json";
+import { recordOf } from "@fz/core/records";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "minesweeper-stats";
@@ -22,18 +23,6 @@ export interface DifficultyStats {
 export type Stats = Readonly<Record<DifficultyId, DifficultyStats>>;
 
 const NONE: DifficultyStats = { played: 0, won: 0, best: null };
-
-/** Returns stats for every difficulty, each from a function of its id. */
-function statsBy(each: (id: DifficultyId) => DifficultyStats): Stats {
-  return {
-    easy: each("easy"),
-    medium: each("medium"),
-    hard: each("hard"),
-    custom: each("custom"),
-  };
-}
-
-const EMPTY: Stats = statsBy(() => NONE);
 
 /**
  * Keeps the player's games played and won, and their best times, for each
@@ -93,8 +82,7 @@ export class StatsService {
 
 /** Returns the stats stored, keeping whatever of them still makes sense. */
 function statsFrom(saved: StoredFields | null): Stats {
-  if (!saved) return EMPTY;
-  return statsBy((id) => parseStats(saved[id]));
+  return recordOf(DIFFICULTY_IDS, (id) => parseStats(saved?.[id]));
 }
 
 /** Returns one difficulty's stats as stored, or none if they make no sense. */

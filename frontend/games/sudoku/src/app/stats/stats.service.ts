@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
-import type { Level } from "../../rules/difficulty";
+import { LEVELS, type Level } from "../../rules/difficulty";
 import { isCount, isRecord } from "@fz/core/json";
+import { recordOf } from "@fz/core/records";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "sudoku-stats";
@@ -22,16 +23,6 @@ export interface LevelStats {
 export type Stats = Readonly<Record<Level, LevelStats>>;
 
 const NONE: LevelStats = { played: 0, solved: 0, best: null };
-
-/** Returns stats for every level, each from a function of its id. */
-function statsBy(each: (level: Level) => LevelStats): Stats {
-  return {
-    easy: each("easy"),
-    medium: each("medium"),
-    hard: each("hard"),
-    expert: each("expert"),
-  };
-}
 
 /**
  * Keeps the player's games played and solved, and their best times, for
@@ -84,8 +75,7 @@ export class StatsService {
 
 /** Returns the stats stored, keeping whatever of them still makes sense. */
 function statsFrom(saved: StoredFields | null): Stats {
-  if (!saved) return statsBy(() => NONE);
-  return statsBy((level) => parseStats(saved[level]));
+  return recordOf(LEVELS, (level) => parseStats(saved?.[level]));
 }
 
 /** Returns one level's stats as stored, or none if they make no sense. */

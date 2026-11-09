@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { isCount, isRecord } from "@fz/core/json";
+import { recordOf } from "@fz/core/records";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
-import type { Speed } from "../../rules/speed";
+import { SPEEDS, type Speed } from "../../rules/speed";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "snake-stats";
@@ -23,15 +24,6 @@ export interface SpeedStats {
 export type Stats = Readonly<Record<Speed, SpeedStats>>;
 
 const NONE: SpeedStats = { runs: 0, best: 0, longest: 0 };
-
-/** Returns stats for every speed, each from a function of it. */
-function statsBy(each: (speed: Speed) => SpeedStats): Stats {
-  return {
-    slow: each("slow"),
-    normal: each("normal"),
-    fast: each("fast"),
-  };
-}
 
 /** Keeps the player's runs, best scores and longest snakes, for each speed. */
 @Injectable({ providedIn: "root" })
@@ -74,8 +66,7 @@ export class StatsService {
 
 /** Returns the stats stored, keeping whatever of them still makes sense. */
 function statsFrom(saved: StoredFields | null): Stats {
-  if (!saved) return statsBy(() => NONE);
-  return statsBy((speed) => parseStats(saved[speed]));
+  return recordOf(SPEEDS, (speed) => parseStats(saved?.[speed]));
 }
 
 /** Returns one speed's stats as stored, or none if they make no sense. */
