@@ -1179,3 +1179,36 @@ The review:
 2. _The new lists were mutable arrays beside `readonly` ones:_ taken.
    `PHASER_SHAPES` and `PHASER_TURNS` are typed `readonly Shape[]` and
    `readonly Turn[]`.
+
+### Step 4.7: `keepSaved()` in `@fz/ui/storage`, spiked in Snake
+
+Built as planned on `sl-shell`, in Snake alone, after rebasing onto
+`shared-lib`. `keepSaved({ key, version, save, restore, track })` restores
+what was kept as it is called. Then it writes what `save()` returns, or
+removes the entry where that is null, as what `track()` reads changes,
+or without `track` as what `save()` reads does, and as the page is hidden
+or goes away. Snake's service goes from 62 lines to 42: one call names its
+save, its restore and the three signals a write follows (`outcome`, `score`
+and `runs`). Its 13 specs pass unchanged; "doesn't write the run at every
+step" fails if the library drops `untracked`. The entry keeps its key,
+version and shape. The tests pass: `@fz/ui` 303, Snake 423.
+
+The verdict, which the review shared: Snake's service reads better and
+still says in one place what triggers a write, so the decision is to adopt
+`keepSaved()` in the other four games (4.7b).
+
+The review:
+
+1. _The doc's summary names only `track`, and two `saved`s shadow each
+   other:_ taken. The summary says a write follows what `save` reads
+   without `track`, and the stored entry is now `kept`.
+2. _No spec checks that it stops writing once its injector is destroyed:_
+   taken. "stops writing once its injector is destroyed" keeps the game in
+   an injector of its own, destroys it, and finds the first write still
+   stored. It fails when the effect takes `manualCleanup`.
+3. _`frontend/games/AGENTS.md` still sends a game under way to
+   `LocalStorageService` and `keepOnLeave()`:_ taken in 4.7b, where it
+   becomes every game's rule.
+4. _A spec checks a call where state shows the same:_ taken. "takes up
+   nothing where nothing of its version was kept" now checks the lives
+   are still 3.

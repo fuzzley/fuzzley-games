@@ -100,7 +100,8 @@ its seed and its frames, as a game taken up relies on.
     begun (`runs`, raised as each run begins) and the question, through
     `@fz/ui/confirm`, before a new game or speed throws a run away.
     `SavedGameService`, which `main.ts` starts before the board shows, keeps
-    the run under way and takes it up, paused, after a reload.
+    the run under way and takes it up, paused, after a reload, through
+    `@fz/ui/storage`'s `keepSaved()`.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty board drawn in CSS until the scene has drawn; the focus ring;
     and the cards that say how to start, that the run is paused, or how to

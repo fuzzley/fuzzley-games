@@ -1,5 +1,6 @@
 export { BROWSER_STORAGE } from "./browser_storage";
 export { keepOnLeave } from "./keep_on_leave";
+export { type KeepSavedOptions, keepSaved } from "./keep_saved";
 export {
   LocalStorageService,
   type StoredFields,
