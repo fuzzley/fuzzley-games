@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../testing/game";
 import { solvedBut, squareAt } from "../testing/grid_picture";
+import { FakeResizeObserver } from "../testing/resize_observer";
 import { AppComponent } from "./app.component";
 import type { GameService } from "./play/game.service";
 
@@ -20,7 +21,26 @@ async function renderPlayed(): Promise<{ user: UserEvent; game: GameService }> {
   return { user: userEvent.setup(), game };
 }
 
+/**
+ * Renders the game as `renderPlayed()` does, with no room for the hint's
+ * words, so its sheet opens by itself as a hint is shown.
+ */
+async function renderCramped(): Promise<{
+  user: UserEvent;
+  game: GameService;
+}> {
+  vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+  const rendered = await renderPlayed();
+  // The hint's room, all its words, and its short form, in pixels.
+  FakeResizeObserver.latest?.report(0, 100, 100);
+  return rendered;
+}
+
 describe("AppComponent", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("names the game in the page's heading", async () => {
     await render(AppComponent);
 
@@ -48,15 +68,16 @@ describe("AppComponent", () => {
     );
   });
 
-  it("opens How to play from the bar, and goes back to the bar on closing", async () => {
+  it("opens How to play from the bar, and hands the board the focus back as it closes", async () => {
     const { user } = await renderPlayed();
-    const help = screen.getByRole("button", { name: "How to play" });
-    await user.click(help);
+    await user.click(screen.getByRole("button", { name: "How to play" }));
 
     await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(help).toHaveFocus();
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
   });
 
   it("opens the settings from the bar", async () => {
@@ -107,6 +128,19 @@ describe("AppComponent", () => {
     });
   });
 
+  it("gives the board the focus after New game from the bar, with no game under way to ask about", async () => {
+    await render(AppComponent);
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "New game" }));
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
+  });
+
   it("gives the board the focus after New game from the bar, once the question closes", async () => {
     const { user } = await renderPlayed();
     await user.click(screen.getByRole("button", { name: "New game" }));
@@ -143,6 +177,27 @@ describe("AppComponent", () => {
     await user.click(screen.getByRole("button", { name: "How to play" }));
 
     expect(TestBed.inject(StopwatchService).running()).toBe(false);
+  });
+
+  it("stops the clock while the hint's sheet covers the board", async () => {
+    const { game } = await renderCramped();
+
+    game.useHint();
+    await screen.findByRole("dialog");
+
+    expect(TestBed.inject(StopwatchService).running()).toBe(false);
+  });
+
+  it("gives the board the focus once the hint's sheet fills its hint in", async () => {
+    const { user, game } = await renderCramped();
+    game.useHint();
+    const sheet = await screen.findByRole("dialog");
+
+    await user.click(within(sheet).getByRole("button", { name: "Fill in" }));
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
   });
 
   it("takes back a move on Ctrl+Z, wherever the focus is", async () => {

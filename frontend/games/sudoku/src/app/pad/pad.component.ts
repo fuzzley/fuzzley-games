@@ -34,8 +34,8 @@ export class PadComponent {
   protected readonly game = inject(GameService);
 
   /**
-   * Emits when the board should take the focus back: after a key is pressed
-   * with a pointer, or once the hint's sheet closes on its hint filled in.
+   * Emits when the board should take the focus back: after a key is
+   * pressed with a pointer.
    */
   readonly handBack = output();
 

@@ -2,63 +2,27 @@ import type { ComponentFixture } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../../testing/game";
+import { FakeResizeObserver } from "../../testing/resize_observer";
 import type { GameService } from "../play/game.service";
 import { HintComponent, fitOf } from "./hint.component";
 
 /** The words the measured copies hold, which a query looks past. */
 const SHOWN = { ignore: "[aria-hidden] *" };
 
-/** Stands in for the browser's ResizeObserver, reporting heights a spec gives. */
-class FakeResizeObserver {
-  static latest: FakeResizeObserver | null = null;
-  private readonly targets: Element[] = [];
-
-  constructor(private readonly callback: ResizeObserverCallback) {
-    FakeResizeObserver.latest = this;
-  }
-
-  observe(target: Element): void {
-    this.targets.push(target);
-  }
-
-  disconnect(): void {
-    this.targets.length = 0;
-  }
-
-  /**
-   * Reports the heights of what it watches: the room, then all the words,
-   * then the short form, the order the hint watches them in.
-   */
-  report(...heights: readonly number[]): void {
-    const entries = this.targets.map((target, i) => ({
-      target,
-      contentRect: { height: heights[i] ?? 0 },
-    }));
-    // The entries hold only what the hint reads, and the observer stands in
-    // for the real one, so neither is the full type.
-    this.callback(
-      entries as unknown as ResizeObserverEntry[],
-      this as unknown as ResizeObserver,
-    );
-  }
-}
-
 /** What a spec gets back from rendering the words over a hint. */
 interface RenderedHint {
   readonly user: UserEvent;
   readonly game: GameService;
-  readonly handBack: ReturnType<typeof vi.fn>;
   readonly fixture: ComponentFixture<HintComponent>;
 }
 
 /** Renders the words, and asks for a hint on `EASY`, a hidden single. */
 async function renderHint(): Promise<RenderedHint> {
-  const handBack = vi.fn();
-  const { fixture } = await render(HintComponent, { on: { handBack } });
+  const { fixture } = await render(HintComponent);
   const game = playOn();
   game.useHint();
   await fixture.whenStable();
-  return { user: userEvent.setup(), game, handBack, fixture };
+  return { user: userEvent.setup(), game, fixture };
 }
 
 /** Renders the words over a hint, in a room of a height, the words' given. */
@@ -135,24 +99,22 @@ describe("HintComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("fills the hint in from the sheet, closes it and hands the focus back", async () => {
-    const { user, game, handBack } = await renderInRoom(12, 120, 50);
+  it("fills the hint in from the sheet, and closes it", async () => {
+    const { user, game } = await renderInRoom(12, 120, 50);
     const hint = game.hint();
 
     await user.click(screen.getByRole("button", { name: "Fill in" }));
 
     expect(game.grid().digits[hint?.index ?? -1]).toBe(hint?.digit);
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(handBack).toHaveBeenCalledOnce();
   });
 
   it("closes the sheet on Close, keeping the hint", async () => {
-    const { user, game, handBack } = await renderInRoom(12, 120, 50);
+    const { user, game } = await renderInRoom(12, 120, 50);
 
     await user.click(screen.getByRole("button", { name: "Close" }));
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(game.hint()).not.toBeNull();
-    expect(handBack).not.toHaveBeenCalled();
   });
 });
