@@ -390,3 +390,34 @@ The review:
    chrome too.
 3. _"its `formatClock()`" reads as a method of the service:_ taken.
    `AGENTS.md` says "the same entry's `formatClock()`".
+
+### Step F5: Brick Breaker's screenshots through a testing API
+
+Built as planned on `sl-tools`. Brick Breaker's
+`tools/capture-screenshots.mjs` loads one entry,
+`src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, typed by
+`src/testing/script_api.ts`, in place of three modules cast by hand and a
+copied `SAVED_GAME_VERSION`, which moves into the rules beside `SavedGame`,
+as Asteroid Breaker's sits. The entry it stores is the same, byte for byte
+(5550 characters, a score of 950). Brick Breaker's 1834 and 180 specs pass.
+
+Where it went other than planned:
+
+- `SAVED_GAME_KEY` stays a commented copy in the script, as in Asteroid
+  Breaker, whose API hands over the version alone, though the plan's F5 row
+  says both: the key is the shell's, which the script's entry, fenced as the
+  rules are, can't import.
+- The shell's `saved_game.service.ts` now imports the version from the
+  rules, two lines beside `sl-shell`'s 4.7 in the same file.
+
+The review:
+
+1. _The script's new code had no spec:_ taken. It exports `RUN`,
+   `loadScreenshotApi()` and `shownRun()` and captures only when run, and
+   `tools/capture-screenshots.spec.ts`, in `pure`, holds the stored entry to
+   the version the shell takes up, paused on level 9, and its score.
+2. _`script_api.ts` spoke of every script, though the report keeps its own
+   types:_ taken. Its header names the screenshots' script alone.
+3. _`saved_game.ts`'s entry and the testing skill's triggers missed the new
+   names:_ taken. `AGENTS.md` names `SAVED_GAME_VERSION` there, and the skill
+   triggers on `SCREENSHOT_API`, `script_api` and `shownRun`.

@@ -32,6 +32,7 @@ import { importThroughVite } from "@fz/dev/script";
 
 /** @import { Page } from "@fz/dev/chrome" */
 /** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
+/** @import { ScreenshotApi, ScreenshotRun } from "../src/testing/script_api.ts" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/brick-breaker");
@@ -45,11 +46,12 @@ const THEME = "midnight";
 /** The page kept around the field in the thumbnail, in CSS pixels. */
 const THUMB_MARGIN = 24;
 
-/** Where the game keeps the run under way. */
+/**
+ * Where the game keeps the run under way: a copy of `SAVED_GAME_KEY` in
+ * `src/app/play/saved_game.service.ts`, the shell's, which the scripts'
+ * entries, fenced as the rules are, can't import.
+ */
 const SAVED_GAME_KEY = "brick-breaker-game";
-
-/** The version the game keeps the run under, beside it. */
-const SAVED_GAME_VERSION = 1;
 
 /**
  * The board's element, and its attribute that says where the scene drew the
@@ -60,8 +62,10 @@ const BOARD = { element: "app-board", drawnAt: "data-field" };
 /**
  * The run shown, as `keptRun()` keeps it: begun on Rocket at Normal, twenty
  * seconds in, its bricks as a ball breaking in from below leaves them.
+ *
+ * @type {ScreenshotRun}
  */
-const RUN = {
+export const RUN = {
   level: 9,
   speed: "normal",
   seed: 9,
@@ -83,42 +87,39 @@ const RUN = {
 };
 
 /**
- * A run as storage keeps it, so far as the script reads it.
+ * The run as storage keeps it, which the page is given, and its score as the
+ * game writes points.
  *
- * @typedef {{score: number}} SavedRun
+ * @typedef {{stored: string, score: string}} ShownRun
  */
 
 /**
- * A run kept by the game's own rules, and its score as the game writes
- * points.
+ * Returns what the script takes from the game's own code, `SCREENSHOT_API`
+ * in `src/testing/screenshot_api.ts`, loaded through Vite.
  *
- * @typedef {{saved: SavedRun, score: string}} KeptRun
+ * @returns {Promise<ScreenshotApi>}
  */
-
-/**
- * Returns the run, kept by the game's own rules, loaded through Vite, with
- * its score as the game writes points.
- *
- * `@fz/core` isn't written for Node to strip its types, so it comes through
- * Vite as the rules do.
- *
- * @returns {Promise<KeptRun>}
- */
-async function keepRun() {
-  const [levels, kept, format] = await Promise.all([
-    importThroughVite(join(ROOT, "src/rules/levels/levels.ts"), ROOT),
-    importThroughVite(join(ROOT, "src/testing/kept_run.ts"), ROOT),
-    importThroughVite("@fz/core/format", ROOT),
-  ]);
-  const keptRun =
-    /** @type {(levels: unknown, run: typeof RUN) => SavedRun} */ (
-      kept["keptRun"]
-    );
-  const formatPoints = /** @type {(points: number) => string} */ (
-    format["formatPoints"]
+export async function loadScreenshotApi() {
+  const module = await importThroughVite(
+    join(ROOT, "src/testing/screenshot_api.ts"),
+    ROOT,
   );
-  const saved = keptRun(levels["LEVELS"], RUN);
-  return { saved, score: formatPoints(saved.score) };
+  return /** @type {ScreenshotApi} */ (module["SCREENSHOT_API"]);
+}
+
+/**
+ * Returns the run shown: kept as the game keeps it, stamped with the version
+ * the shell keeps it under, and its score as the game writes it.
+ *
+ * @param {ScreenshotApi} api
+ * @returns {ShownRun}
+ */
+export function shownRun(api) {
+  const saved = api.keptRun(RUN);
+  return {
+    stored: JSON.stringify({ version: api.savedGameVersion, ...saved }),
+    score: api.formatPoints(saved.score),
+  };
 }
 
 /**
@@ -148,18 +149,13 @@ async function goOn() {
  *
  * @param {Page} page
  * @param {string} url
- * @param {KeptRun} run
+ * @param {ShownRun} run
  * @returns {Promise<Shot | Missed>}
  */
 async function capture(page, url, run) {
   await setUpPage(page, {
     theme: THEME,
-    stored: {
-      [SAVED_GAME_KEY]: JSON.stringify({
-        version: SAVED_GAME_VERSION,
-        ...run.saved,
-      }),
-    },
+    stored: { [SAVED_GAME_KEY]: run.stored },
   });
   await page.navigate(url);
   await settled(page, PHASER_CANVAS_SETTLED);
@@ -189,7 +185,7 @@ const SCRIPT = {
   root: ROOT,
   port: 9004,
   capture: async (devtools, { url }, printer) => {
-    const run = await keepRun();
+    const run = shownRun(await loadScreenshotApi());
     const shot = await withPage(devtools, VIEWPORT, (page) =>
       capture(page, url, run),
     );
@@ -197,4 +193,4 @@ const SCRIPT = {
   },
 };
 
-process.exitCode = await runScreenshotScript(SCRIPT);
+if (import.meta.main) process.exitCode = await runScreenshotScript(SCRIPT);

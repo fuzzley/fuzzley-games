@@ -53,8 +53,10 @@ The scene hands them the frames' time and the room, the shell what is kept,
 and their numbers are drawn from a seed, so a run plays the same again from
 its seed and its frames, as a game taken up and a level made again from its
 run's seed rely on. So do the helpers the scripts in `tools/` load, the
-autopilot (`src/testing/autopilot.ts`) and the run the screenshots keep
-(`src/testing/kept_run.ts`), as a report or a capture must play the same
+autopilot (`src/testing/autopilot.ts`), the run the screenshots keep
+(`src/testing/kept_run.ts`) and the screenshots' entry
+(`src/testing/screenshot_api.ts`, of a type in
+`src/testing/script_api.ts`), as a report or a capture must play the same
 from its seed: lint holds them as it does the rules, to the rules' fence
 and off the clock, `Math.random()` and the page (`SCRIPT_HELPERS` in
 `eslint.config.js`, handed to `phaserGameLayers()` as `heldAsRules`), and a
@@ -164,8 +166,9 @@ takes for the specs' helpers.
   makes sense and the bests of a level the game still has, `withRunStarted()`,
   `withRunEnded()` and `withLevelPoints()` move them on, and `isNewBest()` says
   whether a run's score beats the best. `saved_game.ts` turns a run under way
-  and its field into what storage keeps (`saveGame()`), a run whose level was
-  just cleared as the next level not yet begun, and back (`restoreGame()`),
+  and its field into what storage keeps (`saveGame()`), which the shell keeps
+  under `SAVED_GAME_VERSION`, a run whose level was just cleared as the next
+  level not yet begun, and back (`restoreGame()`),
   paused, dropping a level the game doesn't have under that number, a field
   that doesn't fit its level, a number out of its range, or a state no run
   comes to, such as a brick broken with hits left or a level that needs
@@ -600,11 +603,13 @@ workspace's with the others'.
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a run kept
-  by the rules (`keptRun()`, in `src/testing/kept_run.ts`), begun on level
-  9, Rocket, at Normal, with three bricks of its body's foot, three flames
-  and a brick of each fin broken, taken up and gone on with, so the ball
-  waits on the paddle under the card that says how to launch it, at
-  1280 × 720 and 2× on Midnight blue, written to
+  by the rules (`keptRun()`, in `src/testing/kept_run.ts`, which it loads
+  through `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the
+  version the shell keeps it under), begun on level 9, Rocket, at Normal,
+  with three bricks of its body's foot, three flames and a brick of each
+  fin broken, taken up and gone on with, so the ball waits on the paddle
+  under the card that says how to launch it, at 1280 × 720 and 2× on
+  Midnight blue, written to
   `public/docs/screenshots/brick-breaker/` as the site's `preview.webp`
   (2560 × 1440), which `index.html` names as the link preview, and
   `thumb.webp` (576 × 324, the field) by `@fz/dev/screenshots`; `--url`
@@ -625,8 +630,8 @@ specs in three projects, each starting only what its own need. `sim` runs
 the specs that play every level, in Node, without the coverage that would
 quadruple their time, as the other rules specs alone hold the rules to
 their floor. `pure` runs the other specs of the rules and the view, and the
-report's in `tools/`, in Node too, which has no page, as nothing they test
-touches one. `dom` runs every other spec, the scene's, the shell's and
+report's and the screenshots' script's in `tools/`, in Node too, which has
+no page, as nothing they test touches one. `dom` runs every other spec, the scene's, the shell's and
 `src/testing/`'s, in jsdom, after `src/test-setup.ts`, which installs
 `@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs
 real Phaser through `runScene()`, with a fake shell over a pictured field.
@@ -670,6 +675,13 @@ skill covers its setup, floors and fixtures, the repository's
   `clearToNext()`).
 - `kept_run.ts` keeps a run begun at a level, the bricks it names broken or
   worn through the rules (`keptRun()`), for the screenshots' script.
+- `screenshot_api.ts` holds what `tools/capture-screenshots.mjs` takes from
+  the game, in one object (`SCREENSHOT_API`) the script loads through Vite:
+  the run kept, points as the game writes them and the version the shell
+  keeps a run under (`SAVED_GAME_VERSION`, beside `SavedGame` in the
+  rules). Its type is in `script_api.ts`, which imports nothing, so the
+  script's JSDoc takes it and a name changed in the rules fails to
+  compile; its spec holds it to what it hands on.
 
 The board's spec runs on `provideFakePhaserCanvas()`, and then with the real
 scene it loads, through which it plays a level to its end; the app's runs

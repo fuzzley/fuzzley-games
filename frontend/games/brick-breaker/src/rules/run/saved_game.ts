@@ -32,6 +32,9 @@ export interface SavedField {
   readonly draws: number;
 }
 
+/** The version of `SavedGame`, which the shell keeps a run under; the shell's reader drops any other. */
+export const SAVED_GAME_VERSION = 1;
+
 /** A run under way as storage keeps it. */
 export interface SavedGame {
   /** The id of the level in play, which must still be the level of its number. */

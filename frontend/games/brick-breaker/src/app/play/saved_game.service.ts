@@ -1,14 +1,11 @@
 import { Injectable, effect, inject, untracked } from "@angular/core";
 import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
-import { restoreGame } from "../../rules/run/saved_game";
+import { SAVED_GAME_VERSION, restoreGame } from "../../rules/run/saved_game";
 import { GameService } from "./game.service";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the run under way is kept. Renaming it loses every player's. */
 export const SAVED_GAME_KEY = "brick-breaker-game";
-
-/** The shape the run is kept in; a reader drops any other. */
-const SAVED_GAME_VERSION = 1;
 
 /**
  * Keeps the run under way, and takes it up again, paused, when the page
