@@ -1,9 +1,15 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { render, screen, within } from "@testing-library/angular";
+import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  barChoice,
+  chooseInBar,
+  installFakeViewport,
+  openBarMenu,
+} from "@fz/game-ui/testing";
 import { PRESETS } from "../../rules/difficulty";
 import { playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
@@ -41,19 +47,6 @@ function figure(term: string): string {
   return value.textContent.replace(/\s+/g, " ").trim();
 }
 
-/** Returns the badge that shows the difficulty and offers the others. */
-function difficultyBadge(): HTMLElement {
-  return screen.getByRole("button", { name: "Difficulty: Hard" });
-}
-
-/** Chooses a difficulty from the badge's menu. */
-async function chooseDifficulty(user: UserEvent, name: string): Promise<void> {
-  await user.click(difficultyBadge());
-  await user.click(
-    screen.getByRole("menuitemradio", { name: new RegExp(`^${name}`) }),
-  );
-}
-
 describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
@@ -74,7 +67,7 @@ describe("BarComponent", () => {
     it("shows the difficulty of the game on the board", async () => {
       await renderBar();
 
-      expect(difficultyBadge()).toHaveTextContent("Hard");
+      expect(barChoice("Difficulty")).toHaveAccessibleName("Difficulty: Hard");
     });
 
     it("offers the difficulties from the badge, each with its field", async () => {
@@ -83,7 +76,7 @@ describe("BarComponent", () => {
         custom: { rows: 8, cols: 12, mines: 20 },
       });
 
-      await user.click(difficultyBadge());
+      await user.click(barChoice("Difficulty"));
 
       expect(
         screen.getAllByRole("menuitemradio").map((item) => item.textContent),
@@ -98,7 +91,7 @@ describe("BarComponent", () => {
     it("checks the board's difficulty", async () => {
       const { user } = await renderBar();
 
-      await user.click(difficultyBadge());
+      await user.click(barChoice("Difficulty"));
 
       expect(
         screen.getByRole("menuitemradio", { checked: true }),
@@ -108,7 +101,7 @@ describe("BarComponent", () => {
     it("names the difficulty chosen before it loses the game under way", async () => {
       const { user } = await renderBar();
 
-      await chooseDifficulty(user, "Easy");
+      await chooseInBar(user, "Difficulty", "Easy");
 
       expect(TestBed.inject(ConfirmService).prompt().title).toBe(
         "Start a new Easy game?",
@@ -117,7 +110,7 @@ describe("BarComponent", () => {
 
     it("keeps the game when the player backs out", async () => {
       const { user } = await renderBar();
-      await chooseDifficulty(user, "Easy");
+      await chooseInBar(user, "Difficulty", "Easy");
 
       TestBed.inject(ConfirmService).cancel();
       await TestBed.inject(ApplicationRef).whenStable();
@@ -127,7 +120,7 @@ describe("BarComponent", () => {
 
     it("deals a field of the difficulty chosen when the player goes ahead", async () => {
       const { user } = await renderBar();
-      await chooseDifficulty(user, "Easy");
+      await chooseInBar(user, "Difficulty", "Easy");
 
       TestBed.inject(ConfirmService).accept();
 
@@ -143,7 +136,7 @@ describe("BarComponent", () => {
       const custom = { rows: 8, cols: 12, mines: 20 };
       const { user } = await renderBar();
       TestBed.inject(SettingsService).update({ custom });
-      await chooseDifficulty(user, "Custom");
+      await chooseInBar(user, "Difficulty", "Custom");
 
       TestBed.inject(ConfirmService).accept();
 
@@ -219,15 +212,6 @@ describe("BarComponent", () => {
       viewport = installFakeViewport(390, 844);
     });
 
-    /** Opens the overflow menu and returns its items' names. */
-    async function openMenu(user: UserEvent): Promise<string[]> {
-      await user.click(screen.getByRole("button", { name: "More actions" }));
-      const menu = await screen.findByRole("menu");
-      return within(menu)
-        .getAllByRole("menuitem")
-        .map((item) => item.textContent.trim());
-    }
-
     it("leaves the difficulty out, for the figures' room", async () => {
       await renderBar();
 
@@ -247,14 +231,14 @@ describe("BarComponent", () => {
     it("moves Restart, How to play and Settings into the menu", async () => {
       const { user } = await renderBar();
 
-      const items = await openMenu(user);
+      const items = await openBarMenu(user);
 
       expect(items).toEqual(["Restart", "How to play", "Settings"]);
     });
 
     it("asks for How to play from the menu", async () => {
       const { user, openHelp } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "How to play" }));
 
@@ -265,7 +249,7 @@ describe("BarComponent", () => {
       viewport?.setSize(340, 700);
       const { user } = await renderBar();
 
-      const items = await openMenu(user);
+      const items = await openBarMenu(user);
 
       expect(items[0]).toBe("Fuzzley Games");
     });

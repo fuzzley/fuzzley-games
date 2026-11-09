@@ -106,7 +106,8 @@ Each library's `testing` entry point holds what specs need of it, and
   browser's; and `setPageVisibility()`, which hides the page or shows it
   again, as switching tabs does, until the test finishes.
 - `@fz/game-ui/testing`: `installFakeViewport()`, handed on from
-  `@fz/ui/testing`.
+  `@fz/ui/testing`; and `barChoice()`, `chooseInBar()` and `openBarMenu()`,
+  which drive the bar's choice and overflow menus as a player does.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
   Phaser, with `collectErrors()`, which keeps what a failed scene hands the
   app's `ErrorHandler` for the spec to read, and `FakeResizeObserver`,

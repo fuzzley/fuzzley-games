@@ -621,3 +621,40 @@ The review:
    on that frame matching.
 2. _The summary called `fz-pulse` `@fz/style`'s:_ taken. The commit message
    names `@fz/ui`'s confirm dialog, where it is declared.
+
+### Step 5.1: the bar's menus driven in specs by `@fz/game-ui/testing`
+
+Built as planned on `sl-tools`. `@fz/game-ui/testing` holds `barChoice()`,
+`chooseInBar()` and `openBarMenu()` (`src/testing/bar_menus.ts`), and all
+five games' bar specs drop their own badge finder, chooser and menu opener,
+13 to 19 lines each. Five specs of the helpers join `@fz/game-ui`'s, 264
+passing at its floor; every game's suite passes.
+
+Where it went other than planned:
+
+- The copies built a `RegExp` from an option's name; the helpers match the
+  start of the name with a function, so nothing needs escaping.
+- Snake's, Minesweeper's and Sudoku's finders required the badge's value
+  ("Speed: Normal"); their specs now say so with `toHaveAccessibleName()`.
+- The testing entry imports Testing Library, which `@fz/game-ui` declares
+  optional peers, as `@fz/phaser` does Vitest.
+
+The review:
+
+1. _The helpers' specs would pass with an exact match, and pinned no
+   failure:_ taken. Every option has a detail, the badge's name is checked
+   whole, and each helper is held to throw for what the bar lacks; the spec
+   fails with the match made exact.
+2. _Snake read the menu again rather than taking `openBarMenu()`'s list:_
+   taken.
+3. _Three specs no longer checked the badge's accessible name:_ taken, with
+   `toHaveAccessibleName()`.
+4. _The angular-testing skill's list of helpers, and the fuzzley-ui skill's
+   rows:_ taken. The first names them; in the second the choice's helpers
+   sit in the choice's row and `openBarMenu()` in the bar's.
+5. _Testing Library reached through hoisting alone:_ taken. Optional peers,
+   with `AGENTS.md`'s Imports rule saying so.
+6. _`findByRole()` waited for nothing:_ taken. `openBarMenu()` takes the
+   menu with `getByRole()`, as `chooseInBar()` does; its items prove it
+   opened.
+7. _`chooseInBar()`'s doc:_ taken, with why the name is matched as a start.
