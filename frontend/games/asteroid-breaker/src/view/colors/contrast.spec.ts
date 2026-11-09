@@ -1,15 +1,8 @@
-import path from "node:path";
 import { THEMES } from "@fz/style/themes";
-import {
-  compileStylesheet,
-  contrast,
-  paletteRoles,
-  rgbOf,
-} from "@fz/style/testing";
+import { contrast, rgbOf } from "@fz/style/testing";
 import { colorNumber } from "@fz/phaser/color";
+import { fieldRolesIn, stylesheetRole } from "../../testing/roles";
 import { beltPalette } from "./palette";
-
-const GLOBAL = path.join(import.meta.dirname, "../../app/styles/global.scss");
 
 /** The contrast a graphic keeps against what it is drawn on, as WCAG asks of graphics. */
 const GRAPHIC = 3;
@@ -29,32 +22,9 @@ function between(one: number, other: number): number {
 // crew waits; and its eyes keep 3:1 against it. The deck's symbols at rest
 // keep 3:1 against its buttons, and the knob against the stick's base.
 describe("the field's contrast", () => {
-  const palettes = paletteRoles(compileStylesheet(GLOBAL));
-
   describe.each(THEMES)("in $name", ({ id, mode }) => {
-    const roles = palettes.get(id) ?? new Map<string, string>();
-
-    /** Returns one of the palette's roles, as the page sets it. */
-    function role(name: string): string {
-      const value = roles.get(name);
-      if (value === undefined) throw new Error(`No --fz-${name} in ${id}`);
-      return value;
-    }
-
-    const palette = beltPalette(
-      {
-        field: role("field"),
-        fieldLine: role("field-line"),
-        fieldText: role("field-text"),
-        fieldMuted: role("field-muted"),
-        accent: role("accent"),
-        onAccent: role("on-accent"),
-        danger: role("danger"),
-        warning: role("warning"),
-      },
-      mode,
-    );
-    const bar = colorNumber(role("bar"));
+    const palette = beltPalette(fieldRolesIn(id), mode);
+    const bar = colorNumber(stylesheetRole(id, "bar"));
     const rocks = Object.entries(palette.rocks).map(
       ([kind, color]) => [`${kind} rock`, color] as const,
     );

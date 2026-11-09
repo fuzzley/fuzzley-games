@@ -164,8 +164,10 @@ its seed and its frames, as a game taken up relies on.
   (`GameService.drawn`, which the board sets from its canvas), since a run
   nobody can see would be lost.
 - **Its colors are the palette's.** `snakePalette()` takes the panel, the
-  text, the accent and the danger from the page, which `ThemeService` reads,
-  and `src/view/contrast.spec.ts` holds the snake, its head and the apple to
+  text, the accent and the danger from the page, which the board's
+  `boardPalette()` reads through `ThemeService`'s `roles()` by the names in
+  `src/app/board/board_roles.ts` (`BOARD_ROLES`), and
+  `src/view/contrast.spec.ts` holds the snake, its head and the apple to
   3:1 against both shades of square in every palette.
 - **The placeholder, the ring and the cards work out the board's square in
   CSS,** as `boardMetrics()` does, at the pixel ratio the canvas renders at,

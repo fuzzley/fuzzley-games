@@ -130,6 +130,7 @@ game through `runScene()`:
 
 `src/view/contrast.spec.ts` checks every palette in `@fz/style`'s `THEMES`
 with `@fz/style/testing`'s helpers. It compiles the global stylesheet,
-reads each palette's roles from it, builds `snakePalette()` from them, and
+reads each palette's roles from it, by the names the board reads them by
+(`BOARD_ROLES`), builds `snakePalette()` from them, and
 holds the snake, its head and the apple to 3:1 against both shades of
 square, and the checker to the page's first wash.

@@ -134,8 +134,9 @@ Run these from `frontend/games/brick-breaker/`, or as
   (`frameNamed()`), so the art's specs check the commands a frame is drawn
   with.
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
-  `THEMES` with `@fz/style/testing`'s helpers: it compiles the global
-  stylesheet, reads each palette's roles from it, builds `bricksPalette()`
+  `THEMES` with `@fz/style/testing`'s helpers: it reads each palette's
+  roles from the global stylesheet, by the names the board reads them by
+  (`src/testing/roles.ts`'s `fieldRolesIn()`), builds `bricksPalette()`
   from them, and holds the tints, the kinds, the balls, the capsules, the
   paddle and the glow to 3:1 against the field, and the outline and the
   marks against what they cross.

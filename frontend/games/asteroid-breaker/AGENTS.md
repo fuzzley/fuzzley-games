@@ -480,11 +480,12 @@ takes for the specs' helpers.
     (`data-deck`), written with `@fz/phaser/layout`'s `rectAttribute()` and
     `namedRectsAttribute()`, which the layout check reads back with
     `@fz/dev`'s `readRect()` and `readNamedRects()`; the board's spec reads
-    the field's with `readRect()`. `fieldPalette()`
-    colors the field from `ThemeService`'s roles and `mode`. The board asks
-    the scene for How to play's pictures as How to play opens (`pictures`),
-    and keeps them until the scene bakes again. It is an application named
-    for its wave, "Asteroid Breaker, wave 4: Thaw".
+    the field's with `readRect()`. `fieldPalette()` colors the field from
+    the roles `field_roles.ts` names (`FIELD_ROLES`), through
+    `ThemeService`'s `roles()`, and its `mode`. The board asks the scene for
+    How to play's pictures as How to play opens (`pictures`), and keeps them
+    until the scene bakes again. It is an application named for its wave,
+    "Asteroid Breaker, wave 4: Thaw".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, whose menu asks before it starts a run at another, the
     figures, and Pause, Sound, Sectors, New game, How to play and Settings,
@@ -901,9 +902,11 @@ of its own beside it:
   the bar and the rail at the sizes its spec compiles from the app's
   stylesheets (`boardOf()`), its viewport `@fz/phaser/testing/pure`'s
   `viewport()`, for the specs of the layout, the steering and the scene.
-- `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
-  specs that color the field, and `pilots.ts` reads the pilots an element
-  draws (`pilotsIn()`).
+- `roles.ts` reads a palette's roles from the game's stylesheet
+  (`stylesheetRole()`), and the field's by the names the board reads them
+  by (`fieldRolesIn()`), for the contrast spec and the specs that color the
+  field, and puts the field's on the page (`paintRoles()`); `pilots.ts`
+  reads the pilots an element draws (`pilotsIn()`).
 - `play.ts` holds the small waves the shell's specs play, each set up to
   come to one thing soon (`SPEC_WAVES` and the others), handed to
   `GameService` through `GAME_WAVES` with a seed of its own through

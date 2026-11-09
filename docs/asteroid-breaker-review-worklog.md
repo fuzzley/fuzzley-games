@@ -2348,3 +2348,43 @@ The review found nothing that would lose a player's saved data:
    game through the two helpers:_ taken; the Solitaire Collection's game
    choice, options and game in play named as the exception; and a line
    rewrapped.
+
+### Step 17b: finding 20, the field's palette through `ThemeService.roles()`
+
+Built on `ul-theme`. `ThemeService.roles(record)` gives one signal of the
+colors a record of role names names, read from the palette on the page as
+`mode` is, and a new record only when one of its colors changes, so a scene
+repaints no more often than before. Asteroid Breaker's and Brick Breaker's
+`fieldPalette()` is two lines over it and `mode`, and Snake's
+`boardPalette()` the same, each game's roles a record of their own
+(`FIELD_ROLES`, `BOARD_ROLES`), which its contrast spec reads too, so the
+colors held to 3:1 are those drawn. Each palette's spec holds it, in every
+palette `@fz/style` offers, to that palette's compiled roles. In Chrome,
+every board's palette reads back the same in all four palettes before and
+after.
+
+Where it went other than planned:
+
+- `fieldPalette()` stays, two lines, so the palette a board hands its scene
+  keeps a spec; Snake's gains one.
+- Each game's roles are a file of their own, which its contrast spec, in
+  Node, and Asteroid Breaker's testing helpers take without the Angular
+  composition.
+
+The review found the palette repainting as often as before, and the specs
+holding less than they had:
+
+1. _With `field_palette.spec.ts` gone, nothing held the palette the board
+   builds:_ taken; `fieldPalette()` back as two lines, its cases restored,
+   and Snake's palette a function with a spec too.
+2. _The role names were written out three times a game, the contrast specs
+   keeping a copy:_ taken; the contrast specs read the record, the specs'
+   role helpers take a `PaletteRole`, and one list is written by hand per
+   game.
+3. _The specs would pass if `roles()` followed the palette chosen rather
+   than the one on the page:_ taken; read between `select()` and the tick,
+   and `role()`'s likewise.
+4. _`ROLES` was exported for nothing, and Brick Breaker painted by its
+   keys:_ the painting taken, through `FIELD_ROLES`; the export stays, since
+   the restored spec reads it again.
+5. _Docs:_ taken.

@@ -232,7 +232,10 @@ export class BoardComponent {
   /** What the card over an ended run calls it. */
   protected readonly endCardTitle = computed(() => endTitle(this.game.run()));
 
-  /** The field's colors, from the palette on the page. */
+  /**
+   * The field's colors, from the palette on the page, a new object when the
+   * field's roles or the mode change.
+   */
   private readonly palette = fieldPalette(inject(ThemeService));
 
   private readonly picturesState = signal<Pictures | null>(null);

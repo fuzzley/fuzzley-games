@@ -224,12 +224,13 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   each piece that wraps draws within the reach the scene draws its copies
   by (`reachOf()`).
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
-  `THEMES`: it compiles the global stylesheet, reads each palette's roles
-  from it, builds the field's palette from them, and holds every rock, the
-  ship, the shots, the pickups, the comet, the strays and the pilots to 3:1
-  against what they are drawn on, the marks and outlines against what they
-  cross, and the deck's symbols at rest against its buttons and its knob
-  against the stick's base.
+  `THEMES`: it reads each palette's roles from the global stylesheet, by
+  the names the board reads them by (`src/testing/roles.ts`'s
+  `fieldRolesIn()`), builds the field's palette from them, and holds every
+  rock, the ship, the shots, the pickups, the comet, the strays and the
+  pilots to 3:1 against what they are drawn on, the marks and outlines
+  against what they cross, and the deck's symbols at rest against its
+  buttons and its knob against the stick's base.
 
 ## The Scene
 

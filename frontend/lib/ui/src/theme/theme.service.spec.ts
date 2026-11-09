@@ -54,6 +54,25 @@ describe("ThemeService", () => {
     );
   }
 
+  /** Adds the bar and felt colors of the palette the page starts in, and of midnight. */
+  function addTwoPalettes(): void {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      '<style id="palette">' +
+        '[data-theme="pastel"] { --fz-bar: #f7eef5; --fz-felt: #b8dccb; }' +
+        '[data-theme="midnight"] { --fz-bar: #0e1a2b; --fz-felt: #17605a; }' +
+        "</style>",
+    );
+  }
+
+  /** Gives every palette the same accent. */
+  function addSharedAccent(): void {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      '<style id="palette">[data-theme] { --fz-accent: #4cc3ff; }</style>',
+    );
+  }
+
   /** Returns a store that refuses every write, as a full one does. */
   function fullStorage(): Storage {
     const storage = Object.create(localStorage) as Storage;
@@ -207,15 +226,42 @@ describe("ThemeService", () => {
     expect(document.querySelector('link[rel="icon"]')).toBeNull();
   });
 
-  it("follows the palette in use in a role's color", () => {
-    addPaletteAndToolbarTag();
+  it("follows the palette in use in a role's color, once it is on the page", () => {
+    addTwoPalettes();
     const theme = service();
     const felt = theme.role("felt");
 
     theme.select("midnight");
+    const beforeApplied = felt();
     TestBed.tick();
 
+    expect(beforeApplied).toBe("#b8dccb");
     expect(felt()).toBe("#17605a");
+  });
+
+  it("follows the palette in use in the colors of the roles a record names, under its keys, once it is on the page", () => {
+    addTwoPalettes();
+    const theme = service();
+    const colors = theme.roles({ top: "bar", table: "felt" });
+
+    theme.select("midnight");
+    const beforeApplied = colors();
+    TestBed.tick();
+
+    expect(beforeApplied).toEqual({ top: "#f7eef5", table: "#b8dccb" });
+    expect(colors()).toEqual({ top: "#0e1a2b", table: "#17605a" });
+  });
+
+  it("keeps the record of the roles' colors while a new palette leaves them as they were", () => {
+    addSharedAccent();
+    const theme = service();
+    const colors = theme.roles({ accent: "accent" });
+    const before = colors();
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    expect(colors()).toBe(before);
   });
 
   it("says a dark palette on the page is dark", () => {
@@ -247,6 +293,10 @@ describe("ThemeService", () => {
 
   it("reads a role no stylesheet sets as empty", () => {
     expect(service().role("felt")()).toBe("");
+  });
+
+  it("reads the roles no stylesheet sets as empty, under their keys", () => {
+    expect(service().roles({ table: "felt" })()).toEqual({ table: "" });
   });
 
   it("takes up a palette chosen in another tab", () => {

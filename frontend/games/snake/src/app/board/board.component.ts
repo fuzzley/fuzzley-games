@@ -25,9 +25,9 @@ import { type CssRect, rectAttribute } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { BOARD_SIZE } from "../../rules/arena";
 import type { SnakeSceneOptions } from "../../scene/snake_scene";
-import { snakePalette } from "../../view/palette";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
+import { boardPalette } from "./board_palette";
 
 /** Names a card of the board's own laid over the board, or none. */
 type Card = "start" | "paused" | "ended" | null;
@@ -66,7 +66,6 @@ export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(GameViewportService);
   private readonly settings = inject(SettingsService);
-  private readonly theme = inject(ThemeService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
@@ -146,19 +145,11 @@ export class BoardComponent {
     this.game.outcome() === "won" ? "You filled the board!" : "Game over",
   );
 
-  /** The board's colors, a new object only when the palette changes. */
-  private readonly palette = computed(() =>
-    snakePalette({
-      panel: this.panel(),
-      text: this.text(),
-      accent: this.accent(),
-      danger: this.danger(),
-    }),
-  );
-  private readonly panel = this.theme.role("panel");
-  private readonly text = this.theme.role("text");
-  private readonly accent = this.theme.role("accent");
-  private readonly danger = this.theme.role("danger");
+  /**
+   * The board's colors, from the palette on the page, a new object when the
+   * board's roles change.
+   */
+  private readonly palette = boardPalette(inject(ThemeService));
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: SnakeSceneOptions = {
