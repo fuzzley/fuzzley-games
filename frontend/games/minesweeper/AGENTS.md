@@ -31,8 +31,11 @@ workspace keeps its own for its code. Paths are relative to
   mines where they lay. `difficulty.ts` holds the presets and the
   bounds of a field of the player's own, `describe.ts` what a square shows
   and what a screen reader hears of it and of a move, `saved_field.ts` a
-  field as JSON. ESLint keeps Angular, the libraries but `@fz/core`, RxJS
-  and the shell out of it.
+  field as JSON. ESLint, with `@fz/dev`'s `gameRules()`, keeps Angular,
+  RxJS, the libraries but `@fz/core`, the shell and the specs' helpers out
+  of its code, but its specs, and that code reads only what it is handed:
+  no clock, no number drawn from no seed, nothing of the page and nothing
+  stored.
 - **`src/app/`** — the shell, one folder per feature, each holding its
   components and services together. `app.component` lays them out, with
   the `<fz-announcer>` every move is announced through.

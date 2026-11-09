@@ -297,19 +297,19 @@ const PURE_PHASER_ENTRIES = [
 ];
 
 // Why the rules and the view read only what they are handed: a game taken up,
-// a run played again from its seed, as an autopilot plays one, and a level or
-// a wave made again from it all rely on a run playing the same from the same
-// seed and the same frames.
+// a run played again from its seed, as an autopilot plays one, and a level, a
+// wave or a puzzle made again from it all rely on a game playing the same from
+// the same seed, moves and frames.
 const CLOCK =
-  "The rules and the view keep time by the frames the scene hands them, never by the clock or a timer, so a run plays the same again from the same frames.";
+  "The rules and the view keep time by what the scene or the shell hands them, never by the clock or a timer, so a game plays the same again from the same moves and frames.";
 const RANDOM =
-  "The rules and the view draw their numbers from a seed they are handed, with @fz/core/random's createRandom() or drawAt(), so a run plays the same again from its seed.";
+  "The rules and the view draw their numbers from a seed they are handed, with @fz/core/random's createRandom() or drawAt(), so a game plays the same again from its seed.";
 const MIXED_SEED =
   "The rules and the view mix a seed with a number through @fz/core/random's mixSeed(), in a stream named for what it is mixed for, never by hand, so no two streams draw from the same seeds and each stream's are pinned in its spec.";
 const PAGE =
-  "The rules and the view read nothing of the page, which the scene and the shell read and hand them, so a run plays the same in Node as on the page.";
+  "The rules and the view read nothing of the page, which the scene or the shell reads and hands them, so a game plays the same in Node as on the page.";
 const STORAGE =
-  "The rules and the view read nothing stored or fetched: the shell reads what is kept and hands them the record, so a run plays the same from the record it is handed, in Node as on the page.";
+  "The rules and the view read nothing stored or fetched: the shell reads what is kept and hands them the record, so a game plays the same from the record it is handed, in Node as on the page.";
 
 // The globals that read the clock, a number drawn from no seed, the page or
 // what is stored or fetched, each group with its reason. The page's global
@@ -582,6 +582,25 @@ function heldTogether({ root, files }: HeldAsRules): RestrictedImportPattern {
 }
 
 /**
+ * Returns the fence around a game's rules (`src/rules/`), but their specs:
+ * no framework, no library but `@fz/core`, nothing of how the game is drawn,
+ * of its shell or of the specs' helpers, and only what they are handed, so no
+ * clock or timer, no number drawn from no seed, no seed mixed by hand,
+ * nothing of the page and nothing stored or fetched.
+ *
+ * A game drawn with Phaser takes it within {@link phaserGameLayers}. ESLint
+ * takes a rule's options from the last block that sets it for a file, so a
+ * block of the game's own that restricts imports, properties, globals or
+ * syntax in its rules replaces these rather than adding to them.
+ */
+export function gameRules(): Config[] {
+  return defineConfig(
+    fence(["src/rules/**/*.ts"], RULES_FENCE),
+    deterministic(["src/rules/**/*.ts"]),
+  );
+}
+
+/**
  * Returns the fences between the layers of a game drawn with Phaser, each a
  * folder under `src/` importing only the layers below it: the rules
  * (`src/rules/`), then the view (`src/view/`), then the scene
@@ -613,14 +632,14 @@ export function phaserGameLayers({
   }
   const held = heldAsRules?.files ?? [];
   return defineConfig(
-    fence(["src/rules/**/*.ts"], RULES_FENCE),
+    gameRules(),
     fence(["src/view/**/*.ts"], viewFence(viewAllows)),
     fence(["src/scene/**/*.ts"], SCENE_FENCE),
     fence(["src/app/**/*.ts"], APP_FENCE),
     heldAsRules && held.length > 0
       ? fence(held, [...RULES_FENCE, heldTogether(heldAsRules)])
       : [],
-    deterministic(["src/rules/**/*.ts", "src/view/**/*.ts", ...held]),
+    deterministic(["src/view/**/*.ts", ...held]),
   );
 }
 

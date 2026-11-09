@@ -84,3 +84,31 @@ The review:
    says so. The way around it the reviewer offered, which stops checking now
    and stops writing in a later release, was not taken: it isn't worth it
    for a game in progress.
+
+### Step 1.4: one rules fence for the games without Phaser
+
+Built as planned on `sl-tools`. `@fz/dev/eslint` exports `gameRules()`,
+`RULES_FENCE` and `deterministic()` over `src/rules/**`, and Minesweeper's
+and Sudoku's `eslint.config.js` each take it in place of 27 hand-written
+lines. `phaserGameLayers()` takes the rules' blocks from it, so the two
+can't drift. Neither game's rules break the stricter fence. Four specs of
+`gameRules()` join `@fz/dev`'s 461 passing; Minesweeper's 373 and Sudoku's
+592 pass.
+
+Where it went other than planned:
+
+- The rules' specs are now free of the import fence, as the Phaser games'
+  are; the hand-written fence covered them too. They need it: they import
+  the pictures under `testing/`, which the new fence refuses.
+- `deterministic()`'s messages say "a game" for "a run" and "what the scene
+  or the shell hands them", since a game without Phaser has no scene.
+- `@fz/dev`'s `AGENTS.md` gave Minesweeper's fence as a workspace's own; it
+  now gives the Solitaire Collection's tier fences.
+
+The review:
+
+1. _The game docs read as if the fence covered the rules' specs:_ taken.
+   Minesweeper's, Sudoku's and `@fz/dev`'s `AGENTS.md` now put "but its (their)
+   specs" on the whole fence.
+2. _`games/AGENTS.md` picked `gameRules()` by a test the Phaser games pass
+   too:_ taken. It now says "for one drawn without Phaser".

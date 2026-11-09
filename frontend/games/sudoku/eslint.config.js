@@ -1,4 +1,11 @@
-import { angular, scripts, templates, tests, typescript } from "@fz/dev/eslint";
+import {
+  angular,
+  gameRules,
+  scripts,
+  templates,
+  tests,
+  typescript,
+} from "@fz/dev/eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
@@ -14,31 +21,8 @@ export default defineConfig(
   scripts({
     files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
   }),
-  {
-    // The rules of the game know nothing of how it is shown, so specs drive
-    // them directly and the shell can change around them.
-    files: ["src/rules/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              // @fz/core is the one library with no framework.
-              group: ["@angular/*", "@fz/*", "!@fz/core", "!@fz/core/*"],
-              message: "The game's rules use no framework.",
-            },
-            {
-              group: ["rxjs", "rxjs/*"],
-              message: "The game's rules use no framework.",
-            },
-            {
-              group: ["**/app", "**/app/**"],
-              message: "The game's rules know nothing of the shell.",
-            },
-          ],
-        },
-      ],
-    },
-  },
+  // The rules know no framework and nothing of the shell, and read only what
+  // they are handed, so specs drive them directly and the shell can change
+  // around them.
+  gameRules(),
 );
