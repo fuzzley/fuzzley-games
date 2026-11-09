@@ -6,7 +6,7 @@ import {
   FakePhaserCanvas,
   type SceneRun,
   provideFakePhaserCanvas,
-  runScene,
+  runShownScene,
 } from "@fz/phaser/testing";
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
@@ -246,26 +246,20 @@ describe("AppComponent", () => {
   });
 
   describe("How to play, with the scene the board loads", () => {
-    let scene: SceneRun<HostedScene> | null = null;
-
     beforeEach(() => {
       paintRoles(FIELD_ROLES, ROLES);
     });
 
     afterEach(() => {
-      scene?.destroy();
-      scene = null;
       vi.restoreAllMocks();
     });
 
     /** Runs the scene the board hands its canvas, its first frame drawn. */
     async function runBoardScene(): Promise<SceneRun<HostedScene>> {
-      const board = screen.getByRole("application");
-      const make = await TestBed.inject(FakePhaserCanvas).host.latest.source();
-      const run = await runScene(make, {
-        config: { input: { keyboard: { target: board } } },
-      });
-      scene = run;
+      const run = await runShownScene(
+        TestBed.inject(FakePhaserCanvas),
+        screen.getByRole("application"),
+      );
       run.advance(FRAME_MS);
       return run;
     }

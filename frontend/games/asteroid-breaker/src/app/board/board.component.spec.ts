@@ -24,6 +24,7 @@ import {
   provideFakePhaserCanvas,
   resize,
   runScene,
+  runShownScene,
   watchResizes,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
@@ -596,15 +597,8 @@ describe("BoardComponent", () => {
   });
 
   describe("with the scene it loads", () => {
-    let scene: SceneRun<HostedScene> | null = null;
-
     beforeEach(() => {
       paintRoles(FIELD_ROLES, ROLES);
-    });
-
-    afterEach(() => {
-      scene?.destroy();
-      scene = null;
     });
 
     /**
@@ -622,12 +616,7 @@ describe("BoardComponent", () => {
     }> {
       const { board, component, game, fake, detectChanges } =
         await renderBoard();
-      const make = await fake.host.latest.source();
-      const run = await runScene(make, {
-        ...canvas,
-        config: { input: { keyboard: { target: board } } },
-      });
-      scene = run;
+      const run = await runShownScene(fake, board, canvas);
       run.advance(FRAME_MS);
       return { board, component, game, run, detectChanges };
     }
@@ -650,12 +639,11 @@ describe("BoardComponent", () => {
       it("has the scene write the points in the board's font", async () => {
         const { board, fake } = await renderBoard();
         board.style.fontFamily = "Board Sans";
-        const make = await fake.host.latest.source();
-        scene = await runScene(make);
+        const run = await runShownScene(fake, board);
 
-        scene.advance(FRAME_MS);
+        run.advance(FRAME_MS);
 
-        expect((await letteringOf(scene.scene))?.family).toBe("Board Sans");
+        expect((await letteringOf(run.scene))?.family).toBe("Board Sans");
       });
 
       it("makes the scene only once the page has loaded the points' face", async () => {
@@ -725,7 +713,9 @@ describe("BoardComponent", () => {
         const make = await making;
         vi.useRealTimers();
         const run = await runScene(make);
-        scene = run;
+        onTestFinished(() => {
+          run.destroy();
+        });
         run.advance(FRAME_MS);
         return {
           run,

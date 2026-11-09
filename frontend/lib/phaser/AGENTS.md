@@ -208,7 +208,12 @@ take the pure ones.
   `runBareScene()` one that does nothing of its own, to make game objects
   in. `runKeyedScene()` runs one as a board shows it, Phaser's keyboard
   listening on an element of the page that takes the focus, and lets go of
-  both once the test that ran it finishes; `cacheSounds()` puts a sound
+  both once the test that ran it finishes, and `runShownScene()` the scene
+  a fake canvas was shown last, its keyboard on the board's element, and
+  destroys the run, not the board, once the test finishes; `browserKey()`
+  gives a key as a browser sends it, with the `keyCode` Phaser's keyboard
+  reads, throwing for a code its table lacks, for a spec to fire at the
+  page, as `runScene()`'s keys are sent; `cacheSounds()` puts a sound
   sprite in a scene's audio cache, as a load that worked would, which the
   headless game never does. What a scene drew is read back:
   `commandsOf()` reads a `Graphics`'s command buffer, by Phaser's own
@@ -240,9 +245,9 @@ take the pure ones.
 
 - **Imports go one way.** The library imports Phaser, Angular and
   `@fz/style`, never a game or the site; its testing entry imports Vitest
-  too, whose hooks and stubs `runKeyedScene()`, `watchResizes()`,
-  `resize()` and `watchUploads()` use, and which `package.json` declares
-  an optional peer, as `@fz/dev`'s does.
+  too, whose hooks and stubs `runKeyedScene()`, `runShownScene()`,
+  `watchResizes()`, `resize()` and `watchUploads()` use, and which
+  `package.json` declares an optional peer, as `@fz/dev`'s does.
 - **The pure entries import nothing but each other,** but `fuzzball`, which
   takes `@fz/style`'s fuzzball too, as ESLint checks, so a game's
   Phaser-free code can take them, and `@fz/dev`'s view fence lets them all

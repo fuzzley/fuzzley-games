@@ -178,9 +178,9 @@ game through `runScene()`:
   `provideFakePhaserCanvas()`, which loads no Phaser; `FakePhaserCanvas`
   keeps the hosts, to settle a scene ready or failed. The board's spec, and
   the app's for How to play's pictures, also run the scene the board hands
-  its canvas for real, through `runScene()`, and the board's plays a level
-  to its end through it. A spec that fails the scene on
-  purpose has the app's `ErrorHandler` collect what the canvas hands it
+  its canvas for real, through `runShownScene()`, and the board's plays a
+  level to its end through it. A spec that fails the scene on purpose has
+  the app's `ErrorHandler` collect what the canvas hands it
   (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the
   run prints no error it expects. The board measures its room as a
   `ResizeObserver` reports it, which jsdom lacks, so a describe of the room

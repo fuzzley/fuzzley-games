@@ -7,10 +7,11 @@ import {
   FakePhaserCanvas,
   FakeResizeObserver,
   type SceneRun,
+  browserKey,
   collectErrors,
   provideFakePhaserCanvas,
   resize,
-  runScene,
+  runShownScene,
   watchResizes,
 } from "@fz/phaser/testing";
 import { paintRoles } from "@fz/style/testing";
@@ -22,8 +23,7 @@ import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
 import { BOARD_ROLES } from "./board_roles";
 
-/** Space as a browser sends it, with the key code Phaser's capture reads. */
-const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
+const SPACE = browserKey("Space", " ");
 
 /** The colors the page gives the board, as a palette's stylesheet would. */
 const ROLES = {
@@ -326,15 +326,8 @@ describe("BoardComponent", () => {
   });
 
   describe("with the scene it loads", () => {
-    let scene: SceneRun<HostedScene> | null = null;
-
     beforeEach(() => {
       paintRoles(BOARD_ROLES, ROLES);
-    });
-
-    afterEach(() => {
-      scene?.destroy();
-      scene = null;
     });
 
     /** Runs the scene the board hands its canvas, as Phaser would. */
@@ -345,11 +338,7 @@ describe("BoardComponent", () => {
       detectChanges: () => void;
     }> {
       const { board, game, fake, detectChanges } = await renderBoard();
-      const make = await fake.host.latest.source();
-      const run = await runScene(make, {
-        config: { input: { keyboard: { target: board } } },
-      });
-      scene = run;
+      const run = await runShownScene(fake, board);
       run.advance(16);
       return { board, game, run, detectChanges };
     }

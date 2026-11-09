@@ -54,8 +54,8 @@ export interface SceneRun<S extends HostedScene> {
   advance(ms: number, frameMs?: number): void;
   /**
    * Sends a key event to the element Phaser's keyboard listens on, as a
-   * browser sends it, with the key's `keyCode`, and the modifiers and
-   * `repeat` given.
+   * browser sends it, with the key's `keyCode` ({@link browserKey}), and the
+   * modifiers and `repeat` given.
    *
    * Phaser hands it to the scene at once, and keeps it with the frame's
    * other keys until the next frame ends.
@@ -164,9 +164,7 @@ export async function runScene<S extends HostedScene>(
       const target = (game.input.keyboard?.target ?? window) as EventTarget;
       const event = new KeyboardEvent(type, {
         ...modifiers,
-        code,
-        key,
-        keyCode: keyCodeOf(code),
+        ...browserKey(code, key),
         bubbles: true,
         cancelable: true,
       });
@@ -289,11 +287,12 @@ async function setUp<S extends HostedScene>(
   }
 }
 
-/** The `keyCode` a browser gives each key that has one but a letter or digit. */
+/** The `keyCode` a browser gives each key the specs send, but a letter or a digit. */
 const KEY_CODES: Readonly<Record<string, number>> = {
   Backspace: 8,
   Tab: 9,
   Enter: 13,
+  NumpadEnter: 13,
   ShiftLeft: 16,
   ShiftRight: 16,
   ControlLeft: 17,
@@ -313,11 +312,29 @@ const KEY_CODES: Readonly<Record<string, number>> = {
   Delete: 46,
 };
 
-/** Returns the `keyCode` a browser gives a key, by its `code`, or 0. */
+/**
+ * Returns a key as a browser sends it, by its `code`, with the `keyCode` a
+ * browser gives it, which Phaser's keyboard and its captures read.
+ *
+ * Its `key` is the code unless given, so Space, for a spec to hand Testing
+ * Library's `fireEvent`, is `browserKey("Space", " ")`. It throws for a code
+ * whose `keyCode` it doesn't hold, rather than guess one; a key a spec needs
+ * is added to its table.
+ */
+export function browserKey(
+  code: string,
+  key = code,
+): { readonly code: string; readonly key: string; readonly keyCode: number } {
+  return { code, key, keyCode: keyCodeOf(code) };
+}
+
+/** Returns the `keyCode` a browser gives a key, by its `code`, throwing for one it doesn't hold. */
 function keyCodeOf(code: string): number {
   if (/^(Key[A-Z]|Digit\d)$/.test(code))
     return code.charCodeAt(code.length - 1);
-  return KEY_CODES[code] ?? 0;
+  const keyCode = KEY_CODES[code];
+  if (keyCode === undefined) throw new Error(`No keyCode for ${code}`);
+  return keyCode;
 }
 
 /** Returns the WebGL context's own means of losing and restoring itself. */

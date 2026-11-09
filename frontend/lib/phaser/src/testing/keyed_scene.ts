@@ -1,5 +1,6 @@
 import { onTestFinished } from "vitest";
 import type { HostedScene, SceneSurroundings } from "../host";
+import type { FakePhaserCanvas } from "./fake_canvas";
 import { type SceneRun, type SceneRunOptions, runScene } from "./run_scene";
 
 /** A scene run whose keyboard listens on an element of its own, as a board's does. */
@@ -32,4 +33,30 @@ export async function runKeyedScene<S extends HostedScene>(
     run.destroy();
   });
   return { run, keys };
+}
+
+/**
+ * Runs the scene a fake canvas was last shown, as Phaser would, its keyboard
+ * listening on the board's element, and destroys the run once the test that
+ * ran it finishes.
+ *
+ * It draws no frame: the spec steps the first itself, at its game's pace.
+ */
+export async function runShownScene(
+  fake: FakePhaserCanvas,
+  board: HTMLElement,
+  options: Omit<SceneRunOptions, "config"> = {},
+): Promise<SceneRun<HostedScene>> {
+  let run: SceneRun<HostedScene> | null = null;
+  // Registered first, so a call outside a test, as from a beforeAll, throws
+  // before it makes a scene.
+  onTestFinished(() => {
+    run?.destroy();
+  });
+  const make = await fake.host.latest.source();
+  run = await runScene(make, {
+    ...options,
+    config: { input: { keyboard: { target: board } } },
+  });
+  return run;
 }
