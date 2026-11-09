@@ -11,4 +11,8 @@ export {
   fitCells,
 } from "./layout";
 export { canvasPixelRatio } from "./pixel_ratio";
-export { namedRectsAttribute, rectAttribute } from "./rect_attribute";
+export {
+  cssRectStyle,
+  namedRectsAttribute,
+  rectAttribute,
+} from "./rect_attribute";

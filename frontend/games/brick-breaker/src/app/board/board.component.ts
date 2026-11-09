@@ -19,11 +19,11 @@ import {
   KeepKeysDirective,
   PhaserCanvasComponent,
   type SceneSource,
+  boardHostOptions,
   canvasCardOf,
   canvasRoom,
 } from "@fz/phaser/canvas";
-import type { HostOptions } from "@fz/phaser/host";
-import { type CssRect, rectAttribute } from "@fz/phaser/layout";
+import { type CssRect, cssRectStyle, rectAttribute } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import { endTitle } from "../../rules/run/describe";
@@ -168,15 +168,7 @@ export class BoardComponent {
    */
   protected readonly ringStyle = computed(() => {
     const rect = this.laidOut();
-    return (
-      rect && {
-        left: `${rect.x}px`,
-        top: `${rect.y}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-        margin: "0",
-      }
-    );
+    return rect && cssRectStyle(rect);
   });
 
   /** The board's own card over the field, if any, and none while the canvas shows its own. */
@@ -282,32 +274,10 @@ export class BoardComponent {
     return makeBricksScene(this.sceneOptions);
   };
 
-  /**
-   * Sets Phaser up for the board: keys heard only on the board's element,
-   * the mouse and fingers for steering, and nothing from a gamepad.
-   */
-  protected readonly hostOptions: HostOptions = {
-    title: "Brick Breaker",
-    // The page shows through until the scene draws, so nothing flashes.
-    background: "transparent",
-    config: {
-      banner: false,
-      autoFocus: false,
-      disableContextMenu: true,
-      render: {
-        antialias: true,
-        roundPixels: false,
-        powerPreference: "low-power",
-      },
-      input: {
-        keyboard: { target: this.host.nativeElement },
-        mouse: true,
-        touch: true,
-        gamepad: false,
-      },
-      fps: { smoothStep: true },
-    },
-  };
+  protected readonly hostOptions = boardHostOptions(
+    "Brick Breaker",
+    this.host.nativeElement,
+  );
 
   constructor() {
     // Nothing launches, or goes on, before the scene that moves it is drawn.

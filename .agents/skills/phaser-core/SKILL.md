@@ -22,7 +22,8 @@ beside a deck of controls for a touch screen.
   Phaser. Its `scene` is a `SceneSource`, a function returning a scene's
   factory, `(surroundings: SceneSurroundings) => HostedScene`, or a promise
   of one, and each new one swaps into the same game; `options`
-  are the host's (`title`, `background`, Phaser's `config`), read once;
+  are the host's (`title`, `background`, Phaser's `config`), read once,
+  which a game's board takes from `boardHostOptions(title, element)`;
   `label`, if given, names the canvas to assistive technology as an image. Its
   `state` is `loading`, `ready` or `failed`, also as `data-state` on the
   element. It fails a scene that isn't ready in a minute, or whose source
@@ -83,7 +84,8 @@ beside a deck of controls for a touch screen.
   placeholder drawn in CSS sizes its cells by, and `rectAttribute()` and
   `namedRectsAttribute()` write where the scene drew a board, or a deck's
   zones, into the board's attributes, as `@fz/dev/layout`'s layout check
-  reads them (`readRect()`, `readNamedRects()`). `shapes` is
+  reads them (`readRect()`, `readNamedRects()`), and `cssRectStyle()` lays
+  the board's focus ring there. `shapes` is
   the vocabulary a game's art is drawn in, each shape of a frame as plain
   data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.
@@ -163,8 +165,9 @@ out of the first download.
 ## Input
 
 - **The keyboard listens where the game says.** Set Phaser's
-  `input.keyboard.target` to the board's element, so the keys reach the
-  scene only while it has the focus, and a dialog or the bar keeps its own.
+  `input.keyboard.target` to the board's element, as `boardHostOptions()`
+  does, so the keys reach the scene only while it has the focus, and a
+  dialog or the bar keeps its own.
 - **Hear the keys through `onKeyDown()` and `onKeyUp()`,** from
   `@fz/phaser/scene`, not the keyboard's own key events. Phaser runs
   through the frame's whole queue of key events as each new one comes,
