@@ -2503,3 +2503,30 @@ things, all taken:
    each run begins.
 5. _The injection context's spec matched any error:_ taken;
    `toThrow(/refocusWhenUncovered/)`.
+
+### Step 17f: finding 22, the announcer's notes and the viewport's two checks kept to their own
+
+Built on `ul-focus`. `AnnouncerService`'s `notePlaced()` and
+`noteEarlyWordsSaid()` were public, so any app could have marked a live
+region placed or early words said, and its `early`, which no app read, was
+public too. The three go: the service keeps what it knows of the page's
+regions in `ANNOUNCER_REGION_STATE`, a token exported from its file, not
+from `@fz/ui/announcer`'s index, which only `<fz-announcer>` notes and reads.
+`GameViewportService`'s `fitsWordmark` and `fitsHomeButton` had no reader
+but its own `barHome`, so they are private, their specs asking `barHome` at
+the same widths. Nothing a player sees changes.
+
+Where it went other than planned:
+
+- The service's specs of early words move to `<fz-announcer>`'s, which
+  check what the region says, since only it can note them now.
+
+The review found two things, both taken:
+
+1. _`AnnouncerService.early` stayed public for the component alone:_ taken;
+   dropped, the component reading the token, with a spec of words said after
+   early ones, said at once. The service's spec that it counts nothing early
+   once cleared goes, since no reader of the region can see it.
+2. _The token's doc said only `<fz-announcer>` injects it, which nothing
+   holds it to:_ taken; it says what the component does with it, and the
+   token is named `ANNOUNCER_REGION_STATE`, as `DIALOG_OPEN_STATES` is.

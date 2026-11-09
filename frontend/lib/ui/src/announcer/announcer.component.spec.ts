@@ -93,6 +93,17 @@ describe("AnnouncerComponent", () => {
     expect(shown).toHaveTextContent("Your last game is paused.");
   });
 
+  it("says words said after early ones at once, without waiting a moment", () => {
+    const announcer = TestBed.inject(AnnouncerService);
+    announcer.say("Your last game is paused.");
+    const shown = placed();
+
+    announcer.say("Going on.");
+    TestBed.tick();
+
+    expect(shown).toHaveTextContent("Going on.");
+  });
+
   it("starts empty when words are said after it was made but before it rendered", () => {
     const shown = placedBeforeSpeaking();
 
