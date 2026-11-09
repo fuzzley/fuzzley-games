@@ -1,8 +1,14 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  barChoice,
+  chooseInBar,
+  installFakeViewport,
+  openBarMenu,
+} from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { render, screen, within } from "@testing-library/angular";
+import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
@@ -38,19 +44,6 @@ function figure(term: string): string {
   return value.textContent.trim();
 }
 
-/** Returns the badge that shows the level and offers the others. */
-function levelBadge(): HTMLElement {
-  return screen.getByRole("button", { name: "Level: Hard" });
-}
-
-/** Chooses a level from the badge's menu. */
-async function chooseLevel(user: UserEvent, name: string): Promise<void> {
-  await user.click(levelBadge());
-  await user.click(
-    screen.getByRole("menuitemradio", { name: new RegExp(`^${name}`) }),
-  );
-}
-
 describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
@@ -71,13 +64,13 @@ describe("BarComponent", () => {
     it("shows the level of the game on the board", async () => {
       await renderBar();
 
-      expect(levelBadge()).toHaveTextContent("Hard");
+      expect(barChoice("Level")).toHaveAccessibleName("Level: Hard");
     });
 
     it("offers the levels from the badge, the board's checked", async () => {
       const { user } = await renderBar();
 
-      await user.click(levelBadge());
+      await user.click(barChoice("Level"));
 
       expect(
         screen.getByRole("menuitemradio", { checked: true }),
@@ -87,7 +80,7 @@ describe("BarComponent", () => {
     it("names the level chosen before it loses the game under way", async () => {
       const { user } = await renderBar();
 
-      await chooseLevel(user, "Medium");
+      await chooseInBar(user, "Level", "Medium");
 
       expect(TestBed.inject(ConfirmService).prompt().title).toBe(
         "Start a new Medium game?",
@@ -96,7 +89,7 @@ describe("BarComponent", () => {
 
     it("keeps the game at its level when the player backs out", async () => {
       const { user } = await renderBar();
-      await chooseLevel(user, "Medium");
+      await chooseInBar(user, "Level", "Medium");
 
       TestBed.inject(ConfirmService).cancel();
       await TestBed.inject(ApplicationRef).whenStable();
@@ -106,7 +99,7 @@ describe("BarComponent", () => {
 
     it("deals at the level chosen, and keeps it, when the player goes ahead", async () => {
       const { user } = await renderBar();
-      await chooseLevel(user, "Medium");
+      await chooseInBar(user, "Level", "Medium");
 
       TestBed.inject(ConfirmService).accept();
 
@@ -168,15 +161,6 @@ describe("BarComponent", () => {
       viewport = installFakeViewport(390, 844);
     });
 
-    /** Opens the overflow menu and returns its items' names. */
-    async function openMenu(user: UserEvent): Promise<string[]> {
-      await user.click(screen.getByRole("button", { name: "More actions" }));
-      const menu = await screen.findByRole("menu", { name: "More actions" });
-      return within(menu)
-        .getAllByRole("menuitem")
-        .map((item) => item.textContent.trim());
-    }
-
     it("keeps the heading for a screen reader", async () => {
       await renderBar();
 
@@ -188,13 +172,13 @@ describe("BarComponent", () => {
     it("keeps the level in the bar, out of the menu", async () => {
       await renderBar();
 
-      expect(levelBadge()).toBeVisible();
+      expect(barChoice("Level")).toBeVisible();
     });
 
     it("moves Fill in notes, Restart, How to play and Settings into the menu", async () => {
       const { user } = await renderBar();
 
-      const items = await openMenu(user);
+      const items = await openBarMenu(user);
 
       expect(items).toEqual([
         "Fill in notes",
@@ -206,7 +190,7 @@ describe("BarComponent", () => {
 
     it("fills in the notes from the menu", async () => {
       const { user } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "Fill in notes" }));
 
@@ -215,7 +199,7 @@ describe("BarComponent", () => {
 
     it("restarts from the menu, asking first", async () => {
       const { user } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "Restart" }));
 
@@ -224,7 +208,7 @@ describe("BarComponent", () => {
 
     it("asks for How to play from the menu", async () => {
       const { user, openHelp } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "How to play" }));
 
@@ -233,7 +217,7 @@ describe("BarComponent", () => {
 
     it("asks for the settings from the menu", async () => {
       const { user, openSettings } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "Settings" }));
 
@@ -244,7 +228,7 @@ describe("BarComponent", () => {
       viewport?.setSize(340, 700);
       const { user } = await renderBar();
 
-      const items = await openMenu(user);
+      const items = await openBarMenu(user);
 
       expect(items[0]).toBe("Fuzzley Games");
     });
@@ -253,7 +237,7 @@ describe("BarComponent", () => {
       viewport?.setSize(568, 320);
       const { user } = await renderBar();
 
-      const items = await openMenu(user);
+      const items = await openBarMenu(user);
 
       expect(items[0]).toBe("Fuzzley Games");
     });

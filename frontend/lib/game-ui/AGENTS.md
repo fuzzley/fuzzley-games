@@ -170,7 +170,11 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
 - `src/testing/`: what a game's specs share: `installFakeViewport()`, which
   answers the queries `GameViewportService` asks, handed on from
   `@fz/ui/testing`, which [frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)
-  describes.
+  describes; and the bar's menus driven as a player drives them, by the
+  names this library gives them (`bar_menus.ts`): `barChoice()`, a choice's
+  badge by its label, whatever it shows, `chooseInBar()`, a choice made
+  from its menu, and `openBarMenu()`, which opens the overflow menu and
+  returns what it offers.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
   forwards the breakpoints' mixins and the bar's, and its `bar-size()` mixin
   publishes the bar's size as `--fz-bar-height` and `--fz-rail-width` for
@@ -237,7 +241,10 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `frontend/games/minesweeper/src/app/app.component.scss` does.
 - **Imports go one way.** This library imports `@fz/ui`, `@fz/style`,
   `@fz/core` and Angular, never the site or a game, and the site has no use
-  for it.
+  for it; its testing entry imports Testing Library too, `@testing-library/dom`
+  and `@testing-library/user-event`'s types, with which `barChoice()`,
+  `chooseInBar()` and `openBarMenu()` drive the bar's menus, and which
+  `package.json` declares optional peers, as `@fz/phaser` does Vitest.
 
 ## Rules
 

@@ -1,7 +1,13 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  barChoice,
+  chooseInBar,
+  installFakeViewport,
+  openBarMenu,
+} from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { GameService } from "../play/game.service";
@@ -46,19 +52,6 @@ function figure(term: string): string {
   return name?.nextElementSibling?.textContent.trim() ?? "";
 }
 
-/** Returns the badge that shows the speed and offers the others. */
-function speedBadge(): HTMLElement {
-  return screen.getByRole("button", { name: "Speed: Normal" });
-}
-
-/** Chooses a speed from the badge's menu. */
-async function chooseSpeed(user: UserEvent, name: string): Promise<void> {
-  await user.click(speedBadge());
-  await user.click(
-    screen.getByRole("menuitemradio", { name: new RegExp(`^${name}`) }),
-  );
-}
-
 describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
@@ -79,13 +72,13 @@ describe("BarComponent", () => {
     it("shows the speed of the run", async () => {
       await renderBar();
 
-      expect(speedBadge()).toHaveTextContent("Normal");
+      expect(barChoice("Speed")).toHaveAccessibleName("Speed: Normal");
     });
 
     it("offers the speeds from the badge, the run's checked", async () => {
       const { user } = await renderBar();
 
-      await user.click(speedBadge());
+      await user.click(barChoice("Speed"));
 
       expect(
         screen.getAllByRole("menuitemradio").map((item) => ({
@@ -102,7 +95,7 @@ describe("BarComponent", () => {
     it("starts a run at the speed chosen while none is under way", async () => {
       const { user, game } = await renderBar();
 
-      await chooseSpeed(user, "Fast");
+      await chooseInBar(user, "Speed", "Fast");
 
       expect(
         await screen.findByRole("button", { name: "Speed: Fast" }),
@@ -116,7 +109,7 @@ describe("BarComponent", () => {
       game.turn("up");
       detectChanges();
 
-      await chooseSpeed(user, "Slow");
+      await chooseInBar(user, "Speed", "Slow");
 
       expect(TestBed.inject(ConfirmService).prompt().title).toBe(
         "Start a new Slow game?",
@@ -127,7 +120,7 @@ describe("BarComponent", () => {
       const { user, game, detectChanges } = await renderBar();
       game.turn("up");
       detectChanges();
-      await chooseSpeed(user, "Slow");
+      await chooseInBar(user, "Speed", "Slow");
 
       TestBed.inject(ConfirmService).cancel();
       await TestBed.inject(ApplicationRef).whenStable();
@@ -237,15 +230,10 @@ describe("BarComponent", () => {
       viewport = installFakeViewport(390, 844);
     });
 
-    /** Opens the overflow menu. */
-    async function openMenu(user: UserEvent): Promise<void> {
-      await user.click(screen.getByRole("button", { name: "More actions" }));
-    }
-
     it("keeps the speed in the bar, out of the menu", async () => {
       await renderBar();
 
-      expect(speedBadge()).toBeVisible();
+      expect(barChoice("Speed")).toBeVisible();
     });
 
     it("keeps Pause and New game in the bar", async () => {
@@ -258,16 +246,14 @@ describe("BarComponent", () => {
     it("moves the sound, How to play and the settings into the menu", async () => {
       const { user } = await renderBar();
 
-      await openMenu(user);
+      const items = await openBarMenu(user);
 
-      expect(
-        screen.getAllByRole("menuitem").map((item) => item.textContent.trim()),
-      ).toEqual(["Turn sound off", "How to play", "Settings"]);
+      expect(items).toEqual(["Turn sound off", "How to play", "Settings"]);
     });
 
     it("turns the sound off from the menu", async () => {
       const { user } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(
         screen.getByRole("menuitem", { name: "Turn sound off" }),
@@ -281,16 +267,14 @@ describe("BarComponent", () => {
       TestBed.inject(SettingsService).update({ sound: false });
       detectChanges();
 
-      await openMenu(user);
+      const items = await openBarMenu(user);
 
-      expect(
-        screen.getByRole("menuitem", { name: "Turn sound on" }),
-      ).toBeInTheDocument();
+      expect(items[0]).toBe("Turn sound on");
     });
 
     it("asks for How to play from the menu", async () => {
       const { user, openHelp } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "How to play" }));
 
@@ -299,7 +283,7 @@ describe("BarComponent", () => {
 
     it("asks for the settings from the menu", async () => {
       const { user, openSettings } = await renderBar();
-      await openMenu(user);
+      await openBarMenu(user);
 
       await user.click(screen.getByRole("menuitem", { name: "Settings" }));
 
