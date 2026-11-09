@@ -2952,3 +2952,33 @@ things:
    past the wrap, and "a new game or speed" left out a sector or a level:_
    taken; both breakers say "before a run is lost" once, and Snake, which
    asks only before a new game or speed, keeps its words.
+
+### Step 18f: QA of `run-lifecycle`
+
+`yarn verify` passes, in 2 min 45 s, with no spec timed out, and
+`yarn check:layout` holds Sudoku, Brick Breaker, Asteroid Breaker and Snake
+at each shape and turn. Played from the preview build in headed Chrome,
+with no error or warning in any console, each game from a store of its own:
+
+- Asteroid Breaker pauses at Escape and goes on at Enter, each said in the
+  live region. New game asks "Start a new game?" over a run under way:
+  Cancel keeps it paused, the board taking the focus back, and New game
+  starts wave 1 again, clearing what the last run said. Fast from the
+  speed badge asks "Start a new Fast game?", keeps Fast in the settings and
+  starts afresh. A reload takes the run up paused, and Enter goes on. A run
+  flown into the rocks, at `?debug`'s fastest rocks, ends on its card,
+  which takes the focus; Close hands it to the board, and Enter starts
+  another run with three ships and a clear live region.
+- Brick Breaker's Space launches, P pauses and goes on, and Space on a
+  paused run goes on, as a launch does what `go` does there. Fast asks
+  "Start a new Fast game?" and starts afresh. Once its card is closed, a
+  run that ran out of lives starts another at Space; a reload takes a run
+  up paused, and Space goes on.
+- Snake starts at a direction, and Enter leaves a run under way alone;
+  Space pauses and goes on, and Escape keeps a paused run paused. New Game
+  and Fast ask their questions, and Cancel keeps the run. A run into the
+  wall ends on its card; Close, then Enter, starts another. A reload takes
+  a run up paused, and a direction goes on.
+
+Seen and left: Asteroid Breaker's ship can't be hit while it sits in its
+home ring, so a run left alone never ends; it has to fly out first.
