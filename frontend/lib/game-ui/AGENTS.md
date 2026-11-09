@@ -91,7 +91,10 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   `isPortrait`). Pausing is the app's. While the focus is in the room, a
   press anywhere on the page on what can't take the focus keeps it there,
   so the keys aren't stranded. It reads the viewport, unlike the
-  library's components: telling a turn is what it is for.
+  library's components: telling a turn is what it is for. Beside it,
+  `refocusWhenUncovered(board, runs)`, called from an app's constructor,
+  hands the board the focus as each run begins and whenever the last
+  dialog over it closes, from `@fz/ui/dialog`'s `DialogService`.
 - `src/help_catalog/`: `<fz-help-catalog>`, a catalog for How to play of
   what a game's field can hold (a `HelpCatalog`), as a section its heading
   names, with what to know first and each entry's picture beside its name

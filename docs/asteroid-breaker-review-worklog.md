@@ -2454,3 +2454,52 @@ The review found nothing that let one test's store reach another's:
 4. _`MemoryStorage` stored a value as given, where the browser's turns it
    into a string, and its doc didn't say so:_ taken; it stores `String()` of
    the value, as `Storage` does, with a spec.
+
+### Step 17e: finding 20, the board's focus handed back by `refocusWhenUncovered()`
+
+Built on `ul-focus`. Asteroid Breaker, Brick Breaker and Snake each kept
+the same effect, line for line, to hand the board the focus as a run begins
+and as the last dialog over it closes, and each listed its dialogs by hand,
+so a dialog left off the list would have left the board live under it.
+`DialogService.anyOpen`, in `@fz/ui/dialog`, counts every `<fz-dialog>`
+while its `open` input holds, the confirmation's among them, through a token
+only the dialog adds to. `refocusWhenUncovered(board, runs)`, in
+`@fz/game-ui/play_room`, holds the effect once, and the three games call it
+in place of their own. No game's list had missed a dialog, so the focus
+moves as before.
+
+Where it went other than planned:
+
+- The effect looks only after a render (`afterRenderEffect`), as a dialog
+  takes its `open` input only as its host renders it; read at once, a dialog
+  opening as a run begins would not yet count, where each game's list, read
+  at once, counted it.
+- Sudoku's effect refocuses only for a new deal and feeds its clock, so it
+  keeps its own; Minesweeper and the Solitaire Collection have none.
+
+The first review found three things, all taken:
+
+1. _The doc told the order wrongly: a dialog closes before the effect sees
+   it, not after:_ taken.
+2. _A dialog open as the page loads lost the focus to the board, since the
+   effect ran before the dialog's input was set:_ taken; the effect looks
+   after each render, with specs of a dialog open as the page loads and one
+   opening as a run begins. An effect gated on a rendered signal failed the
+   second, so `afterRenderEffect` it is, which reshaped the change and
+   earned a second review.
+3. _Two flags for the first look where one does:_ taken; one `first`.
+
+The second review found no ordering that misplaces the focus, and five
+things, all taken:
+
+1. _No spec held the board left alone when nothing changes, nor a dialog
+   destroyed while open:_ taken; both, the latter through a host whose
+   Extra holds a button.
+2. _Specs named for a focus ring the browser, not the code, draws:_ taken;
+   renamed for what the code decides.
+3. _Nothing said a dialog over the first look uses it up:_ taken; a
+   comment.
+4. _`@param runs` repeated its type:_ taken; it says the signal changes as
+   each run begins.
+5. _The injection context's spec matched any error:_ taken;
+   `toThrow(/refocusWhenUncovered/)`.

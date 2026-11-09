@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { DialogService } from "../dialog";
 import { type ConfirmRequest, ConfirmService } from "./confirm.service";
 import { ConfirmDialogComponent } from "./confirm_dialog.component";
 
@@ -125,6 +126,12 @@ describe("ConfirmDialogComponent", () => {
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
     await expect(answer).resolves.toBe(false);
+  });
+
+  it("counts among the page's open dialogs while it asks", async () => {
+    await ask();
+
+    expect(TestBed.inject(DialogService).anyOpen()).toBe(true);
   });
 
   it("shuts once answered", async () => {

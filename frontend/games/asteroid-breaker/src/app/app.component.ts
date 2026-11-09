@@ -1,16 +1,8 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  signal,
-  untracked,
-  viewChild,
-} from "@angular/core";
-import { PlayRoomDirective } from "@fz/game-ui/play_room";
+import { Component, computed, inject, signal, viewChild } from "@angular/core";
+import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
-import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
+import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { HelpComponent } from "./help/help.component";
@@ -53,7 +45,6 @@ import { SettingsComponent } from "./settings/settings.component";
 export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   private readonly game = inject(GameService);
-  private readonly confirm = inject(ConfirmService);
   private readonly board = viewChild.required(BoardComponent);
 
   protected readonly sectorsOpen = signal(false);
@@ -68,36 +59,8 @@ export class AppComponent {
     this.helpOpen() ? this.board().pictures() : null,
   );
 
-  /** Whether a dialog covers the board. */
-  private readonly covered = computed(
-    () =>
-      this.sectorsOpen() ||
-      this.helpOpen() ||
-      this.settingsOpen() ||
-      this.game.resultOpen() ||
-      this.confirm.isOpen(),
-  );
-
-  /** The last run the board took the focus for, by `GameService.runs`. */
-  private focusedRun = -1;
-
-  /** Whether a dialog covered the board when the focus was last looked at. */
-  private wasCovered = false;
-
   constructor() {
-    effect(() => {
-      const run = this.game.runs();
-      const covered = this.covered();
-      const uncovered = this.wasCovered && !covered;
-      this.wasCovered = covered;
-      if (covered || (run === this.focusedRun && !uncovered)) return;
-      // As the page loads, no focus ring: nothing was pressed to put it there.
-      const options = this.focusedRun === -1 ? { focusVisible: false } : {};
-      this.focusedRun = run;
-      untracked(() => {
-        this.board().focus(options);
-      });
-    });
+    refocusWhenUncovered(this.board, this.game.runs);
   }
 
   /** Pauses the wave in play as the player looks away from the room. */
