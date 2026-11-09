@@ -320,6 +320,47 @@ too. Paths are relative to `frontend/lib/dev/`.
   into `sounds.wav` and the spritemap Phaser plays it by, `sounds.json`, the
   same bytes every run. A game's `tools/build-sounds.mjs` holds its recipes
   and calls it.
+- `src/zzfx.ts`, `@fz/dev/zzfx`: ZzFX's synthesis
+  (https://github.com/KilledByAPixel/ZzFX, v1.4.0, MIT, its notice kept at
+  the top), ported to render the same samples from the same parameters, in
+  Node or a page, with nothing drawn at random, so a sound designed by ear
+  in ZzFX's designer renders the same samples every run. `zzfxSamples()`
+  renders a `ZzfxSound`, its parameters named as `ZZFX_PARAMETERS` lists
+  them, in ZzFX's order, at 44,100 samples a second (`ZZFX_SAMPLE_RATE`)
+  unless given another, and leaves ZzFX's randomness to whatever plays the
+  samples; `parseZzfx()` reads a sound as the designer copies one
+  (`zzfx(...[,,925,.04])`, or the list alone), or returns null;
+  `formatZzfx()` writes one back so; and `zzfxCode()` writes one as an
+  object of its parameters, to keep in code.
+- `src/sound_lab.ts`, `@fz/dev/sound-lab`: a game's sound lab, a page only
+  its dev server serves. `soundLab({ entry, title })` is the plugin a game's
+  `vite.config.ts` adds: it applies to the dev server alone
+  (`apply: "serve"`), so no build holds the page, and answers `sound-lab/`
+  under the server's base (`SOUND_LAB_PATH`), moving the path without its
+  slash there, with `soundLabHtml()`'s page, which loads theme.js from the
+  top of the base, as the game's own page does, and the game's module. Analog's
+  plugin turns Vite's own compiler off unless the config sets it, and
+  compiles only the app's program, which the lab's modules are not part
+  of, so the plugin has Vite's compiler take them alone (`pageModules()`),
+  as `angularTests()` has it take the code of its pure folders. The page,
+  `src/sound_lab_page.ts`, `@fz/dev/sound-lab-page`, which only a browser
+  runs, is mounted by the game's module with `mountSoundLab()`, handed a
+  `SoundLab`: the game's name, its sprite's address and map, each sound
+  (`LabSound`) with what plays it and its candidate, a `ZzfxSound`, where
+  it has one, and its scenes (`LabScene`), each a moment of play as the
+  cues (`LabCue`) the game would play, raised as the game raises them and
+  at their place across the field. Through Web Audio it plays the sprite's
+  sounds or the candidates, a scene with either or both a breath apart,
+  each varied, panned and limited or not, the candidates as loud as the
+  sounds they would replace or not; edits a candidate as the designer
+  copies one, kept in the page's storage until reset, and copies it as
+  code; and shows `src/sound_lab_notes.ts`'s notes on why the synthesized
+  sounds fall short and the ways to better ones, in `@fz/style`'s tokens
+  and buttons (`src/sound_lab_page.scss`). What it works out of samples and
+  of each play is `src/sound_lab_mix.ts`: how loud a sound is
+  (`loudnessOf()`, the RMS of its loudest 50 ms), what makes one as loud as
+  another (`gainToMatch()`), a loop's seam faded away (`seamless()`), a
+  play's variation (`variedPlay()`) and its pan (`panOf()`).
 
 ## How a workspace uses it
 
@@ -341,6 +382,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does for the
   commit it was built from and its `@` alias. Analog's plugin, Vite and
   Vitest are peers, which the workspace lists and runs.
+- **A game's sound lab is `soundLab()` in its `vite.config.ts`,** merged
+  into `gameConfig()`'s with Vite's `mergeConfig()` and given the module
+  that mounts it, which lives in the game's `tools/` and imports the
+  game's sprite and what of its rules and view its scenes play by, as
+  Asteroid Breaker's `tools/sound-lab.ts` does.
 - **A game's screenshot script is run by `runScreenshotScript()`**, and
   keeps to itself which states it captures and how it sets them up; it
   writes the site's images with `keepShot()`, or, as the Solitaire
@@ -375,15 +421,16 @@ too. Paths are relative to `frontend/lib/dev/`.
 - **It runs in Node as it is.** An app's ESLint config and scripts import
   these files, so relative imports name the file (`./eslint.ts`) and the
   TypeScript is only the kind Node can strip (`erasableSyntaxOnly`), as in
-  `@fz/style`.
+  `@fz/style`. The sound lab's page is the one module Node never loads,
+  since it imports its stylesheet, which only a game's dev server compiles.
 - **The scripts' helpers load Vite only when asked.** What
   `@fz/dev/script`, `/report` and `/screenshots` load imports Vite, and the
   modules here that import it, by type alone, so a script that loads
   nothing through `importThroughVite()` doesn't wait on Vite; lint holds
   them to it.
 - **Nothing here reaches an app's bundle.** It holds only what checks,
-  builds or scripts a workspace; what an app runs belongs in the other
-  libraries.
+  builds or scripts a workspace, and the sound lab, which a dev server
+  alone serves; what an app runs belongs in the other libraries.
 - **It depends on `@fz/style`**, for the plugin `gameConfig()` adds, while
   `@fz/style` is checked with this library's presets. Yarn links the two
   either way round, and nothing in `lib/` is built, so neither has to come
@@ -413,6 +460,12 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   browser; `src/script.spec.ts` reads command lines and loads TypeScript it
   writes through Vite; `src/report.spec.ts` prints reports of plays it
   makes up; `src/sounds.spec.ts` renders sprites and reads them back;
+  `src/zzfx.spec.ts` holds the port to the samples ZzFX v1.4.0 renders
+  itself, and reads and writes the designer's lists;
+  `src/sound_lab_mix.spec.ts` measures, matches, loops, varies and pans
+  samples it makes up; `src/sound_lab.spec.ts` serves a game it writes,
+  with the lab under a base, behind a plugin that turns Vite's compiler off
+  as Analog's does, and builds it, finding nothing of the page there;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
   and the layout check against a fake browser, `src/testing/fake_browser.ts`,
   and the layout spec serves a build it writes with Vite's `preview()`;
@@ -424,6 +477,8 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   the wait for a page to draw; each run from the source the page is sent
   too, beside the readers where it calls them, the three specs here that
   do. Coverage counts `src/testing/` too, as `frontend/AGENTS.md` asks of
-  every library. Starting a real Chrome is left to the screenshot scripts,
-  so `src/chrome.ts` stays short of the rest; the floor in
-  `vitest.config.ts` sits just under the figures, and rises as they rise.
+  every library, and leaves out what only a browser runs:
+  `src/layout_page.ts`, and the sound lab's page and its notes. Starting a
+  real Chrome is left to the screenshot scripts, so `src/chrome.ts` stays
+  short of the rest; the floor in `vitest.config.ts` sits just under the
+  figures, and rises as they rise.

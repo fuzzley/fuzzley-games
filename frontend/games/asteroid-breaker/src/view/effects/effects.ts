@@ -34,10 +34,10 @@ export type SoundName = (typeof SOUNDS)[number];
 export const THRUST: SoundName = "thrust";
 
 /** How far a break's sound rises for each break of its chain before it, in cents: a semitone. */
-const CHAIN_STEP_CENTS = 100;
+export const CHAIN_STEP_CENTS = 100;
 
 /** The most a chain raises a break's sound, in cents: a fifth. */
-const CHAIN_MOST_CENTS = 700;
+export const CHAIN_MOST_CENTS = 700;
 
 /**
  * Names a flourish the scene plays: a broken rock's shards and dust, the
