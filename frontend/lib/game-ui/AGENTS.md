@@ -38,8 +38,10 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   typed, and a misspelled one fails to compile. Inside a `<fz-game-bar>`
   the menu opens away from the bar's edge. While it is open, a transparent
   layer over the window takes the tap that closes it, so the tap doesn't
-  reach the board. `withHomeLink(items, href)` leads the items with the
-  link home, for a bar with no room for it.
+  reach the board. `withHomeLink(items)` leads the items with the link
+  home, for a bar with no room for it. The link leads to `/`, as the bar's
+  does, unless given another `href`; an app that gives the bar its own
+  `homeHref` passes it here too.
 - `src/bar_choice/`: `<fz-bar-choice>`, a badge in a bar's title, such as a
   game's level, that opens an Angular Aria menu of the choices, one of them
   checked (`menuitemradio`). The choices are data too
