@@ -1,5 +1,12 @@
 import { clamp } from "@fz/core/math";
-import type { CssRect, Viewport } from "@fz/phaser/layout";
+import {
+  type CssRect,
+  type PixelRect,
+  type Viewport,
+  cssRectOf,
+  framePixels,
+  roomInside,
+} from "@fz/phaser/layout";
 import {
   type Moving,
   type Place,
@@ -34,14 +41,6 @@ const DECK_WIDTH_SHARE = 1 / 6;
 
 /** How much under a whole device pixel a size may fall and still count as it. */
 const WHOLE = 1e-6;
-
-/** Describes a rectangle on the canvas, in device pixels from its top left. */
-export interface PixelRect {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
 
 /** Says how the board lays the field and the deck out. */
 export interface BoardSetting {
@@ -208,15 +207,10 @@ export function fieldMetrics(
     y,
     width,
     height,
-    frame: frameOf(viewport),
+    frame: framePixels(FRAME_CSS_PX, pixelRatio),
     pixelRatio,
     room: inner,
-    css: {
-      x: x / pixelRatio,
-      y: y / pixelRatio,
-      width: width / pixelRatio,
-      height: height / pixelRatio,
-    },
+    css: cssRectOf({ x, y, width, height }, pixelRatio),
   };
 }
 
@@ -262,7 +256,7 @@ function zonesOf(
   torus: Torus | null,
 ): Zones | null {
   if (!board.deck) return null;
-  const stage = stageOf(viewport);
+  const stage = roomInside(viewport);
   const toPixels = (css: number): number =>
     Math.round(css * viewport.pixelRatio);
   const tall = toPixels(
@@ -316,7 +310,7 @@ function roomOf(
   board: BoardSetting,
   zones: Zones | null,
 ): PixelRect {
-  const stage = stageOf(viewport);
+  const stage = roomInside(viewport);
   const margin = Math.round(board.marginCss * viewport.pixelRatio);
   let { x, width, height } = stage;
   if (zones?.under) {
@@ -349,31 +343,13 @@ function unitIn(
   return Math.min(width / fitted.width, height / fitted.height);
 }
 
-/** Returns the canvas inside its chrome, in whole device pixels. */
-function stageOf(viewport: Viewport): PixelRect {
-  const { width, height, pixelRatio, insets } = viewport;
-  const left = Math.round(insets.left * pixelRatio);
-  const top = Math.round(insets.top * pixelRatio);
-  return {
-    x: left,
-    y: top,
-    width: width - left - Math.round(insets.right * pixelRatio),
-    height: height - top - Math.round(insets.bottom * pixelRatio),
-  };
-}
-
 /** Returns a room for the field inside its frame. */
 function innerRoomOf(viewport: Viewport, room: PixelRect): PixelRect {
-  const frame = frameOf(viewport);
+  const frame = framePixels(FRAME_CSS_PX, viewport.pixelRatio);
   return {
     x: room.x + frame,
     y: room.y + frame,
     width: room.width - 2 * frame,
     height: room.height - 2 * frame,
   };
-}
-
-/** Returns how thick the frame is on a canvas, in whole device pixels, one at least. */
-function frameOf(viewport: Viewport): number {
-  return Math.max(1, Math.round(FRAME_CSS_PX * viewport.pixelRatio));
 }

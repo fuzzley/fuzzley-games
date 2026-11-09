@@ -1,6 +1,6 @@
 import type { Insets } from "../insets";
 
-/** Describes the canvas a field of cells is laid out on. */
+/** Describes a canvas a field is laid out on. */
 export interface Viewport {
   /** The canvas's width, in device pixels. */
   readonly width: number;
@@ -14,6 +14,14 @@ export interface Viewport {
 
 /** Describes a rectangle on the canvas, in CSS pixels from its top left. */
 export interface CssRect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Describes a rectangle on the canvas, in device pixels from its top left. */
+export interface PixelRect {
   readonly x: number;
   readonly y: number;
   readonly width: number;
@@ -57,37 +65,62 @@ export interface CellFit {
  * the field runs past the insets.
  */
 export function fitCells(viewport: Viewport, field: CellField): CellFit {
-  const { width, height, pixelRatio, insets } = viewport;
-  const frame = Math.max(1, Math.round(field.frameCss * pixelRatio));
-  const left = Math.round(insets.left * pixelRatio);
-  const top = Math.round(insets.top * pixelRatio);
-  const roomAcross = width - left - Math.round(insets.right * pixelRatio);
-  const roomDown = height - top - Math.round(insets.bottom * pixelRatio);
+  const { pixelRatio } = viewport;
+  const frame = framePixels(field.frameCss, pixelRatio);
+  const room = roomInside(viewport);
   const cell = Math.max(
     1,
     Math.floor(
       Math.min(
-        (roomAcross - 2 * frame) / field.across,
-        (roomDown - 2 * frame) / field.down,
+        (room.width - 2 * frame) / field.across,
+        (room.height - 2 * frame) / field.down,
       ),
     ),
   );
-  const fieldWidth = cell * field.across;
-  const fieldHeight = cell * field.down;
-  const x = left + Math.floor((roomAcross - fieldWidth) / 2);
-  const y = top + Math.floor((roomDown - fieldHeight) / 2);
+  const width = cell * field.across;
+  const height = cell * field.down;
+  const x = room.x + Math.floor((room.width - width) / 2);
+  const y = room.y + Math.floor((room.height - height) / 2);
+  const css = cssRectOf({ x, y, width, height }, pixelRatio);
+  return { cell, x, y, width, height, frame, css };
+}
+
+/**
+ * Returns the room on a canvas inside the app's chrome, in whole device
+ * pixels, each inset rounded to the nearest, as every board rounds them.
+ */
+export function roomInside(viewport: Viewport): PixelRect {
+  const { width, height, pixelRatio, insets } = viewport;
+  const left = Math.round(insets.left * pixelRatio);
+  const top = Math.round(insets.top * pixelRatio);
   return {
-    cell,
-    x,
-    y,
-    width: fieldWidth,
-    height: fieldHeight,
-    frame,
-    css: {
-      x: x / pixelRatio,
-      y: y / pixelRatio,
-      width: fieldWidth / pixelRatio,
-      height: fieldHeight / pixelRatio,
-    },
+    x: left,
+    y: top,
+    width: width - left - Math.round(insets.right * pixelRatio),
+    height: height - top - Math.round(insets.bottom * pixelRatio),
+  };
+}
+
+/**
+ * Returns how thick a frame of some CSS pixels is on a canvas, in whole
+ * device pixels, so its edges are sharp, and one at least, so it shows.
+ */
+export function framePixels(frameCss: number, pixelRatio: number): number {
+  return Math.max(1, Math.round(frameCss * pixelRatio));
+}
+
+/**
+ * Returns a rectangle on the canvas in CSS pixels, given in device pixels at
+ * a pixel ratio.
+ */
+export function cssRectOf(
+  { x, y, width, height }: PixelRect,
+  pixelRatio: number,
+): CssRect {
+  return {
+    x: x / pixelRatio,
+    y: y / pixelRatio,
+    width: width / pixelRatio,
+    height: height / pixelRatio,
   };
 }

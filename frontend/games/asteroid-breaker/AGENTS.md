@@ -272,9 +272,10 @@ takes for the specs' helpers.
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
   on the canvas: the field's shape for its room (`fieldShape()`), the room
   it fills (`fieldRoom()`), inside the margin the board keeps around it
-  (`MARGIN_CSS_PX`), where it lies (`fieldMetrics()`), a unit
-  whatever fraction of a device pixel its room makes, its edges on whole
-  device pixels, where the deck's zones lie (`deckLayout()`), and
+  (`MARGIN_CSS_PX`), where it lies (`fieldMetrics()`), a unit whatever
+  fraction of a device pixel its room makes, its edges on whole device
+  pixels, through `@fz/phaser/layout`'s `roomInside()`, `framePixels()`
+  and `cssRectOf()`, where the deck's zones lie (`deckLayout()`), and
   `toCanvas()` and `toField()` between the two; and how the scene laid them
   out, which it hands the shell (`FieldLayout`). `frame.ts` is what the
   scene reads: `FieldView`, the field it can't change, `FieldFrame`, whose

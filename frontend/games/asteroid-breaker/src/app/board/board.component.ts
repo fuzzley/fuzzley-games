@@ -24,6 +24,7 @@ import {
 import {
   type CssRect,
   type Viewport,
+  cssRectOf,
   cssRectStyle,
   namedRectsAttribute,
   rectAttribute,
@@ -42,7 +43,6 @@ import {
   FRAME_CSS_PX,
   type FieldLayout,
   MARGIN_CSS_PX,
-  type PixelRect,
   fieldMetrics,
   fieldShape,
 } from "../../view/field/field_metrics";
@@ -185,7 +185,7 @@ export class BoardComponent {
   protected readonly roomRect = computed(() => {
     const laid = this.laid();
     return laid
-      ? rectAttribute(inCss(laid.metrics.room, laid.viewport.pixelRatio))
+      ? rectAttribute(cssRectOf(laid.metrics.room, laid.viewport.pixelRatio))
       : null;
   });
 
@@ -200,8 +200,8 @@ export class BoardComponent {
     const { stick, buttons } = laid.deck;
     const { pixelRatio } = laid.viewport;
     return namedRectsAttribute([
-      ["stick", inCss(stick, pixelRatio)],
-      ["buttons", inCss(buttons, pixelRatio)],
+      ["stick", cssRectOf(stick, pixelRatio)],
+      ["buttons", cssRectOf(buttons, pixelRatio)],
     ]);
   });
 
@@ -387,17 +387,4 @@ export class BoardComponent {
       this.pointsFont.set({ family });
     });
   }
-}
-
-/** Returns a rectangle on the canvas in CSS pixels, given in device pixels at a pixel ratio. */
-function inCss(
-  { x, y, width, height }: PixelRect,
-  pixelRatio: number,
-): CssRect {
-  return {
-    x: x / pixelRatio,
-    y: y / pixelRatio,
-    width: width / pixelRatio,
-    height: height / pixelRatio,
-  };
 }
