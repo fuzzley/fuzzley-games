@@ -2530,3 +2530,24 @@ The review found two things, both taken:
 2. _The token's doc said only `<fz-announcer>` injects it, which nothing
    holds it to:_ taken; it says what the component does with it, and the
    token is named `ANNOUNCER_REGION_STATE`, as `DIALOG_OPEN_STATES` is.
+
+### Step 17g: finding 22, `withHomeLink()`'s link home defaulting to the bar's
+
+Built on `ul-bar`. `withHomeLink()` asked for the `href` that
+`<fz-game-bar>`'s `homeHref` already defaults to, so each of the six bars
+kept a `HOME_HREF` of `/` to hand both. The bar's default is one `HOME_HREF`
+in its own file, which the entry doesn't export, and `withHomeLink()` takes
+it as its `href`'s default, so the two can't drift apart; the six constants,
+their fields and the bindings that passed the default go. Every link home
+still leads to `/`.
+
+The review found two things, both taken:
+
+1. _`withHomeLink()`'s doc ran past one sentence, and didn't say an app
+   that gives the bar its own `homeHref` must pass it here too:_ taken; one
+   sentence, then that, in `@fz/game-ui`'s `AGENTS.md` as well, and its
+   spec named for what the menu leads with.
+2. _The bar's spec bound `homeHref` in every test, so none held the default
+   as the apps use it:_ taken; the test host binds nothing, one spec renders
+   the bar alone with an `href` of its own, and the separate default spec
+   goes, the first now holding it.

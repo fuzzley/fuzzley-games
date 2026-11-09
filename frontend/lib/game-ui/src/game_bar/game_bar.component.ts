@@ -15,6 +15,12 @@ export type BarPlacement = "top" | "bottom" | "start" | "end";
 export type BarHome = "wordmark" | "icon" | "none";
 
 /**
+ * Where the link home leads unless an app says otherwise: the Fuzzley Games
+ * site, which serves every game.
+ */
+export const HOME_HREF = "/";
+
+/**
  * Frames a game in a header that leads with a link home to Fuzzley Games, then
  * holds the app's title, status and actions.
  *
@@ -48,7 +54,7 @@ export class GameBarComponent {
   readonly home = input<BarHome>("wordmark");
 
   /** Where the link home leads. */
-  readonly homeHref = input("/");
+  readonly homeHref = input(HOME_HREF);
 
   protected readonly isRail = computed(
     () => this.placement() === "start" || this.placement() === "end",

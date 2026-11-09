@@ -24,9 +24,6 @@ import { count } from "@fz/core/format";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 
-/** Where the link home leads: the Fuzzley Games site, which serves this game. */
-const HOME_HREF = "/";
-
 /** Names an action the overflow menu offers. */
 type MenuAction = "restart" | "help" | "settings";
 
@@ -71,8 +68,6 @@ export class BarComponent {
   /** Emitted when the player asks for the settings. */
   readonly openSettings = output();
 
-  protected readonly homeHref = HOME_HREF;
-
   /**
    * The difficulties the badge offers, each with the field it deals: Custom's
    * the one the settings keep.
@@ -107,7 +102,7 @@ export class BarComponent {
     readonly BarOverflowItem<MenuAction>[]
   >(() =>
     this.viewport.barHome() === "none"
-      ? withHomeLink(OVERFLOW_ACTIONS, HOME_HREF)
+      ? withHomeLink(OVERFLOW_ACTIONS)
       : OVERFLOW_ACTIONS,
   );
 

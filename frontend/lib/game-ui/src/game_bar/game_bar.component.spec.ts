@@ -9,11 +9,7 @@ import {
 @Component({
   imports: [GameBarComponent],
   template: `
-    <fz-game-bar
-      [placement]="placement()"
-      [home]="home()"
-      [homeHref]="homeHref()"
-    >
+    <fz-game-bar [placement]="placement()" [home]="home()">
       <h1 fzBarTitle>Klondike</h1>
       <p fzBarStatus>Score 0</p>
       <button fzBarActions type="button">Undo</button>
@@ -24,7 +20,6 @@ import {
 class TestBarHostComponent {
   readonly placement = input<BarPlacement>("top");
   readonly home = input<BarHome>("wordmark");
-  readonly homeHref = input("/");
 }
 
 describe("GameBarComponent", () => {
@@ -32,7 +27,6 @@ describe("GameBarComponent", () => {
     inputs: {
       placement?: BarPlacement;
       home?: BarHome;
-      homeHref?: string;
     } = {},
   ): Promise<HTMLElement> {
     const { container } = await render(TestBarHostComponent, { inputs });
@@ -81,7 +75,9 @@ describe("GameBarComponent", () => {
   });
 
   it("leads home wherever the app says", async () => {
-    await renderBar({ homeHref: "https://fuzzley.games/" });
+    await render(GameBarComponent, {
+      inputs: { homeHref: "https://fuzzley.games/" },
+    });
 
     expect(homeLink()).toHaveAttribute("href", "https://fuzzley.games/");
   });

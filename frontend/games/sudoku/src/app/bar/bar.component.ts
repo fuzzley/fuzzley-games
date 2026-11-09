@@ -16,9 +16,6 @@ import { IconComponent } from "@fz/ui/icon";
 import { LEVELS, LEVEL_INFO, type Level } from "../../rules/difficulty";
 import { GameService } from "../play/game.service";
 
-/** Where the link home leads: the Fuzzley Games site, which serves this game. */
-const HOME_HREF = "/";
-
 /** The levels the badge offers, each with what it asks of the player. */
 const LEVEL_CHOICES: readonly BarChoiceOption<Level>[] = LEVELS.map((id) => ({
   id,
@@ -70,8 +67,6 @@ export class BarComponent {
   /** Emitted when the player asks for the settings. */
   readonly openSettings = output();
 
-  protected readonly homeHref = HOME_HREF;
-
   protected readonly levels = LEVEL_CHOICES;
 
   protected readonly time = computed(() => formatClock(this.game.seconds()));
@@ -81,7 +76,7 @@ export class BarComponent {
     readonly BarOverflowItem<MenuAction>[]
   >(() =>
     this.viewport.barHome() === "none"
-      ? withHomeLink(OVERFLOW_ACTIONS, HOME_HREF)
+      ? withHomeLink(OVERFLOW_ACTIONS)
       : OVERFLOW_ACTIONS,
   );
 

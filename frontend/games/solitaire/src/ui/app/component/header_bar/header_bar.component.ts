@@ -16,9 +16,6 @@ import { BugReportService } from "../../service/bug_report.service";
 import { GameBrowserService } from "../../service/game_browser.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
 
-/** Where the link home leads: the Fuzzley Games site, which serves this game. */
-const HOME_HREF = "/";
-
 /** Names an action the overflow menu offers. */
 type MenuAction = "restart" | "rules" | "bug" | "settings";
 
@@ -56,8 +53,6 @@ export class HeaderBarComponent {
 
   /** Emitted when the user requests to open the settings panel. */
   readonly openSettings = output();
-
-  protected readonly homeHref = HOME_HREF;
 
   /** The name of the game on the table. */
   protected readonly gameName = computed(() => this.catalog.selectedEntry.name);
@@ -101,7 +96,7 @@ export class HeaderBarComponent {
     readonly BarOverflowItem<MenuAction>[]
   >(() =>
     this.viewport.barHome() === "none"
-      ? withHomeLink(OVERFLOW_ACTIONS, HOME_HREF)
+      ? withHomeLink(OVERFLOW_ACTIONS)
       : OVERFLOW_ACTIONS,
   );
 

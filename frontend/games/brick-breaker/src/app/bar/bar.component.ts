@@ -23,9 +23,6 @@ import {
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 
-/** Where the link home leads: the Fuzzley Games site, which serves this game. */
-const HOME_HREF = "/";
-
 /** The speeds the badge offers, each with what it is like. */
 const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
   id,
@@ -91,8 +88,6 @@ export class BarComponent {
 
   /** Emitted when the board should take the focus, as a level goes on. */
   readonly handBack = output();
-
-  protected readonly homeHref = HOME_HREF;
 
   protected readonly speeds = SPEED_CHOICES;
 
@@ -162,9 +157,7 @@ export class BarComponent {
       { id: "help", label: "How to play", icon: "help" },
       { id: "settings", label: "Settings", icon: "settings" },
     ];
-    return this.viewport.barHome() === "none"
-      ? withHomeLink(actions, HOME_HREF)
-      : actions;
+    return this.viewport.barHome() === "none" ? withHomeLink(actions) : actions;
   });
 
   /**
