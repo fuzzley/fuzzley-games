@@ -67,7 +67,7 @@ export class CardPile<T extends Card = Card> implements ReadonlyCardPile<T> {
   protected readonly cards: T[] = [];
 
   /** The index to tell about every card that joins or leaves, if any. */
-  private readonly locations?: CardLocations<T>;
+  private readonly locations: CardLocations<T> | undefined;
 
   /**
    * Creates an empty pile.

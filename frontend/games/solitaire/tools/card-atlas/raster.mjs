@@ -135,7 +135,7 @@ export async function rasterize(svg, box, width, height, font) {
   // Drawn on one of libuv's worker threads, so several frames draw at once.
   const rendered = await renderAsync(sized, {
     fitTo: { mode: "original" },
-    font,
+    ...(font && { font }),
   });
   const { data, info } = await sharp(rendered.asPng())
     .ensureAlpha()

@@ -1614,7 +1614,10 @@ export function storedValues(
 
 /** Returns every grid a catalog entry's board may lie on. */
 export function boardLayoutsOf(entry: CatalogEntry): BoardLayouts {
-  return { roomy: entry.layout, arranged: entry.arrangement?.layouts };
+  const roomy = entry.layout;
+  return entry.arrangement
+    ? { roomy, arranged: entry.arrangement.layouts }
+    : { roomy };
 }
 
 /** Returns the catalog entry with the given id, or the first one. */

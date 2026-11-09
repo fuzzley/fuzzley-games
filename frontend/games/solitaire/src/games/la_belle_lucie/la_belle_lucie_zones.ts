@@ -78,7 +78,7 @@ export function laBelleLucieZoneSpecs(
         column: index % perRow,
         row: 1 + Math.floor(index / perRow) * FAN_ROW_PITCH,
         accept: fanRule(variant),
-        capacity: fanCapacity,
+        ...(fanCapacity === undefined ? {} : { capacity: fanCapacity }),
         layout: OPEN_COLUMN_LAYOUT,
         grab: { kind: "top-only" },
         draggable: true,

@@ -22,7 +22,7 @@ export function makeFakeTableBoardScene(
     layouts: { roomy: FAKE_TABLE_LAYOUT },
     handleIntent: fakeTableGestures(game),
     presentation,
-    onReady,
+    ...(onReady && { onReady }),
   });
 }
 

@@ -28,7 +28,7 @@ describe("hasRoomFor", () => {
       role: "cell",
       slot: { pileId: "cell", column: 0, row: 0 },
       layout: { kind: "stacked" },
-      capacity,
+      ...(capacity === undefined ? {} : { capacity }),
       accept: never,
       grab: { kind: "top-only" },
       draggable: true,

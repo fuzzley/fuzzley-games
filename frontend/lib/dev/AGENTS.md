@@ -69,20 +69,20 @@ too. Paths are relative to `frontend/lib/dev/`.
 - `tsconfig/`, `@fz/dev/tsconfig/*.json`: the compiler options a
   workspace's `tsconfig.json` extends.
   - `base.json`: the strict flags every workspace's TypeScript is checked
-    with. An app compiles the libraries' sources into its own program, with
+    with, `exactOptionalPropertyTypes` among them, so an optional property
+    is left out rather than set to `undefined`, unless its type says it may
+    be. An app compiles the libraries' sources into its own program, with
     its own options, so one set for all of them is what lets a library's code
     pass in every app. An app may add a flag of its own where the libraries'
-    code it compiles passes it too, as Asteroid Breaker's configs add
-    `exactOptionalPropertyTypes`, which this one leaves out until every
-    workspace passes it.
+    code it compiles passes it too.
   - `angular.json`: the base, with Angular's decorators and the Angular
     compiler's strictest checks, every extended diagnostic an error. Its
     `outDir` and `rootDir` are the extending workspace's own folder
     (`${configDir}`).
   - `scripts.json`: the `.mjs` scripts, type-checked from their JSDoc with
-    the base's checks of indexes, returns and `switch` cases
-    (`noUncheckedIndexedAccess` among them), so a script reads an index as
-    maybe missing, as the TypeScript does. The checks the two share are kept
+    the base's checks of indexes, optional properties, returns and `switch`
+    cases (`noUncheckedIndexedAccess` among them), so a script reads an
+    index as maybe missing, as the TypeScript does. The checks the two share are kept
     in step: a flag added to one is added to the other.
 - `src/vitest.ts`, `@fz/dev/vitest`: the Vitest settings every workspace's
   specs share. `angularTests()` is the whole config of a workspace that
@@ -401,8 +401,6 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   config (`tsconfig.lib.json`), then over the ESLint config from its
   JSDoc, with the blocks it imports (`tsconfig.scripts.json`); the
   solution, `tsconfig.json`, references both.
-  Asteroid Breaker's `typecheck` holds those it compiles to
-  `exactOptionalPropertyTypes` too, until `tsconfig/base.json` takes it.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written
   into a folder of their own with the blocks, so a block that stops catching
   what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`

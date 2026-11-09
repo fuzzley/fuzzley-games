@@ -9,7 +9,8 @@ let nextGroupId = 0;
 interface ChoiceView {
   readonly value: number;
   readonly label: string;
-  readonly description?: string;
+  /** The choice's line, where it has one. */
+  readonly description: string | undefined;
   readonly checked: boolean;
   /** The id of the element holding the choice's name. */
   readonly nameId: string;

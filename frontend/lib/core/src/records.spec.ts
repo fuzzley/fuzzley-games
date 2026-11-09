@@ -82,6 +82,24 @@ describe("pick", () => {
     expect(pick(brick, ["hits", "broken"])).toEqual({ hits: 2, broken: false });
   });
 
+  it("leaves out a key the record doesn't have, rather than setting it to undefined", () => {
+    const brick: { hits: number; capsule?: string } = { hits: 2 };
+
+    expect(pick(brick, ["hits", "capsule"])).toStrictEqual({ hits: 2 });
+  });
+
+  it("keeps a key the record has, even one set to undefined", () => {
+    const brick: { hits: number; capsule: string | undefined } = {
+      hits: 2,
+      capsule: undefined,
+    };
+
+    expect(pick(brick, ["hits", "capsule"])).toStrictEqual({
+      hits: 2,
+      capsule: undefined,
+    });
+  });
+
   it("types the copy as the record's entries under those keys alone", () => {
     const brick = { hits: 2, broken: false, cell: 7 };
 

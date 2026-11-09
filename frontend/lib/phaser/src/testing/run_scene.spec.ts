@@ -139,7 +139,7 @@ async function statusOf(url: string): Promise<number> {
 
 /** Runs a loading scene, serving it what a server would. */
 async function runLoading(
-  serve?: FileServer,
+  serve: FileServer,
 ): ReturnType<typeof runScene<LoadingScene>> {
   return runScene(() => new LoadingScene(), { serve });
 }

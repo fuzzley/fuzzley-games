@@ -122,10 +122,7 @@ describe("OptionGroupComponent", () => {
   });
 
   it("omits the description entirely when the rule has none", () => {
-    const withoutDescription: GameOptionSpec = {
-      ...DRAW_COUNT,
-      description: undefined,
-    };
+    const { description, ...withoutDescription } = DRAW_COUNT;
     fixture.componentRef.setInput("option", withoutDescription);
     fixture.detectChanges();
 

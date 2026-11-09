@@ -38,7 +38,13 @@ function spread(
   maxVisible = 3,
   groupSize?: number,
 ): Extract<PileLayout, { kind: "spread" }> {
-  return { kind: "spread", direction, gap: 20, maxVisible, groupSize };
+  return {
+    kind: "spread",
+    direction,
+    gap: 20,
+    maxVisible,
+    ...(groupSize === undefined ? {} : { groupSize }),
+  };
 }
 
 /** Returns `count` face-up cards. */

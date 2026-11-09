@@ -85,8 +85,16 @@ const PREVIEW_CARDS: readonly { rank: string; x: number; court: boolean }[] = [
   { rank: "7", x: 72, court: false },
 ];
 
+/**
+ * Offers a card style, which always says what it does, since the option is
+ * described by the style checked.
+ */
+interface CardStyleChoice extends GameOptionChoice<CardStyle> {
+  readonly description: string;
+}
+
 /** The card style a player starts on. */
-const AUTO_CARD_STYLE: GameOptionChoice<CardStyle> = {
+const AUTO_CARD_STYLE: CardStyleChoice = {
   value: 0,
   rule: "auto",
   label: "Auto",
@@ -98,7 +106,7 @@ const AUTO_CARD_STYLE: GameOptionChoice<CardStyle> = {
  * The card styles on offer, in the order they are shown, each known to the
  * option group by its number.
  */
-const CARD_STYLE_CHOICES: readonly GameOptionChoice<CardStyle>[] = [
+const CARD_STYLE_CHOICES: readonly CardStyleChoice[] = [
   AUTO_CARD_STYLE,
   {
     value: 1,

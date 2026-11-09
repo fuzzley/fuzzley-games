@@ -176,6 +176,11 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
 - **TypeScript Style:** Follow Google's TypeScript style guide (https://google.github.io/styleguide/tsguide.html).
 - **No `as any`.** Use generics, or `unknown` plus a type guard. `instance as unknown as Target` is a last resort worth a comment explaining why.
 - **Explicit return types** on exported functions and public methods.
+- **An optional property is left out, not set to `undefined`.** `@fz/dev`'s
+  presets check `exactOptionalPropertyTypes`, so a record that may lack a
+  key leaves it out (`...(x === undefined ? {} : { x })`); a field always
+  written, but maybe empty, is `x: T | undefined`; and only an option a
+  caller hands on, given or not, is typed `x?: T | undefined`.
 - **`readonly` collections** for data that is not meant to change, such as the game catalog.
 
 ---

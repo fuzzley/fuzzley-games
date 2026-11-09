@@ -234,7 +234,7 @@ describe("SimpleSimonGame win condition", () => {
 function mrsMopGame(cardIds?: SimpleSimonOptions["cardIds"]): SimpleSimonGame {
   const game = new SimpleSimonGame({
     variant: SimpleSimonVariant.MRS_MOP,
-    cardIds,
+    ...(cardIds && { cardIds }),
     random: sequenceRandom(SHUFFLE_VALUES),
   });
   game.startNewGame();

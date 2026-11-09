@@ -157,7 +157,7 @@ function listWindowsProcesses() {
     ppid: p.ParentProcessId,
     name: p.Name ?? "",
     cmdline: p.CommandLine ?? "",
-    started: p.Started ?? undefined,
+    ...(p.Started === null ? {} : { started: p.Started }),
   }));
 }
 
@@ -200,7 +200,7 @@ async function readLinuxProcess(pid) {
         ? basename(argv[0].split(" ")[0] ?? "")
         : stat.slice(stat.indexOf("(") + 1, nameEnd),
       cmdline: argv.join(" "),
-      cwd,
+      ...(cwd === undefined ? {} : { cwd }),
     };
   } catch {
     return undefined;

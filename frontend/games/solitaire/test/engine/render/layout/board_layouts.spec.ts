@@ -213,10 +213,8 @@ describe("chooseTableLayout", () => {
   });
 
   it("never mirrors a board without a side pile", () => {
-    const layouts: BoardLayouts = {
-      ...LAYOUTS,
-      arranged: { ...ARRANGED, side: undefined },
-    };
+    const { side, ...withoutSide } = ARRANGED;
+    const layouts: BoardLayouts = { ...LAYOUTS, arranged: withoutSide };
 
     expect(
       chooseTableLayout(layouts, "roomy", { piles: "top", stockSide: "right" }),
