@@ -1510,3 +1510,44 @@ Where it went other than planned:
   `Printer` beside it.
 
 The review: it found nothing to change.
+
+### Step 4.7b: `keepSaved()` in the other four games
+
+Built as planned on `sl-shell`, after rebasing onto `shared-lib`.
+Minesweeper's, Sudoku's, Brick Breaker's and Asteroid Breaker's saved game
+services hand their restore, their effect and `keepOnLeave()` to
+`keepSaved()`, as Snake's does:
+
+- The breakers pass `track` with the same three signals as before, and
+  their `save` and `restore` fit inline. Each service goes from 59 lines
+  to 39.
+- Minesweeper and Sudoku leave `track` out, so a write follows what
+  `save()` reads, and the clock is still read untracked. Their closures
+  would run to 8–13 lines, so `save()` and `restore(saved)` stay as
+  methods with their docs, and the call passes arrows to them. Minesweeper
+  goes from 71 lines to 69 and Sudoku from 69 to 67. Without comments and
+  blank lines, they go from 51 to 43 and from 46 to 38.
+
+Every entry keeps its key, version and shape, and is written, removed and
+taken up at the same moments. The specs pass unchanged: Minesweeper 375,
+Sudoku 595, Brick Breaker 1842 and 180, Asteroid Breaker 3625 and 1620,
+Snake 423 and `@fz/ui` 308. Dropping Brick Breaker's `track` fails "doesn't
+write the run as it scores", and tracking Minesweeper's clock fails "writes
+the game once a move".
+
+Where it went other than planned: no app calls `keepOnLeave()` any more, so
+`@fz/ui/storage` no longer exports it (see 1).
+
+The review:
+
+1. _`keepOnLeave()` is still exported though no app calls it, and the
+   `fuzzley-ui` skill and `lib/ui/AGENTS.md` still send a game under way to
+   it:_ taken. `git grep keepOnLeave` over the whole tree, the Solitaire
+   Collection and the site included, found only `lib/ui/src/storage/` and
+   docs. `index.ts` drops the export, and `keepSaved()` and both specs
+   import `./keep_on_leave`. The skill's row says `keepSaved()` takes a game
+   under way up as the app starts, and writes it as it changes and as the
+   page is hidden or goes away. `lib/ui/AGENTS.md` describes
+   `keepOnLeave(save)` as what `keepSaved()` writes through on leaving.
+2. _`games/AGENTS.md`'s "writes it as it changes" holds for two games of
+   five:_ taken. It now reads "or only at the moments its `track` names".
