@@ -2,11 +2,10 @@ import { Component } from "@angular/core";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import type { HostedScene } from "../host";
 import { onKeyDown, onKeyUp } from "../scene";
-import { type SceneRun, runBareScene } from "../testing";
+import { type SceneRun, browserKey, runBareScene } from "../testing";
 import { KeepKeysDirective } from "./keep_keys.directive";
 
-/** Space as a browser sends it, with the key code Phaser's capture reads. */
-const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
+const SPACE = browserKey("Space", " ");
 
 @Component({
   imports: [KeepKeysDirective],

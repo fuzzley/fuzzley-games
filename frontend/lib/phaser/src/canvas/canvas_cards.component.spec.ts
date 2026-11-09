@@ -12,6 +12,7 @@ import type { HostOptions } from "../host";
 import {
   FakePhaserCanvas,
   type FakeCanvasHost,
+  browserKey,
   collectErrors,
   provideFakePhaserCanvas,
 } from "../testing";
@@ -27,8 +28,7 @@ const OPTIONS: HostOptions = { title: "Snake", background: "transparent" };
 /** What the fake host fails a scene with. */
 const FAILED = new Error("The scene couldn't be loaded");
 
-/** Space as a browser sends it. */
-const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
+const SPACE = browserKey("Space", " ");
 
 /** What the slow card says, in the status region, as one line. */
 const STILL_LOADING =

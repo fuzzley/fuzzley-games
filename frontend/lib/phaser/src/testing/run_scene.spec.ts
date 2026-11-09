@@ -7,7 +7,7 @@ import {
   WEBGL,
 } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
-import { runBareScene, runScene } from "./run_scene";
+import { browserKey, runBareScene, runScene } from "./run_scene";
 import { type FileServer, pngOfSize } from "./served_files";
 
 /** A scene that records what the harness lets it see and do. */
@@ -510,5 +510,28 @@ describe("runScene", () => {
     run.destroy();
 
     expect(run.scene.sys.settings.status).toBe(Scenes.DESTROYED);
+  });
+});
+
+describe("browserKey", () => {
+  it("gives a key the keyCode a browser gives it, by its code", () => {
+    const keys = ["Space", "ArrowLeft", "NumpadEnter", "KeyW", "Digit7"].map(
+      (code) => browserKey(code),
+    );
+
+    expect(keys.map(({ keyCode }) => keyCode)).toEqual([32, 37, 13, 87, 55]);
+  });
+
+  it("throws for a code whose keyCode it doesn't hold, rather than guess one", () => {
+    expect(() => browserKey("F13")).toThrow("No keyCode for F13");
+  });
+
+  it("names the key as given, or by its code", () => {
+    const keys = [browserKey("Space", " "), browserKey("Enter")];
+
+    expect(keys).toEqual([
+      { code: "Space", key: " ", keyCode: 32 },
+      { code: "Enter", key: "Enter", keyCode: 13 },
+    ]);
   });
 });

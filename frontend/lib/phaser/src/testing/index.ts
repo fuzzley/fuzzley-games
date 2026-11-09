@@ -20,11 +20,16 @@ export {
   strokesOf,
 } from "./graphics_commands";
 export { installHeadlessPhaser } from "./headless";
-export { type KeyedSceneRun, runKeyedScene } from "./keyed_scene";
+export {
+  type KeyedSceneRun,
+  runKeyedScene,
+  runShownScene,
+} from "./keyed_scene";
 export {
   type KeyModifiers,
   type SceneRun,
   type SceneRunOptions,
+  browserKey,
   runBareScene,
   runScene,
 } from "./run_scene";

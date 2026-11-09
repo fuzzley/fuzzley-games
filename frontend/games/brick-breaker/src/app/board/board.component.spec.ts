@@ -8,10 +8,11 @@ import {
   FakePhaserCanvas,
   FakeResizeObserver,
   type SceneRun,
+  browserKey,
   collectErrors,
   provideFakePhaserCanvas,
   resize,
-  runScene,
+  runShownScene,
   watchResizes,
 } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
@@ -41,8 +42,7 @@ import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BoardComponent } from "./board.component";
 
-/** Space as a browser sends it, with the key code Phaser's capture reads. */
-const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
+const SPACE = browserKey("Space", " ");
 
 /** The longest the scene plays a level for before a spec gives up on it. */
 const LEVEL_LIMIT_MS = 10_000;
@@ -506,15 +506,8 @@ describe("BoardComponent", () => {
   });
 
   describe("with the scene it loads", () => {
-    let scene: SceneRun<HostedScene> | null = null;
-
     beforeEach(() => {
       paintRoles(FIELD_ROLES, ROLES);
-    });
-
-    afterEach(() => {
-      scene?.destroy();
-      scene = null;
     });
 
     /** Runs the scene the board hands its canvas, as Phaser would, on a canvas of a size in CSS px. */
@@ -529,12 +522,7 @@ describe("BoardComponent", () => {
     }> {
       const { board, component, game, fake, detectChanges } =
         await renderBoard();
-      const make = await fake.host.latest.source();
-      const run = await runScene(make, {
-        ...canvas,
-        config: { input: { keyboard: { target: board } } },
-      });
-      scene = run;
+      const run = await runShownScene(fake, board, canvas);
       run.advance(FRAME_MS);
       return { board, component, game, run, detectChanges };
     }

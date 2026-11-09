@@ -114,8 +114,10 @@ Each library's `testing` entry point holds what specs need of it, and
   Phaser, with `collectErrors()`, which keeps what a failed scene hands the
   app's `ErrorHandler` for the spec to read, and `FakeResizeObserver`,
   `watchResizes()` and `resize()`, for a board that watches its size;
-  `installHeadlessPhaser()`, `runScene()` and `runKeyedScene()`, which run
-  a real Phaser scene headless, and what reads back what it drew
+  `installHeadlessPhaser()`, `runScene()`, `runKeyedScene()` and
+  `runShownScene()`, the scene a fake canvas was shown, which run a real
+  Phaser scene headless; `browserKey()`, a key with the `keyCode` Phaser
+  reads, for `fireEvent`; and what reads back what a scene drew
   (`objectsIn()`, `imagesIn()`, `commandsOf()`, `strokesOf()`,
   `colorsOf()`); and, from `@fz/phaser/testing/pure`, which loads no
   Phaser, `viewport()` for a spec in Node (the `phaser-core` skill).

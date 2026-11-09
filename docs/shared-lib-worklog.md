@@ -1617,3 +1617,48 @@ The review had no findings. It left two points alone, and so did I:
 Brick Breaker's call wraps to seven lines under Prettier, and no spec pins
 that the helper leaves the caller's line as it was, since it never sets
 one.
+
+### Steps 5.5 and 5.6: keys and a board's scene from `@fz/phaser/testing`
+
+Built as planned on `sl-tools`. `@fz/phaser/testing` exports
+`browserKey(code, key)`, a key as a browser sends it, with the `keyCode` from
+the table `SceneRun.key()` reads, and `runShownScene(fake, board, options)`,
+which runs the scene a fake canvas was shown last, with Phaser's keyboard on
+the board's element, and destroys the run once the test finishes. The five
+scene runners in Asteroid Breaker's and Brick Breaker's app and board specs
+and Snake's board spec take it, so their `let scene` and `afterEach` go.
+Brick Breaker, Snake and the library's two canvas specs build Space with
+`browserKey("Space", " ")`. Seven specs of the helpers join `@fz/phaser`'s,
+623 passing; the three games' suites pass.
+
+Where it went other than planned:
+
+- Asteroid Breaker's `SPACE` stays in its `src/testing/play.ts`, which the
+  coordinator put off-limits, so its specs still import it.
+- `runShownScene()` draws no frame, since the breakers step 1000/60 ms and
+  Snake 16 ms; each caller steps its first.
+- It registers its cleanup before it reads the source, so a call in a
+  `beforeAll` throws having made no scene. It sits in `keyed_scene.ts`,
+  beside `runKeyedScene()`.
+- Asteroid Breaker's `waitedForTheFace()` keeps `runScene()`, since it
+  reads the source under fake timers, and destroys its run with an
+  `onTestFinished` of its own. Its points' font test now runs the scene
+  with Phaser's keyboard on the board, not the window.
+- `browserKey()` throws for a code its table lacks rather than guess 0, and
+  so does `key()`; the table gains `NumpadEnter`.
+
+The review:
+
+1. _`browserKey()` gave 0 for any code its table lacked, F13 and
+   NumpadEnter among them, and its spec held F13 to 0:_ taken. It throws
+   `No keyCode for <code>`, the table gains `NumpadEnter: 13`, and the spec
+   holds the throw. Every code the specs send through `key()` is in it.
+2. _`lib/phaser/AGENTS.md` read as if `runShownScene()` removed the board:_
+   taken. It now says it destroys the run, not the board.
+3. _The points' font test's keyboard moving from the window to the board
+   wasn't listed:_ taken, in the commit message's departures.
+4. _Wording:_ taken. The cleanup comment says a call outside a test throws
+   before it makes a scene; `browserKey()`'s and `runShownScene()`'s docs
+   open with one sentence each; `phaser-core` names `browserKey()` in its
+   bullet on captures and runs `runShownScene()` in the right order; and
+   `angular-testing` reads "what a scene drew".

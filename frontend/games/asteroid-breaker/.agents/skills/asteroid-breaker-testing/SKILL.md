@@ -269,7 +269,8 @@ game through `runScene()`:
 
 - A component that shows the board runs it on
   `provideFakePhaserCanvas()`, which loads no Phaser. The board's spec also
-  runs the scene the board hands its canvas for real, through `runScene()`.
+  runs the scene the board hands its canvas for real, through
+  `runShownScene()`.
   The cards over the field are `<app-board-card>`, whose spec renders it
   alone, with no canvas, given what the board tells it (how the ship flies);
   the board's spec holds only that it tells it so, that it gives way to the

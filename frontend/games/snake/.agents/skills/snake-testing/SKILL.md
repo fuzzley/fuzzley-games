@@ -99,9 +99,9 @@ game through `runScene()`:
 - Every component that shows the board runs it on
   `provideFakePhaserCanvas()`, which loads no Phaser; `FakePhaserCanvas`
   keeps the hosts, to settle a scene ready or failed. The board's spec also
-  runs the scene the board hands its canvas for real, through `runScene()`,
-  to check the two are wired: the layout it publishes, the keys and the
-  time. A spec that fails the scene on purpose has the app's
+  runs the scene the board hands its canvas for real, through
+  `runShownScene()`, to check the two are wired: the layout it publishes,
+  the keys and the time. A spec that fails the scene on purpose has the app's
   `ErrorHandler` collect what the canvas hands it (`@fz/phaser/testing`'s
   `collectErrors()`), and asserts on that, so the run prints no error it
   expects.

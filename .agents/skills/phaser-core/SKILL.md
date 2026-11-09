@@ -325,10 +325,12 @@ browser, through a game's screenshots and its `check:layout`.
 - **user-event's keys carry no `keyCode`,** which Phaser's capture reads, so
   Phaser cancels nothing user-event presses. A spec of a capture, such as
   Space kept from the board by a button's `fzKeepKeys`, sends the key with
-  `fireEvent` and its `keyCode`, as `key()` does. Phaser also drops a key
-  event whose key code, type and time match those of the one before it, so
-  two keydowns in a row from user-event in one millisecond, as under fake
-  timers, reach the scene as one.
+  `fireEvent` and its `keyCode`, as `key()` does, through `browserKey()`
+  (`browserKey("Space", " ")`), which throws for a code its table lacks
+  rather than guess. Phaser also drops a key event whose key code, type and
+  time match those of the one before it, so two keydowns in a row from
+  user-event in one millisecond, as under fake timers, reach the scene as
+  one.
 - **An error a handler throws** while Phaser hears a browser's event
   reaches the window's `error` event, not the spec, so a spec that
   expects one listens for it there while it acts.
@@ -348,7 +350,9 @@ browser, through a game's screenshots and its `check:layout`.
   keyboard listens on an element of the page that takes the focus, as a
   board's does, and which destroys the run and removes the element once
   the test finishes, so a spec's helper that starts the board needs no
-  `afterEach`.
+  `afterEach`. A board's own spec runs, through `runShownScene()`, the
+  scene its fake canvas was shown, its keyboard on the board's element, and
+  the run is destroyed as the test finishes, the board left to its spec.
 - **What a scene drew is read through the harness,** never by hand:
   `objectsIn()` and `imagesIn()` count and find its game objects,
   in its layers too, and a `Graphics` is read with `commandsOf()`, its
