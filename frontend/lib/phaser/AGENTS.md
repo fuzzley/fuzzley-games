@@ -249,7 +249,9 @@ take the pure ones.
 - **The canvas's stylesheet is unencapsulated,** to reach what an app
   projects into it, so every selector in it starts at `fz-phaser-canvas`.
 - **Every line of the pure entries is covered,** and the floor in
-  `vitest.config.ts` holds the rest.
+  `vitest.config.ts` sits just under the figures and rises as they rise;
+  coverage counts `src/testing/` too, as `frontend/AGENTS.md` asks of every
+  library.
 
 ## Checks
 
