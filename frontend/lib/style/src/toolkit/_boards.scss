@@ -1,7 +1,44 @@
 @use "surfaces";
 
-// What a game shows over its board: the cards, such as Paused, and the layer
-// they show in.
+// A game's board and what it shows over it: the host of a board drawn on a
+// canvas, the ring that shows its focus, the cards, such as Paused, and the
+// layer they show in.
+
+/// Styles the host of a game's board drawn on a canvas, as the board's
+/// `:host`: a size container its parts size from, which holds them and clips
+/// them; no outline of its own, as `board-focus-ring()` shows the focus; and
+/// nothing a finger steering on it would set off: no scroll or zoom, no
+/// selection, no callout and no tap highlight.
+@mixin canvas-board-host {
+  position: relative;
+  display: block;
+  container-type: size;
+  overflow: hidden;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/// Styles the ring around a game's board, on an element the board places
+/// over what the ring goes around: `$offset` out from the element's edge,
+/// as wide as its wall or frame, and the shared focus ring's offset beyond
+/// that, letting the pointer through.
+///
+/// It shows while the board's host has the focus from the keyboard, so it
+/// belongs in the board's own stylesheet, the one whose `:host` takes
+/// `canvas-board-host`.
+@mixin board-focus-ring($offset) {
+  border-radius: var(--fz-radius-sm);
+  outline: var(--fz-focus-ring-width) solid transparent;
+  outline-offset: calc($offset + var(--fz-focus-ring-offset));
+  pointer-events: none;
+
+  :host(:focus-visible) & {
+    outline-color: var(--fz-focus-ring-color);
+  }
+}
 
 /// Styles the layer a game's cards show in over its board, `$bottom` short
 /// of the board's foot: a grid that sets a card in its middle at the card's

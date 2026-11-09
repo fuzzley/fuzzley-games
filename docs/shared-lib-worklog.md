@@ -1062,3 +1062,46 @@ The review:
    `wrappedBetween()` no longer reads as another type. Each edited paragraph
    is rewrapped from the edit on, at the files' 78 columns. Brick Breaker's
    "and `FieldFrame`" stays, as it ends its list before a semicolon.
+
+### Step 4.4: the Phaser boards' styles in `@fz/style`'s `_boards.scss`
+
+Built as planned on `sl-shell`, after rebasing onto `shared-lib`.
+`canvas-board-host` writes the nine declarations Snake's, Brick Breaker's
+and Asteroid Breaker's board `:host` repeated: a size container that holds
+and clips the board's parts, no outline, and nothing a finger steering on
+it sets off. `board-focus-ring($offset)` writes the ring's four declarations
+and the `:host(:focus-visible)` rule that shows it. `$offset` is the wall's
+width in Snake and Brick Breaker and the frame's in Asteroid Breaker. Each
+board is about 15 lines shorter. Compiled before and after, each board's
+stylesheet gives every selector the same declarations. The tests pass:
+`@fz/style` 281, Snake 423, Brick Breaker 1842 and 180, Asteroid Breaker
+3625 and 1620.
+
+Where it went other than planned:
+
+- Asteroid Breaker's board stylesheet now loads the game's toolkit
+  (`@use "../styles" as *;`), which it didn't need before.
+- Sass writes a ring's own placement as a second `.ring` block after the
+  mixin's nested rule, as `board-card` already does with Snake's `.card`.
+  No property is set twice, so the outcome is the same.
+- The `fuzzley-ui` skill gains a row of its own, so the table's columns
+  keep their width.
+
+The review:
+
+1. _`board-focus-ring`'s doc has two sentences in its first paragraph and
+   says the ring rings a mixin:_ taken. Why it belongs in the board's own
+   stylesheet is now a paragraph of its own: "the one whose `:host` takes
+   `canvas-board-host`".
+2. _`outline:none` sits under the finger's test, and the ring's spec misses
+   its rounding:_ taken. "leave a canvas board's focus for its ring to show"
+   checks `outline:none`, and the ring's test checks `border-radius` too.
+3. _A clause in `lib/style/AGENTS.md` attaches to the width:_ taken.
+   "`board-focus-ring($offset)`, which also writes the
+   `:host(:focus-visible)` rule that shows it" now comes first, then the
+   element it goes on and `$offset`.
+
+The review's optional note to name the two mixins in the `phaser-core`
+skill, beside `boardHostOptions()`: not taken. `sl-play` is rewriting that
+paragraph for `viewportOf()` and `canvasChanged()`, and the `fuzzley-ui`
+skill already names both mixins.

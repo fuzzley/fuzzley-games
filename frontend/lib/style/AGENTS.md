@@ -51,8 +51,8 @@ relative to `frontend/lib/style/`.
   `@use "@fz/style" as fz;`, from `src/toolkit/`: `visually-hidden` and
   `tap-target` (`_a11y.scss`), `flex-center` (`_layout.scss`), `transition`
   (`_motion.scss`), `glass` (`_surfaces.scss`), `icon-button`
-  (`_controls.scss`); the games' dialogs (`_dialogs.scss`); and the cards a
-  game shows over its board (`_boards.scss`). The dialogs are the parts a
+  (`_controls.scss`); the games' dialogs (`_dialogs.scss`); and a game's
+  board and its cards (`_boards.scss`). The dialogs are the parts a
   dialog is drawn from, `dialog-card($width)`, `close-button`,
   `corner-close-button`, `field-label`, `choice-tile`, `choice-list`, a list
   of choice tiles, each its name over a few words, as `@fz/ui`'s
@@ -77,8 +77,14 @@ relative to `frontend/lib/style/`.
   `<fz-canvas-cards>`, since it sets the card's spacing through custom
   properties the card reads (`--fz-board-card-gap`,
   `--fz-board-card-padding`) and its type, which the cards inside inherit.
-  The toolkit emits no CSS, so any stylesheet can load it, and
-  `src/toolkit.spec.ts` checks what each mixin writes.
+  A board drawn on a canvas takes `canvas-board-host` on its `:host`: a
+  size container that clips its parts, with no outline and nothing for a
+  finger steering on it to set off. Its focus shows in
+  `board-focus-ring($offset)`, which also writes the `:host(:focus-visible)`
+  rule that shows it, on an element over what the ring goes around,
+  `$offset` its wall's or frame's width. The toolkit emits no CSS, so any
+  stylesheet can load it, and `src/toolkit.spec.ts` checks what each mixin
+  writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
   keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for

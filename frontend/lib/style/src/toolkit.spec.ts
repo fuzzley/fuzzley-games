@@ -141,6 +141,69 @@ describe("the toolkit's mixins", () => {
     expect(card).toContain("text-align:center");
   });
 
+  it("make a canvas board's host a size container that holds and clips its parts", () => {
+    const host = declarations(
+      compiled("@include fz.canvas-board-host;"),
+      ".it",
+    );
+
+    expect(host).toEqual(
+      expect.arrayContaining([
+        "position:relative",
+        "display:block",
+        "container-type:size",
+        "overflow:hidden",
+      ]),
+    );
+  });
+
+  it("leave nothing on a canvas board for a finger steering on it to set off", () => {
+    const host = declarations(
+      compiled("@include fz.canvas-board-host;"),
+      ".it",
+    );
+
+    expect(host).toEqual(
+      expect.arrayContaining([
+        "touch-action:none",
+        "user-select:none",
+        "-webkit-touch-callout:none",
+        "-webkit-tap-highlight-color:rgba(0,0,0,0)",
+      ]),
+    );
+  });
+
+  it("leave a canvas board's focus for its ring to show", () => {
+    const host = declarations(
+      compiled("@include fz.canvas-board-host;"),
+      ".it",
+    );
+
+    expect(host).toContain("outline:none");
+  });
+
+  it("ring a board the focus ring's offset beyond its wall, letting the pointer through", () => {
+    const ring = declarations(
+      compiled("@include fz.board-focus-ring(var(--wall));"),
+      ".it",
+    );
+
+    expect(ring).toEqual(
+      expect.arrayContaining([
+        "border-radius:var(--fz-radius-sm)",
+        "outline:var(--fz-focus-ring-width) solid rgba(0,0,0,0)",
+        "outline-offset:calc(var(--wall) + var(--fz-focus-ring-offset))",
+        "pointer-events:none",
+      ]),
+    );
+  });
+
+  it("show a board's ring only while its host has the focus from the keyboard", () => {
+    expect(compiled("@include fz.board-focus-ring(2px);")).toContain(
+      ":host(:focus-visible) .it{outline-color:var(--fz-focus-ring-color)}",
+    );
+  });
+
   it("center a board's card in a grid over all of the board but its foot", () => {
     expect(compiled("@include fz.board-card-layer(var(--finger));")).toBe(
       ".it{position:absolute;inset:0 0 var(--finger);display:grid;place-items:center;pointer-events:none}",
