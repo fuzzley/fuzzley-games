@@ -1,7 +1,7 @@
-import { Injectable, inject, signal } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { booleanOr } from "@fz/core/json";
 import { isOneOf } from "@fz/core/records";
-import { LocalStorageService } from "@fz/ui/storage";
+import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import { type Speed, isSpeed } from "../../rules/speed";
 
 /** Where the settings are kept. Renaming it loses every player's. */
@@ -45,8 +45,11 @@ export const DEFAULT_SETTINGS: Settings = {
 /** Holds and keeps the player's settings. */
 @Injectable({ providedIn: "root" })
 export class SettingsService {
-  private readonly storage = inject(LocalStorageService);
-  private readonly state = signal(this.read());
+  private readonly state = storedSignal({
+    key: SETTINGS_KEY,
+    version: SETTINGS_VERSION,
+    read: settingsFrom,
+  });
 
   /** The settings in use. */
   readonly settings = this.state.asReadonly();
@@ -54,21 +57,19 @@ export class SettingsService {
   /** Changes some of the settings, and keeps them. */
   update(change: Partial<Settings>): void {
     this.state.update((settings) => ({ ...settings, ...change }));
-    this.storage.writeVersioned(SETTINGS_KEY, SETTINGS_VERSION, this.state());
   }
+}
 
-  /** Returns the settings stored, each one that makes sense, else the default. */
-  private read(): Settings {
-    const saved = this.storage.readVersioned(SETTINGS_KEY, SETTINGS_VERSION);
-    if (!saved) return DEFAULT_SETTINGS;
-    const { speed, deck, stickOnRight, fireByItself, haptics, sound } = saved;
-    return {
-      speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
-      deck: isOneOf(deck, DECK_SHOWINGS) ? deck : DEFAULT_SETTINGS.deck,
-      stickOnRight: booleanOr(stickOnRight, DEFAULT_SETTINGS.stickOnRight),
-      fireByItself: booleanOr(fireByItself, DEFAULT_SETTINGS.fireByItself),
-      haptics: booleanOr(haptics, DEFAULT_SETTINGS.haptics),
-      sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
-    };
-  }
+/** Returns the settings stored, each one that makes sense, else the default. */
+function settingsFrom(saved: StoredFields | null): Settings {
+  if (!saved) return DEFAULT_SETTINGS;
+  const { speed, deck, stickOnRight, fireByItself, haptics, sound } = saved;
+  return {
+    speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
+    deck: isOneOf(deck, DECK_SHOWINGS) ? deck : DEFAULT_SETTINGS.deck,
+    stickOnRight: booleanOr(stickOnRight, DEFAULT_SETTINGS.stickOnRight),
+    fireByItself: booleanOr(fireByItself, DEFAULT_SETTINGS.fireByItself),
+    haptics: booleanOr(haptics, DEFAULT_SETTINGS.haptics),
+    sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
+  };
 }

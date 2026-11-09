@@ -1,6 +1,6 @@
-import { Injectable, inject, signal } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { booleanOr } from "@fz/core/json";
-import { LocalStorageService } from "@fz/ui/storage";
+import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import { type Speed, isCustomPercent, isSpeed } from "../../rules/speed";
 import {
   type TouchSteering,
@@ -36,8 +36,11 @@ export const DEFAULT_SETTINGS: Settings = {
 /** Holds and keeps the player's settings. */
 @Injectable({ providedIn: "root" })
 export class SettingsService {
-  private readonly storage = inject(LocalStorageService);
-  private readonly state = signal(this.read());
+  private readonly state = storedSignal({
+    key: SETTINGS_KEY,
+    version: SETTINGS_VERSION,
+    read: settingsFrom,
+  });
 
   /** The settings in use. */
   readonly settings = this.state.asReadonly();
@@ -45,21 +48,19 @@ export class SettingsService {
   /** Changes some of the settings, and keeps them. */
   update(change: Partial<Settings>): void {
     this.state.update((settings) => ({ ...settings, ...change }));
-    this.storage.writeVersioned(SETTINGS_KEY, SETTINGS_VERSION, this.state());
   }
+}
 
-  /** Returns the settings stored, each one that makes sense, else the default. */
-  private read(): Settings {
-    const saved = this.storage.readVersioned(SETTINGS_KEY, SETTINGS_VERSION);
-    if (!saved) return DEFAULT_SETTINGS;
-    const { speed, customPercent, touch, sound } = saved;
-    return {
-      speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
-      customPercent: isCustomPercent(customPercent)
-        ? customPercent
-        : DEFAULT_SETTINGS.customPercent,
-      touch: isTouchSteering(touch) ? touch : DEFAULT_SETTINGS.touch,
-      sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
-    };
-  }
+/** Returns the settings stored, each one that makes sense, else the default. */
+function settingsFrom(saved: StoredFields | null): Settings {
+  if (!saved) return DEFAULT_SETTINGS;
+  const { speed, customPercent, touch, sound } = saved;
+  return {
+    speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
+    customPercent: isCustomPercent(customPercent)
+      ? customPercent
+      : DEFAULT_SETTINGS.customPercent,
+    touch: isTouchSteering(touch) ? touch : DEFAULT_SETTINGS.touch,
+    sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
+  };
 }

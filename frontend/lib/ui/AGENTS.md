@@ -19,8 +19,17 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   reads and writes strings and JSON through it, warning rather than throwing
   where the store is missing or refuses. What an app keeps from one visit
   to the next goes through `writeVersioned()`, which stores a version
-  beside it, and `readVersioned()`, which reads any other version as
-  nothing, so a change of shape drops what it can't read.
+  beside its fields, refusing a value with a `version` of its own, and
+  `readVersioned()`, which reads any other version as nothing, so a change
+  of shape drops what it can't read. `storedSignal({ key, version, read })`
+  holds such an entry in a signal: it reads it as it is made, through the
+  app's `read`, which turns what was stored, or null for nothing of that
+  version, into the value, and stores every change made to it, through a
+  `write` where the value isn't kept as it is, such as a set.
+  `keepOnLeave(save)` calls `save` as the page is hidden and as it goes
+  away, until the injector it was called in is destroyed, for what is
+  written at moments of its own rather than on every change, such as a run
+  under way.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
   it, takes up one chosen in another tab, gives a role's color as a signal
   (`role("felt")`) and whether the palette is light or dark (`mode`), each
@@ -80,8 +89,10 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   game; a group where choosing is free can use native radios instead, as
   `<fz-theme-picker>` does.
 - `src/testing/`: what an app's specs need to drive these components, for
-  its spec setup file only: `installDialogPolyfill`, which gives jsdom's
-  `<dialog>` the `showModal()`, `close()` and Escape it lacks.
+  its specs only: `installDialogPolyfill`, which gives jsdom's `<dialog>`
+  the `showModal()`, `close()` and Escape it lacks, for the spec setup
+  file; and `setPageVisibility(state)`, which hides the page or shows it
+  again, as switching tabs does, until the test finishes.
 - `src/wordmark/`: `<fz-wordmark>`, the fuzzball in the palette's accent and
   the "Fuzzley Games" name in its own type, set in lower case as fuzzley.info
   sets its own. It is text: an app that links it puts it in its own `<a>`,

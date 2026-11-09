@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import { setPageVisibility } from "@fz/ui/testing";
 import { FIRST_LIVES } from "../../rules/tuning";
 import {
   SPEC_LEVEL,
@@ -127,6 +128,15 @@ describe("SavedGameService", () => {
       TestBed.tick();
 
       expect(stored()).toMatchObject({ lives: FIRST_LIVES - 1 });
+    });
+
+    it("keeps the run where it stands as the page is hidden", async () => {
+      const game = await served();
+      playFor(game, 500, STILL);
+
+      setPageVisibility("hidden");
+
+      expect(stored()).toEqual(current(game));
     });
 
     it("keeps the run where it stands as the page goes away", async () => {

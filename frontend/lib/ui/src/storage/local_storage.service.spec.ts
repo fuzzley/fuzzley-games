@@ -115,6 +115,16 @@ describe("LocalStorageService", () => {
       });
     });
 
+    it("stores its own version over one a value carries", () => {
+      // @ts-expect-error A value with a version of its own is refused.
+      service().writeVersioned("key", 2, { version: 9, lives: 3 });
+
+      expect(JSON.parse(localStorage.getItem("key") ?? "")).toEqual({
+        version: 2,
+        lives: 3,
+      });
+    });
+
     it("reads another version as null", () => {
       const storage = service();
       storage.writeVersioned("key", 1, { lives: 3 });

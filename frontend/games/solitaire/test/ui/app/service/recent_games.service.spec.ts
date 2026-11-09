@@ -91,14 +91,14 @@ describe("RecentGamesService", () => {
     expect(ids(harness)).toEqual(["klondike", "freecell"]);
   });
 
-  it("keeps what it remembers in storage", () => {
-    const harness = start();
-
-    harness.catalog.catalog.select("freecell");
+  it("gives a later visit back the games it remembered", () => {
+    start().catalog.catalog.select("freecell");
     TestBed.tick();
+    TestBed.resetTestingModule();
 
-    const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "");
-    expect(stored).toEqual(saved(harness.recent.games()));
+    const later = start();
+
+    expect(ids(later)).toEqual(["klondike", "freecell"]);
   });
 
   it("carries on from the games stored before", () => {

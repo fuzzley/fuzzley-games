@@ -2,6 +2,23 @@ import { Injectable, inject } from "@angular/core";
 import { isRecord } from "@fz/core/json";
 import { BROWSER_STORAGE } from "./browser_storage";
 
+/** What `readVersioned()` read, its fields as stored, unchecked. */
+export type StoredFields = Readonly<Record<string, unknown>>;
+
+/**
+ * An object of fields with no `version` among them, which `writeVersioned()`
+ * stores beside its fields.
+ *
+ * The first member takes an interface's value, which has no index
+ * signature, and the second an object literal's fields, which the first
+ * would refuse as excess. Neither takes what is iterated, such as a list, a
+ * set or a map, whose items JSON wouldn't keep as its fields.
+ */
+export type Unversioned = (
+  | (object & { readonly version?: never })
+  | { readonly version?: never; readonly [field: string]: unknown }
+) & { readonly [Symbol.iterator]?: never };
+
 /**
  * Reads and writes the browser's local storage, warning rather than throwing
  * where it is missing or refuses.
@@ -46,17 +63,15 @@ export class LocalStorageService {
    *
    * Its fields are as stored, unchecked, so treat them as untrusted input.
    */
-  readVersioned(
-    key: string,
-    version: number,
-  ): Readonly<Record<string, unknown>> | null {
+  readVersioned(key: string, version: number): StoredFields | null {
     const saved = this.readObject(key);
     return isRecord(saved) && saved["version"] === version ? saved : null;
   }
 
   /** Writes an object's fields as JSON, with the version they are kept at. */
-  writeVersioned(key: string, version: number, value: object): void {
-    this.writeObject(key, { version, ...value });
+  writeVersioned(key: string, version: number, value: Unversioned): void {
+    // eslint-disable-next-line @typescript-eslint/no-misused-spread -- Unversioned names an iterator only to refuse one.
+    this.writeObject(key, { ...value, version });
   }
 
   /** Writes a raw string, doing nothing where there is nowhere to write. */

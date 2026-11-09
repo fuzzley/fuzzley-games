@@ -76,12 +76,4 @@ describe("SettingsService", () => {
 
     expect(settings.settings()).toEqual({ ...DEFAULT_SETTINGS, deck: "never" });
   });
-
-  it("starts afresh from settings stored in another shape", () => {
-    store({ version: 2, deck: "never" });
-
-    const settings = TestBed.inject(SettingsService);
-
-    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
-  });
 });

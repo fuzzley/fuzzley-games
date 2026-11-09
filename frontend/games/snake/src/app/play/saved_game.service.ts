@@ -1,12 +1,5 @@
-import { DOCUMENT } from "@angular/common";
-import {
-  DestroyRef,
-  Injectable,
-  effect,
-  inject,
-  untracked,
-} from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, effect, inject, untracked } from "@angular/core";
+import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
 import { restoreRun, saveRun } from "../../rules/saved_run";
 import { GameService } from "./game.service";
 
@@ -22,9 +15,9 @@ const SAVED_GAME_VERSION = 1;
  *
  * Only a run under way is kept: one waiting for its first direction, or one
  * that has ended, is not. It is written as the run starts, pauses, goes on
- * or eats an apple, and as the page goes away, rather than at every step. A
- * hidden page pauses the run, which writes it where it stands. Something
- * must inject it at startup for the run to be taken up.
+ * or eats an apple, and as the page is hidden or goes away, rather than at
+ * every step. Something must inject it at startup for the run to be taken
+ * up.
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
@@ -41,14 +34,8 @@ export class SavedGameService {
         this.keep();
       });
     });
-
-    const view = inject(DOCUMENT).defaultView;
-    const keepAll = (): void => {
+    keepOnLeave(() => {
       this.keep();
-    };
-    view?.addEventListener("pagehide", keepAll);
-    inject(DestroyRef).onDestroy(() => {
-      view?.removeEventListener("pagehide", keepAll);
     });
   }
 

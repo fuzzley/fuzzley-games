@@ -205,8 +205,8 @@ can't trust rather than failing:
   arrows show, and the sound.
 - `snake-stats`: each speed's runs, best score and longest snake.
 - `snake-game`: the run under way, as `saved_run.ts` writes it. It is
-  written as the run starts, pauses, goes on or eats, and as the page goes
-  away, never at a mere step, and forgotten once the run ends.
+  written as the run starts, pauses, goes on or eats, and as the page is
+  hidden or goes away, never at a mere step, and forgotten once the run ends.
   `restoreRun()` drops a snake that doesn't hold together or an apple under
   it.
 

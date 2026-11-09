@@ -89,12 +89,4 @@ describe("StatsService", () => {
       fast: NONE,
     });
   });
-
-  it("starts afresh from stats stored in another shape", () => {
-    store({ version: 2, slow: { runs: 2, best: 3, longest: 6 } });
-
-    const stats = TestBed.inject(StatsService);
-
-    expect(stats.stats().slow).toEqual(NONE);
-  });
 });

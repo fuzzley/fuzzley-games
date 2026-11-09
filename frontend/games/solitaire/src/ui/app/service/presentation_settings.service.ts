@@ -1,6 +1,7 @@
 import {
   Injectable,
   Injector,
+  type WritableSignal,
   computed,
   effect,
   inject,
@@ -42,7 +43,7 @@ import {
   isFeltChoice,
   isFeltKey,
 } from "../model/table_felt";
-import { LocalStorageService } from "@fz/ui/storage";
+import { LocalStorageService, storedSignal } from "@fz/ui/storage";
 import { GameViewportService } from "@fz/game-ui/viewport";
 
 /**
@@ -128,35 +129,22 @@ export class PresentationSettingsService implements TablePresentation {
   /** The palette's own felt, empty where no stylesheet sets one. */
   private readonly paletteFelt = inject(ThemeService).role("felt");
 
-  private readonly loaded = this.loadPersisted();
-
-  private readonly cardBackStyleSignal = signal<CardBackStyle>(
-    this.loaded.cardBackStyle,
-  );
-  private readonly feltSignal = signal<FeltChoice>(this.loaded.felt);
-  private readonly cardStyleSignal = signal<CardStyle>(this.loaded.cardStyle);
-  private readonly desktopCardDeckSignal = signal<DesktopCardDeckId>(
-    this.loaded.desktopCardDeck,
-  );
-  private readonly pilesSignal = signal<OrAuto<PilePosition>>(
-    this.loaded.piles,
-  );
-  private readonly stockSideSignal = signal<OrAuto<StockSide>>(
-    this.loaded.stockSide,
-  );
+  /** The player's choices, as they are stored. */
+  private readonly persisted = this.storedChoices();
 
   /** Where the piles go and the stock's side, together. */
   private readonly arrangement = computed<BoardArrangement>(() => ({
-    piles: this.pilesSignal(),
-    stockSide: this.stockSideSignal(),
+    piles: this.piles(),
+    stockSide: this.stockSide(),
   }));
 
   /** The deck the player's choices and the viewport call for. */
   private readonly wantedCardDeck = computed<CardDeckId>(() => {
-    const style = this.cardStyleSignal();
+    const { cardStyle, desktopCardDeck } = this.persisted();
     const mobile =
-      style === "mobile" || (style === "auto" && this.viewport.isCompact());
-    return mobile ? MOBILE_CARD_DECK.id : this.desktopCardDeckSignal();
+      cardStyle === "mobile" ||
+      (cardStyle === "auto" && this.viewport.isCompact());
+    return mobile ? MOBILE_CARD_DECK.id : desktopCardDeck;
   });
 
   /** The deck the board is fetching, if it is fetching one. */
@@ -171,35 +159,35 @@ export class PresentationSettingsService implements TablePresentation {
   private readonly unavailableCardDeckSignal = signal<CardDeckId | null>(null);
 
   /** The visual style used for face-down card backs. */
-  readonly cardBackStyle = this.cardBackStyleSignal.asReadonly();
+  readonly cardBackStyle = computed(() => this.persisted().cardBackStyle);
 
   /** The table felt the player chose, or "theme" for the palette's. */
-  readonly felt = this.feltSignal.asReadonly();
+  readonly felt = computed(() => this.persisted().felt);
 
   /**
    * The felt on the table as a CSS/Phaser color string: the one the player
    * chose, or the palette's.
    */
   readonly backgroundColor = computed(() => {
-    const felt = this.feltSignal();
+    const felt = this.felt();
     if (felt !== "theme") return TABLE_FELTS[felt].color;
     return this.paletteFelt() || DEFAULT_BACKGROUND_COLOR;
   });
 
   /** Whether the cards are drawn for a phone, a larger screen, or either. */
-  readonly cardStyle = this.cardStyleSignal.asReadonly();
+  readonly cardStyle = computed(() => this.persisted().cardStyle);
 
   /** The deck the cards are drawn from whenever they are drawn for desktop. */
-  readonly desktopCardDeck = this.desktopCardDeckSignal.asReadonly();
+  readonly desktopCardDeck = computed(() => this.persisted().desktopCardDeck);
 
   /**
    * Where a game with arranged grids puts the piles that are not columns, or
    * Auto.
    */
-  readonly piles = this.pilesSignal.asReadonly();
+  readonly piles = computed(() => this.persisted().piles);
 
   /** Which side a game with arranged grids puts the stock on, or Auto. */
-  readonly stockSide = this.stockSideSignal.asReadonly();
+  readonly stockSide = computed(() => this.persisted().stockSide);
 
   /**
    * Where the piles go and the stock's side on the screen as it is now, with
@@ -247,35 +235,35 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** Updates the card back style. */
   setCardBackStyle(style: CardBackStyle): void {
-    this.cardBackStyleSignal.set(style);
+    this.choose({ cardBackStyle: style });
   }
 
   /** Lays the table with a different felt, or the palette's. */
   setFelt(felt: FeltChoice): void {
-    this.feltSignal.set(felt);
+    this.choose({ felt });
   }
 
   /** Draws the cards for a phone, a larger screen, or whichever this is. */
   setCardStyle(style: CardStyle): void {
     // A fresh choice clears the last failure, so choosing again retries it.
     this.unavailableCardDeckSignal.set(null);
-    this.cardStyleSignal.set(style);
+    this.choose({ cardStyle: style });
   }
 
   /** Updates the deck the cards are drawn from whenever they are for desktop. */
   setDesktopCardDeck(deckId: DesktopCardDeckId): void {
     this.unavailableCardDeckSignal.set(null);
-    this.desktopCardDeckSignal.set(deckId);
+    this.choose({ desktopCardDeck: deckId });
   }
 
   /** Puts the piles at the top or the bottom, or wherever the screen suits. */
   setPiles(position: OrAuto<PilePosition>): void {
-    this.pilesSignal.set(position);
+    this.choose({ piles: position });
   }
 
   /** Puts the stock at the left or the right, or wherever the screen suits. */
   setStockSide(side: OrAuto<StockSide>): void {
-    this.stockSideSignal.set(side);
+    this.choose({ stockSide: side });
   }
 
   /** Records how the board is getting on with the deck it was asked for. */
@@ -297,7 +285,7 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** @inheritDoc */
   cardBackKey(): string {
-    return this.cardBackStyleSignal();
+    return this.cardBackStyle();
   }
 
   /** @inheritDoc */
@@ -347,27 +335,42 @@ export class PresentationSettingsService implements TablePresentation {
     };
   };
 
-  constructor() {
-    // Save on every change. The first run rewrites what was just read, which
-    // is harmless.
-    effect(() => {
-      const data: PersistedPresentation = {
-        cardBackStyle: this.cardBackStyleSignal(),
-        felt: this.feltSignal(),
-        cardStyle: this.cardStyleSignal(),
-        desktopCardDeck: this.desktopCardDeckSignal(),
-        piles: this.pilesSignal(),
-        stockSide: this.stockSideSignal(),
-      };
-      this.storage.writeVersioned(STORAGE_KEY, STORAGE_VERSION, data);
+  /** Changes some of the player's choices, and keeps them. */
+  private choose(change: Partial<PersistedPresentation>): void {
+    this.persisted.update((persisted) => ({ ...persisted, ...change }));
+  }
+
+  /**
+   * Returns the player's choices held as they are stored, once settings a
+   * build before versions stored bare are rewritten in this build's shape.
+   */
+  private storedChoices(): WritableSignal<PersistedPresentation> {
+    this.rewriteEarlier();
+    return storedSignal({
+      key: STORAGE_KEY,
+      version: STORAGE_VERSION,
+      read: (saved) => (saved ? this.loadPersisted(saved) : DEFAULTS),
     });
   }
 
-  /** Reads stored settings, filling gaps with defaults. */
-  private loadPersisted(): PersistedPresentation {
-    const parsed = this.readStored();
-    if (!parsed) return DEFAULTS;
+  /**
+   * Rewrites the settings a build before versions stored bare in this
+   * build's shape, so each setting is read from one place from then on.
+   *
+   * An entry with a version, this build's or another's, is left as it is.
+   */
+  private rewriteEarlier(): void {
+    const earlier = this.storage.readObject(STORAGE_KEY);
+    if (!earlier || Array.isArray(earlier) || "version" in earlier) return;
+    this.storage.writeVersioned(
+      STORAGE_KEY,
+      STORAGE_VERSION,
+      this.loadPersisted(earlier),
+    );
+  }
 
+  /** Reads stored settings, filling gaps with defaults. */
+  private loadPersisted(parsed: StoredPresentation): PersistedPresentation {
     // An earlier build stored the one deck it offered as `cardDeck`.
     const desktopCardDeck = parsed.desktopCardDeck ?? parsed.cardDeck;
     return {
@@ -394,18 +397,5 @@ export class PresentationSettingsService implements TablePresentation {
           ? "left"
           : DEFAULTS.stockSide,
     };
-  }
-
-  /**
-   * Returns the stored settings, unchecked, or null when there are none of
-   * this version or bare, as builds before versions stored them.
-   */
-  private readStored(): StoredPresentation | null {
-    const saved = this.storage.readVersioned(STORAGE_KEY, STORAGE_VERSION);
-    if (saved) return saved;
-    const earlier = this.storage.readObject(STORAGE_KEY);
-    return earlier && !Array.isArray(earlier) && !("version" in earlier)
-      ? earlier
-      : null;
   }
 }

@@ -236,9 +236,9 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
 - **Its saved games**, the game in play, the settings and the recent
   games, are in `localStorage` under keys that start with `fsolitaire-`,
   in the services under `src/ui/app/service/`. The recent games and the
-  presentation settings carry a version, through `LocalStorageService`'s
-  `writeVersioned()`, and still read the bare entries builds before
-  versions stored.
+  presentation settings carry a version, each held in `@fz/ui/storage`'s
+  `storedSignal()`, and still read the bare entries builds before versions
+  stored, the presentation settings rewriting theirs in the new shape.
 - **Bug reports are filed here.** "Report a Bug" opens the repository's issue
   form, `.github/ISSUE_TEMPLATE/solitaire_bug_report.yml`, filled in, and
   names the commit the Docker build was made from, which `vite.config.ts`

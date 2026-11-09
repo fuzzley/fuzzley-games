@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
+import { setPageVisibility } from "@fz/ui/testing";
 import { createRun, pause, step, turn } from "../../rules/run";
 import { saveRun } from "../../rules/saved_run";
 import { stepMs } from "../../rules/speed";
@@ -83,6 +84,16 @@ describe("SavedGameService", () => {
       TestBed.tick();
 
       expect(stored()).toMatchObject({ eaten: 1, steps: 8 });
+    });
+
+    it("keeps the run where it stands as the page is hidden", () => {
+      const game = started();
+      game.tick(STEP);
+      game.tick(STEP);
+
+      setPageVisibility("hidden");
+
+      expect(stored()).toMatchObject({ steps: 2 });
     });
 
     it("keeps the run where it stands as the page goes away", () => {

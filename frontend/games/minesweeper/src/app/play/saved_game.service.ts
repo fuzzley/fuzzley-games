@@ -1,12 +1,5 @@
-import { DOCUMENT } from "@angular/common";
-import {
-  DestroyRef,
-  Injectable,
-  effect,
-  inject,
-  untracked,
-} from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, effect, inject, untracked } from "@angular/core";
+import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
 import { isDifficultyId } from "../../rules/difficulty";
 import { isCount } from "@fz/core/json";
 import { restoreField, saveField } from "../../rules/saved_field";
@@ -38,20 +31,8 @@ export class SavedGameService {
     effect(() => {
       this.keep();
     });
-
-    const document = inject(DOCUMENT);
-    const view = document.defaultView;
-    const keepTime = (): void => {
-      if (document.visibilityState === "hidden") this.keep();
-    };
-    const keepAll = (): void => {
+    keepOnLeave(() => {
       this.keep();
-    };
-    document.addEventListener("visibilitychange", keepTime);
-    view?.addEventListener("pagehide", keepAll);
-    inject(DestroyRef).onDestroy(() => {
-      document.removeEventListener("visibilitychange", keepTime);
-      view?.removeEventListener("pagehide", keepAll);
     });
   }
 

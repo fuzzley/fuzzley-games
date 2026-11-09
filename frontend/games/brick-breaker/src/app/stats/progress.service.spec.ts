@@ -47,12 +47,4 @@ describe("ProgressService", () => {
 
     expect(progress.cleared()).toEqual(new Set(["wide"]));
   });
-
-  it("starts afresh from progress stored in another shape", () => {
-    store({ version: 2, cleared: ["wide"] });
-
-    const progress = TestBed.inject(ProgressService);
-
-    expect(progress.cleared()).toEqual(new Set());
-  });
 });

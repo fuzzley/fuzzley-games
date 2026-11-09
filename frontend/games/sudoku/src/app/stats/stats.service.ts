@@ -1,5 +1,5 @@
-import { Injectable, inject, signal } from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable } from "@angular/core";
+import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import type { Level } from "../../rules/difficulty";
 import { isCount, isRecord } from "@fz/core/json";
 
@@ -41,8 +41,11 @@ function statsBy(each: (level: Level) => LevelStats): Stats {
  */
 @Injectable({ providedIn: "root" })
 export class StatsService {
-  private readonly storage = inject(LocalStorageService);
-  private readonly state = signal<Stats>(this.read());
+  private readonly state = storedSignal({
+    key: STATS_KEY,
+    version: STATS_VERSION,
+    read: statsFrom,
+  });
 
   /** The stats so far. */
   readonly stats = this.state.asReadonly();
@@ -76,15 +79,13 @@ export class StatsService {
     update: (stats: LevelStats) => LevelStats,
   ): void {
     this.state.update((all) => ({ ...all, [level]: update(all[level]) }));
-    this.storage.writeVersioned(STATS_KEY, STATS_VERSION, this.state());
   }
+}
 
-  /** Returns the stats stored, keeping whatever of them still makes sense. */
-  private read(): Stats {
-    const saved = this.storage.readVersioned(STATS_KEY, STATS_VERSION);
-    if (!saved) return statsBy(() => NONE);
-    return statsBy((level) => parseStats(saved[level]));
-  }
+/** Returns the stats stored, keeping whatever of them still makes sense. */
+function statsFrom(saved: StoredFields | null): Stats {
+  if (!saved) return statsBy(() => NONE);
+  return statsBy((level) => parseStats(saved[level]));
 }
 
 /** Returns one level's stats as stored, or none if they make no sense. */

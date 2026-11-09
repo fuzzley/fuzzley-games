@@ -1,12 +1,5 @@
-import { DOCUMENT } from "@angular/common";
-import {
-  DestroyRef,
-  Injectable,
-  effect,
-  inject,
-  untracked,
-} from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, effect, inject, untracked } from "@angular/core";
+import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
 import { SAVED_GAME_VERSION, restoreGame } from "../../rules/run/saved_game";
 import { GAME_WAVES } from "../tokens";
 import { GameService } from "./game.service";
@@ -18,9 +11,9 @@ export const SAVED_GAME_KEY = "asteroid-breaker-game";
  * Keeps the run under way, and takes it up again, paused, when the page
  * loads, so a reload or a phone dropping the tab loses little.
  *
- * It writes as the run changes course or the page is hidden, never at a
- * step, and something must inject it at startup for the run to be taken
- * up.
+ * It writes as the run changes course and as the page is hidden or goes
+ * away, never at a step, and something must inject it at startup for the
+ * run to be taken up.
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
@@ -38,22 +31,8 @@ export class SavedGameService {
         this.keep();
       });
     });
-
-    // A phone may drop a tab it hid without the page going away, and a
-    // hidden page draws no frame for the effect to run in.
-    const document = inject(DOCUMENT);
-    const view = document.defaultView;
-    const keepAll = (): void => {
+    keepOnLeave(() => {
       this.keep();
-    };
-    const keepHidden = (): void => {
-      if (document.visibilityState === "hidden") this.keep();
-    };
-    view?.addEventListener("pagehide", keepAll);
-    document.addEventListener("visibilitychange", keepHidden);
-    inject(DestroyRef).onDestroy(() => {
-      view?.removeEventListener("pagehide", keepAll);
-      document.removeEventListener("visibilitychange", keepHidden);
     });
   }
 
