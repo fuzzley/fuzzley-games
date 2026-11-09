@@ -51,15 +51,20 @@ Each file is an entry point of its own, imported by name, such as
   bests at each speed; and `unknownKey()`, a key a data file holds that its
   type doesn't name, as a typo would leave.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
-  "2 hints", and `formatPoints()`, points grouped in thousands, "4,250".
+  "2 hints"; `formatPoints()`, points grouped in thousands, "4,250"; and
+  `tierWords(tiers, noun)`, a ladder of multipliers in words, from the
+  least, as How to play says it: "×2 from 5 bricks, ×3 from 10 bricks".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most;
   `lerp()`, a number a share of the way from one to another, as a thing is
   drawn between its last step and its next; `shareDone()`, how far through
   its time something is, and the curves a flourish moves by over it,
   `easeOutCubic()`, fast then slowing, and `fadeAlpha()`, from opaque to
-  nothing; and `nextMarkAfter(score, first, every)`, the first mark past a
+  nothing; `nextMarkAfter(score, first, every)`, the first mark past a
   score of those at `first` and every `every` after it, as the score a life
-  or a ship comes at.
+  or a ship comes at; and `multiplierAt(count, tiers)`, how many times a
+  count scores on a ladder of `MultiplierTier`s listed from the highest, as
+  a breaker's streak or chain does. A game keeps its ladder in its tuning,
+  `as const satisfies readonly MultiplierTier[]`.
 - `src/records.ts`: `keysOf()`, a record's keys typed as its own, as a
   catalog's ids are, which `Object.keys()` types as strings,
   `recordOf()`, a record with an entry made from each of its keys,

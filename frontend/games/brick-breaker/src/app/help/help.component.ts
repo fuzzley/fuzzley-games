@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
-import { formatPoints } from "@fz/core/format";
+import { formatPoints, tierWords } from "@fz/core/format";
 import {
   type HelpCatalog,
   HelpCatalogComponent,
@@ -20,15 +20,9 @@ import {
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art/art";
 
-/** How a streak multiplies a hit's points, from the least, in the bar's words. */
-const STREAK_WORDS = [...STREAK]
-  .reverse()
-  .map(({ from, times }) => `×${String(times)} from ${String(from)} bricks`)
-  .join(", ");
-
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
-  streak: `A streak of bricks broken since the ball last touched the paddle multiplies each hit's points: ${STREAK_WORDS}.`,
+  streak: `A streak of bricks broken since the ball last touched the paddle multiplies each hit's points: ${tierWords(STREAK, "bricks")}.`,
   clearing: `A level cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no ball was lost on it.`,
   lives: `A life comes at ${formatPoints(FIRST_LIFE_POINTS)} points and every ${formatPoints(LIFE_POINTS)} after, up to ${String(MAX_LIVES)} lives.`,
 };

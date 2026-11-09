@@ -4,6 +4,7 @@
 // is flying the run is over, and nothing scores, so its score doesn't hang
 // on how its last steps fall into frames.
 
+import { multiplierAt } from "@fz/core/math";
 import { pointsFor } from "../catalog/rocks";
 import type { FieldEventLog } from "./events";
 import { type Crew, type CrewField, gainShipOn } from "../ship/pilots";
@@ -78,10 +79,7 @@ export interface WaveTally {
 
 /** Returns how many times a break scores its points, by the count it is in its chain. */
 export function multiplier(count: number): number {
-  for (const { from, times } of CHAIN) {
-    if (count >= from) return times;
-  }
-  return 1;
+  return multiplierAt(count, CHAIN);
 }
 
 /**

@@ -868,3 +868,32 @@ The review:
 Before committing, the worktree moved onto `shared-lib`. The stash popped
 with one conflict, in the skill's table: `shared-lib`'s new bar-choice row
 was kept beside this step's figures row.
+
+### Step 2.4: multiplier tiers in `@fz/core/math` and `@fz/core/format`
+
+Built as planned on `sl-play`. `@fz/core/math` gains `MultiplierTier` and
+`multiplierAt(count, tiers)`, the two breakers' old loop line for line.
+`@fz/core/format` gains `tierWords(tiers, noun)`, their old reversed map
+with the noun lifted out. `STREAK` and `CHAIN` stay in each game's tuning as
+`as const satisfies readonly MultiplierTier[]`. Both How to play pages word
+the ladder with `tierWords()`. The help specs pin the exact words, and every
+score is unchanged. The work was rebased onto `shared-lib` before the review
+fixes: no conflicts, and the lockfile was unchanged. Tests pass: core 275 at
+100%, Brick Breaker 1842 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- Each game keeps its own `multiplier()`, as one line over
+  `multiplierAt()`, so its callers (Brick Breaker's `scoreHit()` and
+  service, Asteroid Breaker's `chainMultiplier()`) and its spec of its own
+  table stay as they were.
+
+The review:
+
+1. _Neither breaker's AGENTS.md said that its multiplier and How to play's
+   tier words now come from core:_ taken. Brick Breaker's scoring line names
+   `multiplier()` as `multiplierAt()` over `tuning.ts`'s `STREAK`, and
+   Asteroid Breaker's names `multiplierAt()` over `CHAIN`. Both `help/`
+   lines say the ladder is worded by `tierWords()`.
+2. _The core spec's case name read "scores a count of 5 2 times":_ taken.
+   It reads "scores a count of 5, 2 times".

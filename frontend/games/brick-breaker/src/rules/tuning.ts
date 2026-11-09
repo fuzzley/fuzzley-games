@@ -6,6 +6,8 @@
 // works, such as how long a caught ball waits or how fast a bolt rises, is
 // here.
 
+import type { MultiplierTier } from "@fz/core/math";
+
 /** The field's width: 13 bricks of 2. */
 export const FIELD_WIDTH = 26;
 
@@ -120,7 +122,7 @@ export const STREAK = [
   { from: 20, times: 4 },
   { from: 10, times: 3 },
   { from: 5, times: 2 },
-] as const;
+] as const satisfies readonly MultiplierTier[];
 
 /** The points a cleared level adds. */
 export const CLEAR_POINTS = 1000;
