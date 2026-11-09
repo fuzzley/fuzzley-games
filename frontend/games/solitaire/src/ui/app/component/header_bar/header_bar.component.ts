@@ -3,6 +3,7 @@ import {
   type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
+  SETTINGS_MENU_ACTION,
   withHomeLink,
 } from "@fz/game-ui/bar_overflow";
 import { type BarPlacement, GameBarComponent } from "@fz/game-ui/game_bar";
@@ -24,7 +25,7 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
   { id: "restart", label: "Restart", icon: "restart" },
   { id: "rules", label: "How to Play", icon: "help" },
   { id: "bug", label: "Report a Bug", icon: "bug" },
-  { id: "settings", label: "Settings", icon: "settings" },
+  SETTINGS_MENU_ACTION,
 ];
 
 /**
@@ -94,11 +95,7 @@ export class HeaderBarComponent {
   /** The overflow menu, led by the link home where the bar has no room for it. */
   protected readonly overflowItems = computed<
     readonly BarOverflowItem<MenuAction>[]
-  >(() =>
-    this.viewport.barHome() === "none"
-      ? withHomeLink(OVERFLOW_ACTIONS)
-      : OVERFLOW_ACTIONS,
-  );
+  >(() => withHomeLink(OVERFLOW_ACTIONS, this.viewport.barHome()));
 
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {

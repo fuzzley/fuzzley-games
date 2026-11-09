@@ -4,6 +4,8 @@ import {
   type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
+  HELP_MENU_ACTION,
+  SETTINGS_MENU_ACTION,
   withHomeLink,
 } from "@fz/game-ui/bar_overflow";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
@@ -21,8 +23,8 @@ type MenuAction = "notes" | "restart" | "help" | "settings";
 const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
   { id: "notes", label: "Fill in notes", icon: "grid" },
   { id: "restart", label: "Restart", icon: "restart" },
-  { id: "help", label: "How to play", icon: "help" },
-  { id: "settings", label: "Settings", icon: "settings" },
+  HELP_MENU_ACTION,
+  SETTINGS_MENU_ACTION,
 ];
 
 /**
@@ -65,11 +67,7 @@ export class BarComponent {
   /** The overflow menu, led by the link home where the bar has no room for it. */
   protected readonly overflowItems = computed<
     readonly BarOverflowItem<MenuAction>[]
-  >(() =>
-    this.viewport.barHome() === "none"
-      ? withHomeLink(OVERFLOW_ACTIONS)
-      : OVERFLOW_ACTIONS,
-  );
+  >(() => withHomeLink(OVERFLOW_ACTIONS, this.viewport.barHome()));
 
   /** Deals a puzzle at the level chosen from the badge, asking first. */
   protected changeLevel(level: Level): void {

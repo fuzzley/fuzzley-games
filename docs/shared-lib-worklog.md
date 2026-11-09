@@ -935,3 +935,51 @@ The review:
    its lint, typecheck and 6,874 tests pass.
 4. _`figureValue()`'s spec passed with the lookup broken:_ taken. It checks
    the value's text, and fails with the lookup made to take the first term.
+
+### Step 4.9: the overflow menu's shared items in `@fz/game-ui/bar_overflow`
+
+Built as planned on `sl-shell`, after rebasing onto `shared-lib`.
+`withHomeLink(items, barHome)` leads the items with the link home only
+where `barHome` is `none`, and gives them back as they are otherwise, so
+the ternary is gone from all five bars. `HELP_MENU_ACTION` and
+`SETTINGS_MENU_ACTION` word How to play and Settings once, as
+`soundMenuAction()` words the Sound's. The menus show the same items, ids
+and order at every size. The five bars' edits stay in their overflow items
+and the import from `@fz/game-ui/bar_overflow`, and they merged cleanly
+over `sl-frame`'s 4.2b. The tests pass: game-ui 275, Snake 423, Minesweeper
+375, Sudoku 595, Brick Breaker 1842 and 180, Asteroid Breaker 3625 and 1620,
+and Solitaire 6874.
+
+Where it went other than planned:
+
+- The Solitaire Collection's header calls `withHomeLink()` too, so it takes
+  the new signature and `SETTINGS_MENU_ACTION`. It keeps its own How to
+  Play, worded in title case under the id `rules`.
+- The `fuzzley-ui` skill gains a row of its own for the overflow menu's
+  items, since adding them to the bar's row would widen the table's column
+  and re-pad every row.
+
+The review:
+
+1. _`@fz/game-ui`'s `test` fell below its coverage floor, since no spec
+   loaded `menu_actions.ts`:_ taken. The finding held before the rebase: my
+   run filtered the output for failed specs and missed the threshold error.
+   On `shared-lib`, `src/testing/bar_menus.spec.ts` imports the entry, which
+   happens to cover the file. Coverage should not rest on that, so
+   `menu_actions.spec.ts` now checks each constant's id, label and icon. The
+   floor stays; statements and lines are at 100%.
+2. _A copy is left behind in Solitaire, and the docs say "every game":_
+   taken. Solitaire's header takes `SETTINGS_MENU_ACTION`, with no change in
+   behaviour, and keeps its own How to Play. `AGENTS.md` says the items are
+   worded once for the games, and that the Solitaire Collection words its own
+   How to Play. `menu_actions.ts`'s docs say the same. The package
+   description and the skill now name "the overflow menu's shared items".
+3. _The skill dropped the condition:_ taken. The bar's row keeps its
+   wording from `shared-lib`, "led by `withHomeLink()` when the bar has no
+   room for the link home". The new row says `withHomeLink(items, barHome)`
+   leads with the link where the bar has no room for it (`barHome` is
+   `none`).
+4. _Snake's bar spec never checks the menu at `none`:_ taken. It gains
+   "moves the link home into the menu where there is no room for it", as the
+   other four bars' specs have. It fails when Snake passes `"icon"` in place
+   of `barHome()`.
