@@ -1,3 +1,4 @@
+import { strokeShareArc } from "@fz/phaser/scene";
 import type { GameObjects, Scene } from "phaser";
 import { rechargeShare } from "../../rules/ship/ship";
 import type { Place } from "../../rules/torus";
@@ -21,9 +22,6 @@ export const REST_ALPHA = 0.4;
 
 /** How opaque the stick's knob is at rest, fainter still. */
 export const REST_KNOB_ALPHA = 0.25;
-
-/** Where a ring starts to fill from: its top. */
-const RING_TOP = -Math.PI / 2;
 
 /** Holds a button's images: its disc, its ring and its symbol. */
 interface ButtonImages {
@@ -116,11 +114,8 @@ export class DeckPainter implements Painter {
       metrics.pixelRatio,
       this.ring,
     );
-    this.recharge
-      .lineStyle(width, palette.accent)
-      .beginPath()
-      .arc(x, y, radius, RING_TOP, RING_TOP + 2 * Math.PI * charged)
-      .strokePath();
+    this.recharge.lineStyle(width, palette.accent);
+    strokeShareArc(this.recharge, x, y, radius, charged);
   }
 
   /** Draws the stick faint where it waits, or where a finger holds it, lit as it thrusts. */

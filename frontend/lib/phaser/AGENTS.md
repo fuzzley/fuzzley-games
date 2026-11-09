@@ -124,6 +124,8 @@ take the pure ones.
   canvas a scene lays itself out on as it now is, under the chrome it is
   given, and `canvasChanged()`, whether that canvas has a new size or pixel
   ratio since the scene was last laid out on it, or never was;
+  `strokeShareArc()`, which strokes a share of a circle, from 0 to 1,
+  clockwise from its top, in the line a `Graphics` holds;
   `drawCanvasTexture()`, the canvas texture of a key drawn anew at a size,
   through the context it draws with, and uploaded once, drawn: the one there
   cleared at the size without its own `setSize()` and `clear()`, which

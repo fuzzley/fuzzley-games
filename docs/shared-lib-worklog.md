@@ -1590,3 +1590,30 @@ The review:
 3. _ESLint's fence around the page files left out Vitest:_ taken; an
    import of it from `fuzzball.ts` now fails lint.
 4. _`paintRoles()`'s doc:_ taken, as suggested.
+
+### Step 3.3: `strokeShareArc()` in `@fz/phaser/scene`
+
+Built as planned on `sl-play`. `@fz/phaser/scene` exports
+`strokeShareArc(graphics, x, y, radius, share)`, which strokes a share of
+a circle, clockwise from its top, in the line the `Graphics` holds. It
+keeps the arithmetic of the three copies it replaces, `-π/2` to
+`-π/2 + 2π · share` in the same order, so every ring draws exactly as it
+did. Both breakers' tag painters and Asteroid Breaker's deck painter take
+it and drop their `RING_TOP`; each file is shorter.
+
+The specs run on a real `Graphics` in `runBareScene()`, read back through
+`strokesOf()`. A mutant without `beginPath()` fails one case, and a mutant
+with the wrong sweep fails three. The games' scene specs still pin each
+ring's angles and colors.
+
+After the review, the work was rebased onto `shared-lib`, with no
+conflicts and the same lockfile. Tests pass: phaser 616, Brick Breaker
+1842 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned: nowhere, beyond the helper living in a
+file of its own, `src/scene/share_arc.ts`.
+
+The review had no findings. It left two points alone, and so did I:
+Brick Breaker's call wraps to seven lines under Prettier, and no spec pins
+that the helper leaves the caller's line as it was, since it never sets
+one.
