@@ -440,7 +440,12 @@ takes for the specs' helpers.
     sectors reached (`recordsOf()`) through `stats/`, in one place that keeps
     none of a run flown on tuned numbers, has the wave in play take the
     numbers the debug menu tunes as `TuningService` tells it of them, and asks
-    through `@fz/ui/confirm` before a new game or speed throws a run away.
+    before a new game or speed throws a run away. It extends
+    `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which holds what every
+    game's run does around its play: the keys' `command()`, going on to the
+    next wave as `go` asks (its `nextStage()`), the drawn gate
+    (`setDrawn()`), the runs begun (`runs`, raised as each run begins) and
+    the question, through `@fz/ui/confirm`, before a run is lost.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
     the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and whether the
     build is a development one (`DEV_BUILD`) and the settings offer the debug

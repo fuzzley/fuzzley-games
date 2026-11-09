@@ -138,6 +138,27 @@ and is no entry point.
   at each reading unless a spec provides a clock of its own.
   `formatClock()` writes a time as a game's clock shows it, "2:13", or
   "1:02:13" past an hour.
+- `src/run_lifecycle/`: `RunLifecycle`, the abstract class a game's
+  `GameService` extends, which holds what every game's run does around its
+  play. `command()` does what the keys every game shares ask: `"pause"`,
+  `"toggle"`, which pauses, goes on or starts another run, and `"go"`,
+  which goes on, starts another run, or goes on to the next stage through
+  `nextStage()`, which does nothing unless a game whose runs clear waves or
+  levels overrides it; a game with keys of its own overrides `command()`
+  and hands it the rest. It holds the drawn gate (`drawn`, set through
+  `setDrawn()`, which the game's `resume()` waits for), counts the runs
+  begun (`runs`), which `began()`, called by the game as each run begins,
+  raises before it clears the live region, and asks, through
+  `@fz/ui/confirm`, before a run in progress is lost (`mayLoseRun()`), with
+  New game's question or `speedQuestion(name)`'s. The game gives its run's
+  stage (`outcome`), its end (`ended`), whether it is in progress
+  (`inProgress`) and whether the card over it is put away
+  (`resultClosed`), and pauses, goes on and starts runs (`pause()`,
+  `resume()`, `newGame()`) as its rules say. It is undecorated and has no
+  constructor, so a game's `@Injectable` class needs none either, and it
+  reads nothing the game gives while it is made, so the game's fields and
+  constructor may lay out its first run. Asteroid Breaker's `GameService`
+  extends it.
 - `src/testing/`: what a game's specs share: `installFakeViewport()`, which
   answers the queries `GameViewportService` asks, handed on from
   `@fz/ui/testing`, which [frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)

@@ -7,10 +7,9 @@ import {
   signal,
 } from "@angular/core";
 import { RunNumbers } from "@fz/core/run_numbers";
+import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import type { Viewport } from "@fz/phaser/layout";
-import { AnnouncerService } from "@fz/ui/announcer";
-import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import {
   type EndMarks,
   describePause,
@@ -55,7 +54,6 @@ import {
   opensEndless,
   waveEntryOf,
 } from "../../rules/waves/waves";
-import type { FieldCommand } from "../../view/steering/controls";
 import { fieldTuning, tuneField } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
@@ -69,22 +67,6 @@ import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_RANDOM, GAME_WAVES } from "../tokens";
 import { HapticsService } from "./haptics.service";
-
-/** What a new run asks before it throws away the one under way. */
-const NEW_GAME_QUESTION: ConfirmRequest = {
-  title: "Start a new game?",
-  message: "The run in progress will be lost.",
-  confirmLabel: "New game",
-  tone: "danger",
-};
-
-/** What a run at another speed asks: New game's question, naming the speed. */
-function speedQuestion(speed: Speed): ConfirmRequest {
-  return {
-    ...NEW_GAME_QUESTION,
-    title: `Start a new ${SPEED_INFO[speed].name} game?`,
-  };
-}
 
 /** The field's shape before the board says what room it has: a square of the short side. */
 const FIRST_TORUS: Torus = {
@@ -109,9 +91,7 @@ const FIRST_TORUS: Torus = {
  * state only when it changes.
  */
 @Injectable({ providedIn: "root" })
-export class GameService {
-  private readonly confirm = inject(ConfirmService);
-  private readonly announcer = inject(AnnouncerService);
+export class GameService extends RunLifecycle {
   private readonly viewport = inject(GameViewportService);
   private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   private readonly waves = inject(GAME_WAVES);
@@ -134,8 +114,6 @@ export class GameService {
   private wavePlay: WavePlay;
   /** What each frame of the wave in play comes to in the run, and what to say of it. */
   private readonly runFrames = new RunFrames(this.waves);
-  private readonly runsState = signal(0);
-  private readonly drawnState = signal(true);
 
   /** The run on the board. */
   readonly run = computed(() => this.runState().run);
@@ -247,20 +225,8 @@ export class GameService {
    */
   readonly resultClosed = computed(() => this.runState().resultClosed);
 
-  /**
-   * How many runs have begun since the page loaded, each new game adding
-   * one, for the board to take the focus after.
-   */
-  readonly runs = this.runsState.asReadonly();
-
-  /**
-   * Whether the board is drawn, so the player can watch the field. Until it
-   * is, nothing goes on: the board, in its scene, is what moves the field
-   * on.
-   */
-  readonly drawn = this.drawnState.asReadonly();
-
   constructor() {
+    super();
     // Made here, once every field above is, so no field's place among them
     // decides what the first run's field is laid out with.
     const run = this.create(this.settings.settings().speed, 1);
@@ -316,21 +282,6 @@ export class GameService {
     return this.outcome() === "playing" && ship !== null && thrustOf(ship) > 0;
   }
 
-  /** Does what a key, a click or a tap on the board asks. */
-  command(command: FieldCommand): void {
-    switch (command) {
-      case "pause":
-        this.pause();
-        return;
-      case "toggle":
-        this.toggle();
-        return;
-      case "go":
-        this.go();
-        return;
-    }
-  }
-
   /**
    * Pauses the wave in play, stretched to the board's room if that changed
    * in play, and says so.
@@ -349,7 +300,7 @@ export class GameService {
    * taken up before its first move waits for it again.
    */
   resume(): void {
-    if (!this.drawnState()) return;
+    if (!this.drawn()) return;
     const before = this.run();
     const after = resume(before, this.wavePlay.field);
     if (after === before) return;
@@ -358,32 +309,11 @@ export class GameService {
   }
 
   /**
-   * Pauses the wave in play, or goes on with one paused, or starts another
-   * run once an ended one's card is put away.
+   * Goes on to the wave after the one just cleared, as a flight key, Enter
+   * or a press on the field asks.
    */
-  toggle(): void {
-    if (this.mayStartAnother()) {
-      void this.newGame();
-    } else if (this.outcome() === "paused") {
-      this.resume();
-    } else {
-      this.pause();
-    }
-  }
-
-  /**
-   * Goes on with a paused wave, or to the next, or starts another run once
-   * an ended one's card is put away, as a flight key, Enter or the card
-   * over the board asks.
-   */
-  go(): void {
-    if (this.mayStartAnother()) {
-      void this.newGame();
-    } else if (this.outcome() === "cleared") {
-      this.nextWave();
-    } else {
-      this.resume();
-    }
+  protected override nextStage(): void {
+    this.nextWave();
   }
 
   /**
@@ -394,11 +324,7 @@ export class GameService {
   nextWave(): void {
     const state = this.runState();
     const before = state.run;
-    if (
-      before.outcome !== "cleared" ||
-      !state.clearedOpen ||
-      !this.drawnState()
-    ) {
+    if (before.outcome !== "cleared" || !state.clearedOpen || !this.drawn()) {
       return;
     }
     const after = nextWave(before);
@@ -438,7 +364,8 @@ export class GameService {
    * resolves to whether it did.
    */
   async changeSpeed(speed: Speed): Promise<boolean> {
-    if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
+    const question = speedQuestion(SPEED_INFO[speed].name);
+    if (!(await this.mayLoseRun(question))) return false;
     this.settings.update({ speed });
     this.begin(newRunState(this.create(speed, this.run().firstWave)));
     return true;
@@ -505,11 +432,6 @@ export class GameService {
     }
   }
 
-  /** Says whether the board is drawn yet, as the board's canvas reports it. */
-  setDrawn(drawn: boolean): void {
-    this.drawnState.set(drawn);
-  }
-
   /** Puts away the card over an ended run, leaving the board to look at. */
   closeResult(): void {
     this.runState.update((state) => ({
@@ -560,11 +482,6 @@ export class GameService {
   private sayNews(): void {
     const news = this.runFrames.news(this.endMarks());
     if (news !== null) this.announcer.say(news);
-  }
-
-  /** Returns whether a key may start another run: once an ended run's card is away. */
-  private mayStartAnother(): boolean {
-    return this.ended() && this.resultClosed();
   }
 
   /** Returns a new run at a speed, waiting at a wave for its first move. */
@@ -627,8 +544,7 @@ export class GameService {
   private begin(state: RunState, field: Field = this.fieldOf(state.run)): void {
     this.wavePlay = this.playOf(state.run, field);
     this.runState.set(state);
-    this.runsState.update((runs) => runs + 1);
-    this.announcer.clear();
+    this.began();
   }
 
   /**
@@ -637,16 +553,5 @@ export class GameService {
    */
   private yetToBegin(): boolean {
     return this.wavePlay.field.steps === 0;
-  }
-
-  /**
-   * Resolves to whether to go ahead, asking a question first: at once with
-   * no run under way to lose.
-   */
-  private async mayLoseRun(
-    question: ConfirmRequest = NEW_GAME_QUESTION,
-  ): Promise<boolean> {
-    if (!this.inProgress()) return true;
-    return this.confirm.ask(question);
   }
 }

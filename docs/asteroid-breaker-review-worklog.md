@@ -2813,3 +2813,43 @@ The review found nothing wrong, and four things:
    wrong way round:_ not taken; `RunNumbers` hands out runs' numbers and a
    `RunNumber` is one run's, as the design named them.
 4. _The skill's row for `@fz/core` didn't name it:_ taken.
+
+### Step 18b: finding 20, the run around its play in `@fz/game-ui`'s `RunLifecycle`
+
+Built on `run-lifecycle`. Asteroid Breaker, Brick Breaker and Snake each
+wrote the same lifecycle in their `GameService`: `command()` with
+`toggle()` and `go()`, the drawn gate, the runs counted for the focus,
+another run started once an ended run's card is put away, and the question
+before a run in progress is lost. `RunLifecycle`, in the new
+`@fz/game-ui/run_lifecycle`, holds them once, an abstract class a
+`GameService` extends: a game gives its run's `outcome`, `ended`,
+`inProgress` and `resultClosed`, and its own `pause()`, `resume()` and
+`newGame()`; `go()` goes on to the next stage through `nextStage()`, which
+does nothing unless a game overrides it, and `began()` counts a run, then
+clears the live region, as each `begin()` ended. `speedQuestion()` is
+exported beside it. The base is undecorated and reads nothing a game gives
+while it is made, and a game's class with no constructor of its own, as
+Brick Breaker's and Snake's are, takes Angular's inherited factory, which
+makes it inside the injection context. Asteroid Breaker's `GameService`
+extends it, going on to the next wave through `nextStage()`, 589 non-blank
+lines down to 503, and its specs pass unchanged.
+
+The review found nothing wrong in what Asteroid Breaker does, and that the
+base fits Brick Breaker and Snake; and six things:
+
+1. _No spec held pause apart from toggle, nor `mayStartAnother()` to an
+   ended run:_ taken; a paused run stays paused at pause, an ended run whose
+   card is away starts nothing at pause, and a run in play pauses at toggle
+   whatever its card says.
+2. _A spec stubbed the announcer to pin an order nothing can see:_ taken;
+   dropped, as both writes are read only after `began()` returns.
+3. _`RunStage`'s and `drawn`'s docs opened with two sentences, and `drawn`'s
+   said a run starts only once the board is drawn, which `newGame()` doesn't
+   wait for:_ taken.
+4. _`toggle()` and `mayStartAnother()` were protected for no caller:_
+   taken; both private, Brick Breaker's `launch()` to fall back on `go()`.
+5. _`ended` could be derived from `outcome`, being `"over"` or `"won"` in
+   all three:_ not taken; each game's rules say when a run has ended
+   (`hasEnded()`), Asteroid Breaker's at `"over"` alone, and the base would
+   write that rule a second time.
+6. _A line of `AGENTS.md` ran long:_ taken.
