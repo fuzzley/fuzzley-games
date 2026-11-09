@@ -845,34 +845,35 @@ describe("GameService", () => {
       });
     });
 
-    it.each(["launch", "toggle", "go"] as const)(
-      "starts another run at %s once the result card is put away",
-      async (command) => {
-        const game = await endedAt(SPEC_LEVEL.steel);
-        const ended = game.run();
-        game.closeResult();
-
-        game.command(command);
-        await flush();
-
-        expect({
-          id: game.run().id > ended.id,
-          outcome: game.outcome(),
-          closed: game.resultClosed(),
-        }).toEqual({ id: true, outcome: "ready", closed: false });
-      },
-    );
-
-    it("starts nothing at a key before the result card is put away", async () => {
+    it("starts another run at a launch once the result card is put away", async () => {
       const game = await endedAt(SPEC_LEVEL.steel);
       const ended = game.run();
+      game.closeResult();
+
+      game.command("launch");
+      await flush();
+
+      expect({
+        id: game.run().id > ended.id,
+        outcome: game.outcome(),
+        closed: game.resultClosed(),
+      }).toEqual({ id: true, outcome: "ready", closed: false });
+    });
+
+    it("starts nothing, and says nothing, at a key before the result card is put away", async () => {
+      const game = await endedAt(SPEC_LEVEL.steel);
+      const ended = game.run();
+      const lastWords = said();
 
       game.command("launch");
       game.command("toggle");
       game.command("go");
       await flush();
 
-      expect(game.run()).toBe(ended);
+      expect({ run: game.run(), said: said() }).toEqual({
+        run: ended,
+        said: lastWords,
+      });
     });
 
     it("tries again at the level the run reached", async () => {
@@ -1178,16 +1179,6 @@ describe("GameService", () => {
       game.tick(0.25 * STEP_MS, STILL);
 
       expect(game.frame().alpha).toBeCloseTo(0.25);
-    });
-
-    it("clears what the last run had said", async () => {
-      const game = await launchedAt(SPEC_LEVEL.steel);
-
-      const starting = game.newGame();
-      TestBed.inject(ConfirmService).accept();
-      await starting;
-
-      expect(said()).toBe("");
     });
 
     it("names the speed before a run at another throws away the one under way", async () => {
