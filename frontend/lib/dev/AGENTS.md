@@ -203,10 +203,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   `TURNS` (upright to its side, and back), and given half a second to lay
   itself out again, which finds what follows a turn late, or not at all. A
   check's `before()` runs in the page ahead of its own scripts, to set it up
-  as a player might have, such as with a setting stored. `SMALLEST`, a 320 ×
-  480 phone held upright, and `shapesAt()` and `turnsAt()`, which copy shapes
-  and turns at a pixel ratio, are there for a game drawn on a canvas, as
-  Snake, Brick Breaker and Asteroid Breaker check theirs at 2×. A check's
+  as a player might have, such as with a setting stored. `checkPhaserLayout()`
+  checks a game drawn with Phaser as `checkLayout()` and `checkTurns()` do, at
+  every shape and `SMALLEST`, a 320 × 480 phone held upright, then through
+  every turn, all at twice the pixels, so the canvas's backing size is tested,
+  as Snake, Brick Breaker and Asteroid Breaker check theirs, and
+  `PHASER_CHECKED_AT` names those shapes and turns, for the script to say
+  where the layout holds. `shapesAt()` copies shapes at a pixel ratio, for a
+  spec such as Asteroid Breaker's of its field and deck, which lays them out
+  at each shape at pixel ratios of 1, 2 and 3. A check's
   `board`, a `PhaserBoard`, names a board drawn with Phaser by its element,
   the attribute that says where the scene drew it, its shape in units, its
   width or its height read from a custom property of its element where it

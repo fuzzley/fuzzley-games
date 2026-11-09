@@ -1144,3 +1144,38 @@ The review:
 4. _Nits in `fake_viewport.ts`:_ taken. The comment on the window's own
    ratio sits by the descriptor it explains, `restore()`'s doc says it acts
    once, and the redundant `setRatio &&` is gone.
+
+### Step 5.7: `checkPhaserLayout()` in `@fz/dev/layout`
+
+Built as planned on `sl-sol`, as `9abd89cd`, taken over from `sl-tools`.
+`checkPhaserLayout(devtools, check)` runs `checkLayout()` at every shape
+and the smallest phone, then `checkTurns()` through every turn, all at
+twice the pixels, and `PHASER_CHECKED_AT` names those shapes and turns for
+the script's "holds" line. Snake's, Brick Breaker's and Asteroid Breaker's
+`tools/check-layout.mjs` lose the same preamble and concatenation, each
+about 20 lines shorter, and check and say exactly what they did; the names
+match the old list character for character. Two specs pin the viewports, in
+order, and the names the problems come back under. `@fz/dev` passes 466
+tests; the three games lint and type-check, and each script loads and
+prints its usage with `--help`. `yarn check:layout` for the three games
+needs a run on the integration branch, as Chrome can't start here.
+
+Where it went other than planned:
+
+- `turnsAt()` is no longer exported, since nothing outside the module
+  copies a turn now. `SMALLEST` and `shapesAt()` stay exported, for
+  Asteroid Breaker's specs of its field and deck. `checkTurns()` and
+  `TURNS` stay exported too, deliberately, beside `checkLayout()` and
+  `SHAPES`, which they complete, though no script calls them directly now.
+
+The review:
+
+1. _`turnsAt()` stayed exported with no user, and `lib/dev/AGENTS.md` gave
+   it one:_ taken. Its export and its spec are gone, the first new spec
+   pinning both ends of every turn at 2×; AGENTS.md names `shapesAt()`
+   alone, for Asteroid Breaker's specs, and says "as `checkLayout()` and
+   `checkTurns()` do" for "as both do". Keeping `checkTurns()` and `TURNS`
+   exported is the choice recorded above.
+2. _The new lists were mutable arrays beside `readonly` ones:_ taken.
+   `PHASER_SHAPES` and `PHASER_TURNS` are typed `readonly Shape[]` and
+   `readonly Turn[]`.

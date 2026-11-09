@@ -22,31 +22,12 @@
 import { join } from "node:path";
 import {
   PHASER_CANVAS_READY,
-  SHAPES,
-  SMALLEST,
-  TURNS,
-  checkLayout,
-  checkTurns,
+  PHASER_CHECKED_AT,
+  checkPhaserLayout,
   runLayoutScript,
-  shapesAt,
-  turnsAt,
 } from "@fz/dev/layout";
 
 /** @import { BoardBox, PhaserBoard } from "@fz/dev/layout" */
-
-/**
- * The shapes and the smallest phone, at twice the pixels, so the canvas's
- * backing size is tested.
- */
-const SHAPES_2X = shapesAt(2, [...SHAPES, SMALLEST]);
-
-/** The turns, at twice the pixels. */
-const TURNS_2X = turnsAt(2, TURNS);
-
-/** The names of the shapes and turns the layout is checked at. */
-const CHECKED = [...SHAPES, SMALLEST, ...TURNS]
-  .map((shape) => shape.name)
-  .join(", ");
 
 /**
  * The field, as `@fz/dev/layout` inspects a board drawn with Phaser; its card
@@ -108,16 +89,12 @@ function inspectField(field) {
 process.exitCode = await runLayoutScript({
   game: "Brick Breaker",
   root: join(import.meta.dirname, ".."),
-  check: async (devtools, url) => {
-    const check = {
+  check: (devtools, url) =>
+    checkPhaserLayout(devtools, {
       url,
       ready: PHASER_CANVAS_READY,
       board: FIELD,
       inspect: inspectField,
-    };
-    const shaped = await checkLayout(devtools, check, SHAPES_2X);
-    const turned = await checkTurns(devtools, check, TURNS_2X);
-    return [...shaped, ...turned];
-  },
-  holds: `at each shape and turn: ${CHECKED}`,
+    }),
+  holds: `at each shape and turn: ${PHASER_CHECKED_AT}`,
 });
