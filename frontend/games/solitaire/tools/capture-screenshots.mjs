@@ -7,18 +7,21 @@
  *   yarn build:thumbs
  *
  * Writes `docs/screenshots/<id>/overview.png` for every game that has one, or
- * only the games named. Each game opens on a fresh deal in a browser context
- * of its own, so it shows the whole page with every setting at its default,
- * rather than whatever the last game left in storage. These lossless
- * originals stay out of `public/`: `yarn build:thumbs` makes the WebP images
- * the site serves from them.
+ * only the games named. Each game opens in a browser context of its own, so
+ * it shows the whole page with every setting at its default rather than
+ * whatever the last game left in storage, but for the palette, pinned to
+ * Casino night whatever colour scheme the browser prefers, and the deal,
+ * seeded by the game's id, so a retake changes only where the page did.
+ * These lossless originals stay out of `public/`: `yarn build:thumbs` makes
+ * the WebP images the site serves from them.
  */
 import { mkdir, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { withPage } from "@fz/dev/chrome";
-import { runScreenshotScript } from "@fz/dev/screenshots";
+import { runScreenshotScript, setUpPage } from "@fz/dev/screenshots";
 import sharp from "sharp";
+import { seedFrom } from "../src/engine/core/random/seed_from.ts";
 
 /** @import { DevToolsConnection, Page } from "@fz/dev/chrome" */
 /** @import { ScreenshotRequest, ScreenshotScript } from "@fz/dev/screenshots" */
@@ -30,6 +33,26 @@ const TARGET = "overview.png";
 
 /** The page size every screenshot is taken at, in CSS pixels. */
 const VIEWPORT = { width: 1440, height: 810, deviceScaleFactor: 2 };
+
+/**
+ * The palette every screenshot is taken in: dark, as the other games' are in
+ * the site's catalog, with the green felt `yarn build:thumbs` finds the board
+ * by.
+ */
+const THEME = "casino";
+
+/**
+ * Seeds the page's `Math.random`, which every game deals from, mixed with the
+ * game's id, so a retake deals each game the same and no two games alike.
+ */
+const DEAL_SEED = "screenshots";
+
+/**
+ * The key the page keeps the last game played under, and deals first on
+ * opening. The game a screenshot is of is stored there, so the page deals it
+ * alone, and its deal hangs on no other game in the catalog.
+ */
+const LAST_GAME_KEY = "fsolitaire-game";
 
 /**
  * How long to let a board settle once its game is running, while the card
@@ -73,6 +96,11 @@ async function waitForGame(settleMs) {
  * @returns {Promise<{png: Buffer} | {problem: string}>}
  */
 async function capture(page, baseUrl, id) {
+  await setUpPage(page, {
+    theme: THEME,
+    seed: seedFrom([DEAL_SEED, id]),
+    stored: { [LAST_GAME_KEY]: id },
+  });
   await page.navigate(new URL(`#/${id}`, baseUrl).href);
   const state = await page.evaluate(waitForGame, SETTLE_MS);
   if (state.hash !== `#/${id}`) return { problem: `opened ${state.hash}` };
