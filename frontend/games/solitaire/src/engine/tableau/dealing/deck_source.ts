@@ -9,8 +9,11 @@ export interface DeckSourceOptions {
    * every game is expected to survive.
    */
   readonly cardIds: readonly DeckCardId[];
-  /** Returns a number in [0, 1) for shuffling; `Math.random` by default. */
-  readonly random?: () => number;
+  /**
+   * Returns a number in [0, 1) for shuffling; `Math.random` by default, and
+   * when unset, since each game hands on its own `random`, given or not.
+   */
+  readonly random?: (() => number) | undefined;
   /** Whether a freshly dealt card shows its face; false by default. */
   readonly dealsFaceUp?: boolean;
 }

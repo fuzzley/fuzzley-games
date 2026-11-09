@@ -94,7 +94,9 @@ export function mirrorTable(
         ? spec.columns - 1 - blockEnd + (slot.column - blockStart)
         : spec.columns - 1 - slot.column,
       // Subtracted from zero so an offset of nothing stays positive zero.
-      offset: slot.offset && { x: 0 - slot.offset.x, y: slot.offset.y },
+      ...(slot.offset && {
+        offset: { x: 0 - slot.offset.x, y: slot.offset.y },
+      }),
     })),
     mirrored: !spec.mirrored,
   };

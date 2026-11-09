@@ -2,12 +2,6 @@
   // @fz/dev's options for Angular, the same the libraries are checked with,
   // since this app compiles their sources into its own program.
   "extends": "@fz/dev/tsconfig/angular.json",
-  "compilerOptions": {
-    // An optional property is left out rather than set to undefined, unless
-    // its type allows undefined too. @fz/dev's base leaves this out until
-    // every workspace passes it.
-    "exactOptionalPropertyTypes": true
-  },
   // A solution: each file belongs to the project below that includes it, which
   // is the one editors and ESLint's project service check it with.
   "files": [],

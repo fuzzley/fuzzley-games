@@ -18,8 +18,8 @@ function look(
     slot: { pileId, column: 0, row: 0 },
     layout: { kind: "stacked" },
     face: "card",
-    backgroundKey,
-    emptyIsActionable,
+    ...(backgroundKey === undefined ? {} : { backgroundKey }),
+    ...(emptyIsActionable === undefined ? {} : { emptyIsActionable }),
   };
 }
 

@@ -221,8 +221,8 @@ describe("loadCatalog", () => {
 });
 
 describe("manifestProblems", () => {
-  /** Returns a hosted game the site lists. */
-  function hosted(name: string, play: Game["play"]): Game {
+  /** Returns a game the site lists, hosted where `play` says, if anywhere. */
+  function hosted(name: string, play?: Game["play"]): Game {
     return {
       slug: name.toLowerCase(),
       name,
@@ -231,7 +231,7 @@ describe("manifestProblems", () => {
       players: { min: 1, max: 1 },
       minutes: 5,
       added: "2026-10-17",
-      play,
+      ...(play && { play }),
     };
   }
 
@@ -270,7 +270,7 @@ describe("manifestProblems", () => {
   });
 
   it("leaves a game still to come alone", () => {
-    const problems = problemsOf(hosted("Reversi", undefined));
+    const problems = problemsOf(hosted("Reversi"));
 
     expect(problems).toEqual([]);
   });

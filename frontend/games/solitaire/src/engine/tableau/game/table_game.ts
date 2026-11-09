@@ -77,7 +77,7 @@ export abstract class TableGame<
   private readonly markers: PileMarkers;
 
   private readonly autoMoveRoles: readonly PileRole[];
-  private readonly winningRole?: PileRole;
+  private readonly winningRole: PileRole | undefined;
 
   /** Every pile on the board, in the order the zones declared them. */
   public readonly piles: readonly ReadonlyCardPile<PlayingCard>[];

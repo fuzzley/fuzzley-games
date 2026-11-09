@@ -230,7 +230,8 @@ function specOf(
       `"${character}" has ${String(hits)} for its hits, which a ${kind} brick can't take`,
     );
   }
-  if (id === undefined) return { kind, hits };
+  const brick: BrickSpec = hits === undefined ? { kind } : { kind, hits };
+  if (id === undefined) return brick;
   if (!hasTrait(kind, "gives")) {
     throw wrong(
       data,
@@ -240,7 +241,7 @@ function specOf(
   if (!isCapsuleId(id)) {
     throw wrong(data, `"${character}" gives "${id}", which is no capsule`);
   }
-  return { kind, hits, capsule: id };
+  return { ...brick, capsule: id };
 }
 
 /** Returns the brick a level lays in a cell, or null for none. */

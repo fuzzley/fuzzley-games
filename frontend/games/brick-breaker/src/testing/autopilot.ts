@@ -193,11 +193,12 @@ export function autoplay(
 export function playLevel(
   entry: LevelEntry,
   speed: Speed,
-  options: { readonly seed?: number } & Pick<AutopilotOptions, "height"> = {},
+  {
+    seed,
+    ...autopilot
+  }: { readonly seed?: number } & Pick<AutopilotOptions, "height"> = {},
 ): AutopilotReport {
-  return autoplay(parseLevel(entry), speed, options.seed ?? entry.number, {
-    height: options.height,
-  });
+  return autoplay(parseLevel(entry), speed, seed ?? entry.number, autopilot);
 }
 
 /** Returns whether the field's level is cleared, read afresh. */

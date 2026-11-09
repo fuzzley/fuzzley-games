@@ -223,7 +223,7 @@ describe("PhaserTableRenderer", () => {
             scale: 1,
             depth: 5,
             frame,
-            cursor,
+            ...(cursor && { cursor }),
           },
         ],
         cards: [],

@@ -187,7 +187,7 @@ export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
       bottom: pilesBeside(board, columnHeight, "bottom"),
     },
     columns: board.columns,
-    side: board.side,
+    ...(board.side === undefined ? {} : { side: board.side }),
   };
 }
 
@@ -210,18 +210,14 @@ function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
     roomy.gap.y +
     CARD_HEIGHT_PX;
   return tableLayout({
-    columns: roomy.columns,
+    ...roomy,
     rows: 2,
     slots: [...columnSlotsAsRoomy(board, 0), ...rowAlongBottom(board)],
-    gap: roomy.gap,
-    padding: roomy.padding,
     designHeightPx: Math.max(
       designSize(roomy).height,
       Math.min(needed, board.roomyBottomMaxHeightPx ?? needed),
     ),
     fanFit: ROOMY_FAN_FIT,
-    pileLayouts: roomy.pileLayouts,
-    pileBackgrounds: roomy.pileBackgrounds,
   });
 }
 
@@ -266,7 +262,7 @@ function upright(
           ]
         : [...columnSlots, ...lineSlots],
     innerHeight: lines.length * (CARD_HEIGHT_PX + PHONE_GAP.y) + columnHeight,
-    pileLayouts: board.pileLayouts,
+    ...(board.pileLayouts && { pileLayouts: board.pileLayouts }),
   });
 }
 
@@ -330,21 +326,19 @@ function pilesBeside(
 }
 
 /** Describes a phone grid by the height inside its padding. */
-interface PhoneGridSpec {
-  readonly columns: number;
-  readonly rows: number;
-  readonly slots: readonly SlotPlacement[];
+interface PhoneGridSpec extends Pick<
+  TableLayoutSpec,
+  "columns" | "rows" | "slots" | "pileLayouts" | "pileBackgrounds"
+> {
   /** The height the grid keeps on screen inside its padding, in design units. */
   readonly innerHeight: number;
-  readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
-  readonly pileBackgrounds?: Readonly<Record<string, PileBackgroundOverride>>;
 }
 
 /** Describes a phone grid laid out by hand, for {@link phoneLayout}. */
-export interface HandLaidPhoneGrid {
-  readonly columns: number;
-  readonly rows: number;
-  readonly slots: readonly SlotPlacement[];
+export interface HandLaidPhoneGrid extends Pick<
+  TableLayoutSpec,
+  "columns" | "rows" | "slots"
+> {
   /**
    * The height the grid keeps on screen inside its padding, in design units;
    * its rows' own height when omitted.
@@ -367,17 +361,13 @@ export function phoneLayout(grid: HandLaidPhoneGrid): TableLayoutSpec {
 }
 
 /** Completes a phone grid with the gaps, padding and fans every one shares. */
-function phoneGrid(grid: PhoneGridSpec): TableLayoutSpec {
+function phoneGrid({ innerHeight, ...grid }: PhoneGridSpec): TableLayoutSpec {
   return tableLayout({
-    columns: grid.columns,
-    rows: grid.rows,
-    slots: grid.slots,
+    ...grid,
     gap: PHONE_GAP,
     padding: PHONE_PADDING,
-    designHeightPx: grid.innerHeight + 2 * PHONE_PADDING.y,
+    designHeightPx: innerHeight + 2 * PHONE_PADDING.y,
     fanFit: PHONE_FAN_FIT,
-    pileLayouts: grid.pileLayouts,
-    pileBackgrounds: grid.pileBackgrounds,
   });
 }
 

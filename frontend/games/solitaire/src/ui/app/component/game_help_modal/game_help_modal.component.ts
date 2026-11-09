@@ -27,7 +27,8 @@ type ImageStatus = "loading" | "loaded" | "failed";
 interface VariantCard {
   readonly optionId: string;
   readonly label: string;
-  readonly description?: string;
+  /** The option's own description, where it has one. */
+  readonly description: string | undefined;
   readonly choices: readonly { value: number; label: string; effect: string }[];
 }
 

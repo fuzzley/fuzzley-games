@@ -16,13 +16,13 @@ interface ComparableZone {
   readonly column: number;
   readonly row: number;
   readonly layout: unknown;
-  readonly capacity?: number;
+  readonly capacity: number | undefined;
   readonly acceptsAnything: boolean;
   readonly grabKind: string;
   readonly draggable: boolean;
   readonly face: string;
-  readonly backgroundKey?: string;
-  readonly emptyIsActionable?: boolean;
+  readonly backgroundKey: string | undefined;
+  readonly emptyIsActionable: boolean | undefined;
 }
 
 function comparable(zone: ZoneSpec): ComparableZone {

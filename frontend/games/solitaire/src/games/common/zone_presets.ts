@@ -211,16 +211,8 @@ export interface StockZoneOptions {
 
 /** Builds the stock, whose top card can be pressed to draw but not dragged. */
 export function stockZone(options: StockZoneOptions): ZoneSpec {
-  const { id, role, accept, column, row, backgroundKey, emptyIsActionable } =
-    options;
   return zoneAt({
-    id,
-    role,
-    accept,
-    column,
-    row,
-    backgroundKey,
-    emptyIsActionable,
+    ...options,
     layout: STACKED_PILE_LAYOUT,
     grab: { kind: "top-only" },
     draggable: false,

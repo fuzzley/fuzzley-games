@@ -30,12 +30,17 @@ export function isOneOf<T>(value: unknown, options: readonly T[]): value is T {
   return options.some((option) => option === value);
 }
 
-/** Returns a copy of a record's entries under the keys given. */
-export function pick<T, K extends keyof T & string>(
+/**
+ * Returns a copy of a record's entries under the keys given, leaving out any
+ * of them the record doesn't have, as an optional one may not.
+ */
+export function pick<T extends object, K extends keyof T & string>(
   record: T,
   keys: readonly K[],
 ): Pick<T, K> {
-  const entries = keys.map((key) => [key, record[key]] as const);
+  const entries = keys
+    .filter((key) => key in record)
+    .map((key) => [key, record[key]] as const);
   // Object.fromEntries() types its keys as strings; these are the keys given.
   return Object.fromEntries(entries) as Pick<T, K>;
 }

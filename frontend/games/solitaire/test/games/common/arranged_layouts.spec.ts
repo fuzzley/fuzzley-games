@@ -763,7 +763,8 @@ describe("arrangedLayouts", () => {
   });
 
   it("leaves a board without a side pile without one", () => {
-    const layouts = arrangedLayouts({ ...BOARD, side: undefined });
+    const { side, ...withoutSide } = BOARD;
+    const layouts = arrangedLayouts(withoutSide);
 
     expect(layouts.side).toBeUndefined();
   });
