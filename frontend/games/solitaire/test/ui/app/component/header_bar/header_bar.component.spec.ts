@@ -222,7 +222,7 @@ describe("HeaderBarComponent", () => {
         queryText(fixture, ".score-card .value"),
         queryText(fixture, ".moves-card .value"),
         queryText(fixture, ".timer-card .value"),
-      ]).toEqual(["120", "10", "00:00"]);
+      ]).toEqual(["120", "10", "0:00"]);
     });
 
     it("announces score and moves as they change, with their labels", () => {

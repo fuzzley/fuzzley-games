@@ -111,7 +111,8 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
   table (routed, see below); `GameMetricsService` reads the running game, and
-  times it with `@fz/game-ui/stopwatch`'s `StopwatchService`;
+  times it with `@fz/game-ui/stopwatch`'s `StopwatchService`, writing the
+  time with the same entry's `formatClock()`, as Minesweeper and Sudoku do;
   `GameLifecycleService` changes it, asking first through `@fz/ui/confirm`
   when there is a game to lose; the rest are small and single-purpose
   (presentation, including the felt, documentation, game browser, recent
