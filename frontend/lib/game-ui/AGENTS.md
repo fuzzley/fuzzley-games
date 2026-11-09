@@ -104,14 +104,14 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   which counts only while the page is in view. It reads the time from the
   clock rather than counting its ticks, so a pause keeps the part of a
   second under way and a late tick loses nothing; `reset()` holds the time
-  of a game taken up again. `formatClock()` writes a time as a game's clock
-  shows it, "2:13", or "1:02:13" past an hour.
-- `src/testing/`: what a game's specs share. `installFakeViewport()` stands
-  in for the `matchMedia` jsdom lacks, at a size a spec sets and changes,
-  for a light system with no wish for less motion, pointed at with a mouse
-  until a spec says a finger (`setCoarsePointer()`), at the window's pixel
-  ratio until a spec zooms the page (`setPixelRatio()`), which changes
-  `devicePixelRatio` and the `resolution` a query matches.
+  of a game taken up again. It reads the clock through `NOW`, `Date.now()`
+  at each reading unless a spec provides a clock of its own.
+  `formatClock()` writes a time as a game's clock shows it, "2:13", or
+  "1:02:13" past an hour.
+- `src/testing/`: what a game's specs share: `installFakeViewport()`, which
+  answers the queries `GameViewportService` asks, handed on from
+  `@fz/ui/testing`, which [frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)
+  describes.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
   forwards the breakpoints' mixins, and its `bar-size()` mixin publishes the
   bar's size as `--fz-bar-height` and `--fz-rail-width` for what lays itself

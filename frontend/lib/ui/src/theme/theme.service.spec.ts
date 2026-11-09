@@ -2,15 +2,20 @@ import { TestBed } from "@angular/core/testing";
 import { fuzzballSvg } from "@fz/style/fuzzball";
 import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "../storage";
+import { type FakeViewport, installFakeViewport } from "../testing";
 import { THEME_COLOR_ROLE, ThemeService } from "./theme.service";
 
 describe("ThemeService", () => {
+  let viewport: FakeViewport | null = null;
+
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.dataset["theme"] = "pastel";
   });
 
   afterEach(() => {
+    viewport?.restore();
+    viewport = null;
     document.head.querySelector("#palette")?.remove();
     document.head.querySelector('meta[name="theme-color"]')?.remove();
     for (const icon of document.head.querySelectorAll('link[rel="icon"]')) {
@@ -90,6 +95,14 @@ describe("ThemeService", () => {
     document.documentElement.dataset["theme"] = "neon";
 
     expect(service().current()).toBe(DEFAULT_THEMES.light);
+  });
+
+  it("falls back to the dark default on a system that prefers a dark scheme", () => {
+    document.documentElement.dataset["theme"] = "neon";
+    viewport = installFakeViewport(1280);
+    viewport.setColorScheme("dark");
+
+    expect(service().current()).toBe(DEFAULT_THEMES.dark);
   });
 
   it("applies a chosen palette to the page", () => {

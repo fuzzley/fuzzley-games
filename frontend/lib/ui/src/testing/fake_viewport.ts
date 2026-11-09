@@ -1,10 +1,12 @@
+import type { ColorMode } from "@fz/style/themes";
+
 /**
  * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
  * height and orientation queries against a size a spec sets, resolution
  * queries against the pixel ratio the window reports as each is asked, the
  * color scheme and motion queries as a light system's with no motion
- * preference, and the pointer query as a mouse's until a spec says it is a
- * finger.
+ * preference until a spec says otherwise, and the pointer query as a
+ * mouse's until a spec says it is a finger.
  */
 export interface FakeViewport {
   /** Sets the viewport width and tells every live query about it. */
@@ -19,19 +21,26 @@ export interface FakeViewport {
   setPixelRatio(ratio: number): void;
   /** Says whether the main pointer is a finger, and tells every live query. */
   setCoarsePointer(coarse: boolean): void;
+  /** Sets the color scheme the system prefers, and tells every live query. */
+  setColorScheme(scheme: ColorMode): void;
+  /** Says whether the player asks for less motion, and tells every live query. */
+  setReducedMotion(reduced: boolean): void;
   /** Takes the fake back off the window, and the pixel ratio it set. */
   restore(): void;
 }
 
 /**
  * Holds what a fake answers against: the viewport's size, in CSS pixels,
- * the display's pixel ratio, and whether its main pointer is a finger.
+ * the display's pixel ratio, whether its main pointer is a finger, the color
+ * scheme the system prefers and whether the player asks for less motion.
  */
 interface Display {
   width: number;
   height: number;
   pixelRatio: number;
   coarse: boolean;
+  colorScheme: ColorMode;
+  reducedMotion: boolean;
 }
 
 /** Holds what a spec sets of the display, all but its pixel ratio. */
@@ -71,9 +80,9 @@ function evaluate(query: string, display: Display): boolean {
         case "pointer":
           return value === (display.coarse ? "coarse" : "fine");
         case "prefers-color-scheme":
-          return value === "light";
+          return value === display.colorScheme;
         case "prefers-reduced-motion":
-          return value === "no-preference";
+          return value === (display.reducedMotion ? "reduce" : "no-preference");
         default:
           // As CSS reads it: a square viewport is portrait.
           return display.height >= display.width === (value === "portrait");
@@ -93,7 +102,13 @@ function evaluate(query: string, display: Display): boolean {
  */
 export function installFakeViewport(width: number, height = 900): FakeViewport {
   const queries: FakeQuery[] = [];
-  const current: SetDisplay = { width, height, coarse: false };
+  const current: SetDisplay = {
+    width,
+    height,
+    coarse: false,
+    colorScheme: "light",
+    reducedMotion: false,
+  };
   /** Returns the display as it is now, at the ratio the window reports. */
   const now = (): Display => ({
     ...current,
@@ -153,6 +168,12 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
     },
     setCoarsePointer(coarse: boolean): void {
       change({ coarse });
+    },
+    setColorScheme(colorScheme: ColorMode): void {
+      change({ colorScheme });
+    },
+    setReducedMotion(reducedMotion: boolean): void {
+      change({ reducedMotion });
     },
     restore(): void {
       Reflect.deleteProperty(window, "matchMedia");

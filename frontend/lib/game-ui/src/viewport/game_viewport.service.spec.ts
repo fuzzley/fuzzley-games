@@ -71,6 +71,14 @@ describe("GameViewportService", () => {
     expect(at(1280, 800).allowsMotion()).toBe(true);
   });
 
+  it("stops allowing motion once the player asks for less", () => {
+    const service = at(1280, 800);
+
+    viewport?.setReducedMotion(true);
+
+    expect(service.allowsMotion()).toBe(false);
+  });
+
   it("puts the bar across the top of a roomy window", () => {
     expect(at(1280, 800).barPlacement()).toBe("top");
   });

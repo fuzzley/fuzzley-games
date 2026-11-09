@@ -91,10 +91,20 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   game; a group where choosing is free can use native radios instead, as
   `<fz-theme-picker>` does.
 - `src/testing/`: what an app's specs need to drive these components, for
-  its specs only: `installDialogPolyfill`, which gives jsdom's `<dialog>`
-  the `showModal()`, `close()` and Escape it lacks, for the spec setup
-  file; and `setPageVisibility(state)`, which hides the page or shows it
-  again, as switching tabs does, until the test finishes.
+  its specs only: `installDialogPolyfill`, for its spec setup file, which
+  gives jsdom's `<dialog>` the `showModal()`, `close()` and Escape it lacks;
+  `setPageVisibility(state)`, which hides the page or shows it again, as
+  switching tabs does, until the test finishes; and
+  `installFakeViewport()`, which stands in for the `matchMedia` jsdom
+  lacks, at a size a spec sets and changes, for a light system with no wish
+  for less motion until a spec says otherwise (`setColorScheme()`,
+  `setReducedMotion()`), pointed at with a mouse until a spec says a finger
+  (`setCoarsePointer()`), at the window's pixel ratio until a spec zooms
+  the page (`setPixelRatio()`), which changes `devicePixelRatio` and the
+  `resolution` a query matches. Each change tells the queries it changes,
+  as the browser does. It is here, not in `@fz/game-ui`, since
+  `ThemeService` asks the color scheme; `@fz/game-ui/testing` hands it on
+  to the games.
 - `src/wordmark/`: `<fz-wordmark>`, the fuzzball in the palette's accent and
   the "Fuzzley Games" name in its own type, set in lower case as fuzzley.info
   sets its own. It is text: an app that links it puts it in its own `<a>`,
