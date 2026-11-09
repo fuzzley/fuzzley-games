@@ -26,7 +26,7 @@ interface Figure {
  * best time or the hints used, and the puzzles solved.
  *
  * It opens once the board's wave has run, at once where motion is
- * unwelcome. Closing it leaves the solved board to look at; New Game deals
+ * unwelcome. Closing it leaves the solved board to look at; New game deals
  * another at the same level, and the other levels' buttons one at theirs.
  */
 @Component({

@@ -78,10 +78,10 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("asks before New Game loses the game under way", async () => {
+  it("asks before New game loses the game under way", async () => {
     const user = await renderApp(["*..", "...", "..*"]);
 
-    await user.click(screen.getByRole("button", { name: "New Game" }));
+    await user.click(screen.getByRole("button", { name: "New game" }));
 
     expect(
       await screen.findByRole("alertdialog", { name: "Start a new game?" }),
@@ -120,13 +120,13 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("gives the board the focus after New Game from the card", async () => {
+  it("gives the board the focus after New game from the card", async () => {
     pauseAtEnd(0);
     const user = await renderApp(["*1_", "121", ".1*"]);
     await user.click(square(6));
     const card = await screen.findByRole("alertdialog");
 
-    await user.click(within(card).getByRole("button", { name: "New Game" }));
+    await user.click(within(card).getByRole("button", { name: "New game" }));
 
     await waitFor(() => {
       expect(document.activeElement).toHaveAttribute("role", "gridcell");

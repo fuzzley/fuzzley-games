@@ -57,7 +57,7 @@ describe("VictoryOverlayComponent", () => {
     ).toBe("Score");
   });
 
-  it("deals a new game when Play Again is clicked", async () => {
+  it("deals a new game at New game", async () => {
     win();
 
     clickElement(fixture, ".fz-button-warning");

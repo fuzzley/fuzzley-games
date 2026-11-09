@@ -284,7 +284,7 @@ describe("BoardComponent", () => {
       game.closeResult();
       detectChanges();
 
-      await userEvent.click(screen.getByRole("button", { name: "New Game" }));
+      await userEvent.click(screen.getByRole("button", { name: "New game" }));
 
       expect(game.outcome()).toBe("ready");
     });
@@ -422,13 +422,13 @@ describe("BoardComponent", () => {
       },
     );
 
-    it("leaves Space on New Game to the button, down and up", async () => {
+    it("leaves Space on New game to the button, down and up", async () => {
       const { game, run, detectChanges } = await runBoardScene();
       game.turn("up");
       playToTheEnd(game);
       game.closeResult();
       detectChanges();
-      const newGame = screen.getByRole("button", { name: "New Game" });
+      const newGame = screen.getByRole("button", { name: "New game" });
       const runs = game.runs();
 
       // Sent as events, since the scene's own Space starts a run too: what

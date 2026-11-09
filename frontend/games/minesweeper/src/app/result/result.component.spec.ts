@@ -112,10 +112,10 @@ describe("ResultComponent", () => {
       expect(screen.queryByText("New best time")).toBeNull();
     });
 
-    it("opens on New Game", async () => {
+    it("opens on New game", async () => {
       await finish(NEARLY_WON, 6);
 
-      expect(screen.getByRole("button", { name: "New Game" })).toHaveFocus();
+      expect(screen.getByRole("button", { name: "New game" })).toHaveFocus();
     });
   });
 
@@ -159,7 +159,7 @@ describe("ResultComponent", () => {
     it("deals a new game, and goes", async () => {
       const user = await finish(NEARLY_WON, 6);
 
-      await user.click(screen.getByRole("button", { name: "New Game" }));
+      await user.click(screen.getByRole("button", { name: "New game" }));
 
       expect(TestBed.inject(GameService).field().layout).toBeNull();
       expect(screen.queryByRole("alertdialog")).toBeNull();

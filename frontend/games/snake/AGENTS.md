@@ -158,10 +158,10 @@ its seed and its frames, as a game taken up relies on.
   cancels a captured key's default there, which is why the scene captures
   only the arrows and Space, which would scroll the page, and ignores a held
   key and one pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
-  `isShortcut()`), as the arrows do. A card's button, Resume or New Game,
+  `isShortcut()`), as the arrows do. A card's button, Resume or New game,
   keeps its keys from the board with `@fz/phaser/canvas`'s `fzKeepKeys`, so
   it takes Space and Enter itself: Resume hands the board the focus, and the
-  board takes it as New Game's run begins.
+  board takes it as New game's run begins.
 - **The run waits for the player.** It starts at the first direction, pauses
   when the focus leaves the room, the page is hidden or the screen turns, and
   goes on at once at a direction, Space or P; a run taken up after a reload

@@ -65,7 +65,7 @@ const NEW_GAME_QUESTION: ConfirmRequest = {
   tone: "danger",
 };
 
-/** What a deal at a difficulty asks: New Game's question, naming it. */
+/** What a deal at a difficulty asks: New game's question, naming it. */
 function difficultyQuestion(difficulty: DifficultyId): ConfirmRequest {
   return {
     ...NEW_GAME_QUESTION,

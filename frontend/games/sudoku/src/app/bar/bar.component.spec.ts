@@ -138,10 +138,10 @@ describe("BarComponent", () => {
       expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
     });
 
-    it("asks before New Game loses the game under way", async () => {
+    it("asks before New game loses the game under way", async () => {
       const { user } = await renderBar();
 
-      await user.click(screen.getByRole("button", { name: "New Game" }));
+      await user.click(screen.getByRole("button", { name: "New game" }));
 
       expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
     });

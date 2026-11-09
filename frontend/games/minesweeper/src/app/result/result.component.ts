@@ -17,7 +17,7 @@ interface Figure {
  * Shows how a game ended, over the board: on a win the time, the lives left
  * and the games won, and on a loss how much of the field was cleared.
  *
- * Closing it leaves the finished board to look at; New Game deals another.
+ * Closing it leaves the finished board to look at; New game deals another.
  */
 @Component({
   selector: "app-result",

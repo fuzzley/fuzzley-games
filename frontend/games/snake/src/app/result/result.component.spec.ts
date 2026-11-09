@@ -71,7 +71,7 @@ describe("ResultComponent", () => {
     ).toHaveAccessibleDescription("Every square filled, at Normal speed");
   });
 
-  it("opens on New Game, which starts a new run", async () => {
+  it("opens on New game, which starts a new run", async () => {
     const { user, game } = await renderEnded();
 
     await user.keyboard("{Enter}");

@@ -213,7 +213,7 @@ header shrinks to a status strip. Columns hang from the top.
 Gains:
 
 - The stock, pressed dozens of times a game, sits under the thumb
-- Undo and New Game are in reach too
+- Undo and New game are in reach too
 - Same strips as K-P1, because portrait has height to spare
 
 Costs:

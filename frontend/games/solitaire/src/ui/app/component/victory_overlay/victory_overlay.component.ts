@@ -7,7 +7,7 @@ import { GameBrowserService } from "../../service/game_browser.service";
 
 /**
  * Shows the final score, time and moves once the board is cleared, with
- * buttons to play again or to choose another game.
+ * buttons to deal a new game or to choose another game.
  *
  * Not dismissible, since a finished board has nothing to go back to.
  */
