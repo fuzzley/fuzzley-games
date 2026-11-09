@@ -1,3 +1,4 @@
+import { clamp } from "@fz/core/math";
 import type { Point, Rect, Size } from "./geometry";
 import type { Card } from "@/engine/core/card/card";
 
@@ -100,8 +101,6 @@ export function fitFanDown(
   const upGaps = above.filter((card) => card.faceUp).length;
   const downGaps = above.length - upGaps;
   const spare = room - cardHeight - layout.hoverExpansion;
-  const clamp = (value: number, low: number, high: number) =>
-    Math.min(high, Math.max(low, value));
 
   // Hidden cards give up their gap before face-up ones go below their own.
   const faceDownGap =

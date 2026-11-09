@@ -10,6 +10,8 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
+import { count } from "@fz/core/format";
+import { clamp } from "@fz/core/math";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -233,7 +235,7 @@ export class GameBrowserComponent {
         },
       })),
       [1, 2].map((decks) => ({
-        label: decks === 1 ? "1 deck" : "2 decks",
+        label: count(decks, "deck", "decks"),
         pressed: filters.decks.includes(decks),
         toggle: () => {
           this.updateFilters((f) => ({ ...f, decks: toggled(f.decks, decks) }));
@@ -277,12 +279,12 @@ export class GameBrowserComponent {
     // Say how many games were found once typing pauses, and nothing while
     // the whole list shows.
     effect((onCleanup) => {
-      const count = this.rows().filter((row) => !row.recent).length;
+      const found = this.rows().filter((row) => !row.recent).length;
       const text = !this.narrowing()
         ? ""
-        : count === 0
+        : found === 0
           ? "No games match."
-          : `${count} ${count === 1 ? "game" : "games"}.`;
+          : `${count(found, "game", "games")}.`;
       const timer = setTimeout(() => {
         if (text) this.announcer.say(text);
         else this.announcer.clear();
@@ -423,7 +425,7 @@ export class GameBrowserComponent {
   private moveActive(step: number): void {
     const rows = this.rows();
     const index = rows.findIndex((row) => row.id === this.activeRow()?.id);
-    const next = rows[Math.min(rows.length - 1, Math.max(0, index + step))];
+    const next = rows[clamp(index + step, 0, rows.length - 1)];
     if (!next) return;
 
     this.activeId.set(next.id);

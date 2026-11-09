@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createRandom } from "@fz/core/random";
 import type {
   IntentHandler,
   TableIntent,
@@ -9,7 +10,7 @@ import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableGame } from "@/engine/tableau/game/table_game";
 import { gesturesFor } from "@/ui/app/provider/board_catalog";
 import type { GameId } from "@/ui/app/provider/game_catalog";
-import { seededRandom } from "@/engine/core/random/seeded_random";
+import { shuffle } from "@/engine/core/random/shuffle";
 import { CATALOG_DEALS } from "@test/support/ui/catalog_deals";
 
 /*
@@ -44,16 +45,6 @@ function asContractGame(game: PlayableGame): ContractGame {
     throw new Error("Every game in the catalog is a table game.");
   }
   return game;
-}
-
-/** Returns a copy of `items` in a random order. */
-function shuffled<T>(items: readonly T[], random: () => number): T[] {
-  const copy = [...items];
-  for (let index = copy.length - 1; index > 0; index--) {
-    const swap = Math.floor(random() * (index + 1));
-    [copy[index], copy[swap]] = [copy[swap], copy[index]];
-  }
-  return copy;
 }
 
 /** Returns the press a player would make on a pile: its top card, or its slot. */
@@ -127,9 +118,9 @@ class ContractPlayer {
   /** Makes up to `steps` actions, each picked at random from those that act. */
   playAtRandom(steps: number): void {
     for (let step = 0; step < steps; step++) {
-      const groups = shuffled(candidateIntents(this.game), this.random);
+      const groups = shuffle(candidateIntents(this.game), this.random);
       const acted = groups.some((group) =>
-        shuffled(group, this.random).some((intent) => this.send(intent)),
+        shuffle(group, this.random).some((intent) => this.send(intent)),
       );
       if (!acted) return;
     }
@@ -162,7 +153,7 @@ describe.each(CATALOG_DEALS)("%s", (_name, entry, values) => {
   let dealt: GameSnapshot;
 
   beforeEach(() => {
-    const random = seededRandom(SEED);
+    const random = createRandom(SEED);
     vi.spyOn(Math, "random").mockImplementation(random);
     const game = asContractGame(entry.create(values).game);
     player = new ContractPlayer(

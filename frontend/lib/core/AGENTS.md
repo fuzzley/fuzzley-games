@@ -95,9 +95,10 @@ Each file is an entry point of its own, imported by name, such as
   its shell alike. It takes the `ShortcutModifiers` a `KeyboardEvent`
   holds, so it needs no DOM.
 
-Every game but the Solitaire Collection takes some of them, and `@fz/ui`'s
-storage takes `isRecord()`. The Solitaire Collection keeps its own seeded
-random and JSON reader in its engine for now.
+Every game takes some of them, and `@fz/ui`'s storage takes `isRecord()`.
+The Solitaire Collection keeps two of its own in its engine: a JSON reader,
+whose errors name the path a bug report relies on, and `shuffle()`, whose
+order differs from `shuffled()`'s and Montana's kept gaps depend on.
 
 ## Rules
 
@@ -110,8 +111,10 @@ random and JSON reader in its engine for now.
   the seeds `mixSeed()` mixes in each stream or the order `shuffled()`
   gives a seed. The screenshot scripts deal by seed and play moves that fit
   only the deal it gives, a Minesweeper game saved before its first move
-  keeps only its seed, Snake's, Brick Breaker's and Asteroid Breaker's runs
-  keep a seed and a count of draws, the breakers' fields draw from their
+  keeps only its seed, the Solitaire Collection's Montana draws its gaps
+  again from a seed of the order dealt each time a game, a kept one too, is
+  restarted, Snake's, Brick Breaker's and Asteroid Breaker's runs keep a
+  seed and a count of draws, the breakers' fields draw from their
   run's seed mixed with the level's or the wave's number, and Asteroid
   Breaker's Endless waves are made again from a seed, so the numbers a
   seed gives are a contract. `src/random.spec.ts` pins the first of them;

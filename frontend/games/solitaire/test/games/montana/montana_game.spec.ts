@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { createRandom } from "@fz/core/random";
 import {
   type PlayingCard,
   Rank,
@@ -18,7 +19,6 @@ import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
 import { PIP_COUNTS } from "@/games/common/zone_presets";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
-import { seededRandom } from "@/engine/core/random/seeded_random";
 
 /** How many columns Montana's grid has. */
 const COLUMN_COUNT = montanaColumnCount(MontanaVariant.MONTANA);
@@ -57,6 +57,11 @@ function newGame(): MontanaGame {
   });
   game.startNewGame();
   return game;
+}
+
+/** Returns where the grid's gaps are, as indices of its cells in reading order. */
+function gapIndices(game: MontanaGame): number[] {
+  return game.cells.flatMap((pile, index) => (pile.isEmpty ? [index] : []));
 }
 
 /** Returns the cell at a row and column of the grid. */
@@ -113,6 +118,12 @@ describe("MontanaGame deal", () => {
     expect(gaps.length).toBe(GAP_COUNT);
   });
 
+  it("leaves its gaps where the order dealt puts them", () => {
+    // A restart deals the order kept again, a saved game's too, and draws
+    // the gaps again from it, so a fixed order's gaps never move.
+    expect(gapIndices(game)).toEqual([16, 26, 35, 43]);
+  });
+
   it("deals no Ace, since the Aces are what the gaps stand in for", () => {
     const aces = game.cells
       .flatMap((pile) => pile.getCards())
@@ -138,7 +149,7 @@ describe("MontanaGame deal", () => {
   it("leaves the same gaps when the deal is restarted", () => {
     // A source that keeps varying, unlike the fixed shuffle, which would leave
     // the same gaps whether or not the deal replays them.
-    const shuffledGame = new MontanaGame({ random: seededRandom(1) });
+    const shuffledGame = new MontanaGame({ random: createRandom(1) });
     shuffledGame.startNewGame();
     const gapsDealt = shuffledGame.cells.filter((pile) => pile.isEmpty);
 
