@@ -1,5 +1,6 @@
 import { nextMarkAfter } from "@fz/core/math";
 import { mixSeed } from "@fz/core/random";
+import type { RunNumber } from "@fz/core/run_numbers";
 import type { Field } from "../field/field";
 import { clearingPoints } from "../field/scoring";
 import type { Speed } from "../speed";
@@ -58,9 +59,7 @@ export type LevelProgress = Pick<
 >;
 
 /** Says how a new run starts. */
-export interface RunStart {
-  readonly id: number;
-  readonly seed: number;
+export interface RunStart extends RunNumber {
   readonly speed: Speed;
   readonly lastLevel: number;
   /** The level it starts at, from 1. */
