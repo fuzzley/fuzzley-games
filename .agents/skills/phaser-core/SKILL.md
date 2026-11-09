@@ -273,6 +273,10 @@ scene without shutting it down first, so the end is whichever comes first.
   `canvasChanged(scene, last)` says whether that canvas has a new size or
   pixel ratio since `last`, or `last` is `null`; the chrome, and anything
   else a scene lays out by, are the scene's to compare.
+- `strokeShareArc(graphics, x, y, radius, share)` strokes a share of a
+  circle, from 0 to 1, clockwise from its top, in the line the `Graphics`
+  holds: the ring that empties as a breaker's tag runs out, or fills as
+  Asteroid Breaker's Dash recharges.
 
 ## Testing
 

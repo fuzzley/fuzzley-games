@@ -14,4 +14,5 @@ export {
   whenSceneEnds,
 } from "./scene_lifetime";
 export { atlasFrameOf } from "./shapes_frame";
+export { strokeShareArc } from "./share_arc";
 export { canvasChanged, viewportOf } from "./viewport";

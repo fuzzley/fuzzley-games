@@ -1,5 +1,6 @@
 import { lerp } from "@fz/core/math";
 import { recordOf } from "@fz/core/records";
+import { strokeShareArc } from "@fz/phaser/scene";
 import { lineWidth } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_KINDS } from "../../rules/bricks/capsules";
@@ -15,9 +16,6 @@ import {
 } from "../../view/field/tags";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
-
-/** Where a ring starts to empty from: its top. */
-const RING_TOP = -Math.PI / 2;
 
 /**
  * Draws a tag for each effect in play, in a row under the paddle: its
@@ -61,16 +59,14 @@ export class TagPainter implements Painter {
       this.rings
         .lineStyle(width, palette.wall)
         .strokeCircle(middle, y, radius)
-        .lineStyle(width, palette.capsules[capsule(effect.capsule).tone])
-        .beginPath()
-        .arc(
-          middle,
-          y,
-          radius,
-          RING_TOP,
-          RING_TOP + 2 * Math.PI * timeLeft(effect, field.steps),
-        )
-        .strokePath();
+        .lineStyle(width, palette.capsules[capsule(effect.capsule).tone]);
+      strokeShareArc(
+        this.rings,
+        middle,
+        y,
+        radius,
+        timeLeft(effect, field.steps),
+      );
       x += TAG_SPACING;
     }
   }

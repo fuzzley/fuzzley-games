@@ -1,4 +1,5 @@
 import { recordOf } from "@fz/core/records";
+import { strokeShareArc } from "@fz/phaser/scene";
 import { lineWidth } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import type { EffectKind } from "../../rules/catalog/pickups";
@@ -9,9 +10,6 @@ import { toCanvas } from "../../view/field/field_metrics";
 import { TAG_RADIUS, tagX, tagY, timeLeft } from "../../view/field/tags";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
-
-/** Where a ring starts to empty from: its top. */
-const RING_TOP = -Math.PI / 2;
 
 /**
  * Draws a tag for each effect in play, in a row at the field's bottom left:
@@ -55,16 +53,8 @@ export class TagPainter implements Painter {
       this.rings
         .lineStyle(width, palette.line)
         .strokeCircle(x, y, radius)
-        .lineStyle(width, palette.accent)
-        .beginPath()
-        .arc(
-          x,
-          y,
-          radius,
-          RING_TOP,
-          RING_TOP + 2 * Math.PI * timeLeft(effect, field.steps),
-        )
-        .strokePath();
+        .lineStyle(width, palette.accent);
+      strokeShareArc(this.rings, x, y, radius, timeLeft(effect, field.steps));
       shown += 1;
     }
   }
