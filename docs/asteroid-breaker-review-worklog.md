@@ -2737,3 +2737,38 @@ The review found the floor right, and two things in its wording:
    100:_ not taken; `@fz/ui`, `@fz/phaser` and `@fz/dev` say the same, and
    the four should read alike.
 2. _"The tests fail" where it is the `test` run that fails:_ taken.
+
+### Step 17m: QA of `ui-lifts`
+
+`yarn verify` passes: lint in 27 s, the type-check in 19 s, the tests in
+1 min 23 s and the build in 10 s, with no spec timed out and no warning
+from Node that `localStorage` needs `--localstorage-file`, which step 17d's
+store in memory put an end to. `yarn check:layout` holds Sudoku, Brick
+Breaker, Asteroid Breaker and Snake at each shape and turn. Played from the
+preview build in headed Chrome, with no error or warning in any console:
+
+- Asteroid Breaker's wave starts at a held key. Escape pauses it, the bar's
+  Pause turns to Resume, the live region says so, and Resume hands the
+  board the focus. Settings, closed with Escape, hands it back too, the run
+  still paused. The palette, switched to Midnight blue, and the sound,
+  turned off from the bar, outlast a reload, which takes the run up paused.
+  On an upright phone the bar's Pause is an icon, its name kept for a
+  screen reader, the figures stack, and More offers "Turn sound on". At
+  `?debug` the tuning sliders stand in the drawer as before, set by
+  `setting-fields`.
+- Brick Breaker launches, pauses at Escape, goes on from the bar and turns
+  its sound off there; turning the window pauses it.
+- Snake starts, pauses, and goes on from the bar with the focus on the
+  board; on a phone its figures sit inline and More offers its sound.
+- Minesweeper reveals, and takes its game up after a reload, the clock
+  going on; its difficulty, changed to Easy once the question is answered,
+  outlasts a reload.
+- Sudoku places a digit, which outlasts a reload, as "Mark mistakes" does.
+- The Solitaire Collection deals and draws. Its red card back and a Draw 1
+  deal, once its question is answered, outlast a reload, and its recent
+  games lead with the Draw 1. Under 360 CSS px wide its bar drops the link
+  home, and More leads with it, to `/`, the bar's own, from step 17g.
+
+Seen and left: Asteroid Breaker and Brick Breaker say "New game" where the
+other four games say "New Game", as on `main`; the player sees it, so it
+waits for the user.
