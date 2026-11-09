@@ -1,4 +1,5 @@
 import { clamp, fadeAlpha, shareDone } from "@fz/core/math";
+import { type Playing, Turns } from "@fz/core/turns";
 import { onContextRestored } from "@fz/phaser/scene";
 import { type GameObjects, type Scene, Textures } from "phaser";
 import type { Moving } from "../../rules/torus";
@@ -23,7 +24,6 @@ import { toCanvas } from "../../view/field/field_metrics";
 import type { FieldEvent } from "../../view/field/frame";
 import { POINTS_ATLAS, PointsAtlas } from "../points_atlas";
 import type { PaintContext, Painter } from "./painter";
-import { type Playing, Turns } from "./turns";
 
 /** How many points may show at once: a blast scores a crowd of rocks at once. */
 const POOL = 12;

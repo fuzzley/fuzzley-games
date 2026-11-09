@@ -1,4 +1,5 @@
 import { easeOutCubic, fadeAlpha, shareDone } from "@fz/core/math";
+import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, wrap } from "../../rules/torus";
 import { FLOURISH, FRAMES } from "../../view/art/art";
@@ -8,7 +9,6 @@ import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
-import { type Playing, Turns } from "./turns";
 
 /**
  * How many puffs of dust and sparks may play at once each: a blast breaks a

@@ -107,6 +107,12 @@ Each file is an entry point of its own, imported by name, such as
   says whether it holds a key afresh), and `axis()` takes the way pressed
   last while both ways are held. Reading it makes nothing, so a scene reads
   it every frame; the breakers' steering holds its keys with it.
+- `src/turns.ts`: `Turns<T>`, a flourish's records, each a `Playing` (when
+  it started and where it plays from), made with the flourish: `play()`
+  starts the next from a place, at a time, the oldest once every one is
+  playing, and returns it for the painter to fill in, so a flourish makes
+  nothing as it plays. The breakers' painters take their rings, fades,
+  puffs, sparks and points from it.
 
 Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`, and
 `@fz/game-ui`'s run lifecycle the run's stages and commands. The Solitaire

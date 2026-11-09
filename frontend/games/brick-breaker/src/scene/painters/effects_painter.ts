@@ -1,4 +1,5 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
+import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, facedBallFrame } from "../../view/art/art";
@@ -28,6 +29,20 @@ const SHARD_SPEED = { least: 4, most: 9 } as const;
 /** How fast a shard falls, in field units a second, each second. */
 const SHARD_FALL = 30;
 
+/** Describes a blast's ring or a lost ball's fade: an image, played from where it began. */
+export interface Burst extends Playing {
+  readonly image: GameObjects.Image;
+}
+
+/**
+ * Returns a ring's or a fade's record over its image, hidden until it first
+ * plays; its place on the field is written as it plays but never read, as
+ * the image keeps its place on the canvas.
+ */
+function burstOf(image: GameObjects.Image): Burst {
+  return { image: image.setVisible(false), at: -Infinity, x: 0, y: 0 };
+}
+
 /**
  * Draws what bursts from the field as things happen on it: a broken brick's
  * shards, a blast's ring, a lost ball's fade, and the field's shake. Each is
@@ -36,17 +51,10 @@ const SHARD_FALL = 30;
 export class EffectsPainter implements Painter {
   /** Throws a broken brick's shards, tinted as the brick was. */
   readonly shards: GameObjects.Particles.ParticleEmitter;
-  /** A ring for each blast that may spread at once. */
-  readonly rings: readonly GameObjects.Image[];
-  /** A fading ball for each ball that may be lost at once. */
-  readonly fades: readonly GameObjects.Image[];
-
-  /** When each ring started to spread, in the scene's time. */
-  private readonly ringsAt: number[];
-  /** When each ball started to fade. */
-  private readonly fadesAt: number[];
-  private nextRing = 0;
-  private nextFade = 0;
+  /** A ring for each blast that may spread at once, each played in turn. */
+  readonly rings: Turns<Burst>;
+  /** A fading ball for each ball that may be lost at once, each played in turn. */
+  readonly fades: Turns<Burst>;
 
   constructor(
     private readonly scene: Scene,
@@ -64,16 +72,14 @@ export class EffectsPainter implements Painter {
       speed: { min: 0, max: 0 },
       gravityY: 0,
     });
-    this.rings = Array.from({ length: RING_POOL }, () =>
-      scene.add.image(0, 0, ATLAS, FRAMES.ring).setVisible(false),
+    this.rings = new Turns(RING_POOL, () =>
+      burstOf(scene.add.image(0, 0, ATLAS, FRAMES.ring)),
     );
-    this.fades = Array.from({ length: MAX_BALLS }, () =>
-      scene.add.image(0, 0, ATLAS, facedBallFrame("normal")).setVisible(false),
+    this.fades = new Turns(MAX_BALLS, () =>
+      burstOf(scene.add.image(0, 0, ATLAS, facedBallFrame("normal"))),
     );
-    this.ringsAt = this.rings.map(() => 0);
-    this.fadesAt = this.fades.map(() => 0);
-    bursts.add([this.shards, ...this.rings]);
-    balls.add([...this.fades]);
+    bursts.add([this.shards, ...this.rings.all.map(({ image }) => image)]);
+    balls.add(this.fades.all.map(({ image }) => image));
   }
 
   /** Sets how fast the shards fly and fall for the field's unit. */
@@ -96,11 +102,9 @@ export class EffectsPainter implements Painter {
 
   /** Spreads a blast's ring from where it went off. */
   ring(x: number, y: number, now: number, metrics: FieldMetrics): void {
-    const at = this.nextRing;
-    this.nextRing = (at + 1) % RING_POOL;
-    this.ringsAt[at] = now;
-    this.rings[at]
-      ?.setPosition(toCanvasX(metrics, x), toCanvasY(metrics, y))
+    this.rings
+      .play(x, y, now)
+      .image.setPosition(toCanvasX(metrics, x), toCanvasY(metrics, y))
       .setScale(ringScale(0))
       .setAlpha(1)
       .setVisible(true);
@@ -119,11 +123,9 @@ export class EffectsPainter implements Painter {
     now: number,
     metrics: FieldMetrics,
   ): void {
-    const at = this.nextFade;
-    this.nextFade = (at + 1) % MAX_BALLS;
-    this.fadesAt[at] = now;
-    this.fades[at]
-      ?.setFrame(frame)
+    this.fades
+      .play(x, y, now)
+      .image.setFrame(frame)
       .setPosition(toCanvasX(metrics, x), toCanvasY(metrics, y))
       .setAlpha(1)
       .setVisible(true);
@@ -131,17 +133,15 @@ export class EffectsPainter implements Painter {
 
   /** Moves each ring and fade on to the scene's time, and hides those that are over. */
   draw({ now }: Readonly<PaintContext>): void {
-    for (let i = 0; i < this.rings.length; i++) {
-      const ring = this.rings[i];
-      if (!ring?.visible) continue;
-      const done = shareDone(this.ringsAt[i] ?? now, now, RING_MS);
+    for (const { image: ring, at } of this.rings.all) {
+      if (!ring.visible) continue;
+      const done = shareDone(at, now, RING_MS);
       ring.setScale(ringScale(done)).setAlpha(fadeAlpha(done));
       if (done === 1) ring.setVisible(false);
     }
-    for (let i = 0; i < this.fades.length; i++) {
-      const fade = this.fades[i];
-      if (!fade?.visible) continue;
-      const done = shareDone(this.fadesAt[i] ?? now, now, FADE_MS);
+    for (const { image: fade, at } of this.fades.all) {
+      if (!fade.visible) continue;
+      const done = shareDone(at, now, FADE_MS);
       fade.setAlpha(fadeAlpha(done));
       if (done === 1) fade.setVisible(false);
     }
@@ -150,8 +150,8 @@ export class EffectsPainter implements Painter {
   /** Stops everything bursting, as a new field starts. */
   reset(): void {
     this.shards.killAll();
-    for (const ring of this.rings) ring.setVisible(false);
-    for (const fade of this.fades) fade.setVisible(false);
+    for (const { image } of this.rings.all) image.setVisible(false);
+    for (const { image } of this.fades.all) image.setVisible(false);
     this.scene.cameras.main.resetFX();
   }
 }

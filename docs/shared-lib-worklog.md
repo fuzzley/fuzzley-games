@@ -728,3 +728,45 @@ The review:
 6. _Edited prose left ragged:_ taken. The edited lines are rewrapped to 78
    columns, down to where the old breaks pick up again. Lines that were
    already long elsewhere in those files are left as they were.
+
+### Step 2.3: `Turns<T>` into `@fz/core/turns`
+
+Built as planned on `sl-play`. Asteroid Breaker's `Turns<T>` and its
+`Playing` record move unchanged into `@fz/core/turns`. The module imports
+nothing, git records the move as a rename, and core gains a spec at 100%
+coverage. Asteroid Breaker's three painters change only their import.
+Brick Breaker's rings and fades are rebuilt on it: each becomes a `Turns`
+of `Burst` records over its image, made by one `burstOf()`. That replaces
+six fields with two and takes the indices out of the draw loops. Images are
+made and added to their layers in the same order and reused round-robin
+from the first, as before. No seed, draw or saved game changes. The work
+was rebased onto `shared-lib` before the review fixes. The one conflict, in
+the fuzzley-ui skill's frontmatter, was resolved by keeping upstream's
+description and adding the `Turns` trigger. Tests pass: core 264, Brick
+Breaker 1842 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- The plan speaks of Asteroid Breaker's `Turns` "with a spec", but it had
+  none. Core's spec is new.
+- Brick Breaker's effects painter comes out the same length (157 lines).
+  Its code is shorter, but `Burst` and `burstOf()` add doc comments. The
+  gain is clarity: no hand-rolled round-robin, no `?.` and no `?? now`.
+  Brick Breaker never reads a record's `x` and `y`.
+
+The review:
+
+1. _Brick Breaker's painter is barely shorter, and both records spell out
+   fields nothing reads:_ taken. One `burstOf()` makes both kinds of record
+   and hides the image, so the setup is back to six lines. Its doc comment
+   says the field place is written but never read. This corrects the change
+   rather than reshaping it: Brick Breaker still drops its two hand-rolled
+   pools for the shared one.
+2. _The spec helper took its type from `rings` but was given `fades` too,
+   and two specs read the images another way:_ taken. `Burst` is exported,
+   `imagesOf()` takes a `Turns<Burst>`, and both specs read
+   `imagesOf(…)[0]`. As the review also noted, "plays each record in turn"
+   was covered by the wrap spec, so it is dropped.
+3. _The phaser-canvas-performance skill's pooling advice pointed only at
+   `Group`:_ taken. It now says a flourish played a set number at a time
+   takes `@fz/core/turns`'s `Turns`, as both breakers' painters do.

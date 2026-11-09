@@ -273,7 +273,8 @@ takes for the specs' helpers.
   as a level starts, swollen at a hit a brick holds and grown back as it
   regrows, `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, a blast's ring, a lost ball's
-  fade and the field's shake, `CapsulePainter` and `BoltPainter` what
+  fade, each ring and fade taken in turn (`@fz/core/turns`'s `Turns`), and
+  the field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle as two round ends and a
   rectangle between their middles, which keep their shape at any width on
   either renderer, with its cannons and rim, `TagPainter` the effects in
