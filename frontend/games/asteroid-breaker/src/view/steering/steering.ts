@@ -1,3 +1,4 @@
+import { HeldKeys } from "@fz/core/keys";
 import type { Steer } from "../../rules/ship/ship";
 import type { Place } from "../../rules/torus";
 import {
@@ -6,7 +7,7 @@ import {
   type PixelRect,
   toField,
 } from "../field/field_metrics";
-import { type HeldKey, heldKeyOf } from "./controls";
+import { heldKeyOf } from "./controls";
 import { type Deck, type DeckButton, buttonAt } from "./deck";
 import { STICK_RADIUS_CSS_PX, Stick, type StickView } from "./stick";
 
@@ -23,15 +24,6 @@ const SECOND_BUTTON = 2;
  * be off the stick.
  */
 export const MOST_FINGERS = 3;
-
-/** How many keys are held for each thing a key flies the ship by: none. */
-const NO_KEYS: Readonly<Record<HeldKey, number>> = {
-  left: 0,
-  right: 0,
-  thrust: 0,
-  fire: 0,
-  dash: 0,
-};
 
 /** Describes a pointer as the steering reads it, as Phaser's pointer has it. */
 export interface PointerView {
@@ -82,15 +74,8 @@ interface Finger {
  * mouse's before the keys'.
  */
 export class Steering {
-  /** How many keys are held for each thing a key flies the ship by. */
-  private keys: Record<HeldKey, number> = { ...NO_KEYS };
-  /**
-   * The keys held, by `event.code`, so a key held repeats nothing and two held
-   * for one thing each count.
-   */
-  private readonly codes = new Set<string>();
-  /** The way of the turn key held last, which wins while both are held. */
-  private lastTurn: -1 | 1 = 1;
+  /** The keys held that fly the ship, the last pressed winning while both turns are held. */
+  private readonly keys = new HeldKeys(heldKeyOf);
   private mouseFire = false;
   private mouseThrust = false;
   private aiming = false;
@@ -154,21 +139,14 @@ export class Steering {
   press(code: string): boolean {
     const key = heldKeyOf(code);
     if (!key) return false;
-    if (this.codes.has(code)) return true;
-    this.codes.add(code);
-    this.keys[key] += 1;
-    if (key === "left" || key === "right") {
-      this.lastTurn = key === "left" ? -1 : 1;
-      this.aiming = false;
-    }
+    const fresh = this.keys.press(code);
+    if (fresh && (key === "left" || key === "right")) this.aiming = false;
     return true;
   }
 
   /** Takes a key let go, by `event.code`, that flew the ship. */
   release(code: string): void {
-    const key = heldKeyOf(code);
-    if (!key || !this.codes.delete(code)) return;
-    this.keys[key] -= 1;
+    this.keys.release(code);
   }
 
   /**
@@ -235,8 +213,7 @@ export class Steering {
    * sticks; the mouse's place is kept, as a still pointer still aims there.
    */
   letGo(): void {
-    this.keys = { ...NO_KEYS };
-    this.codes.clear();
+    this.keys.letGo();
     this.mouseFire = false;
     this.mouseThrust = false;
     this.stick.letGo();
@@ -259,22 +236,17 @@ export class Steering {
     const { steer } = this;
     steer.heading = this.stick.heading();
     steer.aim = steer.heading === null && this.aiming ? this.aimAt : null;
-    steer.turn = steer.heading === null && !steer.aim ? this.turn() : 0;
+    steer.turn =
+      steer.heading === null && !steer.aim
+        ? this.keys.axis("left", "right")
+        : 0;
     steer.thrust =
-      this.keys.thrust > 0 || this.mouseThrust ? 1 : this.stick.thrust();
-    steer.fire = this.keys.fire > 0 || this.mouseFire || this.isPressed("fire");
+      this.keys.isHeld("thrust") || this.mouseThrust ? 1 : this.stick.thrust();
+    steer.fire =
+      this.keys.isHeld("fire") || this.mouseFire || this.isPressed("fire");
     steer.autoFire = this.board.fireByItself;
-    steer.dash = this.keys.dash > 0 || this.isPressed("dash");
+    steer.dash = this.keys.isHeld("dash") || this.isPressed("dash");
     return steer;
-  }
-
-  /** Returns the way the turn keys held turn the ship. */
-  private turn(): -1 | 0 | 1 {
-    const left = this.keys.left > 0;
-    const right = this.keys.right > 0;
-    if (left && right) return this.lastTurn;
-    if (left) return -1;
-    return right ? 1 : 0;
   }
 
   /** Aims at the mouse's place on the field, once it moves over it, if it moved at all. */

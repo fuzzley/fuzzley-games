@@ -32,11 +32,7 @@ import {
 import { type FieldMetrics, fieldMetrics } from "../view/field/field_metrics";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
-import {
-  type FieldCommand,
-  commandOfKey,
-  heldKeyOf,
-} from "../view/steering/controls";
+import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { Steering, type TouchSteering } from "../view/steering/steering";
 import { ATLAS, bakeBricksAtlas } from "./atlas";
 import { BallPainter } from "./painters/ball_painter";
@@ -435,8 +431,7 @@ export class BricksScene extends Scene {
       this.press(event);
     });
     onKeyUp(this, (event) => {
-      const held = heldKeyOf(event.code);
-      if (held) this.steering.release(held);
+      this.steering.release(event.code);
     });
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
       if (this.steering.pointerDown(pointer, this.options.touch())) {
@@ -462,11 +457,7 @@ export class BricksScene extends Scene {
    */
   private press(event: KeyboardEvent): void {
     if (isShortcut(event)) return;
-    const held = heldKeyOf(event.code);
-    if (held) {
-      this.steering.press(held);
-      return;
-    }
+    if (this.steering.press(event.code)) return;
     if (event.repeat) return;
     const command = commandOfKey(event.code);
     if (command) this.options.command(command);

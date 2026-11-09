@@ -229,9 +229,9 @@ takes for the specs' helpers.
   is lost (`SERVE_MS`), and how long the cards wait.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`, the commands and the held pushes; `steering.ts` the
-  `Steering` that turns keys, the mouse and fingers into each frame's
-  `Steer`, and a tap into a launch, and the ways a finger may steer
-  (`TOUCH_STEERINGS`, `isTouchSteering()`).
+  `Steering` that turns the keys held (`@fz/core/keys`'s `HeldKeys`), the
+  mouse and fingers into each frame's `Steer`, and a tap into a launch,
+  and the ways a finger may steer (`TOUCH_STEERINGS`, `isTouchSteering()`).
 - **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
   the palette's roles (`bricksPalette()`), with the brick tints from
   `inks.ts`, the game's own eight for light palettes and eight for dark, the

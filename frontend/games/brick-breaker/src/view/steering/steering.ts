@@ -1,7 +1,8 @@
+import { HeldKeys } from "@fz/core/keys";
 import { isOneOf } from "@fz/core/records";
 import type { Steer } from "../../rules/paddle/paddle";
 import { type FieldMetrics, toFieldX } from "../field/field_metrics";
-import type { HeldKey } from "./controls";
+import { heldKeyOf } from "./controls";
 
 /** Every way a finger may steer the paddle: by dragging it from anywhere, or by the paddle following it. */
 export const TOUCH_STEERINGS = ["drag", "follow"] as const;
@@ -50,10 +51,8 @@ export interface PointerView {
  * again.
  */
 export class Steering {
-  private left = false;
-  private right = false;
-  /** The way of the key held last, which wins while both are held. */
-  private lastPush: -1 | 1 = 1;
+  /** The keys held that push the paddle, the last pressed winning while both ways are held. */
+  private readonly keys = new HeldKeys(heldKeyOf);
   /** The finger pressed, by its id, or null: one at a time steers. */
   private finger: number | null = null;
   private dragging = false;
@@ -76,21 +75,19 @@ export class Steering {
     this.metrics = metrics;
   }
 
-  /** Takes a key pressed that pushes the paddle. */
-  press(key: HeldKey): void {
-    if (key === "left") {
-      this.left = true;
-      this.lastPush = -1;
-    } else {
-      this.right = true;
-      this.lastPush = 1;
-    }
+  /**
+   * Takes a key pressed, by `event.code`, and returns whether it pushes the
+   * paddle, a held key that repeats included, so the scene asks nothing more
+   * of it.
+   */
+  press(code: string): boolean {
+    this.keys.press(code);
+    return heldKeyOf(code) !== null;
   }
 
-  /** Takes a key let go that pushed the paddle. */
-  release(key: HeldKey): void {
-    if (key === "left") this.left = false;
-    else this.right = false;
+  /** Takes a key let go, by `event.code`, that pushed the paddle. */
+  release(code: string): void {
+    this.keys.release(code);
   }
 
   /**
@@ -152,8 +149,7 @@ export class Steering {
 
   /** Forgets every key held and the finger pressed, as the game pauses, so none sticks. */
   letGo(): void {
-    this.left = false;
-    this.right = false;
+    this.keys.letGo();
     this.finger = null;
     this.toX = null;
     this.byPx = 0;
@@ -164,19 +160,12 @@ export class Steering {
    * frame's afresh; the object returned is the same each frame.
    */
   read(): Readonly<Steer> {
-    this.steer.push = this.push();
+    this.steer.push = this.keys.axis("left", "right");
     this.steer.to = this.toX === null ? null : toFieldX(this.metrics, this.toX);
     this.steer.by = this.byPx / this.metrics.unit;
     this.toX = null;
     this.byPx = 0;
     return this.steer;
-  }
-
-  /** Returns the way the keys held push the paddle. */
-  private push(): -1 | 0 | 1 {
-    if (this.left && this.right) return this.lastPush;
-    if (this.left) return -1;
-    return this.right ? 1 : 0;
   }
 
   /** Notes how far the finger has been from where it was pressed. */
