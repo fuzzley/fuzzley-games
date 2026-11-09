@@ -2,6 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figures } from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
 import {
@@ -75,16 +76,6 @@ async function startedAt(wave: number): Promise<RenderedCard> {
   rendered.game.tick(FRAME_MS, shoot(rendered.game));
   rendered.detectChanges();
   return rendered;
-}
-
-/** Returns the Cleared card's sum, each line as its term and its points. */
-function tallyLines(): [string, string][] {
-  return screen
-    .getAllByRole("term")
-    .map((term) => [
-      term.textContent.trim(),
-      term.nextElementSibling?.textContent.trim() ?? "",
-    ]);
 }
 
 describe("BoardCardComponent", () => {
@@ -188,7 +179,7 @@ describe("BoardCardComponent", () => {
     clearIn(game);
     detectChanges();
 
-    expect(tallyLines()).toEqual([
+    expect(figures()).toEqual([
       ["Rocks", "40"],
       ["Chains", "0"],
       ["Strays brought home", "0"],

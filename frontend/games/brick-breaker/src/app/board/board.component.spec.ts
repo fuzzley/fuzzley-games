@@ -16,6 +16,7 @@ import {
 } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { figures } from "@fz/ui/testing";
 import {
   FRAME_MS,
   SPEC_LEVEL,
@@ -84,16 +85,6 @@ function advanceWhilePlaying(
   ) {
     run.advance(FRAME_MS);
   }
-}
-
-/** Returns the cleared card's sum, each line as its term and its points. */
-function tallyLines(): [string, string][] {
-  return screen
-    .getAllByRole("term")
-    .map((term) => [
-      term.textContent.trim(),
-      term.nextElementSibling?.textContent.trim() ?? "",
-    ]);
 }
 
 /** Returns the board's game with its run at one of the specs' levels. */
@@ -409,7 +400,7 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(screen.getByText("Level 1 cleared")).toBeInTheDocument();
-      expect(tallyLines()).toEqual([
+      expect(figures()).toEqual([
         ["Bricks", "500"],
         ["Streaks", "100"],
         ["Bonus", "1,500"],

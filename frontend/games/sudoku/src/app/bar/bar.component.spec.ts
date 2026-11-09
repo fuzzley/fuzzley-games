@@ -10,6 +10,7 @@ import {
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure } from "@fz/ui/testing";
 import { playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
@@ -32,16 +33,6 @@ async function renderBar(): Promise<RenderedBar> {
   playOn({ level: "hard", seconds: 133 });
   await fixture.whenStable();
   return { user: userEvent.setup(), openHelp, openSettings };
-}
-
-/** Returns the value a figure in the bar gives, by its term. */
-function figure(term: string): string {
-  const name = screen
-    .getAllByRole("term")
-    .find((dt) => dt.textContent.trim() === term);
-  const value = name?.nextElementSibling;
-  if (!(value instanceof HTMLElement)) throw new Error(`No value for ${term}`);
-  return value.textContent.trim();
 }
 
 describe("BarComponent", () => {

@@ -10,6 +10,7 @@ import {
 } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure } from "@fz/ui/testing";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
@@ -42,14 +43,6 @@ async function renderBar(): Promise<RenderedBar> {
       fixture.detectChanges();
     },
   };
-}
-
-/** Returns the value a figure in the bar gives, by its term. */
-function figure(term: string): string {
-  const name = screen
-    .getAllByRole("term")
-    .find((dt) => dt.textContent.trim() === term);
-  return name?.nextElementSibling?.textContent.trim() ?? "";
 }
 
 describe("BarComponent", () => {

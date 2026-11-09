@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure } from "@fz/ui/testing";
 import type { Direction } from "../../rules/geometry";
 import { endedGame, provideFixedSeed, wonGame } from "../../testing/play";
 import type { GameService } from "../play/game.service";
@@ -22,14 +23,6 @@ async function renderEnded(
 /** Returns a run played one way to its end. */
 function endedBy(direction: Direction): () => GameService {
   return () => endedGame(direction);
-}
-
-/** Returns the value a figure on the card gives, by its term. */
-function figure(term: string): string {
-  const name = screen
-    .getAllByRole("term")
-    .find((dt) => dt.textContent.trim() === term);
-  return name?.nextElementSibling?.textContent.trim() ?? "";
 }
 
 describe("ResultComponent", () => {

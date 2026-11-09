@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+import { figures, MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { pictureOf } from "../../testing/field_picture";
 import { type GameOptions, pauseAtEnd, playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
@@ -46,16 +46,6 @@ async function finish(
   playOn(picture, options).reveal(lastMove);
   await fixture.whenStable();
   return userEvent.setup();
-}
-
-/** Returns each figure the card shows, as its term and value. */
-function figures(): [string, string][] {
-  return screen
-    .getAllByRole("term")
-    .map((dt) => [
-      dt.textContent.trim(),
-      dt.nextElementSibling?.textContent.trim() ?? "",
-    ]);
 }
 
 describe("ResultComponent", () => {

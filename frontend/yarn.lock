@@ -1368,6 +1368,10 @@ __metadata:
     "@angular/cdk": ~22.2.6
     "@angular/common": ^22.2.5
     "@angular/core": ^22.2.5
+    "@testing-library/dom": ^10.4.2
+  peerDependenciesMeta:
+    "@testing-library/dom":
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -6903,6 +6907,8 @@ __metadata:
     "@fz/style": "workspace:*"
     "@fz/ui": "workspace:*"
     "@resvg/resvg-js": "npm:^2.6.2"
+    "@testing-library/dom": "npm:^10.4.2"
+    "@testing-library/user-event": "npm:^14.6.8"
     "@types/node": "npm:^26.6.6"
     "@vitest/coverage-v8": "npm:^5.1.0"
     eslint: "npm:^10.14.0"

@@ -897,3 +897,41 @@ The review:
    lines say the ladder is worded by `tierWords()`.
 2. _The core spec's case name read "scores a count of 5 2 times":_ taken.
    It reads "scores a count of 5, 2 times".
+
+### Step 5.2: a bar's and a card's figures read by `@fz/ui/testing`
+
+Built as planned on `sl-tools`. `@fz/ui/testing` holds `figure()`,
+`figureValue()` and `figures()` (`src/testing/figures.ts`), and twelve
+specs across the five games drop their own: seven of `figure()` and five of
+`figures()` or `tallyLines()`, 106 lines fewer. Ten specs of the readers join
+`@fz/ui`'s, 279 passing above its floor; every game's suite passes, the
+Solitaire Collection's too.
+
+Where it went other than planned:
+
+- `figureValue()` is exported beside the plan's two, since both breakers'
+  bars need the value's element.
+- The element to look in is `container`, not `within`, which would shadow
+  Testing Library's `within`.
+- Text reads as Minesweeper's copy read it, each run of white space one
+  space, which is Testing Library's own default; no expected string changed.
+- Asteroid Breaker's `figureTerm()` and the breakers' `terms()` stay their
+  own: the pilots sit in the `<dt>`, and `terms()` is one line.
+- The testing entry imports `@testing-library/dom`, which `@fz/ui` declares
+  an optional peer, as `@fz/game-ui` does.
+
+The review:
+
+1. _The breakers' result specs searched `figures()` for Best:_ taken. They
+   read it with `figure("Best")`, which throws where Best is missing.
+2. _The two readers disagreed about a value, and neither required a
+   `<dd>`:_ taken. One `valueAfter()` requires the `<dd>` and throws one
+   message for both; a spec holds each reader to throw for a `<dt>` another
+   `<dt>` follows, and fails with the check taken out. `figure()` defaults
+   its `container` as its siblings do.
+3. _The Solitaire Collection loads the optional peer without listing it:_
+   taken. It lists `@testing-library/dom`, and `@testing-library/user-event`
+   too, whose types `@fz/game-ui/testing` takes, closing 5.1's gap as well;
+   its lint, typecheck and 6,874 tests pass.
+4. _`figureValue()`'s spec passed with the lookup broken:_ taken. It checks
+   the value's text, and fails with the lookup made to take the first term.

@@ -103,8 +103,10 @@ Each library's `testing` entry point holds what specs need of it, and
 
 - `@fz/ui/testing`: `installDialogPolyfill()`; `installFakeViewport()`;
   `provideMemoryStorage()` and `MemoryStorage`, a store in memory for the
-  browser's; and `setPageVisibility()`, which hides the page or shows it
-  again, as switching tabs does, until the test finishes.
+  browser's; `setPageVisibility()`, which hides the page or shows it
+  again, as switching tabs does, until the test finishes; and `figure()`,
+  `figureValue()` and `figures()`, which read a bar's or a card's figures
+  by their terms and throw when a term is missing.
 - `@fz/game-ui/testing`: `installFakeViewport()`, handed on from
   `@fz/ui/testing`; and `barChoice()`, `chooseInBar()` and `openBarMenu()`,
   which drive the bar's choice and overflow menus as a player does.

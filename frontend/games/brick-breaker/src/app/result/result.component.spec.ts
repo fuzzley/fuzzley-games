@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure, figures } from "@fz/ui/testing";
 import { FIRST_LIVES } from "../../rules/tuning";
 import type { LevelEntry } from "../../rules/levels/levels";
 import {
@@ -72,16 +73,6 @@ async function renderWon(): Promise<RenderedResult> {
   return rendered;
 }
 
-/** Returns the card's figures, each as its term and its value. */
-function figures(): [string, string][] {
-  return screen
-    .getAllByRole("term")
-    .map((term) => [
-      term.textContent.trim(),
-      term.nextElementSibling?.textContent.trim() ?? "",
-    ]);
-}
-
 describe("ResultComponent", () => {
   it("stays shut while a run goes on", async () => {
     await renderAt(SPEC_LEVEL.steel);
@@ -120,7 +111,7 @@ describe("ResultComponent", () => {
     await renderLost(9000);
 
     expect({
-      best: figures().find(([term]) => term === "Best")?.[1],
+      best: figure("Best"),
       newBest: screen.queryByText("New best"),
     }).toEqual({ best: "9,000", newBest: null });
   });
