@@ -94,6 +94,11 @@ export function knownIdsOf(
   );
 }
 
+/** Holds counts by id, each id's under some of the keys `K`, as a game's bests at each speed for each of its levels. */
+export type CountsById<K extends string> = Readonly<
+  Record<string, Readonly<Partial<Record<K, number>>>>
+>;
+
 /**
  * Returns the counts a record read from JSON holds for each id given, under
  * the keys given, leaving out an id with none, as a game's bests at each
@@ -103,7 +108,7 @@ export function countsByIdOf<K extends string>(
   value: unknown,
   ids: readonly string[],
   keys: readonly K[],
-): Readonly<Record<string, Readonly<Partial<Record<K, number>>>>> {
+): CountsById<K> {
   const stored = isRecord(value) ? value : {};
   return Object.fromEntries(
     ids.flatMap((id) => {
@@ -111,6 +116,24 @@ export function countsByIdOf<K extends string>(
       return counts ? [[id, counts]] : [];
     }),
   );
+}
+
+/**
+ * Returns the counts with an id's count under a key raised to a value
+ * higher than the one kept, as a best is beaten, or the same counts, not a
+ * copy, for a value no higher.
+ */
+export function withHigherCount<K extends string>(
+  counts: CountsById<K>,
+  id: string,
+  key: K,
+  value: number,
+): CountsById<K> {
+  const kept = counts[id];
+  if (value <= (kept?.[key] ?? -Infinity)) return counts;
+  const raised: Partial<Record<K, number>> = { ...kept };
+  raised[key] = value;
+  return { ...counts, [id]: raised };
 }
 
 /**

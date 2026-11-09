@@ -47,9 +47,12 @@ Each file is an entry point of its own, imported by name, such as
   it is, as a crew's pilots or a snake's turns; `booleanOr()`, a stored yes
   or no, else a default; `knownIdsOf()`, the known ids of a stored list, as
   the levels cleared or the sectors reached; `countsByIdOf()`, the counts a
-  stored record holds for each known id under known keys, as each level's
-  bests at each speed; and `unknownKey()`, a key a data file holds that its
-  type doesn't name, as a typo would leave.
+  stored record holds for each known id under known keys (`CountsById<K>`),
+  as each level's bests at each speed, and `withHigherCount()`, those counts
+  with one raised where a value beats it, or the same record, not a copy,
+  where it doesn't, so a caller can tell nothing changed; and
+  `unknownKey()`, a key a data file holds that its type doesn't name, as a
+  typo would leave.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
   "2 hints"; `formatPoints()`, points grouped in thousands, "4,250"; and
   `tierWords(tiers, noun)`, a ladder of multipliers in words, from the
@@ -89,7 +92,9 @@ Each file is an entry point of its own, imported by name, such as
   next event's record, numbered, to fill in place, every field of it but
   the serial, so nothing is made per event, and `forEachSince()` hands
   each reader the events past the last it read, however many steps a
-  frame took.
+  frame took. `EventLogView<E>` is the log as its readers see it, its
+  `latest` and `forEachSince()` and no way to add an event, as a scene's
+  frame holds the field's.
 - `src/field_play.ts`: `FieldPlay`, a game's field in play, made for each
   field over its `FieldRules` (a frame's steering taken, a step), a
   `Clock` and the frame its scene draws: `advance()` moves the field on by a

@@ -198,7 +198,8 @@ takes for the specs' helpers.
   before it to the run after: a run started, the strays brought home, its
   wave's sector, Endless and every written wave cleared, and its end;
   `withRecords()` moves them on by it, through `withRunStarted()`,
-  `withRunEnded()`, `withStraysHome()` and `withClearedAll()`, and
+  `withRunEnded()` (a sector's best through `@fz/core/json`'s
+  `withHigherCount()`), `withStraysHome()` and `withClearedAll()`, and
   `isNewBest()` says whether a run's score beats the best. `saved_game.ts`
   turns a run under way and its field into what storage keeps
   (`saveGame()`), which the shell keeps under `SAVED_GAME_VERSION`, a run
@@ -276,20 +277,19 @@ takes for the specs' helpers.
   device pixels, where the deck's zones lie (`deckLayout()`), and
   `toCanvas()` and `toField()` between the two; and how the scene laid them
   out, which it hands the shell (`FieldLayout`). `frame.ts` is what the
-  scene reads: `FieldView`, the field it can't change, `EventsView` and
-  `FieldFrame`, and where a thing that wraps is drawn between its last
-  place and its next, the shortest way across the wrap (`wrappedBetween()`;
-  one that crosses, as a comet or a stray, is drawn with `@fz/core/math`'s
-  `lerp()`), its turn (`angleBetween()`), and where the ship is drawn and
-  turned (`shipAt()`). `layers.ts` is the order the field is
-  drawn in, back to front, in one list (`LAYERS`), and the camera that
-  draws each layer (`LAYER_CAMERAS`, `drawnBy()`).
-  `tags.ts` says where the tags of the lasting effects lie, at the field's
-  bottom left, and how much of each one's time is left; `warning.ts` where a
-  comet's warning is drawn; and `specks.ts` where the specks lie, from the
-  run's seed, and where an Endless wave's constellation lies, from the
-  run's seed mixed with the wave's number in `mixSeed()`'s `"scenery"`
-  stream (`constellationAt()`).
+  scene reads: `FieldView`, the field it can't change, `FieldFrame`, whose
+  events are `@fz/core/event_log`'s `EventLogView`, and where a thing that
+  wraps is drawn between its last place and its next, the shortest way across
+  the wrap (`wrappedBetween()`; one that crosses, as a comet or a stray, is
+  drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`), and
+  where the ship is drawn and turned (`shipAt()`). `layers.ts` is the order
+  the field is drawn in, back to front, in one list (`LAYERS`), and the camera
+  that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
+  the tags of the lasting effects lie, at the field's bottom left, and how
+  much of each one's time is left; `warning.ts` where a comet's warning is
+  drawn; and `specks.ts` where the specks lie, from the run's seed, and where
+  an Endless wave's constellation lies, from the run's seed mixed with the
+  wave's number in `mixSeed()`'s `"scenery"` stream (`constellationAt()`).
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says what each event calls for, its sound and its flourishes
   (`effectsOf()`), how far a broken rock's sound rises along a chain

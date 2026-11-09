@@ -1,5 +1,5 @@
 import { type Clock, Countdown, advanceClock } from "./clock";
-import type { EventLog, NumberedEvent } from "./event_log";
+import type { EventLogView, NumberedEvent } from "./event_log";
 
 /** Describes how a game's rules move its field on: a frame's steering taken, and a step. */
 export interface FieldRules<Field, Steer> {
@@ -24,7 +24,7 @@ export interface PlayFrame {
  * next.
  */
 export class FieldPlay<
-  Field extends { readonly events: EventLog<E> },
+  Field extends { readonly events: EventLogView<E> },
   Steer,
   E extends NumberedEvent,
   Frame extends PlayFrame,

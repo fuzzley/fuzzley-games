@@ -82,3 +82,13 @@ export class EventLog<E extends NumberedEvent> {
     return (this.ring[at] ??= this.blank());
   }
 }
+
+/**
+ * Describes a log of events as its readers see it, as a scene reads a
+ * field's: the latest serial, and the events past one, with no way to add
+ * one.
+ */
+export type EventLogView<E extends NumberedEvent> = Pick<
+  EventLog<E>,
+  "latest" | "forEachSince"
+>;

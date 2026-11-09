@@ -1,4 +1,10 @@
-import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
+import {
+  type CountsById,
+  countsByIdOf,
+  isCount,
+  isRecord,
+  withHigherCount,
+} from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
 import type { LevelEntry } from "../levels/levels";
 import { SPEEDS, type Speed } from "../speed";
@@ -14,14 +20,11 @@ export interface SpeedStats {
   readonly furthest: number;
 }
 
-/** A level's best points at each speed it has been cleared at. */
-export type LevelBests = Readonly<Partial<Record<Speed, number>>>;
-
 /** Holds the records: each speed's runs, and each level's bests. */
 export interface Stats {
   readonly speeds: Readonly<Record<Speed, SpeedStats>>;
-  /** Each level's bests, by the level's id. */
-  readonly levels: Readonly<Record<string, LevelBests>>;
+  /** Each level's best points at each speed it has been cleared at, by the level's id. */
+  readonly levels: CountsById<Speed>;
 }
 
 /** What an ended run brings to the stats. */
@@ -83,12 +86,8 @@ export function withLevelPoints(
   speed: Speed,
   points: number,
 ): Stats {
-  const bests = stats.levels[id] ?? {};
-  if (points <= (bests[speed] ?? -1)) return stats;
-  return {
-    ...stats,
-    levels: { ...stats.levels, [id]: { ...bests, [speed]: points } },
-  };
+  const levels = withHigherCount(stats.levels, id, speed, points);
+  return levels === stats.levels ? stats : { ...stats, levels };
 }
 
 /** Returns the stats with one speed's changed. */

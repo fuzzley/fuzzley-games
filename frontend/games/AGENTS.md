@@ -63,17 +63,18 @@ to `frontend/games/`.
   before a run in progress is lost.
 - **It shares `@fz/core`'s helpers,** the seeded random and its seeds mixed
   in named streams, a run's stages and the keys every run shares, a new
-  run's id and seed, the readers for stored JSON and a data file's keys,
-  counts in words, points grouped in thousands, a clamp, a lerp, the curves
-  a flourish moves by and the next mark on a ladder of points, a ladder of
-  multipliers and its words, a clock of fixed steps, a count up to a mark,
-  a log of numbered events, a field played by them, a frame's sounds
-  gathered, a flourish's records played in turn, a key pressed as a
-  shortcut, the keys held to steer, the last pressed winning, and a
-  record's keys typed as its own, a value checked as one of them or of a
-  list, a record made from them or a copy of some of its entries, rather
-  than keeping copies (`frontend/lib/core/AGENTS.md`). It is the one
-  library a game's rules may import.
+  run's id and seed, the readers for stored JSON and a data file's keys, a
+  best kept as it is beaten, counts in words, points grouped in thousands,
+  a clamp, a lerp, the curves a flourish moves by and the next mark on a
+  ladder of points, a ladder of multipliers and its words, a clock of fixed
+  steps, a count up to a mark, a log of numbered events and its readers'
+  view of it, a field played by them, a frame's sounds gathered, a
+  flourish's records played in turn, a key pressed as a shortcut, the keys
+  held to steer, the last pressed winning, and a record's keys typed as its
+  own, a value checked as one of them or of a list, a record made from them
+  or a copy of some of its entries, rather than keeping copies
+  (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
+  import.
 - **Saved games outlive the code.** What a game stores goes through
   `@fz/ui/storage`, under keys its `AGENTS.md` lists: its settings and
   records as a `storedSignal()`, and a game under way through

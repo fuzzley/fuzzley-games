@@ -1022,3 +1022,43 @@ The review:
 1. _The game browser's close button was the only one in the six games not
    on `close-button`:_ taken. It is `.close` with `close-button`, its icon
    20px rather than 22px and its corners the small radius.
+
+### Step 2.5+2.6: `CountsById` and `withHigherCount()`, and `EventLogView`
+
+Built as planned on `sl-play`, with the two steps joined as one: in both,
+the breakers stop re-spelling what core's `json` and `event_log` already
+give.
+
+- `@fz/core/json` names the type `countsByIdOf()` returns, `CountsById<K>`.
+  It adds `withHigherCount()`, which raises an id's count under a key and
+  returns the same record, not a copy, when the value doesn't beat it.
+- Brick Breaker's `withLevelPoints()` and Asteroid Breaker's
+  `withRunEnded()` take it, and `LevelBests` and `SectorBests` go. Every
+  value stored is as it was.
+- `@fz/core/event_log` adds `EventLogView<E>`, which replaces both games'
+  `EventsView`. Both frames hold `EventLogView<FieldEvent>`.
+
+The work was rebased onto `shared-lib` before the review fixes: no
+conflicts, and `y install` was run for the lockfile. Tests pass: core 283 at
+100%, Brick Breaker 1842 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- The two steps are one commit, as the coordinator allowed.
+- `withHigherCount()` takes an id with no count as -Infinity where the games
+  took -1. For counts, which are never negative, nothing changes.
+- The games' frame specs now check the rules' log against
+  `FieldFrame["events"]`, which checks the event type too.
+- As the review offered, `FieldPlay` now asks a field's log only for an
+  `EventLogView`, so core uses its own view type.
+
+The review:
+
+1. _Asteroid Breaker's `withRunEnded()` came out a line longer:_ taken. It
+   destructures the run once, so the `withHigherCount()` call fits on one
+   line and the body is 12 lines where it was 16.
+2. _The breakers' AGENTS.md edits weren't rewrapped, and Asteroid
+   Breaker's list read ambiguously:_ taken. The first "and" is gone, so
+   `wrappedBetween()` no longer reads as another type. Each edited paragraph
+   is rewrapped from the edit on, at the files' 78 columns. Brick Breaker's
+   "and `FieldFrame`" stays, as it ends its list before a semicolon.

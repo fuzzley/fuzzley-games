@@ -3,7 +3,7 @@ import type { Field } from "../../rules/field/field";
 import { STILL, type Ship, createShip } from "../../rules/ship/ship";
 import type { Moving, Torus } from "../../rules/torus";
 import {
-  type EventsView,
+  type FieldFrame,
   type FieldView,
   type Stepped,
   angleBetween,
@@ -42,7 +42,7 @@ describe("a field frame", () => {
   });
 
   it("reads the rules' event log as it is", () => {
-    expectTypeOf<FieldEventLog>().toExtend<EventsView>();
+    expectTypeOf<FieldEventLog>().toExtend<FieldFrame["events"]>();
   });
 });
 

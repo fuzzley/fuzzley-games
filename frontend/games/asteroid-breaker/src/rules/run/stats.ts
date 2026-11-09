@@ -3,7 +3,13 @@
 // strays brought home, and each sector's best run; and what a change in a
 // run brings to them and to the sectors reached.
 
-import { countsByIdOf, isCount, isRecord } from "@fz/core/json";
+import {
+  type CountsById,
+  countsByIdOf,
+  isCount,
+  isRecord,
+  withHigherCount,
+} from "@fz/core/json";
 import { recordOf } from "@fz/core/records";
 import { type Run, hasClearedAll } from "./run";
 import { SPEEDS, type Speed } from "../speed";
@@ -28,14 +34,11 @@ export interface SpeedStats {
   readonly clearedAll: boolean;
 }
 
-/** A sector's best: the score of the best run started there, at each speed one has ended at. */
-export type SectorBests = Readonly<Partial<Record<Speed, number>>>;
-
 /** Holds the records: each speed's runs, and each sector's bests. */
 export interface Stats {
   readonly speeds: Readonly<Record<Speed, SpeedStats>>;
-  /** Each sector's bests, by the sector's id. */
-  readonly sectors: Readonly<Record<string, SectorBests>>;
+  /** Each sector's best: the score of the best run started there, at each speed one has ended at, by the sector's id. */
+  readonly sectors: CountsById<Speed>;
 }
 
 /**
@@ -160,24 +163,18 @@ export function withRunStarted(stats: Stats, speed: Speed): Stats {
  * where it beats them, or the same records if it beats none.
  */
 export function withRunEnded(stats: Stats, run: EndedRun): Stats {
-  const { best, furthest } = stats.speeds[run.speed];
-  const bests = stats.sectors[run.sector] ?? {};
-  const sectorBest = bests[run.speed] ?? -1;
-  if (run.score <= best && run.wave <= furthest && run.score <= sectorBest) {
+  const { speed, score, wave, sector } = run;
+  const { best, furthest } = stats.speeds[speed];
+  const sectors = withHigherCount(stats.sectors, sector, speed, score);
+  if (score <= best && wave <= furthest && sectors === stats.sectors) {
     return stats;
   }
-  const kept = withSpeedStats(stats, run.speed, (speedStats) => ({
+  const kept = withSpeedStats(stats, speed, (speedStats) => ({
     ...speedStats,
-    best: Math.max(best, run.score),
-    furthest: Math.max(furthest, run.wave),
+    best: Math.max(best, score),
+    furthest: Math.max(furthest, wave),
   }));
-  return {
-    ...kept,
-    sectors: {
-      ...kept.sectors,
-      [run.sector]: { ...bests, [run.speed]: Math.max(sectorBest, run.score) },
-    },
-  };
+  return { ...kept, sectors };
 }
 
 /**
