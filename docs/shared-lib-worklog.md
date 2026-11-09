@@ -144,3 +144,32 @@ The review:
    Collection:_ taken. It says every game drawn with Phaser, the
    solitaire-phaser skill names the cards, and the canvas stylesheet's top
    comment counts the cards among what keeps inside the insets.
+
+### Step F4: Brick Breaker's How to play pictures encoded only while it is open
+
+Built on `sl-shell`. Brick Breaker's scene no longer encodes How to play's
+pictures at each bake. It hands the shell what encodes them as it is first
+called, keeping them until the next bake. The board's `pictures` is a
+`computed()` over that, and the app's `helpPictures` asks for them only while
+How to play is open, as Asteroid Breaker's scene, board and app do. New specs
+in the scene's, the board's and the app's spec files hold this. Brick
+Breaker's 1835 and 180 tests pass.
+
+Where it went other than planned:
+
+- The plan names only the app's binding. Asteroid Breaker's way depends on
+  the scene encoding lazily, though: had the binding alone changed, the scene
+  would still have encoded at every bake. So `src/scene/bricks_scene.ts`, its
+  spec and `src/app/board/board.component.ts` changed too. Those files are in
+  `sl-play`'s area (2.2, 3.2), though in different hunks.
+
+The review:
+
+1. _Both scenes now copy the lazy pictures, and the plan still lists them
+   among the ways Asteroid Breaker's scene differs:_ taken. The plan's line
+   under "A base scene class" no longer names lazy pictures. The copy meets
+   the bar for a lift, so it is lifted into `@fz/phaser/scene` as step F4b.
+2. _The spec docs say only the board's spec runs the real scene:_ taken.
+   `AGENTS.md` and the `brick-breaker-testing` skill now say the app's spec
+   runs it too, for How to play's pictures. Asteroid Breaker's skill has the
+   same gap, which is left to that game's next change.

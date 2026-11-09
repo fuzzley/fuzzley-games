@@ -238,13 +238,17 @@ export class BoardComponent {
    */
   private readonly palette = fieldPalette(inject(ThemeService));
 
-  private readonly picturesState = signal<Pictures | null>(null);
+  /** Asks the scene for its pictures of the atlas it last baked, or null before it has baked. */
+  private readonly askPictures = signal<(() => Pictures) | null>(null);
 
   /**
    * The pictures of every brick, ball and capsule as the scene last drew
    * them, for How to play, or null before it has drawn.
+   *
+   * The scene encodes them as this is first read after each bake, so only
+   * How to play reads it, as it opens.
    */
-  readonly pictures = this.picturesState.asReadonly();
+  readonly pictures = computed(() => this.askPictures()?.() ?? null);
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BricksSceneOptions = {
@@ -265,7 +269,7 @@ export class BoardComponent {
       this.game.command(command);
     },
     onPictures: (pictures) => {
-      this.picturesState.set(pictures);
+      this.askPictures.set(pictures);
     },
   };
 

@@ -78,8 +78,13 @@ export interface BricksSceneOptions {
   readonly onLayout: (field: CssRect) => void;
   /** Takes what a key, a click or a tap asks of the game. */
   readonly command: (command: FieldCommand) => void;
-  /** Takes a picture of every brick, ball and capsule as drawn, for How to play, each time they are drawn anew. */
-  readonly onPictures: (pictures: Pictures) => void;
+  /**
+   * Takes, each time the atlas is baked, what returns a picture of every
+   * brick, ball and capsule as drawn in it, for How to play; it encodes them
+   * only as it is first called after the bake, so call it only as How to
+   * play shows them.
+   */
+  readonly onPictures: (pictures: () => Pictures) => void;
 }
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
@@ -137,6 +142,8 @@ export class BricksScene extends Scene {
   private metrics!: FieldMetrics;
   /** The palette the atlas was last baked in. */
   private painted!: BricksPalette;
+  /** How to play's pictures of the atlas as last baked, once asked for. */
+  private pictures: Pictures | null = null;
   /** The field the scene draws, which a new level replaces. */
   private shownField: FieldView | null = null;
   /** The serial of the last event of the field the scene played. */
@@ -383,10 +390,25 @@ export class BricksScene extends Scene {
     this.options.onLayout(this.metrics.css);
   }
 
-  /** Bakes the atlas at the field's scale, in the palette, and hands How to play its pictures. */
+  /**
+   * Bakes the atlas at the field's scale, in the palette, dropping How to
+   * play's pictures of the last, and hands the shell what pictures the new
+   * one.
+   */
   private bake(): void {
     bakeBricksAtlas(this, this.painted, this.metrics);
-    this.options.onPictures(picturesOf(this, ATLAS, PICTURE_FRAMES));
+    this.pictures = null;
+    // A new function each bake, so the shell can tell the pictures changed.
+    this.options.onPictures(() => this.encodePictures());
+  }
+
+  /**
+   * Returns How to play's pictures of the atlas, encoded as they are first
+   * asked for after each bake, and kept until the next.
+   */
+  private encodePictures(): Pictures {
+    this.pictures ??= picturesOf(this, ATLAS, PICTURE_FRAMES);
+    return this.pictures;
   }
 
   /**

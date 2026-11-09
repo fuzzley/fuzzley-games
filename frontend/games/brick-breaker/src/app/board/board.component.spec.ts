@@ -618,6 +618,27 @@ describe("BoardComponent", () => {
       expect(component.pictures()).not.toBeNull();
     });
 
+    it("hands How to play the pictures the scene encoded until it bakes again", async () => {
+      const { component, run } = await runBoardScene();
+      const asked = component.pictures();
+      run.advance(FRAME_MS);
+
+      const again = component.pictures();
+
+      expect(again).toBe(asked);
+    });
+
+    it("hands How to play new pictures once the scene bakes again", async () => {
+      const { component, run } = await runBoardScene();
+      const asked = component.pictures();
+      run.game.scale.resize(1600, 1000);
+      run.advance(FRAME_MS);
+
+      const again = component.pictures();
+
+      expect(again).not.toEqual(asked);
+    });
+
     it("launches the ball at Space pressed on the board", async () => {
       const { game, run } = await runBoardScene();
 

@@ -289,8 +289,10 @@ takes for the specs' helpers.
   from the last it played, and the flourishes an event calls for only where
   motion is welcome. `atlas.ts` bakes the view's art with `@fz/phaser`'s
   `bakeAtlas()` and `atlasFrameOf()`, again on a new palette or a new unit,
-  and the scene hands How to play its pictures from the atlas each time
-  (`onPictures()`), encoded with `@fz/phaser/scene`'s `picturesOf()`.
+  and at each bake the scene hands the shell what makes How to play's
+  pictures from the atlas (`onPictures()`), which encodes them with
+  `@fz/phaser/scene`'s `picturesOf()` only as the board asks for them, as
+  How to play opens, and keeps them until the next bake.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
   settings want none; it plays the chime, the level cleared's, each time the
@@ -349,9 +351,10 @@ takes for the specs' helpers.
     the field, which the scene lays the field out above.
     `fieldPalette()` colors the field from the roles `field_roles.ts` names
     (`FIELD_ROLES`), through `ThemeService`'s `roles()`, and its `mode`,
-    and a finger steers as the settings say. The board keeps the
-    scene's pictures for How to play (`pictures`). It is an application named
-    for its level, "Brick Breaker, level 3: Pyramid".
+    and a finger steers as the settings say. The board asks the scene for
+    How to play's pictures as How to play opens (`pictures`), and keeps them
+    until the scene bakes again. It is an application named for its level,
+    "Brick Breaker, level 3: Pyramid".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, which asks before it starts a run at another (while the
     run is at Custom, its menu offers the slider for the ball's speed
@@ -384,7 +387,8 @@ takes for the specs' helpers.
   - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
     pausing, the controls, and every brick, capsule and ball from the
     catalogs, each with its name, its sentence and, once the scene has
-    drawn, its picture, which the app hands it from the board.
+    drawn, its picture, which the app asks the board for only while How to
+    play is open.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
     sound and the palette) and `SettingsService`, which keeps what the player
     chose, the speed of the last run started among it. While the run is at
@@ -668,4 +672,5 @@ skill covers its setup, floors and fixtures, the repository's
   worn through the rules (`keptRun()`), for the screenshots' script.
 
 The board's spec runs on `provideFakePhaserCanvas()`, and then with the real
-scene it loads, through which it plays a level to its end.
+scene it loads, through which it plays a level to its end; the app's runs
+that scene too, for How to play's pictures.

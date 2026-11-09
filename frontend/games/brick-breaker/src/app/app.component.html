@@ -22,7 +22,7 @@
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <app-help
   [open]="helpOpen()"
-  [pictures]="board.pictures()"
+  [pictures]="helpPictures()"
   (closed)="helpOpen.set(false)"
 />
 <app-result (chooseLevel)="levelsOpen.set(true)" />

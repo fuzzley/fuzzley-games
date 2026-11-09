@@ -149,8 +149,9 @@ game through `runScene()`:
 - `FakeShell` plays the shell's part of `BricksSceneOptions`: it hands the
   scene a field (`showField(rows)` for a new one, as a level starts), a
   palette, the motion, touch and sound settings and the chimes, and keeps
-  the frames' times and steering, the layouts, the commands and the
-  pictures the scene hands back.
+  the frames' times and steering, the layouts, the commands and what the
+  scene hands back at each bake to picture How to play's art with
+  (`bakes`), which `askPictures()` asks as the board does.
 - `startBoard(setUp, prepare)` runs the scene for a fake shell through
   `@fz/phaser/testing`'s `runKeyedScene()`, with Phaser's keyboard on an
   element of its own, and draws the first frame; `stillness` sets the shell
@@ -168,9 +169,10 @@ game through `runScene()`:
 
 - Every component that shows the board runs it on
   `provideFakePhaserCanvas()`, which loads no Phaser; `FakePhaserCanvas`
-  keeps the hosts, to settle a scene ready or failed. The board's spec also
-  runs the scene the board hands its canvas for real, through `runScene()`,
-  and plays a level to its end through it. A spec that fails the scene on
+  keeps the hosts, to settle a scene ready or failed. The board's spec, and
+  the app's for How to play's pictures, also run the scene the board hands
+  its canvas for real, through `runScene()`, and the board's plays a level
+  to its end through it. A spec that fails the scene on
   purpose has the app's `ErrorHandler` collect what the canvas hands it
   (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the
   run prints no error it expects. The board measures its room as a

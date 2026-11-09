@@ -1,4 +1,4 @@
-import { Component, inject, signal, viewChild } from "@angular/core";
+import { Component, computed, inject, signal, viewChild } from "@angular/core";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
@@ -48,6 +48,14 @@ export class AppComponent {
   protected readonly levelsOpen = signal(false);
   protected readonly helpOpen = signal(false);
   protected readonly settingsOpen = signal(false);
+
+  /**
+   * The pictures How to play shows, asked of the board only while it is
+   * open, since the scene encodes them only as they are asked for.
+   */
+  protected readonly helpPictures = computed(() =>
+    this.helpOpen() ? this.board().pictures() : null,
+  );
 
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
