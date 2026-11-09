@@ -43,10 +43,15 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   typed, and a misspelled one fails to compile. Inside a `<fz-game-bar>`
   the menu opens away from the bar's edge. While it is open, a transparent
   layer over the window takes the tap that closes it, so the tap doesn't
-  reach the board. `withHomeLink(items)` leads the items with the link
-  home, for a bar with no room for it. The link leads to `/`, as the bar's
-  does, unless given another `href`; an app that gives the bar its own
-  `homeHref` passes it here too.
+  reach the board. `withHomeLink(items, barHome)` leads the items with the
+  link home where the bar has no room for it (`barHome` is `none`), and
+  gives them back as they are where it has. The link leads to `/`, as the
+  bar's does, unless given another `href`; an app that gives the bar its own
+  `homeHref` passes it here too. `HELP_MENU_ACTION` and
+  `SETTINGS_MENU_ACTION` are the items that open How to play and the
+  settings, worded once for the games, as `soundMenuAction()` is the
+  Sound's; the Solitaire Collection takes Settings but words its own How to
+  Play.
 - `src/bar_choice/`: `<fz-bar-choice>`, a badge in a bar's title, such as a
   game's level, that opens an Angular Aria menu of the choices, one of them
   checked (`menuitemradio`). The choices are data too (`BarChoiceOption<Id>`:

@@ -282,5 +282,14 @@ describe("BarComponent", () => {
 
       expect(openSettings).toHaveBeenCalledOnce();
     });
+
+    it("moves the link home into the menu where there is no room for it", async () => {
+      viewport?.setSize(340, 700);
+      const { user } = await renderBar();
+
+      const items = await openBarMenu(user);
+
+      expect(items[0]).toBe("Fuzzley Games");
+    });
   });
 });

@@ -5,6 +5,8 @@ import {
   type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
+  HELP_MENU_ACTION,
+  SETTINGS_MENU_ACTION,
   withHomeLink,
 } from "@fz/game-ui/bar_overflow";
 import { BarPauseComponent } from "@fz/game-ui/bar_pause";
@@ -111,10 +113,10 @@ export class BarComponent {
     const actions: readonly BarOverflowAction<MenuAction>[] = [
       soundMenuAction(this.sound()),
       { id: "sectors", label: "Sectors", icon: "grid" },
-      { id: "help", label: "How to play", icon: "help" },
-      { id: "settings", label: "Settings", icon: "settings" },
+      HELP_MENU_ACTION,
+      SETTINGS_MENU_ACTION,
     ];
-    return this.viewport.barHome() === "none" ? withHomeLink(actions) : actions;
+    return withHomeLink(actions, this.viewport.barHome());
   });
 
   /**

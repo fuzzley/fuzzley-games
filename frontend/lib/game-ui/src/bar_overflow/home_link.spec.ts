@@ -7,8 +7,8 @@ const ACTIONS: readonly BarOverflowAction<"restart" | "help">[] = [
 ];
 
 describe("withHomeLink", () => {
-  it("leads the menu with the link home to the site", () => {
-    const [home] = withHomeLink(ACTIONS);
+  it("leads the menu with the link home to the site where the bar has no room for it", () => {
+    const [home] = withHomeLink(ACTIONS, "none");
 
     expect(home).toEqual({
       id: "home",
@@ -19,13 +19,13 @@ describe("withHomeLink", () => {
   });
 
   it("leads home wherever the app says", () => {
-    const [home] = withHomeLink(ACTIONS, "https://fuzzley.games/");
+    const [home] = withHomeLink(ACTIONS, "none", "https://fuzzley.games/");
 
     expect(home).toHaveProperty("href", "https://fuzzley.games/");
   });
 
   it("sets the first item apart from the link", () => {
-    const items = withHomeLink(ACTIONS);
+    const items = withHomeLink(ACTIONS, "none");
 
     expect(items.map((item) => [item.id, item.startsGroup ?? false])).toEqual([
       ["home", false],
@@ -35,6 +35,13 @@ describe("withHomeLink", () => {
   });
 
   it("holds only the link when there is nothing else", () => {
-    expect(withHomeLink([]).map((item) => item.id)).toEqual(["home"]);
+    expect(withHomeLink([], "none").map((item) => item.id)).toEqual(["home"]);
   });
+
+  it.each(["icon", "wordmark"] as const)(
+    "leaves the items as they are where the bar shows the link as its %s",
+    (barHome) => {
+      expect(withHomeLink(ACTIONS, barHome)).toBe(ACTIONS);
+    },
+  );
 });
