@@ -54,14 +54,15 @@ relative to `frontend/lib/style/`.
   (`_controls.scss`); the games' dialogs (`_dialogs.scss`); and the cards a
   game shows over its board (`_boards.scss`). The dialogs are the parts a
   dialog is drawn from, `dialog-card($width)`, `close-button`,
-  `corner-close-button`, `field-label`, `choice-tile` and `start-tile`, a tile
+  `corner-close-button`, `field-label`, `choice-tile`, `choice-list`, a list
+  of choice tiles, each its name over a few words, and `start-tile`, a tile
   that starts a run at a level or a sector, and three whole dialogs a game
   fills in, which name the classes they style: `help-card`, How to play's
   words, its lists' headings and its table of controls, its words alone being
   `help-text`, for a part of the card a component of its own draws;
   `result-card`, the card a finished game's result shows on, with its icon,
   figures and actions; and `settings-drawer($width)`, a game's settings
-  drawer, with its choice tiles and the settings' labels, descriptions and
+  drawer, with its choice list and the settings' labels, descriptions and
   checkboxes, the settings alone being `setting-fields`, for a part of the
   drawer a component of its own draws. A game whose dialogs differ writes
   its own from the parts, or adds to a whole one inside the block that

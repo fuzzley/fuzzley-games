@@ -479,3 +479,36 @@ The review:
 2. _Two edited paragraphs were left unwrapped:_ taken. Asteroid Breaker's
    `AGENTS.md` and the `snake-testing` skill are rewrapped at the width
    around them.
+
+### Step 4.2a: the choice list as a mixin of its own in `@fz/style`
+
+Built as planned on `sl-frame`. The `.choice-list` and `.choice` rules that
+sat inside `settings-drawer` (`lib/style/src/toolkit/_dialogs.scss`) are now
+the `choice-list` mixin: a `.choice-list` of `.choice` tiles, each its
+`.name` over its `.desc`. `settings-drawer` includes it after
+`setting-fields`. All 65 stylesheets of the games, the Solitaire Collection
+and the site compile to byte-identical CSS. `toolkit.spec.ts` gains four
+tests, and `@fz/style` passes 274. `lib/style/AGENTS.md` and the
+`fuzzley-ui` skill name the mixin. The skill names it in the radio group's
+row, since adding to the dialogs' row, the table's widest, would make
+Prettier re-pad the whole table.
+
+For 6.4 on `sl-sol`: taking `choice-list` in the Solitaire Collection's
+option group means three renames beyond the plan's list:
+
+- `.choice-row` becomes `.choice`;
+- `.choice-name` becomes `.name`;
+- `.choice-desc` becomes `.desc`.
+
+These are in `option_group.component.html`. The query for `.choice-row` in
+`test/ui/app/component/option_group/option_group.component.spec.ts` changes
+with them. Solitaire's `.choice-row` lacks only `font: inherit`, which
+`@fz/style`'s reset already gives a button.
+
+The review:
+
+1. _The skill named `.name` and `.desc` but not `.choice-list` and
+   `.choice`, the classes the mixin matches:_ taken. The row now reads "a
+   `.choice-list` of `.choice` tiles". It stays inside the column's width.
+2. _6.4's list of renames in the plan leaves out the choice list's three:_
+   taken here rather than in the plan, as noted above for `sl-sol`.
