@@ -1,11 +1,7 @@
 import type { Game } from "phaser";
 import { ViewportScaler } from "../host/viewport_scaler";
 import { NO_INSETS } from "../insets";
-import {
-  type DevicePixelSize,
-  MAX_BUDGETED_DEVICE_PIXELS,
-  type Viewport,
-} from "../layout";
+import type { DevicePixelSize, Viewport } from "../layout";
 import { CANVAS_INSET_PROPERTIES } from "../measure";
 import { FakeDisplay } from "../testing/fake_display";
 import {
@@ -56,8 +52,11 @@ afterEach(() => {
 /** The canvas's size and pixel ratio, as the host makes it or a board measures it. */
 type MadeCanvas = Omit<Viewport, "insets">;
 
-/** The pixel ratio the budget holds a 1280 by 720 canvas to on a display of 3. */
-const BUDGETED_RATIO = Math.sqrt(MAX_BUDGETED_DEVICE_PIXELS / (1280 * 720));
+/**
+ * The pixel ratio the budget of 4.5 million device pixels holds a 1280 by
+ * 720 canvas to on a display of 3.
+ */
+const BUDGETED_RATIO = Math.sqrt(4_500_000 / (1280 * 720));
 
 /** Describes a box in CSS pixels. */
 interface Box {

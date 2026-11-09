@@ -1,4 +1,4 @@
-import { type Clock, Countdown, advanceClock, progressOf } from "./clock";
+import { type Clock, Countdown, advanceClock } from "./clock";
 import type { EventLog, NumberedEvent } from "./event_log";
 
 /** Describes how a game's rules move its field on: a frame's steering taken, and a step. */
@@ -83,4 +83,9 @@ export class FieldPlay<
   countCardWait(deltaMs: number, waitMs: number): boolean {
     return this.cardWait.count(deltaMs, waitMs);
   }
+}
+
+/** Returns how far a clock is from its last step to its next, from 0 to 1. */
+function progressOf(clock: Clock): number {
+  return clock.carried / clock.stepMs;
 }

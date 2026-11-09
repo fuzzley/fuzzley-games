@@ -1,13 +1,5 @@
-export {
-  type CreateGame,
-  type HostOptions,
-  type HostedScene,
-  type MakeScene,
-  PhaserHost,
-  type SceneSurroundings,
+export type {
+  HostOptions,
+  HostedScene,
+  SceneSurroundings,
 } from "./phaser_host";
-export {
-  type MeasurableParent,
-  type ScalerWindow,
-  ViewportScaler,
-} from "./viewport_scaler";

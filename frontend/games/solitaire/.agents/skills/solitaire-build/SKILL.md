@@ -23,7 +23,7 @@ description: The Solitaire Collection's build — its Vite config on @fz/dev's g
 also puts Phaser in a chunk of its own, `phaser`, through `PHASER_CHUNK`, a
 `codeSplitting` group under `build.rolldownOptions`; Vite 8 marks
 `rollupOptions` and its `manualChunks` deprecated. The canvas component
-imports `@fz/phaser/host` with `import()`, so the host is a small chunk of
+imports `@fz/phaser`'s host with `import()`, so the host is a small chunk of
 its own too, loaded once the first board is shown.
 
 Phaser is the one dependency large enough and stable enough to be worth its own

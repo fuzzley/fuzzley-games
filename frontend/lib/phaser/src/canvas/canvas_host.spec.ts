@@ -1,7 +1,8 @@
 import { DOCUMENT } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Scene } from "phaser";
-import type { HostOptions, HostedScene, MakeScene } from "../host";
+import type { HostOptions, HostedScene } from "../host";
+import type { MakeScene } from "../host/phaser_host";
 import { type CanvasHost, PHASER_CANVAS_HOST } from "./canvas_host";
 
 /** A scene that says it is ready as soon as it is created. */

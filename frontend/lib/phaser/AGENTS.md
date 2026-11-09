@@ -24,13 +24,13 @@ take the pure ones.
   insets, each cell a whole number of device pixels and the field centered
   on whole pixels, with the `Viewport` it reads and the `CssRect` it gives
   back; `canvasPixelRatio()`, the pixel ratio a canvas renders at on a
-  display, at least 1 and at most `MAX_PIXEL_RATIO`; `canvasSizeFor()`, the
-  size and the pixel ratio the host makes a canvas that fills a box at: the
-  display's ratio, but above `UNBUDGETED_PIXEL_RATIO` only as far as the
-  canvas holds no more than `MAX_BUDGETED_DEVICE_PIXELS`, and the device
-  pixels the browser counted (a `DevicePixelSize`), where the canvas
-  renders at the display's own ratio and the count agrees with the box and
-  has pixels in it, or else the box in whole CSS pixels at the ratio; and
+  display, at least 1 and at most 3; `canvasSizeFor()`, the size and the
+  pixel ratio the host makes a canvas that fills a box at: the display's
+  ratio, but above 2 only as far as the canvas holds no more than 4.5
+  million device pixels, and the device pixels the browser counted (a
+  `DevicePixelSize`), where the canvas renders at the display's own ratio
+  and the count agrees with the box and has pixels in it, or else the box
+  in whole CSS pixels at the ratio; and
   `rectAttribute()`, a `CssRect` as a board's element writes it into an
   attribute for the layout check, "x y width height", and
   `namedRectsAttribute()`, a list of them by name, in the order given, as
@@ -78,18 +78,22 @@ take the pure ones.
   frames is, packed as `bakeAtlas()` packs them, in rows, tallest first,
   frames of one height in the order given (`src/shapes/packing.ts`), so a
   game's spec can hold it to a size without Phaser. It imports nothing.
-- `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
-  context, for a canvas's whole life and swaps each scene it is handed into
-  it, building the next before it lets go of the last, its `show()` settling
-  once the scene is mounted or rejecting with what kept it from being (a
-  scene that loads files first creates itself later, outside it), and
-  `ViewportScaler`, which keeps the canvas at the size and pixel ratio
-  `canvasSizeFor()` gives its box, each time `watchDevicePixels()` reports
-  the box once it is laid out and each time `watchDevicePixelRatio()` hears
-  the display's ratio change, reading it all through the box's own window:
-  the window's `resize` comes before the app has moved what stands around
-  it, so it sizes the canvas only where nothing can watch the box.
-  It imports Phaser, never Angular.
+- `src/host/`: the host a canvas runs its scenes in. Its index names only
+  the types an app's scene and board take of it, `HostedScene`,
+  `SceneSurroundings` and `HostOptions`, so no app builds a host past the
+  canvas; the library takes the rest from its files.
+  `src/host/phaser_host.ts`'s `PhaserHost` keeps one Phaser game, and so
+  one WebGL context, for a canvas's whole life and swaps each scene it is
+  handed into it, building the next before it lets go of the last, its
+  `show()` settling once the scene is mounted or rejecting with what kept
+  it from being (a scene that loads files first creates itself later,
+  outside it), and `src/host/viewport_scaler.ts`'s `ViewportScaler` keeps
+  the canvas at the size and pixel ratio `canvasSizeFor()` gives its box,
+  each time `watchDevicePixels()` reports the box once it is laid out and
+  each time `watchDevicePixelRatio()` hears the display's ratio change,
+  reading it all through the box's own window: the window's `resize` comes
+  before the app has moved what stands around it, so it sizes the canvas
+  only where nothing can watch the box. It imports Phaser, never Angular.
 - `src/scene/`: what a scene needs to live in a game that outlives it:
   `uniqueSceneKey()`, a key no other scene of the page shares, a prefix
   numbered from 1; `whenSceneEnds()`, and `onScaleResize()`,
@@ -124,7 +128,8 @@ take the pure ones.
 - `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows its
   scenes in, which makes the one host it keeps, through the
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a function
-  returning a `MakeScene` or a promise of one; its `state` is `loading`,
+  returning a scene's factory, which builds a `HostedScene` from its
+  `SceneSurroundings`, or a promise of one; its `state` is `loading`,
   `ready` or `failed`, also on the element as `data-state`, and failed only
   when a minute passes, since a slow connection can take that long, or the
   source rejects or the scene it makes can't be built or mounted, whose error
@@ -169,21 +174,21 @@ take the pure ones.
   counts a scene's game objects and `imagesIn()` finds its images, each
   looking into its layers, however deep; `watchUploads()` hands a spec each
   canvas the game uploads to the GPU, as it uploads it, until the test
-  finishes.
-  `pngOfSize()` is an image to serve. `provideFakePhaserCanvas()` gives an
-  app's shell specs a canvas that loads no Phaser, whose hosts
-  `FakePhaserCanvas` keeps, to settle each scene they were shown;
-  `collectErrors()` gives them an `ErrorHandler` that keeps what it is
-  handed rather than printing it, for a spec that fails a scene on purpose
-  to read; and `FakeResizeObserver`, which `watchResizes()` stands in for
-  jsdom's missing one through a describe, is told by `resize()` that an
-  element was laid out at a size, and, where the spec gives them, the device
-  pixels the browser counted. The library's own specs also take
-  `src/testing/fake_display.ts`, a display whose pixel ratio a spec changes,
-  telling the `(resolution)` queries asked of it. `src/testing/pure/`,
-  imported as `@fz/phaser/testing/pure`, holds what a game's specs in Node
-  take, which can't load Phaser: `viewport()`, a canvas's `Viewport` from a
-  CSS size, a pixel ratio and its chrome.
+  finishes. `provideFakePhaserCanvas()` gives an app's shell specs a canvas
+  that loads no Phaser, whose hosts `FakePhaserCanvas` keeps, to settle
+  each scene they were shown; `collectErrors()` gives them an
+  `ErrorHandler` that keeps what it is handed rather than printing it, for
+  a spec that fails a scene on purpose to read; and `FakeResizeObserver`,
+  which `watchResizes()` stands in for jsdom's missing one through a
+  describe, is told by `resize()` that an element was laid out at a size,
+  and, where the spec gives them, the device pixels the browser counted.
+  The library's own specs also take `src/testing/fake_display.ts`, a
+  display whose pixel ratio a spec changes, telling the `(resolution)`
+  queries asked of it, and `src/testing/served_files.ts`'s `pngOfSize()`,
+  a PNG of a size to serve. `src/testing/pure/`, imported as
+  `@fz/phaser/testing/pure`, holds what a game's specs in Node take, which
+  can't load Phaser: `viewport()`, a canvas's `Viewport` from a CSS size, a
+  pixel ratio and its chrome.
 
 ## Rules
 
@@ -207,10 +212,11 @@ take the pure ones.
   to load.
 - **The host, the scene helpers and the sound player know no framework,**
   as ESLint checks, so a scene runs the same in any app, and in a spec.
-- **Only the canvas makes a host,** and it imports `host` with `import()`:
-  ESLint lets `src/canvas/` import Phaser, the host and the scene helpers
-  only by type, so an app that loads its scene with `import()` keeps Phaser
-  out of its first download.
+- **Only the canvas makes a host,** and it imports
+  `src/host/phaser_host.ts` with `import()`, past the entry's index, which
+  names only the types an app takes: ESLint lets `src/canvas/` import
+  Phaser, the host and the scene helpers only by type, so an app that loads
+  its scene with `import()` keeps Phaser out of its first download.
 - **Whatever a scene follows, it releases when it ends,** since the game it
   runs in outlives it: through `src/scene/`'s helpers, or
   `whenSceneEnds()` for anything else.

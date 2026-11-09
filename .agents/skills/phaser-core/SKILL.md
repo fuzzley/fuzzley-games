@@ -19,8 +19,9 @@ beside a deck of controls for a touch screen.
 ## The library
 
 - **`@fz/phaser/canvas`**: `<fz-phaser-canvas>`, the one place an app shows
-  Phaser. Its `scene` is a `SceneSource`, a function returning a `MakeScene`
-  or a promise of one, and each new one swaps into the same game; `options`
+  Phaser. Its `scene` is a `SceneSource`, a function returning a scene's
+  factory, `(surroundings: SceneSurroundings) => HostedScene`, or a promise
+  of one, and each new one swaps into the same game; `options`
   are the host's (`title`, `background`, Phaser's `config`), read once;
   `label`, if given, names the canvas to assistive technology as an image. Its
   `state` is `loading`, `ready` or `failed`, also as `data-state` on the
@@ -37,10 +38,13 @@ beside a deck of controls for a touch screen.
   zoom or the display changes, so its placeholder lays the board out as the
   scene will, and `fzKeepKeys` keeps a button's keys from the board around
   it.
-- **`@fz/phaser/host`**: `PhaserHost`, which keeps one Phaser game, and so
-  one WebGL context, for the canvas's whole life, and `ViewportScaler`,
-  which keeps the canvas at its box's size in device pixels. Only the canvas
-  makes a host.
+- **`@fz/phaser/host`**: the types a scene and a board take of the host,
+  and nothing else: `HostedScene`, `SceneSurroundings` and `HostOptions`.
+  The host itself, `PhaserHost`, which keeps one Phaser game, and so one
+  WebGL context, for the canvas's whole life, and its `ViewportScaler`,
+  which keeps the canvas at its box's size in device pixels, are the
+  library's own: only the canvas makes a host, so no app can load Phaser
+  past it.
 - **`@fz/phaser/scene`**: the helpers below, for a scene that lives in a game
   that outlives it.
 - **`@fz/phaser/sound`**: `SpritePlayer`, made in a scene's `create()` so
@@ -109,9 +113,9 @@ out of the first download.
 
 ## How the shell and a scene talk
 
-- **A scene is built with what it needs.** `MakeScene` is handed the
-  scene's `SceneSurroundings`, `insets()` and `ready()`, and the game's own
-  ports go in beside them, as the Solitaire Collection's
+- **A scene is built with what it needs.** A scene's factory is handed its
+  `SceneSurroundings`, `insets()` and `ready()`, and the game's own ports go
+  in beside them, as the Solitaire Collection's
   `makeBoardScene(gameId, game, { presentation, onReady, insets })` does
   (`frontend/games/solitaire/src/ui/app/provider/board_catalog.ts`).
   Snake's `makeSnakeScene(options)` takes only plain functions over the
@@ -323,17 +327,19 @@ browser, through a game's screenshots and its `check:layout`.
   is a 404 that fails the load as a server's would. It asks `serve` as a
   request is sent and answers on a later task, so a server that notes
   what it is asked for knows at once. An image decodes at the size its
-  PNG header gives, so a spec serves a real one from disk or
-  `pngOfSize()`; an image from an object URL the page made itself loads
-  too, at 0 × 0, and `decode()` resolves once an image has loaded. A
-  canvas keeps the one context it was first asked for. `await loaded()`
-  waits out a load the scene starts once it runs, stepping frames as a
-  browser's go on, since Phaser takes in a file queued during a load
-  only on a frame; `prepare` readies the game before the scene is added,
-  as an earlier scene may have left it, such as with textures loaded.
-  Nothing reaches the network. The harness's own specs
-  (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
-  relies on in Phaser, so an upgrade that breaks it fails there first.
+  PNG header gives, so a spec serves a real one from disk (the library's
+  own make theirs with `pngOfSize()`, in
+  `frontend/lib/phaser/src/testing/served_files.ts`); an image from an
+  object URL the page made itself loads too, at 0 × 0, and `decode()`
+  resolves once an image has loaded. A canvas keeps the one context it
+  was first asked for. `await loaded()` waits out a load the scene starts
+  once it runs, stepping frames as a browser's go on, since Phaser takes
+  in a file queued during a load only on a frame; `prepare` readies the
+  game before the scene is added, as an earlier scene may have left it,
+  such as with textures loaded. Nothing reaches the network. The
+  harness's own specs (`frontend/lib/phaser/src/testing/run_scene.spec.ts`)
+  check what it relies on in Phaser, so an upgrade that breaks it fails
+  there first.
 - Snake's scene specs are the worked example of a scene played with keys
   (`frontend/games/snake/src/scene/snake_scene.spec.ts`, and its
   `snake-testing` skill); Brick Breaker's, of one whose atlas is baked at

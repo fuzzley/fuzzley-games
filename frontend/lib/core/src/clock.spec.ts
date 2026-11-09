@@ -4,7 +4,6 @@ import {
   advanceClock,
   createClock,
   createStepper,
-  progressOf,
   stepsIn,
 } from "./clock";
 
@@ -112,15 +111,6 @@ describe("advanceClock", () => {
       });
     },
   );
-});
-
-describe("progressOf", () => {
-  it("is how far the clock is toward its next step", () => {
-    const clock = newClock();
-    advanceClock(clock, STEP_MS / 4);
-
-    expect(progressOf(clock)).toBe(0.25);
-  });
 });
 
 describe("stepsIn", () => {

@@ -59,10 +59,10 @@ in `preload` only when none is resident.
 Five things keep a card sharp on a phone; keep them all when changing how
 cards are drawn.
 
-- `ViewportScaler` (`@fz/phaser/host`) sizes the canvas in device pixels at
-  the display's ratio, up to 3, within a budget of device pixels above 2,
-  and takes the browser's own count of them where it gives one, so a
-  fractional ratio such as 2.625 lands on whole pixels.
+- `@fz/phaser`'s host, through its `ViewportScaler`, sizes the canvas in
+  device pixels at the display's ratio, up to 3, within a budget of device
+  pixels above 2, and takes the browser's own count of them where it gives
+  one, so a fractional ratio such as 2.625 lands on whole pixels.
 - Phaser 4 rounds a sprite's corners to whole pixels only while it is
   unscaled, and a card is always scaled. So every sprite drawn from the card
   atlas takes `PhaserCardFactory.VERTEX_ROUND_MODE` (`fullAuto`), which

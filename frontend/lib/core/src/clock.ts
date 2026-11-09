@@ -35,11 +35,6 @@ export function advanceClock(clock: Clock, deltaMs: number): number {
   return steps;
 }
 
-/** Returns how far a clock is from its last step to its next, from 0 to 1. */
-export function progressOf(clock: Clock): number {
-  return clock.carried / clock.stepMs;
-}
-
 /**
  * Returns how many steps `stepMs` long a time spans, to the nearest.
  *

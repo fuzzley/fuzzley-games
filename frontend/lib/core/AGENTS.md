@@ -54,9 +54,9 @@ Each file is an entry point of its own, imported by name, such as
   a list, as a stored speed or setting must be.
 - `src/clock.ts`: `createClock(stepMs, maxStepsPerFrame)`, a `Clock` that
   turns a frame's time into fixed steps, `advanceClock()`, how many a frame
-  holds, at most its most, `progressOf()`, how far it is toward the next,
-  for drawing between steps, and `stepsIn()`, a time as a count of steps,
-  for a game that keeps its timers in steps;
+  holds, at most its most, keeping on the clock the time toward the next,
+  and `stepsIn()`, a time as a count of steps, for a game that keeps its
+  timers in steps;
   `createStepper(stepMs, maxStepsPerFrame)`, a `Stepper`, which binds
   `stepsIn()` and its clocks to a game's step once, as each breaker's
   `stepper.ts` binds its field's; and `Countdown`, which counts frames'

@@ -1,5 +1,6 @@
 import { DOCUMENT, InjectionToken, inject } from "@angular/core";
-import type { HostOptions, MakeScene, PhaserHost } from "../host";
+import type { HostOptions } from "../host";
+import type { MakeScene, PhaserHost } from "../host/phaser_host";
 
 /**
  * Gives a canvas the scene to show: a {@link MakeScene}, or a promise of one,
@@ -62,7 +63,7 @@ class LazyPhaserHost implements CanvasHost {
   async show(source: SceneSource, onReady: () => void): Promise<void> {
     const asked = ++this.asked;
     const [{ PhaserHost }, make] = await Promise.all([
-      import("../host"),
+      import("../host/phaser_host"),
       source(),
     ]);
     if (this.destroyed || asked !== this.asked) return;
