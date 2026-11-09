@@ -63,7 +63,7 @@ export function describeSquare(
   if (given) parts.push("given");
   const units = repeatsAt(grid, index);
   if (units.length > 0) {
-    parts.push(`repeats in ${listOf(units.map(unitName))}`);
+    parts.push(`repeats in ${inWords(units.map(unitName))}`);
   } else if (markMistakes && !given && digit !== grid.puzzle.solution[index]) {
     parts.push("wrong");
   }
@@ -83,7 +83,7 @@ export function describeMove(before: Grid, after: Grid): string {
     const parts = [`${now.digit}.`];
     const units = repeatsAt(after, index);
     if (units.length > 0) {
-      parts.push(`${now.digit} repeats in ${listOf(units.map(unitName))}.`);
+      parts.push(`${now.digit} repeats in ${inWords(units.map(unitName))}.`);
     }
     for (const unit of unitsDone(before, after)) {
       parts.push(`${capitalized(unitName(unit))} done.`);
@@ -184,7 +184,7 @@ function eliminationWords(step: Elimination): string {
   const { digits, cells, units } = step;
   const names = units.map(unitName);
   const [first = "", second = ""] = names;
-  const digitList = listOf(digits.map(String));
+  const digitList = inWords(digits.map(String));
   switch (step.technique) {
     case "pointing":
     case "claiming":
@@ -212,17 +212,17 @@ function eliminationWords(step: Elimination): string {
 /** Returns notes named together, such as "note 3" or "notes 1, 3 and 8". */
 function notesWords(notes: number): string {
   const digits = digitsIn(notes).map(String);
-  return `${digits.length === 1 ? "note" : "notes"} ${listOf(digits)}`;
+  return `${digits.length === 1 ? "note" : "notes"} ${inWords(digits)}`;
 }
 
 /** Returns lines of one kind named together, such as "rows 2 and 8". */
 function linesName(lines: readonly Unit[]): string {
   const numbers = lines.map((line) => String(line.n + 1));
-  return `${lines[0]?.kind ?? ""}s ${listOf(numbers)}`;
+  return `${lines[0]?.kind ?? ""}s ${inWords(numbers)}`;
 }
 
 /** Returns items as a list in words, such as "1, 3 and 8". */
-function listOf(items: readonly string[]): string {
+function inWords(items: readonly string[]): string {
   const last = items.at(-1) ?? "";
   return items.length > 1
     ? `${items.slice(0, -1).join(", ")} and ${last}`
