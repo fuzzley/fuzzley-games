@@ -45,24 +45,8 @@
 
 // Across the bar, the score over the ships in one card, since a score runs to
 // six figures and the bar has no room for them side by side.
-:host(.score-and-ships:not(.rail)) .metrics {
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px var(--fz-space-2);
-  border: 1px solid var(--fz-edge-2);
-  border-radius: var(--fz-radius-md);
-  background: var(--fz-wash-2);
-}
-
-:host(.score-and-ships:not(.rail)) .metric {
-  justify-content: space-between;
-  padding: 0;
-  border: 0;
-  background: none;
-
-  .value {
-    line-height: 1;
-  }
+:host(.score-and-ships:not(.rail)) {
+  @include bar-figures-paired;
 }
 
 // On a rail, the figures stacked.

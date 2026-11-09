@@ -311,6 +311,27 @@ describe("the toolkit's mixins", () => {
     );
   });
 
+  it("leave the segmented control to the stylesheets that draw one", () => {
+    expect(compiled("@include fz.setting-fields;")).not.toContain(".segment");
+  });
+
+  it("set a segmented control's segments side by side in a well", () => {
+    const control = compiled("@include fz.segmented;");
+
+    expect(declarations(control, ".it .segmented")).toEqual(
+      expect.arrayContaining(["display:flex", "background:var(--fz-well)"]),
+    );
+    expect(declarations(control, ".it .segment")).toEqual(
+      expect.arrayContaining(["flex:1", "min-height:var(--fz-tap-target)"]),
+    );
+  });
+
+  it("fill the checked segment in the accent", () => {
+    expect(compiled("@include fz.segmented;")).toContain(
+      ".it .segment[aria-checked=true]{background:var(--fz-accent);color:var(--fz-on-accent)",
+    );
+  });
+
   it("give a settings drawer its settings", () => {
     expect(compiled("@include fz.settings-drawer;")).toContain(
       compiled("@include fz.setting-fields;"),

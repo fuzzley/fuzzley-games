@@ -810,3 +810,61 @@ The review:
    clock spec waits on `findByRole("dialog")` with no title fallback. The
    `sudoku-testing` skill and the `src/testing/` bullet in `AGENTS.md` point
    there.
+
+### Step 4.5: two small mixins, `bar-figures-paired` and `segmented`
+
+Built as planned on `sl-frame`, but for where `segmented` is included.
+
+- `bar-figures-paired` in `@fz/game-ui`'s `_bar.scss` sets two figures one
+  over the other in a single card. Brick Breaker's and Asteroid Breaker's
+  bars each replace 20 lines with
+  `:host(.score-and-…:not(.rail)) { @include bar-figures-paired; }`.
+  `bar.spec.ts` compiles it through `fixtures/bar_defaults.scss`.
+- `segmented` in `@fz/style`'s `_dialogs.scss` styles a `.segmented` well
+  of `.segment` radios, the checked one, by `aria-checked`, filled in the
+  accent. Minesweeper's settings stylesheet includes it in place of its own
+  29 lines. `toolkit.spec.ts` checks it.
+
+To check the pages look the same, all 84 stylesheets were compiled on
+`shared-lib` before and after:
+
+- Minesweeper's settings compile to the same CSS.
+- The two bars differ only by a blank line.
+- Nothing else changed.
+
+Minesweeper, Brick Breaker and Asteroid Breaker all build. Tests pass:
+`@fz/style` 276, `@fz/game-ui` 274, Minesweeper 375, Brick Breaker 1842 and
+180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- `setting-fields` doesn't include `segmented`, as the plan (line 300)
+  said it would. Only Minesweeper draws one today, so including it there
+  put dead rules in every other drawer and in Asteroid Breaker's debug
+  menu. Each stylesheet that draws one includes it, and the Solitaire
+  Collection's option group will too.
+- For 6.4 on `sl-sol`:
+  - `.segmented-control` becomes `.segmented`;
+  - `.segment-btn` becomes `.segment`;
+  - `.active` goes, since `aria-checked` already says which segment is
+    checked.
+  - The mixin leaves out Solitaire's `padding: var(--fz-space-2) 0`. The
+    tap target's `min-height` hides the vertical half. The browser's own
+    sideways padding matters only if a label wraps.
+
+The review:
+
+1. _`segmented` belongs only where it is used, not in `setting-fields`:_
+   taken. Minesweeper includes it at its stylesheet's top level, and
+   compiles to exactly the CSS it had. The spec that held the inclusion
+   now checks `setting-fields` leaves it out. `lib/style/AGENTS.md` lists
+   it among the parts, and the skill no longer says `setting-fields` holds
+   it.
+2. _`_index.scss` lists the bar's mixins and missed the new one:_ taken.
+3. _`bar-figures-paired` doesn't say to keep it off a rail, whose stacking
+   doesn't take its card away:_ taken, in its doc and in
+   `lib/game-ui/AGENTS.md`.
+
+Before committing, the worktree moved onto `shared-lib`. The stash popped
+with one conflict, in the skill's table: `shared-lib`'s new bar-choice row
+was kept beside this step's figures row.

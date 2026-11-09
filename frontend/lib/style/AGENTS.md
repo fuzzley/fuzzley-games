@@ -56,10 +56,11 @@ relative to `frontend/lib/style/`.
   dialog is drawn from, `dialog-card($width)`, `close-button`,
   `corner-close-button`, `field-label`, `choice-tile`, `choice-list`, a list
   of choice tiles, each its name over a few words, as `@fz/ui`'s
-  `<fz-choice-list>` draws it, and `start-tile`, a tile that starts a run at a
-  level or a sector, and three whole dialogs a game fills in, which name the
-  classes they style: `help-card`, How to play's words, its lists' headings
-  and its table of controls, its words alone being
+  `<fz-choice-list>` draws it, `segmented`, a well of segments for a few short
+  choices, and `start-tile`, a tile that starts a run at a level or a sector,
+  and three whole dialogs a game fills in, which name the classes they style:
+  `help-card`, How to play's words, its lists' headings and its table of
+  controls, its words alone being
   `help-text`, for a part of the card a component of its own draws;
   `result-card`, the card a finished game's result shows on, with its icon,
   figures and actions; and `settings-drawer($width)`, a game's settings

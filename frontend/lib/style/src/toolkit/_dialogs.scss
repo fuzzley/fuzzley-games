@@ -280,6 +280,46 @@
   }
 }
 
+/// Styles a `.segmented` control, its `.segment`s side by side in a well,
+/// each a `role="radio"` button a finger's tap tall, the checked one filled
+/// in the accent, for a setting of a few short choices.
+///
+/// A stylesheet that draws one includes it; `setting-fields` leaves it out,
+/// as most drawers have none.
+@mixin segmented {
+  .segmented {
+    display: flex;
+
+    // A hairline inset rather than a spacing step: it lets the checked
+    // segment's fill stop short of the well's border.
+    padding: 2px;
+    border: 1px solid var(--fz-edge-1);
+    border-radius: var(--fz-radius-md);
+    background: var(--fz-well);
+  }
+
+  .segment {
+    @include motion.transition(background, color);
+
+    flex: 1;
+    min-height: var(--fz-tap-target);
+    border: none;
+    border-radius: var(--fz-radius-sm);
+    background: transparent;
+    color: var(--fz-muted);
+    font: inherit;
+    font-size: var(--fz-font-sm);
+    font-weight: 600;
+    cursor: pointer;
+
+    &[aria-checked="true"] {
+      background: var(--fz-accent);
+      color: var(--fz-on-accent);
+      box-shadow: 0 2px 6px var(--fz-accent-glow);
+    }
+  }
+}
+
 /// Styles a settings drawer's settings: each `.setting`, with its
 /// `.setting-label`, its control and a `.setting-desc`, and a
 /// `.setting-check`, a checkbox beside its label, with a `.setting-desc`
