@@ -4,66 +4,10 @@
   display: block;
 }
 
-.title {
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  color: var(--fz-bar-text);
-  font-size: var(--fz-font-lg);
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+@include bar-title;
 
-// The figures, as the Solitaire Collection shows its own: cards of a label
-// over a value. The label is spoken as a word, and shown in capitals.
-.metrics {
-  display: flex;
-  gap: var(--fz-space-4);
-  min-width: 0;
-  margin: 0;
-}
-
-.metric {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 0 1 auto;
-  min-width: 90px;
-  padding: var(--fz-space-1) var(--fz-space-4);
-  border: 1px solid var(--fz-edge-2);
-  border-radius: var(--fz-radius-md);
-  background: var(--fz-wash-2);
-
-  dt {
-    display: flex;
-    margin-bottom: 2px;
-    color: var(--fz-muted);
-    font-size: var(--fz-font-2xs);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  // Shown on a compact bar in place of the label.
-  dt fz-icon {
-    display: none;
-  }
-}
-
-// `tabular-nums` as well, since some font stacks draw a narrower digit and a
-// clock that changes width drags its neighbors along.
-.value {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  color: var(--fz-text);
-  font-family: var(--fz-font-mono);
-  font-size: var(--fz-font-lg);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
+// The mines left, the lives and the time, each a card.
+@include bar-figures(90px, var(--fz-space-4));
 
 .hearts {
   --fz-icon-size: 18px;
@@ -78,10 +22,7 @@
   }
 }
 
-// Every action clears the minimum tap size, labeled or not.
-.action {
-  @include tap-target;
-}
+@include bar-actions;
 
 // Flag mode, pressed, wears the accent.
 .flag-mode[aria-pressed="true"] {
@@ -91,37 +32,11 @@
   --fz-button-hover: color-mix(in srgb, var(--fz-accent) 86%, var(--fz-text));
 }
 
-// The gear turns under the pointer, where motion is welcome.
-@media (prefers-reduced-motion: no-preference) {
-  .settings {
-    @include transition(background, transform);
-
-    &:hover {
-      transform: rotate(45deg);
-    }
-  }
-}
-
-// Below this width the actions lose their labels, which a screen reader
-// still reads, the cards tighten, and the difficulty, which the settings
-// show, leaves the title room.
+// Below this width the cards tighten too, and the difficulty, which the
+// settings show, leaves the title room.
 @include below("desktop") {
-  :host {
-    --fz-bar-gap: var(--fz-space-3);
-    --fz-bar-actions-gap: var(--fz-space-2);
-  }
-
   .difficulty {
     display: none;
-  }
-
-  .action:not(.fz-button-circle) {
-    padding: var(--fz-space-2);
-    border-radius: 50%;
-  }
-
-  .btn-text {
-    @include visually-hidden;
   }
 
   .metrics {
@@ -143,6 +58,8 @@
 // A compact bar shows one strip of figures, each an icon and a value, rather
 // than three cards; on a rail, one column of them.
 :host(.compact) {
+  @include bar-figures-inline(5px, $padding: 6px var(--fz-space-2));
+
   .metrics {
     gap: 0;
     border: 1px solid var(--fz-edge-2);
@@ -151,35 +68,12 @@
   }
 
   .metric {
-    --fz-icon-size: 15px;
-
-    flex-direction: row;
-    gap: 5px;
-    min-width: 0;
-    padding: 6px var(--fz-space-2);
     border: none;
     background: none;
 
     & + .metric {
       border-left: 1px solid var(--fz-edge-1);
     }
-
-    dt {
-      margin: 0;
-      color: var(--fz-muted);
-    }
-
-    dt fz-icon {
-      display: block;
-    }
-  }
-
-  .label {
-    @include visually-hidden;
-  }
-
-  .value {
-    font-size: var(--fz-font-sm);
   }
 
   .hearts {
@@ -196,23 +90,11 @@
 }
 
 :host(.rail) {
-  .metrics {
-    flex-direction: column;
-  }
+  @include bar-figures-stacked;
 
-  .metric {
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px 4px;
-
-    & + .metric {
-      border-top: 1px solid var(--fz-edge-1);
-      border-left: none;
-    }
-  }
-
-  .value {
-    font-size: var(--fz-font-xs);
+  .metric + .metric {
+    border-top: 1px solid var(--fz-edge-1);
+    border-left: none;
   }
 
   .hearts {

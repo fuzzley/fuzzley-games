@@ -464,8 +464,9 @@ takes for the specs' helpers.
 ## Styling
 
 Every component stylesheet opens with `@use "../styles" as *;`, which
-brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints, and nothing
-else. The frontend's Angular and Sass rules apply; on top of them:
+brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints and bar
+mixins, and nothing else. The frontend's Angular and Sass rules apply; on
+top of them:
 
 - **No color is written in a stylesheet.** The field's are the palette's
   and the inks', which the scene draws, and the placeholder draws with the

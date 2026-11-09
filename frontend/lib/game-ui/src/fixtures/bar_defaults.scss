@@ -1,0 +1,14 @@
+// A bar's stylesheet that gives each of `@fz/game-ui`'s bar mixins only what
+// it must, for `bar.spec.ts`.
+@use "@fz/game-ui" as game-ui;
+@include game-ui.bar-title;
+@include game-ui.bar-figures(72px);
+@include game-ui.bar-actions;
+
+:host(.compact) {
+  @include game-ui.bar-figures-inline(4px);
+}
+
+:host(.rail) {
+  @include game-ui.bar-figures-stacked;
+}

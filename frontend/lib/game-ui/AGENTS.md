@@ -13,7 +13,9 @@ relative to `frontend/lib/game-ui/`.
 ## What it holds
 
 One folder under `src/` per entry point, each with an `index.ts` that names
-what it exports; an app imports it as `@fz/game-ui/<folder>`.
+what it exports, which an app imports as `@fz/game-ui/<folder>`, but for
+`src/fixtures/`, which holds only the stylesheets `bar.spec.ts` compiles
+and is no entry point.
 
 - `src/game_bar/`: `<fz-game-bar>`, the bar a game sits under. It leads with
   the link home (`home`: the wordmark, the round home button, or `none`; a
@@ -119,12 +121,32 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   `@fz/ui/testing`, which [frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)
   describes.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
-  forwards the breakpoints' mixins, and its `bar-size()` mixin publishes the
-  bar's size as `--fz-bar-height` and `--fz-rail-width` for what lays itself
-  out around the bar, such as a game's board: an app includes it on
-  `:root`, and with `$compact: true` wherever it binds the bar's `compact`.
-  The bar can't declare them itself, since a custom property reaches only
-  what sits inside its element.
+  forwards the breakpoints' mixins and the bar's, and its `bar-size()` mixin
+  publishes the bar's size as `--fz-bar-height` and `--fz-rail-width` for
+  what lays itself out around the bar, such as a game's board: an app
+  includes it on `:root`, and with `$compact: true` wherever it binds the
+  bar's `compact`. The bar can't declare them itself, since a custom
+  property reaches only what sits inside its element.
+- `src/_bar.scss`: the bar's mixins, which style what a game projects into
+  its bar alike in every game, each naming the classes it styles. A bar's
+  stylesheet includes them at its top, in this order, its own rules
+  between them where they fall: `bar-title`, the `.title` on one line;
+  `bar-figures($min-width, $gap)`, the figures as a `<dl class="metrics">`
+  of `.metric` cards, each its `dt` in capitals, holding its `.label` and
+  its `fz-icon`, over its `.value` in monospace digits; and `bar-actions`,
+  each `.action` a finger's tap, one marked `aria-disabled`, such as
+  Pause, dimmed, the `.settings` gear turning, and below `desktop` the
+  actions round and their `.btn-text` heard but not seen, the bar's gaps
+  tightened. Then, inside the host's state that calls for them,
+  `bar-figures-inline($icon-gap, $padding)` sets each figure's icon beside
+  its value, for a bar with no room for the cards, and, after it, since a
+  rail is compact too, `bar-figures-stacked` stacks them on a rail. The
+  mixins hide
+  and show an `fz-icon` alone: a bar that puts something else in a
+  label's place, as Asteroid Breaker does its pilot, hides and shows it
+  with rules of its own.
+  `src/bar.spec.ts` compiles the bars in `src/fixtures/`, which include
+  them as a game's does, with `@fz/style/testing`'s `compileStylesheet()`.
 
 ## How an app uses it
 
@@ -135,8 +157,9 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   `compact` and `home` to what `GameViewportService` says (`home` to
   `barHome`, with the overflow menu led by `withHomeLink()` when that is
   `none`); the bar never asks the window. A game's stylesheets take the
-  same widths from the mixins, which an app's toolkit can forward by name,
-  as `frontend/games/minesweeper/src/app/styles/_index.scss` does.
+  same widths from the mixins, and its bar's stylesheet the bar's mixins,
+  which an app's toolkit can forward by name, as
+  `frontend/games/minesweeper/src/app/styles/_index.scss` does.
 - **Imports go one way.** This library imports `@fz/ui`, `@fz/style` and
   Angular, never the site or a game, and the site has no use for it.
 

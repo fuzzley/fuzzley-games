@@ -1,0 +1,175 @@
+// What a game projects into its bar, styled alike in every game: the title,
+// the figures and the actions. Each mixin is included at the top of the bar
+// component's stylesheet, or the figures' layouts inside the host's state
+// that calls for them, and styles classes the component's markup carries.
+
+@use "@fz/style" as fz;
+@use "breakpoints";
+
+/// Styles the `.title`, the game's name, on one line, cut short with an
+/// ellipsis where the bar has no room for all of it.
+@mixin bar-title {
+  .title {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--fz-bar-text);
+    font-size: var(--fz-font-lg);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/// Styles the figures, a `<dl class="metrics">` of `.metric`s, as cards, each
+/// a `dt` over its `dd class="value"`, at least `$min-width` wide and `$gap`
+/// apart.
+///
+/// The `dt` holds the figure's `.label`, spoken as a word and shown in
+/// capitals, and its `fz-icon`, which stands in for the label in
+/// `bar-figures-inline()`, hidden until then.
+@mixin bar-figures($min-width, $gap: null) {
+  .metrics {
+    display: flex;
+    gap: $gap;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 0 1 auto;
+    min-width: $min-width;
+    padding: var(--fz-space-1) var(--fz-space-4);
+    border: 1px solid var(--fz-edge-2);
+    border-radius: var(--fz-radius-md);
+    background: var(--fz-wash-2);
+
+    dt {
+      display: flex;
+      margin-bottom: 2px;
+      color: var(--fz-muted);
+      font-size: var(--fz-font-2xs);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+
+      fz-icon {
+        display: none;
+      }
+    }
+  }
+
+  // `tabular-nums` as well, since some font stacks draw a narrower digit and
+  // a figure that changes width drags its neighbors along.
+  .value {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    color: var(--fz-text);
+    font-family: var(--fz-font-mono);
+    font-size: var(--fz-font-lg);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/// Lays each of `bar-figures()`' cards out as its icon beside its value,
+/// `$icon-gap` apart, the label heard but not seen, for a bar with no room
+/// for the cards, inside the host's state that says so (`:host(.compact)`).
+///
+/// Without `$padding`, each card keeps `bar-figures()`' padding.
+@mixin bar-figures-inline($icon-gap, $padding: null) {
+  .metric {
+    --fz-icon-size: 15px;
+
+    flex-direction: row;
+    gap: $icon-gap;
+    min-width: 0;
+    padding: $padding;
+
+    dt {
+      margin: 0;
+
+      fz-icon {
+        display: block;
+      }
+    }
+
+    .label {
+      @include fz.visually-hidden;
+    }
+
+    .value {
+      font-size: var(--fz-font-sm);
+    }
+  }
+}
+
+/// Stacks `bar-figures()`' cards on a rail, inside the host's state that
+/// says it is one (`:host(.rail)`), each its `dt` over its value.
+///
+/// A rail is compact too, so it comes after `bar-figures-inline()`'s state,
+/// whose rules it overrides at the same weight.
+@mixin bar-figures-stacked {
+  .metrics {
+    flex-direction: column;
+  }
+
+  .metric {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 4px;
+
+    .value {
+      font-size: var(--fz-font-xs);
+    }
+  }
+}
+
+/// Styles the bar's actions: each `.action` a finger's tap in size, the
+/// `.settings` gear turning under the pointer where motion is welcome, and,
+/// below `desktop`, each round and its `.btn-text` heard but not seen, with
+/// the bar's gaps tightened on the `:host`.
+///
+/// An action marked `aria-disabled`, such as Pause with no run to pause, is
+/// dimmed rather than disabled, so the focus never falls off it.
+@mixin bar-actions {
+  .action {
+    @include fz.tap-target;
+
+    &[aria-disabled="true"] {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .settings {
+      @include fz.transition(background, transform);
+
+      &:hover {
+        transform: rotate(45deg);
+      }
+    }
+  }
+
+  @include breakpoints.below("desktop") {
+    :host {
+      --fz-bar-gap: var(--fz-space-3);
+      --fz-bar-actions-gap: var(--fz-space-2);
+    }
+
+    .action:not(.fz-button-circle) {
+      padding: var(--fz-space-2);
+      border-radius: 50%;
+    }
+
+    .btn-text {
+      @include fz.visually-hidden;
+    }
+  }
+}
