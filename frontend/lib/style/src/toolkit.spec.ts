@@ -99,12 +99,6 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("size a help card as asked", () => {
-    const card = declarations(compiled("@include fz.help-card(600px);"), ".it");
-
-    expect(card).toContain("width:600px");
-  });
-
   it("head a help card's lists, its bold words in the text's color among its muted ones", () => {
     const text = compiled("@include fz.help-text;");
 
@@ -117,14 +111,25 @@ describe("the toolkit's mixins", () => {
     expect(text).toContain(".it strong{color:var(--fz-text)}");
   });
 
-  it("give a help card its words", () => {
-    expect(compiled("@include fz.help-card;")).toContain(
-      compiled("@include fz.help-text;"),
+  it("lay How to play's controls out in a table across the card", () => {
+    const table = declarations(
+      compiled("@include fz.help-controls;"),
+      ".it table",
+    );
+
+    expect(table).toEqual(
+      expect.arrayContaining(["width:100%", "border-collapse:collapse"]),
     );
   });
 
-  it("draw a help card's keys as keycaps", () => {
-    expect(compiled("@include fz.help-card;")).toContain(
+  it("name the controls' columns in muted capitals", () => {
+    expect(compiled("@include fz.help-controls;")).toContain(
+      ".it thead th{color:var(--fz-muted);font-size:var(--fz-font-2xs);letter-spacing:.1em;text-transform:uppercase}",
+    );
+  });
+
+  it("draw How to play's keys as keycaps", () => {
+    expect(compiled("@include fz.help-controls;")).toContain(
       ".it kbd{display:inline-block;padding:0 6px;border:1px solid var(--fz-edge-3);border-bottom-width:2px",
     );
   });

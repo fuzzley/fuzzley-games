@@ -137,7 +137,15 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `<fz-dialog>`, it only asks to close, through `closed`, and the game
   lowers `open`. It draws its frame with `@fz/style`'s
   `settings-drawer-frame`, whose rules can't reach what it projects, so the
-  game's stylesheet includes `setting-fields` at its top level.
+  stylesheet of the game's settings component includes `setting-fields` at
+  its top level.
+- `src/help_dialog/`: `<fz-help-dialog>`, a game's How to play: a card
+  over the dimmed page, a dialog named How to play, with its heading and
+  the button in the corner that closes it, over what the game says, which
+  it projects. As `<fz-dialog>`, it only asks to close, through `closed`,
+  and the game lowers `open`. Its rules can't reach what it projects, so
+  the stylesheet of the game's How to play component includes `@fz/style`'s
+  `help-text` and `help-controls` at its top level.
 - `src/help_catalog/`: `<fz-help-catalog>`, a catalog for How to play of
   what a game's field can hold (a `HelpCatalog`), as a section its heading
   names, with what to know first and each entry's picture beside its name

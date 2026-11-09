@@ -172,8 +172,9 @@ top of them:
   and what fits in it.
 - **The pencil, the eraser and the bulb** were added to `@fz/ui`'s icons for
   the pad. The dialogs' cards, close buttons, headings and choice tiles are
-  `@fz/style`'s mixins, which the games' dialogs share, and the settings
-  drawer is `@fz/game-ui`'s `<fz-settings-drawer>`.
+  `@fz/style`'s mixins, which the games' dialogs share, and How to play and
+  the settings drawer are `@fz/game-ui`'s `<fz-help-dialog>` and
+  `<fz-settings-drawer>`.
 
 ## What It Keeps
 

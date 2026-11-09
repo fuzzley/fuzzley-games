@@ -5,8 +5,7 @@ import {
   HelpCatalogComponent,
   helpEntries,
 } from "@fz/game-ui/help_catalog";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
@@ -38,7 +37,7 @@ const CAPSULES_INTRO =
  */
 @Component({
   selector: "app-help",
-  imports: [DialogComponent, HelpCatalogComponent, IconComponent],
+  imports: [HelpCatalogComponent, HelpDialogComponent],
   templateUrl: "./help.component.html",
   styleUrl: "./help.component.scss",
 })

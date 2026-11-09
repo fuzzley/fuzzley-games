@@ -6,11 +6,11 @@ import { IconComponent } from "@fz/ui/icon";
  * Shows a game's settings in a drawer down the right of the window, a
  * dialog named Settings, under its heading and the button that closes it.
  *
- * It draws the frame and projects the settings, which the game's
- * stylesheet styles with `@fz/style`'s `setting-fields`, as the drawer's
- * rules can't reach them. As `<fz-dialog>`, it never closes itself, only
- * asks to through `closed`, on Escape, a click beside it or its close
- * button, so the game lowers `open` in return.
+ * It draws the frame and projects the settings, which the stylesheet of the
+ * game's settings component styles with `@fz/style`'s `setting-fields`, as
+ * the drawer's rules can't reach them. As `<fz-dialog>`, it never closes
+ * itself, only asks to through `closed`, on Escape, a click beside it or its
+ * close button, so the game lowers `open` in return.
  */
 @Component({
   selector: "fz-settings-drawer",

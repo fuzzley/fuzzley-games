@@ -1,11 +1,10 @@
 import { Component, input, output } from "@angular/core";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
 
 /** Shows the rule, notes, hints and the assists, and the controls. */
 @Component({
   selector: "app-help",
-  imports: [DialogComponent, IconComponent],
+  imports: [HelpDialogComponent],
   templateUrl: "./help.component.html",
   styleUrl: "./help.component.scss",
 })

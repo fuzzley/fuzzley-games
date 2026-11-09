@@ -1,7 +1,7 @@
 {
   "name": "@fz/game-ui",
   "version": "0.0.0",
-  "description": "The Angular chrome the games share and the site doesn't: the game bar, its overflow and choice menus and the overflow menu's shared items, its Pause and Sound, the viewport and breakpoints they change shape at, the page frame, the settings drawer, the global stylesheet and the Sass toolkit a game's stylesheets load, How to play's catalog lists, the stopwatch, the source a game's seeds are drawn from, and the run's lifecycle a game's service extends.",
+  "description": "The Angular chrome the games share and the site doesn't: the game bar, its overflow and choice menus and the overflow menu's shared items, its Pause and Sound, the viewport and breakpoints they change shape at, the page frame, the settings drawer, the global stylesheet and the Sass toolkit a game's stylesheets load, How to play and its catalog lists, the stopwatch, the source a game's seeds are drawn from, and the run's lifecycle a game's service extends.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
