@@ -2269,3 +2269,26 @@ The review found the floor as the rule asks:
 2. _The step's entry wasn't staged:_ taken; this.
 3. _Statements and branches have one to spare, so a deleted spec fails the
    suite:_ as the rule means; nothing to change.
+
+### Step 16j: QA of `phaser-lifts`
+
+`yarn verify` passes, in 3 min 44 s, run while four `ui-lifts` tracks built
+beside it with a load average near 35; on a machine that busy, six of
+`@fz/phaser`'s specs, each the first of its file to import Phaser, had
+timed out before at 5 s, and pass at a longer limit, so the time says more
+about the machine than the branch. `yarn check:layout` holds Sudoku, Brick
+Breaker, Asteroid Breaker and Snake at each shape and turn. Played from the
+preview build in headed Chrome, with no error or warning in any console:
+Asteroid Breaker's wave waits, flies, wraps and pauses, its Ready card set
+in the field and its board laid out compact on a narrow window; Brick
+Breaker launches, breaks a brick and loses a ball to its Ready card again;
+Snake runs into the wall, its result taking the focus and handing it back
+to the board on Escape; the Solitaire Collection deals and draws from its
+stock; Minesweeper and Sudoku move their focus with the arrows and keep it
+still under Ctrl, Alt or Meta, as `isShortcut()` reads them, and reveal and
+place. The fifty captures of the slow and failed cards were taken by step
+16h.
+
+Seen and left: Node's warning that `localStorage` needs
+`--localstorage-file`, from the Solitaire Collection's test setup, as at
+step 15h.
