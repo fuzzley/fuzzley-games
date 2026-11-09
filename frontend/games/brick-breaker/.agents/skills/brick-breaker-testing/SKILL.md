@@ -198,8 +198,8 @@ game through `runScene()`:
 - jsdom has no `matchMedia`, so motion isn't welcome: the cards open at the
   next frame, and the board is no touch screen. A spec of the waits, or of
   a finger, installs `@fz/game-ui/testing`'s fake viewport
-  (`installFakeViewport()`, `setCoarsePointer(true)` for a touch screen) and
-  restores it after.
+  (`installFakeViewport()`, `setCoarsePointer(true)` for a touch screen),
+  which takes itself off after.
 - A saved game is stored before the service starts: `SavedGameService`'s
   spec writes `brick-breaker-game` through the rules' `saveGame()`, then
   injects it, as `main.ts` does on load. The app's spec renders the app as

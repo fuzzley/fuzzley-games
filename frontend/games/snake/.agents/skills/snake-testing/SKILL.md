@@ -121,7 +121,7 @@ game through `runScene()`:
 - jsdom has no `matchMedia`, so motion isn't allowed: the result card opens
   at once, and the board's touch arrows don't show. A spec of either
   installs `@fz/game-ui/testing`'s fake viewport (`installFakeViewport()`,
-  `setCoarsePointer(true)` for a touch screen) and restores it after.
+  `setCoarsePointer(true)` for a touch screen), which takes itself off after.
 - A saved run is stored before the service starts: `SavedGameService`'s
   spec writes `snake-game` with `saveRun()`'s shape, then injects it, as
   `main.ts` does on load.

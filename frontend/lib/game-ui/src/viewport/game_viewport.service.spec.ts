@@ -4,7 +4,7 @@ import { type FakeViewport, installFakeViewport } from "../testing";
 import { GameViewportService } from "./game_viewport.service";
 
 describe("GameViewportService", () => {
-  let viewport: FakeViewport | null = null;
+  let viewport: FakeViewport;
 
   /** Returns the service for a window of this size. */
   function at(width: number, height: number): GameViewportService {
@@ -19,11 +19,6 @@ describe("GameViewportService", () => {
     });
     return TestBed.inject(GameViewportService);
   }
-
-  afterEach(() => {
-    viewport?.restore();
-    viewport = null;
-  });
 
   it("reads roomy where the browser can't be asked", () => {
     expect(TestBed.inject(GameViewportService).formFactor()).toBe("roomy");
@@ -42,7 +37,7 @@ describe("GameViewportService", () => {
   });
 
   it("reads roomy for a document without a window, whatever the page's", () => {
-    viewport = installFakeViewport(390, 844);
+    installFakeViewport(390, 844);
 
     const service = inDocument(document.implementation.createHTMLDocument());
 
@@ -62,7 +57,7 @@ describe("GameViewportService", () => {
   it("reads a finger as the main pointer of a touch screen", () => {
     const service = at(390, 844);
 
-    viewport?.setCoarsePointer(true);
+    viewport.setCoarsePointer(true);
 
     expect(service.isTouchScreen()).toBe(true);
   });
@@ -74,7 +69,7 @@ describe("GameViewportService", () => {
   it("stops allowing motion once the player asks for less", () => {
     const service = at(1280, 800);
 
-    viewport?.setReducedMotion(true);
+    viewport.setReducedMotion(true);
 
     expect(service.allowsMotion()).toBe(false);
   });
@@ -110,7 +105,7 @@ describe("GameViewportService", () => {
   it("follows the window as it turns", () => {
     const service = at(390, 844);
 
-    viewport?.setSize(844, 390);
+    viewport.setSize(844, 390);
 
     expect(service.barPlacement()).toBe("end");
   });
@@ -158,7 +153,7 @@ describe("GameViewportService", () => {
   it("moves the link home off the rail as a phone turns on its side", () => {
     const service = at(375, 667);
 
-    viewport?.setSize(667, 375);
+    viewport.setSize(667, 375);
 
     expect(service.barHome()).toBe("none");
   });

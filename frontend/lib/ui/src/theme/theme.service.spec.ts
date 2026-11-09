@@ -3,7 +3,6 @@ import { fuzzballSvg } from "@fz/style/fuzzball";
 import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "../storage";
 import {
-  type FakeViewport,
   MemoryStorage,
   installFakeViewport,
   provideMemoryStorage,
@@ -18,7 +17,6 @@ class FullStorage extends MemoryStorage {
 }
 
 describe("ThemeService", () => {
-  let viewport: FakeViewport | null = null;
   let memory: MemoryStorage;
 
   beforeEach(() => {
@@ -27,8 +25,6 @@ describe("ThemeService", () => {
   });
 
   afterEach(() => {
-    viewport?.restore();
-    viewport = null;
     document.head.querySelector("#palette")?.remove();
     document.head.querySelector('meta[name="theme-color"]')?.remove();
     for (const icon of document.head.querySelectorAll('link[rel="icon"]')) {
@@ -105,8 +101,7 @@ describe("ThemeService", () => {
 
   it("falls back to the dark default on a system that prefers a dark scheme", () => {
     document.documentElement.dataset["theme"] = "neon";
-    viewport = installFakeViewport(1280);
-    viewport.setColorScheme("dark");
+    installFakeViewport(1280).setColorScheme("dark");
 
     expect(service().current()).toBe(DEFAULT_THEMES.dark);
   });

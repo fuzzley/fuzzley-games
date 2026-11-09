@@ -364,14 +364,8 @@ describe("GameService", () => {
     });
 
     describe("where motion is welcome", () => {
-      let viewport: ReturnType<typeof installFakeViewport>;
-
       beforeEach(() => {
-        viewport = installFakeViewport(1024, 768);
-      });
-
-      afterEach(() => {
-        viewport.restore();
+        installFakeViewport(1024, 768);
       });
 
       it("waits for the last shards to fly before the card", async () => {

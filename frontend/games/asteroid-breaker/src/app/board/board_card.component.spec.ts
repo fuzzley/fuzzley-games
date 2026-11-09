@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figures } from "@fz/ui/testing";
@@ -261,15 +261,8 @@ describe("BoardCardComponent", () => {
   );
 
   describe("where motion is welcome", () => {
-    let viewport: FakeViewport | null = null;
-
     beforeEach(() => {
-      viewport = installFakeViewport(1024, 768);
-    });
-
-    afterEach(() => {
-      viewport?.restore();
-      viewport = null;
+      installFakeViewport(1024, 768);
     });
 
     it("says nothing over a cleared wave while its last shards fly", async () => {

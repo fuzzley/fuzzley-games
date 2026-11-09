@@ -70,19 +70,14 @@ function storeEarlier(settings: Record<string, unknown>): void {
 }
 
 describe("PresentationSettingsService", () => {
-  let viewport: FakeViewport | null = null;
-
   afterEach(() => {
-    viewport?.restore();
-    viewport = null;
     document.head.querySelector("#palette-felts")?.remove();
     delete document.documentElement.dataset["theme"];
   });
 
   /** Sets the window to a width, which the service follows as it changes. */
   function windowAt(width: number): FakeViewport {
-    viewport = installFakeViewport(width);
-    return viewport;
+    return installFakeViewport(width);
   }
 
   describe("loading", () => {
@@ -264,7 +259,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("is the mobile deck on a phone on its side, in auto", () => {
-      viewport = installFakeViewport(844, 390);
+      installFakeViewport(844, 390);
 
       expect(buildSettings().cardDeck()).toBe(MOBILE_CARD_DECK.id);
     });

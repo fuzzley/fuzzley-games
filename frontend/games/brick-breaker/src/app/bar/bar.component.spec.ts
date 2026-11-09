@@ -87,13 +87,6 @@ function terms(): string[] {
 }
 
 describe("BarComponent", () => {
-  let viewport: FakeViewport | null = null;
-
-  afterEach(() => {
-    viewport?.restore();
-    viewport = null;
-  });
-
   describe("on a roomy screen", () => {
     it("names the page with one heading", async () => {
       await renderBar();
@@ -371,7 +364,7 @@ describe("BarComponent", () => {
     ["a tablet", 1000, 800],
   ] as const)("on %s", (_, width, height) => {
     beforeEach(() => {
-      viewport = installFakeViewport(width, height);
+      installFakeViewport(width, height);
     });
 
     it("shows the score and the lives alone", async () => {
@@ -410,6 +403,8 @@ describe("BarComponent", () => {
   });
 
   describe("on a compact screen", () => {
+    let viewport: FakeViewport;
+
     beforeEach(() => {
       viewport = installFakeViewport(390, 844);
     });
@@ -462,7 +457,7 @@ describe("BarComponent", () => {
     });
 
     it("moves the link home into the menu where there is no room for it", async () => {
-      viewport?.setSize(340, 700);
+      viewport.setSize(340, 700);
       const { user } = await renderBar();
 
       const items = await openBarMenu(user);

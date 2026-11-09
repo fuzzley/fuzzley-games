@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { installFakeViewport } from "@fz/game-ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure } from "@fz/ui/testing";
@@ -127,17 +127,13 @@ describe("ResultComponent", () => {
   });
 
   describe("where motion is welcome", () => {
-    let viewport: FakeViewport | null = null;
-
     afterEach(() => {
       vi.useRealTimers();
-      viewport?.restore();
-      viewport = null;
     });
 
     /** Renders the card, stops the clock, and solves `EASY` by its last square. */
     async function solveWithMotion(): Promise<void> {
-      viewport = installFakeViewport(1280);
+      installFakeViewport(1280);
       await render(ResultComponent);
       vi.useFakeTimers();
       const game = playOn({ digits: solvedBut("r1c1") });

@@ -53,17 +53,9 @@ function wantArrows(arrows: Arrows): void {
 }
 
 describe("AppComponent", () => {
-  let viewport: FakeViewport | null = null;
-
-  afterEach(() => {
-    viewport?.restore();
-    viewport = null;
-  });
-
   /** Makes the window a phone's, pointed at with a finger. */
   function onTouchScreen(): void {
-    viewport = installFakeViewport(390, 844);
-    viewport.setCoarsePointer(true);
+    installFakeViewport(390, 844).setCoarsePointer(true);
   }
 
   it("puts the board in the page's main landmark", async () => {
@@ -107,6 +99,8 @@ describe("AppComponent", () => {
   });
 
   describe("turning the screen", () => {
+    let viewport: FakeViewport;
+
     beforeEach(() => {
       viewport = installFakeViewport(390, 844);
     });
@@ -115,7 +109,7 @@ describe("AppComponent", () => {
       const game = await renderApp();
       game.turn("up");
 
-      viewport?.setSize(844, 390);
+      viewport.setSize(844, 390);
       await settle();
 
       expect(game.outcome()).toBe("paused");
@@ -125,11 +119,11 @@ describe("AppComponent", () => {
     });
 
     it("pauses it turned back upright too", async () => {
-      viewport?.setSize(844, 390);
+      viewport.setSize(844, 390);
       const game = await renderApp();
       game.turn("up");
 
-      viewport?.setSize(390, 844);
+      viewport.setSize(390, 844);
       await settle();
 
       expect(game.outcome()).toBe("paused");
@@ -138,7 +132,7 @@ describe("AppComponent", () => {
     it("leaves a run waiting for its first direction waiting", async () => {
       const game = await renderApp();
 
-      viewport?.setSize(844, 390);
+      viewport.setSize(844, 390);
       await settle();
 
       expect(game.outcome()).toBe("ready");
@@ -148,7 +142,7 @@ describe("AppComponent", () => {
       const game = await renderApp();
       game.turn("up");
 
-      viewport?.setSize(390, 664);
+      viewport.setSize(390, 664);
       await settle();
 
       expect(game.outcome()).toBe("playing");

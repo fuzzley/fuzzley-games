@@ -282,15 +282,10 @@ describe("BoardComponent", () => {
     });
 
     describe("as the page is zoomed", () => {
-      let viewport: FakeViewport | null = null;
+      let viewport: FakeViewport;
 
       beforeEach(() => {
         viewport = installFakeViewport(1280, 720);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
       });
 
       it("follows a change of zoom that leaves the board's device pixels as they were", async () => {
@@ -303,7 +298,7 @@ describe("BoardComponent", () => {
         vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
           new DOMRect(0, 0, 640, 360),
         );
-        viewport?.setPixelRatio(2);
+        viewport.setPixelRatio(2);
         detectChanges();
 
         expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
@@ -328,16 +323,8 @@ describe("BoardComponent", () => {
     });
 
     describe("on a touch screen", () => {
-      let viewport: FakeViewport | null = null;
-
       beforeEach(() => {
-        viewport = installFakeViewport(390, 844);
-        viewport.setCoarsePointer(true);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
+        installFakeViewport(390, 844).setCoarsePointer(true);
       });
 
       it("say to tap", async () => {
@@ -421,15 +408,8 @@ describe("BoardComponent", () => {
     });
 
     describe("where motion is welcome", () => {
-      let viewport: FakeViewport | null = null;
-
       beforeEach(() => {
-        viewport = installFakeViewport(1024, 768);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
+        installFakeViewport(1024, 768);
       });
 
       it("say nothing over a cleared level while its last shards fly", async () => {
