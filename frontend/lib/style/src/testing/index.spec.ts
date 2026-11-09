@@ -9,6 +9,7 @@ import {
   paletteRoles,
   rgb,
   rgbOf,
+  stylesheetPalettes,
 } from "./index.ts";
 
 const FIXTURES = path.join(import.meta.dirname, "fixtures");
@@ -33,6 +34,46 @@ describe("compileStylesheet", () => {
     const file = path.join(FIXTURES, "missing.scss");
 
     expect(() => compileStylesheet(file)).toThrow(/Can't find stylesheet/);
+  });
+});
+
+describe("stylesheetPalettes", () => {
+  const palettes = stylesheetPalettes(path.join(FIXTURES, "palettes.scss"));
+
+  it("reads every role a palette sets", () => {
+    expect(Object.fromEntries(palettes.palette("night"))).toEqual({
+      text: "#eee",
+      page: "#000",
+    });
+  });
+
+  it("reads one of a palette's roles, as the stylesheet sets it", () => {
+    expect(palettes.role("night", "text")).toBe("#eee");
+  });
+
+  it("reads a palette's roles under the names an app reads them by", () => {
+    expect(palettes.rolesIn("day", { ink: "text", ground: "page" })).toEqual({
+      ink: "#111",
+      ground: "#fff",
+    });
+  });
+
+  it("throws for a role the palette doesn't set", () => {
+    expect(() => palettes.rolesIn("day", { ink: "accent" })).toThrow(
+      "No --fz-accent in day",
+    );
+  });
+
+  it("throws for a palette the stylesheet doesn't set", () => {
+    expect(() => palettes.role("dusk", "text")).toThrow(
+      "No palette dusk in palettes.scss",
+    );
+  });
+
+  it("compiles the stylesheet only once a role is asked for", () => {
+    const missing = stylesheetPalettes(path.join(FIXTURES, "missing.scss"));
+
+    expect(() => missing.role("day", "text")).toThrow(/Can't find stylesheet/);
   });
 });
 

@@ -119,9 +119,15 @@ relative to `frontend/lib/style/`.
 - `src/build/fuzzball_raster.ts`: the fuzzball as a PNG and an ICO file,
   which `src/build/vite.ts` makes with sharp, at build time only.
 - `src/testing/index.ts`, `@fz/style/testing`: what a spec needs to check a
-  stylesheet in Node. `compileStylesheet()` compiles one, loading the
-  libraries' stylesheets as an app's Vite does; `paletteRoles()` reads each
-  palette's roles out of the CSS; `rgbOf()` reads a color written as a
+  stylesheet in Node, but `paintRoles()`, which paints a page in jsdom.
+  `compileStylesheet()` compiles one, loading the libraries' stylesheets as
+  an app's Vite does; `paletteRoles()` reads each palette's roles out of the
+  CSS; `stylesheetPalettes()` reads them from an app's global stylesheet,
+  compiled when first asked, a whole palette (`palette()`), one role
+  (`role()`) or several under the names the app reads them by
+  (`rolesIn()`), as `ThemeService.roles()` gives them from the page;
+  `paintRoles()` gives the page such roles, in colors a spec chooses, until
+  the test finishes; `rgbOf()` reads a color written as a
   number, `0xrrggbb`, as a game drawn on a canvas keeps its inks; and
   `paint()`, `over()` and `contrast()` measure them as WCAG does, a
   translucent surface over what shows through it. The library's specs use
@@ -144,7 +150,9 @@ relative to `frontend/lib/style/`.
   back into view.
 - **Imports go one way.** This library imports no workspace but another
   library, and only by package name. `rootDir` in `tsconfig.lib.json` fails
-  a relative import that climbs out of the library.
+  a relative import that climbs out of the library. The tools its entries
+  run in, Sass, stylelint, Vite and Vitest, whose `onTestFinished()`
+  `paintRoles()` cleans up with, are optional peers in `package.json`.
 
 ## Rules
 
@@ -161,7 +169,9 @@ relative to `frontend/lib/style/`.
   disagree.
 - **Colors are written only in the palettes**, and in the shadows, which
   darken alike in every palette, and in the fuzzball's eyes, which sit on its
-  fur in every palette. Every other stylesheet reads them with `var()`;
+  fur in every palette, and in the palettes `stylesheetPalettes()`'s spec
+  reads (`src/testing/fixtures/palettes.scss`). Every other stylesheet reads
+  them with `var()`;
   stylelint rejects a hex, named or functional color anywhere else.
 - **Contrast is checked, not hoped for.** `src/tokens/contrast.spec.ts`
   holds every palette to WCAG, with `@fz/style/testing`: text and fills'
@@ -186,8 +196,9 @@ relative to `frontend/lib/style/`.
 - **A folder says where its TypeScript runs.** `src/themes.ts` and
   `src/fuzzball.ts` run in the apps' pages; `src/build/` in an app's Vite
   config, `src/lint/` in its stylelint and `src/testing/` in its specs, all
-  in Node. ESLint keeps Node's modules, PostCSS, Sass, sharp, stylelint and
-  Vite, and those three folders, out of the pages' files.
+  in Node, but `paintRoles()`, which needs a spec's jsdom. ESLint keeps
+  Node's modules, PostCSS, Sass, sharp, stylelint, Vite and Vitest, and
+  those three folders, out of the pages' files.
 - **An app's needs go in the app.** A token, palette or plugin belongs here
   only when the site and the games all mean the same thing by it. Layout
   tokens and breakpoints stay in each app.
@@ -202,12 +213,14 @@ own, which `yarn workspace @fz/style <script>` runs alone.
   explicit return types on exported functions, and `import type` for
   type-only imports, and its `scripts()` block over `eslint.config.js` and
   `stylelint.config.js`. Then `lint:styles` runs stylelint
-  (`stylelint.config.js`, the library's own preset with the palettes and
-  shadows let off its color rules).
+  (`stylelint.config.js`, the library's own preset with the palettes, the
+  shadows and `src/testing/fixtures/palettes.scss` let off its color
+  rules).
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
   config (`tsconfig.lib.json`), then over the two lint configs from their
   JSDoc (`tsconfig.scripts.json`).
-- **`test`** runs Vitest in Node. Each spec sits beside the file it tests. The
+- **`test`** runs Vitest in Node, but `src/testing/paint_roles.spec.ts`, in
+  jsdom. Each spec sits beside the file it tests. The
   stylesheets' specs compile them with Sass; the plugin's run a real Vite dev
   server and build in a temporary folder. It collects coverage too, and fails
   below the floor `vitest.config.ts` sets, a little under the real figures;

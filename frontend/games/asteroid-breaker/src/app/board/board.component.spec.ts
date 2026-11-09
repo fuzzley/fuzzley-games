@@ -44,7 +44,9 @@ import {
   provideSpecWaves,
   shoot,
 } from "../../testing/play";
-import { paintRoles } from "../../testing/roles";
+import { paintRoles } from "@fz/style/testing";
+import { ROLES } from "../../testing/roles";
+import { FIELD_ROLES } from "./field_roles";
 import type { PointsLettering } from "../../view/art/points_art";
 import {
   type BoardSetting,
@@ -597,13 +599,12 @@ describe("BoardComponent", () => {
     let scene: SceneRun<HostedScene> | null = null;
 
     beforeEach(() => {
-      paintRoles();
+      paintRoles(FIELD_ROLES, ROLES);
     });
 
     afterEach(() => {
       scene?.destroy();
       scene = null;
-      document.documentElement.removeAttribute("style");
     });
 
     /**

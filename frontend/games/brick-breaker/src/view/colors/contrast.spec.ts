@@ -1,6 +1,7 @@
 import { THEMES } from "@fz/style/themes";
 import { contrast, rgbOf } from "@fz/style/testing";
-import { fieldRolesIn } from "../../testing/roles";
+import { FIELD_ROLES } from "../../app/board/field_roles";
+import { PALETTES } from "../../testing/roles";
 import { bricksPalette } from "./palette";
 
 /** Returns a record's entries, each named by its key and what it is. */
@@ -26,7 +27,7 @@ function named(
 // 3:1 against what they are drawn on.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
-    const palette = bricksPalette(fieldRolesIn(id), mode);
+    const palette = bricksPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
     // Numbered from 1, as a level's tints are.
     const tints = palette.tints.map(
       (tint, i) => [`tint ${String(i + 1)}`, tint] as const,

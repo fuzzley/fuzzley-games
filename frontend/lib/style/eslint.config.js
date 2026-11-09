@@ -28,6 +28,7 @@ export default defineConfig(
                 "sharp",
                 "stylelint",
                 "vite",
+                "vitest",
               ],
               message: "A page loads this file, and this runs only in Node.",
             },

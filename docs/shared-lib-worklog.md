@@ -1551,3 +1551,42 @@ The review:
    `keepOnLeave(save)` as what `keepSaved()` writes through on leaving.
 2. _`games/AGENTS.md`'s "writes it as it changes" holds for two games of
    five:_ taken. It now reads "or only at the moments its `track` names".
+
+### Step 5.4: a game's palettes read and painted by `@fz/style/testing`
+
+Built as planned on `sl-tools`. `@fz/style/testing` holds
+`stylesheetPalettes()`, which compiles an app's global stylesheet when first
+asked and gives a whole palette, one role or several under the names the
+app reads them by, and `paintRoles()`, which gives the page a spec's colors
+until the test finishes. Both breakers' `roles.ts` keep only `ROLES` and
+`PALETTES`, Snake's palette and contrast specs drop their copies, and seven
+hand-written style cleanups go. Ten specs of the helpers join
+`@fz/style`'s, 293 passing above its floor; the three games' suites pass.
+
+Where it went other than planned:
+
+- `paintRoles()` takes the names a game reads its roles by beside the
+  colors, as `ThemeService.roles()` does, so each game's `FIELD_ROLES` or
+  `BOARD_ROLES` paints its own.
+- It registers its cleanup before it paints, so a call in a `beforeAll`
+  throws having painted nothing.
+- Ids and role names are plain strings: the testing entry imports nothing
+  of the library's, so an app's specs compile it as they are.
+- Vitest becomes an optional peer of `@fz/style`, and jsdom a dev
+  dependency, for `paintRoles()`'s spec; a fixture of palettes is let off
+  stylelint's color rules.
+- Snake's palette spec paints the board's roles, not the whole palette;
+  its expected roles are still named by hand, so a wrong name still fails.
+
+The review:
+
+1. _Snake's contrast spec kept a copy of `role()` and `rolesIn()`:_ taken.
+   `palette(id)` joins the two, throwing for a palette not set, and
+   `role()` reads through it; Snake keeps its `PALETTES` in
+   `src/testing/palettes.ts`. Minesweeper's, Sudoku's and the Solitaire
+   Collection's `palettes.get(id) ?? new Map()` can take it later.
+2. _`@fz/style`'s `AGENTS.md` still said its specs all run in Node:_ taken,
+   in all four places, and the angular-testing skill names palette specs.
+3. _ESLint's fence around the page files left out Vitest:_ taken; an
+   import of it from `fuzzball.ts` now fails lint.
+4. _`paintRoles()`'s doc:_ taken, as suggested.

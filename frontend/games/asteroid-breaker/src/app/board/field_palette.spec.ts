@@ -1,14 +1,11 @@
 import { TestBed } from "@angular/core/testing";
 import { THEMES, type ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
-import {
-  ROLES,
-  fieldRolesIn,
-  paintRoles,
-  stylesheetRole,
-} from "../../testing/roles";
+import { paintRoles } from "@fz/style/testing";
+import { PALETTES, ROLES } from "../../testing/roles";
 import { beltPalette } from "../../view/colors/palette";
 import { fieldPalette } from "./field_palette";
+import { FIELD_ROLES } from "./field_roles";
 
 /** Returns the theme with a palette applied to the page. */
 function themeIn(id: ThemeId): ThemeService {
@@ -20,11 +17,10 @@ function themeIn(id: ThemeId): ThemeService {
 
 describe("fieldPalette", () => {
   beforeEach(() => {
-    paintRoles();
+    paintRoles(FIELD_ROLES, ROLES);
   });
 
   afterEach(() => {
-    document.documentElement.removeAttribute("style");
     Reflect.deleteProperty(document.documentElement.dataset, "theme");
   });
 
@@ -55,30 +51,32 @@ describe("fieldPalette", () => {
     palette();
 
     theme.select("midnight");
-    paintRoles(fieldRolesIn("midnight"));
+    paintRoles(FIELD_ROLES, PALETTES.rolesIn("midnight", FIELD_ROLES));
     TestBed.tick();
 
-    expect(palette()).toEqual(beltPalette(fieldRolesIn("midnight"), "dark"));
+    expect(palette()).toEqual(
+      beltPalette(PALETTES.rolesIn("midnight", FIELD_ROLES), "dark"),
+    );
   });
 
   // The roles are named here by hand, apart from `FIELD_ROLES`, so a role
   // named wrongly there shows.
   it.each(THEMES)("draws the field in $name's own roles", ({ id, mode }) => {
-    paintRoles(fieldRolesIn(id));
+    paintRoles(FIELD_ROLES, PALETTES.rolesIn(id, FIELD_ROLES));
 
     const palette = fieldPalette(themeIn(id));
 
     expect(palette()).toEqual(
       beltPalette(
         {
-          field: stylesheetRole(id, "field"),
-          fieldLine: stylesheetRole(id, "field-line"),
-          fieldText: stylesheetRole(id, "field-text"),
-          fieldMuted: stylesheetRole(id, "field-muted"),
-          accent: stylesheetRole(id, "accent"),
-          onAccent: stylesheetRole(id, "on-accent"),
-          danger: stylesheetRole(id, "danger"),
-          warning: stylesheetRole(id, "warning"),
+          field: PALETTES.role(id, "field"),
+          fieldLine: PALETTES.role(id, "field-line"),
+          fieldText: PALETTES.role(id, "field-text"),
+          fieldMuted: PALETTES.role(id, "field-muted"),
+          accent: PALETTES.role(id, "accent"),
+          onAccent: PALETTES.role(id, "on-accent"),
+          danger: PALETTES.role(id, "danger"),
+          warning: PALETTES.role(id, "warning"),
         },
         mode,
       ),

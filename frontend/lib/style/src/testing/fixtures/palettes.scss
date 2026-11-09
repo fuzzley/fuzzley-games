@@ -1,0 +1,10 @@
+// Two palettes, as an app's global stylesheet sets them.
+[data-theme="day"] {
+  --fz-text: #111;
+  --fz-page: #fff;
+}
+
+[data-theme="night"] {
+  --fz-text: #eee;
+  --fz-page: #000;
+}

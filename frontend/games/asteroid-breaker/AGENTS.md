@@ -927,10 +927,11 @@ of its own beside it:
   the bar and the rail at the sizes its spec compiles from the app's
   stylesheets (`boardOf()`), its viewport `@fz/phaser/testing/pure`'s
   `viewport()`, for the specs of the layout, the steering and the scene.
-- `roles.ts` reads a palette's roles from the game's stylesheet
-  (`stylesheetRole()`), and the field's by the names the board reads them
-  by (`fieldRolesIn()`), for the contrast spec and the specs that color the
-  field, and puts the field's on the page (`paintRoles()`); `pilots.ts`
+- `roles.ts` holds the colors the specs that color the field paint it in
+  (`ROLES`), through `@fz/style/testing`'s `paintRoles()` and
+  `FIELD_ROLES`, and the game's palettes as its stylesheet sets them
+  (`PALETTES`, `stylesheetPalettes()`'s), which the contrast spec reads the
+  field's roles from (`rolesIn()`); `pilots.ts`
   reads the pilots an element draws (`pilotsIn()`).
 - `play.ts` holds the small waves the shell's specs play, each set up to
   come to one thing soon (`SPEC_WAVES` and the others), handed to

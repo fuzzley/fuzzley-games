@@ -1,37 +1,15 @@
-import path from "node:path";
-import { keysOf, recordOf } from "@fz/core/records";
-import { type PaletteRole, THEMES } from "@fz/style/themes";
-import {
-  compileStylesheet,
-  contrast,
-  paint,
-  paletteRoles,
-  rgbOf,
-} from "@fz/style/testing";
+import { THEMES } from "@fz/style/themes";
+import { contrast, paint, rgbOf } from "@fz/style/testing";
 import { BOARD_ROLES } from "../app/board/board_roles";
+import { PALETTES } from "../testing/palettes";
 import { type SnakePalette, snakePalette } from "./palette";
-
-// Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
-const GLOBAL = path.join(import.meta.dirname, "../app/styles/global.scss");
 
 // What the snake is told apart by is held to 3:1, the bar for graphics,
 // against both shades of square, in every palette.
 describe("the board's contrast", () => {
-  const palettes = paletteRoles(compileStylesheet(GLOBAL));
-
   describe.each(THEMES)("in $name", ({ id }) => {
-    const roles = palettes.get(id) ?? new Map<string, string>();
-
-    /** Returns one of the palette's roles, as the page sets it. */
-    function role(name: PaletteRole): string {
-      const value = roles.get(name);
-      if (value === undefined) throw new Error(`No --fz-${name} in ${id}`);
-      return value;
-    }
-
-    const palette = snakePalette(
-      recordOf(keysOf(BOARD_ROLES), (key) => role(BOARD_ROLES[key])),
-    );
+    const roles = PALETTES.palette(id);
+    const palette = snakePalette(PALETTES.rolesIn(id, BOARD_ROLES));
     const squares = [
       ["plain", palette.board],
       ["checkered", palette.checker],
@@ -52,7 +30,7 @@ describe("the board's contrast", () => {
       const wash = paint(
         "var(--fz-wash-1)",
         roles,
-        paint(role("panel"), roles),
+        paint(PALETTES.role(id, "panel"), roles),
       );
 
       expect(rgbOf(palette.checker)).toEqual(wash.map(Math.round));
