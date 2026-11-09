@@ -93,40 +93,20 @@
   }
 }
 
-// Every action clears the minimum tap size, labelled or not.
-.action {
-  @include tap-target;
-}
+@include bar-actions;
 
-// The gear turns under the pointer, where motion is welcome.
-@media (prefers-reduced-motion: no-preference) {
-  .btn-settings {
-    @include transition(background, transform);
-
-    &:hover {
-      transform: rotate(45deg);
-    }
-  }
-}
-
-// Below this width the action labels go and the metric cards tighten, which
-// keeps the header's minimum width inside the band. The bar's own gaps
-// tighten too, paying for the home button that stands in for the wordmark.
+// Below this width the actions go round and the metric cards tighten, which
+// keeps the header's minimum width inside the band. The bar's gap tightens
+// further than the actions' mixin takes it, paying for the home button that
+// stands in for the wordmark, and the round actions' icons grow to the 18px of
+// the circle buttons beside them.
 @include below("desktop") {
   :host {
     --fz-bar-gap: var(--fz-space-2);
-    --fz-bar-actions-gap: var(--fz-space-2);
   }
 
   .action:not(.fz-button-circle) {
     --fz-icon-size: 18px;
-
-    padding: var(--fz-space-2);
-    border-radius: 50%;
-
-    .btn-text {
-      display: none;
-    }
   }
 
   .metrics {

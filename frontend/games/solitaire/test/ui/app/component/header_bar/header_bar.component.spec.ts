@@ -335,7 +335,7 @@ describe("HeaderBarComponent", () => {
       const openSettings = vi.fn();
       fixture.componentInstance.openSettings.subscribe(openSettings);
 
-      clickElement(fixture, ".btn-settings");
+      clickElement(fixture, "button[aria-label='Game Settings']");
 
       expect(openSettings).toHaveBeenCalledOnce();
     });
@@ -380,7 +380,7 @@ describe("HeaderBarComponent", () => {
         query(fixture, "button[title*='Restart']"),
         query(fixture, ".btn-help"),
         query(fixture, ".btn-bug-report"),
-        query(fixture, ".btn-settings"),
+        query(fixture, "button[aria-label='Game Settings']"),
       ]).toEqual([null, null, null, null]);
     });
 

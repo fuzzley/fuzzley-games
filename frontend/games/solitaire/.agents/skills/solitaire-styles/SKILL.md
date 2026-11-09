@@ -46,7 +46,7 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 
 ### 3. Mixins & Utility Patterns
 
-Repeated UI patterns are mixins. Every component reaches them through `@use "../../styles" as *;`, which forwards both kinds:
+Repeated UI patterns are mixins. Every component reaches them through `@use "../../styles" as *;`, which forwards all three kinds:
 
 - From `@fz/style`'s toolkit (`frontend/lib/style/src/toolkit/`), shared with the site and the other games:
   - `glass()` — Backdrop blur for chrome floating over the board.
@@ -55,6 +55,7 @@ Repeated UI patterns are mixins. Every component reaches them through `@use "../
   - `tap-target()` and `flex-center()`.
   - `visually-hidden()` — Screen reader accessible off-screen text.
   - `field-label()` and `choice-tile()` — A setting's heading, and a choice drawn as a tile, such as a card back, a deck or a game's variant; the toolkit's `dialog-card()` and `close-button()` sit beside them.
+- From `@fz/game-ui`, beside its breakpoints: `bar-actions`, the header's actions as every game's bar has them, round and their labels heard but not seen below `desktop`; the header tightens the bar's gap further itself.
 - From `styles/_mixins.scss`, this game's own: `spinner-ring()` and `panel-card()`. One moves to the toolkit when a second app needs it.
 
 ### 4. Named Responsive Breakpoints

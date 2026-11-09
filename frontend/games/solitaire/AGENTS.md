@@ -176,7 +176,8 @@ skill says more; on top of them:
 - **A pattern is a mixin, a value is a token.** Several declarations that
   only make sense together are a mixin, because view encapsulation means a
   class cannot be shared between components. The ones every app shares are
-  `@fz/style`'s toolkit, which `styles/_index.scss` forwards; only this
+  `@fz/style`'s toolkit, which `styles/_index.scss` forwards, with
+  `@fz/game-ui`'s `bar-actions` for the header's actions; only this
   game's own (`spinner-ring()` and `panel-card()`) are in
   `styles/_mixins.scss`, until another app needs one. The settings' headings
   and tiles are the toolkit's `field-label()` and `choice-tile()`, which

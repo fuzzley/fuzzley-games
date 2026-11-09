@@ -531,3 +531,25 @@ Where it went other than planned:
 The review:
 
 1. _No findings._
+
+### Step 6.5: the header's actions on bar-actions
+
+Built as planned on `sl-sol`, as `09c9fd22`. The header includes
+`@fz/game-ui`'s `bar-actions` in place of its own tap target, turning gear
+and round, label-hidden actions, and keeps its tighter `--fz-bar-gap` and
+its round actions' 18px icons after it; the stylesheet is 19 lines
+shorter. A build's compiled CSS, diffed against the one before the phase,
+differs only by the mixin's `aria-disabled` rule, which no action here
+has, the gear's class (`settings`, the mixin's), and the labels hidden as
+`visually-hidden` rather than `display: none`, unseen and unheard alike
+since each labelled action has an `aria-label`. 6874 tests pass.
+
+The review:
+
+1. _The comment says the round actions' icons shrink, but they grow:_
+   taken. It says they grow to the 18px of the circle buttons beside them.
+2. _The spec finds the gear by its styling class:_ taken. Both queries
+   find it by its name, `button[aria-label='Game Settings']`.
+3. _The solitaire-styles skill and AGENTS.md describe the toolkit as it
+   was:_ taken. The skill forwards all three kinds, and AGENTS.md names
+   `bar-actions` beside `@fz/style`'s toolkit.
