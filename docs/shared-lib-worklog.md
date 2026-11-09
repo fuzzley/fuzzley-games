@@ -63,3 +63,24 @@ The review:
 
 1. _No findings:_ the reviewer found the change type-only, within the rules'
    fence, and the docs true as they stand.
+
+### Step F6: the inner `version: 1` dropped from Minesweeper's and Sudoku's saved games
+
+Built as planned on `sl-shell`. Minesweeper's `saveField()` and Sudoku's
+`saveGrid()` no longer write a `version` of their own, and `restoreField()`
+and `restoreGrid()` no longer check one, since the saved game's
+`writeVersioned()` already versions the whole entry. The readers pick out the
+keys they name, so an entry an earlier build stored still reads, which a new
+spec in each game holds. The rules' "another version" cases went with the
+check. Minesweeper's 373 tests and Sudoku's 592 pass.
+
+The review:
+
+1. _A rollback past this commit loses the games in progress, so write that
+   down:_ taken. A build from before this one refuses the field or grid this
+   one writes, and its `SavedGameService` forgets the entry as it deals a
+   fresh game, so moving `live` back past this commit loses every Minesweeper
+   and Sudoku game in progress once, on its first load. The commit's body
+   says so. The way around it the reviewer offered, which stops checking now
+   and stops writing in a later release, was not taken: it isn't worth it
+   for a game in progress.

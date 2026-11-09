@@ -12,7 +12,6 @@ import { isOneOf } from "@fz/core/records";
 
 /** A field as it is stored: plain JSON, a letter a square. */
 export interface SavedField {
-  readonly version: 1;
   readonly rows: number;
   readonly cols: number;
   readonly mines: number;
@@ -38,7 +37,6 @@ const LETTERS: Readonly<Record<Square, string>> = {
 export function saveField(field: Field): SavedField {
   const mines = field.layout?.mines;
   return {
-    version: 1,
     ...field.size,
     seed: field.seed,
     mineSquares: mines
@@ -53,10 +51,10 @@ export function saveField(field: Field): SavedField {
 
 /**
  * Returns the field a stored one describes, or null when it is not one the
- * game could have saved: from another version, cut short, or edited.
+ * game could have saved: cut short, or edited.
  */
 export function restoreField(saved: unknown): Field | null {
-  if (!isRecord(saved) || saved["version"] !== 1) return null;
+  if (!isRecord(saved)) return null;
   const { rows, cols, mines, seed, lives, livesLeft } = saved;
   if (
     !isWhole(rows) ||
