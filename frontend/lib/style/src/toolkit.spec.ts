@@ -257,9 +257,32 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("draw a settings drawer's choices as tiles", () => {
+  it("give a settings drawer its choice list", () => {
     expect(compiled("@include fz.settings-drawer;")).toContain(
+      compiled("@include fz.choice-list;"),
+    );
+  });
+
+  it("stack a choice list's choices, one under another", () => {
+    expect(compiled("@include fz.choice-list;")).toContain(
+      ".it .choice-list{display:flex;flex-direction:column;gap:var(--fz-space-2)}",
+    );
+  });
+
+  it("draw each choice as a tile, its name over its description", () => {
+    const list = compiled("@include fz.choice-list;");
+
+    expect(list).toContain(
       ".it .choice[aria-checked=true]{border-color:var(--fz-accent)",
+    );
+    expect(list).toContain(
+      ".it .choice{flex-direction:column;gap:var(--fz-space-1)",
+    );
+  });
+
+  it("mute a choice's description, so its name stays the loudest", () => {
+    expect(compiled("@include fz.choice-list;")).toContain(
+      ".it .choice .desc{color:var(--fz-muted)",
     );
   });
 

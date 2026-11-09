@@ -337,16 +337,52 @@
   }
 }
 
+/// Styles a `.choice-list` of `.choice` tiles, one under another, each a
+/// `role="radio"` button holding its `.name` over a few words of `.desc`.
+///
+/// `settings-drawer` holds it; a list of choices drawn outside the drawer's
+/// rules, such as in a component of its own, takes it too.
+@mixin choice-list {
+  .choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fz-space-2);
+  }
+
+  .choice {
+    @include choice-tile;
+
+    flex-direction: column;
+    gap: var(--fz-space-1);
+    min-height: var(--fz-tap-target);
+    padding: var(--fz-space-2) var(--fz-space-3);
+    font: inherit;
+    text-align: left;
+
+    .name {
+      font-size: var(--fz-font-sm);
+      font-weight: 600;
+    }
+
+    // Muted whether or not its row is checked, so the name stays the loudest.
+    .desc {
+      color: var(--fz-muted);
+      font-size: var(--fz-font-xs);
+      line-height: var(--fz-leading-tight);
+    }
+  }
+}
+
 /// Styles a game's settings drawer, `$width` wide and the window's height,
 /// down the right of its `<fz-dialog>`.
 ///
 /// It styles the classes in it: the `.drawer-header`, with the `h2` and the
 /// `.close` button; the `.drawer-content` under it, which scrolls; the
-/// settings in it (`setting-fields`); and a `.choice-list` of `.choice`
-/// tiles, each its `.name` over its `.desc`. A game's own rule for one of
-/// them goes inside the drawer's block, after the include, nested as the
-/// mixin nests it, such as `.setting-check .setting-desc`, so it weighs the
-/// same and wins by coming later.
+/// settings in it (`setting-fields`); and its choices (`choice-list`). A
+/// game's own rule for one of them goes inside the drawer's block, after the
+/// include, nested as the mixin nests it, such as
+/// `.setting-check .setting-desc`, so it weighs the same and wins by coming
+/// later.
 @mixin settings-drawer($width: 340px) {
   @include surfaces.glass(20px);
 
@@ -396,33 +432,5 @@
   }
 
   @include setting-fields;
-
-  .choice-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--fz-space-2);
-  }
-
-  .choice {
-    @include choice-tile;
-
-    flex-direction: column;
-    gap: var(--fz-space-1);
-    min-height: var(--fz-tap-target);
-    padding: var(--fz-space-2) var(--fz-space-3);
-    font: inherit;
-    text-align: left;
-
-    .name {
-      font-size: var(--fz-font-sm);
-      font-weight: 600;
-    }
-
-    // Muted whether or not its row is checked, so the name stays the loudest.
-    .desc {
-      color: var(--fz-muted);
-      font-size: var(--fz-font-xs);
-      line-height: var(--fz-leading-tight);
-    }
-  }
+  @include choice-list;
 }
