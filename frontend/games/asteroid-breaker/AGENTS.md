@@ -38,12 +38,12 @@ the layers below it, as `@fz/dev`'s `phaserGameLayers()` fences them in
 scene's, `src/scene/`, which draws the field on Phaser, and the shell's,
 `src/app/`, whose board loads the scene with `import()`.
 
-| Layer | May import                                                                                                                     | May not import                                                                          |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| rules | `@fz/core`                                                                                                                     | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
-| view  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/style/fuzzball` | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| scene | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                              | Angular, RxJS, the shell's libraries, the shell                                         |
-| app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type     | Phaser, and the scene or those three entries by a value import                          |
+| Layer | May import                                                                                                                                            | May not import                                                                          |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| rules | `@fz/core`                                                                                                                                            | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| view  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/phaser/fuzzball`, `@fz/style/fuzzball` | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| scene | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                                                     | Angular, RxJS, the shell's libraries, the shell                                         |
+| app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type                            | Phaser, and the scene or those three entries by a value import                          |
 
 The physics is the rules', so the whole game plays in Node, as the
 autopilot does. The fence doesn't see the board's `import()` of the scene,
@@ -331,7 +331,7 @@ takes for the specs' helpers.
   (`PICTURE_FRAMES`); `rock_art.ts` draws each kind of rock in each size it
   comes in and six outlines (`ROCK_OUTLINES`), and the hits it has taken;
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
-  pilots, each the fuzzball in its ink, in the ship's window or adrift;
+  pilots, each `@fz/phaser/fuzzball`'s fuzzball in its ink, in the ship's window or adrift;
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
   drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), with its
   builders, curves and transforms, and `shapes.ts` holds the game's own

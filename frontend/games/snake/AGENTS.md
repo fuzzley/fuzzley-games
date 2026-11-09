@@ -27,12 +27,12 @@ says how any game here is drawn with Phaser. Paths are relative to
 Four folders under `src/`, each importing only the layers below it, as
 `@fz/dev`'s `phaserGameLayers()` fences them in `eslint.config.js`:
 
-| Folder       | May import                                                                                                                 | May not import                                                                          |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `src/rules/` | `@fz/core`                                                                                                                 | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`                   | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                          | Angular, RxJS, the shell's libraries, the shell                                         |
-| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type | Phaser, and the scene or those three entries by a value import                          |
+| Folder       | May import                                                                                                                      | May not import                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                      | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/phaser/fuzzball` | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                               | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type      | Phaser, and the scene or those three entries by a value import                          |
 
 The shell loads the scene with `import()`, which the fence doesn't see, so
 Phaser stays out of the first download.

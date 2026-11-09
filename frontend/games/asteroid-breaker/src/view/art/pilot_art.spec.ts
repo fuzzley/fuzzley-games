@@ -1,3 +1,4 @@
+import { FUZZBALL_STRANDS } from "@fz/phaser/fuzzball";
 import { FUZZBALL } from "@fz/style/fuzzball";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { STRAY_RADIUS } from "../../rules/tuning";
@@ -11,31 +12,11 @@ import {
   fuzzballCommands,
   lookingFrom,
   pilotFrame,
-  strandsOf,
 } from "./pilot_art";
 import { WINDOW } from "./ship_art";
 
 /** How many strands of fur the fuzzball's path draws, one for each move in it. */
 const STRANDS = FUZZBALL.fur.d.split("M").length - 1;
-
-describe("strandsOf", () => {
-  it("reads each of the fuzzball's strands from its path", () => {
-    expect(strandsOf(FUZZBALL.fur.d)).toHaveLength(STRANDS);
-  });
-
-  it("reads a strand's start, its bend and its tip", () => {
-    expect(strandsOf("M1 2Q3 4 5 6")).toEqual([
-      { from: { x: 1, y: 2 }, control: { x: 3, y: 4 }, to: { x: 5, y: 6 } },
-    ]);
-  });
-
-  it.each(["M1 2L3 4", "M1 2Q3 4 5 6 7 8"])(
-    "refuses a strand drawn any other way: %s",
-    (path) => {
-      expect(() => strandsOf(path)).toThrow("can't read");
-    },
-  );
-});
 
 describe("the pilot's sizes", () => {
   it("seats a pilot as wide as the ship's window", () => {
@@ -181,11 +162,11 @@ describe("CONSTELLATION", () => {
   });
 
   it("places its first speck at the first strand's tip, from the body's middle", () => {
-    const [first] = strandsOf(FUZZBALL.fur.d);
+    const [first] = FUZZBALL_STRANDS;
 
     expect(CONSTELLATION.specks[0]).toEqual({
-      x: ((first?.to.x ?? 0) - FUZZBALL.body.cx) / 32,
-      y: ((first?.to.y ?? 0) - FUZZBALL.body.cy) / 32,
+      x: (first?.to.x ?? NaN) / 32,
+      y: (first?.to.y ?? NaN) / 32,
     });
   });
 });
