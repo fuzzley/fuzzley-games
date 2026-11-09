@@ -2551,3 +2551,25 @@ The review found two things, both taken:
    as the apps use it:_ taken; the test host binds nothing, one spec renders
    the bar alone with an `href` of its own, and the separate default spec
    goes, the first now holding it.
+
+### Step 17h: finding 22, `@fz/ui`'s floor
+
+Built on `ul-floors`. `@fz/ui`'s floor sat a few points under its figures,
+its branches at 79 against 84.21. It rises to each figure rounded down, 96,
+84, 99 and 97 against 96.41, 84.21, 99.13 and 97.94. Coverage already
+counted `src/testing/`, the dialog polyfill's 55% of branches among it, with
+no floor of its own; the library's `AGENTS.md` now says so, and how the
+floor is set, as `@fz/phaser`'s does.
+
+The review found the floors right and two things, both taken:
+
+1. _The step's entry wasn't staged:_ taken as every step on this branch
+   takes it, as the commit lands, since its number follows the order the
+   branches land in.
+2. _The new sentence on the floor read as if the figures rose, and left the
+   next sentence's "it" pointing at "every library":_ taken; split, as
+   `@fz/phaser`'s reads, and "without coverage".
+
+Outside this change it noted `@fz/style`'s `AGENTS.md` still says "a little
+under"; the plan names no floor for `@fz/style`, so it is left for the
+final report.
