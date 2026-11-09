@@ -26,7 +26,7 @@ describe("DebugPanelComponent", () => {
 
   /** Returns the panel's choice buttons. */
   function choices(): HTMLElement[] {
-    return queryAll(fixture, ".segment-btn");
+    return queryAll(fixture, ".segment");
   }
 
   it("renders the debug panel", () => {

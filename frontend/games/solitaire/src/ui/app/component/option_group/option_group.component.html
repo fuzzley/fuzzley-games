@@ -1,4 +1,4 @@
-<div class="setting-group">
+<div class="setting">
   <span
     class="setting-label"
     [class.setting-label-compact]="compactLabel()"
@@ -7,23 +7,24 @@
   >
 
   @if (listed()) {
-    <!-- Named by its name alone, so its line is read as a description. -->
+    <!--
+      Not an <fz-choice-list>, which names a choice by all its words: each is
+      named by its name alone, so its line is read as a description.
+    -->
     <div class="choice-list" fzRadioGroup [attr.aria-labelledby]="labelId">
       @for (choice of choices(); track choice.value) {
         <button
           type="button"
-          class="choice-row"
+          class="choice"
           role="radio"
           [attr.aria-checked]="choice.checked"
           [attr.aria-labelledby]="choice.nameId"
           [attr.aria-describedby]="choice.descriptionId"
           (click)="choose.emit(choice.value)"
         >
-          <span class="choice-name" [id]="choice.nameId">{{
-            choice.label
-          }}</span>
+          <span class="name" [id]="choice.nameId">{{ choice.label }}</span>
           @if (choice.descriptionId) {
-            <span class="choice-desc" [id]="choice.descriptionId">{{
+            <span class="desc" [id]="choice.descriptionId">{{
               choice.description
             }}</span>
           }
@@ -31,18 +32,13 @@
       }
     </div>
   } @else {
-    <div
-      class="segmented-control"
-      fzRadioGroup
-      [attr.aria-labelledby]="labelId"
-    >
+    <div class="segmented" fzRadioGroup [attr.aria-labelledby]="labelId">
       @for (choice of choices(); track choice.value) {
         <button
           type="button"
-          class="segment-btn"
+          class="segment"
           role="radio"
           [attr.aria-checked]="choice.checked"
-          [class.active]="choice.checked"
           (click)="choose.emit(choice.value)"
         >
           {{ choice.label }}

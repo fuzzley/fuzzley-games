@@ -38,13 +38,8 @@
   }
 }
 
-.btn-close {
-  @include icon-button;
-}
-
-.close-icon {
-  width: 22px;
-  height: 22px;
+.close {
+  @include close-button;
 }
 
 // --- Search ---

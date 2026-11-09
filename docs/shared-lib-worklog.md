@@ -983,3 +983,42 @@ The review:
    "moves the link home into the menu where there is no room for it", as the
    other four bars' specs have. It fails when Snake passes `"icon"` in place
    of `barHome()`.
+
+### Step 6.4: the Solitaire Collection's drawer and option group on the toolkit
+
+Built as planned on `sl-sol`, as `2076360a`. The settings drawer is
+`settings-drawer(320px)`, its footer and its phone padding nested inside
+`.drawer`, where they outweigh the mixin's header and content rules. The
+option group includes `setting-fields`, `segmented` and `choice-list`. The
+classes are renamed as the plan and 4.2a's and 4.5's entries list, and
+`.active` is gone, since `aria-checked` carries the state. How to play's
+`&times;` is the close icon in a `close-button`. The stylesheets are 141
+lines shorter. A build's global CSS is byte-identical to the one before the
+step, and the four component stylesheets, diffed, differ only as below.
+6874 tests pass.
+
+Where it went other than planned:
+
+- The option group draws its own list with the `choice-list` mixin rather
+  than `<fz-choice-list>`, which names a choice by all its words; here each
+  is named by its name alone and described by its line, as a spec pins.
+- The drawer's header takes the 20px of padding above and below that the
+  other five drawers have, rather than 24px. The phone's 16px still wins.
+- `setting-fields` brings `.setting-check` rules that nothing here uses, in
+  the drawer and the option group, as it documents for a component of its
+  own.
+- The segments lose `padding: var(--fz-space-2) 0`; the reset zeroes it, and
+  the tap target's `min-height` hides it, since no label wraps.
+- The game browser's close button moved onto `close-button` too, after the
+  review, so the collection's three dialogs close alike.
+
+Left for later: the debug panel's dev-only band bleeds by `--fz-space-6`
+(`debug_panel.component.scss:9-17`), while the drawer's content is padded
+`--fz-space-4` below `phone`, so the drawer scrolls 8px sideways there in a
+dev build. It was so before this step.
+
+The review:
+
+1. _The game browser's close button was the only one in the six games not
+   on `close-button`:_ taken. It is `.close` with `close-button`, its icon
+   20px rather than 22px and its corners the small radius.
