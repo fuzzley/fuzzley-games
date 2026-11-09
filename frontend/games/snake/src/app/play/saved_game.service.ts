@@ -1,5 +1,5 @@
-import { Injectable, effect, inject, untracked } from "@angular/core";
-import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
+import { Injectable, inject } from "@angular/core";
+import { keepSaved } from "@fz/ui/storage";
 import { restoreRun, saveRun } from "../../rules/saved_run";
 import { GameService } from "./game.service";
 
@@ -21,42 +21,22 @@ const SAVED_GAME_VERSION = 1;
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
-  private readonly storage = inject(LocalStorageService);
   private readonly game = inject(GameService);
 
   constructor() {
-    this.restore();
-    effect(() => {
-      this.game.outcome();
-      this.game.score();
-      this.game.runs();
-      untracked(() => {
-        this.keep();
-      });
+    keepSaved({
+      key: SAVED_GAME_KEY,
+      version: SAVED_GAME_VERSION,
+      save: () => saveRun(this.game.run()),
+      restore: (saved) => {
+        const run = restoreRun(saved, this.game.run().id + 1);
+        if (run) this.game.takeUp(run);
+      },
+      track: () => {
+        this.game.outcome();
+        this.game.score();
+        this.game.runs();
+      },
     });
-    keepOnLeave(() => {
-      this.keep();
-    });
-  }
-
-  /** Writes the run under way where it stands, or forgets one that isn't. */
-  private keep(): void {
-    const saved = saveRun(this.game.run());
-    if (!saved) {
-      this.storage.remove(SAVED_GAME_KEY);
-      return;
-    }
-    this.storage.writeVersioned(SAVED_GAME_KEY, SAVED_GAME_VERSION, saved);
-  }
-
-  /** Takes up the run stored, if there is one that makes sense. */
-  private restore(): void {
-    const saved = this.storage.readVersioned(
-      SAVED_GAME_KEY,
-      SAVED_GAME_VERSION,
-    );
-    if (!saved) return;
-    const run = restoreRun(saved, this.game.run().id + 1);
-    if (run) this.game.takeUp(run);
   }
 }
