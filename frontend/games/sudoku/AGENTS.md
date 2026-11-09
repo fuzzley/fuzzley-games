@@ -150,8 +150,9 @@ and the compiler asks for most of them:
 ## Styling
 
 Every component stylesheet opens with `@use "../styles" as *;`, which
-brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints, and nothing
-else. The frontend's Angular and Sass rules apply; on top of them:
+brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints and bar
+mixins, and nothing else. The frontend's Angular and Sass rules apply; on
+top of them:
 
 - **Only the player's ink is a color,** in `src/app/board/_inks.scss`, the
   one stylesheet stylelint lets write one.

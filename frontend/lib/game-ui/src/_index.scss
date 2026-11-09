@@ -5,6 +5,10 @@
 // `compact`, `phone-portrait` and `phone-landscape`.
 @forward "breakpoints";
 
+// What a game projects into its bar: `bar-title`, `bar-figures`,
+// `bar-figures-inline`, `bar-figures-stacked` and `bar-actions`.
+@forward "bar";
+
 /// The bar's height across the top or the bottom of the window.
 $bar-height: 73px;
 

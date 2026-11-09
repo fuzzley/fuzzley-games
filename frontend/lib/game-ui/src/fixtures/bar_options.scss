@@ -1,0 +1,8 @@
+// A bar's stylesheet that gives each of `@fz/game-ui`'s bar mixins that takes
+// an option every option it takes, for `bar.spec.ts`.
+@use "@fz/game-ui" as game-ui;
+@include game-ui.bar-figures(90px, var(--fz-space-4));
+
+:host(.compact) {
+  @include game-ui.bar-figures-inline(5px, $padding: 6px var(--fz-space-2));
+}

@@ -185,8 +185,9 @@ its seed and its frames, as a game taken up relies on.
 ## Styling
 
 Every component stylesheet opens with `@use "../styles" as *;`, which
-brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints, and nothing
-else. The frontend's Angular and Sass rules apply; on top of them:
+brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints and bar
+mixins, and nothing else. The frontend's Angular and Sass rules apply; on
+top of them:
 
 - **No color is written in a stylesheet.** The board's are the palette's,
   read by the scene, and the placeholder draws with the palette's tokens.

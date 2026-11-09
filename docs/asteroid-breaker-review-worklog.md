@@ -2605,3 +2605,72 @@ The review found the reordered rules safe, and two things, both taken:
    its own.
 2. _A spec held the checkbox's description to the grid's second column, but
    not `.setting-check` to a grid:_ taken; it holds both.
+
+### Step 17j: finding 20, the bars' title, figures and actions in `@fz/game-ui`'s bar mixins
+
+Built on `ul-bar`. Five bars kept the same rules for their title, figures
+and actions, 126 of Asteroid Breaker's template's lines and 138 of its
+stylesheet's being Brick Breaker's. `@fz/game-ui`'s `_bar.scss`, forwarded
+through each game's toolkit, holds them as mixins that write the rules in
+the order the bars kept them: `bar-title`; `bar-figures($min-width, $gap)`,
+the cards; `bar-actions`, an `aria-disabled` action dimmed and the bar's
+gaps tightened below `desktop`; and, inside the host's state that calls for
+them, `bar-figures-inline($icon-gap, $padding)` and, after it,
+`bar-figures-stacked`. The stylesheets' non-blank lines fall from 160 to 57
+in Asteroid Breaker, 179 to 72 in Brick Breaker, 128 to 24 in Snake, 183 to
+80 in Minesweeper and 119 to 22 in Sudoku; `_bar.scss` is 149, with a spec
+that compiles two bars through the package's own entry. Built and opened in
+Chrome at five shapes (1280 × 800, 1100 × 800, 390 × 844 by touch,
+844 × 390, 340 × 700), every element under each bar keeps its box and its
+computed styles but one, and each bar its accessibility tree.
+
+Where it went other than planned:
+
+- No `<fz-bar-metric>`: the figures differ in markup (Asteroid Breaker's
+  pilot in place of an icon, hearts for lives, figures with no icon), and a
+  custom element between a `<dl>` and its `<dt>` and `<dd>` would break the
+  list.
+- A few rules move past others that reach no element they do: Asteroid
+  Breaker's pilot, hidden and shown by rules of its own after the values';
+  Minesweeper's pressed flag mode and its difficulty hidden below desktop,
+  after the actions'; and Minesweeper's strip's own rules, after the
+  mixins', whose label and value weigh one class more, compact and on a
+  rail alike, the rail's still last.
+- Every bar dims an `aria-disabled` action, which none of Minesweeper's or
+  Sudoku's is, and stacks its figures' list on a rail, which turns Sudoku's
+  list of one card from a row to a column; its card's box is the same, the
+  rail centring it. That `flex-direction` is the one computed style that
+  changes.
+- `src/fixtures/` holds the stylesheets the spec compiles, named in
+  `@fz/game-ui`'s `AGENTS.md` as no entry point.
+
+The first review found no change a player would see, and six things:
+
+1. _Minesweeper kept copies of the inline and stacked figures:_ taken; it
+   includes both, keeping only its strip's border, background and hearts.
+2. _`$icons` replaced the default rather than adding to it, and had to be
+   passed alike twice:_ taken; dropped, Asteroid Breaker's pilot hidden and
+   shown by its own rules.
+3. _`$dim-disabled` and `$single` kept the CSS byte for byte rather than
+   marking a difference between games:_ taken; both dropped, which changes
+   only the `flex-direction` above.
+4. _Two declarations no spec read:_ taken.
+5. _`src/fixtures/` broke `AGENTS.md`'s rule that a folder under `src/` is
+   an entry point:_ taken; named as the exception.
+6. _The five games' toolkits are byte for byte the same, each with a `show`
+   list of ten names:_ not taken here; left for the final report, as it
+   reaches beyond the bar.
+
+The fixes reshaped the mixins, so a second review read them, and found
+them sound and four things, all taken:
+
+1. _No spec read a `min-width` or an inline `gap` other than the
+   defaults':_ taken; both read from the bar with every option.
+2. _`bar-figures-stacked`'s doc promised an icon it doesn't show, and left
+   out that it must come after the inline state, which a rail is in too:_
+   taken, there and in `AGENTS.md`.
+3. _`bar-actions` tightens the bar's gaps, which `AGENTS.md` and the skill
+   didn't say:_ taken.
+4. _`bar-figures-inline`'s `$gap` meant another gap than `bar-figures`',
+   and its doc restated `$padding`'s name:_ taken; `$icon-gap`, and the doc
+   says what a card keeps without `$padding`.
