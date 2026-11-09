@@ -305,11 +305,17 @@ takes for the specs' helpers.
     happened through `@fz/ui/announcer`, adds up a cleared level's points
     (`tally`), keeps the records and the levels cleared through `stats/`,
     calls for the chime for a life the points brought and for a new best as
-    its card opens (`chimes`),
-    and asks through `@fz/ui/confirm` before a new game or speed throws a run
-    away. `src/app/tokens.ts` holds what a spec hands it instead of the
-    game's own: the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`),
-    and whether the settings offer the debug menu (`DEBUG_MENU`).
+    its card opens (`chimes`), and asks before a new game or speed throws a
+    run away. It extends `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which
+    holds what every game's run does around its play: the keys' `command()`,
+    to which `GameService` adds `launch`, going on to the next level as `go`
+    asks (its `nextStage()`), the drawn gate (`setDrawn()`), the runs begun
+    (`runs`, raised as each run begins) and the question, through
+    `@fz/ui/confirm`, before a run is lost. A launch at any stage but a level ready or in play
+    does as `go` does. `src/app/tokens.ts` holds what a spec hands it
+    instead of the game's own: the levels (`GAME_LEVELS`) and the seeds
+    (`GAME_RANDOM`), and whether the settings offer the debug menu
+    (`DEBUG_MENU`).
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
     as the page is hidden or goes away, never at a step, and forgets it once

@@ -6,9 +6,8 @@ import {
   signal,
 } from "@angular/core";
 import { RunNumbers } from "@fz/core/run_numbers";
+import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { AnnouncerService } from "@fz/ui/announcer";
-import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { fireBolts } from "../../rules/paddle/bolts";
 import { capsule } from "../../rules/catalog/capsules";
 import {
@@ -66,22 +65,6 @@ import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, GAME_RANDOM } from "../tokens";
 
-/** What a new run asks before it throws away the one under way. */
-const NEW_GAME_QUESTION: ConfirmRequest = {
-  title: "Start a new game?",
-  message: "The run in progress will be lost.",
-  confirmLabel: "New game",
-  tone: "danger",
-};
-
-/** What a run at another speed asks: New Game's question, naming the speed. */
-function speedQuestion(speed: Speed): ConfirmRequest {
-  return {
-    ...NEW_GAME_QUESTION,
-    title: `Start a new ${SPEED_INFO[speed].name} game?`,
-  };
-}
-
 /**
  * Plays the game: holds the run and the level in play's field, moves the
  * field on by the time the board's frames take, steered as the player
@@ -95,9 +78,7 @@ function speedQuestion(speed: Speed): ConfirmRequest {
  * that change only when it does.
  */
 @Injectable({ providedIn: "root" })
-export class GameService {
-  private readonly confirm = inject(ConfirmService);
-  private readonly announcer = inject(AnnouncerService);
+export class GameService extends RunLifecycle {
   private readonly viewport = inject(GameViewportService);
   private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   private readonly levels = inject(GAME_LEVELS);
@@ -121,8 +102,6 @@ export class GameService {
   private readonly tallyState = signal<LevelTally | null>(null);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
-  private readonly runsState = signal(0);
-  private readonly drawnState = signal(true);
   private readonly newBestState = signal(false);
   private readonly chimesState = signal(0);
   private readonly fieldHeightState = signal(FIELD_HEIGHT);
@@ -198,19 +177,6 @@ export class GameService {
   readonly resultClosed = this.resultClosedState.asReadonly();
 
   /**
-   * How many runs have begun since the page loaded, each new game adding
-   * one, for the board to take the focus after.
-   */
-  readonly runs = this.runsState.asReadonly();
-
-  /**
-   * Whether the board is drawn, so the player can watch the ball. Until it
-   * is, nothing launches or goes on: the board, in its scene, is what moves
-   * the field on, and a ball in play that nobody can see would be lost.
-   */
-  readonly drawn = this.drawnState.asReadonly();
-
-  /**
    * Moves the field on by the time a frame took, as often as the time holds
    * a step, steered as the player steers it, and takes what it came to into
    * the run; or, with the level cleared or the run ended, opens the card it
@@ -251,41 +217,26 @@ export class GameService {
   }
 
   /** Does what a key, a click or a tap on the board asks. */
-  command(command: FieldCommand): void {
-    switch (command) {
-      case "launch":
-        this.launch();
-        return;
-      case "pause":
-        this.pause();
-        return;
-      case "toggle":
-        this.toggle();
-        return;
-      case "go":
-        this.go();
-        return;
+  override command(command: FieldCommand): void {
+    if (command === "launch") {
+      this.launch();
+    } else {
+      super.command(command);
     }
   }
 
   /**
    * Serves the ball waiting on the paddle, starting a new run's first level
    * and saying which it is, lets go of the balls it caught, or fires its
-   * laser, once the board is drawn; goes on with a paused run, or to the
-   * next level; or starts another run once an ended one's card is put away.
+   * laser, once the board is drawn; at any other stage, does as Enter does:
+   * goes on with a paused run, or to the next level, or starts another run
+   * once an ended one's card is put away.
    */
   launch(): void {
     const outcome = this.runState().outcome;
-    if (outcome === "paused") {
-      this.resume();
-    } else if (outcome === "cleared") {
-      this.nextLevel();
-    } else if (this.mayStartAnother()) {
-      void this.newGame();
-    } else if (
-      this.drawnState() &&
-      (outcome === "ready" || outcome === "playing")
-    ) {
+    if (outcome !== "ready" && outcome !== "playing") {
+      this.go();
+    } else if (this.drawn()) {
       const field = this.levelPlay.field;
       if (outcome === "ready") {
         this.stats.recordStart(this.runState().speed);
@@ -309,7 +260,7 @@ export class GameService {
 
   /** Goes on with a paused level, once the board is drawn, and says so. */
   resume(): void {
-    if (!this.drawnState()) return;
+    if (!this.drawn()) return;
     const before = this.runState();
     const after = resume(before);
     if (after === before) return;
@@ -318,31 +269,11 @@ export class GameService {
   }
 
   /**
-   * Pauses the level in play, or goes on with one paused, or starts another
-   * run once an ended one's card is put away.
+   * Goes on to the level after the one just cleared, as Enter, a launch key
+   * or a tap on the field asks.
    */
-  toggle(): void {
-    if (this.mayStartAnother()) {
-      void this.newGame();
-    } else if (this.runState().outcome === "paused") {
-      this.resume();
-    } else {
-      this.pause();
-    }
-  }
-
-  /**
-   * Goes on with a paused level, or to the next, or starts another run once
-   * an ended one's card is put away, as the card over the board offers.
-   */
-  go(): void {
-    if (this.mayStartAnother()) {
-      void this.newGame();
-    } else if (this.runState().outcome === "cleared") {
-      this.nextLevel();
-    } else {
-      this.resume();
-    }
+  protected override nextStage(): void {
+    this.nextLevel();
   }
 
   /**
@@ -354,7 +285,7 @@ export class GameService {
     if (
       before.outcome !== "cleared" ||
       !this.clearedOpenState() ||
-      !this.drawnState()
+      !this.drawn()
     ) {
       return;
     }
@@ -389,7 +320,8 @@ export class GameService {
    * first if one is under way, and resolves to whether it did.
    */
   async changeSpeed(speed: Speed): Promise<boolean> {
-    if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
+    const question = speedQuestion(SPEED_INFO[speed].name);
+    if (!(await this.mayLoseRun(question))) return false;
     this.settings.update({ speed });
     this.begin(this.create(speed, this.runState().firstLevel));
     return true;
@@ -446,11 +378,6 @@ export class GameService {
   setBallSpeedScale(scale: number): void {
     this.ballSpeedScaleState.set(scale);
     this.levelPlay.field.ballSpeedScale = scale;
-  }
-
-  /** Says whether the board is drawn yet, as the board's canvas reports it. */
-  setDrawn(drawn: boolean): void {
-    this.drawnState.set(drawn);
   }
 
   /** Puts away the card over an ended run, leaving the board to look at. */
@@ -559,11 +486,6 @@ export class GameService {
     this.news.length = 0;
   }
 
-  /** Returns whether a key may start another run: once an ended run's card is away. */
-  private mayStartAnother(): boolean {
-    return this.ended() && this.resultClosedState();
-  }
-
   /** Returns a new run at a speed, waiting at a level for its first serve. */
   private create(speed: Speed, level: number): Run {
     return createRun({
@@ -602,8 +524,7 @@ export class GameService {
     this.newBestState.set(false);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
-    this.runsState.update((runs) => runs + 1);
-    this.announcer.clear();
+    this.began();
   }
 
   /** Lays out the run's level in play on a new field, with nothing of the last one left. */
@@ -621,11 +542,5 @@ export class GameService {
     const field = this.levelPlay.field;
     reshapeField(field, this.heightAsked);
     this.fieldHeightState.set(field.height);
-  }
-
-  /** Resolves to whether to go ahead: at once with no run under way to lose. */
-  private async mayLoseRun(question = NEW_GAME_QUESTION): Promise<boolean> {
-    if (!this.inProgress()) return true;
-    return this.confirm.ask(question);
   }
 }
