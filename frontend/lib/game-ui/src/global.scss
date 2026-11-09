@@ -1,0 +1,22 @@
+// The global stylesheet a game on @fz/game-ui loads once, as
+// `@use "@fz/game-ui/global";` at the top of its own: @fz/style's, shared
+// with the site, then what the page of such a game needs. Its rules sit in
+// @fz/style's cascade layers, so a game's own win over them.
+
+@use "@fz/style/global";
+@use "index" as game-ui;
+
+// The bar's size, which a game's board lays itself out around.
+@layer fz.tokens {
+  :root {
+    @include game-ui.bar-size;
+  }
+}
+
+// The page never scrolls, so a finger dragging down the board never pulls the
+// page to refresh.
+@layer fz.base {
+  :root {
+    overscroll-behavior: none;
+  }
+}

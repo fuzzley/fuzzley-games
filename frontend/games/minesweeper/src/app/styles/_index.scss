@@ -1,11 +1,3 @@
-// The toolkit every component stylesheet imports:
-
-//     @use "../styles" as *;
-
-// It emits no CSS, or every component would repeat the rules. It brings
-// @fz/style's toolkit, the dialogs' parts among it, and @fz/game-ui's widths
-// a game changes shape at and styles for what a game projects into its bar.
-@forward "@fz/style";
-@forward "@fz/game-ui" show below, from, compact, phone-portrait,
-  phone-landscape, bar-title, bar-figures, bar-figures-inline,
-  bar-figures-stacked, bar-actions;
+// The toolkit every component stylesheet imports, as `@use "../styles" as *;`:
+// `@fz/game-ui/toolkit`, mixins alone, no CSS.
+@forward "@fz/game-ui/toolkit";

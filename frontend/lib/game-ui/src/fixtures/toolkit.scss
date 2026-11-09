@@ -1,0 +1,16 @@
+// A component's stylesheet that includes a mixin of each module
+// `@fz/game-ui/toolkit` forwards, @fz/style's, the breakpoints' and the
+// bar's, for `frame.spec.ts`.
+@use "@fz/game-ui/toolkit" as *;
+
+.hidden {
+  @include visually-hidden;
+}
+
+@include below("tablet") {
+  .narrow {
+    display: none;
+  }
+}
+
+@include bar-title;

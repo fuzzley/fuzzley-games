@@ -1,32 +1,8 @@
 @use "@fz/game-ui" as game-ui;
 
 // The page is the game: the bar stands against one edge, and the stage takes
-// the rest.
-:host {
-  position: fixed;
-  inset: 0;
-  display: block;
-  overflow: hidden;
-}
-
-:host(.compact) {
-  @include game-ui.bar-size($compact: true);
-}
-
-// A size container, which the room's layout follows.
-.stage {
-  position: absolute;
-  inset: var(--fz-bar-height) 0 0;
-  container: stage / size;
-}
-
-:host([data-bar="bottom"]) .stage {
-  inset: 0 0 var(--fz-bar-height);
-}
-
-:host([data-bar="end"]) .stage {
-  inset: 0 var(--fz-rail-width) 0 0;
-}
+// the rest, a size container, which the room's layout follows.
+@include game-ui.game-frame;
 
 // The board fills the room, and lays its squares out inside it. The arrows,
 // where they show, go under it on an upright stage and beside it on a wide

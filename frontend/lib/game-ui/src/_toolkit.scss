@@ -1,0 +1,10 @@
+// The toolkit a game's component stylesheets share, which the game's own
+// `styles/_index.scss` forwards as `@forward "@fz/game-ui/toolkit";`. It
+// brings @fz/style's mixins, the dialogs' parts among them, the widths a game
+// changes shape at and the styles for what it projects into its bar, mixins
+// alone, and emits no CSS, or every component would repeat the rules.
+
+@forward "@fz/style";
+@forward "breakpoints" hide $breakpoints, $compact-max-height,
+  $rail-home-min-height;
+@forward "bar";

@@ -1,0 +1,4 @@
+// An app's stylesheet that frames its page with `@fz/game-ui`'s
+// `game-frame`, for `frame.spec.ts`.
+@use "@fz/game-ui" as game-ui;
+@include game-ui.game-frame;

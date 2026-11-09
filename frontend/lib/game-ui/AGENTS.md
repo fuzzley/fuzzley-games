@@ -12,10 +12,13 @@ relative to `frontend/lib/game-ui/`.
 
 ## What it holds
 
-One folder under `src/` per entry point, each with an `index.ts` that names
-what it exports, which an app imports as `@fz/game-ui/<folder>`, but for
-`src/fixtures/`, which holds only the stylesheets `bar.spec.ts` compiles
-and is no entry point.
+One folder under `src/` per TypeScript entry point, each with an
+`index.ts` that names what it exports, which an app imports as
+`@fz/game-ui/<folder>`, but for `src/fixtures/`, which holds only the
+stylesheets `bar.spec.ts` and `frame.spec.ts` compile and is no entry
+point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
+`@fz/game-ui/global`, are `src/_index.scss`, `src/_toolkit.scss` and
+`src/global.scss`.
 
 - `src/game_bar/`: `<fz-game-bar>`, the bar a game sits under. It leads with
   the link home (`home`: the wordmark, the round home button, or `none`; a
@@ -166,10 +169,30 @@ and is no entry point.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
   forwards the breakpoints' mixins and the bar's, and its `bar-size()` mixin
   publishes the bar's size as `--fz-bar-height` and `--fz-rail-width` for
-  what lays itself out around the bar, such as a game's board: an app
-  includes it on `:root`, and with `$compact: true` wherever it binds the
-  bar's `compact`. The bar can't declare them itself, since a custom
-  property reaches only what sits inside its element.
+  what lays itself out around the bar, such as a game's board:
+  `@fz/game-ui/global` includes it on `:root`, and `game-frame` with
+  `$compact: true` on a compact host, while an app without them, such as
+  the Solitaire Collection, includes it itself in the same places. The bar
+  can't declare them itself, since a custom property reaches only what sits
+  inside its element. Its `game-frame` mixin, which an app's own stylesheet
+  includes at its top, frames the page: the `:host` fixed over the window,
+  `bar-size()` again on `:host(.compact)`, and the `.stage` inset by the bar
+  on the side its `data-bar` names (the top, the `bottom` or the `end`), a
+  size container named `stage`. The app binds its host's `compact` class
+  and `data-bar` to `GameViewportService`'s `isCompact` and `barPlacement`,
+  and adds its own rules for the stage after the include.
+- `src/_toolkit.scss`, `@fz/game-ui/toolkit`: the toolkit a game's component
+  stylesheets share, which its `styles/_index.scss` forwards whole:
+  `@fz/style`'s mixins, the breakpoints' and the bar's, mixins alone, and
+  no CSS.
+- `src/global.scss`, `@fz/game-ui/global`: the global stylesheet a game
+  loads once, at the top of its own: `@fz/style`'s, then the bar's size on
+  `:root`, and `overscroll-behavior: none`, so a finger dragging down the
+  board never pulls the page to refresh. These two sit in `@fz/style`'s
+  `fz.tokens` and `fz.base` layers, so a game's own rules win over them, as
+  over `@fz/style`'s. `src/frame.spec.ts` compiles the toolkit, the global
+  stylesheet and `game-frame` through the fixtures in `src/fixtures/`, as a
+  game's stylesheets load them.
 - `src/_bar.scss`: the bar's mixins, which style what a game projects into
   its bar alike in every game, each naming the classes it styles. A bar's
   stylesheet includes them at its top, in this order, its own rules
@@ -194,16 +217,19 @@ and is no entry point.
 ## How an app uses it
 
 - **From source, never built**, as `@fz/ui` is: an app lists
-  `"@fz/game-ui": "workspace:*"` beside `@fz/ui` and `@fz/style`, and loads
-  `@fz/style`'s global stylesheet.
+  `"@fz/game-ui": "workspace:*"` beside `@fz/ui` and `@fz/style`, and its
+  global stylesheet is `@use "@fz/game-ui/global";`, which loads
+  `@fz/style`'s.
 - **The app decides the layout.** It binds `placement`, `reversed`,
   `compact` and `home` to what `GameViewportService` says (`home` to
   `barHome`, with the overflow menu led by `withHomeLink()` when that is
   `none`), and Pause's `fitsLabel` to `fitsActionLabels`; the bar never
   asks the window. A game's stylesheets take the same widths from the
-  mixins, and its bar's stylesheet the bar's mixins, which an app's
-  toolkit can forward by name, as
-  `frontend/games/minesweeper/src/app/styles/_index.scss` does.
+  mixins, and its bar's stylesheet the bar's mixins, through
+  `@fz/game-ui/toolkit`, which the game's own toolkit forwards, as
+  `frontend/games/minesweeper/src/app/styles/_index.scss` does; its app's
+  stylesheet frames the page with `game-frame`, as
+  `frontend/games/minesweeper/src/app/app.component.scss` does.
 - **Imports go one way.** This library imports `@fz/ui`, `@fz/style` and
   Angular, never the site or a game, and the site has no use for it.
 
