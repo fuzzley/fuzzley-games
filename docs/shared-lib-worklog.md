@@ -330,3 +330,39 @@ The review:
    calls the engine's `shuffle()`, the same loop, so it plays alike.
 4. _`@fz/core/random` imported among the `@/` imports:_ taken. Packages
    come first in the three files.
+
+### Step F4b: `picturesWhenAsked()` in `@fz/phaser/scene`, for both breakers
+
+Built on `sl-shell`, a step F4's review raised. After F4, both breakers'
+scenes held the same lines: a field for How to play's pictures, its reset at
+each bake, and a method that encoded them as first asked. That copy met the
+plan's bar. It appears in two games with the same meaning, the API is three
+parameters with no flags, and each scene gets shorter. So `pictures.ts`, beside
+`picturesOf()`, now holds `picturesWhenAsked(scene, key, frames)`. It returns
+a function that encodes the pictures as it is first called and returns the
+same pictures after. Each `bake()` ends with
+`onPictures(picturesWhenAsked(this, ATLAS, PICTURE_FRAMES))`, and each scene
+is about 13 lines shorter. Three new specs in `@fz/phaser` hold it, and its
+587 tests pass, as do Brick Breaker's 1835 and 180 and Asteroid Breaker's 3630
+and 1620.
+
+Where it went other than planned:
+
+- The plan didn't have this step; F4's review found the copy F4 had made.
+  It stays in a file of its own, apart from what `sl-play` adds to
+  `@fz/phaser/scene`, except for the entry's one export line.
+- Each function now keeps its own pictures, where the scene used to. Only a
+  stale function called after a newer bake could tell, and no caller does.
+
+The review:
+
+1. _`picturesOf()` should leave the entry, since only `picturesWhenAsked()`
+   calls it:_ taken. The entry exports `Pictured` and `picturesWhenAsked()`
+   alone, so a scene can't encode at every bake again. `picturesOf()` keeps
+   its `export` in `pictures.ts`, so its spec still covers it, as `pack` and
+   `pixelRatioFor` are kept. `lib/phaser/AGENTS.md` and the `phaser-core`
+   skill describe `picturesWhenAsked()` alone.
+2. _The docs misname what the scene hands over, and two lines ran past the
+   wrap:_ taken. Both games' `AGENTS.md` now say the scene hands over what
+   `picturesWhenAsked()` returns, and `lib/phaser/AGENTS.md` that it returns
+   a function. Both paragraphs are rewrapped.

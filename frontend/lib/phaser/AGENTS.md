@@ -125,11 +125,13 @@ take the pure ones.
   context; `bakeAtlas()`, many named frames drawn into one such texture,
   packed as `atlasSize()` measures them, after which every object showing
   one of its frames sets it again, as `retakeFrames()` has every image and
-  sprite on a texture do; `picturesOf()`, a `data:` URL of each frame that
+  sprite on a texture do; `picturesWhenAsked()`, which returns a function
+  that, as it is first called, makes a `data:` URL of each frame that
   records and lists of names give, in records and lists of the same shape,
-  for How to play; and `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()`
-  draws one, its shapes played into the `Graphics` in turn. It imports
-  Phaser, never Angular.
+  for How to play, and returns the same pictures after, so a scene hands its
+  shell a new one at each bake and encodes nothing a page doesn't show; and
+  `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()` draws one, its shapes
+  played into the `Graphics` in turn. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never waits
   for it, and plays its sounds, named by the spritemap, once it has loaded

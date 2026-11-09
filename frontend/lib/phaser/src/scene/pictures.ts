@@ -29,6 +29,21 @@ export function picturesOf<T extends Pictured<T>>(
   ) as Pictured<T>;
 }
 
+/**
+ * Returns a function that pictures the frames `frames` names, as
+ * `picturesOf()` does, as it is first called, and returns those same
+ * pictures after, so a scene can hand one over at each bake and the frames
+ * are encoded only if a page shows them.
+ */
+export function picturesWhenAsked<T extends Pictured<T>>(
+  scene: Scene,
+  key: string,
+  frames: T,
+): () => Pictured<T> {
+  let pictures: Pictured<T> | null = null;
+  return () => (pictures ??= picturesOf(scene, key, frames));
+}
+
 /** Returns names, alone or nested in records and lists, each mapped to another string. */
 function mapNames(names: unknown, map: (name: string) => string): unknown {
   if (typeof names === "string") return map(names);

@@ -253,10 +253,12 @@ scene without shutting it down first, so the end is whichever comes first.
   dropped throws as it draws: a scene sets every frame again after a
   bake, as `retakeFrames(scene, key)` has every image and sprite on the
   texture do, in layers and containers too; a particle emitter reads its
-  frames as it emits and needs nothing. `picturesOf()` encodes the frames
-  that records and lists of names give, as How to play shows them, each
-  time it is called. Anything else drawn at run time redraws itself through
-  `onContextRestored()`.
+  frames as it emits and needs nothing. `picturesWhenAsked()` returns a
+  function that, as it is first called, encodes the frames that records and
+  lists of names give, as How to play shows them, and returns the same
+  pictures after; a scene hands its shell a new one at each bake, so
+  nothing is encoded until How to play shows it. Anything else drawn at run
+  time redraws itself through `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
   device pixels.
 
