@@ -2674,3 +2674,50 @@ them sound and four things, all taken:
 4. _`bar-figures-inline`'s `$gap` meant another gap than `bar-figures`',
    and its doc restated `$padding`'s name:_ taken; `$icon-gap`, and the doc
    says what a card keeps without `$padding`.
+
+### Step 17k: finding 20, Pause and Sound in `@fz/game-ui`
+
+Built on `ul-bar`. Asteroid Breaker's, Brick Breaker's and Snake's bars each
+built Pause and Sound by hand: the icon, the label, the dimmed and pressed
+states, and keeping the focus where it was through a press with a pointer.
+`@fz/game-ui` now holds them as attribute components on the game's own
+buttons, `button[fzBarPause]`, given the run's `outcome` and whether the bar
+has room for its label (`fitsLabel`), which emits `pauseRun` and
+`resumeRun`, and `button[fzBarSound]`, given `soundOn`, whose press the game
+keeps; `soundMenuAction()` gives the overflow menu's sound item. Each bar's
+component falls from 176 to 149 non-blank lines in Asteroid Breaker, 195 to
+168 in Brick Breaker and 130 to 107 in Snake, and each template by 11. In
+Chrome, 69 dumps across the three games at five shapes, at first, paused,
+gone on from the keyboard, with the sound off and with the overflow menu
+open, show the same computed styles, boxes and accessibility trees, the
+markup differing by the two attributes and the label's class.
+
+Where it went other than planned:
+
+- Pause hides its own label below `desktop`, from `fitsLabel`, as the bar's
+  stylesheet can't reach inside it.
+- `@fz/game-ui`'s lint allows the two attribute selectors, by file, and
+  `@fz/dev`'s template preset takes an empty `<button fzBarPause>` or
+  `<button fzBarSound>` as filled, which only buttons carrying them skip.
+- Pause acts on the state it shows rather than reading the game's at the
+  press; the games' `pause()` and `resume()` refuse a run in the wrong
+  state, so a press a frame behind the run changes nothing, and once, as
+  the focus leaves the board and the game pauses, it does better than
+  before.
+
+The review found no state of either button different from before, and five
+things, all taken:
+
+1. _`fitsLabel` defaulted to `true`, so a game could drop it unseen:_
+   taken; it is required.
+2. _The outputs promised a run in the state shown, which a press between a
+   change and the next render can miss:_ taken; their docs say the app's
+   handler ignores a run no longer in that state, as the games' do.
+3. _The focus specs read `pointerdown`'s return, no spec read the icons,
+   and one read the label's text as its name:_ taken; the focus stays on an
+   outside button through a click, the icons are pinned, and the name is
+   the query's.
+4. _The lint override covered whole folders, and the label kept a
+   `.btn-text` nothing styles:_ taken.
+5. _The skill didn't say the app hands the board the focus on Resume:_
+   taken.

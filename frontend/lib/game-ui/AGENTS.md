@@ -64,6 +64,28 @@ and is no entry point.
   closes as the overflow's does: `menuSide()` in `src/game_bar/menu_side.ts`
   gives both the side, and the private partial `src/_bar_menu.scss` draws
   both panels.
+- `src/bar_pause/`: `button[fzBarPause]` (`BarPauseComponent`), which makes
+  a button among the app's actions its Pause, filling it with its icon and
+  label: Pause while the run its `outcome` names is `playing`, Resume while
+  it is `paused`, and dimmed otherwise, `aria-disabled` rather than
+  disabled, so the focus never falls off it, a press then doing nothing.
+  A press emits `pauseRun` or `resumeRun`, for the app to pause or go on,
+  handing the board back the focus as it goes on, since a press from the
+  keyboard took it; one with a mouse or a finger leaves the focus where it
+  was. Inside a compact `<fz-game-bar>` it is round, and it shows its label
+  where `fitsLabel` says the bar has room, else a screen reader alone hears
+  it: the bar's stylesheet can't reach inside it, as `bar-actions` reaches
+  the `.btn-text` of the app's own actions.
+- `src/bar_sound/`: `button[fzBarSound]` (`BarSoundComponent`), which makes
+  a button its Sound: a round speaker, named Sound, pressed while `soundOn`,
+  which keeps the focus where it was through a press with a mouse or a
+  finger. The app turns the sound on or off as it is clicked, and where the
+  bar has no room for it offers `soundMenuAction(soundOn)` in its overflow
+  menu instead: "Turn sound off" while it is on, "Turn sound on" while it is
+  off. Both components take the app's own button, which keeps its `type`
+  and its `.action`, by an attribute, so `eslint.config.js` names their
+  selectors as a directive's, and `@fz/dev`'s `templates()` takes
+  `fzBarPause` and `fzBarSound` as what the button says.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
@@ -136,15 +158,15 @@ and is no entry point.
   its `fz-icon`, over its `.value` in monospace digits; and `bar-actions`,
   each `.action` a finger's tap, one marked `aria-disabled`, such as
   Pause, dimmed, the `.settings` gear turning, and below `desktop` the
-  actions round and their `.btn-text` heard but not seen, the bar's gaps
-  tightened. Then, inside the host's state that calls for them,
+  actions round and their `.btn-text` heard but not seen (Pause hides its
+  label itself, through `fitsLabel`), the bar's gaps tightened. Then, inside
+  the host's state that calls for them,
   `bar-figures-inline($icon-gap, $padding)` sets each figure's icon beside
   its value, for a bar with no room for the cards, and, after it, since a
   rail is compact too, `bar-figures-stacked` stacks them on a rail. The
-  mixins hide
-  and show an `fz-icon` alone: a bar that puts something else in a
-  label's place, as Asteroid Breaker does its pilot, hides and shows it
-  with rules of its own.
+  mixins hide and show an `fz-icon` alone: a bar that puts something else
+  in a label's place, as Asteroid Breaker does its pilot, hides and shows
+  it with rules of its own.
   `src/bar.spec.ts` compiles the bars in `src/fixtures/`, which include
   them as a game's does, with `@fz/style/testing`'s `compileStylesheet()`.
 
@@ -156,9 +178,10 @@ and is no entry point.
 - **The app decides the layout.** It binds `placement`, `reversed`,
   `compact` and `home` to what `GameViewportService` says (`home` to
   `barHome`, with the overflow menu led by `withHomeLink()` when that is
-  `none`); the bar never asks the window. A game's stylesheets take the
-  same widths from the mixins, and its bar's stylesheet the bar's mixins,
-  which an app's toolkit can forward by name, as
+  `none`), and Pause's `fitsLabel` to `fitsActionLabels`; the bar never
+  asks the window. A game's stylesheets take the same widths from the
+  mixins, and its bar's stylesheet the bar's mixins, which an app's
+  toolkit can forward by name, as
   `frontend/games/minesweeper/src/app/styles/_index.scss` does.
 - **Imports go one way.** This library imports `@fz/ui`, `@fz/style` and
   Angular, never the site or a game, and the site has no use for it.

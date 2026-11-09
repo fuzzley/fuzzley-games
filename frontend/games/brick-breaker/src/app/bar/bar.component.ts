@@ -10,9 +10,11 @@ import {
   type BarOverflowItem,
   withHomeLink,
 } from "@fz/game-ui/bar_overflow";
+import { BarPauseComponent } from "@fz/game-ui/bar_pause";
+import { BarSoundComponent, soundMenuAction } from "@fz/game-ui/bar_sound";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { IconComponent, type IconName } from "@fz/ui/icon";
+import { IconComponent } from "@fz/ui/icon";
 import { formatCustomPercent } from "../../rules/run/describe";
 import {
   CUSTOM_PERCENT,
@@ -32,14 +34,6 @@ const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
 
 /** Names an action the overflow menu offers. */
 type MenuAction = "sound" | "levels" | "help" | "settings";
-
-/** Describes the Pause button as the level stands. */
-interface PauseButton {
-  readonly label: string;
-  readonly icon: IconName;
-  /** Whether it does anything: there is a level in play or paused. */
-  readonly able: boolean;
-}
 
 /**
  * Shows the game bar: the link home, the game's name and speed, the
@@ -62,6 +56,8 @@ interface PauseButton {
   imports: [
     BarChoiceComponent,
     BarOverflowComponent,
+    BarPauseComponent,
+    BarSoundComponent,
     GameBarComponent,
     IconComponent,
   ],
@@ -133,26 +129,12 @@ export class BarComponent {
   /** Whether the player wants sound. */
   protected readonly sound = computed(() => this.settings.settings().sound);
 
-  /** The Sound button's icon, which shows whether the sound is on. */
-  protected readonly soundIcon = computed<IconName>(() =>
-    this.sound() ? "sound" : "sound-off",
-  );
-
-  protected readonly pauseButton = computed<PauseButton>(() => {
-    const outcome = this.game.outcome();
-    return outcome === "paused"
-      ? { label: "Resume", icon: "play", able: true }
-      : { label: "Pause", icon: "pause", able: outcome === "playing" };
-  });
-
   /** The overflow menu, led by the link home where the bar has no room for it. */
   protected readonly overflowItems = computed<
     readonly BarOverflowItem<MenuAction>[]
   >(() => {
     const actions: readonly BarOverflowAction<MenuAction>[] = [
-      this.sound()
-        ? { id: "sound", label: "Turn sound off", icon: "sound-off" }
-        : { id: "sound", label: "Turn sound on", icon: "sound" },
+      soundMenuAction(this.sound()),
       { id: "levels", label: "Levels", icon: "grid" },
       { id: "help", label: "How to play", icon: "help" },
       { id: "settings", label: "Settings", icon: "settings" },
@@ -161,25 +143,12 @@ export class BarComponent {
   });
 
   /**
-   * Keeps the focus on the board through a press with a pointer, so a level
-   * in play isn't paused by the board losing it.
+   * Goes on with the paused level and hands the board the focus, which a
+   * press on Resume from the keyboard took away.
    */
-  protected keepFocus(event: PointerEvent): void {
-    event.preventDefault();
-  }
-
-  /**
-   * Pauses the level in play, or goes on with a paused one and hands the
-   * board the focus, which a press from the keyboard took away.
-   */
-  protected togglePause(): void {
-    const { outcome } = this.game.run();
-    if (outcome === "playing") {
-      this.game.pause();
-    } else if (outcome === "paused") {
-      this.game.resume();
-      this.handBack.emit();
-    }
+  protected resume(): void {
+    this.game.resume();
+    this.handBack.emit();
   }
 
   /** Turns the sound on or off, which the settings keep. */

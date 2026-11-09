@@ -197,6 +197,12 @@ export function templates({ files }: Files): Config[] {
     ],
     rules: {
       "@angular-eslint/template/button-has-type": "error",
+      // @fz/game-ui's Pause and Sound fill the button they are on with its
+      // icon and its name, which the rule can't see from the app's template.
+      "@angular-eslint/template/elements-content": [
+        "error",
+        { allowList: ["fzBarPause", "fzBarSound"] },
+      ],
       "@angular-eslint/template/prefer-control-flow": "error",
       "@angular-eslint/template/prefer-self-closing-tags": "error",
       "@angular-eslint/template/prefer-template-literal": "error",

@@ -349,8 +349,9 @@ takes for the specs' helpers.
     the figures are the level, the score, the lives as hearts and the
     streak's multiplier while it counts; below it, the score and the lives
     alone, the lives as a number, one over the other across the bar, as a
-    score runs to six figures. Pause and Sound keep the focus on the board
-    when pressed with a mouse or a finger. It hands the board back the focus
+    score runs to six figures. Pause and Sound are `@fz/game-ui`'s
+    (`fzBarPause`, `fzBarSound`), which keep the focus on the board when
+    pressed with a mouse or a finger. It hands the board back the focus
     as Resume goes on, and asks the app for the levels, How to play and the
     settings.
   - `levels/` — the Levels dialog: each set under its name, its levels as

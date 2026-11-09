@@ -223,6 +223,28 @@ describe("templates", () => {
     ]);
   });
 
+  it("asks a button for what it says", async () => {
+    const problems = await lint({
+      "src/thing.html": '<button type="button"></button>\n',
+    });
+
+    expect(problems["src/thing.html"]).toEqual([
+      "@angular-eslint/template/elements-content",
+    ]);
+  });
+
+  it("takes @fz/game-ui's Pause and Sound as what their buttons say", async () => {
+    const problems = await lint({
+      "src/thing.html": [
+        '<button type="button" fzBarPause outcome="playing"></button>',
+        '<button type="button" fzBarSound [soundOn]="true"></button>',
+        "",
+      ].join("\n"),
+    });
+
+    expect(problems["src/thing.html"]).toEqual([]);
+  });
+
   it("asks a switch what it shows for the values it doesn't name", async () => {
     const problems = await lint({ "src/thing.html": leftSwitch() });
 
