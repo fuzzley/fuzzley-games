@@ -4,14 +4,15 @@ import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import {
+  canvasChanged,
   onFirstFrame,
   onKeyDown,
   onKeyUp,
   onPlayerAway,
   picturesWhenAsked,
-  pixelRatioOf,
   retakeFrames,
   uniqueSceneKey,
+  viewportOf,
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
@@ -337,12 +338,8 @@ export class BricksScene extends Scene {
    * finger's room or the field's height changed.
    */
   private moved(): boolean {
-    const viewport = this.viewport;
-    if (!viewport) return true;
     return (
-      viewport.width !== this.scale.width ||
-      viewport.height !== this.scale.height ||
-      viewport.pixelRatio !== pixelRatioOf(this) ||
+      canvasChanged(this, this.viewport) ||
       this.chrome !== this.surroundings.insets() ||
       this.fingerRoom !== this.options.fingerRoom() ||
       this.down !== this.options.frame().field.height
@@ -357,15 +354,10 @@ export class BricksScene extends Scene {
   private measure(): boolean {
     this.chrome = this.surroundings.insets();
     this.fingerRoom = this.options.fingerRoom();
-    const viewport: Viewport = {
-      width: this.scale.width,
-      height: this.scale.height,
-      pixelRatio: pixelRatioOf(this),
-      insets: {
-        ...this.chrome,
-        bottom: this.chrome.bottom + this.fingerRoom,
-      },
-    };
+    const viewport = viewportOf(this, {
+      ...this.chrome,
+      bottom: this.chrome.bottom + this.fingerRoom,
+    });
     const last = this.viewport ? this.metrics : null;
     this.viewport = viewport;
     this.down = this.options.frame().field.height;

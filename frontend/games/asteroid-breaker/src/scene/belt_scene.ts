@@ -5,14 +5,15 @@ import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import {
+  canvasChanged,
   onFirstFrame,
   onKeyDown,
   onKeyUp,
   onPlayerAway,
   picturesWhenAsked,
-  pixelRatioOf,
   retakeFrames,
   uniqueSceneKey,
+  viewportOf,
 } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
@@ -419,14 +420,10 @@ export class BeltScene extends Scene {
    * board's setting or the field's size changed.
    */
   private moved(): boolean {
-    const viewport = this.viewport;
-    if (!viewport) return true;
+    if (canvasChanged(this, this.viewport)) return true;
     // Each wave brings a torus of its own, of the same size or not.
     const { torus } = this.options.frame().field;
     return (
-      viewport.width !== this.scale.width ||
-      viewport.height !== this.scale.height ||
-      viewport.pixelRatio !== pixelRatioOf(this) ||
       this.chrome !== this.surroundings.insets() ||
       this.board !== this.options.board() ||
       this.torus.width !== torus.width ||
@@ -439,12 +436,7 @@ export class BeltScene extends Scene {
     this.chrome = this.surroundings.insets();
     this.board = this.options.board();
     this.torus = this.options.frame().field.torus;
-    const viewport: Viewport = {
-      width: this.scale.width,
-      height: this.scale.height,
-      pixelRatio: pixelRatioOf(this),
-      insets: this.chrome,
-    };
+    const viewport = viewportOf(this, this.chrome);
     this.viewport = viewport;
     this.metrics = fieldMetrics(viewport, this.board, this.torus);
     const deck = deckLayout(viewport, this.board, this.torus);

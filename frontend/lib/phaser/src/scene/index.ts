@@ -14,3 +14,4 @@ export {
   whenSceneEnds,
 } from "./scene_lifetime";
 export { atlasFrameOf } from "./shapes_frame";
+export { canvasChanged, viewportOf } from "./viewport";

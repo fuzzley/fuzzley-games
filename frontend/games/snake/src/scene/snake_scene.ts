@@ -2,11 +2,13 @@ import { isShortcut } from "@fz/core/keys";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import {
+  canvasChanged,
   onFirstFrame,
   onKeyDown,
   pixelRatioOf,
   retakeFrames,
   uniqueSceneKey,
+  viewportOf,
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { Input, Scene } from "phaser";
@@ -136,9 +138,7 @@ export class SnakeScene extends Scene {
     const viewport = this.viewport;
     if (!viewport) return true;
     return (
-      viewport.width !== this.scale.width ||
-      viewport.height !== this.scale.height ||
-      viewport.pixelRatio !== pixelRatioOf(this) ||
+      canvasChanged(this, viewport) ||
       viewport.insets !== this.surroundings.insets()
     );
   }
@@ -148,12 +148,7 @@ export class SnakeScene extends Scene {
    * whether its squares changed size.
    */
   private measure(): boolean {
-    const viewport: Viewport = {
-      width: this.scale.width,
-      height: this.scale.height,
-      pixelRatio: pixelRatioOf(this),
-      insets: this.surroundings.insets(),
-    };
+    const viewport = viewportOf(this, this.surroundings.insets());
     const square = this.viewport ? this.metrics.square : 0;
     this.viewport = viewport;
     this.metrics = boardMetrics(viewport, BOARD_SIZE);
