@@ -1,3 +1,4 @@
+import { recordingPrinter } from "@fz/dev/script";
 import { SPEEDS } from "../src/rules/speed";
 import { WAVES, waveEntryOf } from "../src/rules/waves/waves";
 import { WIDEST, playWave } from "../src/testing/autopilot";
@@ -80,15 +81,13 @@ function reported(
 async function ran(
   args: readonly string[],
   api: ReportApi = apiOf(),
-): Promise<{ code: number; out: string[]; err: string[] }> {
-  const out: string[] = [];
-  const err: string[] = [];
+): Promise<{ code: number; out: readonly string[]; err: readonly string[] }> {
+  const printer = recordingPrinter();
   const code = await run(args, {
     load: () => Promise.resolve(api),
-    print: (line) => out.push(line),
-    printError: (line) => err.push(line),
+    ...printer,
   });
-  return { code, out, err };
+  return { code, out: printer.out, err: printer.err };
 }
 
 describe("readCommandLine", () => {

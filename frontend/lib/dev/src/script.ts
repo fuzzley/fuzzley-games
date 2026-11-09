@@ -39,6 +39,33 @@ export const CONSOLE: Printer = {
   },
 };
 
+/** Says where a script prints, and keeps each line, for a spec to read back. */
+export interface RecordingPrinter extends Printer {
+  /** The lines of output, in the order printed. */
+  readonly out: readonly string[];
+  /** The lines of what went wrong, in the order printed. */
+  readonly err: readonly string[];
+}
+
+/**
+ * Returns a printer that keeps each line it is given, for a spec of a
+ * script: its output in `out`, and what went wrong in `err`.
+ */
+export function recordingPrinter(): RecordingPrinter {
+  const out: string[] = [];
+  const err: string[] = [];
+  return {
+    out,
+    err,
+    print: (line) => {
+      out.push(line);
+    },
+    printError: (line) => {
+      err.push(line);
+    },
+  };
+}
+
 /** The values a command line gives a script's options. */
 export type ArgValues<Options extends ParseArgsOptionsConfig> = ReturnType<
   typeof parseArgs<{ args: string[]; options: Options }>

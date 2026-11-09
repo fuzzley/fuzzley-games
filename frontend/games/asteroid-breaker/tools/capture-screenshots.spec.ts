@@ -1,4 +1,5 @@
 import { formatPoints } from "@fz/core/format";
+import { recordingPrinter } from "@fz/dev/script";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
 import { NEW_SHIP_GUARD_MS } from "../src/rules/tuning";
 import { WAVES } from "../src/rules/waves/waves";
@@ -18,14 +19,10 @@ const FIELD = { width: 72, height: 40 };
  */
 async function ran(
   args: readonly string[],
-): Promise<{ code: number; out: string[]; err: string[] }> {
-  const out: string[] = [];
-  const err: string[] = [];
-  const code = await run(args, {
-    print: (line) => out.push(line),
-    printError: (line) => err.push(line),
-  });
-  return { code, out, err };
+): Promise<{ code: number; out: readonly string[]; err: readonly string[] }> {
+  const printer = recordingPrinter();
+  const code = await run(args, printer);
+  return { code, out: printer.out, err: printer.err };
 }
 
 describe("run", () => {

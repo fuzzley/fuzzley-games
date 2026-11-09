@@ -27,7 +27,7 @@ import {
   writeImage,
   writeSiteImages,
 } from "./screenshots.ts";
-import type { Printer } from "./script.ts";
+import { recordingPrinter } from "./script.ts";
 import { type Reply, FakeBrowser } from "./testing/fake_browser.ts";
 
 // One thread per image, so encoding the 2560 × 1440 preview doesn't starve
@@ -423,22 +423,10 @@ describe("takenUpBoard", () => {
   );
 });
 
-/** Where a spec prints, and what it printed, as output and as what went wrong. */
-function printing(): Printer & { out: string[]; err: string[] } {
-  const out: string[] = [];
-  const err: string[] = [];
-  return {
-    out,
-    err,
-    print: (line) => out.push(line),
-    printError: (line) => err.push(line),
-  };
-}
-
 describe("keepShot", () => {
   it("writes the site's images of a shot, the thumbnail cropped, and says what it shows and how large each is", async () => {
     const images = join(folder, "kept");
-    const printer = printing();
+    const printer = recordingPrinter();
 
     const code = await keepShot(
       { png: await capture(), thumbRegion: BOARD, says: "Took up the run." },
@@ -462,7 +450,7 @@ describe("keepShot", () => {
 
   it("says why a shot was missed, writes nothing, and fails", async () => {
     const images = join(folder, "missed");
-    const printer = printing();
+    const printer = recordingPrinter();
 
     const code = await keepShot(
       { problem: "the board did not draw" },
@@ -551,12 +539,12 @@ describe("runScreenshotScript", () => {
     of: ScreenshotScript = script(),
   ): Promise<{
     code: number;
-    out: string[];
-    err: string[];
+    out: readonly string[];
+    err: readonly string[];
     started: ChromeOptions[];
   }> {
     const started: ChromeOptions[] = [];
-    const printer = printing();
+    const printer = recordingPrinter();
     const code = await runScreenshotScript(of, {
       args,
       runChrome: fakeChrome(started),
