@@ -23,13 +23,6 @@ function keywords(): string[] {
   return (content ?? "").split(",").map((term) => term.trim());
 }
 
-/** Returns the address of each script the page loads, in order. */
-function scriptSources(): string[] {
-  return [...indexHtml.matchAll(/<script\b[^>]*\ssrc="([^"]*)"/g)].map(
-    (match) => match[1],
-  );
-}
-
 describe("index.html", () => {
   it("lists every game the browser does, in its order, without JavaScript", () => {
     expect(noscriptGames()).toEqual(ITEMS.map((item) => item.name));
@@ -41,8 +34,10 @@ describe("index.html", () => {
     expect(keywords()).toEqual(expect.arrayContaining(names));
   });
 
-  // Relative, as the build is served from a folder of the site.
-  it("picks the palette before any other script runs, from theme.js beside it", () => {
-    expect(scriptSources()[0]).toBe("theme.js");
+  // @fz/style's Vite plugin writes their tags first in the head, at the base.
+  it("leaves theme.js and the icons to the plugin that writes their tags, so each loads once", () => {
+    expect(indexHtml).not.toMatch(
+      /theme\.js|favicon\.(?:ico|svg)|apple-touch-icon\.png/,
+    );
   });
 });

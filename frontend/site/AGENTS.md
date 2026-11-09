@@ -78,9 +78,10 @@ Sass rules every app keeps among them. Paths are relative to
   `angularPlugins()`, as the games do, so an edited component's template
   or styles swap into the running page.
   `vite.config.ts` also adds `@fz/style`'s `fuzzleyStyle()`, which makes
-  `/theme.js`, the first script `index.html` loads, which picks the palette
-  before the page paints, from the same list of palettes the app imports, so
-  the two can't drift. `docs/operations.md` covers the details.
+  `/theme.js` and writes the tag that loads it first in `index.html`'s head,
+  with the icons' links; `theme.js` picks the palette before the page
+  paints, from the same list of palettes the app imports, so the two can't
+  drift. `docs/operations.md` covers the details.
 - A script exports its logic as functions and runs only when it is the
   file Node was started with (`if (import.meta.main)`), so
   `tools/*.spec.ts` can import and test it. A dependency a test needs to

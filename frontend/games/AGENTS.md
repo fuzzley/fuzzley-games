@@ -47,10 +47,11 @@ to `frontend/games/`.
   it captures and how it sets them up, and hands them to
   `runScreenshotScript()`, which reads the command line, checks that the
   game's dev server answers, and runs the capture in a headless Chrome.
-- **It shares the palette with the site.** `index.html` loads `theme.js`
-  first, which `@fz/style`'s Vite plugin writes (`gameConfig()` adds it):
-  it puts the palette the player chose, on the site or in any game, on the
-  page as `data-theme` before anything paints. `ThemeService` from
+- **It shares the palette with the site.** `@fz/style`'s Vite plugin
+  (`gameConfig()` adds it) writes `theme.js` and the tag that loads it first
+  in `index.html`'s head, with the icons' links, so the page writes none of
+  them. `theme.js` puts the palette the player chose, on the site or in any
+  game, on the page as `data-theme` before anything paints. `ThemeService` from
   `@fz/ui/theme` takes it from there, and the game's settings offer the
   choice.
 - **It wears the games' chrome.** `@fz/game-ui`'s game bar, breakpoints and

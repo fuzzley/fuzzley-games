@@ -4,7 +4,7 @@
 
 import { fileURLToPath } from "node:url";
 import { compileString } from "sass";
-import type { Plugin } from "vite";
+import type { HtmlTagDescriptor, Plugin } from "vite";
 import { fuzzballSvg } from "../fuzzball.ts";
 import { fuzzballIco, fuzzballPng } from "./fuzzball_raster.ts";
 import { themeBootstrapScript } from "./theme_script.ts";
@@ -13,7 +13,7 @@ import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "../themes.ts";
 /** The file the page loads, before anything else, to pick its palette. */
 export const THEME_SCRIPT = "theme.js";
 
-/** The tab's icon, which the page links beside theme.js. */
+/** The tab's icon, which `headTags()` links after theme.js. */
 export const FAVICON = "favicon.svg";
 
 /** The tab's icon for a browser that draws no SVG icon. */
@@ -27,16 +27,14 @@ const TOUCH_ICON_SIZE = 180;
 
 /** Returns the plugins every app that uses @fz/style adds. */
 export function fuzzleyStyle(): Plugin[] {
-  return [themeBootstrap(), icons()];
+  return [themeBootstrap(), icons(), headTags()];
 }
 
 /**
  * Serves theme.js from the dev server and writes it into the build, at the
  * top of the app's own base, made from the palettes in themes.ts.
  *
- * The page loads it with a plain tag, first in its head, which Vite leaves
- * alone: `<script src="theme.js" vite-ignore></script>`, or `/theme.js` for
- * an app at the root of the site.
+ * The page loads it from the tag `headTags()` writes.
  */
 export function themeBootstrap(): Plugin {
   return generatedFiles("fz-theme-bootstrap", [
@@ -60,8 +58,7 @@ export function themeBootstrap(): Plugin {
  * to the palette in use once the app starts; and, for what shows no SVG,
  * favicon.ico and apple-touch-icon.png, in the light default's accent.
  *
- * The page links them as it loads theme.js, each with `vite-ignore`, the SVG
- * after the ICO so that a browser that draws both picks it.
+ * The page links them from the tags `headTags()` writes.
  */
 export function icons(): Plugin {
   let colors: ReadonlyMap<string, ReadonlyMap<string, string>> | undefined;
@@ -95,6 +92,47 @@ export function icons(): Plugin {
         }),
     },
   ]);
+}
+
+/**
+ * Writes, at the top of every page's head, the tags that load what
+ * `themeBootstrap()` and `icons()` make, at the app's base: theme.js first,
+ * so it picks the palette before anything paints, then the icons, the ICO
+ * before the SVG, so that a browser that draws both picks the SVG, as the
+ * ICO's `sizes` also sees to, and the home screen icon last.
+ *
+ * Vite writes them after it has gathered the page's own files, so it leaves
+ * them as they are, and the page keeps no copy of its own. They go in at its
+ * last stage (`order: "post"`), after the tags of any plugin at the usual
+ * one, so theme.js stays first whatever a config lists after it. They come
+ * before the page's `<meta charset>`, well inside the first 1024 bytes a
+ * browser looks for it in.
+ */
+export function headTags(): Plugin {
+  let base = "/";
+  const tag = (
+    name: string,
+    attrs: Readonly<Record<string, string>>,
+  ): HtmlTagDescriptor => ({ tag: name, attrs, injectTo: "head-prepend" });
+  return {
+    name: "fz-head-tags",
+    configResolved(config) {
+      base = config.base;
+    },
+    transformIndexHtml: {
+      order: "post",
+      handler: () => [
+        tag("script", { src: base + THEME_SCRIPT }),
+        tag("link", { rel: "icon", href: base + FAVICON_ICO, sizes: "32x32" }),
+        tag("link", {
+          rel: "icon",
+          type: "image/svg+xml",
+          href: base + FAVICON,
+        }),
+        tag("link", { rel: "apple-touch-icon", href: base + TOUCH_ICON }),
+      ],
+    },
+  };
 }
 
 /** Returns each palette's roles' colors, by the palette's id, from its Sass. */
