@@ -14,7 +14,12 @@ import { defineConfig } from "eslint/config";
 // report and the screenshots count on playing the same from a seed. A file
 // of src/testing/ off this list is held to no fence, and may take Angular,
 // so one they import is flagged until it joins the list.
-const SCRIPT_HELPERS = ["src/testing/autopilot.ts", "src/testing/kept_run.ts"];
+const SCRIPT_HELPERS = [
+  "src/testing/script_api.ts",
+  "src/testing/screenshot_api.ts",
+  "src/testing/autopilot.ts",
+  "src/testing/kept_run.ts",
+];
 
 export default defineConfig(
   typescript({

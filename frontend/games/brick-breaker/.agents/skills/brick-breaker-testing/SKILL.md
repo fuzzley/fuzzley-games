@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-testing
-description: How Brick Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom and throwBall, the autopilot that holds every level to being cleared, the saved game's round trip, the scene run for real with runScene and a FakeShell, the shell's specs on its small levels through provideSpecLevels and tick, and the contrast spec over every palette. Triggers on: brick breaker spec, brick breaker test, fieldFrom, throwBall, playWithoutBall, autopilot spec, playLevel, FakeShell, startBoard, provideSpecLevels, SPEC_LEVEL, playToClear, keptRun, brick breaker coverage, frontend/games/brick-breaker tests.
+description: How Brick Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom and throwBall, the autopilot that holds every level to being cleared, the saved game's round trip, the scene run for real with runScene and a FakeShell, the shell's specs on its small levels through provideSpecLevels and tick, and the contrast spec over every palette. Triggers on: brick breaker spec, brick breaker test, fieldFrom, throwBall, playWithoutBall, autopilot spec, playLevel, FakeShell, startBoard, provideSpecLevels, SPEC_LEVEL, playToClear, keptRun, SCREENSHOT_API, script_api, shownRun, brick breaker coverage, frontend/games/brick-breaker tests.
 ---
 
 # Testing Brick Breaker
@@ -40,8 +40,10 @@ Run these from `frontend/games/brick-breaker/`, or as
   folders of its three Vitest projects, each a config of its own, so each
   starts only what its specs need:
   - `pure`, the specs of the rules and the view, but for the simulations,
-    and the report's in `tools/`, which plays levels it makes up, in Node,
-    with neither the setup below nor Analog's plugin;
+    and the scripts' in `tools/`, the report's, which plays levels it makes
+    up, and the screenshots', which holds the run it stores to what the
+    rules take up, in Node, with neither the setup below nor Analog's
+    plugin;
   - `sim`, the specs that play every level
     (`src/rules/levels/every_level/`), in Node too, without coverage;
   - `dom`, every other spec, the scene's, the shell's and
@@ -125,7 +127,12 @@ Run these from `frontend/games/brick-breaker/`, or as
   thing changed, and each is expected to be refused.
 - `keptRun()` (`src/testing/kept_run.ts`) keeps a run begun at a level, the
   bricks it names broken or worn through the rules, as the screenshots'
-  script stores one.
+  script stores one, loading it through `src/testing/screenshot_api.ts`'s
+  `SCREENSHOT_API`, typed by `src/testing/script_api.ts`, with the version
+  the run is kept under (`SAVED_GAME_VERSION`), which
+  `src/testing/screenshot_api.spec.ts` holds to the rules'.
+  `tools/capture-screenshots.spec.ts` holds the script's run (`RUN`) so,
+  stamped with that version and taken up by the rules (`shownRun()`).
 
 ## The View
 
