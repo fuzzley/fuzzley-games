@@ -32,7 +32,6 @@ describe("SettingsDrawerComponent", () => {
   });
 
   afterEach(() => {
-    localStorage.clear();
     delete document.documentElement.dataset["theme"];
   });
 

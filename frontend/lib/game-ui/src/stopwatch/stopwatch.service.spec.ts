@@ -1,14 +1,6 @@
 import { TestBed } from "@angular/core/testing";
+import { setPageVisibility } from "@fz/ui/testing";
 import { NOW, StopwatchService } from "./stopwatch.service";
-
-/** Sets the page's visibility, as switching tabs does, and says so. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
-}
 
 describe("StopwatchService", () => {
   beforeEach(() => {
@@ -17,7 +9,6 @@ describe("StopwatchService", () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    Reflect.deleteProperty(document, "visibilityState");
   });
 
   /** Has the stopwatch read the time from a clock the spec moves by hand. */
@@ -152,7 +143,7 @@ describe("StopwatchService", () => {
     const stopwatch = started();
     vi.advanceTimersByTime(1000);
 
-    setVisibility("hidden");
+    setPageVisibility("hidden");
     vi.advanceTimersByTime(3000);
 
     expect(stopwatch.seconds()).toBe(1);
@@ -160,8 +151,8 @@ describe("StopwatchService", () => {
 
   it("goes on when the page is back in sight", () => {
     const stopwatch = started();
-    setVisibility("hidden");
-    setVisibility("visible");
+    setPageVisibility("hidden");
+    setPageVisibility("visible");
 
     vi.advanceTimersByTime(2000);
 
@@ -170,8 +161,8 @@ describe("StopwatchService", () => {
 
   it("stays stopped when the page comes back in sight", () => {
     const stopwatch = TestBed.inject(StopwatchService);
-    setVisibility("hidden");
-    setVisibility("visible");
+    setPageVisibility("hidden");
+    setPageVisibility("visible");
 
     vi.advanceTimersByTime(2000);
 
@@ -179,7 +170,7 @@ describe("StopwatchService", () => {
   });
 
   it("starts paused on a page out of sight", () => {
-    setVisibility("hidden");
+    setPageVisibility("hidden");
 
     const stopwatch = started();
     vi.advanceTimersByTime(2000);

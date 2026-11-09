@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { pictureOf } from "../../testing/field_picture";
 import { type GameOptions, pauseAtEnd, playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
@@ -16,9 +17,19 @@ const NEARLY_WON = ["*1_", "121", ".1*"];
  */
 const NEARLY_LOST = ["x1_", "231", "*.F"];
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
+
 /** Stores stats as a player's browser would hold them, before the app reads them. */
 function storeStats(stats: object): void {
-  localStorage.setItem(STATS_KEY, JSON.stringify({ version: 1, ...stats }));
+  storage.setItem(STATS_KEY, JSON.stringify({ version: 1, ...stats }));
 }
 
 /**

@@ -1,18 +1,19 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { provideMemoryStorage } from "../testing";
 import { ThemeService } from "./theme.service";
 import { ThemePickerComponent } from "./theme_picker.component";
 
 describe("ThemePickerComponent", () => {
   beforeEach(() => {
-    localStorage.clear();
     document.documentElement.dataset["theme"] = "classic";
   });
 
   async function renderPicker(label?: string): Promise<UserEvent> {
     await render(ThemePickerComponent, {
       inputs: label === undefined ? {} : { label },
+      providers: [provideMemoryStorage()],
     });
     return userEvent.setup();
   }

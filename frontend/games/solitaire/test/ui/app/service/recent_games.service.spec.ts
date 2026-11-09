@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import {
   RecentGamesService,
   type RecentGame,
@@ -14,6 +15,16 @@ import {
 } from "@test/support/ui/catalog_mock";
 
 const STORAGE_KEY = "fsolitaire-recent-games";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** Klondike by the mock catalog's starting rules. */
 const KLONDIKE: RecentGame = {
@@ -34,7 +45,7 @@ function saved(games: readonly unknown[]): unknown {
 /** Starts the service over the mock catalog, with `stored` already saved. */
 function start(stored?: unknown): Harness {
   if (stored !== undefined) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    storage.setItem(STORAGE_KEY, JSON.stringify(stored));
   }
   const catalog = createMockCatalog(createMockGameModel());
   TestBed.configureTestingModule({
@@ -95,6 +106,9 @@ describe("RecentGamesService", () => {
     start().catalog.catalog.select("freecell");
     TestBed.tick();
     TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage)],
+    });
 
     const later = start();
 

@@ -16,8 +16,6 @@ describe("GameDocumentationService", () => {
   let catalog: GameCatalogService;
 
   beforeEach(() => {
-    localStorage.clear();
-
     TestBed.configureTestingModule({
       providers: [
         // A route per game, so selecting one has somewhere to navigate.

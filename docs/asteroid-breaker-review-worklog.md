@@ -2418,3 +2418,39 @@ The review found one regression:
 3. _No spec asked the fake for a light scheme once it was dark:_ taken.
 4. _The fake copied `@fz/style`'s `ColorMode`:_ taken.
 5. _Docs:_ taken.
+
+### Step 17d: finding 22, a store in memory for each test's app
+
+Built on `ul-storage`. `BROWSER_STORAGE` had no user outside `@fz/ui`, so
+the games' specs stored in the page's own `localStorage`, which jsdom keeps
+for a whole spec file, and five games' setups cleared it before every test.
+`@fz/ui/testing` now has `MemoryStorage`, a `Storage` held in memory, and
+`provideMemoryStorage()`, which hands the app a new one, or the one a spec
+holds, to store an entry in, read one back from, or hand the app again after
+`TestBed.resetTestingModule()`, as a later visit finds what the last kept.
+No spec touches the page's `localStorage` now but those of `BROWSER_STORAGE`
+and `MemoryStorage` themselves. The games' remaining copies of a hidden
+page's helper, and `@fz/game-ui`'s two, take `setPageVisibility()`.
+
+Where it went other than planned:
+
+- Each game's setup gives every test's app a store of its own, not only the
+  specs that store an entry: many more specs wrote through the app than the
+  32 files that named `localStorage`.
+- The Solitaire Collection's setup no longer gives Node a `localStorage` of
+  its own to clear, and Node's warning that `localStorage` is not available
+  without `--localstorage-file`, which every earlier run printed, is gone
+  from `yarn verify`.
+
+The review found nothing that let one test's store reach another's:
+
+1. _No spec held that a store handed with nothing given is a new one:_
+   taken; one resets the module, provides again and finds nothing stored.
+2. _The `fuzzley-ui` skill's storage row and its setup step didn't name
+   the new helpers:_ taken.
+3. _`@fz/game-ui` kept two copies of a hidden page's helper, in the play
+   room's and the stopwatch's specs:_ taken; both take `setPageVisibility()`
+   by its name.
+4. _`MemoryStorage` stored a value as given, where the browser's turns it
+   into a string, and its doc didn't say so:_ taken; it stores `String()` of
+   the value, as `Storage` does, with a spec.

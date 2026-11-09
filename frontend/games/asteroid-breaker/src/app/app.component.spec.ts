@@ -11,6 +11,11 @@ import {
 import { ARRIVAL_MS } from "@fz/ui/announcer";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import {
+  MemoryStorage,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { Textures } from "phaser";
 import { fieldFor, steerField } from "../rules/field/field";
 import { createRun, startWave, waveStart } from "../rules/run/run";
@@ -33,6 +38,16 @@ import { paintRoles } from "../testing/roles";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** Renders the game on a fake canvas, and waits for its scene to be drawn. */
 async function renderApp(): Promise<GameService> {
@@ -80,10 +95,7 @@ function storeRun(): void {
     broughtHome: [],
     tuned: false,
   });
-  localStorage.setItem(
-    SAVED_GAME_KEY,
-    JSON.stringify({ version: 1, ...saved }),
-  );
+  storage.setItem(SAVED_GAME_KEY, JSON.stringify({ version: 1, ...saved }));
 }
 
 /**
@@ -108,18 +120,8 @@ async function settle(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-/** Says the page went out of sight, or came back. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
-}
-
 describe("AppComponent", () => {
   afterEach(() => {
-    Reflect.deleteProperty(document, "visibilityState");
     vi.restoreAllMocks();
   });
 
@@ -161,7 +163,7 @@ describe("AppComponent", () => {
   it("pauses the wave in play as the page goes out of sight", async () => {
     const game = await startedApp();
 
-    setVisibility("hidden");
+    setPageVisibility("hidden");
 
     expect(game.outcome()).toBe("paused");
   });
@@ -169,7 +171,7 @@ describe("AppComponent", () => {
   it("leaves the wave going as the page comes back into sight", async () => {
     const game = await startedApp();
 
-    setVisibility("visible");
+    setPageVisibility("visible");
 
     expect(game.outcome()).toBe("playing");
   });
@@ -178,7 +180,7 @@ describe("AppComponent", () => {
     const game = await renderApp();
     clearToNext(game);
 
-    setVisibility("hidden");
+    setPageVisibility("hidden");
 
     expect(game.outcome()).toBe("ready");
   });

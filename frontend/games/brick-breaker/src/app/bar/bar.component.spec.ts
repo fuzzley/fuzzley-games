@@ -4,6 +4,7 @@ import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import {
   SPEC_LEVEL,
   loseBall,
@@ -15,6 +16,16 @@ import {
 import { GameService } from "../play/game.service";
 import { SETTINGS_KEY, SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** What a spec gets back from rendering the bar. */
 interface RenderedBar {
@@ -149,7 +160,7 @@ describe("BarComponent", () => {
     describe("Custom's ball speed, beneath the speeds", () => {
       /** Renders the bar over a run at Custom, its ball at a percent, and opens the speed's menu. */
       async function renderAtCustom(percent = 100): Promise<RenderedBar> {
-        localStorage.setItem(
+        storage.setItem(
           SETTINGS_KEY,
           JSON.stringify({
             version: 1,

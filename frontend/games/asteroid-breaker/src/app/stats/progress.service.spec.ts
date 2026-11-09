@@ -1,25 +1,30 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { SECTOR_WAVES, provideSpecWaves } from "../../testing/play";
 import { PROGRESS_KEY, ProgressService } from "./progress.service";
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [
+      provideMemoryStorage(storage),
+      ...provideSpecWaves(SECTOR_WAVES),
+    ],
+  });
+});
+
 /** Returns what is stored, as a player's browser holds it. */
 function stored(): unknown {
-  return JSON.parse(localStorage.getItem(PROGRESS_KEY) ?? "null");
+  return JSON.parse(storage.getItem(PROGRESS_KEY) ?? "null");
 }
 
 /** Stores progress as a player's browser would hold it, at the version the service writes. */
 function store(progress: object): void {
-  localStorage.setItem(
-    PROGRESS_KEY,
-    JSON.stringify({ version: 1, ...progress }),
-  );
+  storage.setItem(PROGRESS_KEY, JSON.stringify({ version: 1, ...progress }));
 }
-
-beforeEach(() => {
-  TestBed.configureTestingModule({
-    providers: provideSpecWaves(SECTOR_WAVES),
-  });
-});
 
 describe("ProgressService", () => {
   it("opens the first sector to a new player, and no other", () => {
@@ -54,7 +59,7 @@ describe("ProgressService", () => {
   it("stores nothing for a sector already reached", () => {
     store({ reached: ["far"] });
     const progress = TestBed.inject(ProgressService);
-    localStorage.clear();
+    storage.clear();
 
     progress.record({ reached: ["far"] });
 
@@ -65,7 +70,10 @@ describe("ProgressService", () => {
     TestBed.inject(ProgressService).record({ reached: ["endless"] });
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: provideSpecWaves(SECTOR_WAVES),
+      providers: [
+        provideMemoryStorage(storage),
+        ...provideSpecWaves(SECTOR_WAVES),
+      ],
     });
 
     const progress = TestBed.inject(ProgressService);

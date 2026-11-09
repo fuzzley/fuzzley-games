@@ -1,17 +1,20 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { provideMemoryStorage } from "../testing";
 import { ThemeService } from "./theme.service";
 import { ThemeMenuComponent } from "./theme_menu.component";
 
 describe("ThemeMenuComponent", () => {
   beforeEach(() => {
-    localStorage.clear();
     document.documentElement.dataset["theme"] = "classic";
   });
 
   async function renderMenu(compact = false): Promise<UserEvent> {
-    await render(ThemeMenuComponent, { inputs: { compact } });
+    await render(ThemeMenuComponent, {
+      inputs: { compact },
+      providers: [provideMemoryStorage()],
+    });
     return userEvent.setup();
   }
 

@@ -2,14 +2,27 @@ import { TestBed } from "@angular/core/testing";
 import { fuzzballSvg } from "@fz/style/fuzzball";
 import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "../storage";
-import { type FakeViewport, installFakeViewport } from "../testing";
+import {
+  type FakeViewport,
+  MemoryStorage,
+  installFakeViewport,
+  provideMemoryStorage,
+} from "../testing";
 import { THEME_COLOR_ROLE, ThemeService } from "./theme.service";
+
+/** A store that refuses every write, as a full one does. */
+class FullStorage extends MemoryStorage {
+  override setItem(): void {
+    throw new DOMException("full", "QuotaExceededError");
+  }
+}
 
 describe("ThemeService", () => {
   let viewport: FakeViewport | null = null;
+  let memory: MemoryStorage;
 
   beforeEach(() => {
-    localStorage.clear();
+    memory = new MemoryStorage();
     document.documentElement.dataset["theme"] = "pastel";
   });
 
@@ -23,13 +36,15 @@ describe("ThemeService", () => {
     }
   });
 
-  /** Returns the service, with the browser's storage replaced if given. */
+  /** Returns the service, over the given store, or one in memory. */
   function service(storage?: Storage | null): ThemeService {
-    if (storage !== undefined) {
-      TestBed.configureTestingModule({
-        providers: [{ provide: BROWSER_STORAGE, useValue: storage }],
-      });
-    }
+    TestBed.configureTestingModule({
+      providers: [
+        storage === undefined
+          ? provideMemoryStorage(memory)
+          : { provide: BROWSER_STORAGE, useValue: storage },
+      ],
+    });
     return TestBed.inject(ThemeService);
   }
 
@@ -76,15 +91,6 @@ describe("ThemeService", () => {
       "beforeend",
       '<style id="palette">[data-theme] { --fz-accent: #4cc3ff; }</style>',
     );
-  }
-
-  /** Returns a store that refuses every write, as a full one does. */
-  function fullStorage(): Storage {
-    const storage = Object.create(localStorage) as Storage;
-    storage.setItem = () => {
-      throw new DOMException("full", "QuotaExceededError");
-    };
-    return storage;
   }
 
   it("starts from the palette theme.js already chose", () => {
@@ -138,11 +144,11 @@ describe("ThemeService", () => {
   it("remembers a chosen palette", () => {
     service().select("midnight");
 
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("midnight");
+    expect(memory.getItem(THEME_STORAGE_KEY)).toBe("midnight");
   });
 
   it("still applies a palette the browser won't store", () => {
-    const theme = service(fullStorage());
+    const theme = service(new FullStorage());
 
     theme.select("casino");
     TestBed.tick();

@@ -11,12 +11,23 @@ import {
 } from "@/engine/render/deck/card_deck";
 import { COMPACT_MAX_WIDTH_PX } from "@fz/game-ui/breakpoints";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 
 /** A window narrow enough that the board compacts, as on a phone. */
 const PHONE_WIDTH = COMPACT_MAX_WIDTH_PX - 200;
 
 /** A window wide enough that it does not. */
 const WIDE_WIDTH = COMPACT_MAX_WIDTH_PX + 200;
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /** Returns a service built through the injector, which its fields need. */
 function buildSettings(): PresentationSettingsService {
@@ -26,7 +37,7 @@ function buildSettings(): PresentationSettingsService {
 
 /** Returns what is currently in the service's own storage key. */
 function stored(): Record<string, unknown> | null {
-  const raw = localStorage.getItem("fsolitaire-presentation");
+  const raw = storage.getItem("fsolitaire-presentation");
   return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
 }
 
@@ -47,7 +58,7 @@ function addPaletteFelts(): void {
 
 /** Stores settings as this build saves them. */
 function store(settings: Record<string, unknown>): void {
-  localStorage.setItem(
+  storage.setItem(
     "fsolitaire-presentation",
     JSON.stringify({ version: 1, ...settings }),
   );
@@ -55,15 +66,11 @@ function store(settings: Record<string, unknown>): void {
 
 /** Stores settings bare, as builds before versions saved them. */
 function storeEarlier(settings: Record<string, unknown>): void {
-  localStorage.setItem("fsolitaire-presentation", JSON.stringify(settings));
+  storage.setItem("fsolitaire-presentation", JSON.stringify(settings));
 }
 
 describe("PresentationSettingsService", () => {
   let viewport: FakeViewport | null = null;
-
-  beforeEach(() => {
-    localStorage.clear();
-  });
 
   afterEach(() => {
     viewport?.restore();
@@ -158,7 +165,7 @@ describe("PresentationSettingsService", () => {
 
     it("falls back to defaults for settings stored under another version", () => {
       const other = { version: 2, cardBackStyle: "card-back-red" };
-      localStorage.setItem("fsolitaire-presentation", JSON.stringify(other));
+      storage.setItem("fsolitaire-presentation", JSON.stringify(other));
 
       const settings = buildSettings();
 
@@ -170,7 +177,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("falls back to defaults for corrupted storage", () => {
-      localStorage.setItem("fsolitaire-presentation", "{ not json");
+      storage.setItem("fsolitaire-presentation", "{ not json");
 
       expect(buildSettings().backgroundColor()).toBe(DEFAULT_BACKGROUND_COLOR);
     });
@@ -367,6 +374,9 @@ describe("PresentationSettingsService", () => {
       settings.setPiles("bottom");
       settings.setStockSide("left");
       TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [provideMemoryStorage(storage)],
+      });
 
       const later = buildSettings();
 

@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import type { RunRecords } from "../../rules/run/stats";
 import { provideSpecWaves } from "../../testing/play";
 import { runRecords } from "../../testing/records";
@@ -12,19 +13,25 @@ function ended(score: number, wave: number): RunRecords["ended"] {
   return { score, wave, sector: "specs" };
 }
 
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage), ...provideSpecWaves()],
+  });
+});
+
 /** Returns what is stored, as a player's browser holds it. */
 function stored(): unknown {
-  return JSON.parse(localStorage.getItem(STATS_KEY) ?? "null");
+  return JSON.parse(storage.getItem(STATS_KEY) ?? "null");
 }
 
 /** Stores records as a player's browser would hold them, at the version the service writes. */
 function store(stats: object): void {
-  localStorage.setItem(STATS_KEY, JSON.stringify({ version: 1, ...stats }));
+  storage.setItem(STATS_KEY, JSON.stringify({ version: 1, ...stats }));
 }
-
-beforeEach(() => {
-  TestBed.configureTestingModule({ providers: provideSpecWaves() });
-});
 
 describe("StatsService", () => {
   it("starts a new player with no runs", () => {
@@ -77,7 +84,9 @@ describe("StatsService", () => {
       runRecords({ speed: "fast", started: true }),
     );
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: provideSpecWaves() });
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage), ...provideSpecWaves()],
+    });
 
     expect(TestBed.inject(StatsService).stats().speeds.fast.runs).toBe(1);
   });

@@ -3,6 +3,11 @@ import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { FakePhaserCanvas, provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import {
+  MemoryStorage,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { playToTheEnd, provideFixedSeed } from "../testing/play";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
@@ -11,6 +16,16 @@ import {
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
 } from "./settings/settings.service";
+
+/** What the player's browser keeps, empty for each test. */
+let storage: MemoryStorage;
+
+beforeEach(() => {
+  storage = new MemoryStorage();
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
+});
 
 /**
  * Renders the game on a fake canvas, and waits for its scene to be drawn,
@@ -31,26 +46,16 @@ async function settle(): Promise<void> {
 
 /** Keeps when the player wants the arrows, as their browser would. */
 function wantArrows(arrows: Arrows): void {
-  localStorage.setItem(
+  storage.setItem(
     SETTINGS_KEY,
     JSON.stringify({ version: 1, ...DEFAULT_SETTINGS, arrows }),
   );
-}
-
-/** Says the page went out of sight, or came back. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    configurable: true,
-    get: () => state,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
 }
 
 describe("AppComponent", () => {
   let viewport: FakeViewport | null = null;
 
   afterEach(() => {
-    Reflect.deleteProperty(document, "visibilityState");
     viewport?.restore();
     viewport = null;
   });
@@ -87,7 +92,7 @@ describe("AppComponent", () => {
     const game = await renderApp();
     game.turn("up");
 
-    setVisibility("hidden");
+    setPageVisibility("hidden");
 
     expect(game.outcome()).toBe("paused");
   });
@@ -96,7 +101,7 @@ describe("AppComponent", () => {
     const game = await renderApp();
     game.turn("up");
 
-    setVisibility("visible");
+    setPageVisibility("visible");
 
     expect(game.outcome()).toBe("playing");
   });
