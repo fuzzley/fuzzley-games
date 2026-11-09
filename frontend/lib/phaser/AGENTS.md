@@ -120,7 +120,10 @@ take the pure ones.
   window loses the focus, the page is hidden or the focus leaves the
   keyboard's element), which let go of what they subscribe to when the
   scene ends; `onKeyDown()` and `onKeyUp()`, which hand a scene each key
-  event its keyboard hears, once; `pixelRatioOf()`;
+  event its keyboard hears, once; `pixelRatioOf()`; `viewportOf()`, the
+  canvas a scene lays itself out on as it now is, under the chrome it is
+  given, and `canvasChanged()`, whether that canvas has a new size or pixel
+  ratio since the scene was last laid out on it, or never was;
   `drawCanvasTexture()`, the canvas texture of a key drawn anew at a size,
   through the context it draws with, and uploaded once, drawn: the one there
   cleared at the size without its own `setSize()` and `clear()`, which

@@ -1439,3 +1439,43 @@ Before committing, the worktree moved onto `shared-lib`, with 4.3 picked as
 `shared-lib` had resolved 4.3's by hand; this step's edits were made again
 on `shared-lib`'s text, and the dialogs row kept its width so the table
 isn't re-padded.
+
+### Step 3.2: `viewportOf()` and `canvasChanged()` in `@fz/phaser/scene`
+
+Built as planned on `sl-play`. `@fz/phaser/scene` exports
+`viewportOf(scene, insets)`, the `Viewport` a scene lays itself out on, and
+`canvasChanged(scene, last)`, which says whether the canvas has a new size
+or pixel ratio since `last`, or `last` is `null`. Snake, Brick Breaker and
+Asteroid Breaker build their viewports with the first and test with the
+second before their own checks: the chrome, the finger room and the
+field's height, the board and the torus. Each scene lays itself out again
+in the same cases as before and builds the same viewport.
+
+Before the review fixes, the work was rebased onto `shared-lib`, with no
+conflicts and the same lockfile. Tests pass: phaser 611, Snake 423, Brick
+Breaker 1842 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- The helpers live in a file of their own, `src/scene/viewport.ts`; the
+  plan named no file.
+- Snake keeps its null check, so its `viewport.insets` comparison needs no
+  `?.`.
+
+The review:
+
+1. _The spec didn't pin that `viewportOf()` keeps the insets object it is
+   given, which Snake's `moved()` compares by identity; a copy would lay
+   Snake out every frame:_ taken. A case, "keeps the chrome it is given,
+   not a copy", expects `toBe(CHROME)`, and the doc comment says the chrome
+   is the object given, so a scene can tell by identity whether it is still
+   the one over it. A copying mutant fails it.
+2. _"Leaves the chrome over the canvas to the scene" couldn't fail:_ taken.
+   It is dropped; the doc comment already says the chrome is the scene's to
+   check.
+3. _Every case ran on a hand-built scene cast `as unknown as Scene`:_
+   taken. The size cases, never laid out and unchanged run on a real scene
+   through `runBareScene()`, and the width and height rows resize it with
+   `run.game.scale.resize()`. `sceneAt()` stays only for the pixel ratio,
+   which the harness holds at 1. Mutants that skip the width or the height
+   check each fail their row.

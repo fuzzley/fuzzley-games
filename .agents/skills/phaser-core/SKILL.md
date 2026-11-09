@@ -268,7 +268,11 @@ scene without shutting it down first, so the end is whichever comes first.
   nothing is encoded until How to play shows it. Anything else drawn at run
   time redraws itself through `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
-  device pixels.
+  device pixels. `viewportOf(scene, insets)` is the `Viewport` a scene lays
+  itself out on, its canvas as it now is under the chrome given, and
+  `canvasChanged(scene, last)` says whether that canvas has a new size or
+  pixel ratio since `last`, or `last` is `null`; the chrome, and anything
+  else a scene lays out by, are the scene's to compare.
 
 ## Testing
 
