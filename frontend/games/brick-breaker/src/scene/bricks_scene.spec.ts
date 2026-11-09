@@ -1,4 +1,5 @@
 import { lerp } from "@fz/core/math";
+import type { Turns } from "@fz/core/turns";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
@@ -81,6 +82,7 @@ import {
   type BricksSceneOptions,
   makeBricksScene,
 } from "./bricks_scene";
+import type { Burst } from "./painters/effects_painter";
 
 const LIGHT = bricksPalette(
   {
@@ -258,6 +260,11 @@ function moveAcross(
 /** Returns how many of a set of images show. */
 function showing(images: readonly GameObjects.Image[]): number {
   return images.filter((image) => image.visible).length;
+}
+
+/** Returns the images of a flourish's records, as the effects painter plays them. */
+function imagesOf(bursts: Turns<Burst>): GameObjects.Image[] {
+  return bursts.all.map(({ image }) => image);
 }
 
 /**
@@ -1161,7 +1168,7 @@ describe("BricksScene", () => {
     it("spreads a blast's ring once, from where it went off, and shakes the field", async () => {
       const { shell, run, scene } = await startBoard();
       shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
-      const ring = scene.effects.rings[0];
+      const ring = imagesOf(scene.effects.rings)[0];
 
       run.advance(16);
       const started = {
@@ -1180,7 +1187,7 @@ describe("BricksScene", () => {
         shaking: started.shaking,
         spreads: spreading.scale > started.scale,
         fades: spreading.alpha < started.alpha,
-        after: showing(scene.effects.rings),
+        after: showing(imagesOf(scene.effects.rings)),
       }).toEqual({
         at: [toCanvasX(metricsAt(), 5), toCanvasY(metricsAt(), 4)],
         shaking: true,
@@ -1197,7 +1204,7 @@ describe("BricksScene", () => {
       shell.field.events.add("lost", 6, FIELD_HEIGHT);
 
       run.advance(16);
-      const fading = scene.effects.fades[0];
+      const fading = imagesOf(scene.effects.fades)[0];
       const seen = {
         visible: fading?.visible,
         frame: fading?.frame.name,
@@ -1233,7 +1240,7 @@ describe("BricksScene", () => {
 
       expect({
         kind: shell.field.ballKind,
-        fading: scene.effects.fades
+        fading: imagesOf(scene.effects.fades)
           .filter((fade) => fade.visible)
           .map((fade) => fade.frame.name),
       }).toEqual({ kind: "normal", fading: [facedBallFrame("fire")] });
@@ -1352,7 +1359,7 @@ describe("BricksScene", () => {
 
       run.advance(RING_MS * 3);
 
-      expect(showing(scene.effects.rings)).toBe(0);
+      expect(showing(imagesOf(scene.effects.rings))).toBe(0);
     });
   });
 
@@ -1372,8 +1379,8 @@ describe("BricksScene", () => {
       expect({
         shards: scene.effects.shards.getAliveParticleCount(),
         embers: scene.balls.embers.getAliveParticleCount(),
-        rings: showing(scene.effects.rings),
-        fades: showing(scene.effects.fades),
+        rings: showing(imagesOf(scene.effects.rings)),
+        fades: showing(imagesOf(scene.effects.fades)),
         shaking: scene.cameras.main.shakeEffect.isRunning,
         scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
       }).toEqual({
@@ -1438,8 +1445,8 @@ describe("BricksScene", () => {
       expect({
         shards: scene.effects.shards.getAliveParticleCount(),
         embers: scene.balls.embers.getAliveParticleCount(),
-        rings: showing(scene.effects.rings),
-        fades: showing(scene.effects.fades),
+        rings: showing(imagesOf(scene.effects.rings)),
+        fades: showing(imagesOf(scene.effects.fades)),
         shaking: scene.cameras.main.shakeEffect.isRunning,
         scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
       }).toEqual({
@@ -1462,7 +1469,7 @@ describe("BricksScene", () => {
       shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
       run.advance(16);
 
-      expect(showing(scene.effects.rings)).toBe(1);
+      expect(showing(imagesOf(scene.effects.rings))).toBe(1);
     });
   });
 

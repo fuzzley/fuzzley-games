@@ -1,10 +1,10 @@
 import { easeOutCubic, fadeAlpha, shareDone } from "@fz/core/math";
+import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, copyOffsets } from "../../rules/torus";
 import { RING_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import type { PaintContext, Painter } from "./painter";
-import { type Playing, Turns } from "./turns";
 
 /** How many rings may sweep out at once: a blast may set off a crowd of others. */
 const POOL = 12;

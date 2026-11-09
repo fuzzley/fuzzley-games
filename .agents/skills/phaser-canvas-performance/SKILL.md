@@ -68,8 +68,10 @@ onPointerMove(pointer: Input.Pointer): void {
 
 For what comes and goes often, such as a burst of sprites, take them from a
 `Group` and give them back rather than creating and destroying each
-(`phaser-groups-and-containers`). A tween or a timer that runs again and
-again is one object too, not a new one each time.
+(`phaser-groups-and-containers`). A flourish played a set number at a time
+takes `@fz/core/turns`'s `Turns` instead, made with its game objects, each
+taken in turn, as both breakers' painters do. A tween or a timer that runs
+again and again is one object too, not a new one each time.
 
 ## 5. Depth from one list
 

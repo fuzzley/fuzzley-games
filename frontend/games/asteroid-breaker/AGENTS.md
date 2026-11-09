@@ -385,10 +385,10 @@ takes for the specs' helpers.
   cameras and sounds are made once, as it is created, and read through its
   `kit` (`BeltKit`). A thing that wraps is
   drawn through `Copies` (`painters/copies.ts`), once, and again past each
-  edge it reaches across; a flourish's records are taken in turn (`Turns`,
-  `painters/turns.ts`). Every game object is made as the scene is created, or
-  as a field of more slots starts, so a frame of play makes none, and a new
-  field stops what the last one set off.
+  edge it reaches across; a flourish's records are taken in turn
+  (`@fz/core/turns`'s `Turns`). Every game object is made as the scene is
+  created, or as a field of more slots starts, so a frame of play makes
+  none, and a new field stops what the last one set off.
   The scene plays each of the field's events once, from the last it played,
   and the flourishes an event calls for only where motion is welcome, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
