@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import { StopwatchService } from "@fz/game-ui/stopwatch";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
@@ -16,7 +17,7 @@ import {
 } from "../../testing/grid_picture";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_RANDOM, GameService } from "./game.service";
+import { GameService } from "./game.service";
 
 /** Eight rows with no digit in them, to draw a row of the player's above. */
 const EMPTY = new Array<string>(8).fill(".........");

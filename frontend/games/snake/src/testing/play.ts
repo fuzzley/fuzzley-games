@@ -1,6 +1,7 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { GAME_RANDOM, GameService } from "../app/play/game.service";
+import { GAME_RANDOM } from "@fz/game-ui/random";
+import { GameService } from "../app/play/game.service";
 import type { Direction } from "../rules/geometry";
 import { stepMs } from "../rules/speed";
 import { runFrom } from "./run_picture";

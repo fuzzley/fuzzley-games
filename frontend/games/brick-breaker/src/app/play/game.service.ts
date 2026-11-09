@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { fireBolts } from "../../rules/paddle/bolts";
@@ -63,7 +64,7 @@ import { clearedDelayMs, resultDelayMs } from "../../view/effects/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_LEVELS, GAME_RANDOM } from "../tokens";
+import { GAME_LEVELS } from "../tokens";
 
 /**
  * Plays the game: holds the run and the level in play's field, moves the

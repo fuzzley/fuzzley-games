@@ -1,6 +1,7 @@
 import type { Provider } from "@angular/core";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import type { GameService } from "../app/play/game.service";
-import { GAME_LEVELS, GAME_RANDOM } from "../app/tokens";
+import { GAME_LEVELS } from "../app/tokens";
 import {
   type LevelData,
   type LevelEntry,

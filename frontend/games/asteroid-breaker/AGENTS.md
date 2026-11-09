@@ -447,13 +447,14 @@ takes for the specs' helpers.
     (`setDrawn()`), the runs begun (`runs`, raised as each run begins) and
     the question, through `@fz/ui/confirm`, before a run is lost.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
-    the waves (`GAME_WAVES`) and the seeds (`GAME_RANDOM`), and whether the
-    build is a development one (`DEV_BUILD`) and the settings offer the debug
-    menu (`DEBUG_MENU`). `SavedGameService` keeps the run under way, through
-    `GameService.saved()`, as its outcome or its crew changes and as the page is
-    hidden or goes away, never at a step, and forgets it once the run ends or
-    another begins; `src/main.ts` starts it before the board first shows, and it
-    takes up the run kept (`takeUp()`), paused.
+    the waves (`GAME_WAVES`), and whether the build is a development one
+    (`DEV_BUILD`) and the settings offer the debug menu (`DEBUG_MENU`); the
+    seeds come from `@fz/game-ui/random`'s `GAME_RANDOM`. `SavedGameService`
+    keeps the run under way, through `GameService.saved()`, as its outcome or
+    its crew changes and as the page is hidden or goes away, never at a step,
+    and forgets it once the run ends or another begins; `src/main.ts` starts
+    it before the board first shows, and it takes up the run kept
+    (`takeUp()`), paused.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`
     as the page loads the face the points are written in, in the board's
     font (`document.fonts.load()`), for 1.5 s at most

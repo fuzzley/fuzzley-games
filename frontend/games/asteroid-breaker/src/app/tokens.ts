@@ -2,12 +2,6 @@ import { DOCUMENT } from "@angular/common";
 import { InjectionToken, inject } from "@angular/core";
 import { WAVES, type WaveEntry } from "../rules/waves/waves";
 
-/** Where new runs take their seeds from: `Math.random` but in specs. */
-export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
-  providedIn: "root",
-  factory: () => Math.random,
-});
-
 /** Whether the game is a development build, as its own dev server runs it. */
 export const DEV_BUILD = new InjectionToken<boolean>("DEV_BUILD", {
   providedIn: "root",

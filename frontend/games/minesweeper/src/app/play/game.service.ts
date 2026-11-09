@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import { StopwatchService } from "@fz/game-ui/stopwatch";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
@@ -25,12 +26,6 @@ import { randomSeed } from "@fz/core/random";
 import { LANDING_MS } from "../board/landing";
 import { type Settings, SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-
-/** Where new deals take their seeds from: `Math.random` but in specs. */
-export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
-  providedIn: "root",
-  factory: () => Math.random,
-});
 
 /**
  * How long a finished board is left to look at before the card opens, once

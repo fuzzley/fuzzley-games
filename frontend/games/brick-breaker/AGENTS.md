@@ -326,8 +326,9 @@ takes for the specs' helpers.
     the question, through `@fz/ui/confirm`, before a run is lost. A launch at
     any stage but a level ready or in play does as `go` does.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
-    the levels (`GAME_LEVELS`) and the seeds (`GAME_RANDOM`), and whether
-    the settings offer the debug menu (`DEBUG_MENU`).
+    the levels (`GAME_LEVELS`), and whether the settings offer the debug
+    menu (`DEBUG_MENU`); the seeds come from `@fz/game-ui/random`'s
+    `GAME_RANDOM`.
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
     as the page is hidden or goes away, never at a step, and forgets it once
