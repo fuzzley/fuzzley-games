@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { StopwatchService } from "./stopwatch.service";
+import { NOW, StopwatchService } from "./stopwatch.service";
 
 /** Sets the page's visibility, as switching tabs does, and says so. */
 function setVisibility(state: DocumentVisibilityState): void {
@@ -19,6 +19,13 @@ describe("StopwatchService", () => {
     vi.useRealTimers();
     Reflect.deleteProperty(document, "visibilityState");
   });
+
+  /** Has the stopwatch read the time from a clock the spec moves by hand. */
+  function readClock(clock: { ms: number }): void {
+    TestBed.configureTestingModule({
+      providers: [{ provide: NOW, useValue: () => clock.ms }],
+    });
+  }
 
   /** Returns a stopwatch that has been started. */
   function started(): StopwatchService {
@@ -41,6 +48,42 @@ describe("StopwatchService", () => {
     vi.advanceTimersByTime(2999);
 
     expect(stopwatch.seconds()).toBe(2);
+  });
+
+  it("counts the time a late tick missed, from the clock", () => {
+    const clock = { ms: 0 };
+    readClock(clock);
+    const stopwatch = started();
+
+    clock.ms = 2500;
+    vi.advanceTimersByTime(1000);
+
+    expect(stopwatch.seconds()).toBe(2);
+  });
+
+  it("counts the time either side of a pause, from the clock", () => {
+    const clock = { ms: 0 };
+    readClock(clock);
+    const stopwatch = started();
+    clock.ms = 1700;
+    stopwatch.stop();
+    clock.ms = 9000;
+    stopwatch.start();
+
+    clock.ms = 9400;
+    vi.advanceTimersByTime(300);
+
+    expect(stopwatch.seconds()).toBe(2);
+  });
+
+  it("reads the system's clock unless given another, though timers are faked after it is made", () => {
+    vi.useRealTimers();
+    const now = TestBed.inject(NOW);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(90_000);
+
+    expect(now()).toBe(90_000);
   });
 
   it("loses no time when started again while counting", () => {

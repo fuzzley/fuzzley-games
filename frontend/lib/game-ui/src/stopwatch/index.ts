@@ -1,2 +1,2 @@
 export { formatClock } from "./format_clock";
-export { StopwatchService } from "./stopwatch.service";
+export { NOW, StopwatchService } from "./stopwatch.service";

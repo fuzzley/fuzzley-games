@@ -72,9 +72,11 @@ repository's root.
 - **A service reads what is stored when it is made,** so write
   `localStorage` before the first `render` or `TestBed.inject`.
 - **No `matchMedia`:** `installFakeViewport(width, height)`, from
-  `@fz/game-ui/testing`, answers the queries `GameViewportService` asks, and
-  a board's `(resolution)`, at a ratio `setPixelRatio()` changes, and its
-  `restore()` belongs in an `afterEach`.
+  `@fz/ui/testing`, or `@fz/game-ui/testing` in a game, answers the queries
+  `GameViewportService` and `ThemeService` ask, and a board's
+  `(resolution)`; `setPixelRatio()`, `setColorScheme()` and
+  `setReducedMotion()` change them; its `restore()` belongs in an
+  `afterEach`.
 - **No `<dialog>` methods:** `installDialogPolyfill()`, from
   `@fz/ui/testing`, in the setup file.
 - **No canvas and no component styles:** a shell around `<fz-phaser-canvas>`
@@ -93,10 +95,11 @@ repository's root.
 Each library's `testing` entry point holds what specs need of it, and
 `@fz/dev`'s ESLint lets only specs and their helpers import one:
 
-- `@fz/ui/testing`: `installDialogPolyfill()`, and `setPageVisibility()`,
-  which hides the page or shows it again, as switching tabs does, until
-  the test finishes.
-- `@fz/game-ui/testing`: `installFakeViewport()`.
+- `@fz/ui/testing`: `installDialogPolyfill()`, `installFakeViewport()`,
+  and `setPageVisibility()`, which hides the page or shows it again, as
+  switching tabs does, until the test finishes.
+- `@fz/game-ui/testing`: `installFakeViewport()`, handed on from
+  `@fz/ui/testing`.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
   Phaser, with `collectErrors()`, which keeps what a failed scene hands the
   app's `ErrorHandler` for the spec to read, and `FakeResizeObserver`,

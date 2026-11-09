@@ -2388,3 +2388,33 @@ holding less than they had:
    keys:_ the painting taken, through `FIELD_ROLES`; the export stays, since
    the restored spec reads it again.
 5. _Docs:_ taken.
+
+### Step 17c: finding 22, the fake viewport's scheme and motion, and the stopwatch's clock
+
+Built on `ul-theme`. `FakeViewport` answered the color scheme as a light
+system's and motion as welcome, with no way to change either;
+`setColorScheme()` and `setReducedMotion()` set them beside its size,
+telling the queries they change, so `ThemeService`'s dark default and
+`GameViewportService`'s motion have specs. `StopwatchService` reads the time
+through `NOW`, from `@fz/game-ui/stopwatch`, which calls `Date.now()` at each
+reading unless a spec provides a clock of its own.
+
+Where it went other than planned:
+
+- The fake moves to `@fz/ui/testing`, since `ThemeService`, which asks the
+  color scheme, is `@fz/ui`'s, and `@fz/ui` can't import `@fz/game-ui`;
+  `@fz/game-ui/testing` hands it on, so no game's spec changes.
+- Nothing else takes either seam: no spec stubbed `matchMedia` by hand for
+  the scheme or motion where the fake reaches, and the games' specs of a
+  clock read it while it runs, on timers they fake anyway.
+
+The review found one regression:
+
+1. _`NOW`'s default kept the `Date.now` of the moment it was made, so
+   timers a spec faked once it had rendered no longer moved the
+   stopwatch:_ taken; it calls `Date.now()` at each reading, with a spec
+   that fakes the clock after injecting it.
+2. _No spec with a clock of its own covered a pause:_ taken.
+3. _No spec asked the fake for a light scheme once it was dark:_ taken.
+4. _The fake copied `@fz/style`'s `ColorMode`:_ taken.
+5. _Docs:_ taken.

@@ -55,6 +55,52 @@ describe("installFakeViewport", () => {
     ).toBe(true);
   });
 
+  it("tells a query when the system comes to prefer a dark scheme", () => {
+    viewport = installFakeViewport(1280);
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const heard = listen(query);
+
+    viewport.setColorScheme("dark");
+
+    expect({ matches: query.matches, told: heard.told }).toEqual({
+      matches: true,
+      told: 1,
+    });
+  });
+
+  it("stops answering a light scheme once the system prefers a dark one", () => {
+    viewport = installFakeViewport(1280);
+
+    viewport.setColorScheme("dark");
+
+    expect(window.matchMedia("(prefers-color-scheme: light)").matches).toBe(
+      false,
+    );
+  });
+
+  it("tells a query when the player comes to ask for less motion", () => {
+    viewport = installFakeViewport(1280);
+    const query = window.matchMedia("(prefers-reduced-motion: no-preference)");
+    const heard = listen(query);
+
+    viewport.setReducedMotion(true);
+
+    expect({ matches: query.matches, told: heard.told }).toEqual({
+      matches: false,
+      told: 1,
+    });
+  });
+
+  it("answers a query for less motion once the player asks for it", () => {
+    viewport = installFakeViewport(1280);
+
+    viewport.setReducedMotion(true);
+
+    expect(window.matchMedia("(prefers-reduced-motion: reduce)").matches).toBe(
+      true,
+    );
+  });
+
   it("answers the pointer query as a mouse's", () => {
     viewport = installFakeViewport(1280);
 

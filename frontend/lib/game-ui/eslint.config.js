@@ -10,6 +10,8 @@ export default defineConfig(
   // app's own `app-` components.
   angular({ files: ["src/**/*.ts"], prefix: "fz" }),
   templates({ files: ["src/**/*.html"] }),
-  tests({ files: ["src/**/*.spec.ts", "src/test-setup.ts"] }),
+  tests({
+    files: ["src/**/*.spec.ts", "src/testing/**/*.ts", "src/test-setup.ts"],
+  }),
   scripts({ files: ["eslint.config.js", "stylelint.config.js"] }),
 );

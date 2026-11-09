@@ -1,5 +1,22 @@
 import { DOCUMENT } from "@angular/common";
-import { DestroyRef, Injectable, inject, signal } from "@angular/core";
+import {
+  DestroyRef,
+  Injectable,
+  InjectionToken,
+  inject,
+  signal,
+} from "@angular/core";
+
+/**
+ * The clock the stopwatch reads the time from, in milliseconds: `Date.now()`
+ * unless a spec provides one of its own.
+ */
+export const NOW = new InjectionToken<() => number>("NOW", {
+  providedIn: "root",
+  // Looked up at each reading, as fake timers swap the global Date, and a
+  // spec installs them once the stopwatch has been made.
+  factory: () => () => Date.now(),
+});
 
 /**
  * Times a game in whole seconds, counting only while the page is in view.
@@ -11,6 +28,7 @@ import { DestroyRef, Injectable, inject, signal } from "@angular/core";
 @Injectable({ providedIn: "root" })
 export class StopwatchService {
   private readonly document = inject(DOCUMENT);
+  private readonly now = inject(NOW);
 
   private readonly secondsState = signal(0);
   private readonly runningState = signal(false);
@@ -65,7 +83,7 @@ export class StopwatchService {
     const counting =
       this.runningState() && this.document.visibilityState !== "hidden";
     if (counting && this.since === null) {
-      const since = Date.now();
+      const since = this.now();
       this.since = since;
       this.update(since);
     } else if (!counting) {
@@ -76,7 +94,7 @@ export class StopwatchService {
   /** Banks the stretch under way, if there is one, and stops the tick. */
   private pause(): void {
     if (this.since !== null) {
-      this.banked += Date.now() - this.since;
+      this.banked += this.now() - this.since;
       this.since = null;
     }
     if (this.tick !== null) clearTimeout(this.tick);
@@ -89,7 +107,7 @@ export class StopwatchService {
    * the next whole one.
    */
   private update(since: number): void {
-    const elapsed = this.banked + Date.now() - since;
+    const elapsed = this.banked + this.now() - since;
     this.secondsState.set(Math.floor(elapsed / 1000));
     this.tick = setTimeout(
       () => {
