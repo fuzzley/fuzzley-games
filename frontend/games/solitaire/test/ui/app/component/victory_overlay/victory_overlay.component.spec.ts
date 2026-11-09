@@ -46,7 +46,7 @@ describe("VictoryOverlayComponent", () => {
         fixture,
         `.victory-stats .v-stat:nth-child(${position}) .v-val`,
       );
-    expect([stat(1), stat(2), stat(3)]).toEqual(["500", "00:00", "45"]);
+    expect([stat(1), stat(2), stat(3)]).toEqual(["500", "0:00", "45"]);
   });
 
   it("names each figure, so the numbers are not read out bare", () => {

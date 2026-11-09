@@ -366,3 +366,27 @@ The review:
    wrap:_ taken. Both games' `AGENTS.md` now say the scene hands over what
    `picturesWhenAsked()` returns, and `lib/phaser/AGENTS.md` that it returns
    a function. Both paragraphs are rewrapped.
+
+### Step 6.3: the Solitaire Collection's clock on formatClock()
+
+Built as planned on `sl-sol`, as `eaf86af5`. `GameMetricsService.timerText`
+takes `@fz/game-ui/stopwatch`'s `formatClock()`, so the header and the
+victory card show "0:05" for "00:05" and "1:01:15" for "61:15", as
+Minesweeper and Sudoku do (decision 2); its own `formatElapsed()` went. The
+metrics spec's eight expectations follow, with a new one past an hour, and
+the header's and victory card's specs their zero. 6874 tests pass.
+
+The review:
+
+1. _The clock past an hour is two characters wider, which on a narrow
+   upright phone may clip the moves figure:_ not taken here. It needs no
+   code change; the orchestrator checks "1:01:15" with three-digit figures
+   at 320 and 360 px upright and on the rail in Phase 6's browser pass,
+   after 6.4 and 6.5 change the bar again, and records it as accepted or
+   decides on it then.
+2. _The committed screenshots still show "TIME 00:00":_ not taken here.
+   The orchestrator recaptures them (`yarn capture:screenshots`, then
+   `yarn build:thumbs`) at Phase 6's end, once 6.4 and 6.5 have changed the
+   chrome too.
+3. _"its `formatClock()`" reads as a method of the service:_ taken.
+   `AGENTS.md` says "the same entry's `formatClock()`".

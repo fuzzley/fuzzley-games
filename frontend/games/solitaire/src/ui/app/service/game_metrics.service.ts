@@ -6,7 +6,7 @@ import {
   signal,
   untracked,
 } from "@angular/core";
-import { StopwatchService } from "@fz/game-ui/stopwatch";
+import { StopwatchService, formatClock } from "@fz/game-ui/stopwatch";
 import { GameCatalogService } from "./game_catalog.service";
 
 /**
@@ -35,10 +35,10 @@ export class GameMetricsService {
   readonly isGameWon = this.wonSignal.asReadonly();
 
   /**
-   * Elapsed time, formatted `mm:ss`, counted only while the page is in
-   * view.
+   * Elapsed time as a clock shows it, such as "2:13", or "1:02:13" past an
+   * hour, counted only while the page is in view.
    */
-  readonly timerText = computed(() => formatElapsed(this.stopwatch.seconds()));
+  readonly timerText = computed(() => formatClock(this.stopwatch.seconds()));
 
   /** Whether a game is under way: moves made, and not yet won. */
   readonly isInProgress = computed(() => this.moves() > 0 && !this.isGameWon());
@@ -101,13 +101,4 @@ export class GameMetricsService {
       if (this.isInProgress()) this.stopwatch.start();
     });
   }
-}
-
-/** Writes a time in seconds as `mm:ss`. */
-function formatElapsed(total: number): string {
-  const minutes = Math.floor(total / 60)
-    .toString()
-    .padStart(2, "0");
-  const seconds = (total % 60).toString().padStart(2, "0");
-  return `${minutes}:${seconds}`;
 }

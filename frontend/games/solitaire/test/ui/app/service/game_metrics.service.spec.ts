@@ -87,7 +87,7 @@ describe("GameMetricsService", () => {
 
       vi.advanceTimersByTime(5000);
 
-      expect(metrics.timerText()).toBe("00:00");
+      expect(metrics.timerText()).toBe("0:00");
     });
 
     it("starts once the first move is made", () => {
@@ -97,7 +97,7 @@ describe("GameMetricsService", () => {
       TestBed.tick();
       vi.advanceTimersByTime(5000);
 
-      expect(metrics.timerText()).toBe("00:05");
+      expect(metrics.timerText()).toBe("0:05");
     });
 
     it("writes minutes and seconds", () => {
@@ -107,7 +107,17 @@ describe("GameMetricsService", () => {
       TestBed.tick();
       vi.advanceTimersByTime(75_000);
 
-      expect(metrics.timerText()).toBe("01:15");
+      expect(metrics.timerText()).toBe("1:15");
+    });
+
+    it("writes hours too, past an hour", () => {
+      const { metrics, model } = buildMetrics();
+
+      model.state.update({ moves: 1 });
+      TestBed.tick();
+      vi.advanceTimersByTime(3_675_000);
+
+      expect(metrics.timerText()).toBe("1:01:15");
     });
 
     it("pauses while the page is out of sight", () => {
@@ -119,7 +129,7 @@ describe("GameMetricsService", () => {
       setPageVisibility("hidden");
       vi.advanceTimersByTime(5000);
 
-      expect(metrics.timerText()).toBe("00:02");
+      expect(metrics.timerText()).toBe("0:02");
     });
 
     it("freezes once the game is won", () => {
@@ -132,7 +142,7 @@ describe("GameMetricsService", () => {
       TestBed.tick();
       vi.advanceTimersByTime(5000);
 
-      expect(metrics.timerText()).toBe("00:01");
+      expect(metrics.timerText()).toBe("0:01");
     });
 
     it("clears when the game is dealt again", () => {
@@ -144,7 +154,7 @@ describe("GameMetricsService", () => {
       model.startNewGame();
       TestBed.tick();
 
-      expect(metrics.timerText()).toBe("00:00");
+      expect(metrics.timerText()).toBe("0:00");
     });
 
     it("clears and waits for a first move when another game replaces it", () => {
@@ -157,7 +167,7 @@ describe("GameMetricsService", () => {
       TestBed.tick();
       vi.advanceTimersByTime(5000);
 
-      expect(metrics.timerText()).toBe("00:00");
+      expect(metrics.timerText()).toBe("0:00");
     });
 
     it("times a restored game from zero, since it is already under way", () => {
@@ -168,7 +178,7 @@ describe("GameMetricsService", () => {
       TestBed.tick();
       vi.advanceTimersByTime(2000);
 
-      expect(metrics.timerText()).toBe("00:02");
+      expect(metrics.timerText()).toBe("0:02");
     });
   });
 
