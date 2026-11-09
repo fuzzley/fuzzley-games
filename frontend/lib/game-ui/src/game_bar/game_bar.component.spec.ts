@@ -13,7 +13,7 @@ import {
       <h1 fzBarTitle>Klondike</h1>
       <p fzBarStatus>Score 0</p>
       <button fzBarActions type="button">Undo</button>
-      <button fzBarActions type="button">New Game</button>
+      <button fzBarActions type="button">New game</button>
     </fz-game-bar>
   `,
 })
@@ -92,7 +92,7 @@ describe("GameBarComponent", () => {
     await renderBar();
 
     expect(screen.getByRole("banner")).toHaveTextContent(
-      /^Fuzzley Games\s*Klondike\s*Score 0\s*Undo\s*New Game$/,
+      /^Fuzzley Games\s*Klondike\s*Score 0\s*Undo\s*New game$/,
     );
   });
 

@@ -65,10 +65,10 @@ describe("ResultComponent", () => {
     expect(screen.queryByText("New best time")).not.toBeInTheDocument();
   });
 
-  it("opens on New Game", async () => {
+  it("opens on New game", async () => {
     await renderSolved();
 
-    expect(screen.getByRole("button", { name: "New Game" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "New game" })).toHaveFocus();
   });
 
   it("says a puzzle played again after it was solved isn't counted", async () => {
@@ -106,10 +106,10 @@ describe("ResultComponent", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
-  it("deals a new puzzle from New Game, and closes", async () => {
+  it("deals a new puzzle from New game, and closes", async () => {
     const { user } = await renderSolved();
 
-    await user.click(screen.getByRole("button", { name: "New Game" }));
+    await user.click(screen.getByRole("button", { name: "New game" }));
 
     expect(TestBed.inject(GameService).grid().outcome).toBe("playing");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();

@@ -22,7 +22,7 @@ interface Figure {
  * score, the best at that speed and the snake's length.
  *
  * The game opens it once the crash's fade has run. Closing it leaves the
- * board to look at; New Game starts another run at the same speed, and the
+ * board to look at; New game starts another run at the same speed, and the
  * other speeds' buttons one at theirs.
  */
 @Component({

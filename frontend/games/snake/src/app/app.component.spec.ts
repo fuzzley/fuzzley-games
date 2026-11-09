@@ -174,7 +174,7 @@ describe("AppComponent", () => {
       await settle();
 
       const taken = fireEvent.pointerDown(
-        screen.getByRole("button", { name: "New Game" }),
+        screen.getByRole("button", { name: "New game" }),
         { button: 0 },
       );
 
@@ -309,7 +309,7 @@ describe("AppComponent", () => {
     it("goes back to the board once a question is answered no", async () => {
       const game = await renderApp();
       game.turn("up");
-      await userEvent.click(screen.getByRole("button", { name: "New Game" }));
+      await userEvent.click(screen.getByRole("button", { name: "New game" }));
 
       await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
       await settle();
@@ -317,14 +317,14 @@ describe("AppComponent", () => {
       expect(screen.getByRole("application")).toHaveFocus();
     });
 
-    it("goes to the board as the card's New Game starts a run at Space", async () => {
+    it("goes to the board as the card's New game starts a run at Space", async () => {
       const game = await renderApp();
       game.turn("up");
       playToTheEnd(game);
       game.closeResult();
       await settle();
       const board = screen.getByRole("application");
-      within(board).getByRole("button", { name: "New Game" }).focus();
+      within(board).getByRole("button", { name: "New game" }).focus();
 
       await userEvent.keyboard(" ");
       await settle();

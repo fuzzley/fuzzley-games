@@ -9,14 +9,14 @@
   color: var(--fz-warning);
 }
 
-// A row of the other two speeds under New Game, named by the label over
+// A row of the other two speeds under New game, named by the label over
 // them.
 .speeds {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--fz-space-2);
 
-  // A thumb's size, as New Game and Close are.
+  // A thumb's size, as New game and Close are.
   .fz-button {
     min-height: 44px;
   }

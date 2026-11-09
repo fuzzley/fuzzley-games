@@ -82,7 +82,7 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("gives the board the focus after New Game from the card", async () => {
+  it("gives the board the focus after New game from the card", async () => {
     const { fixture } = await render(AppComponent);
     const game = playOn({ digits: solvedBut("r1c1") });
     game.select(0);
@@ -91,7 +91,7 @@ describe("AppComponent", () => {
     const card = await screen.findByRole("alertdialog");
 
     await userEvent.click(
-      within(card).getByRole("button", { name: "New Game" }),
+      within(card).getByRole("button", { name: "New game" }),
     );
 
     await waitFor(() => {
@@ -107,9 +107,9 @@ describe("AppComponent", () => {
     });
   });
 
-  it("gives the board the focus after New Game from the bar, once the question closes", async () => {
+  it("gives the board the focus after New game from the bar, once the question closes", async () => {
     const { user } = await renderPlayed();
-    await user.click(screen.getByRole("button", { name: "New Game" }));
+    await user.click(screen.getByRole("button", { name: "New game" }));
     const question = await screen.findByRole("alertdialog");
 
     await user.click(

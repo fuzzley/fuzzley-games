@@ -33,7 +33,7 @@ type MenuAction = "sound" | "help" | "settings";
  * and the best, and the actions. The speed shows at every size, as a menu of
  * the speeds; the name only for a screen reader on a compact screen.
  *
- * On a compact screen, Pause and New Game stay, and Sound, How to play and
+ * On a compact screen, Pause and New game stay, and Sound, How to play and
  * Settings move into the overflow menu, as on the narrowest the link home
  * does too.
  */

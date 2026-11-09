@@ -210,7 +210,7 @@ describe("BarComponent", () => {
     it("starts a new game", async () => {
       const { user, game } = await renderBar();
 
-      await user.click(screen.getByRole("button", { name: "New Game" }));
+      await user.click(screen.getByRole("button", { name: "New game" }));
 
       expect(game.runs()).toBe(1);
     });
@@ -248,11 +248,11 @@ describe("BarComponent", () => {
       expect(speedBadge()).toBeVisible();
     });
 
-    it("keeps Pause and New Game in the bar", async () => {
+    it("keeps Pause and New game in the bar", async () => {
       await renderBar();
 
       expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
-      expect(screen.getByRole("button", { name: "New Game" })).toBeVisible();
+      expect(screen.getByRole("button", { name: "New game" })).toBeVisible();
     });
 
     it("moves the sound, How to play and the settings into the menu", async () => {

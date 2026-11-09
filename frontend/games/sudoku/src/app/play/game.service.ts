@@ -47,7 +47,7 @@ const NEW_GAME_QUESTION: ConfirmRequest = {
   tone: "danger",
 };
 
-/** What a deal at another level asks: New Game's question, naming the level. */
+/** What a deal at another level asks: New game's question, naming the level. */
 function levelQuestion(level: Level): ConfirmRequest {
   return {
     ...NEW_GAME_QUESTION,
