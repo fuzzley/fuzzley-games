@@ -1,21 +1,23 @@
-// The pilots: the fuzzball, from `@fz/style`'s shapes, in each pilot's ink,
-// its eyes a frame of their own so the scene turns them toward what the
-// pilot looks at; and the constellation that traces it among the specks.
+// The pilots: `@fz/phaser`'s fuzzball in each pilot's ink, its eyes a frame
+// of their own so the scene turns them toward what the pilot looks at; and
+// the constellation that traces it among the specks.
 
-import { FUZZBALL } from "@fz/style/fuzzball";
+import {
+  FUZZBALL_GRID,
+  FUZZBALL_LOOK,
+  FUZZBALL_STRANDS,
+  aboutBody,
+  eyesCommands as eyesOnGrid,
+  fuzzballCommands as fuzzballOnGrid,
+} from "@fz/phaser/fuzzball";
 import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
-  ORIGIN,
   type Point,
   centered,
-  circle,
-  ellipsePoints,
-  polygon,
-  quadraticPoints,
-  stroke,
 } from "@fz/phaser/shapes";
+import { FUZZBALL } from "@fz/style/fuzzball";
 import { PILOT_COLORS, type Pilot } from "../../rules/ship/pilots";
 import type { Moving, Place } from "../../rules/torus";
 import { STRAY_RADIUS } from "../../rules/tuning";
@@ -27,19 +29,6 @@ export type Seat = "seated" | "adrift";
 
 /** Every seat a pilot is drawn in. */
 export const SEATS: readonly Seat[] = ["seated", "adrift"];
-
-/** Describes one of the fuzzball's strands of fur: a curve from inside its body out to its tip, on its grid. */
-interface Strand {
-  readonly from: Point;
-  readonly control: Point;
-  readonly to: Point;
-}
-
-/** How wide the fuzzball's grid is, its body and fur placed on it. */
-const GRID = 32;
-
-/** The least radius of a glint drawn, in device pixels, below which it would only turn an eye grey. */
-const LEAST_GLINT = 0.5;
 
 /** How wide a pilot is drawn in each seat, across the fuzzball's grid, in field units. */
 export const PILOT_SIZES: Readonly<Record<Seat, number>> = {
@@ -53,7 +42,10 @@ export const PILOT_SIZES: Readonly<Record<Seat, number>> = {
  * shares of the pilot's size, so the scene moves its eyes' frame by these
  * times the way it looks.
  */
-export const LOOK = { across: 1.3 / GRID, down: 0.9 / GRID } as const;
+export const LOOK = {
+  across: FUZZBALL_LOOK.across / FUZZBALL_GRID,
+  down: FUZZBALL_LOOK.down / FUZZBALL_GRID,
+} as const;
 
 /**
  * Writes the way a pilot at a place looks into a record and returns it, a
@@ -76,9 +68,6 @@ export function lookingFrom(
   return into;
 }
 
-/** The fuzzball's strands of fur, read from its path. */
-const STRANDS: readonly Strand[] = strandsOf(FUZZBALL.fur.d);
-
 /**
  * Where the constellation's specks lie, the tips of every other one of the
  * fuzzball's strands, and its eyes' two, as shares of its size from its
@@ -88,10 +77,12 @@ export const CONSTELLATION: {
   readonly specks: readonly Point[];
   readonly eyes: readonly Point[];
 } = {
-  specks: STRANDS.filter((_, i) => i % 2 === 0).map((strand) =>
-    onGrid(strand.to, 1 / GRID),
+  specks: FUZZBALL_STRANDS.filter((_, i) => i % 2 === 0).map(({ to }) =>
+    asShare(to),
   ),
-  eyes: FUZZBALL.eyes.map((eye) => onGrid({ x: eye.cx, y: eye.cy }, 1 / GRID)),
+  eyes: FUZZBALL.eyes.map((eye) =>
+    asShare(aboutBody({ x: eye.cx, y: eye.cy })),
+  ),
 };
 
 // Made once, so finding a frame's name makes nothing.
@@ -112,48 +103,9 @@ function pilotNames(seat: Seat): readonly string[] {
   );
 }
 
-/**
- * Returns the fuzzball's strands of fur read from its path, each a move to
- * a point and a quadratic curve from it.
- *
- * @throws {Error} for a strand drawn any other way.
- */
-export function strandsOf(path: string): readonly Strand[] {
-  return path
-    .split("M")
-    .slice(1)
-    .map((strand) => {
-      const [
-        fromX = NaN,
-        fromY = NaN,
-        controlX = NaN,
-        controlY = NaN,
-        toX = NaN,
-        toY = NaN,
-        ...rest
-      ] = strand.replace("Q", " ").split(" ").map(Number);
-      if (
-        rest.length > 0 ||
-        [fromX, fromY, controlX, controlY, toX, toY].some(Number.isNaN)
-      ) {
-        throw new Error(
-          `The fuzzball's fur has a strand it can't read: M${strand}`,
-        );
-      }
-      return {
-        from: { x: fromX, y: fromY },
-        control: { x: controlX, y: controlY },
-        to: { x: toX, y: toY },
-      };
-    });
-}
-
-/** Returns a point of the fuzzball's grid from its body's middle, scaled by a factor. */
-function onGrid(point: Point, by: number): Point {
-  return {
-    x: (point.x - FUZZBALL.body.cx) * by,
-    y: (point.y - FUZZBALL.body.cy) * by,
-  };
+/** Returns a point about the fuzzball's body's middle, on its grid, as a share of its size. */
+function asShare(point: Point): Point {
+  return { x: point.x / FUZZBALL_GRID, y: point.y / FUZZBALL_GRID };
 }
 
 /** Returns the name of a pilot's frame in a seat, its body and fur in its ink. */
@@ -175,19 +127,7 @@ export function fuzzballCommands(
   size: number,
   color: number,
 ): readonly DrawCommand[] {
-  const by = size / GRID;
-  const fur = { color, width: FUZZBALL.fur.width * by };
-  return [
-    circle(ORIGIN, FUZZBALL.body.r * by, { color }),
-    // Each strand round at its ends, as the fuzzball's path caps it.
-    ...STRANDS.flatMap(({ from, control, to }) => {
-      const start = onGrid(from, by);
-      return stroke(
-        [start, ...quadraticPoints(start, onGrid(control, by), onGrid(to, by))],
-        fur,
-      );
-    }),
-  ];
+  return fuzzballOnGrid(size / FUZZBALL_GRID, { color });
 }
 
 /** Returns the fuzzball's eyes about its body's middle, a size across its grid, with their glints where each is large enough to see. */
@@ -195,25 +135,10 @@ export function eyesCommands(
   size: number,
   palette: BeltPalette,
 ): readonly DrawCommand[] {
-  const by = size / GRID;
-  const glints = FUZZBALL.glints.filter((glint) => glint.r * by >= LEAST_GLINT);
-  return [
-    ...FUZZBALL.eyes.map((eye) =>
-      polygon(
-        ellipsePoints(
-          onGrid({ x: eye.cx, y: eye.cy }, by),
-          eye.rx * by,
-          eye.ry * by,
-        ),
-        { color: palette.eyes },
-      ),
-    ),
-    ...glints.map((glint) =>
-      circle(onGrid({ x: glint.cx, y: glint.cy }, by), glint.r * by, {
-        color: palette.glint,
-      }),
-    ),
-  ];
+  return eyesOnGrid(size / FUZZBALL_GRID, {
+    color: palette.eyes,
+    glint: palette.glint,
+  });
 }
 
 /** Returns the frames of every pilot in each seat, and of their eyes. */

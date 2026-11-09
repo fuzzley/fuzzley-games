@@ -96,6 +96,15 @@ beside a deck of controls for a touch screen.
   `scaledBy()`, `centered()`, `bounded()`) and a symbol's dots and rims in
   a square (`dotIn()`, `discIn()`, `rimIn()`) are there too, so a game draws
   with them rather than its own copies.
+- **`@fz/phaser/fuzzball`** draws `@fz/style`'s fuzzball in `shapes`'s
+  commands, and imports nothing else, so a game's view takes it as it takes
+  the pure entries: `fuzzballCommands()`, its body and fur, `by` device
+  pixels to a unit of its 32-unit grid (`FUZZBALL_GRID`), outlined where a
+  game asks and in fur it may comb its own way (`FUZZBALL_STRANDS`, each a
+  `Strand` about the body's middle), `furReach()`, how far that fur
+  reaches, and `eyesCommands()`, its eyes and their glints, which a game
+  bakes as a frame of their own so its scene moves them toward what the
+  fuzzball looks at, by `FUZZBALL_LOOK`.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
   a `phaser` chunk of its own, `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser

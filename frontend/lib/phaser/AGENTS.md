@@ -78,6 +78,18 @@ take the pure ones.
   frames is, packed as `bakeAtlas()` packs them, in rows, tallest first,
   frames of one height in the order given (`src/shapes/packing.ts`), so a
   game's spec can hold it to a size without Phaser. It imports nothing.
+- `src/fuzzball/`: `@fz/style`'s fuzzball in the shapes' commands, so
+  every game draws the one fuzzball: its strands of fur, read from its path
+  (`strandsOf()`, `FUZZBALL_STRANDS`), each a `Strand` about its body's
+  middle on its grid (`FUZZBALL_GRID`, `aboutBody()`), and how far a fur
+  reaches (`furReach()`); `fuzzballCommands()`, its body and fur, `by`
+  device pixels to a unit of the grid, in a `FuzzballStyle`: a color, an
+  outline beneath where a game wants one, and fur a game combs its own way;
+  `eyesCommands()`, its eyes, with their glints where an `EyesStyle` gives
+  them a color and each is half a device pixel or more, which a game bakes
+  in a frame of their own; and `FUZZBALL_LOOK`, how far its scene moves
+  that frame toward what the fuzzball looks at. It imports nothing but
+  `shapes` and `@fz/style/fuzzball`.
 - `src/host/`: the host a canvas runs its scenes in. Its index names only
   the types an app's scene and board take of it, `HostedScene`,
   `SceneSurroundings` and `HostOptions`, so no app builds a host past the
@@ -213,8 +225,10 @@ take the pure ones.
   too, whose hooks and stubs `runKeyedScene()`, `watchResizes()`,
   `resize()` and `watchUploads()` use, and which `package.json` declares
   an optional peer, as `@fz/dev`'s does.
-- **The pure entries import nothing but each other,** as ESLint checks, so
-  a game's Phaser-free code can take them; and `src/testing/pure/` nothing
+- **The pure entries import nothing but each other,** but `fuzzball`, which
+  takes `@fz/style`'s fuzzball too, as ESLint checks, so a game's
+  Phaser-free code can take them, and `@fz/dev`'s view fence lets them all
+  in (`PURE_PHASER_ENTRIES`); and `src/testing/pure/` nothing
   but them, so a spec in Node can take it. What reads the page, a
   `ResizeObserver`, a media query, the display's ratio or a computed
   style, belongs in `src/measure/`, never in a pure entry, which a game's

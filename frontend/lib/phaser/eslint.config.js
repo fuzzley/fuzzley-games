@@ -69,6 +69,40 @@ export default defineConfig(
     },
   },
   {
+    // The fuzzball drawn in the shapes' commands is a pure entry too, which
+    // a game's view takes as it takes the others, so it imports nothing but
+    // the shapes and the fuzzball's own shapes, from @fz/style.
+    files: ["src/fuzzball/**/*.ts"],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "@angular/*",
+                "@fz/*",
+                "!@fz/style",
+                "@fz/style/*",
+                "!@fz/style/fuzzball",
+                "rxjs",
+                "rxjs/*",
+                "../*",
+                "!../shapes",
+                // An entry through its index alone, never its files.
+                "../*/*",
+              ],
+              message:
+                "The fuzzball's entry imports nothing but the shapes and @fz/style's fuzzball, so code with no Phaser can take it.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // What measures the page for a canvas knows no Phaser and no framework,
     // so the host and the canvas both take it. It reads the page, so it is
     // no pure entry, and a game's view, which reads none, can't take it.
