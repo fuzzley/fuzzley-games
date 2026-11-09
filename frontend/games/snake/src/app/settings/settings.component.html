@@ -1,75 +1,59 @@
-<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
-  <div class="drawer">
-    <div class="drawer-header">
-      <h2>Settings</h2>
-      <button
-        type="button"
-        class="close"
-        aria-label="Close settings"
-        (click)="closed.emit()"
-      >
-        <fz-icon name="close" />
-      </button>
-    </div>
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="speed-label">Speed</span>
+    <fz-choice-list
+      labelledBy="speed-label"
+      describedBy="speed-desc"
+      [options]="speeds"
+      [value]="settings().speed"
+      (choose)="chooseSpeed($event)"
+    />
+    <p class="setting-desc" id="speed-desc">
+      Changing the speed starts a new run. Each apple makes the snake a little
+      faster.
+    </p>
+  </div>
 
-    <div class="drawer-content">
-      <div class="setting">
-        <span class="setting-label" id="speed-label">Speed</span>
-        <fz-choice-list
-          labelledBy="speed-label"
-          describedBy="speed-desc"
-          [options]="speeds"
-          [value]="settings().speed"
-          (choose)="chooseSpeed($event)"
-        />
-        <p class="setting-desc" id="speed-desc">
-          Changing the speed starts a new run. Each apple makes the snake a
-          little faster.
-        </p>
-      </div>
+  <div class="setting">
+    <span class="setting-label" id="movement-label">Movement</span>
+    <fz-choice-list
+      labelledBy="movement-label"
+      [options]="movements"
+      [value]="settings().movement"
+      (choose)="chooseMovement($event)"
+    />
+  </div>
 
-      <div class="setting">
-        <span class="setting-label" id="movement-label">Movement</span>
-        <fz-choice-list
-          labelledBy="movement-label"
-          [options]="movements"
-          [value]="settings().movement"
-          (choose)="chooseMovement($event)"
-        />
-      </div>
+  <div class="setting">
+    <span class="setting-label" id="arrows-label">On-screen arrows</span>
+    <fz-choice-list
+      labelledBy="arrows-label"
+      [options]="arrows"
+      [value]="settings().arrows"
+      (choose)="chooseArrows($event)"
+    />
+  </div>
 
-      <div class="setting">
-        <span class="setting-label" id="arrows-label">On-screen arrows</span>
-        <fz-choice-list
-          labelledBy="arrows-label"
-          [options]="arrows"
-          [value]="settings().arrows"
-          (choose)="chooseArrows($event)"
-        />
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Sound</span>
-        <div class="setting-check">
-          <input
-            #sound
-            id="sound"
-            type="checkbox"
-            aria-describedby="sound-desc"
-            [checked]="settings().sound"
-            (change)="setSound(sound.checked)"
-          />
-          <label for="sound">Play sounds</label>
-          <p class="setting-desc" id="sound-desc">
-            A bite for an apple, a bump for a crash, and a chime for a new best.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Theme</span>
-        <fz-theme-picker />
-      </div>
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Sound</span>
+    <div class="setting-check">
+      <input
+        #sound
+        id="sound"
+        type="checkbox"
+        aria-describedby="sound-desc"
+        [checked]="settings().sound"
+        (change)="setSound(sound.checked)"
+      />
+      <label for="sound">Play sounds</label>
+      <p class="setting-desc" id="sound-desc">
+        A bite for an apple, a bump for a crash, and a chime for a new best.
+      </p>
     </div>
   </div>
-</fz-dialog>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+</fz-settings-drawer>

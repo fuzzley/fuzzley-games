@@ -1,5 +1,2 @@
 @use "../styles" as *;
-
-.drawer {
-  @include settings-drawer;
-}
+@include setting-fields;

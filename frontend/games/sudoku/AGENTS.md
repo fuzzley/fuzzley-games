@@ -171,10 +171,9 @@ top of them:
   applies the games' compact test in code and says where the bar stands
   and what fits in it.
 - **The pencil, the eraser and the bulb** were added to `@fz/ui`'s icons for
-  the pad. The dialogs' cards, close buttons, headings and choice tiles, and
-  the settings drawer, are `@fz/style`'s mixins, which the games' dialogs
-  share, but for the Solitaire Collection's, which take only the headings and
-  the choice tiles.
+  the pad. The dialogs' cards, close buttons, headings and choice tiles are
+  `@fz/style`'s mixins, which the games' dialogs share, and the settings
+  drawer is `@fz/game-ui`'s `<fz-settings-drawer>`.
 
 ## What It Keeps
 

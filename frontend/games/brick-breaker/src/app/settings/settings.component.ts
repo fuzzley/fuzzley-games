@@ -1,6 +1,5 @@
 import { Component, computed, inject, input, output } from "@angular/core";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import { formatCustomPercent } from "../../rules/run/describe";
@@ -54,12 +53,7 @@ function unitsOf(speed: number): string {
  */
 @Component({
   selector: "app-settings",
-  imports: [
-    ChoiceListComponent,
-    DialogComponent,
-    IconComponent,
-    ThemePickerComponent,
-  ],
+  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })

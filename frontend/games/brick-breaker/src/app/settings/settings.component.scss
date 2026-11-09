@@ -1,11 +1,8 @@
 @use "../styles" as *;
+@include setting-fields;
 
-.drawer {
-  @include settings-drawer;
-
-  .range {
-    width: 100%;
-    margin: 0;
-    accent-color: var(--fz-accent);
-  }
+.range {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--fz-accent);
 }

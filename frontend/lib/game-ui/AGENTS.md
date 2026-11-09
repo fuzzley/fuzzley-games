@@ -131,6 +131,13 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `refocusWhenUncovered(board, runs)`, called from an app's constructor,
   hands the board the focus as each run begins and whenever the last
   dialog over it closes, from `@fz/ui/dialog`'s `DialogService`.
+- `src/settings_drawer/`: `<fz-settings-drawer>`, a game's settings
+  drawer: a dialog named Settings down the right of the window, its heading
+  and the button that closes it over the settings the game projects. As
+  `<fz-dialog>`, it only asks to close, through `closed`, and the game
+  lowers `open`. It draws its frame with `@fz/style`'s
+  `settings-drawer-frame`, whose rules can't reach what it projects, so the
+  game's stylesheet includes `setting-fields` at its top level.
 - `src/help_catalog/`: `<fz-help-catalog>`, a catalog for How to play of
   what a game's field can hold (a `HelpCatalog`), as a section its heading
   names, with what to know first and each entry's picture beside its name

@@ -282,27 +282,27 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("make a settings drawer the window's height", () => {
+  it("make a settings drawer's frame the window's height", () => {
     const drawer = declarations(
-      compiled("@include fz.settings-drawer;"),
+      compiled("@include fz.settings-drawer-frame;"),
       ".it",
     );
 
     expect(drawer).toContain("height:100dvh");
   });
 
-  it("pin a settings drawer to the right of its dialog", () => {
+  it("pin a settings drawer's frame to the right of its dialog", () => {
     const drawer = declarations(
-      compiled("@include fz.settings-drawer;"),
+      compiled("@include fz.settings-drawer-frame;"),
       ".it",
     );
 
     expect(drawer).toContain("margin-left:auto");
   });
 
-  it("size a settings drawer as asked", () => {
+  it("size a settings drawer's frame as asked", () => {
     const drawer = declarations(
-      compiled("@include fz.settings-drawer(320px);"),
+      compiled("@include fz.settings-drawer-frame(320px);"),
       ".it",
     );
 
@@ -311,7 +311,7 @@ describe("the toolkit's mixins", () => {
 
   it("scroll a settings drawer's content, which moves what is positioned in it", () => {
     const content = declarations(
-      compiled("@include fz.settings-drawer;"),
+      compiled("@include fz.settings-drawer-frame;"),
       ".it .drawer-content",
     );
 
@@ -395,9 +395,23 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("give a settings drawer its settings", () => {
-    expect(compiled("@include fz.settings-drawer;")).toContain(
-      compiled("@include fz.setting-fields;"),
+  it("leave the settings out of a drawer's frame, to the stylesheet that writes them", () => {
+    expect(compiled("@include fz.settings-drawer-frame;")).not.toContain(
+      ".setting",
+    );
+  });
+
+  it("give a whole settings drawer its frame and its settings", () => {
+    expect(compiled("@include fz.settings-drawer;")).toBe(
+      compiled("@include fz.settings-drawer-frame;") +
+        compiled("@include fz.setting-fields;"),
+    );
+  });
+
+  it("give a whole settings drawer's frame the width asked", () => {
+    expect(compiled("@include fz.settings-drawer(320px);")).toBe(
+      compiled("@include fz.settings-drawer-frame(320px);") +
+        compiled("@include fz.setting-fields;"),
     );
   });
 
