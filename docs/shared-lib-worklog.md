@@ -1828,3 +1828,86 @@ way, through a named stash applied by its SHA and dropped: onto `7b7a77ce`
 (sl-tools' 5.5+5.6), after which `SPACE` took `browserKey()`, and onto
 `a3c57a17` (sl-shell's 4.10). Both applied cleanly; the first changed the
 lockfile, so the workspace was installed again.
+
+## Integration
+
+What was checked on `shared-lib` once every step was picked, the last being
+5.10 and 5.11 (`ac434d9e`), and what the reviews left to this point.
+
+### The checks
+
+- **`yarn verify`** passes at `ac434d9e`: lint, typecheck, every
+  workspace's tests (Solitaire 6874; Brick Breaker 1842 and 180; Asteroid
+  Breaker 3624 and 1620; the rest between 178 and 626) and the build.
+- **`yarn check:layout`** holds for Sudoku, Brick Breaker, Asteroid Breaker
+  and Snake at every shape and turn.
+
+### The games played
+
+A fresh agent played all six games and the site's home in headed Chrome
+against `yarn dev:all`, at a roomy 1280 × 800, an upright phone 390 × 844
+and one on its side at 844 × 390, both by touch. It checked each page's
+head tags, the bar's figures and menus, How to play and the settings by
+keyboard, the palettes, saved games across a reload, the breakers' rings and
+the clocks. It found nothing this work broke. It found seven problems, each
+of which shows the same on production or on `main`, so they are left for
+later:
+
+1. Brick Breaker and Asteroid Breaker rebuild the board from the save when
+   the window changes between roomy and a phone shape mid-run, so the ball
+   goes back on the paddle and a capsule's or pickup's effect is lost.
+   `reshapeField()` reshapes only while the ball waits to be served.
+2. Minesweeper's fourth and fifth hearts run into the clock on an upright
+   phone, and the fifth is clipped on the rail.
+3. How to play gives the focus to its card, not its close button, when its
+   text scrolls, as it does on the phones and in the breakers on a roomy
+   window too, so a keyboard player sees a ring round the whole card.
+4. Snake's W, A, S and D keycaps in How to play touch.
+5. The Solitaire Collection's settings drawer scrolls 8px sideways on an
+   upright phone in a dev build, where the debug panel's negative margins
+   are wider than the drawer's padding. Step 6.4's review saw it too.
+6. The site's search box has no `id` or `name`, which Chrome reports.
+7. Angular warns in dev that every game's `preview.webp`, at 2560 × 1440,
+   is far larger than the site's game page shows it.
+
+### Step 6.3's first comment: the clock past an hour
+
+Checked by hand at 320 and 360px upright and on the rail at 640 × 360, with
+the stopwatch's `Date.now()` moved on past an hour and the figures beside it
+given two digits and three. The strip of figures is 94 to 104px wide on both
+phones, since 360px adds the home button.
+
+- **On the rail** "1:01:15" fits, with 2px to spare.
+- **Upright,** two-digit figures fit beside the clock with 5px between
+  until it passes an hour, and "1:01:15" then overlaps each by 3px.
+  Three-digit figures overlapped the clock by 1px before 6.3 ("61:15") and
+  by 8px now.
+
+Accepted for this work: it takes a game past an hour on a phone, and the
+three-digit case overlapped before. Fitting the strip is a design choice of
+its own, such as tighter padding in the strip or the home button dropped,
+left for later.
+
+### The screenshots
+
+Step 5.8 moved every game's capture script onto `@fz/dev/screenshots`, so
+each was run again against `yarn dev:all`.
+
+- **Minesweeper, Sudoku, Snake and Brick Breaker** (`7206317a`) shoot their
+  boards in the same place, size, crop and palette as before. What differs
+  is what the games changed before this work began and after the old images
+  were taken: New game in sentence case, and Brick Breaker's lives and ball
+  as fuzzballs. Snake's link preview now calls its snake gold.
+- **Asteroid Breaker's** are kept as they were. Its capture lands while the
+  guarded ship blinks, so the ship shows in some takes and not others: at
+  `0cbdf8e8`, the commit before this work, two takes in three missed it, as
+  on this branch. Left for later: its script waits for the ship to show
+  before it shoots.
+- **The Solitaire Collection's** (`a5420072`) are taken again. Its script
+  opens every game on Casino night through `setUpPage()`, where it followed
+  the colour scheme the browser prefers, which headless Chrome has light. It
+  seeds each deal from the game's id and stores the game as the last one
+  played, so the page deals it first and alone. Klondike and Montana taken
+  twice come out byte for byte the same, and no two games' thumbnails match.
+  The images show the clock as "0:00" and the header 6.4 and 6.5 changed,
+  which answers step 6.3's second comment.
