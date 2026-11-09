@@ -368,16 +368,6 @@ describe("GameService", () => {
       });
     });
 
-    it("starts another run at the key that toggles once the result card is put away", async () => {
-      const game = endedGame();
-      game.closeResult();
-
-      game.command("toggle");
-      await Promise.resolve();
-
-      expect(game.outcome()).toBe("ready");
-    });
-
     it("starts another run at Enter once the result card is put away", async () => {
       const game = endedGame();
       game.closeResult();
@@ -388,15 +378,19 @@ describe("GameService", () => {
       expect(game.outcome()).toBe("ready");
     });
 
-    it("starts nothing at a key before the result card is put away", async () => {
+    it("starts nothing, and says nothing, at a key before the result card is put away", async () => {
       const game = endedGame();
       const ended = game.run();
+      const lastWords = said();
 
       game.command("toggle");
       game.command("go");
       await Promise.resolve();
 
-      expect(game.run()).toBe(ended);
+      expect({ run: game.run(), said: said() }).toEqual({
+        run: ended,
+        said: lastWords,
+      });
     });
 
     it("puts the result card away", () => {

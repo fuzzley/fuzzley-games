@@ -2902,3 +2902,53 @@ The review found nothing wrong in what Snake does, and four things:
    apart from go:_ taken; two specs added, a paused run kept paused at
    Escape and a run in play turned while the board isn't drawn, and the
    one kept in step 18e.
+
+### Step 18e: finding 20, the games' specs trimmed to their own wiring
+
+Built on `run-lifecycle`, once Snake's step had landed. The three games'
+`game.service.spec.ts` drop the cases that held only `RunLifecycle`'s
+branches, which its own spec now holds: Asteroid Breaker's pause and its
+going on at the key that toggles, which it routes as the base does, and
+its new game clearing what the last run said; Brick Breaker's new game
+clearing it too; and Snake's run started at the key that toggles once its
+card is put away. A run started once the card is put away is held at one
+key each: Enter in Asteroid Breaker and Snake, a launch in Brick Breaker,
+whose `command()` sends it to `go()`. Each game's call of `began()` is
+still held by its runs count. Asteroid Breaker's and Brick Breaker's
+`AGENTS.md` name the question before a run is lost once, in the library's
+words, since choosing a sector or a level asks it too.
+
+Where it went other than planned:
+
+- Brick Breaker's "pauses at the key that toggles" and Snake's "does
+  nothing at Enter to a run under way" stay. Each is the one case that
+  fails, among all of its game's specs, once that game's `command()` sends
+  toggle or go where the other goes: Brick Breaker's to `launch` or `go`,
+  Snake's `go` on as `toggle`.
+- A key on an ended run whose card still shows reaches the game's own
+  `pause()` and `resume()`, so each game holds that it starts nothing and
+  says nothing there, its last words still the end's. With `resume()`'s
+  early return made to say "Going on.", the case fails in each game.
+
+The game specs lose 83 lines and gain 43; coverage is unchanged, each
+`game.service.ts` at 100%.
+
+The review found nothing dropped that only the game's spec held, and four
+things:
+
+1. _A key on an ended run reaches Asteroid Breaker's and Snake's own
+   `pause()` and `resume()` too, so the case that held Brick Breaker
+   silent there belongs in all three:_ taken; Asteroid Breaker's dropped
+   case is back in that form, and Snake's holds what was said.
+2. _Asteroid Breaker, with no `command()` of its own, kept "goes on at the
+   key that toggles" and an `it.each` over toggle and go, and Brick
+   Breaker's over launch, toggle and go, while their twins went:_ taken;
+   the first dropped, and each `it.each` kept to the key the game routes
+   itself, or Enter where it routes none.
+3. _The new assertion spelled out the end's words, which another case
+   holds, and the case's name didn't say it held them:_ taken; it compares
+   with the words said before the keys, and its name says it says nothing.
+4. _Brick Breaker's `AGENTS.md` named the question twice too, with a line
+   past the wrap, and "a new game or speed" left out a sector or a level:_
+   taken; both breakers say "before a run is lost" once, and Snake, which
+   asks only before a new game or speed, keeps its words.

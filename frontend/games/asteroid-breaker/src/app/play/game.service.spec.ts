@@ -532,23 +532,6 @@ describe("GameService", () => {
       });
     });
 
-    it("pauses at the key that toggles", async () => {
-      const game = await startedAt(SPEC_WAVE.gift);
-
-      game.command("toggle");
-
-      expect(game.outcome()).toBe("paused");
-    });
-
-    it("goes on at the key that toggles", async () => {
-      const game = await startedAt(SPEC_WAVE.gift);
-      game.command("pause");
-
-      game.command("toggle");
-
-      expect(game.outcome()).toBe("playing");
-    });
-
     it("has nothing to pause before the first move", () => {
       const game = TestBed.inject(GameService);
 
@@ -703,32 +686,34 @@ describe("GameService", () => {
       });
     });
 
-    it.each(["toggle", "go"] as const)(
-      "starts another run at %s once the result card is put away",
-      async (command) => {
-        const game = await endedAt(SPEC_WAVE.gift);
-        const ended = game.run();
-        game.closeResult();
-
-        game.command(command);
-        await flush();
-
-        expect({
-          newId: game.run().id > ended.id,
-          outcome: game.outcome(),
-          wave: game.wave().number,
-        }).toEqual({ newId: true, outcome: "ready", wave: SPEC_WAVE.gift });
-      },
-    );
-
-    it("starts no other run at Enter while the result card shows", async () => {
-      const game = await endedAt(SPEC_WAVE.pebble);
+    it("starts another run at Enter once the result card is put away", async () => {
+      const game = await endedAt(SPEC_WAVE.gift);
       const ended = game.run();
+      game.closeResult();
 
       game.command("go");
       await flush();
 
-      expect(game.run()).toBe(ended);
+      expect({
+        newId: game.run().id > ended.id,
+        outcome: game.outcome(),
+        wave: game.wave().number,
+      }).toEqual({ newId: true, outcome: "ready", wave: SPEC_WAVE.gift });
+    });
+
+    it("starts nothing, and says nothing, at a key before the result card is put away", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      const ended = game.run();
+      const lastWords = said();
+
+      game.command("toggle");
+      game.command("go");
+      await flush();
+
+      expect({ run: game.run(), said: said() }).toEqual({
+        run: ended,
+        said: lastWords,
+      });
     });
 
     it("tries again from the wave the run started at, with the first ships", async () => {
@@ -876,16 +861,6 @@ describe("GameService", () => {
       game.tryAgain();
 
       expect(game.resultClosed()).toBe(false);
-    });
-
-    it("clears what the last run had said", async () => {
-      const game = await startedAt(SPEC_WAVE.gift);
-
-      const starting = game.newGame();
-      TestBed.inject(ConfirmService).accept();
-      await starting;
-
-      expect(said()).toBe("");
     });
 
     it("counts each run begun", async () => {
