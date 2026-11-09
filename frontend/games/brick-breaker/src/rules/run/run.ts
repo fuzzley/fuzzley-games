@@ -1,5 +1,6 @@
 import { nextMarkAfter } from "@fz/core/math";
 import { mixSeed } from "@fz/core/random";
+import { type RunStage, isUnderWay } from "@fz/core/run";
 import type { RunNumber } from "@fz/core/run_numbers";
 import type { Field } from "../field/field";
 import { clearingPoints } from "../field/scoring";
@@ -16,8 +17,7 @@ import {
  * under way or paused, a level cleared and the next waiting, ended with no
  * lives left, or won by clearing the last level.
  */
-export type Outcome =
-  "ready" | "playing" | "paused" | "cleared" | "over" | "won";
+export type Outcome = RunStage;
 
 /**
  * Describes a run of the game, from the level it started at to its end, a
@@ -91,17 +91,12 @@ export function createRun({
   };
 }
 
-/** Returns whether a run has ended, lost or won. */
-export function hasEnded(run: Run): boolean {
-  return run.outcome === "over" || run.outcome === "won";
-}
-
 /**
  * Returns whether a run is in progress, which a new game would lose: a
  * level under way or just cleared.
  */
 export function isInProgress(run: Run): boolean {
-  return isUnderWay(run) || run.outcome === "cleared";
+  return isUnderWay(run.outcome) || run.outcome === "cleared";
 }
 
 /** Returns how many levels a run has cleared since its first. */
@@ -147,7 +142,7 @@ export function resume(run: Run): Run {
  * new is returned as it is, so the shell can tell a frame that changed it.
  */
 export function catchUp(run: Run, field: LevelProgress): Run {
-  if (!isUnderWay(run) || !hasNews(run, field)) return run;
+  if (!isUnderWay(run.outcome) || !hasNews(run, field)) return run;
   const scored = withScore(run, run.banked + field.score);
   const gained = field.livesGained - run.levelGained;
   const lost = field.livesLost - run.levelLost;
@@ -194,11 +189,6 @@ function hasNews(run: Run, field: LevelProgress): boolean {
     field.livesLost !== run.levelLost ||
     field.state === "cleared"
   );
-}
-
-/** Returns whether a level is under way, in play or paused. */
-function isUnderWay(run: Run): boolean {
-  return run.outcome === "playing" || run.outcome === "paused";
 }
 
 /**

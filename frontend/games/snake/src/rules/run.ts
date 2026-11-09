@@ -1,3 +1,4 @@
+import { type RunStage, hasEnded } from "@fz/core/run";
 import type { RunNumber } from "@fz/core/run_numbers";
 import { placeApple } from "./apples";
 import { BOARD_SIZE, landing } from "./arena";
@@ -8,7 +9,7 @@ import type { Speed } from "./speed";
  * Says where a run stands: waiting for its first direction, under way,
  * paused, ended by a crash, or won by filling the board.
  */
-export type Outcome = "ready" | "playing" | "paused" | "over" | "won";
+export type Outcome = Exclude<RunStage, "cleared">;
 
 /** Says what the snake ran into. */
 export type Crash = "wall" | "self";
@@ -85,11 +86,6 @@ export function createRun({ id, seed, speed }: RunStart): Run {
   };
 }
 
-/** Returns whether a run has ended, by a crash or a full board. */
-export function hasEnded(run: Run): boolean {
-  return run.outcome === "over" || run.outcome === "won";
-}
-
 /**
  * Returns the run with a direction pressed: queued as a turn, if it turns the
  * way the snake will be heading by then, and there is room in the queue.
@@ -100,7 +96,7 @@ export function hasEnded(run: Run): boolean {
  * dropped, as is one the way the snake already goes.
  */
 export function turn(run: Run, direction: Direction): Run {
-  if (hasEnded(run)) return run;
+  if (hasEnded(run.outcome)) return run;
   const ahead = run.turns.at(-1) ?? run.heading;
   if (direction === opposite(ahead)) return resume(run);
   const queues = direction !== ahead && run.turns.length < MAX_TURNS;

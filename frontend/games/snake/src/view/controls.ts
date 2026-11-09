@@ -1,16 +1,16 @@
+import { RUN_KEYS, type RunCommand } from "@fz/core/run";
 import type { Direction } from "../rules/geometry";
 
 /**
- * Names what a key or a swipe asks of the game: a direction to turn, to
- * pause, to pause or go on as it isn't, or to go on, or start another run
- * once one has ended.
+ * Names what a key or a swipe asks of the game: a direction to turn, or
+ * what the keys every game shares ask of its run.
  */
-export type BoardCommand = Direction | "pause" | "toggle" | "go";
+export type BoardCommand = Direction | RunCommand;
 
 /**
  * What each key asks, by `event.code`, the key's place on the keyboard
  * rather than its letter, so Z, Q, S and D steer on an AZERTY keyboard as
- * W, A, S and D do on a QWERTY one.
+ * W, A, S and D do on a QWERTY one; Space pauses or goes on, as P does.
  */
 const KEYS: Readonly<Record<string, BoardCommand>> = {
   ArrowUp: "up",
@@ -21,11 +21,8 @@ const KEYS: Readonly<Record<string, BoardCommand>> = {
   KeyD: "right",
   KeyS: "down",
   KeyA: "left",
-  Escape: "pause",
-  KeyP: "toggle",
+  ...RUN_KEYS,
   Space: "toggle",
-  Enter: "go",
-  NumpadEnter: "go",
 };
 
 /** The keys the board answers, by `event.code`. */

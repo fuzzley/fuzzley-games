@@ -22,6 +22,14 @@ Each file is an entry point of its own, imported by name, such as
   a seed holds; `"scenery"`, what is drawn but never played), so each takes
   a seed of its own from a run's, `randomSeed()`, a whole number of 32 bits
   for a new deal, and `shuffled()`, a list in an order a source picks.
+- `src/run.ts`: the words every game's run shares, which its rules, its
+  view and `@fz/game-ui`'s `RunLifecycle` all take: `RunStage`, where a
+  run stands, of which a game's runs pass through some or all;
+  `RunCommand`, what the keys every game shares ask of a run, and
+  `RUN_KEYS`, those keys by `event.code`, which a game spreads into its
+  own (Escape pauses, P pauses or goes on, Enter goes on); and
+  `isUnderWay()`, a run in play or paused, and `hasEnded()`, one lost or
+  won.
 - `src/run_numbers.ts`: `RunNumbers`, a game's runs numbered, made with
   the source their seeds are drawn from: `next()` gives a new run its
   `RunNumber`, an id one past the last and a seed of `randomSeed()`'s,
@@ -95,10 +103,11 @@ Each file is an entry point of its own, imported by name, such as
   its shell alike. It takes the `ShortcutModifiers` a `KeyboardEvent`
   holds, so it needs no DOM.
 
-Every game takes some of them, and `@fz/ui`'s storage takes `isRecord()`.
-The Solitaire Collection keeps two of its own in its engine: a JSON reader,
-whose errors name the path a bug report relies on, and `shuffle()`, whose
-order differs from `shuffled()`'s and Montana's kept gaps depend on.
+Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`, and
+`@fz/game-ui`'s run lifecycle the run's stages and commands. The Solitaire
+Collection keeps two of its own in its engine: a JSON reader, whose errors
+name the path a bug report relies on, and `shuffle()`, whose order differs
+from `shuffled()`'s and Montana's kept gaps depend on.
 
 ## Rules
 

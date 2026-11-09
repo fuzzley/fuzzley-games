@@ -161,7 +161,9 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   constructor, so a game's `@Injectable` class needs none either, and it
   reads nothing the game gives while it is made, so the game's fields and
   constructor may lay out its first run. Asteroid Breaker's, Brick
-  Breaker's and Snake's `GameService`s extend it.
+  Breaker's and Snake's `GameService`s extend it. The stages and the
+  commands it takes, `RunStage` and `RunCommand`, are `@fz/core/run`'s,
+  which a game's rules and view can import, and the entry hands them on.
 - `src/testing/`: what a game's specs share: `installFakeViewport()`, which
   answers the queries `GameViewportService` asks, handed on from
   `@fz/ui/testing`, which [frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)
@@ -230,8 +232,9 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `frontend/games/minesweeper/src/app/styles/_index.scss` does; its app's
   stylesheet frames the page with `game-frame`, as
   `frontend/games/minesweeper/src/app/app.component.scss` does.
-- **Imports go one way.** This library imports `@fz/ui`, `@fz/style` and
-  Angular, never the site or a game, and the site has no use for it.
+- **Imports go one way.** This library imports `@fz/ui`, `@fz/style`,
+  `@fz/core` and Angular, never the site or a game, and the site has no use
+  for it.
 
 ## Rules
 

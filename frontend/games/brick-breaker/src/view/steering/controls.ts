@@ -1,10 +1,11 @@
+import { RUN_KEYS, type RunCommand } from "@fz/core/run";
+
 /**
  * Names what a key, a click or a tap asks of the game: to launch the ball,
  * fire the laser, or go on to the next level once one is cleared
- * (`launch`); to pause; to pause or go on, as it isn't (`toggle`); or to go
- * on, or to the next level (`go`).
+ * (`launch`), or what the keys every game shares ask of its run.
  */
-export type FieldCommand = "launch" | "pause" | "toggle" | "go";
+export type FieldCommand = "launch" | RunCommand;
 
 /** Names a key held to push the paddle. */
 export type HeldKey = "left" | "right";
@@ -15,13 +16,10 @@ export type HeldKey = "left" | "right";
  * and D do on an AZERTY one.
  */
 const COMMAND_KEYS: Readonly<Record<string, FieldCommand>> = {
+  ...RUN_KEYS,
   Space: "launch",
   ArrowUp: "launch",
   KeyW: "launch",
-  Escape: "pause",
-  KeyP: "toggle",
-  Enter: "go",
-  NumpadEnter: "go",
 };
 
 /** Which way each key pushes the paddle while it is held, by `event.code`. */

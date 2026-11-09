@@ -1,5 +1,6 @@
 import { nextMarkAfter } from "@fz/core/math";
 import { mixSeed } from "@fz/core/random";
+import { type RunStage, isUnderWay } from "@fz/core/run";
 import type { RunNumber } from "@fz/core/run_numbers";
 import type { Field, WaveStart } from "../field/field";
 import type { Strays } from "../hazards/strays";
@@ -12,7 +13,7 @@ import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
  * way or paused, a wave cleared, or ended with no ship left. No run is won:
  * Endless goes on until the ships run out.
  */
-export type Outcome = "ready" | "playing" | "paused" | "cleared" | "over";
+export type Outcome = Exclude<RunStage, "won">;
 
 /**
  * Describes a run of the game, from the wave it started at to its end, a
@@ -79,11 +80,6 @@ export function createRun({ id, seed, speed, wave }: RunStart): Run {
   };
 }
 
-/** Returns whether a run has ended, its ships run out. */
-export function hasEnded(run: Run): boolean {
-  return run.outcome === "over";
-}
-
 /**
  * Returns whether a run is in progress, which a new game would lose: a
  * wave under way or just cleared, or one waiting for its first move after
@@ -91,7 +87,7 @@ export function hasEnded(run: Run): boolean {
  */
 export function isInProgress(run: Run): boolean {
   if (run.outcome === "ready") return hasClearedAWave(run);
-  return isUnderWay(run) || run.outcome === "cleared";
+  return isUnderWay(run.outcome) || run.outcome === "cleared";
 }
 
 /** Returns how many waves a run has cleared since its first. */
@@ -152,7 +148,7 @@ export function resume(run: Run, field: Pick<Field, "steps">): Run {
  * the shell can tell a frame that changed it.
  */
 export function catchUp(run: Run, field: WaveProgress): Run {
-  if (!isUnderWay(run) || !hasNews(run, field)) return run;
+  if (!isUnderWay(run.outcome) || !hasNews(run, field)) return run;
   const caughtUp: Run = {
     ...run,
     score: run.banked + field.score,
@@ -206,9 +202,4 @@ function hasNews(run: Run, field: WaveProgress): boolean {
     run.straysBanked + field.strays.broughtHome !== run.strays ||
     field.cleared
   );
-}
-
-/** Returns whether a wave is under way, in play or paused. */
-function isUnderWay(run: Run): boolean {
-  return run.outcome === "playing" || run.outcome === "paused";
 }

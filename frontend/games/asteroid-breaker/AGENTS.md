@@ -307,7 +307,8 @@ takes for the specs' helpers.
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as a ship is lost or a wave cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
-  keys by `event.code`, the commands and the keys held to fly;
+  keys held to fly, by `event.code` (`heldKeyOf()`), and reads what the
+  run's keys ask from `@fz/core/run`'s `RUN_KEYS` (`commandOfKey()`);
   `steering.ts` the `Steering` that turns the keys, the mouse and up to
   three fingers (`MOST_FINGERS`) into each frame's `Steer`; `stick.ts` the
   deck's `Stick`, which follows the one finger on it; and `deck.ts` where

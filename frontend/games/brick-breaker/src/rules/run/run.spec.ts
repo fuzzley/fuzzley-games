@@ -13,7 +13,6 @@ import {
   catchUp,
   createRun,
   gainedLifeByPoints,
-  hasEnded,
   isInProgress,
   levelSeed,
   levelsCleared,
@@ -415,19 +414,6 @@ describe("catchUp's order", () => {
     const run = runWith({ outcome });
 
     expect(catchUp(run, fieldAt({ state: "cleared", livesLost: 1 }))).toBe(run);
-  });
-});
-
-describe("hasEnded", () => {
-  it.each([
-    ["ready", false],
-    ["playing", false],
-    ["paused", false],
-    ["cleared", false],
-    ["over", true],
-    ["won", true],
-  ] as const)("says a run %s has ended: %s", (outcome, ended) => {
-    expect(hasEnded(runWith({ outcome }))).toBe(ended);
   });
 });
 

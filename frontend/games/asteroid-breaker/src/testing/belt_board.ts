@@ -1,4 +1,5 @@
 import { advanceClock } from "@fz/core/clock";
+import type { RunCommand } from "@fz/core/run";
 import { type SceneRun, runKeyedScene } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { GameObjects, type Scene } from "phaser";
@@ -28,7 +29,6 @@ import {
 } from "../view/field/field_metrics";
 import type { FieldFrame } from "../view/field/frame";
 import { LAYERS } from "../view/field/layers";
-import type { FieldCommand } from "../view/steering/controls";
 import { ART_PALETTE } from "./art_frames";
 import { KEEPER, fieldFrom } from "./field_picture";
 
@@ -103,7 +103,7 @@ export class FakeShell implements BeltSceneOptions {
   reshapesField = false;
   readonly ticks: Tick[] = [];
   readonly layouts: FieldLayout[] = [];
-  readonly commands: FieldCommand[] = [];
+  readonly commands: RunCommand[] = [];
   /**
    * What the scene handed over at each bake of the field's atlas to picture
    * How to play's art with, a bake each, the last bake's last.
@@ -143,7 +143,7 @@ export class FakeShell implements BeltSceneOptions {
     const torus = fieldShape(layout.viewport, this.setting, this.field.torus);
     reshapeField(this.field, torus);
   };
-  readonly command = (command: FieldCommand): void => {
+  readonly command = (command: RunCommand): void => {
     this.commands.push(command);
   };
   readonly onPictures = (pictures: () => Pictures): void => {

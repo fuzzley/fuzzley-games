@@ -1,20 +1,7 @@
 import { type Signal, inject, signal } from "@angular/core";
+import type { RunCommand, RunStage } from "@fz/core/run";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
-
-/**
- * Names where a run stands, among the stages the games' runs pass through:
- * waiting for its first move, under way, paused, a stage cleared, or ended,
- * lost or won.
- */
-export type RunStage =
-  "ready" | "playing" | "paused" | "cleared" | "over" | "won";
-
-/**
- * Names what the keys every game shares ask of its run: to pause; to pause
- * or go on, as it isn't (`toggle`); or to go on (`go`).
- */
-export type RunCommand = "pause" | "toggle" | "go";
 
 /** What a new run asks before it throws away the one under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {

@@ -1,5 +1,6 @@
 import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
+import type { RunCommand } from "@fz/core/run";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
@@ -19,7 +20,7 @@ import { type Cameras, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { PICTURE_FRAMES, type Pictures } from "../view/art/art";
 import type { PointsFont } from "../view/art/points_art";
-import { type FieldCommand, commandOfKey } from "../view/steering/controls";
+import { commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
 import {
   type SoundName,
@@ -95,7 +96,7 @@ export interface BeltSceneOptions {
    */
   readonly onLayout: (layout: FieldLayout) => void;
   /** Takes what a key asks of the game. */
-  readonly command: (command: FieldCommand) => void;
+  readonly command: (command: RunCommand) => void;
   /**
    * Takes, each time the field's atlas is baked, what returns a picture of
    * every rock kind, pickup, a stray and the comet as drawn in it, for How to

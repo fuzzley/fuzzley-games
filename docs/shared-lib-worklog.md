@@ -421,3 +421,40 @@ The review:
 3. _`saved_game.ts`'s entry and the testing skill's triggers missed the new
    names:_ taken. `AGENTS.md` names `SAVED_GAME_VERSION` there, and the skill
    triggers on `SCREENSHOT_API`, `script_api` and `shownRun`.
+
+### Step 2.1: `@fz/core/run`, the stages and keys every run shares
+
+Built as planned on `sl-play`. A new `@fz/core/run` entry holds `RunStage`,
+`RunCommand`, `RUN_KEYS`, `isUnderWay()` and `hasEnded()`, with a spec that
+pins every key and every stage. `@fz/game-ui`'s `RunLifecycle` takes the two
+types from core, through a new `@fz/core` dependency (one line of
+`yarn.lock`), and its entry hands them on. Snake's `Outcome` is
+`Exclude<RunStage, "cleared">`, Brick Breaker's is `RunStage` and Asteroid
+Breaker's is `Exclude<RunStage, "won">`. The games' own `hasEnded()` goes,
+and so do the breakers' private `isUnderWay()`, along with the four "under
+way" and three "ended" copies. Snake's and Brick Breaker's key maps spread
+`RUN_KEYS`. The games lose 77 lines net, 30 of them specs that core's spec
+now covers. Tests pass: core 237, game-ui 259, Snake 421, Brick Breaker 1823
+and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- Asteroid Breaker's `FieldCommand` was exactly `RunCommand`, so it goes
+  rather than stay as an alias. Its `commandOfKey()` reads `RUN_KEYS` as it
+  is, with nothing to spread.
+- The fuzzley-ui skill's library table leaves the `@fz/core` row as it was.
+  Lengthening that row would re-align every line of the table, which
+  `sl-shell` is likely to edit too. A new reach-for row covers the entry.
+
+The review:
+
+1. _`RUN_KEYS`'s doc opened with two sentences, the second untrue for
+   Asteroid Breaker:_ taken. It is one sentence.
+2. _Asteroid Breaker's AGENTS.md still said `controls.ts` holds the
+   commands:_ taken. It now says the file holds the keys held to fly and
+   reads the run's keys from `RUN_KEYS`. As suggested, the fuzzley-ui
+   skill's triggers gain `RunStage` and `RUN_KEYS`. The `frontend/games/
+AGENTS.md` bullet broken early is re-wrapped.
+3. _`bar_pause.component.ts` could take its `outcome` as a `RunStage`:_ not
+   taken here. It changes `@fz/game-ui`'s bar API, which no step of the plan
+   covers. It is left as a follow-up.
