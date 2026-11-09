@@ -1,5 +1,6 @@
 import { ApplicationRef, inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
@@ -25,12 +26,10 @@ import { FIELD_SHORT_SIDE } from "../rules/tuning";
 import { parseWave, waveEntryOf } from "../rules/waves/waves";
 import { stepTimes } from "../testing/field_picture";
 import {
-  FRAME_MS,
   SPEC_WAVE,
   SPEC_WAVES,
   clearToNext,
   endRun,
-  playUntil,
   provideSpecWaves,
   shoot,
 } from "../testing/play";

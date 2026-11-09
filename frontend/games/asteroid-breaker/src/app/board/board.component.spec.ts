@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { FRAME_MS } from "@fz/core/testing";
 import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
@@ -35,7 +36,6 @@ import type { WaveEntry } from "../../rules/waves/waves";
 import { SOUNDS_KEY } from "../../scene/belt_scene";
 import { humsIn } from "../../testing/belt_board";
 import {
-  FRAME_MS,
   ROOMY,
   SPACE,
   SPEC_WAVE,

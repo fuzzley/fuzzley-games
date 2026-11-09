@@ -136,10 +136,11 @@ Run these from `frontend/games/brick-breaker/`, or as
 
 ## The View
 
-- `src/testing/art_frames.ts` draws the atlas in one palette
-  (`ART_PALETTE`) at one scale (`ART_SCALE`), and finds a frame by its name
-  (`frameNamed()`), so the art's specs check the commands a frame is drawn
-  with.
+- `src/testing/art_frames.ts` draws the atlas in one palette (`ART_PALETTE`)
+  at one scale (`ART_SCALE`), as `ART_FRAMES`, so the art's specs check the
+  commands a frame is drawn with, finding the frame by its name and its
+  commands by their kind and color with `@fz/phaser/testing/pure`'s
+  `frameNamed()` and `drawnIn()`.
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES` with `@fz/style/testing`'s helpers: it reads each palette's
   roles from the global stylesheet, by the names the board reads them by
@@ -192,7 +193,8 @@ game through `runScene()`:
   `TWO_SETS`. It runs on the time it is given: `game.tick(FRAME_MS, steer)`,
   steered `STILL`, `under()` the ball, `awayFrom()` it or `underCapsule()`;
   `playUntil()`, `playFor()`, `loseBall()`, `playToClear()` and
-  `clearToNext()` play on to a point.
+  `clearToNext()` play on to a point. `FRAME_MS`, `playUntil()` and
+  `playFor()` are `@fz/core/testing`'s.
 - `render()` sets up the TestBed, so a spec that changes a setting first
   stores it, or changes it after rendering.
 - jsdom has no `matchMedia`, so motion isn't welcome: the cards open at the

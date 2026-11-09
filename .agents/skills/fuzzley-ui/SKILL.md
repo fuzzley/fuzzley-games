@@ -23,9 +23,10 @@ which piece to reach for, and how an app takes them up.
 Besides what its row names, `@fz/core` holds a run's stages and the keys
 every run shares (`@fz/core/run`), the keys a game steers by while they are
 held, the last pressed winning (`HeldKeys` in `@fz/core/keys`), a
-flourish's records, each played in turn (`Turns` in `@fz/core/turns`), and
-a ladder of multipliers and its words (`multiplierAt()` in `@fz/core/math`,
-`tierWords()` in `@fz/core/format`).
+flourish's records, each played in turn (`Turns` in `@fz/core/turns`), a
+ladder of multipliers and its words (`multiplierAt()` in `@fz/core/math`,
+`tierWords()` in `@fz/core/format`), and, for specs, a game played a frame
+at a time (`playUntil()` and `playFor()` in `@fz/core/testing`).
 
 Imports go one way: an app may import a library, a library another library,
 and a library never an app. `yarn constraints` fails a library that depends

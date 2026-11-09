@@ -366,7 +366,10 @@ browser, through a game's screenshots and its `check:layout`.
   there first, and no spec reads a buffer by those numbers itself.
 - **A spec in Node,** of a game's view, takes `@fz/phaser/testing/pure`,
   which loads no Phaser: `viewport()` is a canvas's `Viewport` from a CSS
-  size, a pixel ratio and its chrome.
+  size, a pixel ratio and its chrome, and the art's specs read a game's
+  atlas with `frameNamed(frames, name)`, a frame of it by its name, and
+  `drawnIn(frame, kind, color)`, the commands of a frame of a kind that
+  draw in a color.
 - **What a scene loads is served.** The harness answers every request
   itself, from `runScene()`'s `serve`, a function from the URL, resolved
   against the page's, to the file's text or bytes, or to nothing, which

@@ -123,6 +123,15 @@ Each file is an entry point of its own, imported by name, such as
   playing, and returns it for the painter to fill in, so a flourish makes
   nothing as it plays. The breakers' painters take their rings, fades,
   puffs, sparks and points from it.
+- `src/testing.ts`: the frame loop a game's specs play it in, which imports
+  nothing, so a spec in Node can take it as well as one in jsdom:
+  `FRAME_MS`, a frame at 60 a second; `playUntil()`, which ticks any game
+  with a `tick(ms, steer)` a frame at a time, steered as a rule says, until
+  something comes to pass, failing past a minute's frames; and `playFor()`,
+  which ticks it for a while, steered the same way throughout. Both read
+  what a game steers by from its `tick` alone, so they refuse a steer that
+  leaves part of it out. Only specs and their helpers import it, as
+  `@fz/dev`'s ESLint checks of every library's testing entry.
 
 Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`, and
 `@fz/game-ui`'s run lifecycle the run's stages and commands. The Solitaire

@@ -5,16 +5,12 @@ import {
   extentOf,
   lineWidth,
 } from "@fz/phaser/shapes";
+import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { BALL_KIND_IDS } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS } from "../../rules/catalog/capsules";
 import { BALL_RADIUS, PADDLE_HEIGHT } from "../../rules/tuning";
-import {
-  ART_PALETTE,
-  ART_SCALE,
-  drawnIn,
-  frameNamed,
-} from "../../testing/art_frames";
+import { ART_FRAMES, ART_PALETTE, ART_SCALE } from "../../testing/art_frames";
 import {
   FRAMES,
   PICTURE_FRAMES,
@@ -131,7 +127,7 @@ describe("a ball's frames", () => {
   it.each(BALL_KIND_IDS)(
     "draws a %s ball as the fuzzball in its color over its outline, its eyes left to a frame of their own",
     (kind) => {
-      const frame = frameNamed(ballFrame(kind));
+      const frame = frameNamed(ART_FRAMES, ballFrame(kind));
 
       expect({
         under: frame.commands[0]?.color,
@@ -146,8 +142,8 @@ describe("a ball's frames", () => {
   it.each(BALL_KIND_IDS)(
     "draws a %s ball with its eyes in the marks' color, as large as it flies",
     (kind) => {
-      const faced = frameNamed(facedBallFrame(kind));
-      const flying = frameNamed(ballFrame(kind));
+      const faced = frameNamed(ART_FRAMES, facedBallFrame(kind));
+      const flying = frameNamed(ART_FRAMES, ballFrame(kind));
 
       expect({
         size: [faced.width, faced.height],
@@ -159,11 +155,12 @@ describe("a ball's frames", () => {
   it.each(SCALES)(
     "keeps a normal ball's fur within the ball's edge at a unit of $unit device pixels",
     (scale) => {
-      const frame = atlasFrames(ART_PALETTE, scale).find(
-        (each) => each.name === ballFrame("normal"),
+      const frame = frameNamed(
+        atlasFrames(ART_PALETTE, scale),
+        ballFrame("normal"),
       );
 
-      expect(frame?.width).toBeLessThanOrEqual(
+      expect(frame.width).toBeLessThanOrEqual(
         2 * Math.ceil(BALL_RADIUS * scale.unit + 1e-9),
       );
     },
@@ -171,7 +168,7 @@ describe("a ball's frames", () => {
 
   it("tells the kinds apart by shape: a fire ball's flame stands taller, a blast ball's spikes reach wider", () => {
     const [normal, fire, blast] = BALL_KIND_IDS.map((kind) =>
-      frameNamed(ballFrame(kind)),
+      frameNamed(ART_FRAMES, ballFrame(kind)),
     );
 
     expect({
@@ -181,7 +178,7 @@ describe("a ball's frames", () => {
   });
 
   it("draws the balls' eyes, two of them, in the marks' color", () => {
-    const eyes = frameNamed(FRAMES.eyes);
+    const eyes = frameNamed(ART_FRAMES, FRAMES.eyes);
 
     expect(drawnIn(eyes, "polygon", ART_PALETTE.mark)).toHaveLength(2);
   });
@@ -191,7 +188,7 @@ describe("a capsule's frame", () => {
   it.each(CAPSULE_IDS)(
     "outlines the %s capsule in the outline's color, then fills it in its tone's, its symbol in the marks'",
     (id) => {
-      const frame = frameNamed(capsuleFrame(id));
+      const frame = frameNamed(ART_FRAMES, capsuleFrame(id));
 
       expect({
         outline: frame.commands[0]?.color,
@@ -206,8 +203,8 @@ describe("a capsule's frame", () => {
   );
 
   it("draws a good capsule's body in the accent and a bad one's in the danger color", () => {
-    const good = frameNamed(capsuleFrame("wide"));
-    const bad = frameNamed(capsuleFrame("narrow"));
+    const good = frameNamed(ART_FRAMES, capsuleFrame("wide"));
+    const bad = frameNamed(ART_FRAMES, capsuleFrame("narrow"));
 
     expect([good.commands[1]?.color, bad.commands[1]?.color]).toEqual([
       ART_PALETTE.capsules.good,
@@ -216,8 +213,8 @@ describe("a capsule's frame", () => {
   });
 
   it("rounds a good capsule's ends and notches a bad one's", () => {
-    const good = frameNamed(capsuleFrame("wide"));
-    const bad = frameNamed(capsuleFrame("narrow"));
+    const good = frameNamed(ART_FRAMES, capsuleFrame("wide"));
+    const bad = frameNamed(ART_FRAMES, capsuleFrame("narrow"));
 
     expect([good.commands[0]?.kind, bad.commands[0]?.kind]).toEqual([
       "roundRect",
@@ -226,7 +223,7 @@ describe("a capsule's frame", () => {
   });
 
   it("draws a symbol's lines as one path, so its corners join", () => {
-    const frame = frameNamed(capsuleFrame("catch"));
+    const frame = frameNamed(ART_FRAMES, capsuleFrame("catch"));
 
     expect(drawnIn(frame, "polyline", ART_PALETTE.mark)).toMatchObject([
       { points: { length: 4 } },
@@ -254,7 +251,7 @@ describe("the atlas", () => {
   });
 
   it("draws the paddle's end as a disc in its color, as tall as the paddle", () => {
-    const end = frameNamed(FRAMES.paddle);
+    const end = frameNamed(ART_FRAMES, FRAMES.paddle);
     const height = Math.round(PADDLE_HEIGHT * ART_SCALE.unit);
 
     expect(end).toMatchObject({
@@ -273,7 +270,7 @@ describe("the atlas", () => {
   });
 
   it("frames a brick's cell in the glow's color, a line past it on each side", () => {
-    const glow = frameNamed(FRAMES.glow);
+    const glow = frameNamed(ART_FRAMES, FRAMES.glow);
     const line = lineWidth(ART_SCALE);
 
     expect({
@@ -289,7 +286,7 @@ describe("the atlas", () => {
 
   it("draws each tag in its capsule's tone", () => {
     const tones = [tagFrame("wide"), tagFrame("fast")].map(
-      (name) => frameNamed(name).commands[0]?.color,
+      (name) => frameNamed(ART_FRAMES, name).commands[0]?.color,
     );
 
     expect(tones).toEqual([

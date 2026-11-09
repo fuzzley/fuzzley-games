@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { formatPoints } from "@fz/core/format";
 import { randomSeed } from "@fz/core/random";
+import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
@@ -33,7 +34,6 @@ import {
 import { speedOf } from "../../testing/field_picture";
 import {
   CHAIN_WAVES,
-  FRAME_MS,
   GAINED_WAVES,
   SECTOR_WAVES,
   SPEC_RANDOM,
@@ -45,9 +45,7 @@ import {
   clearToNext,
   endRun,
   loseShip,
-  playFor,
   playToClear,
-  playUntil,
   provideSpecWaves,
   shoot,
   toPickup,

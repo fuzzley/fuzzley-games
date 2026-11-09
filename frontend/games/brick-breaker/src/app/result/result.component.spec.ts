@@ -1,11 +1,11 @@
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figures } from "@fz/ui/testing";
 import { FIRST_LIVES } from "../../rules/tuning";
 import type { LevelEntry } from "../../rules/levels/levels";
 import {
-  FRAME_MS,
   SPEC_LEVEL,
   SPEC_LEVELS,
   STILL,

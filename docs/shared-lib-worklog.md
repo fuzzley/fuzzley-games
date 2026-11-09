@@ -1715,3 +1715,116 @@ The review:
    a config lists after `fuzzleyStyle()`:_ taken. The doc says the tags go
    in at Vite's last stage, after any plugin's at the usual one. A rebuilt
    Snake still starts its head with them, and the plugin's 18 cases pass.
+
+### Step 5.10+5.11: the breakers' frame loop played by `@fz/core/testing`, and their art read by `@fz/phaser/testing/pure`
+
+Built as planned on `sl-frame`, as `74376a63`, but the loop lives in
+`@fz/core/testing`, not `@fz/game-ui/testing`.
+
+- `@fz/core/testing` (`src/testing.ts`, a new `./testing` export) holds
+  `FRAME_MS`, `playUntil()` and `playFor()`, for any game with a
+  `tick(ms, steer)`. `playUntil()` keeps Brick Breaker's optional frame
+  length, which one spec passes as `SERVE_MS`, and Asteroid Breaker's specs
+  get the same default. Ten specs pin a frame's length, the rule handed
+  the game, the limit at 3601 frames and its message, the frame length
+  asked, `playFor()`'s end, both helpers' refusal of a partial steer and an
+  inline rule's literal steer. Core stays at its 100% floor, and its fence
+  holds, as the file imports nothing.
+- `@fz/phaser/testing/pure` gains `frameNamed(frames, name)` and
+  `drawnIn(frame, kind, color)` (`art_frames.ts`), with three specs over
+  Brick Breaker's ball and tile frames, which catch a reader that ignores
+  the name, the kind or the color.
+- Both breakers' `play.ts` lose their copies of the loop, and both
+  `art_frames.ts` their readers. The 15 specs that played a game, 9 in
+  Asteroid Breaker and 6 in Brick Breaker, import the loop from core, and
+  the six art specs read their frames with the library's readers. Brick
+  Breaker's `src` is +41/−92, Asteroid Breaker's +78/−118.
+- Core's and `@fz/phaser`'s `AGENTS.md`, the angular-testing, fuzzley-ui
+  and phaser-core skills, and both breakers' `AGENTS.md` and testing skills
+  name the helpers.
+
+Tests pass: `@fz/core` 293, `@fz/phaser` 626, Brick Breaker 1842 and 180,
+Asteroid Breaker 3624 and 1620. Lint, typecheck and root lint are clean.
+
+Where it went other than planned:
+
+- The loop lives in `@fz/core/testing`, not `@fz/game-ui/testing`. It
+  imports nothing, so core's fence holds it, and `@fz/game-ui` is the
+  Angular chrome. (A rules spec in Node can't load `@fz/game-ui/testing`,
+  whose `@fz/ui/testing` reaches `@angular/common`, but no spec that plays
+  a game runs in Node: they all reach the loop through `play.ts`, which
+  loads Angular, so that wasn't what decided it.)
+- `frameNamed()` takes the frames to look in, where each game's copy drew
+  the whole atlas at every lookup. Each game's `art_frames.ts` exports
+  `ART_FRAMES`, drawn once per spec file in its specs' palette and scale,
+  about 50 draws saved; Brick Breaker's ball at each scale looks in that
+  scale's atlas, and now fails by name rather than with a matcher error.
+- Asteroid Breaker's spec of its `frameNamed()` moves to the library's.
+- Asteroid Breaker's `SPACE` is `@fz/phaser/testing`'s
+  `browserKey("Space", " ")`, the same key, as the coordinator asked once
+  5.5+5.6 had landed. `@fz/phaser/testing` loads Phaser by type only, so
+  the app specs that import `play.ts` load nothing more.
+- `belt_scene.spec.ts` keeps its two lookups, which look in the deck's
+  frames and in an atlas at the screen's own scale, and `flourish.spec.ts`
+  its `1000 / 60`; neither plays a game through `play.ts`, and the scene
+  specs were sl-tools' at the time.
+
+The review:
+
+1. _`playUntil()` type-checked a steer the game doesn't take, as `tick` was
+   a method and so compared both ways, and `Steer` was inferred from the
+   rule; Asteroid Breaker's `tick` assigns the steer over what it held, so a
+   partial one would keep the last frame's keys:_ taken, with one change to
+   the fix. `tick` is a `readonly` function-typed property and the doc opens
+   with a verb, but that alone broke a rule with an unannotated parameter,
+   such as core's own spec's `(played) => …`: TypeScript fixes `Game`
+   before `Steer` has a candidate, and checks it against `Ticking<unknown>`.
+   So `playUntil<Game, Steer>()` takes `game: Game & Ticking<Steer>` and a
+   rule returning `NoInfer<Steer>` (the whole rule after the second
+   review), reading the steer from the game's `tick` alone, with no cast
+   inside. A new spec pins the refusal with a `@ts-expect-error`, which goes
+   unused, failing the typecheck, against the reviewed signature. Both
+   breakers typecheck.
+2. _Core's `AGENTS.md` said the testing entries of the libraries with a
+   framework can't be taken in Node, which `@fz/phaser/testing/pure`
+   disproves, and no caller needs Node; the count is 15 specs, not 16:_
+   taken. The sentence now says the loop imports nothing, so a spec in Node
+   can take it as well as one in jsdom, and the commit and this log give
+   that as the reason for leaving the plan, with 15 specs.
+
+The second review, of the typing, after `57bfae86`:
+
+1. _An unannotated inline rule with a literal-union field, such as Brick
+   Breaker's `push: -1 | 0 | 1`, would be refused, as the rule is checked
+   against `NoInfer<Steer>` while it is still generic and its literal
+   widens; reasoned, not compiled:_ taken. Compiled first, it holds, and
+   more widely than said: `push: 1` fails with "number is not assignable to
+   0 | 1 | -1" from `() => ({ … })` and from a rule with an unannotated
+   parameter alike, where the review expected only the first. The rule is
+   now `NoInfer<(game: Game) => Steer>`, which takes both, still takes
+   `(played) => …`, `under(x)`-style helpers and `() => STILL`, and still
+   refuses a partial steer. The spec's ship now turns by `-1 | 0 | 1`, and
+   a new case plays it by both shapes of inline rule; against the
+   committed signature, the typecheck fails at all three of the spec's
+   inline literal rules.
+2. _`playFor()` refused a partial steer only because `tick` is a property,
+   and nothing pinned it:_ taken, with `steer: NoInfer<Steer>`, an
+   `@ts-expect-error` case under `playFor`, and core's `AGENTS.md` saying
+   both helpers refuse such a steer. Compiled, the claim holds only for a
+   steer held in a variable. With a method `tick` and no `NoInfer`, an
+   inline `{ fire: true }` is still refused: TypeScript won't take a type
+   with more properties as a subtype of an object literal's type, so the
+   game's steer wins the inference. A `const` holding the same steer gets
+   through. So the case holds its steer in a `const`: it fails the
+   typecheck with a method `tick` and no `NoInfer`, and passes with either
+   guard alone.
+
+The second review's changes are amended into the step's commit, which
+wasn't picked yet, and core's and both breakers' checks and the root lint
+were run again.
+
+Before committing, the worktree moved onto `shared-lib` twice, the safe
+way, through a named stash applied by its SHA and dropped: onto `7b7a77ce`
+(sl-tools' 5.5+5.6), after which `SPACE` took `browserKey()`, and onto
+`a3c57a17` (sl-shell's 4.10). Both applied cleanly; the first changed the
+lockfile, so the workspace was installed again.

@@ -1,4 +1,5 @@
 import type { Provider } from "@angular/core";
+import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import type { GameService } from "../app/play/game.service";
 import { GAME_LEVELS } from "../app/tokens";
@@ -10,12 +11,6 @@ import {
 } from "../rules/levels/levels";
 import type { Steer } from "../rules/paddle/paddle";
 import { FIELD_WIDTH } from "../rules/tuning";
-
-/** How long a frame of the board takes, at 60 a second. */
-export const FRAME_MS = 1000 / 60;
-
-/** The most frames a spec plays for something to happen: a minute's at 60 a second. */
-const PLAY_LIMIT_FRAMES = 3600;
 
 /** Returns a level of gifts that each let a capsule fall, before a wall of steel. */
 function giftsOf(capsule: string, name: string): LevelData {
@@ -145,33 +140,6 @@ export function travelled(game: GameService): number {
   const { x, y } = ball;
   game.tick(FRAME_MS, STILL);
   return Math.hypot(ball.x - x, ball.y - y);
-}
-
-/**
- * Ticks the game a frame at a time, steered as a rule says, until something
- * comes to pass, failing past a minute's frames.
- */
-export function playUntil(
-  game: GameService,
-  steer: (game: GameService) => Readonly<Steer>,
-  done: () => boolean,
-  frameMs = FRAME_MS,
-): void {
-  for (let frame = 0; !done(); frame++) {
-    if (frame > PLAY_LIMIT_FRAMES) throw new Error("It never came to pass.");
-    game.tick(frameMs, steer(game));
-  }
-}
-
-/** Ticks the game a frame at a time for a while, steered the same way throughout. */
-export function playFor(
-  game: GameService,
-  ms: number,
-  steer: Readonly<Steer>,
-): void {
-  for (let played = 0; played < ms; played += FRAME_MS) {
-    game.tick(FRAME_MS, steer);
-  }
 }
 
 /** Serves the ball, at once or once it is back on the paddle, and plays it until it is lost. */

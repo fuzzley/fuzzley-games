@@ -891,11 +891,12 @@ of its own beside it:
   margin and tilt (`entriesOf()`), and where an event was logged against
   one (`edgePlaceOf()`), for the specs of the hazards.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
-  specs, and finds a frame by its name (`frameNamed()`); it lists the pixel
-  ratios the specs check the art at (`PIXEL_RATIOS`) and the scales a field
-  is drawn at, as baked, the smallest unit the layout check holds a field to
-  at each among them (`ART_SCALES`), and says how far a frame's drawing
-  reaches from its middle (`reachOf()`).
+  specs (`ART_FRAMES`), among which `@fz/phaser/testing/pure`'s
+  `frameNamed()` finds a frame by its name; it lists the pixel ratios the
+  specs check the art at (`PIXEL_RATIOS`) and the scales a field is drawn
+  at, as baked, the smallest unit the layout check holds a field to at each
+  among them (`ART_SCALES`), and says how far a frame's drawing reaches from
+  its middle (`reachOf()`).
 - `autopilot.ts` plays a wave as a fair player would (`autoplay()`,
   `playWave()`), steering each frame by `pilot()`: it flees a rock or a
   comet whose course comes near the ship, dashing when one is about to meet
@@ -937,12 +938,12 @@ of its own beside it:
   come to one thing soon (`SPEC_WAVES` and the others), handed to
   `GameService` through `GAME_WAVES` with a seed of its own through
   `GAME_RANDOM` (`provideSpecWaves()`), and plays them through `tick()`,
-  steering the ship from the frame it reads (`shoot()`, `ram()`,
-  `toPickup()`, `toStray()`, `playUntil()`, `loseShip()`, `endRun()`,
-  `playToClear()`, `clearToNext()`), up to a card if a spec wants one
-  (`pauseIn()`, `clearIn()`, `endIn()`); with how the board lays the field
-  out on a roomy screen with no touch (`ROOMY`), and Space as a browser
-  sends it (`SPACE`).
+  with `@fz/core/testing`'s `playUntil()`, steering the ship from the frame
+  it reads (`shoot()`, `ram()`, `toPickup()`, `toStray()`, `loseShip()`,
+  `endRun()`, `playToClear()`, `clearToNext()`), up to a card if a spec
+  wants one (`pauseIn()`, `clearIn()`, `endIn()`); with how the board lays
+  the field out on a roomy screen with no touch (`ROOMY`), and Space as a
+  browser sends it (`SPACE`), from `@fz/phaser/testing`'s `browserKey()`.
 - `run_under_way.ts` holds a run under way on its third wave, with points,
   strays and a crew (`runUnderWay()`), how it starts its wave
   (`waveSetupOf()`), and its field laid out and played a second

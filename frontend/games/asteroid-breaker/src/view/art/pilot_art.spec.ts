@@ -1,8 +1,9 @@
 import { FUZZBALL_STRANDS } from "@fz/phaser/fuzzball";
+import { frameNamed } from "@fz/phaser/testing/pure";
 import { FUZZBALL } from "@fz/style/fuzzball";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { STRAY_RADIUS } from "../../rules/tuning";
-import { ART_PALETTE, frameNamed } from "../../testing/art_frames";
+import { ART_FRAMES, ART_PALETTE } from "../../testing/art_frames";
 import {
   CONSTELLATION,
   PILOT_SIZES,
@@ -46,7 +47,7 @@ describe("a pilot's frames", () => {
   it.each(SEATS)("draws each pilot %s in its own ink", (seat) => {
     const colors = Array.from({ length: PILOT_COLORS }, (_, pilot) => [
       ...new Set(
-        frameNamed(pilotFrame(pilot, seat)).commands.map(
+        frameNamed(ART_FRAMES, pilotFrame(pilot, seat)).commands.map(
           (command) => command.color,
         ),
       ),
@@ -85,7 +86,7 @@ describe("a pilot's frames", () => {
 
 describe("a pilot's eyes", () => {
   it.each(SEATS)("draws the eyes in their own frame, %s", (seat) => {
-    const frame = frameNamed(eyesFrame(seat));
+    const frame = frameNamed(ART_FRAMES, eyesFrame(seat));
 
     expect(
       frame.commands.filter((command) => command.color === ART_PALETTE.eyes),

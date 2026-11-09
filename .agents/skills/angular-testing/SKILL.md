@@ -110,6 +110,9 @@ Each library's `testing` entry point holds what specs need of it, and
 - `@fz/game-ui/testing`: `installFakeViewport()`, handed on from
   `@fz/ui/testing`; and `barChoice()`, `chooseInBar()` and `openBarMenu()`,
   which drive the bar's choice and overflow menus as a player does.
+- `@fz/core/testing`: `FRAME_MS`, `playUntil()` and `playFor()`, which play
+  any game with a `tick(ms, steer)` a frame at a time, in a spec in Node
+  too, as it loads no framework.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
   Phaser, with `collectErrors()`, which keeps what a failed scene hands the
   app's `ErrorHandler` for the spec to read, and `FakeResizeObserver`,
@@ -120,7 +123,8 @@ Each library's `testing` entry point holds what specs need of it, and
   reads, for `fireEvent`; and what reads back what a scene drew
   (`objectsIn()`, `imagesIn()`, `commandsOf()`, `strokesOf()`,
   `colorsOf()`); and, from `@fz/phaser/testing/pure`, which loads no
-  Phaser, `viewport()` for a spec in Node (the `phaser-core` skill).
+  Phaser, `viewport()`, `frameNamed()` and `drawnIn()` for a spec in Node
+  (the `phaser-core` skill).
 - `@fz/style/testing`: what a contrast spec needs to hold every palette in
   `THEMES` to WCAG, and a palette spec to color a board as a palette does. `compileStylesheet()` compiles an app's global
   stylesheet as its Vite does, `paletteRoles()` reads each palette's roles

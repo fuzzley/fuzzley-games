@@ -5,20 +5,20 @@ import {
   atlasSize,
   lineWidth,
 } from "@fz/phaser/shapes";
+import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
 import { ROCK_OUTLINES } from "../../rules/rocks/rocks";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
 import {
+  ART_FRAMES,
   ART_PALETTE,
   ART_SCALE,
   ART_SCALES,
   PIXEL_RATIOS,
   distanceToEdge,
-  drawnIn,
   edgeOf,
-  frameNamed,
   reachOf,
 } from "../../testing/art_frames";
 import { TAG_RADIUS, isTagged } from "../field/tags";
@@ -292,7 +292,7 @@ describe("a tag's frame", () => {
   it.each(PICKUP_IDS.filter(isTagged))(
     "draws %s's symbol alone, in the accent",
     (id) => {
-      const frame = frameNamed(tagFrame(id));
+      const frame = frameNamed(ART_FRAMES, tagFrame(id));
 
       expect(new Set(frame.commands.map((command) => command.color))).toEqual(
         new Set([ART_PALETTE.accent]),
@@ -303,7 +303,7 @@ describe("a tag's frame", () => {
   it.each(PICKUP_IDS.filter(isTagged))(
     "keeps %s's symbol within its ring, clear of the ring's line",
     (id) => {
-      const frame = frameNamed(tagFrame(id));
+      const frame = frameNamed(ART_FRAMES, tagFrame(id));
       const middle = { x: frame.width / 2, y: frame.height / 2 };
 
       const reach = Math.max(
@@ -354,7 +354,7 @@ describe("a pickup's frame", () => {
   it.each(PICKUP_IDS.filter((id) => id !== "ship"))(
     "outlines the %s pickup, fills it in the accent, and draws its symbol in the color on the accent",
     (id) => {
-      const frame = frameNamed(pickupFrame(id));
+      const frame = frameNamed(ART_FRAMES, pickupFrame(id));
 
       expect({
         hexagon: frame.commands.slice(0, 2).map((command) => command.color),
@@ -369,7 +369,7 @@ describe("a pickup's frame", () => {
   );
 
   it("draws the Extra ship's symbol as a pilot in its window: the window in the color on the accent, the pilot in the accent", () => {
-    const frame = frameNamed(pickupFrame("ship"));
+    const frame = frameNamed(ART_FRAMES, pickupFrame("ship"));
     const [window, ...pilot] = frame.commands.slice(2);
 
     expect({
@@ -382,7 +382,10 @@ describe("a pickup's frame", () => {
   });
 
   it("sets the Extra ship's pilot a little low in its window, as it sits in the ship", () => {
-    const [window, body] = frameNamed(pickupFrame("ship")).commands.slice(2);
+    const [window, body] = frameNamed(
+      ART_FRAMES,
+      pickupFrame("ship"),
+    ).commands.slice(2);
     const middleOf = (command: DrawCommand | undefined): Point =>
       command?.kind === "circle"
         ? { x: command.x, y: command.y }
@@ -396,7 +399,7 @@ describe("a pickup's frame", () => {
 });
 
 describe("a pickup's outline", () => {
-  const frame = frameNamed(pickupFrame("spread"));
+  const frame = frameNamed(ART_FRAMES, pickupFrame("spread"));
   const [outline, hexagon] = frame.commands.map((command) =>
     command.kind === "polygon" ? command.points : [],
   );
@@ -416,11 +419,13 @@ describe("a pickup's outline", () => {
 describe("the other frames", () => {
   it("outlines a shot, a line wide, and fills it in the shots' color, along its travel", () => {
     // At a unit of 24, a shot is 17.28 by 7.2 device pixels, its line 2.
-    const drawn = frameNamed(FRAMES.shot).commands.map((command) => [
-      command.kind,
-      ...sizesIn(command).map((size) => Math.round(size * 100) / 100),
-      command.color,
-    ]);
+    const drawn = frameNamed(ART_FRAMES, FRAMES.shot).commands.map(
+      (command) => [
+        command.kind,
+        ...sizesIn(command).map((size) => Math.round(size * 100) / 100),
+        command.color,
+      ],
+    );
 
     expect(drawn).toEqual([
       ["roundRect", 21.28, 11.2, 5.6, ART_PALETTE.outline],
@@ -429,7 +434,7 @@ describe("the other frames", () => {
   });
 
   it("draws a stray's bubble in its wash, its rim and its glint", () => {
-    const bubble = frameNamed(FRAMES.bubble);
+    const bubble = frameNamed(ART_FRAMES, FRAMES.bubble);
 
     expect({
       wash: bubble.commands.slice(0, 2),
@@ -448,13 +453,13 @@ describe("the other frames", () => {
   });
 
   it("keeps the comet's tail within the margin it leaves the field by, so it is out of sight as the comet goes", () => {
-    expect(frameNamed(FRAMES.comet).width / 2).toBeLessThanOrEqual(
+    expect(frameNamed(ART_FRAMES, FRAMES.comet).width / 2).toBeLessThanOrEqual(
       COMET_MARGIN * ART_SCALE.unit,
     );
   });
 
   it("frames the comet's picture about its head and tail together", () => {
-    const frame = frameNamed(PICTURE_FRAMES.comet);
+    const frame = frameNamed(ART_FRAMES, PICTURE_FRAMES.comet);
     const edge = frame.commands.flatMap(edgeOf);
 
     const left = Math.min(...edge.map(({ x }) => x));
@@ -464,8 +469,8 @@ describe("the other frames", () => {
   });
 
   it("sets the stray's pilot within its bubble's rim", () => {
-    const bubble = frameNamed(FRAMES.bubble).commands;
-    const picture = frameNamed(FRAMES.strayPicture);
+    const bubble = frameNamed(ART_FRAMES, FRAMES.bubble).commands;
+    const picture = frameNamed(ART_FRAMES, FRAMES.strayPicture);
     const rim = bubble.find((command) => command.kind === "ring");
 
     const reach = Math.max(
@@ -484,12 +489,14 @@ describe("the other frames", () => {
 
   it("draws the comet's tail and its head, outlined, in the comet's color", () => {
     expect(
-      frameNamed(FRAMES.comet).commands.map((command) => command.color),
+      frameNamed(ART_FRAMES, FRAMES.comet).commands.map(
+        (command) => command.color,
+      ),
     ).toEqual([ART_PALETTE.comet, ART_PALETTE.outline, ART_PALETTE.comet]);
   });
 
   it("draws the warning as two chevrons in the comet's color, round at their ends and corners", () => {
-    const warning = frameNamed(FRAMES.warning);
+    const warning = frameNamed(ART_FRAMES, FRAMES.warning);
 
     expect([
       drawnIn(warning, "line", ART_PALETTE.comet).length,
@@ -501,13 +508,15 @@ describe("the other frames", () => {
     "draws the %s white, for the scene to tint",
     (name) => {
       expect(
-        new Set(frameNamed(name).commands.map((command) => command.color)),
+        new Set(
+          frameNamed(ART_FRAMES, name).commands.map((command) => command.color),
+        ),
       ).toEqual(new Set([0xffffff]));
     },
   );
 
   it("seats the stray's pilot in its picture a little below its bubble's middle", () => {
-    const frame = frameNamed(FRAMES.strayPicture);
+    const frame = frameNamed(ART_FRAMES, FRAMES.strayPicture);
     const [body] = drawnIn(frame, "circle", ART_PALETTE.accent);
 
     expect(
@@ -517,7 +526,9 @@ describe("the other frames", () => {
 
   it("pictures a stray as a fuzzball in the accent in its bubble, with its eyes", () => {
     const colors = new Set(
-      frameNamed(FRAMES.strayPicture).commands.map((command) => command.color),
+      frameNamed(ART_FRAMES, FRAMES.strayPicture).commands.map(
+        (command) => command.color,
+      ),
     );
 
     expect(colors).toEqual(

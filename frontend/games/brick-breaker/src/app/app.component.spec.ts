@@ -1,5 +1,6 @@
 import { ApplicationRef, inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
@@ -23,7 +24,6 @@ import { createRun, startLevel } from "../rules/run/run";
 import { saveGame } from "../rules/run/saved_game";
 import { FIRST_LIVES } from "../rules/tuning";
 import {
-  FRAME_MS,
   SPEC_LEVEL,
   SPEC_LEVELS,
   STILL,
