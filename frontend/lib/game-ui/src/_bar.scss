@@ -109,6 +109,35 @@
   }
 }
 
+/// Sets two of `bar-figures-inline()`'s figures, such as the score and the
+/// lives, one over the other in a single card, for a bar across the window
+/// with no room for them side by side, inside the host's state that calls
+/// for it, after `bar-figures-inline()`'s.
+///
+/// Keep it off a rail (`:host(.x:not(.rail))`), since
+/// `bar-figures-stacked()` doesn't take its card away.
+@mixin bar-figures-paired {
+  .metrics {
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px var(--fz-space-2);
+    border: 1px solid var(--fz-edge-2);
+    border-radius: var(--fz-radius-md);
+    background: var(--fz-wash-2);
+  }
+
+  .metric {
+    justify-content: space-between;
+    padding: 0;
+    border: 0;
+    background: none;
+
+    .value {
+      line-height: 1;
+    }
+  }
+}
+
 /// Stacks `bar-figures()`' cards on a rail, inside the host's state that
 /// says it is one (`:host(.rail)`), each its `dt` over its value.
 ///

@@ -216,8 +216,12 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   label itself, through `fitsLabel`), the bar's gaps tightened. Then, inside
   the host's state that calls for them,
   `bar-figures-inline($icon-gap, $padding)` sets each figure's icon beside
-  its value, for a bar with no room for the cards, and, after it, since a
-  rail is compact too, `bar-figures-stacked` stacks them on a rail. The
+  its value, for a bar with no room for the cards; `bar-figures-paired`, after
+  it, sets two such figures one over the other in a single card, such as Brick
+  Breaker's score over its lives, for a bar across the window with no room for
+  them side by side, kept off a rail, since `bar-figures-stacked` doesn't take
+  its card away; and, after those, since a rail is compact too,
+  `bar-figures-stacked` stacks the figures on a rail. The
   mixins hide and show an `fz-icon` alone: a bar that puts something else
   in a label's place, as Asteroid Breaker does its pilot, hides and shows
   it with rules of its own.

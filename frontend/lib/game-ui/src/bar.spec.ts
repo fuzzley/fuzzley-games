@@ -89,6 +89,9 @@ describe("the bar's mixins", () => {
       ":host(.compact) .metric dt fz-icon",
       ":host(.compact) .metric .label",
       ":host(.compact) .metric .value",
+      ":host(.paired) .metrics",
+      ":host(.paired) .metric",
+      ":host(.paired) .metric .value",
       ":host(.rail) .metrics",
       ":host(.rail) .metric",
       ":host(.rail) .metric .value",
@@ -226,6 +229,38 @@ describe("the bar's mixins", () => {
     it("sets each value smaller", () => {
       expect(declared(defaults, ":host(.compact) .metric .value")).toEqual(
         new Map([["font-size", "var(--fz-font-sm)"]]),
+      );
+    });
+  });
+
+  describe("bar-figures-paired", () => {
+    it("sets the figures one over the other, in a card of their own", () => {
+      expect(declared(defaults, ":host(.paired) .metrics")).toEqual(
+        new Map([
+          ["flex-direction", "column"],
+          ["gap", "2px"],
+          ["padding", "4px var(--fz-space-2)"],
+          ["border", "1px solid var(--fz-edge-2)"],
+          ["border-radius", "var(--fz-radius-md)"],
+          ["background", "var(--fz-wash-2)"],
+        ]),
+      );
+    });
+
+    it("takes each figure's own card away, its icon and value at either end", () => {
+      expect(declared(defaults, ":host(.paired) .metric")).toEqual(
+        new Map([
+          ["justify-content", "space-between"],
+          ["padding", "0"],
+          ["border", "0"],
+          ["background", "none"],
+        ]),
+      );
+    });
+
+    it("sets the two values close, one over the other", () => {
+      expect(declared(defaults, ":host(.paired) .metric .value")).toEqual(
+        new Map([["line-height", "1"]]),
       );
     });
   });

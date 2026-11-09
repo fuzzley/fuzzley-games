@@ -57,31 +57,4 @@
   }
 }
 
-.segmented {
-  display: flex;
-  padding: 2px;
-  border: 1px solid var(--fz-edge-1);
-  border-radius: var(--fz-radius-md);
-  background: var(--fz-well);
-}
-
-.segment {
-  @include transition(background, color);
-
-  flex: 1;
-  min-height: var(--fz-tap-target);
-  border: none;
-  border-radius: var(--fz-radius-sm);
-  background: transparent;
-  color: var(--fz-muted);
-  font: inherit;
-  font-size: var(--fz-font-sm);
-  font-weight: 600;
-  cursor: pointer;
-
-  &[aria-checked="true"] {
-    background: var(--fz-accent);
-    color: var(--fz-on-accent);
-    box-shadow: 0 2px 6px var(--fz-accent-glow);
-  }
-}
+@include segmented;

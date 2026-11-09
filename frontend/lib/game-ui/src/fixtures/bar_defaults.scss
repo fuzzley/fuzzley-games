@@ -9,6 +9,10 @@
   @include game-ui.bar-figures-inline(4px);
 }
 
+:host(.paired) {
+  @include game-ui.bar-figures-paired;
+}
+
 :host(.rail) {
   @include game-ui.bar-figures-stacked;
 }
