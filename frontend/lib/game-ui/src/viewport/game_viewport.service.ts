@@ -91,14 +91,14 @@ export class GameViewportService {
   readonly fitsActionLabels = computed(() => !this.belowActionLabels());
 
   /** Whether the window is wide enough for the bar's wordmark. */
-  readonly fitsWordmark = computed(() => !this.belowWordmark());
+  private readonly fitsWordmark = computed(() => !this.belowWordmark());
 
   /**
    * Whether the bar has room for its home button: a window 360 px wide or
    * more, and a rail, down the side of a phone on its side, 380 px tall or
    * more.
    */
-  readonly fitsHomeButton = computed(
+  private readonly fitsHomeButton = computed(
     () =>
       !this.belowHomeButton() &&
       !(this.barPlacement() === "end" && this.belowRailHomeButton()),

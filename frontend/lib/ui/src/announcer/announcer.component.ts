@@ -5,7 +5,7 @@ import {
   computed,
   inject,
 } from "@angular/core";
-import { AnnouncerService } from "./announcer.service";
+import { ANNOUNCER_REGION_STATE, AnnouncerService } from "./announcer.service";
 
 /**
  * How long a region is in the page before it says what was said before any
@@ -31,19 +31,21 @@ export const ARRIVAL_MS = 100;
 })
 export class AnnouncerComponent {
   private readonly announcer = inject(AnnouncerService);
+  private readonly regionState = inject(ANNOUNCER_REGION_STATE);
 
   /** What the region says now: nothing while the words are early. */
   protected readonly said = computed(() =>
-    this.announcer.early() ? "" : this.announcer.message(),
+    this.regionState.early() ? "" : this.announcer.message(),
   );
 
   constructor() {
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
-      this.announcer.notePlaced();
-      if (!this.announcer.early()) return;
+      this.regionState.placed = true;
+      if (!this.regionState.early()) return;
+      // Once this region has said them, no region waits for these words again.
       const timer = setTimeout(() => {
-        this.announcer.noteEarlyWordsSaid();
+        this.regionState.early.set(false);
       }, ARRIVAL_MS);
       destroyRef.onDestroy(() => {
         clearTimeout(timer);
