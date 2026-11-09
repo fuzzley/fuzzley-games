@@ -1,5 +1,5 @@
-// Declares the application's keyframe animations, and the one block that
-// turns them all off.
+// Declares the application's keyframe animations, and stops its loading
+// shimmers for reduced motion.
 
 // Angular renames a component's own keyframes after the component, so one
 // used by a single component may sit in its stylesheet; one that several use
@@ -106,34 +106,10 @@
   }
 }
 
-// The warning icon on a destructive confirmation.
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  50% {
-    transform: scale(1.05);
-    opacity: 0.85;
-  }
-}
-
-// Reduced motion, for every animation and transition at once. Transitions
-// collapse to near zero rather than `none`, so `transitionend` still fires.
+// Reduced motion collapses every animation to 0.01ms, in @fz/style's document
+// styles. Loading placeholders stop outright instead, so none depends on its
+// shimmer's first frame matching the placeholder at rest.
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  // A shimmer collapsed to 0.01ms would flicker, so loading placeholders stop
-  // instead.
   .skeleton-shimmer,
   .img-skeleton-container {
     animation: none !important;
