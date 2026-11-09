@@ -173,3 +173,39 @@ The review:
    `AGENTS.md` and the `brick-breaker-testing` skill now say the app's spec
    runs it too, for How to play's pictures. Asteroid Breaker's skill has the
    same gap, which is left to that game's next change.
+
+### Step 1.5: the Phaser boards' host options and focus ring's style
+
+Built as planned on `sl-play`. `@fz/phaser/canvas` gains
+`boardHostOptions(title, keyboardTarget)`, the host options Snake's, Brick
+Breaker's and Asteroid Breaker's boards each declared, differing only in the
+title. `@fz/phaser/layout` gains `cssRectStyle(rect)`, the inline style that
+lays the focus ring where the scene drew the board, its margin cleared. Each
+has a spec, and both files are fully covered. The three boards lose about 90
+lines between them. `lib/phaser/AGENTS.md` and the `phaser-core` skill
+describe both helpers. Tests pass: `@fz/phaser` 591, Snake 421, Brick
+Breaker 1829 and 180, Asteroid Breaker 3630 and 1620.
+
+Where it went other than planned:
+
+- Asteroid Breaker takes `cssRectStyle()` too, for its placeholder field,
+  its ring and its card. The plan named only Snake and Brick Breaker, whose
+  copies matched. Asteroid Breaker's private `rectStyle()` set no margin,
+  and clearing the margin changes nothing there, since none of the three
+  sets one.
+- The boards' `hostOptions` fields lose their doc comments. The helper's
+  doc says what the options are, and Asteroid Breaker's AGENTS.md already
+  says why its board keeps the browser's menu shut.
+
+The review:
+
+1. _A copy of the lifted helper left in Asteroid Breaker's board spec
+   (`placedOver()`), its doc now wrong:_ taken. The spec builds its
+   expected styles with `cssRectStyle()`, so it checks the cleared margin
+   too.
+2. _The keyboard-target spec would pass for any other empty `<div>`, since
+   Vitest compares DOM nodes with `isEqualNode()`:_ taken. A
+   `boardElement()` helper gives the element an id of its own.
+3. _Wording: "shows it with" in `lib/phaser/AGENTS.md`, and "until then"
+   in a spec's name:_ taken. They now read "shows its scene with" and
+   "until the scene has drawn".

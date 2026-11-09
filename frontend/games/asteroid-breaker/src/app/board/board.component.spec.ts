@@ -8,6 +8,7 @@ import {
   type CssRect,
   type Viewport,
   canvasPixelRatio,
+  cssRectStyle,
   namedRectsAttribute,
   rectAttribute,
 } from "@fz/phaser/layout";
@@ -110,16 +111,6 @@ function inCssAt(
     y: y / pixelRatio,
     width: width / pixelRatio,
     height: height / pixelRatio,
-  };
-}
-
-/** Returns the styles that lay an element over a rectangle, as the board writes them. */
-function placedOver(rect: CssRect): Record<string, string> {
-  return {
-    left: `${String(rect.x)}px`,
-    top: `${String(rect.y)}px`,
-    width: `${String(rect.width)}px`,
-    height: `${String(rect.height)}px`,
   };
 }
 
@@ -297,7 +288,7 @@ describe("BoardComponent", () => {
 
       // The placeholder is only drawn, so it has no role to find it by.
       expect(board.querySelector(".field")).toHaveStyle(
-        placedOver(fieldOn(1280, 720, ROOMY)),
+        cssRectStyle(fieldOn(1280, 720, ROOMY)),
       );
     });
 
@@ -309,7 +300,7 @@ describe("BoardComponent", () => {
 
       // The card's element is only the layer a card shows in, with no role.
       expect(board.querySelector("app-board-card")).toHaveStyle(
-        placedOver(fieldOn(1280, 720, ROOMY)),
+        cssRectStyle(fieldOn(1280, 720, ROOMY)),
       );
     });
 
@@ -321,7 +312,7 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(board.querySelector(".field")).toHaveStyle(
-        placedOver(
+        cssRectStyle(
           fieldOn(1280, 720, ROOMY, {
             insets: { ...NO_INSETS, top: 120 },
           }),
@@ -337,7 +328,7 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(board.querySelector(".field")).toHaveStyle(
-        placedOver(
+        cssRectStyle(
           fieldOn(1280, 720, ROOMY, { pixelRatio: canvasPixelRatio(2) }),
         ),
       );
@@ -361,7 +352,7 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(board.querySelector(".field")).toHaveStyle(
-        placedOver(fieldOn(1707, 960, ROOMY, { pixelRatio: 2 })),
+        cssRectStyle(fieldOn(1707, 960, ROOMY, { pixelRatio: 2 })),
       );
     });
 
@@ -386,7 +377,7 @@ describe("BoardComponent", () => {
 
       // In whole device pixels at 2.5, a field 631.2 CSS px wide; at 1, 631.
       expect(board.querySelector(".field")).toHaveStyle(
-        placedOver(fieldOn(683, 384, ROOMY, { pixelRatio: 2.5 })),
+        cssRectStyle(fieldOn(683, 384, ROOMY, { pixelRatio: 2.5 })),
       );
     });
 
@@ -428,7 +419,7 @@ describe("BoardComponent", () => {
         detectChanges();
 
         expect(board.querySelector(".field")).toHaveStyle(
-          placedOver(fieldOn(512, 288, ROOMY, { pixelRatio: 2.5 })),
+          cssRectStyle(fieldOn(512, 288, ROOMY, { pixelRatio: 2.5 })),
         );
       });
     });
@@ -441,7 +432,7 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(board.querySelector(".field")).toHaveStyle(
-        placedOver(fieldOn(1280, 720, { ...ROOMY, deck: true })),
+        cssRectStyle(fieldOn(1280, 720, { ...ROOMY, deck: true })),
       );
     });
 
@@ -465,7 +456,7 @@ describe("BoardComponent", () => {
         detectChanges();
 
         expect(board.querySelector(".field")).toHaveStyle(
-          placedOver(fieldOn(390, 780, TOUCH)),
+          cssRectStyle(fieldOn(390, 780, TOUCH)),
         );
       });
 
@@ -477,7 +468,7 @@ describe("BoardComponent", () => {
         detectChanges();
 
         expect(board.querySelector(".field")).toHaveStyle(
-          placedOver(fieldOn(390, 780, { ...TOUCH, deck: false })),
+          cssRectStyle(fieldOn(390, 780, { ...TOUCH, deck: false })),
         );
       });
     });
@@ -491,7 +482,7 @@ describe("BoardComponent", () => {
 
       // The card's element is only the layer a card shows in, with no role.
       expect(board.querySelector("app-board-card")).toHaveStyle(
-        placedOver(fieldOn(1280, 720, ROOMY)),
+        cssRectStyle(fieldOn(1280, 720, ROOMY)),
       );
     });
 
@@ -822,7 +813,7 @@ describe("BoardComponent", () => {
 
       const field = readRect(board.getAttribute("data-field"));
       // The ring is only drawn, so it has no role to find it by.
-      expect(board.querySelector(".ring")).toHaveStyle(placedOver(field!));
+      expect(board.querySelector(".ring")).toHaveStyle(cssRectStyle(field!));
     });
 
     it("publishes the field's shape in its units as the scene laid it out, its short side 40", async () => {

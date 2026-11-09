@@ -17,11 +17,11 @@ import {
   KeepKeysDirective,
   PhaserCanvasComponent,
   type SceneSource,
+  boardHostOptions,
   canvasCardOf,
   canvasRoom,
 } from "@fz/phaser/canvas";
-import type { HostOptions } from "@fz/phaser/host";
-import { type CssRect, rectAttribute } from "@fz/phaser/layout";
+import { type CssRect, cssRectStyle, rectAttribute } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { BOARD_SIZE } from "../../rules/arena";
 import type { SnakeSceneOptions } from "../../scene/snake_scene";
@@ -100,15 +100,7 @@ export class BoardComponent {
    */
   protected readonly ringStyle = computed(() => {
     const rect = this.laidOut();
-    return (
-      rect && {
-        left: `${rect.x}px`,
-        top: `${rect.y}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-        margin: "0",
-      }
-    );
+    return rect && cssRectStyle(rect);
   });
 
   /** The board's own card over the board, if any, and none while the canvas shows its own. */
@@ -177,32 +169,10 @@ export class BoardComponent {
     return makeSnakeScene(this.sceneOptions);
   };
 
-  /**
-   * Sets Phaser up for the board: keys heard only on the board's element,
-   * the pointer for swipes, and nothing from a gamepad.
-   */
-  protected readonly hostOptions: HostOptions = {
-    title: "Snake",
-    // The page shows through until the scene draws, so nothing flashes.
-    background: "transparent",
-    config: {
-      banner: false,
-      autoFocus: false,
-      disableContextMenu: true,
-      render: {
-        antialias: true,
-        roundPixels: false,
-        powerPreference: "low-power",
-      },
-      input: {
-        keyboard: { target: this.host.nativeElement },
-        mouse: true,
-        touch: true,
-        gamepad: false,
-      },
-      fps: { smoothStep: true },
-    },
-  };
+  protected readonly hostOptions = boardHostOptions(
+    "Snake",
+    this.host.nativeElement,
+  );
 
   constructor() {
     // A run can't start, or go on, before the scene that moves it is drawn.

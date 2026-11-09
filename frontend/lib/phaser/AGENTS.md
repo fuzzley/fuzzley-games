@@ -36,8 +36,10 @@ take the pure ones.
   `namedRectsAttribute()`, a list of them by name, in the order given, as
   "stick 0 600 180 200, buttons 180 600 180 200", which throws for a name
   that isn't one word free of commas; `@fz/dev/board-page`'s `readRect()`
-  and `readNamedRects()` read them back, as the spec holds them to. It
-  imports nothing but `insets`.
+  and `readNamedRects()` read them back, as the spec holds them to; and
+  `cssRectStyle()`, the inline styles that lay an element over a `CssRect`,
+  its margin cleared, as a board lays its focus ring where the scene drew
+  it. It imports nothing but `insets`.
 - `src/measure/`: what reads the page for a canvas, as the host sizes it
   and a board's placeholder measures it: `watchDevicePixels()`, which
   counts an element's device pixels, through a `ResizeObserver` on the
@@ -149,7 +151,11 @@ take the pure ones.
   still loading, for the app to say so (`data-slow`); `state` and `slow` are
   read-only to the app; and what the app projects as `[fzCanvasPlaceholder]`
   lies over the canvas until the scene is ready. It imports the host, and so
-  Phaser, with `import()`, when it first shows a scene. `<fz-canvas-cards>`
+  Phaser, with `import()`, when it first shows a scene. `boardHostOptions()`
+  gives the options a game's board shows its scene with, given the game's
+  title and the board's element: the keys heard only on that element, the
+  mouse and fingers, the browser's menu kept shut, nothing from a gamepad,
+  and the page showing through until the scene draws. `<fz-canvas-cards>`
   (`CanvasCardsComponent`), handed the canvas (`[canvas]="canvas"`) and placed
   in the layer the board's own cards show in, a `board-card-layer()`, which it
   lays out in as its contents, draws the cards a board shows while the scene

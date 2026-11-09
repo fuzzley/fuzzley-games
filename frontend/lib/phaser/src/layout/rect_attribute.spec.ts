@@ -1,6 +1,10 @@
 import { readNamedRects, readRect } from "@fz/dev/board-page";
 import type { CssRect } from "./layout";
-import { namedRectsAttribute, rectAttribute } from "./rect_attribute";
+import {
+  cssRectStyle,
+  namedRectsAttribute,
+  rectAttribute,
+} from "./rect_attribute";
 
 /** A rectangle whose numbers are each a fraction. */
 const FRACTIONAL: CssRect = {
@@ -91,4 +95,21 @@ describe("namedRectsAttribute", () => {
       ).toThrow(`not "${name}"`);
     },
   );
+});
+
+describe("cssRectStyle", () => {
+  it("lays an element over a rectangle, in CSS pixels", () => {
+    expect(
+      cssRectStyle({ x: 20, y: 25.5, width: 260, height: 300 }),
+    ).toMatchObject({
+      left: "20px",
+      top: "25.5px",
+      width: "260px",
+      height: "300px",
+    });
+  });
+
+  it("clears the margin a stylesheet centers the element by until the scene has drawn", () => {
+    expect(cssRectStyle(FRACTIONAL)).toMatchObject({ margin: "0" });
+  });
 });

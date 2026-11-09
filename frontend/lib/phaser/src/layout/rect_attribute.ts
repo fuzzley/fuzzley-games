@@ -34,3 +34,26 @@ export function namedRectsAttribute(
     })
     .join(", ");
 }
+
+/**
+ * Returns the styles that lay an element over a rectangle on the canvas, in
+ * CSS pixels, as a board lays its focus ring where the scene drew the board.
+ *
+ * It clears the element's margin, so a stylesheet's `margin: auto`, which
+ * centers the element where the stylesheet works the rectangle out until the
+ * scene has drawn, doesn't move it.
+ */
+export function cssRectStyle({
+  x,
+  y,
+  width,
+  height,
+}: CssRect): Record<string, string> {
+  return {
+    left: `${String(x)}px`,
+    top: `${String(y)}px`,
+    width: `${String(width)}px`,
+    height: `${String(height)}px`,
+    margin: "0",
+  };
+}

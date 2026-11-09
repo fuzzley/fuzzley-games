@@ -18,12 +18,13 @@ import {
   CanvasCardsComponent,
   PhaserCanvasComponent,
   type SceneSource,
+  boardHostOptions,
   canvasRoom,
 } from "@fz/phaser/canvas";
-import type { HostOptions } from "@fz/phaser/host";
 import {
   type CssRect,
   type Viewport,
+  cssRectStyle,
   namedRectsAttribute,
   rectAttribute,
 } from "@fz/phaser/layout";
@@ -212,7 +213,7 @@ export class BoardComponent {
    */
   protected readonly fieldStyle = computed(() => {
     const rect = this.laid()?.metrics.css ?? this.placeholderField();
-    return rect && rectStyle(rect);
+    return rect && cssRectStyle(rect);
   });
 
   /**
@@ -275,33 +276,10 @@ export class BoardComponent {
     return makeBeltScene(this.sceneOptions);
   };
 
-  /**
-   * Sets Phaser up for the board: keys heard only on the board's element,
-   * the mouse and fingers for steering, the right button's menu kept shut,
-   * as it thrusts, and nothing from a gamepad.
-   */
-  protected readonly hostOptions: HostOptions = {
-    title: "Asteroid Breaker",
-    // The page shows through until the scene draws, so nothing flashes.
-    background: "transparent",
-    config: {
-      banner: false,
-      autoFocus: false,
-      disableContextMenu: true,
-      render: {
-        antialias: true,
-        roundPixels: false,
-        powerPreference: "low-power",
-      },
-      input: {
-        keyboard: { target: this.host.nativeElement },
-        mouse: true,
-        touch: true,
-        gamepad: false,
-      },
-      fps: { smoothStep: true },
-    },
-  };
+  protected readonly hostOptions = boardHostOptions(
+    "Asteroid Breaker",
+    this.host.nativeElement,
+  );
 
   constructor() {
     // Nothing goes on before the scene that moves it is drawn. After
@@ -421,15 +399,5 @@ function inCss(
     y: y / pixelRatio,
     width: width / pixelRatio,
     height: height / pixelRatio,
-  };
-}
-
-/** Returns the styles that lay an element over a rectangle, in CSS pixels. */
-function rectStyle(rect: CssRect): Record<string, string> {
-  return {
-    left: `${String(rect.x)}px`,
-    top: `${String(rect.y)}px`,
-    width: `${String(rect.width)}px`,
-    height: `${String(rect.height)}px`,
   };
 }

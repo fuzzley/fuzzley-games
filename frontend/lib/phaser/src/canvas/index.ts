@@ -1,3 +1,4 @@
+export { boardHostOptions } from "./board_host_options";
 export {
   type CanvasCard,
   CanvasCardsComponent,
