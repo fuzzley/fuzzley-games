@@ -479,6 +479,47 @@ describe("phaserGameLayers", () => {
     expect(problems["src/view/paint.ts"]).toEqual([FENCE]);
   });
 
+  it("lets the view take @fz/style/themes by type alone", async () => {
+    const problems = await lint(
+      {
+        "src/view/palette.ts":
+          'import type { ColorMode } from "@fz/style/themes";\nexport type Mode = ColorMode;\n',
+        "src/view/keys.ts":
+          'import { THEME_STORAGE_KEY } from "@fz/style/themes";\nexport { THEME_STORAGE_KEY };\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/view/palette.ts": [],
+      "src/view/keys.ts": [FENCE],
+    });
+  });
+
+  it("keeps the view off every other library's entries and packages, even by type", async () => {
+    const problems = await lint(
+      {
+        "src/view/paint.ts":
+          'import type { FUZZBALL } from "@fz/style/fuzzball";\nimport type { Style } from "@fz/style";\nexport type Shown = [typeof FUZZBALL, Style];\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/view/paint.ts"]).toEqual([FENCE, FENCE]);
+  });
+
+  it("keeps the rules off @fz/style/themes, even by type", async () => {
+    const problems = await lint(
+      {
+        "src/rules/run.ts":
+          'import type { ColorMode } from "@fz/style/themes";\nexport type Mode = ColorMode;\n',
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([FENCE]);
+  });
+
   it("refuses the rules and the view @fz/core's unseeded randomSeed()", async () => {
     const code =
       'import { randomSeed } from "@fz/core/random";\nexport { randomSeed };\n';
@@ -502,6 +543,14 @@ describe("phaserGameLayers", () => {
       );
     },
   );
+
+  it("refuses to let the view take @fz/style/themes, whose types it takes already", () => {
+    expect(() =>
+      phaserGameLayers({ viewAllows: ["@fz/style/themes"] }),
+    ).toThrow(
+      "viewAllows can't let in @fz/style/themes, whose values are the shell's",
+    );
+  });
 
   it("lets the shell take the scene by type alone", async () => {
     const problems = await lint(

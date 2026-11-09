@@ -50,17 +50,19 @@ too. Paths are relative to `frontend/lib/dev/`.
     `src/` importing only the layers below it: the rules (`rules/`), with
     no framework and no library but `@fz/core`; the view (`view/`), with no
     Phaser and no framework, and of the libraries only `@fz/core`,
-    `@fz/phaser`'s pure entries and the entries the game lets in
-    (`viewAllows`, each `@fz/<lib>/<entry>`, such as `@fz/style/fuzzball`:
-    it throws for a package or a path below an entry, which the fence
-    can't let in); the scene (`scene/`), which draws with Phaser and knows
-    no framework, no shell's library and no canvas; and the shell (`app/`),
-    which takes the scene and `@fz/phaser`'s host, scene helpers and sound
-    by type alone, so its board loads the scene with `import()`. The rules
-    know nothing of the specs' helpers either. The rules and the view, but
-    their specs, are kept to what they are handed, so a run plays the same
-    again from its seed and its frames, in Node as on the page: no clock or
-    timer (`Date.now()`, an argument-less `new Date()` or `Date()`,
+    `@fz/phaser`'s pure entries, the types of `@fz/style/themes`, such as
+    the `ColorMode` that picks a palette's inks, and the entries the game
+    lets in (`viewAllows`, each `@fz/<lib>/<entry>`, such as
+    `@fz/style/fuzzball`: it throws for a package or a path below an entry,
+    which the fence can't let in, and for `@fz/style/themes`, whose values
+    are the shell's); the scene (`scene/`), which draws with Phaser and
+    knows no framework, no shell's library and no canvas; and the shell
+    (`app/`), which takes the scene and `@fz/phaser`'s host, scene helpers
+    and sound by type alone, so its board loads the scene with `import()`.
+    The rules know nothing of the specs' helpers either. The rules and the
+    view, but their specs, are kept to what they are handed, so a run plays
+    the same again from its seed and its frames, in Node as on the page: no
+    clock or timer (`Date.now()`, an argument-less `new Date()` or `Date()`,
     `performance`, `setTimeout()`, frame callbacks), no number drawn from
     no seed (`Math.random()`, `crypto`, `@fz/core/random`'s
     `randomSeed()`), no seed mixed by hand (`Math.imul()`, where

@@ -66,10 +66,11 @@ export interface HeldAsRules {
  */
 export interface PhaserGameLayers {
   /**
-   * The libraries' entries the view may import beside `@fz/core` and
-   * `@fz/phaser`'s pure entries, such as `@fz/style/fuzzball`. Each is one
-   * entry, `@fz/<lib>/<entry>`, never a library's package or a path below an
-   * entry, which the view's fence can't let in.
+   * The libraries' entries the view may import, such as
+   * `@fz/style/fuzzball`, beside `@fz/core`, `@fz/phaser`'s pure entries and
+   * the types of `@fz/style/themes`. Each is one entry, `@fz/<lib>/<entry>`,
+   * never a library's package or a path below an entry, which the view's
+   * fence can't let in, nor `@fz/style/themes`, whose values are the shell's.
    */
   readonly viewAllows?: readonly string[];
   readonly heldAsRules?: HeldAsRules;
@@ -401,12 +402,19 @@ const RULES_FENCE: readonly RestrictedImportPattern[] = [
 // A library's entry, the one kind of path the view's fence can let back in.
 const LIBRARY_ENTRY = /^@fz\/[\w-]+\/[\w-]+$/;
 
+// @fz/style's themes, which the view takes by type alone, such as the mode
+// that picks a palette's inks, while the palettes themselves and the key a
+// choice is kept under are the shell's.
+const THEMES_ENTRY = "@fz/style/themes";
+
 /**
  * Returns the view's fence, which lets in, of the libraries, `@fz/core`,
- * `@fz/phaser`'s pure entries and the entries given.
+ * `@fz/phaser`'s pure entries, the entries given and the types of
+ * `@fz/style/themes`.
  */
 function viewFence(allows: readonly string[]): RestrictedImportPattern[] {
   const entries = [...PURE_PHASER_ENTRIES, ...allows];
+  const libraries = `@fz/core, ${entries.join(", ")} and the types of ${THEMES_ENTRY}`;
   return [
     {
       group: [
@@ -418,14 +426,22 @@ function viewFence(allows: readonly string[]): RestrictedImportPattern[] {
         "@fz/*/*",
         "!@fz/core/*",
         ...entries.map((entry) => `!${entry}`),
+        `!${THEMES_ENTRY}`,
       ],
-      message: `The view is plain TypeScript: no Phaser, no framework, and of the libraries only @fz/core, ${entries.join(", ")}.`,
+      message: `The view is plain TypeScript: no Phaser, no framework, and of the libraries only ${libraries}.`,
     },
     {
       // A library's package itself, but @fz/core, which a pattern of its own
       // names without excluding the entries let in.
       regex: "^@fz/(?!core$)[^/]+$",
-      message: `The view takes of the libraries only @fz/core, ${entries.join(", ")}.`,
+      message: `The view takes of the libraries only ${libraries}.`,
+    },
+    {
+      // A type import this matches skips every pattern of the fence, so it
+      // names the one entry.
+      group: [THEMES_ENTRY],
+      allowTypeImports: true,
+      message: `The view takes ${THEMES_ENTRY} by type alone, such as ColorMode: the shell reads the palette on the page and hands the view its roles and mode.`,
     },
     {
       group: ["**/scene", "**/scene/**", "**/app", "**/app/**"],
@@ -615,8 +631,9 @@ export function gameRules(): Config[] {
  * game lets in, or holds as the rules are, goes in the options instead.
  *
  * It throws for a path in `viewAllows` that is no library's entry, such as a
- * library's package or a path below an entry, which the view's fence would
- * name and yet still refuse; and in `heldAsRules`, for a glob or files of two
+ * library's package or a path below an entry, or is `@fz/style/themes`, whose
+ * types the view takes already, which the view's fence would name and yet
+ * still refuse; and in `heldAsRules`, for a glob or files of two
  * folders, which the sibling pattern can't be built from, or a file the
  * workspace doesn't have, which ESLint would pass over without a word.
  */
@@ -628,6 +645,11 @@ export function phaserGameLayers({
   if (notEntry !== undefined) {
     throw new Error(
       `phaserGameLayers()'s viewAllows takes only a library's entries, as @fz/<lib>/<entry>, which the view's fence can let in, not "${notEntry}".`,
+    );
+  }
+  if (viewAllows.includes(THEMES_ENTRY)) {
+    throw new Error(
+      `phaserGameLayers()'s viewAllows can't let in ${THEMES_ENTRY}, whose values are the shell's: the view takes its types already.`,
     );
   }
   const held = heldAsRules?.files ?? [];
