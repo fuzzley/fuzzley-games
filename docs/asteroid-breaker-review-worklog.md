@@ -2166,3 +2166,41 @@ The review found every spec placed as before:
    ragged:_ taken.
 4. _The spec passed with `dom`'s exclude of the simulations dropped:_ taken;
    a simulations folder outside the pure ones, which fails it.
+
+### Step 16g: finding 22, `@fz/phaser`'s and `@fz/core`'s exports no wider than their use
+
+Built on `pl-exports`. `@fz/phaser/host`'s entry names its three types
+alone, `HostOptions`, `HostedScene` and `SceneSurroundings`, as
+`export type`, so no game can build a host and bypass the lazy canvas; the
+canvas takes `PhaserHost` by type from its file and loads it with `import()`
+of that file, in its own chunk as before. `MAX_PIXEL_RATIO`, the budget's two
+constants and `pngOfSize()` leave their entries, which no game read them
+through, and the specs of another entry state the numbers. `@fz/core`'s
+`progressOf()`, reachable as `@fz/core/clock` though only `FieldPlay` called
+it, is `FieldPlay`'s own. The docs describe a scene's factory by its shape,
+`MakeScene` being no entry's now.
+
+Where it went other than planned:
+
+- `@fz/game-ui`'s `fitsWordmark` and `fitsHomeButton`, and the announcer's
+  `notePlaced()` and `noteEarlyWordsSaid()`, go with `ui-lifts`, the branch
+  of their libraries.
+- `MAX_PIXEL_RATIO` and `pngOfSize()` stay exported from their files, out of
+  their entries, since their own specs use them.
+- The budget's constants, which the plan didn't name, left the layout entry
+  too, on the same evidence.
+
+The review found nothing outside the library losing what it used, and the
+host still loaded apart:
+
+1. _The docs named `MakeScene`, which no entry exports now:_ taken; the
+   factory by its shape.
+2. _The lists made all types kept inline `type`, which lets a value slip in
+   later:_ taken; `export type`.
+3. _The budget's two constants stayed in the layout entry on no better
+   evidence:_ taken.
+4. _The `fuzzley-ui` skill read as if `FieldPlay` were called beside
+   `advanceClock()`:_ taken.
+5. _What the plan named and this left, and what stays exported from its
+   file:_ taken, here.
+6. _Two short lines:_ taken.

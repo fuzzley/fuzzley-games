@@ -8,12 +8,7 @@ import {
   ViewportScaler,
 } from "./viewport_scaler";
 import { NO_INSETS } from "../insets";
-import {
-  type DevicePixelSize,
-  MAX_BUDGETED_DEVICE_PIXELS,
-  MAX_PIXEL_RATIO,
-  UNBUDGETED_PIXEL_RATIO,
-} from "../layout";
+import type { DevicePixelSize } from "../layout";
 import { CANVAS_INSET_PROPERTIES } from "../measure";
 
 /**
@@ -245,10 +240,7 @@ describe("ViewportScaler", () => {
   it("clamps the pixel ratio so very high density displays stay affordable", async () => {
     const { scaler, game } = await startScaler(4, 800, 600);
 
-    expect([scaler.pixelRatio, game.canvas.width]).toEqual([
-      MAX_PIXEL_RATIO,
-      800 * MAX_PIXEL_RATIO,
-    ]);
+    expect([scaler.pixelRatio, game.canvas.width]).toEqual([3, 2400]);
   });
 
   it("renders a phone at its own ratio of 3, so the browser need not stretch it", async () => {
@@ -266,15 +258,13 @@ describe("ViewportScaler", () => {
   it("holds a canvas above 2x to the budget of device pixels", async () => {
     const { scaler } = await startScaler(3, 1280, 720);
 
-    expect(scaler.pixelRatio).toBeCloseTo(
-      Math.sqrt(MAX_BUDGETED_DEVICE_PIXELS / (1280 * 720)),
-    );
+    expect(scaler.pixelRatio).toBeCloseTo(Math.sqrt(4_500_000 / (1280 * 720)));
   });
 
   it("never holds a canvas below 2x, however large", async () => {
     const { scaler } = await startScaler(3, 2560, 1440);
 
-    expect(scaler.pixelRatio).toBe(UNBUDGETED_PIXEL_RATIO);
+    expect(scaler.pixelRatio).toBe(2);
   });
 
   it("renders at 2x whatever the canvas size, as before the budget", async () => {
@@ -290,7 +280,7 @@ describe("ViewportScaler", () => {
 
     parentWatch.report({ width: 7680, height: 4320 });
 
-    expect(scaler.pixelRatio).toBe(UNBUDGETED_PIXEL_RATIO);
+    expect(scaler.pixelRatio).toBe(2);
   });
 
   it("reports a ratio of 1 before the canvas has been sized", async () => {
