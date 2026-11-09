@@ -1,9 +1,6 @@
 @use "../styles" as *;
-
-// No scrim or z-index: <fz-dialog> puts this in the top layer.
-.card {
-  @include help-card;
-}
+@include help-text;
+@include help-controls;
 
 // Four keys read as one, so they never part over two lines.
 .keys {

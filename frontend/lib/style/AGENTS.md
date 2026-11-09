@@ -57,19 +57,21 @@ relative to `frontend/lib/style/`.
   `corner-close-button`, `field-label`, `choice-tile`, `choice-list`, a list
   of choice tiles, each its name over a few words, as `@fz/ui`'s
   `<fz-choice-list>` draws it, `segmented`, a well of segments for a few short
-  choices, and `start-tile`, a tile that starts a run at a level or a sector,
-  and three whole dialogs a game fills in, which name the classes they style:
-  `help-card`, How to play's words, its lists' headings and its table of
-  controls, its words alone being
-  `help-text`, for a part of the card a component of its own draws;
-  `result-card`, the card a finished game's result shows on, with its icon,
-  figures and actions; and `settings-drawer($width)`, a settings drawer a
-  game draws whole, with the settings' labels, descriptions and checkboxes,
-  its frame alone being `settings-drawer-frame($width)`, which
-  `@fz/game-ui`'s `<fz-settings-drawer>` draws, and its settings alone
-  `setting-fields`, which a game's stylesheet includes at its top level for
-  the settings it projects into that drawer, as a component of its own
-  drawing settings in the drawer does. A game whose dialogs differ writes
+  choices, and `start-tile`, a tile that starts a run at a level or a sector;
+  How to play's words, its lists' headings among them, `help-text`, and its
+  table of controls, `help-controls`, which the stylesheet of a game's How
+  to play component includes at its top level for what it projects into
+  `@fz/game-ui`'s `<fz-help-dialog>`, as a component of its own drawing a
+  part of the card does with `help-text`; and two whole dialogs a game fills
+  in, which name the classes they style: `result-card`, the card a finished
+  game's result shows on, with its icon, figures and actions; and
+  `settings-drawer($width)`, a settings drawer a game draws whole, with the
+  settings' labels, descriptions and checkboxes, its frame alone being
+  `settings-drawer-frame($width)`, which `@fz/game-ui`'s
+  `<fz-settings-drawer>` draws, and its settings alone
+  `setting-fields`, which the stylesheet of a game's settings component
+  includes at its top level for the settings it projects into that drawer,
+  as a component of its own in it does. A game whose dialogs differ writes
   its own from the parts, or adds to a whole one inside the block that
   includes it, after the include, each selector nested as the mixin nests
   it, so its rules weigh the same and win by coming later. The cards over a

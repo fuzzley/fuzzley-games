@@ -1370,3 +1370,72 @@ The review:
    given wait now pins the 800 ms: the page laid out at 799 ms is the one
    described. AGENTS.md's "800 ms unless given (`waitMs`)" now reads "once
    800 ms have passed".
+
+### Step 4.8: How to play's card drawn once, by `<fz-help-dialog>`
+
+Built as planned on `sl-frame`, as `ba0a9c54`, but `help-card` goes
+rather than splitting.
+
+- `<fz-help-dialog [open] (closed)>`, in `@fz/game-ui/help_dialog`, draws
+  the dialog named How to play, its card, the "Close How to play" button in
+  the corner and the `h2`, and projects what the game says. Like
+  `<fz-dialog>`, it only asks to close. Its eight specs pin the name, the
+  heading, the focus opening on the close button, the projected words, and
+  Escape, a click beside it and the button each asking to close.
+- The five games' How to play templates each lose the 11 lines of the
+  frame. Every word of their help is the same; Prettier rewraps some
+  paragraphs, which sit a level shallower.
+- The card's rules are the component's own: `dialog-card(580px)`,
+  `corner-close-button` and the heading's three declarations, exactly as
+  `help-card` wrote them.
+- Each game's How to play stylesheet includes `help-text` and the new
+  `help-controls`, the table of the controls, the head of its columns and
+  the keycaps, at its top level, since the card's rules can't reach what it
+  projects.
+
+To check the pages look the same, every stylesheet was compiled before and
+after, and again after the move onto `shared-lib`:
+
+- The card compiles to the same five rules.
+- Each game's words and table compile to the same rules, in the same
+  order, less the `.card ` prefix. They all lose the same weight, so their
+  order among themselves holds, and the global stylesheets are all in
+  `fz.*` layers, so nothing outside competes. Snake's `.keys` and Asteroid
+  Breaker's `fz-help-catalog` properties are untouched.
+- `.close` now comes before the words' rules, but it styles no element they
+  do.
+
+Tests pass: `@fz/style` 283, `@fz/game-ui` 294, Minesweeper 375, Sudoku
+595, Snake 423, Brick Breaker 1842 and 180, Asteroid Breaker 3625 and 1620.
+Lint, typecheck and root lint are clean, and the five games build, with the
+same How to play rules in their bundles as before the move onto `shared-lib`.
+
+Where it went other than planned:
+
+- `help-card` doesn't split as `settings-drawer` did. Nothing else draws a
+  whole How to play, so no whole mixin stays to share, and a frame mixin
+  would have one caller. The component builds the card from
+  `dialog-card(580px)` and `corner-close-button`, as the plan's "the
+  frame's half moves into the component" says, and `@fz/style` keeps only
+  the words' half, `help-text` and `help-controls`. `toolkit.spec.ts` drops
+  `help-card`'s two checks and checks `help-controls`' table, column heads
+  and keycaps.
+
+The review:
+
+1. _The skill's description said "its overflow and choice menus" twice, on
+   a line this step rewrites:_ taken by the move onto `shared-lib`, whose
+   description has it once. The pop kept that and added this step's words.
+2. _"A game's stylesheet" is wider than safe, as `help-controls` writes bare
+   `table`, `th`, `td` and `kbd` rules, which an app's own stylesheet would
+   spread over the whole shell; the settings drawer's docs from 4.3 say the
+   same:_ taken for both. `help-text`, `help-controls`, `setting-fields` and
+   `settings-drawer-frame`, the two components' docs, both libraries'
+   `AGENTS.md` and the skill's two rows now name the stylesheet of the
+   game's How to play or settings component.
+
+Before committing, the worktree moved onto `shared-lib`, with 4.3 picked as
+`be150fbf`. The stash popped with one conflict, in the skill, where
+`shared-lib` had resolved 4.3's by hand; this step's edits were made again
+on `shared-lib`'s text, and the dialogs row kept its width so the table
+isn't re-padded.

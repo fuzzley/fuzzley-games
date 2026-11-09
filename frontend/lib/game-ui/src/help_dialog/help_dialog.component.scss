@@ -1,0 +1,16 @@
+@use "@fz/style" as fz;
+
+// No scrim or z-index: <fz-dialog> puts the card in the top layer.
+.card {
+  @include fz.dialog-card(580px);
+
+  h2 {
+    margin: 0 0 var(--fz-space-3);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  .close {
+    @include fz.corner-close-button;
+  }
+}

@@ -110,8 +110,9 @@ top of them:
   says where the bar stands and what fits in it.
 - **The flag, heart and mine** were added to `@fz/ui`'s icons for this game.
   The dialogs' cards, close buttons, headings and choice tiles are
-  `@fz/style`'s mixins, which the games' dialogs share, and the settings
-  drawer is `@fz/game-ui`'s `<fz-settings-drawer>`.
+  `@fz/style`'s mixins, which the games' dialogs share, and How to play and
+  the settings drawer are `@fz/game-ui`'s `<fz-help-dialog>` and
+  `<fz-settings-drawer>`.
 
 ## In This Repository
 

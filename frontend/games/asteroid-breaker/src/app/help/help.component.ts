@@ -6,8 +6,7 @@ import {
   HelpCatalogComponent,
   helpEntries,
 } from "@fz/game-ui/help_catalog";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
 import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
 import {
@@ -66,7 +65,7 @@ const ADRIFT_IDS = keysOf(ADRIFT);
  */
 @Component({
   selector: "app-help",
-  imports: [DialogComponent, HelpCatalogComponent, IconComponent],
+  imports: [HelpCatalogComponent, HelpDialogComponent],
   templateUrl: "./help.component.html",
   styleUrl: "./help.component.scss",
 })

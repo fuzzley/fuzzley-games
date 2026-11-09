@@ -1,0 +1,14 @@
+<fz-dialog [open]="open()" label="How to play" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close How to play"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>How to play</h2>
+    <ng-content />
+  </div>
+</fz-dialog>
