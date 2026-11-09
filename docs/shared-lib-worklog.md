@@ -600,3 +600,24 @@ The review:
 4. _The spec wrote `HeldKeys<Way>`, and the let-go spec pressed inside its
    assertions:_ taken. The spec builds it as a game does, with the type
    inferred, and "holds a key afresh after a let-go" is a case of its own.
+
+### Step 6.6: Solitaire's dead and doubled motion CSS dropped
+
+Built as planned on `sl-sol`, as `704e1925`. `_animations.scss` loses the
+`pulse` keyframes, unused since the confirmation became `@fz/ui`'s confirm
+dialog, which keeps its own `fz-pulse`, and the universal reduced-motion
+rule, a copy of `@fz/style`'s in `@layer fz.base` that never decided a
+value, since a layered important declaration beats an unlayered one. The
+rule that stops the loading shimmers stays. The file is 24 lines shorter. A
+build's global CSS, diffed against the one before the phase, lost only the
+keyframes and the unlayered copy; the library's layered rule is still
+there. 6874 tests pass.
+
+The review:
+
+1. _The kept rule's comment gives a flicker no player sees as its reason:_
+   taken. Each shimmer's 0% frame looks as its placeholder does at rest, so
+   the comment now says the placeholders stop outright so that none depends
+   on that frame matching.
+2. _The summary called `fz-pulse` `@fz/style`'s:_ taken. The commit message
+   names `@fz/ui`'s confirm dialog, where it is declared.
