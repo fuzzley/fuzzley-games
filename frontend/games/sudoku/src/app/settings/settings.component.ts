@@ -1,6 +1,5 @@
 import { Component, inject, input, output } from "@angular/core";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import type { Level } from "../../rules/difficulty";
@@ -20,12 +19,7 @@ type Assist = "markMistakes" | "clearNotes";
  */
 @Component({
   selector: "app-settings",
-  imports: [
-    ChoiceListComponent,
-    DialogComponent,
-    IconComponent,
-    ThemePickerComponent,
-  ],
+  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })

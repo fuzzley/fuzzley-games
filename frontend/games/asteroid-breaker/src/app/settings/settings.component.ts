@@ -1,6 +1,5 @@
 import { Component, inject, input, output } from "@angular/core";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import type { Speed } from "../../rules/speed";
@@ -54,8 +53,7 @@ const DECK_CHOICES: readonly ChoiceOption<DeckShowing>[] = DECK_SHOWINGS.map(
   imports: [
     ChoiceListComponent,
     DebugTuningComponent,
-    DialogComponent,
-    IconComponent,
+    SettingsDrawerComponent,
     ThemePickerComponent,
   ],
   templateUrl: "./settings.component.html",

@@ -15,8 +15,7 @@ import {
   submit,
   validateTree,
 } from "@angular/forms/signals";
-import { DialogComponent } from "@fz/ui/dialog";
-import { IconComponent } from "@fz/ui/icon";
+import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import {
   ChoiceListComponent,
   type ChoiceOption,
@@ -86,10 +85,9 @@ const DIFFICULTY_CHOICES: readonly ChoiceOption<DifficultyId>[] =
   selector: "app-settings",
   imports: [
     ChoiceListComponent,
-    DialogComponent,
     FormField,
-    IconComponent,
     RadioGroupDirective,
+    SettingsDrawerComponent,
     ThemePickerComponent,
   ],
   templateUrl: "./settings.component.html",

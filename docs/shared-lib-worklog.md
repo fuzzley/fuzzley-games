@@ -1212,3 +1212,73 @@ The review:
 4. _A spec checks a call where state shows the same:_ taken. "takes up
    nothing where nothing of its version was kept" now checks the lives
    are still 3.
+
+### Step 4.3: the settings drawer's frame drawn once, by `<fz-settings-drawer>`
+
+Built as planned on `sl-frame`, as `02fc13a6`, but for where the frame's
+styles live.
+
+- `<fz-settings-drawer [open] (closed)>`, in `@fz/game-ui/settings_drawer`,
+  draws the dialog named Settings, its `h2`, the "Close settings" button
+  and the scrolling `.drawer-content`, and projects the settings. Like
+  `<fz-dialog>`, it only asks to close. Its eight specs pin the name, the
+  heading, the focus opening on the close button, the projected settings,
+  and Escape, a click beside it and the button each asking to close.
+- The five games' settings templates each lose the 18 lines of the frame.
+  Minesweeper still closes through its own `close()`, which shuts its
+  Custom field first.
+- Each game's settings stylesheet includes `setting-fields` at its top
+  level, since the drawer's rules can't reach what it projects. Brick
+  Breaker's `.range` moves up a level, and Minesweeper's `segmented` sits
+  beside `setting-fields`.
+
+To check the pages look the same, every stylesheet was compiled on
+`shared-lib` before and after:
+
+- The frame compiles to the same seven rules.
+- Each game's settings compile to the same rules, less the `.drawer `
+  prefix. Every settings rule loses the same weight, so their order among
+  themselves holds, and the global stylesheet is all in `fz.*` layers, so
+  nothing outside competes.
+- Minesweeper's `segmented` rules now come before `.custom`'s, which share
+  no elements with them.
+- Nothing else changed, the Solitaire Collection's drawer included.
+
+The five games' builds carry the same rules. Tests pass: `@fz/style` 278,
+`@fz/game-ui` 286, Minesweeper 375, Sudoku 595, Snake 423, Brick Breaker
+1842 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- The frame's half of `settings-drawer` doesn't move into the component. It
+  stays in `@fz/style` as `settings-drawer-frame($width)`, which the
+  component includes. `settings-drawer` stays whole, the frame with
+  `setting-fields`, since decision 3 had the Solitaire Collection's drawer
+  take it (6.4), and that drawer can't be `<fz-settings-drawer>` as it
+  stands: it is "Game options", 320px wide, with a footer.
+- Stylelint wants no blank line between `@use` and the first `@include`, so
+  each game's settings stylesheet opens with the two together.
+- Minesweeper's and Sudoku's `AGENTS.md` said the Solitaire Collection's
+  dialogs took only the headings and the choice tiles. That stopped being
+  true with 6.4, so the sentence this step rewrote drops it.
+
+The review:
+
+1. _`lib/style/AGENTS.md` said a game includes `setting-fields` "under that
+   drawer", which reads as nesting it in `.drawer`, the one place it can't
+   work, and the rewrap left a ragged break:_ taken. It says "at its top
+   level for the settings it projects into that drawer", and the sentence is
+   worded to meet the paragraph's old line breaks, so the lines after it are
+   untouched.
+2. _Nothing checks where the focus goes as the drawer opens:_ taken. "takes
+   the focus at its close button as it opens". The spec's setting is now a
+   checkbox, which can take the focus, so the spec fails when the content
+   comes before the header, as tried.
+3. _The whole drawer's default width is compared with the frame's only at
+   320px:_ taken. A second spec compares them with no width.
+
+Before committing, the worktree moved onto `shared-lib` twice, since 6.4
+was picked while the checks ran. The first pop conflicted in
+`@fz/game-ui`'s `package.json` description and the skill, against 4.9's
+words; both were resolved by taking `shared-lib`'s text and adding this
+step's edits to it. The second popped clean.

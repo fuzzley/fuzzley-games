@@ -63,10 +63,13 @@ relative to `frontend/lib/style/`.
   controls, its words alone being
   `help-text`, for a part of the card a component of its own draws;
   `result-card`, the card a finished game's result shows on, with its icon,
-  figures and actions; and `settings-drawer($width)`, a game's settings
-  drawer, with the settings' labels, descriptions and checkboxes, the settings
-  alone being `setting-fields`, for a part of the drawer a component of its
-  own draws. A game whose dialogs differ writes
+  figures and actions; and `settings-drawer($width)`, a settings drawer a
+  game draws whole, with the settings' labels, descriptions and checkboxes,
+  its frame alone being `settings-drawer-frame($width)`, which
+  `@fz/game-ui`'s `<fz-settings-drawer>` draws, and its settings alone
+  `setting-fields`, which a game's stylesheet includes at its top level for
+  the settings it projects into that drawer, as a component of its own
+  drawing settings in the drawer does. A game whose dialogs differ writes
   its own from the parts, or adds to a whole one inside the block that
   includes it, after the include, each selector nested as the mixin nests
   it, so its rules weigh the same and win by coming later. The cards over a

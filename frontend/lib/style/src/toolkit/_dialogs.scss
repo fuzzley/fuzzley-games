@@ -325,9 +325,11 @@
 /// `.setting-check`, a checkbox beside its label, with a `.setting-desc`
 /// under the label.
 ///
-/// `settings-drawer` holds them; a component of its own
-/// drawing settings in the drawer, such as a game's debug menu, takes them
-/// too, as the drawer's rules can't reach it.
+/// A game's stylesheet includes them at its top level, as the rules of
+/// `@fz/game-ui`'s `<fz-settings-drawer>` can't reach what it projects, and
+/// so does a component of its own drawing settings in the drawer, such as a
+/// game's debug menu. `settings-drawer` holds them too. A setting's choices
+/// are an `<fz-choice-list>`, which styles itself.
 @mixin setting-fields {
   .setting {
     margin: 0 0 var(--fz-space-6);
@@ -413,17 +415,14 @@
   }
 }
 
-/// Styles a game's settings drawer, `$width` wide and the window's height,
-/// down the right of its `<fz-dialog>`.
+/// Styles a settings drawer's frame, `$width` wide and the window's height,
+/// down the right of its `<fz-dialog>`: the `.drawer-header`, with the `h2`
+/// and the `.close` button, and the `.drawer-content` under it, which
+/// scrolls.
 ///
-/// It styles the classes in it: the `.drawer-header`, with the `h2` and the
-/// `.close` button; the `.drawer-content` under it, which scrolls; and the
-/// settings in it (`setting-fields`). A game's own rule for one of them goes
-/// inside the drawer's block, after the include, nested as the mixin nests
-/// it, such as `.setting-check .setting-desc`, so it weighs the same and wins
-/// by coming later. A setting's choices are an `<fz-choice-list>`, which
-/// styles itself.
-@mixin settings-drawer($width: 340px) {
+/// `@fz/game-ui`'s `<fz-settings-drawer>` draws one with it, and a game's
+/// stylesheet styles the settings the drawer projects with `setting-fields`.
+@mixin settings-drawer-frame($width: 340px) {
   @include surfaces.glass(20px);
 
   display: flex;
@@ -470,6 +469,17 @@
     padding: var(--fz-space-6);
     overflow-y: auto;
   }
+}
 
+/// Styles a game's settings drawer, frame and settings, for a drawer a game
+/// draws whole in its own template rather than in `<fz-settings-drawer>`.
+///
+/// It is `settings-drawer-frame($width)` with `setting-fields`. A game's own
+/// rule for one of the classes they style goes inside the drawer's block,
+/// after the include, nested as the mixin nests it, such as
+/// `.setting-check .setting-desc`, so it weighs the same and wins by coming
+/// later.
+@mixin settings-drawer($width: 340px) {
+  @include settings-drawer-frame($width);
   @include setting-fields;
 }

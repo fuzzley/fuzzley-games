@@ -1,0 +1,5 @@
+@use "@fz/style" as fz;
+
+.drawer {
+  @include fz.settings-drawer-frame;
+}

@@ -1,124 +1,108 @@
-<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
-  <div class="drawer">
-    <div class="drawer-header">
-      <h2>Settings</h2>
-      <button
-        type="button"
-        class="close"
-        aria-label="Close settings"
-        (click)="closed.emit()"
-      >
-        <fz-icon name="close" />
-      </button>
-    </div>
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="speed-label">Speed</span>
+    <fz-choice-list
+      labelledBy="speed-label"
+      describedBy="speed-desc"
+      [options]="speeds"
+      [value]="speed()"
+      (choose)="chooseSpeed($event)"
+    />
+    <p class="setting-desc" id="speed-desc">
+      Changing the speed starts a new run.
+    </p>
+  </div>
 
-    <div class="drawer-content">
-      <div class="setting">
-        <span class="setting-label" id="speed-label">Speed</span>
-        <fz-choice-list
-          labelledBy="speed-label"
-          describedBy="speed-desc"
-          [options]="speeds"
-          [value]="speed()"
-          (choose)="chooseSpeed($event)"
-        />
-        <p class="setting-desc" id="speed-desc">
-          Changing the speed starts a new run.
-        </p>
-      </div>
+  <div class="setting">
+    <span class="setting-label" id="deck-label">Touch controls</span>
+    <fz-choice-list
+      labelledBy="deck-label"
+      [options]="deckChoices"
+      [value]="settings().deck"
+      (choose)="chooseDeck($event)"
+    />
+  </div>
 
-      <div class="setting">
-        <span class="setting-label" id="deck-label">Touch controls</span>
-        <fz-choice-list
-          labelledBy="deck-label"
-          [options]="deckChoices"
-          [value]="settings().deck"
-          (choose)="chooseDeck($event)"
-        />
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Stick</span>
-        <div class="setting-check">
-          <input
-            #stick
-            id="stick-on-right"
-            type="checkbox"
-            aria-describedby="stick-desc"
-            [checked]="settings().stickOnRight"
-            (change)="setStickOnRight(stick.checked)"
-          />
-          <label for="stick-on-right">Stick on the right</label>
-          <p class="setting-desc" id="stick-desc">
-            For a left thumb on Fire and Dash.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Fire</span>
-        <div class="setting-check">
-          <input
-            #fire
-            id="fire-by-itself"
-            type="checkbox"
-            aria-describedby="fire-desc"
-            [checked]="settings().fireByItself"
-            (change)="setFireByItself(fire.checked)"
-          />
-          <label for="fire-by-itself">Fire by itself</label>
-          <p class="setting-desc" id="fire-desc">
-            The ship fires all the time, and the deck has Dash alone.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Haptics</span>
-        <div class="setting-check">
-          <input
-            #haptics
-            id="haptics"
-            type="checkbox"
-            aria-describedby="haptics-desc"
-            [checked]="settings().haptics"
-            (change)="setHaptics(haptics.checked)"
-          />
-          <label for="haptics">Buzz the phone</label>
-          <p class="setting-desc" id="haptics-desc">
-            Once as a ship is lost, and twice as a wave is cleared, on a phone
-            that can.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Sound</span>
-        <div class="setting-check">
-          <input
-            #sound
-            id="sound"
-            type="checkbox"
-            aria-describedby="sound-desc"
-            [checked]="settings().sound"
-            (change)="setSound(sound.checked)"
-          />
-          <label for="sound">Play sounds</label>
-          <p class="setting-desc" id="sound-desc">
-            Each rock breaking, rising along a chain, the thrust's hum, and a
-            chime for a wave cleared.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Theme</span>
-        <fz-theme-picker />
-      </div>
-
-      @if (debugMenu) {
-        <app-debug-tuning />
-      }
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Stick</span>
+    <div class="setting-check">
+      <input
+        #stick
+        id="stick-on-right"
+        type="checkbox"
+        aria-describedby="stick-desc"
+        [checked]="settings().stickOnRight"
+        (change)="setStickOnRight(stick.checked)"
+      />
+      <label for="stick-on-right">Stick on the right</label>
+      <p class="setting-desc" id="stick-desc">
+        For a left thumb on Fire and Dash.
+      </p>
     </div>
   </div>
-</fz-dialog>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Fire</span>
+    <div class="setting-check">
+      <input
+        #fire
+        id="fire-by-itself"
+        type="checkbox"
+        aria-describedby="fire-desc"
+        [checked]="settings().fireByItself"
+        (change)="setFireByItself(fire.checked)"
+      />
+      <label for="fire-by-itself">Fire by itself</label>
+      <p class="setting-desc" id="fire-desc">
+        The ship fires all the time, and the deck has Dash alone.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Haptics</span>
+    <div class="setting-check">
+      <input
+        #haptics
+        id="haptics"
+        type="checkbox"
+        aria-describedby="haptics-desc"
+        [checked]="settings().haptics"
+        (change)="setHaptics(haptics.checked)"
+      />
+      <label for="haptics">Buzz the phone</label>
+      <p class="setting-desc" id="haptics-desc">
+        Once as a ship is lost, and twice as a wave is cleared, on a phone that
+        can.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Sound</span>
+    <div class="setting-check">
+      <input
+        #sound
+        id="sound"
+        type="checkbox"
+        aria-describedby="sound-desc"
+        [checked]="settings().sound"
+        (change)="setSound(sound.checked)"
+      />
+      <label for="sound">Play sounds</label>
+      <p class="setting-desc" id="sound-desc">
+        Each rock breaking, rising along a chain, the thrust's hum, and a chime
+        for a wave cleared.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+
+  @if (debugMenu) {
+    <app-debug-tuning />
+  }
+</fz-settings-drawer>

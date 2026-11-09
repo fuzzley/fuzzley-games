@@ -1,68 +1,52 @@
-<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
-  <div class="drawer">
-    <div class="drawer-header">
-      <h2>Settings</h2>
-      <button
-        type="button"
-        class="close"
-        aria-label="Close settings"
-        (click)="closed.emit()"
-      >
-        <fz-icon name="close" />
-      </button>
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="level-label">Level</span>
+    <fz-choice-list
+      labelledBy="level-label"
+      describedBy="level-desc"
+      [options]="levels"
+      [value]="settings().level"
+      (choose)="chooseLevel($event)"
+    />
+    <p class="setting-desc" id="level-desc">
+      Changing the level starts a new puzzle.
+    </p>
+  </div>
+
+  <div class="setting" role="group" aria-labelledby="assists-label">
+    <span class="setting-label" id="assists-label">Assists</span>
+    <div class="setting-check">
+      <input
+        #markMistakes
+        id="mark-mistakes"
+        type="checkbox"
+        aria-describedby="mark-mistakes-desc"
+        [checked]="settings().markMistakes"
+        (change)="setAssist('markMistakes', markMistakes.checked)"
+      />
+      <label for="mark-mistakes">Mark mistakes</label>
+      <p class="setting-desc" id="mark-mistakes-desc">
+        Marks a digit the solution doesn't hold, as a repeat is marked.
+      </p>
     </div>
-
-    <div class="drawer-content">
-      <div class="setting">
-        <span class="setting-label" id="level-label">Level</span>
-        <fz-choice-list
-          labelledBy="level-label"
-          describedBy="level-desc"
-          [options]="levels"
-          [value]="settings().level"
-          (choose)="chooseLevel($event)"
-        />
-        <p class="setting-desc" id="level-desc">
-          Changing the level starts a new puzzle.
-        </p>
-      </div>
-
-      <div class="setting" role="group" aria-labelledby="assists-label">
-        <span class="setting-label" id="assists-label">Assists</span>
-        <div class="setting-check">
-          <input
-            #markMistakes
-            id="mark-mistakes"
-            type="checkbox"
-            aria-describedby="mark-mistakes-desc"
-            [checked]="settings().markMistakes"
-            (change)="setAssist('markMistakes', markMistakes.checked)"
-          />
-          <label for="mark-mistakes">Mark mistakes</label>
-          <p class="setting-desc" id="mark-mistakes-desc">
-            Marks a digit the solution doesn't hold, as a repeat is marked.
-          </p>
-        </div>
-        <div class="setting-check">
-          <input
-            #clearNotes
-            id="clear-notes"
-            type="checkbox"
-            aria-describedby="clear-notes-desc"
-            [checked]="settings().clearNotes"
-            (change)="setAssist('clearNotes', clearNotes.checked)"
-          />
-          <label for="clear-notes">Remove notes as digits go in</label>
-          <p class="setting-desc" id="clear-notes-desc">
-            A digit you place comes out of the notes of the squares it sees.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Theme</span>
-        <fz-theme-picker />
-      </div>
+    <div class="setting-check">
+      <input
+        #clearNotes
+        id="clear-notes"
+        type="checkbox"
+        aria-describedby="clear-notes-desc"
+        [checked]="settings().clearNotes"
+        (change)="setAssist('clearNotes', clearNotes.checked)"
+      />
+      <label for="clear-notes">Remove notes as digits go in</label>
+      <p class="setting-desc" id="clear-notes-desc">
+        A digit you place comes out of the notes of the squares it sees.
+      </p>
     </div>
   </div>
-</fz-dialog>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+</fz-settings-drawer>

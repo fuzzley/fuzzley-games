@@ -1,116 +1,100 @@
-<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
-  <div class="drawer">
-    <div class="drawer-header">
-      <h2>Settings</h2>
-      <button
-        type="button"
-        class="close"
-        aria-label="Close settings"
-        (click)="closed.emit()"
-      >
-        <fz-icon name="close" />
-      </button>
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="speed-label">Speed</span>
+    <fz-choice-list
+      labelledBy="speed-label"
+      describedBy="speed-desc"
+      [options]="speeds"
+      [value]="speed()"
+      (choose)="chooseSpeed($event)"
+    />
+    <p class="setting-desc" id="speed-desc">
+      Changing the speed starts a new run. The ball speeds up as it hits the
+      bricks.
+    </p>
+  </div>
+
+  @let custom = customSpeed();
+  @if (custom) {
+    <div class="setting">
+      <label class="setting-label" for="custom-speed">
+        Custom ball speed
+      </label>
+      <input
+        #customSlider
+        id="custom-speed"
+        class="range"
+        type="range"
+        [min]="customRange.least"
+        [max]="customRange.most"
+        [step]="customRange.step"
+        aria-describedby="custom-speed-desc"
+        [attr.aria-valuetext]="custom.valueText"
+        [value]="custom.value"
+        (input)="setCustomPercent(customSlider.valueAsNumber)"
+      />
+      <p class="setting-desc" id="custom-speed-desc">
+        <span aria-hidden="true">{{ custom.valueText }}. </span>The ball in play
+        takes it at once.
+      </p>
     </div>
+  }
 
-    <div class="drawer-content">
-      <div class="setting">
-        <span class="setting-label" id="speed-label">Speed</span>
-        <fz-choice-list
-          labelledBy="speed-label"
-          describedBy="speed-desc"
-          [options]="speeds"
-          [value]="speed()"
-          (choose)="chooseSpeed($event)"
-        />
-        <p class="setting-desc" id="speed-desc">
-          Changing the speed starts a new run. The ball speeds up as it hits the
-          bricks.
-        </p>
-      </div>
+  <div class="setting">
+    <span class="setting-label" id="touch-label">On a touch screen</span>
+    <fz-choice-list
+      labelledBy="touch-label"
+      [options]="touchSteerings"
+      [value]="settings().touch"
+      (choose)="chooseTouch($event)"
+    />
+  </div>
 
-      @let custom = customSpeed();
-      @if (custom) {
-        <div class="setting">
-          <label class="setting-label" for="custom-speed">
-            Custom ball speed
-          </label>
-          <input
-            #customSlider
-            id="custom-speed"
-            class="range"
-            type="range"
-            [min]="customRange.least"
-            [max]="customRange.most"
-            [step]="customRange.step"
-            aria-describedby="custom-speed-desc"
-            [attr.aria-valuetext]="custom.valueText"
-            [value]="custom.value"
-            (input)="setCustomPercent(customSlider.valueAsNumber)"
-          />
-          <p class="setting-desc" id="custom-speed-desc">
-            <span aria-hidden="true">{{ custom.valueText }}. </span>The ball in
-            play takes it at once.
-          </p>
-        </div>
-      }
-
-      <div class="setting">
-        <span class="setting-label" id="touch-label">On a touch screen</span>
-        <fz-choice-list
-          labelledBy="touch-label"
-          [options]="touchSteerings"
-          [value]="settings().touch"
-          (choose)="chooseTouch($event)"
-        />
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Sound</span>
-        <div class="setting-check">
-          <input
-            #sound
-            id="sound"
-            type="checkbox"
-            aria-describedby="sound-desc"
-            [checked]="settings().sound"
-            (change)="setSound(sound.checked)"
-          />
-          <label for="sound">Play sounds</label>
-          <p class="setting-desc" id="sound-desc">
-            A bounce off the paddle, a break that rises along a streak, and a
-            chime for a level cleared.
-          </p>
-        </div>
-      </div>
-
-      <div class="setting">
-        <span class="setting-label" aria-hidden="true">Theme</span>
-        <fz-theme-picker />
-      </div>
-
-      @if (debugMenu) {
-        <div class="setting">
-          <label class="setting-label" for="ball-speed-scale"
-            >Ball speed (debug)</label
-          >
-          <input
-            #slider
-            id="ball-speed-scale"
-            class="range"
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.05"
-            aria-describedby="ball-speed-scale-desc"
-            [attr.aria-valuetext]="ballSpeedScale().scale"
-            [value]="ballSpeedScale().value"
-            (input)="setBallSpeedScale(slider.valueAsNumber)"
-          />
-          <p class="setting-desc" id="ball-speed-scale-desc">
-            {{ ballSpeedScale().says }}
-          </p>
-        </div>
-      }
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Sound</span>
+    <div class="setting-check">
+      <input
+        #sound
+        id="sound"
+        type="checkbox"
+        aria-describedby="sound-desc"
+        [checked]="settings().sound"
+        (change)="setSound(sound.checked)"
+      />
+      <label for="sound">Play sounds</label>
+      <p class="setting-desc" id="sound-desc">
+        A bounce off the paddle, a break that rises along a streak, and a chime
+        for a level cleared.
+      </p>
     </div>
   </div>
-</fz-dialog>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+
+  @if (debugMenu) {
+    <div class="setting">
+      <label class="setting-label" for="ball-speed-scale"
+        >Ball speed (debug)</label
+      >
+      <input
+        #slider
+        id="ball-speed-scale"
+        class="range"
+        type="range"
+        min="0.5"
+        max="2"
+        step="0.05"
+        aria-describedby="ball-speed-scale-desc"
+        [attr.aria-valuetext]="ballSpeedScale().scale"
+        [value]="ballSpeedScale().value"
+        (input)="setBallSpeedScale(slider.valueAsNumber)"
+      />
+      <p class="setting-desc" id="ball-speed-scale-desc">
+        {{ ballSpeedScale().says }}
+      </p>
+    </div>
+  }
+</fz-settings-drawer>
