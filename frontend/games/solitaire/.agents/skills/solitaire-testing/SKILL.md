@@ -100,7 +100,6 @@ Run these from `frontend/games/solitaire/`, or as
   dynamic texture's render, a call-through spy on Phaser's prototype
   records.
 - An error a pointer handler throws reaches the window's `error` event,
-  not the spec: read it there, capturing no stack, as
+  not the spec: read it there, as
   `test/engine/render/phaser/scene/board_input_manager.spec.ts`'s
-  `errorsDuring()` does, since jsdom maps the first stack through the
-  source map of Phaser's whole bundle, which can outlast a spec's timeout.
+  `errorsDuring()` does.

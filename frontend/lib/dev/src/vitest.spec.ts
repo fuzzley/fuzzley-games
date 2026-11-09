@@ -1,7 +1,8 @@
+import { realpathSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
-import { type Plugin, normalizePath } from "vite";
+import { type Plugin, createServer, normalizePath } from "vite";
 import type {
   TestProjectInlineConfiguration,
   ViteUserConfig,
@@ -19,6 +20,7 @@ import {
   coverage,
   nodeSpecs,
   nodeTests,
+  phaserFromCommonJs,
 } from "./vitest.ts";
 
 /** Floors a suite would set. */
@@ -82,6 +84,96 @@ async function analogCompiled(
     ["@Component({})\nexport class Board {}\n", id],
   );
   return { compiled, warnings };
+}
+
+/**
+ * Phaser's package, as far as resolving it goes: its ESM build for `import`,
+ * its CommonJS build for `require()`.
+ */
+const PHASER: Readonly<Record<string, string>> = {
+  "node_modules/phaser/package.json": JSON.stringify({
+    name: "phaser",
+    main: "./src/phaser.js",
+    exports: {
+      ".": {
+        import: "./dist/phaser.esm.js",
+        require: "./dist/phaser.js",
+        default: "./dist/phaser.esm.js",
+      },
+    },
+  }),
+  "node_modules/phaser/dist/phaser.esm.js": "export {};\n",
+  "node_modules/phaser/dist/phaser.js": "module.exports = {};\n",
+};
+
+/** A package of ESM alone, beside Phaser. */
+const OTHER: Readonly<Record<string, string>> = {
+  "node_modules/other/package.json": JSON.stringify({
+    name: "other",
+    type: "module",
+    exports: "./index.js",
+  }),
+  "node_modules/other/index.js": "export {};\n",
+};
+
+/** The file each import is resolved from, in the folder the packages are in. */
+const IMPORTER = "src/scene/scene.ts";
+
+/**
+ * Returns the path, from the folder, of the file a Vite server with
+ * {@link phaserFromCommonJs} resolves an import from {@link IMPORTER} to, in
+ * a folder holding the packages' files, or nothing where it resolves none.
+ */
+async function resolvedByVite(
+  id: string,
+  packages: Readonly<Record<string, string>>,
+): Promise<string | null> {
+  return inFolder([IMPORTER], async (folder) => {
+    // The folder as Vite and Node both resolve into it, whatever links or
+    // short names the temporary folder's path takes.
+    const root = realpathSync.native(folder);
+    for (const [file, text] of Object.entries(packages)) {
+      await written(root, file, text);
+    }
+    const vite = await createServer({
+      root,
+      configFile: false,
+      logLevel: "silent",
+      server: { middlewareMode: true, ws: false },
+      // As Vitest's server has it, so an import resolves to its own file
+      // rather than to a bundle of the optimizer's.
+      optimizeDeps: { noDiscovery: true, include: [] },
+      plugins: [phaserFromCommonJs()],
+    });
+    try {
+      // Vitest resolves the imports of a spec in jsdom in Vite's client
+      // environment.
+      const resolved = await vite.environments.client.pluginContainer.resolveId(
+        id,
+        join(root, IMPORTER),
+      );
+      return resolved === null
+        ? null
+        : normalizePath(relative(root, resolved.id));
+    } finally {
+      await vite.close();
+    }
+  });
+}
+
+/** Returns what {@link phaserFromCommonJs}'s hook resolves `phaser` to, imported from no file. */
+async function resolvedFromNoFile(): Promise<unknown> {
+  const hook = phaserFromCommonJs().resolveId;
+  const handler = typeof hook === "function" ? hook : hook?.handler;
+  if (handler === undefined) {
+    throw new Error("The plugin resolves nothing.");
+  }
+  const resolved: unknown = await Reflect.apply(handler, {}, [
+    "phaser",
+    undefined,
+    { isEntry: true },
+  ]);
+  return resolved;
 }
 
 /** Returns the key a project's `keyed-by` plugin gives Vitest's module cache. */
@@ -281,6 +373,12 @@ describe("angularTests", () => {
     );
   });
 
+  it("loads Phaser from its CommonJS build", () => {
+    const config = angularTests({ thresholds: THRESHOLDS });
+
+    expect(pluginNames(config.plugins)).toContain("phaser-from-commonjs");
+  });
+
   it("runs the specs as angularSpecs says", () => {
     const config = angularTests({ thresholds: THRESHOLDS });
 
@@ -328,6 +426,23 @@ describe("angularTests, given projects", () => {
       [...projects].map(([name, project]) => [
         name,
         pluginNames(project.plugins).includes("@analogjs/vite-plugin-angular"),
+      ]),
+    ).toEqual([
+      ["dom", true],
+      ["pure", false],
+      ["sim", false],
+    ]);
+  });
+
+  it("loads Phaser from its CommonJS build in dom alone, where a spec can start a game", () => {
+    const projects = projectsOf(
+      angularTests({ thresholds: THRESHOLDS, projects: PROJECTS }),
+    );
+
+    expect(
+      [...projects].map(([name, project]) => [
+        name,
+        pluginNames(project.plugins).includes("phaser-from-commonjs"),
       ]),
     ).toEqual([
       ["dom", true],
@@ -477,6 +592,32 @@ describe("angularTests, given projects", () => {
       "src/testing/picture.spec.ts": ["pure"],
       "tools/report.spec.ts": ["pure"],
     });
+  });
+});
+
+describe("phaserFromCommonJs", () => {
+  it("resolves phaser, ahead of Vite, to the build require() loads from the file importing it, its CommonJS build", async () => {
+    const resolved = await resolvedByVite("phaser", PHASER);
+
+    expect(resolved).toBe("node_modules/phaser/dist/phaser.js");
+  });
+
+  it("leaves every other module to Vite", async () => {
+    const resolved = await resolvedByVite("other", { ...PHASER, ...OTHER });
+
+    expect(resolved).toBe("node_modules/other/index.js");
+  });
+
+  it("leaves phaser to Vite where none is found from the file importing it", async () => {
+    const resolved = await resolvedByVite("phaser", OTHER);
+
+    expect(resolved).toBeNull();
+  });
+
+  it("leaves phaser imported from no file to Vite", async () => {
+    const resolved = await resolvedFromNoFile();
+
+    expect(resolved).toBeNull();
   });
 });
 
