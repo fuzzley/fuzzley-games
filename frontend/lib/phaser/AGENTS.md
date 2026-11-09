@@ -137,20 +137,36 @@ take the pure ones.
   still loading, for the app to say so (`data-slow`); `state` and `slow` are
   read-only to the app; and what the app projects as `[fzCanvasPlaceholder]`
   lies over the canvas until the scene is ready. It imports the host, and so
-  Phaser, with `import()`, when it first shows a scene. Beside it,
-  `canvasRoom()`, called as a board is made, measures the canvas the
-  board's element makes for the canvas that fills it, as the host sizes it
-  (its size and the ratio the host renders it at, by `canvasSizeFor()`, and
-  the insets the element declares), as the board is first drawn and then
-  each time it changes size in CSS pixels or in device pixels, or the
-  display's ratio changes, as a change of zoom or of display does, until
-  the board is destroyed: its `viewport`, null until it is measured, and
-  its `pixelRatio`, the display's until then, so a placeholder lays its
-  board out as the scene will; and
-  `fzKeepKeys` (`KeepKeysDirective`) stops key events on a button from
-  reaching the element around it that Phaser's keyboard listens on, so the
-  button takes the key rather than the scene, and Phaser's capture never
-  cancels Space's keyup, at which the button clicks.
+  Phaser, with `import()`, when it first shows a scene. `<fz-canvas-cards>`
+  (`CanvasCardsComponent`), handed the canvas (`[canvas]="canvas"`) and placed
+  in the layer the board's own cards show in, a `board-card-layer()`, which it
+  lays out in as its contents, draws the cards a board shows while the scene
+  can't be: Still loading, once the canvas is slow, hidden from assistive
+  technology, whose words a status region it keeps in the page from the start
+  says instead, and couldn't be drawn, an alert, once it has failed, whose
+  Reload reloads the page, keeping its keys from the board as `fzKeepKeys`
+  keeps a card's buttons'; neither takes the focus. `canvasCardOf()` names
+  which shows for a canvas (a `CanvasCard`, or null), as the cards' `card`
+  does, so the board shows none of its own meanwhile; it reads the canvas's
+  state, which needs the scene the canvas is given, so a board reads it after
+  `<fz-phaser-canvas>` in its template. Each card is `@fz/style`'s
+  `board-card()`, keeping the room the board keeps around its field
+  (`--fz-canvas-card-room`, `--fz-space-6` unless the board sets it) and
+  `--fz-canvas-card-drop` below the layer's middle, where the board sets one,
+  on the element or around it; `board-card-small` there, in the board's own
+  container query, sets them smaller. Beside them, `canvasRoom()`, called
+  as a board is made, measures the canvas the board's element makes for the
+  canvas that fills it, as the host sizes it (its size and the ratio the host
+  renders it at, by `canvasSizeFor()`, and the insets the element declares),
+  as the board is first drawn and then each time it changes size in CSS pixels
+  or in device pixels, or the display's ratio changes, as a change of zoom or
+  of display does, until the board is destroyed: its `viewport`, null until it
+  is measured, and its `pixelRatio`, the display's until then, so a
+  placeholder lays its board out as the scene will; and `fzKeepKeys`
+  (`KeepKeysDirective`) stops key events on a button from reaching the element
+  around it that Phaser's keyboard listens on, so the button takes the key
+  rather than the scene, and Phaser's capture never cancels Space's keyup, at
+  which the button clicks.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
   which a test setup calls, gives jsdom the 2D and WebGL contexts, drawing
   nothing, that Phaser needs, the 2D measuring text as a font whose every
@@ -243,7 +259,7 @@ stylelint, the Angular compiler's checks, and Vitest in jsdom, each spec
 beside the file it tests. The specs run real Phaser, headless: the test
 setup calls `installHeadlessPhaser()`, and the scene helpers' specs run
 through `runScene()`, so the harness is checked by its own use. jsdom gets
-no component styles, so what the canvas's stylesheet does is checked in a
-browser, through a game's screenshots. Asteroid Breaker's `typecheck` holds
-the sources it compiles to `exactOptionalPropertyTypes` too, until
-`@fz/dev`'s base preset takes it.
+no component styles, so what the canvas's and the cards' stylesheets do is
+checked in a browser, through a game's screenshots. Asteroid Breaker's
+`typecheck` holds the sources it compiles to `exactOptionalPropertyTypes`
+too, until `@fz/dev`'s base preset takes it.

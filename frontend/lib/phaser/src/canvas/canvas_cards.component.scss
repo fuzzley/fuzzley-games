@@ -1,0 +1,19 @@
+@use "@fz/style" as fz;
+
+// The cards lay out in the layer the app's own cards show in, a
+// `board-card-layer()`, as those do.
+:host {
+  display: contents;
+}
+
+// A card keeps the room the board keeps around its field
+// (`--fz-canvas-card-room`), and sits `--fz-canvas-card-drop` below the
+// layer's middle. An unset drop leaves `translate` at `none`, as a card with
+// no drop has it, and `initial`, as Snake's small board sets it, unsets it.
+// The toolkit's `board-card-small`, on the element or around it, sets it
+// smaller.
+.card {
+  @include fz.board-card(var(--fz-canvas-card-room, var(--fz-space-6)));
+
+  translate: 0 var(--fz-canvas-card-drop);
+}

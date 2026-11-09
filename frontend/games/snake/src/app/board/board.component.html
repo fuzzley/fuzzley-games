@@ -1,4 +1,4 @@
-<fz-phaser-canvas [scene]="scene" [options]="hostOptions">
+<fz-phaser-canvas #canvas [scene]="scene" [options]="hostOptions">
   <!-- The empty board, sized as the scene sizes it, until the scene draws. -->
   <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
     <div class="squares"></div>
@@ -14,6 +14,8 @@
 
 @let shownCard = card();
 <div class="cards">
+  <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
+  <fz-canvas-cards [canvas]="canvas" />
   @switch (shownCard) {
     @case ("start") {
       <div class="card">
@@ -36,21 +38,6 @@
         <p>Score {{ game.score() }}</p>
         <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
           New Game
-        </button>
-      </div>
-    }
-    @case ("slow") {
-      <div class="card" role="status">
-        <p class="card-title">Still loading the board</p>
-        <p>It can take a while on a slow connection.</p>
-      </div>
-    }
-    @case ("failed") {
-      <div class="card" role="alert">
-        <p class="card-title">The board couldn't be drawn</p>
-        <p>Reloading the page may help.</p>
-        <button type="button" class="fz-button" (click)="reload()">
-          Reload
         </button>
       </div>
     }

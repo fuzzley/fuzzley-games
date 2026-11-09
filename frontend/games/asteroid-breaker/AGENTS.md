@@ -458,16 +458,17 @@ takes for the specs' helpers.
     the empty field drawn in CSS until the scene has drawn, clear of the
     deck's room; the focus ring; a crosshair for the pointer while a ship
     flies, as the mouse aims it; and the cards, `<app-board-card>`, which
-    the board tells where the scene is and how the ship flies: Ready, with
-    the wave and how to fly, while a wave waits for its first move; Paused,
-    with the score and the strays waiting at home; Cleared, with how the
-    wave's points added up and Next wave, and a trophy over the last
-    sector's last; Ended, once an ended run's result is put away; and still
-    loading, which a status region in the page from the start says to a
-    screen reader, and couldn't be drawn. The board is Phaser's keyboard
-    target, so the cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
-    `fzKeepKeys`); Resume and Next wave hand the board back the focus
-    (`handBack`). It measures the canvas it makes, as the host sizes it, at
+    the board tells how the ship flies: Ready, with the wave and how to fly,
+    while a wave waits for its first move; Paused, with the score and the
+    strays waiting at home; Cleared, with how the wave's points added up and
+    Next wave, and a trophy over the last sector's last; Ended, once an
+    ended run's result is put away; and, in their place, the canvas's own,
+    which the board hands it (`@fz/phaser/canvas`'s `<fz-canvas-cards>`):
+    still loading, which a status region in the page from the start says to
+    a screen reader, and couldn't be drawn. The board is Phaser's keyboard
+    target, so the cards' buttons keep their keys from it
+    (`@fz/phaser/canvas`'s `fzKeepKeys`); Resume and Next wave hand the
+    board back the focus (`handBack`). It measures the canvas it makes, as the host sizes it, at
     the ratio the host renders it at, as it is first drawn and as its size,
     the zoom or the display changes (`@fz/phaser/canvas`'s `canvasRoom()`),
     and hands the game that room until the scene lays the field out
@@ -670,7 +671,10 @@ rules apply; on top of them:
   and the component lays the field out in it as the scene does, the margin
   (`--margin`) and the frame (`--frame`) around it, clear of the deck, each
   set from the view's own (`MARGIN_CSS_PX`, `FRAME_CSS_PX`). The board is a
-  size container too, and its cards set smaller on a small board.
+  size container too, and its cards set smaller on a small board, the
+  canvas's too, all from the layer they show in (`board-card-small` on
+  `<app-board-card>`), which gives the canvas's the margin around the field
+  the others keep (`--fz-canvas-card-room`).
 
 ## What It Keeps
 
@@ -935,5 +939,6 @@ of its own beside it:
   the report counts on playing the same from a seed.
 
 The board's spec runs on `provideFakePhaserCanvas()`, and then with the real
-scene it loads; its card's spec renders the card alone, with no canvas, told
-what the board would tell it.
+scene it loads, and holds that its card gives way to the canvas's own; its
+card's spec renders the card alone, with no canvas, told what the board would
+tell it.

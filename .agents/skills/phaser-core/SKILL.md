@@ -28,16 +28,26 @@ beside a deck of controls for a touch screen.
   element. It fails a scene that isn't ready in a minute, or whose source
   rejects or that can't be built or mounted, handing that error to Angular's
   `ErrorHandler`, and after 8 seconds `slow` (`data-slow`) says it is still
-  loading, which the app says to the player. What the app projects as
-  `[fzCanvasPlaceholder]` lies over the canvas until the scene is ready. It
-  loads the host, and Phaser with it, with `import()` when it first shows a
-  scene (`frontend/lib/phaser/src/canvas/`). Beside it, `canvasRoom()`,
-  called as a board is made, gives it the canvas it makes, as the host
-  sizes it, and the ratio it renders at, as signals (`viewport`,
-  `pixelRatio`), measured as it is first drawn and each time its size, the
-  zoom or the display changes, so its placeholder lays the board out as the
-  scene will, and `fzKeepKeys` keeps a button's keys from the board around
-  it.
+  loading. What the app projects as `[fzCanvasPlaceholder]` lies over the
+  canvas until the scene is ready. It loads the host, and Phaser with it,
+  with `import()` when it first shows a scene
+  (`frontend/lib/phaser/src/canvas/`). `<fz-canvas-cards [canvas]="canvas">`,
+  placed in the board's own card layer, says both to the player in Snake,
+  Brick Breaker and Asteroid Breaker: Still loading, its words in a status
+  region it keeps in the page, the card itself hidden from assistive
+  technology, and couldn't be drawn, an alert with Reload.
+  `canvasCardOf(canvas)` says which shows, as the cards' `card` does, so the
+  board shows none of its own meanwhile, read after `<fz-phaser-canvas>` in
+  the board's template, since the canvas's state needs the scene it is
+  given. The board sets them as it sets its own, through
+  `--fz-canvas-card-room`, `--fz-canvas-card-drop` and `@fz/style`'s
+  `board-card-small`, on the element or around it.
+  Beside them, `canvasRoom()`, called as a board is made, gives the board the
+  canvas it makes, as the host sizes it, and the ratio it renders at, as
+  signals (`viewport`, `pixelRatio`), measured as it is first drawn and each
+  time its size, the zoom or the display changes, so its placeholder lays the
+  board out as the scene will, and `fzKeepKeys` keeps a button's keys from the
+  board around it.
 - **`@fz/phaser/host`**: the types a scene and a board take of the host,
   and nothing else: `HostedScene`, `SceneSurroundings` and `HostOptions`.
   The host itself, `PhaserHost`, which keeps one Phaser game, and so one

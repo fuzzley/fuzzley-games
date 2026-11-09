@@ -13,9 +13,11 @@ import {
 } from "@angular/core";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
+  CanvasCardsComponent,
   KeepKeysDirective,
   PhaserCanvasComponent,
   type SceneSource,
+  canvasCardOf,
   canvasRoom,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
@@ -27,16 +29,16 @@ import { snakePalette } from "../../view/palette";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 
-/** Names a card laid over the board, or none. */
-type Card = "start" | "paused" | "ended" | "slow" | "failed" | null;
+/** Names a card of the board's own laid over the board, or none. */
+type Card = "start" | "paused" | "ended" | null;
 
 /**
  * Shows the board: the canvas the scene draws on, which hears the keys and
  * the swipes while the board has the focus, a drawing of the empty board in
  * CSS until the scene has drawn, and the cards that say how to start, that
- * the run is paused, how to start again once its result is put away, that
- * the board is still loading on a slow connection, or that it couldn't be
- * drawn.
+ * the run is paused, and how to start again once its result is put away, or
+ * the canvas's own (`<fz-canvas-cards>`), that the board is still loading on
+ * a slow connection, or that it couldn't be drawn.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the arrow keys rather than reading with them; the canvas in it is
@@ -44,7 +46,7 @@ type Card = "start" | "paused" | "ended" | "slow" | "failed" | null;
  */
 @Component({
   selector: "app-board",
-  imports: [KeepKeysDirective, PhaserCanvasComponent],
+  imports: [CanvasCardsComponent, KeepKeysDirective, PhaserCanvasComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -110,10 +112,9 @@ export class BoardComponent {
     );
   });
 
-  /** The card over the board, if any. */
+  /** The board's own card over the board, if any, and none while the canvas shows its own. */
   protected readonly card = computed<Card>(() => {
-    if (this.canvas().state() === "failed") return "failed";
-    if (this.canvas().slow()) return "slow";
+    if (canvasCardOf(this.canvas())) return null;
     switch (this.game.outcome()) {
       case "ready":
         return "start";
@@ -239,11 +240,6 @@ export class BoardComponent {
   /** Starts another run, from the card over an ended one. */
   protected newGame(): void {
     void this.game.newGame();
-  }
-
-  /** Loads the page again, for a board that couldn't be drawn. */
-  protected reload(): void {
-    this.document.defaultView?.location.reload();
   }
 
   /**

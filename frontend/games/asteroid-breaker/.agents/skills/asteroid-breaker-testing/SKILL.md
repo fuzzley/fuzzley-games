@@ -269,13 +269,15 @@ game through `runScene()`:
   `provideFakePhaserCanvas()`, which loads no Phaser. The board's spec also
   runs the scene the board hands its canvas for real, through `runScene()`.
   The cards over the field are `<app-board-card>`, whose spec renders it
-  alone, with no canvas, given what the board tells it (where the scene is
-  and how the ship flies); the board's spec holds only that it tells it so,
-  and takes back the focus as the player goes on from a card. A spec that
-  fails the scene on purpose has the app's `ErrorHandler` collect what the
-  canvas hands it, as the board's does (`@fz/phaser/testing`'s
-  `collectErrors()`), and asserts on
-  that, so the run prints no error it expects.
+  alone, with no canvas, given what the board tells it (how the ship flies);
+  the board's spec holds only that it tells it so, that it gives way to the
+  canvas's own, which the board hands it (`@fz/phaser/canvas`'s
+  `<fz-canvas-cards>`, whose words, region and Reload the library's spec
+  holds), and that the board takes back the focus as the player goes on from a
+  card. A spec that fails the scene on purpose has the app's `ErrorHandler`
+  collect what the canvas hands it, as the board's does
+  (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the run
+  prints no error it expects.
 - What a frame of play comes to is `RunFrames`'s, and how it folds into
   what is a run's own `withFrame()`'s, which the view's specs hold; the
   shell's spec holds `GameService` to taking it into its signals, the

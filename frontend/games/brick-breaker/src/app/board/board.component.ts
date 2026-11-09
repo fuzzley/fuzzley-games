@@ -15,9 +15,11 @@ import {
 import { formatPoints } from "@fz/core/format";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
+  CanvasCardsComponent,
   KeepKeysDirective,
   PhaserCanvasComponent,
   type SceneSource,
+  canvasCardOf,
   canvasRoom,
 } from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
@@ -42,8 +44,8 @@ import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
 
-/** Names a card laid over the field, or none. */
-type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
+/** Names a card of the board's own laid over the field, or none. */
+type Card = "ready" | "paused" | "cleared" | "ended" | null;
 
 /**
  * How far below the field's middle the Ready card sits, in field units:
@@ -60,8 +62,9 @@ const CARD_DROP =
  * keys, the mouse and fingers while the board has the focus, a drawing of
  * the empty field in CSS until the scene has drawn, and the cards that say
  * how to launch, that the level is paused, how a level cleared added up,
- * how to start again once an ended run's result is put away, that the board
- * is still loading on a slow connection, or that it couldn't be drawn.
+ * and how to start again once an ended run's result is put away, or the
+ * canvas's own (`<fz-canvas-cards>`), that the board is still loading on a
+ * slow connection, or that it couldn't be drawn.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the keys rather than reading with them; the canvas in it is
@@ -69,7 +72,7 @@ const CARD_DROP =
  */
 @Component({
   selector: "app-board",
-  imports: [KeepKeysDirective, PhaserCanvasComponent],
+  imports: [CanvasCardsComponent, KeepKeysDirective, PhaserCanvasComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -176,10 +179,9 @@ export class BoardComponent {
     );
   });
 
-  /** The card over the field, if any. */
+  /** The board's own card over the field, if any, and none while the canvas shows its own. */
   protected readonly card = computed<Card>(() => {
-    if (this.canvas().state() === "failed") return "failed";
-    if (this.canvas().slow()) return "slow";
+    if (canvasCardOf(this.canvas())) return null;
     switch (this.game.outcome()) {
       case "ready":
         return "ready";
@@ -348,11 +350,6 @@ export class BoardComponent {
         this.game.setFieldHeight(height);
       });
     });
-  }
-
-  /** Loads the page again, for a board that couldn't be drawn. */
-  protected reload(): void {
-    this.document.defaultView?.location.reload();
   }
 
   /**

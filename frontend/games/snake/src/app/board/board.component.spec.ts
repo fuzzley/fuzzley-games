@@ -187,6 +187,14 @@ describe("BoardComponent", () => {
       ).toBeInTheDocument();
     });
 
+    it("say how to start while the scene still loads, before it is slow", async () => {
+      await renderBoard({ readyAtOnce: false });
+
+      expect(
+        screen.getByText("Press an arrow key, or swipe, to start."),
+      ).toBeInTheDocument();
+    });
+
     describe("on a touch screen", () => {
       let viewport: FakeViewport | null = null;
 
@@ -281,7 +289,7 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("ready");
     });
 
-    it("say when the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
+    it("say in place of the board's own when the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
       const errors = collectErrors();
       const { fake, detectChanges } = await renderBoard({ readyAtOnce: false });
 
@@ -293,6 +301,9 @@ describe("BoardComponent", () => {
         "The board couldn't be drawn",
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+      expect(
+        screen.queryByText("Press an arrow key, or swipe, to start."),
+      ).not.toBeInTheDocument();
       expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
@@ -305,7 +316,7 @@ describe("BoardComponent", () => {
         vi.useRealTimers();
       });
 
-      it("say the board is still loading, offering nothing to press", async () => {
+      it("say in place of the board's own that the board is still loading, offering nothing to press", async () => {
         const { detectChanges } = await renderBoard({ readyAtOnce: false });
 
         vi.advanceTimersByTime(8_000);
@@ -318,6 +329,9 @@ describe("BoardComponent", () => {
         expect(
           screen.getAllByRole("button").map((button) => button.textContent),
         ).toEqual(["Elsewhere"]);
+        expect(
+          screen.queryByText("Press an arrow key, or swipe, to start."),
+        ).not.toBeInTheDocument();
       });
     });
   });

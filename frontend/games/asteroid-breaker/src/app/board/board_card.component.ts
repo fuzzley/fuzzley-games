@@ -1,7 +1,13 @@
-import { DOCUMENT } from "@angular/common";
-import { Component, computed, inject, input, output } from "@angular/core";
+import {
+  Component,
+  computed,
+  contentChild,
+  inject,
+  input,
+  output,
+} from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
-import { type CanvasState, KeepKeysDirective } from "@fz/phaser/canvas";
+import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
 import { whereLost } from "../../rules/run/describe";
 import type { BoardSetting } from "../../view/field/field_metrics";
@@ -10,28 +16,21 @@ import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 
 /** Names a card laid over the field, or none. */
-type Card = "ready" | "paused" | "cleared" | "ended" | "slow" | "failed" | null;
-
-/**
- * What the Still loading card says, its title and the line under it, which
- * its status region says too.
- */
-const STILL_LOADING = {
-  title: "Still loading the board",
-  line: "It can take a while on a slow connection.",
-} as const;
+type Card = "ready" | "paused" | "cleared" | "ended" | null;
 
 /**
  * Shows the card over the field, if any: how to fly, while a wave waits for
  * its first move; that the wave is paused, and who waits at home; how a wave
- * cleared added up; how to start again, once an ended run's result is put
- * away; that the board is still loading on a slow connection; or that it
- * couldn't be drawn.
+ * cleared added up; or how to start again, once an ended run's result is put
+ * away.
  *
  * Its element is the layer the cards show in, which the board lays over the
- * field. Its buttons keep their keys from the board, Phaser's keyboard
- * target, and Resume and Next wave hand the board back the focus, which
- * their button would take away with its card.
+ * field. It shows what the board hands it first, the canvas's own cards
+ * (`<fz-canvas-cards>`), that the board is still loading or couldn't be
+ * drawn, and none of its own while they show one. Its buttons keep their
+ * keys from the board, Phaser's keyboard target, and Resume and Next wave
+ * hand the board back the focus, which their button would take away with
+ * its card.
  */
 @Component({
   selector: "app-board-card",
@@ -41,13 +40,9 @@ const STILL_LOADING = {
 })
 export class BoardCardComponent {
   protected readonly game = inject(GameService);
-  private readonly document = inject(DOCUMENT);
 
-  /** Where the board's canvas is with its scene: still loading, drawn, or failed. */
-  readonly canvasState = input.required<CanvasState>();
-
-  /** Whether the scene is taking long enough to load for the card to say so. */
-  readonly slow = input.required<boolean>();
+  /** The canvas's own cards, which the board hands it, if it does. */
+  private readonly canvasCards = contentChild(CanvasCardsComponent);
 
   /** How the board lays the field and the deck out, which says how the ship flies. */
   readonly board = input.required<BoardSetting>();
@@ -55,10 +50,9 @@ export class BoardCardComponent {
   /** Emitted when the board should take the focus, as a wave goes on. */
   readonly handBack = output();
 
-  /** The card over the field, if any. */
+  /** Its own card over the field, if any, and none while the canvas's shows. */
   protected readonly card = computed<Card>(() => {
-    if (this.canvasState() === "failed") return "failed";
-    if (this.slow()) return "slow";
+    if (this.canvasCards()?.card()) return null;
     switch (this.game.outcome()) {
       case "ready":
         return "ready";
@@ -135,19 +129,6 @@ export class BoardCardComponent {
   /** What the card over an ended run calls it: the wave it was lost on. */
   protected readonly endTitle = computed(() => whereLost(this.game.wave()));
 
-  /** What the Still loading card says, its title and the line under it. */
-  protected readonly stillLoading = STILL_LOADING;
-
-  /**
-   * What the Still loading card's status region says: its words while the
-   * card shows, else nothing.
-   */
-  protected readonly loadingWords = computed(() =>
-    this.card() === "slow"
-      ? `${STILL_LOADING.title}. ${STILL_LOADING.line}`
-      : "",
-  );
-
   /** Goes on with the paused wave, and hands the board back the focus. */
   protected resume(): void {
     this.game.resume();
@@ -163,10 +144,5 @@ export class BoardCardComponent {
   /** Starts another run, from the card over an ended one. */
   protected newGame(): void {
     void this.game.newGame();
-  }
-
-  /** Loads the page again, for a board that couldn't be drawn. */
-  protected reload(): void {
-    this.document.defaultView?.location.reload();
   }
 }

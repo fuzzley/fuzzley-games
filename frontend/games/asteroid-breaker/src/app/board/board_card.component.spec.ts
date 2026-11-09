@@ -1,12 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
-import type { CanvasState } from "@fz/phaser/canvas";
-import {
-  fireEvent,
-  isInaccessible,
-  render,
-  screen,
-} from "@testing-library/angular";
+import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
@@ -31,22 +25,6 @@ import type { BoardSetting } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
 
-/** What the board tells its card. */
-interface CardInputs {
-  readonly canvasState: CanvasState;
-  readonly slow: boolean;
-  readonly board: BoardSetting;
-}
-
-/** What the board tells its card once the scene has drawn, on a screen with no touch. */
-const DRAWN: CardInputs = { canvasState: "ready", slow: false, board: ROOMY };
-
-/** What the board tells its card while the scene loads, before it is slow. */
-const LOADING: Partial<CardInputs> = { canvasState: "loading" };
-
-/** What the board tells its card once the scene has taken long enough to load to say so. */
-const SLOW: Partial<CardInputs> = { canvasState: "loading", slow: true };
-
 /** What a spec gets back from rendering the card. */
 interface RenderedCard {
   readonly user: UserEvent;
@@ -56,21 +34,19 @@ interface RenderedCard {
   /** Called each time the card says the board should take the focus. */
   readonly handBack: ReturnType<typeof vi.fn>;
   readonly detectChanges: () => void;
-  /** Tells the card what the board would as the scene loads, keeping what it was told before. */
-  readonly tell: (inputs: Partial<CardInputs>) => Promise<void>;
 }
 
 /**
- * Renders the card over the specs' waves, or those given, told what the
- * board tells it once the scene has drawn but for what is given.
+ * Renders the card over the specs' waves, or those given, told how the board
+ * lays the field and the deck out, as on a screen with no touch unless given.
  */
 async function renderCard(
-  inputs: Partial<CardInputs> = {},
+  board: BoardSetting = ROOMY,
   waves?: readonly WaveEntry[],
 ): Promise<RenderedCard> {
   const handBack = vi.fn();
-  const { container, fixture, rerender } = await render(BoardCardComponent, {
-    inputs: { ...DRAWN, ...inputs },
+  const { container, fixture } = await render(BoardCardComponent, {
+    inputs: { board },
     on: { handBack },
     providers: provideSpecWaves(waves),
   });
@@ -82,8 +58,6 @@ async function renderCard(
     detectChanges: () => {
       fixture.detectChanges();
     },
-    tell: (inputs) =>
-      rerender({ inputs, on: { handBack }, partialUpdate: true }),
   };
 }
 
@@ -123,14 +97,8 @@ describe("BoardCardComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("names the wave while the scene still loads, before it is slow", async () => {
-    await renderCard({ canvasState: "loading" });
-
-    expect(screen.getByText("Wave 1: Pebble")).toBeInTheDocument();
-  });
-
   it("says the ship fires by itself, where the settings have it", async () => {
-    await renderCard({ board: { ...ROOMY, fireByItself: true } });
+    await renderCard({ ...ROOMY, fireByItself: true });
 
     expect(
       screen.getByText("Arrows or W A D to fly; the ship fires by itself."),
@@ -157,7 +125,7 @@ describe("BoardCardComponent", () => {
   ])(
     "says how to fly by the deck%s, where it shows",
     async (_, change, words) => {
-      await renderCard({ board: { ...ROOMY, deck: true, ...change } });
+      await renderCard({ ...ROOMY, deck: true, ...change });
 
       expect(screen.getByText(words)).toBeInTheDocument();
     },
@@ -180,7 +148,7 @@ describe("BoardCardComponent", () => {
   });
 
   it("draws the strays waiting at home on a paused wave, and says how many", async () => {
-    const { game, detectChanges } = await renderCard({}, STRAY_WAVES);
+    const { game, detectChanges } = await renderCard(ROOMY, STRAY_WAVES);
     bringStraysHome(game, 2);
 
     game.pause();
@@ -360,66 +328,5 @@ describe("BoardCardComponent", () => {
     await user.click(screen.getByRole("button", { name: "New game" }));
 
     expect(game.outcome()).toBe("ready");
-  });
-
-  it("says when the board couldn't be drawn, offering to reload", async () => {
-    await renderCard({ canvasState: "failed" });
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "The board couldn't be drawn",
-    );
-    expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-  });
-
-  describe("while the board loads", () => {
-    it("keeps a status region in the page, empty until the board is slow", async () => {
-      await renderCard(LOADING);
-
-      expect(screen.getByRole("status")).toHaveTextContent(/^$/);
-    });
-
-    it("says in that region the board is still loading, once it is slow", async () => {
-      const { tell } = await renderCard(LOADING);
-      const region = screen.getByRole("status");
-
-      await tell({ slow: true });
-
-      expect(screen.getByRole("status")).toBe(region);
-      expect(region).toHaveTextContent(
-        "Still loading the board. It can take a while on a slow connection.",
-      );
-    });
-
-    it("shows the Still loading card once it is slow, offering nothing to press", async () => {
-      await renderCard(SLOW);
-
-      expect(screen.getByText("Still loading the board")).toBeVisible();
-      expect(
-        screen.getByText("It can take a while on a slow connection."),
-      ).toBeVisible();
-      expect(screen.queryAllByRole("button", { hidden: true })).toEqual([]);
-    });
-
-    it("hides the card from assistive technology, which reads its words in the region", async () => {
-      await renderCard(SLOW);
-
-      expect(isInaccessible(screen.getByText("Still loading the board"))).toBe(
-        true,
-      );
-    });
-
-    it.each<[string, CanvasState]>([
-      ["drawn", "ready"],
-      ["given up on", "failed"],
-    ])(
-      "empties the region once the slow board is %s, saying nothing more",
-      async (_, canvasState) => {
-        const { tell } = await renderCard(SLOW);
-
-        await tell({ canvasState, slow: false });
-
-        expect(screen.getByRole("status")).toHaveTextContent(/^$/);
-      },
-    );
   });
 });

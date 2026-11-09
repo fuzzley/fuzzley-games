@@ -595,7 +595,13 @@ describe("BoardComponent", () => {
       expect(board).toHaveFocus();
     });
 
-    it("is told the board couldn't be drawn, as the app's error handler is told why", async () => {
+    it("names the wave while the scene still loads, before it is slow", async () => {
+      await renderBoard({ readyAtOnce: false });
+
+      expect(screen.getByText("Wave 1: Pebble")).toBeInTheDocument();
+    });
+
+    it("gives way to the canvas's, which says the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
       const errors = collectErrors();
       const { fake, detectChanges } = await renderBoard({ readyAtOnce: false });
 
@@ -606,6 +612,8 @@ describe("BoardComponent", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(
         "The board couldn't be drawn",
       );
+      expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
+      expect(screen.queryByText("Wave 1: Pebble")).not.toBeInTheDocument();
       expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
@@ -618,7 +626,7 @@ describe("BoardComponent", () => {
         vi.useRealTimers();
       });
 
-      it("is told the board is still loading", async () => {
+      it("gives way to the canvas's, which says the board is still loading", async () => {
         const { detectChanges } = await renderBoard({ readyAtOnce: false });
 
         vi.advanceTimersByTime(8_000);
@@ -627,6 +635,7 @@ describe("BoardComponent", () => {
         expect(screen.getByRole("status")).toHaveTextContent(
           "Still loading the board",
         );
+        expect(screen.queryByText("Wave 1: Pebble")).not.toBeInTheDocument();
       });
     });
   });
