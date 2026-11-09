@@ -2,10 +2,12 @@
 
 // Over the field, where the board lays the layer, a card in its middle, but
 // for the Ready card. A card keeps the margin the board keeps around the
-// field (`--margin`), and sizes itself by the board, the size container
-// around it.
+// field (`--margin`), the canvas's own too (`--fz-canvas-card-room`), and
+// sizes itself by the board, the size container around it.
 :host {
   @include board-card-layer;
+
+  --fz-canvas-card-room: var(--margin);
 }
 
 .card {
@@ -26,9 +28,10 @@
   color: var(--fz-warning);
 }
 
-// On a small board, as on the smallest phones, a card sets smaller.
+// On a small board, as on the smallest phones, every card in the layer sets
+// smaller, the canvas's own too.
 @container (width < 280px) or (height < 360px) {
-  .card {
+  :host {
     @include board-card-small;
   }
 

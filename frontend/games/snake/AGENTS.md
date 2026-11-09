@@ -98,11 +98,13 @@ its seed and its frames, as a game taken up relies on.
     after a reload.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty board drawn in CSS until the scene has drawn; the focus ring;
-    and the cards that say how to start, that the run is paused, how to
-    start again once an ended run's result is put away, that the board is
-    still loading on a slow connection, or that it couldn't be drawn. The
-    board is Phaser's keyboard target, so the cards' buttons keep their
-    keys from it (`fzKeepKeys`).
+    and the cards that say how to start, that the run is paused, or how to
+    start again once an ended run's result is put away, and, in their place,
+    the canvas's own (`@fz/phaser/canvas`'s `<fz-canvas-cards>`), that the
+    board is still loading on a slow connection, which a status region in
+    the page from the start says to a screen reader, or that it couldn't be
+    drawn. The board is Phaser's keyboard target, so the cards' buttons keep
+    their keys from it (`fzKeepKeys`).
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
     say, which turn the snake and hand the focus back to the board, steer by
     the game's keys while one has the focus, and wait, dimmed, until the
@@ -188,8 +190,8 @@ else. The frontend's Angular and Sass rules apply; on top of them:
 - **The sizes come from the stage,** a size container: the board takes the
   room it is given, and the arrows sit under it on a tall stage and beside
   it on a wide one, their keys shrinking from 64 to 44 CSS px where the
-  stage is short upright or narrow on its side. On a small board the cards
-  set smaller and sit in the middle, so they stay on it.
+  stage is short upright or narrow on its side. On a small board the cards,
+  the canvas's too, set smaller and sit in the middle, so they stay on it.
 - **The pause, sound, sound-off and apple icons** were added to `@fz/ui`'s
   icons for the bar.
 

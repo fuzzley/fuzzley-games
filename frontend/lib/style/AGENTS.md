@@ -68,9 +68,12 @@ relative to `frontend/lib/style/`.
   win by coming later. The cards over a board, such as Paused, are
   `board-card-layer($bottom)`, the layer a grid centers them in,
   `board-card($room)`, the card, and `board-card-small`, which a game includes
-  in its own container query for a small board. The toolkit emits no CSS, so
-  any stylesheet can load it, and `src/toolkit.spec.ts` checks what each mixin
-  writes.
+  in its own container query for a small board, on a card or on an element
+  around one, as around `@fz/phaser/canvas`'s `<fz-canvas-cards>`, since it
+  sets the card's spacing through custom properties the card reads
+  (`--fz-board-card-gap`, `--fz-board-card-padding`) and its type, which the
+  cards inside inherit. The toolkit emits no CSS, so any stylesheet can load
+  it, and `src/toolkit.spec.ts` checks what each mixin writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
   keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for

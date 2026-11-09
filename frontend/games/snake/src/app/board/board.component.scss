@@ -28,7 +28,8 @@
 // `--squares` comes from the component, as many as the rules' board has.
 .placeholder,
 .ring,
-.card {
+.card,
+fz-canvas-cards {
   --side: round(
     down,
     min(100cqw, 100cqh) - 2 * var(--room) - 2 * var(--wall),
@@ -89,6 +90,13 @@
   translate: 0 calc(var(--side) / 4);
 }
 
+// The canvas's own cards, Still loading and couldn't be drawn, sit in the
+// layer as the others do.
+fz-canvas-cards {
+  --fz-canvas-card-room: var(--room);
+  --fz-canvas-card-drop: calc(var(--side) / 4);
+}
+
 // On a small board, as on the smallest phones with the arrows, the card sets
 // smaller and sits in the middle, so it stays on the board.
 @container (width < 280px) or (height < 280px) {
@@ -96,5 +104,12 @@
     @include board-card-small;
 
     translate: none;
+  }
+
+  // No drop, so no translation.
+  fz-canvas-cards {
+    @include board-card-small;
+
+    --fz-canvas-card-drop: initial;
   }
 }

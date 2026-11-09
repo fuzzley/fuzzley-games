@@ -2204,3 +2204,53 @@ host still loaded apart:
 5. _What the plan named and this left, and what stays exported from its
    file:_ taken, here.
 6. _Two short lines:_ taken.
+
+### Step 16h: finding 19, the slow and failed cards a component of the canvas
+
+Built on `pl-cards`. Still loading and couldn't be drawn, which the three
+boards each drew for themselves, are `@fz/phaser/canvas`'s
+`<fz-canvas-cards>`, with the status region the slow card speaks through and
+the `reload()` its Reload calls. It lays out as its contents, so each board
+places it in its own card layer, where a card sits as the board's own do, and
+hands it the canvas; the board's own card gives way while `canvasCardOf()`
+names one. Each game keeps its look through custom properties on the element
+or around it: `--fz-canvas-card-room`, Asteroid Breaker's its margin and the
+others' their room, and `--fz-canvas-card-drop`, Snake's alone, which its
+small board unsets. `@fz/style`'s `board-card()` is spaced through
+`--fz-board-card-gap` and `--fz-board-card-padding`, which
+`board-card-small` sets, so a small board sets every card smaller from the
+layer around them. At fifty captures of the three games' slow and failed
+boards, at every shape, ratio and focus, every pixel is as it was.
+
+Where it went other than planned:
+
+- The custom properties are set on `fz-canvas-cards` or around it, not on
+  `fz-phaser-canvas`: cards drawn inside the canvas would paint under the
+  board's focus ring, and a layer of the library's own, painted after the
+  frosted card, moved anti-aliased pixels in three captures.
+- Brick Breaker and Snake gain the status region Asteroid Breaker's slow
+  card spoke through, their slow card hidden from assistive technology, so
+  a screen reader hears it once, as it arrives. Nothing on screen changes.
+- `canvasCardOf()` reads the canvas's state, which follows its required
+  scene input, so it is read after `<fz-phaser-canvas>` in a board's
+  template, as the boards' own reads of the canvas already were.
+
+The review found the move faithful, and the cards' selectors and spacing
+as they were:
+
+1. _Brick Breaker's and Snake's `card()` read the cards' required input,
+   so it held only while `@let` sat after `<fz-canvas-cards>`:_ taken; a
+   pure `canvasCardOf()`, which the boards call on their canvas, and the
+   `@let` back where it was.
+2. _Asteroid Breaker wrote its small board's breakpoint twice:_ taken; the
+   card layer's host sets the room and `board-card-small`, which every
+   element in it takes as before, its own cards' type and boxes held at
+   nine shapes.
+3. _Reload alone of the cards' buttons didn't keep its keys:_ taken.
+4. _The library's spec threw away the errors it collected:_ taken; the
+   failed card's asserted, none elsewhere.
+5. _Nits: a translation with no drop invalid rather than `0`, and a doc
+   that didn't parse:_ the doc taken; the translation not taken, since a
+   `0 0` translation makes each card a stacking context and a containing
+   block, which none was, and the comment says how an unset drop leaves it
+   at `none`.

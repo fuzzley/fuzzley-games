@@ -1,0 +1,28 @@
+@let shownCard = card();
+<!--
+  What the Still loading card says, out of sight, for a screen reader: a
+  status region in the page from the start, empty until the board is slow,
+  since a screen reader announces a region's changes, not one that arrives
+  with its words. The card is hidden from assistive technology, so its words
+  are read here once.
+-->
+<p class="fz-visually-hidden" role="status">{{ loadingWords() }}</p>
+@switch (shownCard) {
+  @case ("slow") {
+    <div class="card" aria-hidden="true">
+      <p class="card-title">{{ stillLoading.title }}</p>
+      <p>{{ stillLoading.line }}</p>
+    </div>
+  }
+  @case ("failed") {
+    <div class="card" role="alert">
+      <p class="card-title">The board couldn't be drawn</p>
+      <p>Reloading the page may help.</p>
+      <button type="button" class="fz-button" fzKeepKeys (click)="reload()">
+        Reload
+      </button>
+    </div>
+  }
+  @case (null) {}
+  @default never;
+}

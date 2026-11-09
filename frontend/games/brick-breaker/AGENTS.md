@@ -321,17 +321,19 @@ takes for the specs' helpers.
     focus ring; the pointer hidden while a ball is in play; and the cards:
     Ready, with the level and how to launch, whenever a ball waits on the
     paddle; Paused; Cleared, with how the level's points added up and Next
-    level; Ended, once an ended run's result is put away; and still loading
-    and couldn't be drawn. The board is Phaser's keyboard target, so the
-    cards' buttons keep their keys from it (`@fz/phaser/canvas`'s
-    `fzKeepKeys`), and take Space and Enter themselves; Resume and Next level
-    hand the board back the focus, and the board takes it as New game's run
-    begins. It measures the canvas it makes, as the host sizes it, as it is
-    first drawn and as its size, the zoom or the display changes
-    (`@fz/phaser/canvas`'s `canvasRoom()`), asks the game for the field's
-    height that canvas has room for (`GameService.setFieldHeight()`), and,
-    where it has room for a taller field, leaves a finger's room under the
-    field, which the scene lays the field out above.
+    level; Ended, once an ended run's result is put away; and, in their
+    place, the canvas's own (`@fz/phaser/canvas`'s `<fz-canvas-cards>`):
+    still loading, which a status region in the page from the start says to
+    a screen reader, and couldn't be drawn. The board is Phaser's keyboard
+    target, so the cards' buttons keep their keys from it
+    (`@fz/phaser/canvas`'s `fzKeepKeys`), and take Space and Enter themselves;
+    Resume and Next level hand the board back the focus, and the board takes
+    it as New game's run begins. It measures the canvas it makes, as the host
+    sizes it, as it is first drawn and as its size, the zoom or the display
+    changes (`@fz/phaser/canvas`'s `canvasRoom()`), asks the game for the
+    field's height that canvas has room for (`GameService.setFieldHeight()`),
+    and, where it has room for a taller field, leaves a finger's room under
+    the field, which the scene lays the field out above.
     `fieldPalette()` colors the field from `ThemeService`'s roles and
     `mode`, and a finger steers as the settings say. The board keeps the
     scene's pictures for How to play (`pictures`). It is an application named

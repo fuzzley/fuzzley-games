@@ -23,16 +23,18 @@
 ///
 /// It is at most 320px wide, and four `$room`s less than the shorter side of
 /// the board's size container: a `$room` inside a board that is itself a
-/// `$room` in from each edge.
+/// `$room` in from each edge. Its spacing is the custom properties
+/// `board-card-small` sets, so a card a library draws can be set smaller
+/// from around it.
 @mixin board-card($room) {
   @include surfaces.glass(12px);
 
   display: grid;
   justify-items: center;
-  gap: var(--fz-space-2);
+  gap: var(--fz-board-card-gap, var(--fz-space-2));
   box-sizing: border-box;
   max-width: min(320px, 100cqmin - 4 * $room);
-  padding: var(--fz-space-5) var(--fz-space-6);
+  padding: var(--fz-board-card-padding, var(--fz-space-5) var(--fz-space-6));
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-lg);
   background: var(--fz-panel-glass);
@@ -50,19 +52,17 @@
   }
 
   button {
-    margin-top: var(--fz-space-2);
+    margin-top: var(--fz-board-card-gap, var(--fz-space-2));
     pointer-events: auto;
   }
 }
 
 /// Sets a `board-card()` smaller, for a small board, inside the game's own
-/// container query.
+/// container query: on the card, or on an element around it, as around the
+/// cards `@fz/phaser/canvas` draws, which inherit its spacing and its type.
 @mixin board-card-small {
-  gap: var(--fz-space-1);
-  padding: var(--fz-space-3) var(--fz-space-4);
-  font-size: var(--fz-font-sm);
+  --fz-board-card-gap: var(--fz-space-1);
+  --fz-board-card-padding: var(--fz-space-3) var(--fz-space-4);
 
-  button {
-    margin-top: var(--fz-space-1);
-  }
+  font-size: var(--fz-font-sm);
 }

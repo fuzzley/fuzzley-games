@@ -186,13 +186,24 @@ describe("the toolkit's mixins", () => {
 
   it("let the pointer press only a board card's buttons", () => {
     expect(compiled("@include fz.board-card(24px);")).toContain(
-      ".it button{margin-top:var(--fz-space-2);pointer-events:auto}",
+      ".it button{margin-top:var(--fz-board-card-gap, var(--fz-space-2));pointer-events:auto}",
     );
   });
 
-  it("set a board's card smaller for a small board", () => {
+  it("space a board's card roomily unless it is set smaller", () => {
+    const card = declarations(compiled("@include fz.board-card(24px);"), ".it");
+
+    expect(card).toEqual(
+      expect.arrayContaining([
+        "gap:var(--fz-board-card-gap, var(--fz-space-2))",
+        "padding:var(--fz-board-card-padding, var(--fz-space-5) var(--fz-space-6))",
+      ]),
+    );
+  });
+
+  it("set a board's card smaller for a small board, from the card or around it", () => {
     expect(compiled("@include fz.board-card-small;")).toBe(
-      ".it{gap:var(--fz-space-1);padding:var(--fz-space-3) var(--fz-space-4);font-size:var(--fz-font-sm)}.it button{margin-top:var(--fz-space-1)}",
+      ".it{--fz-board-card-gap: var(--fz-space-1);--fz-board-card-padding: var(--fz-space-3) var(--fz-space-4);font-size:var(--fz-font-sm)}",
     );
   });
 

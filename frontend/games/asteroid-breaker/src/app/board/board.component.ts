@@ -15,6 +15,7 @@ import {
 } from "@angular/core";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
+  CanvasCardsComponent,
   PhaserCanvasComponent,
   type SceneSource,
   canvasRoom,
@@ -64,8 +65,9 @@ const POINTS_SAMPLE = POINTS_CHARACTERS.join("");
  * which hears the keys, the mouse and fingers while the board has the focus,
  * a drawing of the empty field in CSS, where the scene will draw it, clear
  * of the deck's room, until the scene has drawn, and the card over the
- * field (`<app-board-card>`), told where the scene is and how the ship
- * flies.
+ * field (`<app-board-card>`), told how the ship flies, which holds the
+ * canvas's own (`<fz-canvas-cards>`), that the board is still loading on a
+ * slow connection, or that it couldn't be drawn.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the keys rather than reading with them; the canvas in it is
@@ -73,7 +75,7 @@ const POINTS_SAMPLE = POINTS_CHARACTERS.join("");
  */
 @Component({
   selector: "app-board",
-  imports: [BoardCardComponent, PhaserCanvasComponent],
+  imports: [BoardCardComponent, CanvasCardsComponent, PhaserCanvasComponent],
   host: {
     tabindex: "0",
     role: "application",
@@ -103,7 +105,7 @@ export class BoardComponent {
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly canvas = viewChild.required(PhaserCanvasComponent);
+  private readonly canvas = viewChild.required(PhaserCanvasComponent);
 
   /**
    * The canvas the board makes, as the host sizes it, and the ratio it

@@ -1,4 +1,4 @@
-<fz-phaser-canvas [scene]="scene" [options]="hostOptions">
+<fz-phaser-canvas #canvas [scene]="scene" [options]="hostOptions">
   <!-- The empty field, where the scene will draw it, until it does. -->
   <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
     <div class="field" [style]="fieldStyle()"></div>
@@ -19,8 +19,9 @@
 
 <app-board-card
   [style]="fieldStyle()"
-  [canvasState]="canvas().state()"
-  [slow]="canvas().slow()"
   [board]="board()"
   (handBack)="takeFocusBack()"
-/>
+>
+  <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
+  <fz-canvas-cards [canvas]="canvas" />
+</app-board-card>

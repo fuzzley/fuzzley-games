@@ -111,11 +111,18 @@
   translate: 0 calc(var(--card-drop) * var(--unit));
 }
 
+// The canvas's own cards, Still loading and couldn't be drawn, sit in the
+// layer as the others do.
+fz-canvas-cards {
+  --fz-canvas-card-room: var(--room);
+}
+
 // On a small field, as on the smallest phones, a card sets smaller, so the
 // Ready card still fits between the bricks and the paddle, and the others on
 // the field.
 @container (width < 280px) or (height < 360px) {
-  .card {
+  .card,
+  fz-canvas-cards {
     @include board-card-small;
   }
 }

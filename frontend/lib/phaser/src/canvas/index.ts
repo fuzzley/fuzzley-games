@@ -1,4 +1,9 @@
 export {
+  type CanvasCard,
+  CanvasCardsComponent,
+  canvasCardOf,
+} from "./canvas_cards.component";
+export {
   type CanvasHost,
   type CreateCanvasHost,
   PHASER_CANVAS_HOST,
