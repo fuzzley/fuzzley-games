@@ -1,5 +1,5 @@
-import { Injectable, effect, inject, untracked } from "@angular/core";
-import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
+import { Injectable, inject } from "@angular/core";
+import { keepSaved } from "@fz/ui/storage";
 import { SAVED_GAME_VERSION, restoreGame } from "../../rules/run/saved_game";
 import { GameService } from "./game.service";
 import { GAME_LEVELS } from "../tokens";
@@ -17,43 +17,23 @@ export const SAVED_GAME_KEY = "brick-breaker-game";
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
-  private readonly storage = inject(LocalStorageService);
   private readonly game = inject(GameService);
   private readonly levels = inject(GAME_LEVELS);
 
   constructor() {
-    this.restore();
-    effect(() => {
-      this.game.outcome();
-      this.game.serving();
-      this.game.runs();
-      untracked(() => {
-        this.keep();
-      });
+    keepSaved({
+      key: SAVED_GAME_KEY,
+      version: SAVED_GAME_VERSION,
+      save: () => this.game.saved(),
+      restore: (saved) => {
+        const takenUp = restoreGame(saved, this.levels, this.game.run().id + 1);
+        if (takenUp) this.game.takeUp(takenUp);
+      },
+      track: () => {
+        this.game.outcome();
+        this.game.serving();
+        this.game.runs();
+      },
     });
-    keepOnLeave(() => {
-      this.keep();
-    });
-  }
-
-  /** Writes the run under way where it stands, or forgets one that isn't. */
-  private keep(): void {
-    const saved = this.game.saved();
-    if (!saved) {
-      this.storage.remove(SAVED_GAME_KEY);
-      return;
-    }
-    this.storage.writeVersioned(SAVED_GAME_KEY, SAVED_GAME_VERSION, saved);
-  }
-
-  /** Takes up the run stored, if there is one that makes sense. */
-  private restore(): void {
-    const saved = this.storage.readVersioned(
-      SAVED_GAME_KEY,
-      SAVED_GAME_VERSION,
-    );
-    if (!saved) return;
-    const takenUp = restoreGame(saved, this.levels, this.game.run().id + 1);
-    if (takenUp) this.game.takeUp(takenUp);
   }
 }

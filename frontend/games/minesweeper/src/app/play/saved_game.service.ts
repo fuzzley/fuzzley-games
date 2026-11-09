@@ -1,5 +1,5 @@
-import { Injectable, effect, inject, untracked } from "@angular/core";
-import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
+import { Injectable, inject, untracked } from "@angular/core";
+import { type StoredFields, type Unversioned, keepSaved } from "@fz/ui/storage";
 import { isDifficultyId } from "../../rules/difficulty";
 import { isCount } from "@fz/core/json";
 import { restoreField, saveField } from "../../rules/saved_field";
@@ -23,40 +23,38 @@ const SAVED_GAME_VERSION = 1;
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
-  private readonly storage = inject(LocalStorageService);
   private readonly game = inject(GameService);
 
   constructor() {
-    this.restore();
-    effect(() => {
-      this.keep();
-    });
-    keepOnLeave(() => {
-      this.keep();
+    keepSaved({
+      key: SAVED_GAME_KEY,
+      version: SAVED_GAME_VERSION,
+      save: () => this.save(),
+      restore: (saved) => {
+        this.restore(saved);
+      },
     });
   }
 
-  /** Writes the game under way, with its time, or forgets one that isn't. */
-  private keep(): void {
+  /**
+   * Returns the game under way, with its time, or none for one that isn't,
+   * whose entry is then forgotten.
+   *
+   * A write follows everything it reads but the clock, read untracked, so
+   * the game is written once a move rather than at every tick.
+   */
+  private save(): Unversioned | null {
     const field = this.game.field();
-    if (field.outcome !== "playing") {
-      this.storage.remove(SAVED_GAME_KEY);
-      return;
-    }
-    this.storage.writeVersioned(SAVED_GAME_KEY, SAVED_GAME_VERSION, {
+    if (field.outcome !== "playing") return null;
+    return {
       difficulty: this.game.difficulty(),
       seconds: untracked(this.game.seconds),
       field: saveField(field),
-    });
+    };
   }
 
-  /** Takes up the game stored, if there is one that makes sense. */
-  private restore(): void {
-    const saved = this.storage.readVersioned(
-      SAVED_GAME_KEY,
-      SAVED_GAME_VERSION,
-    );
-    if (!saved) return;
+  /** Takes up the game kept, if it makes sense. */
+  private restore(saved: StoredFields): void {
     const { difficulty, seconds } = saved;
     const field = restoreField(saved["field"]);
     if (

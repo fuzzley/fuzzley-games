@@ -26,14 +26,14 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   app's `read`, which turns what was stored, or null for nothing of that
   version, into the value, and stores every change made to it, through a
   `write` where the value isn't kept as it is, such as a set.
-  `keepOnLeave(save)` calls `save` as the page is hidden and as it goes
-  away, until the injector it was called in is destroyed, for what is
-  written at moments of its own rather than on every change, such as a run
-  under way. `keepSaved({ key, version, save, restore, track })` keeps a
-  game under way with them: it hands `restore` what was kept as it is
-  called, then writes what `save` returns, or forgets what was kept where
-  it returns null, as what `track` reads changes, or without `track` as
-  what `save` reads does, and as the page is hidden or goes away.
+  `keepSaved({ key, version, save, restore, track })` keeps a game under
+  way with them: it hands `restore` what was kept as it is called, then
+  writes what `save` returns, or forgets what was kept where it returns
+  null, as what `track` reads changes, or without `track` as what `save`
+  reads does, and as the page is hidden or goes away. It writes on leaving
+  through `keepOnLeave(save)`, which the entry doesn't export: it calls
+  `save` as the page is hidden and as it goes away, until the injector it
+  was called in is destroyed.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
   it, takes up one chosen in another tab, gives, each as the palette is put
   on the page, a role's color as a signal (`role("felt")`), several roles'

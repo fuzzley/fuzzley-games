@@ -76,16 +76,16 @@ to `frontend/games/`.
   (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
   import.
 - **Saved games outlive the code.** What a game stores goes through
-  `@fz/ui/storage`, under keys its `AGENTS.md` lists: its settings and
-  records as a `storedSignal()`, and a game under way through
-  `LocalStorageService`, kept as the page is hidden or goes away
-  (`keepOnLeave()`). The Solitaire Collection is the exception: its
-  presentation settings and recent games are stored signals, but its game
-  choice and options, and its game in play, which it keeps at each change,
-  go through `LocalStorageService` alone. Renaming a key loses what players
-  saved, and a build reads what the last one stored: an entry whose shape
-  changes carries a version (`writeVersioned()`), and a reader drops one it
-  can't trust rather than failing.
+  `@fz/ui/storage`, under keys its `AGENTS.md` lists: its settings and records
+  as a `storedSignal()`, and a game under way with `keepSaved()`, which takes
+  it up and writes it as it changes, or only at the moments its `track` names,
+  and as the page is hidden or goes away. The Solitaire Collection is the
+  exception: its presentation settings and recent games are stored signals,
+  but its game choice and options, and its game in play, which it keeps at
+  each change, go through `LocalStorageService` alone. Renaming a key loses
+  what players saved, and a build reads what the last one stored: an entry
+  whose shape changes carries a version (`writeVersioned()`), and a reader
+  drops one it can't trust rather than failing.
 
 ## Adding a game
 
