@@ -210,6 +210,15 @@ describe("GameService", () => {
       expect(game.outcome()).toBe("playing");
     });
 
+    it("keeps a paused run paused at Escape", () => {
+      const game = startedGame();
+      game.pause();
+
+      game.command("pause");
+
+      expect(game.outcome()).toBe("paused");
+    });
+
     it("has nothing to pause before the run starts", () => {
       const game = TestBed.inject(GameService);
 
@@ -247,6 +256,17 @@ describe("GameService", () => {
       game.pause();
 
       expect(game.outcome()).toBe("paused");
+    });
+
+    it("turns a run in play while the board isn't drawn", () => {
+      const game = TestBed.inject(GameService);
+      game.turn("right");
+      game.setDrawn(false);
+
+      game.command("up");
+      game.tick(STEP);
+
+      expect(game.run().heading).toBe("up");
     });
 
     it("starts at a direction once the board is drawn", () => {

@@ -2876,3 +2876,29 @@ The review found it the same as before in every state, and three things:
 2. _"To which it adds `launch`" read as the base adding it:_ taken.
 3. _No entry staged:_ as every step on this branch, its entry is added as
    it lands.
+
+### Step 18d: finding 20, Snake's run in `RunLifecycle`
+
+Built on `rl-snake`, beside Brick Breaker's step, and moved onto it.
+Snake's `GameService` extends `RunLifecycle`: its `command()` turns the
+snake at a direction and hands the base the other three, `begin()` ends in
+`began()`, and `changeSpeed()` asks `speedQuestion()`. Its runs clear no
+stage, so it gives no `nextStage()`, and a new game still takes the
+settings' speed. `go` and `toggle` do as Snake's own did in every state, a
+throwaway spec of 42 cases holding the old service and the new one alike
+before it was deleted. 312 non-blank lines down to 241, and Snake's specs
+pass unchanged.
+
+The review found nothing wrong in what Snake does, and four things:
+
+1. _`frontend/games/AGENTS.md` said the base waits for the board to be
+   drawn, which only each game's `resume()` does:_ taken.
+2. _That file names Brick Breaker too:_ as meant, since this step lands on
+   Brick Breaker's.
+3. _Snake's `AGENTS.md` set a clause inside a list, and named the question
+   twice:_ taken.
+4. _No spec held Escape apart from Space through Snake's own `command()`,
+   and the step that trims the specs would drop the one that held toggle
+   apart from go:_ taken; two specs added, a paused run kept paused at
+   Escape and a run in play turned while the board isn't drawn, and the
+   one kept in step 18e.
