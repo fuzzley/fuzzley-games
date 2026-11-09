@@ -1,6 +1,7 @@
 import type { Provider } from "@angular/core";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import type { GameService } from "../app/play/game.service";
-import { GAME_RANDOM, GAME_WAVES } from "../app/tokens";
+import { GAME_WAVES } from "../app/tokens";
 import type { Rock } from "../rules/rocks/rocks";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { distanceSquared } from "../rules/torus";

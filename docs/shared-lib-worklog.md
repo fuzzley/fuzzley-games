@@ -458,3 +458,24 @@ AGENTS.md` bullet broken early is re-wrapped.
 3. _`bar_pause.component.ts` could take its `outcome` as a `RunStage`:_ not
    taken here. It changes `@fz/game-ui`'s bar API, which no step of the plan
    covers. It is left as a follow-up.
+
+### Step 1.1: `GAME_RANDOM` into `@fz/game-ui/random`
+
+Built as planned on `sl-shell`. The token is declared once, in a new entry,
+`@fz/game-ui/random`: `Math.random` unless a spec provides a source of its
+own. The five games' own declarations are gone: Snake's, Minesweeper's and
+Sudoku's from their `GameService`, and Brick Breaker's and Asteroid Breaker's
+from `src/app/tokens.ts`. The services and the specs' helpers import the
+library's. Every game is 6 to 12 lines shorter, and every run and deal is
+seeded as before. The tests pass: game-ui 260, Minesweeper 373, Sudoku 592,
+Snake 421, Brick Breaker 1835 and 180, Asteroid Breaker 3630 and 1620. The
+`fuzzley-ui` skill gains a row for the token.
+
+The review:
+
+1. _A package import followed a relative one in both breakers'
+   `src/testing/play.ts`:_ taken. It now leads the relative imports, as in
+   Snake's.
+2. _Two edited paragraphs were left unwrapped:_ taken. Asteroid Breaker's
+   `AGENTS.md` and the `snake-testing` skill are rewrapped at the width
+   around them.

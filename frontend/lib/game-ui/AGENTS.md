@@ -141,6 +141,9 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   at each reading unless a spec provides a clock of its own.
   `formatClock()` writes a time as a game's clock shows it, "2:13", or
   "1:02:13" past an hour.
+- `src/random/`: `GAME_RANDOM`, where a game draws the seeds of its new
+  runs and deals from: `Math.random` unless a spec provides a source of its
+  own, as a spec that plays to a known end does.
 - `src/run_lifecycle/`: `RunLifecycle`, the abstract class a game's
   `GameService` extends, which holds what every game's run does around its
   play. `command()` does what the keys every game shares ask: `"pause"`,

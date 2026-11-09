@@ -1,10 +1,5 @@
-import {
-  Injectable,
-  InjectionToken,
-  computed,
-  inject,
-  signal,
-} from "@angular/core";
+import { Injectable, computed, inject, signal } from "@angular/core";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import { StopwatchService, formatClock } from "@fz/game-ui/stopwatch";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
@@ -32,12 +27,6 @@ import { count } from "@fz/core/format";
 import { randomSeed } from "@fz/core/random";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-
-/** Where new deals take their seeds from: `Math.random` but in specs. */
-export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
-  providedIn: "root",
-  factory: () => Math.random,
-});
 
 /** What a new deal asks before it throws away the game under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {

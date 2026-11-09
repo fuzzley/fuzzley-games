@@ -1,13 +1,8 @@
-import {
-  Injectable,
-  InjectionToken,
-  computed,
-  inject,
-  signal,
-} from "@angular/core";
+import { Injectable, computed, inject, signal } from "@angular/core";
 import { Countdown } from "@fz/core/clock";
 import { hasEnded, isUnderWay } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
@@ -26,12 +21,6 @@ import type { SnakeFrame } from "../../view/frame";
 import { resultDelayMs } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-
-/** Where new runs take their seeds from: `Math.random` but in specs. */
-export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
-  providedIn: "root",
-  factory: () => Math.random,
-});
 
 /** The frame the scene is handed, one object written again each frame. */
 interface Frame {

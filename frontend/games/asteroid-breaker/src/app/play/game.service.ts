@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import { hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
+import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import type { Viewport } from "@fz/phaser/layout";
@@ -65,7 +66,7 @@ import { SettingsService } from "../settings/settings.service";
 import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_RANDOM, GAME_WAVES } from "../tokens";
+import { GAME_WAVES } from "../tokens";
 import { HapticsService } from "./haptics.service";
 
 /** The field's shape before the board says what room it has: a square of the short side. */

@@ -110,12 +110,12 @@ game through `runScene()`:
   `endedGame(direction)` and `wonGame()` (`src/testing/play.ts`) play a
   game to its end, lost up or right, or won on `ALMOST_FULL`, a three by
   three board one apple from full, taken up with `takeUp()`.
-- `GameService` seeds each run from `GAME_RANDOM`, `Math.random` unless a
-  spec provides another. A run lost right eats the first apple, and the
-  second where its seed lays it in the way, about one run in 70, as 4 of
-  the 285 squares free lie ahead. So every spec that plays runs to an end
-  provides `provideFixedSeed()`, which gives every run the same seed, one
-  that lays the second apple elsewhere.
+- `GameService` seeds each run from `@fz/game-ui/random`'s `GAME_RANDOM`,
+  `Math.random` unless a spec provides another. A run lost right eats the
+  first apple, and the second where its seed lays it in the way, about one
+  run in 70, as 4 of the 285 squares free lie ahead. So every spec that
+  plays runs to an end provides `provideFixedSeed()`, which gives every run
+  the same seed, one that lays the second apple elsewhere.
 - `render()` sets up the TestBed, so a spec that changes a setting first
   stores it, or changes it after rendering.
 - jsdom has no `matchMedia`, so motion isn't allowed: the result card opens

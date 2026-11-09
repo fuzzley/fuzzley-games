@@ -1,12 +1,6 @@
 import { InjectionToken } from "@angular/core";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 
-/** Where new runs take their seeds from: `Math.random` but in specs. */
-export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
-  providedIn: "root",
-  factory: () => Math.random,
-});
-
 /**
  * Whether the settings offer the debug menu: in a development build, as the
  * game's own dev server runs it, never in a production one.
