@@ -5,6 +5,7 @@ import { ESLint } from "eslint";
 import type { Config } from "eslint/config";
 import {
   angular,
+  gameRules,
   phaser,
   phaserGameLayers,
   scripts,
@@ -324,6 +325,67 @@ describe("scripts", () => {
     });
 
     expect(problems["tools/run.mjs"]).toEqual([]);
+  });
+});
+
+describe("gameRules", () => {
+  it.each([
+    "@angular/core",
+    "rxjs",
+    "phaser",
+    "@fz/ui/dialog",
+    "@fz/game-ui",
+    "../app/play/game.service",
+    "../testing/field_picture",
+  ])("keeps the rules off %s", async (imported) => {
+    const problems = await lint(
+      { "src/rules/field.ts": `import "${imported}";\n` },
+      gameRules(),
+    );
+
+    expect(problems["src/rules/field.ts"]).toEqual([FENCE]);
+  });
+
+  it("lets the rules take @fz/core and one another", async () => {
+    const problems = await lint(
+      {
+        "src/rules/field.ts":
+          'import "@fz/core/random";\nimport "./difficulty";\n',
+        "src/rules/difficulty.ts": "export const easy = 1;\n",
+      },
+      gameRules(),
+    );
+
+    expect(problems["src/rules/field.ts"]).toEqual([]);
+  });
+
+  it.each([
+    ["Date.now()", "no-restricted-properties"],
+    ["new Date()", "no-restricted-syntax"],
+    ["Math.random()", "no-restricted-properties"],
+    ["window.innerWidth", "no-restricted-globals"],
+    ['localStorage.getItem("field")', "no-restricted-globals"],
+  ])("keeps the rules off %s", async (read, rule) => {
+    const problems = await lint(
+      { "src/rules/field.ts": `export const read = ${read};\n` },
+      gameRules(),
+    );
+
+    expect(problems["src/rules/field.ts"]).toEqual([rule]);
+  });
+
+  it("leaves the rules' specs and the shell free of the fence", async () => {
+    const code = 'import "@angular/core";\nexport const now = Date.now();\n';
+
+    const problems = await lint(
+      { "src/rules/field.spec.ts": code, "src/app/game.service.ts": code },
+      gameRules(),
+    );
+
+    expect(problems).toEqual({
+      "src/rules/field.spec.ts": [],
+      "src/app/game.service.ts": [],
+    });
   });
 });
 

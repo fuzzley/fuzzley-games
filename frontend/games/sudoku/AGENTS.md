@@ -35,8 +35,11 @@ workspace keeps its own for its code. Paths are relative to
   level from a seed, and `deal.ts` deals one from the bank in `bank/`,
   through a random face. `describe.ts` puts squares, moves and hints into
   the words a screen reader and the hint say, and `saved_grid.ts` turns a
-  grid into what storage keeps and back. ESLint keeps Angular, the
-  libraries but `@fz/core`, RxJS and the shell out of it.
+  grid into what storage keeps and back. ESLint, with `@fz/dev`'s
+  `gameRules()`, keeps Angular, RxJS, the libraries but `@fz/core`, the
+  shell and the specs' helpers out of its code, but its specs, and that
+  code reads only what it is handed: no clock, no number drawn from no
+  seed, nothing of the page and nothing stored.
 - **`src/rules/bank/`** — the puzzles the game deals, a hundred for each
   level, which `yarn generate:puzzles` writes. A puzzle is its givens, 81
   characters with `.` for a blank. `src/rules/bank.spec.ts` checks every one

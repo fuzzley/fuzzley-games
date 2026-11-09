@@ -38,6 +38,13 @@ too. Paths are relative to `frontend/lib/dev/`.
     not: keep the guards `no-unnecessary-condition` would take out, since
     Phaser types a scene's systems as always there, though they aren't
     before it boots or after it ends.
+  - `gameRules()`: the fence around a game's rules, but their specs, the
+    folder `rules/` under its `src/`: no framework and no library but
+    `@fz/core`, nothing of how the game is drawn, of its shell or of the
+    specs' helpers, and only what they are handed, as `phaserGameLayers()`
+    below says.
+    A game without Phaser, such as Minesweeper or Sudoku, takes it alone; a
+    game drawn with Phaser takes it within `phaserGameLayers()`.
   - `phaserGameLayers({ viewAllows, heldAsRules })`: the fences between the
     four layers of a game drawn with Phaser, each a folder under the game's
     `src/` importing only the layers below it: the rules (`rules/`), with
@@ -378,10 +385,11 @@ too. Paths are relative to `frontend/lib/dev/`.
 - **A workspace's configs extend it, and add only what is their own.** Its
   `package.json` lists `"@fz/dev": "workspace:*"` beside `eslint` and
   `typescript`, which it runs. Its `eslint.config.js` passes the blocks to
-  `defineConfig()`, then its own fences, such as Minesweeper's around its
-  rules, and its `tsconfig.json` extends `@fz/dev/tsconfig/angular.json`
-  (`base.json` without Angular), as `frontend/games/minesweeper/` shows. A
-  rule raised here is raised everywhere at once.
+  `defineConfig()`, then any fences of its own, such as the Solitaire
+  Collection's between its tiers, and its `tsconfig.json` extends
+  `@fz/dev/tsconfig/angular.json` (`base.json` without Angular), as
+  `frontend/games/minesweeper/` shows. A rule raised here is raised
+  everywhere at once.
 - **Its `vitest.config.ts` is `angularTests()` or `nodeTests()`**, given its
   floors, unless its specs run another way: the Solitaire Collection's live
   under `test/`, mostly in Node, and keep a config of their own, and the
@@ -417,8 +425,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   `typescript()`'s `no-restricted-globals` in its files, so it lists the
   global `Phaser` again, as `deterministic()` does.
 - **A game drawn with Phaser takes its layers' fences from
-  `phaserGameLayers()`**, rather than writing them again, so no game's
-  fence goes stale or is tightened alone. What is its own goes in the
+  `phaserGameLayers()`, and a game without Phaser its rules' from
+  `gameRules()`**, rather than writing them again, so no game's fence goes
+  stale or is tightened alone. What is a Phaser game's own goes in the
   options: what its view takes beyond the rest (`viewAllows`) and what it
   holds as the rules, by their paths from its folder (`heldAsRules`), as
   Asteroid Breaker's `eslint.config.js` does. ESLint takes a rule's options

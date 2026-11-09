@@ -95,7 +95,8 @@ to `frontend/games/`.
    given the folders of its projects where its rules and its view touch no
    page, as Snake's do, so their specs run in Node, `eslint.config.js` is
    the blocks, `phaserGameLayers()` among them for a game drawn with Phaser
-   in four layers, as Snake's is, and `tsconfig.json` extends
+   in four layers, as Snake's is, or `gameRules()` for one drawn without
+   Phaser, as Minesweeper's is, and `tsconfig.json` extends
    `@fz/dev/tsconfig/angular.json` (`frontend/lib/dev/AGENTS.md`).
 3. **Its screenshots,** from a script on `@fz/dev/screenshots`'s
    `runScreenshotScript()`, as Minesweeper's `tools/capture-screenshots.mjs`
