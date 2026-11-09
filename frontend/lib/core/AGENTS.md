@@ -28,7 +28,8 @@ Each file is an entry point of its own, imported by name, such as
   and `takeUp(id)` notes the id of a run taken up from a save, so every
   new run's passes it too; an id no higher than the last changes nothing.
   Snake's, Brick Breaker's and Asteroid Breaker's `GameService`s number
-  their runs with it.
+  their runs with it, and the `RunStart` each one's rules start a run from
+  extends `RunNumber`.
 - `src/json.ts`: `isRecord()`, `isWhole()`, `isCount()` and
   `isFiniteNumber()`, for reading back what was stored as JSON, which may
   have been edited or cut short; `listOf(value, read)`, a stored list read

@@ -1,5 +1,6 @@
 import { nextMarkAfter } from "@fz/core/math";
 import { mixSeed } from "@fz/core/random";
+import type { RunNumber } from "@fz/core/run_numbers";
 import type { Field, WaveStart } from "../field/field";
 import type { Strays } from "../hazards/strays";
 import { type Crew, createCrew } from "../ship/pilots";
@@ -54,9 +55,7 @@ export interface WaveProgress extends Pick<
 }
 
 /** Says how a new run starts. */
-export interface RunStart {
-  readonly id: number;
-  readonly seed: number;
+export interface RunStart extends RunNumber {
   readonly speed: Speed;
   /** The wave it starts at, from 1. */
   readonly wave: number;

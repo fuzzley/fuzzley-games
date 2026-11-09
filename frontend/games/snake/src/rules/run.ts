@@ -1,3 +1,4 @@
+import type { RunNumber } from "@fz/core/run_numbers";
 import { placeApple } from "./apples";
 import { BOARD_SIZE, landing } from "./arena";
 import { type Direction, type Square, opposite, sameSquare } from "./geometry";
@@ -47,9 +48,7 @@ export interface Run {
 }
 
 /** Says how a new run starts. */
-export interface RunStart {
-  readonly id: number;
-  readonly seed: number;
+export interface RunStart extends RunNumber {
   readonly speed: Speed;
 }
 

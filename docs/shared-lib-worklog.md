@@ -48,3 +48,18 @@ The review:
 1. _No findings._ The reviewer checked that the rename is complete, that the
    words stay pinned by `describe.spec.ts`, and that no doc or skill named
    the old helper.
+
+### Step 1.3: `RunStart extends RunNumber`
+
+Built as planned on `sl-play`. Snake's, Brick Breaker's and Asteroid
+Breaker's `RunStart` now extend `@fz/core/run_numbers`' `RunNumber`. The
+`id` and `seed` fields they spelled out are gone, two lines a game. The
+import is a type alone, so nothing stored, seeded or drawn changes.
+`lib/core/AGENTS.md`'s `run_numbers` entry now says each game's `RunStart`
+extends it. Lint and typecheck are clean in all three games. Their tests
+pass: Snake 421, Brick Breaker 1829 and 180, Asteroid Breaker 3630 and 1620.
+
+The review:
+
+1. _No findings:_ the reviewer found the change type-only, within the rules'
+   fence, and the docs true as they stand.
