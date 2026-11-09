@@ -512,3 +512,22 @@ The review:
    `.choice-list` of `.choice` tiles". It stays inside the column's width.
 2. _6.4's list of renames in the plan leaves out the choice list's three:_
    taken here rather than in the plan, as noted above for `sl-sol`.
+
+### Step 1.2: `recordOf()` in Snake's, Minesweeper's and Sudoku's stats
+
+Built as planned on `sl-shell`. The three stats services no longer keep a
+`statsBy()` that writes each speed, difficulty or level by hand. Each
+`statsFrom()` is now one line, `recordOf()` over the game's own list of keys
+(`SPEEDS`, `DIFFICULTY_IDS`, `LEVELS`), and Minesweeper's `EMPTY` goes with
+it: 9 lines in, 40 out. What is stored and read is unchanged, and the keys
+keep their order. The tests pass: Snake 421, Minesweeper 373, Sudoku 592.
+
+Where it went other than planned:
+
+- Each reader takes `saved?.[key]`, which `parseStats()` turns into none
+  when nothing is stored. That drops the separate early return, which saves
+  a few lines more than the plan counted and reads as plainly.
+
+The review:
+
+1. _No findings._
