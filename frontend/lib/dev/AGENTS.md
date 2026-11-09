@@ -373,8 +373,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   `vite.config.ts` adds: it applies to the dev server alone
   (`apply: "serve"`), so no build holds the page, and answers `sound-lab/`
   under the server's base (`SOUND_LAB_PATH`), moving the path without its
-  slash there, with `soundLabHtml()`'s page, which loads theme.js from the
-  top of the base, as the game's own page does, and the game's module. Analog's
+  slash there, with `soundLabHtml()`'s page, which loads the game's module;
+  the server writes its tags for theme.js and the icons, as it does the
+  game's own page's (`@fz/style`'s `headTags()`). Analog's
   plugin turns Vite's own compiler off unless the config sets it, and
   compiles only the app's program, which the lab's modules are not part
   of, so the plugin has Vite's compiler take them alone (`pageModules()`),

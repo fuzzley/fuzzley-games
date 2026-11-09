@@ -40,9 +40,11 @@ function escaped(text: string): string {
 }
 
 /**
- * Returns the page's HTML, before the dev server transforms it: the palette
- * the player chose, from theme.js at the top of the base, as a game's own
- * page loads it, and the lab's module.
+ * Returns the page's HTML, before the dev server transforms it, which loads
+ * the lab's module.
+ *
+ * The server writes the tags that load the palette the player chose, and
+ * the icons, as it does for a game's own page (`@fz/style`'s `headTags()`).
  */
 export function soundLabHtml({ entry, title }: SoundLabPage): string {
   return `<!doctype html>
@@ -52,7 +54,6 @@ export function soundLabHtml({ entry, title }: SoundLabPage): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>${escaped(title)}</title>
-    <script src="../theme.js" vite-ignore></script>
   </head>
   <body>
     <script type="module" src="/${escaped(entry)}"></script>

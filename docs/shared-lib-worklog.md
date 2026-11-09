@@ -1662,3 +1662,56 @@ The review:
    open with one sentence each; `phaser-core` names `browserKey()` in its
    bullet on captures and runs `runShownScene()` in the right order; and
    `angular-testing` reads "what a scene drew".
+
+### Step 4.10: `headTags()` writes every page's theme.js and icon tags
+
+Built as planned on `sl-shell`, after rebasing onto `shared-lib`.
+`fuzzleyStyle()` adds `headTags()`, which head-prepends `theme.js`, then
+`favicon.ico` (`sizes="32x32"`), `favicon.svg` and `apple-touch-icon.png`,
+at the app's base: `./` in a game's build, `/` in the site and a game's own
+dev server, and `/play/<slug>/` under `dev:all`. Those are the addresses
+the old relative or root tags reached. The six games' pages and the site's
+drop their hand-written tags, with `vite-ignore` and comments. A built
+Snake page starts its head with the four tags, at `./`.
+`vite.spec.ts` has four `headTags` cases: the order at `/`, the page's own
+head kept after them, the `./` base, and the dev server at
+`/play/solitaire/`.
+
+Where it went other than planned:
+
+- The tags come before the page's `<meta charset>`, since a head-prepended
+  `HtmlTagDescriptor` can't go after it without string surgery. They stay
+  well inside the 1024 bytes a browser scans, as Vite's own
+  `/@vite/client` already does. The reviewer kept this placement.
+- The sound lab dropped its own `../theme.js` tag, since the server now
+  writes it, and gains the icons. Its spec checks that `theme.js` loads
+  once, at the base.
+- The Solitaire Collection's page spec, which pinned `theme.js` as the
+  first script, now checks that the page names none of the plugin's
+  files. Its `scriptSources()` helper went with it.
+
+The review:
+
+1. _The Solitaire guard `not.toContain("theme.js")` fails only on the exact
+   old tag. A `./theme.js` or an icon link would load twice:_ taken. It now
+   reads `expect(indexHtml).not.toMatch(/theme\.js|favicon\.(?:ico|svg)|apple-touch-icon\.png/)`,
+   without importing `@fz/style/vite`. It is retitled "leaves theme.js and
+   the icons to the plugin that writes their tags, so each loads once". The
+   unused `scriptSources()` helper is dropped.
+2. _In three AGENTS.md files "it" now names the plugin, not theme.js. The
+   reason for the ICO's `sizes` runs into the list, and a line in
+   site/AGENTS.md runs past the wrap:_ taken.
+   - `lib/style`, the site and the games each make `theme.js` the subject:
+     "`theme.js` picks the palette…" and "`theme.js` puts the palette…".
+   - In `lib/style`, the ICO's reason follows the list of the three icons.
+   - The site's paragraph is rewrapped to 80 columns.
+3. _`themeBootstrap()`'s first paragraph has two sentences, and `FAVICON`'s
+   doc says the page links it:_ taken.
+   - "The page loads it from the tag `headTags()` writes." is a paragraph
+     of its own, as in `icons()`.
+   - `FAVICON` is "The tab's icon, which `headTags()` links after
+     theme.js."
+4. _Optional: `{ order: "post", handler }` keeps theme.js first whatever
+   a config lists after `fuzzleyStyle()`:_ taken. The doc says the tags go
+   in at Vite's last stage, after any plugin's at the usual one. A rebuilt
+   Snake still starts its head with them, and the plugin's 18 cases pass.

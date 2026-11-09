@@ -3,6 +3,7 @@ import { type Server, createServer as createHttpServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { headTags } from "@fz/style/vite";
 import { type Plugin, type ViteDevServer, build, createServer } from "vite";
 import {
   SOUND_LAB_PATH,
@@ -48,8 +49,14 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true });
 });
 
-/** Serves the specs' game with the lab under a base, after a plugin that turns Vite's compiler off, and returns its address. */
-async function serve(base: string): Promise<string> {
+/**
+ * Serves the specs' game with the lab under a base, after a plugin that
+ * turns Vite's compiler off and any others given, and returns its address.
+ */
+async function serve(
+  base: string,
+  plugins: readonly Plugin[] = [],
+): Promise<string> {
   await writeFile(join(root, "lab.ts"), LAB);
   vite = await createServer({
     root,
@@ -57,7 +64,7 @@ async function serve(base: string): Promise<string> {
     configFile: false,
     logLevel: "silent",
     server: { middlewareMode: true, ws: false },
-    plugins: [COMPILER_OFF, soundLab({ ...PAGE, entry: "lab.ts" })],
+    plugins: [COMPILER_OFF, ...plugins, soundLab({ ...PAGE, entry: "lab.ts" })],
   });
   const server = createHttpServer(vite.middlewares);
   http = server;
@@ -72,12 +79,6 @@ describe("soundLabHtml", () => {
     expect(html).toContain(
       '<script type="module" src="/tools/lab.ts"></script>',
     );
-  });
-
-  it("loads the palette from the top of the base, as the game's page does", () => {
-    const html = soundLabHtml(PAGE);
-
-    expect(html).toContain('<script src="../theme.js" vite-ignore></script>');
   });
 
   it("writes the title as text", () => {
@@ -117,6 +118,20 @@ describe("soundLab", () => {
 
     expect(response.headers.get("content-type")).toBe("text/html");
     expect(await response.text()).toContain('src="/play/rocks/lab.ts"');
+  });
+
+  it("has the palette loaded once, from the tag @fz/style's plugin writes in every page", async () => {
+    const at = await serve("/play/rocks/", [headTags()]);
+
+    const html = await (
+      await fetch(`${at}/play/rocks/${SOUND_LAB_PATH}`)
+    ).text();
+
+    const scripts = [...html.matchAll(/<script\b[^>]*theme\.js[^>]*>/g)].map(
+      ([tag]) => tag,
+    );
+
+    expect(scripts).toEqual(['<script src="/play/rocks/theme.js">']);
   });
 
   it("moves the page's path without its slash to the page", async () => {

@@ -104,18 +104,21 @@ relative to `frontend/lib/style/`.
 - `src/build/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to
   its config.
   It writes `theme.js` into the build, at the top of the app's own base, and
-  serves it from the dev server. The page loads it first, with a plain tag
-  that Vite leaves alone (`<script src="theme.js" vite-ignore></script>`, or
-  `/theme.js` for the site), and it picks the palette before anything paints.
-  `src/build/theme_script.ts` writes the script itself. Beside it, the same way,
-  it writes the page's icons: `favicon.svg`, the fuzzball in the accents of
-  the default palettes for a light and a dark system, which `@fz/ui`'s
-  `ThemeService` recolors to the palette in use; and, for what draws no SVG,
-  `favicon.ico` and `apple-touch-icon.png`, in the light default's accent,
-  the home screen's on its page color. It reads the colors by compiling the
-  palettes' Sass, so an app that adds it needs `sass`, as every app has for
-  its own stylesheets. The page links them as it loads `theme.js`, each with
-  `vite-ignore`, as `frontend/games/solitaire/index.html` does.
+  serves it from the dev server; `theme.js` picks the palette before anything
+  paints. `src/build/theme_script.ts` writes the script itself. Beside it, the
+  same way, it writes the page's icons: `favicon.svg`, the fuzzball in the
+  accents of the default palettes for a light and a dark system, which
+  `@fz/ui`'s `ThemeService` recolors to the palette in use; and, for what
+  draws no SVG, `favicon.ico` and `apple-touch-icon.png`, in the light
+  default's accent, the home screen's on its page color. It reads the colors
+  by compiling the palettes' Sass, so an app that adds it needs `sass`, as
+  every app has for its own stylesheets. `headTags()` writes the tags that
+  load them at the top of every page's head, at the app's base: `theme.js`
+  first, then `favicon.ico`, `favicon.svg` and `apple-touch-icon.png`, the
+  ICO with `sizes="32x32"`, so a browser that draws both picks the SVG. Vite
+  adds them after it has gathered the page's own files and leaves them as
+  they are, so a page writes none of them, and `src/build/vite.spec.ts` holds
+  what it writes.
 - `src/build/fuzzball_raster.ts`: the fuzzball as a PNG and an ICO file,
   which `src/build/vite.ts` makes with sharp, at build time only.
 - `src/testing/index.ts`, `@fz/style/testing`: what a spec needs to check a

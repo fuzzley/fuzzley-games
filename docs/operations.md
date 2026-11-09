@@ -166,10 +166,11 @@ anywhere with different configuration.
    automatically by the nginx base image) overwrites the served `env.js` from
    the container's environment variables.
 3. `frontend/site/index.html` loads `theme.js` (which picks the palette; the
-   build makes it), then `env.js`, then `analytics.js`, the Google
-   Analytics bootstrap, which initializes only when a measurement ID is
-   present. With nothing set, the feature stays off — so local dev and
-   unconfigured containers run with analytics disabled.
+   build makes it and writes its tag first in the head), then `env.js`, then
+   `analytics.js`, the Google Analytics bootstrap, which initializes only
+   when a measurement ID is present. With nothing set, the feature stays
+   off — so local dev and unconfigured containers run with analytics
+   disabled.
 4. nginx serves `env.js` with `Cache-Control: no-store`, so a configuration
    change is never served from a stale cache. Rotating the ID therefore needs a
    container restart, not a rebuild.

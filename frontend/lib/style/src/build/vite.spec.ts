@@ -17,19 +17,20 @@ import {
   FAVICON_ICO,
   THEME_SCRIPT,
   TOUCH_ICON,
+  headTags,
   icons,
   paletteColors,
   themeBootstrap,
 } from "./vite.ts";
 
-/** Holds a temporary app folder with an empty index.html, for each spec. */
+/** Holds a temporary app folder with an index.html of a head alone, for each spec. */
 function useTemporaryApp(): { readonly root: string } {
   const app = { root: "" };
   beforeEach(() => {
     app.root = mkdtempSync(path.join(tmpdir(), "fz-style-"));
     writeFileSync(
       path.join(app.root, "index.html"),
-      "<!doctype html><html></html>",
+      '<!doctype html><html><head><meta charset="UTF-8" /><title>Game</title></head></html>',
     );
   });
   afterEach(() => {
@@ -74,14 +75,16 @@ async function served(
   }
 }
 
-/** Returns a file a build with a plugin writes, by its name. */
+/** Returns a file a build with a plugin writes, by its name, under a base. */
 async function built(
   root: string,
   plugin: Plugin,
   fileName: string,
+  base = "/",
 ): Promise<Buffer> {
   const output = (await build({
     root,
+    base,
     configFile: false,
     logLevel: "silent",
     plugins: [plugin],
@@ -106,7 +109,7 @@ describe("fuzzleyStyle", () => {
       { encoding: "utf8" },
     );
 
-    expect(names).toBe("fz-theme-bootstrap,fz-icons");
+    expect(names).toBe("fz-theme-bootstrap,fz-icons,fz-head-tags");
   });
 });
 
@@ -208,6 +211,60 @@ describe("icons", () => {
     const { isOpaque } = await sharp(file).stats();
 
     expect(isOpaque).toBe(true);
+  });
+});
+
+describe("headTags", () => {
+  const app = useTemporaryApp();
+
+  /** Returns the tags in a page's head, in order. */
+  function headOf(html: string): string[] {
+    const head = /<head>([\s\S]*)<\/head>/.exec(html)?.[1] ?? "";
+    return [...head.matchAll(/<(?:script|link|meta|title)\b[^>]*>/g)].map(
+      ([tag]) => tag,
+    );
+  }
+
+  it("leads a built page's head with theme.js, then the icons, the ICO before the SVG", async () => {
+    const page = await built(app.root, headTags(), "index.html");
+
+    expect(headOf(page.toString()).slice(0, 4)).toEqual([
+      '<script src="/theme.js">',
+      '<link rel="icon" href="/favicon.ico" sizes="32x32">',
+      '<link rel="icon" type="image/svg+xml" href="/favicon.svg">',
+      '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+    ]);
+  });
+
+  it("keeps the page's own head after them", async () => {
+    const page = await built(app.root, headTags(), "index.html");
+
+    expect(headOf(page.toString()).slice(4)).toEqual([
+      '<meta charset="UTF-8" />',
+      "<title>",
+    ]);
+  });
+
+  it("writes them relative to a game's page, whose build any folder serves", async () => {
+    const page = await built(app.root, headTags(), "index.html", "./");
+
+    expect(headOf(page.toString())[0]).toBe('<script src="./theme.js">');
+  });
+
+  it("writes them at the dev server's base, where it serves the files", async () => {
+    const { body } = await served(
+      app.root,
+      headTags(),
+      "/play/solitaire/",
+      "/play/solitaire/",
+    );
+
+    expect(headOf(body.toString()).slice(0, 4)).toEqual([
+      '<script src="/play/solitaire/theme.js">',
+      '<link rel="icon" href="/play/solitaire/favicon.ico" sizes="32x32">',
+      '<link rel="icon" type="image/svg+xml" href="/play/solitaire/favicon.svg">',
+      '<link rel="apple-touch-icon" href="/play/solitaire/apple-touch-icon.png">',
+    ]);
   });
 });
 
