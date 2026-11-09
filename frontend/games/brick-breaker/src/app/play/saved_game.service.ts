@@ -1,12 +1,5 @@
-import { DOCUMENT } from "@angular/common";
-import {
-  DestroyRef,
-  Injectable,
-  effect,
-  inject,
-  untracked,
-} from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, effect, inject, untracked } from "@angular/core";
+import { LocalStorageService, keepOnLeave } from "@fz/ui/storage";
 import { restoreGame } from "../../rules/run/saved_game";
 import { GameService } from "./game.service";
 import { GAME_LEVELS } from "../tokens";
@@ -21,8 +14,9 @@ const SAVED_GAME_VERSION = 1;
  * Keeps the run under way, and takes it up again, paused, when the page
  * loads, so a reload or a phone dropping the tab loses little.
  *
- * It writes as the run changes course, never at a step, and something must
- * inject it at startup for the run to be taken up.
+ * It writes as the run changes course and as the page is hidden or goes
+ * away, never at a step, and something must inject it at startup for the
+ * run to be taken up.
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
@@ -40,14 +34,8 @@ export class SavedGameService {
         this.keep();
       });
     });
-
-    const view = inject(DOCUMENT).defaultView;
-    const keepAll = (): void => {
+    keepOnLeave(() => {
       this.keep();
-    };
-    view?.addEventListener("pagehide", keepAll);
-    inject(DestroyRef).onDestroy(() => {
-      view?.removeEventListener("pagehide", keepAll);
     });
   }
 

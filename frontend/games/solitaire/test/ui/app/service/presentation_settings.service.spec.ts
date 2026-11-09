@@ -18,10 +18,7 @@ const PHONE_WIDTH = COMPACT_MAX_WIDTH_PX - 200;
 /** A window wide enough that it does not. */
 const WIDE_WIDTH = COMPACT_MAX_WIDTH_PX + 200;
 
-/**
- * Returns a service built through the injector, which its field initializer
- * and its effect both need.
- */
+/** Returns a service built through the injector, which its fields need. */
 function buildSettings(): PresentationSettingsService {
   TestBed.configureTestingModule({});
   return TestBed.inject(PresentationSettingsService);
@@ -160,12 +157,16 @@ describe("PresentationSettingsService", () => {
     });
 
     it("falls back to defaults for settings stored under another version", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ version: 2, cardBackStyle: "card-back-red" }),
-      );
+      const other = { version: 2, cardBackStyle: "card-back-red" };
+      localStorage.setItem("fsolitaire-presentation", JSON.stringify(other));
 
-      expect(buildSettings().cardBackStyle()).toBe("card-back-blue");
+      const settings = buildSettings();
+
+      // Nor is it taken for what a build before versions stored, and rewritten.
+      expect([settings.cardBackStyle(), stored()]).toEqual([
+        "card-back-blue",
+        other,
+      ]);
     });
 
     it("falls back to defaults for corrupted storage", () => {
@@ -357,38 +358,32 @@ describe("PresentationSettingsService", () => {
   });
 
   describe("saving", () => {
-    it("saves a change to its own storage key", () => {
-      const settings = buildSettings();
-
-      settings.setCardBackStyle("card-back-red");
-      settings.setFelt("purple");
-      settings.setCardStyle("mobile");
-      settings.setDesktopCardDeck("classic");
-      TestBed.tick();
-
-      expect(stored()).toEqual({
-        version: 1,
-        cardBackStyle: "card-back-red",
-        felt: "purple",
-        cardStyle: "mobile",
-        desktopCardDeck: "classic",
-        piles: "auto",
-        stockSide: "auto",
-      });
-    });
-
     it("gives a later visit back the choices it saved", () => {
       const settings = buildSettings();
+      settings.setCardBackStyle("card-back-red");
+      settings.setFelt("purple");
       settings.setCardStyle("desktop");
       settings.setDesktopCardDeck("all-corner-pips");
-      TestBed.tick();
+      settings.setPiles("bottom");
+      settings.setStockSide("left");
       TestBed.resetTestingModule();
 
       const later = buildSettings();
 
-      expect([later.cardStyle(), later.desktopCardDeck()]).toEqual([
+      expect([
+        later.cardBackStyle(),
+        later.felt(),
+        later.cardStyle(),
+        later.desktopCardDeck(),
+        later.piles(),
+        later.stockSide(),
+      ]).toEqual([
+        "card-back-red",
+        "purple",
         "desktop",
         "all-corner-pips",
+        "bottom",
+        "left",
       ]);
     });
 
@@ -397,10 +392,11 @@ describe("PresentationSettingsService", () => {
         cardBackStyle: "card-back-red",
         theme: "blue",
         cardDeck: "classic",
+        phonePiles: "top",
+        hand: "left",
       });
-      buildSettings();
 
-      TestBed.tick();
+      buildSettings();
 
       // The old keys go, so each setting is read from one place from now on.
       expect(stored()).toEqual({
@@ -409,8 +405,8 @@ describe("PresentationSettingsService", () => {
         felt: "blue",
         cardStyle: "auto",
         desktopCardDeck: "classic",
-        piles: "auto",
-        stockSide: "auto",
+        piles: "top",
+        stockSide: "left",
       });
     });
 
@@ -422,9 +418,9 @@ describe("PresentationSettingsService", () => {
 
     it("stores auto rather than the deck auto chose", () => {
       windowAt(PHONE_WIDTH);
-      buildSettings();
+      const settings = buildSettings();
 
-      TestBed.tick();
+      settings.setFelt("purple");
 
       // So a later visit in a wider window gets desktop cards.
       expect(stored()).toMatchObject({
@@ -634,7 +630,6 @@ describe("PresentationSettingsService", () => {
 
       settings.setPiles("top");
       settings.setStockSide("left");
-      TestBed.tick();
 
       expect(stored()).toMatchObject({ piles: "top", stockSide: "left" });
     });
@@ -678,15 +673,6 @@ describe("PresentationSettingsService", () => {
         "auto",
         "auto",
       ]);
-    });
-
-    it("drops an earlier build's keys once it saves", () => {
-      storeEarlier({ phonePiles: "top", hand: "left" });
-      buildSettings();
-
-      TestBed.tick();
-
-      expect(Object.keys(stored()!)).not.toContain("phonePiles");
     });
 
     it("decides Auto as a larger screen wants it", () => {

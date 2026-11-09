@@ -1,5 +1,5 @@
-import { Injectable, computed, inject, signal } from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, computed } from "@angular/core";
+import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import {
   DEFAULT_CUSTOM,
   type DifficultyId,
@@ -36,8 +36,11 @@ export const DEFAULT_SETTINGS: Settings = {
 /** Holds and keeps the player's settings. */
 @Injectable({ providedIn: "root" })
 export class SettingsService {
-  private readonly storage = inject(LocalStorageService);
-  private readonly state = signal(this.read());
+  private readonly state = storedSignal({
+    key: SETTINGS_KEY,
+    version: SETTINGS_VERSION,
+    read: settingsFrom,
+  });
 
   /** The settings in use. */
   readonly settings = this.state.asReadonly();
@@ -51,22 +54,20 @@ export class SettingsService {
   /** Changes some of the settings, and keeps them. */
   update(change: Partial<Settings>): void {
     this.state.update((settings) => ({ ...settings, ...change }));
-    this.storage.writeVersioned(SETTINGS_KEY, SETTINGS_VERSION, this.state());
   }
+}
 
-  /** Returns the settings stored, each one that makes sense, else the default. */
-  private read(): Settings {
-    const saved = this.storage.readVersioned(SETTINGS_KEY, SETTINGS_VERSION);
-    if (!saved) return DEFAULT_SETTINGS;
-    const { difficulty, custom, lives } = saved;
-    return {
-      difficulty: isDifficultyId(difficulty)
-        ? difficulty
-        : DEFAULT_SETTINGS.difficulty,
-      custom: sizeFrom(custom) ?? DEFAULT_SETTINGS.custom,
-      lives: isValidLives(lives) ? lives : DEFAULT_SETTINGS.lives,
-    };
-  }
+/** Returns the settings stored, each one that makes sense, else the default. */
+function settingsFrom(saved: StoredFields | null): Settings {
+  if (!saved) return DEFAULT_SETTINGS;
+  const { difficulty, custom, lives } = saved;
+  return {
+    difficulty: isDifficultyId(difficulty)
+      ? difficulty
+      : DEFAULT_SETTINGS.difficulty,
+    custom: sizeFrom(custom) ?? DEFAULT_SETTINGS.custom,
+    lives: isValidLives(lives) ? lives : DEFAULT_SETTINGS.lives,
+  };
 }
 
 /** Returns the custom field stored, or null if the game couldn't deal it. */

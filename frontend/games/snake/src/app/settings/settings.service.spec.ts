@@ -75,12 +75,4 @@ describe("SettingsService", () => {
 
     expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
   });
-
-  it("starts afresh from settings stored in another shape", () => {
-    store({ version: 2, speed: "slow", movement: "step", sound: false });
-
-    const settings = TestBed.inject(SettingsService);
-
-    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
-  });
 });

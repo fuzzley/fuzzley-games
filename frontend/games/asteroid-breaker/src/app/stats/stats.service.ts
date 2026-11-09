@@ -1,9 +1,8 @@
-import { Injectable, inject, signal } from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, inject } from "@angular/core";
+import { storedSignal } from "@fz/ui/storage";
 import { sectorSpans } from "../../rules/run/progress";
 import {
   type RunRecords,
-  type Stats,
   isNewBest,
   readStats,
   withRecords,
@@ -23,13 +22,14 @@ const STATS_VERSION = 1;
  */
 @Injectable({ providedIn: "root" })
 export class StatsService {
-  private readonly storage = inject(LocalStorageService);
-  private readonly state = signal<Stats>(
-    readStats(
-      this.storage.readVersioned(STATS_KEY, STATS_VERSION),
-      sectorSpans(inject(GAME_WAVES)).map(({ id }) => id),
-    ),
+  private readonly sectors = sectorSpans(inject(GAME_WAVES)).map(
+    ({ id }) => id,
   );
+  private readonly state = storedSignal({
+    key: STATS_KEY,
+    version: STATS_VERSION,
+    read: (saved) => readStats(saved, this.sectors),
+  });
 
   /** The records so far. */
   readonly stats = this.state.asReadonly();
@@ -43,14 +43,7 @@ export class StatsService {
     const { speed, ended } = records;
     const newBest =
       ended !== null && isNewBest(this.state(), { ...ended, speed });
-    this.keep(withRecords(this.state(), records));
+    this.state.set(withRecords(this.state(), records));
     return newBest;
-  }
-
-  /** Holds the records and stores them, unless they are the ones held. */
-  private keep(stats: Stats): void {
-    if (stats === this.state()) return;
-    this.state.set(stats);
-    this.storage.writeVersioned(STATS_KEY, STATS_VERSION, stats);
   }
 }

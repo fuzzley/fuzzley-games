@@ -10,11 +10,6 @@ function store(value: unknown): void {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(value));
 }
 
-/** Returns the settings as stored. */
-function stored(): unknown {
-  return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "null");
-}
-
 describe("SettingsService", () => {
   it("starts a new player on Medium with 3 lives", () => {
     const settings = TestBed.inject(SettingsService);
@@ -86,23 +81,6 @@ describe("SettingsService", () => {
     });
   });
 
-  it("ignores settings from another version", () => {
-    store({ version: 2, difficulty: "easy", lives: 1 });
-
-    const settings = TestBed.inject(SettingsService);
-
-    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
-  });
-
-  it("ignores a stored entry that isn't JSON", () => {
-    localStorage.setItem(SETTINGS_KEY, "{oops");
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
-
-    const settings = TestBed.inject(SettingsService);
-
-    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
-  });
-
   it("changes only the settings asked", () => {
     const settings = TestBed.inject(SettingsService);
 
@@ -111,15 +89,16 @@ describe("SettingsService", () => {
     expect(settings.settings()).toEqual({ ...DEFAULT_SETTINGS, lives: 4 });
   });
 
-  it("keeps the settings changed", () => {
-    const settings = TestBed.inject(SettingsService);
+  it("keeps the settings for the next visit", () => {
+    const kept = {
+      difficulty: "custom",
+      custom: { rows: 8, cols: 12, mines: 20 },
+      lives: 5,
+    } as const;
+    TestBed.inject(SettingsService).update(kept);
 
-    settings.update({ difficulty: "hard" });
+    TestBed.resetTestingModule();
 
-    expect(stored()).toEqual({
-      version: 1,
-      ...DEFAULT_SETTINGS,
-      difficulty: "hard",
-    });
+    expect(TestBed.inject(SettingsService).settings()).toEqual(kept);
   });
 });

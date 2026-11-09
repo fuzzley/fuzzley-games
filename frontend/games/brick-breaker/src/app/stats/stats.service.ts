@@ -1,8 +1,7 @@
-import { Injectable, inject, signal } from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, inject } from "@angular/core";
+import { storedSignal } from "@fz/ui/storage";
 import {
   type EndedRun,
-  type Stats,
   isNewBest,
   statsOf,
   withLevelPoints,
@@ -21,20 +20,19 @@ const STATS_VERSION = 1;
 /** Keeps the player's runs, best scores and furthest levels at each speed, and each level's best points. */
 @Injectable({ providedIn: "root" })
 export class StatsService {
-  private readonly storage = inject(LocalStorageService);
-  private readonly state = signal<Stats>(
-    statsOf(
-      this.storage.readVersioned(STATS_KEY, STATS_VERSION),
-      inject(GAME_LEVELS),
-    ),
-  );
+  private readonly levels = inject(GAME_LEVELS);
+  private readonly state = storedSignal({
+    key: STATS_KEY,
+    version: STATS_VERSION,
+    read: (saved) => statsOf(saved, this.levels),
+  });
 
   /** The stats so far. */
   readonly stats = this.state.asReadonly();
 
   /** Counts a run started at a speed. */
   recordStart(speed: Speed): void {
-    this.keep(withRunStarted(this.state(), speed));
+    this.state.set(withRunStarted(this.state(), speed));
   }
 
   /**
@@ -43,19 +41,12 @@ export class StatsService {
    */
   recordEnd(run: EndedRun): boolean {
     const newBest = isNewBest(this.state(), run);
-    this.keep(withRunEnded(this.state(), run));
+    this.state.set(withRunEnded(this.state(), run));
     return newBest;
   }
 
   /** Keeps a cleared level's points, if they are its best at the speed. */
   recordLevel(id: string, speed: Speed, points: number): void {
-    this.keep(withLevelPoints(this.state(), id, speed, points));
-  }
-
-  /** Holds the stats and stores them, unless they are the ones held. */
-  private keep(stats: Stats): void {
-    if (stats === this.state()) return;
-    this.state.set(stats);
-    this.storage.writeVersioned(STATS_KEY, STATS_VERSION, stats);
+    this.state.set(withLevelPoints(this.state(), id, speed, points));
   }
 }

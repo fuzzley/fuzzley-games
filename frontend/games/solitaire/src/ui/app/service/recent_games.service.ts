@@ -1,4 +1,4 @@
-import { Injectable, effect, inject, signal, untracked } from "@angular/core";
+import { Injectable, effect, inject, untracked } from "@angular/core";
 import {
   readList,
   readNumber,
@@ -11,7 +11,11 @@ import {
   sameOptionValues,
 } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
-import { LocalStorageService } from "@fz/ui/storage";
+import {
+  LocalStorageService,
+  type StoredFields,
+  storedSignal,
+} from "@fz/ui/storage";
 
 const STORAGE_KEY = "fsolitaire-recent-games";
 const STORAGE_VERSION = 1;
@@ -36,7 +40,12 @@ export class RecentGamesService {
   private readonly storage = inject(LocalStorageService);
   private readonly catalog = inject(GameCatalogService);
 
-  private readonly recent = signal<readonly RecentGame[]>(this.read());
+  private readonly recent = storedSignal({
+    key: STORAGE_KEY,
+    version: STORAGE_VERSION,
+    read: (saved) => this.read(saved),
+    write: (games) => ({ games }),
+  });
 
   /** The games played most recently, newest first. */
   readonly games = this.recent.asReadonly();
@@ -59,16 +68,12 @@ export class RecentGamesService {
     if (recent[0] && isSame(recent[0], played)) return;
 
     const others = recent.filter((game) => !isSame(game, played));
-    const updated = [played, ...others].slice(0, REMEMBERED);
-    this.recent.set(updated);
-    this.storage.writeVersioned(STORAGE_KEY, STORAGE_VERSION, {
-      games: updated,
-    });
+    this.recent.set([played, ...others].slice(0, REMEMBERED));
   }
 
   /** Reads the stored games, dropping any the catalog no longer has. */
-  private read(): RecentGame[] {
-    const stored = this.readStored();
+  private read(saved: StoredFields | null): readonly RecentGame[] {
+    const stored = saved ? saved["games"] : this.readEarlier();
     if (stored === null) return [];
     try {
       return readList(stored, "recent", readRecentGame).filter((game) =>
@@ -81,12 +86,10 @@ export class RecentGamesService {
   }
 
   /**
-   * Returns the stored list, unchecked, or null when there is none of this
-   * version or the bare one builds before versions stored.
+   * Returns the bare list builds before versions stored, unchecked, or null
+   * when there is none.
    */
-  private readStored(): unknown {
-    const saved = this.storage.readVersioned(STORAGE_KEY, STORAGE_VERSION);
-    if (saved) return saved["games"];
+  private readEarlier(): unknown {
     const earlier = this.storage.readObject(STORAGE_KEY);
     return Array.isArray(earlier) ? earlier : null;
   }

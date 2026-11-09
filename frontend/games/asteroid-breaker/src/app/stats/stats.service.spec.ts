@@ -72,15 +72,14 @@ describe("StatsService", () => {
     expect(stats.stats().speeds.normal.strays).toBe(2);
   });
 
-  it("stores the records as they change", () => {
-    const stats = TestBed.inject(StatsService);
+  it("keeps the records for the next visit", () => {
+    TestBed.inject(StatsService).record(
+      runRecords({ speed: "fast", started: true }),
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: provideSpecWaves() });
 
-    stats.record(runRecords({ speed: "fast", started: true }));
-
-    expect(stored()).toMatchObject({
-      version: 1,
-      speeds: { fast: { runs: 1 } },
-    });
+    expect(TestBed.inject(StatsService).stats().speeds.fast.runs).toBe(1);
   });
 
   it("stores nothing for a change that changes nothing", () => {

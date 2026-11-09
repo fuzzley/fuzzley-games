@@ -1,5 +1,5 @@
-import { Injectable, inject, signal } from "@angular/core";
-import { LocalStorageService } from "@fz/ui/storage";
+import { Injectable, inject } from "@angular/core";
+import { storedSignal } from "@fz/ui/storage";
 import { clearedOf, isOpen as isLevelOpen } from "../../rules/run/progress";
 import { GAME_LEVELS } from "../tokens";
 
@@ -12,9 +12,13 @@ const PROGRESS_VERSION = 1;
 /** Keeps the levels the player has cleared, at any speed, which open the levels after them. */
 @Injectable({ providedIn: "root" })
 export class ProgressService {
-  private readonly storage = inject(LocalStorageService);
   private readonly levels = inject(GAME_LEVELS);
-  private readonly state = signal(this.read());
+  private readonly state = storedSignal({
+    key: PROGRESS_KEY,
+    version: PROGRESS_VERSION,
+    read: (saved) => clearedOf(saved?.["cleared"], this.levels),
+    write: (cleared) => ({ cleared: [...cleared] }),
+  });
 
   /** The ids of the levels cleared. */
   readonly cleared = this.state.asReadonly();
@@ -28,14 +32,5 @@ export class ProgressService {
   recordCleared(id: string): void {
     if (this.state().has(id)) return;
     this.state.update((cleared) => new Set([...cleared, id]));
-    this.storage.writeVersioned(PROGRESS_KEY, PROGRESS_VERSION, {
-      cleared: [...this.state()],
-    });
-  }
-
-  /** Returns the levels cleared as stored, dropping any the game no longer has. */
-  private read(): ReadonlySet<string> {
-    const saved = this.storage.readVersioned(PROGRESS_KEY, PROGRESS_VERSION);
-    return clearedOf(saved?.["cleared"], this.levels);
   }
 }

@@ -2292,3 +2292,59 @@ place. The fifty captures of the slow and failed cards were taken by step
 Seen and left: Node's warning that `localStorage` needs
 `--localstorage-file`, from the Solitaire Collection's test setup, as at
 step 15h.
+
+## Part 4, on `ui-lifts`
+
+Four tracks built side by side, begun on `phaser-lifts` before its QA and
+moved onto `ui-lifts` once it was cut from main at step 16j: stored state,
+the focus handed back, the palette with the specs' seams, and the bar; each
+lands here once reviewed.
+
+### Step 17a: findings 20 and 22, stored state in `@fz/ui/storage`
+
+Built on `ul-storage`. `writeVersioned()` writes the version last, and its
+`Unversioned` type refuses a value with a version of its own, or a list, set
+or map, which JSON would keep as an object of indexes or as nothing.
+`storedSignal({ key, version, read, write })` reads a versioned entry into a
+signal as it is made and stores each change at once, nothing for the value
+it holds; the settings, stats and progress services of Asteroid Breaker,
+Brick Breaker, Minesweeper, Snake and Sudoku, and the Solitaire Collection's
+presentation settings and recent games, fourteen in all, take it, the round
+trip specced once and each service's spec keeping its own rules and what a
+later visit finds. `keepOnLeave(save)` saves as the page is hidden and as it
+goes; the five saved-game services take it, so Brick Breaker and Snake keep
+a run as the page is hidden, as the other three did, since a phone may drop
+a hidden tab without `pagehide`. `@fz/ui/testing`'s `setPageVisibility()`
+takes the specs' copies of a hidden page. Keys, versions and stored shapes
+are as they were.
+
+Where it went other than planned:
+
+- The saved-game services don't take `storedSignal()`: they keep
+  `GameService`'s run at moments of their own and take it up into
+  `GameService`, holding no signal, so fourteen of the nineteen services do.
+- The Solitaire Collection's presentation settings are one stored signal,
+  not six and an effect; they rewrite an entry an earlier build stored
+  before versions in a step of their own before reading, and no longer
+  rewrite their own entry at every start.
+
+The review found nothing that would lose a player's saved data:
+
+1. _`Unversioned` let a set, map or list through, which would be stored as
+   an object of indexes or as nothing:_ taken; it refuses an iterator, with
+   `@ts-expect-error` specs.
+2. _A dropped spec held the presentation settings to leaving an entry of
+   another version alone:_ taken; restored, with the corrupt entry's and the
+   recent games' other version.
+3. _The presentation settings' `read` wrote storage:_ taken another way;
+   the rewrite of an earlier build's entry is a step of the service's own
+   before it reads, not an `earlier` option on `storedSignal()`, which one
+   game's entries from before versions don't earn.
+4. _Leftovers in the presentation settings' spec:_ taken.
+5. _A hidden page's helper copied into eleven spec files, three by this
+   change:_ taken; `setPageVisibility()`, which the specs this touched take,
+   the rest with the next step.
+6. _`frontend/games/AGENTS.md` said every game keeps its settings and its
+   game through the two helpers:_ taken; the Solitaire Collection's game
+   choice, options and game in play named as the exception; and a line
+   rewrapped.

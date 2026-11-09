@@ -71,17 +71,16 @@ describe("StatsService", () => {
     expect(stats.stats().easy).toEqual({ played: 1, won: 1, best: 95 });
   });
 
-  it("keeps the stats", () => {
-    const stats = TestBed.inject(StatsService);
+  it("keeps the stats for the next visit", () => {
+    TestBed.inject(StatsService).recordWin("hard", 300);
 
-    stats.recordStart("medium");
+    TestBed.resetTestingModule();
 
-    expect(JSON.parse(localStorage.getItem(STATS_KEY) ?? "null")).toMatchObject(
-      {
-        version: 1,
-        medium: { played: 1, won: 0, best: null },
-      },
-    );
+    expect(TestBed.inject(StatsService).stats().hard).toEqual({
+      played: 1,
+      won: 1,
+      best: 300,
+    });
   });
 
   it("reads the stats stored", () => {
@@ -111,13 +110,5 @@ describe("StatsService", () => {
     const stats = TestBed.inject(StatsService);
 
     expect(stats.stats().easy).toEqual({ played: 3, won: 0, best: null });
-  });
-
-  it("ignores stats from another version", () => {
-    store({ version: 2, easy: { played: 3, won: 1, best: 50 } });
-
-    const stats = TestBed.inject(StatsService);
-
-    expect(stats.stats().easy).toEqual({ played: 0, won: 0, best: null });
   });
 });

@@ -93,7 +93,9 @@ repository's root.
 Each library's `testing` entry point holds what specs need of it, and
 `@fz/dev`'s ESLint lets only specs and their helpers import one:
 
-- `@fz/ui/testing`: `installDialogPolyfill()`.
+- `@fz/ui/testing`: `installDialogPolyfill()`, and `setPageVisibility()`,
+  which hides the page or shows it again, as switching tabs does, until
+  the test finishes.
 - `@fz/game-ui/testing`: `installFakeViewport()`.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
   Phaser, with `collectErrors()`, which keeps what a failed scene hands the

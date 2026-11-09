@@ -1,9 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import {
-  DEFAULT_SETTINGS,
-  SETTINGS_KEY,
-  SettingsService,
-} from "./settings.service";
+import { SETTINGS_KEY, SettingsService } from "./settings.service";
 
 /** Stores settings as a player's browser would hold them. */
 function store(value: unknown): void {
@@ -93,12 +89,4 @@ describe("SettingsService", () => {
       expect(settings.settings().customPercent).toBe(100);
     },
   );
-
-  it("starts afresh from settings stored in another shape", () => {
-    store({ version: 2, touch: "follow" });
-
-    const settings = TestBed.inject(SettingsService);
-
-    expect(settings.settings()).toEqual(DEFAULT_SETTINGS);
-  });
 });

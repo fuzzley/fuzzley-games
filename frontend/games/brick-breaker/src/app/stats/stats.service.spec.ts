@@ -116,15 +116,4 @@ describe("StatsService", () => {
       levels: { blasts: { normal: 4100 } },
     });
   });
-
-  it("starts afresh from stats stored in another shape", () => {
-    store({
-      version: 2,
-      speeds: { normal: { runs: 3, best: 1, furthest: 1 } },
-    });
-
-    const stats = TestBed.inject(StatsService);
-
-    expect(stats.stats().speeds.normal).toEqual(NONE);
-  });
 });

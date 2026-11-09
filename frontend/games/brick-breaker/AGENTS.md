@@ -312,10 +312,10 @@ takes for the specs' helpers.
     and whether the settings offer the debug menu (`DEBUG_MENU`).
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
-    as the page goes away, never at a step, and forgets it once the run ends
-    or another begins; `main.ts` starts it before the board first shows, and
-    it takes up the run kept (`takeUp()`), paused with the ball on the
-    paddle, its bricks as they were.
+    as the page is hidden or goes away, never at a step, and forgets it once
+    the run ends or another begins; `main.ts` starts it before the board
+    first shows, and it takes up the run kept (`takeUp()`), paused with the
+    ball on the paddle, its bricks as they were.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty field and the paddle drawn in CSS until the scene has drawn; the
     focus ring; the pointer hidden while a ball is in play; and the cards:

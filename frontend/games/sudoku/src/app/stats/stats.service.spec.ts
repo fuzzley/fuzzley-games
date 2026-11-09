@@ -99,12 +99,4 @@ describe("StatsService", () => {
 
     expect(stats.stats().hard.best).toBeNull();
   });
-
-  it("starts afresh from stats stored in another shape", () => {
-    store({ version: 2, easy: { played: 4, solved: 4, best: 60 } });
-
-    const stats = TestBed.inject(StatsService);
-
-    expect(stats.stats().easy.played).toBe(0);
-  });
 });
