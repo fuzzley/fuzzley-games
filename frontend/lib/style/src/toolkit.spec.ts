@@ -263,9 +263,40 @@ describe("the toolkit's mixins", () => {
     );
   });
 
+  it("name each setting as a field's label, its description muted under it", () => {
+    const fields = compiled("@include fz.setting-fields;");
+
+    expect(fields).toContain(
+      ".it .setting-label{display:block;margin-bottom:var(--fz-space-3);color:var(--fz-muted)",
+    );
+    expect(fields).toContain(
+      ".it .setting-desc{margin:var(--fz-space-2) 0 0;color:var(--fz-muted)",
+    );
+  });
+
+  it("make a checkbox's label as tall as a finger needs", () => {
+    expect(compiled("@include fz.setting-fields;")).toContain(
+      ".it .setting-check label{display:flex;align-items:center;min-height:var(--fz-tap-target)",
+    );
+  });
+
   it("set a checkbox's description under its label, beside the box", () => {
-    expect(compiled("@include fz.settings-drawer;")).toContain(
+    const fields = compiled("@include fz.setting-fields;");
+
+    expect(declarations(fields, ".it .setting-check")).toEqual(
+      expect.arrayContaining([
+        "display:grid",
+        "grid-template-columns:auto 1fr",
+      ]),
+    );
+    expect(fields).toContain(
       ".it .setting-check .setting-desc{grid-column:2;margin:0}",
+    );
+  });
+
+  it("give a settings drawer its settings", () => {
+    expect(compiled("@include fz.settings-drawer;")).toContain(
+      compiled("@include fz.setting-fields;"),
     );
   });
 

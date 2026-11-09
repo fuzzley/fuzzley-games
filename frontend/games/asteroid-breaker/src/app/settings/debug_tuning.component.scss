@@ -5,54 +5,9 @@
   display: block;
 }
 
-// The drawer's parts the menu is made of, drawn as `settings-drawer` draws
-// them in the drawer, whose rules stop at this component's edge.
-.setting {
-  margin: 0 0 var(--fz-space-6);
-}
-
-.setting-label {
-  @include field-label;
-}
-
-// `--fz-muted`, which clears 4.5:1 on the drawer's surface.
-.setting-desc {
-  margin: var(--fz-space-2) 0 0;
-  color: var(--fz-muted);
-  font-size: var(--fz-font-xs);
-  line-height: var(--fz-leading-tight);
-}
-
-// The label is as tall as a finger needs, and clicking it ticks the box.
-.setting-check {
-  display: grid;
-  margin-bottom: var(--fz-space-3);
-  grid-template-columns: auto 1fr;
-  column-gap: var(--fz-space-3);
-  align-items: center;
-
-  input {
-    width: 20px;
-    height: 20px;
-    margin: 0;
-    accent-color: var(--fz-accent);
-    cursor: pointer;
-  }
-
-  label {
-    display: flex;
-    align-items: center;
-    min-height: var(--fz-tap-target);
-    font-size: var(--fz-font-sm);
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .setting-desc {
-    grid-column: 2;
-    margin: 0;
-  }
-}
+// The settings as the drawer draws them, whose rules stop at this
+// component's edge; first, so the menu's own rules override them.
+@include setting-fields;
 
 .debug {
   padding-top: var(--fz-space-5);

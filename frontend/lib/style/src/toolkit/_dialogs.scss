@@ -114,8 +114,9 @@
 }
 
 /// Styles a help card's words: an `h3` over each list, and paragraphs in
-/// the muted color with their bold words in the text's. `help-card` holds
-/// them; a component of its own drawing a part of the card, such as
+/// the muted color with their bold words in the text's.
+///
+/// `help-card` holds them; a component of its own drawing a part of the card, such as
 /// `<fz-help-catalog>`, takes them too, as the card's rules can't reach it.
 @mixin help-text {
   h3 {
@@ -279,18 +280,73 @@
   }
 }
 
+/// Styles a settings drawer's settings: each `.setting`, with its
+/// `.setting-label`, its control and a `.setting-desc`, and a
+/// `.setting-check`, a checkbox beside its label, with a `.setting-desc`
+/// under the label.
+///
+/// `settings-drawer` holds them; a component of its own
+/// drawing settings in the drawer, such as a game's debug menu, takes them
+/// too, as the drawer's rules can't reach it.
+@mixin setting-fields {
+  .setting {
+    margin: 0 0 var(--fz-space-6);
+  }
+
+  .setting-label {
+    @include field-label;
+  }
+
+  // `--fz-muted`, which clears 4.5:1 on the drawer's surface.
+  .setting-desc {
+    margin: var(--fz-space-2) 0 0;
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+    line-height: var(--fz-leading-tight);
+  }
+
+  // The label is as tall as a finger needs, and clicking it ticks the box.
+  .setting-check {
+    display: grid;
+    margin-bottom: var(--fz-space-3);
+    grid-template-columns: auto 1fr;
+    column-gap: var(--fz-space-3);
+    align-items: center;
+
+    input {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: var(--fz-accent);
+      cursor: pointer;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      min-height: var(--fz-tap-target);
+      font-size: var(--fz-font-sm);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .setting-desc {
+      grid-column: 2;
+      margin: 0;
+    }
+  }
+}
+
 /// Styles a game's settings drawer, `$width` wide and the window's height,
 /// down the right of its `<fz-dialog>`.
 ///
 /// It styles the classes in it: the `.drawer-header`, with the `h2` and the
-/// `.close` button; the `.drawer-content` under it, which scrolls; each
-/// `.setting` in it, with its `.setting-label`, its control and a
-/// `.setting-desc`; a `.choice-list` of `.choice` tiles, each its `.name`
-/// over its `.desc`; and a `.setting-check`, a checkbox beside its label,
-/// with a `.setting-desc` under the label. A game's own rule for one of them
-/// goes inside the drawer's block, after the include, nested as the mixin
-/// nests it, such as `.setting-check .setting-desc`, so it weighs the same
-/// and wins by coming later.
+/// `.close` button; the `.drawer-content` under it, which scrolls; the
+/// settings in it (`setting-fields`); and a `.choice-list` of `.choice`
+/// tiles, each its `.name` over its `.desc`. A game's own rule for one of
+/// them goes inside the drawer's block, after the include, nested as the
+/// mixin nests it, such as `.setting-check .setting-desc`, so it weighs the
+/// same and wins by coming later.
 @mixin settings-drawer($width: 340px) {
   @include surfaces.glass(20px);
 
@@ -339,21 +395,7 @@
     overflow-y: auto;
   }
 
-  .setting {
-    margin: 0 0 var(--fz-space-6);
-  }
-
-  .setting-label {
-    @include field-label;
-  }
-
-  // `--fz-muted`, which clears 4.5:1 on the drawer's surface.
-  .setting-desc {
-    margin: var(--fz-space-2) 0 0;
-    color: var(--fz-muted);
-    font-size: var(--fz-font-xs);
-    line-height: var(--fz-leading-tight);
-  }
+  @include setting-fields;
 
   .choice-list {
     display: flex;
@@ -381,37 +423,6 @@
       color: var(--fz-muted);
       font-size: var(--fz-font-xs);
       line-height: var(--fz-leading-tight);
-    }
-  }
-
-  // The label is as tall as a finger needs, and clicking it ticks the box.
-  .setting-check {
-    display: grid;
-    margin-bottom: var(--fz-space-3);
-    grid-template-columns: auto 1fr;
-    column-gap: var(--fz-space-3);
-    align-items: center;
-
-    input {
-      width: 20px;
-      height: 20px;
-      margin: 0;
-      accent-color: var(--fz-accent);
-      cursor: pointer;
-    }
-
-    label {
-      display: flex;
-      align-items: center;
-      min-height: var(--fz-tap-target);
-      font-size: var(--fz-font-sm);
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .setting-desc {
-      grid-column: 2;
-      margin: 0;
     }
   }
 }

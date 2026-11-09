@@ -2573,3 +2573,35 @@ The review found the floors right and two things, both taken:
 Outside this change it noted `@fz/style`'s `AGENTS.md` still says "a little
 under"; the plan names no floor for `@fz/style`, so it is left for the
 final report.
+
+### Step 17i: finding 17, left from step 12d, the drawer's settings in `setting-fields`
+
+Built on `ul-drawer`. `settings-drawer`'s rules can't reach into a
+component the drawer hosts, so step 12d left Asteroid Breaker's debug menu
+drawing its settings from a copy of them. `@fz/style`'s `setting-fields`
+now holds them, split from `settings-drawer` as `help-text` was from the
+help card: each `.setting` with its label and description, and a
+`.setting-check` with its box, label and description. The drawer includes
+it, and the menu's stylesheet includes it at its top in place of its 45
+lines. The menu's compiled CSS is the same, byte for byte; in Chrome, every
+element of the drawer, the menu's among them, has the same computed styles
+and box, and the drawer the same accessibility tree, at 1280 × 800 and
+390 × 844.
+
+Where it went other than planned:
+
+- In every drawer, the checkboxes' rules now come before the choice tiles'
+  rather than after; no element in any drawer's template matches both, so
+  nothing draws differently.
+- No other game had a copy: Brick Breaker's debug menu is written into its
+  drawer's template, and the Solitaire Collection's drawer is its own.
+- The menu includes the mixin at its stylesheet's top, not in `:host`, so
+  its selectors weigh what the copy's did.
+
+The review found the reordered rules safe, and two things, both taken:
+
+1. _`setting-fields`' doc, copied from `help-text`'s, opened with two
+   sentences:_ taken; both docs say who else takes them in a paragraph of
+   its own.
+2. _A spec held the checkbox's description to the grid's second column, but
+   not `.setting-check` to a grid:_ taken; it holds both.
