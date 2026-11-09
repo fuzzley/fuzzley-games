@@ -667,10 +667,11 @@ skill covers its setup, floors and fixtures, the repository's
   (`holdEveryLevel()`), which each preset speed's spec in
   `src/rules/levels/every_level/` calls with its own file, whose name is the
   speed it plays.
-- `roles.ts` reads a palette's roles from the game's stylesheet
-  (`stylesheetRole()`), and the field's by the names the board reads them
-  by (`fieldRolesIn()`), for the contrast spec and the specs that color the
-  field, and puts the field's on the page (`paintRoles()`).
+- `roles.ts` holds the colors the specs that color the field paint it in
+  (`ROLES`), through `@fz/style/testing`'s `paintRoles()` and
+  `FIELD_ROLES`, and the game's palettes as its stylesheet sets them
+  (`PALETTES`, `stylesheetPalettes()`'s), which the contrast spec reads the
+  field's roles from (`rolesIn()`).
 - `play.ts` holds the small levels the shell's specs play, each set up to
   come to one thing soon, and two sets, of two levels and then one
   (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with a seed of

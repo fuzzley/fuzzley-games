@@ -120,8 +120,11 @@ Each library's `testing` entry point holds what specs need of it, and
   `colorsOf()`); and, from `@fz/phaser/testing/pure`, which loads no
   Phaser, `viewport()` for a spec in Node (the `phaser-core` skill).
 - `@fz/style/testing`: what a contrast spec needs to hold every palette in
-  `THEMES` to WCAG. `compileStylesheet()` compiles an app's global
+  `THEMES` to WCAG, and a palette spec to color a board as a palette does. `compileStylesheet()` compiles an app's global
   stylesheet as its Vite does, `paletteRoles()` reads each palette's roles
   from the CSS, `paint()` works out the color a role or a tint lays down,
   `rgbOf()` reads a color written as a number, as a canvas game draws it,
-  and `contrast()` measures two colors.
+  and `contrast()` measures two colors. `stylesheetPalettes()` reads an
+  app's palettes, whole (`palette()`), a role at a time (`role()`) or under
+  the names the app reads them by (`rolesIn()`), and `paintRoles()` gives
+  the page roles in a spec's colors until the test finishes.

@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { type FileImporter, compile } from "sass";
+import { onTestFinished } from "vitest";
 
 /** A color's red, green and blue, each from 0 to 255. */
 export type Rgb = readonly [red: number, green: number, blue: number];
@@ -78,6 +79,99 @@ export function paletteRoles(css: string): ReadonlyMap<string, Roles> {
   return new Map(
     [...own].map(([id, roles]) => [id, new Map([...everywhere, ...roles])]),
   );
+}
+
+/** Reads an app's palettes, as its global stylesheet sets them. */
+export interface StylesheetPalettes {
+  /**
+   * Returns every role a palette sets, as `paint()` takes them.
+   *
+   * @throws {Error} for a palette the stylesheet doesn't set.
+   */
+  palette(id: string): Roles;
+  /**
+   * Returns one of a palette's roles, as the stylesheet sets it.
+   *
+   * @throws {Error} for a palette or a role the stylesheet doesn't set.
+   */
+  role(id: string, name: string): string;
+  /**
+   * Returns a palette's roles under the names an app reads them by, as
+   * `ThemeService`'s `roles()` gives them from the page.
+   *
+   * @throws {Error} for a palette or a role the stylesheet doesn't set.
+   */
+  rolesIn<Key extends string>(
+    id: string,
+    names: Readonly<Record<Key, string>>,
+  ): Record<Key, string>;
+}
+
+/**
+ * Returns the palettes the global stylesheet at a path sets, compiling it
+ * when first asked for one, so a spec that never asks compiles nothing.
+ */
+export function stylesheetPalettes(file: string): StylesheetPalettes {
+  let palettes: ReadonlyMap<string, Roles> | undefined;
+  const palette = (id: string): Roles => {
+    palettes ??= paletteRoles(compileStylesheet(file));
+    const roles = palettes.get(id);
+    if (roles === undefined) {
+      throw new Error(`No palette ${id} in ${path.basename(file)}`);
+    }
+    return roles;
+  };
+  const role = (id: string, name: string): string => {
+    const value = palette(id).get(name);
+    if (value === undefined) throw new Error(`No --fz-${name} in ${id}`);
+    return value;
+  };
+  return {
+    palette,
+    role,
+    rolesIn<Key extends string>(
+      id: string,
+      names: Readonly<Record<Key, string>>,
+    ): Record<Key, string> {
+      return Object.fromEntries(
+        Object.entries<string>(names).map(([key, name]) => [
+          key,
+          role(id, name),
+        ]),
+      ) as Record<Key, string>;
+    },
+  };
+}
+
+/**
+ * Gives the page `colors` until the test finishes, each under the role
+ * `names` gives its key, as `ThemeService.roles()` reads them.
+ *
+ * It paints in a test or a `beforeEach`; in a `beforeAll` it throws, having
+ * painted nothing, since no test is running to finish.
+ */
+export function paintRoles<Key extends string>(
+  names: Readonly<Record<Key, string>>,
+  colors: Readonly<Record<Key, string>>,
+): void {
+  const { style } = document.documentElement;
+  const painted = (Object.keys(names) as Key[]).map((key) => ({
+    property: `--fz-${names[key]}`,
+    color: colors[key],
+  }));
+  const before = painted.map(({ property }) => ({
+    property,
+    color: style.getPropertyValue(property),
+  }));
+  onTestFinished(() => {
+    for (const { property, color } of before) {
+      if (color === "") style.removeProperty(property);
+      else style.setProperty(property, color);
+    }
+  });
+  for (const { property, color } of painted) {
+    style.setProperty(property, color);
+  }
 }
 
 /**

@@ -138,7 +138,9 @@ its seed and its frames, as a game taken up relies on.
 - **`src/testing/`** — what specs share: `runFrom` (`run_picture.ts`) draws
   a run as rows of characters, an arrow on each square of the snake, and
   `pictureOf` draws one back; `play.ts` plays a game to its end, lost or
-  won. The app's tsconfig leaves it out.
+  won; `palettes.ts` reads the palettes from the global stylesheet
+  (`PALETTES`, `@fz/style/testing`'s `stylesheetPalettes()`). The app's
+  tsconfig leaves it out.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
   synthesizes the sounds; `check-layout.mjs` checks the build's layout in
   headless Chrome; `capture-screenshots.mjs` makes the screenshots the site

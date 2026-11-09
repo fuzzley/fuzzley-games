@@ -1,7 +1,8 @@
 import { THEMES } from "@fz/style/themes";
 import { contrast, rgbOf } from "@fz/style/testing";
 import { colorNumber } from "@fz/phaser/color";
-import { fieldRolesIn, stylesheetRole } from "../../testing/roles";
+import { FIELD_ROLES } from "../../app/board/field_roles";
+import { PALETTES } from "../../testing/roles";
 import { beltPalette } from "./palette";
 
 /** The contrast a graphic keeps against what it is drawn on, as WCAG asks of graphics. */
@@ -23,8 +24,8 @@ function between(one: number, other: number): number {
 // keep 3:1 against its buttons, and the knob against the stick's base.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
-    const palette = beltPalette(fieldRolesIn(id), mode);
-    const bar = colorNumber(stylesheetRole(id, "bar"));
+    const palette = beltPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
+    const bar = colorNumber(PALETTES.role(id, "bar"));
     const rocks = Object.entries(palette.rocks).map(
       ([kind, color]) => [`${kind} rock`, color] as const,
     );

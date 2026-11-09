@@ -1,14 +1,11 @@
 import { TestBed } from "@angular/core/testing";
 import { THEMES, type ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
-import {
-  ROLES,
-  fieldRolesIn,
-  paintRoles,
-  stylesheetRole,
-} from "../../testing/roles";
+import { paintRoles } from "@fz/style/testing";
+import { PALETTES, ROLES } from "../../testing/roles";
 import { bricksPalette } from "../../view/colors/palette";
 import { fieldPalette } from "./field_palette";
+import { FIELD_ROLES } from "./field_roles";
 
 /** Returns the theme with a palette applied to the page. */
 function themeIn(id: ThemeId): ThemeService {
@@ -20,11 +17,10 @@ function themeIn(id: ThemeId): ThemeService {
 
 describe("fieldPalette", () => {
   beforeEach(() => {
-    paintRoles();
+    paintRoles(FIELD_ROLES, ROLES);
   });
 
   afterEach(() => {
-    document.documentElement.removeAttribute("style");
     Reflect.deleteProperty(document.documentElement.dataset, "theme");
   });
 
@@ -55,27 +51,29 @@ describe("fieldPalette", () => {
     palette();
 
     theme.select("midnight");
-    paintRoles(fieldRolesIn("midnight"));
+    paintRoles(FIELD_ROLES, PALETTES.rolesIn("midnight", FIELD_ROLES));
     TestBed.tick();
 
-    expect(palette()).toEqual(bricksPalette(fieldRolesIn("midnight"), "dark"));
+    expect(palette()).toEqual(
+      bricksPalette(PALETTES.rolesIn("midnight", FIELD_ROLES), "dark"),
+    );
   });
 
   // The roles are named here by hand, apart from `FIELD_ROLES`, so a role
   // named wrongly there shows.
   it.each(THEMES)("draws the field in $name's own roles", ({ id, mode }) => {
-    paintRoles(fieldRolesIn(id));
+    paintRoles(FIELD_ROLES, PALETTES.rolesIn(id, FIELD_ROLES));
 
     const palette = fieldPalette(themeIn(id));
 
     expect(palette()).toEqual(
       bricksPalette(
         {
-          panel: stylesheetRole(id, "panel"),
-          text: stylesheetRole(id, "text"),
-          accent: stylesheetRole(id, "accent"),
-          danger: stylesheetRole(id, "danger"),
-          warning: stylesheetRole(id, "warning"),
+          panel: PALETTES.role(id, "panel"),
+          text: PALETTES.role(id, "text"),
+          accent: PALETTES.role(id, "accent"),
+          danger: PALETTES.role(id, "danger"),
+          warning: PALETTES.role(id, "warning"),
         },
         mode,
       ),

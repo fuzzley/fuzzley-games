@@ -30,7 +30,9 @@ import {
   loseBall,
   provideSpecLevels,
 } from "../testing/play";
-import { paintRoles } from "../testing/roles";
+import { paintRoles } from "@fz/style/testing";
+import { FIELD_ROLES } from "./board/field_roles";
+import { ROLES } from "../testing/roles";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
@@ -247,13 +249,12 @@ describe("AppComponent", () => {
     let scene: SceneRun<HostedScene> | null = null;
 
     beforeEach(() => {
-      paintRoles();
+      paintRoles(FIELD_ROLES, ROLES);
     });
 
     afterEach(() => {
       scene?.destroy();
       scene = null;
-      document.documentElement.removeAttribute("style");
       vi.restoreAllMocks();
     });
 

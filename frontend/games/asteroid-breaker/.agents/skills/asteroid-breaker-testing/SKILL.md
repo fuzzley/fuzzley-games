@@ -226,10 +226,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   by (`reachOf()`).
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES`: it reads each palette's roles from the global stylesheet, by
-  the names the board reads them by (`src/testing/roles.ts`'s
-  `fieldRolesIn()`), builds the field's palette from them, and holds every
-  rock, the ship, the shots, the pickups, the comet, the strays and the
-  pilots to 3:1 against what they are drawn on, the marks and outlines
+  the names the board reads them by (`PALETTES.rolesIn()`, from
+  `src/testing/roles.ts`), builds the field's palette from them, and holds
+  every rock, the ship, the shots, the pickups, the comet, the strays and
+  the pilots to 3:1 against what they are drawn on, the marks and outlines
   against what they cross, and the deck's symbols at rest against its
   buttons and its knob against the stick's base.
 

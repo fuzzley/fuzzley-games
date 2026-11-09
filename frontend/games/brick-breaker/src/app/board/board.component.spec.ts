@@ -33,7 +33,9 @@ import {
   FIRST_LIVES,
   TALLEST_FIELD,
 } from "../../rules/tuning";
-import { paintRoles } from "../../testing/roles";
+import { paintRoles } from "@fz/style/testing";
+import { ROLES } from "../../testing/roles";
+import { FIELD_ROLES } from "./field_roles";
 import { FINGER_ROOM_CSS_PX } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
@@ -507,13 +509,12 @@ describe("BoardComponent", () => {
     let scene: SceneRun<HostedScene> | null = null;
 
     beforeEach(() => {
-      paintRoles();
+      paintRoles(FIELD_ROLES, ROLES);
     });
 
     afterEach(() => {
       scene?.destroy();
       scene = null;
-      document.documentElement.removeAttribute("style");
     });
 
     /** Runs the scene the board hands its canvas, as Phaser would, on a canvas of a size in CSS px. */

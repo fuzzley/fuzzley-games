@@ -7,8 +7,12 @@ export default {
   overrides: [
     {
       // Where the colors are written down: the palettes, and the shadows,
-      // which are the same in every palette.
-      files: ["src/tokens/_palettes.scss", "src/tokens/_shadows.scss"],
+      // which are the same in every palette, and the palettes a spec reads.
+      files: [
+        "src/tokens/_palettes.scss",
+        "src/tokens/_shadows.scss",
+        "src/testing/fixtures/palettes.scss",
+      ],
       rules: {
         "color-no-hex": null,
         "function-disallowed-list": null,

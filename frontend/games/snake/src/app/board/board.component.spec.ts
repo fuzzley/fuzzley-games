@@ -13,12 +13,14 @@ import {
   runScene,
   watchResizes,
 } from "@fz/phaser/testing";
+import { paintRoles } from "@fz/style/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { stepMs } from "../../rules/speed";
 import { playToTheEnd, provideFixedSeed } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { BoardComponent } from "./board.component";
+import { BOARD_ROLES } from "./board_roles";
 
 /** Space as a browser sends it, with the key code Phaser's capture reads. */
 const SPACE = { key: " ", code: "Space", keyCode: 32 } as const;
@@ -327,15 +329,12 @@ describe("BoardComponent", () => {
     let scene: SceneRun<HostedScene> | null = null;
 
     beforeEach(() => {
-      for (const [role, color] of Object.entries(ROLES)) {
-        document.documentElement.style.setProperty(`--fz-${role}`, color);
-      }
+      paintRoles(BOARD_ROLES, ROLES);
     });
 
     afterEach(() => {
       scene?.destroy();
       scene = null;
-      document.documentElement.removeAttribute("style");
     });
 
     /** Runs the scene the board hands its canvas, as Phaser would. */
