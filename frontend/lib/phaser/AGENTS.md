@@ -39,7 +39,12 @@ take the pure ones.
   and `readNamedRects()` read them back, as the spec holds them to; and
   `cssRectStyle()`, the inline styles that lay an element over a `CssRect`,
   its margin cleared, as a board lays its focus ring where the scene drew
-  it. It imports nothing but `insets`.
+  it. `fitCells()` is built of three steps that a field not made of cells, as
+  Asteroid Breaker's is, lays itself out with: `roomInside()`, the canvas
+  inside its chrome as a `PixelRect`, each inset rounded to the nearest device
+  pixel; `framePixels()`, a frame's CSS thickness in whole device pixels, one
+  at least; and `cssRectOf()`, a `PixelRect` in CSS pixels. It imports nothing
+  but `insets`.
 - `src/measure/`: what reads the page for a canvas, as the host sizes it
   and a board's placeholder measures it: `watchDevicePixels()`, which
   counts an element's device pixels, through a `ResizeObserver` on the

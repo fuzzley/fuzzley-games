@@ -1,10 +1,7 @@
 import { clamp } from "@fz/core/math";
+import type { PixelRect } from "@fz/phaser/layout";
 import type { Place } from "../../rules/torus";
-import type {
-  BoardSetting,
-  DeckLayout,
-  PixelRect,
-} from "../field/field_metrics";
+import type { BoardSetting, DeckLayout } from "../field/field_metrics";
 import { STICK_RADIUS_CSS_PX } from "./stick";
 
 /** The radius of Fire, in CSS pixels. */

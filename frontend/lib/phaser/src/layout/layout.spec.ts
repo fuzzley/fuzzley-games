@@ -1,5 +1,11 @@
 import { viewport } from "../testing/pure";
-import { type CellField, fitCells } from "./layout";
+import {
+  type CellField,
+  cssRectOf,
+  fitCells,
+  framePixels,
+  roomInside,
+} from "./layout";
 
 /** A field as tall as Brick Breaker's: 26 across, 30 down, a 2 px frame. */
 const TALL: CellField = { across: 26, down: 30, frameCss: 2 };
@@ -86,5 +92,67 @@ describe("fitCells", () => {
 
   it("keeps a cell at least a pixel on a canvas too small for the field", () => {
     expect(fitCells(viewport(4, 4, 1), TALL).cell).toBe(1);
+  });
+});
+
+describe("roomInside", () => {
+  it("is the whole canvas, in device pixels, with no chrome over it", () => {
+    expect(roomInside(viewport(400, 300, 2))).toEqual({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+    });
+  });
+
+  it("leaves out the chrome over each edge, in device pixels", () => {
+    const insets = { top: 100, right: 40, bottom: 20, left: 30 };
+
+    const room = roomInside(viewport(400, 400, 2, insets));
+
+    expect(room).toEqual({ x: 60, y: 200, width: 660, height: 560 });
+  });
+
+  it("rounds each inset to the nearest device pixel", () => {
+    const insets = { top: 10.4, right: 0.2, bottom: 0.4, left: 3.3 };
+
+    const room = roomInside(viewport(100, 100, 1.5, insets));
+
+    // On a canvas of 150 device pixels: 3.3 × 1.5 is 4.95, a left of 5,
+    // and 0.2 × 1.5 is 0.3, a right of none, so a room 145 across; 10.4 ×
+    // 1.5 is 15.6, a top of 16, and 0.4 × 1.5 is 0.6, a bottom of 1, so one
+    // 133 down, where rounding their sum would leave 134.
+    expect(room).toEqual({ x: 5, y: 16, width: 145, height: 133 });
+  });
+});
+
+describe("framePixels", () => {
+  it.each([
+    [2, 1, 2],
+    [2, 1.25, 3],
+    [2, 2.625, 5],
+    [2, 3, 6],
+  ])(
+    "makes a frame of %i CSS pixels whole device pixels at %f: %i",
+    (css, ratio, pixels) => {
+      expect(framePixels(css, ratio)).toBe(pixels);
+    },
+  );
+
+  it("keeps a thin frame a pixel at least", () => {
+    expect(framePixels(0.2, 1)).toBe(1);
+  });
+});
+
+describe("cssRectOf", () => {
+  it("gives a rectangle in device pixels in CSS pixels", () => {
+    const rect = { x: 30, y: 60, width: 300, height: 150 };
+
+    expect(cssRectOf(rect, 1.5)).toEqual({
+      x: 20,
+      y: 40,
+      width: 200,
+      height: 100,
+    });
   });
 });

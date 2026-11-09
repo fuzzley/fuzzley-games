@@ -1,10 +1,10 @@
 import { HeldKeys } from "@fz/core/keys";
+import type { PixelRect } from "@fz/phaser/layout";
 import type { Steer } from "../../rules/ship/ship";
 import type { Place } from "../../rules/torus";
 import {
   type BoardSetting,
   type FieldMetrics,
-  type PixelRect,
   toField,
 } from "../field/field_metrics";
 import { heldKeyOf } from "./controls";

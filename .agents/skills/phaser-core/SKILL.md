@@ -77,15 +77,17 @@ beside a deck of controls for a touch screen.
   and **`@fz/phaser/shapes`** import nothing but each other, so a game's
   code without Phaser can take them. `fitCells()` in `layout` fits a field
   of cells, across by down, inside a canvas's insets, each cell whole device
-  pixels, `canvasPixelRatio()` is the ratio a canvas renders at on a
-  display, `canvasSizeFor()` the size the host makes a canvas of a box, in
-  the device pixels the browser counted where it can, and the ratio it
-  renders it at, past 2× only within a budget of device pixels, which a
-  placeholder drawn in CSS sizes its cells by, and `rectAttribute()` and
+  pixels; a field that isn't cells lays itself out with its steps,
+  `roomInside()`, `framePixels()` and `cssRectOf()`, so its insets and frame
+  round as every board's do; `canvasPixelRatio()` is the ratio a canvas
+  renders at on a display, `canvasSizeFor()` the size the host makes a canvas
+  of a box, in the device pixels the browser counted where it can, and the
+  ratio it renders it at, past 2× only within a budget of device pixels, which
+  a placeholder drawn in CSS sizes its cells by, and `rectAttribute()` and
   `namedRectsAttribute()` write where the scene drew a board, or a deck's
-  zones, into the board's attributes, as `@fz/dev/layout`'s layout check
-  reads them (`readRect()`, `readNamedRects()`), and `cssRectStyle()` lays
-  the board's focus ring there. `shapes` is
+  zones, into the board's attributes, as `@fz/dev/layout`'s layout check reads
+  them (`readRect()`, `readNamedRects()`), and `cssRectStyle()` lays the
+  board's focus ring there. `shapes` is
   the vocabulary a game's art is drawn in, each shape of a frame as plain
   data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
   Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.

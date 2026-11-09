@@ -7,8 +7,12 @@ export {
   type CellField,
   type CellFit,
   type CssRect,
+  type PixelRect,
   type Viewport,
+  cssRectOf,
   fitCells,
+  framePixels,
+  roomInside,
 } from "./layout";
 export { canvasPixelRatio } from "./pixel_ratio";
 export {

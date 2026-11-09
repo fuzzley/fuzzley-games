@@ -6,8 +6,10 @@ import type { HostedScene } from "@fz/phaser/host";
 import { NO_INSETS } from "@fz/phaser/insets";
 import {
   type CssRect,
+  type PixelRect,
   type Viewport,
   canvasPixelRatio,
+  cssRectOf,
   cssRectStyle,
   namedRectsAttribute,
   rectAttribute,
@@ -48,7 +50,6 @@ import {
   type BoardSetting,
   FRAME_CSS_PX,
   MARGIN_CSS_PX,
-  type PixelRect,
   deckLayout,
   fieldMetrics,
   fieldShape,
@@ -99,19 +100,6 @@ function fieldOn(
 ): CssRect {
   const canvas = viewport(width, height, pixelRatio, insets);
   return fieldMetrics(canvas, board, fieldShape(canvas, board, SQUARE)).css;
-}
-
-/** Returns a rectangle on a canvas in CSS pixels, given in device pixels at a pixel ratio. */
-function inCssAt(
-  { x, y, width, height }: PixelRect,
-  pixelRatio: number,
-): PixelRect {
-  return {
-    x: x / pixelRatio,
-    y: y / pixelRatio,
-    width: width / pixelRatio,
-    height: height / pixelRatio,
-  };
 }
 
 /** Renders the board beside a button outside it, on a fake canvas. */
@@ -870,7 +858,7 @@ describe("BoardComponent", () => {
       const { torus } = game.frame().field;
       const deck = deckLayout(canvas, setting, torus);
       if (!deck) throw new Error("The deck shows on a canvas of 1280 by 720.");
-      const css = (rect: PixelRect): PixelRect => inCssAt(rect, 2);
+      const css = (rect: PixelRect): CssRect => cssRectOf(rect, 2);
       expect({
         room: board.dataset["room"],
         deck: board.dataset["deck"],

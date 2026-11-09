@@ -1,5 +1,5 @@
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
-import type { Viewport } from "@fz/phaser/layout";
+import type { PixelRect, Viewport } from "@fz/phaser/layout";
 import { viewport } from "@fz/phaser/testing/pure";
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "../../rules/tuning";
 import { boardOf, chrome } from "../../testing/canvases";
@@ -9,7 +9,6 @@ import {
   type DeckLayout,
   DECK_WIDTH_CSS_PX,
   type FieldMetrics,
-  type PixelRect,
   deckLayout,
   fieldMetrics,
   fieldRoom,

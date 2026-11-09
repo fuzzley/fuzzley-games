@@ -1282,3 +1282,37 @@ was picked while the checks ran. The first pop conflicted in
 `@fz/game-ui`'s `package.json` description and the skill, against 4.9's
 words; both were resolved by taking `shared-lib`'s text and adding this
 step's edits to it. The second popped clean.
+
+### Step 3.1: `fitCells()`'s steps as `@fz/phaser/layout` helpers
+
+Built as planned on `sl-play`. `@fz/phaser/layout` exports `PixelRect`,
+`roomInside(viewport)`, `framePixels(frameCss, pixelRatio)` and
+`cssRectOf(rect, pixelRatio)`. `fitCells()` is rebuilt on them, with the
+same operations in the same order. Asteroid Breaker drops its copies:
+`PixelRect`, `stageOf()`, `frameOf()`, the board's `inCss()` and the board
+spec's `inCssAt()`. Its views import `PixelRect` from the library, and its
+source is 53 lines shorter. Every board's numbers are unchanged at every
+pixel ratio.
+
+Before the review fixes, the work was rebased onto `shared-lib`, with no
+conflicts and the same lockfile. Tests pass: phaser 603, Asteroid Breaker
+3625 and 1620, and, since both use `fitCells()`, Brick Breaker 1842 and 180
+and Snake 423.
+
+Where it went other than planned: nowhere.
+
+The review:
+
+1. _The new specs pinned each rounding from one side only, so `Math.ceil`
+   or `Math.floor` would pass:_ taken. The insets spec now has one inset
+   that rounds down and one that rounds up, so ceil fails across, floor
+   fails both ways, and rounding the sum fails down. The `framePixels()`
+   table gains 2 CSS pixels at 1.25, which is 3, where floor gives 2.
+2. _`@fz/phaser`'s AGENTS.md `src/layout/` entry no longer read as a list,
+   and it and the phaser-core skill had lines past 80 columns:_ taken. The
+   entry's list is back as it was. The three steps have a sentence of their
+   own before "It imports nothing but `insets`". Both paragraphs are
+   rewrapped from the edit on.
+3. _`Viewport`'s doc still spoke of a field of cells, and `cssRectOf()`'s
+   doc was one long line:_ taken. It reads "Describes a canvas a field is
+   laid out on", and `cssRectOf()`'s doc is wrapped.
