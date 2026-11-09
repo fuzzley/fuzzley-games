@@ -525,9 +525,10 @@ takes for the specs' helpers.
     with its name, its sentence and, once the scene has drawn, its picture,
     which the app asks the board for only while How to play is open.
   - `settings/` — the settings drawer (the speed, when the deck shows, which
-    side holds its stick, whether the ship fires by itself, haptics, the
-    sound and the palette) and `SettingsService`, which keeps what the player
-    chose, the speed of the last run started among it. Where `DEBUG_MENU`
+    side holds its stick, whether the ship fires by itself, haptics, the sound
+    and the palette), `SPEED_CHOICES`, the speeds as the drawer and the bar
+    both offer them, and `SettingsService`, which keeps what the player chose,
+    the speed of the last run started among it. Where `DEBUG_MENU`
     says so, in a development build (`DEV_BUILD`, from
     `import.meta.env.DEV`, as a game's own dev server runs it) and in a
     production one whose address has `?debug`, the drawer also offers the

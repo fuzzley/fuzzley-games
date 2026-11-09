@@ -394,7 +394,8 @@ takes for the specs' helpers.
     drawn, its picture, which the app asks the board for only while How to
     play is open.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
-    sound and the palette) and `SettingsService`, which keeps what the player
+    sound and the palette), `SPEED_CHOICES`, the speeds as the drawer and the
+    bar both offer them, and `SettingsService`, which keeps what the player
     chose, the speed of the last run started among it. While the run is at
     Custom (`GameService.customPercent`), the drawer offers a slider for its
     ball's speed, 50% to 200% of Normal's, which

@@ -73,7 +73,8 @@ workspace keeps its own for its code. Paths are relative to
     `GameService.changeLevel()`, the time and the actions, and moves the
     actions into `<fz-bar-overflow>` on a compact screen.
   - `settings/` — the settings drawer (the level, the assists and the
-    palette) and `SettingsService`, which keeps what the player chose.
+    palette), `LEVEL_CHOICES`, the levels as the drawer and the bar both
+    offer them, and `SettingsService`, which keeps what the player chose.
   - `stats/` — `StatsService`, the games played and solved and the best
     times.
   - `result/` — the card over a solved puzzle, which opens once the

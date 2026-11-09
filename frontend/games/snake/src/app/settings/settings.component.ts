@@ -1,40 +1,34 @@
-import { Component, computed, inject, input, output } from "@angular/core";
+import { Component, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { RadioGroupDirective } from "@fz/ui/radio_group";
+import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
-import { SPEEDS, SPEED_INFO, type Speed } from "../../rules/speed";
+import type { Speed } from "../../rules/speed";
 import { GameService } from "../play/game.service";
+import { SPEED_CHOICES } from "./choices";
 import {
   type Arrows,
   type Movement,
   SettingsService,
 } from "./settings.service";
 
-/** Describes one choice of a setting. */
-interface Choice<T> {
-  readonly id: T;
-  readonly name: string;
-  readonly says: string;
-}
-
-const MOVEMENTS: readonly Choice<Movement>[] = [
+const MOVEMENTS: readonly ChoiceOption<Movement>[] = [
   {
     id: "glide",
     name: "Glide",
-    says: "Slides smoothly from square to square.",
+    detail: "Slides smoothly from square to square.",
   },
-  { id: "step", name: "Step", says: "Jumps a whole square at a time." },
+  { id: "step", name: "Step", detail: "Jumps a whole square at a time." },
 ];
 
-const ARROWS: readonly Choice<Arrows>[] = [
+const ARROWS: readonly ChoiceOption<Arrows>[] = [
   {
     id: "touch",
     name: "On a touch screen",
-    says: "On a phone or a tablet.",
+    detail: "On a phone or a tablet.",
   },
-  { id: "always", name: "Always", says: "For a mouse too." },
-  { id: "never", name: "Never", says: "Swipes and keys only." },
+  { id: "always", name: "Always", detail: "For a mouse too." },
+  { id: "never", name: "Never", detail: "Swipes and keys only." },
 ];
 
 /**
@@ -48,9 +42,9 @@ const ARROWS: readonly Choice<Arrows>[] = [
 @Component({
   selector: "app-settings",
   imports: [
+    ChoiceListComponent,
     DialogComponent,
     IconComponent,
-    RadioGroupDirective,
     ThemePickerComponent,
   ],
   templateUrl: "./settings.component.html",
@@ -68,31 +62,9 @@ export class SettingsComponent {
   /** Emitted when the drawer asks to close. */
   readonly closed = output();
 
-  protected readonly speeds = computed(() => {
-    const current = this.settings().speed;
-    return SPEEDS.map((id) => ({
-      id,
-      name: SPEED_INFO[id].name,
-      says: SPEED_INFO[id].says,
-      checked: id === current,
-    }));
-  });
-
-  protected readonly movements = computed(() => {
-    const current = this.settings().movement;
-    return MOVEMENTS.map((choice) => ({
-      ...choice,
-      checked: choice.id === current,
-    }));
-  });
-
-  protected readonly arrows = computed(() => {
-    const current = this.settings().arrows;
-    return ARROWS.map((choice) => ({
-      ...choice,
-      checked: choice.id === current,
-    }));
-  });
+  protected readonly speeds = SPEED_CHOICES;
+  protected readonly movements = MOVEMENTS;
+  protected readonly arrows = ARROWS;
 
   /** Starts a run at the speed chosen, unless it is the speed in use. */
   protected async chooseSpeed(speed: Speed): Promise<void> {

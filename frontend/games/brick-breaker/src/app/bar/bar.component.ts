@@ -1,9 +1,6 @@
 import { Component, computed, inject, output } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
-import {
-  BarChoiceComponent,
-  type BarChoiceOption,
-} from "@fz/game-ui/bar_choice";
+import { BarChoiceComponent } from "@fz/game-ui/bar_choice";
 import {
   type BarOverflowAction,
   BarOverflowComponent,
@@ -17,21 +14,10 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { formatCustomPercent } from "../../rules/run/describe";
-import {
-  CUSTOM_PERCENT,
-  SPEEDS,
-  SPEED_INFO,
-  type Speed,
-} from "../../rules/speed";
+import { CUSTOM_PERCENT, type Speed } from "../../rules/speed";
 import { GameService } from "../play/game.service";
+import { SPEED_CHOICES } from "../settings/choices";
 import { SettingsService } from "../settings/settings.service";
-
-/** The speeds the badge offers, each with what it is like. */
-const SPEED_CHOICES: readonly BarChoiceOption<Speed>[] = SPEEDS.map((id) => ({
-  id,
-  name: SPEED_INFO[id].name,
-  detail: SPEED_INFO[id].says,
-}));
 
 /** Names an action the overflow menu offers. */
 type MenuAction = "sound" | "levels" | "help" | "settings";

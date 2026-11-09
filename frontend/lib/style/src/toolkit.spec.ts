@@ -257,12 +257,6 @@ describe("the toolkit's mixins", () => {
     );
   });
 
-  it("give a settings drawer its choice list", () => {
-    expect(compiled("@include fz.settings-drawer;")).toContain(
-      compiled("@include fz.choice-list;"),
-    );
-  });
-
   it("stack a choice list's choices, one under another", () => {
     expect(compiled("@include fz.choice-list;")).toContain(
       ".it .choice-list{display:flex;flex-direction:column;gap:var(--fz-space-2)}",

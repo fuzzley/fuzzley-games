@@ -15,26 +15,13 @@
     <div class="drawer-content">
       <div class="setting">
         <span class="setting-label" id="level-label">Level</span>
-        <!-- Each choice is named by all its text, as a voice command reads it. -->
-        <div
-          class="choice-list"
-          fzRadioGroup
-          aria-labelledby="level-label"
-          aria-describedby="level-desc"
-        >
-          @for (choice of levels(); track choice.id) {
-            <button
-              type="button"
-              class="choice"
-              role="radio"
-              [attr.aria-checked]="choice.checked"
-              (click)="chooseLevel(choice.id)"
-            >
-              <span class="name">{{ choice.name }}</span>
-              <span class="desc">{{ choice.asks }}</span>
-            </button>
-          }
-        </div>
+        <fz-choice-list
+          labelledBy="level-label"
+          describedBy="level-desc"
+          [options]="levels"
+          [value]="settings().level"
+          (choose)="chooseLevel($event)"
+        />
         <p class="setting-desc" id="level-desc">
           Changing the level starts a new puzzle.
         </p>

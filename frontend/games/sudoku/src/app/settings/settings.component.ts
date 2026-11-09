@@ -1,10 +1,11 @@
-import { Component, computed, inject, input, output } from "@angular/core";
+import { Component, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { RadioGroupDirective } from "@fz/ui/radio_group";
+import { ChoiceListComponent } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
-import { LEVELS, LEVEL_INFO, type Level } from "../../rules/difficulty";
+import type { Level } from "../../rules/difficulty";
 import { GameService } from "../play/game.service";
+import { LEVEL_CHOICES } from "./choices";
 import { SettingsService } from "./settings.service";
 
 /** Names an assist, a setting the player turns on or off mid-game. */
@@ -20,9 +21,9 @@ type Assist = "markMistakes" | "clearNotes";
 @Component({
   selector: "app-settings",
   imports: [
+    ChoiceListComponent,
     DialogComponent,
     IconComponent,
-    RadioGroupDirective,
     ThemePickerComponent,
   ],
   templateUrl: "./settings.component.html",
@@ -40,14 +41,7 @@ export class SettingsComponent {
   /** Emitted when the drawer asks to close. */
   readonly closed = output();
 
-  protected readonly levels = computed(() => {
-    const current = this.settings().level;
-    return LEVELS.map((id) => ({
-      id,
-      ...LEVEL_INFO[id],
-      checked: id === current,
-    }));
-  });
+  protected readonly levels = LEVEL_CHOICES;
 
   /** Deals a puzzle at the level chosen, unless it is the level in use. */
   protected async chooseLevel(level: Level): Promise<void> {

@@ -49,10 +49,11 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `homeHref` passes it here too.
 - `src/bar_choice/`: `<fz-bar-choice>`, a badge in a bar's title, such as a
   game's level, that opens an Angular Aria menu of the choices, one of them
-  checked (`menuitemradio`). The choices are data too
-  (`BarChoiceOption<Id>`: a name and a few words of detail), `value` is the
-  one checked, which the badge shows, and `choose` emits the id of any
-  other. The badge is named by its `label` and the choice ("Level:
+  checked (`menuitemradio`). The choices are data too (`BarChoiceOption<Id>`:
+  a name and a few words of detail), `@fz/ui`'s `ChoiceOption<Id>`, so one
+  list of them feeds the settings' `<fz-choice-list>` as well. `value` is the
+  one checked, which the badge shows, and `choose` emits the id of any other.
+  The badge is named by its `label` and the choice ("Level:
   Medium"), and is drawn as `.fz-badge` but takes a press anywhere in the
   tap size around it. What the app projects as `fzBarChoiceExtra`, such as
   a slider for the choice checked, shows in the menu beneath the choices,

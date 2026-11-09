@@ -340,8 +340,8 @@
 /// Styles a `.choice-list` of `.choice` tiles, one under another, each a
 /// `role="radio"` button holding its `.name` over a few words of `.desc`.
 ///
-/// `settings-drawer` holds it; a list of choices drawn outside the drawer's
-/// rules, such as in a component of its own, takes it too.
+/// `@fz/ui`'s `<fz-choice-list>` draws one with it, for an app to reach for
+/// before drawing a list of its own.
 @mixin choice-list {
   .choice-list {
     display: flex;
@@ -377,12 +377,12 @@
 /// down the right of its `<fz-dialog>`.
 ///
 /// It styles the classes in it: the `.drawer-header`, with the `h2` and the
-/// `.close` button; the `.drawer-content` under it, which scrolls; the
-/// settings in it (`setting-fields`); and its choices (`choice-list`). A
-/// game's own rule for one of them goes inside the drawer's block, after the
-/// include, nested as the mixin nests it, such as
-/// `.setting-check .setting-desc`, so it weighs the same and wins by coming
-/// later.
+/// `.close` button; the `.drawer-content` under it, which scrolls; and the
+/// settings in it (`setting-fields`). A game's own rule for one of them goes
+/// inside the drawer's block, after the include, nested as the mixin nests
+/// it, such as `.setting-check .setting-desc`, so it weighs the same and wins
+/// by coming later. A setting's choices are an `<fz-choice-list>`, which
+/// styles itself.
 @mixin settings-drawer($width: 340px) {
   @include surfaces.glass(20px);
 
@@ -432,5 +432,4 @@
   }
 
   @include setting-fields;
-  @include choice-list;
 }
