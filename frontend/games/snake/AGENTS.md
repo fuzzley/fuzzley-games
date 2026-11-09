@@ -113,8 +113,9 @@ its seed and its frames, as a game taken up relies on.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     speed, a `<fz-bar-choice>` that starts a run at another through
     `GameService.changeSpeed()`, the score and the best, and the actions,
-    Pause and Sound among them, and moves the actions into
-    `<fz-bar-overflow>` on a compact screen.
+    Pause and Sound among them, `@fz/game-ui`'s (`fzBarPause`,
+    `fzBarSound`), and moves the actions into `<fz-bar-overflow>` on a
+    compact screen.
   - `settings/` — the settings drawer (the speed, the movement, the arrows,
     the sound and the palette) and `SettingsService`, which keeps what the
     player chose.

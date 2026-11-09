@@ -22,7 +22,9 @@ too. Paths are relative to `frontend/lib/dev/`.
     every component and directive selector carries (`fz` in a library,
     `app` in an app).
   - `templates()`: angular-eslint's rules for the templates, accessibility's
-    among them, and a `@default` on every `@switch`.
+    among them, and a `@default` on every `@switch`. A button `@fz/game-ui`'s
+    Pause or Sound fills (`fzBarPause`, `fzBarSound`) counts as saying what
+    it does, which the rule can't see from the app's template.
   - `tests()`: what the specs, and the helpers only they use, may do that
     other code may not: assert with `!`, stub with an empty function, let a
     mock's type be what it builds, and import the libraries' testing helpers.

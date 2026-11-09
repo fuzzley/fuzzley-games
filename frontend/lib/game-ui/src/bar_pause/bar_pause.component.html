@@ -1,0 +1,6 @@
+<fz-icon [name]="view().icon" />
+<!--
+  The bar's own stylesheet can't reach inside the button to hide its label,
+  as it does its other actions' below `desktop`, so the button hides it.
+-->
+<span [class.fz-visually-hidden]="!fitsLabel()">{{ view().label }}</span>

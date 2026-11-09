@@ -494,9 +494,10 @@ takes for the specs' helpers.
     their pilots, the one at the controls first, and the chain's multiplier
     while it counts; else the score and the ships alone, the ships as a
     number beside the pilot at the controls, as a score runs to six figures.
-    Pause and Sound keep the focus on the board when pressed with a mouse or
-    a finger. It hands the board back the focus as Resume goes on, and asks
-    the app for the sectors, How to play and the settings.
+    Pause and Sound are `@fz/game-ui`'s (`fzBarPause`, `fzBarSound`), which
+    keep the focus on the board when pressed with a mouse or a finger. It
+    hands the board back the focus as Resume goes on, and asks the app for
+    the sectors, How to play and the settings.
   - `sectors/` — the Sectors dialog: each sector as a button, with its name,
     its waves ("Waves 1 to 10", or "From wave 31" for Endless) and its best
     at the speed in play, or "Locked", and the run's own marked
