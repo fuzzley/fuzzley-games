@@ -101,6 +101,23 @@ describe("GameCanvasComponent", () => {
     return query(fixture, "[role=img]");
   }
 
+  /**
+   * Returns whether the loading badge stands aside, as it does for the
+   * canvas's own card and once the board isn't loading.
+   */
+  function isBadgeAside(): boolean {
+    return (
+      query(fixture, ".loading-badge")?.classList.contains("hidden") === true
+    );
+  }
+
+  /** Returns what each status region on the page says, trimmed. */
+  function statuses(): string[] {
+    return queryAll(fixture, "[role=status]").map((region) =>
+      region.textContent.trim(),
+    );
+  }
+
   describe("the Phaser host", () => {
     it("starts exactly one game", () => {
       expect(hosts().length).toBe(1);
@@ -197,8 +214,19 @@ describe("GameCanvasComponent", () => {
       expect(isLoading()).toBe(false);
     });
 
+    it("stands its badge aside once the scene is ready", async () => {
+      await boardReady();
+
+      // At once, rather than fading out, empty, with the overlay.
+      expect(isBadgeAside()).toBe(true);
+    });
+
     it("names the game being dealt", () => {
       expect(queryText(fixture, ".loading-text")).toContain("Loading Klondike");
+    });
+
+    it("shows its badge while the board is not yet slow", () => {
+      expect(isBadgeAside()).toBe(false);
     });
 
     it("draws a placeholder for every pile the board will have", () => {
@@ -313,10 +341,25 @@ describe("GameCanvasComponent", () => {
       expect(isLoading()).toBe(true);
     });
 
-    it("says it is still loading", () => {
-      expect(queryText(fixture, ".loading-text")).toContain(
-        "Still loading Klondike",
+    it("says so in the canvas's own card, raising no alert", () => {
+      expect(statuses()).toContain(
+        "Still loading the board. It can take a while on a slow connection.",
       );
+      expect(query(fixture, "[role=alert]")).toBeNull();
+    });
+
+    it("stands the loading badge aside for the card", () => {
+      expect(isBadgeAside()).toBe(true);
+    });
+
+    it("keeps the badge aside as the board turns ready", () => {
+      // Without `whenStable()`, which waits on the faked timers; the canvas
+      // settles as the scene says it is ready.
+      host().latest.ready();
+      fixture.detectChanges();
+
+      // It would otherwise show again for as long as the overlay fades.
+      expect(isBadgeAside()).toBe(true);
     });
   });
 
@@ -334,10 +377,17 @@ describe("GameCanvasComponent", () => {
       expect(isLoading()).toBe(false);
     });
 
-    it("says what went wrong", () => {
-      expect(queryText(fixture, ".loading-text")).toContain(
-        "The board couldn't be loaded",
+    it("says so in an alert, outside the overlay the canvas hides", () => {
+      // The canvas hides its placeholder once it has failed, so a word there
+      // would go unseen and unheard.
+      expect(queryText(fixture, "[role=alert]")).toContain(
+        "The board couldn't be drawn",
       );
+      expect(query(fixture, "[fzCanvasPlaceholder] [role=alert]")).toBeNull();
+    });
+
+    it("offers to reload the page", () => {
+      expect(queryText(fixture, "[role=alert] button")).toBe("Reload");
     });
   });
 });

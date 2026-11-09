@@ -10,7 +10,12 @@ import {
 import { CARD_DECKS } from "@/engine/render/deck/card_deck";
 import { chooseTableLayout } from "@/engine/render/layout/board_layouts";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
-import { PhaserCanvasComponent, type SceneSource } from "@fz/phaser/canvas";
+import {
+  CanvasCardsComponent,
+  PhaserCanvasComponent,
+  type SceneSource,
+  canvasCardOf,
+} from "@fz/phaser/canvas";
 import type { HostOptions } from "@fz/phaser/host";
 import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { makeBoardScene } from "../../provider/board_catalog";
@@ -29,11 +34,12 @@ declare global {
 
 /**
  * Shows the board of the game on the table, with a skeleton of the board's
- * own layout laid over it while it builds.
+ * own layout laid over it while it builds, and the canvas's own cards over
+ * it while it is slow to load or once it couldn't be drawn.
  */
 @Component({
   selector: "app-game-canvas",
-  imports: [PhaserCanvasComponent],
+  imports: [CanvasCardsComponent, PhaserCanvasComponent],
   templateUrl: "./game_canvas.component.html",
   styleUrl: "./game_canvas.component.scss",
 })
@@ -68,12 +74,13 @@ export class GameCanvasComponent {
     () => this.canvas().state() === "loading",
   );
 
-  /** Whether the board is taking long to load, as on a slow connection. */
-  protected readonly isSlow = computed(() => this.canvas().slow());
-
-  /** Whether the board couldn't be loaded, or was given up on. */
-  protected readonly hasInitializationFailed = computed(
-    () => this.canvas().state() === "failed",
+  /**
+   * Whether the loading badge stands aside: for the canvas's own card, which
+   * takes its place, or once the board isn't loading, so it never shows again
+   * as the overlay fades.
+   */
+  protected readonly isBadgeAside = computed(
+    () => !this.isInitializing() || canvasCardOf(this.canvas()) !== null,
   );
 
   /** Name of the game currently on the table. */

@@ -112,3 +112,35 @@ The review:
    specs" on the whole fence.
 2. _`games/AGENTS.md` picked `gameRules()` by a test the Phaser games pass
    too:_ taken. It now says "for one drawn without Phaser".
+
+### Step 6.1: the canvas's own cards in the Solitaire Collection
+
+Built as planned on `sl-sol`, as `0dd6975c`. F1 was confirmed by reading
+the compiled cascade: `fz-phaser-canvas:not([data-state=loading]) >
+[fzCanvasPlaceholder]` (0,2,1) sets `opacity: 0; visibility: hidden` on the
+overlay, which the game's `.loading-overlay[_ngcontent]` (0,2,0) never sets
+back, so the failed words were hidden from sight and from the accessibility
+tree. `<fz-canvas-cards>` now sits beside the canvas in a
+`board-card-layer()` inside the chrome's insets, a size container, stacked
+by a new `--z-board-cards` above the scrim. `isSlow`,
+`hasInitializationFailed` and their branches went; the spec finds the alert
+and the status by role and holds the alert outside the placeholder. 6875
+tests pass.
+
+Where it went other than planned:
+
+- The loading badge stands aside, hidden rather than removed so its status
+  region stays, while the canvas shows a card and once the board isn't
+  loading. The card and the badge are both centred on the board, so the
+  card would otherwise sit on the badge. On an ordinary deal the empty badge
+  now goes at once rather than fading with the scrim.
+
+The review:
+
+1. _The badge blinks back in as a slow board turns ready:_ taken. The
+   badge is aside whenever the board isn't loading too, so `.hidden` holds
+   while the overlay fades; two specs pin it, one after a slow load.
+2. _The phaser-core skill's list of games leaves out the Solitaire
+   Collection:_ taken. It says every game drawn with Phaser, the
+   solitaire-phaser skill names the cards, and the canvas stylesheet's top
+   comment counts the cards among what keeps inside the insets.

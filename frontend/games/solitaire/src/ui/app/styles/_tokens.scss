@@ -79,9 +79,12 @@
 
   // --- Stacking order ---
   // The full ladder, less the dialogs, which sit in the browser's top layer.
-  // `--z-chrome` keeps the header above the board's loading scrim.
+  // `--z-chrome` keeps the header above the board's loading scrim, and
+  // `--z-board-cards` the canvas's own cards, Still loading and couldn't be
+  // drawn, above the scrim and its badges.
   --z-loading: 10;
   --z-loading-badge: 12;
+  --z-board-cards: 14;
   --z-chrome: 200;
 }
 

@@ -22,9 +22,10 @@ Phaser at all.
 
 `GameCanvasComponent` (`src/ui/app/component/game_canvas/`) shows each board
 in `<fz-phaser-canvas>`, with a skeleton of the board's own piles as its
-placeholder. A board lives in a game that outlives it, so `BoardScene`
-follows nothing but through `@fz/phaser/scene`'s helpers, and loads a deck
-in `preload` only when none is resident.
+placeholder, and the canvas's own cards, `<fz-canvas-cards>`, over it while
+it is slow or once it couldn't be drawn. A board lives in a game that
+outlives it, so `BoardScene` follows nothing but through `@fz/phaser/scene`'s
+helpers, and loads a deck in `preload` only when none is resident.
 
 ## The card atlases
 

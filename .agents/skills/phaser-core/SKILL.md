@@ -32,10 +32,10 @@ beside a deck of controls for a touch screen.
   canvas until the scene is ready. It loads the host, and Phaser with it,
   with `import()` when it first shows a scene
   (`frontend/lib/phaser/src/canvas/`). `<fz-canvas-cards [canvas]="canvas">`,
-  placed in the board's own card layer, says both to the player in Snake,
-  Brick Breaker and Asteroid Breaker: Still loading, its words in a status
-  region it keeps in the page, the card itself hidden from assistive
-  technology, and couldn't be drawn, an alert with Reload.
+  placed in the board's own card layer, says both to the player in every
+  game drawn with Phaser: Still loading, its words in a status region it
+  keeps in the page, the card itself hidden from assistive technology, and
+  couldn't be drawn, an alert with Reload.
   `canvasCardOf(canvas)` says which shows, as the cards' `card` does, so the
   board shows none of its own meanwhile, read after `<fz-phaser-canvas>` in
   the board's template, since the canvas's state needs the scene it is
