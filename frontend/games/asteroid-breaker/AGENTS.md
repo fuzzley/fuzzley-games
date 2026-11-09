@@ -309,11 +309,12 @@ takes for the specs' helpers.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys held to fly, by `event.code` (`heldKeyOf()`), and reads what the
   run's keys ask from `@fz/core/run`'s `RUN_KEYS` (`commandOfKey()`);
-  `steering.ts` the `Steering` that turns the keys, the mouse and up to
-  three fingers (`MOST_FINGERS`) into each frame's `Steer`; `stick.ts` the
-  deck's `Stick`, which follows the one finger on it; and `deck.ts` where
-  the stick, Fire and Dash lie in the deck's zones (`deckOf()`) and which
-  button a finger presses (`buttonAt()`).
+  `steering.ts` the `Steering` that turns the keys held (`@fz/core/keys`'s
+  `HeldKeys`), the mouse and up to three fingers (`MOST_FINGERS`) into each
+  frame's `Steer`; `stick.ts` the deck's `Stick`, which follows the one
+  finger on it; and `deck.ts` where the stick, Fire and Dash lie in the
+  deck's zones (`deckOf()`) and which button a finger presses
+  (`buttonAt()`).
 - **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
   the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
   game's own for each kind of rock and for eight pilots, in light palettes

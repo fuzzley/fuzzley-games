@@ -179,6 +179,12 @@ out of the first download.
   shared by every scene. Capture only the keys the game uses, and ignore a
   held key and one pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
   `isShortcut()`), so the browser's shortcuts still work.
+- **Hold the keys a scene steers by with `HeldKeys`,** from
+  `@fz/core/keys`, made with what each `event.code` steers. Two keys held
+  for one way hold it until both are let go, a key held repeats nothing,
+  and `axis()` takes the way pressed last while both ways are held. The
+  scene hands it each key pressed and let go; reading it makes nothing, so
+  the steering reads it every frame, and its `letGo()` is safe to repeat.
 - **Let go as the player looks away.** A scene that holds a key or a
   finger while it is down lets go of it through `onPlayerAway()`, as the
   window loses the focus, the page is hidden or the focus leaves the

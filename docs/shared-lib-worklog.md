@@ -553,3 +553,50 @@ The review:
 3. _The solitaire-styles skill and AGENTS.md describe the toolkit as it
    was:_ taken. The skill forwards all three kinds, and AGENTS.md names
    `bar-actions` beside `@fz/style`'s toolkit.
+
+### Step 2.2: `HeldKeys` in `@fz/core/keys`, the keys held to steer
+
+Built as planned on `sl-play`. `@fz/core/keys` gains `HeldKeys`, made with
+what each `event.code` steers and built on Asteroid Breaker's version. Two
+keys held for one thing keep it held until both are let go, a key that
+repeats holds nothing new, and `axis()` takes the way pressed last while
+both ways are held. Reading it makes nothing, so the steering reads it every
+frame. Both breakers' steering holds its keys with it: Brick Breaker's two
+booleans and Asteroid Breaker's counts, code set and last turn all go. That
+fixes F2: Brick Breaker's paddle now keeps going when ArrowLeft is let go
+while KeyA is still held. Brick Breaker's scene no longer maps codes itself.
+Asteroid Breaker steers exactly as before. Core keeps 100% coverage. Tests
+pass: core 259, Brick Breaker 1831 and 180, Asteroid Breaker 3625 and 1620.
+
+Where it went other than planned:
+
+- `press()` returns whether it holds a key afresh. Asteroid Breaker needs
+  that to take the heading back from the mouse only on a fresh turn press,
+  and `isHeld()` can't tell it when another key for the turn is held.
+- Brick Breaker's `Steering.press()` and `release()` take `event.code`.
+  `press()` returns whether the key pushes the paddle, as Asteroid Breaker's
+  says whether a key flies the ship.
+- Two more changes in Brick Breaker come with F2's fix. A keyup of a code
+  the steering never held (KeyA after Ctrl+A, say) no longer stops the
+  paddle. A repeat no longer sets which way was pressed last; a browser
+  repeats only the key pressed last, so play can't show that change.
+- The fuzzley-ui skill's `@fz/core` row has no room left in its column. A
+  sentence after the table names the run's stages and keys (2.1) and the
+  held keys, so the table isn't re-padded.
+
+The review:
+
+1. _`frontend/games/AGENTS.md`'s list of core's helpers and the fuzzley-ui
+   `@fz/core` row lacked the held keys, and the row lacked 2.1's run words:_
+   taken. The list gains the same phrase as core's description. The row
+   would need one column more, so the skill names both after the table, as
+   the coordinator asked.
+2. _No spec released an unheld key for a way still held:_ taken. Core's
+   spec now releases KeyA, ArrowRight and KeyQ in turn while ArrowLeft is
+   held, and expects the way to stay -1. Brick Breaker's gains "keep pushing
+   at the release of a key not held".
+3. _`heldSince()` named something other than what it returns:_ taken. It
+   is `lastPressOf()`.
+4. _The spec wrote `HeldKeys<Way>`, and the let-go spec pressed inside its
+   assertions:_ taken. The spec builds it as a game does, with the type
+   inferred, and "holds a key afresh after a let-go" is a case of its own.

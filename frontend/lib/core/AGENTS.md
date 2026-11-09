@@ -101,7 +101,12 @@ Each file is an entry point of its own, imported by name, such as
   or Meta held, as the browser's and the system's shortcuts are, which a
   game leaves to them unless it takes one as its own, in its scene and in
   its shell alike. It takes the `ShortcutModifiers` a `KeyboardEvent`
-  holds, so it needs no DOM.
+  holds, so it needs no DOM. `HeldKeys`, made with what each key steers by
+  `event.code`, holds the keys a game steers by: two held for one thing
+  hold it until both are let go, a key held repeats nothing (`press()`
+  says whether it holds a key afresh), and `axis()` takes the way pressed
+  last while both ways are held. Reading it makes nothing, so a scene reads
+  it every frame; the breakers' steering holds its keys with it.
 
 Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`, and
 `@fz/game-ui`'s run lifecycle the run's stages and commands. The Solitaire

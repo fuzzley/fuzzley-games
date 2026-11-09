@@ -53,23 +53,27 @@ function mouse(x: number, changes: Partial<PointerView> = {}): PointerView {
 
 describe("Steering's keys", () => {
   it.each([
-    ["left", -1],
-    ["right", 1],
-  ] as const)("push the paddle %s while it is held", (key, push) => {
+    ["ArrowLeft", -1],
+    ["KeyA", -1],
+    ["ArrowRight", 1],
+    ["KeyD", 1],
+  ] as const)("push the paddle by %s while it is held", (code, push) => {
     const steering = new Steering(metricsAt());
-    steering.press(key);
+
+    steering.press(code);
 
     expect(steering.read().push).toBe(push);
   });
 
   it.each([
-    ["left", "right", 1],
-    ["right", "left", -1],
+    ["ArrowLeft", "ArrowRight", 1],
+    ["ArrowRight", "ArrowLeft", -1],
   ] as const)(
     "push it the way of the key held last, %s then %s, while both are",
     (first, last, push) => {
       const steering = new Steering(metricsAt());
       steering.press(first);
+
       steering.press(last);
 
       expect(steering.read().push).toBe(push);
@@ -77,33 +81,78 @@ describe("Steering's keys", () => {
   );
 
   it.each([
-    ["right", -1],
-    ["left", 1],
+    ["ArrowRight", -1],
+    ["ArrowLeft", 1],
   ] as const)(
     "push it the way of the key still held, once %s is let go",
     (letGo, push) => {
       const steering = new Steering(metricsAt());
-      steering.press("left");
-      steering.press("right");
+      steering.press("ArrowLeft");
+      steering.press("ArrowRight");
+
       steering.release(letGo);
 
       expect(steering.read().push).toBe(push);
     },
   );
 
+  it("keep pushing while another key held pushes the same way", () => {
+    const steering = new Steering(metricsAt());
+    steering.press("ArrowLeft");
+    steering.press("KeyA");
+
+    steering.release("ArrowLeft");
+
+    expect(steering.read().push).toBe(-1);
+  });
+
+  it("keep pushing at the release of a key not held", () => {
+    const steering = new Steering(metricsAt());
+    steering.press("ArrowLeft");
+
+    steering.release("KeyA");
+
+    expect(steering.read().push).toBe(-1);
+  });
+
   it("push it nowhere once let go", () => {
     const steering = new Steering(metricsAt());
-    steering.press("right");
-    steering.release("right");
+    steering.press("ArrowRight");
+
+    steering.release("ArrowRight");
 
     expect(steering.read().push).toBe(0);
   });
 
-  it.each(["left", "right"] as const)(
+  it("push it nowhere for a key that pushes nothing", () => {
+    const steering = new Steering(metricsAt());
+
+    steering.press("Space");
+
+    expect(steering.read().push).toBe(0);
+  });
+
+  it.each([
+    ["Left, which pushes", "ArrowLeft", true],
+    ["Space, which launches", "Space", false],
+  ])("say whether a key pushes the paddle: %s", (_, code, pushes) => {
+    const steering = new Steering(metricsAt());
+
+    expect(steering.press(code)).toBe(pushes);
+  });
+
+  it("say a held key that repeats pushes the paddle still", () => {
+    const steering = new Steering(metricsAt());
+    steering.press("ArrowLeft");
+
+    expect(steering.press("ArrowLeft")).toBe(true);
+  });
+
+  it.each(["ArrowLeft", "ArrowRight"])(
     "push it nowhere once the steering lets go of %s",
-    (key) => {
+    (code) => {
       const steering = new Steering(metricsAt());
-      steering.press(key);
+      steering.press(code);
 
       steering.letGo();
 
@@ -320,7 +369,7 @@ describe("Steering's taps", () => {
 describe("Steering", () => {
   it("forgets the keys held and the finger pressed as it lets go", () => {
     const steering = new Steering(metricsAt());
-    steering.press("left");
+    steering.press("ArrowLeft");
     steering.pointerDown(finger(20), "drag");
     steering.pointerMove(finger(23));
 
