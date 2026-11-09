@@ -289,9 +289,9 @@ takes for the specs' helpers.
   from the last it played, and the flourishes an event calls for only where
   motion is welcome. `atlas.ts` bakes the view's art with `@fz/phaser`'s
   `bakeAtlas()` and `atlasFrameOf()`, again on a new palette or a new unit,
-  and at each bake the scene hands the shell what makes How to play's
-  pictures from the atlas (`onPictures()`), which encodes them with
-  `@fz/phaser/scene`'s `picturesOf()` only as the board asks for them, as
+  and at each bake the scene hands the shell (`onPictures()`) what
+  `@fz/phaser/scene`'s `picturesWhenAsked()` returns, which encodes How to
+  play's pictures from the atlas only as the board first asks for them, as
   How to play opens, and keeps them until the next bake.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the

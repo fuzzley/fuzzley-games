@@ -399,10 +399,10 @@ takes for the specs' helpers.
   the scene zooms the rest of the way, so a window dragged to another size
   bakes it once a device pixel rather than once a frame, and the deck's,
   white for the scene to tint, again on a new pixel ratio. At each bake the
-  scene hands the shell what makes How to play's pictures from the field's
-  (`onPictures()`), which encodes them with `@fz/phaser/scene`'s
-  `picturesOf()` only as the board asks for them, as How to play opens, and
-  keeps them until the next bake. `PointsAtlas` (`points_atlas.ts`)
+  scene hands the shell (`onPictures()`) what `@fz/phaser/scene`'s
+  `picturesWhenAsked()` returns, which encodes How to play's pictures from
+  the field's only as the board first asks for them, as How to play opens,
+  and keeps them until the next bake. `PointsAtlas` (`points_atlas.ts`)
   letters the points into an atlas of their own,
   written with a canvas's own `fillText()` and `strokeText()`, at the
   field's whole unit past the field's cap, so they stay sharp on a large

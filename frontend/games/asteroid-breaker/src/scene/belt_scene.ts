@@ -8,7 +8,7 @@ import {
   onKeyDown,
   onKeyUp,
   onPlayerAway,
-  picturesOf,
+  picturesWhenAsked,
   pixelRatioOf,
   retakeFrames,
   uniqueSceneKey,
@@ -199,8 +199,6 @@ export class BeltScene extends Scene {
   private deckBaked = 0;
   /** The palette the atlas was last baked in. */
   private painted!: BeltPalette;
-  /** How to play's pictures of the atlas as last baked, once asked for. */
-  private pictures: Pictures | null = null;
   /** The field the scene draws, which a new wave replaces. */
   private shownField!: FieldView;
   /** The serial of the last event of the field the scene played. */
@@ -477,8 +475,8 @@ export class BeltScene extends Scene {
 
   /**
    * Bakes the field's atlas at its scale, in the palette, and the deck's on a
-   * new pixel ratio, dropping How to play's pictures of the last, and hands
-   * the shell what pictures the new one.
+   * new pixel ratio, and hands the shell what pictures the field's for How
+   * to play.
    */
   private bake(): void {
     this.baked = bakedScale(this.metrics);
@@ -487,18 +485,7 @@ export class BeltScene extends Scene {
       this.deckBaked = this.metrics.pixelRatio;
       bakeDeckAtlas(this, this.deckBaked);
     }
-    this.pictures = null;
-    // A new function each bake, so the shell can tell the pictures changed.
-    this.options.onPictures(() => this.encodePictures());
-  }
-
-  /**
-   * Returns How to play's pictures of the field's atlas, encoded as they are
-   * first asked for after each bake, and kept until the next.
-   */
-  private encodePictures(): Pictures {
-    this.pictures ??= picturesOf(this, ATLAS, PICTURE_FRAMES);
-    return this.pictures;
+    this.options.onPictures(picturesWhenAsked(this, ATLAS, PICTURE_FRAMES));
   }
 
   /** Bakes the atlases again, and has every image take up its frame anew. */

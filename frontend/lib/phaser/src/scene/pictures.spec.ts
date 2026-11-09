@@ -1,7 +1,7 @@
 import type { HostedScene } from "../host";
 import { type SceneRun, runBareScene } from "../testing";
 import { type AtlasFrame, bakeAtlas } from "./bake_atlas";
-import { picturesOf } from "./pictures";
+import { picturesOf, picturesWhenAsked } from "./pictures";
 
 /** Returns a frame of a size that draws nothing. */
 function frame(name: string, width: number, height: number): AtlasFrame {
@@ -60,5 +60,48 @@ describe("picturesOf", () => {
     const pictures = picturesOf(run.scene, "atlas", { comet: "comet" });
 
     expect(pictures).toEqual({ comet: pictureOfSize(45, 18) });
+  });
+});
+
+describe("picturesWhenAsked", () => {
+  let run: SceneRun<HostedScene> | null = null;
+
+  afterEach(() => {
+    run?.destroy();
+    run = null;
+    vi.restoreAllMocks();
+  });
+
+  it("encodes nothing until it is asked", async () => {
+    run = await runBareScene();
+    bakeAtlas(run.scene, "atlas", [frame("comet", 30, 12)]);
+    const encode = vi.spyOn(run.scene.textures, "getBase64");
+
+    picturesWhenAsked(run.scene, "atlas", { comet: "comet" });
+
+    expect(encode).not.toHaveBeenCalled();
+  });
+
+  it("pictures the frames as the atlas holds them when it is first asked", async () => {
+    run = await runBareScene();
+    bakeAtlas(run.scene, "atlas", [frame("comet", 30, 12)]);
+    const ask = picturesWhenAsked(run.scene, "atlas", { comet: "comet" });
+    bakeAtlas(run.scene, "atlas", [frame("comet", 45, 18)]);
+
+    const pictures = ask();
+
+    expect(pictures).toEqual({ comet: pictureOfSize(45, 18) });
+  });
+
+  it("returns the pictures it first encoded each time it is asked again", async () => {
+    run = await runBareScene();
+    bakeAtlas(run.scene, "atlas", [frame("comet", 30, 12)]);
+    const ask = picturesWhenAsked(run.scene, "atlas", { comet: "comet" });
+    const first = ask();
+    bakeAtlas(run.scene, "atlas", [frame("comet", 45, 18)]);
+
+    const again = ask();
+
+    expect(again).toBe(first);
   });
 });
