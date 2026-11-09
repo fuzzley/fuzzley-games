@@ -34,3 +34,17 @@ merged.
   with `yarn verify`, `yarn check:layout` and the touched games played.
 
 ## The steps
+
+### Step F7: Sudoku's list-in-words helper renamed `inWords`
+
+Built as planned on `sl-shell`. Sudoku's private `listOf` in
+`src/rules/describe.ts`, which writes "1, 3 and 8", is now `inWords`, so it
+no longer shadows `@fz/core/json`'s `listOf`, which `saved_grid.ts` beside it
+imports to read a stored list. That is the declaration and its five callers,
+with the body and the words unchanged. Sudoku's 592 tests pass.
+
+The review:
+
+1. _No findings._ The reviewer checked that the rename is complete, that the
+   words stay pinned by `describe.spec.ts`, and that no doc or skill named
+   the old helper.
