@@ -309,11 +309,13 @@ browser, through a game's screenshots and its `check:layout`.
   two keydowns in a row from user-event in one millisecond, as under fake
   timers, reach the scene as one.
 - **An error a handler throws** while Phaser hears a browser's event
-  reaches the window's `error` event, not the spec. jsdom reads its
-  stack, and the first stack through Phaser in a file is mapped through
-  the source map Vitest makes of Phaser's whole bundle, half a second
-  alone and past a spec's timeout under a busy suite, so a spec that
-  expects one sets `Error.stackTraceLimit` to 0 while it acts.
+  reaches the window's `error` event, not the spec, so a spec that
+  expects one listens for it there while it acts.
+- **The specs load Phaser's CommonJS build,** through `@fz/dev`'s
+  `phaserFromCommonJs()`, rather than the ESM build the games ship, which
+  Vitest would run through Vite. Only the CommonJS build sets a global
+  `Phaser`, so code imports Phaser from `phaser` and never reads the
+  global, as ESLint checks.
 - **Code that takes a game,** such as the host and the scaler, is checked
   on a real one: `@fz/phaser`'s own specs start one with its
   `src/testing/start_game.ts`, so Phaser's own writes to the canvas and

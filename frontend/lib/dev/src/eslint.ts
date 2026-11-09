@@ -75,12 +75,22 @@ export interface PhaserGameLayers {
   readonly heldAsRules?: HeldAsRules;
 }
 
+// The global only Phaser's CommonJS build sets, which the specs load
+// (`phaserFromCommonJs()` in src/vitest.ts), and its ESM build, which the
+// games ship, doesn't; Phaser's types declare it all the same.
+const PHASER_GLOBAL = {
+  name: "Phaser",
+  message:
+    'Import Phaser from "phaser". Only the build the specs load sets a global Phaser, so code that reads it passes its specs and throws in the game.',
+};
+
 /**
  * Returns the rules for a workspace's TypeScript: typescript-eslint's strict
  * and stylistic type-checked rules, with the repository's own on top.
  *
  * It fences off every library's testing entry point, which only the files
- * {@link tests} names may import. A workspace's own import fences use
+ * {@link tests} names may import, and the global `Phaser`, which only the
+ * build of Phaser the specs load sets. A workspace's own import fences use
  * `@typescript-eslint/no-restricted-imports`, so that they add to this one
  * rather than replace it.
  */
@@ -135,6 +145,11 @@ export function typescript({ files, root }: TypeScriptFiles): Config[] {
       "@typescript-eslint/switch-exhaustiveness-check": [
         "error",
         { considerDefaultExhaustiveForUnions: true },
+      ],
+      // Read through `window` or `globalThis` too, as Phaser's types let it.
+      "no-restricted-globals": [
+        "error",
+        { globals: [PHASER_GLOBAL], checkGlobalObject: true },
       ],
       // A library's testing helpers stand in for what an app really runs.
       "no-restricted-imports": [
@@ -481,8 +496,10 @@ function deterministic(files: readonly string[]): Config {
         { object: "Math", property: "imul", message: MIXED_SEED },
         { object: "Date", property: "now", message: CLOCK },
       ],
+      // Phaser's again, since this list replaces typescript()'s.
       "no-restricted-globals": [
         "error",
+        PHASER_GLOBAL,
         ...NONDETERMINISTIC_GLOBALS.flatMap(({ names, message }) =>
           names.map((name) => ({ name, message })),
         ),

@@ -37,6 +37,14 @@ function workspace(root: string): Config[] {
   ];
 }
 
+/** Phaser's global namespace, as its types declare it, whichever build runs. */
+const PHASER_TYPES =
+  "declare namespace Phaser {\n  const VERSION: string;\n}\n" +
+  'declare module "phaser" {\n  export = Phaser;\n}\n';
+
+/** A module that reads Phaser's version from the global, importing nothing. */
+const READS_GLOBAL_PHASER = "export const version = Phaser.VERSION;\n";
+
 /** The rule each layer's fence is, which adds to the testing fence's. */
 const FENCE = "@typescript-eslint/no-restricted-imports";
 
@@ -116,6 +124,34 @@ describe("typescript", () => {
     const problems = await lint({ "src/app.ts": 'import "@fz/ui/testing";\n' });
 
     expect(problems["src/app.ts"]).toContain("no-restricted-imports");
+  });
+
+  it("keeps code off the global Phaser, which only the specs' build of it sets", async () => {
+    const problems = await lint({
+      "src/phaser.d.ts": PHASER_TYPES,
+      "src/scene.ts": READS_GLOBAL_PHASER,
+    });
+
+    expect(problems["src/scene.ts"]).toEqual(["no-restricted-globals"]);
+  });
+
+  it("keeps code off the global Phaser read through globalThis", async () => {
+    const problems = await lint({
+      "src/phaser.d.ts": PHASER_TYPES,
+      "src/scene.ts": "export const version = globalThis.Phaser.VERSION;\n",
+    });
+
+    expect(problems["src/scene.ts"]).toEqual(["no-restricted-globals"]);
+  });
+
+  it("lets code read the Phaser it imports", async () => {
+    const problems = await lint({
+      "src/phaser.d.ts": PHASER_TYPES,
+      "src/scene.ts":
+        'import * as Phaser from "phaser";\n\n' + READS_GLOBAL_PHASER,
+    });
+
+    expect(problems["src/scene.ts"]).toEqual([]);
   });
 
   it("checks types, as in a template literal", async () => {
@@ -443,6 +479,18 @@ describe("phaserGameLayers", () => {
       "src/rules/run.ts": [rule],
       "src/view/paint.ts": [rule],
     });
+  });
+
+  it("keeps the rules off the global Phaser too, though their list of globals replaces the one every file has", async () => {
+    const problems = await lint(
+      {
+        "src/phaser.d.ts": PHASER_TYPES,
+        "src/rules/run.ts": READS_GLOBAL_PHASER,
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual(["no-restricted-globals"]);
   });
 
   it("lets the rules make a date from a time they are handed", async () => {

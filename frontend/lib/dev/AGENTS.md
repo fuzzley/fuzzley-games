@@ -15,9 +15,12 @@ too. Paths are relative to `frontend/lib/dev/`.
     rules, with the repository's own on top (explicit return types on what a
     module exports, `import type` for type-only imports, `@deprecated` APIs
     an error, and a `switch` over a union with a case for every member or a
-    `default`), and the fence around every library's testing entry point,
-    such as `@fz/ui/testing`. It needs the workspace's folder (`root`), whose
-    `tsconfig.json` its project service starts from.
+    `default`), the fence around every library's testing entry point, such
+    as `@fz/ui/testing`, and the global `Phaser` refused, read bare or
+    through `window` or `globalThis`: Phaser's types declare it, but only
+    the CommonJS build the specs load sets it, so code reading it would pass
+    its specs and throw in the game. It needs the workspace's folder
+    (`root`), whose `tsconfig.json` its project service starts from.
   - `angular()`: angular-eslint's rules for the TypeScript, and the prefix
     every component and directive selector carries (`fz` in a library,
     `app` in an app).
@@ -118,7 +121,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   as the site's. `angularSpecs()` names Analog's pool, `vmThreads`: the
   plugin sets it in a config hook, after Vitest has taken the `test` options
   a project sharing the config's Vite server inherits, so such a project, as
-  the site's `app` is, would run in `forks`.
+  the site's `app` is, would run in `forks`. `angularTests()` loads Phaser
+  from its CommonJS build, in `dom` where it has projects, through
+  `phaserFromCommonJs()`, which the Solitaire Collection's config takes too:
+  Phaser's ESM build is a `.js` file in a package Node reads as CommonJS, so
+  Vitest would run the whole bundle through Vite, and every spec file, each
+  in a VM context of its own, evaluate what that makes, several times the
+  bundle's size with its source map: enough, on CI, to time out the first
+  spec in a file that starts a game. Vitest compiles the CommonJS build
+  once and evaluates it in each file, with no source map to read.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
   build from `/play/<slug>/`, the Angular plugins, `@fz/style`'s
@@ -402,7 +413,9 @@ too. Paths are relative to `frontend/lib/dev/`.
 - **A workspace's own import fences use
   `@typescript-eslint/no-restricted-imports`**, so that they add to the
   testing fence, which uses ESLint's own `no-restricted-imports`, rather
-  than replace it.
+  than replace it. A block of its own that refuses globals replaces
+  `typescript()`'s `no-restricted-globals` in its files, so it lists the
+  global `Phaser` again, as `deterministic()` does.
 - **A game drawn with Phaser takes its layers' fences from
   `phaserGameLayers()`**, rather than writing them again, so no game's
   fence goes stale or is tightened alone. What is its own goes in the
@@ -452,7 +465,8 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   into a folder of their own with the blocks, so a block that stops catching
   what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`
   check the configs the presets return, and the first has Vitest itself
-  place specs written into a folder of their own in a game's projects;
+  place specs written into a folder of their own in a game's projects, and
+  Vite resolve Phaser from a package written into one;
   `src/game_manifest.spec.ts` builds games with Vite in a folder of their
   own and reads the manifests they write; `src/screenshots.spec.ts` writes
   the site's images from a capture it draws, works out thumbnails' regions,

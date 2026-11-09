@@ -4,6 +4,7 @@
 //     export default defineConfig(angularTests({ thresholds: { ... } }));
 
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import angular, { type PluginOptions } from "@analogjs/vite-plugin-angular";
 import { type Plugin, normalizePath } from "vite";
@@ -118,8 +119,9 @@ export function nodeSpecs(
 
 /**
  * Returns the config of a workspace whose specs test Angular code, with
- * Analog's plugin to compile it, in one project or in those it names.
- * Coverage leaves out `src/test-setup.ts`.
+ * Analog's plugin to compile it and Phaser loaded from its CommonJS build,
+ * in one project or in those it names. Coverage leaves out
+ * `src/test-setup.ts`.
  */
 export function angularTests({
   exclude = [],
@@ -132,7 +134,7 @@ export function angularTests({
   });
   if (projects === undefined) {
     return {
-      plugins: [angular()],
+      plugins: [angular(), phaserFromCommonJs()],
       test: { ...angularSpecs(), coverage: measured },
     };
   }
@@ -142,6 +144,39 @@ export function angularTests({
 /** Returns the config of a workspace whose specs run in Node. */
 export function nodeTests(settings: Coverage): ViteUserConfig {
   return { test: { ...nodeSpecs(), coverage: coverage(settings) } };
+}
+
+/**
+ * Resolves `phaser`, ahead of Vite, to the build Node's `require()` loads
+ * from the file that imports it: Phaser's CommonJS build, which Vitest loads
+ * as it is, rather than through Vite.
+ *
+ * Its ESM build is a `.js` file in a package Node reads as CommonJS, so
+ * Vitest would run the whole bundle through Vite, and every spec file
+ * evaluate what that makes, several times the bundle's size with its source
+ * map: enough, on CI, to time out the first spec in a file that starts a
+ * game.
+ */
+export function phaserFromCommonJs(): Plugin {
+  return {
+    name: "phaser-from-commonjs",
+    enforce: "pre",
+    resolveId: {
+      filter: { id: /^phaser$/ },
+      handler(_id, importer) {
+        if (importer === undefined) {
+          return null;
+        }
+        try {
+          return createRequire(importer).resolve("phaser");
+        } catch {
+          // Not a file Node can resolve from, or no Phaser to be found
+          // there: Vite resolves it as it would have.
+          return null;
+        }
+      },
+    },
+  };
 }
 
 /**
@@ -161,6 +196,7 @@ function angularProjects({
       extends: false,
       plugins: [
         angular(compilers.analog),
+        phaserFromCommonJs(),
         forwardAddedAndRemoved(),
         keyedBy(
           [
