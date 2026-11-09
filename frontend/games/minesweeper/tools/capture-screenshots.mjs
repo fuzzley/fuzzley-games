@@ -18,20 +18,19 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { withPage } from "@fz/dev/chrome";
 import {
+  SCREENSHOT_VIEWPORT,
   keepShot,
   runScreenshotScript,
   setUpPage,
   settled,
+  siteImagesFolder,
 } from "@fz/dev/screenshots";
 
 /** @import { Page } from "@fz/dev/chrome" */
 /** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/minesweeper");
-
-/** The page size the screenshot is taken at, in CSS pixels. */
-const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
+const SCREENSHOT_DIR = siteImagesFolder(ROOT, "minesweeper");
 
 /** The palette the screenshot is taken in. */
 const THEME = "casino";
@@ -240,7 +239,9 @@ const SCRIPT = {
   port: 9001,
   capture: async (devtools, { url }, printer) =>
     keepShot(
-      await withPage(devtools, VIEWPORT, (page) => capture(page, url)),
+      await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
+        capture(page, url),
+      ),
       SCREENSHOT_DIR,
       printer,
     ),

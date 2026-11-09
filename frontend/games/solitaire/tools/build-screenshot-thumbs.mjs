@@ -15,14 +15,17 @@ import sharp from "sharp";
 import { readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { writeImage, writeSiteImages } from "@fz/dev/screenshots";
+import {
+  siteImagesFolder,
+  writeImage,
+  writeSiteImages,
+} from "@fz/dev/screenshots";
 
 /** @import { Region, ResizeOptions } from "sharp" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_DIR = join(ROOT, "docs/screenshots");
 const SOURCE = "overview.png";
-const TARGET_DIR = join(ROOT, "public/docs/screenshots");
 
 /**
  * The rules page's image, twice the 800 CSS px it is shown at, so that it
@@ -111,7 +114,7 @@ async function findBoard(source) {
  */
 async function shrink(id) {
   const source = join(SOURCE_DIR, id, SOURCE);
-  const targetDir = join(TARGET_DIR, id);
+  const targetDir = siteImagesFolder(ROOT, id);
   const { region, felt } = await findBoard(source);
   // Contained rather than cropped, since a wide board runs edge to edge; any
   // strip left over goes below it, as more felt.

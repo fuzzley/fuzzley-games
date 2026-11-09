@@ -167,12 +167,12 @@ describe("describePhaserPage", () => {
     expect(await described()).toEqual(LAID_OUT);
   });
 
-  it("looks at the page once the wait it is given is over", async () => {
-    const shown = describePhaserPage(BOARD, { waitMs: 1500 });
-    await vi.advanceTimersByTimeAsync(1000);
+  it("looks at the page once 800 ms are over", async () => {
+    const shown = describePhaserPage(BOARD);
+    await vi.advanceTimersByTimeAsync(799);
 
     layOut();
-    await vi.advanceTimersByTimeAsync(500);
+    await vi.advanceTimersByTimeAsync(1);
 
     expect(await shown).toEqual(LAID_OUT);
   });

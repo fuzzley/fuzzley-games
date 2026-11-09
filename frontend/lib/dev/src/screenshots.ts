@@ -10,6 +10,12 @@ import sharp from "sharp";
 import type { Region, ResizeOptions } from "sharp";
 import { THEME_STORAGE_KEY } from "@fz/style/themes";
 import {
+  PHASER_CANVAS_SETTLED,
+  type PhaserBoard,
+  describePhaserPage,
+  readRect,
+} from "./board_page.ts";
+import {
   type DevToolsConnection,
   type Page,
   type Viewport,
@@ -29,13 +35,7 @@ import {
 } from "./script.ts";
 
 export type { Region } from "sharp";
-export {
-  PHASER_CANVAS_READY,
-  PHASER_CANVAS_SETTLED,
-  describePhaserPage,
-  readRect,
-} from "./board_page.ts";
-export type { PhaserPageState, PhaserPageWait } from "./board_page.ts";
+export { PHASER_CANVAS_READY } from "./board_page.ts";
 export type { PageSetup } from "./screenshot_page.ts";
 
 /** An image to write: its file's name and its size in pixels. */
@@ -58,6 +58,32 @@ export const SITE_IMAGES = {
 
 /** The WebP quality the site's images are written at. */
 export const SITE_IMAGE_QUALITY = 80;
+
+/**
+ * The page a game's capture script takes the site's screenshots at: 1280 ×
+ * 720 CSS px, at twice the pixels, so the preview's capture is its 2560 ×
+ * 1440. The Solitaire Collection shoots its rules page at its own size.
+ */
+export const SCREENSHOT_VIEWPORT: Viewport = {
+  width: 1280,
+  height: 720,
+  deviceScaleFactor: 2,
+};
+
+/** The page a thumbnail keeps around the box it shows, in CSS px, unless told otherwise. */
+const THUMB_MARGIN = 24;
+
+/**
+ * Returns the folder a game's images for the site are written to: under its
+ * workspace's `public/`, which its build copies, at `docs/screenshots/<id>/`,
+ * where the site's catalog looks for them.
+ *
+ * @param root The game's workspace folder.
+ * @param id The game's id in the site's catalog, such as "snake".
+ */
+export function siteImagesFolder(root: string, id: string): string {
+  return join(root, "public/docs/screenshots", id);
+}
 
 /** Says how an image is made from a capture. */
 export interface ImageOptions {
@@ -126,12 +152,12 @@ export async function writeSiteImages(
  *
  * @param box The box, in CSS pixels.
  * @param viewport The page the capture was taken of.
- * @param margin The page kept around the box, in CSS pixels.
+ * @param margin The page kept around the box, in CSS pixels: 24 unless given.
  */
 export function thumbRegionAround(
   box: Region,
   viewport: Viewport,
-  margin: number,
+  margin = THUMB_MARGIN,
 ): Region {
   const { width: thumbWidth, height: thumbHeight } = SITE_IMAGES.thumb;
   const scale = viewport.deviceScaleFactor;
@@ -187,6 +213,35 @@ export function settled(
   timeoutMs = DRAW_TIMEOUT_MS,
 ): Promise<boolean> {
   return page.evaluate(settle, selector, timeoutMs);
+}
+
+/**
+ * Waits for the page of a game drawn with Phaser to draw the run it took up,
+ * and returns where its board lies, or why it can't be shot: the board
+ * didn't draw, the run isn't paused as one taken up is, the score isn't the
+ * run's, or the board doesn't say where it lies.
+ *
+ * @param board The board, as the layout check describes it; the problems
+ *   call it by its name, such as "field".
+ * @param score The run's score, as the game bar reads it.
+ */
+export async function takenUpBoard(
+  page: Page,
+  board: Pick<PhaserBoard, "name" | "element" | "drawnAt">,
+  score: string,
+): Promise<Region | Missed> {
+  await settled(page, PHASER_CANVAS_SETTLED);
+  const shown = await page.evaluateWith([readRect], describePhaserPage, board);
+  if (shown.state !== "ready") {
+    return { problem: `the ${board.name} did not draw` };
+  }
+  if (shown.outcome !== "paused") {
+    return { problem: "the run was not taken up" };
+  }
+  if (shown.score !== score) {
+    return { problem: `the score reads ${shown.score}` };
+  }
+  return shown.board ?? { problem: `the ${board.name} is missing` };
 }
 
 /**

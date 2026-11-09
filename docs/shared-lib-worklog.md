@@ -1316,3 +1316,57 @@ The review:
 3. _`Viewport`'s doc still spoke of a field of cells, and `cssRectOf()`'s
    doc was one long line:_ taken. It reads "Describes a canvas a field is
    laid out on", and `cssRectOf()`'s doc is wrapped.
+
+### Step 5.8: the screenshot defaults and `takenUpBoard()` in `@fz/dev/screenshots`
+
+Built as planned on `sl-sol`, as `c14c4ae6`, taken over from `sl-tools`.
+`SCREENSHOT_VIEWPORT` (1280 × 720 at 2×) replaces the viewport in all five
+capture scripts, `thumbRegionAround()`'s default 24 px margin the margin in
+four, and `siteImagesFolder(root, id)` the folder in five. In Snake and the
+two breakers, `takenUpBoard(page, board, score)` replaces the settle,
+describe and check sequence, and returns the board's region or the same
+problem as before. The scripts are 38 lines shorter between them. `@fz/dev`
+passes 475 tests, nine of them new. The six games lint and type-check, the
+breakers' script specs pass, and each script loads with `--help`. Running
+`yarn capture:screenshots` for the five games needs the integration branch.
+
+Where it went other than planned:
+
+- `takenUpBoard()` names the board in its problems, so "the field did not
+  draw" stays the breakers' and "the board did not draw" Snake's. Each
+  script's board gains a `name`, and the breakers' constant becomes `FIELD`.
+- It takes the score as a plain string rather than the plan's `{ score }`,
+  after review: the breakers pass `run.score` and Snake its eaten count.
+- The Solitaire Collection's `build:thumbs` writes to `siteImagesFolder()`
+  too. Its capture keeps its own 1440 × 810 page.
+- `@fz/dev/screenshots` no longer re-exports `describePhaserPage`,
+  `readRect`, `PHASER_CANVAS_SETTLED` or their types. No script uses them
+  now, and `@fz/dev/board-page` still exports them for the specs.
+- After review, `describePhaserPage()` always waits 800 ms, since
+  `takenUpBoard()` was its only caller and passed no other wait.
+
+The review:
+
+1. _AGENTS.md and the constant's doc said every game captures at
+   `SCREENSHOT_VIEWPORT`, though the Solitaire Collection doesn't:_ taken.
+   AGENTS.md says "Each game but the Solitaire Collection" captures at it,
+   that the Solitaire Collection shoots its rules page at 1440 × 810 and
+   makes the images with `build:thumbs`, and that each writes them to
+   `siteImagesFolder()`. The constant's doc says "a game's capture script"
+   and names the exception.
+2. _No spec checked the board's name in the problems:_ taken. The spec's
+   board is now `pitch`, a name no game uses, and the two named rows expect
+   "the pitch did not draw" and "the pitch is missing".
+3. _The `SCREENSHOT_VIEWPORT` spec checked only its product, and `PAGE`
+   copied the constant:_ taken. `PAGE` is gone and the region cases pass
+   `SCREENSHOT_VIEWPORT`, so their exact regions pin 1280 × 720 at 2×. The
+   product spec stays as the reason for the size.
+4. _`@param run` described a string, but the parameter was `{ score }`:_
+   taken the other way. The parameter is now `score: string` ("The run's
+   score, as the game bar reads it"), which also drops Snake's wrapper.
+5. _`describePhaserPage()`'s `waitMs` option had no caller left (optional):_
+   taken. `PhaserPageWait` is gone and the wait is a literal 800 ms in the
+   function, as the page runs it from its source alone. The spec for a
+   given wait now pins the 800 ms: the page laid out at 799 ms is the one
+   described. AGENTS.md's "800 ms unless given (`waitMs`)" now reads "once
+   800 ms have passed".

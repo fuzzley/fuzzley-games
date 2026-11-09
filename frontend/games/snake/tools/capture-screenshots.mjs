@@ -17,13 +17,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { withPage } from "@fz/dev/chrome";
 import {
-  PHASER_CANVAS_SETTLED,
-  describePhaserPage,
+  SCREENSHOT_VIEWPORT,
   keepShot,
-  readRect,
   runScreenshotScript,
   setUpPage,
-  settled,
+  siteImagesFolder,
+  takenUpBoard,
   thumbRegionAround,
 } from "@fz/dev/screenshots";
 
@@ -31,16 +30,10 @@ import {
 /** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/snake");
-
-/** The page size the screenshot is taken at, in CSS pixels. */
-const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
+const SCREENSHOT_DIR = siteImagesFolder(ROOT, "snake");
 
 /** The palette the screenshot is taken in. */
 const THEME = "casino";
-
-/** The page kept around the board in the thumbnail, in CSS pixels. */
-const THUMB_MARGIN = 24;
 
 /** Where the game keeps the run under way. */
 const SAVED_GAME_KEY = "snake-game";
@@ -49,10 +42,10 @@ const SAVED_GAME_KEY = "snake-game";
 const STATS_KEY = "snake-stats";
 
 /**
- * The board's element, and its attribute that says where the scene drew the
- * board on the canvas.
+ * The board, by its name, its element, and its element's attribute that says
+ * where the scene drew it on the canvas.
  */
-const BOARD = { element: "app-board", drawnAt: "data-board" };
+const BOARD = { name: "board", element: "app-board", drawnAt: "data-board" };
 
 /**
  * The run shown, as the game keeps one: the snake from head to tail, three
@@ -111,20 +104,13 @@ async function capture(page, url) {
     },
   });
   await page.navigate(url);
-  await settled(page, PHASER_CANVAS_SETTLED);
-  const shown = await page.evaluateWith([readRect], describePhaserPage, BOARD);
-  if (shown.state !== "ready") return { problem: "the board did not draw" };
-  if (shown.outcome !== "paused")
-    return { problem: "the run was not taken up" };
-  if (shown.score !== String(RUN.eaten)) {
-    return { problem: `the score reads ${shown.score}` };
-  }
-  const { board } = shown;
-  if (!board) return { problem: "the board is missing" };
+  const score = String(RUN.eaten);
+  const board = await takenUpBoard(page, BOARD, score);
+  if ("problem" in board) return board;
   return {
     png: await page.screenshot(),
-    thumbRegion: thumbRegionAround(board, VIEWPORT, THUMB_MARGIN),
-    says: `Took up the run, paused with a score of ${shown.score}.`,
+    thumbRegion: thumbRegionAround(board, SCREENSHOT_VIEWPORT),
+    says: `Took up the run, paused with a score of ${score}.`,
   };
 }
 
@@ -135,7 +121,9 @@ const SCRIPT = {
   port: 9003,
   capture: async (devtools, { url }, printer) =>
     keepShot(
-      await withPage(devtools, VIEWPORT, (page) => capture(page, url)),
+      await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
+        capture(page, url),
+      ),
       SCREENSHOT_DIR,
       printer,
     ),

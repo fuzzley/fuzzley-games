@@ -19,13 +19,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { withPage } from "@fz/dev/chrome";
 import {
-  PHASER_CANVAS_SETTLED,
-  describePhaserPage,
+  SCREENSHOT_VIEWPORT,
   keepShot,
-  readRect,
   runScreenshotScript,
   setUpPage,
-  settled,
+  siteImagesFolder,
+  takenUpBoard,
   thumbRegionAround,
 } from "@fz/dev/screenshots";
 import { importThroughVite } from "@fz/dev/script";
@@ -35,16 +34,10 @@ import { importThroughVite } from "@fz/dev/script";
 /** @import { ScreenshotApi, ScreenshotRun } from "../src/testing/script_api.ts" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/brick-breaker");
-
-/** The page size the screenshot is taken at, in CSS pixels. */
-const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
+const SCREENSHOT_DIR = siteImagesFolder(ROOT, "brick-breaker");
 
 /** The palette the screenshot is taken in. */
 const THEME = "midnight";
-
-/** The page kept around the field in the thumbnail, in CSS pixels. */
-const THUMB_MARGIN = 24;
 
 /**
  * Where the game keeps the run under way: a copy of `SAVED_GAME_KEY` in
@@ -54,10 +47,10 @@ const THUMB_MARGIN = 24;
 const SAVED_GAME_KEY = "brick-breaker-game";
 
 /**
- * The board's element, and its attribute that says where the scene drew the
- * field on the canvas.
+ * The field, by its name, its element, and its element's attribute that says
+ * where the scene drew it on the canvas.
  */
-const BOARD = { element: "app-board", drawnAt: "data-field" };
+const FIELD = { name: "field", element: "app-board", drawnAt: "data-field" };
 
 /**
  * The run shown, as `keptRun()` keeps it: begun on Rocket at Normal, twenty
@@ -158,24 +151,16 @@ async function capture(page, url, run) {
     stored: { [SAVED_GAME_KEY]: run.stored },
   });
   await page.navigate(url);
-  await settled(page, PHASER_CANVAS_SETTLED);
-  const shown = await page.evaluateWith([readRect], describePhaserPage, BOARD);
-  if (shown.state !== "ready") return { problem: "the field did not draw" };
-  if (shown.outcome !== "paused")
-    return { problem: "the run was not taken up" };
-  if (shown.score !== run.score) {
-    return { problem: `the score reads ${shown.score}` };
-  }
-  const field = shown.board;
-  if (!field) return { problem: "the field is missing" };
+  const field = await takenUpBoard(page, FIELD, run.score);
+  if ("problem" in field) return field;
   const goneOn = await page.evaluate(goOn);
   if (goneOn.outcome !== "playing" || !goneOn.card.includes("to launch")) {
     return { problem: `the run didn't go on: ${goneOn.card}` };
   }
   return {
     png: await page.screenshot(),
-    thumbRegion: thumbRegionAround(field, VIEWPORT, THUMB_MARGIN),
-    says: `Took up the run with a score of ${shown.score}, and went on with it.`,
+    thumbRegion: thumbRegionAround(field, SCREENSHOT_VIEWPORT),
+    says: `Took up the run with a score of ${run.score}, and went on with it.`,
   };
 }
 
@@ -186,7 +171,7 @@ const SCRIPT = {
   port: 9004,
   capture: async (devtools, { url }, printer) => {
     const run = shownRun(await loadScreenshotApi());
-    const shot = await withPage(devtools, VIEWPORT, (page) =>
+    const shot = await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
       capture(page, url, run),
     );
     return keepShot(shot, SCREENSHOT_DIR, printer);
