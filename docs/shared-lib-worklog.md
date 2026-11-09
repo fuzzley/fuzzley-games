@@ -209,3 +209,30 @@ The review:
 3. _Wording: "shows it with" in `lib/phaser/AGENTS.md`, and "until then"
    in a spec's name:_ taken. They now read "shows its scene with" and
    "until the scene has drawn".
+
+### Step 3.4: `ColorMode` for the views
+
+Built as planned on `sl-tools`. `phaserGameLayers()` lets every view take
+`@fz/style/themes` by type alone; a value import is refused with its own
+message, and the rules stay off it even by type. Both breakers'
+`view/colors/palette.ts` drop `PaletteMode` for its `ColorMode`, three lines
+each. Four specs join `@fz/dev`'s, 465 passing; Brick Breaker's 1829 and 180
+and Asteroid Breaker's 3630 and 1620 pass.
+
+Where it went other than planned:
+
+- The type allowance is the fence's own, for all three games, rather than a
+  game's `viewAllows`, which would let the values in too; an erased type
+  import ties the view to nothing at run time.
+
+The review:
+
+1. _A type import the themes pattern matches skips the whole view fence, and
+   no spec pinned its width:_ taken. A spec holds the view off another entry
+   and the package by type, and fails with the pattern widened to
+   `@fz/style`; a comment on the pattern says why it names one entry.
+2. _`viewAllows: ["@fz/style/themes"]` would be named and still refused:_
+   taken. `phaserGameLayers()` throws for it, as it does for a path it can't
+   let in, with a spec, and its doc and `@fz/dev`'s `AGENTS.md` say so.
+3. _A line of `@fz/dev`'s `AGENTS.md` ran to 90 columns:_ taken. The
+   paragraph is reflowed.

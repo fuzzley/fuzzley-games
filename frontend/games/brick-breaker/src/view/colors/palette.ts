@@ -1,11 +1,9 @@
 import { colorNumber, mixColors } from "@fz/phaser/color";
+import type { ColorMode } from "@fz/style/themes";
 import type { BallKindId } from "../../rules/catalog/balls";
 import type { BrickKindId } from "../../rules/catalog/bricks";
 import type { CapsuleTone } from "../../rules/catalog/capsules";
 import { DARK_INKS, LIGHT_INKS } from "./inks";
-
-/** Whether a palette is light or dark, as `@fz/style`'s themes say. */
-export type PaletteMode = "light" | "dark";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
@@ -60,7 +58,7 @@ export const TOUGH_DEEPEN = 0.25;
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
 export function bricksPalette(
   roles: PaletteRoles,
-  mode: PaletteMode,
+  mode: ColorMode,
 ): BricksPalette {
   const panel = colorNumber(roles.panel);
   const text = colorNumber(roles.text);

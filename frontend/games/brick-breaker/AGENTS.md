@@ -31,12 +31,12 @@ a ball or a brick kind takes (`brick-breaker-content`).
 Four folders under `src/`, each importing only the layers below it, as
 `@fz/dev`'s `phaserGameLayers()` fences them in `eslint.config.js`:
 
-| Folder       | May import                                                                                                                      | May not import                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `src/rules/` | `@fz/core`                                                                                                                      | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
-| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/phaser/fuzzball` | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                               | Angular, RxJS, the shell's libraries, the shell                                         |
-| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type      | Phaser, and the scene or those three entries by a value import                          |
+| Folder       | May import                                                                                                                                                  | May not import                                                                          |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/rules/` | `@fz/core`                                                                                                                                                  | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| `src/view/`  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`, `@fz/phaser/fuzzball`; `@fz/style/themes` by type | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| `src/scene/` | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                                                           | Angular, RxJS, the shell's libraries, the shell                                         |
+| `src/app/`   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type                                  | Phaser, and the scene or those three entries by a value import                          |
 
 The physics is the rules', so the whole game plays in Node, as the
 autopilot does. The shell loads the scene with `import()`, which the fence

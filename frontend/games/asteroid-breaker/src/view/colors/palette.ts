@@ -1,5 +1,6 @@
 import { colorNumber, mixColors } from "@fz/phaser/color";
 import { FUZZBALL } from "@fz/style/fuzzball";
+import type { ColorMode } from "@fz/style/themes";
 import type { RockKindId } from "../../rules/catalog/rocks";
 import type { Pilot } from "../../rules/ship/pilots";
 import {
@@ -8,9 +9,6 @@ import {
   LIGHT_PILOT_INKS,
   LIGHT_ROCK_INKS,
 } from "./inks";
-
-/** Whether a palette is light or dark, as `@fz/style`'s themes say. */
-export type PaletteMode = "light" | "dark";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
@@ -91,10 +89,7 @@ export const BUBBLE_RIM = 0.5;
 export const DECK_WASH = 0.05;
 
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
-export function beltPalette(
-  roles: PaletteRoles,
-  mode: PaletteMode,
-): BeltPalette {
+export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
   const field = colorNumber(roles.field);
   const fieldText = colorNumber(roles.fieldText);
   const fieldMuted = colorNumber(roles.fieldMuted);
@@ -128,7 +123,7 @@ export function beltPalette(
  *
  * @throws {RangeError} for a color no pilot has.
  */
-export function pilotInk(pilot: Pilot, mode: PaletteMode): string {
+export function pilotInk(pilot: Pilot, mode: ColorMode): string {
   const ink = pilotInks(mode)[pilot];
   if (ink === undefined) {
     throw new RangeError(`No pilot has color ${String(pilot)}`);
@@ -137,6 +132,6 @@ export function pilotInk(pilot: Pilot, mode: PaletteMode): string {
 }
 
 /** Returns the pilots' inks of a palette's mode, by their color. */
-function pilotInks(mode: PaletteMode): readonly string[] {
+function pilotInks(mode: ColorMode): readonly string[] {
   return mode === "light" ? LIGHT_PILOT_INKS : DARK_PILOT_INKS;
 }
