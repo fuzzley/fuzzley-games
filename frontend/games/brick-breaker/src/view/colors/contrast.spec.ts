@@ -1,15 +1,7 @@
-import path from "node:path";
 import { THEMES } from "@fz/style/themes";
-import {
-  compileStylesheet,
-  contrast,
-  paletteRoles,
-  rgbOf,
-} from "@fz/style/testing";
+import { contrast, rgbOf } from "@fz/style/testing";
+import { fieldRolesIn } from "../../testing/roles";
 import { bricksPalette } from "./palette";
-
-// Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
-const GLOBAL = path.join(import.meta.dirname, "../../app/styles/global.scss");
 
 /** Returns a record's entries, each named by its key and what it is. */
 function named(
@@ -33,28 +25,8 @@ function named(
 // kind and state apart, a ball's kind, and a capsule's symbol, are held to
 // 3:1 against what they are drawn on.
 describe("the field's contrast", () => {
-  const palettes = paletteRoles(compileStylesheet(GLOBAL));
-
   describe.each(THEMES)("in $name", ({ id, mode }) => {
-    const roles = palettes.get(id) ?? new Map<string, string>();
-
-    /** Returns one of the palette's roles, as the page sets it. */
-    function role(name: string): string {
-      const value = roles.get(name);
-      if (value === undefined) throw new Error(`No --fz-${name} in ${id}`);
-      return value;
-    }
-
-    const palette = bricksPalette(
-      {
-        panel: role("panel"),
-        text: role("text"),
-        accent: role("accent"),
-        danger: role("danger"),
-        warning: role("warning"),
-      },
-      mode,
-    );
+    const palette = bricksPalette(fieldRolesIn(id), mode);
     // Numbered from 1, as a level's tints are.
     const tints = palette.tints.map(
       (tint, i) => [`tint ${String(i + 1)}`, tint] as const,

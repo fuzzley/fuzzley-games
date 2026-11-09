@@ -1,7 +1,12 @@
 import { TestBed } from "@angular/core/testing";
-import type { ThemeId } from "@fz/style/themes";
+import { THEMES, type ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
-import { ROLES, paintRoles } from "../../testing/roles";
+import {
+  ROLES,
+  fieldRolesIn,
+  paintRoles,
+  stylesheetRole,
+} from "../../testing/roles";
 import { beltPalette } from "../../view/colors/palette";
 import { fieldPalette } from "./field_palette";
 
@@ -44,14 +49,39 @@ describe("fieldPalette", () => {
     expect(palette()).toEqual(beltPalette(ROLES, "light"));
   });
 
-  it("takes up a palette chosen once the field is colored", () => {
+  it("takes up a palette chosen once the field is colored, its roles and its inks", () => {
     const theme = themeIn("classic");
     const palette = fieldPalette(theme);
     palette();
 
     theme.select("midnight");
+    paintRoles(fieldRolesIn("midnight"));
     TestBed.tick();
 
-    expect(palette()).toEqual(beltPalette(ROLES, "dark"));
+    expect(palette()).toEqual(beltPalette(fieldRolesIn("midnight"), "dark"));
+  });
+
+  // The roles are named here by hand, apart from `FIELD_ROLES`, so a role
+  // named wrongly there shows.
+  it.each(THEMES)("draws the field in $name's own roles", ({ id, mode }) => {
+    paintRoles(fieldRolesIn(id));
+
+    const palette = fieldPalette(themeIn(id));
+
+    expect(palette()).toEqual(
+      beltPalette(
+        {
+          field: stylesheetRole(id, "field"),
+          fieldLine: stylesheetRole(id, "field-line"),
+          fieldText: stylesheetRole(id, "field-text"),
+          fieldMuted: stylesheetRole(id, "field-muted"),
+          accent: stylesheetRole(id, "accent"),
+          onAccent: stylesheetRole(id, "on-accent"),
+          danger: stylesheetRole(id, "danger"),
+          warning: stylesheetRole(id, "warning"),
+        },
+        mode,
+      ),
+    );
   });
 });

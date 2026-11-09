@@ -1,5 +1,6 @@
 import path from "node:path";
-import { THEMES } from "@fz/style/themes";
+import { keysOf, recordOf } from "@fz/core/records";
+import { type PaletteRole, THEMES } from "@fz/style/themes";
 import {
   compileStylesheet,
   contrast,
@@ -7,6 +8,7 @@ import {
   paletteRoles,
   rgbOf,
 } from "@fz/style/testing";
+import { BOARD_ROLES } from "../app/board/board_roles";
 import { type SnakePalette, snakePalette } from "./palette";
 
 // Built from `import.meta.dirname`, since jsdom's `URL` isn't Node's.
@@ -21,18 +23,15 @@ describe("the board's contrast", () => {
     const roles = palettes.get(id) ?? new Map<string, string>();
 
     /** Returns one of the palette's roles, as the page sets it. */
-    function role(name: string): string {
+    function role(name: PaletteRole): string {
       const value = roles.get(name);
       if (value === undefined) throw new Error(`No --fz-${name} in ${id}`);
       return value;
     }
 
-    const palette = snakePalette({
-      panel: role("panel"),
-      text: role("text"),
-      accent: role("accent"),
-      danger: role("danger"),
-    });
+    const palette = snakePalette(
+      recordOf(keysOf(BOARD_ROLES), (key) => role(BOARD_ROLES[key])),
+    );
     const squares = [
       ["plain", palette.board],
       ["checkered", palette.checker],

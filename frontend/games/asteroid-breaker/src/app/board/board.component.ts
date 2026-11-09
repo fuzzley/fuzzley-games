@@ -215,7 +215,10 @@ export class BoardComponent {
     return rect && rectStyle(rect);
   });
 
-  /** The field's colors, from the palette on the page. */
+  /**
+   * The field's colors, from the palette on the page, a new object when the
+   * field's roles or the mode change.
+   */
   private readonly palette = fieldPalette(inject(ThemeService));
 
   /** Asks the scene for its pictures of the atlas it last baked, or null before it has baked. */

@@ -334,8 +334,9 @@ takes for the specs' helpers.
     field's height that canvas has room for (`GameService.setFieldHeight()`),
     and, where it has room for a taller field, leaves a finger's room under
     the field, which the scene lays the field out above.
-    `fieldPalette()` colors the field from `ThemeService`'s roles and
-    `mode`, and a finger steers as the settings say. The board keeps the
+    `fieldPalette()` colors the field from the roles `field_roles.ts` names
+    (`FIELD_ROLES`), through `ThemeService`'s `roles()`, and its `mode`,
+    and a finger steers as the settings say. The board keeps the
     scene's pictures for How to play (`pictures`). It is an application named
     for its level, "Brick Breaker, level 3: Pyramid".
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
@@ -635,8 +636,10 @@ skill covers its setup, floors and fixtures, the repository's
   (`holdEveryLevel()`), which each preset speed's spec in
   `src/rules/levels/every_level/` calls with its own file, whose name is the
   speed it plays.
-- `roles.ts` puts a palette's roles on the page (`paintRoles()`) for the
-  specs that color the field.
+- `roles.ts` reads a palette's roles from the game's stylesheet
+  (`stylesheetRole()`), and the field's by the names the board reads them
+  by (`fieldRolesIn()`), for the contrast spec and the specs that color the
+  field, and puts the field's on the page (`paintRoles()`).
 - `play.ts` holds the small levels the shell's specs play, each set up to
   come to one thing soon, and two sets, of two levels and then one
   (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with a seed of

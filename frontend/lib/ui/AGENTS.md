@@ -31,16 +31,18 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   written at moments of its own rather than on every change, such as a run
   under way.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
-  it, takes up one chosen in another tab, gives a role's color as a signal
-  (`role("felt")`) and whether the palette is light or dark (`mode`), each
-  as the palette is put on the page, offers the palettes as a chooser lists them
-  (`options`), and draws the tab's icon, where the page links one, as the
-  fuzzball in the palette's accent; `<fz-theme-menu>`, the menu a player
-  picks one from; and `<fz-theme-picker>`, the same choice as radios, for a
-  settings panel. `THEME_COLOR_ROLE` names the palette role the browser's
-  own toolbar takes (`bar` unless an app provides another, such as `felt`
-  for a game whose table runs to the top, or `null` for an app that sets it
-  itself).
+  it, takes up one chosen in another tab, gives, each as the palette is put
+  on the page, a role's color as a signal (`role("felt")`), several roles'
+  colors as one record under the keys a record of their names gives
+  (`roles({ ground: "field" })`), a new record only when one of them
+  changes, and whether the palette is light or dark (`mode`), offers the
+  palettes as a chooser lists them (`options`), and draws the tab's icon,
+  where the page links one, as the fuzzball in the palette's accent;
+  `<fz-theme-menu>`, the menu a player picks one from; and
+  `<fz-theme-picker>`, the same choice as radios, for a settings panel.
+  `THEME_COLOR_ROLE` names the palette role the browser's own toolbar takes
+  (`bar` unless an app provides another, such as `felt` for a game whose
+  table runs to the top, or `null` for an app that sets it itself).
 - `src/confirm/`: `ConfirmService`, whose `ask()` takes a title, a
   message, the buttons' labels and a tone (`accent`, or `danger` for what
   can't be undone) and resolves to the player's answer; and

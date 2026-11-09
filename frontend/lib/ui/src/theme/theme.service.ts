@@ -9,6 +9,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { keysOf, recordOf } from "@fz/core/records";
 import { fuzzballSvg } from "@fz/style/fuzzball";
 import {
   type ColorMode,
@@ -65,7 +66,7 @@ export class ThemeService {
 
   /**
    * Whether the palette on the page is light or dark. It changes when
-   * `role()`'s colors do, a moment after `current`.
+   * `role()`'s and `roles()`' colors do, a moment after `current`.
    */
   readonly mode: Signal<ColorMode> = computed(() => {
     const id = this.applied();
@@ -101,6 +102,24 @@ export class ThemeService {
       this.applied();
       return this.read(name);
     });
+  }
+
+  /**
+   * Returns the colors on the page of the roles a record names, under its
+   * keys, which follow the palette in use, each empty where no stylesheet
+   * sets it; a new record only when one of them changes.
+   */
+  roles<Key extends string>(
+    names: Readonly<Record<Key, PaletteRole>>,
+  ): Signal<Readonly<Record<Key, string>>> {
+    const keys = keysOf(names);
+    return computed(
+      () => {
+        this.applied();
+        return recordOf(keys, (key) => this.read(names[key]));
+      },
+      { equal: (was, is) => keys.every((key) => was[key] === is[key]) },
+    );
   }
 
   /** Applies a palette, and remembers it where the browser allows. */
