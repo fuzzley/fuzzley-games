@@ -157,8 +157,8 @@ and is no entry point.
   `resume()`, `newGame()`) as its rules say. It is undecorated and has no
   constructor, so a game's `@Injectable` class needs none either, and it
   reads nothing the game gives while it is made, so the game's fields and
-  constructor may lay out its first run. Asteroid Breaker's `GameService`
-  extends it.
+  constructor may lay out its first run. Asteroid Breaker's and Brick
+  Breaker's `GameService`s extend it.
 - `src/testing/`: what a game's specs share: `installFakeViewport()`, which
   answers the queries `GameViewportService` asks, handed on from
   `@fz/ui/testing`, which [frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)

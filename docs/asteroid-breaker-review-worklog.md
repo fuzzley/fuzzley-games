@@ -2853,3 +2853,26 @@ base fits Brick Breaker and Snake; and six things:
    (`hasEnded()`), Asteroid Breaker's at `"over"` alone, and the base would
    write that rule a second time.
 6. _A line of `AGENTS.md` ran long:_ taken.
+
+### Step 18c: finding 20, Brick Breaker's run in `RunLifecycle`
+
+Built on `run-lifecycle`. Brick Breaker's `GameService` extends
+`RunLifecycle`, as Asteroid Breaker's does: its `command()` takes a launch
+itself and hands the rest to the base, its `nextStage()` goes on to the
+next level, `begin()` ends in `began()`, and a speed's question comes from
+`speedQuestion()`. `launch()` repeated `go()`'s branches for a paused,
+cleared or ended run; it now calls `go()` at any stage but a level ready or
+in play, which does the same in every stage, the board drawn or not, an
+ended run's `resume()` handing back the same run and saying nothing. It has
+no constructor, and Angular's inherited factory makes it. 568 non-blank
+lines down to 491, and Brick Breaker's specs pass unchanged.
+
+The review found it the same as before in every state, and three things:
+
+1. _No spec held a launch on an ended run, its card still to open, to
+   saying nothing, which keys other than Enter now reach through `go()`:_
+   taken in step 18e, with the specs' other changes, as the adoptions keep
+   the games' specs as they were.
+2. _"To which it adds `launch`" read as the base adding it:_ taken.
+3. _No entry staged:_ as every step on this branch, its entry is added as
+   it lands.
