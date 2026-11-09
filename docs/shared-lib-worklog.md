@@ -770,3 +770,43 @@ The review:
 3. _The phaser-canvas-performance skill's pooling advice pointed only at
    `Group`:_ taken. It now says a flourish played a set number at a time
    takes `@fz/core/turns`'s `Turns`, as both breakers' painters do.
+
+### Step 4.6: Sudoku takes `anyOpen()` and `refocusWhenUncovered()` (F3)
+
+Built as planned on `sl-shell`. Sudoku's `AppComponent` no longer lists by
+hand what stops the clock (settings, How to play and the question). It
+covers the game whenever `@fz/ui/dialog`'s `DialogService.anyOpen()`, so the
+hint's sheet now stops the clock too. Its own focus effect is replaced by
+`@fz/game-ui/play_room`'s `refocusWhenUncovered(board, game.deals)`, as in
+Snake and the breakers. The board takes the focus as the page loads, after
+each deal and whenever the last dialog closes, so a cancelled question or
+How to play now hands it the focus rather than the bar's button.
+`ConfirmService` is no longer injected. Sudoku's tests pass, 595 of them.
+
+Where it went other than planned: the review's first finding took the
+change into the hint and the pad (see 1).
+
+The review:
+
+1. _The hint's own `handBack` now does what `refocusWhenUncovered()` does,
+   and the two focus calls clash:_ taken. `HintComponent.handBack`, its emit
+   and the `(handBack)` on `<app-hint>` are gone, and the pad's `handBack`
+   doc speaks only of presses with a pointer. The hint's spec now checks that
+   filling in from the sheet closes it. The app spec gains "gives the board
+   the focus once the hint's sheet fills its hint in". After the sheet the
+   square scrolls into view, as after any dialog, which the staged change
+   already did since the library's call came last. The board's `focus()`
+   doc still holds: the pad hands the focus back with `preventScroll`.
+   I took this as a correction, not a reshape: the behaviour is as staged,
+   and `app.component.html` is untouched.
+2. _No spec pins `game.deals` as the runs:_ taken. "gives the board the
+   focus after New game from the bar, with no game under way to ask about"
+   deals with no dialog. With `signal(0)` as the runs, it fails and no other
+   spec does.
+3. _A second `ResizeObserver` stand-in, and the testing skill names only
+   the first:_ taken. `FakeResizeObserver` moves to
+   `src/testing/resize_observer.ts`. Both specs stub it, and the app spec's
+   `renderCramped()` reports `(0, 100, 100)` after `renderPlayed()`. The
+   clock spec waits on `findByRole("dialog")` with no title fallback. The
+   `sudoku-testing` skill and the `src/testing/` bullet in `AGENTS.md` point
+   there.

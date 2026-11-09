@@ -1,15 +1,9 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  signal,
-  untracked,
-  viewChild,
-} from "@angular/core";
+import { Component, effect, inject, signal, viewChild } from "@angular/core";
+import { refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
-import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
+import { ConfirmDialogComponent } from "@fz/ui/confirm";
+import { DialogService } from "@fz/ui/dialog";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { HelpComponent } from "./help/help.component";
@@ -22,9 +16,10 @@ import { SettingsComponent } from "./settings/settings.component";
  * Shows the game: the bar, the board and the pad in the room the bar leaves
  * them, the live region that says what each move did, and the dialogs.
  *
- * Once a game begins, as the page loads or after a new deal, the board takes
- * the focus as soon as nothing covers it, so a digit typed goes into the
- * square drawn as selected.
+ * The board takes the focus as each game begins, as the page loads or after
+ * a new deal, and whenever the last dialog over it closes, so a digit typed
+ * goes into the square drawn as selected. The clock stops while any dialog
+ * is open.
  */
 @Component({
   selector: "app-root",
@@ -49,34 +44,17 @@ import { SettingsComponent } from "./settings/settings.component";
 export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   private readonly game = inject(GameService);
-  private readonly confirm = inject(ConfirmService);
+  private readonly dialogs = inject(DialogService);
   private readonly board = viewChild.required(BoardComponent);
 
   protected readonly settingsOpen = signal(false);
   protected readonly helpOpen = signal(false);
 
-  /** Whether a drawer or a dialog covers the board. */
-  private readonly covered = computed(
-    () => this.settingsOpen() || this.helpOpen() || this.confirm.isOpen(),
-  );
-
-  /** The last game the board took the focus for, by `GameService.deals`. */
-  private focusedDeal = -1;
-
   constructor() {
     effect(() => {
-      this.game.cover(this.covered());
+      this.game.cover(this.dialogs.anyOpen());
     });
-    effect(() => {
-      const deal = this.game.deals();
-      if (this.covered() || deal === this.focusedDeal) return;
-      // As the page loads, no focus ring: nothing was pressed to put it there.
-      const options = this.focusedDeal === -1 ? { focusVisible: false } : {};
-      this.focusedDeal = deal;
-      untracked(() => {
-        this.board().focus(options);
-      });
-    });
+    refocusWhenUncovered(this.board, this.game.deals);
   }
 
   /**

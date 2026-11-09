@@ -6,7 +6,6 @@ import {
   computed,
   effect,
   inject,
-  output,
   signal,
   untracked,
   viewChild,
@@ -50,13 +49,6 @@ export class HintComponent {
   protected readonly game = inject(GameService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
-
-  /**
-   * Emitted when the sheet closes because its hint was filled in, which
-   * takes away what had the focus before it opened, for the board to take
-   * the focus back.
-   */
-  readonly handBack = output();
 
   private readonly fullRef =
     viewChild.required<ElementRef<HTMLElement>>("full");
@@ -107,10 +99,7 @@ export class HintComponent {
       const fit = this.fit();
       untracked(() => {
         if (!hint) {
-          if (this.sheetOpen()) {
-            this.sheetOpen.set(false);
-            this.handBack.emit();
-          }
+          this.sheetOpen.set(false);
         } else if (fit === "none" && hint !== this.openedFor) {
           this.openedFor = hint;
           this.sheetOpen.set(true);

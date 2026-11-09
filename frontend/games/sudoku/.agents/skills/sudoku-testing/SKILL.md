@@ -85,8 +85,11 @@ Run these from `frontend/games/sudoku/`, or as
   table specs beside them; the board's own spec checks them through the DOM
   once each.
 - jsdom has no `ResizeObserver` either, so the hint's words always fit their
-  room. `src/app/hint/hint.component.spec.ts` stubs one that reports the
-  heights it is given, to reach the short form and the sheet.
+  room. To reach the short form and the sheet, stub
+  `FakeResizeObserver` (`src/testing/resize_observer.ts`) with
+  `vi.stubGlobal()` and have `FakeResizeObserver.latest?.report()` give the
+  heights of the hint's room, all its words and its short form. The hint's
+  spec does so, and the app spec's `renderCramped()` opens the sheet that way.
 
 ## Contrast
 

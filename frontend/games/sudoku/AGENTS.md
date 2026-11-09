@@ -50,7 +50,10 @@ workspace keeps its own for its code. Paths are relative to
 - **`src/app/`** — the shell, one folder per feature, each holding its
   components and services together, as in Minesweeper. `app.component`
   lays them out, with the `<fz-announcer>` every move is announced through,
-  and takes back a move on Ctrl+Z anywhere outside a dialog.
+  and takes back a move on Ctrl+Z anywhere outside a dialog. It stops the
+  clock while any dialog is open (`@fz/ui/dialog`'s `DialogService`), and,
+  through `@fz/game-ui/play_room`'s `refocusWhenUncovered()`, hands the
+  board the focus as each game begins and whenever the last dialog closes.
   - `play/` — `GameService` holds the game in play and the square
     selected, runs its clock on `@fz/game-ui/stopwatch`, makes every move
     and says what it did through `@fz/ui/announcer`, gives hints, and asks
@@ -88,8 +91,9 @@ workspace keeps its own for its code. Paths are relative to
 - **`src/testing/`** — what specs share: `gridFrom` (`grid_picture.ts`)
   draws a grid as rows of digits, with notes by square, and `solvedBut`
   draws the player's digits that solve `EASY` but for the squares named;
-  `playOn` (`game.ts`) puts a grid in play. The app's tsconfig leaves it
-  out.
+  `playOn` (`game.ts`) puts a grid in play; `FakeResizeObserver`
+  (`resize_observer.ts`) stands in for jsdom's missing `ResizeObserver`,
+  reporting the heights it is given. The app's tsconfig leaves it out.
 - **`tools/`** — the scripts run from the workspace. `check-layout.mjs`
   checks the build's layout in headless Chrome.
   `generate-puzzles.mjs` fills the bank from seeds 1 upward, keeping each
