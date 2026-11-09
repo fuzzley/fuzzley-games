@@ -16,10 +16,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { withPage } from "@fz/dev/chrome";
 import {
+  SCREENSHOT_VIEWPORT,
   keepShot,
   runScreenshotScript,
   setUpPage,
   settled,
+  siteImagesFolder,
   thumbRegionAround,
 } from "@fz/dev/screenshots";
 
@@ -27,10 +29,7 @@ import {
 /** @import { Missed, Region, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/sudoku");
-
-/** The page size the screenshot is taken at, in CSS pixels. */
-const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
+const SCREENSHOT_DIR = siteImagesFolder(ROOT, "sudoku");
 
 /** The palette the screenshot is taken in. */
 const THEME = "midnight";
@@ -43,9 +42,6 @@ const FILLS = 14;
 
 /** How many blank squares get their candidates as notes. */
 const NOTED = 5;
-
-/** The page kept around the board and the pad in the thumbnail, in CSS pixels. */
-const THUMB_MARGIN = 24;
 
 /** What the clock reads when the screenshot is taken, in seconds. */
 const CLOCK_SECONDS = 312;
@@ -232,7 +228,7 @@ async function capture(page, url) {
 
   return {
     png: await page.screenshot(),
-    thumbRegion: thumbRegionAround(shown.room, VIEWPORT, THUMB_MARGIN),
+    thumbRegion: thumbRegionAround(shown.room, SCREENSHOT_VIEWPORT),
     says:
       `Filled ${opening.filled} squares, noted ${opening.noted}, ` +
       `the clock at ${shown.time}.`,
@@ -246,7 +242,9 @@ const SCRIPT = {
   port: 9002,
   capture: async (devtools, { url }, printer) =>
     keepShot(
-      await withPage(devtools, VIEWPORT, (page) => capture(page, url)),
+      await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
+        capture(page, url),
+      ),
       SCREENSHOT_DIR,
       printer,
     ),

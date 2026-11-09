@@ -419,28 +419,19 @@ export interface PhaserPageState {
   readonly board: Rect | null;
 }
 
-/** Says how a description of a page drawn with Phaser waits before it looks. */
-export interface PhaserPageWait {
-  /**
-   * How long it waits, in ms, 800 unless given: long enough for the
-   * placeholder's fade, and for what a scene pops in as it starts, such as
-   * Snake's apple.
-   */
-  readonly waitMs?: number;
-}
-
 /**
  * Returns what the page of a game drawn with Phaser shows, once its scene
- * has drawn or failed to, and a wait has passed: the canvas's state, the
- * board's outcome, the score, and where the scene drew the board, as its
- * element's `drawnAt` attribute says, read with {@link readRect}. It runs in
- * the page, sent with `readRect()`.
+ * has drawn or failed to, and 800 ms have passed: long enough for the
+ * placeholder's fade, and for what a scene pops in as it starts, such as
+ * Snake's apple. It says the canvas's state, the board's outcome, the score,
+ * and where the scene drew the board, as its element's `drawnAt` attribute
+ * says, read with {@link readRect}. It runs in the page, sent with
+ * `readRect()`.
  */
 export async function describePhaserPage(
   board: Pick<PhaserBoard, "element" | "drawnAt">,
-  { waitMs = 800 }: PhaserPageWait = {},
 ): Promise<PhaserPageState> {
-  await new Promise((resolve) => setTimeout(resolve, waitMs));
+  await new Promise((resolve) => setTimeout(resolve, 800));
   const element = document.querySelector(board.element);
   const canvas = document
     .querySelector("fz-phaser-canvas canvas")

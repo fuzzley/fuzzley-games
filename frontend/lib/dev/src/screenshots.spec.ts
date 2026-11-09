@@ -11,14 +11,18 @@ import {
   Page,
   type withChrome,
 } from "./chrome.ts";
+import { PHASER_CANVAS_SETTLED, type PhaserPageState } from "./board_page.ts";
 import {
   type ScreenshotRequest,
   type ScreenshotScript,
+  SCREENSHOT_VIEWPORT,
   SITE_IMAGES,
   keepShot,
   runScreenshotScript,
   settled,
   setUpPage,
+  siteImagesFolder,
+  takenUpBoard,
   thumbRegionAround,
   writeImage,
   writeSiteImages,
@@ -151,9 +155,6 @@ describe("writeImage", () => {
   });
 });
 
-/** The page the games capture: 1280 × 720 CSS px, at twice the pixels. */
-const PAGE = { width: 1280, height: 720, deviceScaleFactor: 2 };
-
 /** The page a thumbnail keeps around its box, in CSS px. */
 const MARGIN = 24;
 
@@ -162,7 +163,7 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 352, top: 216, width: 576, height: 320 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 626, top: 384, width: 1308, height: 736 });
@@ -172,7 +173,7 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 240, top: 310, width: 800, height: 100 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 432, top: 243, width: 1696, height: 954 });
@@ -182,7 +183,7 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 0, top: 0, width: 400, height: 225 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 0, top: 0, width: 971, height: 546 });
@@ -192,7 +193,7 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 880, top: 495, width: 400, height: 225 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 1589, top: 894, width: 971, height: 546 });
@@ -204,7 +205,7 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 1000, top: 100, width: 280, height: 514.640625 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 559, top: 152, width: 2001, height: 1126 });
@@ -214,7 +215,7 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 100, top: 400, width: 280, height: 514.640625 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 0, top: 314, width: 2001, height: 1126 });
@@ -235,10 +236,37 @@ describe("thumbRegionAround", () => {
     expect(
       thumbRegionAround(
         { left: 0, top: 48, width: 1280, height: 640 },
-        PAGE,
+        SCREENSHOT_VIEWPORT,
         MARGIN,
       ),
     ).toEqual({ left: 0, top: 0, width: 2560, height: 1440 });
+  });
+
+  it("keeps 24 CSS px around the box unless told otherwise", () => {
+    const box = { left: 352, top: 216, width: 576, height: 320 };
+
+    expect(thumbRegionAround(box, SCREENSHOT_VIEWPORT)).toEqual(
+      thumbRegionAround(box, SCREENSHOT_VIEWPORT, 24),
+    );
+  });
+});
+
+describe("SCREENSHOT_VIEWPORT", () => {
+  it("captures a page as large as the site's preview, which is never enlarged", () => {
+    const { width, height, deviceScaleFactor } = SCREENSHOT_VIEWPORT;
+
+    expect([width * deviceScaleFactor, height * deviceScaleFactor]).toEqual([
+      SITE_IMAGES.preview.width,
+      SITE_IMAGES.preview.height,
+    ]);
+  });
+});
+
+describe("siteImagesFolder", () => {
+  it("names the game's folder under its workspace's public/, where its build serves the site's images", () => {
+    expect(siteImagesFolder(join("games", "snake"), "snake")).toBe(
+      join("games", "snake", "public", "docs", "screenshots", "snake"),
+    );
   });
 });
 
@@ -314,6 +342,85 @@ describe("settled", () => {
       "TypeError: document.fonts is undefined",
     );
   });
+});
+
+describe("takenUpBoard", () => {
+  /** A board drawn with Phaser, named as no game names its own. */
+  const PITCH = {
+    name: "pitch",
+    element: "app-pitch",
+    drawnAt: "data-pitch",
+  };
+
+  /** Where the scene drew the pitch on the page, in CSS px. */
+  const DRAWN = { left: 40, top: 60, width: 520, height: 600 };
+
+  /** The page of a run taken up, paused at its score, its pitch drawn. */
+  const TAKEN_UP: PhaserPageState = {
+    state: "ready",
+    outcome: "paused",
+    score: "1,250",
+    board: DRAWN,
+  };
+
+  /**
+   * Returns a page of a fake browser that settles, and describes itself as
+   * given, and the browser.
+   */
+  function pageShowing(shown: Partial<PhaserPageState>): {
+    page: Page;
+    browser: FakeBrowser;
+  } {
+    return pageAnswering((command) => {
+      const expression = String(command.params["expression"]);
+      const value = expression.includes("function describePhaserPage")
+        ? { ...TAKEN_UP, ...shown }
+        : true;
+      return { result: { result: { value } } };
+    });
+  }
+
+  it("returns where the board lies once its run is taken up, paused at its score", async () => {
+    const { page } = pageShowing({});
+
+    expect(await takenUpBoard(page, PITCH, "1,250")).toEqual(DRAWN);
+  });
+
+  it("waits for the canvas to settle, then describes the page, by the board's element and attribute", async () => {
+    const { page, browser } = pageShowing({});
+
+    await takenUpBoard(page, PITCH, "1,250");
+
+    const expressions = browser.sent
+      .filter(({ method }) => method === "Runtime.evaluate")
+      .map(({ params }) => String(params["expression"]));
+    expect(expressions).toEqual([
+      expect.stringContaining(
+        `(...${JSON.stringify([PHASER_CANVAS_SETTLED, 20_000])})`,
+      ) as unknown,
+      expect.stringMatching(
+        new RegExp(
+          `function readRect[^]*function describePhaserPage[^]*${escaped(JSON.stringify([PITCH]))}`,
+        ),
+      ) as unknown,
+    ]);
+  });
+
+  it.each<[string, Partial<PhaserPageState>, string]>([
+    ["didn't draw", { state: "failed" }, "the pitch did not draw"],
+    ["isn't paused", { outcome: "playing" }, "the run was not taken up"],
+    ["reads another score", { score: "0" }, "the score reads 0"],
+    ["doesn't say where it lies", { board: null }, "the pitch is missing"],
+  ])(
+    "says why it can't be shot where the board %s",
+    async (_, shown, problem) => {
+      const { page } = pageShowing(shown);
+
+      expect(await takenUpBoard(page, PITCH, "1,250")).toEqual({
+        problem,
+      });
+    },
+  );
 });
 
 /** Where a spec prints, and what it printed, as output and as what went wrong. */

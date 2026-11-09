@@ -239,13 +239,12 @@ too. Paths are relative to `frontend/lib/dev/`.
   a list of them by name, as its `namedRectsAttribute()` writes one. That
   file imports nothing, so a board's spec reads what its board writes with
   the readers from `@fz/dev/board-page` without loading Vite or Chrome;
-  `@fz/dev/layout` exports both again for the scripts, and
-  `@fz/dev/screenshots` `readRect()`. The check sends both into the page
-  with each inspection, the game's own among them, so a game's `inspect()`
-  reads such an attribute by calling them by those names, as Asteroid
-  Breaker's reads the field's room. A function the page runs calls them as
-  names of its own module, as the inspections do, or from a script Node
-  runs, as a game's `tools/check-layout.mjs` is, never through an import
+  `@fz/dev/layout` exports both again for the scripts. The check sends both
+  into the page with each inspection, the game's own among them, so a game's
+  `inspect()` reads such an attribute by calling them by those names, as
+  Asteroid Breaker's reads the field's room. A function the page runs calls
+  them as names of its own module, as the inspections do, or from a script
+  Node runs, as a game's `tools/check-layout.mjs` is, never through an import
   Vite rewrites: Vitest's module runner turns an imported `readRect(…)`
   into `(0, __vite_ssr_import_0__.readRect)(…)`, which is the source the
   page is sent, and which names nothing there. So such a function of this
@@ -265,44 +264,54 @@ too. Paths are relative to `frontend/lib/dev/`.
   to run, or a page that never draws: `settle()`, which waits in the page,
   resolves to false where nothing matched in time, and the check throws,
   naming the selector.
-- `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows of
-  a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
-  2560 × 1440, the names `screenshotUrl()` in the site's model asks for),
-  the sharp calls that write them, and the screenshot scripts' runner.
-  `writeSiteImages()` writes both from a capture into a folder, the
-  thumbnail cropped to a region when given one, which `thumbRegionAround()`
-  works out from a box on the page (a `Region`, sharp's): the box and a
-  margin, grown to the thumbnail's shape and kept on the capture's whole
-  pixels, rounded before it is kept there, so it never runs past the
+- `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows of a
+  game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at 2560 ×
+  1440, the names `screenshotUrl()` in the site's model asks for), the sharp
+  calls that write them, and the screenshot scripts' runner.
+  `writeSiteImages()` writes both from a capture into a folder, the thumbnail
+  cropped to a region when given one, which `thumbRegionAround()` works out
+  from a box on the page (a `Region`, sharp's): the box and a margin, 24 CSS
+  px unless given, grown to the thumbnail's shape and kept on the capture's
+  whole pixels, rounded before it is kept there, so it never runs past the
   capture's edge; `writeImage()` writes one image of any size, as the
-  Solitaire Collection's rules-page image is. A game's
-  `tools/capture-screenshots.mjs` says what it captures and hands it to
-  `runScreenshotScript()`, which reads the command line (`--url`, an http or
-  https address, the game's own dev server by default, `--chrome`, `--help`,
-  and the names after them for a script that takes them, as the Solitaire
-  Collection's game ids), checks that a server answers there, starts a
-  headless Chrome and hands it to the script's `capture()`, which returns
-  the code to exit with; it returns 1, before Chrome starts, where nothing
-  answers within five seconds, and 2 for a command line it can't read, and
-  throws where it can't capture at all, such as for no Chrome to run. A
-  capture sets its page up before the game starts with `setUpPage()`, given
-  a `PageSetup` (the palette, entries stored, fields merged into what a game
-  stores as it goes, such as its clock, and a seed for `Math.random`), waits
-  for it to draw with `settled()`, which runs the layout check's `settle()`
-  and returns false where nothing matched in time, a board drawn with Phaser
-  waiting on `PHASER_CANVAS_SETTLED` or `PHASER_CANVAS_READY`, and hands its
-  `Shot`, or why it `Missed`, to `keepShot()`, which writes the site's
-  images, prints what the shot shows and each image's size, and returns the
-  code. `describePhaserPage()` says what the page of a game drawn with
-  Phaser shows once a wait has passed, 800 ms unless given (`waitMs`): its
-  canvas's state, its board's outcome, the score, and where the scene drew
-  the board, none where the page has no canvas or the board doesn't say
-  where it lies. It reads the board's rectangle with `readRect()`, so it
-  lives in `src/board_page.ts` beside it, and a capture sends it with that
-  helper (`page.evaluateWith([readRect], describePhaserPage, board)`). What
+  Solitaire Collection's rules-page image is. Each game but the Solitaire
+  Collection captures the site's images at `SCREENSHOT_VIEWPORT`, 1280 × 720
+  CSS px at twice the pixels, the preview's own size; the Solitaire Collection
+  shoots its rules page at 1440 × 810 and makes them from that with
+  `build:thumbs`. Each writes them to `siteImagesFolder()`,
+  `public/docs/screenshots/<id>/` in its workspace, which its build copies
+  where the site's catalog looks. A game's `tools/capture-screenshots.mjs`
+  says what it captures and hands it to `runScreenshotScript()`, which reads
+  the command line (`--url`, an http or https address, the game's own dev
+  server by default, `--chrome`, `--help`, and the names after them for a
+  script that takes them, as the Solitaire Collection's game ids), checks that
+  a server answers there, starts a headless Chrome and hands it to the
+  script's `capture()`, which returns the code to exit with; it returns 1,
+  before Chrome starts, where nothing answers within five seconds, and 2 for a
+  command line it can't read, and throws where it can't capture at all, such
+  as for no Chrome to run. A capture sets its page up before the game starts
+  with `setUpPage()`, given a `PageSetup` (the palette, entries stored, fields
+  merged into what a game stores as it goes, such as its clock, and a seed for
+  `Math.random`), waits for it to draw with `settled()`, which runs the layout
+  check's `settle()` and returns false where nothing matched in time, and
+  hands its `Shot`, or why it `Missed`, to `keepShot()`, which writes the
+  site's images, prints what the shot shows and each image's size, and returns
+  the code. A capture of a run taken up on a board drawn with Phaser waits
+  with `takenUpBoard()`, given the board's name, element and attribute and the
+  run's score, which returns where the board lies, or why it can't be shot:
+  the board didn't draw, the run isn't paused, the score isn't the run's, or
+  the board doesn't say where it lies. It waits on `PHASER_CANVAS_SETTLED`,
+  then sends `describePhaserPage()`, from `src/board_page.ts`, which says what
+  the page shows once 800 ms have passed: its canvas's state, its board's
+  outcome, the score, and where the scene drew the board, none where the page
+  has no canvas or the board doesn't say where it lies. It reads the board's
+  rectangle with `readRect()`, so it lives beside it, and is sent with that
+  helper (`page.evaluateWith([readRect], describePhaserPage, board)`). A board
+  that draws no run, such as Asteroid Breaker's field before its run is
+  shaped, is waited on with `settled()` and `PHASER_CANVAS_READY`. What
   `setUpPage()` runs in the page is in `src/screenshot_page.ts`;
-  `src/screenshot_page.spec.ts` runs it and `describePhaserPage()` in
-  jsdom, each as the page is sent it, from its source alone.
+  `src/screenshot_page.spec.ts` runs it and `describePhaserPage()` in jsdom,
+  each as the page is sent it, from its source alone.
 - `src/script.ts`, `@fz/dev/script`: what a workspace's Node scripts
   share. `readArgs()` reads a command line's options, `--help` (`-h`) among
   them, which every script takes, and the words after them where the
