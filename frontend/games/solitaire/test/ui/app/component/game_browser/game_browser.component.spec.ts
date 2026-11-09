@@ -145,7 +145,7 @@ describe("GameBrowserComponent", () => {
 
   /** Returns a choice of a rule in the preview, by its label. */
   function segment(label: string): HTMLElement {
-    const found = queryAll(fixture, ".segment-btn").find(
+    const found = queryAll(fixture, ".segment").find(
       (b) => b.textContent.trim() === label,
     );
     if (!found) throw new Error(`No choice is labelled ${label}.`);

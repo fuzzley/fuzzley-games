@@ -54,7 +54,8 @@ Repeated UI patterns are mixins. Every component reaches them through `@use "../
   - `transition()` — Transitions at the shared duration and easing.
   - `tap-target()` and `flex-center()`.
   - `visually-hidden()` — Screen reader accessible off-screen text.
-  - `field-label()` and `choice-tile()` — A setting's heading, and a choice drawn as a tile, such as a card back, a deck or a game's variant; the toolkit's `dialog-card()` and `close-button()` sit beside them.
+  - `settings-drawer()` — The settings drawer every game shares. `option_group`, which the drawer's rules can't reach, takes its parts itself: `setting-fields`, `segmented` and `choice-list`.
+  - `field-label()` and `choice-tile()` — A setting's heading, and a choice drawn as a tile, such as a card back or a deck; the toolkit's `dialog-card()` and `close-button()`, which the drawer and How to play close with, sit beside them.
 - From `@fz/game-ui`, beside its breakpoints: `bar-actions`, the header's actions as every game's bar has them, round and their labels heard but not seen below `desktop`; the header tightens the bar's gap further itself.
 - From `styles/_mixins.scss`, this game's own: `spinner-ring()` and `panel-card()`. One moves to the toolkit when a second app needs it.
 

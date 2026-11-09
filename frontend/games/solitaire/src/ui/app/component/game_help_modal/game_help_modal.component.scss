@@ -80,11 +80,8 @@
   width: 14px;
 }
 
-.btn-modal-close {
-  @include icon-button;
-
-  font-size: var(--fz-font-3xl);
-  line-height: 1;
+.close {
+  @include close-button;
 }
 
 // --- Tabs ---

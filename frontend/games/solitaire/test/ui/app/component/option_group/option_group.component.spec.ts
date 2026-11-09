@@ -47,7 +47,7 @@ describe("OptionGroupComponent", () => {
 
   /** Returns the group's choice buttons, in the order they are offered. */
   function choices(): HTMLElement[] {
-    return queryAll(fixture, ".segment-btn");
+    return queryAll(fixture, ".segment");
   }
 
   /** Returns the label of the choice marked as the current one. */
@@ -178,7 +178,7 @@ describe("OptionGroupComponent", () => {
 
     /** Returns the list's rows, in the order they are offered. */
     function rows(): HTMLElement[] {
-      return queryAll(fixture, ".choice-row");
+      return queryAll(fixture, ".choice");
     }
 
     /** Returns the text of the element a row's ARIA reference points at. */

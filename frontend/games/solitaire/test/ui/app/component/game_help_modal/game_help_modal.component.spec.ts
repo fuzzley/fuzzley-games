@@ -60,7 +60,7 @@ describe("GameHelpModalComponent", () => {
     it("closes when the close button is clicked", () => {
       openHelp();
 
-      clickElement(fixture, ".btn-modal-close");
+      clickElement(fixture, "button[aria-label='Close documentation']");
       fixture.detectChanges();
 
       expect(docService.isOpen()).toBe(false);
@@ -124,7 +124,7 @@ describe("GameHelpModalComponent", () => {
       openHelp();
 
       expect(document.activeElement).toBe(
-        queryRequired(fixture, ".btn-modal-close"),
+        queryRequired(fixture, "button[aria-label='Close documentation']"),
       );
     });
 

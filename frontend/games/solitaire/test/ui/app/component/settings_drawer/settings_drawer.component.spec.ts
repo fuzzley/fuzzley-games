@@ -50,7 +50,7 @@ describe("SettingsDrawerComponent", () => {
 
   /** Returns the drawer's own rule buttons, excluding the debug panel's. */
   function ruleButtons(): HTMLElement[] {
-    return queryAll(fixture, "app-option-group.rule .segment-btn");
+    return queryAll(fixture, "app-option-group.rule .segment");
   }
 
   describe("showing and hiding", () => {
@@ -68,7 +68,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
       const closed = onClose();
 
-      clickElement(fixture, ".btn-close");
+      clickElement(fixture, "button[aria-label='Close game options']");
 
       expect(closed).toHaveBeenCalledOnce();
     });
@@ -170,7 +170,7 @@ describe("SettingsDrawerComponent", () => {
 
     /** Returns a group's buttons, in the order offered. */
     function buttons(group: string): HTMLElement[] {
-      return queryAll(fixture, `app-option-group.${group} .segment-btn`);
+      return queryAll(fixture, `app-option-group.${group} .segment`);
     }
 
     /** Returns the line describing a group's checked choice. */
@@ -307,7 +307,7 @@ describe("SettingsDrawerComponent", () => {
   describe("the card style", () => {
     /** Returns the style buttons, in the order they are offered. */
     function styleButtons(): HTMLElement[] {
-      return queryAll(fixture, "app-option-group.card-style .segment-btn");
+      return queryAll(fixture, "app-option-group.card-style .segment");
     }
 
     /** Returns the line describing the style that is checked. */

@@ -179,9 +179,11 @@ skill says more; on top of them:
   `@fz/style`'s toolkit, which `styles/_index.scss` forwards, with
   `@fz/game-ui`'s `bar-actions` for the header's actions; only this
   game's own (`spinner-ring()` and `panel-card()`) are in
-  `styles/_mixins.scss`, until another app needs one. The settings' headings
-  and tiles are the toolkit's `field-label()` and `choice-tile()`, which
-  every game's dialogs share.
+  `styles/_mixins.scss`, until another app needs one. The settings drawer
+  is the toolkit's `settings-drawer()`, as every game's is; `option_group`,
+  which the drawer's rules can't reach, takes `setting-fields`, `segmented`
+  and `choice-list` itself, and the card backs and decks are
+  `choice-tile()`s.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
 "desktop")`. `tablet` and `desktop` are `@fz/game-ui`'s; `phone` is this
   game's own, in `styles/_breakpoints.scss`, where another of its own would

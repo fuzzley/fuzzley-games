@@ -4,11 +4,11 @@
       <h2>Game Options</h2>
       <button
         type="button"
-        class="btn-close"
+        class="close"
         (click)="closed.emit()"
         aria-label="Close game options"
       >
-        <fz-icon class="close-icon" name="close" />
+        <fz-icon name="close" />
       </button>
     </div>
 
@@ -42,7 +42,7 @@
       }
 
       <!-- Card Back Style -->
-      <div class="setting-group">
+      <div class="setting">
         <span class="setting-label" id="card-back-label">Card Back Design</span>
         <div
           class="card-back-selector"
@@ -86,7 +86,7 @@
 
       <!-- The desktop decks, offered only while desktop cards are drawn -->
       @if (presentation.drawsDesktopCards()) {
-        <div class="setting-group">
+        <div class="setting">
           <span class="setting-label" id="card-deck-label">Desktop Cards</span>
           <div
             class="card-deck-selector"
@@ -151,14 +151,14 @@
       }
 
       <!-- The palette, the same choice as the site's theme menu -->
-      <div class="setting-group">
+      <div class="setting">
         <span class="setting-label">Theme</span>
         <fz-theme-picker />
-        <p class="setting-note">Shared with fuzzley.games and every game.</p>
+        <p class="setting-desc">Shared with fuzzley.games and every game.</p>
       </div>
 
       <!-- The felt: the palette's, or one kept whatever the palette -->
-      <div class="setting-group">
+      <div class="setting">
         <span class="setting-label" id="felt-label">Felt</span>
         <div class="felt-selector" fzRadioGroup aria-labelledby="felt-label">
           <button
@@ -191,11 +191,11 @@
             </button>
           }
         </div>
-        <p class="setting-note felt-caption">{{ feltCaption() }}</p>
+        <p class="setting-desc felt-caption">{{ feltCaption() }}</p>
       </div>
 
       <!-- Game Rules & Documentation -->
-      <div class="setting-group">
+      <div class="setting">
         <span class="setting-label">Game Rules & Documentation</span>
         <button
           type="button"
@@ -208,7 +208,7 @@
       </div>
 
       <!-- Report a Bug, in a new tab so the board being reported is kept -->
-      <div class="setting-group">
+      <div class="setting">
         <span class="setting-label">Found a Problem?</span>
         <a
           class="fz-button fz-button-secondary fz-button-block btn-report"
