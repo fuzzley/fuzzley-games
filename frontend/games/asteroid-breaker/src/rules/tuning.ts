@@ -4,6 +4,7 @@
 // number a catalog's entries differ by, such as a rock kind's speed or a
 // pickup's time, is the entry's.
 
+import type { MultiplierTier } from "@fz/core/math";
 import type { RockSize } from "./catalog/rocks";
 
 /** How long a step of the field is, in seconds. */
@@ -275,7 +276,7 @@ export const CHAIN = [
   { from: 20, times: 4 },
   { from: 10, times: 3 },
   { from: 5, times: 2 },
-] as const;
+] as const satisfies readonly MultiplierTier[];
 
 /** The points a stray brought home scores, before the chain's multiplier. */
 export const STRAY_POINTS = 500;

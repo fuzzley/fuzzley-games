@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
-import { formatPoints } from "@fz/core/format";
+import { formatPoints, tierWords } from "@fz/core/format";
 import { keysOf } from "@fz/core/records";
 import {
   type HelpCatalog,
@@ -24,15 +24,9 @@ import {
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art/art";
 
-/** How a chain multiplies a break's points, from the least, in the bar's words. */
-const CHAIN_WORDS = [...CHAIN]
-  .reverse()
-  .map(({ from, times }) => `×${String(times)} from ${String(from)} breaks`)
-  .join(", ");
-
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
-  chain: `Breaks each within ${String(CHAIN_MS / 1000)} seconds of the last make a chain, which multiplies each break's points: ${CHAIN_WORDS}.`,
+  chain: `Breaks each within ${String(CHAIN_MS / 1000)} seconds of the last make a chain, which multiplies each break's points: ${tierWords(CHAIN, "breaks")}.`,
   strays: `A stray brought home scores ${formatPoints(STRAY_POINTS)}, times the chain.`,
   clearing: `A wave cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no ship was lost on it.`,
   ships: `A ship more comes at ${formatPoints(FIRST_SHIP_POINTS)} points and every ${formatPoints(SHIP_POINTS)} after, up to ${String(MAX_SHIPS)} ships.`,

@@ -114,9 +114,10 @@ takes for the specs' helpers.
   timer is the step its thing happens at, `stepsIn()` steps on from when it
   was set, as milliseconds summed step by step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
-  times the streak's multiplier, keeps the streak, and says what clearing a
-  level adds, and how a cleared level's points add up (`tallyOf()`) and come
-  to (`pointsOf()`).
+  times the streak's multiplier (`multiplier()`, `@fz/core/math`'s
+  `multiplierAt()` over `tuning.ts`'s `STREAK`), keeps the streak, and says
+  what clearing a level adds, and how a cleared level's points add up
+  (`tallyOf()`) and come to (`pointsOf()`).
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s `EventLog` of
   256 numbered records, which `add()` fills, the scene plays and the shell
   hears, each from the last one it read; a broken brick's carries the
@@ -390,6 +391,7 @@ takes for the specs' helpers.
     ended on, or a new game after a win; Choose a level, which puts it away
     and asks the app for the levels; and Close.
   - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
+    the multiplier's ladder worded by `@fz/core/format`'s `tierWords()`,
     pausing, the controls, and every brick, capsule and ball from the
     catalogs, each with its name, its sentence and, once the scene has
     drawn, its picture, which the app asks the board for only while How to

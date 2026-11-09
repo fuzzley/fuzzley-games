@@ -52,3 +52,24 @@ export function nextMarkAfter(
   const passed = Math.floor((score - first) / every) + 1;
   return first + passed * every;
 }
+
+/** Describes a step of a ladder of multipliers: the count it starts from, and how many times it scores. */
+export interface MultiplierTier {
+  readonly from: number;
+  readonly times: number;
+}
+
+/**
+ * Returns how many times a count scores on a ladder of multipliers, listed
+ * from the highest: the first tier's it reaches, or once below them all, as
+ * a breaker's streak or chain scores.
+ */
+export function multiplierAt(
+  count: number,
+  tiers: readonly MultiplierTier[],
+): number {
+  for (const { from, times } of tiers) {
+    if (count >= from) return times;
+  }
+  return 1;
+}

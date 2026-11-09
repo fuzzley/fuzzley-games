@@ -109,10 +109,11 @@ takes for the specs' helpers.
   (`CourseField`), so the layout flies a copy of a rock ahead without
   touching the field.
   `scoring.ts` scores each break by its kind and size, times the chain's
-  multiplier (`CHAIN`), a stray brought home and a wave's clearing, gains
-  the crew a ship as the points pass each mark (`gainShipsByPoints()`), and
-  says how a cleared wave's points add up (`tallyOf()`), each part counted
-  as it scores. `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
+  multiplier (`@fz/core/math`'s `multiplierAt()` over `CHAIN`), a stray
+  brought home and a wave's clearing, gains the crew a ship as the points
+  pass each mark (`gainShipsByPoints()`), and says how a cleared wave's
+  points add up (`tallyOf()`), each part counted as it scores.
+  `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read. `kept_field.ts` is
   the field as storage keeps it: `savedField()` writes it; `readField()`
@@ -520,6 +521,7 @@ takes for the specs' helpers.
     started in; Choose a sector, which puts it away and asks the app for the
     sectors; and Close.
   - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
+    the multiplier's ladder worded by `@fz/core/format`'s `tierWords()`,
     dashing, pausing, the controls by mouse, touch and keyboard, and every
     kind of rock and pickup from the catalogs, a stray and the comet, each
     with its name, its sentence and, once the scene has drawn, its picture,

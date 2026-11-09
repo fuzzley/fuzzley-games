@@ -3,6 +3,7 @@ import {
   easeOutCubic,
   fadeAlpha,
   lerp,
+  multiplierAt,
   nextMarkAfter,
   shareDone,
 } from "./math";
@@ -84,4 +85,30 @@ describe("nextMarkAfter", () => {
       expect(nextMarkAfter(score, 20_000, 30_000)).toBe(mark);
     },
   );
+});
+
+describe("multiplierAt", () => {
+  /** A ladder as a breaker's, listed from the highest. */
+  const TIERS = [
+    { from: 20, times: 4 },
+    { from: 10, times: 3 },
+    { from: 5, times: 2 },
+  ];
+
+  it.each([
+    [0, 1],
+    [4, 1],
+    [5, 2],
+    [9, 2],
+    [10, 3],
+    [19, 3],
+    [20, 4],
+    [50, 4],
+  ])("scores a count of %i, %i times", (count, times) => {
+    expect(multiplierAt(count, TIERS)).toBe(times);
+  });
+
+  it("scores once on a ladder of no tiers", () => {
+    expect(multiplierAt(50, [])).toBe(1);
+  });
 });

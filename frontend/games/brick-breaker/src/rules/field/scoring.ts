@@ -1,3 +1,4 @@
+import { multiplierAt } from "@fz/core/math";
 import type { Brick } from "../bricks/bricks";
 import { brickKind } from "../catalog/bricks";
 import { CLEAN_POINTS, CLEAR_POINTS, STREAK } from "../tuning";
@@ -8,10 +9,7 @@ import type { Field } from "./field";
  * the paddle last met a ball: once, then more for a long streak.
  */
 export function multiplier(streak: number): number {
-  for (const { from, times } of STREAK) {
-    if (streak >= from) return times;
-  }
-  return 1;
+  return multiplierAt(streak, STREAK);
 }
 
 /**
