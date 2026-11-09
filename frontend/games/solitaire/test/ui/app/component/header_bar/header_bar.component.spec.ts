@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
@@ -42,10 +42,6 @@ describe("HeaderBarComponent", () => {
 
     fixture = TestBed.createComponent(HeaderBarComponent);
     fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    viewport.restore();
   });
 
   /** Returns the undo button, whichever state it is in. */

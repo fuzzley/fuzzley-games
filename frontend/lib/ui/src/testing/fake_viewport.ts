@@ -1,4 +1,5 @@
 import type { ColorMode } from "@fz/style/themes";
+import { onTestFinished } from "vitest";
 
 /**
  * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
@@ -25,7 +26,11 @@ export interface FakeViewport {
   setColorScheme(scheme: ColorMode): void;
   /** Says whether the player asks for less motion, and tells every live query. */
   setReducedMotion(reduced: boolean): void;
-  /** Takes the fake back off the window, and the pixel ratio it set. */
+  /**
+   * Takes the fake back off the window, and the pixel ratio it set, before
+   * the test finishes, as it does by itself once the test finishes, and does
+   * nothing after the first time.
+   */
   restore(): void;
 }
 
@@ -93,12 +98,13 @@ function evaluate(query: string, display: Display): boolean {
 
 /**
  * Installs the fake at a starting size, in CSS pixels, on a display of the
- * pixel ratio the window reports, however a spec sets it; the height is
- * tall enough by default that only the width decides whether the viewport
- * is compact.
+ * pixel ratio the window reports, however a spec sets it, until the test
+ * that installs it finishes; the height is tall enough by default that only
+ * the width decides whether the viewport is compact.
  *
- * Call {@link FakeViewport.restore} in an `afterEach`, so a spec that never
- * asked for one still sees a host without `matchMedia`.
+ * Install it in a test or a `beforeEach`, so the next test that asks for
+ * none sees a host without `matchMedia`; in a `beforeAll` it throws, since
+ * no test is running to finish.
  */
 export function installFakeViewport(width: number, height = 900): FakeViewport {
   const queries: FakeQuery[] = [];
@@ -114,10 +120,29 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
     ...current,
     pixelRatio: window.devicePixelRatio,
   });
+  // A window holds its own ratio, as a global holds its attributes.
   const windowRatio = Object.getOwnPropertyDescriptor(
     window,
     "devicePixelRatio",
   );
+
+  let installed = true;
+  let setRatio: (() => number) | null = null;
+  const restore = (): void => {
+    if (!installed) return;
+    installed = false;
+    Reflect.deleteProperty(window, "matchMedia");
+    // Puts back only a ratio it set and still holds: an `afterEach`, which
+    // runs first, may have restored a spy over the window's own already,
+    // and that spy is what the fake found there.
+    const held = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+    if (windowRatio && held?.get === setRatio) {
+      Object.defineProperty(window, "devicePixelRatio", windowRatio);
+    }
+  };
+  // Before the window is touched, so a fake installed where no test runs
+  // throws having changed nothing.
+  onTestFinished(restore);
 
   window.matchMedia = (query: string) => {
     const state = { matches: evaluate(query, now()) };
@@ -160,9 +185,10 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
       change({ width: nextWidth, height: nextHeight });
     },
     setPixelRatio(ratio: number): void {
+      setRatio = () => ratio;
       Object.defineProperty(window, "devicePixelRatio", {
         configurable: true,
-        get: () => ratio,
+        get: setRatio,
       });
       change({});
     },
@@ -175,12 +201,6 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
     setReducedMotion(reducedMotion: boolean): void {
       change({ reducedMotion });
     },
-    restore(): void {
-      Reflect.deleteProperty(window, "matchMedia");
-      // A window holds its own ratio, as a global holds its attributes.
-      if (windowRatio) {
-        Object.defineProperty(window, "devicePixelRatio", windowRatio);
-      }
-    },
+    restore,
   };
 }

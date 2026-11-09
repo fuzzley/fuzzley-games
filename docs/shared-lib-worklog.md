@@ -1105,3 +1105,42 @@ The review's optional note to name the two mixins in the `phaser-core`
 skill, beside `boardHostOptions()`: not taken. `sl-play` is rewriting that
 paragraph for `viewportOf()` and `canvasChanged()`, and the `fuzzley-ui`
 skill already names both mixins.
+
+### Step 5.3: `installFakeViewport()` taking itself off as the test finishes
+
+Built as planned on `sl-tools`. `@fz/ui/testing`'s fake viewport registers
+its own cleanup with `onTestFinished`, as `setPageVisibility()` does, and 24
+spec files drop 31 restores written by hand: the plan's 28 in 21 files, and
+the Solitaire Collection's three. Five specs of the cleanup join the fake's,
+295 passing in `@fz/ui` above its floor; every game's suite passes.
+
+The check asked for first: `onTestFinished` called from a `beforeEach` works
+in Vitest 5.1.0. It runs after the test's `afterEach` hooks, for a failing
+test too, the hook registered last first; from a `beforeAll` it throws, as
+no test is running.
+
+Where it went other than planned:
+
+- `restore()` stays, for a spec that takes the fake off before the test
+  ends, and acts only once.
+- The cleanup now runs after a spec's `afterEach`, so `vi.restoreAllMocks()`
+  runs first, and the fake put back the spy over the pixel ratio it had
+  found: a probe leaked a ratio of 2 into the next test. The fake now puts
+  back only a ratio it set and still holds.
+- A viewport variable stays only where a test reads it, scoped to the
+  describe that does; the touch screens' become one call.
+
+The review:
+
+1. _A fake installed in a `beforeAll` threw only after changing the
+   window:_ taken. It registers its cleanup first, and a spec holds it to
+   throw leaving no `matchMedia`; the spec fails with the old order.
+2. _The Solitaire Collection's three restores belong here:_ taken. Its
+   lint, typecheck and 6,874 tests pass.
+3. _Some viewport variables were assigned but never read:_ taken, in
+   Snake's app, the theme spec and both breakers' bars; Minesweeper's,
+   Sudoku's and Snake's bars scope theirs to the describe that reads it
+   too.
+4. _Nits in `fake_viewport.ts`:_ taken. The comment on the window's own
+   ratio sits by the descriptor it explains, `restore()`'s doc says it acts
+   once, and the redundant `setRatio &&` is gone.

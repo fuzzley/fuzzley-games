@@ -6,7 +6,6 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
-  afterEach,
   vi,
 } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
@@ -16,7 +15,7 @@ import { GameDocumentationService } from "@/ui/app/service/game_documentation.se
 import { ConfirmService } from "@fz/ui/confirm";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import type { MockGameModelOverrides } from "@test/support/ui/game_mock";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { installFakeViewport } from "@fz/game-ui/testing";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { query, queryAll, queryRequired, queryText } from "@test/support/dom";
 import { isDialogOpen, pressEscape } from "@test/support/dialog";
@@ -42,7 +41,6 @@ describe("GameBrowserComponent", () => {
   let fixture: ComponentFixture<GameBrowserComponent>;
   let harness: UiHarness;
   let browser: GameBrowserService;
-  let viewport: FakeViewport;
 
   // jsdom lays nothing out, so it has no scrolling to do.
   beforeAll(() => {
@@ -53,16 +51,12 @@ describe("GameBrowserComponent", () => {
     Reflect.deleteProperty(Element.prototype, "scrollIntoView");
   });
 
-  afterEach(() => {
-    viewport.restore();
-  });
-
   /** Builds the browser at a width, over a game in the given state. */
   async function build(
     width = WIDE,
     game: MockGameModelOverrides = {},
   ): Promise<void> {
-    viewport = installFakeViewport(width);
+    installFakeViewport(width);
     harness = await configureUiTestBed(GameBrowserComponent, game);
     fixture = TestBed.createComponent(GameBrowserComponent);
     browser = TestBed.inject(GameBrowserService);

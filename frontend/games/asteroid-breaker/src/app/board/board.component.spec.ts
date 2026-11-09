@@ -230,29 +230,24 @@ describe("BoardComponent", () => {
     });
 
     describe("as the scene keeps the field", () => {
-      let viewport: FakeViewport | null = null;
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
-      });
-
       // jsdom answers no media query, so its screen is a roomy one.
       it.each([
         {
           screen: "compact",
-          size: (): FakeViewport | null => installFakeViewport(390, 844),
+          size: (): void => {
+            installFakeViewport(390, 844);
+          },
           margin: MARGIN_CSS_PX.compact,
         },
         {
           screen: "roomy",
-          size: (): FakeViewport | null => null,
+          size: (): void => undefined,
           margin: MARGIN_CSS_PX.roomy,
         },
       ])(
         "keeps its cards the margin in that the scene keeps the field on a $screen screen",
         async ({ size, margin }) => {
-          viewport = size();
+          size();
           const { board } = await renderBoard();
 
           expect(board.style.getPropertyValue("--margin")).toBe(
@@ -394,15 +389,10 @@ describe("BoardComponent", () => {
     });
 
     describe("as the page is zoomed", () => {
-      let viewport: FakeViewport | null = null;
+      let viewport: FakeViewport;
 
       beforeEach(() => {
         viewport = installFakeViewport(1280, 720);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
       });
 
       it("draws the empty field again at the new ratio, though the board's device pixels stay as they were", async () => {
@@ -415,7 +405,7 @@ describe("BoardComponent", () => {
         vi.spyOn(board, "getBoundingClientRect").mockReturnValue(
           new DOMRect(0, 0, 512, 288),
         );
-        viewport?.setPixelRatio(2.5);
+        viewport.setPixelRatio(2.5);
         detectChanges();
 
         expect(board.querySelector(".field")).toHaveStyle(
@@ -437,16 +427,8 @@ describe("BoardComponent", () => {
     });
 
     describe("on a touch screen", () => {
-      let viewport: FakeViewport | null = null;
-
       beforeEach(() => {
-        viewport = installFakeViewport(390, 844);
-        viewport.setCoarsePointer(true);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
+        installFakeViewport(390, 844).setCoarsePointer(true);
       });
 
       it("draws the empty field clear of the deck", async () => {
@@ -532,16 +514,8 @@ describe("BoardComponent", () => {
     });
 
     describe("on a touch screen", () => {
-      let viewport: FakeViewport | null = null;
-
       beforeEach(() => {
-        viewport = installFakeViewport(390, 844);
-        viewport.setCoarsePointer(true);
-      });
-
-      afterEach(() => {
-        viewport?.restore();
-        viewport = null;
+        installFakeViewport(390, 844).setCoarsePointer(true);
       });
 
       it("is told the ship flies by the deck", async () => {

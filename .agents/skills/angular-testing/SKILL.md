@@ -81,8 +81,8 @@ repository's root.
   `@fz/ui/testing`, or `@fz/game-ui/testing` in a game, answers the queries
   `GameViewportService` and `ThemeService` ask, and a board's
   `(resolution)`; `setPixelRatio()`, `setColorScheme()` and
-  `setReducedMotion()` change them; its `restore()` belongs in an
-  `afterEach`.
+  `setReducedMotion()` change them; it takes itself off once the test
+  finishes, so it goes in the test or a `beforeEach`, never a `beforeAll`.
 - **No `<dialog>` methods:** `installDialogPolyfill()`, from
   `@fz/ui/testing`, in the setup file.
 - **No canvas and no component styles:** a shell around `<fz-phaser-canvas>`

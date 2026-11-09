@@ -27,15 +27,10 @@ async function settle(): Promise<void> {
 }
 
 describe("PlayRoomDirective", () => {
-  let viewport: FakeViewport | null = null;
+  let viewport: FakeViewport;
 
   beforeEach(() => {
     viewport = installFakeViewport(390, 844);
-  });
-
-  afterEach(() => {
-    viewport?.restore();
-    viewport = null;
   });
 
   /** Renders a room with the board in it focused. */
@@ -103,17 +98,17 @@ describe("PlayRoomDirective", () => {
     it("is away as it turns on its side", async () => {
       const { reasons } = await renderRoom();
 
-      viewport?.setSize(844, 390);
+      viewport.setSize(844, 390);
       await settle();
 
       expect(reasons).toEqual(["turned"]);
     });
 
     it("is away as it turns back upright", async () => {
-      viewport?.setSize(844, 390);
+      viewport.setSize(844, 390);
       const { reasons } = await renderRoom();
 
-      viewport?.setSize(390, 844);
+      viewport.setSize(390, 844);
       await settle();
 
       expect(reasons).toEqual(["turned"]);
@@ -122,7 +117,7 @@ describe("PlayRoomDirective", () => {
     it("isn't through a change of size that doesn't turn it", async () => {
       const { reasons } = await renderRoom();
 
-      viewport?.setSize(390, 664);
+      viewport.setSize(390, 664);
       await settle();
 
       expect(reasons).toEqual([]);

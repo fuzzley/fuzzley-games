@@ -303,7 +303,7 @@ game through `runScene()`:
   `ConfirmService`'s `accept()` or `cancel()`.
 - jsdom has no `matchMedia`, so motion isn't welcome and the board is no
   touch screen. A spec of the waits, or of a finger, installs
-  `@fz/game-ui/testing`'s fake viewport and restores it after.
+  `@fz/game-ui/testing`'s fake viewport, which takes itself off after.
 - The app's spec renders the app as `main.ts` starts it on fake timers
   (`setTimeout` and `clearTimeout` alone), and moves them on by
   `@fz/ui/announcer`'s `ARRIVAL_MS` for the live region to speak, rather

@@ -216,21 +216,16 @@ describe("AppComponent", () => {
   });
 
   describe("turning the screen", () => {
-    let viewport: FakeViewport | null = null;
+    let viewport: FakeViewport;
 
     beforeEach(() => {
       viewport = installFakeViewport(390, 844);
     });
 
-    afterEach(() => {
-      viewport?.restore();
-      viewport = null;
-    });
-
     it("pauses the wave in play, and says so", async () => {
       const game = await startedApp();
 
-      viewport?.setSize(844, 390);
+      viewport.setSize(844, 390);
       await settle();
 
       expect(game.outcome()).toBe("paused");

@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { fireEvent } from "@testing-library/dom";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { installFakeViewport } from "@fz/game-ui/testing";
 import type { PictureOptions } from "../../testing/field_picture";
 import { pauseAtEnd, playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
@@ -56,11 +56,7 @@ async function renderBoard(
 }
 
 describe("BoardComponent", () => {
-  let viewport: FakeViewport | null = null;
-
   afterEach(() => {
-    viewport?.restore();
-    viewport = null;
     vi.useRealTimers();
   });
 
@@ -305,7 +301,7 @@ describe("BoardComponent", () => {
 
   describe("on an upright screen", () => {
     beforeEach(() => {
-      viewport = installFakeViewport(390, 844);
+      installFakeViewport(390, 844);
     });
 
     it("stands a field wider than tall on end", async () => {

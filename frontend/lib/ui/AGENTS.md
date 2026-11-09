@@ -114,7 +114,8 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   value, in order, looking in the element a spec hands them or else the
   whole page, and throwing when a term is missing or no `<dd>` follows it;
   and `installFakeViewport()`, which stands in for the
-  `matchMedia` jsdom lacks, at a size a spec sets and changes, for a light
+  `matchMedia` jsdom lacks, until the test that installs it finishes, in the
+  test or a `beforeEach`, at a size a spec sets and changes, for a light
   system with no wish for less motion until a spec says otherwise
   (`setColorScheme()`, `setReducedMotion()`), pointed at with a mouse until
   a spec says a finger (`setCoarsePointer()`), at the window's pixel ratio

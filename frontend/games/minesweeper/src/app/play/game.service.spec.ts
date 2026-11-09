@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { pictureOf } from "../../testing/field_picture";
@@ -217,15 +217,8 @@ describe("GameService", () => {
   });
 
   describe("the end of a game", () => {
-    let viewport: FakeViewport | null = null;
-
     beforeEach(() => {
       vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      viewport?.restore();
-      viewport = null;
     });
 
     it("leaves the board to show how the game ended before the card opens", () => {
@@ -290,7 +283,7 @@ describe("GameService", () => {
     });
 
     it("pauses for the board's landings where motion is welcome", () => {
-      viewport = installFakeViewport(1280);
+      installFakeViewport(1280);
       const game = playOn(NEARLY_WON);
       game.reveal(6);
 
