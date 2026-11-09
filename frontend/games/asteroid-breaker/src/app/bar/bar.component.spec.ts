@@ -10,6 +10,7 @@ import {
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure, figureValue } from "@fz/ui/testing";
 import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
@@ -87,18 +88,6 @@ function figureTerm(term: string): HTMLElement {
     .find((dt) => dt.textContent.trim() === term);
   if (!name) throw new Error(`No ${term} shown.`);
   return name;
-}
-
-/** Returns the value a figure in the bar gives, by its term, as an element. */
-function figureValue(term: string): HTMLElement {
-  const value = figureTerm(term).nextElementSibling;
-  if (!(value instanceof HTMLElement)) throw new Error(`No ${term} shown.`);
-  return value;
-}
-
-/** Returns the value a figure in the bar gives, by its term. */
-function figure(term: string): string {
-  return figureValue(term).textContent.trim();
 }
 
 /** Returns the terms of the figures the bar shows, in order. */

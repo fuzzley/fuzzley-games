@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure, figures } from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
@@ -70,16 +71,6 @@ async function renderLost(bestBefore = 0): Promise<RenderedResult> {
   clearToNext(rendered.game);
   endAndOpen(rendered);
   return rendered;
-}
-
-/** Returns the card's figures, each as its term and its value. */
-function figures(): [string, string][] {
-  return screen
-    .getAllByRole("term")
-    .map((term) => [
-      term.textContent.trim(),
-      term.nextElementSibling?.textContent.trim() ?? "",
-    ]);
 }
 
 describe("ResultComponent", () => {
@@ -152,7 +143,7 @@ describe("ResultComponent", () => {
     await renderLost(90_000);
 
     expect({
-      best: figures().find(([term]) => term === "Best")?.[1],
+      best: figure("Best"),
       newBest: screen.queryByText("New best"),
       trophy: document.querySelector('fz-icon[name="trophy"]'),
     }).toEqual({ best: "90,000", newBest: null, trophy: null });

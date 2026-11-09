@@ -2,6 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { figure } from "@fz/ui/testing";
 import { type GameOptions, playOn } from "../../testing/game";
 import { EASY, gridFrom, solvedBut } from "../../testing/grid_picture";
 import { WAVE_MS } from "../board/board_view";
@@ -22,14 +23,6 @@ async function renderSolved(
   game.enter(6);
   await screen.findByRole("alertdialog");
   return { user: userEvent.setup() };
-}
-
-/** Returns the value a figure on the card gives, by its term. */
-function figure(term: string): string {
-  const name = screen
-    .getAllByRole("term")
-    .find((dt) => dt.textContent.trim() === term);
-  return name?.nextElementSibling?.textContent.trim() ?? "";
 }
 
 describe("ResultComponent", () => {

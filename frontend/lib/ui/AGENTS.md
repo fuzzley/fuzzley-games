@@ -108,7 +108,12 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   to store an entry in, read one back from, or hand the app again after
   `TestBed.resetTestingModule()`; `setPageVisibility(state)`, which hides
   the page or shows it again, as switching tabs does, until the test
-  finishes; and `installFakeViewport()`, which stands in for the
+  finishes; `figure(term)`, `figureValue(term)` and `figures()`, which read
+  the figures a `<dl>` shows, such as a bar's or a result card's: the text
+  of the value a term names, that value's element, or each term with its
+  value, in order, looking in the element a spec hands them or else the
+  whole page, and throwing when a term is missing or no `<dd>` follows it;
+  and `installFakeViewport()`, which stands in for the
   `matchMedia` jsdom lacks, at a size a spec sets and changes, for a light
   system with no wish for less motion until a spec says otherwise
   (`setColorScheme()`, `setReducedMotion()`), pointed at with a mouse until
@@ -132,7 +137,10 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
 - **An app loads `@fz/style`'s global stylesheet.** The components read its
   tokens with `var()` and style nothing outside themselves.
 - **Imports go one way.** This library imports `@fz/style` and Angular, never
-  the site or a game; `yarn constraints` fails a dependency on either.
+  the site or a game; `yarn constraints` fails a dependency on either. Its
+  testing entry imports `@testing-library/dom` too, with which `figure()`
+  and `figures()` find a term, and which `package.json` declares an optional
+  peer, as `@fz/game-ui` does.
 
 ## Rules
 

@@ -38,6 +38,8 @@
     "@angular/compiler-cli": "^22.2.5",
     "@fz/dev": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/user-event": "^14.6.8",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.14.0",

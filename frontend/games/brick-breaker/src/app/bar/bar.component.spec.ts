@@ -10,7 +10,12 @@ import {
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+import {
+  figure,
+  figureValue,
+  MemoryStorage,
+  provideMemoryStorage,
+} from "@fz/ui/testing";
 import {
   SPEC_LEVEL,
   loseBall,
@@ -74,21 +79,6 @@ async function renderInPlay(): Promise<RenderedBar> {
   rendered.game.launch();
   rendered.detectChanges();
   return rendered;
-}
-
-/** Returns the value a figure in the bar gives, by its term, as an element. */
-function figureValue(term: string): HTMLElement {
-  const name = screen
-    .getAllByRole("term")
-    .find((dt) => dt.textContent.trim() === term);
-  const value = name?.nextElementSibling;
-  if (!(value instanceof HTMLElement)) throw new Error(`No ${term} shown.`);
-  return value;
-}
-
-/** Returns the value a figure in the bar gives, by its term. */
-function figure(term: string): string {
-  return figureValue(term).textContent.trim();
 }
 
 /** Returns the terms of the figures the bar shows, in order. */
