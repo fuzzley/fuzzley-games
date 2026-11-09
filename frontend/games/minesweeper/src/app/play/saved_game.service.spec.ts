@@ -153,7 +153,7 @@ describe("SavedGameService", () => {
     ["another version", { version: 2 }],
     ["an unknown difficulty", { difficulty: "nightmare" }],
     ["a negative time", { seconds: -5 }],
-    ["a broken field", { field: { version: 1, rows: 3 } }],
+    ["a broken field", { field: { rows: 3 } }],
   ])("deals a fresh game when the one stored has %s", (_, change) => {
     store({
       version: 1,

@@ -29,7 +29,6 @@ function edited(change: Partial<Record<keyof SavedGrid, unknown>>): unknown {
 describe("saveGrid", () => {
   it("writes the board as text, the notes and the moves as numbers", () => {
     expect(SAVED).toMatchObject({
-      version: 1,
       level: "medium",
       givens: EASY.join(""),
       hints: 1,
@@ -54,6 +53,10 @@ describe("restoreGrid", () => {
     expect(restoreGrid(JSON.parse(JSON.stringify(SAVED)))).toEqual(PLAYED);
   });
 
+  it("restores a grid an earlier build stored with a version inside", () => {
+    expect(restoreGrid({ ...SAVED, version: 1 })).toEqual(PLAYED);
+  });
+
   it("works the solution out again from the givens", () => {
     expect(restoreGrid(SAVED)?.puzzle.solution.join("")).toBe(
       EASY_SOLUTION.join(""),
@@ -74,7 +77,6 @@ describe("restoreGrid", () => {
 
   it.each([
     ["nothing at all", null],
-    ["another version", edited({ version: 2 })],
     ["a level it doesn't know", edited({ level: "custom" })],
     ["hints that can't be counted", edited({ hints: -1 })],
     ["a fraction of a hint", edited({ hints: 0.5 })],

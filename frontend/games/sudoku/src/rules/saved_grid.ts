@@ -8,7 +8,6 @@ import { digitsText, parseDigits, puzzleFrom } from "./puzzle";
 
 /** A grid as it is stored: plain JSON. */
 export interface SavedGrid {
-  readonly version: 1;
   readonly level: Level;
   /** The givens, 81 characters with `.` for a blank. */
   readonly givens: string;
@@ -24,7 +23,6 @@ export interface SavedGrid {
 /** Returns a grid as it is stored. */
 export function saveGrid(grid: Grid): SavedGrid {
   return {
-    version: 1,
     level: grid.puzzle.level,
     givens: digitsText(grid.puzzle.givens),
     digits: digitsText(grid.digits),
@@ -36,13 +34,12 @@ export function saveGrid(grid: Grid): SavedGrid {
 
 /**
  * Returns the grid a stored one describes, or null when it is not one the
- * game could have saved: from another version, cut short, or edited. The
- * solution is worked out again from the givens, so an edited one can't
- * hand the game a wrong one, and the last move must have left the board as
- * it is.
+ * game could have saved: cut short, or edited. The solution is worked out
+ * again from the givens, so an edited one can't hand the game a wrong one,
+ * and the last move must have left the board as it is.
  */
 export function restoreGrid(saved: unknown): Grid | null {
-  if (!isRecord(saved) || saved["version"] !== 1) return null;
+  if (!isRecord(saved)) return null;
   const { level, hints, notes } = saved;
   const givens = parseText(saved["givens"]);
   const digits = parseText(saved["digits"]);

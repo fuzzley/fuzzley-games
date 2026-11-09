@@ -191,7 +191,7 @@ describe("SavedGameService", () => {
   it.each([
     ["another version", { version: 2 }],
     ["a negative time", { seconds: -5 }],
-    ["a broken grid", { grid: { version: 1, level: "easy" } }],
+    ["a broken grid", { grid: { level: "easy" } }],
   ])("deals a fresh game when the one stored has %s", (_, change) => {
     store({
       version: 1,

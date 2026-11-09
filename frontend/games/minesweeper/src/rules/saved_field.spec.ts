@@ -44,6 +44,12 @@ describe("saveField and restoreField", () => {
 });
 
 describe("restoreField", () => {
+  it("brings back a field an earlier build stored with a version inside", () => {
+    const field = fieldFrom(["x12*.", "f13*.", "__2*."]);
+
+    expect(restoreField(savedWith({ version: 1 }))).toEqual(field);
+  });
+
   it.each([
     ["nothing", null],
     ["a list", []],
@@ -53,7 +59,6 @@ describe("restoreField", () => {
   });
 
   it.each([
-    ["another version", { version: 2 }],
     ["a size cut short", { rows: "3" }],
     ["no lives", { lives: 0, livesLeft: 0 }],
     ["more lives left than it had", { livesLeft: 4 }],
