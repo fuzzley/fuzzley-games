@@ -6,7 +6,7 @@ import {
   signal,
 } from "@angular/core";
 import { Countdown } from "@fz/core/clock";
-import { randomSeed } from "@fz/core/random";
+import { RunNumbers } from "@fz/core/run_numbers";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
@@ -80,10 +80,8 @@ export class GameService {
   private readonly confirm = inject(ConfirmService);
   private readonly announcer = inject(AnnouncerService);
   private readonly viewport = inject(GameViewportService);
-  private readonly random = inject(GAME_RANDOM);
+  private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
 
-  /** The id the last run took, which the next one follows. */
-  private lastId = 0;
   private readonly runState = signal<Run>(
     this.create(this.settings.settings().speed),
   );
@@ -286,7 +284,7 @@ export class GameService {
 
   /** Takes up a run where it was left, paused, as one saved before a reload. */
   takeUp(run: Run): void {
-    this.lastId = Math.max(this.lastId, run.id);
+    this.numbers.takeUp(run.id);
     this.begin(pause(run));
     this.announcer.say(describeTakenUp(run));
   }
@@ -309,11 +307,7 @@ export class GameService {
 
   /** Returns a new run at a speed, waiting for its first direction. */
   private create(speed: Speed): Run {
-    return createRun({
-      id: ++this.lastId,
-      seed: randomSeed(this.random),
-      speed,
-    });
+    return createRun({ ...this.numbers.next(), speed });
   }
 
   private begin(run: Run): void {

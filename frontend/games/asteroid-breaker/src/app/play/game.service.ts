@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { randomSeed } from "@fz/core/random";
+import { RunNumbers } from "@fz/core/run_numbers";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
@@ -113,7 +113,7 @@ export class GameService {
   private readonly confirm = inject(ConfirmService);
   private readonly announcer = inject(AnnouncerService);
   private readonly viewport = inject(GameViewportService);
-  private readonly random = inject(GAME_RANDOM);
+  private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   private readonly waves = inject(GAME_WAVES);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
@@ -121,8 +121,6 @@ export class GameService {
   private readonly tuner = inject(TuningService);
   private readonly haptics = inject(HapticsService);
 
-  /** The id the last run took, which the next one follows. */
-  private lastId = 0;
   /** The field's shape for the board's room, which a wave takes as it starts. */
   private torus = FIRST_TORUS;
   /**
@@ -472,7 +470,7 @@ export class GameService {
    * yet begun laid out afresh, waiting for its first move.
    */
   takeUp({ run, field, broughtHome, tuned }: TakenUp): void {
-    this.lastId = Math.max(this.lastId, run.id);
+    this.numbers.takeUp(run.id);
     const clearedAll = !tuned && hasClearedAll(run, this.waves.length);
     const state: RunState = {
       ...newRunState(run),
@@ -571,12 +569,7 @@ export class GameService {
 
   /** Returns a new run at a speed, waiting at a wave for its first move. */
   private create(speed: Speed, wave: number): Run {
-    return createRun({
-      id: ++this.lastId,
-      seed: randomSeed(this.random),
-      speed,
-      wave,
-    });
+    return createRun({ ...this.numbers.next(), speed, wave });
   }
 
   /**

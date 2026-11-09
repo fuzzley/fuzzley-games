@@ -5,7 +5,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { randomSeed } from "@fz/core/random";
+import { RunNumbers } from "@fz/core/run_numbers";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
@@ -99,14 +99,12 @@ export class GameService {
   private readonly confirm = inject(ConfirmService);
   private readonly announcer = inject(AnnouncerService);
   private readonly viewport = inject(GameViewportService);
-  private readonly random = inject(GAME_RANDOM);
+  private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   private readonly levels = inject(GAME_LEVELS);
   private readonly settings = inject(SettingsService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
 
-  /** The id the last run took, which the next one follows. */
-  private lastId = 0;
   private readonly runState = signal<Run>(
     this.create(this.settings.settings().speed, 1),
   );
@@ -416,7 +414,7 @@ export class GameService {
    * were and the ball on the paddle, and says so.
    */
   takeUp({ run, field }: TakenUp): void {
-    this.lastId = Math.max(this.lastId, run.id);
+    this.numbers.takeUp(run.id);
     this.begin(run);
     takeUpField(this.levelPlay.field, field, run);
     this.announcer.say(describeTakenUp(run, this.level()));
@@ -569,8 +567,7 @@ export class GameService {
   /** Returns a new run at a speed, waiting at a level for its first serve. */
   private create(speed: Speed, level: number): Run {
     return createRun({
-      id: ++this.lastId,
-      seed: randomSeed(this.random),
+      ...this.numbers.next(),
       speed,
       lastLevel: this.levels.length,
       level,

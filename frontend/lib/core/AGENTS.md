@@ -22,6 +22,13 @@ Each file is an entry point of its own, imported by name, such as
   a seed holds; `"scenery"`, what is drawn but never played), so each takes
   a seed of its own from a run's, `randomSeed()`, a whole number of 32 bits
   for a new deal, and `shuffled()`, a list in an order a source picks.
+- `src/run_numbers.ts`: `RunNumbers`, a game's runs numbered, made with
+  the source their seeds are drawn from: `next()` gives a new run its
+  `RunNumber`, an id one past the last and a seed of `randomSeed()`'s,
+  and `takeUp(id)` notes the id of a run taken up from a save, so every
+  new run's passes it too; an id no higher than the last changes nothing.
+  Snake's, Brick Breaker's and Asteroid Breaker's `GameService`s number
+  their runs with it.
 - `src/json.ts`: `isRecord()`, `isWhole()`, `isCount()` and
   `isFiniteNumber()`, for reading back what was stored as JSON, which may
   have been edited or cut short; `listOf(value, read)`, a stored list read

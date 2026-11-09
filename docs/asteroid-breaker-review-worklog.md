@@ -2772,3 +2772,44 @@ preview build in headed Chrome, with no error or warning in any console:
 Seen and left: Asteroid Breaker and Brick Breaker say "New game" where the
 other four games say "New Game", as on `main`; the player sees it, so it
 waits for the user.
+
+## Part 4, on `run-lifecycle`
+
+Cut from `main` once `ui-lifts` is merged. Finding 20's last item, the
+run's lifecycle, was to be lifted if about 100 non-blank lines or more of
+`GameService` were still shared once finding 9 was built (decision 4).
+Counted as the plan counted them, by a line diff over stripped lines,
+Asteroid Breaker's and Brick Breaker's still share 231, down from 314, 85
+of them code; all three games share 144. So it is lifted. A design read
+the three services line by line first, and I took its four choices, none
+of which a player can see: a base class, `RunLifecycle`, which each
+`GameService` extends as a game extends `FieldPlay`, rather than ten
+delegates a game; the result card's flags left in each game, as moving
+Brick Breaker's and Snake's would split Asteroid Breaker's one record of a
+run's state; `GAME_RANDOM`, copied in five games, left for a later step,
+as lifting it would pull Minesweeper and Sudoku in; and a net gain in
+lines, about 85 fewer in source and more in specs, since what the lift
+buys is one copy with one spec.
+
+### Step 18a: finding 20, a run's id and seed from `@fz/core`'s `RunNumbers`
+
+Built on `run-lifecycle`. Each game numbered its runs with the same lines:
+a `lastId` that `create()` raised by one and `takeUp()` raised to a kept
+run's id with `Math.max()`, and a seed drawn with `randomSeed()` from
+`GAME_RANDOM`. `RunNumbers`, in `@fz/core/run_numbers`, holds them once:
+`next()` returns a run's id and then its seed, one draw of the source, and
+`takeUp()` moves the ids past a run taken up, drawing nothing. Every id and
+seed comes out as before, and the three games' specs pass unchanged.
+
+The review found nothing wrong, and four things:
+
+1. _No spec held `takeUp()` to drawing nothing, and the games' specs, whose
+   sources are constant, couldn't:_ taken; one does.
+2. _Each `SavedGameService` still gives the run it takes up the id one past
+   the current run's, so `RunNumbers` owns half that rule:_ not taken; the
+   numbers come out the same, and the saved-game services are each game's
+   own, so it is left for the final report.
+3. _`RunNumber`, the pair, and `RunNumbers`, what numbers runs, read the
+   wrong way round:_ not taken; `RunNumbers` hands out runs' numbers and a
+   `RunNumber` is one run's, as the design named them.
+4. _The skill's row for `@fz/core` didn't name it:_ taken.
