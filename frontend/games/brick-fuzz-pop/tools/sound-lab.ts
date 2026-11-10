@@ -12,20 +12,25 @@ import {
 import { BORED, MOST_CHARGE, ZAP_DELAY } from "../src/rules/tuning";
 import spritemap from "../src/scene/sounds/sounds.json";
 import spriteUrl from "../src/scene/sounds/sounds.wav?url";
-import { SOUNDS, type SoundName } from "../src/view/effects/effects";
+import {
+  SOUNDS,
+  type SoundName,
+  breakDetune,
+} from "../src/view/effects/effects";
 
 /** What plays each sound in the game, as `tools/build-sounds.mjs` describes its recipe. */
 const PLAYS: Readonly<Record<SoundName, string>> = {
   notch: "Each notch the charge climbs or falls while it builds.",
   release: "A shot released.",
   boon: "A hot shot or a triple shot released.",
-  knock: "A fuzzball turning off a side or the ceiling.",
+  knock:
+    "A fuzzball turning off a side or the ceiling, or a hot shot's bounce off the floor.",
   strike: "A brick struck that holds.",
   break:
     "A brick broken, raised along the round, as far as an octave; the bricks a frame breaks sound as one, raised for the last of them.",
   punch: "A charged fuzzball flying on through a brick it broke.",
   clank:
-    "A fuzzball striking steel, a plate or a bumper, which earths any charge it carries.",
+    "A strike that takes no hit: on steel or a plate, which earths any charge but a hot shot's, or on a shell a plain fuzzball can't open.",
   zap: "A zap along a row, a column or the diagonals.",
   blast: "A bomb's blast.",
   bump: "A bumper's kick.",
@@ -40,17 +45,6 @@ const PLAYS: Readonly<Record<SoundName, string>> = {
   lost: "A level lost.",
 };
 
-/**
- * How far each broken brick of a round is raised past the one before, in
- * cents, as `implementation-plan.md`'s V4 has the view's `detuneOf()` raise
- * them; the scenes take this and {@link BREAK_MOST_CENTS} from there once it
- * exists.
- */
-const BREAK_STEP_CENTS = 100;
-
-/** The most a broken brick is raised, in cents: an octave. */
-const BREAK_MOST_CENTS = 1200;
-
 /** How long a unit of flight takes at Normal, in seconds: 14 units a second. */
 const UNIT_S = 1 / 14;
 
@@ -59,11 +53,6 @@ const NOTCH_S = 0.25;
 
 /** How long after the press a charge held to the most is let go, in seconds. */
 const CHARGED_S = (MOST_CHARGE + 1) * NOTCH_S;
-
-/** Returns how far the game raises the round's `count`th broken brick, in cents. */
-function breakDetune(count: number): number {
-  return Math.min(Math.max(count - 1, 0) * BREAK_STEP_CENTS, BREAK_MOST_CENTS);
-}
 
 /**
  * Returns the one break the game plays for the bricks a frame breaks, raised
