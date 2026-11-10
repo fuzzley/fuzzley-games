@@ -236,3 +236,27 @@ passes, so the critical path doesn't wait on the last lifts. Their log is
   debug drawer scroll sideways.
 - **Q1 passes.** Part 1 is whole on `brick-fuzz-pop-lift` at the commit
   that records this.
+
+## Part 2: the game
+
+### Wave 1: K1, K2 and K3 merged (2026-11-10)
+
+- `brick-fuzz-pop` was cut from `brick-fuzz-pop-lift` at `df83b1cd`, the
+  commit that records Q1, and `bfp/start`'s three commits were
+  cherry-picked onto it: `d8aa9333` (K1, the workspace), `ea3dc646` (K2,
+  the contracts) and `28f33174` (K3, the aims). Their log is `start.md`,
+  which lists every decision K2 made about the contracts; the streams are
+  pointed at it.
+- On the integration branch: the workspace's lint and typecheck pass, its
+  427 tests pass with coverage at 99.28 / 97.15 / 100 / 99.5 (the rules and
+  the view at 100%), and `build:aims` leaves the tree unchanged.
+- **K2 differs from §5.4 in one name:** `RoundView.events` is an
+  `EventLogView<LoggedEvent>`, a `{ serial, event }` record, since
+  `@fz/core`'s log numbers its events and `EventLogView<FlightEvent>`
+  doesn't compile.
+- **What the integrator checks at each merge:** a new file under
+  `src/testing/` against `eslint.config.js`' `HELD_AS_RULES`, since the
+  config holds only the held files that exist; P3 drops `test:coverage`'s
+  `--passWithNoTests`.
+- **A1 started before K2 landed,** since it needs only K1 and L4; the art
+  stream rebases before A2.
