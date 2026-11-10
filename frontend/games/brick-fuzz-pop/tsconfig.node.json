@@ -1,0 +1,14 @@
+{
+  // What runs in Node through Vite: the configs Vite and Vitest run, and the
+  // specs of the scripts under tools/. @fz/style's Vite plugin imports its
+  // modules by their full file names, as Node needs.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    // tools/*.mjs carry their types in JSDoc; tsconfig.scripts.json checks them.
+    "allowJs": true,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["vite.config.ts", "vitest.config.ts", "tools/**/*.ts"]
+}

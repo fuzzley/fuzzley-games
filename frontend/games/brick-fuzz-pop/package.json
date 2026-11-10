@@ -1,0 +1,70 @@
+{
+  "name": "brick-fuzz-pop",
+  "version": "0.0.1",
+  "description": "Brick Fuzz Pop, drawn with Phaser: aim the fuzzball, charge it with static and let it punch through the wall before the bricks reach the floor.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim --passWithNoTests \"$@\"",
+    "test:watch": "vitest",
+    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
+    "lint": "eslint src eslint.config.js stylelint.config.js vite.config.ts vitest.config.ts && yarn lint:styles",
+    "lint:styles": "stylelint \"src/**/*.scss\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuzzley/fuzzley-games.git",
+    "directory": "frontend/games/brick-fuzz-pop"
+  },
+  "author": "Andrey Gavel",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/fuzzley/fuzzley-games/issues"
+  },
+  "homepage": "https://fuzzley.games/play/brick-fuzz-pop/",
+  "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.9.6",
+    "@angular/build": "^22.2.6",
+    "@angular/compiler-cli": "^22.2.5",
+    "@angular/router": "^22.2.5",
+    "@fz/dev": "workspace:*",
+    "@testing-library/angular": "^19.6.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
+    "jsdom": "^31.0.0",
+    "postcss": "^8.5.32",
+    "sass": "^1.108.0",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@angular/aria": "~22.2.6",
+    "@angular/cdk": "~22.2.6",
+    "@angular/common": "^22.2.5",
+    "@angular/compiler": "^22.2.5",
+    "@angular/core": "^22.2.5",
+    "@angular/platform-browser": "^22.2.5",
+    "@fz/core": "workspace:*",
+    "@fz/game-ui": "workspace:*",
+    "@fz/phaser": "workspace:*",
+    "@fz/style": "workspace:*",
+    "@fz/ui": "workspace:*",
+    "phaser": "^4.2.1",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.9.1"
+  }
+}

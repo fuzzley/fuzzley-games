@@ -1,0 +1,8 @@
+{
+  // The specs, which Vitest runs.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts"]
+}
