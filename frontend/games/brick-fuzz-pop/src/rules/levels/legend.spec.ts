@@ -1,6 +1,6 @@
 import { isKeyOf, keysOf } from "@fz/core/records";
-import { SIDE } from "@fz/core/sweep";
 import { BRICK_KIND_IDS, brickKind, isBrickKindId } from "../catalog/bricks";
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
 import {
   LEGEND,
   type LegendBrick,
@@ -74,15 +74,11 @@ describe("the legend", () => {
     expect(LEGEND[character].plates).toBe(0);
   });
 
-  // SIDE names its faces for a y that grows down, so its top is the face
-  // toward this field's floor.
+  // A plate covers a brick's faces, as grid.ts names them.
   it.each<[LegendCharacter, LegendBrick]>([
-    ["v", { kind: "plated", hits: 2, plates: SIDE.top }],
-    [
-      "U",
-      { kind: "plated", hits: 2, plates: SIDE.top | SIDE.left | SIDE.right },
-    ],
-  ])("plates %s's faces as SIDE names them", (character, brick) => {
+    ["v", { kind: "plated", hits: 2, plates: FLOORWARD }],
+    ["U", { kind: "plated", hits: 2, plates: FLOORWARD | LEFT | RIGHT }],
+  ])("plates %s's faces as the grid names them", (character, brick) => {
     expect(LEGEND[character]).toEqual(brick);
   });
 
@@ -90,8 +86,8 @@ describe("the legend", () => {
   // don't use.
   it.each<[LegendCharacter, LegendBrick]>([
     ["T", { kind: "shell", hits: 3, plates: 0 }],
-    ["V", { kind: "plated", hits: 3, plates: SIDE.top }],
-    ["^", { kind: "plated", hits: 2, plates: SIDE.bottom }],
+    ["V", { kind: "plated", hits: 3, plates: FLOORWARD }],
+    ["^", { kind: "plated", hits: 2, plates: CEILINGWARD }],
   ])("keeps %s for C12's brick", (character, brick) => {
     expect(LEGEND[character]).toEqual(brick);
   });

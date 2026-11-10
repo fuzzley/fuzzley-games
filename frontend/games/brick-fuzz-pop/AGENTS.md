@@ -13,8 +13,9 @@ says how any game here is drawn with Phaser. Paths are relative to
 The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
-shows the game's name alone, and the site doesn't ship it:
-`frontend/site/games.json` doesn't list it.
+shows the game's name alone, its settings drawer written but opened by
+nothing yet, and the site doesn't ship it: `frontend/site/games.json`
+doesn't list it.
 
 ## Technology Stack
 
@@ -43,10 +44,24 @@ part of a round, `src/rules/tuning.ts`'s numbers, the aims' headings in
 brick in `src/rules/catalog/`, the warm-up's so far, the levels' legend in
 `src/rules/levels/legend.ts`, `thirdsOf()` and `positionAt()`, with
 `playRound()` throwing until it is written; and the view's types, frame
-names and sound names. `src/testing/flight_fixtures.ts` holds rounds made
-by hand to build the view, the scene and the shell against, and
-`orderProblemsOf()` and `trackProblemsOf()`, which hold a flight to the
-order and the paths `src/rules/flight/events.ts` describes.
+names and sound names.
+
+Beyond the contracts, `src/rules/grid.ts` is the field's grid: its cells,
+the box a brick stands in, how a brick meets a fuzzball, and a brick's
+faces and corners named for this field (`FieldFace`, `FieldCorner`), whose
+y grows up from the floor where `@fz/core/sweep`'s grows down a screen. It
+is the one place that says which of `SIDE`'s bits each face is; the rest
+of the code names a face by it. `src/rules/wall/lower.ts` brings the wall
+down after a round, a row or a jump, sinking what the level doesn't need
+at the floor and losing the level on what it does (`lowerWall()`), and
+says whether a level is cleared (`isCleared()`). The view's
+`src/view/colors/` holds the field's colors: the page's roles it is drawn
+in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
+`wallPalette()`, which gives a palette's colors from those roles and its
+mode's tile and fuzzball inks: every color a rule of contrast covers,
+though not the shading the art mixes from them. The shell's
+`src/app/settings/` holds the settings drawer: how the player aims, the
+flight's speed, long flights sped up, the aim guide, sound and the palette.
 
 | Layer | May import                                                                                                                                                  | May not import                                                                          |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -65,6 +80,15 @@ fixes, `Math.sqrt()` among them, with no `**` and no constant such as
 specs' helpers the solver, the careless player and the scripts run are held
 as the rules are, from the commit that writes each: `eslint.config.js`
 lists them.
+
+## What It Keeps
+
+Each entry is in `localStorage`, versioned, through `@fz/ui/storage`'s
+`storedSignal()`, and its reader drops what it can't trust rather than
+failing:
+
+- `brick-fuzz-pop-settings`: how the player aims, the flight's speed,
+  whether long flights speed up, the aim guide and sound.
 
 ## Development Commands
 
@@ -106,3 +130,18 @@ lines and 95% of branches, the scene to 98, 92, 100 and 99, and the shell to
 98, 97, 97 and 98. The repository's `angular-testing` skill covers the
 patterns every Angular workspace's specs share, and `phaser-core` the
 harness.
+
+What the specs share is in `src/testing/`:
+
+- `src/testing/flight_fixtures.ts` holds rounds made by hand to build the
+  view, the scene and the shell against, and `orderProblemsOf()` and
+  `trackProblemsOf()`, which hold a flight to the order and the paths
+  `src/rules/flight/events.ts` describes.
+- `src/testing/wall_picture.ts` lays a wall out from a picture in the
+  legend's characters (`wallFrom()`), as the fixtures' walls are, so a
+  spec draws the wall it plays. The solver's and the careless player's
+  specs will draw theirs with it too, so it is held as the rules are, to
+  their fence and their exact arithmetic.
+- `src/testing/roles.ts` reads the game's palettes from its global
+  stylesheet (`PALETTES`), which `src/view/colors/contrast.spec.ts` holds
+  the field's inks to contrast in, each of the four.

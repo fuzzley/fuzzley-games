@@ -3,16 +3,11 @@
 // written, and the checks that hold a flight to the order and the paths
 // src/rules/flight/events.ts describes, which hold fly()'s flights once it
 // is. Each round is played on a field 11 deep but the bored one, its wall
-// drawn as a picture in the legend's characters, top row first, its places
-// worked out by hand and its moments from them.
+// drawn as a picture by wallFrom(), its places worked out by hand and its
+// moments from them.
 
 import { clamp, multiplierAt } from "@fz/core/math";
-import { isKeyOf } from "@fz/core/records";
-import {
-  type BrickKindId,
-  brickKind,
-  isBrickKindId,
-} from "../rules/catalog/bricks";
+import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
 import type {
   BallRole,
   BallTrack,
@@ -23,7 +18,6 @@ import type {
   Waypoint,
   ZapPattern,
 } from "../rules/flight/events";
-import { LEGEND, NO_BRICK } from "../rules/levels/legend";
 import type {
   Round,
   RoundOutcome,
@@ -44,7 +38,8 @@ import {
   ZAP_DELAY,
   ZAP_HITS,
 } from "../rules/tuning";
-import type { Brick, Wall } from "../rules/wall/wall";
+import type { Wall } from "../rules/wall/wall";
+import { wallFrom } from "./wall_picture";
 
 /** Describes a round made by hand: where it starts, its shot, the level's boon, and the round it plays. */
 export interface FlightFixture {
@@ -429,45 +424,6 @@ function shotAt(degrees: number, charge: Charge): Shot {
   return { aim: (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE, charge };
 }
 
-/** Returns a wall laid out from a picture, top row first, its lowest row standing in a field row. */
-function wallOf(lowestRow: number, picture: readonly string[]): Wall {
-  const bricks = [...picture]
-    .reverse()
-    .flatMap((line, wallRow) =>
-      Array.from({ length: COLUMNS }, (_, column) =>
-        brickOf(line.charAt(column), wallRow),
-      ),
-    );
-  return { bricks, rows: picture.length, lowestRow };
-}
-
-/**
- * Returns the brick a character of the legend stands for, a plain or tough
- * one in its row's ink, or null for no brick, throwing for a character
- * whose kind isn't cataloged, so a fixture's wall loses no brick unseen.
- */
-function brickOf(character: string, wallRow: number): Brick | null {
-  if (character === NO_BRICK) {
-    return null;
-  }
-  const entry = isKeyOf(character, LEGEND) ? LEGEND[character] : null;
-  if (entry === null || !isBrickKindId(entry.kind)) {
-    throw new RangeError(
-      `A flight fixture's wall holds "${character}", no cataloged kind's brick.`,
-    );
-  }
-  const { kind, hits, plates } = entry;
-  const rowInk = kind === "brick" || kind === "tough";
-  return {
-    kind,
-    hits,
-    full: hits,
-    plates,
-    tint: rowInk ? wallRow % 8 : 0,
-    twin: null,
-  };
-}
-
 /** Returns a fuzzball's waypoints through places, leaving at a moment and flying a unit a unit. */
 function pathOf(at: number, places: readonly Place[]): Waypoint[] {
   let flown = at;
@@ -719,16 +675,19 @@ function offTheCorner(
 
 /** A plain shot wears a tough brick, which holds, and turns off its face. */
 function plain(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "ooooooooo",
-    "222222222",
-    "ooooooooo",
-    ".........",
-    ".........",
-    ".........",
-    "o.......2",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      "222222222",
+      "ooooooooo",
+      ".........",
+      ".........",
+      ".........",
+      "o.......2",
+    ],
+    { lowestRow: 5 },
+  );
   return played({
     ...offTheCorner(wall, [1, 1], []),
     rowsDown: 1,
@@ -739,15 +698,18 @@ function plain(): FlightFixture {
 
 /** A shot of charge 2 punches through a brick, unturned, and spends the rest on a tough one, which turns it. */
 function punch(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "ooooooooo",
-    "2o2o2o2o2",
-    "ooooooooo",
-    ".........",
-    ".......3.",
-    "........o",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      "2o2o2o2o2",
+      "ooooooooo",
+      ".........",
+      ".......3.",
+      "........o",
+    ],
+    { lowestRow: 5 },
+  );
   const path = pathOf(0, [WAITS, RIGHT_WALL, UNDER_7_6, [2, RADIUS]]);
   const punched = atOn(path, 1, UNDER_8_5);
   const struck = sure(path[2]).at;
@@ -773,16 +735,19 @@ function punch(): FlightFixture {
 
 /** A shot of charge 5 punches through three bricks to the space behind the wall, and turns off the ceiling and a side wall. */
 function punchThrough(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "222222222",
-    "o...ooooo",
-    ".....oooo",
-    "..o...ooo",
-    "...o..ooo",
-    ".......oo",
-    ".....o..o",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "222222222",
+      "o...ooooo",
+      ".....oooo",
+      "..o...ooo",
+      "...o..ooo",
+      ".......oo",
+      ".....o..o",
+    ],
+    { lowestRow: 5 },
+  );
   const path = pathOf(0, [
     WAITS,
     RIGHT_WALL,
@@ -823,15 +788,18 @@ function punchThrough(): FlightFixture {
  * needs under the jump line: the wall jumps.
  */
 function zap(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "ooooooooo",
-    "2o2o2o2o2",
-    "ooooooooo",
-    ".........",
-    ".........",
-    "o2#o....-",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      "2o2o2o2o2",
+      "ooooooooo",
+      ".........",
+      ".........",
+      "o2#o....-",
+    ],
+    { lowestRow: 5 },
+  );
   const zapped = STRUCK_8_5 + ZAP_DELAY;
   return played({
     ...offTheCorner(
@@ -857,15 +825,18 @@ function zap(): FlightFixture {
  * the brick waiting over the ceiling whole.
  */
 function columnZap(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "oooooooo3",
-    "2o2o2o2oo",
-    "oooooooo2",
-    "........#",
-    "........o",
-    "oo......|",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "oooooooo3",
+      "2o2o2o2oo",
+      "oooooooo2",
+      "........#",
+      "........o",
+      "oo......|",
+    ],
+    { lowestRow: 5 },
+  );
   const zapped = STRUCK_8_5 + ZAP_DELAY;
   return played({
     ...offTheCorner(
@@ -891,19 +862,22 @@ function columnZap(): FlightFixture {
  * its second touch; the wall's step sinks the low steel into the floor.
  */
 function hotShot(): FlightFixture {
-  const wall = wallOf(1, [
-    "ooooooooo",
-    "ooooooooo",
-    "ooooooooo",
-    "2o2o2o2o2",
-    "ooooooooo",
-    ".......#.",
-    "........o",
-    ".........",
-    ".........",
-    ".........",
-    ".#.......",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      "ooooooooo",
+      "2o2o2o2o2",
+      "ooooooooo",
+      ".......#.",
+      "........o",
+      ".........",
+      ".........",
+      ".........",
+      ".#.......",
+    ],
+    { lowestRow: 1 },
+  );
   const path = pathOf(0, [
     WAITS,
     RIGHT_WALL,
@@ -943,14 +917,17 @@ function hotShot(): FlightFixture {
  * first wears and the second breaks.
  */
 function triple(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "ooooooooo",
-    "2o2o2o2o2",
-    ".........",
-    ".......2.",
-    "o.......o",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      "2o2o2o2o2",
+      ".........",
+      ".......2.",
+      "o.......o",
+    ],
+    { lowestRow: 5 },
+  );
   const player = pathOf(0, OFF_8_5);
   const mates = [1, 2].map((ball) => ({
     ball,
@@ -1001,14 +978,17 @@ function triple(): FlightFixture {
 
 /** A friend in the third ink flies behind a shot of charge 1, and breaks the tough brick the shot wore. */
 function friend(): FlightFixture {
-  const wall = wallOf(5, [
-    "ooooooooo",
-    "ooooooooo",
-    "2o2o2o2o2",
-    ".........",
-    ".........",
-    "o.......2",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      "2o2o2o2o2",
+      ".........",
+      ".........",
+      "o.......2",
+    ],
+    { lowestRow: 5 },
+  );
   const player = pathOf(0, OFF_8_5);
   const behind = pathOf(LAUNCH_GAP, OFF_8_5);
   const broke = sure(behind[2]).at;
@@ -1072,13 +1052,10 @@ function sideTurns(
  * yawns at the bored distance, then drops to the floor.
  */
 function bored(): FlightFixture {
-  const wall = wallOf(8, [
-    "ooooooooo",
-    "2o2o2o2o2",
-    "ooooooooo",
-    "ooooooooo",
-    "#########",
-  ]);
+  const wall = wallFrom(
+    ["ooooooooo", "2o2o2o2o2", "ooooooooo", "ooooooooo", "#########"],
+    { lowestRow: 8 },
+  );
   const radians = (FIRST_AIM_DEGREES * Math.PI) / 180;
   const dy = Math.sin(radians);
   const toSteel = (8 - RADIUS - RADIUS) / dy;
@@ -1122,7 +1099,9 @@ function bored(): FlightFixture {
 
 /** A plain shot breaks the last brick the level needs, beside steel it doesn't: cleared. */
 function cleared(): FlightFixture {
-  const wall = wallOf(5, ["##.....##", ".........", "#.......o"]);
+  const wall = wallFrom(["##.....##", ".........", "#.......o"], {
+    lowestRow: 5,
+  });
   return played({
     ...offTheCorner(
       wall,
@@ -1137,14 +1116,17 @@ function cleared(): FlightFixture {
 
 /** A plain shot wears a brick while the wall's lowest row stands a row over the floor: its step loses the level. */
 function lost(): FlightFixture {
-  const wall = wallOf(1, [
-    "ooooooooo",
-    "........2",
-    ".........",
-    ".........",
-    ".........",
-    "ooo......",
-  ]);
+  const wall = wallFrom(
+    [
+      "ooooooooo",
+      "........2",
+      ".........",
+      ".........",
+      ".........",
+      "ooo......",
+    ],
+    { lowestRow: 1 },
+  );
   const path = pathOf(0, OFF_8_5);
   return played({
     start: startOn(wall),
