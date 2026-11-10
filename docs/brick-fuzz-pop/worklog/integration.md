@@ -330,3 +330,71 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   helpers. Its log is in `start.md`.
 - R5's `lower.spec.ts` keeps its own `wallOf()`; the proof stream is asked
   to move it onto `wallFrom()`.
+
+### V1 and U5 merged; N1 moved to the shell stream (2026-11-10)
+
+- **V1**, `4c6cc264`: `fieldShape()`, `fieldMetrics()`, `toCanvas()` and
+  `toField()` (the last two can write into a record they are handed), with
+  the constants the board and the scene share (`MARGIN_CSS_PX`,
+  `FLOOR_BAND`, `LINTEL`, the panels' gap and width), `hasRoom()`,
+  `bandPixels()` and `lintelPixels()`, and `src/testing/canvases.ts`. Its
+  first review's fixes reshaped `fieldMetrics()`, so it had a second. 2,154
+  tests; its spec checks every row of the table of shapes.
+- **For S1, U1 and T1:** the 2 px frame sits in the canvas's margin, not
+  the room; the panels come from `metrics.panels`, which can differ from
+  `shape.panels` mid-flight; T1's `--down` is depth + band + lintel.
+- **Watch at T1:** a one-pixel resize keeps the depth and the unit at
+  every shape of the table at a pixel ratio of 1, but at 2 a small phone on
+  its side sits a pixel below a step.
+- **U5**, `89b4b840`: How to play, `<app-help>` (`open` and `pictures` in,
+  `closed` out), every brick from the catalog, the letter keys named by
+  where they sit, and `src/app/styles/_index.scss`. 2,174 tests. Its key
+  codes (`KeyF` held, `KeyX`, `KeyP`, `KeyR`, WASD as the arrows) were sent
+  to the view stream for V2's controls.
+- **N1 moved from the art stream to the shell stream,** which would
+  otherwise wait for R7 before U4; the art stream's chain (A2, a large
+  package, then A3) is the longer one before S2.
+
+### P1 merged (2026-11-10)
+
+- `321ce8bd`: Warm-up's nine walls parsed from their pictures
+  (`level.ts`, `levels.ts`, `warm-up.json`, `levelStart(level, depth)`),
+  held to every rule a level keeps, a sealed brick found by a flood fill;
+  `isBoon()` added to `shot.ts`; R5's spec moved onto `wallFrom()`. 2,347
+  tests. All 36 drafts parse but for kinds not yet cataloged.
+- **Decided:** a level's own legend and grid of tints, which `plan.md`
+  allows and no draft uses, stay unsupported; `unknownKey()` refuses them
+  loudly until a level needs one.
+- `wall_picture.ts` gives the portal's `&` another tint than `tintOf()`;
+  the rules stream moves `wallFrom()` onto `tintOf()` in its next commit.
+- Left for X1 and X2: specs of `sealedIn()` for blasts, X zaps, portals and
+  plates, which it handles but nothing yet holds.
+
+### N1 merged; V4 moved to the shell stream (2026-11-10)
+
+- **N1**, `69c428c6`: the twenty sounds synthesized into one sprite
+  (`src/scene/sounds/sounds.wav`, 8.35 s, 267,244 bytes, the same SHA-256
+  every build) by `yarn build:sounds`, a spec holding the sprite's map to
+  `SOUNDS` (in `tools/build-sounds.spec.ts` until S1's scene spec takes it),
+  and `soundLab()` in the Vite config, with eight scenes of a round, to tune
+  the sounds at Q3. 2,351 tests.
+- **V4 moved from the view stream to the shell stream,** which would
+  otherwise wait for R7 again; it sits beside the sounds (the lab's break
+  detune moves onto V4's `detuneOf()`), and the view stream keeps V2 and V3.
+
+### R2 merged (2026-11-10)
+
+- `516f0a8a`: `cast()`, walking the field a unit at a time, held on 2,000
+  seeded random walls to `src/testing/cast_reference.ts`, a scan of every
+  brick, with `src/testing/stand_ins.ts` standing in for the bumper and the
+  portal until X2. `BrickKinds` added to the catalog and
+  `src/rules/flight/benchmarks` to `sim`. Then `b0e1757e`: `wallFrom()`
+  tints through `tintOf()`. Fast-forwarded; 2,380 tests and the benchmark.
+- **The benchmark:** `cast()` median 2.7 µs, p99 20–24 µs; a scan of every
+  brick median 46–62 µs, p99 524–675 µs.
+- **Left to R3:** portal crossings, the spec-only `?` kind, and whether
+  `fly()` gathers a contact within `AT_ONCE` just past a cast's limit.
+- **For X2:** `wallFrom()` gives portals `twin: null`; the pairing is
+  `levels.ts`' private `twinsOf()`.
+- **For the integrator:** the workspace's `AGENTS.md` names the flight's
+  benchmark under `sim`.
