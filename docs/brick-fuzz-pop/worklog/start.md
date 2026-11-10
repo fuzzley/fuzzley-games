@@ -293,3 +293,89 @@ has, as the later of two shared waypoints is the one it turns at.
 5. **Nits.** The spec that took a turn out of a portal was named "finds",
    now "takes"; the banner comments are gone; choice 6 says R1 replaces the
    legend's `FLOORWARD` and `CEILINGWARD`.
+
+### K3: the aims
+
+**2026-11-10.**
+
+**What was built.**
+
+- `tools/build-aims.mjs`: writes `src/rules/aims.ts`, each of the 657 aims'
+  heading as `[dx, dy]`, `Math.cos()` and `Math.sin()` of
+  `(FIRST_AIM_DEGREES + aim / AIMS_PER_DEGREE) × π / 180`, each number
+  written with `String()`. It takes the three numbers from
+  `src/rules/tuning.ts`, which Node 26 loads with its types stripped, and
+  exports `aimsSource()`, the file's text, `degreesOf()`, `angleOf()` and
+  `AIMS_FILE`. `tuning.ts`'s opening comment says Node loads it so, which
+  keeps it to syntax Node can strip and to imports of types.
+- `src/rules/aims.ts`: `AIMS`, a `readonly (readonly [dx, dy])[]`, 657
+  pairs, 29,793 bytes, in the form Prettier gives it, so the root's format
+  check passes it as written.
+- `src/rules/aims.spec.ts`: 657 pairs; aims 0, 1, 3, 328 and 656 at 8°,
+  8.25°, 8.75°, 90° and 172°; each pair exactly its angle's cosine and sine
+  in this Node, each a unit long within 1e-15, each a quarter of a degree
+  from the one before by the headings alone (their dot product within
+  1e-15 of cos 0.25°); and the file byte for byte what `aimsSource()` makes
+  now.
+- `package.json`: `build:aims`, and `lint` covers `tools`.
+- `tsconfig.spec.json`: `allowJs`, so the spec takes the script's types
+  from its JSDoc.
+- The workspace's `AGENTS.md` names the aims, the script and its command.
+
+**Choices the plan didn't make.**
+
+1. **The export is `AIMS`,** a list indexed by aim, each pair a labelled
+   tuple, `[dx: number, dy: number]`.
+2. **Each heading is Node's cosine and sine of its own angle,** nothing
+   more: aim 328, straight up, is `[6.123233995736766e-17, 1]`, and aim
+   656 − i mirrors aim i only to within 3e-16 (aim 0's `dy` ends …6544,
+   aim 656's …6574). The plan asks no more; a stream that wants
+   mirrored walls to play exactly mirrored would make the script write the
+   left half as the right half's negatives, and the spec would still hold.
+3. **The spec rebuilds the file in memory** by importing the script, so a
+   change to the script, the tuning or Node's `Math.cos()` fails it until
+   `yarn build:aims` is run. The specs may use `Math.cos()`, which the
+   rules' lint ignores in specs; the script is linted as a script.
+4. **The spec holds each number to its cosine or sine exactly,** not
+   within the plan's 1e-15, which it implies: a number written with fewer
+   digits than `String()` writes, which wouldn't read back as Node's,
+   would still lie within 1e-15. The spec runs in the Node that wrote the
+   file, and a Node whose `Math.cos()` moved would fail the byte check
+   anyway.
+5. **`tsconfig.spec.json` takes `allowJs` and nothing more.** Brick
+   Breaker's `tsconfig.node.json` also sets `noEmit` and
+   `allowImportingTsExtensions`, but `noEmit` in the specs' config stops
+   Analog's plugin, which compiles with it, emitting the shell's component,
+   and the shell's spec failed. Without them, `tsc` still resolves the
+   script's import of `tuning.ts` and types it.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 427 tests in 12 files, the rules and the view at
+100%; the script at every line but its `import.meta.main` branch, which
+`yarn build:aims` runs. `yarn workspace brick-fuzz-pop build:aims` leaves
+the file's bytes as they were (the same SHA-256 before and after, and a
+clean tree after the commit). The root's `yarn lint` passes.
+
+**The mutation pass.** Fourteen mutants. Twelve changed the script and
+rebuilt the file with it, so the file matched the script and only the
+numbers' specs stood in the way: one aim short, the first aim a degree up,
+aims a fifth of a degree apart, a degree's four aims alike (by its degrees
+or by its headings), degrees over 181, cosine and sine swapped, cosines
+written to 14 places or to 16 digits, sines to 16 digits or rounded to 32
+bits, and each pair the next aim's. Two left the other side alone: the
+script changed with the file not rebuilt, and the file edited by an ulp
+(aim 328's `dx` to 0). All fourteen were killed. The four aims alike and
+the 16 digits are the review's; the first pass, of ten, had let them
+through, as the review found.
+
+**The review:**
+
+1. **The specs would pass with a degree's four aims alike,** since the
+   cosine and sine specs took their angles from the script's `angleOf()`,
+   pinned only at whole degrees. Fixed: `degreesOf()` is pinned at aims 0,
+   1, 3, 328 and 656, and each heading is held a quarter of a degree from
+   the one before by the headings alone.
+2. **Nothing held the numbers "to the bit".** Fixed: the cosines and sines
+   are held exactly (the fourth choice).
+3. **`tuning.ts` didn't say Node loads it as it is.** Fixed: its opening
+   comment does.

@@ -3,7 +3,9 @@
 // brick differ by, such as a bumper's radius, a prism's angle or an X
 // zapper's reach, is the kind's catalog entry's, and the view keeps its own
 // durations and speeds. The debug menu retunes only what RoundRules hands
-// the rules, never this module.
+// the rules, never this module. tools/build-aims.mjs loads it in Node as it
+// is, its types stripped, so it keeps to syntax Node can strip, such as no
+// enum, and imports only types.
 
 import type { MultiplierTier } from "@fz/core/math";
 

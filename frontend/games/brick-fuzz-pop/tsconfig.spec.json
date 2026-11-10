@@ -2,6 +2,9 @@
   // The specs, which Vitest runs.
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    // src/rules/aims.spec.ts rebuilds the aims with tools/build-aims.mjs,
+    // which carries its types in JSDoc; tsconfig.scripts.json checks it.
+    "allowJs": true,
     "types": ["node", "vite/client", "vitest/globals"]
   },
   "include": ["src/**/*.ts"]

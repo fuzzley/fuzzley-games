@@ -10,12 +10,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
+    "build:aims": "node tools/build-aims.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim --passWithNoTests \"$@\"",
     "test:watch": "vitest",
     "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
-    "lint": "eslint src eslint.config.js stylelint.config.js vite.config.ts vitest.config.ts && yarn lint:styles",
+    "lint": "eslint src tools eslint.config.js stylelint.config.js vite.config.ts vitest.config.ts && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""
   },
   "repository": {

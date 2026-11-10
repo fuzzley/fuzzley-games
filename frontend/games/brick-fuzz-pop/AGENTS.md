@@ -38,8 +38,9 @@ the layers below it, as `@fz/dev`'s `phaserGameLayers()` fences them in
 on Phaser, and the shell, `src/app/`, whose board will load the scene with
 `import()`. The scene holds nothing yet. The rules and the view hold the
 contracts the game is built against: the rules' types, a module for each
-part of a round, `src/rules/tuning.ts`'s numbers, the kinds of brick in
-`src/rules/catalog/`, the warm-up's so far, the levels' legend in
+part of a round, `src/rules/tuning.ts`'s numbers, the aims' headings in
+`src/rules/aims.ts`, which `tools/build-aims.mjs` writes, the kinds of
+brick in `src/rules/catalog/`, the warm-up's so far, the levels' legend in
 `src/rules/levels/legend.ts`, `thirdsOf()` and `positionAt()`, with
 `playRound()` throwing until it is written; and the view's types, frame
 names and sound names. `src/testing/flight_fixtures.ts` holds rounds made
@@ -76,6 +77,10 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002,
   Snake's 9003, Brick Breaker's 9004 and Asteroid Breaker's 9005).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
+- **Write the Aims:** `yarn build:aims` (writes `src/rules/aims.ts`, each
+  aim's heading as two numbers, from `tools/build-aims.mjs`;
+  `src/rules/aims.spec.ts` fails while the file isn't what the script
+  writes, so change the script and run it rather than edit the file).
 - **Run Unit Tests:** `yarn test` (the whole suite once, without coverage),
   `yarn test:coverage` (with coverage, failing below the floors
   `vitest.config.ts` sets, then the simulations without it),
