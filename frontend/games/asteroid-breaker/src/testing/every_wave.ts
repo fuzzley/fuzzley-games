@@ -1,6 +1,7 @@
+import { variantOfSpec } from "@fz/core/testing";
+import { SPEEDS } from "../rules/speed";
 import { WAVES, type WaveEntry, parseWave } from "../rules/waves/waves";
 import { AUTOPILOT_LIMIT, ENDLESS_PLAYED, FIELDS, playWave } from "./autopilot";
-import { speedOfSpec } from "./speed_specs";
 
 /** Returns every play of some waves the specs make: each on every field, named. */
 function playsOf(waves: readonly WaveEntry[]) {
@@ -28,7 +29,7 @@ function playsOf(waves: readonly WaveEntry[]) {
  * a file plays no speed but its own.
  */
 export function holdEveryWave(specFile: string): void {
-  const speed = speedOfSpec(specFile, "every_wave");
+  const speed = variantOfSpec(specFile, SPEEDS, "every_wave");
   describe("every wave", () => {
     it.each(playsOf(WAVES))(
       `is cleared, %s at ${speed} on a field %s, within four minutes of game time, meeting a comet and a stray if it sends them, its tally adding up`,
@@ -66,7 +67,7 @@ export function holdEveryWave(specFile: string): void {
  * calls it with its own file, as {@link holdEveryWave}'s do.
  */
 export function holdEveryEndlessWave(specFile: string): void {
-  const speed = speedOfSpec(specFile, "every_endless_wave");
+  const speed = variantOfSpec(specFile, SPEEDS, "every_endless_wave");
   describe("every Endless wave the autopilot is held to", () => {
     it.each(playsOf(ENDLESS_PLAYED))(
       `can be cleared, wave %s at ${speed} on a field %s, within four minutes of game time, meeting a comet and a stray, its tally adding up`,

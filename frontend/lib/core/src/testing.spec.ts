@@ -1,4 +1,4 @@
-import { FRAME_MS, playFor, playUntil } from "./testing";
+import { FRAME_MS, playFor, playUntil, variantOfSpec } from "./testing";
 
 /** A game that keeps each frame it is played, as its length and its steering. */
 class Recorded {
@@ -161,5 +161,84 @@ describe("playFor", () => {
       { turn: -1, fire: true },
       { turn: -1, fire: true },
     ]);
+  });
+});
+
+describe("variantOfSpec", () => {
+  /** The variants the spec files here are named for. */
+  const SPEEDS = ["relaxed", "normal", "fast"] as const;
+
+  it("reads the variant a spec file in its folder is named for", () => {
+    const file = "/game/src/every_wave/normal.spec.ts";
+
+    expect(variantOfSpec(file, SPEEDS, "every_wave")).toBe("normal");
+  });
+
+  it("types the variant as one of the list's", () => {
+    const file = "/game/src/every_wave/normal.spec.ts";
+
+    expectTypeOf(variantOfSpec(file, SPEEDS, "every_wave")).toEqualTypeOf<
+      "relaxed" | "normal" | "fast"
+    >();
+  });
+
+  it("reads a variant that is a number", () => {
+    const file = "/game/src/every_depth/13.spec.ts";
+
+    expect(variantOfSpec(file, [11, 13, 22] as const, "every_depth")).toBe(13);
+  });
+
+  it("reads a path written with Windows' separators", () => {
+    const file = "C:\\game\\src\\every_wave\\fast.spec.ts";
+
+    expect(variantOfSpec(file, SPEEDS, "every_wave")).toBe("fast");
+  });
+
+  it("refuses a file named for none of the variants, saying which it may be", () => {
+    const file = "/game/src/every_wave/slow.spec.ts";
+
+    expect(() => variantOfSpec(file, SPEEDS, "every_wave")).toThrow(
+      "Expected a spec named for one of relaxed, normal, fast in every_wave/, not /game/src/every_wave/slow.spec.ts.",
+    );
+  });
+
+  it("refuses a file named for a variant that is no spec", () => {
+    const file = "/game/src/every_wave/fast.ts";
+
+    expect(() => variantOfSpec(file, SPEEDS, "every_wave")).toThrow(
+      "not /game/src/every_wave/fast.ts.",
+    );
+  });
+
+  it("refuses a file whose name only ends in a variant's", () => {
+    const file = "/game/src/every_wave/breakfast.spec.ts";
+
+    expect(() => variantOfSpec(file, SPEEDS, "every_wave")).toThrow(
+      "not /game/src/every_wave/breakfast.spec.ts.",
+    );
+  });
+
+  it("refuses a variant's spec in a folder whose name only ends in the one named", () => {
+    const file = "/game/src/old_every_wave/fast.spec.ts";
+
+    expect(() => variantOfSpec(file, SPEEDS, "every_wave")).toThrow(
+      "not /game/src/old_every_wave/fast.spec.ts.",
+    );
+  });
+
+  it("refuses a variant's spec in a folder inside the one named", () => {
+    const file = "/game/src/every_wave/old/fast.spec.ts";
+
+    expect(() => variantOfSpec(file, SPEEDS, "every_wave")).toThrow(
+      "not /game/src/every_wave/old/fast.spec.ts.",
+    );
+  });
+
+  it("refuses a variant's spec in another folder", () => {
+    const file = "/game/src/every_layout/fast.spec.ts";
+
+    expect(() => variantOfSpec(file, SPEEDS, "every_wave")).toThrow(
+      "not /game/src/every_layout/fast.spec.ts.",
+    );
   });
 });

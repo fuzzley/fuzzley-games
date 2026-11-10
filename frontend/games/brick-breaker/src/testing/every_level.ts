@@ -1,6 +1,6 @@
-import { basename, dirname } from "node:path";
+import { variantOfSpec } from "@fz/core/testing";
 import { LEVELS } from "../rules/levels/levels";
-import { PRESET_SPEEDS, type Speed } from "../rules/speed";
+import { PRESET_SPEEDS } from "../rules/speed";
 import { TALLEST_FIELD } from "../rules/tuning";
 import {
   AUTOPILOT_LIMIT,
@@ -8,25 +8,6 @@ import {
   limitsOf,
   playLevel,
 } from "./autopilot";
-
-/** The folder that keeps a spec of every level for each preset speed. */
-const FOLDER = "every_level";
-
-/**
- * Returns the preset speed a spec file of every level is named for, so a
- * file can only play the speed its name says.
- *
- * @throws {Error} When the file is named for no preset speed, or lies
- *   outside the folder.
- */
-function speedOfSpec(file: string): Speed {
-  const name = basename(file, ".spec.ts");
-  const speed = PRESET_SPEEDS.find((preset) => preset === name);
-  if (basename(dirname(file)) !== FOLDER || speed === undefined) {
-    throw new Error(`${file} is no preset speed's spec in ${FOLDER}/.`);
-  }
-  return speed;
-}
 
 /**
  * Holds every level, played at the preset speed its spec file is named for,
@@ -39,7 +20,7 @@ function speedOfSpec(file: string): Speed {
  * side and a file plays no speed but its own.
  */
 export function holdEveryLevel(specFile: string): void {
-  const speed = speedOfSpec(specFile);
+  const speed = variantOfSpec(specFile, PRESET_SPEEDS, "every_level");
   describe("every level", () => {
     const plays = LEVELS.map((entry) => [entry.data.name, entry] as const);
 

@@ -50,3 +50,30 @@ export function playFor<Steer>(
     game.tick(FRAME_MS, steer);
   }
 }
+
+/**
+ * Returns the variant a spec file is named for, `<variant>.spec.ts` in the
+ * folder that keeps a spec for each, so a file can only play the variant its
+ * name says.
+ *
+ * `folder` is the name of the folder the file sits in, not a path. The file
+ * is split, as `import.meta.filename` gives it, at `/` or `\`, so this
+ * needs no `node:path`, which this file can't import.
+ *
+ * @throws {Error} When the file is named for none of the variants, or
+ *   doesn't sit directly in the folder.
+ */
+export function variantOfSpec<V extends string | number>(
+  file: string,
+  variants: readonly V[],
+  folder: string,
+): V {
+  const parts = file.split(/[/\\]/);
+  const variant = variants.find((each) => parts.at(-1) === `${each}.spec.ts`);
+  if (parts.at(-2) !== folder || variant === undefined) {
+    throw new Error(
+      `Expected a spec named for one of ${variants.join(", ")} in ${folder}/, not ${file}.`,
+    );
+  }
+  return variant;
+}

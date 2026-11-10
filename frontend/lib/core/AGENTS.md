@@ -140,15 +140,21 @@ Each file is an entry point of its own, imported by name, such as
   by side make one face and a corner is only where nothing touches it. Its
   y grows down, so a box's `top` is its edge of least y. Brick Breaker's
   travel sweeps its balls against its bricks, its walls and its paddle.
-- `src/testing.ts`: the frame loop a game's specs play it in, which imports
-  nothing, so a spec in Node can take it as well as one in jsdom:
-  `FRAME_MS`, a frame at 60 a second; `playUntil()`, which ticks any game
-  with a `tick(ms, steer)` a frame at a time, steered as a rule says, until
-  something comes to pass, failing past a minute's frames; and `playFor()`,
-  which ticks it for a while, steered the same way throughout. Both read
-  what a game steers by from its `tick` alone, so they refuse a steer that
-  leaves part of it out. Only specs and their helpers import it, as
-  `@fz/dev`'s ESLint checks of every library's testing entry.
+- `src/testing.ts`: what a game's specs share, which imports nothing, so a
+  spec in Node can take it as well as one in jsdom. The frame loop they
+  play a game in: `FRAME_MS`, a frame at 60 a second; `playUntil()`, which
+  ticks any game with a `tick(ms, steer)` a frame at a time, steered as a
+  rule says, until something comes to pass, failing past a minute's
+  frames; and `playFor()`, which ticks it for a while, steered the same way
+  throughout. Both read what a game steers by from its `tick` alone, so
+  they refuse a steer that leaves part of it out. And
+  `variantOfSpec(file, variants, folder)`, the variant a spec file is
+  named for, `<variant>.spec.ts` in the folder that keeps one for each,
+  read from its path by string operations alone, which throws for a file
+  named for none or kept in another folder, so a breaker's spec of every
+  level, wave or layout at a speed plays only the speed its name says.
+  Only specs and their helpers import it, as `@fz/dev`'s ESLint checks of
+  every library's testing entry.
 
 Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`, and
 `@fz/game-ui`'s run lifecycle the run's stages and commands. The Solitaire

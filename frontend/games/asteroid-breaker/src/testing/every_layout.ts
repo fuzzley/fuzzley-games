@@ -1,9 +1,10 @@
+import { variantOfSpec } from "@fz/core/testing";
 import { type Field, type WaveSetup, fieldFor } from "../rules/field/field";
 import { fillFor } from "../rules/field/fill";
 import { stepRocks } from "../rules/rocks/rocks";
 import { createCrew } from "../rules/ship/pilots";
 import { STILL } from "../rules/ship/ship";
-import type { Speed } from "../rules/speed";
+import { SPEEDS, type Speed } from "../rules/speed";
 import { stepsIn } from "../rules/stepper";
 import { type Torus, distance } from "../rules/torus";
 import {
@@ -15,7 +16,6 @@ import {
 import { FORMATIONS, WAVES, parseWave } from "../rules/waves/waves";
 import { FIELDS } from "./autopilot";
 import { shipOf, wholeRocks } from "./field_picture";
-import { speedOfSpec } from "./speed_specs";
 
 /** The seeds the spawn's specs lay each wave out from. */
 export const LAYOUT_SEEDS: readonly number[] = Array.from(
@@ -76,7 +76,7 @@ export function nearness(field: Field): Nearness {
  * and a file lays out no speed but its own.
  */
 export function holdEveryLayout(specFile: string): void {
-  const speed = speedOfSpec(specFile, "every_layout");
+  const speed = variantOfSpec(specFile, SPEEDS, "every_layout");
   describe("layOut", () => {
     const cases = WAVES.flatMap((entry) =>
       FORMATIONS.flatMap((formation) =>
