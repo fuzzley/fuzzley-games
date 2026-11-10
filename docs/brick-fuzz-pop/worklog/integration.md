@@ -398,3 +398,75 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   `levels.ts`' private `twinsOf()`.
 - **For the integrator:** the workspace's `AGENTS.md` names the flight's
   benchmark under `sim`.
+
+### A2 merged; S1 started early (2026-11-10)
+
+- **A2**, `a071a318`: the bricks' art for the first five kinds, nine files
+  at 100%, the atlas 518 × 778 at 128 device px a unit (21 frames), baking at
+  every unit from 1 to 16 device px at ratios 1 to 3. Two review rounds; the
+  second found an odd-width outline a pixel off-centre, a crack within 1 px
+  of a pip at 38 px a unit, and the inside-the-tile spec ignoring the tile's
+  rounded corners, all fixed, the specs now trying every whole unit from 30
+  CSS px to 128 device px. 2,612 tests.
+- **S1 started** in a sixth worktree, `bfp/scene` (log `scene.md`), since
+  V1, A2 and K2, all it needs, have landed. Wave 3's S1 and S2 are the
+  integrator's in the plan; an agent builds them for it. The machine had 17
+  GB free and a load of 8 with five streams running.
+
+### V4 merged (2026-11-10)
+
+- `5f1160df`, from the shell stream: `src/view/effects/effects.ts`'
+  `FlightEffects` (`begin(boon)`, `effectsOf(event)`), `beatEffectsOf()`,
+  `detuneOf()`, `createFrameSounds()` and `flourishesOf()`; `flourish.ts`'s
+  overshooting ease and its scales; `timing.ts`' `STEP_MS` (260),
+  `JUMP_MS` (480), each flourish's duration, `clearedDelayMs()` and
+  `resultDelayMs()`. The sound lab's break detune now reads `detuneOf()`.
+  2,712 tests.
+- **Decided, no contract changed:** §6's `effectsOf(event)` can't tell a
+  punch from a plain break, nor a bumper from steel, from one event, so it
+  is a method of a reader that goes through the flight in order and reads
+  each fuzzball's turn at the strike's moment; K2's order rule (a turn
+  before its strike) is what makes that sound, so a `punched` field on the
+  strike isn't needed. `begin()` needs the round's boon, which `RoundView`
+  doesn't carry, so V3's `RoundPlay` owns the `FlightEffects`.
+- The shake is a camera shift in CSS pixels (`shakeOf()`), not Phaser's
+  `camera.shake()`; the result card waits 500 ms even without motion.
+- The shell stream builds U4's level choice and result card against narrow
+  inputs while R7 is built; `stats/` and U6 follow R7.
+
+### V2 merged (2026-11-10)
+
+- `3384017d`: steering. `controls.ts` (`FieldCommand`, the keys by
+  `event.code`, matching C7 and How to play's table), `steering.ts`
+  (`Steering`, `Steer`, `PointerView`, each pointer aiming its own way, pull
+  back with a dead zone and notches, point and hold, the wheel a quarter
+  degree, a cancelled touch, a second finger or a lost pointer calling the
+  shot off). Two reviews, since the first's fixes reshaped point and hold.
+  2,872 tests.
+- **Decided:**
+  - `Steering.read()` needs where the fuzzball waits, which §5.4's scene
+    options don't give, so S2 adds a `waitingX()` option fed from V3's run
+    state.
+  - **C8 is met in the steering, not in `GameService`:** `keyDown()` takes
+    Escape and calls a building charge off, and lets it through to pause
+    otherwise, since only the steering knows a charge is building. U1 adds
+    no `command()` override, but specs both cases end to end.
+  - `PointerView` has no `downTime` or `upTime`: a held press flies at the
+    charge the meter showed, timed by the frames, as Space is.
+- `MOST_FINGERS` is read only by the scene, so S2's spec holds it.
+
+### R7 and U4's first part merged (2026-11-10)
+
+- **R7**, `cfb6b894`: the run (`run.ts`: `createRun`, `startLevel`,
+  `pause`, `resume`, `nextLevel`, `takeRound` at a release and `landRound`
+  when the flight lands, the level's end waiting in `run.ending` so the last
+  flight can be paused), `scoring.ts`, `stars.ts` (`MOST_STARS`, par read
+  from a stub `par.json` the same at every depth until P3), `describe.ts`,
+  `progress.ts`, `stats.ts` (with the private `withLowerCount()` for rounds)
+  and `saved_game.ts` at version 1. `FRIEND_INKS = 8` added to `tuning.ts`.
+  Two reviews; 3,195 tests, every file of `run/` at 100%.
+- **U4's first part**, `c75145ee`: `<app-levels>` (each set's levels, their
+  stars and best, from plain `marks`) and `<app-result>` (the result card at
+  a run's end), both taking inputs only. 3,225 tests.
+- The proof stream builds `wallScore()` while R6 is built; the shell stream
+  builds `stats/` and U6 on R7.
