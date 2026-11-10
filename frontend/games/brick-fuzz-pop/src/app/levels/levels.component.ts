@@ -3,13 +3,11 @@ import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { LEVELS, type LevelEntry } from "../../rules/levels/levels";
-
-/** The most stars a level earns: three for clearing it within par. */
-export const MOST_STARS = 3;
+import { MOST_STARS } from "../../rules/run/stars";
 
 /**
- * Describes how far a level has been played, as the Levels dialog shows it:
- * the board works it out from the progress and the stats kept.
+ * Describes how far a level has been played, as the Levels dialog shows it,
+ * which `levelMarksOf()` works out from the progress and the stats kept.
  */
 export interface LevelMark {
   /** Whether a run may start there: the first level, or the one after a level cleared. */
