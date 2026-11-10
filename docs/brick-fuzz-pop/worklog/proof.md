@@ -861,3 +861,91 @@ flight lands reshaped the run:
 7. **The nits.** Fixed: `parOf()`'s doc and error no longer name a script
    that isn't written yet, and the specs' rounds are made with
    `Array.from()`.
+
+### P2, first part: the measure of a wall
+
+**2026-11-10.**
+
+**What was built.** The part of P2 that doesn't wait on `playRound()`:
+`src/testing/wall_score.ts`, which `eslint.config.js`'s `HELD_AS_RULES`
+already lists, so it is held to the rules' fence and their exact
+arithmetic from this commit. `wallScore(round, rounds)` is the sketch's
+`score()` (C13), as §6 P2 spells it out:
+
+- a lost level measures `LOST_SCORE`, −10⁹, and a cleared one
+  `CLEARED_SCORE`, 10⁹, less `ROUND_COST`, 1,000, for each round it took;
+- otherwise each brick the level needs takes away its hits left and
+  `BRICK_WEIGHT`, 1.5, times 1 and `LOW_WEIGHT`, 14, over its row squared,
+  its row the field's, counted from the floor;
+- `DANGER_COST`, 500, more is taken away if a needed brick is in row 1 or
+  lower, and `NEAR_DANGER_COST`, 60, if the lowest is in row 2;
+- `FRIEND_WORTH`, 6, is added for each friend, and `BOON_WORTH`, 25, for a
+  boon earned.
+
+`wall_score.spec.ts` holds it on small walls drawn with `wallFrom()`, and on
+K2's hand-made rounds.
+
+**Choices the plan didn't make.**
+
+1. **It reads a round played,** `MeasuredRound`, the part of a `Round` it
+   needs (the outcome's result, and the next start's wall, crew and boon),
+   and the level's rounds, this one among them, as the sketch's state
+   counted them. So the solver and the careless player hand it what
+   `playRound()` returns.
+2. **The constants are named in the module and not exported.** Nothing
+   outside it needs them: the sketch's solver and careless player called
+   only `score()`. The specs hold each number through what it measures.
+3. **A brick waiting over the ceiling counts,** as in the sketch, which
+   weighed every needed brick the wall held; the measure knows no depth.
+4. **The sum runs over the wall's cells in order,** where the sketch ran
+   over a map in the order its bricks were laid. A total can differ from
+   the sketch's in its last digit, but it is the same in every engine,
+   which is what the certificates need.
+5. **The row of the lowest needed brick isn't shared yet.** The danger
+   reads it here, `lowerWall()` reads it for the jump, and the solver's
+   margin (no needed brick in row 1) will need it too. A
+   `lowestNeededRow(wall)` beside `isNeeded()` in `lower.ts`, read by all
+   three, comes with the solver, its first caller besides these two.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 3,242 tests, 16 of them new in `wall_score.spec.ts`;
+`wall_score.ts` at 100% of statements, branches, functions and lines. The
+root's `yarn lint` passes.
+
+**The mutation pass.** 31 mutants, one at a time: each of the nine
+constants moved; the lost and cleared branches dropped or swapped; the
+rounds not counted; a brick the level doesn't need weighed, or its row
+taken for the lowest; the lowest taken as the last needed brick met, or as
+the highest; the hits taken as one, or as the brick's when whole; the
+square, the 1 and the danger dropped; both dangers taken in row 1; the
+friends and the boon dropped or turned about, or only one boon counted;
+the danger's bounds moved; and the row read off the wall alone. One lived,
+equivalent for every round a level is left on by: the danger at
+`lowest === 1` rather than `<= 1`, since a needed brick under row 1 loses
+the level, which measures `LOST_SCORE` before the bricks are weighed.
+
+**The review:**
+
+1. The specs never held "hits left": `wallFrom()` makes every brick
+   whole, and the one worn brick in reach, the plain fixture's, was only
+   checked to measure a finite number. Fixed: a spec wears a brick by hand
+   and measures it as one of a single hit, and the fixtures' spec measures
+   the plain round exactly, as the wall it leaves pictured. Mutants reading
+   `full` for `hits` now die.
+2. The specs never held that the danger reads the lowest needed brick:
+   every danger spec stood its needed bricks in one row, and the steel
+   shared a row with the plain brick, so taking the last brick met, the
+   highest, or a steel brick's row for the lowest lived, which the
+   mutation note overstated. Fixed: needed bricks in rows 1 and 2 take 500
+   once, not 60 or 560, and a needed brick over steel in row 1 takes
+   nothing; those mutants are in the pass now, and die.
+3. The nine constants were exported, and a spec only restated them, though
+   no caller needs them and each is held by what it measures. Fixed: they
+   are module-private, the spec is gone, and choice 2 says so.
+4. The solver and the careless player will need the lowest needed brick's
+   row too, which `lowerWall()` already finds its own way. Agreed, and
+   left for the solver, its first new caller: choice 5.
+5. Nits, all taken: `MeasuredRound` picks from `RoundOutcome` and
+   `RoundStart`; the spec's `Left.friends` is `readonly number[]`, as
+   `Crew`'s is; `BRICK_WEIGHT`'s doc says breaking a brick counts for more
+   than wearing a hit off one; and the boon spec measures both boons.
