@@ -48,3 +48,35 @@ commits that delete it hold it.
   compared with the same reports after the lifts.
 - The streams: rules L1 and L6, proof L2 and L7, art L4 and L5, view L3 and
   L8.
+
+### L1, L6, L2 and L7 merged (2026-11-10)
+
+- **The rules stream** (L1, L6) was fast-forwarded onto
+  `brick-fuzz-pop-lift`: `d8681067` (`@fz/core/sweep`, Brick Breaker on it)
+  and `cd70fd15` (`variantOfSpec()`). Its log is `rules.md`. Brick Breaker's
+  `report:levels` after L1 is byte-identical to the baseline.
+- **The proof stream** (L2, L7) was cherry-picked on top: `f2417b44`
+  (`phaserGameLayers({ exact })`) and `87fad841` (`allOrNone`). Its log is
+  `proof.md`. No conflicts: it touches only `frontend/lib/dev/`.
+- **Where the lifts went other than planned,** both taken as they stand:
+  - `sweepPoint(move, x, y, reach)` takes the reach as an argument, and
+    `sweepCorner()` hands it `move.r`, so Brick Breaker's results are the
+    same to the bit.
+  - `variantOfSpec(file, variants, folder)` takes the folder as a third
+    argument, since both games already checked it, and allows numeric
+    variants, so P3 can name its files for depths. The plan's L6 row still
+    shows two arguments: L9 updates it.
+- **Left for L9:** the `fuzzley-ui` skill's `@fz/core` row (sweep and
+  `variantOfSpec()`), the `phaser-core` skill on `exact`,
+  `frontend/AGENTS.md`'s "Check the Layout" on decks shown all or none, and
+  core's `AGENTS.md` saying the sweep is exact by review.
+- **The streams' scratch files** collided in the session's shared
+  scratchpad, so each now keeps its own subfolder there.
+
+### K1–K3 started early (2026-11-10)
+
+K1 needs only L1 and L2, so K1, K2 and K3 started on `bfp/start`, cut from
+`87fad841`, while the art and view streams still build L3, L4, L5 and L8.
+Their commits move onto `brick-fuzz-pop` once Part 1 is whole and Q1
+passes, so the critical path doesn't wait on the last lifts. Their log is
+`start.md`.
