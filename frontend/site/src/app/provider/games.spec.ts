@@ -30,16 +30,6 @@ describe("GAMES", () => {
     expect(bad).toEqual([]);
   });
 
-  it("dates every game with a real ISO date", () => {
-    const bad = GAMES.filter(
-      (game) =>
-        !/^\d{4}-\d{2}-\d{2}$/.test(game.added) ||
-        Number.isNaN(Date.parse(game.added)),
-    );
-
-    expect(bad).toEqual([]);
-  });
-
   it("gives every game a sensible number of players and length", () => {
     const bad = GAMES.filter(
       ({ players, minutes }) =>

@@ -18,7 +18,6 @@ describe("game", () => {
       blurb: "Clear the field.",
       players: { min: 1, max: 1 },
       minutes: 5,
-      added: "2026-10-17",
       ...fields,
     };
   }

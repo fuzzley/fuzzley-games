@@ -32,7 +32,7 @@ Sass rules every app keeps among them. Paths are relative to
   A union of ids, such as `CategoryId`, is
   derived from its list (`as const satisfies`), so the two can't disagree.
 - `src/app/service/` holds the injectable services. `GameCatalog` answers
-  every question about the games (find, group, search, which are new);
+  every question about the games (find, group, search);
   components ask it rather than importing the data, and specs give it a
   small catalog of their own through `CATALOG_DATA`. `CanonicalLink`
   names each page's address on fuzzley.games after every navigation; a

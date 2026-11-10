@@ -30,12 +30,6 @@ export interface Game {
   readonly players: PlayerCount;
   /** How long one game typically takes. */
   readonly minutes: number;
-  /**
-   * The ISO date the game went up on the site, or, for one listed while it
-   * was built, the day it was finished: the site calls it new for a while
-   * from then.
-   */
-  readonly added: string;
   /** Where the game is played, or omitted for one still to come. */
   readonly play?: PlayLocation;
   /** Whether a game that plays is still being built, which the site says. */

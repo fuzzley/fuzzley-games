@@ -191,7 +191,6 @@ describe("missingImages", () => {
         blurb: "",
         players: { min: 1, max: 1 },
         minutes: 5,
-        added: "2026-10-17",
       })),
       imagesOf: (game) => [`/thumbnails/${game.slug}.svg`],
     };
@@ -230,7 +229,6 @@ describe("manifestProblems", () => {
       blurb: "",
       players: { min: 1, max: 1 },
       minutes: 5,
-      added: "2026-10-17",
       ...(play && { play }),
     };
   }
