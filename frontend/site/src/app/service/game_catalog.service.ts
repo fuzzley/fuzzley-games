@@ -5,18 +5,13 @@ import {
   type Category,
   type CategoryId,
 } from "../provider/categories";
-import { GAMES, LAUNCHED } from "../provider/games";
+import { GAMES } from "../provider/games";
 
 /** Holds the games and categories a catalog answers for. */
 export interface CatalogData {
   readonly categories: readonly Category[];
   readonly games: readonly Game[];
-  /** The ISO date the site opened, whose first games aren't badged as new. */
-  readonly launched: string;
 }
-
-/** How long a game keeps its "New" badge. */
-const NEW_FOR_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Lowercases text and drops apostrophes, so "bakers" finds Baker’s Game. */
 function fold(text: string): string {
@@ -26,13 +21,10 @@ function fold(text: string): string {
 /** The data the catalog answers for: the site's own, unless a spec's. */
 export const CATALOG_DATA = new InjectionToken<CatalogData>("CATALOG_DATA", {
   providedIn: "root",
-  factory: () => ({ categories: CATEGORIES, games: GAMES, launched: LAUNCHED }),
+  factory: () => ({ categories: CATEGORIES, games: GAMES }),
 });
 
-/**
- * Answers for the games the site lists: finds them, groups them, searches
- * them and says which are new.
- */
+/** Answers for the games the site lists: finds, groups and searches them. */
 @Injectable({ providedIn: "root" })
 export class GameCatalog {
   private readonly data = inject(CATALOG_DATA);
@@ -87,12 +79,5 @@ export class GameCatalog {
       const text = this.searchText.get(game) ?? "";
       return words.every((word) => text.includes(word));
     };
-  }
-
-  /** Returns whether a hosted game went up recently, after the site opened. */
-  isNew(game: Game, now = new Date()): boolean {
-    if (!game.play || game.added <= this.data.launched) return false;
-    const ageMs = now.getTime() - new Date(game.added).getTime();
-    return ageMs >= 0 && ageMs < NEW_FOR_MS;
   }
 }

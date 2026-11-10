@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from "@angular/core";
+import { Component, computed, input } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { IconComponent } from "@fz/ui/icon";
@@ -8,7 +8,6 @@ import {
   type Game,
   playUrl,
 } from "../../model/game";
-import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
 /**
@@ -17,17 +16,11 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
  */
 export const EAGER_TILES = 6;
 
-/**
- * Returns the badge beside a game's name: coming soon, in development, new,
- * or none.
- */
-function badgeFor(
-  game: Game,
-  isNew: boolean,
-): { text: string; new: boolean } | null {
-  if (!game.play) return { text: "Coming soon", new: false };
-  if (game.inDevelopment) return { text: "In development", new: false };
-  return isNew ? { text: "New", new: true } : null;
+/** Returns the badge beside a game's name: coming soon, in development, or none. */
+function badgeFor(game: Game): string | null {
+  if (!game.play) return "Coming soon";
+  if (game.inDevelopment) return "In development";
+  return null;
 }
 
 /**
@@ -41,8 +34,6 @@ function badgeFor(
   styleUrl: "./game_tile.component.scss",
 })
 export class GameTileComponent {
-  private readonly catalog = inject(GameCatalog);
-
   /** The game the tile shows. */
   readonly game = input.required<Game>();
   /** Loads the game's picture at once, for a tile in view as the page opens. */
@@ -55,7 +46,7 @@ export class GameTileComponent {
       play: game.play
         ? { href: playUrl(game.play), label: `Play ${game.name}` }
         : null,
-      badge: badgeFor(game, this.catalog.isNew(game)),
+      badge: badgeFor(game),
       players: describePlayers(game.players),
       length: describeLength(game.minutes),
     };

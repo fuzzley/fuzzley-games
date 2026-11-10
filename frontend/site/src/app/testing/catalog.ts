@@ -14,7 +14,6 @@ const SOLO: PlayerCount = { min: 1, max: 1 };
  */
 export const TEST_CATALOG: CatalogData = {
   categories: CATEGORIES,
-  launched: "2026-10-17",
   games: [
     {
       slug: "klondike",
@@ -24,7 +23,6 @@ export const TEST_CATALOG: CatalogData = {
       aliases: ["Whitehead"],
       players: SOLO,
       minutes: 5,
-      added: "2026-10-17",
       play: { build: "solitaire", id: "klondike" },
     },
     {
@@ -34,7 +32,6 @@ export const TEST_CATALOG: CatalogData = {
       blurb: "Columns build down in a single suit.",
       players: SOLO,
       minutes: 8,
-      added: "2026-10-17",
       play: { build: "solitaire", id: "bakers" },
     },
     {
@@ -44,7 +41,6 @@ export const TEST_CATALOG: CatalogData = {
       blurb: "Clear the field using the numbers.",
       players: SOLO,
       minutes: 5,
-      added: "2026-10-17",
       play: { build: "minesweeper" },
     },
     {
@@ -54,7 +50,6 @@ export const TEST_CATALOG: CatalogData = {
       blurb: "Flank your opponent’s discs to flip them.",
       players: { min: 2, max: 2 },
       minutes: 10,
-      added: "2026-10-11",
     },
   ],
 };

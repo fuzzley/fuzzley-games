@@ -1,8 +1,5 @@
 import type { Game, PlayerCount } from "../model/game";
 
-/** The day the site opened with its first games, which aren't badged as new. */
-export const LAUNCHED = "2026-10-17";
-
 const SOLO: PlayerCount = { min: 1, max: 1 };
 
 /** Returns a game from the Solitaire Collection, served at /play/solitaire/. */
@@ -14,7 +11,6 @@ function solitaire(
     ...game,
     category: "solitaire",
     players: SOLO,
-    added: LAUNCHED,
     play: { build: "solitaire", id },
   };
 }
@@ -301,7 +297,6 @@ export const GAMES: readonly Game[] = [
     blurb: "Clear the field using the numbers. Don’t hit a mine.",
     players: SOLO,
     minutes: 5,
-    added: LAUNCHED,
     play: { build: "minesweeper" },
   },
   {
@@ -311,7 +306,6 @@ export const GAMES: readonly Game[] = [
     blurb: "Fill the grid so every row, column and box has 1 to 9.",
     players: SOLO,
     minutes: 10,
-    added: "2026-10-27",
     play: { build: "sudoku" },
   },
   {
@@ -321,27 +315,6 @@ export const GAMES: readonly Game[] = [
     blurb: "Flank your opponent’s discs to flip them to your color.",
     players: { min: 2, max: 2 },
     minutes: 10,
-    added: "2026-10-11",
-  },
-  {
-    slug: "snake",
-    name: "Snake",
-    category: "arcade",
-    blurb: "Eat, grow and keep clear of your own tail.",
-    players: SOLO,
-    minutes: 3,
-    added: "2026-10-28",
-    play: { build: "snake" },
-  },
-  {
-    slug: "brick-breaker",
-    name: "Brick Breaker",
-    category: "arcade",
-    blurb: "Bounce the ball, break every brick and keep it off the floor.",
-    players: SOLO,
-    minutes: 10,
-    added: "2026-10-30",
-    play: { build: "brick-breaker" },
   },
   {
     slug: "asteroid-breaker",
@@ -350,7 +323,24 @@ export const GAMES: readonly Game[] = [
     blurb: "Fly, drift and blast every rock to rubble before one finds you.",
     players: SOLO,
     minutes: 10,
-    added: "2026-11-04",
     play: { build: "asteroid-breaker" },
+  },
+  {
+    slug: "brick-breaker",
+    name: "Brick Breaker",
+    category: "arcade",
+    blurb: "Bounce the ball, break every brick and keep it off the floor.",
+    players: SOLO,
+    minutes: 10,
+    play: { build: "brick-breaker" },
+  },
+  {
+    slug: "snake",
+    name: "Snake",
+    category: "arcade",
+    blurb: "Eat, grow and keep clear of your own tail.",
+    players: SOLO,
+    minutes: 3,
+    play: { build: "snake" },
   },
 ];

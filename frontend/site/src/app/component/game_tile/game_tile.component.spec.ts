@@ -27,10 +27,6 @@ describe("GameTileComponent", () => {
     return { ...testGame(slug), inDevelopment: true };
   }
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("links a hosted game to its page", async () => {
     await renderTile("klondike");
 
@@ -66,36 +62,15 @@ describe("GameTileComponent", () => {
   it("says a game that plays is still in development", async () => {
     await renderGame(inDevelopment("minesweeper"));
 
-    expect(screen.getByText("In development")).not.toHaveClass(
-      "fz-badge-accent",
-    );
+    expect(screen.getByText("In development")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Play Minesweeper" }),
     ).toBeInTheDocument();
   });
 
-  it("badges a game in development as such even while it's new", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date("2026-11-05"));
-
-    await renderGame({ ...inDevelopment("minesweeper"), added: "2026-11-02" });
-
-    expect(screen.getByText("In development")).toBeInTheDocument();
-    expect(screen.queryByText("New")).toBeNull();
-  });
-
-  it("badges a game added lately as new", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date("2026-11-05"));
-
-    await renderGame({ ...testGame("klondike"), added: "2026-11-02" });
-
-    expect(screen.getByText("New")).toBeInTheDocument();
-  });
-
-  it("gives a game the site opened with no badge", async () => {
+  it("gives a finished hosted game no badge", async () => {
     await renderTile("klondike");
 
-    expect(screen.queryByText("New")).toBeNull();
+    expect(screen.queryByText(/Coming soon|In development/)).toBeNull();
   });
 });
