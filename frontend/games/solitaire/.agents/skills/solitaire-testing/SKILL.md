@@ -18,10 +18,11 @@ relative to `frontend/games/solitaire/`.
 Run these from `frontend/games/solitaire/`, or as
 `yarn workspace solitaire <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (single pass, with coverage) or `yarn test:watch`
+- **Run Tests**: `yarn test` (single pass, without coverage),
+  `yarn test:coverage` (with it) or `yarn test:watch`
   (watch mode). `yarn vitest run <path>` runs one spec without coverage.
 - **Enforced Floor**: the `thresholds` in `vitest.config.ts`, set a little under
-  the suite's real figures, which `yarn test`, and so CI, checks. _Never allow
+  the suite's real figures, which `yarn test:coverage`, and so CI, checks. _Never allow
   code changes to drop coverage below them_, and raise them as the real
   figures rise.
 

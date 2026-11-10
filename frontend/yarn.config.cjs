@@ -152,7 +152,7 @@ function librariesDependOnLibrariesOnly({ Yarn }) {
 const GAMES = "games/";
 
 /** The scripts the root runs in every workspace. */
-const CHECKS = ["lint", "typecheck", "test"];
+const CHECKS = ["lint", "typecheck", "test", "test:coverage"];
 
 /**
  * Requires every workspace to have the scripts the root runs in each, and

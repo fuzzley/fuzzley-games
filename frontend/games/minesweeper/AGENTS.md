@@ -143,9 +143,10 @@ workspace's with the others'.
   `yarn start` made when it started; `yarn dev:all`, from `frontend/`,
   serves this dev server there instead.
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
-  failing below the floor `vitest.config.ts` sets for `src/rules/`),
-  `yarn test:watch`, or `yarn vitest run <path>` for one spec, which leaves
+- **Run Unit Tests:** `yarn test` (the whole suite once, without
+  coverage), `yarn test:coverage` (the same, with coverage, failing below
+  the floor `vitest.config.ts` sets for `src/rules/`), `yarn test:watch`,
+  or `yarn vitest run <path>` for one spec, which leaves
   the floor alone.
 - **Linting:** `yarn lint` (ESLint over `src`, `tools` and the configs:
   `@fz/dev`'s blocks, with Angular's template accessibility rules and JSDoc

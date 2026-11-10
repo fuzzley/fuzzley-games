@@ -93,7 +93,8 @@ to `frontend/games/`.
 1. **A workspace:** a folder here, named for the game, with a
    `package.json` of the same name, private, listing everything it imports
    or runs (`@fz/dev` and the libraries as `workspace:*`) and the `lint`,
-   `typecheck`, `test` and `build` scripts the constraints require.
+   `typecheck`, `test`, `test:coverage` and `build` scripts the constraints
+   require.
    Minesweeper is the one to copy.
 2. **Its configs from `@fz/dev`'s presets:** `vite.config.ts` is
    `gameConfig({ port, name })`, `vitest.config.ts` is `angularTests()`,

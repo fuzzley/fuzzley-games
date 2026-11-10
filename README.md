@@ -38,9 +38,11 @@ yarn dev:all     # the same, from every app's own dev server, updating as you ed
 yarn build       # build the games, then build the site into site/dist/
 yarn preview     # serve the production build locally
 yarn test        # run every workspace's unit tests
+yarn test:coverage # the same, failing below each workspace's coverage floor
 yarn lint        # check skill references, lint every workspace, and check formatting
 yarn typecheck   # type-check the scripts and every workspace
 yarn verify      # lint, type-check, test, and build in one go
+yarn verify:full # the same, with coverage: what CI runs before a commit goes live
 yarn prettier    # format the repository with Prettier
 yarn games       # build the games and copy them into site/public/play/
 

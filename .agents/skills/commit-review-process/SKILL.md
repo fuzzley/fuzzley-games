@@ -73,3 +73,5 @@ Keep it under 900 words.
 
 A fix that reshapes the change, rather than correcting it, earns the change a
 second review before it is committed.
+
+Merging the commits into `main` then follows the `merge-to-main` skill.

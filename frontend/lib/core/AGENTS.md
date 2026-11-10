@@ -172,7 +172,8 @@ from `shuffled()`'s and Montana's kept gaps depend on.
 Run these from `frontend/lib/core/`, or as `yarn workspace @fz/core
 <script>` from `frontend/`.
 
-- **Run Tests:** `yarn test` (Vitest in Node, with coverage).
+- **Run Tests:** `yarn test` (Vitest in Node), or `yarn test:coverage`
+  (with coverage, failing below the floor `vitest.config.ts` sets).
 - **Type Checking:** `yarn typecheck` (`tsc` over the sources, the specs
   and the Vitest config, `tsconfig.lib.json`, then over `eslint.config.js`
   from its JSDoc, `tsconfig.scripts.json`).

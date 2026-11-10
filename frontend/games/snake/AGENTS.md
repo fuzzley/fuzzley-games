@@ -250,9 +250,10 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
 - **Production Build:** `yarn build`, into `dist/`, with Phaser in a chunk of
   its own, which the scene loads; `yarn preview` serves it.
 - **Run Unit Tests:** `yarn test` (the whole suite once, Vitest's `dom`
-  and `pure` projects, with coverage, failing below the floor
-  `vitest.config.ts` sets for `src/rules/` and `src/view/`),
-  `yarn test:watch`, or `yarn vitest run --project <project> <path>` for
+  and `pure` projects, without coverage), `yarn test:coverage` (the same,
+  with coverage, failing below the floor `vitest.config.ts` sets for
+  `src/rules/` and `src/view/`), `yarn test:watch`, or
+  `yarn vitest run --project <project> <path>` for
   one spec, which leaves the floor alone: `pure` for one of the rules or
   the view, `dom` for one of the scene or the shell. Without `--project`,
   Vitest starts both, Analog's plugin among them.

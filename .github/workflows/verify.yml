@@ -59,9 +59,11 @@ jobs:
         working-directory: frontend
         run: yarn install --immutable
 
-      - name: Lint, type-check, test and build
+      # The full check: the tests with coverage, failing below each
+      # workspace's floors, which `yarn verify` leaves out.
+      - name: Lint, type-check, test with coverage and build
         working-directory: frontend
-        run: yarn verify
+        run: yarn verify:full
 
       # jsdom has no layout, so each game with a layout check opens its build
       # in the runner's Chrome at the shapes a game takes.

@@ -19,7 +19,8 @@ Run these from `frontend/games/snake/`, or as
 `yarn workspace snake <script>` from `frontend/`.
 
 - **Run Tests**: `yarn test` (the whole suite once, the `dom` and `pure`
-  projects, with coverage) or `yarn test:watch`.
+  projects, without coverage), `yarn test:coverage` (with it) or
+  `yarn test:watch`.
   `yarn vitest run --project <project> <path>` runs one spec without
   coverage, starting its project alone: `pure` for the rules and the view,
   `dom` for the scene and the shell. Without `--project`, Vitest starts
@@ -27,7 +28,7 @@ Run these from `frontend/games/snake/`, or as
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` to 100% of
   statements, functions and lines and 95% of branches, and `src/view/` to
   the same but 99% of statements, short by a throw for a square a snake must
-  have. `yarn test`, which CI runs, fails below either. The scene and the
+  have. `yarn test:coverage`, which CI runs, fails below either. The scene and the
   shell have no floor of their own.
 
 ## Setup

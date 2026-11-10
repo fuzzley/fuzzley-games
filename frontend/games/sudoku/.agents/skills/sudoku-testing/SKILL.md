@@ -17,13 +17,14 @@ Tests". Paths are relative to `frontend/games/sudoku/`.
 Run these from `frontend/games/sudoku/`, or as
 `yarn workspace sudoku <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once, with coverage) or
+- **Run Tests**: `yarn test` (the whole suite once, without coverage),
+  `yarn test:coverage` (with it) or
   `yarn test:watch`. `yarn vitest run <path>` runs one spec without
   coverage.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` to 100% of
   statements, functions and lines and 95% of branches, and the shell,
   `src/app/`, to 100% of functions and lines, 95% of statements and 85% of
-  branches. `yarn test`, which CI runs, fails below either. `noUncheckedIndexedAccess` makes every
+  branches. `yarn test:coverage`, which CI runs, fails below either. `noUncheckedIndexedAccess` makes every
   read of a list a branch, so the rules read a square through `at()`,
   `peersOf()` and `unitsOf()` (`src/rules/cells.ts`) rather than with a
   fallback no spec can reach.
