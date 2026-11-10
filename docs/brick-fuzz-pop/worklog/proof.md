@@ -1,7 +1,8 @@
 # Work log: Brick Fuzz Pop, proof stream
 
 The proof stream's packages as they are built, from
-[`implementation-plan.md`](../implementation-plan.md): L2 and L7 in Part 1.
+[`implementation-plan.md`](../implementation-plan.md): L2 and L7 in Part 1,
+and R5, P1, R7, P2 and P3 in Part 2.
 
 ## Part 1
 
@@ -225,3 +226,118 @@ No survivors.
 
 All four are documentation only; the code and the specs are unchanged, so
 the change had no second review.
+
+## Part 2
+
+### R5: the wall
+
+**2026-11-10.**
+
+**What was built.** `src/rules/wall/lower.ts`, beside K2's `wall.ts`:
+
+- `lowerWall(wall, depth)`, the wall's step after a round, as plan.md's
+  "The wall" orders it: moss grows back a hit (`regrow()`); the wall comes
+  down a row, or a jump's rows once no brick the level needs stands below
+  the jump line; each brick the level doesn't need that reaches the floor's
+  row (field row 0 or under) sinks, a portal with its twin; and the level is
+  lost if a brick it needs reaches that row. It returns a `LoweredWall`:
+  the wall come down, `rowsDown`, `jumped`, the cells that sank (`sunk`)
+  and `lost`.
+- `isCleared(wall)`: no brick the level needs is left, in the field or
+  waiting over the ceiling.
+- `regrow(wall)`, the hook for moss, which returns the wall as it is until
+  X3 catalogs moss.
+- `lower.spec.ts`: walls drawn as rows of the legend's characters keyed by
+  the field row they stand in, at every depth from 11 to 22: a step while a
+  needed brick stands under the jump line, a jump once the lowest stands at
+  it, a jump that never loses the level and lands it where a level opens,
+  jumps following one another as each round after a jump clears the lower
+  two-thirds, steel and portals below the line not stopping a jump, a jump
+  while every needed brick waits over the ceiling, and a portal's twin
+  waiting there sinking with it as the wall jumps. Then, on a field 11
+  deep, the floor's row and the row over it for steel and for a needed
+  brick, a twin that reaches the floor first as the wall steps, each sunk
+  brick named once by cell, the cells kept, a
+  cleared wall left standing, the input untouched, a depth refused, and
+  every kind of the catalog cleared or not by whether a level needs it.
+- The spec also brings each of K2's eleven hand-made rounds' walls down:
+  the wall its flight leaves (its next wall, with each brick it didn't
+  break back from its start) comes down to the next round's wall, rows
+  down, jump and result the fixture has. All eleven agree.
+
+**Choices the plan didn't make.**
+
+1. **The functions have a file of their own,** `wall/lower.ts`, so K2's
+   `wall.ts` stays the integrator's contract file, unedited.
+2. **A cleared wall stays where it stands:** `lowerWall()` returns it as it
+   is, with `rowsDown` 0 and no jump, as `RoundOutcome.rowsDown` says ("none
+   once the level is cleared"). So the function is right for every wall,
+   and R6 asks `isCleared()` only for the round's result.
+3. **`lowerWall()` calls `regrow()` first,** once it knows the level isn't
+   cleared, and reads the jump and what sinks from the wall it returns,
+   since plan.md puts moss before the wall's coming down and nothing lowers
+   a wall without it; R6 calls one function. `regrow()` is the identity: a body that read the `regrows`
+   trait would be code no spec can reach until a kind has the trait, under
+   the rules' 100% floor. X3 fills it in and specs it.
+4. **A portal is a brick with a twin,** as `Brick.twin`'s contract says,
+   not a kind: the portal isn't cataloged until X2. The specs stand steel
+   with a twin in for a portal (`withPortals()`), and steel in for a bumper,
+   which `lowerWall()` reads only as a kind the level doesn't need. X2 can
+   draw them with their own characters once they are cataloged.
+5. **`sunk` lists each cell once, by cell,** so a pair of portals
+   reaching the floor together is named once each, and the order doesn't
+   hang on the order a `Set` was filled in (§5.6).
+6. **The jump is decided before the step,** by the lowest needed brick's
+   field row against `thirdsOf(depth).jumpLine`, as the sketch's
+   `lowestNeeded(s) >= s.D - jump` does; a lost level's wall still comes
+   down and keeps its bricks in the floor's row, as K2's `lost` fixture has
+   it.
+7. **A depth no field has throws,** as `thirdsOf()` does, rather than
+   lowering by a made-up third.
+8. **The specs draw their own walls** (`wallOf()`), since R1's
+   `src/testing/wall_picture.ts` isn't written yet; R6 or a later package
+   can move them onto it.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 540 tests in 13 files, 113 of them new; the rules and
+the view at 100% of statements, branches, functions and lines, `lower.ts`
+among them. The root's `yarn lint` passes.
+
+**The mutation pass.** 31 mutants of `lower.ts`, one at a time, each run
+against `lower.spec.ts`: the jump line's bound (strict, a row low), the
+step and the jump (two rows, a row short), the floor's row (a row lower, a
+row higher, the clamp dropped), the twin left standing, `sunk` unsorted,
+the level never lost or lost by a needed brick anywhere, `needed` flipped,
+the cleared branch dropped or stepping or jumping, the lowest row found by
+`ceil` or ignored or the highest needed brick's, needed bricks sinking,
+empty cells sinking, the wall going up or staying, `jumped` never set,
+sunk bricks kept, `isCleared()` inverted or always true, the rows dropped,
+and `regrow()` skipped; then the review's three: the lowest needed brick
+looked for only in the field's rows, a wall cleared when the field holds
+none, and a twin over the ceiling kept. 30 were killed, the review's three
+only by the specs it asked for. The one survivor, `regrow()` skipped, is
+equivalent while `regrow()` returns the wall as it is; X3's moss specs
+kill it.
+
+**The review:**
+
+1. **No spec brought down a wall whose needed bricks all wait over the
+   ceiling,** so looking for them only in the field, or calling such a wall
+   cleared, passed every spec where plan.md wants a jump. Fixed: a spec at
+   every depth jumps such a wall, sinking the steel in row 1; the two
+   mutants are killed.
+2. **The twin spec at every depth was one check twelve times,** a step
+   under every depth's jump line. Fixed: it now sinks a portal in row 1 and
+   its twin waiting over the ceiling as the wall jumps; the step's twin is
+   the spec on a field 11 deep.
+3. **The doc comments didn't match the code.** `lowerWall()` read the jump
+   from the wall before `regrow()`, against the order `regrow()`'s doc and
+   plan.md give; its doc said it returns a wall; `sunk`'s said "the lowest
+   first" for an order by cell. Fixed: `lowerWall()` asks `isCleared()`,
+   then regrows, then reads the jump and the floor's row from the regrown
+   wall; the docs say what it returns, and "by cell".
+4. **The specs' bricks didn't match their pictures or the contract:** a
+   lone steel brick had a hit, a portal stood in for a drawn tough brick,
+   and `brickOf()` dropped the legend's plates. Fixed: `wholeBrick()` gives
+   a kind its fewest hits, none for one that never breaks; the portals
+   stand on cells drawn as steel; `brickOf()` hands the plates on.
