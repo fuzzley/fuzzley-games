@@ -633,3 +633,189 @@ the numbers worth keeping.
       the band's first leg, which would reach forever. Fixed:
       `bandAlong()` throws a `RangeError` for one, with a spec. Long lines
       in `symbols.ts`'s header and the log are wrapped.
+
+### A3: the fuzzball's art
+
+**2026-11-10.**
+
+- **Built.**
+  - `src/view/art/fuzzball_art.ts`: `fuzzballFrames(palette, scale)`, the
+    fuzzballs' 16 frames, each about its body's middle: the player's at
+    each charge, 0 to 5, sparking at 5 alone; the hot shot under a crown of
+    flame; a friend in each of the eight inks; and the eyes every one
+    wears. `furOf(charge)`, the fur combed for a charge, a table made once,
+    and `fuzzballGrid(scale)`, the device pixels to a unit of the
+    fuzzball's grid, which the scene moves the eyes by.
+  - `src/view/art/atlas_frames.ts`: `atlasFrames()` adds the fuzzballs'
+    frames after the bricks', 37 frames in all.
+  - **Contract additions, K2's `src/view/art/frames.ts`:** `INKS`, `PIPS`,
+    `CRACKS` and `CHARGES`, the lists of the frames' arguments, exported;
+    `FRAMES.eyes`, `"fuzzball-eyes"`, added; and `FRAME_NAMES` lists it
+    after the friends, 60 names. `frames.spec.ts` holds the count, the
+    name and each list.
+  - `src/view/art/kinds/brick.ts` and `tough.ts` take `INKS`, `PIPS` and
+    `CRACKS` from `frames.ts`, their copies gone; tough's cracks' paths are
+    renamed `CRACK_PATHS`, as `CRACKS` is now the counts.
+  - `src/view/art/fuzzball_art.spec.ts`: 90 tests.
+- **Choices the plan didn't make.**
+  1. **The fuzzball is drawn as the art draws it,** its grid 0.8 units
+     wide, a fortieth of a cell to a unit of the grid: its body 0.26 units
+     round, about a fuzzball's `RADIUS` of 0.25, and its fur past that, to
+     0.37 units relaxed and 0.42 at a full charge. Brick Breaker's
+     `ballGrid()` fits the outlined fur within the ball's radius instead,
+     which would shrink the body to 0.18 units. A triple shot's three, 0.7
+     units apart, overlap at the tips of their fur, which the outline
+     parts.
+  2. **The fur is combed in proportion to the charge,** a fifth of the way
+     a charge, after the art's three looks: each strand turned from its
+     own way toward straight out from the body's middle through its root
+     (half way at 2.5, as the art's half-charged look; all the way at 5,
+     as its charged one), 6% longer a charge to the art's 30%, and its bend
+     eased out by charge 3, as the art's half-charged strands are straight.
+     Every strand keeps its root, as the art's spikes do, where Brick
+     Breaker's `spike()` sets a strand along its tip's line.
+  3. **A full charge's sparks are the art's five zigzags,** in the
+     palette's spark, drawn with `stroke()`, round at their ends and
+     corners as the art's are, a unit of the fuzzball's grid wide and a CSS
+     pixel at least. A spec holds them clear of the fur at the layout
+     check's least unit at every pixel ratio, at 31 CSS px and at 128
+     device px.
+  4. **Every fuzzball is outlined in the mark,** as A1's review asked and
+     Brick Breaker's balls are: the field's own color, so it shows only
+     where a fuzzball crosses a brick, a line or another fuzzball. It is
+     0.03 units wide and a CSS pixel at least, half Brick Breaker's
+     `lineWidth()`, as this fur's strands are 0.07 units wide and their tips
+     about as far apart, so an outline nearly a strand wide would fill the
+     notches between them and round the fuzzball off over a brick.
+  5. **A fuzzball is outlined as one with what it wears** (`outlinedWith()`,
+     which takes what it wears as one record and orders it itself): its
+     outline, then the outlines of its sparks or flames, then the flames,
+     then its body and fur, then the sparks over all. The fuzzball's outline
+     round its fur on end hid the bases of the art's four tongues of flame,
+     leaving their tips, so every tongue goes over it, the red-hot body over
+     them, and the flames show between the strands, as the art's do; each
+     tongue's outline is a closed line round it twice the outline's width. A
+     spark's is a line along it the outline wider either side, under the
+     fuzzball's body, so it never notches the fur. The sparks come within a
+     brick a charged fuzzball touches, and the warning color they take is a
+     zapper's own and close to a bomb's danger, so they need it as the body
+     does. The hot shot has no sparks, as the art's has none.
+  6. **A friend is the relaxed fuzzball in its ink,** as friends carry no
+     charge.
+  7. **The eyes are one frame for every fuzzball,** in the mark without
+     glints, as Brick Breaker's are, about the body's middle, so the eyes
+     sit a unit of the grid right of it and a fifth of one up, as the mark
+     has them. The scene draws the frame over a fuzzball's, moved by
+     `FUZZBALL_LOOK` times `fuzzballGrid(scale)` along the way it looks; a
+     spec holds the eyes on the body whichever way that is.
+  8. **The triple shot has no frame.** Its mates are the player's
+     fuzzball, in its ink and at its charge, so the scene draws three
+     `fuzzball-<charge>` frames `LAUNCH_GAP` apart. The art's sheet drew
+     them small only to fit one picture. A prism's splits carry no charge,
+     so `fuzzball-0` would draw them, which is S2's to choose.
+  9. **The frames' names need no look-up.** `FRAMES.fuzzball(charge)` and
+     `FRAMES.friend(ink)` are the contract's builders; only the fur is a
+     table, read with `itemAt()`.
+  10. **Each frame is `centered()`,** in whole even pixels about the body's
+      middle, so the frame's middle is the fuzzball's, the hot shot's too,
+      though its flames make it taller; the atlas spec holds the bricks'
+      frames to a cell and the fuzzballs' to whole even sizes.
+- **Checks.** The workspace's `lint` and `typecheck` are clean. `test`: 2718
+  tests; the art's specs 410 of them (`fuzzball_art.spec.ts` 90,
+  `frames.spec.ts` 78, `atlas_frames.spec.ts` 65, `tough.spec.ts` 50,
+  `symbols.spec.ts` 35, `brick.spec.ts` 25, `art.spec.ts` 23,
+  `zapper.spec.ts` 23, `steel.spec.ts` 11, and
+  `src/testing/art_frames.spec.ts` 10). `test:coverage` passes its floors:
+  the art's nine files and the specs' `art_frames.ts` at 100% of the
+  statements (257), branches (33), functions (111) and lines (246). The
+  root's `yarn lint` passes. A sheet of every fuzzball, drawn from the
+  commands as SVG at 200, 128, 31 and 24 CSS px in a light and a dark
+  palette, over bricks and on the field, looks as the art's `fuzzball/`
+  does, the outline showing only over a brick.
+- **The mutation pass.** Sixty-eight changes on the code as both reviews
+  left it, one at a time, each run against the art's specs. 67 were killed:
+  the grid wider or narrower, the growth less or none; the fur straight from
+  charge 2 or 4, bent to the end or never straight, turned half out or only
+  across, its turn unnormalised, mirrored, its control at the middle or
+  about the body's, its tip about the middle, charged in sixths; the outline
+  gone, wider, in the text or without its floor; a fuzzball's body also
+  under what it wears, or gone; what it wears over drawn before the
+  outlines, the outlines over what lies beneath, or that over the body; the
+  sparks four, turned, in the fur, all as near, flattened or mirrored,
+  wider, without their floor, unoutlined, outlined no wider than the
+  outline, at charge 4, never, or their outlines alone from charge 1; a
+  tongue under the body, hidden in the fur, taller or wider, the flames
+  rising from the fur, in four steps, narrowing straight, leaning straight,
+  unreversed, open, red-hot, over the body or with outlines half as wide;
+  the hot shot relaxed or sparking; the player relaxed or red-hot at every
+  charge, or relaxed or on end between; the friends charged or all in ink 0;
+  the eyes with glints, larger or gone; the atlas without the fuzzballs; and
+  `frames.ts` with five charges, seven inks or no eyes. One is equivalent:
+  the grid taken from a rounded unit, as the field's unit is whole device
+  pixels. Before the first review, 20 of a first 59 survived, and a spec now
+  pins each: the sparks' width, turns, distances and zigzag; the tongues'
+  tips, roots, swell, lean, steps and order; the fur's length at each
+  charge; the hot shot's outline, and each tongue's; and the outline's CSS
+  pixel floor.
+- **Numbers.** The atlas at 128 device px a unit is 712 × 892, 37 frames of
+  15,629 shapes; at 31 CSS px and 2 to one, 352 × 440. The fuzzballs' 16
+  frames, as many as Asteroid Breaker's pilots, draw 15,546 of the shapes,
+  as `fuzzballCommands()` draws each strand as 8 lines and 9 dots, and again
+  for its outline: 1,022 shapes a fuzzball, 1,092 with the sparks and their
+  outlines, and 1,166 the hot shot. At 128 px a unit the relaxed fuzzball's
+  frame is 94 × 102, a full charge's 142 × 126 with its sparks, the hot
+  shot's 104 × 160 and the eyes' 46 × 22. The sparks reach 0.53 units from
+  the middle and the flames 0.59 above it.
+- **For the other streams.**
+  - S1 bakes the 16 new frames with the bricks'; the bake draws about
+    15,630 shapes, so it is worth baking once a unit, as Brick Breaker's
+    does.
+  - S2 draws a fuzzball's frame at its middle, `FRAMES.fuzzball(charge)`,
+    `FRAMES.hotShot` or `FRAMES.friend(ink)`, and `FRAMES.eyes` over it,
+    moved by `FUZZBALL_LOOK.across * fuzzballGrid(scale) * dx` and
+    `FUZZBALL_LOOK.down * fuzzballGrid(scale) * dy` for a unit heading in
+    the canvas's directions; a triple shot as three of the player's.
+- **The review:** two rounds, each by a fresh reviewer: nine comments in
+  the first, three in the second.
+  1. No spec tied the `fuzzball-<charge>` frames to `furOf()` for charges 1
+     to 4, so drawing them relaxed or on end passed. Fixed: a spec holds
+     each charge's frame to `furOf(charge)`'s fur, every line's ends within
+     a billionth of a pixel.
+  2. Nothing held the hot shot to having no sparks. Fixed: a spec holds it
+     to no line or dot in the spark color.
+  3. `scaled()` repeated `@fz/phaser/shapes`'s `placed()`. Fixed: it is
+     `placed()`.
+  4. A full charge's sparks were the one part of a fuzzball without the
+     mark's outline, though they come within a brick it touches, in the
+     zapper's warning color and near a bomb's danger. Fixed: each spark is
+     outlined beneath the fuzzball's body (the fifth choice), and every
+     fuzzball is drawn by `outlinedWith()`, so the outline is laid one way
+     for all of them; specs hold the spark's outline along it, under the
+     body.
+  5. A spec's title said a fiftieth of a strand's length a charge, where it
+     holds 6%. Fixed.
+  6. `fuzzballFrames()`'s comment said the eyes were outlined, and
+     `Flame.width` had no comment. Fixed: every fuzzball is outlined; the
+     width says what it scales, 0.7 of it at the root, swelling to about
+     five sixths.
+  7. The log said the outline was as Brick Breaker's, which is twice as
+     wide. Fixed: the fourth choice gives the reason for half.
+  8. The spec's `inBillionths(strand)` shared its name with the helpers'
+     `inBillionths(area)`. Fixed: `strandInBillionths()`.
+  9. The plan's §5.4 table of frame names lacks `fuzzball-eyes`, for the
+     integrator, as the plan is not this stream's.
+  10. (Second round.) No spec held a spark over its own outline, which
+      covers it, so drawing the outlines last passed. Fixed: a spec holds
+      every mark command of a full charge before every spark, and the spec
+      of the sparks' outlines reads their color.
+  11. (Second round.) `outlinedWith()` promised an order its callers had
+      to keep, and the sparks' gate was tested twice, so the outlines alone
+      could spread to charges 1 to 4. Fixed: it takes what a fuzzball wears
+      as one record, `Worn`, its outlines, what lies beneath and what lies
+      over, and orders them itself; the sparks are one record under one
+      test; a spec holds charges 0 to 4 to nothing in the mark but the
+      outline.
+  12. (Second round.) `outlinesOf()`'s parameters were named `edges` and
+      `within`, for a spark's line and a width, and the fifth choice's
+      order read ambiguously. Fixed: `lines` and `width`, with a plainer
+      comment, and the choice says the flames.

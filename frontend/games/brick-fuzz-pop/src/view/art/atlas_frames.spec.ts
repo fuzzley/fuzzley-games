@@ -12,7 +12,8 @@ import {
   PIXEL_RATIOS,
 } from "../../testing/art_frames";
 import { atlasFrames } from "./atlas_frames";
-import { FRAMES, FRAME_NAMES } from "./frames";
+import { CHARGES, FRAMES, FRAME_NAMES, INKS } from "./frames";
+import { fuzzballFrames } from "./fuzzball_art";
 import { cracksFrame } from "./kinds/tough";
 import { cellOf } from "./symbols";
 
@@ -77,6 +78,9 @@ describe.each(ART_SCALES)(
   "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
     const frames = atlasFrames(ART_PALETTE, scale);
+    const fuzzballs = new Set(
+      fuzzballFrames(ART_PALETTE, scale).map(({ name }) => name),
+    );
 
     it("draws every frame within its cell", () => {
       expect(
@@ -86,17 +90,29 @@ describe.each(ART_SCALES)(
       ).toEqual([]);
     });
 
-    it("sizes every frame as a cell, in whole pixels", () => {
+    it("sizes every brick's frame as a cell, in whole pixels", () => {
       const { width, height } = cellOf(scale);
 
       expect(
         breaking(
-          frames,
+          frames.filter(({ name }) => !fuzzballs.has(name)),
           (frame) =>
             frame.width === width &&
             frame.height === height &&
             Number.isInteger(width) &&
             width >= 1,
+        ),
+      ).toEqual([]);
+    });
+
+    it("sizes every fuzzball's frame in whole pixels, even ones, so its middle is a pixel's corner", () => {
+      expect(
+        breaking(
+          frames.filter(({ name }) => fuzzballs.has(name)),
+          (frame) =>
+            [frame.width, frame.height].every(
+              (side) => Number.isInteger(side / 2) && side >= 2,
+            ),
         ),
       ).toEqual([]);
     });
@@ -133,7 +149,7 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames: 8 tiles, 5 pips, 5 cracks, the steel and 2 zappers", () => {
+  it("holds the bricks' frames, 8 tiles, 5 pips, 5 cracks, the steel and 2 zappers, then the fuzzballs'", () => {
     expect(frames.map((frame) => frame.name)).toEqual([
       ...[0, 1, 2, 3, 4, 5, 6, 7].map((ink) => `tile-${String(ink)}`),
       ...[2, 3, 4, 5, 6].map((pips) => `pips-${String(pips)}`),
@@ -141,6 +157,10 @@ describe("atlasFrames", () => {
       "steel",
       "zapper-row",
       "zapper-column",
+      ...CHARGES.map((charge) => `fuzzball-${String(charge)}`),
+      "hot-shot",
+      ...INKS.map((ink) => `friend-${String(ink)}`),
+      "fuzzball-eyes",
     ]);
   });
 

@@ -5,7 +5,7 @@ import {
 } from "../../rules/catalog/bricks";
 import { ART_FRAMES, ART_PALETTE } from "../../testing/art_frames";
 import { BRICK_ART, type BrickLook, brickColor, brickLayers } from "./art";
-import { INKS } from "./kinds/brick";
+import { INKS } from "./frames";
 
 /**
  * Returns every look a brick of a kind can take: each tint, each count of

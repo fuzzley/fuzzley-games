@@ -14,21 +14,15 @@ import {
 } from "@fz/phaser/shapes";
 import { inkAt } from "../../colors/inks";
 import type { KindArt } from "../art";
-import { type Cracks, FRAMES, type FrameName, type Pips } from "../frames";
+import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
 import { bandAlong, cellFrame, detailed, diePips, itemAt } from "../symbols";
-import { INKS, tileBody, tileFrame } from "./brick";
-
-/** How many pips each pips frame shows. */
-const PIPS: readonly Pips[] = [2, 3, 4, 5, 6];
-
-/** How many cracks each cracks frame shows. */
-const CRACK_COUNTS: readonly Cracks[] = [1, 2, 3, 4, 5];
+import { tileBody, tileFrame } from "./brick";
 
 /** The pips' frames, from 2 pips: a brick with a hit left shows none. */
 const PIPS_FRAMES: readonly FrameName[] = PIPS.map((pips) => FRAMES.pips(pips));
 
 /** The cracks' frames, from 1 crack. */
-const CRACKS_FRAMES: readonly FrameName[] = CRACK_COUNTS.map((cracks) =>
+const CRACKS_FRAMES: readonly FrameName[] = CRACKS.map((cracks) =>
   FRAMES.cracks(cracks),
 );
 
@@ -56,7 +50,7 @@ const DOWN: Point = { x: 0, y: 1 };
  * Each crack a brick gathers, a hit it took, in the order it gathers them: a
  * zigzag in from an edge of its tile, each clear of every pip a die shows.
  */
-const CRACKS: readonly Crack[] = [
+const CRACK_PATHS: readonly Crack[] = [
   {
     edge: ACROSS,
     path: [
@@ -174,7 +168,7 @@ function cracksCommands(
   style: LineStyle,
 ): readonly DrawCommand[] {
   const body = tileBody(cell);
-  return CRACKS.slice(0, cracks).map(({ edge, path }) =>
+  return CRACK_PATHS.slice(0, cracks).map(({ edge, path }) =>
     polygon(bandAlong(within(body, path), style.width, edge), style),
   );
 }
@@ -200,7 +194,7 @@ export const TOUGH_ART: KindArt = {
           pipsCommands(cell, pips, palette.mark),
         ),
       ),
-      ...CRACK_COUNTS.map((cracks) =>
+      ...CRACKS.map((cracks) =>
         cellFrame(FRAMES.cracks(cracks), scale, (cell) =>
           detailed(scale) ? cracksCommands(cell, cracks, crack) : [],
         ),

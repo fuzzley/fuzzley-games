@@ -53,6 +53,8 @@ export const FRAMES = {
   fuzzball: (charge: Charge) => `fuzzball-${charge}` as const,
   hotShot: "hot-shot",
   friend: (ink: Ink) => `friend-${ink}` as const,
+  /** Any fuzzball's eyes, about its body's middle, which the scene moves the way it looks. */
+  eyes: "fuzzball-eyes",
   /** A pip of the charge's meter, lit or not. */
   meterOn: "meter-on",
   meterOff: "meter-off",
@@ -70,15 +72,25 @@ export type FrameName = {
     : (typeof FRAMES)[K];
 }[keyof typeof FRAMES];
 
-const INKS = [0, 1, 2, 3, 4, 5, 6, 7] as const satisfies readonly Ink[];
-const CHARGES = [0, 1, 2, 3, 4, 5] as const satisfies readonly Charge[];
+/** Every ink, in order: each tint's tile's, and each friend's. */
+export const INKS = [0, 1, 2, 3, 4, 5, 6, 7] as const satisfies readonly Ink[];
+
+/** Every count of pips a frame shows, in order. */
+export const PIPS = [2, 3, 4, 5, 6] as const satisfies readonly Pips[];
+
+/** Every count of cracks a frame shows, in order. */
+export const CRACKS = [1, 2, 3, 4, 5] as const satisfies readonly Cracks[];
+
+/** Every charge a fuzzball's frame shows, in order. */
+export const CHARGES = [0, 1, 2, 3, 4, 5] as const satisfies readonly Charge[];
+
 const THICK_HITS = [2, 3] as const satisfies readonly ThickHits[];
 
 /** Every frame the atlas holds, each family's in the order of its builder's argument. */
 export const FRAME_NAMES: readonly FrameName[] = [
   ...INKS.map((ink) => FRAMES.tile(ink)),
-  ...([2, 3, 4, 5, 6] as const).map((pips) => FRAMES.pips(pips)),
-  ...([1, 2, 3, 4, 5] as const).map((cracks) => FRAMES.cracks(cracks)),
+  ...PIPS.map((pips) => FRAMES.pips(pips)),
+  ...CRACKS.map((cracks) => FRAMES.cracks(cracks)),
   FRAMES.steel,
   ...(["floorward", "ceilingward", "left", "right"] as const).map((face) =>
     FRAMES.plate(face),
@@ -98,6 +110,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   ...CHARGES.map((charge) => FRAMES.fuzzball(charge)),
   FRAMES.hotShot,
   ...INKS.map((ink) => FRAMES.friend(ink)),
+  FRAMES.eyes,
   FRAMES.meterOn,
   FRAMES.meterOff,
   FRAMES.guideDot,
