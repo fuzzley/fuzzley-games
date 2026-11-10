@@ -1,11 +1,6 @@
-import { colorNumber } from "@fz/phaser/color";
+import { FUZZBALL_INKS } from "@fz/phaser/color";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
-import {
-  DARK_PILOT_INKS,
-  DARK_ROCK_INKS,
-  LIGHT_PILOT_INKS,
-  LIGHT_ROCK_INKS,
-} from "./inks";
+import { DARK_ROCK_INKS, LIGHT_ROCK_INKS } from "./inks";
 import { type PaletteRoles, beltPalette, pilotInk } from "./palette";
 
 const ROLES: PaletteRoles = {
@@ -58,18 +53,25 @@ describe("beltPalette", () => {
   });
 
   it.each([
-    ["light", LIGHT_ROCK_INKS, LIGHT_PILOT_INKS],
-    ["dark", DARK_ROCK_INKS, DARK_PILOT_INKS],
+    ["light", LIGHT_ROCK_INKS],
+    ["dark", DARK_ROCK_INKS],
   ] as const)(
-    "takes the rocks' and the pilots' inks of a %s palette",
-    (mode, rocks, pilots) => {
+    "takes the rocks' inks and the fuzzballs' of a %s palette",
+    (mode, rocks) => {
       const palette = beltPalette(ROLES, mode);
 
       expect([palette.rocks, palette.core, palette.pilots]).toEqual([
         rocks.kinds,
         rocks.core,
-        pilots.map(colorNumber),
+        FUZZBALL_INKS[mode],
       ]);
+    },
+  );
+
+  it.each(["light", "dark"] as const)(
+    "gives each pilot's color an ink in a %s palette",
+    (mode) => {
+      expect(beltPalette(ROLES, mode).pilots).toHaveLength(PILOT_COLORS);
     },
   );
 
@@ -86,12 +88,12 @@ describe("beltPalette", () => {
 
 describe("pilotInk", () => {
   it.each([
-    ["light", LIGHT_PILOT_INKS],
-    ["dark", DARK_PILOT_INKS],
+    ["light", "#0f8378"],
+    ["dark", "#3fd2c2"],
   ] as const)(
-    "gives a pilot its ink in CSS hex in a %s palette",
-    (mode, inks) => {
-      expect(pilotInk(3, mode)).toBe(inks[3]);
+    "gives a pilot its ink in CSS hex of six digits in a %s palette",
+    (mode, ink) => {
+      expect(pilotInk(4, mode)).toBe(ink);
     },
   );
 

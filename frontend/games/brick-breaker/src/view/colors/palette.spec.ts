@@ -1,5 +1,5 @@
-import { mixColors } from "@fz/phaser/color";
-import { DARK_INKS, LIGHT_INKS } from "./inks";
+import { TILE_INKS, mixColors } from "@fz/phaser/color";
+import { TINTS } from "../../rules/levels/level";
 import { type PaletteRoles, bricksPalette } from "./palette";
 
 const ROLES: PaletteRoles = {
@@ -68,17 +68,21 @@ describe("bricksPalette", () => {
     const palette = bricksPalette(ROLES, "light");
 
     expect(palette.toughTints[0]).toBe(
-      mixColors(0x000000, LIGHT_INKS[0] ?? 0, 0.25),
+      mixColors(0x000000, TILE_INKS.light[0] ?? 0, 0.25),
     );
   });
 
-  it.each([
-    ["light", LIGHT_INKS],
-    ["dark", DARK_INKS],
-  ] as const)(
-    "tints the bricks with the %s inks in a palette of that mode",
-    (mode, inks) => {
-      expect(bricksPalette(ROLES, mode).tints).toBe(inks);
+  it.each(["light", "dark"] as const)(
+    "tints the bricks with the tiles' %s inks in a palette of that mode",
+    (mode) => {
+      expect(bricksPalette(ROLES, mode).tints).toBe(TILE_INKS[mode]);
+    },
+  );
+
+  it.each(["light", "dark"] as const)(
+    "gives each tint a level may name a color in a %s palette",
+    (mode) => {
+      expect(bricksPalette(ROLES, mode).tints).toHaveLength(TINTS);
     },
   );
 });

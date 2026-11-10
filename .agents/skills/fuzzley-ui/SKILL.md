@@ -125,7 +125,8 @@ the same steps with nothing else around them, and Snake
 (`frontend/games/snake/`), Brick Breaker (`frontend/games/brick-breaker/`)
 and Asteroid Breaker (`frontend/games/asteroid-breaker/`), whose boards
 Phaser draws in the palette's roles, Brick Breaker's bricks and Asteroid
-Breaker's rocks and pilots in inks of their own beside them.
+Breaker's pilots in `@fz/phaser/color`'s shared inks beside them, and
+Asteroid Breaker's rocks in inks of their own.
 
 1. **Depend on them.** List `"@fz/style": "workspace:*"` in the app's
    `package.json`, and for an Angular app `@fz/ui` and, for a game,

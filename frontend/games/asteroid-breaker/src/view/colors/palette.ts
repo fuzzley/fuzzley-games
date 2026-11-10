@@ -1,14 +1,14 @@
-import { colorNumber, mixColors } from "@fz/phaser/color";
+import {
+  FUZZBALL_INKS,
+  colorNumber,
+  cssHex,
+  mixColors,
+} from "@fz/phaser/color";
 import { FUZZBALL } from "@fz/style/fuzzball";
 import type { ColorMode } from "@fz/style/themes";
 import type { RockKindId } from "../../rules/catalog/rocks";
 import type { Pilot } from "../../rules/ship/pilots";
-import {
-  DARK_PILOT_INKS,
-  DARK_ROCK_INKS,
-  LIGHT_PILOT_INKS,
-  LIGHT_ROCK_INKS,
-} from "./inks";
+import { DARK_ROCK_INKS, LIGHT_ROCK_INKS } from "./inks";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
@@ -67,7 +67,7 @@ export interface BeltPalette {
   readonly rocks: Readonly<Record<RockKindId, number>>;
   /** The glow at a volatile rock's middle. */
   readonly core: number;
-  /** Each pilot's ink, by its color: the inks of the palette's mode. */
+  /** Each pilot's ink, by its color: the {@link FUZZBALL_INKS} of the palette's mode. */
   readonly pilots: readonly number[];
   /** A pilot's eyes, as the fuzzball has them. */
   readonly eyes: number;
@@ -112,7 +112,7 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
     glint: 0xffffff,
     rocks: rocks.kinds,
     core: rocks.core,
-    pilots: pilotInks(mode).map(colorNumber),
+    pilots: FUZZBALL_INKS[mode],
     eyes: colorNumber(FUZZBALL.ink),
   };
 }
@@ -124,14 +124,9 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
  * @throws {RangeError} for a color no pilot has.
  */
 export function pilotInk(pilot: Pilot, mode: ColorMode): string {
-  const ink = pilotInks(mode)[pilot];
+  const ink = FUZZBALL_INKS[mode][pilot];
   if (ink === undefined) {
     throw new RangeError(`No pilot has color ${String(pilot)}`);
   }
-  return ink;
-}
-
-/** Returns the pilots' inks of a palette's mode, by their color. */
-function pilotInks(mode: ColorMode): readonly string[] {
-  return mode === "light" ? LIGHT_PILOT_INKS : DARK_PILOT_INKS;
+  return cssHex(ink);
 }

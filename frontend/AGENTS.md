@@ -155,9 +155,10 @@ their templates and stylesheets alike.
   else but the one stylesheet where a game keeps colors of its own (the
   Solitaire Collection's card artwork, Minesweeper's and Sudoku's inks). A
   game drawn on a canvas keeps colors of its own in its view's TypeScript
-  instead, as Brick Breaker's inks are, since no stylesheet draws them. A
-  custom property of an app's own has no `--fz-` prefix, and exists only
-  where no `--fz-*` one will do.
+  instead, as Asteroid Breaker's rocks' inks are, since no stylesheet draws
+  them; the inks such games share live in `@fz/phaser/color`. A custom
+  property of an app's own has no `--fz-` prefix, and exists only where no
+  `--fz-*` one will do.
 - **Runtime values are custom properties; build-time values are Sass.**
   What changes while the page runs, such as the palette or a gutter, is a
   custom property read with `var()`, and so is what a part of a page may

@@ -1,9 +1,8 @@
-import { colorNumber, mixColors } from "@fz/phaser/color";
+import { TILE_INKS, colorNumber, mixColors } from "@fz/phaser/color";
 import type { ColorMode } from "@fz/style/themes";
 import type { BallKindId } from "../../rules/catalog/balls";
 import type { BrickKindId } from "../../rules/catalog/bricks";
 import type { CapsuleTone } from "../../rules/catalog/capsules";
-import { DARK_INKS, LIGHT_INKS } from "./inks";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
@@ -40,7 +39,7 @@ export interface BricksPalette {
   readonly capsules: Readonly<Record<CapsuleTone, number>>;
   /** Steel in text at {@link STEEL_WASH}, a blast brick in the danger color and a gift in the accent. */
   readonly bricks: Readonly<Record<UntintedKind, number>>;
-  /** The colors a brick takes by its tint, 0 to 7: the inks of the palette's mode. */
+  /** The colors a brick takes by its tint, 0 to 7: the {@link TILE_INKS} of the palette's mode. */
   readonly tints: readonly number[];
   /** The deeper colors a tough brick takes by its tint: each toward the text by {@link TOUGH_DEEPEN}. */
   readonly toughTints: readonly number[];
@@ -64,7 +63,7 @@ export function bricksPalette(
   const text = colorNumber(roles.text);
   const accent = colorNumber(roles.accent);
   const danger = colorNumber(roles.danger);
-  const tints = mode === "light" ? LIGHT_INKS : DARK_INKS;
+  const tints = TILE_INKS[mode];
   return {
     field: panel,
     outline: panel,

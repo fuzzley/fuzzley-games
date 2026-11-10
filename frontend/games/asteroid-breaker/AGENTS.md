@@ -319,8 +319,9 @@ takes for the specs' helpers.
   (`buttonAt()`).
 - **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
   the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
-  game's own for each kind of rock and for eight pilots, in light palettes
-  and in dark, and gives a pilot's ink to the shell too (`pilotInk()`).
+  game's own for each kind of rock, in light palettes and in dark, and the
+  eight pilots' from `@fz/phaser/color`'s `FUZZBALL_INKS`, and gives a
+  pilot's ink to the shell too, in CSS hex (`pilotInk()`).
   `contrast.spec.ts` holds each kind of rock's ink, the ship, the pickups,
   the comet, the shots, the flame and a stray's bubble's rim to 3:1 against
   the field in every palette, the outline against everything it outlines,
@@ -663,9 +664,9 @@ takes for the specs' helpers.
 - **Its colors are the palette's and its own inks'.** `beltPalette()` takes
   the field, its line, the specks, the ship, the pickups, the shots, the
   flame and the comets from the page's roles, which `ThemeService` reads,
-  and the rocks' and the pilots' inks from `src/view/colors/inks.ts`, for
-  light palettes and for dark; `src/view/colors/contrast.spec.ts` holds them
-  apart in every palette.
+  the rocks' inks from `src/view/colors/inks.ts` and the pilots' from
+  `@fz/phaser/color`'s `FUZZBALL_INKS`, for light palettes and for dark;
+  `src/view/colors/contrast.spec.ts` holds them apart in every palette.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
   `fieldMetrics()` does, from the canvas the board measures, as the host
   sizes it, at the pixel ratio the canvas renders at; they take the scene's
