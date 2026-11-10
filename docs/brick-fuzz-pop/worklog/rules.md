@@ -499,3 +499,37 @@ its review and the numbers worth keeping.
      refused now (choice 11), specced at 0.5 and a hair over. The box case
      naming the warm-up's kinds is explained (choice 1). The scan in the
      benchmark is warmed up too.
+
+### R2, after the rebase: one tint rule
+
+- **Date.** 2026-11-10.
+- **Built.** The integrator asked, once P1 put `tintOf()` in
+  `src/rules/levels/legend.ts`, for `wallFrom()` to take its tints from it
+  rather than keep its own rule, which gave a second pair's portal (`&`)
+  tint 0 where `tintOf()` gives 1. `src/testing/wall_picture.ts` drops its
+  `TINTS` and tints each brick with `tintOf(character, wallRow)`; its
+  checks for a character the legend lacks and one whose kind the catalog
+  lacks come apart, so the character is a legend character where
+  `tintOf()` takes it, with the error made in one place. No wall a spec
+  draws changes yet: the catalog holds no portal until X2, so `wallFrom()`
+  still refuses `@` and `&`, and the cataloged kinds' tints are what they
+  were.
+- **For X2.** Once portals are cataloged, `wallFrom()` gives them their
+  tints but `twin: null`: the pairing is `twinsOf()`'s, in `levels.ts`,
+  which isn't exported, so a spec's portals would be unpaired until
+  `wallFrom()` pairs them as a level does.
+- **Checks.** On `brick-fuzz-pop` after the rebase, the workspace's `lint`,
+  `typecheck`, `test` and `test:coverage` pass: 2,380 tests in 27 files in
+  `dom` and `pure`, and the benchmark in `sim`; the rules and the view at
+  100% of statements, branches, functions and lines. The root's `yarn lint`
+  passes.
+- **The mutation pass.** 4 mutants of `wallFrom()`, all killed: the tint
+  taken for row 0 and taken as 0, and each check dropped.
+- **The review:** a fresh agent found the change right, no tint changed for
+  any wall a spec can draw, and the narrowing free of casts.
+  1. The entry read as if the `&` tint changed a spec's wall. Fixed: it
+     says none does yet.
+  2. `brickOf()`'s doc named one of its two throws, and `uncataloged()`'s
+     read awkwardly. Fixed: both reworded.
+  3. Portals drawn by `wallFrom()` will be unpaired once cataloged. Noted
+     above for X2, and in the report.

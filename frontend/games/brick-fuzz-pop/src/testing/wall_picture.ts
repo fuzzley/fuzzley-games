@@ -5,12 +5,9 @@
 
 import { isKeyOf } from "@fz/core/records";
 import { isBrickKindId } from "../rules/catalog/bricks";
-import { LEGEND, NO_BRICK } from "../rules/levels/legend";
+import { LEGEND, NO_BRICK, tintOf } from "../rules/levels/legend";
 import { COLUMNS } from "../rules/tuning";
 import type { Brick, Wall } from "../rules/wall/wall";
-
-/** How many tints the rows of a wall take in turn. */
-const TINTS = 8;
 
 /** Says where a pictured wall stands, where a spec cares. */
 export interface PictureOptions {
@@ -23,10 +20,9 @@ export interface PictureOptions {
  * of its rows from the top, in the legend's characters
  * (`src/rules/levels/legend.ts`), `.` for no brick.
  *
- * Each brick is whole. A plain or tough brick takes its row's tint, the rows
- * counted from the wall's lowest, and any other kind tint 0. It throws for a
- * row not nine wide, or a character no cataloged kind's brick stands for,
- * so a spec plays the wall it draws.
+ * Each brick is whole, and takes the tint `tintOf()` gives its character in
+ * its wall row. It throws for a row not nine wide, or a character no
+ * cataloged kind's brick stands for, so a spec plays the wall it draws.
  */
 export function wallFrom(
   picture: readonly string[],
@@ -49,28 +45,34 @@ export function wallFrom(
 }
 
 /**
- * Returns the whole brick a character of the legend stands for in a wall
- * row, or null for no brick, throwing for a character whose kind the
- * catalog doesn't hold.
+ * Returns the whole brick a picture's character stands for in a wall row,
+ * or null for no brick, throwing for a character no cataloged kind's brick
+ * stands for.
  */
 function brickOf(character: string, wallRow: number): Brick | null {
   if (character === NO_BRICK) {
     return null;
   }
-  const entry = isKeyOf(character, LEGEND) ? LEGEND[character] : null;
-  if (entry === null || !isBrickKindId(entry.kind)) {
-    throw new RangeError(
-      `A wall's picture holds "${character}", no cataloged kind's brick.`,
-    );
+  if (!isKeyOf(character, LEGEND)) {
+    throw uncataloged(character);
   }
-  const { kind, hits, plates } = entry;
-  const rowTint = kind === "brick" || kind === "tough";
+  const { kind, hits, plates } = LEGEND[character];
+  if (!isBrickKindId(kind)) {
+    throw uncataloged(character);
+  }
   return {
     kind,
     hits,
     full: hits,
     plates,
-    tint: rowTint ? wallRow % TINTS : 0,
+    tint: tintOf(character, wallRow),
     twin: null,
   };
+}
+
+/** Returns the error for a picture's character that no cataloged kind's brick stands for. */
+function uncataloged(character: string): RangeError {
+  return new RangeError(
+    `A wall's picture holds "${character}", no cataloged kind's brick.`,
+  );
 }
