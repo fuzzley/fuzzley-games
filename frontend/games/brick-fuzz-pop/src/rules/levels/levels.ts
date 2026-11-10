@@ -49,6 +49,20 @@ export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);
 
+/** Returns the level of a number among levels, or throws for a number they have no level of. */
+export function levelEntryOf(
+  levels: readonly LevelEntry[],
+  number: number,
+): LevelEntry {
+  const entry = levels[number - 1];
+  if (!entry) {
+    throw new RangeError(
+      `There is no level ${String(number)}: the levels run from 1 to ${String(levels.length)}.`,
+    );
+  }
+  return entry;
+}
+
 /** The fewest and the most rows a level's wall has. */
 export const WALL_ROWS = { least: 12, most: 40 } as const;
 

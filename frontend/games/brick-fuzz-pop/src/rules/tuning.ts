@@ -48,6 +48,9 @@ export const TRIPLE_MATES = 2;
 /** The most friends a crew holds. */
 export const MOST_FRIENDS = 6;
 
+/** How many inks a friend may be freed in, numbered from 0: the fuzzballs' own. */
+export const FRIEND_INKS = 8;
+
 /** The most fuzzballs in the air at once; a split that would pass it makes fewer. */
 export const MOST_FUZZBALLS = 16;
 

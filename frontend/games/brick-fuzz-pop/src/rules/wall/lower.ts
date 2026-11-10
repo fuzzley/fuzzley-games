@@ -85,6 +85,6 @@ export function regrow(wall: Wall): Wall {
 }
 
 /** Returns whether a cell holds a brick its level needs broken. */
-function isNeeded(brick: Brick | null): boolean {
+export function isNeeded(brick: Brick | null): boolean {
   return brick !== null && brickKind(brick.kind).needed;
 }

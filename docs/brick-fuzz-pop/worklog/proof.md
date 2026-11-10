@@ -562,3 +562,302 @@ and `lower.spec.ts` onto `wallFrom()` reshaped the change:
    the report.
 4. **`parseLevel()`'s shortened doc read two ways.** Fixed: the refusal of a
    kind no set has brought in yet is a sentence of its own.
+
+### R7: the run
+
+**2026-11-10.**
+
+**What was built.** `src/rules/run/`, after Brick Breaker's, with Asteroid
+Breaker's saved game, against the contracts and `flight_fixtures.ts`, since
+`playRound()` still throws:
+
+- `run/run.ts`: `Run`, an immutable record of a run from the level it
+  started at to its end: its id, the last level, the first, the level in
+  play, the depth that level began on and its par there, the level's rounds
+  and jumps, the points banked by the levels cleared before it, the score,
+  `ending` (how the round in flight ends the level as it lands, cleared or
+  lost, or null) and `outcome: RunStage`. Where the next round starts
+  (`RoundStart`) is the round's, and stays the view's. The moves, each
+  returning the same run where it doesn't fit:
+  - `createRun({ id, level, depth }, levels, pars?)`, waiting in `"ready"`;
+  - `startLevel()`, ready to playing;
+  - `takeRound(run, outcome)`, as a round is released: the round, its
+    points and a jump counted, and the level's end held in `ending`;
+  - `landRound()`, as its flight lands, playing only: a level cleared, its
+    stars' points added, `"won"` on the last level, or a level lost,
+    `"over"`; and `afterLanding()`, the same at any stage, which the saved
+    game keeps;
+  - `nextLevel(run, depth, levels, pars?)`, cleared to ready at the next
+    level, its points banked;
+  - `pause()`, a round in flight or not, and `resume()`, to playing, or to
+    ready for a level with no round played, as Asteroid Breaker's does.
+
+  `levelOf(run, levels)` parses the level in play, and
+  `openingOf(run, level)` lays it out on the depth it began on.
+  `levelsCleared()` is Brick Breaker's; `isInProgress()` holds a run that
+  hasn't ended and has played a round or cleared a level.
+
+- `run/stars.ts`: `PARS`, read from `src/rules/levels/par.json`;
+  `parOf(id, depth, pars?)`, which throws for a level or a depth with none;
+  `parFrom(rounds)`, par from a certificate's rounds, `ceil(1.5 × rounds)`,
+  for P3's `certify:levels`; `MOST_STARS`; `starsFor(rounds, par)`, three
+  within par, two within 3 more, else one; and `starsOf(run)`, none until
+  the level is cleared.
+- `levels/par.json`: **a stub, which P3 replaces.** Its shape is P3's to
+  keep: each level's id, then each depth from 11 to 22 as a string, then
+  par. Its numbers are the sketch's: each Warm-up level's most rounds over
+  the twelve depths, from `docs/brick-fuzz-pop/sketch/results.md`, times
+  1.5 rounded up, the same on every depth (8, 8, 9, 8, 9, 11, 12, 12, 15).
+- `run/scoring.ts`: `streakTimes()`, the streak through `multiplierAt()`;
+  `breakPoints(brick, streak)`, a break's points as plan.md scores them,
+  for R6's flight to take if it likes; `starPoints()`; and `tallyOf(run)`,
+  how the level in play's points add up for the Cleared card: its bricks,
+  its jumps and its stars.
+- `run/progress.ts`: `isOpen()` and `clearedOf()`, Brick Breaker's without
+  the speeds.
+- `run/stats.ts`: `Stats`, the runs, the best score and the furthest level,
+  and `levels: CountsById<"points" | "rounds" | "stars">`; `statsOf()`,
+  which also drops a level's records whose rounds are none or whose stars
+  aren't one to three; `withRunStarted()`, `withRunEnded()` and
+  `isNewBest()`, as Brick Breaker's without the speeds; `levelResultOf(run)`,
+  a cleared level's own points (its stars' among them), rounds and stars,
+  or null; and `withLevelCleared(stats, id, result)`, through
+  `withHigherCount()` for the points and the stars and a private
+  `withLowerCount()` for the rounds, whose doc names `withHigherCount()`.
+- `run/saved_game.ts`, at `SAVED_GAME_VERSION` 1, whose doc says a key
+  added later is read as optional:
+  - `SavedGame`: the level by number and id, the first level, the depth
+    begun on, the rounds, the jumps, the points banked, the score, `tuned`,
+    and `start`, or null for a level with no round played.
+  - `SavedStart`: each brick's hits left by wall cell, null where none
+    stands; the wall's lowest row; the field's depth; where the fuzzball
+    waits; the friends; the boon.
+  - `saveGame(run, next, levels, { tuned })`, called with the round in
+    flight's next start as it is released, keeps the run as it stands once
+    the round lands: nothing of a run waiting at its first level or ended,
+    a level cleared as the next not yet begun, on the field's depth.
+  - `restoreGame(value, levels, id, pars?)` takes a run up paused under a
+    new id, laying a level with no round played out afresh on the depth it
+    began on.
+  - Its checks are separate and exported, as Asteroid Breaker's finding 13
+    asked: the run's `readRun()` over `hasKnownLevel()`, `hasDepth()`,
+    `hasSoundRounds()` and `hasSoundScore()`; the round start's
+    `readStart()` over `hasDepth()`, `hasSoundPlace()`, `hasSoundCrew()`,
+    `hasEarnedBoon()` and `readWall()`.
+- `run/describe.ts`, the announcer's words from plan.md's "Accessibility":
+  `boonName()`; `describeBoon()`, the Ready card's sentence;
+  `describeLevel()`; `describeShot()`, "62 degrees, charge 3";
+  `describeRound(outcome, next)`, "Broke 4. The wall came down 1 row: 5
+  rows from the floor, 7 bricks to a jump.", the jump's words and the next
+  shot's boon, a friend freed, the danger and a brick at the floor;
+  `describeRows(start)`, R's reading; `describeCleared()`, with the rounds,
+  par and stars; `describePause()`, `describeResume()`, `describeTakenUp()`,
+  `endTitle()` and `describeEnd()`, as Brick Breaker's.
+- `levels/levels.ts` gains `levelEntryOf(levels, number)`, which throws for
+  a number the game has no level of, and `wall/lower.ts` exports
+  `isNeeded()`; both files are this stream's.
+- **`tuning.ts` gains `FRIEND_INKS`, 8,** how many inks a friend may be
+  freed in, which the saved game holds a crew's inks to: the view's
+  `friendInk()` throws past `FUZZBALL_INKS`' eight. This adds a name to a
+  K2 contract file.
+
+**Choices the plan didn't make.**
+
+1. **The run doesn't hold the wall.** §5.4's `RunState` lists "the run, the
+   `RoundStart`, the `Round` in play" apart, so `Run` keeps the run's
+   numbers and the view keeps where the next round starts. The saved game
+   takes both, and `TakenUp` gives both back.
+2. **A round is taken as it is released and lands once its flight has
+   played.** plan.md keeps a round "as it is released, with its outcome",
+   and U6 saves as `rounds()` changes, so the round's count and points move
+   at the release. But the level's end waits in `ending` for `landRound()`,
+   so the run stays `"playing"` through the flight of a level's last round,
+   which can be paused, and Enter doesn't skip it to the next level.
+   `saveGame()` keeps the run as `afterLanding()` has it, so a reload
+   mid-flight, paused or not, comes back after the round, and the shell
+   keeps the records from `afterLanding()` at the release too, as its doc
+   says: the level cleared, its result, and the run ended, the new best
+   asked before the stats change. The bar's score counts the round's points
+   from its release.
+3. **The depth a level began on is the field's as the level is laid out,**
+   given to `createRun()` and `nextLevel()`, and kept though the room
+   changes before the first shot. How to play already says par "is set for
+   the depth the field had as the level began". `openingOf()` lays the
+   level out on it, so the shell and the saved game lay a level out alike,
+   and a level kept with no round played comes back on that depth, not the
+   room's.
+4. **The run keeps its level's par and jumps.** Par is worked out once, as
+   the level begins, so the bar reads it and landing needs no levels; the
+   saved game doesn't keep it, and `readRun()` works it out again, so a new
+   `par.json` doesn't drop a kept game. The jumps are kept for the Cleared
+   card's tally. The run, `nextLevel()` and the saved game's reader take the
+   table of pars, `PARS` by default, as `parOf()` does.
+5. **`banked` is the points of the levels before the level in play,** so it
+   moves at `nextLevel()`, not as the level is cleared: Brick Breaker banks
+   at the clearing. So `score − banked` is the level's own points, stars
+   included, at every stage, which the tally and the stats' best points
+   read.
+6. **A level's best points are its own points, its stars' included.**
+7. **`parOf()` throws for a level or depth `par.json` lacks,** rather than
+   playing without stars, and `stars.spec.ts` holds every level in `LEVELS`
+   to a par of a round or more on all twelve depths, and `par.json` to no
+   other ids or depths. So a set added before `certify:levels` runs fails
+   its specs first.
+8. **The saved run is held to the states a run comes to:**
+   - a boon kept must be the level's, and needs a jump in the level;
+   - a level kept with rounds must keep its start, and one with none must
+     not, nor any points of its own;
+   - the banked points must be a star's for each level cleared, and none
+     with none cleared;
+   - the level's points must be at least its jumps';
+   - each friend's ink must be under `FRIEND_INKS`.
+9. **The saved wall is the level's wall with each brick's hits,** a brick
+   kept whole being the level's own object. It is refused for:
+   - a brick where the level has none;
+   - hits a brick can't have: 0 for steel, 1 to its full hits for the
+     rest;
+   - a portal without its twin;
+   - a brick on or under the floor's row;
+   - nothing left the level needs;
+   - a wall come down less than the run's rounds bring it from where the
+     level opened on the depth it began on: a row a round at least, and the
+     shallowest field's jump, 3 rows, for each jump.
+
+   Plates aren't kept: no kind catalogs one yet, and X2 adds them as an
+   optional key if play changes them.
+
+10. **R reads the field's three lowest rows that hold a brick,** skipping a
+    row of air, from row 0, each cell a kind's catalog name in lower case
+    ("brick", "tough brick", "steel brick"), with its hits where it had more
+    than one whole. "Rows from the floor" and "bricks to a jump" count only
+    bricks the level needs; the danger is said when one stands in row 1.
+11. **`tierWords()` isn't in `scoring.ts`:** `@fz/core/format` has it, and
+    How to play (U5) already says the streak with it.
+12. **`describeShot()` writes a quarter degree as a decimal,** "8.25
+    degrees", which a screen reader says plainly.
+13. **The endings are Brick Breaker's:** "Game over" for a level lost,
+    "Every level cleared!" for the last cleared.
+14. **A run on its first level with no round played isn't in progress,**
+    under way or paused, as Asteroid Breaker's isn't: New game doesn't ask,
+    and the saved game keeps nothing of it.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 2,670 tests in 32 files, 323 of them new
+(`saved_game.spec.ts` 137, `run.spec.ts` 66, `describe.spec.ts` 33,
+`stats.spec.ts` 33, `stars.spec.ts` 25, `scoring.spec.ts` 15,
+`progress.spec.ts` 10, `levels.spec.ts` 4); every file of `run/` at 100% of
+statements, branches, functions and lines. The root's `yarn lint` passes.
+
+**The mutation pass.** 107 mutants on the first pass, one at a time:
+
+- 20 of `run.ts`: each move let through at any stage, the in-progress and
+  cleared counts, the rounds, jumps and points not counted, a level lost
+  not ending the run, the stars read off the rounds before, `>=` made `>`
+  on the last level, the next level not moved, nothing banked, a level with
+  no round resuming to play, and par read at depth 11;
+- 5 of `stars.ts`, 5 of `scoring.ts`, 13 of `stats.ts`, 18 of
+  `describe.ts` and 1 of `levelEntryOf()`;
+- 45 of `saved_game.ts`: each named check dropped or each bound moved, the
+  cleared level kept on the run's depth, a start kept with no rounds, the
+  tuned flag let through, a start's wall read on its own depth, each brick
+  check, the floor's rows a row short, the hits kept as full.
+
+Ten lived. Five specs then killed 5 of them: a run ended with no run
+counted but the bests not beaten, R reading the floor's row, the danger not
+said two rows up, a level with no round played laid out on its own depth,
+and more cells kept than the level's. One led to simpler code: `parOf()`'s
+`Object.hasOwn()`, which the prototype's names never get past anyway, is
+gone.
+
+After the review, 33 more on the code it changed:
+
+- 15 of `run.ts`: a second round taken in flight, the ending dropped or
+  made from "on", a round landed while paused, the ending left after
+  landing, a new run's ending set, par read without the table or at depth
+  11, the win at `>`, the stars read a round late, the round's jumps,
+  rounds, points and loss;
+- 12 of `saved_game.ts`: the landing skipped, the id's type, the points of
+  a level with no round, each term of the wall's highest row, the friends'
+  inks unbounded or at `<=`, the table of pars dropped twice, a kept run's
+  ending set;
+- 6 of `stats.ts`: the filter and each of its bounds and defaults.
+
+One lived, the stars read a round late, which a spec of a level cleared in
+just its par of rounds then killed. Par read at depth 11, which lived on the
+first pass, is killed now that the specs hand the run a table that differs
+by depth. After the second review, 10 more: `isInProgress()`'s three
+terms, the opening's depth, in `run.ts` and as the saved game lays a level
+out, and each number of the next level a cleared run is kept at. Its jumps
+left as they were lived, and a cleared run kept with a jump killed it.
+Three are left, equivalent for good:
+
+- `parFrom()`'s `Math.ceil` made `Math.round`, since 1.5 × a whole number
+  is whole or a half, which both round up;
+- `describeRows()`'s loop bounded by a fixed row past the depth, since
+  `brickAt()` gives nothing there;
+- `hasSoundPlace()`'s `isFiniteNumber()` made `typeof x === "number"`,
+  since NaN and the infinities fail its range anyway, and JSON holds none
+  of them.
+
+**The review:**
+
+1. **An edited save could make the reader throw.** `hasKnownLevel()`
+   compared `levels[level - 1]?.data.id` with the kept id, which a level
+   past the last with no id passes, `undefined` being `undefined`, and
+   `parOf()` then threw, though `keepSaved()` doesn't catch. Fixed: the id
+   must be a string, with that spoil among the specs.
+2. **Friends of any ink were read, though the view's `friendInk()` throws
+   past eight.** Fixed: `tuning.ts` gains `FRIEND_INKS`, and the crew's
+   inks are held under it, with a spoil.
+3. **The reader took states no run comes to:** a wall that came down less
+   than its rounds bring it, and points on a level with no round played.
+   Fixed: `readWall()` takes the run's rounds and jumps and refuses a wall
+   higher than they leave it, and `hasSoundScore()` takes the rounds and
+   refuses points before the first, each with specs on both sides of the
+   bound.
+4. **The flight of a level's last round couldn't be paused,** since
+   `takeRound()` moved the run to `"cleared"` or `"over"` as it was
+   released, and Enter would have gone to the next level mid-flight. Fixed
+   in the rules: the level's end waits in `ending` for `landRound()`, and
+   `saveGame()` keeps the run as `afterLanding()` has it (choice 2).
+5. **A spec passed with par read at the wrong depth,** the stub's par
+   being the same on every depth. Fixed: `createRun()`, `nextLevel()`,
+   `readRun()` and `restoreGame()` take the table of pars, and the specs
+   hand them one that differs by depth.
+6. **`statsOf()` kept stars of 7 or rounds of 0.** Fixed: a level's
+   records are dropped where its rounds are none or its stars aren't one to
+   three.
+7. **A spec helper's doc said it made the run by moves.** Fixed: it says
+   "as the moves would bring it there".
+
+A second review read the answers, since holding the level's end until the
+flight lands reshaped the run:
+
+1. **A reload mid-flight lost the records,** since the save keeps the run
+   at the release as it will stand once the round lands, while the records
+   were kept only as it lands: the cleared level's id, its result, and an
+   ended run's score. Fixed in the contract:
+   `afterLanding()`'s doc and choice 2 tell the shell to keep the records
+   from it at the release, the new best asked first.
+2. **`FRIEND_INKS` changes a K2 contract file inside the stream, and nothing
+   ties it to the view's `FUZZBALL_INKS`.** Left: the rules for this work
+   let a stream add a name to a contract file in its package's commit,
+   named in the log and the report, as `isBoon()` was in P1. A view spec
+   holding both modes of `FUZZBALL_INKS` to its length is the view
+   stream's, so it goes to the integrator in the report.
+3. **The reader's wall bound assumed a layout no rules function made:** a
+   shell that laid a level out on another depth than the run's would have
+   its saves dropped and its par wrong. Fixed: `levelOf()` and
+   `openingOf()` lay the level in play out from the run, and
+   `restoreGame()` uses them.
+4. **A run on its first level with no round played was kept,** under way
+   or paused. Fixed: `isInProgress()` holds such a run not in progress
+   (choice 14), so `saveGame()` keeps nothing of it, with specs.
+5. **`saveGame()` worked out a par it threw away,** with the default pars,
+   which levels of a caller's own lack. Fixed: it keeps the next level's
+   numbers without `nextLevel()`, with a spec on levels with no par.
+6. **A spec counted on the stub's par.** Fixed: it expects the stars the
+   run's own par gives.
+7. **The nits.** Fixed: `parOf()`'s doc and error no longer name a script
+   that isn't written yet, and the specs' rounds are made with
+   `Array.from()`.
