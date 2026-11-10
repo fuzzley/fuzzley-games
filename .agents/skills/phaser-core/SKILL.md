@@ -323,12 +323,19 @@ browser, through a game's screenshots and its `check:layout`.
   one frame's. A scene that hears them through `onKeyDown()` and `onKeyUp()`
   takes any number a frame; Phaser's own key events hand the earlier ones over
   again from the third on, in a browser too. `pointer()` presses, moves and
-  lets go with the mouse, on the canvas or on an element of the page over it
-  (which Phaser hears through the window, raising `pointerdownoutside`), and
-  `touch()` with a finger; Phaser hit-tests and raises its own events. An
-  object made interactive answers from the next frame, when Phaser takes it
-  in, so `advance()` a frame before the first press. Phaser's drag thresholds
-  are 0, so a press on a draggable object starts its drag at once.
+  lets go with the mouse, on the canvas or, given `on`, on an element of the
+  page over it (which Phaser hears through the window, raising
+  `pointerdownoutside`), pressing and letting go of its main button or,
+  given `button`, another, each event carrying the buttons still held
+  (`buttons`), as a browser's does, so a move with none pressed is a hover;
+  `wheel()` turns the wheel over the canvas, which Phaser raises as
+  `wheel`; and `touch()` presses, moves and lets go with a finger, or takes
+  it away (`"cancel"`),
+  which Phaser raises as a `pointerup` whose `wasCanceled` is true. Phaser
+  hit-tests and raises its own events. An object made interactive answers
+  from the next frame, when Phaser takes it in, so `advance()` a frame
+  before the first press. Phaser's drag thresholds are 0, so a press on a
+  draggable object starts its drag at once.
 - **user-event's keys carry no `keyCode`,** which Phaser's capture reads, so
   Phaser cancels nothing user-event presses. A spec of a capture, such as
   Space kept from the board by a button's `fzKeepKeys`, sends the key with

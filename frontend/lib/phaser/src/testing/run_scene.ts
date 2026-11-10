@@ -30,6 +30,23 @@ export interface SceneRunOptions {
   >;
 }
 
+/**
+ * Names a mouse button as `MouseEvent.button` numbers it: 0 is the main
+ * one, 1 the middle, 2 the right, and 3 and 4 back and forward.
+ */
+export type MouseButton = 0 | 1 | 2 | 3 | 4;
+
+/** Says how {@link SceneRun.pointer} sends the mouse. */
+export interface PointerOptions {
+  /**
+   * The element the event is sent to, such as the page's chrome over the
+   * canvas, which Phaser hears through the window; the canvas when not given.
+   */
+  readonly on?: Element;
+  /** The button pressed or let go, the main one when not given; a move sends none. */
+  readonly button?: MouseButton;
+}
+
 /** Says which modifier keys are held as a key is sent, and whether it is a held key's repeat. */
 export type KeyModifiers = Pick<
   KeyboardEventInit,
@@ -70,18 +87,29 @@ export interface SceneRun<S extends HostedScene> {
    * Sends a mouse event to the canvas, at a point in its pixels, or to an
    * element in the page over it, as a press on the page's own chrome reaches
    * Phaser through the window. Phaser hears it at once.
+   *
+   * A press or a release is of the main button unless told another, and
+   * every event carries the buttons still held (`buttons`), as a browser
+   * sends them, so a move with none pressed is a hover.
    */
   pointer(
     type: "down" | "move" | "up",
     x: number,
     y: number,
-    on?: Element,
+    options?: PointerOptions,
   ): void;
   /**
-   * Sends a touch of one finger to the canvas, at a point in its pixels.
-   * Phaser hears it at once.
+   * Turns the mouse's wheel over the canvas, at a point in its pixels, by
+   * `deltaY` pixels, down the page where it is positive, with the buttons
+   * held. Phaser hears it at once.
    */
-  touch(type: "start" | "move" | "end", x: number, y: number): void;
+  wheel(deltaY: number, x: number, y: number): void;
+  /**
+   * Sends a touch of one finger to the canvas, at a point in its pixels, or
+   * takes it away (`"cancel"`), as a browser does with one it keeps for a
+   * gesture of its own. Phaser hears it at once.
+   */
+  touch(type: "start" | "move" | "end" | "cancel", x: number, y: number): void;
   /**
    * Resolves once the scene's loader has finished everything it was given,
    * each file loaded or failed, stepping a frame on each wait, as a browser's
@@ -101,6 +129,15 @@ export interface SceneRun<S extends HostedScene> {
   /** Destroys the game, and with it the scene. */
   destroy(): void;
 }
+
+/** The bit of `MouseEvent.buttons` each button sets while it is held. */
+const BUTTON_BITS: Readonly<Record<MouseButton, number>> = {
+  0: 1,
+  1: 4,
+  2: 2,
+  3: 8,
+  4: 16,
+};
 
 /** How long a scene may take to start before {@link runScene} gives up. */
 const START_TIMEOUT_MS = 5_000;
@@ -133,6 +170,7 @@ export async function runScene<S extends HostedScene>(
   let time = game.loop.time;
   let wall = Date.now();
   let stamp = 0;
+  let held = 0;
   const now = Object.getOwnPropertyDescriptor(Date, "now");
 
   const advance = (ms: number, frameMs = 16): void => {
@@ -174,13 +212,27 @@ export async function runScene<S extends HostedScene>(
       Object.defineProperty(event, "timeStamp", { value: stamp });
       target.dispatchEvent(event);
     },
-    pointer(type, x, y, on = game.canvas) {
+    pointer(type, x, y, { on = game.canvas, button = 0 } = {}) {
+      if (type === "down") held |= BUTTON_BITS[button];
+      if (type === "up") held &= ~BUTTON_BITS[button];
       on.dispatchEvent(
         new MouseEvent(`mouse${type}`, {
           clientX: x,
           clientY: y,
-          button: 0,
-          buttons: type === "up" ? 0 : 1,
+          button: type === "move" ? 0 : button,
+          buttons: held,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    },
+    wheel(deltaY, x, y) {
+      game.canvas.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaY,
+          clientX: x,
+          clientY: y,
+          buttons: held,
           bubbles: true,
           cancelable: true,
         }),
@@ -200,11 +252,12 @@ export async function runScene<S extends HostedScene>(
       };
       // jsdom has no Touch to build a TouchEvent from, and Phaser reads only
       // the lists of touches.
+      // A browser can't be stopped from taking a touch away.
       const event = new Event(`touch${type}`, {
         bubbles: true,
-        cancelable: true,
+        cancelable: type !== "cancel",
       });
-      const down = type === "end" ? [] : [finger];
+      const down = type === "end" || type === "cancel" ? [] : [finger];
       Object.defineProperties(event, {
         changedTouches: { value: [finger] },
         touches: { value: down },

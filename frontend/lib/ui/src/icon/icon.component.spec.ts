@@ -19,14 +19,39 @@ describe("IconComponent", () => {
     expect(icon.querySelector("svg")?.childElementCount).toBeGreaterThan(0);
   });
 
-  it.each(["flag", "heart", "mine", "more", "pause", "play"] as const)(
-    "fills %s, a solid icon",
-    async (name) => {
-      const icon = await renderIcon(name);
+  it("draws each icon unlike any other", async () => {
+    const { container } = await render(
+      `@for (name of names; track name) {
+        <fz-icon [name]="name" />
+      }`,
+      { imports: [IconComponent], componentProperties: { names: ICON_NAMES } },
+    );
 
-      expect(icon.querySelector("svg")).toHaveClass("filled");
-    },
-  );
+    // Each case leaves an anchor of its own in the svg, so its elements
+    // alone tell one drawing from another.
+    const drawings = new Set(
+      [...container.querySelectorAll("svg")].map((svg) =>
+        [...svg.children].map((shape) => shape.outerHTML).join(""),
+      ),
+    );
+    expect(drawings.size).toBe(ICON_NAMES.length);
+  });
+
+  it.each([
+    "fast-forward",
+    "flag",
+    "heart",
+    "mine",
+    "more",
+    "pause",
+    "play",
+    "skip",
+    "star",
+  ] as const)("fills %s, a solid icon", async (name) => {
+    const icon = await renderIcon(name);
+
+    expect(icon.querySelector("svg")).toHaveClass("filled");
+  });
 
   it("outlines any other", async () => {
     const icon = await renderIcon("tick");

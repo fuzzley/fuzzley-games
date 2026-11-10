@@ -219,11 +219,14 @@ take the pure ones.
   a `data:` URL that names its size, and answers its requests and decodes
   its images as a browser would, so nothing reaches the network; and
   `runScene()` runs a scene in a WebGL game on them whose frames, clock,
-  keys, pointer, context and served files a spec drives, and
-  `runBareScene()` one that does nothing of its own, to make game objects
-  in. `runKeyedScene()` runs one as a board shows it, Phaser's keyboard
-  listening on an element of the page that takes the focus, and lets go of
-  both once the test that ran it finishes, and `runShownScene()` the scene
+  keys, pointer, context and served files a spec drives (the pointer as the
+  mouse, by any of its buttons, `MouseButton` through `PointerOptions`, the
+  buttons held carried by every event, and its wheel, or as a finger, whose
+  touch it may take away as a browser does), and `runBareScene()` one that
+  does nothing of its own, to make game objects in. `runKeyedScene()` runs
+  one as a board shows it, Phaser's keyboard listening on an element of the
+  page that takes the focus, and lets go of both once the test that ran it
+  finishes, and `runShownScene()` the scene
   a fake canvas was shown last, its keyboard on the board's element, and
   destroys the run, not the board, once the test finishes; `browserKey()`
   gives a key as a browser sends it, with the `keyCode` Phaser's keyboard

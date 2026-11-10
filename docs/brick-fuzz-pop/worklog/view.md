@@ -178,8 +178,8 @@ TuningSlider<"ballSpeedScale">`, and `unitsOf()` joined `formatScale()`
    `<menu>-slider-<id>` and the description `<menu>-description-<id>`, each
    kind under a word of its own. The review's `<menu>-slider-<id>-description`
    would still clash with a slider named `<id>-description`. A spec holds a
-   menu of `heading`, `speed` (described) and `speed-description` to five
-   ids apart.
+   menu of `heading`, `speed` and `speed-description`, the last two
+   described, to six ids apart.
 3. **Asteroid Breaker's `AGENTS.md` listed `TUNING` among what a spec hands
    in.** Fixed: it is one `createTuning()` of `TUNED`, made at the root,
    that the drawer and `GameService` share.
@@ -201,3 +201,127 @@ review had it, without the slider's id and without the menu's, and
 menu's, as the two-menu spec's sliders had no description; they have one
 now, and it is killed. These fixes are the ones the review asked for, the
 ids' scheme a step past its own, so they had no third review.
+
+### L8: icons and scene drivers
+
+**2026-11-10.** Three icons for Brick Fuzz Pop's bar, and the drivers its
+scene specs need for the wheel, a right click and a cancelled touch.
+
+**What was built.**
+
+- `@fz/ui/icon` gains `fast-forward` (play's arrowhead twice), `skip`
+  (play's arrowhead against a bar) and `star` (five points), all three
+  filled, as play and pause are and as the hearts are in a row. A new spec
+  holds every icon to a drawing unlike any other.
+- `@fz/phaser/testing`'s `SceneRun`:
+  - `pointer()`'s fourth argument is now `PointerOptions`: `on`, the
+    element it took before, and `button`, a `MouseButton` from 0 to 4, the
+    main one when not given, which a press or a release names. Every event
+    carries the buttons still held, each button's bit as a browser sets it
+    (main 1, right 2, middle 4, back 8, forward 16), so a move with none
+    pressed is a hover, and letting go of one of two leaves the other held.
+  - `wheel(deltaY, x, y)` turns the wheel over the canvas, with the buttons
+    held, which Phaser raises as `wheel` with the pointer at the point and
+    the delta.
+  - `touch("cancel", …)` sends `touchcancel`, the finger gone from
+    `touches`, which no listener can stop, as a browser's, and which Phaser
+    raises as a `pointerup` whose `wasCanceled` is true.
+  - The two types are exported from `@fz/phaser/testing`.
+- Brick Breaker's scene spec gains "doesn't launch at a press of" the middle,
+  right, back and forward buttons, "doesn't launch at a touch the browser takes
+  away", and "launches at a tap after a touch the browser took away", the first
+  finger moved past a tap's reach before it is taken away, so a scene that kept
+  it would refuse the tap. The scene already did the right thing in each: its
+  `Steering` launches only at the main button and drops a cancelled tap. No game
+  code changed.
+- Docs: `frontend/lib/phaser/AGENTS.md`'s harness sentence, the
+  `phaser-core` skill's "Input is a browser's", and
+  `frontend/lib/ui/AGENTS.md`'s icon bullet, which names the filled ones and
+  the new spec.
+
+**Choices the plan didn't make.**
+
+1. **`pointer()`'s element moved into an options object.** The plan asks
+   for a `button` option; a fifth positional argument after an optional
+   `on` would make a right click on the canvas pass `undefined` first. Four
+   calls passed `on`: the probe's own, and three in Solitaire's
+   `board_input_manager.spec.ts`, a press on the page's chrome, now
+   `{ on: chrome }`. So Solitaire is a touched workspace.
+2. **`buttons` is what is held.** The old driver sent 1 at every press and
+   move and 0 at every release. Phaser's pointer takes `buttons` from each
+   down, move, up and wheel event, and reads it for `leftButtonDown()`,
+   `noButtonDown()` and the rest, so the driver keeps the buttons held in
+   the run, as a browser does. No scene reads `buttons` today; Phaser's drag
+   reads `primaryDown`, which only a press and a release set, so the
+   hovers that now send 0 change nothing a spec saw.
+3. **The star is filled.** It will sit small in a row, as Minesweeper's
+   hearts do, where an outline thins away.
+
+**Checks** (after the review's fixes):
+
+- `@fz/ui`: lint and typecheck clean; `test:coverage` 315 specs in 24
+  files, 96.81% of statements, 86.84% of branches, 99.21% of functions and
+  98.17% of lines, over its floor of 96, 84, 99 and 97.
+- `@fz/phaser`: lint and typecheck clean; `test:coverage` 637 specs in 50 files,
+  99.17, 95.82, 99.72 and 99.55, over its floor of 99, 95, 99 and 99.
+  `run_scene.ts`'s one line not run is the start's timeout, as before.
+- Brick Breaker: lint and typecheck clean; `test` 2040 specs in 61 files,
+  `sim` among them.
+- Solitaire: lint and typecheck clean; `test` 6874 specs in 172 files.
+- The root's `yarn lint` clean.
+
+**The mutation pass.** 16 mutations: the default button, the button given
+ignored, `buttons` always the main bit, the middle's and right's bits
+swapped, back's as forward's, a button held at a release, the wheel turned
+the other way, at `y` for `x`, or sent as a mouse move, a cancelled finger
+left in `touches`, the star outlined, fast-forward drawn as play, skip
+without its bar, fast-forward out of the names, and in Brick Breaker's
+`Steering` any button launching and a cancelled tap launching.
+
+- **Survived, so specced:** fast-forward drawn as play. The spec of
+  drawings unlike any other compared each svg's `innerHTML`, which holds
+  an anchor for every `@case`, at a place of its own, so no two icons'
+  could match. It now compares the shapes alone, and the mutation is
+  killed.
+- **Survived, equivalent:** a cancelled finger left in `touches`, since
+  Phaser reads only `changedTouches` at a `touchcancel`; and skip without
+  its bar, still a drawing of its own, which no spec can call wrong.
+
+**The review:**
+
+1. **Solitaire's specs still passed the element as the fourth argument.**
+   Three presses on the page's chrome in `board_input_manager.spec.ts`
+   would have failed its typecheck, and at run time pressed the canvas
+   instead. Fixed: `{ on: chrome }`, and Solitaire's lint, typecheck and
+   tests run with the rest. The search before the change looked for a
+   fourth argument after two plain ones, and Solitaire's spread
+   `...inside(sprite)`.
+2. **"Launches at a tap after a touch the browser took away" passed with
+   the cancelled finger kept,** as Phaser hands the next finger the same
+   pointer and the tap then looks fresh. Fixed: the first finger moves 30
+   pixels before it is taken away, so a kept one has gone too far for a
+   tap. The review's mutation, a cancelled finger never let go, is killed.
+3. **`buttons` followed the call, not what was held:** a hover sent 1, the
+   wheel 0 with a button down, and letting go of one of two buttons 0.
+   Fixed: the run keeps the buttons held, a move names no button, and the
+   wheel carries them. Specs: a hover, a right-button drag and a hover
+   after it (`[0, 2, 0]`), the wheel with the middle button held, and
+   letting go of the right button with the main one still down.
+4. **A `touchcancel` could be stopped,** which a browser's can't. Fixed,
+   with a spec that reads `cancelable` off the event.
+5. **Nits,** all fixed: fast-forward's comment no longer says its
+   arrowheads are play's; `FILLED`'s comment is split in three; the
+   `pointer()` doc gives the buttons a paragraph of their own; and the
+   unwrapped lines in `frontend/lib/phaser/AGENTS.md` and this entry are
+   wrapped.
+
+After the review, 7 more mutations: a cancelled finger kept in Brick
+Breaker's `Steering`, a release clearing every button, a press forgetting
+those held, the wheel holding none, a move naming the button given, a
+cancel that can be stopped (before its spec), and the default button the
+right. One survived, equivalent: a move naming the button, since Phaser's
+pointer takes no `button` from a move. The cancel's `cancelable` survived
+too before its spec, as Phaser's `preventDefault()` there only skips its
+window handler's second, empty, pass; the spec kills it. The fixes are the
+ones the review asked for, in the files the change already touched but
+Solitaire's spec, so they had no second review.

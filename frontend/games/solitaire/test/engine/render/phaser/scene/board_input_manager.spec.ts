@@ -301,7 +301,7 @@ describe("BoardInputManager", () => {
       const { sprite } = listenTo(stock[stock.length - 1]);
 
       nextFrame();
-      run.pointer("down", ...inside(sprite), chrome);
+      run.pointer("down", ...inside(sprite), { on: chrome });
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
@@ -313,7 +313,7 @@ describe("BoardInputManager", () => {
       inputManager.registerPileBackgroundListeners(stockBackground, "stock");
 
       nextFrame();
-      run.pointer("down", ...inside(stockBackground), chrome);
+      run.pointer("down", ...inside(stockBackground), { on: chrome });
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
@@ -324,7 +324,7 @@ describe("BoardInputManager", () => {
       inputManager.registerDragListeners();
 
       nextFrame();
-      run.pointer("down", ...inside(sprite), chrome);
+      run.pointer("down", ...inside(sprite), { on: chrome });
 
       expect(controller.drag).toBeNull();
     });
