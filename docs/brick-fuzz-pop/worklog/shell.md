@@ -505,3 +505,130 @@ strike.
    - The swell's dip under its size is 1.4%, under half a CSS pixel. Left
      for Q3 to judge, as the eighth choice now says: the ease's usual
      overshoot, kept until it is seen in the game.
+
+### U4, first part: the levels and the result
+
+**2026-11-10.** U4 in two commits, as the integrator asked while R7 is
+built: this one `levels/` and `result/`, each a component of narrow inputs;
+the next `stats/` over R7's `run/stats.ts` and `progress.ts`.
+
+**What was built.**
+
+- `src/app/levels/levels.component.{ts,html,scss,spec.ts}`: `<app-levels>`,
+  the Levels dialog.
+  - Inputs: `open`; `marks`, each level's `LevelMark` by its id (`open`,
+    `stars`, `best`); `current`, the run's level or null; and `levels`,
+    P1's `LEVELS` unless a spec hands others.
+  - Outputs: `chosen`, with an open level's number, and `closed`.
+  - Each set under its name, a region; each level a `start-tile` button
+    named by its number and name; once cleared, a `star` icon in the
+    warning's gold for each star earned, said as "2 of 3 stars" in hidden
+    text, and "Best 1,240"; "Locked", dashed and `aria-disabled`, until it
+    opens; the run's own `aria-current`.
+- `src/app/result/result.component.{ts,html,scss,spec.ts}`: `<app-result>`,
+  the result card on `result-card`.
+  - Inputs: `open`; `end`, a `RunEnd` (`outcome`, `"over"` or `"won"` as
+    `RunStage` names them, `firstLevel`, `level`, `levelName`, `score`,
+    `cleared`, `stars`); `best`; and `newBest`.
+  - Outputs: `tryAgain`, `newGame`, `chooseLevel` and `closed`.
+  - "Game over", lost on a level named by number and name, or "Every level
+    cleared!" from where the run started; the score, the best, the levels
+    cleared and the stars earned; "New best" and the trophy; "Try again from
+    level N" or "New game", "Choose a level" and "Close".
+
+**Choices the plan didn't make.**
+
+1. **Narrow inputs, no services,** as the integrator asked: `LevelMark`
+   and `RunEnd` are defined in the components until R7's stats and
+   progress exist, when U1 or the next commit works the marks and the end
+   out from them, and the integrator settles where the types live. The
+   board hands `end` always, as Brick Breaker's card reads its run whether
+   it has ended or not: the run's numbers as they stand, its outcome
+   `"won"` or else `"over"`, and the level's name from the same levels the
+   dialog is handed, one source for both.
+2. **A level not in `marks` is locked,** so the board hands every level's
+   mark, the first's open; deciding what is open is `ProgressService`'s.
+3. **Cleared means it has a star:** a level is cleared within or past par,
+   so every cleared level has one at least. Its stars and its best show only
+   then, as "Cards and dialogs" says, "stars and best once cleared".
+4. **`MOST_STARS`, 3, is the component's for now:** the rules hold the star
+   points and the two-star margin but no count of stars, and the rules
+   can't import the shell, so the integrator is asked to put it in
+   `tuning.ts` beside them, for this, How to play's "three stars" and R7's
+   stats to share.
+5. **The levels come from P1's `LEVELS` by default,** an input only so a
+   spec can hand two sets; the game has one set yet, Warm-up.
+6. **Choosing hands the number on and closes nothing:** the board asks
+   before a run in progress is lost and closes the dialog once the run has
+   started, as Brick Breaker's dialog does through its service.
+7. **The result card opens on its title,** as Asteroid Breaker's does, not
+   on its first button as Brick Breaker's: Space lets a shot fly, and a
+   player still pressing it as the card opens would press the button. A
+   click beside the card doesn't close it. Unlike Asteroid Breaker's, the
+   title keeps the focus ring after keyboard play, as `@fz/style`'s
+   document rule says no component clears its outline, and it shows where
+   Tab goes on from.
+8. **Only the stars earned show,** one icon each, none faint for those not
+   earned: the count tells them by shape, where a lit and an unlit star
+   would differ by color alone. The dialog's words say a level shows "up
+   to three".
+9. **"Try again from level N"** names the level, starting with the words
+   How to play gives the button; a won run's first button is "New game",
+   as How to play says too.
+10. **The figures are four, two by two:** the score, the best, the levels
+    this run cleared and the stars it earned. The furthest level reached is
+    the stats', and the card names the level already.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 2,742 tests in 39 files, 2 of them new and 30 of the
+tests; both components at 100%. The root's `yarn lint` passes. Both
+stylesheets compile with Sass through the toolkit; neither is seen in a
+browser, since nothing places them until U1, so the stars' gold on a tile
+in each palette is for Q3's look.
+
+**The mutation pass.** 30 mutants, one at a time, against the two specs:
+an unmarked level open; every level current with no run, or always; stars
+shown before clearing, one more lit, four of them, and the words counting
+the most; "Locked" unsaid, the best's thousands ungrouped, and a locked
+level chosen; each level a set of its own and a set's section unnamed; no
+level marked locked; every star lit; the dialog's close button and Escape
+mute; the titles swapped; a won run from its last level; the next level's
+name; the best the score, and the cleared and the stars swapped; trying
+again from the first level, or always; the won run's trophy gone and the
+badge always shown; the backdrop closing; the title not focused; and the
+card's levels button, close button and Escape mute. All 30 were killed.
+The review's changes got 9 more: cleared with no star, a star short and
+one more by place, the best shown before clearing and never, the stars
+shown uncleared, the subtitle's name gone, and the trophy for a new best
+alone or a win alone. The stars numbered from 0 survived and is
+equivalent: the numbers only track the icons.
+
+**The review:**
+
+1. **The game's-own-levels spec read the first set alone but expected
+   every level,** which fails once a second set lands, and its
+   expectation held a condition. Fixed: every level open, the buttons of
+   every set's region against `LEVELS`, by number and name.
+2. **The card named a level from the global `LEVELS`, the dialog from its
+   input,** two sources once U1's specs hand levels of their own. Fixed:
+   `RunEnd.levelName`, which the board takes from the levels it hands the
+   dialog; `nameOf()` and its spec for a level no game has are gone.
+3. **`RunEnd.outcome` named a loss `"lost"`, where `RunStage` says
+   `"over"`, and `end` is required while the card is shut.** Fixed: the
+   outcome is `Extract<RunStage, "over" | "won">`; `end` stays required,
+   the first choice saying how the board hands it always.
+4. **`MOST_STARS` sits in the shell, where the rules can't reach it.**
+   Left for the integrator, who owns `tuning.ts`: the fourth choice and the
+   report ask for it there.
+5. **A spec queried `fz-icon.lit`, a class.** Fixed with the sixth: no
+   class; the spec counts the star icons by their name.
+6. **Lit and unlit stars differed by color alone.** Fixed: only the stars
+   earned show, the tenth choice.
+7. **Two templates computed** (`level.stars.length > 0`, `newBest() ||
+won()`). Fixed: `cleared` on each level and a `trophy` computed.
+8. **"Best shows whenever there is one" had no spec,** and the plan
+   reads "stars and best once cleared". Fixed: the best shows once
+   cleared, with a spec of a best on a level not cleared showing nothing.
+9. **The focused title draws a focus ring, where Asteroid Breaker's
+   clears it.** Kept, by the document's rule; the seventh choice says why.
+10. **"The review:" was empty.** Filled.
