@@ -22,8 +22,10 @@ take the pure ones.
   palettes and eight for dark in each `ModeInks` (`src/color/inks.ts`):
   `TILE_INKS`, the tints a tile such as a brick takes, and `FUZZBALL_INKS`,
   which tell fuzzballs apart where several show at once, kept apart from one
-  another and from the fuzzball's eyes by its spec. Each game holds them to
-  3:1 against its own field in its own contrast spec. It imports nothing.
+  another and from the fuzzball's eyes by its spec. They are the numbers
+  Phaser takes, so a shell that draws one writes it with `cssHex()`. Each
+  game holds them to 3:1 against its own field in its own contrast spec. It
+  imports nothing.
 - `src/layout/`: `fitCells()`, which fits a field of square cells, any
   number across and down with a frame around them, inside a canvas's
   insets, each cell a whole number of device pixels and the field centered
@@ -90,10 +92,12 @@ take the pure ones.
   (`frameAround()`) and the outline of a rounded rectangle, its line's
   middle along its edge (`outlineRoundRect()`), as a band filled in one
   polygon, so what it covers is known exactly and no seam shows in an
-  atlas, and it gives the points of a star (`star()`) and the dashes of a
-  straight line (`dashes()`, each a `Dash`), centered along it with a gap
-  clear of each end; and `src/shapes/symbols.ts` draws in a square, as a
-  pickup's or a capsule's symbol is, its places and sizes as shares of the
+  atlas, where it is meant to be drawn, since a WebGL `Graphics` thins a
+  path's points (the `phaser-core` skill says how), and it gives the
+  points of a star (`star()`) and the dashes of a straight line
+  (`dashes()`, each a `Dash`), centered along it with a gap clear of
+  each end; and `src/shapes/symbols.ts` draws in a square, as a pickup's
+  or a capsule's symbol is, its places and sizes as shares of the
   square: `dotIn()` anywhere in it, `discIn()` and `rimIn()` about its
   middle, and the lines' `symbolLineStyle()`. `atlasSize()` is how big the
   atlas of a set of frames is, packed as `bakeAtlas()` packs them, in rows,

@@ -255,7 +255,7 @@ in A1, L5 in A2, L6 in P3, L7 in T1, and L8 in S2 and U1.
 | L3  | **`@fz/game-ui/debug_menu`**: `DEV_BUILD` and `DEBUG_MENU` as tokens (`DEBUG_MENU` is development builds or `?debug`), `<fz-debug-tuning>` and `createTuning(tuned)`, from Asteroid Breaker's `tokens.ts`, `view/debug_tuning.ts`, `settings/tuning.service.ts` and `settings/debug_tuning.component.*`. Spelled out below.                                                                                      | Asteroid Breaker entirely; Brick Breaker its tokens and its one slider, which gains `?debug`                             | medium |
 | L4  | **`@fz/phaser/color` inks.** `TILE_INKS = { light, dark }`, Brick Breaker's eight. `FUZZBALL_INKS = { light, dark }`, Asteroid Breaker's eight pilot inks, for the friends (answer 5). Each game's contrast spec stays its own, checked against its own field.                                                                                                                                                   | Brick Breaker's `inks.ts`, Asteroid Breaker's pilot inks                                                                 | small  |
 | L5  | **`@fz/phaser/shapes` areas.** Brick Breaker's `src/view/art/shapes.ts` (`within`, `share`, `inset`, `middleSquare`, `frameAround`, `star`) becomes `areas.ts`, with `outlineRoundRect()`, a stroked rounded rectangle drawn as a band (the art needs one in five places), and `dashes(from, to, dash, gap)` for the jump and danger lines.                                                                      | Brick Breaker's art; Asteroid Breaker's `dashedRing()` over `dashes()` if it gets shorter                                | small  |
-| L6  | **`variantOfSpec(file, variants)`** in `@fz/core/testing`: a spec file's variant read from its name, by string operations alone, with no `node:path`.                                                                                                                                                                                                                                                            | Brick Breaker's private `speedOfSpec`, Asteroid Breaker's `speed_specs.ts`                                               | small  |
+| L6  | **`variantOfSpec(file, variants, folder)`** in `@fz/core/testing`: a spec file's variant, a string or a number, read from its name in its folder, by string operations alone, with no `node:path`.                                                                                                                                                                                                               | Brick Breaker's private `speedOfSpec`, Asteroid Breaker's `speed_specs.ts`                                               | small  |
 | L7  | **`@fz/dev/layout`: zones all or none.** `PhaserDeck` gains `allOrNone: true`: no zone at all passes, and if any is present every one must be. Brick Fuzz Pop's DOM panels, which lie over the canvas's spare room, then reuse `inspectPhaserDeck()`'s checks (inside the canvas and the window, clear of the field, the bar and each other, `least: 172`).                                                      | Asteroid Breaker is unchanged, since its deck always shows; a spec for each branch                                       | small  |
 | L8  | **Icons and scene drivers.** `fast-forward`, `skip` and `star` join `@fz/ui/icon` (`ICON_NAMES` and the template's cases). `@fz/phaser/testing`'s `SceneRun` gains `wheel(deltaY, x, y)`, a `button` option on `pointer()`, and `touch("cancel", …)`, since nothing can drive the wheel, a right click or a cancelled touch through a scene today.                                                               | Brick Breaker's scene spec gains the cancelled-touch and any-button cases its review once asked for                      | small  |
 | L9  | Docs: each library's `AGENTS.md`, Brick Breaker's and Asteroid Breaker's `AGENTS.md` and skills (`brick-breaker-content` names "the sweep" at line 124), the `fuzzley-ui` and `phaser-core` skills. `yarn skills:check`.                                                                                                                                                                                         | —                                                                                                                        | small  |
@@ -1097,7 +1097,9 @@ The fields of each package:
     certificate.
   - `every_floor/` holds a file for each set and depth, 4 × 3 for depths 11,
     13 and 22, holding the careless player over 20 seeds.
-  - Files take their variant from their names with L6's `variantOfSpec()`.
+  - Files take their variant from their names with L6's
+    `variantOfSpec(file, variants, folder)`, each passing its own folder; a
+    variant may be a number, as a depth is.
   - A spec lists both folders, so a file can't go missing.
   - The message on a failed replay says to run `yarn certify:levels`.
 - **Done when:** Q2.
@@ -1130,8 +1132,9 @@ The fields of each package:
   `docs/brick-fuzz-pop/art/make-art.mjs`.
   - Its coordinates in a 100-unit box become shares of an area
     (`within`/`inset`).
-  - Stroked rounded rectangles become `outlineRoundRect()`, and a stroked
-    polygon becomes a polygon plus `stroke()`.
+  - Stroked rounded rectangles become `outlineRoundRect()`, one command
+    each, which fills rightly once baked into the atlas, as every frame is,
+    and a stroked polygon becomes a polygon plus `stroke()`.
   - Line widths are clamped with `widthOf()`/`lineWidth()`, and insets snap
     to whole device pixels.
 - **What has to be added beyond the sheets:**
@@ -1257,10 +1260,13 @@ The fields of each package:
     `canvasChanged`, `retakeFrames`, `picturesWhenAsked`, `onFirstFrame`,
     `onPlayerAway`, `onKeyDown`/`onKeyUp`, `onContextRestored`,
     `uniqueSceneKey`).
-  - `atlas.ts`.
+  - `atlas.ts`. An `outlineRoundRect()` reaches the screen through it, as a
+    WebGL `Graphics` thins a path's points and can cut its band; one drawn
+    live needs the game's `render.pathDetailThreshold` at 0 (the
+    `phaser-core` skill's surprises).
   - `FieldPainter` draws the frame, the floor's band, the lintel, the jump
-    line (`dashes()`, with its count once nine or fewer bricks are left) and
-    the danger line.
+    line (`dashes()`, whose `{ from, to }` pairs it draws as lines, with its
+    count once nine or fewer bricks are left) and the danger line.
   - `WallPainter` keeps a pool of images, 9 × 22 cells × the layers of
     stacked frames, made once.
 - **Specs:** through `runKeyedScene()` and a `FakeShell`, after Brick
@@ -1279,7 +1285,9 @@ The fields of each package:
   - The pictures go to How to play and the panels.
 - **Specs:**
   - a lost context and its restore;
-  - the wheel, a right click and a cancelled touch, through L8's drivers;
+  - the wheel, a right click and a cancelled touch, through L8's drivers:
+    `wheel(deltaY, x, y)`, `pointer(type, x, y, { button: 2 })` and
+    `touch("cancel", x, y)`;
   - the guide following the aim;
   - nothing new made in `update()`. A spec counts the scene's objects
     before and after 600 frames of a flight and expects them equal.
@@ -1312,13 +1320,17 @@ The fields of each package:
     - `pointer-events: none`;
     - each a `role="region"` with its own heading.
     - The waiting rows are a CSS grid of small squares in each brick's ink,
-      hidden from screen readers, with a sentence beside them.
+      hidden from screen readers, with a sentence beside them. The inks are
+      the numbers Phaser takes, so each is written as CSS with
+      `@fz/phaser/color`'s `cssHex()`, as Asteroid Breaker's `pilotInk()`
+      writes a pilot's.
     - The kinds' pictures come from `picturesWhenAsked`. They are encoded
       once for each palette and unit, and not while a resize is under way;
       Asteroid Breaker's finding 15 measured what encoding them again costs.
   - `bar/`:
     - the level, the rounds against par, the rows left, the score and the
-      crew (`<fz-fuzzball>` in each friend's ink);
+      crew (`<fz-fuzzball>` in each friend's ink, `FUZZBALL_INKS`' number
+      written as CSS with `cssHex()`);
     - `fast_forward.component.ts`, modelled on `BarPauseComponent`, using
       the new icons;
     - Pause, Sound and the overflow menu;
@@ -1796,3 +1808,55 @@ the mocks with it.
         of 320 px, 12 px from the field. It was drawn at 62, with panels of 337.
     - **`mocks/`:** each level opens 9 × 17 on the phone and 9 × 11 in the
       wide window, each with its own band and lintel.
+
+---
+
+## 13. What Part 1 built differently (2026-11-10)
+
+Part 1's eight lifts are built, each logged in `worklog/`. Where one went
+other than §4 and its spelled-out parts say, the code is the one to follow,
+and §6's packages that use them (P3, A2, S1, S2 and U1) now say so.
+
+1. **L1:** `sweepPoint(move, x, y, reach)` takes its reach as an argument
+   and reads no radius from its move, so R2's bumper sweeps the fuzzball's
+   own move at `RADIUS + 0.38`; `sweepCorner()` hands it the move's radius.
+   The spec pins twelve shares to the bit, of faces, corners and points.
+2. **L2:** as spelled out, but `Math.random()` and `Math.imul()` keep their
+   own messages alone, and the first selector holds only a member reached
+   by its name (`[computed=false]`), so `Math[name]` is reported once.
+3. **L3:** `createTuning()` tunes numbers and switches
+   (`T extends TunedValues<T>`), as Asteroid Breaker's shots' switch needs;
+   the menu's outputs are `tune` and `resetNumbers`, since `reset` is a DOM
+   event's name; and a slider may carry a `description`, linked to it.
+   Brick Breaker's Copy gives `speed.ts`'s lines, and its runs at another
+   scale still keep their records: whether they should is the user's
+   question.
+4. **L4:** both sets are `ModeInks` of the numbers Phaser takes; a shell
+   writes one as CSS with `cssHex()`, as Asteroid Breaker's `pilotInk()`
+   does and U1's crew and panels will.
+5. **L5:** `outlineRoundRect(area, radius, style)` returns one command, a
+   polygon, or the filled rounded rectangle where the line leaves no hole,
+   and fills rightly in an atlas (S1). `dashes()` returns each dash as a
+   `Dash`, `{ from, to }`, for the caller to draw. Asteroid Breaker's
+   `dashedRing()` and Brick Breaker's ghost brick's dashes
+   (`dashedOutline()`) keep their own, as `dashes()` would make neither
+   shorter, and would change the ghost.
+6. **L6:** `variantOfSpec(file, variants, folder)` takes the folder too, and
+   a variant may be a string or a number.
+7. **L7:** a deck shown all or none shows none by an empty list
+   (`namedRectsAttribute([])`); a missing attribute still fails, and an
+   entry the check can't read counts as listed. The check can't tell panels
+   hidden for want of room from panels never shown, so T1's own inspection
+   holds where they must show.
+8. **L8:** `pointer()`'s fourth argument is `PointerOptions`,
+   `{ on, button }`, where it took the element alone, and every event
+   carries the buttons held, as a browser's does; Solitaire's specs pass
+   `{ on: chrome }`.
+
+Most of what §1 and §4 name of the games' code the lifts took is gone from
+the games: Brick Breaker's `src/rules/sweep.ts`, `src/view/art/shapes.ts`,
+`src/view/colors/inks.ts` (`LIGHT_INKS`, `DARK_INKS`) and `speedOfSpec()`,
+and Asteroid Breaker's pilot inks, `speed_specs.ts`, `TuningService` and
+`debug_tuning.component.*`. Each now lives in the library its lift names.
+Asteroid Breaker's `src/app/tokens.ts` and `src/view/debug_tuning.ts`
+stay, holding the game's own `TUNING` and its numbers (`Feel`).
