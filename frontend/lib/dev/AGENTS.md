@@ -45,7 +45,7 @@ too. Paths are relative to `frontend/lib/dev/`.
     below says.
     A game without Phaser, such as Minesweeper or Sudoku, takes it alone; a
     game drawn with Phaser takes it within `phaserGameLayers()`.
-  - `phaserGameLayers({ viewAllows, heldAsRules })`: the fences between the
+  - `phaserGameLayers({ viewAllows, heldAsRules, exact })`: the fences between the
     four layers of a game drawn with Phaser, each a folder under the game's
     `src/` importing only the layers below it: the rules (`rules/`), with
     no framework and no library but `@fz/core`; the view (`view/`), with no
@@ -77,7 +77,21 @@ too. Paths are relative to `frontend/lib/dev/`.
     nothing beside them but one another, so a file they import must join
     them, and throws for a glob or files of two folders, which the sibling
     pattern can't be built from, or a file the workspace doesn't have, which
-    ESLint would pass over without a word.
+    ESLint would pass over without a word. `exact` holds the rules and the
+    files held as they are, but never the view, whose art turns with `cos`
+    and `sin`, to arithmetic every engine rounds alike, so a run plays the
+    same on every engine: `+`, `-`, `*`, `/` and, of `Math`, only the
+    functions whose every digit the standard fixes (`abs`, `ceil`, `floor`,
+    `fround`, `max`, `min`, `round`, `sign`, `sqrt` and `trunc`), each called
+    by its name. It is an allowlist: every other member of `Math`, its
+    constants and a function the language adds later among them, a member
+    reached by a value (`Math[name]`), `Math` taken apart or named again
+    (`const { sin } = Math`), `**` and `**=` are refused. Its refusals join
+    the lists of refused properties and syntax that keep the rules to what
+    they are handed, rather than coming in a block of their own, which would
+    replace them. Lint holds only the files it covers, so what the rules
+    call of `@fz/core` keeps to the same arithmetic by that library's review
+    and specs.
 - `tsconfig/`, `@fz/dev/tsconfig/*.json`: the compiler options a
   workspace's `tsconfig.json` extends.
   - `base.json`: the strict flags every workspace's TypeScript is checked
@@ -448,9 +462,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   `phaserGameLayers()`, and a game without Phaser its rules' from
   `gameRules()`**, rather than writing them again, so no game's fence goes
   stale or is tightened alone. What is a Phaser game's own goes in the
-  options: what its view takes beyond the rest (`viewAllows`) and what it
+  options: what its view takes beyond the rest (`viewAllows`), what it
   holds as the rules, by their paths from its folder (`heldAsRules`), as
-  Asteroid Breaker's `eslint.config.js` does. ESLint takes a rule's options
+  Asteroid Breaker's `eslint.config.js` does, and whether its rules keep to
+  exact arithmetic (`exact`). ESLint takes a rule's options
   from the last block that sets it for a file, so a block of the game's own
   that restricts imports, properties, globals or syntax in a layer's folder
   would replace the layers' rules there rather than add to them.

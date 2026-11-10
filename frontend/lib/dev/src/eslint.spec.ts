@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { ESLint } from "eslint";
 import type { Config } from "eslint/config";
 import {
+  type PhaserGameLayers,
   angular,
   gameRules,
   phaser,
@@ -374,6 +375,15 @@ describe("gameRules", () => {
     expect(problems["src/rules/field.ts"]).toEqual([rule]);
   });
 
+  it("leaves the rules every function of Math", async () => {
+    const problems = await lint(
+      { "src/rules/field.ts": "export const read = Math.sin(Math.PI) ** 2;\n" },
+      gameRules(),
+    );
+
+    expect(problems["src/rules/field.ts"]).toEqual([]);
+  });
+
   it("leaves the rules' specs and the shell free of the fence", async () => {
     const code = 'import "@angular/core";\nexport const now = Date.now();\n';
 
@@ -568,40 +578,52 @@ describe("phaserGameLayers", () => {
     });
   });
 
-  it.each([
-    ["Date.now()", "no-restricted-properties"],
-    ["new Date()", "no-restricted-syntax"],
-    ["performance.now()", "no-restricted-globals"],
-    ["setTimeout(() => undefined, 1)", "no-restricted-globals"],
-    ["Math.random()", "no-restricted-properties"],
-    ["Math.imul(7, 9)", "no-restricted-properties"],
-    ["window.innerWidth", "no-restricted-globals"],
-    ["globalThis.innerWidth", "no-restricted-globals"],
-    ['localStorage.getItem("run")', "no-restricted-globals"],
-  ])("keeps the rules and the view off %s", async (read, rule) => {
-    const code = `export const read = ${read};\n`;
+  // Exact arithmetic's refusals join these, so each must hold with it too.
+  describe.each<[string, PhaserGameLayers]>([
+    ["as every game has them", {}],
+    ["held to exact arithmetic", { exact: true }],
+  ])("with the rules %s", (_, options) => {
+    it.each([
+      ["Date.now()", "no-restricted-properties"],
+      ["new Date()", "no-restricted-syntax"],
+      ["Date()", "no-restricted-syntax"],
+      ["performance.now()", "no-restricted-globals"],
+      ["setTimeout(() => undefined, 1)", "no-restricted-globals"],
+      ["Math.random()", "no-restricted-properties"],
+      ["Math.imul(7, 9)", "no-restricted-properties"],
+      ["window.innerWidth", "no-restricted-globals"],
+      ["globalThis.innerWidth", "no-restricted-globals"],
+      ['localStorage.getItem("run")', "no-restricted-globals"],
+    ])("keeps the rules and the view off %s", async (read, rule) => {
+      const code = `export const read = ${read};\n`;
 
-    const problems = await lint(
-      { "src/rules/run.ts": code, "src/view/paint.ts": code },
-      phaserGameLayers(),
-    );
+      const problems = await lint(
+        { "src/rules/run.ts": code, "src/view/paint.ts": code },
+        phaserGameLayers(options),
+      );
 
-    expect(problems).toEqual({
-      "src/rules/run.ts": [rule],
-      "src/view/paint.ts": [rule],
+      expect(problems).toEqual({
+        "src/rules/run.ts": [rule],
+        "src/view/paint.ts": [rule],
+      });
     });
-  });
 
-  it("keeps the rules off the global Phaser too, though their list of globals replaces the one every file has", async () => {
-    const problems = await lint(
-      {
-        "src/phaser.d.ts": PHASER_TYPES,
-        "src/rules/run.ts": READS_GLOBAL_PHASER,
-      },
-      phaserGameLayers(),
-    );
+    it("keeps the rules and the view off the global Phaser too, though their list of globals replaces the one every file has", async () => {
+      const problems = await lint(
+        {
+          "src/phaser.d.ts": PHASER_TYPES,
+          "src/rules/run.ts": READS_GLOBAL_PHASER,
+          "src/view/paint.ts": READS_GLOBAL_PHASER,
+        },
+        phaserGameLayers(options),
+      );
 
-    expect(problems["src/rules/run.ts"]).toEqual(["no-restricted-globals"]);
+      expect(problems).toEqual({
+        "src/phaser.d.ts": [],
+        "src/rules/run.ts": ["no-restricted-globals"],
+        "src/view/paint.ts": ["no-restricted-globals"],
+      });
+    });
   });
 
   it("lets the rules make a date from a time they are handed", async () => {
@@ -764,5 +786,140 @@ describe("phaserGameLayers", () => {
     await expect(held).rejects.toThrow(
       `phaserGameLayers()'s heldAsRules ${message}`,
     );
+  });
+});
+
+describe("phaserGameLayers({ exact })", () => {
+  /** The rule each of exact arithmetic's refusals breaks. */
+  const SYNTAX = "no-restricted-syntax";
+
+  it.each([
+    ["Math.sin()", "export const read = Math.sin(1);\n"],
+    ["Math.cos()", "export const read = Math.cos(1);\n"],
+    ["Math.tan()", "export const read = Math.tan(1);\n"],
+    ["Math.atan()", "export const read = Math.atan(1);\n"],
+    ["Math.atan2()", "export const read = Math.atan2(1, 2);\n"],
+    ["Math.hypot()", "export const read = Math.hypot(3, 4);\n"],
+    ["Math.pow()", "export const read = Math.pow(2, 3);\n"],
+    ["Math.exp()", "export const read = Math.exp(1);\n"],
+    ["Math.log()", "export const read = Math.log(2);\n"],
+    ["Math.cbrt()", "export const read = Math.cbrt(8);\n"],
+    [
+      "Math.clz32(), though exact, until someone checks it",
+      "export const read = Math.clz32(1);\n",
+    ],
+    ["Math.PI", "export const read = Math.PI;\n"],
+    [
+      "a function Math gains later, named like an exact one",
+      "declare global {\n  interface Math {\n    signbit(x: number): boolean;\n  }\n}\nexport const read = Math.signbit(-1);\n",
+    ],
+    [
+      "a member of Math reached by a value of its name",
+      'const name = "sqrt";\nexport const read = Math[name](4);\n',
+    ],
+    [
+      "Math taken apart",
+      "const { sqrt } = Math;\nexport const read = sqrt(4);\n",
+    ],
+    ["Math named again", "const M = Math;\nexport const read = M.sqrt(4);\n"],
+    ["**", "export const read = 2 ** 3;\n"],
+    ["**=", "let read = 2;\nread **= 3;\nexport { read };\n"],
+  ])("keeps the rules off %s", async (_, code) => {
+    const problems = await lint(
+      { "src/rules/run.ts": code },
+      phaserGameLayers({ exact: true }),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([SYNTAX]);
+  });
+
+  it.each([
+    ...[
+      "abs",
+      "ceil",
+      "floor",
+      "fround",
+      "max",
+      "min",
+      "round",
+      "sign",
+      "sqrt",
+      "trunc",
+    ].map((name) => [
+      `Math.${name}()`,
+      `export const read = Math.${name}(-1.5);\n`,
+    ]),
+    ["+ - * /", "export const read = ((1 + 2 - 3) * 4) / 5;\n"],
+  ])("lets the rules use %s", async (_, code) => {
+    const problems = await lint(
+      { "src/rules/run.ts": code },
+      phaserGameLayers({ exact: true }),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([]);
+  });
+
+  it("holds the files a game names as the rules are to exact arithmetic too", async () => {
+    const code = "export const read = Math.sin(1);\n";
+
+    const problems = await lint(
+      { "src/testing/autopilot.ts": code, "src/testing/fields.ts": code },
+      (root) =>
+        phaserGameLayers({
+          exact: true,
+          heldAsRules: { root, files: ["src/testing/autopilot.ts"] },
+        }),
+    );
+
+    expect(problems).toEqual({
+      "src/testing/autopilot.ts": [SYNTAX],
+      "src/testing/fields.ts": [],
+    });
+  });
+
+  it("holds a file held as the rules are to exact arithmetic in the view's folder too", async () => {
+    const code = "export const read = Math.sin(1);\n";
+
+    const problems = await lint(
+      { "src/view/autopilot.ts": code, "src/view/paint.ts": code },
+      (root) =>
+        phaserGameLayers({
+          exact: true,
+          heldAsRules: { root, files: ["src/view/autopilot.ts"] },
+        }),
+    );
+
+    expect(problems).toEqual({
+      "src/view/autopilot.ts": [SYNTAX],
+      "src/view/paint.ts": [],
+    });
+  });
+
+  it("leaves the view, the rules' specs and the scene their sines", async () => {
+    const code = "export const read = Math.sin(1) ** 2;\n";
+
+    const problems = await lint(
+      {
+        "src/view/paint.ts": code,
+        "src/rules/run.spec.ts": code,
+        "src/scene/belt.ts": code,
+      },
+      phaserGameLayers({ exact: true }),
+    );
+
+    expect(problems).toEqual({
+      "src/view/paint.ts": [],
+      "src/rules/run.spec.ts": [],
+      "src/scene/belt.ts": [],
+    });
+  });
+
+  it("leaves the rules every function of Math unless asked", async () => {
+    const problems = await lint(
+      { "src/rules/run.ts": "export const read = Math.sin(Math.PI) ** 2;\n" },
+      phaserGameLayers(),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([]);
   });
 });
