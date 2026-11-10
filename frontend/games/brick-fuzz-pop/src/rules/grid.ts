@@ -96,11 +96,13 @@ export function brickAt(
   column: number,
   row: number,
 ): Brick | null {
-  if (column < 0 || column >= COLUMNS || row < 0 || row >= depth) {
+  const cell = cellAt(wall, column, row);
+  // A row under the wall's lowest or over its highest lies off its bricks,
+  // and a cell under it is never looked up, as a negative index is slow.
+  if (column < 0 || column >= COLUMNS || row < 0 || row >= depth || cell < 0) {
     return null;
   }
-  // A row under the wall's lowest or over its highest lies off its bricks.
-  return wall.bricks[cellAt(wall, column, row)] ?? null;
+  return wall.bricks[cell] ?? null;
 }
 
 /**

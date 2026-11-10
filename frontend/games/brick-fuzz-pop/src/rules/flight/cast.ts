@@ -1,6 +1,7 @@
 // What a flying fuzzball meets next, and how far off: the side walls, the
 // ceiling, the floor, the faces and corners of the bricks it can touch, and
-// bumpers, everything met at one moment gathered.
+// bumpers, everything met at one moment gathered; and the first cell its
+// middle crosses into that holds a brick it flies into, such as a portal.
 //
 // It walks the field in moves of a unit at most, a cell's side (C10), and
 // sweeps in each only the cells the move's disc overlaps, at most nine, so
@@ -130,6 +131,10 @@ export interface Contacts {
   y: number;
   /** How many it meets: the first `count` of `met`. */
   count: number;
+  /** The wall cell of the first brick a fuzzball flies into whose cell its middle crosses into, or -1. */
+  entered: number;
+  /** How far it flies to cross into it: {@link MISSED} if it crosses into none. */
+  enteredAt: number;
   /**
    * What it meets, within `AT_ONCE` of the earliest, listed by what each
    * is, in the order `Contact` names them, so faces come before corners,
@@ -161,6 +166,8 @@ export function createContacts(): Contacts {
     x: 0,
     y: 0,
     count: 0,
+    entered: -1,
+    enteredAt: MISSED,
     met: Array.from({ length: MOST_MET }, () => ({
       what: "side",
       cell: -1,
@@ -217,9 +224,14 @@ const move: Step = {
 };
 const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
 
+// The fuzzball's middle along the same move, which crosses into a cell.
+const middle: Move = { x: 0, y: 0, dx: 0, dy: 0, r: 0 };
+
 /**
  * Writes into `into` what a fuzzball meets first, flying from a place along
- * a heading a unit long, no farther than `limit`, and returns it.
+ * a heading a unit long, no farther than `limit`, and returns it, with the
+ * first cell its middle crosses into of a brick it flies into, but the cell
+ * it is `passing` through, unless it `crosses` none.
  *
  * What lies just past the limit isn't met, though it lies within `AT_ONCE`
  * of something met at the limit, so a caller that turns the fuzzball there
@@ -235,9 +247,13 @@ export function cast(
   dy: number,
   limit: number,
   into: Contacts,
+  crosses = true,
+  passing = -1,
 ): Contacts {
   into.distance = MISSED;
   into.count = 0;
+  into.entered = -1;
+  into.enteredAt = MISSED;
   for (let start = 0; start < limit; start += STEP) {
     // A move that starts past the moment met, and what is met with it, can
     // meet nothing more at once.
@@ -251,7 +267,11 @@ export function cast(
     move.dy = dy * along;
     move.start = start;
     move.along = along;
-    sweepMove(field, into);
+    middle.x = move.x;
+    middle.y = move.y;
+    middle.dx = move.dx;
+    middle.dy = move.dy;
+    sweepMove(field, into, crosses, passing);
   }
   if (into.count === 0) {
     into.distance = limit;
@@ -263,8 +283,13 @@ export function cast(
   return into;
 }
 
-/** Notes what the {@link move} meets. */
-function sweepMove(field: CastField, into: Contacts): void {
+/** Notes what the {@link move} meets, and the cells its middle crosses into, but `passing`, if it `crosses` any. */
+function sweepMove(
+  field: CastField,
+  into: Contacts,
+  crosses: boolean,
+  passing: number,
+): void {
   noteFace(LEFT_WALL, RIGHT, "side", -1, into);
   noteFace(RIGHT_WALL, LEFT, "side", -1, into);
   noteFace(field.ceiling, FLOORWARD, "ceiling", -1, into);
@@ -290,6 +315,9 @@ function sweepMove(field: CastField, into: Contacts): void {
             noteBumper(field.reaches[brick.kind], column, row, cell, into);
             break;
           case "open":
+            if (crosses && cell !== passing) {
+              noteEntry(column, row, cell, into);
+            }
             break;
         }
       }
@@ -317,6 +345,28 @@ function noteBox(
       const at = CORNER_AT[corner];
       const t = sweepCorner(move, box, corner);
       notePoint(box[at.x], box[at.y], t, "corner", cell, corner, into);
+    }
+  }
+}
+
+/**
+ * Notes when the {@link move}'s middle crosses into a field cell, if it
+ * does before any cell noted so far: through one of the cell's sides, from
+ * outside it.
+ */
+function noteEntry(
+  column: number,
+  row: number,
+  cell: number,
+  into: Contacts,
+): void {
+  brickBox(column, row, box);
+  for (const face of FACES) {
+    const t = sweepFace(middle, box, face);
+    const distance = move.start + t * move.along;
+    if (distance < into.enteredAt) {
+      into.entered = cell;
+      into.enteredAt = distance;
     }
   }
 }

@@ -533,3 +533,231 @@ its review and the numbers worth keeping.
      read awkwardly. Fixed: both reworded.
   3. Portals drawn by `wallFrom()` will be unpaired once cataloged. Noted
      above for X2, and in the report.
+
+### R3: `fly()`, many fuzzballs from the start
+
+- **Date.** 2026-11-10.
+- **Built.**
+  - `src/rules/flight/flight.ts`: `fly(start, rules)` flies a round's
+    fuzzballs from the floor along an aim until the last lands, and returns
+    the `Flight` with the wall it leaves (`Flown`), the wall handed in left
+    as it was. `FlightStart` says how they leave (the wall, the depth, `x`,
+    the aim, the charge, `hot`, `mates`, `friends`), and `FlightRules` what
+    the flight is played by (`bored`, the kinds, the trait rules). It throws
+    a `RangeError` for an aim that isn't one of the 657.
+  - One clock. The player's fuzzball, its mates and its friends leave
+    `LAUNCH_GAP` apart, the mates with its charge, the friends plain, and a
+    hot shot charged to the most. Each fuzzball's next moment is planned by
+    a cast to the moment it comes home; the soonest is played, a tie to the
+    lower numbered (§5.6's order of fuzzballs), and a zap lands after every
+    fuzzball at its moment, as K2 orders them. A break un-plans every
+    fuzzball in flight.
+  - At a moment, a fuzzball lands on the floor unless it has a hot shot's
+    bounce left; strikes each brick it meets once, by plan.md's "Charge";
+    then turns, as C5 says: each face as a mirror along its axis, and only
+    where no face turns it, the corners and the discs, about the sum of
+    their lines; a kick, the sum of every kick, overrides both. Splits leave
+    last, from the heading it turned to.
+  - It comes home at `min(idleFrom + bored, launchAt + 600)`, or after eight
+    still turns: it yawns, counted in `capped` for the caps, and drops
+    straight to the floor through what lies under it, landing `y − RADIUS`
+    later.
+  - `src/rules/flight/hooks.ts`: `Hooks`, what a brick's rules may do to a
+    flight (`split`, `teleport`, `kick`, `zap`, `recharge`, `free`), each at
+    the moments it names; `Struck`, a strike as a brick's rules see it
+    before its hits are taken, which they may shield (`hurts`) or have earth
+    the charge (`earths`); `TraitRule<T>`, a trait's rules at four moments
+    (`struck`, `broken`, `met`, `entered`); and `TraitRules`, one for every
+    trait kind, so a trait without one fails to compile.
+  - `cast.ts`: crossings. `Contacts.entered` and `enteredAt` hold the first
+    cell, of a brick in play a fuzzball flies into, whose side its middle
+    crosses into from outside, and how far on. `cast()` takes `crosses`,
+    true by default, and notes none when false, and `passing`, a cell it
+    doesn't cross into, −1 by default. `castByScan()` crosses alike, and
+    `randomShot()` draws `crosses`, false one time in four, and `passing`,
+    one of the field's open cells one time in two.
+  - `grid.ts`: `brickAt()` looks no negative index up, which halved fly()'s
+    time in it.
+  - `src/testing/stand_ins.ts`: `PRISM`, `WOOL` and `CAGE`, made up to stand
+    in for the brick or the tough brick, and `STAND_IN_RULES`, rules made up
+    for every trait the hooks serve.
+  - `src/testing/random_flights.ts`: `randomFlight()`, a seeded wall of any
+    kinds the hooks serve and a shot at it, and `clearanceProblemsOf()`,
+    which finds a leg of a track nearer a brick's box than the radius, or a
+    disc's middle than its reach; `random_flights.spec.ts` holds it to five
+    cases.
+  - `flight.spec.ts`: the hand fixtures replayed, each choice below, the
+    sketch's two bugs, the corner just after a face, the re-entry after a
+    contact, the seam struck with charge, and the random flights.
+  - `src/rules/flight/benchmarks/fly.spec.ts`, in `sim`, prints fly()'s
+    median and 99th percentile, for one fuzzball and for more.
+- **Names added to files that aren't the stream's.** None.
+- **Choices the plan didn't make.**
+  1. **The trait rules are a parameter,** as the kinds are, with no default:
+     R4 writes `TRAIT_RULES` and R6's `playRound()` hands it in. The specs
+     hand `STAND_IN_RULES`.
+  2. **The Charge rule is written in `fly()` for now:** a plain fuzzball
+     takes one hit off a brick and turns; a charged one spends the least of
+     its charge and the brick's hits, passing through what it breaks and
+     turning off what it doesn't; steel's rules shield it (`hurts`) and
+     earth the charge (`earths`), which a hot shot keeps. R4's `strike()`,
+     in `bricks/bricks.ts`, takes the arithmetic out, as §6 R4 says, and
+     `fly()` calls it.
+  3. **Stand-ins stand under cataloged ids,** as R2's do: the prism, wool
+     and cage replace the brick, the row zapper or the tough brick in a
+     catalog a spec hands in. No `?` character.
+  4. **A portal takes a fuzzball as its middle crosses into the cell** from
+     outside, a middle on its side moving in crossing at once, one inside it
+     never (C3), and sends it out of its twin's middle, flying the same way,
+     if the twin is in play; it then crosses into no cell until it next
+     turns. Out of the twin's middle, it lies clear of every neighbour's box
+     by its radius, and of a bumper's middle by more than its reach. Sent
+     out as far into the twin as it came into the portal, the random flights
+     caught it starting over a neighbour's box by up to its radius, turning
+     off that box's corner from inside it, and, once out over a side wall,
+     turning at once and crossing back into the twin's cell from its side,
+     each time. A fuzzball a portal doesn't send on passes through its cell,
+     and doesn't cross into that cell again until it turns, though into any
+     other.
+  5. **A twin not in play leads nowhere:** sunk (null), under the floor or
+     waiting over the ceiling, the fuzzball flies through the portal.
+  6. **The contact just past the limit.** The cast reaches `AT_ONCE` past
+     the moment a fuzzball comes home: what it meets at that moment or
+     before, and what it meets at once with it, is met, though some lies
+     past the moment; what it meets first only past it isn't, and it comes
+     home then. A crossing just past it isn't either.
+  7. **The yawn falls exactly at the bored distance or the 600 cap,** and a
+     yawn at the cap is counted, as eight still turns are.
+  8. **The drop home is a landing planned on the clock,** straight down
+     through what lies under the fuzzball, which nothing that breaks
+     meanwhile re-plans. `land.x` is where the middle touched the floor, as
+     K2's choice 12 says; the plan's 0.5 from a side wall is R6's `next.x`.
+  9. **Zaps:** each lands `ZAP_DELAY` after its break, those of one moment
+     by cell, taking its hits off what its pattern reaches that the bricks'
+     rules let it hurt (`Struck.by` is `"zap"` or `"blast"`, the charge 0).
+     A row, column, cross or x zap reaches along its lines a cell at a time,
+     `reach` cells each way; a blast every cell of its square. A zap's break
+     runs the broken brick's rules with no fuzzball (−1), so a prism or wool
+     a zap breaks splits and recharges nothing.
+  10. **The 16 cap** counts every fuzzball not yet landed: waiting, flying
+      or dropping. A split leaves from where the fuzzball turned, plain,
+      with its own bored count and cap.
+  11. **A kick overrides the faces and corners met with it,** a bumper
+      sending the fuzzball along its kick wherever else it touched; kicks
+      that cancel out kick nothing, so the discs turn the fuzzball as
+      corners do, as a disc whose rules don't kick does.
+  12. **Each hook is made only at its moments, and throws at any other:** a
+      split or a kick for the fuzzball meeting what it meets, a teleport for
+      the one crossing into a cell, a free as a brick breaks, and a zap or a
+      recharge at any moment. A split, a kick or a recharge asked for no
+      fuzzball, as for a brick a zap breaks, is ignored. So a rule written
+      for a moment a hook can't serve fails its spec rather than doing
+      nothing.
+  13. **Events are sorted once,** as the flight ends, by moment, the
+      fuzzballs' before the zaps', by fuzzball or zap cell, by kind, then by
+      the order they happened in, so what a strike or a zap caused stays
+      right after it: a total order, as §5.6 asks.
+  14. **A flight's state is a class made once,** and its casts write into
+      `Contacts` records kept in a pool and handed back as fuzzballs land,
+      so a cast makes nothing.
+  15. **The random flights run in four batches of 500,** seeds 20261111 to
+      20261114, so each keeps well inside a spec's 5 s under coverage. They
+      hold every flight to `orderProblemsOf()`, `trackProblemsOf()` and
+      `clearanceProblemsOf()`, and its `capped` to 0. Every flight ends, as
+      `fly()` returns. A third of the walls are the stand-ins', a third the
+      catalog's, and a third the catalog's with the prism, wool and cage in.
+- **Checks.** The workspace's `lint`, `typecheck`, `test` and
+  `test:coverage` pass: 2,459 tests in 29 files in `dom` and `pure` (70 in
+  `flight.spec.ts`, 34 in `cast.spec.ts`), and the two benchmarks in `sim`;
+  the rules and the view at 100% of statements, functions and lines, and
+  `flight.ts` at 98.8% of branches, the two left a brick re-read where it
+  can't be gone (a portal entered, a zap's brick about to be worn). The
+  root's `yarn lint` passes.
+- **The mutation pass.** 92 mutants, one at a time, against the flight's and
+  the helpers' specs: 88 of `flight.ts`, 3 of `cast.ts`' crossings and 1 of
+  `grid.ts`. Before it, four equivalents found by reading were taken out:
+  the kicked flag (a kick sums to more than nothing), the corner's
+  `into < 0` (always, as met), the teleport's `crosses = false` (`enter()`
+  set it then) and the event's sequence number (the sort is stable); the
+  last two came back with the review's fixes (comments 2 and 4). 61 were
+  killed at once.
+  - Survived, then specced (21): only the player's fuzzball hot; a zap
+    landing after the fuzzballs at its moment, and the zaps of one moment by
+    cell; kicks summed on both axes; the first face and the first corner
+    named as what turned it; a corner and a disc met at once, turning about
+    their sum's own length; a disc's rules run only for a disc; a charged
+    pass through a brick met at its face and corner at once; the strike's
+    face, plates, charge and hotness, and a blast's cause, handed to the
+    rules; a dropping fuzzball left alone by a break; a split's fuzzballs
+    plain; no split event when none leaves; one waypoint for a fuzzball's
+    still turns; a contact at the bored distance met; and a crossing just
+    past it not.
+  - Survived, and the code simplified (2): `contacts.count > 0` beside the
+    limit (a cast that meets nothing stops past it) and `Math.min()` on a
+    zap's hits (a brick worn past its hits breaks). The survivors and the
+    changed lines were rerun, 33 mutants: all killed but the two not specced
+    below.
+  - Equivalent (6): the split hook's check for a fuzzball, as it was (a
+    zap's split was cleared as the next fuzzball met something; the hooks'
+    moments replaced it, below); `brickAt()`'s `cell < 0` (speed only); the
+    blast's own cell (empty whenever a break sets a blast off); the corner's
+    heading set a unit long (rounding only); and `Math.max()` on the moment
+    it comes home and its limit, which only rounding could make it pass.
+  - Not specced (2): an entry and a contact at one distance, and two
+    fuzzballs' moments tying, taken in the other order: each needs two
+    distances equal to the bit, which no aim's heading gives, and the first
+    changes only whether the turn or the portal comes first, the second only
+    two breaks' streaks.
+  - After the review, 24 more of its fixes: the cell passed through, set and
+    cleared; the teleport's blindness; each hook's moment, its checks and
+    resets; and the sequence number. All were killed but the sequence
+    number, equivalent while the sort is stable, kept for the total order.
+    Two of them hung, a fuzzball crossing back into a cell at its side for
+    ever, and were stopped.
+- **Numbers.**
+  - fly(): one fuzzball, median 38 to 41 µs and 99th percentile 1.3 to 1.4
+    ms; with mates or friends, 161 to 170 µs and 3.0 to 3.4 ms; over 1,000
+    seeded random flights, five rounds after one that warms the code up
+    (three runs on this machine, Node 26). The long ones are walls where
+    every brick is a prism, splitting to 16 fuzzballs at once and 44 in a
+    flight; §9's budget is over the levels' opening walls, which R6 and Q2
+    time.
+  - The random flights' 2,000: 10,395 fuzzballs, 290 hot shots and 282
+    triples; 33,216 strikes, 6,963 breaks by fuzzballs and 4,873 by 3,360
+    zaps; turns off 32,999 side walls, 6,272 ceilings, 247 floors, 21,798
+    faces, 5,699 corners and 2,882 bumpers; 2,274 portals, 959 splits, 986
+    recharges and 963 frees; 1,650 yawns in 517 flights, none capped. They
+    fly in 0.8 s, and the spec's four batches take 1.4 s with their checks.
+- **The review:** a fresh agent found the Charge rule, C1 to C5, the clock
+  and the event order right, and raised seven points. No second review: the
+  fixes correct the change, and its design stands.
+  1. A zap chain can outlast `Flight.length`, which `events.ts` makes the
+     last landing's `at`: a fuzzball that breaks a row zapper one row off
+     the floor lands before the zaps it set off do, so §5.5's skip to
+     `flight.length` would cut them. Left: `fly()` keeps K2's contract, and
+     changing what `length` means, in `events.ts` and `trackProblemsOf()`,
+     is the integrator's. The report raises it, with the later of the last
+     landing and the last event as the fix.
+  2. A fuzzball through a portal that doesn't send it on was blind to every
+     portal past it until it turned, though C3 blinds only one out of a
+     portal. Fixed: it skips only the cell it passed into (`passing`, choice
+     4), and only a teleport blinds it. Specced: a portal with no twin under
+     a pair, a fuzzball out of a portal ignoring two portals in its way, and
+     a cell crossed into again once it turns.
+  3. A hook asked at a moment it can't serve did nothing, or the wrong
+     thing. Fixed: `Hooks` says when each is made, and each throws at any
+     other moment (choice 12), specced for each hook, after a turn and after
+     a zap.
+  4. `byMoment()` relied on a stable sort, where §5.6 asks for a total
+     order. Fixed: the sequence number is back as its last key.
+  5. The tie's docs said "the one that left first", where the code takes the
+     lower numbered, as §5.6 orders fuzzballs; and the kick's override was
+     only under "Built". Fixed: the docs say the lower numbered, and choice
+     11 the override.
+  6. `flight.ts` holds the Charge arithmetic, the turn and the zaps' reach.
+     Left for R4, whose `strike()` §6 puts in `bricks/bricks.ts` (choice 2);
+     the reach stays with the clock that lands the zaps.
+  7. Nothing bounds fly()'s loop if a fuzzball turned over and over a hair
+     apart, which C2's still turns, counted at one moment, wouldn't catch.
+     Left: no case was found, the 2,000 random flights cap none, and a guard
+     no spec reaches would hold a line no spec runs.
