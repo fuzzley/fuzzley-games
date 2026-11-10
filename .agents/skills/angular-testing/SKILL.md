@@ -121,9 +121,11 @@ Each library's `testing` entry point holds what specs need of it, and
   `watchResizes()` and `resize()`, for a board that watches its size;
   `installHeadlessPhaser()`, `runScene()`, `runKeyedScene()` and
   `runShownScene()`, the scene a fake canvas was shown, which run a real
-  Phaser scene headless; `browserKey()`, a key with the `keyCode` Phaser
-  reads, for `fireEvent`; and what reads back what a scene drew
-  (`objectsIn()`, `imagesIn()`, `commandsOf()`, `strokesOf()`,
+  Phaser scene headless, driven by keys, the mouse by any button
+  (`pointer()`'s `PointerOptions`), its wheel (`wheel()`) and a finger the
+  browser may take away (`touch("cancel", …)`); `browserKey()`, a key with
+  the `keyCode` Phaser reads, for `fireEvent`; and what reads back what a
+  scene drew (`objectsIn()`, `imagesIn()`, `commandsOf()`, `strokesOf()`,
   `colorsOf()`); and, from `@fz/phaser/testing/pure`, which loads no
   Phaser, `viewport()`, `frameNamed()` and `drawnIn()` for a spec in Node
   (the `phaser-core` skill).

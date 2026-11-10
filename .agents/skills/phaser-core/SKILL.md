@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene.
+description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, Graphics, pathDetailThreshold.
 ---
 
 # Phaser games here
@@ -122,7 +122,9 @@ beside a deck of controls for a touch screen.
   types a scene's systems as always there, though they aren't before it
   boots or after it ends, and `phaserGameLayers()` fences the four layers
   of a game laid out in them and keeps its rules and view off the clock,
-  unseeded numbers and the page.
+  unseeded numbers and the page, and, given `exact`, its rules to
+  arithmetic every engine rounds alike, so a run plays the same on every
+  engine.
 
 ## Where Phaser may be imported
 
@@ -223,6 +225,14 @@ out of the first download.
   `cacheSounds()`.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
+- Before it fills or strokes a path, a WebGL `Graphics` drops each point
+  within `render.pathDetailThreshold` of the last one it kept, across and
+  down, in screen pixels: a pixel unless the game's config sets it lower,
+  since a `Graphics`' own `pathDetailThreshold` can only raise it, whatever
+  Phaser's doc says. So `outlineRoundRect()`'s band drawn live, its line no
+  wider than that, can drop the point where its two edges join, which cuts
+  a wedge across the band's left side. A 2D canvas drops none, so such a
+  shape is baked into an atlas.
 - A `CanvasTexture`'s `setSize()` uploads its canvas, blank, whenever the
   size changes; its `clear()` reads the canvas back and uploads it, unless
   its last argument is `false`; and `createCanvas()` uploads a new one

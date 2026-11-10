@@ -184,11 +184,13 @@ from `shuffled()`'s and Montana's kept gaps depend on.
 - **The sweep's shares never change either.** `src/sweep.ts` does its
   arithmetic with `+`, `-`, `*`, `/` and `Math.sqrt()` alone, which every
   engine rounds alike, so a game's moves, replayed in another browser, meet
-  what they met. No lint holds it to that: it is so because it was read to
-  be, and `src/sweep.spec.ts` pins its shares to the bit on moves whose
-  numbers round, so a change that moves one, such as a distance taken with
-  `Math.hypot()`, fails there. A sweep that must round otherwise is a new
-  function, not an edit, since a game's replays keep to the old shares.
+  what they met. No lint holds it to that, since `@fz/dev`'s
+  `phaserGameLayers({ exact })` covers only a game's own files: it is so
+  because it was read to be, and `src/sweep.spec.ts` pins its shares to the
+  bit on moves whose numbers round, so a change that moves one, such as a
+  distance taken with `Math.hypot()`, fails there. A sweep that must round
+  otherwise is a new function, not an edit, since a game's replays keep to
+  the old shares.
 - **A seed is mixed with `mixSeed()`,** never by hand as
   `seed ^ Math.imul(n, …)`, and a new use takes a stream of its own, a new
   name in `SeedStream`, so no two uses draw alike and the old streams keep

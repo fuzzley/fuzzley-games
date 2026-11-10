@@ -167,7 +167,9 @@ game through `runScene()`:
   up for a player who prefers less motion. The game is destroyed and the
   element removed as the test finishes.
 - Drive it with the run's `advance(ms)`, keys on the element Phaser's
-  keyboard listens on (the board's `keys`) and the pointer, and change the
+  keyboard listens on (the board's `keys`), the pointer, at any of the
+  mouse's buttons (`pointer()`'s `button`), and a finger, which
+  `touch("cancel", …)` takes away as a browser does, and change the
   shell's field as the rules would; assert on the game objects
   (`@fz/phaser/testing`'s `objectsIn()` and `imagesIn()`, `shardsOf()`,
   their frames, places and visibility, and what a `Graphics` holds, read
