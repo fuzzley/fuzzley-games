@@ -233,3 +233,167 @@ the numbers worth keeping.
      one.
   3. A short line in `lib/phaser/AGENTS.md`'s paragraph on the shapes.
      Rewrapped.
+
+## Part 2
+
+### A1: the palette, the inks and contrast
+
+**2026-11-10.**
+
+- **Built.**
+  - `src/view/colors/inks.ts`: `TINT`, the tiles' eight inks by name, each
+    its place in `TILE_INKS`; `inkAt(inks, at)`, the ink at a place in a
+    list, such as a palette's tints by a brick's tint or its friends by a
+    friend's ink, refusing with a `RangeError` a place the list hasn't; and
+    `friendInk(ink, mode)`, a friend's ink as a number, which the shell
+    writes as CSS with `cssHex()`, as §13 says.
+  - `src/view/colors/palette.ts`: `PaletteRoles` and `FIELD_ROLES`, the
+    page's roles the field is drawn in (the field, its line, text and muted
+    text, the page, the accent, danger and warning); `KindInks`, a special
+    kind's `body`, the `face` its glyph is drawn on, and its `glyph`;
+    `InkedKind`, the thirteen kinds that keep one look's inks; and
+    `wallPalette(roles, mode)`, which gives `WallPalette`: the field, its
+    line, the floor's band, the marks, the tints (`TILE_INKS[mode]`), steel
+    mixed from the palette (C11), each special kind's inks as the art gives
+    them (answer 4), the portals' two pairs, a prism's three rays, the
+    fuzzball, the hot shot, the sparks, the guide, the field's text, the
+    jump and danger lines, the meter's pips and the friends (`FUZZBALL_INKS[mode]`,
+    answer 5). The washes and shades are named constants (`STEEL_WASH`,
+    `BAND_WASH`, `CAGE_WASH`, `GLASS_WASH`, `EDGE_WASH`, `SHELL_SHADE`,
+    `MOSS_LIGHT`, `PORTAL_GLOW`).
+  - `src/view/colors/contrast.spec.ts`, over all four palettes read from the
+    stylesheet: against the field, every tint, each special kind's body,
+    every fuzzball (the player's, the hot shot and each friend's ink), the
+    sparks, the guide, the jump and danger lines and the meter's pips lit
+    and unlit; each kind's glyph against its face, and against the field
+    where it isn't cut out of it; the marks against every tint, body and
+    fuzzball; each friend against the bar and a cage's inside; a prism's
+    rays against its glass; a cross zapper's diamond against its tile; and
+    the fuzzball, the hot shot and the meter against the floor's band.
+  - `src/testing/roles.ts`: `PALETTES`, the game's palettes as its global
+    stylesheet sets them, as the breakers have it.
+- **Choices the plan didn't make.**
+  1. **Every color a contrast rule covers is in `WallPalette`,** so the
+     spec sees what the art will draw: each kind's body, face and glyph,
+     the portals' pairs and the prism's rays. Shading only shades and is
+     held to nothing, so it is left to A2's art, mixed from these: a tile's
+     strip and lip, steel's sheen, the moss's shade, the bumper's lip and
+     boss, the prism's triangle's fill.
+  2. **The kinds are named by the catalog's ids before the catalog is
+     here.** `InkedKind` is a union of its own of the thirteen: every kind
+     of `plan.md`'s "The bricks" and "Look" but the brick and the tough
+     brick, which take their row's tint, and the portal, whose two pairs
+     each keep an ink (`portals`, a pair of `KindInks`). The names are the
+     catalog's camel-case ids, so A2's `BRICK_ART`, typed over
+     `BrickKindId`, indexes `kinds` with them. It stays a union of its own
+     until X3: K2's catalog holds the first five kinds only, and the
+     contrast spec needs every kind now. The four zappers share one
+     `KindInks`.
+  3. **"Each special kind's body and glyph against the field"** is held as:
+     the body against the field; the glyph against its face, what it is
+     drawn on; and the glyph against the field too unless it is cut out in
+     the field's color, as then it is the field's own.
+  4. **Where the art fails 3:1, the palette moves off it.** The art was
+     drawn in Midnight blue and Classic felt only.
+     - Steel's frame and rivets, the art's steel darkened by 0.34, keep
+       about 2:1 against steel in every palette. They are cut out in the
+       mark, as Brick Breaker's steel's rivets are.
+     - A wool brick's stitches, its pink lightened by 0.52, keep 1.9 to
+       2.3:1. They are cut out in the mark too.
+     - The fuzzball's eyes, `@fz/style`'s `#14171b`, keep 2.74:1 against
+       Soft pastel's accent. Every fuzzball's eyes are the mark, as Brick
+       Breaker's balls' are, so they show light in a light palette and dark
+       in a dark one. Whether the glints stay is A3's.
+     - Steel takes 0.6 of the text, not Brick Breaker's 0.55: at 0.55 a
+       cage's bars keep 2.98 and 2.85:1 against the art's inside (steel at
+       0.21 over the field) in Classic felt and Soft pastel; at 0.6, 3.40
+       and 3.24. The art's own fixed greys lie at about 0.56 to 0.65.
+  5. **The field's roles are the field's own,** `field-line`, `field-text`
+     and `field-muted`, as Asteroid Breaker reads them; the page's `line`
+     differs from the field's in both dark palettes. `page` is read for a
+     portal's middle, as the art draws it.
+  6. **`FIELD_ROLES` sits in `palette.ts`,** beside `PaletteRoles`, not in
+     `src/app/board/field_roles.ts` as in the breakers: the board is wave
+     3's, and the contrast spec reads the stylesheet by it now. U1's board
+     reads the page's roles by it from the view.
+  7. **`src/testing/roles.ts` is new,** and §7.3 gives it to no stream. It
+     holds `PALETTES` alone; S1's spec adds the fixed roles it needs.
+  8. **Beyond the plan's list,** the spec holds the fuzzball, the hot shot
+     and the meter against the floor's band, since the meter's pips arc into
+     it under the waiting fuzzball; each friend against a cage's inside,
+     where it waits; a prism's rays against its glass and a cross zapper's
+     diamond against its tile, as `make-art.mjs`'s own check does.
+- **Checks.** The workspace's `lint` and `typecheck` are clean. `test`: 4
+  files, 522 tests (`contrast.spec.ts` 480, 120 in each palette;
+  `palette.spec.ts` 25; `inks.spec.ts` 16; the shell's 1).
+  `test:coverage`: 100% of the statements (37), branches (4), functions (6)
+  and lines (35). The root's `yarn lint` passes.
+- **The mutation pass.** Fifty-six changes, one at a time, each run
+  against the three specs, on the code as the review left it:
+  - killed: `TINT`'s red and orange swapped, or amber and green, or violet
+    and pink renamed in their order; `inkAt()` never refusing; `friendInk()`
+    ignoring the mode or reading the tiles' inks; the tints ignoring the
+    mode; steel the muted text; each wash and shade moved (band, steel,
+    cage, glass, edge, shell, the moss's in either mode, the portal's glow);
+    the marks in the line; the line in the field; a zapper's tile, outline
+    or bolt in another color; a portal's middle in the field, its pairs
+    swapped, its arms in its ring's ink; the rays reordered; the shell's
+    modes swapped; the meter's pips in another color, steel among them; a
+    plate on steel; a cage's inside in the field; a prism's triangle cut
+    out, its edge as its glass; the bumper, wool and moss in other inks, the
+    moss's cap amber; the friends always one mode's; the hot shot, guide,
+    field's text, sparks, jump line, danger line, fuzzball, band and meter
+    each in another role; the bomb's glyph in the warning color; and
+    `FIELD_ROLES` reading any role from another.
+  - The contrast spec alone kills the art's own colors where they fail:
+    steel's frame darker steel (6 cases), the wool's stitches pale (6), the
+    marks in the eyes' ink (9), steel at 0.55 (2) or 0.45 (19), the prism's
+    edge at 0.4 (4) and the cage's inside at 0.4 (22).
+  - Four survived the first pass, before the review: `FIELD_ROLES` reading
+    the field's text, muted text and line from the page's `text`, `muted`
+    and `line`, and the page from the `bar`. The first, second and fourth
+    are the same colors in every palette today, and the line is darker in
+    both dark palettes without breaking a rule. A spec now pins
+    `FIELD_ROLES`, which kills all four. The review found four more the
+    first pass hadn't tried, each now killed, as below.
+- **Numbers.** The tightest margins: a prism's red and blue rays against its
+  glass in Midnight blue, 3.14:1; a cage's bars against its inside in Soft
+  pastel, 3.24:1; the green friend against a cage's inside in Classic felt,
+  3.40:1. Steel against the field is 4.13:1 at least (Soft pastel).
+- **For the other streams.** A friend's ink can sit near the player's
+  fuzzball or the hot shot: in CIE76, the coral friend is 6.4, 6.0 and 7.5
+  from the hot shot in Classic felt, Casino night and Midnight blue, and
+  the violet one 9.4 from Soft pastel's accent, where `FUZZBALL_INKS` keep
+  27 or more apart from each other. Which inks the friends are handed is the
+  rules' (the `free` event's `ink`), so this is left as it is, and noted.
+- **The review:**
+  1. The palette spec's roles couldn't tell its mixes apart: the muted text
+     was the steel it expected, the field white and the text black, and the
+     dark cases took the light roles. So steel read as the muted text, or
+     the meter's unlit pips in steel, passed both specs. Fixed: each role
+     differs from the others, from white and black and from every mix, and
+     the dark cases take dark roles of their own.
+  2. `TINT`'s names were pinned only by their order and by teal, and the
+     palette spec found its inks through `TINT` itself, so amber and green
+     swapped in name would draw the moss green under an amber cap. Fixed:
+     each name is pinned to its literal ink in both modes.
+  3. `tileInk(tint, mode)` and `friendInk(ink, mode)` took a mode the scene
+     never has, which only gets the palette, and read the library's tables
+     again. Fixed: `inkAt(inks, at)` is the one checked look-up, for a
+     palette's tints and friends as for the library's tables, and
+     `friendInk(ink, mode)` keeps it for the shell. Typing `InkedKind` over
+     the catalog's ids is left for X3, as the second choice says: K2's
+     catalog holds five kinds. A shard's color, by a brick's kind or its
+     tint, is A2's, as Brick Breaker's `BRICK_ART`'s `colorOf` is.
+  4. A cross zapper's diamond would have been drawn in the guide's color.
+     Fixed: `WallPalette.text` is the field's text, which the guide, a
+     prism's triangle and the diamond take, and the spec holds the diamond
+     by it.
+  5. The fuzzball has no outline, and in Classic felt the accent is about
+     1.03:1 against the green tint and the bumper is the accent itself.
+     Left for A3, which draws the fuzzball: Brick Breaker outlines its balls
+     in the field's color, which the marks already are, and which is held
+     3:1 against every ink and fuzzball here, so no new color is needed.
+  6. `InkedKind`'s comment read as if the portal were one of them, and the
+     interfaces' comments opened with a noun rather than "Describes".
+     Fixed, both.
