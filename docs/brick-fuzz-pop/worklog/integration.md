@@ -190,3 +190,49 @@ passes, so the critical path doesn't wait on the last lifts. Their log is
 
   The fixes correct the change rather than reshape it, so it had no second
   review.
+
+### L3, L4, L5 and L8 merged (2026-11-10)
+
+- **The art stream** (L4, L5) was cherry-picked as `d26ef28a` (the inks)
+  and `cc4287a9` (the areas). `outlineRoundRect()` was reshaped into one
+  polygon after its first review found a seam in the baked atlas, and had a
+  second review. Asteroid Breaker's `dashedRing()` stays as it was, since
+  `dashes()` didn't make it shorter. Its log is `art.md`.
+- **The view stream** (L3, L8) was cherry-picked as `cb2401fc` (the debug
+  menu) and `9ba915e9` (the icons and drivers). `SceneRun.pointer()`'s
+  fourth argument is now an options object, `{ on, button }`, and a mouse
+  event carries the buttons held, so Solitaire's three calls changed with
+  it. Its log is `view.md`.
+- **Held for the user:** Brick Breaker's ball-speed slider is now reached
+  at `?debug` in a production build, and a run at a slower ball still keeps
+  its records. L3 asked Brick Breaker only for its tokens and the slider, so
+  the rule Asteroid Breaker keeps (a run on retuned numbers keeps no
+  records) was not added to it; adding it changes Brick Breaker's saved
+  game. The question goes to the user at Q3.
+- All eight cherry-picks applied without a conflict.
+
+### L10: Q1 (2026-11-10)
+
+- **`yarn verify`** on `9ba915e9` passes: every workspace's lint,
+  typecheck, tests and the build. Among them `@fz/core` 367 tests,
+  `@fz/dev` 529, `@fz/game-ui` 330, `@fz/phaser` 706, `@fz/ui` 315, Brick
+  Breaker 2,000 (`dom` and `pure`; its `sim` runs in `test:coverage`),
+  Asteroid Breaker 5,219, Solitaire 6,874.
+- **`yarn check:layout`** holds every shape and turn for Sudoku, Snake,
+  Brick Breaker and Asteroid Breaker, in 18 s.
+- **The reports** are byte-identical to the baselines taken on `9fbc77ad`:
+  Brick Breaker's `report:levels` and Asteroid Breaker's `report:waves`.
+- **In a browser** (headed Chrome), both games at `?debug` in the
+  production build (`yarn preview`): the menu sits in Settings, each slider
+  moves its number and its `aria-valuetext`, Reset puts them back, Copy
+  copies, and with the clipboard stubbed out it says so and opens the
+  lines. Without `?debug` there is no menu. A level of each was cleared by
+  keys, by mouse and by touch in its dev server, the bar's Pause froze it,
+  and Brick Breaker's Finale and Asteroid Breaker's rings were looked at in
+  two palettes each: no wrong ink, seam or missing dash. Neither console
+  logged an error or warning.
+- **Noticed, not changed:** nothing in Asteroid Breaker says that a run on
+  retuned numbers keeps no records, as before the lift; its lines in the
+  debug drawer scroll sideways.
+- **Q1 passes.** Part 1 is whole on `brick-fuzz-pop-lift` at the commit
+  that records this.
