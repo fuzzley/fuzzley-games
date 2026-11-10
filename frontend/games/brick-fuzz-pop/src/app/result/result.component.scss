@@ -1,0 +1,16 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include result-card;
+
+  // Four figures, two by two: the score over the levels cleared, the best
+  // over the stars.
+  .figures {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card-icon {
+  color: var(--fz-warning);
+}

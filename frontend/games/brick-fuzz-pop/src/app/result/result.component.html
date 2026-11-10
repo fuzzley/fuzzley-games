@@ -1,0 +1,65 @@
+<fz-dialog
+  [open]="open()"
+  dialogRole="alertdialog"
+  [label]="title()"
+  describedBy="result-subtitle"
+  [closesOnBackdrop]="false"
+  (closed)="closed.emit()"
+>
+  <div class="card">
+    @if (trophy()) {
+      <fz-icon class="card-icon" name="trophy" />
+    }
+    <!--
+      The card opens on its title, which no key presses: Space lets a shot
+      fly, and a player still pressing it as the card opens would press a
+      button with it. The lint rule is about autofocus on page load, which a
+      dialog taking focus is not.
+    -->
+    <!-- eslint-disable-next-line @angular-eslint/template/no-autofocus -->
+    <h2 tabindex="-1" autofocus>{{ title() }}</h2>
+    <p class="subtitle">
+      <span id="result-subtitle">{{ subtitle() }}</span>
+      @if (newBest()) {
+        <span class="fz-badge fz-badge-accent">New best</span>
+      }
+    </p>
+
+    <!--
+      A description list, so each figure is announced with what it measures;
+      the stylesheet lifts each value above its term.
+    -->
+    <dl class="figures">
+      @for (figure of figures(); track figure.term) {
+        <div class="figure">
+          <dt>{{ figure.term }}</dt>
+          <dd>{{ figure.value }}</dd>
+        </div>
+      }
+    </dl>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="fz-button fz-button-warning fz-button-large fz-button-block"
+        (click)="startAgain()"
+      >
+        {{ againLabel() }}
+      </button>
+      <button
+        type="button"
+        class="fz-button fz-button-secondary fz-button-large fz-button-block"
+        (click)="chooseLevel.emit()"
+      >
+        Choose a level
+      </button>
+      <button
+        type="button"
+        class="fz-button fz-button-secondary fz-button-large fz-button-block"
+        (click)="closed.emit()"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</fz-dialog>
