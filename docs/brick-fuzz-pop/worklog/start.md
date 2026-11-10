@@ -110,3 +110,186 @@ second choice says.
 5. **The entry lacked its commit and its review.** The review is this
    list. The task this log is kept for asks for no commit hashes, so the
    entries leave them out; the commits are found by their subjects.
+
+### K2: the contracts
+
+**2026-11-10.**
+
+**What was built.** Every type and name of §5.3 and §5.4 that K2's file
+list covers, with the few functions it asks for, each specced:
+
+- `src/rules/tuning.ts`, `shot.ts` (`Charge`, `Boon`, `Aim`, `Shot`,
+  `isAim()`, `isCharge()`), `wall/wall.ts` (`Brick`, `Wall`, `Thirds`,
+  `thirdsOf()`), `round/round.ts` (`Crew`, `RoundStart`, `RoundResult`,
+  `RoundOutcome`, `Round`, `RoundRules`, `RULES`, and a `playRound()` that
+  throws "Not yet: R6 writes playRound().") and `flight/events.ts` (the
+  events, `Waypoint`, `BallTrack`, `Flight` and `positionAt()`).
+- `catalog/bricks.ts` (`BrickTrait`, `BrickKind`, `BRICK_KINDS`,
+  `BrickKindId`, `BRICK_KIND_IDS`) with `kinds/warm_up.ts`, the brick,
+  tough, steel and the row and column zappers, and empty `sparks.ts`,
+  `tricks.ts` and `thick_walls.ts`; `catalog.spec.ts`.
+- `levels/legend.ts`: a character for each of the sixteen kinds' bricks,
+  C12's among them.
+- `src/view/field/field_metrics.ts` (`FieldShape`, `FieldMetrics`),
+  `src/view/effects/effects.ts` (`SOUNDS`, `SoundName`),
+  `src/view/art/frames.ts` (`FRAMES`, the builders of the 59 frame names,
+  `FrameName` and `FRAME_NAMES`), `src/view/round_play.ts` (`RoundView`) and
+  `src/view/run_state.ts` (`RoundPhase`).
+- `src/testing/flight_fixtures.ts`: `FLIGHT_FIXTURES`, eleven rounds made
+  by hand (a plain shot, a punch, a punch through the wall to the ceiling,
+  a row zapper's zap and the jump it earns, a column zapper's, a hot shot's
+  bounce off the floor, a triple shot, a friend, a bored fuzzball's yawn, a
+  level cleared and one lost), each with its start, shot, level boon and
+  `Round`, the next start worked out from its events; `orderProblemsOf()`,
+  which holds a flight's events to `Flight.events`' order, for R3 to hold
+  `fly()` with; and `trackProblemsOf()`, which holds its tracks to its
+  events.
+- The workspace's `AGENTS.md` says what the rules, the view and the
+  fixtures now hold.
+
+**Choices the plan didn't make.**
+
+1. **Kind ids are camel case:** `brick`, `tough`, `steel`, `rowZapper`,
+   `columnZapper`. The legend names the other eleven (`crossZapper`,
+   `xZapper`, `bomb`, `wool`, `cage`, `bumper`, `prism`, `portal`,
+   `plated`, `shell`, `moss`), and `legend.spec.ts` assigns
+   `BRICK_KIND_IDS` to `readonly LegendKindId[]`, so a kind cataloged under
+   an id the legend doesn't use fails to compile.
+2. **`points` is per hit the brick had whole,** before the streak's
+   multiplier: 10 for the brick and for each of a tough brick's hits, 30 for
+   a zapper, 0 for steel. A break scores `points × full × multiplierAt()`.
+   So plan.md's "50 for a cage", whose cage has two hits, is `points: 25` in
+   X1's entry, as `BrickKind.points`' doc comment says.
+3. **A zapper's `reach`** is `COLUMNS` for a row and `MOST_DEPTH` for a
+   column, as far as the ceiling of the deepest field; rows over the
+   ceiling are out of play anyway.
+4. **The catalog adds** `brickKind(id)`, `isBrickKindId()`,
+   `hasTrait(id, kind)`, `TraitKind` and `TraitOf` to §5.3's names. The
+   three empty sets are `{} as const satisfies` the record, which keeps
+   `BrickKindId` the five ids.
+5. **The legend's entries** are `LegendBrick`s, `{ kind, hits, plates }`,
+   `kind` a string, since eleven kinds aren't cataloged yet, with
+   `LegendKindId` the kinds it names; `NO_BRICK` is `"."`. C12's spare
+   characters are `T` (a shell of 3), `V` (plated floorward, 3) and `^`
+   (plated ceilingward, 2).
+6. **Plates are `SIDE`'s bits,** whose `top` is the face toward this
+   field's floor, as §5.2's y-down rows have it. `legend.ts` names
+   `FLOORWARD` and `CEILINGWARD` for itself until R1's `grid.ts`, where §5.2
+   states the mapping once; R1 replaces them with its own.
+7. **`Brick.tint`** is the row's tint for a plain or tough brick, a
+   portal's pair (0 or 1, drawn `portal-<tint + 1>`) for a portal, and 0
+   otherwise; `hits` is 0 for a kind that never breaks.
+8. **`thirdsOf()` throws a `RangeError`** for a depth that isn't a whole
+   number from 11 to 22. `jumpLine` is `depth − jump`, the row the jump line
+   runs under the top third at, and `opensOn` is `depth − 2 × jump`.
+9. **`positionAt()` makes a new `Waypoint` each call** and, at a moment two
+   waypoints share, answers the later, where the fuzzball flies on from. V3
+   may want one that writes into a record it is handed.
+10. **What the events say:** a strike's `charge` is what the fuzzball flies
+    on with, and `earthed` is true only when the brick took a charge the
+    fuzzball had, never a hot shot's; a strike on steel takes no hit and
+    leaves none. A zap's `reaches` lists, by cell, the bricks it takes hits
+    off, so steel isn't among them. A break's `streak` counts the round's
+    breaks, this one among them, and its `points` are scored at that
+    streak.
+11. **The order at one moment:** the fuzzballs' events first, then the zaps
+    that land then, by cell, since §5.3's rule doesn't place a zap among
+    the fuzzballs'. A turn goes before the strike it came with, as the
+    kinds' order has it, and a free right after its cage's break.
+12. **`land`'s `x` is where the middle touched the floor,** the track's
+    last place. The next round's `x` holds it `SIDE_MARGIN` off the side
+    walls, as the fixtures do and R6 will.
+13. **The outcome:** `points` counts the jump's `JUMP_POINTS`; `rowsDown`
+    is 0 once the level is cleared; `next` is made when the level is
+    cleared or lost too, as `Round.next` says, its wall keeping each brick's
+    cell, broken and sunk bricks null and `lowestRow` down by `rowsDown`.
+14. **`playRound()`'s parameters start with `_`,** which lint's rule for
+    unused arguments asks of a stub.
+15. **`FieldMetrics`' rectangle is the cells,** 9 by `depth` in device px,
+    the ceiling at `y`, and `css` the same in CSS px. `ArtScale` comes from
+    `@fz/phaser/shapes` and `CssRect` from `@fz/phaser/layout`.
+    `fieldShape()`, `fieldMetrics()`, `toCanvas()` and `toField()`, and
+    with them `Viewport`, are V1's.
+16. **`RoundView.events` is an `EventLogView<LoggedEvent>`,** a
+    `LoggedEvent` being `{ serial, event }`, the flight's own event
+    numbered. §5.4's `EventLogView<FlightEvent>` doesn't compile, since the
+    log numbers its records, and its records are filled in place: a union
+    of readonly events couldn't be, and a record reused for another kind
+    would keep the old kind's fields. So V3 points a record at the next
+    event, and readers read `record.event`.
+17. **`round_play.ts` and `run_state.ts` are written,** though K2's list
+    doesn't name them, since §5.4 spells out `RoundView` and `RoundPhase`.
+    `RunState`, whose fields wait on R7's run, is V3's; the scene's
+    options, `KindArt` and `BRICK_ART` are S1's and A2's.
+18. **Frames:** `Ink` is 0 to 7, so `friend-0` to `friend-7`, for answer
+    5's eight inks; 59 names in all.
+19. **`tuning.ts` holds the rest of plan.md's numbers** beside §5.3's six:
+    the aims (657, from 8°, 4 a degree), `FIRST_X`, `LAUNCH_GAP`,
+    `TRIPLE_MATES`, `MOST_FRIENDS`, `MOST_FUZZBALLS`, `BORED`,
+    `MOST_FLIGHT`, `STILL_TURNS`, `HOT_BOUNCES`, `ZAP_HITS`, `ZAP_DELAY`,
+    `GUIDE_PAST_TURN`, `AT_ONCE`, `JUMP_POINTS`, `STREAK`, `STAR_POINTS`,
+    `TWO_STARS_PAST_PAR` and `PAR_SHARE`. `RULES` hands on only `bored`.
+20. **The fixtures:** fields 11 deep but the bored one's, 22; walls drawn
+    from pictures in the legend's characters, a plain or tough brick in the
+    tint `wallRow % 8`; a hot shot launched at charge 5, `hot`, whatever
+    was charged; a bored fuzzball's yawn at 60 units from its launch, then
+    a drop straight down. A character of a fixture's picture that is no
+    cataloged kind's throws, rather than leaving a gap. `trackProblemsOf()`,
+    beyond what K2 asks, holds each track to unit speed within 1e-9 but at
+    a portal, each place to an event, the launch and landing to the track's
+    ends and the landing to the floor, each heading to a unit long and
+    within 1e-9 of its next leg's line, `length` to the last landing and
+    `capped` to a count.
+21. **A fuzzball that turns again where it stands,** at the same moment, as
+    `STILL_TURNS` counts, turns at one waypoint, and only its last turn
+    there heads along the next leg; its turns come before its strikes, as
+    the kinds' order has it.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 416 tests in 11 files, the rules and the view at
+100% of statements, branches, functions and lines; the fixtures' file at
+99.3% of statements, the throws for a fixture drawn wrong never reached.
+The root's `yarn lint` passes. `legend.spec.ts` compared a legend character
+to `NO_BRICK`, which the compiler rejected; it now checks
+`isKeyOf(NO_BRICK, LEGEND)`.
+
+**The mutation pass.** 71 mutants, one at a time: 10 on `thirdsOf()`'s
+bounds and arithmetic, 12 on `positionAt()`, 25 on the ordering checker and
+24 on the track checker. 64 were killed at once. Five survivors got specs:
+`positionAt()` searching one waypoint short (now a landing whose last leg
+rounds, 4.5 + (0.1 − 4.5)), a strike's break not following a break of a
+higher cell (two strikes at a moment), the yawn and the landing swapped in
+the kinds' order (every kind at one moment), a landing off the floor, and
+the earlier of a portal's two places (a turn as a fuzzball comes out).
+Two are equivalent: `positionAt()`'s search starting at the first waypoint
+rather than the second, and halving up rather than down, both find the
+same waypoint.
+
+The review's fixes were mutated too: 9 mutants of the heading check and
+the still turns, of which three survived. Two got specs (a turn followed
+by a strike at its moment, and a turn as another fuzzball turns), and one
+is equivalent: a heading square to a leg of no length, which a turn never
+has, as the later of two shared waypoints is the one it turns at.
+
+**The review:**
+
+1. **The checkers failed flights R3 will write: still turns and short
+   legs.** Fixed: a still turn keeps one waypoint, and only its last turn
+   is held to the next leg (choice 21); a heading is held to a unit long
+   and to the leg's line, by how far the leg's end lies off it, so a short
+   leg's rounding doesn't count. Specs: two turns at one place and moment,
+   a leg of a millionth of a unit at moment 100, headings aslant and back.
+   The order the reviewer called natural, turn, strike, turn, strike, is
+   not §5.3's: its rule puts a fuzzball's events at a moment in the kinds'
+   order, so turns first, which the checker already takes.
+2. **Nothing held a fixture's events to its own wall.** Fixed: a picture's
+   character that is no cataloged kind's throws, and a spec replays each
+   fixture's strikes, zaps and breaks on its start's wall (hits taken and
+   left, each zap's reach, each break's kind and its brick at 0).
+3. **`FlightEvent & NumberedEvent` couldn't be filled in place.** Fixed:
+   `LoggedEvent` (choice 16).
+4. **The cage's 25 a hit was nowhere said.** Fixed: choice 2 and
+   `BrickKind.points`' doc comment.
+5. **Nits.** The spec that took a turn out of a portal was named "finds",
+   now "takes"; the banner comments are gone; choice 6 says R1 replaces the
+   legend's `FLOORWARD` and `CEILINGWARD`.
