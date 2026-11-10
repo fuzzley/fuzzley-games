@@ -185,3 +185,112 @@ its review and the numbers worth keeping.
   5. The doc comment didn't say `folder` is a name, not a path, and its
      `@throws` said "outside the folder" where a file in a folder inside it
      is refused too. Fixed: it says both.
+
+## Part 2
+
+### R1: the grid
+
+- **Date.** 2026-11-10.
+- **Built.**
+  - `src/rules/grid.ts`: the field's names for `@fz/core/sweep`'s faces,
+    `FLOORWARD` (`SIDE.top`), `CEILINGWARD` (`SIDE.bottom`), `LEFT` and
+    `RIGHT`, typed `FieldFace`, and its corners, `FLOORWARD_LEFT`,
+    `FLOORWARD_RIGHT`, `CEILINGWARD_LEFT` and `CEILINGWARD_RIGHT`, typed
+    `FieldCorner`, the mapping said once, in the file's opening comment;
+    the cells, `cellOf()`, `columnOf()`, `wallRowOf()`, `fieldRowOf()` and
+    `cellAt()`; `brickAt()`, the brick in play in a field cell; `brickBox()`;
+    `BrickShape`, `shapeOf()` and `brickShape()`, how a brick meets a
+    fuzzball; and `boxesIn(wall, depth)`, the `Solid` that `exposureOf()`
+    reads the wall through, the cells beyond the side walls solid and the
+    waiting rows empty.
+  - `src/testing/wall_picture.ts`: `wallFrom(picture, { lowestRow })`, a
+    wall laid out from a picture in the legend's characters.
+  - `src/rules/levels/legend.ts` takes `FLOORWARD`, `CEILINGWARD`, `LEFT`
+    and `RIGHT` from `grid.ts`, its own gone, as K2's sixth choice asked.
+  - `grid.spec.ts` and `wall_picture.spec.ts`. The mapping is pinned by
+    pictures: of two bricks stacked, the lower shows the floor its
+    `FLOORWARD` face and the higher the ceiling its `CEILINGWARD`, and a
+    fuzzball rising from the floor meets `brickBox()`'s `FLOORWARD` face a
+    quarter of the way through a move of 2, and never its `CEILINGWARD`.
+- **Choices the plan didn't make.**
+  1. **Rows under the floor count as empty,** as the waiting rows do: the
+     plan names only the side walls and the ceiling. A brick stands there
+     only once its level is lost, and a flight ends at the floor, so it
+     never shows in play; `brickAt()` finds none there.
+  2. **How a brick meets a fuzzball is a shape:** `"box"`, `"round"` for a
+     solid kind that kicks (the bumper) and `"open"` for one that isn't
+     solid (the portal), read from the catalog's `solid` and the `kicks`
+     trait once, at load. Only a box stops a fuzzball in `exposureOf()`'s
+     sense, so a bumper's and a portal's neighbours show their faces to
+     them, and X2 adds those kinds without touching the grid. `shapeOf()` is
+     specced with kinds made up in the spec, the catalog holding no round or
+     open kind yet. R2's `cast()` will sweep by the shape.
+  3. **`boxesIn()` returns a `Solid`, read as it is asked,** rather than an
+     `exposureOf()` of the grid's own: `fly()` can make it once a flight,
+     over a wall whose list of bricks it empties as they break, and the
+     specs and R2's reference call `@fz/core/sweep`'s `exposureOf()` with
+     it.
+  4. **The corners are named too** (`FieldCorner`), for R2's contacts and
+     for plates, where a corner is plated only where both its faces are.
+  5. **`brickAt()` reads off the wall's list by index,** a row under the
+     wall's lowest or over its highest falling off it, once the column is
+     known to lie between the side walls, so no column wraps into the row
+     beside.
+  6. **`wallFrom()`** takes rows of exactly nine characters, top row first,
+     its lowest standing in field row 1 unless `lowestRow` says otherwise,
+     so a picture of depth − 1 rows is the field over the floor's row. Each
+     brick is whole, with the fixtures' tints (a plain or tough brick's wall
+     row modulo 8, any other kind's 0) and no twin, and a character no
+     cataloged kind's brick stands for throws, as the fixtures' does.
+  7. **No character is reserved for specs yet,** where the plan asks for
+     `?`, a kind that splits. A `Brick`'s kind is a `BrickKindId`, so a kind
+     that exists only in specs can't stand in a wall until R3 settles how
+     `fly()` finds a brick's kind; R3 adds `?` to `wallFrom()` then. The
+     portals' twins (`@`, `&`) wait for X2's portal the same way.
+  8. **`eslint.config.js` is unchanged:** `wall_picture.ts` is on
+     `HELD_AS_RULES`, and `HELD` holds it from this commit. Lint refused a
+     `Math.PI` and an import of the shell written into it.
+  9. **`grid.ts` is a file,** `src/rules/grid.ts`, as §5.2 and `plan.md`
+     name it, where §7.3 writes `grid` among the stream's folders.
+- **Checks.** The workspace's `lint`, `typecheck`, `test` and
+  `test:coverage` pass: 481 tests in 14 files (46 in `grid.spec.ts`, 8 in
+  `wall_picture.spec.ts`), the rules and the view at 100% of statements,
+  branches, functions and lines, `wall_picture.ts` at 100% too. The root's
+  `yarn lint` passes.
+- **The mutation pass.** 46 mutants, one at a time, against the `pure`
+  project: 33 of `grid.ts`, 12 of `wall_picture.ts` and 1 of `legend.ts`
+  (the side plates on one side). 40 were killed at once.
+  - Survived, then specced: `brickAt()`'s column bounds widened by one,
+    either way. The spec looked beyond the side walls in the wall's lowest
+    row, where the cell past column 0 is no cell; it now looks on a wall
+    with bricks in both end columns, where column −1 would find the last
+    brick of the row below and column 9 the first of the row above. And
+    `brickBox()` returning a copy: the spec now holds it to the box handed
+    in.
+  - Equivalent while every cataloged kind is a box: `brickShape()`
+    answering `"box"` for every brick, and `boxesIn()` taking any brick
+    not open, or any brick, as solid. X2's bumper and portal tell them
+    apart, so their specs should show the faces of a bumper's and a
+    portal's neighbours exposed.
+- **The review:** a fresh agent found no bug, tracing each spec's bits
+  through `exposureOf()` by hand, and the API fit for R2's `cast()` and
+  R3's `fly()`.
+  1. **The picture-to-wall code is written twice,** in `wallFrom()` and in
+     the fixtures' `wallOf()` and `brickOf()`, which could drift apart.
+     Left: `flight_fixtures.ts` is K2's, the integrator's to change; the
+     report asks for the fixtures to lay their walls out with `wallFrom()`.
+  2. **The mapping is still said outside `grid.ts`,** in `Brick.plates`'
+     doc comment (`wall.ts`) and a comment of `legend.spec.ts`. Left for
+     the same reason, `wall.ts`' types being K2's and `legend.spec.ts` the
+     levels' folder's; the report asks for `plates`' doc to name
+     `FieldFace` and the legend's spec to use `grid.ts`' names.
+  3. **`solidIn()` read as the catalog's `solid`,** where a bumper is solid
+     and yet no box. Fixed: it is `boxesIn()`, its doc saying a bumper,
+     though solid, and a portal hold none. The reviewer's `brickShape()`
+     spec, pinning `"box"` for each kind, was left as it was: its contract
+     is the kind's shape, which the spec states, and a pinned `"box"` would
+     fail X2's bumper; its helper builds no hits it doesn't need.
+  4. **`cellAt()`'s doc hid that a column beyond a side wall names a cell
+     of the row beside.** Fixed: it says so.
+  5. **Two doc comments opened with two sentences** (`boxesIn()`'s and
+     `wallFrom()`'s), and `shapeOf()`'s restated its branches. Fixed.

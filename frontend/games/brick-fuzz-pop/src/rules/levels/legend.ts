@@ -1,12 +1,7 @@
-import { SIDE } from "@fz/core/sweep";
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
 
-// The faces a plate covers, as @fz/core/sweep's SIDE names them for a y that
-// grows down, so its top is the face toward this field's floor (the
-// implementation plan's §5.2). R1's src/rules/grid.ts, where §5.2 says the
-// mapping is stated once, replaces these with its own.
-const FLOORWARD = SIDE.top;
-const CEILINGWARD = SIDE.bottom;
-const SIDES = SIDE.left | SIDE.right;
+/** A plate's faces toward both side walls. */
+const SIDES = LEFT | RIGHT;
 
 /** Describes the brick a character of a level's picture stands for. */
 export interface LegendBrick {
