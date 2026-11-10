@@ -1,5 +1,5 @@
 import { clamp } from "@fz/core/math";
-import type { Box } from "../grid";
+import type { Box } from "@fz/core/sweep";
 import { STEP_MS } from "../stepper";
 import {
   FIELD_HEIGHT,
