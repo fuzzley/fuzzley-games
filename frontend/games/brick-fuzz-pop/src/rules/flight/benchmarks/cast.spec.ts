@@ -38,18 +38,20 @@ describe("cast's time", () => {
     const scanTimes: number[] = [];
 
     for (let round = 0; round <= ROUNDS; round++) {
-      for (const { cast: field, x, y, dx, dy, limit } of shots) {
+      for (const shot of shots) {
+        const { cast: field, x, y, dx, dy, limit, crosses, passing } = shot;
         const before = performance.now();
-        cast(field, x, y, dx, dy, limit, contacts);
+        cast(field, x, y, dx, dy, limit, contacts, crosses, passing);
         if (round > 0) {
           times.push(performance.now() - before);
         }
       }
     }
     for (let round = 0; round <= 1; round++) {
-      for (const { field, x, y, dx, dy, limit } of shots) {
+      for (const shot of shots) {
+        const { field, x, y, dx, dy, limit, crosses, passing } = shot;
         const before = performance.now();
-        castByScan(field, x, y, dx, dy, limit);
+        castByScan(field, x, y, dx, dy, limit, crosses, passing);
         if (round > 0) {
           scanTimes.push(performance.now() - before);
         }

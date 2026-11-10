@@ -20,6 +20,7 @@ import {
   SHAPES,
   cellOf,
 } from "../grid";
+import { MISSED } from "@fz/core/sweep";
 import { RADIUS } from "../tuning";
 import {
   type CastField,
@@ -34,6 +35,9 @@ const DEPTH = 11;
 
 /** A heading straight up. */
 const UP = [0, 1] as const;
+
+/** What a cast that crosses into no cell says of crossings. */
+const NONE_CROSSED = { entered: -1, enteredAt: MISSED } as const;
 
 /** Returns a field 11 deep holding a wall drawn as a picture, its lowest row standing in a field row, its kinds the stand-ins'. */
 function fieldOf(lowestRow: number, picture: readonly string[]): CastField {
@@ -136,6 +140,7 @@ describe("cast", () => {
       x: 4.5,
       y: 4.75,
       met: [metAt("face", cellOf(4, 0), FLOORWARD, [0, -1], 4.5)],
+      ...NONE_CROSSED,
     });
   });
 
@@ -207,6 +212,7 @@ describe("cast", () => {
       x: 4.5,
       y: 10.75,
       met: [metAt("ceiling", -1, FLOORWARD, [0, -1], 10.5)],
+      ...NONE_CROSSED,
     });
   });
 
@@ -261,6 +267,7 @@ describe("cast", () => {
           0,
         ),
       ],
+      ...NONE_CROSSED,
     });
   });
 
@@ -283,12 +290,56 @@ describe("cast", () => {
     expect(met.map(({ what }) => what)).toEqual(["ceiling"]);
   });
 
+  it("notes the first cell its middle crosses into, and how far it flies to it", () => {
+    const field = fieldOf(5, ["....|....", "....|...."]);
+
+    const { entered, enteredAt } = castFrom(field, [4.5, RADIUS], UP);
+
+    expect([entered, enteredAt]).toEqual([cellOf(4, 0), 5 - RADIUS]);
+  });
+
+  it("crosses into no cell its middle is in already", () => {
+    const field = fieldOf(5, ["....|...."]);
+
+    const met = castFrom(field, [4.5, 5.5], UP);
+
+    expect([met.entered, met.met.map(({ what }) => what)]).toEqual([
+      -1,
+      ["ceiling"],
+    ]);
+  });
+
+  it("crosses into no cell it is passing through", () => {
+    const field = fieldOf(5, ["....|....", "....|...."]);
+    const contacts = createContacts();
+    const passing = cellOf(4, 0);
+
+    const met = cast(field, 4.5, 5, 0, 1, 30, contacts, true, passing);
+
+    expect([met.entered, met.enteredAt]).toEqual([cellOf(4, 1), 1]);
+  });
+
+  it("crosses into no cell when it is told not to", () => {
+    const field = fieldOf(5, ["....|...."]);
+    const contacts = createContacts();
+
+    const { entered } = cast(field, 4.5, RADIUS, 0, 1, 30, contacts, false);
+
+    expect(entered).toBe(-1);
+  });
+
   it("meets nothing past its limit, stopping there", () => {
     const field = fieldOf(5, ["....o...."]);
 
     const met = castFrom(field, [4.5, RADIUS], UP, 2.5);
 
-    expect(met).toEqual({ distance: 2.5, x: 4.5, y: 2.75, met: [] });
+    expect(met).toEqual({
+      distance: 2.5,
+      x: 4.5,
+      y: 2.75,
+      met: [],
+      ...NONE_CROSSED,
+    });
   });
 
   it("meets what it reaches just as its limit ends", () => {
@@ -420,16 +471,18 @@ describe("cast, against a scan of every brick", () => {
     );
     const contacts = createContacts();
 
-    const casts = shots.map(({ field, x, y, dx, dy, limit }) => {
+    const casts = shots.map((shot) => {
+      const { field, x, y, dx, dy, limit, crosses, passing } = shot;
       const { wall, depth, kinds } = field;
+      const flown = castField(wall, depth, kinds);
       return castOf(
-        cast(castField(wall, depth, kinds), x, y, dx, dy, limit, contacts),
+        cast(flown, x, y, dx, dy, limit, contacts, crosses, passing),
       );
     });
 
     expect(casts).toEqual(
-      shots.map(({ field, x, y, dx, dy, limit }) =>
-        castByScan(field, x, y, dx, dy, limit),
+      shots.map(({ field, x, y, dx, dy, limit, crosses, passing }) =>
+        castByScan(field, x, y, dx, dy, limit, crosses, passing),
       ),
     );
   });

@@ -1,7 +1,9 @@
 // cast() done the plain way, for a spec to hold it to: the same moves, each
 // swept against every brick of the wall in play rather than the cells along
 // the way, everything met put in a list, then the earliest and those within
-// AT_ONCE of it kept, each once, in Contacts.met's order. It works out from
+// AT_ONCE of it kept, each once, in Contacts.met's order, and the first
+// cell of a brick a fuzzball flies into that its middle crosses into, the
+// lowest cell first where two are crossed into at once. It works out from
 // the kinds alone what castField() works out for cast(), each kind's shape,
 // a bumper's reach and the boxes, and its numbers as cast() does, so the
 // two agree to the bit where they meet the same things. With it, the seeded
@@ -60,6 +62,8 @@ export interface Cast {
   readonly x: number;
   readonly y: number;
   readonly met: readonly Readonly<Met>[];
+  readonly entered: number;
+  readonly enteredAt: number;
 }
 
 /** Describes a field drawn for a spec: a wall, the field's depth and the kinds of its bricks. */
@@ -69,7 +73,7 @@ export interface RandomField {
   readonly kinds: BrickKinds;
 }
 
-/** Describes a shot to cast: a field, and a fuzzball's place, heading and limit. */
+/** Describes a shot to cast: a field, a fuzzball's place, heading and limit, whether it crosses into cells, and the one it is passing through. */
 export interface RandomCast {
   readonly field: RandomField;
   readonly x: number;
@@ -77,6 +81,8 @@ export interface RandomCast {
   readonly dx: number;
   readonly dy: number;
   readonly limit: number;
+  readonly crosses: boolean;
+  readonly passing: number;
 }
 
 /** Describes one of a cast's moves, and where it lies along the cast. */
@@ -94,13 +100,17 @@ export function castOf(contacts: Readonly<Contacts>): Cast {
     x: contacts.x,
     y: contacts.y,
     met: contacts.met.slice(0, contacts.count).map((met) => ({ ...met })),
+    entered: contacts.entered,
+    enteredAt: contacts.enteredAt,
   };
 }
 
 /**
  * Returns what a fuzzball meets first, flying from a place along a heading
  * no farther than `limit`, found by sweeping every brick of the wall in play
- * in each of cast()'s moves.
+ * in each of cast()'s moves, and the first cell its middle crosses into of a
+ * brick it flies into, but the cell it is `passing` through, unless it
+ * `crosses` none.
  */
 export function castByScan(
   field: RandomField,
@@ -109,8 +119,12 @@ export function castByScan(
   dx: number,
   dy: number,
   limit: number,
+  crosses = true,
+  passing = -1,
 ): Cast {
   const found: Met[] = [];
+  let entered = -1;
+  let enteredAt = MISSED;
   for (let start = 0; start < limit; start += STEP) {
     const earliest = Math.min(...found.map((contact) => contact.distance));
     if (start > earliest + AT_ONCE) {
@@ -127,9 +141,22 @@ export function castByScan(
       along,
     };
     found.push(...foundIn(field, step));
+    for (const [cell, at] of crossedIn(field, step, crosses, passing)) {
+      if (at < enteredAt) {
+        entered = cell;
+        enteredAt = at;
+      }
+    }
   }
   if (found.length === 0) {
-    return { distance: limit, x: x + dx * limit, y: y + dy * limit, met: [] };
+    return {
+      distance: limit,
+      x: x + dx * limit,
+      y: y + dy * limit,
+      met: [],
+      entered,
+      enteredAt,
+    };
   }
   const distance = Math.min(...found.map((contact) => contact.distance));
   const met: Met[] = [];
@@ -152,7 +179,45 @@ export function castByScan(
       a.cell - b.cell ||
       a.side - b.side,
   );
-  return { distance, x: x + dx * distance, y: y + dy * distance, met };
+  return {
+    distance,
+    x: x + dx * distance,
+    y: y + dy * distance,
+    met,
+    entered,
+    enteredAt,
+  };
+}
+
+/**
+ * Returns the cells of the bricks in play a fuzzball flies into whose cells
+ * a move's middle crosses into, by cell, each with how far into the cast it
+ * crosses, but the cell it is `passing` through: none if it `crosses` none.
+ */
+function crossedIn(
+  { wall, depth, kinds }: RandomField,
+  step: Step,
+  crosses: boolean,
+  passing: number,
+): [number, number][] {
+  const middle: Move = { ...step, r: 0 };
+  return wall.bricks.flatMap((brick, cell) => {
+    const column = columnOf(cell);
+    const row = fieldRowOf(wall, cell);
+    if (
+      !crosses ||
+      cell === passing ||
+      brick === null ||
+      row < 0 ||
+      row >= depth ||
+      shapeOf(kinds[brick.kind]) !== "open"
+    ) {
+      return [];
+    }
+    const box = brickBox(column, row, { left: 0, top: 0, right: 0, bottom: 0 });
+    const t = Math.min(...FACES.map((face) => sweepFace(middle, box, face)));
+    return t === MISSED ? [] : [[cell, distanceOf(step, t)]];
+  });
 }
 
 /** The kinds of contact in the order `Contact` names them. */
@@ -350,7 +415,9 @@ const AXES = [
  * unit one time in three, so it often touches a face, a seam or a corner;
  * heading along an axis one time in four, else along an aim, turned down
  * or back half the time; as far as up to 30 units, a whole number of them
- * one time in four, and less than one another time in four.
+ * one time in four, and less than one another time in four; crossing into
+ * cells but one time in four, and passing through one of the field's open
+ * cells, where it has any, one time in two.
  */
 export function randomShot(
   field: RandomField,
@@ -362,7 +429,27 @@ export function randomShot(
     random() < 0.25
       ? AXES[whole(random, 0, AXES.length - 1)]!
       : [random() < 0.5 ? aimX : -aimX, random() < 0.5 ? aimY : -aimY];
-  return { field, x, y, dx, dy, limit: limitOf(random) };
+  const limit = limitOf(random);
+  const crosses = random() >= 0.25;
+  const open = openCellsOf(field);
+  const passing =
+    open.length > 0 && random() < 0.5
+      ? open[whole(random, 0, open.length - 1)]!
+      : -1;
+  return { field, x, y, dx, dy, limit, crosses, passing };
+}
+
+/** Returns the wall cells of a field's open bricks in play. */
+function openCellsOf({ wall, depth, kinds }: RandomField): number[] {
+  return wall.bricks.flatMap((brick, cell) => {
+    const row = fieldRowOf(wall, cell);
+    return brick !== null &&
+      row >= 0 &&
+      row < depth &&
+      shapeOf(kinds[brick.kind]) === "open"
+      ? [cell]
+      : [];
+  });
 }
 
 /** Returns a cast's limit, drawn from a source: a whole number of units up to 30, less than one, or any length up to 30. */
