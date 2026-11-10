@@ -90,7 +90,8 @@ export const RECIPES = [
       1.2,
     ),
   },
-  // A side or the ceiling: a short, quiet, woody knock.
+  // A side, the ceiling or a hot shot's bounce off the floor: a short, quiet,
+  // woody knock.
   {
     name: "knock",
     seconds: 0.08,
@@ -130,8 +131,8 @@ export const RECIPES = [
       2,
     ),
   },
-  // A fuzzball striking steel, a plate or a bumper, which earths any charge it
-  // carries: two clashing partials, ringing like struck metal.
+  // A strike that takes no hit, on steel, a plate or a shell: two clashing
+  // partials, ringing like struck metal.
   {
     name: "clank",
     seconds: 0.36,

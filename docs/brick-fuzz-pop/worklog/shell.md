@@ -2,10 +2,11 @@
 
 The shell stream's log of
 [`implementation-plan.md`](../implementation-plan.md)'s U3 to U6, split off
-the view and shell stream so they run beside V1 to V4, and of N1, moved to
-it from the art stream: what each package
-built, where it went other than planned and why, what the checks reported,
-each review comment and what became of it, and the numbers worth keeping.
+the view and shell stream so they run beside V1 to V4, of N1, moved to it
+from the art stream, and of V4, moved to it from the view stream: what each
+package built, where it went other than planned and why, what the checks
+reported, each review comment and what became of it, and the numbers worth
+keeping.
 
 ## Part 2
 
@@ -333,3 +334,174 @@ runs, so they made no new mutants.
    raises the break, where the view does; `BREAK_MOST_CENTS` shared its
    step's comment. Fixed: one sentence, then a paragraph naming the view; a
    comment of its own.
+
+### V4: effects, flourishes and timing
+
+**2026-11-10.** Moved to this stream from the view stream, which keeps V2
+and V3, while R7 is under way.
+
+**What was built.** All in `src/view/effects/`, beside K2's `SOUNDS`:
+
+- `effects.ts`:
+  - `Flourish`, the nine flourishes "Flourishes" names: a struck brick's
+    swell, a broken one's shards, a punch's streak, a zap's bolt, a blast's
+    ring, a freed friend's hop, the jump line's flash, the fuzzball's flare
+    into its boon, and a lost level's shake;
+  - `EventEffects`, an event's flourishes and its sound, as the breakers'
+    are;
+  - `FlightEffects`, which reads a round's flight in order (`begin(boon)`,
+    then `effectsOf(event)` for each event) and says what each calls for;
+  - `Beat` and `beatEffectsOf()`, for the moments beyond a flight's events:
+    a notch, the step, the jump, the danger line, cleared and lost;
+  - `detuneOf()` and `breakDetune()`, 100 cents a brick of the round before
+    it, up to 1,200, with `BREAK_STEP_CENTS` and `BREAK_MOST_CENTS`;
+  - `createFrameSounds()` and `flourishesOf()`, as the breakers'.
+- `flourish.ts`: `easeOutBack()`, the overshooting ease, and the shapes
+  that change a size or a place: `swellScale()`, `flareScale()`,
+  `hopHeight()`, a freed friend's hop from its cage down to the floor,
+  `ringScale()`, and `shakeOf()`, a lost level's shake in device pixels,
+  written into a record. What only fades or spreads takes `@fz/core/math`'s
+  `fadeAlpha()` and `easeOutCubic()`.
+- `timing.ts`: the wall's step (260 ms) and jump (480 ms), each flourish's
+  length, the shards' count, the shake's size, `clearedDelayMs()` and
+  `resultDelayMs()`.
+- `tools/sound-lab.ts`: its breaks raised by the view's `breakDetune()`, in
+  place of its own two numbers; and the knock's and the clank's words, here
+  and in `tools/build-sounds.mjs`, as the view plays them.
+
+**Choices the plan didn't make.**
+
+1. **`effectsOf()` is a method of `FlightEffects`, read in the flight's
+   order,** not a function of one event. The plan's `effectsOf(event)`
+   can't tell a punch from a break: a charged fuzzball of 1 that breaks a
+   plain brick and flies on and a plain one that breaks it and turns both
+   strike with `took` 1, `left` 0 and `charge` 0. Only a turn by the same
+   fuzzball at the same moment, which `Flight.events` puts before its
+   strikes, tells them apart, and it tells a bumper's strike from steel's
+   too. "The same moment" is a turn within `AT_ONCE` of the strike, as the
+   flight meets contacts, so a strike recorded a hair after its turn still
+   counts. A `punched` field on the strike would make it a function again;
+   that, or a check in `orderProblemsOf()` that a strike which leaves its
+   brick standing follows a turn by its fuzzball at its moment, is the
+   rules stream's to weigh.
+2. **The release plays on the player's launch,** "boon" when the round's
+   start carries a boon, which `begin()` is handed: the launch says `hot`
+   but not a triple shot. The mates', friends' and splits' launches play
+   nothing. Neither `RoundView` nor the scene's options carry the start's
+   boon or a flight's start yet: V3's `RoundPlay`, which holds the
+   `RoundStart` and reads every event once, in order, could own the
+   `FlightEffects` and call `begin()`, or `RoundView` could carry the boon,
+   for S2.
+3. **A strike that takes no hit clanks and swells,** as any struck brick
+   swells: steel, a plate, or a shell a plain fuzzball can't open, as "The
+   flight" groups them as strikes that don't count against boredom. The
+   event can't tell a plate from a shell without the wall, and nothing else
+   needs the wall. The lab's and the recipe's words for the clank say so
+   now.
+4. **A bumper plays its bump alone,** the strike on it quiet, as the lab's
+   scene had it.
+5. **A brick broken and turned off is heard as its break alone;** a punch
+   adds the punch's crunch and its streak to the break.
+6. **A cage's break plays shards and the break like any brick's,** the
+   shards standing for its bars, and the free plays the cage's sound and
+   the friend's hop, from the cage's height down to the floor, where
+   "Fuzzley flavor" has a freed friend wait; the plan's "bars fly apart"
+   needs no flourish of its own, and no kind that frees exists yet to test
+   one by.
+7. **A wool brick's recharge and a prism's split play nothing,** the twenty
+   sounds having none for them, past their bricks' breaks.
+8. **The swell is swollen as the strike lands, then settles a little under
+   its size before it rests,** the overshooting ease run from 1.14 back to
+   1, so a strike shows at once. The ease's usual overshoot of a tenth puts
+   that dip at 1.4%, under half a CSS pixel on a 32 px brick: Q3 judges
+   whether it shows. The flare grows the boon's look in from 0.4, past its
+   size.
+9. **The speeds are left to V3:** 14 and 22 units a second, ×4 held and ×2
+   after 8 s are how the playback runs, not how long a flourish lasts.
+   `STEP_MS` and `JUMP_MS` are here, as "The feel, in numbers" keeps them
+   in `timing.ts`, for V3 to ease the wall by.
+10. **`resultDelayMs()` waits 800 ms after a lost level,** the shake and a
+    look at the brick that lost it, and 500 ms without motion, where the
+    wall steps at once and the brick is still to be seen, unlike the
+    breakers' waits; `clearedDelayMs()` 700 ms, past the last shards, and
+    nothing without motion, as theirs.
+11. **The shake is in CSS pixels, as Asteroid Breaker's,** with
+    `shakeOf()` giving its shape in device pixels for the scene to move
+    the camera by, rather than Phaser's `camera.shake()` and Brick
+    Breaker's share of the canvas: the view holds the motion, at its
+    coverage, and the scene only applies it.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 2,451 tests in 28 files, 2 of the files new and 100
+of the tests; the three modules at 100%. The root's `yarn lint` passes. The
+fixtures' plain shot, punch, punch through the wall and hot shot play the
+sounds a spec lists, event by event. On the dev server at 9166 the lab
+mounted, its clank's new words showing, and "A punch through the wall"
+played with its breaks raised through the view, with no error or warning
+in the console.
+
+**The mutation pass.** 35 mutants, one at a time, against the three specs:
+the release's role and boon; each of the turn's fuzzball, moment and
+contact not kept, a turn by another fuzzball or at another moment
+counting; the bumper's rule dropped or not held to its turn; a strike that
+takes no hit knocking, a broken brick's strike held, every break a punch
+and none; `begin()` keeping the last turns; an X zap a blast; the floor
+quiet and a corner knocking; the jump's flare, a cleared level's shake, a
+friend's hop and a split's landing; the flourishes played without motion;
+the first break raised, the octave lowered and a strike raised; the
+overshoot, the ease's cube term, the swell's and the flare's eases, the
+hop's height and the ring's ease; and the cards' waits shortened or kept
+without motion. 34 were killed. The bumper's rule not held to its turn
+survived, and got a spec: steel struck after an earlier bumper clanks.
+The review's changes got 20 more: the moment's reach dropped, made exact,
+loosened, or made one-sided; a turn by another fuzzball, kept past
+`begin()` or not kept; the clank's swell; the break's rise from the first
+and not raised; the hop's throw, its landing and its drop; the shake never
+stopping, starting before the loss, never dying, in CSS pixels, kept from
+before and across only; and the still wait none. The shake across only
+survived and got a spec, that it swings up as far as across. A turn
+counted only on the strike's side of it survived too, and is equivalent:
+the flight is in order of `at`, so the last turn read is never after the
+strike.
+
+**The review:**
+
+1. **The punch rule leaned on a turn and its strike sharing an identical
+   `at`,** which nothing checks: `fly()` recording each contact's own time
+   within `AT_ONCE` would make every plain break a punch. Fixed: a turn
+   within `AT_ONCE` of the strike counts, with a spec on each side of it;
+   the first choice names the check `orderProblemsOf()` could make, the
+   rules stream's to weigh.
+2. **`begin(boon)` needs what the scene isn't handed:** neither
+   `RoundView` nor the scene's options carry the boon or a flight's start.
+   Left for V3 and S2, whose files they are; the second choice says how
+   `RoundPlay` could own the `FlightEffects`, or `RoundView` carry the
+   boon.
+3. **The hop ended at the cage, where "Fuzzley flavor" has a freed friend
+   hop to the floor.** Fixed: `hopHeight(done, from)`, a thrown thing's
+   curve from the cage's height, `HOP_HEIGHT` over it at the top, down to
+   the floor, specced from three heights; `HOP_MS` 600 for the longer way.
+4. **The result card covered the losing brick at once without motion,**
+   though the wait's own words gave seeing it as a reason. Fixed:
+   `LOST_STILL_MS`, 500 ms, with a spec, and the tenth choice says so.
+5. **A strike that takes no hit had no flourish,** where the plan swells
+   every struck brick and Brick Breaker pops steel. Fixed: the clank swells
+   too, the third choice saying so.
+6. **The knock's words left out the hot shot's bounce off the floor.**
+   Fixed in the lab and the recipe.
+7. **The shake had a size but no shape,** leaving the motion to the scene,
+   held to lower floors. Fixed: `shakeOf()`, its swing at two rates that
+   never keep step, dying away, written into a record in device pixels, as
+   Asteroid Breaker's; the eleventh choice says why pixels.
+8. **Nits.**
+   - `BOON_RELEASE` and the events' constants shared one doc comment.
+     Fixed: each has its own.
+   - Three fields with three sentinels stood for the last turn. Fixed: one
+     `lastTurn`, the turn itself or null.
+   - The lab made a break event up to read one number. Fixed: the view
+     exports `breakDetune()`, which `detuneOf()` and the lab share.
+   - The third choice cited "Charge" for the strikes that don't count
+     against boredom. Fixed: "The flight".
+   - The swell's dip under its size is 1.4%, under half a CSS pixel. Left
+     for Q3 to judge, as the eighth choice now says: the ease's usual
+     overshoot, kept until it is seen in the game.
