@@ -325,3 +325,195 @@ too before its spec, as Phaser's `preventDefault()` there only skips its
 window handler's second, empty, pass; the spec kills it. The fixes are the
 ones the review asked for, in the files the change already touched but
 Solitaire's spec, so they had no second review.
+
+## Part 2
+
+### V1: the field's shape and metrics
+
+**2026-11-10.** `fieldShape()`, `fieldMetrics()`, `toCanvas()` and
+`toField()` in `src/view/field/field_metrics.ts`, by "The field" and answer
+1, specced at every row of `plan.md`'s table of shapes.
+
+**What was built.**
+
+- `fieldShape(viewport)`: the room is `roomInside()`, the canvas inside the
+  insets the board declares; the unit is the smaller of the room's width
+  over 9 and its height over 12.1 (11 rows, the band's 0.6 and the lintel's
+  0.5), in whole device pixels; the depth is as many whole rows as the
+  height holds past 1.1 units, 11 to 22; what is left thickens the band to
+  1.1, then the lintel; `panels` where a panel 12 CSS px from the cells
+  would be 172 wide or more, which is 184 spare a side.
+- `fieldMetrics(viewport, shape)`: the cells centered across the room on
+  whole device pixels, the lintel's top to the band's bottom centered down
+  it (filling it, on the room the shape was made for), and the panels
+  either side, as tall as the field from the lintel's top to the band's
+  bottom, through `cssRectOf()`.
+- `hasRoom(viewport)`: whether the canvas has room inside its insets, which
+  a hidden board's has not.
+- `toCanvas()` and `toField()`, between field units (y up from the floor)
+  and device pixels.
+- Added to the contract file beside V1's four: `Place`, `MARGIN_CSS_PX`
+  (12 compact, 24 roomy), `FRAME_CSS_PX` (2), `FLOOR_BAND` (0.6 to 1.1),
+  `LINTEL` (0.5 to 1), `PANEL_GAP_CSS_PX` (12), `PANEL_WIDTH_CSS_PX` (172
+  to 320), `hasRoom()`, `lintelPixels()` and `bandPixels()`.
+- `src/testing/canvases.ts`: `boardCanvas()`, the canvas a board has in a
+  window, less the bar (73 CSS px roomy, 60 compact) or the rail (64) on a
+  compact screen on its side, its insets the margin, and `CHROME_CSS_PX`;
+  `canvases.spec.ts` holds the three numbers to `@fz/game-ui`'s Sass, the
+  roomy bar and the rail through the app's `global.scss` and the compact
+  bar through `src/testing/compact_bar.scss`, which includes
+  `bar-size($compact: true)` until U1's `game-frame` publishes it.
+- `tsconfig.spec.json` takes `rewriteRelativeImportExtensions`, as K1 said
+  a spec importing `@fz/dev/layout` needs.
+
+**Choices the plan didn't make.**
+
+1. **The margin is the canvas's insets,** as Brick Breaker's `--room` is:
+   the board declares `MARGIN_CSS_PX` as `--fz-canvas-inset-*`, so
+   `fieldShape(viewport)` needs nothing beyond §5.4's one argument.
+2. **The frame isn't taken from the room.** The table's numbers keep the
+   room whole: a roomy window's 679 CSS px hold 56 px a unit only without a
+   2 px frame top and bottom (675 / 12.1 is 55.8), and its panels' 231 and
+   297 are measured from the cells. So the frame lies in the margin, and
+   `fieldShape()` uses `roomInside()` but not `framePixels()`, which V1
+   names; S1 draws the frame at `framePixels(FRAME_CSS_PX, ratio)`. A spec
+   holds the frame narrower than the least margin and the panels' gap.
+3. **The band and the lintel are exact in units,** as the rule gives them,
+   so the table's one-place figures are theirs (a tall phone's band is
+   0.851, "0.9"). `lintelPixels()` rounds the lintel up, never under half a
+   unit, and `bandPixels()` the band down; on the room the shape was made
+   for, they fill what the room spares the cells to the device pixel (the
+   tall phone's 18.5 and 31.5 px are 19 and 31). S1 and the board take
+   them rather than rounding their own.
+4. **Past 22 rows,** where the cap leaves more than "a row's worth", the
+   band is 1.1, the lintel 1.0 (`LINTEL.most`, the most it takes under the
+   cap too) and the field centered in the room.
+5. **A shape on another room,** as a round flies on through a resize, keeps
+   its depth, band and lintel, as "the flight ends in the field it began
+   in", and its unit too while the field overruns the room by a CSS pixel at
+   most, counted in whole device pixels (`Math.ceil()` of the ratio, as
+   `widthOf()` counts one), which the margin takes; so a pixel's jitter, or
+   the first pixel of a drag, bakes no art again. A room that grows keeps
+   the unit until the round ends. A field that overruns by more, or a pixel
+   ratio changed since, takes the largest whole unit that fits, as Brick
+   Breaker's `fieldMetrics(viewport, down)` does. The panels follow the
+   metrics' own spare, so `shape.panels` and `metrics.panels` can differ
+   mid-flight either way, and U1 places and shows the panels from
+   `metrics.panels`.
+6. **The panels' spare is the narrower side's,** an odd pixel going to the
+   right, and both panels take its width; the gap and the widths are whole
+   device pixels.
+7. **`toCanvas()` and `toField()` take an optional place to write into,**
+   after Asteroid Breaker's (whose is required; optional here, so §5.4's
+   form stands), so S2 can place sixteen fuzzballs a frame without
+   allocating; called with three arguments, they make a new place, which
+   their doc says a frame's drawing never asks for.
+8. **Whole numbers within 1e-6,** Asteroid Breaker's `wholePixels()`: a
+   unit is a whole number of a quotient a hair under one (760 / 19 may
+   round to 39.999…), and a spec holds 617 / 12.1, a hundredth under 51,
+   to 50.
+9. **A room with no area** gets the least field at a unit of a device pixel.
+   §5.4's `fieldShape()` takes no last shape, as Asteroid Breaker's does, so
+   `hasRoom()` says when a caller keeps the shape and the layout it has and
+   lays nothing out: a hidden board's zero box would otherwise send the
+   wall's top rows over the ceiling, and `fieldMetrics()` on it would bake
+   the art at a pixel a unit.
+10. **"A resize of one pixel changes neither the depth nor the unit" is
+    held at the table's thirteen windows,** a CSS pixel wider, narrower,
+    taller and shorter. No spec can hold it everywhere: at 2× a small
+    phone on its side has 592 device px down, 48.9 units, and a CSS pixel
+    taller makes 49. A whole unit changes only at such a step, never at
+    every pixel as Asteroid Breaker's fraction did.
+11. **The bar's sizes are the spec helper's** (`CHROME_CSS_PX`), the
+    numbers the table's rooms were worked out from, held to `@fz/game-ui`'s
+    as Asteroid Breaker's `canvases.spec.ts` holds its own.
+12. **No `frame.ts` or `layers.ts`.** `plan.md`'s W7.1 names them; §6's V1
+    doesn't, K2's `RoundView` is what `frame.ts` was, and the layers are
+    the scene's (S1).
+
+**Checks** (after the reviews' fixes). The workspace's `lint` and
+`typecheck` pass; `test:coverage` passes, 1431 tests in 14 files,
+`field_metrics.spec.ts` 998 of them (the table's rows, the resize at each,
+the unit kept through a pixel's resize mid-flight at 1×, 1.5×, 2× and
+2.625×, the layout check's twelve shapes, and rules held over 72 rooms at
+1×, 2× and 2.625×) and `canvases.spec.ts` 6; `field_metrics.ts` and
+`canvases.ts` at 100% of statements, branches, functions and lines. The
+root's `yarn lint` passes.
+
+**The mutation pass.** 67 mutants of `field_metrics.ts`: the least unit,
+the columns, the least field down, the tolerance, the depth's clamp and
+its rounding, the spare's floor, the band's and the lintel's shares and
+bounds, every constant, the panels' test, gap, widths, places and height,
+the metrics' unit, top, ceiling and spare, both roundings of the pixels,
+and both ways of `toCanvas()` and `toField()`. 62 were killed at once. Five
+survived and got specs: a tolerance of 1e-2 (617 / 12.1), `fieldMetrics()`'s
+least unit of 0 (a room with no area), the odd pixel down set above the
+field rather than below (a shrunk room's field, now held to the pixel), the
+panel's least width not scaled by the pixel ratio (183 spare at 2×), and
+the shape's pixel ratio always 1 (a phone at 2×, 81 device px a unit). None
+is equivalent.
+
+The review's fixes were mutated too: 22 mutants of the unit a shape keeps in
+another room, `hasRoom()` and the helpers the unit's fit and the field's
+height moved into, and the first 67 run again on the reworked code. Six
+survived and got specs: the width's slack dropped, ignored, doubled or one
+device pixel at 2×, the height's slack doubled (a field filling its room's
+width, 384 CSS px across, in rooms a pixel and two narrower and shorter, at
+1× and 2×), and the refit's tolerance dropped (a shape made at 1× refitted
+at 2×, 766 / 12.77 being 59.999…). After the second review, seven more of
+the slack (the ratio as it is, rounded down, one more, none, dropped down or
+across, the ratio's check) were all killed, the first by the table's resize
+at 2.625×. Every mutant of every pass is killed.
+
+**Numbers worth keeping.** At 2×, a phone upright is 81 device px a unit
+(40.5 CSS), 17 deep, its lintel 0.66; a small phone on its side 48 (24
+CSS, the layout check's floor exactly); a tablet on its side 115, its
+panels 295 CSS px.
+
+**The review:**
+
+1. **A field a pixel shorter than its shape's room dropped the unit
+   mid-flight,** since the shape fills its room exactly: the upright phone's
+   on a room of 759 refitted to 39, baking the art twice and jumping the
+   field. Fixed: `fieldMetrics()` keeps the shape's unit while the field
+   overruns the room by a CSS pixel at most, in whole device pixels, and in
+   a larger room, refitting only past that or at another pixel ratio (choice
+   5). Specs: every row of the table, a CSS pixel narrower and shorter, at
+   1× and 2×; the edges of the slack; a larger room; a changed pixel ratio.
+2. **A room with no area gave a plausible shape with no way to tell.**
+   Fixed: `hasRoom()`, which `fieldShape()`'s doc names (choice 9), with
+   specs.
+3. **`CHROME_CSS_PX` wasn't held to `@fz/game-ui`.** Fixed:
+   `canvases.spec.ts` compiles the app's global stylesheet for the roomy
+   bar and the rail, and `compact_bar.scss` for the compact bar until U1's
+   frame publishes it.
+4. **The optional `into` hides an allocation.** Left: §5.4 gives the
+   three-argument form, so the default stays; the doc now says a frame's
+   drawing passes a place (choice 7).
+5. **Nits.** The unit's fit is said once (`unitFitting()`), and
+   `fieldMetrics()`'s doc says the field fills its room "unless the most
+   rows leave some spare". The spec that holds the frame narrower than the
+   least margin and the panels' gap compares constants; it stays, as it
+   holds the rule choice 2 rests on, which no layout reads.
+6. **On the choices,** the reviewer agreed with the rest, and asked for
+   choice 5 to say U1 shows the panels from `metrics.panels`, which it now
+   does.
+
+**The second review** (the first's fixes reshaped the change):
+
+1. **At a fractional pixel ratio a CSS pixel shorter still refitted the
+   unit,** as the slack was the ratio itself and a CSS pixel there is 2 or
+   3 whole device pixels at 2.625 (an upright phone's room of 1994 going to
+   1991 refitted 106 to 105). Fixed: the slack is `Math.ceil()` of the
+   ratio, and the table's resize mid-flight runs at 1.5× and 2.625× too.
+2. **`hasRoom()` kept the shape but not the layout,** while choice 9 said
+   it kept the art from baking at a pixel a unit. Fixed: its doc says a
+   caller keeps the shape and the layout and lays nothing out, and choice 9
+   says so.
+3. **One `it.each` named for the kept unit also held the refits.** Fixed:
+   split in two.
+4. **Choice 7 called the optional place Asteroid Breaker's pattern,**
+   whose is required. Fixed in the wording.
+5. **The margin's insets were written three times.** Fixed:
+   `marginInsets()` in `src/testing/canvases.ts`, used by the helper and
+   both specs.

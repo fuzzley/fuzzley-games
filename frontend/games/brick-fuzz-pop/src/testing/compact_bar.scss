@@ -1,0 +1,8 @@
+// The bar's size `@fz/game-ui` publishes on a compact screen, as
+// `game-frame` will on the app's host once the shell has one, which
+// `canvases.spec.ts` holds the specs' canvases to until then.
+@use "@fz/game-ui" as game-ui;
+
+:root {
+  @include game-ui.bar-size($compact: true);
+}

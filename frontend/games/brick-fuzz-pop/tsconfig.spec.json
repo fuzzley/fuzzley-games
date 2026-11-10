@@ -5,6 +5,12 @@
     // src/rules/aims.spec.ts rebuilds the aims with tools/build-aims.mjs,
     // which carries its types in JSDoc; tsconfig.scripts.json checks it.
     "allowJs": true,
+    // `@fz/dev/layout`, whose shapes the view's layout spec holds the field
+    // to, imports its modules by their full file names, as Node needs.
+    // Rewriting those names, rather than not emitting, allows them while
+    // Analog's plugin still compiles the libraries' Angular code for the
+    // specs.
+    "rewriteRelativeImportExtensions": true,
     "types": ["node", "vite/client", "vitest/globals"]
   },
   "include": ["src/**/*.ts"]
