@@ -7,6 +7,8 @@ import {
   type LegendCharacter,
   type LegendKindId,
   NO_BRICK,
+  PORTAL_MARKS,
+  tintOf,
 } from "./legend";
 
 const CHARACTERS = keysOf(LEGEND);
@@ -92,11 +94,48 @@ describe("the legend", () => {
     expect(LEGEND[character]).toEqual(brick);
   });
 
-  it("writes a wall's two pairs of portals apart", () => {
+  it("writes a wall's two pairs of portals apart, its first pair's mark first", () => {
     const portals = CHARACTERS.filter(
       (character) => LEGEND[character].kind === "portal",
     );
 
-    expect(portals).toEqual(["@", "&"]);
+    expect([portals, PORTAL_MARKS]).toEqual([
+      ["@", "&"],
+      ["@", "&"],
+    ]);
+  });
+});
+
+describe("tintOf", () => {
+  /** Returns the legend's characters whose bricks are of some kinds, or of none of them. */
+  const charactersOf = (
+    kinds: readonly LegendKindId[],
+    of: boolean,
+  ): LegendCharacter[] =>
+    CHARACTERS.filter(
+      (character) => kinds.includes(LEGEND[character].kind) === of,
+    );
+
+  it.each(charactersOf(["brick", "tough"], true))(
+    "tints %s by its wall row, the eight in turn from the lowest",
+    (character) => {
+      expect([0, 1, 7, 8, 13].map((row) => tintOf(character, row))).toEqual([
+        0, 1, 7, 0, 5,
+      ]);
+    },
+  );
+
+  it.each(charactersOf(["brick", "tough", "portal"], false))(
+    "leaves %s its own ink, whatever its row",
+    (character) => {
+      expect(tintOf(character, 5)).toBe(0);
+    },
+  );
+
+  it.each<[LegendCharacter, number]>([
+    ["@", 0],
+    ["&", 1],
+  ])("gives the portal %s its pair's mark, %s", (character, mark) => {
+    expect(tintOf(character, 5)).toBe(mark);
   });
 });

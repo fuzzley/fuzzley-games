@@ -1,3 +1,4 @@
+import { isOneOf } from "@fz/core/records";
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
 
 /** A plate's faces toward both side walls. */
@@ -58,3 +59,30 @@ export type LegendCharacter = keyof typeof LEGEND;
 
 /** The id of a kind the legend names, which the catalog holds once its set is built. */
 export type LegendKindId = (typeof LEGEND)[LegendCharacter]["kind"];
+
+/**
+ * The characters of a wall's portals, its first pair's and its second's,
+ * each pair's mark its place here, which tells the art's two marks apart.
+ */
+export const PORTAL_MARKS = [
+  "@",
+  "&",
+] as const satisfies readonly LegendCharacter[];
+
+/** How many tints plain and tough bricks take in turn, a row each, from a wall's lowest row up. */
+export const TINTS = 8;
+
+/**
+ * Returns the ink the brick a character stands for takes in a wall row, as
+ * `Brick.tint` holds it and answer 4 gives it: a plain or tough brick its
+ * row's, the rows taking the {@link TINTS} in turn from the wall's lowest
+ * up; a portal its pair's mark; and every other kind 0, as it keeps an ink
+ * of its own.
+ */
+export function tintOf(character: LegendCharacter, wallRow: number): number {
+  const { kind } = LEGEND[character];
+  if (kind === "brick" || kind === "tough") {
+    return wallRow % TINTS;
+  }
+  return isOneOf(character, PORTAL_MARKS) ? PORTAL_MARKS.indexOf(character) : 0;
+}
