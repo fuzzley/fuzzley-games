@@ -61,8 +61,8 @@ export interface HeldAsRules {
 
 /**
  * Says which libraries' entries a game drawn with Phaser lets its view
- * import beyond what every such game's does, and which files outside its
- * rules it holds as the rules are.
+ * import beyond what every such game's does, which files outside its rules
+ * it holds as the rules are, and whether those keep to exact arithmetic.
  */
 export interface PhaserGameLayers {
   /**
@@ -74,6 +74,14 @@ export interface PhaserGameLayers {
    */
   readonly viewAllows?: readonly string[];
   readonly heldAsRules?: HeldAsRules;
+  /**
+   * Whether the rules, and the files held as they are, keep to arithmetic
+   * every engine rounds alike: `+`, `-`, `*`, `/` and the functions of `Math`
+   * whose every digit the standard fixes, each called by its name.
+   *
+   * The view, whose art turns with `cos` and `sin`, never does.
+   */
+  readonly exact?: boolean;
 }
 
 // The global only Phaser's CommonJS build sets, which the specs load
@@ -270,6 +278,10 @@ export function phaser({ files }: Files): Config[] {
   });
 }
 
+// The folders of a game's rules and its view.
+const RULES = ["src/rules/**/*.ts"];
+const VIEW = ["src/view/**/*.ts"];
+
 // Phaser itself, anchored, so @fz/phaser's entries aren't taken for it.
 const PHASER = ["/phaser", "/phaser/*"];
 
@@ -363,6 +375,67 @@ const NONDETERMINISTIC_GLOBALS = [
       "fetch",
     ],
     message: STORAGE,
+  },
+];
+
+// The properties that draw a number from no seed, mix a seed by hand or read
+// the clock, each with its reason.
+const NONDETERMINISTIC_PROPERTIES = [
+  { object: "Math", property: "random", message: RANDOM },
+  { object: "Math", property: "imul", message: MIXED_SEED },
+  { object: "Date", property: "now", message: CLOCK },
+];
+
+// Math's functions whose every digit the standard fixes, so every engine
+// returns the same: the only ones exact arithmetic lets the rules call. A
+// function the language adds is refused until someone checks it joins them.
+const EXACT_MATH = [
+  "abs",
+  "ceil",
+  "floor",
+  "fround",
+  "max",
+  "min",
+  "round",
+  "sign",
+  "sqrt",
+  "trunc",
+];
+
+const EXACT = `The rules, and what is held as they are, use only + - * / and the functions of Math whose every digit the standard fixes (${EXACT_MATH.join(", ")}), each called by its name, so a run plays the same on every engine.`;
+
+// The members of Math exact arithmetic lets by: the exact functions, and
+// those no-restricted-properties refuses already, with a reason of their own.
+const MATH_LET_BY = [
+  ...EXACT_MATH,
+  ...NONDETERMINISTIC_PROPERTIES.filter(({ object }) => object === "Math").map(
+    ({ property }) => property,
+  ),
+].join("|");
+
+// What exact arithmetic refuses: of Math, every member but the exact
+// functions, so the language's later ones too, and any way of reaching one
+// that isn't its name; and `**`, which rounds as Math.pow() does.
+const INEXACT_SYNTAX = [
+  {
+    selector: `MemberExpression[object.name="Math"][computed=false]:not([property.name=/^(${MATH_LET_BY})$/])`,
+    message: `Math's other functions leave their last digit to the engine, or are yet to be checked, and its constants, such as π, are written out. ${EXACT}`,
+  },
+  {
+    selector: 'MemberExpression[object.name="Math"][computed=true]',
+    message: `A member of Math reached by a value, not its name, may be any of them. ${EXACT}`,
+  },
+  {
+    selector: 'VariableDeclarator[init.name="Math"]',
+    message: `Math taken apart or named again hides which of its members are called. ${EXACT}`,
+  },
+  {
+    selector: 'BinaryExpression[operator="**"]',
+    message: `** leaves its last digit to the engine, as Math.pow() does. ${EXACT}`,
+  },
+  {
+    selector: 'AssignmentExpression[operator="**="]',
+    message: `**= leaves its last digit to the engine, as Math.pow() does. ${EXACT}`,
   },
 ];
 
@@ -499,19 +572,21 @@ function fence(
 /**
  * Returns the block that keeps files, but their specs, from reading the
  * clock, a number drawn from no seed, a seed mixed by hand, the page or what
- * is stored or fetched.
+ * is stored or fetched, and, with `exact`, to arithmetic every engine rounds
+ * alike.
+ *
+ * Exact arithmetic's refusals join this block's own, since a later block
+ * setting the same rules would replace them.
  */
-function deterministic(files: readonly string[]): Config {
+function deterministic(
+  files: readonly string[],
+  { exact = false }: { readonly exact?: boolean } = {},
+): Config {
   return {
     files: [...files],
     ignores: ["**/*.spec.ts"],
     rules: {
-      "no-restricted-properties": [
-        "error",
-        { object: "Math", property: "random", message: RANDOM },
-        { object: "Math", property: "imul", message: MIXED_SEED },
-        { object: "Date", property: "now", message: CLOCK },
-      ],
+      "no-restricted-properties": ["error", ...NONDETERMINISTIC_PROPERTIES],
       // Phaser's again, since this list replaces typescript()'s.
       "no-restricted-globals": [
         "error",
@@ -532,6 +607,7 @@ function deterministic(files: readonly string[]): Config {
           selector: "CallExpression[callee.name='Date']",
           message: `Date() reads the clock. ${CLOCK}`,
         },
+        ...(exact ? INEXACT_SYNTAX : []),
       ],
     },
   };
@@ -610,10 +686,19 @@ function heldTogether({ root, files }: HeldAsRules): RestrictedImportPattern {
  * syntax in its rules replaces these rather than adding to them.
  */
 export function gameRules(): Config[] {
-  return defineConfig(
-    fence(["src/rules/**/*.ts"], RULES_FENCE),
-    deterministic(["src/rules/**/*.ts"]),
-  );
+  return defineConfig(rulesLayer([], false));
+}
+
+/**
+ * Returns the rules' fence, and the block that keeps them and the files held
+ * as they are to what they are handed, and to exact arithmetic where asked:
+ * {@link gameRules}, and the rules' part of {@link phaserGameLayers}.
+ */
+function rulesLayer(held: readonly string[], exact: boolean): Config[] {
+  return [
+    fence(RULES, RULES_FENCE),
+    deterministic([...RULES, ...held], { exact }),
+  ];
 }
 
 /**
@@ -624,6 +709,8 @@ export function gameRules(): Config[] {
  * with `import()`. The rules and the view, but their specs, are kept to what
  * they are handed besides: no clock or timer, no number drawn from no seed,
  * no seed mixed by hand, nothing of the page and nothing stored or fetched.
+ * With `exact`, the rules and what is held as they are keep to arithmetic
+ * every engine rounds alike too.
  *
  * ESLint takes a rule's options from the last block that sets it for a file,
  * so a block of the game's own that restricts imports, properties, globals or
@@ -640,6 +727,7 @@ export function gameRules(): Config[] {
 export function phaserGameLayers({
   viewAllows = [],
   heldAsRules,
+  exact = false,
 }: PhaserGameLayers = {}): Config[] {
   const notEntry = viewAllows.find((allowed) => !LIBRARY_ENTRY.test(allowed));
   if (notEntry !== undefined) {
@@ -654,14 +742,16 @@ export function phaserGameLayers({
   }
   const held = heldAsRules?.files ?? [];
   return defineConfig(
-    gameRules(),
-    fence(["src/view/**/*.ts"], viewFence(viewAllows)),
+    fence(VIEW, viewFence(viewAllows)),
     fence(["src/scene/**/*.ts"], SCENE_FENCE),
     fence(["src/app/**/*.ts"], APP_FENCE),
     heldAsRules && held.length > 0
       ? fence(held, [...RULES_FENCE, heldTogether(heldAsRules)])
       : [],
-    deterministic(["src/view/**/*.ts", ...held]),
+    deterministic(VIEW),
+    // After the view's, so a file held as the rules are keeps to exact
+    // arithmetic wherever it lies.
+    rulesLayer(held, exact),
   );
 }
 
