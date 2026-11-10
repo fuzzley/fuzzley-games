@@ -294,3 +294,208 @@ its review and the numbers worth keeping.
      of the row beside.** Fixed: it says so.
   5. **Two doc comments opened with two sentences** (`boxesIn()`'s and
      `wallFrom()`'s), and `shapeOf()`'s restated its branches. Fixed.
+
+### R2: `cast()`
+
+- **Date.** 2026-11-10.
+- **Built.**
+  - `src/rules/flight/cast.ts`: `cast(field, x, y, dx, dy, limit, into)`
+    writes into a `Contacts` record what a fuzzball flying from a place
+    along a heading meets first, no farther than `limit`: the `distance`,
+    where its middle is then (`x`, `y`), and each thing met as a `Met`:
+    `what` (`events.ts`' `Contact`), its wall `cell` (−1 for the field's
+    sides), its `side` (the face's or corner's `SIDE` bit, 0 for a bumper),
+    the way out (`nx`, `ny`, a unit long) and its own `distance`.
+    `createContacts()` makes the record once, to be reused, and
+    `castField(wall, depth, kinds)` what every cast of a flight reads: the
+    wall, read as it stands; each kind's shape; a round kind's reach, the
+    fuzzball's radius and its `kicks` disc; the boxes `exposureOf()` reads;
+    and the ceiling. It throws for a kind that kicks from a disc wider than
+    its cell.
+  - It walks moves of a unit (C10), move k starting k units on. Each sweeps
+    the side walls, the ceiling and the floor, and the cells its disc
+    overlaps or touches, nine at most: a box's exposed faces and corners
+    through `sweepFace()` and `sweepCorner()`, a round brick through
+    `sweepPoint()` at its reach, an open one not at all. A share t of
+    move k is k + t × its length. Everything met within `AT_ONCE` of the
+    earliest is gathered, each once, and listed by `Contact`'s order (so
+    faces before corners, C1's), then by cell (from the floor up, then
+    left to right), then by side. A corner's and a bumper's way out is the
+    line from the point to the middle over its length as met (C5).
+  - `src/testing/cast_reference.ts`: `castByScan()`, the same moves swept
+    against every brick in play, each kind's shape, a bumper's reach and the
+    boxes worked out from the kinds alone, everything found listed, then the
+    earliest and those within `AT_ONCE` of it kept once and sorted;
+    `castOf()`, a `Contacts` as plain values; and `randomField()`, a
+    `RandomField` (a wall, its field's depth and the kinds), and
+    `randomShot()`, seeded walls and shots.
+  - `src/testing/stand_ins.ts`: `BUMPER` and `PORTAL`, kinds made up for
+    specs, and `STAND_INS`, the catalog with them standing in for the row
+    and column zappers, so a picture's `-` is a bumper and its `|` a portal.
+  - `cast.spec.ts`: the plan's cases (a face, a seam, a corner, an inside
+    corner, a brick over the ceiling passed by), C5's corner overlapped,
+    the side walls, the ceiling and the floor, a bumper, a portal, the
+    limit, a face met as one move ends and again as the next starts, the
+    order of what is met at once, and the property spec.
+  - `src/rules/flight/benchmarks/cast.spec.ts`, in `sim`, prints cast()'s
+    median and 99th percentile beside a scan's.
+- **Names added to files that aren't the stream's.**
+  `src/rules/catalog/bricks.ts`: `BrickKinds`, the catalog's kinds by id as
+  the rules are handed them. `vitest.config.ts`: `sim` covers
+  `src/rules/flight/benchmarks`.
+- **Choices the plan didn't make.**
+  1. **The catalog is a parameter,** `BrickKinds`, the catalog's by default.
+     A `Brick`'s kind is a `BrickKindId`, so a kind that exists only in
+     specs stands in under a cataloged kind's id, in a catalog the spec
+     hands the rules (`STAND_INS`). R2 needs it already: a bumper's reach
+     comes from its `kicks` trait, and a portal's cell is open. `grid.ts`
+     follows: `Shapes`, `shapesOf(kinds)` and `SHAPES` replace R1's
+     `brickShape()`, which nothing used, and `boxesIn()` takes the shapes,
+     with no default, so a bumper's and a portal's neighbours show them
+     their faces in the specs now, which kills R1's three equivalent
+     mutants. `grid.spec.ts`' box case names the five warm-up kinds rather
+     than every cataloged one, since X2's bumper and portal won't be boxes.
+  2. **Moves of a unit, from where the cast starts,** not from cell edge to
+     cell edge: a move's disc overlaps 3 × 3 cells at most, and its start,
+     k units on, is a number the reference can work out alike. A move
+     sweeps the cells it only touches too (`ceil(least − r) − 1` to
+     `floor(most + r)`), since a face's end or a corner lies on their edge,
+     and a cast's last move may end touching it.
+  3. **The gathering reaches into the next move** while that move starts
+     within `AT_ONCE` of the earliest contact. Aimed at an inside corner
+     from a unit off, a fuzzball can meet one face as its first move ends
+     and the other only as the next starts (along aim 100, at
+     0.9999999999999998 and at 1); the spec sets the two 3e-10 either side
+     of the move's end, so it holds whatever the aim's numbers round to.
+     Something met as one move ends and again as the next starts, the same
+     what, cell and side, is noted once.
+  4. **The fuzzball is placed at `x + dx × distance`,** whether it met
+     something or flew to its limit, so one formula places it, whichever
+     move met what it met.
+  5. **A limit,** which `fly()` will set to the next yawn, zap or cap: past
+     it a cast meets nothing, its count 0 and its distance the limit. A
+     fuzzball in the field meets a wall within the field's diagonal anyway.
+     What lies just past the limit isn't met, though it lies within
+     `AT_ONCE` of something met at it: a caller that turns the fuzzball
+     there meets it as the fuzzball flies on, a turn later. `cast()`'s doc
+     says so, and R3 decides whether `fly()` minds.
+  6. **The field's sides are boxes** reaching 1,000 units beyond it, as
+     Brick Breaker's walls are; their contacts have cell −1 and the side
+     of the face they show the field (the left wall's `RIGHT`, the
+     ceiling's `FLOORWARD`, the floor's `CEILINGWARD`).
+  7. **The order at one moment is total,** as one number from what, cell
+     and side. Contacts are noted unsorted into records made once (132, the
+     most the cells of two moves and the four sides hold) and sorted once a
+     cast by adjacent swaps, those later than `AT_ONCE` after the earliest
+     last and then cut off; the code reads no list item it hasn't narrowed,
+     since `noUncheckedIndexedAccess` holds and lint refuses both `!` and
+     `as`.
+  8. **A portal's cell is passed through.** Its crossing, C3's, waits for
+     R3's teleport hook, as §6 R2 lists only the walls, faces, corners and
+     bumpers.
+  9. **The property spec casts four shots at each of the 2,000 walls,**
+     8,000 in all, a quarter from the floor, a third of the rest on quarter
+     units, a quarter of the headings along an axis, and a quarter of the
+     limits a whole number of units and a quarter less than one, as
+     `fly()`'s will often be, so faces are touched at their ends, at seams
+     and at corners, and moves are cut short. It takes about a second in
+     `pure`. The reference keeps its own unit of move, and works each kind's
+     shape and reach and the boxes out from the kinds, so a change to
+     cast()'s moves, or a wrong table in `castField()`, shows there.
+  10. **The benchmark prints and asserts nothing**, as §6 R2 asks; Vitest
+      shows a passing spec's printing only with `--reporter=verbose`:
+      `yarn vitest run --project sim --reporter=verbose`. It warms the scan
+      up with a round too, so the two are timed alike.
+  11. **A kind that kicks from a disc wider than its cell is refused:**
+      `castField()` throws a `RangeError`, since a cast sweeps only the
+      cells a fuzzball's disc overlaps, which holds a bumper only while its
+      disc lies in its cell.
+- **Checks.** The workspace's `lint`, `typecheck`, `test` and
+  `test:coverage` pass: 1,179 tests in 21 files in `dom` and `pure` (30 in
+  `cast.spec.ts`, 45 in `grid.spec.ts`), and the benchmark in `sim`; the
+  rules and the view at 100% of statements, branches, functions and lines,
+  `cast_reference.ts` and `stand_ins.ts` at 100% of statements. The root's
+  `yarn lint` passes.
+- **The mutation pass.** 60 mutants, one at a time, against the `pure`
+  project: 57 of `cast.ts`, 3 of `grid.ts`' shapes. 48 were killed at once,
+  among them `boxesIn()` taking any brick, or any brick not open, as a box,
+  which R1 logged as equivalent.
+  - Survived, then specced: a move's cells missing those it touches at its
+    left, right and lower edges (a face met just as the limit ends, flying
+    left, right and down: only the last move can't leave it to the next);
+    the order's number without the kind's place (a face listed before a
+    bumper met with it, though the bumper's cell is lower); and the boxes
+    read through the catalog's shapes rather than the kinds handed in (the
+    corner of a brick a bumper leaves bare, met before the bumper).
+  - Survived, and made equivalent: the earliest taken at `<=` rather than
+    `<`, which could move the fuzzball's place by an ulp where a contact is
+    met again as the next move starts; the place now comes from the
+    distance (the fourth choice). Its three mutants were killed.
+  - Equivalent: the look into the next move at `>=` rather than `>` (a move
+    starting exactly `AT_ONCE` after the earliest contact); the cells
+    clamped to the field's columns and rows, which `brickAt()` answers null
+    beyond anyway; a hidden face swept too, which a fuzzball outside every
+    box reaches only through the box hiding it; the noting gate widened,
+    since the gathering keeps only those within `AT_ONCE` at the end; and
+    the order's number without the side, which only two contacts of one kind
+    in one cell, two faces or two corners of one brick, would need, and no
+    fuzzball outside a box meets those at once.
+  - After the review, 9 more, all killed: the disc's bound at `>=`, and
+    lifted; the move's start and length not written into the scratch; a
+    contact's distance without the move's length; no look into the next
+    move; and the boxes, the reaches and `boxesIn()` read through the
+    catalog, the last three by the property spec alone too, now the
+    reference works its tables out itself.
+- **Numbers.**
+  - cast(): median 2.7 µs, 99th percentile 20 to 24 µs, over 20,000 casts of
+    2,000 seeded shots, a quarter of them shorter than a unit; a scan of
+    every brick, the reference, warmed up too: 46 to 62 µs and 524 to 675 µs
+    (three runs on this machine, Node 26).
+  - The property spec's 8,000 shots: 5,564 met one thing, 31 two at once,
+    and 2,405 nothing within their limits; 938 met something at once, at 0;
+    2,190 had a limit under a unit, and 449 of those met something. They met
+    2,180 side walls, 1,532 floors, 386 ceilings, 994 faces, 246 corners and
+    288 bumpers.
+- **The review:** a fresh agent found no bug in `cast()`, the walk's cells,
+  the gathering, the order and C5's normal checked by hand, and the hand
+  specs' numbers worked out again; its comments were on how independent and
+  robust the specs are. No second review: the fixes correct the change, and
+  `cast()`'s design stands.
+  1. The property spec couldn't catch a wrong table in `castField()`, since
+     the reference read the same field's shapes, reaches and boxes. Fixed:
+     `randomField()` returns the wall, its depth and the kinds; the spec
+     makes the cast's field with `castField()`, and the reference works out
+     each kind's shape (`shapeOf()`, specced on its own), a bumper's reach
+     and the boxes itself. The property spec alone now kills the boxes and
+     the reaches read through the catalog.
+  2. The gathering spec held only by how aim 100's numbers round. Fixed: it
+     starts 3e-10 farther across and nearer up, so the face below is met at
+     1 − 3e-10, in the first move, and the face beside at 1 + 3e-10, in the
+     next.
+  3. `boxesIn()`'s default shapes invited reading the catalog's for
+     stand-ins. Fixed: `shapes` is required.
+  4. The noting helpers took seven to nine numbers by position. Fixed in
+     part: a move's start and length sit in the move scratch beside its
+     place and heading, set once a move, which leaves the box, bumper and
+     face helpers five parameters and `notePoint()` and `note()` seven.
+     Left: those are a point, a share, what was met and its way out, named
+     at a handful of private calls, and the property spec, independent
+     now, catches a swap.
+  5. No cast had a limit under a unit, as `fly()`'s often will. Fixed: a
+     quarter of the property spec's limits are (2,190 shots, 449 of them
+     meeting something).
+  6. `SHAPES` was held to its own definition. Fixed: the spec pins the
+     warm-up's five kinds to boxes.
+  7. What lies just past the limit, within `AT_ONCE` of what is met at it,
+     isn't gathered. Left to R3, which decides whether `fly()` minds;
+     `cast()`'s doc says so (choice 5). Sweeping past the limit would report
+     contacts beyond it and place the fuzzball there.
+  8. `MOST_MET`'s doc opened with two sentences. Fixed. `AGENTS.md`'s line
+     on `sim`, which names only the certificates' and the careless player's
+     specs, is the integrator's to change, and the report asks for it.
+  9. The smaller points. `STAND_INS` replacing both zappers is left: a spec
+     wanting a bumper beside a zapper hands a catalog of its own, as R3's
+     may. A kicking disc wider than its cell, which a cast would miss, is
+     refused now (choice 11), specced at 0.5 and a hair over. The box case
+     naming the warm-up's kinds is explained (choice 1). The scan in the
+     benchmark is warmed up too.

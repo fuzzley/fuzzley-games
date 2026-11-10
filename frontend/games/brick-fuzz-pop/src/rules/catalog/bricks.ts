@@ -89,6 +89,13 @@ export const BRICK_KINDS = {
 /** A brick kind's id, such as "steel". */
 export type BrickKindId = keyof typeof BRICK_KINDS;
 
+/**
+ * Every kind of brick by its id, as the rules are handed them: the
+ * catalog's, or a spec's, where a kind the catalog doesn't hold yet stands
+ * in under the id of one it does.
+ */
+export type BrickKinds = Readonly<Record<BrickKindId, BrickKind>>;
+
 /** Every brick kind's id, in How to play's order. */
 export const BRICK_KIND_IDS = keysOf(BRICK_KINDS);
 

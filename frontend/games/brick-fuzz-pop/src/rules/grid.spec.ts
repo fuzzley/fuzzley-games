@@ -7,8 +7,9 @@ import {
   exposureOf,
   sweepFace,
 } from "@fz/core/sweep";
+import { STAND_INS } from "../testing/stand_ins";
 import { wallFrom } from "../testing/wall_picture";
-import { BRICK_KIND_IDS, type BrickKind, brickKind } from "./catalog/bricks";
+import { type BrickKind, brickKind } from "./catalog/bricks";
 import {
   CEILINGWARD,
   CEILINGWARD_LEFT,
@@ -18,19 +19,20 @@ import {
   FLOORWARD_RIGHT,
   LEFT,
   RIGHT,
+  SHAPES,
+  boxesIn,
   brickAt,
   brickBox,
-  brickShape,
   cellAt,
   cellOf,
   columnOf,
   fieldRowOf,
   shapeOf,
-  boxesIn,
+  shapesOf,
   wallRowOf,
 } from "./grid";
 import { RADIUS } from "./tuning";
-import type { Brick, Wall } from "./wall/wall";
+import type { Wall } from "./wall/wall";
 
 /** The depth of the field the specs play on, but where one says otherwise. */
 const DEPTH = 11;
@@ -42,17 +44,12 @@ function exposure(
   row: number,
   depth = DEPTH,
 ): number {
-  return exposureOf(boxesIn(wall, depth), column, row);
+  return exposureOf(boxesIn(wall, depth, SHAPES), column, row);
 }
 
 /** Returns a box with no size, for `brickBox()` to write into. */
 function emptyBox(): Box {
   return { left: 0, top: 0, right: 0, bottom: 0 };
-}
-
-/** Returns a brick of a kind, which is all of it `brickShape()` reads. */
-function brickOfKind(kind: Brick["kind"]): Brick {
-  return { kind, hits: 1, full: 1, plates: 0, tint: 0, twin: null };
 }
 
 describe("a brick's faces and corners in the field", () => {
@@ -207,9 +204,12 @@ describe("brickBox", () => {
 });
 
 describe("shapeOf", () => {
-  it.each(BRICK_KIND_IDS)("meets a fuzzball with %s's box", (id) => {
-    expect(shapeOf(brickKind(id))).toBe("box");
-  });
+  it.each(["brick", "tough", "steel", "rowZapper", "columnZapper"] as const)(
+    "meets a fuzzball with %s's box",
+    (id) => {
+      expect(shapeOf(brickKind(id))).toBe("box");
+    },
+  );
 
   // Kinds made up for the spec, as the bumper and the portal will be.
   it("meets a fuzzball with a disc where a solid kind kicks", () => {
@@ -232,9 +232,25 @@ describe("shapeOf", () => {
   });
 });
 
-describe("brickShape", () => {
-  it.each(BRICK_KIND_IDS)("gives a brick of %s its kind's shape", (id) => {
-    expect(brickShape(brickOfKind(id))).toBe(shapeOf(brickKind(id)));
+describe("shapesOf", () => {
+  it("gives each kind its shape, the stand-ins' among them", () => {
+    expect(shapesOf(STAND_INS)).toEqual({
+      brick: "box",
+      tough: "box",
+      steel: "box",
+      rowZapper: "round",
+      columnZapper: "open",
+    });
+  });
+
+  it("gives the catalog's kinds their shapes", () => {
+    expect(SHAPES).toMatchObject({
+      brick: "box",
+      tough: "box",
+      steel: "box",
+      rowZapper: "box",
+      columnZapper: "box",
+    });
   });
 });
 
@@ -305,10 +321,27 @@ describe("boxesIn, read through exposureOf", () => {
     });
   });
 
+  // A made-up bumper ("-") and portal ("|") stand in for kinds the catalog
+  // doesn't hold yet.
+  it.each([
+    ["a bumper's", "...o-o..."],
+    ["a portal's", "...o|o..."],
+  ])(
+    "counts %s cell as open, its neighbours showing it their faces",
+    (_, row) => {
+      const solid = boxesIn(wallFrom([row]), DEPTH, shapesOf(STAND_INS));
+
+      expect([exposureOf(solid, 3, 1), exposureOf(solid, 5, 1)]).toEqual([
+        ALL_SIDES,
+        ALL_SIDES,
+      ]);
+    },
+  );
+
   it("reads the wall as it stands when asked", () => {
     const wall = wallFrom(["...oo...."]);
     const bricks = [...wall.bricks];
-    const solid = boxesIn({ ...wall, bricks }, DEPTH);
+    const solid = boxesIn({ ...wall, bricks }, DEPTH, SHAPES);
 
     bricks[cellOf(3, 0)] = null;
 
