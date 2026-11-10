@@ -36,7 +36,16 @@ Four layers, each a folder under `src/` named for it, each importing only
 the layers below it, as `@fz/dev`'s `phaserGameLayers()` fences them in
 `eslint.config.js`: the rules, the view, the scene, which draws the field
 on Phaser, and the shell, `src/app/`, whose board will load the scene with
-`import()`. Only the shell holds code yet.
+`import()`. The scene holds nothing yet. The rules and the view hold the
+contracts the game is built against: the rules' types, a module for each
+part of a round, `src/rules/tuning.ts`'s numbers, the kinds of brick in
+`src/rules/catalog/`, the warm-up's so far, the levels' legend in
+`src/rules/levels/legend.ts`, `thirdsOf()` and `positionAt()`, with
+`playRound()` throwing until it is written; and the view's types, frame
+names and sound names. `src/testing/flight_fixtures.ts` holds rounds made
+by hand to build the view, the scene and the shell against, and
+`orderProblemsOf()` and `trackProblemsOf()`, which hold a flight to the
+order and the paths `src/rules/flight/events.ts` describes.
 
 | Layer | May import                                                                                                                                                  | May not import                                                                          |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
