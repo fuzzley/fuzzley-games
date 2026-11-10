@@ -341,3 +341,224 @@ kill it.
    and `brickOf()` dropped the legend's plates. Fixed: `wholeBrick()` gives
    a kind its fewest hits, none for one that never breaks; the portals
    stand on cells drawn as steel; `brickOf()` hands the plates on.
+
+### P1: the legend and Warm-up
+
+**2026-11-10.**
+
+**What was built.**
+
+- `src/rules/levels/warm-up.json`: `docs/brick-fuzz-pop/levels/warm-up.json`,
+  copied as it is: nine levels, each an id, a name, a boon and a picture of
+  its wall, top row first.
+- `levels/level.ts`: `Level`, a level ready to play (its boon, its wall's
+  bricks by wall cell and its rows), and `levelStart(level, depth)`, the
+  `RoundStart` a level opens with: its wall's lowest row on
+  `thirdsOf(depth).opensOn`, the fuzzball at `FIRST_X`, no friend, no boon.
+- `levels/levels.ts`, after Brick Breaker's: `LevelData`, `LevelSetData`,
+  `LevelEntry`, `LEVEL_SETS` (Warm-up), `levelsOf()`, `LEVELS`, the rules'
+  numbers (`WALL_ROWS`, 12 to 40; `MOST_AIR`, 2; `TWIN_ROWS`, 4) and
+  `parseLevel(data)`. It refuses, naming the level and what is wrong: a key
+  no level has (`unknownKey()`), a boon that isn't one, a wall of too few or
+  too many rows, a row not nine long, a character the legend lacks, a
+  highest or lowest row of air, three rows of air together, a portal mark
+  used other than as one pair, a pair more than four rows apart, a second
+  pair with no first, a row of steel from side to side that is neither the
+  top row nor in the top course with a portal past it, and a kind no set
+  has brought in yet. It lays the wall out from its lowest row up, each
+  brick whole, a portal's twin the other cell of its pair.
+- `levels/legend.ts` gains `PORTAL_MARKS`, `["@", "&"]`, a wall's first
+  pair's character and its second's; `TINTS`, 8; and `tintOf(character,
+wallRow)`, a brick's ink as answer 4 has it: a plain or tough brick its
+  row's, the eight in turn from the wall's lowest row up, a portal its
+  pair's mark, every other kind 0.
+- `shot.ts` gains `isBoon()`, over a private record of every boon, so a boon
+  added to `Boon` fails to compile until it is known. This adds a name to a
+  K2 contract file.
+- `levels.spec.ts`: `parseLevel()` laying out every cataloged character, the
+  rows from the lowest up, the tints, the specials' own inks, every refusal
+  by its message, and the portals' rules kept up to the refusal of their
+  kind; `levelsOf()`; the reach check's own specs; and every level held to
+  "The rules a level keeps": it parses, its id and name are its own (and
+  each set's id), its wall is the draft's (rows, bricks needed and hits, as
+  plan.md's table has them), no needed brick is sealed in, it holds no more
+  than six cages, its lowest row needs nothing of more than 3 hits and isn't
+  a row of plates facing the floor, and it uses no kind before the level
+  that brings it in, each cataloged kind brought in at the level its
+  `firstLevel` names. `level.spec.ts` holds `levelStart()` to plan.md's
+  table at every depth, its level drawn with R1's `wallFrom()`.
+  `legend.spec.ts` holds `tintOf()` for every character of the legend, the
+  cases drawn from the legend by kind.
+- **The reach check** (`sealedIn()`, in the spec, as Brick Breaker's
+  `shutIn()` is): a fuzzball floods in from the open row under the wall, a
+  cell at a time across or up and down, through every cell but a solid
+  kind's that never breaks, over the wall's top row, and from a portal on out
+  of its twin; then each zapper it reaches zaps the cells its pattern and
+  reach give, through steel, setting off each zapper there in turn. A
+  round's zaps all land in the field at once, so each chain is held to a
+  window of 10 wall rows (`ZAP_ROWS`, 9, the most rows apart the row over
+  the floor's and the row under the ceiling stand in the shallowest field),
+  every window tried from the wall's lowest row up. A needed brick neither
+  flooded nor zapped is sealed in. Its specs: a brick boxed in steel, one
+  boxed with its corners open, one reached over the top row, one zapped
+  into, one zapped into by a zapper a zap set off, a zapper boxed in with the
+  brick it would zap, a brick a zap misses, a brick 9 rows over a column
+  zapper reached and one 10 rows over sealed, and a brick a chain of zaps
+  reaches only past the shallowest field's ceiling, sealed.
+- **R5's `lower.spec.ts` draws its walls with `wallFrom()`,** as the
+  integrator asked once R1 had landed: its `wallOf()`, which keys rows by
+  the field row they stand in for the specs at every depth, now builds a
+  picture for `wallFrom()`, its own `brickOf()` is gone, and it takes
+  `cellAt()` and `fieldRowOf()` from `grid.ts`. `lowerWall()` reads the
+  lowest needed brick's row with `fieldRowOf()`.
+
+**Choices the plan didn't make.**
+
+1. **No level legend of its own and no grid of tints.** plan.md's "The
+   levels" allows both, as Brick Breaker's levels have them, but no draft of
+   the 36 uses either, and the shared legend names every kind at every hit
+   count the catalog allows (C12). `unknownKey()` refuses `legend` and
+   `tints`, so a level that wants one fails loudly until the package that
+   draws it adds them.
+2. **`parseLevel()` holds the first four rules but for ids and names no
+   other level has,** which one level can't show; `levels.spec.ts` holds
+   those over every level. It also refuses a kind no set has brought in yet,
+   as a `Brick`'s kind must be cataloged.
+3. **The portals' rules are read from the picture's characters, before the
+   kinds,** so they are specced now, though a wall with a portal is refused
+   for its kind until X2 catalogs it, and X2 needs no change to
+   `parseLevel()`. "Two pairs at most" is the legend's two marks; a mark
+   used once or three times, or `&` with no `@`, is refused, so a wall's
+   only pair always takes the first mark, as `Brick.tint` says.
+4. **"A full row of steel only in a wall's top course: over everything, or
+   with a portal past it"** reads as: the wall's top row, or a row with no
+   air over it and a pair of portals, one under it and one over it.
+   Wormhole and Bank vault, the two drafts with such a row, keep it.
+5. **"No lowest row of plates facing the floor"** reads as: the lowest row's
+   needed bricks are not all plated toward the floor. A lowest row with no
+   needed brick, as Girder's of steel and air, passes, as it did the plan's
+   check of the 36 drafts.
+6. **Tints by kind:** the brick and the tough brick take their row's tint,
+   as the art's `InkedKind` and the fixtures have it, rather than reading
+   "no traits" off the catalog. `tintOf()` is the legend's, so the rules
+   say it once; R1's `wallFrom()` still works it out for itself, with its
+   own `TINTS`, and could take it from here.
+7. **Errors name the picture's rows from the top,** as the file lists them,
+   though the wall counts its rows from the lowest.
+8. **The flood fill is the spec's own,** as Brick Breaker's is; the plan's
+   check of the 36 drafts wasn't kept. It counts the row under the wall and
+   the row over it as open, moves across or up and down only (a fuzzball
+   can't pass between bricks that touch at a corner), runs a zap as far as
+   its kind's `reach`, a chain within `ZAP_ROWS` of its lowest row, and a
+   blast its eight ways. Only the row and column zappers are cataloged, so
+   its portal hop, its cross, X and blast ways, and plated bricks (which it
+   floods as any brick that breaks, whichever face is plated) are written
+   but not yet specced: **X1 and X2 spec `sealedIn()` for the kinds they
+   catalog,** blasts, X zaps, portals and plates.
+9. **`levelStart()` is P1's,** since it says where a level opens; R7, the
+   solver and the certificates start a level with it.
+10. **The level file is a copy.** `levels/build.mjs` still writes the drafts
+    beside itself; a level redrawn there is copied here again. Nothing holds
+    the two alike.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 1,323 tests in 22 files, 173 of them new
+(`levels.spec.ts` 124, `level.spec.ts` 15, `legend.spec.ts` 26,
+`shot.spec.ts` 8); the rules and the view at 100% of statements, branches,
+functions and lines, `levels.ts`, `level.ts` and `legend.ts` among them.
+`levels.spec.ts` runs in about 0.3 s. The root's `yarn lint` passes. A
+throwaway spec, not kept, parsed all 36 drafts in
+`docs/brick-fuzz-pop/levels/`: Warm-up's nine parse, and each of the other
+27 is refused only for its first kind no set has brought in yet, so every
+draft keeps the picture's rules, the portals' and the steel's.
+
+**The mutation pass.** 56 mutants on the first pass, one at a time: 47 of
+`levels.ts` (the unknown key and the boon let through; each bound of the
+rows, the air and the twins, and each made inclusive; long rows and stray
+characters let through, air counted a stray, air never reset; the highest
+and lowest air let through; a portal with no twin or three of one mark let
+through; a twin left unset; the top row's exception moved, a row with any
+steel taken for one of steel, the air over steel and the missing portal let
+through, the portal's bounds and the rows over the steel moved; steel read
+as any kind; an uncataloged kind let through; the picture read top first;
+the rows, the full hits, the plates and the twin dropped; tints of seven,
+from the top, the tough brick's own ink, every kind a row's tint, a
+special's ink unclamped or its portal mark dropped; levels numbered from 0;
+no sets; an error that doesn't name its level), 5 of `level.ts`, 2 of
+`isBoon()` and 2 of `PORTAL_MARKS`. Two specs then killed 3 of the 10 left
+(a row too long; air straight over a row of steel a portal passes). After
+the review, 17 more on the code it changed: the second pair with no first
+let through or never counted, each half of the portal past the steel
+dropped, a twin unset, a stray let through, the twins' distance by cells,
+the tints of seven, of nine and from the top, the tough brick's own ink,
+every kind a row's tint, every special a portal, the portal's mark
+dropped, and `lowerWall()`'s jump row read without the lowest needed
+brick's, strictly, or from the highest; and 4 of the reach check itself
+(`ZAP_ROWS` uncapped or a row short, no zaps, no row over the wall). After
+the second review, 6 more: the reach check's windows made one, a row short
+or a row long, and no zaps; and the moss and the cross zapper given their
+row's tint. Every one is killed but 6, which no spec can kill yet or ever:
+
+- **Until X2 catalogs the portal and the plated brick, 3:** the higher
+  portal's twin left unset, the twin dropped and the plates dropped. No
+  cataloged kind has a twin or a plate, so X2's specs of a parsed portal
+  and plated brick kill them.
+- **Equivalent for good, 3:** `wallRowOf(cell) < row` made `<=` and
+  `wallRowOf(twin) > row` made `>=`, since a row of steel from side to side
+  holds no portal; and the rows over a steel row counted with the row
+  itself, which is never air.
+
+**The review:**
+
+1. **No spec had both portals under a row of steel,** so dropping
+   `wallRowOf(twin) > row` passed. Fixed: that case is in the table of
+   refusals, and the mutant is killed.
+2. **The reach check ran a column zap past the shallowest field's ceiling,
+   and its portal hop, its other zap patterns and plates were unspecced.**
+   Fixed: a zap runs no more than `ZAP_ROWS` up or down, with a spec on
+   each side of it. The rest waits on kinds not cataloged yet; choice 8
+   puts it on X1 and X2.
+3. **A wall whose only pair was `&` took tint 1,** against `Brick.tint`.
+   Fixed: `&` with no `@` is refused, with a spec.
+4. **`tintOf()` hid "not a portal, so 0" in a clamp.** Fixed: it reads
+   `isOneOf(character, PORTAL_MARKS) ? PORTAL_MARKS.indexOf(character) :
+0`, and takes the character alone, so it is specced for every kind of
+   character, portals among them.
+5. **The legend-to-brick conversion lived in three places** (`parseLevel()`,
+   the fixtures and R1's `wallFrom()`). Partly fixed: `tintOf()` and
+   `TINTS` moved to `legend.ts`, exported, for `wallFrom()` to take; that
+   file is the rules stream's, so the change is the integrator's to ask
+   for.
+6. **The smaller points.** Fixed: `level.spec.ts`'s level is drawn with
+   `wallFrom()` and its doc says a steel brick; it holds `levelStart()` to
+   plan.md's table rather than to `thirdsOf()`; the lowest row's plates are
+   asserted as a count against the needed bricks, with a comment; the
+   picture is checked in a `for … of`; `charactersOf()` is
+   `split("")`; `parseLevel()`'s doc points at plan.md's rules rather
+   than listing them; the two specs of the portals' marks are one. Left:
+   `AIR` and `BUILT` stay in each spec beside the pictures they draw.
+7. **`isBoon()` is in a K2 contract file.** The rules for this work allow
+   adding a name to one in the package's commit, named in the log and the
+   report, which this is. The mutation summary now says which survivors
+   wait on X2 and which are equivalent for good.
+
+A second review read the answers, since moving `tintOf()` into the legend
+and `lower.spec.ts` onto `wallFrom()` reshaped the change:
+
+1. **A chain of zaps could carry past the shallowest field,** each zap held
+   to 9 rows but the zapper it set off zapping 9 more, though one round's
+   zaps all land in the field at once. Fixed: each chain is held to a window
+   of 10 wall rows, every window tried, with the reviewer's wall (a zapper
+   boxed 9 rows over another, a brick boxed over it) as a spec.
+2. **The "own ink" spec listed characters by hand and missed the cross and
+   X zappers, moss, the shell of 3 and the plates.** Fixed: both tint specs
+   draw their characters from the legend by kind, and the moss and cross
+   zapper mutants are killed. The spec of `TINTS` against 8 is gone: the
+   view's `TILE_INKS`, which the art stream owns, is where the tiles' eight
+   inks could be held to it.
+3. **`wallFrom()` keeps its own `TINTS` and tint rule,** which already give
+   `&` tint 0 where `tintOf()` gives 1. Left: `wall_picture.ts` is the rules
+   stream's, so the one-line switch to `tintOf()` goes to the integrator in
+   the report.
+4. **`parseLevel()`'s shortened doc read two ways.** Fixed: the refusal of a
+   kind no set has brought in yet is a sentence of its own.

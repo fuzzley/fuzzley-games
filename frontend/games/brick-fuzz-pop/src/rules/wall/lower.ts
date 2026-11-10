@@ -1,4 +1,5 @@
 import { brickKind } from "../catalog/bricks";
+import { fieldRowOf } from "../grid";
 import { COLUMNS } from "../tuning";
 import { type Brick, type Wall, thirdsOf } from "./wall";
 
@@ -41,7 +42,7 @@ export function lowerWall(wall: Wall, depth: number): LoweredWall {
   // Steel, bumpers and portals below the jump line don't hold the wall
   // back, and rows waiting over the ceiling don't either.
   const lowest = grown.bricks.findIndex(isNeeded);
-  const jumped = grown.lowestRow + Math.floor(lowest / COLUMNS) >= jumpLine;
+  const jumped = fieldRowOf(grown, lowest) >= jumpLine;
   const rowsDown = jumped ? jump : 1;
   const lowestRow = grown.lowestRow - rowsDown;
   // Wall row r stands in field row lowestRow + r, so the rows up to

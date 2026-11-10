@@ -1,15 +1,12 @@
-import { isKeyOf, keysOf } from "@fz/core/records";
+import { keysOf } from "@fz/core/records";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,
 } from "../../testing/flight_fixtures";
-import {
-  BRICK_KIND_IDS,
-  type BrickKindId,
-  brickKind,
-  isBrickKindId,
-} from "../catalog/bricks";
-import { LEGEND, NO_BRICK } from "../levels/legend";
+import { wallFrom } from "../../testing/wall_picture";
+import { BRICK_KIND_IDS, type BrickKindId, brickKind } from "../catalog/bricks";
+import { cellAt, fieldRowOf } from "../grid";
+import { NO_BRICK } from "../levels/legend";
 import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../tuning";
 import { isCleared, lowerWall, regrow } from "./lower";
 import { type Brick, type Wall, thirdsOf } from "./wall";
@@ -25,42 +22,28 @@ const BRICKS = "ooooooooo";
 const STEEL = "#########";
 
 /**
- * Returns a wall drawn as its rows in the legend's characters, each keyed
- * by the field row it stands in: its lowest row the lowest key, its highest
- * the highest, and every row between them not drawn air.
+ * Returns a wall drawn with `wallFrom()` as its rows in the legend's
+ * characters, each keyed by the field row it stands in, so a spec at every
+ * depth draws its rows where the depth's thirds put them: its lowest row
+ * the lowest key, its highest the highest, and every row between them not
+ * drawn air.
  */
 function wallOf(rows: Readonly<Record<number, string>>): Wall {
   const fieldRows = Object.keys(rows).map(Number);
   const lowestRow = Math.min(...fieldRows);
-  const count = Math.max(...fieldRows) - lowestRow + 1;
-  const bricks = Array.from({ length: count * COLUMNS }, (_, cell) => {
-    const line = rows[lowestRow + Math.floor(cell / COLUMNS)] ?? AIR;
-    return brickOf(line.charAt(cell % COLUMNS));
-  });
-  return { bricks, rows: count, lowestRow };
-}
-
-/** Returns the brick a character of the legend stands for, throwing for one whose kind isn't cataloged. */
-function brickOf(character: string): Brick | null {
-  if (character === NO_BRICK) {
-    return null;
-  }
-  const entry = isKeyOf(character, LEGEND) ? LEGEND[character] : null;
-  if (entry === null || !isBrickKindId(entry.kind)) {
-    throw new RangeError(`"${character}" is no cataloged kind's brick.`);
-  }
-  return brickOfKind(entry.kind, entry.hits, entry.plates);
-}
-
-/** Returns a whole brick of a kind, with its hits and its plates. */
-function brickOfKind(kind: BrickKindId, hits: number, plates = 0): Brick {
-  return { kind, hits, full: hits, plates, tint: 0, twin: null };
+  const highestRow = Math.max(...fieldRows);
+  const picture = Array.from(
+    { length: highestRow - lowestRow + 1 },
+    (_, below) => rows[highestRow - below] ?? AIR,
+  );
+  return wallFrom(picture, { lowestRow });
 }
 
 /** Returns a whole brick of a kind with the fewest hits it takes, none for one that never breaks. */
 function wholeBrick(kind: BrickKindId): Brick {
   const { hits } = brickKind(kind);
-  return brickOfKind(kind, hits === "never" ? 0 : hits);
+  const whole = hits === "never" ? 0 : hits;
+  return { kind, hits: whole, full: whole, plates: 0, tint: 0, twin: null };
 }
 
 /**
@@ -85,14 +68,9 @@ function withPortals(wall: Wall, one: number, other: number): Wall {
   };
 }
 
-/** Returns the wall cell of a column in a field row. */
-function cellAt(wall: Wall, fieldRow: number, column: number): number {
-  return (fieldRow - wall.lowestRow) * COLUMNS + column;
-}
-
 /** Returns a wall with the bricks of a field row broken, as a round breaks them. */
 function brokenRow(wall: Wall, fieldRow: number): Wall {
-  const first = cellAt(wall, fieldRow, 0);
+  const first = cellAt(wall, 0, fieldRow);
   return {
     ...wall,
     bricks: wall.bricks.map((brick, cell) =>
@@ -104,7 +82,7 @@ function brokenRow(wall: Wall, fieldRow: number): Wall {
 /** Returns the field rows a wall's bricks stand in, the lowest first, a row once. */
 function rowsWithBricks(wall: Wall): number[] {
   const rows = wall.bricks.flatMap((brick, cell) =>
-    brick === null ? [] : [wall.lowestRow + Math.floor(cell / COLUMNS)],
+    brick === null ? [] : [fieldRowOf(wall, cell)],
   );
   return [...new Set(rows)];
 }
@@ -208,7 +186,7 @@ describe("lowerWall", () => {
         [jumpLine - 1]: "#.......#",
         [jumpLine]: BRICKS,
       });
-      const wall = withPortals(steel, cellAt(steel, 2, 4), cellAt(steel, 3, 4));
+      const wall = withPortals(steel, cellAt(steel, 4, 2), cellAt(steel, 4, 3));
 
       const lowered = lowerWall(wall, depth);
 
@@ -235,8 +213,8 @@ describe("lowerWall", () => {
 
     it("sinks a portal's twin with it as the wall jumps, the twin waiting over the ceiling", () => {
       const air = wallOf({ 1: AIR, [jumpLine]: BRICKS, [depth + 1]: AIR });
-      const portal = cellAt(air, 1, 2);
-      const twin = cellAt(air, depth + 1, 6);
+      const portal = cellAt(air, 2, 1);
+      const twin = cellAt(air, 6, depth + 1);
 
       const lowered = lowerWall(withPortals(air, portal, twin), depth);
 
@@ -273,8 +251,8 @@ describe("lowerWall", () => {
 
   it("sinks a portal with its twin once the twin reaches the floor first", () => {
     const air = wallOf({ 1: AIR, 2: AIR, 3: AIR, 4: "....o...." });
-    const portal = cellAt(air, 3, 0);
-    const twin = cellAt(air, 1, 8);
+    const portal = cellAt(air, 0, 3);
+    const twin = cellAt(air, 8, 1);
 
     const lowered = lowerWall(withPortals(air, portal, twin), 11);
 
@@ -284,9 +262,9 @@ describe("lowerWall", () => {
   it("names each brick sunk once, by cell, a twin among them", () => {
     const steel = wallOf({ 1: "#...#...#", 2: AIR, 3: AIR, 4: "....o...." });
     const wall = withPortals(
-      withPortals(steel, cellAt(steel, 1, 1), cellAt(steel, 3, 2)),
-      cellAt(steel, 1, 6),
-      cellAt(steel, 1, 7),
+      withPortals(steel, cellAt(steel, 1, 1), cellAt(steel, 2, 3)),
+      cellAt(steel, 6, 1),
+      cellAt(steel, 7, 1),
     );
 
     const lowered = lowerWall(wall, 11);
