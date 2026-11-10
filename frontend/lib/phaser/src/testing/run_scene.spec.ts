@@ -1,6 +1,7 @@
 import {
   type Game,
   type GameObjects,
+  type Input,
   Renderer,
   Scene,
   Scenes,
@@ -21,6 +22,14 @@ class ProbeScene extends Scene implements HostedScene {
   pointers: string[] = [];
   /** Whether each press and release came from a finger. */
   touched: boolean[] = [];
+  /** The button of each press and release, and the buttons held after it, as "2 of 2". */
+  buttons: string[] = [];
+  /** Whether each release was a touch the browser took away. */
+  canceled: boolean[] = [];
+  /** Each turn of the wheel, where it was, by how much and the buttons held. */
+  wheels: string[] = [];
+  /** The buttons held at each move. */
+  moved: number[] = [];
   box!: GameObjects.Rectangle;
 
   constructor(private readonly surroundings: SceneSurroundings) {
@@ -37,31 +46,33 @@ class ProbeScene extends Scene implements HostedScene {
       this.keys.push(event.code);
       this.pressed.push(event);
     });
-    this.input.on(
-      "pointerdown",
-      (pointer: { x: number; y: number; wasTouch: boolean }) => {
-        this.pointers.push(`down ${pointer.x},${pointer.y}`);
-        this.touched.push(pointer.wasTouch);
-      },
-    );
+    this.input.on("pointerdown", (pointer: Input.Pointer) => {
+      this.pointers.push(`down ${pointer.x},${pointer.y}`);
+      this.touched.push(pointer.wasTouch);
+      this.buttons.push(`${pointer.button} of ${pointer.buttons}`);
+    });
     this.input.on("pointerdownoutside", (pointer: { x: number; y: number }) => {
       this.pointers.push(`outside ${pointer.x},${pointer.y}`);
     });
+    this.input.on("pointerup", (pointer: Input.Pointer) => {
+      this.pointers.push(
+        `up ${pointer.x},${pointer.y} from ${pointer.downX},${pointer.downY}`,
+      );
+      this.touched.push(pointer.wasTouch);
+      this.buttons.push(`${pointer.button} of ${pointer.buttons}`);
+      this.canceled.push(pointer.wasCanceled);
+    });
     this.input.on(
-      "pointerup",
-      (pointer: {
-        x: number;
-        y: number;
-        downX: number;
-        downY: number;
-        wasTouch: boolean;
-      }) => {
-        this.pointers.push(
-          `up ${pointer.x},${pointer.y} from ${pointer.downX},${pointer.downY}`,
+      "wheel",
+      (pointer: Input.Pointer, _over: unknown, _dx: number, dy: number) => {
+        this.wheels.push(
+          `${pointer.x},${pointer.y} by ${dy} holding ${pointer.buttons}`,
         );
-        this.touched.push(pointer.wasTouch);
       },
     );
+    this.input.on("pointermove", (pointer: Input.Pointer) => {
+      this.moved.push(pointer.buttons);
+    });
     this.events.once("postupdate", () => {
       this.surroundings.ready();
     });
@@ -310,6 +321,84 @@ describe("runScene", () => {
     run.destroy();
   });
 
+  it("presses and lets go of the mouse's main button unless told another", async () => {
+    const run = await runProbe();
+
+    run.pointer("down", 10, 20);
+    run.pointer("up", 10, 20);
+
+    expect(run.scene.buttons).toEqual(["0 of 1", "0 of 0"]);
+    run.destroy();
+  });
+
+  it.each([
+    [1, 4],
+    [2, 2],
+    [3, 8],
+    [4, 16],
+  ] as const)(
+    "presses button %i, holding the buttons %i, and lets it go, as a browser does",
+    async (button, held) => {
+      const run = await runProbe();
+
+      run.pointer("down", 10, 20, { button });
+      run.pointer("up", 10, 20, { button });
+
+      expect(run.scene.buttons).toEqual([
+        `${button} of ${held}`,
+        `${button} of 0`,
+      ]);
+      run.destroy();
+    },
+  );
+
+  it("turns the mouse's wheel over the canvas, at a point in its pixels", async () => {
+    const run = await runProbe();
+
+    run.wheel(120, 30, 40);
+    run.wheel(-60, 32, 44);
+
+    expect(run.scene.wheels).toEqual([
+      "30,40 by 120 holding 0",
+      "32,44 by -60 holding 0",
+    ]);
+    run.destroy();
+  });
+
+  it("turns the wheel with the buttons held", async () => {
+    const run = await runProbe();
+    run.pointer("down", 30, 40, { button: 1 });
+
+    run.wheel(120, 30, 40);
+
+    expect(run.scene.wheels).toEqual(["30,40 by 120 holding 4"]);
+    run.destroy();
+  });
+
+  it("moves the mouse with no button held until one is pressed, and with it after", async () => {
+    const run = await runProbe();
+
+    run.pointer("move", 10, 20);
+    run.pointer("down", 10, 20, { button: 2 });
+    run.pointer("move", 12, 22);
+    run.pointer("up", 12, 22, { button: 2 });
+    run.pointer("move", 14, 24);
+
+    expect(run.scene.moved).toEqual([0, 2, 0]);
+    run.destroy();
+  });
+
+  it("holds a button still pressed as another is let go", async () => {
+    const run = await runProbe();
+
+    run.pointer("down", 10, 20);
+    run.pointer("down", 10, 20, { button: 2 });
+    run.pointer("up", 10, 20, { button: 2 });
+
+    expect(run.scene.buttons).toEqual(["0 of 1", "2 of 3", "2 of 1"]);
+    run.destroy();
+  });
+
   it("runs the scene with Phaser's WebGL renderer", async () => {
     const run = await runProbe();
 
@@ -468,7 +557,7 @@ describe("runScene", () => {
     const chrome = document.createElement("header");
     document.body.append(chrome);
 
-    run.pointer("down", 10, 20, chrome);
+    run.pointer("down", 10, 20, { on: chrome });
 
     expect([
       run.scene.pointers,
@@ -485,10 +574,35 @@ describe("runScene", () => {
     run.touch("move", 40, 22);
     run.touch("end", 60, 25);
 
-    expect([run.scene.pointers, run.scene.touched]).toEqual([
-      ["down 10,20", "up 60,25 from 10,20"],
-      [true, true],
-    ]);
+    expect([run.scene.pointers, run.scene.touched, run.scene.canceled]).toEqual(
+      [["down 10,20", "up 60,25 from 10,20"], [true, true], [false]],
+    );
+    run.destroy();
+  });
+
+  it("takes a finger's touch away with an event no listener can stop, as a browser's", async () => {
+    const run = await runProbe();
+    const stoppable: boolean[] = [];
+    run.game.canvas.addEventListener("touchcancel", (event) => {
+      stoppable.push(event.cancelable);
+    });
+
+    run.touch("start", 10, 20);
+    run.touch("cancel", 12, 22);
+
+    expect(stoppable).toEqual([false]);
+    run.destroy();
+  });
+
+  it("takes a finger's touch away, as a browser does for a gesture of its own", async () => {
+    const run = await runProbe();
+
+    run.touch("start", 10, 20);
+    run.touch("cancel", 12, 22);
+
+    expect([run.scene.pointers, run.scene.touched, run.scene.canceled]).toEqual(
+      [["down 10,20", "up 12,22 from 10,20"], [true, true], [true]],
+    );
     run.destroy();
   });
 

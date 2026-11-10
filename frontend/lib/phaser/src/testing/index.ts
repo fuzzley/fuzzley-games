@@ -27,6 +27,8 @@ export {
 } from "./keyed_scene";
 export {
   type KeyModifiers,
+  type MouseButton,
+  type PointerOptions,
   type SceneRun,
   type SceneRunOptions,
   browserKey,

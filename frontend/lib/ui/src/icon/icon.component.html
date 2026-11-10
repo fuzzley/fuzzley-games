@@ -53,6 +53,10 @@
       <path d="M14 4.5h5.5V10M19.5 4.5 11 13" />
       <path d="M17.5 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2h4" />
     }
+    @case ("fast-forward") {
+      <!-- Two arrowheads, one after the other. -->
+      <path d="M4 6.5v11l8-5.5zM12 6.5v11l8-5.5z" />
+    }
     @case ("flag") {
       <path d="M6 3.25h2v17.5H6z" />
       <path d="M8 4h11l-3.25 4.5L19 13H8z" />
@@ -129,6 +133,11 @@
       />
       <circle cx="12" cy="12" r="3" />
     }
+    @case ("skip") {
+      <!-- Play's arrowhead against a bar: on to the end. -->
+      <path d="M4.25 5.5v13l11-6.5z" />
+      <rect x="16.5" y="5.5" width="3.25" height="13" rx="1" />
+    }
     @case ("sound") {
       <path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z" />
       <path d="M15.5 9.25a4 4 0 0 1 0 5.5M18 6.5a7.75 7.75 0 0 1 0 11" />
@@ -136,6 +145,11 @@
     @case ("sound-off") {
       <path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z" />
       <path d="m16 9.5 5 5M21 9.5l-5 5" />
+    }
+    @case ("star") {
+      <path
+        d="M12 3.86 14.23 9.79 20.56 10.08 15.61 14.03 17.29 20.14 12 16.66 6.71 20.14 8.39 14.03 3.44 10.08 9.77 9.79z"
+      />
     }
     @case ("tick") {
       <path d="M5 12.5 10 17.5 19 7.5" />

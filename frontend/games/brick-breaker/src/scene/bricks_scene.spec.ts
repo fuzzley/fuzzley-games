@@ -896,6 +896,20 @@ describe("BricksScene", () => {
       expect(shell.commands).toEqual(["launch"]);
     });
 
+    it.each([
+      ["the middle button", 1],
+      ["the right button", 2],
+      ["the back button", 3],
+      ["the forward button", 4],
+    ] as const)("doesn't launch at a press of %s", async (_, button) => {
+      const { shell, run } = await startBoard();
+
+      run.pointer("down", 200, 300, { button });
+      run.pointer("up", 200, 300, { button });
+
+      expect(shell.commands).toEqual([]);
+    });
+
     it("steers the paddle to where the mouse moves", async () => {
       const { shell, run } = await startBoard();
 
@@ -929,6 +943,27 @@ describe("BricksScene", () => {
 
     it("launches at a tap", async () => {
       const { shell, run } = await startBoard();
+
+      run.touch("start", 200, 300);
+      run.touch("end", 200, 300);
+
+      expect(shell.commands).toEqual(["launch"]);
+    });
+
+    it("doesn't launch at a touch the browser takes away", async () => {
+      const { shell, run } = await startBoard();
+
+      run.touch("start", 200, 300);
+      run.touch("cancel", 200, 300);
+
+      expect(shell.commands).toEqual([]);
+    });
+
+    it("launches at a tap after a touch the browser took away", async () => {
+      const { shell, run } = await startBoard();
+      run.touch("start", 200, 300);
+      run.touch("move", 230, 300);
+      run.touch("cancel", 230, 300);
 
       run.touch("start", 200, 300);
       run.touch("end", 200, 300);
