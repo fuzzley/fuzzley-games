@@ -1,0 +1,4 @@
+// The games' toolkit, mixins alone, by its namespace until the shell has a
+// toolkit of its own to take whole.
+@use "@fz/game-ui/toolkit";
+@include toolkit.setting-fields;

@@ -1,0 +1,90 @@
+<fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <div class="setting">
+    <span class="setting-label" id="aiming-label">Aiming</span>
+    <fz-choice-list
+      labelledBy="aiming-label"
+      describedBy="aiming-desc"
+      [options]="aimings"
+      [value]="settings().aiming"
+      (choose)="chooseAiming($event)"
+    />
+    <p class="setting-desc" id="aiming-desc">
+      The keys aim and charge whichever way is chosen.
+    </p>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" id="speed-label">The flight's speed</span>
+    <fz-choice-list
+      labelledBy="speed-label"
+      describedBy="speed-desc"
+      [options]="flightSpeeds"
+      [value]="settings().flightSpeed"
+      (choose)="chooseFlightSpeed($event)"
+    />
+    <p class="setting-desc" id="speed-desc">
+      Fast-forward and Skip are there from the start of every flight.
+    </p>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Long flights</span>
+    <div class="setting-check">
+      <input
+        #longFlights
+        id="speed-up-long-flights"
+        type="checkbox"
+        aria-describedby="long-flights-desc"
+        [checked]="settings().speedUpLongFlights"
+        (change)="setSpeedUpLongFlights(longFlights.checked)"
+      />
+      <label for="speed-up-long-flights">Speed up long flights</label>
+      <p class="setting-desc" id="long-flights-desc">
+        A flight that goes on and on doubles its speed by itself.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Guide</span>
+    <div class="setting-check">
+      <input
+        #guide
+        id="guide"
+        type="checkbox"
+        aria-describedby="guide-desc"
+        [checked]="settings().guide"
+        (change)="setGuide(guide.checked)"
+      />
+      <label for="guide">Show the aim guide</label>
+      <p class="setting-desc" id="guide-desc">
+        Dots show the shot's flight to its first turn, and outline the bricks it
+        would punch through.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Sound</span>
+    <div class="setting-check">
+      <input
+        #sound
+        id="sound"
+        type="checkbox"
+        aria-describedby="sound-desc"
+        [checked]="settings().sound"
+        (change)="setSound(sound.checked)"
+      />
+      <label for="sound">Play sounds</label>
+      <p class="setting-desc" id="sound-desc">
+        A tick for each notch of charge, each brick struck and broken, rising
+        along a round, and a chime for a level cleared.
+      </p>
+    </div>
+  </div>
+
+  <div class="setting">
+    <span class="setting-label" aria-hidden="true">Theme</span>
+    <fz-theme-picker />
+  </div>
+</fz-settings-drawer>
