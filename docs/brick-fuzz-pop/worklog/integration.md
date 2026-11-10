@@ -260,3 +260,73 @@ passes, so the critical path doesn't wait on the last lifts. Their log is
   `--passWithNoTests`.
 - **A1 started before K2 landed,** since it needs only K1 and L4; the art
   stream rebases before A2.
+
+### Wave 2 started (2026-11-10)
+
+- **Five streams, not four.** The plan's view-and-shell stream was split:
+  `view` builds V1–V4 and a new `shell` stream builds U3–U6 beside it
+  (`bfp/shell`, its log `shell.md`), since §6 says two agents can share
+  U3–U6, they own different folders from V1–V4, and the integrator's own
+  hands are free until wave 3. The machine had 17 GB free with the four
+  Part 1 streams running, so a fifth fits; certification still runs alone.
+- **Each stream stops after every commit** and reports; the integrator
+  merges it onto `brick-fuzz-pop` and replies with the next package, and
+  tells a stream to rebase when it needs another's work (R5 before R6, R6
+  before P2, R7 before U4).
+- **The rules every stream keeps** (worktree, ports, contracts, the review,
+  the log) were written once for all five, so each brief holds only its
+  packages.
+
+### A1 merged (2026-11-10)
+
+- `d4f0283a`, fast-forwarded: the field's palette from the page's roles,
+  the special kinds' own inks, and contrast held to 3:1 in all four
+  palettes (480 cases). The workspace has 948 tests, coverage 99.34 / 97.2
+  / 100 / 99.54.
+- Where the palette departs from the art: the fuzzball's eyes, steel's frame
+  and rivets and the wool's stitches are cut out in the field's color, since
+  the art's colors fall under 3:1 in Soft pastel; steel is 0.6 of the text
+  over the field so a cage's bars keep 3:1.
+- **For Q3:** the coral friend sits 6 to 7.5 CIE76 from the hot shot in
+  three palettes, and the violet one 9.4 from Soft pastel's accent. Which
+  friend gets which ink is the rules' choice; the user may want to see it.
+- `FIELD_ROLES` is in `src/view/colors/palette.ts`, not the board, for U1.
+
+### R5 merged (2026-11-10)
+
+- `350b24df`, cherry-picked: `src/rules/wall/lower.ts`' `lowerWall(wall,
+depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
+  `regrow()` itself, and `isCleared()`. 1,061 tests, coverage 99.36 / 97.37
+  / 100 / 99.56. A spec brings down all eleven of K2's fixtures' walls to
+  their next walls.
+- Until X2 catalogs the portal, R5's specs stand steel with a twin in its
+  place. The rules stream was told what R6 gets from it.
+
+### R1 and U3 merged (2026-11-10)
+
+- **R1**, `eaaa1532`: `grid.ts` (faces, corners, cells, `brickAt()`,
+  `brickBox()`, `shapeOf()`, `boxesIn()`) and `src/testing/wall_picture.ts`'s
+  `wallFrom()`, which `eslint.config.js`' `HELD` now holds, as
+  `HELD_AS_RULES` names it. The legend takes `grid.ts`' face names. 1,115
+  tests. The spec-only `?` kind waits for R3, since `Brick.kind` is a
+  `BrickKindId`; R3 may hand `fly()` the catalog so a spec can give it one.
+- **Asked of the integrator by R1's review:** `Brick.plates`' doc to point
+  at `FieldFace`, `legend.spec.ts`' comment and names, and the fixtures to
+  draw with `wallFrom()`. Kept for an integrator commit to K2's files.
+- **U3**, `c1fb0942`: the settings drawer, `<app-settings>` (`open` in,
+  `closed` out), with `Aiming` (`byPointer`, `pullBack`, `pointAndHold`) and
+  `FlightSpeed` (`normal`, `fast`) in `settings.service.ts`, since V2 and V4
+  aren't in yet; U1 maps them onto steering and speeds. 1,150 tests. The
+  shell stream adds `src/app/styles/_index.scss` in U5.
+
+### K2 tidied (2026-11-10)
+
+- The integrator's commit, built in the `start` worktree as R1's review
+  asked: `Brick.plates`' doc points at `grid.ts`' `FieldFace`,
+  `legend.spec.ts` uses `grid.ts`' face names, and the fixtures draw their
+  eleven walls with `wallFrom()`, each fixture's start and round
+  byte-identical before and after. The workspace's `AGENTS.md` now covers
+  the grid, the wall's descent, the colors, the settings and the testing
+  helpers. Its log is in `start.md`.
+- R5's `lower.spec.ts` keeps its own `wallOf()`; the proof stream is asked
+  to move it onto `wallFrom()`.
