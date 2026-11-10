@@ -1,0 +1,212 @@
+{
+  "id": "tricks",
+  "name": "Tricks",
+  "levels": [
+    {
+      "id": "gems",
+      "name": "Gems",
+      "around": "Gems: bricks set on a point, every face a slope",
+      "bricks": [
+        "2.G.2.G.2",
+        "2.2.2.2.2",
+        "G.2.G.2.G",
+        ".........",
+        "2.G.2.G.2",
+        "2.2.2.2.2",
+        "G.2.G.2.G",
+        ".........",
+        "2.G.2.G.2",
+        "2.2.2.2.2",
+        "G.2.G.2.G",
+        ".........",
+        "2.G.2.G.2",
+        "2.2.2.2.2",
+        "G.2.G.2.G"
+      ]
+    },
+    {
+      "id": "chandelier",
+      "name": "Chandelier",
+      "around": "A lattice of gems under plain rows",
+      "bricks": [
+        "ooo.o.ooo",
+        ".G.G.G.G.",
+        "G.G.G.G.G",
+        ".........",
+        "oo.ooo.oo",
+        "G.G.G.G.G",
+        ".G.G.G.G.",
+        ".........",
+        "ooo.o.ooo",
+        ".G.G.G.G.",
+        "G.G.G.G.G",
+        ".........",
+        "oo.ooo.oo",
+        "G.G.G.G.G",
+        ".G.G.G.G."
+      ]
+    },
+    {
+      "id": "elevator",
+      "name": "Elevator",
+      "around": "A steel floor only the portal passes",
+      "bricks": [
+        "222222222",
+        ".........",
+        "&........",
+        "#########",
+        "........&",
+        ".........",
+        "2.2.2.2.2",
+        "2.2.2.2.2",
+        ".........",
+        "222222222",
+        ".........",
+        "@........",
+        "#########",
+        "........@",
+        ".........",
+        "2.2.2.2.2",
+        "2.2.2.2.2"
+      ]
+    },
+    {
+      "id": "shutters",
+      "name": "Shutters",
+      "around": "Plates toward the floor, on chimney walls",
+      "bricks": [
+        ".v.o.o.v.",
+        ".v.o.o.v.",
+        ".v.o.o.v.",
+        ".........",
+        "v.v.v.v.v",
+        "v.v.v.v.v",
+        "v.v.v.v.v",
+        ".........",
+        ".v.o.o.v.",
+        ".v.o.o.v.",
+        ".v.o.o.v.",
+        ".........",
+        "v.v.v.v.v",
+        "v.v.v.v.v",
+        "v.v.v.v.v"
+      ]
+    },
+    {
+      "id": "kaleidoscope",
+      "name": "Kaleidoscope",
+      "around": "A rest: gems and springs in a mesh",
+      "bricks": [
+        "o.G.o.G.o",
+        ".G.o.o.G.",
+        "o.G.o.G.o",
+        ".........",
+        "G.o.G.o.G",
+        ".S.G.G.S.",
+        "G.o.G.o.G",
+        ".........",
+        "o.G.o.G.o",
+        ".G.o.o.G.",
+        "o.G.o.G.o",
+        ".........",
+        "G.o.G.o.G",
+        ".S.G.G.S.",
+        "G.o.G.o.G"
+      ]
+    },
+    {
+      "id": "awning",
+      "name": "Awning",
+      "around": "Slabs plated underneath: in over the top",
+      "bricks": [
+        "oo.....oo",
+        "vv.....vv",
+        ".........",
+        "..ooooo..",
+        "..vvvvv..",
+        ".........",
+        "oo.....oo",
+        "vv.....vv",
+        ".........",
+        "..ooooo..",
+        "..vvvvv..",
+        ".........",
+        "oo.....oo",
+        "vv.....vv",
+        ".........",
+        "..ooooo..",
+        "..vvvvv.."
+      ]
+    },
+    {
+      "id": "back-door",
+      "name": "Back door",
+      "around": "A plated row, and a chimney up to the portal past it",
+      "bricks": [
+        "o.&.o.o.o",
+        "vvvvvvvvv",
+        "...&.....",
+        "o.2.o.2.o",
+        "o.2.o.2.o",
+        "o.2.o.2.o",
+        ".........",
+        "o.@.o.o.o",
+        "vvvvvvvvv",
+        "...@.....",
+        "o.2.o.2.o",
+        "o.2.o.2.o",
+        "o.2.o.2.o"
+      ]
+    },
+    {
+      "id": "prism-hall",
+      "name": "Prism hall",
+      "around": "Gems where the ramps throw a fuzzball",
+      "bricks": [
+        "ooooooooo",
+        "F.G...G.7",
+        ".o2o.o2o.",
+        ".........",
+        "ooooooooo",
+        "F..G.G..7",
+        ".2o2.2o2.",
+        ".........",
+        "ooooooooo",
+        "F.G...G.7",
+        ".o2o.o2o.",
+        ".........",
+        "ooooooooo",
+        "F..G.G..7",
+        ".2o2.2o2."
+      ]
+    },
+    {
+      "id": "fun-house",
+      "name": "Fun house",
+      "around": "The set's last: every trick",
+      "bricks": [
+        "222222222",
+        ".........",
+        "@........",
+        "#########",
+        "........@",
+        ".........",
+        "2.G.2.G.2",
+        "v.2.o.2.v",
+        "2=2=2=2=2",
+        ".........",
+        "ooooooooo",
+        "F..G.G..7",
+        ".v.v.v.v.",
+        ".........",
+        "2.G.2.G.2",
+        "v.2.o.2.v",
+        "2=2=2=2=2",
+        ".........",
+        "ooooooooo",
+        "F..G.G..7",
+        ".v.v.v.v."
+      ]
+    }
+  ]
+}
