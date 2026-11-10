@@ -765,11 +765,12 @@ workspace's with the others'.
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002,
   Snake's 9003 and Brick Breaker's 9004).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `dom`
-  and `pure` projects with coverage, failing below the floors
-  `vitest.config.ts` sets for the rules, the view, the scene and the shell,
-  then its `sim` project, the specs that play every wave or lay every wave
-  out, without), `yarn test:watch`, or
+- **Run Unit Tests:** `yarn test` (the whole suite once, every project,
+  without coverage), `yarn test:coverage` (Vitest's `dom` and `pure`
+  projects with coverage, failing below the floors `vitest.config.ts` sets
+  for the rules, the view, the scene and the shell, then its `sim` project,
+  the specs that play every wave or lay every wave out, without),
+  `yarn test:watch`, or
   `yarn vitest run --project <project> <path>` for one spec, which leaves
   the floors alone: `pure` for one of the rules, the view, `src/testing/`
   or `tools/`, `dom` for one of the scene or the shell, and `sim` for a

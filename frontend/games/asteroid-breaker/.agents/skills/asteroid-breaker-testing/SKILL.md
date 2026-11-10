@@ -18,8 +18,9 @@ relative to `frontend/games/asteroid-breaker/`.
 Run these from `frontend/games/asteroid-breaker/`, or as
 `yarn workspace asteroid-breaker <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once: the `dom` and `pure`
-  projects with coverage, then the `sim` project without) or
+- **Run Tests**: `yarn test` (the whole suite once, without coverage),
+  `yarn test:coverage` (the `dom` and `pure` projects with coverage, then
+  the `sim` project without) or
   `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
   spec without coverage, starting its project alone: `pure` for the rules,
   the view, `src/testing/` and `tools/`, `dom` for the scene and the
@@ -33,7 +34,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `src/scene/` and `src/app/` a little under what their specs reach (the
   scene 98% of statements, 92% of branches, 100% of functions and 99% of
   lines; the shell 98, 97, 97 and 98), raised as they rise, so a part
-  without specs fails the run. `yarn test`, which CI runs, fails below any
+  without specs fails the run. `yarn test:coverage`, which CI runs, fails below any
   of them. `src/testing/` and the scripts under `tools/` are measured with
   no floor, so what of them goes untested shows; what the scripts load
   through Vite escapes it, so `src/testing/report_api.spec.ts` and

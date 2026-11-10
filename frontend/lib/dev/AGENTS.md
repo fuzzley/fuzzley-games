@@ -111,8 +111,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   or lay out every level or wave, in Node, where a game has any; and `dom`,
   every other spec under `src/`, in jsdom with Analog's plugin, so every
   spec there runs in one project. A game with simulations runs `dom` and
-  `pure` with coverage, then `sim` without (`yarn test` in
-  `frontend/AGENTS.md`). Coverage adds up a file two projects load only
+  `pure` with coverage, then `sim` without (`yarn test:coverage` in
+  `frontend/AGENTS.md`), and every project in one run without coverage
+  (`yarn test`). Coverage adds up a file two projects load only
   where both compiled it alike, so `dom` leaves the code of `pure`'s
   folders to Vite's oxc, as `pure` compiles it: it passes it by in the
   plugin's `transformFilter` and names it in `oxc.include`, since the
@@ -522,5 +523,5 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   every library, and leaves out what only a browser runs:
   `src/layout_page.ts`, and the sound lab's page and its notes. Starting a
   real Chrome is left to the screenshot scripts, so `src/chrome.ts` stays
-  short of the rest; the floor in `vitest.config.ts` sits just under the
-  figures, and rises as they rise.
+  short of the rest; the floor in `vitest.config.ts`, which `test:coverage`
+  holds it to, sits just under the figures, and rises as they rise.

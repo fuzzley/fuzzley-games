@@ -15,7 +15,7 @@ import {
 } from "vitest/config";
 import type { CoverageOptions, InlineConfig } from "vitest/node";
 
-/** The floors `yarn test` fails below, for the whole suite or by glob. */
+/** The floors `yarn test:coverage` fails below, for the whole suite or by glob. */
 export type Thresholds = NonNullable<CoverageOptions["thresholds"]>;
 
 /** Says what a workspace's coverage measures, and the floors it holds. */
@@ -53,8 +53,8 @@ export interface Projects {
   readonly pure: readonly string[];
   /**
    * The folders of the specs that play or lay out every level or wave,
-   * which run in `sim`, in Node, and which a `test` script runs apart,
-   * without the coverage that would slow them several times over.
+   * which run in `sim`, in Node, and which a `test:coverage` script runs
+   * apart, without the coverage that would slow them several times over.
    */
   readonly sim?: readonly string[];
 }

@@ -17,11 +17,12 @@ Tests". Paths are relative to `frontend/games/minesweeper/`.
 Run these from `frontend/games/minesweeper/`, or as
 `yarn workspace minesweeper <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once, with coverage) or
+- **Run Tests**: `yarn test` (the whole suite once, without coverage),
+  `yarn test:coverage` (with it) or
   `yarn test:watch`. `yarn vitest run <path>` runs one spec without
   coverage.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` to a floor near
-  100%, and `yarn test`, which CI runs, fails below it; never let a change
+  100%, and `yarn test:coverage`, which CI runs, fails below it; never let a change
   drop below it.
 
 ## Setup

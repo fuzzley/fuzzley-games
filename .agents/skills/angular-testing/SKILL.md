@@ -22,9 +22,9 @@ repository's root.
   coverage of `src/`. Given the folders of its projects, as Snake's, Brick
   Breaker's and Asteroid Breaker's are, it runs the specs that touch no
   page in Node (`pure`), the simulations in Node too (`sim`), and the rest
-  in jsdom with the plugin (`dom`); a `test` script that runs Vitest twice,
-  as the breakers' do, is what runs the simulations apart, without
-  coverage. The site's config of Vitest projects is built from its pieces,
+  in jsdom with the plugin (`dom`); a `test:coverage` script that runs
+  Vitest twice, as the breakers' do, is what runs the simulations apart,
+  without coverage. The site's config of Vitest projects is built from its pieces,
   `angularSpecs()`, `nodeSpecs()` and `coverage()`
   (`frontend/lib/dev/AGENTS.md`). The Solitaire Collection keeps a config
   of its own, its specs under `test/`, in Node unless one asks for jsdom.

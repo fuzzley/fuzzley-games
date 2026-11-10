@@ -18,8 +18,9 @@ relative to `frontend/games/brick-breaker/`.
 Run these from `frontend/games/brick-breaker/`, or as
 `yarn workspace brick-breaker <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (the whole suite once: the `dom` and `pure`
-  projects with coverage, then the `sim` project without) or
+- **Run Tests**: `yarn test` (the whole suite once, without coverage),
+  `yarn test:coverage` (the `dom` and `pure` projects with coverage, then
+  the `sim` project without) or
   `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
   spec without coverage, starting its project alone: `pure` for the rules,
   the view and `tools/`, `dom` for the scene, the shell and `src/testing/`,
@@ -28,7 +29,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   the autopilot playing every level at every preset speed.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
   to 100% of statements, functions and lines and 95% of branches.
-  `yarn test`, which CI runs, fails below either. The scene and the shell
+  `yarn test:coverage`, which CI runs, fails below either. The scene and the shell
   have no floor of their own. Coverage measures the `dom` and `pure`
   projects together, not `sim`, so what only the simulations reach counts
   as untested.

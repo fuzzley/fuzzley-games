@@ -551,11 +551,12 @@ workspace's with the others'.
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002 and
   Snake's 9003).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (the whole suite once: Vitest's `dom`
-  and `pure` projects with coverage, failing below the floor
-  `vitest.config.ts` sets for the rules and the view, then its `sim`
-  project, the specs that play every level, without), `yarn test:watch`,
-  or `yarn vitest run --project <project> <path>` for one spec, which
+- **Run Unit Tests:** `yarn test` (the whole suite once, every project,
+  without coverage), `yarn test:coverage` (Vitest's `dom` and `pure`
+  projects with coverage, failing below the floor `vitest.config.ts` sets
+  for the rules and the view, then its `sim` project, the specs that play
+  every level, without), `yarn test:watch`, or
+  `yarn vitest run --project <project> <path>` for one spec, which
   leaves the floor alone: `pure` for one of the rules, the view or
   `tools/`, `dom` for one of the scene, the shell or `src/testing/`, and
   `sim` for a simulation. Without `--project`, Vitest starts every project,

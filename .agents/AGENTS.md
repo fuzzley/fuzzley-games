@@ -55,9 +55,14 @@ Minesweeper, Sudoku, Snake, Brick Breaker and Asteroid Breaker.
 Run every `yarn` command from `frontend/`, with Yarn 4, never NPM.
 `yarn start` serves the site and the games at `http://localhost:4200/`,
 `yarn dev:all` serves them there from every app's own dev server, so an edit
-to any of them shows as soon as it is saved, and `yarn verify` runs what CI
-runs: lint, type-check, test, then build.
+to any of them shows as soon as it is saved, `yarn verify` lints,
+type-checks, tests without coverage, then builds, and `yarn verify:full` runs
+what CI runs: the same, with the tests' coverage held to each workspace's
+floors.
 `frontend/AGENTS.md` lists every command and what it checks.
+
+Merging into `main` follows the `merge-to-main` skill: a change to code
+passes `yarn verify:full`, its coverage gaps filled, before it is pushed.
 
 To test the image itself, build and run it with Docker as `docs/operations.md`
 shows.

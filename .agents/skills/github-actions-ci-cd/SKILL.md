@@ -21,8 +21,8 @@ a run in progress.
 1. **`verify`** — checkout, Node from `.node-version`, a check that the
    `Dockerfile` builds on the same major version and installs the same
    Corepack as the job's `COREPACK_VERSION`, that Corepack, an immutable
-   install in `frontend/`, then `yarn verify` (lint, type-check, test,
-   build). The build builds the games in `frontend/games/` and copies the
+   install in `frontend/`, then `yarn verify:full` (lint, type-check,
+   test with each workspace's coverage floors, build). The build builds the games in `frontend/games/` and copies the
    ones `frontend/site/games.json` lists into the site. Then
    `yarn check:layout` opens each game's build that has a layout check in
    the runner's Chrome, at a roomy window and a large and a small phone,
@@ -94,7 +94,7 @@ passes on `main` moves it forward again.
 
 ## Troubleshooting
 
-- **`verify` failures.** Reproduce with `yarn verify` in `frontend/`, and
+- **`verify` failures.** Reproduce with `yarn verify:full` in `frontend/`, and
   a layout check's with `yarn check:layout` after it, which needs Chrome
   (`CHROME_PATH`, or the usual install location).
   `yarn typecheck` runs `tsc` over `frontend/tsconfig.scripts.json` (the

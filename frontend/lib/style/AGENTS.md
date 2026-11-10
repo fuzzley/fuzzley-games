@@ -225,7 +225,7 @@ own, which `yarn workspace @fz/style <script>` runs alone.
 - **`test`** runs Vitest in Node, but `src/testing/paint_roles.spec.ts`, in
   jsdom. Each spec sits beside the file it tests. The
   stylesheets' specs compile them with Sass; the plugin's run a real Vite dev
-  server and build in a temporary folder. It collects coverage too, and fails
+  server and build in a temporary folder. `test:coverage` adds coverage, failing
   below the floor `vitest.config.ts` sets, a little under the real figures;
   raise the floor as they rise. `yarn vitest run <path>` runs one spec
   without it.

@@ -186,7 +186,7 @@ own, which `yarn workspace @fz/ui <script>` runs alone.
   do; the repository's `angular-testing` skill
   ([.agents/skills/angular-testing/SKILL.md](../../../.agents/skills/angular-testing/SKILL.md))
   covers the patterns. Each spec sits
-  beside the file it tests. It collects coverage too, and fails below the
+  beside the file it tests. `test:coverage` adds coverage, failing below the
   floor `vitest.config.ts` sets, which sits just under the figures and rises
   as they rise. Coverage counts `src/testing/`, as `frontend/AGENTS.md` asks
   of every library. `yarn vitest run <path>` runs one spec without coverage.
