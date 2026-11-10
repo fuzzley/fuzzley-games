@@ -6,10 +6,12 @@ import {
   polygon,
   polyline,
   rect,
+  share,
+  star,
   symbolLineStyle,
+  within,
 } from "@fz/phaser/shapes";
 import type { CapsuleId } from "../../rules/catalog/capsules";
-import { share, star, within } from "./shapes";
 
 /** Draws a capsule's symbol in a square, in a style, its lines its width or wider. */
 export type DrawSymbol = (

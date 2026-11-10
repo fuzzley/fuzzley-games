@@ -83,13 +83,23 @@ take the pure ones.
   a shape, and places points (`placed()`), and frames a drawing about its
   origin (`centered()`) or about the middle of its own bounds
   (`bounded()`), in whole pixels, which is how a game frames its drawings;
-  and `src/shapes/symbols.ts` draws in a square, as a pickup's or a
-  capsule's symbol is, its places and sizes as shares of the square:
-  `dotIn()` anywhere in it, `discIn()` and `rimIn()` about its middle, and
-  the lines' `symbolLineStyle()`. `atlasSize()` is how big the atlas of a set of
-  frames is, packed as `bakeAtlas()` packs them, in rows, tallest first,
-  frames of one height in the order given (`src/shapes/packing.ts`), so a
-  game's spec can hold it to a size without Phaser. It imports nothing.
+  `src/shapes/areas.ts` lays a frame out in an area: points at shares of it
+  (`within()`), a part of it (`share()`), the area inset by a width, or
+  grown by a negative one (`inset()`), and a square in its middle
+  (`middleSquare()`); it draws the four bars of a frame inside it
+  (`frameAround()`) and the outline of a rounded rectangle, its line's
+  middle along its edge (`outlineRoundRect()`), as a band filled in one
+  polygon, so what it covers is known exactly and no seam shows in an
+  atlas, and it gives the points of a star (`star()`) and the dashes of a
+  straight line (`dashes()`, each a `Dash`), centered along it with a gap
+  clear of each end; and `src/shapes/symbols.ts` draws in a square, as a
+  pickup's or a capsule's symbol is, its places and sizes as shares of the
+  square: `dotIn()` anywhere in it, `discIn()` and `rimIn()` about its
+  middle, and the lines' `symbolLineStyle()`. `atlasSize()` is how big the
+  atlas of a set of frames is, packed as `bakeAtlas()` packs them, in rows,
+  tallest first, frames of one height in the order given
+  (`src/shapes/packing.ts`), so a game's spec can hold it to a size without
+  Phaser. It imports nothing.
 - `src/fuzzball/`: `@fz/style`'s fuzzball in the shapes' commands, so
   every game draws the one fuzzball: its strands of fur, read from its path
   (`strandsOf()`, `FUZZBALL_STRANDS`), each a `Strand` about its body's

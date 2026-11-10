@@ -262,9 +262,9 @@ takes for the specs' helpers.
   and the color its shards take (`brickColor()`); `symbols.ts` draws each
   capsule's symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s
   commands (`DrawCommand`), whose builders take no size below nothing, since
-  a canvas not yet laid out gives a unit too small for the insets, and
-  `shapes.ts` holds the game's own helpers over them, the areas, points and
-  stars its frames are laid out by.
+  a canvas not yet laid out gives a unit too small for the insets, and laid
+  out by its areas, points and stars (`within()`, `share()`, `inset()`,
+  `middleSquare()`, `frameAround()`, `star()`).
 - **`src/scene/`** — the Phaser scene. `BricksScene`
   (`bricks_scene.ts`) is handed plain functions over the game
   (`BricksSceneOptions`): each frame it hands the game the time and the

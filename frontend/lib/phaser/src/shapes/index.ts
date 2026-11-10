@@ -1,4 +1,15 @@
 export {
+  type Dash,
+  dashes,
+  frameAround,
+  inset,
+  middleSquare,
+  outlineRoundRect,
+  share,
+  star,
+  within,
+} from "./areas";
+export {
   arcPoints,
   cubicPoints,
   ellipsePoints,
