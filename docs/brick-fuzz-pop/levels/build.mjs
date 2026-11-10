@@ -474,7 +474,7 @@ function pictures() {
   /** @type {string[]} */
   const lines = [];
   SETS.forEach(([, name], at) => {
-    lines.push(`### ${name}, walls ${at * 9 + 1} to ${at * 9 + 9}`, "");
+    lines.push(`### ${name}, levels ${at * 9 + 1} to ${at * 9 + 9}`, "");
     lines.push("```text");
     DRAFTS.slice(at * 9, at * 9 + 9).forEach((draft, within) => {
       const marks = Object.keys(draft.courses);

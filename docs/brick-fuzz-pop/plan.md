@@ -18,9 +18,24 @@ fills a wide screen. The user answered all four, and this is the plan
 rewritten for the answers. "Decisions" marks them **the user's**, and lists
 the rest of what the plan chose, each with what it could be instead.
 
+Later the same day, [`implementation-plan.md`](implementation-plan.md) took
+the build further. It asked the user six questions the design had left
+open, and the user took its recommendation on each. They are in
+"Decisions" too, marked **the user's**. The design reference below now says
+the rest of what that plan settled. How the game is built, in what order,
+and in which streams side by side, is now that file's. "How the work runs"
+and "Phases" say what it changed.
+
 Everything made for the plan is in this folder, `docs/brick-fuzz-pop/`:
 
 - **`plan.md`,** this file.
+- **[`implementation-plan.md`](implementation-plan.md),** how the game is
+  built:
+  - what Part 1 lifts into the libraries;
+  - the contracts the game's parts share;
+  - each piece of work, with its specs;
+  - the practices and budgets it keeps;
+  - the streams it runs in, side by side.
 - **[`art/`](art/),** the concept art. Two sheets:
   [`bricks.svg`](art/bricks.svg), every kind of brick, its states, and the
   fuzzball at each charge, as a hot shot and as a triple shot, in a dark
@@ -105,8 +120,9 @@ level on every field depth, replayed by the specs.
 
 The plan's choices, cited by number below. "Asked for" marks what the ask
 settled; **the user's** marks what the user answered on 2026-11-10, to the
-four choices the first draft put to them and then to four questions about
-what they had said.
+four choices the first draft put to them, then to four questions about
+what they had said, and then to the six questions `implementation-plan.md`
+asked (decisions 6, 9, 18 and 21).
 
 1. **The name is Brick Fuzz Pop** (**the user's**), at
    `/play/brick-fuzz-pop/`, workspace `games/brick-fuzz-pop`, port 9006, in
@@ -167,7 +183,10 @@ what they had said.
    coming next on one, the level's kinds of brick, the crew and the boon on
    the other. The first draft turned the field a quarter turn in a wide
    room so its bricks filled it; the user chose upright, and square bricks
-   with panels over a wider grid.
+   with panels over a wider grid. A lintel of half a unit or more over the
+   ceiling, on every shape, says how many rows wait (**the user's**). It
+   costs a wide window about 4% of a brick, and about every other upright
+   phone a row.
 7. **The depth follows the room, between rounds.** It is taken from the
    room as a level starts, and again when the room changes, a phone turned
    or a window dragged, once no fuzzball is in the air. The wall keeps its
@@ -184,7 +203,9 @@ what they had said.
    harder to break (tough, plated, shell, moss); steel, which never breaks;
    five that break others in a pattern (row, column, cross and X zappers,
    and the bomb); and five that change the flight (bumper, prism, portal,
-   wool and the cage).
+   wool and the cage). A zap or a blast passes through steel. A zapped cage
+   frees its friend, and a zapped prism or wool brick only breaks
+   (**the user's**).
 10. **Hits are pips,** as on a die, six at most, with a crack for each hit
     taken. The genre writes numbers; pips need no font in the atlas, read
     without color and suit a wall of squares.
@@ -212,8 +233,8 @@ what they had said.
     loses nothing.
 15. **Aiming:** by touch, pull back anywhere and let go, the pull's length
     the charge; by mouse, point and hold, the charge climbing while held; by
-    keys, a quarter of a degree at a time. A setting picks the touch or the
-    mouse's way for either. A guide shows the flight to its first turn.
+    keys, a degree at a time, or a quarter of one with Shift. A setting picks
+    the touch or the mouse's way for either. A guide shows the flight to its first turn.
 16. **No speeds and no lives.** A run plays on from the level it starts at
     until one is lost; a level is tried again as often as wanted, and the
     next opens once one is cleared. Each level keeps its best points and its
@@ -222,20 +243,29 @@ what they had said.
 17. **Scoring** by the hits a brick took, more for each brick a round has
     already broken, and a bonus for each jump and each star.
 18. **Flat art in the site's palettes,** drawn in code as the other games'
-    is, the bricks in the game's own eight inks, told apart by shape and
-    mark before color; the sheets in `art/` are its design.
+    is, the bricks in `@fz/phaser/color`'s `TILE_INKS`, Brick Breaker's eight
+    inks lifted in Part 1, told apart by shape and mark before color; the sheets in `art/` are its design. Plain and tough
+    bricks take their row's ink; every other kind that breaks keeps an ink
+    of its own, as the art has it (**the user's**).
 19. **Twenty sounds,** on by default, a broken brick's rising along its
     round.
 20. **A game taken up after a reload** keeps its level, its wall, where the
     fuzzball waits, its friends, a boon it has earned, its rounds and its
     score, and comes back between rounds.
 21. **Fuzzley flavor, four ways:** the fuzzball is the ball, its fur the
-    charge's meter; the hot shot is the fuzzball itself, red-hot; caged
-    fuzzballs are freed and fly along, and two mates join it for a triple
-    shot; and the bar counts the crew as fuzzballs.
-22. **Part 1 lifts two pieces into the libraries:** Brick Breaker's swept
+    charge's meter, a look for each of the six charges; the hot shot is the
+    fuzzball itself, red-hot; caged fuzzballs are freed and fly along, each
+    in one of Asteroid Breaker's pilot inks, and two mates join it for a
+    triple shot; and the bar counts the crew as fuzzballs (the looks and
+    the inks **the user's**).
+22. **Part 1 lifts eight pieces into the libraries:** Brick Breaker's swept
     ball into `@fz/core`, and a lint block for arithmetic every engine
-    rounds alike into `@fz/dev`.
+    rounds alike into `@fz/dev`, as the first draft had it; then Asteroid
+    Breaker's debug menu into `@fz/game-ui`, the breakers' inks and Brick
+    Breaker's areas into `@fz/phaser`, a spec's variant read from its name
+    into `@fz/core/testing`, panels checked all or none into `@fz/dev`,
+    and three icons and three ways to drive a scene into `@fz/ui` and
+    `@fz/phaser/testing` (`implementation-plan.md`'s §4).
 23. **The feel is settled by the user at Q3,** on real phones, upright and
     on their sides, and in a desktop window, on the first nine levels,
     before the other twenty-seven and eleven kinds are built, through a
@@ -247,6 +277,17 @@ what they had said.
 
 The breakers' process, as `docs/archive/asteroid-breaker-execution-plan.md`
 kept it.
+
+[`implementation-plan.md`](implementation-plan.md) now runs the work. Its
+§6 breaks the phases below into packages, its §7 runs them in four streams
+side by side, and its §2 maps each phase here to its packages there. What
+this section says still holds, with three changes:
+
+- each stream works on a branch of its own, `bfp/<stream>`, in a worktree
+  of its own, and is merged into `brick-fuzz-pop` by fast-forward;
+- each stream keeps its own log, `worklog/<stream>.md`, merged into
+  `worklog.md` when the game is done;
+- Q1, Q2 and Q3 ask more, as the table below says.
 
 ### Branches
 
@@ -293,20 +334,25 @@ report). A design change found on the way is made in this plan too.
 
 ### QA checkpoints
 
-| Checkpoint | When                       | What                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1         | L4                         | Brick Breaker unchanged: `yarn verify`, its `check:layout`, `yarn report:levels` the same numbers, and a level played in its dev server by keys, mouse and touch                                                                                                                                                                                                                                                                                |
-| Q2         | after W5                   | The rules alone: the first nine levels certified on all twelve depths and their certificates replayed; ten thousand seeded random shots at random walls, none throwing, running past its caps or leaving a fuzzball inside a brick; the report's table; the solver's and a replay's cost timed in Node                                                                                                                                          |
-| Q3         | after W9, the feel gate    | The first nine levels played by keys and mouse in windows from 320 × 480 to 2560 × 1440, and by the user on real phones, upright and on their sides, Android's Chrome and, if one is to hand, an iPhone's Safari, from the dev server on the local network: both ways of aiming, the charge, the jump and the hot shot, the panels in a wide window, the flight's speed, tuned through the debug menu. The build waits here for the user's word |
-| Q4         | after W11                  | All thirty-six levels certified and inside the report's floors; each level's certificate watched in the scene through the debug menu on the shallowest and the deepest field                                                                                                                                                                                                                                                                    |
-| Q5         | W15                        | The full pass W15 lists                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Q6         | W17, before asking to ship | The site's build and the Docker image: the game reached from the catalog, played at `/play/brick-fuzz-pop/` with the console open, no "Refused to load"                                                                                                                                                                                                                                                                                         |
+| Checkpoint | When                                        | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Q1         | L4, the other plan's L10                    | Brick Breaker and Asteroid Breaker unchanged: `yarn verify`, both games' `check:layout`, Brick Breaker's `yarn report:levels` and Asteroid Breaker's `yarn report:waves` the same numbers, both games at `?debug` in a production build, and a level of each played in its dev server by keys, mouse and touch                                                                                                                                                                                                                                               |
+| Q2         | after W5                                    | The rules alone: the first nine levels certified on all twelve depths and their certificates replayed; ten thousand seeded random shots at random walls, none throwing, running past its caps or leaving a fuzzball inside a brick; the report's table; the solver's and a replay's cost timed in Node, and how long `playRound()` and the `sim` project take in CI, against the other plan's budgets                                                                                                                                                        |
+| Q3         | after W9, W10, W12 and W13.1, the feel gate | The first nine levels played by keys and mouse in windows from 320 × 480 to 2560 × 1440, and by the user on real phones, upright and on their sides, Android's Chrome and, if one is to hand, an iPhone's Safari, from the dev server on the local network: both ways of aiming, the charge, the jump and the hot shot, the panels in a wide window, the flight's speed, tuned through the debug menu; the settings, the levels, help, the saved game and the sounds, which the other plan builds before this gate. The build waits here for the user's word |
+| Q4         | after W11                                   | All thirty-six levels certified and inside the report's floors; each level's certificate watched in the scene through the debug menu on the shallowest and the deepest field                                                                                                                                                                                                                                                                                                                                                                                 |
+| Q5         | W15                                         | The full pass W15 lists                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Q6         | W17, before asking to ship                  | The site's build and the Docker image: the game reached from the catalog, played at `/play/brick-fuzz-pop/` with the console open, no "Refused to load"                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 Screenshots go to the user as they are taken, from Q3 on. A problem a
 checkpoint finds is fixed in a commit of its own, reviewed as any other,
 before the next phase.
 
 ## Phases
+
+These are superseded by `implementation-plan.md`'s §6, and its §2 maps them
+to its packages; they are kept here as the first account of the order.
+Part 1's L3 and L4 are its L9 and L10, after six more lifts. W10, W12 and
+W13.1 move before Q3 there.
 
 Sizes are rough: small is an hour or two, medium half a day, large a day or
 more. Paths in Part 1 are under `frontend/lib/` or
@@ -482,8 +528,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
 - **W8.1** `src/scene/wall_scene.ts` and `atlas.ts`: `WallScene`, handed
   plain functions over the game, laid out by `fieldMetrics()`, with
   `FieldPainter` (the frame, the floor's band, the lintel, the jump line
-  and the danger line) and `WallPainter`. Specced through `runScene()`. One
-  commit.
+  and the danger line) and `WallPainter`. Specced through
+  `runKeyedScene()`, as Brick Breaker's scene spec is, and through the
+  board with `runShownScene()`, both `@fz/phaser/testing`'s wrappers over
+  `runScene()`. One commit.
 - **W8.2** `GuidePainter`, `BallPainter`, `EffectsPainter` and
   `MeterPainter` (the charge's pips), the input handed to `Steering`, and
   How to play's pictures through `picturesWhenAsked()`. One or two commits.
@@ -580,18 +628,20 @@ the set.
 - **It is as large as the room allows.** The room is what the bar leaves,
   inside a margin of 12 CSS px on a compact screen and 24 on a roomy one,
   with a frame of 2 CSS px. A unit is the smaller of the room's width over
-  9 and its height over 11.6, a whole number of device pixels: eleven rows
-  are the fewest a field has, and 0.6 of a unit is the floor's band. The
-  depth is as many whole rows as the room's height holds at that unit,
-  less the band, 22 at most. What is left over, under a row's worth,
-  thickens the floor's band, to 1.1 units, and then the lintel over the
-  ceiling, which says how many rows still wait.
+  9 and its height over 12.1, a whole number of device pixels: eleven rows
+  are the fewest a field has, 0.6 of a unit is the floor's band at its
+  thinnest, and 0.5 the lintel's over the ceiling, which says how many
+  rows still wait (decision 6). The depth is as many whole rows as the
+  room's height holds at that unit, less the band and the lintel, 22 at
+  most. What is left over, under a row's worth, thickens the floor's band,
+  to 1.1 units, and then the lintel.
 - **A tall room it fills from side to side,** 12 to 22 rows deep: a phone
   held upright. **A wide room it fills from top to bottom,** eleven rows
   deep, a column at the room's middle.
-- **The panels take the room beside that column** (decision 6). Where 172
+- **The panels take the room beside that column** (decision 6). Where 184
   CSS px or more are spare each side, a panel stands either side of the
-  field, as tall as it, 12 CSS px from it and 320 wide at most; "Cards and
+  field, as tall as it, 12 CSS px from it, and 172 to 320 wide, the layout
+  check's least for a zone and a most; "Cards and
   dialogs" says what they hold. Past them the page shows. Where less is
   spare, in a room near square or on a small phone on its side, the field
   stands alone at the middle.
@@ -604,28 +654,31 @@ the set.
 
 What the shapes the layout check holds, and some it doesn't, come to:
 
-| Window                             | The room, CSS px | Cells  | A unit | A jump, rows | Floor band and lintel, units | Panels                    |
-| ---------------------------------- | ---------------- | ------ | ------ | ------------ | ---------------------------- | ------------------------- |
-| Roomy, 1280 × 800                  | 1232 × 679       | 9 × 11 | 58 px  | 3            | 0.7                          | two, 320 px each          |
-| Phone upright, 390 × 844           | 366 × 760        | 9 × 18 | 40 px  | 5            | 1.0                          | none                      |
-| Phone on its side, 844 × 390       | 756 × 366        | 9 × 11 | 31 px  | 3            | 0.8                          | two, 226 px each          |
-| Small phone upright, 375 × 553     | 351 × 469        | 9 × 11 | 39 px  | 3            | 1.0                          | none                      |
-| Small phone on its side, 568 × 320 | 480 × 296        | 9 × 11 | 25 px  | 3            | 0.8                          | none, 127 px spare a side |
-| Smallest, 320 × 480                | 296 × 396        | 9 × 11 | 32 px  | 3            | 1.4                          | none                      |
-| Tall phone, 360 × 800              | 336 × 716        | 9 × 18 | 37 px  | 5            | 1.4                          | none                      |
-| Folded phone, 280 × 653            | 256 × 569        | 9 × 19 | 28 px  | 6            | 1.3                          | none                      |
-| Tablet upright, 820 × 1180         | 772 × 1059       | 9 × 11 | 85 px  | 3            | 1.5                          | none                      |
-| Tablet on its side, 1180 × 820     | 1132 × 699       | 9 × 11 | 60 px  | 3            | 0.7                          | two, 284 px each          |
-| Desktop, 1920 × 970                | 1872 × 849       | 9 × 11 | 73 px  | 3            | 0.6                          | two, 320 px each          |
-| Square, 1000 × 1000                | 952 × 879        | 9 × 11 | 75 px  | 3            | 0.7                          | none, 138 px spare a side |
-| Ultra-wide, 3440 × 1300            | 3392 × 1179      | 9 × 11 | 101 px | 3            | 0.7                          | two, 320 px each          |
+| Window                             | The room, CSS px | Cells  | A unit | A jump, rows | Floor band, units | Lintel, units | Panels                    |
+| ---------------------------------- | ---------------- | ------ | ------ | ------------ | ----------------- | ------------- | ------------------------- |
+| Roomy, 1280 × 800                  | 1232 × 679       | 9 × 11 | 56 px  | 3            | 0.6               | 0.5           | two, 320 px each          |
+| Phone upright, 390 × 844           | 366 × 760        | 9 × 17 | 40 px  | 5            | 1.1               | 0.9           | none                      |
+| Phone on its side, 844 × 390       | 756 × 366        | 9 × 11 | 30 px  | 3            | 0.7               | 0.5           | two, 231 px each          |
+| Small phone upright, 375 × 553     | 351 × 469        | 9 × 11 | 38 px  | 3            | 0.8               | 0.5           | none                      |
+| Small phone on its side, 568 × 320 | 480 × 296        | 9 × 11 | 24 px  | 3            | 0.8               | 0.5           | none, 132 px spare a side |
+| Smallest, 320 × 480                | 296 × 396        | 9 × 11 | 32 px  | 3            | 0.9               | 0.5           | none                      |
+| Tall phone, 360 × 800              | 336 × 716        | 9 × 18 | 37 px  | 5            | 0.9               | 0.5           | none                      |
+| Folded phone, 280 × 653            | 256 × 569        | 9 × 19 | 28 px  | 6            | 0.8               | 0.5           | none                      |
+| Tablet upright, 820 × 1180         | 772 × 1059       | 9 × 11 | 85 px  | 3            | 1.0               | 0.5           | none                      |
+| Tablet on its side, 1180 × 820     | 1132 × 699       | 9 × 11 | 57 px  | 3            | 0.8               | 0.5           | two, 297 px each          |
+| Desktop, 1920 × 970                | 1872 × 849       | 9 × 11 | 70 px  | 3            | 0.6               | 0.5           | two, 320 px each          |
+| Square, 1000 × 1000                | 952 × 879        | 9 × 11 | 72 px  | 3            | 0.7               | 0.5           | none, 152 px spare a side |
+| Ultra-wide, 3440 × 1300            | 3392 × 1179      | 9 × 11 | 97 px  | 3            | 0.7               | 0.5           | two, 320 px each          |
 
-So a brick is 37 to 40 CSS px on a phone held upright and 58 to 100 in a
+So a brick is 37 to 40 CSS px on a phone held upright and 56 to 97 in a
 wide window, large enough for its art to read. On a phone on its side it is
-25 to 31, where six pips and a zapper's arrowheads are past their limit:
+24 to 30, where six pips and a zapper's arrowheads are past their limit:
 under 30 CSS px a unit the art leaves out its cracks and rivets ("Look"),
 and the Ready card says the game is larger upright ("Risks"). The layout
-check's floor for a unit is 24 CSS px. The atlas is baked at no more than
+check's floor for a unit is 24 CSS px, which a small phone on its side
+meets exactly. The lintel costs a wide window about 4% of a brick, and a
+phone of 390 × 844 a row: 17 deep where the first rule made it 18, so a
+jump lands the wall on row 7, not 8. The atlas is baked at no more than
 128 device px a unit and scaled past that.
 
 ![The field in play, on a phone and in a wide window](art/field.svg)
@@ -641,9 +694,12 @@ check's floor for a unit is 24 CSS px. The atlas is baked at no more than
   face, and off a brick's corner about the line from the corner to its
   middle. Bricks side by side make one face, and a corner turns it only
   where nothing touches the corner, as `exposureOf()` works out. Everything
-  it meets at one moment is struck, and it turns once.
+  it meets at one moment is struck, and it turns once: the faces' normals
+  are added together, and a corner turns it only where no face did, about
+  the line to its middle measured as it is, not as the radius.
 - **The floor ends its flight.** It waits where it touched, no nearer a
-  side wall than half a unit, and the next round leaves from there. A hot
+  side wall than half a unit, and the next round leaves from there. A
+  level's first round leaves from the floor's middle, x = 4.5. A hot
   shot turns off the floor once first ("Boons").
 - **It strikes each brick it meets,** as "Charge" says.
 - **Everything is geometry.** A flight is measured in units flown, not in
@@ -652,13 +708,15 @@ check's floor for a unit is 24 CSS px. The atlas is baked at no more than
   reached first, ties going to the fuzzball that left first. So a round
   comes out the same at any frame rate and any speed, and `fly()` works it
   out whole before the scene draws any of it (decision 14).
-- **A bored fuzzball comes home.** One that flies 60 units without striking
-  a brick that can break yawns and drops to the floor from where it is,
-  through whatever lies between. In the sketch a round had a bored fuzzball
+- **A bored fuzzball comes home.** One that flies 60 units without taking
+  a hit off a brick yawns and drops to the floor from where it is, through
+  whatever lies between. The yawn comes at 60 units exactly, wherever the
+  fuzzball is; a strike on steel, a plate, a bumper or a shell it can't
+  hurt doesn't count as one. In the sketch a round had a bored fuzzball
   18 times in 100, 16 on the shallowest field and 21 on the deepest, friends
   and a prism's twos among them, so the number is the first to tune at Q3.
-  One that has flown 600 units, or turned eight times without moving, comes
-  home the same way; neither should be seen in play, and the random flights'
+  One that has flown 600 units, or turned eight times running without
+  flying between, comes home the same way; neither should be seen in play, and the random flights'
   spec counts them.
 - **Only what every engine rounds alike.** The flight adds, subtracts,
   multiplies, divides and takes square roots, and nothing else: the aims
@@ -765,8 +823,11 @@ is worth about a second shot, and the two are worth much the same.
 
 Every kind is an entry in `BRICK_KINDS`, with its name and its sentence for
 How to play, its hits, whether a level needs it, its points and its traits.
-A zap or a blast takes 2 hits off each brick it reaches, and reaches nothing
-that never breaks.
+A zap or a blast takes 2 hits off each brick it reaches. It passes through
+steel, a bumper and a portal and harms none of them, so a zapper behind
+steel still reaches the bricks beyond (decision 9). A zapped cage frees its
+friend, as a broken one does; a zapped prism or wool brick only breaks,
+since a split and a charge are a fuzzball's, and a zap has none.
 
 | Kind          | Hits   | Needed | What it does                                                                                                                             | First level |
 | ------------- | ------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
@@ -790,11 +851,18 @@ that never breaks.
 - **Zaps ripple.** Each lands half a unit of flight after the break that
   set it off, so a chain plays as one, and a fuzzball close behind may still
   meet a brick about to go.
+- **Strikes at one moment** spend the charge on faces before corners, and
+  within each, from the floor up, then left to right.
 - **A corner is plated only where both its faces are.**
-- **A fuzzball out of a portal** can't go into one again until it has
-  turned off something.
+- **A portal takes a fuzzball** as its middle crosses into the portal's
+  cell. One out of a portal ignores every portal until it next turns off
+  something, so it can't bounce back in through the cell it came out of.
+- **A prism's two** leave from where the fuzzball struck it, 30° either
+  side of the heading it leaves with, each with a bored count and a
+  600-unit cap of its own.
 - **Sixteen fuzzballs fly at once at most:** the player's, a triple shot's
   two mates, six friends at most, and a prism's twos while there is room.
+  A split that would pass sixteen makes fewer, the one at +30° first.
 - **Considered and left out:** a brick that eats the fuzzball, which
   players of the genre call arbitrary ("What other games teach"); a brick
   that turns it at random, for the same reason and because nothing here is
@@ -922,9 +990,11 @@ after.
 1. **A certificate for every level on every depth.** `yarn certify:levels`
    runs `solve()`, a beam search over the aims a degree apart and the six
    charges, widening to every aim and a wider beam where that fails, for
-   each level on each depth from 11 to 22, and writes the line it finds, its
-   shots as pairs of an aim and a charge, to
-   `src/rules/levels/certificates/<set>.json`. A line counts only if no
+   each level on each depth from 11 to 22, on a pool of worker threads, off
+   CI, and writes the line it finds, its shots as pairs of an aim's number
+   and a charge, to `src/rules/levels/certificates/<set>.json`, and each
+   level's par on each depth to `src/rules/levels/par.json`. Both are
+   checked in. A line counts only if no
    brick the level needs ever stands in the row over the floor's, so no
    certificate wins by a hair. It exits with 1 if a level has none.
 2. **Every certificate is replayed** by the `sim` specs, through
@@ -962,13 +1032,18 @@ its start, on the screen it is played on, by shots a person can make.
 - **Point and hold,** a mouse's default: the guide follows the pointer.
   Press and hold to charge, a notch each quarter second, to 5 and back down
   and up again, so any charge comes round without letting go; release to
-  fly. A click is a plain shot. The wheel nudges the aim a notch; a right
-  click or Escape calls a charge off.
-- **Keys,** by `event.code`: Left and Right swing the aim a degree, or a
-  notch with Shift held; Up and Down raise and lower the charge; Space
-  releases. A and D, W and S do the same. F holds the flight fast, and X
-  skips it. The run's keys are the libraries' (`RUN_KEYS`), which
-  keep Enter, Escape and P.
+  fly. A click is a plain shot. The wheel nudges the aim a quarter of a
+  degree; a right click or Escape calls a charge off.
+- **Keys,** by `event.code`: Left and Right swing the aim a degree, four
+  aims, or a quarter of one with Shift held; Up and Down raise and lower
+  the charge a notch; Space releases. A and D, W and S do the same. F holds
+  the flight fast, and X skips it. The run's keys are the libraries'
+  (`RUN_KEYS`), which keep Enter, Escape and P. Escape calls a charge off
+  while one builds, and pauses otherwise; `GameService` overrides
+  `command()` for it.
+- **Aims are numbered** 0 to 656: aim `i` points `8° + i/4°` from the floor
+  on the right, turning toward the ceiling. A pointer's angle snaps to the
+  nearest, held between 8° and 172°.
 - **Settings:** Aiming (by the pointer, pull back, point and hold); the
   flight's speed (Normal, Fast); speed up long flights (on); the aim
   guide (on); sound; the palette.
@@ -994,8 +1069,8 @@ and settled at Q3; those of one kind are its catalog entry's.
 | A bumper           | radius 0.38                                                                                                                          |
 | A prism            | two more fuzzballs, 30° either side                                                                                                  |
 | Friends            | 6 at most, 0.7 units apart; 16 fuzzballs in flight at most                                                                           |
-| Bored              | 60 units without striking a brick that can break                                                                                     |
-| The caps           | 600 units a fuzzball; 8 turns without moving                                                                                         |
+| Bored              | 60 units without taking a hit off a brick; the yawn at 60 exactly                                                                    |
+| The caps           | 600 units a fuzzball, a prism's two each their own; 8 turns running without flying between                                           |
 | The wall           | a row a round; a jump of J rows, the whole part of (D − 1) / 3, when nothing needed is left below the jump line; opens on row D − 2J |
 | A hot shot         | charge 5, never spent or earthed; one bounce off the floor                                                                           |
 | A triple shot      | two more fuzzballs, 0.7 units apart, with the charge chosen                                                                          |
@@ -1011,7 +1086,11 @@ and settled at Q3; those of one kind are its catalog entry's.
 
 At 14 units a second the sketch's flights last no more than 7 seconds at
 the middle, 21 at the ninth in ten and 68 at the ninety-ninth in a hundred,
-which is what fast-forward is for.
+which is what fast-forward is for. Those numbers add up every fuzzball's
+distance, so they overstate a round with friends or a prism in it; Q2
+measures them again by each round's longest fuzzball. The charge shares in
+decision 3 are measured again there too, leaving hot shots out, since a
+hot shot's charge isn't chosen.
 
 ### Look
 
@@ -1022,9 +1101,11 @@ a file of its own in `art/bricks/` too; this is what they hold to.
 
 - **A brick is a chunky tile:** a rounded square in its tint, a lighter
   strip along its top and a darker lip along its bottom, three flat shapes.
-  The tints are the game's own eight inks for light palettes and eight for
-  dark, in `src/view/colors/inks.ts`. A level's rows take them in turn
-  unless its picture has tints of its own.
+  The tints are eight inks for light palettes and eight for dark,
+  `@fz/phaser/color`'s `TILE_INKS`, which are Brick Breaker's, lifted in
+  Part 1. Plain and tough bricks take their row's tint, the rows taking
+  them in turn unless the level's picture has tints of its own; every
+  other kind that breaks keeps the ink its art gives it (decision 18).
 - **Shape and mark before color.** Every kind reads in grey and at 32 CSS
   px, and what a special brick does is drawn on it:
 
@@ -1049,20 +1130,29 @@ a file of its own in `art/bricks/` too; this is what they hold to.
 
 - **Few frames, stacked.** A tough brick is its tint's tile, a pips frame
   and a cracks frame, three images, so the atlas holds 8 tiles, 5 pips and
-  5 cracks rather than every pairing; plates, the shell and the moss cap
+  5 cracks rather than every pairing (the art draws two of the cracks, and
+  the game all five); plates, the shell and the moss cap
   are frames over a tile too. A spec holds the atlas under 2048 × 2048 at
   128 device px a unit with `atlasSize()`.
-- **The field** takes the palette's field, its frame the field's line, the
-  floor's band a wash of the text over it; the jump line the palette's
+- **The field** takes the palette's `field` role (Brick Breaker's takes
+  `panel`), its frame the field's line, the floor's band a wash of the text
+  over it; steel is mixed from the palette with `mixColors()`, as Brick
+  Breaker's is, so every palette has its own; the jump line the palette's
   accent, dashed; the danger line its danger; the zappers and sparks its
   warning; the player's fuzzball its accent.
-- **The fuzzball has five looks:** relaxed, half charged and fully charged,
-  its fur standing further at each; the hot shot, the fuzzball in the
-  danger color under a crown of flame in the warning color; and the triple
-  shot, three in a row. `art/fuzzball/` has each.
+- **The fuzzball has eight looks:** one for each charge, 0 to 5, its fur
+  combed further in proportion to the charge and sparking at 5 alone
+  (decision 21; the art's relaxed, half and full looks are charges 0, 2 to
+  3 and 5); the hot shot, the fuzzball in the danger color under a crown
+  of flame in the warning color; and the triple shot, three in a row.
+  `art/fuzzball/` has the art's five.
+- **Friends** each take one of `@fz/phaser/color`'s `FUZZBALL_INKS`,
+  Asteroid Breaker's eight pilot inks for each mode, lifted in Part 1, so
+  six friends never share one (decision 21).
 - **Small bricks drop detail.** Under 30 CSS px a unit a brick's cracks and
   steel's rivets are left out and a plate's teeth are fewer; the sheet's
-  small row shows every kind at 36.
+  small row shows every kind at 36, above the rule, so what drops is still
+  to be drawn, and specced at 29 and 31.
 - **`contrast.spec.ts`** holds every ink, the steel, each special brick's
   body and glyph, the fuzzball, the hot shot, the guide, the jump line, the
   danger line and the meter to 3:1 against the field in every palette, the
@@ -1136,14 +1226,17 @@ has the kinds.
 
 ### The debug menu
 
-In a development build, and in a production one at `?debug`, the settings
+`@fz/game-ui/debug_menu`, lifted from Asteroid Breaker in Part 1: in a
+development build, and in a production one at `?debug`, the settings
 drawer also offers: a slider for each number of the flight's speed, the
 guide's length and the bored distance, with the lines of `tuning.ts` they
 would replace; the field's depth, overriding the room's, so every depth can be
 tried in one window; any level, open; and **Play the
 certificate,** which plays the level's line for the depth in the scene, a
 round at a time. It is how Q3 tunes, how Q4 watches every proof and how Q5
-tries three engines.
+tries three engines. A run played on retuned numbers keeps no records, as
+Asteroid Breaker's doesn't, and while a number the rules read has moved,
+the menu says the certificates are stale.
 
 ### What it keeps
 
@@ -1160,7 +1253,8 @@ dropping what it can't trust:
   depth it began on, for its par, each brick left and its hits, how far the
   wall has come, where the fuzzball waits, the friends, a boon earned, the
   rounds and the score. A round is kept as it is released, with its outcome,
-  so a reload mid-flight comes back after it.
+  so a reload mid-flight comes back after it. A game taken up comes back
+  paused, between rounds, as the breakers' do.
 
 ### Accessibility
 
@@ -1233,15 +1327,19 @@ each folder named for what it holds:
 - **`tools/`** — `build-aims.mjs`, `certify-levels.mjs`, `report-levels.mjs`,
   `build-sounds.mjs`, `check-layout.mjs`, `capture-screenshots.mjs`.
 
-What it takes from the libraries, as they stand but for Part 1's sweep:
-`@fz/core`'s run, run numbers, JSON readers, formats, math, records, event
-log, frame sounds, turns, keys and testing loop; `@fz/phaser`'s layout,
-shapes, fuzzball, color, scene helpers, sound and canvas; `@fz/game-ui`'s
-bar, viewport, play room and `RunLifecycle`; `@fz/ui`'s storage, dialogs,
-announcer and theme; `@fz/dev`'s presets, layout check, screenshots,
-sounds, script and report. It doesn't take `@fz/core/clock` or
-`@fz/core/field_play`, which step a field in time: `RoundPlay` plays a list
-instead.
+What it takes from the libraries, as Part 1 leaves them: `@fz/core`'s
+sweep, run, run numbers, JSON readers, formats, math, records, event log,
+frame sounds, turns, keys, testing loop and `variantOfSpec()`, and
+`@fz/core/clock`'s `Countdown` for a long flight's doubling and a card's
+wait;
+`@fz/phaser`'s layout, shapes with their areas, `outlineRoundRect()` and
+`dashes()`, fuzzball, color with `TILE_INKS` and `FUZZBALL_INKS`, scene
+helpers, sound and canvas; `@fz/game-ui`'s bar, viewport, play room,
+`RunLifecycle` and debug menu; `@fz/ui`'s storage, dialogs, announcer,
+theme and icons, `fast-forward`, `skip` and `star` among them; `@fz/dev`'s
+presets, layout check with decks all or none, screenshots, sounds, script
+and report. It doesn't take `@fz/core/field_play`, which steps a field in
+time: `RoundPlay` plays a list instead.
 
 ### Tests
 
@@ -1249,7 +1347,10 @@ The repository's rules for specs, in three Vitest projects as Brick
 Breaker's: `pure` for the rules, the view and `tools/` in Node, `dom` for
 the scene and the shell in jsdom with headless Phaser, and `sim` for the
 certificates and the careless player, without coverage. The rules and the
-view are held to Brick Breaker's floor, 100% of lines and 95% of branches.
+view are held to Brick Breaker's floor, 100% of statements, functions and
+lines and 95% of branches; the scene and the shell to Asteroid Breaker's,
+98% of statements, 92% of branches, 100% of functions and 99% of lines for
+the scene, and 98, 97, 97 and 98 for the shell.
 What is new to this game's specs: every flight spec states a wall as a
 picture and a shot as an aim and a charge, and reads back the events; the
 random flights; `aims.spec.ts`; the certificates; and the layout check
@@ -1267,7 +1368,7 @@ units across the floor, each 24 CSS px or more; a depth from 11 to 22, the
 one the room's shape asks for (`data-room`); the field filling the room's
 width where it is deeper than 11 and its height where it is 11, within a
 device pixel a cell; the panels (`data-panels`) either side of the field
-wherever 172 CSS px a side are spare, inside the window, clear of the
+wherever 184 CSS px a side are spare, inside the window, clear of the
 field, the bar and each other, and absent where they aren't; and, after
 the turn and back, the wall where it was, the same rows from the floor.
 
@@ -1477,6 +1578,9 @@ zappers; `*` a bomb; `W` wool; `C` a cage; `B` a bumper; `P` a prism; `@` a
 portal and its twin, a wall's second pair written `&` in its data; `v` a
 brick of 2 hits plated toward the floor; `U` one of 2 plated toward the
 floor and on both sides; `S` a shell of 2; `M` and `N` moss of 2 and of 3.
+`legend.ts` keeps three more, which no draft uses, so each kind of 2 to 3
+hits has both: `T` a shell of 3, `V` a brick of 3 plated toward the floor
+and `^` one of 2 plated toward the ceiling.
 
 ### Warm-up, levels 1 to 9
 

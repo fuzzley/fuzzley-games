@@ -338,10 +338,38 @@ const WALL_CELL = 16;
 const FIELD_CELL = 28;
 const TOP = 196;
 
-/** The two screens a level is shown opening on. */
+/**
+ * The two screens a level is shown opening on, as "The field" in the plan
+ * works out for a phone of 390 by 844 and a window of 1280 by 800: the depth,
+ * and the floor's band and the lintel in units.
+ *
+ * @typedef {object} Screen
+ * @property {string} name
+ * @property {string} label What the whole wall's mark for it says.
+ * @property {number} depth
+ * @property {number} band
+ * @property {number} lintel
+ * @property {number} x Where its field is drawn on the card.
+ *
+ * @type {Screen[]}
+ */
 const SCREENS = [
-  { name: "A phone held upright", depth: 18, x: 300 },
-  { name: "A wide window", depth: 11, x: 588 },
+  {
+    name: "A phone held upright",
+    label: "phone",
+    depth: 17,
+    band: 1.1,
+    lintel: 0.9,
+    x: 300,
+  },
+  {
+    name: "A wide window",
+    label: "wide",
+    depth: 11,
+    band: 0.625,
+    lintel: 0.5,
+    x: 588,
+  },
 ];
 
 /**
@@ -379,12 +407,12 @@ function wallPanel(wall, tints) {
     wallRows(wall, tints, 0, 0, WALL_CELL),
     art.rect(0, 0, width, height, { stroke: pal.fieldLine, sw: 1.5 }),
   ];
-  for (const { depth } of SCREENS) {
+  for (const { depth, label } of SCREENS) {
     const shown = 2 * art.jumpRows(depth);
     const y = height - shown * WALL_CELL;
     out.push(
       art.dashedLine(width + 16, y, 6, 4, { stroke: pal.accent, sw: 2 }),
-      art.text(width + 22, y + 4, depth === 18 ? "phone" : "wide", {
+      art.text(width + 22, y + 4, label, {
         size: 12,
         fill: pal.accent,
       }),
@@ -404,26 +432,29 @@ function wallPanel(wall, tints) {
 }
 
 /**
- * Draws a level as it opens on a field `depth` rows deep: its wall's lowest
- * rows from the ceiling down to the row a jump leaves it on, the rest waiting
- * over the ceiling, the jump line, the danger line and the fuzzball on the
- * floor, ready.
+ * Draws a level as it opens on a screen's field: its wall's lowest rows from
+ * the ceiling down to the row a jump leaves it on, the rest waiting over the
+ * ceiling, the jump line, the danger line and the fuzzball on the floor,
+ * ready.
  *
  * @param {string[]} wall
  * @param {string[]} tints
- * @param {string} name The screen's.
- * @param {number} depth
+ * @param {Screen} screen
  * @returns {string}
  */
-function openingField(wall, tints, name, depth) {
+function openingField(
+  wall,
+  tints,
+  { name, depth, band: bandUnits, lintel: lintelUnits },
+) {
   const cell = FIELD_CELL;
   const k = cell / 40;
   const jump = art.jumpRows(depth);
   const shown = 2 * jump;
   const width = COLUMNS * cell;
-  const lintel = Math.round(0.7 * cell);
+  const lintel = Math.round(lintelUnits * cell);
   const deep = depth * cell;
-  const band = Math.round(0.6 * cell);
+  const band = Math.round(bandUnits * cell);
   const wash = { fill: art.mix(pal.field, pal.text, 0.13) };
   /** @type {string[]} */
   const out = [
@@ -635,8 +666,8 @@ function card({ number, level, set, inSet, builtAround }, seen) {
   );
 
   out.push(at(CARD.pad, TOP, wallPanel(wall, tints)));
-  for (const { name, depth, x: left } of SCREENS) {
-    out.push(at(left, TOP, openingField(wall, tints, name, depth)));
+  for (const screen of SCREENS) {
+    out.push(at(screen.x, TOP, openingField(wall, tints, screen)));
   }
   out.push(at(CARD.pad, 800, kindsPanel(kinds)));
   for (const { kind } of kinds) seen.add(kind);

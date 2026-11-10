@@ -1718,29 +1718,31 @@ const COLUMNS = 9;
  * @property {number} cell A cell's side.
  * @property {number} rows How many rows of cells the screen shows.
  * @property {number} floor The floor band's height.
- * @property {number} lintel The height of the lintel over the ceiling, 0 for
- *   none.
+ * @property {number} lintel The height of the lintel over the ceiling, which
+ *   every field has.
  * @property {string[]} wall What hangs from the ceiling, its top row first:
  *   `.` air, `o` a brick, a digit a tough brick with that many hits, `*` a
  *   bomb, `C` a cage, `W` a wool brick.
  * @property {(TintName | undefined)[]} tints Each row's tint, air having none.
  * @property {number} ballColumn The fuzzball's middle, in cells from the left.
- * @property {string} [waiting] What the marker in the lintel says.
+ * @property {string} waiting What the marker in the lintel says.
  * @property {boolean} [hot] Whether the fuzzball on the floor is a hot shot.
  */
 
 /**
- * The phone's field: 18 rows deep, under a lintel that says how much of the
- * wall is still to come. The wall is a stack of courses with a row of air
- * between, and shots have eaten into its lowest.
+ * The phone's field, as "The field" in the plan works out for 390 by 844: a
+ * unit of 40, 17 rows deep, a floor band of 1.1 units and a lintel of 0.9
+ * over the ceiling that says how much of the wall is still to come. The wall
+ * is a stack of courses with a row of air between, and shots have eaten into
+ * its lowest.
  *
  * @type {Field}
  */
 const PHONE_FIELD = {
-  cell: 42,
-  rows: 18,
-  floor: 12,
-  lintel: 24,
+  cell: 40,
+  rows: 17,
+  floor: 44,
+  lintel: 36,
   wall: [
     "4*44444*4",
     "444444444",
@@ -1774,20 +1776,22 @@ const PHONE_FIELD = {
 };
 
 /**
- * The desktop window's field: a column of big cells eleven rows deep, the
- * least a field is. Its wall has just jumped, so the fuzzball on its floor
- * is a hot shot.
+ * The desktop window's field, as "The field" in the plan works out for 1280
+ * by 800: a column of cells of 56, eleven rows deep, the least a field is,
+ * a floor band of 0.6 units and a lintel of half a unit. Its wall has just
+ * jumped, so the fuzzball on its floor is a hot shot.
  *
  * @type {Field}
  */
 const DESKTOP_FIELD = {
-  cell: 62,
+  cell: 56,
   rows: 11,
-  floor: 26,
-  lintel: 0,
+  floor: 35,
+  lintel: 28,
   wall: ["3*33C33*3", "333333333", ".........", "22W2222C2", "2.oo.oo2o"],
   tints: ["teal", "green", undefined, "amber", "orange"],
   ballColumn: 2.7,
+  waiting: "24 rows waiting",
   hot: true,
 };
 
@@ -1960,8 +1964,8 @@ function dashedLine(width, y, dash, gap, paint) {
  * Draws a field in play, from the left end of its ceiling: the wall hanging
  * from the ceiling, the jump line a third of the way down, the danger line a
  * cell above the floor, the fuzzball on the floor with its charge, and the
- * aim guide, all sized by its cells. Its lintel, if it has one, lies above
- * where it is drawn from.
+ * aim guide, all sized by its cells. Its lintel lies above where it is drawn
+ * from.
  *
  * @param {Palette} pal
  * @param {Field} field
@@ -2068,36 +2072,30 @@ function fieldScene(pal, field) {
 
   // The lintel over the ceiling, and the marker in it: how much of the wall
   // has yet to come down.
-  if (lintel > 0) {
-    out.push(
-      rect(0, -lintel, width, lintel, band),
-      line([0, 0], [width, 0], {
-        stroke: pal.fieldLine,
-        sw: 2,
-        cap: "butt",
-      }),
-    );
-  }
-  if (field.waiting !== undefined) {
-    const middle = -lintel / 2;
-    const left = width / 2 - 56;
-    out.push(
-      ...[-0.5, 5.5].map((dy) =>
-        polyline(
-          [
-            [left, middle + dy],
-            [left + 5, middle + dy - 5],
-            [left + 10, middle + dy],
-          ],
-          { stroke: pal.muted, sw: 2 },
-        ),
+  const middle = -lintel / 2;
+  const left = width / 2 - 56;
+  out.push(
+    rect(0, -lintel, width, lintel, band),
+    line([0, 0], [width, 0], {
+      stroke: pal.fieldLine,
+      sw: 2,
+      cap: "butt",
+    }),
+    ...[-0.5, 5.5].map((dy) =>
+      polyline(
+        [
+          [left, middle + dy],
+          [left + 5, middle + dy - 5],
+          [left + 10, middle + dy],
+        ],
+        { stroke: pal.muted, sw: 2 },
       ),
-      text(left + 18, middle + 4.5, field.waiting, {
-        size: 13,
-        fill: pal.text,
-      }),
-    );
-  }
+    ),
+    text(left + 18, middle + 4.5, field.waiting, {
+      size: 13,
+      fill: pal.text,
+    }),
+  );
 
   out.push(
     rect(0, -lintel, width, height + lintel, {
@@ -2464,9 +2462,14 @@ function desktopMock(pal) {
   const scene = fieldScene(pal, DESKTOP_FIELD);
   const bar = gameBar(pal, width - edge * 2, false);
   const top = strip + edge + bar.height + edge;
-  const height = top + scene.height + edge;
+  const { lintel } = DESKTOP_FIELD;
+  const fieldTop = top + lintel;
+  const height = fieldTop + scene.height + edge;
   const fieldLeft = (width - scene.width) / 2;
-  const sideWidth = fieldLeft - edge * 2;
+  // A panel stands 12 px from the field, 320 wide at most; past it the page
+  // shows.
+  const sideWidth = Math.min(320, fieldLeft - edge * 2);
+  const sideHeight = lintel + scene.height;
   const frame = { stroke: pal.fieldLine, sw: 2.6 };
   return {
     width,
@@ -2478,11 +2481,11 @@ function desktopMock(pal) {
         circle(18 + i * 17, strip / 2, 4.6, { fill: pal.fieldLine }),
       ),
       `<g transform="translate(${edge} ${strip + edge})">\n${bar.svg}\n</g>`,
-      `<g transform="translate(${edge} ${top})">\n${comingNextPanel(pal, sideWidth, scene.height)}\n</g>`,
-      `<g transform="translate(${fieldLeft} ${top})">\n${scene.svg}\n</g>`,
-      `<g transform="translate(${fieldLeft + scene.width + edge} ${top})">\n${inThisWallPanel(pal, sideWidth, scene.height)}\n</g>`,
+      `<g transform="translate(${fieldLeft - edge - sideWidth} ${top})">\n${comingNextPanel(pal, sideWidth, sideHeight)}\n</g>`,
+      `<g transform="translate(${fieldLeft} ${fieldTop})">\n${scene.svg}\n</g>`,
+      `<g transform="translate(${fieldLeft + scene.width + edge} ${top})">\n${inThisWallPanel(pal, sideWidth, sideHeight)}\n</g>`,
     ].join("\n"),
-    field: [fieldLeft, top],
+    field: [fieldLeft, fieldTop],
     scene,
   };
 }
@@ -2609,7 +2612,7 @@ function fieldSheet() {
     phoneX + (phone.width * k) / 2,
     captionAt,
     "A phone held upright",
-    "390 × 844: 9 × 18 cells, the game bar under the floor",
+    "390 × 844: 9 × 17 cells under a lintel, the game bar under the floor",
   );
 
   // The desktop window, with a callout down each side of its field.
@@ -2633,7 +2636,7 @@ function fieldSheet() {
         [fieldLeft - 4.5, jumpY],
         [fieldLeft + 3, jumpY],
       ],
-      ["jump line: under the top three rows, a third of the way down"],
+      ["jump line: under the top three rows,", "a third of the way down"],
       "start",
       [fieldLeft - 12, under + 18],
     );
@@ -2652,7 +2655,7 @@ function fieldSheet() {
     desktopX + (desktop.width * k) / 2,
     captionAt,
     "A wide desktop window",
-    "1280 × 800: 9 × 11 big cells in a column, a panel each side in the width left over",
+    "1280 × 800: 9 × 11 big cells in a column under a lintel, a panel each side",
   );
 
   const height = Math.round(captionAt + 22 + 40);
