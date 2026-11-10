@@ -1,0 +1,130 @@
+<fz-help-dialog [open]="open()" (closed)="closed.emit()">
+  <p>
+    Aim the fuzzball, charge it and let it fly. It turns off the sides, the
+    ceiling and every brick it doesn't punch through, until it touches the
+    floor, where it waits for the next shot. Then the wall comes down a row.
+    Break every brick a level needs to clear it, those still waiting over the
+    ceiling among them; the level is lost once one it needs stands in the
+    floor's row.
+  </p>
+  <p><strong>Charge.</strong> {{ charge }}</p>
+  <p>
+    <strong>The jump.</strong> Once no brick the level needs is left below the
+    dashed line, the wall jumps a third of the field at once rather than a row,
+    and your next shot carries the level's boon. A jump never loses a level.
+  </p>
+  <p><strong>Boons.</strong> {{ boons }}</p>
+  <p>
+    <strong>Scoring.</strong> Each brick scores its points for every hit it had,
+    as it breaks. {{ scoring.streak }} {{ scoring.bonuses }}
+    {{ scoring.stars }}
+  </p>
+  <p>
+    <strong>No hurry.</strong> Nothing moves until you shoot. Fast-forward and
+    Skip hurry a flight along, and the game pauses itself when you switch away,
+    turn the screen or open a dialog. A run goes on from level to level until
+    one is lost, and a level can be tried again as often as you like.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <td></td>
+        <th scope="col">Mouse</th>
+        <th scope="col">Touch</th>
+        <th scope="col">Keyboard</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Aim</th>
+        <td>
+          Point; the guide follows. The wheel turns it a quarter of a degree
+        </td>
+        <td>Press anywhere on the field and drag away from where to aim</td>
+        <td>
+          <kbd>←</kbd> or <kbd>→</kbd> turns it a degree, or a quarter of one
+          with <kbd>Shift</kbd> held
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Charge</th>
+        <td>
+          Hold the button: the charge climbs a notch at a time to
+          {{ mostCharge }}, then back down and round again
+        </td>
+        <td>Drag further</td>
+        <td><kbd>↑</kbd> or <kbd>↓</kbd>, a notch at a time</td>
+      </tr>
+      <tr>
+        <th scope="row">Let it fly</th>
+        <td>Let go; a click flies plain</td>
+        <td>Let go</td>
+        <td><kbd>Space</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Call a charge off</th>
+        <td>Right-click</td>
+        <td>Slide back to where you pressed, and let go</td>
+        <td><kbd>Esc</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Fast-forward a flight</th>
+        <td>Fast-forward</td>
+        <td>Fast-forward</td>
+        <td>Hold the left index finger's home key, the one with a bump</td>
+      </tr>
+      <tr>
+        <th scope="row">Skip a flight</th>
+        <td>Skip</td>
+        <td>Skip</td>
+        <td>The left ring finger's key on the bottom row</td>
+      </tr>
+      <tr>
+        <th scope="row">Pause, or go on</th>
+        <td>Pause, then Resume</td>
+        <td>Pause, then Resume</td>
+        <td>
+          The key above the right little finger's home key;
+          <kbd>Esc</kbd> pauses while no charge builds, and
+          <kbd>Enter</kbd> goes on
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Next level</th>
+        <td>Next level</td>
+        <td>Next level</td>
+        <td><kbd>Enter</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Start again, once a run has ended</th>
+        <td>Try again, or New game</td>
+        <td>Try again, or New game</td>
+        <td>
+          <kbd>Enter</kbd>, or the key above the right little finger's home key
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Keys by place.</strong> The letter keys are read by where they sit,
+    whatever they print, so they fall under the same fingers on every keyboard.
+    The left hand's home keys under its little, ring and middle fingers do as
+    <kbd>←</kbd>, <kbd>↓</kbd> and <kbd>→</kbd> do, and the key above the ring
+    finger's as <kbd>↑</kbd> does.
+  </p>
+  <p>
+    <strong>Ways of aiming.</strong> In the settings, Aiming can have a mouse
+    pull back, or a finger point and hold, as the other does.
+  </p>
+  <p>
+    <strong>By ear.</strong> The aim and the charge are said as the keys change
+    them, and the key above the left index finger's home key reads the wall's
+    three lowest rows, from the floor up.
+  </p>
+
+  @for (catalog of catalogs(); track catalog.id) {
+    <fz-help-catalog [catalog]="catalog" />
+  }
+</fz-help-dialog>

@@ -1,0 +1,15 @@
+@use "../styles" as *;
+@include help-text;
+@include help-controls;
+
+// A brick is square, so each picture's room is too.
+fz-help-catalog {
+  --fz-help-picture-width: 36px;
+  --fz-help-picture-height: 36px;
+}
+
+// Paragraphs follow the table too, so it keeps as far from them as from
+// those above it.
+table {
+  margin-bottom: var(--fz-space-4);
+}
