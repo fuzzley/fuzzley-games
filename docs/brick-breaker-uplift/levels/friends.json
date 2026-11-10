@@ -1,0 +1,240 @@
+{
+  "id": "friends",
+  "name": "Friends",
+  "place": "garden",
+  "drops": 0.14,
+  "says": "Levels 31 to 40. Cages, plated bricks, and keys with their gates.",
+  "levels": [
+    {
+      "id": "hello",
+      "name": "Hello",
+      "pace": 1.12,
+      "mark": 10,
+      "teaches": "A cage: two hits free a friend, a ball more.",
+      "bricks": [
+        ".............",
+        ".............",
+        ".ooooooooooo.",
+        ".ooooooooooo.",
+        ".oo.ooooo.oo.",
+        ".o.c.ooo.c.o.",
+        ".oo.ooooo.oo."
+      ]
+    },
+    {
+      "id": "mushroom",
+      "name": "Mushroom",
+      "pace": 1.12,
+      "mark": 10,
+      "teaches": "Plated bricks: a ball from below is turned back, so the way in is up an edge and down from the top.",
+      "bricks": [
+        ".............",
+        "....ooooo....",
+        "..oo2ooo2oo..",
+        ".ooooo?ooooo.",
+        ".o2ooooooo2o.",
+        ".uuuuuuuuuuu.",
+        ".....ooo.....",
+        ".....ooo.....",
+        ".....ooo.....",
+        "....ooooo...."
+      ],
+      "tints": [
+        ".............",
+        "....11111....",
+        "..113111311..",
+        ".11111111111.",
+        ".13111111131.",
+        ".22222222222.",
+        ".....333.....",
+        ".....333.....",
+        ".....333.....",
+        "....33333...."
+      ]
+    },
+    {
+      "id": "drawbridge",
+      "name": "Drawbridge",
+      "pace": 1.13,
+      "mark": 15,
+      "teaches": "Keys and gates: the last key opens every gate at once.",
+      "bricks": [
+        ".............",
+        "..ooooooooo..",
+        ".oo2222222oo.",
+        ".o22?ooo?22o.",
+        ".oo2222222oo.",
+        "..ooooooooo..",
+        ".............",
+        "=============",
+        ".............",
+        ".oko.oko.oko."
+      ]
+    },
+    {
+      "id": "nest",
+      "name": "Nest",
+      "pace": 1.13,
+      "mark": 15,
+      "teaches": "Three friends freed inside a ring, where they rattle.",
+      "bricks": [
+        ".............",
+        "...ooooooo...",
+        "..o2222222o..",
+        "..o2.....2o..",
+        "..o2.ccc.2o..",
+        "..o2.....2o..",
+        "..o2222222o..",
+        "...ooooooo..."
+      ]
+    },
+    {
+      "id": "stepping-stones",
+      "name": "Stepping stones",
+      "pace": 1.14,
+      "mark": 10,
+      "teaches": "A stair plated on its near side: the soft side is up the right edge.",
+      "bricks": [
+        "o............",
+        "uo...........",
+        ".uo..........",
+        "..uo.....c...",
+        "...uo........",
+        "....uo.......",
+        ".....uo......",
+        "......uo.....",
+        ".......uo....",
+        "........uo...",
+        ".........uo..",
+        "..........uo."
+      ]
+    },
+    {
+      "id": "birdhouse",
+      "name": "Birdhouse",
+      "pace": 1.14,
+      "mark": 15,
+      "teaches": "A picture: the friend waits inside the house.",
+      "bricks": [
+        "......2......",
+        ".....222.....",
+        "....22222....",
+        "...2222222...",
+        "..222222222..",
+        "...ooooooo...",
+        "...oo...oo...",
+        "...oo.c.oo...",
+        "...oo...oo...",
+        "...ooooooo...",
+        "......2......",
+        "......2......",
+        "......2......"
+      ],
+      "tints": [
+        "......1......",
+        ".....111.....",
+        "....11111....",
+        "...1111111...",
+        "..111111111..",
+        "...3333333...",
+        "...33...33...",
+        "...33...33...",
+        "...33...33...",
+        "...3333333...",
+        "......2......",
+        "......2......",
+        "......2......"
+      ]
+    },
+    {
+      "id": "walled-garden",
+      "name": "Walled garden",
+      "pace": 1.15,
+      "mark": 15,
+      "teaches": "The keys lie over the wall, and the gate is its floor.",
+      "bricks": [
+        ".............",
+        ".k....k....k.",
+        ".............",
+        "..#########..",
+        "..#o+ooo+o#..",
+        "..#o?ooo?o#..",
+        "..#ooooooo#..",
+        "..##=====##.."
+      ]
+    },
+    {
+      "id": "beehive",
+      "name": "Beehive",
+      "pace": 1.16,
+      "mark": 20,
+      "teaches": "A picture: free the bee first and two balls work the hive.",
+      "bricks": [
+        ".............",
+        "....ooooo....",
+        "...ooooooo...",
+        "..ooooooooo..",
+        "..oo?ooo?oo..",
+        ".22222222222.",
+        "..oo?ooo?oo..",
+        "..ooooooooo..",
+        "...ooooooo...",
+        "....ooooo....",
+        ".............",
+        "......c......"
+      ],
+      "tints": [
+        ".............",
+        "....33333....",
+        "...2222222...",
+        "..333333333..",
+        "..222222222..",
+        ".33333333333.",
+        "..222222222..",
+        "..333333333..",
+        "...2222222...",
+        "....33333....",
+        ".............",
+        "............."
+      ]
+    },
+    {
+      "id": "trellis",
+      "name": "Trellis",
+      "pace": 1.17,
+      "mark": 10,
+      "teaches": "A mesh a ball threads, its plated bricks open to a hit from the side.",
+      "bricks": [
+        ".............",
+        "u.o.u.o.u.o.u",
+        ".o.o.o.o.o.o.",
+        "o.u.o.u.o.u.o",
+        ".o.o.o.o.o.o.",
+        "u.o.+.o.+.o.u",
+        ".o.o.o.o.o.o.",
+        "o.u.o.c.o.u.o"
+      ]
+    },
+    {
+      "id": "reunion",
+      "name": "Reunion",
+      "pace": 1.18,
+      "mark": 25,
+      "teaches": "The set's last: three keys, a gate, six friends, and a fort for seven balls.",
+      "bricks": [
+        ".............",
+        ".22222222222.",
+        ".2ooooooooo2.",
+        ".2o?o?o?o?o2.",
+        ".2ooooooooo2.",
+        ".22222222222.",
+        ".............",
+        ".c.c.c.c.c.c.",
+        ".............",
+        "=============",
+        ".............",
+        ".k....k....k."
+      ]
+    }
+  ]
+}
