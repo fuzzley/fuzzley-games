@@ -38,38 +38,3 @@ export const DARK_ROCK_INKS: RockInks = {
   },
   core: 0xffe6a8,
 };
-
-// The pilots' inks are written in CSS hex, as the plan's table and the
-// fuzzball's eyes are, since the shell's bar and cards draw pilots too.
-
-/**
- * The pilots' inks in a light palette, by their color, in the order they
- * are given, each a mid-tone that keeps 3:1 against a light palette's
- * field, a stray's bubble and the bar, and the eyes 3:1 against it.
- */
-export const LIGHT_PILOT_INKS: readonly string[] = [
-  "#d33f37", // coral
-  "#c05a0c", // orange
-  "#957000", // gold
-  "#2c8a3a", // green
-  "#0f8378", // teal
-  "#2c72d6", // blue
-  "#8b55dc", // violet
-  "#c83a8e", // pink
-];
-
-/**
- * The pilots' inks in a dark palette, by their color, as in a light one,
- * each light enough to keep 3:1 against a dark palette's field, a stray's
- * bubble and the bar.
- */
-export const DARK_PILOT_INKS: readonly string[] = [
-  "#ff7b70", // coral
-  "#ff9b45", // orange
-  "#f2cb45", // gold
-  "#72d36a", // green
-  "#3fd2c2", // teal
-  "#72adff", // blue
-  "#b892ff", // violet
-  "#ff7dc3", // pink
-];

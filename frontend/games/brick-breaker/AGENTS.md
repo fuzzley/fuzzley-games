@@ -236,9 +236,9 @@ takes for the specs' helpers.
   and the ways a finger may steer (`TOUCH_STEERINGS`, `isTouchSteering()`).
 - **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
   the palette's roles (`bricksPalette()`), with the brick tints from
-  `inks.ts`, the game's own eight for light palettes and eight for dark, the
-  outline every ball and capsule takes over the bricks it crosses, and the
-  marks a brick's kind and state are told apart by. `contrast.spec.ts` holds
+  `@fz/phaser/color`'s `TILE_INKS`, eight for light palettes and eight for
+  dark, the outline every ball and capsule takes over the bricks it crosses,
+  and the marks a brick's kind and state are told apart by. `contrast.spec.ts` holds
   every tint, the steel, blast and gift bricks, every ball kind, both
   capsule tones, the paddle and the last bricks' glow to 3:1 against the
   field in every palette, a tough brick's deeper tints too, each ball and
@@ -465,11 +465,11 @@ takes for the specs' helpers.
   player says; a run taken up after a reload starts paused. Nothing launches
   or goes on until the field is drawn (`GameService.setDrawn()`, which the
   board calls from its canvas), since a level nobody can see would be lost.
-- **Its colors are the palette's and its own inks'.** `bricksPalette()`
+- **Its colors are the palette's and the tiles' inks.** `bricksPalette()`
   takes the field, its wall, the paddle, the balls, the capsules and the
   steel, blast and gift bricks from the page's roles, which `ThemeService`
-  reads, and the bricks' tints from `src/view/colors/inks.ts`, eight for
-  light palettes and eight for dark; `src/view/colors/contrast.spec.ts`
+  reads, and the bricks' tints from `@fz/phaser/color`'s `TILE_INKS`, eight
+  for light palettes and eight for dark; `src/view/colors/contrast.spec.ts`
   holds them apart in every palette.
 - **The field takes the board's shape as it waits to serve.** On a board
   with room for more than 30 units of height, at the unit its width allows,

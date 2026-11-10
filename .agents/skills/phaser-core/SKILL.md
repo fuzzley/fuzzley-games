@@ -75,9 +75,13 @@ beside a deck of controls for a touch screen.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
 - **`@fz/phaser/insets`**, **`@fz/phaser/color`**, **`@fz/phaser/layout`**
   and **`@fz/phaser/shapes`** import nothing but each other, so a game's
-  code without Phaser can take them. `fitCells()` in `layout` fits a field
-  of cells, across by down, inside a canvas's insets, each cell whole device
-  pixels; a field that isn't cells lays itself out with its steps,
+  code without Phaser can take them. `color` reads a palette's roles as the
+  numbers Phaser takes and mixes them, and holds the inks the games share,
+  for light palettes and for dark: the tiles' (`TILE_INKS`) and those that
+  tell fuzzballs apart (`FUZZBALL_INKS`), which a game takes rather than
+  its own copies and holds to 3:1 against its own field in its own contrast
+  spec. `fitCells()` in `layout` fits a field of cells, across by down,
+  inside a canvas's insets, each cell whole device pixels; a field that isn't cells lays itself out with its steps,
   `roomInside()`, `framePixels()` and `cssRectOf()`, so its insets and frame
   round as every board's do; `canvasPixelRatio()` is the ratio a canvas
   renders at on a display, `canvasSizeFor()` the size the host makes a canvas

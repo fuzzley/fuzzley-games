@@ -18,7 +18,12 @@ take the pure ones.
 - `src/color/`: `colorNumber()`, a palette role's hex as the number Phaser
   takes, and `cssHex()` back again, for a `Text`'s style, and
   `mixColors()`, two colors mixed as CSS's `color-mix(in srgb)` mixes them,
-  for `@fz/style`'s washes. It imports nothing.
+  for `@fz/style`'s washes; and the inks the games share, eight for light
+  palettes and eight for dark in each `ModeInks` (`src/color/inks.ts`):
+  `TILE_INKS`, the tints a tile such as a brick takes, and `FUZZBALL_INKS`,
+  which tell fuzzballs apart where several show at once, kept apart from one
+  another and from the fuzzball's eyes by its spec. Each game holds them to
+  3:1 against its own field in its own contrast spec. It imports nothing.
 - `src/layout/`: `fitCells()`, which fits a field of square cells, any
   number across and down with a frame around them, inside a canvas's
   insets, each cell a whole number of device pixels and the field centered
