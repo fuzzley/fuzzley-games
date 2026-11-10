@@ -1,0 +1,67 @@
+{
+  "id": "revisions",
+  "name": "Redrawn levels",
+  "says": "Levels of the game the plan redraws. Each keeps its id, its name and everything its file holds but its bricks. The autopilot has played each from twelve seeds at every speed: report-before.txt and report-after.txt.",
+  "levels": [
+    {
+      "id": "stripes",
+      "name": "Stripes",
+      "why": "Level 1 takes the autopilot two minutes at Relaxed, more than any of Basics but Checker. Four rows for six, and a notch that lets the first ball through to the pocket above the wall.",
+      "bricks": [
+        ".............",
+        ".............",
+        "oooooo.oooooo",
+        "oooooo.oooooo",
+        "ooooooooooooo",
+        "ooooooooooooo"
+      ]
+    },
+    {
+      "id": "checker",
+      "name": "Checker",
+      "why": "The slowest of Basics at Relaxed. The lower band loses its tough bricks and becomes a true checker of gaps a ball threads.",
+      "bricks": [
+        ".............",
+        "2o2o2o2o2o2o2",
+        "o.o.o.o.o.o.o",
+        "2o2o2o2o2o2o2",
+        ".............",
+        "o.o.o.o.o.o.o",
+        ".o.o.o.o.o.o.",
+        "o.o.o.o.o.o.o"
+      ]
+    },
+    {
+      "id": "shelf",
+      "name": "Shelf",
+      "why": "The one level the report marks: its last bricks hide over a shelf of steel. The shelf becomes four posts, so every brick can be seen from the paddle.",
+      "bricks": [
+        ".............",
+        ".33333333333.",
+        ".22222222222.",
+        ".22222222222.",
+        ".oo?ooooo?oo.",
+        ".ooooooooooo.",
+        ".ooooooooooo.",
+        ".............",
+        "#...#...#...#"
+      ]
+    },
+    {
+      "id": "vault",
+      "name": "Vault",
+      "why": "The longest level of the thirty at every speed. The vault's mouth is as wide as the vault, its walls ask for two hits where they asked for three, and the wall under it is one tough row over three plain.",
+      "bricks": [
+        ".............",
+        "22.#######.22",
+        "222#.?o?.#222",
+        "222#.ooo.#222",
+        "222#.....#222",
+        "2222222222222",
+        "ooooooooooooo",
+        "ooooooooooooo",
+        "ooooooooooooo"
+      ]
+    }
+  ]
+}

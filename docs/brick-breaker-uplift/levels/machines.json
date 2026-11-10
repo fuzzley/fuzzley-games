@@ -1,0 +1,211 @@
+{
+  "id": "machines",
+  "name": "Machines",
+  "place": "arcade",
+  "drops": 0.14,
+  "says": "Levels 41 to 50. Bumpers, sliders and portals.",
+  "levels": [
+    {
+      "id": "pinball",
+      "name": "Pinball",
+      "pace": 1.16,
+      "mark": 15,
+      "teaches": "Bumpers: round, so a ball leaves one at an angle no brick gives.",
+      "bricks": [
+        ".............",
+        ".ooooooooooo.",
+        ".ooooooooooo.",
+        ".oo?ooooo?oo.",
+        ".............",
+        "...O.....O...",
+        ".............",
+        "......O......"
+      ]
+    },
+    {
+      "id": "conveyor",
+      "name": "Conveyor",
+      "pace": 1.16,
+      "mark": 10,
+      "teaches": "Sliders: a row of them steps a cell at a time and turns at a wall.",
+      "bricks": [
+        ".............",
+        ".ooooooooooo.",
+        ".............",
+        ">>.>>.>>.>>..",
+        ".............",
+        "..<<.<<.<<.<<",
+        ".............",
+        ".ooooooooooo."
+      ]
+    },
+    {
+      "id": "wormhole",
+      "name": "Wormhole",
+      "pace": 1.17,
+      "mark": 20,
+      "teaches": "A portal: in the low one, out of its twin, into the pocket above the wall.",
+      "bricks": [
+        ".............",
+        "......@......",
+        ".............",
+        "ooooooooooooo",
+        "o2o2o2o2o2o2o",
+        "ooooooooooooo",
+        "ooooooooooooo",
+        ".............",
+        ".............",
+        "......@......"
+      ]
+    },
+    {
+      "id": "tilt",
+      "name": "Tilt",
+      "pace": 1.18,
+      "mark": 10,
+      "teaches": "A table: plated lanes funnel a ball onto three bumpers.",
+      "bricks": [
+        ".o.o.o.o.o.o.",
+        "..o.o.o.o.o..",
+        ".............",
+        "....O...O....",
+        ".u.........u.",
+        "..u...O...u..",
+        "...u.....u...",
+        "....u...u....",
+        ".............",
+        ".oo.......oo."
+      ]
+    },
+    {
+      "id": "typewriter",
+      "name": "Typewriter",
+      "pace": 1.18,
+      "mark": 15,
+      "teaches": "Three trains of sliders sweep under a wall, each against the next.",
+      "bricks": [
+        ".............",
+        "ooooooooooooo",
+        ".............",
+        ">>>>>>>>.....",
+        ".............",
+        ".....<<<<<<<<",
+        ".............",
+        ">>>>>>>>....."
+      ]
+    },
+    {
+      "id": "two-rooms",
+      "name": "Two rooms",
+      "pace": 1.19,
+      "mark": 10,
+      "teaches": "Two sealed rooms of gifts, each with a portal for a door.",
+      "bricks": [
+        ".............",
+        "#####...#####",
+        "#?o?#...#?o?#",
+        "#ooo#...#ooo#",
+        "#o@o#...#o%o#",
+        "#####...#####",
+        ".............",
+        "....ooooo....",
+        "...o22222o...",
+        "....ooooo....",
+        ".............",
+        "..@.......%.."
+      ]
+    },
+    {
+      "id": "clockwork",
+      "name": "Clockwork",
+      "pace": 1.2,
+      "mark": 10,
+      "teaches": "A picture: three gears, a bumper for each one's hub, and a belt of sliders.",
+      "bricks": [
+        ".............",
+        ".ooo.....ooo.",
+        ".oOo.....oOo.",
+        ".ooo.....ooo.",
+        ".............",
+        ".>>>>>>>>>...",
+        ".............",
+        "....ooooo....",
+        "....o2O2o....",
+        "....ooooo...."
+      ],
+      "tints": [
+        ".............",
+        ".111.....222.",
+        ".111.....222.",
+        ".111.....222.",
+        ".............",
+        ".444444444...",
+        ".............",
+        "....33333....",
+        "....33333....",
+        "....33333...."
+      ]
+    },
+    {
+      "id": "switchyard",
+      "name": "Switchyard",
+      "pace": 1.2,
+      "mark": 15,
+      "teaches": "The keys are in two sealed rooms; the portals are the only way to them.",
+      "bricks": [
+        ".............",
+        "#####...#####",
+        "#k.k#...#k.k#",
+        "#.@.#...#.%.#",
+        "#####...#####",
+        ".............",
+        "..=========..",
+        "..=ooooooo=..",
+        "..=o?o?o?o=..",
+        "..=ooooooo=..",
+        "..=========..",
+        ".............",
+        "...@.....%..."
+      ]
+    },
+    {
+      "id": "pachinko",
+      "name": "Pachinko",
+      "pace": 1.21,
+      "mark": 10,
+      "teaches": "Pegs and cups: the cups are plated, so they fill from above.",
+      "bricks": [
+        ".............",
+        ".o.o.o.o.o.o.",
+        "..O...O...O..",
+        ".o.o.o.o.o.o.",
+        "....O...O....",
+        ".o.o.o.o.o.o.",
+        "..O...O...O..",
+        ".............",
+        ".U.U.U.U.U.U."
+      ]
+    },
+    {
+      "id": "grand-machine",
+      "name": "Grand machine",
+      "pace": 1.22,
+      "mark": 15,
+      "teaches": "The set's last: a portal to the roof, a belt, bumpers, and two strongrooms behind gates.",
+      "bricks": [
+        "......@......",
+        ".ooooo.ooooo.",
+        ".#####.#####.",
+        ".#o?o#.#o?o#.",
+        ".#ooo#.#ooo#.",
+        ".#===#.#===#.",
+        ".............",
+        ".>>>>...>>>>.",
+        ".............",
+        "..O...k...O..",
+        ".............",
+        ".k....@....k."
+      ]
+    }
+  ]
+}
