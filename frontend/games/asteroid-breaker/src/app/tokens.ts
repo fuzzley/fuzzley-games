@@ -1,27 +1,20 @@
-import { DOCUMENT } from "@angular/common";
-import { InjectionToken, inject } from "@angular/core";
+import { InjectionToken } from "@angular/core";
+import { type Tuning, createTuning } from "@fz/game-ui/debug_menu";
 import { WAVES, type WaveEntry } from "../rules/waves/waves";
-
-/** Whether the game is a development build, as its own dev server runs it. */
-export const DEV_BUILD = new InjectionToken<boolean>("DEV_BUILD", {
-  providedIn: "root",
-  factory: () => import.meta.env.DEV,
-});
-
-/**
- * Whether the settings offer the debug menu: in a development build, and in
- * a production one only when the page's address asks for it with `?debug`,
- * so the feel can be tuned on the site itself.
- */
-export const DEBUG_MENU = new InjectionToken<boolean>("DEBUG_MENU", {
-  providedIn: "root",
-  factory: () =>
-    inject(DEV_BUILD) ||
-    new URLSearchParams(inject(DOCUMENT).location.search).has("debug"),
-});
+import { type Feel, TUNED } from "../view/debug_tuning";
 
 /** The waves a run is played through, in order: the game's but in specs. */
 export const GAME_WAVES = new InjectionToken<readonly WaveEntry[]>(
   "GAME_WAVES",
   { providedIn: "root", factory: () => WAVES },
 );
+
+/**
+ * The numbers that set the feel as the debug menu tunes them, which the
+ * field in play and every one after take: `tuning.ts`'s until it tunes
+ * them.
+ */
+export const TUNING = new InjectionToken<Tuning<Feel>>("TUNING", {
+  providedIn: "root",
+  factory: () => createTuning(TUNED),
+});

@@ -103,6 +103,22 @@
   </div>
 
   @if (debugMenu) {
-    <app-debug-tuning />
+    <fz-debug-tuning
+      [sliders]="debugSliders()"
+      [lines]="debugLines()"
+      (tune)="tune($event)"
+      (resetNumbers)="resetTuning()"
+    >
+      <div class="setting-check">
+        <input
+          #carry
+          id="carry-ship"
+          type="checkbox"
+          [checked]="carryShip()"
+          (change)="setCarryShip(carry.checked)"
+        />
+        <label for="carry-ship">Shots carry the ship's speed</label>
+      </div>
+    </fz-debug-tuning>
   }
 </fz-settings-drawer>

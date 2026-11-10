@@ -50,16 +50,15 @@ import {
   shoot,
   toPickup,
 } from "../../testing/play";
-import type { Tuning } from "../../view/debug_tuning";
+import type { Feel } from "../../view/debug_tuning";
 import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
 import { CLEARED_MS } from "../../view/effects/timing";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
 import { SettingsService } from "../settings/settings.service";
-import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_WAVES } from "../tokens";
+import { GAME_WAVES, TUNING } from "../tokens";
 import { GameService } from "./game.service";
 
 /** A board with no margin and no deck, as on a screen with no touch. */
@@ -107,14 +106,14 @@ async function flush(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-/** Tunes some of the numbers that set the feel, as the debug menu does. */
-function tune(change: Partial<Tuning>): void {
-  TestBed.inject(TuningService).tune(change);
+/** Tunes a number that sets the feel, as the debug menu does. */
+function tune<K extends keyof Feel>(id: K, value: Feel[K]): void {
+  TestBed.inject(TUNING).tune(id, value);
 }
 
 /** Puts the numbers that set the feel back to `tuning.ts`'s, as the debug menu does. */
 function resetTuning(): void {
-  TestBed.inject(TuningService).reset();
+  TestBed.inject(TUNING).reset();
 }
 
 /** Returns what the live region last said. */
@@ -1106,7 +1105,7 @@ describe("GameService", () => {
 
     it("keeps nothing of a run flown on numbers the debug menu tuned", async () => {
       const game = TestBed.inject(GameService);
-      tune({ rockSpeed: 1.5 });
+      tune("rockSpeed", 1.5);
       await game.startAt(SPEC_WAVE.pebble);
 
       clearToNext(game);
@@ -1129,7 +1128,7 @@ describe("GameService", () => {
 
     it("keeps the records of a run whose numbers were put back before its first move", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
-      tune({ rockSpeed: 1.5 });
+      tune("rockSpeed", 1.5);
       resetTuning();
 
       game.tick(FRAME_MS, shoot(game));
@@ -1139,7 +1138,7 @@ describe("GameService", () => {
 
     it("counts no strays a run flown on tuned numbers brings home", () => {
       const game = gameOver(STRAY_WAVES);
-      tune({ rockSpeed: 1.5 });
+      tune("rockSpeed", 1.5);
 
       bringStraysHome(game, 1);
 
@@ -1148,7 +1147,7 @@ describe("GameService", () => {
 
     it("keeps the records again from a run begun after a retuned one", async () => {
       const game = await startedAt(SPEC_WAVE.gift);
-      tune({ rockSpeed: 1.5 });
+      tune("rockSpeed", 1.5);
       game.tick(FRAME_MS, STILL);
       resetTuning();
       endRun(game);
@@ -1162,7 +1161,7 @@ describe("GameService", () => {
     it("keeps the records of a run taken up after one flown on tuned numbers", async () => {
       const game = await startedAt(SPEC_WAVE.gift);
       const saved = game.saved();
-      tune({ rockSpeed: 1.5 });
+      tune("rockSpeed", 1.5);
       game.tick(FRAME_MS, STILL);
       resetTuning();
 
@@ -1380,7 +1379,7 @@ describe("GameService", () => {
       const game = await startedAt(SPEC_WAVE.pebble);
       const before = rockVelocities(game);
 
-      tune({ rockSpeed: 2 });
+      tune("rockSpeed", 2);
 
       expect(rockVelocities(game)).toEqual(before.map((v) => v * 2));
     });
@@ -1388,7 +1387,7 @@ describe("GameService", () => {
     it("fly the ship in play as tuned", async () => {
       const game = await startedAt(SPEC_WAVE.pebble);
 
-      tune({ topSpeed: 6 });
+      tune("topSpeed", 6);
       playFor(game, 1000, FULL_THRUST);
 
       expect(shipSpeed(game)).toBeCloseTo(6);
@@ -1400,14 +1399,14 @@ describe("GameService", () => {
       });
       const game = TestBed.inject(GameService);
 
-      tune({ rockSpeed: 2 });
+      tune("rockSpeed", 2);
 
       expect(rocksOf(game)).toEqual(rocksOf(anotherGame()));
     });
 
     it("tune every wave after the one in play", async () => {
       const game = await startedAt(SPEC_WAVE.pebble);
-      tune({ topSpeed: 6 });
+      tune("topSpeed", 6);
 
       clearToNext(game);
       playFor(game, 1000, FULL_THRUST);
@@ -1418,7 +1417,8 @@ describe("GameService", () => {
     it("go back to tuning.ts's on the field in play at a reset", async () => {
       const game = await startedAt(SPEC_WAVE.pebble);
       const before = rockVelocities(game);
-      tune({ thrust: 40, rockSpeed: 2 });
+      tune("thrust", 40);
+      tune("rockSpeed", 2);
 
       resetTuning();
 

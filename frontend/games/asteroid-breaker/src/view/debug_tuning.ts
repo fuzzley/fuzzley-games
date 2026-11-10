@@ -3,7 +3,6 @@
 // and the rocks' speed, each starting at `tuning.ts`'s and written back as
 // its lines, so a feel found by playing is pasted straight in.
 
-import { keysOf } from "@fz/core/records";
 import { ROCK_SIZES } from "../rules/catalog/rocks";
 import type { Field } from "../rules/field/field";
 import { tuneRockSpeed } from "../rules/rocks/rocks";
@@ -12,27 +11,28 @@ import { type Gunnery, TUNED_GUNNERY } from "../rules/ship/shots";
 import { ROCK_SPEED } from "../rules/tuning";
 
 /** Describes the numbers the debug menu tunes: how the ship flies, how its shots fly and fire, and how fast the rocks fly. */
-export interface Tuning extends Flight, Gunnery {
+export interface Feel extends Flight, Gunnery {
   /** How fast the rocks fly against their size's speed in `tuning.ts`. */
   readonly rockSpeed: number;
 }
 
 /** The numbers `tuning.ts` gives, which the debug menu starts from and goes back to. */
-export const TUNED: Tuning = {
+export const TUNED: Feel = {
   ...TUNED_FLIGHT,
   ...TUNED_GUNNERY,
   rockSpeed: 1,
 };
 
-/** Returns whether numbers differ from `tuning.ts`'s, as the debug menu has tuned them. */
-export function isRetuned(tuning: Tuning): boolean {
-  return keysOf(TUNED).some((key) => tuning[key] !== TUNED[key]);
-}
-
 /** Names a number the debug menu tunes by a slider: all but whether shots carry the ship's speed. */
-export type TuningNumber = Exclude<keyof Tuning, "carryShip">;
+export type TuningNumber = Exclude<keyof Feel, "carryShip">;
 
-/** Describes a slider of the debug menu: the number it tunes, its name and its range. */
+/**
+ * Describes a slider of the debug menu: the number it tunes, its name and
+ * its range.
+ *
+ * It is the shape of `@fz/game-ui/debug_menu`'s `TuningSlider`, which the
+ * view can't import, as it takes no library of the shell.
+ */
 export interface TuningSlider {
   readonly id: TuningNumber;
   readonly name: string;
@@ -96,7 +96,7 @@ export function formatTuning(id: TuningNumber, value: number): string {
  * written there, the rocks' speed as each size's speed scaled, to four
  * places, as a speed of two scaled by a step of the slider comes to.
  */
-export function tuningLines(tuning: Tuning): string {
+export function tuningLines(tuning: Feel): string {
   const scaled = (value: number): string =>
     numberOf(value * tuning.rockSpeed, 4);
   return [
@@ -119,7 +119,7 @@ export function tuningLines(tuning: Tuning): string {
 
 /** Returns the debug menu's numbers as a field holds them, which a new wave's setup hands it. */
 export function fieldTuning(
-  tuning: Tuning,
+  tuning: Feel,
 ): Pick<Field, "flight" | "gunnery" | "rockSpeed"> {
   const {
     thrust,
@@ -140,7 +140,7 @@ export function fieldTuning(
 }
 
 /** Tunes the field in play as the debug menu says, its rocks in flight and its ship among it, at once. */
-export function tuneField(field: Field, tuning: Tuning): void {
+export function tuneField(field: Field, tuning: Feel): void {
   const { flight, gunnery, rockSpeed } = fieldTuning(tuning);
   field.flight = flight;
   field.gunnery = gunnery;

@@ -329,8 +329,7 @@ takes for the specs' helpers.
     the question, through `@fz/ui/confirm`, before a run is lost. A launch at
     any stage but a level ready or in play does as `go` does.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
-    the levels (`GAME_LEVELS`), and whether the settings offer the debug
-    menu (`DEBUG_MENU`); the seeds come from `@fz/game-ui/random`'s
+    the levels (`GAME_LEVELS`); the seeds come from `@fz/game-ui/random`'s
     `GAME_RANDOM`.
     `SavedGameService` keeps the run under way, through `GameService.saved()`,
     as a level starts, as a ball is served, as the run pauses or goes on, and
@@ -404,12 +403,20 @@ takes for the specs' helpers.
     Custom (`GameService.customPercent`), the drawer offers a slider for its
     ball's speed, 50% to 200% of Normal's, which
     `GameService.setCustomPercent()` keeps and gives the field in play at
-    once (`Field.customPercent`); a field at any other speed ignores it. In
-    a development build (`DEBUG_MENU`, from
-    `import.meta.env.DEV`, as a game's own dev server runs it) the drawer
-    also offers a slider for the ball's speed, ×0.5 to ×2 the speed's own,
+    once (`Field.customPercent`); a field at any other speed ignores it.
+    Where `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development
+    build and in a production one whose address has `?debug`, the drawer
+    also offers that entry's debug menu, `<fz-debug-tuning>`, below the
+    rest: a slider for the ball's speed, ×0.5 to ×2 the speed's own
+    (`BALL_SPEED_SLIDER`), described by what it comes to at the run's speed,
     which `GameService.setBallSpeedScale()` gives the field in play and
-    every one after it (`Field.ballSpeedScale`), and nothing keeps.
+    every one after it (`Field.ballSpeedScale`), and nothing keeps; Reset
+    the numbers, back to ×1; and Copy the numbers, each preset speed's base
+    and top at the scale, as the lines of `src/rules/speed.ts` they would
+    replace (`speedLines()`). A run played at another scale keeps its
+    records. `debug_tuning.ts` holds the slider, the words of a scale and of
+    a speed (`formatScale()`, `unitsOf()`) and `speedLines()`, typed by the
+    library's `TuningSlider`, which `src/view/` couldn't import.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `src/rules/run/stats.ts` reads and moves on, each speed's runs, best
     score and furthest level, and each level's best points at each speed; and
@@ -536,6 +543,10 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   preview as the page's link preview.
 - **The browser's toolbar takes the page's color** (`THEME_COLOR_ROLE` in
   `src/main.ts`), and the settings offer the palette.
+- **The debug menu is on the site too,** at `?debug` (`DEBUG_MENU`), so the
+  ball's speed can be tuned where it is played. It tunes the player's own
+  game only, and stores no scale, though a run played at one keeps its
+  records.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
   above, and every level begun, ball lost, pause, going on, level cleared

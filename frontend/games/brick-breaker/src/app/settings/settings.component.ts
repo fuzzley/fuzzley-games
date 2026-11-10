@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from "@angular/core";
+import { DEBUG_MENU, DebugTuningComponent } from "@fz/game-ui/debug_menu";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
@@ -14,8 +15,13 @@ import {
   type TouchSteering,
 } from "../../view/steering/steering";
 import { GameService } from "../play/game.service";
-import { DEBUG_MENU } from "../tokens";
 import { SPEED_CHOICES } from "./choices";
+import {
+  BALL_SPEED_SLIDER,
+  formatScale,
+  speedLines,
+  unitsOf,
+} from "./debug_tuning";
 import { SettingsService } from "./settings.service";
 
 /** What the drawer says of each way a finger may steer the paddle. */
@@ -37,15 +43,11 @@ const TOUCH_INFO: Readonly<
 const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
   TOUCH_STEERINGS.map((id) => ({ id, ...TOUCH_INFO[id] }));
 
-/** Returns a speed in units a second as the debug menu writes it, to a tenth. */
-function unitsOf(speed: number): string {
-  return String(Math.round(speed * 10) / 10);
-}
-
 /**
  * Shows the settings in a drawer: the speed, and the ball's at Custom, how a
- * finger steers the paddle, the sound, and the palette, and in a
- * development build the ball's speed to try.
+ * finger steers the paddle, the sound, and the palette, and where
+ * `DEBUG_MENU` offers it the debug menu (`<fz-debug-tuning>`), the ball's
+ * speed to try.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
  * the speeds are radios the arrow keys move between without choosing. The
@@ -53,7 +55,12 @@ function unitsOf(speed: number): string {
  */
 @Component({
   selector: "app-settings",
-  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
+  imports: [
+    ChoiceListComponent,
+    DebugTuningComponent,
+    SettingsDrawerComponent,
+    ThemePickerComponent,
+  ],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })
@@ -63,7 +70,10 @@ export class SettingsComponent {
 
   protected readonly settings = this.store.settings;
 
-  /** Whether to offer the debug menu, as a development build does. */
+  /**
+   * Whether to offer the debug menu, as a development build does, and a
+   * production one at `?debug`.
+   */
   protected readonly debugMenu = inject(DEBUG_MENU);
 
   /** Whether the drawer is showing. */
@@ -90,22 +100,32 @@ export class SettingsComponent {
 
   protected readonly touchSteerings = TOUCH_CHOICES;
 
-  /** The ball's speed as the debug menu scales it, and what it comes to at the run's speed. */
-  protected readonly ballSpeedScale = computed(() => {
+  /**
+   * The debug menu's slider, at the ball's speed as it scales it, how that
+   * reads, and what it comes to at the run's speed.
+   */
+  protected readonly debugSliders = computed(() => {
     const value = this.game.ballSpeedScale();
     const speed = this.game.speed();
     const { name, base, top } = SPEED_INFO[speed];
     const scaled = value * customFactor(speed, this.settings().customPercent);
-    const scale = `×${value.toFixed(2)}`;
-    return {
-      value,
-      scale,
-      says:
-        `${scale}: at ${name}, the ball serves at ${unitsOf(base * scaled)} ` +
-        `and climbs to ${unitsOf(top * scaled)} units a second, before a ` +
-        `level's pace and what a capsule does to it.`,
-    };
+    return [
+      {
+        ...BALL_SPEED_SLIDER,
+        value,
+        valueText: formatScale(value),
+        description:
+          `At ${name}, the ball serves at ${unitsOf(base * scaled)} and ` +
+          `climbs to ${unitsOf(top * scaled)} units a second, before a ` +
+          `level's pace and what a capsule does to it.`,
+      },
+    ];
   });
+
+  /** The ball's speed as the debug menu scales it, as the lines of `speed.ts` it would replace. */
+  protected readonly debugLines = computed(() =>
+    speedLines(this.game.ballSpeedScale()),
+  );
 
   /** Starts a run at the speed chosen, unless it is the speed in use. */
   protected async chooseSpeed(speed: Speed): Promise<void> {
@@ -131,5 +151,10 @@ export class SettingsComponent {
   /** Scales the ball's speed, as the debug menu's slider says. */
   protected setBallSpeedScale(scale: number): void {
     this.game.setBallSpeedScale(scale);
+  }
+
+  /** Puts the ball's speed back to the speed's own, as Reset the numbers asks. */
+  protected resetBallSpeed(): void {
+    this.game.setBallSpeedScale(1);
   }
 }

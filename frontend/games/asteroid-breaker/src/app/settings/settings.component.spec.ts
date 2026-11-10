@@ -1,11 +1,13 @@
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { ConfirmService } from "@fz/ui/confirm";
-import { render, screen, within } from "@testing-library/angular";
+import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { provideSpecWaves, shoot } from "../../testing/play";
+import { TUNED, tuningLines } from "../../view/debug_tuning";
 import { GameService } from "../play/game.service";
-import { DEBUG_MENU } from "../tokens";
+import { TUNING } from "../tokens";
 import { SettingsComponent } from "./settings.component";
 import { SettingsService } from "./settings.service";
 
@@ -180,5 +182,85 @@ describe("SettingsComponent", () => {
     expect(
       screen.queryByRole("region", { name: "Debug" }),
     ).not.toBeInTheDocument();
+  });
+
+  // user-event's setup() puts a clipboard of its own on the page.
+  describe("the debug menu", () => {
+    /** Moves a slider to a value, as a finger or the arrow keys would. */
+    function slide(name: string, value: number): void {
+      fireEvent.input(screen.getByRole("slider", { name }), {
+        target: { value: String(value) },
+      });
+    }
+
+    it("starts each slider at tuning.ts's number, saying it in its unit", async () => {
+      await renderSettings({ debugMenu: true });
+
+      const thrust = screen.getByRole("slider", { name: "Thrust" });
+      expect(thrust).toHaveValue(String(TUNED.thrust));
+      expect(thrust).toHaveAttribute("aria-valuetext", "24 u/s²");
+    });
+
+    it("tunes the numbers as a slider moves", async () => {
+      await renderSettings({ debugMenu: true });
+
+      slide("Rocks' speed", 1.5);
+
+      expect(TestBed.inject(TUNING).tuning().rockSpeed).toBe(1.5);
+      expect(
+        screen.getByRole("slider", { name: "Rocks' speed" }),
+      ).toHaveAttribute("aria-valuetext", "×1.50");
+    });
+
+    it("lets shots leave without the ship's speed at its checkbox", async () => {
+      const { user } = await renderSettings({ debugMenu: true });
+
+      await user.click(
+        screen.getByRole("checkbox", { name: "Shots carry the ship's speed" }),
+      );
+
+      expect(TestBed.inject(TUNING).tuning().carryShip).toBe(false);
+    });
+
+    it("ticks the shots' box again at Reset the numbers", async () => {
+      const { user } = await renderSettings({ debugMenu: true });
+      const carry = screen.getByRole("checkbox", {
+        name: "Shots carry the ship's speed",
+      });
+      await user.click(carry);
+
+      await user.click(
+        screen.getByRole("button", { name: "Reset the numbers" }),
+      );
+
+      expect(carry).toBeChecked();
+    });
+
+    it("puts every number back to tuning.ts's at Reset the numbers", async () => {
+      const { user } = await renderSettings({ debugMenu: true });
+      slide("Thrust", 40);
+      await user.click(
+        screen.getByRole("checkbox", { name: "Shots carry the ship's speed" }),
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: "Reset the numbers" }),
+      );
+
+      expect(TestBed.inject(TUNING).tuning()).toEqual(TUNED);
+    });
+
+    it("copies the numbers as the lines of tuning.ts they would replace", async () => {
+      const { user } = await renderSettings({ debugMenu: true });
+      slide("Top speed", 18);
+
+      await user.click(
+        screen.getByRole("button", { name: "Copy the numbers" }),
+      );
+
+      expect(await navigator.clipboard.readText()).toBe(
+        tuningLines({ ...TUNED, topSpeed: 18 }),
+      );
+    });
   });
 });

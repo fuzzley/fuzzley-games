@@ -1,13 +1,13 @@
-@use "../styles" as *;
+@use "@fz/style" as fz;
 
-// A block in the drawer's content, below the settings.
+// A block in a settings drawer's content, below the game's settings.
 :host {
   display: block;
 }
 
 // The settings as the drawer draws them, whose rules stop at this
 // component's edge; first, so the menu's own rules override them.
-@include setting-fields;
+@include fz.setting-fields;
 
 .debug {
   padding-top: var(--fz-space-5);

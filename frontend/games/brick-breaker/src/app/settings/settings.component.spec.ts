@@ -1,12 +1,13 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { ConfirmService } from "@fz/ui/confirm";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
 import { GameService } from "../play/game.service";
-import { DEBUG_MENU } from "../tokens";
+import { speedLines } from "./debug_tuning";
 import { SettingsComponent } from "./settings.component";
 import { SETTINGS_KEY, SettingsService } from "./settings.service";
 
@@ -43,6 +44,11 @@ async function renderSettings(
     closed,
   };
 }
+
+/** Offers the debug menu whatever the build, so a spec of it holds in any. */
+const DEBUG_MENU_OFFERED: Provider[] = [
+  { provide: DEBUG_MENU, useValue: true },
+];
 
 /** Stores settings with the sound off, as a player's browser would keep them. */
 function keepSoundOff(): void {
@@ -222,65 +228,84 @@ describe("SettingsComponent", () => {
     expect(screen.getByRole("radio", { name: /Midnight blue/ })).toBeVisible();
   });
 
-  describe("in a development build", () => {
-    it("offers the ball's speed at the speed's own", async () => {
-      await renderSettings();
+  // user-event's setup() puts a clipboard of its own on the page.
+  describe("where DEBUG_MENU offers the debug menu", () => {
+    /** Moves the debug menu's slider to a scale, as a finger or the arrow keys would. */
+    function slide(scale: number): void {
+      fireEvent.input(screen.getByRole("slider", { name: "Ball speed" }), {
+        target: { value: String(scale) },
+      });
+    }
+
+    it("offers the ball's speed in the debug menu, at the speed's own", async () => {
+      await renderSettings(DEBUG_MENU_OFFERED);
 
       expect(
-        screen.getByRole("slider", { name: "Ball speed (debug)" }),
+        within(screen.getByRole("region", { name: "Debug" })).getByRole(
+          "slider",
+          { name: "Ball speed" },
+        ),
       ).toHaveValue("1");
     });
 
-    it("scales the ball's speed as the slider says", async () => {
-      const { game } = await renderSettings();
+    it("scales the ball's speed from ×0.5 to ×2, in steps of 0.05", async () => {
+      await renderSettings(DEBUG_MENU_OFFERED);
 
-      fireEvent.input(
-        screen.getByRole("slider", { name: "Ball speed (debug)" }),
-        { target: { value: "1.5" } },
-      );
+      const slider = screen.getByRole("slider", { name: "Ball speed" });
+      expect(
+        ["min", "max", "step"].map((name) => slider.getAttribute(name)),
+      ).toEqual(["0.5", "2", "0.05"]);
+    });
+
+    it("scales the ball's speed as the slider says", async () => {
+      const { game } = await renderSettings(DEBUG_MENU_OFFERED);
+
+      slide(1.5);
 
       expect(game.ballSpeedScale()).toBe(1.5);
     });
 
     it("names the scale it is at", async () => {
-      const { game } = await renderSettings();
+      const { game } = await renderSettings(DEBUG_MENU_OFFERED);
 
       game.setBallSpeedScale(1.5);
 
       expect(
-        await screen.findByRole("slider", { name: "Ball speed (debug)" }),
+        await screen.findByRole("slider", { name: "Ball speed" }),
       ).toHaveAttribute("aria-valuetext", "×1.50");
     });
 
     it("says what the scale comes to at the run's speed", async () => {
-      const { game } = await renderSettings();
+      const { game } = await renderSettings(DEBUG_MENU_OFFERED);
 
       game.setBallSpeedScale(1.5);
 
       expect(
         await screen.findByRole("slider", {
+          name: "Ball speed",
           description:
-            "×1.50: at Normal, the ball serves at 37.5 and climbs to 56.3 units a second, before a level's pace and what a capsule does to it.",
+            "At Normal, the ball serves at 37.5 and climbs to 56.3 units a second, before a level's pace and what a capsule does to it.",
         }),
       ).toBeInTheDocument();
     });
 
     it("says what the scale comes to at another speed, once a run starts at it", async () => {
-      const { game } = await renderSettings();
+      const { game } = await renderSettings(DEBUG_MENU_OFFERED);
       game.setBallSpeedScale(1.5);
 
       await game.changeSpeed("fast");
 
       expect(
         await screen.findByRole("slider", {
+          name: "Ball speed",
           description:
-            "×1.50: at Fast, the ball serves at 45 and climbs to 67.5 units a second, before a level's pace and what a capsule does to it.",
+            "At Fast, the ball serves at 45 and climbs to 67.5 units a second, before a level's pace and what a capsule does to it.",
         }),
       ).toBeInTheDocument();
     });
 
     it("says what the scale comes to at Custom, at the player's speed", async () => {
-      const { game } = await renderSettings();
+      const { game } = await renderSettings(DEBUG_MENU_OFFERED);
       game.setBallSpeedScale(1.5);
       await game.changeSpeed("custom");
 
@@ -288,18 +313,41 @@ describe("SettingsComponent", () => {
 
       expect(
         await screen.findByRole("slider", {
+          name: "Ball speed",
           description:
-            "×1.50: at Custom, the ball serves at 75 and climbs to 112.5 units a second, before a level's pace and what a capsule does to it.",
+            "At Custom, the ball serves at 75 and climbs to 112.5 units a second, before a level's pace and what a capsule does to it.",
         }),
       ).toBeInTheDocument();
     });
+
+    it("puts the ball's speed back to the speed's own at Reset the numbers", async () => {
+      const { user, game } = await renderSettings(DEBUG_MENU_OFFERED);
+      slide(1.5);
+
+      await user.click(
+        screen.getByRole("button", { name: "Reset the numbers" }),
+      );
+
+      expect(game.ballSpeedScale()).toBe(1);
+    });
+
+    it("copies the lines of speed.ts the scale would replace", async () => {
+      const { user } = await renderSettings(DEBUG_MENU_OFFERED);
+      slide(1.05);
+
+      await user.click(
+        screen.getByRole("button", { name: "Copy the numbers" }),
+      );
+
+      expect(await navigator.clipboard.readText()).toBe(speedLines(1.05));
+    });
   });
 
-  it("offers no ball's speed in a production build", async () => {
+  it("offers no debug menu where DEBUG_MENU says not to", async () => {
     await renderSettings([{ provide: DEBUG_MENU, useValue: false }]);
 
     expect(
-      screen.queryByRole("slider", { name: "Ball speed (debug)" }),
+      screen.queryByRole("region", { name: "Debug" }),
     ).not.toBeInTheDocument();
   });
 
