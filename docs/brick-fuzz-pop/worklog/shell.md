@@ -714,3 +714,85 @@ handed. All 4 were killed.
    so.
 5. **The marks' spec only ever handed the game's levels.** Fixed: a spec
    on three made-up levels.
+
+### U6: the saved game
+
+**2026-11-10.** Over R7's `run/saved_game.ts`.
+
+**What was built.** In `src/app/play/saved_game.service.ts`:
+
+- `SavedGameService`, which keeps the run under way through `keepSaved()`,
+  under `brick-fuzz-pop-game` at R7's `SAVED_GAME_VERSION`, 1. It saves
+  with `saveGame()` over the run, where its next round starts and whether
+  it was retuned; it takes a kept run up as the page loads through
+  `restoreGame()`, under the id after the run the game began with, paused;
+  and it tracks the level's rounds, the run's stage and the runs begun, so
+  it writes as a round is released, as the run changes course, as a new
+  run begins, and as the page is hidden, never at a frame.
+- `KeptGame`, what it reads of the game and how it hands a kept run back:
+  `run`, `nextStart`, `tuned`, `outcome` and `runs`, `RunLifecycle`'s
+  both, and `takeUp(takenUp)`; and `KEPT_GAME`, the token it takes the
+  game through.
+
+**Choices the plan didn't make.**
+
+1. **The service takes the game through a narrow interface,** `KeptGame`,
+   by the `KEPT_GAME` token, not `GameService`, which is U1's. U1 makes
+   `GameService` implement it and provides it as
+   `{ provide: KEPT_GAME, useExisting: GameService }`; the spec hands a
+   fake game whose moves are R7's.
+2. **`nextStart` is the round in flight's `next` while one flies,** and
+   the start waiting to be aimed from otherwise, so a round is kept as it
+   is released and a page reloaded mid-flight comes back after it, as
+   `saveGame()` lands the round it keeps. `GameService` must hand it so,
+   set in the same turn as the run at a release: a round kept with the
+   start before it fails `restoreGame()`'s checks, and the whole run is
+   lost. The interface's doc says both.
+3. **It tracks the level's rounds, the run's stage and the runs begun,**
+   not `run()`, so only the changes that should write do. The rounds are
+   its own `computed()` of the run, so the write at a release can't hang on
+   a count the bar shows, which may move as the flight lands; the stage
+   and the runs are `RunLifecycle`'s, as Brick Breaker's are. The runs
+   begun are tracked because a new run can stand just as the last did, a
+   level waiting with none of its rounds played, which a spec holds.
+4. **It reads the game's `LEVELS` directly,** as U4's services do, until
+   U1's `GAME_LEVELS` token.
+5. **Something must inject it at startup** for a kept run to be taken up:
+   Brick Breaker's and Asteroid Breaker's `main.ts` do, in an app
+   initializer, which U1's would too.
+6. **The key is for the integrator to list** in the game's `AGENTS.md`'s
+   "What It Keeps": `brick-fuzz-pop-game`, version 1, the run under way.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 3,258 tests in 52 files, 1 of them new and 14 of the
+tests; the new file at 100%. The root's `yarn lint` passes.
+
+**The mutation pass.** 10 mutants, one at a time, against the play specs:
+the key renamed; the version moved; never tuned; the taken-up run kept
+under its old id; nothing taken up; taken up for no levels; each of the
+three tracked signals untracked, and none. Two survived at first: a
+round's release and a new run untracked, as each spec's change also moved
+the run's stage. Two specs now change only what each tracks: a second
+round released, the level under way, and a new run begun from a level
+waiting with no round played. All 10 were killed. The review's change got
+one more, the rounds read as the level, which was killed.
+
+**The review:**
+
+1. **The write at a release hung on `GameService`'s `rounds`,** which U1
+   might make the bar's count, moving as the flight lands, so a reload
+   mid-flight would give the round back. Fixed: the service works the
+   rounds out from the run itself, and `KeptGame` no longer has them. The
+   review offered the run's id for the runs begun too; the stage and the
+   runs stay the game's, as `RunLifecycle` gives both and Brick Breaker
+   tracks them so.
+2. **No spec kept a round that ends its level in flight,** the one case
+   where what is kept differs from the run. Fixed: two specs, a losing
+   round released and nothing kept, and a clearing round released and the
+   next level kept with no rounds.
+3. **`nextStart` set after the run would keep a start storage rejects.**
+   Fixed: its doc and the second choice say to set it in the same turn.
+4. **Nits in the spec.** Fixed: the `afterEach` that set the page visible
+   is gone, as `setPageVisibility()` gives the page back itself, as is the
+   page made visible again before a reload; the pause's spec checks
+   everything kept.
