@@ -69,19 +69,20 @@ export interface PhaserBoard {
    */
   readonly card: string;
   /**
-   * The controls the canvas draws beside the board for a touch screen, if it
-   * has them.
+   * The zones laid over the canvas beside the board, if it has them, such as
+   * the controls it draws for a touch screen.
    */
   readonly deck?: PhaserDeck;
 }
 
 /**
- * Describes a deck: the zones a canvas draws beside its board for a touch
- * screen's thumbs, such as a stick's and its buttons'.
+ * Describes a deck: the zones laid over a board's canvas beside the board,
+ * such as a touch screen's stick and buttons, or a wide room's panels.
  *
- * A layout check holds the deck to showing every zone it names, so a game
- * with a deck checks its layout with the deck shown, such as by a setting
- * its check's `before()` stores.
+ * A layout check holds the deck to showing every zone it names, or, for a
+ * deck shown all or none, every zone or none; so a game whose deck shows only
+ * on a touch screen checks its layout with it shown, such as by a setting its
+ * check's `before()` stores.
  */
 export interface PhaserDeck {
   /**
@@ -94,8 +95,20 @@ export interface PhaserDeck {
   readonly drawnAt: string;
   /** The zones the deck shows, by the names it lists them by. */
   readonly zones: readonly string[];
-  /** The least a zone may be across and down, in CSS px, for a thumb. */
+  /**
+   * The least a zone may be across and down, in CSS px, such as a thumb
+   * needs.
+   */
   readonly least: number;
+  /**
+   * Whether the deck shows its zones all or none, as panels laid over the
+   * canvas's spare room only where there is room for every one of them, so a
+   * deck that lists no zone at all passes too.
+   *
+   * The check can't then tell a deck hidden for want of room from one never
+   * shown, so the game's own inspection holds where it must show.
+   */
+  readonly allOrNone?: boolean;
 }
 
 /** Says where a rectangle lies, in CSS px. */
@@ -243,11 +256,12 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
 }
 
 /**
- * Returns what is wrong with the deck a board's canvas draws beside the board
- * where it lies: a zone the deck names missing, unknown, unreadable or listed
- * twice, or one off the canvas, out of the window, over the board, another
- * zone or a control of the game bar, or smaller than the deck's least. It runs
- * in the page.
+ * Returns what is wrong with the deck laid over a board's canvas beside the
+ * board where it lies: a zone the deck names missing, unless the deck is
+ * shown all or none and lists no zone; a zone unknown, unreadable or listed
+ * twice; or one off the canvas, out of the window, over the board, another
+ * zone or a control of the game bar, or smaller than the deck's least. It
+ * runs in the page.
  */
 export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
   /** Returns whether two rectangles share more than half a pixel's width. */
@@ -277,7 +291,8 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
   const problems: string[] = [];
   /** Where each zone lies on the canvas, by its name. */
   const zones = new Map<string, Rect>();
-  for (const { written, name: zone, rect } of readNamedRects(listed)) {
+  const entries = readNamedRects(listed);
+  for (const { written, name: zone, rect } of entries) {
     if (!rect) {
       problems.push(`The deck's zone "${written}" doesn't say where it lies.`);
     } else if (!deck.zones.includes(zone)) {
@@ -289,8 +304,12 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
       zones.set(zone, { left, top, width, height });
     }
   }
-  for (const zone of deck.zones) {
-    if (!zones.has(zone)) problems.push(`The deck shows no ${zone} zone.`);
+  // A deck shown all or none may list nothing; one that lists anything,
+  // even a zone it can't read, must show them all.
+  if (!deck.allOrNone || entries.length > 0) {
+    for (const zone of deck.zones) {
+      if (!zones.has(zone)) problems.push(`The deck shows no ${zone} zone.`);
+    }
   }
 
   const controls = [

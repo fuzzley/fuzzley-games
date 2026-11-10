@@ -473,6 +473,20 @@ function stickOnly(least = 112): PhaserBoard {
   return { ...FIELD, deck: { drawnAt: "data-deck", zones: ["stick"], least } };
 }
 
+/**
+ * Returns the field's description with a deck shown all or none, of the
+ * zones given, as panels shown only where there is room for them all.
+ */
+function allOrNone(zones: readonly string[]): PhaserBoard {
+  return {
+    ...FIELD,
+    deck: { drawnAt: "data-deck", zones, least: 112, allOrNone: true },
+  };
+}
+
+/** The field with a stick and buttons beside it, shown all or none. */
+const ALL_OR_NONE = allOrNone(["stick", "buttons"]);
+
 describe("inspectPhaserDeck", () => {
   it.each<[string, BoardPage, PhaserBoard, BoardBox]>([
     ["a deck beside the field", BESIDE, DECKED, FIELD_BOX],
@@ -518,6 +532,19 @@ describe("inspectPhaserDeck", () => {
       DECKED,
       FIELD_BOX,
     ],
+    [
+      "a deck shown all or none that shows none",
+      { ...BESIDE, deck: "" },
+      ALL_OR_NONE,
+      FIELD_BOX,
+    ],
+    [
+      "a deck shown all or none that lists only blank entries",
+      { ...BESIDE, deck: " , ," },
+      ALL_OR_NONE,
+      FIELD_BOX,
+    ],
+    ["a deck shown all or none that shows all", BESIDE, ALL_OR_NONE, FIELD_BOX],
   ])("finds nothing wrong with %s", (_, page, board, box) => {
     lay(page);
 
@@ -728,6 +755,38 @@ describe("inspectPhaserDeck", () => {
       [
         "The deck's stick zone is 120 by 111 CSS px, less than 112 across or down.",
       ],
+    ],
+    [
+      "a deck shown all or none that shows some of its zones",
+      { ...BESIDE, deck: "stick 280 25 120 150" },
+      allOrNone(["stick", "buttons", "fire"]),
+      FIELD_BOX,
+      ["The deck shows no buttons zone.", "The deck shows no fire zone."],
+    ],
+    [
+      "a deck shown all or none that lists only a zone it can't read",
+      { ...BESIDE, deck: "stick 280 25 120" },
+      ALL_OR_NONE,
+      FIELD_BOX,
+      [
+        "The deck's zone \"stick 280 25 120\" doesn't say where it lies.",
+        "The deck shows no stick zone.",
+        "The deck shows no buttons zone.",
+      ],
+    ],
+    [
+      "a deck shown all or none that says nothing of where it lies",
+      FITTING,
+      ALL_OR_NONE,
+      FIELD_BOX,
+      ["app-board doesn't say where its deck lies (data-deck)."],
+    ],
+    [
+      "a deck shown all or none whose zone lies a pixel onto the field",
+      { ...BESIDE, deck: "stick 279 25 120 150, buttons 280 175 120 150" },
+      ALL_OR_NONE,
+      FIELD_BOX,
+      ["The deck's stick zone lies over the field."],
     ],
   ])("reports %s", (_, page, board, box, problems) => {
     lay(page);

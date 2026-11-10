@@ -135,3 +135,93 @@ each linting the files it writes into a folder of its own. The five games'
    breaks are back. Only the bullet's first line changes, now 85 columns
    (the file has another of 85), with the new text added at the bullet's end
    and one sentence of "How a workspace uses it" rewrapped.
+
+### L7: `@fz/dev/layout`, a deck's zones all or none
+
+**2026-11-10.**
+
+**What was built.**
+
+- `PhaserDeck` in `frontend/lib/dev/src/board_page.ts` gains `allOrNone`.
+  T1 sets it for Brick Fuzz Pop's DOM panels, which show only where the
+  window has room for both.
+- `inspectPhaserDeck()` skips its check for missing zones when the deck is
+  shown all or none and lists nothing. Every other check runs as before:
+  each zone listed once, on the canvas and in the window, clear of the
+  board, each other and the bar's controls, and at least `least` across and
+  down.
+- Asteroid Breaker's check names no `allOrNone`, so its deck is held to
+  every zone as before.
+- `PhaserDeck`'s and `inspectPhaserDeck()`'s doc comments say so, and so
+  does the deck's paragraph in `frontend/lib/dev/AGENTS.md`.
+
+**Choices the plan didn't make.**
+
+1. **"None" is a deck that lists no entry at all.** That is the empty
+   attribute `@fz/phaser/layout`'s `namedRectsAttribute([])` writes, or one
+   of blank entries only, which `readNamedRects()` leaves out. An entry the
+   inspection can't read still counts as listed. Then the
+   deck is held to every zone, and the unreadable entry is reported too.
+   Counting only the zones read would let a deck whose one entry is garbled
+   pass as showing none, with the garbled entry the only report.
+2. **A missing attribute is still a problem.** A deck shown all or none
+   must say so with an empty list, so a board that forgot to write its
+   attribute is still caught.
+3. **The message for a missing zone is unchanged.** When some zones are
+   shown, it is "The deck shows no buttons zone.", once for each zone
+   missing, as for a deck that always shows.
+4. **`allOrNone` is typed `boolean`, not the literal `true`.** It is left
+   out where it doesn't hold, as the repository's optional properties are.
+
+**Checks.**
+
+- `@fz/dev`: `lint` and `typecheck` clean. `board_page.spec.ts` has 104
+  specs, 7 of them new: three decks shown all or none that pass (none
+  listed, only blanks listed, all shown) and four that are reported (some
+  shown, a lone unreadable entry, no attribute, a zone over the field).
+  Over the whole library, 529 specs pass.
+- `test:coverage` gives 95.91% statements, 95.27% branches, 97.15%
+  functions and 96.12% lines, against floors of 93, 95, 95 and 93.
+  `board_page.ts` stays at 100% on every measure.
+- The root's `yarn lint` passes. No game's code or config changed, so no
+  game's checks were run again.
+
+**The mutation pass.** Nine mutations to the new condition and the attribute
+check, each run against `board_page.spec.ts`, and all nine killed:
+
+- `allOrNone` ignored;
+- every deck treated as shown all or none;
+- a deck shown all or none never held to every zone;
+- `||` made `&&`;
+- `allOrNone`'s sense flipped;
+- "present" counted by the zones read, not the entries listed, killed by
+  the case of a lone unreadable entry;
+- "present" only past one entry, or always;
+- the missing attribute let pass for a deck shown all or none.
+
+No survivors.
+
+**The review:**
+
+1. **The `allOrNone` doc didn't say what the check gives up.** A board that
+   never shows its panels passes the library's check at every shape, so
+   only the game's own inspection can hold where they must show. Fixed: a
+   second paragraph on `allOrNone` says so. `AGENTS.md` now says the game's
+   inspection checks that the deck shows where there is room, and not
+   elsewhere. T1's inspection already plans to: panels where 184 px a side
+   are spare, and not where they aren't.
+2. **A deck was still defined as thumb zones the canvas draws.** That
+   contradicted the new option, which is for DOM panels. Fixed: a deck is
+   now "the zones laid over a board's canvas beside the board, such as a
+   touch screen's stick and buttons, or a wide room's panels". This is said
+   in `PhaserDeck`, in `PhaserBoard.deck`, in `inspectPhaserDeck()` and in
+   `AGENTS.md`. `least` is the least "such as a thumb needs".
+3. **The new clause in `PhaserDeck`'s paragraph read badly.** Fixed: the
+   paragraph is rewritten as the review proposed. The `before()` setting is
+   now tied to a deck shown only on a touch screen.
+4. **The log's choice 1 implied `namedRectsAttribute()` writes blanks.** It
+   writes only the empty attribute. Fixed: choice 1 says the blank entries
+   are what `readNamedRects()` leaves out.
+
+All four are documentation only; the code and the specs are unchanged, so
+the change had no second review.

@@ -234,14 +234,19 @@ too. Paths are relative to `frontend/lib/dev/`.
   the check holds it as every such board is held: its canvas ready and drawn
   at its size times the board element's `--pixel-ratio`, the board in its
   shape and in the window, the placeholder and the ring where the scene drew
-  it, and the card on it. A board with a deck beside it, the zones its canvas
-  draws for a touch screen's thumbs, names that too (`PhaserDeck`): the
+  it, and the card on it. A board with a deck beside it, the zones laid over
+  its canvas beside the board, such as a touch screen's stick and buttons or
+  a wide room's panels, names that too (`PhaserDeck`): the
   attribute that lists the zones, each by its name and where it lies on the
   canvas, the zones it must show, and the least a zone may be across and down;
   once the page says where the board lies, the check holds each zone named,
   shown once, on the canvas and in the window, off the board, the other zones
   and the bar's controls, and at least that size, so a game checks its layout
-  with its deck shown. The game's `inspect()` is then handed where the board
+  with its deck shown. A deck shown all or none (`allOrNone`), such as panels
+  laid over the canvas's spare room only where there is room for them all,
+  may list no zone at all, but must show every one once it lists any, so
+  the game's own inspection checks that it shows them where there is room,
+  and not elsewhere. The game's `inspect()` is then handed where the board
   lies, a `BoardBox`, for what is its own, such as the least its unit may be.
   The functions it runs in the page are in `src/layout_page.ts`, which only a
   browser runs, but for `settle()`, which its spec runs in jsdom, so
