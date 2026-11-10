@@ -43,10 +43,14 @@ export default defineConfig(
       // page.
       pure: ["src/rules", "src/view", "src/testing", "tools"],
       // The specs that replay every level's certificates and hold the
-      // careless player to its floors, without the coverage that would
-      // slow them several times over: the other rules specs alone hold the
-      // rules to their floor.
-      sim: ["src/rules/levels/every_level", "src/rules/levels/every_floor"],
+      // careless player to its floors, and those that time the flight,
+      // without the coverage that would slow them several times over: the
+      // other rules specs alone hold the rules to their floor.
+      sim: [
+        "src/rules/levels/every_level",
+        "src/rules/levels/every_floor",
+        "src/rules/flight/benchmarks",
+      ],
     },
   }),
 );

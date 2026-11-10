@@ -11,7 +11,13 @@
 
 import { recordOf } from "@fz/core/records";
 import { type Box, SIDE, type Solid } from "@fz/core/sweep";
-import { BRICK_KIND_IDS, type BrickKind, brickKind } from "./catalog/bricks";
+import {
+  BRICK_KINDS,
+  BRICK_KIND_IDS,
+  type BrickKind,
+  type BrickKindId,
+  type BrickKinds,
+} from "./catalog/bricks";
 import { COLUMNS } from "./tuning";
 import type { Brick, Wall } from "./wall/wall";
 
@@ -125,17 +131,21 @@ export function shapeOf(kind: BrickKind): BrickShape {
   return kind.traits.some((trait) => trait.kind === "kicks") ? "round" : "box";
 }
 
-/** Each kind's shape, worked out once. */
-const SHAPES = recordOf(BRICK_KIND_IDS, (id) => shapeOf(brickKind(id)));
+/** Each kind of brick's shape, by its id. */
+export type Shapes = Readonly<Record<BrickKindId, BrickShape>>;
 
-/** Returns how a brick meets a fuzzball, by its kind. */
-export function brickShape(brick: Brick): BrickShape {
-  return SHAPES[brick.kind];
+/** Returns the shape of each kind of brick. */
+export function shapesOf(kinds: BrickKinds): Shapes {
+  return recordOf(BRICK_KIND_IDS, (id) => shapeOf(kinds[id]));
 }
+
+/** The shapes of the catalog's kinds. */
+export const SHAPES: Shapes = shapesOf(BRICK_KINDS);
 
 /**
  * Returns which cells of a field of a depth hold a box a fuzzball turns off,
- * as `@fz/core/sweep`'s `exposureOf()` reads them.
+ * its kinds of brick of the shapes given, as `@fz/core/sweep`'s
+ * `exposureOf()` reads them.
  *
  * A cell beyond a side wall does, as the wall does, so a brick against one
  * shows it no face or corner; a cell of the field does where a brick in play
@@ -147,12 +157,12 @@ export function brickShape(brick: Brick): BrickShape {
  * cells of the wall it handed in as their bricks break is answered for the
  * wall as it stands.
  */
-export function boxesIn(wall: Wall, depth: number): Solid {
+export function boxesIn(wall: Wall, depth: number, shapes: Shapes): Solid {
   return (column, row) => {
     if (column < 0 || column >= COLUMNS) {
       return true;
     }
     const brick = brickAt(wall, depth, column, row);
-    return brick !== null && brickShape(brick) === "box";
+    return brick !== null && shapes[brick.kind] === "box";
   };
 }
