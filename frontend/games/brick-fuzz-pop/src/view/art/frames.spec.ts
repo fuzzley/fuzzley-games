@@ -1,4 +1,4 @@
-import { FRAMES, FRAME_NAMES } from "./frames";
+import { CHARGES, CRACKS, FRAMES, FRAME_NAMES, INKS, PIPS } from "./frames";
 
 describe("FRAMES", () => {
   it.each([
@@ -21,10 +21,10 @@ describe("FRAMES", () => {
 describe("FRAME_NAMES", () => {
   // 8 tiles, 5 pips, 5 cracks, steel, 4 plates, 2 shells, 2 moss and its
   // cap, 4 zappers, the bomb, the bumper, the prism, 2 portals, wool, 2
-  // cages, 6 fuzzballs, the hot shot, 8 friends, 2 meter pips and 2 of the
-  // guide's marks.
+  // cages, 6 fuzzballs, the hot shot, 8 friends, their eyes, 2 meter pips
+  // and 2 of the guide's marks.
   it("lists every frame the art draws", () => {
-    expect(FRAME_NAMES).toHaveLength(59);
+    expect(FRAME_NAMES).toHaveLength(60);
   });
 
   it("lists each frame once", () => {
@@ -41,6 +41,7 @@ describe("FRAME_NAMES", () => {
         "prism",
         "wool",
         "hot-shot",
+        "fuzzball-eyes",
         "meter-on",
         "meter-off",
         "guide-dot",
@@ -55,4 +56,15 @@ describe("FRAME_NAMES", () => {
       expect(name).toMatch(/^[a-z]+(-[a-z0-9]+)*$/);
     },
   );
+});
+
+describe("the lists of the frames' arguments", () => {
+  it.each([
+    ["INKS", INKS, [0, 1, 2, 3, 4, 5, 6, 7]],
+    ["PIPS", PIPS, [2, 3, 4, 5, 6]],
+    ["CRACKS", CRACKS, [1, 2, 3, 4, 5]],
+    ["CHARGES", CHARGES, [0, 1, 2, 3, 4, 5]],
+  ])("lists %s in order", (_, list, expected) => {
+    expect(list).toEqual(expected);
+  });
 });

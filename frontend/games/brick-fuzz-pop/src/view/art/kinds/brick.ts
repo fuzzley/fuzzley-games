@@ -13,11 +13,8 @@ import {
 } from "@fz/phaser/shapes";
 import { inkAt } from "../../colors/inks";
 import type { KindArt } from "../art";
-import { FRAMES, type FrameName, type Ink } from "../frames";
+import { FRAMES, type FrameName, INKS } from "../frames";
 import { cellFrame, itemAt } from "../symbols";
-
-/** Every ink a tile is drawn in, by its tint. */
-export const INKS = [0, 1, 2, 3, 4, 5, 6, 7] as const satisfies readonly Ink[];
 
 /** How far in from its cell a tile's body lies on each side, as a share of the cell. */
 const GAP = 0.04;
