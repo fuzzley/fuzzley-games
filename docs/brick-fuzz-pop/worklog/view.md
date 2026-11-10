@@ -517,3 +517,208 @@ panels 295 CSS px.
 5. **The margin's insets were written three times.** Fixed:
    `marginInsets()` in `src/testing/canvases.ts`, used by the helper and
    both specs.
+
+### V2: steering
+
+**2026-11-10.** `src/view/steering/controls.ts` and `steering.ts`: the keys
+by `event.code`, and `Steering`, which turns the keys, the mouse and the
+fingers into the shot being aimed a frame at a time, by "Controls", C7 and
+C8.
+
+**What was built.**
+
+- `controls.ts`: `commandOfKey()` (`RUN_KEYS` spread in, X skips, R reads
+  the wall's lowest rows), `steerKeyOf()` (the arrows, A, D, W and S, and
+  Space) and `heldKeyOf()` (F, fast-forward, for `HeldKeys`), with their
+  names, `FieldCommand`, `SteerKey` and `HeldKey`. They match the
+  integrator's table and `plan.md`'s "Controls" and "Accessibility".
+- `steering.ts`: `PointerView` (`id`, `x`, `y`, `wasTouch`, and Brick
+  Breaker's `button` and `wasCanceled`), `KeyPress`, `Steer` (`aim`,
+  `charge`, `release`, `fast`, `keyed`), `aimToward()`, `chargeAfter()`,
+  `PointerAiming`, `PointerAimings`, `BY_POINTER`, `DEAD_ZONE` (0.5),
+  `PULL_NOTCH` (0.9), `HOLD_NOTCH_MS` (250), `EDGE_CSS_PX` (16),
+  `MOST_FINGERS` (2), `STRAIGHT_UP` (328) and `Steering`:
+  `keyDown()`, `keyUp()`, `pointerDown()`, `pointerMove()`, `pointerUp()`,
+  `wheel()`, `callOff()`, `letGo()`, `measure()`, `aimWith()` and
+  `read(deltaMs, from)`.
+- No contract file is touched; every name is the view's own and new.
+
+**Choices the plan didn't make.**
+
+1. **One way of aiming per kind of pointer** (`PointerAimings`, `mouse` and
+   `finger`), handed in by `aimWith()`; `BY_POINTER` is the settings'
+   "by the pointer", which U1 resolves to it. A pointer takes its way as it
+   presses, so a setting changed mid-press waits for the next.
+2. **Escape (C8) lives in `Steering.keyDown()`,** not in `GameService`: the
+   pause key while a charge builds (a pointer pressed, or a charge the keys
+   chose) calls it off and is taken, so the scene hands the shell "pause"
+   only otherwise. Only the steering knows whether a charge builds, so
+   `GameService` would otherwise have to ask the scene. `plan.md`'s
+   "Controls" and C8 say `GameService` overrides `command()` for it; U1
+   needs no such override for Escape. The steering doesn't know the
+   round's phase: a charge keyed during a flight is the next shot's, and
+   Escape calls it off rather than pausing, as it does any charge building;
+   the scene reads the steering every frame, as Brick Breaker's does, so a
+   shot let fly under a card reaches a paused round, which ignores it; and
+   the round reads a shot let fly only while it aims (V3). The class's doc
+   says what the scene owes it.
+3. **The charge resets to none after each shot** and as a press starts, so
+   a pull back or a hold begins from nothing whatever the keys chose; the
+   aim stays where it was.
+4. **Point and hold flies at the charge the meter last showed,** which
+   counts the frames' time in `read()`, the clock Space flies by too, so
+   what the player sees is what flies, at 30, 60 or 144 frames a second
+   alike. The hold goes 0 to 5 and back to 0 every 2.5 s. So `PointerView`
+   leaves out the `downTime` and `upTime` V2 names: nothing reads them
+   (the review's 2).
+5. **A pointer aims from where the fuzzball waits,** which
+   `read(deltaMs, from)` takes each frame. §5.4's scene options don't give
+   the scene that place (`RoundStart.x`, which V3's run state holds), so
+   S2 needs one added. A mouse at rest is aimed at again as the fuzzball
+   waits somewhere new, until the keys, the wheel, a drag, or settings that
+   no longer have it point aim instead; a finger isn't, as it is lifted
+   (or, held through a round's end, until it moves). A mouse's press
+   doesn't aim, since its moves have, so a nudge of the wheel or the keys
+   since flies. A pointer within a radius of the fuzzball's middle keeps
+   the aim, so a press on the fuzzball doesn't swing it.
+6. **A press anywhere on the canvas starts a shot,** not only on the field,
+   as Brick Breaker's does. A shot flies as its last move left it, wherever
+   it is let go (Phaser's up-outside, which S2 hands `pointerUp()`): a
+   finger's moves go on past the canvas, as a touch stays with the element
+   it began on, so "the canvas keeps the pointer" holds for it; Phaser
+   hears a mouse move only over the canvas, so a mouse's guide stops at its
+   edge, and the shot flies as the guide showed, not from where it is let
+   go over the bar. S2 may capture the pointer so a mouse's moves past the
+   canvas arrive too.
+7. **The 16 CSS px are from the canvas's sides,** for a finger only, since
+   the view knows the canvas and not the screen; on a phone upright they
+   are the screen's. On a phone on its side the rail's side is held too,
+   inside the 12 CSS px margin and 4 more. `measure(metrics, canvas)` takes
+   the canvas with the metrics.
+8. **A second press calls the shot off,** whichever pointer it is, which
+   needs the scene to follow two fingers (`MOST_FINGERS`, as Asteroid
+   Breaker's scene adds pointers for its own), since Phaser follows one
+   unless told; a finger left to the browser at a side is not a press, and
+   its moving and letting go are ignored.
+9. **The mouse's right button calls a charge off,** pressed or with the
+   keys' charge; the middle, back and forward buttons do nothing, and
+   letting go of one while the main button is held flies nothing.
+10. **The wheel turns one aim per event,** away from the player turning
+    left, as a pointer's aim does; a sideways scroll, no turn up or down,
+    does nothing. A trackpad's flick sends dozens of events, each an aim;
+    a playtest may ask for the turn to follow the scroll's size instead.
+11. **Space lets a held press fly too,** at the charge the meter shows, and
+    the first shot let fly in a frame is the one `read()` hands on, at the
+    aim and charge it flew with.
+12. **`Steer.keyed`** says the keys changed the aim or the charge this
+    frame, for the shell's announcer, so a pointer's aim, which moves
+    every frame, isn't read out.
+13. **A heading under the floor's line takes the end on its side,** and
+    straight down the right-hand one (aim 0). Aims are snapped with
+    `tuning.ts`'s constants (`FIRST_AIM_DEGREES`, `AIMS_PER_DEGREE`)
+    rather than searched in `AIMS`, which is the same aim for every angle
+    the specs try.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass, after both reviews' fixes, 2334 tests in 25 files,
+160 of them new (`controls.spec.ts` 29, `steering.spec.ts` 131);
+`controls.ts` and `steering.ts` at 100% of statements, branches, functions
+and lines. The root's `yarn lint` passes.
+
+**The mutation pass.** 90 mutants of `steering.ts`: the floor's wrap,
+the aim's rounding and clamps, the hold's cycle, notch and triangle, the
+charge's steps, each key's taken and its step, Shift, the repeat, the first
+release, Escape's two conditions, every button test, the side test and its
+scaling, the second press, each pointer's way and id, the cancelled touch,
+the meter's clock, the dead zone's bound and charge, every reset in
+`callOff()`, `letGo()` and `read()`, the wheel's sign and every constant;
+and 13 of `controls.ts`, each key dropped or swapped. 74 of the first 90
+were killed. Sixteen survived:
+
+- The heading straight down at the wrap's bound, given a row.
+- The mouse's other buttons pressing, its side ignored like a finger's, a
+  second press taking over, a finger moving unpressed aiming, a pressed
+  mouse pulling rather than pointing, and another pointer's letting go
+  flying: each given a spec.
+- The press's resets of the held time and the pull's dead zone, which
+  `callOff()` already made, so they went; the pull's "armed" became
+  `pullTo()`'s result. The charge's reset as a press starts got a spec.
+- The released aim read live, given a turn after the release.
+- The dead zone's bound (`>=`), and its charge left standing, given specs.
+- `DEAD_ZONE`, `PULL_NOTCH` and `EDGE_CSS_PX` changed, which the specs had
+  counted from the constants: they now count in plain numbers (a drag of
+  1.39 and 1.4 units; a press at 15 and 16 CSS px from either side, and 31
+  and 32 device px at 2×).
+
+27 mutants of the reworked code, these and their neighbours, were all
+killed, and the 13 of `controls.ts` too. After the review's fixes, the
+first 117 were run again, all that still applied killed, with 25 more of
+the fixes: the mouse's place kept and aimed at again, what clears it (the
+keys, a drag, a finger), the pointed press let go where it is, the press's
+way against the settings, the canvas kept by `measure()` and the sides
+measured from it. All were killed. After the second review's fixes, every
+set was run again, and 16 more of those fixes: the mouse's press, the
+settings forgetting the mouse's place, the sideways scroll, the up
+measured again, the armed drag kept and reset, and `MOST_FINGERS`. Two
+survived and got specs: the place forgotten at any change of the settings,
+and the armed drag kept after a shot. `MOST_FINGERS` at 1 survives, as the
+view reads it nowhere: S2's scene, which adds the pointers, holds it.
+
+**Numbers worth keeping.** Straight up is aim 328; 45° is 148. On an
+upright phone at 40 device px a unit, a pull of 1.4 units, 56 px, is the
+first notch, and 5 units, 200 px, the most.
+
+**The review:**
+
+1. **A pointed press let go past the canvas re-aimed there,** at an aim the
+   guide never showed (along the floor, under its line), since Phaser hears
+   a mouse move only over the canvas but its letting go anywhere. Fixed: a
+   pointed press flies at the aim the guide last showed (choice 6); specs
+   for a mouse let go past the canvas, and a move before letting go.
+2. **The held charge ran on two clocks,** the meter on the frames' time and
+   the shot on the pointer's `upTime - downTime`, which Phaser's smoothed
+   and capped delta can part by a notch after a hitch, and which a second
+   button held leaves stale. Fixed: the shot flies at the charge the meter
+   showed, as Space's does, and `PointerView` drops the two times (choice
+   4). The spec at 30, 60 and 144 frames a second holds the meter's charge
+   over 1.3 s and the shot flying at it.
+3. **A mouse at rest kept its old angle as the fuzzball waited somewhere
+   new.** Fixed: the mouse's place on the field is kept, and `read()` aims
+   at it from where the fuzzball waits until the keys, the wheel or a drag
+   aim instead (choice 5); specs for each, and for a finger lifted.
+4. **Escape is decided without the round's phase.** Kept in the steering,
+   which alone knows a press is held; choice 2 names the phase question,
+   and the class's doc says what the scene owes it (a read every frame,
+   up-outside to `pointerUp()`, two fingers, `letGo()` as the player looks
+   away) and that the round reads a shot let fly only while it aims.
+5. **Phaser follows one finger unless told.** Fixed: `MOST_FINGERS` (2),
+   which the class's doc and choice 8 name for S2's `addPointer()`.
+6. **No spec held a press to the way it began with.** Fixed: a spec
+   changes the settings mid-press.
+7. **Nits.** `POINTER_AIMINGS` went: `PointerAiming` is a plain union,
+   and U1 maps the settings' `Aiming` to `PointerAimings`. `Steering` keeps
+   the `Viewport` and measures the sides from its width and pixel ratio.
+
+**The second review** (the first's fixes reshaped point and hold):
+
+1. **A mouse's press threw away a nudge,** re-aiming at the pointer, so a
+   click after the wheel or the keys flew at an aim the guide no longer
+   showed. Fixed: a mouse's press doesn't aim, as its moves have; a
+   finger's does (choice 5). Spec: the wheel, then a click in place.
+2. **The mouse's place still aimed once the settings had it pull back.**
+   Fixed: `aimWith()` forgets it then, and keeps it while the mouse still
+   points; specs for both. A finger held through a round's end keeps its
+   aim until it moves, left as it is (choice 5).
+3. **A mouse's pull back let go past the canvas was measured there,** where
+   the guide never was. Fixed: every shot flies as its last move left it,
+   a pull back's dead zone included, so `pullTo()` keeps whether the drag
+   is armed again (choice 6); a finger's moves go on past the canvas. Specs:
+   a mouse's drag let go over the bar, and a tap after a drag that flew.
+4. **The scene can't give the class where the fuzzball waits, nor say the
+   run paused.** The first is a contract change for the integrator (choice
+   5). The second is dropped: the class's doc no longer promises `letGo()`
+   on a pause, since the scene reads the steering every frame and a paused
+   round ignores a shot let fly (choice 2).
+5. **The wheel.** A sideways scroll no longer turns, nor stops the aim
+   following a mouse at rest; a spec holds it. A trackpad's flick is noted
+   in choice 10.
