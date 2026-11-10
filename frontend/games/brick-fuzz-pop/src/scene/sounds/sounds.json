@@ -1,0 +1,104 @@
+{
+  "spritemap": {
+    "notch": {
+      "start": 0,
+      "end": 0.06,
+      "loop": false
+    },
+    "release": {
+      "start": 0.16,
+      "end": 0.32,
+      "loop": false
+    },
+    "boon": {
+      "start": 0.42,
+      "end": 0.74,
+      "loop": false
+    },
+    "knock": {
+      "start": 0.84,
+      "end": 0.92,
+      "loop": false
+    },
+    "strike": {
+      "start": 1.02,
+      "end": 1.13,
+      "loop": false
+    },
+    "break": {
+      "start": 1.23,
+      "end": 1.37,
+      "loop": false
+    },
+    "punch": {
+      "start": 1.47,
+      "end": 1.63,
+      "loop": false
+    },
+    "clank": {
+      "start": 1.73,
+      "end": 2.09,
+      "loop": false
+    },
+    "zap": {
+      "start": 2.19,
+      "end": 2.43,
+      "loop": false
+    },
+    "blast": {
+      "start": 2.53,
+      "end": 2.99,
+      "loop": false
+    },
+    "bump": {
+      "start": 3.09,
+      "end": 3.29,
+      "loop": false
+    },
+    "portal": {
+      "start": 3.39,
+      "end": 3.71,
+      "loop": false
+    },
+    "cage": {
+      "start": 3.81,
+      "end": 4.17,
+      "loop": false
+    },
+    "land": {
+      "start": 4.27,
+      "end": 4.41,
+      "loop": false
+    },
+    "yawn": {
+      "start": 4.51,
+      "end": 5.21,
+      "loop": false
+    },
+    "step": {
+      "start": 5.31,
+      "end": 5.53,
+      "loop": false
+    },
+    "jump": {
+      "start": 5.63,
+      "end": 6.23,
+      "loop": false
+    },
+    "danger": {
+      "start": 6.33,
+      "end": 6.75,
+      "loop": false
+    },
+    "chime": {
+      "start": 6.85,
+      "end": 7.63,
+      "loop": false
+    },
+    "lost": {
+      "start": 7.73,
+      "end": 8.35,
+      "loop": false
+    }
+  }
+}

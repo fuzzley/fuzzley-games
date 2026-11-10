@@ -2,7 +2,8 @@
 
 The shell stream's log of
 [`implementation-plan.md`](../implementation-plan.md)'s U3 to U6, split off
-the view and shell stream so they run beside V1 to V4: what each package
+the view and shell stream so they run beside V1 to V4, and of N1, moved to
+it from the art stream: what each package
 built, where it went other than planned and why, what the checks reported,
 each review comment and what became of it, and the numbers worth keeping.
 
@@ -211,3 +212,124 @@ survived and got a spec; the other eight were killed.
 7. **"Start again" named New game alone,** where a lost level's card offers
    Try again. Fixed: "Try again, or New game", with a spec (the eighth
    choice).
+
+### N1: the twenty sounds
+
+**2026-11-10.** Moved to this stream from the art stream while R7, which
+U4 and U6 build on, is under way.
+
+**What was built.**
+
+- `tools/build-sounds.mjs`: the twenty recipes (`RECIPES`), in `SOUNDS`'
+  order, on `@fz/dev/sounds`' `glide()`, `envelope()`, `thud()`, `note()`
+  and `arpeggio()`, with one helper of its own, `withBurst()`, a tone
+  under a burst of noise; written with `writeSoundSprite()` into
+  `src/scene/sounds/` (`SPRITE_FOLDER`) when run, and imported by its spec
+  without writing.
+- `src/scene/sounds/sounds.wav` and `sounds.json`: the sprite and its map,
+  the same bytes on a second run (the same SHA-256).
+- `tools/sound-lab.ts`: the sound lab's page, what plays each sound, and
+  eight scenes of a round played as the game would play them: a plain
+  shot; point and hold's notches, up to five and back; a punch through the
+  wall and the rattle above it, each break a semitone up to an octave; a
+  zapper's row and a column zapper's chain; steel, a bumper, a portal and a
+  blast; a jump and a hot shot; the danger line, a friend freed, a level
+  cleared and the lost level's sound; and a bored fuzzball's yawn. No
+  candidates yet: Q3 designs them.
+- `vite.config.ts`: `soundLab({ entry: "tools/sound-lab.ts", title })`
+  merged into `gameConfig()`'s, as Asteroid Breaker's is.
+- `package.json`: `build:sounds`, `node tools/build-sounds.mjs`.
+- `tools/build-sounds.spec.ts`, 4 specs: the sprite's map is the view's
+  `SOUNDS` in order; each recipe is named for them in order; none loops;
+  and the sprite is, to the byte, what the recipes render now.
+
+**Choices the plan didn't make.**
+
+1. **The spec of the map sits in `tools/build-sounds.spec.ts`,** in `pure`,
+   since there is no scene spec to hold it yet: S1's scene spec can hold
+   the map it loads to `SOUNDS` as the breakers' do, and this one stays for
+   the recipes and the bytes.
+2. **The sprite is held to the recipes byte for byte,** as K3's aims are to
+   their script, so an edited recipe fails until `yarn build:sounds` is
+   run. The synth uses `Math.sin()` and the rest, so a Node whose last digits
+   moved could fail it; the samples are rounded to 16 bits, which makes that
+   unlikely, and the aims' spec carries the same risk.
+3. **The recipes' looks:**
+   - the break is Brick Breaker's soft bloop (392 to 587 Hz), low enough to
+     stay mellow raised an octave, as the plan's rise along a round asks;
+   - the punch is a crunch of noise over a low drop, to sit under the
+     break's note at the same moment;
+   - the notch is a quiet tick with a crackle of static, heard at every
+     notch the charge climbs or falls while it builds;
+   - the step is a low thunk, heard every round, and the jump a long drop
+     under a rumble;
+   - the danger line's two notes and the chime follow the breakers' warned
+     and cleared.
+
+   Q3 tunes them by ear in the lab.
+
+4. **The lab's scenes raise each break 100 cents past the one before, to
+   1,200,** with numbers of its own named for V4's `detuneOf()`, which
+   doesn't exist yet. Once it does, the lab should take them from the view,
+   as Asteroid Breaker's takes its chain's. The bricks a frame breaks play
+   as one break, raised for the last of them, as `@fz/core`'s
+   `FrameSounds` will play them.
+5. **The lab takes its numbers from the rules where they hold them**
+   (`MOST_CHARGE`, `BORED`, `ZAP_DELAY`), and keeps two of its own that
+   plan.md gives and no code holds yet: 14 units of flight a second at
+   Normal, and point and hold's quarter second a notch.
+6. **The workspace's `AGENTS.md` doesn't name `build:sounds`, the sprite or
+   the lab yet:** it is the integrator's to write.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 2,178 tests in 24 files, 4 of them new;
+`build-sounds.mjs` at every line but its `import.meta.main` branch, which
+`yarn build:sounds` runs. The root's `yarn lint` passes. The dev server on
+9166 served `sound-lab/`, the page mounted with every sound and scene, and
+"A plain shot" played from the sprite in the headed Chrome DevTools
+browser with no error in the console. After the review, the sprite rebuilt
+to the same SHA-256, and the lab, its sprite now fetched through `?url`,
+played "Point and hold" and "A zapper's row" with no error or warning.
+
+**Numbers worth keeping.** The sprite is 8.35 s and 267,244 bytes of WAV,
+against Brick Breaker's 121,964 (ten sounds) and Asteroid Breaker's 208,044
+(fourteen).
+
+**The mutation pass.** Nine mutants, one at a time, against the sounds'
+spec: a recipe's pitch, peak and noise seed moved, one looped, one renamed;
+the checked-in map's key renamed and a sound looped in it; and the view's
+`SOUNDS` reordered and given a sound more. All nine were killed. The
+review's changes touch only comments and the lab's page, which no spec
+runs, so they made no new mutants.
+
+**The review:**
+
+1. **Bricks broken in one frame played as many breaks,** the zap's row,
+   the blast's five and each lone break built through `breaks()` with no
+   gap, where the game's `FrameSounds` plays a sound once a frame, at the
+   most it rose. Fixed: `broken()` gives a frame's one break, raised for its
+   last brick, and `breaks()` is kept for runs a gap apart; the scenes and
+   the break's line say so.
+2. **The zapper scene wasn't one chain:** the column zapper broke at 9
+   units, apart from the row's zap. Fixed: it breaks with its row at 6.5
+   units, and its own zap lands at 7.
+3. **Numbers the rules hold were typed in:** the five notches, the yawn's
+   60 units and the zap's half unit. Fixed: `MOST_CHARGE`, `BORED` and
+   `ZAP_DELAY`, from `src/rules/tuning.ts` (the fifth choice).
+4. **"Up to five a shot" misdescribed the notch,** which point and hold
+   climbs to five and back, over and again. Fixed in the recipe's comment
+   and the lab's line, and a "Point and hold" scene plays twelve notches
+   over three seconds, up to five, down to none and up to two, then the
+   release.
+5. **The clank read as if steel, a plate or a bumper were what sounded.**
+   Fixed in both files: a fuzzball striking one, which earths any charge it
+   carries.
+6. **The fifth choice's reason was wrong:** `@fz/dev/sound-lab-page`
+   already brings `vite/client`'s types, so `?url` needs no change to
+   `tsconfig.node.json`. Fixed: the lab imports the sprite with `?url`, as
+   Asteroid Breaker's does, and that choice now says what the lab takes from
+   the rules.
+7. **Nits:** `RECIPES`' doc opened with two sentences and said the scene
+   raises the break, where the view does; `BREAK_MOST_CENTS` shared its
+   step's comment. Fixed: one sentence, then a paragraph naming the view; a
+   comment of its own.
