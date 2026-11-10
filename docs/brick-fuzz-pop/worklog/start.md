@@ -379,3 +379,76 @@ through, as the review found.
    are held exactly (the fourth choice).
 3. **`tuning.ts` didn't say Node loads it as it is.** Fixed: its opening
    comment does.
+
+### K2 tidied: the faces named once, and the fixtures' walls drawn by `wallFrom()`
+
+**2026-11-10.**
+
+**What changed.** The tidy-ups of K2's contract files that R1's review
+asked of the integrator (its first two comments), made by the integrator's
+spare, and the workspace's `AGENTS.md` brought up to what R1, R5, A1 and
+U3 built:
+
+- `Brick.plates`' doc comment, in `src/rules/wall/wall.ts`, no longer says
+  which of `SIDE`'s bits faces the floor: it calls the plates a set of the
+  `FieldFace` bits `src/rules/grid.ts` names, where the mapping is said
+  once. It names the file rather than linking the type, since `grid.ts`
+  imports `wall.ts`.
+- `src/rules/levels/legend.spec.ts`, the levels' folder's, edited here as
+  the integrator's: its plated cases spell their plates with `grid.ts`'
+  `FLOORWARD`, `CEILINGWARD`, `LEFT` and `RIGHT` rather than `SIDE`'s bits,
+  and its comment points at `grid.ts` rather than restating the mapping.
+  The same five cases, and 71 tests, as before.
+- `src/testing/flight_fixtures.ts` draws its eleven walls with
+  `wallFrom(picture, { lowestRow })`, and its own `wallOf()` and `brickOf()`
+  are gone, with the imports only they used. Its opening comment names
+  `wallFrom()`. Every fixture's wall was one `wallFrom()` draws, so none was
+  left as it was: the two made a brick alike (whole, the legend's plates,
+  the tint `wallRow % 8` for a plain or tough brick and 0 for any other, no
+  twin), no fixture holds a portal, and each picture's rows are nine wide,
+  which `wallFrom()` alone checks. A fixture that needs a portal's twin now
+  needs `wallFrom()` to draw one, which R1's seventh choice leaves to X2.
+- `AGENTS.md`: the grid and its faces, `lowerWall()` and `isCleared()`,
+  `src/view/colors/` with `FIELD_ROLES`, `wallPalette()` and `TINT`, and the
+  settings drawer, which nothing opens yet; a list of what the specs share
+  in `src/testing/`, the fixtures, `wall_picture.ts` and `roles.ts`; and a
+  "What It Keeps" naming `brick-fuzz-pop-settings`, as
+  `frontend/games/AGENTS.md` asks every game to list its keys.
+
+**The fixtures, compared.** Before the change, a script bundled the
+fixtures with esbuild and wrote each fixture's `start`, `round`, `shot` and
+`levelBoon` with `JSON.stringify()`, 84,663 bytes for the eleven; after it,
+the same script, its bundle now drawing with `wallFrom()`, wrote a file
+identical byte for byte (the same SHA-256).
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 1,150 tests in 20 files, as many as before; the rules
+and the view at 100%, and the fixtures' file at 99.65% of statements, the
+one throw left unreached `sure()`'s, for a fixture drawn wrong, now that
+`brickOf()`'s has gone. The root's `yarn lint` passes, its reference check
+finding every backticked path of `AGENTS.md`.
+
+**The mutation pass.** None, for a change to docs and a refactor of
+fixtures whose output is compared byte for byte above.
+
+**The review:** a fresh agent found the code correct, the legend's spec
+still able to fail (`grid.spec.ts` ties each face to its `SIDE` bit, the
+legend's spec each plate to a face), and every other claim of `AGENTS.md`
+true of the code.
+
+1. **`AGENTS.md` said `src/view/colors/` holds every ink the field draws,
+   mixed from the page's roles,** where the tints and the friends are the
+   mode's own inks and the shading is A2's art's. Fixed: `wallPalette()`
+   gives a palette's colors from the roles and the mode's tile and fuzzball
+   inks, every color a rule of contrast covers, but not the shading.
+2. **Nothing said `wall_picture.ts` is held as the rules are,** which
+   whoever adds `?` (R3) or the portals (X2) to `wallFrom()` should know.
+   Fixed: its line in `AGENTS.md` says so, and why.
+3. **"What It Keeps" sat after "Tests",** where the breakers, Snake and
+   Sudoku put it before the commands. Fixed: it follows "Layers".
+4. **The legend's spec's comment read as the field's own faces.** Fixed:
+   "A plate covers a brick's faces, as grid.ts names them."
+5. **Beyond this change:** R5's `lower.spec.ts` keeps a copy of its own of
+   `wallOf()` and `brickOf()`, a third, which its eighth choice leaves for
+   R6 or a later package to move onto `wallFrom()`. Left: the file is the
+   proof stream's.

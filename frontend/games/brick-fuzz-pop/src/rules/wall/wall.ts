@@ -8,11 +8,7 @@ export interface Brick {
   readonly hits: number;
   /** Its hits when whole, which moss grows back to. */
   readonly full: number;
-  /**
-   * Its plated faces, as `@fz/core/sweep`'s `SIDE` bits, which name a y
-   * that grows down, so `SIDE.top` is the face toward the floor (the
-   * implementation plan's §5.2): 0 for a brick with no plate.
-   */
+  /** Its plated faces, a set of the `FieldFace` bits `src/rules/grid.ts` names: 0 for a brick with no plate. */
   readonly plates: number;
   /**
    * Its ink, 0 to 7: its row's for a plain or tough brick; for a portal, its
