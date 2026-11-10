@@ -139,6 +139,30 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `settings-drawer-frame`, whose rules can't reach what it projects, so the
   stylesheet of the game's settings component includes `setting-fields` at
   its top level.
+- `src/debug_menu/`: a game's debug menu, which its settings drawer offers in
+  a development build and, in a production one, at `?debug`, so the feel can
+  be tuned on the site itself. `DEV_BUILD` says whether the game is a
+  development build (`import.meta.env.DEV`, a token since a spec can't change
+  that), and `DEBUG_MENU` whether to offer the menu, reading the page's
+  address. `createTuning(tuned)` holds the numbers the menu tunes, each a
+  number or a switch (`TunedValues`), kept nowhere: its `Tuning` has the
+  numbers in use (`tuning`), the game's own, as `tuned` gives them, until the
+  menu tunes them, whether any is off the game's own (`retuned`), `tune(id, value)` and
+  `reset()`, and `onTune()`, whose listeners hear each change at once, so no
+  frame is stepped on the old numbers, as one would be after an effect.
+  `<fz-debug-tuning>` (`DebugTuningComponent`) is the menu, a region named
+  Debug below the game's settings: a slider for each of its `sliders`
+  (`ShownSlider<Id>`, a `TuningSlider<Id>` at its `value`, read as its
+  `valueText`, and described beneath by what it comes to where the game gives
+  a `description`), what the game projects, its own controls, such as a
+  switch, Reset the numbers, and Copy the numbers, the `lines` of code the
+  numbers would replace, shown in a `<details>` beneath instead where the
+  browser keeps the clipboard shut, as a phone reaching a dev server over
+  plain HTTP does, with a status line that says how a copy went and forgets
+  one that worked once the lines move on. It holds no numbers: it emits each
+  move through `tune` (a `SliderMove<Id>`) and Reset the numbers through
+  `resetNumbers`, for the game to hand its `Tuning`. Whether a run on retuned
+  numbers keeps its records is the game's to say.
 - `src/help_dialog/`: `<fz-help-dialog>`, a game's How to play: a card
   over the dimmed page, a dialog named How to play, with its heading and
   the button in the corner that closes it, over what the game says, which

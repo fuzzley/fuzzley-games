@@ -374,7 +374,7 @@ export class GameService extends RunLifecycle {
 
   /**
    * Scales how fast the balls go against the speed's own, on the field in
-   * play and every one after it, for a development build's debug menu.
+   * play and every one after it, for the debug menu.
    */
   setBallSpeedScale(scale: number): void {
     this.ballSpeedScaleState.set(scale);

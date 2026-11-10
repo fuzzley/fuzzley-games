@@ -63,10 +63,9 @@ import { RunFrames } from "../../view/run_frames";
 import { type RunState, newRunState, withFrame } from "../../view/run_state";
 import { WavePlay } from "../../view/wave_play";
 import { SettingsService } from "../settings/settings.service";
-import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_WAVES } from "../tokens";
+import { GAME_WAVES, TUNING } from "../tokens";
 import { HapticsService } from "./haptics.service";
 
 /** The field's shape before the board says what room it has: a square of the short side. */
@@ -99,7 +98,7 @@ export class GameService extends RunLifecycle {
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
   private readonly settings = inject(SettingsService);
-  private readonly tuner = inject(TuningService);
+  private readonly tuner = inject(TUNING);
   private readonly haptics = inject(HapticsService);
 
   /** The field's shape for the board's room, which a wave takes as it starts. */

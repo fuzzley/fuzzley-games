@@ -29,10 +29,9 @@ import {
 } from "../../testing/play";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
-import { TuningService } from "../settings/tuning.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
-import { GAME_WAVES } from "../tokens";
+import { GAME_WAVES, TUNING } from "../tokens";
 import { GameService } from "./game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./saved_game.service";
 
@@ -450,7 +449,7 @@ describe("SavedGameService", () => {
 
     it("takes up a run flown on tuned numbers as none that has cleared every written wave", async () => {
       const before = start();
-      TestBed.inject(TuningService).tune({ rockSpeed: 1.5 });
+      TestBed.inject(TUNING).tune("rockSpeed", 1.5);
       await before.startAt(SPEC_WAVE.pebble);
       clearToNext(before);
       clearToNext(before);
@@ -464,7 +463,7 @@ describe("SavedGameService", () => {
 
     it("keeps no records of a run flown on numbers the debug menu tuned", async () => {
       const before = start();
-      TestBed.inject(TuningService).tune({ rockSpeed: 1.5 });
+      TestBed.inject(TUNING).tune("rockSpeed", 1.5);
       await before.startAt(SPEC_WAVE.gift);
       before.tick(FRAME_MS, shoot(before));
       before.pause();

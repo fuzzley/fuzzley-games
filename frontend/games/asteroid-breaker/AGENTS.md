@@ -266,7 +266,7 @@ takes for the specs' helpers.
   with a frame's change taken in (`withFrame()`), flown on tuned numbers
   from the first frame that moves its field on them. `tally.ts` holds the
   Cleared card's lines (`tallyLines()`), and `debug_tuning.ts` the numbers
-  the debug menu tunes (`Tuning`, `TUNING_SLIDERS`) and the lines of
+  the debug menu tunes (`Feel`, `TUNING_SLIDERS`) and the lines of
   `src/rules/tuning.ts` they would replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
@@ -444,16 +444,18 @@ takes for the specs' helpers.
     (`tally`), keeps what each change in the run brings to the records and the
     sectors reached (`recordsOf()`) through `stats/`, in one place that keeps
     none of a run flown on tuned numbers, and has the wave in play take the
-    numbers the debug menu tunes as `TuningService` tells it of them. It
+    numbers the debug menu tunes as `TUNING` tells it of them. It
     extends `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which holds what
     every game's run does around its play: the keys' `command()`, going on to
     the next wave as `go` asks (its `nextStage()`), the drawn gate
     (`setDrawn()`), the runs begun (`runs`, raised as each run begins) and
     the question, through `@fz/ui/confirm`, before a run is lost.
-    `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
-    the waves (`GAME_WAVES`), and whether the build is a development one
-    (`DEV_BUILD`) and the settings offer the debug menu (`DEBUG_MENU`); the
-    seeds come from `@fz/game-ui/random`'s `GAME_RANDOM`. `SavedGameService`
+    `src/app/tokens.ts` holds the waves (`GAME_WAVES`), which a spec hands
+    it instead of the game's own, as it does the seeds through
+    `@fz/game-ui/random`'s `GAME_RANDOM`, and `TUNING`, the numbers the debug
+    menu tunes: one `createTuning()` of `TUNED` from
+    `@fz/game-ui/debug_menu`, made at the root, which the drawer and
+    `GameService` share. `SavedGameService`
     keeps the run under way, through `GameService.saved()`, as its outcome or
     its crew changes and as the page is hidden or goes away, never at a step,
     and forgets it once the run ends or another begins; `src/main.ts` starts
@@ -532,19 +534,18 @@ takes for the specs' helpers.
     side holds its stick, whether the ship fires by itself, haptics, the sound
     and the palette), `SPEED_CHOICES`, the speeds as the drawer and the bar
     both offer them, and `SettingsService`, which keeps what the player chose,
-    the speed of the last run started among it. Where `DEBUG_MENU`
-    says so, in a development build (`DEV_BUILD`, from
-    `import.meta.env.DEV`, as a game's own dev server runs it) and in a
-    production one whose address has `?debug`, the drawer also offers the
-    debug menu, `<app-debug-tuning>`, below the rest: a slider for each
-    number of the ship's flight, its gunnery and the rocks' speed
-    (`TUNING_SLIDERS`), whether shots carry the ship's speed, Reset the
-    numbers, and Copy the numbers, the lines of `tuning.ts` they would
-    replace. `TuningService`, which the menu reads and writes, holds them,
-    says whether they are off `tuning.ts`'s (`retuned`) and tells
-    `GameService` of each tuning as it is made (`onTune()`), which gives
-    them to the field in play and every one after it; nothing keeps them,
-    and a run flown on them keeps no records.
+    the speed of the last run started among it. Where
+    `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development build
+    and in a production one whose address has `?debug`, the drawer also
+    offers that entry's debug menu, `<fz-debug-tuning>`, below the rest: a
+    slider for each number of the ship's flight, its gunnery and the rocks'
+    speed (`TUNING_SLIDERS`), whether shots carry the ship's speed, which the
+    drawer projects into it, Reset the numbers, and Copy the numbers, the
+    lines of `tuning.ts` they would replace. `TUNING`, which the drawer reads
+    and writes, holds them, says whether they are off `tuning.ts`'s
+    (`retuned`) and tells `GameService` of each tuning as it is made
+    (`onTune()`), which gives them to the field in play and every one after
+    it; nothing keeps them, and a run flown on them keeps no records.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
     and `<app-pilot-row>`, pilots in a row, which the bar, the Paused card

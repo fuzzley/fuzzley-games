@@ -1,19 +1,18 @@
 import TUNING_TS from "../rules/tuning.ts?raw";
 import { fieldFrom } from "../testing/field_picture";
 import {
+  type Feel,
   TUNED,
   TUNING_SLIDERS,
-  type Tuning,
   type TuningNumber,
   fieldTuning,
   formatTuning,
-  isRetuned,
   tuneField,
   tuningLines,
 } from "./debug_tuning";
 
 /** A tuning with every number away from `tuning.ts`'s. */
-const TRIED: Tuning = {
+const TRIED: Feel = {
   thrust: 31,
   topSpeed: 12.5,
   coastHalfLifeMs: 800,
@@ -24,22 +23,6 @@ const TRIED: Tuning = {
   carryShip: false,
   rockSpeed: 1.5,
 };
-
-describe("isRetuned", () => {
-  it("calls tuning.ts's numbers not retuned", () => {
-    expect(isRetuned({ ...TUNED })).toBe(false);
-  });
-
-  it("calls numbers with one off tuning.ts's retuned", () => {
-    expect(isRetuned({ ...TUNED, rockSpeed: TUNED.rockSpeed + 0.1 })).toBe(
-      true,
-    );
-  });
-
-  it("calls the shots' carrying the ship's speed turned over retuned", () => {
-    expect(isRetuned({ ...TUNED, carryShip: !TUNED.carryShip })).toBe(true);
-  });
-});
 
 describe("TUNING_SLIDERS", () => {
   it.each(TUNING_SLIDERS.map((slider) => [slider.name, slider] as const))(
