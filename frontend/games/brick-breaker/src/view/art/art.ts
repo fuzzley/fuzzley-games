@@ -7,11 +7,15 @@ import {
   type Point,
   centered,
   circle,
+  frameAround,
+  inset,
   lineWidth,
+  middleSquare,
   polygon,
   rect,
   ring,
   roundRect,
+  within,
 } from "@fz/phaser/shapes";
 import { BALL_KIND_IDS, type BallKindId } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
@@ -33,7 +37,6 @@ import {
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import { FUR, REACH } from "./fuzzball_art";
-import { frameAround, inset, middleSquare, within } from "./shapes";
 import { SYMBOLS } from "./symbols";
 
 /** Describes a capsule's shape as drawn: its size, its outline's width, and its outline's and its body's colors. */

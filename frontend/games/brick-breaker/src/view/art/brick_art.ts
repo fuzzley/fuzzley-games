@@ -4,18 +4,21 @@ import {
   type ArtScale,
   type DrawCommand,
   circle,
+  inset,
   lineWidth,
+  middleSquare,
   polygon,
   polyline,
   rect,
   roundRect,
+  star,
+  within,
 } from "@fz/phaser/shapes";
 import type { Brick } from "../../rules/bricks/bricks";
 import { BRICK_KINDS, type BrickKindId } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { BRICK_HEIGHT, BRICK_WIDTH } from "../../rules/tuning";
 import type { BricksPalette } from "../colors/palette";
-import { inset, middleSquare, star, within } from "./shapes";
 
 /** Describes what a brick's frame shows of it. */
 export type BrickLook = Pick<
@@ -179,7 +182,7 @@ function cracks(
 }
 
 /** Returns a ghost brick's dashed outline, along the edges of its body. */
-function dashes(
+function dashedOutline(
   body: Area,
   scale: ArtScale,
   color: number,
@@ -357,7 +360,7 @@ export const BRICK_ART = {
     frames: (palette, scale) =>
       palette.tints.map((tint, i) =>
         drawBrick(nameAt(GHOST_FRAMES, i), scale, (body) =>
-          dashes(body, scale, tint),
+          dashedOutline(body, scale, tint),
         ),
       ),
   },

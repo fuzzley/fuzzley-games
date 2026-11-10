@@ -101,9 +101,12 @@ beside a deck of controls for a touch screen.
   and `extentOf()` gives back an `Area`. The art's line (`lineWidth()`),
   round-ended lines (`stroke()`), the points of curves (`arcPoints()` and
   the rest), what moves, scales and frames a drawing (`shifted()`,
-  `scaledBy()`, `centered()`, `bounded()`) and a symbol's dots and rims in
-  a square (`dotIn()`, `discIn()`, `rimIn()`) are there too, so a game draws
-  with them rather than its own copies.
+  `scaledBy()`, `centered()`, `bounded()`), what lays a frame out in an
+  area and draws in it (`within()`, `share()`, `inset()`,
+  `middleSquare()`, `frameAround()`, `outlineRoundRect()`, `star()` and
+  `dashes()`) and a symbol's dots and rims in a square (`dotIn()`,
+  `discIn()`, `rimIn()`) are there too, so a game draws with them rather
+  than its own copies.
 - **`@fz/phaser/fuzzball`** draws `@fz/style`'s fuzzball in `shapes`'s
   commands, and imports nothing else, so a game's view takes it as it takes
   the pure entries: `fuzzballCommands()`, its body and fur, `by` device
