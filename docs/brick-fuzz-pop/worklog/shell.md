@@ -632,3 +632,85 @@ won()`). Fixed: `cleared` on each level and a `trophy` computed.
 9. **The focused title draws a focus ring, where Asteroid Breaker's
    clears it.** Kept, by the document's rule; the seventh choice says why.
 10. **"The review:" was empty.** Filled.
+
+### U4, second part: the stats and the progress
+
+**2026-11-10.** After R7 landed, over its `run/stats.ts` and
+`run/progress.ts`.
+
+**What was built.** In `src/app/stats/`:
+
+- `stats.service.ts`: `StatsService`, a stored signal under
+  `brick-fuzz-pop-stats`, version 1, read through `statsOf()` for the
+  game's levels: `stats`; `recordStart()`; `recordEnd(run)`, which asks
+  `isNewBest()` before `withRunEnded()` and returns it; and
+  `recordLevel(id, result)`, through `withLevelCleared()`, with what
+  `levelResultOf()` gives.
+- `progress.service.ts`: `ProgressService`, a stored signal under
+  `brick-fuzz-pop-progress`, version 1, the ids of the levels cleared,
+  read through `clearedOf()` and written as a list: `cleared`,
+  `isOpen(level)` and `recordCleared(id)`, which stores nothing for a
+  level cleared again.
+- `level_marks.ts`: `levelMarksOf(levels, cleared, stats)`, each level's
+  `LevelMark` by its id, open as `isOpen()` says, and, once the progress
+  has it cleared, its stars and best points from its records: what the
+  board hands `<app-levels>` as `marks`.
+- `levels/levels.component.ts` takes `MOST_STARS` from R7's
+  `run/stars.ts` in place of its own.
+
+**Choices the plan didn't make.**
+
+1. **The services read the game's `LEVELS` directly,** where Brick
+   Breaker's inject a `GAME_LEVELS` token from `src/app/tokens.ts`. That
+   file is the integrator's, written in U1; once it exists, the two
+   services take the token in one line each, as Brick Breaker's do, and
+   their specs hand the spec levels. Until then the specs run on Warm-up's
+   ids.
+2. **Neither service knows the run,** so neither needs `GameService` or a
+   signal of it: each records what it is handed, as Brick Breaker's do.
+   Each one's doc tells its caller to hand it nothing of a run on numbers
+   the debug menu retuned, in either store, as Asteroid Breaker's game
+   skips both.
+3. **The marks are a function, not a service,** so the board makes them a
+   `computed()` of `progress.cleared()` and `stats.stats()`, over the same
+   levels it hands the dialog. The progress alone says what is cleared, as
+   it alone opens levels: a level the progress has cleared whose records
+   were dropped shows open with no stars, and one with records the progress
+   lost shows none of them, rather than stars beside "Locked".
+4. **The two keys are for the integrator to list** in the game's
+   `AGENTS.md`'s "What It Keeps", each at version 1:
+   `brick-fuzz-pop-stats`, the runs, the best run's score, the furthest
+   level and each level's best points, fewest rounds and stars; and
+   `brick-fuzz-pop-progress`, the ids of the levels cleared. Its overview
+   can name `src/app/stats/` beside `src/app/settings/`.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 3,244 tests in 51 files, 3 of them new and 19 of the
+tests; the three files at 100%. The root's `yarn lint` passes.
+
+**The mutation pass.** 13 mutants, one at a time, against the three specs:
+a run's start, an ended run and a level's records not kept; the new best
+asked after keeping the run; the stats and the progress read for no
+levels, and a level opened among none; a level cleared again kept again;
+the cleared written as none; every level open, or only once cleared; the
+stars read from the rounds; and no best. All 13 were killed. The review's
+changes got 4 more: each key renamed, the records shown for a level the
+progress hasn't cleared, and the global levels read in place of those
+handed. All 4 were killed.
+
+**The review:**
+
+1. **No spec checked the storage keys:** the specs imported them, so a
+   rename passed. Fixed: each spec writes its key in its own words, the
+   constants are no longer exported, and a rename of either is killed.
+2. **The two new keys weren't asked of `AGENTS.md`.** The fourth choice
+   and the report ask the integrator, whose file it is.
+3. **`StatsService`'s doc stated the retuned-run rule as fact, for the
+   stats alone.** Fixed: both services' docs tell the caller to hand them
+   nothing of a retuned run, naming both stores.
+4. **A level could show stars beside "Locked"** where the stats kept
+   records the progress lost. Fixed: the stars and the best show only for a
+   level the progress has cleared, with a spec, the third choice saying
+   so.
+5. **The marks' spec only ever handed the game's levels.** Fixed: a spec
+   on three made-up levels.
