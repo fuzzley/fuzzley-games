@@ -470,3 +470,41 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   a run's end), both taking inputs only. 3,225 tests.
 - The proof stream builds `wallScore()` while R6 is built; the shell stream
   builds `stats/` and U6 on R7.
+
+### U4's second part merged (2026-11-10)
+
+- `7bde6bfb`: `StatsService` (stored as `brick-fuzz-pop-stats`, version
+  1; `recordEnd()` asks `isNewBest()` before `withRunEnded()`),
+  `ProgressService` (`brick-fuzz-pop-progress`, version 1) and
+  `levelMarksOf()` for the levels dialog, which now takes `MOST_STARS` from
+  `run/stars.ts`. 3,244 tests.
+- **For U1:** the services read `LEVELS` until U1's `GAME_LEVELS` token; a
+  run on retuned numbers records nothing in either store.
+- **For the integrator's next docs commit:** the workspace's `AGENTS.md`
+  gains both stores under "What It Keeps", `src/app/stats/`, `levels/`,
+  `run/`, `src/view/effects/`, the sounds, `build:sounds`, the sound lab and
+  the flight's benchmark under `sim`.
+
+### P2's first part merged (2026-11-10)
+
+- `f27bab27`: `src/testing/wall_score.ts`' `wallScore(round, rounds)`,
+  the sketch's `score()` as C13 spells it, its nine constants named, held
+  as rules. 3,260 tests. The solver and the careless player wait for R6's
+  `playRound()`; with them the proof stream adds `lowestNeededRow()` beside
+  `lower.ts`' `isNeeded()`, so the danger, the jump and the solver's margin
+  read one rule.
+
+### A3 merged; U1 split across streams (2026-11-10)
+
+- **A3**, `1eaf55bb`: `fuzzball_art.ts`, the fuzzball at charges 0 to 5
+  (the fur turning out, 6% longer a charge, straight from charge 3, sparks
+  at 5 only), the hot shot under four tongues of flame, a friend in each of
+  the eight inks, and one eyes frame, each outlined in the mark. The atlas
+  has 37 frames, 712 × 892 at 128 px a unit; a bake draws about 15,600
+  shapes, so the scene bakes once per unit and palette. `frames.ts` gained
+  `INKS`, `PIPS`, `CRACKS`, `CHARGES` and `FRAMES.eyes` (60 names). Two
+  reviews; 3,365 tests.
+- **U1 is split** so its parts run beside S1 and V3: the art stream builds
+  the panels (`src/app/panels/`), the shell stream the bar's pieces after
+  U6, and a fresh agent the core (`GameService`, the board, the wiring) once
+  S1 and V3 land.
