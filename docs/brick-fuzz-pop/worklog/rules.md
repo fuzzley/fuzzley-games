@@ -104,3 +104,84 @@ its review and the numbers worth keeping.
      the header and core's `AGENTS.md` say no lint holds it, and that a
      sweep that must round otherwise is a new function, not an edit, as
      Mulberry32's rule says.
+
+### L6: `variantOfSpec()` in `@fz/core/testing`
+
+- **Date.** 2026-11-10.
+- **Built.** `variantOfSpec(file, variants, folder)` in
+  `frontend/lib/core/src/testing.ts`: the variant a spec file is named for,
+  `<variant>.spec.ts` in the folder that keeps one for each, read from the
+  path `import.meta.filename` gives by splitting it at `/` or `\`, with no
+  `node:path`, which core can't import. It throws for a file named for none
+  of the variants, a file that is no spec, or one in another folder, and
+  its message names the variants, the folder and the file.
+  - Brick Breaker's private `speedOfSpec()` and its `FOLDER` go, and
+    `holdEveryLevel()` reads its speed with `variantOfSpec()`, over
+    `PRESET_SPEEDS` in `every_level/`: `src/testing/every_level.ts` falls
+    from 76 lines to 57, and imports no `node:path`.
+  - Asteroid Breaker's `src/testing/speed_specs.ts` (17 lines) goes;
+    `every_wave.ts` and `every_layout.ts` call `variantOfSpec()` with
+    `SPEEDS` and their folders, a line of imports more between them.
+  - Core's `AGENTS.md` describes `src/testing.ts` as what a game's specs
+    share, the frame loop and the variant; its `package.json` description
+    names it. Brick Breaker's and Asteroid Breaker's `AGENTS.md` say their
+    holders read the speed with it, and the `angular-testing` skill lists it
+    in `@fz/core/testing`. The `fuzzley-ui` skill's line on that entry is
+    left to L9.
+- **Choices the plan didn't make.**
+  - **A third argument, the folder.** The plan names
+    `variantOfSpec(file, variants)`. Both games' functions also checked
+    that the file sits in its folder, and Asteroid Breaker's three folders
+    (`every_wave`, `every_endless_wave`, `every_layout`) share the speeds'
+    names, so without it a holder called from another folder's spec would
+    play the wrong thing without a word. It is required, not optional, so
+    the function has no mode; Brick Fuzz Pop's `every_level/` and
+    `every_floor/` (P3) pass theirs. `every_floor/`'s files, one for each
+    set and depth, can be named for both (`warm-up-13.spec.ts`), their
+    variants listed as those names and looked up again.
+  - **The message** is new, the same for both games: "Expected a spec
+    named for one of relaxed, normal, fast in every_wave/, not <file>."
+  - **The type of a variant** is the list's own, a string or a number
+    (`V extends string | number`), so Asteroid Breaker's `isSpeed()` is no
+    longer needed here, Brick Breaker's `holdEveryLevel()` gets a `Speed`
+    from `PRESET_SPEEDS`, and Brick Fuzz Pop's `every_level/` can name its
+    files for its depths, `13.spec.ts`, and get the number back.
+- **Checks.**
+  - `@fz/core`: lint and typecheck clean; 367 tests in 15 files (10 new in
+    `testing.spec.ts`); coverage 100% of statements (292), branches (153),
+    functions (93) and lines (246).
+  - `brick-breaker`: lint and typecheck clean; `test:coverage` passes its
+    floor, `dom` and `pure` 1,802 tests in 56 files, and `sim` 180 in 3.
+  - `asteroid-breaker`: lint and typecheck clean; `test:coverage` passes its
+    floors, `dom` and `pure` 3,624 tests in 89 files, and `sim` 1,620 in 9.
+  - The root's `yarn lint` passes.
+  - With Brick Breaker's folder misnamed `every_levels`, its `fast` spec
+    fails at once, naming the file.
+- **The mutation pass.** 10 mutants of `variantOfSpec()`, one at a time,
+  against `testing.spec.ts`: 9 killed at once.
+  - Survived, then specced: the folder checked with `file.includes(folder)`
+    rather than as the file's own folder; a spec in a folder inside the one
+    named (`every_wave/old/fast.spec.ts`) is now refused, and kills it.
+  - Two more the review found surviving, a name and a folder matched by
+    their ends, are killed by its specs (item 2 below), and the first ten
+    still are.
+- **The review.** A fresh agent found the function right on POSIX and
+  Windows paths, both games' behaviour kept but for the message, and the
+  folder argument justified and no mode.
+  1. P3's `every_level/` is named for depths, which are numbers, and
+     `V extends string` would make it map them to strings and back. Fixed:
+     `V extends string | number`, with a spec over a list of numbers, and
+     the entry above says how `every_floor/` names its files.
+  2. No refusal had a name or folder that only ends in a valid one, so a
+     mutant matching by `endsWith()` would survive. Fixed:
+     `every_wave/breakfast.spec.ts` and `old_every_wave/fast.spec.ts` are
+     refused in specs, which kill both mutants.
+  3. The variant's type wasn't pinned in core, as `keysOf()`'s and
+     `listOf()`'s are. Fixed: an `expectTypeOf` spec holds it to the list's
+     union.
+  4. The `angular-testing` skill lists `@fz/core/testing`'s helpers without
+     it, and L9's list doesn't name that skill. Fixed: it lists it. The
+     `fuzzley-ui` skill's line is left to L9, as this entry now says.
+  5. The doc comment didn't say `folder` is a name, not a path, and its
+     `@throws` said "outside the folder" where a file in a folder inside it
+     is refused too. Fixed: it says both.

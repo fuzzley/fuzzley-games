@@ -112,7 +112,9 @@ Each library's `testing` entry point holds what specs need of it, and
   which drive the bar's choice and overflow menus as a player does.
 - `@fz/core/testing`: `FRAME_MS`, `playUntil()` and `playFor()`, which play
   any game with a `tick(ms, steer)` a frame at a time, in a spec in Node
-  too, as it loads no framework.
+  too, as it loads no framework; and `variantOfSpec()`, the variant a spec
+  file is named for in its folder, such as the speed a spec of every level
+  plays.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
   Phaser, with `collectErrors()`, which keeps what a failed scene hands the
   app's `ErrorHandler` for the spec to read, and `FakeResizeObserver`,

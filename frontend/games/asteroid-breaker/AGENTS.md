@@ -913,8 +913,8 @@ of its own beside it:
   the ship (`holdEveryEndlessWave()`); each speed's spec in
   `src/rules/waves/every_wave/` and `src/rules/waves/every_endless_wave/`
   calls them with its own file, whose name is the speed it plays
-  (`speed_specs.ts`'s `speedOfSpec()`, which throws for a file named for no
-  speed or kept in another folder).
+  (`@fz/core/testing`'s `variantOfSpec()`, which throws for a file named for
+  no speed or kept in another folder).
 - `every_layout.ts` holds every wave, in every formation, on those fields, at
   a speed and from twelve seeds (`LAYOUT_SEEDS`), to being laid out fairly
   (`holdEveryLayout()`), which each speed's spec in

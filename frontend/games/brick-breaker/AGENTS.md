@@ -669,7 +669,8 @@ skill covers its setup, floors and fixtures, the repository's
   as far as the paddle lies farther from the bricks (`limitsOf()`)
   (`holdEveryLevel()`), which each preset speed's spec in
   `src/rules/levels/every_level/` calls with its own file, whose name is the
-  speed it plays.
+  speed it plays (`@fz/core/testing`'s `variantOfSpec()`, which throws for a
+  file named for no preset speed or kept in another folder).
 - `roles.ts` holds the colors the specs that color the field paint it in
   (`ROLES`), through `@fz/style/testing`'s `paintRoles()` and
   `FIELD_ROLES`, and the game's palettes as its stylesheet sets them
