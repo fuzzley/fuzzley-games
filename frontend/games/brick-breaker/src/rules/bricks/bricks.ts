@@ -1,3 +1,4 @@
+import type { Box } from "@fz/core/sweep";
 import {
   type BrickKindId,
   type BrickTrait,
@@ -9,7 +10,6 @@ import type { CapsuleId } from "../catalog/capsules";
 import type { Field } from "../field/field";
 import { scoreBreak, scoreHit } from "../field/scoring";
 import {
-  type Box,
   brickBox,
   cellIndex,
   cellMiddleX,

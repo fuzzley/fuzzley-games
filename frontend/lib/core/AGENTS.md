@@ -123,6 +123,23 @@ Each file is an entry point of its own, imported by name, such as
   playing, and returns it for the painter to fill in, so a flourish makes
   nothing as it plays. The breakers' painters take their rings, fades,
   puffs, sparks and points from it.
+- `src/sweep.ts`: a ball's move swept against what it may meet, so
+  however fast it goes it can't pass through anything between two steps,
+  each sweep returning when the ball first touches, as a share of its
+  `Move` (where its center starts, how far it goes and its radius), 0 where
+  it already touches and 1 at the move's end, else `MISSED`:
+  `sweepFace()`, a face of a `Box` pushed out by the ball's radius,
+  `sweepCorner()`, a corner of one, and `sweepPoint()`, a point the ball's
+  center comes within a reach of, its radius for a bare point, or its
+  radius and a disc's together for a disc around it. A box's faces and
+  corners are `SIDE`'s bits (`Face`, `Corner`), listed clockwise
+  (`FACES`, `CORNERS`) with each face's way out (`FACE_NORMAL`) and each
+  corner's edges (`CORNER_AT`), `ALL_SIDES` every one; and
+  `exposureOf(solid, column, row)` says which of them a ball can touch on
+  the box in a cell of a grid, given which cells are `Solid`, so boxes side
+  by side make one face and a corner is only where nothing touches it. Its
+  y grows down, so a box's `top` is its edge of least y. Brick Breaker's
+  travel sweeps its balls against its bricks, its walls and its paddle.
 - `src/testing.ts`: the frame loop a game's specs play it in, which imports
   nothing, so a spec in Node can take it as well as one in jsdom:
   `FRAME_MS`, a frame at 60 a second; `playUntil()`, which ticks any game
@@ -158,6 +175,14 @@ from `shuffled()`'s and Montana's kept gaps depend on.
   Breaker's Endless waves are made again from a seed, so the numbers a
   seed gives are a contract. `src/random.spec.ts` pins the first of them;
   a change that moves them is a new function, not an edit.
+- **The sweep's shares never change either.** `src/sweep.ts` does its
+  arithmetic with `+`, `-`, `*`, `/` and `Math.sqrt()` alone, which every
+  engine rounds alike, so a game's moves, replayed in another browser, meet
+  what they met. No lint holds it to that: it is so because it was read to
+  be, and `src/sweep.spec.ts` pins its shares to the bit on moves whose
+  numbers round, so a change that moves one, such as a distance taken with
+  `Math.hypot()`, fails there. A sweep that must round otherwise is a new
+  function, not an edit, since a game's replays keep to the old shares.
 - **A seed is mixed with `mixSeed()`,** never by hand as
   `seed ^ Math.imul(n, …)`, and a new use takes a stream of its own, a new
   name in `SeedStream`, so no two uses draw alike and the old streams keep

@@ -1,4 +1,5 @@
 import { clamp } from "@fz/core/math";
+import type { Solid } from "@fz/core/sweep";
 import {
   type Brick,
   canBreak,
@@ -19,7 +20,7 @@ import {
 } from "../bricks/capsules";
 import { type BallKindId, ballKind } from "../catalog/balls";
 import type { PaddleMode } from "../catalog/capsules";
-import { type Solid, cellIndex, inGrid } from "../grid";
+import { cellIndex, inGrid } from "../grid";
 import type { Level } from "../levels/level";
 import {
   type Ball,
@@ -87,9 +88,18 @@ export interface Field {
   height: number;
   /** A brick for each cell of the grid, row by row, null where there is none. */
   readonly bricks: readonly (Brick | null)[];
-  /** Says whether a cell stops a ball, as the bricks now stand. */
+  /**
+   * Says whether a cell stops a ball, as the bricks now stand.
+   *
+   * Columns beside the grid, where the walls stand, do, and rows above and
+   * below it don't, so it checks a cell with {@link inGrid} before it looks
+   * in the bricks, where column -1 would be the last of the row above.
+   */
   readonly solid: Solid;
-  /** Says whether a cell stops a ball that passes through what can break. */
+  /**
+   * Says whether a cell stops a ball that passes through what can break,
+   * off the grid as {@link solid} does.
+   */
   readonly hardSolid: Solid;
   /** How many bricks the level needs broken still. */
   needed: number;

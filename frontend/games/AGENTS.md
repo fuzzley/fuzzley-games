@@ -67,8 +67,10 @@ to `frontend/games/`.
   run's id and seed, the readers for stored JSON and a data file's keys, a
   best kept as it is beaten, counts in words, points grouped in thousands,
   a clamp, a lerp, the curves a flourish moves by and the next mark on a
-  ladder of points, a ladder of multipliers and its words, a clock of fixed
-  steps, a count up to a mark, a log of numbered events and its readers'
+  ladder of points, a ladder of multipliers and its words, a ball swept
+  against a box's faces and corners or a point, and which of a box's sides
+  a grid leaves exposed, a clock of fixed steps, a count up to a mark, a
+  log of numbered events and its readers'
   view of it, a field played by them, a frame's sounds gathered, a
   flourish's records played in turn, a key pressed as a shortcut, the keys
   held to steer, the last pressed winning, and a record's keys typed as its

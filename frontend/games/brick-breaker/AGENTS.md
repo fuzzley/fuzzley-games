@@ -86,14 +86,15 @@ takes for the specs' helpers.
   which turns a frame's time into steps, twelve at most a frame.
   `draws.ts` draws the field's random numbers (`nextDraw()`) from its seed
   and how many came before, so a field taken up draws as it would have.
-  `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
-  `brickBox()`, the one place a brick's box is worked out, and
-  `exposureOf()`, which faces and corners of a brick a ball can touch, so
-  bricks side by side make one face and a corner is only where nothing
-  touches it. `sweep.ts` finds when a ball's move first touches a face of a
-  box, pushed out by its radius, or a corner, as a share of the move, so
-  however fast a ball goes it can't pass through a brick; bricks, the walls
-  and the paddle are all boxes.
+  `grid.ts` is the bricks' grid, 13 by 16: a cell's index, and
+  `brickBox()`, the one place a brick's box is worked out. The rest of the
+  physics' geometry is `@fz/core/sweep`'s: when a ball's move first touches
+  a face of a box, pushed out by its radius, or a corner, as a share of the
+  move, so however fast a ball goes it can't pass through a brick, bricks,
+  the walls and the paddle all being boxes; and `exposureOf()`, which faces
+  and corners of a brick a ball can touch, read through the field's `solid`,
+  or `hardSolid` for a ball that passes through what can break, so bricks
+  side by side make one face and a corner is only where nothing touches it.
 - **`src/rules/field/`** — the field. `field.ts`: `Field`, a level in play,
   which each step changes in place, from records made once, so a step makes
   nothing but a random draw's generator, for a lull or a capsule.

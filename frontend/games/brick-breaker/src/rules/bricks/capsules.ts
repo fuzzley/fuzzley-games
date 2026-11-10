@@ -1,4 +1,5 @@
 import { keysOf } from "@fz/core/records";
+import type { Box } from "@fz/core/sweep";
 import { hasTrait, isNeeded } from "../catalog/bricks";
 import {
   type CapsuleEffect,
@@ -8,7 +9,7 @@ import {
 } from "../catalog/capsules";
 import { nextDraw } from "../draws";
 import type { Field } from "../field/field";
-import { type Box, cellMiddleX, cellMiddleY } from "../grid";
+import { cellMiddleX, cellMiddleY } from "../grid";
 import { splitOff } from "../paddle/balls";
 import { paddleBox } from "../paddle/paddle";
 import { SPEED_INFO } from "../speed";

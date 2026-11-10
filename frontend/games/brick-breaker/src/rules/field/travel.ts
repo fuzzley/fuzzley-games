@@ -2,10 +2,6 @@
 // bricks, all at one moment, and how it turns there.
 
 import { lerp } from "@fz/core/math";
-import { type Brick, canBreak, hitAround, hitBrick } from "../bricks/bricks";
-import { ballKind } from "../catalog/balls";
-import { isNeeded } from "../catalog/bricks";
-import { nextDraw } from "../draws";
 import {
   ALL_SIDES,
   type Box,
@@ -13,13 +9,18 @@ import {
   CORNER_AT,
   FACES,
   FACE_NORMAL,
+  MISSED,
+  type Move,
   SIDE,
-  brickBox,
-  cellIndex,
-  columnAt,
   exposureOf,
-  rowAt,
-} from "../grid";
+  sweepCorner,
+  sweepFace,
+} from "@fz/core/sweep";
+import { type Brick, canBreak, hitAround, hitBrick } from "../bricks/bricks";
+import { ballKind } from "../catalog/balls";
+import { isNeeded } from "../catalog/bricks";
+import { nextDraw } from "../draws";
+import { brickBox, cellIndex, columnAt, rowAt } from "../grid";
 import {
   type Ball,
   bounceOffPaddle,
@@ -31,7 +32,6 @@ import {
 } from "../paddle/balls";
 import { type Paddle, paddleBox } from "../paddle/paddle";
 import { stepsIn } from "../stepper";
-import { MISSED, type Move, sweepCorner, sweepFace } from "../sweep";
 import {
   BALL_RADIUS,
   CATCH_HOLD_MS,

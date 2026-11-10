@@ -121,8 +121,9 @@ so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
 - The physics needs nothing new while one that passes breaks what it
   passes through at a hit, as the catalog spec holds. Every ball's radius
   is `BALL_RADIUS`: a ball of another size needs a `size` here, which the
-  sweep, the paddle's reach and the check that no ball sits where a
-  regrowing brick would grow read where they now read `BALL_RADIUS`.
+  move `src/rules/field/travel.ts` sweeps, the paddle's reach and the check
+  that no ball sits where a regrowing brick would grow read where they now
+  read `BALL_RADIUS`.
 
 ## A Brick Kind With Traits That Exist
 

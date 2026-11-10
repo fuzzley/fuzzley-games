@@ -1,5 +1,5 @@
 import { clamp } from "@fz/core/math";
-import type { Box } from "../grid";
+import type { Box } from "@fz/core/sweep";
 import {
   BALL_RADIUS,
   FIELD_WIDTH,
