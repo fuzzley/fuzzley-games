@@ -508,3 +508,39 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   the panels (`src/app/panels/`), the shell stream the bar's pieces after
   U6, and a fresh agent the core (`GameService`, the board, the wiring) once
   S1 and V3 land.
+
+### U6 merged (2026-11-10)
+
+- `f56e4f35`: `SavedGameService` (`brick-fuzz-pop-game`, version 1),
+  keeping the run under way as each round is released and taking it up
+  again, paused, as the page loads (C9), over `KeptGame` and its
+  `KEPT_GAME` token. 3,379 tests. U3–U6 are all in.
+- **For U1's core:** `GameService` implements `KeptGame` and provides it
+  as `KEPT_GAME`; `nextStart` is the flying round's `round.next`, set in
+  the same turn as the run at a release, or `restoreGame()` refuses the
+  save and the run is lost; something injects `SavedGameService` at
+  startup, as Brick Breaker's `main.ts` does in an app initializer.
+- The shell stream builds U1's bar next.
+
+### S1 merged (2026-11-10)
+
+- `68648646`, fast-forwarded: `wall_scene.ts` in Brick Breaker's order
+  over `@fz/phaser/scene`'s helpers, `atlas.ts` (baked once per palette
+  and unit, and on a restored context), `FieldPainter` (the frame, the
+  band, the lintel, the jump line in dots of three, the danger line) and
+  `WallPainter` (a pool made once, the wall eased down by `wallDrop`).
+  `src/scene/` at 100%; two reviews; 3,482 tests. The game builds (95 KB
+  of script until U1 mounts the scene).
+- **The one stand-in left** is `Guide` in `src/scene/stand_ins.ts`, until
+  R6; `tick` gets a fixed unsteered `Steer` until S2 brings `Steering` and
+  `waitingX()`.
+- **For V3:** `wallDrop` is 1 while the wall is still; a wall that comes
+  down is handed over at once with `wallDrop` 0 and eases to 1.
+- **For U1:** `onLayout` hands over the whole `FieldMetrics`; `Pictures` is
+  `{ bricks }`, which U5's `HelpPictures` takes whole; the lintel's "N rows
+  waiting" is DOM.
+- **Asked:** the proof stream exports `neededBelow()` with its coming
+  `lowestNeededRow()`, so the scene's jump count and the announcer share
+  it. The scene stream closes S1's open items (the danger line's warning,
+  `browserKey`'s missing keys, the sprite-map case left in
+  `build-sounds.spec.ts`) while V3 is built.
