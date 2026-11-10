@@ -1,0 +1,3 @@
+// The toolkit every component stylesheet imports, as `@use "../styles" as *;`:
+// `@fz/game-ui/toolkit`, mixins alone, no CSS.
+@forward "@fz/game-ui/toolkit";
