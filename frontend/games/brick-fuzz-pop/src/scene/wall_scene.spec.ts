@@ -52,6 +52,7 @@ import {
   RING_MS,
   SHAKE_MS,
   SHARDS,
+  STREAK_MS,
   SWELL_MS,
 } from "../view/effects/timing";
 import { brickColor } from "../view/colors/brick_colors";
@@ -66,6 +67,7 @@ import {
   FRAME_CSS_PX,
   type FieldMetrics,
   type FieldShape,
+  type Place,
   bandPixels,
   fieldMetrics,
   fieldShape,
@@ -546,6 +548,12 @@ function rectsIn(
     const { x, y, width, height } = command;
     return [{ x, y, width, height }];
   });
+}
+
+/** Returns whether the meter's middle pip, straight under the waiting fuzzball, stands within half a pixel of under a place on the canvas. */
+function middlePipUnder(scene: WallScene, middle: Place): boolean {
+  const pip = scene.meter.pips[Math.floor(MOST_CHARGE / 2)];
+  return Math.abs((pip?.x ?? 0) - middle.x) <= 0.5;
 }
 
 /** Returns how many of a set of images show. */
@@ -2615,6 +2623,65 @@ describe("WallScene", () => {
 
       expect(showing(scene.meter.pips)).toBe(0);
     });
+
+    it("shows again as the fuzzball waits where it flew from", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+      });
+      shell.waiting = null;
+      run.advance(16);
+
+      shell.waiting = 3;
+      run.advance(16);
+
+      expect(showing(scene.meter.pips)).toBe(MOST_CHARGE);
+    });
+
+    it("follows the fuzzball to where the next round waits", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+      });
+
+      shell.waiting = 5;
+      run.advance(16);
+
+      expect(middlePipUnder(scene, toCanvas(metricsAt(), 5, RADIUS))).toBe(
+        true,
+      );
+    });
+
+    it("moves with the field as the chrome over it changes", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+      });
+      const lopsided = { ...INSETS, left: 60 };
+
+      shell.chrome = lopsided;
+      run.advance(16);
+
+      const metrics = fieldMetrics(
+        viewport(CANVAS.width, CANVAS.height, 1, lopsided),
+        shell.fieldShape,
+      );
+      expect(middlePipUnder(scene, toCanvas(metrics, 3, RADIUS))).toBe(true);
+    });
+
+    it("unlights its pips as the charge falls", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+      });
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+
+      run.key("keydown", "ArrowDown", "ArrowDown");
+      run.key("keydown", "ArrowDown", "ArrowDown");
+      run.advance(16);
+
+      expect(scene.meter.pips.map((pip) => pip.frame.name)).toEqual(
+        Array.from({ length: MOST_CHARGE }, () => FRAMES.meterOff),
+      );
+    });
   });
 
   describe("the guide", () => {
@@ -2754,6 +2821,25 @@ describe("WallScene", () => {
       expect({ x: punch?.x, y: punch?.y }).toEqual(
         toCanvas(metricsAt(), 8.5, 4.5),
       );
+    });
+
+    it("moves the same guide with the field as the chrome over it changes", async () => {
+      const guide: Guide = { dots: [{ x: 3.3, y: 2.2 }], punched: [] };
+      const { shell, run, scene } = await startBoard((each) => {
+        each.casting = () => guide;
+      });
+      const lopsided = { ...INSETS, left: 60 };
+
+      shell.chrome = lopsided;
+      run.advance(16);
+
+      const metrics = fieldMetrics(
+        viewport(CANVAS.width, CANVAS.height, 1, lopsided),
+        shell.fieldShape,
+      );
+      const place = toCanvas(metrics, 3.3, 2.2);
+      const [dot] = scene.guide.dots;
+      expect(Math.abs((dot?.x ?? 0) - place.x) <= 0.5).toBe(true);
     });
 
     it("hides the guide where none shows", async () => {
@@ -3007,6 +3093,22 @@ describe("WallScene", () => {
       expect(streak?.image.rotation).toBe(-Math.PI / 2);
     });
 
+    it("fade a punch's streak through its time, then hide it", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.reach([STRIKE_8, ["streak"]]);
+      run.advance(16);
+      run.advance(STREAK_MS / 2);
+      const [streak] = scene.effects.streaks.all;
+      const halfway = streak?.image.alpha ?? 0;
+
+      run.advance(STREAK_MS);
+
+      expect({
+        halfway: Math.round(halfway * 10) / 10,
+        after: streak?.image.visible,
+      }).toEqual({ halfway: 0.5, after: false });
+    });
+
     it("draw a zap's bolt along the row it reaches, a piece a cell, from the zapper's middle", async () => {
       const { shell, run, scene } = await startBoard();
 
@@ -3138,6 +3240,63 @@ describe("WallScene", () => {
         after: ring?.image.visible,
       }).toEqual({ halfway: 0.5, after: false });
     });
+
+    it.each<
+      [
+        string,
+        ReachedEvent,
+        number,
+        (scene: WallScene) => readonly GameObjects.Image[],
+      ]
+    >([
+      [
+        "streak",
+        [STRIKE_8, ["streak"]],
+        STREAK_MS,
+        (scene) => scene.effects.streaks.all.map(({ image }) => image),
+      ],
+      [
+        "bolt",
+        [ROW_ZAP, ["bolt"]],
+        BOLT_MS,
+        (scene) => scene.effects.bolts.all.map(({ image }) => image),
+      ],
+      [
+        "ring",
+        [BLAST, ["ring"]],
+        RING_MS,
+        (scene) => scene.effects.rings.all.map(({ image }) => image),
+      ],
+      [
+        "hop",
+        [FREE, ["hop"]],
+        HOP_MS,
+        (scene) => scene.effects.hops.all.map(({ body }) => body),
+      ],
+    ])(
+      "show a second %s through its own time, past the end of the first's, then hide it",
+      async (_, reached, ms, imagesOf) => {
+        const { shell, run, scene } = await startBoard();
+        shell.reach(reached);
+        run.advance(16);
+        const one = showing(imagesOf(scene));
+        run.advance(ms / 2);
+        shell.reach(reached);
+        run.advance(16);
+        const both = showing(imagesOf(scene));
+        run.advance(ms * 0.75);
+        const second = showing(imagesOf(scene));
+
+        run.advance(ms);
+
+        expect({
+          shown: one > 0,
+          both,
+          second,
+          after: showing(imagesOf(scene)),
+        }).toEqual({ shown: true, both: 2 * one, second: one, after: 0 });
+      },
+    );
 
     it("hop a freed friend from its cage down to the floor, then hide it", async () => {
       const { shell, run, scene } = await startBoard();

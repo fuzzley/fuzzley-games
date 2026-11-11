@@ -34,7 +34,10 @@ export const INKED: readonly FrameName[] = INKS.map((ink) =>
 );
 
 /** The way a fuzzball looks that has no heading yet, and the aim straight up's: up the field. */
-const UP: readonly [number, number] = [0, 1];
+const UP: Readonly<Look> = { x: 0, y: 1 };
+
+/** The way of the aim straight up, as `AIMS` writes a way. */
+const UP_WAY: readonly [number, number] = [UP.x, UP.y];
 
 /** A launch, which says how a fuzzball sets off. */
 type Launch = Extract<FlightEvent, { kind: "launch" }>;
@@ -43,6 +46,12 @@ type Launch = Extract<FlightEvent, { kind: "launch" }>;
 interface Look {
   x: number;
   y: number;
+}
+
+/** Describes how large a fuzzball is drawn: its scale over the atlas's, and its grid's unit in device pixels, which its eyes move by. */
+interface Size {
+  scale: number;
+  grid: number;
 }
 
 /**
@@ -73,6 +82,10 @@ export class BallPainter implements Painter {
   private readonly shown: (FrameName | null)[];
   /** Where a fuzzball is drawn, written for each. */
   private readonly place: Place = { x: 0, y: 0 };
+  /** The way the waiting fuzzball looks, along the aim, written each frame it waits. */
+  private readonly aimLook: Look = { x: UP.x, y: UP.y };
+  /** How large the fuzzballs are drawn, written before each group is drawn (those in the air, a triple shot's mates, the player's own), so drawing one hands over no number made for it. */
+  private readonly size: Size = { scale: 1, grid: 1 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.bodies = Array.from({ length: MOST_FUZZBALLS }, () =>
@@ -111,9 +124,9 @@ export class BallPainter implements Painter {
 
   /** Writes the way a fuzzball looks into a record and returns it: straight up before it has launched. */
   lookOf(ball: number, into: Look): Look {
-    const look = this.looks[ball];
-    into.x = look?.x ?? 0;
-    into.y = look?.y ?? 1;
+    const look = this.looks[ball] ?? UP;
+    into.x = look.x;
+    into.y = look.y;
     return into;
   }
 
@@ -129,17 +142,22 @@ export class BallPainter implements Painter {
     const grid = fuzzballGrid(baked) * scale;
     let at = 0;
     if (waitingX !== null) at = this.drawWaiting(context, waitingX, grid);
-    for (const ball of view.balls) {
-      if (at === this.bodies.length) break;
-      const look = this.looks[ball.ball];
+    const { size } = this;
+    size.scale = scale;
+    size.grid = grid;
+    // Read by number, as a frame's round of the fuzzballs makes nothing,
+    // and as many as there are bodies left.
+    const { balls } = view;
+    const most = Math.min(balls.length, this.bodies.length - at);
+    for (let index = 0; index < most; index++) {
+      const ball = balls[index];
+      if (ball === undefined) break;
       this.drawOne(
         at++,
         this.frameOf(ball),
         toCanvas(metrics, ball.x, ball.y, this.place),
-        look?.x ?? 0,
-        look?.y ?? 1,
-        scale,
-        grid,
+        this.looks[ball.ball] ?? UP,
+        size,
       );
     }
     for (; at < this.bodies.length; at++) {
@@ -161,10 +179,15 @@ export class BallPainter implements Painter {
     const scale = metrics.unit / baked.unit;
     // A boon's look flares in, the eyes as far from the middle as its size.
     const flare = flareScale(shareDone(this.flaredAt, now, FLARE_MS));
-    const flared = scale * flare;
-    const flaredGrid = grid * flare;
-    const [dx, dy] = AIMS[steer.aim] ?? UP;
+    const { aimLook: look, size } = this;
+    const aim = AIMS[steer.aim] ?? UP_WAY;
+    look.x = aim[0];
+    look.y = aim[1];
     const charged = CHARGED[steer.charge] ?? UNCHARGED;
+    const hot = boon === "hot";
+    // A boon's fuzzballs flare: a triple shot's mates, and a hot shot.
+    size.scale = boon === null ? scale : scale * flare;
+    size.grid = boon === null ? grid : grid * flare;
     let at = 0;
     if (boon === "triple") {
       // The mates wait on the side with the more room, which a floor 9
@@ -178,18 +201,18 @@ export class BallPainter implements Painter {
           RADIUS,
           this.place,
         );
-        this.drawOne(at++, charged, place, dx, dy, flared, flaredGrid);
+        this.drawOne(at++, charged, place, look, size);
       }
+      // The player's own waits unflared beside them.
+      size.scale = scale;
+      size.grid = grid;
     }
-    const hot = boon === "hot";
     this.drawOne(
       at++,
       hot ? FRAMES.hotShot : charged,
       toCanvas(metrics, x, RADIUS, this.place),
-      dx,
-      dy,
-      hot ? flared : scale,
-      hot ? flaredGrid : grid,
+      look,
+      size,
     );
     return at;
   }
@@ -204,18 +227,16 @@ export class BallPainter implements Painter {
   }
 
   /**
-   * Shows a body of the pool in a frame at a place on the canvas, scaled,
-   * and its eyes over it, moved the way it looks, across the field and up
-   * it, by a unit of its grid's device pixels.
+   * Shows a body of the pool in a frame at a place on the canvas, at a
+   * size, and its eyes over it, moved the way it looks, across the field
+   * and up it, by a unit of its grid's device pixels.
    */
   private drawOne(
     at: number,
     frame: FrameName,
     place: Readonly<Place>,
-    dx: number,
-    dy: number,
-    scale: number,
-    grid: number,
+    look: Readonly<Look>,
+    { scale, grid }: Readonly<Size>,
   ): void {
     const body = this.bodies[at];
     const eyes = this.eyes[at];
@@ -227,8 +248,8 @@ export class BallPainter implements Painter {
     body.setPosition(place.x, place.y).setScale(scale).setVisible(true);
     eyes
       .setPosition(
-        place.x + FUZZBALL_LOOK.across * grid * dx,
-        place.y - FUZZBALL_LOOK.down * grid * dy,
+        place.x + FUZZBALL_LOOK.across * grid * look.x,
+        place.y - FUZZBALL_LOOK.down * grid * look.y,
       )
       .setScale(scale)
       .setVisible(true);

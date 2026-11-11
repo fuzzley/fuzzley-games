@@ -439,7 +439,12 @@ export class GameService extends RunLifecycle implements KeptGame {
       if (steer.release) {
         this.release(steer, rulesOf(this.debug.tuning.tuning()));
       }
-    } else if (this.release(shotOf(shot), RULES)) {
+    } else if (
+      // A line's shot is made only as a round waits for it, so a frame of
+      // its flight makes none.
+      this.runState().phase === "aiming" &&
+      this.release(shotOf(shot), RULES)
+    ) {
       this.lineShots = this.lineShots.slice(1);
     }
     this.playFrame(deltaMs, this.run().outcome === "paused");
@@ -812,6 +817,8 @@ export class GameService extends RunLifecycle implements KeptGame {
 
   /** Says what a state's news and a card just opened call for, all at once, and returns the state with the news said. */
   private say(state: RunState, cardBefore: RunState["card"]): RunState {
+    // Most frames have nothing to say, and make no list of words.
+    if (state.news.length === 0 && state.card === cardBefore) return state;
     const words: string[] = [];
     for (const news of state.news) {
       if (news.kind === "ended") {

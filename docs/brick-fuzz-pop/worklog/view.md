@@ -1851,3 +1851,204 @@ The reviewer found the copy the draft's bytes, the table's nine rows
 `plan.md`'s, the certificates and pars on every depth from 11 to 22, the
 other sets' pars untouched, and nothing else that lists the sets in need
 of a change.
+
+### F2: nothing made in a frame of flight
+
+**2026-11-11.** On b117d21e. F1's traces found level 36's longest flight
+(The Great Wall, 18 deep, round 7 of its certificate, 19.6 s and about 975
+frames at 50 Hz) taking a median of 6.9 ms of the main thread a frame with
+the CPU slowed six times, where Brick Breaker holds 0.49 ms and Asteroid
+Breaker 1.2 to 1.6 ms. The coordinator set the median as the miss, and a
+frame's allocation as the first thing to cut, toward none in steady
+flight, as Asteroid Breaker's plan holds.
+
+**Where a frame's memory goes.** A heap sampling profile of the same
+flight, taken over CDP (`HeapProfiler.startSampling`, a sample a KiB,
+keeping what the collections took) by a script that launches Chrome
+through `@fz/dev/chrome`, plays rounds 1 to 6 fast-forward and samples
+round 7, its sites mapped through a build with source maps, each sample
+put down to the nearest frame of our code on its stack, or else to the
+Phaser renderer it fell under. Two runs before and two after the review's
+fixes, in KB a frame:
+
+| Source                     | Before     | After      |
+| -------------------------- | ---------- | ---------- |
+| Phaser, drawing images     | 33.4, 34.1 | 33.5, 34.3 |
+| Phaser, drawing `Graphics` | 12.7, 12.8 | 12.9, 12.8 |
+| Phaser, the rest           | 3.7, 4.4   | 4.6, 4.5   |
+| The sounds, `SpritePlayer` | 1.27, 1.27 | 1.10, 1.05 |
+| `WallPainter`              | 1.11, 1.17 | 0.99, 1.00 |
+| The rest of ours           | 1.23, 4.00 | 0.26, 0.28 |
+| All                        | 53.4, 57.7 | 53.4, 53.9 |
+
+- **Phaser's, about 50 KB, is left and reported.** Its render nodes hand
+  each quad's twenty or so numbers on through calls V8 doesn't inline,
+  each a heap number in the tiers below TurboFan, where a function run
+  once a frame stays a long while: `SubmitterQuad`'s `run` 15 KB,
+  `TransformerImage`'s `run` 10 KB, the scale and display origin getters
+  7 KB. The images' share grows with the images drawn, the wall's stacked
+  layers most. The `Graphics` share is the field painter's ground and
+  lines, which Phaser cuts into triangles again each frame
+  (`BatchHandlerTriFlat`'s `batch` 8.8 KB). Both are the scene stream's
+  to cut, by baking what stands still into textures.
+- **The sounds** are `playAudioSprite()` making a sound for each play,
+  with a marker and a config for each of the sprite's twenty sounds: the
+  next commit's, in `@fz/phaser`'s `SpritePlayer`.
+- **`WallPainter`** is `layOut()`'s calls of Phaser's scale setters, 0.7
+  KB, `dangerCells()`'s `flatMap` arrays in `rules/wall/lower.ts`, 0.24
+  KB, and `frameDanger()` and `swellStruck()`: left, the painter being the
+  scene stream's.
+- **The rest of ours** came from `for`…`of` loops' iterators and their
+  results, arrays and records built each frame, and numbers handed to
+  calls, which vary with when V8 optimizes what, hence the two
+  runs' spread. It is what this change cuts.
+
+**What was cut.** Each a frame's own, made once instead, or not at all:
+
+- **`EffectsPainter`** went through each of its pools, 126 bursts and
+  hops, every frame, each `for`…`of` an iterator and a result a step in
+  the lower tiers: up to 2 KB a frame. It keeps when the last of each kind
+  to start started, passes over a kind none of which shows, reads a kind
+  that shows by number, and moves on only those that show. It lets a kind
+  go once the last to start is done by the same share of its time that
+  hides it, so no frame lets one go still showing.
+- **`FrameSounds`** (`@fz/core`, which the breakers share) found a sound
+  by going through them all, and went through them all each frame to play
+  them, 0.4 KB. It finds one by name in a map made once, notes that a
+  sound was heard, goes through none in a frame that heard none, and
+  through them by number in one that did.
+- **`MeterPainter`** placed its pips each frame of aiming and hid them
+  each frame of a flight, 0.2 KB, and `GuidePainter` hid its dots again on
+  each frame of a flight that changed its wall, under a guide that shows
+  none, 0.18 KB. The meter
+  draws again only as where the fuzzball waits, the charge, the layout or
+  the atlas's scale changes, and hides once; a hidden guide stays hidden
+  whatever changes under it.
+- **`BallPainter`** handed `drawOne()` four doubles, the way it looks and
+  its size, each boxed for the call, and took the aim's way apart by
+  destructuring, an iterator and its results: it hands over a look and a
+  size, records made once, and reads the flying fuzzballs by number.
+- **`WallScene`** went through its painters with `for`…`of`: it hands
+  `forEach()` a function made once.
+- **`RoundPlay`** went through its fuzzballs and copied the wall with
+  `for`…`of`: it reads them by number.
+- **`GameService`** made a line's shot each frame to try to let it fly,
+  which only an aiming round takes, and a list of words each frame to say
+  none: it makes the shot only while the round aims, and says nothing
+  where there is no news and no card. A line plays only from a
+  certificate, as Play the certificate and the profile play one, so the
+  first reaches no player.
+
+Where `@typescript-eslint/prefer-for-of` would hold a loop by number to
+`for`…`of`, the loop reads the length into a constant first, or its item
+through a method, with a comment saying why. Every doc that said what a
+painter draws again, and when, says it as it now is.
+
+**What's left of ours,** 0.3 KB a frame, is numbers boxed in the lower
+tiers: `unitsIn()`'s arithmetic about 60 B, the ball painter's scales
+about 70, the flash's, the scene's `update()`. Each is a double
+worked out, read from a field or handed to a call, not anything the code
+builds; TurboFan takes them away, not the code. `playEvent()`'s and
+`playBeat()`'s `for`…`of` over an event's flourishes is left: it runs once
+an event, not once a frame.
+
+**The traces,** the same flight with the headed `chrome-devtools` MCP, as
+F1 took them, the CPU slowed as named, a frame's main-thread time over
+the flight's 975 or so frames, in ms; and from 1.5 s in, past the
+release's frames:
+
+| Slowed | Frames    | Median     | p95          | p99          | Worst        |
+| ------ | --------- | ---------- | ------------ | ------------ | ------------ |
+| ×6     | all       | 6.92, 7.09 | 12.27, 11.90 | 20.35, 18.06 | 92.38, 25.55 |
+| ×6     | from 1.5s | 6.83, 7.02 | 11.17, 11.03 | 16.18, 16.74 | 23.91, 21.35 |
+| ×4     | all       | 4.21, 4.03 | 7.43, 6.81   | 10.87, 9.62  | 13.21, 13.14 |
+| ×4     | from 1.5s | 4.18, 3.99 | 6.83, 6.17   | 9.61, 9.47   | 12.71, 11.33 |
+
+The first of each pair is F1's, the second this change's, taken before
+the review's fixes, which touch only frames where bursts show. The median
+hasn't moved past what two runs differ by: at ×6 the collector's time fell
+from 0.21 ms a frame to 0.07, most of F1's in a few major collections
+early in the flight, and the scripting rose by 0.21. A frame's time
+isn't in what it allocates but in what Phaser does for each object it
+draws: `willRender`, `renderWebGLStep`, `SubmitterQuad` and
+`TransformerImage`'s `run`, the image renderer, each of the wall's stacked
+images in turn. Fewer objects drawn is what moves it, which is the scene
+stream's baking.
+
+**Checks,** on b117d21e: the workspace's `lint` and `typecheck` pass;
+`test` passes 6,363 tests in 145 files; `test:coverage` passes 5,808 in
+116 files in `dom` and `pure`, at the floors (95.93, 94.04, 96.44 and
+96.13 in all), and 555 in 29 in `sim`; the root's `yarn lint` passes.
+`@fz/core`'s `lint` and `typecheck` pass, and its `test:coverage` passes
+369 tests at 100%. Brick Breaker's `test` passes 2,000 tests in 59 files
+and Asteroid Breaker's 5,219 in 95, and both `lint`s pass.
+
+**Specs.** `wall_scene.spec.ts` gains ten: a streak fading through its
+time and hidden after it, as the bolt, the ring and the hop were; a
+second of each kind showing through its own time past the first's end,
+then hidden, which holds the painter to the last to start; the meter
+showing again where the fuzzball flew from, following it to where the
+next round waits, moving as the chrome changes, and unlighting as the
+charge falls; and the same guide moving as the chrome changes.
+`frame_sounds.spec.ts` gains two: a sound heard after a frame played, and
+one not of the sprite, heard as none.
+
+**The mutation pass.** 46 mutants, 41 killed. Of `EffectsPainter`, 13,
+on the code as the review left it: each kind's start left unkept or kept
+at the first's, a kind let go early, the first of a pool passed over, and
+streaks timed as bolts, all killed, the first's start by the new specs.
+Of `BallPainter`, 9, all killed. Of `MeterPainter`, 7, six killed, four by
+the new specs; the atlas's scale left out of what it compares survives,
+as a new scale comes only with a new layout. Of `GuidePainter`, 4, three
+killed, the layout's by the new spec; the depth left out survives for
+the same reason, as it did before. Of `RoundPlay`, 3, two killed; the
+copied wall's length left uncut survives, its readers going by its rows.
+Of `GameService`, 3, all killed. Of `FrameSounds`, 7, five killed; the
+two that survive leave out a frame's shortcut, which changes the cost
+alone.
+
+**The review:**
+
+1. **A burst could stay shown.** The painter let a kind go once `now`
+   reached the last start plus its time, while each burst hides by its
+   share done, `(now - at) / ms`, and the two sums can round apart: a hop
+   started at 1000.1 ms and drawn at 1600.1 is at 0.9999999999999998,
+   still shown, with its kind let go, so a freed friend would stand on
+   the floor until the next hop. Rare, about one start in a thousand
+   where a frame lands on the end, and never at the specs' whole
+   milliseconds. Fixed: the painter keeps the last start, and lets a kind
+   go by the same share that hides a burst, which, the last to start
+   being the least done, holds for every one of the kind.
+2. **A kind that shows still went through its whole pool with
+   `for`…`of`,** 97 steps a frame of a zap's bolt, and the doc said the
+   hidden cost nothing. Fixed: read by number, as the other loops are,
+   and the doc says what a hidden one costs.
+3. **The log's `WallScene` line named a closure** where the old code had a
+   `for`…`of`. Fixed, and the closure dropped from the list of what ours
+   made.
+4. **The log's `BallPainter` line said seven numbers and an array,** where
+   `drawOne()` took four doubles and the destructuring made an iterator.
+   Fixed.
+5. **The log said the meter placed its pips and the guide hid its dots
+   each frame,** where the meter hid its pips through a flight and placed
+   them while aiming, and the guide hid its dots on the frames that changed
+   the wall. Fixed.
+6. **`tick()`'s comment said a line's shot is read only while aiming,**
+   where it is read each frame and made only then; and the log didn't say
+   that only a certificate's line plays that way. Fixed, both.
+7. **`CountClearance`'s doc said the guide draws again on each change**,
+   which now holds only for a guide that shows; and `update()`'s said the
+   scene allocates nothing of its own, against the per-event iterator the
+   log leaves. Fixed, both.
+8. **`BallPainter`'s new `STRAIGHT_UP`,** a way, shared its name with
+   `aiming.ts`'s aim number, and the size's doc said it was written for
+   each fuzzball. Fixed: `UP_WAY`, and the doc names the groups it is
+   written for.
+9. **The `it.each` said "fade"** where it counts what shows. Fixed: it
+   says show, then hide.
+
+The reviewer found the meter's and the guide's change detection complete,
+the ball painter's sizes the same for each boon, `release()`, `say()`,
+`RoundPlay` and `FrameSounds` unchanged in what they do, a restarted scene
+starting its painters afresh, the new specs failing on every broken skip
+it tried, and the log's numbers consistent.

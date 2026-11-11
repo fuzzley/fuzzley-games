@@ -263,9 +263,10 @@ export class WallScene extends Scene {
    * steering, then plays what the round reached since the last frame, once
    * each, and draws the round as the view now has it.
    *
-   * It allocates nothing of its own but on a new layout or a new palette,
-   * and once for each fuzzball of a round past the most a round has had;
-   * Phaser makes a sound object for each sound it plays.
+   * It builds nothing of its own but on a new layout or a new palette,
+   * once for each fuzzball of a round past the most a round has had, and
+   * an iterator over each event's flourishes as it plays; Phaser makes a
+   * sound object for each sound it plays.
    */
   override update(time: number, delta: number): void {
     const { options, context } = this;
@@ -307,8 +308,13 @@ export class WallScene extends Scene {
     context.metrics = this.metrics;
     context.baked = this.baked;
     context.palette = this.painted;
-    for (const painter of this.painters) painter.draw(context);
+    this.painters.forEach(this.paint);
   }
+
+  /** Has a painter draw the frame: made once, so the frame's round of the painters makes nothing. */
+  private readonly paint = (painter: Painter): void => {
+    painter.draw(this.context);
+  };
 
   /**
    * Hands the steering how each kind of pointer aims, as the settings now
