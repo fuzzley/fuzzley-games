@@ -10,8 +10,15 @@ export type Pips = 2 | 3 | 4 | 5 | 6;
 /** How many cracks a brick shows: the hits it has taken, 1 to 5. */
 export type Cracks = 1 | 2 | 3 | 4 | 5;
 
-/** Names a face of a brick a plate may cover. */
-export type PlateFace = "floorward" | "ceilingward" | "left" | "right";
+/**
+ * Names the faces a plated brick's plates cover, as the levels plate them:
+ * toward the floor, toward the floor and both side walls, or toward the
+ * ceiling.
+ */
+export type Plating = "floorward" | "floorward-sides" | "ceilingward";
+
+/** How many hits a plated brick's frame shows it has left, 1 to 3: its pips from 2. */
+export type PlatedHits = 1 | 2 | 3;
 
 /** How many pips a shell's or a moss brick's frame shows: its hits left, 2 or 3. */
 export type ThickHits = 2 | 3;
@@ -36,8 +43,9 @@ export const FRAMES = {
   pips: (pips: Pips) => `pips-${pips}` as const,
   cracks: (cracks: Cracks) => `cracks-${cracks}` as const,
   steel: "steel",
-  /** One plate, over a tile, on a face. */
-  plate: (face: PlateFace) => `plate-${face}` as const,
+  /** A plated brick's plates for its plating, and its pips for its hits left moved clear of them, over its tile. */
+  plated: (plating: Plating, hits: PlatedHits) =>
+    `plated-${plating}-${hits}` as const,
   /** A shell brick's shell, core and bolt, which its pips lie over. */
   shellBody: "shell-body",
   /** A shell brick's row of pips for its hits left, from 2, over its body: one with a hit left shows none. */
@@ -73,7 +81,7 @@ export const FRAMES = {
 /** A frame's name, such as "tile-3" or "steel". */
 export type FrameName = {
   readonly [K in keyof typeof FRAMES]: (typeof FRAMES)[K] extends (
-    argument: never,
+    ...values: never
   ) => infer Name
     ? Name
     : (typeof FRAMES)[K];
@@ -94,14 +102,24 @@ export const CHARGES = [0, 1, 2, 3, 4, 5] as const satisfies readonly Charge[];
 /** Every count of pips a shell's or a moss brick's frame shows, in order. */
 export const THICK_HITS = [2, 3] as const satisfies readonly ThickHits[];
 
+/** Every plating a plated brick's frame shows, in order. */
+export const PLATINGS = [
+  "floorward",
+  "floorward-sides",
+  "ceilingward",
+] as const satisfies readonly Plating[];
+
+/** Every count of hits left a plated brick's frame shows, in order. */
+export const PLATED_HITS = [1, 2, 3] as const satisfies readonly PlatedHits[];
+
 /** Every frame the atlas holds, each family's in the order of its builder's argument. */
 export const FRAME_NAMES: readonly FrameName[] = [
   ...INKS.map((ink) => FRAMES.tile(ink)),
   ...PIPS.map((pips) => FRAMES.pips(pips)),
   ...CRACKS.map((cracks) => FRAMES.cracks(cracks)),
   FRAMES.steel,
-  ...(["floorward", "ceilingward", "left", "right"] as const).map((face) =>
-    FRAMES.plate(face),
+  ...PLATINGS.flatMap((plating) =>
+    PLATED_HITS.map((hits) => FRAMES.plated(plating, hits)),
   ),
   FRAMES.shellBody,
   ...THICK_HITS.map((hits) => FRAMES.shell(hits)),

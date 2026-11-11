@@ -1986,3 +1986,180 @@ refuses a cataloged kind without art. X1 adds the five lines to
      lines the rebase left uneven are wrapped again.
   4. `symbols.spec.ts` holds `boltMark()` after `turned()`, as the file
      defines them.
+
+### X2's art: the bumper, the prism, the portal's two and the plated brick
+
+**2026-11-11.** The art of Tricks' four kinds, drawn ahead of X2, which
+catalogs them, unwired as X1's was: each kind's file and its specs, held
+in `atlas_frames.spec.ts`'s `WAITING_ART` till `BRICK_ART` takes it in
+with its kind. A plated brick is drawn as the integrator approved, a
+contract change: two layers, the orange tile under one frame of its plates
+and pips for its plating and hits left, `plated-<plating>-<hits>`, in
+place of a frame for each face's plate.
+
+- **Built.**
+  - `src/view/art/kinds/bumper.ts`: `BUMPER_ART`, after `bumper()`: four
+    ticks kicking out toward the cell's corners in its body's color, round
+    at their ends, then its disc in its face's on a shadow 28% black, its
+    ring cut out in its glyph's, the field's color, and a cap 52% white.
+  - `src/view/art/kinds/prism.ts`: `PRISM_ART`, after `prism()`: its
+    glass, the chunky tile's own shape in its face's color, outlined
+    inside the tile's edge in its body's; three rays, each in the
+    palette's ray of its place, round at their ends; and its triangle,
+    filled in the field's text 30% over the field, outlined in its glyph's
+    with round joins, and faceted by three lines that meet in a dot.
+  - `src/view/art/kinds/portal.ts`: `PORTAL_ART`, after `portal()`: a
+    frame for each pair, in that pair's inks, as its tint, the pair's
+    place, picks: its dark middle, three arms spiralling out of it, each
+    a line through 15 points round at its ends and bends, its ring, and a
+    badge cut out of the ring toward the cell's top right corner, with a
+    dot on the first pair's and a diamond on the second's.
+  - `src/view/art/kinds/plated.ts`: `PLATED_ART`, after `plated()` and
+    `plate()`: for each of the levels' three platings, toward the floor
+    (`v`, `V`), toward the floor and both side walls (`U`) and toward the
+    ceiling (`^`), at each of 1 to 3 hits left, its pips, moved clear of
+    its plates as the art moves them, then each plate: a gap of the field
+    over the tile from the plate's inner edge to the tile's, round its
+    corners, a steel bar on whole pixels, six teeth pointing out and two
+    rivets. A plate is drawn toward the floor and turned a quarter at a
+    time for the others. The sides' plates come before the floorward one,
+    whose gap cuts their ends, as the art's sheet draws `U`. Any other
+    plating, or hits past 3, throws a `RangeError`.
+  - `src/view/art/frames.ts` (contract, approved): `FRAMES.plate(face)`
+    and `PlateFace` give way to `FRAMES.plated(plating, hits)`, `Plating`,
+    `PlatedHits`, `PLATINGS` and `PLATED_HITS`; `FRAME_NAMES` lists the
+    nine where the four plates were, 74 frames. `FrameName` reads a
+    builder of any number of arguments.
+  - `src/view/art/symbols.ts`: `diamond()`, a diamond's corners about a
+    middle, which the zapper's cross took from a function of its own and
+    the portal's second mark takes too.
+  - `docs/brick-fuzz-pop/implementation-plan.md`: the frames table's row
+    names `plated-<floorward|floorward-sides|ceilingward>-<1–3>`.
+  - Specs: `bumper.spec.ts`, `prism.spec.ts`, `portal.spec.ts` and
+    `plated.spec.ts`, each reading its kind's frames from its art and
+    handing it looks typed as a `KindLook`; in `atlas_frames.spec.ts` the
+    four kinds join `WAITING_ART`, the plated frames lose their rivets and
+    half their teeth under 30 CSS px in the detail spec, the plates'
+    steel joins the zappers as the only marks past the chunky tile's
+    rounded square, and every polygon is held to three points or more at
+    every unit from 1 to 16 device px, as a `Graphics` needs one to start
+    from; 97 tests more.
+  - The game's `AGENTS.md`: the art's entry names the four new files.
+- **Choices the plan didn't make.**
+  1. **A plated brick is two layers,** as approved: its pips move with
+     its plating, so a frame for each face's plate would still want pips
+     for each plating, and `U` would stack five layers where the wall's
+     painter holds three. It shows no cracks, as the shell and moss show
+     none and the art's `plated()` draws none.
+  2. **A plate's gap stays on the tile,** as A2's rule asks, where the
+     art's box runs to the cell's edges: the tile's rounded outline cut
+     at the plate's inner edge, so the grid's dots and the flourishes
+     show past it, and none where a cell of a few pixels leaves no room;
+     its steel stands out of the tile, as the art's does. A side's plate
+     in `U` reaches only to the floorward plate's gap, which is drawn
+     over its end: its teeth are cut there, along their own sides, since
+     their tips lie outside the tile, where no gap covers them; its
+     rivet past it is left out, which the floorward plate covers anyway,
+     as the art's box does; and its bar runs on under the gap by its
+     corners' radius, so the gap cuts it square, as the art's does.
+     Where the gap's edge meets the tile's round a corner, two
+     antialiased edges leave a faint hairline of the tile, as the moss's
+     cap does.
+  3. **The prism's glass is the chunky tile's shape,** its outline inside
+     the tile's edge, as the art's is at 100 units, so a line held to a
+     CSS pixel at least never pushes it past the tile, which a gap of its
+     own did at 24 CSS px and 2.625 to one.
+  4. **Under 30 CSS px the plates' rivets drop and their teeth halve,**
+     three across the same span: the rivets as steel's do, being smaller
+     still (0.032 of a cell), and the teeth as the plan asks. A plated
+     brick shows no pip at its last hit, as tough's doesn't.
+  5. **A plate's parts keep their whole-pixel relations,** where rounding
+     each alone broke them: its bar keeps a pixel of its gap over it,
+     which at 24 device px a unit both round to one edge, and its teeth
+     stand 0.01 of a cell inside the bar's foot, rounded with it, as the
+     art overlaps them, where at 28 they fell 0.2 px past it.
+  6. **The art's round lines are `stroke()`**, as X1's are: the bumper's
+     ticks, the prism's rays and the portal's arms; the prism's outline is
+     a line along each side and a dot at each corner, and its facets
+     three lines and the dot where they meet, their corner ends under the
+     outline's dots.
+  7. **The bumper's shadow and cap and the prism's triangle are mixed in
+     the art,** as the yarn is: the cap 1.42:1 to 2.95:1 against the
+     disc, and the triangle 1.47:1 to 1.78:1 against the glass, each a
+     shade, the triangle told by its outline in the field's text, which
+     the palette's spec holds to 3:1 against the glass, and 5.23:1 to
+     8.71:1 against the triangle's fill.
+- **Checks.** The workspace's lint, typecheck and `test:coverage`, on
+  `brick-fuzz-pop` at `a1cff1ba`: 5,138 tests in 112 files, and 150 in
+  `sim`, the floors held; the root's lint.
+- **The mutation pass:** 58 mutants, from each kind's numbers, inks,
+  widths, order, turns and detail to its layers, the plated layers'
+  lookup, `diamond()` and the atlas spec's exceptions. Four lived, and
+  are answered: the prism's facets 0.02 of a cell wide and its glass's
+  outline 0.04, which round alike at the specs' units, so the facets are
+  held at 100 device px and the outline at 128; the plates' gap 0.25 of
+  a cell deep, which rounds alike at 62, so the gaps are held at 50, 75,
+  100 and 128; and the portals let past the tile's rounded square, which
+  they never reach, so they are held to it. After the review, 36 more on
+  the plates, their gap, cut, bars, teeth, rivets and the atlas spec's
+  narrower exception; two lived and are answered: a cut tooth's crossing
+  on its slanted side moved, now held by the sides' teeth lying on the
+  floorward teeth's outlines turned, and the bar's top let under its
+  foot, which only a cell of a few pixels reaches, now held by a spec
+  keeping the bars in their cells at every unit from 1 to 16 device px.
+  After the second review, 9 more on the gap's outline, its cut and the
+  guards on thin polygons, all killed.
+- **Numbers.** At 128 device px a unit the atlas's 43 frames, X1's
+  fourteen and these thirteen pack into 1038 × 1172, and with the scene's
+  frames and a picture of each of the 16 kinds 1214 × 1528, under
+  2048 × 2048.
+- **For other streams.**
+  - X2, wiring the art with its catalog commit: `bumper: BUMPER_ART`,
+    `prism: PRISM_ART`, `portal: PORTAL_ART` and `plated: PLATED_ART` in
+    `BRICK_ART`, in the catalog's order; in `atlas_frames.spec.ts`, the
+    thirteen frames (`bumper`, `prism`, `portal-1`, `portal-2`, and the
+    nine `plated-<plating>-<hits>`) in the list of what the atlas holds,
+    and the four entries in `WAITING_ART` dropped.
+  - The art reads a portal's `tint` as its pair's place, 0 or 1, as
+    `tintOf()` gives it, and a plated brick's `plates` as one of the
+    legend's three platings.
+- **The review:** two rounds, each by a fresh reviewer, the second on
+  the plates the first reshaped.
+  1. The plates' gap was a field-colored box past the tile, which A2's
+     rule and its word to X2 rule out, and the log called it a choice the
+     plan didn't make. Fixed: the gap is the tile's rounded square past
+     the plate's inner edge, a side's plate in `U` is cut at the
+     floorward gap, and the atlas spec lets only the plates' steel past
+     the tile; choice 2 says how.
+  2. The plates kept six teeth under 30 CSS px, where the plan asks for
+     fewer, and the log didn't say why a plated brick shows no pip at its
+     last hit. Fixed: three teeth across the same span, and choice 4
+     says both.
+  3. Rounding a plate's parts each alone left no gap over its bar at 24
+     device px a unit and a seam between the bar and its teeth at 28, 29
+     and 39. Fixed: the bar keeps a pixel of gap over it and the teeth
+     stand in it, held at every unit from 24 CSS px to 128 device px at
+     each pixel ratio.
+  4. A spec passed with the rivets' turn taken out: the ceilingward
+     spec left its rivets off and `U`'s only counted them. Fixed: the
+     ceilingward frame is held to the floorward one turned a half turn,
+     all of it, and each side's rivet where it lies.
+  5. Second round: the gap's spec held where its points lay but not
+     their order, so an arc reversed or stopped short passed. Fixed: the
+     gap's area is held to the tile's past its edge, within a square
+     pixel the corners' chords cut.
+  6. At cells of 1, 3, 4, 5, 8 and 9 device px the gap's ends lay past
+     the tile's corners, or its outline doubled back. Fixed: the gap is
+     the tile's whole outline cut at the plate's edge, right at any
+     depth and left out where nothing is left; a spec holds the gaps to
+     the tile at every unit from 1 to 16 device px, and the atlas spec
+     every polygon to three points or more there, since an empty one
+     would throw in the bake.
+  7. The log said a side's rivet was left out because no gap covers it
+     outside the tile, but it lies on the tile, under the floorward
+     plate. Fixed: choice 2 says so.
+  8. The tiny bars' spec said a bar's top never fell under its foot
+     while checking only its bounds, which `turnedAreaIn()` would turn
+     right way up. Fixed: it holds the floorward bar's foot where it
+     belongs. The nit, that it ran alike at each pixel ratio, is taken:
+     it runs once, as nothing under 30 CSS px reads the ratio.

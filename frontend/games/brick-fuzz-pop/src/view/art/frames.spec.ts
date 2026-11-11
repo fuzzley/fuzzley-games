@@ -5,6 +5,8 @@ import {
   FRAME_NAMES,
   INKS,
   PIPS,
+  PLATED_HITS,
+  PLATINGS,
   THICK_HITS,
 } from "./frames";
 
@@ -13,7 +15,7 @@ describe("FRAMES", () => {
     [FRAMES.tile(7), "tile-7"],
     [FRAMES.pips(6), "pips-6"],
     [FRAMES.cracks(1), "cracks-1"],
-    [FRAMES.plate("floorward"), "plate-floorward"],
+    [FRAMES.plated("floorward-sides", 2), "plated-floorward-sides-2"],
     [FRAMES.shell(3), "shell-3"],
     [FRAMES.moss(2), "moss-2"],
     [FRAMES.zapper("x"), "zapper-x"],
@@ -28,13 +30,13 @@ describe("FRAMES", () => {
 });
 
 describe("FRAME_NAMES", () => {
-  // 8 tiles, 5 pips, 5 cracks, steel, 4 plates, a shell's body and 2 of
-  // its pips, 2 moss pips and its cap, 4 zappers, the bomb, the bumper, the
-  // prism, 2 portals, wool, 8 cages' insides and 2 cages' bars, 6
-  // fuzzballs, the hot shot, 8 friends, their eyes, 2 meter pips and 2 of
-  // the guide's marks.
+  // 8 tiles, 5 pips, 5 cracks, steel, 3 platings at each of 3 hits left,
+  // a shell's body and 2 of its pips, 2 moss pips and its cap, 4 zappers,
+  // the bomb, the bumper, the prism, 2 portals, wool, 8 cages' insides and
+  // 2 cages' bars, 6 fuzzballs, the hot shot, 8 friends, their eyes, 2
+  // meter pips and 2 of the guide's marks.
   it("lists every frame the art draws", () => {
-    expect(FRAME_NAMES).toHaveLength(69);
+    expect(FRAME_NAMES).toHaveLength(74);
   });
 
   it("lists each frame once", () => {
@@ -76,6 +78,8 @@ describe("the lists of the frames' arguments", () => {
     ["CRACKS", CRACKS, [1, 2, 3, 4, 5]],
     ["CHARGES", CHARGES, [0, 1, 2, 3, 4, 5]],
     ["THICK_HITS", THICK_HITS, [2, 3]],
+    ["PLATINGS", PLATINGS, ["floorward", "floorward-sides", "ceilingward"]],
+    ["PLATED_HITS", PLATED_HITS, [1, 2, 3]],
   ])("lists %s in order", (_, list, expected) => {
     expect(list).toEqual(expected);
   });

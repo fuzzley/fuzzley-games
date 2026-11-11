@@ -732,15 +732,15 @@ export type SoundName = (typeof SOUNDS)[number];
 
 **Art frame names (K2 fixes them).**
 
-| Frames                                                                                                    | What they are                                                                   |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `tile-<tint 0–7>`                                                                                         | The plain tile in each tint                                                     |
-| `pips-<2–6>`, `cracks-<1–5>`                                                                              | A tough brick's hits left and its cracks                                        |
-| `steel`, `plate-<floorward\|ceilingward\|left\|right>`                                                    | Steel, and one plate on each face                                               |
-| `shell-<2\|3>`, `moss-<2\|3>`, `moss-cap`                                                                 | Shells and moss                                                                 |
-| `zapper-<row\|column\|cross\|x>`, `bomb`, `bumper`, `prism`, `portal-<1\|2>`, `wool`, `cage-<whole\|hit>` | The special kinds                                                               |
-| `fuzzball-<0–5>`, `hot-shot`, `friend-<ink>`, `fuzzball-eyes`                                             | The fuzzball at each charge, the hot shot, a friend, and the eyes they all wear |
-| `meter-on`, `meter-off`, `guide-dot`, `guide-punch`                                                       | The meter's pips and the guide                                                  |
+| Frames                                                                                                    | What they are                                                                                  |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `tile-<tint 0–7>`                                                                                         | The plain tile in each tint                                                                    |
+| `pips-<2–6>`, `cracks-<1–5>`                                                                              | A tough brick's hits left and its cracks                                                       |
+| `steel`, `plated-<floorward\|floorward-sides\|ceilingward>-<1–3>`                                         | Steel, and a plated brick's plates and pips by its plating and hits left, over the orange tile |
+| `shell-<2\|3>`, `moss-<2\|3>`, `moss-cap`                                                                 | Shells and moss                                                                                |
+| `zapper-<row\|column\|cross\|x>`, `bomb`, `bumper`, `prism`, `portal-<1\|2>`, `wool`, `cage-<whole\|hit>` | The special kinds                                                                              |
+| `fuzzball-<0–5>`, `hot-shot`, `friend-<ink>`, `fuzzball-eyes`                                             | The fuzzball at each charge, the hot shot, a friend, and the eyes they all wear                |
+| `meter-on`, `meter-off`, `guide-dot`, `guide-punch`                                                       | The meter's pips and the guide                                                                 |
 
 `BRICK_ART` is typed `{ readonly [K in BrickKindId]: KindArt }`. A kind
 added to the catalog without art fails to compile.

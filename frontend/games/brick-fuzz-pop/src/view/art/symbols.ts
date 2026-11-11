@@ -2,9 +2,10 @@
 // at shares of it, whether a scale draws the finest detail, an outline whose
 // edges lie on whole device pixels, a die's pips, a crack's width and the
 // ways along a tile's edges, an eighth of a turn and a point turned, the
-// lightning bolt a brick is marked with, and a line drawn as a band. The
-// art's numbers are the design's (`docs/brick-fuzz-pop/art/make-art.mjs`),
-// each written as a share of the cell its 100-unit square is.
+// lightning bolt a brick is marked with, a diamond, and a line drawn as a
+// band. The art's numbers are the design's
+// (`docs/brick-fuzz-pop/art/make-art.mjs`), each written as a share of the
+// cell its 100-unit square is.
 
 import {
   type Area,
@@ -205,6 +206,16 @@ export function boltMark(
   style: FillStyle,
 ): PolygonCommand {
   return polygon(placed(BOLT_MARK, half, middle), style);
+}
+
+/** Returns a diamond's corners about a middle, from its top clockwise, each a reach from the middle. */
+export function diamond(middle: Point, reach: number): readonly Point[] {
+  return [
+    { x: middle.x, y: middle.y - reach },
+    { x: middle.x + reach, y: middle.y },
+    { x: middle.x, y: middle.y + reach },
+    { x: middle.x - reach, y: middle.y },
+  ];
 }
 
 /**
