@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from "@angular/core";
 import { type Tuning, createTuning } from "@fz/game-ui/debug_menu";
 import { LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
+import { isDepth } from "../../rules/wall/wall";
 import {
   TUNED_NUMBERS,
   type TunedNumbers,
@@ -77,10 +78,7 @@ export class DebugService {
    * with null; throws a RangeError for a depth no field has.
    */
   setDepth(depth: number | null): void {
-    if (
-      depth !== null &&
-      !(Number.isInteger(depth) && depth >= LEAST_DEPTH && depth <= MOST_DEPTH)
-    ) {
+    if (depth !== null && !isDepth(depth)) {
       throw new RangeError(
         `No field is ${String(depth)} deep: the depths run from ${String(LEAST_DEPTH)} to ${String(MOST_DEPTH)}.`,
       );

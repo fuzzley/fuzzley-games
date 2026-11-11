@@ -27,8 +27,8 @@ export type RoundNews =
 /**
  * Holds what the shell shows of a run beside its field, a value each change
  * replaces: the run, the round aimed or in play and where it stands, the
- * card over the level's end, the news not yet said, and how the run is
- * kept.
+ * card over the level's end, the news not yet said, and whether its end set
+ * a new best.
  *
  * A frame that changes none of them leaves it as it is, so a frame of play
  * makes nothing.
@@ -47,8 +47,6 @@ export interface RunState {
   readonly resultClosed: boolean;
   /** What the rounds came to that the announcer hasn't said yet, in order. */
   readonly news: readonly RoundNews[];
-  /** Whether the run is played on numbers the debug menu retuned, so it keeps no records. */
-  readonly tuned: boolean;
   /** Whether the run's end set a new best score, as the records said as they kept it. */
   readonly newBest: boolean;
 }
@@ -74,11 +72,7 @@ export interface RoundChange {
  * Returns the state of a run as it begins, or is taken up, its round aimed
  * from where it starts, with nothing to say and no card.
  */
-export function newRunState(
-  run: Run,
-  start: RoundStart,
-  tuned: boolean,
-): RunState {
+export function newRunState(run: Run, start: RoundStart): RunState {
   return {
     run,
     start,
@@ -87,7 +81,6 @@ export function newRunState(
     card: null,
     resultClosed: false,
     news: [],
-    tuned,
     newBest: false,
   };
 }

@@ -25,14 +25,14 @@ const FLYING: PlayState = { ...AIMED, round: plain.round, phase: "flying" };
 const RUN: Run = createRun({ id: 1, level: 1, depth: 11 }, LEVELS);
 
 /** The state of the plain shot's level as it begins. */
-const BEGUN: RunState = newRunState(RUN, plain.start, false);
+const BEGUN: RunState = newRunState(RUN, plain.start);
 
 /** The state of the plain shot's level, its round in the air. */
 const FLOWN: RunState = { ...BEGUN, round: plain.round, phase: "flying" };
 
 describe("newRunState", () => {
   it("begins a run with its round aimed, nothing to say, no card and no new best", () => {
-    expect(newRunState(RUN, plain.start, true)).toEqual({
+    expect(newRunState(RUN, plain.start)).toEqual({
       run: RUN,
       start: plain.start,
       round: null,
@@ -40,7 +40,6 @@ describe("newRunState", () => {
       card: null,
       resultClosed: false,
       news: [],
-      tuned: true,
       newBest: false,
     });
   });
@@ -155,7 +154,7 @@ describe("withFrame", () => {
     };
 
     const state = withFrame(
-      { ...newRunState(RUN, lost.start, false), ...settling },
+      { ...newRunState(RUN, lost.start), ...settling },
       settling,
       { ...NOTHING, opens: "result" },
     );
@@ -164,11 +163,11 @@ describe("withFrame", () => {
   });
 
   it("keeps the rest of the run's state", () => {
-    const kept: RunState = { ...BEGUN, tuned: true, newBest: true };
+    const kept: RunState = { ...BEGUN, resultClosed: true, newBest: true };
 
     const flying = withFrame(kept, FLYING, NOTHING);
 
-    expect([flying.run, flying.tuned, flying.newBest]).toEqual([
+    expect([flying.run, flying.resultClosed, flying.newBest]).toEqual([
       RUN,
       true,
       true,

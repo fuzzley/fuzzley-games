@@ -1202,3 +1202,149 @@ mutant of the shell's spec takes about 25 s on the shared machine.
     `src/testing/play.ts` exported a `playRound()` of its own. Fixed:
     `typeof playRound`, and the helper is `playRoundOut()`.
 12. **`AGENTS.md`'s status and the view's bullet were out of date.** Fixed.
+
+### U1's wiring and U2's
+
+**2026-11-10.** `src/app/app.component`: the shell places the bar, the
+live region, the result card, the Levels dialog, How to play, the
+settings drawer and the question before a run is lost, each wired to
+`GameService`; and `GameService` takes the debug menu's numbers, depth
+and records, plays R6's `playRound()` and casts its `guideOf()`, and hands
+the board its card and the result card the run's end. The board's place
+in the room is a marked slot, as `<app-board>` is the art stream's.
+
+**What was built.**
+
+- **`app.component`** places `<app-bar>`, with every figure and action
+  wired to the game, `<fz-announcer>`, `<app-result>` over an ended run,
+  `<app-levels>`, `<app-help>`, `<app-settings>` and
+  `<fz-confirm-dialog>`, and pauses the level in play as the player looks
+  away from the room (`[fzPlayRoom]`'s `away`). The room is a one-cell
+  grid in `<main>`, and the board's slot a comment saying what goes
+  there. A level chosen in the Levels dialog starts a run there, asking
+  first with one in progress, and closes it only once the run has begun;
+  the result card's Choose a level puts the card away and opens it. Once
+  a run has ended, the result card stays in the page with its last end
+  (`lastEnd`), closed through its `open` as the next run begins.
+- **The debug menu's wiring.** The flight's pace follows the numbers
+  through `onTune()`, heard at once; each round is played on
+  `rulesOf()` of them, and the guide past its turn on `guidePastTurn`; a
+  depth set lays the field out again on the board's last room
+  (`fieldShape(viewport, depthSet)`), between rounds as a resize is; a
+  run begun calls `startRun()`, `locked` for a level not yet open and
+  `kept` for a run taken up off the record; and `runOffRecord()` keeps
+  the records, in place of `RunState.tuned`, which is gone, so
+  `newRunState(run, start)` takes two. The Levels dialog opens every level
+  while `everyLevelOpen()`.
+- **`boardCard`**, the card the board shows: Ended over a closed result,
+  Cleared once its card is due, with the level's tally and the friends
+  the next round starts with, Ready, with the kind of brick the level
+  brings in (the catalog's new `kindIntroducedAt()`), and Paused, with the
+  score; else none.
+- **`runEnd`**, what the result card shows of an ended run, its stars
+  read from the run's `stars`, which the proof stream now counts.
+- **`guide()`**, R6's `guideOf()` from the round aimed at the steering's
+  last aim and charge, while the guide setting is on and a round waits to
+  be aimed; null otherwise.
+- **`boon()` and `crew()`**, the two of S2's new scene options the game
+  lacked: the boon the waiting fuzzball carries (the round aimed's, the
+  next round's once the flight lands, none in flight) and the crew of the
+  round aimed or in play.
+- **`isDepth()`** checks a depth in the saved game's `hasDepth()` and the
+  debug menu's `setDepth()`, as the integrator asked.
+- **`src/scene/stand_ins.ts`** is gone, `GameService` taking `Guide` from
+  the rules, as the scene does.
+
+**Choices the plan didn't make.**
+
+1. **One commit for both,** as U2's debug wiring runs through the same
+   lines of `GameService` and the app as U1's.
+2. **The pace is heard through `onTune()`** rather than an effect, which
+   runs later, so no frame plays on the old pace.
+3. **A depth set waits for the round in the air,** as a room's resize
+   does, and lays out a level with no round played afresh, its par with
+   it; one with rounds played keeps its par.
+4. **A depth set is the field's whatever the room:** the unit is the
+   largest that fits that many rows past the thinnest band and lintel,
+   and what is left thickens them.
+5. **The guide is cast once** for each round aimed, set of numbers, aim
+   and charge, and handed again while none changes, rather than at every
+   frame.
+6. **How to play asks the scene for its pictures only while it is open,**
+   as the scene encodes them as they are asked for.
+7. **Every level open keeps each level's stars and best,** only opening
+   the locked ones.
+8. **The result card comes before the Levels dialog in the page,** so
+   Choose a level's card gives the focus back before the dialog takes it.
+
+**Not here yet.** `<app-board>` in the room's slot, and with it the focus
+the board takes back from the bar's Resume, the dialogs and each run
+begun, wait for the art stream's board; nothing can be played in the page
+until then, so the app's specs drive the game through `GameService`. The
+settings drawer is handed no certificate and its Play the certificate
+goes nowhere until P3's loader.
+
+**Rebased twice.** Onto the proof stream's run stars and `takeDepth()`,
+so `runEnd`'s stars are the run's own and `laidOut()` calls the rules
+(the provisional count this change first kept in `GameService` went);
+and onto S2, whose scene asks for `boon()` and `crew()`.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass after the review, 4,433 tests in 83 files;
+`app.component.spec.ts` has 36 and `game.service.spec.ts` 135, and
+`app.component.ts`, `game.service.ts`, `field_metrics.ts` and `bricks.ts`
+are at 100% of statements, branches, functions and lines. The root's
+`yarn lint` passes.
+
+**The mutation pass.** 40 mutants of `game.service.ts`'s new lines, each
+card and its fields, the run's end, the guide's guards and its cache, and
+the debug menu's pace, rules, depth and records: 34 were killed. Five
+survivors were gaps, now given specs and killed: the Cleared card's tally
+read without the level's jumps, the run's end at level 1 rather than the
+level it started at, and the guide's cache ignoring the numbers, the aim
+or the charge, which the specs had asked for only from an empty cache.
+One is equivalent: the Cleared card's friends read from the round aimed
+rather than the next round's start, which are one by the time the card is
+due. After S2, 3 mutants of `boon()` and `crew()`, all killed. 3 of
+`fieldShape()`'s depth set: two killed, and one equivalent, the depth set
+clamped, which `setDepth()` already holds to a field's. 11 of
+`app.component.ts`, all killed; and 38 of its template, each figure,
+action and output wired, each dialog's open and close, the confirm dialog
+and the live region: 36 killed, and two gaps, now given specs and killed:
+Fast-forward pressed again asking for fast still, and the result card
+open whatever the game says. After the review, 3 more, all killed: every
+level open dropping the levels' stars, and the result card leaving the
+page, by its `@if` or by `lastEnd` keeping nothing.
+
+**Numbers worth keeping.** In jsdom the confirm question and the result
+card are `alertdialog`s, the help's pictures `presentation`, and an
+element has no `checkVisibility()`. A round's points are in the score as
+it is released, so a run paused mid-flight says them. A mutant of
+`game.service.spec.ts` takes about 35 s on the shared machine, one of
+`app.component.spec.ts` about 15 s.
+
+**The review:**
+
+1. **Every level open was worked out in the component, and keeping each
+   level's stars had no spec.** Fixed in part: a spec holds a cleared
+   level's stars while every level is open. Kept in the component:
+   `level_marks.ts` is the shell stream's, and opening every level is the
+   app's wiring of the debug menu; `levelMarksOf()` can take it on if that
+   stream wants it.
+2. **The result card left the page while open** as a new run began, so
+   its dialog was never closed and the browser couldn't give the focus
+   back. Fixed: `lastEnd`, a `linkedSignal` of the last end, keeps the
+   card in the page once a run has ended, and its `open` closes it; a spec
+   finds it closed after Try again.
+3. **`newKindAt()` was a question of the catalog asked in the shell.**
+   Fixed: the catalog's `kindIntroducedAt()`, specced for every kind and
+   for a level that introduces none.
+4. **`AGENTS.md` still listed S2 to come,** and its scene bullet, which
+   this change edited, said the shot unsteered and the sounds unplayed.
+   Fixed: S2 is off the list, and the scene bullet is the integrator's
+   rewrite for S2, which landed as this was rebased, taken whole but for
+   `stand_ins.ts`, now gone.
+5. **`keepRecords()`'s doc had a line left unwrapped.** Fixed.
+6. **A spec kept the rounds asked for as `unknown[][]`.** Fixed:
+   `Parameters<RoundPlayer>[]`, and the debug menu's spec
+   `Parameters<RoundPlayer>[3][]`.

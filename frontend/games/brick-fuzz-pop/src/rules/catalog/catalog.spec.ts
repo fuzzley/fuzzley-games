@@ -6,6 +6,7 @@ import {
   brickKind,
   hasTrait,
   isBrickKindId,
+  kindIntroducedAt,
 } from "./bricks";
 
 /** Spells a count from one to six, as the catalog's sentences do. */
@@ -60,6 +61,17 @@ describe("the brick kinds", () => {
 
   it("bring the plain brick in at the first level", () => {
     expect(BRICK_KINDS.brick.firstLevel).toBe(1);
+  });
+
+  it.each(BRICK_KIND_IDS)(
+    "name %s as the kind its first level introduces",
+    (id) => {
+      expect(kindIntroducedAt(brickKind(id).firstLevel)).toBe(id);
+    },
+  );
+
+  it("name no kind for a level that introduces none", () => {
+    expect(kindIntroducedAt(2)).toBeNull();
   });
 
   it.each(BREAKING)("break %s with a hit at least", (id) => {

@@ -104,6 +104,17 @@ export function brickKind(id: BrickKindId): BrickKind {
   return BRICK_KINDS[id];
 }
 
+/**
+ * Returns the kind of brick a level introduces, the first in How to play's
+ * order should it introduce more than one, or null for a level that
+ * introduces none.
+ */
+export function kindIntroducedAt(level: number): BrickKindId | null {
+  return (
+    BRICK_KIND_IDS.find((id) => brickKind(id).firstLevel === level) ?? null
+  );
+}
+
 /** Returns whether a value names a brick kind. */
 export function isBrickKindId(value: unknown): value is BrickKindId {
   return isKeyOf(value, BRICK_KINDS);

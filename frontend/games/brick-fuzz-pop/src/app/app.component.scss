@@ -1,7 +1,12 @@
-// The page is the game, and its name stands in the middle of it.
-:host {
-  position: fixed;
-  inset: 0;
+@use "@fz/game-ui" as game-ui;
+
+// The page is the game: the bar stands against one edge, and the stage takes
+// the rest, a size container, which the board's layout follows.
+@include game-ui.game-frame;
+
+// The board fills the room, and lays the field out inside it.
+.room {
   display: grid;
-  place-items: center;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: 100%;
 }

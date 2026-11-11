@@ -21,8 +21,8 @@ const STATS_VERSION = 1;
  * Keeps the player's runs, the best run's score and the furthest level
  * reached, and each level's best points, fewest rounds and most stars.
  *
- * Hand it only runs played on the numbers the game ships: a run on numbers
- * the debug menu retuned keeps no records, here or in the progress.
+ * Hand it only runs played on the record: a run the debug menu took off the
+ * record keeps none, here or in the progress.
  */
 @Injectable({ providedIn: "root" })
 export class StatsService {
