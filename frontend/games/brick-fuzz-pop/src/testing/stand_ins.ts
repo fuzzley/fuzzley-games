@@ -6,6 +6,7 @@
 // rule is specced on its own.
 
 import { EARTHS_RULE } from "../rules/bricks/traits/earths";
+import { FREES_RULE } from "../rules/bricks/traits/frees";
 import { NEVER_RULE } from "../rules/bricks/traits/never";
 import { RECHARGES_RULE } from "../rules/bricks/traits/recharges";
 import { ZAPS_RULE } from "../rules/bricks/traits/zaps";
@@ -69,22 +70,18 @@ export const CAGE: BrickKind = {
 
 /**
  * Rules for specs for every trait the flight's hooks serve: steel's, the
- * zappers' and wool's own, steel not hurt and earthing a charge, a zapper
- * zapping in its pattern and wool recharging the fuzzball that breaks it;
- * and the rest made up: a cage frees a friend in its tint, a bumper kicks, a
- * prism splits and a portal sends a fuzzball out of its twin; plates,
- * shells and moss do nothing.
+ * zappers', wool's and the cage's own, steel not hurt and earthing a
+ * charge, a zapper zapping in its pattern, wool recharging the fuzzball
+ * that breaks it and a cage freeing its friend in its tint; and the rest
+ * made up: a bumper kicks, a prism splits and a portal sends a fuzzball out
+ * of its twin; plates, shells and moss do nothing.
  */
 export const STAND_IN_RULES: TraitRules = {
   never: NEVER_RULE,
   earths: EARTHS_RULE,
   zaps: ZAPS_RULE,
   recharges: RECHARGES_RULE,
-  frees: {
-    broken: (hooks, cell, _ball, _trait, tint) => {
-      hooks.free(cell, tint);
-    },
-  },
+  frees: FREES_RULE,
   kicks: {
     met: (hooks, ball, nx, ny) => {
       hooks.kick(ball, nx, ny);

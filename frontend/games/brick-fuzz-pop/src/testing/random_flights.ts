@@ -32,8 +32,7 @@ export interface RandomFlight {
 /**
  * The kinds random walls are drawn from, with the rules they are flown by:
  * the stand-ins' bumper and portal; the catalog's own, by the bricks' own
- * rules, so a kind cataloged before its traits' rules play makes these
- * flights throw; and the stand-ins' prism, wool and cage.
+ * rules; and the stand-ins' prism, wool and cage.
  */
 const KINDS: readonly (readonly [BrickKinds, TraitRules])[] = [
   [STAND_INS, STAND_IN_RULES],

@@ -1575,3 +1575,43 @@ its review and the numbers worth keeping.
      short. Fixed. The tint after the trait, where `entered()` puts its
      twin before it, is left as the integrator approved it: a fifth
      argument.
+
+### X1, second piece: the cage frees its friend
+
+- **Date.** 2026-11-11.
+- **Built.**
+  - `src/rules/bricks/traits/frees.ts`: `FREES_RULE`, a cage freeing the
+    friend it holds as it breaks, in its tint, by a fuzzball, a zap or a
+    blast alike. `TRAIT_RULES` takes it, so every trait has its rule.
+  - `traits/not_until.ts` and its spec are gone, with
+    `trait_rules.spec.ts`' spec of the traits not played yet: nothing
+    throws "not until level N" any more.
+  - `src/testing/stand_ins.ts`: `STAND_IN_RULES` frees by the real rule.
+  - Specs: `frees.spec.ts` frees a stand-in cage's friend in its tint as a
+    fuzzball breaks it, none from one only struck, and one in its tint as a
+    zap breaks it.
+  - `AGENTS.md`: the traits sentence and the stand-ins' line;
+    `random_flights.ts`' doc no longer says a kind cataloged before its
+    rule makes the flights throw.
+- **Choices.**
+  1. **The rule frees whatever breaks the cage,** as plan.md's "A zapped
+     cage frees its friend, as a broken one does" says; `fly()`'s hook
+     throws for a free asked at any other moment.
+  2. **The specs fly the stand-in cage,** a tough brick of two hits that
+     frees, until the catalog's commit; the stand-in's tint is its row's,
+     which the rule hands on whatever it is.
+- **Checks,** at 44827624, the contract change: the workspace's `lint` and
+  `typecheck` pass; `test:coverage` passes
+  4,884 tests in 104 files in `dom` and `pure`, at the floors, and 150 in
+  20 in `sim`; the root's `yarn lint` passes.
+- **The mutation pass.** 6 mutants of `frees.ts`, all killed: no free, ink
+  0, ink 0 for a zap's break, ink one more, the next cell, and no free for
+  a zap's break.
+- **The review:** a fresh agent found the rule right. Its points, all
+  taken:
+  1. The zapped cage stood in wall row 0, its tint 0, so a rule handing a
+     zap's free ink 0 passed. Fixed: it stands in wall row 2 and frees in
+     ink 2, and the mutation pass has that rule.
+  2. `random_flights.ts`' doc promised the random flights caught a kind
+     cataloged before its rule, which nothing throws for now. Fixed.
+  3. The checks named the base, not the commit. Fixed.
