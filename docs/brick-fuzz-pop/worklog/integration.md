@@ -1572,3 +1572,287 @@ const` and no `kind`, so the compiler refuses a stray field (checked by
     merge.
   - Done since the last list: X3, X1, Y1, T2, D1's lists and both skills,
     and the shell stream's three notes.
+
+### X2, Y2 and Y3 merged; Q4 passed; F1 under way (2026-11-11)
+
+Sizes here are Vite's, in kB of 1,000 bytes; the gzip figures before `b849b9a6`
+are `gzip -9`'s, a little under Vite's own.
+
+- `33cf8fe6`, from the proof stream, X2's catalog commit: `tricks.ts` catalogs
+  the bumper, the prism, the portal and the plated brick, with their four
+  `BRICK_ART` lines; `WAITING_ART` and `everyFrame()` gone, the atlas's list
+  with the 13 frames; `art.spec.ts` colors a portal's shards by its pair's inks
+  and its looks, as `wall_scene.spec.ts`'s, take a portal's two pairs and the
+  legend's platings; How to play's plated brick is a `v`; "a plate" gone from
+  the earths comment. R reads a brick's plates and a portal by its pair's badge
+  ("portal with a dot", "with a diamond", from the new `PORTAL_BADGES` in
+  `legend.ts`), shut while its twin waits. `uncataloged()` retired with its
+  specs, the parse's and `wallFrom()`'s refusal of an uncataloged kind with it:
+  `LegendBrick.kind` is typed `BrickKindId`, so the compiler refuses a legend
+  kind the catalog lacks; `wall_picture.spec.ts` keeps a character the legend
+  lacks. The stand-ins stay, which the flight's, the cast's, the grid's, the
+  round's and the random flights' specs still fly. 41 of 42 mutants killed, the
+  survivor equivalent. 5,509 tests and 285 in sim, the floors held; the root
+  lint passes. Every kind is cataloged.
+  - **Left for the art stream, after trim 1:** `portal.ts` picks its badge by
+    the mark's number rather than from `PORTAL_BADGES`, so R's words and the art
+    could part; and `art.spec.ts` and `wall_scene.spec.ts` each work out every
+    look a kind takes, which one `looksOf()` in `src/testing/art_frames.ts`
+    would serve.
+- `2c6c39a9`, from the proof stream, **Y2**: Tricks' nine levels, copied from
+  their draft and held to plan.md's table, in `LEVEL_SETS`; their certificates
+  and par, every line found by the first search on all twelve depths in 9.7 s;
+  the round ranges as the sketch had them but Back door's 4 to 9 (the sketch's 4
+  to 8) and Fun house's 5 to 10 (4 to 9). The careless player's least over 11,
+  13 and 22 deep, against 80: Pinball and Shutters 98, Bumper cars and Fun house
+  95, the rest 100; no redraw. No mutation pass, the change being data its
+  replays hold. 5,658 tests and 420 in sim; the floors held, the root lint
+  passes.
+- **Y3 waits on Y2,** as the view stream found: a level's number comes from its
+  set's place in `LEVEL_SETS`, a kind's first level is checked against it, and
+  the careless player's games are seeded by it, so Thick walls certified before
+  Tricks would number 19 to 27, fail its specs and play other games than its
+  final ones. Its files waited in a WIP commit, undone by one soft reset after
+  the rebase, as agreed.
+- `829f8003`, from the shell stream, **trim 1**: `BRICK_COLORS` in
+  `src/view/colors/brick_colors.ts`, typed over `BrickKindId` so a kind without
+  a color fails to compile, gives a brick's shards their color by kind and tint
+  (a tint's ink for the brick and the tough brick, a pair's for the portal, the
+  kind's own inks for the rest); `colorOf` leaves `KindArt` and the kinds'
+  files, the shard-color rules move to `brick_colors.spec.ts`, `itemAt()` to
+  `src/view/items.ts`, and `wall_scene.ts` takes its aim from `aiming.ts`,
+  `steering.ts`'s re-export gone. The same colors for all sixteen kinds; 12
+  mutants, all killed. 5,643 tests and 420 in sim, the floors held; the root
+  lint passes. **Measured here:** the main chunk 411.8 kB raw (125.0 gzip),
+  Tricks' levels in it, against 406.8; the scene 54.5 kB raw (20.3 gzip), the
+  bricks' art now in it, against about 51.
+- **Decided:** trim 4, How to play loaded on its first opening, goes in now,
+  with the debug menu and it loaded by a hand-written `import()` rather than
+  `@defer`, whose runtime is 6.1 KB of the main chunk, since Thick walls' levels
+  still add to it. The scene's overage goes to the user at F1 with the numbers,
+  rather than the art split into a chunk of its own only to meet the measure.
+- **Q4, levels 1 to 18,** watched by the scene stream through the debug menu's
+  Play the certificate, on 11 and 22 deep, in a headless Chrome on its own
+  server: all 36 plays cleared in their certificate's rounds, the needed bricks
+  never in the danger row (row 3 the lowest, Plumb-line on 11), no console error
+  or warning in play; the friends in their cages' inks and joining in order, the
+  triple shot, every zap and blast, wool's sparks and every kind's art as they
+  should be. Two cosmetic issues: the Cleared card wraps "5 friends freed" onto
+  three lines on 22 deep, as narrow as the field; and effects (rings, shards, a
+  friend's hop) draw over the lintel band and past the board's top frame, the
+  count, above the canvas, still readable. Both wait for 19 to 36's watching, to
+  be fixed with whatever it finds. Shots and harness in the scratchpad's
+  `scene-stream/q4/`.
+- `0fe10c98`, from the view stream, **Y3**: Thick walls' nine levels, copied
+  from their draft and held to plan.md's table, after Tricks in `LEVEL_SETS`;
+  their certificates and par, every line found by the first search in 11 s, from
+  4 to 8 rounds (Overgrown) to 10 to 15 (Labyrinth, The Great Wall). The
+  careless player's least over 11, 13 and 22 deep, against 40: Nutcracker and
+  Thunderhead 100, Moss garden 95, Bank vault 85, Overgrown 83, Armory 80, The
+  Great Wall 65, Labyrinth 63, Six-pack 50 (on 11 and 13; the sketch had 43); no
+  redraw. 10 of 11 mutants killed: closing Bank vault's door passes the reach
+  check, its shells being doors, but not the replays; a level's name is held to
+  its draft by no spec, in any set. 5,790 tests and 555 in sim; the floors held,
+  the root lint passes. W11.3's `yarn verify` and the phase's `check:layout`
+  were left to F1's merges, below: `yarn verify:full` at `b849b9a6`'s,
+  `check:layout` at `3221299a`'s. **All thirty-six levels are certified and
+  inside their floors,** the first half of Q4.
+- `b117d21e`, from the art stream, the tidy after X2 and trim 1: `portal.ts`
+  draws each pair's badge from the legend's `PORTAL_BADGES`, which R reads its
+  words from, a badge without a drawing failing the typecheck; `looksOf()` in
+  `src/testing/art_frames.ts` gives every look a kind takes to `art.spec.ts` and
+  `wall_scene.spec.ts` alike; the art specs' roles stay written out, exported as
+  `ART_ROLES` and held by a spec to Classic felt's roles in the stylesheet, with
+  Soft pastel's page, since `PALETTES.rolesIn("classic")` puts the field and the
+  page in one white and reading the stylesheet would cost about 0.15 s in 21
+  spec files. 10 of 11 mutants killed, the survivor a spec helper's. 5,798 tests
+  and 555 in sim, the floors held; the root lint passes.
+  - **Left:** R's side of the badges isn't tied by a spec yet; and the workspace
+    `AGENTS.md` and the testing skill could name `looksOf()` and `ART_ROLES`,
+    for D1's last pass.
+- **F1, the certificates in two browsers,** by the proof stream on a production
+  build: levels 1, 18 and 36 on 11 and 22 deep, played through the debug menu in
+  headless Chrome 157 and, over WebDriver BiDi, headless Firefox 153 ESR: all
+  twelve plays cleared or won in their certificate's rounds (level 36 ending
+  "Every level cleared!"), no console error or warning from the game in either,
+  and every figure the page shows the same in both. Differences only in what
+  headless rendering and the harness make: Firefox dims behind the result dialog
+  where Chrome blurs, and the focus rings and a level's first aim follow the
+  harness's clicks. Safari, for the user.
+- `d285a220`, from the rules stream: R's portal words held to the legend's
+  badges by tint (`describe.spec.ts`), and one badge to a portal mark
+  (`legend.spec.ts`), as `portal.spec.ts` holds the art's side; R's own code
+  unchanged. 3 of 4 mutants killed; the survivor writes the names out while the
+  list keeps them. 5,801 tests and 555 in sim, the floors held; the root lint
+  passes.
+- **F1, the performance traces,** by the view stream on a production build in
+  the headed Chrome, level 36's longest flight (round 7 on 18 deep, 437 units,
+  three fuzzballs, 41 breaks, 19.6 s): a frame's CPU time at ×6 6.92 ms at the
+  median, 12.27 at p95, 20.35 at p99 and 92.4 at worst (a major GC); at ×4 4.21,
+  7.43, 10.87 and 13.2; unthrottled 1.10 at the median. Over the 4 ms bar at the
+  median, where Brick Breaker's (0.49) and Asteroid Breaker's (1.2 to 1.6) held
+  it, only their worst frames over. The frame's time: Phaser's render about 2.4
+  ms, 2.07 of it the wall's layer of images; our update 0.66; native work,
+  commit and pre-paint about 2.3; DevTools itself about 0.8. The worst frames
+  make a sound object per sound (2 to 3 ms), and 54 KB allocated a frame brings
+  a minor GC every 1.2 s. The release frame, which plays the round, is 47 ms at
+  ×6 (`playRound()` 17.7 of it). A window dragged: each resize step blocks a
+  frame for 33 to 193 ms, nearly all of it Phaser's `ScaleManager` resizing the
+  canvas from `@fz/phaser`'s `viewport_scaler.ts`; no layout thrash. 120 Hz
+  unmeasured, the screen an RDP display at 50 Hz. Layout shift 0.00.
+- **Decided:** fix the median, as F1's fixes, each in a commit of its own: the
+  allocation per frame found with a heap sampling profile and cut, and
+  `@fz/phaser`'s `SpritePlayer` playing pooled sounds rather than making one a
+  play (both the view stream's); then the standing wall and the grid's dots
+  baked into one texture, only the cells that change redrawn (the scene
+  stream's, after its Q4 fixes); then trace again. §9's bar is 4 ms at the worst
+  frame, which neither breaker meets, their worst frames over it too, so the
+  median is the bar these fixes are held to, and the worst frames go to the user
+  with F1's numbers. The release frame stays (about 8 ms unthrottled, once a
+  round). The canvas's resize during a drag is `@fz/phaser`'s, shared by every
+  game drawn with Phaser, so it goes to the user as a task of its own at the
+  merge.
+- `dec91e41`, from the shell stream, **trim 4** and `@defer` gone: `onDemand()`
+  (`src/app/on_demand.ts`) loads a piece by a hand-written `import()` into a
+  `ViewContainerRef`, binding its inputs and outputs, holding a pending task
+  while it loads so `whenStable()` waits, a failed load reported and tried again
+  at the next press; How to play loads whole at its first press, focus and
+  pictures as before, and the debug menu after the drawer's first render, only
+  where `DEBUG_MENU` offers it. 16 mutants, all killed; checked by hand on a
+  production build. 5,813 tests and 555 in sim, the floors held; the root lint
+  passes. **Measured here, every level in:** the main chunk 403.5 kB raw (122.3
+  gzip), under 406.8; the scene 54.6 kB (20.4 gzip), over its 51, the bricks'
+  art in it; How to play 12.9 kB and the debug menu 12.8 kB, each a chunk of its
+  own.
+  - **Left, a choice outside this game's code:** a tab left open across a deploy
+    finds How to play's old chunk gone; reloading on Vite's `vite:preloadError`
+    would mend it, for every lazy chunk, with a guard against a loop. For the
+    user at the merge, with the other follow-ups.
+- **F1, the input and accessibility pass,** by the rules stream on a production
+  build in its own headless Chrome: mouse, keys and touch on levels 1, 18, 27
+  and 36; both ways of aiming by mouse and finger; a phone turned and a window
+  dragged mid-flight and between rounds; every dialog by keyboard; the four
+  palettes (the least text contrast 4.67:1); a saved game taken up, mid-flight
+  and between rounds; AZERTY; a lost WebGL context restored; and the
+  accessibility tree: all pass. Six issues, none blocking: (1) How to play, its
+  chunk slow, opens late with no busy state, takes the focus back from a board
+  the player returned to, and offline does nothing; (2) Escape calling a charge
+  off says nothing; (3) a lost context leaves the field blank while play goes
+  on; (4) the bar's buttons but Pause read their names twice (`aria-label` and
+  `title` alike); (5) the board's cards have no role or heading; (6) pointing
+  and holding charges slowly for the first 120 frames under 60 fps, Phaser
+  capping a frame's time. **Routed:** the four in the shell (1, 3, 4 and 5) to
+  the shell stream now; the charge's words and its timing (2 and 6), in
+  `GameService` and the steering, to the rules stream after the view stream's
+  work on the frame's allocation, which edits them. The screen reader through a
+  level, for the user.
+- **Q4, levels 19 to 36,** watched by the scene stream as 1 to 18 were: every
+  certificate on 11 and 22 deep ended in its line, no needed brick in the danger
+  row, no console message. Tricks: bumpers kicking, the prism splitting, every
+  fuzzball out of its own portal's twin and none through a shut one, R saying
+  "shut", a plate earthing the charge, the U's plates without rivets on 22 deep.
+  Thick walls: 932 strikes of a plain fuzzball on shells all bouncing off
+  unhurt, 151 charged ones each taking a hit or two; moss growing back a hit
+  after each round, 25 times, nowhere else; Bank vault's door letting the hot
+  shot in; Labyrinth's portals; Six-pack's dice reading 2 to 6. **Q4 holds for
+  all thirty-six levels.** Found: the diamond badge, about 6 px on 22 deep,
+  reads as a dot there, the two pairs told by color alone (the art stream's);
+  and rings, shards and a fuzzball's fur at a side wall draw past the frame into
+  the canvas's margin, up to 174 device px.
+- `c20c6571`, from the scene stream, the Q4 fixes: the Cleared card's crew wraps
+  under its words (`flex-wrap: wrap-reverse`), so "N friends freed" keeps one
+  line; a `rim` layer, last in `LAYERS`, where `FieldPainter`'s `drawRim()`
+  draws the lintel, the ceiling and the frame over the bursts and the fuzzballs,
+  by layer order alone, so no pass is added; the lintel band unchanged in every
+  frame of five plays after. 11 mutants, all killed. 5,815 tests and 555 in sim,
+  the floors held; the root lint passes.
+- **Decided:** what draws past the frame is cut by the camera's viewport set to
+  the framed field, which Phaser scissors at no pass's cost, the lost level's
+  shake moved onto the viewport; the scene stream's, after the view stream's
+  allocation work, which edits the effects painter, and with the wall baked into
+  one texture, each in a commit of its own. The diamond badge made to read at 22
+  deep goes to the art stream.
+- `516c246e`, from the art stream: a portal's diamond badge hollow and larger
+  (its points 0.13 of the cell, its band at least a CSS pixel round a hole of at
+  least one), the discs a little larger to hold it, so the two pairs differ in
+  shape at the least units; checked here on the art stream's before-and-after
+  render at 29 CSS px in the four palettes. 11 mutants, all killed. 5,823 tests
+  and 555 in sim, the floors held.
+- `f65a2fa0` and `b08e14d4`, from the view stream, F1's first fixes: nothing of
+  ours made in a frame of flight (the painters skip what isn't showing and
+  redraw only on change, the scene's callbacks made once, `@fz/core`'s
+  `FrameSounds` finding a sound by a map and returning at once when none was
+  heard); and `@fz/phaser`'s `SpritePlayer` playing each sound on objects made
+  once, up to four of a sound at once (`MOST_AT_ONCE`), the oldest restarted
+  past that, each marker's config put back before a play so detune stays per
+  play. Heap sampling puts a frame's 52 KB almost all in Phaser's own drawing,
+  about 34 KB for images and 13 for the field's `Graphics`, which Phaser
+  triangulates again each frame; ours fell from about 3.6 KB to 1.3, the sounds'
+  from 1.3 to 0.1, and of that 1.3 about 1 KB is `WallPainter`'s, left to the
+  scene stream's bake. The ×6 median was 7.09 ms after the first, against F1's
+  6.92, and 5.98 and 6.34 over two runs after the second, p95 9.64 and 10.62
+  against 12.27; but ×4 didn't move (4.21, 4.03 and 4.18), so the view stream
+  reads most of that fall as the runs' spread, not the change. The worst frames
+  were 17.66 and 28.32 ms at ×6, 13.96 at ×4. What a frame's time is now is
+  Phaser drawing each object, which only the bake addresses. Checked here: the
+  game 5,833 tests and 555 in sim, `@fz/core` 369, `@fz/phaser` 719, Snake 423,
+  Brick Breaker 1,820 and 180, Asteroid Breaker 3,599 and 1,620, each with its
+  lint and typecheck; the root lint passes.
+  - **Known, outside the build:** with HTML5 Audio, a scene ended while the page
+    is blurred throws on focus, as `hold()` destroys a held sound it had paused;
+    it was so before the pool.
+- `b849b9a6`, from the shell stream, F1's accessibility issues 1, 3, 4 and 5:
+  How to play and the debug menu busy while their chunk loads, a pending open
+  dropped by Escape or the focus leaving, a failed load announced; a lost WebGL
+  context pausing the run behind a "Restoring the board" card, and no shot let
+  fly while the board isn't drawn; the bar's buttons named by their tooltip
+  alone, so a name is read once; the cards a `role="group"` headed by an `<h2>`.
+  Outside the game: `<fz-bar-overflow>` gains `busy`, the games' global
+  stylesheet rings a busy round button, Sound and More actions lose their
+  `aria-label`, `@fz/dev`'s layout checks name a control by label, words, then
+  title, and the shared accessibility skill says so. 67 mutants, two equivalent
+  survivors. Checked here with `yarn verify:full` on the tip, every workspace's
+  lint, typecheck, tests with coverage and build, in 228 s: the game 5,899 tests
+  and 555 in sim.
+  - **The bundle:** the main chunk is now 406.74 kB (124.73 gzip), 0.06 under
+    §9's 1.2 × 339; the scene's 56.73 kB (21.44 gzip), over §9's 1.5 × 34 since
+    the art went in, which goes to the user.
+- `3221299a`, from the rules stream, F1's issues 2 and 6: Escape calling off a
+  building charge marks the frame as keyed, so the aim is said with "charge 0"
+  (or "hot shot"); and a held press charges by the frames' own clock, the time
+  since the last frame between none and 100 ms (`LONGEST_FRAME_MS`), none on the
+  first and none for a clock run backwards, while flights stay on Phaser's
+  delta. By hand on an upright phone at 15 to 26 fps, the same hold charged 1,
+  2, 5, 4 and 0 at the due times, where it had read 0, 0, 2, 2 and 3. The
+  steering is in the scene's chunk, 56.84 kB now; the main chunk is unchanged. 7
+  mutants, all killed. Checked here: lint, typecheck, 5,908 tests and 555 in sim
+  with the floors held, and the root lint; then the game built, its main chunk
+  406.74 kB and the scene 56.84 (21.47 gzip), and the root's
+  `yarn check:layout`, every game that has one (Sudoku, Snake, Brick Breaker,
+  Asteroid Breaker and this one) holding at each shape and turn, in 22 s.
+
+**Open:**
+
+- The scene stream: the camera's viewport scissor, then the wall and the grid's
+  dots baked, with the field's still `Graphics` and `WallPainter`'s own
+  allocation, each reviewed; then the ×6 and ×4 trace again, on the view
+  stream's scripts, against the bar.
+- The shell stream, once those merge: Z1, the catalog entry's badge and "which
+  is being built" in `frontend/games/AGENTS.md`; and D1's numbers, the workspace
+  `AGENTS.md`'s, with `looksOf()` and `ART_ROLES` named where the art's specs
+  are described.
+- Here: Q6 on the Docker image, `yarn verify:full` and `check:layout` on the
+  last tip, then Z2 by the `merge-to-main` skill. This folder goes to
+  `docs/archive/brick-fuzz-pop/`, and the work log is deleted, as the user
+  asked, rather than merged into one `worklog.md` as Z2 says.
+- To the user at the merge: Asteroid Breaker's lint fence; reloading on
+  `vite:preloadError` for lazy chunks; `@fz/phaser`'s canvas resize during a
+  window's drag; the scene's chunk over §9's 51 kB; the worst frames over §9's
+  bar; the HTML5 Audio throw on focus from `SpritePlayer`'s `hold()`, in every
+  game that uses it; a level's name held to its draft by no spec, in any set;
+  Brick Breaker's `?debug` slider keeping records; and what no tool here could
+  check, Safari, real Firefox's blur behind a dialog, a screen reader through a
+  level, and 120 Hz.
+- Done since the last list: X2, Y2, Y3, trims 1 and 4, Q4 for all thirty-six
+  levels, F1's browser, input and accessibility passes with their six issues
+  fixed, and F1's first performance fixes.
