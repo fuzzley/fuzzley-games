@@ -23,7 +23,8 @@ import { TINT, inkAt } from "../../colors/inks";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
-import { cellFrame, diePips, itemAt, turned } from "../symbols";
+import { itemAt } from "../../items";
+import { cellFrame, diePips, turned } from "../symbols";
 import { tileBody, tileFrame, tileRadius } from "./brick";
 
 /** The tint of the tile under a moss brick's cap, which is the moss's body in every palette. */
@@ -165,7 +166,6 @@ function pipsCommands(
  */
 export const MOSS_ART: KindArt = {
   layersOf: ({ hits }) => itemAt(MOSS_LAYERS, hits - 1),
-  colorOf: (_, palette) => palette.kinds.moss.body,
   frames: (palette, scale) => [
     cellFrame(FRAMES.mossCap, scale, (cell) =>
       capCommands(cell, palette, scale),

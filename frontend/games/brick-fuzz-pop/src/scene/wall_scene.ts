@@ -25,7 +25,7 @@ import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import { FIRST_X } from "../rules/tuning";
 import type { Wall } from "../rules/wall/wall";
-import { brickColor } from "../view/art/art";
+import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";
 import {
   type EventEffects,
@@ -43,14 +43,9 @@ import {
   hasRoom,
 } from "../view/field/field_metrics";
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
+import { type PointerAimings, STRAIGHT_UP } from "../view/steering/aiming";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
-import {
-  MOST_FINGERS,
-  type PointerAimings,
-  STRAIGHT_UP,
-  type Steer,
-  Steering,
-} from "../view/steering/steering";
+import { MOST_FINGERS, type Steer, Steering } from "../view/steering/steering";
 import { ATLAS, bakeWallAtlas, bakedScaleOf } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";

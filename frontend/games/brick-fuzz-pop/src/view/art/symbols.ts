@@ -72,20 +72,6 @@ export function cellFrame(
 }
 
 /**
- * Returns the item at a place in a list made once, such as a tile's frame
- * by its tint, so finding it makes nothing.
- *
- * @throws {RangeError} for a place the list hasn't.
- */
-export function itemAt<T>(items: readonly T[], at: number): T {
-  const item = items[at];
-  if (item === undefined) {
-    throw new RangeError(`Nothing at ${String(at)}`);
-  }
-  return item;
-}
-
-/**
  * Returns the edge a band a width wide is drawn about, near an area's own,
  * so that both of the band's edges lie on whole device pixels and neither
  * blurs: the band's outer edges, half the width out, each moved in to the

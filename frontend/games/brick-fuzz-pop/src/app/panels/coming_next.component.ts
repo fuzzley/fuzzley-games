@@ -5,7 +5,7 @@ import type { LevelEntry } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
 import { describeBoon } from "../../rules/run/describe";
 import type { Boon } from "../../rules/shot";
-import { brickColor } from "../../view/art/art";
+import { brickColor } from "../../view/colors/brick_colors";
 import type { WallPalette } from "../../view/colors/palette";
 import { waitingRows } from "./panels";
 

@@ -96,10 +96,6 @@ describe("CAGE_ART", () => {
     expect(() => CAGE_ART.layersOf(cage(2, 8))).toThrow(RangeError);
   });
 
-  it("gives a cage's shards its own body's color", () => {
-    expect(CAGE_ART.colorOf(cage(2), OWN_INKS)).toBe(OWN_INKS.kinds.cage.body);
-  });
-
   it("brings a frame of its tile and friend for each of the friends' 8 inks, then its bars whole and hit", () => {
     expect(
       CAGE_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

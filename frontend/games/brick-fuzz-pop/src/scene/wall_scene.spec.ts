@@ -44,7 +44,7 @@ import {
   type FlightFixture,
 } from "../testing/flight_fixtures";
 import { wallFrom } from "../testing/wall_picture";
-import { type BrickLook, brickColor, brickLayers } from "../view/art/art";
+import { type BrickLook, brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import { FRAMES, FRAME_NAMES } from "../view/art/frames";
 import { fuzzballGrid } from "../view/art/fuzzball_art";
@@ -59,6 +59,7 @@ import {
   SHARDS,
   SWELL_MS,
 } from "../view/effects/timing";
+import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
 import {
   type EventEffects,
@@ -85,15 +86,13 @@ import {
   RoundPlay,
   type RoundView,
 } from "../view/round_play";
-import type { FieldCommand } from "../view/steering/controls";
 import {
   BY_POINTER,
-  MOST_FINGERS,
   type PointerAimings,
   STRAIGHT_UP,
-  type Steer,
-  aimToward,
-} from "../view/steering/steering";
+} from "../view/steering/aiming";
+import type { FieldCommand } from "../view/steering/controls";
+import { MOST_FINGERS, type Steer, aimToward } from "../view/steering/steering";
 import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf } from "./atlas";
 import {
   FIELD_FRAMES,

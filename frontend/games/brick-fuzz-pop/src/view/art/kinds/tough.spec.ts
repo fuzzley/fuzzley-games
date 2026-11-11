@@ -126,12 +126,6 @@ describe("TOUGH_ART's layers", () => {
       );
     },
   );
-
-  it("gives a tough brick's shards its tint's ink", () => {
-    expect(TOUGH_ART.colorOf(tough(6, 2, 3), ART_PALETTE)).toBe(
-      ART_PALETTE.tints[6],
-    );
-  });
 });
 
 describe("pipsFrame", () => {

@@ -129,10 +129,6 @@ describe("PLAIN_ART", () => {
     expect(PLAIN_ART.layersOf(brick)).toEqual(["tile-5"]);
   });
 
-  it("gives a brick's shards its tint's ink", () => {
-    expect(PLAIN_ART.colorOf(brick, ART_PALETTE)).toBe(ART_PALETTE.tints[5]);
-  });
-
   it.each([0, 1, 2, 3, 4, 5, 6, 7])(
     "brings the tile in tint %i, its body in that tint's ink",
     (tint) => {

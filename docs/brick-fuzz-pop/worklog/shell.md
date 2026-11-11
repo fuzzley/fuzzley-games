@@ -2384,3 +2384,109 @@ mutant the capture missed its shot for above.
 
 The fixes follow the review's own words, so they had no second review;
 the capture, run again, wrote the same bytes.
+
+### Trim 1: a brick's color apart from its art, and the scene's aim from `aiming.ts`
+
+**2026-11-11.** At the integrator's word, once X2's catalog had merged and
+every kind was cataloged.
+
+**What was built.**
+
+- **The color apart from the art.** `src/view/colors/brick_colors.ts`
+  holds `BRICK_COLORS`, the color each kind of brick is drawn in, which
+  its shards take, typed over the catalog's ids, so a kind cataloged
+  without one fails to compile: the brick and the tough brick their
+  tint's ink (`tinted()`), the portal its pair's inks' body (`paired()`),
+  and every other kind its own inks' body (`inked()`, over `InkedKind`).
+  `brickColor()` reads it, taking a brick's kind and tint alone. `KindArt`
+  loses `colorOf`, each kind's art its line, and `art.ts` its
+  `brickColor()`; Coming next and the scene take `brickColor()` from the
+  colors, so nothing the main chunk loads imports `view/art/` or
+  `@fz/phaser/shapes`.
+- **`itemAt()` out of the art.** It moves from `art/symbols.ts`, with its
+  spec, to `src/view/items.ts`, which imports nothing, so the portal's
+  color reads `itemAt(palette.portals, tint).body` without bringing the
+  art's helpers into the main chunk; the art takes it from there too.
+- **The shard colors' specs.** `art.spec.ts`'s rules, by a kind's own
+  inks, its pair's or its tint, and every cataloged kind held to one of
+  the three, move to `brick_colors.spec.ts`. Its palette is Classic
+  felt's, read from the stylesheet by `PALETTES.rolesIn()`, with every
+  tint, special kind's body and pair's body replaced by a color no other
+  takes, so a kind colored from another's inks shows; a tint no ink has
+  is refused. The thirteen kinds' specs lose their own shard-color tests,
+  which those cover, and `art.spec.ts`'s `wholeOf()` its tint.
+- **The scene's aim.** `wall_scene.ts` and its spec take `BY_POINTER`,
+  `STRAIGHT_UP` and `PointerAimings` from `aiming.ts`, and `steering.ts`
+  no longer exports them again.
+- **The docs.** The game's `AGENTS.md` names `items.ts` in the view,
+  `brick_colors.ts` among the colors, and `aiming.ts` as what the steering,
+  the scene and the shell take the aim from, and drops `brickColor()` from
+  the art. The `brick-fuzz-pop-content` skill names `BRICK_COLORS` among
+  the records keyed by the catalog's ids, in the compiler's row, in a row
+  of its own for `brick_colors.spec.ts`, and among the specs that list
+  every kind, and its kind steps drop `colorOf()` and add a kind's
+  `BRICK_COLORS` line to the commit with its catalog entry.
+
+**Sizes.** The production build's main chunk, `index-*.js`, comes to
+408.03 kB, 125.79 kB gzipped: 1.03 kB over the 407 kB budget (1.23 over
+1.2 × 339). At Y1's tip, before X2's four kinds' art joined it, it was
+423.02 and 131.97. The art went to the scene's chunk, `wall_scene-*.js`,
+not one of its own: it is now 54.51 kB, 20.60 kB gzipped, up from 34.12
+kB after trims 2 and 3, and 3.51 kB over the plan's 51 kB for the scene
+(1.5 × 34). Its source map gives `view/art/` 18.8 kB and
+`@fz/phaser/shapes` 4.5 kB; the main chunk's holds neither. What stays in
+the main chunk is `brick_colors.ts`'s 481 bytes and `items.ts`'s 95.
+
+**Choices the plan didn't make.**
+
+1. **A record of the colors, not each kind's `colorOf` moved:** three
+   ways color every kind, so the record names each kind's way, and one
+   helper, `inked()`, the thirteen kinds of inks of their own; a kind's
+   color lives beside the palette that holds its inks.
+2. **`brickColor()` takes a kind and a tint,** not a `BrickLook`, which
+   lives with the art; a whole `Brick` still fits.
+3. **`itemAt()` moved to `src/view/items.ts`,** a module of its own that
+   imports nothing, rather than beside `inkAt()` in the colors, since the
+   art's frames and symbols use it for lists that aren't colors.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`): 116 files, 5,494 tests, then the `sim` project's 23
+files, 285 tests; the root's `yarn lint` passes. The game built alone,
+and again with source maps, whose main chunk holds nothing of `view/art/`
+or `@fz/phaser/shapes`.
+
+**The mutation pass.** 12 mutants, all killed by `brick_colors.spec.ts`
+and `items.spec.ts`. Of `brick_colors.ts`: a tough brick colored as a
+portal, a portal by its tint, steel in the bomb's inks, moss in the
+shell's, a tint's ink a place off, a special kind's face rather than its
+body, a pair's face rather than its body, a pair a place off, and a
+missing pair not refused. Of `items.ts`: no refusal, a plain `Error`
+rather than a `RangeError`, and the first item whatever the place.
+
+**The review:** no bugs; the same colors as before for all sixteen kinds,
+the compiler refusing a missing or extra kind, and nothing of the art
+left in the shell's imports. Seven findings, all taken.
+
+1. _The scene chunk is now over its budget, and the log doesn't say so;
+   "(34.12 after trim 3)" reads as a trim to come._ Taken: the sizes say
+   how far over, and from what.
+2. _The content skill only half-describes the new record._ Taken:
+   `BRICK_COLORS` is named among the records, in the compiler's row, in a
+   row for `brick_colors.spec.ts`, and in the paragraph on the specs that
+   list every kind, whose `TINTED` and `PAIRED` a new tinted or paired
+   kind joins.
+3. _`AGENTS.md` still credits `PointerAimings` to `steering.ts`._ Taken:
+   `aiming.ts` holds it, `BY_POINTER` and `STRAIGHT_UP`, for the steering,
+   the scene and the shell.
+4. _The spec copies `art_frames.ts`'s roles word for word._ Taken another
+   way: the spec reads Classic felt's roles from the stylesheet with
+   `PALETTES.rolesIn()`, so it copies nothing; `art_frames.ts`, the art
+   stream's, keeps its own.
+5. _A third copy of the "index or throw" guard._ Taken: `itemAt()` moved
+   to `src/view/items.ts`, and the portal's color uses it.
+6. _Function constants named in CONSTANT_CASE, sharing names with the
+   spec's lists._ Taken: `tinted()` and `paired()` are functions.
+7. _`wholeOf()`'s tint is dead._ Taken: gone, with its comment's words.
+
+The fixes follow the review's own words, the fourth through a helper the
+specs already had, so they had no second review.

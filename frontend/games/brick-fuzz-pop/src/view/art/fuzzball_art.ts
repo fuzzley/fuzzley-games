@@ -30,7 +30,8 @@ import type { Charge } from "../../rules/shot";
 import { MOST_CHARGE } from "../../rules/tuning";
 import type { WallPalette } from "../colors/palette";
 import { CHARGES, FRAMES, INKS } from "./frames";
-import { itemAt, turned } from "./symbols";
+import { itemAt } from "../items";
+import { turned } from "./symbols";
 
 /**
  * How wide the fuzzball's grid is drawn, in field units, as the art draws

@@ -56,10 +56,6 @@ describe("BOMB_ART", () => {
     expect(BOMB_ART.layersOf(WHOLE)).toEqual(["bomb"]);
   });
 
-  it("gives a bomb's shards its own body's color", () => {
-    expect(BOMB_ART.colorOf(WHOLE, OWN_INKS)).toBe(OWN_INKS.kinds.bomb.body);
-  });
-
   it("brings its one frame to the atlas", () => {
     expect(
       BOMB_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

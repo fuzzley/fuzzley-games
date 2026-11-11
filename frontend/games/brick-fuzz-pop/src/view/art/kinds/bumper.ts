@@ -93,7 +93,6 @@ const BUMPER_LAYERS = [FRAMES.bumper] as const;
 /** How a bumper is drawn: one frame, as it never breaks. */
 export const BUMPER_ART: KindArt = {
   layersOf: () => BUMPER_LAYERS,
-  colorOf: (_, palette) => palette.kinds.bumper.body,
   frames: (palette, scale) => [
     cellFrame(FRAMES.bumper, scale, (cell) =>
       bumperCommands(cell, palette, scale),

@@ -76,10 +76,6 @@ describe("PRISM_ART", () => {
     expect(PRISM_ART.layersOf(WHOLE)).toEqual(["prism"]);
   });
 
-  it("gives a prism's shards its own body's color", () => {
-    expect(PRISM_ART.colorOf(WHOLE, OWN_INKS)).toBe(body);
-  });
-
   it("brings its one frame to the atlas", () => {
     expect(
       PRISM_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

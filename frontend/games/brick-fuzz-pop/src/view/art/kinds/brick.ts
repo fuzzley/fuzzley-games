@@ -14,7 +14,8 @@ import {
 import { inkAt } from "../../colors/inks";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, INKS } from "../frames";
-import { cellFrame, itemAt } from "../symbols";
+import { itemAt } from "../../items";
+import { cellFrame } from "../symbols";
 
 /** How far in from its cell a tile's body lies on each side, as a share of the cell. */
 const GAP = 0.04;
@@ -112,7 +113,6 @@ function topStrip(body: Area, radius: number, strip: number): readonly Point[] {
 /** How a brick is drawn: the plain tile in its row's tint, which brings the tiles to the atlas for every kind that stands on one. */
 export const PLAIN_ART: KindArt = {
   layersOf: ({ tint }) => itemAt(TILE_LAYERS, tint),
-  colorOf: ({ tint }, palette) => inkAt(palette.tints, tint),
   frames: (palette, scale) =>
     INKS.map((ink) =>
       cellFrame(FRAMES.tile(ink), scale, (cell) =>

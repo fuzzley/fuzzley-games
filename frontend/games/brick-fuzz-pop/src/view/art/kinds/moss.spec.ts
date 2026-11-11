@@ -134,10 +134,6 @@ describe("MOSS_ART", () => {
     },
   );
 
-  it("gives a moss brick's shards its body's color", () => {
-    expect(MOSS_ART.colorOf(moss(3), ART_PALETTE)).toBe(INKS.body);
-  });
-
   it.each(THEMES)(
     "lays its cap over the tile whose ink is the moss's body in $name",
     ({ id, mode }) => {

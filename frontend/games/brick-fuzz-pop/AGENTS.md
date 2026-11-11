@@ -222,7 +222,9 @@ helpers.
   `RoundView`, the round as the scene draws it at a moment, its events
   numbered in `@fz/core/event_log`'s `EventLogView`; `run_state.ts` holds
   `RunState`, the run on the board and where its round stands, which
-  `GameService` replaces whole, and `RoundPhase`.
+  `GameService` replaces whole, and `RoundPhase`; and `items.ts` finds the
+  item at a place in a list made once (`itemAt()`), refusing a place the
+  list hasn't, for the art and the colors.
 - **`src/view/field/`** — `field_metrics.ts`: the field's shape a canvas's
   room holds (`fieldShape()`: a unit in whole device pixels, 11 to 22 rows,
   or the depth the debug menu sets, the floor's band, the lintel and
@@ -240,11 +242,12 @@ helpers.
   charge, a shot let fly, fast-forward held and whether the keys moved it,
   aiming a pointer from where the fuzzball waits: pulled back past a dead
   zone, a notch at a time, or pointed and held, each kind of pointer its
-  own way (`PointerAimings`). Escape calls off a charge building and
-  otherwise passes on to pause, as only the steering knows a charge builds.
-  `aiming.ts` holds what the shell takes without the `Steering` class: how
-  each kind of pointer aims by the pointer (`BY_POINTER`) and the aim
-  straight up the steering starts at (`STRAIGHT_UP`).
+  own way. Escape calls off a charge building and otherwise passes on to
+  pause, as only the steering knows a charge builds. `aiming.ts` holds how
+  each kind of pointer aims (`PointerAimings`), the settings' "by the
+  pointer" (`BY_POINTER`) and the aim straight up the steering starts at
+  (`STRAIGHT_UP`), which the steering, the scene and the shell take from
+  it, so the shell's chunk carries no `Steering`.
 - **`src/view/colors/`** — the field's colors: the page's roles it is drawn
   in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
   `wallPalette()`, which gives a palette's colors from those roles and its
@@ -252,21 +255,25 @@ helpers.
   though not the shading the art mixes from them. `contrast.spec.ts` holds
   them to 3:1 in each of the game's four palettes, and the field's text to
   4.5:1 against the lintel, where the board counts the rows waiting.
+  `brick_colors.ts` says the color each kind of brick is drawn in, which
+  its shards take (`brickColor()`): its tint's ink, its pair's or its own,
+  typed over the catalog's ids, so a kind without one fails to compile,
+  and kept apart from the art, so the shell's Coming next reads it without
+  loading the art, which only the scene's chunk carries.
 - **`src/view/art/`** — the atlas's frames, drawn in `@fz/phaser/shapes`'s
   commands in device pixels. `frames.ts` names every frame (`FRAMES`).
   `art.ts`'s `BRICK_ART` says how each kind is drawn, typed over the
   catalog's ids, so a kind without art fails to compile, with the frames a
-  brick stacks in its cell (`brickLayers()`) and its shards' color
-  (`brickColor()`); each kind's art is a file of `kinds/` (`brick.ts`'s tile
-  in the eight tints, `tough.ts`'s pips and cracks, `steel.ts`,
-  `zapper.ts`'s four zappers, `shell.ts`'s body and pips and `moss.ts`'s
-  cap and pips, each showing its hits left, `bomb.ts`'s bomb, `wool.ts`'s
-  patch and `cage.ts`'s bars, whole or hit, over the friend it holds, in the
-  ink its tint picks, `bumper.ts`'s disc, `prism.ts`'s faceted triangle,
-  `portal.ts`'s ring in its pair's inks and `plated.ts`'s plates over its
-  tile, for each of the legend's three platings), on `symbols.ts`'s shared
-  shapes and its rule that drops detail under 30 CSS px a unit
-  (`detailed()`). `fuzzball_art.ts` draws the
+  brick stacks in its cell (`brickLayers()`); each kind's art is a file of
+  `kinds/` (`brick.ts`'s tile in the eight tints, `tough.ts`'s pips and
+  cracks, `steel.ts`, `zapper.ts`'s four zappers, `shell.ts`'s body and pips
+  and `moss.ts`'s cap and pips, each showing its hits left, `bomb.ts`'s
+  bomb, `wool.ts`'s patch and `cage.ts`'s bars, whole or hit, over the
+  friend it holds, in the ink its tint picks, `bumper.ts`'s disc,
+  `prism.ts`'s faceted triangle, `portal.ts`'s ring in its pair's inks and
+  `plated.ts`'s plates over its tile, for each of the legend's three
+  platings), on `symbols.ts`'s shared shapes and its rule that drops detail
+  under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
   fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
   combed out as it charges (`furOf()`) and sparking at a full one, the hot
   shot under its flames, a friend in each of the eight inks, and the eyes

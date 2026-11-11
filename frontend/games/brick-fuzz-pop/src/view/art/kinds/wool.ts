@@ -77,7 +77,6 @@ const WOOL_LAYERS = [FRAMES.wool] as const;
 /** How a wool brick is drawn: one frame, as it breaks at its first hit. */
 export const WOOL_ART: KindArt = {
   layersOf: () => WOOL_LAYERS,
-  colorOf: (_, palette) => palette.kinds.wool.body,
   frames: (palette, scale) => [
     cellFrame(FRAMES.wool, scale, (cell) => woolCommands(cell, palette, scale)),
   ],

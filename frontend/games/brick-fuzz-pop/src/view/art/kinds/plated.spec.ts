@@ -27,7 +27,8 @@ import { inkAt } from "../../colors/inks";
 import { FIELD_ROLES, wallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
 import { FRAMES, PLATINGS, type PlatedHits, type Plating } from "../frames";
-import { cellOf, diePips, itemAt } from "../symbols";
+import { itemAt } from "../../items";
+import { cellOf, diePips } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 import { PLATED_ART, PLATED_TINT } from "./plated";
 
@@ -41,7 +42,7 @@ const OWN_INKS = {
   },
 };
 
-const { body, face, glyph } = OWN_INKS.kinds.plated;
+const { face, glyph } = OWN_INKS.kinds.plated;
 
 /** Returns a plated brick's look as its art reads it: its plated faces, and its hits left of the 3 it had whole. */
 function plated(plates: number, hits: number): KindLook {
@@ -191,10 +192,6 @@ describe("PLATED_ART", () => {
     expect(() => PLATED_ART.layersOf(plated(FLOORWARD, hits))).toThrow(
       RangeError,
     );
-  });
-
-  it("gives a plated brick's shards its own body's color", () => {
-    expect(PLATED_ART.colorOf(plated(FLOORWARD, 2), OWN_INKS)).toBe(body);
   });
 
   it.each(THEMES)(

@@ -22,7 +22,8 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
-import { cellFrame, itemAt, pointAt, turned } from "../symbols";
+import { itemAt } from "../../items";
+import { cellFrame, pointAt, turned } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 
 /** How wide its glass's outline is, in field units, inside the chunky tile's edge, which its glass's is. */
@@ -128,7 +129,6 @@ const PRISM_LAYERS = [FRAMES.prism] as const;
 /** How a prism is drawn: one frame, as it breaks at its first hit. */
 export const PRISM_ART: KindArt = {
   layersOf: () => PRISM_LAYERS,
-  colorOf: (_, palette) => palette.kinds.prism.body,
   frames: (palette, scale) => [
     cellFrame(FRAMES.prism, scale, (cell) =>
       prismCommands(cell, palette, scale),
