@@ -21,7 +21,7 @@ import {
 } from "../rules/tuning";
 import type { Wall } from "../rules/wall/wall";
 import { randomField } from "./cast_reference";
-import { CAGE, PRISM, STAND_INS, STAND_IN_RULES, WOOL } from "./stand_ins";
+import { PRISM, STAND_INS, STAND_IN_RULES } from "./stand_ins";
 
 /** Describes a flight drawn at random: how its fuzzballs leave, and the rules it is flown by. */
 export interface RandomFlight {
@@ -32,15 +32,12 @@ export interface RandomFlight {
 /**
  * The kinds random walls are drawn from, with the rules they are flown by:
  * the stand-ins' bumper and portal; the catalog's own, by the bricks' own
- * rules; and the stand-ins' prism, wool and cage.
+ * rules; and the stand-ins' prism.
  */
 const KINDS: readonly (readonly [BrickKinds, TraitRules])[] = [
   [STAND_INS, STAND_IN_RULES],
   [BRICK_KINDS, TRAIT_RULES],
-  [
-    { ...BRICK_KINDS, brick: PRISM, rowZapper: WOOL, columnZapper: CAGE },
-    STAND_IN_RULES,
-  ],
+  [{ ...BRICK_KINDS, brick: PRISM }, STAND_IN_RULES],
 ];
 
 /**

@@ -20,8 +20,8 @@ places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page. The site
 lists it as in development, its screenshots taken on a level of Warm-up
 until Sparks is built. What the plan's packages still to come build (the
-rest of T2, the screenshots on level 18, then X1 to X3, Y1 to Y3, D1, F1,
-Z1 and Z2) isn't here yet.
+rest of T2, the screenshots on level 18, then X2, Y1 to Y3, D1, F1, Z1 and
+Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -98,9 +98,10 @@ helpers.
   whether it is solid, the level it comes in at and its traits, spread from
   a file a set in `kinds/`: Warm-up's five, the brick, the tough brick,
   steel and the row and column zappers, in
-  `src/rules/catalog/kinds/warm_up.ts`; Thick walls' two, the shell and
-  moss, in `src/rules/catalog/kinds/thick_walls.ts`; the other sets' empty
-  so far.
+  `src/rules/catalog/kinds/warm_up.ts`; Sparks' five, the bomb, the cross
+  and X zappers, wool and the cage, in
+  `src/rules/catalog/kinds/sparks.ts`; Thick walls' two, the shell and
+  moss, in `src/rules/catalog/kinds/thick_walls.ts`; Tricks' empty so far.
   `castField()` and `shapesOf()` take the kinds as `BrickKinds`, so a spec
   can hand them stand-ins; the rest of the rules read the catalog's
   (`brickKind()`), and `kindIntroducedAt()` names the kind a level brings
@@ -248,14 +249,14 @@ helpers.
   (`brickColor()`); each kind's art is a file of `kinds/` (`brick.ts`'s tile
   in the eight tints, `tough.ts`'s pips and cracks, `steel.ts`,
   `zapper.ts`'s four zappers, `shell.ts`'s body and pips and `moss.ts`'s
-  cap and pips, each showing its hits left, and `bomb.ts`, `wool.ts` and
-  `cage.ts`, which `BRICK_ART` takes in as the catalog takes in their
-  kinds), on `symbols.ts`'s shared shapes and its rule that drops detail
-  under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
-  fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
-  combed out as it charges (`furOf()`) and sparking at a full one, the hot
-  shot under its flames, a friend in each of the eight inks, and the eyes
-  every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
+  cap and pips, each showing its hits left, `bomb.ts`'s bomb, `wool.ts`'s
+  patch and `cage.ts`'s bars, whole or hit, over the friend it holds, in the
+  ink its tint picks), on `symbols.ts`'s shared shapes and its rule that
+  drops detail under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts`
+  draws the fuzzballs (`fuzzballFrames()`): the player's at each charge, its
+  fur combed out as it charges (`furOf()`) and sparking at a full one, the
+  hot shot under its flames, a friend in each of the eight inks, and the
+  eyes every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
   `atlasFrames()` is every frame the atlas holds, the kinds' in the
   catalog's order, then the fuzzballs'.
 - **`src/view/effects/`** — what each moment calls for, and how long it
@@ -692,10 +693,11 @@ What the specs share is in `src/testing/`:
   holds `cast()` to the scan and the benchmark times both.
 - `stand_ins.ts` holds kinds made up for specs, a bumper and a portal, and
   `STAND_INS`, the catalog with them in the row and column zappers' places,
-  which a spec hands the rules; a prism, wool and a cage; `STAND_IN_RULES`,
-  the rules they are flown by, each brick's own but for plates and shells,
-  which do nothing there; and `struckOf()`, a strike as a brick's rules see
-  it.
+  which a spec hands the rules; a prism; `STAND_IN_RULES`, the rules they
+  are flown by, each brick's own but for plates and shells, which do nothing
+  there; `struckOf()`, a strike as a brick's rules see it; and
+  `uncataloged()`, the legend's first character whose kind the catalog
+  doesn't hold yet, for a spec of a picture refusing one.
 - `random_flights.ts` draws seeded flights at random walls
   (`randomFlight()`), each flown by its kinds' rules, and finds where a
   flight's fuzzballs come nearer a brick than they may

@@ -11,11 +11,9 @@ import {
 } from "../../testing/random_flights";
 import {
   BUMPER,
-  CAGE,
   PRISM,
   STAND_INS,
   STAND_IN_RULES,
-  WOOL,
 } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
 import { AIMS } from "../aims";
@@ -936,31 +934,25 @@ describe("fly's hooks", () => {
     ],
   ])("throws for a teleport asked %s", (_, rules) => {
     const traits: TraitRules = { ...STAND_IN_RULES, ...rules };
-    const wall = wallOf(5, ["....2....", "....|...."]);
-    const kinds = { ...STAND_INS, tough: CAGE };
+    const wall = wallOf(5, ["....C....", "....|...."]);
 
-    expect(() => flyShot({ wall, aim: UP, charge: 2, kinds, traits })).toThrow(
-      Error,
-    );
+    expect(() => flyShot({ wall, aim: UP, charge: 2, traits })).toThrow(Error);
   });
 
   it("frees a cage's friend as a zap breaks it", () => {
-    const wall = wallOf(5, ["....-.2.."]);
-    const kinds = { ...BRICK_KINDS, tough: CAGE };
+    const wall = wallOf(5, ["....-.C.."]);
 
-    const flown = flyShot({ wall, aim: UP, kinds });
+    const flown = flyShot({ wall, aim: UP, kinds: BRICK_KINDS });
 
     expect(eventsOf(flown, "free").map(({ at, cell }) => [at, cell])).toEqual([
       [5, 6],
     ]);
   });
 
-  // The wool stands in for the plain brick, the cage for the tough one.
   it("recharges the fuzzball that breaks wool", () => {
-    const wall = wallOf(6, ["....o...."]);
-    const kinds = { ...BRICK_KINDS, brick: WOOL };
+    const wall = wallOf(6, ["....W...."]);
 
-    const flown = flyShot({ wall, aim: UP, kinds });
+    const flown = flyShot({ wall, aim: UP });
 
     expect([eventsOf(flown, "recharge"), eventsOf(flown, "land")]).toEqual([
       [expect.objectContaining({ ball: 0, cell: 4 })],
@@ -968,28 +960,27 @@ describe("fly's hooks", () => {
     ]);
   });
 
-  // The cage stands in for the tough brick, in wall row 3, which tints it 3.
+  // Two cages in the wall's lowest row, out of the fuzzball's way, number
+  // the one over them 2, though it stands in wall row 3.
   it("hands a broken brick's rules its tint, which a cage frees its friend in", () => {
     const wall = wallOf(3, [
-      "....2....",
+      "....C....",
       ".........",
       ".........",
-      ".........",
+      "CC.......",
     ]);
-    const kinds = { ...BRICK_KINDS, tough: CAGE };
 
-    const flown = flyShot({ wall, aim: UP, kinds, charge: 2 });
+    const flown = flyShot({ wall, aim: UP, charge: 2 });
 
     expect(eventsOf(flown, "free").map(({ cell, ink }) => [cell, ink])).toEqual(
-      [[31, 3]],
+      [[31, 2]],
     );
   });
 
   it("frees a cage's friend right after the cage breaks", () => {
-    const wall = wallOf(6, ["....2...."]);
-    const kinds = { ...BRICK_KINDS, tough: CAGE };
+    const wall = wallOf(6, ["....C...."]);
 
-    const flown = flyShot({ wall, aim: UP, kinds, charge: 2 });
+    const flown = flyShot({ wall, aim: UP, charge: 2 });
 
     const kindsAt = flown.flight.events.map(({ kind }) => kind);
     expect(
@@ -1011,11 +1002,11 @@ describe("fly's hooks", () => {
     ]);
   });
 
-  // The prism stands in for the plain brick, wool for the tough one: a zap
-  // has no fuzzball to split or charge.
+  // The prism stands in for the plain brick, beside wool: a zap has no
+  // fuzzball to split or charge.
   it("splits and recharges no fuzzball for a brick a zap breaks", () => {
-    const wall = wallOf(6, ["o2..-...."]);
-    const kinds = { ...BRICK_KINDS, brick: PRISM, tough: WOOL };
+    const wall = wallOf(6, ["oW..-...."]);
+    const kinds = { ...BRICK_KINDS, brick: PRISM };
 
     const flown = flyShot({ wall, aim: UP, kinds });
 
@@ -1035,10 +1026,9 @@ describe("fly's hooks", () => {
   });
 
   it("charges a recharged fuzzball to the most", () => {
-    const wall = wallOf(6, ["....3....", "....o...."]);
-    const kinds = { ...BRICK_KINDS, brick: WOOL };
+    const wall = wallOf(6, ["....3....", "....W...."]);
 
-    const flown = flyShot({ wall, aim: UP, kinds, charge: 1 });
+    const flown = flyShot({ wall, aim: UP, charge: 1 });
 
     expect(
       eventsOf(flown, "strike").map(({ cell, charge }) => [cell, charge]),

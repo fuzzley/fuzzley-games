@@ -1,4 +1,5 @@
 import type { Brick } from "../rules/wall/wall";
+import { uncataloged } from "./stand_ins";
 import { twinsIn, wallFrom } from "./wall_picture";
 
 /** Returns a whole brick of a kind, as a picture lays one out. */
@@ -61,6 +62,22 @@ describe("wallFrom", () => {
     expect(tints).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 0]);
   });
 
+  it("tints each cage by its number among the picture's, from the lowest row up, left to right", () => {
+    const wall = wallFrom(["C..o....C", "..C.C...."]);
+
+    expect(
+      wall.bricks.flatMap((brick) =>
+        brick === null ? [] : [[brick.kind, brick.tint]],
+      ),
+    ).toEqual([
+      ["cage", 0],
+      ["cage", 1],
+      ["cage", 2],
+      ["brick", 1],
+      ["cage", 3],
+    ]);
+  });
+
   it("lays out an empty picture as a wall of no rows", () => {
     expect(wallFrom([])).toEqual({ bricks: [], rows: 0, lowestRow: 1 });
   });
@@ -74,7 +91,6 @@ describe("wallFrom", () => {
     },
   );
 
-  // Wool is in the legend, but not yet in the catalog.
   it("refuses a portal with no pair, before its kind", () => {
     expect(() => wallFrom(["..@......"])).toThrow(
       `A wall's picture holds 1 of the portal "@", where a pair has 2.`,
@@ -89,11 +105,14 @@ describe("wallFrom", () => {
     );
   });
 
-  it.each(["W", "?"])("refuses %s, no cataloged kind's brick", (character) => {
-    expect(() => wallFrom([`....${character}....`])).toThrow(
-      `A wall's picture holds "${character}", no cataloged kind's brick.`,
-    );
-  });
+  it.each([uncataloged(), "?"])(
+    "refuses %s, no cataloged kind's brick",
+    (character) => {
+      expect(() => wallFrom([`....${character}....`])).toThrow(
+        `A wall's picture holds "${character}", no cataloged kind's brick.`,
+      );
+    },
+  );
 });
 
 describe("twinsIn", () => {

@@ -19,13 +19,18 @@ const LASTING = BRICK_KIND_IDS.filter((id) => brickKind(id).hits === "never");
 const ZAPPING = BRICK_KIND_IDS.filter((id) => hasTrait(id, "zaps"));
 
 describe("the brick kinds", () => {
-  it("are Warm-up's five and Thick walls' two, in How to play's order", () => {
+  it("are Warm-up's five, Sparks' five and Thick walls' two, in How to play's order", () => {
     expect(BRICK_KIND_IDS).toEqual([
       "brick",
       "tough",
       "steel",
       "rowZapper",
       "columnZapper",
+      "bomb",
+      "crossZapper",
+      "xZapper",
+      "wool",
+      "cage",
       "shell",
       "moss",
     ]);
@@ -175,7 +180,7 @@ describe("the brick kinds", () => {
     expect([
       isBrickKindId("steel"),
       isBrickKindId("toString"),
-      isBrickKindId("bomb"),
+      isBrickKindId("cannon"),
       isBrickKindId(3),
     ]).toEqual([true, false, false, false]);
   });
