@@ -349,14 +349,16 @@ helpers.
   level in play as the player looks away from the room (`[fzPlayRoom]`).
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
     asking for each action: from the desktop width (`fitsActionLabels`),
-    the level, the rounds against par, the rows left, the score and the
-    crew; below it, the rounds and the score alone. Every action is round;
-    Pause, Fast-forward (`button[appFastForward]`) and Skip
-    (`button[appSkip]`) stay at every size, the two dimmed while there is
-    no flight, and on a compact screen Sound, Levels, New game, How to
-    play and Settings move into the overflow menu. `<app-crew>` draws a
-    crew in a row, the player's fuzzball in the accent, then each friend
-    in its ink, for the bar and the Cleared card.
+    unless the window is compact, the level, the rounds against par, the
+    rows left, the score and the crew; otherwise the rounds and the score
+    alone, as `figures.ts`'s `showsEveryFigure()` says, which the board
+    reads too, the lintel's count hidden where the bar counts the rows.
+    Every action is round; Pause, Fast-forward (`button[appFastForward]`)
+    and Skip (`button[appSkip]`) stay at every size, the two dimmed while
+    there is no flight, and on a compact screen Sound, Levels, New game,
+    How to play and Settings move into the overflow menu. `<app-crew>`
+    draws a crew in a row, the player's fuzzball in the accent, then each
+    friend in its ink, for the bar and the Cleared card.
   - `board/` — the board, `<app-board>`, and the cards over its field. The
     board holds `<fz-phaser-canvas>`, loading its scene only once the canvas
     asks, and, until the scene has drawn, a placeholder of the empty field
