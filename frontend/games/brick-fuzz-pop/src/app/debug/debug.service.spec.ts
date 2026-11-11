@@ -139,6 +139,14 @@ describe("DebugService", () => {
     expect(debug.runOffRecord()).toBe(true);
   });
 
+  it("starts a run that plays a certificate's line off the record", () => {
+    const debug = debugService();
+
+    debug.startRun({ certified: true });
+
+    expect(debug.runOffRecord()).toBe(true);
+  });
+
   it("starts a run taken up off the record where storage kept it so", () => {
     const debug = debugService();
 

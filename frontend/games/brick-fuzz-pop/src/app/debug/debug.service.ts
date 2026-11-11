@@ -14,6 +14,8 @@ export interface RunStart {
   readonly kept?: boolean;
   /** Whether it starts at a level the player hasn't opened. */
   readonly locked?: boolean;
+  /** Whether it plays a certificate's line. */
+  readonly certified?: boolean;
 }
 
 /**
@@ -66,11 +68,16 @@ export class DebugService {
   /**
    * Begins watching a new run's records: it keeps none if a number is
    * retuned now or later in it, if it starts at a level the player hasn't
-   * opened (`locked`), as every level open allows, or if storage kept it as
-   * played off the record (`kept`), as a run taken up may be.
+   * opened (`locked`), as every level open allows, if it plays a
+   * certificate's line (`certified`), or if storage kept it as played off
+   * the record (`kept`), as a run taken up may be.
    */
-  startRun({ kept = false, locked = false }: RunStart = {}): void {
-    this.runLatch.set(kept || locked || this.tuning.retuned());
+  startRun({
+    kept = false,
+    locked = false,
+    certified = false,
+  }: RunStart = {}): void {
+    this.runLatch.set(kept || locked || certified || this.tuning.retuned());
   }
 
   /**

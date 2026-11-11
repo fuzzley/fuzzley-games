@@ -1348,3 +1348,128 @@ it is released, so a run paused mid-flight says them. A mutant of
 6. **A spec kept the rounds asked for as `unknown[][]`.** Fixed:
    `Parameters<RoundPlayer>[]`, and the debug menu's spec
    `Parameters<RoundPlayer>[3][]`.
+
+### U2's remainder: the certificate loader and Play the certificate
+
+**2026-11-10.** The debug menu's Play the certificate, end to end: a set's
+certificates file read and checked, loaded only where the menu is offered,
+the level in play's line offered on the field's depth, and played from the
+level's start, off the record, on the rules' own numbers. With it, the
+view's danger beat reads the rules' `inDanger()`, as the proof stream
+asked.
+
+**What was built.**
+
+- **`src/view/debug/certificates.ts`**: `readCertificates()` reads a set's
+  file, `{ [levelId]: { "11"…"22": [[aim, charge], …] } }`, into each
+  level's `Line` by depth, through P2's `CertifiedShot` and `Line`, and
+  drops what it can't trust: a file or a level that isn't a record, a
+  depth no field has or written otherwise than as one ("011", "11.0"), and
+  a line that is empty or holds anything but pairs of an aim and a charge.
+  `lineOf()` finds a level's line on a depth.
+- **`src/app/debug/certificates.service.ts`**: `CERTIFICATE_FILES`, the
+  files by set id (`certificateFilesOf()` over an `import.meta.glob()` of
+  `src/rules/levels/certificates/*.json`, lazy, so each file is a chunk of
+  its own), and `CertificatesService`, whose `resource()` loads the level
+  in play's set only while `DEBUG_MENU` is true, once for all its levels.
+  A set with no file, or a file that fails to load, offers nothing. It
+  offers the level in play's line on the field's depth (`offer`, the
+  menu's `CertificateOffer`) and plays it (`play()`). Its specs read P3's
+  `warm-up.json` whole, a line for each level on each depth, and play
+  Hello, wall's through the real `playRound()` to its Cleared card in as
+  many rounds as the line; made-up files hold the rest, the ones it can't
+  trust among them.
+- **`GameService.playLine(level, lineOn)`** asks first with a run in
+  progress, begins the level from its start with `startRun({ certified:
+true })`, the line `lineOn` gives for the depth it begins on, and then
+  lets the line's next shot fly (`shotOf()`) as each round is aimed,
+  whatever the player steers, on `RULES`; the player's own shots after the
+  line go back to the menu's numbers. The line stops as the next level or
+  another run begins.
+- **`DebugService.startRun()`** takes `certified`, which keeps the run off
+  the record.
+- **`app.component`** hands `<app-settings>` the offer and, at Play the
+  certificate, puts the drawer away so the board shows, and plays it.
+- **The danger beat** in `round_play.ts` is `inDanger()` from `lower.ts`,
+  so a needed brick on the floor's row sounds it too; the view's own
+  `DANGER_ROW` went.
+
+**Choices the plan didn't make.**
+
+1. **The reader lives in the view** (`src/view/debug/`), beside the menu's
+   numbers, as only the debug menu reads a file at run time; the rules
+   keep the pair and `shotOf()`. The specs' `src/testing/every_level.ts`
+   reads the same files its own way, throwing at what it can't read, as a
+   spec should, where this one drops it, as a page should; its type is
+   `SetCertificates`, so the two names don't meet.
+2. **A line is played only on the field it was found on.** It is looked up
+   on the field's depth before the player is asked, so nothing is asked
+   with none to play, and again after, beginning nothing if the room
+   changed meanwhile; and it stops once a round is aimed on another depth,
+   a resize or the menu's depth, as its shots would miss there.
+3. **The line's shot flies on the first frame the round is aimed,** with no
+   pause to show the aim, so a line of 20 rounds takes as long as its
+   flights.
+4. **The player's release is ignored while the line has shots left,** and
+   Pause and fast-forward work as ever; a paused level lets none fly.
+5. **Play the certificate closes the settings drawer** before it asks, so
+   the board shows what it plays.
+
+**Checked in a build.** The workspace's build, P3's `warm-up.json` in
+place, writes the certificates as `warm-up-*.js`, 4.45 kB, which the main
+chunk names only in a lazy `import()` and holds none of; `index.html`
+preloads nothing of it. (`dist/` was removed after.)
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass after the review and the last rebase: 4,826 tests
+in 109 files, the coverage run's 4,676 in 89 at its floors.
+`certificates.ts` and `certificates.service.ts` are at 100% of
+statements, branches, functions and lines, as are `game.service.ts` and
+`app.component.ts`; `round_play.ts` keeps its one branch short of 100, a
+fuzzball no track has. The root's `yarn lint` passes.
+
+**The mutation pass.** 37 mutants: 11 of the reader, 6 of the service, 15
+of `GameService`'s line, 1 of `startRun()`'s `certified`, 4 of the app's
+wiring and 2 of the danger beat. 34 were killed, and three survivors were
+gaps, now given specs and killed: a level whose lines are nothing read
+without its check (it threw), Play the certificate before anything loaded
+answering yes, and a release refused while paused taken as the line's
+shot, which a spec now catches by going on and finding the second shot
+kept. After the review, 7 more, all killed: the offer on the run's depth,
+the failed load said nowhere, the line kept on another depth, no line
+looked up before asking or after, and each kind of shot on the other's
+numbers.
+
+**Numbers worth keeping.** Warm-up's certificates are a 4.45 kB chunk.
+Hello, wall's line on the specs' first field plays to its Cleared card
+through the real rules in well under a second of the spec's time.
+
+**Rebased** onto P3, whose `warm-up.json` the specs now read whole;
+after the review, onto the scene's danger from the rules; and last onto
+the art stream's board, the app's imports holding both its
+`BoardComponent` and the `CertificatesService`.
+
+**The review:**
+
+1. **The diff reverted the branch's newest commit,** as the branch had
+   moved on. Fixed: rebased, the scene's text in `AGENTS.md` kept.
+2. **A line kept playing after the field changed depth,** on a field it
+   wasn't found on; and Play the certificate asked before looking for a
+   line, so a player could give up a run for nothing. Fixed (choice 2),
+   with a spec of each: the line stops once a round is aimed on another
+   depth, and is looked up before the question and after.
+3. **`release()` chose the rules from the line's state,** right only while
+   `tick()` takes the shot off after it. Fixed: `release(shot, rules)`,
+   `tick()` handing `RULES` for the line and the menu's numbers otherwise.
+4. **A file that failed to load read as "no certificate".** Fixed: the
+   offer is still none, but the service says why in the console, which a
+   spec holds.
+5. **Two readers and two `Certificates` types for one file.** Kept apart
+   (choice 1): the specs' throws and the page's drops, on purpose; mine is
+   now `SetCertificates`, and the file's header says why there are two.
+6. **`AGENTS.md` still listed the rest of U2 to come.** Fixed.
+7. **Spec gaps:** the spec of "the level a run moves on to" started a new
+   run, and is named so; a spec now holds the offer to the field's depth,
+   not the run's, the two set apart by the menu's depth after a round;
+   and the "no certificate has loaded" case is named for what it is, the
+   menu not offered. `play()`'s doc says it resolves.

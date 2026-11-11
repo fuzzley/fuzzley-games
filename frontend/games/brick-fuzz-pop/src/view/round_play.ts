@@ -5,11 +5,10 @@ import {
   type NumberedEvent,
 } from "@fz/core/event_log";
 import { easeOutCubic } from "@fz/core/math";
-import { brickKind } from "../rules/catalog/bricks";
 import type { BallRole, FlightEvent, Waypoint } from "../rules/flight/events";
-import { fieldRowOf } from "../rules/grid";
 import type { Round, RoundResult, RoundStart } from "../rules/round/round";
 import { MOST_CHARGE, ZAP_HITS } from "../rules/tuning";
+import { inDanger } from "../rules/wall/lower";
 import type { Brick, Wall } from "../rules/wall/wall";
 import { type Beat, type EventEffects, FlightEffects } from "./effects/effects";
 import {
@@ -48,9 +47,6 @@ const EVENTS_KEPT = 1024;
 
 /** How many beats the log keeps: far more than a frame's few. */
 const BEATS_KEPT = 16;
-
-/** The field row over the floor's: a brick the level needs there is one step from losing it. */
-const DANGER_ROW = 1;
 
 /** Describes a fuzzball in the air, as the scene draws it. */
 export interface BallView {
@@ -587,7 +583,7 @@ export class RoundPlay {
     this.atRest = true;
     this.change.settled = round;
     if (result === "lost") this.logBeat("lost");
-    if (result === "on" && isInDanger(round.next.wall)) this.logBeat("danger");
+    if (result === "on" && inDanger(round.next.wall)) this.logBeat("danger");
     if (result !== "on") this.cardWait.start();
   }
 
@@ -700,14 +696,4 @@ function ballState(ball: number): BallState {
 /** Returns how long a level's card waits after the round that ended it. */
 function cardDelayMs(result: RoundResult, motion: boolean): number {
   return result === "cleared" ? clearedDelayMs(motion) : resultDelayMs(motion);
-}
-
-/** Returns whether a brick the level needs stands in the row over the floor's, one step from losing it. */
-function isInDanger(wall: Wall): boolean {
-  return wall.bricks.some(
-    (brick, cell) =>
-      brick !== null &&
-      brickKind(brick.kind).needed &&
-      fieldRowOf(wall, cell) === DANGER_ROW,
-  );
 }

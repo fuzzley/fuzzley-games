@@ -18,8 +18,18 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { kindIntroducedAt } from "../../rules/catalog/bricks";
+import {
+  type CertifiedShot,
+  type Line,
+  shotOf,
+} from "../../rules/levels/certificate";
 import { levelEntryOf } from "../../rules/levels/levels";
-import type { Crew, RoundStart } from "../../rules/round/round";
+import {
+  type Crew,
+  RULES,
+  type RoundRules,
+  type RoundStart,
+} from "../../rules/round/round";
 import {
   describeCleared,
   describeEnd,
@@ -52,7 +62,7 @@ import { tallyOf } from "../../rules/run/scoring";
 import { levelResultOf } from "../../rules/run/stats";
 import type { Pictures } from "../../scene/pictures";
 import { type Guide, guideOf } from "../../rules/flight/guide";
-import type { Aim, Boon, Charge } from "../../rules/shot";
+import type { Aim, Boon, Charge, Shot } from "../../rules/shot";
 import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
 import {
   type FieldMetrics,
@@ -173,6 +183,10 @@ export class GameService extends RunLifecycle implements KeptGame {
   private charged: Charge = 0;
   /** The guide last cast, and what it was cast for. */
   private guideCast: GuideCast | null = null;
+  /** The shots of a certificate's line still to fly, in order, while the level in play plays one. */
+  private lineShots: Line = [];
+  /** The field's depth the line playing was found on. */
+  private lineDepth = 0;
   /** How the next frame plays the round, written again each frame. */
   private readonly frame: FrameOptions = {
     pace: paceOf(this.debug.tuning.tuning()),
@@ -388,14 +402,22 @@ export class GameService extends RunLifecycle implements KeptGame {
   /**
    * Moves the game on by the time a frame took, steered as the player
    * steers it: says the aim and the charge the keys moved, releases a shot
-   * let fly, and plays the round on, taking what it came to into the run.
+   * let fly, or the next of a certificate's line while one plays, and plays
+   * the round on, taking what it came to into the run.
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
     this.fastHeld.set(steer.fast);
     this.aimedAt = steer.aim;
     this.charged = steer.charge;
     if (steer.keyed) this.announcer.say(describeShot(steer));
-    if (steer.release) this.release(steer);
+    const shot = this.lineShot();
+    if (shot === undefined) {
+      if (steer.release) {
+        this.release(steer, rulesOf(this.debug.tuning.tuning()));
+      }
+    } else if (this.release(shotOf(shot), RULES)) {
+      this.lineShots = this.lineShots.slice(1);
+    }
     this.playFrame(deltaMs, this.run().outcome === "paused");
   }
 
@@ -613,6 +635,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     if (state.card !== "cleared" || !this.drawn()) return;
     const run = nextLevel(state.run, this.room.depth, this.levels);
     const start = openingOf(run, levelOf(run, this.levels));
+    this.lineShots = [];
     this.aim(start);
     this.runState.set({
       ...state,
@@ -631,6 +654,32 @@ export class GameService extends RunLifecycle implements KeptGame {
    */
   async newGame(): Promise<boolean> {
     return this.startAt(this.run().firstLevel);
+  }
+
+  /**
+   * Plays a certificate's line: starts a run at a level, by its number,
+   * asking first if one is in progress, kept off the record, and lets the
+   * line's shots fly, one as each round is aimed, on the rules' own numbers
+   * whatever the debug menu has retuned. The line is the one `lineOn`
+   * gives for the field's depth; with none, nothing is asked and no run
+   * begins. The line stops should the field take another depth, and as
+   * the next level or another run begins. Resolves to whether one began.
+   */
+  async playLine(
+    level: number,
+    lineOn: (depth: number) => Line | null,
+  ): Promise<boolean> {
+    if (lineOn(this.room.depth) === null) return false;
+    if (!(await this.mayLoseRun())) return false;
+    // Again, as the room may have changed while the player was asked.
+    const { depth } = this.room;
+    const shots = lineOn(depth);
+    if (shots === null) return false;
+    this.begin(this.create(level), undefined, { certified: true });
+    this.lineShots = shots;
+    this.lineDepth = depth;
+    this.sayLevel();
+    return true;
   }
 
   /**
@@ -671,21 +720,22 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Releases the round aimed, if its level waits for the first shot or is
-   * under way: the rules play it whole, the run takes it in, its records
-   * kept as the run will stand once it lands, and the view starts playing
-   * its flight back.
+   * Releases the round aimed at a shot, if its level waits for the first
+   * shot or is under way: the rules play it whole, on the numbers handed,
+   * the run takes it in, its records kept as the run will stand once it
+   * lands, and the view starts playing its flight back. Returns whether
+   * the shot flew.
    */
-  private release({ aim, charge }: Readonly<Steer>): void {
+  private release({ aim, charge }: Readonly<Shot>, rules: RoundRules): boolean {
     const state = this.runState();
-    if (state.phase !== "aiming") return;
+    if (state.phase !== "aiming") return false;
     const started = startLevel(state.run);
-    if (started.outcome !== "playing") return;
+    if (started.outcome !== "playing") return false;
     const round = this.playRound(
       state.start,
       { aim, charge },
       this.levelBoon(),
-      rulesOf(this.debug.tuning.tuning()),
+      rules,
     );
     const run = takeRound(started, round.outcome);
     const landed = afterLanding(run);
@@ -701,6 +751,7 @@ export class GameService extends RunLifecycle implements KeptGame {
       phase: "flying",
       newBest,
     });
+    return true;
   }
 
   /**
@@ -771,6 +822,16 @@ export class GameService extends RunLifecycle implements KeptGame {
     return hasEnded(landed.outcome) && this.stats.recordEnd(landed);
   }
 
+  /**
+   * Returns the next shot of the certificate's line the level in play
+   * plays, if any, the line dropped once the field takes a depth it wasn't
+   * found on, as its shots would miss there.
+   */
+  private lineShot(): CertifiedShot | undefined {
+    if (this.start().depth !== this.lineDepth) this.lineShots = [];
+    return this.lineShots[0];
+  }
+
   /** Returns how the next frame plays the round, as the settings, the player and the run say. */
   private frameOptions(paused: boolean): Readonly<PlayOptions> {
     const { frame } = this;
@@ -831,6 +892,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   ): void {
     this.aim(start);
     this.fastAsked.set(false);
+    this.lineShots = [];
     this.debug.startRun(keeping);
     this.runState.set(newRunState(run, start));
     this.began();

@@ -1216,6 +1216,11 @@ describe("RoundPlay's settling", () => {
       ["step"],
     ],
     [
+      "a brick come under the danger line, onto the floor's row",
+      endingOn(plain, ["o........"], 0),
+      ["step", "danger"],
+    ],
+    [
       "a brick two rows over the floor's",
       endingOn(plain, ["o........"], 2),
       ["step"],
