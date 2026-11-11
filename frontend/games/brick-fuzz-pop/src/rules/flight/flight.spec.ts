@@ -1,11 +1,10 @@
 import { createRandom } from "@fz/core/random";
 import {
   FLIGHT_FIXTURES,
-  type FlightFixture,
   orderProblemsOf,
   trackProblemsOf,
 } from "../../testing/flight_fixtures";
-import { eventsOf } from "../../testing/flights";
+import { eventsOf, near } from "../../testing/flights";
 import {
   clearanceProblemsOf,
   randomFlight,
@@ -30,12 +29,18 @@ import {
   MOST_FLIGHT,
   RADIUS,
   STILL_TURNS,
-  TRIPLE_MATES,
   ZAP_DELAY,
 } from "../tuning";
 import { FLOORWARD, LEFT } from "../grid";
 import type { Wall } from "../wall/wall";
-import { type FlightRules, type FlightStart, type Flown, fly } from "./flight";
+import { flightStartOf } from "../round/round";
+import {
+  type FlightRules,
+  type FlightStart,
+  type FlightStop,
+  type Flown,
+  fly,
+} from "./flight";
 import type { Hooks, Struck, TraitRules } from "./hooks";
 
 /** The depth of the field the specs fly in. */
@@ -56,9 +61,10 @@ interface Shot extends Partial<Omit<FlightStart, "wall" | "aim">> {
   readonly bored?: number;
   readonly kinds?: BrickKinds;
   readonly traits?: TraitRules;
+  readonly stop?: FlightStop;
 }
 
-/** Returns the flight of a shot, a plain one from the floor's middle on a field 11 deep, flown by the stand-ins' rules. */
+/** Returns the flight of a shot, a plain one from the floor's middle on a field 11 deep, flown by the stand-ins' rules, to its end unless told to stop. */
 function flyShot({
   wall,
   aim,
@@ -71,44 +77,15 @@ function flyShot({
   bored = BORED,
   kinds = STAND_INS,
   traits = STAND_IN_RULES,
+  stop,
 }: Shot): Flown {
   const rules: FlightRules = { bored, kinds, traits };
-  return fly({ wall, depth, x, aim, charge, hot, mates, friends }, rules);
+  return fly({ wall, depth, x, aim, charge, hot, mates, friends }, rules, stop);
 }
 
 /** Returns a wall drawn as a picture, its lowest row standing in a field row. */
 function wallOf(lowestRow: number, picture: readonly string[]): Wall {
   return wallFrom(picture, { lowestRow });
-}
-
-/** Returns a value with each of its numbers matched near enough, for the rounding the arithmetic that found them. */
-function near(value: unknown): unknown {
-  if (typeof value === "number") {
-    return expect.closeTo(value, 9);
-  }
-  if (Array.isArray(value)) {
-    return value.map(near);
-  }
-  if (typeof value === "object" && value !== null) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, near(entry)]),
-    );
-  }
-  return value;
-}
-
-/** Returns how a fixture's round leaves, as its start and shot say. */
-function startOf({ start, shot }: FlightFixture): FlightStart {
-  return {
-    wall: start.wall,
-    depth: start.depth,
-    x: start.x,
-    aim: shot.aim,
-    charge: shot.charge,
-    hot: start.boon === "hot",
-    mates: start.boon === "triple" ? TRIPLE_MATES : 0,
-    friends: start.crew.friends.length,
-  };
 }
 
 describe("fly, against the rounds made by hand", () => {
@@ -121,7 +98,7 @@ describe("fly, against the rounds made by hand", () => {
         traits: TRAIT_RULES,
       };
 
-      const { flight } = fly(startOf(fixture), rules);
+      const { flight } = fly(flightStartOf(fixture.start, fixture.shot), rules);
 
       expect(flight).toEqual(near(fixture.round.flight));
     },
@@ -152,7 +129,7 @@ describe("fly", () => {
     const before = structuredClone(fixture.start.wall);
     const rules = { bored: BORED, kinds: BRICK_KINDS, traits: STAND_IN_RULES };
 
-    const { wall } = fly(startOf(fixture), rules);
+    const { wall } = fly(flightStartOf(fixture.start, fixture.shot), rules);
 
     expect(fixture.start.wall).toStrictEqual(before);
     expect([wall.bricks[8], wall.bricks[16]?.hits]).toEqual([null, 2]);
@@ -238,7 +215,7 @@ describe("fly", () => {
     const fixture = FLIGHT_FIXTURES.punch;
     const rules = { bored: 7.5, kinds: BRICK_KINDS, traits: STAND_IN_RULES };
 
-    const flown = fly(startOf(fixture), rules);
+    const flown = fly(flightStartOf(fixture.start, fixture.shot), rules);
 
     const lastHit = eventsOf(flown, "strike").at(-1)!.at;
     expect(eventsOf(flown, "yawn").map(({ at }) => at)).toEqual([
@@ -414,6 +391,61 @@ describe("fly", () => {
       eventsOf(flown, "break").map(({ at }) => at),
       eventsOf(flown, "land").map(({ at }) => at),
     ]).toEqual([[1.5], [0.5, 1, 1.5], [3]]);
+  });
+});
+
+describe("fly, with a stop", () => {
+  // Straight up, the player's fuzzball turns off the steel at 2.5, its
+  // mates at 3.2 and 3.9; the six behind it leave 0.7 apart.
+  it("stops its distance past the player's first turn, each fuzzball's track ending where it is then", () => {
+    const wall = wallOf(3, ["....#...."]);
+    const stop = { stop: "first-turn", extra: 1 } as const;
+
+    const flown = flyShot({ wall, aim: UP, mates: 2, friends: 4, stop });
+
+    expect(
+      flown.flight.tracks.map(({ waypoints }) => waypoints.at(-1) ?? null),
+    ).toEqual(
+      near([
+        { at: 3.5, x: 4.5, y: 1.75 },
+        { at: 3.5, x: 4.5, y: 2.45 },
+        { at: 3.5, x: 4.5, y: 2.35 },
+        { at: 3.5, x: 4.5, y: 1.65 },
+        { at: 3.5, x: 4.5, y: 0.95 },
+        { at: 3.5, x: 4.5, y: 0.25 },
+        null,
+      ]),
+    );
+  });
+
+  it.each([
+    ["lands no zap that would land past the stop", ZAP_DELAY / 2, []],
+    ["lands a zap that lands at the stop itself", ZAP_DELAY, ["zap"]],
+  ])("%s", (_, extra, zaps) => {
+    const wall = wallOf(3, ["....-...."]);
+    const stop = { stop: "first-turn", extra } as const;
+
+    const flown = flyShot({ wall, aim: UP, kinds: BRICK_KINDS, stop });
+
+    expect(flown.flight.events.map(({ kind }) => kind)).toEqual([
+      "launch",
+      "turn",
+      "strike",
+      "break",
+      ...zaps,
+    ]);
+  });
+});
+
+describe("fly's punches", () => {
+  // The player's fuzzball punches through the lowest brick and turns off the
+  // next; its mate, charged as it is, punches through the third.
+  it("lists the bricks the player's fuzzball punched through, and not its mates'", () => {
+    const wall = wallOf(3, ["....o....", "....o....", "....o...."]);
+
+    const { punched } = flyShot({ wall, aim: UP, charge: 1, mates: 1 });
+
+    expect(punched).toEqual([4]);
   });
 });
 

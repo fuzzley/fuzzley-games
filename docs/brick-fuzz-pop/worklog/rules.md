@@ -971,3 +971,212 @@ its review and the numbers worth keeping.
      integrator's), every moment a sum of `ZAP_DELAY`, and
      `random_flights.ts`' doc says a kind cataloged makes them throw until
      its rule lands.
+
+### R6: the round and the guide
+
+- **Date.** 2026-11-10.
+- **Built.**
+  - `src/rules/round/round.ts`: `playRound(start, shot, levelBoon, rules)`
+    flies the shot by the catalog and `TRAIT_RULES`, the bored distance from
+    `rules`, and returns the `Round`: the flight; what it came to, each
+    break's points (the streak's multiplier already in them) and
+    `JUMP_POINTS` for a jump, the bricks broken, the friends freed, the rows
+    the wall came down and whether it jumped, and cleared, lost or on; and
+    the next round's start. K2's throwing stand-in is gone. `playRoundBy()`
+    flies by the kinds and the trait rules it is handed; `flightRulesOf()`
+    says what a round's flight is played by, the catalog, `TRAIT_RULES` and
+    the bored distance; and `flightStartOf()` how its fuzzballs leave: a hot
+    shot or a triple shot's mates by the boon, the crew behind.
+  - `src/rules/flight/guide.ts`: `guideOf(start, shot, pastTurn, rules)`
+    returns the `Guide`, `{ dots, punched }`, `GuidePlace` its dots' places,
+    the shape `src/scene/stand_ins.ts` stands in for in S2's branch, name
+    for name; how far past the first turn it runs is handed to it (choice
+    10).
+  - `src/rules/flight/flight.ts`: `fly()` takes a stop, `FlightStop`,
+    `{ stop: "first-turn", extra }`, as §6 R6 writes it, and `Flown.punched`
+    lists the bricks the player's fuzzball punched through.
+  - `src/rules/tuning.ts`: `GUIDE_DOT_GAP`, 0.5, how far apart the guide's
+    dots lie; and `GUIDE_PAST_TURN`'s doc says it is what `guideOf()` is
+    handed unless the debug menu retunes it.
+  - `src/rules/wall/wall.ts`: `isDepth()`, whether a value is a depth a
+    field has, a whole number from 11 to 22, as the integrator asked, which
+    `thirdsOf()` now asks. It takes any value and narrows it to a number, as
+    `isAim()` does, so `saved_game.ts`'s `hasDepth()` and the debug menu's
+    depth checks, which each make the same check, can switch over to it;
+    they are left as they are.
+  - `src/testing/flights.ts` takes `near()` from `flight.spec.ts`, for the
+    round's specs too, and `src/testing/timing.ts`, new, reads the
+    benchmarks' times, which `cast.spec.ts` and `fly.spec.ts` each read for
+    themselves before.
+  - `frontend/games/brick-fuzz-pop/AGENTS.md`, as the integrator asked: the
+    rules' section says what `src/rules/bricks/`, `fly()`, the hooks, the
+    guide and the round hold now, the Tests section the benchmarks and the
+    helpers R3 to R6 added, and the opening no longer lists R3, R4 and R6 as
+    to come.
+- **Names added to files that aren't the stream's.** `GUIDE_DOT_GAP` in
+  `tuning.ts`, and a line on `GUIDE_PAST_TURN`'s doc; `isDepth()` in
+  `wall.ts`; `playRoundBy()`, `flightRulesOf()` and `flightStartOf()` in
+  `round.ts`, beside K2's types; and the workspace's `AGENTS.md`, at the
+  integrator's request.
+- **Choices the plan didn't make.**
+  1. **The guide gives dots, not points for the view to space,** as S2's
+     stand-in takes them, where §5.1 has the view's `guide.ts` turn points
+     into dots: each `GUIDE_DOT_GAP` of flight from where the fuzzball
+     waits, the first a gap out, as `positionAt()` finds them on the
+     player's track, so a portal's jump has none across it.
+  2. **The guide flies the player's fuzzball alone,** as the round flies it,
+     by the rules a round is handed, so a bored distance the debug menu
+     retunes shows too. Its mates and friends would only follow its path:
+     one could change it before the stop only through a zap set off behind
+     it that lands, within 1.5 of the turn, on a brick in its way, and
+     flying a triple shot's two and six friends took 473 µs at the 99th
+     percentile, past the plan's 0.2 ms. The specs hold the guide to the
+     round's own flight, followers and all, on every level's opening wall.
+  3. **A stopped flight ends `extra` past the player's first turn,** a
+     mate's or a friend's turn not counting: nothing due after it happens, a
+     zap due at it lands, each fuzzball out ends its track where it is then,
+     and one yet to leave has none. A flight whose player's fuzzball never
+     turns, as a bored distance retuned to almost nothing allows, flies to
+     its end.
+  4. **`punched` is the player's fuzzball's,** noted by `fly()` as
+     `strike()` says it passes, rather than worked out again from the strike
+     events.
+  5. **A yawning fuzzball is headed straight down** as it drops, so a flight
+     stopped mid-drop leaves it under its yawn; the heading was unread once
+     it dropped.
+  6. **`playRoundBy()` is exported** so a spec frees a friend: no cataloged
+     kind frees one until X1, and the crew's growth would otherwise go
+     unrun.
+  7. **The next round starts** from the player's fuzzball's landing, held
+     `SIDE_MARGIN` off a side wall; with the wall as it came down, or as the
+     flight left it once cleared; the friends freed added to the crew in the
+     order freed, with no cap, as a level holds six cages at most; the
+     level's boon after a jump; and the depth as it was, which the view
+     changes between rounds.
+  8. **The result is the flight's wall's:** cleared when it holds nothing
+     the level needs, lost when coming down brings a needed brick to the
+     floor's row, else on.
+  9. **The guide's time is held in `sim`,** to 1 ms at the 99th percentile,
+     five times the plan's 0.2 ms, and printed, plain and hot.
+     `playRound()`'s own benchmark, which §9 lists, isn't written: §6 R6
+     doesn't ask for it, and `fly.spec.ts` times the flight, nearly all of a
+     round.
+  10. **The guide's length is handed to it,**
+      `guideOf(start, shot, pastTurn, rules)`, where §5.5 and §6 R6 write
+      `guideOf(start, shot)` and the guide reads `GUIDE_PAST_TURN`, as the
+      integrator asked: the debug menu retunes the guide's length, and the
+      rules are handed what it retunes rather than reading it. The caller
+      passes `GUIDE_PAST_TURN` or the menu's number; the bored distance
+      comes in `rules`, as `playRound()`'s does. A length below 0 isn't
+      checked: the doc says not below 0, and the menu's slider starts at 0.
+- **Specs.**
+  - `round.spec.ts`, 29: each of the eleven hand-made rounds played whole as
+    `flight_fixtures.ts` works it out, its flight, its outcome and its next
+    start; the same shot played twice at each level's opening wall making
+    the same round; what it is handed left as it was, against a deep clone;
+    the next start held off each side wall; a retuned bored distance flown;
+    a friend freed into the crew after those it had (`playRoundBy()`, with
+    the stand-ins' cage); `flightRulesOf()`; and `flightStartOf()` for a
+    triple shot with friends and for a hot shot.
+  - `guide.spec.ts`, 80: at every level's opening wall 11 and 22 deep, four
+    shots across the aims, plain, charged, a triple shot with two friends
+    and a hot shot, the dots matching where the player's fuzzball is in the
+    round's own flight at each gap, to its first turn and 1.5 past it or its
+    landing; the dots running on as far past the turn as the guide is
+    handed; the dots turning with it; the bricks a charged shot punches
+    through and not the one it turns off, none for a plain shot, and every
+    one a hot shot breaks; what it is handed left as it was; and a fuzzball
+    that yawns before the guide ends dropping straight down. Those worked
+    out by hand run their own 1.5 past the turn, so a `GUIDE_PAST_TURN`
+    retuned in the debug menu and pasted in doesn't break them.
+  - `flight.spec.ts`, 4 more: a stop ending every fuzzball's track where it
+    is, a mate's turn not moving it and a friend yet to leave having none;
+    no zap landing past it and one landing at it; and `punched` the player's
+    alone, though a mate charged as it punches through a brick too.
+  - `wall.spec.ts`, 9 more: `isDepth()` taking 11, 16 and 22, and refusing
+    10, 23, 11.5, `NaN`, `"11"` and `null`.
+  - `benchmarks/guide.spec.ts`, in `sim`: `guideOf()` at every level's
+    opening wall at every depth, every eighth aim, the charges in turn,
+    plain and as a hot shot.
+- **Checks.** On `brick-fuzz-pop` at a2b95db9 after the rebase, the
+  workspace's `lint`, `typecheck`, `test` and `test:coverage` pass: 4,199
+  tests in 80 files in `dom` and `pure`, and the three benchmarks in `sim`;
+  the rules and the view at 100% of statements, functions and lines,
+  `round.ts` and `guide.ts` at 100% of branches, and `flight.ts` at 98.8%,
+  the same two lines left as in R3. The root's `yarn lint` passes.
+- **The mutation pass.** 40 mutants, one at a time, against
+  `src/rules/flight/`, `src/rules/round/`, `src/rules/bricks/` and
+  `src/testing/`'s specs: 14 of `fly()`'s stop, `punched` and the drop, 6 of
+  `guideOf()` and 20 of `playRound()`, `flightStartOf()` and the scoring. 35
+  killed at first. A zap landing at the stop itself survived, and is
+  specced. 6 more, after the guide's length and `isDepth()` came, were all
+  killed: the guide run 1.5 past its turn whatever it is handed; `isDepth()`
+  taking a fraction, refusing 11 or 22, or asking one bound alone; and
+  `thirdsOf()` not asking it. Four of the 40 are equivalent:
+  1. `fly()`'s stop not handing back a fuzzball's `Contacts` record, which
+     only makes the next flight make one;
+  2. the guide's dots taken along every track rather than the player's,
+     since every fuzzball behind it leaves at 0.7 or later, past the first
+     dot, and its track gives none;
+  3. the next start's `x` set first to 0 rather than `start.x`, since every
+     flight lands the player's fuzzball, which sets it;
+  4. the guide flying the player's fuzzball alone rather than with its mates
+     and friends, since on no wall a spec flies does one behind it change
+     its track before the stop. The review's point 3 made that the code, and
+     its inverse, flying them, survives alike; of the 4 more mutants run
+     after the review, of `flightRulesOf()` and the rules the guide and
+     `playRound()` hand on, it is the one not killed.
+- **Numbers.** `guideOf()`, in `sim`, over 26,892 guides each, plain and
+  hot, over several runs under loads of 7 to 11: plain, median 12 to 16 µs
+  and 99th percentile 44 to 53 µs; hot, median 12 to 16 µs and 99th
+  percentile 69 to 87 µs; against the plan's 0.2 ms. A triple shot with six friends,
+  flown whole, took 62 µs at the median and 473 µs at the 99th percentile.
+  Every hand-made round replays through `playRound()` with no change to a
+  fixture.
+- **The review:** a fresh agent found no bug: a flight with no stop flies as
+  before, the stop sound, `playRound()` as the fixtures and the plans have
+  it, `Guide` the scene's stand-in name for name, and each spec's numbers
+  right by hand; it raised seven points. No second review: the fixes correct
+  the change.
+  1. `AGENTS.md` said the guide flew the player's fuzzball alone, where it
+     flew the whole round. Fixed, as the guide now does fly it alone (point
+     3).
+  2. `guideOf()` built the round's flight rules again, so its promise to fly
+     as `playRound()` does rested on two copies. Fixed: `flightRulesOf()`,
+     in `round.ts`, serves both.
+  3. The guide's benchmark timed only openings with no boon or crew, and a
+     triple shot with six friends, flown whole, took 473 µs at the 99th
+     percentile, past the plan's 0.2 ms. Fixed: the guide flies the player's
+     fuzzball alone (choice 2), and the benchmark times hot shots too.
+     `playRound()`'s own benchmark, which §9 lists, is left: §6 R6 doesn't
+     ask for it (choice 9), and the integrator asked for nothing past R6's
+     list.
+  4. The benchmarks' `quantile()` and their reading of times were written
+     three times. Fixed: `src/testing/timing.ts`.
+  5. `playRoundBy()` flies by the kinds it is handed, but the wall comes
+     down and is judged cleared by the catalog's. Fixed: its doc says so.
+  6. `fly()` reads a stop's `extra` but not its `stop`, so a second kind of
+     stop would fly as "first-turn". Left: there is one kind, and the type
+     admits no other; the one that adds a second switches on it.
+  7. `near()`'s doc lacked an "of". Fixed.
+
+  A second fresh agent reviewed the guide's length and `isDepth()`, which
+  came after the first review at the integrator's request. It found no bug
+  and raised four points; no third review, as the fixes correct the change.
+
+  1. The specs worked out by hand passed `GUIDE_PAST_TURN` but expected what
+     1.5 gives, so a length retuned in the debug menu and pasted into
+     `tuning.ts` would break them with `guideOf()` unchanged. Fixed: they
+     run their own `PAST_TURN`, 1.5; the openings, whose dots are worked out
+     from the round, and the benchmark read `GUIDE_PAST_TURN` still.
+  2. `isDepth()` took only a number, so `saved_game.ts`'s `hasDepth()`, the
+     same check of a value kept, couldn't use it. Fixed: it takes any value
+     and narrows it to a number, as `isAim()` and `isCharge()` do, and
+     refuses `"11"` and `null` too. `hasDepth()` and the debug menu's checks
+     are left as they are.
+  3. This entry gave `guideOf(start, shot, rules)`, and didn't say it
+     departs from the plan's `guideOf(start, shot)`. Fixed: choice 10.
+  4. Nothing said or checked what `pastTurn` may be: below 0 the stop would
+     move the fuzzballs back, and `NaN` would fly the whole round. Its doc
+     says not below 0; it isn't checked, as the menu's slider runs from 0 to
+     12 and `GUIDE_PAST_TURN` is 1.5.

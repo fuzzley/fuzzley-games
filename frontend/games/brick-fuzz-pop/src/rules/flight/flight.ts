@@ -84,11 +84,20 @@ export interface FlightRules {
   readonly traits: TraitRules;
 }
 
+/** Describes where a flight stops short, as the guide's does: a distance past the player's fuzzball's first turn. */
+export interface FlightStop {
+  readonly stop: "first-turn";
+  /** How far past the first turn it flies on. */
+  readonly extra: number;
+}
+
 /** Describes a flight flown, and the wall it leaves. */
 export interface Flown {
   readonly flight: Flight;
   /** The wall as the flight leaves it: each broken brick gone, each struck one with the hits it has left. */
   readonly wall: Wall;
+  /** The wall cells of the bricks the player's fuzzball punched through, breaking them and flying on unturned, in the order it did. */
+  readonly punched: readonly number[];
 }
 
 /**
@@ -96,10 +105,17 @@ export interface Flown {
  * aim until the last lands and the zaps they set off have landed, and the
  * wall it leaves.
  *
+ * Given a stop, it flies only so far, and nothing past it happens: its
+ * fuzzballs' tracks end where they are then, in the air.
+ *
  * It throws a `RangeError` for an aim that isn't one of the 657.
  */
-export function fly(start: FlightStart, rules: FlightRules): Flown {
-  return new Flying(start, rules).fly();
+export function fly(
+  start: FlightStart,
+  rules: FlightRules,
+  stop?: FlightStop,
+): Flown {
+  return new Flying(start, rules, stop?.extra ?? Infinity).fly();
 }
 
 /** Names what a fuzzball does next: leaves, meets something, crosses into a cell, comes home, or lands from its drop. */
@@ -221,6 +237,9 @@ class Flying implements Hooks {
   private seq = 0;
   /** How many fuzzballs the caps brought home. */
   private capped = 0;
+  /** The moment the flight stops: a stop's distance past the player's fuzzball's first turn, once it turns. */
+  private endAt = Infinity;
+  private readonly punched: number[] = [];
   // What a fuzzball meeting things gathers at its moment: the sums of the
   // normals of the faces, corners and kicks that turn it, with what it
   // turned off first; each brick it struck, and whether it passed through
@@ -257,6 +276,8 @@ class Flying implements Hooks {
   constructor(
     start: FlightStart,
     private readonly rules: FlightRules,
+    /** How far past the player's fuzzball's first turn the flight stops: Infinity for none. */
+    private readonly pastTurn: number,
   ) {
     this.bricks = [...start.wall.bricks];
     this.wall = { ...start.wall, bricks: this.bricks };
@@ -275,15 +296,18 @@ class Flying implements Hooks {
     }
   }
 
-  /** Flies the flight through, and returns it with the wall it leaves. */
+  /** Flies the flight through, or to its stop, and returns it with the wall it leaves. */
   fly(): Flown {
     for (;;) {
       const ball = this.soonest();
       const zap = this.zaps[0];
       if (zap !== undefined && (ball === null || zap.at < ball.nextAt)) {
+        if (zap.at > this.endAt) {
+          break;
+        }
         this.zaps.shift();
         this.landZap(zap);
-      } else if (ball === null) {
+      } else if (ball === null || ball.nextAt > this.endAt) {
         break;
       } else {
         this.play(ball);
@@ -292,6 +316,7 @@ class Flying implements Hooks {
       this.entering = null;
       this.zapping = false;
     }
+    this.halt();
     const events = this.events.sort(byMoment).map(({ event }) => event);
     const flight: Flight = {
       events,
@@ -303,7 +328,19 @@ class Flying implements Hooks {
       length: events.reduce((last, { at }) => Math.max(last, at), 0),
       capped: this.capped,
     };
-    return { flight, wall: this.wall };
+    return { flight, wall: this.wall, punched: this.punched };
+  }
+
+  /** Ends the track of each fuzzball still out as the flight stops where it is then, and hands back its record. */
+  private halt(): void {
+    this.now = this.endAt;
+    for (const ball of this.flying) {
+      if (ball.launched) {
+        this.travel(ball, this.endAt - ball.at);
+        this.waypoint(ball);
+      }
+      spareContacts.push(ball.contacts);
+    }
   }
 
   split(ball: number, cell: number, cos: number, sin: number): void {
@@ -577,6 +614,9 @@ class Flying implements Hooks {
       ball.crosses = true;
       ball.passing = -1;
       ball.still = ball.at === ball.turnedAt ? ball.still + 1 : 0;
+      if (ball.ball === 0 && ball.turnedAt < 0) {
+        this.endAt = this.now + this.pastTurn;
+      }
       ball.turnedAt = ball.at;
       this.emitBall({
         at: this.now,
@@ -694,6 +734,9 @@ class Flying implements Hooks {
     }
     this.struckCells.push(cell);
     this.passedCells.push(passes);
+    if (passes && ball.ball === 0) {
+      this.punched.push(cell);
+    }
     this.cause.section = 0;
     this.cause.who = ball.ball;
     this.cause.rank = BALL_RANK.strike;
@@ -837,8 +880,8 @@ class Flying implements Hooks {
 
   /**
    * Brings a fuzzball home from where it is at the moment: it yawns, and
-   * drops straight to the floor through whatever lies between, counted if
-   * a cap brought it.
+   * drops straight down to the floor through whatever lies between, counted
+   * if a cap brought it.
    */
   private comeHome(ball: Ball, capped: boolean): void {
     this.travel(ball, this.now - ball.at);
@@ -853,6 +896,8 @@ class Flying implements Hooks {
       y: ball.y,
     });
     this.waypoint(ball);
+    ball.dx = 0;
+    ball.dy = -1;
     ball.dropping = true;
     ball.planned = true;
     ball.next = "land";

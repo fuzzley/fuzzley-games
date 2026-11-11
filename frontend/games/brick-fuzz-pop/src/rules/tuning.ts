@@ -75,8 +75,11 @@ export const ZAP_HITS = 2;
 /** How far the flight goes on between a break and the zap or blast it sets off. */
 export const ZAP_DELAY = 0.5;
 
-/** How far the guide runs on past the first turn. */
+/** How far the guide runs on past the first turn: what `guideOf()` is handed unless the debug menu retunes it. */
 export const GUIDE_PAST_TURN = 1.5;
+
+/** How far apart the guide's dots lie along the shot, the first that far from where the fuzzball waits. */
+export const GUIDE_DOT_GAP = 0.5;
 
 /** How close in the flight contacts are met at one moment, as Brick Breaker's are. */
 export const AT_ONCE = 1e-9;
