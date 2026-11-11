@@ -1,11 +1,10 @@
-// What the bricks' art is laid out by: a brick's cell at a scale, a point
-// at shares of it, whether a scale draws the finest detail, an outline whose
-// edges lie on whole device pixels, a die's pips, a crack's width and the
-// ways along a tile's edges, an eighth of a turn and a point turned, the
-// lightning bolt a brick is marked with, a diamond, and a line drawn as a
-// band. The art's numbers are the design's
-// (`docs/brick-fuzz-pop/art/make-art.mjs`), each written as a share of the
-// cell its 100-unit square is.
+// What the bricks' art is laid out by: a brick's cell at a scale, a point at
+// shares of it, whether a scale draws the finest detail, an outline whose edges
+// lie on whole device pixels, a die's pips, a crack's width and the ways along
+// a tile's edges, an eighth of a turn and a point turned, the lightning bolt a
+// brick is marked with, a diamond, and a line drawn as a band. The art's
+// numbers are the design's (`docs/archive/brick-fuzz-pop/art/make-art.mjs`),
+// each written as a share of the cell its 100-unit square is.
 
 import {
   type Area,

@@ -1,8 +1,8 @@
-// A zapper: a dark tile outlined in the warning color, and a bolt along
-// each line of bricks it zaps, `zapper()` and `zapBolt()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`. The row's and the column's bolt
-// is a zigzag; where two bolts cross, the cross's and the X's, their shafts
-// run straight, as two zigzags crossed would make a pinwheel.
+// A zapper: a dark tile outlined in the warning color, and a bolt along each
+// line of bricks it zaps, `zapper()` and `zapBolt()` in
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`. The row's and the column's
+// bolt is a zigzag; where two bolts cross, the cross's and the X's, their
+// shafts run straight, as two zigzags crossed would make a pinwheel.
 
 import {
   type Area,

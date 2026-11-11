@@ -1,6 +1,6 @@
-// A wool brick: a knitted patch, rows of stitches across a tile in pink, and
-// a disc cut out of its top right corner with a lightning bolt on it, for
-// the charge it gives, `wool()` in `docs/brick-fuzz-pop/art/make-art.mjs`.
+// A wool brick: a knitted patch, rows of stitches across a tile in pink, and a
+// disc cut out of its top right corner with a lightning bolt on it, for the
+// charge it gives, `wool()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
 import { mixColors } from "@fz/phaser/color";
 import {

@@ -1,6 +1,6 @@
 // A prism, which splits a fuzzball in three: a pale tile of glass, a
 // faceted triangle on it, and three rays leaving it, each in a tint of its
-// own, `prism()` in `docs/brick-fuzz-pop/art/make-art.mjs`.
+// own, `prism()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
 import { mixColors } from "@fz/phaser/color";
 import {

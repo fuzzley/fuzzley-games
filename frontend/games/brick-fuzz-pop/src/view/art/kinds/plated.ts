@@ -1,12 +1,12 @@
-// A plated brick: a tough brick in orange with a steel plate over each face
-// it armors, a bar standing on a gap of the field, with two rivets and a row
-// of teeth pointing out, and its pips moved to the middle of what the
-// plates leave showing, `plated()` and `plate()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`. A brick stacks one frame of its
-// plates and pips, for its plating and its hits left, over the orange tile.
-// A plate's gap stays on the tile, round its corners, where the art's runs
-// to the cell's edges, so the grid's dots and the flourishes under the wall
-// show past it; its steel stands out of the tile, as the art's does.
+// A plated brick: a tough brick in orange with a steel plate over each face it
+// armors, a bar standing on a gap of the field, with two rivets and a row of
+// teeth pointing out, and its pips moved to the middle of what the plates leave
+// showing, `plated()` and `plate()` in
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`. A brick stacks one frame of
+// its plates and pips, for its plating and its hits left, over the orange tile.
+// A plate's gap stays on the tile, round its corners, where the art's runs to
+// the cell's edges, so the grid's dots and the flourishes under the wall show
+// past it; its steel stands out of the tile, as the art's does.
 
 import {
   type Area,

@@ -2,8 +2,9 @@
 
 Research notes for Rickashay, read 2026-11-10 from wikis, reviews, guides, rule
 sheets, interviews and design essays. No source code was opened. Points already
-in `docs/brick-fuzz-pop/plan.md` ("What other games teach") are not repeated.
-Each finding names its game and ends with its source; URLs are under "Sources".
+in `docs/archive/brick-fuzz-pop/plan.md` ("What other games teach") are not
+repeated. Each finding names its game and ends with its source; URLs are under
+"Sources".
 "(inferred)" marks my own reading. "(listing)" marks a fact taken from a search
 result's summary of a page I could not open myself.
 

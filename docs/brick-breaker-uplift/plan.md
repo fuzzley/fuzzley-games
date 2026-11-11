@@ -30,7 +30,7 @@ Everything made for the plan is in this folder, `docs/brick-breaker-uplift/`:
   [`field.svg`](art/field.svg), [`mechanics.svg`](art/mechanics.svg) and
   [`places.svg`](art/places.svg). `art/make-art.mjs` draws them all again.
   The art is drawn from nothing but the family's own kit, which it takes
-  from `docs/brick-fuzz-pop/art/make-art.mjs`.
+  from `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 - **[`levels/`](levels/),** the level changes as data, in the shape of
   the game's own level files with notes more (`mark`, `teaches`, `why`),
   which the game's reader refuses until a slice adds or drops them:

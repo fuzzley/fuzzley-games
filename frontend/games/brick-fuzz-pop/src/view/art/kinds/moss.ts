@@ -1,8 +1,8 @@
-// A moss brick, which grows a hit back after each round it survives: an
-// earthy tile under a scalloped cap of moss with a two-leaved sprout cut out
-// of it, and a die's pips below for the hits it has left, `moss()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`. Its tile is the plain brick's in
-// amber, the moss's body, and its cap and its pips are frames over it.
+// A moss brick, which grows a hit back after each round it survives: an earthy
+// tile under a scalloped cap of moss with a two-leaved sprout cut out of it,
+// and a die's pips below for the hits it has left, `moss()` in
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Its tile is the plain brick's
+// in amber, the moss's body, and its cap and its pips are frames over it.
 
 import { mixColors } from "@fz/phaser/color";
 import {

@@ -6,12 +6,12 @@
 // Run it with `node docs/rickashay/art/make-art.mjs`. It needs nothing but
 // Node, writes every file beside itself, and writes the same bytes each time.
 //
-// Rickashay is Brick Fuzz Pop's sibling and shares its palettes, its
-// fuzzball and its way of drawing, so this script borrows those from
-// ../../brick-fuzz-pop/art/make-art.mjs, the way that plan's mocks do: that
-// script draws its sheets as it loads and exports nothing, so this one loads
-// its source without the closing call to `main()`. The flights it draws are
-// not made up: they are the sketch's (../sketch/), played on the draft
+// Rickashay is Brick Fuzz Pop's sibling and shares its palettes, its fuzzball
+// and its way of drawing, so this script borrows those from
+// ../../archive/brick-fuzz-pop/art/make-art.mjs, the way that plan's mocks do:
+// that script draws its sheets as it loads and exports nothing, so this one
+// loads its source without the closing call to `main()`. The flights it draws
+// are not made up: they are the sketch's (../sketch/), played on the draft
 // levels.
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -56,7 +56,7 @@ const BORROWED = [
  * @returns {Promise<Record<string, any>>}
  */
 async function borrow() {
-  const path = join(here, "../../brick-fuzz-pop/art/make-art.mjs");
+  const path = join(here, "../../archive/brick-fuzz-pop/art/make-art.mjs");
   const source = readFileSync(path, "utf8");
   const call = "\nmain();\n";
   if (!source.endsWith(call)) {

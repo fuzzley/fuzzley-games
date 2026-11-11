@@ -1,5 +1,5 @@
 // The solver the levels' certificates are found by, and the replay that
-// holds a certificate to its level (docs/brick-fuzz-pop/plan.md, "The
+// holds a certificate to its level (docs/archive/brick-fuzz-pop/plan.md, "The
 // guarantee"). A line found in Node must clear its level in every browser,
 // so it is held as the rules are (eslint.config.js), to their fence and
 // their exact arithmetic.
