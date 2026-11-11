@@ -240,6 +240,11 @@ describe("shapesOf", () => {
       steel: "box",
       rowZapper: "round",
       columnZapper: "open",
+      bomb: "box",
+      crossZapper: "box",
+      xZapper: "box",
+      wool: "box",
+      cage: "box",
       shell: "box",
       moss: "box",
     });
@@ -252,6 +257,11 @@ describe("shapesOf", () => {
       steel: "box",
       rowZapper: "box",
       columnZapper: "box",
+      bomb: "box",
+      crossZapper: "box",
+      xZapper: "box",
+      wool: "box",
+      cage: "box",
       shell: "box",
       moss: "box",
     });

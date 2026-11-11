@@ -1666,3 +1666,91 @@ its review and the numbers worth keeping.
   5. `twinsIn()`'s doc opened with two sentences, `wallFrom()` read the
      twins through a fallback never taken, and moss's do-nothing rule was
      its real one. Fixed: one sentence, the twins mapped, `REGROWS_RULE`.
+
+### X1, last piece: Sparks' five kinds cataloged and drawn
+
+- **Date.** 2026-11-11.
+- **Built,** on the art stream's fed96fde, which drew the five unwired,
+  rebased on a1cff1ba.
+  - `src/rules/catalog/kinds/sparks.ts`: the bomb (a blast of reach 1,
+    level 10), the cross zapper (its row and column as far as
+    `MOST_DEPTH`, level 11), the X zapper (its diagonals, 3 cells each
+    way, level 13), wool (`recharges`, level 14) and the cage (`frees`, 2
+    hits, level 15), each needed and solid, 30 points for a hit, the
+    cage's 25 a hit making plan.md's 50.
+  - `src/view/art/art.ts`: their five `BRICK_ART` lines, the cage's art
+    stacking `FRAMES.caged(tint)` under its bars, so its tint picks the
+    friend's ink.
+  - Specs:
+    - `sparks.spec.ts` holds each kind to plan.md's table, what its first
+      break scores (`breakPoints()`) and its words to its reach and hits;
+    - `catalog.spec.ts` lists the twelve kinds in How to play's order;
+    - `levels.spec.ts` numbers a parsed wall's cages as their tints, and
+      its reach check meets a blast from a corner, a cross zapper's column
+      and an X zapper's diagonal three cells out, and finds a brick past
+      each one's reach;
+    - `wall_picture.spec.ts` tints a picture's cages;
+    - `art.spec.ts` shows a cage of each tint over its friend in that ink,
+      whole and hit, its specs of every cataloged kind taking in the five;
+    - `atlas_frames.spec.ts` lists their frames, its `WAITING_ART` and
+      `everyFrame()` gone with nothing left waiting;
+    - `cast.spec.ts` and `grid.spec.ts` give the five their shapes.
+  - Wool and the cage fly as themselves: `zaps.spec.ts`,
+    `recharges.spec.ts`, `frees.spec.ts`, `flight.spec.ts` and
+    `random_flights.ts` draw the real kinds, and `round.spec.ts` plays a
+    round through a real cage, its friend joining the crew in the cage's
+    ink. `stand_ins.ts` loses `WOOL` and `CAGE`, keeping the prism, and
+    gains `uncataloged()`, the legend's first character no cataloged
+    kind's brick stands for.
+  - `AGENTS.md` and the `brick-fuzz-pop-testing` skill: the packages
+    still to come, and the catalog's, the art's and the stand-ins' lines.
+- **Choices.**
+  1. **Sparks' table is held in `sparks.spec.ts`,** beside its file;
+     the shell's and moss's stay in `catalog.spec.ts`, where X3 put them.
+  2. **The refusals of an uncataloged kind take `uncataloged()`,** the
+     bumper now, in `levels.spec.ts` and `wall_picture.spec.ts`, so they
+     hold whichever of X1 and X2 lands first, and fail saying so once
+     every kind is cataloged.
+  3. **A cage the specs break stands over cages out of the fuzzball's
+     way,** in the lowest row, as many as make its tint differ from its
+     row, since a cage's tint is its number among the wall's.
+  4. **`playRoundBy()`'s spec flies a stand-in prism,** as the crew's
+     spec moved to `playRound()` with the real cage.
+  5. **`cast.spec.ts` and `grid.spec.ts` add the five lines,** as the
+     shell and moss did, keeping `toEqual`.
+- **Checks,** on the change rebased on a1cff1ba: the workspace's `lint`
+  and `typecheck` pass; `test:coverage` passes 5,169 tests in 109 files in
+  `dom` and `pure`, at the floors, and 150 in 20 in `sim`; the root's
+  `yarn lint` passes.
+- **The mutation pass.** 17 mutants, all killed:
+  - in `sparks.ts`, the bomb's reach 2, the bomb a cross, the cross
+    zapper's reach 9, the X zapper's 2 and 4, the X a cross, wool and the
+    cage without their traits, the cage's points 50, its hits 1, and the
+    cage and the X zapper a level early;
+  - in `art.ts`, the cage drawn as a tough brick, the cross zapper as the
+    X, and wool as a bomb;
+  - the review's two: `FREES_RULE` freeing in the cage's row's ink, and
+    `fly()` handing a broken brick its row as its tint, each killed by its
+    own folder's specs alone.
+- **The review:** a fresh agent found no bug in the catalog, which keeps
+  plan.md's table and points. Its points:
+  1. The frees and flight specs' cages took the ink of their rows, so a
+     rule freeing in the row's ink passed them. Fixed: three cages under
+     the freed one in `frees.spec.ts` (ink 3, row 2), two in
+     `flight.spec.ts` (ink 2, row 3).
+  2. The catalog's order spec restated `BRICK_KINDS`' spreads. Fixed:
+     the twelve ids written out. The shell's and moss's checks stay where
+     X3 put them, as choice 1 says.
+  3. `AGENTS.md` still listed X1 and X3 to come. Fixed.
+  4. `sparks.spec.ts` worked out a break's points itself. Fixed: through
+     `breakPoints()`.
+  5. Both specs computed the uncataloged character, and would fail
+     astray once none is left. Fixed: `uncataloged()`, which throws
+     saying so.
+  6. `playRoundBy()`'s spec claimed the rules it is handed too, which fly
+     a prism as the bricks' own do. Fixed: named for the kinds alone.
+  7. Nits: `sparks.spec.ts`' box shapes repeated `grid.spec.ts`', and
+     `flight.spec.ts` handed one wool spec the catalog needlessly, both
+     fixed; the checks' line now says the change was rebased; and
+     `SPELLED` beside `catalog.spec.ts`' `spelled()` is left, each a
+     spec's own line.

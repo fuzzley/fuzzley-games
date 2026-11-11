@@ -113,16 +113,18 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   kinds; `eventsOf()` picks a flight's events of a kind, and `near()`
   matches a number as near as the flight's arithmetic finds it.
 - **Kinds not yet built** stand in from `src/testing/stand_ins.ts`: a
-  bumper, a portal, a prism, wool and a cage, and `STAND_IN_RULES`, the
-  rules they fly by, each brick's own but for plates and shells, which do
-  nothing there. `STAND_INS` is the catalog with the bumper in the row
-  zapper's place and the portal in the column zapper's, so a picture's `-`
-  is a bumper and its `|` a portal (the legend's own portal marks throw in
-  `wallFrom()` until a portal is cataloged); the prism, wool and cage join
-  a catalog a spec makes for itself, as `random_flights.ts` does. A spec
-  hands them to `playRoundBy()`, whose wall still comes down and is found
-  cleared by the catalog's kinds, so a stand-in is needed as the zapper it
-  replaces is. `struckOf()` is a strike as a brick's rules see it.
+  bumper, a portal and a prism, and `STAND_IN_RULES`, the rules they fly by,
+  each brick's own but for plates and shells, which do nothing there.
+  `STAND_INS` is the catalog with the bumper in the row zapper's place and
+  the portal in the column zapper's, so a picture's `-` is a bumper and its
+  `|` a portal (the legend's own portal marks throw in `wallFrom()` until a
+  portal is cataloged); the prism joins a catalog a spec makes for itself,
+  as `random_flights.ts` does. A spec hands them to `playRoundBy()`, whose
+  wall still comes down and is found cleared by the catalog's kinds, so a
+  stand-in is needed as the zapper it replaces is. `struckOf()` is a strike
+  as a brick's rules see it, and `uncataloged()` the legend's first
+  character whose kind the catalog doesn't hold yet, which throws once
+  every kind is cataloged.
 - **Every flight is held to its checks.** `random_flights.ts` draws seeded
   flights at random walls (`randomFlight()`) and finds where a fuzzball
   came nearer a brick than it may (`clearanceProblemsOf()`);

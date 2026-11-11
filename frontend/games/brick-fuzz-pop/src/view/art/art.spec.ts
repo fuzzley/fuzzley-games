@@ -85,6 +85,24 @@ describe("brickLayers", () => {
     ).toEqual(["tile-4", "pips-3", "cracks-2"]);
   });
 
+  it.each(INKS)(
+    "shows a cage of tint %i over its friend in that ink, whole and then hit",
+    (tint) => {
+      const whole: BrickLook = {
+        kind: "cage",
+        tint,
+        hits: 2,
+        full: 2,
+        plates: 0,
+      };
+
+      expect([brickLayers(whole), brickLayers({ ...whole, hits: 1 })]).toEqual([
+        [`caged-${String(tint)}`, "cage-whole"],
+        [`caged-${String(tint)}`, "cage-hit"],
+      ]);
+    },
+  );
+
   it.each(BRICK_KIND_IDS)(
     "shows a whole %s unlike a whole brick of any other kind",
     (kind) => {

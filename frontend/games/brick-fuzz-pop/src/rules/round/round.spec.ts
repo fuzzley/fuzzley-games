@@ -1,6 +1,6 @@
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { eventsOf, near } from "../../testing/flights";
-import { CAGE, STAND_IN_RULES } from "../../testing/stand_ins";
+import { PRISM, STAND_IN_RULES } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
@@ -91,6 +91,22 @@ describe("playRound()", () => {
     ]).toEqual([[1], 2]);
   });
 
+  // The cage stands over two others, out of the fuzzball's way, so it holds
+  // the friend in ink 2, and a fuzzball of charge 2 breaks it at a strike.
+  it("adds the friend a cage frees to the crew, after those it had", () => {
+    const start = {
+      ...startAt(["....C....", "C.C......"]),
+      crew: { friends: [3] },
+    };
+
+    const round = playRound(start, { aim: UP, charge: 2 }, "hot");
+
+    expect([round.outcome.freed, round.next.crew]).toEqual([
+      1,
+      { friends: [3, 2] },
+    ]);
+  });
+
   it("flies by the bored distance it is handed", () => {
     const start = startAt(["ooooooooo"]);
 
@@ -103,23 +119,17 @@ describe("playRound()", () => {
 });
 
 describe("playRoundBy()", () => {
-  it("adds the friends the round frees to the crew, after those it had", () => {
-    const start = {
-      ...startAt(["....2...."]),
-      crew: { friends: [3] },
-    };
+  it("flies by the kinds it is handed", () => {
+    const start = startAt(["....o...."]);
     const rules = {
       bored: BORED,
-      kinds: { ...BRICK_KINDS, tough: CAGE },
+      kinds: { ...BRICK_KINDS, brick: PRISM },
       traits: STAND_IN_RULES,
     };
 
-    const round = playRoundBy(start, { aim: UP, charge: 2 }, "hot", rules);
+    const round = playRoundBy(start, { aim: UP, charge: 0 }, "hot", rules);
 
-    expect([round.outcome.freed, round.next.crew]).toEqual([
-      1,
-      { friends: [3, 0] },
-    ]);
+    expect(eventsOf(round, "split").map(({ cell }) => cell)).toEqual([4]);
   });
 });
 

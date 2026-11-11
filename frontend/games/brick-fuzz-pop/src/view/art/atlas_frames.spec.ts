@@ -12,16 +12,11 @@ import {
   PIXEL_RATIOS,
   reachPastRoundRect,
 } from "../../testing/art_frames";
-import { BRICK_ART, type KindArt } from "./art";
 import { atlasFrames } from "./atlas_frames";
 import { CHARGES, FRAMES, FRAME_NAMES, INKS } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
-import { BOMB_ART } from "./kinds/bomb";
 import { tileBody, tileRadius } from "./kinds/brick";
-import { CAGE_ART } from "./kinds/cage";
 import { cracksFrame } from "./kinds/tough";
-import { WOOL_ART } from "./kinds/wool";
-import { zapperArt } from "./kinds/zapper";
 import { cellOf } from "./symbols";
 
 /** The largest atlas every device takes, a side. */
@@ -44,35 +39,12 @@ const ART_SCALES: readonly ArtScale[] = [
   { unit: 128, pixelRatio: 3 },
 ];
 
-/**
- * The art of kinds the catalog doesn't have yet, by the id each will take,
- * which the atlas holds once `BRICK_ART` takes it up with its kind: held to
- * the atlas's rules meanwhile, and passed over once it is taken up.
- */
-const WAITING_ART: Readonly<Record<string, KindArt>> = {
-  bomb: BOMB_ART,
-  crossZapper: zapperArt("crossZapper"),
-  xZapper: zapperArt("xZapper"),
-  wool: WOOL_ART,
-  cage: CAGE_ART,
-};
-
 /** The bricks' frames drawn on a tile of their own rather than the chunky tile: the zappers'. */
 const OWN_TILES: ReadonlySet<string> = new Set(
   (["row", "column", "cross", "x"] as const).map((pattern) =>
     FRAMES.zapper(pattern),
   ),
 );
-
-/** Returns every frame the atlas holds at a scale, and those of the art waiting for its kinds. */
-function everyFrame(scale: ArtScale): readonly ArtFrame[] {
-  return [
-    ...atlasFrames(ART_PALETTE, scale),
-    ...Object.entries(WAITING_ART)
-      .filter(([kind]) => !(kind in BRICK_ART))
-      .flatMap(([, art]) => art.frames(ART_PALETTE, scale)),
-  ];
-}
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
@@ -112,9 +84,9 @@ function breaking(
 }
 
 describe.each(ART_SCALES)(
-  "atlasFrames, and the art waiting for its kinds, at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
+  "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
-    const frames = everyFrame(scale);
+    const frames = atlasFrames(ART_PALETTE, scale);
     const fuzzballs = new Set(
       fuzzballFrames(ART_PALETTE, scale).map(({ name }) => name),
     );
@@ -194,8 +166,8 @@ describe.each(ART_SCALES)(
 describe("atlasFrames", () => {
   const frames = ART_FRAMES;
 
-  it("names every frame once, each a frame's name, the art waiting for its kinds among them", () => {
-    const names = everyFrame(ART_SCALE).map((frame) => frame.name);
+  it("names every frame once, each a frame's name", () => {
+    const names = frames.map((frame) => frame.name);
     const known = new Set<string>(FRAME_NAMES);
 
     expect({
@@ -204,7 +176,7 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames, 8 tiles, 5 pips, 5 cracks, the steel, 2 zappers, the shell's body and 2 pips, and the moss's cap and 2 pips, then the fuzzballs'", () => {
+  it("holds the bricks' frames, 8 tiles, 5 pips, 5 cracks, the steel, 2 zappers, the bomb, 2 zappers more, wool, the cage's 8 insides and 2 looks, the shell's body and 2 pips, and the moss's cap and 2 pips, then the fuzzballs'", () => {
     expect(frames.map((frame) => frame.name)).toEqual([
       ...[0, 1, 2, 3, 4, 5, 6, 7].map((ink) => `tile-${String(ink)}`),
       ...[2, 3, 4, 5, 6].map((pips) => `pips-${String(pips)}`),
@@ -212,6 +184,13 @@ describe("atlasFrames", () => {
       "steel",
       "zapper-row",
       "zapper-column",
+      "bomb",
+      "zapper-cross",
+      "zapper-x",
+      "wool",
+      ...INKS.map((ink) => `caged-${String(ink)}`),
+      "cage-whole",
+      "cage-hit",
       "shell-body",
       "shell-2",
       "shell-3",
@@ -225,10 +204,10 @@ describe("atlasFrames", () => {
     ]);
   });
 
-  it("leaves out only the cracks, the steel's rivets, the bomb's dots and the cage's crack at 29 CSS pixels a unit, where 31 shows them, the art waiting for its kinds among them", () => {
-    const small = everyFrame({ unit: 58, pixelRatio: 2 });
+  it("leaves out only the cracks, the steel's rivets, the bomb's dots and the cage's crack at 29 CSS pixels a unit, where 31 shows them", () => {
+    const small = atlasFrames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
 
-    const fewer = everyFrame(ART_SCALE)
+    const fewer = frames
       .filter(
         (frame, i) => frame.commands.length > (small[i]?.commands.length ?? 0),
       )
@@ -244,7 +223,7 @@ describe("atlasFrames", () => {
 });
 
 describe.each(PIXEL_RATIOS)(
-  "atlasFrames, and the art waiting for its kinds, at every unit from 1 to 16 device pixels, %f to a CSS pixel",
+  "atlasFrames at every unit from 1 to 16 device pixels, %f to a CSS pixel",
   (pixelRatio) => {
     const scales = Array.from({ length: 16 }, (_, i) => ({
       unit: i + 1,
@@ -253,7 +232,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("draws nothing at a size below nothing", () => {
       const negative = scales.flatMap((scale) =>
-        breaking(everyFrame(scale), (frame) =>
+        breaking(atlasFrames(ART_PALETTE, scale), (frame) =>
           frame.commands.every((command) =>
             sizesIn(command).every((size) => size >= 0),
           ),
@@ -264,7 +243,9 @@ describe.each(PIXEL_RATIOS)(
     });
 
     it("packs into an atlas", () => {
-      const packs = scales.map((scale) => atlasSize(everyFrame(scale)));
+      const packs = scales.map((scale) =>
+        atlasSize(atlasFrames(ART_PALETTE, scale)),
+      );
 
       expect(packs.every(({ width, height }) => width > 0 && height > 0)).toBe(
         true,

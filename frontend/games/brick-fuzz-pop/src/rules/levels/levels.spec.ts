@@ -1,4 +1,5 @@
 import { keysOf } from "@fz/core/records";
+import { uncataloged } from "../../testing/stand_ins";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
@@ -37,6 +38,9 @@ const BUILT = keysOf(LEGEND).flatMap((character) => {
   const { kind } = LEGEND[character];
   return isBrickKindId(kind) ? [[character, kind] as const] : [];
 });
+
+/** The first of the legend's characters whose kind the catalog doesn't hold yet, for the refusal of a kind no set has brought in. */
+const UNBUILT = uncataloged();
 
 /** Every level by its name. */
 const NAMED = LEVELS.map((entry) => [entry.data.name, entry] as const);
@@ -286,6 +290,23 @@ describe("parseLevel", () => {
     ).toEqual([0, 0, 0, 0, 0, 0]);
   });
 
+  it("numbers its cages from the wall's lowest row up, left to right, each one's tint the ink of the friend it holds", () => {
+    const level = parsed(picture(["oCooooooC"], ["C.......C", "...CC...."]));
+
+    expect(
+      level.bricks.flatMap((brick, cell) =>
+        brick?.kind === "cage" ? [[cell, brick.tint]] : [],
+      ),
+    ).toEqual([
+      [3, 0],
+      [4, 1],
+      [COLUMNS, 2],
+      [2 * COLUMNS - 1, 3],
+      [11 * COLUMNS + 1, 4],
+      [12 * COLUMNS - 1, 5],
+    ]);
+  });
+
   it("keeps the boon each jump of its wall earns, and its rows", () => {
     const level = parsed(picture([PLAIN, AIR, PLAIN]), { boon: "triple" });
 
@@ -398,8 +419,8 @@ describe("parseLevel", () => {
     ],
     [
       "a kind no set has brought in yet",
-      picture(["oo*oooooo"]),
-      `"*", in row 1 of its picture, is a "bomb", which no set has brought in yet`,
+      picture([`oo${UNBUILT}oooooo`]),
+      `"${UNBUILT}", in row 1 of its picture, is a "${LEGEND[UNBUILT].kind}", which no set has brought in yet`,
     ],
   ])("names %s", (_, bricks, problem) => {
     expect(() => parsed(bricks)).toThrow(`Level "spec": ${problem}.`);
@@ -564,6 +585,60 @@ describe("the reach check", () => {
     );
 
     expect(sealedIn(level)).toEqual([2 * COLUMNS + 1]);
+  });
+
+  // The bomb takes the ring's corner. No fuzzball slips between the steel
+  // either side of it, but the blast reaches the brick diagonally.
+  it("reaches a brick shut in by steel with a blast from its corner", () => {
+    const level = parsed(picture([], ["###oooooo", "#o#oooooo", "##*oooooo"]));
+
+    expect(sealedIn(level)).toEqual([]);
+  });
+
+  it("reaches a brick shut in by steel with a cross zapper's zap down its column", () => {
+    const level = parsed(
+      picture(
+        [],
+        ["o+ooooooo", PLAIN, PLAIN, "###oooooo", "#o#oooooo", "###oooooo"],
+      ),
+    );
+
+    expect(sealedIn(level)).toEqual([]);
+  });
+
+  it("finds a brick shut in by steel diagonal to a cross zapper", () => {
+    const level = parsed(
+      picture([], ["ooo+ooooo", "###oooooo", "#o#oooooo", "###oooooo"]),
+    );
+
+    expect(sealedIn(level)).toEqual([COLUMNS + 1]);
+  });
+
+  it("reaches a brick shut in by steel three cells along an X zapper's diagonal", () => {
+    const level = parsed(
+      picture([], ["ooooxoooo", PLAIN, "###oooooo", "#o#oooooo", "###oooooo"]),
+    );
+
+    expect(sealedIn(level)).toEqual([]);
+  });
+
+  it("finds a brick shut in by steel in an X zapper's column", () => {
+    const level = parsed(
+      picture([], ["oxooooooo", PLAIN, "###oooooo", "#o#oooooo", "###oooooo"]),
+    );
+
+    expect(sealedIn(level)).toEqual([COLUMNS + 1]);
+  });
+
+  it("finds a brick four cells along an X zapper's diagonal", () => {
+    const level = parsed(
+      picture(
+        [],
+        ["oooooxooo", PLAIN, PLAIN, "###oooooo", "#o#oooooo", "###oooooo"],
+      ),
+    );
+
+    expect(sealedIn(level)).toEqual([COLUMNS + 1]);
   });
 });
 

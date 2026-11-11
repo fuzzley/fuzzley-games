@@ -1,29 +1,6 @@
 import { eventsOf, flyPicture } from "../../../testing/flights";
-import { BRICK_KINDS, type BrickKinds } from "../../catalog/bricks";
-import type { ZapPattern } from "../../flight/events";
 import type { Flown } from "../../flight/flight";
-import { MOST_DEPTH, ZAP_DELAY, ZAP_HITS } from "../../tuning";
-
-/**
- * Returns the catalog with its row zapper zapping in another pattern as far
- * as given, standing in for the bomb (a blast a cell each way), the cross
- * zapper (its row and its column, as far as the deepest field's ceiling) or
- * the X zapper (its diagonals, three cells each way) until Sparks catalogs
- * them.
- */
-function zappingIn(pattern: ZapPattern, reach: number): BrickKinds {
-  const traits = [{ kind: "zaps", pattern, hits: ZAP_HITS, reach }] as const;
-  return { ...BRICK_KINDS, rowZapper: { ...BRICK_KINDS.rowZapper, traits } };
-}
-
-/** The catalog with its row zapper standing in for a bomb. */
-const BOMBS = zappingIn("blast", 1);
-
-/** The catalog with its row zapper standing in for a cross zapper. */
-const CROSSES = zappingIn("cross", MOST_DEPTH);
-
-/** The catalog with its row zapper standing in for an X zapper. */
-const XS = zappingIn("x", 3);
+import { ZAP_DELAY } from "../../tuning";
 
 /** Returns the wall cells a flight's zaps and blasts reached, each in turn. */
 function reachesOf(flown: Flown): (readonly number[])[] {
@@ -111,8 +88,7 @@ describe("ZAPS_RULE", () => {
   // its reach.
   it("blasts the bricks in the eight cells about a bomb half a unit after it breaks, breaking each", () => {
     const flown = flyPicture({
-      picture: ["...ooo...", "..oo-o...", "...o.o..."],
-      kinds: BOMBS,
+      picture: ["...ooo...", "..oo*o...", "...o.o..."],
     });
 
     expect([
@@ -142,7 +118,7 @@ describe("ZAPS_RULE", () => {
   });
 
   it("leaves the steel about a bomb whole", () => {
-    const flown = flyPicture({ picture: ["...#-#..."], kinds: BOMBS });
+    const flown = flyPicture({ picture: ["...#*#..."] });
 
     expect([reachesOf(flown), standing(flown)]).toEqual([[[]], [3, 5]]);
   });
@@ -150,16 +126,15 @@ describe("ZAPS_RULE", () => {
   // The bomb stands in the field's top row, a brick waiting over it.
   it("blasts no brick waiting over the ceiling", () => {
     const flown = flyPicture({
-      picture: ["....o....", "...o-o..."],
+      picture: ["....o....", "...o*o..."],
       lowestRow: 10,
-      kinds: BOMBS,
     });
 
     expect([reachesOf(flown), standing(flown)]).toEqual([[[3, 5]], [13]]);
   });
 
   it("sets off a bomb a blast breaks, half a unit after it", () => {
-    const flown = flyPicture({ picture: ["...--...."], kinds: BOMBS });
+    const flown = flyPicture({ picture: ["...**...."] });
 
     expect(eventsOf(flown, "zap").map(({ at, cell }) => [at, cell])).toEqual([
       [2.5 + ZAP_DELAY, 4],
@@ -171,8 +146,7 @@ describe("ZAPS_RULE", () => {
   // between them with two hits, which the bomb's blast takes.
   it("blasts the brick under a bomb a zap breaks", () => {
     const flown = flyPicture({
-      picture: ["....-....", "....4....", "....|...."],
-      kinds: BOMBS,
+      picture: ["....*....", "....4....", "....|...."],
     });
 
     expect([
@@ -196,10 +170,10 @@ describe("ZAPS_RULE", () => {
       "....o....",
       ...Array<string>(8).fill("....o...."),
       "....#....",
-      "o.#.-.o.o",
+      "o.#.+.o.o",
     ];
 
-    const flown = flyPicture({ picture, lowestRow: 1, kinds: CROSSES });
+    const flown = flyPicture({ picture, lowestRow: 1 });
 
     expect([reachesOf(flown), standing(flown)]).toEqual([
       [[0, 6, 8, 22, 31, 40, 49, 58, 67, 76, 85]],
@@ -217,13 +191,12 @@ describe("ZAPS_RULE", () => {
         ".o.....o.",
         "..#...o..",
         "...o.o...",
-        "....-....",
+        "....x....",
         "...o.o...",
         "..o...o..",
         ".o.....o.",
       ],
       lowestRow: 1,
-      kinds: XS,
     });
 
     expect([reachesOf(flown), standing(flown)]).toEqual([

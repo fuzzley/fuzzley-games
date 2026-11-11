@@ -2,9 +2,11 @@
 // will meet them are specced before they are built. Each stands in under
 // the id of a kind the catalog holds, in a catalog a spec hands the rules,
 // so a picture lays it out in that kind's character. With them, the rules
-// they are flown by, and a strike as a brick's rules see it, so a trait's
-// rule is specced on its own.
+// they are flown by, a strike as a brick's rules see it, so a trait's rule
+// is specced on its own, and a character of the legend no cataloged kind's
+// brick stands for yet.
 
+import { keysOf } from "@fz/core/records";
 import { EARTHS_RULE } from "../rules/bricks/traits/earths";
 import { FREES_RULE } from "../rules/bricks/traits/frees";
 import { KICKS_RULE } from "../rules/bricks/traits/kicks";
@@ -18,9 +20,11 @@ import {
   BRICK_KINDS,
   type BrickKind,
   type BrickKinds,
+  isBrickKindId,
 } from "../rules/catalog/bricks";
 import type { Struck, TraitRules } from "../rules/flight/hooks";
 import { FLOORWARD } from "../rules/grid";
+import { LEGEND, type LegendCharacter } from "../rules/levels/legend";
 
 /** A bumper made up for specs: round, never broken, kicking a fuzzball from a disc of 0.38. */
 export const BUMPER: BrickKind = {
@@ -58,20 +62,6 @@ export const PRISM: BrickKind = {
   traits: [{ kind: "splits", cos: Math.sqrt(3) / 2, sin: 0.5 }],
 };
 
-/** A wool brick made up for specs: breaks at a hit, and charges the fuzzball that breaks it to the most. */
-export const WOOL: BrickKind = {
-  ...BRICK_KINDS.brick,
-  name: "Wool brick",
-  traits: [{ kind: "recharges" }],
-};
-
-/** A cage made up for specs: two hits, and frees a friend as it breaks. */
-export const CAGE: BrickKind = {
-  ...BRICK_KINDS.tough,
-  name: "Cage",
-  traits: [{ kind: "frees" }],
-};
-
 /**
  * Rules for specs for every trait the flight's hooks serve: each brick's
  * own, but for plates and shells, which do nothing here.
@@ -102,4 +92,23 @@ export function struckOf(given: Partial<Struck> = {}): Struck {
     earths: false,
     ...given,
   };
+}
+
+/**
+ * Returns the first of the legend's characters whose kind the catalog
+ * doesn't hold yet, for a spec of a picture refusing one.
+ *
+ * @throws {Error} once the catalog holds every kind the legend names, as
+ *   such a spec has then run its course.
+ */
+export function uncataloged(): LegendCharacter {
+  const character = keysOf(LEGEND).find(
+    (each) => !isBrickKindId(LEGEND[each].kind),
+  );
+  if (character === undefined) {
+    throw new Error(
+      "The catalog holds every kind the legend names, so no spec can refuse an uncataloged one.",
+    );
+  }
+  return character;
 }

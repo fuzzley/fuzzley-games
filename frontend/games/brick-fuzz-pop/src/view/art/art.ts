@@ -6,11 +6,14 @@ import type { BrickKindId } from "../../rules/catalog/bricks";
 import type { Brick } from "../../rules/wall/wall";
 import type { WallPalette } from "../colors/palette";
 import type { FrameName } from "./frames";
+import { BOMB_ART } from "./kinds/bomb";
 import { PLAIN_ART } from "./kinds/brick";
+import { CAGE_ART } from "./kinds/cage";
 import { MOSS_ART } from "./kinds/moss";
 import { SHELL_ART } from "./kinds/shell";
 import { STEEL_ART } from "./kinds/steel";
 import { TOUGH_ART } from "./kinds/tough";
+import { WOOL_ART } from "./kinds/wool";
 import { zapperArt } from "./kinds/zapper";
 
 /** Describes what a brick's art reads of it: its kind, its tint, its hits left and whole, and its plates. */
@@ -42,6 +45,11 @@ export const BRICK_ART = {
   steel: STEEL_ART,
   rowZapper: zapperArt("rowZapper"),
   columnZapper: zapperArt("columnZapper"),
+  bomb: BOMB_ART,
+  crossZapper: zapperArt("crossZapper"),
+  xZapper: zapperArt("xZapper"),
+  wool: WOOL_ART,
+  cage: CAGE_ART,
   shell: SHELL_ART,
   moss: MOSS_ART,
 } as const satisfies Readonly<Record<BrickKindId, KindArt>>;
