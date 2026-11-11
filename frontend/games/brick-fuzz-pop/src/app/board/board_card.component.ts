@@ -157,8 +157,8 @@ type ShownCard = ShownReady | ShownPaused | ShownCleared | ShownEnded;
  * shows what the board hands it first, the canvas's own cards
  * (`<fz-canvas-cards>`), that the board is still loading or couldn't be
  * drawn, and none of its own while they show one. Its buttons keep their
- * keys from the board, Phaser's keyboard target. The app hands the board
- * back the focus as it goes on (`resumeRun`, `nextLevel`, `tryAgain`,
+ * keys from the board, Phaser's keyboard target. The board takes the
+ * focus back as it goes on (`resumeRun`, `nextLevel`, `tryAgain`,
  * `newGame`), which the button took and would take away with its card.
  */
 @Component({

@@ -16,8 +16,8 @@ stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page. The site
 lists it as in development, its build shipping no screenshots yet. What
-the plan's packages still to come build (the rest of U1, T1 and T2, then
-X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
+the plan's packages still to come build (the rest of U1 and T2, then X1 to
+X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -473,7 +473,8 @@ helpers.
 - **`tools/`** — the scripts run from the workspace. `build-aims.mjs` writes
   the aims and `build-sounds.mjs` the sounds; `certify-levels.mjs` writes
   the certificates and the pars, and `report-levels.mjs` prints how the
-  careless player plays every level. `sound-lab.ts` is no script but the
+  careless player plays every level; `check-layout.mjs` checks the build's
+  layout in a headless Chrome. `sound-lab.ts` is no script but the
   sound lab, mounted on `@fz/dev/sound-lab-page`'s page (`mountSoundLab()`),
   which the dev server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
   `vite.config.ts`).
@@ -517,6 +518,18 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002,
   Snake's 9003, Brick Breaker's 9004 and Asteroid Breaker's 9005).
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
+- **Check the Layout:** `yarn check:layout` (runs `tools/check-layout.mjs`
+  on the build `yarn build` made: `@fz/dev/layout`'s `checkPhaserLayout()`
+  at each shape and turn, at twice the pixels, the field `--across` by
+  `--down`, the panels a deck shown both or neither (`data-panels`); then
+  its own inspection: a unit of 24 CSS px at least; the unit, the depth
+  (`data-depth`), the floor's band (`--band`) and the lintel (`--lintel`)
+  its room (`data-room`) asks for, the field lying in the room, filling its
+  width where it is deeper than 11 rows and its height where it is 11; the
+  panels wherever 184 CSS px are spare each side, and nowhere else;
+  and the wall on the row a level opens on at the field's depth
+  (`data-wall`), a turn of the window included, as a level with no round
+  played begins again on a depth the field takes).
 - **Write the Aims:** `yarn build:aims` (writes `src/rules/aims.ts`, each
   aim's heading as two numbers, from `tools/build-aims.mjs`;
   `src/rules/aims.spec.ts` fails while the file isn't what the script
