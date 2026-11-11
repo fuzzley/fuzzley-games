@@ -15,9 +15,10 @@ package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page. The site
-lists it as in development, its build shipping no screenshots yet. What
-the plan's packages still to come build (T2, then X1 to X3, Y1 to Y3, D1,
-F1, Z1 and Z2) isn't here yet.
+lists it as in development, its screenshots taken on a level of Warm-up
+until Sparks is built. What the plan's packages still to come build (the
+rest of T2, the screenshots on level 18, then X1 to X3, Y1 to Y3, D1, F1,
+Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -55,11 +56,12 @@ fixes, `Math.sqrt()` among them, with no `**` and no constant such as
 `Math.PI`, so a certificate found in Node holds in every browser. The
 specs' helpers `eslint.config.js` names in `HELD_AS_RULES` are held as the
 rules are, to their fence and their exact arithmetic, from the commit that
-writes each: so far `src/testing/wall_picture.ts`,
-`src/testing/wall_score.ts`, `src/testing/solver.ts`,
-`src/testing/casual.ts`, and the scripts' `src/testing/script_api.ts`,
-`src/testing/certify_api.ts` and `src/testing/report_api.ts`. Every other
-file of `src/testing/` takes Angular by type alone.
+writes each: `src/testing/wall_picture.ts`, `src/testing/wall_score.ts`,
+`src/testing/solver.ts`, `src/testing/casual.ts`,
+`src/testing/kept_run.ts`, and the scripts' `src/testing/script_api.ts`,
+`src/testing/certify_api.ts`, `src/testing/report_api.ts` and
+`src/testing/screenshot_api.ts`. Every other file of `src/testing/` takes
+Angular by type alone.
 
 ## Layout
 
@@ -486,10 +488,12 @@ helpers.
   the aims and `build-sounds.mjs` the sounds; `certify-levels.mjs` writes
   the certificates and the pars, and `report-levels.mjs` prints how the
   careless player plays every level; `check-layout.mjs` checks the build's
-  layout in a headless Chrome. `sound-lab.ts` is no script but the
-  sound lab, mounted on `@fz/dev/sound-lab-page`'s page (`mountSoundLab()`),
-  which the dev server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
-  `vite.config.ts`).
+  layout in a headless Chrome, and `capture-screenshots.mjs` makes the
+  screenshots the site shows, both handing a page a run kept by the rules,
+  stored as the game stores one, through `stored_run.mjs`. `sound-lab.ts`
+  is no script but the sound lab, mounted on `@fz/dev/sound-lab-page`'s
+  page (`mountSoundLab()`), which the dev server alone serves
+  (`@fz/dev/sound-lab`'s `soundLab()`, in `vite.config.ts`).
 
 ## What It Keeps
 
@@ -541,7 +545,24 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   panels wherever 184 CSS px are spare each side, and nowhere else;
   and the wall on the row a level opens on at the field's depth
   (`data-wall`), a turn of the window included, as a level with no round
-  played begins again on a depth the field takes).
+  played begins again on a depth the field takes; then all of it again over
+  a run kept by the rules, a round played on Hello, wall, which each page
+  takes up paused, its wall on the row the run kept it on at every shape
+  and through each turn, whatever the field's depth).
+- **Capture Screenshots:** `yarn capture:screenshots` (runs
+  `tools/capture-screenshots.mjs` against the running dev server in
+  headless Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`:
+  a run kept by the rules (`keptRun()`, in `src/testing/kept_run.ts`, which
+  it loads through `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`,
+  with the version the shell keeps it under), begun on level 9, Gatehouse,
+  on a field 11 deep and played two rounds in by the first two shots of
+  its certificate there, taken up and gone on with, the next shot aimed by
+  the arrow keys at 55 degrees and a charge of 3, which it waits to hear
+  the game say, at 1280 × 720 and 2× on Midnight blue, written to
+  `public/docs/screenshots/brick-fuzz-pop/` as the site's `preview.webp`
+  (2560 × 1440), which `index.html` names as the link preview, and
+  `thumb.webp` (576 × 324), cropped around the field; `--url` points it at
+  another server than `http://localhost:9006/`).
 - **Write the Aims:** `yarn build:aims` (writes `src/rules/aims.ts`, each
   aim's heading as two numbers, from `tools/build-aims.mjs`;
   `src/rules/aims.spec.ts` fails while the file isn't what the script
@@ -679,9 +700,14 @@ What the specs share is in `src/testing/`:
   folders to a file for each.
 - `script_api.ts` types what the scripts take from the game, importing
   nothing, so `tsconfig.scripts.json` checks them against it;
-  `certify_api.ts` (`CERTIFY_API`) and `report_api.ts` (`REPORT_API`) are
-  what `certify-levels.mjs` and `report-levels.mjs` load through Vite, held
-  to those types.
+  `certify_api.ts` (`CERTIFY_API`), `report_api.ts` (`REPORT_API`) and
+  `screenshot_api.ts` (`SCREENSHOT_API`) are what `certify-levels.mjs`,
+  `report-levels.mjs`, and `capture-screenshots.mjs` and
+  `check-layout.mjs` load through Vite, held to those types.
+- `kept_run.ts` keeps a run as the game keeps one (`keptRun()`): begun at
+  a level on a field of a depth, a round played for each shot, the level
+  still on, for the screenshots and the layout check to hand a page to
+  take up.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
   specs (`ART_FRAMES`), lists the pixel ratios they check the art at
   (`PIXEL_RATIOS`), and measures how far a point lies from a line or past a
