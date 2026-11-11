@@ -2,11 +2,12 @@
 
 `frontend/games/`: the games built here, one workspace each, named after its
 folder: the Solitaire Collection (`solitaire/`), Minesweeper (`minesweeper/`),
-Sudoku (`sudoku/`), Snake (`snake/`), Brick Breaker (`brick-breaker/`) and
-Asteroid Breaker (`asteroid-breaker/`). These rules hold for every game. The
-frontend's, in [frontend/AGENTS.md](../AGENTS.md), and the repository's apply
-too, and each game keeps its own in its folder's `AGENTS.md`. Paths are relative
-to `frontend/games/`.
+Sudoku (`sudoku/`), Snake (`snake/`), Brick Breaker (`brick-breaker/`),
+Asteroid Breaker (`asteroid-breaker/`) and Brick Fuzz Pop (`brick-fuzz-pop/`).
+These rules hold for every game. The frontend's, in
+[frontend/AGENTS.md](../AGENTS.md), and the repository's apply too, and each
+game keeps its own in its folder's `AGENTS.md`. Paths are relative to
+`frontend/games/`.
 
 ## What every game keeps
 
@@ -57,11 +58,11 @@ to `frontend/games/`.
 - **It wears the games' chrome.** `@fz/game-ui`'s game bar, breakpoints and
   viewport frame every game alike and change its shape at the same widths
   (`frontend/lib/game-ui/AGENTS.md`). A game played in runs on a board
-  drawn with Phaser, as Snake, Brick Breaker and Asteroid Breaker are,
-  takes its run's lifecycle from there too: its `GameService` extends
-  `RunLifecycle`, which pauses, goes on and starts runs at the keys every
-  such game shares, holds the drawn gate its `resume()` waits on, and asks
-  before a run in progress is lost.
+  drawn with Phaser, as Snake, Brick Breaker, Asteroid Breaker and Brick
+  Fuzz Pop are, takes its run's lifecycle from there too: its `GameService`
+  extends `RunLifecycle`, which pauses, goes on and starts runs at the keys
+  every such game shares, holds the drawn gate its `resume()` waits on, and
+  asks before a run in progress is lost.
 - **It shares `@fz/core`'s helpers,** the seeded random and its seeds mixed
   in named streams, a run's stages and the keys every run shares, a new
   run's id and seed, the readers for stored JSON and a data file's keys, a

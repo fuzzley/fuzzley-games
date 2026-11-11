@@ -2045,3 +2045,64 @@ included, passes.
 **The review:** nothing to fix: both examples match `describe.ts` as
 built, and no other line of the plans quotes the old words. The one note,
 that the entry lacked its checks, is taken above.
+
+### D1's lists: Brick Fuzz Pop where the repository names its games
+
+**2026-11-11.** At the integrator's word, D1's list pieces while T2's
+level-18 part waits for Y1; the `brick-fuzz-pop-content` skill waits until
+every kind is cataloged, after X1 and X2.
+
+**What was built.** Brick Fuzz Pop is named wherever the repository lists
+the games built here:
+
+- `.agents/AGENTS.md`: the games served under `/play/<slug>/`, the
+  Technology Stack's games ("Brick Fuzz Pop is too", drawn as Brick
+  Breaker is, its rules free of any framework, pointing at its
+  `AGENTS.md`), the layers of
+  `AGENTS.md`, the workspaces' skills folders, and the apps' testing
+  skills in "Writing Unit Tests" (`brick-fuzz-pop-testing`).
+- `frontend/AGENTS.md`: the games' `AGENTS.md` under Layout, and the
+  workspaces whose `test:coverage` runs Vitest with coverage, then its
+  `sim` project without, as the two breakers' do ("as those three do"),
+  which now says the second run may time a flight too.
+- `frontend/games/AGENTS.md`: its opening list, and the games on a board
+  drawn with Phaser whose `GameService` extends `RunLifecycle`. The port
+  sentence keeps "which is being built", which Z1 removes with the badge.
+- `README.md`: the games, where each is built, its dev server on 9006, and
+  its page under `http://localhost:4200/play/`.
+- `docs/operations.md`: where it is built and played, and that it began
+  here.
+
+**Choices the plan didn't make.**
+
+1. **No "in development" in the lists,** but for the port sentence the
+   integrator kept: the site says so beside its name, and Z1 removes the
+   badge alone.
+2. **The libraries' `AGENTS.md` and the shared skills' lists in a commit
+   of their own,** after this one: the review found them, as Asteroid
+   Breaker's list commit had changed them with the rest.
+
+**Checks.** The root's `yarn lint`, its check of every backticked path and
+link included, passes; `node .agents/link-claude-skills.mjs` linked this
+worktree's skills, which git ignores, so the check warns of none.
+
+**The mutation pass.** A path added broken
+(`frontend/games/brick-fuzz-pop/.agents/skill/`) fails the reference
+check ("no such path").
+
+**The review:**
+
+1. _Choice 2 is untrue: `angular-testing`, `phaser-core`,
+   `web-game-accessibility` and `fuzzley-ui`, and `@fz/dev`'s,
+   `@fz/game-ui`'s and `@fz/core`'s `AGENTS.md`, hold lists or counts of
+   the games that leave Brick Fuzz Pop out, which Asteroid Breaker's list
+   commit changed with the rest._ Taken, in the next commit, split out as
+   the integrator allowed, with a review of its own; choice 2 says so.
+2. _The Technology Stack's sentence repeats what "is too" already says._
+   Taken: "Brick Fuzz Pop is too, its fuzzball aimed and charged at a wall
+   that comes down".
+3. _Three paragraphs left with short lines._ Taken: rewrapped.
+4. _`frontend/AGENTS.md`'s second run "plays or lays out every level or
+   wave", where Brick Fuzz Pop's also times a flight; and the entry's
+   "runs Vitest twice, then its `sim` project" reads as three runs._
+   Taken, both.
