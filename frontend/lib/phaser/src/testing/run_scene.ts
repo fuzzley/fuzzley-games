@@ -370,9 +370,11 @@ const KEY_CODES: Readonly<Record<string, number>> = {
  * browser gives it, which Phaser's keyboard and its captures read.
  *
  * Its `key` is the code unless given, so Space, for a spec to hand Testing
- * Library's `fireEvent`, is `browserKey("Space", " ")`. It throws for a code
- * whose `keyCode` it doesn't hold, rather than guess one; a key a spec needs
- * is added to its table.
+ * Library's `fireEvent`, is `browserKey("Space", " ")`. A letter's or a
+ * digit's `keyCode` (`KeyA` to `KeyZ`, `Digit0` to `Digit9`) comes from its
+ * code, and any other's from its table. It throws for any other code its
+ * table lacks, rather than guess one; a key a spec needs that isn't a letter
+ * or a digit is added to its table.
  */
 export function browserKey(
   code: string,
@@ -381,7 +383,7 @@ export function browserKey(
   return { code, key, keyCode: keyCodeOf(code) };
 }
 
-/** Returns the `keyCode` a browser gives a key, by its `code`, throwing for one it doesn't hold. */
+/** Returns the `keyCode` a browser gives a key, by its `code`, throwing for a code that is neither a letter's, a digit's nor in its table. */
 function keyCodeOf(code: string): number {
   if (/^(Key[A-Z]|Digit\d)$/.test(code))
     return code.charCodeAt(code.length - 1);

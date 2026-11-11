@@ -1364,3 +1364,31 @@ root's `yarn lint`, before the review and after its fixes.
 6. **A broken line in the view's entry.** Fixed: reflowed.
 7. **"How far a fuzzball flies bored"** misread `bored`. Fixed: "without a
    hit before it yawns".
+
+### `browserKey()`'s doc comment
+
+**2026-11-10.** At the integrator's word, following the docs pass's note.
+
+**What was written.** `browserKey()`'s doc comment in
+`frontend/lib/phaser/src/testing/run_scene.ts` now says a letter's or a
+digit's `keyCode` comes from its code and any other's from its table, and
+that it throws only for another code the table lacks, so a key a spec
+needs is added to the table only when it isn't a letter or a digit.
+`keyCodeOf()`'s line says the same in short.
+
+**Checks.** `@fz/phaser`'s `lint` and `typecheck` pass, and the root's
+`yarn lint`.
+
+**The mutation pass.** None: no code changed.
+
+**The review:**
+
+1. **`keyCodeOf()`'s line was garbled,** "one neither its code nor its
+   table gives". Fixed: "a code that is neither a letter's, a digit's nor
+   in its table".
+2. **"Past a letter or a digit" isn't the file's word,** which is "but".
+   Fixed: "a key a spec needs that isn't a letter or a digit", here and in
+   this entry.
+3. **A prototype name such as `toString` finds a function in `KEY_CODES`
+   rather than throwing.** Left: no browser sends such a code, and the
+   fix, `Object.hasOwn`, is code, outside this comment's commit.
