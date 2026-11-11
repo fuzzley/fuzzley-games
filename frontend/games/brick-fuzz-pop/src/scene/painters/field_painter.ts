@@ -13,7 +13,7 @@ import {
   lintelPixels,
 } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
-import { FIELD_FRAMES } from "../field_art";
+import { COUNT_DOT, FIELD_FRAMES } from "../field_art";
 import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
 
@@ -48,20 +48,22 @@ interface Span {
   readonly to: number;
 }
 
-/** Names the layers the field is drawn in: under the wall, and over it. */
+/** Names the layers the field is drawn in: under the wall, over it, and over the guide. */
 export interface FieldLayers {
   readonly field: GameObjects.Layer;
   readonly lines: GameObjects.Layer;
+  readonly count: GameObjects.Layer;
 }
 
 /**
  * Draws the field: under the wall, its cells, the floor's band, the lintel
  * over the ceiling, the frame around them and a dot at each corner its
  * cells share; over the wall, the jump line, with a dot for each brick the
- * level needs left under it once nine or fewer are, in threes, and the
- * danger line, which brightens, solid and twice as thick, while such a
- * brick stands at or under the row over it. It draws them again only once the layout, the
- * palette, that count or the danger changes.
+ * level needs left under it once nine or fewer are, in threes, over the
+ * guide, and the danger line, which brightens, solid and twice as thick,
+ * while such a brick stands at or under the row over it. It draws them
+ * again only once the layout, the palette, that count or the danger
+ * changes.
  */
 export class FieldPainter implements Painter {
   /** Draws the cells, the band, the lintel, the ceiling and the frame. */
@@ -85,6 +87,8 @@ export class FieldPainter implements Painter {
   private wall: Wall | null = null;
   /** How many bricks the jump line's count shows, 0 where it shows none. */
   private counted = 0;
+  /** How far, in device pixels, another dot's edge keeps from a count's dot's: as far as the count's groups stand apart, worked out once a layout. */
+  private clearance = 0;
   /** Whether a brick the level needs stands at or under the row over the floor's, which brightens the danger line. */
   private danger = false;
 
@@ -100,7 +104,22 @@ export class FieldPainter implements Painter {
       scene.add.image(0, 0, ATLAS, FIELD_FRAMES.countDot).setVisible(false),
     );
     layers.field.add([this.ground, ...this.gridDots]);
-    layers.lines.add([this.lines, ...this.countDots]);
+    layers.lines.add(this.lines);
+    layers.count.add([...this.countDots]);
+  }
+
+  /**
+   * Returns whether a dot some device pixels wide about a place on the
+   * canvas would stand nearer a dot of the jump line's count than the
+   * count's groups stand to each other, where it could be read as one of
+   * the count's.
+   */
+  crowdsCount(x: number, y: number, side: number): boolean {
+    for (const dot of this.countDots) {
+      const reach = (side + dot.displayWidth) / 2 + this.clearance;
+      if (dot.visible && Math.hypot(dot.x - x, dot.y - y) < reach) return true;
+    }
+    return false;
   }
 
   /** Draws the field as the frame has it, again only where its layout, its palette, the jump line's count or the danger changed. */
@@ -116,6 +135,7 @@ export class FieldPainter implements Painter {
       this.thirds = thirdsOf(shape.depth);
       this.jumpDashes = spansAcross(metrics, JUMP_LINE);
       this.dangerDashes = spansAcross(metrics, DANGER_LINE);
+      this.clearance = (COUNT_PITCH + GROUP_GAP - COUNT_DOT) * metrics.unit;
       this.drawGround(metrics, shape, palette);
       this.placeGridDots(metrics, shape, metrics.unit / baked.unit);
     }

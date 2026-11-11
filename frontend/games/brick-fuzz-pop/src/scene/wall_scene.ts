@@ -156,7 +156,7 @@ export class WallScene extends Scene {
   sounds!: SpritePlayer<SoundName>;
   /** Turns the player's keys, mouse and fingers into the shot being aimed. */
   steering!: Steering;
-  /** Every painter, back to front, which each frame draws. */
+  /** Every painter, back to front, which each frame draws, the field before the guide, which reads its count. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
   private context!: PaintContext;
@@ -215,7 +215,7 @@ export class WallScene extends Scene {
     const layers = this.layers();
     this.field = new FieldPainter(this, layers);
     this.wall = new WallPainter(this, layers.wall);
-    this.guide = new GuidePainter(this, layers.guide);
+    this.guide = new GuidePainter(this, layers.guide, this.field);
     this.effects = new EffectsPainter(this, layers);
     this.meter = new MeterPainter(this, layers.balls);
     this.balls = new BallPainter(this, layers.balls);
