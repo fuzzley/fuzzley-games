@@ -824,3 +824,150 @@ its review and the numbers worth keeping.
   5. The new `fly()` spec could sit under `describe("fly")`, being about the
      flight. Left: it sits with the specs of when zaps land, under
      `describe("fly's hooks")`.
+
+### R4: the first five kinds
+
+- **Date.** 2026-11-10.
+- **Built.**
+  - `src/rules/bricks/bricks.ts`: `strike(hits, struck)` works out what a
+    fuzzball's strike does to a brick with hits left and to the fuzzball
+    (`Strike`: the hits it took, the hits left, the charge after, whether
+    the brick earthed it, and whether the fuzzball passes through), as
+    plan.md's "Charge" says, once the brick's rules have said in `Struck`
+    whether the strike hurts it and whether it earths the charge. `fly()`'s
+    strike calls it, where R3 worked the arithmetic out inline (R3's choice
+    2).
+  - `src/rules/bricks/traits/never.ts`, `earths.ts` and `zaps.ts`:
+    `NEVER_RULE` shields its brick from every strike, a fuzzball's, a zap's
+    or a blast's; `EARTHS_RULE` has it earth the charge; `ZAPS_RULE` sets
+    off a zap of its pattern from its cell as it breaks, whatever broke it.
+  - `src/rules/bricks/traits/not_until.ts`: `notUntil(what, level)`, the
+    error for something played before the level that brings it in, and
+    `comesAt(level)`, the rule of a trait whose kind comes in later, which
+    throws it at each of the four moments.
+  - `src/rules/bricks/trait_rules.ts`: `TRAIT_RULES`, typed `TraitRules`,
+    K2's `{ readonly [K in TraitKind]: TraitRule<TraitOf[K]> }`: the three
+    rules above, and `comesAt()` for `recharges` (14), `frees` (15), `kicks`
+    (19), `splits` (20), `teleports` (21), `plated` (22), `shelled` (28) and
+    `regrows` (29), each its first kind's level in plan.md's table of
+    bricks.
+  - `src/testing/stand_ins.ts`: `STAND_IN_RULES` takes steel's two rules
+    from the bricks' own, and `struckOf()` makes a `Struck` for the specs.
+  - `src/testing/flights.ts`, new: `flyPicture()` flies a shot at a wall
+    drawn as a picture by the bricks' own rules, and `eventsOf()`, moved out
+    of `flight.spec.ts`, picks a flight's events of a kind.
+  - `src/testing/random_flights.ts`: the random walls of the catalog's own
+    kinds are flown by `TRAIT_RULES`, the other two thirds by the stand-ins'
+    rules, as before.
+  - `flight.spec.ts` flies the hand fixtures by `TRAIT_RULES`.
+- **Names added to files that aren't the stream's.** `TRAIT_RULES`, in
+  `src/rules/bricks/trait_rules.ts`, a file the integrator owns, written
+  here as §6 R4 and the integrator's go-ahead ask. `src/testing/flights.ts`
+  is a new file of the specs' helpers.
+- **Choices the plan didn't make.**
+  1. **`strike()` reads the rules' verdict, and doesn't run them.** `fly()`
+     runs a brick's `struck` rules for a fuzzball's strike and for a zap's
+     alike (`struckBy()`), so `strike()` takes the strike as they left it.
+     C1's order is `cast()`'s, which lists what a fuzzball meets at once
+     with faces before corners, each from the floor up, then left to right;
+     `fly()` strikes in that order, each strike spending the charge the last
+     one left.
+  2. **A strike makes one record,** `Strike`, alongside the strike's event,
+     so `fly()` still makes records only as events are.
+  3. **A brick that earths turns the fuzzball, though it breaks,** as
+     "Charge" says an earthed fuzzball turns: one that is hurt and earths,
+     which no kind is yet, takes its hits out of the charge, then the rest
+     of it, and the fuzzball turns off it. A spec holds it.
+  4. **A hot shot is kept from earthing by `strike()`,** not by each rule:
+     `EARTHS_RULE` earths every strike, and `strike()` keeps a hot shot's
+     charge, so the plate and the bumper won't need to look.
+  5. **A trait to come throws at every moment,** so a brick with one throws
+     at the first a flight reaches it at: a strike, a zap's reach, a
+     crossing into its cell. Its message names the trait and the level.
+  6. **The zaps' rule plays the row and the column,** and throws for the
+     bomb's blast (10), the cross (11) and the X (13), as §6 R4 has it cover
+     the row and column for now. `fly()` reaches every pattern already (R3's
+     choice 9), and `STAND_IN_RULES`' zaps play every one, so X1 only drops
+     the throw.
+  7. **Each trait's rule is a constant, `<TRAIT>_RULE`,** in its own file,
+     and `TRAIT_RULES` lists them, the later traits' levels beside them.
+- **Specs.**
+  - `bricks.spec.ts`, 12: `strike()` for a plain fuzzball, a charged one
+    that breaks a brick with charge to spare, with none, and one that
+    doesn't, a shielded strike, steel earthing a charge and earthing nothing
+    of a plain fuzzball, a brick that is hurt and earths, and a hot shot
+    through a brick, off one of six hits and unearthed.
+  - `traits/never.spec.ts` and `earths.spec.ts`, 8: each rule on a
+    `struckOf()`: steel shielded from a plain, charged or hot fuzzball, a
+    zap and a blast, and a brick earthing each fuzzball.
+  - `traits/zaps.spec.ts`, 7, flights by the catalog and `TRAIT_RULES`: a
+    row zap half a unit after its zapper breaks, two hits off each brick in
+    the row; a row zap and a column zap past steel, the steel left whole,
+    the column's as far as the ceiling and not into the row waiting over it;
+    a zap set off by a zapper a zap broke, half a unit later; and a zapper
+    of the blast, the cross and the x throwing as it breaks, with their
+    levels.
+  - `traits/not_until.spec.ts`, 5: `notUntil()`'s message, and `comesAt()`
+    throwing at each of its four moments.
+  - `trait_rules.spec.ts`, 11: each later trait throwing with its level;
+    then flights: steel earthing a charge of 3, and a hot shot unearthed on
+    it twice, the second after its bounce; and C1's floor up, a shot at 45°
+    into the pocket under one tough brick and beside another a row lower
+    spending its charge of 2 on the lower and turning off the upper's face.
+- **Checks.** On `brick-fuzz-pop` at 5f0e0c27 after the rebase, the
+  workspace's `lint`, `typecheck`, `test` and `test:coverage` pass: 3,812
+  tests in 68 files in `dom` and `pure` (43 in `src/rules/bricks/`, 71 in
+  `flight.spec.ts`), and the two benchmarks in `sim`; the rules and the view
+  at 100% of statements, functions and lines, `src/rules/bricks/` at 100% of
+  branches, and `flight.ts` at 98.7%, the same two lines left as in R3. The
+  root's `yarn lint` passes.
+- **The mutation pass.** 54 mutants, one at a time, against
+  `src/rules/bricks/`, `flight.spec.ts` and `src/testing/`'s specs: 21 of
+  `strike()`, 4 of steel's two rules, 9 of the zaps' rule, 5 of
+  `not_until.ts`, 12 of `TRAIT_RULES` (a rule swapped, emptied, or a level
+  moved to a neighbour's) and 3 of `fly()`'s strike. All killed, one by
+  hanging: `strike()` letting a fuzzball through a brick it took no hit off,
+  which sends it through steel, met again at once, without end, so a flight
+  that never ends can be made only by breaking the Charge rule. After the
+  review, the 30 mutants of the trait rules and `TRAIT_RULES` ran again
+  against the specs as they now stand, with four of `strike()`'s pass
+  through, dropping the earthing check among them: all killed.
+- **Numbers.** The random flights fly as R3's did, the catalog's third by
+  `TRAIT_RULES` playing what the stand-ins' rules played. fly()'s benchmark,
+  three runs under a load of about 11 from the other streams: one fuzzball,
+  median 39 to 45 µs and 99th percentile 1.3 to 1.9 ms; with mates or
+  friends, 163 to 193 µs and 3.1 to 3.8 ms, as R3's.
+- **The review:** a fresh agent found `fly()`'s flights unchanged,
+  `strike()` the same arithmetic as the code it replaces, the rules as
+  plan.md's "Charge", "Boons" and "The bricks" and C1 say, and the levels as
+  plan.md's table gives them, and raised five points. No second review: the
+  fixes correct the change, and its design stands.
+  1. A brick that is hurt and earths let a fuzzball through it, where
+     "Charge" says an earthed fuzzball turns, and `EARTHS_RULE`'s doc said
+     so too. Fixed: an earthed strike never passes (choice 3), its spec
+     turned round.
+  2. The column zap's spec said "as far as the ceiling" with nothing over
+     it. Fixed: a brick waits over the ceiling, and the zap leaves it
+     standing.
+  3. The zaps' rule was specced by the calls it made of a fake, where a
+     flight shows what it does. Fixed: `zaps.spec.ts` flies the catalog's
+     zappers, the row and column flights moved there from
+     `trait_rules.spec.ts`, and a made-up zapper of each later pattern;
+     `NotedHooks` and `HookCall` are gone, and `comesAt()`'s spec hands it
+     hooks that throw if asked.
+  4. `TRAIT_RULES`' and `ZAPS_RULE`'s docs opened with more than one
+     sentence, the first said `playRound()` hands `TRAIT_RULES` on, which
+     waits for R6, and `strike()`'s restated the Charge rule. Fixed: each
+     opens with one sentence, `playRound()` is gone, and `strike()`'s keeps
+     only the hot shot.
+  5. The never and earths specs built their strikes as the file was
+     collected and the rule then changed them, a hot shot struck with no
+     charge, `eventsOf()` was written in three specs, `3` and `3.5` sat
+     beside `2.5 + ZAP_DELAY`, and the random flights would throw once a
+     kind is cataloged before its rule. Fixed: each strike is built in its
+     test, the hot shot charged to the most, `eventsOf()` in
+     `src/testing/flights.ts` for the rules' specs
+     (`flight_fixtures.spec.ts`' own takes a fixture, and is the
+     integrator's), every moment a sum of `ZAP_DELAY`, and
+     `random_flights.ts`' doc says a kind cataloged makes them throw until
+     its rule lands.

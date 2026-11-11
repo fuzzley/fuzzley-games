@@ -5,6 +5,7 @@ import {
   orderProblemsOf,
   trackProblemsOf,
 } from "../../testing/flight_fixtures";
+import { eventsOf } from "../../testing/flights";
 import {
   clearanceProblemsOf,
   randomFlight,
@@ -19,6 +20,7 @@ import {
 } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
 import { AIMS } from "../aims";
+import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../catalog/bricks";
 import {
   AIMS_PER_DEGREE,
@@ -33,7 +35,6 @@ import {
 } from "../tuning";
 import { FLOORWARD, LEFT } from "../grid";
 import type { Wall } from "../wall/wall";
-import type { FlightEvent } from "./events";
 import { type FlightRules, type FlightStart, type Flown, fly } from "./flight";
 import type { Hooks, Struck, TraitRules } from "./hooks";
 
@@ -80,17 +81,6 @@ function wallOf(lowestRow: number, picture: readonly string[]): Wall {
   return wallFrom(picture, { lowestRow });
 }
 
-/** Returns a flight's events of a kind. */
-function eventsOf<K extends FlightEvent["kind"]>(
-  { flight }: Flown,
-  kind: K,
-): Extract<FlightEvent, { readonly kind: K }>[] {
-  return flight.events.filter(
-    (event): event is Extract<FlightEvent, { readonly kind: K }> =>
-      event.kind === kind,
-  );
-}
-
 /** Returns a value with each of its numbers matched near enough, for the rounding the arithmetic that found them. */
 function near(value: unknown): unknown {
   if (typeof value === "number") {
@@ -128,7 +118,7 @@ describe("fly, against the rounds made by hand", () => {
       const rules = {
         bored: BORED,
         kinds: BRICK_KINDS,
-        traits: STAND_IN_RULES,
+        traits: TRAIT_RULES,
       };
 
       const { flight } = fly(startOf(fixture), rules);

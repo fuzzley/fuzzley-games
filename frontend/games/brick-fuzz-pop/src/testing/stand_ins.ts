@@ -1,14 +1,19 @@
 // Kinds of brick the catalog doesn't hold yet, made up so the rules that
 // will meet them are specced before they are built. Each stands in under
 // the id of a kind the catalog holds, in a catalog a spec hands the rules,
-// so a picture lays it out in that kind's character.
+// so a picture lays it out in that kind's character. With them, the rules
+// they are flown by, and a strike as a brick's rules see it, so a trait's
+// rule is specced on its own.
 
+import { EARTHS_RULE } from "../rules/bricks/traits/earths";
+import { NEVER_RULE } from "../rules/bricks/traits/never";
 import {
   BRICK_KINDS,
   type BrickKind,
   type BrickKinds,
 } from "../rules/catalog/bricks";
-import type { TraitRules } from "../rules/flight/hooks";
+import type { Struck, TraitRules } from "../rules/flight/hooks";
+import { FLOORWARD } from "../rules/grid";
 
 /** A bumper made up for specs: round, never broken, kicking a fuzzball from a disc of 0.38. */
 export const BUMPER: BrickKind = {
@@ -61,22 +66,15 @@ export const CAGE: BrickKind = {
 };
 
 /**
- * Rules made up for specs for every trait the flight's hooks serve: steel
- * isn't hurt and earths a charge, a zapper zaps, wool recharges, a cage
- * frees a friend in ink 0, a bumper kicks, a prism splits and a portal
- * sends a fuzzball out of its twin; plates, shells and moss do nothing.
+ * Rules for specs for every trait the flight's hooks serve: steel's own,
+ * which isn't hurt and earths a charge, and the rest made up: a zapper zaps
+ * in any pattern, wool recharges, a cage frees a friend in ink 0, a bumper
+ * kicks, a prism splits and a portal sends a fuzzball out of its twin;
+ * plates, shells and moss do nothing.
  */
 export const STAND_IN_RULES: TraitRules = {
-  never: {
-    struck: (struck) => {
-      struck.hurts = false;
-    },
-  },
-  earths: {
-    struck: (struck) => {
-      struck.earths = true;
-    },
-  },
+  never: NEVER_RULE,
+  earths: EARTHS_RULE,
   zaps: {
     broken: (hooks, cell, _ball, { pattern, hits, reach }) => {
       hooks.zap(cell, pattern, hits, reach);
@@ -113,3 +111,17 @@ export const STAND_IN_RULES: TraitRules = {
   shelled: {},
   regrows: {},
 };
+
+/** Returns a strike as a brick's rules see it before they run: a plain fuzzball's on an unplated brick's floorward face, but for what is given. */
+export function struckOf(given: Partial<Struck> = {}): Struck {
+  return {
+    by: "fuzzball",
+    side: FLOORWARD,
+    plates: 0,
+    charge: 0,
+    hot: false,
+    hurts: true,
+    earths: false,
+    ...given,
+  };
+}

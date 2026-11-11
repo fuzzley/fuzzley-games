@@ -6,16 +6,17 @@
 // thing it meets to the next, cast() finding what and when: the one whose next
 // moment comes first goes next, a tie to the lower numbered, in the
 // implementation plan's order of fuzzballs (§5.6), and a zap lands after every
-// fuzzball at its moment. A fuzzball strikes the bricks it meets as plan.md's
-// "Charge" says, their trait rules running at each moment and changing the
-// flight through the hooks of src/rules/flight/hooks.ts. A flight's state is
-// made once as it starts, and what a fuzzball meets is cast into records the
-// module keeps and reuses, so a cast makes nothing; records are made only as
-// events are.
+// fuzzball at its moment. A fuzzball strikes the bricks it meets as
+// src/rules/bricks/bricks.ts' strike() says, their trait rules running at each
+// moment and changing the flight through the hooks of
+// src/rules/flight/hooks.ts. A flight's state is made once as it starts, and
+// what a fuzzball meets is cast into records the module keeps and reuses, so a
+// cast makes nothing; records are made only as events are.
 
 import { multiplierAt } from "@fz/core/math";
 import { MISSED } from "@fz/core/sweep";
 import { AIMS } from "../aims";
+import { strike } from "../bricks/bricks";
 import type {
   BrickKind,
   BrickKinds,
@@ -681,20 +682,16 @@ class Flying implements Hooks {
     if (earlier >= 0 || brick === null || brick === undefined) {
       return this.passedCells[earlier] === true;
     }
-    const { charge, hot } = ball;
     const kind = this.rules.kinds[brick.kind];
-    const hurts = this.struckBy("fuzzball", side, brick, kind, charge, hot);
-    const took = hurts ? Math.min(charge > 0 ? charge : 1, brick.hits) : 0;
-    const left = brick.hits - took;
-    const earthed = this.struck.earths && charge > 0 && !hot;
-    if (!hot) {
-      ball.charge = earthed ? 0 : charge - Math.min(charge, took);
-    }
+    this.struckBy("fuzzball", side, brick, kind, ball.charge, ball.hot);
+    const { took, left, charge, earthed, passes } = strike(
+      brick.hits,
+      this.struck,
+    );
+    ball.charge = charge;
     if (took > 0) {
       ball.idleFrom = ball.at;
     }
-    const breaks = took > 0 && left === 0;
-    const passes = breaks && charge > 0;
     this.struckCells.push(cell);
     this.passedCells.push(passes);
     this.cause.section = 0;
@@ -707,7 +704,7 @@ class Flying implements Hooks {
       cell,
       took,
       left,
-      charge: ball.charge,
+      charge,
       earthed,
     });
     this.wear(cell, brick, kind, took, "fuzzball", ball.ball);
