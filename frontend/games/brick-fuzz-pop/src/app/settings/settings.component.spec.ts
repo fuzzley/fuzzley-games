@@ -1,7 +1,9 @@
 import { TestBed } from "@angular/core/testing";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import type { CertificateOffer } from "../debug/debug_menu.component";
 import { SettingsComponent } from "./settings.component";
 import { type Settings, SettingsService } from "./settings.service";
 
@@ -10,6 +12,13 @@ interface RenderedSettings {
   readonly user: UserEvent;
   readonly store: SettingsService;
   readonly closed: ReturnType<typeof vi.fn>;
+  readonly playCertificate: ReturnType<typeof vi.fn>;
+}
+
+/** Says whether the drawer offers the debug menu, as a build for players doesn't, and the certificate it offers to play. */
+interface DebugOptions {
+  readonly debugMenu?: boolean;
+  readonly certificate?: CertificateOffer | null;
 }
 
 /**
@@ -17,10 +26,12 @@ interface RenderedSettings {
  * defaults for any not given.
  *
  * The specs keep one setting off its default at a time, so a box bound to
- * another setting shows the other's.
+ * another setting shows the other's. The drawer offers no debug menu,
+ * as a build for players doesn't, unless asked to.
  */
 async function renderSettings(
   kept: Partial<Settings> = {},
+  { debugMenu = false, certificate = null }: DebugOptions = {},
 ): Promise<RenderedSettings> {
   const storage = new MemoryStorage();
   storage.setItem(
@@ -28,15 +39,20 @@ async function renderSettings(
     JSON.stringify({ version: 1, ...kept }),
   );
   const closed = vi.fn();
+  const playCertificate = vi.fn();
   await render(SettingsComponent, {
-    inputs: { open: true },
-    on: { closed },
-    providers: [provideMemoryStorage(storage)],
+    inputs: { open: true, certificate },
+    on: { closed, playCertificate },
+    providers: [
+      provideMemoryStorage(storage),
+      { provide: DEBUG_MENU, useValue: debugMenu },
+    ],
   });
   return {
     user: userEvent.setup(),
     store: TestBed.inject(SettingsService),
     closed,
+    playCertificate,
   };
 }
 
@@ -279,5 +295,51 @@ describe("SettingsComponent", () => {
 
     expect(screen.getByText("Theme")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Midnight blue/ })).toBeVisible();
+  });
+
+  describe("the debug menu", () => {
+    it("is offered in the drawer where DEBUG_MENU says so", async () => {
+      await renderSettings({}, { debugMenu: true });
+
+      expect(
+        within(screen.getByRole("dialog")).getByRole("region", {
+          name: "Debug",
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("isn't offered in a build for players", async () => {
+      await renderSettings();
+
+      expect(
+        screen.queryByRole("region", { name: "Debug" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("offers the certificate the drawer is handed", async () => {
+      await renderSettings(
+        {},
+        { debugMenu: true, certificate: { level: 2, depth: 12, rounds: 4 } },
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Play the certificate" }),
+      ).toHaveAccessibleDescription(
+        "Plays level 2 from its start on a field 12 deep, its certificate's 4 rounds one at a time.",
+      );
+    });
+
+    it("hands Play the certificate on", async () => {
+      const { user, playCertificate } = await renderSettings(
+        {},
+        { debugMenu: true, certificate: { level: 2, depth: 12, rounds: 4 } },
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: "Play the certificate" }),
+      );
+
+      expect(playCertificate).toHaveBeenCalledOnce();
+    });
   });
 });

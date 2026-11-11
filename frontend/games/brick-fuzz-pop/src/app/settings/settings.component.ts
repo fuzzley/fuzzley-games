@@ -1,7 +1,12 @@
 import { Component, inject, input, output } from "@angular/core";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
+import {
+  type CertificateOffer,
+  DebugMenuComponent,
+} from "../debug/debug_menu.component";
 import {
   AIMINGS,
   type Aiming,
@@ -56,14 +61,22 @@ const FLIGHT_SPEED_CHOICES: readonly ChoiceOption<FlightSpeed>[] =
 /**
  * Shows the settings in a drawer: how a pointer aims, the flight's speed,
  * whether a long flight speeds up by itself, the guide, the sound, and the
- * palette.
+ * palette; and, where `DEBUG_MENU` offers it, the debug menu
+ * (`<app-debug-menu>`) below them.
  *
- * None of them costs the run anything, since the rules decide a round as it
- * is released whatever the flight looks like, so each applies at once.
+ * None of the settings costs the run anything, since the rules decide a
+ * round as it is released whatever the flight looks like, so each applies
+ * at once. The debug menu's numbers and open levels can cost it its
+ * records, as the menu says.
  */
 @Component({
   selector: "app-settings",
-  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
+  imports: [
+    ChoiceListComponent,
+    DebugMenuComponent,
+    SettingsDrawerComponent,
+    ThemePickerComponent,
+  ],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })
@@ -72,11 +85,23 @@ export class SettingsComponent {
 
   protected readonly settings = this.store.settings;
 
+  /**
+   * Whether to offer the debug menu, as a development build does, and a
+   * production one at `?debug`.
+   */
+  protected readonly debugMenu = inject(DEBUG_MENU);
+
   /** Whether the drawer is showing. */
   readonly open = input.required<boolean>();
 
+  /** The certificate the debug menu offers to play, or null where none holds the level in play on the field's depth. */
+  readonly certificate = input<CertificateOffer | null>(null);
+
   /** Emitted when the drawer asks to close. */
   readonly closed = output();
+
+  /** Emitted at the debug menu's Play the certificate. */
+  readonly playCertificate = output();
 
   protected readonly aimings = AIMING_CHOICES;
 

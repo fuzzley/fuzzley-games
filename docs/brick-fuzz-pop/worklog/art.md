@@ -1012,3 +1012,208 @@ the numbers worth keeping.
   3. The kinds' pictures were sized square, stretching one that isn't:
      they are bounded with `max-width` and `max-height`, as How to
      play's are.
+
+### U2's menu: the tuning and the debug section
+
+**2026-11-10.** The part of the integrator's U2 that stands alone, while
+U1's core and S2 are built: the numbers the debug menu tunes and its
+section of the settings drawer, on L3's `@fz/game-ui/debug_menu`. The
+wiring to `GameService` and the site's listing come with U2's last commit.
+
+- **Built.**
+  - `src/view/debug/debug_tuning.ts`: the numbers the menu tunes
+    (`TunedNumbers`, the game's own as `TUNED_NUMBERS`), their sliders
+    (`TUNING_SLIDERS`), each read in its unit (`formatTuning()`), the
+    lines they would replace (`tuningLines()`), the pace and the rules'
+    numbers they come to (`paceOf()`, `rulesOf()`), and whether they
+    leave the certificates stale (`staleCertificates()`).
+  - `src/app/debug/debug.service.ts`: `DebugService`, which holds what
+    the menu sets: the numbers (`createTuning()`), the field's depth over
+    the room's, every level open, whether the certificates are stale,
+    and whether the run under way keeps no records (`runOffRecord`, set
+    afresh by `startRun()` as each run begins).
+  - `src/app/debug/debug_menu.component.*`: `<app-debug-menu>`, which
+    shows `<fz-debug-tuning>` with the sliders and the lines, and projects
+    into it the game's own controls: a status line, the field's depth,
+    Open every level and Play the certificate.
+  - `src/app/settings/settings.component.*`: the drawer shows the menu
+    below the theme where `DEBUG_MENU` says so, as the breakers' do, and
+    passes it `certificate` and hands on `playCertificate`.
+  - Specs: `debug_tuning.spec.ts` (28 tests), `debug.service.spec.ts`
+    (20), `debug_menu.component.spec.ts` (18), and four more in
+    `settings.component.spec.ts`, whose renders now provide `DEBUG_MENU`
+    as false unless a spec asks, as a build for players does.
+- **Choices the plan didn't make.**
+  1. **Seven numbers.** `FLIGHT_PACE`'s five (Normal's and Fast's units
+     a second, fast-forward's multiplier, the 8 s before a long flight
+     speeds up and the speed-up itself), the guide past its first turn
+     and the bored distance. Each slider's range spans the shipped
+     number on its steps, which a spec holds.
+  2. **The lines name their files.** `FLIGHT_PACE` lives in
+     `round_play.ts` and the other two in `tuning.ts`, so Copy the
+     numbers writes each block under a comment naming its file. A spec
+     holds the shipped numbers' lines to each file's text (`?raw`), as
+     Asteroid Breaker's does.
+  3. **Only the bored distance leaves the certificates stale.** They are
+     stale once `rulesOf()` gives other numbers than `RULES`, which
+     `playRound()` reads, so a number added to `RoundRules` stales them
+     with no list to keep. The guide's length shows a shot and plays
+     none, and the pace only plays a round back, so neither is in it:
+     R6's `guideOf()` takes its length as a parameter of its own.
+  4. **What keeps no records:** a run with a number retuned at any
+     moment since it began, as `plan.md` says and Asteroid Breaker does,
+     the numbers put back or not; and a run begun at a level the player
+     hadn't opened, which every level open allows, as it would clear a
+     locked level into the progress. Opening every level mid-run costs
+     the run nothing, as `nextLevel()` goes on to the next level, locked
+     or not; nor does a depth set, as a window of that size gives the
+     same field. `runOffRecord` latches as a number is tuned, and
+     `startRun()` sets it afresh, given whether the run starts locked or
+     storage kept it off the record.
+  5. **The menu's state is a root service,** not inputs through
+     `<app-settings>`, as the game reads it from more than one place:
+     the numbers each frame, the depth between rounds, and every level
+     open in the Levels dialog. Only the certificate passes through the
+     drawer, an input and an output, since only the game knows the level
+     in play and can play a line.
+  6. **None of it is kept,** the depth and the levels included, so a
+     reload gives the player's own game back, as the menu says of the
+     numbers.
+  7. **The depth is a native `<select>`:** the room's, then 11 to 22
+     rows. Thirteen choices are too many for a choice list, and a slider
+     has no place for "the room's". It is styled with tokens alone.
+  8. **One status line says it all,** empty while the game is the one
+     that ships and the run was played on it: "This run keeps no
+     records.", from `runOffRecord`, with "The certificates are stale
+     while the rules are retuned." before it while the bored distance
+     has moved. It stays in place, empty, so a screen reader hears it
+     change.
+  9. **Play the certificate shows only with a certificate to play,**
+     described by what it plays ("Plays level 3 from its start on a
+     field 14 deep, its certificate's 6 rounds one at a time."). With
+     none, a sentence says so in its place.
+  10. **`setDepth()` throws a `RangeError`** for a depth no field has, as
+      `levelEntryOf()` does for a level.
+  11. **Reset the numbers resets the numbers,** as it says; the depth and
+      the open levels stay, and their descriptions say so, so a depth can
+      be kept while the numbers are tried.
+  12. **The depth list's text is 16 px at least,** as Safari on a phone
+      zooms into a list it focuses with smaller text.
+- **For U2's wiring.**
+  - `GameService` hands `paceOf(debug.tuning.tuning())` to `RoundPlay`
+    and `rulesOf(…)` to `playRound()`, hearing each change through
+    `debug.tuning.onTune()` where a frame steps on them.
+  - The guide takes its length as a number, not from `tuning.ts`, whose
+    header says the menu retunes only what the rules are handed: R6's
+    `guideOf()` needs a parameter for it.
+  - The depth is `debug.depth() ?? the room's`, taken between rounds.
+  - `GameService` calls `debug.startRun({ locked })` as each run
+    begins, `locked` being `!progress.isOpen(level)`, and
+    `debug.startRun({ kept: saved.tuned })` as it takes one up, so
+    `KeptGame.tuned` is `debug.runOffRecord()`, whose docs in the saved
+    game and the records' services then read "played off the record"
+    rather than "on retuned numbers". A run that plays a certificate
+    keeps no records either.
+  - The Levels dialog opens every level while `debug.everyLevelOpen()`.
+  - The certificates: once P3 writes `src/rules/levels/certificates/`,
+    a loader of `import.meta.glob()` over its JSON files, each loaded
+    lazily as its own chunk, only when the menu asks, so a player's
+    bundle carries none; a reader for P3's format on `@fz/core/json`;
+    `certificate` on `<app-settings>`, the level in play's line on the
+    field's depth, or null; and `(playCertificate)`, which plays the
+    line from the level's start, a round at a time, on `RULES`, whatever
+    the menu's rules, so Q4 watches the proof itself.
+  - A whole depth from `LEAST_DEPTH` to `MOST_DEPTH` is now checked in
+    three places: `thirdsOf()`, `saved_game.ts`'s `hasDepth()` and
+    `setDepth()`. An `isDepth()` beside `thirdsOf()` would serve all
+    three, a change to the rules stream's files.
+  - `AGENTS.md` gains `src/view/debug/`, `src/app/debug/` and the
+    drawer's debug section.
+- **Checks.**
+  - The workspace's `lint` and `typecheck` are clean.
+  - `test`: 3886 tests, 70 of them new.
+  - `test:coverage` passes its floors. `src/view/debug/` is at 100% of
+    its statements (14), branches (7), functions (7) and lines (13);
+    `src/app/debug/` at 100% of its 52, 23, 18 and 48; the settings at
+    100% of their 37, 6, 10 and 31.
+  - The root's `yarn lint` passes.
+  - In a real Chrome, from the dev server at 9136, a harness put in
+    `app.component` for the look and taken out again showed the drawer
+    open at 1920 by 1080 and at 375 by 740: the seven sliders, the
+    status line once the bored distance moved, the depth list at 16
+    rows, the checkbox and Play the certificate with its sentence, with
+    nothing wider than the drawer and no error in the console.
+- **The mutation pass.** Fifty-two changes, after both reviews' fixes,
+  each run against the specs of `src/view/debug/`, `src/app/debug/` and
+  the settings. All were killed:
+  - the numbers: Normal's pace started at Fast's, the boredom off the
+    rules', a slider dropped, a range that misses its own number, a
+    step that misses it;
+  - the words: a pace's unit, the seconds off by ten, the multiplier
+    written otherwise, the value text unitless;
+  - the lines: the speeds swapped, the guide written as the boredom, the
+    wrong file named, one place kept, the lines untuned;
+  - `paceOf()` and `rulesOf()`: fast-forward from the speed-up, the
+    rules untuned;
+  - the certificates: nothing leaves them stale, the guide does, the
+    test inverted, never stale;
+  - the records: the run's latch letting go, a retune never latching it,
+    opening the levels or setting a depth latching it, a run taken up
+    forgetting storage's word, a locked start keeping them, a run
+    started on the record whatever the numbers;
+  - the depth: 11 or 22 refused, half a row allowed, the room's missing,
+    22 missing, the depth set unshown, the room's read as a number;
+  - the menu: the stale or the records unsaid, the status reading the
+    numbers now rather than the run's latch, the status not a live
+    region, Reset or a slider doing nothing, the levels' box doing
+    nothing or never shutting, its words shortened, the rounds
+    miscounted, the offer's or the none's words changed, the button
+    always shown, undescribed or not handed on;
+  - the drawer: the menu always offered, the certificate not passed, Play
+    dropped.
+- **The review:** a fresh agent read the change against §5's contracts
+  and §8's practices, with seven comments and three nits, each
+  answered:
+  1. The status line read the game's state now, so putting the numbers
+     back emptied it while the run under way still kept no records:
+     `runOffRecord` latches for the run, and the status and
+     `KeptGame.tuned` read it (choice 4).
+  2. `RULES_NUMBERS` was a second list beside `rulesOf()`, so a number
+     added to the rules could leave the certificates sound: a spec over
+     every slider holds the two together (choice 3).
+  3. The log didn't say which rules Play the certificate plays on: on
+     `RULES`, the note for U2's wiring says.
+  4. The spec of the lines could pass on a file's comment renamed, as
+     its helper then read no lines: the helper throws.
+  5. The depth's range is checked a third time: an `isDepth()` belongs
+     beside `thirdsOf()`, in the rules stream's files, so the note for
+     U2's wiring names it rather than this change making it.
+  6. Reset the numbers left the depth and the open levels as set: it
+     resets the numbers it names, and the two controls' descriptions say
+     it leaves them (choice 11).
+  7. Safari on a phone would zoom into the depth list: its text is 16 px
+     at least (choice 12).
+
+  The nits: the drawer's doc says the debug menu can cost a run its
+  records; "cleared or not" is "locked or not"; and the certificate's
+  depth and rounds and the menu's `everyLevelOpen` have doc comments.
+
+  A second fresh agent read the change as it stood, with five comments,
+  each answered:
+  1. `RULES_NUMBERS` and its new spec contradicted each other, the spec
+     ruling out the one case the list was kept for: staleness is worked
+     out from `rulesOf()` against `RULES`, the list and the spec gone,
+     with one case each for the boredom, the pace and the guide
+     (choice 3).
+  2. Every level open took the run under way off the record, though it
+     can't change that run, and any run begun while it stayed open:
+     only a run begun at a locked level keeps no records, as
+     `startRun({ locked })` says (choice 4), and the checkbox's words say
+     so.
+  3. The pace's five sliders cost a run its records, though they only
+     play it back: kept, as `plan.md` says a run on retuned numbers keeps
+     none, with the question left to the integrator.
+  4. `startRun(offRecord)` named its argument after the signal it was
+     combined with: it takes `{ kept, locked }`.
+  5. The status specs read the library's own status line by its place:
+     they find the game's line by its words and check its role.
