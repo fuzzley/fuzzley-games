@@ -1,4 +1,4 @@
-import { DeferBlockState, TestBed } from "@angular/core/testing";
+import { TestBed } from "@angular/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
@@ -56,10 +56,7 @@ async function renderSettings(
       { provide: CERTIFICATE_FILES, useValue: files },
     ],
   });
-  // The deferred menu, then the certificates it loads.
-  for (const block of await fixture.getDeferBlocks()) {
-    await block.render(DeferBlockState.Complete);
-  }
+  // The menu, loaded where it is offered, then the certificates it loads.
   await loadsSettled(fixture);
   return {
     user: userEvent.setup(),

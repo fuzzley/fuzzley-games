@@ -88,10 +88,9 @@
     <fz-theme-picker />
   </div>
 
-  @if (debugMenu) {
-    <!-- A chunk of its own, which a page that offers no menu never loads. -->
-    @defer (on immediate) {
-      <app-debug-menu (playCertificate)="playCertificate.emit()" />
-    }
-  }
+  <!--
+    The debug menu, where it is offered: a chunk of its own, which a page
+    that offers no menu never loads.
+  -->
+  <ng-container #menuHost />
 </fz-settings-drawer>

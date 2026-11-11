@@ -1,8 +1,11 @@
 import {
   Component,
+  ViewContainerRef,
   computed,
   inject,
+  inputBinding,
   linkedSignal,
+  outputBinding,
   signal,
   viewChild,
 } from "@angular/core";
@@ -13,8 +16,9 @@ import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { DebugService } from "./debug/debug.service";
-import { HelpComponent, type HelpPictures } from "./help/help.component";
+import type { HelpPictures } from "./help/help.component";
 import { LevelsComponent } from "./levels/levels.component";
+import { onDemand } from "./on_demand";
 import { GameService } from "./play/game.service";
 import { ResultComponent, type RunEnd } from "./result/result.component";
 import { SettingsComponent } from "./settings/settings.component";
@@ -27,7 +31,8 @@ import { GAME_LEVELS } from "./tokens";
  * Shows the game: the bar, the board in the room the bar leaves it, the
  * live region that says what happens, the Levels dialog, How to play and
  * the settings the bar opens, the result card over an ended run, and the
- * question before a run is thrown away, each wired to `GameService`.
+ * question before a run is thrown away, each wired to `GameService`. How
+ * to play is a chunk of its own, loaded as it first opens (`onDemand()`).
  *
  * The board takes the focus as a run begins, as the page loads, after a
  * dialog over it closes, and after the bar's Resume, so the keys steer at
@@ -41,7 +46,6 @@ import { GAME_LEVELS } from "./tokens";
     BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
-    HelpComponent,
     LevelsComponent,
     PlayRoomDirective,
     ResultComponent,
@@ -58,6 +62,9 @@ export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   protected readonly game = inject(GameService);
   private readonly board = viewChild.required(BoardComponent);
+  private readonly helpHost = viewChild.required("helpHost", {
+    read: ViewContainerRef,
+  });
   private readonly debug = inject(DebugService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
@@ -86,6 +93,19 @@ export class AppComponent {
     return this.helpOpen() && pictures !== null ? pictures() : null;
   });
 
+  /** Loads How to play, a chunk of its own, and puts it in the page. */
+  private readonly loadHelp = onDemand(
+    async () => (await import("./help/help.component")).HelpComponent,
+    () => this.helpHost(),
+    [
+      inputBinding("open", this.helpOpen),
+      inputBinding("pictures", this.helpPictures),
+      outputBinding("closed", () => {
+        this.helpOpen.set(false);
+      }),
+    ],
+  );
+
   /**
    * How far each level has been played, as the Levels dialog shows it,
    * every level open while the debug menu opens them.
@@ -112,6 +132,12 @@ export class AppComponent {
   protected resumeRun(): void {
     this.game.resume();
     this.board().focus();
+  }
+
+  /** Opens How to play, as the bar asks, loading it the first time. */
+  protected openHelp(): void {
+    this.helpOpen.set(true);
+    void this.loadHelp();
   }
 
   /** Starts a new run at the level the last one started at, asking first if one is in progress. */

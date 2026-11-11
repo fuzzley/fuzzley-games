@@ -27,7 +27,7 @@
   (toggleSound)="game.toggleSound()"
   (openLevels)="levelsOpen.set(true)"
   (newGame)="newGame()"
-  (openHelp)="helpOpen.set(true)"
+  (openHelp)="openHelp()"
   (openSettings)="settingsOpen.set(true)"
 />
 
@@ -59,11 +59,8 @@
   (chosen)="startAt($event)"
   (closed)="levelsOpen.set(false)"
 />
-<app-help
-  [open]="helpOpen()"
-  [pictures]="helpPictures()"
-  (closed)="helpOpen.set(false)"
-/>
+<!-- How to play, put here as it first opens. -->
+<ng-container #helpHost />
 <app-settings
   [open]="settingsOpen()"
   (playCertificate)="settingsOpen.set(false)"

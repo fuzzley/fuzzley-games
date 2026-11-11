@@ -1,4 +1,4 @@
-import { DeferBlockState, TestBed } from "@angular/core/testing";
+import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
@@ -74,10 +74,8 @@ async function renderCertifiedApp(): Promise<RenderedApp> {
       },
     ],
   });
-  // The settings' deferred menu, then the certificates it loads.
-  for (const block of await fixture.getDeferBlocks()) {
-    await block.render(DeferBlockState.Complete);
-  }
+  // The settings' menu, loaded where it is offered, then the certificates
+  // it loads.
   await loadsSettled(fixture);
   return {
     game: TestBed.inject(GameService),
@@ -92,6 +90,17 @@ async function endedApp(...script: readonly SpecRound[]): Promise<RenderedApp> {
   playUntilCard(app.game);
   await app.settle();
   return app;
+}
+
+/**
+ * Returns every How to play dialog in the page, shut or open. A shut one is
+ * hidden, and Testing Library gives a hidden element no name, so the label
+ * is read off each dialog.
+ */
+function helpDialogs(): HTMLElement[] {
+  return screen
+    .queryAllByRole("dialog", { hidden: true })
+    .filter((dialog) => dialog.getAttribute("aria-label") === "How to play");
 }
 
 /** Returns one of the bar's buttons by its name. */
@@ -148,6 +157,7 @@ describe("AppComponent", () => {
     it("takes the focus back as a dialog over it closes", async () => {
       const { user, settle } = await renderApp();
       await user.click(barButton("How to play"));
+      await settle();
 
       await user.keyboard("{Escape}");
       await settle();
@@ -324,16 +334,18 @@ describe("AppComponent", () => {
     });
 
     it("opens How to play", async () => {
-      const { user } = await renderApp();
+      const { user, settle } = await renderApp();
 
       await user.click(barButton("How to play"));
+      await settle();
 
       expect(screen.getByRole("dialog", { name: "How to play" })).toBeVisible();
     });
 
     it("closes How to play at Escape", async () => {
-      const { user } = await renderApp();
+      const { user, settle } = await renderApp();
       await user.click(barButton("How to play"));
+      await settle();
 
       await user.keyboard("{Escape}");
 
@@ -531,6 +543,26 @@ describe("AppComponent", () => {
   });
 
   describe("How to play", () => {
+    it("is nowhere in the page until it first opens, as it loads only then", async () => {
+      await renderApp();
+
+      expect(helpDialogs()).toEqual([]);
+    });
+
+    it("opens the one it loaded again", async () => {
+      const { user, settle } = await renderApp();
+      await user.click(barButton("How to play"));
+      await settle();
+      await user.keyboard("{Escape}");
+
+      await user.click(barButton("How to play"));
+      await settle();
+
+      expect(helpDialogs()).toEqual([
+        screen.getByRole("dialog", { name: "How to play" }),
+      ]);
+    });
+
     it("asks the scene for no picture while it is shut", async () => {
       // A level played, as the board's Ready card asks for the kind of
       // brick a level brings in.
@@ -544,13 +576,29 @@ describe("AppComponent", () => {
       expect(pictures).not.toHaveBeenCalled();
     });
 
+    it("asks the scene for no picture once it is put away", async () => {
+      const { game, user, settle } = await renderApp("step");
+      release(game);
+      await user.click(barButton("How to play"));
+      await settle();
+      await user.keyboard("{Escape}");
+      await settle();
+      const pictures = vi.fn<() => Pictures>();
+      game.onPictures(pictures);
+
+      await settle();
+
+      expect(pictures).not.toHaveBeenCalled();
+    });
+
     it("shows the pictures the scene drew as it opens", async () => {
-      const { game, user } = await renderApp();
+      const { game, user, settle } = await renderApp();
       game.onPictures(() => ({
         bricks: recordOf(BRICK_KIND_IDS, () => "data:image/png;base64,AAAA"),
       }));
 
       await user.click(barButton("How to play"));
+      await settle();
 
       expect(
         within(screen.getByRole("dialog", { name: "How to play" }))

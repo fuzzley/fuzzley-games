@@ -1,9 +1,18 @@
-import { Component, inject, input, output } from "@angular/core";
+import {
+  Component,
+  ViewContainerRef,
+  afterNextRender,
+  inject,
+  input,
+  output,
+  outputBinding,
+  viewChild,
+} from "@angular/core";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
-import { DebugMenuComponent } from "../debug/debug_menu.component";
+import { onDemand } from "../on_demand";
 import {
   AIMINGS,
   type Aiming,
@@ -59,8 +68,8 @@ const FLIGHT_SPEED_CHOICES: readonly ChoiceOption<FlightSpeed>[] =
  * Shows the settings in a drawer: how a pointer aims, the flight's speed,
  * whether a long flight speeds up by itself, the guide, the sound, and the
  * palette; and, where `DEBUG_MENU` offers it, the debug menu
- * (`<app-debug-menu>`) below them, deferred, so a page that doesn't
- * offer it never loads it.
+ * (`<app-debug-menu>`) below them, loaded once the drawer is first drawn
+ * (`onDemand()`), so a page that doesn't offer it never loads it.
  *
  * None of the settings costs the run anything, since the rules decide a
  * round as it is released whatever the flight looks like, so each applies
@@ -69,12 +78,7 @@ const FLIGHT_SPEED_CHOICES: readonly ChoiceOption<FlightSpeed>[] =
  */
 @Component({
   selector: "app-settings",
-  imports: [
-    ChoiceListComponent,
-    DebugMenuComponent,
-    SettingsDrawerComponent,
-    ThemePickerComponent,
-  ],
+  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })
@@ -87,7 +91,7 @@ export class SettingsComponent {
    * Whether to offer the debug menu, as a development build does, and a
    * production one at `?debug`.
    */
-  protected readonly debugMenu = inject(DEBUG_MENU);
+  private readonly debugMenu = inject(DEBUG_MENU);
 
   /** Whether the drawer is showing. */
   readonly open = input.required<boolean>();
@@ -101,6 +105,31 @@ export class SettingsComponent {
   protected readonly aimings = AIMING_CHOICES;
 
   protected readonly flightSpeeds = FLIGHT_SPEED_CHOICES;
+
+  /** Where the debug menu goes, below the settings. */
+  private readonly menuHost = viewChild.required("menuHost", {
+    read: ViewContainerRef,
+  });
+
+  /** Loads the debug menu, a chunk of its own, and puts it below the settings. */
+  private readonly loadMenu = onDemand(
+    async () =>
+      (await import("../debug/debug_menu.component")).DebugMenuComponent,
+    () => this.menuHost(),
+    [
+      outputBinding("playCertificate", () => {
+        this.playCertificate.emit();
+      }),
+    ],
+  );
+
+  constructor() {
+    if (this.debugMenu) {
+      afterNextRender(() => {
+        void this.loadMenu();
+      });
+    }
+  }
 
   /** Says how a finger and a mouse aim. */
   protected chooseAiming(aiming: Aiming): void {
