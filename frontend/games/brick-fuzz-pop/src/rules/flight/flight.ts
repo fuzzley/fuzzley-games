@@ -1,16 +1,17 @@
-// A round's flight, from its release to its last landing, worked out whole
-// on the round's one clock, as src/rules/flight/events.ts describes it.
+// A round's flight, from its release to its last event, the last landing or a
+// zap that lands after it, worked out whole on the round's one clock, as
+// src/rules/flight/events.ts describes it.
 //
-// The fuzzballs leave in their order, LAUNCH_GAP apart, and each flies from
-// one thing it meets to the next, cast() finding what and when: the one
-// whose next moment comes first goes next, a tie to the lower numbered, in
-// the implementation plan's order of fuzzballs (§5.6), and a zap lands after every fuzzball at
-// its moment. A fuzzball
-// strikes the bricks it meets as plan.md's "Charge" says, their trait rules
-// running at each moment and changing the flight through the hooks of
-// src/rules/flight/hooks.ts. A flight's state is made once as it starts,
-// and what a fuzzball meets is cast into records the module keeps and
-// reuses, so a cast makes nothing; records are made only as events are.
+// The fuzzballs leave in their order, LAUNCH_GAP apart, and each flies from one
+// thing it meets to the next, cast() finding what and when: the one whose next
+// moment comes first goes next, a tie to the lower numbered, in the
+// implementation plan's order of fuzzballs (§5.6), and a zap lands after every
+// fuzzball at its moment. A fuzzball strikes the bricks it meets as plan.md's
+// "Charge" says, their trait rules running at each moment and changing the
+// flight through the hooks of src/rules/flight/hooks.ts. A flight's state is
+// made once as it starts, and what a fuzzball meets is cast into records the
+// module keeps and reuses, so a cast makes nothing; records are made only as
+// events are.
 
 import { multiplierAt } from "@fz/core/math";
 import { MISSED } from "@fz/core/sweep";
@@ -91,7 +92,8 @@ export interface Flown {
 
 /**
  * Returns the flight of a round's fuzzballs, flown from the floor along an
- * aim until the last lands, and the wall it leaves.
+ * aim until the last lands and the zaps they set off have landed, and the
+ * wall it leaves.
  *
  * It throws a `RangeError` for an aim that isn't one of the 657.
  */
@@ -289,14 +291,15 @@ class Flying implements Hooks {
       this.entering = null;
       this.zapping = false;
     }
+    const events = this.events.sort(byMoment).map(({ event }) => event);
     const flight: Flight = {
-      events: this.events.sort(byMoment).map(({ event }) => event),
+      events,
       tracks: this.balls.map(({ ball, role, waypoints }) => ({
         ball,
         role,
         waypoints,
       })),
-      length: Math.max(...this.balls.map(({ at }) => at)),
+      length: events.reduce((last, { at }) => Math.max(last, at), 0),
       capped: this.capped,
     };
     return { flight, wall: this.wall };
