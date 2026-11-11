@@ -452,3 +452,84 @@ true of the code.
    `wallOf()` and `brickOf()`, a third, which its eighth choice leaves for
    R6 or a later package to move onto `wallFrom()`. Left: the file is the
    proof stream's.
+
+### AGENTS.md brought up to wave 2: the rules, the view, the art, the scene, the shell and what it keeps
+
+**2026-11-10.**
+
+**What changed.** The workspace's `AGENTS.md`, made by the integrator's
+spare, describes what R2, R7, P1, P2's first part, A2, A3, V1, V2, V4, N1,
+S1 and U3 to U6 built beside what it already named, and nothing to come:
+
+- The opening says the scene, the dialogs, the settings drawer and the
+  services are written but placed by nothing yet, and one sentence names
+  the plan's packages that remain, `playRound()` throwing until R6.
+  "The scene holds nothing yet" and "the board will load the scene" are
+  gone; the shell's fence says only that it takes the scene by type.
+- A "Layout" section, as Brick Breaker's and Asteroid Breaker's have, a
+  bullet a folder, takes over the paragraphs that described the folders
+  under "Layers": the rules' `tuning.ts`, `shot.ts`, `aims.ts` and
+  `grid.ts`, then `catalog/`, `levels/` (the legend, Warm-up, `par.json`),
+  `flight/` (`cast()` and its benchmark), `wall/`, `round/` and `run/`;
+  the view's contracts, `field/`, `steering/`, `colors/`, `art/` (the
+  kinds' files, the fuzzball, the atlas's frames) and `effects/`; the
+  scene, its atlas, painters, stand-in and sound player; the shell's
+  settings, help, levels, result, stats, saved game and styles;
+  `src/testing/`; and `tools/`.
+- "Technology Stack" draws the field with Phaser now, through
+  `@fz/phaser`'s scene helpers and sound, and names signals, `@fz/style`,
+  and `@fz/core`'s helpers in the rules and the view, as the breakers' do.
+- "Layers" names the helpers held as the rules are by what exists,
+  `wall_picture.ts` and `wall_score.ts`, rather than the solver and the
+  careless player, and says the rest of `src/testing/` takes Angular by
+  type alone.
+- "What It Keeps" adds `brick-fuzz-pop-stats`, `brick-fuzz-pop-progress`
+  and `brick-fuzz-pop-game`, each at version 1, with what each holds and
+  when the run under way is written; the settings' entry gains its version
+  and says how a pointer aims, and the opening names `@fz/ui/storage`
+  alone, as the game under way goes through `keepSaved()`, not
+  `storedSignal()`.
+- "Development Commands" adds `build:sounds` and the sound lab, and
+  `typecheck`'s and `lint`'s scripts; "Tests" names `sim` by the flight's
+  benchmark alone, how to see its numbers, `test-setup.ts`' memory store
+  and dialogs, the helpers' missing floor, and the five helpers since
+  K2 tidied: `wall_score.ts`, `cast_reference.ts`, `stand_ins.ts`,
+  `art_frames.ts` and `canvases.ts`.
+
+**Checks.** The root's `yarn skills:check` finds every backticked path,
+and a check of every path-like token in it found each under the
+workspace or the repository; the root's `yarn lint` passes. No code
+changed, so the workspace's specs weren't run again.
+
+**The mutation pass.** None, for a change to docs alone.
+
+**The review:** a fresh agent checked each sentence against the code and
+found most of it true; every comment was right, and each is fixed.
+
+1. **"The rules that read the kinds take them as `BrickKinds`" was
+   untrue:** only `castField()` and `shapesOf()` do; `lowerWall()`,
+   `isNeeded()`, `breakPoints()` and `describe.ts` read the catalog
+   through `brickKind()`, so a spec handing them `STAND_INS` would see its
+   bumper needed. Fixed: the catalog's bullet names the two and says the
+   rest read the catalog's.
+2. **The floors read in the wrong order,** "statements, functions and
+   lines and 95% of branches" then the scene's four numbers. Fixed: the
+   order is named once, (statements, branches, functions and lines), and
+   each layer's four follow it. The numbers stay, as the plan's §9 and the
+   last version gave them.
+3. **The round's bullet left out `RoundRules`, `RULES` and where
+   `playRound()` lives.** Fixed.
+4. **Smaller inaccuracies, all fixed:** `levelStart()` is `level.ts`'s;
+   `levelOf()` only parses the level in play, `openingOf()` lays it out;
+   the benchmark asserts its count of times, so it "holds it to no time";
+   `scripts()` lints the scripts in `tools/`, not the folder; the sound lab
+   mounts `@fz/dev/sound-lab-page`'s page; `WallPainter` eases the wall
+   only where motion is welcome; and How to play takes its counts and
+   points from `tuning.ts`, not every number.
+5. **The Layout's opening left out the names the fences keep** (`view`,
+   `scene`, `app`, `testing`), which `phaserGameLayers()` holds here as in
+   Brick Breaker. Fixed: one sentence, as Brick Breaker's has it.
+6. **This entry left out "Technology Stack", the settings' entry and "What
+   It Keeps"' opening.** Fixed: a bullet for the first, and the keys'
+   bullet says the rest.
+7. **A paragraph broke mid-line.** Fixed.
