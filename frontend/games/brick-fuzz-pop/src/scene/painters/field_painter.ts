@@ -1,6 +1,7 @@
 import { type PixelRect, framePixels } from "@fz/phaser/layout";
+import { onContextRestored } from "@fz/phaser/scene";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
-import type { GameObjects, Scene } from "phaser";
+import type { GameObjects, Scene, Textures } from "phaser";
 import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
 import { DANGER_ROW, inDanger, neededBelow } from "../../rules/wall/lower";
 import { type Thirds, type Wall, thirdsOf } from "../../rules/wall/wall";
@@ -15,7 +16,11 @@ import {
 import { ATLAS } from "../atlas";
 import { COUNT_DOT, FIELD_FRAMES } from "../field_art";
 import { placeDot } from "./dots";
+import { dynamicTexture } from "./dynamic_texture";
 import type { PaintContext, Painter } from "./painter";
+
+/** The key of the texture the cells, the floor's band and the grid's dots are drawn on, once a layout. */
+export const FIELD_BAKE = "field-bake";
 
 /** Says how a dashed line is drawn, in field units: its dashes, the gaps between them, and its width. */
 interface DashedLine {
@@ -79,30 +84,34 @@ export function frameBounds(
 
 /**
  * Draws the field: under the wall, its cells, the floor's band and a dot at
- * each corner its cells share; over the wall, the jump line, with a dot for
- * each brick the level needs left under it once nine or fewer are, in
- * threes, over the guide, and the danger line, which brightens, solid and
- * twice as thick, while such a brick stands at or under the row over it;
- * and over everything, the lintel over the ceiling and the frame around
- * them all, so nothing that bursts from the wall or flies covers them. It
- * draws them again only once the layout, the palette, that count or the
- * danger changes.
+ * each corner its cells share, drawn on a texture, the bake, which one
+ * image shows; over the wall, the jump line, with a dot for each brick the
+ * level needs left under it once nine or fewer are, in threes, over the
+ * guide, and the danger line, which brightens, solid and twice as thick,
+ * while such a brick stands at or under the row over it; and over
+ * everything, the lintel over the ceiling and the frame around them all,
+ * so nothing that bursts from the wall or flies covers them. It draws them
+ * again only once the layout, the scale, the palette, that count or the
+ * danger changes, and the bake once a lost context is restored.
  */
 export class FieldPainter implements Painter {
-  /** Draws the cells and the floor's band. */
-  readonly ground: GameObjects.Graphics;
+  /** Shows the bake: the cells, the floor's band under them and a dot at each corner the cells share, its top left at the cells'. */
+  readonly ground: GameObjects.Image;
   /** Draws the lintel, the ceiling and the frame, over everything else. */
   readonly rim: GameObjects.Graphics;
-  /** A dot for each corner the cells of the deepest field share, made once, row by row from the ceiling. */
-  readonly gridDots: readonly GameObjects.Image[];
   /** Draws the jump line and the danger line. */
   readonly lines: GameObjects.Graphics;
   /** The jump line's count, a dot for each brick left under it, made once, from its end. */
   readonly countDots: readonly GameObjects.Image[];
 
+  /** The texture the cells, the band and the dots are drawn on. */
+  private readonly bake: Textures.DynamicTexture;
+  /** Whether the bake must be drawn again though nothing was laid out anew: once a lost context is restored. */
+  private lost = false;
   private metrics: FieldMetrics | null = null;
   private palette: WallPalette | null = null;
   private shape: FieldShape | null = null;
+  private baked: ArtScale | null = null;
   /** The thirds of the field as laid out, worked out once a layout: the jump line runs under the top one. */
   private thirds: Thirds = thirdsOf(MOST_DEPTH);
   /** The jump line's dashes across the whole field, worked out once a layout, so a count shortens the line without moving them. */
@@ -118,21 +127,21 @@ export class FieldPainter implements Painter {
   private danger = false;
 
   constructor(scene: Scene, layers: FieldLayers) {
-    this.ground = scene.add.graphics();
-    this.gridDots = Array.from(
-      { length: (COLUMNS - 1) * (MOST_DEPTH - 1) },
-      () =>
-        scene.add.image(0, 0, ATLAS, FIELD_FRAMES.gridDot).setVisible(false),
-    );
+    this.bake = dynamicTexture(scene, FIELD_BAKE);
+    this.ground = scene.add.image(0, 0, FIELD_BAKE).setOrigin(0, 0);
     this.lines = scene.add.graphics();
     this.rim = scene.add.graphics();
     this.countDots = Array.from({ length: MOST_COUNTED }, () =>
       scene.add.image(0, 0, ATLAS, FIELD_FRAMES.countDot).setVisible(false),
     );
-    layers.field.add([this.ground, ...this.gridDots]);
+    layers.field.add(this.ground);
     layers.lines.add(this.lines);
     layers.count.add([...this.countDots]);
     layers.rim.add(this.rim);
+    // The bake goes with a lost context; the atlas is baked anew.
+    onContextRestored(scene, () => {
+      this.lost = true;
+    });
   }
 
   /**
@@ -149,24 +158,25 @@ export class FieldPainter implements Painter {
     return false;
   }
 
-  /** Draws the field as the frame has it, again only where its layout, its palette, the jump line's count or the danger changed. */
+  /** Draws the field as the frame has it, again only where its layout, its scale, its palette, the jump line's count or the danger changed, and bakes it again once a lost context is restored. */
   draw({ view, shape, metrics, baked, palette }: Readonly<PaintContext>): void {
     const laidOut =
       metrics !== this.metrics ||
       palette !== this.palette ||
-      shape !== this.shape;
+      shape !== this.shape ||
+      baked !== this.baked;
     if (laidOut) {
       this.metrics = metrics;
       this.palette = palette;
       this.shape = shape;
+      this.baked = baked;
       this.thirds = thirdsOf(shape.depth);
       this.jumpDashes = spansAcross(metrics, JUMP_LINE);
       this.dangerDashes = spansAcross(metrics, DANGER_LINE);
       this.clearance = (COUNT_PITCH + GROUP_GAP - COUNT_DOT) * metrics.unit;
-      this.drawGround(metrics, shape, palette);
       this.drawRim(metrics, shape, palette);
-      this.placeGridDots(metrics, shape, metrics.unit / baked.unit);
     }
+    if (laidOut || this.lost) this.bakeGround(metrics, shape, palette, baked);
     if (!laidOut && view.wall === this.wall) return;
     this.wall = view.wall;
     const left = neededBelow(view.wall, this.thirds.jumpLine);
@@ -180,17 +190,42 @@ export class FieldPainter implements Painter {
     this.drawLines(metrics, shape, palette, baked);
   }
 
-  /** Draws the cells and the floor's band under them. */
-  private drawGround(
+  /**
+   * Draws the cells, the floor's band under them and a dot at each corner
+   * the cells share, on whole pixels as `placeDot()` puts a dot, on the
+   * bake, as large as the cells and the band, and shows it at the cells'
+   * top left.
+   */
+  private bakeGround(
     { x, y, width, height, unit }: FieldMetrics,
     shape: FieldShape,
     palette: WallPalette,
+    baked: ArtScale,
   ): void {
-    const graphics = this.ground.clear();
-    graphics.fillStyle(palette.field);
-    graphics.fillRect(x, y, width, height);
-    graphics.fillStyle(palette.band);
-    graphics.fillRect(x, y + height, width, bandPixels(shape, unit));
+    const band = bandPixels(shape, unit);
+    const bake = this.bake.setSize(width, height + band, false);
+    // The image takes up its frame again, so it keeps no size the bake had.
+    this.ground.setFrame(this.ground.frame.name).setPosition(x, y);
+    bake.clear();
+    bake.fill(palette.field, 1, 0, 0, width, height);
+    bake.fill(palette.band, 1, 0, height, width, band);
+    const dot = bake.manager.getFrame(ATLAS, FIELD_FRAMES.gridDot);
+    const side = Math.round(dot.width * (unit / baked.unit));
+    // From the dot's top left, its scale its own for the layout.
+    const stamp = { scale: side / dot.width, originX: 0, originY: 0 };
+    for (let row = 1; row < shape.depth; row++) {
+      for (let column = 1; column < COLUMNS; column++) {
+        bake.stamp(
+          ATLAS,
+          FIELD_FRAMES.gridDot,
+          Math.round(column * unit - side / 2),
+          Math.round(row * unit - side / 2),
+          stamp,
+        );
+      }
+    }
+    bake.render();
+    this.lost = false;
   }
 
   /** Draws the lintel over the cells, the ceiling, and the frame around them all, outside them. */
@@ -224,21 +259,6 @@ export class FieldPainter implements Painter {
       frame,
       side,
     );
-  }
-
-  /** Puts a dot at each corner the field's cells share, hiding those a shallower field hasn't. */
-  private placeGridDots(
-    { x, y, unit }: FieldMetrics,
-    { depth }: FieldShape,
-    scale: number,
-  ): void {
-    this.gridDots.forEach((dot, at) => {
-      const row = Math.floor(at / (COLUMNS - 1)) + 1;
-      const column = (at % (COLUMNS - 1)) + 1;
-      placeDot(dot, x + column * unit, y + row * unit, scale).setVisible(
-        row < depth,
-      );
-    });
   }
 
   /**

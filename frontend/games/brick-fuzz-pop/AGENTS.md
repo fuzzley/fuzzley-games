@@ -351,20 +351,29 @@ helpers.
   - `painters/` — each a `Painter` (`painter.ts`), drawing from the
     `PaintContext` the scene writes over each frame, from pools made once,
     the dots on whole pixels (`dots.ts`'s `placeDot()`), each in its layers
-    of `layers.ts`'s `LAYERS`. `FieldPainter` draws the cells, the floor's
-    band and the grid's dots under the wall; the jump and danger lines in
-    dashes on whole pixels, counting in dots, over the guide, the needed
+    of `layers.ts`'s `LAYERS`. The field and the wall are each drawn on a
+    texture of their own, a bake, which one image shows, drawn whole on a
+    new layout, depth, scale or palette, or once a lost context is
+    restored, and the wall's between them only in the cells whose stack
+    changes (`dynamic_texture.ts`'s `dynamicTexture()` makes each once).
+    `FieldPainter` draws the cells, the floor's band and the grid's dots
+    under the wall, on its bake (`FIELD_BAKE`); the jump and danger lines
+    in dashes on whole pixels, counting in dots, over the guide, the needed
     bricks still under the jump line once they are nine or fewer (the
     rules' `neededBelow()`), the danger line solid and twice as thick while
     a brick the level needs stands at or under the row over the floor's
     (the rules' `inDanger()`); and the lintel, the ceiling and the frame in
     the last layer, `rim`, so nothing bursting from the wall or flying
     covers them.
-    `WallPainter` stacks each cell's frames, lays the warning frame over
-    each such brick (the rules' `dangerCells()`), and, where the player
-    welcomes motion, eases the wall down by `RoundView.wallDrop`, which is
-    1 while the wall stands still, the rows coming in cut off along the
-    ceiling; it swells a struck brick.
+    `WallPainter` stamps each brick's frames in its cell of its bake
+    (`WALL_BAKE`), stamping again only the cells whose stack changed; lays
+    the warning frame over each brick the level needs at or under the row
+    over the floor's (the rules' `dangerCells()`);
+    and, where the player welcomes motion, eases the wall down by
+    `RoundView.wallDrop`, which is 1 while the wall stands still, by moving
+    its bake's image, the rows coming in cut off along the ceiling. It
+    swells a struck brick over the bake, its cell cleared from it while it
+    swells, 16 at once at most (`MOST_SWELLING`).
     `BallPainter` draws the fuzzballs, 16 at most at once
     (`MOST_FUZZBALLS`): each in the air, its eyes the way its last event
     sent it, and the one waiting on the floor, its fur combed by the charge,
