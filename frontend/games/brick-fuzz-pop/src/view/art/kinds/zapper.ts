@@ -18,7 +18,14 @@ import {
 import type { InkedKind, WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName } from "../frames";
-import { EIGHTH, bandAlong, cellFrame, crispEdge, pointAt } from "../symbols";
+import {
+  EIGHTH,
+  bandAlong,
+  cellFrame,
+  crispEdge,
+  diamond,
+  pointAt,
+} from "../symbols";
 
 /** The zappers, by the ids the palette keeps their inks under, which the catalog's are. */
 export type ZapperKind = Extract<
@@ -139,19 +146,6 @@ function aboutMiddle(cell: Area, bolt: Bolt, shares: Shares): readonly Point[] {
   }));
 }
 
-/** Returns a diamond about a cell's middle, a share of the cell from its middle to each of its points. */
-function diamondIn(cell: Area, reach: number): readonly Point[] {
-  const { x, y } = pointAt(cell, 0.5, 0.5);
-  const across = reach * cell.width;
-  const down = reach * cell.height;
-  return [
-    { x, y: y - down },
-    { x: x + across, y },
-    { x, y: y + down },
-    { x: x - across, y },
-  ];
-}
-
 /** Returns a bolt drawn in its cell in a color: its shaft, then an arrowhead at each end. */
 function boltCommands(
   cell: Area,
@@ -184,8 +178,9 @@ function zapperCommands(
   kind: ZapperKind,
   scale: ArtScale,
 ): readonly DrawCommand[] {
-  const { bolts, diamond }: Zapper = ZAPPERS[kind];
+  const zapper: Zapper = ZAPPERS[kind];
   const inks = palette.kinds[kind];
+  const middle = pointAt(cell, 0.5, 0.5);
   const outline = widthOf(OUTLINE_WIDTH, scale);
   // The face is filled about the outline's own edge, so the two stay
   // concentric and none of the face shows past the outline.
@@ -197,11 +192,15 @@ function zapperCommands(
   return [
     roundRect(edge, corner, { color: inks.face }),
     outlineRoundRect(edge, corner, { color: inks.body, width: outline }),
-    ...bolts.flatMap((bolt) => boltCommands(cell, bolt, inks.glyph)),
-    ...(diamond
+    ...zapper.bolts.flatMap((bolt) => boltCommands(cell, bolt, inks.glyph)),
+    ...(zapper.diamond
       ? [
-          polygon(diamondIn(cell, DIAMOND.rim), { color: inks.face }),
-          polygon(diamondIn(cell, DIAMOND.core), { color: palette.text }),
+          polygon(diamond(middle, DIAMOND.rim * cell.width), {
+            color: inks.face,
+          }),
+          polygon(diamond(middle, DIAMOND.core * cell.width), {
+            color: palette.text,
+          }),
         ]
       : []),
   ];

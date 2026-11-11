@@ -9,6 +9,7 @@ import {
   crispEdge,
   crispOutline,
   detailed,
+  diamond,
   diePips,
   itemAt,
   pointAt,
@@ -241,6 +242,17 @@ describe("boltMark", () => {
         { color: 7 },
       ),
     );
+  });
+});
+
+describe("diamond", () => {
+  it("gives a diamond's corners about a middle, from its top clockwise, each a reach from it", () => {
+    expect(diamond({ x: 10, y: 20 }, 3)).toEqual([
+      { x: 10, y: 17 },
+      { x: 13, y: 20 },
+      { x: 10, y: 23 },
+      { x: 7, y: 20 },
+    ]);
   });
 });
 

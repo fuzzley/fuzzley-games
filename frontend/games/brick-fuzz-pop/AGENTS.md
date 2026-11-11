@@ -258,12 +258,14 @@ helpers.
   `zapper.ts`'s four zappers, `shell.ts`'s body and pips and `moss.ts`'s
   cap and pips, each showing its hits left, `bomb.ts`'s bomb, `wool.ts`'s
   patch and `cage.ts`'s bars, whole or hit, over the friend it holds, in the
-  ink its tint picks), on `symbols.ts`'s shared shapes and its rule that
-  drops detail under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts`
-  draws the fuzzballs (`fuzzballFrames()`): the player's at each charge, its
-  fur combed out as it charges (`furOf()`) and sparking at a full one, the
-  hot shot under its flames, a friend in each of the eight inks, and the
-  eyes every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
+  ink its tint picks, and `bumper.ts`, `prism.ts`, `portal.ts` and
+  `plated.ts`, which `BRICK_ART` takes in as the catalog takes in their
+  kinds), on `symbols.ts`'s shared shapes and its rule that drops detail
+  under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
+  fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
+  combed out as it charges (`furOf()`) and sparking at a full one, the hot
+  shot under its flames, a friend in each of the eight inks, and the eyes
+  every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
   `atlasFrames()` is every frame the atlas holds, the kinds' in the
   catalog's order, then the fuzzballs'.
 - **`src/view/effects/`** — what each moment calls for, and how long it

@@ -12,10 +12,22 @@ import {
   PIXEL_RATIOS,
   reachPastRoundRect,
 } from "../../testing/art_frames";
+import { BRICK_ART, type KindArt } from "./art";
 import { atlasFrames } from "./atlas_frames";
-import { CHARGES, FRAMES, FRAME_NAMES, INKS } from "./frames";
+import {
+  CHARGES,
+  FRAMES,
+  FRAME_NAMES,
+  INKS,
+  PLATED_HITS,
+  PLATINGS,
+} from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
 import { tileBody, tileRadius } from "./kinds/brick";
+import { BUMPER_ART } from "./kinds/bumper";
+import { PLATED_ART } from "./kinds/plated";
+import { PORTAL_ART } from "./kinds/portal";
+import { PRISM_ART } from "./kinds/prism";
 import { cracksFrame } from "./kinds/tough";
 import { cellOf } from "./symbols";
 
@@ -39,12 +51,50 @@ const ART_SCALES: readonly ArtScale[] = [
   { unit: 128, pixelRatio: 3 },
 ];
 
-/** The bricks' frames drawn on a tile of their own rather than the chunky tile: the zappers'. */
-const OWN_TILES: ReadonlySet<string> = new Set(
+/**
+ * The art of kinds the catalog doesn't have yet, by the id each will take,
+ * which the atlas holds once `BRICK_ART` takes it up with its kind: held to
+ * the atlas's rules meanwhile, and passed over once it is taken up.
+ */
+const WAITING_ART: Readonly<Record<string, KindArt>> = {
+  bumper: BUMPER_ART,
+  prism: PRISM_ART,
+  portal: PORTAL_ART,
+  plated: PLATED_ART,
+};
+
+/** The zappers' frames, on a tile of their own, which reach past the chunky tile's rounded square. */
+const ZAPPER_FRAMES: ReadonlySet<string> = new Set(
   (["row", "column", "cross", "x"] as const).map((pattern) =>
     FRAMES.zapper(pattern),
   ),
 );
+
+/** The plated bricks' frames, whose plates' steel stands out of the chunky tile's rounded square. */
+const PLATED_FRAMES: ReadonlySet<string> = new Set(
+  PLATINGS.flatMap((plating) =>
+    PLATED_HITS.map((hits) => FRAMES.plated(plating, hits)),
+  ),
+);
+
+/** Returns whether a command of a frame may reach past the chunky tile's rounded square: a zapper's, or a plated brick's steel. */
+function mayReachPast(frame: ArtFrame, command: DrawCommand): boolean {
+  return (
+    ZAPPER_FRAMES.has(frame.name) ||
+    (PLATED_FRAMES.has(frame.name) &&
+      command.color === ART_PALETTE.kinds.plated.glyph)
+  );
+}
+
+/** Returns every frame the atlas holds at a scale, and those of the art waiting for its kinds. */
+function everyFrame(scale: ArtScale): readonly ArtFrame[] {
+  return [
+    ...atlasFrames(ART_PALETTE, scale),
+    ...Object.entries(WAITING_ART)
+      .filter(([kind]) => !(kind in BRICK_ART))
+      .flatMap(([, art]) => art.frames(ART_PALETTE, scale)),
+  ];
+}
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
@@ -84,9 +134,9 @@ function breaking(
 }
 
 describe.each(ART_SCALES)(
-  "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
+  "atlasFrames, and the art waiting for its kinds, at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
-    const frames = atlasFrames(ART_PALETTE, scale);
+    const frames = everyFrame(scale);
     const fuzzballs = new Set(
       fuzzballFrames(ART_PALETTE, scale).map(({ name }) => name),
     );
@@ -99,19 +149,19 @@ describe.each(ART_SCALES)(
       ).toEqual([]);
     });
 
-    it("draws every brick's frame but the zappers', each on the chunky tile, within the tile's rounded square, so no mark shows past it", () => {
+    it("draws every brick's frame within the chunky tile's rounded square, so no mark shows past it, but the zappers' and the plated bricks' steel", () => {
       const cell = cellOf(scale);
       const body = tileBody(cell);
       const radius = tileRadius(cell);
 
       expect(
         breaking(
-          frames.filter(
-            ({ name }) => !fuzzballs.has(name) && !OWN_TILES.has(name),
-          ),
+          frames.filter(({ name }) => !fuzzballs.has(name)),
           (frame) =>
             frame.commands.every(
-              (command) => reachPastRoundRect(command, body, radius) <= SLACK,
+              (command) =>
+                mayReachPast(frame, command) ||
+                reachPastRoundRect(command, body, radius) <= SLACK,
             ),
         ),
       ).toEqual([]);
@@ -166,8 +216,8 @@ describe.each(ART_SCALES)(
 describe("atlasFrames", () => {
   const frames = ART_FRAMES;
 
-  it("names every frame once, each a frame's name", () => {
-    const names = frames.map((frame) => frame.name);
+  it("names every frame once, each a frame's name, the art waiting for its kinds among them", () => {
+    const names = everyFrame(ART_SCALE).map((frame) => frame.name);
     const known = new Set<string>(FRAME_NAMES);
 
     expect({
@@ -204,10 +254,10 @@ describe("atlasFrames", () => {
     ]);
   });
 
-  it("leaves out only the cracks, the steel's rivets, the bomb's dots and the cage's crack at 29 CSS pixels a unit, where 31 shows them", () => {
-    const small = atlasFrames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
+  it("leaves out only the cracks, the steel's rivets, the bomb's dots, the cage's crack, and the plates' rivets and half their teeth, at 29 CSS pixels a unit, where 31 shows them, the art waiting for its kinds among them", () => {
+    const small = everyFrame({ unit: 58, pixelRatio: 2 });
 
-    const fewer = frames
+    const fewer = everyFrame(ART_SCALE)
       .filter(
         (frame, i) => frame.commands.length > (small[i]?.commands.length ?? 0),
       )
@@ -218,12 +268,15 @@ describe("atlasFrames", () => {
       FRAMES.steel,
       FRAMES.bomb,
       FRAMES.cage("hit"),
+      ...PLATINGS.flatMap((plating) =>
+        PLATED_HITS.map((hits) => FRAMES.plated(plating, hits)),
+      ),
     ]);
   });
 });
 
 describe.each(PIXEL_RATIOS)(
-  "atlasFrames at every unit from 1 to 16 device pixels, %f to a CSS pixel",
+  "atlasFrames, and the art waiting for its kinds, at every unit from 1 to 16 device pixels, %f to a CSS pixel",
   (pixelRatio) => {
     const scales = Array.from({ length: 16 }, (_, i) => ({
       unit: i + 1,
@@ -232,7 +285,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("draws nothing at a size below nothing", () => {
       const negative = scales.flatMap((scale) =>
-        breaking(atlasFrames(ART_PALETTE, scale), (frame) =>
+        breaking(everyFrame(scale), (frame) =>
           frame.commands.every((command) =>
             sizesIn(command).every((size) => size >= 0),
           ),
@@ -242,10 +295,21 @@ describe.each(PIXEL_RATIOS)(
       expect(negative).toEqual([]);
     });
 
-    it("packs into an atlas", () => {
-      const packs = scales.map((scale) =>
-        atlasSize(atlasFrames(ART_PALETTE, scale)),
+    it("draws every polygon through three points or more, so it has a point for a Graphics to start from and encloses something", () => {
+      const thin = scales.flatMap((scale) =>
+        breaking(everyFrame(scale), (frame) =>
+          frame.commands.every(
+            (command) =>
+              command.kind !== "polygon" || command.points.length >= 3,
+          ),
+        ).map((name) => `${name} at ${String(scale.unit)}`),
       );
+
+      expect(thin).toEqual([]);
+    });
+
+    it("packs into an atlas", () => {
+      const packs = scales.map((scale) => atlasSize(everyFrame(scale)));
 
       expect(packs.every(({ width, height }) => width > 0 && height > 0)).toBe(
         true,
