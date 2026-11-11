@@ -1,5 +1,5 @@
 import { figure, figures } from "@fz/ui/testing";
-import { render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { ResultComponent, type RunEnd } from "./result.component";
 
@@ -56,6 +56,11 @@ function buttons(): string[] {
   return screen
     .getAllByRole("button")
     .map((button) => button.textContent.trim());
+}
+
+/** Returns the card's title, which it opens on. */
+function title(): HTMLElement {
+  return screen.getByRole("heading", { level: 2 });
 }
 
 describe("ResultComponent", () => {
@@ -120,10 +125,70 @@ describe("ResultComponent", () => {
     expect(document.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
   });
 
-  it("opens on its title, which no key presses", async () => {
+  it("opens on its title", async () => {
     await renderResult();
 
-    expect(screen.getByRole("heading", { name: "Game over" })).toHaveFocus();
+    expect(title()).toHaveFocus();
+  });
+
+  it("tries the lost level again at Enter, as it opens", async () => {
+    const { tryAgain, newGame } = await renderResult();
+
+    await userEvent.keyboard("{Enter}");
+
+    expect([tryAgain.mock.calls.length, newGame.mock.calls.length]).toEqual([
+      1, 0,
+    ]);
+  });
+
+  it("asks for a new game at Enter, as it opens once every level is cleared", async () => {
+    const { tryAgain, newGame } = await renderResult(WON);
+
+    await userEvent.keyboard("{Enter}");
+
+    expect([tryAgain.mock.calls.length, newGame.mock.calls.length]).toEqual([
+      0, 1,
+    ]);
+  });
+
+  it("presses nothing at the repeats of an Enter held from before it opened", async () => {
+    const { tryAgain } = await renderResult();
+
+    // user-event never repeats a key's first press, and presses a held key
+    // again only after letting it go.
+    fireEvent.keyDown(title(), { key: "Enter", repeat: true });
+
+    expect(tryAgain).not.toHaveBeenCalled();
+  });
+
+  it("presses nothing as an Enter pressed before it opened is let go", async () => {
+    const user = userEvent.setup();
+    await user.keyboard("{Enter>}");
+    const { tryAgain } = await renderResult();
+
+    await user.keyboard("{/Enter}");
+
+    expect(tryAgain).not.toHaveBeenCalled();
+  });
+
+  it("leaves Ctrl+Enter to the browser", async () => {
+    const { tryAgain } = await renderResult();
+
+    await userEvent.keyboard("{Control>}{Enter}{/Control}");
+
+    expect(tryAgain).not.toHaveBeenCalled();
+  });
+
+  it("presses nothing at Space, which lets a shot fly", async () => {
+    const { tryAgain, newGame, chooseLevel, closed } = await renderResult();
+
+    await userEvent.keyboard(" ");
+
+    expect(
+      [tryAgain, newGame, chooseLevel, closed].map(
+        (emit) => emit.mock.calls.length,
+      ),
+    ).toEqual([0, 0, 0, 0]);
   });
 
   it("offers to try a lost level again, to choose a level, or to close", async () => {

@@ -1415,8 +1415,9 @@ wherever 184 CSS px are spare each side, and nowhere else; and holds the
 wall on the row a level opens on at the field's depth (`data-wall`). The
 game's `AGENTS.md` names the script and its command, and drops T1 from
 what is still to come, and `frontend/AGENTS.md`'s Check the Layout names
-Brick Fuzz Pop among the games that have one and turn the phone. `BoardCardComponent`'s doc now says the board,
-not the app, takes the focus back as a card's button goes on.
+Brick Fuzz Pop among the games that have one and turn the phone.
+`BoardCardComponent`'s doc now says the board, not the app, takes the
+focus back as a card's button goes on.
 
 **Choices the plan didn't make.**
 
@@ -1513,3 +1514,100 @@ the upright phone's lintel at 0.9 units at 1×.
 6. **The fill checks' thresholds went unexplained,** and restate what the
    shape's checks hold. Fixed: a comment says both.
 7. **The header was wrapped raggedly.** Fixed.
+
+### Q3's two findings: Try again at Enter, and "once"
+
+**2026-11-10.** At the integrator's word, from the scene stream's check of
+the shell in a browser.
+
+**What was built.**
+
+- **Try again is one press from the keyboard.** The result card still
+  opens on its title, and the title now takes Enter as a press of the
+  card's first button: Try again from the level after a loss, New game
+  after the last. Enter acts as it goes down; its repeats, an Enter let go
+  there that went down before the card opened, and Enter with Ctrl, Alt or
+  Meta press nothing, and Space still presses nothing there. The
+  template's comment and the game's `AGENTS.md` say so, and How to play's
+  row for starting again now says the key above the right little finger's
+  home key does so only once the result is put away.
+  The app's spec presses Enter on a lost run's card and finds the level
+  tried again and the board in focus.
+- **How to play says the hot shot bounces off the floor "once".**
+  `src/app/help/help_words.ts`'s `howOften()` says 1 as "once", 2 as
+  "twice" and any other as its count, "3 times", since `@fz/core/format` has
+  only `count()`, which says "1 time". The game's `AGENTS.md` names it.
+- **At the integrator's word, with them:** the game's `AGENTS.md` no
+  longer lists the rest of U1 or T1 among the packages still to come, and
+  `LevelMark`'s `open` says the debug menu can open every level.
+
+**Choices the plan didn't make.**
+
+1. **Enter on the title, rather than the focus on Try again.** Brick
+   Breaker's card opens on its first button, where Enter and Space both
+   press it, and so does a Space still held from a launch, as it is let
+   go. Asteroid Breaker's opens on its title, as this one did, where no
+   key presses anything. The web-game-accessibility skill asks for
+   `<fz-dialog>` and no hand-rolled trap or Escape, and says nothing of a
+   result card's first key. So the card keeps its title first, which keeps
+   the Space guard (a button acts as Space is let go, and Space lets a
+   shot fly) and has a screen reader read the title first, and the title
+   takes Enter, which acts as it goes down, so only an Enter pressed on
+   the card tries again. No one holds Enter through a loss, and a held
+   one's repeats are left alone in case one does.
+2. **`(keydown)`, with the key checked in the handler,** not
+   `(keydown.enter)`, whose `$event` Angular types as an `Event`, with no
+   `repeat`, short of a cast. Enter with Ctrl, Alt or Meta is left to the
+   browser, as the scene leaves it (`isShortcut()`); Shift and Enter tries
+   again, which `(keydown.enter)` wouldn't, and costs nothing.
+3. **"once" and "twice" are the help's own words,** beside it as
+   `end_words.ts` is beside the result, rather than a word added to
+   `@fz/core/format`, which every game shares, for one sentence. The
+   triple shot's "2 more fuzzballs" stays in figures, as the help's other
+   counts are.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`) pass, the result card and `help_words.ts` covered in
+full, and the root's `yarn lint`. Not run again in a browser: the specs
+press the keys with user-event on the card's `<dialog>`, the focus on its
+title as it opens.
+
+**The mutation pass.** 12 mutants over the card and the help: any key
+pressing, a repeat pressing, Ctrl and Enter pressing, Enter pressing
+nothing, Enter trying again after a win, the binding dropped, the binding
+on keyup, the card opening without its title focused; `howOften()` saying
+0 as "once", saying 2 as "2 times", saying 3 as "twice"; and the help
+saying "1 times". 11 were killed. The binding on keyup lived, since no
+spec let go of an Enter on the title; one now does, an Enter pressed
+before the card opened, and kills it. Run again after the review, all 12
+were killed. Moving `autofocus` to Try again is
+killed by the Space spec alone, as well as by the focus spec.
+
+**The review:**
+
+1. **The key above the right little finger's home key does nothing on the
+   open card,** though How to play's row for starting again names it
+   beside Enter. Fixed in the help: "Enter, or, once the result is put
+   away, the key above the right little finger's home key". The card
+   takes Enter alone, a dialog's key, rather than the board's pause key
+   too. `aria-keyshortcuts="Enter"` on Try again was left: it would be
+   read on the button, where Enter presses it anyway, and not on the
+   title, where it is news.
+2. **The method's doc opened with three sentences, and the class doc's
+   new paragraph garden-pathed and repeated the template's comment.**
+   Fixed: the method opens with one sentence, a second paragraph for why
+   a repeat is left alone, and the class doc's paragraph is gone, the
+   template's comment and `AGENTS.md` saying it.
+3. **The specs.** The Enter let go on the card is now pressed with
+   user-event, before the card opens, and let go after; the held Enter's
+   repeat keeps `fireEvent`, with a comment saying user-event can't make
+   it. `title()` finds the card's heading by its level, not "Game over",
+   and the Space spec is "presses nothing at Space, which lets a shot fly".
+   Fixed.
+4. **No spec pressed Enter on the card in the app.** Fixed: the app's spec
+   does, through the real `GameService`, holding the level tried again and
+   the focus on the board.
+5. **`keyOnTitle()` was named for what calls it.** Fixed:
+   `startAgainAtEnter()`.
+6. **A ragged line in `AGENTS.md`, and "any other count as "3 times"".**
+   Fixed.
