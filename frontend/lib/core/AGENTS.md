@@ -35,9 +35,11 @@ Each file is an entry point of its own, imported by name, such as
   `RunNumber`, an id one past the last and a seed of `randomSeed()`'s,
   and `takeUp(id)` notes the id of a run taken up from a save, so every
   new run's passes it too; an id no higher than the last changes nothing.
-  Snake's, Brick Breaker's and Asteroid Breaker's `GameService`s number
-  their runs with it, and the `RunStart` each one's rules start a run from
-  extends `RunNumber`.
+  Snake's, Brick Breaker's, Asteroid Breaker's and Brick Fuzz Pop's
+  `GameService`s number their runs with it, and the `RunStart` each of the
+  first three's rules start a run from extends `RunNumber`; Brick Fuzz
+  Pop's, whose rules draw nothing at random, takes the run's id but no
+  seed.
 - `src/json.ts`: `isRecord()`, `isWhole()`, `isCount()` and
   `isFiniteNumber()`, for reading back what was stored as JSON, which may
   have been edited or cut short; `listOf(value, read)`, a stored list read
@@ -121,8 +123,8 @@ Each file is an entry point of its own, imported by name, such as
   it started and where it plays from), made with the flourish: `play()`
   starts the next from a place, at a time, the oldest once every one is
   playing, and returns it for the painter to fill in, so a flourish makes
-  nothing as it plays. The breakers' painters take their rings, fades,
-  puffs, sparks and points from it.
+  nothing as it plays. The breakers' and Brick Fuzz Pop's painters take
+  their rings, fades, puffs, sparks and points from it.
 - `src/sweep.ts`: a ball's move swept against what it may meet, so
   however fast it goes it can't pass through anything between two steps,
   each sweep returning when the ball first touches, as a share of its

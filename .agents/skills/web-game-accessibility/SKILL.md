@@ -11,8 +11,9 @@ first way to meet one is to use the library's piece (the `fuzzley-ui` skill
 lists them); each workspace's `AGENTS.md` names what it keeps of its own:
 `frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md`,
 `frontend/games/minesweeper/AGENTS.md`, `frontend/games/sudoku/AGENTS.md`,
-`frontend/games/snake/AGENTS.md`, `frontend/games/brick-breaker/AGENTS.md`
-and `frontend/games/asteroid-breaker/AGENTS.md`.
+`frontend/games/snake/AGENTS.md`, `frontend/games/brick-breaker/AGENTS.md`,
+`frontend/games/asteroid-breaker/AGENTS.md` and
+`frontend/games/brick-fuzz-pop/AGENTS.md`.
 
 ## Core Accessibility Rules
 
@@ -101,28 +102,34 @@ move it with the arrow keys, Home and End.
   key pressed with a finger or a mouse hands the focus back to the board,
   so the player goes on typing, and one pressed from the keyboard keeps it.
 
-A board that moves by itself, as Snake's, Brick Breaker's and Asteroid
-Breaker's do (`frontend/games/snake/src/app/board/`,
+A board that moves by itself, as Snake's, Brick Breaker's, Asteroid
+Breaker's and Brick Fuzz Pop's do (`frontend/games/snake/src/app/board/`,
 `frontend/games/brick-breaker/src/app/board/`,
-`frontend/games/asteroid-breaker/src/app/board/`), is no grid: it is one
+`frontend/games/asteroid-breaker/src/app/board/`,
+`frontend/games/brick-fuzz-pop/src/app/board/`), is no grid: it is one
 focusable element with `role="application"`, named for the game and
 described by its keys, so a screen reader hands it the arrow keys; the
-canvas in it is hidden.
+canvas in it is hidden. Brick Fuzz Pop's is its field alone, named for the
+game and the level, its panels and cards beside it read as a page is.
 
 - It waits for the player: nothing moves until the player starts it, Snake by
-  its first direction, Brick Breaker by a launch and Asteroid Breaker by a
-  wave's first move, and it pauses whenever the focus leaves the board (and
-  Snake's on-screen arrows), the page is hidden or the screen turns, so opening
-  a dialog, switching tabs or turning the phone never costs a run:
-  `@fz/game-ui/play_room`'s `[fzPlayRoom]` says when. Pause has keys of its own
-  and a button: Space, P or Escape in Snake, and P or Escape in Brick Breaker,
-  whose Space launches, and in Asteroid Breaker, whose Space fires.
+  its first direction, Brick Breaker by a launch, Asteroid Breaker by a wave's
+  first move and Brick Fuzz Pop by a shot let fly, and it pauses whenever the
+  focus leaves the board (and Snake's on-screen arrows), the page is hidden or
+  the screen turns, so opening a dialog, switching tabs or turning the phone
+  never costs a run: `@fz/game-ui/play_room`'s `[fzPlayRoom]` says when. Pause
+  has keys of its own and a button: Space, P or Escape in Snake, and P or Escape
+  in Brick Breaker, whose Space launches, in Asteroid Breaker, whose Space
+  fires, and in Brick Fuzz Pop, whose Space lets a shot fly.
 - Its pace is the player's to choose: Snake offers three speeds, and a
   snake that steps from square to square rather than gliding; Brick
   Breaker three speeds, the slowest of which lets no capsule fall that
   makes the game harder, and Custom, whose ball the player sets from half
   Normal's speed to twice it; Asteroid Breaker three speeds, the slowest
-  with slower rocks, fewer and slower comets, and more pickups.
+  with slower rocks, fewer and slower comets, and more pickups; Brick Fuzz
+  Pop two speeds of a flight, long flights sped up or not, and a flight
+  fast-forwarded or skipped whenever the player likes, since nothing in it
+  is timed.
 - The run's turning points are announced, not each move: the start, a
   pause, going on, and the end with the score; a run taken up after a
   reload says it is paused.

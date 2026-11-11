@@ -7,14 +7,17 @@ description: How a game here is drawn with Phaser 4 — the @fz/phaser library (
 
 A game drawn with Phaser 4 keeps Phaser to the code that draws, and builds on
 `@fz/phaser` (`frontend/lib/phaser/`), which holds what every such game shares.
-Its rules are in [its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Four
+Its rules are in [its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Five
 games are built this way: the Solitaire Collection, whose card-specific rules
 are in its own `solitaire-phaser` skill; Snake (`frontend/games/snake/`), the
 smaller one to start from; Brick Breaker (`frontend/games/brick-breaker/`),
 which draws every brick, ball and capsule from one atlas baked at run time
-(`bakeAtlas()`); and Asteroid Breaker (`frontend/games/asteroid-breaker/`),
+(`bakeAtlas()`); Asteroid Breaker (`frontend/games/asteroid-breaker/`),
 which does the same for its rocks, ship and pickups, on a field that wraps,
-beside a deck of controls for a touch screen.
+beside a deck of controls for a touch screen; and Brick Fuzz Pop
+(`frontend/games/brick-fuzz-pop/`), which bakes its bricks and fuzzballs
+into one atlas too (`bakeWallAtlas()`), on a field as deep as its window
+holds.
 
 ## The library
 
@@ -136,8 +139,9 @@ Snake keeps four layers (`frontend/games/snake/AGENTS.md`): its rules, a
 view that works out what to draw without Phaser, so its specs are plain,
 the scene, the one folder that imports Phaser, and the shell. Brick
 Breaker keeps the same four (`frontend/games/brick-breaker/AGENTS.md`),
-its physics in its rules, and so does Asteroid Breaker
-(`frontend/games/asteroid-breaker/AGENTS.md`); all three take their fences
+its physics in its rules, and so do Asteroid Breaker
+(`frontend/games/asteroid-breaker/AGENTS.md`) and Brick Fuzz Pop
+(`frontend/games/brick-fuzz-pop/AGENTS.md`); all four take their fences
 from `@fz/dev`'s `phaserGameLayers()` (`frontend/lib/dev/AGENTS.md`).
 The Angular shell imports `@fz/phaser/canvas` and a scene source, never
 Phaser itself; a source that loads the scene with `import()` keeps Phaser
@@ -422,7 +426,10 @@ browser, through a game's screenshots and its `check:layout`.
   `brick-breaker-testing` skill); Asteroid Breaker's, of one played with
   keys, the mouse and a deck drawn on the canvas
   (`frontend/games/asteroid-breaker/src/scene/belt_scene.spec.ts`, and its
-  `asteroid-breaker-testing` skill); and the Solitaire Collection's of a board
+  `asteroid-breaker-testing` skill); Brick Fuzz Pop's, of one aimed with
+  keys, the mouse, the wheel and fingers
+  (`frontend/games/brick-fuzz-pop/src/scene/wall_scene.spec.ts`, and its
+  `brick-fuzz-pop-testing` skill); and the Solitaire Collection's of a board
   whose atlases are served and loaded, played with the mouse
   (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`,
   and its `solitaire-testing` skill).

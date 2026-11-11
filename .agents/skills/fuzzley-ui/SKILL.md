@@ -129,11 +129,12 @@ The Solitaire Collection is the worked example; the site does the same, and
 so do Minesweeper (`frontend/games/minesweeper/`) and Sudoku
 (`frontend/games/sudoku/`), games built from the libraries alone, which show
 the same steps with nothing else around them, and Snake
-(`frontend/games/snake/`), Brick Breaker (`frontend/games/brick-breaker/`)
-and Asteroid Breaker (`frontend/games/asteroid-breaker/`), whose boards
-Phaser draws in the palette's roles, Brick Breaker's bricks and Asteroid
-Breaker's pilots in `@fz/phaser/color`'s shared inks beside them, and
-Asteroid Breaker's rocks in inks of their own.
+(`frontend/games/snake/`), Brick Breaker (`frontend/games/brick-breaker/`),
+Asteroid Breaker (`frontend/games/asteroid-breaker/`) and Brick Fuzz Pop
+(`frontend/games/brick-fuzz-pop/`), whose boards Phaser draws in the
+palette's roles, Brick Breaker's and Brick Fuzz Pop's bricks, Asteroid
+Breaker's pilots and Brick Fuzz Pop's friends in `@fz/phaser/color`'s
+shared inks beside them, and Asteroid Breaker's rocks in inks of their own.
 
 1. **Depend on them.** List `"@fz/style": "workspace:*"` in the app's
    `package.json`, and for an Angular app `@fz/ui` and, for a game,
@@ -182,8 +183,11 @@ Asteroid Breaker's rocks in inks of their own.
    `frontend/games/brick-breaker/src/view/colors/contrast.spec.ts` Brick
    Breaker's tints, bricks, balls and capsules on its field, and
    `frontend/games/asteroid-breaker/src/view/colors/contrast.spec.ts` Asteroid
-   Breaker's rocks, ship, pickups and pilots on its field. Each compiles the
-   app's global stylesheet and measures it with `@fz/style/testing`.
+   Breaker's rocks, ship, pickups and pilots on its field, and
+   `frontend/games/brick-fuzz-pop/src/view/colors/contrast.spec.ts` Brick
+   Fuzz Pop's tiles and fuzzballs on its field, and the count over its
+   lintel. Each compiles the app's global stylesheet and measures it with
+   `@fz/style/testing`.
 
 Keep the players' `localStorage` keys as they are, whatever the app moves
 onto `LocalStorageService`: renaming one loses what players saved.

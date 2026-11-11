@@ -2106,3 +2106,74 @@ check ("no such path").
    wave", where Brick Fuzz Pop's also times a flight; and the entry's
    "runs Vitest twice, then its `sim` project" reads as three runs._
    Taken, both.
+
+### D1's lists, continued: the shared skills and the libraries
+
+**2026-11-11.** The second of D1's list commits, split out of the first,
+whose review found these lists, as Asteroid Breaker's list commit had
+changed them with the rest.
+
+**What was built.** Brick Fuzz Pop is named with the other games in:
+
+- `angular-testing`: its shell among the Angular workspaces, its testing
+  skill among the apps', and its projects and `sim` run beside the
+  breakers'.
+- `phaser-core`: five games built on `@fz/phaser`, not four, it baking its
+  bricks and fuzzballs into one atlas (`bakeWallAtlas()`); four games
+  fenced by `phaserGameLayers()`; and its scene's spec, of one aimed with
+  keys, the mouse, the wheel and fingers, among the worked examples.
+- `web-game-accessibility`: its `AGENTS.md` among the workspaces', and its
+  board among those that move by themselves: its application the field
+  alone, named for the game and the level; started by a shot let fly;
+  paused by P or Escape, its Space letting a shot fly; and its pace, two
+  speeds of a flight, long flights sped up or not, and every flight
+  fast-forwarded or skipped.
+- `fuzzley-ui`: the games whose boards Phaser draws, its bricks and its
+  friends in `@fz/phaser/color`'s shared inks, and its contrast spec among
+  those that hold what a game draws in every palette.
+- `phaser-canvas-performance`: the painters that take `Turns`.
+- `frontend/lib/dev/AGENTS.md`: its dev port, 9006; the games that give
+  `angularTests()` their projects, twice, a `sim` project timing a flight
+  too; the games `checkPhaserLayout()` checks; and `@fz/dev/report`'s
+  table, a level at each depth.
+- `frontend/lib/game-ui/AGENTS.md`: the `GameService`s on `RunLifecycle`.
+- `frontend/lib/core/AGENTS.md`: the `GameService`s numbered by
+  `RunNumbers`, its `RunStart` taking the run's id but no seed, as its
+  rules draw nothing at random; and the painters that take `Turns`.
+
+**Choices the plan didn't make.**
+
+1. **`@fz/core`'s sentence says how Brick Fuzz Pop differs,** rather than
+   counting it among the games whose `RunStart` extends `RunNumber`,
+   which its own doesn't: it numbers its runs but keeps no seed.
+
+**Checks.** The root's `yarn lint`, its reference check included, passes.
+
+**The mutation pass.** As the last entry: a path written wrong fails the
+reference check.
+
+**The review:**
+
+1. _`@fz/core`'s "takes its id alone" is false: its `RunStart` has a
+   level and a depth too._ Taken: "takes the run's id but no seed", here
+   too.
+2. _`@fz/dev`'s first sentence on `angularTests()`'s projects leaves it
+   out, and says `sim` only plays or lays out levels or waves._ Taken:
+   named, "or time a flight" added.
+3. _`fuzzley-ui`'s step 7 names every Phaser game's contrast spec but
+   its, and its friends take the shared fuzzball inks._ Taken, both.
+4. _`phaser-core`'s worked examples of scene specs leave it out._ Taken.
+5. _`web-game-accessibility`'s section on a board that moves by itself
+   leaves it out of every bullet._ Taken: its board, what starts it, its
+   pause keys and its pace, and its application the field alone.
+6. _`@fz/dev/report` names only the breakers' reports._ Taken: "at each
+   speed or depth", Brick Fuzz Pop's `report:levels` beside Brick
+   Breaker's.
+7. _`@fz/core`'s and `phaser-canvas-performance`'s sentences on `Turns`
+   count only the breakers' painters._ Taken, both.
+8. _Four paragraphs wrapped unlike their neighbours._ Taken: rewrapped at
+   80 columns, with the paragraphs the fixes above touched.
+9. _The entry: "which its doesn't", and what was built and taken._ Taken.
+
+The fixes follow the review's own words but for the pace, so they had no
+second review.
