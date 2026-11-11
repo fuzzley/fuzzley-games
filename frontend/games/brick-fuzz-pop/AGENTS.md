@@ -241,13 +241,15 @@ helpers.
   mouse, the wheel and fingers into each frame's `Steer`, the aim, the
   charge, a shot let fly, fast-forward held and whether the keys moved it,
   aiming a pointer from where the fuzzball waits: pulled back past a dead
-  zone, a notch at a time, or pointed and held, each kind of pointer its
-  own way. Escape calls off a charge building and otherwise passes on to
-  pause, as only the steering knows a charge builds. `aiming.ts` holds how
-  each kind of pointer aims (`PointerAimings`), the settings' "by the
-  pointer" (`BY_POINTER`) and the aim straight up the steering starts at
-  (`STRAIGHT_UP`), which the steering, the scene and the shell take from
-  it, so the shell's chunk carries no `Steering`.
+  zone, a notch at a time, or pointed and held, the hold counted by the
+  frames' clock, at most `LONGEST_FRAME_MS` a frame, each kind of pointer
+  its own way. Escape calls off a charge building, which the frame says as a
+  key's change is, and otherwise passes on to pause, as only the steering
+  knows a charge builds. `aiming.ts` holds how each kind of pointer aims
+  (`PointerAimings`), the settings' "by the pointer" (`BY_POINTER`) and the
+  aim straight up the steering starts at (`STRAIGHT_UP`), which the
+  steering, the scene and the shell take from it, so the shell's chunk
+  carries no `Steering`.
 - **`src/view/colors/`** — the field's colors: the page's roles it is drawn
   in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
   `wallPalette()`, which gives a palette's colors from those roles and its

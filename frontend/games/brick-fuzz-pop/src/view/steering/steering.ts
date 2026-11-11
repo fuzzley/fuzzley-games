@@ -35,6 +35,15 @@ export const PULL_NOTCH = 0.9;
 export const HOLD_NOTCH_MS = 250;
 
 /**
+ * The most of a frame's time a pointed press counts as held, in
+ * milliseconds.
+ *
+ * A frame counts all it took down to 10 frames a second, so a press charges
+ * at the same pace on a slow device, but a stall counts no more.
+ */
+export const LONGEST_FRAME_MS = 100;
+
+/**
  * How near a side of the canvas a finger's press is left alone, in CSS
  * pixels, so the browser's swipe from the screen's edge keeps it.
  */
@@ -93,7 +102,10 @@ export interface Steer {
   release: boolean;
   /** Whether fast-forward is held. */
   fast: boolean;
-  /** Whether the keys turned the aim or changed the charge this frame, which the announcer says. */
+  /**
+   * Whether the keys turned the aim or changed the charge this frame,
+   * Escape calling a charge off among them, which the announcer says.
+   */
   keyed: boolean;
 }
 
@@ -140,7 +152,7 @@ function chargeOf(notches: number): Charge {
  * notch each {@link PULL_NOTCH} past the {@link DEAD_ZONE}. Pointed, the
  * aim follows the pointer, a mouse's even unpressed and as the fuzzball
  * waits somewhere new, and a press held charges a notch each
- * {@link HOLD_NOTCH_MS} of the frames' time. Either flies as it is let go,
+ * {@link HOLD_NOTCH_MS} by the frames' clock. Either flies as it is let go,
  * wherever that is, at the aim and the charge its last move and the last
  * frame showed. Only the mouse's main button presses, and its
  * right button calls a charge off; a second press while one is held, a
@@ -172,8 +184,10 @@ export class Steering {
   private armed = false;
   /** Whether the mouse pointed the aim last, so it aims again as the fuzzball waits somewhere new. */
   private pointed = false;
-  /** How long a pointed press has been held, counted by the frames, for the meter. */
+  /** How long a pointed press has been held, counted by the frames' clock, for the meter. */
   private heldMs = 0;
+  /** When the last frame was read, by the frames' clock, or null before the first. */
+  private lastFrameAt: number | null = null;
   /** Whether the keys changed the aim or the charge since the last frame. */
   private keyed = false;
   /** Whether a shot was let fly since the last frame, and at what. */
@@ -216,7 +230,8 @@ export class Steering {
    * Takes a key pressed, and returns whether the steering took it, so the
    * scene asks nothing more of it: a key that turns the aim, changes the
    * charge or lets the shot fly, a held key, and the key that pauses while
-   * a charge builds, a flight's included, which calls it off instead.
+   * a charge builds, a flight's included, which calls it off instead and
+   * has the frame say so, as a key that changes the charge does.
    */
   keyDown(press: KeyPress): boolean {
     const key = steerKeyOf(press.code);
@@ -230,6 +245,7 @@ export class Steering {
     }
     if (commandOfKey(press.code) === "pause" && this.isBuilding()) {
       this.callOff();
+      this.keyed = true;
       return true;
     }
     return false;
@@ -328,15 +344,24 @@ export class Steering {
   }
 
   /**
-   * Returns the steering for a frame of some milliseconds, the fuzzball
-   * waiting at a place across the floor, and starts the next frame's
-   * afresh; the object returned is the same each frame.
+   * Returns the steering for a frame at a moment on the frames' clock, the
+   * time Phaser hands a scene's `update()` rather than its delta, the
+   * fuzzball waiting at a place across the floor, and starts the next
+   * frame's afresh; the object returned is the same each frame.
+   *
+   * A pointed press counts as held the time since the last frame, between
+   * none and {@link LONGEST_FRAME_MS}, and none on the first.
    */
-  read(deltaMs: number, from: number): Readonly<Steer> {
+  read(now: number, from: number): Readonly<Steer> {
+    const frameMs =
+      this.lastFrameAt === null
+        ? 0
+        : clamp(now - this.lastFrameAt, 0, LONGEST_FRAME_MS);
+    this.lastFrameAt = now;
     this.from = from;
     if (this.pointed) this.aimAtPlace();
     if (this.pressed !== null && this.way === "pointAndHold") {
-      this.heldMs += deltaMs;
+      this.heldMs += frameMs;
       this.charge = chargeAfter(this.heldMs);
     }
     const { steer } = this;

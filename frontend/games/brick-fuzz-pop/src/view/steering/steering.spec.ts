@@ -11,6 +11,7 @@ import { BY_POINTER, type PointerAimings, STRAIGHT_UP } from "./aiming";
 import {
   HOLD_NOTCH_MS,
   type KeyPress,
+  LONGEST_FRAME_MS,
   type PointerView,
   Steering,
   aimToward,
@@ -26,6 +27,19 @@ const METRICS = fieldMetrics(PHONE, fieldShape(PHONE));
 /** A frame's time in these specs, which adds up to whole notches exactly. */
 const FRAME_MS = 25;
 
+/** The frames' clock in these specs, in milliseconds, which each frame read moves on. */
+let clock = 0;
+
+/** Moves the frames' clock on by a frame's time, and returns the time it reads. */
+function nextFrame(frameMs = FRAME_MS): number {
+  clock += frameMs;
+  return clock;
+}
+
+beforeEach(() => {
+  clock = 0;
+});
+
 /** Each kind of pointer pulling back. */
 const PULLED: PointerAimings = { mouse: "pullBack", finger: "pullBack" };
 
@@ -35,7 +49,10 @@ const POINTED: PointerAimings = {
   finger: "pointAndHold",
 };
 
-/** Returns a steering of a field laid out on a canvas, its pointers aiming as given. */
+/**
+ * Returns a steering of a field laid out on a canvas, its pointers aiming as
+ * given, read once, as the scene reads it each frame from the first.
+ */
 function steeringOf(
   aimings: PointerAimings = BY_POINTER,
   canvas: Viewport = PHONE,
@@ -43,6 +60,7 @@ function steeringOf(
 ): Steering {
   const steering = new Steering(metrics, canvas);
   steering.aimWith(aimings);
+  steering.read(clock, FIRST_X);
   return steering;
 }
 
@@ -87,13 +105,13 @@ function pressTimes(steering: Steering, code: string, times: number): void {
 /** Reads the steering for frames that add up to some milliseconds, the fuzzball waiting at the floor's middle. */
 function readFor(steering: Steering, ms: number, frameMs = FRAME_MS): void {
   for (let played = 0; played < ms; played += frameMs) {
-    steering.read(frameMs, FIRST_X);
+    steering.read(nextFrame(frameMs), FIRST_X);
   }
 }
 
 /** Reads a frame of the steering, the fuzzball waiting at the floor's middle. */
 function frame(steering: Steering) {
-  return steering.read(FRAME_MS, FIRST_X);
+  return steering.read(nextFrame(), FIRST_X);
 }
 
 describe("aimToward", () => {
@@ -357,6 +375,36 @@ describe("Steering's keys", () => {
     expect([taken, frame(steering).charge]).toEqual([true, 0]);
   });
 
+  it.each([
+    [
+      "the keys chose",
+      (steering: Steering) => steering.keyDown(key("ArrowUp")),
+    ],
+    [
+      "a held press built",
+      (steering: Steering) => {
+        steering.pointerDown(mouse(4.5, 5));
+        readFor(steering, 500);
+      },
+    ],
+  ])("say the shot changed as Escape calls off a charge %s", (_, build) => {
+    const steering = steeringOf();
+    build(steering);
+    frame(steering);
+
+    steering.keyDown(key("Escape"));
+
+    expect(frame(steering)).toMatchObject({ charge: 0, keyed: true });
+  });
+
+  it("say nothing of Escape while no charge builds, leaving it to pause", () => {
+    const steering = steeringOf();
+
+    steering.keyDown(key("Escape"));
+
+    expect(frame(steering).keyed).toBe(false);
+  });
+
   it("call a pressed pointer's shot off at Escape, so its letting go flies nothing", () => {
     const steering = steeringOf();
     steering.pointerDown(mouse(4.5, 5));
@@ -390,11 +438,11 @@ describe("Steering's pointer, pointing and holding", () => {
 
   it("aims from where the fuzzball waits", () => {
     const steering = steeringOf();
-    steering.read(FRAME_MS, 2);
+    steering.read(nextFrame(), 2);
 
     steering.pointerMove(mouse(1, 1.25));
 
-    expect(steering.read(FRAME_MS, 2).aim).toBe(AIM_COUNT - 1 - 148);
+    expect(steering.read(nextFrame(), 2).aim).toBe(AIM_COUNT - 1 - 148);
   });
 
   it("keeps the aim while the mouse is on the fuzzball itself", () => {
@@ -410,7 +458,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.pointerMove(mouse(FIRST_X + 1, 1.25));
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(AIM_COUNT - 1 - 148);
   });
@@ -421,7 +469,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.keyDown(key("ArrowLeft"));
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(152);
   });
@@ -434,7 +482,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.pointerUp(finger(2.5, 6));
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(148);
   });
@@ -445,7 +493,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.pointerUp(finger(FIRST_X + 1, 1.25));
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(148);
   });
@@ -456,7 +504,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.wheel(0);
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(AIM_COUNT - 1 - 148);
   });
@@ -467,7 +515,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.aimWith(POINTED);
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(AIM_COUNT - 1 - 148);
   });
@@ -478,7 +526,7 @@ describe("Steering's pointer, pointing and holding", () => {
     steering.aimWith(PULLED);
     frame(steering);
 
-    const next = steering.read(FRAME_MS, FIRST_X + 2);
+    const next = steering.read(nextFrame(), FIRST_X + 2);
 
     expect(next.aim).toBe(148);
   });
@@ -551,7 +599,7 @@ describe("Steering's pointer, pointing and holding", () => {
     expect(frame(steering)).toMatchObject({ aim: 148, release: true });
   });
 
-  it.each([30, 60, 144])(
+  it.each([10, 20, 30, 60, 144])(
     "lets a press held 1.3 s fly at the same charge at %i frames a second",
     (rate) => {
       const steering = steeringOf();
@@ -563,6 +611,44 @@ describe("Steering's pointer, pointing and holding", () => {
       expect(frame(steering).charge).toBe(5);
     },
   );
+
+  it.each([
+    [HOLD_NOTCH_MS - LONGEST_FRAME_MS, 1],
+    [HOLD_NOTCH_MS - LONGEST_FRAME_MS - 1, 0],
+  ])(
+    "counts a frame of a second after a press held %i ms as LONGEST_FRAME_MS, charging it to %i",
+    (ms, charge) => {
+      const steering = steeringOf();
+      steering.pointerDown(mouse(4.5, 5));
+      readFor(steering, ms, 1);
+
+      const next = steering.read(nextFrame(1000), FIRST_X);
+
+      expect(next.charge).toBe(charge);
+    },
+  );
+
+  it("counts nothing held before its first frame", () => {
+    const steering = new Steering(METRICS, PHONE);
+    steering.aimWith(POINTED);
+    steering.pointerDown(mouse(4.5, 5));
+    steering.read(nextFrame(), FIRST_X);
+
+    readFor(steering, HOLD_NOTCH_MS - 2 * FRAME_MS);
+
+    expect(frame(steering).charge).toBe(0);
+  });
+
+  it("counts nothing of a frame whose clock reads earlier than the last's", () => {
+    const steering = steeringOf();
+    steering.pointerDown(mouse(4.5, 5));
+    readFor(steering, HOLD_NOTCH_MS - FRAME_MS);
+    const built = frame(steering).charge;
+
+    const { charge } = steering.read(clock - FRAME_MS, FIRST_X);
+
+    expect([built, charge]).toEqual([1, 1]);
+  });
 
   it("starts each press's charge afresh", () => {
     const steering = steeringOf();
