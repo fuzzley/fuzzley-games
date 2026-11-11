@@ -50,7 +50,7 @@ import {
 } from "./stored_run.mjs";
 
 /** @import { DevToolsConnection } from "@fz/dev/chrome" */
-/** @import { BoardBox, LayoutCheck, LayoutProblem, PhaserBoard } from "@fz/dev/layout" */
+/** @import { BeforeLoad, BoardBox, LayoutCheck, LayoutProblem, PhaserBoard } from "@fz/dev/layout" */
 /** @import { ScreenshotApi } from "../src/testing/script_api.ts" */
 
 const ROOT = join(import.meta.dirname, "..");
@@ -240,7 +240,8 @@ function inspectField(field) {
   const outcome = board.getAttribute("data-outcome");
   const wall = board.getAttribute("data-wall");
   // The row the run kept stands its wall on, where the page took one up,
-  // or null for a level waiting for its first shot, as `before()` says.
+  // or null for a level waiting for its first shot, as `keepRun()` or
+  // `keepingNone()` says.
   const keptRow = Reflect.get(window, "keptWallRow");
   if (keptRow === undefined) {
     problems.push("Nothing said which run the page shows.");
@@ -297,22 +298,20 @@ function keepRun(key, stored, row) {
 }
 
 /**
- * Returns what runs in the page before its own scripts: {@link keepRun}
- * called with {@link LAYOUT_RUN}, as storage keeps it, and the row its wall
- * stands on. `LayoutCheck.before()` is sent as its source and handed
- * nothing, so the call, its arguments written in, is made a function of
- * its own, as `Page.beforeLoad()` writes one; Node never calls it.
+ * Returns what runs in the page before its own scripts: {@link keepRun},
+ * handed where the game keeps a run, {@link LAYOUT_RUN} as storage keeps
+ * it, and the row its wall stands on.
  *
  * @param {ScreenshotApi} api
- * @returns {() => void}
+ * @returns {BeforeLoad<Parameters<typeof keepRun>>}
  */
 function keepingRun(api) {
   const { saved, stored } = storedRun(api, LAYOUT_RUN);
   if (!saved.start) throw new Error("The run kept has no round played.");
-  const args = [SAVED_GAME_KEY, stored, saved.start.lowestRow];
-  return /** @type {() => void} */ (
-    new Function(`(${String(keepRun)})(...${JSON.stringify(args)});`)
-  );
+  return {
+    run: keepRun,
+    args: [SAVED_GAME_KEY, stored, saved.start.lowestRow],
+  };
 }
 
 /**

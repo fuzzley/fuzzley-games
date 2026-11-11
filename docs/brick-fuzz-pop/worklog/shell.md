@@ -1967,3 +1967,63 @@ block after the others setting the fence to "warn" over `src/testing/`
 The reviewer also noted, outside this change, that Asteroid Breaker's
 `eslint.config.js` has the same later helpers' block over its own held
 files and no such spec; that is for the integrator.
+
+### `@fz/dev/layout` hands a check's `before` its arguments
+
+**2026-11-11.** At the integrator's word, from my note on T2: the layout
+check built `keepRun()`'s call, its arguments written in, as a
+`new Function()`, since a check's `before()` was handed nothing.
+
+**What was built.** `LayoutCheck` takes what its `before` is handed as a
+type (`LayoutCheck<A>`, `[]` by default), and `before` is either a
+function handed nothing, as Snake's and Asteroid Breaker's are, or a
+`BeforeLoad<A>`, `{ run, args }`, which `load()` hands
+`Page.beforeLoad()` as its function and arguments, each sent as JSON.
+`checkLayout()`, `checkTurns()` and `checkPhaserLayout()` take the type
+from the check; `inspect()`, which reads only the board and the
+inspection, takes those alone. Brick Fuzz Pop's `keepingRun()` returns
+`{ run: keepRun, args: [key, stored, row] }`, so nothing builds a call
+from source; `lib/dev/AGENTS.md`'s entry says what `before` may be.
+
+**Choices the plan didn't make.**
+
+1. **`{ run, args }` beside a bare function,** not `beforeArgs` beside
+   `before`: one record ties the arguments' type to the function's, which
+   a separate optional `beforeArgs` would leave open (a `before` that
+   takes three arguments could be handed none), and a bare function stays
+   as it is, so no other game changes.
+2. **A type test** (`@ts-expect-error`), as `@fz/core`'s
+   `testing.spec.ts` has, holding the arguments to what `run` takes; its
+   runtime half says the page is sent what the check gives, the type the
+   only guard.
+
+**Checks.** `@fz/dev`'s `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`): 16 files, 531 tests, `layout.ts` at 98.93% of
+statements, its two lines unrun older than this; the workspace's and the
+root's as above. Every game with a layout check built (Sudoku, Snake,
+Brick Breaker, Asteroid Breaker, Brick Fuzz Pop) and the root's
+`yarn check:layout`, at the integrator's word, holds each at every shape
+and turn: Snake's with and without the arrows, Asteroid Breaker's with the
+deck shown, and Brick Fuzz Pop's as a level waits for its first shot and
+over a run taken up.
+
+**The mutation pass.** 6 mutants, all killed: the record's arguments
+dropped, the arguments reversed, the record never run, the bare function
+never run and the two branches swapped (each by `layout.spec.ts`); and
+`args` untied from `run`'s type (`unknown[]` beside a `run` of `never`),
+which fails the typecheck at the type test's unused `@ts-expect-error`.
+
+**The review:**
+
+1. _`check-layout.mjs`'s comment on `keptWallRow` still says "as
+   `before()` says"._ Taken: "as `keepRun()` or `keepingNone()` says".
+2. _The specs match the source sent with patterns where `chrome.spec.ts`
+   holds it exactly, and the type test's runtime half keeps a mistyped
+   call's behaviour._ Taken for the first: each spec holds the source
+   exactly, as `` `(${String(keep)})(...["a",2])` ``. Left for the second:
+   the half says what a mistyped call does, that nothing but the type
+   guards it, which a comment there now says.
+3. _`inspect()` takes a type parameter it never uses._ Taken: it takes
+   `Pick<LayoutCheck, "board" | "inspect">`.
+4. _`keepingRun()`'s `@returns` repeats `keepRun()`'s parameters._ Taken:
+   `BeforeLoad<Parameters<typeof keepRun>>`.

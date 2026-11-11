@@ -131,8 +131,25 @@ export const PHASER_CHECKED_AT: string = [...PHASER_SHAPES, ...PHASER_TURNS]
   .map((shape) => shape.name)
   .join(", ");
 
-/** Says how to check a game's layout. */
-export interface LayoutCheck {
+/**
+ * Says what runs in a page before its own scripts, as `Page.beforeLoad()`
+ * runs one, and what it is handed.
+ */
+export interface BeforeLoad<A extends unknown[]> {
+  /**
+   * Sets the page up. It is sent as its source, so it can use nothing from
+   * the module it is written in.
+   */
+  readonly run: (...args: A) => void;
+  /** What `run()` is handed, each sent as JSON. */
+  readonly args: A;
+}
+
+/**
+ * Says how to check a game's layout, and what its `before` is handed, where
+ * it is handed anything.
+ */
+export interface LayoutCheck<A extends unknown[] = []> {
   /** Where the game is served, as its build is. */
   readonly url: string;
   /** A selector the page matches once the game has drawn. */
@@ -160,10 +177,11 @@ export interface LayoutCheck {
   /**
    * Runs in the page before its own scripts, as `Page.beforeLoad()` runs
    * one, to set it up as a player might have, such as with a setting
-   * stored. It is sent as its source, so it can use nothing from the module
-   * it is written in.
+   * stored: a function handed nothing, or one with what it is handed, such
+   * as a run the game keeps. It is sent as its source, so it can use
+   * nothing from the module it is written in.
    */
-  readonly before?: () => void;
+  readonly before?: (() => void) | BeforeLoad<A>;
 }
 
 /** Says what is wrong with a game's layout at one shape. */
@@ -187,9 +205,9 @@ const TURN_SETTLE_MS = 500;
  * the game bar outside the window, what is wrong with a board drawn with
  * Phaser, where the check has one, and what the game's own inspection finds.
  */
-export async function checkLayout(
+export async function checkLayout<A extends unknown[] = []>(
   devtools: DevToolsConnection,
-  check: LayoutCheck,
+  check: LayoutCheck<A>,
   shapes: readonly Shape[] = SHAPES,
 ): Promise<LayoutProblem[]> {
   const problems: LayoutProblem[] = [];
@@ -209,9 +227,9 @@ export async function checkLayout(
  * one it ends at, as a phone turns, and returns what is wrong once the game
  * has laid itself out again, as {@link checkLayout} does at a shape.
  */
-export async function checkTurns(
+export async function checkTurns<A extends unknown[] = []>(
   devtools: DevToolsConnection,
-  check: LayoutCheck,
+  check: LayoutCheck<A>,
   turns: readonly Turn[] = TURNS,
 ): Promise<LayoutProblem[]> {
   const problems: LayoutProblem[] = [];
@@ -237,9 +255,9 @@ export async function checkTurns(
  * every turn, all at twice the pixels, so the canvas's backing size is
  * tested, and returns what is wrong.
  */
-export async function checkPhaserLayout(
+export async function checkPhaserLayout<A extends unknown[] = []>(
   devtools: DevToolsConnection,
-  check: LayoutCheck,
+  check: LayoutCheck<A>,
 ): Promise<LayoutProblem[]> {
   const shaped = await checkLayout(devtools, check, PHASER_SHAPES);
   const turned = await checkTurns(devtools, check, PHASER_TURNS);
@@ -346,9 +364,14 @@ Checks ${game}'s layout in headless Chrome, on the build yarn build made.
  * Loads the game on a page and waits for it to draw, and returns the list of
  * errors the page reports, which goes on filling.
  */
-async function load(page: Page, check: LayoutCheck): Promise<string[]> {
+async function load<A extends unknown[]>(
+  page: Page,
+  check: LayoutCheck<A>,
+): Promise<string[]> {
   const errors = await gatherErrors(page);
-  if (check.before) await page.beforeLoad(check.before);
+  const { before } = check;
+  if (typeof before === "function") await page.beforeLoad(before);
+  else if (before) await page.beforeLoad(before.run, ...before.args);
   await page.navigate(check.url);
   if (!(await page.evaluate(settle, check.ready, READY_TIMEOUT_MS))) {
     throw new Error(
@@ -365,7 +388,10 @@ async function load(page: Page, check: LayoutCheck): Promise<string[]> {
 const READERS: readonly PageFunction[] = [readRect, readNamedRects];
 
 /** Returns what is wrong with the game's layout as the page now stands. */
-async function inspect(page: Page, check: LayoutCheck): Promise<string[]> {
+async function inspect(
+  page: Page,
+  check: Pick<LayoutCheck, "board" | "inspect">,
+): Promise<string[]> {
   const board: BoardInspection = check.board
     ? await page.evaluateWith(READERS, inspectPhaserBoard, check.board)
     : { problems: [] };
