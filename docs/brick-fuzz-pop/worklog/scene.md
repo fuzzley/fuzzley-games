@@ -1123,3 +1123,106 @@ against the code; seven findings.
 6. **The benchmarks' command ran the replays and the floors too:** fixed,
    in the skill and `AGENTS.md`, it names `src/rules/flight/benchmarks`.
 7. **Lines broken mid-thought:** reflowed.
+
+### X3b: the art's specs on the catalog's kinds
+
+**2026-11-11.**
+
+The view stream's catalog commit (af0a32a5) cataloged the shell and moss
+and wired their art, and left two notes for this stream's specs: the
+shell's and the moss's art specs still stood a tough brick in for the kind
+they draw, and the lookup tables of `art.spec.ts` and `wall_scene.spec.ts`
+listed only Warm-up's kinds.
+
+**What was built.**
+
+- **`src/view/art/kinds/shell.spec.ts` and `moss.spec.ts`** draw a shell
+  and a moss brick by their own kinds, their hits whole the most the
+  catalog gives each by default (`brickKind()`), and throw for none left
+  and for one more than `THICK_HITS` shows; the wording that said the
+  kinds weren't cataloged is gone.
+- **`src/view/art/art.spec.ts`** holds every kind the catalog has. Its
+  table of five kinds' layers is a rule over `BRICK_KIND_IDS`, that a
+  whole brick of each kind shows unlike any other kind's, which a kind
+  drawn by another's art breaks, and one look kept from the table, a
+  tough brick of tint 4 with 3 hits left of 5, the one look a brick
+  shows damaged in a tint but the first. Its table of five kinds' shards'
+  colors is three specs, in each of the eight tints: a kind the palette
+  keeps inks for (`WallPalette.kinds`) colors its shards in their body,
+  the brick and the tough brick in their tint's ink, and every cataloged
+  kind is one or the other.
+- **`src/scene/wall_scene.spec.ts`** holds How to play's picture of every
+  kind to a whole brick of the fewest hits a level gives it, in the first
+  tint, as `pictures.ts` draws it.
+- **`src/view/art/kinds/shell.ts`** draws its bolt with `symbols.ts`'
+  `boltMark()`, the art stream's, at the design's place and size, rather
+  than its own copy of the mark's points; and the shell's and moss's specs
+  hand their art a look without its kind, as `KindLook` reads one. Both
+  on the integrator's note from the art stream's rebase, after the
+  review.
+- **X1's kinds join with no edit.** Rebased onto X1's art (fed96fde), the
+  bomb, wool, the cage and the cross and x zappers, waiting for their
+  catalog, each colors its shards in the body of the inks the palette
+  keeps for it and looks unlike every other kind whole, so each holds to
+  these specs once the rules stream catalogs it.
+
+**Choice 1: a rule, not a table of each kind's layers.** A table spells
+each kind's frames out, so each kind cataloged would need a line; each
+kind's own spec in `kinds/` already spells its layers out. What
+`art.spec.ts` holds is what `BRICK_ART` adds: that each kind is drawn by
+art of its own. A kind wired to another's art draws like it, which the
+rule finds; X1's and X2's kinds, as `plan.md`'s art table draws them,
+each look unlike the rest.
+
+**Choice 2: the portal is left to say how its shards are colored.** A
+portal's tint is its pair's mark, and the palette keeps its inks apart
+(`WallPalette.portals`), so neither of the two colors' rules holds it. The
+third spec fails once X2 catalogs it, naming it, so its commit adds the
+rule its art keeps; every other kind X1 and X2 bring keeps inks in
+`kinds`, and joins with no edit.
+
+**Names added:** none.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+5,041 tests in 108 files, and 150 in `sim`, on X1's art and the
+stand-ins (023d8507); the root's `yarn lint` passes.
+
+**The mutation pass.** 25 mutants, of the code the new specs hold: each
+of `BRICK_ART`'s lines but the plain brick's wired to another kind's art
+(the shell as moss, moss as the shell, each zapper as the other, steel
+and the tough brick as the plain brick); `brickLayers()` handing the art
+a whole brick or the first tint, and `brickColor()` the first tint or the
+plain brick's art for every kind; each kind's shards in another of its
+inks or another tint; the shell and moss drawing a fourth hit; and How to
+play's pictures at the most hits, in the second tint or a hit down; and,
+after the review, the shell's bolt moved, larger, off its middle or in
+its face's ink. 24 were killed. One is equivalent: steel's shards in its
+face, which is its body's ink in every palette.
+
+**The review:**
+
+1. **The rule that each look shows frames its own art brings would fail
+   for X2's plated brick,** which stacks the tough brick's pips, and
+   likely X1's cage, whose friend is a fuzzball's frame; and it killed no
+   mutant, as a kind wired to another's art brings that art's frames too.
+   Fixed: dropped.
+2. **The colors' rule read a portal's shards as its tint's,** though its
+   tint is its pair's mark. Fixed: the rule is split, the inked kinds by
+   their body and the brick and tough brick by their tint, with a spec
+   that every kind is one or the other, which names the portal once X2
+   catalogs it (Choice 2).
+3. **The literal table's damaged tough brick of tint 4 was the only spec
+   of `brickLayers()` handing the art a look as it is,** which the
+   scene's specs read as their oracle. Fixed: kept, and two mutants added
+   that it kills.
+4. **The whole brick is worked out in three places:** `pictures.ts`,
+   `art.spec.ts` and `wall_scene.spec.ts`. Left: a helper in
+   `src/testing/` would want a spec of its own for a line, and the
+   picture's spec reads as the rule How to play keeps. The plated brick's
+   picture, with no plate, is X2's to change in `pictures.ts` and here.
+5. **The shell's and moss's throw specs tied the art's bound to the
+   catalog's most hits.** Fixed: they throw past the most `THICK_HITS`
+   shows, "which no frame shows".
+6. **The log listed five of `BRICK_ART`'s lines as all but the plain
+   brick's, and left out the throw for none.** Fixed: the column zapper's
+   line is mutated too, and the bullet says both.

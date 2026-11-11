@@ -10,6 +10,7 @@ import {
 } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import { THEMES } from "@fz/style/themes";
+import { brickKind } from "../../../rules/catalog/bricks";
 import {
   ART_PALETTE,
   ART_SCALE,
@@ -32,13 +33,12 @@ const INKS = ART_PALETTE.kinds.moss;
 /** The scallops' shadow: the moss's green, darkened. */
 const SHADOW = mixColors(0x000000, inkAt(ART_PALETTE.tints, TINT.green), 0.38);
 
-/**
- * Returns a moss brick with hits left of those it had whole, as its art
- * reads it. Its kind is one the catalog has, as moss isn't cataloged yet;
- * the art reads its hits alone.
- */
-function moss(hits: number, full = 3) {
-  return { kind: "tough", tint: 0, hits, full, plates: 0 } as const;
+/** The most hits the catalog gives a moss brick. */
+const MOST_HITS = brickKind("moss").mostHits;
+
+/** Returns a moss brick's look as its art reads it: its hits left of those it had whole. */
+function moss(hits: number, full = MOST_HITS) {
+  return { tint: 0, hits, full, plates: 0 } as const;
 }
 
 /** Returns the moss's frames at a scale, by name. */
@@ -120,9 +120,12 @@ describe("MOSS_ART", () => {
     expect(MOSS_ART.layersOf(moss(2))).toBe(MOSS_ART.layersOf(moss(2)));
   });
 
-  it.each([0, 4])("throws for a moss brick with %i hits left", (hits) => {
-    expect(() => MOSS_ART.layersOf(moss(hits, 4))).toThrow(RangeError);
-  });
+  it.each([0, Math.max(...THICK_HITS) + 1])(
+    "throws for a moss brick with %i hits left, which no frame shows",
+    (hits) => {
+      expect(() => MOSS_ART.layersOf(moss(hits, hits))).toThrow(RangeError);
+    },
+  );
 
   it("gives a moss brick's shards its body's color", () => {
     expect(MOSS_ART.colorOf(moss(3), ART_PALETTE)).toBe(INKS.body);

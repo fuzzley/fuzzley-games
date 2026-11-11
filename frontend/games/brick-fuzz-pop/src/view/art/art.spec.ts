@@ -1,9 +1,11 @@
+import { isKeyOf, isOneOf } from "@fz/core/records";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
   brickKind,
 } from "../../rules/catalog/bricks";
 import { ART_FRAMES, ART_PALETTE } from "../../testing/art_frames";
+import { inkAt } from "../colors/inks";
 import { BRICK_ART, type BrickLook, brickColor, brickLayers } from "./art";
 import { INKS } from "./frames";
 
@@ -35,6 +37,19 @@ function looksOf(kind: BrickKindId): readonly BrickLook[] {
   );
 }
 
+/** Returns a whole brick of a kind in a tint, of the fewest hits a level gives it, or none for a kind that never breaks. */
+function wholeOf(kind: BrickKindId, tint = 0): BrickLook {
+  const { hits } = brickKind(kind);
+  const full = hits === "never" ? 0 : hits;
+  return { kind, tint, hits: full, full, plates: 0 };
+}
+
+/** The kinds drawn in their row's tint, whose shards take its ink. */
+const TINTED = ["brick", "tough"] as const satisfies readonly BrickKindId[];
+
+/** The cataloged kinds the palette keeps inks of their own for, whose shards take its body. */
+const INKED = BRICK_KIND_IDS.filter((kind) => isKeyOf(kind, ART_PALETTE.kinds));
+
 describe("BRICK_ART", () => {
   it("draws every kind of brick the catalog has", () => {
     expect(Object.keys(BRICK_ART)).toEqual(BRICK_KIND_IDS);
@@ -64,28 +79,23 @@ describe("brickLayers", () => {
     },
   );
 
-  it.each([
-    { kind: "brick", tint: 4, hits: 1, full: 1, layers: ["tile-4"] },
-    {
-      kind: "tough",
-      tint: 4,
-      hits: 3,
-      full: 5,
-      layers: ["tile-4", "pips-3", "cracks-2"],
-    },
-    { kind: "steel", tint: 0, hits: 0, full: 0, layers: ["steel"] },
-    { kind: "rowZapper", tint: 0, hits: 1, full: 1, layers: ["zapper-row"] },
-    {
-      kind: "columnZapper",
-      tint: 0,
-      hits: 1,
-      full: 1,
-      layers: ["zapper-column"],
-    },
-  ] as const)(
-    "shows a $kind in the frames its kind's art gives it",
-    ({ layers, ...look }) => {
-      expect(brickLayers({ ...look, plates: 0 })).toEqual(layers);
+  it("shows a tough brick of tint 4 with 3 hits left of 5 as its tile, its pips and its cracks", () => {
+    expect(
+      brickLayers({ kind: "tough", tint: 4, hits: 3, full: 5, plates: 0 }),
+    ).toEqual(["tile-4", "pips-3", "cracks-2"]);
+  });
+
+  it.each(BRICK_KIND_IDS)(
+    "shows a whole %s unlike a whole brick of any other kind",
+    (kind) => {
+      const shown = brickLayers(wholeOf(kind)).join(" ");
+
+      expect(
+        BRICK_KIND_IDS.filter(
+          (other) =>
+            other !== kind && brickLayers(wholeOf(other)).join(" ") === shown,
+        ),
+      ).toEqual([]);
     },
   );
 
@@ -101,19 +111,28 @@ describe("brickLayers", () => {
 });
 
 describe("brickColor", () => {
-  it.each([
-    { kind: "brick", tint: 3, color: ART_PALETTE.tints[3] },
-    { kind: "tough", tint: 7, color: ART_PALETTE.tints[7] },
-    { kind: "steel", tint: 0, color: ART_PALETTE.kinds.steel.body },
-    { kind: "rowZapper", tint: 0, color: ART_PALETTE.kinds.rowZapper.body },
-    {
-      kind: "columnZapper",
-      tint: 0,
-      color: ART_PALETTE.kinds.columnZapper.body,
+  it.each(INKED)(
+    "colors a %s's shards in the body of the inks the palette keeps for its kind, whatever its tint",
+    (kind) => {
+      const { body } = ART_PALETTE.kinds[kind];
+
+      expect(
+        INKS.map((tint) => brickColor(wholeOf(kind, tint), ART_PALETTE)),
+      ).toEqual(INKS.map(() => body));
     },
-  ] as const)("colors a $kind of tint $tint's shards", ({ color, ...look }) => {
+  );
+
+  it.each(TINTED)("colors a %s's shards in its tint's ink", (kind) => {
     expect(
-      brickColor({ ...look, hits: 1, full: 1, plates: 0 }, ART_PALETTE),
-    ).toBe(color);
+      INKS.map((tint) => brickColor(wholeOf(kind, tint), ART_PALETTE)),
+    ).toEqual(INKS.map((tint) => inkAt(ART_PALETTE.tints, tint)));
+  });
+
+  it("knows how every cataloged kind's shards are colored, by its own inks or by its tint", () => {
+    expect(
+      BRICK_KIND_IDS.filter(
+        (kind) => !isOneOf(kind, INKED) && !isOneOf(kind, TINTED),
+      ),
+    ).toEqual([]);
   });
 });

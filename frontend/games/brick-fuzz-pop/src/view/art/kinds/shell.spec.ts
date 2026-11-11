@@ -7,6 +7,7 @@ import type {
   RoundRectCommand,
 } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
+import { brickKind } from "../../../rules/catalog/bricks";
 import {
   ART_PALETTE,
   ART_SCALE,
@@ -23,13 +24,12 @@ const INKS = ART_PALETTE.kinds.shell;
 /** The cell the specs draw in, at a unit of 31 CSS pixels, 2 device pixels to one. */
 const CELL = cellOf(ART_SCALE).width;
 
-/**
- * Returns a shell brick with hits left of those it had whole, as its art
- * reads it. Its kind is one the catalog has, as the shell isn't cataloged
- * yet; the art reads its hits alone.
- */
-function shell(hits: number, full = 3) {
-  return { kind: "tough", tint: 0, hits, full, plates: 0 } as const;
+/** The most hits the catalog gives a shell brick. */
+const MOST_HITS = brickKind("shell").mostHits;
+
+/** Returns a shell brick's look as its art reads it: its hits left of those it had whole. */
+function shell(hits: number, full = MOST_HITS) {
+  return { tint: 0, hits, full, plates: 0 } as const;
 }
 
 /** Returns the shell's frames at a scale, by name. */
@@ -102,9 +102,12 @@ describe("SHELL_ART", () => {
     expect(SHELL_ART.layersOf(shell(2))).toBe(SHELL_ART.layersOf(shell(2)));
   });
 
-  it.each([0, 4])("throws for a shell with %i hits left", (hits) => {
-    expect(() => SHELL_ART.layersOf(shell(hits, 4))).toThrow(RangeError);
-  });
+  it.each([0, Math.max(...THICK_HITS) + 1])(
+    "throws for a shell with %i hits left, which no frame shows",
+    (hits) => {
+      expect(() => SHELL_ART.layersOf(shell(hits, hits))).toThrow(RangeError);
+    },
+  );
 
   it("gives a shell brick's shards its shell's color", () => {
     expect(SHELL_ART.colorOf(shell(3), ART_PALETTE)).toBe(INKS.body);
@@ -137,8 +140,13 @@ describe("a shell brick at 31 CSS pixels a unit, 2 to one", () => {
     });
   });
 
-  it("cuts its bolt out of its core in its glyph's color", () => {
-    expect(boltOf(body).points).toEqual(
+  it("cuts its bolt out of its core in its glyph's color, the design's mark 0.3 of the cell tall", () => {
+    expect(
+      boltOf(body).points.map(({ x, y }) => ({
+        x: billionths(x),
+        y: billionths(y),
+      })),
+    ).toEqual(
       [
         [0.488, 0.25],
         [0.575, 0.25],
@@ -147,7 +155,10 @@ describe("a shell brick at 31 CSS pixels a unit, 2 to one", () => {
         [0.455, 0.55],
         [0.494, 0.418],
         [0.416, 0.418],
-      ].map(([x = 0, y = 0]) => ({ x: x * CELL, y: y * CELL })),
+      ].map(([x = 0, y = 0]) => ({
+        x: billionths(x * CELL),
+        y: billionths(y * CELL),
+      })),
     );
   });
 

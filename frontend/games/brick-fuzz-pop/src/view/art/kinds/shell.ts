@@ -8,15 +8,13 @@ import {
   type Area,
   type DrawCommand,
   circle,
-  polygon,
   roundRect,
   share,
-  within,
 } from "@fz/phaser/shapes";
 import type { KindInks } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
-import { cellFrame, itemAt } from "../symbols";
+import { boltMark, cellFrame, itemAt, pointAt } from "../symbols";
 import { tileCommands } from "./brick";
 
 /** Where its core lies in its cell, as shares of it: from across and down, wide and tall. */
@@ -25,16 +23,8 @@ const CORE = [0.18, 0.18, 0.64, 0.57] as const;
 /** How round its core's corners are, as a share of its cell. */
 const CORE_CORNER = 0.07;
 
-/** Its bolt, a lightning bolt's outline, in its core over its pips, as shares of its cell. */
-const BOLT = [
-  [0.488, 0.25],
-  [0.575, 0.25],
-  [0.521, 0.37],
-  [0.593, 0.37],
-  [0.455, 0.55],
-  [0.494, 0.418],
-  [0.416, 0.418],
-] as const;
+/** Where its bolt lies in its core, over its pips, as shares of its cell: the bolt's middle, and half its height. */
+const BOLT = { across: 0.5, down: 0.4, half: 0.15 } as const;
 
 /** Where its row of pips lies, as shares of its cell: the row's middle, how far apart its pips are and how large each is. */
 const PIPS = { across: 0.5, down: 0.655, step: 0.135, radius: 0.044 } as const;
@@ -64,7 +54,9 @@ function bodyCommands(cell: Area, inks: KindInks): readonly DrawCommand[] {
     roundRect(onWholePixels(share(cell, ...CORE)), CORE_CORNER * cell.width, {
       color: inks.face,
     }),
-    polygon(within(cell, BOLT), { color: inks.glyph }),
+    boltMark(pointAt(cell, BOLT.across, BOLT.down), BOLT.half * cell.width, {
+      color: inks.glyph,
+    }),
   ];
 }
 
