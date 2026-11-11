@@ -761,3 +761,66 @@ its review and the numbers worth keeping.
      apart, which C2's still turns, counted at one moment, wouldn't catch.
      Left: no case was found, the 2,000 random flights cap none, and a guard
      no spec reaches would hold a line no spec runs.
+
+### R3, after the merge: a flight as long as its last event
+
+- **Date.** 2026-11-10.
+- **Built.** The integrator's change to K2's contract, made here at its
+  request, for the first point of R3's review: a zap chain could outlast
+  `Flight.length`, then the last landing's `at`, and §5.5's skip, which sets
+  the clock to `flight.length`, would cut it short. `Flight.length` is now
+  the last event's `at`: the last landing's, or the last zap's when a chain
+  outlasts every fuzzball, so a flight skipped to its end skips none of it.
+  `events.ts` says so, as does §5.3's `Flight` in the plan. `fly()` takes
+  the latest `at` among its events, where it took its fuzzballs' landings,
+  with a reduce rather than a spread, so a flight of many events passes no
+  argument for each; `trackProblemsOf()` holds a flight to it, its problem
+  now "not as long as its last event"; and `played()` gives each fixture its
+  last event's `at`. `orderProblemsOf()` takes no length, so it stays as it
+  was.
+- **What changes.** No fixture's length: in each, the last event is the last
+  landing. Nothing in the view, the scene or the app reads `length` yet.
+- **For V3.** A skip to `flight.length` may now land zaps with no fuzzball
+  in the air, a zap after the last landing being what can clear a level.
+- **Checks.** On `brick-fuzz-pop` after the rebase, the workspace's `lint`,
+  `typecheck`, `test` and `test:coverage` pass: 3,564 tests in 57 files in
+  `dom` and `pure` (71 in `flight.spec.ts`), and the two benchmarks in
+  `sim`; the rules and the view at 100% of statements, functions and lines,
+  and `flight.ts` at 98.8% of branches, as before. The root's `yarn lint`
+  passes.
+- **New specs.** `fly()`'s shot up into a row zapper one row off the floor:
+  the fuzzball lands at 1, the row zap breaks a column zapper then, and its
+  zap lands at 1.5, the flight's length, with no order or track problem.
+  `trackProblemsOf()` takes a flight as long as a zap after its last
+  landing, and finds one only as long as that landing.
+- **The mutation pass.** 11 mutants, against the flight's and the fixtures'
+  specs: 9 killed, among them `fly()`'s length taken from its fuzzballs
+  again and the check counting landings only. Two survivors, both
+  equivalent: `played()` taking the length from the landings, since no
+  fixture has a zap after its last landing; and `fly()`'s reduce starting
+  from 1 rather than 0, since no flight is shorter than 1, a fuzzball having
+  to rise from the floor to a wall whose bricks stand in field row 1 or
+  higher, and come back.
+- **Numbers.** The fixtures' lengths, unchanged: 12.73 for the plain shot,
+  the zaps, Cleared and Lost; 15.56 for the punch, 29.70 through, 16.97 for
+  the hot shot, 16.96 for the triple, 13.43 for the friend and 66.65 for the
+  bored.
+- **The review:** a fresh agent found the change right, every reader of
+  `length` in step with it, and nothing else in the repository relying on
+  the old meaning, and raised five points. No second review: the fixes
+  correct the change.
+  1. `fly()`'s `Math.max(...)` spread passed an argument for every event,
+     where engines cap a call's arguments, and nothing caps a flight's
+     events. Fixed: a reduce over the sorted events. The reviewer's
+     `events.at(-1)?.at ?? 0` reads as the contract does, but its `?? 0` is
+     a branch no flight reaches, every flight having a landing.
+  2. `flight.ts`' header and `fly()`'s doc still ended the flight at the
+     last landing. Fixed: both say the zaps land too; the header, which R3
+     left wrapped short at one line, is rewrapped.
+  3. `events.ts`' "skips none" said none of what. Fixed: "so no event comes
+     later".
+  4. `ZAP_AFTER` was written `as const satisfies FlightEvent`, where its
+     neighbours take the file's `EventOf<K>`. Fixed.
+  5. The new `fly()` spec could sit under `describe("fly")`, being about the
+     flight. Left: it sits with the specs of when zaps land, under
+     `describe("fly's hooks")`.

@@ -646,6 +646,15 @@ const UP_AND_DOWN: readonly FlightEvent[] = [
   land(21),
 ];
 
+/** A zap that lands after the fuzzball straight up and down has landed, reaching nothing. */
+const ZAP_AFTER: EventOf<"zap"> = {
+  at: 21.5,
+  kind: "zap",
+  cell: 4,
+  pattern: "row",
+  reaches: [],
+};
+
 /** Returns the flight of one fuzzball, straight up and down unless given other events or waypoints. */
 function flightOf({
   events = UP_AND_DOWN,
@@ -1020,9 +1029,26 @@ describe("trackProblemsOf()", () => {
     ]);
   });
 
-  it("finds a flight longer than its last landing", () => {
+  it("takes a flight as long as a zap that lands after its last landing", () => {
+    const flight = flightOf({
+      events: [...UP_AND_DOWN, ZAP_AFTER],
+      length: ZAP_AFTER.at,
+    });
+
+    expect(trackProblemsOf(flight)).toEqual([]);
+  });
+
+  it("finds a flight longer than its last event", () => {
     expect(trackProblemsOf(flightOf({ length: 22 }))).toEqual([
-      "The flight is 22 long, not as long as its last landing.",
+      "The flight is 22 long, not as long as its last event.",
+    ]);
+  });
+
+  it("finds a flight as long as its last landing, though a zap lands after it", () => {
+    const flight = flightOf({ events: [...UP_AND_DOWN, ZAP_AFTER] });
+
+    expect(trackProblemsOf(flight)).toEqual([
+      "The flight is 21 long, not as long as its last event.",
     ]);
   });
 

@@ -597,7 +597,7 @@ export interface Flight {
   // strike or zap that caused it, those of one cause by cell.
   readonly events: readonly FlightEvent[];
   readonly tracks: readonly BallTrack[];
-  readonly length: number; // the last landing's at
+  readonly length: number; // the last event's at: a zap may land after the last landing
   readonly capped: number; // fuzzballs stopped by the 600-unit or still caps; 0 in play
 }
 /** Returns where a fuzzball is at a moment, or null before it leaves or after it lands. */

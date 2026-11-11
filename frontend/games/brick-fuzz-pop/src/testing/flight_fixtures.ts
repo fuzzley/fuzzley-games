@@ -219,7 +219,7 @@ const NEAR = 1e-9;
  * landing says, on the floor; its waypoints are joined at a unit a unit,
  * but at a portal, whose two places share a moment; each place between is a
  * turn's, heading along the next leg, a yawn's or a portal's; and the
- * flight is as long as its last landing. A fuzzball that turns again where
+ * flight is as long as its last event. A fuzzball that turns again where
  * it stands, at the same moment, as into a corner, turns at one waypoint,
  * and only its last turn there heads along the next leg.
  */
@@ -281,12 +281,10 @@ export function trackProblemsOf(flight: Flight): string[] {
         break;
     }
   }
-  const landings = flight.events.flatMap((event) =>
-    event.kind === "land" ? [event.at] : [],
-  );
-  if (flight.length !== Math.max(0, ...landings)) {
+  const moments = flight.events.map(({ at }) => at);
+  if (flight.length !== Math.max(0, ...moments)) {
     problems.push(
-      `The flight is ${flight.length} long, not as long as its last landing.`,
+      `The flight is ${flight.length} long, not as long as its last event.`,
     );
   }
   if (!Number.isInteger(flight.capped) || flight.capped < 0) {
@@ -605,7 +603,7 @@ function played({
   const flight: Flight = {
     events: ordered,
     tracks,
-    length: Math.max(...landings.map(({ at }) => at)),
+    length: Math.max(...ordered.map(({ at }) => at)),
     capped: 0,
   };
   const waits = sure(landings.find(({ ball }) => ball === 0)).x;

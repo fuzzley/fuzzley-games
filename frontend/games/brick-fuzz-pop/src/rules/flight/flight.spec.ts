@@ -1029,6 +1029,22 @@ describe("fly's hooks", () => {
     ).toEqual(["turn", "strike", "zap", "zap"]);
   });
 
+  // It breaks the row zapper at 0.5 and lands at 1, as the zap breaks the
+  // column zapper, whose zap breaks the brick over it at 1.5.
+  it("lasts until the last zap lands, after the last landing", () => {
+    const wall = wallOf(1, [".o.......", ".|..-...."]);
+
+    const flown = flyShot({ wall, aim: UP, kinds: BRICK_KINDS });
+
+    expect([
+      eventsOf(flown, "land").map(({ at }) => at),
+      eventsOf(flown, "zap").map(({ at }) => at),
+      flown.flight.length,
+      orderProblemsOf(flown.flight.events),
+      trackProblemsOf(flown.flight),
+    ]).toEqual([[1], [1, 1.5], 1.5, [], []]);
+  });
+
   // The row zap breaks both column zappers at 5, and their zaps land at
   // 5.5, the left one's first.
   it("lands the zaps of one moment by cell", () => {
