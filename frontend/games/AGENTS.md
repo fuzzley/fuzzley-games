@@ -122,5 +122,5 @@ to `frontend/games/`.
    `frontend/site/src/app/provider/games.ts`, with
    `play: { build: "<slug>" }` and the name its `game.json` gives it, and
    `inDevelopment: true` while it plays but isn't finished, which the site
-   says beside its name and on its page.
-   `docs/operations.md` covers the rest of the pipeline.
+   says beside its name and on its page, and which lets its build ship no
+   screenshots yet. `docs/operations.md` covers the rest of the pipeline.

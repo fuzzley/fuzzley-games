@@ -58,8 +58,11 @@ Sass rules every app keeps among them. Paths are relative to
 - `public/` is copied into the build as is, including the runtime config
   placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
   game still to come. A hosted game's thumbnail is its build's own
-  screenshot. The build fails if either is missing. The games are put
-  into `public/play/`, which git ignores, each with the `game.json` its
+  screenshot. The build fails if either is missing, but for a game in
+  development (`inDevelopment`), whose build may ship no screenshots yet:
+  its tile and its page then show the frame's own surface where a picture
+  fails to load (`GameThumbComponent`, `GamePageComponent`). The games are
+  put into `public/play/`, which git ignores, each with the `game.json` its
   build writes, and the build fails too if the catalog names an id a
   game's build doesn't open, or a name it doesn't give the game,
   apostrophes aside (`checkGameManifests()` in `tools/vite-plugins.ts`).

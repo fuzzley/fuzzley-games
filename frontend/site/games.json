@@ -5,6 +5,9 @@
   "brick-breaker": {
     "workspace": "games/brick-breaker"
   },
+  "brick-fuzz-pop": {
+    "workspace": "games/brick-fuzz-pop"
+  },
   "minesweeper": {
     "workspace": "games/minesweeper"
   },
