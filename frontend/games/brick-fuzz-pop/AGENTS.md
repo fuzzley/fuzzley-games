@@ -17,8 +17,8 @@ places the bar, the dialogs, the settings drawer and the result card, each
 wired to the game, but not yet the board, so the field isn't drawn and no
 run can be played in the page. The site lists it as in development, its
 build shipping no screenshots yet. What the plan's packages still to come
-build (P3, the rest of U1, the rest of U2, T1 and T2, then X1 to X3, Y1 to
-Y3, D1, F1, Z1 and Z2) isn't here yet.
+build (the rest of U1, the rest of U2, T1 and T2, then X1 to X3, Y1 to Y3,
+D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -57,9 +57,10 @@ fixes, `Math.sqrt()` among them, with no `**` and no constant such as
 specs' helpers `eslint.config.js` names in `HELD_AS_RULES` are held as the
 rules are, to their fence and their exact arithmetic, from the commit that
 writes each: so far `src/testing/wall_picture.ts`,
-`src/testing/wall_score.ts`, `src/testing/solver.ts` and
-`src/testing/casual.ts`. Every other file of `src/testing/` takes Angular
-by type alone.
+`src/testing/wall_score.ts`, `src/testing/solver.ts`,
+`src/testing/casual.ts`, and the scripts' `src/testing/script_api.ts`,
+`src/testing/certify_api.ts` and `src/testing/report_api.ts`. Every other
+file of `src/testing/` takes Angular by type alone.
 
 ## Layout
 
@@ -98,20 +99,23 @@ helpers.
   in. `catalog.spec.ts` holds every kind to the catalog's rules.
 - **`src/rules/levels/`** — the levels. `legend.ts` is the characters a
   wall's picture is drawn in (`LEGEND`), the portals' marks and a brick's
-  tint (`tintOf()`). `warm-up.json` holds Warm-up's nine levels, each an
-  id, a name, a boon and a picture of its wall, as
+  tint (`tintOf()`). `warm-up.json` holds Warm-up's nine levels, each an id,
+  a name, a boon and a picture of its wall, as
   `docs/brick-fuzz-pop/levels/warm-up.json` drafts them; `levels.ts` lists
   the sets (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`,
   `levelEntryOf()`), and `parseLevel()` turns one into a `Level`
   (`level.ts`) or throws an error naming the level and what is wrong; and
   `level.ts`'s `levelStart()` is where a level's first round starts on a
-  depth.
-  `par.json` is each level's par at each depth, the same at every depth for
-  now. `certificate.ts` is a certificate's line as its file keeps it, pairs
-  of an aim's index and a charge (`CertifiedShot`, `Line`), and turns a
-  pair into a shot (`shotOf()`). `levels.spec.ts` holds every level to the
-  rules `plan.md` says a level keeps, finding a needed brick sealed in by a
-  flood fill of its own.
+  depth. `certificate.ts` is a certificate's line as its file keeps it,
+  pairs of an aim's index and a charge (`CertifiedShot`, `Line`), and turns
+  a pair into a shot (`shotOf()`). `certificates/` holds each set's
+  certificates, a line that clears each level on each depth, and `par.json`
+  each level's par on each depth, half as many rounds again as its line,
+  both written by `yarn certify:levels`. The specs in `every_level/`, a file
+  a depth, replay every line, and those in `every_floor/`, a file a set and
+  depth, hold the careless player to each set's floor. `levels.spec.ts`
+  holds every level to the rules `plan.md` says a level keeps, finding a
+  needed brick sealed in by a flood fill of its own.
 - **`src/rules/flight/`** — the flight. `events.ts` describes what happens
   in one (`FlightEvent`, in the order its doc gives) and each fuzzball's
   path (`BallTrack`, `positionAt()`). `cast.ts`'s `cast()` writes into a
@@ -145,16 +149,16 @@ helpers.
   (`traits/not_until.ts`) until its set is built.
 - **`src/rules/wall/`** — the wall. `wall.ts` holds `Brick`, `Wall` and a
   field's thirds (`thirdsOf()`: the jump, the jump line and the row a level
-  opens on), with whether a value is a depth a field has (`isDepth()`).
-  `lower.ts` brings the wall down after a round (`lowerWall()`), a row, or a
-  jump once no brick the level needs stands below the jump line, sinking
-  what the level doesn't need at the floor's row and losing the level on
-  what it does; and says whether a level is cleared (`isCleared()`) and a
-  brick needed (`isNeeded()`), the row the lowest needed brick stands in
-  (`lowestNeededRow()`), how many stand under a row (`neededBelow()`), and
-  the danger: one standing in `DANGER_ROW`, the row over the floor's, or
-  lower (`inDanger()`, `dangerCells()`). `regrow()` returns the wall as it
-  is, as no kind regrows yet.
+  opens on), with every depth a field has (`DEPTHS`) and whether a value is
+  one (`isDepth()`). `lower.ts` brings the wall down after a round
+  (`lowerWall()`), a row, or a jump once no brick the level needs stands
+  below the jump line, sinking what the level doesn't need at the floor's
+  row and losing the level on what it does; and says whether a level is
+  cleared (`isCleared()`) and a brick needed (`isNeeded()`), the row the
+  lowest needed brick stands in (`lowestNeededRow()`), how many stand under
+  a row (`neededBelow()`), and the danger: one standing in `DANGER_ROW`, the
+  row over the floor's, or lower (`inDanger()`, `dangerCells()`).
+  `regrow()` returns the wall as it is, as no kind regrows yet.
 - **`src/rules/round/`** — `round.ts`: a round's types, where it starts
   (`RoundStart`: the wall, the depth, where the fuzzball waits, the friends
   and the boon), what it came to (`RoundOutcome`) and the round played
@@ -427,11 +431,13 @@ helpers.
     `@use`s, which emits no CSS.
 - **`src/testing/`** — what the specs share, as Tests below says. The app's
   tsconfig leaves it out.
-- **`tools/`** — the scripts run from the workspace. `build-aims.mjs`
-  writes the aims and `build-sounds.mjs` the sounds. `sound-lab.ts` is no
-  script but the sound lab, mounted on `@fz/dev/sound-lab-page`'s page
-  (`mountSoundLab()`), which the dev server alone serves
-  (`@fz/dev/sound-lab`'s `soundLab()`, in `vite.config.ts`).
+- **`tools/`** — the scripts run from the workspace. `build-aims.mjs` writes
+  the aims and `build-sounds.mjs` the sounds; `certify-levels.mjs` writes
+  the certificates and the pars, and `report-levels.mjs` prints how the
+  careless player plays every level. `sound-lab.ts` is no script but the
+  sound lab, mounted on `@fz/dev/sound-lab-page`'s page (`mountSoundLab()`),
+  which the dev server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
+  `vite.config.ts`).
 
 ## What It Keeps
 
@@ -488,6 +494,23 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   `http://localhost:9006/sound-lab/` (`tools/sound-lab.ts`: each sound in
   the sprite, and eight scenes of a round played as the game would play
   them, its breaks raised by the view's `breakDetune()`; no build holds it).
+- **Certify the Levels:** `yarn certify:levels` (runs
+  `tools/certify-levels.mjs`, which finds a line that clears each level on
+  each depth with the solver, `src/testing/solver.ts`, on a pool of worker
+  threads, and writes them to `src/rules/levels/certificates/<set>.json`,
+  with each level's par on each depth to `src/rules/levels/par.json`, the
+  same bytes every run; `--set`, `--level` and `--depth` certify only those,
+  keeping the other lines; it exits with 1 where a level has no line. The
+  specs in `src/rules/levels/every_level/` fail while a line no longer
+  clears its level, so run it after a change to the flight, a kind, the
+  tuning or a level).
+- **Report the Levels:** `yarn report:levels` (runs
+  `tools/report-levels.mjs`, which plays the careless player,
+  `src/testing/casual.ts`, forty games a level on fields 11, 13 and 22 deep,
+  or on each `--depth` given, and prints how often it cleared each level,
+  marked `!` under its set's floor, and the rounds and jumps a game took at
+  the mean; `--seeds` sets the games; it exits with 1 where a level falls
+  under its floor).
 - **Run Unit Tests:** `yarn test` (the whole suite once, every project,
   without coverage), `yarn test:coverage` (`dom` and `pure` with coverage,
   failing below the floors `vitest.config.ts` sets, then `sim` without it),
@@ -505,21 +528,25 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
 The repository's rules for specs apply. A spec sits beside the file it
 tests, named after it. `vitest.config.ts` runs them in three projects:
 `pure`, in Node, for the rules, the view, `src/testing/` and `tools/`;
-`sim`, in Node too and without coverage, for the flight's benchmarks in
-`src/rules/flight/benchmarks/`: `cast.spec.ts` prints `cast()`'s median and
-99th percentile beside a scan of every brick's, and `fly.spec.ts` `fly()`'s,
-alone and with mates and friends, each held to no time, as no runner times
-anything alike twice, and `guide.spec.ts` holds `guideOf()` under 1 ms at
-the 99th percentile over the levels' opening walls, five times the plan's
-0.2 ms (`yarn vitest run --project sim --reporter=verbose` shows them); and
-`dom`, in jsdom, for every other spec under `src/`, the scene's and the
-shell's. `src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser
-first, so the scene's spec runs real Phaser, with a fake shell over the
-hand-made rounds; gives each test a store in memory; and stands in for the
-modal dialogs and `document.fonts`, which jsdom lacks. Coverage measures
-`dom` and `pure` together, to the floors `vitest.config.ts` sets
-(statements, branches, functions and lines): the rules and the view 100, 95,
-100 and 100, the scene 98, 92, 100 and 99, and the shell 98, 97, 97 and 98;
+`sim`, in Node too and without coverage, for the specs in
+`src/rules/levels/every_level/`, which replay every certificate with
+`replayLine()`, and `src/rules/levels/every_floor/`, which hold the careless
+player to each set's floor over twenty games on fields 11, 13 and 22 deep,
+and for the flight's benchmarks in `src/rules/flight/benchmarks/`:
+`cast.spec.ts` prints `cast()`'s median and 99th percentile beside a scan of
+every brick's, and `fly.spec.ts` `fly()`'s, alone and with mates and
+friends, each held to no time, as no runner times anything alike twice, and
+`guide.spec.ts` holds `guideOf()` under 1 ms at the 99th percentile over the
+levels' opening walls, five times the plan's 0.2 ms
+(`yarn vitest run --project sim --reporter=verbose` shows them); and `dom`,
+in jsdom, for every other spec under `src/`, the scene's and the shell's.
+`src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser first,
+so the scene's spec runs real Phaser, with a fake shell over the hand-made
+rounds; gives each test a store in memory; and stands in for the modal
+dialogs and `document.fonts`, which jsdom lacks. Coverage measures `dom` and
+`pure` together, to the floors `vitest.config.ts` sets (statements,
+branches, functions and lines): the rules and the view 100, 95, 100 and 100,
+the scene 98, 92, 100 and 99, and the shell 98, 97, 97 and 98;
 `src/testing/` and the scripts have none, so what of them goes untested
 shows. The repository's `angular-testing` skill covers the patterns every
 Angular workspace's specs share, and `phaser-core` the harness.
@@ -545,8 +572,10 @@ What the specs share is in `src/testing/`:
 - `solver.ts` finds a line of shots that clears a level on a depth
   (`solveLevel()`): greedy at every fourth aim, then a beam of 4, then every
   aim (`SEARCHES`), within `SOLVER_ROUNDS`, keeping every needed brick out
-  of the danger row, its line kept as a certificate keeps it; and
-  `replayLine()` plays a line through `playRound()`.
+  of the danger row, its line kept as a certificate keeps it;
+  `replayLine()` plays a line through `playRound()`; and `lineHolds()` says
+  whether a line played holds as a certificate: cleared, in as many rounds
+  as it has shots, every needed brick kept over `DANGER_ROW`.
 - `casual.ts` is the careless player (`playCasually()`): each round it
   plays the best by `wallScore()` of `CASUAL_LOOKS` shots drawn from a
   seed. `CASUAL_FLOORS` is how often it must clear a set's levels.
@@ -570,6 +599,17 @@ What the specs share is in `src/testing/`:
   (`near()`).
 - `timing.ts` reads a list of times at its median and 99th percentile
   (`described()`, `quantile()`), for the flight's benchmarks.
+- `every_level.ts` holds what the specs in `every_level/` and `every_floor/`
+  play, each file taking its depth, or its set and depth, from its name
+  (`holdEveryCertificate()`, `holdEveryFloor()`): every set's certificates
+  (`CERTIFICATES`, `certificateOf()`), and the floors' depths and games
+  (`FLOOR_DEPTHS`, `FLOOR_SEEDS`, `FLOOR_SPECS`); its spec holds both
+  folders to a file for each.
+- `script_api.ts` types what the scripts take from the game, importing
+  nothing, so `tsconfig.scripts.json` checks them against it;
+  `certify_api.ts` (`CERTIFY_API`) and `report_api.ts` (`REPORT_API`) are
+  what `certify-levels.mjs` and `report-levels.mjs` load through Vite, held
+  to those types.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
   specs (`ART_FRAMES`), lists the pixel ratios they check the art at
   (`PIXEL_RATIOS`), and measures how far a point lies from a line or past a

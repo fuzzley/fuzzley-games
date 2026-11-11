@@ -1180,3 +1180,204 @@ its review and the numbers worth keeping.
      move the fuzzballs back, and `NaN` would fly the whole round. Its doc
      says not below 0; it isn't checked, as the menu's slider runs from 0 to
      12 and `GUIDE_PAST_TURN` is 1.5.
+
+### P3: certificates, the report and the `sim` specs
+
+- **Date.** 2026-11-10.
+- **Built.**
+  - `tools/certify-levels.mjs` (`yarn certify:levels`): the solver,
+    `solveLevel()`, for each level on each depth, a job each, on a pool of
+    `worker_threads` as many as `os.availableParallelism()`, each thread
+    loading `CERTIFY_API` through Vite and taking the next job as it
+    finishes one. It writes `src/rules/levels/certificates/<set>.json`, each
+    level's line on each depth, and `src/rules/levels/par.json`, `parFrom()`
+    of each line's rounds, keys sorted, the same bytes every run; prints
+    each level's rounds and how widely the solver searched, depth by depth;
+    takes `--set`, `--level` and `--depth`, the last once for each depth;
+    reads every set's certificates before it solves anything; stops every
+    thread once one fails, naming the level and depth a job failed on; and
+    exits with 1 where a level has no line.
+  - `tools/report-levels.mjs` (`yarn report:levels`): `@fz/dev/report`'s
+    table of the careless player's games, the depths in place of the speeds,
+    40 games a level on fields 11, 13 and 22 deep, or on each `--depth`
+    given, counting in rounds: how often it cleared each level, marked `!`
+    under its set's floor, and the rounds and the jumps a game took at the
+    mean. It fails where a level falls under its set's floor.
+  - `src/testing/script_api.ts`, the scripts' types, importing nothing, and
+    `certify_api.ts` (`CERTIFY_API`) and `report_api.ts` (`REPORT_API`),
+    what each script loads, held to them, all three on `HELD_AS_RULES`
+    already. `CERTIFY_API` replays each line the solver finds and throws for
+    one that doesn't hold.
+  - `src/testing/solver.ts`: `lineHolds()`, beside `replayLine()`, whether a
+    line played holds as a certificate: cleared, in as many rounds as it has
+    shots, every needed brick kept over `DANGER_ROW`, as the proof stream
+    asked.
+  - The `sim` specs: `src/rules/levels/every_level/`, a file a depth,
+    twelve, each replaying every level's certificate through `replayLine()`
+    and holding it with `lineHolds()`; and `every_floor/`, a file a set and
+    depth, `warm-up_11`, `_13` and `_22` so far, each holding the careless
+    player over 20 games to the set's floor. Each takes its variant from its
+    name with `variantOfSpec()`, through `src/testing/every_level.ts`
+    (`holdEveryCertificate()`, `holdEveryFloor()`), and
+    `every_level.spec.ts`, in `pure`, holds both folders to a file for each.
+    A missing or failed line says to run `yarn certify:levels`.
+  - `src/rules/wall/wall.ts`: `DEPTHS`, every depth a field has, beside
+    `isDepth()`.
+  - `package.json`: `certify:levels` and `report:levels`, and
+    `test:coverage`'s `sim` run without `--passWithNoTests`.
+  - `frontend/games/brick-fuzz-pop/AGENTS.md`: the levels' certificates and
+    their specs, `DEPTHS`, the two scripts and their commands, the `sim`
+    project's new specs, the new helpers and the held files.
+- **Names added to files that aren't the stream's.** `DEPTHS` in `wall.ts`;
+  `lineHolds()` in P2's `solver.ts`, with its spec in `solver.spec.ts`;
+  `script_api.ts`, `certify_api.ts` and `report_api.ts`, which
+  `eslint.config.js` named; and the workspace's `AGENTS.md`.
+- **Choices the plan didn't make.**
+  1. **A job names a level by its number and a depth,** and each thread
+     loads the rules and the solver for itself, as `report:levels` loads its
+     API: a thread of the pool runs the script's own file, told from the
+     script by what it is started with. A thread takes the next job as it
+     finishes one, as the levels' costs differ several times over, so the
+     lines come in another order each run; the script orders all it writes.
+  2. **`--set`, `--level` and `--depth` certify only those,** keeping a
+     set's other lines as they are written and dropping those of a level the
+     set no longer has; `par.json` is written afresh from every set's
+     certificates each run, so a par never outlives its line. `--level`
+     takes a level's id or its number, and `--depth` is given once for each
+     depth, as `report:levels` takes it.
+  3. **A level with no line on a depth is left none there,** the lines found
+     still written, and the script exits with 1, so a long run isn't lost to
+     one level, and the specs fail for that level until it is redrawn.
+  4. **The script writes the files as Prettier lays them out,** a shot a
+     line but in a line of one shot, as `prettier:check` would otherwise
+     fail on them; level ids sorted, depths in order.
+  5. **It prints a level's line once it and every level before it are
+     done:** its number and name, its lines' rounds, fewest to most, and the
+     searches its lines took, narrowest first, each by its depths ("every
+     4th aim, greedy on 12 to 22; every aim, a beam of 4 on 11"), or "no
+     line on" them. It prints no time, so its output is the same each run.
+  6. **The report plays 11, 13 and 22 deep by default,** the depths the
+     specs hold the floors on, `--depth` given once for each other; 40 games
+     a level, as plan.md's table was played, seeded
+     `number × SEED_STRIDE + game` as `printReport()` seeds, so its first 20
+     are the spec's; and the rounds and jumps at the mean, as that table has
+     them. A game lost is counted under the table but fails nothing; a level
+     under its floor fails it.
+  7. **`every_floor/`'s files are named `<set>_<depth>.spec.ts`,** as a
+     set's id holds hyphens.
+  8. **The certificates are read by the specs' helper, `every_level.ts`
+     (`CERTIFICATES`), a file a set imported,** as nothing in the game plays
+     one yet; its spec holds it to a set's certificates for every set.
+     `certificateOf()` takes the certificates, the game's by default, so its
+     spec hands it shots of its own.
+  9. **A replay checks the par too:** `par.json` against `parFrom()` of the
+     line's rounds, beside `lineHolds()`, and its message says how the line
+     played.
+  10. **`DEPTHS` is the rules',** in `wall.ts`, where the debug menu,
+      `stars.spec.ts` and the scripts' APIs can take it rather than build it
+      again.
+  11. **No `playRound()` benchmark,** as the integrator said.
+- **Specs.**
+  - `tools/certify-levels.spec.ts`, 39, over made-up levels in two sets,
+    solved in the spec's own thread and written to files in memory: the
+    command line; the jobs for each option, `--depth` given twice, and each
+    mistake; the files' layout and order; each set's lines and every par
+    written; the same bytes a second time; the levels, and each search's
+    depths, printed in order however the jobs finish; a depth certified
+    keeping the other lines and sets; a level's lines dropped once its set
+    lacks it; the searches by depth, narrowest first, spans of three or
+    more; no line on a depth and on every depth; a set's certificates that
+    aren't JSON named before anything is solved; the usage and a misread
+    certifying nothing; the pool, on a thread written in the spec, sharing
+    jobs between two threads, and rejecting with what failed once a thread
+    throws or stops; and, for real, a job solved on a thread of the pool,
+    its line clearing the level with a row to spare, a failing job's level
+    and depth named, and `CERTIFY_API` loaded through Vite.
+  - `tools/report-levels.spec.ts`, 19, over made-up levels in sets held to
+    90 and 40: the command line; its defaults the specs' depths and more
+    than their games; the table; the depths `--depth` names, in order, once
+    each; the seeds a thousand apart; the means and the games lost counted
+    without failing; a level under its floor marked and failing, and one at
+    its floor unmarked; a set with no floor refused before a game is played;
+    the usage and a misread; and `REPORT_API` loaded through Vite, a game
+    played as `playCasually()` plays it.
+  - `src/testing/every_level.spec.ts`, 9: both folders a file for each and
+    no more, a floor spec's name, `CERTIFICATES` a key a set, and
+    `certificateOf()`'s shots, a depth it lacks, the game's certificates by
+    default, and a shot that isn't a pair.
+  - `wall.spec.ts`, 1 more: `DEPTHS`; and `solver.spec.ts`, 4 more:
+    `lineHolds()` holding a line, and refusing one that doesn't clear,
+    clears early or lets a needed brick into the danger row.
+- **Checks.** On `brick-fuzz-pop` at de89ddbe after the rebase, with P2's
+  solver and careless player, the workspace's `lint`, `typecheck`, `test`
+  and `test:coverage` pass: 4,537 tests in 86 files in `dom` and `pure`, and
+  138 in 18 files in `sim`, the 108 replays and 27 levels held to their
+  floor among them, every line holding and every level inside its floor; the
+  rules and the view at their floors. The root's `yarn lint` passes.
+- **The mutation pass.** 32 mutants, one at a time, against the scripts'
+  specs, `every_level.spec.ts` and `wall.spec.ts`: 23 of
+  `certify-levels.mjs`'s jobs, merging, writing and printing, 8 of
+  `report-levels.mjs`'s columns, floors and depths, and 1 of `DEPTHS`. 24
+  killed at first. Two are equivalent, and the code is gone: sorting the
+  jobs certified, which nothing reads in order, and sorting a level's
+  depths, which JavaScript keeps in order as whole numbers. Six are specced:
+  a level with no line on any depth, the beam's order where two searches
+  share their aims, "no line" listed first, a set no job touched written
+  again, `par.json`'s ids unsorted, and a level cleared exactly as often as
+  its floor marked. `lineHolds()`'s 3 mutants, each of its three checks
+  loosened, are killed. After the review, 7 more of the code it added: 6
+  killed, and emptying the jobs' queue once a thread fails survived, as the
+  threads are stopped at once, and is gone. The `sim` specs' helpers aren't
+  mutated, as no spec plays them but the `sim` specs themselves; a
+  certificate cut short and one taken away fail them, each saying to run
+  `yarn certify:levels`.
+- **Numbers.** `yarn certify:levels`, for real: Warm-up's 108 lines in 5.6 s
+  of wall time on 24 threads, twice, the same bytes both times, under a load
+  of 5 to 7; every line found by the first search, greedy at every fourth
+  aim, of 2 to 10 rounds, Hello, wall's 2 to 5 and Gatehouse's 5 to 10, as
+  plan.md's draft had them. The `sim` project on one worker: 13.3 s by
+  Vitest's count, 15.0 s of wall time, against §11's 100 s for CI, the
+  levels' 135 specs 8.4 s of it. `yarn report:levels`, 40 games a level on
+  11, 13 and 22 deep: 10.2 s, every level 100 in 100 but Plumb line, 95 on
+  11 and 13; over the other nine depths, the least was 98, Plumb line on 12
+  and Gatehouse on 14, 16 and 17.
+- **The review:** a fresh agent found nothing that breaks the change: P2's
+  signatures used as given, the held files' fence kept, every check of the
+  command line before anything is solved, a partial run's merge, the files
+  the same bytes every run, the floor's arithmetic exact both ways and the
+  seeds the spec's; it raised nine points. No second review: the fixes
+  correct the change.
+  1. `every_level.ts` imported `CertifiedShot`, the stand-in's own name,
+     which P2 never gave. Fixed: a shot is `Line[number]`.
+  2. Nothing specced the order a level's depths are printed in, which only
+     the pool's order upsets. Fixed: a spec hands the jobs over backwards
+     with three searches and reads the same spans.
+  3. The pool's failures had no spec, a failing job named no level, and
+     nothing stopped the other threads once one failed. Fixed:
+     `solveOnThreads()` takes its pool, so a spec runs threads written in
+     it, sharing jobs and failing by a throw and an exit; it stops every
+     thread once one fails; and a thread names the level and depth a job
+     failed on, which a spec of the real pool reads.
+  4. A set's certificates that aren't JSON, as a merge conflict leaves them,
+     failed only once every line was solved. Fixed: every set's file is read
+     before anything is solved, and one that isn't JSON is named.
+  5. The real thread's spec solved the line again in the spec's thread,
+     under coverage, against its 30 s, and `holdEveryFloor()`'s 20 games had
+     only the default 5 s. Fixed: the thread's line is replayed instead. The
+     floors' time is checked against P2's careless player: Warm-up's 27
+     floor specs take 5.3 s together on one worker, the slowest 0.31 s, so
+     they keep the default.
+  6. `report-levels.mjs`' doc called the report the stricter, but more games
+     can clear a level more often. Fixed: the two can disagree either way.
+  7. A set with no floor got 0 in the report, and a depth was parsed back
+     out of its heading. Fixed: the report throws for a set with no floor
+     before it plays, and finds a depth by its heading in a map.
+  8. The mutation pass's counts by file didn't add up to 32. Fixed: 23, 8
+     and 1.
+  9. Four small things. `--depth` taken once by `certify:levels` but
+     repeatedly by `report:levels`: fixed, both take it repeatedly.
+     `stars.spec.ts` still builds its own depths: left, as that file isn't
+     the stream's. `certificateOf()`'s spec would pass with its shots
+     unchecked: fixed, it takes certificates, and its spec hands it its own.
+     `AGENTS.md`'s Tests paragraph had an unwrapped line and said the
+     replays go through `playRound()`: fixed, `replayLine()`.
