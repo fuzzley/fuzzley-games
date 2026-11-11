@@ -39,7 +39,7 @@ import {
   lintelPixels,
   toCanvas,
 } from "../view/field/field_metrics";
-import type { LoggedEvent, RoundView } from "../view/round_play";
+import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
 import type { FieldCommand } from "../view/steering/controls";
 import { STRAIGHT_UP, type Steer } from "../view/steering/steering";
 import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf } from "./atlas";
@@ -95,9 +95,22 @@ const NO_EVENTS: EventLogView<LoggedEvent> = {
   forEachSince: () => undefined,
 };
 
-/** Returns the round as the view draws it, its wall as it stands, eased down as far as given. */
-function viewOf(wall: Wall, wallDrop = 1): RoundView {
-  return { balls: [], wall, wallDrop, events: NO_EVENTS };
+/** An empty log of beats, for a view that has reached none. */
+const NO_BEATS: EventLogView<LoggedBeat> = {
+  latest: 0,
+  forEachSince: () => undefined,
+};
+
+/** Returns the round as the view draws it, no fuzzball in the air and no event or beat reached, its wall eased down as far as given, coming down the rows given. */
+function viewOf(wall: Wall, wallDrop = 1, rowsDown = 0): RoundView {
+  return {
+    balls: [],
+    wall,
+    wallDrop,
+    rowsDown,
+    events: NO_EVENTS,
+    beats: NO_BEATS,
+  };
 }
 
 /** Returns the shape the shell works out for a canvas of some CSS pixels, inside the board's margin. */
@@ -168,9 +181,9 @@ class FakeShell implements WallSceneOptions {
     this.round = viewOf(wall);
   }
 
-  /** Shows the wall that comes down, eased down as far as given. */
-  bringDown(wall: Wall, wallDrop: number): void {
-    this.round = viewOf(wall, wallDrop);
+  /** Shows the wall that comes down the rows given, a step's one unless told, eased down as far as given. */
+  bringDown(wall: Wall, wallDrop: number, rowsDown = 1): void {
+    this.round = viewOf(wall, wallDrop, rowsDown);
   }
 }
 
@@ -1102,10 +1115,10 @@ describe("WallScene", () => {
         each.showWall(ZAP.start.wall);
       });
       const unit = metricsAt().unit;
-      shell.bringDown(ZAP.round.next.wall, 0);
+      shell.bringDown(ZAP.round.next.wall, 0, ZAP.round.outcome.rowsDown);
       run.advance(16);
 
-      shell.bringDown(ZAP.round.next.wall, 0.5);
+      shell.bringDown(ZAP.round.next.wall, 0.5, ZAP.round.outcome.rowsDown);
       run.advance(16);
 
       // The steel at wall cell 2 ends in row 2, from row 5.
