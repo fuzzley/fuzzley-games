@@ -28,7 +28,7 @@ import {
   levelOf,
   openingOf,
 } from "./run";
-import { PARS, type Pars, parOf } from "./stars";
+import { MOST_STARS, PARS, type Pars, parOf } from "./stars";
 
 /**
  * The version of `SavedGame`, which the shell keeps a run under; the
@@ -51,6 +51,11 @@ export interface SavedGame {
   readonly rounds: number;
   readonly jumps: number;
   readonly banked: number;
+  /**
+   * The stars the levels it has cleared earned. A game kept before the run
+   * counted them lacks it, and is read as having earned one a level.
+   */
+  readonly stars: number;
   readonly score: number;
   /** Whether the run was played on numbers the debug menu tuned, so it keeps no records. */
   readonly tuned: boolean;
@@ -158,7 +163,7 @@ export function restoreGame(
 
 /**
  * Returns the run storage kept, paused, under a new id, or null if it
- * fails a check: its level, its depth, its rounds or its score.
+ * fails a check: its level, its depth, its rounds, its stars or its score.
  */
 export function readRun(
   value: Kept,
@@ -169,11 +174,12 @@ export function readRun(
   if (
     !hasKnownLevel(value, levels) ||
     !hasDepth(value) ||
-    !hasSoundRounds(value) ||
-    !hasSoundScore(value, value.level - value.firstLevel, value)
+    !hasSoundRounds(value)
   ) {
     return null;
   }
+  const stars = readStars(value, value.level - value.firstLevel);
+  if (stars === null || !hasSoundScore(value, stars, value)) return null;
   const { levelId, level, firstLevel, depth, rounds, jumps } = value;
   return {
     id,
@@ -185,6 +191,7 @@ export function readRun(
     rounds,
     jumps,
     banked: value.banked,
+    stars,
     score: value.score,
     ending: null,
     outcome: "paused",
@@ -226,22 +233,35 @@ export function hasSoundRounds(
 }
 
 /**
+ * Returns the stars a run kept has earned in the levels it has cleared,
+ * from one to the most a level, one a level for a game kept before the run
+ * counted them, or null if they can't be trusted.
+ */
+export function readStars(value: Kept, cleared: number): number | null {
+  const { stars } = value;
+  if (stars === undefined) return cleared;
+  const earned =
+    isCount(stars) && stars >= cleared && stars <= cleared * MOST_STARS;
+  return earned ? stars : null;
+}
+
+/**
  * Returns whether a run kept holds the points of the levels it has
- * cleared, at least a star's for each and none if it has cleared none,
- * and a score past them by at least its level's jumps' points, and by none
- * before its level's first round.
+ * cleared, at least its stars' and none if it has earned none, and a score
+ * past them by at least its level's jumps' points, and by none before its
+ * level's first round.
  */
 export function hasSoundScore(
   value: Kept,
-  cleared: number,
+  stars: number,
   { rounds, jumps }: Pick<SavedGame, "rounds" | "jumps">,
 ): value is Kept & Pick<SavedGame, "banked" | "score"> {
   const { banked, score } = value;
   return (
     isCount(banked) &&
     isCount(score) &&
-    banked >= cleared * STAR_POINTS &&
-    (cleared > 0 || banked === 0) &&
+    banked >= stars * STAR_POINTS &&
+    (stars > 0 || banked === 0) &&
     score - banked >= jumps * JUMP_POINTS &&
     (rounds > 0 || score === banked)
   );
@@ -355,6 +375,7 @@ function savedRun(
     rounds: run.rounds,
     jumps: run.jumps,
     banked: run.banked,
+    stars: run.stars,
     score: run.score,
     tuned,
     start,

@@ -35,6 +35,7 @@ function runOf(change: Partial<Run> = {}): Run {
     rounds: 7,
     jumps: 2,
     banked: 3000,
+    stars: 10,
     score: 4210,
     ending: null,
     outcome: "playing",

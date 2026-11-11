@@ -20,6 +20,7 @@ import {
   hasSoundRounds,
   hasSoundScore,
   readRun,
+  readStars,
   readStart,
   readWall,
   restoreGame,
@@ -61,6 +62,7 @@ const STORED = {
   rounds: 3,
   jumps: 0,
   banked: 3000,
+  stars: 5,
   score: 3450,
   tuned: false,
   start: {
@@ -112,13 +114,22 @@ const ROUND_SPOILS: readonly Spoil[] = [
   ["more jumps than rounds", { jumps: 4 }],
 ];
 
+/** Stars a run kept may hold that its levels cleared can't have earned, each failing `readStars()`. */
+const STAR_SPOILS: readonly Spoil[] = [
+  ["stars that aren't a number", { stars: "5" }],
+  ["stars that aren't whole", { stars: 4.5 }],
+  ["fewer stars than one for each level cleared", { stars: 1 }],
+  ["more stars than the most for each level cleared", { stars: 7 }],
+  ["stars with no level cleared", { firstLevel: 5 }],
+];
+
 /** Points a run kept may hold that don't add up, each failing `hasSoundScore()`. */
 const SCORE_SPOILS: readonly Spoil[] = [
   ["points banked that aren't a number", { banked: "3000" }],
   ["a score that isn't a number", { score: null }],
   ["a score below the points banked", { score: 2999 }],
-  ["fewer points banked than a star for each level cleared", { banked: 399 }],
-  ["points banked with no level cleared", { firstLevel: 5 }],
+  ["fewer points banked than its stars brought", { banked: 999 }],
+  ["points banked with no star earned", { firstLevel: 5, stars: 0 }],
   [
     "fewer points on the level than its jumps scored",
     { jumps: 3, score: 3299 },
@@ -160,6 +171,7 @@ function runUnderWay(change: Partial<Run> = {}): Run {
     rounds: 3,
     jumps: 0,
     banked: 3000,
+    stars: 5,
     score: 3450,
     ending: null,
     outcome: "playing",
@@ -191,12 +203,16 @@ function readBack(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
 }
 
-/** Returns whether a run kept holds a sound score, given the levels it says it cleared, its rounds and its jumps. */
-function scoreHolds(value: Readonly<Record<string, unknown>>): boolean {
+/** Returns the stars a run kept has earned, given the levels it says it cleared. */
+function starsRead(value: Readonly<Record<string, unknown>>): number | null {
   const cleared = Number(value["level"]) - Number(value["firstLevel"]);
-  const rounds = Number(value["rounds"]);
-  return hasSoundScore(value, cleared, {
-    rounds,
+  return readStars(value, cleared);
+}
+
+/** Returns whether a run kept holds a sound score, given the stars it says it earned, its rounds and its jumps. */
+function scoreHolds(value: Readonly<Record<string, unknown>>): boolean {
+  return hasSoundScore(value, Number(value["stars"]), {
+    rounds: Number(value["rounds"]),
     jumps: Number(value["jumps"]),
   });
 }
@@ -233,6 +249,7 @@ describe("saveGame", () => {
       rounds: 0,
       jumps: 0,
       banked: 4100,
+      stars: 5,
       score: 4100,
       tuned: false,
       start: null,
@@ -251,6 +268,7 @@ describe("saveGame", () => {
     expect(saved).toMatchObject({
       level: 6,
       banked: 3460 + starPoints(starsFor(4, run.par)),
+      stars: 5 + starsFor(4, run.par),
       start: null,
     });
   });
@@ -357,6 +375,12 @@ describe("restoreGame", () => {
     expect(takenUp?.start.boon).toBe("hot");
   });
 
+  it("takes up a run kept before it counted stars, as having earned one a level cleared", () => {
+    const before = readBack(tampered({ stars: undefined }));
+
+    expect(restoreGame(before, LEVELS, 9)?.run.stars).toBe(2);
+  });
+
   it("works its par out from the pars it is given", () => {
     const takenUp = restoreGame(STORED, LEVELS, 9, { girder: { "11": 4 } });
 
@@ -420,9 +444,16 @@ describe("readRun", () => {
     ...KNOWN_LEVEL_SPOILS,
     ...DEPTH_SPOILS,
     ...ROUND_SPOILS,
+    ...STAR_SPOILS,
     ...SCORE_SPOILS,
   ])("drops a run of %s", (_, change) => {
     expect(readRun(tampered(change), LEVELS, 9)).toBeNull();
+  });
+
+  it("drops a run whose stars it can't read, rather than reading them as none", () => {
+    const spoiled = tampered({ stars: "5", banked: 0, score: 450 });
+
+    expect(readRun(spoiled, LEVELS, 9)).toBeNull();
   });
 });
 
@@ -460,6 +491,28 @@ describe("hasSoundRounds", () => {
   });
 });
 
+describe("readStars", () => {
+  it("reads the stars a run kept has earned", () => {
+    expect(starsRead(STORED)).toBe(5);
+  });
+
+  it.each([2, 6])("reads %i stars for two levels cleared", (stars) => {
+    expect(starsRead(tampered({ stars }))).toBe(stars);
+  });
+
+  it("reads no stars for a run kept on its first level", () => {
+    expect(starsRead(tampered({ firstLevel: 5, stars: 0 }))).toBe(0);
+  });
+
+  it("reads a run kept before it counted stars as having earned one a level cleared", () => {
+    expect(starsRead(tampered({ stars: undefined }))).toBe(2);
+  });
+
+  it.each(STAR_SPOILS)("drops %s", (_, change) => {
+    expect(starsRead(tampered(change))).toBeNull();
+  });
+});
+
 describe("hasSoundScore", () => {
   it("holds a run kept to its points", () => {
     expect(scoreHolds(STORED)).toBe(true);
@@ -470,11 +523,13 @@ describe("hasSoundScore", () => {
   });
 
   it("holds a run kept on its first level with nothing banked", () => {
-    expect(scoreHolds(tampered({ firstLevel: 5, banked: 0 }))).toBe(true);
+    const first = tampered({ firstLevel: 5, stars: 0, banked: 0 });
+
+    expect(scoreHolds(first)).toBe(true);
   });
 
-  it("holds a run kept with a star's points for each level cleared, and its jumps' on the level", () => {
-    expect(scoreHolds(tampered({ banked: 400, jumps: 3, score: 700 }))).toBe(
+  it("holds a run kept with its stars' points banked, and its jumps' on the level", () => {
+    expect(scoreHolds(tampered({ banked: 1000, jumps: 3, score: 1300 }))).toBe(
       true,
     );
   });

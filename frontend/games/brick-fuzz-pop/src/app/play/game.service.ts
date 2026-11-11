@@ -39,10 +39,10 @@ import {
   pause,
   resume,
   startLevel,
+  takeDepth,
   takeRound,
 } from "../../rules/run/run";
 import type { TakenUp } from "../../rules/run/saved_game";
-import { parOf } from "../../rules/run/stars";
 import { levelResultOf } from "../../rules/run/stats";
 import type { Pictures } from "../../scene/pictures";
 import type { Guide } from "../../scene/stand_ins";
@@ -603,16 +603,9 @@ export class GameService extends RunLifecycle implements KeptGame {
     return frame;
   }
 
-  /**
-   * Returns a run whose level has no round played begun again on the depth
-   * the board's room now gives, its par with it, or any other run as it
-   * is, since a level's par stays that of the depth it began on.
-   */
+  /** Returns a run on the depth the board's room now gives, as the rules lay it out ({@link takeDepth}). */
   private laidOut(run: Run): Run {
-    const { depth } = this.room;
-    if (run.rounds > 0 || run.depth === depth) return run;
-    const { id } = levelEntryOf(this.levels, run.level).data;
-    return { ...run, depth, par: parOf(id, depth) };
+    return takeDepth(run, this.room.depth, this.levels);
   }
 
   /** Aims a round on the field as the board's room now shapes it. */

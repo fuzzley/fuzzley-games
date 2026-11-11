@@ -13,6 +13,7 @@ import {
   levelOf,
   levelsCleared,
   nextLevel,
+  takeDepth,
   openingOf,
   pause,
   resume,
@@ -41,12 +42,17 @@ function runAt(level = 2): Run {
   return createRun({ id: 1, level, depth: 11 }, LEVELS);
 }
 
+/** Returns a run with rounds played on its level, each released and landed. */
+function playedOn(run: Run, ...rounds: RoundOutcome[]): Run {
+  return rounds.reduce(
+    (played, round) => landRound(takeRound(played, round)),
+    run,
+  );
+}
+
 /** Returns a run at a level with its level under way and rounds played, each released and landed. */
 function underWay(level = 2, ...rounds: RoundOutcome[]): Run {
-  return rounds.reduce(
-    (run, round) => landRound(takeRound(run, round)),
-    startLevel(runAt(level)),
-  );
+  return playedOn(startLevel(runAt(level)), ...rounds);
 }
 
 /** Returns so many rounds that leave their level on. */
@@ -86,6 +92,7 @@ describe("createRun", () => {
       rounds: 0,
       jumps: 0,
       banked: 0,
+      stars: 0,
       score: 0,
       ending: null,
       outcome: "ready",
@@ -264,13 +271,14 @@ describe("landRound", () => {
     expect(after).toEqual({ ...run, ending: null, outcome: "over" });
   });
 
-  it("clears a level within its par with three stars' points", () => {
+  it("clears a level within its par with three stars and their points", () => {
     const run = takeRound(underWay(2, ON), CLEARED);
 
     const after = landRound(run);
 
     expect(after).toEqual({
       ...run,
+      stars: 3,
       score: ON.points + CLEARED.points + 3 * STAR_POINTS,
       ending: null,
       outcome: "cleared",
@@ -291,6 +299,14 @@ describe("landRound", () => {
     const after = landRound(takeRound(run, CLEARED));
 
     expect(after.score - run.score).toBe(CLEARED.points + STAR_POINTS);
+  });
+
+  it("counts the stars of every level the run clears", () => {
+    const second = startLevel(nextLevel(underWay(2, CLEARED), 11, LEVELS));
+
+    const after = playedOn(second, ...roundsOf(second.par + 3), CLEARED);
+
+    expect(after.stars).toBe(3 + 1);
   });
 
   it("wins the run on clearing the last level", () => {
@@ -361,6 +377,42 @@ describe("nextLevel", () => {
       expect(nextLevel(run, 11, LEVELS)).toBe(run);
     },
   );
+});
+
+describe("takeDepth", () => {
+  it("begins a level with no round played again on the depth, its par with it", () => {
+    const run = createRun(
+      { id: 1, level: 3, depth: 11 },
+      LEVELS,
+      PARS_BY_DEPTH,
+    );
+
+    expect(takeDepth(run, 16, LEVELS, PARS_BY_DEPTH)).toEqual({
+      ...run,
+      depth: 16,
+      par: 5,
+    });
+  });
+
+  it("throws for a level with no par on the depth", () => {
+    const run = createRun({ id: 1, level: 3, depth: 11 }, LEVELS);
+
+    expect(() => takeDepth(run, 16, LEVELS, { pips: { "11": 9 } })).toThrow(
+      'Level "pips" has no par on a field 16 deep.',
+    );
+  });
+
+  it("leaves a level with a round played on the depth it began on, and its par", () => {
+    const run = underWay(2, ON);
+
+    expect(takeDepth(run, 16, LEVELS)).toBe(run);
+  });
+
+  it("leaves a run on the depth it has as it is", () => {
+    const run = runAt();
+
+    expect(takeDepth(run, 11, LEVELS)).toBe(run);
+  });
 });
 
 describe("pause", () => {

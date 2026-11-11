@@ -166,10 +166,11 @@ helpers.
   the level it started at to its end. `createRun()`, `startLevel()`,
   `takeRound()` as a round is released, `landRound()` as its flight lands,
   the level's end waiting in `ending` till then so the last flight can be
-  paused, `nextLevel()`, `pause()` and `resume()`, a move that doesn't fit
-  returning the run as it is; `levelOf()` parses the level in play, and
-  `openingOf()` lays it out on the depth it began on, which its par is set
-  for.
+  paused, `nextLevel()`, `takeDepth()` as the field takes a new depth,
+  `pause()` and `resume()`, a move that doesn't fit returning the run as
+  it is; it counts the stars its levels cleared earned (`stars`).
+  `levelOf()` parses the level in play, and `openingOf()` lays it out on
+  the depth it began on, which its par is set for.
   `scoring.ts` scores a break along the streak, the stars and how a cleared
   level's points add up (`tallyOf()`); `stars.ts` reads par (`parOf()`)
   and gives the stars (`starsFor()`: three within par, two within 3 rounds
@@ -388,8 +389,9 @@ its reader drops what it can't trust rather than failing:
 - `brick-fuzz-pop-game` (version 1, `SAVED_GAME_VERSION`): the run under
   way, by `SavedGameService`: its level by number and id, the level it
   started at, the depth the level began on, its rounds and jumps, the
-  points banked and the score, and whether it was played on retuned
-  numbers; and where its next round starts, each brick's hits left by
+  points banked, the stars its levels cleared earned (one a level for a
+  game kept before them) and the score, and whether it was played on
+  retuned numbers; and where its next round starts, each brick's hits left by
   wall cell, how far the wall has come down, the field's depth, where the
   fuzzball waits, the friends' inks and the boon, or nothing for a level
   with no round played, which is laid out afresh. It is written as a round
