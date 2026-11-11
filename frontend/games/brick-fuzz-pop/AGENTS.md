@@ -144,11 +144,13 @@ helpers.
   hurts and whether it earths the charge. `trait_rules.ts`'s `TRAIT_RULES`
   holds each trait's rule, typed so a trait without one fails to compile,
   each in a file of its own under `traits/`: steel's `never` and `earths`,
-  the zappers' `zaps`, in a row or a column, the shell's `shelled`, which
-  only charge, a zap or a blast hurts, and moss's `regrows`, which does
-  nothing in a flight. Each trait whose kinds come later, and a zap's
-  blast, cross and x, throws "not until level N" (`traits/not_until.ts`)
-  until its set is built.
+  the zappers' `zaps`, in a row or a column, the bumper's `kicks`, the
+  prism's `splits`, the portal's `teleports` and the plated brick's
+  `plated`, a corner plated only where both its faces are, the shell's
+  `shelled`, which only charge, a zap or a blast hurts, and moss's
+  `regrows`, which does nothing in a flight. Each trait whose kinds come
+  later, and a zap's blast, cross and x, throws "not until level N"
+  (`traits/not_until.ts`) until its set is built.
 - **`src/rules/wall/`** — the wall. `wall.ts` holds `Brick`, `Wall` and a
   field's thirds (`thirdsOf()`: the jump, the jump line and the row a level
   opens on), with every depth a field has (`DEPTHS`) and whether a value is
