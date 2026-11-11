@@ -2,6 +2,8 @@ import type { TraitRules } from "../flight/hooks";
 import { EARTHS_RULE } from "./traits/earths";
 import { NEVER_RULE } from "./traits/never";
 import { comesAt } from "./traits/not_until";
+import { REGROWS_RULE } from "./traits/regrows";
+import { SHELLED_RULE } from "./traits/shelled";
 import { ZAPS_RULE } from "./traits/zaps";
 
 /**
@@ -29,7 +31,7 @@ export const TRAIT_RULES: TraitRules = {
   // The plated brick.
   plated: comesAt(22),
   // The shell brick.
-  shelled: comesAt(28),
+  shelled: SHELLED_RULE,
   // The moss brick.
-  regrows: comesAt(29),
+  regrows: REGROWS_RULE,
 };
