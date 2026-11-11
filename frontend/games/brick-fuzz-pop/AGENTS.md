@@ -17,9 +17,8 @@ shows the game's name alone: the scene, the dialogs, the settings drawer,
 the game and the services that keep it are written and specced, but
 nothing places them yet, and the site doesn't ship it:
 `frontend/site/games.json` doesn't list it. What the plan's packages still
-to come build (R6, the rest of P2, P3, S2, the rest of U1, U2, T1 and T2,
-then X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet, and
-`playRound()` throws until R6 writes it.
+to come build (the rest of P2, P3, S2, the rest of U1, U2, T1 and T2, then
+X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -118,21 +117,50 @@ helpers.
   everything met within `AT_ONCE` of the earliest gathered once and put in
   one order. It walks moves of a unit, each sweeping only the cells the
   fuzzball can touch, not every brick; `castField()` is what each cast of a
-  flight reads. `src/rules/flight/benchmarks/cast.spec.ts` times it.
+  flight reads. `flight.ts`'s `fly()` flies a round's fuzzballs from the
+  floor along an aim on one clock, by the kinds and the trait rules it is
+  handed (`FlightRules`), and returns the `Flight` with the wall it leaves
+  and the bricks the player's fuzzball punched through (`Flown`); given a
+  stop (`FlightStop`), it flies only so far past the player's first turn.
+  `hooks.ts` says what a brick's trait rules may do to a flight (`Hooks`),
+  and at which moments `fly()` runs them (`TraitRule`, `TraitRules`).
+  `guide.ts`'s `guideOf()` is the guide (`Guide`): the player's fuzzball
+  flown as the round flies it, without the mates and friends behind it,
+  stopped as far past its first turn as it is handed, `GUIDE_PAST_TURN`
+  unless the debug menu retunes it; its dots `GUIDE_DOT_GAP` apart; and the
+  bricks it would punch through on the way. `src/rules/flight/benchmarks/`
+  times `cast()`, `fly()` and `guideOf()`.
+- **`src/rules/bricks/`** — what a brick does. `bricks.ts`'s `strike()`
+  works out what a fuzzball's strike does to a brick and to the fuzzball, as
+  `plan.md`'s "Charge" says, once the brick's rules have said whether it
+  hurts and whether it earths the charge. `trait_rules.ts`'s `TRAIT_RULES`
+  holds each trait's rule, typed so a trait without one fails to compile,
+  each in a file of its own under `traits/`: steel's `never` and `earths`,
+  and the zappers' `zaps`, in a row or a column. Each trait whose kinds come
+  later, and a zap's blast, cross and x, throws "not until level N"
+  (`traits/not_until.ts`) until its set is built.
 - **`src/rules/wall/`** — the wall. `wall.ts` holds `Brick`, `Wall` and a
   field's thirds (`thirdsOf()`: the jump, the jump line and the row a level
-  opens on). `lower.ts` brings the wall down after a round (`lowerWall()`),
-  a row, or a jump once no brick the level needs stands below the jump
-  line, sinking what the level doesn't need at the floor's row and losing
-  the level on what it does; and says whether a level is cleared
-  (`isCleared()`) and a brick needed (`isNeeded()`). `regrow()` returns the
-  wall as it is, as no kind regrows yet.
+  opens on), with whether a value is a depth a field has (`isDepth()`).
+  `lower.ts` brings the wall down after a round (`lowerWall()`), a row, or a
+  jump once no brick the level needs stands below the jump line, sinking
+  what the level doesn't need at the floor's row and losing the level on
+  what it does; and says whether a level is cleared (`isCleared()`) and a
+  brick needed (`isNeeded()`). `regrow()` returns the wall as it is, as no
+  kind regrows yet.
 - **`src/rules/round/`** — `round.ts`: a round's types, where it starts
   (`RoundStart`: the wall, the depth, where the fuzzball waits, the friends
   and the boon), what it came to (`RoundOutcome`) and the round played
-  (`Round`); the numbers a round is handed rather than reads
-  (`RoundRules`, `tuning.ts`'s as `RULES`); and `playRound()`'s
-  signature.
+  (`Round`); the numbers a round is handed rather than reads (`RoundRules`,
+  `tuning.ts`'s as `RULES`); and `playRound()`, which flies a shot by the
+  catalog and `TRAIT_RULES`, scores each break's points and `JUMP_POINTS`
+  for a jump, brings the wall down with `lowerWall()`, and says where the
+  next round starts: from the player's fuzzball's landing, held
+  `SIDE_MARGIN` off a side wall, the friends it freed added to the crew, and
+  the level's boon after a jump. It changes nothing it is handed.
+  `playRoundBy()` flies by the kinds and the rules it is handed, for a
+  spec's stand-ins; `flightRulesOf()` says what a round's flight is played
+  by, and `flightStartOf()` how its fuzzballs leave, which the guide shares.
 - **`src/rules/run/`** — the run, after Brick Breaker's, with Asteroid
   Breaker's saved game. `run.ts`: `Run`, a value each move replaces, from
   the level it started at to its end. `createRun()`, `startLevel()`,
@@ -350,23 +378,24 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
 The repository's rules for specs apply. A spec sits beside the file it
 tests, named after it. `vitest.config.ts` runs them in three projects:
 `pure`, in Node, for the rules, the view, `src/testing/` and `tools/`;
-`sim`, in Node too and without coverage, for the flight's benchmark,
-`src/rules/flight/benchmarks/cast.spec.ts`, which prints `cast()`'s median
-and 99th percentile beside a scan of every brick's and holds it to no
-time, as no runner times anything alike twice
-(`yarn vitest run --project sim --reporter=verbose` shows it); and `dom`,
-in jsdom, for every other spec under `src/`, the scene's and the shell's.
-`src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser first,
-so the scene's spec runs real Phaser, with a fake shell over the
-hand-made rounds; gives each test a store in memory; and stands in for
-the modal dialogs and `document.fonts`, which jsdom lacks. Coverage
-measures `dom` and `pure` together, to the floors `vitest.config.ts` sets
-(statements, branches, functions and lines): the rules and the view 100,
-95, 100 and 100, the scene 98, 92, 100 and 99, and the shell 98, 97, 97
-and 98; `src/testing/` and the scripts have none, so what of them goes
-untested shows. The
-repository's `angular-testing` skill covers the patterns every Angular
-workspace's specs share, and `phaser-core` the harness.
+`sim`, in Node too and without coverage, for the flight's benchmarks in
+`src/rules/flight/benchmarks/`: `cast.spec.ts` prints `cast()`'s median and
+99th percentile beside a scan of every brick's, and `fly.spec.ts` `fly()`'s,
+alone and with mates and friends, each held to no time, as no runner times
+anything alike twice, and `guide.spec.ts` holds `guideOf()` under 1 ms at
+the 99th percentile over the levels' opening walls, five times the plan's
+0.2 ms (`yarn vitest run --project sim --reporter=verbose` shows them); and
+`dom`, in jsdom, for every other spec under `src/`, the scene's and the
+shell's. `src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser
+first, so the scene's spec runs real Phaser, with a fake shell over the
+hand-made rounds; gives each test a store in memory; and stands in for the
+modal dialogs and `document.fonts`, which jsdom lacks. Coverage measures
+`dom` and `pure` together, to the floors `vitest.config.ts` sets
+(statements, branches, functions and lines): the rules and the view 100, 95,
+100 and 100, the scene 98, 92, 100 and 99, and the shell 98, 97, 97 and 98;
+`src/testing/` and the scripts have none, so what of them goes untested
+shows. The repository's `angular-testing` skill covers the patterns every
+Angular workspace's specs share, and `phaser-core` the harness.
 
 What the specs share is in `src/testing/`:
 
@@ -388,7 +417,20 @@ What the specs share is in `src/testing/`:
   holds `cast()` to the scan and the benchmark times both.
 - `stand_ins.ts` holds kinds made up for specs, a bumper and a portal, and
   `STAND_INS`, the catalog with them in the row and column zappers' places,
-  which a spec hands the rules.
+  which a spec hands the rules; a prism, wool and a cage; `STAND_IN_RULES`,
+  the rules they are flown by, steel's own among them; and `struckOf()`, a
+  strike as a brick's rules see it.
+- `random_flights.ts` draws seeded flights at random walls
+  (`randomFlight()`), each flown by its kinds' rules, and finds where a
+  flight's fuzzballs come nearer a brick than they may
+  (`clearanceProblemsOf()`), on which `flight.spec.ts` holds `fly()` to
+  every flight's checks.
+- `flights.ts` flies a shot at a wall drawn as a picture by the bricks' own
+  rules (`flyPicture()`), picks a flight's events of a kind (`eventsOf()`),
+  and matches a value as near as the flight's arithmetic finds it
+  (`near()`).
+- `timing.ts` reads a list of times at its median and 99th percentile
+  (`described()`, `quantile()`), for the flight's benchmarks.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
   specs (`ART_FRAMES`), lists the pixel ratios they check the art at
   (`PIXEL_RATIOS`), and measures how far a point lies from a line or past a

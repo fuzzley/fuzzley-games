@@ -1,6 +1,8 @@
 // What the specs that fly shots share: a shot at a wall drawn as a picture,
-// flown by the bricks' own rules, and a flight's events of one kind.
+// flown by the bricks' own rules, a flight's events of one kind, and a
+// value matched as near as the flight's arithmetic finds it.
 
+import { expect } from "vitest";
 import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
 import type { Flight, FlightEvent } from "../rules/flight/events";
@@ -50,4 +52,20 @@ export function eventsOf<K extends FlightEvent["kind"]>(
     (event): event is Extract<FlightEvent, { readonly kind: K }> =>
       event.kind === kind,
   );
+}
+
+/** Returns a value with each of its numbers matched near enough, for the rounding of the arithmetic that found them. */
+export function near(value: unknown): unknown {
+  if (typeof value === "number") {
+    return expect.closeTo(value, 9);
+  }
+  if (Array.isArray(value)) {
+    return value.map(near);
+  }
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, near(entry)]),
+    );
+  }
+  return value;
 }

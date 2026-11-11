@@ -1,4 +1,4 @@
-import { thirdsOf } from "./wall";
+import { isDepth, thirdsOf } from "./wall";
 
 describe("thirdsOf", () => {
   // plan.md's table in "The wall": a depth, its jump, and the row a wall
@@ -46,5 +46,15 @@ describe("thirdsOf", () => {
     expect(() => thirdsOf(depth)).toThrow(
       `A field is a whole number from 11 to 22 rows deep, not ${depth}.`,
     );
+  });
+});
+
+describe("isDepth", () => {
+  it.each([11, 16, 22])("takes %s rows as a field's depth", (depth) => {
+    expect(isDepth(depth)).toBe(true);
+  });
+
+  it.each([10, 23, 11.5, Number.NaN, "11", null])("refuses %o", (value) => {
+    expect(isDepth(value)).toBe(false);
   });
 });

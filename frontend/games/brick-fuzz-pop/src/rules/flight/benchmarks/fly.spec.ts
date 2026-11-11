@@ -1,5 +1,6 @@
 import { createRandom } from "@fz/core/random";
 import { randomFlight } from "../../../testing/random_flights";
+import { described } from "../../../testing/timing";
 import { fly } from "../flight";
 
 /** How many seeded flights are timed, each flown once a round. */
@@ -7,18 +8,6 @@ const FLIGHTS = 1000;
 
 /** How many rounds of fly() are timed, after one that warms the code up. */
 const ROUNDS = 5;
-
-/** Returns a share's value of numbers sorted from the least, as the nearest below. */
-function quantile(sorted: readonly number[], share: number): number {
-  return sorted[Math.floor(share * (sorted.length - 1))]!;
-}
-
-/** Returns how a list of times in milliseconds reads in microseconds, at the median and the 99th percentile. */
-function described(times: readonly number[]): string {
-  const sorted = [...times].sort((a, b) => a - b);
-  const micro = (ms: number): string => `${(ms * 1000).toFixed(2)} µs`;
-  return `median ${micro(quantile(sorted, 0.5))}, p99 ${micro(quantile(sorted, 0.99))}`;
-}
 
 // Printed, not held to a number: CI's runner times nothing alike twice.
 describe("fly's time", () => {

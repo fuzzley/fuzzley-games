@@ -47,6 +47,16 @@ export interface Thirds {
   readonly opensOn: number;
 }
 
+/** Returns whether a value is a depth a field has: a whole number of rows from 11 to 22. */
+export function isDepth(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= LEAST_DEPTH &&
+    value <= MOST_DEPTH
+  );
+}
+
 /**
  * Returns a field's thirds at a depth: a jump is the whole part of
  * (depth − 1) / 3, the rows left over going to the third by the floor, and
@@ -55,9 +65,9 @@ export interface Thirds {
  * It throws for a depth no field has, a whole number from 11 to 22.
  */
 export function thirdsOf(depth: number): Thirds {
-  if (!Number.isInteger(depth) || depth < LEAST_DEPTH || depth > MOST_DEPTH) {
+  if (!isDepth(depth)) {
     throw new RangeError(
-      `A field is a whole number from ${LEAST_DEPTH} to ${MOST_DEPTH} rows deep, not ${depth}.`,
+      `A field is a whole number from ${LEAST_DEPTH} to ${MOST_DEPTH} rows deep, not ${String(depth)}.`,
     );
   }
   const jump = Math.floor((depth - 1) / 3);
