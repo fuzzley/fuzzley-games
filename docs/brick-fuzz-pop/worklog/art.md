@@ -1217,3 +1217,291 @@ wiring to `GameService` and the site's listing come with U2's last commit.
      combined with: it takes `{ kept, locked }`.
   5. The status specs read the library's own status line by its place:
      they find the game's line by its words and check its role.
+
+### U1's board: the canvas, the room, the panels and the cards
+
+**2026-11-10.** U1's `board/` bullet, on the view stream's `GameService`:
+the board that holds the canvas and its placeholder, measures itself and
+hands the game the room before the scene's first layout, lays the panels
+and the shell's cards over and beside the field, and publishes what T1's
+check reads; and `<app-board>` in the app's slot for it, rebased onto the
+view stream's wiring.
+
+- **Built.**
+  - `src/app/board/board.component.*`: `<app-board>`, after Asteroid
+    Breaker's. Its `.play` element is the application, named for the
+    level ("Brick Fuzz Pop, level 1: Hello, wall") and described by its
+    keys, around `<fz-phaser-canvas>`, the placeholder and the ring; the
+    panels, `<app-board-card>` with `<fz-canvas-cards>` projected into
+    it, and the keys' paragraph are its siblings. The scene's options are
+    `GameService`'s: `tick()`, `view()`, `waitingX()`, `boon()`,
+    `crew()`, `guide()`, `aimings`, `palette`, `shape`, `motion()`,
+    `sound()`, `onLayout()`, `fieldCommand()` as `command`, and
+    `onPictures()`, the pictures waiting for the atlas to settle. It sets
+    `setDrawn()` from the canvas's state, hands `setRoom()` each measure,
+    shows `boardCard()`, and hands the card's four outputs to `resume()`,
+    `nextLevel()`, `tryAgain()` and `newGame()`, taking the focus back
+    first.
+  - `src/app/app.component.*`: `<app-board>` in the slot inside `.room`;
+    `refocusWhenUncovered()` hands it the focus as each run begins, as
+    the page loads and as a dialog over it closes, and the bar's Resume
+    hands it back too. The app's spec renders on the fake canvas and
+    waits for it to be drawn, paints the palette's roles, and gains six
+    specs of the board's focus, its landmark spec now finding the board;
+    its "no picture while shut" plays the level first (choice 15).
+  - For T1, on `app-board`: `data-field` (the lintel's top to the band's
+    bottom), `data-room`, `data-panels`, `data-outcome`, `data-wall`,
+    `data-depth` (choice 16), `--across`, `--down` and `--pixel-ratio`;
+    and `--margin`, `--frame`,
+    `--lintel`, `--band` and `--band-ink` for the placeholder and the
+    cards. The stylesheet declares the margin as the canvas's insets
+    (`--fz-canvas-inset-*`), as Brick Breaker's does.
+  - `src/view/field/field_metrics.ts`, a contract file, gains a name:
+    `FieldMetrics.framed`, the field from the lintel's top to the band's
+    bottom in CSS pixels, which `fieldMetrics()` already worked out for
+    the panels; `field_metrics.spec.ts` gains two specs and its first
+    spec's whole record the new field.
+  - `board.component.spec.ts`, 73 tests: by role on the fake canvas, then
+    on the real scene through `runShownScene()`, the rounds from
+    `src/testing/play.ts`.
+- **Choices the plan didn't make.**
+  1. **The application is an element inside the board,** around the
+     canvas and the ring, so the panels and the cards read as a page
+     does. Phaser hears the keys on the board's own element, which the
+     application's keys reach, and the cards' buttons keep theirs, as
+     the board card's `[fzKeepKeys]` does; a press on the board and
+     `focus()` focus the application, and the ring shows while it has
+     the focus from the keyboard.
+  2. **The room goes to the game at each measure, and again as the scene
+     is made:** an effect hands each measure, and the scene's source,
+     once its import is in, hands the last one before it makes the
+     scene, so its first layout is on the board's room whichever comes
+     first. The page shifts 0.0007 on an upright phone and 0.0001 at 1600
+     by 900, against Asteroid Breaker's 0.38.
+  3. **One rectangle from the lintel's top to the band's bottom** is the
+     placeholder's field, the ring, the card's layer and `data-field`:
+     `FieldMetrics.framed`, of the game's `metrics()` once the scene has
+     laid the field out, and of the placeholder's own `fieldMetrics()`
+     until then. The placeholder draws the lintel and the band as its top
+     and bottom borders in the band's ink, their thickness the difference
+     between `framed` and the cells, the ceiling as an inset shadow in the
+     field's line, and the frame as an outline, so its left border, the
+     check's wall, is nothing.
+  4. **`--down` is the field's height in units as drawn,** the lintel and
+     the band in their whole device pixels, so the height is the unit
+     times `--down` exactly, where the shape's fractions would be off by
+     up to a device pixel.
+  5. **The panels show from the placeholder's layout too,** so they are in
+     place before the scene draws. What the check reads (`data-field`,
+     `data-room`, `data-panels`, `--across`, `--down`) is the scene's
+     layout alone, absent before it; once laid out, `data-panels` is
+     empty where the room spares no panels, as the deck check needs the
+     attribute.
+  6. **`data-room` is the room the board last measured,** inside its
+     insets: the room it handed the game, whose shape the field takes
+     between rounds; the scene reports no room of its own. A board with
+     no room, as a hidden one, publishes none.
+  7. **`data-wall` is the wall's lowest row as the round aimed or in play
+     started,** the wall the scene draws until it settles.
+  8. **The pictures wait for the atlas to settle, and are read only where
+     they show:** the scene's first bake's go to the game at once, each
+     later bake's `PICTURES_SETTLE_MS`, 250 ms, after the last, so a
+     resize under way encodes nothing, as U1 asks; and the board reads
+     them, which has the scene encode them, only while the panels show or
+     the Ready card shows a kind of brick new to its level. How to play
+     reads them from the game as it opens.
+  9. **The card, the boon and the crew are `GameService`'s**
+     (`boardCard()`, `boon()`, `crew()`), as the view stream's wiring
+     gave them; the board's own, drafted before, went at the rebase, and
+     its specs of each card and of the waiting fuzzball's boon and the
+     friends' inks stay, read through the board and the scene.
+  10. **A card's button gives the board the focus before the game
+      moves,** as the button goes with its card.
+  11. **The keys' paragraph says what ends a run's result:** Enter or P
+      try the lost level again, or start a new game after the last, as
+      `GameService` does.
+  12. **The palette is `GameService`'s;** the board's own
+      `field_palette.ts`, drafted before it landed, was dropped.
+  13. **Looking away needs nothing of the board:** the scene lets go of
+      its keys and its press itself, through `@fz/phaser`'s
+      `onPlayerAway()`, as the window blurs, the page hides or the focus
+      leaves the board's element, Phaser's keyboard target; so the app's
+      `(away)` pausing the game is all the rest. A spec holds F on the
+      board in flight and moves the focus away.
+  14. **The bar's Resume hands the board the focus back** from the app,
+      as this bar has no `handBack` output, unlike Asteroid Breaker's;
+      Pause and Resume, like Fast-forward, Skip and Sound, take no focus
+      from a click, so its spec presses Resume from the keys.
+  15. **How to play's "no picture while shut" spec plays the level
+      first,** as the board's Ready card at level 1, which brings a kind
+      in, asks for the pictures; what it checks, that How to play asks
+      for none while shut, is as it was.
+  16. **`data-depth` is how many rows deep the scene laid the field
+      out,** its cells' height over the unit, both in device pixels, so
+      exact: `plan.md`'s T1 holds the depth to the one the room's shape
+      asks for, which neither `--down`, with the band's and the
+      lintel's fractions in it, nor `data-field` gives back. Absent, as
+      the rest, until the scene lays the field out.
+- **For other streams.**
+  - The view stream: `app.component.*` gains the board in its slot, the
+    focus wiring and its specs (choices 14 and 15); the board needs
+    nothing more of `GameService`, nor calls the scene on looking away
+    (choice 13).
+  - T1: as above, `data-depth` beyond what was asked; `data-panels` is
+    absent until the scene lays the field out, then `""` where no
+    panels show; the frame is an outline, as Asteroid Breaker's is, not
+    a border.
+  - The integrator: the game's `AGENTS.md` is behind the board in three
+    places: its opening (the shell places "not yet the board"), the app's
+    entry (the board's place "a marked slot until `<app-board>` is
+    built") and `board/`, which names the cards alone; `<app-board>` is
+    new, and `FieldMetrics.framed` with it. `FieldPainter.drawGround()`
+    could take the field's height from `metrics.framed`.
+  - The shell stream: `board_card.component.ts`'s class doc says the app
+    hands the board back the focus; the board does, before the game
+    moves (choice 10).
+  - The view stream: `GameService.onPictures()`'s doc says it takes the
+    pictures each time the scene bakes them; the board hands a later
+    bake's on only once the atlas settles (choice 8).
+- **Checks.**
+  - The workspace's `lint` and `typecheck` are clean.
+  - `test:coverage`, rebased: 4,511 tests in 81 files, 81 of them new
+    (the board's 73, the app's six and the metrics' two), and its
+    floors; `board.component.ts` and `app.component.ts` are at 100% of
+    their statements, branches, functions and lines.
+  - The root's `yarn lint` passes.
+  - In a real Chrome, from the dev server at 9136, before the rebase,
+    with a harness put in `app.component` and taken out again: at 1600
+    by 900 the panels flush with the field from the lintel to the band,
+    the Ready card over the wall and the placeholder where the scene
+    drew, the margin read through `var()` as the canvas's insets; at 390
+    by 844 the compact margin and no panels; a resize while aiming laid
+    the field out anew. On S2's scene, a shot let fly from the keys
+    broke a brick and brought the wall down a row (`data-wall` 5), P
+    paused it under the Paused card, and its Resume went on with the
+    focus back on the board, with no error in the console.
+  - Again after the rebase, the real app with `<app-board>` in its slot,
+    headless at 1600 by 900: the application has the focus as the page
+    loads, with no ring; How to play opened from the keys shows five
+    pictures, and Escape hands the board the focus with the ring on;
+    Space lets a shot fly, P pauses under the Paused card, the bar's
+    Resume pressed from the keys goes on with the focus on the board,
+    and Tab from the board to the card's Resume and Enter does the same;
+    `data-depth` 11, `data-panels` both sides; at 390 by 844,
+    `data-panels` `""` and `data-depth` 17. No error or warning in the
+    console.
+- **The mutation passes.** The first, sixty-nine changes, each run
+  against the board's spec. Sixty-six were killed:
+  - the room and the layout: a room with none laid out, the placeholder
+    shaping the room afresh, the placeholder over the scene's layout,
+    the room never handed, the scene made without it, the lintel in
+    device pixels, the band as the lintel, the field from the ceiling or
+    without its band, the margins swapped;
+  - what the check reads: `data-field` from the placeholder, `data-room`
+    before the scene or without its insets or in device pixels, the
+    panels' names swapped, `data-panels` dropped or empty before the
+    scene, `--across` before it, the wall's row of the next start;
+  - the cards: each card's numbers, Ready's level, boon and new kind (and
+    one of an earlier level), Cleared before its wait, its friends of the
+    start, its tally, score and rounds, Ended while the result is open,
+    lost or won, its level's name;
+  - the scene's options: the tick, the sound, the layout kept or handed
+    on, the run's commands for the field's, the pictures, the drawn gate
+    both ways;
+  - the focus and the buttons: the host focused, a press taking none,
+    each button not moving the game or not taking the focus back;
+  - the pictures: the first waiting too, none waiting, the timer kept past
+    the board;
+  - the template: the boon unlit, the panels' boon, the press and the
+    description unbound, the card and the ring unplaced, no pictures for
+    the panels or the card, the keys heard elsewhere.
+
+  Three survived, each a gap now given a spec and killed: `--down` from
+  the shape's fractions, which a room that the field fills makes whole,
+  so the spec lays out a field of the most rows, whose band and lintel
+  aren't; the Paused card while the level is played, which the spec's
+  look for Ready's title missed, so it finds the card's layer empty; and
+  a later bake leaving the earlier's timer to run, so a spec bakes twice
+  within the wait, on the specs' own timers.
+
+  The second, over the review's fixes: twenty-three changes, against the
+  board's spec or the metrics'. Twenty were killed: the room ungated, the
+  placeholder shaping the room afresh or over the scene's layout, the
+  lintel from the canvas's top, the band as the lintel, `data-field` from
+  the placeholder or the cells, the ring and the cards on the cells,
+  `--down` of the cells, the layout not handed on, no boon or the
+  start's, no crew, no waiting x, the pictures always read, never read
+  or read for any Ready card, and `framed` from the ceiling, without its
+  band or in device pixels. Three survived. `--down` without the ratio:
+  in jsdom the real scene lays out at one device pixel to one, so a spec
+  now hands the game a layout at two on the fake canvas, and it dies.
+  The pictures not read for the panels: the panels' spec is at level 1,
+  whose Ready card asks for them too, so a spec at level 2 on a wide
+  board, and it dies. No boon only in flight: `GameService`'s `boon()`
+  now, whose specs hold it. Over the app's wiring, three more: the
+  refocus dropped dies in four specs; the bar's Resume handing no focus
+  survived a click, as the bar's buttons take none from one, so its spec
+  presses Resume from the keys, and it dies; the focus asked before
+  `resume()` rather than after is the same, as the board takes it after
+  the next render.
+
+  After the second review, four more, each killed: the run count never
+  changing, by the spec of a run begun from the bar; `data-depth` a row
+  short, unbound, or the shape's depth before the scene has laid the
+  field out.
+
+- **Numbers worth keeping.** At 1600 by 900, less a 73 px bar, the field
+  is 576 by 779 CSS px, a 64 px unit, 11 rows, `--down` 12.17, with both
+  panels 320 wide; at 390 by 844, a 12 px margin, a 40 px unit, 17 rows,
+  `--down` 18.675 and no panels. A mutant of the board's spec takes about
+  13 s on the shared machine.
+- **The review:** no bug; six comments, each taken.
+  1. The board's own scene options, `boon` and `crew`, had no spec that
+     failed: two now read what the scene draws, the waiting fuzzball
+     wearing the boon a jump earned from the jump's landing, and a freed
+     friend flying in its ink, and the mutants die. Since the rebase both
+     are `GameService`'s.
+  2. The pictures were encoded wherever the board was: now read only
+     while the panels show or the Ready card shows a new kind (choice
+     8), with spies on the scene's `getBase64` at level 1 and level 2
+     upright, and a wide board at level 2.
+  3. The field's framed height was worked out again in the board, beside
+     a second copy of the metrics paired with the shape afterwards:
+     `fieldMetrics()` now gives `framed`, the board reads `metrics()`
+     alone, and `Laid` and its pairing are gone; the specs hold
+     `data-field` against the panels and the room an eleven-row field
+     fills. The painter's copy is the integrator's to point at `framed`.
+  4. `roomRect`'s doc said the scene's room: now the board's last
+     measure, handed the game, and gated on `hasRoom()`, with a spec of a
+     hidden board publishing none.
+  5. The placeholder had no ceiling: now an inset shadow a frame thick in
+     the field's line under the lintel, the total height and the left
+     border as they were.
+  6. The nits: `picturesTimer`'s doc says it is a timer; `pictures`' says
+     they are those of the bake once its atlas settled; and `AGENTS.md`'s
+     `board/` entry is the integrator's to update, as it was for the
+     panels.
+- **The second review,** after the rebase: no bug; the six answers hold;
+  ten comments, each taken.
+  1. The spec of a run begun from a lost run's result passed with a run
+     count that never changed, the dialog handing the focus back itself:
+     a spec now begins a run from the bar's New game, which takes the
+     focus from a click and asks nothing, and the mutant dies there.
+  2. T1 couldn't read the depth `plan.md` holds it to: `data-depth`
+     (choice 16).
+  3. The rebased wiring hadn't run in a browser: it has (Checks).
+  4. A paragraph of the log broke mid-line: rewrapped.
+  5. Choice 14 said every bar button refuses the focus from a click:
+     Pause and Resume, Fast-forward, Skip and Sound do; it says so.
+  6. Choice 10's and `takeFocusBack()`'s question New game asks never
+     comes, a won run being no run in progress: both keep the reason
+     that holds, the button going with its card.
+  7. Docs a little off: `pictures`' and `takePictures()`' are reworded;
+     the card's class doc and `GameService.onPictures()`'s are the shell
+     and view streams' (For other streams).
+  8. More of `AGENTS.md` is behind than the `board/` entry: the three
+     places are named for the integrator.
+  9. The spec drew the scene until a condition in three hand-rolled
+     loops: `advanceSceneUntil()` now, failing past the flight's limit.
+  10. The ring mixin's `:host(:focus-visible)` rule never matches: a
+      comment says `.play` holds the focus.

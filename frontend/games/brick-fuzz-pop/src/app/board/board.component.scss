@@ -1,0 +1,60 @@
+@use "../styles" as *;
+
+// The board takes the room the stage gives it, and the canvas fills it. The
+// scene lays the field out `--margin` in from each edge, which the canvas
+// reads as its insets, and the component works out where the field lies
+// (`fieldMetrics()`), from the lintel's top to the band's foot, so the
+// placeholder, the focus ring, the cards and the panels sit where the scene
+// draws, before it has and after; until the board is measured, the field
+// fills it, the margin in. The component sets the margin (`--margin`), the
+// frame's width (`--frame`), and the lintel's and the band's thickness
+// (`--lintel`, `--band`), as the scene draws them.
+:host {
+  @include canvas-board-host;
+
+  --fz-canvas-inset-top: var(--margin);
+  --fz-canvas-inset-right: var(--margin);
+  --fz-canvas-inset-bottom: var(--margin);
+  --fz-canvas-inset-left: var(--margin);
+}
+
+// The application a screen reader hands the keys to, around the canvas and
+// the ring alone, so the panels and the cards beside it read as a page does.
+.play {
+  position: absolute;
+  inset: 0;
+  outline: none;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+.field,
+.ring {
+  position: absolute;
+  inset: var(--margin);
+}
+
+// The empty field in its color, its lintel and its band in the band's ink,
+// which the component hands it, the ceiling in its line along the lintel's
+// foot, and framed in that line outside it, as the scene draws it.
+.field {
+  box-sizing: border-box;
+  border-top: calc(var(--lintel, 0px) - var(--frame)) solid var(--band-ink);
+  border-bottom: var(--band, 0) solid var(--band-ink);
+  outline: var(--frame) solid var(--fz-field-line);
+  background-color: var(--fz-field);
+  box-shadow: inset 0 var(--frame) var(--fz-field-line);
+}
+
+// Around the frame, while the application has the focus from the keyboard:
+// `.play` holds the focus, not the host the mixin looks at.
+.ring {
+  @include board-focus-ring(var(--frame));
+
+  .play:focus-visible > & {
+    outline-color: var(--fz-focus-ring-color);
+  }
+}

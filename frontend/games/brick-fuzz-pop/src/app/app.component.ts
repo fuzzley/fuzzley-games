@@ -4,12 +4,14 @@ import {
   inject,
   linkedSignal,
   signal,
+  viewChild,
 } from "@angular/core";
-import { PlayRoomDirective } from "@fz/game-ui/play_room";
+import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
+import { BoardComponent } from "./board/board.component";
 import { DebugService } from "./debug/debug.service";
 import { HelpComponent, type HelpPictures } from "./help/help.component";
 import { LevelsComponent } from "./levels/levels.component";
@@ -22,19 +24,22 @@ import { StatsService } from "./stats/stats.service";
 import { GAME_LEVELS } from "./tokens";
 
 /**
- * Shows the game: the bar, the board's place in the room the bar leaves it,
- * the live region that says what happens, the Levels dialog, How to play and
+ * Shows the game: the bar, the board in the room the bar leaves it, the
+ * live region that says what happens, the Levels dialog, How to play and
  * the settings the bar opens, the result card over an ended run, and the
  * question before a run is thrown away, each wired to `GameService`.
  *
- * The level in play pauses whenever the player looks away from the room
- * (`[fzPlayRoom]`).
+ * The board takes the focus as a run begins, as the page loads, after a
+ * dialog over it closes, and after the bar's Resume, so the keys steer at
+ * once. The level in play pauses whenever the player looks away from the
+ * room (`[fzPlayRoom]`).
  */
 @Component({
   selector: "app-root",
   imports: [
     AnnouncerComponent,
     BarComponent,
+    BoardComponent,
     ConfirmDialogComponent,
     HelpComponent,
     LevelsComponent,
@@ -52,6 +57,7 @@ import { GAME_LEVELS } from "./tokens";
 export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   protected readonly game = inject(GameService);
+  private readonly board = viewChild.required(BoardComponent);
   private readonly debug = inject(DebugService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
@@ -96,9 +102,19 @@ export class AppComponent {
     );
   });
 
+  constructor() {
+    refocusWhenUncovered(this.board, this.game.runs);
+  }
+
   /** Pauses the level in play as the player looks away from the room. */
   protected pauseRun(): void {
     this.game.pause();
+  }
+
+  /** Goes on with the paused level, as the bar's Resume asks, and hands the board the focus back from it. */
+  protected resumeRun(): void {
+    this.game.resume();
+    this.board().focus();
   }
 
   /** Starts a new run at the level the last one started at, asking first if one is in progress. */

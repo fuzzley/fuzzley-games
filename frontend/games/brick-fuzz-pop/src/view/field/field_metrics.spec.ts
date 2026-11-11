@@ -504,7 +504,35 @@ describe("fieldMetrics", () => {
       width: 360,
       height: 680,
       css: { x: 15, y: 48, width: 360, height: 680 },
+      framed: { x: 15, y: 12, width: 360, height: 760 },
       panels: null,
+    });
+  });
+
+  it("frames the field from the lintel's top to the band's bottom, as tall as the panels beside it", () => {
+    const metrics = laidOut(boardCanvas(1280, 800));
+
+    const { css, framed, panels } = metrics;
+    expect(framed).toEqual({
+      x: css.x,
+      y: panels?.left.y,
+      width: css.width,
+      height: panels?.left.height,
+    });
+  });
+
+  it("frames a field of the most rows, centered in a room taller than it needs, around its lintel and its band, in CSS pixels", () => {
+    const room = canvas(400, 1400, 2);
+    const shape = fieldShape(room);
+
+    const { unit, css, framed } = fieldMetrics(room, shape);
+
+    expect({
+      lintel: css.y - framed.y,
+      band: framed.y + framed.height - css.y - css.height,
+    }).toEqual({
+      lintel: lintelPixels(shape, unit) / 2,
+      band: bandPixels(shape, unit) / 2,
     });
   });
 

@@ -1,6 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import { paintRoles } from "@fz/style/testing";
 import { recordOf } from "@fz/core/records";
 import { figure, figureValue, setPageVisibility } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
@@ -17,6 +19,8 @@ import {
   release,
   scriptedRounds,
 } from "../testing/play";
+import { PALETTES } from "../testing/roles";
+import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent } from "./app.component";
 import { DebugService } from "./debug/debug.service";
 import { GameService } from "./play/game.service";
@@ -29,16 +33,21 @@ interface RenderedApp {
   readonly settle: () => Promise<void>;
 }
 
-/** Renders the app over the specs' levels, its rounds played as a script says. */
+/**
+ * Renders the app over the specs' levels, its rounds played as a script
+ * says, on a fake canvas, and waits for its scene to be drawn.
+ */
 async function renderApp(
   ...script: readonly SpecRound[]
 ): Promise<RenderedApp> {
   const { fixture } = await render(AppComponent, {
     providers: [
+      provideFakePhaserCanvas(),
       ...provideSpecPlay(scriptedRounds(...script)),
       { provide: DEBUG_MENU, useValue: false },
     ],
   });
+  await fixture.whenStable();
   return {
     game: TestBed.inject(GameService),
     user: userEvent.setup(),
@@ -60,6 +69,12 @@ function barButton(name: string): HTMLElement {
 }
 
 describe("AppComponent", () => {
+  beforeEach(() => {
+    // The board draws its field in the palette's inks, which jsdom has no
+    // stylesheet to give it.
+    paintRoles(FIELD_ROLES, PALETTES.rolesIn("classic", FIELD_ROLES));
+  });
+
   it("names the game in the page's one heading", async () => {
     await renderApp();
 
@@ -68,10 +83,83 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps the board's place in the page's main landmark", async () => {
+  it("puts the board in the page's main landmark", async () => {
     await renderApp();
 
-    expect(screen.getByRole("main")).toBeInTheDocument();
+    expect(screen.getByRole("main")).toContainElement(
+      screen.getByRole("application", { name: /^Brick Fuzz Pop, level 1: / }),
+    );
+  });
+
+  describe("the board", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("takes the focus as the page loads, so the keys steer at once", async () => {
+      const { settle } = await renderApp();
+
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("draws no focus ring as the page loads, as nothing was pressed to put it there", async () => {
+      // jsdom draws no ring, so what the board was asked for is all there is to see.
+      const focus = vi.spyOn(HTMLElement.prototype, "focus");
+      const { settle } = await renderApp();
+
+      await settle();
+
+      expect(focus).toHaveBeenCalledWith({ focusVisible: false });
+    });
+
+    it("takes the focus back as a dialog over it closes", async () => {
+      const { user, settle } = await renderApp();
+      await user.click(barButton("How to play"));
+
+      await user.keyboard("{Escape}");
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("takes the focus back from the bar's Resume, pressed from the keys", async () => {
+      const { game, user, settle } = await renderApp("step");
+      release(game);
+      game.pause();
+      await settle();
+      barButton("Resume").focus();
+
+      await user.keyboard("{Enter}");
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("takes the focus as a run begins from the bar", async () => {
+      const { game, user, settle } = await renderApp();
+      const runs = game.runs();
+
+      await user.click(barButton("New game"));
+      await settle();
+
+      expect({
+        begun: game.runs() > runs,
+        board: document.activeElement === screen.getByRole("application"),
+      }).toEqual({ begun: true, board: true });
+    });
+
+    it("takes the focus as a run begins from a lost run's result", async () => {
+      const { user, settle } = await endedApp("lost");
+
+      await user.click(
+        screen.getByRole("button", { name: "Try again from level 1" }),
+      );
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
   });
 
   describe("the bar", () => {
@@ -366,7 +454,10 @@ describe("AppComponent", () => {
 
   describe("How to play", () => {
     it("asks the scene for no picture while it is shut", async () => {
-      const { game, settle } = await renderApp();
+      // A level played, as the board's Ready card asks for the kind of
+      // brick a level brings in.
+      const { game, settle } = await renderApp("step");
+      release(game);
       const pictures = vi.fn<() => Pictures>();
       game.onPictures(pictures);
 
