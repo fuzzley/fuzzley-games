@@ -40,6 +40,7 @@ function clearedRun(change: Partial<Run> = {}): Run {
     rounds: 9,
     jumps: 1,
     banked: 1500,
+    stars: 5,
     score: 2500,
     ending: null,
     outcome: "cleared",

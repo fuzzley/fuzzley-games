@@ -949,3 +949,88 @@ the level, which measures `LOST_SCORE` before the bricks are weighed.
    `RoundStart`; the spec's `Left.friends` is `readonly number[]`, as
    `Crew`'s is; `BRICK_WEIGHT`'s doc says breaking a brick counts for more
    than wearing a hit off one; and the boon spec measures both boons.
+
+### R7, follow-up: the run's stars, and its par on a new depth
+
+**2026-11-10.**
+
+**What was built.** Two gaps the shell stream found once `GameService` played
+the run:
+
+- **`Run.stars`,** a new field: the stars the levels the run has cleared
+  earned, the level in play's among them once it is cleared. `createRun()`
+  starts it at 0, `afterLanding()` adds `starsFor(rounds, par)` as it clears
+  a level, beside their points, and `nextLevel()` carries it on. It is
+  there for the result card's "Stars", with `levelsCleared()` for
+  "Cleared", once the board hands the card a run's end.
+- **`takeDepth(run, depth, levels, pars = PARS)`,** a new move: a level with no
+  round played begun again on the depth the field has taken, its par with
+  it, and any other run as it is, since a level's par stays that of the
+  depth it began on. It throws for a level with no par on the depth, as
+  `createRun()` does. `GameService`'s `laidOut()` now calls it in place of
+  working the par out itself.
+- **The saved game keeps the stars,** under `stars`, and `readStars()`
+  checks them: a whole number from one to three for each level cleared. A
+  run's banked points must now hold its stars' points
+  (`hasSoundScore(value, stars, …)`), where they held a star's for each
+  level cleared.
+
+**Choices the plan didn't make.**
+
+1. **A game kept before the run counted stars is still taken up,** as
+   `SAVED_GAME_VERSION`'s doc says a key added later is, read as having
+   earned one star a level cleared: the fewest it can have, since the
+   banked points don't say how they split between rounds and stars. So
+   the version stays 1. No player has such a game, as the site doesn't
+   ship the game yet.
+2. **The stats and progress need nothing more.** Each level's records
+   already keep its stars from `levelResultOf()`, and a run's total isn't
+   a record.
+3. **`takeDepth()` reuses `levelBegun()`,** as `createRun()` and
+   `nextLevel()` do, so a level begun again on a new depth is begun as
+   any level is.
+4. **`GameService` switches over in this commit,** a two-line change to
+   `laidOut()`, which keeps its name and its callers, so the shell stream
+   has nothing to follow up. Its own `onDepth(start, run)`, which moves a
+   round's start, is left as it is; the move is named `takeDepth()`,
+   beside `takeRound()`, so the two don't share a name.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and `test:coverage`
+pass: 4,103 tests, 4,101 with coverage and 2 in `sim`; `run.ts` and
+`saved_game.ts` at 100%. The root's `yarn lint` passes.
+
+**The mutation pass.** 24 mutants over `run.ts` and `saved_game.ts`, one at
+a time: `createRun()`'s stars, the stars `afterLanding()` adds (kept, the
+level's alone, one); `takeDepth()` without either test, at one round, on the
+game's pars, on the next level, on the old depth; the default for a game
+kept before the stars (none, dropped, the check skipped); the stars' least
+and most moved or dropped, and their whole-number check loosened; the
+banked points' bounds moved or dropped; a run read with no stars, or its
+stars read as none; and the stars kept as none. One lived at first: a
+run's spoiled stars taken as none, which `hasSoundScore()` dropped anyway
+unless nothing was banked. A spoil with nothing banked kills it; none live.
+
+**The review:**
+
+1. `AGENTS.md` didn't name the new move or the saved game's new key. Fixed:
+   the run's entry names `takeDepth()` and the stars kept, and
+   `brick-fuzz-pop-game`'s names the stars, one a level for a game kept
+   before them.
+2. The rules' `onDepth(run, …)` and `GameService`'s private
+   `onDepth(start, run)` shared a name, called a line apart with their
+   arguments the other way about. Fixed: the move is `takeDepth()`, a verb
+   beside `takeRound()`, and the shell's method keeps its name.
+3. The spec counting the stars through two levels asserted two things.
+   Fixed: it asserts the total alone, its rounds played through a
+   `playedOn()` helper, which `underWay()` now uses too.
+4. The first `takeDepth()` spec ran on a run the shell never holds, and on
+   the stub's pars, the same at both depths, so it passed with the par
+   never moved. Fixed: it begins a waiting run on `PARS_BY_DEPTH` and
+   expects their par, folding in the spec that read the pars given.
+5. `readStars()` split one range check over two statements, its yes or no
+   named `earned`. Fixed: one check.
+6. The spoil with nothing banked guarded `readRun()` alone, not
+   `readStars()`. Fixed: it is a `readRun()` spec of its own, dropping
+   stars it can't read rather than reading them as none.
+7. The log said the result card reads `Run.stars`, though nothing hands
+   the card a run's end yet, and a doc line ran past 80 columns. Fixed.

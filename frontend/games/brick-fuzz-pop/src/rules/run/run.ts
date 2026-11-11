@@ -45,6 +45,8 @@ export interface Run {
   readonly jumps: number;
   /** The points of the levels cleared before the level in play. */
   readonly banked: number;
+  /** The stars the levels it has cleared earned, the level in play's among them once it is cleared. */
+  readonly stars: number;
   /**
    * The points of the run so far: the level in play's among them, each
    * round's from its release and its stars' once it is cleared.
@@ -84,6 +86,7 @@ export function createRun(
     firstLevel: level,
     ...levelBegun(levels, pars, level, depth),
     banked: 0,
+    stars: 0,
     score: 0,
     ending: null,
     outcome: "ready",
@@ -155,10 +158,10 @@ export function landRound(run: Run): Run {
 }
 
 /**
- * Returns the run as it stands once its round in flight lands, whatever its
- * stage: its level cleared, its stars' points added, which wins the run on
- * the last level; or lost, which ends it. A run with no ending held is
- * returned as it is.
+ * Returns the run as it stands once its round in flight lands, whatever
+ * its stage: its level cleared, its stars and their points added, which
+ * wins the run on the last level; or lost, which ends it. A run with no
+ * ending held is returned as it is.
  *
  * The saved game keeps a run so as its round is released, so keep the
  * records from it then too, or a reload mid-flight loses them: a level
@@ -171,13 +174,16 @@ export function afterLanding(run: Run): Run {
       return run;
     case "lost":
       return { ...run, ending: null, outcome: "over" };
-    case "cleared":
+    case "cleared": {
+      const earned = starsFor(run.rounds, run.par);
       return {
         ...run,
-        score: run.score + starPoints(starsFor(run.rounds, run.par)),
+        stars: run.stars + earned,
+        score: run.score + starPoints(earned),
         ending: null,
         outcome: run.level >= run.lastLevel ? "won" : "cleared",
       };
+    }
   }
 }
 
@@ -199,6 +205,22 @@ export function nextLevel(
     banked: run.score,
     outcome: "ready",
   };
+}
+
+/**
+ * Returns the run on a depth the field has taken: a level with no round
+ * played begun again on it, its par with it, or any other run as it is,
+ * since a level's par stays that of the depth it began on. It throws for a
+ * level with no par on that depth, as {@link createRun} does.
+ */
+export function takeDepth(
+  run: Run,
+  depth: number,
+  levels: readonly LevelEntry[],
+  pars: Pars = PARS,
+): Run {
+  if (run.rounds > 0 || run.depth === depth) return run;
+  return { ...run, ...levelBegun(levels, pars, run.level, depth) };
 }
 
 /** Returns the run paused, if its level is under way, a round in flight or not. */
