@@ -48,26 +48,30 @@ interface Span {
   readonly to: number;
 }
 
-/** Names the layers the field is drawn in: under the wall, over it, and over the guide. */
+/** Names the layers the field is drawn in: under the wall, over it, over the guide, and over everything. */
 export interface FieldLayers {
   readonly field: GameObjects.Layer;
   readonly lines: GameObjects.Layer;
   readonly count: GameObjects.Layer;
+  readonly rim: GameObjects.Layer;
 }
 
 /**
- * Draws the field: under the wall, its cells, the floor's band, the lintel
- * over the ceiling, the frame around them and a dot at each corner its
- * cells share; over the wall, the jump line, with a dot for each brick the
- * level needs left under it once nine or fewer are, in threes, over the
- * guide, and the danger line, which brightens, solid and twice as thick,
- * while such a brick stands at or under the row over it. It draws them
- * again only once the layout, the palette, that count or the danger
- * changes.
+ * Draws the field: under the wall, its cells, the floor's band and a dot at
+ * each corner its cells share; over the wall, the jump line, with a dot for
+ * each brick the level needs left under it once nine or fewer are, in
+ * threes, over the guide, and the danger line, which brightens, solid and
+ * twice as thick, while such a brick stands at or under the row over it;
+ * and over everything, the lintel over the ceiling and the frame around
+ * them all, so nothing that bursts from the wall or flies covers them. It
+ * draws them again only once the layout, the palette, that count or the
+ * danger changes.
  */
 export class FieldPainter implements Painter {
-  /** Draws the cells, the band, the lintel, the ceiling and the frame. */
+  /** Draws the cells and the floor's band. */
   readonly ground: GameObjects.Graphics;
+  /** Draws the lintel, the ceiling and the frame, over everything else. */
+  readonly rim: GameObjects.Graphics;
   /** A dot for each corner the cells of the deepest field share, made once, row by row from the ceiling. */
   readonly gridDots: readonly GameObjects.Image[];
   /** Draws the jump line and the danger line. */
@@ -100,12 +104,14 @@ export class FieldPainter implements Painter {
         scene.add.image(0, 0, ATLAS, FIELD_FRAMES.gridDot).setVisible(false),
     );
     this.lines = scene.add.graphics();
+    this.rim = scene.add.graphics();
     this.countDots = Array.from({ length: MOST_COUNTED }, () =>
       scene.add.image(0, 0, ATLAS, FIELD_FRAMES.countDot).setVisible(false),
     );
     layers.field.add([this.ground, ...this.gridDots]);
     layers.lines.add(this.lines);
     layers.count.add([...this.countDots]);
+    layers.rim.add(this.rim);
   }
 
   /**
@@ -137,6 +143,7 @@ export class FieldPainter implements Painter {
       this.dangerDashes = spansAcross(metrics, DANGER_LINE);
       this.clearance = (COUNT_PITCH + GROUP_GAP - COUNT_DOT) * metrics.unit;
       this.drawGround(metrics, shape, palette);
+      this.drawRim(metrics, shape, palette);
       this.placeGridDots(metrics, shape, metrics.unit / baked.unit);
     }
     if (!laidOut && view.wall === this.wall) return;
@@ -152,23 +159,32 @@ export class FieldPainter implements Painter {
     this.drawLines(metrics, shape, palette, baked);
   }
 
-  /** Draws the cells, the floor's band under them, the lintel over them, the ceiling, and the frame around them all, outside them. */
+  /** Draws the cells and the floor's band under them. */
   private drawGround(
+    { x, y, width, height, unit }: FieldMetrics,
+    shape: FieldShape,
+    palette: WallPalette,
+  ): void {
+    const graphics = this.ground.clear();
+    graphics.fillStyle(palette.field);
+    graphics.fillRect(x, y, width, height);
+    graphics.fillStyle(palette.band);
+    graphics.fillRect(x, y + height, width, bandPixels(shape, unit));
+  }
+
+  /** Draws the lintel over the cells, the ceiling, and the frame around them all, outside them. */
+  private drawRim(
     metrics: FieldMetrics,
     shape: FieldShape,
     palette: WallPalette,
   ): void {
     const { x, y, width, height, unit } = metrics;
     const lintel = lintelPixels(shape, unit);
-    const band = bandPixels(shape, unit);
     const frame = framePixels(FRAME_CSS_PX, metrics.pixelRatio);
     const top = y - lintel;
-    const bottom = y + height + band;
-    const graphics = this.ground.clear();
-    graphics.fillStyle(palette.field);
-    graphics.fillRect(x, y, width, height);
+    const bottom = y + height + bandPixels(shape, unit);
+    const graphics = this.rim.clear();
     graphics.fillStyle(palette.band);
-    graphics.fillRect(x, y + height, width, band);
     graphics.fillRect(x, top, width, lintel);
     graphics.fillStyle(palette.line);
     // The ceiling, along the lintel's foot, clear of the wall's top row.
