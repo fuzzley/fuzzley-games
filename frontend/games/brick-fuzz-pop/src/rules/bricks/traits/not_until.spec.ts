@@ -26,7 +26,7 @@ describe("comesAt()", () => {
 
   it.each([
     ["is struck", () => rule.struck?.(struckOf(), CAGE)],
-    ["breaks", () => rule.broken?.(HOOKS, 4, 0, CAGE)],
+    ["breaks", () => rule.broken?.(HOOKS, 4, 0, CAGE, 0)],
     ["is met", () => rule.met?.(HOOKS, 0, 0, -1, CAGE)],
     ["is crossed into", () => rule.entered?.(HOOKS, 0, 4, null, CAGE)],
   ])("throws as its brick %s, naming the trait and the level", (_, run) => {

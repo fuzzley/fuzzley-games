@@ -445,7 +445,7 @@ export interface Brick {
   readonly hits: number; // left; Infinity never appears: a kind that never breaks has hits 0 and the trait "never"
   readonly full: number; // its hits when whole (moss grows back to it)
   readonly plates: number; // a set of FieldFace bits
-  readonly tint: number; // 0 to 7
+  readonly tint: number; // 0 to 7: a plain or tough brick's row's, a portal pair's mark, a cage's friend's ink
   readonly twin: number | null; // a portal's twin, as a wall cell
 }
 export interface Wall {
@@ -1041,7 +1041,8 @@ The fields of each package:
   - `parseLevel()` throws an error that names the level and what is wrong,
     using `unknownKey()` to catch a misspelt key.
   - Tints run from the wall's lowest row up, as the mocks show. A special
-    kind takes its own ink (answer 4).
+    kind takes its own ink (answer 4), but a cage, whose number among the
+    wall's cages, from the lowest row up, is its friend's ink (X1).
   - `levels.spec.ts` holds every rule of "The rules a level keeps",
     including the flood fill for sealed bricks, which is ported from the
     check this plan ran.
@@ -1404,7 +1405,8 @@ The fields of each package:
 
 Each X stream brings its kinds' catalog file, trait rules, art, sounds as
 they are wired, help entries and specs. None of them touches `flight.ts`;
-R3's hooks carry them.
+R3's hooks carry them, but for the brick's tint `TraitRule.broken` is
+handed, X1's one contract change, which numbers a cage's friend's ink.
 
 | #   | Kinds                                                                        | Its files                                                                                                                                                     | Size   |
 | --- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |

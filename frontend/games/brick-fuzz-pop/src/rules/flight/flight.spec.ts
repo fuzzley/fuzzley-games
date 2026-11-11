@@ -968,6 +968,23 @@ describe("fly's hooks", () => {
     ]);
   });
 
+  // The cage stands in for the tough brick, in wall row 3, which tints it 3.
+  it("hands a broken brick's rules its tint, which a cage frees its friend in", () => {
+    const wall = wallOf(3, [
+      "....2....",
+      ".........",
+      ".........",
+      ".........",
+    ]);
+    const kinds = { ...BRICK_KINDS, tough: CAGE };
+
+    const flown = flyShot({ wall, aim: UP, kinds, charge: 2 });
+
+    expect(eventsOf(flown, "free").map(({ cell, ink }) => [cell, ink])).toEqual(
+      [[31, 3]],
+    );
+  });
+
   it("frees a cage's friend right after the cage breaks", () => {
     const wall = wallOf(6, ["....2...."]);
     const kinds = { ...BRICK_KINDS, tough: CAGE };

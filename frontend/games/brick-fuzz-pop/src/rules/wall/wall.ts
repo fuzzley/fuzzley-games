@@ -12,8 +12,10 @@ export interface Brick {
   readonly plates: number;
   /**
    * Its ink, 0 to 7: its row's for a plain or tough brick; for a portal, its
-   * pair's mark, 0 for a wall's first pair and 1 for its second; else 0, as
-   * every other kind keeps an ink of its own.
+   * pair's mark, 0 for a wall's first pair and 1 for its second; for a cage,
+   * the ink of the friend it holds, its number among the wall's cages from
+   * the lowest row up and left to right; else 0, as every other kind keeps
+   * an ink of its own.
    */
   readonly tint: number;
   /** A portal's twin, as a wall cell; null for any other brick. */

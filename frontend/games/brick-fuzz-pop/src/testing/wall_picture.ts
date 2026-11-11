@@ -20,8 +20,8 @@ export interface PictureOptions {
  * of its rows from the top, in the legend's characters
  * (`src/rules/levels/legend.ts`), `.` for no brick.
  *
- * Each brick is whole, and takes the tint `tintOf()` gives its character in
- * its wall row. It throws for a row not nine wide, or a character no
+ * Each brick is whole, and takes the tint `tintOf()` gives its cell, as a
+ * level's does. It throws for a row not nine wide, or a character no
  * cataloged kind's brick stands for, so a spec plays the wall it draws.
  */
 export function wallFrom(
@@ -34,22 +34,20 @@ export function wallFrom(
       `A wall's picture is ${String(COLUMNS)} characters wide a row, not "${wrong}".`,
     );
   }
-  const bricks = [...picture]
-    .reverse()
-    .flatMap((line, wallRow) =>
-      Array.from({ length: COLUMNS }, (_, column) =>
-        brickOf(line.charAt(column), wallRow),
-      ),
-    );
+  // The picture's characters by wall cell, its lowest row first.
+  const characters = [...picture].reverse().join("");
+  const bricks = Array.from(characters, (character, cell) =>
+    brickOf(character, tintOf(characters, cell)),
+  );
   return { bricks, rows: picture.length, lowestRow };
 }
 
 /**
- * Returns the whole brick a picture's character stands for in a wall row,
- * or null for no brick, throwing for a character no cataloged kind's brick
+ * Returns the whole brick a picture's character stands for, in a tint, or
+ * null for no brick, throwing for a character no cataloged kind's brick
  * stands for.
  */
-function brickOf(character: string, wallRow: number): Brick | null {
+function brickOf(character: string, tint: number): Brick | null {
   if (character === NO_BRICK) {
     return null;
   }
@@ -65,7 +63,7 @@ function brickOf(character: string, wallRow: number): Brick | null {
     hits,
     full: hits,
     plates,
-    tint: tintOf(character, wallRow),
+    tint,
     twin: null,
   };
 }

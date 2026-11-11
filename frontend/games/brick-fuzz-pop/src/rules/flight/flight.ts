@@ -816,7 +816,7 @@ class Flying implements Hooks {
       }
     }
     for (const trait of kind.traits) {
-      this.brokenRule(cell, ball, trait.kind, trait);
+      this.brokenRule(cell, ball, trait.kind, trait, brick.tint);
     }
   }
 
@@ -1015,8 +1015,9 @@ class Flying implements Hooks {
     ball: number,
     kind: K,
     trait: TraitOf[K],
+    tint: number,
   ): void {
-    this.rules.traits[kind].broken?.(this, cell, ball, trait);
+    this.rules.traits[kind].broken?.(this, cell, ball, trait, tint);
   }
 
   /** Runs one trait's rule for a fuzzball meeting its disc, if it has one. */

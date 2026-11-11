@@ -1510,3 +1510,68 @@ its review and the numbers worth keeping.
      stand-ins line; `notUntil()`'s one caller, folded into `comesAt()`; and
      the mutation pass's count. The proof stream's copies of its own rules
      in `STAND_IN_RULES` are the integrator's next ask.
+
+### X1, the integrator's contract change: a cage's ink is its own
+
+- **Date.** 2026-11-11.
+- **Why.** `Hooks.free(cell, ink)` asks the cage's rule for its friend's
+  ink, but a rule was handed only the cell, the fuzzball and the trait, and
+  every cage's tint was 0. The integrator chose the cage owning its ink, as
+  plan.md's "A cage holds one, in an ink of its own", its art's "a
+  fuzzball behind them in a friend's ink" and "Six cages at most, one for
+  each friend a crew can hold" read, and approved the change to the
+  contracts, P1's files among them, in a commit of its own.
+- **Built.**
+  - `src/rules/levels/legend.ts`: `tintOf()` gives a wall cell's tint from
+    the characters of its picture by wall cell, its lowest row first, and
+    a cage its number among the wall's cages before it, from the lowest row
+    up and left to right, so a level's six take inks 0 to 5. Every other
+    kind keeps its tint. `parseLevel()` and `wallFrom()` hand it the cell,
+    which is the parse's one line changed.
+  - `src/rules/flight/hooks.ts`: `TraitRule.broken` is handed the brick's
+    tint as a fifth argument, and `flight.ts`' `brokenRule()` passes it.
+  - `src/rules/wall/wall.ts`: `Brick.tint`'s doc says a cage's is its
+    friend's ink.
+  - `src/testing/stand_ins.ts`: the stand-in cage frees its friend in its
+    tint.
+  - Specs: `legend.spec.ts` numbers cages from the lowest row up, past
+    steel and a brick, six cages to six inks, leaves every other kind's
+    tint as it was with two cages before it, and gives an empty cell or a
+    character the legend lacks 0; `flight.spec.ts` frees a stand-in cage's
+    friend in its tint; `not_until.spec.ts` hands a rule to come the tint.
+  - `docs/brick-fuzz-pop/implementation-plan.md`: §5.3's `tint`, P1's
+    tints and §6's X streams, which touched no `flight.ts`, say so.
+- **Choices.**
+  1. **`tintOf()` reads the cell from the picture,** rather than each
+     caller counting cages as it lays bricks: the parse and `wallFrom()`
+     number cages alike by one function, and the count is made only for a
+     cage. Its old signature, a character and a wall row, had no other
+     caller.
+  2. **No cage is parsed in a spec yet,** as the parse and `wallFrom()`
+     refuse a kind the catalog doesn't hold; `tintOf()`'s own spec numbers
+     them, and the catalog's commit parses a level of cages.
+  3. **Warm-up has no cage,** so no tint of it moves: every certificate
+     replays and every floor holds as before.
+- **Checks,** at be205f84: the workspace's `lint` and `typecheck` pass;
+  `test:coverage` passes 4,762 tests in 97 files in `dom` and `pure`, at
+  the floors, and 150 in 20 in `sim`; the root's `yarn lint` passes.
+- **The mutation pass.** 11 mutants, all killed: in `tintOf()`, a cage
+  numbered from 1, every brick counted, its own cell counted, no cage
+  numbered, a plain brick tinted by its cell and an empty cell tinted 1;
+  in `flight.ts`, the rule handed 0, the brick's hits and its tint plus 1;
+  and the parse and `wallFrom()` reading the cell a row up.
+- **The review:** a fresh agent found no fault in the numbering or the
+  hand-off. Its points:
+  1. The plan said no X stream touches `flight.ts`, and neither §5.3 nor
+     P1 named the cage's tint; `tintOf()`'s doc gave it to answer 4.
+     Fixed: the three lines of the plan and the doc.
+  2. The plain, tough and portal tints were specced with no cage before
+     them, so a cage count added to them passed. Fixed: two cages stand
+     before every cell the specs tint.
+  3. The picture's characters by wall cell are spelled in the parse and in
+     `wallFrom()` alike. Left: the parse's one line was the integrator's
+     ask, and `tintOf()`'s doc names the order.
+  4. `Brick.tint`'s doc lacked "left to right", and the log's specs were
+     short. Fixed. The tint after the trait, where `entered()` puts its
+     twin before it, is left as the integrator approved it: a fifth
+     argument.

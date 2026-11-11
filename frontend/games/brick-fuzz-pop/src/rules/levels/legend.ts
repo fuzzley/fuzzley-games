@@ -1,5 +1,5 @@
-import { isOneOf } from "@fz/core/records";
-import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
+import { isKeyOf, isOneOf } from "@fz/core/records";
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT, wallRowOf } from "../grid";
 
 /** A plate's faces toward both side walls. */
 const SIDES = LEFT | RIGHT;
@@ -73,16 +73,28 @@ export const PORTAL_MARKS = [
 export const TINTS = 8;
 
 /**
- * Returns the ink the brick a character stands for takes in a wall row, as
- * `Brick.tint` holds it and answer 4 gives it: a plain or tough brick its
- * row's, the rows taking the {@link TINTS} in turn from the wall's lowest
- * up; a portal its pair's mark; and every other kind 0, as it keeps an ink
- * of its own.
+ * Returns the ink of the brick in a wall cell, as `Brick.tint` holds it,
+ * from the characters of the wall's picture by wall cell, its lowest row
+ * first: a plain or tough brick its wall row's, the rows taking the
+ * {@link TINTS} in turn from the lowest up; a portal its pair's mark; a
+ * cage the ink of the friend it holds, its number among the wall's cages
+ * from the lowest row up and left to right, so a level's six never share
+ * one; and every other kind, or a cell with no brick, 0, as it keeps an ink
+ * of its own (answer 4).
  */
-export function tintOf(character: LegendCharacter, wallRow: number): number {
+export function tintOf(characters: string, cell: number): number {
+  const character = characters.charAt(cell);
+  if (!isKeyOf(character, LEGEND)) {
+    return 0;
+  }
   const { kind } = LEGEND[character];
   if (kind === "brick" || kind === "tough") {
-    return wallRow % TINTS;
+    return wallRowOf(cell) % TINTS;
+  }
+  if (kind === "cage") {
+    return Array.from(characters.slice(0, cell)).filter(
+      (before) => isKeyOf(before, LEGEND) && LEGEND[before].kind === "cage",
+    ).length;
   }
   return isOneOf(character, PORTAL_MARKS) ? PORTAL_MARKS.indexOf(character) : 0;
 }
