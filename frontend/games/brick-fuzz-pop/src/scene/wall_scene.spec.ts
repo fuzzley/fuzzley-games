@@ -14,7 +14,7 @@ import {
   watchUploads,
 } from "@fz/phaser/testing";
 import { drawnIn, frameNamed, viewport } from "@fz/phaser/testing/pure";
-import { Core, type GameObjects, Textures } from "phaser";
+import { Core, GameObjects, Textures } from "phaser";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
@@ -567,6 +567,24 @@ function framedIn(scene: WallScene): (readonly [number, number])[] {
 /** Returns each object's place in the list it is drawn from, counted from the back. */
 function placesInLayer(objects: readonly GameObjects.GameObject[]): number[] {
   return objects.map((object) => object.displayList.getIndex(object));
+}
+
+/** Returns the place in the scene of the layer an object is drawn in, counted from the back, or -1 where it is in none. */
+function layerPlaceOf(
+  scene: WallScene,
+  object: GameObjects.GameObject | undefined,
+): number {
+  const layer = object?.displayList;
+  return layer instanceof GameObjects.Layer
+    ? scene.children.getIndex(layer)
+    : -1;
+}
+
+/** Returns where a dot of the jump line's count stands, in field units, counted from its end, on a field of the depth given: the first a gap of the line's and half the count's pitch of 0.24 short of the right wall, and 0.12 further on after each three. */
+function countPlace(at: number, depth: number): { x: number; y: number } {
+  const x =
+    COLUMNS - (JUMP_LINE.gap + (at + 0.5) * 0.24 + Math.floor(at / 3) * 0.12);
+  return { x, y: thirdsOf(depth).jumpLine };
 }
 
 /** Runs a board's frames until its shell's play is as asked, failing past a limit. */
@@ -1327,6 +1345,27 @@ describe("WallScene", () => {
       const { scene } = await startBoard();
 
       expect(scene.field.countDots).toHaveLength(MOST_COUNTED);
+    });
+
+    it("draw the count over the guide, so an outline under it leaves its dots whole, and under what bursts from the wall", async () => {
+      const { scene } = await startBoard();
+      const [count] = scene.field.countDots;
+      const [dot] = scene.guide.dots;
+      const [punch] = scene.guide.punches;
+
+      const counted = layerPlaceOf(scene, count);
+
+      expect({
+        overDot: counted > layerPlaceOf(scene, dot),
+        overPunch: counted > layerPlaceOf(scene, punch),
+        overLines: counted > layerPlaceOf(scene, scene.field.lines),
+        underShards: counted < layerPlaceOf(scene, scene.effects.shards),
+      }).toEqual({
+        overDot: true,
+        overPunch: true,
+        overLines: true,
+        underShards: true,
+      });
     });
   });
 
@@ -2713,6 +2752,49 @@ describe("WallScene", () => {
       expect([showing(scene.guide.dots), showing(scene.guide.punches)]).toEqual(
         [0, 0],
       );
+    });
+
+    it("leaves out a dot that would crowd a dot of the jump line's count, so the count reads alone", async () => {
+      const { scene } = await startBoard((shell) => {
+        const { x, y } = countPlace(0, shell.fieldShape.depth);
+        shell.casting = () => ({
+          dots: [
+            { x, y },
+            { x, y: y - 0.3 },
+            { x, y: y - 0.5 },
+          ],
+          punched: [],
+        });
+      });
+
+      // At 31 px a unit, a dot 4 px wide keeps its edge 0.22 of a unit,
+      // 6.82 px, from a count's 4 px dot, so its middle 10.82 px from the
+      // count's: one 9 px off, on whole pixels, is left out, one 16 px off
+      // shown.
+      expect({
+        count: showing(scene.field.countDots),
+        dots: scene.guide.dots.slice(0, 3).map((dot) => dot.visible),
+      }).toEqual({ count: 2, dots: [false, false, true] });
+    });
+
+    it("shows a dot the count crowded once the count goes, under the same guide", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        const guide: Guide = {
+          dots: [countPlace(1, each.fieldShape.depth)],
+          punched: [],
+        };
+        each.casting = () => guide;
+      });
+      const [dot] = scene.guide.dots;
+      const before = dot?.visible;
+
+      shell.showWall(wallFrom(["#########"], { lowestRow: 1 }));
+      run.advance(16);
+
+      expect({ before, after: dot?.visible }).toEqual({
+        before: false,
+        after: true,
+      });
     });
 
     it("shows its dots and outlines scaled up past the atlas's largest unit", async () => {

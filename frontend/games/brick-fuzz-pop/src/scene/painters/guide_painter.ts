@@ -31,10 +31,23 @@ const NO_DOTS: readonly GuidePlace[] = [];
 const NO_CELLS: readonly number[] = [];
 
 /**
- * Draws the guide: a dot at each of its places, on whole pixels, and an
- * outline round each brick the shot would punch through, each from a pool
- * made once, the rest hidden. It draws them again only as the guide, the
- * wall or the layout changes.
+ * Says whether a dot would crowd the jump line's count, which the guide's
+ * dots keep clear of.
+ *
+ * The guide asks as it draws, so the count must be drawn for the frame first,
+ * and change only with the wall, the depth or the layout, which the guide
+ * draws again on.
+ */
+export interface CountClearance {
+  /** Returns whether a dot some device pixels wide about a place on the canvas would crowd a dot of the jump line's count. */
+  crowdsCount(x: number, y: number, side: number): boolean;
+}
+
+/**
+ * Draws the guide: a dot at each of its places, on whole pixels, but where
+ * it would crowd the jump line's count, and an outline round each brick the
+ * shot would punch through, each from a pool made once, the rest hidden. It
+ * draws them again only as the guide, the wall or the layout changes.
  */
 export class GuidePainter implements Painter {
   /** A dot for each place the guide may show, made once. */
@@ -51,7 +64,11 @@ export class GuidePainter implements Painter {
   /** Where a dot or an outline is drawn, written for each. */
   private readonly place: Place = { x: 0, y: 0 };
 
-  constructor(scene: Scene, layer: GameObjects.Layer) {
+  constructor(
+    scene: Scene,
+    layer: GameObjects.Layer,
+    private readonly countClearance: CountClearance,
+  ) {
     this.punches = Array.from({ length: MOST_PUNCHED }, () =>
       scene.add.image(0, 0, ATLAS, FRAMES.guidePunch).setVisible(false),
     );
@@ -81,10 +98,15 @@ export class GuidePainter implements Painter {
     let at = 0;
     for (const dot of this.dots) {
       const place = dots[at++];
-      dot.setVisible(place !== undefined);
-      if (!place) continue;
+      if (!place) {
+        dot.setVisible(false);
+        continue;
+      }
       toCanvas(metrics, place.x, place.y, this.place);
       placeDot(dot, this.place.x, this.place.y, scale);
+      dot.setVisible(
+        !this.countClearance.crowdsCount(dot.x, dot.y, dot.displayWidth),
+      );
     }
     const punched = guide?.punched ?? NO_CELLS;
     at = 0;

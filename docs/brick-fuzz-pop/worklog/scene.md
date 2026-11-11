@@ -761,3 +761,79 @@ asks for and whose index names none.
    so, and why no wall holds one.
 3. **Nit.** The `AGENTS.md` lines named `lower.ts` again, which the rules'
    bullet does. Fixed: each is "the rules'".
+
+### S2d: the guide's dots clear of the jump line's count
+
+**2026-11-10.**
+
+The Q3 browser check found the guide's dots over the jump line's count
+where a shot passed the line's end (its finding 7, shots 16 and 41); the
+integrator asked for the simplest way that keeps both readable: the count
+drawn over the guide, the guide's dots left out where they would cover the
+count's, or the count moved.
+
+**What was built.**
+
+- **The count is drawn over the guide,** in a layer of its own, `count`,
+  after `guide` in `LAYERS` and under `bursts`, so an outline round a brick
+  at the line's end passes under its dots and leaves them whole.
+  `FieldLayers` names it.
+- **The guide leaves out a dot that would crowd the count's.**
+  `FieldPainter.crowdsCount()` says whether a dot some pixels wide about a
+  place would stand nearer a dot of the count than the count's groups
+  stand apart, 0.22 of a unit edge to edge; `GuidePainter`, handed it as a
+  `CountClearance`, hides such a dot. It draws again as the count does, as
+  the wall or the layout changes, after `FieldPainter`, which draws first.
+- **The game's `AGENTS.md`** says the count is drawn over the guide and
+  the guide's dots keep clear of it.
+
+**Choices the plan didn't make.**
+
+1. **Two of the three ways, not one.** Drawn over the guide alone, a
+   guide's dot, 0.115 of a unit wide, would peek out from under a count's,
+   0.14, unless their middles stood within 0.0125 of a unit; left out
+   alone, the guide's dots would clear the count, but an outline's stroke,
+   0.0225 of a unit in from its cell's edge, would still cross the count's
+   dots over a brick just under the line. Moving the count would take it
+   from the line's end, where `plan.md` puts it.
+2. **The clearance is the gap between the count's groups,** not between
+   its dots, so a guide's dot never reads as one more of a group. A guide
+   crossing the count loses a dot or two of its dots, half a unit apart.
+
+**Names added,** none in a contract file: `LAYERS`' `count`,
+`FieldLayers.count`, `FieldPainter.crowdsCount()`, `CountClearance` and
+`GuidePainter`'s third argument, the clearance.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+4,621 tests in 87 files, and 150 in `sim`, the scene's 218 with three new
+ones; the root's `yarn lint` passes.
+
+**The mutation pass.** 18 mutants of the change. 16 were killed: the count
+under the guide or in the lines' layer, the clearance dropped, doubled or
+cut to the gap between dots, each half of the reach dropped, the count's
+hidden dots crowding, the guide ignoring the count or taking its own width
+as nothing, and a dot with no place left showing. The guide's dot's width
+as nothing first survived, at offsets of 8 and 16 pixels, so the spec's
+middle dot stands 9 pixels off, inside the reach by its own half-width
+alone, and kills it. 2 are equivalent: `<=` for `<` at the reach, which no
+two dots on whole pixels stand exactly apart, and the guide's place before
+it stands on whole pixels, half a pixel off at most.
+
+**In the browser.** On level 1 at a count of six, a guide crossing the
+count between its groups leaves out the two dots that would have stood on
+it, the count whole (`bfp-q3-shots/45-fix-guide-clear-of-count.png`).
+
+**The review:** no bugs; it traced every input of the count to one the
+guide draws again on, and the field drawn first.
+
+1. **The order the guide's dots rest on was written only here:** the field
+   drawn before the guide, and the count changing only with what the guide
+   draws again on. Fixed: `CountClearance`'s doc says both, the painters'
+   list says the field goes before the guide, and the guide's doc no longer
+   reads as if the count were what it draws again on.
+2. **Nit.** The spec's `countPlace()` spelled `COLUMNS` and
+   `JUMP_LINE.gap` as numbers. Fixed: it takes both, the pitch and the
+   groups' gap, which the painter keeps to itself, left as numbers.
+3. **Nit.** `CountClearance`'s doc said where the count stands, and the
+   guide's field `count` read as a number. Fixed: the doc says whether a
+   dot would crowd it, and the field is `countClearance`.
