@@ -672,6 +672,16 @@ describe("BoardComponent", () => {
       expect(lintel()).toHaveTextContent(/^1 row waiting$/);
     });
 
+    it("counts the rows waiting as the announcer does", async () => {
+      const rendered = await phoneBoard();
+
+      playUntilRowsWait(rendered, 1);
+
+      expect(TestBed.inject(AnnouncerService).message()).toContain(
+        ", 1 row waiting.",
+      );
+    });
+
     it("says no rows wait once the last has come in", async () => {
       const rendered = await phoneBoard();
 

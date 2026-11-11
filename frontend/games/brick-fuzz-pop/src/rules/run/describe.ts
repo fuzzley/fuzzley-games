@@ -56,8 +56,9 @@ export function describeShot(
  * Returns what is said as a round ends, from what it came to and where the
  * next starts: what it broke and freed; then a brick reaching the floor,
  * the wall's jump, or its step, with how far the wall stands from the
- * floor, how many bricks stand between the player and a jump, and the
- * danger of a brick in the row over the floor's; and the boon the next
+ * floor and how many bricks stand between the player and a jump, the jump
+ * and the step each ending with how many rows wait over the ceiling, and
+ * the danger of a brick in the row over the floor's; and the boon the next
  * shot carries. A round that clears its level says only what it broke and
  * freed, which `describeCleared()` follows.
  */
@@ -77,7 +78,7 @@ export function describeRound(
   if (result === "on") {
     words.push(
       jumped
-        ? `The lower two-thirds are clear. The wall jumped ${count(rowsDown, "row", "rows")}.`
+        ? `The lower two-thirds are clear. The wall jumped ${count(rowsDown, "row", "rows")}, with ${waitingWords(next)}.`
         : stepWords(next, rowsDown),
     );
     if (next.boon !== null) words.push(`Next shot: ${boonName(next.boon)}.`);
@@ -143,17 +144,31 @@ export function describeEnd(run: Run, newBest: boolean): string {
 /**
  * Returns what is said of the wall's step: how far it came, how far its
  * lowest brick the level needs stands from the floor, how many bricks it
- * needs stand under the jump line, and the danger once one stands in the
- * row over the floor's.
+ * needs stand under the jump line, how many rows wait over the ceiling,
+ * and the danger once a brick it needs stands in the row over the floor's.
  */
-function stepWords({ wall, depth }: RoundStart, rowsDown: number): string {
+function stepWords(next: RoundStart, rowsDown: number): string {
+  const { wall, depth } = next;
   const { jumpLine } = thirdsOf(depth);
   const lowest = lowestNeededRow(wall);
   const toJump = neededBelow(wall, jumpLine);
-  const words = `The wall came down ${count(rowsDown, "row", "rows")}: ${count(lowest, "row", "rows")} from the floor, ${count(toJump, "brick", "bricks")} to a jump.`;
+  const words = `The wall came down ${count(rowsDown, "row", "rows")}: ${count(lowest, "row", "rows")} from the floor, ${count(toJump, "brick", "bricks")} to a jump, ${waitingWords(next)}.`;
   return inDanger(wall)
     ? `${words} Danger: the next step down loses the level.`
     : words;
+}
+
+/**
+ * Returns how many of the wall's rows wait over the ceiling where a round
+ * starts, counted as the lintel counts them (`waitingRows()`, in
+ * `src/app/panels/panels.ts`), in words for a sentence: "6 rows waiting",
+ * or "no rows waiting".
+ */
+function waitingWords({ wall, depth }: RoundStart): string {
+  const rows = Math.max(0, wall.rows - Math.max(0, depth - wall.lowestRow));
+  return rows === 0
+    ? "no rows waiting"
+    : `${count(rows, "row", "rows")} waiting`;
 }
 
 /** Returns what R says of a cell: its brick's kind, with its hits left where it takes more than one, or a gap. */

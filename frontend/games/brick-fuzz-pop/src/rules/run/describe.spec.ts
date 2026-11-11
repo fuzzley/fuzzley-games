@@ -106,19 +106,19 @@ describe("describeShot", () => {
 describe("describeRound", () => {
   it("says what a round broke, the wall's step, how far it stands from the floor and how far from a jump", () => {
     expect(describeRound(punch.round.outcome, punch.round.next)).toBe(
-      "Broke 1. The wall came down 1 row: 5 rows from the floor, 10 bricks to a jump.",
+      "Broke 1. The wall came down 1 row: 5 rows from the floor, 10 bricks to a jump, no rows waiting.",
     );
   });
 
   it("says a round that broke nothing broke none", () => {
     expect(describeRound(plain.round.outcome, plain.round.next)).toBe(
-      "Broke none. The wall came down 1 row: 4 rows from the floor, 2 bricks to a jump.",
+      "Broke none. The wall came down 1 row: 4 rows from the floor, 2 bricks to a jump, 1 row waiting.",
     );
   });
 
   it("says the wall's jump and the boon the next shot carries", () => {
     expect(describeRound(zap.round.outcome, zap.round.next)).toBe(
-      "Broke 4. The lower two-thirds are clear. The wall jumped 3 rows. Next shot: hot shot.",
+      "Broke 4. The lower two-thirds are clear. The wall jumped 3 rows, with no rows waiting. Next shot: hot shot.",
     );
   });
 
@@ -136,7 +136,7 @@ describe("describeRound", () => {
     const outcome: RoundOutcome = { ...punch.round.outcome, broken: 2 };
 
     expect(describeRound(outcome, next)).toBe(
-      "Broke 2. The wall came down 1 row: 1 row from the floor, 10 bricks to a jump. Danger: the next step down loses the level.",
+      "Broke 2. The wall came down 1 row: 1 row from the floor, 10 bricks to a jump, no rows waiting. Danger: the next step down loses the level.",
     );
   });
 
@@ -144,7 +144,7 @@ describe("describeRound", () => {
     const next = startOf(["ooooooooo"], 2);
 
     expect(describeRound(punch.round.outcome, next)).toBe(
-      "Broke 1. The wall came down 1 row: 2 rows from the floor, 9 bricks to a jump.",
+      "Broke 1. The wall came down 1 row: 2 rows from the floor, 9 bricks to a jump, no rows waiting.",
     );
   });
 
@@ -152,7 +152,42 @@ describe("describeRound", () => {
     const next = startOf(["oo.......", ".........", "#########"], 2);
 
     expect(describeRound(punch.round.outcome, next)).toBe(
-      "Broke 1. The wall came down 1 row: 4 rows from the floor, 2 bricks to a jump.",
+      "Broke 1. The wall came down 1 row: 4 rows from the floor, 2 bricks to a jump, no rows waiting.",
+    );
+  });
+
+  it.each([
+    [
+      "the wall's step",
+      punch.round.outcome,
+      "Broke 1. The wall came down 1 row: 2 rows from the floor, 54 bricks to a jump, 5 rows waiting.",
+    ],
+    [
+      "the wall's jump",
+      zap.round.outcome,
+      "Broke 4. The lower two-thirds are clear. The wall jumped 3 rows, with 5 rows waiting.",
+    ],
+  ])(
+    "ends %s with how many rows wait over the ceiling",
+    (_, outcome, words) => {
+      // Fourteen rows standing from row 2 of a field 11 deep: 9 in the
+      // field, 5 over its ceiling.
+      const next = startOf(
+        Array.from({ length: 14 }, () => "ooooooooo"),
+        2,
+      );
+
+      expect(describeRound(outcome, next)).toBe(words);
+    },
+  );
+
+  it("counts every row waiting where the wall stands over the ceiling", () => {
+    // Two rows standing from row 12 of a field 11 deep, where play never
+    // stands a wall, counted as the lintel counts them.
+    const next = startOf(["ooooooooo", "ooooooooo"], 12);
+
+    expect(describeRound(punch.round.outcome, next)).toMatch(
+      /, 2 rows waiting\.$/,
     );
   });
 

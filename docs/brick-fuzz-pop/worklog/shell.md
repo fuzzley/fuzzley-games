@@ -1831,3 +1831,73 @@ one of compact and too narrow holds, is killed by the phone's row.
 5. **The function and the bar's field shared a name,** reading as
    recursion. Fixed: the function is `showsEveryFigure()`; the bar's
    field, which its template binds, keeps its name.
+
+### The rows waiting, at the end of a step's and a jump's words
+
+**2026-11-11.** At the integrator's word. `src/rules/run/describe.ts` is
+the proof stream's file, and the proof stream is on X2, so this changes
+the step's and the jump's words and nothing else there.
+
+**What was built.** `describeRound()` ends the wall's step and its jump
+with how many rows wait over the ceiling, counted as the lintel counts
+them: "The wall came down 1 row: 2 rows from the floor, 54 bricks to a
+jump, 5 rows waiting." and "The lower two-thirds are clear. The wall
+jumped 3 rows, with 5 rows waiting.", or "no rows waiting", before the
+danger and the boon the next shot carries. A private `waitingWords()`
+counts them, as `waitingRows()` in `src/app/panels/panels.ts` does, which
+the rules can't import. The lintel's comment in `board.component.html`
+now says the announcer gives the count as each step or jump ends.
+
+**Choices the plan didn't make.**
+
+1. **The rows end the step's sentence and the jump's,** after a comma,
+   rather than a sentence of their own, so the danger and the boon still
+   come last, where they are news. The jump's take "with", since "jumped
+   3 rows, 5 rows waiting" reads as a list of two counts of the same rows.
+2. **"no rows waiting" in the sentence,** where the lintel says "No rows
+   waiting" alone.
+3. **The count is written in the rules,** not taken from `panels.ts`,
+   which is the shell's; a home for it in `src/rules/wall/` would let both
+   share it, and is the proof stream's to give.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`) pass, and the root's `yarn lint`. The round's specs
+end their words with the rows waiting; three more hold a step and a jump
+with five rows over a field 11 deep, and a wall standing over the
+ceiling, all of whose rows wait; and the board's lintel specs hold that
+the announcer gives the lintel's count once a row waits.
+
+**The mutation pass.** 6 mutants, all killed: no rows said as "0 rows",
+no floor on the count, a wall standing over the ceiling counted as in the
+field, a field a row deeper, the step without the rows, and the jump
+without them. The over-the-ceiling one lived until the review asked for
+its spec; play never stands a wall there (a level opens on row 9 at most,
+on a field at least 11 deep, and its wall only comes down), but the
+count holds as the lintel's does if it ever does.
+
+**For the integrator.** `plan.md`'s accessibility words (~line 1270) give
+the step and the jump as they were; with this, "Broke 4. The wall came
+down 1 row: 5 rows from the floor, 7 bricks to a jump, 6 rows waiting."
+and "The lower two-thirds are clear. The wall jumped 3 rows, with 6 rows
+waiting. Next shot: hot shot."
+
+**The review:**
+
+1. _No spec holds the words and the lintel to the same count._ Taken:
+   the board's lintel block plays until a row waits and holds the
+   announcer's words to ", 1 row waiting.", where the lintel says "1 row
+   waiting".
+2. _The lintel's comment in `board.component.html` says the announcer
+   doesn't count the rows._ Taken: it now says the announcer gives the
+   count as each step or jump ends.
+3. _`describeRound()`'s doc has a line past 80 columns, and the path in
+   `waitingWords()`'s doc isn't in backticks._ Taken: rewrapped, saying
+   the jump and the step each end with the rows waiting, and the path
+   backticked.
+4. _The over-the-ceiling guard has no spec, though the lintel's has._
+   Taken: a wall of two rows standing from row 12 of a field 11 deep ends
+   its words with "2 rows waiting.", which kills the mutant that lived.
+5. _"jumped 3 rows, 5 rows waiting" reads as two counts of the same
+   rows._ Taken: "The wall jumped 3 rows, with 5 rows waiting."
+6. _`Array<string>(14).fill(…)` where the specs build rows with
+   `Array.from()`._ Taken.
