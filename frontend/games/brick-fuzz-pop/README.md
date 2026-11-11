@@ -1,13 +1,19 @@
 # Brick Fuzz Pop
 
 Brick Fuzz Pop: aim the fuzzball, charge it with static and let it punch
-through the wall before the bricks reach the floor. It is being built, and
-isn't on the site yet.
+through the wall before the bricks reach the floor. Play it at
+https://fuzzley.games/play/brick-fuzz-pop/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
-(`frontend/lib/`), its field to be drawn by [Phaser](https://phaser.io/)
+(`frontend/lib/`), with its field drawn by [Phaser](https://phaser.io/)
 through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with
-[Vitest](https://vitest.dev/).
+[Vitest](https://vitest.dev/), the scene against real Phaser run headless.
+It holds thirty-six levels in four sets, Warm-up, Sparks, Tricks and Thick
+walls, played by rules that run without a framework, the flight included. It
+plays at two speeds, with fast-forward, by mouse, keyboard or touch, pauses
+whenever the field loses the player, wears whichever palette the player
+chose on the site, and keeps a run under way across a reload, paused. Phaser
+loads behind a drawing of the empty field.
 
 ## Development
 
