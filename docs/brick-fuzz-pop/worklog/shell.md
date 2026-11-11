@@ -1313,3 +1313,54 @@ games in development held, and none held. All 11 were killed.
 - **The game's intro paragraph** is touched in two places, the site's
   sentence and "the rest of U2", beside the R3 to R6 the rules stream
   edits.
+
+### The docs pass, continued: the debug folders
+
+**2026-11-10.** At the integrator's word, once the art stream's debug
+pieces were merged, after a rebase onto them.
+
+**What was written.** The game's `AGENTS.md` gains `src/view/debug/`,
+`debug_tuning.ts`'s numbers, sliders and lines, and what a tuning would
+hand the playback and the rules; and, in `src/app/`'s list, `debug/`, the
+menu and `DebugService`, with the settings drawer's entry saying where the
+menu follows the settings and what the drawer takes and hands on for it.
+Nothing says the game reads `DebugService`, `paceOf()` or `rulesOf()` yet,
+as nothing does.
+
+**For the integrator.** The art stream's source says more is wired than
+is: `DebugService`'s doc comment says "The game reads it", the numbers
+through `paceOf()` and `rulesOf()`, the depth between rounds and every level
+open in the Levels dialog, and `DebugMenuComponent`'s that "the game offers
+it the certificate"; the menu's own words say the depth is "Taken between
+rounds" and that "The Levels dialog offers each level". `GameService` plays
+at `FLIGHT_PACE` and reads none of it yet. Suggested: the comments say what
+the game reads once U2 wires the menu in, or wait for that wiring; the
+menu's words hold once it is. Source of another stream's, so not this
+pass's.
+
+**Checks.** `node .agents/check-skill-references.mjs` passes, and the
+root's `yarn lint`, before the review and after its fixes.
+
+**The mutation pass.** None: no code changed.
+
+**The review:**
+
+1. **`paceOf()` and `rulesOf()` were said to hand a tuning to `RoundPlay`
+   and `playRound()`,** which nothing calls yet. Fixed: the pace and the
+   rules a tuning "would hand", here and in the log.
+2. **The source's doc comments and the menu's words describe wiring that
+   isn't there.** Left, for the integrator, as above.
+3. **The depth was said to throw, and the certificates' staleness was
+   among what the menu sets.** Fixed: `setDepth()` throws, and the service
+   says whether the certificates are stale (`certificatesStale`), from the
+   tuning.
+4. **"Which it hands on" read as handing on the certificate offered.**
+   Fixed: Play the certificate is shown while one is offered, otherwise the
+   menu says none holds, and its press is what is handed on.
+5. **The settings entry gave the menu's bindings, not the drawer's,** and
+   named `DEBUG_MENU` without its library, as the breakers' entries do.
+   Fixed: `@fz/game-ui/debug_menu`'s `DEBUG_MENU`, and the drawer's
+   `certificate` and `playCertificate`.
+6. **A broken line in the view's entry.** Fixed: reflowed.
+7. **"How far a fuzzball flies bored"** misread `bored`. Fixed: "without a
+   hit before it yawns".

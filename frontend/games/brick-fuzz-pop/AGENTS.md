@@ -237,6 +237,17 @@ helpers.
   lost level's shake (`shakeOf()`, in device pixels), and `timing.ts` how
   long each lasts, the wall's step and jump (`STEP_MS`, `JUMP_MS`) and how
   long the cards wait.
+- **`src/view/debug/`** — `debug_tuning.ts`: the numbers the debug menu
+  tunes in play (`TunedNumbers`), starting from the game's own
+  (`TUNED_NUMBERS`): the flight's speeds at Normal and Fast, how much
+  faster fast-forward plays, when a long flight speeds up and by how much,
+  how far the guide runs past its first turn and how far a fuzzball flies
+  without a hit before it yawns. It holds the menu's sliders
+  (`TUNING_SLIDERS`), each number in its unit (`formatTuning()`) and as the
+  lines it would replace (`tuningLines()`), the pace a tuning would hand
+  `RoundPlay` (`paceOf()`) and the rules it would hand `playRound()`
+  (`rulesOf()`), and whether it leaves the certificates stale
+  (`staleCertificates()`).
 - **`src/scene/`** — the Phaser scene, after Brick Breaker's. `WallScene`
   (`wall_scene.ts`, made by `makeWallScene()`) is handed plain functions
   over the game (`WallSceneOptions`): each frame it hands the shell the
@@ -298,7 +309,25 @@ helpers.
     (by the pointer, a finger pulling back and a mouse pointing and holding,
     or either way for both), the flight's speed, long flights sped up, the
     aim guide, sound and the palette, each applied at once;
-    `SettingsService` keeps them.
+    `SettingsService` keeps them. Where `@fz/game-ui/debug_menu`'s
+    `DEBUG_MENU` says so, in a development build and in a production one
+    at `?debug`, the debug menu follows them; the drawer takes the
+    certificate it offers (`certificate`) and hands on Play the certificate
+    (`playCertificate`).
+  - `debug/` — the debug menu, `<app-debug-menu>`, `@fz/game-ui`'s
+    `<fz-debug-tuning>` with a slider for each number
+    `src/view/debug/debug_tuning.ts` tunes and the lines they would
+    replace; whether the certificates are stale and the run keeps its
+    records; the field's depth over the room's; every level open; and Play
+    the certificate, shown while it is handed one to offer
+    (`CertificateOffer`: the level in play's, on the field's depth) and
+    otherwise saying none holds, its press handed on, as only the game can
+    play a line. `DebugService` holds what the menu sets until the page
+    loads again: the numbers (`tuning`), the depth (`setDepth()`, which
+    throws a `RangeError` for one no field has), every level open, and
+    whether the run under way keeps no records (`runOffRecord`), which
+    `startRun()` begins watching; and it says whether the certificates are
+    stale (`certificatesStale`).
   - `help/` — How to play, `<app-help>`: the aim, the charge, the wall's
     step and jump, the boons, the scoring and the stars, their counts and
     points from `tuning.ts`; the controls by mouse, touch and keyboard, a letter key
