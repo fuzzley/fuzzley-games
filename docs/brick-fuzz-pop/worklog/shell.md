@@ -1611,3 +1611,176 @@ killed by the Space spec alone, as well as by the focus spec.
    `startAgainAtEnter()`.
 6. **A ragged line in `AGENTS.md`, and "any other count as "3 times"".**
    Fixed.
+
+### T2, but for level 18: the screenshots, and the layout check over a kept run
+
+**2026-11-11.** At the integrator's word, once the user had played the feel
+gate: T2's parts that don't need level 18.
+
+**What was built.**
+
+- **A run kept by the rules.** `src/testing/kept_run.ts`'s `keptRun()`,
+  held as the rules are, begins a run at a level on a field of a depth,
+  plays a round for each shot through `playRound()`, as a certificate
+  keeps a shot, and returns it as `saveGame()` keeps it; it throws for no
+  shots and for a shot that clears or loses the level.
+  `src/testing/screenshot_api.ts`'s `SCREENSHOT_API` hands the scripts
+  `keptRun()` over the game's levels, `formatPoints()`, what the game says
+  of a shot the keys aim (`shotWords()`, through `describeShot()`) and
+  `SAVED_GAME_VERSION`, typed by `ScriptRun`, `ScriptSavedGame` and
+  `ScreenshotApi`, added to `src/testing/script_api.ts`.
+  `tools/stored_run.mjs` loads it through Vite for both scripts, keeps the
+  game's key and the layout check's run (`LAYOUT_RUN`), and stores a run as
+  a page's storage holds it (`storedRun()`).
+- **The screenshots.** `tools/capture-screenshots.mjs`, run by
+  `yarn capture:screenshots`, on `runScreenshotScript()` as Brick
+  Breaker's is: a run kept on level 9, Gatehouse, the last of Warm-up, on a
+  field 11 deep, two rounds in by the first two shots of its certificate
+  there; taken up paused at 1280 × 720 and 2× on Midnight blue, held to
+  the run's score (`takenUpBoard()`), gone on with by the card's Resume,
+  and its next shot aimed by the arrow keys, at 55 degrees and a charge of
+  3, which the capture waits to hear the game say, missing the shot
+  otherwise, as it does for a card still showing or a field laid out at
+  another depth. `keepShot()` writes `preview.webp` and `thumb.webp`
+  to `public/docs/screenshots/brick-fuzz-pop/`, where the site takes them
+  in place of its fallback, and `index.html` names the preview as the
+  link preview, as `frontend/games/AGENTS.md` asks. Its spec holds its
+  command line and the run it keeps, as Asteroid Breaker's does.
+- **The layout check over a kept run.** `tools/check-layout.mjs` checks
+  every shape and turn twice: as T1 did, a level waiting for its first
+  shot; then over a run kept by the rules, Hello, wall with a round played
+  straight up, uncharged, which each page takes up paused (C9), holding
+  its wall on the row the run kept it on, row 4, at every shape and
+  through each turn, whatever depth the field takes. A problem of the
+  second pass names its shape ", a run taken up".
+- **The docs.** The game's `AGENTS.md`: the intro, the held files, the
+  tools, the check's entry, a Capture Screenshots entry, and `kept_run.ts`
+  and `screenshot_api.ts` among what the specs share. The board's
+  `wallRow` doc says the check holds a run taken up to its row too.
+
+**Choices the plan didn't make.**
+
+1. **A run is kept as shots, a round each,** rather than Brick Breaker's
+   bricks broken and worn or Asteroid Breaker's autopilot played for a
+   time: a round is decided whole by its shot, so the shots are the run,
+   and a certificate's line gives them.
+2. **The run's depth is the script's,** 11, rather than read from a first
+   page, as Asteroid Breaker reads its field's shape: a run with a round
+   played, taken up on another depth, is moved onto it with its wall the
+   same rows from the floor, so the depth only decides the picture, and
+   1280 × 720 lays the field out 11 deep, so the run is shown as it was
+   played. The capture holds the page to it, missing the shot where the
+   field is laid out at another depth, which a made mutant of the check
+   showed.
+3. **Gatehouse, aimed by the keys.** Of the Warm-up levels, Pyramid two
+   rounds in, its hot shot waiting, shows a wall mostly broken; Gatehouse
+   keeps tough bricks, a row zapper and steel in view. Straight up, the
+   guide was a column of dots under the one brick in its way; aimed at 55
+   degrees and a charge of 3, it crosses the field and turns off the
+   steel, and the meter shows. The keys are made events on the board,
+   Phaser's keyboard target, each with its `keyCode`, as Asteroid
+   Breaker's Space is, and the game's words for the aim, which it says as
+   the keys change it, are what the capture waits for, as Asteroid
+   Breaker's waits for a stray's.
+4. **The check's kept run stands its wall on row 4,** a row under any a
+   level opens on at any depth (5 to 9), so a page that dropped the run
+   and laid the level out afresh can't pass by chance.
+5. **`LayoutCheck.before()` is sent as its source and handed nothing,** so
+   the call that keeps the run is made a function of its own from source
+   (`new Function()`), as `Page.beforeLoad()` writes a call with its
+   arguments: `keepRun()`, linted and type-checked, called with the run
+   written in as JSON. Node never calls it. `@fz/dev/layout` handing
+   `before()` its arguments, as `beforeLoad()` takes them, would need no
+   function made from source, but is a change to a library every game's
+   check runs on; it is below, for the integrator.
+6. **Each pass says which run the page shows:** its `before()` sets
+   `keptWallRow`, null for a level waiting or the kept run's row, and the
+   inspection fails a page told nothing, so a second pass that lost its
+   run can't pass as a second first pass.
+7. **The second pass runs at every shape, not only through the turns,**
+   so the Paused card and the panels are checked over a run under way
+   too. The check takes about 18 s, twice T1's.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`) pass, `kept_run.ts` and `screenshot_api.ts` covered in
+full, and the root's `yarn lint`. The game built alone, and
+`yarn check:layout` holds at each shape and turn, as a level waits for its
+first shot and over a run taken up: roomy, phone portrait, phone
+landscape, small phone portrait, small phone landscape, smallest phone
+portrait, phone portrait turned on its side, phone landscape turned
+upright. `yarn capture:screenshots`, against the dev server on 9166 at
+`[::1]`, where it listens: "Took up the run with a score of 1,510, and went
+on with it, aimed at 55 degrees, charge 3", `thumb.webp` 15 KB,
+`preview.webp` 90 KB.
+
+**The mutation pass.** Run again after the review, with what it changed:
+the stored run unversioned, the shot's words a degree off, the shown aim
+at another charge, the run off its certificate, the page told a row off
+the kept one, the run not stored, and the second pass keeping no run were
+all killed, and the capture, a right arrow short, missed its shot: "the
+game didn't say "55 degrees, charge 3"". The layout check's run on level 2
+lived, an equal mutant: any level whose wall a round leaves under every
+opening row serves, which `LAYOUT_RUN`'s spec holds rather than the
+level.
+
+Before the review: reading for mutants first found two: `landRound()`
+in `keptRun()` changed nothing, since a round that ends its level throws
+before it, so it went; and the level's boon reached no spec, so one keeps
+Pyramid's hot shot after its second round jumps. Then 12 mutants through
+the specs: a cleared level kept, no level started, the next start dropped,
+nothing kept passing, the triple shot as the boon, another depth; the API
+over fewer levels and its version off by one; the shown run unversioned,
+its score unformatted, a round short, another port. All were killed. And
+6 through the check, the game built again for each of its two: the kept
+row a row off, a run taken up expected to play, the second pass keeping
+no run (which, before each pass said which run it shows, passed as the
+first), the first pass saying nothing; a start with rounds laid out
+afresh on a new depth, and the saved run never taken up. All were killed,
+each at the first shape, roomy. The capture's page code, Resume and the
+keys, runs only in Chrome; running it is its check.
+
+**For the integrator.**
+
+- **All nine of `HELD_AS_RULES` exist now,** so `eslint.config.js`'s
+  filter can go, as its comment says, and `phaserGameLayers()`'s check
+  for a missing file is back.
+- **`@fz/dev/layout`:** a `LayoutCheck` could take what the page stores
+  (`stored`, as `setUpPage()`'s `PageSetup` has it), so a check takes up a
+  kept run without a function made from source.
+- **At Y1:** `RUN` takes level 18 and the first two shots of its
+  certificate on 11 deep, `AIMING` is looked at again against the picture,
+  and `index.html`'s alt text and the `AGENTS.md` entry follow.
+- **Others' files:** `script_api.ts`, the proof stream's, gains three
+  types and nothing else; `board.component.ts`, the art stream's, one
+  line of `wallRow`'s doc; `package.json`, `index.html` and `AGENTS.md`
+  are yours.
+
+**The review:**
+
+1. **`new Function()` builds `before()` from a string the lint never
+   reads,** where `Page.beforeLoad()` takes arguments and only
+   `layout.ts`'s `load()` drops them. Partly fixed: what the page runs is
+   now `keepRun(key, stored, row)`, linted and type-checked, and only its
+   call is made from source, with its arguments as JSON, as
+   `beforeLoad()` itself writes one. The library change, `LayoutCheck`
+   handing `before()` its arguments, is left: `@fz/dev/layout` is every
+   game's, outside this stream's files; it is above, for the integrator.
+2. **The capture could succeed without the aim it promises,** sleeping a
+   fixed time and checking only the stage, the card and the depth. Fixed:
+   it waits for the run to play before pressing, then for the game to say
+   the aim (`shotWords()`, from `describeShot()`), and misses the shot
+   without it; a card still showing has its own words.
+3. **The key, the API's loading and the version stamp were copied into
+   both scripts, the check's run was the specs' too, and its row's claim
+   held only by a spec's copy; a broken API failed only after the first
+   pass.** Fixed: `tools/stored_run.mjs` holds the key, the loading,
+   `storedRun()` and `LAYOUT_RUN`, whose spec holds its wall under every
+   row a level opens on; the check keeps its run before the first pass.
+   The specs of `src/testing/` keep a run of their own, as a spec there
+   can't import a script.
+4. **"Round 5" was the certificate's length, and "the first two shots of
+   its certificate" held by nothing.** Fixed: the spec reads the length,
+   and `capture-screenshots.spec.ts` holds `RUN` to its certificate.
+5. **`KeptGame` named two things in the workspace; `ScriptRun.shots` had
+   no doc; `FIELD`'s doc named only Ready's card.** Fixed:
+   `ScriptSavedGame`, a doc line, and Paused's card named.

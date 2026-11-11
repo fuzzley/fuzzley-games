@@ -306,7 +306,8 @@ export class BoardComponent {
   /**
    * The field row the wall's lowest row stands in, as the round aimed or in
    * play started, for the layout check, which holds it on the row a level
-   * opens on at the field's depth while the level waits for its first shot.
+   * opens on at the field's depth while the level waits for its first shot,
+   * and on the row a run taken up kept it on, through a turn too.
    */
   protected readonly wallRow = computed(() => this.game.start().wall.lowestRow);
 
