@@ -71,12 +71,17 @@ export interface Hooks {
 export interface TraitRule<T extends BrickTrait> {
   /** Runs as a fuzzball, a zap or a blast strikes the brick, before its hits are taken. */
   readonly struck?: (struck: Struck, trait: T) => void;
-  /** Runs as the brick breaks, by a fuzzball, numbered `ball`, or by a zap or a blast, `ball` then -1. */
+  /**
+   * Runs as the brick breaks, by a fuzzball, numbered `ball`, or by a zap or
+   * a blast, `ball` then -1, handed the brick's tint: for a cage, the ink of
+   * the friend it holds.
+   */
   readonly broken?: (
     hooks: Hooks,
     cell: number,
     ball: number,
     trait: T,
+    tint: number,
   ) => void;
   /** Runs as a fuzzball meets the brick's disc, the way out of it `nx`, `ny`. */
   readonly met?: (

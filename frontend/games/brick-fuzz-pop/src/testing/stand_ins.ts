@@ -71,7 +71,7 @@ export const CAGE: BrickKind = {
  * Rules for specs for every trait the flight's hooks serve: steel's, the
  * zappers' and wool's own, steel not hurt and earthing a charge, a zapper
  * zapping in its pattern and wool recharging the fuzzball that breaks it;
- * and the rest made up: a cage frees a friend in ink 0, a bumper kicks, a
+ * and the rest made up: a cage frees a friend in its tint, a bumper kicks, a
  * prism splits and a portal sends a fuzzball out of its twin; plates,
  * shells and moss do nothing.
  */
@@ -81,8 +81,8 @@ export const STAND_IN_RULES: TraitRules = {
   zaps: ZAPS_RULE,
   recharges: RECHARGES_RULE,
   frees: {
-    broken: (hooks, cell) => {
-      hooks.free(cell, 0);
+    broken: (hooks, cell, _ball, _trait, tint) => {
+      hooks.free(cell, tint);
     },
   },
   kicks: {

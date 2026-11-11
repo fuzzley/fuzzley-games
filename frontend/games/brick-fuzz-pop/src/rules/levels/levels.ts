@@ -271,7 +271,7 @@ function brickAt(
     hits,
     full: hits,
     plates,
-    tint: tintOf(character, wallRowOf(cell)),
+    tint: tintOf(characters, cell),
     twin,
   };
 }
