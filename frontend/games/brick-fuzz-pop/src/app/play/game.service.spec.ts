@@ -250,6 +250,21 @@ function placeOf(game: GameService): readonly string[] {
   return ball ? [ball.x.toFixed(6), ball.y.toFixed(6)] : [];
 }
 
+/** Releases the round aimed and returns each score the bar showed until its flight landed, in order. */
+function scoresUntilLanded(game: GameService): number[] {
+  const scores: number[] = [];
+  release(game);
+  playUntil(
+    game,
+    () => STILL,
+    () => {
+      if (game.score() !== scores.at(-1)) scores.push(game.score());
+      return !game.flying();
+    },
+  );
+  return scores;
+}
+
 /** Plays the round in the air out and returns each thing said on the way, in order. */
 function heardPlayingOut(game: GameService): string[] {
   const heard: string[] = [];
@@ -441,15 +456,15 @@ describe("GameService", () => {
   });
 
   describe("releasing a round", () => {
-    it("begins the level, counts the round and scores it", () => {
+    it("begins the level, the run counting the round and scoring it at once", () => {
       const game = gameOf("step");
 
       release(game);
 
       expect({
         outcome: game.outcome(),
-        rounds: game.rounds(),
-        score: game.score(),
+        rounds: game.run().rounds,
+        score: game.run().score,
         phase: game.phase(),
       }).toEqual({
         outcome: "playing",
@@ -497,7 +512,7 @@ describe("GameService", () => {
 
       release(game);
 
-      expect(game.rounds()).toBe(1);
+      expect(game.run().rounds).toBe(1);
     });
 
     it("lets no shot fly while the level is paused", () => {
@@ -540,6 +555,19 @@ describe("GameService", () => {
       playOut(game);
 
       expect(said()).toBe(describeRound(round.outcome, round.next));
+    });
+
+    it("says how far the wall stands from a jump on the depth the field takes as the wall comes to rest", () => {
+      const game = onDepth(12, "step");
+      const round = released(game);
+      TestBed.inject(DebugService).setDepth(17);
+      TestBed.tick();
+
+      playOut(game);
+
+      expect(said()).toBe(
+        describeRound(round.outcome, { ...round.next, depth: 17 }),
+      );
     });
 
     it("says a friend freed in the round's words alone", () => {
@@ -1015,15 +1043,16 @@ describe("GameService", () => {
   });
 
   describe("pausing and going on", () => {
-    it("pauses a level under way, and says so", () => {
+    it("pauses a level under way, and says so, with the score the bar shows", () => {
       const game = gameOf("step");
+      playRoundOut(game);
       release(game);
 
       game.pause();
 
       expect([game.outcome(), said()]).toEqual([
         "paused",
-        describePause(game.run()),
+        describePause({ ...game.run(), score: SPEC_POINTS.step }),
       ]);
     });
 
@@ -1254,6 +1283,35 @@ describe("GameService", () => {
       release(game);
 
       expect([unearned, aimed, game.lit()]).toEqual([false, true, false]);
+    });
+
+    it("counts no round while its flight plays back", () => {
+      const game = gameOf("step");
+
+      release(game);
+
+      expect(game.rounds()).toBe(0);
+    });
+
+    it("counts a round as its flight lands", () => {
+      const game = gameOf("step");
+      release(game);
+
+      playUntil(
+        game,
+        () => STILL,
+        () => !game.flying(),
+      );
+
+      expect(game.rounds()).toBe(1);
+    });
+
+    it("scores each break as the flight plays it back, and the jump's points as it lands", () => {
+      const game = gameOf("jump");
+
+      const scores = scoresUntilLanded(game);
+
+      expect(scores).toEqual([0, 30, 70, SPEC_POINTS.jump]);
     });
 
     it("keeps the best score of any run", () => {
@@ -1487,6 +1545,34 @@ describe("GameService", () => {
       game.tick(FRAME_MS, { ...STILL, aim: 0, charge: 2, keyed: true });
 
       expect(said()).toBe(describeShot({ aim: 0, charge: 2 }));
+    });
+
+    it("says a hot shot rather than the charge while the shot aimed carries one", () => {
+      const game = gameOf("jump");
+      playRoundOut(game);
+
+      game.tick(FRAME_MS, { ...STILL, aim: 0, charge: 2, keyed: true });
+
+      expect(said()).toBe("8 degrees, hot shot");
+    });
+
+    it("says the charge while the round that earns a hot shot flies", () => {
+      const game = gameOf("jump");
+      release(game);
+
+      game.tick(FRAME_MS, { ...STILL, aim: 0, charge: 2, keyed: true });
+
+      expect(said()).toBe("8 degrees, charge 2");
+    });
+
+    it("says the charge while a hot shot flies, the shot after it a plain one", () => {
+      const game = gameOf("jump", "step");
+      playRoundOut(game);
+      release(game);
+
+      game.tick(FRAME_MS, { ...STILL, aim: 0, charge: 2, keyed: true });
+
+      expect(said()).toBe("8 degrees, charge 2");
     });
 
     it("says nothing of an aim the pointer moved", () => {

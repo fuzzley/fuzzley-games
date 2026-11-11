@@ -265,14 +265,38 @@ export class GameService extends RunLifecycle implements KeptGame {
     () => levelOf({ level: this.levelNumber() }, this.levels).boon,
   );
 
-  /** The rounds the level in play has played. */
-  readonly rounds = computed(() => this.run().rounds);
+  /**
+   * The round whose flight is being played back, which the run took in as
+   * it was released, but the bar counts only as it plays; else null.
+   */
+  private readonly flight = computed(() => {
+    const { round, phase } = this.runState();
+    return phase === "flying" ? round : null;
+  });
+
+  /**
+   * The rounds the level in play has played, as the bar counts them: a
+   * round as its flight lands, though the run counts it as it is released.
+   */
+  readonly rounds = computed(() =>
+    this.flight() === null ? this.run().rounds : this.run().rounds - 1,
+  );
 
   /** The level in play's par. */
   readonly par = computed(() => this.run().par);
 
-  /** The run's points so far. */
-  readonly score = computed(() => this.run().score);
+  /**
+   * The run's points so far, as the bar shows them: each break's as the
+   * flight plays it back, and the rest, a jump's and the stars', as it
+   * lands, though the run scores the round as it is released.
+   */
+  readonly score = computed(() => {
+    const flight = this.flight();
+    const { run, scored } = this.runState();
+    return flight === null
+      ? run.score
+      : run.score - flight.outcome.points + scored;
+  });
 
   /** How many of the wall's rows wait over the ceiling, as the round aimed or in play started. */
   readonly rowsLeft = computed(() => {
@@ -355,7 +379,7 @@ export class GameService extends RunLifecycle implements KeptGame {
           newKind: kindIntroducedAt(run.level),
         };
       case "paused":
-        return { kind: "paused", score: run.score };
+        return { kind: "paused", score: this.score() };
       default:
         return null;
     }
@@ -409,7 +433,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     this.fastHeld.set(steer.fast);
     this.aimedAt = steer.aim;
     this.charged = steer.charge;
-    if (steer.keyed) this.announcer.say(describeShot(steer));
+    if (steer.keyed) this.announcer.say(describeShot(steer, this.boon()));
     const shot = this.lineShot();
     if (shot === undefined) {
       if (steer.release) {
@@ -604,7 +628,9 @@ export class GameService extends RunLifecycle implements KeptGame {
     const run = pause(state.run);
     if (run === state.run) return;
     this.runState.set({ ...state, run });
-    this.announcer.say(describePause(run));
+    // The score the bar shows, which a flight in the air may not have
+    // played all of back yet.
+    this.announcer.say(describePause({ ...run, score: this.score() }));
   }
 
   /**
@@ -643,6 +669,7 @@ export class GameService extends RunLifecycle implements KeptGame {
       start,
       round: null,
       phase: "aiming",
+      scored: 0,
       card: null,
     });
     this.sayLevel();
@@ -788,7 +815,13 @@ export class GameService extends RunLifecycle implements KeptGame {
     const words: string[] = [];
     for (const news of state.news) {
       if (news.kind === "ended") {
-        words.push(describeRound(news.round.outcome, news.round.next));
+        const { outcome, next } = news.round;
+        // A round that leaves the level on is said of the next as it is
+        // aimed, on the depth the field takes as the words are said, which
+        // the room may have changed while the round flew.
+        words.push(
+          describeRound(outcome, outcome.result === "on" ? state.start : next),
+        );
       }
     }
     if (state.card !== cardBefore) words.push(...this.cardWords(state));

@@ -26,10 +26,15 @@ export type SpecRound = "step" | "jump" | "freed" | "cleared" | "lost";
 /** The ink of the friend a spec's round frees. */
 export const FREED_INK = 3;
 
-/** The points each spec's round scores. */
+/**
+ * The points each spec's round scores: a jump's those of its flight's
+ * breaks and the jump's own, so the bar, which counts the breaks as they
+ * play back, comes to the round's points; each other's no fewer than its
+ * flight's breaks score, the rest coming as it lands.
+ */
 export const SPEC_POINTS: Readonly<Record<SpecRound, number>> = {
   step: 10,
-  jump: 50,
+  jump: FLIGHT_FIXTURES.zap.round.outcome.points,
   freed: 20,
   cleared: 30,
   lost: 0,

@@ -26,9 +26,9 @@ export type RoundNews =
 
 /**
  * Holds what the shell shows of a run beside its field, a value each change
- * replaces: the run, the round aimed or in play and where it stands, the
- * card over the level's end, the news not yet said, and whether its end set
- * a new best.
+ * replaces: the run, the round aimed or in play, where it stands and what
+ * its breaks have scored so far, the card over the level's end, the news
+ * not yet said, and whether its end set a new best.
  *
  * A frame that changes none of them leaves it as it is, so a frame of play
  * makes nothing.
@@ -41,6 +41,8 @@ export interface RunState {
   /** The round in play once it is released, until the next is aimed; else null. */
   readonly round: Round | null;
   readonly phase: RoundPhase;
+  /** The points of the breaks the round in play's flight has played back so far, which the bar counts as they play. */
+  readonly scored: number;
   /** The card over the level's end, once its wait has run out; else null. */
   readonly card: Card | null;
   /** Whether the card over the run's end has been put away, leaving the board to look at. */
@@ -56,6 +58,7 @@ export interface PlayState {
   readonly start: RoundStart;
   readonly round: Round | null;
   readonly phase: RoundPhase;
+  readonly scored: number;
 }
 
 /** Describes what a frame of a level's play came to, as `RoundPlay` hands it on for the run's state to take in. */
@@ -78,6 +81,7 @@ export function newRunState(run: Run, start: RoundStart): RunState {
     start,
     round: null,
     phase: "aiming",
+    scored: 0,
     card: null,
     resultClosed: false,
     news: [],
@@ -87,21 +91,23 @@ export function newRunState(run: Run, start: RoundStart): RunState {
 
 /**
  * Returns a run's state with a frame of its play taken in: the round
- * aimed or in play and where it stands, the card the frame opened, and the
- * friends it freed and the round it brought to rest added to the news; or
- * the same state for a frame that changed none of them.
+ * aimed or in play, where it stands and what its breaks have scored so
+ * far, the card the frame opened, and the friends it freed and the round
+ * it brought to rest added to the news; or the same state for a frame that
+ * changed none of them.
  */
 export function withFrame(
   state: RunState,
   play: PlayState,
   change: RoundChange,
 ): RunState {
-  const { start, round, phase } = play;
+  const { start, round, phase, scored } = play;
   const { freed, settled, opens } = change;
   if (
     start === state.start &&
     round === state.round &&
     phase === state.phase &&
+    scored === state.scored &&
     opens === null &&
     freed.length === 0 &&
     settled === null
@@ -116,6 +122,7 @@ export function withFrame(
     start,
     round,
     phase,
+    scored,
     card: opens ?? state.card,
     news: news.length === state.news.length ? state.news : news,
   };

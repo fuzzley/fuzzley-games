@@ -628,6 +628,7 @@ describe("BoardComponent", () => {
 
     it("says the level is paused, with the score", async () => {
       const { game, detectChanges } = await renderBoard();
+      playRoundOut(game);
       release(game);
 
       game.pause();

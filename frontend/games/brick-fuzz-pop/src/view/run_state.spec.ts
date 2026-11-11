@@ -16,7 +16,12 @@ const { plain, lost } = FLIGHT_FIXTURES;
 const NOTHING: RoundChange = { freed: [], settled: null, opens: null };
 
 /** The plain shot's level, its round aimed. */
-const AIMED: PlayState = { start: plain.start, round: null, phase: "aiming" };
+const AIMED: PlayState = {
+  start: plain.start,
+  round: null,
+  phase: "aiming",
+  scored: 0,
+};
 
 /** The plain shot's level, its round in the air. */
 const FLYING: PlayState = { ...AIMED, round: plain.round, phase: "flying" };
@@ -31,12 +36,13 @@ const BEGUN: RunState = newRunState(RUN, plain.start);
 const FLOWN: RunState = { ...BEGUN, round: plain.round, phase: "flying" };
 
 describe("newRunState", () => {
-  it("begins a run with its round aimed, nothing to say, no card and no new best", () => {
+  it("begins a run with its round aimed, nothing scored, nothing to say, no card and no new best", () => {
     expect(newRunState(RUN, plain.start)).toEqual({
       run: RUN,
       start: plain.start,
       round: null,
       phase: "aiming",
+      scored: 0,
       card: null,
       resultClosed: false,
       news: [],
@@ -70,6 +76,14 @@ describe("withFrame", () => {
     expect(settling.phase).toBe("settling");
   });
 
+  it("takes in the points the flight's breaks have scored so far", () => {
+    const flying = withFrame(BEGUN, FLYING, NOTHING);
+
+    const scored = withFrame(flying, { ...FLYING, scored: 30 }, NOTHING);
+
+    expect(scored.scored).toBe(30);
+  });
+
   it("takes in a round aimed again from another start", () => {
     const again = withFrame(
       BEGUN,
@@ -91,7 +105,7 @@ describe("withFrame", () => {
 
     const next = withFrame(
       flying,
-      { start: plain.round.next, round: null, phase: "aiming" },
+      { start: plain.round.next, round: null, phase: "aiming", scored: 0 },
       NOTHING,
     );
 
@@ -151,6 +165,7 @@ describe("withFrame", () => {
       start: lost.start,
       round: lost.round,
       phase: "settling",
+      scored: 0,
     };
 
     const state = withFrame(

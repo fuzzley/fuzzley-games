@@ -232,6 +232,8 @@ export class RoundPlay {
   private next = 0;
   /** The index of the flight's last landing, the one a skip sounds. */
   private lastLanding = -1;
+  /** The points of the breaks the flight has reached. */
+  private scoredPoints = 0;
   /** Whether a skip waits for the next frame played, or has landed the flight, until the next round is aimed. */
   private skipping = false;
   /** Whether the player's fuzzball has landed, where it waits for the next round. */
@@ -297,6 +299,15 @@ export class RoundPlay {
   }
 
   /**
+   * The points of the breaks the round in play's flight has played back so
+   * far, all of them once it has landed, and 0 while a round is aimed: the
+   * round's points without a jump's, which come as it lands.
+   */
+  get scored(): number {
+    return this.scoredPoints;
+  }
+
+  /**
    * Where the player's fuzzball waits on the floor, across the field: where
    * the round aimed starts, or, once its flight's fuzzball has landed, where
    * the next starts; null while it is in the air.
@@ -312,6 +323,7 @@ export class RoundPlay {
     this.played = null;
     this.playPhase = "aiming";
     this.skipping = false;
+    this.scoredPoints = 0;
     this.cardWait.stop();
     const { shown } = this;
     shown.balls.length = 0;
@@ -431,7 +443,7 @@ export class RoundPlay {
     }
   }
 
-  /** Takes in what an event does to its fuzzball, and the friend it frees. */
+  /** Takes in what an event does to its fuzzball, the friend it frees and the points it scores. */
   private takeIn(event: FlightEvent): void {
     switch (event.kind) {
       case "launch": {
@@ -462,8 +474,10 @@ export class RoundPlay {
       case "free":
         this.change.freed.push(event.ink);
         return;
-      case "turn":
       case "break":
+        this.scoredPoints += event.points;
+        return;
+      case "turn":
       case "zap":
       case "portal":
       case "split":
