@@ -1,9 +1,15 @@
-import { TestBed } from "@angular/core/testing";
+import { DeferBlockState, TestBed } from "@angular/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import type { CertificateOffer } from "../debug/debug_menu.component";
+import { filesCertifying, loadsSettled } from "../../testing/certificates";
+import { provideSpecPlay } from "../../testing/play";
+import {
+  CERTIFICATE_FILES,
+  type CertificateFiles,
+} from "../debug/certificates.service";
+import { GameService } from "../play/game.service";
 import { SettingsComponent } from "./settings.component";
 import { type Settings, SettingsService } from "./settings.service";
 
@@ -15,10 +21,10 @@ interface RenderedSettings {
   readonly playCertificate: ReturnType<typeof vi.fn>;
 }
 
-/** Says whether the drawer offers the debug menu, as a build for players doesn't, and the certificate it offers to play. */
+/** Says whether the drawer offers the debug menu, as a build for players doesn't, and the certificates its menu reads. */
 interface DebugOptions {
   readonly debugMenu?: boolean;
-  readonly certificate?: CertificateOffer | null;
+  readonly files?: CertificateFiles;
 }
 
 /**
@@ -31,7 +37,7 @@ interface DebugOptions {
  */
 async function renderSettings(
   kept: Partial<Settings> = {},
-  { debugMenu = false, certificate = null }: DebugOptions = {},
+  { debugMenu = false, files = {} }: DebugOptions = {},
 ): Promise<RenderedSettings> {
   const storage = new MemoryStorage();
   storage.setItem(
@@ -40,20 +46,32 @@ async function renderSettings(
   );
   const closed = vi.fn();
   const playCertificate = vi.fn();
-  await render(SettingsComponent, {
-    inputs: { open: true, certificate },
+  const { fixture } = await render(SettingsComponent, {
+    inputs: { open: true },
     on: { closed, playCertificate },
     providers: [
       provideMemoryStorage(storage),
+      ...provideSpecPlay(),
       { provide: DEBUG_MENU, useValue: debugMenu },
+      { provide: CERTIFICATE_FILES, useValue: files },
     ],
   });
+  // The deferred menu, then the certificates it loads.
+  for (const block of await fixture.getDeferBlocks()) {
+    await block.render(DeferBlockState.Complete);
+  }
+  await loadsSettled(fixture);
   return {
     user: userEvent.setup(),
     store: TestBed.inject(SettingsService),
     closed,
     playCertificate,
   };
+}
+
+/** Returns the field's depth, as the game lays it out. */
+function fieldDepth(): number {
+  return TestBed.inject(GameService).shape().depth;
 }
 
 /** Returns the radio group a label names. */
@@ -316,23 +334,10 @@ describe("SettingsComponent", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("offers the certificate the drawer is handed", async () => {
-      await renderSettings(
-        {},
-        { debugMenu: true, certificate: { level: 2, depth: 12, rounds: 4 } },
-      );
-
-      expect(
-        screen.getByRole("button", { name: "Play the certificate" }),
-      ).toHaveAccessibleDescription(
-        "Plays level 2 from its start on a field 12 deep, its certificate's 4 rounds one at a time.",
-      );
-    });
-
-    it("hands Play the certificate on", async () => {
+    it("hands the menu's Play the certificate on", async () => {
       const { user, playCertificate } = await renderSettings(
         {},
-        { debugMenu: true, certificate: { level: 2, depth: 12, rounds: 4 } },
+        { debugMenu: true, files: filesCertifying(fieldDepth) },
       );
 
       await user.click(

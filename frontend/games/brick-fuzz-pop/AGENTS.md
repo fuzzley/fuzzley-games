@@ -234,6 +234,9 @@ helpers.
   zone, a notch at a time, or pointed and held, each kind of pointer its
   own way (`PointerAimings`). Escape calls off a charge building and
   otherwise passes on to pause, as only the steering knows a charge builds.
+  `aiming.ts` holds what the shell takes without the `Steering` class: how
+  each kind of pointer aims by the pointer (`BY_POINTER`) and the aim
+  straight up the steering starts at (`STRAIGHT_UP`).
 - **`src/view/colors/`** — the field's colors: the page's roles it is drawn
   in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
   `wallPalette()`, which gives a palette's colors from those roles and its
@@ -352,8 +355,8 @@ helpers.
   the board in the room the bar leaves it, then the bar, the announcer, the
   result card over an ended run, the Levels dialog (every level open while
   the debug menu opens them), How to play, handed the scene's pictures only
-  while it is open, the settings drawer, handed the debug menu's
-  certificate, and the question before a run is lost, each wired to
+  while it is open, the settings drawer, put away as its debug menu plays
+  a certificate, and the question before a run is lost, each wired to
   `GameService`; hands the board the focus as the page loads, as each run
   begins and as the last dialog over the board closes
   (`refocusWhenUncovered()`), and after the bar's Resume; and pauses the
@@ -425,28 +428,29 @@ helpers.
     aim guide, sound and the palette, each applied at once;
     `SettingsService` keeps them. Where `@fz/game-ui/debug_menu`'s
     `DEBUG_MENU` says so, in a development build and in a production one
-    at `?debug`, the debug menu follows them; the drawer takes the
-    certificate it offers (`certificate`) and hands on Play the certificate
-    (`playCertificate`).
+    at `?debug`, the debug menu follows them, deferred, so a page that
+    doesn't offer it never loads it; the drawer hands on the menu's Play
+    the certificate (`playCertificate`), so the app can put it away.
   - `debug/` — the debug menu, `<app-debug-menu>`, `@fz/game-ui`'s
     `<fz-debug-tuning>` with a slider for each number
     `src/view/debug/debug_tuning.ts` tunes and the lines they would
     replace; whether the certificates are stale and the run keeps its
     records; the field's depth over the room's; every level open; and Play
-    the certificate, shown while it is handed one to offer
+    the certificate, shown while `CertificatesService` offers one
     (`CertificateOffer`: the level in play's, on the field's depth) and
-    otherwise saying none holds, its press handed on, as only the game can
-    play a line. `DebugService` holds what the menu sets until the page
-    loads again: the numbers (`tuning`), the depth (`setDepth()`, which
-    throws a `RangeError` for one no field has), every level open, and
-    whether the run under way keeps no records (`runOffRecord`), which
+    otherwise saying none holds, which plays it and tells the drawer
+    (`playCertificate`). `DebugService` holds what the menu sets until
+    the page loads again: the numbers (`tuning`), the depth (`setDepth()`,
+    which throws a `RangeError` for one no field has), every level open,
+    and whether the run under way keeps no records (`runOffRecord`), which
     `startRun()` begins watching; and it says whether the certificates are
     stale (`certificatesStale`). `CertificatesService` offers the menu the
     level in play's certificate on the field's depth (`offer`) and plays it
     (`play()`), loading its set's file only while `DEBUG_MENU` offers the
     menu, through `CERTIFICATE_FILES`, an `import.meta.glob()` of the
     files, each a chunk of its own, so a player's page fetches none; a set
-    with no file has none.
+    with no file has none. The menu provides it, so the two share a chunk
+    a player's page never loads.
   - `help/` — How to play, `<app-help>`: the aim, the charge, the wall's
     step and jump, the boons, the scoring and the stars, their counts and
     points from `tuning.ts`; the controls by mouse, touch and keyboard, a letter key
@@ -742,6 +746,10 @@ What the specs share is in `src/testing/`:
   random and rounds played as a script says, each with a fixture's flight
   (`provideSpecPlay()`, `scriptedRounds()`), and plays them a frame at a
   time (`release()`, `playOut()`, `playRoundOut()`, `playUntilCard()`).
+- `certificates.ts` gives the debug menu a set's certificates file, holding
+  a line of two shots for a level on the depth the field has as it loads
+  (`filesCertifying()`), and waits for what the menu loads or plays, which
+  `whenStable()` doesn't (`loadsSettled()`).
 - `roles.ts` reads the game's palettes from its global stylesheet
   (`PALETTES`), which `src/view/colors/contrast.spec.ts` holds the field's
   inks to contrast in, each of the four.

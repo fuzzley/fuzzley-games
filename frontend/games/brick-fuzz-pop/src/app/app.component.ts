@@ -12,7 +12,6 @@ import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
-import { CertificatesService } from "./debug/certificates.service";
 import { DebugService } from "./debug/debug.service";
 import { HelpComponent, type HelpPictures } from "./help/help.component";
 import { LevelsComponent } from "./levels/levels.component";
@@ -60,7 +59,6 @@ export class AppComponent {
   protected readonly game = inject(GameService);
   private readonly board = viewChild.required(BoardComponent);
   private readonly debug = inject(DebugService);
-  protected readonly certificates = inject(CertificatesService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
   protected readonly levels = inject(GAME_LEVELS);
@@ -124,12 +122,6 @@ export class AppComponent {
   /** Starts a run at the level chosen, asking first if one is in progress, and closes the Levels dialog once it has. */
   protected async startAt(level: number): Promise<void> {
     if (await this.game.startAt(level)) this.levelsOpen.set(false);
-  }
-
-  /** Closes the settings drawer, so the board shows, and plays the certificate its debug menu offers. */
-  protected playCertificate(): void {
-    this.settingsOpen.set(false);
-    void this.certificates.play();
   }
 
   /** Puts the result card away and opens the Levels dialog, as the card's Choose a level asks. */

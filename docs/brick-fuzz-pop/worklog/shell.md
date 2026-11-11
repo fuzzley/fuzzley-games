@@ -2177,3 +2177,125 @@ reference check.
 
 The fixes follow the review's own words but for the pace, so they had no
 second review.
+
+### Trims 2 and 3: the debug menu in a chunk of its own, and the shell's aim without the steering
+
+**2026-11-11.** At the integrator's word, after the bundle look ahead of F1,
+which found the main chunk at 429.03 kB against the plan's budget, 1.2 ×
+339 kB, about 407 kB.
+
+**What was built.**
+
+- **Trim 2.** `CertificatesService` keeps the certificates it loads in a
+  signal, set from the `import()` promise with the set they belong to,
+  rather than in a `resource()`, whose code brought about 6 kB into the
+  main chunk, as it shares a module with `computed()`. A set's
+  certificates are offered only while that set is in play, and a load that
+  arrives after its set has gone is dropped. The settings drawer defers
+  `<app-debug-menu>` (`@defer (on immediate)` inside `@if (debugMenu)`),
+  and the menu provides `CertificatesService` and plays the certificate
+  itself, emitting `playCertificate` so the drawer can put itself away.
+  The drawer and `AppComponent` lose their `certificate` input, and
+  `AppComponent` only puts the drawer away at it. `CertificateOffer` moves
+  to the service, which makes it.
+- **The specs' helpers.** `src/testing/certificates.ts` gives the specs a
+  set's file holding a line for a level on the field's depth
+  (`filesCertifying()`), and waits for what the menu loads or plays
+  (`loadsSettled()`), Angular by type alone, as the helpers' fence asks.
+  The game's `AGENTS.md` and the `brick-fuzz-pop-testing` skill say so.
+- **Trim 3.** `BY_POINTER`, `STRAIGHT_UP` and the `PointerAiming` types
+  move to `view/steering/aiming.ts`, which the shell imports
+  (`GameService`, `testing/play.ts`), so its chunk carries no `Steering`.
+  `steering.ts` imports them and exports them again, so `wall_scene.ts`,
+  the scene stream's file, is untouched.
+
+**Sizes.** The production build's main chunk, `index-*.js`, comes to
+413.78 kB, 129.27 kB gzipped, from 429.03 and 133.14. The debug menu is a
+chunk of 12.54 kB (4.22 gzipped), loaded with the set's certificates only
+at `?debug`. `wall_scene-*.js` is 34.12 kB, the `Steering` class (about
+3.4 kB) now in it alone. Of the 21.4 kB that left the main chunk, Angular's
+defer runtime brought back about 6.1 kB. The chunk is still 6.8 kB over the
+budget, which trim 1 is for.
+
+**Choices the plan didn't make.**
+
+1. **The menu plays the certificate,** not `AppComponent`: the service
+   sits with the menu in its chunk, so the shell can't inject it.
+   `playCertificate` stays an output of the menu and the drawer, only to
+   put the drawer away.
+2. **The menu provides `CertificatesService`,** rather than the root, so
+   a page that doesn't offer the menu never builds one, nor loads its
+   certificates; the specs that inject it provide it.
+3. **`@defer`, not a hand-rolled `import()` and `NgComponentOutlet`.** The
+   defer runtime costs the main chunk about 6 kB that a hand-rolled load
+   wouldn't, for the integrator to weigh if trim 1 isn't enough.
+4. **`steering.ts` exports the constants again** for the scene, whose
+   file isn't mine; once `wall_scene.ts` imports them from `aiming.ts`,
+   that line can go.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`): 109 files, 5,046 tests, then the `sim` project's 20
+files, 150 tests, every changed file of the app at 100%; the root's
+`yarn lint` passes. By hand, in Chrome over the production build: without
+`?debug`, neither the page nor the opened drawer loads the debug menu's
+chunk; with it, the chunk and the first set's certificates load, the drawer
+shows the Debug section, Play the certificate says level 1's five rounds,
+and it plays them, the drawer put away and the board holding the focus. Over
+a run in progress, the drawer goes and "Start a new game?" opens, its Cancel
+holding the focus. After the review, over the build made again, the menu and
+its certificate show at `?debug`, and Play the certificate puts the drawer
+away and plays the line.
+
+**The mutation pass.** 14 mutants, 13 killed: a late load put over the set
+in play's, the last set's certificates offered for the next, a load with no
+set in play, a failed load not said, the certificates loaded with no menu
+offered, the loader's reads tracked, which loaded the set again as the
+field's depth changed, the drawer never told, the certificate never played,
+the drawer left open, the menu offered in a build for players, the drawer
+not handing Play the certificate on (each by the debug menu's, the
+service's, the settings' or the app's specs), `STRAIGHT_UP` off the middle
+(by `aiming.spec.ts`) and a mouse that pulls back by the pointer (by
+`steering.spec.ts`). One is equivalent: the menu playing the certificate
+before it emits. Both halves write signals, the question's and
+`settingsOpen`, in the click's handler before change detection runs, so the
+page changes in one pass whatever their order.
+
+**The review:**
+
+1. _No pending task holds a load now, so `whenStable()` returns before it,
+   and the spec of the game's own file, a dynamic import, races one
+   timer._ Taken the second way: that spec waits for the offer with
+   `vi.waitFor()`, and the other specs' waits are one helper,
+   `loadsSettled()`, whose doc says why. Left the first, `PendingTasks` in
+   the effect: a few hundred bytes in the main chunk for loads only the
+   specs wait on.
+2. _The game's `AGENTS.md` still hands the drawer a certificate and the
+   menu its offer, and its steering entry lacks `aiming.ts`._ Taken: the
+   app's, the drawer's and the menu's entries, the service's provider, and
+   `aiming.ts`; `src/testing/certificates.ts` is listed under Tests, and
+   the testing skill's "The Shell" says how a spec renders the deferred
+   menu and waits for its load.
+3. _The loader runs in the effect's reactive context, so a spec's loader
+   that reads the field's depth loads the set again at every layout._
+   Taken: `untracked()`, and a spec of a loader that reads the depth holds
+   the set to one fetch as the depth changes.
+4. _The menu imports the service, and the service the menu's
+   `CertificateOffer`._ Taken: the type moves to the service, which makes
+   it.
+5. _`AppComponent.playCertificate()` plays nothing._ Taken: the template
+   puts the drawer away (`settingsOpen.set(false)`), as `(closed)` does.
+6. _Three meanings of "set" on one line, and nothing says why not
+   `resource()`._ Taken, both: `setInPlay`, and a comment that
+   `resource()` shares a module with `computed()`.
+7. _The ordering words, an anonymous pair asserted, the certificates'
+   files and waits written out in four specs, and `PointerAiming` exported
+   again for nothing._ Taken: the menu's docs and the spec's name drop the
+   order (the drawer's "as the menu plays it" claims none, so it stays);
+   the spec asserts `{ told, rounds }`; the files and waits come from
+   `filesCertifying()` and `loadsSettled()`, which take the depth as a
+   function and the fixture by type, as the helpers' fence asks; and
+   `steering.ts` drops `PointerAiming`. Left: the loop rendering the defer
+   blocks stays in the drawer's and the app's specs, since
+   `DeferBlockState` is a value the fence keeps out of `src/testing/`.
+
+The fixes follow the review's own words, so they had no second review.

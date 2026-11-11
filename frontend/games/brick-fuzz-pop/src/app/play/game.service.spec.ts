@@ -54,7 +54,7 @@ import {
 } from "../../view/field/field_metrics";
 import { FLIGHT_PACE } from "../../view/round_play";
 import { DebugService } from "../debug/debug.service";
-import { BY_POINTER } from "../../view/steering/steering";
+import { BY_POINTER } from "../../view/steering/aiming";
 import { waitingRows } from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";

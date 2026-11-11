@@ -4,9 +4,19 @@ import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
-import { LEVEL_SETS, LEVELS } from "../../rules/levels/levels";
+import {
+  LEVEL_SETS,
+  LEVELS,
+  type LevelEntry,
+  levelsOf,
+} from "../../rules/levels/levels";
 import { playRound } from "../../rules/round/round";
 import { LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
+import {
+  TWO_SHOTS,
+  filesCertifying,
+  loadsSettled,
+} from "../../testing/certificates";
 import {
   SPEC_LEVELS,
   STILL,
@@ -35,11 +45,13 @@ const TALL: Viewport = {
 /** The set the specs' levels belong to, whose file a spec writes. */
 const SET_ID = SPEC_LEVELS[0]?.set.id ?? "";
 
-/** A line of two shots, as a file holds it. */
-const LINE = [
-  [100, 2],
-  [300, 4],
-];
+/**
+ * Warm-up twice over, the second time as a set of another id, so a run
+ * moves from one set's certificates to another's at level 10.
+ */
+const TWO_SETS: readonly LevelEntry[] = levelsOf(
+  LEVEL_SETS.slice(0, 1).flatMap((set) => [set, { ...set, id: "again" }]),
+);
 
 /** Describes the service a spec reads, and the game it plays. */
 interface Certified {
@@ -55,12 +67,14 @@ interface Certified {
 async function certifiedWith(
   files: CertificateFiles,
   menu = true,
+  levels: readonly LevelEntry[] = SPEC_LEVELS,
 ): Promise<Certified> {
   TestBed.configureTestingModule({
     providers: [
-      ...provideSpecPlay(),
+      ...provideSpecPlay(undefined, levels),
       { provide: DEBUG_MENU, useValue: menu },
       { provide: CERTIFICATE_FILES, useValue: files },
+      CertificatesService,
     ],
   });
   const certified = {
@@ -78,21 +92,14 @@ function fileOf(
   return { [SET_ID]: () => Promise.resolve(lines) };
 }
 
-/** Returns the files of a set whose file holds a line for a level on the field's depth as it loads. */
-function fileHolding(levelId: string): CertificateFiles {
-  return {
-    [SET_ID]: () =>
-      Promise.resolve({
-        [levelId]: {
-          [String(TestBed.inject(GameService).shape().depth)]: LINE,
-        },
-      }),
-  };
+/** Returns the field's depth, as the game lays it out. */
+function fieldDepth(): number {
+  return TestBed.inject(GameService).shape().depth;
 }
 
-/** Waits for what the service loads to load. */
-async function settled(): Promise<void> {
-  await TestBed.inject(ApplicationRef).whenStable();
+/** Waits for what the service loads to load, its effects run first. */
+function settled(): Promise<void> {
+  return loadsSettled(TestBed.inject(ApplicationRef));
 }
 
 describe("certificateFilesOf", () => {
@@ -134,7 +141,7 @@ describe("CERTIFICATE_FILES", () => {
 describe("CertificatesService", () => {
   it("offers the level in play's certificate on the field's depth", async () => {
     const { certificates, game } = await certifiedWith(
-      fileHolding("hello-wall"),
+      filesCertifying(fieldDepth),
     );
 
     expect(certificates.offer()).toEqual({
@@ -145,7 +152,9 @@ describe("CertificatesService", () => {
   });
 
   it("offers the certificate of the level a new run starts at", async () => {
-    const { certificates, game } = await certifiedWith(fileHolding("stripes"));
+    const { certificates, game } = await certifiedWith(
+      filesCertifying(fieldDepth, { level: "stripes" }),
+    );
 
     await game.startAt(2);
     await settled();
@@ -158,11 +167,15 @@ describe("CertificatesService", () => {
       providers: [
         ...provideSpecPlay(playRound),
         { provide: DEBUG_MENU, useValue: true },
+        CertificatesService,
       ],
     });
     const certificates = TestBed.inject(CertificatesService);
     const game = TestBed.inject(GameService);
-    await settled();
+    // The game's own file, a dynamic import, may outlast the settling.
+    await vi.waitFor(() => {
+      expect(certificates.offer()).not.toBeNull();
+    });
     await certificates.play();
 
     playUntilCard(game);
@@ -175,7 +188,7 @@ describe("CertificatesService", () => {
 
   it("offers the certificate on the field's depth, not the one the level began on", async () => {
     const { certificates, game } = await certifiedWith(
-      fileOf({ "hello-wall": { "12": LINE, "13": [[0, 0]] } }),
+      fileOf({ "hello-wall": { "12": TWO_SHOTS, "13": [[0, 0]] } }),
     );
     const debug = TestBed.inject(DebugService);
     game.setRoom(TALL);
@@ -200,7 +213,7 @@ describe("CertificatesService", () => {
 
   it("offers none where the file holds no line on the field's depth", async () => {
     const { certificates } = await certifiedWith(
-      fileOf({ "hello-wall": { "11": LINE, "22": LINE } }),
+      fileOf({ "hello-wall": { "11": TWO_SHOTS, "22": TWO_SHOTS } }),
     );
 
     expect(certificates.offer()).toBeNull();
@@ -238,9 +251,65 @@ describe("CertificatesService", () => {
     expect(load).toHaveBeenCalledTimes(1);
   });
 
+  it("fetches a set's file once, whatever its loader reads", async () => {
+    const load = vi.fn(() =>
+      Promise.resolve({ "hello-wall": { [String(fieldDepth())]: TWO_SHOTS } }),
+    );
+    const { game } = await certifiedWith({ [SET_ID]: load });
+    game.setRoom(TALL);
+    TestBed.inject(DebugService).setDepth(12);
+    TestBed.tick();
+
+    await settled();
+
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers none of the last set's certificates while the next set's load", async () => {
+    const { certificates, game } = await certifiedWith(
+      {
+        ...filesCertifying(fieldDepth),
+        again: () => new Promise<never>(() => undefined),
+      },
+      true,
+      TWO_SETS,
+    );
+
+    await game.startAt(10);
+    await settled();
+
+    expect(certificates.offer()).toBeNull();
+  });
+
+  it("keeps the set in play's certificates as the last set's arrive late", async () => {
+    let arrive: (lines: unknown) => void = () => undefined;
+    const { certificates, game } = await certifiedWith(
+      {
+        [SET_ID]: () =>
+          new Promise((resolve) => {
+            arrive = resolve;
+          }),
+        ...filesCertifying(fieldDepth, { set: "again" }),
+      },
+      true,
+      TWO_SETS,
+    );
+    await game.startAt(10);
+    await settled();
+
+    arrive({ "hello-wall": { [String(game.shape().depth)]: TWO_SHOTS } });
+    await settled();
+
+    expect(certificates.offer()).toEqual({
+      level: 10,
+      depth: game.shape().depth,
+      rounds: 2,
+    });
+  });
+
   it("plays the level in play's line, its first shot let fly as the level waits", async () => {
     const { certificates, game } = await certifiedWith(
-      fileHolding("hello-wall"),
+      filesCertifying(fieldDepth),
     );
 
     const started = await certificates.play();
@@ -250,7 +319,7 @@ describe("CertificatesService", () => {
   });
 
   it.each<[string, CertificateFiles, boolean]>([
-    ["the debug menu isn't offered", fileHolding("hello-wall"), false],
+    ["the debug menu isn't offered", filesCertifying(fieldDepth), false],
     ["the set has no file", {}, true],
   ])("plays nothing where %s", async (_, files, menu) => {
     const { certificates, game } = await certifiedWith(files, menu);

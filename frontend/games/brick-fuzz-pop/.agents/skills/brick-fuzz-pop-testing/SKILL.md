@@ -321,6 +321,13 @@ Phaser game:
 - Play them a frame at a time: `release()`, `playOut()`, `playRoundOut()`
   and `playUntilCard()`, steered `STILL` or `RELEASE`, with
   `@fz/core/testing`'s `FRAME_MS` and `playUntil()`.
+- The settings drawer defers the debug menu, so a spec of the drawer or
+  the app renders it first (`DeferBlockState.Complete`, through
+  `fixture.getDeferBlocks()`). The menu loads its certificates from
+  `CERTIFICATE_FILES`, which a spec hands a file of its own
+  (`filesCertifying()`, in `src/testing/certificates.ts`); no pending task
+  holds the load, so a spec waits for it with `loadsSettled()`, and for the
+  game's own files, a dynamic import, with `vi.waitFor()`.
 - A component that shows the board runs it on `@fz/phaser/testing`'s
   `provideFakePhaserCanvas()`, which loads no Phaser; the board's spec also
   runs the scene it hands its canvas for real, through the library's
