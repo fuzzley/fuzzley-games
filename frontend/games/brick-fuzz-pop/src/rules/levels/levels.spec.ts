@@ -673,6 +673,15 @@ describe("the levels", () => {
     ["plumb-line", 23, 162, 282],
     ["pyramid", 23, 100, 120],
     ["gatehouse", 27, 154, 230],
+    ["fuse", 23, 162, 280],
+    ["crossroads", 23, 162, 322],
+    ["chain-reaction", 26, 189, 258],
+    ["crisscross", 27, 105, 251],
+    ["wool-socks", 23, 156, 256],
+    ["jailbreak", 23, 103, 244],
+    ["honeycomb", 27, 115, 155],
+    ["switchboard", 26, 173, 318],
+    ["powder-keg", 26, 198, 437],
   ])(
     "build %s as its draft: %s rows, %s bricks needed, %s hits",
     (id, rows, needed, hits) => {

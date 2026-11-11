@@ -124,18 +124,21 @@ describe("CERTIFICATE_FILES", () => {
     expect(Object.keys(files).filter((id) => !ids.includes(id))).toEqual([]);
   });
 
-  it("holds a line for every level of Warm-up on every depth, each of which reads", async () => {
-    const depths = MOST_DEPTH - LEAST_DEPTH + 1;
-    const warmUp = LEVELS.filter(({ set }) => set.id === "warm-up");
+  it.each(LEVEL_SETS.map(({ id }) => id))(
+    "holds a line for every level of %s on every depth, each of which reads",
+    async (setId) => {
+      const depths = MOST_DEPTH - LEAST_DEPTH + 1;
+      const levels = LEVELS.filter(({ set }) => set.id === setId);
 
-    const certificates = readCertificates(
-      await TestBed.inject(CERTIFICATE_FILES)["warm-up"]?.(),
-    );
+      const certificates = readCertificates(
+        await TestBed.inject(CERTIFICATE_FILES)[setId]?.(),
+      );
 
-    expect(warmUp.map(({ data }) => certificates.get(data.id)?.size)).toEqual(
-      warmUp.map(() => depths),
-    );
-  });
+      expect(levels.map(({ data }) => certificates.get(data.id)?.size)).toEqual(
+        levels.map(() => depths),
+      );
+    },
+  );
 });
 
 describe("CertificatesService", () => {
