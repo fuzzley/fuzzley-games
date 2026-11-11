@@ -898,3 +898,302 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   `src/scene/` entry rewritten as the scene now is, a sub-bullet a part,
   its pools named by their constants and S1's danger shown among them; S2
   off the list of packages to come. Two reviews.
+
+### U1's wiring and U2's merged (2026-11-10)
+
+- `7fe76bf2`, from the view stream: app.component wires the bar, the settings
+  with the debug section, help, levels, the result and the saved game to
+  GameService, leaving a marked slot for `<app-board>` inside `.room`; the
+  debug menu's numbers reach `RoundPlay` and `playRound()`, its depth
+  applies between rounds, a retuned run keeps no records, and every level
+  opens while the menu says so. GameService gains `boardCard()`, `runEnd`
+  (its stars from `run.stars`), the real `guide()`, `boon()` and `crew()`.
+  4,430 tests and 3 sim, 99.66 / 98.49 / 99.44 / 99.77.
+- **Contract names:** `kindIntroducedAt(level)` added to
+  `catalog/bricks.ts`, which the review asked for in place of the shell's
+  own helper; `fieldShape(viewport, depthSet = null)`. `RunState.tuned` is
+  gone again, the run off the record kept by the records' `startRun()`, so
+  `newRunState(run, start)`. `src/scene/stand_ins.ts` is gone, GameService
+  taking `Guide` from the rules; `isDepth()` makes the saved game's and the
+  menu's depth checks.
+- **A slip, harmless:** the view stream soft-reset its own WIP commit to
+  show the reviewer a staged diff, against the streams' rule of no
+  resets; nothing was lost, and it stages without committing from now on.
+- **To the art stream** with the board: the slot, `boardCard()` in place
+  of the three card signals, and that the app's `(away)` only pauses, so
+  the board calls the scene's `onPlayerAway()` too.
+- The view stream builds the certificate loader and Play the certificate
+  next, against the certificate's settled shape, with a fixture until the
+  rules stream writes Warm-up's.
+
+### P2 merged (2026-11-10)
+
+- `de89ddbe`, from the proof stream: `solveLevel()`, `replayLine()` and
+  `playCasually()` to the agreed shapes; `CertifiedShot`, `Line` and
+  `shotOf()` in a new rules file, `src/rules/levels/certificate.ts`, since
+  the shell's Play the certificate can't import `src/testing/`;
+  `src/testing/level_picture.ts` for spec levels, off `HELD_AS_RULES`
+  rightly, since only specs import it; `lower.ts` exports the danger rule,
+  which `lowerWall`, `describe.ts` and `wallScore` use. Two reviews; 4,465
+  tests. One conflict, in the workspace `AGENTS.md`'s opening, with the
+  view stream's wiring: both kept.
+- **A certificate holds** only if its replay clears, in as many rounds as
+  the line is long, and no needed brick stood at `DANGER_ROW` or lower
+  between rounds: `replayLine()` stops at the round that ends the level,
+  so a line that cleared early would pass on `cleared` alone with a wrong
+  par. Sent to the rules stream for P3.
+- **Mutation survivors kept:** `SOLVER_ROUNDS` lowered to 5 (no spec wall
+  needs more rounds) and three that weaken the seen-wall check, which only
+  saves search work; three more equivalent.
+- **Sent on:** the scene and the view switch to the danger rule (the view's
+  danger beat tested `=== 1`, not the rule's `<=`); the view reads
+  certificates through `certificate.ts`. The proof stream runs the solver
+  and the careless player over Warm-up at every depth, outside the
+  repository, as an early warning before P3 certifies for real.
+- **The early warning, from the proof stream,** outside the repository
+  (4 workers, 21 s wall, 81 s of CPU): every Warm-up level has a line on
+  every depth, all 108 found by the first search (greedy, every fourth aim,
+  beam 1) and replaying under the three-part check; the slowest Plumb line
+  on 11 at 0.81 s. Over 40 careless seeds a depth, the least any level
+  cleared was 95% (Plumb line on 11 and 13), against Warm-up's floor of 90;
+  Gatehouse cleared 100% on 11, better than §10's "sits at 90". The script,
+  reusable for later sets, stays in the session's scratchpad.
+- The proof stream builds Q2's pieces that don't wait on P3 next:
+  `playRound()`'s benchmark in `sim`, and the ten thousand random shots if
+  the random flights don't already hold them.
+
+### P3 merged (2026-11-10)
+
+- `3364d566`, from the rules stream: `yarn certify:levels` (a `worker_threads`
+  pool, `--set`, `--level` by id or number, `--depth` more than once,
+  each line found replayed through `lineHolds()` before it is written)
+  writes `src/rules/levels/certificates/<set>.json` and `par.json`, keys
+  sorted, the same bytes on a second run; `yarn report:levels` on
+  `@fz/dev/report`, 11, 13 and 22 deep at 40 games by default; the `sim`
+  specs replay every certificate and its par (`every_level/`, a file a
+  depth) and hold the careless player to its set's floor
+  (`every_floor/<set>_<depth>.spec.ts`); `--passWithNoTests` is gone. Names
+  added: `DEPTHS` in `wall.ts`, `lineHolds()` in `solver.ts`,
+  `script_api.ts`, `certify_api.ts`, `report_api.ts` (all three on
+  `HELD_AS_RULES`) and `src/testing/every_level.ts` (sim's reader of the
+  certificates, off it rightly). 4,537 tests and 138 in sim.
+- **Warm-up certified:** 108 lines in 5.6 s on 24 threads, all from the
+  first search, 2 to 10 rounds; every level clears 100 in 100 careless
+  games on 11, 13 and 22 deep but Plumb line, 95 on 11 and 13.
+- **The sim project on one worker:** 13.3 s by Vitest's count, 15.0 s of
+  wall, against §9's 100 s; the level specs 8.4 s of it.
+- `src/testing/`'s script loaders (`certify_api.ts`, `report_api.ts`,
+  `timing.ts`) show 0% and `every_level.ts` 35% in the coverage run, which
+  runs neither the scripts nor sim; the folder has no floor of its own, so
+  it shows, as `frontend/AGENTS.md` intends.
+- **A slip, harmless:** the rules stream ran `git reset -- <path>` to
+  unstage its two uncommitted stand-ins before the review, against the
+  streams' rule of no resets; nothing was lost.
+- The rebase conflicted in the workspace `AGENTS.md`'s opening again;
+  P2's text kept, P3 off the list to come.
+
+### The scene's danger from the rules, Q2's measures, and Q2 (2026-11-10)
+
+- `324b49c4`, from the scene stream: `src/scene/danger.ts` goes; the field
+  lights its danger line by the rules' `inDanger()` and counts the bricks
+  under the jump line with `neededBelow()`, and the wall frames
+  `dangerCells()` only when another wall is handed over, not each frame of
+  its ease. The look is unchanged. The view's `round_play.ts` keeps the one
+  remaining copy of the rule, which the view stream switches with the
+  certificate loader.
+- `eda5c047`, from the proof stream: `play_round.spec.ts` times `playRound()`
+  in `sim`, and `random_rounds.spec.ts` plays ten thousand seeded random
+  shots at random walls through `playRoundBy()`, `playRound()`'s own path,
+  none throwing, capped or nearer a brick than a fuzzball may come
+  (`flight.spec.ts` held 2,000 through `fly()` alone). One conflict, in
+  the workspace `AGENTS.md`'s paragraph on `sim`, with P3's: both kept.
+- **Kept:** `random_rounds.spec.ts` stays in `benchmarks/`, though it times
+  nothing, as the review noted; the folder's line in `AGENTS.md` says it
+  holds the random shots too, and a folder of its own would only add a line
+  to `sim`'s list.
+- **Q2, green** (plan.md's checkpoint table and §9, §11), measured here on
+  the integration branch:
+  - every Warm-up level certified on all twelve depths (P3, 5.6 s on 24
+    threads) and each certificate replayed with its par in `sim`;
+  - the ten thousand random shots, about 5 s;
+  - `playRound()`: median 36 µs, 99th percentile 291 µs over 6,480 rounds
+    at 108 opening walls, against 100 µs and 2 ms (the sketch: 77 µs and
+    1.85 ms); `fly()` alone 39 µs and 1.3 ms, with mates or friends 158 µs
+    and 3.0 ms; `guideOf()` 12 µs and 45 µs, hot 66 µs; `cast()` 1.8 µs and
+    10 µs;
+  - the `sim` project on one worker, as CI runs it: 150 tests in 17.6 s,
+    against 100 s; each depth's replays 0.14 to 0.2 s;
+  - `yarn report:levels`, 40 games 11, 13 and 22 deep: every level 100 but
+    Plumb line, 95 on 11 and 13; rounds 4 to 14, Gatehouse the longest.
+  - The whole workspace's `test` in CI against 195 s is timed at the
+    `yarn verify` before Q3.
+  - The implementation plan's §1 estimate of "70 to 100 seconds of CPU"
+    for the floors overstates them: P3 holds them at twenty seeds, and the
+    whole `sim` project takes 17.6 s, so §9's knob of fewer seeds isn't
+    needed.
+
+### U1's board merged: a level plays in the page (2026-11-10)
+
+- `4300da0f`, from the art stream: `<app-board>` in app.component's slot holds
+  `<fz-phaser-canvas>` and its placeholder, hands the game its room before
+  the scene's first layout, hosts the panels outside its
+  `role="application"` element and the cards, and carries what T1 reads
+  (`data-field` from the lintel's top to the band's bottom, `data-room`,
+  `data-wall`, `data-panels`, `data-outcome`, and `data-depth` besides,
+  which plan.md's T1 checks; `--down`, `--pixel-ratio`; the frame an
+  outline). `refocusWhenUncovered(board, game.runs)` gives the board the
+  focus, and the bar's and the card's Resume give it back. Contract name
+  added: `FieldMetrics.framed`. Two reviews; checked in headless Chrome
+  over the real app with no console errors. 4,618 tests and 150 in sim.
+- **The player looking away:** the board doesn't call the scene; the scene
+  already uses `@fz/phaser`'s `onPlayerAway()` on the board's element,
+  Phaser's keyboard target, and a board spec checks that the focus leaving
+  lets a held key go.
+- **The art stream rebased without a stash:** it copied its changes aside,
+  restored the files, rebased and reapplied them with `git apply --3way`.
+- **Next, toward Q3:** the shell stream runs T1 over a build and commits
+  it; the art stream brings the workspace `AGENTS.md` up to date for the
+  board; the scene stream plays the game in a browser as the user will at
+  Q3, taking screenshots; the integrator runs `yarn verify`.
+- **The first `yarn verify` over the board:** lint (35 s) and typecheck
+  (37 s) passed; `test` failed on one spec, `fly.spec.ts`' benchmark, timed
+  out at 5 s (5.3 s; about 2 s alone). The workspace's `test` runs `sim` beside
+  `dom` and `pure`, and the root runs four workspaces at once, as CI does,
+  with three agents' runs loading the machine besides. The rules stream
+  gives the `sim` specs that run long an explicit timeout from one named
+  constant; `verify` runs again after.
+- **The root `yarn build`** passes (17 s), the site copying the game to
+  `play/brick-fuzz-pop/`. The game's code is 413 KB (`index-*.js`), over
+  §9's 1.2 × Brick Breaker's 339 KB (407 KB) by 6 KB; the scene's chunk 31
+  KB, under its 51 KB. F1 holds the bundle, after Q3; noted for it.
+- `9a4c3aaa`, from the art stream: the workspace `AGENTS.md` describes the
+  board (its opening, `src/view/field/`'s `framed`, app.component's focus,
+  and `board/`), and GameService's `onPictures()` and `pictures` docs say
+  the board hands the pictures on once the atlas settles. It overlaps the
+  view stream's certificate commit in the same two `AGENTS.md` paragraphs;
+  the second to merge keeps both, and "the rest of U1" leaves the opening's
+  list then, U1 being done.
+
+### The Q3 browser check (2026-11-10)
+
+- The scene stream played the game in a browser as the user will at Q3:
+  keys, a mouse pointing and holding and pulling back, touch pulling back;
+  the jump, the hot shot, the danger frames, Cleared, a level lost and
+  tried again; every setting applied at once; `?debug`'s numbers, depth and
+  levels; a phone turned mid-round, pausing, keeping its unit and depth
+  until the fuzzball landed, then refitting with the wall the same rows
+  from the floor. No console error or warning. Headless frames: median 16.7
+  ms, p95 33 ms, flights no worse than idle; the headed trace's frame
+  callback 0.83 ms at the median. 44 screenshots, kept outside the
+  repository for the user.
+- **Its findings, and who fixes each:**
+  1. The lintel never says how many rows wait, which plan.md's decision 6
+     gives it; on an upright phone the count then shows nowhere. The art
+     stream, on the board.
+  2. Try again takes two keyboard presses: the result card opens on its
+     title, for a player still holding Space, and Enter there does
+     nothing; plan.md says "Try again is one press". The shell stream.
+  3. The bar's score and rounds change at release, ahead of the
+     playback's breaks. The view stream.
+  4. The announcer says "charge 0" for a hot shot. The view stream.
+  5. How to play says the hot shot bounces "1 time". The shell stream.
+  6. A landing's words used the depth before a turn. The view stream.
+  7. The guide's dots can cover the jump line's count dots. The scene
+     stream.
+- `bacf0065`, from the rules stream: `SIM_TIMEOUT_MS`, a minute, in
+  `src/testing/timing.ts`, taken by every `sim` suite whose tests can run
+  past half a second alone (fly about 2 s, guide 1.6 s, cast 0.7 s,
+  play_round 0.5 s, the random rounds' batches 0.4 to 0.6 s) and by the
+  floors' suites, which later sets make up to twice as long; the
+  certificates' replays, 20 ms at most, take none. Through
+  `describe(name, { timeout }, …)`, with `@fz/dev` and `vitest.config.ts`
+  untouched. The workspace's `test` with one worker and 36 busy threads
+  beside it (load 46): 4,768 tests in 105 s, against Q2's 195 s for CI.
+- **A slip, harmless:** the rules stream ran `git checkout --` on a folder
+  to drop its own uncommitted edits, against the streams' rules; nothing
+  else was touched.
+- `faaa9706`, from the scene stream (finding 7): the jump line's count is drawn
+  over the guide, on a `count` layer between `guide` and `bursts`, and
+  the guide skips a dot that would stand nearer a count dot than the
+  count's groups stand to each other (0.22 units edge to edge), since a
+  guide dot is only 0.025 units smaller and would peek out round one;
+  moving the count was refused, as plan.md puts it at the line's end. One
+  review, no bug; 4,621 tests and 150 in sim.
+- `77593e1d`, `3c68bc1c` and `78a950b6`, from the view stream:
+  - Play the certificate: `CertificatesService` loads
+    `src/rules/levels/certificates/*.json` lazily through
+    `CERTIFICATE_FILES`, `readCertificates()` dropping what it can't trust,
+    and `GameService.playLine()` plays the line on `RULES`, off the record
+    (`RunStart.certified`). The danger beat takes `inDanger()`.
+  - `levelMarksOf()` takes `everyOpen`, so the Levels dialog opens every
+    level while the debug menu says so.
+  - Findings 3, 4 and 6: the bar's score counts each break's points as the
+    flight plays it back, and a jump's points, the stars and the round as
+    it lands (the run, the saved game and the records still take the round
+    in at release, so the Levels dialog shows a level cleared during its
+    last flight); the Paused card and the pause words show the bar's score;
+    a hot shot is said as one ("62 degrees, hot shot", through an optional
+    `boon` on `describeShot()`); a round's end words use the next round as
+    aimed, on the field's depth then.
+  - Names added: `RunStart.certified`, `GameService.playLine()`,
+    `CertificatesService`, `CERTIFICATE_FILES`, `certificateFilesOf()`,
+    `readCertificates()`, `lineOf()`, `SetCertificates`, `RoundPlay.scored`,
+    and `scored` on `RunState` and `PlayState`. Three reviews; 4,695 tests
+    and 150 in sim, 98.58 / 97.3 / 97.69 / 98.73.
+- `018eb514`, from the shell stream, T1: `tools/check-layout.mjs` on
+  `checkPhaserLayout()`, `across: 9`, `down: "--down"`, the panels a deck
+  `allOrNone`, and the game's own inspection (a unit of 24 CSS px or more,
+  the unit, depth, band and lintel worked out from `data-room` as
+  `fieldShape()` does, the field in its room and filling it, panels only
+  where 184 px a side are spare). Every shape passes over a build: roomy,
+  the large, small and smallest phones upright and on their side, and a
+  phone turned each way.
+  - **The 1-px resize at 2× on a small phone on its side:** no slack
+    needed; the board writes its room once (480 × 296, a 24 px unit, 11
+    rows, no panels) and never resizes.
+  - **The wall after a turn** is held while the level is ready, on the row
+    it opens on at the new depth, since `takeDepth()` starts a level with
+    no round played again on the new depth; holding it through a turn
+    mid-run needs a kept run taken up, which T2's kept run (C9) brings.
+    plan.md's and the implementation plan's T1 words on it, and
+    `wallRow`'s doc in board.component.ts, to be brought to that.
+- `81b53b6c`, from the shell stream (findings 2 and 5): Enter on the result
+  card's title presses its first button, Try again or New game after a
+  win, as it goes down, its repeats, an Enter pressed before the card
+  opened and Ctrl, Alt or Meta with it pressing nothing; the card still
+  opens on its title, so a held Space presses nothing (Brick Breaker's
+  focuses Try again, which a held Space presses as it's let go; Asteroid
+  Breaker's opens on its title with no Enter). The hot shot bounces
+  "once" (`howOften()`). The opening's list to come starts at T2.
+- **The plans brought to T1:** plan.md's "The layout check" and the
+  implementation plan's T1 now hold the wall on the row a level opens on at
+  the field's depth, and T2 gains the kept run taken up with a round
+  played, its wall held the same rows from the floor through both turns.
+- **`yarn verify` over the branch, again,** at `81b53b6c`: green in 175
+  s, Brick Fuzz Pop's 4,856 tests among every workspace's (its `test` runs
+  every project, `sim`'s 150 among them, where the counts the coverage runs
+  give stand apart from sim's), its own `test` 21.6 s by Vitest's count
+  beside the others, against Q2's 195 s for CI; then the root
+  `yarn check:layout` green in 17 s, Brick Fuzz Pop's layout holding at
+  each shape and turn beside Sudoku's, Brick Breaker's, Asteroid Breaker's
+  and Snake's.
+- `1a0d307b`, from the art stream (finding 1): the lintel says "5 rows
+  waiting", "1 row waiting" or "No rows waiting", from
+  `GameService.rowsLeft()`, the bar's own number, sized to the lintel less
+  the ceiling's line (14 px, 8 px on the thinnest 12 px lintel), at 8.75:1
+  or more against the band in all four palettes. Screen readers skip it
+  where the bar's Rows left or Coming next shows, and read it as page text
+  elsewhere, not as a live region, which would speak over the announcer's
+  round words. The Ready card's layer starts under the lintel. `wallRow`'s
+  doc says what T1 holds. Three reviews; 4,721 tests in the coverage run
+  and 150 in sim; the game builds, its layout check holds at every shape
+  and turn, and the root lint passes. The root `yarn verify` last ran at
+  `81b53b6c`, the merge before; this one changed the game's workspace
+  alone, and its own checks ran over it.
+  - **Left for later:** `lintelHidden` repeats the bar's `fitsEveryFigure`
+    condition, so the two change together; and the announcer could end a
+    step's and a jump's words with the rows waiting
+    (`src/rules/run/describe.ts`).
+- **Ready for Q3.** Total coverage reads 96.97 / 95.01 / 97.44 / 97.01
+  since T1: `tools/check-layout.mjs` runs in no spec, as no game's layout
+  check does, and `tools/` has no floor; every floored folder holds.
