@@ -37,6 +37,7 @@ import {
   fieldMetrics,
   hasRoom,
 } from "../../view/field/field_metrics";
+import { showsEveryFigure } from "../bar/figures";
 import { ComingNextComponent } from "../panels/coming_next.component";
 import { InThisWallComponent } from "../panels/in_this_wall.component";
 import { GameService } from "../play/game.service";
@@ -252,13 +253,11 @@ export class BoardComponent {
   /**
    * Whether the lintel's count is hidden from assistive technology, as
    * "true" or null: where the page says it already, in Coming next beside
-   * the field, or in the bar's Rows left, which the bar shows from the width
-   * its actions keep their labels at, unless the window is compact, as
-   * `BarComponent`'s `fitsEveryFigure` says.
+   * the field, or in the bar's Rows left, where the bar shows every figure
+   * (`showsEveryFigure()`).
    */
   protected readonly lintelHidden = computed(() =>
-    this.panelStyles() !== null ||
-    (!this.viewport.isCompact() && this.viewport.fitsActionLabels())
+    this.panelStyles() !== null || showsEveryFigure(this.viewport)
       ? "true"
       : null,
   );

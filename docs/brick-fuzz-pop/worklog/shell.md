@@ -1784,3 +1784,50 @@ keys, runs only in Chrome; running it is its check.
 5. **`KeptGame` named two things in the workspace; `ScriptRun.shots` had
    no doc; `FIELD`'s doc named only Ready's card.** Fixed:
    `ScriptSavedGame`, a doc line, and Paused's card named.
+
+### The bar's figures and the lintel's count: one condition
+
+**2026-11-11.** At the integrator's word: the board's `lintelHidden`
+repeated the bar's `fitsEveryFigure`.
+
+**What was built.** `src/app/bar/figures.ts`'s `showsEveryFigure()` says
+whether the game bar shows every figure, the level, the rows left and the
+crew: from the width its actions keep their labels at, unless the window
+is compact. The bar's `fitsEveryFigure` and the board's `lintelHidden`
+both call it, the board hiding the lintel's count where the bar or Coming
+next says it. The bar's class doc and the game's `AGENTS.md` say it.
+
+**Choices the plan didn't make.**
+
+1. **A function of the viewport, in the bar's folder,** rather than a
+   signal of a service of its own: the condition is the bar's, and the
+   board reads it as the bar does, each in a `computed()` that follows
+   the viewport's signals through it. It takes only the two signals it
+   reads, so its spec hands it two.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`) pass, `figures.ts` covered in full, and the root's
+`yarn lint`.
+
+**The mutation pass.** 5 mutants: a compact window fitting every figure,
+every width fitting them, the bar always showing them, the board
+ignoring the bar, and the board ignoring the panels. All were killed, the
+last two by the board's specs of the lintel, which were there before.
+Run again after the review, with the function renamed and the phone's
+row added: all 5 killed, and a sixth, the condition true where exactly
+one of compact and too narrow holds, is killed by the phone's row.
+
+**The review:**
+
+1. **The doc's first paragraph was two sentences.** Fixed: the second,
+   which the signals' types say anyway, is gone.
+2. **The bar's class doc said the figures follow the width alone,** where
+   a compact window as wide as a desktop shows the rounds and the score
+   alone. Fixed: "unless the window is compact (`showsEveryFigure()`)".
+3. **No row of the spec was a phone,** compact and too narrow, so a body
+   true where exactly one holds passed it. Fixed: an upright phone's row.
+4. **The board's new import broke the file's order.** Fixed: after
+   `../../view/`, before `../panels/`.
+5. **The function and the bar's field shared a name,** reading as
+   recursion. Fixed: the function is `showsEveryFigure()`; the bar's
+   field, which its template binds, keeps its name.

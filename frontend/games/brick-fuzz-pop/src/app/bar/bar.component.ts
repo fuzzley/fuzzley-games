@@ -17,6 +17,7 @@ import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { CrewComponent } from "./crew.component";
 import { FastForwardComponent } from "./fast_forward.component";
+import { showsEveryFigure } from "./figures";
 import { SkipComponent } from "./skip.component";
 
 /** Names an action the overflow menu offers. */
@@ -26,10 +27,11 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
  * Shows the game bar: the link home, the game's name, the figures, and the
  * actions, from what it is handed, asking the app for each action.
  *
- * From the desktop width (`fitsActionLabels`), the figures are the level,
- * the rounds against par, the rows left, the score and the crew, the
- * player's fuzzball and each friend in its ink; below it, the rounds and the
- * score alone, as the Ready card, the lintel and the panels give the rest.
+ * From the desktop width (`fitsActionLabels`), unless the window is compact
+ * (`showsEveryFigure()`), the figures are the level, the rounds against
+ * par, the rows left, the score and the crew, the player's fuzzball and
+ * each friend in its ink; otherwise the rounds and the score alone, as the
+ * Ready card, the lintel and the panels give the rest.
  *
  * Every action is round at every size, its name heard and shown under the
  * pointer, which is what leaves room for the five figures. Pause,
@@ -131,8 +133,8 @@ export class BarComponent {
   );
 
   /** Whether the bar has room for the level, the rows left and the crew. */
-  protected readonly fitsEveryFigure = computed(
-    () => !this.viewport.isCompact() && this.viewport.fitsActionLabels(),
+  protected readonly fitsEveryFigure = computed(() =>
+    showsEveryFigure(this.viewport),
   );
 
   /** The rounds against par, as "4/9". */
