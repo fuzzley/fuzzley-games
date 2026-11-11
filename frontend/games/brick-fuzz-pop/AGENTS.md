@@ -13,12 +13,11 @@ says how any game here is drawn with Phaser. Paths are relative to
 The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
-places the bar, the dialogs, the settings drawer and the result card, each
-wired to the game, but not yet the board, so the field isn't drawn and no
-run can be played in the page. The site lists it as in development, its
-build shipping no screenshots yet. What the plan's packages still to come
-build (the rest of U1, the rest of U2, T1 and T2, then X1 to X3, Y1 to Y3,
-D1, F1, Z1 and Z2) isn't here yet.
+places the board, the bar, the dialogs, the settings drawer and the result
+card, each wired to the game, so a run can be played in the page. The site
+lists it as in development, its build shipping no screenshots yet. What
+the plan's packages still to come build (the rest of U1, the rest of U2,
+T1 and T2, then X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -203,12 +202,14 @@ helpers.
 - **`src/view/field/`** — `field_metrics.ts`: the field's shape a canvas's
   room holds (`fieldShape()`: a unit in whole device pixels, 11 to 22 rows,
   or the depth the debug menu sets, the floor's band, the lintel and
-  whether panels fit beside it), where it
-  lies on the canvas (`fieldMetrics()`, which keeps a shape's unit through
-  a pixel's resize mid-flight), whether a canvas has room for any field
-  (`hasRoom()`), and `toCanvas()` and `toField()` between field units and
-  device pixels, which write into a place handed to them. The margin is the
-  canvas's insets (`MARGIN_CSS_PX`), and the field's frame lies in it.
+  whether panels fit beside it), where it lies on the canvas
+  (`fieldMetrics()`, which keeps a shape's unit through a pixel's resize
+  mid-flight, gives the cells and, in CSS pixels, the panels and the field
+  from the lintel's top to the band's bottom, `framed`), whether a canvas
+  has room for any field (`hasRoom()`), and `toCanvas()` and `toField()`
+  between field units and device pixels, which write into a place handed
+  to them. The margin is the canvas's insets (`MARGIN_CSS_PX`), and the
+  field's frame lies in it.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`; `steering.ts`'s `Steering` turns the keys, the
   mouse, the wheel and fingers into each frame's `Steer`, the aim, the
@@ -322,14 +323,15 @@ helpers.
     (`MOST_SHARDS_FLYING`), a punch's streak, a zap's bolt, a blast's ring
     and a freed friend's hop, each but the shards through `@fz/core/turns`,
     the jump line's flash and a lost level's shake.
-- **`src/app/`** — the shell, one folder per feature. `app.component`
-  places the bar, the announcer, the result card over an ended run, the
-  Levels dialog (every level open while the debug menu opens them), How to
-  play, handed the scene's pictures only while it is open, the settings
-  drawer and the question before a run is lost, each wired to
-  `GameService`, and pauses the level in play as the player looks away
-  from the room (`[fzPlayRoom]`). The board's place in the room is a marked
-  slot until `<app-board>` is built.
+- **`src/app/`** — the shell, one folder per feature. `app.component` places
+  the board in the room the bar leaves it, then the bar, the announcer, the
+  result card over an ended run, the Levels dialog (every level open while
+  the debug menu opens them), How to play, handed the scene's pictures only
+  while it is open, the settings drawer and the question before a run is
+  lost, each wired to `GameService`; hands the board the focus as the page
+  loads, as each run begins and as the last dialog over the board closes
+  (`refocusWhenUncovered()`), and after the bar's Resume; and pauses the
+  level in play as the player looks away from the room (`[fzPlayRoom]`).
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
     asking for each action: from the desktop width (`fitsActionLabels`),
     the level, the rounds against par, the rows left, the score and the
@@ -340,18 +342,39 @@ helpers.
     play and Settings move into the overflow menu. `<app-crew>` draws a
     crew in a row, the player's fuzzball in the accent, then each friend
     in its ink, for the bar and the Cleared card.
-  - `board/` — the cards over the field, `<app-board-card>`, handed the
-    one to show (`BoardCard`) and what it shows: Ready, the level's number
-    and name, what its jumps earn, the kind of brick it brings in and, on
-    a phone on its side, that the game is larger upright; Paused, the
-    score, then Resume; Cleared, the stars, the rounds against par, the
-    tally, the score and the crew, then Next level; and Ended, once a
-    run's result is closed, where the run was lost or the trophy, the
-    score, then Try again from the level or New game. It reads the field's
-    margin from `--margin`, which whatever lays it out sets, shows none of
+  - `board/` — the board, `<app-board>`, and the cards over its field. The
+    board holds `<fz-phaser-canvas>`, loading its scene only once the canvas
+    asks, and, until the scene has drawn, a placeholder of the empty field
+    where the scene will lay it out. It measures itself as it is first drawn
+    (`canvasRoom()`) and hands `GameService` the room (`setRoom()`) before
+    the scene's first layout and at each measure after; hands the scene plain
+    functions over `GameService` (`WallSceneOptions`); sets the drawn gate
+    from the canvas's state; and hands the game a later bake's pictures only
+    once the atlas has settled (`PICTURES_SETTLE_MS`), reading them only
+    while the panels or the Ready card show them. Only its `.play` element is
+    the application, named for the level and described by its keys, around
+    the canvas and the focus ring; the panels and the card are its siblings,
+    read as a page is. The board puts the focus on `.play` for a press on it,
+    from `focus()` after the next render, and back from a card's button
+    before the game moves on. For T1's layout check, still to come, it
+    publishes `data-field` (from the lintel's top to the band's bottom),
+    `data-room`, `data-panels` (`""` where none show), `data-depth`,
+    `--across` and `--down`, each once the scene has laid the field out, and,
+    from the start, `data-outcome`, `data-wall` and `--pixel-ratio`. It sets
+    `--margin`, the canvas's insets, which the cards keep too; `--frame`, for
+    the placeholder's frame and the focus ring; and `--lintel`, `--band` and
+    `--band-ink`, for the placeholder. The cards are `<app-board-card>`,
+    handed the one to show (`BoardCard`) and what it shows: Ready, the
+    level's number and name, what its jumps earn, the kind of brick it brings
+    in and, on a phone on its side, that the game is larger upright; Paused,
+    the score, then Resume; Cleared, the stars, the rounds against par, the
+    tally, the score and the crew, then Next level; and Ended, once a run's
+    result is closed, where the run was lost or the trophy, the score, then
+    Try again from the level or New game. `<app-board-card>` reads the
+    field's margin from `--margin`, which the board sets, shows no card of
     its own while the canvas's cards (`<fz-canvas-cards>`), projected into
-    it, show one, keeps its buttons' keys from Phaser's keyboard, and
-    hands on each press.
+    it, show one, keeps its buttons' keys from Phaser's keyboard, and hands
+    on each press.
   - `panels/` — the two panels beside a wide room's field, each a region
     named by its heading, taking no pointer and no size of its own, to be
     laid over its room with `cssRectStyle()`: Coming next,
