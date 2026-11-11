@@ -299,7 +299,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   /** Where the field and its panels lie on the canvas, as the scene last laid them out, or null before it has. */
   readonly metrics = this.metricsState.asReadonly();
 
-  /** What returns a picture of every kind of brick, as the scene last baked them, or null before it has. */
+  /** What returns a picture of every kind of brick, as the board last handed them on, or null before it has. */
   readonly pictures = this.picturesState.asReadonly();
 
   /**
@@ -481,7 +481,11 @@ export class GameService extends RunLifecycle implements KeptGame {
     this.metricsState.set(metrics);
   }
 
-  /** Takes what returns a picture of every kind of brick, each time the scene bakes them. */
+  /**
+   * Takes what returns a picture of every kind of brick, as the board hands
+   * them on: the scene's first bake's at once, a later one's once the atlas
+   * settles.
+   */
   onPictures(pictures: () => Pictures): void {
     this.picturesState.set(pictures);
   }

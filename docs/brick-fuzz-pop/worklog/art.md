@@ -1505,3 +1505,62 @@ view stream's wiring.
      loops: `advanceSceneUntil()` now, failing past the flight's limit.
   10. The ring mixin's `:host(:focus-visible)` rule never matches: a
       comment says `.play` holds the focus.
+
+### The board in the workspace's AGENTS.md
+
+**2026-11-10.** The integrator's docs package after U1's board merged:
+`frontend/games/brick-fuzz-pop/AGENTS.md` brought up to the board, only
+where it was behind, and `GameService`'s two docs of the pictures.
+
+- **Changed.**
+  - The opening: the shell places the board too, so a run can be played
+    in the page, where it said the board wasn't there yet.
+  - `src/view/field/`: `fieldMetrics()` gives `framed`, the field from the
+    lintel's top to the band's bottom in CSS pixels, with the cells and
+    the panels.
+  - `src/app/`: `app.component` places the board, and hands it the focus
+    as the page loads, as each run begins, as the last dialog over it
+    closes (`refocusWhenUncovered()`) and after the bar's Resume, where the
+    entry said the board's place was a marked slot.
+  - `board/`: `<app-board>` first, what it holds, how it measures and
+    hands the game the room before the scene's first layout, the drawn
+    gate, the pictures handed once the atlas settles and read only where
+    shown, the application and its focus, and the attributes it publishes
+    for T1's layout check, still to come; then the cards as they were,
+    their margin set by the board.
+  - `src/app/play/game.service.ts`: `pictures`' doc and `onPictures()`'s
+    say the board hands the pictures on, the first bake's at once and a
+    later one's once the atlas settles, where they said each bake's.
+- **For the integrator.** `bfp/view`'s tip, the certificate loader,
+  finished and rebased onto the board, edits this `AGENTS.md`'s opening
+  (dropping "the rest of U2") and `app.component`'s sentence (the settings
+  drawer "handed the debug menu's certificate"), so whichever merges
+  second conflicts there; the merged text keeps both edits. Its
+  `game.service.ts` changes leave the two docs' lines alone. Whether
+  anything of U1 is left for the opening's "the rest of U1" is the
+  integrator's to say; the line is as it was.
+- **Checks.** The root's `yarn lint`, which checks every `AGENTS.md`'s
+  paths and links and the formatting, and the workspace's `lint` and
+  `typecheck` pass. Only docs changed, two of them comments, so no specs
+  and no mutation pass.
+- **The review:** nine comments, each taken but the eighth.
+  1. The `board/` entry spoke of the layout check as if it ran: it is T1,
+     still to come, and the entry says so; the custom properties now say
+     what each is for, `--margin` the canvas's insets and `--frame` the
+     ring's too.
+  2. `bfp/view`'s tip is finished, not set aside, and edits this file
+     too: `GameService`'s docs are changed here, as its commit leaves
+     their lines alone, and the overlap in `AGENTS.md` is named for the
+     integrator.
+  3. `fieldMetrics()`'s list hung off "mid-flight": reworded.
+  4. "`GameService`'s options": plain functions over it
+     (`WallSceneOptions`).
+  5. The app's "the last dialog over it" read as the page's: "over the
+     board"; the log's "where it said" too.
+  6. The board's "It takes the focus" could have meant the card: the
+     board puts it on `.play`, and the game "moves on".
+  7. "The card reads" after "the cards are": `<app-board-card>` reads,
+     and "shows no card of its own".
+  8. "The rest of U1" may be stale: left to the integrator, as the brief
+     touched only the four places.
+  9. "the board …, the bar": "then the bar".
