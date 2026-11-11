@@ -12,6 +12,7 @@ import {
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { type CageLook, FRAMES, type Ink } from "../frames";
 import { ACROSS, bandAlong, cellOf } from "../symbols";
 import { tileBody, tileCommands } from "./brick";
@@ -54,9 +55,9 @@ function cagedAt(
   return frameNamed(CAGE_ART.frames(palette, scale), FRAMES.caged(ink));
 }
 
-/** Returns a cage of two hits with some left, of a tint. */
-function cage(hits: number, tint = 0) {
-  return { tint, hits, full: 2, plates: 0 } as const;
+/** Returns a cage's look as its art reads it: its hits left of the 2 it had whole, and its tint. */
+function cage(hits: number, tint = 0): KindLook {
+  return { tint, hits, full: 2, plates: 0 };
 }
 
 /** Returns a bar of the cage at 31 CSS pixels a unit, 2 device pixels to one, from its left edge, in a color: 3 pixels wide, from 12 pixels down to 50. */

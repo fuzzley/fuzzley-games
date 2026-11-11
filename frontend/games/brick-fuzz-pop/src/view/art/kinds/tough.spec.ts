@@ -15,6 +15,7 @@ import {
   distanceToSegment,
   pastRoundRect,
 } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { atlasFrames } from "../atlas_frames";
 import { cellOf } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
@@ -32,9 +33,9 @@ function detailedScales(pixelRatio: number): readonly ArtScale[] {
   }));
 }
 
-/** Returns a tough brick of a tint, with hits left of those it had whole. */
-function tough(tint: number, hits: number, full: number) {
-  return { kind: "tough", tint, hits, full, plates: 0 } as const;
+/** Returns a tough brick's look as its art reads it: its tint, and its hits left of those it had whole. */
+function tough(tint: number, hits: number, full: number): KindLook {
+  return { tint, hits, full, plates: 0 };
 }
 
 /** Returns the circles a frame draws in the marks' color. */

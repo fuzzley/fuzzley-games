@@ -15,6 +15,7 @@ import {
   billionths,
   everyScale,
 } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { FRAMES, THICK_HITS } from "../frames";
 import { cellOf } from "../symbols";
 import { SHELL_ART } from "./shell";
@@ -27,9 +28,12 @@ const CELL = cellOf(ART_SCALE).width;
 /** The most hits the catalog gives a shell brick. */
 const MOST_HITS = brickKind("shell").mostHits;
 
+/** One hit more than any of its frames shows pips for. */
+const PAST_PIPS = Math.max(...THICK_HITS) + 1;
+
 /** Returns a shell brick's look as its art reads it: its hits left of those it had whole. */
-function shell(hits: number, full = MOST_HITS) {
-  return { tint: 0, hits, full, plates: 0 } as const;
+function shell(hits: number, full = MOST_HITS): KindLook {
+  return { tint: 0, hits, full, plates: 0 };
 }
 
 /** Returns the shell's frames at a scale, by name. */
@@ -102,10 +106,13 @@ describe("SHELL_ART", () => {
     expect(SHELL_ART.layersOf(shell(2))).toBe(SHELL_ART.layersOf(shell(2)));
   });
 
-  it.each([0, Math.max(...THICK_HITS) + 1])(
-    "throws for a shell with %i hits left, which no frame shows",
-    (hits) => {
-      expect(() => SHELL_ART.layersOf(shell(hits, hits))).toThrow(RangeError);
+  it.each([
+    [0, MOST_HITS],
+    [PAST_PIPS, PAST_PIPS],
+  ])(
+    "throws for a shell with %i hits left of %i, which no frame shows",
+    (hits, full) => {
+      expect(() => SHELL_ART.layersOf(shell(hits, full))).toThrow(RangeError);
     },
   );
 

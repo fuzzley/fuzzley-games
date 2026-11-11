@@ -23,6 +23,7 @@ import {
 import { PALETTES } from "../../../testing/roles";
 import { TINT, inkAt } from "../../colors/inks";
 import { FIELD_ROLES, wallPalette } from "../../colors/palette";
+import type { KindLook } from "../art";
 import { FRAMES, THICK_HITS } from "../frames";
 import { cellOf } from "../symbols";
 import { tileBody, tileCommands, tileRadius } from "./brick";
@@ -36,9 +37,12 @@ const SHADOW = mixColors(0x000000, inkAt(ART_PALETTE.tints, TINT.green), 0.38);
 /** The most hits the catalog gives a moss brick. */
 const MOST_HITS = brickKind("moss").mostHits;
 
+/** One hit more than any of its frames shows pips for. */
+const PAST_PIPS = Math.max(...THICK_HITS) + 1;
+
 /** Returns a moss brick's look as its art reads it: its hits left of those it had whole. */
-function moss(hits: number, full = MOST_HITS) {
-  return { tint: 0, hits, full, plates: 0 } as const;
+function moss(hits: number, full = MOST_HITS): KindLook {
+  return { tint: 0, hits, full, plates: 0 };
 }
 
 /** Returns the moss's frames at a scale, by name. */
@@ -120,10 +124,13 @@ describe("MOSS_ART", () => {
     expect(MOSS_ART.layersOf(moss(2))).toBe(MOSS_ART.layersOf(moss(2)));
   });
 
-  it.each([0, Math.max(...THICK_HITS) + 1])(
-    "throws for a moss brick with %i hits left, which no frame shows",
-    (hits) => {
-      expect(() => MOSS_ART.layersOf(moss(hits, hits))).toThrow(RangeError);
+  it.each([
+    [0, MOST_HITS],
+    [PAST_PIPS, PAST_PIPS],
+  ])(
+    "throws for a moss brick with %i hits left of %i, which no frame shows",
+    (hits, full) => {
+      expect(() => MOSS_ART.layersOf(moss(hits, full))).toThrow(RangeError);
     },
   );
 

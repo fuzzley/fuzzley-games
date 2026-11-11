@@ -7,6 +7,7 @@ import {
   billionths,
   inBillionths,
 } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { PLAIN_ART, tileBody, tileCommands, tileFrame } from "./brick";
 
 const CELL = { x: 0, y: 0, width: 50, height: 50 };
@@ -122,13 +123,7 @@ describe("tileCommands at 31 CSS pixels a unit", () => {
 });
 
 describe("PLAIN_ART", () => {
-  const brick = {
-    kind: "brick",
-    tint: 5,
-    hits: 1,
-    full: 1,
-    plates: 0,
-  } as const;
+  const brick: KindLook = { tint: 5, hits: 1, full: 1, plates: 0 };
 
   it("shows a brick as the plain tile in its tint", () => {
     expect(PLAIN_ART.layersOf(brick)).toEqual(["tile-5"]);
