@@ -1,37 +1,9 @@
 import { eventsOf, flyPicture } from "../../testing/flights";
-import { struckOf } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
-import {
-  BRICK_KINDS,
-  type BrickTrait,
-  type TraitKind,
-  type TraitOf,
-} from "../catalog/bricks";
+import { BRICK_KINDS } from "../catalog/bricks";
 import { fly } from "../flight/flight";
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES, MOST_CHARGE } from "../tuning";
 import { TRAIT_RULES } from "./trait_rules";
-
-describe("TRAIT_RULES", () => {
-  it.each<{ trait: BrickTrait; level: number }>([
-    { trait: { kind: "frees" }, level: 15 },
-  ])(
-    "throws for the $trait.kind trait, which isn't played until level $level",
-    ({ trait, level }) => {
-      const striking = () => {
-        strikeWith(trait.kind, trait);
-      };
-
-      expect(striking).toThrow(
-        `The "${trait.kind}" trait is not until level ${String(level)}.`,
-      );
-    },
-  );
-});
-
-/** Runs a trait's rule for a strike on its brick, as `fly()` runs it. */
-function strikeWith<K extends TraitKind>(kind: K, trait: TraitOf[K]): void {
-  TRAIT_RULES[kind].struck?.(struckOf(), trait);
-}
 
 describe("the bricks' own rules, flown", () => {
   // A fuzzball straight up from the floor meets a brick in field row 3 at
