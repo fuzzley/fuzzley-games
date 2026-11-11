@@ -332,3 +332,123 @@ change had a second review, which found the first's fixes right and:
     themselves at 31 px a unit (7 or 8 in a group, 11 between). The
     pictures' spec held only the tough brick's look: it now holds each
     kind's, steel's at no hits among them.
+
+### S1b: the danger shown, the run's keys specced, and the sprite's map handed over
+
+**2026-11-10.**
+
+S1's open items, as the integrator asked once S1 was merged.
+
+**What was built.**
+
+- The danger, as `plan.md`'s "The wall" asks: a brick the level needs in
+  the row over the floor's takes a warning frame, and the danger line
+  brightens. `danger.ts` says when: `DANGER_ROW` (1), along whose foot the
+  line runs, `endangers()`, for a cell, and `inDanger()`, for the wall,
+  each counting the floor's row too, which a needed brick reaches only on
+  the step that loses the level.
+  - `field_art.ts`: `FIELD_FRAMES.warning`, a frame of the scene's own
+    baked into the atlas with the dots: a cell, a band of the danger line's
+    color in along its edge and a seam of the field's color inside it,
+    each an `outlineRoundRect()`.
+  - `WallPainter.warnings`: 18 images, made once, a cell each of the
+    floor's row and the row over it, after every brick's stack in the
+    wall's layer, so over it, each shown over a brick the level needs
+    there, coming down with the wall as it eases.
+  - `FieldPainter`: while one stands there, the danger line is solid across
+    the field and twice as thick as its dashes, drawn again as the danger
+    comes and goes, though the count stays.
+- The scene's spec holds the run's other keys, P, X, R and the keypad's
+  Enter, to V2's commands.
+- `tools/build-sounds.spec.ts` drops its case of the sprite's map, which
+  its comment handed to the scene's spec, which holds it.
+
+**Choices the plan didn't make.**
+
+1. **The warning frame is the scene's own, baked.** `FRAMES` names none,
+   and no tint recolors A2's `guide-punch` outline, drawn in the field's
+   text, near black in the light palettes; so the scene bakes one with
+   `outlineRoundRect()` into the atlas, as it does its dots, and A2 needs
+   no new frame.
+2. **It is in the danger color, not the warning color,** with a seam of
+   the field's inside it. The zappers are drawn in the warning color, so a
+   frame of it would run into their bodies; the danger color is near the
+   red tile's, so the seam keeps the band apart from any tile; and the
+   frame is told by its shape too, as "Accessibility" asks ("the danger by
+   a line, a frame and words"). W11's bomb, a tile in the danger color,
+   will have only the seam, a CSS pixel, between band and tile: its
+   package should look at the frame over it.
+3. **"Brightens" is met by the line's weight,** solid and twice as thick,
+   in the same color, for the integrator to accept. A brighter red would
+   lower its contrast on the light fields, where the danger is dark; and a
+   role for it would be new to `WallPalette`, V1's contract, and to
+   `contrast.spec.ts`.
+4. **Danger is a brick the level needs in field row 1,** as R7's words have
+   it ("the next step down loses the level" once the lowest such brick
+   stands there), or in the floor's row, where only the step that loses
+   the level brings one, so the frames stay on the bricks and the line
+   stays lit through it. Steel, which the level doesn't need, sinks at the
+   floor, so it takes no frame. R7's `describe.ts` holds the same rule as
+   `lowest === 1`, and the view's `"danger"` beat will need it too, which
+   the view can't take from the scene: one rule beside `isNeeded()` in
+   `src/rules/wall/`, the proof stream's, would serve all three; the
+   report asks.
+5. **The line lights at the start of the step that brings a brick into the
+   row over the floor's,** as the wall is handed over, a step's ease
+   before the brick gets there, while the frames come down with the
+   bricks: `FieldPainter` doesn't follow the ease.
+6. **No commit to `@fz/phaser/testing`.** `browserKey()` gives a letter's
+   or a digit's `keyCode` from its code (`Key[A-Z]`, `Digit\d`), so `KeyP`,
+   `KeyX` and `KeyR` were never missing: S1's report was wrong, having
+   read the table and not the function. The scene's spec only gains the
+   cases. `frontend/lib/phaser/AGENTS.md` and `phaser-core` list no keys,
+   so they are unchanged, but their words, that `browserKey()` throws "for
+   a code its table lacks", are what misled S1: the report suggests they
+   say letters and digits come by their code.
+
+**Checks.** The workspace's `lint` and `typecheck` are clean.
+`test:coverage`: 3499 tests in 55 files, `wall_scene.spec.ts` 121 of them
+(18 new) and `tools/build-sounds.spec.ts` one fewer; the scene's files at
+100% of their statements, branches, functions and lines. The root's
+`yarn lint` passes.
+
+**The mutation pass.** 18 mutants over the first draft: the danger's row,
+the bricks it counts and the columns it looks in; the line's early return
+on the danger, its width, length and place lit, and the danger kept; the
+frames' scale, ease, place, row and order in the layer; and the warning
+frame's band color, corners, seam and width. 16 were killed at once. Two
+survived and were specced: the last column left out of the danger (a brick
+there alone brightens the line), and the frames left at their baked size
+(past 128 px a unit they scale with the wall's). After the review, 11 more
+over what it changed (the rows the danger counts, the frames' second row,
+their place, ease, scale and order, and the lit line's width and place),
+all killed at once.
+
+**The review:**
+
+1. **The danger rule is a second copy, and `danger.ts` is no painter.** It
+   moved to `src/scene/danger.ts`; the rule belongs beside `isNeeded()` in
+   the rules, which aren't the scene's to change, so choice 4 and the
+   report ask for it there.
+2. **The cue went out on the step that loses the level,** whose wall
+   already has the brick in the floor's row: the frame left the brick
+   sliding over the line, and the line went back to dashes. Fixed: the
+   danger counts the floor's row too, the frames stand in both rows, and a
+   spec holds frames and line through a losing step's ease; choice 5's
+   words say when the line lights.
+3. **A closure was made on every eased frame,** by the frames' `forEach()`.
+   Fixed: a plain loop, as the stacks' is.
+4. **No spec hid a frame again.** Added: a brick broken in the row over the
+   floor's loses its frame.
+5. **"Twice as thick" wasn't twice:** the lit line's width and the dashes'
+   were rounded apart, 3 px against 2 at 31 px a unit. Fixed: the lit line
+   is twice the dashes' width, and its constant went.
+6. **The log's reasons.** Choice 3 now gives the contrast and the contract
+   as its reason and asks the integrator to accept weight for brightness;
+   choice 6 says what in the library's words misled S1; choice 2 notes the
+   bomb for W11.
+7. **Nits.** `atlas.ts`' doc names the warning frame; the radii lost their
+   `Math.max(0, …)`, as `roundRect()` clamps them; `WARNING_FRAME` is no
+   longer exported, and `LIT_DANGER_WIDTH` went; the layer order's spec
+   compares places with no conditional; and `endangers()` is one line on
+   `isNeeded()`.

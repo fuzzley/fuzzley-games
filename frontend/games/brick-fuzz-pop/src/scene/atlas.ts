@@ -25,8 +25,8 @@ export function bakedScaleOf(scale: ArtScale): ArtScale {
 
 /**
  * Bakes every frame the field shows into the atlas, at a scale and in a
- * palette: the art's, the scene's own dots, and a picture of each kind of
- * brick for the page.
+ * palette: the art's, the scene's own dots and warning frame, and a picture
+ * of each kind of brick for the page.
  */
 export function bakeWallAtlas(
   scene: Scene,
