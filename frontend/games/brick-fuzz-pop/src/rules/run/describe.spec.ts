@@ -1,6 +1,7 @@
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { wallFrom } from "../../testing/wall_picture";
 import { CEILINGWARD, FLOORWARD, RIGHT } from "../grid";
+import { PORTAL_BADGES, PORTAL_MARKS } from "../levels/legend";
 import { LEVELS, levelEntryOf } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import {
@@ -293,6 +294,20 @@ describe("describeRows", () => {
       "Row 7: portal with a dot, gap, gap, gap, portal with a dot, gap, gap, portal with a diamond, shut, gap.",
     );
   });
+
+  // A portal's tint is its pair's place among the legend's marks, which the
+  // art draws its badge by too.
+  it.each(PORTAL_BADGES.map((badge, tint) => [tint, badge] as const))(
+    "reads a portal of tint %i by the badge the legend names for its pair, a %s",
+    (tint, badge) => {
+      const mark = PORTAL_MARKS[tint] ?? "";
+      const start = startOf([`${mark}...${mark}....`], 3);
+
+      expect(describeRows(start)).toBe(
+        `Row 3: portal with a ${badge}, gap, gap, gap, portal with a ${badge}, gap, gap, gap, gap.`,
+      );
+    },
+  );
 
   it("reads no row waiting over the ceiling", () => {
     expect(describeRows(startOf(["ooooooooo"], 11))).toBe(

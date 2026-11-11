@@ -8,6 +8,7 @@ import {
   type LegendCharacter,
   type LegendKindId,
   NO_BRICK,
+  PORTAL_BADGES,
   PORTAL_MARKS,
   tintOf,
 } from "./legend";
@@ -103,6 +104,10 @@ describe("the legend", () => {
       ["@", "&"],
       ["@", "&"],
     ]);
+  });
+
+  it("names a badge for each pair's mark, and no more", () => {
+    expect(PORTAL_BADGES).toHaveLength(PORTAL_MARKS.length);
   });
 });
 
