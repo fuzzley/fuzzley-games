@@ -11,12 +11,6 @@ function spriteFile(name: "sounds.wav" | "sounds.json"): Buffer {
 }
 
 describe("the sounds", () => {
-  // The scene's spec, once there is a scene, holds the map it loads to the
-  // view's names as the breakers' do; until then this one does.
-  it("are the view's, in the sprite's order", () => {
-    expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
-  });
-
   it("are each made by a recipe of the view's name, in its order", () => {
     expect(RECIPES.map(({ name }) => name)).toEqual(SOUNDS);
   });

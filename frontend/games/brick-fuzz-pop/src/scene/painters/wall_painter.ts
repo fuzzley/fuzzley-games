@@ -6,6 +6,8 @@ import { brickLayers } from "../../view/art/art";
 import type { FrameName } from "../../view/art/frames";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
+import { DANGER_ROW, endangers } from "../danger";
+import { FIELD_FRAMES } from "../field_art";
 import type { PaintContext, Painter } from "./painter";
 
 /** The most frames a brick shows stacked in its cell: a tough brick's tile, pips and cracks. */
@@ -32,7 +34,9 @@ export function cutOver(
  * once, each showing a frame of its brick, from the bottom up, or hidden;
  * and eases the wall down a row or a jump as the view's `wallDrop` goes
  * from 0 to 1, where the player welcomes motion, the rows coming in from
- * over the ceiling cut off along it.
+ * over the ceiling cut off along it. Each brick the level needs at or
+ * under the row over the floor's, one step from losing the level or losing
+ * it, takes the warning frame over its stack, which comes down with it.
  *
  * The view hands over the wall that comes down at once, with `wallDrop` 0,
  * and keeps it at 1 while the wall stands still, so the wall eases from
@@ -42,6 +46,8 @@ export function cutOver(
 export class WallPainter implements Painter {
   /** The images of each cell of the deepest field, row by row from the floor, each cell's from the bottom of its stack up. */
   readonly images: readonly GameObjects.Image[];
+  /** The warning frame over each cell of the floor's row and the row over it, made once, row by row from the floor, shown where a brick the level needs stands. */
+  readonly warnings: readonly GameObjects.Image[];
   /** The frame each image shows, or null where it is hidden. */
   private readonly shown: (FrameName | null)[];
   /** The field row the wall's lowest row last stood still in, or null before the first frame. */
@@ -59,8 +65,11 @@ export class WallPainter implements Painter {
       { length: MOST_DEPTH * COLUMNS * MOST_LAYERS },
       () => scene.add.image(0, 0, ATLAS).setVisible(false),
     );
+    this.warnings = Array.from({ length: (DANGER_ROW + 1) * COLUMNS }, () =>
+      scene.add.image(0, 0, ATLAS, FIELD_FRAMES.warning).setVisible(false),
+    );
     this.shown = this.images.map(() => null);
-    layer.add([...this.images]);
+    layer.add([...this.images, ...this.warnings]);
   }
 
   /** Draws the wall as the view has it, eased down where it comes down, changing only what moved or changed. */
@@ -101,6 +110,19 @@ export class WallPainter implements Painter {
       this.show(image, at, frame, x + (column + 0.5) * unit, top + unit / 2);
       this.cut(image, frame === null ? 0 : cut, scale);
       at++;
+    }
+    // The rows the frames stand in never stand over the ceiling, even
+    // eased down a jump, so they are never cut.
+    let spot = 0;
+    for (const warning of this.warnings) {
+      const row = Math.floor(spot / COLUMNS);
+      const column = spot % COLUMNS;
+      const top = y + (shape.depth - 1 - row) * unit - over;
+      warning
+        .setPosition(x + (column + 0.5) * unit, top + unit / 2)
+        .setScale(scale)
+        .setVisible(endangers(wall, column, row));
+      spot++;
     }
   }
 

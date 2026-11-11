@@ -2,6 +2,7 @@ import type { EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
 import { framePixels } from "@fz/phaser/layout";
+import { outlineRoundRect } from "@fz/phaser/shapes";
 import {
   type SceneRun,
   commandsOf,
@@ -276,6 +277,18 @@ function rectsIn(
 /** Returns how many of a set of images show. */
 function showing(images: readonly GameObjects.Image[]): number {
   return images.filter((image) => image.visible).length;
+}
+
+/** Returns the field column and row of each warning frame shown, from the floor. */
+function framedIn(scene: WallScene): (readonly [number, number])[] {
+  return scene.wall.warnings.flatMap((warning, at) =>
+    warning.visible ? [[at % COLUMNS, Math.floor(at / COLUMNS)] as const] : [],
+  );
+}
+
+/** Returns each object's place in the list it is drawn from, counted from the back. */
+function placesInLayer(objects: readonly GameObjects.GameObject[]): number[] {
+  return objects.map((object) => object.displayList.getIndex(object));
 }
 
 /** Returns where on the canvas a field row's foot runs, in the layout given. */
@@ -1279,6 +1292,171 @@ describe("WallScene", () => {
     });
   });
 
+  describe("the danger", () => {
+    /** A wall whose row over the floor's holds bricks the level needs in columns 0, 2 and 4, and steel. */
+    const ENDANGERING = wallFrom(["o#o.o.#.."], { lowestRow: 1 });
+
+    it("frames each brick the level needs in the row over the floor's, and no other", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.showWall(ENDANGERING);
+      });
+      const first = scene.wall.warnings[COLUMNS];
+
+      expect({
+        framed: framedIn(scene),
+        frame: first?.frame.name,
+        place: { x: first?.x, y: first?.y },
+      }).toEqual({
+        framed: [
+          [0, 1],
+          [2, 1],
+          [4, 1],
+        ],
+        frame: FIELD_FRAMES.warning,
+        place: toCanvas(metricsAt(), 0.5, 1.5),
+      });
+    });
+
+    it("frames none while only bricks the level doesn't need stand there", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.showWall(wallFrom(["ooo......", "###......"], { lowestRow: 1 }));
+      });
+
+      expect(framedIn(scene)).toEqual([]);
+    });
+
+    it("frames none while the wall stands higher", async () => {
+      const { scene } = await startBoard();
+
+      expect(framedIn(scene)).toEqual([]);
+    });
+
+    it("unframes a brick broken there", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showWall(ENDANGERING);
+      });
+
+      shell.showWall(wallFrom(["..o.o.#.."], { lowestRow: 1 }));
+      run.advance(16);
+
+      expect(framedIn(scene)).toEqual([
+        [2, 1],
+        [4, 1],
+      ]);
+    });
+
+    it("brings the frames down with the wall as it eases", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showWall(wallFrom(["o#o.o.#.."], { lowestRow: 2 }));
+      });
+
+      shell.bringDown(ENDANGERING, 0.5);
+      run.advance(16);
+
+      // Halfway down a row of 31 px, 15.5 rounded.
+      expect(scene.wall.warnings[COLUMNS]?.y).toBe(
+        toCanvas(metricsAt(), 0.5, 1.5).y - 16,
+      );
+    });
+
+    it("keeps the frames on the bricks, and the line lit, through the step that loses the level", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showWall(ENDANGERING);
+      });
+
+      shell.bringDown(wallFrom(["o#o.o.#.."], { lowestRow: 0 }), 0.5);
+      run.advance(16);
+
+      // Halfway down from the row over the floor's to the floor's.
+      expect({
+        framed: framedIn(scene),
+        y: scene.wall.warnings[0]?.y,
+        lit: rectsIn(scene.field.lines, LIGHT.dangerLine).length,
+      }).toEqual({
+        framed: [
+          [0, 0],
+          [2, 0],
+          [4, 0],
+        ],
+        y: toCanvas(metricsAt(), 0.5, 0.5).y - 16,
+        lit: 1,
+      });
+    });
+
+    it("shows the frames over every brick's stack", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.showWall(ENDANGERING);
+      });
+
+      const [lastStack] = placesInLayer(scene.wall.images.slice(-1));
+      const firstFrame = Math.min(...placesInLayer(scene.wall.warnings));
+
+      expect(firstFrame).toBeGreaterThan(lastStack ?? Infinity);
+    });
+
+    it("brightens the danger line, solid and twice as thick, while one stands in the row over the floor's", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.showWall(ENDANGERING);
+      });
+      const metrics = metricsAt();
+
+      // At 31 px a unit, twice the dashes' 2 px.
+      expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toEqual([
+        {
+          x: metrics.x,
+          y: rowFoot(metrics, 1) - 2,
+          width: metrics.width,
+          height: 4,
+        },
+      ]);
+    });
+
+    it("brightens the danger line as the wall comes down into the row over the floor's, its count unchanged", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showWall(wallFrom(["o#o.o.#.."], { lowestRow: 2 }));
+      });
+
+      shell.bringDown(ENDANGERING, 0);
+      run.advance(16);
+
+      expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toHaveLength(1);
+    });
+
+    it("brightens the danger line for a brick in the last column alone", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.showWall(wallFrom(["........o"], { lowestRow: 1 }));
+      });
+
+      expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toHaveLength(1);
+    });
+
+    it("shows the frames scaled up with the wall's frames past the atlas's largest unit", async () => {
+      const { scene } = await startBoard(
+        (shell) => {
+          shell.showWall(ENDANGERING);
+        },
+        { width: 1300, height: 1800 },
+      );
+
+      expect(scene.wall.warnings.at(-1)?.scale).toBe(
+        metricsAt(1300, 1800).unit / MOST_BAKED_UNIT,
+      );
+    });
+
+    it("dims the danger line again once none stands there", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showWall(ENDANGERING);
+      });
+
+      shell.showWall(wallFrom(["o#o.o.#.."], { lowestRow: 2 }));
+      run.advance(16);
+
+      expect(
+        rectsIn(scene.field.lines, LIGHT.dangerLine).length,
+      ).toBeGreaterThan(5);
+    });
+  });
+
   describe("the keys", () => {
     it("ask the run to pause and go on", async () => {
       const { shell, run } = await startBoard();
@@ -1288,6 +1466,20 @@ describe("WallScene", () => {
       run.advance(16);
 
       expect(shell.commands).toEqual<FieldCommand[]>(["pause", "go"]);
+    });
+
+    it.each<[string, string, FieldCommand]>([
+      ["KeyP", "p", "toggle"],
+      ["KeyX", "x", "skip"],
+      ["KeyR", "r", "read"],
+      ["NumpadEnter", "Enter", "go"],
+    ])("ask what %s asks of the game", async (code, key, command) => {
+      const { shell, run } = await startBoard();
+
+      run.key("keydown", code, key);
+      run.advance(16);
+
+      expect(shell.commands).toEqual([command]);
     });
 
     it("ask nothing again as a key held repeats", async () => {
@@ -1505,7 +1697,60 @@ describe("fieldFrames", () => {
   it("draws each dot a CSS pixel wide at least", () => {
     const frames = fieldFrames(LIGHT, { unit: 1, pixelRatio: 1 });
 
-    expect(frames.map(({ width }) => width)).toEqual([1, 1]);
+    expect(
+      [FIELD_FRAMES.gridDot, FIELD_FRAMES.countDot].map(
+        (name) => frameNamed(frames, name).width,
+      ),
+    ).toEqual([1, 1]);
+  });
+
+  it("draws the warning frame a cell wide: a band of the danger line's color in from its edge, and a seam of the field's inside it", () => {
+    const frame = frameNamed(fieldFrames(LIGHT, PHONE), FIELD_FRAMES.warning);
+
+    // At 40 px a unit, a band of 3.2 px is 3, a seam of 1.2 is 1, and the
+    // corners 0.18 of the cell round at its edge, less as each is further in.
+    expect(frame).toEqual({
+      name: FIELD_FRAMES.warning,
+      width: 40,
+      height: 40,
+      commands: [
+        outlineRoundRect(
+          { x: 1.5, y: 1.5, width: 37, height: 37 },
+          0.18 * 40 - 1.5,
+          {
+            color: LIGHT.dangerLine,
+            width: 3,
+          },
+        ),
+        outlineRoundRect(
+          { x: 3.5, y: 3.5, width: 33, height: 33 },
+          0.18 * 40 - 3.5,
+          {
+            color: LIGHT.field,
+            width: 1,
+          },
+        ),
+      ],
+    });
+  });
+
+  it("draws the warning frame's band and seam a CSS pixel wide at least", () => {
+    const frame = frameNamed(
+      fieldFrames(LIGHT, { unit: 4, pixelRatio: 1 }),
+      FIELD_FRAMES.warning,
+    );
+
+    // At 4 px a unit, a band of 0.32 px and a seam of 0.12 are 1 each.
+    expect(frame.commands).toEqual([
+      outlineRoundRect({ x: 0.5, y: 0.5, width: 3, height: 3 }, 0.22, {
+        color: LIGHT.dangerLine,
+        width: 1,
+      }),
+      outlineRoundRect({ x: 1.5, y: 1.5, width: 1, height: 1 }, 0, {
+        color: LIGHT.field,
+        width: 1,
+      }),
+    ]);
   });
 
   it("names no frame the art names", () => {

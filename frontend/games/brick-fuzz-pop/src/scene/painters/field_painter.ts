@@ -14,6 +14,7 @@ import {
   lintelPixels,
 } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
+import { DANGER_ROW, inDanger } from "../danger";
 import { FIELD_FRAMES } from "../field_art";
 import type { PaintContext, Painter } from "./painter";
 
@@ -42,9 +43,6 @@ const COUNT_GROUP = 3;
 /** How much further apart two groups of the count's dots stand than two dots of one, in field units. */
 const GROUP_GAP = 0.12;
 
-/** How high the danger line runs, in field units: along the top of the floor's row. */
-const DANGER_HEIGHT = 1;
-
 /** Says where a dash of a line across the field runs, in whole device pixels across the canvas. */
 interface Span {
   readonly from: number;
@@ -62,8 +60,9 @@ export interface FieldLayers {
  * over the ceiling, the frame around them and a dot at each corner its
  * cells share; over the wall, the jump line, with a dot for each brick the
  * level needs left under it once nine or fewer are, in threes, and the
- * danger line. It draws them again only once the layout, the palette or
- * that count changes.
+ * danger line, which brightens, solid and twice as thick, while such a
+ * brick stands at or under the row over it. It draws them again only once the layout, the
+ * palette, that count or the danger changes.
  */
 export class FieldPainter implements Painter {
   /** Draws the cells, the band, the lintel, the ceiling and the frame. */
@@ -87,6 +86,8 @@ export class FieldPainter implements Painter {
   private wall: Wall | null = null;
   /** How many bricks the jump line's count shows, 0 where it shows none. */
   private counted = 0;
+  /** Whether a brick the level needs stands at or under the row over the floor's, which brightens the danger line. */
+  private danger = false;
 
   constructor(scene: Scene, layers: FieldLayers) {
     this.ground = scene.add.graphics();
@@ -103,7 +104,7 @@ export class FieldPainter implements Painter {
     layers.lines.add([this.lines, ...this.countDots]);
   }
 
-  /** Draws the field as the frame has it, again only where its layout, its palette or the jump line's count changed. */
+  /** Draws the field as the frame has it, again only where its layout, its palette, the jump line's count or the danger changed. */
   draw({ view, shape, metrics, baked, palette }: Readonly<PaintContext>): void {
     const laidOut =
       metrics !== this.metrics ||
@@ -123,8 +124,12 @@ export class FieldPainter implements Painter {
     this.wall = view.wall;
     const left = neededUnder(view.wall, this.thirds.jumpLine);
     const counted = left <= MOST_COUNTED ? left : 0;
-    if (!laidOut && counted === this.counted) return;
+    const danger = inDanger(view.wall);
+    if (!laidOut && counted === this.counted && danger === this.danger) {
+      return;
+    }
     this.counted = counted;
+    this.danger = danger;
     this.drawLines(metrics, shape, palette, baked);
   }
 
@@ -173,7 +178,9 @@ export class FieldPainter implements Painter {
   /**
    * Draws the jump line under the top third, and its count at its end, a
    * dot for each brick left under it, from the end, where there is one;
-   * and the danger line along the top of the floor's row.
+   * and the danger line along the top of the floor's row, dashed, or solid
+   * and twice as thick while a brick the level needs stands at or under the
+   * row over it.
    */
   private drawLines(
     metrics: FieldMetrics,
@@ -202,12 +209,13 @@ export class FieldPainter implements Painter {
       );
     });
     graphics.fillStyle(palette.dangerLine);
-    this.dashed(
-      this.dangerDashes,
-      y + (shape.depth - DANGER_HEIGHT) * unit,
-      x + width,
-      widthOf(DANGER_LINE.width, metrics),
-    );
+    const dangerY = y + (shape.depth - DANGER_ROW) * unit;
+    const thick = widthOf(DANGER_LINE.width, metrics);
+    if (this.danger) {
+      graphics.fillRect(x, dangerY - thick, width, 2 * thick);
+    } else {
+      this.dashed(this.dangerDashes, dangerY, x + width, thick);
+    }
   }
 
   /**
