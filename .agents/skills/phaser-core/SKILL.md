@@ -350,11 +350,12 @@ browser, through a game's screenshots and its `check:layout`.
   Phaser cancels nothing user-event presses. A spec of a capture, such as
   Space kept from the board by a button's `fzKeepKeys`, sends the key with
   `fireEvent` and its `keyCode`, as `key()` does, through `browserKey()`
-  (`browserKey("Space", " ")`), which throws for a code its table lacks
-  rather than guess. Phaser also drops a key event whose key code, type and
-  time match those of the one before it, so two keydowns in a row from
-  user-event in one millisecond, as under fake timers, reach the scene as
-  one.
+  (`browserKey("Space", " ")`). It takes a letter's or a digit's `keyCode`
+  (`KeyA` to `KeyZ`, `Digit0` to `Digit9`) from its code and any other's
+  from its table, throwing for one the table lacks rather than guess.
+  Phaser also drops a key event whose key code, type and time match those
+  of the one before it, so two keydowns in a row from user-event in one
+  millisecond, as under fake timers, reach the scene as one.
 - **An error a handler throws** while Phaser hears a browser's event
   reaches the window's `error` event, not the spec, so a spec that
   expects one listens for it there while it acts.

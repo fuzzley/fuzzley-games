@@ -234,10 +234,12 @@ take the pure ones.
   a fake canvas was shown last, its keyboard on the board's element, and
   destroys the run, not the board, once the test finishes; `browserKey()`
   gives a key as a browser sends it, with the `keyCode` Phaser's keyboard
-  reads, throwing for a code its table lacks, for a spec to fire at the
-  page, as `runScene()`'s keys are sent; `cacheSounds()` puts a sound
-  sprite in a scene's audio cache, as a load that worked would, which the
-  headless game never does. What a scene drew is read back:
+  reads, a letter's or a digit's (`KeyA` to `KeyZ`, `Digit0` to `Digit9`)
+  from its code and any other's from its table, throwing for a code
+  neither covers, for a spec to fire at the page, as `runScene()`'s keys
+  are sent; `cacheSounds()` puts a sound sprite in a scene's audio
+  cache, as a load that worked would, which the headless game never does.
+  What a scene drew is read back:
   `commandsOf()` reads a `Graphics`'s command buffer, by Phaser's own
   numbers for its commands, which its spec pins against Phaser, into
   commands by name, `strokesOf()` the arcs it strokes, as WebGL draws
