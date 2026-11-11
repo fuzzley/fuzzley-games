@@ -10,8 +10,11 @@ workspace keeps its own for its code. The repository's `phaser-core` skill
 says how any game here is drawn with Phaser. Paths are relative to
 `frontend/games/brick-fuzz-pop/`.
 
-Its skill, in `.agents/skills/`, covers how its specs run and what they
-share (`brick-fuzz-pop-testing`).
+Its skills, in `.agents/skills/`, cover how its specs run and what they
+share
+([`brick-fuzz-pop-testing`](.agents/skills/brick-fuzz-pop-testing/SKILL.md)),
+and what adding a level, a set, a brick kind or a brick trait takes
+([`brick-fuzz-pop-content`](.agents/skills/brick-fuzz-pop-content/SKILL.md)).
 
 The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
