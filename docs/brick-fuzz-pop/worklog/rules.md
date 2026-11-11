@@ -1819,3 +1819,69 @@ its review and the numbers worth keeping.
      where `sketch/results.md` has 98. Fixed.
   5. A nit: the levels' line named each set's file and draft in turn.
      Fixed: a file a set, as its draft of the same name.
+
+### D1: the `brick-fuzz-pop-content` skill
+
+- **Date.** 2026-11-11.
+- **Built,** on 690fadb6, Y1 merged.
+  - `frontend/games/brick-fuzz-pop/.agents/skills/brick-fuzz-pop-content/SKILL.md`:
+    what adding a level, a set, a brick kind or a brick trait takes, as
+    the code does it:
+    - how the game holds what it plays, and the checks that hold it whole;
+    - a level's keys, the legend and the tints nobody picks, the rules a
+      wall keeps as `parseLevel()` and `levels.spec.ts` hold them, drawing
+      it from its courses with `build.mjs`, its number, and the order its
+      checks run in;
+    - a set's drafts, file, `LEVEL_SETS`, floor, floor specs and
+      certificates;
+    - a kind's art drawn first and unwired, its legend character, then its
+      catalog entry and its `BRICK_ART` line in one commit, its level with
+      its set, the specs that take it up on their own or list every kind,
+      and those written against it before it was cataloged;
+    - a trait's union member, its rule, the hooks it acts through and a
+      new one, and a new event's effects.
+  - `frontend/games/brick-fuzz-pop/AGENTS.md` names and links it beside
+    the testing skill, both linked.
+- **Choices.**
+  1. **It names no kind, level or set,** pointing at the catalog,
+     `LEGEND`, `LEVEL_SETS` and `CASUAL_FLOORS`, as X2's kinds and Y2's
+     and Y3's sets are still to come.
+  2. **The certificates, the floors and a failed replay are the testing
+     skill's,** linked rather than told again; this skill says only the
+     order a level's checks run in.
+  3. **No repository list names it,** as the repository's lists of
+     workspace skills name the testing skills alone, Brick Breaker's and
+     Asteroid Breaker's content skills named only in their workspaces'
+     `AGENTS.md`.
+- **Checks,** on 690fadb6: `node .agents/link-claude-skills.mjs` links
+  it, and the root's `yarn lint` passes, its reference check among it.
+- **The mutation pass.** None: the change is a skill and a line of
+  `AGENTS.md`.
+- **The review:** a fresh agent found every claim about `parseLevel()`,
+  the levels spec, the legend, the catalog, the art, the traits and the
+  sets right. Its points:
+  1. Nothing said which specs change as a kind is cataloged: the
+     refusals through `uncataloged()`, which throws once none is left, the
+     portals' rules met only as refused, and the stand-ins. Fixed.
+  2. The kind's steps missed that the legend must hold its character
+     before or with its entry (the legend spec types the catalog's ids as
+     the legend's), that `BRICK_ART` keeps the catalog's order, and that a
+     kind that never breaks takes `never`; and its level comes with its
+     set, not with it. Fixed.
+  3. `build.mjs` was underdescribed: its command from the workspace, how
+     a draft's `order` and portals are written, `SETS` taking nine
+     drafts at a time, and the table's row a new level needs. Fixed, and
+     "A Set" names its drafts.
+  4. Its triggers shared bare names with Brick Breaker's and Asteroid
+     Breaker's skills. Fixed: prefixed with the game's name.
+  5. `struck` acts on the `Struck` it is handed, not through `Hooks`, and
+     a new hook is a new member of `Hooks`, which `Flying` implements.
+     Fixed.
+  6. "Its set's own spec" holds only for Sparks. Fixed: beside its kinds
+     file or in the catalog spec.
+  7. Not every `parseLevel()` error names a row. Fixed.
+  8. The layout check keeps a run by level number too (`LAYOUT_RUN`).
+     Fixed.
+  9. Nits: "Then" repeated the testing skill, trimmed to the commands and
+     a link; `AGENTS.md` linked one skill of two, now both; and the
+     checks' line took a colon and no commit. Fixed.
