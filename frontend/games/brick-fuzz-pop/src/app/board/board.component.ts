@@ -11,6 +11,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
+import { count } from "@fz/core/format";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   CanvasCardsComponent,
@@ -52,16 +53,17 @@ export const PICTURES_SETTLE_MS = 250;
  * Shows the board: the canvas the scene draws the field on, which hears the
  * keys, the mouse and fingers while the board has the focus; a drawing of
  * the empty field in CSS, where the scene will draw it, until the scene has
- * drawn; the panels beside the field where the room spares them (Coming
- * next and In this wall); and the card over the field
- * (`<app-board-card>`), which holds the canvas's own (`<fz-canvas-cards>`),
- * that the board is still loading on a slow connection, or that it
- * couldn't be drawn.
+ * drawn; on the lintel over the ceiling, how many rows wait; the panels
+ * beside the field where the room spares them (Coming next and In this
+ * wall); and the card over the field under the lintel (`<app-board-card>`),
+ * which holds the canvas's own (`<fz-canvas-cards>`), that the board is
+ * still loading on a slow connection, or that it couldn't be drawn.
  *
  * Only the canvas and its ring are an application to assistive technology,
  * so a screen reader hands it the keys rather than reading with them; the
  * canvas in it is hidden, the announcer says what happens, and the panels
- * and the card beside it read as a page does.
+ * and the card beside it read as a page does, as the lintel's count does
+ * where nothing else in the page says it.
  *
  * It measures itself as it is first drawn and hands the game the room,
  * before the scene first lays the field out, so the scene's first frame
@@ -131,7 +133,8 @@ export class BoardComponent {
 
   /**
    * How thick the field's frame is, in CSS pixels, as the scene draws it,
-   * for the placeholder's frame and the focus ring outside it.
+   * for the placeholder's frame, the focus ring outside it and the size of
+   * the lintel's count.
    */
   protected readonly frameCss = FRAME_CSS_PX;
 
@@ -166,8 +169,9 @@ export class BoardComponent {
   /**
    * Where the field and the panels show: where the scene laid them out, or,
    * until it has, where it will, with the lintel's and the band's thickness
-   * in CSS pixels for the placeholder; or null before the board is
-   * measured, where the stylesheet fills the board, the margin in.
+   * in CSS pixels for the placeholder, the lintel's count and the Ready
+   * card's layer; or null before the board is measured, where the
+   * stylesheet fills the board, the margin in.
    */
   protected readonly shown = computed(() => {
     const metrics = this.laid() ?? this.placeholder();
@@ -183,12 +187,58 @@ export class BoardComponent {
 
   /**
    * Where the field lies on the board, from the lintel's top to the band's
-   * bottom, in CSS pixels, for the placeholder, the focus ring and the
-   * cards.
+   * bottom, in CSS pixels, for the placeholder, the focus ring and every
+   * card but Ready.
    */
   protected readonly fieldStyle = computed(() => {
     const shown = this.shown();
     return shown ? cssRectStyle(shown.framed) : null;
+  });
+
+  /**
+   * Where the lintel lies over the ceiling's line, in CSS pixels, for the
+   * count of the rows waiting, or null before the board is measured.
+   */
+  protected readonly lintelStyle = computed(() => {
+    const shown = this.shown();
+    if (!shown) return null;
+    const { x, y, width } = shown.framed;
+    return cssRectStyle({
+      x,
+      y,
+      width,
+      height: shown.lintelCss - FRAME_CSS_PX,
+    });
+  });
+
+  /** How many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
+  protected readonly rowsWaiting = computed(() => {
+    const rows = this.game.rowsLeft();
+    return rows === 0
+      ? "No rows waiting"
+      : `${count(rows, "row", "rows")} waiting`;
+  });
+
+  /**
+   * Where the card lies over the field: the Ready card, held at its layer's
+   * top, from the ceiling to the band's bottom, under the lintel, so it
+   * never covers the count of the rows waiting; every other card, centered,
+   * over the whole field, as tall as a Cleared card needs on a phone on its
+   * side; or null before the board is measured.
+   */
+  protected readonly cardStyle = computed(() => {
+    const shown = this.shown();
+    if (!shown) return null;
+    if (this.game.boardCard()?.kind !== "ready") {
+      return cssRectStyle(shown.framed);
+    }
+    const { x, y, width, height } = shown.framed;
+    return cssRectStyle({
+      x,
+      y: y + shown.lintelCss,
+      width,
+      height: height - shown.lintelCss,
+    });
   });
 
   /** Where the panels lie beside the field, or null where the room spares none. */
@@ -198,6 +248,20 @@ export class BoardComponent {
       ? { left: cssRectStyle(panels.left), right: cssRectStyle(panels.right) }
       : null;
   });
+
+  /**
+   * Whether the lintel's count is hidden from assistive technology, as
+   * "true" or null: where the page says it already, in Coming next beside
+   * the field, or in the bar's Rows left, which the bar shows from the width
+   * its actions keep their labels at, unless the window is compact, as
+   * `BarComponent`'s `fitsEveryFigure` says.
+   */
+  protected readonly lintelHidden = computed(() =>
+    this.panelStyles() !== null ||
+    (!this.viewport.isCompact() && this.viewport.fitsActionLabels())
+      ? "true"
+      : null,
+  );
 
   /**
    * Where the scene drew the field, from the lintel's top to the band's
@@ -241,8 +305,8 @@ export class BoardComponent {
 
   /**
    * The field row the wall's lowest row stands in, as the round aimed or in
-   * play started, for the layout check, which holds the wall as many rows
-   * from the floor after the phone turns and back.
+   * play started, for the layout check, which holds it on the row a level
+   * opens on at the field's depth while the level waits for its first shot.
    */
   protected readonly wallRow = computed(() => this.game.start().wall.lowestRow);
 

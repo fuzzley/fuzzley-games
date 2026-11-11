@@ -4,11 +4,11 @@
 // scene lays the field out `--margin` in from each edge, which the canvas
 // reads as its insets, and the component works out where the field lies
 // (`fieldMetrics()`), from the lintel's top to the band's foot, so the
-// placeholder, the focus ring, the cards and the panels sit where the scene
-// draws, before it has and after; until the board is measured, the field
-// fills it, the margin in. The component sets the margin (`--margin`), the
-// frame's width (`--frame`), and the lintel's and the band's thickness
-// (`--lintel`, `--band`), as the scene draws them.
+// placeholder, the focus ring, the lintel's count, the cards and the panels
+// sit where the scene draws, before it has and after; until the board is
+// measured, the field fills it, the margin in. The component sets the margin
+// (`--margin`), the frame's width (`--frame`), and the lintel's and the
+// band's thickness (`--lintel`, `--band`), as the scene draws them.
 :host {
   @include canvas-board-host;
 
@@ -19,7 +19,8 @@
 }
 
 // The application a screen reader hands the keys to, around the canvas and
-// the ring alone, so the panels and the cards beside it read as a page does.
+// the ring alone, so the lintel's count, the panels and the cards beside it
+// read as a page does.
 .play {
   position: absolute;
   inset: 0;
@@ -57,4 +58,24 @@
   .play:focus-visible > & {
     outline-color: var(--fz-focus-ring-color);
   }
+}
+
+// The rows waiting, in the lintel over the ceiling's line, in the field's
+// text: as large as the lintel holds, and no larger than the page's small
+// text, taking no pointer, so a pull back can start over it.
+.lintel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--fz-field-text);
+  font-size: min(
+    var(--fz-font-sm),
+    calc((var(--lintel, 0px) - var(--frame)) * 0.8)
+  );
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
 }
