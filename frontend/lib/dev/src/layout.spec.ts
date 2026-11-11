@@ -137,6 +137,13 @@ function evaluatedWith(browser: FakeBrowser, words: string): string[] {
     .filter((expression) => expression.includes(words));
 }
 
+/** Returns the scripts a page was sent to run before its own, in order. */
+function sentBeforeLoad(browser: FakeBrowser): string[] {
+  return browser.sent
+    .filter(({ method }) => method === "Page.addScriptToEvaluateOnNewDocument")
+    .map(({ params }) => String(params["source"]));
+}
+
 /** Returns the widths a page was set to, in order. */
 function widthsSet(browser: FakeBrowser): unknown[] {
   return browser.sent
@@ -212,13 +219,39 @@ describe("checkLayout", () => {
       ROOMY,
     );
 
-    expect(
-      browser.sent
-        .filter(
-          ({ method }) => method === "Page.addScriptToEvaluateOnNewDocument",
-        )
-        .map(({ params }) => String(params["source"])),
-    ).toEqual([expect.stringContaining("localStorage.setItem")]);
+    expect(sentBeforeLoad(browser)).toEqual([`(${String(before)})(...[])`]);
+  });
+
+  it("hands what comes before the page's own scripts what the check gives it", async () => {
+    const browser = browserFinding([]);
+    const keep = (key: string, value: number): void => {
+      localStorage.setItem(key, String(value));
+    };
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, before: { run: keep, args: ["a", 2] } },
+      ROOMY,
+    );
+
+    expect(sentBeforeLoad(browser)).toEqual([`(${String(keep)})(...["a",2])`]);
+  });
+
+  it("takes, as a type, only what comes before the page's own scripts takes", async () => {
+    const browser = browserFinding([]);
+    const keep = (key: string): void => {
+      localStorage.setItem(key, "b");
+    };
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      // @ts-expect-error A number isn't the key it takes.
+      { ...CHECK, before: { run: keep, args: [2] } },
+      ROOMY,
+    );
+
+    // The type is the only guard: the page is sent what the check gives.
+    expect(sentBeforeLoad(browser)).toEqual([`(${String(keep)})(...[2])`]);
   });
 
   it("runs nothing before the page's own scripts where a check doesn't ask", async () => {
@@ -226,11 +259,7 @@ describe("checkLayout", () => {
 
     await checkLayout(new DevToolsConnection(browser), CHECK, ROOMY);
 
-    expect(
-      browser.sent.some(
-        ({ method }) => method === "Page.addScriptToEvaluateOnNewDocument",
-      ),
-    ).toBe(false);
+    expect(sentBeforeLoad(browser)).toEqual([]);
   });
 
   it("finds nothing wrong where nothing is", async () => {

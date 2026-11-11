@@ -217,8 +217,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   same once it has turned the window, as a phone turns, through each of
   `TURNS` (upright to its side, and back), and given half a second to lay
   itself out again, which finds what follows a turn late, or not at all. A
-  check's `before()` runs in the page ahead of its own scripts, to set it up
-  as a player might have, such as with a setting stored. `checkPhaserLayout()`
+  check's `before` runs in the page ahead of its own scripts, to set it up
+  as a player might have, such as with a setting stored: a function handed
+  nothing, or a `BeforeLoad`, a function and what it is handed
+  (`{ run, args }`), such as a run the game keeps. `checkPhaserLayout()`
   checks a game drawn with Phaser as `checkLayout()` and `checkTurns()` do, at
   every shape and `SMALLEST`, a 320 × 480 phone held upright, then through
   every turn, all at twice the pixels, so the canvas's backing size is tested,
