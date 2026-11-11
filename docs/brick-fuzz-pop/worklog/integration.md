@@ -1830,29 +1830,131 @@ are `gzip -9`'s, a little under Vite's own.
   406.74 kB and the scene 56.84 (21.47 gzip), and the root's
   `yarn check:layout`, every game that has one (Sudoku, Snake, Brick Breaker,
   Asteroid Breaker and this one) holding at each shape and turn, in 22 s.
+- `b74252c0`, from the scene stream, the scissor: a `FieldCamera`
+  (`src/scene/field_camera.ts`, after Asteroid Breaker's) sets the main camera's
+  viewport to the frame's outer edge, scrolled to its corner, and sets it again
+  on every layout; `frameBounds()` gives that rectangle and the frame's four
+  bars, in `field_painter.ts` so the main chunk keeps out of it; a lost level's
+  shake moves the viewport by whole device pixels, so `EffectsPainter` owns no
+  camera; a pointer past the frame still steers. Two reviews, the first's
+  reshaping the shake, 10 comments all taken; 16 mutants, all killed. On Q4's
+  canvas-reading harness at 1280×800, nothing drawn past the frame where it had
+  been: Powder keg on 11 deep 179 of 765 samples, up to 174 px out; level 12 on
+  11 deep 92 of 592; level 15 on 22 deep 61 of 668. At ×6 on the scene stream's
+  own GPU-headless trace, the render's median 2.23 and 2.35 ms against 2.32 on
+  `c20c6571`, a frame's CPU median 5.61 and 5.71 against 5.77: the scissor costs
+  nothing measurable. Checked here: lint, typecheck, 5,915 tests and 555 in sim
+  with the floors held, the root lint, the build, its main chunk 406.74 kB and
+  the scene's 57.38 (21.63 gzip), and the game's `check:layout`.
+- `19caff15`, from the scene stream, the bake: `WallPainter` stamps each brick's
+  frames into `WALL_BAKE`, one `DynamicTexture` shown by one image, again only
+  for the cells whose stack changed, each cleared first, and whole on a new
+  layout, depth, scale or palette and after a restored context; the wall eases
+  down by moving the image, cropped at the ceiling; a swell drawn as images over
+  its cleared cell, at most 16 at once (`MOST_SWELLING`), and the warning frames
+  still images. `FieldPainter` stamps the cells, the band and the dots into
+  `FIELD_BAKE` on the same triggers, the lines and the rim staying live
+  `Graphics`. Gone: the wall's 594 stacked images, the 168 dots, the ground
+  `Graphics` and `cutOver()`; `lower.ts` untouched. Both bakes matched, pixel
+  for pixel in a browser, the same frames drawn as images at four setups and
+  after a restored context. Two reviews, the second as the first's fixes
+  reshaped the specs, which now replay what the bake drew; 10 comments, all
+  answered; 34 mutants, all killed. At ×6 on the scene stream's trace against
+  the scissor's, two runs each: Phaser's render median 2.23 and 2.35 ms to 1.20
+  and 1.21 (its mean 2.28 and 2.37 to 1.14 and 1.15), the images' render, a
+  mean, 1.01 and 1.06 to 0.20; a frame's CPU median 5.61 and 5.71 to 4.56 and
+  4.46, p95 8.66 and 8.94 to 7.09 and 6.93; GC 0.09 to 0.04. Checked here: lint,
+  typecheck, 5,925 tests and 555 in sim with the floors held, the root lint, the
+  build, its main chunk 406.74 kB and the scene's 59.30 (22.37 gzip), and the
+  game's `check:layout`.
+  - **Left for the user:** `dynamicTexture()`
+    (`src/scene/painters/dynamic_texture.ts`) copies Asteroid Breaker's private
+    helper in `points_painter.ts`; one in `@fz/phaser/scene` would touch the
+    library and that game.
+- **F1's last trace,** by the scene stream on a production build of `19caff15`,
+  the same flight in its GPU headless Chrome at 1280×800, about 1,174 frames a
+  trace, none dropped: a frame's main-thread CPU at ×6 4.37 and 4.43 ms at the
+  median, 6.98 and 7.08 at p95, 10.86 and 11.13 at p99, 13.97 and 14.56 at
+  worst, 68 and 69% of frames over 4 ms; at ×4 3.00 and 2.87, 4.74 and 4.50,
+  7.53 and 6.98, 9.64 and 10.13, 12 and 9% over; unthrottled 0.81 at the median
+  and 2.17 at worst, none over. Two lighter ×6 traces, without the JS sampler or
+  the timeline's detail, had medians of 3.81 and 3.84 and 39 to 42% of frames
+  over 4 ms, so the full trace adds about 0.6 ms. The bake's own ×6 medians,
+  4.56 and 4.46, are the same build and flight: the difference is the runs'
+  spread. On average over the frames round the ×6 median (its 40th to 60th
+  percentile): the scene's update 0.38 ms, Phaser's render 1.10, the rest of
+  Phaser's frame 0.77 (its step, `gl.clear` and the `requestAnimationFrame`
+  call, none of it Angular's), GC near none, and about 2.05 outside JS (the
+  task's overhead 0.9, `Commit` 0.57, `PrePaint` 0.44 and about 0.15 in smaller
+  events, the microtasks, `IntersectionObserver`, the layers and layout; no
+  style recalc).
+- **Decided:** F1's performance work ends here. The ×6 median is about 0.4 ms
+  over the 4 ms bar in the full traces and a little under it in the lighter
+  ones, ×4 well under; apart from the scene's 0.38 ms and what the objects drawn
+  cost Phaser, what is left is the browser's and Phaser's floor, and the one cut
+  seen, the layers skipping their hidden pools whole, would save 0.1 to 0.15 ms.
+  The worst frames, about 14 to 14.6 ms at ×6, and the share over the bar go to
+  the user with §9's worst-frame bar.
+- `32a90088`, from the shell stream, **Z1** and D1's last pass: the catalog
+  entry without `inDevelopment`, the build's screenshots now required, as the
+  site's build checks (with the thumbnail removed it failed naming the file);
+  `frontend/games/AGENTS.md` without "which is being built"; the game's
+  `AGENTS.md` status left at Z2 alone and its floors in words, as the testing
+  skill gives them; the README with the play URL and how the game plays, as
+  Brick Breaker's has; `ART_ROLES`, `looksOf()`, `billionths()` and
+  `inBillionths()` named in `AGENTS.md` and the testing skill, `looksOf()` in
+  the content skill. No doc gives a test count, so none was added. One review,
+  all comments answered. Checked by the shell stream on the tip: the game's
+  lint, typecheck, 5,925 tests and 555 in sim, its build, the site's 177 tests
+  and build, the root lint. `vitest.config.ts`'s comment puts the scene's and
+  the shell's floors at Asteroid Breaker's, the docs a little under what their
+  specs reach; both are true, so it stays.
+- **The last checks,** on `32a90088`: `yarn verify:full`, every workspace's
+  lint, typecheck, tests with coverage, 24,713 in all, and build, in 204 s;
+  `yarn check:layout`, the five games with a check holding at each shape and
+  turn.
+- **Q6** on the site's Docker image, built with `COMMIT_SHA` at `32a90088`: a
+  copy of `check-image.sh` with its base at `http://docker:8086`, since a
+  container's ports are on the dind host here rather than on localhost, passes
+  for the site and all seven builds; in a headless Chrome, the catalog lists
+  Brick Fuzz Pop under Arcade without a badge, its page leads to
+  `/play/brick-fuzz-pop/`, a round played (charge 1, 20 points) and How to play
+  opened, its chunk loaded; every request 200, the console with no error, no
+  warning and no "Refused to load", only DevTools' note on a form field without
+  a name. **Q6 passes.**
+- **Lighthouse,** Q5's, on the same image at `/play/brick-fuzz-pop/`, desktop
+  and mobile: accessibility 100 and SEO 100; best practices 78, for the local
+  image's plain HTTP alone, which Cloud Run serves as HTTPS; the
+  agentic-browsing checks (`llms.txt`, an ARD manifest) are the site's, outside
+  this build. The MCP's audit leaves performance out, so §9's layout-shift row
+  stands on the trace's 0.00. Q5's other items: Q4's plays covered every level,
+  the input pass levels 1, 18, 27 and 36; the screen reader and Safari are the
+  user's.
+- **Decided,** on the user's word to merge once done: Part 1 merges first and
+  alone, as plan.md's Branches asks, since it changes the live games through the
+  shared libraries (Part 2 does too, through `SpritePlayer`, `<fz-bar-overflow>`
+  and `_button.scss`, landing on a lift already live). `brick-fuzz-pop-lift`
+  rebased onto `origin/main`, its `yarn verify:full` (18,201 tests, in 174 s)
+  and `check:layout` passing, and pushed alone as `b6f74baf`, its Verify run
+  waited on; then `brick-fuzz-pop` rebased onto it, the lift's commits dropped
+  as already there, checked again and pushed. The lift carries Part 1's work
+  logs, so they reach `main` with it and leave with Part 2's archive commit.
 
 **Open:**
 
-- The scene stream: the camera's viewport scissor, then the wall and the grid's
-  dots baked, with the field's still `Graphics` and `WallPainter`'s own
-  allocation, each reviewed; then the ×6 and ×4 trace again, on the view
-  stream's scripts, against the bar.
-- The shell stream, once those merge: Z1, the catalog entry's badge and "which
-  is being built" in `frontend/games/AGENTS.md`; and D1's numbers, the workspace
-  `AGENTS.md`'s, with `looksOf()` and `ART_ROLES` named where the art's specs
-  are described.
-- Here: Q6 on the Docker image, `yarn verify:full` and `check:layout` on the
-  last tip, then Z2 by the `merge-to-main` skill. This folder goes to
-  `docs/archive/brick-fuzz-pop/`, and the work log is deleted, as the user
-  asked, rather than merged into one `worklog.md` as Z2 says.
+- Here: the lift's Verify run, then Z2 by the `merge-to-main` skill. This folder
+  goes to `docs/archive/brick-fuzz-pop/`, and the work log is deleted, as the
+  user asked, rather than merged into one `worklog.md` as Z2 says.
 - To the user at the merge: Asteroid Breaker's lint fence; reloading on
   `vite:preloadError` for lazy chunks; `@fz/phaser`'s canvas resize during a
   window's drag; the scene's chunk over §9's 51 kB; the worst frames over §9's
-  bar; the HTML5 Audio throw on focus from `SpritePlayer`'s `hold()`, in every
-  game that uses it; a level's name held to its draft by no spec, in any set;
-  Brick Breaker's `?debug` slider keeping records; and what no tool here could
-  check, Safari, real Firefox's blur behind a dialog, a screen reader through a
-  level, and 120 Hz.
+  bar; `dynamicTexture()` shared through `@fz/phaser/scene`; the HTML5 Audio
+  throw on focus from `SpritePlayer`'s `hold()`, in every game that uses it; a
+  level's name held to its draft by no spec, in any set; Brick Breaker's
+  `?debug` slider keeping records; and what no tool here could check, Safari,
+  real Firefox's blur behind a dialog, a screen reader through a level, and 120
+  Hz.
 - Done since the last list: X2, Y2, Y3, trims 1 and 4, Q4 for all thirty-six
-  levels, F1's browser, input and accessibility passes with their six issues
-  fixed, and F1's first performance fixes.
+  levels, F1 but the user's screen reader and Safari (its passes and Lighthouse,
+  their six issues fixed, the scissor, the bake and the last trace), Z1, D1's
+  last pass, Q6 and the lift's push.
