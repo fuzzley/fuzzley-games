@@ -29,6 +29,7 @@ import {
   saveGame,
 } from "../../rules/run/saved_game";
 import { parOf } from "../../rules/run/stars";
+import type { Line } from "../../rules/levels/certificate";
 import type { Pictures } from "../../scene/pictures";
 import {
   FREED_INK,
@@ -149,6 +150,44 @@ async function answered(
   else confirm.cancel();
   return starting;
 }
+
+/** Describes a game and every round it asked the rules for, as the round player was handed it. */
+interface AskingGame {
+  readonly game: GameService;
+  readonly asked: readonly Parameters<RoundPlayer>[];
+}
+
+/** Returns the game, its rounds played as a script says, keeping what it asked of each. */
+function askingGameOf(...script: readonly SpecRound[]): AskingGame {
+  const asked: Parameters<RoundPlayer>[] = [];
+  const rounds = scriptedRounds(...script);
+  const game = gameWith((start, shot, boon, rules) => {
+    asked.push([start, shot, boon, rules]);
+    return rounds(start, shot, boon);
+  });
+  return { game, asked };
+}
+
+/** Returns the game, its rounds played as a script says, its field set to a depth by the debug menu. */
+function onDepth(depth: number, ...script: readonly SpecRound[]): GameService {
+  const game = gameOf(...script);
+  game.setRoom(TALL);
+  TestBed.inject(DebugService).setDepth(depth);
+  TestBed.tick();
+  return game;
+}
+
+/** A certificate's line of two shots. */
+const LINE: Line = [
+  [100, 2],
+  [300, 4],
+];
+
+/** The shots {@link LINE} lets fly. */
+const LINE_SHOTS = [
+  { aim: 100, charge: 2 },
+  { aim: 300, charge: 4 },
+];
 
 /** Releases the round aimed and returns it, failing the spec if none flies. */
 function released(game: GameService): Round {
@@ -1598,6 +1637,195 @@ describe("GameService", () => {
       await game.newGame();
 
       expect(game.tuned()).toBe(false);
+    });
+  });
+
+  describe("a certificate's line", () => {
+    it("lets its first shot fly as the level waits for it, whatever the player steers", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked.map(([, shot]) => shot)).toEqual([LINE_SHOTS[0]]);
+    });
+
+    it("lets each of its shots fly in turn, one a round", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+      playRoundOut(game);
+
+      playRoundOut(game);
+
+      expect(asked.map(([, shot]) => shot)).toEqual(LINE_SHOTS);
+    });
+
+    it("plays on the rules' own numbers, whatever the debug menu has retuned", async () => {
+      const { game, asked } = askingGameOf("step");
+      TestBed.inject(DebugService).tuning.tune("bored", 40);
+      await game.playLine(1, () => LINE);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked.map(([, , , rules]) => rules)).toEqual([RULES]);
+    });
+
+    it("leaves the player's own shots to the menu's numbers once it is played", async () => {
+      const { game, asked } = askingGameOf("step");
+      TestBed.inject(DebugService).tuning.tune("bored", 40);
+      await game.playLine(1, () => LINE.slice(0, 1));
+      playRoundOut(game);
+
+      release(game);
+
+      expect(asked.map(([, , , rules]) => rules)).toEqual([
+        RULES,
+        { bored: 40 },
+      ]);
+    });
+
+    it("keeps the next of its shots for when a paused level goes on", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+      playRoundOut(game);
+      game.pause();
+      game.tick(FRAME_MS, STILL);
+      game.resume();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked.map(([, shot]) => shot)).toEqual(LINE_SHOTS);
+    });
+
+    it("lets none of its shots fly while the level is paused", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+      playRoundOut(game);
+      game.pause();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked).toHaveLength(1);
+    });
+
+    it("plays the level from its start, off the record, though the player has opened it", async () => {
+      const game = gameOf("step");
+      playRoundOut(game);
+      const id = game.run().id;
+
+      await answered(
+        game.playLine(1, () => LINE),
+        true,
+      );
+
+      expect({
+        newRun: game.run().id > id,
+        rounds: game.rounds(),
+        offRecord: TestBed.inject(DebugService).runOffRecord(),
+        said: said(),
+      }).toEqual({
+        newRun: true,
+        rounds: 0,
+        offRecord: true,
+        said: describeLevel(game.level(), game.levelBoon()),
+      });
+    });
+
+    it("takes the line for the field's depth", async () => {
+      const game = onDepth(12, "step");
+
+      const started = await game.playLine(2, (depth) =>
+        depth === 12 ? LINE : null,
+      );
+
+      expect([started, game.run().depth]).toEqual([true, 12]);
+    });
+
+    it("asks nothing where no line holds the field's depth", async () => {
+      const game = gameOf("step");
+      playRoundOut(game);
+
+      const started = await game.playLine(1, () => null);
+
+      expect([started, TestBed.inject(ConfirmService).isOpen()]).toEqual([
+        false,
+        false,
+      ]);
+    });
+
+    it("begins none where the field took another depth while the player was asked", async () => {
+      const game = onDepth(12, "step");
+      playRoundOut(game);
+      const run = game.run();
+      const starting = game.playLine(1, (depth) =>
+        depth === 12 ? LINE : null,
+      );
+      TestBed.inject(DebugService).setDepth(13);
+      TestBed.tick();
+
+      const started = await answered(starting, true);
+
+      expect([started, game.run()]).toEqual([false, run]);
+    });
+
+    it("stops once the field takes another depth", async () => {
+      const { game, asked } = askingGameOf("step");
+      const debug = TestBed.inject(DebugService);
+      game.setRoom(TALL);
+      debug.setDepth(12);
+      TestBed.tick();
+      await game.playLine(1, () => LINE);
+      playRoundOut(game);
+      debug.setDepth(13);
+      TestBed.tick();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked).toHaveLength(1);
+    });
+
+    it("begins no run where no line holds that depth", async () => {
+      const game = gameOf("step");
+      const run = game.run();
+
+      const started = await game.playLine(2, () => null);
+
+      expect([started, game.run()]).toEqual([false, run]);
+    });
+
+    it("begins none if the player keeps the run in progress", async () => {
+      const game = gameOf("step");
+      playRoundOut(game);
+      const run = game.run();
+
+      const started = await answered(
+        game.playLine(1, () => LINE),
+        false,
+      );
+
+      expect([started, game.run()]).toEqual([false, run]);
+    });
+
+    it("stops as the next level begins", async () => {
+      const { game, asked } = askingGameOf("cleared");
+      await game.playLine(1, () => LINE);
+      playUntilCard(game);
+      game.nextLevel();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked).toHaveLength(1);
+    });
+
+    it("stops as another run begins", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+      playRoundOut(game);
+      await answered(game.startAt(2), true);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(asked).toHaveLength(1);
     });
   });
 

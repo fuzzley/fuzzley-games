@@ -64,5 +64,10 @@
   [pictures]="helpPictures()"
   (closed)="helpOpen.set(false)"
 />
-<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
+<app-settings
+  [open]="settingsOpen()"
+  [certificate]="certificates.offer()"
+  (playCertificate)="playCertificate()"
+  (closed)="settingsOpen.set(false)"
+/>
 <fz-confirm-dialog />

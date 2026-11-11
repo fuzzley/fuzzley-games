@@ -22,6 +22,7 @@ import {
 import { PALETTES } from "../testing/roles";
 import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent } from "./app.component";
+import { CERTIFICATE_FILES } from "./debug/certificates.service";
 import { DebugService } from "./debug/debug.service";
 import { GameService } from "./play/game.service";
 
@@ -45,6 +46,36 @@ async function renderApp(
       provideFakePhaserCanvas(),
       ...provideSpecPlay(scriptedRounds(...script)),
       { provide: DEBUG_MENU, useValue: false },
+    ],
+  });
+  await fixture.whenStable();
+  return {
+    game: TestBed.inject(GameService),
+    user: userEvent.setup(),
+    settle: () => fixture.whenStable(),
+  };
+}
+
+/**
+ * Renders the app with the debug menu offered and a certificate for the
+ * first level on the depth of the field it lays out, once loaded.
+ */
+async function renderCertifiedApp(): Promise<RenderedApp> {
+  const { fixture } = await render(AppComponent, {
+    providers: [
+      ...provideSpecPlay(),
+      { provide: DEBUG_MENU, useValue: true },
+      {
+        provide: CERTIFICATE_FILES,
+        useValue: {
+          "warm-up": () =>
+            Promise.resolve({
+              "hello-wall": {
+                [String(TestBed.inject(GameService).shape().depth)]: [[100, 2]],
+              },
+            }),
+        },
+      },
     ],
   });
   await fixture.whenStable();
@@ -328,6 +359,34 @@ describe("AppComponent", () => {
       expect(
         screen.queryByRole("dialog", { name: "Settings" }),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("the debug menu's certificate", () => {
+    it("is offered in the settings for the level in play", async () => {
+      const { user } = await renderCertifiedApp();
+
+      await user.click(barButton("Settings"));
+
+      expect(
+        screen.getByRole("button", { name: "Play the certificate" }),
+      ).toBeVisible();
+    });
+
+    it("plays from the level's start, the settings put away", async () => {
+      const { game, user, settle } = await renderCertifiedApp();
+      await user.click(barButton("Settings"));
+
+      await user.click(
+        screen.getByRole("button", { name: "Play the certificate" }),
+      );
+      await settle();
+      game.tick(FRAME_MS, STILL);
+
+      expect({
+        settings: screen.queryByRole("dialog", { name: "Settings" }),
+        rounds: game.rounds(),
+      }).toEqual({ settings: null, rounds: 1 });
     });
   });
 

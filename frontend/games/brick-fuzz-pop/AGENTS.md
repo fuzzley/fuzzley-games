@@ -16,8 +16,8 @@ stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page. The site
 lists it as in development, its build shipping no screenshots yet. What
-the plan's packages still to come build (the rest of U1, the rest of U2,
-T1 and T2, then X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
+the plan's packages still to come build (the rest of U1, T1 and T2, then
+X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -262,7 +262,10 @@ helpers.
   lines it would replace (`tuningLines()`), the pace a tuning would hand
   `RoundPlay` (`paceOf()`) and the rules it would hand `playRound()`
   (`rulesOf()`), and whether it leaves the certificates stale
-  (`staleCertificates()`).
+  (`staleCertificates()`). `certificates.ts` reads a set's certificates
+  file, `src/rules/levels/certificates/<set id>.json`, each level's `Line`
+  on each depth by its id, dropping what it can't trust
+  (`readCertificates()`, `lineOf()`, `SetCertificates`).
 - **`src/scene/`** — the Phaser scene, after Brick Breaker's.
   - `wall_scene.ts` — `WallScene`, made by `makeWallScene()`, handed plain
     functions over the game (`WallSceneOptions`). It hands its `Steering`
@@ -329,9 +332,10 @@ helpers.
   the board in the room the bar leaves it, then the bar, the announcer, the
   result card over an ended run, the Levels dialog (every level open while
   the debug menu opens them), How to play, handed the scene's pictures only
-  while it is open, the settings drawer and the question before a run is
-  lost, each wired to `GameService`; hands the board the focus as the page
-  loads, as each run begins and as the last dialog over the board closes
+  while it is open, the settings drawer, handed the debug menu's
+  certificate, and the question before a run is lost, each wired to
+  `GameService`; hands the board the focus as the page loads, as each run
+  begins and as the last dialog over the board closes
   (`refocusWhenUncovered()`), and after the bar's Resume; and pauses the
   level in play as the player looks away from the room (`[fzPlayRoom]`).
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
@@ -410,7 +414,12 @@ helpers.
     throws a `RangeError` for one no field has), every level open, and
     whether the run under way keeps no records (`runOffRecord`), which
     `startRun()` begins watching; and it says whether the certificates are
-    stale (`certificatesStale`).
+    stale (`certificatesStale`). `CertificatesService` offers the menu the
+    level in play's certificate on the field's depth (`offer`) and plays it
+    (`play()`), loading its set's file only while `DEBUG_MENU` offers the
+    menu, through `CERTIFICATE_FILES`, an `import.meta.glob()` of the
+    files, each a chunk of its own, so a player's page fetches none; a set
+    with no file has none.
   - `help/` — How to play, `<app-help>`: the aim, the charge, the wall's
     step and jump, the boons, the scoring and the stars, their counts and
     points from `tuning.ts`; the controls by mouse, touch and keyboard, a letter key
@@ -443,7 +452,8 @@ helpers.
     the flight's pace and the rules' numbers, the field's depth, which
     lays the field out again between rounds, and whether a run keeps its
     records: none for one begun at a level not yet open or on numbers
-    retuned. And
+    retuned. It plays a certificate's line (`playLine()`), off the record,
+    a shot let fly as each round is aimed, on the rules' own numbers. And
     `SavedGameService`, which keeps the run under way through
     `@fz/ui/storage`'s `keepSaved()` and takes it up again, paused, reading
     the game through `KeptGame`, which it injects as `KEPT_GAME`, and which
