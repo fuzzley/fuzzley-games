@@ -722,3 +722,240 @@ first notch, and 5 units, 200 px, the most.
 5. **The wheel.** A sideways scroll no longer turns, nor stops the aim
    following a mouse at rest; a spec holds it. A trackpad's flick is noted
    in choice 10.
+
+### V3: playing a round
+
+**2026-11-10.** `src/view/round_play.ts` and `src/view/run_state.ts`: a
+level's rounds played back one after another, by §5.5, against
+`flight_fixtures`, with V4's `FlightEffects` owned by the playback, as the
+integrator asked.
+
+**What was built.**
+
+- `RoundPlay`, made once a level: `aim(start)`, `release(round)`, `skip()`
+  and `advance(deltaMs, options)`, which returns a `RoundChange`; the
+  getters `view`, `start`, `round`, `phase` and `waitingX`.
+  - The flight plays at 14 units a second at Normal and 22 at Fast, ×4
+    while fast-forward is held, and ×2 past 8 s where the settings let
+    long flights speed up: `FLIGHT_PACE`, a `FlightPace`, which each
+    frame's options hand in.
+  - Each event reached is logged with what it calls for, from the
+    `FlightEffects` `release()` begins with the start's boon.
+  - Each fuzzball in the air is placed along its track, its charge and
+    whether it is hot carried from its launch, strikes and recharges.
+  - The wall shows each brick as the events reached leave it.
+  - As the flight ends, the wall eases down a row over `STEP_MS` or jumps
+    over `JUMP_MS`, at once without motion, and comes to rest, the view
+    then showing the wall the round leaves, which the change says once
+    (`settled`).
+  - A round that cleared or lost the level then waits, through
+    `Countdown`, `clearedDelayMs()` or `resultDelayMs()` before the change
+    opens its card (`opens`).
+  - A pause stops all of it where it is.
+- Added to `RoundView`, as additions: `rowsDown`, the rows the wall's step
+  or jump brings it down, which `wallDrop` is a share of, and `beats`, a
+  log of `LoggedBeat`s: the step or the jump as the flight lands, the level
+  cleared then, the level lost and the danger line as the wall comes to
+  rest. `LoggedEvent` gains `effects`; `BallView` names a fuzzball's
+  record.
+- Also in `round_play.ts`: `FlightSpeed`, `FlightPace`, `FLIGHT_PACE` and
+  `PlayOptions` (`pace`, `speed`, `fast`, `speedUp`, `motion`, `paused`).
+- `run_state.ts`, beside K2's `RoundPhase`: `Card` (`"cleared"` or
+  `"result"`), `RoundNews` (a friend freed, a round ended), `RunState`
+  (`start`, `round`, `phase`, `card`, `news`), `PlayState` (what
+  `RoundPlay` holds of it), `RoundChange` (`freed`, `settled`, `opens`),
+  `newRunState()`, `withFrame()`, which returns the same state for a frame
+  that changed nothing, and `withNewsSaid()`. `run_state.ts` imports
+  nothing of `round_play.ts`, which imports its types.
+- `RoundView.events`' doc now says the numbers run on from one round of a
+  level to the next, as one log serves the level.
+
+**Choices the plan didn't make.**
+
+1. **The 8 s count is split within a frame,** not run through `Countdown`,
+   which says only that a mark is reached: the part of a frame past 8 s
+   flies at twice the speed, so a flight is in the same place at the same
+   moment at any rate of frames (a spec plays frames of 300 ms across the
+   mark). It counts the frames' time since the release, a pause not
+   counted. Fast-forward and the doubling multiply, ×8 at once.
+2. **A skip lands the flight at the next frame played,** not in `skip()`,
+   so all a frame comes to is in its change; a skip while paused waits for
+   the run to go on.
+3. **Each fuzzball is followed along its track, not searched for:** it
+   keeps the leg it flies and moves on from it, as the clock only goes
+   forward, writing into its record, so a frame makes nothing, where
+   `positionAt()` makes a waypoint each call (K2's note 9). At a moment two
+   waypoints share, it is at the later, as `positionAt()` has it, and specs
+   hold the two to agree.
+4. **The bricks each event leaves are worked out once, at the release:** a
+   strike leaves its brick the hits it says, a zap takes `ZAP_HITS` off
+   each brick it reaches, and a break leaves none; a strike or a zap on a
+   cell already empty leaves it so. The zap doesn't say what it leaves, so
+   the view takes `ZAP_HITS`, which `catalog.spec.ts` holds every zapping
+   kind's hits to, so a kind retuned fails there first; the rules may want
+   the event to say it. A brick it takes the last hits off breaks right
+   after it, at the same moment, so no frame shows it below none. While the
+   wall settles it is the wall the flight left, in its old place, which the
+   scene draws `wallDrop × rowsDown` rows lower, so a brick the step sinks
+   stays until the step is over; as it comes to rest, the view shows
+   `round.next.wall`, in the same place, the sunk bricks gone and moss
+   grown back, with `wallDrop` and `rowsDown` 0, so a lost level's card
+   opens over the wall it left.
+5. **The step and the jump both ease by `easeOutCubic()`.**
+6. **Beats are a second log in `RoundView`,** as the scene must hear them
+   as it hears the events. The danger beat sounds as the wall comes to rest
+   with a brick the level needs in the row over the floor's
+   (`isInDanger()`, private here; R7's words or S2's danger line may want
+   it in the rules). A cleared level chimes as the flight lands; a lost one
+   sounds as the step brings its brick down. The notch is left to whatever
+   reads the charge (S2), as `RoundPlay` doesn't know the steering.
+7. **The card's wait starts as the wall comes to rest,** a cleared level's
+   at its landing: 700 ms with motion, and the next frame without; a lost
+   level's 800 ms, or 500.
+8. **`waitingX`** is the start's x while aiming, `round.next.x` from the
+   moment the player's fuzzball lands, and null while it is in the air:
+   S2's `waitingX()` option reads it, and `Steering.read()` aims from it.
+   `next.x` is held off the side walls, so a fuzzball landing against one
+   moves up to a radius as it lands, which S2 may ease.
+9. **The playback's clock is `RoundPlay`'s,** not `RunState`'s, as §5.4's
+   comment has it: the state is replaced only as the round, its start, its
+   phase, the card or the news change, so a frame makes nothing. R7's `run`
+   isn't in it, R7 not having landed; U1 or R7 adds it beside `start`.
+10. **The news is data, not words:** a friend freed and a round ended, from
+    which R7's `describe.ts` makes the words (what the round broke, the
+    wall's step or jump, the boon earned, the danger line). A friend freed
+    in a skip is news too.
+11. **The logs keep 1,024 events and 16 beats,** one log of each for the
+    level, numbered on from round to round. A skip may hand on more events
+    than the ring holds; a reader then sees the latest, the landing whose
+    sound plays among them, as the rest play nothing.
+12. **A round released while another plays is ignored,** and `aim()`
+    leaves whatever plays.
+13. **`FlightSpeed` is the view's own,** with the settings' two names, as
+    the view can't import the shell; the settings' `FlightSpeed` is the
+    same union, which U1 may take from the view instead.
+14. **The wall's settling counts from the frame after the landing,** and the
+    card's wait from the frame after the rest: the landing frame's time
+    left over goes to neither, a frame at most.
+15. **A flight ends at its `length`,** which the rules stream is making
+    the later of the last landing and the last event, as the integrator
+    says: a zap ripples on half a unit after the break that set it off, so
+    a chain set off as the last fuzzball comes down runs on past its
+    landing. Its breaks and the friends it frees are reached before the
+    wall settles, and a skip lands there. The specs' `RIPPLING` flight is
+    built so; K2's fixtures end with a landing, where the two agree.
+16. **The pace is handed in with each frame,** `PlayOptions.pace`, which
+    is `FLIGHT_PACE` but where U2's debug menu tunes it, so its sliders
+    move a flight in play. plan.md has the menu show the lines of
+    `tuning.ts` its numbers would replace; these live in `round_play.ts`,
+    as the rules never read them.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass, after the review's fixes, 3015 tests in 42 files,
+142 of them new (`round_play.spec.ts` 127, `run_state.spec.ts` 15);
+`round_play.ts` at 100% of statements, functions and lines and 99% of
+branches (the stray fuzzball's `??`, which no flight reaches),
+`run_state.ts` at 100%. The root's `yarn lint` passes.
+
+**The mutation pass.** 16 mutants of `run_state.ts`, each comparison of
+`withFrame()` dropped or turned, the news's order, the card kept and the
+news kept: four survived (a start aimed again, another round in play, a
+card opened as the wall settles, a friend freed in flight), each given a
+spec, then all were killed. 102 of `round_play.ts`: every constant, the
+waiting x, every reset in `aim()`, `release()` and the change, the pause,
+the frames of no time, the speeds, the 8 s split, the skip's sounds, each
+part of a launch, the charge, the landings, the wall's changes and their
+moment, the following of a track, the step's time and ease, every beat,
+the card's wait and delay, and the danger line. 77 were killed. Of the 25
+that survived:
+
+- Six were dead code, which went: the moment clamped to the flight's
+  length, the skip's reset at the landing (`aim()` resets it), the launch's
+  place copied (its first leg ends where it leaves), the tracks' and the
+  balls' resets at the release, and the zap's clamp at none.
+- Seventeen got specs: a second round played after the first (every reset
+  in `aim()` and `release()`, the fuzzballs' states and the wall's changes
+  indexed again), the wall's rows while it flies, a mate landing before
+  the player, a lost level with a brick over the danger line, a round that
+  leaves the level on opening no card, and a launch's first leg.
+- A strike's hits taken from the brick's (`took`) rather than its `left`
+  is equivalent in any flight the rules make; the 8 s count's `ms * 1` was
+  no change.
+
+The 94 that still applied were run again with 11 more (the zap's hits,
+the stray, an empty cell struck or zapped, the step's clamp, the skip
+ignored), and six survived: the two above, and four new. The fuzzballs'
+states were made both in the constructor and at the release, so the
+constructor's went; the step's clamp at 1 got a spec of a frame four steps
+long; and the player's landing told from any role but a mate's got specs
+of a friend and a split landing first. Those, with two more, were then
+all killed.
+
+After the review's fixes, 21 more: the pace's every number and each read
+from the options, the flight's end, its reset and a zap past the landing,
+the wall shown at rest, the ease's bound, and the skip's sounds. Two
+survived: the end kept from a longer flight before, given a spec, and the
+last landing's reset, equivalent, as every flight lands. The 16 of
+`run_state.ts` were run again, all killed. After the second review's
+fixes, six more: the balls written by index and cut, the flight's end
+and the skip's short of `length`, and the landing's bound, all killed but
+the last landing's reset again.
+
+**Numbers worth keeping.** The specs' long flight, 982 units, plays 70 s
+at Normal and lands in 39 s sped up: 112 units in the first 8 s, the rest
+at 28 units a second. The wall steps in 260 ms and jumps in 480; a
+cleared level's card opens 700 ms after the landing, a lost level's
+800 ms after the rest, 500 without motion.
+
+**The review:**
+
+1. **Events past the flight's `length` were dropped.** A zap lands half a
+   unit after the break that set it off, so a chain can run on past the
+   last landing, which `length` was; its breaks, sounds and freed friends
+   were never reached. Fixed first by ending the flight at its last event;
+   then, as the integrator said the rules stream is making `length` the
+   later of the two, the playback ends at `length` again (choice 15).
+   Specs of a zap rippling past the landing, its events, its broken brick,
+   its friend freed and a skip.
+2. **A boon's release was specced only on a level's first round.** Fixed:
+   specs of a boon on a later round, and a plain round after a boon's.
+3. **A zap's hits are assumed.** Kept: `catalog.spec.ts` holds every
+   zapping kind's hits to `ZAP_HITS`, so a retune fails there; choice 4
+   says so, and the report asks the rules to say it in the event.
+4. **At rest, the view kept the flight's wall until the next aim,** so a
+   lost level's card opened over bricks the step had sunk. Fixed: at rest
+   the view shows `round.next.wall` with no drop (choice 4); the specs of
+   the wall's changes now look as the flight ends, and a spec holds the
+   sunk brick gone at rest.
+5. **The flight's speeds were fixed,** where U2's sliders tune them.
+   Fixed: `FlightPace`, `FLIGHT_PACE`, handed in with each frame (choice
+   16), with a spec for each number tuned. `timing.ts` is the shell
+   stream's, so the numbers stay in `round_play.ts`. The two
+   `FlightSpeed`s are left to U1 (choice 13).
+6. **The landing's leftover time is dropped.** Kept, as choice 14 says: a
+   frame at most.
+7. **Nits.** `lastLanding` is reset for each flight; `RoundView.events`'
+   doc says the numbers run on; the docs that opened with more than a
+   sentence open with one; the phase is `playPhase` and `sound()` is
+   `logBeat()`; `RoundChange` and `PlayState` moved to `run_state.ts`,
+   which no longer imports `round_play.ts`; choice 8 says how far the
+   fuzzball may move as it lands.
+
+**The second review** (the first's fixes reshaped the flight's end, the
+wall at rest and the pace):
+
+1. **`place()` emptied `view.balls` each frame,** and V8 drops an array's
+   store as its length is set to 0, so the first fuzzball pushed made a
+   new one every frame. Fixed: written by index, its length cut once.
+2. **`RoundView.wall`'s doc didn't say it changes in place,** where the
+   rules' walls are values each round replaces, so a scene redrawing only
+   on a new wall would miss every strike. Fixed: it says so, and when it
+   is another wall (aimed, released, at rest).
+3. **`unitsIn()`'s doc said "twice",** and `RunState`'s opened with two
+   sentences. Fixed.
+4. **`playTo()` played on by its units, from wherever the flight was.**
+   Renamed `playOnBy()`, at `FLIGHT_PACE`'s Normal.
+5. **`RIPPLING` kept the plain shot's `next`,** with the brick its zap
+   breaks, and its made-up zap wasn't said to be. Fixed: its next wall
+   lacks the brick, its `length` is the zap's moment, and its doc says the
+   zap is made up.
