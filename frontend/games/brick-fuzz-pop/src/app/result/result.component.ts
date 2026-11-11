@@ -3,6 +3,8 @@ import { formatPoints } from "@fz/core/format";
 import type { RunStage } from "@fz/core/run";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
+import { endTitle } from "../../rules/run/describe";
+import { tryAgainLabel, whereLost } from "./end_words";
 
 /** Describes how a run ended, as the result card shows it. */
 export interface RunEnd {
@@ -73,16 +75,14 @@ export class ResultComponent {
   /** Whether the card shows the trophy: for a new best, or every level cleared. */
   protected readonly trophy = computed(() => this.newBest() || this.won());
 
-  protected readonly title = computed(() =>
-    this.won() ? "Every level cleared!" : "Game over",
-  );
+  protected readonly title = computed(() => endTitle(this.end()));
 
   /** Where the run ended, or where it started once it won. */
   protected readonly subtitle = computed(() => {
     const { firstLevel, level, levelName } = this.end();
     return this.won()
       ? `From level ${String(firstLevel)} to the last`
-      : `Lost on level ${String(level)}, ${levelName}`;
+      : whereLost(level, levelName);
   });
 
   protected readonly figures = computed<readonly Figure[]>(() => {
@@ -97,9 +97,7 @@ export class ResultComponent {
 
   /** What the card's first button says: a new game after a win, else trying the level again. */
   protected readonly againLabel = computed(() =>
-    this.won()
-      ? "New game"
-      : `Try again from level ${String(this.end().level)}`,
+    this.won() ? "New game" : tryAgainLabel(this.end().level),
   );
 
   /** Asks for a new game after a win, or to try the lost level again. */

@@ -7,16 +7,18 @@ import {
   output,
 } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
+import type { RunStage } from "@fz/core/run";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
 import { type BrickKindId, brickKind } from "../../rules/catalog/bricks";
-import { describeBoon } from "../../rules/run/describe";
+import { describeBoon, endTitle } from "../../rules/run/describe";
 import type { LevelTally } from "../../rules/run/scoring";
 import { MOST_STARS, starsFor } from "../../rules/run/stars";
 import type { Boon } from "../../rules/shot";
 import { CrewComponent } from "../bar/crew.component";
 import type { HelpPictures } from "../help/help.component";
+import { tryAgainLabel, whereLost } from "../result/end_words";
 
 /** What the Ready card shows, over a level waiting for its first move. */
 export interface ReadyCard {
@@ -55,8 +57,33 @@ export interface ClearedCard {
   readonly friends: readonly number[];
 }
 
+/**
+ * What the Ended card shows, over an ended run once its result is closed: a
+ * level lost, which the player may try again, or the last level cleared,
+ * after which a new game begins.
+ */
+export type EndedCard =
+  | {
+      readonly kind: "ended";
+      /** A level lost. */
+      readonly outcome: Extract<RunStage, "over">;
+      /** The number of the level it was lost on, from 1. */
+      readonly level: number;
+      /** That level's name. */
+      readonly name: string;
+      /** The run's score. */
+      readonly score: number;
+    }
+  | {
+      readonly kind: "ended";
+      /** The last level cleared. */
+      readonly outcome: Extract<RunStage, "won">;
+      /** The run's score. */
+      readonly score: number;
+    };
+
 /** A card over the field, with what it shows. */
-export type BoardCard = ReadyCard | PausedCard | ClearedCard;
+export type BoardCard = ReadyCard | PausedCard | ClearedCard | EndedCard;
 
 /** A line of how a cleared level's points added up. */
 interface TallyLine {
@@ -100,15 +127,30 @@ interface ShownCleared {
   readonly friendsWords: string | null;
 }
 
+/** The Ended card as it reads. */
+interface ShownEnded {
+  readonly kind: "ended";
+  /** Whether the last level was cleared, which earns the trophy and a new game rather than another try. */
+  readonly won: boolean;
+  readonly title: string;
+  /** Where a lost run was lost, "Lost on level 3, Thicker", or null for a won one. */
+  readonly where: string | null;
+  readonly score: string;
+  /** What its button says: "Try again from level 3", or "New game" once every level is cleared. */
+  readonly againLabel: string;
+}
+
 /** A card as it reads. */
-type ShownCard = ShownReady | ShownPaused | ShownCleared;
+type ShownCard = ShownReady | ShownPaused | ShownCleared | ShownEnded;
 
 /**
  * Shows the card over the field, if any, as it is handed: the level waiting
  * for its first move, its number, its name, what its jumps earn and the
  * kind of brick it brings in; that the level is paused; or how a level
  * cleared added up, its stars, its rounds against par, its points and its
- * crew lined up.
+ * crew lined up; or, once an ended run's result is closed, how it ended,
+ * the score, and a try at the level lost, or a new game after the last is
+ * cleared, as the result offers.
  *
  * Its element is the layer the cards show in, which the board lays over the
  * field, a card keeping the board's margin around the field (`--margin`). It
@@ -116,8 +158,8 @@ type ShownCard = ShownReady | ShownPaused | ShownCleared;
  * (`<fz-canvas-cards>`), that the board is still loading or couldn't be
  * drawn, and none of its own while they show one. Its buttons keep their
  * keys from the board, Phaser's keyboard target. The app hands the board
- * back the focus as it goes on (`resumeRun`, `nextLevel`), which the
- * button took and would take away with its card.
+ * back the focus as it goes on (`resumeRun`, `nextLevel`, `tryAgain`,
+ * `newGame`), which the button took and would take away with its card.
  */
 @Component({
   selector: "app-board-card",
@@ -143,6 +185,12 @@ export class BoardCardComponent {
   /** Emitted as the player goes on to the next level. */
   readonly nextLevel = output();
 
+  /** Emitted as the player tries the lost level again. */
+  readonly tryAgain = output();
+
+  /** Emitted as the player asks for a new game, after the last level is cleared. */
+  readonly newGame = output();
+
   /** Whether the Ready card says the game is larger upright: on a phone on its side. */
   protected readonly sideways = computed(
     () => this.viewport.formFactor() === "phone-landscape",
@@ -159,8 +207,19 @@ export class BoardCardComponent {
         return { kind: "paused", score: formatPoints(card.score) };
       case "cleared":
         return clearedOf(card);
+      case "ended":
+        return endedOf(card);
     }
   });
+
+  /** Asks for a new game once every level is cleared, else to try the lost level again. */
+  protected startAgain(won: boolean): void {
+    if (won) {
+      this.newGame.emit();
+    } else {
+      this.tryAgain.emit();
+    }
+  }
 
   /** Returns the Ready card as it reads, with the new kind's picture once there is one. */
   private readyOf({ level, name, boon, newKind }: ReadyCard): ShownReady {
@@ -202,4 +261,24 @@ function clearedOf(card: ClearedCard): ShownCleared {
         ? null
         : `${count(friends.length, "friend", "friends")} freed`,
   };
+}
+
+/** Returns the Ended card as it reads. */
+function endedOf(card: EndedCard): ShownEnded {
+  const shown = { title: endTitle(card), score: formatPoints(card.score) };
+  return card.outcome === "won"
+    ? {
+        kind: "ended",
+        won: true,
+        where: null,
+        againLabel: "New game",
+        ...shown,
+      }
+    : {
+        kind: "ended",
+        won: false,
+        where: whereLost(card.level, card.name),
+        againLabel: tryAgainLabel(card.level),
+        ...shown,
+      };
 }

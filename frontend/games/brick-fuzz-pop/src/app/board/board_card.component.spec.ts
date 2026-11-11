@@ -21,6 +21,7 @@ import {
   type BoardCard,
   BoardCardComponent,
   type ClearedCard,
+  type EndedCard,
   type ReadyCard,
 } from "./board_card.component";
 
@@ -44,6 +45,18 @@ const CLEARED: ClearedCard = {
   friends: [3, 5],
 };
 
+/** A run lost on level 3. */
+const LOST: EndedCard = {
+  kind: "ended",
+  outcome: "over",
+  level: 3,
+  name: "Thicker",
+  score: 12940,
+};
+
+/** A run that cleared the last level. */
+const WON: EndedCard = { kind: "ended", outcome: "won", score: 98760 };
+
 /** Returns a picture as the scene encodes one, holding nothing but a name. */
 function pictureOf(name: string): string {
   return `data:image/png;base64,${btoa(name)}`;
@@ -61,6 +74,8 @@ interface RenderedCard {
   readonly layer: HTMLElement;
   readonly resumeRun: ReturnType<typeof vi.fn>;
   readonly nextLevel: ReturnType<typeof vi.fn>;
+  readonly tryAgain: ReturnType<typeof vi.fn>;
+  readonly newGame: ReturnType<typeof vi.fn>;
 }
 
 /** Renders a card, or none, with the scene's pictures or none, and listens to it. */
@@ -70,11 +85,20 @@ async function renderCard(
 ): Promise<RenderedCard> {
   const resumeRun = vi.fn();
   const nextLevel = vi.fn();
+  const tryAgain = vi.fn();
+  const newGame = vi.fn();
   const { container } = await render(BoardCardComponent, {
     inputs: { card, pictures },
-    on: { resumeRun, nextLevel },
+    on: { resumeRun, nextLevel, tryAgain, newGame },
   });
-  return { user: userEvent.setup(), layer: container, resumeRun, nextLevel };
+  return {
+    user: userEvent.setup(),
+    layer: container,
+    resumeRun,
+    nextLevel,
+    tryAgain,
+    newGame,
+  };
 }
 
 /** Returns an element's text as it reads, as one line. */
@@ -288,9 +312,107 @@ describe("BoardCardComponent", () => {
     });
   });
 
+  describe("Ended, a level lost", () => {
+    it("says the game is over", async () => {
+      await renderCard(LOST);
+
+      expect(screen.getByText("Game over")).toBeInTheDocument();
+    });
+
+    it("says where it was lost", async () => {
+      await renderCard(LOST);
+
+      expect(screen.getByText("Lost on level 3, Thicker")).toBeInTheDocument();
+    });
+
+    it("shows no trophy", async () => {
+      const { layer } = await renderCard(LOST);
+
+      expect(layer.querySelector('fz-icon[name="trophy"]')).toBeNull();
+    });
+
+    it("offers the lost level again, and no new game", async () => {
+      await renderCard(LOST);
+
+      expect(
+        screen
+          .getAllByRole("button")
+          .map((button) => button.textContent.trim()),
+      ).toEqual(["Try again from level 3"]);
+    });
+
+    it("tries the lost level again", async () => {
+      const { user, tryAgain, newGame } = await renderCard(LOST);
+
+      await user.click(
+        screen.getByRole("button", { name: "Try again from level 3" }),
+      );
+
+      expect({
+        triedAgain: tryAgain.mock.calls.length,
+        newGames: newGame.mock.calls.length,
+      }).toEqual({ triedAgain: 1, newGames: 0 });
+    });
+  });
+
+  describe("Ended, the last level cleared", () => {
+    it("says every level is cleared", async () => {
+      await renderCard(WON);
+
+      expect(screen.getByText("Every level cleared!")).toBeInTheDocument();
+    });
+
+    it("says nothing of a level lost", async () => {
+      await renderCard(WON);
+
+      expect(screen.queryByText(/^Lost on/)).not.toBeInTheDocument();
+    });
+
+    it("shows the trophy", async () => {
+      const { layer } = await renderCard(WON);
+
+      expect(layer.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
+    });
+
+    it("offers a new game, and no try at the last level", async () => {
+      await renderCard(WON);
+
+      expect(
+        screen
+          .getAllByRole("button")
+          .map((button) => button.textContent.trim()),
+      ).toEqual(["New game"]);
+    });
+
+    it("starts a new game", async () => {
+      const { user, tryAgain, newGame } = await renderCard(WON);
+
+      await user.click(screen.getByRole("button", { name: "New game" }));
+
+      expect({
+        triedAgain: tryAgain.mock.calls.length,
+        newGames: newGame.mock.calls.length,
+      }).toEqual({ triedAgain: 0, newGames: 1 });
+    });
+  });
+
+  it.each([
+    ["a level lost", LOST, "Score 12,940"],
+    ["the last level cleared", WON, "Score 98,760"],
+  ])(
+    "gives the score of a run ended by %s, grouped in thousands",
+    async (_, card, score) => {
+      await renderCard(card);
+
+      expect(screen.getByText(score)).toBeInTheDocument();
+    },
+  );
+
   it.each([
     ["Resume", { kind: "paused", score: 0 }],
     ["Next level", CLEARED],
+    ["Try again from level 3", LOST],
+    ["New game", WON],
   ] as const)(
     "keeps the keys on %s from the board around it, which would steer the shot",
     async (name, card) => {
