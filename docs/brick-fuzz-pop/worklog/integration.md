@@ -650,3 +650,118 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   and the `phaser-core` skill say it throws for a code its table lacks,
   which led the scene stream to think P, X and R were missing.
 - S2 begun on the scene stream, its guide on a stand-in shaped as R6's.
+
+### The bar's lint names, the board's cards and the round's view merged (2026-11-10)
+
+- `776a44eb`, from the shell stream: `eslint.config.js` names the bar's
+  attribute-selector components and its template's allowList for
+  `bar.component.html` alone, so the four `eslint-disable` comments in
+  `src/app/bar/` go. A `chore`, being config only.
+- `d25aeca5`, from the shell stream: `<app-board-card>` with the Ready,
+  Paused and Cleared cards, handed `card: BoardCard | null` and the help
+  pictures, giving `resumeRun` and `nextLevel`; the stars from
+  `starsFor()`. The crew row moved into `src/app/bar/crew.component.ts`,
+  shared by the bar and the Cleared card. 3,843 tests.
+- `961ed28d`, from the view stream, not yet reported when merged: the
+  counterpart of S1's follow-ups. `RoundPlay` keeps `wallDrop` at 1 while
+  the wall stands still, hands over the next wall at 0 as a flight ends,
+  and another wall each frame a brick changes, two copies taking turns so a
+  frame allocates nothing. 3,847 tests.
+- **For U1's wiring** (the shell's notes): `newKind` is the kind whose
+  `firstLevel` is the level's number; the card reads the board's
+  `--margin`, and the board projects `<fz-canvas-cards>` into it; on
+  `resumeRun` and `nextLevel` the board takes the focus back; Cleared shows
+  only when another level follows.
+- **A gap the plan left:** no card showed once a lost run's result was
+  closed. Asteroid Breaker's board shows "ended" then, with New game; the
+  shell stream adds an Ended card next, then U2's site listing.
+
+### R4 merged (2026-11-10)
+
+- `6379bec0`, from the rules stream: `strike()` works out the Charge rule
+  for one strike from the `hurts` and `earths` flags a brick's rules leave;
+  `fly()` calls it, its flights unchanged. `NEVER_RULE`, `EARTHS_RULE`,
+  `ZAPS_RULE` (row and column; blast, cross and x throw with their levels),
+  `notUntil()` and `TRAIT_RULES`, the later traits throwing with the levels
+  plan.md's table gives. `src/testing/flights.ts` is a specs' helper, not
+  held as the rules: it is off `HELD_AS_RULES` rightly. 3,890 tests.
+- **The rules stream's choice, kept:** an earthed strike never passes
+  through, even on a brick it breaks. Plan.md's Charge has steel, a plate
+  or a bumper earth the charge and turn the fuzzball, and its brick table
+  says a strike on a plated face "does nothing", so no kind yet breaks on
+  an earthed strike.
+- R6 next, now the critical path; its commit brings the workspace
+  `AGENTS.md`'s rules section up to date for R4 and R6.
+- Two `vitest` workers of the view worktree's `round_play.spec` runs were
+  left spinning, orphaned, for 40 and 98 minutes; stopping them was refused
+  in auto mode, then done at the user's word.
+
+### The Ended card merged (2026-11-10)
+
+- `397e6744`, from the shell stream: `EndedCard` joins `BoardCard`, a lost
+  level (`outcome: "over"`, its level, name and score) with "Try again from
+  level N", or the last level cleared (`"won"`) with New game; outputs
+  `tryAgain` and `newGame`, named as the result's are. The result and the
+  card share their words from `src/app/result/end_words.ts`. 3,906 tests.
+- **Decided:** over a closed lost result, `RunLifecycle`'s `go()` (Enter or
+  a tap) and its private `toggle()` (P) call `newGame()`, the wrong move
+  under "Try again". No library change: `command()` is public, so
+  GameService overrides it for this alone, taking "go" and "toggle" over a
+  closed lost result and calling `tryAgain()`. C8 stays in the steering's
+  `keyDown()`, as decided at A2/S2, so this is GameService's only
+  `command()` override, though the plan's §6 U1 names one for C8. Sent to
+  the view stream for U1 (first sent saying the override was already
+  there for C8; corrected).
+
+### U2's listing: T2 forward, then the site's image check relaxed instead (2026-11-10)
+
+- The shell stream found that the site's build (`checkGameImages()` in
+  `frontend/site/tools/vite-plugins.ts`) fails for any game the catalog
+  lists with `play` unless its build ships
+  `docs/screenshots/<id>/thumb.webp` and `preview.webp`, which T2 makes
+  after Y1. Listing it before then would break `yarn build`, `yarn verify`
+  and CI; listing it as a game to come needs a drawn image too, and
+  `games.spec.ts` allows `inDevelopment` only beside `play`.
+- **Decided, then superseded (below):** T2's capture script comes forward. Once U1's board plays,
+  the shell stream builds `tools/capture-screenshots.mjs` at a Warm-up
+  level, writes the two images from the real game, then adds the listing;
+  after Y1 the same script is re-run at level 18, as T2 says. No image is
+  made by hand.
+- Meanwhile the shell stream takes the docs pass: the workspace
+  `AGENTS.md`'s `src/app/` list (bar, board cards, panels, end words), and
+  `browserKey()`'s wording in `lib/phaser/AGENTS.md` and the `phaser-core`
+  skill: letters and digits get their key codes from the code itself, and
+  only other codes missing from its table throw.
+- **Superseded, at the user's word:** "Relax the rule so only finished
+  games need a screenshot." The shell stream, after the docs pass,
+  relaxes `missingImages()` so a game with `inDevelopment: true` needs no
+  screenshots, gives the tile and the game's page a fallback while its
+  build ships none, then adds U2's listing. T2 goes back after Y1, as the
+  plan has it.
+
+### U2's debug pieces merged; U1 split again (2026-11-10)
+
+- `a6d1e536`, from the art stream: `src/view/debug/debug_tuning.ts` holds
+  the numbers the menu tunes (the flight's pace, the guide's length and the
+  bored distance), `paceOf()` and `rulesOf()`; `DebugService`
+  (`src/app/debug/`) wraps `@fz/game-ui`'s `createTuning()`; and the debug
+  section in the settings drawer: the depth, every level open, Play
+  the certificate, and "certificates are stale" (`src/app/debug/`). Two
+  reviews; 3,976 tests, 99.86 / 99.15 / 100 / 99.89.
+- **Kept:** retuning any number, the five pace numbers among them, costs a
+  run its records, as plan.md says ("A run played on retuned numbers keeps
+  no records") and Asteroid Breaker does.
+- **For R6** (sent): `guideOf()` takes the guide's length as handed, since
+  the menu retunes only what the rules are handed; an `isDepth()` beside
+  `thirdsOf()` would replace the 11-to-22 check that now exists three
+  times.
+- **For U1's wiring** (sent to the view stream): `paceOf()` to
+  `RoundPlay`, `rulesOf()` to `playRound()`, `onTune()`; the depth is the
+  menu's or the room's, between rounds; `startRun()` with `locked` or
+  `kept`, so a kept run's `tuned` is `runOffRecord()`; a certificate's run
+  keeps no records; every level open in the Levels dialog. The
+  certificate loader waits for P3.
+- **U1 split again:** the board (`src/app/board/board.component`, about
+  1,400 lines with its spec in Asteroid Breaker) goes to the art stream,
+  on the view stream's GameService; the view stream keeps GameService and
+  the wiring, U2's included.
