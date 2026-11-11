@@ -587,3 +587,66 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
 - **For the rules:** the zap event doesn't say how many hits it takes, so
   the view takes `ZAP_HITS`, which `catalog.spec.ts` holds every zapper to;
   X1's bomb may want the event to say it.
+
+### The bar and the AGENTS.md refresh merged; U1's core begun (2026-11-10)
+
+- **U1's bar**, `b418c13f`, from the shell stream: `<app-bar>` with the
+  level, the rounds against par, the rows left, the score and the crew,
+  and `button[appFastForward]` and `button[appSkip]` beside Pause. Every
+  action is a round button at every size, since labelled ones overran the
+  home link at 1,200 px with a crew of seven; New game moves into the
+  overflow menu on compact screens. 3,766 tests.
+- **The workspace's `AGENTS.md`**, `6be0a541`, built in the `start`
+  worktree: a Layout section, every folder written so far, all four stores
+  and the commands.
+- **U1's core** goes to the view stream (`GameService`, then the board and
+  the wiring), which wrote what `GameService` holds; the shell stream
+  builds the board's cards and the lint change that lets the bar's four
+  `eslint-disable` comments go.
+
+### `Flight.length` changed (2026-11-10)
+
+- `5f0e0c27`, made by the rules stream for the integrator:
+  `Flight.length` is the last event's `at`, the last landing's or the last
+  zap's when a zap chain outlasts every fuzzball, in `events.ts`, `fly()`,
+  `trackProblemsOf()` and §5.3's comment in the plan. A spec flies a shot
+  into a row zapper one row off the floor, landing at 1 and its zap at 1.5.
+  No fixture's length moved. A skip can now land zaps with no fuzzball in
+  the air, and such a zap can clear a level.
+- One spec failed in the first `test:coverage` run after the merge and
+  passed in two runs after it, with six agents running specs on the
+  machine; likely a timeout under load. The output wasn't kept, so the
+  integrator's runs now keep theirs, to name the spec if it fails again.
+
+### U1's panels merged (2026-11-10)
+
+- `cb7c8b8c`, from the art stream: Coming next and In this wall beside a
+  wide room's field, `src/app/panels/`, their inks from `cssHex()`, their
+  glass off since a blur redone every frame costs frame time; `fuzzball-eyes`
+  joins the plan's §5.4 table. Two reviews; 3,797 tests.
+- **For U1's wiring** (sent to the view stream): the panels sit outside the
+  `role="application"` element, or a screen reader's browse mode never
+  reaches them; their places are computeds; In this wall's `lit` lights the
+  boon's badge while a shot carrying it is aimed.
+- The art stream builds U2's debug section next, standalone; its wiring
+  and the site's listing come after U1 and S2.
+
+### S1's open items merged; S2 begun (2026-11-10)
+
+- `c706e2e3`, from the scene stream: a needed brick in row 1 gets a
+  warning frame, a danger-colored band baked with `outlineRoundRect()`,
+  coming down with the wall; while one stands there the danger line turns
+  solid and twice as thick. The scene spec covers P, X, R and the keypad's
+  Enter; `build-sounds.spec.ts`' sprite-map case went to the scene spec.
+  3,814 tests.
+- **Decided, for the user at Q3:** the danger line "brightens" by weight,
+  not by a brighter red, which would lose contrast on the light fields and
+  need a new palette role.
+- **Asked of the proof stream:** export the danger rule beside
+  `isNeeded()`, `lowestNeededRow()` and `neededBelow()`, so `describe.ts`,
+  the scene and the view's danger beat read one rule.
+- **For the docs pass:** `@fz/phaser/testing`'s `browserKey()` gives every
+  letter and digit its key code from the code itself; `lib/phaser/AGENTS.md`
+  and the `phaser-core` skill say it throws for a code its table lacks,
+  which led the scene stream to think P, X and R were missing.
+- S2 begun on the scene stream, its guide on a stand-in shaped as R6's.
