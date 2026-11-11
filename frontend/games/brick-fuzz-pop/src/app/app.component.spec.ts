@@ -385,7 +385,7 @@ describe("AppComponent", () => {
 
       expect({
         settings: screen.queryByRole("dialog", { name: "Settings" }),
-        rounds: game.rounds(),
+        rounds: game.run().rounds,
       }).toEqual({ settings: null, rounds: 1 });
     });
   });
@@ -402,6 +402,7 @@ describe("AppComponent", () => {
 
     it("says so in the page's live region", async () => {
       const { game } = await renderApp("step");
+      playRoundOut(game);
       release(game);
 
       setPageVisibility("hidden");

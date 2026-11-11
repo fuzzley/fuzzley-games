@@ -190,11 +190,12 @@ helpers.
   `saved_game.ts` the run under way as storage keeps it (`saveGame()`,
   `restoreGame()`, each of its checks exported); and `describe.ts` the
   announcer's words, from a level's start and a shot ("62 degrees, charge
-  3") to a round, the wall's lowest rows (`describeRows()`), a pause and
-  the end.
+  3", or "62 degrees, hot shot" for one carrying it) to a round, the
+  wall's lowest rows (`describeRows()`), a pause and the end.
 - **`src/view/`** — what to draw and when, without Phaser, tested in Node.
   `round_play.ts` holds `RoundPlay`, which plays a round's flight back a
-  frame at a time and settles its wall, one for the whole game, and
+  frame at a time, counting its breaks' points as it reaches them
+  (`scored`), and settles its wall, one for the whole game, and
   `RoundView`, the round as the scene draws it at a moment, its events
   numbered in `@fz/core/event_log`'s `EventLogView`; `run_state.ts` holds
   `RunState`, the run on the board and where its round stands, which
@@ -447,17 +448,21 @@ helpers.
     round released through the rules and back through one `RoundPlay`,
     lays the field out on the board's room between rounds, gives the scene
     its options and the guide (`guide()`), says what happens and keeps the
-    records. It hands the board the card to show (`boardCard`) and the
-    result card the run's end (`runEnd`), and takes from `DebugService`
-    the flight's pace and the rules' numbers, the field's depth, which
-    lays the field out again between rounds, and whether a run keeps its
-    records: none for one begun at a level not yet open or on numbers
-    retuned. It plays a certificate's line (`playLine()`), off the record,
-    a shot let fly as each round is aimed, on the rules' own numbers. And
-    `SavedGameService`, which keeps the run under way through
-    `@fz/ui/storage`'s `keepSaved()` and takes it up again, paused, reading
-    the game through `KeptGame`, which it injects as `KEPT_GAME`, and which
-    `provideGame()` makes `GameService`; `main.ts` injects it at startup.
+    records. The bar's rounds and score follow the playback, though the
+    run takes a round in as it is released: a round counts as its flight
+    lands, each break's points as the flight plays it back, and a jump's
+    and the stars' as it lands. It hands the board the card to show
+    (`boardCard`) and the result card the run's end (`runEnd`), and takes
+    from `DebugService` the flight's pace and the rules' numbers, the
+    field's depth, which lays the field out again between rounds, and
+    whether a run keeps its records: none for one begun at a level not yet
+    open or on numbers retuned. It plays a certificate's line
+    (`playLine()`), off the record, a shot let fly as each round is aimed,
+    on the rules' own numbers. And `SavedGameService`, which keeps the run
+    under way through `@fz/ui/storage`'s `keepSaved()` and takes it up
+    again, paused, reading the game through `KeptGame`, which it injects
+    as `KEPT_GAME`, and which `provideGame()` makes `GameService`;
+    `main.ts` injects it at startup.
   - `tokens.ts` — `GAME_LEVELS`, the levels a run is played through, and
     `PLAY_ROUND`, the rules' `playRound()`, which the specs replace.
   - `styles/` — `global.scss`, `@fz/game-ui`'s global stylesheet, loaded

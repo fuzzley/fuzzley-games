@@ -7,7 +7,7 @@ import {
   type Waypoint,
   positionAt,
 } from "../rules/flight/events";
-import { RADIUS } from "../rules/tuning";
+import { JUMP_POINTS, RADIUS } from "../rules/tuning";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,
@@ -797,6 +797,31 @@ describe("RoundPlay's flight", () => {
     expect(change.freed).toEqual([]);
   });
 
+  it("counts the points of the breaks it has reached, and no more", () => {
+    const play = playing(BREAKING_ON);
+
+    playOnBy(play, 8);
+
+    expect(play.scored).toBe(10);
+  });
+
+  it("counts every break's points once the flight has landed", () => {
+    const play = playing(zap);
+
+    playUntilLanded(play);
+
+    expect(play.scored).toBe(zap.round.outcome.points - JUMP_POINTS);
+  });
+
+  it("counts none once the next round is aimed", () => {
+    const play = playing(BREAKING_ON);
+    playUntilSettled(play);
+
+    play.aim(plain.start);
+
+    expect(play.scored).toBe(0);
+  });
+
   it("hands each frame the same view", () => {
     const play = playing(plain);
     const { view } = play;
@@ -1049,6 +1074,15 @@ describe("RoundPlay's skip", () => {
       ),
       "land",
     ]);
+  });
+
+  it("counts the points of every break it skips", () => {
+    const play = playing(zap);
+
+    play.skip();
+    play.advance(FRAME_MS, NORMAL);
+
+    expect(play.scored).toBe(zap.round.outcome.points - JUMP_POINTS);
   });
 
   it("leaves the wall as the flight would", () => {

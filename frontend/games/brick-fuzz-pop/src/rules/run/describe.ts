@@ -38,10 +38,18 @@ export function describeLevel(entry: LevelEntry, boon: Boon): string {
   return `Level ${String(entry.number)}, ${entry.data.name}. ${describeBoon(boon)}`;
 }
 
-/** Returns what is said as the keys change the aim or the charge: "62 degrees, charge 3". */
-export function describeShot({ aim, charge }: Shot): string {
+/**
+ * Returns what is said as the keys change the aim or the charge: "62
+ * degrees, charge 3", or, for a shot that carries a hot shot, which flies
+ * at full charge whatever was charged, "62 degrees, hot shot".
+ */
+export function describeShot(
+  { aim, charge }: Shot,
+  boon: Boon | null = null,
+): string {
   const degrees = FIRST_AIM_DEGREES + aim / AIMS_PER_DEGREE;
-  return `${String(degrees)} degrees, charge ${String(charge)}`;
+  const power = boon === "hot" ? boonName(boon) : `charge ${String(charge)}`;
+  return `${String(degrees)} degrees, ${power}`;
 }
 
 /**

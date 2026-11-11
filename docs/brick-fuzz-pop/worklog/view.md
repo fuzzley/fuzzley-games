@@ -1516,3 +1516,82 @@ says, against the app's.
    change, says `open` means the first level or one after a level
    cleared, and doesn't mention the flag. Left: the file is the shell
    stream's and the coordinator didn't ask for it; noted in the report.
+
+### Q3's findings: the bar after the playback, a hot shot's words, and the depth
+
+**2026-11-10.** Three findings from the scene stream's Q3 check in a
+browser, which the coordinator handed this stream.
+
+**The bar ran ahead of the playback.** The run takes a round in as it is
+released, its rounds and points with it, and the bar showed the run, so
+its score and rounds changed before the flight had broken anything.
+`plan.md` scores a brick "as it breaks", and says nothing of when a round
+counts. Now the bar's figures follow what the player sees: each break's
+points as the flight plays it back, and the rest, a jump's and the
+stars', as it lands, the round counted with them. `RoundPlay` counts the
+points of the breaks it has reached (`scored`), `RunState` carries them
+(`scored`), and `GameService`'s `rounds` and `score` take the flight in
+the air back out of the run's. The run itself is as it was, so the saved
+game and the records still keep a round as it is released, as `plan.md`
+asks. The Paused card and the words said as a level pauses carry the
+score the bar shows. The panels read the round aimed and the lit badge,
+which change only as the next round is aimed or a shot flies, so none of
+their figures leads the playback. One thing still does, by design: the
+records keep a cleared level as its last round is released, as
+`plan.md` asks, so the Levels dialog opened during that flight already
+shows the level's stars and the next level open.
+
+**A hot shot was said as "charge 0".** The plan's words for it are "hot
+shot", so `describeShot()` takes the boon the shot carries, as an
+optional second parameter, and says "62 degrees, hot shot" for a hot
+shot; a triple shot's charge is still said, as its fuzzballs fly at it.
+`GameService` hands it the waiting fuzzball's boon, and none while a
+shot flies, as the fuzzball waits plain until the flight lands, so the
+aim moved during any flight is said with its charge.
+
+**The round's words used the round's own depth.** The field takes the
+room's depth only as a round's wall comes to rest, in the frame the
+round's words are said, so a turn of the room during a flight left them
+counting the bricks to a jump on a field no longer shown. They are now
+said of the next round as it is aimed, on the depth the field has as
+they are said, which is what the player sees.
+
+`SPEC_POINTS.jump` is now the zap fixture's points, its breaks' and the
+jump's, so the bar's count of the breaks comes to the round's.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 4,842 tests in 109 files, the coverage run's 4,692
+in 89 at its floors; `round_play.ts` keeps its one branch short of 100,
+as before. The root's `yarn lint` passes.
+
+**The mutation pass.** 20 mutants: 12 of `GameService`, 3 of
+`RoundPlay`'s count, 3 of `withFrame()` and `newRunState()`, and 2 of
+`describeShot()`. 15 were killed at once. Of the rest, the Paused card's
+score was killed by the board's spec; a hot shot's words taken from the
+round in the air rather than the waiting fuzzball, and a count that
+added 10 a break, which the made-up flight's breaks all scored, were gaps,
+now given specs and killed; `scored` set to 0 at release was dead code,
+as an aimed round's state holds 0, and went (but see review item 1); and
+the round's words always said of the next round aimed is equivalent, as
+`describeRound()` reads the next start only for a round that leaves the
+level on. After the review, 3 more: the bar's figures held back until
+the next round is aimed, two ways, both killed; and `nextLevel()` keeping
+the last flight's `scored`, equivalent, since the release that next reads
+it is overwritten by the same frame's playback before anything shows it.
+
+**The review:**
+
+1. **`nextLevel()` carried the cleared level's `scored` into the next
+   level's aimed state,** against `RunState.scored`'s meaning, though the
+   same frame's playback overwrote it before anything read it. Fixed:
+   `nextLevel()` sets it to 0, as it sets the round and the phase.
+2. **The spec of the jump's points "as it lands" played on until the next
+   round was aimed,** so it would pass if the bar held them back until
+   then. Fixed: its helper stops as the flight lands.
+3. **The records still run ahead of the playback,** the Levels dialog
+   showing a level cleared during its last flight. Kept, as `plan.md`
+   keeps the records at release; this section now says so.
+4. **The hot shot's paragraph gave the wrong reason** for saying the
+   charge during a flight. Fixed.
+5. **A line of `AGENTS.md`'s `play/` paragraph ran past the margin.**
+   Fixed: the paragraph reflowed.

@@ -246,7 +246,7 @@ describe("CertificatesService", () => {
     const started = await certificates.play();
     game.tick(FRAME_MS, STILL);
 
-    expect([started, game.rounds()]).toEqual([true, 1]);
+    expect([started, game.run().rounds]).toEqual([true, 1]);
   });
 
   it.each<[string, CertificateFiles, boolean]>([

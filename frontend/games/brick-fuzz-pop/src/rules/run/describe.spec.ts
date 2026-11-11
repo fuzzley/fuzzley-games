@@ -89,6 +89,18 @@ describe("describeShot", () => {
   ] as const)("says aim %i at charge %i as %s", (aim, charge, words) => {
     expect(describeShot({ aim, charge })).toBe(words);
   });
+
+  it("says a hot shot rather than the charge, which it flies at full whatever was charged", () => {
+    expect(describeShot({ aim: 216, charge: 0 }, "hot")).toBe(
+      "62 degrees, hot shot",
+    );
+  });
+
+  it("says the charge of a shot carrying a triple shot, whose fuzzballs fly at it", () => {
+    expect(describeShot({ aim: 216, charge: 3 }, "triple")).toBe(
+      "62 degrees, charge 3",
+    );
+  });
 });
 
 describe("describeRound", () => {
