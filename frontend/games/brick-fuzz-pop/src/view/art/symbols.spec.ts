@@ -10,6 +10,7 @@ import {
   detailed,
   diePips,
   itemAt,
+  turned,
 } from "./symbols";
 
 describe("detailed", () => {
@@ -190,6 +191,28 @@ describe("diePips", () => {
       expect(() => diePips(count, middle, 10, 2, style)).toThrow(RangeError);
     },
   );
+});
+
+describe("turned", () => {
+  it.each([
+    [90, { x: 0, y: 2 }],
+    [-90, { x: 0, y: -2 }],
+    [180, { x: -2, y: 0 }],
+    [0, { x: 2, y: 0 }],
+  ])(
+    "turns a point by %i degrees about the origin, clockwise down the screen",
+    (degrees, to) => {
+      const { x, y } = turned({ x: 2, y: 0 }, degrees);
+
+      expect({ x: billionths(x), y: billionths(y) }).toEqual(to);
+    },
+  );
+
+  it("turns a point off both axes, keeping its distance from the origin", () => {
+    const { x, y } = turned({ x: 3, y: 4 }, 90);
+
+    expect({ x: billionths(x), y: billionths(y) }).toEqual({ x: -4, y: 3 });
+  });
 });
 
 describe("bandAlong", () => {

@@ -1,6 +1,7 @@
 import {
   billionths,
   distanceToSegment,
+  everyScale,
   inBillionths,
   pastRoundRect,
 } from "./art_frames";
@@ -13,6 +14,26 @@ describe("billionths", () => {
   it("gives 0 for -0, which a deep equality tells apart", () => {
     expect(Object.is(billionths(-0), 0)).toBe(true);
   });
+});
+
+describe("everyScale", () => {
+  it.each([
+    [1, 24, 105],
+    [1.25, 30, 99],
+    [2.625, 63, 66],
+    [1.1, 27, 102],
+  ])(
+    "gives every whole unit at %f to one, from the first at 24 CSS pixels or more, %i device pixels, to 128: %i of them",
+    (pixelRatio, least, count) => {
+      const scales = everyScale(pixelRatio);
+
+      expect([scales[0], scales.at(-1), scales.length]).toEqual([
+        { unit: least, pixelRatio },
+        { unit: 128, pixelRatio },
+        count,
+      ]);
+    },
+  );
 });
 
 describe("inBillionths", () => {

@@ -1,6 +1,6 @@
 // What the bricks' art is laid out by: a brick's cell at a scale, whether a
 // scale draws the finest detail, an outline whose edges lie on whole device
-// pixels, a die's pips, and a line drawn as a band. The art's numbers
+// pixels, a die's pips, a point turned, and a line drawn as a band. The art's numbers
 // are the design's (`docs/brick-fuzz-pop/art/make-art.mjs`), each written as
 // a share of the cell its 100-unit square is.
 
@@ -157,6 +157,13 @@ export function diePips(
       style,
     ),
   );
+}
+
+/** Returns a point turned about the origin by an angle in degrees, clockwise down the screen. */
+export function turned({ x, y }: Point, degrees: number): Point {
+  const cos = Math.cos((degrees * Math.PI) / 180);
+  const sin = Math.sin((degrees * Math.PI) / 180);
+  return { x: x * cos - y * sin, y: x * sin + y * cos };
 }
 
 /**
