@@ -30,14 +30,23 @@
         for the pointer only; the button above offers the same to the keyboard
         and to screen readers, which would otherwise meet it twice.
       -->
-      <a class="stage play" [href]="play.href" tabindex="-1" aria-hidden="true">
-        <img
-          [src]="play.preview"
-          alt=""
-          width="1280"
-          height="720"
-          fetchpriority="high"
-        />
+      <a
+        class="stage play"
+        [class.plain]="view.plain"
+        [href]="play.href"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        @if (!previewFailed()) {
+          <img
+            [src]="play.preview"
+            alt=""
+            width="1280"
+            height="720"
+            fetchpriority="high"
+            (error)="previewFailed.set(true)"
+          />
+        }
         <span class="fz-button stage-cta">
           <fz-icon name="play" />
           Play {{ view.game.name }}

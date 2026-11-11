@@ -335,6 +335,16 @@ export const GAMES: readonly Game[] = [
     play: { build: "brick-breaker" },
   },
   {
+    slug: "brick-fuzz-pop",
+    name: "Brick Fuzz Pop",
+    category: "arcade",
+    blurb: "Charge the fuzzball, let it fly and keep the bricks off the floor.",
+    players: SOLO,
+    minutes: 10,
+    play: { build: "brick-fuzz-pop" },
+    inDevelopment: true,
+  },
+  {
     slug: "snake",
     name: "Snake",
     category: "arcade",

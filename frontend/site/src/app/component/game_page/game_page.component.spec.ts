@@ -1,5 +1,10 @@
 import { provideRouter } from "@angular/router";
-import { render, screen } from "@testing-library/angular";
+import {
+  type RenderResult,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/angular";
 import type { Game } from "../../model/game";
 import {
   TEST_CATALOG,
@@ -9,8 +14,10 @@ import {
 import { GamePageComponent } from "./game_page.component";
 
 describe("GamePageComponent", () => {
-  async function renderPage(slug: string): Promise<void> {
-    await render(GamePageComponent, {
+  async function renderPage(
+    slug: string,
+  ): Promise<RenderResult<GamePageComponent>> {
+    return render(GamePageComponent, {
       inputs: { slug },
       providers: [provideRouter([]), provideTestCatalog()],
     });
@@ -51,6 +58,30 @@ describe("GamePageComponent", () => {
     expect(screen.getByRole("presentation", { hidden: true })).toHaveAttribute(
       "src",
       "/play/solitaire/docs/screenshots/bakers/preview.webp",
+    );
+  });
+
+  it("leaves the stage and its Play button when the screenshot fails to load", async () => {
+    await renderPage("bakers-game");
+    const screenshot = screen.getByRole("presentation", { hidden: true });
+    const stage = screenshot.closest("a");
+
+    fireEvent.error(screenshot);
+
+    expect(screenshot).not.toBeInTheDocument();
+    expect(stage).toBeInTheDocument();
+    expect(stage).toHaveTextContent("Play Baker’s Game");
+  });
+
+  it("shows the next game's screenshot after one failed to load", async () => {
+    const { rerender } = await renderPage("bakers-game");
+    fireEvent.error(screen.getByRole("presentation", { hidden: true }));
+
+    await rerender({ inputs: { slug: "minesweeper" } });
+
+    expect(screen.getByRole("presentation", { hidden: true })).toHaveAttribute(
+      "src",
+      "/play/minesweeper/docs/screenshots/minesweeper/preview.webp",
     );
   });
 

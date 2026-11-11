@@ -1,4 +1,10 @@
-import { Component, computed, inject, input } from "@angular/core";
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+} from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { IconComponent } from "@fz/ui/icon";
 import {
@@ -14,6 +20,10 @@ import { NotFoundComponent } from "../not_found/not_found.component";
 /**
  * Shows a single game's page, which opens the game itself full-page, or says it
  * is still to come.
+ *
+ * A screenshot that fails to load, as a game in development's may while its
+ * build ships none yet, leaves the stage's own surface and its Play button
+ * showing rather than a broken image.
  */
 @Component({
   selector: "app-game-page",
@@ -43,8 +53,15 @@ export class GamePageComponent {
             preview: screenshotUrl(game.play, "preview"),
           }
         : null,
-      // A game not played on a card table shows no felt.
+      // A game not played on a card table shows no felt, where its
+      // screenshot doesn't cover the stage.
       plain: category.surface === "plain",
     };
+  });
+
+  /** Whether the game's screenshot failed to load, until another game's page shows. */
+  protected readonly previewFailed = linkedSignal({
+    source: () => this.view()?.play?.preview,
+    computation: () => false,
   });
 }

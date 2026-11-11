@@ -1,8 +1,11 @@
-<img
-  [src]="src()"
-  alt=""
-  width="192"
-  height="108"
-  [attr.loading]="loading()"
-  decoding="async"
-/>
+@if (!failed()) {
+  <img
+    [src]="src()"
+    alt=""
+    width="192"
+    height="108"
+    [attr.loading]="loading()"
+    decoding="async"
+    (error)="failed.set(true)"
+  />
+}

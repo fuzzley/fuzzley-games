@@ -4,7 +4,7 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { GameManifest } from "@fz/dev/game-manifest";
-import type { Game } from "../src/app/model/game.ts";
+import { type Game, imagesOf } from "../src/app/model/game.ts";
 import {
   type Catalog,
   commitHash,
@@ -169,6 +169,19 @@ describe("forward", () => {
   });
 });
 
+/** Returns a game the site lists, by its slug, with anything else given. */
+function game(slug: string, more: Partial<Game> = {}): Game {
+  return {
+    slug,
+    name: slug,
+    category: "classics",
+    blurb: "",
+    players: { min: 1, max: 1 },
+    minutes: 5,
+    ...more,
+  };
+}
+
 describe("missingImages", () => {
   let publicDir: string;
 
@@ -182,28 +195,38 @@ describe("missingImages", () => {
     rmSync(publicDir, { recursive: true, force: true });
   });
 
-  function catalogOf(...slugs: string[]): Catalog {
-    return {
-      games: slugs.map((slug) => ({
-        slug,
-        name: slug,
-        category: "classics",
-        blurb: "",
-        players: { min: 1, max: 1 },
-        minutes: 5,
-      })),
-      imagesOf: (game) => [`/thumbnails/${game.slug}.svg`],
-    };
+  function catalogOf(...games: Game[]): Catalog {
+    return { games, imagesOf };
   }
 
   it("finds every picture in place", () => {
-    expect(missingImages(catalogOf("reversi"), publicDir)).toEqual([]);
+    expect(missingImages(catalogOf(game("reversi")), publicDir)).toEqual([]);
   });
 
   it("names each picture that isn't there", () => {
-    expect(missingImages(catalogOf("reversi", "chess"), publicDir)).toEqual([
-      "/thumbnails/chess.svg",
+    expect(
+      missingImages(catalogOf(game("reversi"), game("chess")), publicDir),
+    ).toEqual(["/thumbnails/chess.svg"]);
+  });
+
+  it("holds a finished hosted game to its screenshots", () => {
+    const minesweeper = game("minesweeper", {
+      play: { build: "minesweeper" },
+    });
+
+    expect(missingImages(catalogOf(minesweeper), publicDir)).toEqual([
+      "/play/minesweeper/docs/screenshots/minesweeper/thumb.webp",
+      "/play/minesweeper/docs/screenshots/minesweeper/preview.webp",
     ]);
+  });
+
+  it("holds a game in development to no pictures, as its build may ship none yet", () => {
+    const minesweeper = game("minesweeper", {
+      play: { build: "minesweeper" },
+      inDevelopment: true,
+    });
+
+    expect(missingImages(catalogOf(minesweeper), publicDir)).toEqual([]);
   });
 });
 
@@ -222,15 +245,7 @@ describe("loadCatalog", () => {
 describe("manifestProblems", () => {
   /** Returns a game the site lists, hosted where `play` says, if anywhere. */
   function hosted(name: string, play?: Game["play"]): Game {
-    return {
-      slug: name.toLowerCase(),
-      name,
-      category: "solitaire",
-      blurb: "",
-      players: { min: 1, max: 1 },
-      minutes: 5,
-      ...(play && { play }),
-    };
+    return game(name.toLowerCase(), { name, ...(play && { play }) });
   }
 
   /** The manifests of a collection and of a single game. */

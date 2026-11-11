@@ -1219,3 +1219,97 @@ root's `yarn lint`, before the review and after its fixes.
 7. **"Hidden from screen readers"** and a list-like "Every action is
    round, Pause, …". Fixed: "hidden from assistive technology", and a
    semicolon.
+
+### Only finished games need screenshots, and U2's listing
+
+**2026-11-10.** At the user's word, through the integrator: "Relax the
+rule so only finished games need a screenshot." T2's capture goes back
+after Y1, where the plan has it.
+
+**What was built.**
+
+- **The check.** `missingImages()` in `frontend/site/tools/vite-plugins.ts`
+  leaves out a game with `inDevelopment: true`, so `checkGameImages()`
+  holds it to no pictures; a finished hosted game still needs its thumb and
+  preview, and a game still to come its drawing in `public/thumbnails/`.
+  `manifestProblems()` still fails a catalog entry whose build lacks the
+  game. The doc comments and the error's words say so.
+- **What the site shows meanwhile.** `GameThumbComponent` and
+  `GamePageComponent` drop an image that fails to load, through an
+  `(error)` binding and a `linkedSignal()` on its address, which forgets
+  the failure once another game's picture is handed over. The tile's frame
+  keeps its felt and its shape, as it did; the game page's stage now keeps
+  the screenshots' 16:9 itself, and its category's surface, so without one
+  it stays the same size, its surface and its Play button showing: the
+  panel for Arcade, as a game still to come there shows. A screenshot that
+  loads shows as before, with nothing to change once T2 adds them.
+- **The listing.** `"brick-fuzz-pop"` in `frontend/site/games.json`, and
+  the catalog's entry after Brick Breaker: Arcade, solo,
+  `play: { build: "brick-fuzz-pop" }`, `inDevelopment: true`.
+- **The docs.** The site's `AGENTS.md`, `frontend/games/AGENTS.md`'s step
+  for the site and `docs/operations.md`'s "Add a game" say a game in
+  development may ship no screenshots yet; the game's own `AGENTS.md` no
+  longer says the site doesn't list it.
+
+**Choices the plan didn't make.**
+
+1. **The blurb:** "Charge the fuzzball, let it fly and keep the bricks off
+   the floor." From the pitch's charge, release and loss at the floor, in
+   the shape of Brick Breaker's "Bounce the ball, break every brick and
+   keep it off the floor." **The minutes:** 10, Brick Breaker's.
+2. **The fallback is the frame's own surface,** not the game's name on it:
+   the tile names the game under its picture, and the page's stage keeps
+   its Play button with the name. Removing the image, rather than hiding
+   it, also keeps a browser from drawing its broken-image mark. The tile's
+   frame stays felt in every category, as it is under every picture still
+   loading and under the drawings of games still to come, Classics' too;
+   the site gives a category its surface on the game page's stage alone.
+3. **The exemption is by `inDevelopment` alone,** which
+   `games.spec.ts` already allows only on a game that plays, so a game
+   still to come is still held to its drawing.
+
+**Checks.** The site's `lint`, `typecheck` and `test:coverage` pass: 177
+tests in 21 files, 6 of them new, the two components at 100%. The root's
+`yarn lint` passes. Each game built in turn, then the site's `build`
+passes, Brick Fuzz Pop with no screenshots; with the entry's
+`inDevelopment` taken out, the same build fails on its thumb and preview.
+In headless Chrome over the build: the Arcade page's Brick Fuzz Pop tile
+shows its felt, 224 × 126 as its neighbours, and its page's stage is
+1200 × 675, the panel and its Play button showing; Brick Breaker's stage
+and its loaded screenshot are both 1200 × 675, as before.
+
+**The mutation pass.** 11 mutants, one at a time. Over the two
+components' specs: either keeping a picture that failed, its error marking
+nothing, never forgetting the failure for another game, or hiding every
+picture. Over the plugins' spec: every game held to its pictures, only
+games in development held, and none held. All 11 were killed.
+
+**The review:**
+
+1. **An Arcade game's fallback showed the card table's felt,** on the
+   page's stage and in its tile, where the page gives a game not played on
+   cards no felt. Fixed on the page: the play stage takes the category's
+   `plain`, so the panel shows, which a loaded screenshot covers as
+   before. The tile's left felt, as the second choice says.
+2. **The game's `AGENTS.md` still listed U2 as wholly to come.** Fixed:
+   "the rest of U2".
+3. **`checkGameImages()`'s first sentence spoke of finished games only,**
+   though it holds a game still to come to its drawing. Fixed: "when a
+   game's picture is missing, but for a game in development's".
+4. **The thumb's `failed` read awkwardly.** Fixed: "until the thumb is
+   handed another game".
+5. **Two specs repeated their render helpers' setup to get `rerender`,**
+   and the plugins' spec had two near-same game factories. Fixed: the
+   helpers hand back the render, and one factory at the top of the file
+   serves both, `hosted()` built on it.
+6. **The listing shouldn't reach `main` before U1 connects the game,** as
+   the page says it plays. Left for the integrator, in the notes below.
+
+**For the integrator.**
+
+- **The listing says the game plays,** and the page's Play opens a shell
+  that shows the game's name alone until U1's wiring: this commit is best
+  merged to `main` with or after it.
+- **The game's intro paragraph** is touched in two places, the site's
+  sentence and "the rest of U2", beside the R3 to R6 the rules stream
+  edits.

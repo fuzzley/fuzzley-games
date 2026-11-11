@@ -257,20 +257,25 @@ export async function loadCatalog(): Promise<Catalog> {
   return { games: data.GAMES, imagesOf: model.imagesOf };
 }
 
-/** Returns the games' pictures that aren't in a folder of public files. */
+/**
+ * Returns the games' pictures that aren't in a folder of public files, but for
+ * a game in development, whose build may ship no screenshots yet.
+ */
 export function missingImages(catalog: Catalog, publicDir: string): string[] {
   return catalog.games
+    .filter((game) => !game.inDevelopment)
     .flatMap((game) => catalog.imagesOf(game))
     .filter((url) => !existsSync(path.join(publicDir, url)));
 }
 
 /**
- * Fails the build when a game's picture is missing.
+ * Fails the build when a game's picture is missing, but for a game in
+ * development's.
  *
- * For a hosted game that means the catalog links a game the builds don't
- * have, such as one renamed in its workspace, which would
- * otherwise open whatever game was played last: a build ships screenshots of
- * every game it has. A game still to come needs its drawing in
+ * A hosted game's are the screenshots its build ships, which a finished game
+ * must; a game in development may ship none yet, as the site shows its frame
+ * without them, and `checkGameManifests()` still fails a catalog that links a
+ * game the builds don't have. A game still to come needs its drawing in
  * public/thumbnails/.
  */
 export function checkGameImages(): Plugin {
@@ -284,9 +289,10 @@ export function checkGameImages(): Plugin {
       );
       if (missing.length > 0) {
         this.error(
-          "These games' pictures are missing: a hosted game's come from its " +
-            "build in public/play/ (see games.json), and a game still to " +
-            `come needs one in public/thumbnails/.\n  ${missing.join("\n  ")}`,
+          "These games' pictures are missing: a finished hosted game's come " +
+            "from its build in public/play/ (see games.json), and a game " +
+            "still to come needs one in public/thumbnails/; only a game in " +
+            `development may lack its own.\n  ${missing.join("\n  ")}`,
         );
       }
     },

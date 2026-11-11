@@ -87,7 +87,8 @@ workspace, or names one differently from its build, apostrophes aside.
 - **Add a game:** give it a folder under `frontend/games/` with a
   `package.json`, named after the folder, whose `build` script writes
   `dist/`, with `index.html` at its top level, the `game.json` that
-  `gameConfig()` writes, and its screenshots in `docs/screenshots/<id>/`. Run `yarn install`, add
+  `gameConfig()` writes, and its screenshots in `docs/screenshots/<id>/`,
+  which a game listed as in development may ship later. Run `yarn install`, add
   `{ "workspace": "games/<folder>" }` to `games.json`, and list its games in
   the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
   change.

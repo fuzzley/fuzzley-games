@@ -15,9 +15,9 @@ package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 shows the game's name alone: the scene, the dialogs, the settings drawer,
 the game and the services that keep it are written and specced, but
-nothing places them yet, and the site doesn't ship it:
-`frontend/site/games.json` doesn't list it. What the plan's packages still
-to come build (the rest of P2, P3, S2, the rest of U1, U2, T1 and T2, then
+nothing places them yet. The site lists it as in development, its build
+shipping no screenshots yet. What the plan's packages still to come build
+(the rest of P2, P3, S2, the rest of U1, the rest of U2, T1 and T2, then
 X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
