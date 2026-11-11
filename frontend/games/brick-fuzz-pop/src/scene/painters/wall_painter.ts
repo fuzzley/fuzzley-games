@@ -2,6 +2,7 @@ import { shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { cellAt, columnOf, fieldRowOf } from "../../rules/grid";
 import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
+import { DANGER_ROW, dangerCells } from "../../rules/wall/lower";
 import type { Wall } from "../../rules/wall/wall";
 import { brickLayers } from "../../view/art/art";
 import type { FrameName } from "../../view/art/frames";
@@ -9,7 +10,6 @@ import { swellScale } from "../../view/effects/flourish";
 import { SWELL_MS } from "../../view/effects/timing";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
-import { DANGER_ROW, endangers } from "../danger";
 import { FIELD_FRAMES } from "../field_art";
 import type { PaintContext, Painter } from "./painter";
 
@@ -130,19 +130,22 @@ export class WallPainter implements Painter {
         // shows another of the wall's.
         this.struckAt.fill(Number.NEGATIVE_INFINITY);
       }
+      // The wall eases on in frames that hand over the same wall.
+      const another = wall !== drawn.wall;
       drawn.wall = wall;
       drawn.over = over;
       drawn.metrics = metrics;
       drawn.depth = shape.depth;
       this.layOut(wall, metrics, shape.depth, over, scale);
+      if (another) this.frameDanger(wall);
     }
     this.swellStruck(now, scale);
   }
 
   /**
    * Shows every brick of a wall in its cell, its stack of frames scaled, the
-   * wall drawn some device pixels over its place, and the warning frames
-   * over those one step from losing the level.
+   * wall drawn some device pixels over its place, and places the warning
+   * frames with it.
    */
   private layOut(
     wall: Wall,
@@ -175,9 +178,19 @@ export class WallPainter implements Painter {
       const top = y + (depth - 1 - row) * unit - over;
       warning
         .setPosition(x + (column + 0.5) * unit, top + unit / 2)
-        .setScale(scale)
-        .setVisible(endangers(wall, column, row));
+        .setScale(scale);
       spot++;
+    }
+  }
+
+  /** Shows the warning frame over each brick a wall's level needs at or under the row over the floor's, and hides the rest. */
+  private frameDanger(wall: Wall): void {
+    for (const warning of this.warnings) warning.setVisible(false);
+    for (const cell of dangerCells(wall)) {
+      const row = fieldRowOf(wall, cell);
+      if (row >= 0) {
+        this.warnings[row * COLUMNS + columnOf(cell)]?.setVisible(true);
+      }
     }
   }
 

@@ -704,3 +704,60 @@ The second review:
    after a name ending in s, as the file writes it; `endangers()` for a
    field row and column; a sound "with motion or without"; and this list
    for what the second review found.
+
+### S2c: the danger read from the rules
+
+**2026-11-10.**
+
+The integrator asked, once P2 was merged, for the scene to read the danger
+from the rules `src/rules/wall/lower.ts` now shares, dropping what
+duplicates them, its look unchanged.
+
+**What was built.**
+
+- **`src/scene/danger.ts` went.** `FieldPainter` lights the danger line by
+  the rules' `inDanger()`, along the foot of their `DANGER_ROW`, and counts
+  the bricks under the jump line by `neededBelow()`, its own
+  `neededUnder()` gone; `WallPainter`, as it is handed another wall, hides
+  every warning frame, then shows the one over each of the rules'
+  `dangerCells()`, and places them as it lays the wall out.
+- **The game's `AGENTS.md`** says the scene's danger and count are the
+  rules', in its `painters/` bullet, and drops its `danger.ts` bullet.
+
+**Choices the plan didn't make.**
+
+1. **A needed brick under the floor shows no frame,** and the danger line,
+   which the rules' `inDanger()` reads by `lowestNeededRow()`, would now
+   light for one, where the scene's own looked at the floor's row and the
+   one over it alone. No wall the game hands over holds one: the step that
+   brings a needed brick to the floor's row loses the level, a jump waits
+   on none under the jump line, and a saved wall with one is refused.
+2. **The warning frames are shown again only as another wall is handed
+   over,** not as the wall eases, so `dangerCells()`, which makes an array,
+   runs a frame a brick changes, not every frame; `neededBelow()` and
+   `inDanger()` run as `FieldPainter` reads another wall too.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+4,465 tests in 83 files, and 3 in `sim`, the scene's 215 unchanged and
+its files within their floors; the root's `yarn lint` passes.
+
+**The mutation pass.** 6 mutants of the change: every warning frame shown,
+none shown, a danger cell's column and row each lost, the count's line a
+row higher, and the line never lit. All were killed by the danger's and
+the count's specs, which hold the look as it was. After the review, 6 of
+the frames shown only for another wall: 4 killed, and 2 equivalent, the
+frames shown again at every layout, which only costs the array, and the
+guard on a row under the floor, whose frame no wall the game hands over
+asks for and whose index names none.
+
+**The review:**
+
+1. **`dangerCells()` made an array every frame of the wall's ease,** as
+   the wall painter lays the wall out again as it moves, and choice 2 said
+   otherwise. Fixed: the frames are shown again only as another wall is
+   handed over (choice 2), a row under the floor guarded.
+2. **Choice 1 told half the difference under the floor:** the line, read
+   by the rules, would light for such a brick too. Fixed: choice 1 says
+   so, and why no wall holds one.
+3. **Nit.** The `AGENTS.md` lines named `lower.ts` again, which the rules'
+   bullet does. Fixed: each is "the rules'".

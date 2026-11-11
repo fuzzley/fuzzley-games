@@ -301,28 +301,26 @@ helpers.
     draws the cells, the floor's band, the lintel, the frame, the grid's
     dots, and the jump and danger lines in dashes on whole pixels, counting
     in dots the needed bricks still under the jump line once they are nine
-    or fewer, the danger line solid and twice as thick while a brick the
-    level needs stands at or under the row over the floor's. `WallPainter`
-    stacks each cell's frames, lays the warning frame over each such brick,
-    and, where the player welcomes motion, eases the wall down by
-    `RoundView.wallDrop`, which is 1 while the wall stands still, the rows
-    coming in cut off along the ceiling; it swells a struck brick.
+    or fewer (the rules' `neededBelow()`), the danger line solid and twice
+    as thick while a brick the level needs stands at or under the row over
+    the floor's (the rules' `inDanger()`). `WallPainter` stacks each cell's
+    frames, lays the warning frame over each such brick (the rules'
+    `dangerCells()`), and, where the player welcomes motion, eases the wall
+    down by `RoundView.wallDrop`, which is 1 while the wall stands still,
+    the rows coming in cut off along the ceiling; it swells a struck brick.
     `BallPainter` draws the fuzzballs, 16 at most at once
     (`MOST_FUZZBALLS`): each in the air, its eyes the way its last event
-    sent it, and the one waiting on the floor, its fur combed by the
-    charge, looking along the aim, in its boon's look, which flares in at
-    the jump, a triple shot's two mates beside it. `MeterPainter` draws the
-    charge's five pips under it. `GuidePainter` draws the guide `guide()`
-    hands over, the rules' `Guide` (`src/rules/flight/guide.ts`): up to 128
-    dots (`MOST_GUIDE_DOTS`), one at each of its places, and 31 outlines
+    sent it, and the one waiting on the floor, its fur combed by the charge,
+    looking along the aim, in its boon's look, which flares in at the jump,
+    a triple shot's two mates beside it. `MeterPainter` draws the charge's
+    five pips under it. `GuidePainter` draws the guide `guide()` hands over,
+    the rules' `Guide` (`src/rules/flight/guide.ts`): up to 128 dots
+    (`MOST_GUIDE_DOTS`), one at each of its places, and 31 outlines
     (`MOST_PUNCHED`), one round each brick the shot would punch through.
     `EffectsPainter` draws a broken brick's shards, 216 at most
     (`MOST_SHARDS_FLYING`), a punch's streak, a zap's bolt, a blast's ring
-    and a freed friend's hop, each but the shards through
-    `@fz/core/turns`, the jump line's flash and a lost level's shake.
-  - `danger.ts` — when a brick endangers the level: `DANGER_ROW`, the row
-    over the floor's, `endangers()` for a field row and column, and
-    `inDanger()` for the wall, counting the floor's row too.
+    and a freed friend's hop, each but the shards through `@fz/core/turns`,
+    the jump line's flash and a lost level's shake.
 - **`src/app/`** — the shell, one folder per feature. `app.component`
   places the bar, the announcer, the result card over an ended run, the
   Levels dialog (every level open while the debug menu opens them), How to

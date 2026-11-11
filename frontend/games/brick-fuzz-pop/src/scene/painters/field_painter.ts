@@ -1,9 +1,8 @@
 import { framePixels } from "@fz/phaser/layout";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
-import { fieldRowOf } from "../../rules/grid";
 import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
-import { isNeeded } from "../../rules/wall/lower";
+import { DANGER_ROW, inDanger, neededBelow } from "../../rules/wall/lower";
 import { type Thirds, type Wall, thirdsOf } from "../../rules/wall/wall";
 import type { WallPalette } from "../../view/colors/palette";
 import {
@@ -14,7 +13,6 @@ import {
   lintelPixels,
 } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
-import { DANGER_ROW, inDanger } from "../danger";
 import { FIELD_FRAMES } from "../field_art";
 import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
@@ -123,7 +121,7 @@ export class FieldPainter implements Painter {
     }
     if (!laidOut && view.wall === this.wall) return;
     this.wall = view.wall;
-    const left = neededUnder(view.wall, this.thirds.jumpLine);
+    const left = neededBelow(view.wall, this.thirds.jumpLine);
     const counted = left <= MOST_COUNTED ? left : 0;
     const danger = inDanger(view.wall);
     if (!laidOut && counted === this.counted && danger === this.danger) {
@@ -267,14 +265,4 @@ function countDotX({ x, width, unit }: FieldMetrics, at: number): number {
       Math.floor(at / COUNT_GROUP) * GROUP_GAP) *
       unit
   );
-}
-
-/** Returns how many bricks the level needs stand in the field's rows under a line, at a row's foot, which a jump waits on. */
-function neededUnder(wall: Wall, line: number): number {
-  let count = 0;
-  for (let cell = 0; cell < wall.bricks.length; cell++) {
-    const brick = wall.bricks[cell];
-    if (brick && fieldRowOf(wall, cell) < line && isNeeded(brick)) count++;
-  }
-  return count;
 }
