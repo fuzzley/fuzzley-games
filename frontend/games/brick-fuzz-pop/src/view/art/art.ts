@@ -19,12 +19,15 @@ export type BrickLook = Pick<
   "kind" | "tint" | "hits" | "full" | "plates"
 >;
 
+/** Describes what a kind's art reads of a brick of the kind: its look but its kind, which the art is drawing. */
+export type KindLook = Omit<BrickLook, "kind">;
+
 /** Says how a kind of brick is drawn. */
 export interface KindArt {
   /** Returns the frames a brick of the kind shows as it stands, stacked in its cell from the bottom up. */
-  readonly layersOf: (brick: BrickLook) => readonly FrameName[];
+  readonly layersOf: (brick: KindLook) => readonly FrameName[];
   /** Returns the color a brick of the kind is drawn in, which its shards take. */
-  readonly colorOf: (brick: BrickLook, palette: WallPalette) => number;
+  readonly colorOf: (brick: KindLook, palette: WallPalette) => number;
   /** Returns the frames the kind brings to the atlas, each the size of a cell. */
   readonly frames: (
     palette: WallPalette,

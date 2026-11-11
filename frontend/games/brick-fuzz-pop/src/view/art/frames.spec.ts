@@ -19,6 +19,7 @@ describe("FRAMES", () => {
     [FRAMES.zapper("x"), "zapper-x"],
     [FRAMES.portal(2), "portal-2"],
     [FRAMES.cage("hit"), "cage-hit"],
+    [FRAMES.caged(3), "caged-3"],
     [FRAMES.fuzzball(0), "fuzzball-0"],
     [FRAMES.friend(5), "friend-5"],
   ])("names a frame %s", (name, expected) => {
@@ -29,10 +30,11 @@ describe("FRAMES", () => {
 describe("FRAME_NAMES", () => {
   // 8 tiles, 5 pips, 5 cracks, steel, 4 plates, a shell's body and 2 of
   // its pips, 2 moss pips and its cap, 4 zappers, the bomb, the bumper, the
-  // prism, 2 portals, wool, 2 cages, 6 fuzzballs, the hot shot, 8 friends,
-  // their eyes, 2 meter pips and 2 of the guide's marks.
+  // prism, 2 portals, wool, 8 cages' insides and 2 cages' bars, 6
+  // fuzzballs, the hot shot, 8 friends, their eyes, 2 meter pips and 2 of
+  // the guide's marks.
   it("lists every frame the art draws", () => {
-    expect(FRAME_NAMES).toHaveLength(61);
+    expect(FRAME_NAMES).toHaveLength(69);
   });
 
   it("lists each frame once", () => {

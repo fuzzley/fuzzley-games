@@ -16,7 +16,7 @@ import {
 import { atlasFrames } from "../atlas_frames";
 import { FRAMES } from "../frames";
 import { bandAlong, cellOf } from "../symbols";
-import { type ZapperKind, zapperArt } from "./zapper";
+import { zapperArt } from "./zapper";
 
 const ZAPPER = ART_PALETTE.kinds.rowZapper;
 
@@ -27,13 +27,13 @@ const OWN_INKS = {
     ...ART_PALETTE.kinds,
     rowZapper: { body: 0x110000, face: 0x220000, glyph: 0x330000 },
     columnZapper: { body: 0x001100, face: 0x002200, glyph: 0x003300 },
+    crossZapper: { body: 0x000011, face: 0x000022, glyph: 0x000033 },
+    xZapper: { body: 0x111100, face: 0x222200, glyph: 0x333300 },
   },
 };
 
-/** Returns a zapper of a kind. */
-function zapper(kind: ZapperKind) {
-  return { kind, tint: 0, hits: 1, full: 1, plates: 0 } as const;
-}
+/** How a zapper looks as it stands, whole, as it breaks at its first hit. */
+const WHOLE = { tint: 0, hits: 1, full: 1, plates: 0 } as const;
 
 /**
  * Returns the points of each shape of a zapper's bolt, to a billionth of a
@@ -54,26 +54,33 @@ function boltOf(frame: ArtFrame): readonly (readonly Point[])[] {
 }
 
 describe.each([
-  ["rowZapper", FRAMES.zapper("row")],
-  ["columnZapper", FRAMES.zapper("column")],
-] as const)("zapperArt for a %s", (kind, name) => {
+  { kind: "rowZapper", name: FRAMES.zapper("row"), bolts: 1, marks: [] },
+  { kind: "columnZapper", name: FRAMES.zapper("column"), bolts: 1, marks: [] },
+  {
+    kind: "crossZapper",
+    name: FRAMES.zapper("cross"),
+    bolts: 2,
+    marks: [ART_PALETTE.text],
+  },
+  { kind: "xZapper", name: FRAMES.zapper("x"), bolts: 2, marks: [] },
+] as const)("zapperArt for a $kind", ({ kind, name, bolts, marks }) => {
   const art = zapperArt(kind);
-  const frame = frameNamed(ART_FRAMES, name);
+  const frame = frameNamed(art.frames(ART_PALETTE, ART_SCALE), name);
 
   it(`shows it as its one frame, ${name}`, () => {
-    expect(art.layersOf(zapper(kind))).toEqual([name]);
+    expect(art.layersOf(WHOLE)).toEqual([name]);
   });
 
   it("gives its shards its own body's color", () => {
-    expect(art.colorOf(zapper(kind), OWN_INKS)).toBe(OWN_INKS.kinds[kind].body);
+    expect(art.colorOf(WHOLE, OWN_INKS)).toBe(OWN_INKS.kinds[kind].body);
   });
 
-  it("draws in its own inks, its face's, its body's and its glyph's", () => {
+  it(`draws in its own inks, its face's, its body's and its glyph's, and ${String(marks.length)} of the palette's`, () => {
     const [own] = art.frames(OWN_INKS, ART_SCALE);
     const { body, face, glyph } = OWN_INKS.kinds[kind];
 
     expect(new Set(own?.commands.map((command) => command.color))).toEqual(
-      new Set([body, face, glyph]),
+      new Set([body, face, glyph, ...marks]),
     );
   });
 
@@ -108,7 +115,7 @@ describe.each([
     );
   });
 
-  it("draws its bolt, a shaft and two arrowheads, inside its outline", () => {
+  it(`draws ${bolts === 1 ? "a bolt" : "two bolts"}, each a shaft and two arrowheads, inside its outline`, () => {
     const bolt = boltOf(frame);
 
     expect({
@@ -116,7 +123,7 @@ describe.each([
       outside: bolt
         .flat()
         .filter(({ x, y }) => Math.min(x, y) < 5 || Math.max(x, y) > 57),
-    }).toEqual({ shapes: 3, outside: [] });
+    }).toEqual({ shapes: 3 * bolts, outside: [] });
   });
 });
 
@@ -220,5 +227,100 @@ describe("zapperArt's bolts", () => {
     );
 
     expect(column).toEqual(turned);
+  });
+});
+
+describe("zapperArt's crossed bolts", () => {
+  const cross = frameNamed(
+    zapperArt("crossZapper").frames(ART_PALETTE, ART_SCALE),
+    FRAMES.zapper("cross"),
+  );
+  const x = frameNamed(
+    zapperArt("xZapper").frames(ART_PALETTE, ART_SCALE),
+    FRAMES.zapper("x"),
+  );
+
+  /** Returns a straight shaft about the cell's middle, its half length's reach across and down, so wide, to a billionth. */
+  function shaft(
+    across: number,
+    down: number,
+    width: number,
+  ): readonly Point[] {
+    return bandAlong(
+      [
+        { x: 31 - across, y: 31 - down },
+        { x: 31 + across, y: 31 + down },
+      ],
+      width,
+    ).map((point) => ({ x: billionths(point.x), y: billionths(point.y) }));
+  }
+
+  it("runs the cross's shafts straight along its row and its column, 0.56 of the cell long", () => {
+    const bolt = boltOf(cross);
+
+    expect([bolt[0], bolt[3]]).toEqual([
+      shaft(0.28 * 62, 0, 0.092 * 62),
+      shaft(0, 0.28 * 62, 0.092 * 62),
+    ]);
+  });
+
+  it("marks where the cross's shafts cross with a diamond in the field's text, on a rim of its face, both over the shafts", () => {
+    const diamond = (reach: number) =>
+      [
+        { x: 31, y: 31 - reach },
+        { x: 31 + reach, y: 31 },
+        { x: 31, y: 31 + reach },
+        { x: 31 - reach, y: 31 },
+      ].map((point) => ({ x: billionths(point.x), y: billionths(point.y) }));
+    const pointsIn = (color: number) =>
+      drawnIn(cross, "polygon", color).map((command) =>
+        command.kind === "polygon"
+          ? command.points.map((point) => ({
+              x: billionths(point.x),
+              y: billionths(point.y),
+            }))
+          : [],
+      );
+
+    expect({
+      rim: pointsIn(ZAPPER.face),
+      core: pointsIn(ART_PALETTE.text),
+      last: cross.commands
+        .slice(-2)
+        .map(({ kind, color }) => ({ kind, color })),
+    }).toEqual({
+      rim: [diamond(0.155 * 62)],
+      core: [diamond(0.1 * 62)],
+      last: [
+        { kind: "polygon", color: ZAPPER.face },
+        { kind: "polygon", color: ART_PALETTE.text },
+      ],
+    });
+  });
+
+  it("lays the X's shafts corner to corner, an eighth of a turn either way of its row, 1.2 times a row's length and width", () => {
+    const reach = 0.28 * 1.2 * 62 * Math.SQRT1_2;
+    const bolt = boltOf(x);
+
+    expect([bolt[0], bolt[3]]).toEqual([
+      shaft(reach, reach, 0.092 * 1.2 * 62),
+      shaft(reach, -reach, 0.092 * 1.2 * 62),
+    ]);
+  });
+
+  it("points the X's arrowheads at its tile's corners, 0.48 of the cell from its middle along each diagonal", () => {
+    const tip = 0.4 * 1.2 * 62 * Math.SQRT1_2;
+    const tips = boltOf(x)
+      .filter((_, i) => i % 3 !== 0)
+      .map((head) => head[0]);
+
+    expect(tips).toEqual(
+      [
+        { x: 31 + tip, y: 31 + tip },
+        { x: 31 - tip, y: 31 - tip },
+        { x: 31 + tip, y: 31 - tip },
+        { x: 31 - tip, y: 31 + tip },
+      ].map((point) => ({ x: billionths(point.x), y: billionths(point.y) })),
+    );
   });
 });

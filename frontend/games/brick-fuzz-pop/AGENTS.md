@@ -247,15 +247,17 @@ helpers.
   brick stacks in its cell (`brickLayers()`) and its shards' color
   (`brickColor()`); each kind's art is a file of `kinds/` (`brick.ts`'s tile
   in the eight tints, `tough.ts`'s pips and cracks, `steel.ts`,
-  `zapper.ts`, `shell.ts`'s body and pips, `moss.ts`'s cap and pips, each
-  showing its hits left), on `symbols.ts`'s shared shapes and its rule
-  that drops detail under 30 CSS px a unit (`detailed()`).
-  `fuzzball_art.ts` draws the fuzzballs (`fuzzballFrames()`): the player's
-  at each charge, its fur combed out as it charges (`furOf()`) and
-  sparking at a full one, the hot shot under its flames, a friend in each
-  of the eight inks, and the eyes every fuzzball wears, a frame of their
-  own. `atlas_frames.ts`'s `atlasFrames()` is every frame the atlas holds,
-  the kinds' in the catalog's order, then the fuzzballs'.
+  `zapper.ts`'s four zappers, `shell.ts`'s body and pips and `moss.ts`'s
+  cap and pips, each showing its hits left, and `bomb.ts`, `wool.ts` and
+  `cage.ts`, which `BRICK_ART` takes in as the catalog takes in their
+  kinds), on `symbols.ts`'s shared shapes and its rule that drops detail
+  under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
+  fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
+  combed out as it charges (`furOf()`) and sparking at a full one, the hot
+  shot under its flames, a friend in each of the eight inks, and the eyes
+  every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
+  `atlasFrames()` is every frame the atlas holds, the kinds' in the
+  catalog's order, then the fuzzballs'.
 - **`src/view/effects/`** — what each moment calls for, and how long it
   lasts. `effects.ts` names the twenty sounds (`SOUNDS`, in the sprite's
   order); its `FlightEffects` reads a flight in order (`begin()`, then
@@ -726,7 +728,8 @@ What the specs share is in `src/testing/`:
   specs (`ART_FRAMES`), lists the pixel ratios they check the art at
   (`PIXEL_RATIOS`) and every whole unit from 24 CSS px to 128 device px at
   one (`everyScale()`), and measures how far a point lies from a line or
-  past a rounded rectangle.
+  past a rounded rectangle, and how far a command reaches past one
+  (`reachPastRoundRect()`).
 - `canvases.ts` gives the canvas a board has in a window (`boardCanvas()`),
   less the bar or the rail (`CHROME_CSS_PX`, which its spec holds to
   `@fz/game-ui`'s Sass, the compact bar's through

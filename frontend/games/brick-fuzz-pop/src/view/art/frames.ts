@@ -52,7 +52,10 @@ export const FRAMES = {
   prism: "prism",
   portal: (mark: PortalMark) => `portal-${mark}` as const,
   wool: "wool",
+  /** A cage's bars over the friend it holds, whole or hit. */
   cage: (look: CageLook) => `cage-${look}` as const,
+  /** A cage's tile and inside, and the friend it holds in an ink, under its bars. */
+  caged: (ink: Ink) => `caged-${ink}` as const,
   /** The player's fuzzball, its fur combed by its charge. */
   fuzzball: (charge: Charge) => `fuzzball-${charge}` as const,
   hotShot: "hot-shot",
@@ -112,6 +115,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   FRAMES.prism,
   ...([1, 2] as const).map((mark) => FRAMES.portal(mark)),
   FRAMES.wool,
+  ...INKS.map((ink) => FRAMES.caged(ink)),
   ...(["whole", "hit"] as const).map((look) => FRAMES.cage(look)),
   ...CHARGES.map((charge) => FRAMES.fuzzball(charge)),
   FRAMES.hotShot,

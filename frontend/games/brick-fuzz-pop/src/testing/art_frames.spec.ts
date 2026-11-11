@@ -1,9 +1,19 @@
 import {
+  circle,
+  line,
+  polygon,
+  polyline,
+  rect,
+  ring,
+  roundRect,
+} from "@fz/phaser/shapes";
+import {
   billionths,
   distanceToSegment,
   everyScale,
   inBillionths,
   pastRoundRect,
+  reachPastRoundRect,
 } from "./art_frames";
 
 describe("billionths", () => {
@@ -73,8 +83,82 @@ describe("pastRoundRect", () => {
       { x: 0.5, y: 0.5 },
       Math.hypot(1.5, 1.5) - 2,
     ],
-    ["well within it", { x: 10, y: 5 }, -2],
+    ["well within it, as far in as its nearest edge", { x: 10, y: 5 }, -5],
   ])("measures a point %s", (_, point, past) => {
     expect(billionths(pastRoundRect(point, area, 2))).toBe(billionths(past));
+  });
+});
+
+describe("reachPastRoundRect", () => {
+  const area = { x: 0, y: 0, width: 20, height: 10 };
+  const ink = { color: 1 };
+  const pen = { color: 1, width: 2 };
+
+  it.each([
+    [
+      "a rectangle, by its furthest corner",
+      rect({ x: 5, y: 2, width: 17, height: 4 }, ink),
+      2,
+    ],
+    [
+      "a rounded rectangle, by its furthest corner's arc",
+      roundRect({ x: 5, y: 2, width: 5, height: 9 }, 1, ink),
+      1,
+    ],
+    [
+      "a rounded rectangle as round as its corner, lying in it",
+      roundRect({ x: 0, y: 0, width: 4, height: 4 }, 2, ink),
+      0,
+    ],
+    [
+      "a circle, its radius past its middle",
+      circle({ x: 10, y: 1 }, 3, ink),
+      2,
+    ],
+    ["a ring, half its line past its radius", ring({ x: 10, y: 5 }, 5, pen), 1],
+    [
+      "a line, half its width past its furthest end",
+      line({ x: 10, y: 5 }, { x: 10, y: 0 }, pen),
+      1,
+    ],
+    [
+      "a polyline, half its width past its furthest point",
+      polyline(
+        [
+          { x: 10, y: 5 },
+          { x: 21, y: 5 },
+        ],
+        pen,
+      ),
+      2,
+    ],
+    [
+      "a polygon, by its furthest point",
+      polygon(
+        [
+          { x: 10, y: 5 },
+          { x: 10, y: 13 },
+          { x: 12, y: 5 },
+        ],
+        ink,
+      ),
+      3,
+    ],
+    [
+      "a polygon well within it",
+      polygon(
+        [
+          { x: 10, y: 5 },
+          { x: 12, y: 5 },
+          { x: 11, y: 6 },
+        ],
+        ink,
+      ),
+      -4,
+    ],
+  ])("measures %s", (_, command, past) => {
+    expect(billionths(reachPastRoundRect(command, area, 2))).toBe(
+      billionths(past),
+    );
   });
 });
