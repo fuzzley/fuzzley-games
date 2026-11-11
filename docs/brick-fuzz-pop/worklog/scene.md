@@ -1226,3 +1226,45 @@ face, which is its body's ink in every palette.
 6. **The log listed five of `BRICK_ART`'s lines as all but the plain
    brick's, and left out the throw for none.** Fixed: the column zapper's
    line is mutated too, and the bullet says both.
+
+### X3c: the kinds' art specs hand their art a `KindLook`
+
+**2026-11-11.**
+
+A fresh review of X3b's bolt and looks found the art's specs still put a
+`kind` in some of the looks they hand a kind's art, which compiled only
+because a look built in an untyped helper or const isn't checked for
+excess properties;
+and the shell's and moss's first throw case was a brick with no hits
+whole, one that never breaks, rather than a broken one.
+
+**What was built.**
+
+- **Each look the specs of `src/view/art/kinds/` hand their art is a
+  `KindLook`,** typed so, without `as const`: the brick's, the tough
+  brick's, steel's, the zappers', the bomb's, wool's, the cage's, the
+  shell's and moss's. The brick's, the tough brick's and steel's lose the
+  `kind` they carried.
+- **The shell's and moss's throw cases** write each row's hits whole out:
+  none left of the most the catalog gives, and one past the most pips a
+  frame shows, of as many (`PAST_PIPS`).
+
+**Names added:** none.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+5,041 tests in 108 files, and 150 in `sim`; the root's `yarn lint` passes.
+
+**The mutation pass.** 13 mutants. Nine put a `kind` in each spec's look; the compiler refuses each (TS2353), as it refused none before. Four
+of the art's bounds the throw cases hold: a shell and a moss brick with
+none left showing the look of one, and with one past their pips showing
+three; the specs kill each.
+
+**The review:** nothing wrong; three small fixes.
+
+1. **The shell's and moss's specs imported `../art` after `../frames`,**
+   unlike the rest. Fixed.
+2. **The cage's helper's doc still said it returns a cage.** Fixed: it
+   returns a cage's look, as the others say.
+3. **The log said `as const` skipped the check, and that the mutants put a
+   `kind` back in every look.** Fixed: the missing type skips it, and only
+   three looks carried one.

@@ -2,6 +2,7 @@ import { mixColors } from "@fz/phaser/color";
 import { circle, stroke } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { FRAMES } from "../frames";
 import { boltMark, cellOf } from "../symbols";
 import { tileCommands } from "./brick";
@@ -22,7 +23,7 @@ const OWN_INKS = {
 };
 
 /** How a wool brick looks as it stands, whole, as it breaks at its first hit. */
-const WHOLE = { tint: 0, hits: 1, full: 1, plates: 0 } as const;
+const WHOLE: KindLook = { tint: 0, hits: 1, full: 1, plates: 0 };
 
 describe("WOOL_ART", () => {
   const frame = frameNamed(

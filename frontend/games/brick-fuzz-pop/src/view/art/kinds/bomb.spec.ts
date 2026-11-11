@@ -14,6 +14,7 @@ import {
   ART_SCALE,
   billionths,
 } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { FRAMES } from "../frames";
 import { cellOf } from "../symbols";
 import { BOMB_ART } from "./bomb";
@@ -31,7 +32,7 @@ const OWN_INKS = {
 };
 
 /** How a bomb looks as it stands, whole, as it breaks at its first hit. */
-const WHOLE = { tint: 0, hits: 1, full: 1, plates: 0 } as const;
+const WHOLE: KindLook = { tint: 0, hits: 1, full: 1, plates: 0 };
 
 /** Returns the bomb's frame in a palette at a scale. */
 function bombIn(palette = ART_PALETTE, scale: ArtScale = ART_SCALE): ArtFrame {

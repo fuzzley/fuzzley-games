@@ -6,6 +6,7 @@ import {
   ART_PALETTE,
   inBillionths,
 } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { atlasFrames } from "../atlas_frames";
 import { FRAMES } from "../frames";
 import { STEEL_ART } from "./steel";
@@ -25,13 +26,7 @@ function steelAt(css: number): ArtFrame {
 
 describe("STEEL_ART", () => {
   // A brick that never breaks has no hits, as the rules give it.
-  const steel = {
-    kind: "steel",
-    tint: 0,
-    hits: 0,
-    full: 0,
-    plates: 0,
-  } as const;
+  const steel: KindLook = { tint: 0, hits: 0, full: 0, plates: 0 };
   const frame = frameNamed(ART_FRAMES, FRAMES.steel);
 
   it("shows a steel brick as its one frame", () => {

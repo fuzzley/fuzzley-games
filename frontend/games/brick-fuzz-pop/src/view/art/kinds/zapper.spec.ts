@@ -13,6 +13,7 @@ import {
   billionths,
   inBillionths,
 } from "../../../testing/art_frames";
+import type { KindLook } from "../art";
 import { atlasFrames } from "../atlas_frames";
 import { FRAMES } from "../frames";
 import { bandAlong, cellOf } from "../symbols";
@@ -33,7 +34,7 @@ const OWN_INKS = {
 };
 
 /** How a zapper looks as it stands, whole, as it breaks at its first hit. */
-const WHOLE = { tint: 0, hits: 1, full: 1, plates: 0 } as const;
+const WHOLE: KindLook = { tint: 0, hits: 1, full: 1, plates: 0 };
 
 /**
  * Returns the points of each shape of a zapper's bolt, to a billionth of a
