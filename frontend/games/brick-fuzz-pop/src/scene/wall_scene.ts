@@ -266,7 +266,8 @@ export class WallScene extends Scene {
    * It builds nothing of its own but on a new layout or a new palette,
    * once for each fuzzball of a round past the most a round has had, and
    * an iterator over each event's flourishes as it plays; Phaser makes a
-   * sound object for each sound it plays.
+   * buffer source for each sound it plays, as Web Audio starts each only
+   * once.
    */
   override update(time: number, delta: number): void {
     const { options, context } = this;

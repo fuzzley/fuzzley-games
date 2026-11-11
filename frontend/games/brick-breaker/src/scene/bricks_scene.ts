@@ -218,7 +218,8 @@ export class BricksScene extends Scene {
    * it as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette or a
-   * new level; Phaser makes a sound object for each sound it plays.
+   * new level; Phaser makes a buffer source for each sound it plays, as Web
+   * Audio starts each only once.
    */
   override update(time: number, delta: number): void {
     this.context.now = time;

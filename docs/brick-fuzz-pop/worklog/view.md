@@ -2052,3 +2052,149 @@ the ball painter's sizes the same for each boon, `release()`, `say()`,
 `RoundPlay` and `FrameSounds` unchanged in what they do, a restarted scene
 starting its painters afresh, the new specs failing on every broken skip
 it tried, and the log's numbers consistent.
+
+### F3: sounds made once, in `@fz/phaser`'s `SpritePlayer`
+
+**2026-11-11.** On F2 (1801c9eb). F2's profile left the sounds the largest
+share of a frame's allocation that is ours to cut, 1.05 to 1.27 KB: each
+play was `playAudioSprite()`, which makes a sound, a marker on it for
+each of the sprite's twenty sounds, a config cloned for each marker and a
+listener to let it go once it ends. `SpritePlayer` is the library's, which
+Snake, Brick Breaker and Asteroid Breaker play their sounds through too.
+
+- **`SpritePlayer.play()`** plays each sound on a sound object made once
+  and played again. It keeps a pool for each sound, made as the sound
+  first plays, and plays on one of it that is neither playing nor paused;
+  where all are, it makes another while fewer than `MOST_AT_ONCE`, 4,
+  play, and past that starts the one that started longest ago over: a
+  fifth of one sound at once cuts the oldest's tail, where before each
+  played out. A sound of the pool another destroyed, as the sound
+  manager's `removeAll()` would, is dropped from it. `MOST_AT_ONCE` is
+  exported from `@fz/phaser/sound`, a name added to the entry.
+- **A play's config holds for that play alone,** as before. Phaser's
+  `BaseSound.play()` writes the config it is given into its marker's own
+  (`Extend()` into `marker.config`), so on a sound played again a detune
+  would carry on to the next play given none. The pool keeps what each
+  marker's config held as the sound was made, and puts it back before
+  each play. The loop each marker takes from the spritemap stays its own;
+  a spatial `source` a play is given, which no game gives, would stay.
+- **As the scene ends,** the pools let go of their sounds: one neither
+  playing nor paused at once, one playing or paused once it ends, as
+  `playAudioSprite()`'s sounds let themselves go. A paused one is kept, as
+  HTML5 Audio pauses each while the page is away and plays it on as the
+  page comes back, which would throw on a sound destroyed. `hold()` and
+  its looping sounds are as they were, though a held sound HTML5 Audio
+  paused, let go as the scene ends, has the same exposure, as before.
+- **Under HTML5 Audio before the first key or tap,** a sound's plays queue
+  on its one free sound and replay one after another as the sound
+  unlocks, so only the last is heard, where before each sounded. The
+  games here start play with the key or tap that unlocks the sound, so
+  none plays before it.
+- **Docs.** `SpritePlayer`'s and `play()`'s; the three scenes' `update()`
+  docs, which said Phaser makes a sound object for each sound, now say it
+  makes a buffer source for each, as Web Audio starts each only once;
+  `lib/phaser/AGENTS.md`'s `src/sound/` line; and the `phaser-core`
+  skill's `@fz/phaser/sound` line, with two of Phaser 4's surprises: a
+  sound under `noAudio` plays nothing, so a spec watches
+  `NoAudioSound.prototype.play`, and a play's config is written into its
+  marker's.
+
+**The profile,** the same flight as F2's, two runs, in KB a frame: the
+sounds 0.11 and 0.13, from F2's 1.10 and 1.05, and all 52.5 and 52.5,
+from 53.4 and 53.9. What's left of the sounds is Phaser's for each play
+and Web Audio's: the buffer source, its `onended` listener, the rate it
+starts at and the play event, and the pools' first sounds.
+
+**The traces,** as F2's, a frame's main-thread time in ms, F1's, F2's
+and this change's, two runs of it at ×6:
+
+| Slowed, frames | Median                    | p95                          |
+| -------------- | ------------------------- | ---------------------------- |
+| ×6, all        | 6.92, 7.09, 5.98 and 6.34 | 12.27, 11.90, 9.64 and 10.62 |
+| ×6, from 1.5 s | 6.83, 7.02, 5.90 and 6.29 | 11.17, 11.03, 8.53 and 10.14 |
+| ×4, all        | 4.21, 4.03, 4.18          | 7.43, 6.81, 6.46             |
+| ×4, from 1.5 s | 4.18, 3.99, 4.15          | 6.83, 6.17, 6.05             |
+
+The sounds' own time, `FrameSounds.playEach()` and all it calls, fell
+from 0.23 ms a frame at ×6 to 0.11, `playAudioSprite()` and Web Audio's
+`createGain()` and `createPanner()` gone from the profile. The ×6 medians
+over all frames fell further than that, by 0.6 to 1.1 ms against F1's and
+F2's, but the ×4 one didn't move, so most of the fall is the runs'
+spread, not the change. The worst frames
+were 17.66 and 28.32 at ×6 and 13.96 at ×4.
+
+**Checks,** on F2: `@fz/phaser`'s `lint` and `typecheck` pass, and its
+`test:coverage` passes 719 tests in 52 files, `sprite_player.ts` whole.
+Snake's `test` passes 423 tests in 28 files, Brick Breaker's 2,000 in 59
+and Asteroid Breaker's 5,219 in 95, and their `lint`s pass. Brick Fuzz
+Pop's `lint` and `typecheck` pass, `test` passes 6,363 tests in 145 files,
+and `test:coverage` 5,808 in 116 at the floors and 555 in 29. The root's
+`yarn lint` passes.
+
+**Specs.** `sprite_player.spec.ts` watches `NoAudioSound.prototype.play`
+where it watched `playAudioSprite()`, and gains thirteen: a sound played
+again on the one it made, once that is done; another made for each play
+over itself, as many as `MOST_AT_ONCE`; the one started longest ago
+started over past them; one done played on before another is made; a
+paused one left be; each sound on its own; each play from its marker's
+own config and its own loop, on sounds given markers that Phaser's
+`play()` writes into, as Phaser's are where audio plays; a new sound made
+where another destroyed the one it made; and as the scene ends, one done
+let go of, one playing or paused kept, and one that rang on let go of as
+it ends.
+
+**The mutation pass.** 18 mutants of `sprite_player.ts`, all killed:
+the marker's config not put back or not kept, a free sound passed over, a
+paused one taken as free, the pool one larger or one smaller, the latest
+started over in place of the earliest, the start unkept, one pool for
+every sound, a done, a ringing or a paused sound let go of wrongly as the
+scene ends, the pools not let go of, the player's wish ignored, the
+config dropped, and a destroyed sound kept in its pool. Three first
+survived, as the specs compared sounds with `toEqual`, which finds two
+alike sounds equal: they compare the sounds themselves now.
+
+**The review:**
+
+1. **A paused sound was let go of at once as the scene ended,** and HTML5
+   Audio, which pauses each sound while the page is away, plays each on
+   as the page comes back without asking whether it was destroyed, so it
+   would throw then, and on every return after. Fixed: one paused is
+   kept until it ends, as one playing is, with a spec, and the docs say
+   so. `hold()`'s `letGoOfAll()` has the same exposure, as it did before;
+   left, as a held sound must stop as the scene ends.
+2. **A sound of a pool another destroyed** would read as free, as
+   `destroy()` stops it, and its play would throw on the markers it
+   dropped. Nothing here destroys one, but fixed: the pool drops it, with
+   a spec.
+3. **The class doc said a frame's plays make nothing,** where Phaser
+   still makes a buffer source and more for each. Fixed: no sound object.
+4. **`MOST_AT_ONCE`, which the docs named, wasn't exported from the
+   entry.** Fixed: exported, a name added to `@fz/phaser/sound`.
+5. **A spatial `source` a play is given isn't put back,** being no key
+   Phaser gives a marker's config. Noted in the doc and the log; no game
+   gives one.
+6. **Under HTML5 Audio before the first key or tap,** plays queue on one
+   sound, and only the last sounds. Noted in the log: no game here plays
+   before then.
+7. **A loop marker played through `play()`** loops on past the scene, as
+   before, now four at most. Left: only `hold()` plays one.
+8. **No spec held a marker's own loop, a paused sound at the scene's end,
+   or a sound destroyed by another.** Fixed: three specs, the markers'
+   fake giving pong a loop.
+9. **The first reuse spec reused a sound that never played,** under no
+   audio. Fixed: it plays one, ends it and plays again.
+10. **The scene-end spec acted twice.** Fixed: split, one act each.
+11. **`Pooled`'s doc opened with a noun phrase,** and the constructor's
+    comment spoke of the held sounds alone. Fixed, both.
+12. **`once(COMPLETE, () => sound.destroy())` makes a closure** where
+    Phaser hands `sound.destroy` and the sound. Left: it runs as the scene
+    ends, and the library's lint holds a method handed on unbound to an
+    arrow.
+13. **The log's "1.1 to 1.3 KB"** missed F2's 1.05, and its ×6 fall named
+    no baseline. Fixed, both.
+
+The reviewer found nothing of the player's made on a play, `find()` and
+`reduce()` with callbacks made once making nothing, the config put back
+whole for every key Phaser gives a marker's, mute, focus under Web Audio,
+a restart and the game's end as before, the fakes faithful where the
+specs lean on them, and the log's numbers consistent.
