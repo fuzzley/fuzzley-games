@@ -9,7 +9,6 @@ import { IconComponent } from "@fz/ui/icon";
  * does.
  */
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector -- it fills a button of the bar's own, as @fz/game-ui's Pause does.
   selector: "button[appSkip]",
   imports: [IconComponent],
   host: {

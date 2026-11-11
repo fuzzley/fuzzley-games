@@ -916,3 +916,35 @@ Pause, or nothing, under the pointer: all 28 were killed.
    twice,** and `held` read as F held. Fixed: both are `fast`.
 5. **The spec provided a memory store the test setup already provides,**
    and two inks' comments called them friends. Fixed.
+
+### The bar's lint, named in the config
+
+**2026-11-10.** At the integrator's word, since `eslint.config.js` is the
+integrator's, following through on U1's bar's sixth choice.
+
+**What was built.** The game's `eslint.config.js` names the bar's
+Fast-forward and Skip as `@fz/game-ui`'s own `eslint.config.js` names Pause
+and Sound: an override after `angular()` for
+`src/app/bar/fast_forward.component.ts` and `skip.component.ts` takes their
+`component-selector` as an attribute's, `app` and camelCase, and one after
+`templates()` for `src/app/bar/bar.component.html` alone gives
+`elements-content` an allow list of `fzBarPause`, `fzBarSound`,
+`appFastForward` and `appSkip`, which replaces `templates()`' own and so
+names Pause and Sound again. Every other template keeps `@fz/dev`'s list as
+it changes. The four `eslint-disable-next-line` comments in `src/app/bar/`
+are gone.
+
+**Checks.** The workspace's `lint` and `typecheck` pass, and the bar's 63
+specs; the root's `yarn lint` passes. `eslint --print-config` gives each
+file the options above and the bar's component the element selector still.
+With the two overrides taken out again, `eslint src/app/bar` reports the
+four errors the comments had silenced, so each override does its work.
+
+**The review:**
+
+1. **The allow list covered every template,** freezing a copy of
+   `@fz/dev`'s list game-wide. Fixed: it covers the bar's template alone.
+2. **One comment explained both blocks,** and the selector's override sat
+   away from `angular()`, which it overrides. Fixed: each block has its own
+   comment, the selector's after `angular()`, the list's after
+   `templates()`.
