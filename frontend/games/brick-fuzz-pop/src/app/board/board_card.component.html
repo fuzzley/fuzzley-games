@@ -73,6 +73,26 @@
         </button>
       </div>
     }
+    @case ("ended") {
+      <div class="card">
+        @if (card.won) {
+          <fz-icon class="card-icon" name="trophy" />
+        }
+        <p class="card-title">{{ card.title }}</p>
+        @if (card.where; as where) {
+          <p>{{ where }}</p>
+        }
+        <p>Score {{ card.score }}</p>
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="startAgain(card.won)"
+        >
+          {{ card.againLabel }}
+        </button>
+      </div>
+    }
     @default never;
   }
 }

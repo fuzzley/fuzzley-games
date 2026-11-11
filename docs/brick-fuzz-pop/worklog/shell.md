@@ -1062,3 +1062,89 @@ bar without Levels: all 24 were killed.
    with the card gone and the error told.
 8. **The class doc made the app's handing back of the focus follow from
    the buttons keeping their keys.** Fixed: two sentences.
+
+### The Ended card
+
+**2026-11-10.** At the integrator's word, beside U1's other board cards. It
+takes back the fourth choice of "U1's board cards", that there is no card
+for an ended run, and that entry's note that the result covers a won run.
+
+**What was built.** `BoardCard` takes a fourth card, `EndedCard`, for once
+an ended run's result is closed, as Asteroid Breaker's board shows one: a
+level lost (`outcome: "over"`, with `level`, `name` and `score`) or the
+last level cleared (`outcome: "won"`, with `score`). `<app-board-card>`
+emits `tryAgain` and `newGame`. `src/app/result/end_words.ts` holds the
+words the result and the card share, `whereLost()` and `tryAgainLabel()`,
+and the result's title is now `endTitle()`'s, as the card's is.
+
+- **A level lost** (`"over"`): "Game over", as `endTitle()` and the result
+  call it; "Lost on level 3, Thicker"; the score; and "Try again from level
+  3", which emits `tryAgain`.
+- **The last level cleared** (`"won"`): the trophy; "Every level
+  cleared!"; the score; and New game, which emits `newGame`.
+
+Each button keeps its keys from the board, as the other cards' do.
+
+**Choices the plan didn't make.**
+
+1. **What the card offers is what the result's first button offers,**
+   since the plan's run plays on from its level until one is lost, which
+   is tried again as often as wanted, and the end of the levels is a new
+   game: "Try again from level 3" or New game, worded as the result words
+   them. Choose a level stays the bar's and the result's.
+2. **Two outputs, named as the result names them,** `tryAgain` and
+   `newGame`, from the card's one button, as the result's first button
+   does, so the core wires the card as it wires the result, and the card
+   says which it was.
+3. **The card is handed only what it shows,** the outcome, the score, and
+   for a level lost its number and name, not the result's `RunEnd`, whose
+   first level, levels cleared and stars the card doesn't show.
+
+**For the core agent.**
+
+- Hand `ended` only once the run has ended and its result is closed
+  (`ended() && resultClosed()`), and wire `tryAgain` and `newGame` as the
+  result's are, handing the board back the focus.
+- `RunLifecycle.go()` (Enter, or a tap on the board) and P's `toggle()`
+  call `newGame()` once an ended run's result is closed, and How to play
+  tells keyboard players so. Over "Try again from level 3" that is the
+  wrong move: `GameService` can override `go()`, which is protected, to try
+  a lost level again, but `toggle()` is private, so P needs a hook in
+  `RunLifecycle` or has to go through `newGame()`.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 3,863 tests in 68 files, 1 of them new and 16 of
+the tests; the card and the words at 100%. The root's `yarn lint`
+passes.
+
+**The mutation pass.** 11 mutants, one at a time, against the board's
+specs: the run never won; the title always "Game over"; where it was lost
+said of a won run too, or without the level's name; the score ungrouped;
+Try again without the level; the trophy always; the two buttons' outputs
+crossed; and either button letting its keys reach the board. All 11 were
+killed. After the review, 12 over the reshaped card, the words and the
+result: the title always "Game over", on the card or the result; the score
+ungrouped; never won; the won card saying Try again, or marked lost, and
+the lost one marked won; its button's outputs crossed, or letting its keys
+reach the board; the trophy always; and the words without the level's
+name, or Try again without the level. All 12 were killed.
+
+**The review:**
+
+1. **The board's keys would start a new game over "Try again".** Answered
+   in the notes for the core agent, with the supersession of the earlier
+   entry's fourth choice.
+2. **The trophy's specs counted any icon, and no spec held the won card's
+   score.** Fixed: both look for the trophy by name, and the score's spec
+   covers either end.
+3. **The card copied the result's words,** where the lost level is and
+   Try again, and the result spelled its title out beside `endTitle()`.
+   Fixed: `end_words.ts` in `result/`, which both use, and the result's
+   title from `endTitle()`. The proof stream owns `describe.ts`, so the
+   words stay in the app.
+4. **The label was worked out for a won card it never showed,** and two
+   near-same buttons split it. Fixed: one label and one button,
+   `startAgain()`, as the result has.
+5. **The outcome was typed apart from the run's stages,** and a won card
+   took a level and a name it never shows. Fixed: `Extract<RunStage, …>`,
+   and a union in which only a lost level carries them.

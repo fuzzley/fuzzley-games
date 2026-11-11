@@ -85,11 +85,22 @@
   --crew-size: 24px;
 }
 
+// The trophy over the Ended card once every level is cleared.
+.card-icon {
+  --fz-icon-size: 40px;
+
+  color: var(--fz-warning);
+}
+
 // On a small board, as on the smallest phones, every card in the layer sets
 // smaller, the canvas's own too.
 @container (width < 280px) or (height < 360px) {
   :host {
     @include board-card-small;
+  }
+
+  .card-icon {
+    --fz-icon-size: 28px;
   }
 
   .stars fz-icon {
