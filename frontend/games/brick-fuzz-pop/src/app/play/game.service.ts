@@ -1,10 +1,13 @@
 import {
+  DestroyRef,
   Injectable,
   type Provider,
   type WritableSignal,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
 } from "@angular/core";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
@@ -14,8 +17,9 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
+import { kindIntroducedAt } from "../../rules/catalog/bricks";
 import { levelEntryOf } from "../../rules/levels/levels";
-import type { RoundStart } from "../../rules/round/round";
+import type { Crew, RoundStart } from "../../rules/round/round";
 import {
   describeCleared,
   describeEnd,
@@ -34,6 +38,7 @@ import {
   isInProgress,
   landRound,
   levelOf,
+  levelsCleared,
   nextLevel,
   openingOf,
   pause,
@@ -43,9 +48,11 @@ import {
   takeRound,
 } from "../../rules/run/run";
 import type { TakenUp } from "../../rules/run/saved_game";
+import { tallyOf } from "../../rules/run/scoring";
 import { levelResultOf } from "../../rules/run/stats";
 import type { Pictures } from "../../scene/pictures";
-import type { Guide } from "../../scene/stand_ins";
+import { type Guide, guideOf } from "../../rules/flight/guide";
+import type { Aim, Boon, Charge } from "../../rules/shot";
 import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
 import {
   type FieldMetrics,
@@ -54,7 +61,11 @@ import {
   hasRoom,
 } from "../../view/field/field_metrics";
 import {
-  FLIGHT_PACE,
+  type TunedNumbers,
+  paceOf,
+  rulesOf,
+} from "../../view/debug/debug_tuning";
+import {
   type PlayOptions,
   RoundPlay,
   type RoundView,
@@ -69,9 +80,13 @@ import type { FieldCommand } from "../../view/steering/controls";
 import {
   BY_POINTER,
   type PointerAimings,
+  STRAIGHT_UP,
   type Steer,
 } from "../../view/steering/steering";
+import type { BoardCard } from "../board/board_card.component";
+import { DebugService, type RunStart } from "../debug/debug.service";
 import { waitingRows } from "../panels/panels";
+import type { RunEnd } from "../result/result.component";
 import { type Aiming, SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
@@ -97,6 +112,15 @@ const POINTER_AIMINGS: Readonly<Record<Aiming, PointerAimings>> = {
   pointAndHold: { mouse: "pointAndHold", finger: "pointAndHold" },
 };
 
+/** Describes a guide cast, with the start, the numbers and the shot it was cast for. */
+interface GuideCast {
+  readonly start: RoundStart;
+  readonly numbers: TunedNumbers;
+  readonly aim: Aim;
+  readonly charge: Charge;
+  readonly guide: Guide;
+}
+
 /** Describes how a frame plays the round, written again each frame. */
 type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
 
@@ -106,7 +130,8 @@ type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
  * time, takes what it comes to into the run, pauses, goes on and starts
  * levels and runs as the player asks, lays the field out on the board's
  * room between rounds, says what happened, and keeps the records and the
- * levels cleared, but for a run played on numbers the debug menu retuned.
+ * levels cleared, but for a run the debug menu takes off the record. It
+ * plays on the numbers the debug menu tunes, at the depth it sets.
  *
  * The run and what the shell shows beside the field are one signal,
  * replaced whole as each run begins, which changes only as the run or its
@@ -123,11 +148,17 @@ export class GameService extends RunLifecycle implements KeptGame {
   private readonly progress = inject(ProgressService);
   private readonly levels = inject(GAME_LEVELS);
   private readonly playRound = inject(PLAY_ROUND);
+  private readonly debug = inject(DebugService);
   private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   private readonly roles = this.theme.roles(FIELD_ROLES);
   private readonly settings = this.settingsService.settings;
 
-  /** The field's shape the board's room last gave, which the field takes between rounds. */
+  /** The board's canvas as it last measured it, or null before it has. */
+  private canvas: Viewport | null = null;
+  /**
+   * The field's shape the board's canvas and the debug menu's depth last
+   * gave, which the field takes between rounds.
+   */
   private room = FIRST_SHAPE;
   private readonly shapeState = signal(FIRST_SHAPE);
   /** Whether the player asked for the flight in the air to play fast, from the bar. */
@@ -136,9 +167,15 @@ export class GameService extends RunLifecycle implements KeptGame {
   private readonly fastHeld = signal(false);
   private readonly metricsState = signal<FieldMetrics | null>(null);
   private readonly picturesState = signal<(() => Pictures) | null>(null);
+  /** The aim the steering last gave, which the guide shows. */
+  private aimedAt = STRAIGHT_UP;
+  /** The charge the steering last gave, which the guide shows. */
+  private charged: Charge = 0;
+  /** The guide last cast, and what it was cast for. */
+  private guideCast: GuideCast | null = null;
   /** How the next frame plays the round, written again each frame. */
   private readonly frame: FrameOptions = {
-    pace: FLIGHT_PACE,
+    pace: paceOf(this.debug.tuning.tuning()),
     speed: "normal",
     fast: false,
     speedUp: true,
@@ -172,8 +209,8 @@ export class GameService extends RunLifecycle implements KeptGame {
    */
   readonly nextStart = computed(() => this.round()?.next ?? this.start());
 
-  /** Whether the run is played on numbers the debug menu retuned, so it keeps no records. */
-  readonly tuned = computed(() => this.runState().tuned);
+  /** Whether the run keeps no records, as the debug menu took it off the record. */
+  readonly tuned = this.debug.runOffRecord;
 
   /** Whether the run's end set a new best score. */
   readonly newBest = computed(() => this.runState().newBest);
@@ -265,6 +302,66 @@ export class GameService extends RunLifecycle implements KeptGame {
   /** What returns a picture of every kind of brick, as the scene last baked them, or null before it has. */
   readonly pictures = this.picturesState.asReadonly();
 
+  /**
+   * The card the board shows over the field: Ready as a level waits for its
+   * first shot, Paused, Cleared once its card is due, the run's end once
+   * its result is put away, or null for none.
+   */
+  readonly boardCard = computed((): BoardCard | null => {
+    const run = this.run();
+    if (this.ended() && this.resultClosed()) {
+      return run.outcome === "won"
+        ? { kind: "ended", outcome: "won", score: run.score }
+        : {
+            kind: "ended",
+            outcome: "over",
+            level: run.level,
+            name: this.level().data.name,
+            score: run.score,
+          };
+    }
+    if (this.card() === "cleared") {
+      return {
+        kind: "cleared",
+        level: run.level,
+        rounds: run.rounds,
+        par: run.par,
+        tally: tallyOf(run),
+        score: run.score,
+        friends: this.nextStart().crew.friends,
+      };
+    }
+    switch (run.outcome) {
+      case "ready":
+        return {
+          kind: "ready",
+          level: run.level,
+          name: this.level().data.name,
+          boon: this.levelBoon(),
+          newKind: kindIntroducedAt(run.level),
+        };
+      case "paused":
+        return { kind: "paused", score: run.score };
+      default:
+        return null;
+    }
+  });
+
+  /** How the run ended, for its result card, or null while it goes on. */
+  readonly runEnd = computed((): RunEnd | null => {
+    const run = this.run();
+    if (run.outcome !== "over" && run.outcome !== "won") return null;
+    return {
+      outcome: run.outcome,
+      firstLevel: run.firstLevel,
+      level: run.level,
+      levelName: this.level().data.name,
+      score: run.score,
+      cleared: levelsCleared(run),
+      stars: run.stars,
+    };
+  });
+
   constructor() {
     super();
     // Made here, once every field above is, so the first run is laid out
@@ -272,7 +369,20 @@ export class GameService extends RunLifecycle implements KeptGame {
     const run = this.create(1);
     const start = openingOf(run, levelOf(run, this.levels));
     this.play = new RoundPlay(start);
-    this.runState = signal(newRunState(run, start, false));
+    this.runState = signal(newRunState(run, start));
+    // Heard at once rather than through an effect, which runs later, so no
+    // frame plays on the old pace.
+    inject(DestroyRef).onDestroy(
+      this.debug.tuning.onTune(() => {
+        this.frame.pace = paceOf(this.debug.tuning.tuning());
+      }),
+    );
+    effect(() => {
+      this.debug.depth();
+      untracked(() => {
+        this.reshape();
+      });
+    });
   }
 
   /**
@@ -282,6 +392,8 @@ export class GameService extends RunLifecycle implements KeptGame {
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
     this.fastHeld.set(steer.fast);
+    this.aimedAt = steer.aim;
+    this.charged = steer.charge;
     if (steer.keyed) this.announcer.say(describeShot(steer));
     if (steer.release) this.release(steer);
     this.playFrame(deltaMs, this.run().outcome === "paused");
@@ -292,14 +404,66 @@ export class GameService extends RunLifecycle implements KeptGame {
     return this.play.view;
   }
 
-  /** Returns the guide to draw: none until the rules cast one. */
+  /**
+   * Returns the guide of the shot the steering last aimed, as the rules
+   * cast it on the numbers the debug menu tunes, or null while the setting
+   * hides it or no shot can be let fly. A shot aimed as the last was keeps
+   * its guide, so a frame casts one only as the aim, the charge or the
+   * round changes.
+   */
   guide(): Guide | null {
-    return null;
+    const { outcome } = this.run();
+    if (
+      !this.settings().guide ||
+      this.phase() !== "aiming" ||
+      (outcome !== "ready" && outcome !== "playing")
+    ) {
+      return null;
+    }
+    const start = this.start();
+    const numbers = this.debug.tuning.tuning();
+    const cast = this.guideCast;
+    if (
+      cast?.start === start &&
+      cast.numbers === numbers &&
+      cast.aim === this.aimedAt &&
+      cast.charge === this.charged
+    ) {
+      return cast.guide;
+    }
+    const guide = guideOf(
+      start,
+      { aim: this.aimedAt, charge: this.charged },
+      numbers.guidePastTurn,
+      rulesOf(numbers),
+    );
+    this.guideCast = {
+      start,
+      numbers,
+      aim: this.aimedAt,
+      charge: this.charged,
+      guide,
+    };
+    return guide;
   }
 
   /** Returns where the player's fuzzball waits on the floor, or null while it is in the air. */
   waitingX(): number | null {
     return this.play.waitingX;
+  }
+
+  /**
+   * Returns the boon the waiting fuzzball carries: the round aimed's while
+   * it aims, the next round's once the flight has landed, and none while
+   * it flies.
+   */
+  boon(): Boon | null {
+    return this.flying() ? null : this.nextStart().boon;
+  }
+
+  /** Returns the crew of the round aimed or in play. */
+  crew(): Crew {
+    return this.start().crew;
   }
 
   /** Returns whether the player welcomes motion. */
@@ -379,14 +543,25 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Takes the room the board lays the field out in: between rounds the
-   * field takes its shape at once, the round aimed moved onto its depth, or
-   * a level yet to play a round begun again on it; with a round in the air,
-   * as the next is aimed. A room that keeps the shape changes nothing.
+   * Takes the room the board lays the field out in, which shapes the field
+   * with the debug menu's depth: between rounds at once, the round aimed
+   * moved onto its depth, or a level yet to play a round begun again on it;
+   * with a round in the air, as the next is aimed. A room that keeps the
+   * shape changes nothing, and one with no area is ignored.
    */
   setRoom(viewport: Viewport): void {
     if (!hasRoom(viewport)) return;
-    const shape = fieldShape(viewport);
+    this.canvas = viewport;
+    this.reshape();
+  }
+
+  /**
+   * Shapes the field as the board's canvas and the debug menu's depth now
+   * say, as {@link setRoom} does.
+   */
+  private reshape(): void {
+    if (this.canvas === null) return;
+    const shape = fieldShape(this.canvas, this.debug.depth());
     if (isSameShape(shape, this.room)) return;
     this.room = shape;
     const state = this.runState();
@@ -487,7 +662,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   takeUp({ run, start, tuned }: TakenUp): void {
     this.numbers.takeUp(run.id);
     const laid = this.laidOut(run);
-    this.begin(laid, this.onDepth(start, laid), tuned);
+    this.begin(laid, this.onDepth(start, laid), { kept: tuned });
     this.announcer.say(describeTakenUp(laid, this.level()));
   }
 
@@ -506,9 +681,11 @@ export class GameService extends RunLifecycle implements KeptGame {
       state.start,
       { aim, charge },
       this.levelBoon(),
+      rulesOf(this.debug.tuning.tuning()),
     );
     const run = takeRound(started, round.outcome);
-    const newBest = this.keepRecords(state.run, run, state.tuned);
+    const landed = afterLanding(run);
+    const newBest = this.keepRecords(state.run, landed);
     this.play.release(round);
     this.fastAsked.set(false);
     // The run and the round in one value, so the saved game, which keeps
@@ -573,15 +750,14 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Keeps what a round released brings to the records, as the run will
-   * stand once it lands, but for a run on retuned numbers: a run started at
-   * its first round, a level cleared and the levels it opens, and the run's
-   * end, returning whether that set a new best.
+   * Keeps what a round released brings to the records, from the run as it
+   * will stand once it lands, but for a run off the record: a run started
+   * at its first round, a level cleared and the levels it opens, and the
+   * run's end, returning whether that set a new best.
    */
-  private keepRecords(before: Run, taken: Run, tuned: boolean): boolean {
-    if (tuned) return false;
+  private keepRecords(before: Run, landed: Run): boolean {
+    if (this.debug.runOffRecord()) return false;
     if (!isInProgress(before)) this.stats.recordStart();
-    const landed = afterLanding(taken);
     const result = levelResultOf(landed);
     if (result !== null) {
       const { id } = levelEntryOf(this.levels, landed.level).data;
@@ -640,16 +816,19 @@ export class GameService extends RunLifecycle implements KeptGame {
 
   /**
    * Puts a run on the board, its state replaced whole, so nothing of the
-   * last run's reaches it, its round aimed from where it starts.
+   * last run's reaches it, its round aimed from where it starts, and tells
+   * the debug menu how it begins: a new run, by whether its level is open,
+   * or one storage kept, by whether it was off the record.
    */
   private begin(
     run: Run,
     start: RoundStart = openingOf(run, levelOf(run, this.levels)),
-    tuned = false,
+    keeping: RunStart = { locked: !this.progress.isOpen(run.level) },
   ): void {
     this.aim(start);
     this.fastAsked.set(false);
-    this.runState.set(newRunState(run, start, tuned));
+    this.debug.startRun(keeping);
+    this.runState.set(newRunState(run, start));
     this.began();
   }
 }

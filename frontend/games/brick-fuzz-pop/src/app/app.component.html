@@ -1,3 +1,73 @@
-<main>
-  <h1>Brick Fuzz Pop</h1>
+<!--
+  The board first and the bar after it, as in the other games: a <main>
+  landmark a screen reader can jump to, under the bar, whose menu opens over
+  it.
+-->
+<main class="stage">
+  <div class="room" fzPlayRoom (away)="pauseRun()">
+    <!--
+      The board's place: <app-board>, which the art stream builds on
+      GameService, goes here. It hosts the canvas, the board's cards and the
+      panels, measures the room for the game, and takes the focus back from
+      the bar's Resume, the dialogs and each run begun.
+    -->
+  </div>
 </main>
+
+<app-bar
+  [level]="game.run().level"
+  [rounds]="game.rounds()"
+  [par]="game.par()"
+  [rowsLeft]="game.rowsLeft()"
+  [score]="game.score()"
+  [friends]="game.friends()"
+  [outcome]="game.outcome()"
+  [flying]="game.flying()"
+  [fast]="game.fast()"
+  [soundOn]="game.soundOn()"
+  (pauseRun)="game.pause()"
+  (resumeRun)="game.resume()"
+  (fastForward)="game.fastForward($event)"
+  (skipFlight)="game.skip()"
+  (toggleSound)="game.toggleSound()"
+  (openLevels)="levelsOpen.set(true)"
+  (newGame)="newGame()"
+  (openHelp)="helpOpen.set(true)"
+  (openSettings)="settingsOpen.set(true)"
+/>
+
+<!-- In the page from the start, so a screen reader is listening to it. -->
+<fz-announcer />
+
+<!--
+  The result card before the Levels dialog: its Choose a level puts it away
+  as it opens the dialog, and the dialogs open and close in this order, so
+  the card gives the focus back before the dialog takes it.
+-->
+@if (lastEnd(); as end) {
+  <app-result
+    [open]="game.resultOpen()"
+    [end]="end"
+    [best]="game.best()"
+    [newBest]="game.newBest()"
+    (tryAgain)="game.tryAgain()"
+    (newGame)="newGame()"
+    (chooseLevel)="chooseLevel()"
+    (closed)="game.closeResult()"
+  />
+}
+<app-levels
+  [open]="levelsOpen()"
+  [marks]="marks()"
+  [current]="game.run().level"
+  [levels]="levels"
+  (chosen)="startAt($event)"
+  (closed)="levelsOpen.set(false)"
+/>
+<app-help
+  [open]="helpOpen()"
+  [pictures]="helpPictures()"
+  (closed)="helpOpen.set(false)"
+/>
+<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
+<fz-confirm-dialog />

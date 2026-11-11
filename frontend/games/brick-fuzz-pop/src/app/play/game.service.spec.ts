@@ -8,7 +8,10 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { paintRoles } from "@fz/style/testing";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { ThemeService } from "@fz/ui/theme";
-import type { Round, RoundStart } from "../../rules/round/round";
+import { type Round, RULES } from "../../rules/round/round";
+import { tallyOf } from "../../rules/run/scoring";
+import { guideOf } from "../../rules/flight/guide";
+import { GUIDE_PAST_TURN } from "../../rules/tuning";
 import {
   describeCleared,
   describeEnd,
@@ -26,7 +29,6 @@ import {
   saveGame,
 } from "../../rules/run/saved_game";
 import { parOf } from "../../rules/run/stars";
-import type { Shot } from "../../rules/shot";
 import type { Pictures } from "../../scene/pictures";
 import {
   FREED_INK,
@@ -50,6 +52,7 @@ import {
   fieldShape,
 } from "../../view/field/field_metrics";
 import { FLIGHT_PACE } from "../../view/round_play";
+import { DebugService } from "../debug/debug.service";
 import { BY_POINTER } from "../../view/steering/steering";
 import { waitingRows } from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
@@ -112,6 +115,16 @@ function keptIn(storage: MemoryStorage): GameService {
 /** Returns what the live region last said. */
 function said(): string {
   return TestBed.inject(AnnouncerService).message();
+}
+
+/** Returns the game with every spec level cleared, the run won, its result card open. */
+function won(): GameService {
+  const game = carded("cleared");
+  game.nextLevel();
+  playUntilCard(game);
+  game.nextLevel();
+  playUntilCard(game);
+  return game;
 }
 
 /** Returns the game with its first level played until its card opens, its rounds as a script says. */
@@ -407,18 +420,20 @@ describe("GameService", () => {
       });
     });
 
-    it("plays the round through the rules from where it starts, at the shot let fly, with the level's boon", () => {
-      const asked: [RoundStart, Shot, string][] = [];
+    it("plays the round through the rules from where it starts, at the shot let fly, with the level's boon, on the rules' own numbers", () => {
+      const asked: Parameters<RoundPlayer>[] = [];
       const rounds = scriptedRounds("step");
-      const game = gameWith((start, shot, boon) => {
-        asked.push([start, shot, boon]);
+      const game = gameWith((start, shot, boon, rules) => {
+        asked.push([start, shot, boon, rules]);
         return rounds(start, shot, boon);
       });
       const start = game.start();
 
       game.tick(FRAME_MS, { ...RELEASE, aim: 100, charge: 3 });
 
-      expect(asked).toEqual([[start, { aim: 100, charge: 3 }, "hot"]]);
+      expect(asked).toEqual([
+        [start, { aim: 100, charge: 3 }, "hot", { bored: RULES.bored }],
+      ]);
     });
 
     it("keeps the round's next start with the run, so the saved game keeps both at once", () => {
@@ -1219,8 +1234,92 @@ describe("GameService", () => {
       expect(game.view()).toBe(view);
     });
 
-    it("hands no guide until the rules cast one", () => {
+    it("hands the guide of the shot the steering aims, as the rules cast it", () => {
       const game = gameOf();
+
+      game.tick(FRAME_MS, { ...STILL, aim: 100, charge: 2 });
+
+      expect(game.guide()).toEqual(
+        guideOf(game.start(), { aim: 100, charge: 2 }, GUIDE_PAST_TURN, RULES),
+      );
+    });
+
+    it("casts the guide on the numbers the debug menu tunes", () => {
+      const game = gameOf();
+      game.tick(FRAME_MS, { ...STILL, aim: 100, charge: 2 });
+      game.guide();
+      const debug = TestBed.inject(DebugService);
+
+      debug.tuning.tune("guidePastTurn", 4);
+      debug.tuning.tune("bored", 40);
+
+      expect(game.guide()).toEqual(
+        guideOf(game.start(), { aim: 100, charge: 2 }, 4, { bored: 40 }),
+      );
+    });
+
+    it("hands the same guide while the shot stays as it was aimed", () => {
+      const game = gameOf();
+      game.tick(FRAME_MS, STILL);
+      const guide = game.guide();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.guide()).toBe(guide);
+    });
+
+    it.each([
+      ["aim", { aim: 100 }],
+      ["charge", { charge: 2 }],
+    ] as const)("casts the guide afresh as the %s changes", (_, change) => {
+      const game = gameOf();
+      game.tick(FRAME_MS, STILL);
+      game.guide();
+
+      game.tick(FRAME_MS, { ...STILL, ...change });
+
+      expect(game.guide()).toEqual(
+        guideOf(
+          game.start(),
+          { aim: STILL.aim, charge: STILL.charge, ...change },
+          GUIDE_PAST_TURN,
+          RULES,
+        ),
+      );
+    });
+
+    it("casts the guide afresh as the round aimed changes", () => {
+      const game = gameOf("step");
+      game.guide();
+
+      playRoundOut(game);
+
+      expect(game.guide()).toEqual(
+        guideOf(game.start(), STILL, GUIDE_PAST_TURN, RULES),
+      );
+    });
+
+    it("hands no guide while the settings hide it", () => {
+      const game = gameOf();
+
+      TestBed.inject(SettingsService).update({ guide: false });
+
+      expect(game.guide()).toBeNull();
+    });
+
+    it("hands no guide while a flight is in the air", () => {
+      const game = gameOf("step");
+
+      release(game);
+
+      expect(game.guide()).toBeNull();
+    });
+
+    it("hands no guide while the level is paused", () => {
+      const game = gameOf("step");
+      playRoundOut(game);
+
+      game.pause();
 
       expect(game.guide()).toBeNull();
     });
@@ -1231,6 +1330,53 @@ describe("GameService", () => {
       release(game);
 
       expect(game.waitingX()).toBeNull();
+    });
+
+    it("hands the waiting fuzzball the boon of the round aimed", () => {
+      const game = gameOf("jump");
+
+      playRoundOut(game);
+
+      expect(game.boon()).toBe(game.levelBoon());
+    });
+
+    it("hands no boon while the fuzzball flies", () => {
+      const game = gameOf("jump");
+      playRoundOut(game);
+
+      release(game);
+
+      expect(game.boon()).toBeNull();
+    });
+
+    it("hands the boon a jump earned as the flight lands", () => {
+      installFakeViewport(1280);
+      const game = gameOf("jump");
+      release(game);
+      game.skip();
+
+      playFor(game, 2 * FRAME_MS, STILL);
+
+      expect({ phase: game.phase(), boon: game.boon() }).toEqual({
+        phase: "settling",
+        boon: game.levelBoon(),
+      });
+    });
+
+    it("hands the crew of the round aimed, the friends it freed among them", () => {
+      const game = gameOf("freed");
+
+      playRoundOut(game);
+
+      expect(game.crew().friends).toEqual([FREED_INK]);
+    });
+
+    it("hands the crew of the round in the air, without the friends it frees", () => {
+      const game = gameOf("freed");
+
+      release(game);
+
+      expect(game.crew().friends).toEqual([]);
     });
 
     it("says whether the player welcomes motion, as the page does", () => {
@@ -1337,6 +1483,272 @@ describe("GameService", () => {
       game.fieldCommand("pause");
 
       expect(game.outcome()).toBe("paused");
+    });
+  });
+
+  describe("the debug menu", () => {
+    it("plays each round on the rules' numbers it tunes", () => {
+      const asked: Parameters<RoundPlayer>[3][] = [];
+      const rounds = scriptedRounds("step");
+      const game = gameWith((start, shot, boon, rules) => {
+        asked.push(rules);
+        return rounds(start, shot, boon);
+      });
+      TestBed.inject(DebugService).tuning.tune("bored", 40);
+
+      release(game);
+
+      expect(asked).toEqual([{ bored: 40 }]);
+    });
+
+    it("plays the flight back at the pace it tunes, from the next frame", () => {
+      const normal = gameOf("step");
+      normal.tick(0, RELEASE);
+      normal.tick(200, STILL);
+      afresh();
+      const tuned = gameOf("step");
+      tuned.tick(0, RELEASE);
+
+      TestBed.inject(DebugService).tuning.tune(
+        "normalPace",
+        2 * FLIGHT_PACE.unitsPerSecond.normal,
+      );
+      tuned.tick(100, STILL);
+
+      expect(placeOf(tuned)).toEqual(placeOf(normal));
+    });
+
+    it("lays the field out at the depth it sets, between rounds", () => {
+      const game = gameOf("step");
+      game.setRoom(TALL);
+
+      TestBed.inject(DebugService).setDepth(12);
+      TestBed.tick();
+
+      expect([game.shape(), game.start().depth]).toEqual([
+        fieldShape(TALL, 12),
+        12,
+      ]);
+    });
+
+    it("waits for the round in the air before taking the depth it sets", () => {
+      const game = gameOf("step");
+      game.setRoom(TALL);
+      release(game);
+
+      TestBed.inject(DebugService).setDepth(12);
+      TestBed.tick();
+
+      expect(game.shape()).toEqual(fieldShape(TALL));
+    });
+
+    it("gives the field back the room's depth as it lets its own go", () => {
+      const game = gameOf("step");
+      game.setRoom(TALL);
+      const debug = TestBed.inject(DebugService);
+      debug.setDepth(12);
+      TestBed.tick();
+
+      debug.setDepth(null);
+      TestBed.tick();
+
+      expect(game.shape()).toEqual(fieldShape(TALL));
+    });
+
+    it("keeps no records for a run begun at a level the player hasn't opened", async () => {
+      const game = gameOf("cleared");
+      await game.startAt(3);
+
+      release(game);
+
+      expect({
+        tuned: game.tuned(),
+        cleared: TestBed.inject(ProgressService).cleared().size,
+        runs: TestBed.inject(StatsService).stats().runs,
+      }).toEqual({ tuned: true, cleared: 0, runs: 0 });
+    });
+
+    it("keeps the records of a run begun at a level the player has opened", async () => {
+      const game = gameOf("cleared");
+      await game.startAt(1);
+
+      release(game);
+
+      expect([
+        game.tuned(),
+        TestBed.inject(ProgressService).cleared().size,
+      ]).toEqual([false, 1]);
+    });
+
+    it("keeps no records for a run once a number is retuned in it", () => {
+      const game = gameOf("cleared");
+      TestBed.inject(DebugService).tuning.tune("bored", 40);
+
+      release(game);
+
+      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
+    });
+
+    it("puts a new run back on the record once the numbers are the game's own", async () => {
+      const game = gameOf("step");
+      const debug = TestBed.inject(DebugService);
+      debug.tuning.tune("bored", 40);
+      debug.tuning.reset();
+
+      await game.newGame();
+
+      expect(game.tuned()).toBe(false);
+    });
+  });
+
+  describe("the board's card", () => {
+    it("shows Ready as a level waits for its first shot, with the kind of brick it brings in", () => {
+      const game = gameOf();
+
+      expect(game.boardCard()).toEqual({
+        kind: "ready",
+        level: 1,
+        name: "Hello, wall",
+        boon: "hot",
+        newKind: "brick",
+      });
+    });
+
+    it("shows no kind of brick new on a level that brings none in", async () => {
+      const game = gameOf();
+
+      await game.startAt(2);
+
+      expect(game.boardCard()).toMatchObject({ level: 2, newKind: null });
+    });
+
+    it("shows none while a flight is in the air", () => {
+      const game = gameOf("step");
+
+      release(game);
+
+      expect(game.boardCard()).toBeNull();
+    });
+
+    it("shows Paused, with the score, while the level is paused", () => {
+      const game = gameOf("step");
+      playRoundOut(game);
+
+      game.pause();
+
+      expect(game.boardCard()).toEqual({
+        kind: "paused",
+        score: SPEC_POINTS.step,
+      });
+    });
+
+    it("shows Cleared once its card is due, with the level's rounds, par, points and friends", () => {
+      const game = gameOf("freed", "jump", "cleared");
+      playRoundOut(game);
+      playRoundOut(game);
+
+      playUntilCard(game);
+
+      const run = game.run();
+      expect(game.boardCard()).toEqual({
+        kind: "cleared",
+        level: 1,
+        rounds: 3,
+        par: run.par,
+        tally: tallyOf(run),
+        score: run.score,
+        friends: [FREED_INK],
+      });
+    });
+
+    it("shows none while the result card is up", () => {
+      const game = carded("lost");
+
+      expect(game.boardCard()).toBeNull();
+    });
+
+    it("shows where a lost run ended once its result is put away", () => {
+      const game = carded("lost");
+
+      game.closeResult();
+
+      expect(game.boardCard()).toEqual({
+        kind: "ended",
+        outcome: "over",
+        level: 1,
+        name: "Hello, wall",
+        score: SPEC_POINTS.lost,
+      });
+    });
+
+    it("shows a won run's score once its result is put away", () => {
+      const game = won();
+
+      game.closeResult();
+
+      expect(game.boardCard()).toEqual({
+        kind: "ended",
+        outcome: "won",
+        score: game.score(),
+      });
+    });
+  });
+
+  describe("the run's end", () => {
+    it("is nothing while the run goes on", () => {
+      const game = gameOf("step");
+
+      playRoundOut(game);
+
+      expect(game.runEnd()).toBeNull();
+    });
+
+    it("tells where a lost run ended, the levels it cleared and their stars", () => {
+      const game = carded("cleared", "lost");
+      game.nextLevel();
+
+      playUntilCard(game);
+
+      expect(game.runEnd()).toEqual({
+        outcome: "over",
+        firstLevel: 1,
+        level: 2,
+        levelName: "Stripes",
+        score: game.score(),
+        cleared: 1,
+        stars: 3,
+      });
+    });
+
+    it("tells the level a run started at", async () => {
+      const game = gameOf("lost");
+      await game.startAt(2);
+
+      playUntilCard(game);
+
+      expect(game.runEnd()).toMatchObject({ firstLevel: 2, level: 2 });
+    });
+
+    it("tells of a won run, every level cleared", () => {
+      const game = won();
+
+      expect(game.runEnd()).toMatchObject({
+        outcome: "won",
+        level: 3,
+        cleared: 3,
+        stars: 9,
+      });
+    });
+
+    it("counts the stars afresh as a new run begins", () => {
+      const game = carded("cleared", "lost");
+      game.nextLevel();
+      playUntilCard(game);
+      game.tryAgain();
+
+      playUntilCard(game);
+
+      expect(game.runEnd()?.stars).toBe(0);
     });
   });
 

@@ -104,13 +104,21 @@ const WHOLE = 1e-6;
  * A room with no area, as a hidden board's is, gets the least field at a
  * unit of a device pixel, so a caller keeps the shape it has where
  * {@link hasRoom} says none.
+ *
+ * A depth set, as the debug menu sets one, is the field's whatever the
+ * room: the unit is the largest that fits that many rows past the thinnest
+ * band and lintel, and what is left over thickens them.
  */
-export function fieldShape(viewport: Viewport): FieldShape {
+export function fieldShape(
+  viewport: Viewport,
+  depthSet: number | null = null,
+): FieldShape {
   const room = roomInside(viewport);
   const thinnest = FLOOR_BAND.least + LINTEL.least;
-  const unit = unitFitting(room, LEAST_DEPTH + thinnest);
+  const unit = unitFitting(room, (depthSet ?? LEAST_DEPTH) + thinnest);
   const down = room.height / unit;
-  const depth = clamp(wholeOf(down - thinnest), LEAST_DEPTH, MOST_DEPTH);
+  const depth =
+    depthSet ?? clamp(wholeOf(down - thinnest), LEAST_DEPTH, MOST_DEPTH);
   const spare = Math.max(0, down - depth - thinnest);
   const toBand = Math.min(spare, FLOOR_BAND.most - FLOOR_BAND.least);
   const toLintel = Math.min(spare - toBand, LINTEL.most - LINTEL.least);

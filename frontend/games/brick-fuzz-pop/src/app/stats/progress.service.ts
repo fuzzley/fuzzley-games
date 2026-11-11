@@ -12,8 +12,8 @@ const PROGRESS_VERSION = 1;
 /**
  * Keeps the levels the player has cleared, which open the levels after them.
  *
- * Hand it only levels cleared on the numbers the game ships: a run on
- * numbers the debug menu retuned keeps no records, here or in the stats.
+ * Hand it only levels cleared on the record: a run the debug menu took off
+ * the record keeps none, here or in the stats.
  */
 @Injectable({ providedIn: "root" })
 export class ProgressService {

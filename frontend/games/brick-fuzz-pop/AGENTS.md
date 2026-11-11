@@ -13,12 +13,12 @@ says how any game here is drawn with Phaser. Paths are relative to
 The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
-shows the game's name alone: the scene, the dialogs, the settings drawer,
-the game and the services that keep it are written and specced, but
-nothing places them yet. The site lists it as in development, its build
-shipping no screenshots yet. What the plan's packages still to come build
-(the rest of P2, P3, the rest of U1, the rest of U2, T1 and T2, then
-X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
+places the bar, the dialogs, the settings drawer and the result card, each
+wired to the game, but not yet the board, so the field isn't drawn and no
+run can be played in the page. The site lists it as in development, its
+build shipping no screenshots yet. What the plan's packages still to come
+build (the rest of P2, P3, the rest of U1, the rest of U2, T1 and T2,
+then X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -93,8 +93,8 @@ helpers.
   `src/rules/catalog/kinds/warm_up.ts`, the other sets' empty so far.
   `castField()` and `shapesOf()` take the kinds as `BrickKinds`, so a spec
   can hand them stand-ins; the rest of the rules read the catalog's
-  (`brickKind()`). `catalog.spec.ts` holds every kind to the catalog's
-  rules.
+  (`brickKind()`), and `kindIntroducedAt()` names the kind a level brings
+  in. `catalog.spec.ts` holds every kind to the catalog's rules.
 - **`src/rules/levels/`** — the levels. `legend.ts` is the characters a
   wall's picture is drawn in (`LEGEND`), the portals' marks and a brick's
   tint (`tintOf()`). `warm-up.json` holds Warm-up's nine levels, each an
@@ -190,7 +190,8 @@ helpers.
   `GameService` replaces whole, and `RoundPhase`.
 - **`src/view/field/`** — `field_metrics.ts`: the field's shape a canvas's
   room holds (`fieldShape()`: a unit in whole device pixels, 11 to 22 rows,
-  the floor's band, the lintel and whether panels fit beside it), where it
+  or the depth the debug menu sets, the floor's band, the lintel and
+  whether panels fit beside it), where it
   lies on the canvas (`fieldMetrics()`, which keeps a shape's unit through
   a pixel's resize mid-flight), whether a canvas has room for any field
   (`hasRoom()`), and `toCanvas()` and `toField()` between field units and
@@ -311,10 +312,14 @@ helpers.
   - `danger.ts` — when a brick endangers the level: `DANGER_ROW`, the row
     over the floor's, `endangers()` for a field row and column, and
     `inDanger()` for the wall, counting the floor's row too.
-  - `stand_ins.ts` — only names the rules' `Guide` again, which
-    `GameService` still imports from it.
 - **`src/app/`** — the shell, one folder per feature. `app.component`
-  shows the game's name alone for now.
+  places the bar, the announcer, the result card over an ended run, the
+  Levels dialog (every level open while the debug menu opens them), How to
+  play, handed the scene's pictures only while it is open, the settings
+  drawer and the question before a run is lost, each wired to
+  `GameService`, and pauses the level in play as the player looks away
+  from the room (`[fzPlayRoom]`). The board's place in the room is a marked
+  slot until `<app-board>` is built.
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
     asking for each action: from the desktop width (`fitsActionLabels`),
     the level, the rounds against par, the rows left, the score and the
@@ -397,7 +402,13 @@ helpers.
     it holds the run and where its round stands (`RunState`), plays each
     round released through the rules and back through one `RoundPlay`,
     lays the field out on the board's room between rounds, gives the scene
-    its options, says what happens and keeps the records. And
+    its options and the guide (`guide()`), says what happens and keeps the
+    records. It hands the board the card to show (`boardCard`) and the
+    result card the run's end (`runEnd`), and takes from `DebugService`
+    the flight's pace and the rules' numbers, the field's depth, which
+    lays the field out again between rounds, and whether a run keeps its
+    records: none for one begun at a level not yet open or on numbers
+    retuned. And
     `SavedGameService`, which keeps the run under way through
     `@fz/ui/storage`'s `keepSaved()` and takes it up again, paused, reading
     the game through `KeptGame`, which it injects as `KEPT_GAME`, and which
@@ -432,9 +443,9 @@ its reader drops what it can't trust rather than failing:
   way, by `SavedGameService`: its level by number and id, the level it
   started at, the depth the level began on, its rounds and jumps, the
   points banked, the stars its levels cleared earned (one a level for a
-  game kept before them) and the score, and whether it was played on
-  retuned numbers; and where its next round starts, each brick's hits left by
-  wall cell, how far the wall has come down, the field's depth, where the
+  game kept before them) and the score, and whether the debug menu took it
+  off the record; and where its next round starts, each brick's hits left
+  by wall cell, how far the wall has come down, the field's depth, where the
   fuzzball waits, the friends' inks and the boon, or nothing for a level
   with no round played, which is laid out afresh. It is written as a round
   is released, as the run will stand once the round lands, so a page

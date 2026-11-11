@@ -14,13 +14,12 @@ import {
   FRIEND_INKS,
   JUMP_POINTS,
   LEAST_DEPTH,
-  MOST_DEPTH,
   MOST_FRIENDS,
   SIDE_MARGIN,
   STAR_POINTS,
 } from "../tuning";
 import { isCleared } from "../wall/lower";
-import { type Brick, type Wall, thirdsOf } from "../wall/wall";
+import { type Brick, type Wall, isDepth, thirdsOf } from "../wall/wall";
 import {
   type Run,
   afterLanding,
@@ -57,7 +56,7 @@ export interface SavedGame {
    */
   readonly stars: number;
   readonly score: number;
-  /** Whether the run was played on numbers the debug menu tuned, so it keeps no records. */
+  /** Whether the run keeps no records, as the debug menu took it off the record. */
   readonly tuned: boolean;
   /**
    * Where the level's next round starts, or null for a level with no round
@@ -84,7 +83,7 @@ export interface SavedStart {
 
 /** What of the run the shell keeps beside it. */
 export interface RunKeeping {
-  /** Whether the run was played on numbers the debug menu tuned. */
+  /** Whether the run keeps no records, as the debug menu took it off the record. */
   readonly tuned: boolean;
 }
 
@@ -221,7 +220,7 @@ export function hasKnownLevel(
 /** Returns whether a value kept holds a depth a field has, a whole number from 11 to 22. */
 export function hasDepth(value: Kept): value is Kept & { depth: number } {
   const { depth } = value;
-  return isWhole(depth) && depth >= LEAST_DEPTH && depth <= MOST_DEPTH;
+  return isDepth(depth);
 }
 
 /** Returns whether a run kept holds the rounds its level has played and no more jumps than them. */

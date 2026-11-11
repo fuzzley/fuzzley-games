@@ -35,7 +35,7 @@ export interface KeptGame {
    * which storage can't trust, and the run is lost.
    */
   readonly nextStart: Signal<RoundStart>;
-  /** Whether the run is played on numbers the debug menu retuned, so it keeps no records. */
+  /** Whether the run was played off the record, as the debug menu says, so it keeps no records. */
   readonly tuned: Signal<boolean>;
   /** The run's stage, `RunLifecycle`'s, which changes as it pauses, goes on, clears a level or ends. */
   readonly outcome: Signal<RunStage>;

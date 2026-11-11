@@ -305,6 +305,48 @@ describe("fieldShape", () => {
     );
   });
 
+  describe("a depth set over the room's", () => {
+    it.each(TABLE)(
+      "shapes $name's field to it, a shallow one or a deep one",
+      (row) => {
+        const canvas = boardOf(row);
+
+        const depths = [11, 22].map((depth) => fieldShape(canvas, depth).depth);
+
+        expect(depths).toEqual([11, 22]);
+      },
+    );
+
+    it.each(TABLE)(
+      "lays $name's field out in its room, at a depth set to the most",
+      (row) => {
+        const canvas = boardOf(row);
+        const shape = fieldShape(canvas, MOST_DEPTH);
+
+        const metrics = fieldMetrics(canvas, shape);
+
+        expect({
+          unit: metrics.unit,
+          tall:
+            lintelPixels(shape, metrics.unit) +
+              metrics.height +
+              bandPixels(shape, metrics.unit) <=
+            roomInside(canvas).height,
+        }).toEqual({ unit: shape.unit, tall: true });
+      },
+    );
+
+    it.each(TABLE)(
+      "gives $name's field the shape of the room's own depth when set to it",
+      (row) => {
+        const canvas = boardOf(row);
+        const own = fieldShape(canvas);
+
+        expect(fieldShape(canvas, own.depth)).toEqual(own);
+      },
+    );
+  });
+
   it.each(
     TABLE.flatMap((row) =>
       (
