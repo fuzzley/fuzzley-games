@@ -17,7 +17,7 @@ shows the game's name alone: the scene, the dialogs, the settings drawer,
 the game and the services that keep it are written and specced, but
 nothing places them yet. The site lists it as in development, its build
 shipping no screenshots yet. What the plan's packages still to come build
-(the rest of P2, P3, S2, the rest of U1, the rest of U2, T1 and T2, then
+(the rest of P2, P3, the rest of U1, the rest of U2, T1 and T2, then
 X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
@@ -249,28 +249,70 @@ helpers.
   `RoundPlay` (`paceOf()`) and the rules it would hand `playRound()`
   (`rulesOf()`), and whether it leaves the certificates stale
   (`staleCertificates()`).
-- **`src/scene/`** — the Phaser scene, after Brick Breaker's. `WallScene`
-  (`wall_scene.ts`, made by `makeWallScene()`) is handed plain functions
-  over the game (`WallSceneOptions`): each frame it hands the shell the
-  frame's time and the steering, for now the same unsteered shot, lays the
-  field out again as the canvas, the chrome or the shape changes, bakes the
-  atlas again at a new scale or palette, and has its painters draw, each in
-  its layer of `LAYERS`; a key becomes the view's command through
-  `commandOfKey()`. `atlas.ts` bakes the art's frames, the scene's own dots
-  (`field_art.ts`) and a picture of each kind (`pictures.ts`) into one
-  atlas (`bakeWallAtlas()`), at 128 device px a unit at most, and the scene
-  hands the shell How to play's pictures, `{ bricks }` by kind, through
-  `onPictures`. In `painters/`, `FieldPainter` draws the cells, the floor's
-  band, the lintel, the frame, the grid's dots, and the jump and danger
-  lines in dashes on whole pixels, counting in dots the needed bricks still
-  under the jump line once they are nine or fewer; `WallPainter` stacks each
-  cell's frames from a pool of images made once, and, where the player
-  welcomes motion, eases the wall down by `RoundView.wallDrop`, which is 1
-  while the wall stands still, the rows coming in cut off along the
-  ceiling. `stand_ins.ts` holds `Guide`, a type
-  standing in for the guide, which the scene doesn't draw. The scene's
-  `SpritePlayer` mutes the game as `sound()` says, its sprite in `sounds/`,
-  which `yarn build:sounds` writes, but plays nothing yet.
+- **`src/scene/`** — the Phaser scene, after Brick Breaker's.
+  - `wall_scene.ts` — `WallScene`, made by `makeWallScene()`, handed plain
+    functions over the game (`WallSceneOptions`). It hands its `Steering`
+    every key but the browser's shortcuts, the arrows and Space captured
+    from the page; the mouse and its wheel; fingers, adding pointers up to
+    `MOST_FINGERS`; and a pointer let go past the canvas, so a mouse let go
+    there still lets the shot fly; and calls its `letGo()` as the player
+    looks away (`onPlayerAway()`). A key the steering doesn't take becomes
+    the view's command through `commandOfKey()`, once a press. Each frame
+    it reads the steering from where the fuzzball waits (`waitingX()`), or
+    last waited while it flies, and hands the shell the frame's time and
+    the steer; lays the field out again as the canvas, the chrome or the
+    shape changes, measuring the steering again, and bakes the atlas again
+    at a new scale or palette; plays each event and beat of the view's two
+    logs once, taking a log up at its latest: each launch, turn and yawn
+    setting where its fuzzball looks, a friend's ink taken from `crew()` in
+    the order they were freed, its sound with motion or without, and its
+    flourishes (`flourishesOf()`) where the player welcomes motion, one on
+    a brick placed where the brick still shows, on the wall drawn the frame
+    before, as the frame that reaches a flight's last events hands over the
+    wall that comes down; and has its painters draw, each in its layers of
+    `LAYERS`. Its `SpritePlayer` plays each frame's sounds once, gathered
+    by `createFrameSounds()`, a break's risen by `detuneOf()`, and the notch
+    as the charge rises or falls, but to none, while a fuzzball waits, but
+    a hot shot, whose charge is always full; and mutes the game as
+    `sound()` says, its sprite in `sounds/`, which `yarn build:sounds`
+    writes.
+  - `atlas.ts` — bakes the art's frames, the scene's own (`field_art.ts`:
+    the field's dots and the warning frame; the meter's pips and the
+    guide's dot and outline, which `FRAMES` names and no art draws; and
+    `FLIGHT_FRAMES`'s shard, streak, bolt and ring) and a picture of each
+    kind (`pictures.ts`) into one atlas (`bakeWallAtlas()`), at 128 device
+    px a unit at most; the scene hands the shell the pictures How to play
+    and the panels show, `{ bricks }` by kind, through `onPictures`.
+  - `painters/` — each a `Painter` (`painter.ts`), drawing from the
+    `PaintContext` the scene writes over each frame, from pools made once,
+    the dots on whole pixels (`dots.ts`'s `placeDot()`). `FieldPainter`
+    draws the cells, the floor's band, the lintel, the frame, the grid's
+    dots, and the jump and danger lines in dashes on whole pixels, counting
+    in dots the needed bricks still under the jump line once they are nine
+    or fewer, the danger line solid and twice as thick while a brick the
+    level needs stands at or under the row over the floor's. `WallPainter`
+    stacks each cell's frames, lays the warning frame over each such brick,
+    and, where the player welcomes motion, eases the wall down by
+    `RoundView.wallDrop`, which is 1 while the wall stands still, the rows
+    coming in cut off along the ceiling; it swells a struck brick.
+    `BallPainter` draws the fuzzballs, 16 at most at once
+    (`MOST_FUZZBALLS`): each in the air, its eyes the way its last event
+    sent it, and the one waiting on the floor, its fur combed by the
+    charge, looking along the aim, in its boon's look, which flares in at
+    the jump, a triple shot's two mates beside it. `MeterPainter` draws the
+    charge's five pips under it. `GuidePainter` draws the guide `guide()`
+    hands over, the rules' `Guide` (`src/rules/flight/guide.ts`): up to 128
+    dots (`MOST_GUIDE_DOTS`), one at each of its places, and 31 outlines
+    (`MOST_PUNCHED`), one round each brick the shot would punch through.
+    `EffectsPainter` draws a broken brick's shards, 216 at most
+    (`MOST_SHARDS_FLYING`), a punch's streak, a zap's bolt, a blast's ring
+    and a freed friend's hop, each but the shards through
+    `@fz/core/turns`, the jump line's flash and a lost level's shake.
+  - `danger.ts` — when a brick endangers the level: `DANGER_ROW`, the row
+    over the floor's, `endangers()` for a field row and column, and
+    `inDanger()` for the wall, counting the floor's row too.
+  - `stand_ins.ts` — only names the rules' `Guide` again, which
+    `GameService` still imports from it.
 - **`src/app/`** — the shell, one folder per feature. `app.component`
   shows the game's name alone for now.
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and

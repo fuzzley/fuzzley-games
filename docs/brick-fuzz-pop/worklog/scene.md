@@ -622,3 +622,85 @@ uncapped, and the flared eyes' offset three ways: all killed.
    painter; its frames are `FrameName`s; what only its own file reads is
    no longer exported; `stand_ins.ts` names `Guide` alone; and a boon's
    eyes flare in with it, as far from the middle as its size, specced.
+
+### S2b: the workspace's AGENTS.md says what the scene does
+
+**2026-11-10.**
+
+The integrator asked, once S2 was merged, for the game's `AGENTS.md` to
+say the scene as it now is, touching only the scene's lines.
+
+**What was built.** In `frontend/games/brick-fuzz-pop/AGENTS.md`:
+
+- **The `src/scene/` entry, rewritten** as a bullet for each part, as the
+  shell's entry is: `wall_scene.ts`, what it hands the steering, then each
+  frame: the steering read, the events and beats played, each fuzzball's
+  look and a friend's ink set by them, their sounds with motion or without
+  and their flourishes where it is welcome, placed on the wall drawn the
+  frame before, and the `SpritePlayer`; `atlas.ts`, with the frames the
+  scene bakes that no art draws; `painters/`, with `painter.ts` and
+  `dots.ts`, the four new painters and S1b's danger shown; `danger.ts`;
+  and `stand_ins.ts`, which names `Guide` only for `GameService`'s import.
+  Gone: the unsteered shot, the guide the scene didn't draw and the sprite
+  that played nothing.
+- **The packages still to come** no longer list S2.
+
+**Choices the plan didn't make.**
+
+1. **Each pool is named by its size and its constant,** as the file names
+   a field's depths (`LEAST_DEPTH`, `MOST_DEPTH`), so a reader can find
+   either.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+4,315 tests in 80 files, and 3 in `sim`; the root's `yarn lint`, which
+checks the file's paths and its formatting, passes.
+
+**The mutation pass.** None: no code changed.
+
+**The review:**
+
+1. **The danger S1b built went unsaid,** and "the danger line in dashes"
+   was wrong while a needed brick stands low. Fixed: the warning frame,
+   the lit line, the wall painter's frames and `danger.ts` are named.
+2. **Motion's condition stood in the wrong places:** after the ease's "1
+   while the wall stands still", and only on the effects painter's
+   flourishes, though the swell and the flare are flourishes too. Fixed:
+   it is said once, where the scene plays the events, and the ease's
+   order is S1's again.
+3. **The steering's hands read as the steer's parts,** "two fingers" as a
+   gesture, and the fuzzball's last place kept in flight went unsaid.
+   Fixed: two sentences, what the steering is handed, then what each frame
+   reads and hands on; the second finger calls the shot off.
+4. **The notch was overstated.** Fixed: as it rises or falls, but to none,
+   while a fuzzball waits, but a hot shot (as the second review put it).
+5. **One 47-line bullet, a frame's work split up, `painter.ts` and
+   `dots.ts` unnamed.** Fixed: a bullet each for the scene, the atlas, the
+   painters, `danger.ts` and `stand_ins.ts`, as the shell's entry has,
+   which earned the second review below.
+6. **Pools named by bare numbers.** Fixed: each by its size and its
+   constant (choice 1).
+7. **"Until the shell takes it and the file goes" stated a plan.** Fixed:
+   it says only that `GameService` still imports `Guide` from it.
+8. **Nit.** A painter draws in its layers, as two draw in two. Fixed.
+
+The second review:
+
+1. **"While a plain fuzzball waits" said the notch plays only uncharged,**
+   as "plain" means elsewhere, and left out the triple shot. Fixed: while
+   a fuzzball waits, but a hot shot, whose charge is always full.
+2. **The steering takes every key, not the arrows and Space,** which only
+   the capture is. Fixed.
+3. **The steering's sentence didn't parse, and restated its rules,** a
+   charge or a shot called off, which will go stale as the steering
+   changes. Fixed: it says only what the scene hands the steering, and
+   that it calls `letGo()`.
+4. **The events steer `BallPainter`** (S2's choice 3), which went unsaid.
+   Fixed: each launch, turn and yawn sets where its fuzzball looks, and a
+   friend's ink comes from `crew()`.
+5. **The pictures go to the panels too.** Fixed.
+6. **The hops go through `@fz/core/turns` too.** Fixed: each but the
+   shards.
+7. **Smaller points.** Fixed: the atlas's bullet led by `atlas.ts`; `'s`
+   after a name ending in s, as the file writes it; `endangers()` for a
+   field row and column; a sound "with motion or without"; and this list
+   for what the second review found.
