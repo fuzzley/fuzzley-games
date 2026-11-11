@@ -17,6 +17,17 @@
   <div class="ring" [style]="fieldStyle()"></div>
 </div>
 
+<!--
+  How many rows wait over the ceiling, on the lintel, read as the page is
+  where nothing else in it says so, and no live region, as the announcer is
+  the page's one, though it doesn't count the rows.
+-->
+@if (lintelStyle(); as lintel) {
+  <p class="lintel" [style]="lintel" [attr.aria-hidden]="lintelHidden()">
+    {{ rowsWaiting() }}
+  </p>
+}
+
 <p id="board-keys" class="fz-visually-hidden">
   The left and right arrow keys turn the aim a degree, or a quarter of one with
   Shift held, and the up and down arrow keys raise and lower the charge a notch;
@@ -51,7 +62,7 @@
 }
 
 <app-board-card
-  [style]="fieldStyle()"
+  [style]="cardStyle()"
   [card]="game.boardCard()"
   [pictures]="pictures()"
   (resumeRun)="resumeRun()"

@@ -224,7 +224,8 @@ helpers.
   `wallPalette()`, which gives a palette's colors from those roles and its
   mode's tile and fuzzball inks: every color a rule of contrast covers,
   though not the shading the art mixes from them. `contrast.spec.ts` holds
-  them to 3:1 in each of the game's four palettes.
+  them to 3:1 in each of the game's four palettes, and the field's text to
+  4.5:1 against the lintel, where the board counts the rows waiting.
 - **`src/view/art/`** — the atlas's frames, drawn in `@fz/phaser/shapes`'s
   commands in device pixels. `frames.ts` names every frame (`FRAMES`).
   `art.ts`'s `BRICK_ART` says how each kind is drawn, typed over the
@@ -358,30 +359,35 @@ helpers.
     functions over `GameService` (`WallSceneOptions`); sets the drawn gate
     from the canvas's state; and hands the game a later bake's pictures only
     once the atlas has settled (`PICTURES_SETTLE_MS`), reading them only
-    while the panels or the Ready card show them. Only its `.play` element is
-    the application, named for the level and described by its keys, around
-    the canvas and the focus ring; the panels and the card are its siblings,
-    read as a page is. The board puts the focus on `.play` for a press on it,
-    from `focus()` after the next render, and back from a card's button
-    before the game moves on. For T1's layout check, still to come, it
-    publishes `data-field` (from the lintel's top to the band's bottom),
-    `data-room`, `data-panels` (`""` where none show), `data-depth`,
-    `--across` and `--down`, each once the scene has laid the field out, and,
-    from the start, `data-outcome`, `data-wall` and `--pixel-ratio`. It sets
-    `--margin`, the canvas's insets, which the cards keep too; `--frame`, for
-    the placeholder's frame and the focus ring; and `--lintel`, `--band` and
-    `--band-ink`, for the placeholder. The cards are `<app-board-card>`,
-    handed the one to show (`BoardCard`) and what it shows: Ready, the
-    level's number and name, what its jumps earn, the kind of brick it brings
-    in and, on a phone on its side, that the game is larger upright; Paused,
-    the score, then Resume; Cleared, the stars, the rounds against par, the
-    tally, the score and the crew, then Next level; and Ended, once a run's
-    result is closed, where the run was lost or the trophy, the score, then
-    Try again from the level or New game. `<app-board-card>` reads the
-    field's margin from `--margin`, which the board sets, shows no card of
-    its own while the canvas's cards (`<fz-canvas-cards>`), projected into
-    it, show one, keeps its buttons' keys from Phaser's keyboard, and hands
-    on each press.
+    while the panels or the Ready card show them. On the lintel it says how
+    many rows wait ("5 rows waiting", "No rows waiting"), read as the page is
+    where neither the bar's Rows left nor Coming next says it and hidden from
+    assistive technology where one does; the Ready card lies under it. Only
+    its `.play` element is the application, named for the level and described
+    by its keys, around the canvas and the focus ring; the panels and the
+    card are its siblings, read as a page is. The board puts the focus on
+    `.play` for a press on it, from `focus()` after the next render, and back
+    from a card's button before the game moves on. For the layout check
+    (`tools/check-layout.mjs`) it publishes `data-field` (from the lintel's
+    top to the band's bottom), `data-room`, `data-panels` (`""` where none
+    show), `data-depth`, `--across` and `--down`, each once the scene has
+    laid the field out; `--lintel` and `--band`, once the board is measured;
+    and, from the start, `data-outcome`, `data-wall` and `--pixel-ratio`. It
+    sets `--margin`, the canvas's insets, which the cards keep too;
+    `--frame`, for the placeholder's frame and the focus ring; and
+    `--lintel`, `--band` and `--band-ink`, for the placeholder, `--lintel`
+    and `--frame` sizing the count of the rows too. The cards are
+    `<app-board-card>`, handed the one to show (`BoardCard`) and what it
+    shows: Ready, the level's number and name, what its jumps earn, the kind
+    of brick it brings in and, on a phone on its side, that the game is
+    larger upright; Paused, the score, then Resume; Cleared, the stars, the
+    rounds against par, the tally, the score and the crew, then Next level;
+    and Ended, once a run's result is closed, where the run was lost or the
+    trophy, the score, then Try again from the level or New game.
+    `<app-board-card>` reads the field's margin from `--margin`, which the
+    board sets, shows no card of its own while the canvas's cards
+    (`<fz-canvas-cards>`), projected into it, show one, keeps its buttons'
+    keys from Phaser's keyboard, and hands on each press.
   - `panels/` — the two panels beside a wide room's field, each a region
     named by its heading, taking no pointer and no size of its own, to be
     laid over its room with `cssRectStyle()`: Coming next,

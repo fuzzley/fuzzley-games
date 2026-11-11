@@ -29,7 +29,13 @@ import {
 import { viewport } from "@fz/phaser/testing/pure";
 import { paintRoles } from "@fz/style/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
-import { fireEvent, render, screen, within } from "@testing-library/angular";
+import {
+  fireEvent,
+  isInaccessible,
+  render,
+  screen,
+  within,
+} from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { describeBoon, describeRows } from "../../rules/run/describe";
 import { tallyOf } from "../../rules/run/scoring";
@@ -142,6 +148,16 @@ function canvasOf(
   });
 }
 
+/** Returns the field under its lintel, from the ceiling to the band's bottom, in CSS px. */
+function underTheLintel(cells: CssRect, framed: CssRect): CssRect {
+  return {
+    x: framed.x,
+    y: cells.y,
+    width: framed.width,
+    height: framed.y + framed.height - cells.y,
+  };
+}
+
 /** Returns where a field of a shape lies on a canvas, from the lintel's top to the band's bottom, in CSS px. */
 function framedOn(canvas: Viewport, shape: FieldShape): CssRect {
   return fieldMetrics(canvas, shape).framed;
@@ -171,6 +187,18 @@ function measureAt(
   size: { readonly width: number; readonly height: number },
 ): void {
   layOut(rendered.host, size);
+  rendered.detectChanges();
+}
+
+/**
+ * Plays rounds out, each stepping the wall down a row, until as many rows
+ * as asked wait over the ceiling, and renders the board.
+ */
+function playUntilRowsWait(rendered: RenderedBoard, rows: number): void {
+  for (let round = 0; rendered.game.rowsLeft() > rows; round++) {
+    if (round > MOST_DEPTH) throw new Error("The rows never came in.");
+    playRoundOut(rendered.game);
+  }
   rendered.detectChanges();
 }
 
@@ -339,6 +367,12 @@ describe("BoardComponent", () => {
       expect(host.querySelector(".field")).not.toHaveAttribute("style");
     });
 
+    it("counts no rows on the lintel where the browser can't measure the board", async () => {
+      await renderBoard();
+
+      expect(screen.queryByText(/waiting$/)).toBeNull();
+    });
+
     it("makes the scene in the game's shape where the browser can't measure the board", async () => {
       const { game, fake } = await renderBoard();
       const shape = game.shape();
@@ -446,17 +480,37 @@ describe("BoardComponent", () => {
       );
     });
 
-    it("lays the cards and the ring over the field, before the scene has drawn it", async () => {
+    it("lays the ring over the field and the Ready card under its lintel, before the scene has drawn it", async () => {
       const rendered = await renderBoard();
 
       measureAt(rendered, UPRIGHT);
 
       const canvas = canvasOf(UPRIGHT);
-      const field = cssRectStyle(framedOn(canvas, fieldShape(canvas)));
+      const { css, framed } = fieldMetrics(canvas, fieldShape(canvas));
       // The card's element is only the layer a card shows in, and the ring
       // is only drawn, so neither has a role to find it by.
-      expect(rendered.host.querySelector("app-board-card")).toHaveStyle(field);
-      expect(rendered.host.querySelector(".ring")).toHaveStyle(field);
+      expect(rendered.host.querySelector("app-board-card")).toHaveStyle(
+        cssRectStyle(underTheLintel(css, framed)),
+      );
+      expect(rendered.host.querySelector(".ring")).toHaveStyle(
+        cssRectStyle(framed),
+      );
+    });
+
+    it("lays every other card over the whole field, as tall as a Cleared card needs", async () => {
+      const rendered = await renderBoard();
+      measureAt(rendered, UPRIGHT);
+      playRoundOut(rendered.game);
+      release(rendered.game);
+
+      rendered.game.pause();
+      rendered.detectChanges();
+
+      const canvas = canvasOf(UPRIGHT);
+      // The card's element is only the layer a card shows in.
+      expect(rendered.host.querySelector("app-board-card")).toHaveStyle(
+        cssRectStyle(framedOn(canvas, fieldShape(canvas))),
+      );
     });
 
     it("hands the game the room it measures, which shapes the field waiting for its first shot", async () => {
@@ -516,7 +570,7 @@ describe("BoardComponent", () => {
       expect(screen.queryAllByRole("region")).toEqual([]);
     });
 
-    it("keeps the panels and the card outside the application, read as a page is", async () => {
+    it("keeps the lintel's count, the panels and the card outside the application, read as a page is", async () => {
       const rendered = await renderBoard();
 
       measureAt(rendered, WIDE);
@@ -526,7 +580,15 @@ describe("BoardComponent", () => {
         panels: screen.getAllByRole("region").length,
         inApplication: application.queryAllByRole("region").length,
         card: application.queryByText("Level 1: Hello, wall"),
-      }).toEqual({ panels: 2, inApplication: 0, card: null });
+        lintels: screen.queryAllByText(/waiting$/).length,
+        lintel: application.queryByText(/waiting$/),
+      }).toEqual({
+        panels: 2,
+        inApplication: 0,
+        card: null,
+        lintels: 1,
+        lintel: null,
+      });
     });
 
     it("publishes nothing for the layout check before the scene has laid the field out", async () => {
@@ -577,6 +639,125 @@ describe("BoardComponent", () => {
         0,
       ]);
     });
+  });
+
+  describe("its lintel", () => {
+    watchResizes();
+
+    /** Renders a board on a phone, where nothing else counts the rows waiting, measured upright. */
+    async function phoneBoard(): Promise<RenderedBoard> {
+      installFakeViewport(390, 844);
+      const rendered = await renderBoard();
+      measureAt(rendered, UPRIGHT);
+      return rendered;
+    }
+
+    /** Returns the lintel's count of the rows waiting, hidden from assistive technology or not. */
+    function lintel(): HTMLElement {
+      return screen.getByText(/waiting$/);
+    }
+
+    it("says how many rows wait over the ceiling", async () => {
+      await phoneBoard();
+
+      // The specs' first level holds seven rows over an upright phone's field.
+      expect(lintel()).toHaveTextContent(/^7 rows waiting$/);
+    });
+
+    it("says one row waits once the rest have come in", async () => {
+      const rendered = await phoneBoard();
+
+      playUntilRowsWait(rendered, 1);
+
+      expect(lintel()).toHaveTextContent(/^1 row waiting$/);
+    });
+
+    it("says no rows wait once the last has come in", async () => {
+      const rendered = await phoneBoard();
+
+      playUntilRowsWait(rendered, 0);
+
+      expect(lintel()).toHaveTextContent(/^No rows waiting$/);
+    });
+
+    it("lies in the lintel, over the ceiling's line, where the field is laid out", async () => {
+      await phoneBoard();
+
+      const canvas = canvasOf(UPRIGHT);
+      const { css, framed } = fieldMetrics(canvas, fieldShape(canvas));
+      expect(lintel()).toHaveStyle(
+        cssRectStyle({
+          x: framed.x,
+          y: framed.y,
+          width: framed.width,
+          height: css.y - framed.y - FRAME_CSS_PX,
+        }),
+      );
+    });
+
+    it.each([
+      {
+        where: "on a phone",
+        size: (): void => {
+          installFakeViewport(390, 844);
+        },
+      },
+      {
+        where: "on a roomy screen whose bar has no room to count them",
+        size: (): void => {
+          installFakeViewport(1000, 700);
+        },
+      },
+      {
+        where:
+          "on a short screen as wide as the bar's labels, whose bar is a phone's",
+        size: (): void => {
+          installFakeViewport(1300, 450);
+        },
+      },
+    ])("is read $where, where no panels show", async ({ size }) => {
+      size();
+      const rendered = await renderBoard();
+
+      measureAt(rendered, UPRIGHT);
+
+      expect(isInaccessible(lintel())).toBe(false);
+    });
+
+    it.each([
+      {
+        where:
+          "the bar counts the rows, from the width its actions keep their labels at",
+        size: (): void => {
+          installFakeViewport(1280, 800);
+        },
+        room: UPRIGHT,
+      },
+      {
+        where: "Coming next counts them, beside the field",
+        size: (): void => {
+          installFakeViewport(1000, 700);
+        },
+        room: WIDE,
+      },
+    ])(
+      "is hidden from assistive technology where $where",
+      async ({ size, room }) => {
+        size();
+        const rendered = await renderBoard();
+
+        measureAt(rendered, room);
+
+        const count = lintel();
+        expect({
+          hidden: isInaccessible(count),
+          words: count.textContent.trim(),
+        }).toEqual({
+          hidden: true,
+          words: expect.stringMatching(/^\d+ rows waiting$/) as unknown,
+        });
+      },
+    );
   });
 
   describe("its panels", () => {
@@ -868,7 +1049,7 @@ describe("BoardComponent", () => {
       );
     });
 
-    it("lays the ring and the cards where the scene drew the field, where the canvas it measured differs from the board", async () => {
+    it("lays the ring and the Ready card where the scene drew the field, the card under its lintel, where the canvas it measured differs from the board", async () => {
       const rendered = await renderBoard();
       measureAt(rendered, { width: WIDE.width + 10, height: WIDE.height });
       const run = await runShownScene(rendered.fake, rendered.host, {
@@ -880,11 +1061,13 @@ describe("BoardComponent", () => {
       rendered.detectChanges();
 
       const { game, host } = rendered;
-      const field = cssRectStyle(game.metrics()!.framed);
+      const { css, framed } = game.metrics()!;
       // The ring is only drawn, and the card's element is only the layer a
       // card shows in, so neither has a role to find it by.
-      expect(host.querySelector(".ring")).toHaveStyle(field);
-      expect(host.querySelector("app-board-card")).toHaveStyle(field);
+      expect(host.querySelector(".ring")).toHaveStyle(cssRectStyle(framed));
+      expect(host.querySelector("app-board-card")).toHaveStyle(
+        cssRectStyle(underTheLintel(css, framed)),
+      );
     });
 
     it("publishes where the scene laid the field out, from the lintel's top to the band's foot, and lays the focus ring there", async () => {

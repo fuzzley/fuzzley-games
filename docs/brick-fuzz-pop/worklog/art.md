@@ -1564,3 +1564,198 @@ where it was behind, and `GameService`'s two docs of the pictures.
   8. "The rest of U1" may be stale: left to the integrator, as the brief
      touched only the four places.
   9. "the board …, the bar": "then the bar".
+
+### The lintel's count of the rows waiting
+
+**2026-11-10.** A bug the scene stream's Q3 browser check found: the
+lintel never said how many rows wait, as `plan.md`'s decision 6 has it,
+an empty band on every shape; the scene leaves the words to the board's
+page over the canvas, placed from the layout, as the panels are. On an
+upright phone the bar shows only the rounds and the score and the panels
+are hidden, so the count showed nowhere.
+
+- **Built.**
+  - `<app-board>` gains a paragraph on the lintel (`.lintel`), its words
+    from `GameService.rowsLeft()`: "5 rows waiting", "1 row waiting", "No
+    rows waiting". Placed from the layout as the field is (the scene's, or
+    the placeholder's until then) and as tall as the lintel less the
+    ceiling's line, in the field's text, centered, taking no pointer.
+  - The Ready card's layer lies under the lintel, from the ceiling to the
+    band's bottom (`cardStyle`), so the card, a margin from the layer's
+    top, never covers the count; every other card, centered, keeps the
+    whole field.
+  - `wallRow`'s doc says what T1 holds the wall to: the row a level opens
+    on at the field's depth while it waits for its first shot.
+  - `board.component.spec.ts`, eleven tests more: the other cards' layer
+    over the whole field, the words, the last row
+    waiting and none, the place, nothing before the board is
+    measured, read on a phone, on a roomy screen whose bar can't count the
+    rows and on a short screen as wide as the bar's labels, and hidden,
+    its words still there, where the bar or Coming next count them.
+  - `src/view/colors/contrast.spec.ts` holds the field's text at 4.5:1
+    against the band's ink, the lintel's, in every palette.
+  - The game's `AGENTS.md`: the `board/` entry says what the lintel says,
+    the Ready card under it, what `--lintel` and `--frame` size, and that
+    the check reads `--lintel` and `--band` once the board is measured,
+    and names the layout check, merged, where it said T1 was still to
+    come; the
+    `src/view/colors/` entry, the field's text held to 4.5:1 against it.
+- **Choices the plan didn't make.**
+  1. **"No rows waiting" once none wait,** rather than an empty lintel:
+     the bar's Rows left shows 0 then and Coming next says no rows wait,
+     and an empty lintel is what read as the bug.
+  2. **The count is the bar's,** the rows waiting as the round aimed or in
+     play started, so it changes once the wall is at rest and the next
+     round is aimed; on a losing step it keeps the last count until the
+     result's card, as the bar and Coming next do.
+  3. **As large as the lintel holds, no larger than the page's small
+     text:** 0.8 of the lintel less the frame, at most `--fz-font-sm`, a
+     line as tall as the type, so it never reaches the ceiling's line.
+  4. **Read as the page is where nothing else says it, and not a live
+     region:** the bar's Rows left shows from the width the bar's actions
+     keep their labels at, unless the window is compact, and Coming next
+     counts the rows where the panels show; where either shows, the
+     lintel is hidden from assistive technology. The announcer is the
+     page's one voice for what changes, and its words for a round never
+     count the rows waiting; a status of the board's own would change in
+     the same render as the announcer's round words and could have one
+     of them dropped on a phone's screen reader. To hear the count as it
+     changes, the announcer's step and jump words would say it (For
+     other streams).
+  5. **Outside the application, with the panels and the card, and the
+     Ready card under it:** the Ready card stood a margin from the
+     lintel's top, its edge through the words on a phone; its layer
+     starts at the ceiling instead. The centered cards keep the whole
+     field, as a Cleared card with its crew nearly fills it on a phone on
+     its side, and covers the count only then. A spec holds the count
+     outside the application.
+  6. **The words keep still through a lost level's shake,** as the panels
+     and the cards do, while the scene's camera moves the drawn lintel up
+     to 6 CSS px for 300 ms.
+- **For other streams.**
+  - Whoever keeps `src/rules/run/describe.ts`: the step's and the jump's
+    words could end with the rows waiting ("…, 3 bricks to a jump, 6 rows
+    waiting."), from one count the rules give, which `waitingRows()` in
+    `src/app/panels/panels.ts` and `GameService.rowsLeft` would share.
+    The lintel stays read where nothing else in the page counts the
+    rows, as the announcer's words come and go.
+  - The shell stream: the lintel's hiding mirrors the bar's
+    `fitsEveryFigure` (`!isCompact() && fitsActionLabels()`); a change to
+    when the bar shows Rows left wants the same change in the board's
+    `lintelHidden`.
+- **Checks.**
+  - The workspace's `lint` and `typecheck` are clean, and the root's
+    `yarn lint` passes.
+  - `test:coverage`, rebased onto T1: 4,721 tests in 90 files, fifteen of
+    them new (the board's eleven, and the contrast's one in each of four
+    palettes), then the 150 of the simulation, and its floors;
+    `board.component.ts` stays at 100% of its statements, branches,
+    functions and lines.
+  - In a real Chrome, headless, from the dev server at 9136, the
+    screenshots saved outside the repository, in the scene stream's
+    folder of Q3's shots, as `lintel-desktop-1600x900.png`,
+    `lintel-phone-upright-375x812.png` and
+    `lintel-phone-on-side-812x375.png`, each with the Ready card under the
+    lintel:
+    - at 1600 by 900, "11 rows waiting" on a lintel of 32 CSS px, 14 px
+      type, hidden from assistive technology as the bar and the panels
+      count the rows; after a shot, "10 rows waiting";
+    - at 375 by 812, "7 rows waiting" on a 23 px lintel, 14 px type, not
+      hidden, the panels and the bar's count not shown;
+    - at 812 by 375, "11 rows waiting" on a 15 px lintel, 10.4 px type,
+      hidden, as the panels show;
+    - at 360 by 800, where the review saw it, the words end at 27.7 px
+      and the Ready card begins at 43; it began at 24, through them,
+      before the cards' layer moved under the lintel;
+    - at 568 by 320, a small phone on its side, units of 24 px: a 12 px
+      lintel, 8 px type in its 10 px; no error or warning in the console.
+- **The mutation passes.** The first, fifteen changes, each run against
+  the board's spec; fourteen were killed, and the compact window ignored
+  survived, as no spec had a compact window as wide as the bar's labels:
+  a short screen 1300 by 450 now, and it dies. The second, over the
+  review's fixes, sixteen: the lintel over the ceiling's line, at the
+  canvas's top or narrower than the field; no "No rows", none as a
+  number, no singular, a count off the run; the panels not hiding it, the
+  compact window or the bar's labels ignored, never or always hidden, the
+  hiding unbound; unplaced, not drawn beside the panels, the bare count.
+  All sixteen were killed. After the second review, four more, each
+  killed: the cards over the lintel, from its top, or as tall as the
+  field, and the count inside the application. After the third look,
+  two more, each killed: every card under the lintel, and only Ready
+  over the field.
+- **Numbers worth keeping.** At the layout check's least unit, 24 CSS
+  px, the lintel is 12 px at its thinnest, half a unit, so the count's
+  type is 8 px there; 14 px from a lintel of 19.5 px up.
+- **The review:** ten comments, each taken but the fourth and the
+  seventh.
+  1. A status of the board's own changes in the same render as the
+     announcer's round words, and could have one dropped on a phone's
+     screen reader, where the page's rules give what changes to the
+     announcer alone: the lintel is a plain paragraph now, read as the
+     page is where nothing else says the count, hidden where something
+     does (choice 4); the announcer's counting the rows is proposed for
+     the describe words' keeper (For other streams).
+  2. The hidden cases passed with no lintel at all: each now finds it,
+     hidden, with its words.
+  3. The first spec took its count from the signal the board reads, and
+     matched a part of the words: seven, the specs' first level's on an
+     upright phone, matched whole, as every case's words are now.
+  4. On a losing step the count keeps the last until the result's card:
+     left as the bar and Coming next have it, and said in choice 2.
+  5. The class doc names the lintel's count, beside the panels and the
+     card as a page reads.
+  6. `lintelHidden`'s doc says "Whether", and it follows `panelStyles`.
+  7. The hiding's condition copies the bar's: left, as the bar is the
+     shell stream's, and named for it.
+  8. The log's choices 2 and 4 say when the count changes and why the
+     lintel is no live region.
+  9. "is read as a status as the rows come in": "is read".
+  10. The lintel's text against its ink had no contrast spec: the
+      palette's spec holds the field's text at 4.5:1 against the band in
+      every palette, 8.75:1 at the least.
+- **The second review:** no bug; eleven comments, each taken.
+  1. Nothing held the count outside the application: the spec of what
+     reads as a page finds no count inside it, and a mutant that moves it
+     in dies.
+  2. The Ready card's edge crossed the words on a phone: the cards' layer
+     lies under the lintel now (choice 5), seen in Chrome at 360 by 800.
+  3. The log miscounted the first review's answers: the fourth and the
+     seventh were left.
+  4. The hand-off had the lintel hidden everywhere once the announcer
+     counts the rows, against choice 4: it stays read where nothing else
+     in the page says the count.
+  5. The specs found the count by its class: by its words now, which also
+     find it hidden.
+  6. `AGENTS.md`'s colors entry says the field's text keeps 4.5:1 against
+     the lintel.
+  7. A lost level's shake leaves the words still: choice 6.
+  8. `lintelHidden`'s doc names `BarComponent`'s `fitsEveryFigure`.
+  9. The specs' details: no viewport where none counts, the default
+     rounds, the desktop named (1280 by 800), "says one row waits once
+     the rest have come in", and `isInaccessible` from
+     `@testing-library/angular`.
+  10. The docs: the class doc reflowed and its "read as a page does"
+      true of the count only where it is read; the template's comment
+      one sentence, saying the announcer doesn't count the rows; the
+      stylesheet's comments name the count; `.lintel`'s margin, which
+      `cssRectStyle()` sets, gone; `AGENTS.md` says `--frame` sizes the
+      count too.
+  11. The log: the least lintel at the layout check's least unit, and the
+      screenshots outside the repository.
+- **The third look,** at the second review's fixes alone: no bug; six
+  comments, each taken.
+  1. A Cleared card with its crew, about 346 CSS px at 812 by 375, would
+     have run past a layer 336 tall under the lintel: only the Ready card,
+     held at its layer's top, lies under the lintel now; the centered
+     cards keep the whole field (choice 5), with a spec of the Paused
+     card's layer.
+  2. `fieldStyle`'s doc: every card but Ready.
+  3. `shown`'s and `frameCss`'s docs name the count and the Ready card's
+     layer.
+  4. `AGENTS.md`'s "the cards lying under it, read as the page is" read
+     as the cards': the sentence is the count's, and the Ready card lies
+     under it.
+  5. `AGENTS.md` lists `--lintel` and `--band` among what the check
+     reads, once the board is measured.
+  6. The spec of what lies outside the application finds one count in
+     the page too.

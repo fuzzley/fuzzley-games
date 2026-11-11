@@ -7,6 +7,9 @@ import { FIELD_ROLES, type KindInks, wallPalette } from "./palette";
 /** The contrast a graphic keeps against what it is drawn on, as WCAG asks of graphics. */
 const GRAPHIC = 3;
 
+/** The contrast text keeps against what it is written on, as WCAG asks of text. */
+const TEXT = 4.5;
+
 /** A color, named for what it draws. */
 type Named = readonly [string, number];
 
@@ -24,7 +27,9 @@ function between(one: number, other: number): number {
 // every ink they are cut from, a fuzzball's eyes against each fuzzball. A
 // friend keeps 3:1 against the bar, where the crew waits, and against a
 // cage's inside, where it waits to be freed; and the fuzzball and its meter,
-// which wait on the floor, against the floor's band.
+// which wait on the floor, against the floor's band. The lintel's count of
+// the rows waiting, the board's text in the field's, keeps 4.5:1, the bar
+// for text, against the lintel, in the band's ink.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = wallPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -135,5 +140,9 @@ describe("the field's contrast", () => {
         expect(between(color, palette.band)).toBeGreaterThanOrEqual(GRAPHIC);
       },
     );
+
+    it("keeps the lintel's count of the rows waiting, in the field's text, at 4.5:1 or more against the lintel", () => {
+      expect(between(palette.text, palette.band)).toBeGreaterThanOrEqual(TEXT);
+    });
   });
 });
