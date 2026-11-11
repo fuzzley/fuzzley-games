@@ -1268,11 +1268,12 @@ games can go, since nothing here is timed:
 - **The announcer says** each level begun, with its boon; the aim and the
   charge as the keys change them ("62 degrees, charge 3"); each round's end
   ("Broke 4. The wall came down 1 row: 5 rows from the floor, 7 bricks to a
-  jump."); each jump ("The lower two-thirds are clear. The wall jumped 3
-  rows. Next shot: hot shot."); the danger line; a friend freed; a level
-  cleared, with its stars; a pause, going on and the end. R reads the wall's
-  three lowest rows, from the floor ("Row 4: brick, brick, gap, tough brick,
-  3 hits, …"), so a level can be played by ear, if not planned by it.
+  jump, 6 rows waiting."); each jump ("The lower two-thirds are clear. The
+  wall jumped 3 rows, with 6 rows waiting. Next shot: hot shot."); the
+  danger line; a friend freed; a level cleared, with its stars; a pause,
+  going on and the end. R reads the wall's three lowest rows, from the
+  floor ("Row 4: brick, brick, gap, tough brick, 3 hits, …"), so a level
+  can be played by ear, if not planned by it.
 - **Color is never the only signal:** kinds by shape, hits by pips, the
   danger by a line, a frame and words.
 - **Motion follows the player's preference,** and a flight can always be

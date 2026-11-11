@@ -2027,3 +2027,21 @@ which fails the typecheck at the type test's unused `@ts-expect-error`.
    `Pick<LayoutCheck, "board" | "inspect">`.
 4. _`keepingRun()`'s `@returns` repeats `keepRun()`'s parameters._ Taken:
    `BeforeLoad<Parameters<typeof keepRun>>`.
+
+### plan.md's words for a step and a jump
+
+**2026-11-11.** At the integrator's word, after the rows waiting were
+added to those words.
+
+**What was built.** `plan.md`'s accessibility section gives a round's
+end as "Broke 4. The wall came down 1 row: 5 rows from the floor, 7 bricks
+to a jump, 6 rows waiting." and a jump as "The lower two-thirds are clear.
+The wall jumped 3 rows, with 6 rows waiting. Next shot: hot shot.", as
+`describeRound()` now says them; the rest of the paragraph is rewrapped.
+
+**Checks.** The root's `yarn lint`, its formatting and references
+included, passes.
+
+**The review:** nothing to fix: both examples match `describe.ts` as
+built, and no other line of the plans quotes the old words. The one note,
+that the entry lacked its checks, is taken above.
