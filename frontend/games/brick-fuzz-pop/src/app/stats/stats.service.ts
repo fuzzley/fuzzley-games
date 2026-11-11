@@ -1,6 +1,5 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { storedSignal } from "@fz/ui/storage";
-import { LEVELS } from "../../rules/levels/levels";
 import {
   type EndedRun,
   type LevelResult,
@@ -10,6 +9,7 @@ import {
   withRunEnded,
   withRunStarted,
 } from "../../rules/run/stats";
+import { GAME_LEVELS } from "../tokens";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 const STATS_KEY = "brick-fuzz-pop-stats";
@@ -26,10 +26,11 @@ const STATS_VERSION = 1;
  */
 @Injectable({ providedIn: "root" })
 export class StatsService {
+  private readonly levels = inject(GAME_LEVELS);
   private readonly state = storedSignal({
     key: STATS_KEY,
     version: STATS_VERSION,
-    read: (saved) => statsOf(saved, LEVELS),
+    read: (saved) => statsOf(saved, this.levels),
   });
 
   /** The stats so far. */

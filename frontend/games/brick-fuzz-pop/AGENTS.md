@@ -13,13 +13,13 @@ says how any game here is drawn with Phaser. Paths are relative to
 The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
-shows the game's name alone: the scene, the dialogs, the settings drawer
-and the services that keep the game are written and specced, but nothing
-places them yet, and the site doesn't ship it: `frontend/site/games.json`
-doesn't list it. What the plan's packages still to come build (R3, R4, R6,
-the rest of P2, P3, V3, S2, U1, U2, T1 and T2, then X1 to X3, Y1 to Y3,
-D1, F1, Z1 and Z2) isn't here yet, and `playRound()` throws until R6
-writes it.
+shows the game's name alone: the scene, the dialogs, the settings drawer,
+the game and the services that keep it are written and specced, but
+nothing places them yet, and the site doesn't ship it:
+`frontend/site/games.json` doesn't list it. What the plan's packages still
+to come build (R6, the rest of P2, P3, S2, the rest of U1, U2, T1 and T2,
+then X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet, and
+`playRound()` throws until R6 writes it.
 
 ## Technology Stack
 
@@ -153,9 +153,12 @@ helpers.
   3") to a round, the wall's lowest rows (`describeRows()`), a pause and
   the end.
 - **`src/view/`** — what to draw and when, without Phaser, tested in Node.
-  `round_play.ts` holds `RoundView`, a round as the scene draws it at a
-  moment, its events numbered in `@fz/core/event_log`'s `EventLogView`, and
-  `run_state.ts` `RoundPhase`.
+  `round_play.ts` holds `RoundPlay`, which plays a round's flight back a
+  frame at a time and settles its wall, one for the whole game, and
+  `RoundView`, the round as the scene draws it at a moment, its events
+  numbered in `@fz/core/event_log`'s `EventLogView`; `run_state.ts` holds
+  `RunState`, the run on the board and where its round stands, which
+  `GameService` replaces whole, and `RoundPhase`.
 - **`src/view/field/`** — `field_metrics.ts`: the field's shape a canvas's
   room holds (`fieldShape()`: a unit in whole device pixels, 11 to 22 rows,
   the floor's band, the lintel and whether panels fit beside it), where it
@@ -252,11 +255,19 @@ helpers.
     title, so a player still holding Space presses nothing.
   - `stats/` — the records: `StatsService` and `ProgressService`, which keep
     what `src/rules/run/stats.ts` and `src/rules/run/progress.ts` read, for
-    the game's `LEVELS`; and `levelMarksOf()`, each level's mark for the
-    Levels dialog.
-  - `play/` — `SavedGameService`, which keeps the run under way through
+    the levels `GAME_LEVELS` hands them; and `levelMarksOf()`, each level's
+    mark for the Levels dialog.
+  - `play/` — `GameService`, the game, on `@fz/game-ui`'s `RunLifecycle`:
+    it holds the run and where its round stands (`RunState`), plays each
+    round released through the rules and back through one `RoundPlay`,
+    lays the field out on the board's room between rounds, gives the scene
+    its options, says what happens and keeps the records. And
+    `SavedGameService`, which keeps the run under way through
     `@fz/ui/storage`'s `keepSaved()` and takes it up again, paused, reading
-    the game through `KeptGame`, which it injects as `KEPT_GAME`.
+    the game through `KeptGame`, which it injects as `KEPT_GAME`, and which
+    `provideGame()` makes `GameService`; `main.ts` injects it at startup.
+  - `tokens.ts` — `GAME_LEVELS`, the levels a run is played through, and
+    `PLAY_ROUND`, the rules' `playRound()`, which the specs replace.
   - `styles/` — `global.scss`, `@fz/game-ui`'s global stylesheet, loaded
     once from `main.ts`, and `_index.scss`, the toolkit every component
     `@use`s, which emits no CSS.
@@ -386,6 +397,10 @@ What the specs share is in `src/testing/`:
   less the bar or the rail (`CHROME_CSS_PX`, which its spec holds to
   `@fz/game-ui`'s Sass, the compact bar's through
   `src/testing/compact_bar.scss`), its insets the margin.
+- `play.ts` hands `GameService` the game's first three levels, a seeded
+  random and rounds played as a script says, each with a fixture's flight
+  (`provideSpecPlay()`, `scriptedRounds()`), and plays them a frame at a
+  time (`release()`, `playOut()`, `playRoundOut()`, `playUntilCard()`).
 - `roles.ts` reads the game's palettes from its global stylesheet
   (`PALETTES`), which `src/view/colors/contrast.spec.ts` holds the field's
   inks to contrast in, each of the four.

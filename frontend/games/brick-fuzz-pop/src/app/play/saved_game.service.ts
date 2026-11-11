@@ -7,7 +7,6 @@ import {
 } from "@angular/core";
 import type { RunStage } from "@fz/core/run";
 import { keepSaved } from "@fz/ui/storage";
-import { LEVELS } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
 import type { Run } from "../../rules/run/run";
 import {
@@ -16,6 +15,7 @@ import {
   restoreGame,
   saveGame,
 } from "../../rules/run/saved_game";
+import { GAME_LEVELS } from "../tokens";
 
 /** Where the run under way is kept. Renaming it loses every player's. */
 const SAVED_GAME_KEY = "brick-fuzz-pop-game";
@@ -62,6 +62,7 @@ export const KEPT_GAME = new InjectionToken<KeptGame>("KEPT_GAME");
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
   private readonly game = inject(KEPT_GAME);
+  private readonly levels = inject(GAME_LEVELS);
   /** The level in play's rounds, from the run, which change as a round is released. */
   private readonly rounds = computed(() => this.game.run().rounds);
 
@@ -70,11 +71,11 @@ export class SavedGameService {
       key: SAVED_GAME_KEY,
       version: SAVED_GAME_VERSION,
       save: () =>
-        saveGame(this.game.run(), this.game.nextStart(), LEVELS, {
+        saveGame(this.game.run(), this.game.nextStart(), this.levels, {
           tuned: this.game.tuned(),
         }),
       restore: (saved) => {
-        const takenUp = restoreGame(saved, LEVELS, this.game.run().id + 1);
+        const takenUp = restoreGame(saved, this.levels, this.game.run().id + 1);
         if (takenUp) this.game.takeUp(takenUp);
       },
       track: () => {

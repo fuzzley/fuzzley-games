@@ -1,7 +1,7 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { storedSignal } from "@fz/ui/storage";
-import { LEVELS } from "../../rules/levels/levels";
 import { clearedOf, isOpen as isLevelOpen } from "../../rules/run/progress";
+import { GAME_LEVELS } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */
 const PROGRESS_KEY = "brick-fuzz-pop-progress";
@@ -17,10 +17,11 @@ const PROGRESS_VERSION = 1;
  */
 @Injectable({ providedIn: "root" })
 export class ProgressService {
+  private readonly levels = inject(GAME_LEVELS);
   private readonly state = storedSignal({
     key: PROGRESS_KEY,
     version: PROGRESS_VERSION,
-    read: (saved) => clearedOf(saved?.["cleared"], LEVELS),
+    read: (saved) => clearedOf(saved?.["cleared"], this.levels),
     write: (cleared) => ({ cleared: [...cleared] }),
   });
 
@@ -29,7 +30,7 @@ export class ProgressService {
 
   /** Returns whether a run may start at a level, by its number. */
   isOpen(level: number): boolean {
-    return isLevelOpen(LEVELS, this.state(), level);
+    return isLevelOpen(this.levels, this.state(), level);
   }
 
   /** Keeps a level cleared, by its id, which opens the next. */

@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { booleanOr } from "@fz/core/json";
 import { isOneOf } from "@fz/core/records";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
+import type { FlightSpeed } from "../../view/round_play";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 const SETTINGS_KEY = "brick-fuzz-pop-settings";
@@ -19,10 +20,13 @@ export const AIMINGS = ["byPointer", "pullBack", "pointAndHold"] as const;
 export type Aiming = (typeof AIMINGS)[number];
 
 /** The flight's speeds, in the order the settings offer them. */
-export const FLIGHT_SPEEDS = ["normal", "fast"] as const;
+export const FLIGHT_SPEEDS = [
+  "normal",
+  "fast",
+] as const satisfies readonly FlightSpeed[];
 
-/** Names how fast a round's flight plays back. */
-export type FlightSpeed = (typeof FLIGHT_SPEEDS)[number];
+/** Names how fast a round's flight plays back: the view's, which plays it. */
+export type { FlightSpeed };
 
 /** Says how the player plays. */
 export interface Settings {

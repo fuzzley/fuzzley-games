@@ -1037,3 +1037,168 @@ growing them and change nothing else.
 5. **Nits.** The frame's count and the frame copied in became one flag;
    `wallDrop`'s doc says it is already 1 where the wall comes down at
    once; the spec of walls across frames checks one thing each.
+
+### U1's core: GameService
+
+**2026-11-10.** `src/app/play/game.service.ts`: the game, on `@fz/game-ui`'s
+`RunLifecycle`, playing R7's run with V3's `RoundPlay` and `RunState`, with
+the tokens and the specs' helpers it needs. The board, the canvas and the
+wiring come next.
+
+**What was built.**
+
+- **`GameService`** holds V3's `RunState`, replaced whole, and one
+  `RoundPlay` for the whole game. It implements `outcome`, `ended`,
+  `inProgress`, `resultClosed`, `pause()`, `resume()` (which waits for
+  `drawn`) and `newGame()`, with `startAt()` and `tryAgain()` beside it;
+  `nextStage()` opens the next level from the Cleared card, and every
+  level waits in `"ready"`. `command()` is overridden only for a lost
+  run's card put away (choice 9); C8 stays in `Steering.keyDown()`.
+- **The scene's options**: `tick()`, `view()`, `guide()` (null until
+  R6/S2), `waitingX()`, `palette`, `shape`, `motion()`, `sound()`,
+  `onLayout()`, `onPictures()` and `fieldCommand()`, which skips, reads
+  the rows (R) or hands a run's command to `command()`.
+- **The bar's**: `flying`, `fast` (asked from the bar, or F held), `skip()`,
+  `fastForward()`, `toggleSound()` and `soundOn`; the panels' `rowsLeft`,
+  `friends`, `lit`, `levelBoon`, `rounds`, `par`, `score`, `best`; the
+  steering's `aimings`; and `metrics` and `pictures` as the scene last
+  gave them.
+- **R7's run, played.** A release starts the level, plays the round
+  through the rules (`PLAY_ROUND`), takes it with `takeRound()`, and sets
+  the run and the round, and so `nextStart` (`round.next`), in one value.
+  The run lands with `landRound()` in the frame the flight ends.
+- **The words** go to `@fz/ui/announcer`: the level as it opens, the keys'
+  aim and charge, R's rows, a round as its wall comes to rest, the
+  Cleared card, the run's end, pausing, going on and a game taken up.
+- **The records** go through `StatsService` and `ProgressService`, none
+  for a run on retuned numbers.
+- **`KeptGame`**: `provideGame()` hands `KEPT_GAME` the service, and
+  `takeUp()` takes a saved run up paused.
+- **`src/app/tokens.ts`**: `GAME_LEVELS` (default `LEVELS`), which the
+  stats, progress and saved-game services now read, and `PLAY_ROUND`
+  (default `playRound`, which throws until R6).
+- **`src/testing/play.ts`**: `provideSpecPlay()`, the specs' levels (the
+  first three), a seeded `GAME_RANDOM`, and `scriptedRounds()`, which plays
+  rounds that step, jump, free a friend, clear or lose the level, each
+  with a fixture's flight, the freed round's with a friend freed at its
+  strike; and helpers to release and play rounds out. `AGENTS.md` names
+  it, `tokens.ts` and `GameService`.
+- **`main.ts`** injects `SavedGameService` in an app initializer.
+- **The settings' `FlightSpeed`** is now the view's, re-exported from
+  `settings.service.ts`, which the integrator allowed.
+- **`RunState` gained `run`, `resultClosed`, `tuned` and `newBest`**, so
+  `newRunState(run, start, tuned)` takes the run, and a run begun replaces
+  the whole state.
+
+**Choices the plan didn't make.**
+
+1. **The records are kept as a round is released,** from `afterLanding()`,
+   as the saved game keeps the round then too: a page closed mid-flight
+   loses neither the level cleared nor the best.
+2. **The field's room waits for the round in the air.** `setRoom()` takes
+   the shape at once while a round is aimed; with a round in the air or
+   its wall settling, or a card over the level's end, the next aim takes
+   it. A level with no round played, a new run's, the next level's
+   or one taken up, is begun again on the room's depth, its par with it
+   (the shell works the par out with `parOf()`, as R7 has no move for
+   it); any other keeps its par and moves its start onto the new depth,
+   the wall where it stands from the floor.
+3. **The first shape is an upright phone's** (390 by 640), which the
+   board's first measure replaces before the scene's first layout.
+4. **A skip while paused lands the flight at once,** through a frame of no
+   time unpaused, though `landRound()` lands only a run in play: the level's
+   end is held until it goes on, and lands the frame after.
+5. **The last level's Cleared card is the result card,** its words both
+   the level's and the run's.
+6. **Fast-forward asked from the bar lasts a flight;** F held lasts as long
+   as it is held; `fast` is false between flights, whatever was asked.
+7. **A friend freed is said in the round's words,** with the rest of what
+   it came to, not on its own as it happens.
+8. **A run's stars on the result card wait for the wiring,** since R7's
+   run counts no stars across levels, nor does its saved game.
+9. **Enter, P and a press on the board try a lost level again** once its
+   result card is put away, as the board's Ended card offers, where
+   `RunLifecycle` would start a new game, as integration asked; Escape
+   does nothing there, and a won run's Enter starts a new game.
+   `tryAgain()` takes only a lost run.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass, after the review, 3,923 tests in 69 files, and
+4,081 in 81 once rebased onto `brick-fuzz-pop`;
+`game.service.spec.ts` has 100, `tokens.spec.ts` 2, and `game.service.ts`, `tokens.ts` and
+`src/testing/play.ts` are at 100% of statements, branches, functions and
+lines, as is every file of `src/app/`. The root's `yarn lint` passes.
+
+**The mutation pass.** 99 mutants of `game.service.ts`, each guard, each
+signal the shell reads, each record kept, each word said, each part of the
+room's handling and of a frame's options: 89 were killed. Three survivors
+were gaps, now given specs and killed: a new game at level 1 rather than
+the level the last run started at, a release while paused (which played
+the flight, though the run took no round), and a level with rounds
+played begun again on a new depth. Seven are equivalent: the skip's guard
+(`RoundPlay.skip()` has its own, and a frame of no time moves nothing),
+the run landed with no ending held (`landRound()` leaves it as it is), any
+card opened over a won run (only Cleared opens over one), the state set
+when the frame left it as it was (a signal set to the same value), a
+start or a run moved onto the depth it has (the same value made again),
+and a level begun again without its par worked out, as `par.json` gives
+every level the same par at every depth today; a par that differs by
+depth would show it. An earlier pass, stopped a third of the way, had
+found six gaps (the Cleared card read open over the result, the boon lit
+before a jump earned it, the keys' words said every frame, a room of the
+same shape taken again, and pausing or going on when it changes nothing),
+given specs before the full pass. Then the ten survivors again, with the
+new specs, and 5 mutants of the `command()` override integration asked
+for: four killed, and one equivalent (falling through to
+`super.command()` after trying again, which a run waiting for its first
+shot ignores). And 5 of `run_state.ts`'s new fields and `withFrame()`'s
+spread, all killed. After the review, 3 more: `fast` while no flight is
+in the air and `tryAgain()` over a won run, both killed, and the records
+reading the level from `level()`, equivalent at the release, which the
+review's eighth comment changed for clarity.
+
+**Numbers worth keeping.** The specs' long flight is the plain fixture's
+slowed 20 times, 255 units: it lands 18.2 s after its release at Normal,
+13.1 s with long flights sped up. A test's second game, after
+`TestBed.resetTestingModule()`, lost the per-test memory store the setup
+provides and read jsdom's `localStorage`, which another test had set to
+Fast, so its flights landed early; `afresh()` gives it a store again. A
+mutant of the shell's spec takes about 25 s on the shared machine.
+
+**The review:**
+
+1. **`fast` stayed on after the flight landed,** which the bar's button
+   would show pressed between flights. Fixed: it is false but in flight,
+   and a spec plays a flight out after the bar asked.
+2. **No spec ran the game with the saved game.** Fixed: a spec releases a
+   round with `SavedGameService` keeping the game in a memory store, starts
+   afresh on the same store, and finds the run paused after the round.
+3. **Three specs would pass with the code broken.** Fixed: the round
+   played out "at any rate of frames" played at one rate and checked a
+   tautology, and is gone; fast-forward and the settings' speed compare
+   the fuzzball's place after times that should match (100 ms
+   fast-forwarded against 400 ms; 140 ms at Fast against 220 ms at
+   Normal, released in a frame of no time); and the freed friend's words
+   are checked against everything said through the playback.
+4. **`laidOut()` works a par out in the shell,** as `run.ts`'s private
+   `levelBegun()` does, and no spec can hold its par while `par.json` is
+   flat. Kept (choice 2): a move for it in `run.ts` is the rules stream's
+   to write, which integration can ask for, and the shell's would go then.
+5. **The spec painted the roles by hand,** one color for all. Fixed:
+   `@fz/style/testing`'s `paintRoles()` with the midnight palette's roles,
+   which restores itself.
+6. **A cast in the pictures' spec.** Fixed: the function handed over
+   throws, as nothing calls it.
+7. **`sound()` and `motion()` repeat signals.** Kept: they are the scene's
+   options as U1 names them, handed over in one place; `soundOn` is the
+   bar's.
+8. **The records read the level from `level()`,** right only because the
+   state isn't set yet. Fixed: from the landed run's level.
+9. **The class doc listed when the state changes,** and missed some.
+   Fixed: it changes only as the run or its round does.
+10. **`tryAgain()` took a won run.** Fixed: a lost one only, as its doc and
+    the cards say, with a spec.
+11. **`RoundPlayer` restated `playRound()`'s signature,** and
+    `src/testing/play.ts` exported a `playRound()` of its own. Fixed:
+    `typeof playRound`, and the helper is `playRoundOut()`.
+12. **`AGENTS.md`'s status and the view's bullet were out of date.** Fixed.
