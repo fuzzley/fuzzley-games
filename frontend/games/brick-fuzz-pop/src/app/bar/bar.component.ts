@@ -13,11 +13,9 @@ import { BarPauseComponent } from "@fz/game-ui/bar_pause";
 import { BarSoundComponent, soundMenuAction } from "@fz/game-ui/bar_sound";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { cssHex } from "@fz/phaser/color";
 import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
-import { ThemeService } from "@fz/ui/theme";
-import { friendInk } from "../../view/colors/inks";
+import { CrewComponent } from "./crew.component";
 import { FastForwardComponent } from "./fast_forward.component";
 import { SkipComponent } from "./skip.component";
 
@@ -46,6 +44,7 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
     BarOverflowComponent,
     BarPauseComponent,
     BarSoundComponent,
+    CrewComponent,
     FastForwardComponent,
     FuzzballComponent,
     GameBarComponent,
@@ -61,7 +60,6 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
 })
 export class BarComponent {
   protected readonly viewport = inject(GameViewportService);
-  private readonly theme = inject(ThemeService);
 
   /** The number of the level in play, from 1. */
   readonly level = input.required<number>();
@@ -150,11 +148,6 @@ export class BarComponent {
 
   /** The run's score, grouped in thousands. */
   protected readonly scoreShown = computed(() => formatPoints(this.score()));
-
-  /** Each friend's ink in the palette's mode, as CSS. */
-  protected readonly friendColors = computed(() =>
-    this.friends().map((ink) => cssHex(friendInk(ink, this.theme.mode()))),
-  );
 
   /** The crew as words, the player's fuzzball among them, since the fuzzballs are pictures. */
   protected readonly crewText = computed(() =>

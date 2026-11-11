@@ -1,0 +1,78 @@
+<!-- The canvas's own cards, which the board hands it. -->
+<ng-content />
+@let card = shown();
+@if (card) {
+  <!-- By its kind, which narrows the card in each case, as `card.kind` can't. -->
+  @let kind = card.kind;
+  @switch (kind) {
+    @case ("ready") {
+      <div class="card ready">
+        <p class="card-title">{{ card.title }}</p>
+        <p>{{ card.boon }}</p>
+        @if (card.newKind; as newKind) {
+          <div class="new-kind">
+            @if (newKind.picture; as picture) {
+              <img class="picture" [src]="picture" alt="" />
+            }
+            <p>
+              <strong>New: {{ newKind.name }}.</strong> {{ newKind.about }}
+            </p>
+          </div>
+        }
+        @if (sideways()) {
+          <p class="upright">The game is larger upright.</p>
+        }
+      </div>
+    }
+    @case ("paused") {
+      <div class="card">
+        <p class="card-title">Paused</p>
+        <p>Score {{ card.score }}</p>
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="resumeRun.emit()"
+        >
+          Resume
+        </button>
+      </div>
+    }
+    @case ("cleared") {
+      <div class="card">
+        <p class="card-title">{{ card.title }}</p>
+        <p class="stars">
+          @for (star of card.stars; track star) {
+            <fz-icon name="star" />
+          }
+          <span class="fz-visually-hidden">{{ card.starsWords }}</span>
+        </p>
+        <p>{{ card.rounds }}</p>
+        <dl class="tally">
+          @for (line of card.tally; track line.label) {
+            <div>
+              <dt>{{ line.label }}</dt>
+              <dd>{{ line.points }}</dd>
+            </div>
+          }
+        </dl>
+        <p>Score {{ card.score }}</p>
+        @if (card.friendsWords; as words) {
+          <p class="crew-line">
+            <app-crew class="crew" [friends]="card.friends" />
+            {{ words }}
+          </p>
+        }
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="nextLevel.emit()"
+        >
+          Next level
+        </button>
+      </div>
+    }
+    @default never;
+  }
+}

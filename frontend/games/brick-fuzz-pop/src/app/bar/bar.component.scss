@@ -19,32 +19,20 @@
   }
 }
 
-// Each fuzzball as the field draws it: the player's in the accent, each
-// friend in its ink, the eyes in the field's color.
-fz-fuzzball {
-  --fz-fuzzball-eyes: var(--fz-field);
-}
-
-.own {
-  color: var(--fz-accent);
-}
-
-// The rounds' icon is the player's fuzzball, hidden as the other figures'
-// icons are.
+// The rounds' icon is the player's fuzzball, as the field draws it, hidden
+// as the other figures' icons are.
 .metric dt fz-fuzzball {
+  --fz-fuzzball-eyes: var(--fz-field);
+
   display: none;
+  color: var(--fz-accent);
 }
 
 // A fuzzball for each of the crew, on one line, as a figure is.
 .crew {
-  display: flex;
-  gap: 2px;
-  padding-block: 4px;
+  --crew-size: 16px;
 
-  fz-fuzzball {
-    width: 16px;
-    height: 16px;
-  }
+  padding-block: 4px;
 }
 
 // The actions, Pause, Fast-forward and Skip dimmed while they can't be used.

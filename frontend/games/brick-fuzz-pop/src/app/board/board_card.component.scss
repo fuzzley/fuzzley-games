@@ -1,0 +1,102 @@
+@use "../styles" as *;
+
+// Over the field, where the board lays the layer, a card in its middle, but
+// for the Ready card. A card keeps the margin the board keeps around the
+// field (`--margin`), the canvas's own too (`--fz-canvas-card-room`), and
+// sizes itself by the board, the size container around it.
+:host {
+  @include board-card-layer;
+
+  --fz-canvas-card-room: var(--margin);
+}
+
+.card {
+  @include board-card(var(--margin));
+}
+
+// Over the wall, at the top of the field, clear of the floor, where the
+// fuzzball waits for the first move.
+.ready {
+  align-self: start;
+  margin-top: var(--margin);
+}
+
+// The kind of brick the level brings in: its picture, square as a brick is,
+// beside its name and what it does.
+.new-kind {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-3);
+  text-align: start;
+}
+
+.picture {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.upright {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+}
+
+// A star for each earned, in the warning's gold, as the levels show them.
+.stars {
+  display: flex;
+  gap: var(--fz-space-1);
+  min-height: 32px;
+
+  fz-icon {
+    --fz-icon-size: 32px;
+
+    color: var(--fz-warning);
+  }
+}
+
+// Each part of a cleared level's points on a line, its name and its points
+// at either end, as wide as the card allows on a small board.
+.tally {
+  display: grid;
+  gap: var(--fz-space-1);
+  min-width: min(14em, 100%);
+  margin: 0;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--fz-space-4);
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// The crew lined up, beside how many friends were freed.
+.crew-line {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-2);
+}
+
+.crew {
+  --crew-size: 24px;
+}
+
+// On a small board, as on the smallest phones, every card in the layer sets
+// smaller, the canvas's own too.
+@container (width < 280px) or (height < 360px) {
+  :host {
+    @include board-card-small;
+  }
+
+  .stars fz-icon {
+    --fz-icon-size: 24px;
+  }
+
+  .crew {
+    --crew-size: 18px;
+  }
+}
