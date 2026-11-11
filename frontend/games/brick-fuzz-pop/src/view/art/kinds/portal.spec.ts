@@ -8,7 +8,9 @@ import {
   stroke,
 } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
+import { PORTAL_BADGES } from "../../../rules/levels/legend";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
+import { itemAt } from "../../items";
 import type { KindLook } from "../art";
 import { FRAMES, type PortalMark } from "../frames";
 import { EIGHTH, diamond, turned } from "../symbols";
@@ -113,11 +115,28 @@ describe("PORTAL_ART", () => {
     },
   );
 
-  it("marks the first pair's badge with a dot, the second's with a diamond, each in its pair's glyph's color", () => {
-    expect([portalIn(1).commands.at(-1), portalIn(2).commands.at(-1)]).toEqual([
-      circle(BADGE, 0.084 * 62, { color: FIRST.glyph }),
-      polygon(diamond(BADGE, 0.104 * 62), { color: SECOND.glyph }),
-    ]);
+  it.each(PORTAL_BADGES.map((badge, tint) => [tint, badge] as const))(
+    "marks the badge of a portal of tint %i with the one the legend names for its pair, a %s, in its pair's glyph's color",
+    (tint, badge) => {
+      const [layer = ""] = PORTAL_ART.layersOf(portal(tint));
+      const shown = frameNamed(
+        PORTAL_ART.frames(OWN_INKS, ART_SCALE),
+        layer,
+      ).commands.at(-1);
+      const glyph = { color: itemAt(OWN_INKS.portals, tint).glyph };
+      const drawn = {
+        dot: circle(BADGE, 0.084 * 62, glyph),
+        diamond: polygon(diamond(BADGE, 0.104 * 62), glyph),
+      };
+
+      expect(shown).toEqual(drawn[badge]);
+    },
+  );
+
+  it("brings a frame for each badge the legend names, and no more", () => {
+    expect(PORTAL_ART.frames(ART_PALETTE, ART_SCALE)).toHaveLength(
+      PORTAL_BADGES.length,
+    );
   });
 
   it("draws its arms 0.044 of a cell wide and its ring 0.1, 6 and 13 pixels at 128 device pixels a unit, 1 to a CSS pixel", () => {
