@@ -1148,3 +1148,74 @@ name, or Try again without the level. All 12 were killed.
 5. **The outcome was typed apart from the run's stages,** and a won card
    took a level and a name it never shows. Fixed: `Extract<RunStage, …>`,
    and a union in which only a lost level carries them.
+
+### The docs pass: the shell's folders and `browserKey()`
+
+**2026-11-10.** At the integrator's word, while the board waits on U1.
+
+**What was written.** The game's `AGENTS.md`, in `src/app/`'s list alone:
+`bar/`, the bar with its figures at and below the desktop width, its
+round actions, Fast-forward, Skip and the overflow menu, and `<app-crew>`;
+`board/`, `<app-board-card>` and its four cards, each handed what it
+shows; `panels/`, Coming next and In this wall, from the art stream's
+files; and `result/`'s `end_words.ts`, which the result and the Ended card
+share. `app.component`'s line and `play/` wait for the U1 wiring, and the
+rules section for R6. `frontend/lib/phaser/AGENTS.md` and the
+`phaser-core` skill now say `browserKey()` takes a letter's or a digit's
+`keyCode` from its code (`KeyA` to `KeyZ`, `Digit0` to `Digit9`) and any
+other's from its table, throwing for one the table lacks, as `keyCodeOf()`
+does; both had said it throws for any code its table lacks.
+
+**Choices the plan didn't make.**
+
+1. **Nothing is said to be wired that isn't yet.** The board and the app
+   don't place the bar, the cards or the panels, so the bar shows "what it
+   is handed", the cards read `--margin` from "whatever lays it out" and
+   hand on each press, and the panels are "to be laid over" their rooms.
+
+**For the integrator.** Two lines outside this pass's lists:
+
+- **The game's intro** still says the shell's written pieces are "the
+  scene, the dialogs, the settings drawer and the services" and lists U1
+  among what "isn't here yet", which the new `src/app/` entries now
+  contradict. Suggested: "the scene, the dialogs, the settings drawer, the
+  bar, the board's cards, the panels and the services that keep the game
+  are written and specced", and "the rest of U1" in the list of packages.
+  Left alone, as the rules stream edits the same paragraph's R3 to R6.
+- **`run_scene.ts`'s doc comment on `browserKey()`** says it throws for a
+  code "whose `keyCode` it doesn't hold" and that "a key a spec needs is
+  added to its table", the instruction behind S1's `KeyP` in the table.
+  Suggested: "It throws for any other code its table lacks, rather than
+  guess one; a key a spec needs, past a letter or a digit, is added to its
+  table." Source in another library, so not this pass's.
+
+**Checks.** `node .agents/check-skill-references.mjs` passes, and the
+root's `yarn lint`, before the review and after its fixes.
+
+**The mutation pass.** None: no code changed.
+
+**The review:**
+
+1. **The game's intro contradicts the new entries,** naming U1 as not yet
+   here. Left, for the integrator, as above: outside the `src/app/` list.
+2. **The board card's entry hid what whoever lays it out needs:** that
+   `--margin` is set from outside, and that the canvas's cards must be
+   projected into it. Fixed: "reads the field's margin from `--margin`,
+   which whatever lays it out sets", and the canvas's cards "projected
+   into it".
+3. **The bar and the cards were said to talk to "the app",** which doesn't
+   place them yet, and `end_words.ts` named "the board's" Ended card.
+   Fixed: "what it is handed", "hands on each press" and
+   "`<app-board-card>`'s Ended card".
+4. **`browserKey()`'s wording sat its clause by `runScene()`'s keys, and
+   the skill said "any other" twice;** the ranges took en dashes the
+   docs' prose doesn't use. Fixed: the clause follows the `keyCode`, the
+   skill says "throwing for one the table lacks", and the ranges say "to".
+5. **The doc comment in `run_scene.ts` was filed as a choice,** which no
+   one picks up. Fixed: moved to the note for the integrator, with
+   wording.
+6. **The four cards got uneven detail.** Fixed: each lists what it shows
+   and its button, Ready the line for a phone on its side too.
+7. **"Hidden from screen readers"** and a list-like "Every action is
+   round, Pause, …". Fixed: "hidden from assistive technology", and a
+   semicolon.

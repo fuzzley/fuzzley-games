@@ -261,6 +261,39 @@ helpers.
   which `yarn build:sounds` writes, but plays nothing yet.
 - **`src/app/`** — the shell, one folder per feature. `app.component`
   shows the game's name alone for now.
+  - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
+    asking for each action: from the desktop width (`fitsActionLabels`),
+    the level, the rounds against par, the rows left, the score and the
+    crew; below it, the rounds and the score alone. Every action is round;
+    Pause, Fast-forward (`button[appFastForward]`) and Skip
+    (`button[appSkip]`) stay at every size, the two dimmed while there is
+    no flight, and on a compact screen Sound, Levels, New game, How to
+    play and Settings move into the overflow menu. `<app-crew>` draws a
+    crew in a row, the player's fuzzball in the accent, then each friend
+    in its ink, for the bar and the Cleared card.
+  - `board/` — the cards over the field, `<app-board-card>`, handed the
+    one to show (`BoardCard`) and what it shows: Ready, the level's number
+    and name, what its jumps earn, the kind of brick it brings in and, on
+    a phone on its side, that the game is larger upright; Paused, the
+    score, then Resume; Cleared, the stars, the rounds against par, the
+    tally, the score and the crew, then Next level; and Ended, once a
+    run's result is closed, where the run was lost or the trophy, the
+    score, then Try again from the level or New game. It reads the field's
+    margin from `--margin`, which whatever lays it out sets, shows none of
+    its own while the canvas's cards (`<fz-canvas-cards>`), projected into
+    it, show one, keeps its buttons' keys from Phaser's keyboard, and
+    hands on each press.
+  - `panels/` — the two panels beside a wide room's field, each a region
+    named by its heading, taking no pointer and no size of its own, to be
+    laid over its room with `cssRectStyle()`: Coming next,
+    `<app-coming-next>`, the level's number and name, the rows waiting over
+    the ceiling as squares in each brick's ink, hidden from assistive
+    technology beside a sentence counting them, and what a jump earns; and
+    In this wall, `<app-in-this-wall>`, each kind of brick the wall holds,
+    through `helpEntries()`, with its picture once the scene has drawn it,
+    the friends freed, and the boon's badge, lit through `lit` while the
+    shot being aimed carries it. `panels.ts` reads the wall for both
+    (`waitingRows()`, `kindsIn()`).
   - `settings/` — the settings drawer, `<app-settings>`: how a pointer aims
     (by the pointer, a finger pulling back and a mouse pointing and holding,
     or either way for both), the flight's speed, long flights sped up, the
@@ -280,7 +313,10 @@ helpers.
     over" or "Every level cleared!", the score and the best, the levels
     cleared and the stars earned, "New best" and the trophy, then Try again
     from the level or New game, Choose a level and Close. It opens on its
-    title, so a player still holding Space presses nothing.
+    title, so a player still holding Space presses nothing. `end_words.ts`
+    holds the words it shares with `<app-board-card>`'s Ended card: where a
+    run was lost (`whereLost()`) and what Try again says
+    (`tryAgainLabel()`).
   - `stats/` — the records: `StatsService` and `ProgressService`, which keep
     what `src/rules/run/stats.ts` and `src/rules/run/progress.ts` read, for
     the levels `GAME_LEVELS` hands them; and `levelMarksOf()`, each level's
