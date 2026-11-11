@@ -1268,3 +1268,96 @@ three; the specs kill each.
 3. **The log said `as const` skipped the check, and that the mutants put a
    `kind` back in every look.** Fixed: the missing type skips it, and only
    three looks carried one.
+
+### Q4a: levels 19 to 36 watched; the Cleared card's crew line, and the field's rim over the effects
+
+**2026-11-11.**
+
+**What was watched.** Levels 19 to 36, each on the shallowest field (11
+deep) and the deepest (22), through the real menus: the debug menu's
+depth, Levels, then Play the certificate, watched to the end in a headless
+Chrome at 1280×800; then an effects pass, shooting the bolts, the rings,
+the hops and a sample of the strikes. Every play cleared in its
+certificate's line, The Great Wall's as won, with no row in danger, no
+console message, and the lintel's count at most 52 ms behind the rules.
+
+- **Tricks.** Bumpers kicked, 117 to 266 times a play; the prism split a
+  fuzzball 15 to 21 times; every portal sent its fuzzball out of its own
+  twin, and none through a portal shut while its twin waited over the
+  ceiling, which R's words say as "shut" on the rows they describe. A
+  strike on a plate earthed the charge (Back door, 22 deep: none left
+  after), and the U brick at 22 deep drops its plates' rivets, as drawn.
+- **Thick walls.** 932 strikes on a shell by a plain fuzzball took nothing,
+  and 151 charged ones a hit or two. Moss grew back a hit after each round
+  it was struck in, 25 times, and nowhere else. Bank vault's door, the gap
+  in its steel, let the hot shot in; Six-pack's dice read from two to six.
+
+**Found.** Three for the scene, one for the art.
+
+1. **The Cleared card wrapped "N friends freed" beside the crew:** onto
+   three lines on 22 deep (Jailbreak), and onto two on 11 deep once six
+   friends were freed (Powder keg).
+2. **What bursts from the wall drew over the lintel band,** where the board
+   counts the rows waiting: in 16 to 63 of the frames sampled in a play,
+   reading the canvas about ten times a second.
+3. **It draws past the frame too,** onto the canvas's margin: up to 174
+   device px out on 11 deep, a blast's ring reaching a unit and a half from
+   its bomb and a shard about 3.8 units. So does a fuzzball at a side wall:
+   its fur, 0.8 units across about a middle 0.25 from the wall, pokes about
+   0.15 past it, and a full charge's sparks further. Left, below.
+4. **On 22 deep at 1280×800, a portal's diamond badge, about 6 px, reads as
+   a dot,** so the two pairs differ by their color alone. The art's,
+   reported.
+
+**What was built.**
+
+- **The crew line wraps** (`board_card.component.scss`): where the card is
+  too narrow for the crew and the words on one line, the crew goes under
+  the words, centered, and the words keep one line. Jailbreak's card on 22
+  deep, its crew line 70 px tall before, is 55 now; Labyrinth's on 11 deep
+  keeps the crew beside the words.
+- **The field's rim, the last layer:** `layers.ts`'s `LAYERS` ends in
+  `rim`, where `FieldPainter` draws the lintel, the ceiling and the frame,
+  in a `Graphics` of their own (`rim`), over the bursts and the fuzzballs.
+  `ground` keeps the cells and the floor's band, under the meter's pips,
+  which stand on it. After the change, the lintel band changed in no frame
+  of the five plays measured.
+
+**Names added:** `"rim"` in `LAYERS`, `FieldLayers.rim` and
+`FieldPainter.rim`.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+5,803 tests in 116 files, and 555 in `sim`; the root's `yarn lint` passes.
+
+**The mutation pass.** Eleven mutants, each killed: the rim in the field
+layer, in none, under the fuzzballs and under the bursts; the rim never
+drawn, and never cleared; the lintel drawn in `ground`, the floor's band
+left out, the frame drawn in `ground`, the ceiling left out, and the field
+layer over the wall's. jsdom lays out no CSS, so the crew line's wrap
+stands on Chrome's measure before and after.
+
+**Left: what bursts from the wall, and a fuzzball's fur at a side wall,
+still draw past the frame,** on the canvas's margin, where the board's
+panels don't cover it; the frame, now over the fuzzballs, crosses their fur
+there. The canvas is clear there, so no layer can hide it. A scissor would:
+the main camera's viewport set to the framed field, its scroll to match and
+a shake moving the viewport, which costs no pass, unlike a mask. Asked
+before doing it.
+
+**The review:** nothing wrong; four comments, each taken.
+
+1. **The log left the fuzzballs out of what draws past the frame,** and
+   the frame, now over them, crosses a fuzzball's fur at a side wall.
+   Fixed: "Found" and "Left" say so. Six side bounces shot on the first
+   level, each a frame after its turn, show no fur across the line: by then
+   the fuzzball has left the wall.
+2. **`AGENTS.md`'s new sentence read as if the jump and danger lines were
+   in `rim`,** named the lintel and the frame but not the ceiling, and had
+   each painter draw in one layer. Fixed: the cells, the band and the
+   grid's dots under the wall, then the lines, then the lintel, the ceiling
+   and the frame in `rim`, each painter in its layers.
+3. **`drawGround()` drew the rim too.** Fixed: `drawRim()` draws the
+   lintel, the ceiling and the frame, and `drawGround()` the cells and the
+   band.
+4. **The layer-order spec also held the cells under the wall,** another
+   claim than its name's. Fixed: a spec of its own.

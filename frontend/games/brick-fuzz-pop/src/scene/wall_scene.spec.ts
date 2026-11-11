@@ -944,9 +944,13 @@ describe("WallScene", () => {
     it("is painted in the palette", async () => {
       const { scene } = await startBoard();
 
-      expect(colorsOf(scene.field.ground)).toEqual(
-        expect.arrayContaining([LIGHT.field, LIGHT.band, LIGHT.line]),
-      );
+      expect({
+        ground: colorsOf(scene.field.ground),
+        rim: colorsOf(scene.field.rim),
+      }).toEqual({
+        ground: [LIGHT.field, LIGHT.band],
+        rim: [LIGHT.band, LIGHT.line],
+      });
     });
 
     it("is painted again in a new palette", async () => {
@@ -955,9 +959,13 @@ describe("WallScene", () => {
       shell.colors = DARK;
       run.advance(16);
 
-      expect(colorsOf(scene.field.ground)).toEqual(
-        expect.arrayContaining([DARK.field, DARK.band, DARK.line]),
-      );
+      expect({
+        ground: colorsOf(scene.field.ground),
+        rim: colorsOf(scene.field.rim),
+      }).toEqual({
+        ground: [DARK.field, DARK.band],
+        rim: [DARK.band, DARK.line],
+      });
     });
 
     it("fills its cells, the floor's band under them and the lintel over them", async () => {
@@ -968,13 +976,12 @@ describe("WallScene", () => {
 
       expect({
         cells: rectsIn(scene.field.ground, LIGHT.field),
-        bands: rectsIn(scene.field.ground, LIGHT.band),
+        band: rectsIn(scene.field.ground, LIGHT.band),
+        lintel: rectsIn(scene.field.rim, LIGHT.band),
       }).toEqual({
         cells: [{ x, y, width, height }],
-        bands: [
-          { x, y: y + height, width, height: band },
-          { x, y: y - lintel, width, height: lintel },
-        ],
+        band: [{ x, y: y + height, width, height: band }],
+        lintel: [{ x, y: y - lintel, width, height: lintel }],
       });
     });
 
@@ -985,7 +992,7 @@ describe("WallScene", () => {
       const top = y - lintelPixels(shell.fieldShape, unit);
       const bottom = y + height + bandPixels(shell.fieldShape, unit);
 
-      expect(rectsIn(scene.field.ground, LIGHT.line)).toEqual([
+      expect(rectsIn(scene.field.rim, LIGHT.line)).toEqual([
         { x, y: y - frame, width, height: frame },
         {
           x: x - frame,
@@ -997,6 +1004,37 @@ describe("WallScene", () => {
         { x: x - frame, y: top, width: frame, height: bottom - top },
         { x: x + width, y: top, width: frame, height: bottom - top },
       ]);
+    });
+
+    it("draws its lintel, its ceiling and its frame over all the rest, so nothing that bursts from the wall or flies covers them", async () => {
+      const { scene } = await startBoard();
+      const [ring] = scene.effects.rings.all;
+      const [hop] = scene.effects.hops.all;
+      const [ball] = scene.balls.bodies;
+
+      const rim = layerPlaceOf(scene, scene.field.rim);
+
+      expect({
+        last: rim === scene.children.length - 1,
+        overShards: rim > layerPlaceOf(scene, scene.effects.shards),
+        overRings: rim > layerPlaceOf(scene, ring?.image),
+        overHops: rim > layerPlaceOf(scene, hop?.body),
+        overBalls: rim > layerPlaceOf(scene, ball),
+      }).toEqual({
+        last: true,
+        overShards: true,
+        overRings: true,
+        overHops: true,
+        overBalls: true,
+      });
+    });
+
+    it("draws its cells and the floor's band under the wall", async () => {
+      const { scene } = await startBoard();
+
+      const ground = layerPlaceOf(scene, scene.field.ground);
+
+      expect(ground).toBeLessThan(layerPlaceOf(scene, scene.wall.images[0]));
     });
 
     it("puts a dot at each corner its cells share", async () => {

@@ -343,13 +343,16 @@ helpers.
     and the panels show, `{ bricks }` by kind, through `onPictures`.
   - `painters/` — each a `Painter` (`painter.ts`), drawing from the
     `PaintContext` the scene writes over each frame, from pools made once,
-    the dots on whole pixels (`dots.ts`'s `placeDot()`). `FieldPainter`
-    draws the cells, the floor's band, the lintel, the frame, the grid's
-    dots, and the jump and danger lines in dashes on whole pixels, counting
-    in dots, over the guide, the needed bricks still under the jump line
-    once they are nine or fewer (the rules' `neededBelow()`), the danger
-    line solid and twice as thick while a brick the level needs stands at
-    or under the row over the floor's (the rules' `inDanger()`).
+    the dots on whole pixels (`dots.ts`'s `placeDot()`), each in its layers
+    of `layers.ts`'s `LAYERS`. `FieldPainter` draws the cells, the floor's
+    band and the grid's dots under the wall; the jump and danger lines in
+    dashes on whole pixels, counting in dots, over the guide, the needed
+    bricks still under the jump line once they are nine or fewer (the
+    rules' `neededBelow()`), the danger line solid and twice as thick while
+    a brick the level needs stands at or under the row over the floor's
+    (the rules' `inDanger()`); and the lintel, the ceiling and the frame in
+    the last layer, `rim`, so nothing bursting from the wall or flying
+    covers them.
     `WallPainter` stacks each cell's frames, lays the warning frame over
     each such brick (the rules' `dangerCells()`), and, where the player
     welcomes motion, eases the wall down by `RoundView.wallDrop`, which is

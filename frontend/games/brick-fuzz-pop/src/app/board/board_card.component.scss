@@ -74,10 +74,13 @@
   }
 }
 
-// The crew lined up, beside how many friends were freed.
+// The crew lined up, beside how many friends were freed, or under the
+// words where the card is too narrow for both on one line.
 .crew-line {
   display: flex;
+  flex-wrap: wrap-reverse;
   align-items: center;
+  justify-content: center;
   gap: var(--fz-space-2);
 }
 
