@@ -1,5 +1,6 @@
 import { variantOfSpec } from "@fz/core/testing";
 import { SEED_STRIDE } from "@fz/dev/report";
+import sparks from "../rules/levels/certificates/sparks.json";
 import warmUp from "../rules/levels/certificates/warm-up.json";
 import {
   LEVELS,
@@ -21,6 +22,7 @@ export type Certificates = Readonly<
 /** Every set's certificates, by the set's id. */
 export const CERTIFICATES: Readonly<Record<string, Certificates>> = {
   "warm-up": warmUp,
+  sparks,
 };
 
 /** The depths the careless player is held to its floors on: the two shapes of the shallowest fields, and the deepest. */

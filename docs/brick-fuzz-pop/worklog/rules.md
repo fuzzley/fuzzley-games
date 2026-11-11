@@ -1754,3 +1754,68 @@ its review and the numbers worth keeping.
      fixed; the checks' line now says the change was rebased; and
      `SPELLED` beside `catalog.spec.ts`' `spelled()` is left, each a
      spec's own line.
+
+### Y1: Sparks, levels 10 to 18, certified
+
+- **Date.** 2026-11-11.
+- **Built,** on 6984dbc6, X1's catalog merged.
+  - `src/rules/levels/sparks.json`: `docs/brick-fuzz-pop/levels/sparks.json`
+    copied as drafted, as Warm-up's is, and listed after it in
+    `LEVEL_SETS`; no level redrawn.
+  - `certificates/sparks.json` and Sparks' pars in `par.json`, from
+    `yarn certify:levels --set sparks`, Warm-up's left as they were.
+  - `src/testing/every_level.ts` reads Sparks' certificates, so
+    `every_level/` replays them on every depth.
+  - `every_floor/sparks_11.spec.ts`, `sparks_13.spec.ts` and
+    `sparks_22.spec.ts` hold the careless player to Sparks' floor of 85,
+    which `CASUAL_FLOORS` held already.
+  - `levels.spec.ts` holds Sparks' walls to plan.md's table of the drafts,
+    their rows, needed bricks and hits, all nine as the table has them.
+  - `src/app/debug/certificates.service.spec.ts`, the shell stream's,
+    holds the debug menu's file of each set, not Warm-up's alone, to a
+    line for every level on every depth.
+  - `AGENTS.md`: the packages still to come, and the levels' line, a file
+    a set.
+- **The certification,** on the coordinator's word, took about 10 s, the
+  art and shell streams' checks running beside it. Every level found its
+  lines by the first search, every 4th aim, greedy, on every depth:
+
+  | Level             | Rounds, 11, 13, 22 deep | Par, 11, 13, 22 deep |
+  | ----------------- | ----------------------- | -------------------- |
+  | 10 Fuse           | 8, 6, 5                 | 12, 9, 8             |
+  | 11 Crossroads     | 8, 6, 5                 | 12, 9, 8             |
+  | 12 Chain reaction | 8, 6, 3                 | 12, 9, 5             |
+  | 13 Crisscross     | 9, 8, 6                 | 14, 12, 9            |
+  | 14 Wool socks     | 8, 6, 5                 | 12, 9, 8             |
+  | 15 Jailbreak      | 8, 6, 5                 | 12, 9, 8             |
+  | 16 Honeycomb      | 9, 7, 4                 | 14, 11, 6            |
+  | 17 Switchboard    | 9, 8, 7                 | 14, 12, 11           |
+  | 18 Powder keg     | 10, 8, 5                | 15, 12, 8            |
+
+- **The careless player,** by `yarn report:levels`, 40 games a level, the
+  least it cleared over 11, 13 and 22 deep: Fuse 100, Crossroads 100,
+  Chain reaction 100, Crisscross 98, Wool socks 100, Jailbreak 98,
+  Honeycomb 100, Switchboard 88 (93 on 11, 88 on 13, 100 on 22) and Powder
+  keg 95, all over the floor of 85. Switchboard is the nearest, three
+  points over it on 13 deep, where the sketch cleared it 98 times in 100.
+- **Choices.**
+  1. **No level is redrawn,** as none falls out of its floor.
+- **Checks,** on the change rebased on 6984dbc6: the workspace's `lint`
+  and `typecheck` pass; `test:coverage` passes 5,319 tests in 109 files in
+  `dom` and `pure`, at the floors, and 285 in 23 in `sim`, every Sparks
+  line replayed and every floor held; the root's `yarn lint` passes.
+- **The mutation pass.** None: the change is data and the specs that read
+  it, and each level's line is held by its replay.
+- **The review:** a fresh agent found no bug: the copy is the draft's
+  bytes, and the certificates and pars cover every level on every depth
+  in Warm-up's layout. Its points:
+  1. plan.md's table of the drafts held Warm-up's walls alone. Fixed:
+     Sparks' nine rows, which all hold.
+  2. `AGENTS.md`'s opening still listed Y1 to come and tied the
+     screenshots to Sparks. Fixed: Y2 and Y3 to come, the screenshots
+     T2's.
+  3. The debug menu's spec read Warm-up's file alone. Fixed: each set's.
+  4. The log had the sketch clearing Switchboard every game on 13 deep,
+     where `sketch/results.md` has 98. Fixed.
+  5. A nit: the levels' line named each set's file and draft in turn.
+     Fixed: a file a set, as its draft of the same name.

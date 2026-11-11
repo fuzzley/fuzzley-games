@@ -17,11 +17,12 @@ The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
-card, each wired to the game, so a run can be played in the page. The site
-lists it as in development, its screenshots taken on a level of Warm-up
-until Sparks is built. What the plan's packages still to come build (the
-rest of T2, the screenshots on level 18, then X2, Y1 to Y3, D1, F1, Z1 and
-Z2) isn't here yet.
+card, each wired to the game, so a run can be played in the page, through
+Warm-up's and Sparks' eighteen levels. The site lists it as in
+development, its screenshots taken on a level of Warm-up until T2 takes
+them on level 18. What the plan's packages still to come build (the rest of
+T2, the screenshots on level 18, then X2, Y2 and Y3, D1, F1, Z1 and Z2)
+isn't here yet.
 
 ## Technology Stack
 
@@ -108,11 +109,11 @@ helpers.
   in. `catalog.spec.ts` holds every kind to the catalog's rules.
 - **`src/rules/levels/`** — the levels. `legend.ts` is the characters a
   wall's picture is drawn in (`LEGEND`), the portals' marks and a brick's
-  tint (`tintOf()`). `warm-up.json` holds Warm-up's nine levels, each an id,
-  a name, a boon and a picture of its wall, as
-  `docs/brick-fuzz-pop/levels/warm-up.json` drafts them; `levels.ts` lists
-  the sets (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`,
-  `levelEntryOf()`), and `parseLevel()` turns one into a `Level`
+  tint (`tintOf()`). A file a set, `warm-up.json` and `sparks.json`, holds
+  its nine levels, each an id, a name, a boon and a picture of its wall, as
+  the file of its name in `docs/brick-fuzz-pop/levels/` drafts them;
+  `levels.ts` lists the sets (`LEVEL_SETS`), numbers every level from 1
+  (`LEVELS`, `levelEntryOf()`), and `parseLevel()` turns one into a `Level`
   (`level.ts`) or throws an error naming the level and what is wrong; and
   `level.ts`'s `levelStart()` is where a level's first round starts on a
   depth. `certificate.ts` is a certificate's line as its file keeps it,
