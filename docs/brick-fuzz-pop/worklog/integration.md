@@ -1351,3 +1351,224 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   - D1: the repository's and the frontend's lists of games, now on the
     shell stream; the `brick-fuzz-pop-content` skill once every kind is
     cataloged; the workspace `AGENTS.md`'s numbers at the end.
+
+### X1, X2 and D1 under way (2026-11-11)
+
+- `520d38eb`, `dd30264c` and `1b8a8da4`, from the shell stream, its three
+  notes:
+  - `eslint.config.js` hands all nine `HELD_AS_RULES` files to
+    `phaserGameLayers()` whole, so a name the workspace lacks fails lint
+    again; `HELD_AS_RULES` is exported, readonly. Its mutation pass showed
+    nothing held the fence: had the helpers' later block stopped ignoring
+    the held files, it would have replaced the rules' fence for them; the
+    new `tools/eslint_config.spec.ts` holds every held file to the fence
+    as errors.
+  - `@fz/dev/layout`: a check's `before` may be `{ run, args }`
+    (`BeforeLoad<A>`) as well as a bare function, so the game's check no
+    longer builds its call with `new Function()`; Snake's and Asteroid
+    Breaker's checks are unchanged. Specs in `lib/dev`, a type test among
+    them. The root `check:layout` held for all five games with a check.
+  - plan.md's words for a step and a jump end with the rows waiting.
+  - 10 mutants, all killed. `@fz/dev` 531 tests; the game 4,937 and 150 in
+    sim, the floors held; the root lint passes.
+  - **Left for later, outside this build:** Asteroid Breaker's
+    `eslint.config.js` has the same later block over its own held files,
+    with no spec holding them to the fence. Carried in the Open list till
+    the merge, then put to the user as a task of its own, since this log
+    goes before then.
+- `fed96fde`, from the art stream, X1's art, rebased as asked: the bomb,
+  wool, the cage (a fuzzball behind its bars in each of the eight inks,
+  `FRAMES.caged(ink)`) and the cross and x zappers, unwired and held in
+  the spec's `WAITING_ART`, which the art stream kept as the one record of
+  unwired art; `symbols.ts` gains `pointAt`, `EIGHTH` and `boltMark()`
+  beside the scene's `turned()`; `FRAME_NAMES` 69. It conflicted again,
+  with X3's catalog, which had dropped `WAITING_ART` once shell and moss
+  were cataloged: kept the art stream's `atlas_frames.spec.ts` without
+  shell and moss in `WAITING_ART`, with their six frames in the list of
+  the atlas's; the workspace `AGENTS.md`'s art and `art_frames.ts` lines
+  combined from both.
+- `023d8507`, from the rules stream, the proof stream's two asks:
+  `STAND_IN_RULES` on the real kicks, splits, teleports and regrows rules,
+  and `wallFrom()` pairing each `@` and `&` as portal twins
+  (`twinsIn()`), which throws on a mark drawn once or more than twice. 5
+  of 6 mutants killed; the survivor, `wallFrom()` handing no twin, waits
+  for a cataloged portal. `twinsIn()` repeats the parse's `twinsOf()`,
+  left so: the parse's errors name the level, and `levels.ts` is P1's.
+  5,033 tests and 150 in sim, the floors held; the root lint passes.
+- **Decided, a contract change:** a plated brick is drawn as its tile and
+  one frame per plating and hits left, `plated-<plating>-<hits>`, nine
+  frames for the legend's three platings (floorward, floorward and both
+  sides, ceilingward); any other plating throws. `plate-<face>` goes: a U
+  brick stacked from per-face plates would be five layers against the
+  wall painter's `MOST_LAYERS` of 3, and the levels use the legend's
+  platings alone. The art stream brings `implementation-plan.md`'s frames
+  table to it, and the change rides in its art commit rather than one of
+  its own, as §10 asks of a contract change: only `frames.ts` and its spec
+  named `FRAMES.plate`. The plan's X/Y intro still calls the cage's tint
+  X1's one contract change; this one is X2's.
+- `29a397ad` and `2f3d507e`, from the shell stream, D1's lists: the
+  repository's `AGENTS.md` (the games under `/play/`, the stack, the
+  `AGENTS.md` layers, the skills folders, `brick-fuzz-pop-testing` among
+  the apps' testing skills), the frontend's and the games' `AGENTS.md`
+  ("which is being built" kept for Z1), `README.md` and
+  `docs/operations.md`; then, from its first review, the five shared
+  skills and the three libraries' `AGENTS.md` whose lists or counts left
+  the game out, as Asteroid Breaker's list commit had changed them. Each
+  reviewed; the root lint passes, its reference check included.
+- `89c1f540`, from the scene stream, the view stream's notes and the art
+  stream's: the shell's and moss's specs take their looks and full hits
+  from the catalog, with no tough stand-in; `art.spec.ts` holds every
+  cataloged kind to looking unlike every other whole and to one of two
+  shard colors (its own inks' body, or its tint's for the brick and the
+  tough brick), so X1's five join with no edit; How to play's pictures of
+  every cataloged kind are held in `wall_scene.spec.ts`; the shell's bolt
+  is `symbols.ts`' `boltMark()`. 24 of 25 mutants killed, the survivor
+  equivalent (steel's face and body are one ink). The bolt and the looks'
+  `kind` came after its review, so they had one of their own here. X2's
+  portal fits neither shard rule (its inks are `WallPalette.portals`'), so
+  X2's catalog commit adds its own; told the proof stream. 5,041 tests and
+  150 in sim, the floors held.
+- The proof stream has X2's catalog built and waiting, uncommitted, for its
+  four kinds' art: `tricks.ts`, `describe.ts` reading plates and a
+  portal's pair, the traits' specs on the real kinds, no stand-ins left.
+- **The bundle ahead of F1,** measured by the shell stream on a scratch
+  build: the game's code 429.0 KB raw (133 KB gzip) against 407 KB (1.2 ×
+  Brick Breaker's 339; Brick Breaker's own is now 345); the scene 30.7 KB
+  against 51 KB; Warm-up's certificates 4.5 KB, loaded only at `?debug`.
+  It grew from Q3's 413 KB with the X kinds' art and with `resource()`,
+  6.4 KB that came with the certificates' loader (`77593e1d`). The 84 KB
+  over Brick Breaker: the rules 29 (the aims table 25.4), the shell 23,
+  the view 23 (the bricks' art 12.4, reaching the main chunk through
+  `brickColor()` in the coming-next card), Angular's `resource()` 6.4.
+  **Decided,** numbered as the shell stream's log numbers them:
+  - trims 2 and 3 now: `CertificatesService` without `resource()` and the
+    debug menu behind `@defer` (2), and the steering's two constants in a
+    file of their own (3), about −16 KB;
+  - trim 1 after both X catalog commits, which add `BRICK_ART` lines:
+    `brickColor()` out of the art (−12.4 KB, and each kind's art stays out
+    of the main chunk);
+  - trim 4, How to play behind `@defer` (−7 KB), held unless still over
+    after X and Y;
+  - trim 5, the aims table, dropped: as float bits it is larger gzipped,
+    and a half table mirrored would change 503 of the 657 aims' headings,
+    every certificate with them.
+
+  F1 reports gzip beside raw; the budget stays raw.
+
+- `a1cff1ba`, from the scene stream, the review's two points on the bolt
+  and the looks: every kind spec's look typed as a `KindLook`, with no `as
+const` and no `kind`, so the compiler refuses a stray field (checked by
+  putting a `kind` into each of the nine; only the brick's, the tough
+  brick's and steel's had one); the shell's and moss's
+  throw rows write their full hits out. 5,041 tests and 150 in sim, the
+  floors held.
+- **The session restarted** with the rules stream's X1 catalog, the art
+  stream's X2 art and the shell stream's two bundle trims in their
+  worktrees, uncommitted; each was resumed from its own tree. The proof
+  stream's X2 catalog, waiting uncommitted, survived it too.
+- `6984dbc6`, from the rules stream, X1's catalog commit: `sparks.ts`
+  catalogs the bomb, the cross and x zappers, wool and the cage with their
+  five `BRICK_ART` lines, the cage under its bars in `caged-<tint>`; with
+  nothing left waiting, `WAITING_ART` and `everyFrame()` are gone. Specs:
+  `sparks.spec.ts`, the catalog's order, six reach checks, a parsed level
+  numbering its cages 0 to 5, a cage's tint in a pictured wall and in the
+  art, and a round through a real cage whose friend joins the crew in its
+  ink. The `WOOL` and `CAGE` stand-ins retired; `uncataloged()` names the
+  legend's first kind not yet cataloged. Its review caught the frees and
+  flight specs giving each cage the ink of its own row, which a rule
+  freeing by row would pass; they now differ. 17 mutants, all killed.
+  5,169 tests and 150 in sim, the floors held; the root lint passes.
+- **Y1 begun:** Sparks' levels in the rules and `LEVEL_SETS`, every floor
+  at 85 over 40 games (Switchboard least, 88 on 13 and 93 on 11); the
+  certification has the cores now.
+- `fe458efc`, from the shell stream, bundle trims 2 and 3 in one commit:
+  `CertificatesService` keeps the certificates in a signal set from the
+  `import()` promise rather than `resource()`, and the settings drawer
+  loads the debug menu behind `@defer (on immediate)` only where it is
+  offered, the menu providing the service; `BY_POINTER` and `STRAIGHT_UP`
+  move to `src/view/steering/aiming.ts`, so the main chunk no longer pulls
+  in `Steering`. 21.4 KB left the main chunk and Angular's `@defer`
+  runtime brought back 6.1. Checked by hand on a production build: no
+  menu chunk without `?debug`, Play the certificate at `?debug`, the
+  new-game dialog's focus. 13 of 14 mutants killed, the survivor
+  equivalent. 5,174 tests and 150 in sim, the floors held; the root lint
+  passes.
+  - **Measured here after X1's catalog:** the main chunk 419.3 KB raw,
+    129.8 gzip, against 407; the scene 33.1 KB. X1's five kinds' art
+    reaches the main chunk through `brickColor()`, which trim 1 ends, after
+    X2's catalog.
+  - **Left for trim 1:** `steering.ts` re-exports the two constants and
+    `PointerAimings` for `wall_scene.ts`, until the scene imports them from
+    `aiming.ts`. Nothing ties it to `brickColor()`; it rides in trim 1's
+    commit to spare a review of its own.
+- `690fadb6`, from the rules stream, **Y1**: Sparks' nine levels, copied from
+  their draft and held to plan.md's table, in `LEVEL_SETS`; their
+  certificates and par, every line found by the first search in 3 to 11
+  rounds (the certification took about 10 s); the three
+  `every_floor/sparks_*` specs at 85. The careless player's least over
+  11, 13 and 22 deep: Fuse, Crossroads, Chain reaction, Wool socks and
+  Honeycomb 100, Crisscross and Jailbreak 98, Powder keg 95, Switchboard 88
+  (93 on 11, 100 on 22); no redraw. The review's points all taken, among
+  them the debug menu's spec reading every set's certificates. 5,324 tests
+  and 285 in sim, which replays every Sparks line; the floors held, the
+  root lint passes.
+- `bdc9ce4c`, from the rules stream, D1's last skill: `brick-fuzz-pop-content`
+  (how the content is held and the checks that keep it whole; a level, its
+  legend, the rules a wall keeps, drawing it with `build.mjs` and the
+  order of its checks through certification and the report; a set; a kind,
+  its art first, its catalog entry and `BRICK_ART` line together, the
+  specs that take it up and those edited by hand; a trait), naming no kind,
+  level or set and linking the testing skill for certificates and floors.
+  Linked from the workspace `AGENTS.md`; the repository's lists name only
+  the testing skills, as for Brick Breaker's and Asteroid Breaker's
+  content skills. Its review's nine points all taken. The root lint
+  passes. It lands ahead of X2's catalog, not after it as the last Open
+  list had it: naming no kind, level or set, it changes with X2 only in
+  its lines on `uncataloged()` and the stand-ins.
+- `97756ab0`, from the art stream, X2's art: the bumper, the prism, the
+  portal's two and the plated brick, unwired, in `WAITING_ART`.
+  `FRAMES.plated(plating, hits)` over `PLATINGS` and `PLATED_HITS`,
+  `FRAMES.plate` and `PlateFace` gone, as decided; `symbols.ts` gains
+  `diamond()`; the plan's frames row brought to it; 74 frames. Two
+  reviews: the plate's gap cut from the tile's own outline, so the grid's
+  dots show past it and no field-colored box is painted; the U's side
+  plates stop at its floorward gap; under 30 CSS px no rivets and half the
+  teeth; seams at 28, 29 and 39 device px a unit and the gap at 1 to 9 px
+  fixed; an
+  atlas check that every polygon has three points. Shade-only contrast in
+  the bumper's cap and the prism's fill, the prism's outline held to 3:1.
+  It conflicted, as X1's art had, with X1's catalog, which had dropped
+  `WAITING_ART`: kept the art stream's spec with only its four kinds
+  waiting and X1's frames in the atlas's list; the workspace
+  `AGENTS.md`'s art line combined. 5,421 tests and 285 in sim, the
+  floors held.
+- `5b4c33cd`, from the shell stream, T2's last part: the kept run is level 18,
+  Powder keg, 11 deep, two rounds in by its certificate's first two shots;
+  the aim moved from 55° to 100° at charge 3, chosen from twelve captured,
+  so the guide punches through a bomb; `aimingKeys()` works out the arrow
+  presses outside the page, so an aim past 90° can be set; `index.html`'s
+  alt text and the workspace `AGENTS.md` follow. The layout check held
+  over the new kept run. Looked at the thumb here: the level's name, the
+  rows waiting, the guide through the bomb, both panels. The main chunk at
+  Y1's tip measured 423.0 KB raw (132.0 gzip). 5,424 tests and 285 in sim,
+  the floors held; the root lint passes.
+- **Open:**
+  - X2: the art is in, so the proof stream's catalog commit goes now, built
+    and waiting in its tree. It carries the portal's own shard rule in
+    `art.spec.ts`; the plated looks there on the legend's platings; the
+    plated brick's picture with its plates in `pictures.ts` and
+    `wall_scene.spec.ts`; "a plate" dropped from the earths comment in
+    `catalog/bricks.ts`; and the refusal specs that go through
+    `uncataloged()`, which throws once every kind is cataloged, with the
+    content skill's lines on them. Then Y2.
+  - Y3: after X2's catalog, on its turn at the cores.
+  - Q4: the scene stream watches levels 1 to 18 on 11 and 22 deep now;
+    19 to 36 after Y2 and Y3.
+  - The bundle: 423.0 KB at `5b4c33cd`, 16 KB over 407. Trim 1, with the
+    `steering.ts` re-export, after X2's catalog; measured again; then
+    trim 4 if still over.
+  - D1: the workspace `AGENTS.md`'s numbers at the end.
+  - Asteroid Breaker's lint fence, outside this build: to the user at the
+    merge.
+  - Done since the last list: X3, X1, Y1, T2, D1's lists and both skills,
+    and the shell stream's three notes.
