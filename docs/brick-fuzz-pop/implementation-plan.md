@@ -1385,15 +1385,20 @@ The fields of each package:
   - The panels are a deck with `allOrNone`.
   - The game's own inspection: nine units across, each 24 CSS px or more;
     the depth the room's shape asks for; panels where 184 px a side are
-    spare, each at least 172 across, and not where they aren't; the wall the same rows from the floor
-    after a turn there and back.
+    spare, each at least 172 across, and not where they aren't; the wall
+    on the row a level opens on at the field's depth, as a level with no
+    round played begins again on a depth the field takes (T2 adds the same
+    rows from the floor after a turn there and back, once a kept run with
+    a round played is taken up).
 
 #### T2: the screenshots (W13.2)
 
 - **After:** Y1, for level 18. **Size:** small.
 - **What it does:** `tools/capture-screenshots.mjs` on
   `runScreenshotScript()`, `screenshot_api.ts` typed, and a kept run taken
-  up paused (C9).
+  up paused (C9); the layout check takes up a kept run with a round played,
+  through `LayoutCheck.before()`, and holds the wall's rows from the floor
+  through both turns.
 
 ### X and Y: after the feel gate
 

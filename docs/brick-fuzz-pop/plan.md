@@ -1369,8 +1369,11 @@ one the room's shape asks for (`data-room`); the field filling the room's
 width where it is deeper than 11 and its height where it is 11, within a
 device pixel a cell; the panels (`data-panels`) either side of the field
 wherever 184 CSS px a side are spare, inside the window, clear of the
-field, the bar and each other, and absent where they aren't; and, after
-the turn and back, the wall where it was, the same rows from the floor.
+field, the bar and each other, and absent where they aren't; and the wall
+on the row a level opens on at the field's depth, as a level with no round
+played begins again on a depth the field takes, and, once a kept run with
+a round played is taken up (T2), the same rows from the floor after a turn
+there and back.
 
 ## The sketch
 
