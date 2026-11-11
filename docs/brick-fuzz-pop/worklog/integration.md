@@ -765,3 +765,136 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   1,400 lines with its spec in Asteroid Breaker) goes to the art stream,
   on the view stream's GameService; the view stream keeps GameService and
   the wiring, U2's included.
+
+### U1's GameService merged (2026-11-10)
+
+- `a2b95db9`, from the view stream: GameService on `RunLifecycle` plays the run,
+  lays the field out on the board's room between rounds, gives the scene
+  its options and is the saved game's `KeptGame` (`provideGame()`);
+  `GAME_LEVELS` and `PLAY_ROUND` in `src/app/tokens.ts` (`playRound()` still
+  the stub);
+  `src/testing/play.ts` for the specs' scripted rounds; `main.ts` takes the
+  saved game up. Its `command()` override takes Enter and P over a lost
+  run's closed result to `tryAgain()`. 4,079 tests, 99.87 / 99.21 / 100 /
+  99.9; every file of `src/app/` at 100%.
+- **A contract change, accepted:** `RunState` gains `run`, `resultClosed`,
+  `tuned` and `newBest`, and `newRunState(run, start, tuned)` takes the
+  run; nothing else built one, so the merge needed nothing more.
+- **What the board and GameService agree on** went to the art stream with
+  the board: the board hands the game `setDrawn()`, `setRoom()` before the
+  scene's first layout, `onLayout()`, `onPictures()`, `fieldCommand()` and
+  a `tick()` a frame, and reads the run, the cards, the scene's options,
+  the metrics, the pictures and the panels' figures.
+- **To the proof stream,** idle until R6: the run's stars, which the result
+  card shows and R7's run doesn't track, and a move in `run.ts` for the
+  par at a new depth, which GameService's `laidOut()` works out with
+  `parOf()` for now.
+- **For every stream's specs:** `TestBed.resetTestingModule()` drops the
+  memory store the test setup provides, and settings then leak through
+  jsdom's `localStorage`; provide `provideMemoryStorage()` again after it.
+
+### R6 merged (2026-11-10)
+
+- `258fcffd`, from the rules stream: `playRound()` plays a round whole and
+  `guideOf(start, shot, pastTurn, rules = RULES)` shows a shot past its
+  first turn; `playRoundBy()`, `flightRulesOf()`, `flightStartOf()` in
+  `round.ts`, `isDepth()` in `wall.ts`, `GUIDE_DOT_GAP` in `tuning.ts`, and
+  `src/testing/timing.ts` for the sim benchmarks (0% in the coverage run,
+  which runs no sim spec). The workspace `AGENTS.md`'s rules section covers
+  R4 and R6. Two reviews; 4,199 tests, 99.67 / 99.23 / 99.38 / 99.74.
+- **Kept:** `guideOf()` takes the guide's length, and the bored distance
+  through `rules`, as the debug menu retunes only what the rules are
+  handed; the plan's `guideOf(start, shot)` didn't foresee the menu. The
+  guide flies the player's fuzzball alone: a triple shot flown whole took
+  473 µs at p99, alone 44 to 87 µs.
+- **Sent on:** to the scene stream, the real `Guide`, matching its stand-in
+  name for name; to the view stream, that `PLAY_ROUND` now flies the
+  real `playRound()` with no change, GameService handing it `rulesOf()` as
+  its fourth argument, `guideOf()` for
+  `GameService.guide()`, and `isDepth()` for the saved game's and the
+  menu's depth checks.
+- **P2 and P3 side by side, against the plan's order and owners:** the
+  plan puts P3 after P2 and gives both to the proof stream. With R6 done
+  the rules stream was free, and P3 needs only P2's shapes, not its search,
+  so the proof stream reports the solver's, the careless player's and the
+  certificate's shapes before building P2, and the rules stream builds P3
+  against them meanwhile; Q2 waits on P3, so this shortens the way there.
+  The run's stars and the par move, given to the proof stream in the U1
+  entry, were to go to the rules stream unless the proof stream had begun
+  them; it had, and finished them (below).
+
+### The docs pass and the site's relaxed rule merged (2026-11-10)
+
+- `07a12620`, from the shell stream: the workspace `AGENTS.md`'s `src/app/`
+  list gains `bar/`, `board/`, `panels/` and `result/end_words.ts`, and
+  `browserKey()`'s wording is fixed in `lib/phaser/AGENTS.md` and the
+  `phaser-core` skill.
+- `c4b357ae`: `missingImages()`, which `checkGameImages()` calls, holds a game in development to no
+  screenshots; the tile's thumbnail and the game page's preview drop an
+  image that fails to load (`(error)` and a `linkedSignal`), the page's
+  stage keeping its 16:9 and its category's surface; the site lists Brick
+  Fuzz Pop, `inDevelopment: true`, "Charge the fuzzball, let it fly and
+  keep the bricks off the floor.", 10 minutes, as Brick Breaker's. The
+  rule's words in `frontend/games/AGENTS.md`, `frontend/site/AGENTS.md` and
+  `docs/operations.md` too. One conflict, in the workspace `AGENTS.md`'s
+  opening, with R6's edit of it: both kept. The site's 177 tests, its
+  typecheck and the root lint pass; the shell stream built the site over
+  the games, and removing `inDevelopment` failed it on the missing images.
+- `e600d242`: the debug menu's folders in the workspace `AGENTS.md`.
+- The shell stream then fixed `run_scene.ts`' comment on `browserKey()`
+  and drafted T1 while the board is built, to commit it once it runs
+  green over a build with the board.
+- `e1f5bf39`, from the shell stream: `run_scene.ts`' comment on
+  `browserKey()` says a letter's and a digit's key code come from the code.
+- **T1 drafted, uncommitted,** on the shell stream; what it needs of the
+  board beyond the plan's bullet went to the art stream: `data-wall` (the
+  wall's lowest row as drawn, held across a turn), `data-panels` always
+  present (`""` with none), `data-field` from the lintel's top to the
+  band's bottom, `data-room`, `--pixel-ratio`, `.placeholder .field`,
+  `.ring` and `.card`, as Brick Breaker's board has them. Open, until the
+  check runs over the real board: a 1-px resize between rounds at 2× on a
+  small phone on its side moves the unit from 48 to 49 px.
+
+### The run's stars and the par move merged; P2 and P3 begun side by side (2026-11-10)
+
+- `e34f32ad`, from the proof stream: `Run.stars`, counted in `afterLanding()` as
+  each level clears, kept by the saved game and read by `readStars()`; a
+  game kept before the field reads as a star a cleared level, so
+  `SAVED_GAME_VERSION` stays 1. `takeDepth(run, depth, levels, pars?)`
+  moves the par onto a new depth in the rules, and GameService's
+  `laidOut()` calls it (named so to keep clear of GameService's private
+  `onDepth()`). 4,221 tests.
+- **P2's shapes, accepted:** `solveLevel()`, `replayLine()` and
+  `playCasually()`, each taking `rules`; a certificate holds the line
+  alone, `[aim, charge]` pairs by level and depth, keys sorted; `par.json`
+  keeps its `Pars` shape. `CASUAL_FLOORS` (90, 85, 80 and 40, as plan.md
+  says) lives in `casual.ts`, which the specs and the report read and the Y
+  streams set.
+- The proof stream builds P2; the rules stream builds P3 against those
+  shapes meanwhile, on an uncommitted stand-in, committing once P2 lands.
+
+### S2 merged (2026-11-10)
+
+- `b5377c55`, from the scene stream: the scene steers, plays a round's sounds
+  and flourishes, and draws the fuzzballs, the guide (R6's `Guide`, its
+  dots ready to draw) and the meter; four new painters; 128 guide dots and
+  31 outlines pooled, 216 shards reserved and capped; the 600-frame object
+  count counts the shards. The scene bakes `meter-on`, `meter-off`,
+  `guide-dot`, `guide-punch` and `FLIGHT_FRAMES` itself. 4,315 tests;
+  118 mutants, 7 equivalent, 2 dead branches removed. The review's three
+  findings fixed: a flight's last flourishes landed a step below their
+  bricks, shards weren't scaled past the atlas's largest unit, and they
+  weren't a pool made once.
+- **New scene options for U1:** `waitingX()`, `boon()`, `crew()` and
+  `aimings()`; GameService supplies them (view stream), the board hands
+  them on (art stream). `stand_ins.ts` only re-exports `Guide` for
+  GameService's import, which U1 switches before the file goes.
+- **A pointer lost:** Phaser has no event for it. A release outside the
+  canvas lets the shot fly, a cancelled touch calls it off, and
+  `onPlayerAway` lets go.
+- The scene stream then rewrote the workspace `AGENTS.md`'s scene
+  paragraph, and switches to the proof stream's danger rule once P2 lands.
+- `f2b76a1b`, from the scene stream: the workspace `AGENTS.md`'s
+  `src/scene/` entry rewritten as the scene now is, a sub-bullet a part,
+  its pools named by their constants and S1's danger shown among them; S2
+  off the list of packages to come. Two reviews.
