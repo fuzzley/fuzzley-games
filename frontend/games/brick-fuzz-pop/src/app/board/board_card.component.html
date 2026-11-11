@@ -6,8 +6,8 @@
   @let kind = card.kind;
   @switch (kind) {
     @case ("ready") {
-      <div class="card ready">
-        <p class="card-title">{{ card.title }}</p>
+      <div class="card ready" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
         <p>{{ card.boon }}</p>
         @if (card.newKind; as newKind) {
           <div class="new-kind">
@@ -25,8 +25,8 @@
       </div>
     }
     @case ("paused") {
-      <div class="card">
-        <p class="card-title">Paused</p>
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">Paused</h2>
         <p>Score {{ card.score }}</p>
         <button
           type="button"
@@ -39,8 +39,8 @@
       </div>
     }
     @case ("cleared") {
-      <div class="card">
-        <p class="card-title">{{ card.title }}</p>
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
         <p class="stars">
           @for (star of card.stars; track star) {
             <fz-icon name="star" />
@@ -74,11 +74,11 @@
       </div>
     }
     @case ("ended") {
-      <div class="card">
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
         @if (card.won) {
           <fz-icon class="card-icon" name="trophy" />
         }
-        <p class="card-title">{{ card.title }}</p>
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
         @if (card.where; as where) {
           <p>{{ where }}</p>
         }
@@ -91,6 +91,12 @@
         >
           {{ card.againLabel }}
         </button>
+      </div>
+    }
+    @case ("restoring") {
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">Restoring the board</h2>
+        <p>The game waits until it is back.</p>
       </div>
     }
     @default never;

@@ -57,7 +57,7 @@ describe("the games' global stylesheet", () => {
     expect(gameGlobal.startsWith(styleGlobal)).toBe(true);
   });
 
-  it("then publishes the bar's size and keeps the page still, in layers alone", () => {
+  it("then publishes the bar's size, keeps the page still and rings a busy round button, in layers alone", () => {
     expect(added).toEqual([
       {
         layer: "fz.tokens",
@@ -80,7 +80,46 @@ describe("the games' global stylesheet", () => {
           },
         ],
       },
+      {
+        layer: "fz.fragments",
+        rules: [
+          {
+            selector: ".fz-button-circle[aria-busy=true]",
+            declarations: { position: "relative" },
+          },
+          {
+            selector: ".fz-button-circle[aria-busy=true]::after",
+            declarations: {
+              position: "absolute",
+              inset: "-3px",
+              border: "2px solid transparent",
+              "border-radius": "50%",
+              "border-top-color": "var(--fz-accent)",
+              content: '""',
+              "pointer-events": "none",
+              animation: "fz-busy-turn 0.9s linear infinite",
+            },
+          },
+        ],
+      },
     ]);
+  });
+
+  it("turns a busy round button's ring a whole turn at a time", () => {
+    const turns: Record<string, string>[] = [];
+    parse(gameGlobal.slice(styleGlobal.length)).walkAtRules(
+      "keyframes",
+      (keyframes) => {
+        if (keyframes.params !== "fz-busy-turn") return;
+        turns.push(
+          ...rulesIn(keyframes).map((rule) => ({
+            [rule.selector]: Object.values(rule.declarations).join(";"),
+          })),
+        );
+      },
+    );
+
+    expect(turns).toEqual([{ to: "rotate(1turn)" }]);
   });
 
   it("adds only to layers @fz/style orders, so a game's own rules win", () => {

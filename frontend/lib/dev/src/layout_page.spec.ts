@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { DevToolsConnection, Page } from "./chrome.ts";
+import { barOutOfWindow } from "./layout_page.ts";
 import { settled } from "./screenshots.ts";
 import { FakeBrowser } from "./testing/fake_browser.ts";
 
@@ -65,5 +66,39 @@ describe("settle, as settled() sends it", () => {
     await vi.advanceTimersByTimeAsync(600);
 
     expect(await settles).toBe(false);
+  });
+});
+
+describe("barOutOfWindow", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    document.body.innerHTML = "";
+  });
+
+  /** Lays a bar of one control out past a 400 px window's right edge. */
+  function barOf(control: string): void {
+    vi.stubGlobal("innerWidth", 400);
+    vi.stubGlobal("innerHeight", 800);
+    document.body.innerHTML = `<fz-game-bar>${control}</fz-game-bar>`;
+    const button = document.querySelector("fz-game-bar button");
+    if (!button) throw new Error("No control.");
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue(
+      new DOMRect(380, 10, 44, 44),
+    );
+  }
+
+  it.each([
+    ["its label", `<button aria-label="Sound" title="Turn"> On </button>`],
+    [
+      "its words, where it has no label",
+      `<button title="Turn"> Sound </button>`,
+    ],
+    ["its tooltip, where it has neither", `<button title="Sound"></button>`],
+  ])("names a control that runs out of the window by %s", (_, control) => {
+    barOf(control);
+
+    expect(barOutOfWindow()).toEqual([
+      "The bar's Sound runs out of the window.",
+    ]);
   });
 });

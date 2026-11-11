@@ -15,7 +15,6 @@ import { IconComponent, type IconName } from "@fz/ui/icon";
   imports: [IconComponent],
   host: {
     class: "fz-button fz-button-secondary fz-button-circle",
-    "aria-label": "Sound",
     title: "Sound",
     "[attr.aria-pressed]": "soundOn()",
     "(pointerdown)": "$event.preventDefault()",

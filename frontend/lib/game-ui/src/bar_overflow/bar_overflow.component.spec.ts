@@ -42,7 +42,11 @@ describe("BarOverflowComponent", () => {
   }
 
   async function renderMenu(
-    inputs: { items?: readonly BarOverflowItem[]; label?: string } = {},
+    inputs: {
+      items?: readonly BarOverflowItem[];
+      label?: string;
+      busy?: boolean;
+    } = {},
   ): Promise<Rendered> {
     const choose = vi.fn();
     const { container } = await render(BarOverflowComponent, {
@@ -85,6 +89,30 @@ describe("BarOverflowComponent", () => {
     expect(
       screen.getByRole("button", { name: "Game menu" }),
     ).toBeInTheDocument();
+  });
+
+  // A browser reads a tooltip that says what a label says again, as the
+  // description, which jsdom's descriptions can't show, so the button
+  // carries no label but its tooltip.
+  it("names its button by its tooltip alone, so its name is read once", async () => {
+    await renderMenu();
+
+    expect({
+      title: trigger().getAttribute("title"),
+      label: trigger().getAttribute("aria-label"),
+    }).toEqual({ title: "More actions", label: null });
+  });
+
+  it("marks its button busy while what an item opens is on its way", async () => {
+    await renderMenu({ busy: true });
+
+    expect(trigger()).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("marks its button busy only then", async () => {
+    await renderMenu();
+
+    expect(trigger()).not.toHaveAttribute("aria-busy");
   });
 
   it("starts closed", async () => {

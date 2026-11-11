@@ -140,8 +140,17 @@ interface ShownEnded {
   readonly againLabel: string;
 }
 
+/** The card that says the board is being restored. */
+interface ShownRestoring {
+  readonly kind: "restoring";
+}
+
 /** A card as it reads. */
-type ShownCard = ShownReady | ShownPaused | ShownCleared | ShownEnded;
+type ShownCard =
+  ShownReady | ShownPaused | ShownCleared | ShownEnded | ShownRestoring;
+
+/** The number the next board card's ids take, so two boards' never clash. */
+let nextCardId = 0;
 
 /**
  * Shows the card over the field, if any, as it is handed: the level waiting
@@ -150,7 +159,8 @@ type ShownCard = ShownReady | ShownPaused | ShownCleared | ShownEnded;
  * cleared added up, its stars, its rounds against par, its points and its
  * crew lined up; or, once an ended run's result is closed, how it ended,
  * the score, and a try at the level lost, or a new game after the last is
- * cleared, as the result offers.
+ * cleared, as the result offers. While the board is being restored, after
+ * its WebGL context was lost, it says so in place of any of them.
  *
  * Its element is the layer the cards show in, which the board lays over the
  * field, a card keeping the board's margin around the field (`--margin`). It
@@ -170,11 +180,20 @@ type ShownCard = ShownReady | ShownPaused | ShownCleared | ShownEnded;
 export class BoardCardComponent {
   private readonly viewport = inject(GameViewportService);
 
+  /** The id of the card's title, which names the card. */
+  protected readonly titleId = `board-card-title-${String(nextCardId++)}`;
+
   /** The canvas's own cards, which the board hands it, if it does. */
   private readonly canvasCards = contentChild(CanvasCardsComponent);
 
   /** The card to show, or null for none. */
   readonly card = input.required<BoardCard | null>();
+
+  /**
+   * Whether the board is being restored, its WebGL context lost, which
+   * shows its card in place of the one handed.
+   */
+  readonly restoring = input(false);
 
   /** The pictures of every kind of brick, How to play's, or null before the scene has drawn. */
   readonly pictures = input<HelpPictures | null>(null);
@@ -199,7 +218,9 @@ export class BoardCardComponent {
   /** Its own card as it reads, and none while the canvas's shows. */
   protected readonly shown = computed<ShownCard | null>(() => {
     const card = this.card();
-    if (card === null || this.canvasCards()?.card()) return null;
+    if (this.canvasCards()?.card()) return null;
+    if (this.restoring()) return { kind: "restoring" };
+    if (card === null) return null;
     switch (card.kind) {
       case "ready":
         return this.readyOf(card);

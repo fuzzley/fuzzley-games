@@ -752,15 +752,15 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Releases the round aimed at a shot, if its level waits for the first
-   * shot or is under way: the rules play it whole, on the numbers handed,
-   * the run takes it in, its records kept as the run will stand once it
-   * lands, and the view starts playing its flight back. Returns whether
-   * the shot flew.
+   * Releases the round aimed at a shot, if the board is drawn and its level
+   * waits for the first shot or is under way: the rules play it whole, on
+   * the numbers handed, the run takes it in, its records kept as the run
+   * will stand once it lands, and the view starts playing its flight back.
+   * Returns whether the shot flew.
    */
   private release({ aim, charge }: Readonly<Shot>, rules: RoundRules): boolean {
     const state = this.runState();
-    if (state.phase !== "aiming") return false;
+    if (!this.drawn() || state.phase !== "aiming") return false;
     const started = startLevel(state.run);
     if (started.outcome !== "playing") return false;
     const round = this.playRound(

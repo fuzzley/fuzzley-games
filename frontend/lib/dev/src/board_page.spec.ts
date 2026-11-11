@@ -798,10 +798,22 @@ describe("inspectPhaserDeck", () => {
     lay({ ...BESIDE, control: { left: 390, top: 80, width: 44, height: 44 } });
     const control = element("fz-game-bar button");
     control.removeAttribute("aria-label");
+    control.setAttribute("title", "More actions");
     control.textContent = " Menu ";
 
     expect(inspectPhaserDeck(DECKED, FIELD_BOX)).toEqual([
       "The deck's stick zone lies over the bar's Menu.",
+    ]);
+  });
+
+  it("names a control of the bar by its tooltip where it has no label or words", () => {
+    lay({ ...BESIDE, control: { left: 390, top: 80, width: 44, height: 44 } });
+    const control = element("fz-game-bar button");
+    control.removeAttribute("aria-label");
+    control.setAttribute("title", "More actions");
+
+    expect(inspectPhaserDeck(DECKED, FIELD_BOX)).toEqual([
+      "The deck's stick zone lies over the bar's More actions.",
     ]);
   });
 

@@ -16,7 +16,6 @@ import { IconComponent } from "@fz/ui/icon";
   imports: [IconComponent],
   host: {
     class: "fz-button fz-button-secondary fz-button-circle",
-    "aria-label": "Fast-forward",
     title: "Fast-forward",
     "[attr.aria-pressed]": "fast()",
     "[attr.aria-disabled]": "flying() ? null : 'true'",

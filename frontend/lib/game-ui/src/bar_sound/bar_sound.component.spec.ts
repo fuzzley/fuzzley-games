@@ -72,6 +72,17 @@ describe("BarSoundComponent", () => {
     );
   });
 
+  // A browser reads a tooltip that says what a label says again, as the
+  // description, which jsdom's descriptions can't show, so the button
+  // carries no label but its tooltip.
+  it("is named by its tooltip alone, so its name is read once", async () => {
+    await renderSound(true);
+
+    expect(screen.getByRole("button", { name: "Sound" })).not.toHaveAttribute(
+      "aria-label",
+    );
+  });
+
   it("keeps the focus where it was through a press with a pointer", async () => {
     const { user } = await renderSound(true);
     const board = screen.getByRole("button", { name: "Board" });

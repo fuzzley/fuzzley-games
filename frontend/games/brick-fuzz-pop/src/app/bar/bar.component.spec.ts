@@ -24,6 +24,7 @@ interface BarInputs {
   readonly flying: boolean;
   readonly fast: boolean;
   readonly soundOn: boolean;
+  readonly helpLoading: boolean;
 }
 
 /** A level under way, its fourth round in flight with two friends behind it. */
@@ -38,6 +39,7 @@ const MID_FLIGHT: BarInputs = {
   flying: true,
   fast: false,
   soundOn: true,
+  helpLoading: false,
 };
 
 /** Names one of the bar's outputs that carry nothing. */
@@ -103,15 +105,28 @@ function fuzzballsOf(term: string): HTMLElement[] {
   );
 }
 
-/** Returns the names of the bar's buttons, in order: each one's label, or its text. */
-function buttonNames(): string[] {
-  return within(screen.getByRole("banner"))
-    .getAllByRole("button")
-    .map(
-      (button) =>
-        button.getAttribute("aria-label") ?? button.textContent.trim(),
-    );
+/** Returns the bar's buttons, in order. */
+function barButtons(): HTMLElement[] {
+  return within(screen.getByRole("banner")).getAllByRole("button");
 }
+
+/** Returns the bar's buttons each name gives, in the names' order. */
+function barButtonsNamed(names: readonly string[]): HTMLElement[] {
+  const bar = within(screen.getByRole("banner"));
+  return names.map((name) => bar.getByRole("button", { name }));
+}
+
+/** The roomy bar's actions, in order. */
+const ROOMY_ACTIONS = [
+  "Pause",
+  "Fast-forward",
+  "Skip",
+  "Sound",
+  "Levels",
+  "New game",
+  "How to play",
+  "Settings",
+] as const;
 
 describe("BarComponent", () => {
   describe("on a roomy screen", () => {
@@ -193,17 +208,34 @@ describe("BarComponent", () => {
     it("offers Pause, Fast-forward and Skip, then the rest, each round", async () => {
       await renderBar();
 
-      expect(buttonNames()).toEqual([
-        "Pause",
-        "Fast-forward",
-        "Skip",
-        "Sound",
-        "Levels",
-        "New game",
-        "How to play",
-        "Settings",
-      ]);
+      expect(barButtons()).toEqual(barButtonsNamed(ROOMY_ACTIONS));
     });
+
+    // A browser reads a tooltip that says what an `aria-label` says again,
+    // as the description, which jsdom's descriptions can't show, so no
+    // button carries a label: each is named by its tooltip, Pause by its
+    // words.
+    it.each(ROOMY_ACTIONS)(
+      "gives %s no label beside its tooltip, so its name is read once",
+      async (name) => {
+        await renderBar();
+
+        expect(
+          within(screen.getByRole("banner")).getByRole("button", { name }),
+        ).not.toHaveAttribute("aria-label");
+      },
+    );
+
+    it.each(ROOMY_ACTIONS)(
+      "shows %s's name under the pointer",
+      async (name) => {
+        await renderBar();
+
+        expect(
+          within(screen.getByRole("banner")).getByRole("button", { name }),
+        ).toHaveAttribute("title", name);
+      },
+    );
 
     it("draws every action but Pause as a circle, New game too", async () => {
       await renderBar();
@@ -328,6 +360,20 @@ describe("BarComponent", () => {
       );
     });
 
+    // The ring is drawn from `aria-busy`, which jsdom's styles can't show.
+    it.each([
+      ["while it loads", true, "true"],
+      ["but while it loads", false, null],
+    ] as const)("marks How to play busy %s", async (_, helpLoading, busy) => {
+      await renderBar({ helpLoading });
+
+      expect(
+        screen
+          .getByRole("button", { name: "How to play" })
+          .getAttribute("aria-busy"),
+      ).toBe(busy);
+    });
+
     it.each([
       ["turns the sound off", "Sound", "toggleSound"],
       ["asks for the levels", "Levels", "openLevels"],
@@ -368,12 +414,9 @@ describe("BarComponent", () => {
     it("keeps Pause, Fast-forward and Skip in the bar, beside the menu", async () => {
       await renderBar();
 
-      expect(buttonNames()).toEqual([
-        "Pause",
-        "Fast-forward",
-        "Skip",
-        "More actions",
-      ]);
+      expect(barButtons()).toEqual(
+        barButtonsNamed(["Pause", "Fast-forward", "Skip", "More actions"]),
+      );
     });
 
     it("moves the sound, the levels, New game, How to play and the settings into the menu", async () => {
@@ -397,6 +440,22 @@ describe("BarComponent", () => {
 
       expect(items[0]).toBe("Turn sound on");
     });
+
+    it.each([
+      ["while How to play loads", true, "true"],
+      ["but while How to play loads", false, null],
+    ] as const)(
+      "marks the menu's button busy %s",
+      async (_, helpLoading, busy) => {
+        await renderBar({ helpLoading });
+
+        expect(
+          screen
+            .getByRole("button", { name: "More actions" })
+            .getAttribute("aria-busy"),
+        ).toBe(busy);
+      },
+    );
 
     it("moves the link home into the menu where there is no room for it", async () => {
       installFakeViewport(340, 700);

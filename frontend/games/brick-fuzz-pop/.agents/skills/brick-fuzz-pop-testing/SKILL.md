@@ -329,6 +329,13 @@ Phaser game:
   task holds that load, so a spec waits for the menu and its certificates
   with `loadsSettled()`, and for the game's own files, a dynamic import,
   with `vi.waitFor()`.
+- To see what shows while a chunk is on its way, or once it can't be
+  fetched, a spec hands `LOAD_HELP` or `LOAD_DEBUG_MENU` a held load
+  (`heldLoad()`, in `src/testing/loads.ts`) and lets it `arrive()` or
+  `fail()` with `OFFLINE`, collecting the error (`collectErrors()`). Till
+  then the load's pending task keeps `whenStable()` and `loadsSettled()`
+  waiting, so the spec shows the page with `detectChanges()`, and settles
+  only once the load is let go.
 - A component that shows the board runs it on `@fz/phaser/testing`'s
   `provideFakePhaserCanvas()`, which loads no Phaser; the board's spec also
   runs the scene it hands its canvas for real, through the library's

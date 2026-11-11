@@ -525,6 +525,15 @@ describe("GameService", () => {
       expect([game.rounds(), game.phase()]).toEqual([1, "aiming"]);
     });
 
+    it("lets no shot fly while the board isn't drawn, as the first move waits for it", () => {
+      const game = gameOf("step");
+      game.setDrawn(false);
+
+      release(game);
+
+      expect([game.rounds(), game.outcome()]).toEqual([0, "ready"]);
+    });
+
     it("lets no shot fly once the level is cleared", () => {
       const game = carded("cleared");
 
@@ -1781,6 +1790,22 @@ describe("GameService", () => {
       game.tick(FRAME_MS, STILL);
 
       expect(asked.map(([, shot]) => shot)).toEqual(LINE_SHOTS);
+    });
+
+    it("keeps its first shot until the board is drawn", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+      game.setDrawn(false);
+      game.tick(FRAME_MS, STILL);
+      const askedUndrawn = asked.length;
+      game.setDrawn(true);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect([askedUndrawn, asked.map(([, shot]) => shot)]).toEqual([
+        0,
+        [LINE_SHOTS[0]],
+      ]);
     });
 
     it("lets none of its shots fly while the level is paused", async () => {

@@ -20,3 +20,31 @@
     overscroll-behavior: none;
   }
 }
+
+// A round button marked busy, as one waiting for what it opens, such as How
+// to play's chunk, ringed by an arc of the accent turning round it, so what
+// shows is what a screen reader hears. Here once, rather than in each
+// component that marks one. The reduced-motion rule stills the arc, which
+// still shows.
+@layer fz.fragments {
+  .fz-button-circle[aria-busy="true"] {
+    position: relative;
+
+    &::after {
+      position: absolute;
+      inset: -3px;
+      border: 2px solid transparent;
+      border-radius: 50%;
+      border-top-color: var(--fz-accent);
+      content: "";
+      pointer-events: none;
+      animation: fz-busy-turn 0.9s linear infinite;
+    }
+  }
+
+  @keyframes fz-busy-turn {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+}

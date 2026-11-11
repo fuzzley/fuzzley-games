@@ -376,25 +376,31 @@ helpers.
   the board in the room the bar leaves it, then the bar, the announcer, the
   result card over an ended run, the Levels dialog (every level open while
   the debug menu opens them), How to play, loaded as it first opens and
-  handed the scene's pictures only while it is open, the settings drawer,
-  put away as its debug menu plays a certificate, and the question before
-  a run is lost, each wired to `GameService`; hands the board the focus as
-  the page loads, as each run begins and as the last dialog over the board
-  closes (`refocusWhenUncovered()`), and after the bar's Resume; and pauses
-  the level in play as the player looks away from the room
+  handed the scene's pictures only while it is open, its button busy while it
+  loads, the opening dropped at Escape, or as the focus, a press or a key
+  leaves the bar, and a load that fails said through the announcer, the
+  settings drawer, put away as its debug menu plays a certificate, and the
+  question before a run is lost, each wired to `GameService`; hands the board
+  the focus as the page loads, as each run begins and as the last dialog over
+  the board closes (`refocusWhenUncovered()`), and after the bar's Resume;
+  and pauses the level in play as the player looks away from the room
   (`[fzPlayRoom]`).
-  - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
-    asking for each action: from the desktop width (`fitsActionLabels`),
-    unless the window is compact, the level, the rounds against par, the
-    rows left, the score and the crew; otherwise the rounds and the score
-    alone, as `figures.ts`'s `showsEveryFigure()` says, which the board
-    reads too, the lintel's count hidden where the bar counts the rows.
-    Every action is round; Pause, Fast-forward (`button[appFastForward]`)
-    and Skip (`button[appSkip]`) stay at every size, the two dimmed while
-    there is no flight, and on a compact screen Sound, Levels, New game,
-    How to play and Settings move into the overflow menu. `<app-crew>`
-    draws a crew in a row, the player's fuzzball in the accent, then each
-    friend in its ink, for the bar and the Cleared card.
+  - `bar/` — the game bar, `<app-bar>`, showing what it is handed and asking
+    for each action: from the desktop width (`fitsActionLabels`), unless the
+    window is compact, the level, the rounds against par, the rows left, the
+    score and the crew; otherwise the rounds and the score alone, as
+    `figures.ts`'s `showsEveryFigure()` says, which the board reads too, the
+    lintel's count hidden where the bar counts the rows. Every action is
+    round; Pause, Fast-forward (`button[appFastForward]`) and Skip
+    (`button[appSkip]`) stay at every size, the two dimmed while there is no
+    flight, and on a compact screen Sound, Levels, New game, How to play and
+    Settings move into the overflow menu. Every round action but Pause, which
+    its words name, is named by its tooltip alone, with no `aria-label` to
+    say it again, so a screen reader says its name once. How to play shows
+    busy while it loads (`helpLoading`): `aria-busy`, which `@fz/game-ui`'s
+    global stylesheet rings, on the overflow menu's button on a compact
+    screen. `<app-crew>` draws a crew in a row, the player's fuzzball in the
+    accent, then each friend in its ink, for the bar and the Cleared card.
   - `board/` — the board, `<app-board>`, and the cards over its field. The
     board holds `<fz-phaser-canvas>`, loading its scene only once the canvas
     asks, and, until the scene has drawn, a placeholder of the empty field
@@ -402,35 +408,42 @@ helpers.
     (`canvasRoom()`) and hands `GameService` the room (`setRoom()`) before
     the scene's first layout and at each measure after; hands the scene plain
     functions over `GameService` (`WallSceneOptions`); sets the drawn gate
-    from the canvas's state; and hands the game a later bake's pictures only
-    once the atlas has settled (`PICTURES_SETTLE_MS`), reading them only
-    while the panels or the Ready card show them. On the lintel it says how
-    many rows wait ("5 rows waiting", "No rows waiting"), read as the page is
-    where neither the bar's Rows left nor Coming next says it and hidden from
-    assistive technology where one does; the Ready card lies under it. Only
-    its `.play` element is the application, named for the level and described
-    by its keys, around the canvas and the focus ring; the panels and the
-    card are its siblings, read as a page is. The board puts the focus on
-    `.play` for a press on it, from `focus()` after the next render, and back
-    from a card's button before the game moves on. For the layout check
-    (`tools/check-layout.mjs`) it publishes `data-field` (from the lintel's
-    top to the band's bottom), `data-room`, `data-panels` (`""` where none
-    show), `data-depth`, `--across` and `--down`, each once the scene has
-    laid the field out; `--lintel` and `--band`, once the board is measured;
-    and, from the start, `data-outcome`, `data-wall` and `--pixel-ratio`. It
-    sets `--margin`, the canvas's insets, which the cards keep too;
-    `--frame`, for the placeholder's frame and the focus ring; and
-    `--lintel`, `--band` and `--band-ink`, for the placeholder, `--lintel`
-    and `--frame` sizing the count of the rows too. The cards are
-    `<app-board-card>`, handed the one to show (`BoardCard`) and what it
-    shows: Ready, the level's number and name, what its jumps earn, the kind
-    of brick it brings in and, on a phone on its side, that the game is
-    larger upright; Paused, the score, then Resume; Cleared, the stars, the
-    rounds against par, the tally, the score and the crew, then Next level;
-    and Ended, once a run's result is closed, where the run was lost or the
-    trophy, the score, then Try again from the level or New game.
-    `<app-board-card>` reads the field's margin from `--margin`, which the
-    board sets, shows no card of its own while the canvas's cards
+    from the canvas's state and whether its WebGL context is lost, as it
+    hears on its way down to the canvas: lost, it pauses the run, the gate
+    holding any shot, and shows the card that says the board is being
+    restored, taking the focus from a button on the card it puts away, and
+    restored, takes the card away, the run left paused for the player to go
+    on, the announcer saying each (`BOARD_CONTEXT_WORDS`); and hands the game
+    a later bake's pictures only once the atlas has settled
+    (`PICTURES_SETTLE_MS`), reading them only while the panels or the Ready
+    card show them. On the lintel it says how many rows wait ("5 rows
+    waiting", "No rows waiting"), read as the page is where neither the bar's
+    Rows left nor Coming next says it and hidden from assistive technology
+    where one does; the Ready card lies under it. Only its `.play` element is
+    the application, named for the level and described by its keys, around
+    the canvas and the focus ring; the panels and the card are its siblings,
+    read as a page is. The board puts the focus on `.play` for a press on it,
+    from `focus()` after the next render, and back from a card's button
+    before the game moves on. For the layout check (`tools/check-layout.mjs`)
+    it publishes `data-field` (from the lintel's top to the band's bottom),
+    `data-room`, `data-panels` (`""` where none show), `data-depth`,
+    `--across` and `--down`, each once the scene has laid the field out;
+    `--lintel` and `--band`, once the board is measured; and, from the start,
+    `data-outcome`, `data-wall` and `--pixel-ratio`. It sets `--margin`, the
+    canvas's insets, which the cards keep too; `--frame`, for the
+    placeholder's frame and the focus ring; and `--lintel`, `--band` and
+    `--band-ink`, for the placeholder, `--lintel` and `--frame` sizing the
+    count of the rows too. The cards are `<app-board-card>`, handed the one
+    to show (`BoardCard`) and what it shows: Ready, the level's number and
+    name, what its jumps earn, the kind of brick it brings in and, on a phone
+    on its side, that the game is larger upright; Paused, the score, then
+    Resume; Cleared, the stars, the rounds against par, the tally, the score
+    and the crew, then Next level; and Ended, once a run's result is closed,
+    where the run was lost or the trophy, the score, then Try again from the
+    level or New game. Each is a group named by its title, an `<h2>`; while
+    the board is being restored (`restoring`), its card shows in place of
+    any. `<app-board-card>` reads the field's margin from `--margin`, which
+    the board sets, shows no card of its own while the canvas's cards
     (`<fz-canvas-cards>`), projected into it, show one, keeps its buttons'
     keys from Phaser's keyboard, and hands on each press.
   - `panels/` — the two panels beside a wide room's field, each a region
@@ -447,12 +460,15 @@ helpers.
   - `settings/` — the settings drawer, `<app-settings>`: how a pointer aims
     (by the pointer, a finger pulling back and a mouse pointing and holding,
     or either way for both), the flight's speed, long flights sped up, the
-    aim guide, sound and the palette, each applied at once;
-    `SettingsService` keeps them. Where `@fz/game-ui/debug_menu`'s
-    `DEBUG_MENU` says so, in a development build and in a production one
-    at `?debug`, the debug menu follows them, loaded only there, so a page
-    that doesn't offer it never loads it; the drawer hands on the menu's
-    Play the certificate (`playCertificate`), so the app can put it away.
+    aim guide, sound and the palette, each applied at once; `SettingsService`
+    keeps them. Where `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a
+    development build and in a production one at `?debug`, the debug menu
+    follows them, loaded only there, so a page that doesn't offer it never
+    loads it, the drawer saying it is loading till it comes, and a load that
+    fails said through the announcer, in the drawer's own live region, while
+    the drawer is open, and tried again as it opens; the drawer hands on the
+    menu's Play the certificate (`playCertificate`), so the app can put it
+    away.
   - `debug/` — the debug menu, `<app-debug-menu>`, `@fz/game-ui`'s
     `<fz-debug-tuning>` with a slider for each number
     `src/view/debug/debug_tuning.ts` tunes and the lines they would
@@ -516,12 +532,15 @@ helpers.
     again, paused, reading the game through `KeptGame`, which it injects
     as `KEPT_GAME`, and which `provideGame()` makes `GameService`;
     `main.ts` injects it at startup.
-  - `tokens.ts` — `GAME_LEVELS`, the levels a run is played through, and
-    `PLAY_ROUND`, the rules' `playRound()`, which the specs replace.
+  - `tokens.ts` — `GAME_LEVELS`, the levels a run is played through,
+    `PLAY_ROUND`, the rules' `playRound()`, and `LOAD_HELP` and
+    `LOAD_DEBUG_MENU`, which load How to play and the debug menu, each from
+    its chunk (`ComponentLoad`), all of which the specs replace.
   - `on_demand.ts` — `onDemand()`, which loads a component the first time
     it is asked for and creates it in a container with its bindings, a
-    pending task till then, so `whenStable()` waits for it; a load that
-    fails goes to the `ErrorHandler`, and the next ask tries again. How to
+    pending task till then, so `whenStable()` waits for it, and says
+    whether it made it; a load that fails goes to the `ErrorHandler`, and
+    the next ask tries again. How to
     play and the debug menu load through it, each a chunk of its own,
     rather than through `@defer`, whose runtime would cost the main chunk
     about 6 kB.
@@ -778,6 +797,10 @@ What the specs share is in `src/testing/`:
   a line of two shots for a level on the depth the field has as it loads
   (`filesCertifying()`), and waits for what the menu loads or plays, which
   `whenStable()` doesn't (`loadsSettled()`).
+- `loads.ts` holds a component's load as a slow connection holds its chunk
+  (`heldLoad()`), till the spec lets it arrive or fail (`OFFLINE`), for
+  `LOAD_HELP` or `LOAD_DEBUG_MENU`; while one is held, `whenStable()`
+  waits on it, so a spec shows the page with `detectChanges()` instead.
 - `roles.ts` reads the game's palettes from its global stylesheet
   (`PALETTES`), which `src/view/colors/contrast.spec.ts` holds the field's
   inks to contrast in, each of the four.

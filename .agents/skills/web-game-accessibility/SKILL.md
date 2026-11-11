@@ -57,7 +57,10 @@ than from a separate class, so the look and the announcement cannot disagree.
   that speaks while open holds one of its own, since the page behind a
   modal is hidden from a screen reader.
 - Give icon-only buttons a label only screen readers read, with
-  `@fz/style`'s `.fz-visually-hidden` class or its `visually-hidden` mixin.
+  `@fz/style`'s `.fz-visually-hidden` class or its `visually-hidden` mixin,
+  or, where a tooltip shows their name, that `title` alone. Never give one
+  an `aria-label` and a `title` that say the same: a browser reads the
+  label as the name and the tooltip again as the description.
 
 ### 3. Focus Management & Modals
 
