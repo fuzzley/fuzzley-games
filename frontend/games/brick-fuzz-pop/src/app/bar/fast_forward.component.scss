@@ -1,0 +1,7 @@
+// Pressed, it wears the accent, as Minesweeper's flag mode does.
+:host([aria-pressed="true"]) {
+  --fz-button-fill: var(--fz-accent);
+  --fz-button-label: var(--fz-on-accent);
+  --fz-button-edge: transparent;
+  --fz-button-hover: color-mix(in srgb, var(--fz-accent) 86%, var(--fz-text));
+}

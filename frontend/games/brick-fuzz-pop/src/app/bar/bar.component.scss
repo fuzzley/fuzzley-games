@@ -1,0 +1,85 @@
+@use "../styles" as *;
+
+:host {
+  display: block;
+}
+
+@include bar-title;
+
+// The level, the rounds against par, the rows left, the score and the crew,
+// each a card, a little narrower than the breakers' so that all five fit
+// beside the actions at the desktop width, with a crew of seven.
+@include bar-figures(72px, var(--fz-space-2));
+
+.metric {
+  padding-inline: var(--fz-space-2);
+
+  .label {
+    white-space: nowrap;
+  }
+}
+
+// Each fuzzball as the field draws it: the player's in the accent, each
+// friend in its ink, the eyes in the field's color.
+fz-fuzzball {
+  --fz-fuzzball-eyes: var(--fz-field);
+}
+
+.own {
+  color: var(--fz-accent);
+}
+
+// The rounds' icon is the player's fuzzball, hidden as the other figures'
+// icons are.
+.metric dt fz-fuzzball {
+  display: none;
+}
+
+// A fuzzball for each of the crew, on one line, as a figure is.
+.crew {
+  display: flex;
+  gap: 2px;
+  padding-block: 4px;
+
+  fz-fuzzball {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// The actions, Pause, Fast-forward and Skip dimmed while they can't be used.
+@include bar-actions;
+
+// Pause round at every size, as the rest are, its label heard but not seen
+// and its icon theirs in size.
+.pause {
+  --fz-icon-size: 18px;
+
+  &:not(.fz-button-circle) {
+    padding: var(--fz-space-2);
+    border-radius: 50%;
+  }
+}
+
+// Where the bar has room for the rounds and the score alone, each is an icon
+// beside its value, the rounds' the player's fuzzball.
+:host(.rounds-and-score) {
+  @include bar-figures-inline(4px);
+
+  .metric dt fz-fuzzball {
+    display: block;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Across the bar, the rounds over the score in one card, since a score runs
+// to six figures and the bar has no room for them side by side.
+:host(.rounds-and-score:not(.rail)) {
+  @include bar-figures-paired;
+}
+
+// On a rail, the figures stacked.
+:host(.rail) {
+  @include bar-figures-stacked;
+}

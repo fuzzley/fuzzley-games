@@ -1,0 +1,172 @@
+<fz-game-bar
+  [placement]="viewport.barPlacement()"
+  [compact]="viewport.isCompact()"
+  [home]="viewport.barHome()"
+>
+  <!-- The page's one <h1>, heard rather than seen on a compact screen. -->
+  <h1
+    fzBarTitle
+    class="title"
+    [class.fz-visually-hidden]="viewport.isCompact()"
+  >
+    Brick Fuzz Pop
+  </h1>
+
+  <!--
+    Not a live region: the announcer says each turning point. Where the bar
+    has room only for the rounds and the score, the Ready card, the lintel
+    and the panels give the rest.
+  -->
+  <dl fzBarStatus class="metrics">
+    @if (fitsEveryFigure()) {
+      <div class="metric">
+        <dt><span class="label">Level</span></dt>
+        <dd class="value">{{ level() }}</dd>
+      </div>
+    }
+    <div class="metric">
+      <dt><fz-fuzzball class="own" /><span class="label">Rounds</span></dt>
+      <dd class="value">
+        <span aria-hidden="true">{{ roundsShown() }}</span>
+        <span class="fz-visually-hidden">{{ roundsText() }}</span>
+      </dd>
+    </div>
+    @if (fitsEveryFigure()) {
+      <div class="metric">
+        <dt><span class="label">Rows left</span></dt>
+        <dd class="value">{{ rowsLeft() }}</dd>
+      </div>
+    }
+    <div class="metric">
+      <dt><fz-icon name="bricks" /><span class="label">Score</span></dt>
+      <dd class="value">{{ scoreShown() }}</dd>
+    </div>
+    @if (fitsEveryFigure()) {
+      <div class="metric">
+        <dt><span class="label">Crew</span></dt>
+        <dd class="value">
+          <span class="crew">
+            <fz-fuzzball class="own" />
+            @for (color of friendColors(); track $index) {
+              <fz-fuzzball [style.color]="color" />
+            }
+          </span>
+          <span class="fz-visually-hidden">{{ crewText() }}</span>
+        </dd>
+      </div>
+    }
+  </dl>
+
+  <!--
+    Round at every size, as every action is, its label heard but not seen:
+    only so does the bar have room for all five figures.
+  -->
+  <button
+    fzBarActions
+    fzBarPause
+    type="button"
+    class="action pause"
+    [title]="pauseName()"
+    [outcome]="outcome()"
+    [fitsLabel]="false"
+    (pauseRun)="pauseRun.emit()"
+    (resumeRun)="resumeRun.emit()"
+  ></button>
+
+  <!-- Each fills the button with its icon and its name. -->
+  <!-- eslint-disable-next-line @angular-eslint/template/elements-content -->
+  <button
+    fzBarActions
+    appFastForward
+    type="button"
+    class="action"
+    [fast]="fast()"
+    [flying]="flying()"
+    (fastForward)="fastForward.emit($event)"
+  ></button>
+
+  <!-- eslint-disable-next-line @angular-eslint/template/elements-content -->
+  <button
+    fzBarActions
+    appSkip
+    type="button"
+    class="action"
+    [flying]="flying()"
+    (skipFlight)="skipFlight.emit()"
+  ></button>
+
+  <!--
+    A block apiece: the bar takes a block's button among its actions only
+    while the button is the block's one element.
+  -->
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      fzBarSound
+      type="button"
+      class="action"
+      [soundOn]="soundOn()"
+      (click)="toggleSound.emit()"
+    ></button>
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="Levels"
+      title="Levels"
+      (click)="openLevels.emit()"
+    >
+      <fz-icon name="grid" />
+    </button>
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-circle action"
+      aria-label="New game"
+      title="New game"
+      (click)="newGame.emit()"
+    >
+      <fz-icon name="plus" />
+    </button>
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="How to play"
+      title="How to play"
+      (click)="openHelp.emit()"
+    >
+      <fz-icon name="help" />
+    </button>
+  }
+
+  @if (viewport.isCompact()) {
+    <fz-bar-overflow
+      fzBarActions
+      [items]="overflowItems()"
+      (choose)="chooseFromMenu($event)"
+    />
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action settings"
+      aria-label="Settings"
+      title="Settings"
+      (click)="openSettings.emit()"
+    >
+      <fz-icon name="settings" />
+    </button>
+  }
+</fz-game-bar>
