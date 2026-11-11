@@ -1615,3 +1615,54 @@ its review and the numbers worth keeping.
   2. `random_flights.ts`' doc promised the random flights caught a kind
      cataloged before its rule, which nothing throws for now. Fixed.
   3. The checks named the base, not the commit. Fixed.
+
+### The proof stream's asks: real stand-in rules, portals drawn
+
+- **Date.** 2026-11-11.
+- **Built.**
+  - `src/testing/stand_ins.ts`: `STAND_IN_RULES` flies the bumper, the
+    prism and the portal by `KICKS_RULE`, `SPLITS_RULE` and
+    `TELEPORTS_RULE`, whose copies it held, and moss by `REGROWS_RULE`, as
+    it does steel, the zappers, wool and the cage; plates and shells still
+    do nothing there.
+  - `src/testing/wall_picture.ts`: `twinsIn()` pairs each portal mark's two
+    cells of a picture as twins, refusing a mark used once or more than
+    twice, and `wallFrom()` hands each portal its twin, so a spec draws
+    real portals once Tricks catalogs them.
+  - Specs: `wall_picture.spec.ts` pairs both marks, and a second with no
+    first, twins nothing without a portal, refuses a lone mark and a
+    third, and has `wallFrom()` refuse a lone portal before its kind, and a
+    pair for its kind until Tricks catalogs it.
+  - `AGENTS.md` and the `brick-fuzz-pop-testing` skill: the wall
+    picture's and the stand-ins' lines.
+- **Choices.**
+  1. **Each mark pairs on its own,** with none of the parse's other rules
+     for portals (a second pair only with a first, twins at most four rows
+     apart): a spec may draw what no level may.
+  2. **`twinsIn()` is exported** so its spec reads it on its own, as no
+     portal is cataloged for `wallFrom()` to lay out yet.
+  3. **It isn't shared with the parse's `twinsOf()`,** whose errors name
+     the level and which keeps the portals' other rules; the two count
+     cells alike, and `levels.ts` is P1's.
+- **Checks,** at c678582e: the workspace's `lint` and `typecheck` pass;
+  `test:coverage` passes 4,935 tests in 104 files in `dom` and `pure`, at
+  the floors, and 150 in 20 in `sim`; the root's `yarn lint` passes.
+- **The mutation pass.** 6 mutants of `wall_picture.ts`: a portal twinned
+  with itself, one of a pair left untwinned, three of a mark allowed, the
+  second mark unpaired and `wallFrom()` pairing none, all killed; and
+  `wallFrom()` handing no twin, which survives until a portal is cataloged
+  for a spec to lay out, where the spec of a pair refused for its kind
+  says what it becomes.
+- **The review:** a fresh agent found no bug: the real rules are the
+  copies they replace, and the twins number cells as the parse does. Its
+  points:
+  1. The `brick-fuzz-pop-testing` skill still described the stand-ins as
+     made up and `wallFrom()` without portals. Fixed.
+  2. No spec held `wallFrom()` to pairing its portals. Fixed as far as an
+     uncataloged portal allows: a lone portal refused before its kind, and
+     a pair refused for its kind, with the spec it becomes.
+  3. Choice 1 had no spec. Fixed: `&` pairs with no `@`.
+  4. `twinsIn()` repeats the parse's pairing. Left, as choice 3 says.
+  5. `twinsIn()`'s doc opened with two sentences, `wallFrom()` read the
+     twins through a fallback never taken, and moss's do-nothing rule was
+     its real one. Fixed: one sentence, the twins mapped, `REGROWS_RULE`.

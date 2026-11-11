@@ -5,7 +5,7 @@
 
 import { isKeyOf } from "@fz/core/records";
 import { isBrickKindId } from "../rules/catalog/bricks";
-import { LEGEND, NO_BRICK, tintOf } from "../rules/levels/legend";
+import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "../rules/levels/legend";
 import { COLUMNS } from "../rules/tuning";
 import type { Brick, Wall } from "../rules/wall/wall";
 
@@ -20,9 +20,10 @@ export interface PictureOptions {
  * of its rows from the top, in the legend's characters
  * (`src/rules/levels/legend.ts`), `.` for no brick.
  *
- * Each brick is whole, and takes the tint `tintOf()` gives its cell, as a
- * level's does. It throws for a row not nine wide, or a character no
- * cataloged kind's brick stands for, so a spec plays the wall it draws.
+ * Each brick is whole, and takes the tint `tintOf()` gives its cell, and a
+ * portal the other of its pair as its twin, as a level's do. It throws for
+ * a row not nine wide, a character no cataloged kind's brick stands for, or
+ * a portal with no pair, so a spec plays the wall it draws.
  */
 export function wallFrom(
   picture: readonly string[],
@@ -36,18 +37,50 @@ export function wallFrom(
   }
   // The picture's characters by wall cell, its lowest row first.
   const characters = [...picture].reverse().join("");
-  const bricks = Array.from(characters, (character, cell) =>
-    brickOf(character, tintOf(characters, cell)),
+  const bricks = twinsIn(characters).map((twin, cell) =>
+    brickOf(characters.charAt(cell), tintOf(characters, cell), twin),
   );
   return { bricks, rows: picture.length, lowestRow };
 }
 
 /**
- * Returns the whole brick a picture's character stands for, in a tint, or
- * null for no brick, throwing for a character no cataloged kind's brick
- * stands for.
+ * Returns each wall cell's twin, the cell of the other portal of its pair,
+ * or null for a cell that holds no portal, from the characters of a wall's
+ * picture by wall cell, its lowest row first, each mark of `PORTAL_MARKS`
+ * a picture uses pairing its two cells, throwing for a mark used once or
+ * more than twice.
  */
-function brickOf(character: string, tint: number): Brick | null {
+export function twinsIn(characters: string): (number | null)[] {
+  const twins: (number | null)[] = Array.from(characters, () => null);
+  for (const mark of PORTAL_MARKS) {
+    const cells = Array.from(characters).flatMap((character, cell) =>
+      character === mark ? [cell] : [],
+    );
+    if (cells.length === 0) {
+      continue;
+    }
+    const [one, other] = cells;
+    if (one === undefined || other === undefined || cells.length > 2) {
+      throw new RangeError(
+        `A wall's picture holds ${String(cells.length)} of the portal "${mark}", where a pair has 2.`,
+      );
+    }
+    twins[one] = other;
+    twins[other] = one;
+  }
+  return twins;
+}
+
+/**
+ * Returns the whole brick a picture's character stands for, in a tint and
+ * with a twin, or null for no brick, throwing for a character no cataloged
+ * kind's brick stands for.
+ */
+function brickOf(
+  character: string,
+  tint: number,
+  twin: number | null,
+): Brick | null {
   if (character === NO_BRICK) {
     return null;
   }
@@ -64,7 +97,7 @@ function brickOf(character: string, tint: number): Brick | null {
     full: hits,
     plates,
     tint,
-    twin: null,
+    twin,
   };
 }
 

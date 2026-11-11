@@ -98,8 +98,10 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   nine characters for each of its rows from the top, in the legend's
   characters (`src/rules/levels/legend.ts`: `o` a brick, `2` to `6` tough,
   `#` steel, `.` none, and the rest it lists), each brick whole and tinted
-  as a level's are, its lowest row in field row 1 unless told. It throws
-  for a row not nine wide, or a character of a kind not yet cataloged.
+  as a level's are and each portal twinned with the other of its mark
+  (`twinsIn()`), its lowest row in field row 1 unless told. It throws for
+  a row not nine wide, a portal's mark used once or more than twice, or a
+  character of a kind not yet cataloged.
   `levelFrom()` (`src/testing/level_picture.ts`) makes a level of one;
   `NO_HITS` are rules under which no shot takes a hit, and `HIGH_BRICK` a
   level that loses to them after a jump.
@@ -112,8 +114,8 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   matches a number as near as the flight's arithmetic finds it.
 - **Kinds not yet built** stand in from `src/testing/stand_ins.ts`: a
   bumper, a portal, a prism, wool and a cage, and `STAND_IN_RULES`, the
-  rules they fly by, steel's, the zappers' and wool's own among them, the
-  rest made up. `STAND_INS` is the catalog with the bumper in the row
+  rules they fly by, each brick's own but for plates and shells, which do
+  nothing there. `STAND_INS` is the catalog with the bumper in the row
   zapper's place and the portal in the column zapper's, so a picture's `-`
   is a bumper and its `|` a portal (the legend's own portal marks throw in
   `wallFrom()` until a portal is cataloged); the prism, wool and cage join
