@@ -21,10 +21,10 @@ package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page, through
-Warm-up's and Sparks' eighteen levels. The site lists it as in
-development, its screenshots taken on level 18, the last of Sparks. What
-the plan's packages still to come build (X2, Y2 and Y3, D1, F1, Z1 and Z2)
-isn't here yet.
+Warm-up's, Sparks' and Tricks' twenty-seven levels. The site lists it as
+in development, its screenshots taken on level 18, the last of Sparks.
+What the plan's packages still to come build (Y3, D1, F1, Z1 and Z2) isn't
+here yet.
 
 ## Technology Stack
 
@@ -113,16 +113,17 @@ helpers.
   in. `catalog.spec.ts` holds every kind to the catalog's rules.
 - **`src/rules/levels/`** — the levels. `legend.ts` is the characters a
   wall's picture is drawn in (`LEGEND`), the portals' marks and a brick's
-  tint (`tintOf()`). A file a set, `warm-up.json` and `sparks.json`, holds
-  its nine levels, each an id, a name, a boon and a picture of its wall, as
-  the file of its name in `docs/brick-fuzz-pop/levels/` drafts them;
-  `levels.ts` lists the sets (`LEVEL_SETS`), numbers every level from 1
-  (`LEVELS`, `levelEntryOf()`), and `parseLevel()` turns one into a `Level`
-  (`level.ts`) or throws an error naming the level and what is wrong; and
-  `level.ts`'s `levelStart()` is where a level's first round starts on a
-  depth. `certificate.ts` is a certificate's line as its file keeps it,
-  pairs of an aim's index and a charge (`CertifiedShot`, `Line`), and turns
-  a pair into a shot (`shotOf()`). `certificates/` holds each set's
+  tint (`tintOf()`). A file a set, `warm-up.json`, `sparks.json` and
+  `tricks.json`, holds its nine levels, each an id, a name, a boon and a
+  picture of its wall, as the file of its name in
+  `docs/brick-fuzz-pop/levels/` drafts them; `levels.ts` lists the sets
+  (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, `levelEntryOf()`),
+  and `parseLevel()` turns one into a `Level` (`level.ts`) or throws an
+  error naming the level and what is wrong; and `level.ts`'s
+  `levelStart()` is where a level's first round starts on a depth.
+  `certificate.ts` is a certificate's line as its file keeps it, pairs of
+  an aim's index and a charge (`CertifiedShot`, `Line`), and turns a
+  pair into a shot (`shotOf()`). `certificates/` holds each set's
   certificates, a line that clears each level on each depth, and `par.json`
   each level's par on each depth, half as many rounds again as its line,
   both written by `yarn certify:levels`. The specs in `every_level/`, a file
