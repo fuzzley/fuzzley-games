@@ -1,0 +1,11 @@
+<h2 id="coming-next-title" class="card-title">Coming next</h2>
+<p class="level">{{ title() }}</p>
+<div class="rows" aria-hidden="true">
+  @for (row of rows(); track $index) {
+    @for (ink of row; track $index) {
+      <span class="square" [style.--ink]="ink"></span>
+    }
+  }
+</div>
+<p>{{ waiting() }}</p>
+<p>{{ jump() }}</p>

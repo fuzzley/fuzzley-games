@@ -1,0 +1,24 @@
+<h2 id="in-this-wall-title" class="card-title">In this wall</h2>
+<!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+<ul class="kinds" role="list">
+  @for (kind of kinds(); track kind.id) {
+    <li>
+      @if (kind.picture) {
+        <img [src]="kind.picture" alt="" />
+      }
+      <span class="name">{{ kind.name }}</span>
+      <span class="about">{{ kind.about }}</span>
+    </li>
+  }
+</ul>
+@if (crewWords(); as words) {
+  <div class="crew">
+    <span class="friends">
+      @for (ink of crew(); track $index) {
+        <fz-fuzzball [style.color]="ink" />
+      }
+    </span>
+    <p>{{ words }}</p>
+  </div>
+}
+<p class="fz-badge" [class.fz-badge-accent]="lit()">{{ badge() }}</p>

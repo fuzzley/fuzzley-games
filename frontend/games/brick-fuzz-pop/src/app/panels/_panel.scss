@@ -1,0 +1,29 @@
+// The look the two panels beside a wide room's field share: a card's over
+// the board, with no colors of their own. The board lays each over its
+// room with `cssRectStyle()`, so a panel takes no size of its own, and it
+// takes no pointer, so a pull back can start over it.
+@use "../styles" as *;
+
+@mixin panel {
+  // Its room only narrows a card, which the board's size for it overrides.
+  @include board-card(var(--fz-space-3));
+  @include board-card-small;
+
+  position: absolute;
+  justify-items: stretch;
+  max-width: none;
+  overflow: hidden;
+  text-align: start;
+  pointer-events: none;
+
+  // A card's glass blurs what lies behind it, which here is the canvas's
+  // spare room, redrawn every frame of a drag or a flight: work the eye
+  // can't see, over a field that stays flat.
+  backdrop-filter: none;
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-backdrop-filter: none;
+
+  h2 {
+    margin: 0;
+  }
+}
