@@ -337,8 +337,9 @@ export class BeltScene extends Scene {
    * the ship thrusts, and draws the field as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette, a
-   * new font or a new wave; Phaser makes a sound object for each sound it
-   * plays, and a drawing context for each label of points it stamps.
+   * new font or a new wave; Phaser makes a buffer source for each sound it
+   * plays, as Web Audio starts each only once, and a drawing context for
+   * each label of points it stamps.
    */
   override update(time: number, delta: number): void {
     this.context.now = time;

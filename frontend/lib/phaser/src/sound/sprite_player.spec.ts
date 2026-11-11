@@ -1,7 +1,7 @@
-import { type Scene, Sound } from "phaser";
+import { type Scene, Sound, type Types } from "phaser";
 import type { HostedScene } from "../host";
 import { type SceneRun, cacheSounds, runBareScene } from "../testing";
-import { type SoundSprite, SpritePlayer } from "./sprite_player";
+import { MOST_AT_ONCE, type SoundSprite, SpritePlayer } from "./sprite_player";
 
 /** A sprite of two sounds. */
 const SPRITE: SoundSprite<"ping" | "pong"> = {
@@ -25,6 +25,7 @@ describe("SpritePlayer", () => {
   }
 
   afterEach(() => {
+    vi.restoreAllMocks();
     run?.destroy();
     run = null;
   });
@@ -45,11 +46,11 @@ describe("SpritePlayer", () => {
     const player = new SpritePlayer(scene, SPRITE);
     cacheSounds(scene, SPRITE.key);
     player.follow(true);
-    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
 
     player.play("pong", { detune: 200 });
 
-    expect(play).toHaveBeenCalledWith(SPRITE.key, "pong", { detune: 200 });
+    expect(play).toHaveBeenCalledWith("pong", { detune: 200 });
   });
 
   it("plays a sound risen by some cents, for a frame's sounds", async () => {
@@ -57,12 +58,12 @@ describe("SpritePlayer", () => {
     const player = new SpritePlayer(scene, SPRITE);
     cacheSounds(scene, SPRITE.key);
     player.follow(true);
-    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
     const { playRisen } = player;
 
     playRisen("ping", 300);
 
-    expect(play).toHaveBeenCalledWith(SPRITE.key, "ping", { detune: 300 });
+    expect(play).toHaveBeenCalledWith("ping", { detune: 300 });
   });
 
   it("plays nothing risen while the player wants no sound", async () => {
@@ -70,7 +71,7 @@ describe("SpritePlayer", () => {
     const player = new SpritePlayer(scene, SPRITE);
     cacheSounds(scene, SPRITE.key);
     player.follow(false);
-    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
 
     player.playRisen("ping", 300);
 
@@ -81,7 +82,7 @@ describe("SpritePlayer", () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
     player.follow(true);
-    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
 
     player.play("ping");
 
@@ -93,7 +94,7 @@ describe("SpritePlayer", () => {
     const player = new SpritePlayer(scene, SPRITE);
     cacheSounds(scene, SPRITE.key);
     player.follow(false);
-    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
 
     player.play("ping");
 
@@ -104,7 +105,7 @@ describe("SpritePlayer", () => {
     const scene = await startScene();
     const player = new SpritePlayer(scene, SPRITE);
     cacheSounds(scene, SPRITE.key);
-    const play = vi.spyOn(scene.sound, "playAudioSprite");
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
 
     player.play("ping");
 
@@ -158,6 +159,240 @@ describe("SpritePlayer", () => {
     expect(scene.sound.mute).toBe(true);
   });
 });
+
+describe("SpritePlayer's sounds made once", () => {
+  let run: SceneRun<HostedScene> | null = null;
+
+  /** Starts a bare scene with a player of the sprite, loaded and wanted. */
+  async function startPlayer(): Promise<{
+    scene: Scene;
+    player: SpritePlayer<"ping" | "pong">;
+  }> {
+    run = await runBareScene();
+    const player = new SpritePlayer(run.scene, SPRITE);
+    cacheSounds(run.scene, SPRITE.key);
+    player.follow(true);
+    return { scene: run.scene, player };
+  }
+
+  /**
+   * Has each sound the game plays play on until a spec says it is done, as
+   * one does where audio plays, and returns the sounds each play started,
+   * in turn.
+   */
+  function playOn(): Sound.BaseSound[] {
+    const started: Sound.BaseSound[] = [];
+    vi.spyOn(Sound.NoAudioSound.prototype, "play").mockImplementation(function (
+      this: Sound.NoAudioSound,
+    ) {
+      Object.assign(this, { isPlaying: true });
+      started.push(this);
+      return true;
+    });
+    return started;
+  }
+
+  /** Has a sound done playing, as one that ends is. */
+  function end(sound: Sound.BaseSound | undefined): void {
+    Object.assign(sound ?? {}, { isPlaying: false });
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    run?.destroy();
+    run = null;
+  });
+
+  it("plays a sound again on the one it made, once that is done", async () => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    const made = vi.spyOn(scene.sound, "addAudioSprite");
+    player.play("ping");
+    end(started[0]);
+
+    player.play("ping");
+
+    expect({
+      made: made.mock.calls.length,
+      again: started[1] === started[0],
+    }).toEqual({ made: 1, again: true });
+  });
+
+  it("makes another for each play of a sound over itself, as many as play at once", async () => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    const made = vi.spyOn(scene.sound, "addAudioSprite");
+
+    for (let play = 0; play < MOST_AT_ONCE; play++) player.play("ping");
+
+    expect({
+      made: made.mock.calls.length,
+      apart: new Set(started).size,
+    }).toEqual({ made: MOST_AT_ONCE, apart: MOST_AT_ONCE });
+  });
+
+  it("starts the one that started longest ago over, once as many play at once as may", async () => {
+    const { player } = await startPlayer();
+    const started = playOn();
+    for (let play = 0; play < MOST_AT_ONCE; play++) player.play("ping");
+
+    player.play("ping");
+    player.play("ping");
+
+    // The same sounds, not ones alike.
+    expect({
+      first: started[MOST_AT_ONCE] === started[0],
+      second: started[MOST_AT_ONCE + 1] === started[1],
+    }).toEqual({ first: true, second: true });
+  });
+
+  it("plays a sound on one done before it makes another", async () => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    player.play("ping");
+    player.play("ping");
+    end(started[1]);
+    const made = vi.spyOn(scene.sound, "addAudioSprite");
+
+    player.play("ping");
+
+    expect({
+      made: made.mock.calls.length,
+      onDone: started[2] === started[1],
+    }).toEqual({ made: 0, onDone: true });
+  });
+
+  it("leaves a sound paused be, and plays on another", async () => {
+    const { player } = await startPlayer();
+    const started = playOn();
+    player.play("ping");
+    Object.assign(started[0] ?? {}, { isPlaying: false, isPaused: true });
+
+    player.play("ping");
+
+    expect(started[1]).not.toBe(started[0]);
+  });
+
+  it("plays each sound on its own", async () => {
+    const { player } = await startPlayer();
+    const started = playOn();
+
+    player.play("ping");
+    end(started[0]);
+    player.play("pong");
+
+    expect(started[1]).not.toBe(started[0]);
+  });
+
+  it("starts each play from its sound's own config, whatever the last play's was", async () => {
+    const { scene, player } = await startPlayer();
+    const configs = markSounds(scene);
+
+    player.play("ping", { detune: 300, volume: 0.5 });
+    player.play("ping");
+
+    expect(configs).toEqual([
+      { detune: 300, volume: 0.5, loop: false },
+      { detune: 0, volume: 1, loop: false },
+    ]);
+  });
+
+  it("starts each play from the loop its marker takes from the spritemap", async () => {
+    const { scene, player } = await startPlayer();
+    const configs = markSounds(scene);
+
+    player.play("pong", { loop: false });
+    player.play("pong");
+
+    expect(configs.map(({ loop }) => loop)).toEqual([false, true]);
+  });
+
+  it("plays on a new sound where another destroyed the one it made", async () => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    player.play("ping");
+    end(started[0]);
+    scene.sound.removeAll();
+
+    player.play("ping");
+
+    expect({
+      played: started.length,
+      anew: started[1] !== started[0],
+    }).toEqual({ played: 2, anew: true });
+  });
+
+  it("lets go of a sound it made that is done as the scene ends", async () => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    player.play("ping");
+    end(started[0]);
+
+    scene.game.scene.stop(scene.scene.key);
+
+    expect(started[0]?.pendingRemove).toBe(true);
+  });
+
+  it.each<[string, Partial<Sound.BaseSound>]>([
+    ["playing", {}],
+    ["paused", { isPlaying: false, isPaused: true }],
+  ])("keeps a sound it made that is %s as the scene ends", async (_, state) => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    player.play("ping");
+    Object.assign(started[0] ?? {}, state);
+
+    scene.game.scene.stop(scene.scene.key);
+
+    expect(started[0]?.pendingRemove).toBe(false);
+  });
+
+  it("lets go of a sound it made that rang on past the scene's end, once it ends", async () => {
+    const { scene, player } = await startPlayer();
+    const started = playOn();
+    player.play("ping");
+    scene.game.scene.stop(scene.scene.key);
+
+    started[0]?.emit(Sound.Events.COMPLETE);
+
+    expect(started[0]?.pendingRemove).toBe(true);
+  });
+});
+
+/**
+ * Has the sounds the game makes of the sprite hold a marker for each of
+ * its sounds, as Phaser's do where audio plays, and has a play write its
+ * config into its marker's, as Phaser's does; returns the config each play
+ * started with, in turn.
+ */
+function markSounds(scene: Scene): Types.Sound.SoundConfig[] {
+  const configs: Types.Sound.SoundConfig[] = [];
+  const add = scene.sound.addAudioSprite.bind(scene.sound);
+  vi.spyOn(scene.sound, "addAudioSprite").mockImplementation((key) => {
+    const sound = add(key);
+    // Pong's loops, as a sound held does.
+    sound.markers["ping"] = {
+      name: "ping",
+      config: { detune: 0, volume: 1, loop: false },
+    };
+    sound.markers["pong"] = {
+      name: "pong",
+      config: { detune: 0, volume: 1, loop: true },
+    };
+    return sound;
+  });
+  vi.spyOn(Sound.NoAudioSound.prototype, "play").mockImplementation(function (
+    this: Sound.NoAudioSound,
+    name,
+    config,
+  ) {
+    const marker = typeof name === "string" ? this.markers[name] : undefined;
+    const own = Object.assign(marker?.config ?? {}, config);
+    configs.push({ ...own });
+    return true;
+  });
+  return configs;
+}
 
 describe("SpritePlayer's held sounds", () => {
   let run: SceneRun<HostedScene> | null = null;

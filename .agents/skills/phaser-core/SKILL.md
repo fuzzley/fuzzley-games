@@ -67,7 +67,10 @@ holds.
   while they don't, plays one risen by some cents (`playRisen()`), which a
   scene hands to `@fz/core`'s `FrameSounds.playEach()`, and loops one while
   a scene holds it (`hold()`); a sprite that fails to load leaves the game
-  silent, not broken. `@fz/dev/sounds` synthesizes the sprite.
+  silent, not broken. It plays each sound on sound objects made once and
+  played again, at most `MOST_AT_ONCE` of a sound at once, rather than
+  Phaser's `playAudioSprite()`, which makes one for each play.
+  `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/measure`**: what reads the page for a canvas, as the host
   sizes it and `canvasRoom()` measures it: `watchDevicePixels()` counts an
   element's device pixels, `watchDevicePixelRatio()` hears the display's
@@ -226,7 +229,12 @@ out of the first download.
   `noAudio`, as the test harness's game has, it loads nothing, so a scene
   plays a sound only once the cache has it, and a spec that wants one
   played adds the sprite there itself, with `@fz/phaser/testing`'s
-  `cacheSounds()`.
+  `cacheSounds()`. There a sound's `play()` returns false and plays
+  nothing, so a spec watches `Sound.NoAudioSound.prototype.play`.
+- A sound's `play(marker, config)` writes the config into the marker's
+  own, so a later play of that marker without the config keeps it;
+  `SpritePlayer` puts back what the marker held as it was made before
+  each play.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
 - Before it fills or strokes a path, a WebGL `Graphics` drops each point
