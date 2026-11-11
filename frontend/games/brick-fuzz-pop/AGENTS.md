@@ -625,7 +625,10 @@ What the specs share is in `src/testing/`:
   and matches a value as near as the flight's arithmetic finds it
   (`near()`).
 - `timing.ts` reads a list of times at its median and 99th percentile
-  (`described()`, `quantile()`), for the flight's benchmarks.
+  (`described()`, `quantile()`), for the flight's benchmarks, and says how
+  long a `sim` test that can run past half a second alone may take
+  (`SIM_TIMEOUT_MS`), as `sim`'s specs run beside every workspace's in
+  `yarn test`.
 - `every_level.ts` holds what the specs in `every_level/` and `every_floor/`
   play, each file taking its depth, or its set and depth, from its name
   (`holdEveryCertificate()`, `holdEveryFloor()`): every set's certificates

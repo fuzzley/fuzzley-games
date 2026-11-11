@@ -1,4 +1,8 @@
-// What the benchmarks share: how a list of times reads.
+// What the `sim` specs share: how long a test may take, and how a list of
+// times reads.
+
+/** How long a `sim` test that can run past half a second alone may take, in milliseconds: `yarn test` runs it beside `dom`, `pure` and the other workspaces' tests, where 2 s alone has passed Vitest's 5 s. */
+export const SIM_TIMEOUT_MS = 60_000;
 
 /** Returns a share's value of numbers sorted from the least, as the nearest below. */
 export function quantile(sorted: readonly number[], share: number): number {

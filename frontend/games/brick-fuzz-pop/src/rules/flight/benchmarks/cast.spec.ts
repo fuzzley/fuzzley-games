@@ -4,7 +4,7 @@ import {
   randomField,
   randomShot,
 } from "../../../testing/cast_reference";
-import { described } from "../../../testing/timing";
+import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
 import { cast, castField, createContacts } from "../cast";
 
 /** How many seeded shots are timed, each cast once a round. */
@@ -14,7 +14,7 @@ const SHOTS = 2000;
 const ROUNDS = 10;
 
 // Printed, not held to a number: CI's runner times nothing alike twice.
-describe("cast's time", () => {
+describe("cast's time", { timeout: SIM_TIMEOUT_MS }, () => {
   it("is printed at its median and 99th percentile, beside a scan of every brick", () => {
     const random = createRandom(1110);
     const shots = Array.from({ length: SHOTS }, () => {

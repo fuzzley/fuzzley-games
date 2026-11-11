@@ -11,6 +11,7 @@ import { parFrom, parOf } from "../rules/run/stars";
 import { DEPTHS } from "../rules/wall/wall";
 import { CASUAL_FLOORS, playCasually } from "./casual";
 import { type CertifiedShot, type Line, lineHolds, replayLine } from "./solver";
+import { SIM_TIMEOUT_MS } from "./timing";
 
 /** Holds each level's line on each depth, by the level's id, then by the depth, as `yarn certify:levels` writes them. */
 export type Certificates = Readonly<
@@ -137,7 +138,8 @@ export function holdEveryFloor(specFile: string): void {
   if (floor === undefined) {
     throw new Error(`The set "${setId}" has no floor in CASUAL_FLOORS.`);
   }
-  describe(`the careless player on a field ${String(depth)} deep`, () => {
+  const suite = `the careless player on a field ${String(depth)} deep`;
+  describe(suite, { timeout: SIM_TIMEOUT_MS }, () => {
     it.each(levelRows(LEVELS.filter((entry) => entry.set.id === setId)))(
       `clears level %i, %s, at least ${String(floor)} times in 100`,
       (_, __, entry) => {
