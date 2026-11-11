@@ -1885,3 +1885,49 @@ its review and the numbers worth keeping.
   9. Nits: "Then" repeated the testing skill, trimmed to the commands and
      a link; `AGENTS.md` linked one skill of two, now both; and the
      checks' line took a colon and no commit. Fixed.
+
+### F1, first piece: R reads a portal's badge as the art draws it
+
+- **Date.** 2026-11-11.
+- **Built,** on b117d21e, every set certified and the portal's art drawn
+  by `PORTAL_BADGES`, closing what point 2 of the review in `art.md`'s
+  "The tidy after the catalogs" left the integrator: R's half of the
+  badges, untied to the list. 3 tests more:
+  - `src/rules/run/describe.spec.ts`: for each name of the legend's
+    `PORTAL_BADGES`, R reads a pair of portals of that tint, drawn in the
+    legend's mark at that place, as "portal with a" that name.
+  - `src/rules/levels/legend.spec.ts`: the legend names a badge for each
+    pair's mark, and no more, so those specs cover every tint a portal
+    takes.
+- **Choices.**
+  1. **Specs, not a change to `describe.ts`,** since no change inside it
+     could show that R agrees with the art: only specs holding each
+     reader to the list by tint can, as `portal.spec.ts` does for the art
+     and these do for R. `badgeWords()` reads `tint === 0 ? first : second`,
+     so a third pair would be read as the second's, which these specs
+     would fail at its tint. Indexing the list by tint instead would have R
+     throw on a tint no pair has, which no portal takes: `readWall()`
+     keeps only hits, and a portal's tint comes from `tintOf()`.
+- **Checks,** on b117d21e: the workspace's `lint` and `typecheck` pass;
+  `test:coverage` passes 5,801 tests in 116 files in `dom` and `pure`, at
+  the floors, and 555 in 29 in `sim`; the root's `yarn lint` passes.
+- **The mutation pass.** 4 mutants of `badgeWords()`:
+  - the badges swapped by tint, and every portal the first pair's, both
+    killed, as the specs of R's literal words already did;
+  - the names written out in place of `PORTAL_BADGES`, with the list's
+    second renamed "star": killed, at tint 1, by the new specs alone,
+    every literal spec still passing;
+  - the names written out, the list as it is: equivalent while the list
+    keeps its names, which no spec can tell from R's own words.
+- **The review:** a fresh agent found no bug: the specs fail as soon as R
+  stops naming a portal as the art draws it. Its points:
+  1. The mutation pass showed nothing only the new specs catch. Fixed:
+     the paired mutant above, and the lone survivor called equivalent.
+  2. The length spec tested two constants of `legend.ts` from
+     `describe.spec.ts`. Fixed: moved to `legend.spec.ts`. Its stronger
+     option, a type tying the lengths in `legend.ts`, is left: the spec
+     holds them as well, beside the file, and keeps the list plain.
+  3. The choice's reason wasn't what decides it. Fixed, as choice 1 now
+     reads.
+  4. The heading read as all of F1, and the entry named no ask or count.
+     Fixed.
