@@ -1473,3 +1473,46 @@ the art stream's board, the app's imports holding both its
    not the run's, the two set apart by the menu's depth after a round;
    and the "no certificate has loaded" case is named for what it is, the
    menu not offered. `play()`'s doc says it resolves.
+
+### Every level open, in levelMarksOf()
+
+**2026-11-10.** The follow-up suggested after U2, which the coordinator
+asked for once the certificates were done, though `level_marks.ts` is the
+shell stream's: the debug menu's every level open moves out of
+`app.component`'s `marks`, which built the marks and then copied each
+with `open: true`, into `levelMarksOf()` itself, as its fourth parameter,
+`everyOpen`, false unless handed. As before, a level opened that way
+keeps its stars and best only once the progress has it cleared, as any
+other does, so the debug menu shows no records the progress doesn't
+back. The app hands it `debug.everyLevelOpen()` and nothing else
+changed; no name was added to a contract.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 4,828 tests in 109 files, the coverage run's 4,678
+in 89 at its floors, `level_marks.ts` and `app.component.ts` at 100%. The
+root's `yarn lint` passes.
+
+**The mutation pass.** 6 mutants, all killed, and the marks' 4 again
+after the review: `everyOpen` ignored, joined by `&&`, true by default,
+and taken to show records the progress hasn't cleared, against the marks'
+spec; the app's dropping the menu's flag, and handing `true` whatever it
+says, against the app's.
+
+**The review:**
+
+1. **The doc's second paragraph said the progress alone opens levels,**
+   which `everyOpen` makes untrue. Fixed: it says the progress alone says
+   what is cleared, even while every level is open.
+2. **The doc's first sentence named the debug menu** in a stats helper,
+   and read awkwardly. Fixed: "or every level while `everyOpen` is set".
+3. **`level_marks.ts` is the shell stream's file.** The coordinator asked
+   for the move; this section now says so.
+4. **The new spec's name said each level kept its stars,** though one
+   deliberately loses records the progress doesn't back, and it checked
+   only three levels open. Fixed: two specs, one that no level is shut,
+   one that stars and best show only where cleared.
+5. **The section had no date, and could read as new behaviour.** Fixed.
+6. **`LevelMark`'s doc in `levels.component.ts`,** older than this
+   change, says `open` means the first level or one after a level
+   cleared, and doesn't mention the flag. Left: the file is the shell
+   stream's and the coordinator didn't ask for it; noted in the report.

@@ -92,17 +92,14 @@ export class AppComponent {
    * How far each level has been played, as the Levels dialog shows it,
    * every level open while the debug menu opens them.
    */
-  protected readonly marks = computed(() => {
-    const marks = levelMarksOf(
+  protected readonly marks = computed(() =>
+    levelMarksOf(
       this.levels,
       this.progress.cleared(),
       this.stats.stats(),
-    );
-    if (!this.debug.everyLevelOpen()) return marks;
-    return Object.fromEntries(
-      Object.entries(marks).map(([id, mark]) => [id, { ...mark, open: true }]),
-    );
-  });
+      this.debug.everyLevelOpen(),
+    ),
+  );
 
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
