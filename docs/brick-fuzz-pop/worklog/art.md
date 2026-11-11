@@ -2231,3 +2231,74 @@ the stylesheet.
      `art_frames.ts` without `looksOf()` or `ART_ROLES`. Left: the
      view stream is changing `AGENTS.md`, so the lines go to the
      integrator; the log's count of importers is fixed in choice 1.
+
+### The portal's diamond told from its dot at the least units
+
+**2026-11-11.** From Q4, on `brick-fuzz-pop` at `c20c6571`: on a field
+22 deep at 1280 × 800, 29 CSS px a unit, the second pair's diamond badge
+was about 6 px across and read as a dot, so the two pairs differed by
+color alone.
+
+- **Built.** `src/view/art/kinds/portal.ts`: the diamond is hollow and
+  larger, its points 0.13 of the cell from the badge's middle, where the
+  art's solid one reached 0.104, its band 0.035 of a unit wide, a CSS
+  pixel at least, in whole device pixels as `widthOf()` gives it, round
+  a hole of the badge's disc's color; and the disc, both pairs', 0.145
+  of the cell round, where the art's was 0.135, so the diamond's points
+  keep within it. The dot is as it was. `BADGE_MARKS` hands back a
+  badge's commands, one for the dot and two for the diamond.
+  `portal.spec.ts`: the diamond drawn whole at 31 CSS px, its band held
+  at 128 device px, and two specs more, 8 tests.
+- **Choices.**
+  1. **Hollow against solid, at every unit,** of the three ways the ask
+     offered. The difference in fill holds at the least units, where a
+     larger solid diamond, or a diamond-shaped disc, still read as a
+     blob in the renders, and it keeps R's words, "with a diamond",
+     true. It is drawn so at every unit rather than under 30 CSS px
+     alone: at 31 to 40 the art's diamond is 6 to 8 px across and
+     reads no better, and one look a pair keeps is one to learn.
+  2. **The specs measure the shapes.** At every unit from 24 CSS px to
+     128 device px at each pixel ratio, the dot is one solid disc, and
+     the diamond's hole is a CSS pixel or more between its sides, its
+     band a CSS pixel wide or more, and its points a CSS pixel or more
+     past the dot's edge and within the disc. The least are the hole,
+     1.21 CSS px between its sides at 30 device px and 1.25 to one,
+     where `widthOf()` makes the band 2 device px, and the points, 1.10
+     CSS px past the dot at 24 CSS px at every ratio. At every unit from
+     1 to 16 device px the hole stays within the diamond, and is a point
+     up to 10, where the band takes all the diamond's reach.
+- **Checks.** The workspace's lint, typecheck and `test:coverage`: 5,822
+  tests in 117 files, and 555 in `sim`, the floors held; the root's
+  lint. The atlas's rules hold: the badge keeps within the chunky
+  tile's rounded square and the frames within their cells; the
+  diamond's spec keeps it within its disc.
+- **The mutation pass:** 11 mutants, the art's solid diamond back, the
+  band fractional, none, narrower, wider or taken off the reach without
+  √2, the diamond smaller, the disc too small for it, the hole in the
+  glyph's color or unguarded, and the dot made hollow too: all killed,
+  the dot's once the shapes' spec held it to its pair's glyph, and the
+  narrower band's once a spec held the band at 128 device px.
+- **Numbers.** A before-and-after render of the frames' commands at 29
+  CSS px a unit, at 1 and 2 to one, in the four palettes:
+  `portal-badges-before-after-22-deep.png` in the stream's scratch.
+- **The review:** one round, by a fresh reviewer.
+  1. Nothing held the band's 0.035, which at 31 CSS px rounds to the
+     CSS pixel's floor, so a band of 0 passed. Fixed: a spec holds it at
+     4 px at 128 device px and 1 to one.
+  2. The hole's 1.5 CSS px was measured tip to tip, the kindest way.
+     Fixed: it is measured between its sides, a CSS pixel or more, and
+     choice 2 says so.
+  3. The diamond's points reached 0.13 of the cell in a disc of 0.135,
+     under a pixel short of the ring, and no spec kept them in it, though
+     the log said the atlas's rules did. Fixed: the disc is 0.145, the
+     shapes' spec keeps the points within it, and the checks say which
+     spec holds what.
+  4. "Mark" named the glyph's fill a few lines from `palette.mark`, the
+     disc's. Fixed: the field is `glyph`, the record's argument a
+     `BadgeDrawing`.
+  5. The tiny units' spec claimed a point where the band takes the
+     whole diamond without checking it. Fixed: it holds the hole to a
+     point up to 10 device px and open past it, and both specs share one
+     `reachOf()`.
+  6. The log named 63 px at 2.625 to one as the points' least, where it
+     is 24 CSS px at every ratio. Fixed in choice 2.
