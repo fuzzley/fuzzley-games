@@ -3,7 +3,7 @@ import type { ArtScale } from "@fz/phaser/shapes";
 import type { Scene } from "phaser";
 import { atlasFrames } from "../view/art/atlas_frames";
 import type { WallPalette } from "../view/colors/palette";
-import { fieldFrames } from "./field_art";
+import { fieldFrames, flightFrames } from "./field_art";
 import { pictureFrames } from "./pictures";
 
 /** The atlas's texture key, which every image on the field shows a frame of. */
@@ -25,8 +25,8 @@ export function bakedScaleOf(scale: ArtScale): ArtScale {
 
 /**
  * Bakes every frame the field shows into the atlas, at a scale and in a
- * palette: the art's, the scene's own dots and warning frame, and a picture
- * of each kind of brick for the page.
+ * palette: the art's, the scene's own dots, warning frame and frames of a
+ * round in play, and a picture of each kind of brick for the page.
  */
 export function bakeWallAtlas(
   scene: Scene,
@@ -37,8 +37,11 @@ export function bakeWallAtlas(
   bakeAtlas(
     scene,
     ATLAS,
-    [...art, ...fieldFrames(palette, scale), ...pictureFrames(art, scale)].map(
-      atlasFrameOf,
-    ),
+    [
+      ...art,
+      ...fieldFrames(palette, scale),
+      ...flightFrames(palette, scale),
+      ...pictureFrames(art, scale),
+    ].map(atlasFrameOf),
   );
 }

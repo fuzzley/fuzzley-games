@@ -452,3 +452,173 @@ all killed at once.
    longer exported, and `LIT_DANGER_WIDTH` went; the layer order's spec
    compares places with no conditional; and `endangers()` is one line on
    `isNeeded()`.
+
+### S2: the fuzzball, the guide, the flourishes and the meter
+
+**2026-11-10.**
+
+§6's S2, against V2's `Steering`, V3's `RoundPlay`, V4's effects, A3's
+fuzzballs, N1's sprite and L8's drivers, as the integrator asked once S1b
+was merged, then rebased onto the fix to V3's view, which hands the wall
+over as S1's painters read it, and onto R6, whose `Guide` the scene now
+takes from `src/rules/flight/guide.ts`.
+
+**What was built.**
+
+- **The steering.** `WallScene` owns a `Steering`, made with the field's
+  metrics and the canvas and measured again at each layout, and reads it
+  every frame, from where the fuzzball waits, before handing the shell the
+  tick: the keys (the arrows and Space captured from the page), the mouse,
+  its wheel and two fingers (`addPointer()` up to `MOST_FINGERS`), a
+  pointer let go past the canvas (`POINTER_UP_OUTSIDE`), and `letGo()` as
+  the player looks away. A key the steering doesn't take is a command, as
+  before. The `UNSTEERED` stand-in went.
+- **Four scene options, as additions:** `waitingX()` (`RoundPlay`'s), which
+  the steering aims a pointer from, kept while the fuzzball flies; `boon()`,
+  the boon the waiting fuzzball wears; `crew()`, whose friends' inks the
+  friends fly in; and `aimings()`, the settings' `PointerAimings`, handed to
+  `aimWith()` as they change. The `view` option's doc says how the view
+  hands the wall over: `wallDrop` 1 while it stands still, the wall that
+  comes down at once, and another wall each frame a brick changes.
+- **The round's events and beats,** each played once, from the view's two
+  logs: each event's sound, risen by `detuneOf()`, and each beat's
+  (`beatEffectsOf()`), gathered by `createFrameSounds()` and played through
+  the `SpritePlayer` once a frame; the notch as the charge rises or falls,
+  but to none, while a plain fuzzball waits; and each flourish
+  `flourishesOf()` gives where motion is welcome. A log the scene meets is
+  taken up at its latest, so what the view reached before the scene began
+  goes unplayed; one `RoundPlay` hands the same two logs on through the
+  game.
+- **`BallPainter`:** a pool of 16 bodies, each with its eyes over it. Each
+  fuzzball in the air at its middle, in `fuzzball-<charge>`, `hot-shot` or
+  `friend-<ink>`, its eyes moved by `FUZZBALL_LOOK` along its heading (its
+  launch's, its turns', down as it yawns); and the player's waiting on the
+  floor at `waitingX()`, its fur combed by the charge, looking along the
+  aim, as the hot shot or with a triple shot's two mates beside it, the
+  boon's look flaring in (`flareScale()`) at the jump.
+- **`MeterPainter`:** five pips in an arc under the waiting fuzzball, lit
+  from the left as far as the charge, all five for a hot shot, hidden while
+  it flies.
+- **`GuidePainter`:** 128 dots and 31 outlines, made once, drawn again only
+  as the guide, the wall or the layout changes: a dot at each of the
+  guide's places, on whole pixels, and `guide-punch` over each brick the
+  shot would punch through, but over the ceiling. A spec draws the guide
+  `guideOf()` casts for the shot steered.
+- **`EffectsPainter`:** a broken brick's shards, tinted as it was drawn, in
+  a particle emitter of 216, made once, scaled as the atlas's frames are; a punch's streak, a zap's bolt and a blast's ring,
+  each through `@fz/core/turns`; a freed friend's hop to the floor
+  (`hopHeight()`); the jump line's flash; and the shake, the camera moved
+  by `shakeOf()` and back.
+- **`WallPainter`:** a struck brick's swell (`swellScale()`), and the wall
+  drawn the frame before (`drawnWall()`), which the flourishes are placed
+  on. It eases the wall as S1 did, which the fix to V3's view now hands
+  over that way.
+- **The scene's frames,** baked with its dots (`flightFrames()` in
+  `field_art.ts`): `meter-on`, `meter-off`, `guide-dot` and `guide-punch`,
+  which `FRAMES` names but no art draws, after the art's sheet; and
+  `FLIGHT_FRAMES`' shard, streak, bolt and ring.
+- `LAYERS` gains `guide`, `bursts` and `balls`; `src/scene/stand_ins.ts`
+  only names R6's `Guide` again, for `GameService`'s import, until the
+  shell takes it from the rules and the file goes;
+  `placeDot()` moved to `painters/dots.ts`.
+
+**Choices the plan didn't make.**
+
+1. **A pointer lost is the player looking away.** Phaser names no lost
+   pointer: a mouse let go past the canvas is `POINTER_UP_OUTSIDE`, which
+   lets the shot fly, as V2's sixth choice says; a touch the browser takes
+   away is a `POINTER_UP` with `wasCanceled`, which `pointerUp()` calls
+   off; and the window's blur, the page hidden and the board's focus lost
+   are `onPlayerAway()`, whose `letGo()` calls the shot off.
+2. **`boon()` and `crew()` are options,** as neither `RoundView` nor
+   `waitingX()` says them. The boon is the aimed round's while it aims,
+   the next round's once the flight lands, which is when the jump that
+   earns it is heard, and none in flight, so the boon's look flares in with
+   the jump and not before. The friends' inks are the crew's in the order
+   they were freed, and a friend is the next of them as it launches, since
+   neither the launch nor `BallView` names a friend's ink.
+3. **The eyes follow the events,** each fuzzball's heading set at its
+   launch and its turns, and straight down at its yawn, rather than worked
+   out from where it moved between frames, which a pause or a slow frame
+   leaves at nothing.
+4. **A split is drawn as the player's fuzzball at its charge, 0,** as A3's
+   eighth choice left to S2, whatever fuzzball it split from.
+5. **The triple shot's mates wait beside the fuzzball, toward the floor's
+   middle,** `LAUNCH_GAP` and twice that from it, so both fit by either
+   side wall; the boon look flares in on them.
+6. **The fuzzball waits where `waitingX()` says, at once:** a fuzzball that
+   lands against a side wall moves up to a radius as it lands (V3's
+   eighth choice), uneased.
+7. **The notch ticks as the charge rises or falls, but to none,** while a
+   plain fuzzball waits: a hot shot's charge is always full, and a charge
+   keyed in flight shows on no meter.
+8. **The bolt runs from the zapper's middle to the furthest cell it reaches
+   each way, a piece a cell,** through cells it passes over without hitting
+   (steel, a gap), so it is one line; a piece whose middle lies over the
+   ceiling or under the floor isn't drawn, as nothing else is there. A zap
+   reaches only bricks in play, so only a view made by hand reaches there.
+9. **The flourishes are placed on the wall drawn the frame before,** where
+   the bricks still show, as the frame that reaches a flight's last events
+   hands over the wall that comes down, a step or a jump lower, drawn where
+   the flight's stood. The shards take the color of the brick it held, as
+   the view hands over the wall without it in the frame that breaks it, and
+   writes over a wall only two walls later; a brick no wall drawn held
+   throws none.
+10. **A swell is kept by field cell,** and let go as the wall that comes
+    down is handed over, when each field row shows another of the wall's.
+11. **The flash is a rectangle along the jump line,** a quarter of a unit
+    thick, fading from 0.8 over `FLASH_MS`, in the jump line's color; the
+    ring is baked at its widest, round the eight cells about the bomb's.
+12. **The guide's pools are 128 dots** and **31 outlines,** the cells a
+    straight line crosses on the deepest field. R6's dots lie
+    `GUIDE_DOT_GAP`, half a unit, apart: about 72 along the longest first
+    segment, about 24 units, and the 12 the debug menu runs the guide past
+    its turn at most. A guide of more would show its first 128.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+after the review, 4,293 tests in 80 files, and 3 in `sim`;
+`wall_scene.spec.ts` has 215. The scene's own files stand at 100% of
+statements, functions and lines and 98.8% of branches (the wall a
+flourish falls back on before the first frame), the painters at 99.6%,
+91.8% (the fallbacks of indexed reads the pools never miss), 100% and
+100%, within the scene's floors. The root's `yarn lint` passes.
+
+**The mutation pass.** 101 mutants of the eight files S2 touched, each
+run against the scene's specs: 80 were killed. Of the 21 that survived, 14
+were given specs and killed on a second run: the swell let go as the rows
+shift, a jump's warning frames, a triple shot's mates flaring, a fuzzball
+seen to fly off by no launch looking up, a yawn's look across, the guide
+drawn again for a new wall, the meter's angles (now checked at a large
+unit), the meter hidden as the fuzzball flies off, a hop's rise, a bolt
+under the floor, a ring's fade, and the events and beats a log held before
+the scene began. Two showed dead code: the swell's and the flare's ease
+end on exactly 1, so the branch for a hair off it went. Five are
+equivalent: the pool's break, which `drawOne()` guards anyway; a bolt's
+`step < reach` against `<=`, as each step is a half; the shake's flag,
+whose camera rests at 0 once it is over either way; and the cut over and
+under a cell, and the swell's guard, both of the wall painter the rebase
+replaced. After the rebase, 10 mutants of the wall painter's swell and its
+drawn brick: 8 killed, and 2 equivalent, the swell's end not reset, which
+sets the scale it already has, and its guard, as a `Float64Array` drops a
+write past its ends. After the review, 7 mutants of its fixes: the
+flourishes placed on the view's wall, the shards unscaled, unreserved and
+uncapped, and the flared eyes' offset three ways: all killed.
+
+**The review:**
+
+1. **A flight's last flourishes were placed a step or a jump under their
+   bricks,** on the wall the view hands over in the frame that reaches
+   them, which the wall painter draws where the flight's stood. Fixed: they
+   are placed on the wall drawn the frame before (choice 9), and a spec
+   plays a bolt and a ring in that frame.
+2. **The shards weren't scaled up past the atlas's largest unit.** Fixed:
+   the emitter scales them as each layout's baked scale has it, specced on
+   a large canvas.
+3. **The shards weren't a pool made once:** Phaser makes a particle when
+   none is spare. Fixed: 216 are reserved, and no more fly at once; a spec
+   breaks 38 bricks at once, and the 600 frames' spec counts the
+   particles too.
+4. **Nits.** Fixed: the friends' frames are named once, in the ball
+   painter; its frames are `FrameName`s; what only its own file reads is
+   no longer exported; `stand_ins.ts` names `Guide` alone; and a boon's
+   eyes flare in with it, as far from the middle as its size, specced.
