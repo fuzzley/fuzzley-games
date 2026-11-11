@@ -30,7 +30,7 @@ import type { Charge } from "../../rules/shot";
 import { MOST_CHARGE } from "../../rules/tuning";
 import type { WallPalette } from "../colors/palette";
 import { CHARGES, FRAMES, INKS } from "./frames";
-import { itemAt } from "./symbols";
+import { itemAt, turned } from "./symbols";
 
 /**
  * How wide the fuzzball's grid is drawn, in field units, as the art draws
@@ -133,13 +133,6 @@ function combed({ from, control, to }: Strand, share: number): Strand {
 const FUR: readonly (readonly Strand[])[] = CHARGES.map((charge) =>
   FUZZBALL_STRANDS.map((strand) => combed(strand, charge / MOST_CHARGE)),
 );
-
-/** Returns a point turned about the body's middle, by degrees clockwise. */
-function turned({ x, y }: Point, degrees: number): Point {
-  const cos = Math.cos((degrees * Math.PI) / 180);
-  const sin = Math.sin((degrees * Math.PI) / 180);
-  return { x: x * cos - y * sin, y: x * sin + y * cos };
-}
 
 /** A full charge's sparks, each a zigzag's points about the body's middle, on the fuzzball's grid. */
 const SPARKS: readonly (readonly Point[])[] = SPARK_TURNS.map((degrees, i) => {

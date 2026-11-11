@@ -29,6 +29,19 @@ export const ART_PALETTE = wallPalette(ROLES, "light");
  */
 export const PIXEL_RATIOS: readonly number[] = [1, 1.25, 1.5, 2, 2.625, 3];
 
+/**
+ * Returns every whole unit from 24 CSS pixels, the least the layout check
+ * allows, to 128 device pixels, the most the atlas is baked at, at a pixel
+ * ratio.
+ */
+export function everyScale(pixelRatio: number): readonly ArtScale[] {
+  const least = Math.ceil(24 * pixelRatio);
+  return Array.from({ length: 128 - least + 1 }, (_, i) => ({
+    unit: least + i,
+    pixelRatio,
+  }));
+}
+
 /** The scale the art's specs draw at, a unit of 31 CSS pixels at 2 device pixels to one, in full detail. */
 export const ART_SCALE: ArtScale = { unit: 62, pixelRatio: 2 };
 

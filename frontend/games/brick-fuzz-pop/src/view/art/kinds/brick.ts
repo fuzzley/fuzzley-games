@@ -61,6 +61,11 @@ export function tileBody(cell: Area): Area {
   return inset(cell, Math.min(gap, Math.floor((cell.width - 1) / 2)));
 }
 
+/** Returns how round a tile's corners are in its cell, in device pixels, which a frame laid over the tile follows. */
+export function tileRadius(cell: Area): number {
+  return cell.width * CORNER;
+}
+
 /**
  * Returns the chunky tile most kinds of brick are drawn on, in an ink: a
  * darker lip along its bottom, its body, and a lighter strip along its top,
@@ -69,7 +74,7 @@ export function tileBody(cell: Area): Area {
  */
 export function tileCommands(cell: Area, ink: number): readonly DrawCommand[] {
   const body = tileBody(cell);
-  const radius = cell.width * CORNER;
+  const radius = tileRadius(cell);
   const lip = Math.round(cell.width * LIP);
   return [
     roundRect({ ...body, y: body.y + lip, height: body.height - lip }, radius, {

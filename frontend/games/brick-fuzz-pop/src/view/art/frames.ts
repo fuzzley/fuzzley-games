@@ -13,7 +13,7 @@ export type Cracks = 1 | 2 | 3 | 4 | 5;
 /** Names a face of a brick a plate may cover. */
 export type PlateFace = "floorward" | "ceilingward" | "left" | "right";
 
-/** The hits a shell or moss brick has when whole, which its art shows. */
+/** How many pips a shell's or a moss brick's frame shows: its hits left, 2 or 3. */
 export type ThickHits = 2 | 3;
 
 /** Names a zapper's pattern, which its art draws: every pattern but the bomb's blast. */
@@ -38,7 +38,11 @@ export const FRAMES = {
   steel: "steel",
   /** One plate, over a tile, on a face. */
   plate: (face: PlateFace) => `plate-${face}` as const,
+  /** A shell brick's shell, core and bolt, which its pips lie over. */
+  shellBody: "shell-body",
+  /** A shell brick's row of pips for its hits left, from 2, over its body: one with a hit left shows none. */
   shell: (hits: ThickHits) => `shell-${hits}` as const,
+  /** A moss brick's die of pips for its hits left, from 2, below its cap: one with a hit left shows none. */
   moss: (hits: ThickHits) => `moss-${hits}` as const,
   /** The cap of moss over a moss brick's tile. */
   mossCap: "moss-cap",
@@ -84,7 +88,8 @@ export const CRACKS = [1, 2, 3, 4, 5] as const satisfies readonly Cracks[];
 /** Every charge a fuzzball's frame shows, in order. */
 export const CHARGES = [0, 1, 2, 3, 4, 5] as const satisfies readonly Charge[];
 
-const THICK_HITS = [2, 3] as const satisfies readonly ThickHits[];
+/** Every count of pips a shell's or a moss brick's frame shows, in order. */
+export const THICK_HITS = [2, 3] as const satisfies readonly ThickHits[];
 
 /** Every frame the atlas holds, each family's in the order of its builder's argument. */
 export const FRAME_NAMES: readonly FrameName[] = [
@@ -95,6 +100,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   ...(["floorward", "ceilingward", "left", "right"] as const).map((face) =>
     FRAMES.plate(face),
   ),
+  FRAMES.shellBody,
   ...THICK_HITS.map((hits) => FRAMES.shell(hits)),
   ...THICK_HITS.map((hits) => FRAMES.moss(hits)),
   FRAMES.mossCap,

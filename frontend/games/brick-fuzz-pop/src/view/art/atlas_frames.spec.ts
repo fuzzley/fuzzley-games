@@ -11,9 +11,12 @@ import {
   ART_SCALE,
   PIXEL_RATIOS,
 } from "../../testing/art_frames";
+import { BRICK_ART, type KindArt } from "./art";
 import { atlasFrames } from "./atlas_frames";
 import { CHARGES, FRAMES, FRAME_NAMES, INKS } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
+import { MOSS_ART } from "./kinds/moss";
+import { SHELL_ART } from "./kinds/shell";
 import { cracksFrame } from "./kinds/tough";
 import { cellOf } from "./symbols";
 
@@ -36,6 +39,26 @@ const ART_SCALES: readonly ArtScale[] = [
   { unit: 128, pixelRatio: 1 },
   { unit: 128, pixelRatio: 3 },
 ];
+
+/**
+ * The art of kinds the catalog doesn't have yet, by the id each will take,
+ * which the atlas holds once `BRICK_ART` takes it up with its kind: held to
+ * the atlas's rules meanwhile, and passed over once it is taken up.
+ */
+const WAITING_ART: Readonly<Record<string, KindArt>> = {
+  shell: SHELL_ART,
+  moss: MOSS_ART,
+};
+
+/** Returns every frame the atlas holds at a scale, and those of the art waiting for its kinds. */
+function everyFrame(scale: ArtScale): readonly ArtFrame[] {
+  return [
+    ...atlasFrames(ART_PALETTE, scale),
+    ...Object.entries(WAITING_ART)
+      .filter(([kind]) => !(kind in BRICK_ART))
+      .flatMap(([, art]) => art.frames(ART_PALETTE, scale)),
+  ];
+}
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
@@ -75,9 +98,9 @@ function breaking(
 }
 
 describe.each(ART_SCALES)(
-  "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
+  "atlasFrames, and the art waiting for its kinds, at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
-    const frames = atlasFrames(ART_PALETTE, scale);
+    const frames = everyFrame(scale);
     const fuzzballs = new Set(
       fuzzballFrames(ART_PALETTE, scale).map(({ name }) => name),
     );
@@ -139,8 +162,8 @@ describe.each(ART_SCALES)(
 describe("atlasFrames", () => {
   const frames = ART_FRAMES;
 
-  it("names every frame once, each a frame's name", () => {
-    const names = frames.map((frame) => frame.name);
+  it("names every frame once, each a frame's name, the art waiting for its kinds among them", () => {
+    const names = everyFrame(ART_SCALE).map((frame) => frame.name);
     const known = new Set<string>(FRAME_NAMES);
 
     expect({
@@ -181,7 +204,7 @@ describe("atlasFrames", () => {
 });
 
 describe.each(PIXEL_RATIOS)(
-  "atlasFrames at every unit from 1 to 16 device pixels, %f to a CSS pixel",
+  "atlasFrames, and the art waiting for its kinds, at every unit from 1 to 16 device pixels, %f to a CSS pixel",
   (pixelRatio) => {
     const scales = Array.from({ length: 16 }, (_, i) => ({
       unit: i + 1,
@@ -190,7 +213,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("draws nothing at a size below nothing", () => {
       const negative = scales.flatMap((scale) =>
-        breaking(atlasFrames(ART_PALETTE, scale), (frame) =>
+        breaking(everyFrame(scale), (frame) =>
           frame.commands.every((command) =>
             sizesIn(command).every((size) => size >= 0),
           ),
@@ -201,9 +224,7 @@ describe.each(PIXEL_RATIOS)(
     });
 
     it("packs into an atlas", () => {
-      const packs = scales.map((scale) =>
-        atlasSize(atlasFrames(ART_PALETTE, scale)),
-      );
+      const packs = scales.map((scale) => atlasSize(everyFrame(scale)));
 
       expect(packs.every(({ width, height }) => width > 0 && height > 0)).toBe(
         true,

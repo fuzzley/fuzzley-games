@@ -837,3 +837,159 @@ guide draws again on, and the field drawn first.
 3. **Nit.** `CountClearance`'s doc said where the count stands, and the
    guide's field `count` read as a number. Fixed: the doc says whether a
    dot would crowd it, and the field is `countClearance`.
+
+### X3a: the shell's and the moss's art, unwired
+
+**2026-11-11.**
+
+The integrator moved this ahead of the testing skill: the X streams can't
+catalog a kind until its art exists, and X3's view stream waits on the
+shell's and the moss's. `BRICK_ART` satisfies a record of the catalog's
+kinds, which refuses art for a kind the catalog hasn't as firmly as a
+cataloged kind without art, so the art is committed unwired: the view
+stream adds the two lines to `BRICK_ART` with its catalog commit.
+
+**What was built.**
+
+- **`src/view/art/kinds/shell.ts`:** `SHELL_ART`, after `shell()` in
+  `make-art.mjs`. Its body (`shell-body`) is the chunky tile in the shell's
+  body color, a core in its face's, its edges on whole pixels, and a
+  bolt cut out of the core in its glyph's; its pips (`shell-2`,
+  `shell-3`) a row of them under the bolt. A shell shows its body, and its
+  pips while it has two hits left or more; its shards take its body.
+- **`src/view/art/kinds/moss.ts`:** `MOSS_ART`, after `moss()`. Its cap
+  (`moss-cap`) covers the tile's top, round its corners, to a foot of six
+  scallops, flush with the tile's edges, each over a shadow in the green
+  darkened, with a sprout cut out of it, a stem round at its ends and two
+  leaves; its pips (`moss-2`, `moss-3`) a die's face under the cap. A
+  moss brick shows the plain brick's tile in amber (`MOSS_TINT`), which is
+  the moss's body in every palette, its cap, and its pips while it has two
+  hits left or more.
+- **`src/view/art/kinds/brick.ts`:** `tileRadius()`, the tile's corners,
+  which the cap follows, exported from what `tileCommands()` used.
+- **`src/view/art/symbols.ts`:** `turned()`, a point turned about the
+  origin, moved from `fuzzball_art.ts`, where it was the fuzzball's own,
+  so the moss's leaves share it.
+- **`src/view/art/frames.ts`,** a contract file, gains two names and three
+  docs: `FRAMES.shellBody` (`shell-body`), in `FRAME_NAMES` before the
+  shells' pips, and `THICK_HITS`, exported as `PIPS` and `CRACKS` are; docs
+  on `FRAMES.shell` and `FRAMES.moss`, which say their frames are the pips;
+  and `ThickHits`' doc reworded to say its counts are the hits left. No
+  name changed.
+- **Specs:** `shell.spec.ts` and `moss.spec.ts` beside them, and
+  `atlas_frames.spec.ts` holds the art waiting for its kinds
+  (`WAITING_ART`) to the atlas's rules (within its cell, sized as a cell,
+  lines a CSS pixel wide, nothing below nothing, the atlas packed under
+  2048, every frame named once), passing over each once `BRICK_ART` takes
+  it up. `src/testing/art_frames.ts` gains `everyScale()`, every whole unit
+  from 24 CSS px to 128 device px at a pixel ratio, which both specs check
+  the art at.
+
+**Choice 1: the pips count the hits left, the frames' counts from 2.** The
+plan gives `shell-<2|3>` and `moss-<2|3>`, and `ThickHits`'s doc calls 2
+and 3 the hits a shell or moss has whole, which its art shows. Shown as
+whole hits, a hit taken would read only by a crack, and the cracks drop
+under 30 CSS px, so a shell's damage and a moss's regrowth wouldn't read at
+the smallest fields. So each count is the pips for the hits left, as a
+tough brick's die shows them, none at the last hit, as the tough brick
+shows none ("the tile alone says one more breaks it"); a moss's grown-back
+hit reads as a pip come back at every scale. `ThickHits`' doc, which said
+the hits when whole, now says the hits left; only `FRAMES.shell()` and
+`FRAMES.moss()` take one, and only this art calls them.
+
+**Choice 2: the shell's body is a frame of its own, `shell-body`,** a name
+added: with the pips frames by count, a shell at its last hit needs a frame
+with none. Its tile is its own, as steel's is, rather than the plain teal
+tile under a frame, as a dark palette lightens the shell past its ink. The
+design's larger bolt at the last hit is left out: the bolt stays put.
+
+**Choice 3: no cracks on either.** The design draws one crack through a
+shell; with the pips counting down, a crack says nothing more, and a tough
+brick's cracks would cross the shell's bolt and the moss's pips.
+
+**Choice 4: the moss's die sits a little higher and tighter** than the
+design's (middle 0.637 down rather than 0.645, a step of 0.14 rather than
+0.155), so each pip keeps a device pixel off the tile's lip and the
+scallops' shadows at every whole unit from 24 CSS px to 128 device px at
+each pixel ratio; at the design's, the lowest pip came 0.46 px from the lip
+at 24 CSS px and a ratio of 1.
+
+**Choice 5: the moss's tile is the plain brick's,** in amber, under the
+cap, as the plan's "the moss cap [is a frame] over a tile" has it; a spec
+holds the amber tile's ink to the moss's body in each of the four
+palettes, so the tile and the shards agree.
+
+**Choice 6: the moss's sprout sits a little lower** than the design's: its
+leaves' middles 0.141 down rather than 0.132, and its stem's top with them,
+0.179 rather than 0.17, so each leaf keeps a device pixel under the tile's
+top at every whole unit from 24 CSS px to 128 device px at each pixel
+ratio; at the design's, a leaf came 0.80 px from it at a cell of 24 px and
+0.85 px at 38, where the tile's gap rounds up to 2 px.
+
+**Names added,** in a contract file: `FRAMES.shellBody`, `THICK_HITS`
+(exported). Elsewhere: `SHELL_ART`, `MOSS_ART`, `MOSS_TINT`,
+`tileRadius()`, `turned()` (exported from `symbols.ts`, no longer
+`fuzzball_art.ts`'s own), and the specs' `everyScale()`.
+
+**For the view stream's catalog commit:** add `shell: SHELL_ART` and
+`moss: MOSS_ART` to `BRICK_ART` in the catalog's order, which `art.spec.ts`
+holds its keys to; `atlas_frames.spec.ts`'s `WAITING_ART` then passes over
+them, and can drop them; its list of the atlas's frames gains
+`shell-body`, `shell-2`, `shell-3`, `moss-cap`, `moss-2` and `moss-3` in
+the catalog's order, and that spec's title its count of them; and the
+workspace's `AGENTS.md` names `shell.ts` and `moss.ts` among the kinds'
+art.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+4,816 tests in 92 files, the shell's 39 and the moss's 45 among them, and
+150 in `sim`; the root's `yarn lint` passes. Looked at in a sheet of every
+frame in the four palettes at three scales, beside a tough brick, drawn
+from the frames' commands as SVG and kept out of the tree.
+
+**The mutation pass.** 58 mutants of the change, all killed. 44 of the
+first 47 were at once: each of the shell's core, bolt and pips moved,
+resized or uncentred, its edges left off whole pixels one at a time, each
+part drawn in another's ink, its layers off by one or with no body at the
+last hit, its shards in its face, the pips always 3; the moss's tint, cap
+foot, scallops (five, larger, spread past the tile, not flush), shadows
+(lower, lighter, of amber), stem (moved, wider), a leaf turned the other
+way, the die moved, spread or resized, each part in another's ink, its
+layers off by one or with no cap at the last hit, its shards in its face,
+the pips always 3; the tile's corners doubled; and `shell-body` left out
+of `FRAME_NAMES`. Three survived: a leaf longer, the leaves turned by a
+shear rather than a turn, and the cap's corners square. Two specs were
+added: every point of the cap lies on the tile's rounded edge, and every
+point of each leaf on its ellipse, turned; they kill those three, and two
+more, the cap's corners half as round and a leaf thinner. The review's
+fixes brought 9 more, all killed: `turned()` turning either way wrong, each
+leaf and the stem's top back at the design's height, a leaf not turned or
+placed a little large, and `everyScale()` one short or from the unit under
+24 CSS px, which first survived, as 24 CSS px is a whole unit at every ratio
+`PIXEL_RATIOS` lists, until its spec took a ratio of 1.1 too.
+
+**The review:** no functional bug; the numbers match `make-art.mjs` but
+for the choices named, and the art wires into `BRICK_ART` with the two
+lines.
+
+1. **`ThickHits`' doc still said the hits when whole,** beside docs saying
+   the frames count the hits left, so the catalog's stream might hand
+   `FRAMES.moss()` a brick's `full`. Fixed: it says the hits left (a doc,
+   not a name, and only this art calls the two builders), and Choice 1
+   says so; `FRAMES.moss`' pips lie "below" the cap, not "under" it, as
+   "over" and "under" say how frames stack.
+2. **No spec kept the leaves a pixel under the tile's top,** as Choice 4
+   does the pips: a leaf came 0.80 px from it at a cell of 24 px and 0.85
+   at 38. Fixed: a spec at every scale and ratio, and the sprout lowered
+   to clear it (Choice 6).
+3. **`turned()` copied the fuzzball art's.** Fixed: it lives in
+   `symbols.ts`, which the fuzzball's sparks and tongues and the moss's
+   leaves share, the leaves placed with `@fz/phaser/shapes`' `placed()`.
+   The zapper's `aboutMiddle()` is left as it is: it turns by a cosine and
+   a sine written out, so its quarter turn is exact.
+4. **Nits.** The specs' own scales and `everyScale()`: fixed, `ART_SCALE`
+   and `everyScale()` from `src/testing/art_frames.ts`; `framesAt()` stays
+   in each, as each reads its own kind's art. The `hits as 2 | 3` casts:
+   fixed, the tables `as const` and the lists `THICK_HITS`. The moss's
+   `SHADOW`, a share: fixed, `SHADOW_DARK`.
+5. **The handoff notes:** fixed, `BRICK_ART`'s two lines go in the
+   catalog's order, and the atlas spec's title counts the new frames.
