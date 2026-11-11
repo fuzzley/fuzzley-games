@@ -1,15 +1,40 @@
 import { eventsOf, flyPicture } from "../../../testing/flights";
 import { BRICK_KINDS, type BrickKinds } from "../../catalog/bricks";
 import type { ZapPattern } from "../../flight/events";
-import { ZAP_DELAY, ZAP_HITS } from "../../tuning";
+import type { Flown } from "../../flight/flight";
+import { MOST_DEPTH, ZAP_DELAY, ZAP_HITS } from "../../tuning";
 
-/** Returns the catalog with its row zapper zapping another pattern, a cell each way. */
-function zappingIn(pattern: ZapPattern): BrickKinds {
-  const traits = [{ kind: "zaps", pattern, hits: ZAP_HITS, reach: 1 }] as const;
-  return {
-    ...BRICK_KINDS,
-    rowZapper: { ...BRICK_KINDS.rowZapper, traits },
-  };
+/**
+ * Returns the catalog with its row zapper zapping in another pattern as far
+ * as given, standing in for the bomb (a blast a cell each way), the cross
+ * zapper (its row and its column, as far as the deepest field's ceiling) or
+ * the X zapper (its diagonals, three cells each way) until Sparks catalogs
+ * them.
+ */
+function zappingIn(pattern: ZapPattern, reach: number): BrickKinds {
+  const traits = [{ kind: "zaps", pattern, hits: ZAP_HITS, reach }] as const;
+  return { ...BRICK_KINDS, rowZapper: { ...BRICK_KINDS.rowZapper, traits } };
+}
+
+/** The catalog with its row zapper standing in for a bomb. */
+const BOMBS = zappingIn("blast", 1);
+
+/** The catalog with its row zapper standing in for a cross zapper. */
+const CROSSES = zappingIn("cross", MOST_DEPTH);
+
+/** The catalog with its row zapper standing in for an X zapper. */
+const XS = zappingIn("x", 3);
+
+/** Returns the wall cells a flight's zaps and blasts reached, each in turn. */
+function reachesOf(flown: Flown): (readonly number[])[] {
+  return eventsOf(flown, "zap").map(({ reaches }) => reaches);
+}
+
+/** Returns the wall cells that hold a brick once a flight is flown. */
+function standing(flown: Flown): number[] {
+  return flown.wall.bricks.flatMap((brick, cell) =>
+    brick === null ? [] : [cell],
+  );
 }
 
 // A fuzzball straight up from the floor meets a brick in field row 3 at 2.5,
@@ -45,13 +70,7 @@ describe("ZAPS_RULE", () => {
   it("zaps the bricks past steel in a row zapper's row, leaving the steel whole", () => {
     const flown = flyPicture({ picture: ["o.#.-.#.o"] });
 
-    expect([
-      eventsOf(flown, "zap").map(({ reaches }) => reaches),
-      flown.wall.bricks.map((brick) => brick?.kind ?? null),
-    ]).toEqual([
-      [[0, 8]],
-      [null, null, "steel", null, null, null, "steel", null, null],
-    ]);
+    expect([reachesOf(flown), standing(flown)]).toEqual([[[0, 8]], [2, 6]]);
   });
 
   it("zaps the bricks over steel in a column zapper's column as far as the ceiling, and none waiting over it", () => {
@@ -67,9 +86,7 @@ describe("ZAPS_RULE", () => {
 
     expect([
       eventsOf(flown, "zap").map(({ at, reaches }) => [at, reaches]),
-      flown.wall.bricks.flatMap((brick, cell) =>
-        brick === null ? [] : [cell],
-      ),
+      standing(flown),
     ]).toEqual([[[6.5 + ZAP_DELAY, [22, 31]]], [13, 40]]);
   });
 
@@ -89,20 +106,129 @@ describe("ZAPS_RULE", () => {
     ]);
   });
 
-  it.each([
-    ["blast", 10],
-    ["cross", 11],
-    ["x", 13],
-  ] as const)(
-    "throws as a zapper of the %s pattern breaks, which isn't played until level %i",
-    (pattern, level) => {
-      const kinds = zappingIn(pattern);
+  // The bomb stands in field row 4, its ring's lowest bricks in row 3 on
+  // either side of the fuzzball's way up; the brick two cells off is out of
+  // its reach.
+  it("blasts the bricks in the eight cells about a bomb half a unit after it breaks, breaking each", () => {
+    const flown = flyPicture({
+      picture: ["...ooo...", "..oo-o...", "...o.o..."],
+      kinds: BOMBS,
+    });
 
-      const flying = () => flyPicture({ picture: ["....-...."], kinds });
+    expect([
+      eventsOf(flown, "zap").map(({ at, cell, pattern }) => [
+        at,
+        cell,
+        pattern,
+      ]),
+      reachesOf(flown),
+      eventsOf(flown, "break").map(({ cell, by }) => [cell, by]),
+      standing(flown),
+    ]).toEqual([
+      [[3.5 + ZAP_DELAY, 13, "blast"]],
+      [[3, 5, 12, 14, 21, 22, 23]],
+      [
+        [13, "fuzzball"],
+        [3, "blast"],
+        [5, "blast"],
+        [12, "blast"],
+        [14, "blast"],
+        [21, "blast"],
+        [22, "blast"],
+        [23, "blast"],
+      ],
+      [11],
+    ]);
+  });
 
-      expect(flying).toThrow(
-        `A "${pattern}" zap is not until level ${String(level)}.`,
-      );
-    },
-  );
+  it("leaves the steel about a bomb whole", () => {
+    const flown = flyPicture({ picture: ["...#-#..."], kinds: BOMBS });
+
+    expect([reachesOf(flown), standing(flown)]).toEqual([[[]], [3, 5]]);
+  });
+
+  // The bomb stands in the field's top row, a brick waiting over it.
+  it("blasts no brick waiting over the ceiling", () => {
+    const flown = flyPicture({
+      picture: ["....o....", "...o-o..."],
+      lowestRow: 10,
+      kinds: BOMBS,
+    });
+
+    expect([reachesOf(flown), standing(flown)]).toEqual([[[3, 5]], [13]]);
+  });
+
+  it("sets off a bomb a blast breaks, half a unit after it", () => {
+    const flown = flyPicture({ picture: ["...--...."], kinds: BOMBS });
+
+    expect(eventsOf(flown, "zap").map(({ at, cell }) => [at, cell])).toEqual([
+      [2.5 + ZAP_DELAY, 4],
+      [2.5 + 2 * ZAP_DELAY, 3],
+    ]);
+  });
+
+  // The column zapper's zap breaks the bomb and leaves the tough brick
+  // between them with two hits, which the bomb's blast takes.
+  it("blasts the brick under a bomb a zap breaks", () => {
+    const flown = flyPicture({
+      picture: ["....-....", "....4....", "....|...."],
+      kinds: BOMBS,
+    });
+
+    expect([
+      reachesOf(flown),
+      eventsOf(flown, "break").map(({ cell, by }) => [cell, by]),
+    ]).toEqual([
+      [[13, 22], [13]],
+      [
+        [4, "fuzzball"],
+        [22, "zap"],
+        [13, "blast"],
+      ],
+    ]);
+  });
+
+  // The cross zapper stands in field row 1, steel in its row and over it,
+  // its column's bricks up to the ceiling nine rows over it, and one waiting
+  // over the ceiling.
+  it("zaps a cross zapper's row and its column, past steel and as far as the ceiling", () => {
+    const picture = [
+      "....o....",
+      ...Array<string>(8).fill("....o...."),
+      "....#....",
+      "o.#.-.o.o",
+    ];
+
+    const flown = flyPicture({ picture, lowestRow: 1, kinds: CROSSES });
+
+    expect([reachesOf(flown), standing(flown)]).toEqual([
+      [[0, 6, 8, 22, 31, 40, 49, 58, 67, 76, 85]],
+      [2, 13, 94],
+    ]);
+  });
+
+  // The X zapper stands in field row 4, a brick on each diagonal one, two
+  // and three cells off it, and four cells off it toward the ceiling; the
+  // fuzzball flies up between the bricks under it.
+  it("zaps an X zapper's diagonals three cells each way, past steel", () => {
+    const flown = flyPicture({
+      picture: [
+        "o.......o",
+        ".o.....o.",
+        "..#...o..",
+        "...o.o...",
+        "....-....",
+        "...o.o...",
+        "..o...o..",
+        ".o.....o.",
+      ],
+      lowestRow: 1,
+      kinds: XS,
+    });
+
+    expect([reachesOf(flown), standing(flown)]).toEqual([
+      [[1, 7, 11, 15, 21, 23, 39, 41, 51, 55, 61]],
+      [47, 63, 71],
+    ]);
+  });
 });

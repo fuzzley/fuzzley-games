@@ -28,7 +28,6 @@ const MOSS = toughWith({ kind: "regrows" });
 
 describe("TRAIT_RULES", () => {
   it.each<{ trait: BrickTrait; level: number }>([
-    { trait: { kind: "recharges" }, level: 14 },
     { trait: { kind: "frees" }, level: 15 },
   ])(
     "throws for the $trait.kind trait, which isn't played until level $level",

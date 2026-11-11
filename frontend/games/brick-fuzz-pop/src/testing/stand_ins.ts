@@ -7,6 +7,8 @@
 
 import { EARTHS_RULE } from "../rules/bricks/traits/earths";
 import { NEVER_RULE } from "../rules/bricks/traits/never";
+import { RECHARGES_RULE } from "../rules/bricks/traits/recharges";
+import { ZAPS_RULE } from "../rules/bricks/traits/zaps";
 import {
   BRICK_KINDS,
   type BrickKind,
@@ -66,25 +68,18 @@ export const CAGE: BrickKind = {
 };
 
 /**
- * Rules for specs for every trait the flight's hooks serve: steel's own,
- * which isn't hurt and earths a charge, and the rest made up: a zapper zaps
- * in any pattern, wool recharges, a cage frees a friend in ink 0, a bumper
- * kicks, a prism splits and a portal sends a fuzzball out of its twin;
- * plates, shells and moss do nothing.
+ * Rules for specs for every trait the flight's hooks serve: steel's, the
+ * zappers' and wool's own, steel not hurt and earthing a charge, a zapper
+ * zapping in its pattern and wool recharging the fuzzball that breaks it;
+ * and the rest made up: a cage frees a friend in ink 0, a bumper kicks, a
+ * prism splits and a portal sends a fuzzball out of its twin; plates,
+ * shells and moss do nothing.
  */
 export const STAND_IN_RULES: TraitRules = {
   never: NEVER_RULE,
   earths: EARTHS_RULE,
-  zaps: {
-    broken: (hooks, cell, _ball, { pattern, hits, reach }) => {
-      hooks.zap(cell, pattern, hits, reach);
-    },
-  },
-  recharges: {
-    broken: (hooks, cell, ball) => {
-      hooks.recharge(ball, cell);
-    },
-  },
+  zaps: ZAPS_RULE,
+  recharges: RECHARGES_RULE,
   frees: {
     broken: (hooks, cell) => {
       hooks.free(cell, 0);

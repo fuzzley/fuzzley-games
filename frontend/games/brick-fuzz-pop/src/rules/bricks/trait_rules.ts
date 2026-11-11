@@ -4,6 +4,7 @@ import { KICKS_RULE } from "./traits/kicks";
 import { NEVER_RULE } from "./traits/never";
 import { comesAt } from "./traits/not_until";
 import { PLATED_RULE } from "./traits/plated";
+import { RECHARGES_RULE } from "./traits/recharges";
 import { REGROWS_RULE } from "./traits/regrows";
 import { SHELLED_RULE } from "./traits/shelled";
 import { SPLITS_RULE } from "./traits/splits";
@@ -22,8 +23,7 @@ export const TRAIT_RULES: TraitRules = {
   never: NEVER_RULE,
   earths: EARTHS_RULE,
   zaps: ZAPS_RULE,
-  // Wool.
-  recharges: comesAt(14),
+  recharges: RECHARGES_RULE,
   // The cage.
   frees: comesAt(15),
   kicks: KICKS_RULE,

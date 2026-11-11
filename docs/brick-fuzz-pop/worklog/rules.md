@@ -1439,3 +1439,74 @@ its review and the numbers worth keeping.
      saying so, and its nine times set the heaviest later wall against
      Warm-up's lightest. Fixed: it names the reversal, and sets 580 hits
      against Plumb line's 282 and 29 rounds against 13.
+
+### X1, first piece: every zap's pattern, and wool's recharge
+
+- **Date.** 2026-11-11.
+- **Why two pieces.** The integrator's order: the art stream commits the
+  bomb's, wool's, the cage's and the zappers' new art unwired; once it is
+  merged, `sparks.ts` and `BRICK_ART`'s lines for the five land in one
+  commit, as `BRICK_ART` is typed over the catalog's ids. The traits come
+  first.
+- **Built.**
+  - `src/rules/bricks/traits/zaps.ts`: the rule hands every pattern to
+    `hooks.zap()`, its throw for the blast, the cross and the X gone, as
+    R4's choice 6 left it to do. `not_until.ts` now names only traits, its
+    message written in `comesAt()`, and its spec's trait to come is the
+    cage's.
+  - `src/rules/bricks/traits/recharges.ts`: `RECHARGES_RULE`, wool charging
+    the fuzzball that broke it to the most as it breaks; a zap's or a
+    blast's break charges none, as the hook ignores no fuzzball.
+    `TRAIT_RULES` takes it, and `trait_rules.spec.ts`' list of traits not
+    played yet is the cage's alone.
+  - `src/testing/stand_ins.ts`: `STAND_IN_RULES` zaps and recharges by the
+    real rules, which its copies had been.
+  - Specs: `zaps.spec.ts` flies the bomb's blast, about it, past steel,
+    under it once a zap breaks it, none over the ceiling, and a bomb set
+    off by a blast; the cross zapper's row and column, through steel, nine
+    rows up to the ceiling; and the X zapper's four diagonals, three cells
+    each way, through steel. `recharges.spec.ts` has a fuzzball punch on
+    through two bricks with the charge wool gave it, a hot shot and a
+    friend recharged, and a zap break wool, charging nothing.
+    `src/testing/flights.ts`' `flyPicture()` takes friends.
+  - `AGENTS.md`: the traits sentence. No contract's name is added or
+    changed.
+- **Choices.**
+  1. **Stand-ins until the catalog has the kinds.** The specs fly the row
+     zapper zapping as the bomb, the cross zapper and the X zapper will:
+     a blast a cell each way, the cross as far as `MOST_DEPTH`, the X
+     three cells. The catalog's commit flies the real ones.
+  2. **Wool recharges whichever fuzzball breaks it,** a friend's, a mate's
+     or a prism's two among them, as plan.md's "the fuzzball that broke
+     it" says, and a hot shot, already full, still shows the recharge.
+  3. **The cage waits.** `Hooks.free(cell, ink)` asks the cage's rule for
+     its friend's ink, but a rule is handed only the cell, the fuzzball and
+     the trait, and every cage's `tint` is 0, so no rule can give a level's
+     six friends six inks without a change to a contract; the integrator
+     decides how.
+- **Checks,** on `brick-fuzz-pop` at 61307b90 after the rebase: the
+  workspace's `lint` and `typecheck` pass; `test:coverage` passes 4,758
+  tests in 97 files in `dom` and `pure`, at the floors, and 150 in 20 in
+  `sim`; the root's `yarn lint` passes.
+- **The mutation pass.** 15 mutants, all killed: 9 of `zaps.ts`, five
+  swapping one new pattern for another, the blast dropped, the reach capped
+  at 8 and at 2, and one hit for two; 6 of `recharges.ts`, no fuzzball
+  recharged, the first for none, another cell, no recharge, and the
+  player's fuzzball recharged alone, two ways.
+- **The review:** a fresh agent found the code right, and every cell,
+  moment and charge the specs expect what `fly()` gives. Its points, all
+  taken:
+  1. Choice 2 had no spec: a rule recharging the player's fuzzball alone
+     passed. Fixed: a hot shot and a friend break wool, and the mutation
+     pass's last two mutants are that rule.
+  2. `not_until.spec.ts` still had wool's trait to come. Fixed: the cage's.
+  3. The X zapper's spec reached only its diagonals toward the ceiling,
+     and the bomb's "eight cells" held seven bricks, none under the bomb.
+     Fixed: the X zapper stands in field row 4, reaching all four ways; the
+     bomb's spec says bricks; and a bomb a zap breaks blasts the brick under
+     it.
+  4. Small things, all fixed: a comment's "beside" for two cells off; a
+     title saying steel is blasted where its reaches are none; `AGENTS.md`'s
+     stand-ins line; `notUntil()`'s one caller, folded into `comesAt()`; and
+     the mutation pass's count. The proof stream's copies of its own rules
+     in `STAND_IN_RULES` are the integrator's next ask.

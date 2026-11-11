@@ -144,13 +144,14 @@ helpers.
   hurts and whether it earths the charge. `trait_rules.ts`'s `TRAIT_RULES`
   holds each trait's rule, typed so a trait without one fails to compile,
   each in a file of its own under `traits/`: steel's `never` and `earths`,
-  the zappers' `zaps`, in a row or a column, the bumper's `kicks`, the
+  the zappers' and the bomb's `zaps`, in a row, a column, both, the
+  diagonals or a blast, wool's `recharges`, the bumper's `kicks`, the
   prism's `splits`, the portal's `teleports` and the plated brick's
   `plated`, a corner plated only where both its faces are, the shell's
   `shelled`, which only charge, a zap or a blast hurts, and moss's
   `regrows`, which does nothing in a flight. Each trait whose kinds come
-  later, and a zap's blast, cross and x, throws "not until level N"
-  (`traits/not_until.ts`) until its set is built.
+  later throws "not until level N" (`traits/not_until.ts`) until its set is
+  built.
 - **`src/rules/wall/`** — the wall. `wall.ts` holds `Brick`, `Wall` and a
   field's thirds (`thirdsOf()`: the jump, the jump line and the row a level
   opens on), with every depth a field has (`DEPTHS`) and whether a value is
@@ -654,8 +655,8 @@ What the specs share is in `src/testing/`:
 - `stand_ins.ts` holds kinds made up for specs, a bumper and a portal, and
   `STAND_INS`, the catalog with them in the row and column zappers' places,
   which a spec hands the rules; a prism, wool and a cage; `STAND_IN_RULES`,
-  the rules they are flown by, steel's own among them; and `struckOf()`, a
-  strike as a brick's rules see it.
+  the rules they are flown by, steel's, the zappers' and wool's own among
+  them; and `struckOf()`, a strike as a brick's rules see it.
 - `random_flights.ts` draws seeded flights at random walls
   (`randomFlight()`), each flown by its kinds' rules, and finds where a
   flight's fuzzballs come nearer a brick than they may

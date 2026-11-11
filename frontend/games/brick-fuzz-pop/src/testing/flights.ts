@@ -21,6 +21,8 @@ export interface PictureShot {
   readonly degrees?: number;
   readonly charge?: number;
   readonly hot?: boolean;
+  /** How many friends fly behind the shot: none unless given. */
+  readonly friends?: number;
   /** The kinds the picture's characters stand for: the catalog's unless given. */
   readonly kinds?: BrickKinds;
 }
@@ -33,12 +35,13 @@ export function flyPicture({
   degrees = 90,
   charge = 0,
   hot = false,
+  friends = 0,
   kinds = BRICK_KINDS,
 }: PictureShot): Flown {
   const wall = wallFrom(picture, { lowestRow });
   const aim = (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
   return fly(
-    { wall, depth: 11, x, aim, charge, hot, mates: 0, friends: 0 },
+    { wall, depth: 11, x, aim, charge, hot, mates: 0, friends },
     { bored: BORED, kinds, traits: TRAIT_RULES },
   );
 }
