@@ -1,4 +1,5 @@
 import type { Round, RoundStart } from "../rules/round/round";
+import type { Run } from "../rules/run/run";
 
 /** Names where a round stands: aimed, its flight played back, or the wall settling after it. */
 export type RoundPhase = "aiming" | "flying" | "settling";
@@ -24,14 +25,17 @@ export type RoundNews =
     };
 
 /**
- * Holds what the shell shows of a level in play beside its field: the
- * round aimed or in play, where it stands, the card over the level's end,
- * and the news not yet said.
+ * Holds what the shell shows of a run beside its field, a value each change
+ * replaces: the run, the round aimed or in play and where it stands, the
+ * card over the level's end, the news not yet said, and how the run is
+ * kept.
  *
  * A frame that changes none of them leaves it as it is, so a frame of play
  * makes nothing.
  */
 export interface RunState {
+  /** The run on the board. */
+  readonly run: Run;
   /** Where the round aimed, or in play, started. */
   readonly start: RoundStart;
   /** The round in play once it is released, until the next is aimed; else null. */
@@ -39,8 +43,14 @@ export interface RunState {
   readonly phase: RoundPhase;
   /** The card over the level's end, once its wait has run out; else null. */
   readonly card: Card | null;
+  /** Whether the card over the run's end has been put away, leaving the board to look at. */
+  readonly resultClosed: boolean;
   /** What the rounds came to that the announcer hasn't said yet, in order. */
   readonly news: readonly RoundNews[];
+  /** Whether the run is played on numbers the debug menu retuned, so it keeps no records. */
+  readonly tuned: boolean;
+  /** Whether the run's end set a new best score, as the records said as they kept it. */
+  readonly newBest: boolean;
 }
 
 /** Describes what a level's play holds, as the run's state takes it in: what `RoundPlay` holds. */
@@ -60,13 +70,30 @@ export interface RoundChange {
   readonly opens: Card | null;
 }
 
-/** Returns the state of a level as it begins, its first round aimed from where it starts. */
-export function newRunState(start: RoundStart): RunState {
-  return { start, round: null, phase: "aiming", card: null, news: [] };
+/**
+ * Returns the state of a run as it begins, or is taken up, its round aimed
+ * from where it starts, with nothing to say and no card.
+ */
+export function newRunState(
+  run: Run,
+  start: RoundStart,
+  tuned: boolean,
+): RunState {
+  return {
+    run,
+    start,
+    round: null,
+    phase: "aiming",
+    card: null,
+    resultClosed: false,
+    news: [],
+    tuned,
+    newBest: false,
+  };
 }
 
 /**
- * Returns a level's state with a frame of its play taken in: the round
+ * Returns a run's state with a frame of its play taken in: the round
  * aimed or in play and where it stands, the card the frame opened, and the
  * friends it freed and the round it brought to rest added to the news; or
  * the same state for a frame that changed none of them.
@@ -92,6 +119,7 @@ export function withFrame(
   for (const ink of freed) news.push({ kind: "freed", ink });
   if (settled !== null) news.push({ kind: "ended", round: settled });
   return {
+    ...state,
     start,
     round,
     phase,
@@ -100,7 +128,7 @@ export function withFrame(
   };
 }
 
-/** Returns a level's state with its news said, or the same state when there was none. */
+/** Returns a run's state with its news said, or the same state when there was none. */
 export function withNewsSaid(state: RunState): RunState {
   return state.news.length === 0 ? state : { ...state, news: [] };
 }
