@@ -35,8 +35,8 @@ const NO_CELLS: readonly number[] = [];
  * dots keep clear of.
  *
  * The guide asks as it draws, so the count must be drawn for the frame first,
- * and change only with the wall, the depth or the layout, which the guide
- * draws again on.
+ * and change only with the wall, the depth or the layout, which a guide
+ * that shows draws again on; one hidden asks nothing.
  */
 export interface CountClearance {
   /** Returns whether a dot some device pixels wide about a place on the canvas would crowd a dot of the jump line's count. */
@@ -47,7 +47,8 @@ export interface CountClearance {
  * Draws the guide: a dot at each of its places, on whole pixels, but where
  * it would crowd the jump line's count, and an outline round each brick the
  * shot would punch through, each from a pool made once, the rest hidden. It
- * draws them again only as the guide, the wall or the layout changes.
+ * draws them again only as the guide changes, or the wall or the layout
+ * under a guide shown.
  */
 export class GuidePainter implements Painter {
   /** A dot for each place the guide may show, made once. */
@@ -78,14 +79,19 @@ export class GuidePainter implements Painter {
     layer.add([...this.punches, ...this.dots]);
   }
 
-  /** Draws the guide the frame hands over, or hides it where none shows. */
+  /**
+   * Draws the guide the frame hands over, or hides it where none shows: a
+   * guide hidden stays hidden however the wall or the layout changes under
+   * it, as a flight's wall does.
+   */
   draw({ view, guide, shape, metrics, baked }: Readonly<PaintContext>): void {
     const drawn = this.drawn;
     if (
       guide === drawn.guide &&
-      view.wall === drawn.wall &&
-      metrics === drawn.metrics &&
-      shape.depth === drawn.depth
+      (guide === null ||
+        (view.wall === drawn.wall &&
+          metrics === drawn.metrics &&
+          shape.depth === drawn.depth))
     ) {
       return;
     }

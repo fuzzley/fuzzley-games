@@ -60,4 +60,22 @@ describe("FrameSounds", () => {
 
     expect(played(sounds)).toEqual([]);
   });
+
+  it("plays what it hears after a frame it played", () => {
+    const sounds = new FrameSounds(SOUNDS);
+    sounds.hear("tap", 0);
+    played(sounds);
+    sounds.hear("thud", 200);
+
+    expect(played(sounds)).toEqual([["thud", 200]]);
+  });
+
+  it("hears nothing of a sound not of the sprite", () => {
+    const sounds = new FrameSounds<string>(SOUNDS);
+    const plays: string[] = [];
+    sounds.hear("drum", 0);
+    sounds.playEach((name) => plays.push(name));
+
+    expect(plays).toEqual([]);
+  });
 });

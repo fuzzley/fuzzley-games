@@ -1,7 +1,12 @@
+import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import { MOST_CHARGE, RADIUS } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/frames";
-import { type Place, toCanvas } from "../../view/field/field_metrics";
+import {
+  type FieldMetrics,
+  type Place,
+  toCanvas,
+} from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
 import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
@@ -31,8 +36,15 @@ const PIPS = METER_DEGREES.map((degrees) => ({
 export class MeterPainter implements Painter {
   /** A pip for each notch of charge, made once, in the order they light. */
   readonly pips: readonly GameObjects.Image[];
-  /** Where the waiting fuzzball's middle is, written each frame. */
+  /** Where the waiting fuzzball's middle is, written each frame it is drawn. */
   private readonly middle: Place = { x: 0, y: 0 };
+  /** Where the fuzzball waited, the pips lit and the layout and the scale the meter was last drawn for, so a frame where none changed draws nothing; null where none waited, the pips hidden. */
+  private readonly drawn: {
+    waitingX: number | null;
+    lit: number;
+    metrics: FieldMetrics | null;
+    baked: ArtScale | null;
+  } = { waitingX: null, lit: 0, metrics: null, baked: null };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.pips = Array.from({ length: MOST_CHARGE }, () =>
@@ -41,7 +53,10 @@ export class MeterPainter implements Painter {
     layer.add([...this.pips]);
   }
 
-  /** Draws the meter under the waiting fuzzball, or hides it while none waits. */
+  /**
+   * Draws the meter under the waiting fuzzball, or hides it while none
+   * waits, as where it waits, the charge or the layout changes.
+   */
   draw({
     waitingX,
     boon,
@@ -49,11 +64,26 @@ export class MeterPainter implements Painter {
     metrics,
     baked,
   }: Readonly<PaintContext>): void {
+    const lit = boon === "hot" ? MOST_CHARGE : steer.charge;
+    const drawn = this.drawn;
     if (waitingX === null) {
+      if (drawn.waitingX === null) return;
+      drawn.waitingX = null;
       for (const pip of this.pips) pip.setVisible(false);
       return;
     }
-    const lit = boon === "hot" ? MOST_CHARGE : steer.charge;
+    if (
+      waitingX === drawn.waitingX &&
+      lit === drawn.lit &&
+      metrics === drawn.metrics &&
+      baked === drawn.baked
+    ) {
+      return;
+    }
+    drawn.waitingX = waitingX;
+    drawn.lit = lit;
+    drawn.metrics = metrics;
+    drawn.baked = baked;
     const scale = metrics.unit / baked.unit;
     const reach = METER_REACH * metrics.unit;
     const { x, y } = toCanvas(metrics, waitingX, RADIUS, this.middle);

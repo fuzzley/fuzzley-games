@@ -77,6 +77,15 @@ export interface Hop extends Playing {
   readonly eyes: GameObjects.Image;
 }
 
+/**
+ * Returns when a kind's last burst started while it still shows, or null
+ * once it is over: over by the same share of its time that hides it, so a
+ * frame never lets a kind go with one still showing.
+ */
+function stillShowing(started: number, now: number, ms: number): number | null {
+  return shareDone(started, now, ms) < 1 ? started : null;
+}
+
 /** Returns a burst's record over its image, hidden until it first plays. */
 function burstOf(image: GameObjects.Image): Burst {
   return {
@@ -125,6 +134,15 @@ export class EffectsPainter implements Painter {
   private shardScale = 1;
   /** How far a zap's bolt runs each way from its brick, in cells, by way: across × 3 + up, each −1 to 1, plus 4. */
   private readonly reaches = new Int32Array(9);
+  /**
+   * When the last of each kind of burst to start started, in the scene's
+   * time, or null once a frame has hidden it, so the frames when none of a
+   * kind shows go through none of its pool.
+   */
+  private readonly lastStarted: Record<
+    "streaks" | "bolts" | "rings" | "hops",
+    number | null
+  > = { streaks: null, bolts: null, rings: null, hops: null };
   /** The shape and the layout the flash was laid along the jump line for. */
   private flashed: {
     shape: FieldShape | null;
@@ -201,6 +219,7 @@ export class EffectsPainter implements Painter {
   /** Spreads a blast's ring from a place on the field, from a time. */
   ring(x: number, y: number, now: number): void {
     this.rings.play(x, y, now).image.setVisible(true);
+    this.lastStarted.rings = now;
   }
 
   /**
@@ -211,6 +230,7 @@ export class EffectsPainter implements Painter {
     const streak = this.streaks.play(x, y, now);
     streak.angle = Math.atan2(-dy, dx);
     streak.image.setVisible(true);
+    this.lastStarted.streaks = now;
   }
 
   /**
@@ -255,6 +275,7 @@ export class EffectsPainter implements Painter {
         piece.image.setVisible(true);
       }
     }
+    this.lastStarted.bolts = now;
   }
 
   /** Hops a friend freed in an ink from its cage's middle on the field down to the floor, from a time. */
@@ -262,6 +283,7 @@ export class EffectsPainter implements Painter {
     const hop = this.hops.play(x, y, now);
     hop.body.setFrame(INKED[ink] ?? FRAMES.friend(0)).setVisible(true);
     hop.eyes.setVisible(true);
+    this.lastStarted.hops = now;
   }
 
   /** Flashes the jump line, from a time. */
@@ -275,34 +297,71 @@ export class EffectsPainter implements Painter {
     this.shaken = true;
   }
 
-  /** Moves everything bursting on to the scene's time, and hides what is over. */
+  /**
+   * Moves everything bursting on to the scene's time, and hides what is
+   * over. A kind none of which shows is passed over whole, and a kind that
+   * shows is read by number, as a frame's round of a pool makes nothing,
+   * each of it moved on only if it shows.
+   */
   draw(context: Readonly<PaintContext>): void {
     const { now, metrics, baked } = context;
     const scale = metrics.unit / baked.unit;
-    for (const streak of this.streaks.all) {
-      this.burst(streak, STREAK_MS, now, metrics, scale);
+    const { lastStarted } = this;
+    if (lastStarted.streaks !== null) {
+      this.burstAll(this.streaks.all, STREAK_MS, now, metrics, scale);
+      lastStarted.streaks = stillShowing(lastStarted.streaks, now, STREAK_MS);
     }
-    for (const piece of this.bolts.all) {
-      this.burst(piece, BOLT_MS, now, metrics, scale);
+    if (lastStarted.bolts !== null) {
+      this.burstAll(this.bolts.all, BOLT_MS, now, metrics, scale);
+      lastStarted.bolts = stillShowing(lastStarted.bolts, now, BOLT_MS);
     }
-    for (const ring of this.rings.all) {
-      if (!ring.image.visible) continue;
-      const done = shareDone(ring.at, now, RING_MS);
-      this.placeOn(ring, metrics);
-      ring.image
-        .setScale(scale * ringScale(done))
-        .setAlpha(fadeAlpha(done))
-        .setVisible(done < 1);
+    if (lastStarted.rings !== null) {
+      const rings = this.rings.all;
+      const count = rings.length;
+      for (let at = 0; at < count; at++) {
+        const ring = rings[at];
+        if (!ring?.image.visible) continue;
+        const done = shareDone(ring.at, now, RING_MS);
+        this.placeOn(ring, metrics);
+        ring.image
+          .setScale(scale * ringScale(done))
+          .setAlpha(fadeAlpha(done))
+          .setVisible(done < 1);
+      }
+      lastStarted.rings = stillShowing(lastStarted.rings, now, RING_MS);
     }
-    for (const hop of this.hops.all) this.hopOn(hop, now, metrics, scale);
+    if (lastStarted.hops !== null) {
+      const hops = this.hops.all;
+      const count = hops.length;
+      for (let at = 0; at < count; at++) {
+        const hop = hops[at];
+        if (hop?.body.visible) this.hopOn(hop, now, metrics, scale);
+      }
+      lastStarted.hops = stillShowing(lastStarted.hops, now, HOP_MS);
+    }
     this.flashOn(context);
     this.shakeOn(now, metrics);
   }
 
+  /** Moves on each of a pool of streaks or pieces of bolt that shows, read by number. */
+  private burstAll(
+    bursts: readonly Burst[],
+    ms: number,
+    now: number,
+    metrics: FieldMetrics,
+    scale: number,
+  ): void {
+    const count = bursts.length;
+    for (let at = 0; at < count; at++) {
+      const burst = bursts[at];
+      if (burst?.image.visible) this.burst(burst, ms, now, metrics, scale);
+    }
+  }
+
   /**
-   * Places a streak or a piece of bolt on the canvas, turned, scaled and
-   * stretched along its length, fading through its time, and hides it
-   * once it is over.
+   * Places a streak or a piece of bolt showing on the canvas, turned,
+   * scaled and stretched along its length, fading through its time, and
+   * hides it once it is over.
    */
   private burst(
     burst: Burst,
@@ -311,7 +370,6 @@ export class EffectsPainter implements Painter {
     metrics: FieldMetrics,
     scale: number,
   ): void {
-    if (!burst.image.visible) return;
     const done = shareDone(burst.at, now, ms);
     this.placeOn(burst, metrics);
     burst.image
@@ -327,14 +385,13 @@ export class EffectsPainter implements Painter {
     burst.image.setPosition(x, y);
   }
 
-  /** Moves a freed friend along its hop to the floor, and hides it once it has landed. */
+  /** Moves a freed friend hopping along its hop to the floor, and hides it once it has landed. */
   private hopOn(
     hop: Hop,
     now: number,
     metrics: FieldMetrics,
     scale: number,
   ): void {
-    if (!hop.body.visible) return;
     const done = shareDone(hop.at, now, HOP_MS);
     const { x, y } = toCanvas(
       metrics,

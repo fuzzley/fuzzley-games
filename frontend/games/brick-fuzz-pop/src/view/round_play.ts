@@ -517,9 +517,11 @@ export class RoundPlay {
   private place(): void {
     const { balls } = this.shown;
     // Written by index and cut once, as an array's length set to 0 drops
-    // what it holds them in.
+    // what it holds them in; and read by number, as a frame's round of the
+    // fuzzballs makes nothing.
     let count = 0;
-    for (const state of this.balls) {
+    for (let ball = 0; ball < this.balls.length; ball++) {
+      const state = this.stateOf(ball);
       if (state.launched && !state.landed) {
         this.follow(state);
         balls[count++] = state.record;
@@ -682,12 +684,17 @@ function playedWall(): PlayedWall {
   return { bricks: [], rows: 0, lowestRow: 0 };
 }
 
-/** Copies a wall into a writable one, by cell, keeping the array it writes into. */
+/**
+ * Copies a wall into a writable one, by cell, keeping the array it writes
+ * into; by index, so the copy, made in a frame, makes nothing of its own.
+ */
 function copyWall(from: Wall, into: PlayedWall): void {
   const { bricks } = into;
-  let cell = 0;
-  for (const brick of from.bricks) bricks[cell++] = brick;
-  bricks.length = cell;
+  const cells = from.bricks.length;
+  for (let cell = 0; cell < cells; cell++) {
+    bricks[cell] = from.bricks[cell] ?? null;
+  }
+  bricks.length = cells;
   into.rows = from.rows;
   into.lowestRow = from.lowestRow;
 }
