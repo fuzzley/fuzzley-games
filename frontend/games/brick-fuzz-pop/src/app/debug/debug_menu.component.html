@@ -1,0 +1,61 @@
+<fz-debug-tuning
+  [sliders]="sliders()"
+  [lines]="lines()"
+  (tune)="tune($event)"
+  (resetNumbers)="resetNumbers()"
+>
+  <p class="setting-desc status" role="status">{{ status() }}</p>
+
+  <div class="setting">
+    <label class="setting-label" for="debug-depth">The field's depth</label>
+    <select
+      #depth
+      id="debug-depth"
+      class="depth"
+      aria-describedby="debug-depth-desc"
+      (change)="chooseDepth(depth.value)"
+    >
+      @for (option of depths(); track option.value) {
+        <option [value]="option.value" [selected]="option.chosen">
+          {{ option.name }}
+        </option>
+      }
+    </select>
+    <p class="setting-desc" id="debug-depth-desc">
+      Taken between rounds, as a resized window's is, so every depth can be
+      tried in one window. Reset the numbers leaves it.
+    </p>
+  </div>
+
+  <div class="setting-check">
+    <input
+      #open
+      id="debug-every-level"
+      type="checkbox"
+      aria-describedby="debug-every-level-desc"
+      [checked]="everyLevelOpen()"
+      (change)="openEveryLevel(open.checked)"
+    />
+    <label for="debug-every-level">Open every level</label>
+    <p class="setting-desc" id="debug-every-level-desc">
+      The Levels dialog offers each level, locked or not, and a run begun at a
+      locked one keeps no records. Reset the numbers leaves it.
+    </p>
+  </div>
+
+  <div class="setting certificate">
+    @if (certificate()) {
+      <button
+        type="button"
+        class="fz-button"
+        aria-describedby="debug-certificate-desc"
+        (click)="playCertificate.emit()"
+      >
+        Play the certificate
+      </button>
+    }
+    <p class="setting-desc" id="debug-certificate-desc">
+      {{ certificateWords() }}
+    </p>
+  </div>
+</fz-debug-tuning>

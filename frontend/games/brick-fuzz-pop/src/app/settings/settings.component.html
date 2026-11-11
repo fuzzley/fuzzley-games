@@ -87,4 +87,11 @@
     <span class="setting-label" aria-hidden="true">Theme</span>
     <fz-theme-picker />
   </div>
+
+  @if (debugMenu) {
+    <app-debug-menu
+      [certificate]="certificate()"
+      (playCertificate)="playCertificate.emit()"
+    />
+  }
 </fz-settings-drawer>

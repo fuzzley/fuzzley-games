@@ -1,0 +1,32 @@
+@use "../styles" as *;
+
+// The settings as the drawer draws them, for the controls this component
+// projects into the menu, whose rules stop at its edge.
+@include setting-fields;
+
+:host {
+  display: block;
+}
+
+// The certificates' and the records' word, under the sliders; a status
+// line that stays in place, empty, so a change to it is read.
+.status {
+  margin-bottom: var(--fz-space-5);
+}
+
+.depth {
+  min-height: var(--fz-tap-target);
+  padding: 0 var(--fz-space-3);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-sm);
+  background: var(--fz-panel-raised);
+  color: var(--fz-text);
+  font: inherit;
+
+  // Safari on a phone zooms into a list it focuses whose text is under 16px.
+  font-size: max(1rem, var(--fz-font-sm));
+}
+
+.certificate {
+  margin-top: var(--fz-space-5);
+}
