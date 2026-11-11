@@ -58,13 +58,15 @@ arithmetic every engine rounds alike besides (`exact: true`): `+`, `-`,
 fixes, `Math.sqrt()` among them, with no `**` and no constant such as
 `Math.PI`, so a certificate found in Node holds in every browser. The
 specs' helpers `eslint.config.js` names in `HELD_AS_RULES` are held as the
-rules are, to their fence and their exact arithmetic, from the commit that
-writes each: `src/testing/wall_picture.ts`, `src/testing/wall_score.ts`,
+rules are, to their fence and their exact arithmetic:
+`src/testing/wall_picture.ts`, `src/testing/wall_score.ts`,
 `src/testing/solver.ts`, `src/testing/casual.ts`,
 `src/testing/kept_run.ts`, and the scripts' `src/testing/script_api.ts`,
 `src/testing/certify_api.ts`, `src/testing/report_api.ts` and
-`src/testing/screenshot_api.ts`. Every other file of `src/testing/` takes
-Angular by type alone.
+`src/testing/screenshot_api.ts`. `tools/eslint_config.spec.ts` holds each
+to every pattern of the rules' import fence, which the helpers' block
+after it, setting the same rule, would otherwise replace. Every other file
+of `src/testing/` takes Angular by type alone.
 
 ## Layout
 

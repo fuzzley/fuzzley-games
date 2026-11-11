@@ -1,5 +1,3 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import {
   angular,
   phaser,
@@ -17,7 +15,8 @@ import { defineConfig } from "eslint/config";
 // Node runs them as it runs the rules, and a certificate found in Node holds
 // in every browser only if they keep to the same exact arithmetic. A file
 // of src/testing/ off this list is held only to the helpers' fence below.
-const HELD_AS_RULES = [
+/** @type {readonly string[]} */
+export const HELD_AS_RULES = [
   "src/testing/solver.ts",
   "src/testing/casual.ts",
   "src/testing/wall_score.ts",
@@ -28,15 +27,6 @@ const HELD_AS_RULES = [
   "src/testing/report_api.ts",
   "src/testing/screenshot_api.ts",
 ];
-
-// Those written so far: phaserGameLayers() refuses a file the workspace
-// doesn't have, and each is held from the commit that writes it. A file
-// written under another name than the list's is held by nothing, so the
-// integrator checks each against the list as it merges; once all nine
-// exist, the filter goes and the library's check for a missing file is back.
-const HELD = HELD_AS_RULES.filter((file) =>
-  existsSync(join(import.meta.dirname, file)),
-);
 
 export default defineConfig(
   typescript({
@@ -98,7 +88,7 @@ export default defineConfig(
   // in Node holds in every browser; the messages speak of the rules and the
   // view alone.
   phaserGameLayers({
-    heldAsRules: { root: import.meta.dirname, files: HELD },
+    heldAsRules: { root: import.meta.dirname, files: HELD_AS_RULES },
     exact: true,
   }),
   // The specs' helpers take Angular by type alone, so they declare nothing
@@ -108,7 +98,7 @@ export default defineConfig(
   // as the rules are hold to the rules' fence instead.
   {
     files: ["src/testing/**/*.ts"],
-    ignores: ["**/*.spec.ts", ...HELD],
+    ignores: ["**/*.spec.ts", ...HELD_AS_RULES],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
         "error",

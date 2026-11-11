@@ -1901,3 +1901,69 @@ waiting. Next shot: hot shot."
    rows._ Taken: "The wall jumped 3 rows, with 5 rows waiting."
 6. _`Array<string>(14).fill(…)` where the specs build rows with
    `Array.from()`._ Taken.
+
+### Every file held as the rules are, and the list's filter gone
+
+**2026-11-11.** At the integrator's word, which made `eslint.config.js`,
+a contract file, mine to edit for this.
+
+**What was built.** All nine files `HELD_AS_RULES` names exist, so the
+config hands the list to `phaserGameLayers()` whole, dropping the
+`existsSync()` filter and its comment: a name the workspace lacks fails
+the lint again, as the library's check says. The list is exported, typed
+`readonly string[]`, and `tools/eslint_config.spec.ts` holds each file it
+names to every pattern of the rules' import fence, as errors, read from
+the config ESLint works out for the file (`calculateConfigForFile()`).
+`AGENTS.md`'s paragraph on the held files drops "from the commit that
+writes each" and says what the spec holds and why;
+`tsconfig.node.json`'s comment names the spec among those it checks.
+
+**Choices the plan didn't make.**
+
+1. **A spec of the config,** which no game has had. The mutation pass
+   found why it is needed: the helpers' fence, a later block, sets the
+   same rule, so a held file it didn't pass over would take its options in
+   place of the rules', and lint would let it import the shell. The spec
+   reads the config, rather than lints a file, so it runs in about a
+   second.
+2. **It sits in `tools/`,** not beside `eslint.config.js`, as no project,
+   tsconfig or lint block takes a spec at the workspace's top, and
+   `tools/` holds the specs that run in Node beside the scripts.
+3. **It holds the held files to a rules file's patterns,** those of
+   `src/rules/run/run.ts`, rather than to a copy of them, so a pattern the
+   rules gain is asked of the held files too; and it throws where a file
+   has no fence, or one only warning, so two empty fences don't hold.
+
+**Checks.** `@fz/dev`'s and the workspace's `lint`, `typecheck` and
+`test:coverage` (`--maxWorkers=4`), and the root's `yarn lint`, pass with
+the next entry's change: the workspace's 105 files and 4891 tests, and
+`sim`'s 150.
+
+**The mutation pass.** 4 mutants, all killed: a held file named as one
+the workspace lacks (lint refuses it: "names "src/testing/report.ts",
+which the workspace doesn't have"); the helpers' fence no longer passing
+over the held files (lived until the spec: lint passed a held file
+importing the shell; now 9 of the spec's 9 fail); the solver left off the
+list handed to `phaserGameLayers()` (the spec's solver row fails); and a
+block after the others setting the fence to "warn" over `src/testing/`
+(9 of 9 fail, "doesn't refuse … imports as errors").
+
+**The review:**
+
+1. _The spec passes a later block that turns the fence off or to "warn",
+   as it reads the options alone._ Taken: it throws unless the rule's
+   severity is 2, which the fourth mutant now holds.
+2. _`AGENTS.md`'s sentence ties the spec to the last files listed, and
+   "every fence" claims more than it checks._ Taken: a sentence of its
+   own, "every pattern of the rules' import fence", and why; the spec's
+   title says the same.
+3. _The spec isn't beside the file it tests, and nothing says why;
+   `tsconfig.node.json`'s comment names only the scripts' specs._ Taken:
+   choice 2 above, and the comment names it.
+4. _The exported list is a mutable `string[]`._ Taken: typed
+   `readonly string[]`, as `build-sounds.mjs`' `RECIPES` is.
+5. _The entry's checks pointed at another entry's, still empty._ Taken.
+
+The reviewer also noted, outside this change, that Asteroid Breaker's
+`eslint.config.js` has the same later helpers' block over its own held
+files and no such spec; that is for the integrator.
