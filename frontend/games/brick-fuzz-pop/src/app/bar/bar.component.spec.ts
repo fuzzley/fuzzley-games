@@ -1,17 +1,12 @@
-import { TestBed } from "@angular/core/testing";
 import type { RunStage } from "@fz/core/run";
 import { installFakeViewport, openBarMenu } from "@fz/game-ui/testing";
-import { cssHex } from "@fz/phaser/color";
-import type { ThemeId } from "@fz/style/themes";
-import { ThemeService } from "@fz/ui/theme";
 import { figure, figureValue } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import type { Mock } from "vitest";
-import { friendInk } from "../../view/colors/inks";
 import { BarComponent } from "./bar.component";
 
-/** Green, the fourth of the friends' inks, which differs between the modes. */
+/** Green, the fourth of the friends' inks. */
 const GREEN = 3;
 
 /** Blue, the sixth of the friends' inks. */
@@ -63,13 +58,7 @@ interface RenderedBar {
   readonly heard: Readonly<Record<Output, Mock<() => void>>>;
   /** What Fast-forward asked for, each press's wish to play fast or not. */
   readonly fastAsked: boolean[];
-  /** Puts a palette on the page. */
-  readonly choosePalette: (theme: ThemeId) => void;
 }
-
-afterEach(() => {
-  Reflect.deleteProperty(document.documentElement.dataset, "theme");
-});
 
 /** Renders the bar, handed a level mid-flight but for what a spec says, and listens to it. */
 async function renderBar(
@@ -86,7 +75,7 @@ async function renderBar(
     openSettings: vi.fn(),
   };
   const fastAsked: boolean[] = [];
-  const { fixture } = await render(BarComponent, {
+  await render(BarComponent, {
     inputs: { ...MID_FLIGHT, ...inputs },
     on: {
       ...heard,
@@ -99,11 +88,6 @@ async function renderBar(
     user: userEvent.setup(),
     heard,
     fastAsked,
-    choosePalette: (theme) => {
-      TestBed.inject(ThemeService).select(theme);
-      TestBed.tick();
-      fixture.detectChanges();
-    },
   };
 }
 
@@ -200,35 +184,10 @@ describe("BarComponent", () => {
       expect(figure("Crew")).toBe("1 fuzzball");
     });
 
-    it("draws the player's fuzzball, then a fuzzball for each friend", async () => {
+    it("lines the crew up, the player's fuzzball among them", async () => {
       await renderBar();
 
-      expect(fuzzballsOf("Crew").map((ball) => ball.className)).toEqual([
-        "own",
-        "",
-        "",
-      ]);
-    });
-
-    it("draws each friend in its ink in a light palette", async () => {
-      const { choosePalette } = await renderBar();
-
-      choosePalette("classic");
-
-      expect(fuzzballsOf("Crew").slice(1)).toEqual([
-        expect.toHaveStyle({ color: cssHex(friendInk(GREEN, "light")) }),
-        expect.toHaveStyle({ color: cssHex(friendInk(BLUE, "light")) }),
-      ]);
-    });
-
-    it("draws each friend in its ink in a dark palette", async () => {
-      const { choosePalette } = await renderBar();
-
-      choosePalette("midnight");
-
-      expect(fuzzballsOf("Crew")[1]).toHaveStyle({
-        color: cssHex(friendInk(GREEN, "dark")),
-      });
+      expect(fuzzballsOf("Crew")).toHaveLength(3);
     });
 
     it("offers Pause, Fast-forward and Skip, then the rest, each round", async () => {

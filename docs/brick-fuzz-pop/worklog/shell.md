@@ -948,3 +948,117 @@ four errors the comments had silenced, so each override does its work.
    away from `angular()`, which it overrides. Fixed: each block has its own
    comment, the selector's after `angular()`, the list's after
    `templates()`.
+
+### U1's board cards
+
+**2026-11-10.** A piece of U1 beside the view stream's core, which owns the
+rest of `src/app/board/` and `GameService` and wires the cards in.
+
+**What was built.**
+
+- `src/app/board/board_card.component.ts`, `<app-board-card>`, modelled
+  on Asteroid Breaker's: the layer over the field, the canvas's own cards
+  projected first and none of its own while they show one. It takes `card`,
+  a `BoardCard` or null, and `pictures`, How to play's `HelpPictures` or
+  null, and emits `resumeRun` and `nextLevel`, each from a button with
+  `[fzKeepKeys]`. A `@switch` over the card's kind ends in
+  `@default never;`.
+  - **Ready** (`ReadyCard`: `level`, `name`, `boon`, `newKind`): "Level 3:
+    Thicker", what the level's jumps earn (`describeBoon()`), and the kind
+    of brick it brings in, its picture once the scene has drawn it, "New:
+    Tough brick." and what it does; on a phone on its side, "The game is
+    larger upright."
+  - **Paused** (`PausedCard`: `score`): "Paused", the score, Resume.
+  - **Cleared** (`ClearedCard`: `level`, `rounds`, `par`, `tally`,
+    `score`, `friends`): "Level 3 cleared", a gold star for each earned,
+    `starsFor()` the rounds against par, heard as "2 of 3 stars"; "7
+    rounds, par 9"; the bricks', jumps' and
+    stars' points, R7's `LevelTally`; the score; the crew lined up beside
+    "2 friends freed", where any were; Next level. The new kind's picture
+    is square, 36 px, as a brick is.
+- `src/app/bar/crew.component.ts`, `<app-crew>`: the crew row, the player's
+  fuzzball in the accent and each friend in its ink, `--crew-size` across,
+  which the bar and the Cleared card share. The bar's own crew markup and
+  its palette specs moved into it.
+
+**Choices the plan didn't make.**
+
+1. **One input carries the card and its numbers,** a union of the three
+   cards by `kind`, so what a card shows comes together and a card can't be
+   handed another's numbers; null shows none.
+2. **The kind a level brings in is handed over,** `newKind`, which the core
+   finds as the kind whose `firstLevel` is the level's number, so the card
+   reads no catalog by level.
+3. **Ready has no button,** as Asteroid Breaker's has none: the first move
+   starts the level. It stands at the top of the field, over the wall, as
+   the plan says, clear of the floor where the fuzzball waits, and the
+   layer takes no pointer but on a button, so a pull back can start over
+   it.
+4. **There is no card for an ended run,** which the breakers show once its
+   result is closed: the plan names Ready, Paused and Cleared alone, and
+   the result offers Try again and Choose a level. The core can ask for one.
+5. **The switch is over a `@let` of the card's kind,** not `card.kind`:
+   Angular's check for `@default never;` reads `card.kind` on a card
+   already narrowed to `never` and fails, while TypeScript narrows the card
+   through the alias. Both checks hold: a field of another card fails to
+   compile in a case, and so does a case left out.
+6. **The crew row is a component of the bar's folder,** which the card
+   imports, since the bar and the card draw it alike and `bar/` is the
+   folder of the app this stream owns that it fits. The panels' In this
+   wall will draw the crew too; a folder of its own, as Asteroid Breaker's
+   pilot row has, is the integrator's to make under `src/app/`.
+7. **On a small board the tally narrows to the card,** `min(14em, 100%)`,
+   where the breakers' 14em ran past a card 212 px wide, seen in headless
+   Chrome over a stand-in page with the three cards on boards of 360 by 640
+   and 260 by 460.
+
+**For the core agent.** The card reads the board's margin round the field
+as `--margin`, as Asteroid Breaker's does; the board projects its
+`<fz-canvas-cards>` into it; `resumeRun` and `nextLevel` should hand the
+board back the focus, which their button takes with its card; Cleared is
+for a level with another to come, the result covering a won run.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 3,795 tests in 64 files, 2 of them new; the card's
+26 specs and the crew's 5 are new, and the bar's 3 specs of the crew's
+inks became 1; the two new files at 100%. The root's `yarn lint` passes.
+
+**The mutation pass.** 22 mutants, one at a time, against the board's and
+the bar's specs: the upright line on every compact screen; the card's own
+shown over the canvas's; the paused and the cleared score ungrouped; the
+title without the name; the boon always the hot shot; the new kind
+ignored, its words its name, or no picture; a star short, or said against
+the stars earned; the rounds against the rounds; the jumps' and the
+stars' points crossed; friends freed though none were; Resume and Next
+level crossed, or letting their keys reach the board; and the crew always
+in the light inks, heard by a screen reader, or without the player. One
+survived, the boon always the hot shot, and a spec with the triple shot
+killed it. After the review, all 22 again, the stars' two read off the
+stars worked out, and 2 more, the stars from the par alone and the roomy
+bar without Levels: all 24 were killed.
+
+**The review:**
+
+1. **The crew's move took the bar's spec of its actions' order with it.**
+   Fixed: the spec is back, with a mutant, the roomy bar without Levels,
+   that it kills.
+2. **The new kind's picture was squashed to 2 by 1,** sized by How to
+   play's custom properties, which only How to play sets square. Fixed: 36
+   px square of its own.
+3. **The crew lives in `bar/` though the card, and later the panels, use
+   it.** Kept: a new folder under `src/app/` is the integrator's to make,
+   which the sixth choice now says, where it had leant on Asteroid
+   Breaker's pilot row, which has a folder of its own.
+4. **The Cleared card took its stars beside the rounds and par they come
+   from,** which could disagree. Fixed: the card works them out with
+   `starsFor()`, and `ClearedCard` has no `stars`.
+5. **`kind` named both the card's kind and the brick kind in the
+   template.** Fixed: the brick kind is `newKind`.
+6. **The tally's spec read the `<dd>` as the `<dt>`'s next node,** and a
+   helper only wrapped another. Fixed: `figures()`, and the one helper.
+7. **The canvas card's spec told the console of the failed scene and
+   checked only that the card was gone.** Fixed: as Brick Breaker's,
+   `collectErrors()`, `TestBed.inject()`, and the alert's words checked
+   with the card gone and the error told.
+8. **The class doc made the app's handing back of the focus follow from
+   the buttons keeping their keys.** Fixed: two sentences.

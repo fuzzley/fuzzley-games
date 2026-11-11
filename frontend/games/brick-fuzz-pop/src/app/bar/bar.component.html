@@ -25,7 +25,7 @@
       </div>
     }
     <div class="metric">
-      <dt><fz-fuzzball class="own" /><span class="label">Rounds</span></dt>
+      <dt><fz-fuzzball /><span class="label">Rounds</span></dt>
       <dd class="value">
         <span aria-hidden="true">{{ roundsShown() }}</span>
         <span class="fz-visually-hidden">{{ roundsText() }}</span>
@@ -45,12 +45,7 @@
       <div class="metric">
         <dt><span class="label">Crew</span></dt>
         <dd class="value">
-          <span class="crew">
-            <fz-fuzzball class="own" />
-            @for (color of friendColors(); track $index) {
-              <fz-fuzzball [style.color]="color" />
-            }
-          </span>
+          <app-crew class="crew" [friends]="friends()" />
           <span class="fz-visually-hidden">{{ crewText() }}</span>
         </dd>
       </div>

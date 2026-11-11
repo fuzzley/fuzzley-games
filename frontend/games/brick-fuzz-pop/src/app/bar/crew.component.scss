@@ -1,0 +1,17 @@
+// The fuzzballs on one line.
+:host {
+  display: flex;
+  gap: 2px;
+}
+
+// Each as the field draws it, the eyes in the field's color.
+fz-fuzzball {
+  --fz-fuzzball-eyes: var(--fz-field);
+
+  width: var(--crew-size, 1em);
+  height: var(--crew-size, 1em);
+}
+
+.own {
+  color: var(--fz-accent);
+}
