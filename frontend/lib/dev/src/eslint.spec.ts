@@ -27,6 +27,20 @@ const TSCONFIG = JSON.stringify({
   include: ["src"],
 });
 
+/**
+ * A block that keeps typescript-eslint from taking each lint for a single run.
+ *
+ * Where `CI` is `true`, as CI sets it, it takes each lint for one run of the
+ * command line and keeps the program it builds for each tsconfig.json for the
+ * rest of the process, so this file's lints, a workspace of their own each,
+ * would fill the worker's heap.
+ */
+const LONG_RUN: Config = {
+  languageOptions: {
+    parserOptions: { disallowAutomaticSingleRunInference: true },
+  },
+};
+
 /** The blocks a workspace whose code is all under src/ would use. */
 function workspace(root: string): Config[] {
   return [
@@ -107,7 +121,7 @@ async function lint(
     const eslint = new ESLint({
       cwd: root,
       overrideConfigFile: true,
-      overrideConfig: [...workspace(root), ...given],
+      overrideConfig: [...workspace(root), ...given, LONG_RUN],
     });
     const results = await eslint.lintFiles(Object.keys(files));
     return Object.fromEntries(
