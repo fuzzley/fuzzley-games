@@ -16,15 +16,15 @@ share
 and what adding a level, a set, a brick kind or a brick trait takes
 ([`brick-fuzz-pop-content`](.agents/skills/brick-fuzz-pop-content/SKILL.md)).
 
-The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
+The game was built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
-stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
-places the board, the bar, the dialogs, the settings drawer and the result
-card, each wired to the game, so a run can be played in the page, through
-the thirty-six levels of Warm-up, Sparks, Tricks and Thick walls. The site
-lists it as in development, its screenshots taken on level 18, the last of
-Sparks. What the plan's packages still to come build (the rest of D1, F1,
-Z1 and Z2) isn't here yet.
+stream's work logged under `docs/brick-fuzz-pop/worklog/`. The shell places
+the board, the bar, the dialogs, the settings drawer and the result card,
+each wired to the game, so a run can be played in the page, through the
+thirty-six levels of Warm-up, Sparks, Tricks and Thick walls. The site lists
+it with the other games, its screenshots taken on level 18, the last of
+Sparks. Of the plan's packages only Z2 is still to come: its last checks and
+the merge, after which the plan's folder moves to the archive.
 
 ## Technology Stack
 
@@ -716,10 +716,10 @@ installs `@fz/phaser/testing`'s headless Phaser first, so the scene's spec
 runs real Phaser, with a fake shell over the hand-made rounds; gives each
 test a store in memory; and stands in for the modal dialogs and
 `document.fonts`, which jsdom lacks. Coverage measures `dom` and `pure`
-together, to the floors `vitest.config.ts` sets (statements, branches,
-functions and lines): the rules and the view 100, 95, 100 and 100, the scene
-98, 92, 100 and 99, and the shell 98, 97, 97 and 98; `src/testing/` and the
-scripts have none, so what of them goes untested shows. This workspace's
+together, to the floors `vitest.config.ts` sets: the rules and the view to
+one near 100%, the scene and the shell to one a little under what their
+specs reach, so a part without specs fails the run, and `src/testing/` and
+the scripts to none, so what of them goes untested shows. This workspace's
 [`brick-fuzz-pop-testing`](.agents/skills/brick-fuzz-pop-testing/SKILL.md)
 skill covers its setup, coverage floors and fixtures, the certificates and
 the careless player's floors, what to do when a replay fails, and the
@@ -796,11 +796,18 @@ What the specs share is in `src/testing/`:
   still on, for the screenshots and the layout check to hand a page to
   take up.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
-  specs (`ART_FRAMES`), lists the pixel ratios they check the art at
-  (`PIXEL_RATIOS`) and every whole unit from 24 CSS px to 128 device px at
-  one (`everyScale()`), and measures how far a point lies from a line or
-  past a rounded rectangle, and how far a command reaches past one
-  (`reachPastRoundRect()`).
+  specs (`ART_FRAMES`), in roles each a color of its own (`ART_ROLES`:
+  Classic felt's, with a page of Soft pastel's, written out, which its spec
+  holds to the stylesheet, so importing them compiles no stylesheet), gives
+  every look a kind's brick can take (`looksOf()`), each tint, plating and
+  count of hits, which the art's spec finds every frame of in the atlas and
+  the scene's holds the wall painter's layers (`MOST_LAYERS`) to, lists the
+  pixel ratios they check the art at (`PIXEL_RATIOS`) and every whole unit
+  from 24 CSS px to 128 device px at one (`everyScale()`), rounds a number
+  or an area to a billionth (`billionths()`, `inBillionths()`), so two
+  worked out alike but for a rounding are equal, and measures how far a
+  point lies from a line or past a rounded rectangle, and how far a command
+  reaches past one (`reachPastRoundRect()`).
 - `canvases.ts` gives the canvas a board has in a window (`boardCanvas()`),
   less the bar or the rail (`CHROME_CSS_PX`, which its spec holds to
   `@fz/game-ui`'s Sass, the compact bar's through

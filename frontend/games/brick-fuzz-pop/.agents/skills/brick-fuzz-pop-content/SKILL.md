@@ -207,18 +207,19 @@ fails.
    levels reach it, so a kind is cataloged before its set's levels are
    built.
 
-The specs that take a new kind up on their own: the catalog spec's rules
-for every kind, the legend spec, the levels spec's laying out of every
-cataloged character, the art's specs over every kind and every frame, How
-to play's picture of every kind in `src/scene/wall_scene.spec.ts`, and the
-random flights and the reference cast, which draw from the catalog. The
-ones that list every kind, to edit with it: the catalog spec's ids in
-order, `src/rules/flight/cast.spec.ts`'s reaches and
-`src/rules/grid.spec.ts`'s shapes, `src/view/art/atlas_frames.spec.ts`'s
-frames in order, `src/view/colors/brick_colors.spec.ts`'s `TINTED` and
-`PAIRED` for a kind colored by its tint or its pair, and the spec that
-holds its set's kinds to plan.md's table, beside its kinds file or in the
-catalog spec.
+The specs that take a new kind up on their own: the catalog spec's rules for
+every kind, the legend spec, the levels spec's laying out of every cataloged
+character, the art's specs over every kind and every frame, How to play's
+picture of every kind in `src/scene/wall_scene.spec.ts`, and the random
+flights and the reference cast, which draw from the catalog. The ones that
+list every kind, to edit with it: the catalog spec's ids in order,
+`src/rules/flight/cast.spec.ts`'s reaches and `src/rules/grid.spec.ts`'s
+shapes, `src/view/art/atlas_frames.spec.ts`'s frames in order,
+`src/view/colors/brick_colors.spec.ts`'s `TINTED` and `PAIRED` for a kind
+colored by its tint or its pair, `src/testing/art_frames.ts`'s `looksOf()`,
+which gives a portal its pairs for tints and every other kind the eight
+inks, for one colored by its pair, and the spec that holds its set's kinds
+to plan.md's table, beside its kinds file or in the catalog spec.
 
 The specs that fly a stand-in for a kind from `src/testing/stand_ins.ts`,
 as the testing skill says, can move to the real kind's character, the

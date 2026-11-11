@@ -27,11 +27,11 @@ game keeps its own in its folder's `AGENTS.md`. Paths are relative to
   tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
 - **Its dev server has a port of its own,** which its screenshot script defaults
   to: 9000 is the Solitaire Collection's, 9001 Minesweeper's, 9002 Sudoku's,
-  9003 Snake's, 9004 Brick Breaker's, 9005 Asteroid Breaker's and 9006
-  Brick Fuzz Pop's, which is being built, so the next game takes 9007. It
-  opens no browser unless started with `--open` (`yarn dev --open`). The root's `yarn dev:all` runs it on one after the
-  site's instead, at `/play/<slug>/`, which the site's dev server serves, so
-  nothing the game loads may assume it sits at `/`.
+  9003 Snake's, 9004 Brick Breaker's, 9005 Asteroid Breaker's and 9006 Brick
+  Fuzz Pop's, so the next game takes 9007. It opens no browser unless started
+  with `--open` (`yarn dev --open`). The root's `yarn dev:all` runs it on one
+  after the site's instead, at `/play/<slug>/`, which the site's dev server
+  serves, so nothing the game loads may assume it sits at `/`.
 - **Its layout can be checked in a browser,** which jsdom can't: a
   `check:layout` script on `@fz/dev/layout` opens its build at each shape a
   game takes and fails on an error, a page that scrolls, or what its own

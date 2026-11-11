@@ -264,13 +264,23 @@ takes `SIM_TIMEOUT_MS` (`src/testing/timing.ts`) as its describe's
 
 ## The View
 
-- `src/testing/art_frames.ts` draws the atlas in one palette
-  (`ART_PALETTE`) at one scale (`ART_SCALE`), as `ART_FRAMES`, which the
-  art's specs search with `@fz/phaser/testing/pure`'s `frameNamed()` and
-  `drawnIn()`; `PIXEL_RATIOS` are the ratios they check the art at,
-  `everyScale()` every whole unit from 24 CSS px to 128 device px at one,
-  and `distanceToSegment()` and `pastRoundRect()` measure where a point
-  lies.
+- `src/testing/art_frames.ts` draws the atlas in one palette (`ART_PALETTE`)
+  at one scale (`ART_SCALE`), as `ART_FRAMES`, which the art's specs search
+  with `@fz/phaser/testing/pure`'s `frameNamed()` and `drawnIn()`;
+  `PIXEL_RATIOS` are the ratios they check the art at, `everyScale()` every
+  whole unit from 24 CSS px to 128 device px at one, `billionths()` and
+  `inBillionths()` round a number or an area to a billionth, so two worked
+  out alike but for a rounding are equal, `distanceToSegment()` and
+  `pastRoundRect()` measure where a point lies, `reachPastRoundRect()` how
+  far a command reaches past a rounded rectangle, and `looksOf()` gives
+  every look a kind's brick can take, each tint, plating and count of hits,
+  which `src/view/art/art.spec.ts` finds every frame of in the atlas and
+  `src/scene/wall_scene.spec.ts` holds the wall painter's layers
+  (`MOST_LAYERS`) to. The palette's roles (`ART_ROLES`) are Classic felt's,
+  but for its page, Soft pastel's, so each is a color no other role takes
+  and a spec tells the field from the page; they are written out, which
+  their spec holds to the stylesheet, so importing them compiles no
+  stylesheet.
 - `src/view/colors/contrast.spec.ts` reads each of the four palettes from
   the global stylesheet (`PALETTES`, in `src/testing/roles.ts`) and holds
   the field's inks to contrast in each.

@@ -2908,3 +2908,111 @@ second review:
 
 Its fixes correct the change rather than reshape it, so they had no third
 review.
+
+### Z1 and D1's numbers: the catalog's badge gone, and the docs as the game now stands
+
+**2026-11-11.** At the integrator's word, once the rules' charge fixes, the
+scene's scissor and the wall bake had merged, on `brick-fuzz-pop`'s tip.
+
+**What was built.**
+
+- **Z1.** The catalog entry in `frontend/site/src/app/provider/games.ts`
+  loses `inDevelopment: true`, so the site shows no "In development" badge
+  on the tile or the game page, and its build now requires the game's two
+  screenshots, which the game ships. No site spec held the real entry to
+  the flag: the specs of the badge, the game page's notice and the build's
+  check each give a game of their own. `frontend/games/AGENTS.md` no longer
+  says Brick Fuzz Pop is being built: 9006 is its port, and the next game
+  takes 9007.
+- **The game's status.** `AGENTS.md` says the game was built from the plan,
+  the site lists it with the other games, and of the plan's packages only Z2
+  is to come. The README said it was being built and wasn't on the site, and
+  that its field was to be drawn by Phaser; it now gives the address to play
+  it at, as the other games' READMEs do, says its field is drawn by Phaser
+  and the scene's specs run real Phaser headless, names its thirty-six
+  levels in four sets, and says how it plays, as Brick Breaker's does.
+- **The floors in words.** `AGENTS.md`'s Tests section spelled out each
+  layer's four floors, which the testing skill and Asteroid Breaker's
+  `AGENTS.md` give in words; it now says them as the skill does, leaving
+  the numbers to `vitest.config.ts`. On the tip the shell reaches 100% of
+  all four (1,003 statements, 387 branches, 282 functions and 877 lines)
+  against floors of 98, 97, 97 and 98, and the scene 99.32, 93.97, 100 and
+  99.88 against 98, 92, 100 and 99, so "a little under what their specs
+  reach" holds.
+- **The art's helpers.** `ART_ROLES` and `looksOf()`, which
+  `src/testing/art_frames.ts` has gained, are named where `AGENTS.md` and
+  the testing skill describe it: the roles each a color of its own, the page
+  Soft pastel's, written out and held to the stylesheet by their spec; and
+  every look a kind's brick can take, which the art's spec finds every frame
+  of in the atlas and the scene's holds `MOST_LAYERS` to. Both now name the
+  rounding to a billionth (`billionths()`, `inBillionths()`), and the skill
+  `reachPastRoundRect()` too, and the content skill names `looksOf()` among
+  the specs' lists to edit for a kind colored by its pair, as it gives a
+  portal its pairs for tints.
+
+**Choices the plan didn't make.**
+
+1. No doc gives a test count: not the game's `AGENTS.md`, the testing
+   skill, the README nor `docs/operations.md`. None is added, as a count
+   goes stale with the next spec; the counts are here and in the commit.
+2. The README's address is true once `main`, merged at Z2, is deployed,
+   and is written as the other games' are.
+3. The status names the archive without its path, as the root lint's
+   reference check fails a path that doesn't exist yet; Z2, which moves the
+   folder, rewrites the paragraph anyway.
+4. D1 also named the repository's and the frontend's lists of games,
+   `README.md` and `docs/operations.md`: they list Brick Fuzz Pop already
+   and say nothing of its being built. Their notes on a game in
+   development, and the site's and the games' `AGENTS.md`, stay, as the
+   flag does for the next game.
+
+**Sizes.** The game's build on the tip: the main chunk, `index-*.js`,
+406.74 kB, 124.73 kB gzipped, and the scene's, `wall_scene-*.js`, 59.30 kB,
+22.37 kB gzipped. Nothing here changes either.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`), on the tip: 119 files, 5,925 tests, then the `sim`
+project's 29 files, 555 tests, all files 96.06, 94.18, 96.57 and 96.27,
+`src/testing/` and the scripts, with no floor, included. The game builds.
+The site's `test`, 21 files, 177 tests, and its `build`, copying the seven
+games, pass. The root's `yarn lint` passes, once this worktree's Claude
+links took in the content skill (`node .agents/link-claude-skills.mjs`,
+links git ignores) and the status no longer named the archive's path.
+
+**The mutation pass.** The one line of code is the flag. Put back, no spec
+fails, and none should, as the site's specs give games of their own. What
+its going changes is the build's check of the pictures: with the copied
+thumbnail taken away, the site's `vite build` fails, naming
+`/play/brick-fuzz-pop/docs/screenshots/brick-fuzz-pop/thumb.webp`; with the
+flag put back as well, the same build passes. Both were undone, and the
+site built again.
+
+**The review:**
+
+1. _`vitest.config.ts` says the scene and the shell sit at Asteroid
+   Breaker's floors, where the docs that now send a reader to it say a
+   little under what their specs reach._ Left: the file is the
+   integrator's (§7.3), and the two agree, as the floors are Asteroid
+   Breaker's numbers and sit a little under what the specs reach on the
+   tip (the figures above). Raised with the integrator.
+2. _The two descriptions of `art_frames.ts` still name different helpers:
+   the skill leaves out `reachPastRoundRect()`, and neither names
+   `billionths()` or `inBillionths()`, which eleven spec files use._
+   Taken: both name all of them.
+3. _The README stops at its levels, where its siblings go on to say how
+   the game plays._ Taken: one sentence in Brick Breaker's form, each part
+   checked against the code: two speeds (`FLIGHT_SPEEDS`) and
+   fast-forward, the play room's pause, `@fz/ui`'s theme picker the site
+   shares, the kept run taken up paused, and the board's placeholder.
+4. _"No longer as in development" tells history; "so a spec that imports
+   them compiles none" has no clear antecedent and reads false of their own
+   spec; the skill's parenthetical holds too much; the ports bullet is left
+   ragged._ Taken, all four: the status says where the site lists it,
+   "importing them compiles no stylesheet", `ART_ROLES` has a sentence of
+   its own in the skill, and the bullet is rewrapped.
+5. _The content skill's list of specs to edit for a kind colored by its
+   pair misses `looksOf()`, which gives only a portal its pairs for
+   tints._ Taken: it names it.
+
+The fixes correct the docs rather than reshape the change, so they had no
+second review. The root's `yarn lint` and the formatting check pass again.
