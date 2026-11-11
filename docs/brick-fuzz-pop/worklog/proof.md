@@ -1182,3 +1182,89 @@ bug either:
    Fixed: `CHARGE_COUNT`, as `AIM_COUNT`.
 5. `shotOf()` checked the charge alone. Taken: it checks the aim too, so a
    bad pair fails in one place.
+
+### Q2, first part: `playRound()`'s time, and ten thousand random shots
+
+**2026-11-10.**
+
+**What was built.** The two pieces of Q2 that don't wait on P3, both in
+the `sim` project, beside the flight's benchmarks in
+`src/rules/flight/benchmarks/`:
+
+- **`play_round.spec.ts`** times `playRound()` over the levels' opening
+  walls, Warm-up's nine at all twelve depths, 108 walls, with 20 seeded
+  random shots at each. It plays three timed rounds after one that warms
+  the code up, and prints the median and 99th percentile against §9's
+  budget without holding it to them, as `fly.spec.ts` does.
+- **`random_rounds.spec.ts`** plays ten thousand seeded random shots at
+  random walls, `randomFlight()`'s, in ten batches of 1,000. Each shot is
+  played as a round, through `playRoundBy()` with the flight's own rules,
+  and must not throw, must not be capped, and must keep every fuzzball as
+  far from each brick that stood through it as `clearanceProblemsOf()`
+  asks.
+- **`AGENTS.md`** describes both.
+
+**Choices the plan didn't make.**
+
+1. **What was there already.** `flight.spec.ts` holds 2,000 random flights
+   to the same checks and to the flight's order, but through `fly()`, not a
+   round, and a fifth as many. So the 10,000 are new, and they go through
+   the round.
+2. **`playRoundBy()` rather than `playRound()`.** `playRound()` is
+   `playRoundBy()` handed the catalog's rules. `randomFlight()` draws its
+   walls from the catalog's kinds or the specs' stand-ins (the bumper,
+   portal, prism, wool and cage), each with its own rules. Handing over the
+   flight's rules plays every one of them along the round's own path, where
+   `playRound()` could fly only Warm-up's five kinds.
+3. **The bricks that stood.** A round hands back the wall after it came
+   down, so the clearance check reads the round's starting wall less each
+   brick a `break` event took. A brick removed any other way would show up
+   as a fuzzball too near it, and fail the spec rather than pass it.
+4. **The benchmark's walls are the levels' openings,** as §9 says, and its
+   shots are seeded random ones, the same every run.
+
+**Numbers worth keeping.**
+
+- `playRound()`: a median of 37 to 41 µs and a 99th percentile of 307 to
+  325 µs, over 6,480 rounds. §9's budget is 100 µs and 2 ms; the sketch
+  measured 77 µs and 1.85 ms, scanning every brick.
+- The ten thousand shots: about 5 s with one worker, 0.4 to 0.7 s a batch.
+  None threw, none was capped, none came too near a brick.
+- The whole `sim` project, with one worker and before P3: 12.9 s. P3's
+  careless floors are put at 70 to 100 s of CPU against `sim`'s 100 s, and
+  Q2 sets the ten thousand shots, so if the budget is tight, the floors'
+  seeds are what is left to cut, as §9 says.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and `test:coverage`
+pass: 4,480 tests, 4,465 with coverage and 15 in `sim`, 12 of them new.
+The root's `yarn lint` passes.
+
+**The mutation pass.** Over the new spec's own logic, three mutants, all
+killed: reading every brick of the starting wall as standing, broken ones
+among them, fails all ten batches, so the clearance check bites; and
+starting the rounds with no boon, or with no friends, fails the spec that
+holds each round's start to its random flight's.
+
+**The review:**
+
+1. The round's start was built from the random flight's by hand and never
+   checked, so a drift in `randomFlight()` could quietly drop hot shots,
+   mates or friends from the ten thousand. Fixed: `roundOf()` builds it, and
+   a spec holds `flightStartOf()` of it to the random flight's start, for a
+   batch's thousand.
+2. `random_rounds.spec.ts` is no benchmark, so it would sit better in a
+   folder of its own beside the round. Left: the folder would need adding
+   to `sim` in `vitest.config.ts`, the integrator's, who asked for it in
+   `sim` beside the benchmarks; `AGENTS.md` now says the folder holds the
+   round's random shots too, and the report offers the move.
+3. `AGENTS.md`'s list of the projects read as if `dom` were a file of
+   `sim`'s, and said the shots go through `playRound()`. Fixed: the `sim`
+   files are one list in brackets, and the shots go along `playRound()`'s
+   own path.
+4. The benchmark's random shot fell back to charge 0 on a draw that can't
+   happen. Fixed: `shotOf()` reads it, throwing as the rest do, and each
+   opening keeps its own shots. Its openings are built as `guide.spec.ts`
+   builds its own; a shared helper for two specs of two streams is left.
+5. The `try` also caught a helper's error as the round's, and the batches'
+   seeds were a bare count. Fixed: only `playRoundBy()` is in it, its stack
+   reported, and the seeds are `SEEDS`.

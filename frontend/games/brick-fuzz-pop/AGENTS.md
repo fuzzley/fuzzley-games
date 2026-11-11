@@ -137,7 +137,8 @@ helpers.
   stopped as far past its first turn as it is handed, `GUIDE_PAST_TURN`
   unless the debug menu retunes it; its dots `GUIDE_DOT_GAP` apart; and the
   bricks it would punch through on the way. `src/rules/flight/benchmarks/`
-  times `cast()`, `fly()` and `guideOf()`.
+  times `cast()`, `fly()`, `guideOf()` and `playRound()`, and plays ten
+  thousand random shots along `playRound()`'s own path.
 - **`src/rules/bricks/`** — what a brick does. `bricks.ts`'s `strike()`
   works out what a fuzzball's strike does to a brick and to the fuzzball, as
   `plan.md`'s "Charge" says, once the brick's rules have said whether it
@@ -530,24 +531,29 @@ tests, named after it. `vitest.config.ts` runs them in three projects:
 `src/rules/levels/every_level/`, which replay every certificate with
 `replayLine()`, and `src/rules/levels/every_floor/`, which hold the careless
 player to each set's floor over twenty games on fields 11, 13 and 22 deep,
-and for the flight's benchmarks in `src/rules/flight/benchmarks/`:
-`cast.spec.ts` prints `cast()`'s median and 99th percentile beside a scan of
-every brick's, and `fly.spec.ts` `fly()`'s, alone and with mates and
-friends, each held to no time, as no runner times anything alike twice, and
-`guide.spec.ts` holds `guideOf()` under 1 ms at the 99th percentile over the
-levels' opening walls, five times the plan's 0.2 ms
-(`yarn vitest run --project sim --reporter=verbose` shows them); and `dom`,
-in jsdom, for every other spec under `src/`, the scene's and the shell's.
-`src/test-setup.ts` installs `@fz/phaser/testing`'s headless Phaser first,
-so the scene's spec runs real Phaser, with a fake shell over the hand-made
-rounds; gives each test a store in memory; and stands in for the modal
-dialogs and `document.fonts`, which jsdom lacks. Coverage measures `dom` and
-`pure` together, to the floors `vitest.config.ts` sets (statements,
-branches, functions and lines): the rules and the view 100, 95, 100 and 100,
-the scene 98, 92, 100 and 99, and the shell 98, 97, 97 and 98;
-`src/testing/` and the scripts have none, so what of them goes untested
-shows. The repository's `angular-testing` skill covers the patterns every
-Angular workspace's specs share, and `phaser-core` the harness.
+and for the flight's benchmarks and the round's random shots in
+`src/rules/flight/benchmarks/`: `cast.spec.ts` prints `cast()`'s median and
+99th percentile beside a scan of every brick's, `fly.spec.ts` `fly()`'s,
+alone and with mates and friends, and `play_round.spec.ts` `playRound()`'s
+over the levels' opening walls and seeded random shots, against the plan's
+100 µs and 2 ms, each held to no time, as no runner times anything alike
+twice; `guide.spec.ts` holds `guideOf()` under 1 ms at the 99th percentile
+over the levels' opening walls, five times the plan's 0.2 ms
+(`yarn vitest run --project sim --reporter=verbose` shows them); and
+`random_rounds.spec.ts` plays ten thousand seeded random shots at random
+walls along `playRound()`'s own path, none throwing, none capped and none
+coming nearer a brick than a fuzzball may; and `dom`, in jsdom, for every
+other spec under `src/`, the scene's and the shell's. `src/test-setup.ts`
+installs `@fz/phaser/testing`'s headless Phaser first, so the scene's spec
+runs real Phaser, with a fake shell over the hand-made rounds; gives each
+test a store in memory; and stands in for the modal dialogs and
+`document.fonts`, which jsdom lacks. Coverage measures `dom` and `pure`
+together, to the floors `vitest.config.ts` sets (statements, branches,
+functions and lines): the rules and the view 100, 95, 100 and 100, the scene
+98, 92, 100 and 99, and the shell 98, 97, 97 and 98; `src/testing/` and the
+scripts have none, so what of them goes untested shows. The repository's
+`angular-testing` skill covers the patterns every Angular workspace's specs
+share, and `phaser-core` the harness.
 
 What the specs share is in `src/testing/`:
 
