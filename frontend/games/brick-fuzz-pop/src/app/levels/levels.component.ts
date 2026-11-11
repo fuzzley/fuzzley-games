@@ -10,7 +10,10 @@ import { MOST_STARS } from "../../rules/run/stars";
  * which `levelMarksOf()` works out from the progress and the stats kept.
  */
 export interface LevelMark {
-  /** Whether a run may start there: the first level, or the one after a level cleared. */
+  /**
+   * Whether a run may start there: the first level, the one after a level
+   * cleared, or any while the debug menu opens every level.
+   */
   readonly open: boolean;
   /** The most stars it has earned: 1 to 3 once it is cleared, which it is once it has one, else 0. */
   readonly stars: number;

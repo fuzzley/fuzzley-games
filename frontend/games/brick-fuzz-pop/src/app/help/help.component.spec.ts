@@ -82,7 +82,7 @@ describe("HelpComponent", () => {
       "The left ring finger's key on the bottom row",
       "The key above the right little finger's home key; Esc pauses while no charge builds, and Enter goes on",
       "Enter",
-      "Enter, or the key above the right little finger's home key",
+      "Enter, or, once the result is put away, the key above the right little finger's home key",
     ]);
   });
 
@@ -167,7 +167,7 @@ describe("HelpComponent", () => {
     await renderHelp();
 
     expect(paragraph("Boons.")).toHaveTextContent(
-      "The hot shot flies at full charge whatever you charged, nothing takes its charge, and it bounces off the floor 1 time before it lands. The triple shot sends 2 more fuzzballs out behind yours, each with the charge you chose.",
+      "The hot shot flies at full charge whatever you charged, nothing takes its charge, and it bounces off the floor once before it lands. The triple shot sends 2 more fuzzballs out behind yours, each with the charge you chose.",
     );
   });
 

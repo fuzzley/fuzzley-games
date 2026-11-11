@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
+import { isShortcut } from "@fz/core/keys";
 import type { RunStage } from "@fz/core/run";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -99,6 +100,19 @@ export class ResultComponent {
   protected readonly againLabel = computed(() =>
     this.won() ? "New game" : tryAgainLabel(this.end().level),
   );
+
+  /**
+   * Takes Enter on the title, which the card opens on, as a press of the
+   * card's first button.
+   *
+   * A repeat presses nothing, so an Enter held from before the card opened
+   * doesn't start again, and Enter with Ctrl, Alt or Meta is left to the
+   * browser.
+   */
+  protected startAgainAtEnter(event: KeyboardEvent): void {
+    if (event.key !== "Enter" || event.repeat || isShortcut(event)) return;
+    this.startAgain();
+  }
 
   /** Asks for a new game after a win, or to try the lost level again. */
   protected startAgain(): void {

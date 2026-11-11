@@ -11,13 +11,16 @@
       <fz-icon class="card-icon" name="trophy" />
     }
     <!--
-      The card opens on its title, which no key presses: Space lets a shot
-      fly, and a player still pressing it as the card opens would press a
-      button with it. The lint rule is about autofocus on page load, which a
-      dialog taking focus is not.
+      The card opens on its title, which Space doesn't press: Space lets a
+      shot fly, and a player still holding it as the card opens would press
+      a button as they let go of it. Enter there presses the first button.
+      The lint rule is about autofocus on page load, which a dialog taking
+      focus is not.
     -->
     <!-- eslint-disable-next-line @angular-eslint/template/no-autofocus -->
-    <h2 tabindex="-1" autofocus>{{ title() }}</h2>
+    <h2 tabindex="-1" autofocus (keydown)="startAgainAtEnter($event)">
+      {{ title() }}
+    </h2>
     <p class="subtitle">
       <span id="result-subtitle">{{ subtitle() }}</span>
       @if (newBest()) {

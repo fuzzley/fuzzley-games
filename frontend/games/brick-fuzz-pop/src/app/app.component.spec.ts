@@ -573,6 +573,19 @@ describe("AppComponent", () => {
       expect([game.outcome(), game.rounds()]).toEqual(["ready", 0]);
     });
 
+    it("tries the lost level again at Enter, as its result opens, and hands the board the focus", async () => {
+      const { game, user, settle } = await endedApp("lost");
+
+      await user.keyboard("{Enter}");
+      await settle();
+
+      expect({
+        outcome: game.outcome(),
+        rounds: game.rounds(),
+        board: document.activeElement === screen.getByRole("application"),
+      }).toEqual({ outcome: "ready", rounds: 0, board: true });
+    });
+
     it("closes its result, keeping it in the page, as the lost level is tried again", async () => {
       const { user } = await endedApp("lost");
 

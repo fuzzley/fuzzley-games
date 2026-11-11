@@ -16,8 +16,8 @@ stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page. The site
 lists it as in development, its build shipping no screenshots yet. What
-the plan's packages still to come build (the rest of U1 and T2, then X1 to
-X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
+the plan's packages still to come build (T2, then X1 to X3, Y1 to Y3, D1,
+F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -426,7 +426,8 @@ helpers.
     points from `tuning.ts`; the controls by mouse, touch and keyboard, a letter key
     named by where it sits under the fingers, as the keys are read by
     `event.code`; and every brick in the catalog, with its picture once the
-    scene hands them over (`HelpPictures`).
+    scene hands them over (`HelpPictures`). `help_words.ts` says how often
+    in words where `count()` would read wrong (`howOften()`: "once").
   - `levels/` — the Levels dialog, `<app-levels>`: each set under its name,
     each level a button named by its number and name, with its stars and
     best once cleared, "Locked" and `aria-disabled` until it opens, the
@@ -435,10 +436,10 @@ helpers.
     over" or "Every level cleared!", the score and the best, the levels
     cleared and the stars earned, "New best" and the trophy, then Try again
     from the level or New game, Choose a level and Close. It opens on its
-    title, so a player still holding Space presses nothing. `end_words.ts`
-    holds the words it shares with `<app-board-card>`'s Ended card: where a
-    run was lost (`whereLost()`) and what Try again says
-    (`tryAgainLabel()`).
+    title, where Enter presses the first of them and Space nothing, so a
+    player still holding Space presses nothing. `end_words.ts` holds the
+    words it shares with `<app-board-card>`'s Ended card: where a run was
+    lost (`whereLost()`) and what Try again says (`tryAgainLabel()`).
   - `stats/` — the records: `StatsService` and `ProgressService`, which keep
     what `src/rules/run/stats.ts` and `src/rules/run/progress.ts` read, for
     the levels `GAME_LEVELS` hands them; and `levelMarksOf()`, each level's
