@@ -1392,3 +1392,124 @@ needs is added to the table only when it isn't a letter or a digit.
 3. **A prototype name such as `toString` finds a function in `KEY_CODES`
    rather than throwing.** Left: no browser sends such a code, and the
    fix, `Object.hasOwn`, is code, outside this comment's commit.
+
+### T1: the layout check
+
+**2026-11-10.** At the integrator's word, once the board was merged.
+
+**What was built.** `tools/check-layout.mjs` and its `check:layout`
+script, on `@fz/dev/layout`'s `checkPhaserLayout()`, after Snake's, Brick
+Breaker's and Asteroid Breaker's: every shape and the smallest phone, then
+the two turns, all at twice the pixels. The field is the board, `--across`
+by `--down`, from the lintel's top to the band's bottom
+(`data-field`), its placeholder `.placeholder .field`, measured as it
+stands since its frame is an outline, the ring and the Ready card; the
+panels are a deck shown both or neither (`data-panels`, `left` and
+`right`, 172 CSS px at least). The game's own inspection holds the unit to
+24 CSS px at least; works the shape out from the room (`data-room`) as
+`fieldShape()` does and holds the unit, the depth (`data-depth`), the
+floor's band (`--band`) and the lintel (`--lintel`) to it; holds the field
+inside its room, filling its width where it is deeper than 11 rows and its
+height where it is 11, within a device pixel a cell; shows the panels
+wherever 184 CSS px are spare each side, and nowhere else; and holds the
+wall on the row a level opens on at the field's depth (`data-wall`). The
+game's `AGENTS.md` names the script and its command, and drops T1 from
+what is still to come, and `frontend/AGENTS.md`'s Check the Layout names
+Brick Fuzz Pop among the games that have one and turn the phone. `BoardCardComponent`'s doc now says the board,
+not the app, takes the focus back as a card's button goes on.
+
+**Choices the plan didn't make.**
+
+1. **The wall after a turn.** The plan says "the wall where it was, the
+   same rows from the floor". Over the real board the wall moved, 7 rows
+   from the floor upright and 5 on its side: every page opens on a level
+   with no round played, which the rules' `takeDepth()` begins again on a
+   depth the field takes, the wall where that depth opens. So the check
+   holds the wall to the row the level opens on at the field's depth
+   (`thirdsOf()`'s `opensOn`) while the level waits for its first shot,
+   and fails a page that opens on anything else. Holding a level under way
+   to its rows needs a kept run taken up, which T2's capture sets up (C9);
+   the check can take it up then.
+2. **The resize of a pixel at 2× on a small phone on its side.** Over the
+   built board, recorded from the page as it loads, the board writes its
+   room once, 480 × 296 CSS px, and lays the field out once on it: a unit
+   of 48 device px, 24 CSS px, the plan's floor exactly, 11 rows, no
+   panels with 132 px spare. No resize of a pixel happens. A room a pixel
+   taller would ask for a unit of 49, so the check allows none: between
+   rounds the field must take the shape its room asks for and lie inside
+   it, the CSS pixel `fieldMetrics()` lets a field overrun its room kept
+   for a round in flight, which the check never sees.
+3. **The band and the lintel are held each,** not only through `--down`,
+   since spare room thickens the band first and then the lintel, and a
+   band capped short leaves the same height with a thicker lintel.
+4. **The constants are written into the inspection,** each naming the
+   file it comes from, as Asteroid Breaker's are, since it runs in the
+   page and imports nothing.
+
+**Checks.** The game built alone (`yarn workspace brick-fuzz-pop build`),
+and `yarn check:layout` holds at each shape and turn: roomy, phone
+portrait, phone landscape, small phone portrait, small phone landscape,
+smallest phone portrait, phone portrait turned on its side, phone
+landscape turned upright; four runs alike. The workspace's `lint` and
+`typecheck` pass, and the root's `yarn lint`.
+
+**The mutation pass.** 11 mutants, each run through the check, the game's
+built again for each of the board's. In the board and the field: the
+board saying the field a row deeper, never showing the panels, saying the
+wall a row higher; the band capped at 1.0 units; the lintel capped at 0.6;
+and panels allowed at 100 CSS px. In the check: its unit floor at 25, its
+panels' spare at 244, the opening row off by one, and the field filling
+its room's width to the device pixel. These 10 were killed, each at the
+shape it should be: the panels at 100 px on the small phone on its side,
+the floor of 25 there too, the spare of 244 on the phone on its side, with
+243 spare. The 11th, the lintel capped at 0.8, lived: no shape checked
+thickens the lintel past 0.67 units (the phone upright), so it is the same
+at every shape; `src/view/field/field_metrics.spec.ts` kills it, holding
+the upright phone's lintel at 0.9 units at 1×.
+
+**For the integrator.**
+
+- **The plan still asks for the wall's rows through a turn:** `plan.md`'s
+  "The layout check" ("after the turn and back, the wall where it was, the
+  same rows from the floor") and `implementation-plan.md`'s T1 ("the wall
+  the same rows from the floor after a turn there and back"). Suggested:
+  "the wall on the row a level opens on at the field's depth, as a level
+  with no round played begins again on a depth the field takes; and, once
+  a kept run with a round played is taken up, the same rows from the floor
+  after a turn there and back". And T2 gains: "the layout check takes up a
+  kept run with a round played, through `LayoutCheck.before()`, and holds
+  the wall's rows from the floor through both turns".
+- **`board.component.ts`'s `wallRow` doc** says the check "holds the wall
+  as many rows from the floor after the phone turns and back". Suggested:
+  "which holds it on the row a level opens on at the field's depth while
+  the level waits for its first shot". The art stream's file.
+- **The game's `AGENTS.md` intro** still says the shell places "not yet the
+  board, so the field isn't drawn and no run can be played in the page",
+  and `app.component`'s line that "the board's place in the room is a
+  marked slot until `<app-board>` is built"; the board has been placed
+  since its merge, and `board/` lists the cards alone. The board's own
+  entries are the art stream's to write; this commit only drops T1 from
+  the intro's list.
+
+**The review:**
+
+1. **A missing `--band` or `--lintel` passed unseen,** a NaN comparing
+   false, and the placeholder's own falls back to 0. Fixed: each says
+   app-board gives none, which a board built without `--band` shows, at
+   every shape.
+2. **The plan still asks for the wall's rows through a turn,** and no one
+   owns taking a kept run up. Left, for the integrator, above, with
+   wording for the plan and for T2.
+3. **The board's docs are untrue:** `wallRow`'s, and `--across` "for the
+   layout check", which the check didn't read. Fixed the second: the field
+   is `--across` by `--down`, as Asteroid Breaker's is. The first is the
+   art stream's, above.
+4. **The intro says the board isn't placed; `frontend/AGENTS.md`'s Check
+   the Layout leaves Brick Fuzz Pop out; the command's entry says the
+   field fills its room.** Fixed the second and the third; the first is
+   above.
+5. **The surviving mutant had no spec's answer.** Fixed: the metrics' spec
+   kills it, as this entry says.
+6. **The fill checks' thresholds went unexplained,** and restate what the
+   shape's checks hold. Fixed: a comment says both.
+7. **The header was wrapped raggedly.** Fixed.
