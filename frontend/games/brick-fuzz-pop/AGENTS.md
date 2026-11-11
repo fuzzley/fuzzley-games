@@ -372,13 +372,14 @@ helpers.
 - **`src/app/`** — the shell, one folder per feature. `app.component` places
   the board in the room the bar leaves it, then the bar, the announcer, the
   result card over an ended run, the Levels dialog (every level open while
-  the debug menu opens them), How to play, handed the scene's pictures only
-  while it is open, the settings drawer, put away as its debug menu plays
-  a certificate, and the question before a run is lost, each wired to
-  `GameService`; hands the board the focus as the page loads, as each run
-  begins and as the last dialog over the board closes
-  (`refocusWhenUncovered()`), and after the bar's Resume; and pauses the
-  level in play as the player looks away from the room (`[fzPlayRoom]`).
+  the debug menu opens them), How to play, loaded as it first opens and
+  handed the scene's pictures only while it is open, the settings drawer,
+  put away as its debug menu plays a certificate, and the question before
+  a run is lost, each wired to `GameService`; hands the board the focus as
+  the page loads, as each run begins and as the last dialog over the board
+  closes (`refocusWhenUncovered()`), and after the bar's Resume; and pauses
+  the level in play as the player looks away from the room
+  (`[fzPlayRoom]`).
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and
     asking for each action: from the desktop width (`fitsActionLabels`),
     unless the window is compact, the level, the rounds against par, the
@@ -446,9 +447,9 @@ helpers.
     aim guide, sound and the palette, each applied at once;
     `SettingsService` keeps them. Where `@fz/game-ui/debug_menu`'s
     `DEBUG_MENU` says so, in a development build and in a production one
-    at `?debug`, the debug menu follows them, deferred, so a page that
-    doesn't offer it never loads it; the drawer hands on the menu's Play
-    the certificate (`playCertificate`), so the app can put it away.
+    at `?debug`, the debug menu follows them, loaded only there, so a page
+    that doesn't offer it never loads it; the drawer hands on the menu's
+    Play the certificate (`playCertificate`), so the app can put it away.
   - `debug/` — the debug menu, `<app-debug-menu>`, `@fz/game-ui`'s
     `<fz-debug-tuning>` with a slider for each number
     `src/view/debug/debug_tuning.ts` tunes and the lines they would
@@ -514,6 +515,13 @@ helpers.
     `main.ts` injects it at startup.
   - `tokens.ts` — `GAME_LEVELS`, the levels a run is played through, and
     `PLAY_ROUND`, the rules' `playRound()`, which the specs replace.
+  - `on_demand.ts` — `onDemand()`, which loads a component the first time
+    it is asked for and creates it in a container with its bindings, a
+    pending task till then, so `whenStable()` waits for it; a load that
+    fails goes to the `ErrorHandler`, and the next ask tries again. How to
+    play and the debug menu load through it, each a chunk of its own,
+    rather than through `@defer`, whose runtime would cost the main chunk
+    about 6 kB.
   - `styles/` — `global.scss`, `@fz/game-ui`'s global stylesheet, loaded
     once from `main.ts`, and `_index.scss`, the toolkit every component
     `@use`s, which emits no CSS.

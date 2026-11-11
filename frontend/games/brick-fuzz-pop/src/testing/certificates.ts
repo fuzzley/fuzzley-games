@@ -38,11 +38,12 @@ export function filesCertifying(
 }
 
 /**
- * Waits for the certificates the debug menu loads, or a line it starts
- * playing, and then the page, to settle. Neither is a pending task, so
- * `whenStable()` alone returns first; a file `filesCertifying()` gives
- * resolves before the next macrotask, but the game's own, a dynamic
- * import, may take longer.
+ * Waits for the debug menu, where it is offered, the certificates it
+ * loads, or a line it starts playing, and then the page, to settle. The
+ * menu's own load is a pending task, which `whenStable()` waits for, but
+ * neither of the others is, so `whenStable()` alone returns first; a file
+ * `filesCertifying()` gives resolves before the next macrotask, but the
+ * game's own, a dynamic import, may take longer.
  */
 export async function loadsSettled(stabilizing: Stabilizing): Promise<void> {
   await stabilizing.whenStable();

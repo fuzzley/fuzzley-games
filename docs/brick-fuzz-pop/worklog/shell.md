@@ -2490,3 +2490,149 @@ left in the shell's imports. Seven findings, all taken.
 
 The fixes follow the review's own words, the fourth through a helper the
 specs already had, so they had no second review.
+
+### Trim 4: How to play loaded as it first opens, and both lazy pieces without `@defer`
+
+**2026-11-11.** At the integrator's word, after Tricks' levels took the
+main chunk to 411.8 kB, 4.8 over the budget, with Thick walls' levels
+still to come.
+
+**What was built.**
+
+- **`onDemand()`.** `src/app/on_demand.ts` returns a function that, the
+  first time it is called, loads a component with a hand-written `import()`
+  and creates it at the end of a container
+  (`ViewContainerRef.createComponent()`), with its inputs and outputs bound
+  (`inputBinding()`, `outputBinding()`). Every call hands back the first
+  one's promise; until it settles the load is a pending task, so
+  `whenStable()` waits for it, as it did for a deferred block; a load that
+  fails goes to the `ErrorHandler` and is forgotten, so the next ask tries
+  again; and one that arrives after its component has gone creates
+  nothing.
+- **How to play.** `AppComponent` no longer imports `HelpComponent`, only
+  its `HelpPictures` type. The bar's How to play calls `openHelp()`, which
+  opens it and, the first time, loads it into `<ng-container #help>`, its
+  `open` bound to `helpOpen`, its `pictures` to `helpPictures` and its
+  `closed` lowering `helpOpen`. `HelpComponent` itself is unchanged, so the
+  dialog is made whole, its words and table in it, as it first opens, and
+  the browser puts the focus where it did before: the card, a scroller,
+  once its words overflow it.
+- **The debug menu.** The settings drawer no longer imports
+  `DebugMenuComponent`: where `DEBUG_MENU` offers the menu, it loads it
+  after its first render into `<ng-container #debugMenu>`, below the
+  settings, as `@defer (on immediate)` did, its `playCertificate` handed
+  on. `debugMenu` is private now that the template no longer reads it;
+  the containers are `#helpHost` and `#menuHost`.
+- **The specs.** `on_demand.spec.ts` holds the helper to creating nothing
+  until asked, its inputs bound and kept bound, its outputs handed on, one
+  load however often asked, the page kept from settling till the component
+  is created, a failed load handed to the `ErrorHandler`, creating
+  nothing, and tried again, and nothing made once its host has gone,
+  counted as each loaded component is made. The drawer's and the app's
+  specs drop the defer blocks and wait with `whenStable()`; the app's spec
+  waits after How to play is pressed, its Escape test opens it first, so
+  it no longer passes with none, and three tests are new: How to play is
+  nowhere in the page, not even shut, until it first opens; a second press
+  opens the one loaded, alone; and, put away, it asks the scene for no
+  pictures. A shut dialog is hidden, and Testing Library gives a hidden
+  element no name, so `helpDialogs()` reads each dialog's label.
+- **The docs.** The game's `AGENTS.md` lists `on_demand.ts`, says the app
+  loads How to play as it first opens and the drawer loads the menu only
+  where it is offered; the `brick-fuzz-pop-testing` skill says how a spec
+  waits for either; `loadsSettled()`'s doc says the menu's own load is a
+  pending task.
+
+**Sizes.** The production build's main chunk, `index-*.js`, comes to
+399.69 kB, 122.81 kB gzipped, 12.12 kB and 3.55 kB gzipped less than the
+same build of the commit before it: 7.31 kB under the 407 kB budget.
+How to play is a chunk of its own, `help.component-*.js`, 12.87 kB (4.54
+gzipped), fetched at the first press; the debug menu's stays 12.79 kB
+(4.26). The scene is 54.50 kB, 20.61 gzipped, as before. The source map
+shows nothing of Angular's `core/src/defer/` left in the main chunk (about
+5.4 kB of it before, with its share of the rest); `on_demand.ts` takes 221
+bytes and the binding helpers 524.
+
+**Choices the plan didn't make.**
+
+1. **The whole of How to play loads at the press,** not its words inside
+   a dialog the main chunk opens at once: the dialog then opens whole, as
+   it did, and the browser finds the card's overflow, and so where the
+   focus goes, with the words already in it. A dialog opened before its
+   words would put the focus on the close button and keep it there. The
+   cost is a moment between the first press and the dialog, the time a
+   12.87 kB chunk takes, and about 0.7 kB more out of the main chunk.
+2. **`ViewContainerRef.createComponent()` with bindings,** not
+   `NgComponentOutlet`, which binds no outputs, and both pieces have one.
+3. **A pending task while loading,** 0.49 kB of the main chunk (399.22 kB
+   without it): `whenStable()` waits for the load, in a spec as for
+   `@defer`, so no spec waits on a timer or a retry.
+4. **The menu loads after the drawer's first render** (`afterNextRender()`),
+   as `on immediate` did, so its container is there to take it.
+5. **A failed load is reported and tried again,** not answered with a
+   reload. How to play could not fail to load before; now a tab opened
+   before a deploy that drops its chunk gets nothing at the press, the
+   error going to the `ErrorHandler`, as the scene's chunk, already lazy,
+   would. Reloading the page on Vite's `vite:preloadError`, which
+   the saved run would survive, would answer both, and is left for the
+   integrator, as it touches every lazy chunk, not this trim's two.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`): 117 files, 5,655 tests, then the `sim` project's 26
+files, 420 tests, `on_demand.ts`, `app.component.ts` and
+`settings.component.ts` at 100%; the root's `yarn lint` passes. The
+game built alone, and again with source maps.
+
+**By hand,** in Chrome over the production build: at load, the page
+fetches neither How to play's chunk nor the menu's. The first press of
+How to play fetches its chunk and opens it with the focus on the card, as
+the build before did, and all 16 pictures; Escape puts it away and hands
+the board the focus; the second press opens the same one, fetching
+nothing, with its focus and pictures. Without `?debug`, the drawer opens
+with no menu and no chunk. With it, the menu's chunk and the first set's
+certificates load at the start, the drawer shows the Debug section last,
+and Play the certificate puts the drawer away, hands the board the focus
+and plays level 1's rounds. After the review, over the build made again,
+all of it holds.
+
+**The mutation pass.** 16 mutants, all killed, run again after the
+review's fixes. Of `onDemand()` (by its spec): a load at every ask, a
+failed load kept, a failure not reported, no pending task, a task never
+ended, a component created after its host has gone, and its bindings
+dropped. Of the drawer (by its spec and the app's): the menu loaded where
+it isn't offered, never loaded, and its Play the certificate not handed
+on. Of the app (by its spec): How to play loaded but not opened, never
+loaded, its pictures not handed over, never closed, loaded at the start,
+and its pictures asked for while it is shut. Loaded at the start survived
+at first: the check that How to play is nowhere in the page asked for a
+hidden dialog by name, and Testing Library names no hidden element, so it
+passed with How to play loaded and shut. Mended, the app's spec kills it,
+and a load at every ask too, which only `onDemand()`'s spec killed
+before, since its second press now waits for the load before looking.
+
+**The review:**
+
+1. _No spec checks any more that the scene is asked for no pictures while
+   How to play is shut: before its first opening nothing reads
+   `helpPictures`, so the guard could go._ Taken: a spec opens How to
+   play, puts it away, and hands the game a picture source that is never
+   called; a mutant dropping the guard dies by it.
+2. _A failed load is unreported and leaves `helpOpen` true, so after a
+   deploy How to play can go dead in an open tab._ Taken in part:
+   `onDemand()` hands the error to the `ErrorHandler`, rather than
+   leaving an unhandled rejection, and its spec says so; the trade-off is
+   choice 5. Left: resolving to whether the component was made, for
+   `openHelp()` to lower `helpOpen`, since nothing reads `helpOpen` until
+   How to play is made and the next press sets it again, so the two can't
+   be told apart. Left too: a dialog opened while How to play's chunk
+   downloads ends under it once it arrives, a moment's window at a first
+   press.
+3. _The spec of a component gone before its load arrives looks only at
+   the promise._ Taken: `<app-loaded>` counts itself as it is made, and
+   the spec finds none made and nothing reported.
+4. _`#debugMenu` is the container and `debugMenu` the flag._ Taken:
+   `#menuHost`, and `#helpHost` beside it.
+5. _`onDemand()`'s doc opens with two sentences, and a spec clicks through
+   `userEvent` itself._ Taken: one, and `userEvent.setup()`.
+
+The fixes follow the review's words, but for the second's result, left
+with its reason, so they had no second review.

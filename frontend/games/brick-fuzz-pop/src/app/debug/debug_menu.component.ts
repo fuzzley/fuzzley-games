@@ -40,8 +40,8 @@ const DEPTHS: readonly number[] = Array.from(
  *
  * What it sets, it hands `DebugService`. It provides `CertificatesService`,
  * which offers it the certificate of the level in play on the field's
- * depth, or none, and plays it; the settings drawer defers the menu, so
- * neither reaches a page that doesn't offer it.
+ * depth, or none, and plays it; the settings drawer loads the menu only
+ * where it is offered, so neither reaches a page that doesn't offer it.
  */
 @Component({
   selector: "app-debug-menu",
