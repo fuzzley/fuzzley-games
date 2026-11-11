@@ -19,7 +19,7 @@ const LASTING = BRICK_KIND_IDS.filter((id) => brickKind(id).hits === "never");
 const ZAPPING = BRICK_KIND_IDS.filter((id) => hasTrait(id, "zaps"));
 
 describe("the brick kinds", () => {
-  it("are Warm-up's five, Sparks' five and Thick walls' two, in How to play's order", () => {
+  it("are Warm-up's five, Sparks' five, Tricks' four and Thick walls' two, in How to play's order", () => {
     expect(BRICK_KIND_IDS).toEqual([
       "brick",
       "tough",
@@ -31,6 +31,10 @@ describe("the brick kinds", () => {
       "xZapper",
       "wool",
       "cage",
+      "bumper",
+      "prism",
+      "portal",
+      "plated",
       "shell",
       "moss",
     ]);
@@ -149,7 +153,7 @@ describe("the brick kinds", () => {
     expect(about).toContain(`${spelled(hits)} to ${spelled(mostHits)} hits`);
   });
 
-  it.each(["shell", "moss"] as const)(
+  it.each(["plated", "shell", "moss"] as const)(
     "spell out the %s brick's hits as they are",
     (id) => {
       const { hits, mostHits, about } = BRICK_KINDS[id];
@@ -173,6 +177,62 @@ describe("the brick kinds", () => {
         firstLevel,
         traits: [{ kind: trait }],
       });
+    },
+  );
+
+  it.each([
+    [
+      "bumper",
+      {
+        hits: "never",
+        needed: false,
+        solid: true,
+        firstLevel: 19,
+        traits: [
+          { kind: "never" },
+          { kind: "earths" },
+          { kind: "kicks", radius: 0.38 },
+        ],
+      },
+    ],
+    [
+      "prism",
+      {
+        hits: 1,
+        mostHits: 1,
+        needed: true,
+        points: 30,
+        solid: true,
+        firstLevel: 20,
+        traits: [{ kind: "splits", cos: Math.sqrt(3) / 2, sin: 0.5 }],
+      },
+    ],
+    [
+      "portal",
+      {
+        hits: "never",
+        needed: false,
+        solid: false,
+        firstLevel: 21,
+        traits: [{ kind: "never" }, { kind: "teleports" }],
+      },
+    ],
+    [
+      "plated",
+      {
+        hits: 2,
+        mostHits: 3,
+        needed: true,
+        points: 10,
+        solid: true,
+        firstLevel: 22,
+        traits: [{ kind: "plated" }],
+      },
+    ],
+  ] as const)(
+    "catalog the %s as plan.md's table of bricks has it",
+    (id, entry) => {
+      expect(BRICK_KINDS[id]).toMatchObject(entry);
     },
   );
 

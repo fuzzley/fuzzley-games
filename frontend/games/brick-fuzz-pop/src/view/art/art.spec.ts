@@ -1,51 +1,78 @@
-import { isKeyOf, isOneOf } from "@fz/core/records";
+import { isKeyOf, isOneOf, keysOf } from "@fz/core/records";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
   brickKind,
 } from "../../rules/catalog/bricks";
+import { LEGEND, PORTAL_MARKS } from "../../rules/levels/legend";
 import { ART_FRAMES, ART_PALETTE } from "../../testing/art_frames";
 import { inkAt } from "../colors/inks";
 import { BRICK_ART, type BrickLook, brickColor, brickLayers } from "./art";
 import { INKS } from "./frames";
 
+/** The tints a portal takes, its pair's place among the legend's marks. */
+const PAIRS = PORTAL_MARKS.map((_, pair) => pair);
+
+/** Returns the tints a brick of a kind can take: a portal its pair's, any other each ink. */
+function tintsOf(kind: BrickKindId): readonly number[] {
+  return kind === "portal" ? PAIRS : INKS;
+}
+
+/** Returns the plates a brick of a kind can have, as the legend's characters for it plate it, each once. */
+function platingsOf(kind: BrickKindId): readonly number[] {
+  const plates = keysOf(LEGEND)
+    .filter((character) => LEGEND[character].kind === kind)
+    .map((character) => LEGEND[character].plates);
+  return [...new Set(plates)];
+}
+
 /**
- * Returns every look a brick of a kind can take: each tint, each count of
- * hits it can start with, and each it can come down to, or none, for a kind
- * that never breaks.
+ * Returns every look a brick of a kind can take: each tint, each plating,
+ * each count of hits it can start with, and each it can come down to, or
+ * none, for a kind that never breaks.
  */
 function looksOf(kind: BrickKindId): readonly BrickLook[] {
   const { hits, mostHits } = brickKind(kind);
+  const tints = tintsOf(kind);
   if (hits === "never") {
-    return INKS.map((tint) => ({ kind, tint, hits: 0, full: 0, plates: 0 }));
+    return tints.map((tint) => ({ kind, tint, hits: 0, full: 0, plates: 0 }));
   }
   const fewest = hits;
   const fulls = Array.from(
     { length: Math.max(mostHits, fewest) - fewest + 1 },
     (_, i) => fewest + i,
   );
-  return INKS.flatMap((tint) =>
-    fulls.flatMap((full) =>
-      Array.from({ length: full }, (_, i) => ({
-        kind,
-        tint,
-        hits: i + 1,
-        full,
-        plates: 0,
-      })),
+  return tints.flatMap((tint) =>
+    platingsOf(kind).flatMap((plates) =>
+      fulls.flatMap((full) =>
+        Array.from({ length: full }, (_, i) => ({
+          kind,
+          tint,
+          hits: i + 1,
+          full,
+          plates,
+        })),
+      ),
     ),
   );
 }
 
-/** Returns a whole brick of a kind in a tint, of the fewest hits a level gives it, or none for a kind that never breaks. */
+/**
+ * Returns a whole brick of a kind in a tint, of the fewest hits a level
+ * gives it, or none for a kind that never breaks, plated as the legend's
+ * first character for it plates it.
+ */
 function wholeOf(kind: BrickKindId, tint = 0): BrickLook {
   const { hits } = brickKind(kind);
   const full = hits === "never" ? 0 : hits;
-  return { kind, tint, hits: full, full, plates: 0 };
+  return { kind, tint, hits: full, full, plates: platingsOf(kind)[0] ?? 0 };
 }
 
 /** The kinds drawn in their row's tint, whose shards take its ink. */
 const TINTED = ["brick", "tough"] as const satisfies readonly BrickKindId[];
+
+/** The kinds drawn in their pair's inks, whose shards take its body. */
+const PAIRED = ["portal"] as const satisfies readonly BrickKindId[];
 
 /** The cataloged kinds the palette keeps inks of their own for, whose shards take its body. */
 const INKED = BRICK_KIND_IDS.filter((kind) => isKeyOf(kind, ART_PALETTE.kinds));
@@ -146,10 +173,22 @@ describe("brickColor", () => {
     ).toEqual(INKS.map((tint) => inkAt(ART_PALETTE.tints, tint)));
   });
 
-  it("knows how every cataloged kind's shards are colored, by its own inks or by its tint", () => {
+  it.each(PAIRED)(
+    "colors a %s's shards in the body of its pair's inks",
+    (kind) => {
+      expect(
+        PAIRS.map((tint) => brickColor(wholeOf(kind, tint), ART_PALETTE)),
+      ).toEqual(ART_PALETTE.portals.map(({ body }) => body));
+    },
+  );
+
+  it("knows how every cataloged kind's shards are colored, by its own inks, its pair's or its tint", () => {
     expect(
       BRICK_KIND_IDS.filter(
-        (kind) => !isOneOf(kind, INKED) && !isOneOf(kind, TINTED),
+        (kind) =>
+          !isOneOf(kind, INKED) &&
+          !isOneOf(kind, PAIRED) &&
+          !isOneOf(kind, TINTED),
       ),
     ).toEqual([]);
   });

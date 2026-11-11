@@ -1,11 +1,5 @@
 import { eventsOf, flyPicture, near } from "../../../testing/flights";
-import { PRISM } from "../../../testing/stand_ins";
-import { BRICK_KINDS } from "../../catalog/bricks";
-
-/** The catalog with a prism standing in for the plain brick, so a picture's `o` is one. */
-const PRISMS = { ...BRICK_KINDS, brick: PRISM };
-
-// A fuzzball straight up from the floor meets a brick in field row 3 at 2.5.
+// A fuzzball straight up from the floor meets a prism in field row 3 at 2.5.
 // A plain one turns straight down off it; one of charge 2 breaks it and
 // flies on straight up, with 1 left.
 describe("SPLITS_RULE, flown", () => {
@@ -17,11 +11,7 @@ describe("SPLITS_RULE, flown", () => {
   ])(
     "sends two more fuzzballs off plain, 30° either side of the heading a fuzzball %s, its charge %i",
     (_, charge, up) => {
-      const flown = flyPicture({
-        picture: ["....o...."],
-        charge,
-        kinds: PRISMS,
-      });
+      const flown = flyPicture({ picture: ["....P...."], charge });
 
       expect([
         eventsOf(flown, "split"),
@@ -40,7 +30,7 @@ describe("SPLITS_RULE, flown", () => {
 
   // The row zapper's zap breaks the prism two cells to its left.
   it("only breaks a prism a zap breaks", () => {
-    const flown = flyPicture({ picture: ["..o.-...."], kinds: PRISMS });
+    const flown = flyPicture({ picture: ["..P.-...."] });
 
     expect([
       eventsOf(flown, "split"),

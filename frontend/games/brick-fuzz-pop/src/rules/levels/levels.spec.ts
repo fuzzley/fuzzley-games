@@ -1,17 +1,15 @@
-import { keysOf } from "@fz/core/records";
-import { uncataloged } from "../../testing/stand_ins";
+import { isOneOf, keysOf } from "@fz/core/records";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
   brickKind,
   hasTrait,
-  isBrickKindId,
 } from "../catalog/bricks";
 import type { ZapPattern } from "../flight/events";
 import { FLOORWARD } from "../grid";
 import { COLUMNS, LEAST_DEPTH, MOST_FRIENDS } from "../tuning";
 import type { Brick } from "../wall/wall";
-import { LEGEND, NO_BRICK } from "./legend";
+import { LEGEND, NO_BRICK, PORTAL_MARKS } from "./legend";
 import type { Level } from "./level";
 import {
   LEVELS,
@@ -33,14 +31,12 @@ const STEEL = "#########";
 /** The most hits a brick the level needs may have in its wall's lowest row, so the first round has something to break. */
 const MOST_LOW_HITS = 3;
 
-/** The legend's characters whose kinds the catalog holds, with the kind. */
-const BUILT = keysOf(LEGEND).flatMap((character) => {
-  const { kind } = LEGEND[character];
-  return isBrickKindId(kind) ? [[character, kind] as const] : [];
-});
-
-/** The first of the legend's characters whose kind the catalog doesn't hold yet, for the refusal of a kind no set has brought in. */
-const UNBUILT = uncataloged();
+/** The legend's characters with their kinds, but the portals', which come in pairs. */
+const ALONE = keysOf(LEGEND).flatMap((character) =>
+  isOneOf(character, PORTAL_MARKS)
+    ? []
+    : [[character, LEGEND[character].kind] as const],
+);
 
 /** Every level by its name. */
 const NAMED = LEVELS.map((entry) => [entry.data.name, entry] as const);
@@ -234,7 +230,7 @@ function kindsIn(level: Level): Set<BrickKindId> {
 }
 
 describe("parseLevel", () => {
-  it.each(BUILT)(
+  it.each(ALONE)(
     "lays %s out as the legend has it, a %s whole",
     (character, kind) => {
       const { hits, plates } = LEGEND[character];
@@ -250,6 +246,17 @@ describe("parseLevel", () => {
       });
     },
   );
+
+  it("lays each pair of portals out whole, the other of its mark its twin, in its pair's tint", () => {
+    const level = parsed(picture([], ["@ooo@&oo&"]));
+
+    expect([0, 4, 5, 8].map((cell) => level.bricks[cell])).toEqual([
+      { kind: "portal", hits: 0, full: 0, plates: 0, tint: 0, twin: 4 },
+      { kind: "portal", hits: 0, full: 0, plates: 0, tint: 0, twin: 0 },
+      { kind: "portal", hits: 0, full: 0, plates: 0, tint: 1, twin: 8 },
+      { kind: "portal", hits: 0, full: 0, plates: 0, tint: 1, twin: 5 },
+    ]);
+  });
 
   it("lays its picture out from the wall's lowest row up", () => {
     const level = parsed(picture(["#oooooooo"], ["o2.......", "..3......"]));
@@ -417,11 +424,6 @@ describe("parseLevel", () => {
       picture([], [STEEL]),
       "row 12 of its picture is steel from side to side, neither over everything nor passed by a portal in its top course",
     ],
-    [
-      "a kind no set has brought in yet",
-      picture([`oo${UNBUILT}oooooo`]),
-      `"${UNBUILT}", in row 1 of its picture, is a "${LEGEND[UNBUILT].kind}", which no set has brought in yet`,
-    ],
   ])("names %s", (_, bricks, problem) => {
     expect(() => parsed(bricks)).toThrow(`Level "spec": ${problem}.`);
   });
@@ -440,24 +442,18 @@ describe("parseLevel", () => {
     expect(parse).toThrow(`Level "spec": it has a "boom", which no level has.`);
   });
 
-  // The portal isn't cataloged until Tricks, so a wall that keeps the
-  // portals' rules is refused only for its kind.
-  it.each<[string, readonly string[], number]>([
+  it.each<[string, readonly string[]]>([
     [
       `a portal ${String(TWIN_ROWS)} rows from its twin`,
       picture(["oooo@oooo", PLAIN, PLAIN, PLAIN, "oooo@oooo"]),
-      5,
     ],
     [
       "a portal past a row of steel in its top course",
       picture([PLAIN, "oooo@oooo", STEEL, "o@ooooooo"]),
-      4,
     ],
-    ["two pairs of portals", picture(["@@&&ooooo"]), 1],
-  ])("keeps the portals' rules with %s", (_, bricks, row) => {
-    expect(() => parsed(bricks)).toThrow(
-      `Level "spec": "@", in row ${String(row)} of its picture, is a "portal", which no set has brought in yet.`,
-    );
+    ["two pairs of portals", picture(["@@&&ooooo"])],
+  ])("takes a wall that keeps the portals' rules with %s", (_, bricks) => {
+    expect(() => parsed(bricks)).not.toThrow();
   });
 });
 

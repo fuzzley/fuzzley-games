@@ -1,6 +1,14 @@
 import { count, formatPoints } from "@fz/core/format";
 import { brickKind } from "../catalog/bricks";
-import { brickAt } from "../grid";
+import {
+  CEILINGWARD,
+  FLOORWARD,
+  LEFT,
+  RIGHT,
+  brickAt,
+  fieldRowOf,
+} from "../grid";
+import { PORTAL_BADGES } from "../levels/legend";
 import type { LevelEntry } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import type { Boon, Shot } from "../shot";
@@ -89,17 +97,19 @@ export function describeRound(
 /**
  * Returns what R reads: the field's lowest rows that hold a brick, from the
  * floor, up to {@link ROWS_READ} of them, each cell a brick's kind, with
- * its hits left where it takes more than one, or a gap: "Row 4: brick,
- * brick, gap, tough brick, 3 hits, …".
+ * its hits left where it takes more than one, its plates and a portal's
+ * badge, or a gap: "Row 4: brick, brick, gap, tough brick, 3 hits, …".
  */
-export function describeRows({ wall, depth }: RoundStart): string {
+export function describeRows(start: RoundStart): string {
+  const { wall, depth } = start;
   const rows: string[] = [];
   for (let row = 0; row < depth && rows.length < ROWS_READ; row++) {
     const bricks = Array.from({ length: COLUMNS }, (_, column) =>
       brickAt(wall, depth, column, row),
     );
     if (bricks.some((brick) => brick !== null)) {
-      rows.push(`Row ${String(row)}: ${bricks.map(brickWords).join(", ")}.`);
+      const words = bricks.map((brick) => brickWords(brick, start));
+      rows.push(`Row ${String(row)}: ${words.join(", ")}.`);
     }
   }
   return rows.length > 0 ? rows.join(" ") : "No bricks in the field.";
@@ -171,11 +181,59 @@ function waitingWords({ wall, depth }: RoundStart): string {
     : `${count(rows, "row", "rows")} waiting`;
 }
 
-/** Returns what R says of a cell: its brick's kind, with its hits left where it takes more than one, or a gap. */
-function brickWords(brick: Brick | null): string {
+/**
+ * Returns what R says of a cell where a round starts: its brick's kind,
+ * with its hits left where it takes more than one and the faces it is
+ * plated on, or a portal by its pair's badge, shut while its twin waits
+ * over the ceiling; or a gap.
+ */
+function brickWords(brick: Brick | null, { wall, depth }: RoundStart): string {
   if (brick === null) return "gap";
   const name = brickKind(brick.kind).name.toLowerCase();
-  return brick.full > 1 ? `${name}, ${count(brick.hits, "hit", "hits")}` : name;
+  const words = [`${name}${badgeWords(brick)}`];
+  if (brick.full > 1) words.push(count(brick.hits, "hit", "hits"));
+  if (brick.plates !== 0) words.push(platedWords(brick.plates));
+  if (brick.twin !== null && fieldRowOf(wall, brick.twin) >= depth) {
+    words.push("shut");
+  }
+  return words.join(", ");
+}
+
+/**
+ * Returns what R adds to a portal's name, its pair's badge as the art draws
+ * it (`PORTAL_BADGES`), a portal's tint being its pair's place among the
+ * legend's marks; and nothing to any other brick's.
+ */
+function badgeWords({ kind, tint }: Brick): string {
+  if (kind !== "portal") return "";
+  const [first, second] = PORTAL_BADGES;
+  return ` with a ${tint === 0 ? first : second}`;
+}
+
+/** The faces a plate covers, as R names them, a pair of sides before either alone. */
+const PLATE_WORDS: readonly (readonly [faces: number, words: string])[] = [
+  [FLOORWARD, "the floor"],
+  [CEILINGWARD, "the ceiling"],
+  [LEFT | RIGHT, "both sides"],
+  [LEFT, "the left side"],
+  [RIGHT, "the right side"],
+];
+
+/** Returns what R says of a brick's plates: "plated toward the floor and both sides". */
+function platedWords(plates: number): string {
+  let rest = plates;
+  const faces: string[] = [];
+  for (const [covered, words] of PLATE_WORDS) {
+    if ((rest & covered) === covered) {
+      faces.push(words);
+      rest &= ~covered;
+    }
+  }
+  const listed =
+    faces.length > 1
+      ? `${faces.slice(0, -1).join(", ")} and ${faces.slice(-1).join("")}`
+      : faces.join("");
+  return `plated toward ${listed}`;
 }
 
 /** Returns words as a sentence: ending in a full stop, unless they end in a mark of their own. */

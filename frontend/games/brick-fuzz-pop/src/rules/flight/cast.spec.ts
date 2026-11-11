@@ -101,6 +101,10 @@ describe("castField", () => {
       xZapper: 0,
       wool: 0,
       cage: 0,
+      bumper: RADIUS + 0.38,
+      prism: 0,
+      portal: 0,
+      plated: 0,
       shell: 0,
       moss: 0,
     });

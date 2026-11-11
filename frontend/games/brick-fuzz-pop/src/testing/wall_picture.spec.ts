@@ -1,5 +1,4 @@
 import type { Brick } from "../rules/wall/wall";
-import { uncataloged } from "./stand_ins";
 import { twinsIn, wallFrom } from "./wall_picture";
 
 /** Returns a whole brick of a kind, as a picture lays one out. */
@@ -97,22 +96,20 @@ describe("wallFrom", () => {
     );
   });
 
-  // The portal isn't cataloged until Tricks; once it is, this lays out a
-  // pair as twins, ["@........", "........@"] twinning cells 9 and 8.
-  it("refuses a pair of portals for their kind until it is cataloged", () => {
-    expect(() => wallFrom(["@.......@"])).toThrow(
-      `A wall's picture holds "@", no cataloged kind's brick.`,
-    );
+  it("lays a pair of portals out as each other's twins", () => {
+    const wall = wallFrom(["@........", "........@"]);
+
+    expect([wall.bricks[8], wall.bricks[9]]).toEqual([
+      { kind: "portal", hits: 0, full: 0, plates: 0, tint: 0, twin: 9 },
+      { kind: "portal", hits: 0, full: 0, plates: 0, tint: 0, twin: 8 },
+    ]);
   });
 
-  it.each([uncataloged(), "?"])(
-    "refuses %s, no cataloged kind's brick",
-    (character) => {
-      expect(() => wallFrom([`....${character}....`])).toThrow(
-        `A wall's picture holds "${character}", no cataloged kind's brick.`,
-      );
-    },
-  );
+  it("refuses a character the legend lacks, no cataloged kind's brick", () => {
+    expect(() => wallFrom(["....?...."])).toThrow(
+      `A wall's picture holds "?", no cataloged kind's brick.`,
+    );
+  });
 });
 
 describe("twinsIn", () => {

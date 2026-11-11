@@ -22,6 +22,8 @@ import {
 } from "../rules/catalog/bricks";
 import type { FlightEvent } from "../rules/flight/events";
 import { type Guide, guideOf } from "../rules/flight/guide";
+import { FLOORWARD } from "../rules/grid";
+import { LEGEND, PORTAL_MARKS } from "../rules/levels/legend";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import {
@@ -601,23 +603,38 @@ function rowFoot(metrics: FieldMetrics, row: number): number {
   return toCanvas(metrics, 0, row).y;
 }
 
-/** Returns every look a brick of each kind takes: each tint, as many hits whole as the catalog allows, and each count of them left. */
+/**
+ * Returns every look a brick of each kind takes: each tint, a portal's its
+ * pair's, each plating the legend gives it, as many hits whole as the
+ * catalog allows, and each count of them left.
+ */
 function everyLook(): BrickLook[] {
   return BRICK_KIND_IDS.flatMap((kind: BrickKindId) => {
     const { hits, mostHits } = brickKind(kind);
     const least = hits === "never" ? 0 : hits;
-    return Array.from({ length: 8 }, (_, tint) => tint).flatMap((tint) =>
-      Array.from(
-        { length: mostHits - least + 1 },
-        (_, more) => least + more,
-      ).flatMap((full) =>
-        Array.from({ length: Math.max(1, full) }, (_, taken) => ({
-          kind,
-          tint,
-          full,
-          hits: full - taken,
-          plates: 0,
-        })),
+    const tints =
+      kind === "portal"
+        ? PORTAL_MARKS.map((_, pair) => pair)
+        : Array.from({ length: 8 }, (_, tint) => tint);
+    const platings = new Set(
+      Object.values(LEGEND)
+        .filter((brick) => brick.kind === kind)
+        .map((brick) => brick.plates),
+    );
+    return tints.flatMap((tint) =>
+      [...platings].flatMap((plates) =>
+        Array.from(
+          { length: mostHits - least + 1 },
+          (_, more) => least + more,
+        ).flatMap((full) =>
+          Array.from({ length: Math.max(1, full) }, (_, taken) => ({
+            kind,
+            tint,
+            full,
+            hits: full - taken,
+            plates,
+          })),
+        ),
       ),
     );
   });
@@ -1907,13 +1924,14 @@ describe("WallScene", () => {
     });
 
     it.each(BRICK_KIND_IDS)(
-      "picture a whole %s, of the fewest hits a level gives it, in the first tint",
+      "picture a whole %s, of the fewest hits a level gives it, in the first tint, plated toward the floor if it is plated, as a v is",
       (kind) => {
         const { hits } = brickKind(kind);
         const full = hits === "never" ? 0 : hits;
+        const plates = kind === "plated" ? FLOORWARD : 0;
 
         expect(PICTURE_LAYERS[kind]).toEqual(
-          brickLayers({ kind, tint: 0, hits: full, full, plates: 0 }),
+          brickLayers({ kind, tint: 0, hits: full, full, plates }),
         );
       },
     );

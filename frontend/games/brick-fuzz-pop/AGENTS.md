@@ -103,8 +103,10 @@ helpers.
   steel and the row and column zappers, in
   `src/rules/catalog/kinds/warm_up.ts`; Sparks' five, the bomb, the cross
   and X zappers, wool and the cage, in
-  `src/rules/catalog/kinds/sparks.ts`; Thick walls' two, the shell and
-  moss, in `src/rules/catalog/kinds/thick_walls.ts`; Tricks' empty so far.
+  `src/rules/catalog/kinds/sparks.ts`; Tricks' four, the bumper, the
+  prism, the portal and the plated brick, in
+  `src/rules/catalog/kinds/tricks.ts`; and Thick walls' two, the shell and
+  moss, in `src/rules/catalog/kinds/thick_walls.ts`.
   `castField()` and `shapesOf()` take the kinds as `BrickKinds`, so a spec
   can hand them stand-ins; the rest of the rules read the catalog's
   (`brickKind()`), and `kindIntroducedAt()` names the kind a level brings
@@ -209,7 +211,9 @@ helpers.
   `restoreGame()`, each of its checks exported); and `describe.ts` the
   announcer's words, from a level's start and a shot ("62 degrees, charge
   3", or "62 degrees, hot shot" for one carrying it) to a round, the
-  wall's lowest rows (`describeRows()`), a pause and the end.
+  wall's lowest rows (`describeRows()`: each brick's kind, its hits left,
+  its plates, and a portal by its pair's badge, shut while its twin
+  waits), a pause and the end.
 - **`src/view/`** — what to draw and when, without Phaser, tested in Node.
   `round_play.ts` holds `RoundPlay`, which plays a round's flight back a
   frame at a time, counting its breaks' points as it reaches them
@@ -257,10 +261,11 @@ helpers.
   `zapper.ts`'s four zappers, `shell.ts`'s body and pips and `moss.ts`'s
   cap and pips, each showing its hits left, `bomb.ts`'s bomb, `wool.ts`'s
   patch and `cage.ts`'s bars, whole or hit, over the friend it holds, in the
-  ink its tint picks, and `bumper.ts`, `prism.ts`, `portal.ts` and
-  `plated.ts`, which `BRICK_ART` takes in as the catalog takes in their
-  kinds), on `symbols.ts`'s shared shapes and its rule that drops detail
-  under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
+  ink its tint picks, `bumper.ts`'s disc, `prism.ts`'s faceted triangle,
+  `portal.ts`'s ring in its pair's inks and `plated.ts`'s plates over its
+  tile, for each of the legend's three platings), on `symbols.ts`'s shared
+  shapes and its rule that drops detail under 30 CSS px a unit
+  (`detailed()`). `fuzzball_art.ts` draws the
   fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
   combed out as it charges (`furOf()`) and sparking at a full one, the hot
   shot under its flames, a friend in each of the eight inks, and the eyes
@@ -700,13 +705,12 @@ What the specs share is in `src/testing/`:
   working each kind's shape and reach out for itself, and makes seeded
   walls and shots (`randomField()`, `randomShot()`), on which `cast.spec.ts`
   holds `cast()` to the scan and the benchmark times both.
-- `stand_ins.ts` holds kinds made up for specs, a bumper and a portal, and
+- `stand_ins.ts` holds kinds made up for specs before their own were
+  cataloged, a bumper and a portal, and
   `STAND_INS`, the catalog with them in the row and column zappers' places,
   which a spec hands the rules; a prism; `STAND_IN_RULES`, the rules they
   are flown by, each brick's own but for plates and shells, which do nothing
-  there; `struckOf()`, a strike as a brick's rules see it; and
-  `uncataloged()`, the legend's first character whose kind the catalog
-  doesn't hold yet, for a spec of a picture refusing one.
+  there; and `struckOf()`, a strike as a brick's rules see it.
 - `random_flights.ts` draws seeded flights at random walls
   (`randomFlight()`), each flown by its kinds' rules, and finds where a
   flight's fuzzballs come nearer a brick than they may

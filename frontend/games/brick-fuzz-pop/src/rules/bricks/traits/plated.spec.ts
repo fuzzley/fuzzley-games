@@ -1,8 +1,6 @@
-import { eventsOf } from "../../../testing/flights";
+import { eventsOf, flyPicture } from "../../../testing/flights";
 import { struckOf } from "../../../testing/stand_ins";
-import { wallFrom } from "../../../testing/wall_picture";
-import { BRICK_KINDS, type TraitOf } from "../../catalog/bricks";
-import { type Flown, fly } from "../../flight/flight";
+import type { TraitOf } from "../../catalog/bricks";
 import type { Struck } from "../../flight/hooks";
 import {
   CEILINGWARD,
@@ -14,13 +12,7 @@ import {
   LEFT,
   RIGHT,
 } from "../../grid";
-import {
-  AIMS_PER_DEGREE,
-  BORED,
-  FIRST_AIM_DEGREES,
-  MOST_CHARGE,
-} from "../../tuning";
-import { TRAIT_RULES } from "../trait_rules";
+import { MOST_CHARGE } from "../../tuning";
 import { PLATED_RULE } from "./plated";
 
 /** A plated brick's trait. */
@@ -100,39 +92,11 @@ describe("PLATED_RULE", () => {
   );
 });
 
-/** The catalog with a plated brick standing in for the tough brick, so a picture's `2` is one. */
-const PLATED_KINDS = {
-  ...BRICK_KINDS,
-  tough: { ...BRICK_KINDS.tough, name: "Plated brick", traits: [PLATED] },
-};
-
-/** Returns the flight of a fuzzball straight up from the floor's middle at a plated brick of 2 hits in field row 3, plated on the faces given. */
-function flyAtPlated(plates: number, charge: number, hot = false): Flown {
-  const wall = wallFrom(["....2...."], { lowestRow: 3 });
-  const bricks = wall.bricks.map((brick) =>
-    brick === null ? null : { ...brick, plates },
-  );
-  const aim = (90 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
-  return fly(
-    {
-      wall: { ...wall, bricks },
-      depth: 11,
-      x: 4.5,
-      aim,
-      charge,
-      hot,
-      mates: 0,
-      friends: 0,
-    },
-    { bored: BORED, kinds: PLATED_KINDS, traits: TRAIT_RULES },
-  );
-}
-
-// A fuzzball straight up from the floor meets the brick's floorward face at
-// 2.5.
+// A fuzzball straight up from the floor meets a brick in field row 3's
+// floorward face at 2.5: a "v" is plated there, a "^" toward the ceiling.
 describe("PLATED_RULE, flown", () => {
   it("turns a charged fuzzball off its plate, earthed, the brick whole", () => {
-    const flown = flyAtPlated(FLOORWARD, 3);
+    const flown = flyPicture({ picture: ["....v...."], charge: 3 });
 
     expect([
       eventsOf(flown, "strike"),
@@ -156,7 +120,11 @@ describe("PLATED_RULE, flown", () => {
 
   // It bounces off the floor once, and strikes the plate again.
   it("turns a hot shot off its plate with its charge, the brick whole", () => {
-    const flown = flyAtPlated(FLOORWARD, MOST_CHARGE, true);
+    const flown = flyPicture({
+      picture: ["....v...."],
+      charge: MOST_CHARGE,
+      hot: true,
+    });
 
     expect(
       eventsOf(flown, "strike").map(({ took, charge, earthed }) => [
@@ -171,7 +139,7 @@ describe("PLATED_RULE, flown", () => {
   });
 
   it("takes a hit from a plain fuzzball on a face it isn't plated on", () => {
-    const flown = flyAtPlated(CEILINGWARD, 0);
+    const flown = flyPicture({ picture: ["....^...."] });
 
     expect(
       eventsOf(flown, "strike").map(({ took, left }) => [took, left]),

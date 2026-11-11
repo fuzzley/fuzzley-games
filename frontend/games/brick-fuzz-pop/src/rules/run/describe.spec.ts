@@ -1,5 +1,6 @@
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { wallFrom } from "../../testing/wall_picture";
+import { CEILINGWARD, FLOORWARD, RIGHT } from "../grid";
 import { LEVELS, levelEntryOf } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import {
@@ -233,6 +234,63 @@ describe("describeRows", () => {
   it("reads the floor's row, which a level lost leaves bricks in", () => {
     expect(describeRows(lost.round.next)).toMatch(
       /^Row 0: brick, brick, brick, gap, gap, gap, gap, gap, gap\. Row 4: /,
+    );
+  });
+
+  it.each([
+    ["v", "plated toward the floor"],
+    ["^", "plated toward the ceiling"],
+    ["U", "plated toward the floor and both sides"],
+  ])("reads the faces a %s is plated on", (character, words) => {
+    const start = startOf([`${character}........`], 3);
+
+    expect(describeRows(start)).toBe(
+      `Row 3: plated brick, 2 hits, ${words}, gap, gap, gap, gap, gap, gap, gap, gap.`,
+    );
+  });
+
+  it("reads a brick plated toward the floor, the ceiling and one side, the sides last", () => {
+    const drawn = wallFrom(["v........"], { lowestRow: 3 });
+    const plates = RIGHT | CEILINGWARD | FLOORWARD;
+    const bricks = drawn.bricks.map((brick) =>
+      brick === null ? null : { ...brick, plates },
+    );
+
+    const words = describeRows({
+      ...startOf([], 3),
+      wall: { ...drawn, bricks },
+    });
+
+    expect(words).toMatch(
+      /^Row 3: plated brick, 2 hits, plated toward the floor, the ceiling and the right side, gap/,
+    );
+  });
+
+  // No level lays a portal out alone, but a wall handed in may hold one.
+  it("reads a portal with no twin by its pair's badge, never shut", () => {
+    const drawn = wallFrom(["&...&...."], { lowestRow: 3 });
+    const bricks = drawn.bricks.map((brick) =>
+      brick === null ? null : { ...brick, twin: null },
+    );
+
+    const words = describeRows({
+      ...startOf([], 3),
+      wall: { ...drawn, bricks },
+    });
+
+    expect(words).toBe(
+      "Row 3: portal with a diamond, gap, gap, gap, portal with a diamond, gap, gap, gap, gap.",
+    );
+  });
+
+  it("reads each portal by its pair's badge, and a portal shut while its twin waits over the ceiling", () => {
+    const start = startOf(
+      ["...&.....", ".........", ".........", ".........", "@...@..&."],
+      7,
+    );
+
+    expect(describeRows(start)).toBe(
+      "Row 7: portal with a dot, gap, gap, gap, portal with a dot, gap, gap, portal with a diamond, shut, gap.",
     );
   });
 

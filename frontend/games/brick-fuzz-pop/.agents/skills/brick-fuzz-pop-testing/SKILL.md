@@ -101,7 +101,7 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   as a level's are and each portal twinned with the other of its mark
   (`twinsIn()`), its lowest row in field row 1 unless told. It throws for
   a row not nine wide, a portal's mark used once or more than twice, or a
-  character of a kind not yet cataloged.
+  character the legend lacks.
   `levelFrom()` (`src/testing/level_picture.ts`) makes a level of one;
   `NO_HITS` are rules under which no shot takes a hit, and `HIGH_BRICK` a
   level that loses to them after a jump.
@@ -112,19 +112,18 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   place, the angle in degrees, the charge, a hot shot, the friends or the
   kinds; `eventsOf()` picks a flight's events of a kind, and `near()`
   matches a number as near as the flight's arithmetic finds it.
-- **Kinds not yet built** stand in from `src/testing/stand_ins.ts`: a
-  bumper, a portal and a prism, and `STAND_IN_RULES`, the rules they fly by,
-  each brick's own but for plates and shells, which do nothing there.
-  `STAND_INS` is the catalog with the bumper in the row zapper's place and
-  the portal in the column zapper's, so a picture's `-` is a bumper and its
-  `|` a portal (the legend's own portal marks throw in `wallFrom()` until a
-  portal is cataloged); the prism joins a catalog a spec makes for itself,
-  as `random_flights.ts` does. A spec hands them to `playRoundBy()`, whose
-  wall still comes down and is found cleared by the catalog's kinds, so a
-  stand-in is needed as the zapper it replaces is. `struckOf()` is a strike
-  as a brick's rules see it, and `uncataloged()` the legend's first
-  character whose kind the catalog doesn't hold yet, which throws once
-  every kind is cataloged.
+- **Stand-ins** from `src/testing/stand_ins.ts`, made up before their
+  kinds were cataloged and still flown by the flight's, the cast's, the
+  grid's, the round's and the random flights' specs: a bumper, a portal and a prism, and
+  `STAND_IN_RULES`, the rules they fly by, each brick's own but for plates
+  and shells, which do nothing there. `STAND_INS` is the catalog with the
+  bumper in the row zapper's place and the portal in the column zapper's,
+  so a picture's `-` is a bumper and its `|` a portal; the prism joins a
+  catalog a spec makes for itself, as `random_flights.ts` does. A spec
+  hands them to `playRoundBy()`, whose wall still comes down and is found
+  cleared by the catalog's kinds, so a stand-in is needed as the zapper it
+  replaces is. A new spec draws the real kinds, `B`, `P`, `@` and `&`,
+  rather than these. `struckOf()` is a strike as a brick's rules see it.
 - **Every flight is held to its checks.** `random_flights.ts` draws seeded
   flights at random walls (`randomFlight()`) and finds where a fuzzball
   came nearer a brick than it may (`clearanceProblemsOf()`);
