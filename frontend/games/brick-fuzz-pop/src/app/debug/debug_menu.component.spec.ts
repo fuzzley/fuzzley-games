@@ -1,36 +1,55 @@
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
+import { FRAME_MS } from "@fz/core/testing";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { filesCertifying, loadsSettled } from "../../testing/certificates";
+import { STILL, provideSpecPlay } from "../../testing/play";
 import { TUNED_NUMBERS, tuningLines } from "../../view/debug/debug_tuning";
-import { DebugService } from "./debug.service";
+import { GameService } from "../play/game.service";
 import {
-  type CertificateOffer,
-  DebugMenuComponent,
-} from "./debug_menu.component";
+  CERTIFICATE_FILES,
+  type CertificateFiles,
+} from "./certificates.service";
+import { DebugService } from "./debug.service";
+import { DebugMenuComponent } from "./debug_menu.component";
 
 /** What a spec gets back from rendering the menu. */
 interface RenderedMenu {
   readonly user: UserEvent;
   readonly debug: DebugService;
+  readonly game: GameService;
   readonly playCertificate: ReturnType<typeof vi.fn>;
   readonly fixture: ComponentFixture<DebugMenuComponent>;
 }
 
-/** Renders the debug menu, offering a certificate or none. */
-async function renderMenu(
-  certificate: CertificateOffer | null = null,
-): Promise<RenderedMenu> {
+/**
+ * Renders the debug menu over the specs' levels, its certificates read
+ * from the files handed it, none by default, once they have loaded.
+ */
+async function renderMenu(files: CertificateFiles = {}): Promise<RenderedMenu> {
   const playCertificate = vi.fn();
   const { fixture } = await render(DebugMenuComponent, {
-    inputs: { certificate },
     on: { playCertificate },
+    providers: [
+      ...provideSpecPlay(),
+      { provide: DEBUG_MENU, useValue: true },
+      { provide: CERTIFICATE_FILES, useValue: files },
+    ],
   });
+  await loadsSettled(fixture);
   return {
     user: userEvent.setup(),
     debug: TestBed.inject(DebugService),
+    game: TestBed.inject(GameService),
     playCertificate,
     fixture,
   };
+}
+
+/** Returns the field's depth, as the game lays it out. */
+function fieldDepth(): number {
+  return TestBed.inject(GameService).shape().depth;
 }
 
 /** Moves a slider to a value, as a finger or the arrow keys would. */
@@ -211,26 +230,29 @@ describe("DebugMenuComponent", () => {
   });
 
   it("says what Play the certificate plays", async () => {
-    await renderMenu({ level: 3, depth: 14, rounds: 6 });
+    const { game } = await renderMenu(filesCertifying(fieldDepth));
 
     expect(
       screen.getByRole("button", { name: "Play the certificate" }),
     ).toHaveAccessibleDescription(
-      "Plays level 3 from its start on a field 14 deep, its certificate's 6 rounds one at a time.",
+      `Plays level 1 from its start on a field ${String(game.shape().depth)} deep, its certificate's 2 rounds one at a time.`,
     );
   });
 
-  it("hands Play the certificate on", async () => {
-    const { user, playCertificate } = await renderMenu({
-      level: 1,
-      depth: 11,
-      rounds: 1,
-    });
+  it("plays the certificate at Play the certificate, telling the drawer", async () => {
+    const { user, game, playCertificate, fixture } = await renderMenu(
+      filesCertifying(fieldDepth),
+    );
 
     await user.click(
       screen.getByRole("button", { name: "Play the certificate" }),
     );
+    await loadsSettled(fixture);
+    game.tick(FRAME_MS, STILL);
 
-    expect(playCertificate).toHaveBeenCalledOnce();
+    expect({
+      told: playCertificate.mock.calls.length,
+      rounds: game.run().rounds,
+    }).toEqual({ told: 1, rounds: 1 });
   });
 });

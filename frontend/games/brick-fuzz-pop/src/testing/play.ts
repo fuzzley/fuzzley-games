@@ -8,7 +8,8 @@ import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import type { Round, RoundOutcome, RoundStart } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import { type Wall, thirdsOf } from "../rules/wall/wall";
-import { STRAIGHT_UP, type Steer } from "../view/steering/steering";
+import { STRAIGHT_UP } from "../view/steering/aiming";
+import type { Steer } from "../view/steering/steering";
 import { FLIGHT_FIXTURES } from "./flight_fixtures";
 
 /** The levels the shell's specs play: the game's first three, so a run is won in three. */

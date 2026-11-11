@@ -89,9 +89,9 @@
   </div>
 
   @if (debugMenu) {
-    <app-debug-menu
-      [certificate]="certificate()"
-      (playCertificate)="playCertificate.emit()"
-    />
+    <!-- A chunk of its own, which a page that offers no menu never loads. -->
+    @defer (on immediate) {
+      <app-debug-menu (playCertificate)="playCertificate.emit()" />
+    }
   }
 </fz-settings-drawer>

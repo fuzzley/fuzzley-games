@@ -66,8 +66,7 @@
 />
 <app-settings
   [open]="settingsOpen()"
-  [certificate]="certificates.offer()"
-  (playCertificate)="playCertificate()"
+  (playCertificate)="settingsOpen.set(false)"
   (closed)="settingsOpen.set(false)"
 />
 <fz-confirm-dialog />

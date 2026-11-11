@@ -1,4 +1,4 @@
-import { TestBed } from "@angular/core/testing";
+import { DeferBlockState, TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
@@ -19,6 +19,7 @@ import {
   release,
   scriptedRounds,
 } from "../testing/play";
+import { filesCertifying, loadsSettled } from "../testing/certificates";
 import { PALETTES } from "../testing/roles";
 import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent } from "./app.component";
@@ -67,18 +68,17 @@ async function renderCertifiedApp(): Promise<RenderedApp> {
       { provide: DEBUG_MENU, useValue: true },
       {
         provide: CERTIFICATE_FILES,
-        useValue: {
-          "warm-up": () =>
-            Promise.resolve({
-              "hello-wall": {
-                [String(TestBed.inject(GameService).shape().depth)]: [[100, 2]],
-              },
-            }),
-        },
+        useValue: filesCertifying(
+          () => TestBed.inject(GameService).shape().depth,
+        ),
       },
     ],
   });
-  await fixture.whenStable();
+  // The settings' deferred menu, then the certificates it loads.
+  for (const block of await fixture.getDeferBlocks()) {
+    await block.render(DeferBlockState.Complete);
+  }
+  await loadsSettled(fixture);
   return {
     game: TestBed.inject(GameService),
     user: userEvent.setup(),
@@ -387,6 +387,24 @@ describe("AppComponent", () => {
         settings: screen.queryByRole("dialog", { name: "Settings" }),
         rounds: game.run().rounds,
       }).toEqual({ settings: null, rounds: 1 });
+    });
+
+    it("asks first with a run in progress, the settings put away before the question takes the focus", async () => {
+      const { game, user, settle } = await renderCertifiedApp();
+      playRoundOut(game);
+      await settle();
+      await user.click(barButton("Settings"));
+
+      await user.click(
+        screen.getByRole("button", { name: "Play the certificate" }),
+      );
+      await settle();
+
+      const question = screen.getByRole("alertdialog");
+      expect({
+        settings: screen.queryByRole("dialog", { name: "Settings" }),
+        focused: question.contains(document.activeElement),
+      }).toEqual({ settings: null, focused: true });
     });
   });
 

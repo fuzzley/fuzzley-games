@@ -7,13 +7,11 @@ import {
   fieldShape,
   toCanvas,
 } from "../field/field_metrics";
+import { BY_POINTER, type PointerAimings, STRAIGHT_UP } from "./aiming";
 import {
-  BY_POINTER,
   HOLD_NOTCH_MS,
   type KeyPress,
-  type PointerAimings,
   type PointerView,
-  STRAIGHT_UP,
   Steering,
   aimToward,
   chargeAfter,

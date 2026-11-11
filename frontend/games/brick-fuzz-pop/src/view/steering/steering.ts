@@ -11,25 +11,17 @@ import {
   RADIUS,
 } from "../../rules/tuning";
 import { type FieldMetrics, type Place, toField } from "../field/field_metrics";
+import {
+  BY_POINTER,
+  type PointerAiming,
+  type PointerAimings,
+  STRAIGHT_UP,
+} from "./aiming";
 import { type SteerKey, commandOfKey, heldKeyOf, steerKeyOf } from "./controls";
 
-/** Names a way a pointer aims: pulled back from where it pressed, or pointed and held. */
-export type PointerAiming = "pullBack" | "pointAndHold";
-
-/** Says how each kind of pointer aims. */
-export interface PointerAimings {
-  readonly mouse: PointerAiming;
-  readonly finger: PointerAiming;
-}
-
-/**
- * Each kind of pointer its own way, as the settings' "by the pointer" has
- * them: a finger pulls back, and a mouse points and holds.
- */
-export const BY_POINTER: PointerAimings = {
-  mouse: "pointAndHold",
-  finger: "pullBack",
-};
+// The scene takes these with the steering; the shell takes them from
+// `aiming.ts` alone, so its chunk carries no `Steering`.
+export { BY_POINTER, type PointerAimings, STRAIGHT_UP };
 
 /**
  * How far a pull back runs before it aims or charges, in field units; a
@@ -57,9 +49,6 @@ export const EDGE_CSS_PX = 16;
  * aiming, and a second, whose press calls the shot off.
  */
 export const MOST_FINGERS = 2;
-
-/** The aim straight up, which the steering starts at. */
-export const STRAIGHT_UP: Aim = (AIM_COUNT - 1) / 2;
 
 /** The charges in order, the count of notches each comes to. */
 const CHARGES = [0, 1, 2, 3, 4, 5] as const satisfies readonly Charge[];

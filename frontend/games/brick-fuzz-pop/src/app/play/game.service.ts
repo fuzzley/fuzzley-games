@@ -91,8 +91,8 @@ import {
   BY_POINTER,
   type PointerAimings,
   STRAIGHT_UP,
-  type Steer,
-} from "../../view/steering/steering";
+} from "../../view/steering/aiming";
+import type { Steer } from "../../view/steering/steering";
 import type { BoardCard } from "../board/board_card.component";
 import { DebugService, type RunStart } from "../debug/debug.service";
 import { waitingRows } from "../panels/panels";

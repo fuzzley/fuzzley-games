@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from "@angular/core";
+import { Component, computed, inject, output } from "@angular/core";
 import { count } from "@fz/core/format";
 import {
   DebugTuningComponent,
@@ -12,20 +12,8 @@ import {
   formatTuning,
   tuningLines,
 } from "../../view/debug/debug_tuning";
+import { CertificatesService } from "./certificates.service";
 import { DebugService } from "./debug.service";
-
-/**
- * Describes the certificate the debug menu offers to play: the level in
- * play's, on the field's depth, and how many rounds its line takes.
- */
-export interface CertificateOffer {
-  /** The level's number, counted from 1. */
-  readonly level: number;
-  /** The field's depth the line was found on, in rows. */
-  readonly depth: number;
-  /** How many rounds the line plays. */
-  readonly rounds: number;
-}
 
 /** What the menu says while a number the rules read has moved. */
 const STALE = "The certificates are stale while the rules are retuned.";
@@ -50,23 +38,26 @@ const DEPTHS: readonly number[] = Array.from(
  * controls, the field's depth over the room's, every level open, and Play
  * the certificate.
  *
- * What it sets, it hands `DebugService`. Play the certificate it hands on,
- * as only the game can play a line; the game offers it the certificate,
- * or null where none holds the level in play on the field's depth.
+ * What it sets, it hands `DebugService`. It provides `CertificatesService`,
+ * which offers it the certificate of the level in play on the field's
+ * depth, or none, and plays it; the settings drawer defers the menu, so
+ * neither reaches a page that doesn't offer it.
  */
 @Component({
   selector: "app-debug-menu",
   imports: [DebugTuningComponent],
+  providers: [CertificatesService],
   templateUrl: "./debug_menu.component.html",
   styleUrl: "./debug_menu.component.scss",
 })
 export class DebugMenuComponent {
   private readonly debug = inject(DebugService);
+  private readonly certificates = inject(CertificatesService);
 
   /** The certificate of the level in play on the field's depth, or null where there is none. */
-  readonly certificate = input<CertificateOffer | null>(null);
+  protected readonly certificate = this.certificates.offer;
 
-  /** Emitted at Play the certificate. */
+  /** Emitted at Play the certificate, so the drawer can put itself away as the line plays. */
   readonly playCertificate = output();
 
   /** The sliders, each at the number in use, read in its unit. */
@@ -142,5 +133,11 @@ export class DebugMenuComponent {
   /** Opens every level, or only those the player has, as its checkbox says. */
   protected openEveryLevel(open: boolean): void {
     this.debug.openEveryLevel(open);
+  }
+
+  /** Plays the certificate offered, telling the drawer to put itself away. */
+  protected play(): void {
+    this.playCertificate.emit();
+    void this.certificates.play();
   }
 }
