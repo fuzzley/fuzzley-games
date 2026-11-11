@@ -1,7 +1,14 @@
 import type { Level } from "../rules/levels/level";
 import { DANGER_ROW } from "../rules/wall/lower";
 import { HIGH_BRICK, NO_HITS, levelFrom } from "./level_picture";
-import { type Line, type Solved, replayLine, solveLevel } from "./solver";
+import {
+  type Line,
+  type LinePlayed,
+  type Solved,
+  lineHolds,
+  replayLine,
+  solveLevel,
+} from "./solver";
 
 /** A level of one plain brick, which opens on row 5 of a field 11 deep, under the jump line. */
 const ONE_BRICK = levelFrom(["o........"]);
@@ -119,5 +126,34 @@ describe("replayLine", () => {
 
   it("throws a RangeError for a shot of an aim that isn't one", () => {
     expect(() => replayLine(ONE_BRICK, 11, [[657, 0]])).toThrow(RangeError);
+  });
+});
+
+describe("lineHolds", () => {
+  /** A line of two shots, played as a certificate must play it. */
+  const LINE: Line = [
+    [4, 0],
+    [8, 0],
+  ];
+  const HELD: LinePlayed = {
+    cleared: true,
+    rounds: 2,
+    jumps: 0,
+    leastRow: DANGER_ROW + 1,
+  };
+
+  it("holds a line that clears its level in its rounds with a row to spare", () => {
+    expect(lineHolds(LINE, HELD)).toBe(true);
+  });
+
+  it.each([
+    ["doesn't clear its level", { ...HELD, cleared: false }],
+    ["clears it before its last shot", { ...HELD, rounds: 1 }],
+    [
+      "lets a needed brick into the danger row",
+      { ...HELD, leastRow: DANGER_ROW },
+    ],
+  ])("refuses a line that %s", (_, played) => {
+    expect(lineHolds(LINE, played)).toBe(false);
   });
 });

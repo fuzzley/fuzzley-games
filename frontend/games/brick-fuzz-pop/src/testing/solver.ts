@@ -14,7 +14,7 @@ import {
 } from "../rules/round/round";
 import { type Charge, type Shot, isCharge } from "../rules/shot";
 import { AIM_COUNT, MOST_CHARGE } from "../rules/tuning";
-import { inDanger, lowestNeededRow } from "../rules/wall/lower";
+import { DANGER_ROW, inDanger, lowestNeededRow } from "../rules/wall/lower";
 import { wallScore } from "./wall_score";
 
 // P3's scripts and specs were built to take a certificate's types from here.
@@ -131,6 +131,19 @@ export function replayLine(
     start = next;
   }
   return { cleared: false, rounds: line.length, jumps, leastRow };
+}
+
+/**
+ * Returns whether a line holds as a certificate, as {@link replayLine}
+ * played it: clearing its level in as many rounds as it has shots, every
+ * needed brick kept over `DANGER_ROW` between them.
+ */
+export function lineHolds(line: Line, played: LinePlayed): boolean {
+  return (
+    played.cleared &&
+    played.rounds === line.length &&
+    played.leastRow > DANGER_ROW
+  );
 }
 
 /**
