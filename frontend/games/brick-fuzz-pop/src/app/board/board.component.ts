@@ -8,6 +8,7 @@ import {
   computed,
   effect,
   inject,
+  signal,
   untracked,
   viewChild,
 } from "@angular/core";
@@ -21,6 +22,7 @@ import {
   canvasRoom,
 } from "@fz/phaser/canvas";
 import { cssHex } from "@fz/phaser/color";
+import { AnnouncerService } from "@fz/ui/announcer";
 import {
   cssRectOf,
   cssRectStyle,
@@ -49,6 +51,12 @@ import { BoardCardComponent } from "./board_card.component";
  * it again at each new unit, and each picture handed on is encoded again.
  */
 export const PICTURES_SETTLE_MS = 250;
+
+/** What the announcer says as the board's WebGL context is lost, and as it is back. */
+export const BOARD_CONTEXT_WORDS = {
+  lost: "The board stopped drawing and is being restored. The game waits until it is back.",
+  restored: "The board is back.",
+} as const;
 
 /**
  * Shows the board: the canvas the scene draws the field on, which hears the
@@ -103,6 +111,7 @@ export class BoardComponent {
   private readonly viewport = inject(GameViewportService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
+  private readonly announcer = inject(AnnouncerService);
   private readonly canvas = viewChild.required(PhaserCanvasComponent);
   private readonly play = viewChild.required<ElementRef<HTMLElement>>("play");
 
@@ -403,12 +412,22 @@ export class BoardComponent {
     this.host.nativeElement,
   );
 
+  /**
+   * Whether the canvas has lost its WebGL context, which leaves the field
+   * blank, and the browser has yet to restore it.
+   */
+  protected readonly contextLost = signal(false);
+
   constructor() {
-    // Nothing goes on before the scene that moves it is drawn. After
-    // rendering, since the canvas's state needs the scene it is given.
+    // Nothing goes on before the scene that moves it is drawn, nor while
+    // the board can't draw it. After rendering, since the canvas's state
+    // needs the scene it is given.
     afterRenderEffect(() => {
-      this.game.setDrawn(this.canvas().state() === "ready");
+      this.game.setDrawn(
+        this.canvas().state() === "ready" && !this.contextLost(),
+      );
     });
+    this.watchContext();
     // The game takes the room's shape between rounds, as it judges.
     effect(() => {
       const room = this.room();
@@ -420,6 +439,46 @@ export class BoardComponent {
     inject(DestroyRef).onDestroy(() => {
       clearTimeout(this.picturesTimer);
     });
+  }
+
+  /**
+   * Pauses the run as the canvas loses its WebGL context, showing the card
+   * that says the board is being restored, and takes the card away as the
+   * browser restores it, the run left paused for the player to go on; the
+   * announcer says each. The restoring card puts away the one shown, so the
+   * board takes the focus from a button on it, which would leave the page
+   * with none.
+   */
+  private watchContext(): void {
+    const host = this.host.nativeElement;
+    const gone = new AbortController();
+    inject(DestroyRef).onDestroy(() => {
+      gone.abort();
+    });
+    // The canvas's context events don't bubble, so the board hears them on
+    // their way down to it.
+    const heard = { capture: true, signal: gone.signal };
+    host.addEventListener(
+      "webglcontextlost",
+      () => {
+        // On a card's button, which goes, or on the board, which keeps it.
+        if (host.contains(host.ownerDocument.activeElement)) {
+          this.takeFocusBack();
+        }
+        this.contextLost.set(true);
+        this.game.pause();
+        this.announcer.say(BOARD_CONTEXT_WORDS.lost);
+      },
+      heard,
+    );
+    host.addEventListener(
+      "webglcontextrestored",
+      () => {
+        this.contextLost.set(false);
+        this.announcer.say(BOARD_CONTEXT_WORDS.restored);
+      },
+      heard,
+    );
   }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */

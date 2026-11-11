@@ -13,7 +13,6 @@ import { IconComponent } from "@fz/ui/icon";
   imports: [IconComponent],
   host: {
     class: "fz-button fz-button-secondary fz-button-circle",
-    "aria-label": "Skip",
     title: "Skip",
     "[attr.aria-disabled]": "flying() ? null : 'true'",
     "(pointerdown)": "$event.preventDefault()",

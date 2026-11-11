@@ -108,7 +108,6 @@
       fzBarActions
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action"
-      aria-label="Levels"
       title="Levels"
       (click)="openLevels.emit()"
     >
@@ -121,7 +120,6 @@
       fzBarActions
       type="button"
       class="fz-button fz-button-circle action"
-      aria-label="New game"
       title="New game"
       (click)="newGame.emit()"
     >
@@ -134,8 +132,8 @@
       fzBarActions
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action"
-      aria-label="How to play"
       title="How to play"
+      [attr.aria-busy]="helpLoading() || null"
       (click)="openHelp.emit()"
     >
       <fz-icon name="help" />
@@ -145,6 +143,7 @@
   @if (viewport.isCompact()) {
     <fz-bar-overflow
       fzBarActions
+      [busy]="helpLoading()"
       [items]="overflowItems()"
       (choose)="chooseFromMenu($event)"
     />
@@ -155,7 +154,6 @@
       fzBarActions
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action settings"
-      aria-label="Settings"
       title="Settings"
       (click)="openSettings.emit()"
     >

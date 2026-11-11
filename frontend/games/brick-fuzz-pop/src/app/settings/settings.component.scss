@@ -1,2 +1,8 @@
 @use "../styles" as *;
 @include setting-fields;
+
+// Where the debug menu goes, while it loads.
+.menu-loading {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+}

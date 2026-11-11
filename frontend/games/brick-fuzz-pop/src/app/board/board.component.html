@@ -64,6 +64,7 @@
 <app-board-card
   [style]="cardStyle()"
   [card]="game.boardCard()"
+  [restoring]="contextLost()"
   [pictures]="pictures()"
   (resumeRun)="resumeRun()"
   (nextLevel)="nextLevel()"

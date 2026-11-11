@@ -34,20 +34,24 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `--fz-bar-glass`: glass over the game in a dark palette, solid in a light
   one.
 - `src/bar_overflow/`: `<fz-bar-overflow>`, the "More actions" button and
-  the Angular Aria menu it opens, of what the bar has no room for. The items
-  are data, since Angular Aria finds a menu's items in the template that
-  declares the menu: a `BarOverflowLink`, with an `href`, which the browser
-  follows, or a `BarOverflowAction<Id>`, which emits its `id` through
-  `choose`. The component takes `Id` from the items it is given, so an app
-  that names its actions' ids (`BarOverflowItem<MenuAction>`) gets them back
-  typed, and a misspelled one fails to compile. Inside a `<fz-game-bar>`
-  the menu opens away from the bar's edge. While it is open, a transparent
-  layer over the window takes the tap that closes it, so the tap doesn't
-  reach the board. `withHomeLink(items, barHome)` leads the items with the
-  link home where the bar has no room for it (`barHome` is `none`), and
-  gives them back as they are where it has. The link leads to `/`, as the
-  bar's does, unless given another `href`; an app that gives the bar its own
-  `homeHref` passes it here too. `HELP_MENU_ACTION` and
+  the Angular Aria menu it opens, of what the bar has no room for. The
+  button is named by its tooltip alone (`label`), so a screen reader says
+  its name once, and `busy` marks it `aria-busy`, which the global
+  stylesheet rings, while what an item opens is still on its way, as a chunk
+  loads, since the focus comes back to it. The
+  items are data, since Angular Aria finds a menu's items in the template
+  that declares the menu: a `BarOverflowLink`, with an `href`, which the
+  browser follows, or a `BarOverflowAction<Id>`, which emits its `id`
+  through `choose`. The component takes `Id` from the items it is given, so
+  an app that names its actions' ids (`BarOverflowItem<MenuAction>`) gets
+  them back typed, and a misspelled one fails to compile. Inside a
+  `<fz-game-bar>` the menu opens away from the bar's edge. While it is open,
+  a transparent layer over the window takes the tap that closes it, so the
+  tap doesn't reach the board. `withHomeLink(items, barHome)` leads the
+  items with the link home where the bar has no room for it (`barHome` is
+  `none`), and gives them back as they are where it has. The link leads to
+  `/`, as the bar's does, unless given another `href`; an app that gives the
+  bar its own `homeHref` passes it here too. `HELP_MENU_ACTION` and
   `SETTINGS_MENU_ACTION` are the items that open How to play and the
   settings, worded once for the games, as `soundMenuAction()` is the
   Sound's; the Solitaire Collection takes Settings but words its own How to
@@ -86,15 +90,16 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   it: the bar's stylesheet can't reach inside it, as `bar-actions` reaches
   the `.btn-text` of the app's own actions.
 - `src/bar_sound/`: `button[fzBarSound]` (`BarSoundComponent`), which makes
-  a button its Sound: a round speaker, named Sound, pressed while `soundOn`,
-  which keeps the focus where it was through a press with a mouse or a
-  finger. The app turns the sound on or off as it is clicked, and where the
-  bar has no room for it offers `soundMenuAction(soundOn)` in its overflow
-  menu instead: "Turn sound off" while it is on, "Turn sound on" while it is
-  off. Both components take the app's own button, which keeps its `type`
-  and its `.action`, by an attribute, so `eslint.config.js` names their
-  selectors as a directive's, and `@fz/dev`'s `templates()` takes
-  `fzBarPause` and `fzBarSound` as what the button says.
+  a button its Sound: a round speaker, named Sound by its tooltip alone, so
+  a screen reader says it once, pressed while `soundOn`, which keeps the
+  focus where it was through a press with a mouse or a finger. The app turns
+  the sound on or off as it is clicked, and where the bar has no room for it
+  offers `soundMenuAction(soundOn)` in its overflow menu instead: "Turn
+  sound off" while it is on, "Turn sound on" while it is off. Both
+  components take the app's own button, which keeps its `type` and its
+  `.action`, by an attribute, so `eslint.config.js` names their selectors as
+  a directive's, and `@fz/dev`'s `templates()` takes `fzBarPause` and
+  `fzBarSound` as what the button says.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
@@ -241,12 +246,14 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   no CSS.
 - `src/global.scss`, `@fz/game-ui/global`: the global stylesheet a game
   loads once, at the top of its own: `@fz/style`'s, then the bar's size on
-  `:root`, and `overscroll-behavior: none`, so a finger dragging down the
-  board never pulls the page to refresh. These two sit in `@fz/style`'s
-  `fz.tokens` and `fz.base` layers, so a game's own rules win over them, as
-  over `@fz/style`'s. `src/frame.spec.ts` compiles the toolkit, the global
-  stylesheet and `game-frame` through the fixtures in `src/fixtures/`, as a
-  game's stylesheets load them.
+  `:root`, `overscroll-behavior: none`, so a finger dragging down the board
+  never pulls the page to refresh, and a ring of the accent turning round a
+  `.fz-button-circle` marked `aria-busy`, as the overflow's button is while
+  `busy`, once for every component. These sit in `@fz/style`'s `fz.tokens`,
+  `fz.base` and `fz.fragments` layers, so a game's own rules win over them,
+  as over `@fz/style`'s. `src/frame.spec.ts` compiles the toolkit, the
+  global stylesheet and `game-frame` through the fixtures in
+  `src/fixtures/`, as a game's stylesheets load them.
 - `src/_bar.scss`: the bar's mixins, which style what a game projects into
   its bar alike in every game, each naming the classes it styles. A bar's
   stylesheet includes them at its top, in this order, its own rules

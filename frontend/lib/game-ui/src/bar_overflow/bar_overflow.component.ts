@@ -55,8 +55,15 @@ export class BarOverflowComponent<Id extends string = string> {
   /** What the menu offers, in order. */
   readonly items = input.required<readonly BarOverflowItem<Id>[]>();
 
-  /** The button's name, and the menu's. */
+  /** The button's name, its tooltip alone, so a screen reader says it once; and the menu's. */
   readonly label = input("More actions");
+
+  /**
+   * Whether what an item opens is still on its way, as a chunk loads, which
+   * marks the button busy (`aria-busy`), where the focus is handed back,
+   * which the games' global stylesheet rings.
+   */
+  readonly busy = input(false);
 
   /** Emits the id of the action chosen. */
   readonly choose = output<Id>();

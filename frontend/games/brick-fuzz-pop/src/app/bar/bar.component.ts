@@ -97,6 +97,12 @@ export class BarComponent {
   /** Whether the player wants sound. */
   readonly soundOn = input.required<boolean>();
 
+  /**
+   * Whether How to play is loading after a press, which shows How to play's
+   * button busy, or the overflow menu's on a compact screen.
+   */
+  readonly helpLoading = input(false);
+
   /** Emitted as the player pauses the run in play. */
   readonly pauseRun = output();
 

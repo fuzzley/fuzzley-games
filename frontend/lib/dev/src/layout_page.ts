@@ -65,8 +65,10 @@ export function barOutOfWindow(): string[] {
       box.right > innerWidth + 0.5 ||
       box.bottom > innerHeight + 0.5
     ) {
+      // Named as a screen reader names it: its label, its words, its tooltip.
       const name =
-        control.getAttribute("aria-label") ?? control.textContent.trim();
+        control.getAttribute("aria-label") ??
+        (control.textContent.trim() || (control.getAttribute("title") ?? ""));
       problems.push(`The bar's ${name} runs out of the window.`);
     }
   }

@@ -4,8 +4,8 @@
   type="button"
   ngMenuTrigger
   [menu]="menu"
-  [attr.aria-label]="label()"
   [title]="label()"
+  [attr.aria-busy]="busy() || null"
 >
   <fz-icon name="more" />
 </button>

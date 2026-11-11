@@ -67,7 +67,11 @@ import {
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import type { RoundPlayer } from "../tokens";
-import { BoardComponent, PICTURES_SETTLE_MS } from "./board.component";
+import {
+  BOARD_CONTEXT_WORDS,
+  BoardComponent,
+  PICTURES_SETTLE_MS,
+} from "./board.component";
 
 /** A roomy canvas, 1600 by 900 CSS px, which spares the panels room beside the field. */
 const WIDE = { width: 1600, height: 900 } as const;
@@ -471,6 +475,9 @@ describe("BoardComponent", () => {
     it("lays the field out in the shape the round in flight keeps, on the room as it changes", async () => {
       const rendered = await renderBoard({ canvas: { readyAtOnce: false } });
       measureAt(rendered, UPRIGHT);
+      // A shot waits for the board to be drawn, as the placeholder shows
+      // only before it is, so the gate opens for this one alone.
+      rendered.game.setDrawn(true);
       release(rendered.game);
 
       measureAt(rendered, WIDE);
@@ -978,6 +985,116 @@ describe("BoardComponent", () => {
         ready: null,
         errors: [new Error("The scene couldn't be loaded")],
       });
+    });
+  });
+
+  describe("as the canvas loses its WebGL context", () => {
+    /** Raises a context event on the board, as the canvas inside it does; it doesn't bubble. */
+    function raise(board: HTMLElement, type: string): void {
+      board.dispatchEvent(new Event(type));
+    }
+
+    /** Renders the board with a round in flight, then has the canvas lose its context. */
+    async function renderLost(): Promise<RenderedBoard> {
+      const rendered = await renderBoard();
+      release(rendered.game);
+      raise(rendered.board, "webglcontextlost");
+      rendered.detectChanges();
+      return rendered;
+    }
+
+    it("pauses the run, and says the board is being restored", async () => {
+      const { game } = await renderLost();
+
+      expect({
+        outcome: game.outcome(),
+        card: screen.getByRole("group", { name: "Restoring the board" }),
+        said: TestBed.inject(AnnouncerService).message(),
+      }).toEqual({
+        outcome: "paused",
+        card: expect.toBeVisible() as unknown,
+        said: BOARD_CONTEXT_WORDS.lost,
+      });
+    });
+
+    it("lets nothing go on until the board is back", async () => {
+      const { game } = await renderLost();
+
+      game.resume();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("lets no shot fly at a level waiting for its first, until the board is back", async () => {
+      const { board, game, detectChanges } = await renderBoard();
+      raise(board, "webglcontextlost");
+      detectChanges();
+
+      release(game);
+
+      expect({
+        rounds: game.rounds(),
+        card: screen.getByRole("group"),
+      }).toEqual({
+        rounds: 0,
+        card: expect.toHaveAccessibleName("Restoring the board") as unknown,
+      });
+    });
+
+    it("hands the board the focus from the card it puts away, so the page keeps it", async () => {
+      const { board, game, detectChanges } = await renderBoard();
+      release(game);
+      game.pause();
+      detectChanges();
+      screen.getByRole("button", { name: "Resume" }).focus();
+
+      raise(board, "webglcontextlost");
+      detectChanges();
+
+      expect(board).toHaveFocus();
+    });
+
+    it("leaves the focus where it is when it isn't on the card", async () => {
+      const { board, detectChanges } = await renderBoard();
+      const elsewhere = screen.getByRole("button", { name: "Elsewhere" });
+      elsewhere.focus();
+
+      raise(board, "webglcontextlost");
+      detectChanges();
+
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it("takes its card away as the board is back, the run left paused for the player to go on", async () => {
+      const { board, game, detectChanges } = await renderLost();
+
+      raise(board, "webglcontextrestored");
+      detectChanges();
+
+      expect({
+        outcome: game.outcome(),
+        drawn: game.drawn(),
+        card: screen.getByRole("group"),
+        said: TestBed.inject(AnnouncerService).message(),
+      }).toEqual({
+        outcome: "paused",
+        drawn: true,
+        card: expect.toHaveAccessibleName("Paused") as unknown,
+        said: BOARD_CONTEXT_WORDS.restored,
+      });
+    });
+
+    it("stops listening once the board is gone", async () => {
+      const { board, game, destroy } = await renderBoard();
+      release(game);
+
+      destroy();
+      raise(board, "webglcontextlost");
+
+      expect({
+        outcome: game.outcome(),
+        said: TestBed.inject(AnnouncerService).message(),
+      }).toEqual({ outcome: "playing", said: "" });
     });
   });
 

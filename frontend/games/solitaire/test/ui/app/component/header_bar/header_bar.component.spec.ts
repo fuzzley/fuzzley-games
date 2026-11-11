@@ -340,7 +340,7 @@ describe("HeaderBarComponent", () => {
   describe("the overflow menu", () => {
     /** Opens the menu on an already-narrowed header. */
     function openMenu(): void {
-      clickElement(fixture, "button[aria-label='More actions']");
+      clickElement(fixture, "button[title='More actions']");
       fixture.detectChanges();
     }
 
@@ -368,7 +368,7 @@ describe("HeaderBarComponent", () => {
       viewport.setWidth(WIDE);
       fixture.detectChanges();
 
-      expect(query(fixture, "button[aria-label='More actions']")).toBeNull();
+      expect(query(fixture, "button[title='More actions']")).toBeNull();
     });
 
     it("takes the actions the bar has no room for out of it", () => {
@@ -444,10 +444,9 @@ describe("HeaderBarComponent", () => {
       choose("How to Play");
 
       expect(
-        queryRequired(
-          fixture,
-          "button[aria-label='More actions']",
-        ).getAttribute("aria-expanded"),
+        queryRequired(fixture, "button[title='More actions']").getAttribute(
+          "aria-expanded",
+        ),
       ).toBe("false");
     });
 
@@ -457,7 +456,7 @@ describe("HeaderBarComponent", () => {
       viewport.setWidth(WIDE);
       fixture.detectChanges();
 
-      expect(query(fixture, "button[aria-label='More actions']")).toBeNull();
+      expect(query(fixture, "button[title='More actions']")).toBeNull();
       expect(query(fixture, "button[title*='Restart']")).not.toBeNull();
     });
   });

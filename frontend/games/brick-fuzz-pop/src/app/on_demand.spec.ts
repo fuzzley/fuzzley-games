@@ -63,7 +63,7 @@ class HostComponent {
 /** What a spec gets back from rendering the host. */
 interface RenderedHost {
   readonly fixture: ComponentFixture<HostComponent>;
-  readonly show: () => Promise<void>;
+  readonly show: () => Promise<boolean>;
   readonly made: Made;
   /** What reached the app's `ErrorHandler`. */
   readonly reported: readonly unknown[];
@@ -118,6 +118,12 @@ describe("onDemand", () => {
     expect(screen.getByRole("button", { name: "Loaded" })).toBeVisible();
   });
 
+  it("says it made the component", async () => {
+    const { show } = await renderHost();
+
+    await expect(show()).resolves.toBe(true);
+  });
+
   it("keeps its inputs bound as they change", async () => {
     const { fixture } = await shownHost();
 
@@ -160,9 +166,10 @@ describe("onDemand", () => {
       Promise.reject(offline),
     );
 
-    await show();
+    const shown = await show();
 
-    expect({ made: made.count, reported }).toEqual({
+    expect({ shown, made: made.count, reported }).toEqual({
+      shown: false,
       made: 0,
       reported: [offline],
     });
@@ -187,8 +194,12 @@ describe("onDemand", () => {
     const showing = show();
 
     fixture.destroy();
-    await showing;
+    const shown = await showing;
 
-    expect({ made: made.count, reported }).toEqual({ made: 0, reported: [] });
+    expect({ shown, made: made.count, reported }).toEqual({
+      shown: false,
+      made: 0,
+      reported: [],
+    });
   });
 });

@@ -67,8 +67,9 @@
     --fz-button-label: var(--fz-on-danger);
   }
 
-  // The shapes and sizes. A circle holds only an icon, so it needs an
-  // `aria-label`.
+  // The shapes and sizes. A circle holds only an icon, so it needs a name:
+  // words heard but not seen, or its tooltip alone, never an `aria-label`
+  // and a `title` that say the same, which a browser reads twice.
   .fz-button-circle {
     --fz-icon-size: 18px;
 

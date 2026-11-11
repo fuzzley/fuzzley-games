@@ -1,4 +1,10 @@
 <fz-settings-drawer [open]="open()" (closed)="closed.emit()">
+  <!--
+    The live region the announcer speaks through while the drawer is open,
+    as that the debug menu couldn't be loaded: a modal hides the page's own
+    from a screen reader.
+  -->
+  <fz-announcer />
   <div class="setting">
     <span class="setting-label" id="aiming-label">Aiming</span>
     <fz-choice-list
@@ -92,5 +98,8 @@
     The debug menu, where it is offered: a chunk of its own, which a page
     that offers no menu never loads.
   -->
+  @if (menuLoading()) {
+    <p class="menu-loading">Loading the debug menu…</p>
+  }
   <ng-container #menuHost />
 </fz-settings-drawer>

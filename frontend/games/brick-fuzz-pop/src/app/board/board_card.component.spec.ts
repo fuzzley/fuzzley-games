@@ -124,7 +124,7 @@ const SCENE: SceneSource = () => Promise.reject(new Error("never loaded"));
       [scene]="scene"
       [options]="{ title: 'Brick Fuzz Pop', background: 'transparent' }"
     />
-    <app-board-card [card]="card()">
+    <app-board-card [card]="card()" [restoring]="restoring()">
       <fz-canvas-cards [canvas]="canvas" />
     </app-board-card>
   `,
@@ -132,6 +132,20 @@ const SCENE: SceneSource = () => Promise.reject(new Error("never loaded"));
 class TestBoardComponent {
   readonly scene = SCENE;
   readonly card = input.required<BoardCard | null>();
+  readonly restoring = input(false);
+}
+
+/** Two cards on one page, to see each named by its own title. */
+@Component({
+  imports: [BoardCardComponent],
+  template: `
+    <app-board-card [card]="ready" />
+    <app-board-card [card]="paused" />
+  `,
+})
+class TwoCardsComponent {
+  readonly ready = READY;
+  readonly paused: BoardCard = { kind: "paused", score: 0 };
 }
 
 describe("BoardCardComponent", () => {
@@ -396,6 +410,69 @@ describe("BoardCardComponent", () => {
     });
   });
 
+  describe("Restoring the board", () => {
+    it("says the board is being restored, and the game waits till it is back", async () => {
+      await render(BoardCardComponent, {
+        inputs: { card: null, restoring: true },
+      });
+
+      expect(
+        within(
+          screen.getByRole("group", { name: "Restoring the board" }),
+        ).getByText("The game waits until it is back."),
+      ).toBeInTheDocument();
+    });
+
+    it("shows in place of the card handed", async () => {
+      await render(BoardCardComponent, {
+        inputs: { card: { kind: "paused", score: 0 }, restoring: true },
+      });
+
+      expect(screen.getByRole("group")).toHaveAccessibleName(
+        "Restoring the board",
+      );
+    });
+
+    it("leaves the card handed once the board is back", async () => {
+      const { fixture } = await render(BoardCardComponent, {
+        inputs: { card: { kind: "paused", score: 0 }, restoring: true },
+      });
+
+      fixture.componentRef.setInput("restoring", false);
+      fixture.detectChanges();
+
+      expect(screen.getByRole("group")).toHaveAccessibleName("Paused");
+    });
+  });
+
+  it.each([
+    ["Ready", READY, "Level 3: Thicker"],
+    ["Paused", { kind: "paused", score: 0 }, "Paused"],
+    ["Cleared", CLEARED, "Level 3 cleared"],
+    ["Ended, a level lost,", LOST, "Game over"],
+    ["Ended, the last level cleared,", WON, "Every level cleared!"],
+  ] as const)(
+    "makes the %s card a group, named by its title, which heads it",
+    async (_, card, title) => {
+      await renderCard(card);
+
+      expect(
+        within(screen.getByRole("group", { name: title })).getByRole(
+          "heading",
+          { level: 2, name: title },
+        ),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("names each card on a page by its own title", async () => {
+    await render(TwoCardsComponent);
+
+    expect(screen.getByRole("group", { name: "Paused" })).toContainElement(
+      screen.getByRole("button", { name: "Resume" }),
+    );
+  });
+
   it.each([
     ["a level lost", LOST, "Score 12,940"],
     ["the last level cleared", WON, "Score 98,760"],
@@ -451,5 +528,24 @@ describe("BoardCardComponent", () => {
       paused: null,
       errors: [new Error("The scene couldn't be loaded")],
     });
+  });
+
+  it("shows the canvas's card in place of the restoring one", async () => {
+    collectErrors();
+    const { fixture } = await render(TestBoardComponent, {
+      inputs: { card: null, restoring: true },
+      providers: [provideFakePhaserCanvas({ readyAtOnce: false })],
+    });
+
+    TestBed.inject(FakePhaserCanvas).host.latest.fail();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect({
+      couldNotDraw: screen
+        .getByRole("alert")
+        .textContent.includes("The board couldn't be drawn"),
+      restoring: screen.queryByText("Restoring the board"),
+    }).toEqual({ couldNotDraw: true, restoring: null });
   });
 });

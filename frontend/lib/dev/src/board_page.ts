@@ -345,8 +345,10 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
       if (taken.width === 0 || taken.height === 0 || !overlaps(lies, taken)) {
         continue;
       }
+      // Named as a screen reader names it: its label, its words, its tooltip.
       const label =
-        control.getAttribute("aria-label") ?? control.textContent.trim();
+        control.getAttribute("aria-label") ??
+        (control.textContent.trim() || (control.getAttribute("title") ?? ""));
       problems.push(`The deck's ${zone} zone lies over the bar's ${label}.`);
     }
     if (at.width < deck.least || at.height < deck.least) {

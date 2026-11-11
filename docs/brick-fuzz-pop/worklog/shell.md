@@ -2636,3 +2636,275 @@ before, since its second press now waits for the load before looking.
 
 The fixes follow the review's words, but for the second's result, left
 with its reason, so they had no second review.
+
+### F1's shell fixes: lazy loads that answer, a lost WebGL context, names read once, and the cards' groups
+
+**2026-11-11.** At the integrator's word, after the rules stream's input
+and accessibility pass (F1) found four issues in the shell.
+
+**What was built.**
+
+- **How to play's load answers.** `onDemand()` now resolves to whether it
+  made the component. While How to play loads after a press, the app holds
+  `helpLoading`, which the bar shows on How to play's button, or on the
+  overflow menu's on a compact screen, as `aria-busy`, which
+  `@fz/game-ui`'s global stylesheet rings: an arc of the accent turning
+  round the round button. Escape anywhere, the focus moving out of the
+  bar, or a press or a key outside it drops the opening (`dropHelp()`), so
+  How to play never opens over the board the player went back to; the load
+  goes on, and the next press opens the one it made. A load that fails
+  lowers `helpOpen`, ends the busy state and says, through the announcer,
+  "How to play couldn't be loaded. Check the connection, then try again."
+  (`HELP_FAILED_WORDS`); one that fails after its opening was dropped says
+  nothing. The next press loads it again, as before.
+- **The debug menu's load answers too.** The drawer shows "Loading the
+  debug menu…" while it loads, says through the announcer that it couldn't
+  be loaded (`MENU_FAILED_WORDS`) if the drawer is open, in a live region
+  of the drawer's own, as the modal drawer hides the page's, and tries
+  again each time the drawer opens; two asks while it loads make one load
+  and one word, and once the menu is in the drawer, opening it loads
+  nothing. It is no press's opening, so there is nothing to drop.
+- **`LOAD_HELP` and `LOAD_DEBUG_MENU`** in `tokens.ts` hold the two
+  `import()`s, so a spec hands in a held load (`heldLoad()`, in the new
+  `src/testing/loads.ts`) and lets it `arrive()` or `fail()` with
+  `OFFLINE`.
+- **A lost WebGL context.** The board listens on its own element, in the
+  capture phase, since the canvas's `webglcontextlost` and
+  `webglcontextrestored` don't bubble. Lost, it pauses the run, closes the
+  drawn gate, so Resume, Next level and any shot wait, takes the focus if
+  a card's button held it, shows the board card's new Restoring card
+  ("Restoring the board", "The game waits until it is back."), in place of
+  any card but the canvas's own, and the announcer says the board stopped
+  drawing and is being restored; restored, the card goes, a run in play
+  stays paused, its Paused card showing, and the announcer says the board
+  is back (`BOARD_CONTEXT_WORDS`). `GameService` lets no shot fly, the
+  player's or a certificate's, while the board isn't drawn, as
+  `RunLifecycle` says the first move waits for it: Phaser goes on calling
+  the scene's update while the context is lost, and so the steering.
+- **Names read once.** Levels, New game, How to play and Settings lose
+  their `aria-label`, Fast-forward's and Skip's hosts theirs, and so do
+  `@fz/game-ui`'s Sound and the overflow menu's More actions button: each
+  is named by its tooltip alone, as Pause is by its words. `@fz/dev`'s
+  layout check names a control of the bar by its label, then its words,
+  then its tooltip, as a browser does, so its messages still name these.
+- **The cards.** Ready, Paused, Cleared, Ended and Restoring are each a
+  `role="group"` named by its title, now an `<h2>` (`aria-labelledby`, an
+  id of each card's own), which the toolkit's `.card-title` sets as it set
+  the paragraph, the reset taking its margin.
+- **Outside the game.** `@fz/game-ui`'s `<fz-bar-overflow>` gains `busy`,
+  which marks its button `aria-busy`, where the focus comes back as an
+  item's dialog loads; its global stylesheet rings a `.fz-button-circle`
+  marked `aria-busy`, in `fz.fragments`, once for every component; its
+  button and Sound are named by their tooltips alone, and its `AGENTS.md`
+  says so. `@fz/dev`'s `barOutOfWindow()` and `inspectPhaserDeck()` name a
+  control by its tooltip where it has no label and no words. `@fz/style`'s
+  note on `.fz-button-circle` and the `web-game-accessibility` skill say
+  an icon-only button is named by hidden words or by its tooltip alone,
+  never by a label and a tooltip that say the same. The Solitaire
+  Collection's header bar spec found the menu's button by its
+  `aria-label`, and now finds it by its `title`.
+
+**Sizes.** The main chunk, `index-*.js`, comes to 406.39 kB, 124.63 kB
+gzipped: 2.87 kB and 1.00 kB gzipped more than `brick-fuzz-pop`'s tip
+built the same way (403.52 kB, 123.63), and 0.41 kB under §9's 1.2 × 339.
+The stylesheet, which holds the ring now, is 9.30 kB, 0.32 more. The lazy
+chunks keep their sizes: How to play's 12.87 kB, the debug menu's 12.93
+and the scene's 54.56. Three trims came out of measuring: the board's
+listeners go with one `AbortController`, the tokens' imports read their
+export with `.then()`, and the ring moved out of the two components that
+drew it into the global stylesheet, 0.6 kB of the main chunk between them.
+
+**Choices the plan didn't make.**
+
+1. **The ring.** The busy button keeps its icon and its name; an arc of
+   the accent turns around it, drawn from `aria-busy` alone, so the look
+   and what a screen reader hears can't disagree, and in the games' global
+   stylesheet, since the overflow's button is the library's and How to
+   play's the game's. Under reduced motion the global rule stills it, an
+   arc that still shows.
+2. **What drops the opening:** Escape anywhere, the focus moving to
+   anything outside the bar, and a press or a key outside it, all heard on
+   the document, the keys on their way down, before a card's button keeps
+   them, rather than the focus leaving the button alone. On a phone, How
+   to play is chosen from the menu, which hands the focus back to More
+   actions, still in the bar; Tab along the bar keeps it too, and so do
+   Tab, Shift, Control, Alt and Meta anywhere, which move along the page
+   or only modify a key. The press and the keys cover a click that focuses
+   no button, as Safari's, which leaves the focus on the board, so going
+   back to the board, or playing on with the keys, moves no focus.
+3. **A dropped load still lands,** shut, so the next press opens it at
+   once; a failure after a drop says nothing, as the player has gone on.
+4. **The failure is said, not shown:** How to play's button only ever
+   showed an icon, and the announcer's words reach a screen reader; seen,
+   the press does nothing, as the button ends its busy state.
+5. **The debug menu** loads after the drawer's first render, as before,
+   and again at each opening once it has failed, never twice at once, nor
+   once made. A failure with the drawer shut, as a `?debug` page opened
+   offline, is said at the next opening's failure, not before anyone
+   asked. Its loading line is in the drawer, where the menu will be, with
+   no `aria-busy`, which would hold its own words back. The drawer holds a
+   live region of its own, as a modal that speaks must, which says
+   whatever the announcer says while it is open.
+6. **The lost context.** `<fz-phaser-canvas>` offers no state for it, only
+   its slow and failed cards, and Phaser's renderer already prevents the
+   default and restores itself, so the board only listens. The card is the
+   board card's own, under the canvas's cards, which say more. It says the
+   game waits rather than that it is paused, since a level waiting for its
+   first shot, or a run ended, has nothing to pause, and the gate holds
+   their moves all the same. A browser that never restores the context, as
+   one may after the GPU resets again and again, leaves the card up for
+   good, with no way on but reloading the page, which the saved run
+   survives; it says so to no one, a limit left for now.
+7. **Headings.** Each card's title is an `<h2>`, as the panels' are under
+   the page's one `<h1>`, with an id of each card's own, from a counter,
+   so two boards' cards would never share one.
+8. **Names read once by the tooltip,** not by hidden words beside the
+   tooltip: by hand, Chrome gives a button named by an `aria-label` and a
+   `title` that says the same a description too, and one named by its
+   tooltip alone, or by hidden words beside the same tooltip, as Pause is,
+   none, so the tooltip alone does it, costing the main chunk nothing,
+   where words for each of the eight buttons would cost it about 0.35 kB.
+   jsdom's descriptions can't show a tooltip read as the description, so
+   the specs hold that no `aria-label` is there.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`): 118 files, 5,879 tests, then the `sim` project's 29
+files, 555 tests, every file this change touches at 100%; the root's `yarn
+lint` passes. `@fz/game-ui`'s, `@fz/dev`'s and `@fz/style`'s `lint` and
+`typecheck` pass, and their 335 and 535 tests, the first two's; so do the
+bar specs of Snake, Brick Breaker, Asteroid Breaker, Minesweeper and
+Sudoku, and the Solitaire Collection's header bar spec. The game built
+alone, and again with source maps, and its `check:layout` holds at every
+shape and turn.
+
+**By hand,** on the production build, in a headless Chrome of the script's
+own (`@fz/dev/chrome`'s `withChrome()`), How to play's chunk held 2.5 s by
+`Fetch` interception, or failed as the network is gone: the press shows
+the ring and `aria-busy` (Chrome: busy), the focus staying on the button,
+and How to play opens at 2.5 s with the focus on its card. Escape while it
+loads drops it: the chunk lands shut, the focus stays on the button, and
+the next press opens it at once. Focus moved to the board drops it too;
+Tab to Settings keeps it; with the focus on the board, a press of How to
+play that moves no focus, then a press on the board, drops it. Offline,
+the busy state ends and the live region says How to play couldn't be
+loaded; the next press, online, opens it. On a 390 × 844 phone, How to
+play from the menu marks More actions busy, ringed, and opens. At
+`?debug`, offline, the live region says nothing with the drawer shut;
+opening the drawer, slow, shows "Loading the debug menu…", then the menu.
+Chrome's tree names each bar button once, with no description, and the
+Ready card a group named "Level 1: Hello, wall" over a level-2 heading.
+With `WEBGL_lose_context`: lost at the Ready card, the Restoring card
+shows and Space lets no shot fly; restored, the Ready card is back. Lost
+with a shot in flight, the run pauses, the Restoring card shows, a group
+so named, and the live region says so; P does nothing; restored, the field
+is drawn again, the Paused card shows, the run still paused, the live
+region saying the board is back, and Resume goes on. Lost with the focus
+on Resume, the board takes it. After the second review, over the build
+made again: with the focus on the board, a press of How to play that moves
+no focus, then the left arrow on the board, drops the opening; at
+`?debug`, offline, the drawer opened says the menu couldn't be loaded in
+its own live region, the one Chrome's tree holds while the drawer is open.
+
+**The mutation pass.** 67 mutants, two survivors, each run against the
+specs of the file it breaks; the board's on its listeners and its focus
+ran again after each trim. Of `onDemand()`: a component gone, made, or
+failed, said the other way. Of the app: a load at every press once made,
+no busy state, busy kept after the load, a dropped failure still said, a
+success said, the failure unsaid, a drop with nothing loading, a drop that
+keeps the busy state or the opening, the focus anywhere keeping it or in
+the bar dropping it, each of its three listeners gone, Escape dropping
+nothing, the keys heard bubbling, every key dropping it, and none but
+Escape. Of the bar: How to play's and More actions' `aria-busy`, each
+gone. Of the drawer: two loads at once, a made menu loaded again, never
+loading, loading kept, a success said, a failure said with the drawer shut
+or never, a retry as the drawer shuts, no preload, no retry, no loading
+line, and no live region of its own. Of the board: the gate open while
+lost, lost not marked, paused or said, restored not marked or said, either
+listener heard bubbling, kept after the board is gone, the card not told,
+and the focus left on the card or always taken. Of `GameService`: a shot
+let fly with the board undrawn. Of the cards: one id for every card, the
+restoring card over the canvas's or never shown, the Paused card unnamed,
+the Ready title no heading, the Ended card no group. Of `@fz/game-ui`:
+More actions never or always busy, and it and Sound named twice. Of
+`@fz/dev`: each check's name without the tooltip, by its words alone, or
+by its tooltip before its words. The survivors are equivalent. A failed
+load leaving `helpOpen` raised: nothing reads `helpOpen` until How to play
+is made, and the next press raises it again; the line keeps the state true
+for whatever reads it later. The app's key listener kept once the app is
+gone: the app is the root, gone only with the page, and the listener
+touches only the app's own state; the line keeps a spec's page, which
+renders an app for each test, from gathering them.
+
+**The review:**
+
+1. _A lost context at the Ready card still lets a shot fly: `pause()`
+   pauses only a run in play, Phaser goes on updating the scene while the
+   context is lost, and `release()` never asks whether the board is drawn;
+   the card meanwhile says the game is paused._ Taken: `release()` waits
+   for the drawn gate, so neither the player's shot nor a certificate's
+   flies, with specs in `GameService`'s and the board's; the card and the
+   words say the game waits until the board is back. The placeholder's
+   spec of a round in flight opens the gate for its shot, since the
+   placeholder shows only before the board is drawn.
+2. _Where a click doesn't focus a button, as in Safari, the focus stays on
+   the board through the press, so going back to the board moves no focus
+   and the opening stands._ Taken: a press outside the bar drops it too,
+   with specs of a press outside and one in the bar.
+3. _The ring comes from a class beside `aria-busy`, against the
+   accessibility skill's rule, and the library's `busy` would leave every
+   game to draw its own._ Taken: the ring is drawn from `aria-busy` alone,
+   in `@fz/game-ui`'s global stylesheet, for any round button so marked;
+   the class bindings and the specs of them are gone, and the global
+   stylesheet's spec holds the ring.
+4. _The Restoring card puts away a card whose button may hold the focus,
+   which then falls to the page._ Taken: the board takes the focus as the
+   context is lost if it is anywhere inside it, with specs of the focus on
+   Resume and elsewhere.
+5. _The drawer says a failure at page load with nobody asking, flashes its
+   loading line at each opening once the menu is made, and marks its own
+   words busy._ Taken, all three: said only while the drawer is open, no
+   load once made (`menuMade`), and no `aria-busy`, each with a spec but
+   the last.
+6. _Naming by the tooltip alone leaves `@fz/dev`'s layout check printing
+   no name, and contradicts `@fz/style`'s note on circles and the
+   accessibility skill._ Taken: both helpers fall back on the tooltip,
+   with specs, and the note and the skill say a tooltip alone names an
+   icon-only button, never a label and a tooltip together. Hidden words
+   beside the tooltip would follow the skill as it stood, at a cost to the
+   main chunk (choice 8).
+7. _`.card-title { margin: 0 }` does nothing, as the reset takes every
+   margin._ Taken: gone.
+
+The fixes follow the review's words, but for the third's place, the global
+stylesheet rather than a mixin in each, chosen for the main chunk's bytes.
+As they reach into three libraries and a shared skill, the change had a
+second review:
+
+1. _The drawer says the menu couldn't be loaded only while it is open, but
+   it is a modal, which hides the page's one live region._ Taken: the
+   drawer holds its own, and its spec finds the words in it. The app's
+   spec of the page's region leaves the drawer's aside.
+2. _Where a click focuses no button, the player can play on with the keys,
+   which moves no focus and presses nothing, and a card's button keeps
+   Escape from the document._ Taken: the document hears keys on their way
+   down, dropping the opening at Escape anywhere and at any other key
+   outside the bar but those that move along the page or modify a key,
+   with specs of Space on the board, Escape on Resume, and Tab and Shift.
+3. _Pause has hidden words and the same tooltip, the pair the change says
+   is read twice, and the docs say every round action is named by its
+   tooltip._ Taken in part: the docs and the spec's words now say Pause is
+   named by its words. Left: Pause as it is, since Chrome, by hand, reads
+   words beside the same tooltip once and only a label beside it twice
+   (choice 8), which the skill and the note on circles say.
+4. _`@fz/dev` names a control by its tooltip before its words, where a
+   browser takes the words first._ Taken: label, words, tooltip, with a
+   spec of a control with words and another tooltip.
+5. _`release()`'s doc is wrapped badly; the log says no second review; a
+   context never restored leaves the card up for good; `onDemand()`
+   resolves false for a host gone as for a failure, so a page torn down
+   would announce one._ Taken: the doc rewrapped, this list, and the limit
+   in choice 6. Left: the teardown, since nothing is left to hear it, and
+   the app and the drawer are gone with the page.
+
+Its fixes correct the change rather than reshape it, so they had no third
+review.

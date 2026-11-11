@@ -1,5 +1,8 @@
+import { DOCUMENT } from "@angular/common";
 import {
   Component,
+  DestroyRef,
+  ElementRef,
   ViewContainerRef,
   computed,
   inject,
@@ -11,7 +14,7 @@ import {
 } from "@angular/core";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { AnnouncerComponent } from "@fz/ui/announcer";
+import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
@@ -25,14 +28,33 @@ import { SettingsComponent } from "./settings/settings.component";
 import { levelMarksOf } from "./stats/level_marks";
 import { ProgressService } from "./stats/progress.service";
 import { StatsService } from "./stats/stats.service";
-import { GAME_LEVELS } from "./tokens";
+import { GAME_LEVELS, LOAD_HELP } from "./tokens";
+
+/**
+ * The keys that move along the page or only modify another, which leave How
+ * to play's opening be wherever they are pressed.
+ */
+const PASSING_KEYS: ReadonlySet<string> = new Set([
+  "Tab",
+  "Shift",
+  "Control",
+  "Alt",
+  "Meta",
+]);
+
+/** What the announcer says when How to play couldn't be loaded. */
+export const HELP_FAILED_WORDS =
+  "How to play couldn't be loaded. Check the connection, then try again.";
 
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the
  * live region that says what happens, the Levels dialog, How to play and
  * the settings the bar opens, the result card over an ended run, and the
  * question before a run is thrown away, each wired to `GameService`. How
- * to play is a chunk of its own, loaded as it first opens (`onDemand()`).
+ * to play is a chunk of its own, loaded as it first opens (`onDemand()`):
+ * the bar shows its button busy meanwhile, Escape, or the focus, a press or
+ * a key outside the bar, drops the opening, and the announcer says so if
+ * the load fails.
  *
  * The board takes the focus as a run begins, as the page loads, after a
  * dialog over it closes, and after the bar's Resume, so the keys steer at
@@ -54,6 +76,8 @@ import { GAME_LEVELS } from "./tokens";
   host: {
     "[class.compact]": "viewport.isCompact()",
     "[attr.data-bar]": "viewport.barPlacement()",
+    "(document:focusin)": "dropHelpOutsideBar($event)",
+    "(document:pointerdown)": "dropHelpOutsideBar($event)",
   },
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
@@ -62,9 +86,14 @@ export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   protected readonly game = inject(GameService);
   private readonly board = viewChild.required(BoardComponent);
+  private readonly bar = viewChild.required<
+    BarComponent,
+    ElementRef<HTMLElement>
+  >(BarComponent, { read: ElementRef });
   private readonly helpHost = viewChild.required("helpHost", {
     read: ViewContainerRef,
   });
+  private readonly announcer = inject(AnnouncerService);
   private readonly debug = inject(DebugService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
@@ -72,6 +101,12 @@ export class AppComponent {
 
   protected readonly levelsOpen = signal(false);
   protected readonly helpOpen = signal(false);
+
+  /** Whether How to play is loading after a press, to open once it arrives. */
+  protected readonly helpLoading = signal(false);
+
+  /** Whether How to play is in the page, loaded, so a press opens it at once. */
+  private helpMade = false;
   protected readonly settingsOpen = signal(false);
 
   /**
@@ -95,7 +130,7 @@ export class AppComponent {
 
   /** Loads How to play, a chunk of its own, and puts it in the page. */
   private readonly loadHelp = onDemand(
-    async () => (await import("./help/help.component")).HelpComponent,
+    inject(LOAD_HELP),
     () => this.helpHost(),
     [
       inputBinding("open", this.helpOpen),
@@ -121,6 +156,7 @@ export class AppComponent {
 
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
+    this.dropHelpAtKeys();
   }
 
   /** Pauses the level in play as the player looks away from the room. */
@@ -134,10 +170,69 @@ export class AppComponent {
     this.board().focus();
   }
 
-  /** Opens How to play, as the bar asks, loading it the first time. */
-  protected openHelp(): void {
+  /**
+   * Opens How to play, as the bar asks, loading it the first time; if the
+   * load fails, puts it away, so the next press tries again, and says so.
+   */
+  protected async openHelp(): Promise<void> {
     this.helpOpen.set(true);
-    void this.loadHelp();
+    if (this.helpMade) return;
+    this.helpLoading.set(true);
+    this.helpMade = await this.loadHelp();
+    // Dropped meanwhile, the opening is no longer the player's to hear of.
+    if (!this.helpLoading()) return;
+    this.helpLoading.set(false);
+    if (this.helpMade) return;
+    this.helpOpen.set(false);
+    this.announcer.say(HELP_FAILED_WORDS);
+  }
+
+  /**
+   * Drops How to play's opening while it loads, as Escape asks, or the
+   * focus, a press or a key leaving the bar does, so it never opens over
+   * what the player went back to; it still loads, for the next press.
+   */
+  protected dropHelp(): void {
+    if (!this.helpLoading()) return;
+    this.helpLoading.set(false);
+    this.helpOpen.set(false);
+  }
+
+  /**
+   * Drops How to play's opening while it loads at Escape anywhere, or at a
+   * key pressed outside the bar but one that moves along the page, which
+   * the focus moving out of the bar answers. The document hears them on
+   * their way down, before a card's button keeps its keys from the page.
+   */
+  private dropHelpAtKeys(): void {
+    const gone = new AbortController();
+    inject(DestroyRef).onDestroy(() => {
+      gone.abort();
+    });
+    inject(DOCUMENT).addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Escape") {
+          this.dropHelp();
+        } else if (!PASSING_KEYS.has(event.key)) {
+          this.dropHelpOutsideBar(event);
+        }
+      },
+      { capture: true, signal: gone.signal },
+    );
+  }
+
+  /**
+   * Drops How to play's opening as the focus moves out of the bar, from
+   * which it was asked for, or a press lands outside it, which moves no
+   * focus where a click doesn't focus a button, as in Safari, nor does a
+   * key pressed after one.
+   */
+  protected dropHelpOutsideBar({ target }: Event): void {
+    if (target instanceof Node && this.bar().nativeElement.contains(target)) {
+      return;
+    }
+    this.dropHelp();
   }
 
   /** Starts a new run at the level the last one started at, asking first if one is in progress. */
