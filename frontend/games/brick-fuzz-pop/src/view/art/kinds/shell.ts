@@ -1,8 +1,8 @@
 // A shell brick, which only a charge opens: a thick pale shell round a dark
-// core, a small bolt in the core over a row of pips for the hits it has
-// left, `shell()` in `docs/brick-fuzz-pop/art/make-art.mjs`. Its body is a
-// frame of its own, in the shell's own tile, and its pips one for each
-// count of them, over it.
+// core, a small bolt in the core over a row of pips for the hits it has left,
+// `shell()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Its body is a
+// frame of its own, in the shell's own tile, and its pips one for each count of
+// them, over it.
 
 import {
   type Area,

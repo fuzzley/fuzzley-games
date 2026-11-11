@@ -33,6 +33,66 @@ The user answered §3's six questions the same day, and §12 lists the edits
 Paths are relative to `frontend/games/brick-fuzz-pop/` unless they start
 with `frontend/` or `docs/`.
 
+## As built (2026-11-11)
+
+Built on 2026-11-10 and 11 to this plan: Part 1's eight lifts on
+`brick-fuzz-pop-lift`, cut from `main`, and the game on `brick-fuzz-pop`, cut
+from Part 1's tip, by streams in worktrees of their own (§7), each commit
+reviewed before it was made, then cherry-picked onto its part's branch by an
+integrator, who checked the tip after each. Part 1 merged into `main` first and
+alone, the game after it. The streams' work logs and the integrator's were
+deleted at the merge, as the user asked, rather than merged into one
+`worklog.md` as Z2 planned; they are in git's history under
+`docs/brick-fuzz-pop/worklog/`. This plan and those logs describe the code as it
+was, so check a path against the tree before following one.
+
+What the build decided that the sections below don't say:
+
+- **The levels:** all thirty-six certified, every line found by the solver, and
+  the careless player clearing each, at every depth, at least as often as its
+  set's floor asks: Warm-up 90%, Sparks 85%, Tricks 80% and Thick walls 40%. Q4
+  watched every certificate played on 11 and 22 deep. It found effects drawn
+  past the frame, which the camera's viewport now clips, and a portal's diamond
+  too small to read at 22 deep, now hollow and larger. A level's
+  number comes from its set's place in `LEVEL_SETS`, so Thick walls was
+  certified after Tricks.
+- **The contracts:** a cage's tint is 0 to 5 by its place, and
+  `TraitRule.broken` takes it; a plated brick's frames are
+  `plated-<plating>-<hits>`; a portal's two pairs are told apart by
+  `PORTAL_BADGES` (`dot` and `diamond`, in `legend.ts`), which R's words and the
+  art both read; `LegendBrick.kind` is typed `BrickKindId`, so the compiler
+  refuses a kind the catalog lacks, and `stand_ins.ts`'s `uncataloged()` was
+  retired.
+- **The bundle:** How to play and the debug menu load on demand through
+  `onDemand()` (`src/app/on_demand.ts`), a hand-written `import()`, rather than
+  `@defer`, whose runtime cost the main chunk 6.1 kB. The main chunk ended at
+  406.74 kB, under §9's 406.8; the scene's at 59.30 kB, over §9's 51, the
+  bricks' art and the bakes being in it.
+- **Performance:** §9's 4 ms bar is the worst frame at ×6, which neither breaker
+  meets, so F1 held the median to it. F1 cut what our code made each frame,
+  pooled `SpritePlayer`'s sounds, and baked the standing wall and the field's
+  cells, band and dots into two `DynamicTexture`s. The last trace of level 36's
+  longest flight: at ×6 a median of 4.4 ms in a full trace and 3.8 in a lighter
+  one, and about 14 ms at worst; at ×4 2.9 to 3.0; unthrottled 0.8.
+- **Accessibility:** F1's input pass found six issues, all fixed: How to play's
+  slow load (marked busy, cancelable, a failure said); Escape's call-off said; a
+  lost WebGL context pausing the run behind a card; the bars' buttons named by
+  their tooltip alone, in every game; the board's cards headed groups; a held
+  press charging by the frames' clock. Lighthouse scores 100 for accessibility
+  and for SEO.
+- **Left for the user at the merge:** a screen reader through a level, Safari,
+  real Firefox's blur behind a dialog and 120 Hz, which no tool here could
+  check; the worst frames and the scene's chunk over §9; and, outside this game,
+  Asteroid Breaker's `eslint.config.js`, whose later block over its held files
+  no spec holds to the rules' fence, as `tools/eslint_config.spec.ts` holds this
+  game's, reloading on `vite:preloadError` for lazy chunks, `@fz/phaser`'s
+  canvas resize during a window's drag, `dynamicTexture()` shared through
+  `@fz/phaser/scene`, the HTML5 Audio throw from `SpritePlayer`'s `hold()`, a
+  spec holding each level's name to its draft, Brick Breaker keeping records of
+  a run on `?debug`'s retuned numbers, and moving `levels/build.mjs` and the
+  drafts it reads out of this folder into the workspace's `tools/`, since adding
+  a level still runs it.
+
 ---
 
 ## 1. Summary
@@ -1035,8 +1095,8 @@ The fields of each package:
 
 - **After:** K2, which is enough for parsing. It **runs beside R1–R6.**
   **Size:** small.
-- **Files:** `levels/legend.ts` (with C12's characters), `level.ts`,
-  `levels.ts` and `warm-up.json`, copied from `docs/brick-fuzz-pop/levels/`.
+- **Files:** `levels/legend.ts` (with C12's characters), `level.ts`, `levels.ts`
+  and `warm-up.json`, copied from `docs/archive/brick-fuzz-pop/levels/`.
 - **How it is written:**
   - `parseLevel()` throws an error that names the level and what is wrong,
     using `unknownKey()` to catch a misspelt key.
@@ -1130,7 +1190,7 @@ The fields of each package:
 - **Files:** `view/art/kinds/brick.ts`, `tough.ts`, `steel.ts`,
   `zapper.ts`, `art.ts`, `symbols.ts`, `atlas_frames.ts`.
 - **How:** each is ported from the matching function in
-  `docs/brick-fuzz-pop/art/make-art.mjs`.
+  `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
   - Its coordinates in a 100-unit box become shares of an area
     (`within`/`inset`).
   - Stroked rounded rectangles become `outlineRoundRect()`, one command

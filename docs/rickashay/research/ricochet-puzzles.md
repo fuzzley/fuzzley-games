@@ -1,6 +1,6 @@
 # Rickashay research: one-shot ricochet and bank-shot puzzle games
 
-Read on 2026-11-10 for the Rickashay design: store pages, reviews, wikis, guides, forum posts and design essays. No source code was opened (see the last section). It adds to, and does not repeat, "What other games teach" in `docs/brick-fuzz-pop/plan.md`.
+Read on 2026-11-10 for the Rickashay design: store pages, reviews, wikis, guides, forum posts and design essays. No source code was opened (see the last section). It adds to, and does not repeat, "What other games teach" in `docs/archive/brick-fuzz-pop/plan.md`.
 
 How to read it:
 

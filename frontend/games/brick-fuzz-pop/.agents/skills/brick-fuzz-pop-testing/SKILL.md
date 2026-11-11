@@ -232,11 +232,11 @@ lowest row its needed bricks came down to, and says to run
    moves the stars the level gives, and a line that moved under the
    screenshots' run moves the screenshots. Commit them in the change that
    moved them.
-5. **A level with no line** (the script exits with 1, leaving it none on
-   that depth) is one the change made too hard to clear within
-   `SOLVER_ROUNDS` keeping a row to spare: redraw its wall from its courses
-   (`docs/brick-fuzz-pop/levels/build.mjs`, then copy its set's JSON into
-   `src/rules/levels/`), or rethink the change.
+5. **A level with no line** (the script exits with 1, leaving it none on that
+   depth) is one the change made too hard to clear within `SOLVER_ROUNDS`
+   keeping a row to spare: redraw its wall from its courses
+   (`docs/archive/brick-fuzz-pop/levels/build.mjs`, then copy its set's JSON
+   into `src/rules/levels/`), or rethink the change.
 
 A floor that fails (`every_floor/`) says how often the careless player
 cleared the level in its twenty games. Those games are the gate, and their
@@ -384,9 +384,9 @@ Phaser game:
 ## The Mutation Pass
 
 A mutation pass, which the build-out's plan
-(`docs/brick-fuzz-pop/implementation-plan.md`) asks of each package, breaks
-a change one thing at a time, runs the specs, and logs what survived in the
-stream's log under `docs/brick-fuzz-pop/worklog/`:
+(`docs/archive/brick-fuzz-pop/implementation-plan.md`) asked of each package and
+every change here keeps, breaks a change one thing at a time, runs the specs,
+and names what survived, and why, in the commit's body:
 
 - **A mutant** is one bound (`<` for `<=`), condition (dropped, inverted or
   always true), constant (halved, doubled, nothing), argument, call or line
@@ -402,8 +402,8 @@ stream's log under `docs/brick-fuzz-pop/worklog/`:
   `--project pure src/rules/flight` for the flight's. The replays in `sim`
   say only that a line stopped holding, so a rules mutant only they kill
   still wants a spec in `pure` that names what broke.
-- **Every survivor gets a spec** that fails on it. The one exception the
-  logs make is a mutant equivalent to the code, which no input can
-  tell from it, as `<=` for `<` between values that are never equal. Log
-  the count, what was killed, and each survivor, with the spec that now
-  kills it or why it is equivalent.
+- **Every survivor gets a spec** that fails on it. The one exception is a mutant
+  equivalent to the code, which no input can tell from it, as `<=` for `<`
+  between values that are never equal. Name in the commit's body the count, what
+  was killed, and each survivor, with the spec that now kills it or why it is
+  equivalent.

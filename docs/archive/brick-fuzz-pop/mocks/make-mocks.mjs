@@ -4,10 +4,10 @@
 // in a wide window, and the kinds of brick it holds. Like ../art/, it
 // illustrates the plan and is not the game's code.
 //
-// Run it with `node docs/brick-fuzz-pop/mocks/make-mocks.mjs`. It needs nothing
-// but Node, writes every file beside itself, and writes the same bytes each
-// time. It draws with ../art/make-art.mjs's own bricks, so the mocks keep in
-// step with the art. That script draws its sheets as it loads and exports
+// Run it with `node docs/archive/brick-fuzz-pop/mocks/make-mocks.mjs`. It needs
+// nothing but Node, writes every file beside itself, and writes the same bytes
+// each time. It draws with ../art/make-art.mjs's own bricks, so the mocks keep
+// in step with the art. That script draws its sheets as it loads and exports
 // nothing, so this one loads its source without the closing call to `main()`.
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";

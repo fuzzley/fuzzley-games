@@ -1,7 +1,8 @@
-// A tough brick: its row's tile under a die's pips for the hits it has left
-// and a crack for each hit it has taken, `tough()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`. The pips and the cracks are frames
-// of their own, which the kinds that count their hits stack over a tile too.
+// A tough brick: its row's tile under a die's pips for the hits it has left and
+// a crack for each hit it has taken, `tough()` in
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`. The pips and the cracks are
+// frames of their own, which the kinds that count their hits stack over a tile
+// too.
 
 import {
   type Area,

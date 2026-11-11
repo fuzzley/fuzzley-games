@@ -1,6 +1,6 @@
 // A steel brick, which never breaks: `steel()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`, its frame and rivets cut out in the
-// marks' color, as the palette has them (`kinds.steel.glyph`).
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`, its frame and rivets cut out
+// in the marks' color, as the palette has them (`kinds.steel.glyph`).
 
 import { mixColors } from "@fz/phaser/color";
 import {

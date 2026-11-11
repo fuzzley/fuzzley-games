@@ -11,7 +11,7 @@ run, how the certificates and the floors are found and replayed, and what
 to do when a replay or a floor fails are the
 [`brick-fuzz-pop-testing`](../brick-fuzz-pop-testing/SKILL.md) skill's. The
 design, the kinds' table ("The bricks") and the rules a level keeps are in
-`docs/brick-fuzz-pop/plan.md`. Paths are relative to
+`docs/archive/brick-fuzz-pop/plan.md`. Paths are relative to
 `frontend/games/brick-fuzz-pop/`.
 
 ## How the Game Holds What It Plays
@@ -28,11 +28,12 @@ design, the kinds' table ("The bricks") and the rules a level keeps are in
   this wall panel and the Ready card read the catalog (`helpEntries()`,
   `kindIntroducedAt()`), and the scene bakes a picture of each kind
   (`src/scene/pictures.ts`), with no change of their own.
-- **The levels** are JSON, a file a set in `src/rules/levels/`, listed in
-  order in `src/rules/levels/levels.ts` (`LEVEL_SETS`) and numbered from 1
-  across the sets (`LEVELS`). Each is a copy of its draft in
-  `docs/brick-fuzz-pop/levels/`, which `docs/brick-fuzz-pop/levels/build.mjs`
-  writes from each wall's courses.
+- **The levels** are JSON, a file a set in `src/rules/levels/`, listed in order
+  in `src/rules/levels/levels.ts` (`LEVEL_SETS`) and numbered from 1 across the
+  sets (`LEVELS`). Each is a copy of its draft in
+  `docs/archive/brick-fuzz-pop/levels/`, which
+  `docs/archive/brick-fuzz-pop/levels/build.mjs` writes from each wall's
+  courses.
 - **The checks** that hold it whole:
 
   | Check                      | Where                                                            | What it holds                                                                                                                                                                     |
@@ -71,8 +72,8 @@ ink of the friend it frees; a portal its pair's mark; and every other kind
 
 ### The Rules a Wall Keeps
 
-`docs/brick-fuzz-pop/plan.md`'s "The rules a level keeps", as the code holds
-them. `parseLevel()` refuses, naming the level, and the row where one is
+`docs/archive/brick-fuzz-pop/plan.md`'s "The rules a level keeps", as the code
+holds them. `parseLevel()` refuses, naming the level, and the row where one is
 at fault:
 
 - fewer or more rows than `WALL_ROWS`, a row not nine wide, a character the
@@ -103,7 +104,7 @@ at fault:
 
 ### Drawing It
 
-A wall is drawn in `docs/brick-fuzz-pop/levels/build.mjs`'s `DRAFTS`, a
+A wall is drawn in `docs/archive/brick-fuzz-pop/levels/build.mjs`'s `DRAFTS`, a
 `name`, a `boon`, its `courses`, each a few rows top first, and its
 `order`, the courses by letter from the lowest up, a digit in it the rows
 of air before the next course in place of one. Every portal is drawn `@`,
@@ -111,11 +112,11 @@ and the script marks a wall's second pair `&`. `SETS` takes the drafts
 nine at a time, in order, so a level added rather than redrawn moves every
 later set's, and a set takes its entry there.
 
-`node docs/brick-fuzz-pop/levels/build.mjs` writes every set's draft
+`node docs/archive/brick-fuzz-pop/levels/build.mjs` writes every set's draft
 beside itself, from any folder, and `pictures` after it prints plan.md's
-appendix. Copy the set's file into `src/rules/levels/` as it is written,
-keep plan.md's table and appendix with it, and give a new level its row in
-`levels.spec.ts`' table of the drafts, which nothing else asks for.
+appendix. Copy the set's file into `src/rules/levels/` as it is written, and
+give a new level its row in `levels.spec.ts`' table of the drafts, which nothing
+else asks for.
 
 Its number is its place across the sets: a level put before others moves
 their numbers, and with them the seeds of their floors' games and the

@@ -14,14 +14,14 @@ called "Rickashay". It differs in three ways, in the user's words:
 Other games of the kind were to be read for inspiration, and no source
 code.
 
-This is a design, not a build plan. Nothing is built, and nothing here says
-in what order to build it. [Brick Fuzz Pop's plan](../brick-fuzz-pop/plan.md)
-set this game aside in its first decision, "a game that wins more by
-bouncing off the bricks and walls is to be designed apart, later", and this
-is that game. It keeps Brick Fuzz Pop's field, its wall and its round, and
-changes what a shot is: with no charge and no punch, a shot is an aim and
-nothing else, and the game is about how long one fuzzball can be kept in
-the air.
+This is a design, not a build plan. Nothing is built, and nothing here says in
+what order to build it. [Brick Fuzz Pop's
+plan](../archive/brick-fuzz-pop/plan.md) set this game aside in its first
+decision, "a game that wins more by bouncing off the bricks and walls is to be
+designed apart, later", and this is that game. It keeps Brick Fuzz Pop's field,
+its wall and its round, and changes what a shot is: with no charge and no punch,
+a shot is an aim and nothing else, and the game is about how long one fuzzball
+can be kept in the air.
 
 Everything made for the design is in this folder, `docs/rickashay/`:
 
@@ -81,7 +81,7 @@ essays only, and each research file says what it skipped to keep to that.
 | A chance to maximize the up time of a single ball                     | Decisions 6, 7, 10, 20 and 21; "The rally and the floor bounce": one fuzzball, its rally counted, paid and given more time in the air |
 | Similar games read for inspiration and design ideas                   | "What other games teach"; `research/`                                                                                                 |
 | No source code looked at                                              | The research files' own notes; the sketch was written from this design alone                                                          |
-| A design under `docs/`, as before                                     | This folder, laid out as `docs/brick-fuzz-pop/` is                                                                                    |
+| A design under `docs/`, as before                                     | This folder, laid out as `docs/archive/brick-fuzz-pop/` is                                                                            |
 
 ## The game in brief
 

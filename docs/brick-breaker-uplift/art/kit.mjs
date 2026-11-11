@@ -7,7 +7,7 @@
 //
 // Brick Breaker's uplift takes the look of its two siblings, Brick Fuzz Pop
 // and Rickashay, so this kit borrows its palettes, its fuzzball and its
-// drawing commands from ../../brick-fuzz-pop/art/make-art.mjs, the way
+// drawing commands from ../../archive/brick-fuzz-pop/art/make-art.mjs, the way
 // Rickashay's art does: that script draws its sheets as it loads and exports
 // nothing, so this one loads its source without the closing call to
 // `main()`.
@@ -80,7 +80,7 @@ const BORROWED = [
  * @returns {Promise<Record<string, any>>}
  */
 async function borrow() {
-  const path = join(here, "../../brick-fuzz-pop/art/make-art.mjs");
+  const path = join(here, "../../archive/brick-fuzz-pop/art/make-art.mjs");
   const source = readFileSync(path, "utf8");
   const call = "\nmain();\n";
   if (!source.endsWith(call)) {

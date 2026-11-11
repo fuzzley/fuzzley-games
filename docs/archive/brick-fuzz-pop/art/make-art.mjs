@@ -3,8 +3,9 @@
 // the fuzzball's states. It illustrates the plan and is not the game's code:
 // the game will redraw this art itself.
 //
-// Run it with `node docs/brick-fuzz-pop/art/make-art.mjs`. It needs nothing but
-// Node, writes every file beside itself, and writes the same bytes each time.
+// Run it with `node docs/archive/brick-fuzz-pop/art/make-art.mjs`. It needs
+// nothing but Node, writes every file beside itself, and writes the same bytes
+// each time.
 //
 // The art is flat, and drawn only with what the game's renderer has:
 // rectangles, circles, rings, straight lines, polylines and polygons, in

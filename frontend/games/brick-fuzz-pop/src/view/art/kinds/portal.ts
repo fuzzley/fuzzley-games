@@ -1,12 +1,11 @@
 // A portal, which sends a fuzzball out of its twin: not solid, a thick ring
-// round a dark middle, three arms spiralling out of it, and a badge on its
-// ring telling its pair from the other, a dot on the first pair's and a
-// diamond on the second's, `portal()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`. Each pair's badge is the one the
-// legend's `PORTAL_BADGES` names, which R reads a portal by. The diamond is
-// hollow and larger than the art's, which at the least units reads as a
-// dot, on a disc a little larger, so the two pairs differ in shape, not in
-// color alone.
+// round a dark middle, three arms spiralling out of it, and a badge on its ring
+// telling its pair from the other, a dot on the first pair's and a diamond on
+// the second's, `portal()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
+// Each pair's badge is the one the legend's `PORTAL_BADGES` names, which R
+// reads a portal by. The diamond is hollow and larger than the art's, which at
+// the least units reads as a dot, on a disc a little larger, so the two pairs
+// differ in shape, not in color alone.
 
 import {
   type Area,

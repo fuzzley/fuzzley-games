@@ -1,9 +1,9 @@
-// A cage: a steel tile, its inside darker, a friend behind four bars, and,
-// once it has taken a hit, a bar broken and a crack in its frame, `cage()`
-// in `docs/brick-fuzz-pop/art/make-art.mjs`. Each cage holds a friend in
-// an ink of its own, which its tint picks, so a cage is two layers: its
-// tile and inside with its friend, a frame for each ink, under its bars,
-// whole or hit.
+// A cage: a steel tile, its inside darker, a friend behind four bars, and, once
+// it has taken a hit, a bar broken and a crack in its frame, `cage()` in
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Each cage holds a friend in
+// an ink of its own, which its tint picks, so a cage is two layers: its tile
+// and inside with its friend, a frame for each ink, under its bars, whole or
+// hit.
 
 import { eyesCommands, fuzzballCommands } from "@fz/phaser/fuzzball";
 import {

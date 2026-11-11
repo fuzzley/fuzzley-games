@@ -1,7 +1,7 @@
 // A bumper, which kicks a fuzzball off it: round, not square, a disc on a
 // darker shadow, a ring cut out of it, a lighter cap in its middle, and four
 // ticks kicking out toward its cell's corners, `bumper()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`.
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
 import { mixColors } from "@fz/phaser/color";
 import {

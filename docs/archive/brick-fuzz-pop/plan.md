@@ -11,12 +11,14 @@ up, original brick art, and thirty levels or more, harder as they go, each
 guaranteed beatable.
 
 This is the design and the build in one document, as the breakers' plans in
-`docs/archive/` were once their decisions were answered. Nothing is built
-yet. The plan's first draft, the same day, left four choices to the user:
-the name, what charge means, how the wall comes down and how the field
-fills a wide screen. The user answered all four, and this is the plan
-rewritten for the answers. "Decisions" marks them **the user's**, and lists
-the rest of what the plan chose, each with what it could be instead.
+`docs/archive/` were once their decisions were answered. It was built on
+2026-11-10 and 11, and [`implementation-plan.md`](implementation-plan.md)'s "As
+built" says how, and what the build decided that these pages don't. The plan's
+first draft, the same day, left four choices to the user: the name, what charge
+means, how the wall comes down and how the field fills a wide screen. The user
+answered all four, and this is the plan rewritten for the answers. "Decisions"
+marks them **the user's**, and lists the rest of what the plan chose, each with
+what it could be instead.
 
 Later the same day, [`implementation-plan.md`](implementation-plan.md) took
 the build further. It asked the user six questions the design had left
@@ -26,7 +28,7 @@ the rest of what that plan settled. How the game is built, in what order,
 and in which streams side by side, is now that file's. "How the work runs"
 and "Phases" say what it changed.
 
-Everything made for the plan is in this folder, `docs/brick-fuzz-pop/`:
+Everything made for the plan is in this folder, `docs/archive/brick-fuzz-pop/`:
 
 - **`plan.md`,** this file.
 - **[`implementation-plan.md`](implementation-plan.md),** how the game is
@@ -475,10 +477,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
 #### W5: levels and their proof (large)
 
 - **W5.1** `src/rules/levels/`: `legend.ts`, `level.ts`, `levels.ts`
-  (`LEVEL_SETS`, `LEVELS`, `parseLevel()`, which throws an error that names
-  what is wrong with a level's data) and `warm-up.json`, levels 1 to 9,
-  from the draft in `docs/brick-fuzz-pop/levels/`. `levels.spec.ts` holds
-  every level to "The rules a level keeps". One commit.
+  (`LEVEL_SETS`, `LEVELS`, `parseLevel()`, which throws an error that names what
+  is wrong with a level's data) and `warm-up.json`, levels 1 to 9, from the
+  draft in `docs/archive/brick-fuzz-pop/levels/`. `levels.spec.ts` holds every
+  level to "The rules a level keeps". One commit.
 - **W5.2** `src/testing/solver.ts` (`solve()`, a beam search over aims and
   charges) and `src/testing/casual.ts` (`playCasually()`), both held as the
   rules are, and their specs over small walls. One commit.
@@ -563,10 +565,10 @@ more. Paths in Part 1 are under `frontend/lib/` or
 
 #### W11: the other eleven kinds and twenty-seven levels (large)
 
-Each step adds its kinds to the catalog, their rules, art, sounds and How
-to play entries, its set's levels, from the draft in
-`docs/brick-fuzz-pop/levels/`, and certificates, and the report's floor for
-the set.
+Each step adds its kinds to the catalog, their rules, art, sounds and How to
+play entries, its set's levels, from the draft in
+`docs/archive/brick-fuzz-pop/levels/`, and certificates, and the report's floor
+for the set.
 
 - **W11.1** The bomb, the cross and X zappers, wool and the cage, with
   friends in the flight and the triple shot; `sparks.json`, levels 10 to 18.

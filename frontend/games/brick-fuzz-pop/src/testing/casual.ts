@@ -1,8 +1,8 @@
 // The careless player each level must clear often enough
-// (docs/brick-fuzz-pop/plan.md, "The guarantee"), so no level is beatable
-// only by a line nobody would find. Its floors are held over seeds in every
-// browser's arithmetic as the certificates are, so it is held as the rules
-// are (eslint.config.js), to their fence and their exact arithmetic.
+// (docs/archive/brick-fuzz-pop/plan.md, "The guarantee"), so no level is
+// beatable only by a line nobody would find. Its floors are held over seeds in
+// every browser's arithmetic as the certificates are, so it is held as the
+// rules are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { createRandom } from "@fz/core/random";
 import { shotOf } from "../rules/levels/certificate";

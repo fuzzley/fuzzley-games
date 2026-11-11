@@ -1,6 +1,7 @@
-// A bomb: a round bomb cut out of a tile in the danger color, a short fuse,
-// a spark at its end, and a dot toward each of the bricks around it that the
-// spark leaves room for, `bomb()` in `docs/brick-fuzz-pop/art/make-art.mjs`.
+// A bomb: a round bomb cut out of a tile in the danger color, a short fuse, a
+// spark at its end, and a dot toward each of the bricks around it that the
+// spark leaves room for, `bomb()` in
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
 import {
   type Area,

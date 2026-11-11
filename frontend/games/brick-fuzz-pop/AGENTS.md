@@ -16,15 +16,12 @@ share
 and what adding a level, a set, a brick kind or a brick trait takes
 ([`brick-fuzz-pop-content`](.agents/skills/brick-fuzz-pop-content/SKILL.md)).
 
-The game was built from `docs/brick-fuzz-pop/implementation-plan.md`,
-package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
-stream's work logged under `docs/brick-fuzz-pop/worklog/`. The shell places
-the board, the bar, the dialogs, the settings drawer and the result card,
-each wired to the game, so a run can be played in the page, through the
-thirty-six levels of Warm-up, Sparks, Tricks and Thick walls. The site lists
-it with the other games, its screenshots taken on level 18, the last of
-Sparks. Of the plan's packages only Z2 is still to come: its last checks and
-the merge, after which the plan's folder moves to the archive.
+The game was built from `docs/archive/brick-fuzz-pop/implementation-plan.md`,
+package by package, the design in `docs/archive/brick-fuzz-pop/plan.md`. The
+shell places the board, the bar, the dialogs, the settings drawer and the result
+card, each wired to the game, so a run can be played in the page, through the
+thirty-six levels of Warm-up, Sparks, Tricks and Thick walls. The site lists it
+with the other games, its screenshots taken on level 18, the last of Sparks.
 
 ## Technology Stack
 
@@ -116,7 +113,7 @@ helpers.
   tint (`tintOf()`). A file a set, `warm-up.json`, `sparks.json`,
   `tricks.json` and `thick-walls.json`, holds its nine levels, each an id, a
   name, a boon and a picture of its wall, as the file of its name in
-  `docs/brick-fuzz-pop/levels/` drafts them; `levels.ts` lists the sets
+  `docs/archive/brick-fuzz-pop/levels/` drafts them; `levels.ts` lists the sets
   (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, `levelEntryOf()`),
   and `parseLevel()` turns one into a `Level` (`level.ts`) or throws an
   error naming the level and what is wrong; and `level.ts`'s

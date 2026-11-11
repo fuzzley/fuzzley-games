@@ -1,6 +1,6 @@
 # Brick shooters, read for bounce geometry and board design
 
-Web research for Rickashay, 2026-11-10. It adds to "What other games teach" in [`../../brick-fuzz-pop/plan.md`](../../brick-fuzz-pop/plan.md) and does not repeat it.
+Web research for Rickashay, 2026-11-10. It adds to "What other games teach" in [`../../archive/brick-fuzz-pop/plan.md`](../../archive/brick-fuzz-pop/plan.md) and does not repeat it.
 
 How to read these notes:
 

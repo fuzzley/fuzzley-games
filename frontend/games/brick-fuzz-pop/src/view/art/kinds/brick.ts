@@ -1,5 +1,5 @@
 // A brick, and the chunky tile most kinds of brick are drawn on: `chunky()`
-// and `brick()` in `docs/brick-fuzz-pop/art/make-art.mjs`.
+// and `brick()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
 import { mixColors } from "@fz/phaser/color";
 import {

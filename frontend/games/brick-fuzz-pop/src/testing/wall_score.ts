@@ -1,9 +1,8 @@
-// The measure of a wall the careless player and the solver choose their
-// shots by: the sketch's score() (docs/brick-fuzz-pop/sketch/sim.mjs), each
-// of its numbers named, since the careless player's floors were tuned with
-// it. The solver's certificates are replayed in every browser, so it is
-// held as the rules are (eslint.config.js), to their fence and their exact
-// arithmetic.
+// The measure of a wall the careless player and the solver choose their shots
+// by: the sketch's score() (docs/archive/brick-fuzz-pop/sketch/sim.mjs), each
+// of its numbers named, since the careless player's floors were tuned with it.
+// The solver's certificates are replayed in every browser, so it is held as the
+// rules are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { fieldRowOf } from "../rules/grid";
 import type { RoundOutcome, RoundStart } from "../rules/round/round";

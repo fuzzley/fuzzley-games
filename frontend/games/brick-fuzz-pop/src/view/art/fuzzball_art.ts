@@ -1,6 +1,6 @@
 // The fuzzballs' art: `@fz/phaser`'s fuzzball, its fur combed by its
 // charge, after `fuzzball()`, `flame()` and `hotShot()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`. The player's at each charge,
+// `docs/archive/brick-fuzz-pop/art/make-art.mjs`. The player's at each charge,
 // sparking at a full one; the hot shot under a crown of flame; a friend in
 // each ink; and the eyes they all wear, a frame of their own that the scene
 // moves the way a fuzzball looks. A triple shot's mates are the player's
