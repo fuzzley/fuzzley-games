@@ -544,3 +544,46 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
   it. The scene stream closes S1's open items (the danger line's warning,
   `browserKey`'s missing keys, the sprite-map case left in
   `build-sounds.spec.ts`) while V3 is built.
+
+### R3 merged; `Flight.length` to change (2026-11-10)
+
+- `e4463e21`: `fly()` flies a round's fuzzballs on one clock, many from the
+  start, with the hooks (`spawn`, `teleport`, `kick`, zaps waiting their
+  turn) driven by stand-in kinds that exist only in the specs (`PRISM`,
+  `WOOL`, `CAGE` in `stand_ins.ts`), boredom and the caps, the hot shot's
+  bounce, and the random flights (`src/testing/random_flights.ts`): every
+  flight ends, none passes a cap, no fuzzball nearer a box than its radius,
+  the events in order, the tracks at unit speed. One fuzzball on a random
+  wall: median about 40 µs, p99 about 1.4 ms. 3,561 tests.
+- **Decided in R3:** a cast runs to its limit plus `AT_ONCE`, a contact at
+  or before the limit met with all at once with it, one only past it left
+  for the next move; a portal lets a fuzzball out at its twin's middle,
+  since leaving at the edge overlapped a neighbour's box; `fly()` takes the
+  trait rules, with no default; the landing's x is unclamped and R6 clamps
+  `next.x`.
+- **A contract changes:** `Flight.length` was the last landing's `at`, but
+  a zap chain can still be landing after it, so §5.5's skip would cut it.
+  It becomes the later of the last landing and the last event, in
+  `events.ts`, the checkers and `fly()`. The rules stream makes it as a
+  commit of its own before R4; the view stream writes V3's skip against
+  `length` as the end of everything.
+
+### V3 merged, and the scene's spec brought up to it (2026-11-10)
+
+- **V3**, `df40ae45`, from the view stream: `round_play.ts`' `RoundPlay`
+  (a level's rounds played back a frame at a time on `FLIGHT_PACE`, fast
+  forward, skip and the wall's step and jump, its end at `flight.length`)
+  and `run_state.ts`' `RunState`, `newRunState()`, `withFrame()` and
+  `withNewsSaid()`. `RoundView` gained `rowsDown` and `beats`, and
+  `LoggedEvent` its `effects`; one log serves the whole level. Two reviews.
+- **It broke the integration branch's typecheck:** S1's scene spec, written
+  before it, built a `RoundView` without the two new fields. The
+  integrator's commit after it gives the spec's `viewOf()` both, rows down
+  passed by `bringDown()` as the review asked; 3,703 tests. A field added to
+  a contract's type must be added to every spec that builds one, so such a
+  change now goes out to every stream that builds the type.
+- **For U1:** `PlayOptions.pace` is `FLIGHT_PACE` until U2's sliders; the
+  settings' `FlightSpeed` is the view's, so U1 imports the view's.
+- **For the rules:** the zap event doesn't say how many hits it takes, so
+  the view takes `ZAP_HITS`, which `catalog.spec.ts` holds every zapper to;
+  X1's bomb may want the event to say it.
