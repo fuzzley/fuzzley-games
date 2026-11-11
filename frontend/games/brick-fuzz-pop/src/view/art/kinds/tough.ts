@@ -12,9 +12,9 @@ import {
   widthOf,
   within,
 } from "@fz/phaser/shapes";
-import { inkAt } from "../../colors/inks";
 import type { KindArt } from "../art";
 import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
+import { itemAt } from "../../items";
 import {
   ACROSS,
   CRACK_WIDTH,
@@ -23,7 +23,6 @@ import {
   cellFrame,
   detailed,
   diePips,
-  itemAt,
 } from "../symbols";
 import { tileBody, tileFrame } from "./brick";
 
@@ -182,7 +181,6 @@ function cracksCommands(
 export const TOUGH_ART: KindArt = {
   layersOf: ({ tint, hits, full }) =>
     itemAt(itemAt(itemAt(TOUGH_LAYERS, tint), full - 1), hits - 1),
-  colorOf: ({ tint }, palette) => inkAt(palette.tints, tint),
   frames: (palette, scale) => {
     const crack = {
       color: palette.mark,

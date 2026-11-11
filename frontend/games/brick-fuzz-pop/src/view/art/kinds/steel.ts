@@ -89,7 +89,6 @@ const STEEL_LAYERS = [FRAMES.steel] as const;
 /** How a steel brick is drawn: one frame, whatever it has taken, since it takes nothing. */
 export const STEEL_ART: KindArt = {
   layersOf: () => STEEL_LAYERS,
-  colorOf: (_, palette) => palette.kinds.steel.body,
   frames: (palette, scale) => [
     cellFrame(FRAMES.steel, scale, (cell) =>
       steelCommands(cell, palette, scale),

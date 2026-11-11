@@ -8,7 +8,7 @@ import { describeBoon } from "../../rules/run/describe";
 import { FIRST_X } from "../../rules/tuning";
 import { ART_PALETTE } from "../../testing/art_frames";
 import { wallFrom } from "../../testing/wall_picture";
-import { brickColor } from "../../view/art/art";
+import { brickColor } from "../../view/colors/brick_colors";
 import { ComingNextComponent } from "./coming_next.component";
 
 /** The third level, "Pips". */

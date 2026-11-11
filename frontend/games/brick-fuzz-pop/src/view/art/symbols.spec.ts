@@ -11,7 +11,6 @@ import {
   detailed,
   diamond,
   diePips,
-  itemAt,
   pointAt,
   turned,
 } from "./symbols";
@@ -71,18 +70,6 @@ describe("cellFrame", () => {
       height: 40,
       commands: [{ kind: "rect", x: 0, y: 0, width: 40, height: 40, color: 7 }],
     });
-  });
-});
-
-describe("itemAt", () => {
-  const frames = [FRAMES.tile(0), FRAMES.tile(1)];
-
-  it("gives the item at a place in a list", () => {
-    expect(itemAt(frames, 1)).toBe("tile-1");
-  });
-
-  it.each([-1, 2, 0.5])("refuses place %s, which the list hasn't", (at) => {
-    expect(() => itemAt(frames, at)).toThrow(RangeError);
   });
 });
 

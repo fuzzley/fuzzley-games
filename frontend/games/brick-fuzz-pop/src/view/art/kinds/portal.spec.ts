@@ -77,16 +77,6 @@ describe("PORTAL_ART", () => {
     expect(() => PORTAL_ART.layersOf(portal(2))).toThrow(RangeError);
   });
 
-  it.each([
-    [0, FIRST.body],
-    [1, SECOND.body],
-  ])(
-    "gives a portal of tint %i its pair's ring's color for its shards",
-    (tint, color) => {
-      expect(PORTAL_ART.colorOf(portal(tint), OWN_INKS)).toBe(color);
-    },
-  );
-
   it("brings a frame for each pair to the atlas, the first's then the second's", () => {
     expect(
       PORTAL_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

@@ -21,13 +21,13 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { type CageLook, FRAMES, type FrameName, INKS } from "../frames";
+import { itemAt } from "../../items";
 import {
   ACROSS,
   CRACK_WIDTH,
   bandAlong,
   cellFrame,
   detailed,
-  itemAt,
   pointAt,
 } from "../symbols";
 import { tileBody, tileCommands } from "./brick";
@@ -214,7 +214,6 @@ const CAGE_LAYERS: readonly Readonly<Record<CageLook, readonly FrameName[]>>[] =
 export const CAGE_ART: KindArt = {
   layersOf: ({ tint, hits, full }) =>
     itemAt(CAGE_LAYERS, tint)[hits < full ? "hit" : "whole"],
-  colorOf: (_, palette) => palette.kinds.cage.body,
   frames: (palette, scale) => [
     ...INKS.map((ink) =>
       cellFrame(FRAMES.caged(ink), scale, (cell) =>

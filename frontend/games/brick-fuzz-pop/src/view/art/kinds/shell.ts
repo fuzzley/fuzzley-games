@@ -14,7 +14,8 @@ import {
 import type { KindInks } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
-import { boltMark, cellFrame, itemAt, pointAt } from "../symbols";
+import { itemAt } from "../../items";
+import { boltMark, cellFrame, pointAt } from "../symbols";
 import { tileCommands } from "./brick";
 
 /** Where its core lies in its cell, as shares of it: from across and down, wide and tall. */
@@ -88,7 +89,6 @@ function pipsCommands(
  */
 export const SHELL_ART: KindArt = {
   layersOf: ({ hits }) => itemAt(SHELL_LAYERS, hits - 1),
-  colorOf: (_, palette) => palette.kinds.shell.body,
   frames: (palette, scale) => {
     const inks = palette.kinds.shell;
     return [

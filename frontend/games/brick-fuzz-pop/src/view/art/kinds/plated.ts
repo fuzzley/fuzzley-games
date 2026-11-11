@@ -29,7 +29,8 @@ import {
   PLATINGS,
   type Plating,
 } from "../frames";
-import { cellFrame, detailed, diePips, itemAt, pointAt } from "../symbols";
+import { itemAt } from "../../items";
+import { cellFrame, detailed, diePips, pointAt } from "../symbols";
 import { tileBody, tileFrame, tileRadius } from "./brick";
 
 /** The tint of the tile under a plated brick's plates, which is its body in every palette. */
@@ -342,7 +343,6 @@ const PLATED_LAYERS: readonly (readonly (readonly FrameName[])[])[] =
 export const PLATED_ART: KindArt = {
   layersOf: ({ plates, hits }) =>
     itemAt(itemAt(PLATED_LAYERS, FACES.indexOf(plates)), hits - 1),
-  colorOf: (_, palette) => palette.kinds.plated.body,
   frames: (palette, scale) =>
     PLATINGS.flatMap((plating) =>
       PLATED_HITS.map((hits) =>

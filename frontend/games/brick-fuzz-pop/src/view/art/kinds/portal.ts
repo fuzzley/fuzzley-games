@@ -18,14 +18,8 @@ import {
 import type { KindInks, WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, type PortalMark } from "../frames";
-import {
-  EIGHTH,
-  cellFrame,
-  diamond,
-  itemAt,
-  pointAt,
-  turned,
-} from "../symbols";
+import { itemAt } from "../../items";
+import { EIGHTH, cellFrame, diamond, pointAt, turned } from "../symbols";
 
 /** Its dark middle's radius, as a share of its cell. */
 const MIDDLE = 0.33;
@@ -118,7 +112,6 @@ function portalCommands(
  */
 export const PORTAL_ART: KindArt = {
   layersOf: ({ tint }) => itemAt(PORTAL_LAYERS, tint),
-  colorOf: ({ tint }, palette) => itemAt(palette.portals, tint).body,
   frames: (palette, scale) =>
     MARKS.map((mark, i) =>
       cellFrame(FRAMES.portal(mark), scale, (cell) =>

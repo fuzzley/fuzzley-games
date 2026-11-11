@@ -38,10 +38,6 @@ describe("WOOL_ART", () => {
     expect(WOOL_ART.layersOf(WHOLE)).toEqual(["wool"]);
   });
 
-  it("gives a wool brick's shards its own body's color", () => {
-    expect(WOOL_ART.colorOf(WHOLE, OWN_INKS)).toBe(OWN_INKS.kinds.wool.body);
-  });
-
   it("brings its one frame to the atlas", () => {
     expect(
       WOOL_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

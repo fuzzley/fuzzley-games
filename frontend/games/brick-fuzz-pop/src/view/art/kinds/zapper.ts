@@ -212,7 +212,6 @@ export function zapperArt(kind: ZapperKind): KindArt {
   const layers = [frame];
   return {
     layersOf: () => layers,
-    colorOf: (_, palette) => palette.kinds[kind].body,
     frames: (palette, scale) => [
       cellFrame(frame, scale, (cell) =>
         zapperCommands(cell, palette, kind, scale),

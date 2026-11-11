@@ -51,10 +51,6 @@ describe("BUMPER_ART", () => {
     expect(BUMPER_ART.layersOf(STANDING)).toEqual(["bumper"]);
   });
 
-  it("gives a bumper's shards its own body's color", () => {
-    expect(BUMPER_ART.colorOf(STANDING, OWN_INKS)).toBe(body);
-  });
-
   it("brings its one frame to the atlas", () => {
     expect(
       BUMPER_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

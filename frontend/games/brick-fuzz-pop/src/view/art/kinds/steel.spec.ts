@@ -33,10 +33,6 @@ describe("STEEL_ART", () => {
     expect(STEEL_ART.layersOf(steel)).toEqual(["steel"]);
   });
 
-  it("gives a steel brick's shards the steel", () => {
-    expect(STEEL_ART.colorOf(steel, ART_PALETTE)).toBe(STEEL.body);
-  });
-
   it("draws its tile in the steel", () => {
     expect(drawnIn(frame, "roundRect", STEEL.body)).toHaveLength(1);
   });

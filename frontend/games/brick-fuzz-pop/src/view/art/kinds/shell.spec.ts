@@ -116,10 +116,6 @@ describe("SHELL_ART", () => {
     },
   );
 
-  it("gives a shell brick's shards its shell's color", () => {
-    expect(SHELL_ART.colorOf(shell(3), ART_PALETTE)).toBe(INKS.body);
-  });
-
   it("brings its body, and its pips for 2 hits and for 3, to the atlas", () => {
     expect(
       SHELL_ART.frames(ART_PALETTE, ART_SCALE).map(({ name }) => name),

@@ -19,10 +19,6 @@ import {
 } from "./aiming";
 import { type SteerKey, commandOfKey, heldKeyOf, steerKeyOf } from "./controls";
 
-// The scene takes these with the steering; the shell takes them from
-// `aiming.ts` alone, so its chunk carries no `Steering`.
-export { BY_POINTER, type PointerAimings, STRAIGHT_UP };
-
 /**
  * How far a pull back runs before it aims or charges, in field units; a
  * press let go within it calls the shot off.

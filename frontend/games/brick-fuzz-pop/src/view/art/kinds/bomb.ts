@@ -159,7 +159,6 @@ const BOMB_LAYERS = [FRAMES.bomb] as const;
 /** How a bomb is drawn: one frame, as it breaks at its first hit. */
 export const BOMB_ART: KindArt = {
   layersOf: () => BOMB_LAYERS,
-  colorOf: (_, palette) => palette.kinds.bomb.body,
   frames: (palette, scale) => [
     cellFrame(FRAMES.bomb, scale, (cell) => bombCommands(cell, palette, scale)),
   ],

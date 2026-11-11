@@ -1,5 +1,6 @@
-// How each kind of brick is drawn, as the frames stacked in its cell and
-// the color its shards take.
+// How each kind of brick is drawn, as the frames stacked in its cell; the
+// color it is drawn in, which its shards take, is
+// `src/view/colors/brick_colors.ts`'s, which the shell reads without the art.
 
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
 import type { BrickKindId } from "../../rules/catalog/bricks";
@@ -33,8 +34,6 @@ export type KindLook = Omit<BrickLook, "kind">;
 export interface KindArt {
   /** Returns the frames a brick of the kind shows as it stands, stacked in its cell from the bottom up. */
   readonly layersOf: (brick: KindLook) => readonly FrameName[];
-  /** Returns the color a brick of the kind is drawn in, which its shards take. */
-  readonly colorOf: (brick: KindLook, palette: WallPalette) => number;
   /** Returns the frames the kind brings to the atlas, each the size of a cell. */
   readonly frames: (
     palette: WallPalette,
@@ -71,9 +70,4 @@ export const BRICK_ART = {
  */
 export function brickLayers(brick: BrickLook): readonly FrameName[] {
   return BRICK_ART[brick.kind].layersOf(brick);
-}
-
-/** Returns the color a brick is drawn in, which its shards take. */
-export function brickColor(brick: BrickLook, palette: WallPalette): number {
-  return BRICK_ART[brick.kind].colorOf(brick, palette);
 }

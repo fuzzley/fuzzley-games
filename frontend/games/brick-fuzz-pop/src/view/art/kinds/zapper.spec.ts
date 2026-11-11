@@ -72,10 +72,6 @@ describe.each([
     expect(art.layersOf(WHOLE)).toEqual([name]);
   });
 
-  it("gives its shards its own body's color", () => {
-    expect(art.colorOf(WHOLE, OWN_INKS)).toBe(OWN_INKS.kinds[kind].body);
-  });
-
   it(`draws in its own inks, its face's, its body's and its glyph's, and ${String(marks.length)} of the palette's`, () => {
     const [own] = art.frames(OWN_INKS, ART_SCALE);
     const { body, face, glyph } = OWN_INKS.kinds[kind];
