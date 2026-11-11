@@ -2,12 +2,14 @@
 // round a dark middle, three arms spiralling out of it, and a badge on its
 // ring telling its pair from the other, a dot on the first pair's and a
 // diamond on the second's, `portal()` in
-// `docs/brick-fuzz-pop/art/make-art.mjs`.
+// `docs/brick-fuzz-pop/art/make-art.mjs`. Each pair's badge is the one the
+// legend's `PORTAL_BADGES` names, which R reads a portal by.
 
 import {
   type Area,
   type ArtScale,
   type DrawCommand,
+  type FillStyle,
   type Point,
   circle,
   polygon,
@@ -15,6 +17,7 @@ import {
   stroke,
   widthOf,
 } from "@fz/phaser/shapes";
+import { PORTAL_BADGES } from "../../../rules/levels/legend";
 import type { KindInks, WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, type PortalMark } from "../frames";
@@ -50,7 +53,22 @@ const ARMS = {
  */
 const BADGE = { disc: 0.135, dot: 0.084, diamond: 0.104 } as const;
 
-/** The marks, in order, each drawn in its pair's inks. */
+/** A badge a pair's portals carry, as the legend names it. */
+type PortalBadge = (typeof PORTAL_BADGES)[number];
+
+/** Each badge's mark, drawn about the badge's middle in its cell, in a style: a dot, or a diamond. */
+const BADGE_MARKS: Readonly<
+  Record<
+    PortalBadge,
+    (middle: Point, cell: Area, style: FillStyle) => DrawCommand
+  >
+> = {
+  dot: (middle, cell, style) => circle(middle, BADGE.dot * cell.width, style),
+  diamond: (middle, cell, style) =>
+    polygon(diamond(middle, BADGE.diamond * cell.width), style),
+};
+
+/** The marks, in order, each drawn in its pair's inks with its pair's badge. */
 const MARKS = [1, 2] as const satisfies readonly PortalMark[];
 
 /** A portal's layers, by its tint, its pair's place: the first pair's, then the second's. */
@@ -72,22 +90,21 @@ function armOf(middle: Point, start: number, side: number): readonly Point[] {
  * Returns a portal drawn in its cell in its pair's inks: its middle in its
  * face's color, its arms in its glyph's, round at their ends and bends, its
  * ring in its body's, and its badge cut out of the ring, in the marks'
- * color, with its pair's mark on it in its glyph's.
+ * color, with its pair's badge's mark on it in its glyph's.
  */
 function portalCommands(
   cell: Area,
   palette: WallPalette,
   inks: KindInks,
-  mark: PortalMark,
+  badge: PortalBadge,
   scale: ArtScale,
 ): readonly DrawCommand[] {
   const middle = pointAt(cell, 0.5, 0.5);
   const arm = { color: inks.glyph, width: widthOf(ARMS.width, scale) };
-  const badge = {
+  const onRing = {
     x: middle.x + EIGHTH * RING.radius * cell.width,
     y: middle.y - EIGHTH * RING.radius * cell.height,
   };
-  const glyph = { color: inks.glyph };
   return [
     circle(middle, MIDDLE * cell.width, { color: inks.face }),
     ...ARMS.starts.flatMap((start) =>
@@ -97,16 +114,14 @@ function portalCommands(
       color: inks.body,
       width: widthOf(RING.width, scale),
     }),
-    circle(badge, BADGE.disc * cell.width, { color: palette.mark }),
-    mark === 1
-      ? circle(badge, BADGE.dot * cell.width, glyph)
-      : polygon(diamond(badge, BADGE.diamond * cell.width), glyph),
+    circle(onRing, BADGE.disc * cell.width, { color: palette.mark }),
+    BADGE_MARKS[badge](onRing, cell, { color: inks.glyph }),
   ];
 }
 
 /**
- * How a portal is drawn: one frame, by its pair, in that pair's inks, as
- * its tint says, the first pair's 0 and the second's 1.
+ * How a portal is drawn: one frame, by its pair, in that pair's inks and
+ * with its badge, as its tint says, the first pair's 0 and the second's 1.
  *
  * It finds no layers for a tint no pair has, throwing a `RangeError`.
  */
@@ -115,7 +130,13 @@ export const PORTAL_ART: KindArt = {
   frames: (palette, scale) =>
     MARKS.map((mark, i) =>
       cellFrame(FRAMES.portal(mark), scale, (cell) =>
-        portalCommands(cell, palette, itemAt(palette.portals, i), mark, scale),
+        portalCommands(
+          cell,
+          palette,
+          itemAt(palette.portals, i),
+          itemAt(PORTAL_BADGES, i),
+          scale,
+        ),
       ),
     ),
 };

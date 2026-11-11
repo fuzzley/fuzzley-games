@@ -6,11 +6,22 @@ import {
   type Point,
   inset,
 } from "@fz/phaser/shapes";
+import { keysOf } from "@fz/core/records";
+import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
+import { LEGEND, PORTAL_MARKS } from "../rules/levels/legend";
+import type { BrickLook } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
+import { INKS } from "../view/art/frames";
 import { type PaletteRoles, wallPalette } from "../view/colors/palette";
 
-/** The roles the art's specs draw in, each a color no other role takes, as Classic felt's are but the page. */
-const ROLES: PaletteRoles = {
+/**
+ * The roles the art's specs draw in, each a color no other role takes:
+ * Classic felt's, but for its page, which is its field's white, so a page
+ * of its own, Soft pastel's, lets a spec tell the two apart. They are
+ * written out, which its spec holds to the stylesheet, so a spec that
+ * imports them compiles no stylesheet.
+ */
+export const ART_ROLES: PaletteRoles = {
   field: "#ffffff",
   fieldLine: "#e2e5e9",
   fieldText: "#1b1f24",
@@ -22,7 +33,7 @@ const ROLES: PaletteRoles = {
 };
 
 /** The palette the art's specs draw in, a light one. */
-export const ART_PALETTE = wallPalette(ROLES, "light");
+export const ART_PALETTE = wallPalette(ART_ROLES, "light");
 
 /**
  * The device pixels to a CSS pixel the art is drawn at: a plain screen's, a
@@ -160,4 +171,40 @@ export function reachPastRoundRect(
     case "polygon":
       return furthest(command.points);
   }
+}
+
+/**
+ * Returns every look a brick of a kind can take: each tint, a portal's its
+ * pair's place among the legend's marks; each plating the legend's
+ * characters for it give it; each count of hits it can start with, from
+ * the fewest a level gives it to the most; and each count of them left,
+ * or none, for a kind that never breaks.
+ */
+export function looksOf(kind: BrickKindId): readonly BrickLook[] {
+  const { hits, mostHits } = brickKind(kind);
+  const tints: readonly number[] =
+    kind === "portal" ? PORTAL_MARKS.map((_, pair) => pair) : INKS;
+  const platings = new Set(
+    keysOf(LEGEND)
+      .filter((character) => LEGEND[character].kind === kind)
+      .map((character) => LEGEND[character].plates),
+  );
+  const fewest = hits === "never" ? 0 : hits;
+  const fulls = Array.from(
+    { length: mostHits - fewest + 1 },
+    (_, more) => fewest + more,
+  );
+  return tints.flatMap((tint) =>
+    [...platings].flatMap((plates) =>
+      fulls.flatMap((full) =>
+        Array.from({ length: Math.max(1, full) }, (_, taken) => ({
+          kind,
+          tint,
+          hits: full === 0 ? 0 : taken + 1,
+          full,
+          plates,
+        })),
+      ),
+    ),
+  );
 }

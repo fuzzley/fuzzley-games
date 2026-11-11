@@ -15,15 +15,10 @@ import {
 } from "@fz/phaser/testing";
 import { drawnIn, frameNamed, viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
-import {
-  BRICK_KIND_IDS,
-  type BrickKindId,
-  brickKind,
-} from "../rules/catalog/bricks";
+import { BRICK_KIND_IDS, brickKind } from "../rules/catalog/bricks";
 import type { FlightEvent } from "../rules/flight/events";
 import { type Guide, guideOf } from "../rules/flight/guide";
 import { FLOORWARD } from "../rules/grid";
-import { LEGEND, PORTAL_MARKS } from "../rules/levels/legend";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import {
@@ -37,14 +32,14 @@ import {
 } from "../rules/tuning";
 import { AIMS } from "../rules/aims";
 import { type Brick, type Wall, thirdsOf } from "../rules/wall/wall";
-import { ART_PALETTE } from "../testing/art_frames";
+import { ART_PALETTE, looksOf } from "../testing/art_frames";
 import { marginInsets } from "../testing/canvases";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,
 } from "../testing/flight_fixtures";
 import { wallFrom } from "../testing/wall_picture";
-import { type BrickLook, brickLayers } from "../view/art/art";
+import { brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import { FRAMES, FRAME_NAMES } from "../view/art/frames";
 import { fuzzballGrid } from "../view/art/fuzzball_art";
@@ -600,43 +595,6 @@ function frameUntil(board: Board, reached: (play: RoundPlay) => boolean): void {
 /** Returns where on the canvas a field row's foot runs, in the layout given. */
 function rowFoot(metrics: FieldMetrics, row: number): number {
   return toCanvas(metrics, 0, row).y;
-}
-
-/**
- * Returns every look a brick of each kind takes: each tint, a portal's its
- * pair's, each plating the legend gives it, as many hits whole as the
- * catalog allows, and each count of them left.
- */
-function everyLook(): BrickLook[] {
-  return BRICK_KIND_IDS.flatMap((kind: BrickKindId) => {
-    const { hits, mostHits } = brickKind(kind);
-    const least = hits === "never" ? 0 : hits;
-    const tints =
-      kind === "portal"
-        ? PORTAL_MARKS.map((_, pair) => pair)
-        : Array.from({ length: 8 }, (_, tint) => tint);
-    const platings = new Set(
-      Object.values(LEGEND)
-        .filter((brick) => brick.kind === kind)
-        .map((brick) => brick.plates),
-    );
-    return tints.flatMap((tint) =>
-      [...platings].flatMap((plates) =>
-        Array.from(
-          { length: mostHits - least + 1 },
-          (_, more) => least + more,
-        ).flatMap((full) =>
-          Array.from({ length: Math.max(1, full) }, (_, taken) => ({
-            kind,
-            tint,
-            full,
-            hits: full - taken,
-            plates,
-          })),
-        ),
-      ),
-    );
-  });
 }
 
 describe("WallScene", () => {
@@ -1450,7 +1408,9 @@ describe("WallScene", () => {
 
     it("stacks deep enough for every look a brick takes", () => {
       const deepest = Math.max(
-        ...everyLook().map((look) => brickLayers(look).length),
+        ...BRICK_KIND_IDS.flatMap((kind) =>
+          looksOf(kind).map((look) => brickLayers(look).length),
+        ),
       );
 
       expect(deepest).toBe(MOST_LAYERS);

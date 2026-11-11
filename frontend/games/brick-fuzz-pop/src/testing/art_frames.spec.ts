@@ -1,3 +1,5 @@
+import { keysOf, recordOf } from "@fz/core/records";
+import { colorNumber } from "@fz/phaser/color";
 import {
   circle,
   line,
@@ -7,14 +9,79 @@ import {
   ring,
   roundRect,
 } from "@fz/phaser/shapes";
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../rules/grid";
+import { INKS } from "../view/art/frames";
+import { FIELD_ROLES, type PaletteRoles } from "../view/colors/palette";
 import {
+  ART_ROLES,
   billionths,
   distanceToSegment,
   everyScale,
   inBillionths,
+  looksOf,
   pastRoundRect,
   reachPastRoundRect,
 } from "./art_frames";
+import { PALETTES } from "./roles";
+
+describe("ART_ROLES", () => {
+  it("gives every role a color no other takes, so a spec sees which one the art reads", () => {
+    const colors = Object.values(ART_ROLES).map(colorNumber);
+
+    expect(new Set(colors).size).toBe(colors.length);
+  });
+
+  it("holds Classic felt's roles as its stylesheet sets them, but a page of Soft pastel's", () => {
+    const stylesheet: PaletteRoles = {
+      ...PALETTES.rolesIn("classic", FIELD_ROLES),
+      page: PALETTES.role("pastel", FIELD_ROLES.page),
+    };
+
+    expect(
+      recordOf(keysOf(ART_ROLES), (role) => colorNumber(ART_ROLES[role])),
+    ).toEqual(
+      recordOf(keysOf(stylesheet), (role) => colorNumber(stylesheet[role])),
+    );
+  });
+});
+
+describe("looksOf", () => {
+  it("gives a kind that never breaks a look in each ink, with no hits", () => {
+    expect(looksOf("steel")).toEqual(
+      INKS.map((tint) => ({
+        kind: "steel",
+        tint,
+        hits: 0,
+        full: 0,
+        plates: 0,
+      })),
+    );
+  });
+
+  it("gives a portal its pairs' places as its tints", () => {
+    expect(looksOf("portal").map(({ tint }) => tint)).toEqual([0, 1]);
+  });
+
+  it("gives a tough brick each count of hits whole from the fewest a level gives it, 2, to the most, 6, and each count of them left, in each ink", () => {
+    const looks = looksOf("tough");
+    const inFirstInk = looks
+      .filter(({ tint }) => tint === 0)
+      .map(({ hits, full }) => [hits, full]);
+
+    expect({ inFirstInk, looks: looks.length }).toEqual({
+      inFirstInk: [2, 3, 4, 5, 6].flatMap((full) =>
+        Array.from({ length: full }, (_, taken) => [taken + 1, full]),
+      ),
+      looks: 8 * (2 + 3 + 4 + 5 + 6),
+    });
+  });
+
+  it("gives a plated brick each plating the legend's characters for it give, in their order", () => {
+    expect([...new Set(looksOf("plated").map(({ plates }) => plates))]).toEqual(
+      [FLOORWARD, FLOORWARD | LEFT | RIGHT, CEILINGWARD],
+    );
+  });
+});
 
 describe("billionths", () => {
   it("rounds a number to a billionth", () => {

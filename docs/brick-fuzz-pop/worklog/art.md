@@ -2163,3 +2163,71 @@ place of a frame for each face's plate.
      right way up. Fixed: it holds the floorward bar's foot where it
      belongs. The nit, that it ran alike at each pixel ratio, is taken:
      it runs once, as nothing under 30 CSS px reads the ratio.
+
+### The tidy after the catalogs: badges by the legend, one `looksOf()`
+
+**2026-11-11.** With every kind cataloged, on `brick-fuzz-pop` at
+`829f8003`, three things the integrator asked for: the portal's badges
+drawn by the legend's names for them, one list of every look a kind
+takes for the specs that need it, and the art's specs' roles held to
+the stylesheet.
+
+- **Built.**
+  - `src/view/art/kinds/portal.ts`: each pair's badge is the one
+    `PORTAL_BADGES` in `src/rules/levels/legend.ts` names, the words R
+    reads a portal by ("portal with a dot"), drawn from `BADGE_MARKS`, a
+    record over those names, so a badge the legend gains has no picture
+    till one is drawn for it, and the typecheck says so.
+  - `src/testing/art_frames.ts`: `looksOf(kind)`, every look a brick of
+    a kind takes, which `art.spec.ts` and `wall_scene.spec.ts` each
+    worked out alike before; and its roles exported as `ART_ROLES`.
+  - Specs: `portal.spec.ts` ties each tint's badge to `PORTAL_BADGES`
+    through the frame its layers name, in place of the spec that named
+    the dot and the diamond itself, and its frames to the legend's count
+    of badges; `art_frames.spec.ts` holds `looksOf()`, and holds
+    `ART_ROLES` to Classic felt's roles as `PALETTES.rolesIn()` reads
+    them from the stylesheet, as `brick_colors.spec.ts` reads them, but
+    the page, and each to a color of its own; 8 tests more.
+- **Choices the integrator's ask left open.**
+  1. **The roles stay written out, held to the stylesheet.**
+     `rolesIn("classic")` gives the page as the field's white, so a spec
+     could no longer tell a portal's middle, which is the page's, from
+     the field, and reading the stylesheet as `art_frames.ts` loads
+     compiles it, 0.15 s as measured, in each of the 21 spec files that
+     import it, 19 of which compiled none before. So the roles are
+     written out, Classic felt's with Soft pastel's page, and one spec
+     reads the stylesheet and holds them to it.
+  2. **`looksOf()` is the two made one.** It gives a kind that never
+     breaks each plating the legend gives it, as the scene's did; for
+     every kind cataloged the two gave the same looks, the scene's hits
+     counting down where the art's count up.
+     `art.spec.ts`'s whole brick is the first whole one of its looks.
+- **Checks.** The workspace's lint, typecheck and `test:coverage`: 5,651
+  tests in 116 files, and 420 in `sim`, the floors held; the root's
+  lint.
+- **The mutation pass:** 11 mutants, the badges' marks swapped or one
+  pair's for both, `looksOf()`'s tints, platings, fulls and hits, and
+  the roles drifted from the stylesheet or their page the field's. One
+  lived: `art.spec.ts`'s whole brick taken as any
+  look, which leaves its claim, that no two kinds look alike, still
+  true of a brick hit once, so there is nothing more to hold.
+- **The review:** one round, by a fresh reviewer.
+  1. Reading the roles from the stylesheet at load compiled it in every
+     spec file that imports `art_frames.ts`, most of which read no
+     palette. Fixed: choice 1.
+  2. The badge spec claimed R in its title but only checks the art's
+     half, and R maps a tint to its badge by its own expression, which
+     `describe.spec.ts` pins to the words themselves. The art's spec now
+     claims only the art, and takes in the one that named the dot and
+     the diamond itself. Left: R's half, a spec in `describe.spec.ts`
+     reading each `PORTAL_BADGES` name by its tint, is the proof
+     stream's file, outside the art's, and goes to the integrator.
+  3. `Math.max(mostHits, fewest)` could change nothing, as the catalog's
+     spec holds `mostHits` to `hits` at least. Fixed: taken out, and
+     choice 2 no longer claims it.
+  4. The distinct-roles spec compared the roles' words, where `#fff`
+     and `#ffffff` are one color. Fixed: it compares their numbers.
+  5. The game's `AGENTS.md` and its testing skill describe
+     `art_frames.ts` without `looksOf()` or `ART_ROLES`. Left: the
+     view stream is changing `AGENTS.md`, so the lines go to the
+     integrator; the log's count of importers is fixed in choice 1.

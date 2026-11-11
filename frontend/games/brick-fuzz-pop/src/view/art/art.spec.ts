@@ -1,70 +1,19 @@
-import { keysOf } from "@fz/core/records";
-import {
-  BRICK_KIND_IDS,
-  type BrickKindId,
-  brickKind,
-} from "../../rules/catalog/bricks";
-import { LEGEND, PORTAL_MARKS } from "../../rules/levels/legend";
-import { ART_FRAMES } from "../../testing/art_frames";
+import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
+import { ART_FRAMES, looksOf } from "../../testing/art_frames";
 import { BRICK_ART, type BrickLook, brickLayers } from "./art";
 import { INKS } from "./frames";
-
-/** The tints a portal takes, its pair's place among the legend's marks. */
-const PAIRS = PORTAL_MARKS.map((_, pair) => pair);
-
-/** Returns the tints a brick of a kind can take: a portal its pair's, any other each ink. */
-function tintsOf(kind: BrickKindId): readonly number[] {
-  return kind === "portal" ? PAIRS : INKS;
-}
-
-/** Returns the plates a brick of a kind can have, as the legend's characters for it plate it, each once. */
-function platingsOf(kind: BrickKindId): readonly number[] {
-  const plates = keysOf(LEGEND)
-    .filter((character) => LEGEND[character].kind === kind)
-    .map((character) => LEGEND[character].plates);
-  return [...new Set(plates)];
-}
-
-/**
- * Returns every look a brick of a kind can take: each tint, each plating,
- * each count of hits it can start with, and each it can come down to, or
- * none, for a kind that never breaks.
- */
-function looksOf(kind: BrickKindId): readonly BrickLook[] {
-  const { hits, mostHits } = brickKind(kind);
-  const tints = tintsOf(kind);
-  if (hits === "never") {
-    return tints.map((tint) => ({ kind, tint, hits: 0, full: 0, plates: 0 }));
-  }
-  const fewest = hits;
-  const fulls = Array.from(
-    { length: Math.max(mostHits, fewest) - fewest + 1 },
-    (_, i) => fewest + i,
-  );
-  return tints.flatMap((tint) =>
-    platingsOf(kind).flatMap((plates) =>
-      fulls.flatMap((full) =>
-        Array.from({ length: full }, (_, i) => ({
-          kind,
-          tint,
-          hits: i + 1,
-          full,
-          plates,
-        })),
-      ),
-    ),
-  );
-}
 
 /**
  * Returns a whole brick of a kind, of the fewest hits a level gives it, or
  * none for a kind that never breaks, plated as the legend's first character
- * for it plates it.
+ * for it plates it: the first whole one of its looks.
+ *
+ * @throws {Error} for a kind with no whole look, which no level could hold.
  */
 function wholeOf(kind: BrickKindId): BrickLook {
-  const { hits } = brickKind(kind);
-  const full = hits === "never" ? 0 : hits;
-  return { kind, tint: 0, hits: full, full, plates: platingsOf(kind)[0] ?? 0 };
+  const whole = looksOf(kind).find(({ hits, full }) => hits === full);
+  if (whole === undefined) throw new Error(`No whole ${kind}`);
+  return whole;
 }
 
 describe("BRICK_ART", () => {
