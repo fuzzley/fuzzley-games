@@ -49,7 +49,37 @@ export default defineConfig(
     ],
   }),
   angular({ files: ["src/**/*.ts"], prefix: "app" }),
+  // The bar's Fast-forward and Skip fill a button of the bar's own, which
+  // takes them by an attribute (`button[appFastForward]`), as @fz/game-ui's
+  // Pause and Sound do, so their selectors are named as a directive's.
+  {
+    files: [
+      "src/app/bar/fast_forward.component.ts",
+      "src/app/bar/skip.component.ts",
+    ],
+    rules: {
+      "@angular-eslint/component-selector": [
+        "error",
+        { type: "attribute", prefix: "app", style: "camelCase" },
+      ],
+    },
+  },
   templates({ files: ["src/**/*.html"] }),
+  // The bar's template leaves the buttons Fast-forward and Skip fill empty,
+  // as it does Pause's and Sound's, which the rule can't see. The list
+  // replaces templates()' own, so it names Pause and Sound again, for the
+  // bar's template alone.
+  {
+    files: ["src/app/bar/bar.component.html"],
+    rules: {
+      "@angular-eslint/template/elements-content": [
+        "error",
+        {
+          allowList: ["fzBarPause", "fzBarSound", "appFastForward", "appSkip"],
+        },
+      ],
+    },
+  },
   tests({
     files: [
       "src/**/*.spec.ts",

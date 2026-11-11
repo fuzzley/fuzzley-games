@@ -12,7 +12,6 @@ import { IconComponent } from "@fz/ui/icon";
  * board, so the keys go on steering.
  */
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector -- it fills a button of the bar's own, as @fz/game-ui's Pause does.
   selector: "button[appFastForward]",
   imports: [IconComponent],
   host: {
