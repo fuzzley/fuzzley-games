@@ -70,6 +70,33 @@ describe("levelMarksOf", () => {
     });
   });
 
+  it("opens every level where asked to", () => {
+    const marks = levelMarksOf(LEVELS, new Set(), statsWith({}), true);
+
+    expect(
+      Object.entries(marks)
+        .filter(([, { open }]) => !open)
+        .map(([id]) => id),
+    ).toEqual([]);
+  });
+
+  it("shows stars and best only where the progress has a level cleared, while every level is open", () => {
+    const marks = levelMarksOf(
+      LEVELS,
+      new Set(["hello-wall"]),
+      statsWith({
+        "hello-wall": { points: 2400, rounds: 6, stars: 2 },
+        pips: { points: 900, rounds: 4, stars: 3 },
+      }),
+      true,
+    );
+
+    expect([marks["hello-wall"], marks["pips"]]).toEqual([
+      { open: true, stars: 2, best: 2400 },
+      { open: true, stars: 0, best: null },
+    ]);
+  });
+
   it("marks a level cleared whose records were lost open, with no stars", () => {
     const marks = levelMarksOf(LEVELS, new Set(["stripes"]), statsWith({}));
 
