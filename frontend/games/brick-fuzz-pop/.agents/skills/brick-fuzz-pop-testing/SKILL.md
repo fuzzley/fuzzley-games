@@ -298,12 +298,18 @@ Phaser game:
   the keys and the pointer, and the spec's own `resizeTo()` and
   `frameUntil()`, each handed the board.
 - Assert on the painters' pools, which each holds as a public readonly list
-  made once (`scene.wall.images`, `scene.guide.dots`,
+  made once (`scene.wall.swellings`, `scene.guide.dots`,
   `scene.field.countDots`), their frames, places, depths and visibility,
-  through the spec's readers (`framesAt()`, `stackAt()`, `layerPlaceOf()`)
+  through the spec's readers (`swellAt()`, `placeAt()`, `layerPlaceOf()`)
   and `@fz/phaser/testing`'s (`imagesIn()`, `objectsIn()`, `commandsOf()`,
   `colorsOf()`, `watchUploads()`). A headless game draws no pixels and plays
   no sound, so what a frame looks like is checked in a browser.
+- The wall and the field are drawn on bakes, textures of their own, which a
+  headless game draws nothing on, so the spec reads what each was handed:
+  `startBoard()` spies on every bake's commands first, `recordBakes()`
+  reads those a bake of a key was handed from the moment it is called, in
+  order, and `framesAt()` reads the frames the wall's bake shows in a cell,
+  as the commands it rendered stamped and cleared them.
 
 ## The Shell
 

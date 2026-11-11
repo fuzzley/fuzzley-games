@@ -1443,3 +1443,149 @@ the change, a second review: no bug; five more, each taken.
    at the frame's own length.
 10. **`WallScene.fieldCamera` was public,** read by nothing outside the
     scene. Fixed: private.
+
+### F1b: the wall and the field baked
+
+**2026-11-11.**
+
+**What was built,** as approved: two bakes, each painter owning its own, so
+the grid's dots stand still while the wall eases.
+
+- **`WallPainter`** stamps each brick's frames, from the bottom of its
+  stack up, about its cell's middle on a texture as large as the field's
+  cells (`WALL_BAKE`), made once and sized again at each layout, which one
+  image shows at the cells' top left. Each frame a wall is handed over it
+  stamps again only the cells whose stack changed, a break, a hit, moss
+  growing back, a cage's state, clearing each first; it stamps the whole
+  wall afresh at a new layout, depth, scale or palette, and once a lost
+  context is restored. It eases the wall down by moving the image, its top
+  cropped along the ceiling. A struck brick swells over the bake in one of
+  sixteen stacks of images (`MOST_SWELLING`), its cell cleared from the
+  bake while it swells: afresh where it already swells, or in the place of
+  the swell that started first. The warning frames stay images. The 594
+  images a stack per cell, and `cutOver()`, are gone.
+- **`FieldPainter`** fills the cells and the floor's band, and stamps the
+  grid's dots on whole pixels, on its own bake (`FIELD_BAKE`), drawn again
+  at a new layout, scale or palette, and once a lost context is restored;
+  its 168 dot images and its `ground` Graphics are gone. The jump and
+  danger lines stay a live Graphics, as their state and the danger line's
+  thickness change in play. The lintel, the ceiling and the frame stay the
+  `rim` Graphics, drawn only on a layout: they must lie over what bursts
+  and flies (Q4a), so they can't share a bake under the wall, and six
+  rectangles a frame cost Phaser no more than the image of a bake would.
+- `dynamicTexture()` (`painters/dynamic_texture.ts`), after Asteroid
+  Breaker's points sheet, makes a bake's texture once, or takes the one an
+  earlier scene made. A bake's stamp settings are made once a layout, not
+  written over, so what a frame stamps allocates nothing of ours.
+
+**Checked in a browser.** In a dev server's page, each bake against the
+same frames drawn as images over a Graphics, read from the WebGL canvas:
+no pixel differs, in the cells or the band, on Thunderhead at 11 deep and
+level 15 at 22 deep at 1280×800, Powder keg at 1300×1800, a unit of 138
+past the atlas's 128, and Thunderhead on a phone at 3×. A context lost
+and restored draws both bakes again, no pixel changed. The wall eases down
+cropped along the ceiling.
+
+**Before and after.** The same flight as F1's other traces, round 7's of
+The Great Wall's certificate on a field 18 deep, at ×6 CPU throttle, in a
+headless Chrome on the GPU, two traces of each build, before on d8fa0647
+(F1a), after on this change, each about 1,174 frames:
+
+| Per frame, ms                 | before       | after        |
+| ----------------------------- | ------------ | ------------ |
+| Phaser's render, mean         | 2.28, 2.37   | 1.14, 1.15   |
+| Phaser's render, median       | 2.23, 2.35   | 1.20, 1.21   |
+| Phaser's render, p95          | 3.68, 3.65   | 2.49, 2.56   |
+| Phaser's render, p99          | 4.16, 4.28   | 3.08, 3.16   |
+| the layers' rendering, mean   | 1.94, 2.04   | 0.97, 0.94   |
+| the images' rendering, mean   | 1.01, 1.06   | 0.20, 0.20   |
+| the main thread's CPU, median | 5.61, 5.71   | 4.56, 4.46   |
+| the main thread's CPU, p95    | 8.66, 8.94   | 7.09, 6.93   |
+| garbage collection, mean      | 0.097, 0.091 | 0.040, 0.041 |
+
+The scene's own update holds at 0.44 to 0.45 ms on the mean.
+
+**Names added:** `WALL_BAKE`, `MOST_SWELLING`, `Swelling`,
+`WallPainter.image` and `.swellings`, `FIELD_BAKE` and `dynamicTexture()`. **Removed:** `cutOver()`, `WallPainter.images`,
+`FieldPainter.gridDots`; `FieldPainter.ground` is now an image.
+
+**Checks**, on `brick-fuzz-pop` at b74252c0. The workspace's `lint`,
+`typecheck` and `test:coverage` pass, 5,925 tests in 119 files, and 555 in
+`sim`; the root's `yarn lint` passes. The build's `wall_scene` chunk is
+59.30 kB, from 57.38, and the main `index` chunk 406.74 kB, as before.
+
+**The mutation pass.** Thirty-four mutants, each killed in the end. The
+wall's: a changed brick not stamped, a cell not cleared before it is
+stamped again, a cell emptied but never cleared (the review's), changed
+cells never rendered, the bake never rendered whole, never cleared whole,
+its cells' record kept as it is, never sized, the image keeping its old
+size, a restored context not marked and stamped again every frame after; a
+swelling cell left in the bake, swells never settling, the latest swell's
+place taken, a brick struck again taking another place, a swell's place
+taken in a later frame without its brick stamped back (the second
+review's), a swell not moved with the wall; the image not moved over its place, never cropped, the crop
+never undone, the image moved only with a new wall; and two that first
+survived. Swells kept as the wall comes down lived, as the spec's brick
+came into an empty cell: the spec now brings a wall down whose brick comes
+into the swelling cell, and reads it back in the bake. Stamps kept at the
+first layout's scale lived, as every spec's scale was 1 but past the
+atlas's largest unit: a new spec stamps the wall at a second unit past it.
+The field's: a restored context not marked and baked again every frame
+after, a dot past the last row, dots off whole pixels or at their baked
+size, no band, the image not placed, the bake never rendered, and only as
+deep as the cells. `dynamicTexture()`'s: a texture of the key never handed
+back, and another kind never removed.
+
+**The review:** no bug in the painters; five comments, each answered;
+then, as the answers reshaped the specs' reader and the painter's
+stamping, a second review: no bug; five more, each answered.
+
+1. **The specs read what the painter noted it stamped, not what it drew:**
+   `framesAt()` read `WallPainter.stackAt()`, the painter's own record, so
+   a broken brick whose cell was never cleared, left drawn for good, passed
+   every spec. Fixed: `startBoard()` spies on every bake's commands first,
+   and `framesAt()` replays those the wall's bake rendered, each stamp and
+   clear in its cell; `stackAt()` is gone. The reviewer's mutant, a cell
+   emptied but never cleared, joined the mutation pass, and is killed.
+2. **The testing skill named `scene.wall.images` and `stackAt()`,** gone
+   now, and nothing of the bakes. Fixed: it names the swellings and the
+   spec's readers, and says how the bakes are read.
+3. **`dynamicTexture()` copies Asteroid Breaker's private one,** and its
+   branches had no spec. Its spec is taken: `dynamic_texture.spec.ts`
+   makes one, hands it back, and puts one in another kind's place. Its
+   move into `@fz/phaser/scene` is left, with a reason: it changes the
+   library and Asteroid Breaker, which this stream doesn't own; it is
+   handed to the coordinator as a follow-up.
+4. **`Swelling`'s place and time were writable** through the public
+   `swellings`, so a caller could move a swell the bake never heard of.
+   Fixed: the interface is read-only, and the painter moves its own
+   private `SwellPlace`s.
+5. **Nits, each taken.** The two nested `afterEach()`s that restored the
+   mocks again are gone, as the top-level one does it; the bake is sized
+   to `metrics.height`; `stamp(…, whole)` is `stampWhole()` and
+   `stampChanged()`, over `stampCells()`; `swelling(cell)` is
+   `isSwelling(cell)`; `AGENTS.md` says the field's bake is drawn whole
+   each time and the wall's in its changed cells between; and the class
+   doc's paragraph restating how it stamps is gone.
+6. **No spec struck past the places in a later frame,** where only the
+   place taken has the evicted brick stamped back; seventeen strikes in
+   one frame set the flag sixteen times first. Fixed: a spec fills the
+   places, strikes once more a frame later, and reads the first brick back
+   in the bake and the new one out of it. `MOST_SWELLING`'s doc says
+   strikes in one frame tie, the first place in the pool taken.
+7. **`dynamic_texture.spec.ts` named an earlier scene it never ran,** and
+   checked its setup in its assertion. Fixed: the spec says the same key,
+   and asserts only the texture; the function's doc says it destroys a
+   texture of another kind of the key.
+8. **`AGENTS.md`'s "each such brick"** now followed the changed cells.
+   Fixed: the warning frame lies over each brick the level needs at or
+   under the row over the floor's.
+9. **`FieldPainter.draw()`'s doc** left out the scale and a restored
+   context. Fixed.
+10. **Spec and code nits.** `swell()` finds the place a brick already
+    swells in, or else the one that started first, in one expression;
+    `sameFrames()`'s loop has braces. Left, with a reason: `bakeCommands()`
+    reads each spy's own records rather than one log of its own, so
+    `recordBakes()` can mark where it starts in spies `startBoard()` made;
+    and a fill with no rectangle reads as an empty one, as none of the
+    painters' fills leaves its rectangle out.
