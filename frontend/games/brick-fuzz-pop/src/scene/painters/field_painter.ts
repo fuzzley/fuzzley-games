@@ -16,6 +16,7 @@ import {
 import { ATLAS } from "../atlas";
 import { DANGER_ROW, inDanger } from "../danger";
 import { FIELD_FRAMES } from "../field_art";
+import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
 
 /** Says how a dashed line is drawn, in field units: its dashes, the gaps between them, and its width. */
@@ -253,23 +254,6 @@ function spansAcross(
 }
 
 /**
- * Shows a dot about a point, scaled, a whole number of device pixels wide
- * and high, its edges on whole pixels, which a dot baked whole needs to
- * stay sharp where the game doesn't round its images' places.
- */
-function placeDot(
-  dot: GameObjects.Image,
-  x: number,
-  y: number,
-  scale: number,
-): GameObjects.Image {
-  const side = Math.round(dot.width * scale);
-  return dot
-    .setDisplaySize(side, side)
-    .setPosition(onWholePixels(x, side), onWholePixels(y, side));
-}
-
-/**
  * Returns where across the canvas the middle of a dot of the jump line's
  * count stands, counted from its end: the first a gap short of the right
  * wall, and a wider gap after each group.
@@ -283,11 +267,6 @@ function countDotX({ x, width, unit }: FieldMetrics, at: number): number {
       Math.floor(at / COUNT_GROUP) * GROUP_GAP) *
       unit
   );
-}
-
-/** Returns where the middle of something some whole device pixels wide stands about a point, so that its edges fall on whole pixels. */
-function onWholePixels(middle: number, side: number): number {
-  return Math.round(middle - side / 2) + side / 2;
 }
 
 /** Returns how many bricks the level needs stand in the field's rows under a line, at a row's foot, which a jump waits on. */

@@ -1,6 +1,7 @@
-import type { EventLogView } from "@fz/core/event_log";
+import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
+import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { framePixels } from "@fz/phaser/layout";
 import { outlineRoundRect } from "@fz/phaser/shapes";
 import {
@@ -13,23 +14,56 @@ import {
   watchUploads,
 } from "@fz/phaser/testing";
 import { drawnIn, frameNamed, viewport } from "@fz/phaser/testing/pure";
-import { type GameObjects, Textures } from "phaser";
+import { Core, type GameObjects, Textures } from "phaser";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
   brickKind,
 } from "../rules/catalog/bricks";
-import { COLUMNS, MOST_DEPTH } from "../rules/tuning";
+import type { FlightEvent } from "../rules/flight/events";
+import { type Guide, guideOf } from "../rules/flight/guide";
+import type { Crew } from "../rules/round/round";
+import type { Boon } from "../rules/shot";
+import {
+  AIMS_PER_DEGREE,
+  COLUMNS,
+  GUIDE_PAST_TURN,
+  MOST_CHARGE,
+  MOST_DEPTH,
+  MOST_FUZZBALLS,
+  RADIUS,
+} from "../rules/tuning";
+import { AIMS } from "../rules/aims";
 import { type Brick, type Wall, thirdsOf } from "../rules/wall/wall";
 import { ART_PALETTE } from "../testing/art_frames";
 import { marginInsets } from "../testing/canvases";
-import { FLIGHT_FIXTURES } from "../testing/flight_fixtures";
+import {
+  FLIGHT_FIXTURES,
+  type FlightFixture,
+} from "../testing/flight_fixtures";
 import { wallFrom } from "../testing/wall_picture";
-import { type BrickLook, brickLayers } from "../view/art/art";
+import { type BrickLook, brickColor, brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
-import { FRAME_NAMES } from "../view/art/frames";
+import { FRAMES, FRAME_NAMES } from "../view/art/frames";
+import { fuzzballGrid } from "../view/art/fuzzball_art";
+import { FLARE_FROM, RING_FROM, SWELL } from "../view/effects/flourish";
+import {
+  BOLT_MS,
+  FLARE_MS,
+  FLASH_MS,
+  HOP_MS,
+  RING_MS,
+  SHAKE_MS,
+  SHARDS,
+  SWELL_MS,
+} from "../view/effects/timing";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
-import { SOUNDS } from "../view/effects/effects";
+import {
+  type EventEffects,
+  type Flourish,
+  SOUNDS,
+  type SoundName,
+} from "../view/effects/effects";
 import {
   FRAME_CSS_PX,
   type FieldMetrics,
@@ -40,12 +74,39 @@ import {
   lintelPixels,
   toCanvas,
 } from "../view/field/field_metrics";
-import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
+import type { Beat } from "../view/effects/effects";
+import {
+  type BallView,
+  FLIGHT_PACE,
+  type LoggedBeat,
+  type LoggedEvent,
+  RoundPlay,
+  type RoundView,
+} from "../view/round_play";
 import type { FieldCommand } from "../view/steering/controls";
-import { STRAIGHT_UP, type Steer } from "../view/steering/steering";
+import {
+  BY_POINTER,
+  MOST_FINGERS,
+  type PointerAimings,
+  STRAIGHT_UP,
+  type Steer,
+  aimToward,
+} from "../view/steering/steering";
 import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf } from "./atlas";
-import { FIELD_FRAMES, fieldFrames } from "./field_art";
+import {
+  FIELD_FRAMES,
+  FLIGHT_FRAMES,
+  fieldFrames,
+  flightFrames,
+} from "./field_art";
 import { DANGER_LINE, JUMP_LINE, MOST_COUNTED } from "./painters/field_painter";
+import {
+  FLASH_ALPHA,
+  MOST_SHARDS_FLYING,
+  SHARD_FALL,
+  SHARD_SPEED,
+} from "./painters/effects_painter";
+import { MOST_GUIDE_DOTS, MOST_PUNCHED } from "./painters/guide_painter";
 import { MOST_LAYERS, cutOver } from "./painters/wall_painter";
 import {
   PICTURE_FRAMES,
@@ -133,6 +194,18 @@ function metricsAt(
 /** Plays the shell's part, keeping what the scene tells it. */
 class FakeShell implements WallSceneOptions {
   round: RoundView = viewOf(PLAIN.start.wall);
+  /** Where the fuzzball waits, or null while it flies, as the shell has it without a round played. */
+  waiting: number | null = null;
+  /** The boon the fuzzball waiting carries, without a round played. */
+  carried: Boon | null = null;
+  /** The crew, without a round played. */
+  friends: Crew = { friends: [] };
+  /** How each kind of pointer aims, as the settings say. */
+  aiming: PointerAimings = BY_POINTER;
+  /** Casts the guide for the shot steered, or none. */
+  casting: ((steer: Readonly<Steer>) => Guide | null) | null = null;
+  /** The round played, which the ticks play on and the scene draws, or null to draw the round set by hand. */
+  play: RoundPlay | null = null;
   colors: WallPalette = LIGHT;
   fieldShape: FieldShape = shapeAt(CANVAS.width, CANVAS.height);
   welcomesMotion = true;
@@ -151,11 +224,43 @@ class FakeShell implements WallSceneOptions {
 
   readonly tick = (deltaMs: number, steer: Readonly<Steer>): void => {
     this.ticks.push(deltaMs);
-    this.steers.push(steer);
+    // The steering hands the same record each frame, so a copy is kept.
+    this.steers.push({ ...steer });
     if (this.shapeAsked) this.fieldShape = this.shapeAsked;
+    this.play?.advance(deltaMs, {
+      pace: FLIGHT_PACE,
+      speed: "normal",
+      fast: false,
+      speedUp: false,
+      motion: this.welcomesMotion,
+      paused: false,
+    });
   };
-  readonly view = (): RoundView => this.round;
-  readonly guide = (): null => null;
+  readonly view = (): RoundView =>
+    this.play?.view ?? {
+      ...this.round,
+      events: this.loggedEvents,
+      beats: this.loggedBeats,
+    };
+  readonly waitingX = (): number | null =>
+    this.play ? this.play.waitingX : this.waiting;
+  readonly boon = (): Boon | null => {
+    if (!this.play) return this.carried;
+    switch (this.play.phase) {
+      case "aiming":
+        return this.play.start.boon;
+      case "flying":
+        return null;
+      case "settling":
+        return this.play.round?.next.boon ?? null;
+    }
+  };
+  readonly crew = (): Crew => this.play?.start.crew ?? this.friends;
+  readonly guide = (): Guide | null => {
+    const steer = this.steers.at(-1);
+    return this.casting && steer ? this.casting(steer) : null;
+  };
+  readonly aimings = (): PointerAimings => this.aiming;
   readonly palette = (): WallPalette => this.colors;
   readonly shape = (): FieldShape => this.fieldShape;
   readonly motion = (): boolean => this.welcomesMotion;
@@ -186,7 +291,60 @@ class FakeShell implements WallSceneOptions {
   bringDown(wall: Wall, wallDrop: number, rowsDown = 1): void {
     this.round = viewOf(wall, wallDrop, rowsDown);
   }
+
+  /** Aims a round of the fixtures, which the ticks play on, and lets it fly. */
+  fly(fixture: FlightFixture): RoundPlay {
+    const play = this.aim(fixture);
+    play.release(fixture.round);
+    return play;
+  }
+
+  /** Aims a round of the fixtures, which the ticks play on. */
+  aim(fixture: FlightFixture): RoundPlay {
+    this.play = new RoundPlay(fixture.start);
+    return this.play;
+  }
+
+  /** Shows the round set by hand as having reached some events since the last frame, each with the effects given. */
+  reach(...events: readonly ReachedEvent[]): void {
+    for (const [event, flourishes, sound = null] of events) {
+      const logged = this.loggedEvents.next();
+      logged.event = event;
+      logged.effects = { flourishes, sound };
+    }
+  }
+
+  /** Shows the round set by hand as having reached some beats since the last frame. */
+  beat(...beats: readonly Beat[]): void {
+    for (const beat of beats) this.loggedBeats.next().beat = beat;
+  }
+
+  /** The events the round set by hand has reached. */
+  private readonly loggedEvents = new EventLog<LoggedEvent>(64, () => ({
+    serial: 0,
+    event: LANDING,
+    effects: QUIET,
+  }));
+
+  /** The beats the round set by hand has reached. */
+  private readonly loggedBeats = new EventLog<LoggedBeat>(16, () => ({
+    serial: 0,
+    beat: "step",
+  }));
 }
+
+/** An event the round set by hand reaches, the flourishes it calls for and its sound, none unless given. */
+type ReachedEvent = readonly [
+  event: FlightEvent,
+  flourishes: readonly Flourish[],
+  sound?: SoundName | null,
+];
+
+/** A landing, which a blank record of the log holds. */
+const LANDING: FlightEvent = { kind: "land", at: 0, ball: 0, x: 4.5 };
+
+/** What an event calls for that plays nothing. */
+const QUIET: EventEffects = { flourishes: [], sound: null };
 
 /** Sets a shell up for a player who prefers less motion. */
 function stillness(shell: FakeShell): void {
@@ -253,6 +411,126 @@ function placeAt(
   return { x: image?.x ?? Number.NaN, y: image?.y ?? Number.NaN };
 }
 
+/** The plain round's break of the brick at wall cell 0, as a flight might reach it. */
+const PLAIN_BREAK: FlightEvent = {
+  kind: "break",
+  at: 1,
+  cell: 0,
+  brick: "brick",
+  by: "fuzzball",
+  streak: 1,
+  points: 10,
+};
+
+/** The punch round, whose fuzzball flies charged. */
+const PUNCH = FLIGHT_FIXTURES.punch;
+
+/** The round a friend flies in, in ink 2. */
+const FRIEND = FLIGHT_FIXTURES.friend;
+
+/** The hot shot's round. */
+const HOT_SHOT = FLIGHT_FIXTURES.hotShot;
+
+/** How many device pixels a unit of the fuzzball's grid is shown at, on the specs' canvas, whose unit the atlas is baked at. */
+const GRID = fuzzballGrid(bakedScaleOf(metricsAt()));
+
+/** The player's fuzzball flying off up and to the left. */
+const LAUNCH_LEFT: FlightEvent = {
+  kind: "launch",
+  at: 0,
+  ball: 0,
+  role: "player",
+  x: 4.5,
+  y: RADIUS,
+  dx: -0.8,
+  dy: 0.6,
+  charge: 2,
+  hot: false,
+};
+
+/** The player's fuzzball turning off something, to fly straight left. */
+const TURN_LEFT: FlightEvent = {
+  kind: "turn",
+  at: 1,
+  ball: 0,
+  x: 4,
+  y: 4,
+  dx: -1,
+  dy: 0,
+  off: "side",
+};
+
+/** The player's fuzzball yawning, which drops it to the floor. */
+const YAWN: FlightEvent = { kind: "yawn", at: 2, ball: 0, x: 4, y: 4 };
+
+/** The player's fuzzball striking the plain round's tough brick, at wall cell 8. */
+const STRIKE_8: FlightEvent = {
+  kind: "strike",
+  at: 1,
+  ball: 0,
+  cell: 8,
+  took: 1,
+  left: 1,
+  charge: 0,
+  earthed: false,
+};
+
+/** A row zap from wall cell 4 of the plain round's wall, reaching the rest of its row. */
+const ROW_ZAP: FlightEvent = {
+  kind: "zap",
+  at: 1,
+  cell: 4,
+  pattern: "row",
+  reaches: [0, 1, 2, 3, 5, 6, 7, 8],
+};
+
+/** A column zap from wall cell 0 of the plain round's wall, reaching eight rows up, past the ceiling. */
+const COLUMN_ZAP: FlightEvent = {
+  kind: "zap",
+  at: 1,
+  cell: 0,
+  pattern: "column",
+  reaches: [9, 18, 27, 36, 45, 54, 63, 72],
+};
+
+/** An X zap from wall cell 4 of the plain round's wall, reaching the cell up and to its right. */
+const X_ZAP: FlightEvent = {
+  kind: "zap",
+  at: 1,
+  cell: 4,
+  pattern: "x",
+  reaches: [14],
+};
+
+/** A bomb's blast at wall cell 8. */
+const BLAST: FlightEvent = {
+  kind: "zap",
+  at: 1,
+  cell: 8,
+  pattern: "blast",
+  reaches: [7, 17],
+};
+
+/** A friend freed in ink 3 from a cage at wall cell 8. */
+const FREE: FlightEvent = { kind: "free", at: 1, cell: 8, ink: 3 };
+
+/** Returns a fuzzball in the air, by its number, at a place, plain. */
+function ballAt(ball: number, x: number, y: number): BallView {
+  return { ball, role: "player", x, y, charge: 0, hot: false };
+}
+
+/** Returns the launch of a round's player's fuzzball. */
+function launchOf(fixture: FlightFixture): { dx: number; dy: number } {
+  const [launch] = fixture.round.flight.events;
+  if (launch?.kind !== "launch") throw new Error("No launch first.");
+  return launch;
+}
+
+/** Returns a number rounded to nine places, past which its arithmetic may stray. */
+function rounded(value: number): number {
+  return Math.round(value * 1e9) / 1e9;
+}
+
 /** Returns the brick at a wall cell, failing where there is none. */
 function brickAt(wall: Wall, cell: number): Brick {
   const brick = wall.bricks[cell];
@@ -289,6 +567,15 @@ function framedIn(scene: WallScene): (readonly [number, number])[] {
 /** Returns each object's place in the list it is drawn from, counted from the back. */
 function placesInLayer(objects: readonly GameObjects.GameObject[]): number[] {
   return objects.map((object) => object.displayList.getIndex(object));
+}
+
+/** Runs a board's frames until its shell's play is as asked, failing past a limit. */
+function frameUntil(board: Board, reached: (play: RoundPlay) => boolean): void {
+  for (let frame = 0; frame < 2000; frame++) {
+    if (board.shell.play && reached(board.shell.play)) return;
+    board.run.advance(16);
+  }
+  throw new Error("The play never got there.");
 }
 
 /** Returns where on the canvas a field row's foot runs, in the layout given. */
@@ -328,7 +615,7 @@ describe("WallScene", () => {
       expect(shell.ticks.slice(-3)).toEqual([20, 20, 20]);
     });
 
-    it("hands the shell no steering yet: the aim straight up, no charge, nothing let fly", async () => {
+    it("hands the shell the steering, the aim straight up, no charge and nothing let fly before the player steers", async () => {
       const { shell } = await startBoard();
 
       expect(shell.steers.at(-1)).toEqual({
@@ -583,6 +870,7 @@ describe("WallScene", () => {
       const names = [
         ...art,
         ...fieldFrames(LIGHT, metricsAt()),
+        ...flightFrames(LIGHT, metricsAt()),
         ...pictureFrames(art, metricsAt()),
       ].map((frame) => frame.name);
 
@@ -629,6 +917,34 @@ describe("WallScene", () => {
       await run.restoreContext();
 
       expect(uploaded).toContain(atlas);
+    });
+
+    it("draws a flight on through a lost context and its restore, every frame of its own in the atlas again", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.fly(PLAIN);
+        shell.casting = () => ({ dots: [{ x: 3, y: 3 }], punched: [8] });
+      });
+      run.advance(48);
+      const objects = objectsIn(scene);
+      await run.loseContext();
+
+      await run.restoreContext();
+      run.advance(48);
+
+      const missing = flightFrames(LIGHT, metricsAt())
+        .map(({ name }) => name)
+        .filter((name) => !atlasHas(scene, name));
+      expect({
+        missing,
+        objects: objectsIn(scene),
+        ball: scene.balls.bodies[0]?.frame.name,
+        dot: scene.guide.dots[0]?.frame.name,
+      }).toEqual({
+        missing: [],
+        objects,
+        ball: FRAMES.fuzzball(PLAIN.shot.charge),
+        dot: FRAMES.guideDot,
+      });
     });
   });
 
@@ -1148,6 +1464,20 @@ describe("WallScene", () => {
       expect(placeAt(scene, 5, 8)).toEqual(toCanvas(metricsAt(), 8.5, 5.5));
     });
 
+    it("eases the wall the round leaves down from where the flight's stood, as the round played hands it over", async () => {
+      const board = await startBoard((shell) => {
+        shell.fly(PLAIN);
+      });
+      const { unit } = metricsAt();
+
+      frameUntil(board, ({ view }) => view.wallDrop < 1);
+
+      const { wallDrop } = board.shell.play?.view ?? { wallDrop: 1 };
+      expect(placeAt(board.scene, 4, 8).y).toBe(
+        toCanvas(metricsAt(), 8.5, 4.5).y - Math.round((1 - wallDrop) * unit),
+      );
+    });
+
     it("takes a step the view has gone past the end of as ended", async () => {
       const { shell, run, scene } = await startBoard();
 
@@ -1606,13 +1936,1352 @@ describe("WallScene", () => {
       const board = await startBoard();
       const first = objectsIn(board.scene);
 
-      board.shell.bringDown(PLAIN.round.next.wall, 0.5);
+      board.shell.bringDown(PLAIN.start.wall, 0.5);
       board.shell.colors = DARK;
       resizeTo(board, 600, 500);
-      board.shell.bringDown(PLAIN.round.next.wall, 1);
+      board.shell.bringDown(PLAIN.start.wall, 1);
       board.run.advance(16);
 
       expect(objectsIn(board.scene)).toBe(first);
+    });
+
+    it("makes no game object through 600 frames of a flight, its wall's jump and its rest", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.aim(ZAP);
+      });
+      const before = objectsIn(scene);
+      const shards = scene.effects.shards.getParticleCount();
+
+      shell.play?.release(ZAP.round);
+      run.advance(600 * 16);
+
+      expect({
+        objects: objectsIn(scene),
+        shards: scene.effects.shards.getParticleCount(),
+        settled: shell.play?.phase,
+        rested: shell.play?.view.wall,
+      }).toEqual({
+        objects: before,
+        shards,
+        settled: "settling",
+        rested: ZAP.round.next.wall,
+      });
+    });
+  });
+
+  describe("the steering", () => {
+    it("turns the aim as an arrow key is pressed", async () => {
+      const { shell, run } = await startBoard();
+
+      run.key("keydown", "ArrowLeft", "ArrowLeft");
+      run.advance(16);
+
+      expect(shell.steers.at(-1)).toMatchObject({
+        aim: STRAIGHT_UP + AIMS_PER_DEGREE,
+        keyed: true,
+      });
+    });
+
+    it("lets the shot fly as Space is pressed", async () => {
+      const { shell, run } = await startBoard();
+
+      run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      expect(shell.steers.at(-1)?.release).toBe(true);
+    });
+
+    it("keeps the arrows and Space from the page, which would scroll", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.input.keyboard?.getCaptures()).toEqual(
+        expect.arrayContaining([37, 38, 39, 40, 32]),
+      );
+    });
+
+    it("calls off a charge building at Escape, which pauses nothing", async () => {
+      const { shell, run } = await startBoard();
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+
+      run.key("keydown", "Escape", "Escape");
+      run.advance(16);
+
+      expect({
+        charge: shell.steers.at(-1)?.charge,
+        commands: shell.commands,
+      }).toEqual({ charge: 0, commands: [] });
+    });
+
+    it("hands the shell fast-forward while F is held, until it is let go", async () => {
+      const { shell, run } = await startBoard();
+      run.key("keydown", "KeyF", "f");
+      run.advance(16);
+      const held = shell.steers.at(-1)?.fast;
+
+      run.key("keyup", "KeyF", "f");
+      run.advance(16);
+
+      expect({ held, let: shell.steers.at(-1)?.fast }).toEqual({
+        held: true,
+        let: false,
+      });
+    });
+
+    it("follows two fingers, so a second press can call the shot off", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.input.manager.pointersTotal).toBe(MOST_FINGERS);
+    });
+
+    it("aims a pointing mouse from where the shell says the fuzzball waits", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      const at = toCanvas(metricsAt(), 6, 6);
+      run.pointer("move", at.x, at.y);
+      run.advance(16);
+      const from2 = shell.steers.at(-1)?.aim;
+
+      shell.waiting = 7;
+      run.advance(32);
+
+      expect({ from2, from7: shell.steers.at(-1)?.aim }).toEqual({
+        from2: aimToward(4, 6 - RADIUS),
+        from7: aimToward(-1, 6 - RADIUS),
+      });
+    });
+
+    it("aims a pointer on the field as a new layout lays it out", async () => {
+      const board = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      resizeTo(board, 600, 500);
+
+      const at = toCanvas(metricsAt(600, 500), 6, 6);
+      board.run.pointer("move", at.x, at.y);
+      board.run.advance(16);
+
+      expect(board.shell.steers.at(-1)?.aim).toBe(aimToward(4, 6 - RADIUS));
+    });
+
+    it("keeps aiming from where the fuzzball last waited while it flies", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      shell.waiting = null;
+      run.advance(16);
+
+      const at = toCanvas(metricsAt(), 6, 6);
+      run.pointer("move", at.x, at.y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)?.aim).toBe(aimToward(4, 6 - RADIUS));
+    });
+
+    it("lets the shot fly as a mouse's press is let go", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const at = toCanvas(metricsAt(), 4.5, 6);
+      run.pointer("down", at.x, at.y);
+      run.advance(300);
+
+      run.pointer("up", at.x, at.y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)).toMatchObject({ release: true, charge: 1 });
+    });
+
+    it("lets the shot fly as a mouse's press is let go past the canvas", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const at = toCanvas(metricsAt(), 4.5, 6);
+      run.pointer("down", at.x, at.y);
+      run.advance(16);
+
+      run.pointer("up", at.x, at.y, { on: document.body });
+      run.advance(16);
+
+      expect(shell.steers.at(-1)?.release).toBe(true);
+    });
+
+    it("turns the aim an aim each turn of the wheel", async () => {
+      const { shell, run } = await startBoard();
+      const at = toCanvas(metricsAt(), 4.5, 6);
+
+      run.wheel(100, at.x, at.y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)?.aim).toBe(STRAIGHT_UP - 1);
+    });
+
+    it("calls a charge off at the mouse's right button, letting nothing fly as the press ends", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const at = toCanvas(metricsAt(), 4.5, 6);
+      run.pointer("down", at.x, at.y);
+      run.advance(600);
+      const built = shell.steers.at(-1)?.charge;
+
+      run.pointer("down", at.x, at.y, { button: 2 });
+      run.advance(16);
+      run.pointer("up", at.x, at.y);
+      run.advance(16);
+
+      expect({
+        built,
+        charge: shell.steers.at(-1)?.charge,
+        flown: shell.steers.some((steer) => steer.release),
+      }).toEqual({ built: 2, charge: 0, flown: false });
+    });
+
+    it("calls a pulled shot off as the browser takes its touch away", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const from = toCanvas(metricsAt(), 4.5, 8);
+      const to = toCanvas(metricsAt(), 4.5, 5);
+      run.touch("start", from.x, from.y);
+      run.touch("move", to.x, to.y);
+      run.advance(16);
+      const pulled = shell.steers.at(-1)?.charge;
+
+      run.touch("cancel", to.x, to.y);
+      run.advance(16);
+
+      expect({
+        pulled,
+        charge: shell.steers.at(-1)?.charge,
+        flown: shell.steers.some((steer) => steer.release),
+      }).toEqual({ pulled: 2, charge: 0, flown: false });
+    });
+
+    it("lets go of every key and the press as the player looks away", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const at = toCanvas(metricsAt(), 4.5, 6);
+      run.key("keydown", "KeyF", "f");
+      run.pointer("down", at.x, at.y);
+      run.advance(600);
+
+      run.game.events.emit(Core.Events.BLUR);
+      run.advance(16);
+      run.pointer("up", at.x, at.y);
+      run.advance(16);
+
+      expect({
+        fast: shell.steers.at(-1)?.fast,
+        charge: shell.steers.at(-1)?.charge,
+        flown: shell.steers.some((steer) => steer.release),
+      }).toEqual({ fast: false, charge: 0, flown: false });
+    });
+
+    it("hands the steering how each pointer aims as the settings change", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      shell.aiming = { mouse: "pullBack", finger: "pullBack" };
+      run.advance(16);
+
+      const at = toCanvas(metricsAt(), 6, 6);
+      run.pointer("move", at.x, at.y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)?.aim).toBe(STRAIGHT_UP);
+    });
+  });
+
+  describe("the fuzzballs", () => {
+    it("draw the fuzzball waiting on the floor, its fur uncombed, its eyes looking along the aim", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+      });
+      const [body] = scene.balls.bodies;
+      const [eyes] = scene.balls.eyes;
+      const place = toCanvas(metricsAt(), 3, RADIUS);
+      const [dx, dy] = AIMS[STRAIGHT_UP] ?? [0, 0];
+
+      expect({
+        frame: body?.frame.name,
+        place: { x: body?.x, y: body?.y },
+        eyes: { x: eyes?.x, y: eyes?.y, frame: eyes?.frame.name },
+      }).toEqual({
+        frame: FRAMES.fuzzball(0),
+        place,
+        eyes: {
+          x: place.x + FUZZBALL_LOOK.across * GRID * dx,
+          y: place.y - FUZZBALL_LOOK.down * GRID * dy,
+          frame: FRAMES.eyes,
+        },
+      });
+    });
+
+    it("comb the waiting fuzzball's fur as the charge rises", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+      });
+
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+
+      expect(scene.balls.bodies[0]?.frame.name).toBe(FRAMES.fuzzball(2));
+    });
+
+    it("turn the waiting fuzzball's eyes as the aim turns", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+      });
+
+      run.key("keydown", "ArrowRight", "ArrowRight", { shiftKey: true });
+      run.advance(16);
+
+      const [dx] = AIMS[STRAIGHT_UP - 1] ?? [0, 0];
+      expect(scene.balls.eyes[0]?.x).toBe(
+        toCanvas(metricsAt(), 3, RADIUS).x + FUZZBALL_LOOK.across * GRID * dx,
+      );
+    });
+
+    it("show the waiting fuzzball as a hot shot while it carries that boon", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+        shell.carried = "hot";
+      });
+
+      expect(scene.balls.bodies[0]?.frame.name).toBe(FRAMES.hotShot);
+    });
+
+    it.each([
+      [2, [3.4, 2.7, 2]],
+      [7, [5.6, 6.3, 7]],
+    ])(
+      "wait at %s with a triple shot's two mates beside it, toward the floor's middle",
+      async (waiting, places) => {
+        const { scene } = await startBoard((shell) => {
+          shell.waiting = waiting;
+          shell.carried = "triple";
+        });
+
+        expect(
+          scene.balls.bodies
+            .filter((body) => body.visible)
+            .map((body) => ({ x: body.x, frame: body.frame.name })),
+        ).toEqual(
+          places.map((x) => ({
+            x: toCanvas(metricsAt(), x, RADIUS).x,
+            frame: FRAMES.fuzzball(0),
+          })),
+        );
+      },
+    );
+
+    it("flare the boon in as the wall jumps, from small, past its size, to its size", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+        each.carried = "hot";
+      });
+
+      shell.beat("jump");
+      run.advance(16);
+      const first = scene.balls.bodies[0]?.scale ?? 0;
+      run.advance(FLARE_MS / 2);
+      const halfway = scene.balls.bodies[0]?.scale ?? 0;
+      run.advance(FLARE_MS);
+
+      expect({
+        first: rounded(first),
+        past: halfway > 1,
+        last: scene.balls.bodies[0]?.scale,
+      }).toEqual({ first: FLARE_FROM, past: true, last: 1 });
+    });
+
+    it("flare a triple shot's mates in beside the fuzzball as the wall jumps", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+        each.carried = "triple";
+      });
+
+      shell.beat("jump");
+      run.advance(16);
+
+      // Each one's eyes as far over its middle as its size.
+      const [, dy] = AIMS[STRAIGHT_UP] ?? [0, 0];
+      const look = FUZZBALL_LOOK.down * GRID * dy;
+      expect(
+        scene.balls.bodies
+          .filter((body) => body.visible)
+          .map((body, at) => ({
+            scale: rounded(body.scale),
+            look: rounded(body.y - (scene.balls.eyes[at]?.y ?? 0)),
+          })),
+      ).toEqual([
+        { scale: FLARE_FROM, look: rounded(look * FLARE_FROM) },
+        { scale: FLARE_FROM, look: rounded(look * FLARE_FROM) },
+        { scale: 1, look: rounded(look) },
+      ]);
+    });
+
+    it("flare the eyes in with the boon, as far from its middle as its size", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+        each.carried = "hot";
+      });
+
+      shell.beat("jump");
+      run.advance(16);
+
+      const place = toCanvas(metricsAt(), 3, RADIUS);
+      const [, dy] = AIMS[STRAIGHT_UP] ?? [0, 0];
+      expect(rounded(scene.balls.eyes[0]?.y ?? 0)).toBe(
+        rounded(place.y - FUZZBALL_LOOK.down * GRID * FLARE_FROM * dy),
+      );
+    });
+
+    it("draw each fuzzball in the air at its middle, at its charge, its eyes the way it flew off", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.fly(PUNCH);
+      });
+      run.advance(48);
+
+      const [ball] = shell.play?.view.balls ?? [];
+      const [body] = scene.balls.bodies;
+      const [eyes] = scene.balls.eyes;
+      const place = toCanvas(metricsAt(), ball?.x ?? 0, ball?.y ?? 0);
+      const { dx, dy } = launchOf(PUNCH);
+      expect({
+        frame: body?.frame.name,
+        place: { x: body?.x, y: body?.y },
+        eyes: { x: eyes?.x, y: eyes?.y },
+      }).toEqual({
+        frame: FRAMES.fuzzball(PUNCH.shot.charge),
+        place,
+        eyes: {
+          x: place.x + FUZZBALL_LOOK.across * GRID * dx,
+          y: place.y - FUZZBALL_LOOK.down * GRID * dy,
+        },
+      });
+    });
+
+    it("draw no fuzzball waiting while the player's is in the air", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.fly(PLAIN);
+      });
+
+      run.advance(48);
+
+      expect(showing(scene.balls.bodies)).toBe(1);
+    });
+
+    it("draw a friend in its ink", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.fly(FRIEND);
+      });
+
+      run.advance(200);
+
+      expect(
+        scene.balls.bodies
+          .filter((body) => body.visible)
+          .map((body) => body.frame.name),
+      ).toEqual([FRAMES.fuzzball(FRIEND.shot.charge), FRAMES.friend(2)]);
+    });
+
+    it("draw a friend in its ink round after round", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.fly(FRIEND);
+      });
+      run.advance(10000);
+
+      shell.play?.aim(FRIEND.start);
+      shell.play?.release(FRIEND.round);
+      run.advance(200);
+
+      expect(
+        scene.balls.bodies
+          .filter((body) => body.visible)
+          .map((body) => body.frame.name),
+      ).toEqual([FRAMES.fuzzball(FRIEND.shot.charge), FRAMES.friend(2)]);
+    });
+
+    it("draw a hot shot in the air as one", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.fly(HOT_SHOT);
+      });
+
+      run.advance(48);
+
+      expect(scene.balls.bodies[0]?.frame.name).toBe(FRAMES.hotShot);
+    });
+
+    it("turn a fuzzball's eyes as it turns, and down as it yawns", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.round = { ...each.round, balls: [ballAt(0, 4, 4)] };
+      });
+      const place = toCanvas(metricsAt(), 4, 4);
+      shell.reach([TURN_LEFT, []]);
+      run.advance(16);
+      const turned = scene.balls.eyes[0]?.x;
+
+      shell.reach([YAWN, []]);
+      run.advance(16);
+
+      const eyes = scene.balls.eyes[0];
+      expect({ turned, yawned: { x: eyes?.x, y: eyes?.y } }).toEqual({
+        turned: place.x - FUZZBALL_LOOK.across * GRID,
+        yawned: { x: place.x, y: place.y + FUZZBALL_LOOK.down * GRID },
+      });
+    });
+
+    it("look up, as one that has not flown off yet", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.round = { ...shell.round, balls: [ballAt(3, 4, 4)] };
+      });
+
+      expect(scene.balls.eyes[0]?.y).toBe(
+        toCanvas(metricsAt(), 4, 4).y - FUZZBALL_LOOK.down * GRID,
+      );
+    });
+
+    it("hold a body and its eyes for the most fuzzballs in the air, made once", async () => {
+      const { scene } = await startBoard();
+
+      expect([scene.balls.bodies.length, scene.balls.eyes.length]).toEqual([
+        MOST_FUZZBALLS,
+        MOST_FUZZBALLS,
+      ]);
+    });
+
+    it("show no more fuzzballs than the pool holds", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+        shell.round = {
+          ...shell.round,
+          balls: Array.from({ length: MOST_FUZZBALLS + 2 }, (_, ball) =>
+            ballAt(ball, 4, 4),
+          ),
+        };
+      });
+
+      expect(showing(scene.balls.bodies)).toBe(MOST_FUZZBALLS);
+    });
+
+    it("draw each eye over its own body, and a later body over an earlier's eyes", async () => {
+      const { scene } = await startBoard();
+      const [body0, body1] = scene.balls.bodies;
+      const [eyes0] = scene.balls.eyes;
+
+      if (!body0 || !eyes0 || !body1) throw new Error("No fuzzball.");
+
+      const [first, eyes, second] = placesInLayer([body0, eyes0, body1]);
+
+      expect([eyes, second]).toEqual([(first ?? 0) + 1, (first ?? 0) + 2]);
+    });
+  });
+
+  describe("the meter", () => {
+    it("shows five pips in an arc under the waiting fuzzball, lit from the left as far as the charge", async () => {
+      // A unit large enough that a pip a degree or two off its place
+      // stands a pixel or more off it.
+      const canvas = { width: 1300, height: 1800 } as const;
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+      }, canvas);
+
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+
+      // As the art draws them: 20.5 of a cell of 40 from the fuzzball's
+      // middle, 58° and 29° either side of straight under it.
+      const metrics = metricsAt(canvas.width, canvas.height);
+      const middle = toCanvas(metrics, 3, RADIUS);
+      const reach = (20.5 / 40) * metrics.unit;
+      const places = [-58, -29, 0, 29, 58].map((degrees) => ({
+        x: middle.x + reach * Math.sin((degrees * Math.PI) / 180),
+        y: middle.y + reach * Math.cos((degrees * Math.PI) / 180),
+      }));
+      // Each on whole pixels, so within half a pixel of its place.
+      expect(
+        scene.meter.pips.map((pip, at) => ({
+          frame: pip.frame.name,
+          placed:
+            Math.abs(pip.x - (places[at]?.x ?? 0)) <= 0.5 &&
+            Math.abs(pip.y - (places[at]?.y ?? 0)) <= 0.5,
+        })),
+      ).toEqual(
+        [0, 1, 2, 3, 4].map((at) => ({
+          frame: at < 2 ? FRAMES.meterOn : FRAMES.meterOff,
+          placed: true,
+        })),
+      );
+    });
+
+    it("stands its pips on whole pixels", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.waiting = 3.3;
+      });
+
+      expect(
+        scene.meter.pips.every(
+          (pip) =>
+            Number.isInteger(pip.x - pip.displayWidth / 2) &&
+            Number.isInteger(pip.y - pip.displayHeight / 2),
+        ),
+      ).toBe(true);
+    });
+
+    it("lights every pip for a hot shot, whose charge is full", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+        shell.carried = "hot";
+      });
+
+      expect(scene.meter.pips.map((pip) => pip.frame.name)).toEqual(
+        Array.from({ length: MOST_CHARGE }, () => FRAMES.meterOn),
+      );
+    });
+
+    it("hides while the fuzzball is in the air", async () => {
+      const { scene } = await startBoard();
+
+      expect(showing(scene.meter.pips)).toBe(0);
+    });
+
+    it("hides as the fuzzball flies off", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 3;
+      });
+
+      shell.waiting = null;
+      run.advance(16);
+
+      expect(showing(scene.meter.pips)).toBe(0);
+    });
+  });
+
+  describe("the guide", () => {
+    it("draws a dot at each of the guide's places, on whole pixels", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.casting = () => ({
+          dots: [
+            { x: 3.3, y: 2.2 },
+            { x: 4.1, y: 3.7 },
+          ],
+          punched: [],
+        });
+      });
+
+      expect(
+        scene.guide.dots
+          .filter((dot) => dot.visible)
+          .map((dot) => ({
+            frame: dot.frame.name,
+            whole:
+              Number.isInteger(dot.x - dot.displayWidth / 2) &&
+              Number.isInteger(dot.y - dot.displayHeight / 2),
+          })),
+      ).toEqual([
+        { frame: FRAMES.guideDot, whole: true },
+        { frame: FRAMES.guideDot, whole: true },
+      ]);
+    });
+
+    it("draws each dot at its place, to the pixel", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.casting = () => ({ dots: [{ x: 3.3, y: 2.2 }], punched: [] });
+      });
+      const place = toCanvas(metricsAt(), 3.3, 2.2);
+
+      const [dot] = scene.guide.dots;
+
+      expect({
+        x: Math.abs((dot?.x ?? 0) - place.x) <= 0.5,
+        y: Math.abs((dot?.y ?? 0) - place.y) <= 0.5,
+      }).toEqual({ x: true, y: true });
+    });
+
+    it("outlines each brick the shot would punch through", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.casting = () => ({ dots: [], punched: [8, 7] });
+      });
+
+      expect(
+        scene.guide.punches
+          .filter((punch) => punch.visible)
+          .map((punch) => ({
+            x: punch.x,
+            y: punch.y,
+            frame: punch.frame.name,
+          })),
+      ).toEqual([
+        { ...toCanvas(metricsAt(), 8.5, 5.5), frame: FRAMES.guidePunch },
+        { ...toCanvas(metricsAt(), 7.5, 5.5), frame: FRAMES.guidePunch },
+      ]);
+    });
+
+    it("outlines no brick waiting over the ceiling", async () => {
+      const { scene } = await startBoard((shell) => {
+        // Wall cell 54 stands in row 11, over the ceiling of a field 11 deep.
+        shell.casting = () => ({ dots: [], punched: [54] });
+      });
+
+      expect(showing(scene.guide.punches)).toBe(0);
+    });
+
+    it("draws the guide the rules cast for the shot steered, a dot at each of its places", async () => {
+      const { start } = PLAIN;
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = start.x;
+        shell.casting = ({ aim, charge }) =>
+          guideOf(start, { aim, charge }, GUIDE_PAST_TURN);
+      });
+
+      run.key("keydown", "ArrowLeft", "ArrowLeft");
+      run.advance(16);
+
+      const { dots } = guideOf(
+        start,
+        { aim: STRAIGHT_UP + AIMS_PER_DEGREE, charge: 0 },
+        GUIDE_PAST_TURN,
+      );
+      const drawn = scene.guide.dots.filter((dot) => dot.visible);
+      // Each on whole pixels, so within half a pixel of its place.
+      expect({
+        shown: drawn.length > 0,
+        count: drawn.length,
+        placed: drawn.every((dot, at) => {
+          const place = toCanvas(
+            metricsAt(),
+            dots[at]?.x ?? 0,
+            dots[at]?.y ?? 0,
+          );
+          return (
+            Math.abs(dot.x - place.x) <= 0.5 && Math.abs(dot.y - place.y) <= 0.5
+          );
+        }),
+      }).toEqual({ shown: true, count: dots.length, placed: true });
+    });
+
+    it("follows the aim as the shell casts it anew", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 4.5;
+        shell.casting = ({ aim }) => {
+          const [dx, dy] = AIMS[aim] ?? [0, 0];
+          return {
+            dots: [{ x: 4.5 + 3 * dx, y: RADIUS + 3 * dy }],
+            punched: [],
+          };
+        };
+      });
+
+      run.key("keydown", "ArrowLeft", "ArrowLeft");
+      run.advance(16);
+
+      const [dx, dy] = AIMS[STRAIGHT_UP + AIMS_PER_DEGREE] ?? [0, 0];
+      const place = toCanvas(metricsAt(), 4.5 + 3 * dx, RADIUS + 3 * dy);
+      const [dot] = scene.guide.dots;
+      expect(Math.abs((dot?.x ?? 0) - place.x) <= 0.5).toBe(true);
+    });
+
+    it("outlines the bricks anew as the wall moves under the same guide", async () => {
+      const guide: Guide = { dots: [], punched: [8] };
+      const { shell, run, scene } = await startBoard((each) => {
+        each.casting = () => guide;
+      });
+
+      shell.showWall({ ...PLAIN.start.wall, lowestRow: 4 });
+      run.advance(16);
+
+      const [punch] = scene.guide.punches;
+      expect({ x: punch?.x, y: punch?.y }).toEqual(
+        toCanvas(metricsAt(), 8.5, 4.5),
+      );
+    });
+
+    it("hides the guide where none shows", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.casting = () => ({ dots: [{ x: 3, y: 3 }], punched: [8] });
+      });
+
+      shell.casting = null;
+      run.advance(16);
+
+      expect([showing(scene.guide.dots), showing(scene.guide.punches)]).toEqual(
+        [0, 0],
+      );
+    });
+
+    it("shows its dots and outlines scaled up past the atlas's largest unit", async () => {
+      const { scene } = await startBoard(
+        (shell) => {
+          shell.casting = () => ({ dots: [{ x: 3, y: 3 }], punched: [8] });
+        },
+        { width: 1300, height: 1800 },
+      );
+      const scale = metricsAt(1300, 1800).unit / MOST_BAKED_UNIT;
+      const [dot] = scene.guide.dots;
+      const [punch] = scene.guide.punches;
+
+      expect({
+        dot: dot?.displayWidth,
+        punch: punch?.scale,
+      }).toEqual({
+        dot: Math.round((dot?.width ?? 0) * scale),
+        punch: scale,
+      });
+    });
+
+    it("holds the most dots and outlines it shows, made once", async () => {
+      const { scene } = await startBoard();
+
+      expect([scene.guide.dots.length, scene.guide.punches.length]).toEqual([
+        MOST_GUIDE_DOTS,
+        MOST_PUNCHED,
+      ]);
+    });
+  });
+
+  describe("the flourishes", () => {
+    it("swell a struck brick as the strike lands, and settle it back", async () => {
+      const { shell, run, scene } = await startBoard();
+      // The view hands over another wall as the strike wears the brick.
+      const bricks = [...PLAIN.start.wall.bricks];
+      bricks[8] = { ...brickAt(PLAIN.start.wall, 8), hits: 1 };
+      shell.showWall({ ...PLAIN.start.wall, bricks });
+      shell.reach([STRIKE_8, ["swell"]]);
+      run.advance(16);
+      const swollen = stackAt(scene, 5, 8)[0]?.scale ?? 0;
+
+      run.advance(SWELL_MS);
+
+      expect({
+        swollen: rounded(swollen),
+        settled: stackAt(scene, 5, 8)[0]?.scale,
+      }).toEqual({ swollen: rounded(1 + SWELL), settled: 1 });
+    });
+
+    it("let a swell go as the wall that comes down is handed over, rather than swell the brick come into its row", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.reach([STRIKE_8, ["swell"]]);
+      run.advance(16);
+      const swollen = stackAt(scene, 5, 8)[0]?.scale;
+
+      shell.bringDown(PLAIN.round.next.wall, 0);
+      run.advance(16);
+
+      expect({
+        swollen: swollen !== 1,
+        after: scene.wall.images.every((image) => image.scale === 1),
+      }).toEqual({ swollen: true, after: true });
+    });
+
+    it("burst a broken brick into shards of its color", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([PLAIN_BREAK, ["shards"]]);
+      run.advance(16);
+
+      const tints: number[] = [];
+      scene.effects.shards.forEachAlive((shard) => {
+        tints.push(shard.tint);
+      }, null);
+      expect(tints).toEqual(
+        Array.from({ length: SHARDS }, () =>
+          brickColor(brickAt(PLAIN.start.wall, 0), LIGHT),
+        ),
+      );
+    });
+
+    it("show the shards scaled up past the atlas's largest unit", async () => {
+      const canvas = { width: 1300, height: 1800 } as const;
+      const { shell, run, scene } = await startBoard(undefined, canvas);
+      const { unit } = metricsAt(canvas.width, canvas.height);
+
+      shell.reach([PLAIN_BREAK, ["shards"]]);
+      run.advance(16);
+
+      const scales: number[] = [];
+      scene.effects.shards.forEachAlive((shard) => {
+        scales.push(shard.scaleX, shard.scaleY);
+      }, null);
+      expect({ unit: unit > MOST_BAKED_UNIT, scales }).toEqual({
+        unit: true,
+        scales: Array.from(
+          { length: 2 * SHARDS },
+          () => unit / MOST_BAKED_UNIT,
+        ),
+      });
+    });
+
+    it("throw no more shards at once than the pool made once holds", async () => {
+      const { shell, run, scene } = await startBoard();
+      const made = scene.effects.shards.getParticleCount();
+
+      // Every brick of the plain round's wall, 38 of them, broken at once.
+      shell.reach(
+        ...PLAIN.start.wall.bricks.flatMap((brick, cell) =>
+          brick ? [[{ ...PLAIN_BREAK, cell }, ["shards"]] as const] : [],
+        ),
+      );
+      run.advance(16);
+
+      expect({
+        made,
+        alive: scene.effects.shards.getAliveParticleCount(),
+        after: scene.effects.shards.getParticleCount(),
+      }).toEqual({
+        made: MOST_SHARDS_FLYING,
+        alive: MOST_SHARDS_FLYING,
+        after: MOST_SHARDS_FLYING,
+      });
+    });
+
+    it("throw the shards as fast and let them fall as fast as the field's unit has them, laid out anew", async () => {
+      const board = await startBoard();
+
+      resizeTo(board, 600, 500);
+
+      const { unit } = metricsAt(600, 500);
+      const { shards } = board.scene.effects;
+      expect({
+        speed: shards.ops.speedX.propertyValue,
+        fall: shards.gravityY,
+      }).toEqual({
+        speed: { min: SHARD_SPEED.least * unit, max: SHARD_SPEED.most * unit },
+        fall: SHARD_FALL * unit,
+      });
+    });
+
+    it("throw no shards for a brick it never drew", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([{ ...PLAIN_BREAK, cell: 80 }, ["shards"]]);
+      run.advance(16);
+
+      expect(scene.effects.shards.getAliveParticleCount()).toBe(0);
+    });
+
+    it("burst a brick broken since the last frame, as the wall drawn then held it", async () => {
+      const { shell, run, scene } = await startBoard();
+      const bricks = [...PLAIN.start.wall.bricks];
+      bricks[0] = null;
+
+      shell.showWall({ ...PLAIN.start.wall, bricks });
+      shell.reach([PLAIN_BREAK, ["shards"]]);
+      run.advance(16);
+
+      expect(scene.effects.shards.getAliveParticleCount()).toBe(SHARDS);
+    });
+
+    it("draw a punch's streak through its brick, the way its fuzzball flew", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([LAUNCH_LEFT, []], [STRIKE_8, ["streak"]]);
+      run.advance(16);
+
+      const [streak] = scene.effects.streaks.all.filter(
+        ({ image }) => image.visible,
+      );
+      expect({
+        x: streak?.image.x,
+        y: streak?.image.y,
+        rotation: streak?.image.rotation,
+        frame: streak?.image.frame.name,
+      }).toEqual({
+        ...toCanvas(metricsAt(), 8.5, 5.5),
+        rotation: Math.atan2(-0.6, -0.8),
+        frame: FLIGHT_FRAMES.streak,
+      });
+    });
+
+    it("draw the streak of a fuzzball the scene never saw fly off straight up", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([STRIKE_8, ["streak"]]);
+      run.advance(16);
+
+      const [streak] = scene.effects.streaks.all.filter(
+        ({ image }) => image.visible,
+      );
+      expect(streak?.image.rotation).toBe(-Math.PI / 2);
+    });
+
+    it("draw a zap's bolt along the row it reaches, a piece a cell, from the zapper's middle", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([ROW_ZAP, ["bolt"]]);
+      run.advance(16);
+
+      expect(
+        scene.effects.bolts.all
+          .filter(({ image }) => image.visible)
+          .map(({ image }) => ({ x: image.x, y: image.y }))
+          .sort((a, b) => a.x - b.x),
+      ).toEqual(
+        [1, 2, 3, 4, 5, 6, 7, 8].map((x) => toCanvas(metricsAt(), x, 5.5)),
+      );
+    });
+
+    it("draw a zap's bolt up its column, to the field's ceiling and no further", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([COLUMN_ZAP, ["bolt"]]);
+      run.advance(16);
+
+      expect(
+        scene.effects.bolts.all
+          .filter(({ image }) => image.visible)
+          .map(({ image }) => ({
+            y: image.y,
+            rotation: image.rotation,
+          }))
+          .sort((a, b) => b.y - a.y),
+      ).toEqual(
+        [6, 7, 8, 9, 10, 11].map((y) => ({
+          y: toCanvas(metricsAt(), 0, y).y,
+          rotation: -Math.PI / 2,
+        })),
+      );
+    });
+
+    it("draw a zap's bolt down its column, to the floor and no further", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        // Rows of the wall under the floor, which the zapper's column
+        // reaches down into from the floor's row.
+        each.showWall(
+          wallFrom(["o........", "o........", "o........"], { lowestRow: -2 }),
+        );
+      });
+
+      shell.reach([
+        { kind: "zap", at: 1, cell: 18, pattern: "column", reaches: [0, 9] },
+        ["bolt"],
+      ]);
+      run.advance(16);
+
+      expect(
+        scene.effects.bolts.all
+          .filter(({ image }) => image.visible)
+          .map(({ image }) => image.y),
+      ).toEqual([toCanvas(metricsAt(), 0, 0).y]);
+    });
+
+    it("draw a zap's bolt along the diagonals it reaches, each piece stretched across its cell's corners", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([X_ZAP, ["bolt"]]);
+      run.advance(16);
+
+      const [piece] = scene.effects.bolts.all.filter(
+        ({ image }) => image.visible,
+      );
+      expect({
+        x: piece?.image.x,
+        y: piece?.image.y,
+        stretch: piece?.image.scaleX,
+        rotation: rounded(piece?.image.rotation ?? 0),
+      }).toEqual({
+        ...toCanvas(metricsAt(), 5, 6),
+        stretch: Math.SQRT2,
+        rotation: rounded(-Math.PI / 4),
+      });
+    });
+
+    it("fade a zap's bolt through its time, then hide it", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.reach([ROW_ZAP, ["bolt"]]);
+      run.advance(16);
+      run.advance(BOLT_MS / 2);
+      const [piece] = scene.effects.bolts.all;
+      const halfway = piece?.image.alpha ?? 0;
+
+      run.advance(BOLT_MS);
+
+      expect({
+        halfway: Math.round(halfway * 10) / 10,
+        after: piece?.image.visible,
+      }).toEqual({ halfway: 0.5, after: false });
+    });
+
+    it("spread a blast's ring from the bomb", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([BLAST, ["ring"]]);
+      run.advance(16);
+
+      const [ring] = scene.effects.rings.all.filter(
+        ({ image }) => image.visible,
+      );
+      expect({
+        x: ring?.image.x,
+        y: ring?.image.y,
+        scale: ring?.image.scale,
+      }).toEqual({
+        ...toCanvas(metricsAt(), 8.5, 5.5),
+        scale: RING_FROM,
+      });
+    });
+
+    it("fade a blast's ring as it spreads, then hide it", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.reach([BLAST, ["ring"]]);
+      run.advance(16);
+      run.advance(RING_MS / 2);
+      const [ring] = scene.effects.rings.all;
+      const halfway = ring?.image.alpha ?? 0;
+
+      run.advance(RING_MS);
+
+      expect({
+        halfway: Math.round(halfway * 10) / 10,
+        after: ring?.image.visible,
+      }).toEqual({ halfway: 0.5, after: false });
+    });
+
+    it("hop a freed friend from its cage down to the floor, then hide it", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.reach([FREE, ["hop"]]);
+      run.advance(16);
+      const [hop] = scene.effects.hops.all;
+      const start = { y: hop?.body.y, frame: hop?.body.frame.name };
+      run.advance(HOP_MS / 4);
+      const risen = (hop?.body.y ?? 0) < (start.y ?? 0);
+
+      run.advance(HOP_MS);
+
+      expect({ start, risen, after: hop?.body.visible }).toEqual({
+        start: {
+          y: toCanvas(metricsAt(), 8.5, 5.5).y,
+          frame: FRAMES.friend(3),
+        },
+        risen: true,
+        after: false,
+      });
+    });
+
+    it("flash the jump line as the wall jumps, then fade it", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.beat("jump");
+      run.advance(16);
+      const metrics = metricsAt();
+      const flash = {
+        y: scene.effects.flash.y,
+        width: scene.effects.flash.width,
+        alpha: scene.effects.flash.fillAlpha,
+        color: scene.effects.flash.fillColor,
+      };
+      run.advance(FLASH_MS / 2);
+      const halfway = scene.effects.flash.fillAlpha;
+
+      run.advance(FLASH_MS);
+
+      expect({
+        flash,
+        halfway: rounded(halfway),
+        after: scene.effects.flash.visible,
+      }).toEqual({
+        flash: {
+          y: metrics.y + thirdsOf(11).jump * metrics.unit,
+          width: metrics.width,
+          alpha: FLASH_ALPHA,
+          color: LIGHT.jumpLine,
+        },
+        halfway: rounded(FLASH_ALPHA / 2),
+        after: false,
+      });
+    });
+
+    it("shake the field as the level is lost, then still it", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.beat("lost");
+      run.advance(16);
+      run.advance(16);
+      const camera = scene.cameras.main;
+      const shaken = camera.scrollX !== 0 || camera.scrollY !== 0;
+
+      run.advance(SHAKE_MS);
+
+      expect({ shaken, still: [camera.scrollX, camera.scrollY] }).toEqual({
+        shaken: true,
+        still: [0, 0],
+      });
+    });
+
+    it("play a flight's last flourishes where their bricks still show, as the wall that comes down is handed over", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      // The frame that reaches the flight's last events hands over the
+      // wall the round leaves, a row lower, drawn where the flight's stood.
+      shell.bringDown(PLAIN.round.next.wall, 0);
+      shell.reach([ROW_ZAP, ["bolt", "ring"]]);
+      run.advance(16);
+
+      const middle = toCanvas(metricsAt(), 4.5, 5.5).y;
+      const rows = scene.effects.bolts.all
+        .filter(({ image }) => image.visible)
+        .map(({ image }) => image.y);
+      expect({
+        bolts: [...new Set(rows)],
+        ring: scene.effects.rings.all.find(({ image }) => image.visible)?.image
+          .y,
+      }).toEqual({ bolts: [middle], ring: middle });
+    });
+
+    it("play none where the player prefers less motion", async () => {
+      const { shell, run, scene } = await startBoard(stillness);
+
+      shell.reach([STRIKE_8, ["swell"]], [PLAIN_BREAK, ["shards"]]);
+      shell.beat("jump", "lost");
+      run.advance(16);
+
+      expect({
+        swollen: stackAt(scene, 5, 8)[0]?.scale,
+        shards: scene.effects.shards.getAliveParticleCount(),
+        flash: scene.effects.flash.visible,
+        scroll: scene.cameras.main.scrollX,
+      }).toEqual({ swollen: 1, shards: 0, flash: false, scroll: 0 });
+    });
+
+    it("play none an event has no place for", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([
+        LANDING,
+        ["swell", "shards", "streak", "bolt", "ring", "hop"],
+      ]);
+      run.advance(16);
+
+      expect({
+        swollen: stackAt(scene, 5, 8)[0]?.scale,
+        shards: scene.effects.shards.getAliveParticleCount(),
+        bursts: [
+          ...scene.effects.streaks.all,
+          ...scene.effects.bolts.all,
+          ...scene.effects.rings.all,
+        ].filter(({ image }) => image.visible).length,
+        hops: scene.effects.hops.all.filter(({ body }) => body.visible).length,
+      }).toEqual({ swollen: 1, shards: 0, bursts: 0, hops: 0 });
+    });
+
+    it("leave the flourishes of the events and the beats the view reached before the scene began unplayed", async () => {
+      const { scene } = await startBoard((shell) => {
+        shell.reach([BLAST, ["ring"]]);
+        shell.beat("jump");
+      });
+
+      expect({
+        rings: scene.effects.rings.all.filter(({ image }) => image.visible)
+          .length,
+        flash: scene.effects.flash.visible,
+      }).toEqual({ rings: 0, flash: false });
+    });
+  });
+
+  describe("the sounds of a round", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("play each sound the frame's events call for once, at the most it rose", async () => {
+      const { shell, run, scene } = await startBoard();
+      const played = vi.spyOn(scene.sounds, "playRisen");
+
+      shell.reach(
+        [{ ...PLAIN_BREAK, streak: 3 }, [], "break"],
+        [{ ...PLAIN_BREAK, streak: 2 }, [], "break"],
+        [STRIKE_8, [], "strike"],
+      );
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([
+        ["strike", 0],
+        ["break", 200],
+      ]);
+    });
+
+    it("play each beat's sound", async () => {
+      const { shell, run, scene } = await startBoard();
+      const played = vi.spyOn(scene.sounds, "playRisen");
+
+      shell.beat("step", "danger");
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([
+        ["step", 0],
+        ["danger", 0],
+      ]);
+    });
+
+    it("play the sounds of a flight as it reaches them", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.fly(PLAIN);
+      });
+      const played = vi.spyOn(scene.sounds, "playRisen");
+
+      run.advance(10000);
+
+      expect(played.mock.calls.map(([name]) => name)).toEqual(
+        expect.arrayContaining(["knock", "strike", "land", "step"]),
+      );
+    });
+
+    it("tick a notch as the charge rises and falls, but not to none, while the fuzzball waits", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 3;
+      });
+      const played = vi.spyOn(scene.sounds, "playRisen");
+
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+      run.key("keydown", "ArrowDown", "ArrowDown");
+      run.advance(16);
+      run.key("keydown", "ArrowDown", "ArrowDown");
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([
+        ["notch", 0],
+        ["notch", 0],
+        ["notch", 0],
+      ]);
+    });
+
+    it.each<[string, (shell: FakeShell) => void]>([
+      ["while the fuzzball flies", () => undefined],
+      [
+        "for a hot shot, whose charge is full",
+        (shell) => {
+          shell.waiting = 3;
+          shell.carried = "hot";
+        },
+      ],
+    ])("tick no notch %s", async (_, setUp) => {
+      const { run, scene } = await startBoard(setUp);
+      const played = vi.spyOn(scene.sounds, "playRisen");
+
+      run.key("keydown", "ArrowUp", "ArrowUp");
+      run.advance(16);
+
+      expect(played).not.toHaveBeenCalled();
+    });
+
+    it("play the events of another play's log as it reaches them, from its first", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.reach([STRIKE_8, [], "strike"]);
+      });
+      const played = vi.spyOn(scene.sounds, "playRisen");
+      shell.aim(PLAIN);
+      run.advance(16);
+
+      shell.play?.release(PLAIN.round);
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([["release", 0]]);
     });
   });
 
@@ -1663,6 +3332,146 @@ describe("cutOver", () => {
 
   it("cuts a whole cell off once it is wholly over the ceiling", () => {
     expect(cutOver(40, 100, 30)).toBe(30);
+  });
+});
+
+describe("flightFrames", () => {
+  /** The scale of a unit of 40 CSS pixels at a pixel to one, the art's mock of a phone's. */
+  const PHONE = { unit: 40, pixelRatio: 1 } as const;
+
+  /** The frames at that scale, in the light palette. */
+  const FRAMED = flightFrames(LIGHT, PHONE);
+
+  it("draws the meter's lit pip in the meter's on, as wide as the art's", () => {
+    const pip = frameNamed(FRAMED, FRAMES.meterOn);
+
+    expect({ side: [pip.width, pip.height], commands: pip.commands }).toEqual({
+      side: [6, 6],
+      commands: [
+        { kind: "circle", x: 3, y: 3, radius: 3, color: LIGHT.meter.on },
+      ],
+    });
+  });
+
+  it("draws the meter's unlit pip as wide, a dot of the field's color in a rim of the meter's off", () => {
+    const pip = frameNamed(FRAMED, FRAMES.meterOff);
+
+    expect({ side: [pip.width, pip.height], commands: pip.commands }).toEqual({
+      side: [6, 6],
+      commands: [
+        { kind: "circle", x: 3, y: 3, radius: 3, color: LIGHT.field },
+        {
+          kind: "ring",
+          x: 3,
+          y: 3,
+          radius: 2.5,
+          width: 1,
+          color: LIGHT.meter.off,
+        },
+      ],
+    });
+  });
+
+  it("draws the guide's dot in the guide's color, as wide as the art's", () => {
+    const dot = frameNamed(FRAMED, FRAMES.guideDot);
+
+    expect(dot.commands).toEqual([
+      { kind: "circle", x: 2.5, y: 2.5, radius: 2.5, color: LIGHT.guide },
+    ]);
+  });
+
+  it("outlines a cell for the guide, in its color, as the art does, inside the cell", () => {
+    const punch = frameNamed(FRAMED, FRAMES.guidePunch);
+
+    // At 40 px a unit, a line of 2.2 px is 2, its middle a pixel in, as
+    // the art's 0.9 would put half of it outside.
+    expect(punch).toEqual({
+      name: FRAMES.guidePunch,
+      width: 40,
+      height: 40,
+      commands: [
+        outlineRoundRect({ x: 1, y: 1, width: 38, height: 38 }, 6.4, {
+          color: LIGHT.guide,
+          width: 2,
+        }),
+      ],
+    });
+  });
+
+  it("draws a shard in white, for its brick's color to tint", () => {
+    const shard = frameNamed(FRAMED, FLIGHT_FRAMES.shard);
+
+    expect({
+      side: [shard.width, shard.height],
+      colors: shard.commands.map((command) => command.color),
+    }).toEqual({ side: [12, 12], colors: [0xffffff] });
+  });
+
+  it("draws a streak a cell long, in the fuzzball's color", () => {
+    const streak = frameNamed(FRAMED, FLIGHT_FRAMES.streak);
+
+    expect({
+      width: streak.width,
+      colors: streak.commands.map((command) => command.color),
+    }).toEqual({ width: 40, colors: [LIGHT.fuzzball] });
+  });
+
+  it("draws a piece of bolt from the middle of a cell's side to the middle of the other, in the sparks' color", () => {
+    const bolt = frameNamed(FRAMED, FLIGHT_FRAMES.bolt);
+    const lines = bolt.commands.filter((command) => command.kind === "line");
+
+    // A cell of 40 across, its line 3 wide, its ends round, so 2 px and
+    // more past either end, and the zigzag swinging 4.8 px either way.
+    expect({
+      side: [bolt.width, bolt.height],
+      from: lines[0]?.from,
+      to: lines.at(-1)?.to,
+      colors: [...new Set(bolt.commands.map((command) => command.color))],
+    }).toEqual({
+      side: [44, 14],
+      from: { x: 2, y: 7 },
+      to: { x: 42, y: 7 },
+      colors: [LIGHT.spark],
+    });
+  });
+
+  it("draws a blast's ring at its widest round the eight cells about the bomb's, in the danger line's color", () => {
+    const ring = frameNamed(FRAMED, FLIGHT_FRAMES.ring);
+
+    expect(ring).toEqual({
+      name: FLIGHT_FRAMES.ring,
+      width: 120,
+      height: 120,
+      commands: [
+        {
+          kind: "ring",
+          x: 60,
+          y: 60,
+          radius: 58,
+          width: 4,
+          color: LIGHT.dangerLine,
+        },
+      ],
+    });
+  });
+
+  it("names of the art's frames only those the art leaves to the scene, the meter's and the guide's", () => {
+    const names = FRAMED.map(({ name }) => name);
+
+    expect(
+      names.filter((name) => (FRAME_NAMES as readonly string[]).includes(name)),
+    ).toEqual([
+      FRAMES.meterOn,
+      FRAMES.meterOff,
+      FRAMES.guideDot,
+      FRAMES.guidePunch,
+    ]);
+  });
+
+  it("names no frame the field names", () => {
+    const field = fieldFrames(LIGHT, PHONE).map(({ name }) => name);
+
+    expect(FRAMED.filter(({ name }) => field.includes(name))).toEqual([]);
   });
 });
 
@@ -1797,6 +3606,7 @@ describe("pictureFrames", () => {
     const named = [
       ...FRAME_NAMES,
       ...fieldFrames(LIGHT, PHONE).map(({ name }) => name),
+      ...flightFrames(LIGHT, PHONE).map(({ name }) => name),
     ];
 
     expect(
