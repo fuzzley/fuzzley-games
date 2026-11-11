@@ -1361,3 +1361,85 @@ before doing it.
    band.
 4. **The layer-order spec also held the cells under the wall,** another
    claim than its name's. Fixed: a spec of its own.
+
+### F1a: the camera framed on the field, so nothing drawn shows past the frame
+
+**2026-11-11.**
+
+**What was built.** Q4a's last finding, approved as described there.
+
+- **`FieldCamera`** (`src/scene/field_camera.ts`), after Asteroid
+  Breaker's: the main camera's viewport is the frame's outer edge, the
+  field from the lintel's top to the band's bottom with the frame around
+  it, in device pixels (`frameBounds()`, in `field_painter.ts`, which the
+  rim's frame is drawn by too), scrolled to the same corner, so a place on
+  the canvas is the same in its world. It is framed again at every layout,
+  in `create()` and `fit()`, as Phaser resizes no viewport of its own.
+  A viewport is a scissor, so it costs no pass, as a mask would.
+  `frameBounds()` lives with the painters rather than in `field_metrics.ts`,
+  which the shell imports, so it stays in the scene's chunk and out of the
+  main one, which is at its limit.
+- **The lost level's shake moved onto the viewport.** `EffectsPainter`
+  scrolled the camera; `FieldCamera` moves the viewport instead, by whole
+  device pixels, so the field and its frame shake whole, the clip with
+  them, and comes back to rest. `EffectsPainter` keeps no camera.
+- **Pointers outside the viewport** still steer: the scene's pointer events
+  fire wherever on the canvas a pointer is, under a camera or not, and
+  `Steering` reads the canvas's pixels.
+
+**Before and after.** Q4a's harness, which reads the canvas about ten times
+a second against a quiet frame, on three plays of the certificate at
+1280×800: Powder keg on 11 deep, before 179 of 765 samples drawn past the
+frame, up to 174 device px out, after none; level 12 on 11 deep, before 92
+of 592, up to 162 px, after none; level 15 on 22 deep, before 61 of 668, up
+to 54 px, after none. The lintel band changed in no sample, before or
+after.
+
+**Names added:** `FieldCamera` and `frameBounds()`. **Removed:**
+`EffectsPainter.shake()`.
+
+**Checks**, on `brick-fuzz-pop` at 3221299a. The workspace's `lint`,
+`typecheck` and `test:coverage` pass, 5,915 tests in 118 files, and 555 in
+`sim`; the root's `yarn lint` passes. The build's `wall_scene` chunk is
+57.38 kB, from 56.84, and the main `index` chunk 406.74 kB, as before.
+
+**The mutation pass.** Sixteen mutants, each killed: the viewport left
+unset, the scroll left unset, the resting place never kept; the shake
+unrounded, played on the scroll, never back at rest, never drawn, never
+started, and played where the player prefers less motion; the camera fitted
+at `create()` alone, and not there; and `frameBounds()` without the frame,
+the band or the lintel, one frame wide, and at a pixel ratio of 1.
+
+**The review:** no bug; five comments, each taken; then, as they reshaped
+the change, a second review: no bug; five more, each taken.
+
+1. **The stillness spec's camera check could never fail:** a shake moves
+   nothing the frame it starts, and it read `x` alone. Fixed: it reads the
+   whole camera a frame later.
+2. **No spec pointed past the frame,** where no camera lies now. Phaser
+   4.2.1 fires the scene's pointer events there all the same, but an
+   upgrade, or aiming by world places, could break it unseen. Fixed: a
+   mouse pointing, and a press let go, in the margin left of the frame.
+3. **`EffectsPainter.layout()` set the clip every painter draws through,**
+   beside the shards' speeds. Fixed: `FieldCamera`, as Asteroid Breaker
+   has, frames the camera and shakes it; the painter's `layout()` is as it
+   was.
+4. **The frame's place was worked out twice,** in `frameBounds()` and
+   `drawRim()`. Fixed: `drawRim()` draws the frame's bars from
+   `frameBounds()`; the rim's own spec still holds each bar to the
+   metrics.
+5. **Nits.** The viewport's resting place is `rest`, not `framed`, which
+   `FieldMetrics` uses for the field without its frame; the spec's helpers
+   are typed `PixelRect`; `AGENTS.md` names `frameBounds()` with the camera
+   and `FieldPainter`.
+6. **`drawRim()` drew three of the frame's bars from `frameBounds()`,** the
+   right one from the cells. Fixed: all four from it.
+7. **`AGENTS.md`'s "`FieldPainter`'s `frameBounds()`" read as a method.**
+   Fixed: the function, in `src/scene/painters/field_painter.ts`.
+8. **The shake spec held two moments, an act between them.** Fixed: two
+   specs, the shake and the rest after it.
+9. **Spec nits.** The pixel-ratio spec's frame reads
+   `2 * framePixels(FRAME_CSS_PX, 2)`; the stillness spec advances 32 ms
+   at the frame's own length.
+10. **`WallScene.fieldCamera` was public,** read by nothing outside the
+    scene. Fixed: private.

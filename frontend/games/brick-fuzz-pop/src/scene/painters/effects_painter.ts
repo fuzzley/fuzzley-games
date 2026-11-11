@@ -1,22 +1,16 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
-import type { Cameras, GameObjects, Scene } from "phaser";
+import type { GameObjects, Scene } from "phaser";
 import { columnOf, fieldRowOf, wallRowOf } from "../../rules/grid";
 import { COLUMNS, MOST_FRIENDS } from "../../rules/tuning";
 import { type Wall, thirdsOf } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";
-import {
-  type Shift,
-  hopHeight,
-  ringScale,
-  shakeOf,
-} from "../../view/effects/flourish";
+import { hopHeight, ringScale } from "../../view/effects/flourish";
 import {
   BOLT_MS,
   FLASH_MS,
   HOP_MS,
   RING_MS,
-  SHAKE_MS,
   SHARDS,
   SHARDS_MS,
   STREAK_MS,
@@ -101,7 +95,7 @@ function burstOf(image: GameObjects.Image): Burst {
 /**
  * Draws what bursts from the wall as things happen on it: a broken brick's
  * shards, a punch's streak, a zap's bolt, a blast's ring, a freed friend's
- * hop down to the floor, the jump line's flash and a lost level's shake.
+ * hop down to the floor and the jump line's flash.
  * Each is made once, and the scene plays them only where motion is
  * welcome.
  */
@@ -118,16 +112,8 @@ export class EffectsPainter implements Painter {
   readonly hops: Turns<Hop>;
   /** The flash along the jump line. */
   readonly flash: GameObjects.Rectangle;
-  /** The camera a shake moves. */
-  private readonly camera: Cameras.Scene2D.Camera;
   /** When the jump line last flashed, in the scene's time. */
   private flashedAt = Number.NEGATIVE_INFINITY;
-  /** When the level was lost, in the scene's time. */
-  private shakenAt = Number.NEGATIVE_INFINITY;
-  /** Whether the field is shaken from where it rests. */
-  private shaken = false;
-  /** How far the shake moves the field, written each frame it shakes. */
-  private readonly shift: Shift = { x: 0, y: 0 };
   /** Where a burst is drawn, written for each. */
   private readonly place: Place = { x: 0, y: 0 };
   /** How much larger than baked the shards show, at the field's unit as it is laid out. */
@@ -156,7 +142,6 @@ export class EffectsPainter implements Painter {
       readonly balls: GameObjects.Layer;
     },
   ) {
-    this.camera = scene.cameras.main;
     this.flash = scene.add.rectangle(0, 0, 1, 1).setVisible(false);
     this.shards = scene.add.particles(0, 0, ATLAS, {
       frame: FLIGHT_FRAMES.shard,
@@ -291,12 +276,6 @@ export class EffectsPainter implements Painter {
     this.flashedAt = now;
   }
 
-  /** Shakes the field, from a time. */
-  shake(now: number): void {
-    this.shakenAt = now;
-    this.shaken = true;
-  }
-
   /**
    * Moves everything bursting on to the scene's time, and hides what is
    * over. A kind none of which shows is passed over whole, and a kind that
@@ -340,7 +319,6 @@ export class EffectsPainter implements Painter {
       lastStarted.hops = stillShowing(lastStarted.hops, now, HOP_MS);
     }
     this.flashOn(context);
-    this.shakeOn(now, metrics);
   }
 
   /** Moves on each of a pool of streaks or pieces of bolt that shows, read by number. */
@@ -433,14 +411,5 @@ export class EffectsPainter implements Painter {
     this.flash
       .setFillStyle(palette.jumpLine, FLASH_ALPHA * fadeAlpha(done))
       .setVisible(true);
-  }
-
-  /** Moves the camera as a lost level's shake has the field at a time, and back once it is over. */
-  private shakeOn(now: number, metrics: FieldMetrics): void {
-    if (!this.shaken) return;
-    const since = now - this.shakenAt;
-    const { x, y } = shakeOf(since, metrics.pixelRatio, this.shift);
-    this.camera.setScroll(x, y);
-    if (since >= SHAKE_MS) this.shaken = false;
   }
 }
