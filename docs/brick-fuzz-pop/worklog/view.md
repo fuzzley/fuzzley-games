@@ -1738,3 +1738,116 @@ shell's hits, its level, and moss given the shell's trait.
    `AGENTS.md` said `lowerWall()` runs `regrow()` first.** Fixed: the
    log names 3a905937, and `AGENTS.md` says it runs before the wall comes
    down, unless the level is cleared.
+
+### Y3: Thick walls, levels 28 to 36, certified
+
+**2026-11-11.** On 829f8003, after Tricks' levels (2c6c39a9), which put
+Thick walls' first level at 28, the shell brick's `firstLevel`, and with
+it the seeds of its floors' games. The files were written while Y2 was in
+hand, set aside in a commit of their own, rebased onto Y2 and that commit
+undone, so the change is one.
+
+- **`src/rules/levels/thick-walls.json`** is
+  `docs/brick-fuzz-pop/levels/thick-walls.json` byte for byte, as Sparks'
+  and Tricks' are theirs, and `LEVEL_SETS` lists it after Tricks, so a run
+  plays on from Fun house to The Great Wall. No level is redrawn.
+- **`certificates/thick-walls.json`** and Thick walls' pars in `par.json`
+  come from `yarn certify:levels --set thick-walls`, run on the
+  coordinator's word; the other sets' are left as they were.
+  `src/testing/every_level.ts` reads the certificates, so `every_level/`
+  replays them on every depth, and the debug menu finds the file on its
+  own.
+- **`every_floor/thick-walls_11.spec.ts`, `_13` and `_22`** hold the
+  careless player to Thick walls' floor of 40, which `CASUAL_FLOORS` held
+  already.
+- **`levels.spec.ts`** holds Thick walls' walls to `plan.md`'s table of
+  the drafts, their rows, needed bricks and hits, all nine as the table
+  has them. Its spec of the level each kind comes in at now takes the
+  shell and moss, whose levels, 28 and 29, the levels reach at last, and
+  holds them there.
+- **`AGENTS.md`**: thirty-six levels in the opening, Y3 gone from the
+  packages to come, D1 named as the rest of it, and `thick-walls.json` in
+  the levels' line.
+
+**The certification** took 11 s on every core. Every level found its lines
+by the first search, every 4th aim, greedy, on every depth:
+
+| Level             | Rounds, 11 to 22 deep | Rounds, 11, 13, 22 deep | Par, 11, 13, 22 deep |
+| ----------------- | --------------------- | ----------------------- | -------------------- |
+| 28 Nutcracker     | 5 to 8                | 8, 5, 5                 | 12, 8, 8             |
+| 29 Moss garden    | 6 to 10               | 10, 7, 7                | 15, 11, 11           |
+| 30 Thunderhead    | 5 to 10               | 9, 7, 5                 | 14, 11, 8            |
+| 31 Overgrown      | 4 to 8                | 8, 7, 4                 | 12, 11, 6            |
+| 32 Armory         | 8 to 10               | 9, 9, 9                 | 14, 14, 14           |
+| 33 Bank vault     | 6 to 9                | 9, 7, 6                 | 14, 11, 9            |
+| 34 Labyrinth      | 10 to 15              | 14, 12, 12              | 21, 18, 18           |
+| 35 Six-pack       | 5 to 8                | 8, 7, 6                 | 12, 11, 9            |
+| 36 The Great Wall | 10 to 15              | 14, 12, 10              | 21, 18, 15           |
+
+The sketch's ranges, in `plan.md`'s table, are the same for three levels,
+Moss garden, Overgrown and Six-pack. Nutcracker's start and end a round
+later (5 to 8, against 4 to 7), Thunderhead's most is a round more (5 to
+10, against 5 to 9), Armory's and Bank vault's least are a round more (8
+to 10, against 7 to 10, and 6 to 9, against 5 to 9), Labyrinth's spread a
+round each way (10 to 15, against 11 to 14), and The Great Wall's least is
+a round more (10 to 15, against 9 to 15).
+
+**The careless player,** by `yarn report:levels`, 40 games a level on 11,
+13 and 22 deep, cleared each at least as often as this, the floor 40:
+
+| Level             | Cleared, 11, 13, 22 deep | Its least        | The specs' 20 games' least |
+| ----------------- | ------------------------ | ---------------- | -------------------------- |
+| 28 Nutcracker     | 100, 100, 100            | 100              | 100                        |
+| 29 Moss garden    | 95, 98, 100              | 95, on 11        | 95, on 13                  |
+| 30 Thunderhead    | 100, 100, 100            | 100              | 100                        |
+| 31 Overgrown      | 83, 90, 100              | 83, on 11        | 80, on 11                  |
+| 32 Armory         | 83, 80, 93               | 80, on 13        | 75, on 11 and 13           |
+| 33 Bank vault     | 90, 85, 100              | 85, on 13        | 80, on 11                  |
+| 34 Labyrinth      | 63, 78, 100              | 63, on 11        | 60, on 11                  |
+| 35 Six-pack       | 50, 50, 100              | 50, on 11 and 13 | 50, on 13                  |
+| 36 The Great Wall | 65, 93, 100              | 65, on 11        | 75, on 11                  |
+
+Six-pack is the nearest, ten points over the floor on 11 and 13 deep,
+where the sketch had it at 43 on 11. Labyrinth and The Great Wall fall
+further under the sketch's least than any other, 78 to 63 and 83 to 65 on
+11 deep, and stay well over 40. Bank vault's door, the gap in the middle
+of its steel box's lowest row, is left as drawn, and Thunderhead and
+Six-pack hold no shell or moss, as `plan.md` draws them.
+
+**Choices.**
+
+1. **No level is redrawn,** as none falls under its floor.
+
+**Checks,** on the change rebased onto 829f8003: the workspace's `lint`
+and `typecheck` pass; `test` passes 6,345 tests in 145 files;
+`test:coverage` passes 5,790 in 116 files in `dom` and `pure`, at the
+floors, and 555 in 29 in `sim`, every Thick walls line replayed and
+every floor held; the root's `yarn lint` passes.
+
+**The mutation pass.** 11 mutants, 10 killed. Of the set's file: a brick
+taken from Bank vault, Six-pack's id, Labyrinth's portals unpaired and the
+set's id, killed in `pure`; Six-pack's and The Great Wall's boons, killed
+by the replays in `sim`; and Bank vault's door shut, which the reach check
+lets by, as the shells are doors, but the replays don't. Of `LEVEL_SETS`:
+Thick walls before Tricks, and Thick walls left out, both killed. Of
+`CERTIFICATES`: Thick walls' left out, killed. Overgrown's name, changed,
+survives: no spec holds a level's name to its draft, for any set.
+
+**The review:**
+
+1. **The log named Bank vault's door "(3,4)",** a row counted from the
+   picture's top, where the rules count a wall's rows from its lowest.
+   Fixed: in words, the middle of the steel box's lowest row.
+2. **Six-pack's least named one depth of two,** where Armory's named
+   both. Fixed: on 11 and 13.
+3. **The log didn't set the certified rounds beside the sketch's,** as
+   Y2's did, nor say that the spec of each kind's first level now takes
+   the shell and moss. Fixed: a paragraph after the rounds, and a line
+   in the `levels.spec.ts` item.
+4. **`AGENTS.md` still listed D1 as to come,** though its skills and the
+   repository's lists have landed. Fixed: the rest of D1.
+
+The reviewer found the copy the draft's bytes, the table's nine rows
+`plan.md`'s, the certificates and pars on every depth from 11 to 22, the
+other sets' pars untouched, and nothing else that lists the sets in need
+of a change.

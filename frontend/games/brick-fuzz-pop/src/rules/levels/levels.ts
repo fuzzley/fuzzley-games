@@ -7,6 +7,7 @@ import type { Brick } from "../wall/wall";
 import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "./legend";
 import type { Level } from "./level";
 import sparks from "./sparks.json";
+import thickWalls from "./thick-walls.json";
 import tricks from "./tricks.json";
 import warmUp from "./warm-up.json";
 
@@ -38,7 +39,12 @@ export interface LevelEntry {
 }
 
 /** Every set of levels, in the order they are played. */
-export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, sparks, tricks];
+export const LEVEL_SETS: readonly LevelSetData[] = [
+  warmUp,
+  sparks,
+  tricks,
+  thickWalls,
+];
 
 /** Returns the levels of sets, in the order played, numbered from 1. */
 export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {

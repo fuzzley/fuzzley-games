@@ -687,6 +687,15 @@ describe("the levels", () => {
     ["split-decision", 25, 118, 201],
     ["back-door", 23, 82, 108],
     ["fun-house", 27, 122, 191],
+    ["nutcracker", 21, 116, 132],
+    ["moss-garden", 27, 162, 234],
+    ["thunderhead", 23, 180, 444],
+    ["overgrown", 23, 171, 326],
+    ["armory", 23, 161, 267],
+    ["bank-vault", 23, 123, 198],
+    ["labyrinth", 23, 126, 198],
+    ["six-pack", 21, 118, 276],
+    ["the-great-wall", 33, 252, 580],
   ])(
     "build %s as its draft: %s rows, %s bricks needed, %s hits",
     (id, rows, needed, hits) => {
