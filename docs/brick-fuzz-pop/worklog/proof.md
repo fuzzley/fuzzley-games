@@ -1482,3 +1482,92 @@ hits, all killed; and the equivalent above, run again on the kind's check.
    `AGENTS.md` had an unwrapped line: fixed. The last face, taken as
    `faces.slice(-1).join("")`, is left: it reads a string without an
    unreachable branch for an empty list.
+
+### Y2: Tricks, levels 19 to 27, certified
+
+**2026-11-11.**
+
+**What was built.** Tricks' nine levels join the game, on 33cf8fe6, X2's
+catalog merged, as Y1, in `rules.md`, built Sparks':
+
+- **`src/rules/levels/tricks.json`:** `docs/brick-fuzz-pop/levels/tricks.json`
+  copied byte for byte, and listed after Sparks in `LEVEL_SETS`, so a run
+  plays on from Powder keg to Fun house.
+- **`certificates/tricks.json`, and Tricks' pars in `par.json`,** from
+  `yarn certify:levels --set tricks`. The other sets' pars are left as they
+  were. `src/testing/every_level.ts` reads Tricks' certificates, so
+  `every_level/` replays them on every depth.
+- **`every_floor/tricks_11.spec.ts`, `tricks_13.spec.ts` and
+  `tricks_22.spec.ts`** hold the careless player to Tricks' floor of 80,
+  which `CASUAL_FLOORS` held already.
+- **`levels.spec.ts`** holds Tricks' walls to plan.md's table of the
+  drafts: their rows, needed bricks and hits, all nine as the table has
+  them. Every rule `levels.spec.ts` holds a level to now holds Tricks'
+  too, and the bumper, prism, portal and plated brick each come in at the
+  level the catalog names, 19 to 22.
+- **`AGENTS.md`:** the opening's 27 levels, with Y3 to come, and the
+  levels' line.
+- **`lower.spec.ts`:** its pairs of portals are the catalog's portals, no
+  longer steel with a twin standing in.
+
+**Choices the plan didn't make.**
+
+1. **No level is redrawn,** as none falls under its floor.
+
+**Numbers worth keeping.** The certification, on the coordinator's word,
+took 9.7 s on every core. Every level found its lines by the first
+search, every 4th aim, greedy, on every depth:
+
+| Level             | Rounds, 11, 13, 22 deep | Par, 11, 13, 22 deep | Rounds, 11 to 22 deep |
+| ----------------- | ----------------------- | -------------------- | --------------------- |
+| 19 Pinball        | 10, 7, 5                | 15, 11, 8            | 5 to 10               |
+| 20 Prism break    | 8, 5, 4                 | 12, 8, 6             | 3 to 8                |
+| 21 Wormhole       | 7, 6, 3                 | 11, 9, 5             | 3 to 7                |
+| 22 Shutters       | 9, 7, 6                 | 14, 11, 9            | 5 to 9                |
+| 23 Kaleidoscope   | 9, 6, 3                 | 14, 9, 5             | 3 to 9                |
+| 24 Bumper cars    | 10, 7, 4                | 15, 11, 6            | 4 to 10               |
+| 25 Split decision | 8, 6, 3                 | 12, 9, 5             | 3 to 8                |
+| 26 Back door      | 9, 7, 4                 | 14, 11, 6            | 4 to 9                |
+| 27 Fun house      | 10, 7, 5                | 15, 11, 8            | 5 to 10               |
+
+The sketch's ranges, in plan.md's table, are the same for seven levels.
+Back door's most is a round more (4 to 9, against 4 to 8), and Fun
+house's starts and ends a round later (5 to 10, against 4 to 9).
+
+The careless player, by `yarn report:levels`, 40 games a level, cleared
+at least, over 11, 13 and 22 deep:
+
+- Pinball 98 (on 11 deep), Prism break 100, Wormhole 100, Shutters 98 (on
+  22), Kaleidoscope 100, Bumper cars 95 (on 11), Split decision 100, Back
+  door 100 and Fun house 95 (on 13).
+- All are 15 points or more over the floor of 80.
+- The early warning's run, on in-memory stand-ins for Sparks' and
+  Tricks' kinds before they were cataloged, gave the same rounds and the
+  same least for every level.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 6,078 tests in 140 files, 5,658 in 114 with
+coverage, at the floors, and 420 in 26 in `sim`, every Tricks line
+replayed and every floor held. The root's `yarn lint` passes.
+
+**The mutation pass.** None: the change is data and the specs that read
+it, and each level's line is held by its replay. The portals in
+`lower.spec.ts` are no mutant: `lowerWall()` reads of a portal only that
+it never breaks and isn't needed, which steel shared.
+
+**The review:**
+
+1. proof.md's entries take three heads, What was built, Choices the plan
+   didn't make and Checks, the last one paragraph, and this one took Y1's.
+   Fixed: proof.md's heads, the numbers under Numbers worth keeping, and
+   the checks one paragraph with their files counted, as Y1's were.
+2. "As Y1 built Sparks" pointed to an entry in another file, and didn't
+   name the base. Fixed: `rules.md`, and 33cf8fe6.
+3. The levels spec's rules were named three of five, as if all. Fixed:
+   every rule it holds a level to.
+4. "Rounds on any depth" and "a round more at most" read loosely. Fixed:
+   "Rounds, 11 to 22 deep", and Back door's most a round more.
+5. `AGENTS.md`'s levels paragraph had two short lines in a row. Fixed:
+   refilled.
+6. `lower.spec.ts`, the proof stream's, still stood steel in for the
+   portal, which X2 cataloged. Fixed: its portals are the catalog's.

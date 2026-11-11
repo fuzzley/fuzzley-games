@@ -7,6 +7,7 @@ import type { Brick } from "../wall/wall";
 import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "./legend";
 import type { Level } from "./level";
 import sparks from "./sparks.json";
+import tricks from "./tricks.json";
 import warmUp from "./warm-up.json";
 
 /** Describes a level as its set's file holds it, its boon text until {@link parseLevel} checks it. */
@@ -37,7 +38,7 @@ export interface LevelEntry {
 }
 
 /** Every set of levels, in the order they are played. */
-export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, sparks];
+export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, sparks, tricks];
 
 /** Returns the levels of sets, in the order played, numbered from 1. */
 export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {

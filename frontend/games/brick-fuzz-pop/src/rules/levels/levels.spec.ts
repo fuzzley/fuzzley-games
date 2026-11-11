@@ -678,6 +678,15 @@ describe("the levels", () => {
     ["honeycomb", 27, 115, 155],
     ["switchboard", 26, 173, 318],
     ["powder-keg", 26, 198, 437],
+    ["pinball", 27, 147, 192],
+    ["prism-break", 23, 162, 258],
+    ["wormhole", 22, 123, 142],
+    ["shutters", 27, 142, 192],
+    ["kaleidoscope", 27, 91, 211],
+    ["bumper-cars", 27, 85, 145],
+    ["split-decision", 25, 118, 201],
+    ["back-door", 23, 82, 108],
+    ["fun-house", 27, 122, 191],
   ])(
     "build %s as its draft: %s rows, %s bricks needed, %s hits",
     (id, rows, needed, hits) => {

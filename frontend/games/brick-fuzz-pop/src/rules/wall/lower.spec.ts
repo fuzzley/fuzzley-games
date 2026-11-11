@@ -54,15 +54,10 @@ function wholeBrick(kind: BrickKindId): Brick {
   return { kind, hits: whole, full: whole, plates: 0, tint: 0, twin: null };
 }
 
-/**
- * Returns a wall with a pair of portals at two of its cells, each the
- * other's twin. Tricks catalogs the portal, so until it does each stands
- * in as steel with a twin: a brick that never breaks and that a level
- * doesn't need, which is all lowerWall() reads of a portal.
- */
+/** Returns a wall with a pair of portals at two of its cells, each the other's twin. */
 function withPortals(wall: Wall, one: number, other: number): Wall {
   const portal = (twin: number): Brick => ({
-    ...wholeBrick("steel"),
+    ...wholeBrick("portal"),
     twin,
   });
   return {
