@@ -30,10 +30,6 @@ describe("TRAIT_RULES", () => {
   it.each<{ trait: BrickTrait; level: number }>([
     { trait: { kind: "recharges" }, level: 14 },
     { trait: { kind: "frees" }, level: 15 },
-    { trait: { kind: "kicks", radius: 0.38 }, level: 19 },
-    { trait: { kind: "splits", cos: Math.sqrt(3) / 2, sin: 0.5 }, level: 20 },
-    { trait: { kind: "teleports" }, level: 21 },
-    { trait: { kind: "plated" }, level: 22 },
   ])(
     "throws for the $trait.kind trait, which isn't played until level $level",
     ({ trait, level }) => {

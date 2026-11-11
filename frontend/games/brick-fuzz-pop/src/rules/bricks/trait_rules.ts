@@ -1,9 +1,13 @@
 import type { TraitRules } from "../flight/hooks";
 import { EARTHS_RULE } from "./traits/earths";
+import { KICKS_RULE } from "./traits/kicks";
 import { NEVER_RULE } from "./traits/never";
 import { comesAt } from "./traits/not_until";
+import { PLATED_RULE } from "./traits/plated";
 import { REGROWS_RULE } from "./traits/regrows";
 import { SHELLED_RULE } from "./traits/shelled";
+import { SPLITS_RULE } from "./traits/splits";
+import { TELEPORTS_RULE } from "./traits/teleports";
 import { ZAPS_RULE } from "./traits/zaps";
 
 /**
@@ -22,14 +26,10 @@ export const TRAIT_RULES: TraitRules = {
   recharges: comesAt(14),
   // The cage.
   frees: comesAt(15),
-  // The bumper.
-  kicks: comesAt(19),
-  // The prism.
-  splits: comesAt(20),
-  // The portal.
-  teleports: comesAt(21),
-  // The plated brick.
-  plated: comesAt(22),
+  kicks: KICKS_RULE,
+  splits: SPLITS_RULE,
+  teleports: TELEPORTS_RULE,
+  plated: PLATED_RULE,
   // The shell brick.
   shelled: SHELLED_RULE,
   // The moss brick.

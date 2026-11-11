@@ -1268,3 +1268,93 @@ holds each round's start to its random flight's.
 5. The `try` also caught a helper's error as the round's, and the batches'
    seeds were a bare count. Fixed: only `playRoundBy()` is in it, its stack
    reported, and the seeds are `SEEDS`.
+
+### X2, first part: the bumper's, the prism's, the portal's and the plated brick's rules
+
+**2026-11-11.**
+
+**What was built.** The four traits Tricks brings in, each a rule of its
+own under `src/rules/bricks/traits/`, in `TRAIT_RULES` in place of their
+"not until level N" throws:
+
+- **`kicks.ts`** (the bumper): as a fuzzball meets the disc, it asks for a
+  kick along the way out of it that `cast()` found, so the fuzzball flies
+  straight away from the bumper's middle, not off it as a mirror.
+- **`splits.ts`** (the prism): as the brick breaks, it asks for a split at
+  the trait's angle. The hook makes none for a zap or a blast, so a zapped
+  prism only breaks.
+- **`teleports.ts`** (the portal): as a fuzzball's middle crosses into the
+  cell, it asks for a teleport to the twin, if it has one. The hook already
+  lets a fuzzball pass a portal whose twin waits over the ceiling, and
+  `lowerWall()` sinks a portal with its twin.
+- **`plated.ts`** (the plated brick): a strike on a plated face, or on a
+  corner both of whose faces are plated, doesn't hurt the brick and earths
+  the charge. `strike()` keeps a hot shot's, so it turns unearthed. A zap
+  or a blast meets no face (its side is 0), so it always hurts.
+
+**Choices the plan didn't make.**
+
+1. **A commit of rules alone.** The catalog's four entries need the art's:
+   `BRICK_ART` `satisfies Record<BrickKindId, KindArt>`, so a kind in the
+   catalog with no art fails to compile, and art for a kind the catalog
+   lacks fails as an excess key. The two land together, so this commit
+   stops short of the catalog, and the specs fly the stand-ins through the
+   real `TRAIT_RULES`: the bumper, the portal and the prism of
+   `stand_ins.ts`, and a plated brick made up in its spec.
+2. **The corner's faces by a switch,** in `plated.ts`, rather than a map in
+   `grid.ts`, which no other rule needs.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 4,892 tests, 4,742 with coverage and 150 in `sim`;
+25 of them new in the four traits' specs, and four not-until cases gone
+from `trait_rules.spec.ts`. The four rule files are at 100% on every
+count. The root's `yarn lint` passes.
+
+**The mutation pass.** 28 mutants over the four rules, run against
+`src/rules/bricks`'s specs. 27 were killed: the kick's normal swapped or a
+sign turned; the split's angle swapped, a sign turned, its cell or
+fuzzball changed, or run at the wrong moment; the portal's twin test never
+passing, its cells swapped; each corner given the wrong faces, a face's
+own dropped, the check for no face removed, any plated face shielding a
+corner, the side read in place of its faces, and the shield or the
+earthing dropped. One lived, and is equivalent: the portal's twin test
+always passing hands the hook a `null` twin, which finds no brick and lets
+the fuzzball pass, as no twin does; the compiler refuses it, since the
+hook takes a cell.
+
+**The review:**
+
+1. `STAND_IN_RULES` copies the new `kicks`, `splits` and `teleports` rules
+   word for word, so `flight.spec.ts`'s hook cases, the portal shut while
+   its twin waits over the ceiling among them, fly the copies, which can
+   drift. Partly fixed: `teleports.spec.ts` now flies the shut portal, and
+   the portal with no twin, through `TRAIT_RULES`. Pointing
+   `STAND_IN_RULES` at the real rules is left: `stand_ins.ts` is the rules
+   stream's, beside X1's `recharges` and `frees`, so the report offers it.
+2. The unit specs noted the hooks a rule called, where the flight's events
+   show what they did, and checked that a rule had no `struck` or `met`,
+   which is its shape rather than its doing. Fixed: the specs of the kick,
+   the split and the portal are flights alone, and `notingHooks()` is gone
+   from `stand_ins.ts`; the mutation pass, run again, kills what it did.
+3. The flown specs' scaffolding is repeated: `teleports.spec.ts`' twinning
+   is `flight.spec.ts`'s, both specs rebuild `flyPicture()`'s call to
+   `fly()`, and the plated stand-in is made in its spec. Left: the files
+   that would share them, `stand_ins.ts`, `flights.ts` and
+   `flight.spec.ts`, are the rules stream's, and the catalog's half of X2
+   flies the real kinds by `flyPicture()`, a `v` drawing its own plates,
+   so the plated spec's helper and stand-in go then.
+4. Two comments got the geometry wrong: the kick meets the disc 30° round
+   from straight below, not 60°, and 3.75 is where the fuzzball's middle
+   crosses into the portal's cell, not the portal's middle. Fixed.
+5. The bumper's flown case for a charged fuzzball tested the stand-in's
+   `never` and `earths`, not the kick, as `flight.spec.ts` already does.
+   Fixed: dropped, for the catalog's half to fly on the real bumper.
+6. `splits.ts`' comment read as the prism splitting itself, and said the
+   fuzzball splits once it has turned, where one that punches through
+   flies on; `plated.ts`' said the charge turns. Fixed: the split leaves
+   along the heading the fuzzball leaves with, and the fuzzball turns.
+7. The `earths` trait's comment in `catalog/bricks.ts` names a plate among
+   its kinds, which invites a plated entry carrying `earths`, which would
+   earth strikes on its bare faces. Left: the file is the integrator's,
+   so the report asks; the catalog's half gives the plated brick
+   `plated` alone.
