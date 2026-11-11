@@ -47,6 +47,7 @@ import { type PointerAimings, STRAIGHT_UP } from "../view/steering/aiming";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { MOST_FINGERS, type Steer, Steering } from "../view/steering/steering";
 import { ATLAS, bakeWallAtlas, bakedScaleOf } from "./atlas";
+import { FieldCamera } from "./field_camera";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
@@ -141,7 +142,7 @@ export class WallScene extends Scene {
   wall!: WallPainter;
   /** Draws the guide. */
   guide!: GuidePainter;
-  /** Draws what bursts from the wall, the jump line's flash and the shake. */
+  /** Draws what bursts from the wall and the jump line's flash. */
   effects!: EffectsPainter;
   /** Draws the charge's meter. */
   meter!: MeterPainter;
@@ -151,6 +152,8 @@ export class WallScene extends Scene {
   sounds!: SpritePlayer<SoundName>;
   /** Turns the player's keys, mouse and fingers into the shot being aimed. */
   steering!: Steering;
+  /** Frames the camera on the field, and shakes it. */
+  private fieldCamera!: FieldCamera;
   /** Every painter, back to front, which each frame draws, the field before the guide, which reads its count. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
@@ -214,6 +217,7 @@ export class WallScene extends Scene {
     this.effects = new EffectsPainter(this, layers);
     this.meter = new MeterPainter(this, layers.balls);
     this.balls = new BallPainter(this, layers.balls);
+    this.fieldCamera = new FieldCamera(this.cameras.main);
     this.painters = [
       this.field,
       this.wall,
@@ -221,8 +225,10 @@ export class WallScene extends Scene {
       this.effects,
       this.meter,
       this.balls,
+      this.fieldCamera,
     ];
     this.effects.layout(this.metrics);
+    this.fieldCamera.fit(this.metrics, this.laidOut);
     this.steering = new Steering(this.metrics, this.canvas);
     this.aimed = options.aimings();
     this.steering.aimWith(this.aimed);
@@ -429,7 +435,7 @@ export class WallScene extends Scene {
         this.balls.flare(now);
         return;
       case "shake":
-        this.effects.shake(now);
+        this.fieldCamera.shake(now);
         return;
       case "swell":
         if (event?.kind === "strike") this.wall.swell(wall, event.cell, now);
@@ -509,6 +515,7 @@ export class WallScene extends Scene {
     this.options.onLayout(this.metrics);
     this.steering.measure(this.metrics, this.canvas);
     this.effects.layout(this.metrics);
+    this.fieldCamera.fit(this.metrics, this.laidOut);
     const scale = bakedScaleOf(this.metrics);
     return (
       scale.unit !== this.baked.unit ||

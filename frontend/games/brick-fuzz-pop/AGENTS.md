@@ -336,6 +336,11 @@ helpers.
     a hot shot, whose charge is always full; and mutes the game as
     `sound()` says, its sprite in `sounds/`, which `yarn build:sounds`
     writes.
+  - `field_camera.ts` — `FieldCamera` frames the scene's camera on the
+    field, its viewport the frame's outer edge (`frameBounds()`, in
+    `src/scene/painters/field_painter.ts`, which the frame is drawn by), so
+    nothing drawn shows past the frame; and moves the viewport as a lost
+    level's shake has the field.
   - `atlas.ts` — bakes the art's frames, the scene's own (`field_art.ts`:
     the field's dots and the warning frame; the meter's pips and the
     guide's dot and outline, which `FRAMES` names and no art draws; and
@@ -373,7 +378,7 @@ helpers.
     `EffectsPainter` draws a broken brick's shards, 216 at most
     (`MOST_SHARDS_FLYING`), a punch's streak, a zap's bolt, a blast's ring
     and a freed friend's hop, each but the shards through `@fz/core/turns`,
-    the jump line's flash and a lost level's shake.
+    and the jump line's flash.
 - **`src/app/`** — the shell, one folder per feature. `app.component` places
   the board in the room the bar leaves it, then the bar, the announcer, the
   result card over an ended run, the Levels dialog (every level open while

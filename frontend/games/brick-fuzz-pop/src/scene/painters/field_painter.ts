@@ -1,4 +1,4 @@
-import { framePixels } from "@fz/phaser/layout";
+import { type PixelRect, framePixels } from "@fz/phaser/layout";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
@@ -54,6 +54,27 @@ export interface FieldLayers {
   readonly lines: GameObjects.Layer;
   readonly count: GameObjects.Layer;
   readonly rim: GameObjects.Layer;
+}
+
+/**
+ * Returns where the field laid out in a shape lies from the lintel's top to
+ * the band's bottom with the frame around it, in device pixels: the frame's
+ * outer edge, inside which the painters draw all of the field.
+ */
+export function frameBounds(
+  metrics: FieldMetrics,
+  shape: FieldShape,
+): PixelRect {
+  const { x, y, width, height, unit } = metrics;
+  const frame = framePixels(FRAME_CSS_PX, metrics.pixelRatio);
+  const top = y - lintelPixels(shape, unit) - frame;
+  const bottom = y + height + bandPixels(shape, unit) + frame;
+  return {
+    x: x - frame,
+    y: top,
+    width: width + 2 * frame,
+    height: bottom - top,
+  };
 }
 
 /**
@@ -178,21 +199,31 @@ export class FieldPainter implements Painter {
     shape: FieldShape,
     palette: WallPalette,
   ): void {
-    const { x, y, width, height, unit } = metrics;
+    const { x, y, width, unit } = metrics;
     const lintel = lintelPixels(shape, unit);
     const frame = framePixels(FRAME_CSS_PX, metrics.pixelRatio);
-    const top = y - lintel;
-    const bottom = y + height + bandPixels(shape, unit);
+    const outer = frameBounds(metrics, shape);
+    const side = outer.height - 2 * frame;
     const graphics = this.rim.clear();
     graphics.fillStyle(palette.band);
-    graphics.fillRect(x, top, width, lintel);
+    graphics.fillRect(x, y - lintel, width, lintel);
     graphics.fillStyle(palette.line);
     // The ceiling, along the lintel's foot, clear of the wall's top row.
     graphics.fillRect(x, y - frame, width, frame);
-    graphics.fillRect(x - frame, top - frame, width + 2 * frame, frame);
-    graphics.fillRect(x - frame, bottom, width + 2 * frame, frame);
-    graphics.fillRect(x - frame, top, frame, bottom - top);
-    graphics.fillRect(x + width, top, frame, bottom - top);
+    graphics.fillRect(outer.x, outer.y, outer.width, frame);
+    graphics.fillRect(
+      outer.x,
+      outer.y + outer.height - frame,
+      outer.width,
+      frame,
+    );
+    graphics.fillRect(outer.x, outer.y + frame, frame, side);
+    graphics.fillRect(
+      outer.x + outer.width - frame,
+      outer.y + frame,
+      frame,
+      side,
+    );
   }
 
   /** Puts a dot at each corner the field's cells share, hiding those a shallower field hasn't. */

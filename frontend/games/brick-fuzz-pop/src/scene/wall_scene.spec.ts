@@ -2,7 +2,7 @@ import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
-import { framePixels } from "@fz/phaser/layout";
+import { type PixelRect, framePixels } from "@fz/phaser/layout";
 import { outlineRoundRect } from "@fz/phaser/shapes";
 import {
   type SceneRun,
@@ -550,6 +550,24 @@ function rectsIn(
   });
 }
 
+/** Returns the box the field's frame bounds, around every rectangle the rim draws in the frame's color. */
+function frameOf(scene: WallScene): PixelRect {
+  const rects = rectsIn(scene.field.rim, LIGHT.line);
+  const left = Math.min(...rects.map(({ x }) => x));
+  const top = Math.min(...rects.map(({ y }) => y));
+  const right = Math.max(...rects.map(({ x, width }) => x + width));
+  const bottom = Math.max(...rects.map(({ y, height }) => y + height));
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+/** Returns the main camera's viewport on the canvas, and where in the world it looks. */
+function cameraOf(
+  scene: WallScene,
+): PixelRect & { scrollX: number; scrollY: number } {
+  const { x, y, width, height, scrollX, scrollY } = scene.cameras.main;
+  return { x, y, width, height, scrollX, scrollY };
+}
+
 /** Returns whether the meter's middle pip, straight under the waiting fuzzball, stands within half a pixel of under a place on the canvas. */
 function middlePipUnder(scene: WallScene, middle: Place): boolean {
   const pip = scene.meter.pips[Math.floor(MOST_CHARGE / 2)];
@@ -730,6 +748,56 @@ describe("WallScene", () => {
       expect(framesAt(scene, 11, 0)).toEqual([
         ...brickLayers(brickAt(PLAIN.start.wall, 6 * COLUMNS)),
       ]);
+    });
+
+    it("frames the camera on the field's frame, scrolled so the canvas's pixels are the world's, so nothing drawn shows past the frame", async () => {
+      const { scene } = await startBoard();
+
+      const frame = frameOf(scene);
+
+      expect(cameraOf(scene)).toEqual({
+        ...frame,
+        scrollX: frame.x,
+        scrollY: frame.y,
+      });
+    });
+
+    it("frames the camera at the canvas's pixel ratio, around a frame as thick as the ratio makes it", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      run.game.scale.displayScale.set(2, 2);
+      shell.fieldShape = { ...shell.fieldShape, pixelRatio: 2 };
+      run.advance(16);
+
+      const frame = frameOf(scene);
+      expect({
+        frame: frame.width - (shell.layouts.at(-1)?.width ?? 0),
+        camera: cameraOf(scene),
+      }).toEqual({
+        frame: 2 * framePixels(FRAME_CSS_PX, 2),
+        camera: { ...frame, scrollX: frame.x, scrollY: frame.y },
+      });
+    });
+
+    it("frames the camera again where the field is laid out again", async () => {
+      const board = await startBoard();
+
+      resizeTo(board, 600, 500);
+
+      const frame = frameOf(board.scene);
+      const { x, y, width, height, unit } = metricsAt(600, 500);
+      const shape = shapeAt(600, 500);
+      const lintel = lintelPixels(shape, unit);
+      const band = bandPixels(shape, unit);
+      expect({ frame, camera: cameraOf(board.scene) }).toEqual({
+        frame: {
+          x: x - FRAME_CSS_PX,
+          y: y - lintel - FRAME_CSS_PX,
+          width: width + 2 * FRAME_CSS_PX,
+          height: lintel + height + band + 2 * FRAME_CSS_PX,
+        },
+        camera: { ...frame, scrollX: frame.x, scrollY: frame.y },
+      });
     });
 
     it("lays the field out as it starts, on a canvas with no room yet too", async () => {
@@ -2155,6 +2223,37 @@ describe("WallScene", () => {
       expect(shell.steers.at(-1)).toMatchObject({ release: true, charge: 1 });
     });
 
+    it("aims a mouse pointing past the field's frame, where the camera shows nothing", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const metrics = metricsAt();
+      const x = frameOf(scene).x - 4;
+      const { y } = toCanvas(metrics, 0, 3);
+
+      run.pointer("move", x, y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)?.aim).toBe(
+        aimToward((x - metrics.x) / metrics.unit - 4.5, 3 - RADIUS),
+      );
+    });
+
+    it("lets the shot fly as a mouse's press past the field's frame is let go", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 4.5;
+      });
+      const x = frameOf(scene).x - 4;
+      const { y } = toCanvas(metricsAt(), 0, 6);
+      run.pointer("down", x, y);
+      run.advance(300);
+
+      run.pointer("up", x, y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)).toMatchObject({ release: true, charge: 1 });
+    });
+
     it("lets the shot fly as a mouse's press is let go past the canvas", async () => {
       const { shell, run } = await startBoard((each) => {
         each.waiting = 4.5;
@@ -3351,19 +3450,50 @@ describe("WallScene", () => {
       });
     });
 
-    it("shake the field as the level is lost, then still it", async () => {
+    it("shake the field as the level is lost, moving the camera's viewport by whole pixels, the world it looks at still", async () => {
       const { shell, run, scene } = await startBoard();
+      const rest = cameraOf(scene);
       shell.beat("lost");
       run.advance(16);
+
       run.advance(16);
-      const camera = scene.cameras.main;
-      const shaken = camera.scrollX !== 0 || camera.scrollY !== 0;
+
+      const shaken = cameraOf(scene);
+      expect({
+        moved: shaken.x !== rest.x || shaken.y !== rest.y,
+        whole: Number.isInteger(shaken.x) && Number.isInteger(shaken.y),
+        scrolled: [shaken.scrollX, shaken.scrollY],
+      }).toEqual({
+        moved: true,
+        whole: true,
+        scrolled: [rest.scrollX, rest.scrollY],
+      });
+    });
+
+    it("still the field once the shake is over, the viewport back at rest", async () => {
+      const { shell, run, scene } = await startBoard();
+      const rest = cameraOf(scene);
+      shell.beat("lost");
+      run.advance(32);
 
       run.advance(SHAKE_MS);
 
-      expect({ shaken, still: [camera.scrollX, camera.scrollY] }).toEqual({
-        shaken: true,
-        still: [0, 0],
+      expect(cameraOf(scene)).toEqual(rest);
+    });
+
+    it("still a shaken field where it is laid out again before the shake is over", async () => {
+      const board = await startBoard();
+      board.shell.beat("lost");
+      board.run.advance(16);
+      resizeTo(board, 600, 500);
+
+      board.run.advance(SHAKE_MS);
+
+      const frame = frameOf(board.scene);
+      expect(cameraOf(board.scene)).toEqual({
+        ...frame,
+        scrollX: frame.x,
+        scrollY: frame.y,
       });
     });
 
@@ -3392,14 +3522,21 @@ describe("WallScene", () => {
 
       shell.reach([STRIKE_8, ["swell"]], [PLAIN_BREAK, ["shards"]]);
       shell.beat("jump", "lost");
-      run.advance(16);
+      // A shake moves nothing the frame it starts, so a frame after it.
+      run.advance(32);
 
+      const frame = frameOf(scene);
       expect({
         swollen: stackAt(scene, 5, 8)[0]?.scale,
         shards: scene.effects.shards.getAliveParticleCount(),
         flash: scene.effects.flash.visible,
-        scroll: scene.cameras.main.scrollX,
-      }).toEqual({ swollen: 1, shards: 0, flash: false, scroll: 0 });
+        camera: cameraOf(scene),
+      }).toEqual({
+        swollen: 1,
+        shards: 0,
+        flash: false,
+        camera: { ...frame, scrollX: frame.x, scrollY: frame.y },
+      });
     });
 
     it("play none an event has no place for", async () => {
