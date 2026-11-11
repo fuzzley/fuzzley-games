@@ -668,7 +668,8 @@ What the specs share is in `src/testing/`:
   loses to them after a jump (`HIGH_BRICK`), for the solver's and the
   careless player's specs.
 - `wall_picture.ts` lays a wall out from a picture in the legend's
-  characters (`wallFrom()`), tinted as a level's are, so a spec draws the
+  characters (`wallFrom()`), tinted as a level's are and each portal
+  twinned with the other of its mark (`twinsIn()`), so a spec draws the
   wall it plays, as the fixtures do.
 - `wall_score.ts` measures a round played (`wallScore()`), as the sketch's
   `score()` did: a lost level the least, a cleared one the most less a cost
@@ -692,8 +693,9 @@ What the specs share is in `src/testing/`:
 - `stand_ins.ts` holds kinds made up for specs, a bumper and a portal, and
   `STAND_INS`, the catalog with them in the row and column zappers' places,
   which a spec hands the rules; a prism, wool and a cage; `STAND_IN_RULES`,
-  the rules they are flown by, steel's, the zappers', wool's and the cage's
-  own among them; and `struckOf()`, a strike as a brick's rules see it.
+  the rules they are flown by, each brick's own but for plates and shells,
+  which do nothing there; and `struckOf()`, a strike as a brick's rules see
+  it.
 - `random_flights.ts` draws seeded flights at random walls
   (`randomFlight()`), each flown by its kinds' rules, and finds where a
   flight's fuzzballs come nearer a brick than they may

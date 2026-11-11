@@ -7,8 +7,12 @@
 
 import { EARTHS_RULE } from "../rules/bricks/traits/earths";
 import { FREES_RULE } from "../rules/bricks/traits/frees";
+import { KICKS_RULE } from "../rules/bricks/traits/kicks";
 import { NEVER_RULE } from "../rules/bricks/traits/never";
 import { RECHARGES_RULE } from "../rules/bricks/traits/recharges";
+import { REGROWS_RULE } from "../rules/bricks/traits/regrows";
+import { SPLITS_RULE } from "../rules/bricks/traits/splits";
+import { TELEPORTS_RULE } from "../rules/bricks/traits/teleports";
 import { ZAPS_RULE } from "../rules/bricks/traits/zaps";
 import {
   BRICK_KINDS,
@@ -69,12 +73,8 @@ export const CAGE: BrickKind = {
 };
 
 /**
- * Rules for specs for every trait the flight's hooks serve: steel's, the
- * zappers', wool's and the cage's own, steel not hurt and earthing a
- * charge, a zapper zapping in its pattern, wool recharging the fuzzball
- * that breaks it and a cage freeing its friend in its tint; and the rest
- * made up: a bumper kicks, a prism splits and a portal sends a fuzzball out
- * of its twin; plates, shells and moss do nothing.
+ * Rules for specs for every trait the flight's hooks serve: each brick's
+ * own, but for plates and shells, which do nothing here.
  */
 export const STAND_IN_RULES: TraitRules = {
   never: NEVER_RULE,
@@ -82,26 +82,12 @@ export const STAND_IN_RULES: TraitRules = {
   zaps: ZAPS_RULE,
   recharges: RECHARGES_RULE,
   frees: FREES_RULE,
-  kicks: {
-    met: (hooks, ball, nx, ny) => {
-      hooks.kick(ball, nx, ny);
-    },
-  },
-  splits: {
-    broken: (hooks, cell, ball, { cos, sin }) => {
-      hooks.split(ball, cell, cos, sin);
-    },
-  },
-  teleports: {
-    entered: (hooks, ball, cell, twin) => {
-      if (twin !== null) {
-        hooks.teleport(ball, cell, twin);
-      }
-    },
-  },
+  kicks: KICKS_RULE,
+  splits: SPLITS_RULE,
+  teleports: TELEPORTS_RULE,
   plated: {},
   shelled: {},
-  regrows: {},
+  regrows: REGROWS_RULE,
 };
 
 /** Returns a strike as a brick's rules see it before they run: a plain fuzzball's on an unplated brick's floorward face, but for what is given. */
