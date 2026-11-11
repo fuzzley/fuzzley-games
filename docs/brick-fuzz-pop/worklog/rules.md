@@ -1931,3 +1931,75 @@ its review and the numbers worth keeping.
      reads.
   4. The heading read as all of F1, and the entry named no ask or count.
      Fixed.
+
+### F1, issues 2 and 6: Escape's call-off heard, a hold charged by the clock
+
+- **Date.** 2026-11-11.
+- **Built,** on b849b9a6, the two issues of the F1 pass routed to the
+  rules stream, each found in a headless Chrome on the production build:
+  1. Escape calling a charge off said nothing, the announcer still on
+     "79.5 degrees, charge 3". `Steering.keyDown()` now has the frame say
+     so, as a key that changes the charge does, and `GameService` says the
+     aim at charge 0, or at a hot shot.
+  2. Point and hold charged slowly for Phaser's first 120 frames after a
+     load or a return to the window, at 22 frames a second, 0, 0, 2, 2
+     and 3 where 1, 2, 5, 4 and 0 were due: the delta Phaser hands a scene
+     is cut to 16.7 ms a frame through that cooldown. `Steering.read()`
+     now takes the frame's moment by the clock, which `WallScene.update()`
+     hands it in place of the delta, and counts a held press the time
+     since the last frame, between none and `LONGEST_FRAME_MS`, 100, and
+     none on the first. 9 tests more in
+     `src/view/steering/steering.spec.ts`, which reads the steering by a
+     clock of its own now, set back to none before each spec.
+- **Choices.**
+  1. **The clock in the steering, not the delta in the scene,** so the
+     scene's change is one argument, `time` for `delta`, while the scene
+     stream edits that file, and the steering's specs hold the cap and the
+     first frame.
+  2. **A frame counts between none and the cap,** a clock that reads
+     earlier than the last frame's counting none, as Phaser's own step
+     floors its delta; the timestamps Phaser hands `update()` shouldn't go
+     back, and should one, the hold gains no more than one capped frame.
+  3. **Flights stay on Phaser's delta,** as the routing scoped it: only the
+     hold, which the player times by hand, keeps the clock.
+- **Checks,** on b849b9a6: the workspace's `lint` and `typecheck` pass;
+  `test:coverage` passes 5,908 tests in 118 files in `dom` and `pure`, at
+  the floors, and 555 in 29 in `sim`; the root's `yarn lint` passes. A
+  first coverage run, before the rebase, timed out once in `cast.spec.ts`,
+  which this change doesn't reach, under the machine's load. The
+  workspace's build leaves the main chunk at 406.74 kB, 406,740 bytes, the
+  steering being in the scene's chunk, 56.84 kB.
+- **By hand,** in the F1 harness's headless Chrome on that build: a mouse
+  and a finger held on an upright phone at 15 to 26 frames a second,
+  straight after the load, charged 1, 2, 5, 4 and 0 at 380, 630, 1,380,
+  1,630 and 2,630 ms, as a laptop's mouse does; Escape after three notches
+  said "90 degrees, charge 0" and didn't pause, and after a held press
+  said "62 degrees, charge 0", letting go flying nothing.
+- **The mutation pass.** 7 mutants, each killed:
+  - the call-off left unsaid, by both of the call-off specs;
+  - the cap taken off, or written as 99 or 101, by the long frame's two,
+    a press held 150 ms and 149 ms before a frame of a second;
+  - the first frame counted from 0, by the first frame's;
+  - the floor taken off, by the earlier clock's;
+  - the scene handing the delta again, by two of `wall_scene.spec.ts`'s
+    held-press specs.
+- **The review:** a fresh agent found no bug in what the game does; its
+  points were the specs' and the doc comments':
+  1. The specs' clock was never set back, so fractions from the rates'
+     spec could round a notch-exact spec a notch low, and the earlier
+     clock's spec never showed the charge it began from. Fixed: the clock
+     is set back before each spec, and that spec reads the charge built.
+  2. `read()`'s and `LONGEST_FRAME_MS`'s doc comments opened with two
+     sentences, and the constant's spoke of a page away, which lets a
+     press go. Fixed: one sentence each, the constant's reason in a
+     paragraph of its own, and `read()`'s saying it takes Phaser's time,
+     not its delta.
+  3. The long frame's spec pinned the constant rather than `read()`'s use
+     of it, which any cap from about 97 to 274 passed. Fixed: two specs
+     through the constant, either side of the notch, which 99 and 101
+     each fail.
+  4. A clock going back was taken back without a bound, for a reason
+     Phaser's comment doesn't give. Fixed by a floor at none rather than
+     the bounded take-back it offered, as choice 2 says.
+  5. The nits: the first frame's spec now reads through the helpers, and
+     `lastFrame` is `lastFrameAt`.

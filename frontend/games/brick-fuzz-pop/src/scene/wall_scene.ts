@@ -274,7 +274,7 @@ export class WallScene extends Scene {
     context.now = time;
     let stale = this.fit();
     this.aim();
-    const steer = this.steering.read(delta, this.from);
+    const steer = this.steering.read(time, this.from);
     options.tick(delta, steer);
     this.sounds.follow(options.sound());
     const palette = options.palette();
