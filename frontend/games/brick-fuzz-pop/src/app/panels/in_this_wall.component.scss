@@ -1,0 +1,69 @@
+@use "panel";
+
+:host {
+  @include panel.panel;
+
+  // The kinds take the height the crew and the boon leave, so those always
+  // show, and a kind that doesn't fit is cut off.
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+// Each kind's picture beside its name and what it does.
+.kinds {
+  display: grid;
+  align-content: start;
+  gap: var(--fz-space-2);
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: var(--fz-space-8) 1fr;
+    column-gap: var(--fz-space-2);
+    align-items: center;
+  }
+
+  // Bounded, as How to play bounds it, so a picture keeps its shape.
+  img {
+    grid-row: span 2;
+    justify-self: center;
+    max-width: var(--fz-space-8);
+    max-height: var(--fz-space-8);
+  }
+
+  .name,
+  .about {
+    grid-column: 2;
+  }
+
+  .name {
+    font-weight: 700;
+  }
+
+  .about {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+  }
+}
+
+.crew {
+  display: grid;
+  gap: var(--fz-space-1);
+}
+
+.friends {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fz-space-1);
+
+  fz-fuzzball {
+    width: var(--fz-space-5);
+    height: var(--fz-space-5);
+  }
+}
+
+.fz-badge {
+  justify-self: start;
+}

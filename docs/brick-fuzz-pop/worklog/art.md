@@ -819,3 +819,196 @@ the numbers worth keeping.
       `within`, for a spark's line and a width, and the fifth choice's
       order read ambiguously. Fixed: `lines` and `width`, with a plainer
       comment, and the choice says the flames.
+
+### U1's panels: Coming next and In this wall
+
+**2026-11-10.** A piece of the integrator's U1, split off for this stream.
+
+- **Built.**
+  - `src/app/panels/coming_next.component.ts`, `.html` and `.scss`:
+    Coming next, left of a wide room's field. It shows the level's number
+    and name, the rows waiting over the ceiling and how many there are,
+    and the jump in a sentence.
+  - `src/app/panels/in_this_wall.component.ts`, `.html` and `.scss`: In
+    this wall, right of the field. It shows each kind of brick the wall
+    holds, the crew and the boon's badge.
+  - `src/app/panels/panels.ts`: `waitingRows()`, a wall's rows over the
+    ceiling, the furthest first; and `kindsIn()`, the kinds a wall holds,
+    in How to play's order.
+  - `src/app/panels/_panel.scss`: the look both share.
+  - Specs: `panels.spec.ts` (7 tests), `coming_next.component.spec.ts`
+    (9) and `in_this_wall.component.spec.ts` (12).
+  - `implementation-plan.md` §5.4's table of frame names gains
+    `fuzzball-eyes`, as A3's review asked.
+- **Choices the plan didn't make.**
+  1. **The board places them, not the panels.** Each panel's host is
+     `position: absolute` and takes no size of its own, and the board
+     binds `[style]="cssRectStyle(metrics.panels.left)"` (or `right`) on
+     it, inside an `@if` for a room with panels, as it lays its ring.
+     The panels then take no layout input, and the board, which holds the
+     metrics, places everything over the canvas in one place.
+  2. **Narrow inputs, all from the rules and the view.**
+     - Both take `start`, the `RoundStart` of the round in play, and
+       `palette`, the `WallPalette` the field is drawn in.
+     - Both take `boon`, the level's `Boon`, which the board holds parsed.
+     - Coming next takes `level`, the `LevelEntry`.
+     - In this wall takes `pictures`, How to play's `HelpPictures`, null
+       until the scene has drawn, and `lit`, whether the shot being aimed
+       carries the boon.
+
+     They show the round's start, which a flight doesn't change: a row
+     over the ceiling can't be struck.
+
+  3. **A square takes its brick's `brickColor()`,** the color A2's art
+     gives its shards, so it matches the brick's body, steel's grey and a
+     zapper's included. A friend takes `palette.friends[ink]`. Both are
+     written with `cssHex()`, as `--ink` on a square and `color` on a
+     fuzzball.
+  4. **As many rows as fit, by CSS alone.** Every waiting row is drawn,
+     at most a wall's 40 rows of nine squares. The rows sit at the foot of
+     the height the words leave, and what doesn't fit is cut off at the
+     top, so nothing measures. The top row shown may be cut part way.
+  5. **Every row over the ceiling counts as waiting,** rows of air among
+     them, since each comes down a round's step: "2 rows wait over the
+     ceiling."
+  6. **The jump's sentence is the rules' `describeBoon()`,** as the Ready
+     card and the announcer say it. The picture of the jump isn't drawn,
+     since the scene's pictures don't hold one yet.
+  7. **In this wall lists the kinds the wall holds now,** in the field or
+     waiting, so a kind broken out drops off. The list is `@fz/game-ui`'s
+     `helpEntries()`, as How to play builds its own: each kind's name, the
+     catalog's `about` and its picture. The picture is an `<img alt="">`,
+     since the name beside it says what it shows, bounded as How to play
+     bounds it, so it keeps its shape. Before the pictures
+     arrive, the words keep their column, so nothing moves when they do.
+     The `<ul>` is `role="list"`, as Safari's VoiceOver drops a list's
+     role with its markers.
+  8. **The crew shows once a friend is freed:** a `<fz-fuzzball>` for each
+     friend in its ink, hidden from assistive technology, and "2 friends
+     fly with you." A level with no cages never shows it.
+  9. **The badge always names the level's boon,** and the board lights
+     it. It is a `.fz-badge` saying "A jump earns a hot shot". While
+     `lit`, it lights (`fz-badge-accent`) and says "Next shot: hot shot",
+     so the words change with the light and color doesn't carry it
+     alone. The round's start can't light it: its `boon` stays set
+     through the flight that spends the boon.
+  10. **The boon always shows.** The kinds take the height the crew and
+      the badge leave, and a kind that doesn't fit is cut off; How to
+      play lists every kind.
+  11. **The look is `board-card()` and `board-card-small`,** from the
+      toolkit, with no colors of their own: only tokens and the inks
+      handed in. Each heading is the card's `.card-title`. The card's
+      most width is lifted, as the board sizes each panel, 172 to
+      320 px, and its text starts at the left. Its glass is off
+      (`backdrop-filter: none`): behind a panel lies only the canvas's
+      spare room, flat, so a blur redone every frame of a drag or a
+      flight would cost the frame (F1) and show nothing.
+  12. **The helpers live in `src/app/panels/`,** the folder this stream
+      owns. `waitingRows()`, or a count of the rows waiting, belongs in
+      `rules/wall/wall.ts` once the lintel or the bar wants it too.
+- **Checks.**
+  - The workspace's `lint` and `typecheck` are clean.
+  - `test`: 3394 tests, 28 of them the panels'.
+  - `test:coverage` passes its floors. The panels' three TypeScript files
+    are at 100% of their statements (47), branches (10), functions (17)
+    and lines (41).
+  - The root's `yarn lint` passes.
+  - In a real Chrome, from the dev server at 9136, a harness put in
+    `app.component` for the look and taken out again showed:
+    - both panels at 172, 200 and 320 px wide, over 18 rows waiting;
+    - the rows cut off at the top in a short panel;
+    - the crew and the badge kept in sight under five kinds.
+
+    That was before the reviews, whose changes to the look are only the
+    glass turned off, the headings' size taken from `.card-title`, and
+    the kinds' pictures bounded rather than sized.
+- **The mutation pass.** Twenty-nine changes, each run against the
+  panels' specs, after the first review's fixes, and the three the second
+  review's touched again. 28 were killed:
+  - `waitingRows()`: the rows unclamped under the ceiling, one row too
+    few, the next row first, the rows mirrored;
+  - `kindsIn()`: every kind, or the kinds in the wall's order;
+  - Coming next: every square the text's color, air inked, the squares
+    not hidden; none waiting said as a count, one row as many, the
+    sentence grown; the jump of the wrong boon; the level unnamed; the
+    region unnamed;
+  - In this wall: no pictures, a picture named, every kind named a
+    brick; no words; the friends all in ink 0, one friend as many, the
+    crew always shown; the badge's words inverted, always lit, never
+    lit, always "A jump earns", or of the wrong boon; the region named
+    as the other.
+
+  One is equivalent: the count of rows unclamped, as `Array.from()`
+  makes no rows of a negative length. On the first pass two survived:
+  the rows mirrored, as every fixture's row was symmetrical, so one now
+  isn't; and the badge naming the carried boon rather than the level's,
+  which were the same boon. The wrong boon in the jump and the badge
+  dies now only because the review's `"triple"` cases name the other.
+
+- **For the integrator.** U1's core places the panels, with each style a
+  `computed()` (`leftPanelStyle()`, `rightPanelStyle()`) so the template
+  only binds:
+
+  ```text
+  @if (leftPanelStyle(); as style) {
+    <app-coming-next [style]="style" … />
+  }
+  @if (rightPanelStyle(); as style) {
+    <app-in-this-wall [style]="style" [lit]="aimingBoon()" … />
+  }
+  ```
+
+  - The panels must sit outside the element with `role="application"`:
+    the board's host can stay the size container, with the role on an
+    inner wrapper around the canvas, or the panels can be its siblings.
+    Inside it, a screen reader's browse mode never reaches their
+    regions.
+  - `lit` is true while the player aims a shot carrying the boon, false
+    once it flies.
+  - In this wall takes the scene's pictures as they come, the same
+    `HelpPictures` How to play takes. `data-panels` is the board's.
+
+- **The review:** a fresh agent read the change against §5's contracts
+  and §8's practices, with nine comments and five nits, each answered:
+  1. VoiceOver drops the kinds' list role with its markers: the `<ul>` is
+     `role="list"`, as the levels and How to play's catalog do, and the
+     spec finds the list by role inside the region.
+  2. The kinds were built by hand where `helpEntries()` builds them, and
+     `PanelPictures` copied How to play's type: the panel uses both of
+     How to play's.
+  3. The badge stayed lit through the flight that spends the boon, as the
+     round's start still carries it: the board lights it with `lit`.
+  4. Inside the board's `role="application"` the panels' regions are out
+     of browse mode's reach: a note for the integrator says to place them
+     outside it.
+  5. The snippet called `cssRectStyle()` in a template: it binds
+     `computed()` styles now.
+  6. `waitingRows()` is the rules' kind of question: it stays here, the
+     folder this stream owns, and a note says it belongs in
+     `rules/wall/wall.ts` once another part wants it.
+  7. The glass blurred a flat room each frame: it is off, and choice 11
+     says why.
+  8. "The next to come in lowest" told the eye what the squares show: the
+     sentence ends at the ceiling.
+  9. The jump's sentence and the badge were tried with the hot shot alone,
+     so a hard-coded boon would pass: both run over `"hot"` and
+     `"triple"`.
+
+  The nits: the headings take `.card-title`, keeping their `margin: 0`;
+  the shared look drops `align-content: start`, and the panels their
+  `stretch`; a missing brick is `brick === null ? null : …`; a count no
+  longer shares the name `rows`; and "Level 3: Pips" is a `title`
+  computed.
+
+  A second fresh agent read the change as it stood, and found nothing
+  blocking. Its three comments, each answered:
+  1. `@if (crew().length > 0)` compared in the template: `crewWords` is
+     null before a friend is freed, and the template binds
+     `@if (crewWords(); as words)`.
+  2. Three spec helpers branched where they needn't: the level is
+     `levelEntryOf(LEVELS, 3)`, a square's ink comes from a helper that
+     throws for a row with no brick, and a friend's from `inkAt()`. A
+     doc comment that said "before the wall" names `WALL`.
+  3. The kinds' pictures were sized square, stretching one that isn't:
+     they are bounded with `max-width` and `max-height`, as How to
+     play's are.

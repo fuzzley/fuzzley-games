@@ -1,0 +1,30 @@
+@use "panel";
+
+:host {
+  @include panel.panel;
+
+  // The rows waiting take the height the words leave.
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}
+
+.level {
+  color: var(--fz-muted);
+}
+
+// The rows waiting, nine squares a row in each brick's ink, the next to
+// come in at the foot and those that don't fit cut off at the head.
+.rows {
+  --square: var(--fz-space-3);
+
+  display: grid;
+  grid-template-columns: repeat(9, var(--square));
+  grid-auto-rows: var(--square);
+  place-content: end center;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.square {
+  border-radius: 2px;
+  background: var(--ink, transparent);
+}
