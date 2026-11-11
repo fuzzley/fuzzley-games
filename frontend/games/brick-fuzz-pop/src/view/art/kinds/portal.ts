@@ -3,7 +3,10 @@
 // ring telling its pair from the other, a dot on the first pair's and a
 // diamond on the second's, `portal()` in
 // `docs/brick-fuzz-pop/art/make-art.mjs`. Each pair's badge is the one the
-// legend's `PORTAL_BADGES` names, which R reads a portal by.
+// legend's `PORTAL_BADGES` names, which R reads a portal by. The diamond is
+// hollow and larger than the art's, which at the least units reads as a
+// dot, on a disc a little larger, so the two pairs differ in shape, not in
+// color alone.
 
 import {
   type Area,
@@ -47,25 +50,46 @@ const ARMS = {
 
 /**
  * Its badge, on its ring up and to the right of its middle, toward its
- * cell's top right corner: its disc's radius, and how far its mark reaches
- * from its middle, a dot's radius or a diamond's points, as shares of its
- * cell.
+ * cell's top right corner: its disc's radius; a dot's radius; and how far a
+ * diamond's points reach from its middle, as shares of its cell, and how
+ * wide its band is round the hole cut in it, in field units.
  */
-const BADGE = { disc: 0.135, dot: 0.084, diamond: 0.104 } as const;
+const BADGE = { disc: 0.145, dot: 0.084, diamond: 0.13, band: 0.035 } as const;
 
 /** A badge a pair's portals carry, as the legend names it. */
 type PortalBadge = (typeof PORTAL_BADGES)[number];
 
-/** Each badge's mark, drawn about the badge's middle in its cell, in a style: a dot, or a diamond. */
+/** Says where a badge's mark is drawn and in what: about the badge's middle in a cell at a scale, in its pair's glyph's color, on its disc's. */
+interface BadgeDrawing {
+  readonly middle: Point;
+  readonly cell: Area;
+  readonly scale: ArtScale;
+  readonly glyph: FillStyle;
+  readonly disc: FillStyle;
+}
+
+/**
+ * Each badge's mark: a solid dot; or a hollow diamond, a band a CSS pixel
+ * wide at least round a hole of the disc's color, its points reaching past
+ * the dot's edge, so at the least units the two differ in shape, and
+ * within the disc.
+ */
 const BADGE_MARKS: Readonly<
-  Record<
-    PortalBadge,
-    (middle: Point, cell: Area, style: FillStyle) => DrawCommand
-  >
+  Record<PortalBadge, (drawing: BadgeDrawing) => readonly DrawCommand[]>
 > = {
-  dot: (middle, cell, style) => circle(middle, BADGE.dot * cell.width, style),
-  diamond: (middle, cell, style) =>
-    polygon(diamond(middle, BADGE.diamond * cell.width), style),
+  dot: ({ middle, cell, glyph }) => [
+    circle(middle, BADGE.dot * cell.width, glyph),
+  ],
+  diamond: ({ middle, cell, scale, glyph, disc }) => {
+    const reach = BADGE.diamond * cell.width;
+    const band = widthOf(BADGE.band, scale);
+    // A diamond's sides lie its reach over √2 from its middle, so a band
+    // as wide takes √2 times as much off its reach.
+    return [
+      polygon(diamond(middle, reach), glyph),
+      polygon(diamond(middle, Math.max(0, reach - Math.SQRT2 * band)), disc),
+    ];
+  },
 };
 
 /** The marks, in order, each drawn in its pair's inks with its pair's badge. */
@@ -105,6 +129,7 @@ function portalCommands(
     x: middle.x + EIGHTH * RING.radius * cell.width,
     y: middle.y - EIGHTH * RING.radius * cell.height,
   };
+  const disc = { color: palette.mark };
   return [
     circle(middle, MIDDLE * cell.width, { color: inks.face }),
     ...ARMS.starts.flatMap((start) =>
@@ -114,8 +139,14 @@ function portalCommands(
       color: inks.body,
       width: widthOf(RING.width, scale),
     }),
-    circle(onRing, BADGE.disc * cell.width, { color: palette.mark }),
-    BADGE_MARKS[badge](onRing, cell, { color: inks.glyph }),
+    circle(onRing, BADGE.disc * cell.width, disc),
+    ...BADGE_MARKS[badge]({
+      middle: onRing,
+      cell,
+      scale,
+      glyph: { color: inks.glyph },
+      disc,
+    }),
   ];
 }
 

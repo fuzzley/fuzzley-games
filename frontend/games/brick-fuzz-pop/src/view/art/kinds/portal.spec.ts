@@ -1,6 +1,7 @@
 import {
   type ArtFrame,
   type ArtScale,
+  type DrawCommand,
   type Point,
   circle,
   polygon,
@@ -9,7 +10,12 @@ import {
 } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import { PORTAL_BADGES } from "../../../rules/levels/legend";
-import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
+import {
+  ART_PALETTE,
+  ART_SCALE,
+  PIXEL_RATIOS,
+  everyScale,
+} from "../../../testing/art_frames";
 import { itemAt } from "../../items";
 import type { KindLook } from "../art";
 import { FRAMES, type PortalMark } from "../frames";
@@ -40,6 +46,13 @@ function portalIn(
   scale: ArtScale = ART_SCALE,
 ): ArtFrame {
   return frameNamed(PORTAL_ART.frames(palette, scale), FRAMES.portal(mark));
+}
+
+/** Returns how far a diamond reaches from its middle, half its width, or NaN for a command no polygon. */
+function reachOf(command: DrawCommand | undefined): number {
+  if (command?.kind !== "polygon") return NaN;
+  const xs = command.points.map(({ x }) => x);
+  return (Math.max(...xs) - Math.min(...xs)) / 2;
 }
 
 /** Its middle at 31 CSS pixels a unit, 2 device pixels to one. */
@@ -106,27 +119,33 @@ describe("PORTAL_ART", () => {
     [1, FIRST],
     [2, SECOND],
   ] as const)(
-    "rings pair %i's portal in its body's color, 6 pixels wide, then cuts a badge out of the ring in the marks' color",
+    "rings pair %i's portal in its body's color, 6 pixels wide, then cuts a badge 0.145 of the cell round out of the ring in the marks' color",
     (mark, inks) => {
       expect(portalIn(mark).commands.slice(88, 90)).toEqual([
         ring(MIDDLE, 0.36 * 62, { color: inks.body, width: 6 }),
-        circle(BADGE, 0.135 * 62, { color: OWN_INKS.mark }),
+        circle(BADGE, 0.145 * 62, { color: OWN_INKS.mark }),
       ]);
     },
   );
 
   it.each(PORTAL_BADGES.map((badge, tint) => [tint, badge] as const))(
-    "marks the badge of a portal of tint %i with the one the legend names for its pair, a %s, in its pair's glyph's color",
+    "marks the badge of a portal of tint %i with the one the legend names for its pair, a %s, in its pair's glyph's color: a solid dot, or a diamond 0.13 of the cell to its points, hollow, its band 0.035 wide round a hole of the disc's color",
     (tint, badge) => {
       const [layer = ""] = PORTAL_ART.layersOf(portal(tint));
       const shown = frameNamed(
         PORTAL_ART.frames(OWN_INKS, ART_SCALE),
         layer,
-      ).commands.at(-1);
+      ).commands.slice(90);
       const glyph = { color: itemAt(OWN_INKS.portals, tint).glyph };
+      // A band 2 pixels wide takes √2 times as much off a diamond's reach.
       const drawn = {
-        dot: circle(BADGE, 0.084 * 62, glyph),
-        diamond: polygon(diamond(BADGE, 0.104 * 62), glyph),
+        dot: [circle(BADGE, 0.084 * 62, glyph)],
+        diamond: [
+          polygon(diamond(BADGE, 0.13 * 62), glyph),
+          polygon(diamond(BADGE, 0.13 * 62 - Math.SQRT2 * 2), {
+            color: OWN_INKS.mark,
+          }),
+        ],
       };
 
       expect(shown).toEqual(drawn[badge]);
@@ -137,6 +156,15 @@ describe("PORTAL_ART", () => {
     expect(PORTAL_ART.frames(ART_PALETTE, ART_SCALE)).toHaveLength(
       PORTAL_BADGES.length,
     );
+  });
+
+  it("draws its diamond's band 0.035 of a unit wide, 4 pixels at 128 device pixels a unit, 1 to a CSS pixel, taking √2 times as much off the diamond's reach", () => {
+    const [band, hole] = portalIn(2, OWN_INKS, {
+      unit: 128,
+      pixelRatio: 1,
+    }).commands.slice(-2);
+
+    expect((reachOf(band) - reachOf(hole)) / Math.SQRT2).toBeCloseTo(4, 9);
   });
 
   it("draws its arms 0.044 of a cell wide and its ring 0.1, 6 and 13 pixels at 128 device pixels a unit, 1 to a CSS pixel", () => {
@@ -151,5 +179,61 @@ describe("PORTAL_ART", () => {
         ),
       ),
     ).toEqual(new Set([6, 13]));
+  });
+});
+
+describe.each(PIXEL_RATIOS)(
+  "a portal's badges at every unit from 24 CSS pixels to 128 device pixels, %f to a CSS pixel",
+  (pixelRatio) => {
+    it("tells the dot from the diamond by shape: the dot solid, the diamond hollow, its band a CSS pixel wide or more round a hole a CSS pixel or more between its sides, its points a CSS pixel or more past the dot's edge and within its disc", () => {
+      const breaking = everyScale(pixelRatio)
+        .filter((scale) => {
+          const dot = portalIn(1, OWN_INKS, scale).commands.at(-1);
+          const [disc, band, hole] = portalIn(
+            2,
+            OWN_INKS,
+            scale,
+          ).commands.slice(-3);
+          const outer = reachOf(band);
+          const inner = reachOf(hole);
+          // A diamond's sides lie its reach over √2 from its middle.
+          return !(
+            dot?.kind === "circle" &&
+            dot.color === FIRST.glyph &&
+            disc?.kind === "circle" &&
+            band?.color === SECOND.glyph &&
+            hole?.color === OWN_INKS.mark &&
+            Math.SQRT2 * inner >= pixelRatio &&
+            (outer - inner) / Math.SQRT2 >= pixelRatio - 1e-9 &&
+            outer - dot.radius >= pixelRatio &&
+            outer <= disc.radius
+          );
+        })
+        .map(({ unit }) => unit);
+
+      expect(breaking).toEqual([]);
+    });
+  },
+);
+
+describe("a portal's diamond badge at every unit from 1 to 16 device pixels", () => {
+  it("keeps its hole within the diamond, and a point up to 10, where the band, a pixel wide, takes all the diamond's reach", () => {
+    const holes = Array.from({ length: 16 }, (_, i) => {
+      const [band, hole] = portalIn(2, OWN_INKS, {
+        unit: i + 1,
+        pixelRatio: 1,
+      }).commands.slice(-2);
+      return { within: reachOf(hole) <= reachOf(band), reach: reachOf(hole) };
+    });
+
+    expect({
+      within: holes.every(({ within }) => within),
+      points: holes.slice(0, 10).map(({ reach }) => reach),
+      open: holes.slice(10).every(({ reach }) => reach > 0),
+    }).toEqual({
+      within: true,
+      points: Array.from({ length: 10 }, () => 0),
+      open: true,
+    });
   });
 });
