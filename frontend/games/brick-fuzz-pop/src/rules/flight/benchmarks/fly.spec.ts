@@ -1,6 +1,6 @@
 import { createRandom } from "@fz/core/random";
 import { randomFlight } from "../../../testing/random_flights";
-import { described } from "../../../testing/timing";
+import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
 import { fly } from "../flight";
 
 /** How many seeded flights are timed, each flown once a round. */
@@ -10,7 +10,7 @@ const FLIGHTS = 1000;
 const ROUNDS = 5;
 
 // Printed, not held to a number: CI's runner times nothing alike twice.
-describe("fly's time", () => {
+describe("fly's time", { timeout: SIM_TIMEOUT_MS }, () => {
   it("is printed at its median and 99th percentile, alone and with mates and friends", () => {
     const random = createRandom(1111);
     const flights = Array.from({ length: FLIGHTS }, () => randomFlight(random));

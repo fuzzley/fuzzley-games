@@ -1,5 +1,5 @@
 import { createRandom } from "@fz/core/random";
-import { described } from "../../../testing/timing";
+import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
 import { shotOf } from "../../levels/certificate";
 import { levelStart } from "../../levels/level";
 import { LEVELS, parseLevel } from "../../levels/levels";
@@ -15,7 +15,7 @@ const ROUNDS = 3;
 
 // Printed, not held to a number: CI's runner times nothing alike twice. The
 // plan's budget is a median of 100 µs and a 99th percentile of 2 ms.
-describe("playRound's time", () => {
+describe("playRound's time", { timeout: SIM_TIMEOUT_MS }, () => {
   it("is printed at its median and 99th percentile over the levels' opening walls and seeded random shots", () => {
     const random = createRandom(2026);
     const openings = LEVELS.flatMap(({ data }) => {

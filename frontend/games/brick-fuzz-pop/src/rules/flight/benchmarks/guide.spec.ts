@@ -1,4 +1,9 @@
-import { described, quantile, sortedTimes } from "../../../testing/timing";
+import {
+  SIM_TIMEOUT_MS,
+  described,
+  quantile,
+  sortedTimes,
+} from "../../../testing/timing";
 import { levelStart } from "../../levels/level";
 import { LEVELS, parseLevel } from "../../levels/levels";
 import type { RoundStart } from "../../round/round";
@@ -29,7 +34,7 @@ const STARTS = {
   hot: (start: RoundStart): RoundStart => ({ ...start, boon: "hot" }),
 } as const;
 
-describe("guideOf's time", () => {
+describe("guideOf's time", { timeout: SIM_TIMEOUT_MS }, () => {
   it("keeps under its bound at the 99th percentile over the levels' opening walls, plain or hot", () => {
     const openings = LEVELS.flatMap(({ data }) => {
       const level = parseLevel(data);

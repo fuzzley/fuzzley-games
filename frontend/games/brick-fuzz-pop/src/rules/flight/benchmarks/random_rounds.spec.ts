@@ -4,6 +4,7 @@ import {
   clearanceProblemsOf,
   randomFlight,
 } from "../../../testing/random_flights";
+import { SIM_TIMEOUT_MS } from "../../../testing/timing";
 import { shotOf } from "../../levels/certificate";
 import {
   type Round,
@@ -26,7 +27,7 @@ const SHOTS = 1000;
 // a spec's time. Each wall is drawn with its kinds' rules, the catalog's or
 // the specs' stand-ins', which playRoundBy() flies a round by as playRound()
 // flies it by the catalog's.
-describe("playRound, on random walls", () => {
+describe("playRound, on random walls", { timeout: SIM_TIMEOUT_MS }, () => {
   it("starts each round as its random flight starts, its boon and crew among it", () => {
     const random = createRandom(SEEDS[0] ?? 0);
     const flights = Array.from({ length: SHOTS }, () => randomFlight(random));

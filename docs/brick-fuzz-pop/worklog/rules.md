@@ -1381,3 +1381,61 @@ its review and the numbers worth keeping.
      unchecked: fixed, it takes certificates, and its spec hands it its own.
      `AGENTS.md`'s Tests paragraph had an unwrapped line and said the
      replays go through `playRound()`: fixed, `replayLine()`.
+
+### P3, after the merge: time for the `sim` tests
+
+- **Date.** 2026-11-10.
+- **Why.** The root's `yarn verify` failed on `fly.spec.ts`'s benchmark:
+  "Test timed out in 5000ms", at 5,256 ms. The workspace's `test` runs `sim`
+  beside `dom` and `pure`, and the root runs four workspaces at once on a
+  quarter of the cores each, as CI does, so a test of 1.9 s alone passed
+  Vitest's 5 s.
+- **Built.**
+  - `src/testing/timing.ts`: `SIM_TIMEOUT_MS`, 60 s, how long a `sim` test
+    that can run past half a second alone may take, with why: `yarn test`
+    runs it beside `dom`, `pure` and the other workspaces' tests.
+  - It is handed to the suites of `fly.spec.ts`, `guide.spec.ts`,
+    `cast.spec.ts`, `play_round.spec.ts` and `random_rounds.spec.ts`
+    (`describe(name, { timeout }, …)`), and to `holdEveryFloor()`'s suite
+    in `every_level.ts`. Neither `@fz/dev` nor `vitest.config.ts` changes.
+  - `AGENTS.md`: `timing.ts`'s bullet names it.
+- **Choices.**
+  1. **A suite's options carry the timeout,** which Vitest hands its tests
+     (checked with a suite of 100 ms over a test of 400 ms, which timed
+     out), so each spec's tests stay as they were. `holdEveryFloor()`'s
+     suite title moves into a `const`, as Prettier reflows the whole suite
+     once the template and the options share the call.
+  2. **The floors' tests take it though they run 0.32 s alone,** which
+     reverses the last entry's review, item 5, where they kept the default:
+     later sets' walls hold up to twice the hits of Warm-up's heaviest, 580
+     against Plumb line's 282, and the careless player's rounds up to 29
+     against 13 (plan.md's level table), which can take a floor past half a
+     second. The certificates' replays, 20 ms at most, and
+     `random_rounds.spec.ts`'s first test, 52 ms, which shares its suite's,
+     need none.
+- **The tests past 0.5 s alone,** on one worker under a load of 8 to 13:
+  `fly.spec.ts`'s 2,034 ms, `guide.spec.ts`'s 1,584 ms, `cast.spec.ts`'s 695
+  ms, `random_rounds.spec.ts`'s ten batches 404 to 615 ms, and
+  `play_round.spec.ts`'s 504 ms; then the floors' 27, 124 to 316 ms.
+- **Checks.** On `brick-fuzz-pop` at 4300da0f after the rebase: the
+  workspace's `lint`, `typecheck` and `test:coverage` pass, 4,618 tests in
+  87 files in `dom` and `pure` and 150 in 20 in `sim`, and the root's
+  `yarn lint`. `yarn workspace brick-fuzz-pop test --maxWorkers=1`, with 36
+  threads spinning beside it under a load of 46, passed its 4,768 tests in
+  105 s, `fly.spec.ts`'s at 2,910 ms and `guide.spec.ts`'s at 2,154 ms.
+- **The mutation pass.** None: the change gives time, which no spec sees on
+  a machine that has it.
+- **The review:** a fresh agent found no fault in what the change does: a
+  suite's options reach its tests in Vitest 5.1.0, and every `sim` spec that
+  can run long is covered. Three points, all taken.
+  1. The floors took the timeout as `it.each`'s third argument, unlike the
+     benchmarks, and the log's reason, a template title, isn't Vitest's.
+     Fixed: their suite takes it in its options, its title in a `const`.
+  2. The constant's doc said `sim`'s specs hold no time, which
+     `guide.spec.ts`'s 1 ms at the 99th percentile belies and which doesn't
+     say why, in four lines where one was asked for. Fixed: one line, what
+     runs beside it and what 2 s alone has done.
+  3. The second choice reversed the last entry's review, item 5, without
+     saying so, and its nine times set the heaviest later wall against
+     Warm-up's lightest. Fixed: it names the reversal, and sets 580 hits
+     against Plumb line's 282 and 29 rounds against 13.
