@@ -1197,3 +1197,157 @@ depth)`, returning `{ wall, rowsDown, jumped, sunk, lost }` and calling
 - **Ready for Q3.** Total coverage reads 96.97 / 95.01 / 97.44 / 97.01
   since T1: `tools/check-layout.mjs` runs in no spec, as no game's layout
   check does, and `tools/` has no floor; every floored folder holds.
+
+### Q3 passed; X3 merged; X1, X2, T2 and D1 begun (2026-11-11)
+
+- **Q3, the user's:** the game in the app's browser pane from the dev
+  server (port 9006), with the screenshots; the user said "Go on". The
+  points put to the user at the gate stand as built, none asked changed:
+  the danger line brightens by weight, not a brighter red; the friends'
+  inks sit near the hot shot's or the accent in some palettes; the Levels
+  dialog shows a level cleared during its last flight; Brick Breaker's
+  `?debug` ball speed still keeps records in a production build; the
+  game's code is 6 KB over §9's budget, for F1.
+- **The streams after the gate:**
+  - rules: X1 (Sparks' kinds, friends and the triple shot), then Y1;
+  - proof: X2 (Tricks'), then Y2;
+  - view: X3 (Thick walls'), then Y3, rather than the art stream §7.2's
+    table gives it, so that one stream draws all the art;
+  - art: the eleven kinds' art, X1's first, so no two streams write the
+    same art files;
+  - shell: T2's parts that don't wait on level 18 (the capture script at a
+    Warm-up level, the site's thumb and preview, and the layout check
+    taking up a kept run through both turns), with the lintel's and the
+    bar's one condition and the rows waiting in the announcer's words;
+  - scene: D1's `brick-fuzz-pop-testing` skill.
+
+  Certification takes every core, so the Y streams take turns.
+
+- `3a905937`, from the view stream, X3's first half: `SHELLED_RULE`, a
+  fuzzball with no charge taking no hit off a shell and turning, the strike
+  not counting toward boredom, charge, a hot shot, a zap and a blast all
+  hurting it, and it earthing nothing; `REGROWS_RULE`, moss struck as any
+  brick in a flight. `TRAIT_RULES` takes both where they threw.
+  `flight.ts`, the round and the wall untouched. 4,731 tests.
+- **The art gates every X stream:** `BRICK_ART` satisfies a record of every
+  cataloged kind, so a kind is cataloged only once its art exists. Shell
+  and moss's art moved to the scene stream, ahead of its skill, so X3 goes
+  on; the art stream draws X1's kinds, then X2's, each merged ahead of its
+  X stream's catalog commit.
+- `61307b90`, from the proof stream, X2's first half: `KICKS_RULE`,
+  `SPLITS_RULE`, `TELEPORTS_RULE` and `PLATED_RULE` in `TRAIT_RULES` where
+  they threw, the bumper kicking, the prism splitting, the portal sending a
+  fuzzball out of its twin, a plate shielding its face. 27 of 28 mutants
+  killed, the survivor equivalent. Conflicts with X3's half in
+  `trait_rules.ts`' imports, its spec's list of traits that throw (now the
+  wool's and the cage's alone) and the workspace `AGENTS.md`'s sentence on
+  the traits, each kept from both sides. 4,752 tests.
+- **The order for a kind's catalog,** since `BRICK_ART` refuses both a
+  cataloged kind without art and art for an uncataloged kind: the art
+  lands unwired, its files specced directly; then the kind's X stream adds
+  its `BRICK_ART` lines with its catalog file in one commit.
+- **The early warning for the other three sets,** from the proof stream,
+  outside the repository (all twelve depths, 40 careless games a depth, 2.7
+  minutes on 4 workers), on the real rules where merged and stand-ins
+  elsewhere (Sparks' kinds, the shell's and moss's catalog entries and
+  `regrow()`, Tricks' entries as X2 plans them): every level of Sparks,
+  Tricks and Thick walls has a line on every depth from the first search,
+  the slowest 2.8 s, and every replay holds. None falls under its floor;
+  the nearest: Switchboard (17) 88 on 13 against Sparks' 85; Labyrinth 63,
+  Six-pack 50 and The Great Wall 65, each at its least on an odd depth,
+  against Thick walls' 40. No redraw looks needed; Switchboard and
+  Six-pack are the ones to watch when certification plays its own seeds.
+- `9ef566b0`, from the rules stream, X1's first piece: `zaps.ts` plays the
+  blast, the cross and the X; `RECHARGES_RULE`, wool charging the fuzzball
+  that breaks it to full, a zap's or a blast's break charging no one;
+  `STAND_IN_RULES` zap and recharge through the real rules, and
+  `flyPicture()` takes friends. 4,758 tests. X1's catalog commit, all
+  five Sparks entries with their `BRICK_ART` lines, waits on the rules
+  stream for their art.
+- **Decided, a contract change:** each cage owns its friend's ink, as
+  plan.md says ("A cage holds one, in an ink of its own"; its art "a
+  fuzzball behind them in a friend's ink"; six cages at most). The cage's
+  rule had no way to give it: a rule is handed `(hooks, cell, ball, trait)`
+  and every cage's tint was 0. The two choices: (a) inks by place, a
+  level's cages numbered 0 to 5 as their tints, the lowest row first, then
+  left to right; (b) inks by the order the friends are freed. (a), because
+  (b) would leave the cage's art one fixed ink until the friend is out.
+  So `parseLevel()` and `wallFrom()` give each cage its tint,
+  `TraitRule.broken` takes the brick's tint as a fifth argument, and
+  `flight.ts`' `brokenRule()` passes it, the one change to `flight.ts` an
+  X stream makes. Its own commit on the rules stream, which brings
+  `implementation-plan.md` to it (§5.3's `Brick.tint` comment, P1's tints,
+  and the X/Y intro, which said no X stream touches `flight.ts`); the
+  cage's art draws the ink its tint picks.
+- `1a3b96d0`, from the scene stream: `SHELL_ART` and `MOSS_ART`, unwired,
+  their files specced directly and their frames held to the atlas's rules
+  through a `WAITING_ART` record until `BRICK_ART` takes them. Names added
+  to `frames.ts`: `FRAMES.shellBody`, a shell at its last hit, and
+  `THICK_HITS`. **A contract doc reworded, approved by the integrator:**
+  `ThickHits` now says the hits left, the shell's and the moss's pips
+  counting down from 2 with none at the last hit, as a tough brick's die, so
+  damage and regrowth read below 30 CSS px where cracks drop out; only this
+  art calls `FRAMES.shell()` and `FRAMES.moss()`. Two placements moved from
+  `make-art.mjs` by under two hundredths of a cell, to keep a device pixel
+  clear at every scale. 58 mutants killed. 4,853 tests.
+- `ee817262`, `05d456eb` and `53ffd3bd`, from the shell stream:
+  - T2's part that doesn't wait on level 18: `tools/capture-screenshots.mjs`
+    on `runScreenshotScript()` takes up a run the rules kept, through the
+    typed `screenshot_api.ts` (Gatehouse, 11 deep, its certificate's first
+    two shots, Midnight blue), aims at 55° with charge 3 and writes the site's
+    `thumb.webp` and `preview.webp`, which replace the site's fallback for
+    the game; the layout check makes a second pass over a run taken up
+    paused (`LAYOUT_RUN`), holding the wall's rows from the floor through
+    both turns at every shape.
+  - `showsEveryFigure()`, the one condition the bar and the lintel read.
+  - The announcer's step and jump words end with the rows waiting ("…, 5
+    rows waiting."; "The wall jumped 3 rows, with 5 rows waiting."), the
+    only change to `describe.ts`, the proof stream's file.
+  - These two close T1's "Left for later".
+  - 4,882 tests and 150 in sim; the game builds and its layout check
+    holds over both passes.
+- `40a0ae64`, from the scene stream, D1's first piece: the
+  `brick-fuzz-pop-testing` skill (the projects, the floors, the helpers and
+  fixtures, the certificates and floors and their scripts, the kept run,
+  what to do when a replay fails on its line or on par alone and when a
+  floor fails, the benchmarks, the scene's and the shell's harnesses, the
+  mutation pass), linked from the workspace `AGENTS.md`; `scriptedRounds()`'s
+  doc corrected. Two reviews. Naming it in the repository's lists waits for
+  D1's piece on those lists.
+- X1's art (`597d49d6` on the art stream) conflicted in five art files with
+  the shell's and moss's, which moved shared helpers first; the
+  cherry-pick was aborted and the art stream rebases it, folding the two
+  records of unwired art into one.
+- `af0a32a5`, from the view stream, X3's catalog commit: the shell and moss
+  in `thick_walls.ts` with their `BRICK_ART` lines, so `WAITING_ART` is
+  gone; `regrow()` in `lower.ts` grows each moss brick short of its full
+  hits back a hit after every round, unless the level is cleared; their
+  frames added to `atlas_frames.spec.ts`.
+- `deac259c` and `c678582e`, from the rules stream: the cage's ink, as
+  decided above, through `tintOf()`, with the plan's three places brought
+  to it. `FREES_RULE` frees the friend in the cage's
+  tint, by a strike, a zap or a blast. With every trait now ruled,
+  `not_until.ts`, `comesAt()` and the spec of traits that throw are gone.
+  The cherry-pick conflicted in `trait_rules.spec.ts`, where X3's catalog
+  had already replaced the tough-brick stand-ins with the real shell and
+  moss: kept neither side's top (the throws test, the `toughWith()`
+  stand-ins) and dropped the unused `BrickTrait` import. 4,928 tests and
+  150 in sim, the floors held.
+- **Open:**
+  - X1: the art stream rebases its art (`597d49d6`); then the rules stream
+    makes the proof stream's two asks (`STAND_IN_RULES` on the real kicks,
+    splits and teleports rules, and `wallFrom()` pairing `@` and `&` as
+    portal twins), then X1's catalog commit (`sparks.ts`), then Y1.
+  - X2: its four kinds' art on the art stream, then the proof stream's
+    catalog commit, which also drops "a plate" from the earths comment in
+    `catalog/bricks.ts`; then Y2.
+  - X3: done. Y3 waits for X1's and X2's catalogs and its turn on the
+    cores.
+  - T2: level 18 for the kept run, its first two shots at 11 deep,
+    `AIMING` rechecked and `index.html`'s alt text, after Y1.
+  - The shell stream's three notes (the `HELD_AS_RULES` filter dropped,
+    `@fz/dev/layout`'s `before` handed its arguments, plan.md's words for a
+    step and a jump) are reported, to merge next.
+  - D1: the repository's and the frontend's lists of games, now on the
+    shell stream; the `brick-fuzz-pop-content` skill once every kind is
+    cataloged; the workspace `AGENTS.md`'s numbers at the end.
