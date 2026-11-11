@@ -8,7 +8,15 @@ import { BRICK_KIND_IDS, type BrickKindId, brickKind } from "../catalog/bricks";
 import { cellAt, fieldRowOf } from "../grid";
 import { NO_BRICK } from "../levels/legend";
 import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../tuning";
-import { isCleared, lowerWall, regrow } from "./lower";
+import {
+  dangerCells,
+  inDanger,
+  isCleared,
+  lowerWall,
+  lowestNeededRow,
+  neededBelow,
+  regrow,
+} from "./lower";
 import { type Brick, type Wall, thirdsOf } from "./wall";
 
 /** Every depth a field has, 11 to 22. */
@@ -340,5 +348,69 @@ describe("regrow", () => {
     };
 
     expect(regrow(worn)).toEqual(worn);
+  });
+});
+
+describe("lowestNeededRow", () => {
+  it("finds the field row of the lowest brick the level needs", () => {
+    expect(lowestNeededRow(wallOf({ 4: "....o....", 6: BRICKS }))).toBe(4);
+  });
+
+  it("passes over a brick the level doesn't need under it", () => {
+    expect(lowestNeededRow(wallOf({ 4: STEEL, 5: "........o" }))).toBe(5);
+  });
+
+  it("finds a brick waiting over the ceiling", () => {
+    expect(lowestNeededRow(wallOf({ 5: STEEL, 30: "....o...." }))).toBe(30);
+  });
+
+  it("finds none in a wall with no brick the level needs", () => {
+    expect(lowestNeededRow(wallOf({ 5: STEEL }))).toBe(
+      Number.POSITIVE_INFINITY,
+    );
+  });
+});
+
+describe("neededBelow", () => {
+  it("counts the bricks the level needs under a row, and none the level doesn't", () => {
+    const wall = wallOf({ 3: "##ooo....", 4: "o.......o", 5: BRICKS });
+
+    expect(neededBelow(wall, 5)).toBe(5);
+  });
+
+  it("counts none under the lowest row", () => {
+    expect(neededBelow(wallOf({ 3: BRICKS }), 3)).toBe(0);
+  });
+});
+
+describe("inDanger", () => {
+  it.each([
+    [1, true],
+    [2, false],
+  ])(
+    "says a brick the level needs in row %i is in danger: %s",
+    (row, danger) => {
+      expect(inDanger(wallOf({ [row]: "....o...." }))).toBe(danger);
+    },
+  );
+
+  it("finds a brick the level needs in the floor's row in danger, as the step that loses the level comes down", () => {
+    expect(inDanger(wallOf({ 0: "....o...." }))).toBe(true);
+  });
+
+  it("finds no danger in steel in the danger row under a brick the level needs", () => {
+    expect(inDanger(wallOf({ 1: STEEL, 2: "....o...." }))).toBe(false);
+  });
+});
+
+describe("dangerCells", () => {
+  it("gives the cells of the bricks the level needs in the danger row or lower, in order", () => {
+    const wall = wallOf({ 0: "o........", 1: "#o#.....o", 2: BRICKS });
+
+    expect(dangerCells(wall)).toEqual([0, 10, 17]);
+  });
+
+  it("gives none while no brick the level needs is in danger", () => {
+    expect(dangerCells(wallOf({ 1: STEEL, 2: BRICKS }))).toEqual([]);
   });
 });

@@ -7,7 +7,13 @@
 
 import { fieldRowOf } from "../rules/grid";
 import type { RoundOutcome, RoundStart } from "../rules/round/round";
-import { isNeeded } from "../rules/wall/lower";
+import {
+  DANGER_ROW,
+  inDanger,
+  isNeeded,
+  lowestNeededRow,
+} from "../rules/wall/lower";
+import type { Wall } from "../rules/wall/wall";
 
 /** What a lost level measures: less than any wall still standing. */
 const LOST_SCORE = -1_000_000_000;
@@ -58,23 +64,21 @@ export function wallScore(
   if (outcome.result === "cleared") return CLEARED_SCORE - rounds * ROUND_COST;
   const { wall, crew, boon } = next;
   let weight = 0;
-  let lowest = Number.POSITIVE_INFINITY;
   for (const [cell, brick] of wall.bricks.entries()) {
     if (brick === null || !isNeeded(brick)) continue;
     const row = fieldRowOf(wall, cell);
-    lowest = Math.min(lowest, row);
     weight += (brick.hits + BRICK_WEIGHT) * (1 + LOW_WEIGHT / (row * row));
   }
   return (
     -weight -
-    dangerOf(lowest) +
+    dangerOf(wall) +
     crew.friends.length * FRIEND_WORTH +
     (boon === null ? 0 : BOON_WORTH)
   );
 }
 
-/** Returns what the lowest brick a level needs takes off for its row: the most in row 1 or lower, less in row 2, else nothing. */
-function dangerOf(lowest: number): number {
-  if (lowest <= 1) return DANGER_COST;
-  return lowest === 2 ? NEAR_DANGER_COST : 0;
+/** Returns what the lowest brick a wall's level needs takes off for its row: the most in danger, less a row over it, else nothing. */
+function dangerOf(wall: Wall): number {
+  if (inDanger(wall)) return DANGER_COST;
+  return lowestNeededRow(wall) === DANGER_ROW + 1 ? NEAR_DANGER_COST : 0;
 }

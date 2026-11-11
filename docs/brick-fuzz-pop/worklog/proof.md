@@ -1034,3 +1034,151 @@ unless nothing was banked. A spoil with nothing banked kills it; none live.
    stars it can't read rather than reading them as none.
 7. The log said the result card reads `Run.stars`, though nothing hands
    the card a run's end yet, and a doc line ran past 80 columns. Fixed.
+
+### P2: the solver and the careless player
+
+**2026-11-10.**
+
+**What was built.** The rest of P2, to the signatures and the certificate's
+shape the integrator accepted before it began, so P3 could be built beside
+it:
+
+- **`src/testing/solver.ts`:** `solveLevel(level, depth, rules?)` returns a
+  `Solved`, a line of `CertifiedShot` pairs (an aim's index and a charge),
+  its jumps and the `Search` that found it, or null. It tries `SEARCHES` in
+  turn (greedy at every fourth aim, then a beam of 4, then every aim), each
+  for at most `SOLVER_ROUNDS`, 40. `replayLine(level, depth, line, rules?)`
+  plays a line through `playRound()` and returns a `LinePlayed`: whether it
+  cleared, its rounds and jumps, and the lowest row a needed brick stood in
+  between rounds.
+- **`src/testing/casual.ts`:** `playCasually(level, depth, seed, rules?)`
+  returns a `LinePlayed` too. Each round it plays the best by `wallScore()`
+  of `CASUAL_LOOKS`, 16, shots drawn from `createRandom(seed)`, for at most
+  `CASUAL_ROUNDS`, 150. `CASUAL_FLOORS` holds `plan.md`'s floors in
+  percent by set id: Warm-up 90, Sparks 85, Tricks 80, Thick walls 40.
+- **`lower.ts`'s shared rules,** as agreed with the integrator:
+  `lowestNeededRow()`, `neededBelow()`, `DANGER_ROW`, `inDanger()` and
+  `dangerCells()`. `lowerWall()`'s jump, `describe.ts`' step words and
+  `wallScore()`'s danger read them, so the solver's margin, the jump, the
+  danger and the announcer can't drift apart. The scene's
+  `src/scene/danger.ts` and the view's danger beat switch to them in their
+  streams.
+- **`src/testing/level_picture.ts`** makes a level of a pictured wall
+  (`levelFrom()`) and holds `NO_HITS`, rules under which no shot reaches
+  the wall, and `HIGH_BRICK`, for both players' specs.
+- **`AGENTS.md`** names the new helpers and the two files held as rules.
+
+**Choices the plan didn't make.**
+
+1. **A certificate's pair and `shotOf()` are the rules',** in
+   `src/rules/levels/certificate.ts`: `CertifiedShot` and `Line`, which
+   `solver.ts` exports again under the agreed names, and `shotOf()`,
+   beyond them, which turns a pair into a `Shot` and throws a `RangeError`
+   for an aim or a charge that isn't one. The
+   replay and the careless player read pairs with it, and the shell's Play
+   the certificate can, which can't import `src/testing/`.
+2. **The order is fixed:** aims rising, each at charges 0 to 5, from each
+   wall kept in turn. The first shot that clears the level ends the search,
+   as the sketch's did. Walls are kept by their measure, highest first, and
+   a stable sort leaves ties in the order they were reached.
+3. **A wall seen is skipped for the rest of its search,** by a string of
+   each cell's hits, the wall's lowest row, where the fuzzball waits as
+   JavaScript prints it, the friends' inks and the boon. It is a string
+   rather than a hash, so no two states collide. A brick's kind isn't in it,
+   as no trait changes one yet.
+4. **The margin drops a round that leaves a needed brick in the danger row,**
+   unless the round clears the level. `replayLine()`'s `leastRow` lets
+   P3's replay hold a certificate to it.
+5. **`replayLine()` stops at the round that ends its level,** so a line
+   with shots past its clearing round reads as cleared in fewer rounds than
+   its length. Its doc says what a certificate must hold to: cleared, in
+   as many rounds as its line has shots, `leastRow` over `DANGER_ROW`.
+6. **The careless player draws one number a look** over every one of the
+   3,942 shots, aim by aim and each aim's charges in turn, as the sketch's
+   did. It keeps the first best, and goes on from the round it looked at
+   rather than playing the shot again.
+7. **The two bounds are guards.** A wall comes down at least a row a round,
+   so no level lasts `CASUAL_ROUNDS`. That return never runs (casual.ts's
+   one uncovered line), and no spec reaches `SOLVER_ROUNDS` either.
+   `src/testing/` has no floor.
+
+**Numbers worth keeping.**
+
+- Greedy at every fourth aim clears Warm-up's first two levels in 0.1 to
+  0.3 s for each (level, depth): in 5 rounds on a field 11 deep, and in 3
+  on one 22 deep.
+- A careless game of either takes about 7 ms.
+- Two rows of six-hit bricks need every aim and a beam of 4 on a field 12
+  deep, about 1.5 s. On a field 11 deep they have no line that keeps the
+  margin, though one without it clears in 5 rounds, dipping to row 1. The
+  spec on the margin plays that wall.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and `test:coverage`
+pass: 4,259 tests, 4,256 with coverage and 3 in `sim`. `solver.ts` is at
+100%, `casual.ts` at all but its guard's line, and the rules at their
+floors. The root's `yarn lint` passes. The solver's and the careless
+player's specs take under 3 s together, most of it the wall that needs
+every aim.
+
+**The mutation pass.** 50 mutants, one at a time, over `lower.ts`'s new
+rules and the jump (10), `wallScore()`'s danger (2), `describe.ts`' step
+words (3), the careless player (11), the solver (22, the order of its
+shots among them, after the review) and `shotOf()` (2), whose aim's
+check, added after the second review, has a spec of its own. The first
+pass left three that new specs kill: the careless player looking at 15 shots,
+or keeping the last best of a tie, which two seeds whose games those
+change now pin; and the solver's line counting no jumps, which a wall that
+jumps now catches. Seven live:
+
+- **Equivalent, three.** The rounds handed `wallScore()`, one more, in
+  both players: every shot a round looks at shares them, and the solver
+  returns a cleared line before it measures one, where alone they count.
+  And the careless player's best starting at −Infinity rather than its
+  first look's measure, which always beats it.
+- **`SOLVER_ROUNDS` at 5,** since no spec's wall needs more; one that needs
+  40 would take minutes.
+- **The walls seen:** skipping none, or keying them without the hits or
+  without where the fuzzball waits. No spec's line changes without it. It
+  saves the search work, and decides only what is skipped, never what a
+  line does, which the replay holds.
+
+**The review:**
+
+1. `shotOf()` sat in `src/testing/`, which the app's tsconfig leaves out,
+   though the log said Play the certificate would use it. Fixed: it and
+   the pair's types are the rules', in `src/rules/levels/certificate.ts`,
+   with a spec of their own, and `solver.ts` exports the types again, so
+   P3's agreed imports hold.
+2. `replayLine()` reads a line that clears early, or dips into the danger
+   row, as clearing, and only the log said what a certificate must hold
+   to. Taken in part: its doc says so now, and the report tells the
+   integrator for P3's replay. A `lineHolds()` beside it is offered there
+   rather than added, as P3 is being built on the agreed names.
+3. No spec pinned the order of the shots, aims before charges, which
+   decides every certificate's bytes; and the careless player's seeds were
+   golden numbers with no word on why. Fixed: a tough brick that aim 4
+   clears at charge 2, before a later aim clears it at charge 0, pins the
+   order, and the seeds' spec says what they catch and how to find two
+   again.
+4. Both specs copied their fixtures. Fixed: `level_picture.ts` holds
+   `levelFrom()`, `NO_HITS` and `HIGH_BRICK`. `wall_picture.ts` is the
+   rules stream's, so it stays as it is.
+5. Nits, taken: the solver's charges come from `MOST_CHARGE`, as the
+   careless player's do, once; and `DANGER_ROW`'s doc says a brick in the
+   floor's row loses the level as its step comes down.
+
+A second review, as the first's fixes moved code into the rules, found no
+bug either:
+
+1. The spec on the order of the shots relied on a later aim clearing the
+   tough brick at charge 0, which only the fixture's doc said. Fixed: the
+   spec replays aim 12 at charge 0 and expects it to clear.
+2. `solver.ts`' re-export of the pair's types said nothing of why. Fixed:
+   a comment says P3 takes them from there.
+3. The docs drifted: an unwrapped line and `HIGH_BRICK` missing in
+   `AGENTS.md`, and this entry counting five mutants killed where it named
+   three, and naming P3 among `level_picture.ts`' users. Fixed.
+4. `casual.ts`' `CHARGES` was a count, where `solver.ts`' is the list.
+   Fixed: `CHARGE_COUNT`, as `AIM_COUNT`.
+5. `shotOf()` checked the charge alone. Taken: it checks the aim too, so a
+   bad pair fails in one place.

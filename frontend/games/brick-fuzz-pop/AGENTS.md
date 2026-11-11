@@ -17,8 +17,8 @@ places the bar, the dialogs, the settings drawer and the result card, each
 wired to the game, but not yet the board, so the field isn't drawn and no
 run can be played in the page. The site lists it as in development, its
 build shipping no screenshots yet. What the plan's packages still to come
-build (the rest of P2, P3, the rest of U1, the rest of U2, T1 and T2,
-then X1 to X3, Y1 to Y3, D1, F1, Z1 and Z2) isn't here yet.
+build (P3, the rest of U1, the rest of U2, T1 and T2, then X1 to X3, Y1 to
+Y3, D1, F1, Z1 and Z2) isn't here yet.
 
 ## Technology Stack
 
@@ -56,9 +56,10 @@ fixes, `Math.sqrt()` among them, with no `**` and no constant such as
 `Math.PI`, so a certificate found in Node holds in every browser. The
 specs' helpers `eslint.config.js` names in `HELD_AS_RULES` are held as the
 rules are, to their fence and their exact arithmetic, from the commit that
-writes each: so far `src/testing/wall_picture.ts` and
-`src/testing/wall_score.ts`. Every other file of `src/testing/` takes
-Angular by type alone.
+writes each: so far `src/testing/wall_picture.ts`,
+`src/testing/wall_score.ts`, `src/testing/solver.ts` and
+`src/testing/casual.ts`. Every other file of `src/testing/` takes Angular
+by type alone.
 
 ## Layout
 
@@ -106,8 +107,11 @@ helpers.
   `level.ts`'s `levelStart()` is where a level's first round starts on a
   depth.
   `par.json` is each level's par at each depth, the same at every depth for
-  now. `levels.spec.ts` holds every level to the rules `plan.md` says a
-  level keeps, finding a needed brick sealed in by a flood fill of its own.
+  now. `certificate.ts` is a certificate's line as its file keeps it, pairs
+  of an aim's index and a charge (`CertifiedShot`, `Line`), and turns a
+  pair into a shot (`shotOf()`). `levels.spec.ts` holds every level to the
+  rules `plan.md` says a level keeps, finding a needed brick sealed in by a
+  flood fill of its own.
 - **`src/rules/flight/`** — the flight. `events.ts` describes what happens
   in one (`FlightEvent`, in the order its doc gives) and each fuzzball's
   path (`BallTrack`, `positionAt()`). `cast.ts`'s `cast()` writes into a
@@ -146,8 +150,11 @@ helpers.
   jump once no brick the level needs stands below the jump line, sinking
   what the level doesn't need at the floor's row and losing the level on
   what it does; and says whether a level is cleared (`isCleared()`) and a
-  brick needed (`isNeeded()`). `regrow()` returns the wall as it is, as no
-  kind regrows yet.
+  brick needed (`isNeeded()`), the row the lowest needed brick stands in
+  (`lowestNeededRow()`), how many stand under a row (`neededBelow()`), and
+  the danger: one standing in `DANGER_ROW`, the row over the floor's, or
+  lower (`inDanger()`, `dangerCells()`). `regrow()` returns the wall as it
+  is, as no kind regrows yet.
 - **`src/rules/round/`** — `round.ts`: a round's types, where it starts
   (`RoundStart`: the wall, the depth, where the fuzzball waits, the friends
   and the boon), what it came to (`RoundOutcome`) and the round played
@@ -523,6 +530,10 @@ What the specs share is in `src/testing/`:
   (`FLIGHT_FIXTURES`) to build the view, the scene and the shell against,
   and `orderProblemsOf()` and `trackProblemsOf()`, which hold a flight to
   the order and the paths `src/rules/flight/events.ts` describes.
+- `level_picture.ts` makes a level of a pictured wall (`levelFrom()`), and
+  holds rules under which no shot takes a hit (`NO_HITS`) and a level that
+  loses to them after a jump (`HIGH_BRICK`), for the solver's and the
+  careless player's specs.
 - `wall_picture.ts` lays a wall out from a picture in the legend's
   characters (`wallFrom()`), tinted as a level's are, so a spec draws the
   wall it plays, as the fixtures do.
@@ -531,6 +542,14 @@ What the specs share is in `src/testing/`:
   for each round it took, and any other less each needed brick's hits and
   weight, the more the nearer the floor, less the danger, and more for each
   friend and a boon earned.
+- `solver.ts` finds a line of shots that clears a level on a depth
+  (`solveLevel()`): greedy at every fourth aim, then a beam of 4, then every
+  aim (`SEARCHES`), within `SOLVER_ROUNDS`, keeping every needed brick out
+  of the danger row, its line kept as a certificate keeps it; and
+  `replayLine()` plays a line through `playRound()`.
+- `casual.ts` is the careless player (`playCasually()`): each round it
+  plays the best by `wallScore()` of `CASUAL_LOOKS` shots drawn from a
+  seed. `CASUAL_FLOORS` is how often it must clear a set's levels.
 - `cast_reference.ts` casts by a scan of every brick (`castByScan()`),
   working each kind's shape and reach out for itself, and makes seeded
   walls and shots (`randomField()`, `randomShot()`), on which `cast.spec.ts`
