@@ -959,3 +959,81 @@ wall at rest and the pace):
    breaks, and its made-up zap wasn't said to be. Fixed: its next wall
    lacks the brick, its `length` is the zap's moment, and its doc says the
    zap is made up.
+
+### V3's view, as the scene reads it
+
+**2026-11-10.** Before U1 hands `RoundPlay`'s view to S1's scene, the view
+is brought to the two rules the scene reads it by, which V3 missed.
+
+**What was built.** In `src/view/round_play.ts`:
+
+- **`wallDrop` is 1 while the wall stands still,** aiming, flying and at
+  rest. As the flight ends, the wall the round leaves, `round.next.wall`,
+  is handed over at once with `wallDrop` 0, and eases to 1 over `STEP_MS`
+  or `JUMP_MS`; S1's `WallPainter` draws it from the row it last stood
+  still on, as integration's note for V3 after S1 asked. V3 eased the
+  flight's own wall from 0 and showed the next only at rest, which the
+  painter would have drawn a step too high from then on.
+- **The view hands over another wall each frame that changes a brick,**
+  as the painters redraw only a wall they haven't drawn: two copies take
+  turns, the frame's first change copying the wall shown into the other,
+  both sized for the round's wall as it is released, so a frame still
+  makes nothing. V3 changed one copy in place, which the painters would
+  never have redrawn.
+- `RoundView`'s docs for `wall`, `wallDrop` and `rowsDown` say both.
+- **One `RoundPlay` plays a whole game,** level after level and run after
+  run, aimed at each, so its logs number their events on and the scene's
+  reader of them never sees the numbers start again; the class's doc says
+  so, where V3's said one a level.
+
+**Choices the plan didn't make.**
+
+1. **Bricks the step sinks go as the flight ends,** with the wall handed
+   over, rather than once the step is over, as V3's fourth choice had it:
+   the scene draws the wall it is handed, from where it last stood.
+2. **A wall handed over may be written again two changes later,** so a
+   reader reads the view after every frame played and compares a wall only
+   with the one it read the frame before, as the doc says: the painters
+   draw once a frame, and U1's tick must advance the play once a tick.
+3. **The jump line's count of the bricks under it moves as the flight
+   ends,** as the field painter reads the wall handed over then, a step or
+   a jump before the bricks are drawn there: it counts the wall the round
+   leaves, as the announcer does.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass, after the review, 3,772 tests in 64 files;
+`round_play.spec.ts` has 131, `round_play.ts` at 100% of statements,
+functions and lines and 99% of branches. The root's `yarn lint` passes.
+
+**The mutation pass.** 19 mutants of the new code: when the wall is
+copied, each part of the swap, the frame not counted, the copy's rows,
+place and length, the wall handed over as the flight ends, `wallDrop` and
+`rowsDown` at the landing, at rest, at the aim and at the start, and the
+changes' reset. Five survived: the copy made at every change rather than
+once a frame, twice, which the review showed hands the same wall back
+after a frame of two changes, now given a spec; the copy's length cut,
+equivalent within a level, whose walls are all one size; and the changes'
+two resets, which the second round's spec had checked at rest, where the
+view now hands over the next wall: it now looks just before the flight
+ends, and both were killed. The 89 earlier mutants that still apply were
+run again: all were killed but the three logged as equivalent. After the
+review, five more: the copy's flag set and reset, and the copies sized at
+the release, whose two survive, as they spare a frame the work of
+growing them and change nothing else.
+
+**The review:**
+
+1. **A copy made at every change was taken as equivalent,** but a frame of
+   two changes then hands back the wall of the frame before, written over,
+   which the painters wouldn't redraw. Fixed: a spec of a frame that breaks
+   two bricks; the mutation pass says so.
+2. **The first frames to change a wall grew the copies.** Fixed: both are
+   sized for the round's wall as it is released.
+3. **The wall's doc let a reader compare with any wall before.** Fixed:
+   it compares only with the one read the frame before, reading the view
+   after every frame played (choice 2), which U1's tick keeps.
+4. **The jump line's count moves as the flight ends.** Kept, and logged
+   (choice 3).
+5. **Nits.** The frame's count and the frame copied in became one flag;
+   `wallDrop`'s doc says it is already 1 where the wall comes down at
+   once; the spec of walls across frames checks one thing each.

@@ -333,6 +333,31 @@ function landingFirst(role: BallRole): FlightFixture {
   return { ...alone, round: { ...alone.round, flight } };
 }
 
+/**
+ * The plain shot, with two bricks of the wall's top made up for the view
+ * to break after its strike, a unit apart.
+ */
+const BREAKING_ON: FlightFixture = withEvents(plain, [
+  {
+    at: 7.5,
+    kind: "break",
+    cell: 36,
+    brick: "brick",
+    by: "zap",
+    streak: 1,
+    points: 10,
+  },
+  {
+    at: 8.5,
+    kind: "break",
+    cell: 37,
+    brick: "brick",
+    by: "zap",
+    streak: 2,
+    points: 10,
+  },
+]);
+
 /** The moment {@link RIPPLING}'s zap ripples on to, half a unit past the plain shot's landing. */
 const RIPPLED_AT = plain.round.flight.length + 0.5;
 
@@ -381,6 +406,7 @@ describe("RoundPlay, aiming", () => {
       round: play.round,
       waitingX: play.waitingX,
       wall: play.view.wall,
+      wallDrop: play.view.wallDrop,
       balls: play.view.balls,
     }).toEqual({
       phase: "aiming",
@@ -388,6 +414,7 @@ describe("RoundPlay, aiming", () => {
       round: null,
       waitingX: plain.start.x,
       wall: plain.start.wall,
+      wallDrop: 1,
       balls: [],
     });
   });
@@ -798,6 +825,66 @@ describe("RoundPlay's wall", () => {
     expect(play.view.wall.bricks).toEqual(plain.start.wall.bricks);
   });
 
+  it("hands over another wall as a frame changes a brick", () => {
+    const play = playing(plain);
+    playOnBy(play, 6);
+    const before = play.view.wall;
+
+    playOnBy(play, 1);
+
+    expect(play.view.wall).not.toBe(before);
+  });
+
+  it("hands over the same wall for a frame that changes no brick", () => {
+    const play = playing(plain);
+    playOnBy(play, 7);
+    const before = play.view.wall;
+
+    playOnBy(play, 0.5);
+
+    expect(play.view.wall).toBe(before);
+  });
+
+  it("hands over another wall as a later frame changes one", () => {
+    const play = playing(BREAKING_ON);
+    playOnBy(play, 7);
+    playOnBy(play, 1);
+    const broken = play.view.wall;
+
+    playOnBy(play, 1);
+
+    expect(play.view.wall).not.toBe(broken);
+  });
+
+  it("hands over another wall for a frame that changes two bricks", () => {
+    const play = playing(BREAKING_ON);
+    playOnBy(play, 7);
+    const struck = play.view.wall;
+
+    playOnBy(play, 2);
+
+    expect(play.view.wall).not.toBe(struck);
+  });
+
+  it("keeps each change to the wall as later frames change it", () => {
+    const play = playing(BREAKING_ON);
+    playOnBy(play, 7);
+    playOnBy(play, 1);
+
+    playOnBy(play, 1);
+
+    const { bricks } = play.view.wall;
+    expect([bricks[8]?.hits, bricks[36], bricks[37]]).toEqual([1, null, null]);
+  });
+
+  it("stands the wall still while the flight plays", () => {
+    const play = playing(plain);
+
+    playOnBy(play, 7);
+
+    expect(play.view.wallDrop).toBe(1);
+  });
+
   it("wears a struck brick to the hits the strike leaves it", () => {
     const play = playing(plain);
 
@@ -858,30 +945,29 @@ describe("RoundPlay's wall", () => {
     (_name, fixture) => {
       const play = playing(fixture);
 
-      playUntilLanded(play);
+      playOnBy(play, fixture.round.flight.length - HAIR);
 
       expect(play.view.wall.bricks).toEqual(fixture.round.next.wall.bricks);
     },
   );
 
-  it("takes a brick away that a zap rippling on past the last landing breaks", () => {
-    const play = playing(RIPPLING);
-
-    playUntilLanded(play);
-
-    expect(play.view.wall.bricks[0]).toBeNull();
-  });
-
-  it("keeps a brick the wall's step sinks until the step is over", () => {
+  it("hands over the wall the round leaves as its flight ends, to come down to from where it stood", () => {
     const play = playing(hotShot);
+
     playUntilLanded(play);
 
-    play.advance(STEP_MS - 1, NORMAL);
-
-    expect(play.view.wall.bricks[1]?.kind).toBe("steel");
+    expect({
+      wall: play.view.wall,
+      wallDrop: play.view.wallDrop,
+      rowsDown: play.view.rowsDown,
+    }).toEqual({
+      wall: hotShot.round.next.wall,
+      wallDrop: 0,
+      rowsDown: hotShot.round.outcome.rowsDown,
+    });
   });
 
-  it("shows the wall the round leaves once it comes to rest, the bricks it sank gone", () => {
+  it("stands the wall the round leaves still once it comes to rest", () => {
     const play = playing(hotShot);
 
     playUntilSettled(play);
@@ -890,7 +976,7 @@ describe("RoundPlay's wall", () => {
       wall: play.view.wall,
       wallDrop: play.view.wallDrop,
       rowsDown: play.view.rowsDown,
-    }).toEqual({ wall: hotShot.round.next.wall, wallDrop: 0, rowsDown: 0 });
+    }).toEqual({ wall: hotShot.round.next.wall, wallDrop: 1, rowsDown: 0 });
   });
 
   it("shows the wall's rows and its place as the round starts while it flies", () => {
@@ -903,15 +989,6 @@ describe("RoundPlay's wall", () => {
       rows: plain.start.wall.rows,
       lowestRow: plain.start.wall.lowestRow,
     });
-  });
-
-  it("keeps the wall's place until the step is over", () => {
-    const play = playing(plain);
-    playUntilLanded(play);
-
-    play.advance(STEP_MS - 1, NORMAL);
-
-    expect(play.view.wall.lowestRow).toBe(plain.start.wall.lowestRow);
   });
 
   it("leaves the wall the round started with as it was", () => {
@@ -1178,7 +1255,7 @@ describe("RoundPlay's settling", () => {
       round: null,
       waitingX: plain.round.next.x,
       wall: plain.round.next.wall,
-      wallDrop: 0,
+      wallDrop: 1,
       rowsDown: 0,
     });
   });
@@ -1306,10 +1383,10 @@ describe("RoundPlay's next round", () => {
     expect(change.settled).toBe(plain.round);
   });
 
-  it("leaves the next round's wall as its round does", () => {
+  it("leaves the next round's wall as its round does as its flight ends", () => {
     const play = playingAfter(punch, plain);
 
-    playUntilLanded(play);
+    playOnBy(play, plain.round.flight.length - HAIR);
 
     expect(play.view.wall.bricks).toEqual(plain.round.next.wall.bricks);
   });
