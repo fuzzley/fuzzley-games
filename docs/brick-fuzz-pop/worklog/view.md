@@ -1595,3 +1595,73 @@ it is overwritten by the same frame's playback before anything shows it.
    charge during a flight. Fixed.
 5. **A line of `AGENTS.md`'s `play/` paragraph ran past the margin.**
    Fixed: the paragraph reflowed.
+
+## Part 3: after the feel gate
+
+### X3's rules: the shell's and moss's traits
+
+**2026-11-11.** The first of X3's two commits. The second, the shell and
+moss in the catalog with their help entries and moss growing back as the
+wall comes down, waits on the art: `BRICK_ART` in `src/view/art/art.ts`
+`satisfies` a record of every cataloged kind, so cataloging the two
+before the art stream draws them fails to compile, and the art is that
+stream's. This commit plays the two traits in a flight, specced on
+stand-ins, as R3 specced the traits before their kinds.
+
+- **`SHELLED_RULE`** (`traits/shelled.ts`) shields its brick from a
+  fuzzball with no charge: a plain fuzzball, or a friend, takes no hit off
+  a shell and turns. Charge, a hot shot's among it, a zap and a blast hurt
+  it, and nothing is earthed. The rest is the flight's own: `strike()`
+  takes no hit and spends nothing, and a strike that takes no hit doesn't
+  count against a fuzzball's boredom, as `plan.md` asks of "a shell it
+  can't hurt". The view's clank for a strike that takes no hit
+  (`src/view/effects/effects.ts`) already speaks for it.
+- **`REGROWS_RULE`** (`traits/regrows.ts`) has no rule for any moment of a
+  flight: moss takes hits as any brick, and grows one back only between
+  rounds, which the next commit fills into `regrow()`.
+- `TRAIT_RULES` plays both where it threw "not until level 28" and "29".
+  Their comments naming the kinds stay, so the lines X1 and X2 change
+  above them keep a line between theirs and these, and Git merges the
+  map. It won't merge the rest without a hand: the imports, where X1's
+  and X2's land between `not_until` and `zaps` as these do;
+  `trait_rules.spec.ts`'s list of traits that throw, whose rows each
+  stream takes out side by side; and `AGENTS.md`'s sentence listing the
+  traits. Each conflict keeps both sides.
+
+**Choices.**
+
+1. **A shell's shield asks only whether a fuzzball strikes with no
+   charge,** not whether it is a hot shot: a hot shot always flies at
+   charge 5, so asking would change nothing.
+2. **A charged fuzzball whose charge an earlier strike at the same moment
+   spent** meets the shell plain, and turns off it, as the order of
+   strikes at one moment (`implementation-plan.md`'s C1) says the charge
+   is spent first.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass after the review: 4,881 tests in 112 files, the
+coverage run's 4,731 in 92 at its floors, the two rules at 100%. The
+root's `yarn lint` passes.
+
+**The mutation pass.** 11 mutants, all killed: the shield on any cause
+of strike, on any charge, on either, on a charge of 1 too, earthing as it
+shields, and gone; a shell played as steel, as nothing, and moss as a
+shell, in `TRAIT_RULES`; and moss shielding, or with a rule at a break.
+
+**The review:**
+
+1. **The log said Git merges the shared lines;** it merges the map, but
+   the imports, the spec's list of traits that throw and `AGENTS.md`'s
+   sentence will each need a hand. Fixed: the log says so.
+2. **Two behaviours had no spec:** a fuzzball whose charge a strike at the
+   same moment spent, meeting a shell (choice 2), and a shielded strike
+   not counting against boredom (`implementation-plan.md`'s C2). Fixed: a
+   flown spec of each, the second yawning at a boredom of 4 where a tough
+   brick wouldn't.
+3. **The log cited `plan.md` for C1, and called `effects.ts` the
+   scene's.** Fixed.
+4. **`SHELLED_RULE`'s doc read awkwardly.** Fixed, in the words suggested.
+5. **`REGROWS_RULE`'s two specs came to one,** that it holds no rule.
+   Fixed: one spec, `toEqual({})`. The spec of a charged fuzzball
+   spending its charge on a shell passes for a tough brick too; it is
+   kept, as it holds a shield on any charge off.
