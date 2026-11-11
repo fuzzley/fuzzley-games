@@ -17,14 +17,11 @@ import {
 } from "../../../testing/art_frames";
 import { atlasFrames } from "../atlas_frames";
 import { cellOf } from "../symbols";
-import { tileBody } from "./brick";
+import { tileBody, tileRadius } from "./brick";
 import { TOUGH_ART, cracksFrame, pipsFrame } from "./tough";
 
 /** How far a point may stray past a line and still pass, for a rounding. */
 const SLACK = 1e-9;
-
-/** How round a tile's corners are, as a share of its cell. */
-const TILE_CORNER = 0.14;
 
 /** Returns every scale that draws the cracks at a pixel ratio: each whole unit from 30 CSS pixels to 128 device pixels, the most the atlas is baked at. */
 function detailedScales(pixelRatio: number): readonly ArtScale[] {
@@ -289,8 +286,7 @@ describe.each(PIXEL_RATIOS)(
           crack.points
             .filter(
               (point) =>
-                pastRoundRect(point, tileBody(cell), TILE_CORNER * cell.width) >
-                SLACK,
+                pastRoundRect(point, tileBody(cell), tileRadius(cell)) > SLACK,
             )
             .map(() => `crack ${String(i + 1)} at ${String(scale.unit)}`),
         );

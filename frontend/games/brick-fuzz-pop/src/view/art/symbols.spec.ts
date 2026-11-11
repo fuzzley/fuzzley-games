@@ -1,8 +1,9 @@
-import { outlineRoundRect, rect } from "@fz/phaser/shapes";
+import { outlineRoundRect, polygon, rect } from "@fz/phaser/shapes";
 import { billionths } from "../../testing/art_frames";
 import { FRAMES } from "./frames";
 import {
   bandAlong,
+  boltMark,
   cellFrame,
   cellOf,
   crispEdge,
@@ -10,6 +11,7 @@ import {
   detailed,
   diePips,
   itemAt,
+  pointAt,
   turned,
 } from "./symbols";
 
@@ -44,6 +46,14 @@ describe("cellOf", () => {
       });
     },
   );
+});
+
+describe("pointAt", () => {
+  it("gives the point at shares of an area across and down", () => {
+    expect(pointAt({ x: 10, y: 20, width: 40, height: 80 }, 0.25, 0.5)).toEqual(
+      { x: 20, y: 60 },
+    );
+  });
 });
 
 describe("cellFrame", () => {
@@ -212,6 +222,25 @@ describe("turned", () => {
     const { x, y } = turned({ x: 3, y: 4 }, 90);
 
     expect({ x: billionths(x), y: billionths(y) }).toEqual({ x: -4, y: 3 });
+  });
+});
+
+describe("boltMark", () => {
+  it("draws the lightning bolt about a middle, reaching half its height up and down", () => {
+    expect(boltMark({ x: 100, y: 50 }, 10, { color: 7 })).toEqual(
+      polygon(
+        [
+          { x: 99.2, y: 40 },
+          { x: 105, y: 40 },
+          { x: 101.4, y: 48 },
+          { x: 106.2, y: 48 },
+          { x: 97, y: 60 },
+          { x: 99.6, y: 51.2 },
+          { x: 94.4, y: 51.2 },
+        ],
+        { color: 7 },
+      ),
+    );
   });
 });
 

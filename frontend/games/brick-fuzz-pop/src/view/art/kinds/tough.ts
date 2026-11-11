@@ -15,7 +15,16 @@ import {
 import { inkAt } from "../../colors/inks";
 import type { KindArt } from "../art";
 import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
-import { bandAlong, cellFrame, detailed, diePips, itemAt } from "../symbols";
+import {
+  ACROSS,
+  CRACK_WIDTH,
+  DOWN,
+  bandAlong,
+  cellFrame,
+  detailed,
+  diePips,
+  itemAt,
+} from "../symbols";
 import { tileBody, tileFrame } from "./brick";
 
 /** The pips' frames, from 2 pips: a brick with a hit left shows none. */
@@ -29,9 +38,6 @@ const CRACKS_FRAMES: readonly FrameName[] = CRACKS.map((cracks) =>
 /** Where a die's middle pip sits in its cell, and how far apart its pips are, as shares of the cell. */
 const DIE = { across: 0.5, down: 0.48, step: 0.2, radius: 0.066 } as const;
 
-/** How wide a crack is, in field units. */
-const CRACK_WIDTH = 0.032;
-
 /** Says how a crack runs: along the edge of its tile it starts on, and in from it. */
 interface Crack {
   /** The way along the edge it starts on, which its first end is cut along. */
@@ -39,12 +45,6 @@ interface Crack {
   /** Its zigzag, as shares of its tile's body, from a point on that edge. */
   readonly path: readonly (readonly [number, number])[];
 }
-
-/** The way along a tile's top or bottom edge. */
-const ACROSS: Point = { x: 1, y: 0 };
-
-/** The way along a tile's left or right edge. */
-const DOWN: Point = { x: 0, y: 1 };
 
 /**
  * Each crack a brick gathers, a hit it took, in the order it gathers them: a

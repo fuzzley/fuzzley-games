@@ -1759,3 +1759,230 @@ are hidden, so the count showed nowhere.
      reads, once the board is measured.
   6. The spec of what lies outside the application finds one count in
      the page too.
+
+### X1's art: the bomb, wool, the cage, and the cross and X zappers
+
+**2026-11-11.** The art of Sparks' five kinds, drawn ahead of X1, which
+catalogs them. As the integrator settled it, the art lands unwired: each
+kind's file and its specs, none of it in `BRICK_ART`, whose `satisfies`
+over the catalog's ids refuses art for a kind not yet cataloged as it
+refuses a cataloged kind without art. X1 adds the five lines to
+`BRICK_ART` with its catalog commit.
+
+- **Built.**
+  - `src/view/art/kinds/zapper.ts`: the cross's and the X's patterns. A
+    zapper is drawn from a list of bolts, each turned by a cosine and a
+    sine and drawn longer by a factor: the row's and the column's one
+    zigzag bolt; the cross's two straight ones along its row and its
+    column, with a diamond in the field's text on a rim of its face where
+    they cross; the X's two straight ones an eighth of a turn either way,
+    1.2 times as long and as wide, toward the tile's corners.
+    `ZapperKind` is the palette's four zappers (`InkedKind`) rather than
+    the catalog's ids, so `zapperArt("crossZapper")` and
+    `zapperArt("xZapper")` build before X1 catalogs them.
+  - `src/view/art/kinds/bomb.ts`: `BOMB_ART`, the tile in the danger
+    color, seven dots toward the bricks around it, the round bomb, its
+    neck and its fuse cut out in the mark, a shine of the tile's color on
+    the bomb, and a spark in the sparks' color on a star cut out at the
+    fuse's end.
+  - `src/view/art/kinds/wool.ts`: `WOOL_ART`, the tile in pink, three rows
+    of five V stitches in a yarn of the pink half white, and a disc cut
+    out of its top right corner with a lightning bolt on it in the sparks'
+    color.
+  - `src/view/art/kinds/cage.ts`: `CAGE_ART`, a cage as two layers. The
+    lower, `caged-<ink>`, a frame for each of the friends' eight inks: the
+    tile in steel, its darker inside, and the friend it holds in the ink
+    its tint picks, its eyes cut out in the mark. The upper, `cage-whole`
+    or `cage-hit`: four steel bars, and once hit the third broken, its two
+    ends bent aside, and a crack down the frame's top.
+  - `src/view/art/frames.ts` gains `FRAMES.caged(ink)`, `caged-0` to
+    `caged-7`, in `FRAME_NAMES` before the cages' bars.
+  - `src/view/art/art.ts`: `KindLook`, a brick's look but its kind, which
+    `KindArt`'s `layersOf` and `colorOf` read, so a kind's art can be
+    asked before `BrickKindId` names the kind. `BRICK_ART` is as it was.
+  - `src/view/art/symbols.ts`: `CRACK_WIDTH` and the edges' ways
+    (`ACROSS`, `DOWN`), moved from `tough.ts` for the cage's crack;
+    `EIGHTH`, the cosine of an eighth of a turn, for the bomb's neck and
+    the X's bolts; `pointAt()`, a point at shares of an area; and
+    `boltMark()`, the lightning bolt, which the shell's art draws too.
+  - The specs take the tile's corner from `brick.ts`'s `tileRadius()`,
+    which the scene stream's shell and moss brought, rather than copy it.
+  - `src/testing/art_frames.ts`: `pastRoundRect()` measures a point inside
+    a rounded rectangle as far in as its nearest edge, rather than up to
+    its radius, and `reachPastRoundRect()` says how far any command
+    reaches past one.
+  - Specs: `bomb.spec.ts`, `wool.spec.ts` and `cage.spec.ts`, each
+    reading its kind's frames from its art; the cross's and the X's in
+    `zapper.spec.ts`; the new symbols' and the helper's. In
+    `atlas_frames.spec.ts` every check of the atlas's frames, within the
+    cell, lines a CSS pixel wide, the size under 2048², the bakes at
+    units 1 to 16, the detail at 29 and 31 CSS px and the frames' names,
+    runs over the unwired art's frames too, the five kinds in the scene
+    stream's `WAITING_ART` beside the shell and moss, and a new one holds
+    every brick's frame but the zappers' within the chunky tile's rounded
+    square, the shell's and the moss's among them; 81 tests more.
+  - The game's `AGENTS.md`: the art's entry names the four zappers and
+    the five files unwired, the scene stream's two among them, which
+    `BRICK_ART` takes in as the catalog takes in their kinds; the testing
+    entry, `reachPastRoundRect()`.
+- **Choices the plan didn't make.**
+  1. **A cage's friend is a frame for each ink, under its bars,** as the
+     integrator settled that each cage owns its ink, which the rules give
+     it as its tint, 0 to 5 from the wall's lowest cage up, and its friend
+     keeps as it is freed. Tinting a white friend as it is drawn would
+     want the scene to tint one of a brick's layers, which no layer is
+     now; eight frames more fit the atlas (Numbers), and a cage stacks two
+     layers, where the wall's painter holds three. The frames run to the
+     friends' eight inks, as the `friend-<ink>` frames do, though six
+     cages at most hold one.
+  2. **Under 30 CSS px the bomb's dots drop,** as steel's rivets do,
+     being smaller (0.027 of a cell against 0.04), **and so does the
+     cage's crack,** a crack; its broken bar stays, the mark of its hit.
+  3. **The cage's crack starts on its tile's top edge,** cut along it, as
+     a tough brick's cracks are, where the art's starts above the tile.
+  4. **The cage's inside and bars lie on whole pixels,** each bar a whole
+     number of pixels wide and a CSS pixel at least, the right side
+     mirroring the left and the bottom the top, so the cage stays centered
+     at every unit; the broken bar bends from the middle of the bar it
+     was.
+  5. **The art's round lines are `stroke()`:** the fuse, the shine and the
+     stitches, round at their ends and bends as the art's polylines are;
+     its mitred ones, the broken bar's ends and the crack, are bands.
+  6. **The yarn is mixed in the art,** the wool's ink 52% white, as
+     steel's sheen is, not a palette ink: 1.9:1 to 2.3:1 against the
+     pink, a texture; the wool's mark is its disc and bolt, which the
+     palette's spec holds.
+  7. **The specs hold the unwired art as the atlas's,** through
+     `atlas_frames.spec.ts`'s `WAITING_ART`, by the id each kind will
+     take, which passes over a kind once `BRICK_ART` holds it.
+- **Checks.** The workspace's lint, typecheck and `test:coverage`, on
+  `brick-fuzz-pop` at `53ffd3bd`: 4,971 tests in 107 files, and 150 in
+  `sim`, the floors held; the root's lint.
+- **The mutation pass,** run again over each version: 49 mutants at the
+  last, from each kind's numbers, inks, widths, order, detail and layers
+  to the symbols and the specs' helper. Three lived across the passes,
+  and die now: the bomb's tile in its face's color, as the specs' palette
+  gives the bomb one ink for both, so the bomb's and the wool's tile
+  specs draw in inks of the kind's own; the cage's feet rounded on their
+  own, as the cage's symmetry spec held it across only, which holds it
+  down too now; and the crack 0.028 of a cell wide, which rounds as 0.032
+  does at 128 device px, so the spec draws it at 110. The bomb's neck had
+  no spec until the pass was planned.
+- **Numbers.** At 128 device px a unit the atlas's 37 frames, the shell's
+  and the moss's 6 and the five kinds' 14 pack into 908 × 1042, and with
+  the scene's frames and a picture of each of the 16 kinds 1140 × 1448,
+  under 2048 × 2048. The friends' inks against a cage's inside: 3.40:1 at
+  the least, in Classic felt; the field's text against the cross's tile:
+  9.82:1 to 13.11:1.
+- **For other streams.**
+  - X1, wiring the art with its catalog commit: `bomb: BOMB_ART`,
+    `crossZapper: zapperArt("crossZapper")`,
+    `xZapper: zapperArt("xZapper")`, `wool: WOOL_ART` and
+    `cage: CAGE_ART` in `BRICK_ART`, in the catalog's order; in
+    `atlas_frames.spec.ts`, the fourteen frames (`bomb`, `zapper-cross`,
+    `zapper-x`, `wool`, `caged-0` to `caged-7`, `cage-whole` and
+    `cage-hit`, as the kinds come) in the list of what the atlas holds,
+    and its title, and the kinds' entries in `WAITING_ART` dropped, which
+    passes over them once `BRICK_ART` holds them; `art.spec.ts`'s cases of
+    each kind's layers and shards may take them too. A cage shows
+    `cage-hit` once it has fewer hits than whole.
+  - The rules stream, numbering a wall's cages: the art reads a cage's
+    `tint` as its friend's ink, and throws a `RangeError` for one past 7.
+  - The scene stream, for the shell and moss, left to it as its own: the
+    shell's `BOLT` is `boltMark()`'s bolt placed at 0.5 across and 0.4
+    down, half 0.15 of the cell tall, as `make-art.mjs` draws both with
+    one helper, so `bodyCommands` may draw it with
+    `boltMark(pointAt(cell, 0.5, 0.4), 0.15 * cell.width, …)`; and since
+    `KindArt` reads a `KindLook`, which has no kind, `shell.spec.ts`'s and
+    `moss.spec.ts`'s looks need no `kind: "tough"`, nor the docs saying
+    why.
+- **The rebase,** onto `brick-fuzz-pop` at `53ffd3bd`, past the scene
+  stream's shell and moss (`1a3b96d0`), met in five files, each keeping
+  both: `symbols.ts` holds its `turned()` and this change's `pointAt()`,
+  `EIGHTH` and `boltMark()`; `FRAME_NAMES` counts 69, the shell's body and
+  the cages' insides both; `brick.ts` keeps its corner to itself, the
+  specs reading it through the scene's `tileRadius()` rather than this
+  change's `TILE_CORNER`; and `atlas_frames.spec.ts` keeps one way of
+  holding the unwired art, the scene's `WAITING_ART` and `everyFrame()`,
+  which reads better than this change's `UNWIRED` and `drawnFrames()`: a
+  kind's art under the id it will take, passed over once `BRICK_ART`
+  holds it, so wiring a kind doubles no frame. The five kinds join it, and
+  the rounded-square check and the detail spec run over it, the shell's
+  and the moss's frames passing both. The names check and the detail spec
+  sit in `describe("atlasFrames")` again, as the scene had them, titled
+  for the waiting art, which undoes the split the second review's fourth
+  comment brought; what X1 changes there is still under For other
+  streams.
+- **The review,** of the change as first staged, with the art wired into
+  `BRICK_ART` through a table of every kind's art that the atlas baked:
+  no bug; four comments, each answered.
+  1. That table's keys were held to the catalog's and the palette's ids
+     by a spec alone, which a portal drawn before X2 would fail: the
+     table is gone, as the art lands unwired.
+  2. The frames held to the tile's rounded square were listed by hand,
+     so a new one on the tile went unchecked, and the spec copied the
+     tile's corner: every brick's frame but the zappers' is held now, and
+     the spec takes the corner from `brick.ts`, as `tough.spec.ts` does
+     too, through `tileRadius()` since the rebase.
+  3. `reachPastRoundRect()`'s doc promised a bound a polyline's mitred
+     corners break: it says so now, as `extentOf()`'s does.
+  4. The small points, each taken but one: `EIGHTH` in `symbols.ts`,
+     not in the bomb's and the zapper's files both; the zapper's middles
+     by `pointAt()`; the stitches by `placed()`; `DOTS` and `NECK` typed
+     read-only; the docs of `Shares` and `ZapperKind`. The cage's
+     `onWholePixels()` stayed its own, until a second kind wanted it; the
+     mirrored inside and bars (choice 4) have since replaced it.
+- **The second review,** of the change unwired: no bug in the art; five
+  comments, each answered.
+  1. The specs held the new lines' widths only to the CSS pixel, which
+     every width rounds to at the specs' scale, and the bomb's fuse and
+     shine and the cross's rim by their being there, not their order: at
+     128 device px a unit the fuse is held to 5 px, the shine to 4 and the
+     yarn to 5, and at 110 the crack to 4; the bomb's marks after its dots
+     are one list in order; and the cross's rim and core are the last it
+     draws.
+  2. Each edge of the cage rounded on its own, so a half pixel left it a
+     pixel off center at some units: the right side mirrors the left
+     (choice 4), and a spec at 50, 75, 100 and 128 device px holds both.
+  3. The caged friend in the first friend's coral rather than the
+     sheet's pink: answered by the integrator's ruling, each cage in its
+     own ink (choice 1).
+  4. The atlas spec's names would go stale as X1 wires the kinds: its
+     block is split, the atlas's own list and the art's, and the log
+     tells X1 what to change and delete.
+  5. The small points, each taken: `BROKEN_ENDS`' doc, the wool's
+     header, the bolt sized by the cell's width, the symbols' header, and
+     "two bolts".
+- **The third look,** at the cage as two layers: no bug; five comments,
+  each taken.
+  1. No spec saw the bars' ink, the specs' palette giving the cage's
+     body, glyph and steel one color: the bars are drawn in the cage's own
+     inks, and a mutant drawing them in its body's dies.
+  2. "Half as large again as the art's fuzzball" was true of the sheet's
+     fuzzball, not the game's: the friend's doc and spec say 1.5 of the
+     design's 100 units to a unit of the fuzzball's grid, 0.6 of the
+     fuzzball in play.
+  3. The symmetry spec fell back to `NaN`, which `toEqual` takes as equal:
+     it takes the inside as a slice and counts the five shapes.
+  4. The log: choice 4 says the bottom mirrors the top, and the first
+     review's answer that `onWholePixels()` was since replaced.
+  5. The small points: `FRAME_NAMES` lists the `caged-<ink>` frames before
+     the bars, as they stack; `CAGE_ART`'s doc opens with one sentence;
+     and `DETAIL_CSS`'s doc names the bomb's dots. `TOUGH_ART`'s doc,
+     A2's, has two sentences in its first paragraph too, and is left.
+- **The fourth review,** of the rebase: no bug, and nothing of either side
+  lost; four comments, each answered.
+  1. The shell's bolt is a copy of `boltMark()`'s: the shell is the scene
+     stream's, so its file is left as it is, and the point is under For
+     other streams, with the log's line on `boltMark()` set right.
+  2. `shell.spec.ts` and `moss.spec.ts` still give their looks a kind,
+     which `KindLook` made needless: the scene stream's too, and under For
+     other streams.
+  3. The log: the tests are 81 more on this base, counted by running the
+     touched specs at `53ffd3bd` and now; the `caged-<ink>` frames come
+     before the bars, in `FRAME_NAMES` and in `frames.spec.ts`'s count;
+     the rebase bullet says the atlas spec's split is undone, and that
+     wiring a kind doubles no frame rather than breaks nothing; and the
+     lines the rebase left uneven are wrapped again.
+  4. `symbols.spec.ts` holds `boltMark()` after `turned()`, as the file
+     defines them.

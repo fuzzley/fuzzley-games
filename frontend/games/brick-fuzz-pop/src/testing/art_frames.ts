@@ -2,6 +2,7 @@ import {
   type Area,
   type ArtFrame,
   type ArtScale,
+  type DrawCommand,
   type Point,
   inset,
 } from "@fz/phaser/shapes";
@@ -97,7 +98,8 @@ export function distanceToSegment(
 
 /**
  * Returns how far a point lies past the edge of a rectangle with rounded
- * corners: above nothing outside it, and nothing or below inside it.
+ * corners: above nothing outside it, and below nothing inside it, as far
+ * below as it lies in from the edge.
  */
 export function pastRoundRect(
   point: Point,
@@ -105,9 +107,57 @@ export function pastRoundRect(
   radius: number,
 ): number {
   const inner = inset(area, radius);
-  const nearest = {
-    x: Math.min(Math.max(point.x, inner.x), inner.x + inner.width),
-    y: Math.min(Math.max(point.y, inner.y), inner.y + inner.height),
-  };
-  return Math.hypot(point.x - nearest.x, point.y - nearest.y) - radius;
+  // How far past the inner rectangle's nearer side the point lies, each
+  // way: below nothing between its sides.
+  const across = Math.max(inner.x - point.x, point.x - inner.x - inner.width);
+  const down = Math.max(inner.y - point.y, point.y - inner.y - inner.height);
+  const outside = Math.hypot(Math.max(across, 0), Math.max(down, 0));
+  return outside + Math.min(Math.max(across, down), 0) - radius;
+}
+
+/**
+ * Returns how far a command reaches past the edge of a rectangle with
+ * rounded corners, at most: above nothing where it may show outside it, and
+ * nothing or below where it lies within it.
+ *
+ * It is measured from the points a command is drawn about, its line's half
+ * width or its radius out from them, so it may say a little more than a
+ * line's square end reaches, never less, short of a polyline's corners,
+ * which a canvas joins in points past its width, as `extentOf()` says.
+ */
+export function reachPastRoundRect(
+  command: DrawCommand,
+  area: Area,
+  radius: number,
+): number {
+  const past = (point: Point): number => pastRoundRect(point, area, radius);
+  const furthest = (points: readonly Point[]): number =>
+    Math.max(...points.map(past));
+  switch (command.kind) {
+    case "rect":
+    case "roundRect": {
+      // Its corners' middles, a radius in from each side, and the radius
+      // past them: a rectangle's are its corners.
+      const corner = command.kind === "roundRect" ? command.radius : 0;
+      const { x, y, width, height } = inset(command, corner);
+      return (
+        furthest([
+          { x, y },
+          { x: x + width, y },
+          { x, y: y + height },
+          { x: x + width, y: y + height },
+        ]) + corner
+      );
+    }
+    case "circle":
+      return past(command) + command.radius;
+    case "ring":
+      return past(command) + command.radius + command.width / 2;
+    case "line":
+      return furthest([command.from, command.to]) + command.width / 2;
+    case "polyline":
+      return furthest(command.points) + command.width / 2;
+    case "polygon":
+      return furthest(command.points);
+  }
 }
