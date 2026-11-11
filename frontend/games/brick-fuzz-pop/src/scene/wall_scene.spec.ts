@@ -1906,17 +1906,17 @@ describe("WallScene", () => {
       expect(pictures).toEqual({ bricks: baked });
     });
 
-    it.each<[BrickKindId, number]>([
-      ["brick", 1],
-      ["tough", 2],
-      ["steel", 0],
-      ["rowZapper", 1],
-      ["columnZapper", 1],
-    ])("picture a whole %s, of %i hits, in the first tint", (kind, hits) => {
-      expect(PICTURE_LAYERS[kind]).toEqual(
-        brickLayers({ kind, tint: 0, hits, full: hits, plates: 0 }),
-      );
-    });
+    it.each(BRICK_KIND_IDS)(
+      "picture a whole %s, of the fewest hits a level gives it, in the first tint",
+      (kind) => {
+        const { hits } = brickKind(kind);
+        const full = hits === "never" ? 0 : hits;
+
+        expect(PICTURE_LAYERS[kind]).toEqual(
+          brickLayers({ kind, tint: 0, hits: full, full, plates: 0 }),
+        );
+      },
+    );
 
     it("are kept until the atlas is baked again", async () => {
       const { shell, run } = await startBoard();
