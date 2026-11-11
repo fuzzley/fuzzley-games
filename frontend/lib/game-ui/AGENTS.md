@@ -208,8 +208,8 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   `resume()`, `newGame()`) as its rules say. It is undecorated and has no
   constructor, so a game's `@Injectable` class needs none either, and it
   reads nothing the game gives while it is made, so the game's fields and
-  constructor may lay out its first run. Asteroid Breaker's, Brick
-  Breaker's and Snake's `GameService`s extend it. The stages and the
+  constructor may lay out its first run. Asteroid Breaker's, Brick Breaker's,
+  Brick Fuzz Pop's and Snake's `GameService`s extend it. The stages and the
   commands it takes, `RunStage` and `RunCommand`, are `@fz/core/run`'s,
   which a game's rules and view can import, and the entry hands them on.
 - `src/testing/`: what a game's specs share: `installFakeViewport()`, which

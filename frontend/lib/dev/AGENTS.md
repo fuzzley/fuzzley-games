@@ -117,14 +117,14 @@ too. Paths are relative to `frontend/lib/dev/`.
   and V8 coverage of `src/`, less the setup file. `nodeTests()` is the same
   for specs that run in Node. Each is given the workspace's floors and,
   where they differ, the files coverage measures or leaves out.
-  `angularTests()` given `projects`, as Snake, Brick Breaker and Asteroid
-  Breaker give it, splits the specs into Vitest projects, each a config of
-  its own (`extends: false`), so each starts only what its specs need:
+  `angularTests()` given `projects`, as Snake, Brick Breaker, Asteroid Breaker
+  and Brick Fuzz Pop give it, splits the specs into Vitest projects, each a
+  config of its own (`extends: false`), so each starts only what its specs need:
   `pure`, the specs of the folders it names that touch no page, such as the
-  rules' and the view's, in Node; `sim`, the specs of the folders that play
-  or lay out every level or wave, in Node, where a game has any; and `dom`,
-  every other spec under `src/`, in jsdom with Analog's plugin, so every
-  spec there runs in one project. A game with simulations runs `dom` and
+  rules' and the view's, in Node; `sim`, the specs of the folders that play or
+  lay out every level or wave, or time a flight, in Node, where a game has any;
+  and `dom`, every other spec under `src/`, in jsdom with Analog's plugin, so
+  every spec there runs in one project. A game with simulations runs `dom` and
   `pure` with coverage, then `sim` without (`yarn test:coverage` in
   `frontend/AGENTS.md`), and every project in one run without coverage
   (`yarn test`). Coverage adds up a file two projects load only
@@ -161,8 +161,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   `assets/` and Phaser, where a game has it, in a chunk of its own
   (`PHASER_CHUNK`), and a dev server on the game's own port, which its
   screenshot script defaults to: 9000 for the Solitaire Collection, 9001 for
-  Minesweeper, 9002 for Sudoku, 9003 for Snake, 9004 for Brick Breaker and 9005
-  for Asteroid Breaker; it opens no browser unless started with `--open`.
+  Minesweeper, 9002 for Sudoku, 9003 for Snake, 9004 for Brick Breaker, 9005
+  for Asteroid Breaker and 9006 for Brick Fuzz Pop; it opens no browser
+  unless started with `--open`.
   The Angular plugins, `angularPlugins()`, which the
   site's config takes too, are Analog's with its live reload, which swaps an
   edited component's template or styles into the running page, and
@@ -224,9 +225,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   checks a game drawn with Phaser as `checkLayout()` and `checkTurns()` do, at
   every shape and `SMALLEST`, a 320 × 480 phone held upright, then through
   every turn, all at twice the pixels, so the canvas's backing size is tested,
-  as Snake, Brick Breaker and Asteroid Breaker check theirs, and
-  `PHASER_CHECKED_AT` names those shapes and turns, for the script to say
-  where the layout holds. `shapesAt()` copies shapes at a pixel ratio, for a
+  as Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz Pop check theirs, and
+  `PHASER_CHECKED_AT` names those shapes and turns, for the script to say where
+  the layout holds. `shapesAt()` copies shapes at a pixel ratio, for a
   spec such as Asteroid Breaker's of its field and deck, which lays them out
   at each shape at pixel ratios of 1, 2 and 3. A check's
   `board`, a `PhaserBoard`, names a board drawn with Phaser by its element,
@@ -353,19 +354,19 @@ too. Paths are relative to `frontend/lib/dev/`.
   for Node to strip its types. It loads Vite only once called, so a script
   that loads nothing through it doesn't wait on Vite; the site loads its
   catalog with it too.
-- `src/report.ts`, `@fz/dev/report`: the table a game's report prints of
-  how its autopilot plays each wave or level at each speed, as Asteroid
-  Breaker's `report:waves` and Brick Breaker's `report:levels` print
-  theirs. `printReport()` is handed the entries, the speeds, how many seeds
-  each is played from (`--seeds`, which `readSeeds()` reads, an option
-  `SEEDS_OPTION` declares), how to play one, and the columns a speed shows
-  of an entry's plays (`ReportColumns`). It plays each entry from its
-  number, or from seeds of its own `SEED_STRIDE` apart, prints its line as
-  it is played, the names as wide as the longest, then, under a blank line,
-  each `Tally` that marked a play, and returns the code to exit with: 1
-  where a tally that fails the report marked one. `timeOf()` writes steps
-  as minutes and seconds, `-` for a play that didn't clear, and
-  `middleAndMost()` gives the middle and the most of many plays' counts.
+- `src/report.ts`, `@fz/dev/report`: the table a game's report prints of how its
+  autopilot plays each wave or level at each speed or depth, as Asteroid
+  Breaker's `report:waves` and Brick Breaker's and Brick Fuzz Pop's
+  `report:levels` print theirs. `printReport()` is handed the entries, the
+  speeds, how many seeds each is played from (`--seeds`, which `readSeeds()`
+  reads, an option `SEEDS_OPTION` declares), how to play one, and the columns a
+  speed shows of an entry's plays (`ReportColumns`). It plays each entry from
+  its number, or from seeds of its own `SEED_STRIDE` apart, prints its line as
+  it is played, the names as wide as the longest, then, under a blank line, each
+  `Tally` that marked a play, and returns the code to exit with: 1 where a tally
+  that fails the report marked one. `timeOf()` writes steps as minutes and
+  seconds, `-` for a play that didn't clear, and `middleAndMost()` gives the
+  middle and the most of many plays' counts.
 - `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized. A
   `Sound` is a name, a length, a peak and a wave, made of `glide()` (a tone
   gliding between two pitches), `envelope()`, `thud()` (seeded noise),
@@ -435,11 +436,12 @@ too. Paths are relative to `frontend/lib/dev/`.
   floors, unless its specs run another way: the Solitaire Collection's live
   under `test/`, mostly in Node, and keep a config of their own, and the
   site's are the projects of the `test` block in its `vite.config.ts`.
-  Snake, Brick Breaker and Asteroid Breaker give `angularTests()` the
-  folders of their projects, so the specs of their rules and their view
-  run in Node, and the breakers' simulations without coverage. A game's
-  `vite.config.ts` is `gameConfig()`, with what is the game's own merged in
-  by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does for the
+  Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz Pop give
+  `angularTests()` the folders of their projects, so the specs of their rules
+  and their view run in Node, and the breakers' and Brick Fuzz Pop's simulations
+  without coverage. A game's `vite.config.ts` is `gameConfig()`, with what is
+  the game's own merged in by Vite's `mergeConfig()`, as
+  `frontend/games/solitaire/` does for the
   commit it was built from and its `@` alias. Analog's plugin, Vite and
   Vitest are peers, which the workspace lists and runs.
 - **A game's sound lab is `soundLab()` in its `vite.config.ts`,** merged

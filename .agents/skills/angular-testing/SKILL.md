@@ -1,6 +1,6 @@
 ---
 name: angular-testing
-description: How every Angular workspace here writes its specs (the site, Minesweeper, Sudoku, Snake's shell, Brick Breaker's shell, Asteroid Breaker's shell, the Solitaire Collection's shell, @fz/ui, @fz/game-ui and @fz/phaser's canvas) — @fz/dev/vitest's setup, Testing Library queries by role, user-event, jest-dom, zoneless change detection, what jsdom keeps and lacks, and the libraries' testing helpers. Triggers on: vitest, unit test, spec, TestBed, Testing Library, render, screen, getByRole, user-event, jest-dom, jsdom, fake timers, coverage.
+description: How every Angular workspace here writes its specs (the site, Minesweeper, Sudoku, Snake's shell, Brick Breaker's shell, Asteroid Breaker's shell, Brick Fuzz Pop's shell, the Solitaire Collection's shell, @fz/ui, @fz/game-ui and @fz/phaser's canvas) — @fz/dev/vitest's setup, Testing Library queries by role, user-event, jest-dom, zoneless change detection, what jsdom keeps and lacks, and the libraries' testing helpers. Triggers on: vitest, unit test, spec, TestBed, Testing Library, render, screen, getByRole, user-event, jest-dom, jsdom, fake timers, coverage.
 ---
 
 # Testing Angular code
@@ -10,8 +10,9 @@ repository follows (Arrange-Act-Assert, the public API, state over interactions,
 real objects over mocks) are in `.agents/AGENTS.md`, under "Writing Unit Tests".
 Each app's own skill covers its setup, fixtures and floors: `site-testing`,
 `minesweeper-testing`, `sudoku-testing`, `snake-testing`,
-`brick-breaker-testing`, `asteroid-breaker-testing` and `solitaire-testing`; a
-scene drawn with Phaser is `phaser-core`'s. Paths are relative to the
+`brick-breaker-testing`, `asteroid-breaker-testing`,
+`brick-fuzz-pop-testing` and `solitaire-testing`; a scene drawn with Phaser
+is `phaser-core`'s. Paths are relative to the
 repository's root.
 
 ## Setup
@@ -20,11 +21,12 @@ repository's root.
   `angularTests()`**, given its floors: Analog's plugin, every `*.spec.ts`
   under `src/` in jsdom after the workspace's `src/test-setup.ts`, and V8
   coverage of `src/`. Given the folders of its projects, as Snake's, Brick
-  Breaker's and Asteroid Breaker's are, it runs the specs that touch no
-  page in Node (`pure`), the simulations in Node too (`sim`), and the rest
-  in jsdom with the plugin (`dom`); a `test:coverage` script that runs
-  Vitest twice, as the breakers' do, is what runs the simulations apart,
-  without coverage. The site's config of Vitest projects is built from its pieces,
+  Breaker's, Asteroid Breaker's and Brick Fuzz Pop's are, it runs the
+  specs that touch no page in Node (`pure`), the simulations in Node too
+  (`sim`), and the rest in jsdom with the plugin (`dom`); a
+  `test:coverage` script that runs Vitest twice, as the breakers' and
+  Brick Fuzz Pop's do, is what runs the simulations apart, without
+  coverage. The site's config of Vitest projects is built from its pieces,
   `angularSpecs()`, `nodeSpecs()` and `coverage()`
   (`frontend/lib/dev/AGENTS.md`). The Solitaire Collection keeps a config
   of its own, its specs under `test/`, in Node unless one asks for jsdom.
