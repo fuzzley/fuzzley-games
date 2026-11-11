@@ -78,6 +78,19 @@ describe("playRound()", () => {
     },
   );
 
+  // A plain fuzzball straight up wears the moss of 2 to 1, and the next
+  // round starts with it grown back as the wall stepped down.
+  it("grows the moss its flight wore back a hit in the next round's start", () => {
+    const start = startAt(["....M...."]);
+
+    const round = playRound(start, { aim: UP, charge: 0 }, "hot");
+
+    expect([
+      eventsOf(round, "strike").map(({ left }) => left),
+      round.next.wall.bricks[4]?.hits,
+    ]).toEqual([[1], 2]);
+  });
+
   it("flies by the bored distance it is handed", () => {
     const start = startAt(["ooooooooo"]);
 

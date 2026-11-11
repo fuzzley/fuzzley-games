@@ -87,6 +87,21 @@ function brokenRow(wall: Wall, fieldRow: number): Wall {
   };
 }
 
+/** Returns a wall with every brick it holds worn to a number of hits, as a round's strikes leave them. */
+function wornTo(wall: Wall, hits: number): Wall {
+  return {
+    ...wall,
+    bricks: wall.bricks.map((brick) =>
+      brick === null ? null : { ...brick, hits },
+    ),
+  };
+}
+
+/** Returns the hits each brick of a wall has left, in order, null for no brick. */
+function hitsOf(wall: Wall): (number | null)[] {
+  return wall.bricks.map((brick) => brick?.hits ?? null);
+}
+
 /** Returns the field rows a wall's bricks stand in, the lowest first, a row once. */
 function rowsWithBricks(wall: Wall): number[] {
   const rows = wall.bricks.flatMap((brick, cell) =>
@@ -288,6 +303,17 @@ describe("lowerWall", () => {
     expect(lowered.wall).toEqual({ ...wall, lowestRow: 2 });
   });
 
+  it("grows worn moss back a hit as the wall comes down", () => {
+    const wall = wornTo(wallOf({ 5: "M...N...." }), 1);
+
+    const lowered = lowerWall(wall, 11);
+
+    expect([lowered.wall.lowestRow, hitsOf(lowered.wall)]).toEqual([
+      4,
+      [2, null, null, null, 2, null, null, null, null],
+    ]);
+  });
+
   it("leaves a cleared level's wall where it stands", () => {
     const wall = wallOf({ 1: STEEL, 2: AIR });
 
@@ -339,15 +365,46 @@ describe("lowerWall", () => {
 
 describe("regrow", () => {
   it("gives no hit back to a worn brick of a kind that doesn't regrow", () => {
-    const wall = wallOf({ 5: "....4...." });
-    const worn: Wall = {
-      ...wall,
-      bricks: wall.bricks.map((brick) =>
-        brick === null ? null : { ...brick, hits: 1 },
-      ),
-    };
+    const worn = wornTo(wallOf({ 5: "....4...." }), 1);
 
     expect(regrow(worn)).toEqual(worn);
+  });
+
+  it("gives worn moss back one hit, however worn", () => {
+    const worn = wornTo(wallOf({ 5: "N...M...o" }), 1);
+
+    expect(hitsOf(regrow(worn))).toEqual([
+      2,
+      null,
+      null,
+      null,
+      2,
+      null,
+      null,
+      null,
+      1,
+    ]);
+  });
+
+  it("grows moss no further than its full hits", () => {
+    const wall = wallOf({ 5: "N...M...." });
+
+    expect(regrow(wall)).toBe(wall);
+  });
+
+  it("grows moss worn by one back to its full hits", () => {
+    const worn = wornTo(wallOf({ 5: "N........" }), 2);
+
+    expect(hitsOf(regrow(worn))[0]).toBe(3);
+  });
+
+  it("leaves the wall it is handed as it was", () => {
+    const worn = wornTo(wallOf({ 5: "N...M...." }), 1);
+    const before = structuredClone(worn);
+
+    regrow(worn);
+
+    expect(worn).toStrictEqual(before);
   });
 });
 

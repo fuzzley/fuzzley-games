@@ -1,4 +1,4 @@
-import { brickKind } from "../catalog/bricks";
+import { brickKind, hasTrait } from "../catalog/bricks";
 import { fieldRowOf } from "../grid";
 import { COLUMNS } from "../tuning";
 import { type Brick, type Wall, thirdsOf } from "./wall";
@@ -79,15 +79,25 @@ export function lowerWall(wall: Wall, depth: number): LoweredWall {
 }
 
 /**
- * Returns a wall with each brick that regrows given back a hit, up to its
- * full hits, as moss grows after each round it survives.
- *
- * It returns the wall as it is until Thick walls catalogs moss, the one
- * kind that regrows: {@link lowerWall} calls it before the wall comes down,
- * so moss needs only this filled in.
+ * Returns a wall with each brick that regrows, moss, given back a hit up to
+ * its full hits, as it grows after each round it survives; or the same
+ * wall where none grows.
  */
 export function regrow(wall: Wall): Wall {
-  return wall;
+  if (!wall.bricks.some(grows)) return wall;
+  return {
+    ...wall,
+    bricks: wall.bricks.map((brick) =>
+      grows(brick) ? { ...brick, hits: brick.hits + 1 } : brick,
+    ),
+  };
+}
+
+/** Returns whether a cell holds a brick that grows a hit back after the round: moss short of its full hits. */
+function grows(brick: Brick | null): brick is Brick {
+  return (
+    brick !== null && brick.hits < brick.full && hasTrait(brick.kind, "regrows")
+  );
 }
 
 /** Returns whether a cell holds a brick its level needs broken. */

@@ -19,13 +19,15 @@ const LASTING = BRICK_KIND_IDS.filter((id) => brickKind(id).hits === "never");
 const ZAPPING = BRICK_KIND_IDS.filter((id) => hasTrait(id, "zaps"));
 
 describe("the brick kinds", () => {
-  it("are the first five in How to play's order", () => {
+  it("are Warm-up's five and Thick walls' two, in How to play's order", () => {
     expect(BRICK_KIND_IDS).toEqual([
       "brick",
       "tough",
       "steel",
       "rowZapper",
       "columnZapper",
+      "shell",
+      "moss",
     ]);
   });
 
@@ -141,6 +143,33 @@ describe("the brick kinds", () => {
 
     expect(about).toContain(`${spelled(hits)} to ${spelled(mostHits)} hits`);
   });
+
+  it.each(["shell", "moss"] as const)(
+    "spell out the %s brick's hits as they are",
+    (id) => {
+      const { hits, mostHits, about } = BRICK_KINDS[id];
+
+      expect(about).toContain(`${spelled(hits)} or ${spelled(mostHits)} hits`);
+    },
+  );
+
+  it.each([
+    ["shell", 28, "shelled"],
+    ["moss", 29, "regrows"],
+  ] as const)(
+    "catalog the %s brick as plan.md's table of bricks has it, brought in at level %i, its trait %s",
+    (id, firstLevel, trait) => {
+      expect(BRICK_KINDS[id]).toMatchObject({
+        hits: 2,
+        mostHits: 3,
+        needed: true,
+        points: 10,
+        solid: true,
+        firstLevel,
+        traits: [{ kind: trait }],
+      });
+    },
+  );
 
   it("know their ids, and nothing else", () => {
     expect([

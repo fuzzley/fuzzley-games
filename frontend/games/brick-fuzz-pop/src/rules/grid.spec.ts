@@ -240,6 +240,8 @@ describe("shapesOf", () => {
       steel: "box",
       rowZapper: "round",
       columnZapper: "open",
+      shell: "box",
+      moss: "box",
     });
   });
 
@@ -250,6 +252,8 @@ describe("shapesOf", () => {
       steel: "box",
       rowZapper: "box",
       columnZapper: "box",
+      shell: "box",
+      moss: "box",
     });
   });
 });

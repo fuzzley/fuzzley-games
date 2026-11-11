@@ -96,6 +96,8 @@ describe("castField", () => {
       steel: 0,
       rowZapper: RADIUS + 0.38,
       columnZapper: 0,
+      shell: 0,
+      moss: 0,
     });
   });
 

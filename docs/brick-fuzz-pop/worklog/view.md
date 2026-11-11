@@ -1665,3 +1665,76 @@ shell, in `TRAIT_RULES`; and moss shielding, or with a rule at a break.
    Fixed: one spec, `toEqual({})`. The spec of a charged fuzzball
    spending its charge on a shell passes for a tough brick too; it is
    kept, as it holds a shield on any charge off.
+
+### X3's kinds: the shell and moss in the catalog, and moss growing back
+
+**2026-11-11.** X3's second commit, on the scene stream's art for the two
+(1a3b96d0), which landed unwired.
+
+- **`THICK_WALL_KINDS`** (`catalog/kinds/thick_walls.ts`) catalogs the
+  shell brick and the moss brick as `plan.md`'s table has them: 2 to 3
+  hits, needed, 10 points a hit, solid, brought in at levels 28 and 29,
+  with the traits 3a905937 played. Their sentences for How to play
+  spell their hits out as the tough brick's does. How to play's catalog
+  and the In this wall panel take them up from `BRICK_KIND_IDS` with no
+  change of their own.
+- **`BRICK_ART`** takes `SHELL_ART` and `MOSS_ART` in the catalog's order,
+  and `atlas_frames.spec.ts` lists their six frames in it, its record of
+  art waiting for its kinds gone. The wall's painter needs no change: it
+  stacks `brickLayers()`, which reads each kind's frames by its hits left,
+  so a shell or moss brick shows its pips from 2 and none at its last hit,
+  as the art stream drew them.
+- **`regrow()`** (`src/rules/wall/lower.ts`), which `lowerWall()` already
+  ran before the wall comes down, gives each moss brick short of its full
+  hits one back, and hands back the same wall where none grows. A cleared
+  level's wall doesn't come down, so nothing grows on it, and moss waiting
+  over the ceiling is never worn. Nothing else in `src/rules/round` or
+  `src/rules/wall` changed: `playRound()` lowers the wall it flew, so the
+  next round's start holds the moss grown back, and the view shows it as
+  the wall steps down, with the step's own sound. No beat or sound is
+  added for a regrowth; `effects.ts` has none for it.
+- **The specs that list every kind** (`grid.spec.ts`'s shapes,
+  `cast.spec.ts`'s reaches, `catalog.spec.ts`'s order) take the two, which
+  X1's and X2's catalogs will add their lines beside. The flown specs of
+  the two traits in `trait_rules.spec.ts` now fly the catalog's own shell
+  and moss, `S` and `M`, rather than a tough brick given the trait.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass after the review: 5,047 tests in 119 files, the
+coverage run's 4,897 in 99 at its floors, `lower.ts` and `thick_walls.ts`
+at 100%. The root's
+`yarn lint` passes.
+
+**The mutation pass.** 17 mutants: 7 of `regrow()` and its place in
+`lowerWall()` (none grown, two a round, past the full hits, short of
+them, on any kind, a copy of every wall, and `lowerWall()` without it), 8
+of the two kinds (each without its trait, a level brought in at, the
+most hits, needed, the points and the sentence) and 2 of `BRICK_ART`
+(each kind drawn as the other). 15 were killed at once; the two levels
+the kinds come in at were a gap, now held by a spec of `plan.md`'s 28 and
+29, and killed.
+After the review, 5 more, all killed: each kind's points raised, the
+shell's hits, its level, and moss given the shell's trait.
+
+**The review:**
+
+1. **The two kinds' points weren't pinned,** as only a spec of more than
+   none held them, and the mutant of none was the only one killed; the
+   spec of the shell's trait only asked for it by name. Fixed: one spec a
+   kind holds its row of `plan.md`'s table, points and trait among it,
+   in place of the three.
+2. **Moss's sentence left out "up to its full hits".** Fixed.
+3. **The flown specs of the two traits still flew a tough brick given
+   the trait.** Fixed: they fly `S` and `M`. The art's own specs
+   (`shell.spec.ts`, `moss.spec.ts`) still stand a tough brick in for
+   the kind they draw, which said it wasn't cataloged yet; they are the
+   scene stream's, and the report says so.
+4. **The lookup tables of `art.spec.ts` and `wall_scene.spec.ts` list
+   only Warm-up's kinds.** Left for the scene stream, whose specs they
+   are; the report names them.
+5. **`atlas_frames.spec.ts` built the six names from `FRAMES`,** the code
+   it checks. Fixed: written out.
+6. **The log called the art commit the one that played the traits, and
+   `AGENTS.md` said `lowerWall()` runs `regrow()` first.** Fixed: the
+   log names 3a905937, and `AGENTS.md` says it runs before the wall comes
+   down, unless the level is cleared.

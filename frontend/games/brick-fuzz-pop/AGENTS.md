@@ -96,7 +96,9 @@ helpers.
   whether it is solid, the level it comes in at and its traits, spread from
   a file a set in `kinds/`: Warm-up's five, the brick, the tough brick,
   steel and the row and column zappers, in
-  `src/rules/catalog/kinds/warm_up.ts`, the other sets' empty so far.
+  `src/rules/catalog/kinds/warm_up.ts`; Thick walls' two, the shell and
+  moss, in `src/rules/catalog/kinds/thick_walls.ts`; the other sets' empty
+  so far.
   `castField()` and `shapesOf()` take the kinds as `BrickKinds`, so a spec
   can hand them stand-ins; the rest of the rules read the catalog's
   (`brickKind()`), and `kindIntroducedAt()` names the kind a level brings
@@ -168,7 +170,8 @@ helpers.
   lowest needed brick stands in (`lowestNeededRow()`), how many stand under
   a row (`neededBelow()`), and the danger: one standing in `DANGER_ROW`, the
   row over the floor's, or lower (`inDanger()`, `dangerCells()`).
-  `regrow()` returns the wall as it is, as no kind regrows yet.
+  `regrow()`, which `lowerWall()` runs before the wall comes down, unless
+  the level is cleared, gives worn moss back a hit, up to its full hits.
 - **`src/rules/round/`** — `round.ts`: a round's types, where it starts
   (`RoundStart`: the wall, the depth, where the fuzzball waits, the friends
   and the boon), what it came to (`RoundOutcome`) and the round played
@@ -243,14 +246,15 @@ helpers.
   brick stacks in its cell (`brickLayers()`) and its shards' color
   (`brickColor()`); each kind's art is a file of `kinds/` (`brick.ts`'s tile
   in the eight tints, `tough.ts`'s pips and cracks, `steel.ts`,
-  `zapper.ts`), on `symbols.ts`'s shared shapes and its rule that drops
-  detail under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
-  fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
-  combed out as it charges (`furOf()`) and sparking at a full one, the hot
-  shot under its flames, a friend in each of the eight inks, and the eyes
-  every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
-  `atlasFrames()` is every frame the atlas holds, the kinds' in the
-  catalog's order, then the fuzzballs'.
+  `zapper.ts`, `shell.ts`'s body and pips, `moss.ts`'s cap and pips, each
+  showing its hits left), on `symbols.ts`'s shared shapes and its rule
+  that drops detail under 30 CSS px a unit (`detailed()`).
+  `fuzzball_art.ts` draws the fuzzballs (`fuzzballFrames()`): the player's
+  at each charge, its fur combed out as it charges (`furOf()`) and
+  sparking at a full one, the hot shot under its flames, a friend in each
+  of the eight inks, and the eyes every fuzzball wears, a frame of their
+  own. `atlas_frames.ts`'s `atlasFrames()` is every frame the atlas holds,
+  the kinds' in the catalog's order, then the fuzzballs'.
 - **`src/view/effects/`** — what each moment calls for, and how long it
   lasts. `effects.ts` names the twenty sounds (`SOUNDS`, in the sprite's
   order); its `FlightEffects` reads a flight in order (`begin()`, then
