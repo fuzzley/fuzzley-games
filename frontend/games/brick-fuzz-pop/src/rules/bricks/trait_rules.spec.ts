@@ -3,7 +3,6 @@ import { struckOf } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
 import {
   BRICK_KINDS,
-  type BrickKinds,
   type BrickTrait,
   type TraitKind,
   type TraitOf,
@@ -11,20 +10,6 @@ import {
 import { fly } from "../flight/flight";
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES, MOST_CHARGE } from "../tuning";
 import { TRAIT_RULES } from "./trait_rules";
-
-/** Returns the catalog with its tough brick standing in for a kind of a trait, so a picture's `2` is one of 2 hits. */
-function toughWith(trait: BrickTrait): BrickKinds {
-  return {
-    ...BRICK_KINDS,
-    tough: { ...BRICK_KINDS.tough, traits: [trait] },
-  };
-}
-
-/** The catalog with a shell of 2 hits standing in for the tough brick of 2. */
-const SHELLS = toughWith({ kind: "shelled" });
-
-/** The catalog with moss of 2 hits standing in for the tough brick of 2. */
-const MOSS = toughWith({ kind: "regrows" });
 
 describe("TRAIT_RULES", () => {
   it.each<{ trait: BrickTrait; level: number }>([
@@ -75,7 +60,7 @@ describe("the bricks' own rules, flown", () => {
   });
 
   it("turns a plain fuzzball off a shell, which takes no hit", () => {
-    const flown = flyPicture({ picture: ["....2...."], kinds: SHELLS });
+    const flown = flyPicture({ picture: ["....S...."] });
 
     expect([
       eventsOf(flown, "strike").map(({ took, left }) => [took, left]),
@@ -85,8 +70,7 @@ describe("the bricks' own rules, flown", () => {
 
   it("has a charged fuzzball spend its charge on a shell", () => {
     const flown = flyPicture({
-      picture: ["....2...."],
-      kinds: SHELLS,
+      picture: ["....S...."],
       charge: 1,
     });
 
@@ -102,7 +86,7 @@ describe("the bricks' own rules, flown", () => {
   // Aimed at 45° into the pocket under one shell and left of another a row
   // lower, it meets both faces at once, and spends its charge on the first.
   it("turns a fuzzball off a shell met plain once a strike at the same moment spent its charge", () => {
-    const picture = ["....2....", ".....2..."];
+    const picture = ["....S....", ".....S..."];
 
     const flown = flyPicture({
       picture,
@@ -110,7 +94,6 @@ describe("the bricks' own rules, flown", () => {
       x: 2.25,
       degrees: 45,
       charge: 2,
-      kinds: SHELLS,
     });
 
     expect(
@@ -128,7 +111,7 @@ describe("the bricks' own rules, flown", () => {
   it("counts no strike a shell shields as a hit against a fuzzball's boredom", () => {
     const flown = fly(
       {
-        wall: wallFrom(["....2...."], { lowestRow: 3 }),
+        wall: wallFrom(["....S...."], { lowestRow: 3 }),
         depth: 11,
         x: 4.5,
         aim: (90 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE,
@@ -137,14 +120,14 @@ describe("the bricks' own rules, flown", () => {
         mates: 0,
         friends: 0,
       },
-      { bored: 4, kinds: SHELLS, traits: TRAIT_RULES },
+      { bored: 4, kinds: BRICK_KINDS, traits: TRAIT_RULES },
     );
 
     expect(eventsOf(flown, "yawn").map(({ at }) => at)).toEqual([4]);
   });
 
   it("has a zap break a shell", () => {
-    const flown = flyPicture({ picture: ["..2.-...."], kinds: SHELLS });
+    const flown = flyPicture({ picture: ["..S.-...."] });
 
     expect(eventsOf(flown, "break").map(({ cell, by }) => [cell, by])).toEqual([
       [4, "fuzzball"],
@@ -153,7 +136,7 @@ describe("the bricks' own rules, flown", () => {
   });
 
   it("has a plain fuzzball wear moss, as any brick, in a flight", () => {
-    const flown = flyPicture({ picture: ["....2...."], kinds: MOSS });
+    const flown = flyPicture({ picture: ["....M...."] });
 
     expect(
       eventsOf(flown, "strike").map(({ took, left }) => [took, left]),

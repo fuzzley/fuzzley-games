@@ -7,6 +7,8 @@ import type { Brick } from "../../rules/wall/wall";
 import type { WallPalette } from "../colors/palette";
 import type { FrameName } from "./frames";
 import { PLAIN_ART } from "./kinds/brick";
+import { MOSS_ART } from "./kinds/moss";
+import { SHELL_ART } from "./kinds/shell";
 import { STEEL_ART } from "./kinds/steel";
 import { TOUGH_ART } from "./kinds/tough";
 import { zapperArt } from "./kinds/zapper";
@@ -37,6 +39,8 @@ export const BRICK_ART = {
   steel: STEEL_ART,
   rowZapper: zapperArt("rowZapper"),
   columnZapper: zapperArt("columnZapper"),
+  shell: SHELL_ART,
+  moss: MOSS_ART,
 } as const satisfies Readonly<Record<BrickKindId, KindArt>>;
 
 /**
