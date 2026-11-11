@@ -8,11 +8,11 @@
  *
  * Writes `preview.webp`, the whole page, and `thumb.webp`, the field, to
  * `public/docs/screenshots/brick-fuzz-pop/`. Both show the same run, kept as
- * the game keeps one, taken up paused on load and gone on with: on level 9,
- * Gatehouse, the last of Warm-up, two rounds in on a field 11 deep, the
- * next shot aimed by the keys, its guide turning off a steel brick. The
- * palette is Midnight blue, dark as the other arcade games' are in the
- * catalog.
+ * the game keeps one, taken up paused on load and gone on with: on level
+ * 18, Powder keg, the last of Sparks, two rounds in on a field 11 deep, the
+ * next shot aimed by the keys up through a gap, its guide punching through
+ * a bomb. The palette is Midnight blue, dark as the other arcade games' are
+ * in the catalog.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,28 +47,57 @@ const THEME = "midnight";
 const FIELD = { name: "field", element: "app-board", drawnAt: "data-field" };
 
 /**
- * The run shown, as `keptRun()` keeps it: begun on Gatehouse, on a field 11
- * deep, as the page's board lays it out, and played two rounds into it by
- * the first two shots of its certificate there.
+ * The run shown, as `keptRun()` keeps it: begun on Powder keg, on a field
+ * 11 deep, as the page's board lays it out, and played two rounds into it
+ * by the first two shots of its certificate there.
  *
  * @type {ScriptRun}
  */
 export const RUN = {
-  level: 9,
+  level: 18,
   depth: 11,
   shots: [
-    [288, 3],
-    [452, 0],
+    [36, 5],
+    [272, 5],
   ],
 };
 
 /**
- * How the next shot is aimed once the run goes on, by the keys a player
- * would press from straight up, 90 degrees: the aim in degrees, a press of
- * the right arrow a degree, and the charge, a press of the up arrow a
- * notch.
+ * How the next shot is aimed once the run goes on, by the keys
+ * `aimingKeys()` presses: the aim in degrees and the charge in notches.
  */
-export const AIMING = { degrees: 55, charge: 3 };
+export const AIMING = { degrees: 100, charge: 3 };
+
+/**
+ * A key pressed on the board, by its `code` and the `keyCode` Phaser reads.
+ *
+ * @typedef {{code: string, keyCode: number}} KeyPress
+ */
+
+/** @type {KeyPress} */
+const LEFT = { code: "ArrowLeft", keyCode: 37 };
+
+/** @type {KeyPress} */
+const RIGHT = { code: "ArrowRight", keyCode: 39 };
+
+/** @type {KeyPress} */
+const UP = { code: "ArrowUp", keyCode: 38 };
+
+/**
+ * Returns the keys a player would press to aim a shot from straight up, 90
+ * degrees, with no charge: the left arrow a degree more, or the right a
+ * degree less, then the up arrow a notch.
+ *
+ * @param {{degrees: number, charge: number}} aiming
+ * @returns {KeyPress[]}
+ */
+export function aimingKeys({ degrees, charge }) {
+  const turn = degrees < 90 ? RIGHT : LEFT;
+  return [
+    ...Array.from({ length: Math.abs(90 - degrees) }, () => turn),
+    ...Array.from({ length: charge }, () => UP),
+  ];
+}
 
 /**
  * The run as storage keeps it, which the page is given, its score as the
@@ -97,16 +126,16 @@ export function shownRun(api) {
 
 /**
  * Goes on with the run taken up, by the card's Resume, aims the next shot
- * by the arrow keys once it is under way, waits for the game to say the
+ * by the keys handed once it is under way, waits for the game to say the
  * aim, and returns what the board says then: the run's stage, the field's
  * depth, whether a card still shows over the field and whether the aim was
  * said. It runs in the page, so it uses nothing from this module.
  *
- * @param {{degrees: number, charge: number}} aiming
+ * @param {readonly KeyPress[]} keys
  * @param {string} aimed What the game says once the keys have aimed.
  * @returns {Promise<{outcome: string, depth: number, card: boolean, said: boolean}>}
  */
-async function goOn(aiming, aimed) {
+async function goOn(keys, aimed) {
   const board = document.querySelector("app-board");
   /**
    * Waits, up to two seconds, for something to hold.
@@ -137,8 +166,7 @@ async function goOn(aiming, aimed) {
   );
   if (resume instanceof HTMLButtonElement) resume.click();
   await until(() => board?.getAttribute("data-outcome") === "playing");
-  for (let turn = aiming.degrees; turn < 90; turn++) press("ArrowRight", 39);
-  for (let notch = 0; notch < aiming.charge; notch++) press("ArrowUp", 38);
+  for (const { code, keyCode } of keys) press(code, keyCode);
   const said = () =>
     [...document.querySelectorAll("[aria-live]")].some((region) =>
       region.textContent?.includes(aimed),
@@ -171,7 +199,7 @@ async function capture(page, url, run) {
   await page.navigate(url);
   const field = await takenUpBoard(page, FIELD, run.score);
   if ("problem" in field) return field;
-  const goneOn = await page.evaluate(goOn, AIMING, run.aimed);
+  const goneOn = await page.evaluate(goOn, aimingKeys(AIMING), run.aimed);
   if (goneOn.outcome !== "playing") {
     return { problem: `the run didn't go on: it is ${goneOn.outcome}` };
   }

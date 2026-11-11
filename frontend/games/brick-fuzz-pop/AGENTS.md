@@ -22,9 +22,8 @@ stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
 places the board, the bar, the dialogs, the settings drawer and the result
 card, each wired to the game, so a run can be played in the page, through
 Warm-up's and Sparks' eighteen levels. The site lists it as in
-development, its screenshots taken on a level of Warm-up until T2 takes
-them on level 18. What the plan's packages still to come build (the rest of
-T2, the screenshots on level 18, then X2, Y2 and Y3, D1, F1, Z1 and Z2)
+development, its screenshots taken on level 18, the last of Sparks. What
+the plan's packages still to come build (X2, Y2 and Y3, D1, F1, Z1 and Z2)
 isn't here yet.
 
 ## Technology Stack
@@ -573,16 +572,16 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   takes up paused, its wall on the row the run kept it on at every shape
   and through each turn, whatever the field's depth).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
-  `tools/capture-screenshots.mjs` against the running dev server in
-  headless Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`:
-  a run kept by the rules (`keptRun()`, in `src/testing/kept_run.ts`, which
-  it loads through `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`,
-  with the version the shell keeps it under), begun on level 9, Gatehouse,
-  on a field 11 deep and played two rounds in by the first two shots of
-  its certificate there, taken up and gone on with, the next shot aimed by
-  the arrow keys at 55 degrees and a charge of 3, which it waits to hear
-  the game say, at 1280 × 720 and 2× on Midnight blue, written to
-  `public/docs/screenshots/brick-fuzz-pop/` as the site's `preview.webp`
+  `tools/capture-screenshots.mjs` against the running dev server in headless
+  Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a run kept
+  by the rules (`keptRun()`, in `src/testing/kept_run.ts`, which it loads
+  through `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the
+  version the shell keeps it under), begun on level 18, Powder keg, on a
+  field 11 deep and played two rounds in by the first two shots of its
+  certificate there, taken up and gone on with, the next shot aimed by the
+  arrow keys up through a bomb, at 100 degrees and a charge of 3, which it
+  waits to hear the game say, at 1280 × 720 and 2× on Midnight blue, written
+  to `public/docs/screenshots/brick-fuzz-pop/` as the site's `preview.webp`
   (2560 × 1440), which `index.html` names as the link preview, and
   `thumb.webp` (576 × 324), cropped around the field; `--url` points it at
   another server than `http://localhost:9006/`).

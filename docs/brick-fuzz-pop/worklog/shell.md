@@ -2299,3 +2299,88 @@ page changes in one pass whatever their order.
    `DeferBlockState` is a value the fence keeps out of `src/testing/`.
 
 The fixes follow the review's own words, so they had no second review.
+
+### T2's last part: the screenshots on level 18
+
+**2026-11-11.** At the integrator's word, once Y1 had merged Sparks' levels
+and certificates.
+
+**What was built.**
+
+- **The run shown.** `tools/capture-screenshots.mjs`'s `RUN` begins on
+  level 18, Powder keg, the last of Sparks, on a field 11 deep, and plays
+  the first two shots of its certificate there, `[36, 5]` and `[272, 5]`;
+  taken up, it shows 2 rounds against a par of 15, a score of 1,260, a
+  friend freed, and 18 rows waiting over the ceiling.
+- **The aim, looked at again.** At 55 degrees and a charge of 3, the
+  guide crossed the open field and turned off a gold tough brick, the
+  wall's bombs out of its way. Of twelve aims captured and looked at
+  (55, 60, 64, 68, 72, 74, 76, 80 and 86 degrees to the right, 97, 100
+  and 102 to the left, at charges of 3 to 5), `AIMING` takes 100 degrees
+  and a charge of 3: the guide climbs through the gap in the low rows and
+  punches through a bomb and the tough brick over it, on the level named
+  for its bombs, the meter showing three pips.
+- **The keys to the left.** `goOn()` pressed only the right arrow, so it
+  could aim only at 90 degrees or under. `aimingKeys()` now works out, in
+  Node, the keys a player presses from straight up, the left arrow a
+  degree over 90, the right a degree under, then the up arrow a notch,
+  and `goOn()` presses what it is handed.
+- **The images.** `public/docs/screenshots/brick-fuzz-pop/preview.webp`
+  (2560 × 1440, 112 KB) and `thumb.webp` (576 × 324, 18 KB), captured
+  against the dev server and looked at: the bar, both panels, the field with
+  its five rows of bricks, four of them tough, four bombs and the cage, the
+  guide and its two outlines, all within the frame and the crop.
+- **The docs.** `index.html`'s `og:image:alt` describes the new picture;
+  the game's `AGENTS.md` says the screenshots are taken on level 18, drops
+  T2 from what is still to come, and its Capture Screenshots entry names
+  the level, the aim and the bomb; the script's own docs follow.
+
+**Choices the plan didn't make.**
+
+1. **Aimed to the left, at a bomb,** rather than kept at 55 degrees:
+   Powder keg's picture should show its bombs in play, and the guide's
+   outlines are the clearest way the field shows what a shot will do.
+   Aimed straight at the gap (86 degrees, charge 4) the guide punched two
+   tough bricks in a column; at a full charge (60 degrees) the fuzzball
+   sparks, but the guide's outlines fall on the cage's neighbours.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage`
+(`--maxWorkers=4`): 110 files, 5,327 tests after the review, then the
+`sim` project's 23 files, 285 tests; the root's `yarn lint` passes. The game built alone (its
+main chunk 423.02 kB, 131.97 kB gzipped, at Y1's tip), and its
+`yarn check:layout` holds at each shape and turn, as a level waits for its
+first shot and over a run taken up. `yarn capture:screenshots`, against the
+dev server on 9166 at `[::1]`, where it listens: "Took up the run with a
+score of 1,260, and went on with it, aimed at 100 degrees, charge 3."
+
+**The mutation pass.** Before the review, with the keys worked out in the
+page: `RUN` off its certificate and `AIMING` at another aim, each killed
+by `capture-screenshots.spec.ts`; and in the capture, run against the dev
+server, its images kept aside, the left and right arrows swapped and no
+turn past straight up each missed its shot ("the game didn't say "100
+degrees, charge 3""), while the left arrow's event given the right's
+`keyCode` captured the same bytes, as the steering reads `event.code`.
+After it, with `aimingKeys()` in Node: the arrows swapped, no turn past
+straight up, the left arrow's `keyCode` the right's and a notch short were
+all killed by its spec. The page handed straight up's keys rather than
+`AIMING`'s lived the specs, as only the capture runs the page; it is the
+mutant the capture missed its shot for above.
+
+**The review:**
+
+1. _`goOn()`'s choice of arrow and count of presses runs only in Chrome,
+   so no spec holds it._ Taken: `aimingKeys()` works the presses out in
+   Node and `goOn()` presses what it is handed; its spec holds 100 degrees
+   to ten left presses and three up, 55 to thirty-five right, and 90 to
+   none, and the inline comment went with the code.
+2. _The alt text is twice the other games' length, says "guide", the
+   game's own word, and reads as if the cage hangs over the field._ Taken:
+   "rows of tough bricks, bombs and a caged friend, the fuzzball's dotted
+   aim line running up through a gap into a bomb", 166 characters.
+3. _The log's "five rows of tough bricks": the top row is six plain bricks,
+   two tough ones and a bomb._ Taken: five rows of bricks, four of them
+   tough.
+4. _`turn` names a key._ Gone with the first.
+
+The fixes follow the review's own words, so they had no second review;
+the capture, run again, wrote the same bytes.

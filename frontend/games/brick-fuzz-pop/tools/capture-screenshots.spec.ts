@@ -4,7 +4,13 @@ import { LEVELS, levelEntryOf } from "../src/rules/levels/levels";
 import { describeShot } from "../src/rules/run/describe";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
 import { certificateOf } from "../src/testing/every_level";
-import { AIMING, RUN, run, shownRun } from "./capture-screenshots.mjs";
+import {
+  AIMING,
+  RUN,
+  aimingKeys,
+  run,
+  shownRun,
+} from "./capture-screenshots.mjs";
 import { loadScreenshotApi } from "./stored_run.mjs";
 
 /**
@@ -17,6 +23,18 @@ async function ran(
   const printer = recordingPrinter();
   const code = await run(args, printer);
   return { code, out: printer.out, err: printer.err };
+}
+
+/** Returns how many times each key is pressed, by its code and key code. */
+function countedPresses(
+  keys: readonly { code: string; keyCode: number }[],
+): Record<string, number> {
+  const counted: Record<string, number> = {};
+  for (const { code, keyCode } of keys) {
+    const key = `${code} ${String(keyCode)}`;
+    counted[key] = (counted[key] ?? 0) + 1;
+  }
+  return counted;
 }
 
 describe("run", () => {
@@ -84,12 +102,28 @@ describe("shownRun", () => {
   it("says the aim the keys give the next shot as the game says it", async () => {
     const shown = shownRun(await loadScreenshotApi());
 
-    // 55 degrees is aim 188: 4 aims a degree, from 8 degrees.
+    // 100 degrees is aim 368: 4 aims a degree, from 8 degrees.
     expect([AIMING, shown.aimed]).toEqual([
-      { degrees: 55, charge: 3 },
-      describeShot({ aim: 188, charge: 3 }),
+      { degrees: 100, charge: 3 },
+      describeShot({ aim: 368, charge: 3 }),
     ]);
   });
+});
+
+describe("aimingKeys", () => {
+  it.each([
+    [
+      { degrees: 100, charge: 3 },
+      { "ArrowLeft 37": 10, "ArrowUp 38": 3 },
+    ],
+    [{ degrees: 55, charge: 0 }, { "ArrowRight 39": 35 }],
+    [{ degrees: 90, charge: 5 }, { "ArrowUp 38": 5 }],
+  ])(
+    "presses for %j, from straight up and no charge, %j",
+    (aiming, presses) => {
+      expect(countedPresses(aimingKeys(aiming))).toEqual(presses);
+    },
+  );
 });
 
 describe("RUN", () => {
