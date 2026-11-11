@@ -5,12 +5,7 @@
 -->
 <main class="stage">
   <div class="room" fzPlayRoom (away)="pauseRun()">
-    <!--
-      The board's place: <app-board>, which the art stream builds on
-      GameService, goes here. It hosts the canvas, the board's cards and the
-      panels, measures the room for the game, and takes the focus back from
-      the bar's Resume, the dialogs and each run begun.
-    -->
+    <app-board />
   </div>
 </main>
 
@@ -26,7 +21,7 @@
   [fast]="game.fast()"
   [soundOn]="game.soundOn()"
   (pauseRun)="game.pause()"
-  (resumeRun)="game.resume()"
+  (resumeRun)="resumeRun()"
   (fastForward)="game.fastForward($event)"
   (skipFlight)="game.skip()"
   (toggleSound)="game.toggleSound()"

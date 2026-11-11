@@ -45,6 +45,11 @@ export interface FieldMetrics extends ArtScale {
   readonly height: number;
   /** The cells, in CSS pixels. */
   readonly css: CssRect;
+  /**
+   * The field from the lintel's top to the band's bottom, the frame drawn
+   * around it, in CSS pixels.
+   */
+  readonly framed: CssRect;
   /** Where the two panels lie, in CSS pixels, or null where the room has no space for them. */
   readonly panels: { readonly left: CssRect; readonly right: CssRect } | null;
 }
@@ -189,6 +194,7 @@ export function fieldMetrics(
     width,
     height,
     css: cssRectOf({ x, y, width, height }, pixelRatio),
+    framed: cssRectOf({ x, y: top, width, height: tall }, pixelRatio),
     panels:
       panel === null
         ? null
