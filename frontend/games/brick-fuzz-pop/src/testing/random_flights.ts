@@ -3,9 +3,11 @@
 // they fly past.
 
 import type { Box } from "@fz/core/sweep";
+import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
 import type { Flight } from "../rules/flight/events";
 import type { FlightRules, FlightStart } from "../rules/flight/flight";
+import type { TraitRules } from "../rules/flight/hooks";
 import { brickBox, columnOf, fieldRowOf, shapeOf } from "../rules/grid";
 import {
   AIM_COUNT,
@@ -28,13 +30,18 @@ export interface RandomFlight {
 }
 
 /**
- * The kinds random walls are drawn from: the stand-ins' bumper and portal,
- * the catalog's zappers, and the stand-ins' prism, wool and cage.
+ * The kinds random walls are drawn from, with the rules they are flown by:
+ * the stand-ins' bumper and portal; the catalog's own, by the bricks' own
+ * rules, so a kind cataloged before its traits' rules play makes these
+ * flights throw; and the stand-ins' prism, wool and cage.
  */
-const KINDS: readonly BrickKinds[] = [
-  STAND_INS,
-  BRICK_KINDS,
-  { ...BRICK_KINDS, brick: PRISM, rowZapper: WOOL, columnZapper: CAGE },
+const KINDS: readonly (readonly [BrickKinds, TraitRules])[] = [
+  [STAND_INS, STAND_IN_RULES],
+  [BRICK_KINDS, TRAIT_RULES],
+  [
+    { ...BRICK_KINDS, brick: PRISM, rowZapper: WOOL, columnZapper: CAGE },
+    STAND_IN_RULES,
+  ],
 ];
 
 /**
@@ -42,10 +49,13 @@ const KINDS: readonly BrickKinds[] = [
  * its bricks of one to three hits and its portals twinned in pairs, from
  * the floor anywhere a fuzzball may wait, along any aim, with any charge,
  * a hot shot or a triple shot one time in seven each, and up to six
- * friends, flown by the stand-ins' rules.
+ * friends, flown by its kinds' rules.
  */
 export function randomFlight(random: () => number): RandomFlight {
-  const kinds = KINDS[whole(random, 0, KINDS.length - 1)] ?? BRICK_KINDS;
+  const [kinds, traits] = KINDS[whole(random, 0, KINDS.length - 1)] ?? [
+    BRICK_KINDS,
+    TRAIT_RULES,
+  ];
   const { wall, depth } = randomField(random, kinds);
   const boon = random() * 7;
   const start: FlightStart = {
@@ -58,7 +68,7 @@ export function randomFlight(random: () => number): RandomFlight {
     mates: boon >= 1 && boon < 2 ? TRIPLE_MATES : 0,
     friends: whole(random, 0, MOST_FRIENDS),
   };
-  return { start, rules: { bored: BORED, kinds, traits: STAND_IN_RULES } };
+  return { start, rules: { bored: BORED, kinds, traits } };
 }
 
 /** Returns a wall whose bricks each have one to three hits, drawn from a source. */
