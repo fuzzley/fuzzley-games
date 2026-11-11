@@ -34,16 +34,16 @@ design, the kinds' table ("The bricks") and the rules a level keeps are in
   writes from each wall's courses.
 - **The checks** that hold it whole:
 
-  | Check                      | Where                                                            | What it holds                                                                                                          |
-  | -------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-  | The compiler               | everywhere                                                       | Every cataloged kind has its art and its legend character, and no art a kind the catalog lacks; every trait its rule   |
-  | `parseLevel()`             | `src/rules/levels/levels.ts`                                     | A wall's shape, its characters, its air, its portals and its steel, and no kind a set hasn't brought in                |
-  | The levels spec            | `src/rules/levels/levels.spec.ts`                                | The rest of plan.md's rules a level keeps, each kind first used at its level, and each draft as plan.md's table has it |
-  | The catalog spec           | `src/rules/catalog/catalog.spec.ts`                              | Every kind's name and sentence, its hits, points and traits as the catalog's rules have them, in its levels' order     |
-  | The legend spec            | `src/rules/levels/legend.spec.ts`                                | A character for every cataloged kind, its hits within its kind's, and each brick's tint                                |
-  | The replays and the floors | `src/rules/levels/every_level/`, `src/rules/levels/every_floor/` | Every level's certificate on every depth, its par, and the careless player at its set's floor                          |
-  | The art's specs            | `src/view/art/`                                                  | Every look of every kind in the atlas's frames, each kind unlike the others, and every frame within its cell           |
-  | The contrast spec          | `src/view/colors/contrast.spec.ts`                               | A kind's inks against the field in every palette                                                                       |
+  | Check                      | Where                                                            | What it holds                                                                                                                                                 |
+  | -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | The compiler               | everywhere                                                       | Every cataloged kind has its art and its legend character, every legend character a cataloged kind, and no art a kind the catalog lacks; every trait its rule |
+  | `parseLevel()`             | `src/rules/levels/levels.ts`                                     | A wall's shape, its characters, its air, its portals and its steel                                                                                            |
+  | The levels spec            | `src/rules/levels/levels.spec.ts`                                | The rest of plan.md's rules a level keeps, each kind first used at its level, and each draft as plan.md's table has it                                        |
+  | The catalog spec           | `src/rules/catalog/catalog.spec.ts`                              | Every kind's name and sentence, its hits, points and traits as the catalog's rules have them, in its levels' order                                            |
+  | The legend spec            | `src/rules/levels/legend.spec.ts`                                | A character for every cataloged kind, its hits within its kind's, and each brick's tint                                                                       |
+  | The replays and the floors | `src/rules/levels/every_level/`, `src/rules/levels/every_floor/` | Every level's certificate on every depth, its par, and the careless player at its set's floor                                                                 |
+  | The art's specs            | `src/view/art/`                                                  | Every look of every kind in the atlas's frames, each kind unlike the others, and every frame within its cell                                                  |
+  | The contrast spec          | `src/view/colors/contrast.spec.ts`                               | A kind's inks against the field in every palette                                                                                                              |
 
 ## A Level
 
@@ -59,8 +59,7 @@ key no level has:
   `src/rules/levels/legend.ts`), `.` for none. Read the legend for the
   characters: each names a kind, its hits and the faces a plated brick's
   plates cover, and `@` and `&` are a wall's first and second pair of
-  portals. A kind's character is in the legend before its set is built;
-  `parseLevel()` refuses it until the catalog holds the kind.
+  portals.
 
 Nobody picks a tint: `tintOf()` gives a plain or tough brick its row's, the
 eight taking turns from the wall's lowest row up; a cage its number among
@@ -81,8 +80,7 @@ at fault:
 - a portal mark used other than twice, a pair more than `TWIN_ROWS` rows
   apart, and a second pair (`&`) with no first (`@`);
 - a row of steel from side to side anywhere but the wall's top course: over
-  everything, or with no air over it and a portal past it;
-- a kind the catalog doesn't hold yet.
+  everything, or with no air over it and a portal past it.
 
 `levels.spec.ts` holds every level to the rest:
 
@@ -172,10 +170,11 @@ fails.
    holds. `BRICK_ART` can't take it yet: its record is held to the
    catalog's ids, and refuses one the catalog lacks.
 2. **Its character** in `LEGEND`, with hits its kind allows, if the legend
-   lacks it, before or with its entry: the legend spec types the catalog's
-   ids as the legend's, so `yarn typecheck` refuses a kind the legend
-   lacks. The legend spec counts plan.md's kinds, so one beyond them moves
-   that count.
+   lacks it, with its entry: the legend spec types the catalog's ids as
+   the legend's, and `parseLevel()` and `wallFrom()` lay a character's kind
+   out as a cataloged one, so `yarn typecheck` refuses a kind either lacks.
+   The legend spec counts plan.md's kinds, so one beyond them moves that
+   count.
 3. **Its catalog entry and its `BRICK_ART` line, in one commit,** as the
    compiler refuses either without the other, the line in the catalog's
    order, as `art.spec.ts` holds `BRICK_ART`'s ids to it. The entry, in its
@@ -212,18 +211,9 @@ order, `src/rules/flight/cast.spec.ts`'s reaches and
 frames in order, and the spec that holds its set's kinds to plan.md's
 table, beside its kinds file or in the catalog spec.
 
-The specs written against a kind not yet cataloged change with it:
-
-- those refusing an uncataloged kind take one from `uncataloged()`
-  (`src/testing/stand_ins.ts`), in `levels.spec.ts` and
-  `wall_picture.spec.ts`, which throws as their files load once the
-  catalog holds every kind the legend names: drop them then;
-- those that meet a legend character only as refused, such as the
-  portals' rules in the same two files, whose comments say what each
-  becomes once its kind is cataloged;
-- those that fly a stand-in for it from `src/testing/stand_ins.ts`, as the
-  testing skill says, which move to the real kind's character, the
-  stand-in going once no spec uses it.
+The specs that fly a stand-in for a kind from `src/testing/stand_ins.ts`,
+as the testing skill says, can move to the real kind's character, the
+stand-in going once no spec uses it.
 
 ## A Brick Trait
 

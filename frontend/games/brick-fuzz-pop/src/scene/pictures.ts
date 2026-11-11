@@ -6,15 +6,22 @@ import {
   type BrickKindId,
   brickKind,
 } from "../rules/catalog/bricks";
+import { LEGEND } from "../rules/levels/legend";
 import { type BrickLook, brickLayers } from "../view/art/art";
 import type { FrameName } from "../view/art/frames";
 import { cellOf } from "../view/art/symbols";
 
-/** Returns a whole brick of a kind, in the first tint, as How to play pictures the kind. */
+/**
+ * Returns a whole brick of a kind, in the first tint, plated as the
+ * legend's first character for the kind plates it, as How to play pictures
+ * the kind: a plated brick as a `v`, toward the floor.
+ */
 function wholeBrickOf(kind: BrickKindId): BrickLook {
   const { hits } = brickKind(kind);
   const full = hits === "never" ? 0 : hits;
-  return { kind, tint: 0, hits: full, full, plates: 0 };
+  const plates =
+    Object.values(LEGEND).find((brick) => brick.kind === kind)?.plates ?? 0;
+  return { kind, tint: 0, hits: full, full, plates };
 }
 
 /** The frames each kind's picture is drawn from: a whole brick's, from the bottom of its stack up. */

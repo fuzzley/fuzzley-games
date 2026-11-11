@@ -1,4 +1,5 @@
 import { isKeyOf, isOneOf } from "@fz/core/records";
+import type { BrickKindId } from "../catalog/bricks";
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT, wallRowOf } from "../grid";
 
 /** A plate's faces toward both side walls. */
@@ -6,11 +7,8 @@ const SIDES = LEFT | RIGHT;
 
 /** Describes the brick a character of a level's picture stands for. */
 export interface LegendBrick {
-  /**
-   * Its kind's id: one the catalog holds, or one the catalog of a set yet
-   * to be built will, which no level may use until it does.
-   */
-  readonly kind: string;
+  /** Its kind's id. */
+  readonly kind: BrickKindId;
   /** Its hits when whole: 0 for a kind that never breaks. */
   readonly hits: number;
   /** Its plated faces, as a brick's `plates` holds them. */
@@ -57,7 +55,7 @@ export const LEGEND = {
 /** A character of the legend, such as "#". */
 export type LegendCharacter = keyof typeof LEGEND;
 
-/** The id of a kind the legend names, which the catalog holds once its set is built. */
+/** The id of a kind the legend names, each one the catalog holds. */
 export type LegendKindId = (typeof LEGEND)[LegendCharacter]["kind"];
 
 /**
@@ -68,6 +66,13 @@ export const PORTAL_MARKS = [
   "@",
   "&",
 ] as const satisfies readonly LegendCharacter[];
+
+/**
+ * The badge the art draws on each pair's portals, by its mark's place in
+ * {@link PORTAL_MARKS}, which R names a portal by: a dot on the first
+ * pair's, a diamond on the second's.
+ */
+export const PORTAL_BADGES = ["dot", "diamond"] as const;
 
 /** How many tints plain and tough bricks take in turn, a row each, from a wall's lowest row up. */
 export const TINTS = 8;

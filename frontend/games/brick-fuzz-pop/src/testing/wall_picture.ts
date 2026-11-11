@@ -4,7 +4,6 @@
 // (eslint.config.js), to their fence and their exact arithmetic.
 
 import { isKeyOf } from "@fz/core/records";
-import { isBrickKindId } from "../rules/catalog/bricks";
 import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "../rules/levels/legend";
 import { COLUMNS } from "../rules/tuning";
 import type { Brick, Wall } from "../rules/wall/wall";
@@ -88,9 +87,6 @@ function brickOf(
     throw uncataloged(character);
   }
   const { kind, hits, plates } = LEGEND[character];
-  if (!isBrickKindId(kind)) {
-    throw uncataloged(character);
-  }
   return {
     kind,
     hits,

@@ -9,7 +9,7 @@ import { WARM_UP_KINDS } from "./kinds/warm_up";
 export type BrickTrait =
   /** Never breaks, so a level doesn't need it: steel, a bumper, a portal. */
   | { readonly kind: "never" }
-  /** Takes the charge of a fuzzball that strikes it, but a hot shot's: steel, a plate, a bumper. */
+  /** Takes the charge of a fuzzball that strikes it, but a hot shot's: steel, a bumper. */
   | { readonly kind: "earths" }
   /**
    * As it breaks, zaps or blasts the bricks its pattern reaches, `reach`
@@ -91,8 +91,8 @@ export type BrickKindId = keyof typeof BRICK_KINDS;
 
 /**
  * Every kind of brick by its id, as the rules are handed them: the
- * catalog's, or a spec's, where a kind the catalog doesn't hold yet stands
- * in under the id of one it does.
+ * catalog's, or a spec's, where a kind made up stands in under the id of
+ * one the catalog holds.
  */
 export type BrickKinds = Readonly<Record<BrickKindId, BrickKind>>;
 

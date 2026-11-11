@@ -1,21 +1,17 @@
 import { eventsOf, flyPicture, near } from "../../../testing/flights";
-import { STAND_INS } from "../../../testing/stand_ins";
+import { BRICK_KINDS } from "../../catalog/bricks";
 import { RADIUS } from "../../tuning";
 
-/** How far from its middle the stand-in bumper's disc reaches. */
-const DISC = 0.38;
-
-// The bumper stands in for the row zapper, its middle at (4.5, 3.5). Straight
-// up half the reach of its disc to the right of its middle, a fuzzball
-// meets it 30° round from straight below, where a mirror would send it off
-// at 30° over the floor.
+// The bumper's middle stands at (4.5, 3.5). Straight up half the reach of
+// its disc to the right of its middle, a fuzzball meets it 30° round from
+// straight below, where a mirror would send it off at 30° over the floor.
 describe("KICKS_RULE, flown", () => {
-  it("kicks a fuzzball meeting a bumper's disc straight away from its middle", () => {
-    const reach = DISC + RADIUS;
-    const x = 4.5 + reach / 2;
-    const half = Math.sqrt(3) / 2;
+  const reach = BRICK_KINDS.bumper.traits[2].radius + RADIUS;
+  const x = 4.5 + reach / 2;
+  const half = Math.sqrt(3) / 2;
 
-    const flown = flyPicture({ picture: ["....-...."], x, kinds: STAND_INS });
+  it("kicks a fuzzball meeting a bumper's disc straight away from its middle", () => {
+    const flown = flyPicture({ picture: ["....B...."], x });
 
     expect(
       eventsOf(flown, "turn")
@@ -30,5 +26,19 @@ describe("KICKS_RULE, flown", () => {
         off: "bumper",
       }),
     ]);
+  });
+
+  it("kicks a charged fuzzball without its charge, the bumper whole", () => {
+    const flown = flyPicture({ picture: ["....B...."], x, charge: 3 });
+
+    expect([
+      eventsOf(flown, "strike").map(({ took, left, charge, earthed }) => [
+        took,
+        left,
+        charge,
+        earthed,
+      ]),
+      flown.wall.bricks[4]?.kind,
+    ]).toEqual([[[0, 0, 0, true]], "bumper"]);
   });
 });

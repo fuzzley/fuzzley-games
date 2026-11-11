@@ -245,6 +245,10 @@ describe("shapesOf", () => {
       xZapper: "box",
       wool: "box",
       cage: "box",
+      bumper: "round",
+      prism: "box",
+      portal: "open",
+      plated: "box",
       shell: "box",
       moss: "box",
     });
@@ -262,6 +266,10 @@ describe("shapesOf", () => {
       xZapper: "box",
       wool: "box",
       cage: "box",
+      bumper: "round",
+      prism: "box",
+      portal: "open",
+      plated: "box",
       shell: "box",
       moss: "box",
     });
@@ -335,8 +343,7 @@ describe("boxesIn, read through exposureOf", () => {
     });
   });
 
-  // A made-up bumper ("-") and portal ("|") stand in for kinds the catalog
-  // doesn't hold yet.
+  // The made-up bumper ("-") and portal ("|") of the stand-ins.
   it.each([
     ["a bumper's", "...o-o..."],
     ["a portal's", "...o|o..."],

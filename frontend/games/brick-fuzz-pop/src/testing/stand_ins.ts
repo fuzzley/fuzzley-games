@@ -1,12 +1,10 @@
-// Kinds of brick the catalog doesn't hold yet, made up so the rules that
-// will meet them are specced before they are built. Each stands in under
-// the id of a kind the catalog holds, in a catalog a spec hands the rules,
-// so a picture lays it out in that kind's character. With them, the rules
-// they are flown by, a strike as a brick's rules see it, so a trait's rule
-// is specced on its own, and a character of the legend no cataloged kind's
-// brick stands for yet.
+// Kinds of brick made up for specs, from before the catalog held their
+// own: each stands in under the id of a kind the catalog holds, in a
+// catalog a spec hands the rules, so a picture lays it out in that kind's
+// character, and the random flights draw them beside the catalog's. With
+// them, the rules they are flown by, and a strike as a brick's rules see
+// it, so a trait's rule is specced on its own.
 
-import { keysOf } from "@fz/core/records";
 import { EARTHS_RULE } from "../rules/bricks/traits/earths";
 import { FREES_RULE } from "../rules/bricks/traits/frees";
 import { KICKS_RULE } from "../rules/bricks/traits/kicks";
@@ -20,11 +18,9 @@ import {
   BRICK_KINDS,
   type BrickKind,
   type BrickKinds,
-  isBrickKindId,
 } from "../rules/catalog/bricks";
 import type { Struck, TraitRules } from "../rules/flight/hooks";
 import { FLOORWARD } from "../rules/grid";
-import { LEGEND, type LegendCharacter } from "../rules/levels/legend";
 
 /** A bumper made up for specs: round, never broken, kicking a fuzzball from a disc of 0.38. */
 export const BUMPER: BrickKind = {
@@ -92,23 +88,4 @@ export function struckOf(given: Partial<Struck> = {}): Struck {
     earths: false,
     ...given,
   };
-}
-
-/**
- * Returns the first of the legend's characters whose kind the catalog
- * doesn't hold yet, for a spec of a picture refusing one.
- *
- * @throws {Error} once the catalog holds every kind the legend names, as
- *   such a spec has then run its course.
- */
-export function uncataloged(): LegendCharacter {
-  const character = keysOf(LEGEND).find(
-    (each) => !isBrickKindId(LEGEND[each].kind),
-  );
-  if (character === undefined) {
-    throw new Error(
-      "The catalog holds every kind the legend names, so no spec can refuse an uncataloged one.",
-    );
-  }
-  return character;
 }

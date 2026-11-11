@@ -8,8 +8,12 @@ import type { WallPalette } from "../colors/palette";
 import type { FrameName } from "./frames";
 import { BOMB_ART } from "./kinds/bomb";
 import { PLAIN_ART } from "./kinds/brick";
+import { BUMPER_ART } from "./kinds/bumper";
 import { CAGE_ART } from "./kinds/cage";
 import { MOSS_ART } from "./kinds/moss";
+import { PLATED_ART } from "./kinds/plated";
+import { PORTAL_ART } from "./kinds/portal";
+import { PRISM_ART } from "./kinds/prism";
 import { SHELL_ART } from "./kinds/shell";
 import { STEEL_ART } from "./kinds/steel";
 import { TOUGH_ART } from "./kinds/tough";
@@ -50,6 +54,10 @@ export const BRICK_ART = {
   xZapper: zapperArt("xZapper"),
   wool: WOOL_ART,
   cage: CAGE_ART,
+  bumper: BUMPER_ART,
+  prism: PRISM_ART,
+  portal: PORTAL_ART,
+  plated: PLATED_ART,
   shell: SHELL_ART,
   moss: MOSS_ART,
 } as const satisfies Readonly<Record<BrickKindId, KindArt>>;

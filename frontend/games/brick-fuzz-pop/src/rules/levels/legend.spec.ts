@@ -1,5 +1,5 @@
 import { isKeyOf, keysOf } from "@fz/core/records";
-import { BRICK_KIND_IDS, brickKind, isBrickKindId } from "../catalog/bricks";
+import { BRICK_KIND_IDS, brickKind } from "../catalog/bricks";
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
 import { COLUMNS } from "../tuning";
 import {
@@ -14,11 +14,10 @@ import {
 
 const CHARACTERS = keysOf(LEGEND);
 
-/** The characters whose kinds the catalog holds, with the kind. */
-const BUILT = CHARACTERS.flatMap((character) => {
-  const { kind } = LEGEND[character];
-  return isBrickKindId(kind) ? [[character, kind] as const] : [];
-});
+/** Every character of the legend, with its kind. */
+const KINDS_OF = CHARACTERS.map(
+  (character) => [character, LEGEND[character].kind] as const,
+);
 
 // Every kind the catalog holds is one the legend names, as the compiler
 // checks here, so a kind added under an id the legend doesn't use fails.
@@ -48,7 +47,7 @@ describe("the legend", () => {
     expect(isKeyOf(NO_BRICK, LEGEND)).toBe(false);
   });
 
-  it.each(BUILT)(
+  it.each(KINDS_OF)(
     "gives %s the hits its kind, %s, allows",
     (character, kind) => {
       const { hits, mostHits } = brickKind(kind);

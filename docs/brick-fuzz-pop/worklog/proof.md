@@ -1358,3 +1358,127 @@ hook takes a cell.
    earth strikes on its bare faces. Left: the file is the integrator's,
    so the report asks; the catalog's half gives the plated brick
    `plated` alone.
+
+### X2, second part: the bumper, the prism, the portal and the plated brick, cataloged and drawn
+
+**2026-11-11.**
+
+**What was built.** Tricks' four kinds join the catalog, in
+`src/rules/catalog/kinds/tricks.ts`, as plan.md's table of bricks has
+them:
+
+- **The bumper,** level 19: never breaks, not needed, round, kicking from
+  a disc of 0.38 and earthing the charge.
+- **The prism,** level 20: a hit, 30 points, splitting at 30°, its cosine
+  and sine written out.
+- **The portal,** level 21: never breaks, not needed, not solid.
+- **The plated brick,** level 22: 2 to 3 hits, 10 points a hit, its one
+  trait `plated`. It doesn't carry `earths`, which would earth a strike on
+  its bare faces too, so `earths`' comment no longer names a plate.
+
+`BRICK_ART` takes in the art stream's four, in the catalog's order. Since
+nothing waits for its kind now, `atlas_frames.spec.ts` drops `WAITING_ART`
+and `everyFrame()` and lists the atlas's 13 new frames.
+
+How to play takes the four in from the catalog through `helpEntries()`.
+The bumper's and the portal's sounds were already wired in `effects.ts`.
+
+**R reads them.** `describeRows()` reads a brick's plates ("plated brick,
+2 hits, plated toward the floor and both sides"). It reads a portal by its
+pair's badge, as the art draws it ("portal with a dot", "portal with a
+diamond"), and adds "shut" while its twin waits over the ceiling.
+
+**What the last kinds retire.** With these four, the catalog holds every
+kind the legend names:
+
+- `parseLevel()` no longer refuses a kind no set has brought in. The
+  branch can't be reached, and the compiler now refuses a legend character
+  whose kind the catalog lacks. `wallFrom()`'s check goes the same way.
+- `uncataloged()` and the specs that took a kind from it go: the levels
+  spec's refusal, and `wall_picture.spec.ts`'s. The latter keeps its spec
+  of a character the legend lacks.
+- `stand_ins.ts` keeps its bumper, portal, prism, `STAND_INS` and
+  `STAND_IN_RULES`, which the flight's, the cast's, the grid's, the
+  round's and the random flights' specs still fly. The testing and content
+  skills now say so.
+
+**Choices the plan didn't make.**
+
+1. **The portal by its badge.** A dot or a diamond, rather than "first
+   pair" and "second pair". It is what a player who sees the field also
+   sees.
+2. **"Shut" in R's words,** so a player by ear knows a portal lets a
+   fuzzball through until its twin comes down.
+3. **How to play pictures the plated brick as a `v`.** That is the
+   legend's first character for it, plated toward the floor, since a
+   plated brick with no plates has no frame. `art.spec.ts`'s and
+   `wall_scene.spec.ts`'s looks take each plating the legend gives a kind,
+   and a portal's tints its two pairs. `art.spec.ts` colors a portal's
+   shards by its pair's inks.
+4. **The traits' flown specs fly the real kinds,** `B`, `P`, `@` pairs and
+   `v` and `^`, now that `wallFrom()` twins a picture's portals.
+   `levels.spec.ts` lays out a real pair of portals and takes the walls
+   that keep the portals' rules.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 5,794 tests, 5,509 with coverage and 285 in `sim`.
+The rules and the view keep their floors. `pictures.ts`' fallback for a
+kind with no character in the legend is the one branch never taken, as
+every cataloged kind has a character. The root's `yarn lint` passes.
+
+**The mutation pass.** 37 mutants were run, against the specs of each
+piece. 36 were killed:
+
+- **`tricks.ts`, 9:** the bumper's radius and `earths`, the prism's cosine,
+  sine and points, the portal made solid, the plated brick's most hits, an
+  `earths` added to it, and its level.
+- **`describe.ts`, 10, after the badges:** the badges flipped, given to
+  every brick or to none; "shut" for every portal, or only past the
+  ceiling's row; the plates never read; the order of the sides; the faces
+  not cleared as they are read; a list of two read as one.
+- **`describe.ts`, the earlier 16:** run again, with the same result.
+- **`pictures.ts`, 2:** the plated picture's plates dropped, or the
+  legend's last plating taken in place of its first.
+
+One lived, and is equivalent: reading "shut" without asking whether a
+brick has a twin reads cell 0's row for one with none. That row is the
+wall's lowest, under the ceiling wherever R reads a row, and the compiler
+refuses the mutant anyway. The traits' 28 still give 27 killed and the one
+equivalent the first part logged. After the review, five more: a badge
+for every brick or for none, the badges swapped, and the prism's most
+hits, all killed; and the equivalent above, run again on the kind's check.
+
+**The review:**
+
+1. The skills still described the refusal the change removed: the content
+   skill's table of checks and its levels section had `parseLevel()`
+   refusing an uncataloged kind, and a legend character standing before
+   its set; the testing skill had `wallFrom()` throwing for one, and named
+   three of the stand-ins' five users. Two comments, in `grid.spec.ts` and
+   on `BrickKinds`, still spoke of kinds the catalog doesn't hold yet.
+   Fixed, each.
+2. Only `brickAt()`'s and `brickOf()`'s return types held every legend
+   kind to the catalog, `LegendBrick.kind` being a string. Fixed: it is a
+   `BrickKindId`, so the legend itself refuses a kind the catalog lacks,
+   and the legend spec's and the levels spec's filters by
+   `isBrickKindId()`, which could no longer drop anything, go.
+3. Nothing tied R's badge words to the art, and a portal with no twin read
+   no badge though the art draws one. Partly fixed: the badges are named
+   once, `PORTAL_BADGES` beside `PORTAL_MARKS` in `legend.ts`, R reads a
+   badge for every portal by its kind, and a spec reads a portal with no
+   twin. The art's `portal.ts`, the art stream's, still picks its dot by
+   its mark; drawing from `PORTAL_BADGES` is offered in the report.
+4. The prism's sentence left out what a zap does to it, which wool's says,
+   and the catalog spec didn't hold its most hits. Fixed: "a zap or a
+   blast only breaks it", and `mostHits: 1` in its entry's spec.
+5. The looks each kind takes are worked out in both `art.spec.ts` and
+   `wall_scene.spec.ts`, now each with the portal's tints and the
+   platings. Left: each spec had its own before, in two streams' files; one
+   `looksOf()` in `src/testing/art_frames.ts` is offered in the report.
+6. The prism's comment gave the wrong reason for its written-out cosine.
+   Fixed: it says the numbers are 30°'s cosine and sine.
+7. `platedWords()`'s `left` read as the left side, and a spec plated a
+   tough brick, which no wall has. Fixed: `rest`, and a `v` plated anew.
+   `AGENTS.md` had an unwrapped line: fixed. The last face, taken as
+   `faces.slice(-1).join("")`, is left: it reads a string without an
+   unreachable branch for an empty list.

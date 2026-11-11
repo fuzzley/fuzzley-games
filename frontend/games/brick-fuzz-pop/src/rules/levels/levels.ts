@@ -1,6 +1,5 @@
 import { unknownKey } from "@fz/core/json";
 import { isKeyOf } from "@fz/core/records";
-import { isBrickKindId } from "../catalog/bricks";
 import { wallRowOf } from "../grid";
 import { isBoon } from "../shot";
 import { COLUMNS } from "../tuning";
@@ -90,7 +89,7 @@ const LEVEL_KEYS: Readonly<Record<keyof LevelData, true>> = {
  *
  * It holds a level to the first four of plan.md's "The rules a level
  * keeps", but an id and a name no other level has, which `levels.spec.ts`
- * holds every level to. It also refuses a kind no set has brought in yet.
+ * holds every level to.
  */
 export function parseLevel(data: LevelData): Level {
   const extra = unknownKey(data, LEVEL_KEYS);
@@ -108,7 +107,7 @@ export function parseLevel(data: LevelData): Level {
   checkSteel(data, characters, twins);
   return {
     boon,
-    bricks: twins.map((twin, cell) => brickAt(data, characters, cell, twin)),
+    bricks: twins.map((twin, cell) => brickAt(characters, cell, twin)),
     rows: data.bricks.length,
   };
 }
@@ -245,12 +244,8 @@ function isSteel(character: string): boolean {
   return isKeyOf(character, LEGEND) && LEGEND[character].kind === "steel";
 }
 
-/**
- * Returns the brick a level lays in a wall cell, whole, or null for none,
- * throwing for a kind no set has brought in yet.
- */
+/** Returns the brick a level lays in a wall cell, whole, or null for none. */
 function brickAt(
-  data: LevelData,
   characters: string,
   cell: number,
   twin: number | null,
@@ -261,12 +256,6 @@ function brickAt(
     return null;
   }
   const { kind, hits, plates } = LEGEND[character];
-  if (!isBrickKindId(kind)) {
-    throw wrong(
-      data,
-      `"${character}", in row ${String(data.bricks.length - wallRowOf(cell))} of its picture, is a "${kind}", which no set has brought in yet`,
-    );
-  }
   return {
     kind,
     hits,
