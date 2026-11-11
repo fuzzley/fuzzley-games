@@ -4,7 +4,8 @@ The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
 Cloud Run. The games are built here too, under `frontend/games/`, and
 served as static pages under `/play/<slug>/`: the Solitaire Collection,
-Minesweeper, Sudoku, Snake, Brick Breaker and Asteroid Breaker.
+Minesweeper, Sudoku, Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz
+Pop.
 
 ## Technology Stack
 
@@ -21,7 +22,9 @@ Minesweeper, Sudoku, Snake, Brick Breaker and Asteroid Breaker.
   Brick Breaker is drawn the same way, its rules, physics included, kept
   free of any framework; see `frontend/games/brick-breaker/AGENTS.md`.
   Asteroid Breaker is too, on a field that wraps; see
-  `frontend/games/asteroid-breaker/AGENTS.md`.
+  `frontend/games/asteroid-breaker/AGENTS.md`. Brick Fuzz Pop is too, its
+  fuzzball aimed and charged at a wall that comes down; see
+  `frontend/games/brick-fuzz-pop/AGENTS.md`.
 - **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
 - **Serving:** nginx in a Docker image, on Google Cloud Run
 
@@ -122,8 +125,9 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `frontend/lib/phaser/AGENTS.md`, `frontend/lib/dev/AGENTS.md`,
   `frontend/games/solitaire/AGENTS.md`, `frontend/games/minesweeper/AGENTS.md`,
   `frontend/games/sudoku/AGENTS.md`, `frontend/games/snake/AGENTS.md`,
-  `frontend/games/brick-breaker/AGENTS.md` and
-  `frontend/games/asteroid-breaker/AGENTS.md`. So the site's rules never reach a
+  `frontend/games/brick-breaker/AGENTS.md`,
+  `frontend/games/asteroid-breaker/AGENTS.md` and
+  `frontend/games/brick-fuzz-pop/AGENTS.md`. So the site's rules never reach a
   game, nor a game's the site. A rule is written once, in the highest layer it
   holds for: one for the whole repository, such as how code, comments and tests
   are written, belongs here.
@@ -135,7 +139,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `frontend/games/sudoku/.agents/skills/`,
   `frontend/games/snake/.agents/skills/`,
   `frontend/games/brick-breaker/.agents/skills/`,
-  `frontend/games/asteroid-breaker/.agents/skills/`), and cites paths from its
+  `frontend/games/asteroid-breaker/.agents/skills/`,
+  `frontend/games/brick-fuzz-pop/.agents/skills/`), and cites paths from its
   folder. Gemini CLI reads the repository's directly. Claude Code only
   discovers `.claude/skills/<name>/SKILL.md`, so
   **`node .agents/link-claude-skills.mjs`** links each skill into the
@@ -231,8 +236,8 @@ the patterns every Angular workspace's specs share: Testing Library by role,
 user-event, jest-dom and zoneless change detection. An app also has a skill of
 its own for its runner setup, fixtures and floors (`site-testing`,
 `minesweeper-testing`, `sudoku-testing`, `snake-testing`,
-`brick-breaker-testing`, `asteroid-breaker-testing`, `solitaire-testing`), and
-its `AGENTS.md` says where its specs go.
+`brick-breaker-testing`, `asteroid-breaker-testing`, `brick-fuzz-pop-testing`,
+`solitaire-testing`), and its `AGENTS.md` says where its specs go.
 
 - **Test Coverage:** Cover new and changed code with specs.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.
