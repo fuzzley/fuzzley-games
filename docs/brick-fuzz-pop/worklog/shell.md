@@ -796,3 +796,123 @@ one more, the rounds read as the level, which was killed.
    is gone, as `setPageVisibility()` gives the page back itself, as is the
    page made visible again before a reload; the pause's spec checks
    everything kept.
+
+### U1's bar
+
+**2026-11-10.** A piece of U1, split off to run beside S1 and V3; the core
+agent wires it to `GameService`.
+
+**What was built.** In `src/app/bar/`:
+
+- `bar.component.ts`, `<app-bar>`: the bar over `@fz/game-ui`'s
+  `<fz-game-bar>`, handed what it shows and asking the app for each action,
+  so it reads nothing of the game. It takes `level`, `rounds`, `par`,
+  `rowsLeft`, `score`, `friends` (each friend's ink, 0 to 7, the crew's
+  `friends`), `outcome`, `flying`, `fast` and `soundOn`, and emits
+  `pauseRun`, `resumeRun`, `fastForward` (whether to play fast), `skipFlight`,
+  `toggleSound`, `openLevels`, `newGame`, `openHelp` and `openSettings`. It
+  reads the window's shape from `GameViewportService` and the palette's mode
+  from `ThemeService` itself.
+  - The figures: the level; the rounds against par, "4/9" seen and "4
+    rounds, par 9" heard; the rows left; the score, grouped; and the crew,
+    the player's fuzzball in the accent and each friend in
+    `cssHex(friendInk(ink, mode))`, heard as "3 fuzzballs". Below the
+    desktop width, the rounds and the score alone, in one card across the
+    bar or stacked on a rail.
+  - The actions: Pause (`fzBarPause`), Fast-forward and Skip, then Sound,
+    Levels, New game, How to play and Settings; on a compact screen the last
+    five in the overflow menu, led by the link home where the bar has no
+    room for it.
+- `fast_forward.component.ts`, `button[appFastForward]`, modelled on
+  `BarPauseComponent`: `aria-pressed` while `fast`, and then in the accent;
+  `aria-disabled` while not `flying`; the focus kept where it was through a
+  press with a pointer; a press emits `fastForward` with the opposite of
+  `fast`.
+- `skip.component.ts`, `button[appSkip]`: the same for Skip, a press
+  emitting `skipFlight`.
+
+**Choices the plan didn't make.**
+
+1. **Every action is round at every size,** its name heard and shown
+   under the pointer: Pause's label is hidden, its name in a `title` the bar
+   gives it, and New game is round too.
+   Measured in headless Chrome over a stand-in page, with a crew of seven
+   and a six-figure score, the breakers' labelled Pause and New game and a
+   labelled Fast-forward and Skip needed about 1,430 CSS px, and at 1,200
+   the figures ran over the link home. Round, with the cards 8 px a side
+   rather than 16, their labels on one line and the crew's fuzzballs 16 px,
+   the bar fits at 1,200 with its title whole, and at 1,280, beside the
+   wordmark, cuts the title short with an ellipsis only beside four friends
+   or more. It stays 73 px tall at every roomy width; the compact card is
+   42 px in a 60 px bar; at 360 wide the compact bar fits with 8 px to
+   spare, and the rail at 390 tall with 8. At 720, the narrowest roomy
+   width, the title is cut to "Brick Fuzz P…".
+2. **Fast-forward and Skip stay in the bar, dimmed while there is no
+   flight,** rather than coming with each flight, so nothing moves as one
+   starts. `flying` holds while the run is paused mid-flight: the bar is
+   outside the play room, so a player who tabs to either from the board
+   pauses the run on the way, and the button must still work. Fast-forward
+   pressed then sets the speed the flight goes on at, and Skip lands it.
+3. **On a compact screen New game moves into the overflow menu,** which the
+   breakers keep in the bar: Pause, Fast-forward, Skip and the menu are four
+   round buttons, and a fifth overruns 360 px.
+4. **Fast-forward asks for what the player wants,** `fastForward(true)` or
+   `(false)`, the opposite of the `fast` it was handed, rather than a bare
+   toggle, as Pause's press may come after the run has moved on. F held is
+   the core's to fold into `fast`.
+5. **Skip has a file of its own,** `skip.component.ts`, beside
+   `fast_forward.component.ts`, one component to a file.
+6. **The lint's two rules are turned off where they meet the new buttons,**
+   as `eslint.config.js` is the integrator's: each attribute selector
+   carries an `eslint-disable-next-line` for `component-selector`, and each
+   of the bar's two empty buttons one for `elements-content`. An override
+   like `@fz/game-ui`'s for the two files, and `appFastForward` and
+   `appSkip` in `elements-content`'s `allowList`, would let them go.
+7. **The fuzzballs' eyes are the field's color** (`--fz-field`), as the
+   scene draws them; the rounds' icon on a compact screen is the player's
+   fuzzball, and the score's `bricks`, as Brick Breaker's is.
+
+**For the core agent.** `rowsLeft` is the rows still waiting over the
+ceiling; `flying` is a flight under way, paused or not, and a Skip while
+paused has to land it though `landRound()` lands only a run in play;
+`resumeRun` asks the game to go on and the board to take the focus, as the
+breakers' `handBack` does; `friends` is the waiting start's
+`crew.friends`.
+
+**Checks.** The workspace's `lint`, `typecheck`, `test` and
+`test:coverage` pass: 3,442 tests in 57 files, 3 of them new and 63 of the
+tests; the three files at 100%. The root's `yarn lint` passes.
+
+**The mutation pass.** 25 mutants, one at a time, against the bar's specs:
+every figure on a compact screen wide enough, and wherever the screen isn't
+compact; the rounds shown and said against the rounds; the score
+ungrouped; the friends always in their light inks; the crew counted
+without the player, or drawn without the player's fuzzball; no New game,
+and no link home, in the menu; Levels from the menu asking for How to play;
+Pause labelled; Resume pausing; Fast-forward never held, always flying, or
+always asking for the flight fast; Skip always flying; Fast-forward and
+Skip unguarded, taking the focus, or dimmed while a flight plays; and
+Fast-forward asking for what it holds, or never pressed. Two survived: the
+figures on a compact screen as wide as a desktop's, and Fast-forward
+always asking for the flight fast. Each got a spec, a window 1,280 wide and
+480 tall, and a press while the flight plays fast, and was killed. After
+the review, all 25 again and 3 more, New game a pill and Pause named
+Pause, or nothing, under the pointer: all 28 were killed.
+
+**The review:**
+
+1. **Fast-forward and Skip were dead from the keyboard once wired:** the
+   bar is outside the play room, so tabbing to either pauses the run, and
+   `flying`, false while paused, dimmed them as they took the focus.
+   Fixed: `flying` is a flight under way, paused or not, in the three
+   components' docs, the second choice and the notes for the core agent,
+   with a spec that skips a paused flight.
+2. **Pause was the one action with no name under the pointer,** and its
+   icon 16 px beside the others' 18. Fixed: the bar gives it a `title`,
+   Pause or Resume, and the 18 px icon, with specs for both names.
+3. **No spec held the actions round:** New game back as a pill passed.
+   Fixed: a spec holds every action but Pause a circle.
+4. **Fast-forward's `held` and the bar's `fast` named the same value
+   twice,** and `held` read as F held. Fixed: both are `fast`.
+5. **The spec provided a memory store the test setup already provides,**
+   and two inks' comments called them friends. Fixed.
