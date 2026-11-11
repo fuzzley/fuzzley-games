@@ -17,6 +17,13 @@ export interface LoweredWall {
   readonly lost: boolean;
 }
 
+/**
+ * The field row over the floor's: a brick the level needs standing in it
+ * is one step from losing the level, and one in the floor's row loses it
+ * as the step that brings it there comes down.
+ */
+export const DANGER_ROW = 1;
+
 /** Returns whether a wall holds no brick its level needs, in the field or waiting over the ceiling. */
 export function isCleared(wall: Wall): boolean {
   return !wall.bricks.some(isNeeded);
@@ -41,8 +48,7 @@ export function lowerWall(wall: Wall, depth: number): LoweredWall {
   const grown = regrow(wall);
   // Steel, bumpers and portals below the jump line don't hold the wall
   // back, and rows waiting over the ceiling don't either.
-  const lowest = grown.bricks.findIndex(isNeeded);
-  const jumped = fieldRowOf(grown, lowest) >= jumpLine;
+  const jumped = lowestNeededRow(grown) >= jumpLine;
   const rowsDown = jumped ? jump : 1;
   const lowestRow = grown.lowestRow - rowsDown;
   // Wall row r stands in field row lowestRow + r, so the rows up to
@@ -87,4 +93,33 @@ export function regrow(wall: Wall): Wall {
 /** Returns whether a cell holds a brick its level needs broken. */
 export function isNeeded(brick: Brick | null): boolean {
   return brick !== null && brickKind(brick.kind).needed;
+}
+
+/**
+ * Returns the field row the lowest brick a wall's level needs stands in,
+ * counted from the floor, or Infinity for a wall that holds none.
+ */
+export function lowestNeededRow(wall: Wall): number {
+  // A wall's cells run up from its lowest row, so the first is the lowest.
+  const cell = wall.bricks.findIndex(isNeeded);
+  return cell < 0 ? Number.POSITIVE_INFINITY : fieldRowOf(wall, cell);
+}
+
+/** Returns how many bricks a wall's level needs stand under a field row. */
+export function neededBelow(wall: Wall, row: number): number {
+  return wall.bricks.filter(
+    (brick, cell) => isNeeded(brick) && fieldRowOf(wall, cell) < row,
+  ).length;
+}
+
+/** Returns whether a brick a wall's level needs stands in {@link DANGER_ROW} or lower, one step from losing the level. */
+export function inDanger(wall: Wall): boolean {
+  return lowestNeededRow(wall) <= DANGER_ROW;
+}
+
+/** Returns the wall cells of the bricks the level needs that stand in {@link DANGER_ROW} or lower, in order. */
+export function dangerCells(wall: Wall): readonly number[] {
+  return wall.bricks.flatMap((brick, cell) =>
+    isNeeded(brick) && fieldRowOf(wall, cell) <= DANGER_ROW ? [cell] : [],
+  );
 }

@@ -1,12 +1,12 @@
 import { count, formatPoints } from "@fz/core/format";
 import { brickKind } from "../catalog/bricks";
-import { brickAt, fieldRowOf } from "../grid";
+import { brickAt } from "../grid";
 import type { LevelEntry } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import type { Boon, Shot } from "../shot";
 import { AIMS_PER_DEGREE, COLUMNS, FIRST_AIM_DEGREES } from "../tuning";
-import { isNeeded } from "../wall/lower";
-import { type Brick, type Wall, thirdsOf } from "../wall/wall";
+import { inDanger, lowestNeededRow, neededBelow } from "../wall/lower";
+import { type Brick, thirdsOf } from "../wall/wall";
 import type { Run } from "./run";
 import { starsOf } from "./stars";
 
@@ -140,19 +140,12 @@ export function describeEnd(run: Run, newBest: boolean): string {
  */
 function stepWords({ wall, depth }: RoundStart, rowsDown: number): string {
   const { jumpLine } = thirdsOf(depth);
-  const lowest = fieldRowOf(wall, wall.bricks.findIndex(isNeeded));
+  const lowest = lowestNeededRow(wall);
   const toJump = neededBelow(wall, jumpLine);
   const words = `The wall came down ${count(rowsDown, "row", "rows")}: ${count(lowest, "row", "rows")} from the floor, ${count(toJump, "brick", "bricks")} to a jump.`;
-  return lowest === 1
+  return inDanger(wall)
     ? `${words} Danger: the next step down loses the level.`
     : words;
-}
-
-/** Returns how many bricks a level needs stand in the field under a row. */
-function neededBelow(wall: Wall, row: number): number {
-  return wall.bricks.filter(
-    (brick, cell) => isNeeded(brick) && fieldRowOf(wall, cell) < row,
-  ).length;
 }
 
 /** Returns what R says of a cell: its brick's kind, with its hits left where it takes more than one, or a gap. */
