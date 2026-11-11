@@ -993,3 +993,133 @@ lines.
    `SHADOW`, a share: fixed, `SHADOW_DARK`.
 5. **The handoff notes:** fixed, `BRICK_ART`'s two lines go in the
    catalog's order, and the atlas spec's title counts the new frames.
+
+### D1a: the `brick-fuzz-pop-testing` skill
+
+**2026-11-11.**
+
+D1's first piece, after the feel gate: the workspace's testing skill, as
+Brick Breaker's and Asteroid Breaker's are, linked from its `AGENTS.md`.
+
+**What was built.**
+
+- **`frontend/games/brick-fuzz-pop/.agents/skills/brick-fuzz-pop-testing/SKILL.md`:**
+  the three projects and what runs in each; the coverage floors, and why a
+  floor never runs on one spec; the files the specs hold to a script; the
+  setup; the helpers held as the rules are, and those with specs of their
+  own; walls drawn as pictures, shots flown at them, the stand-ins, the
+  flights' checks and the fixtures; the certificates, the floors, their
+  specs, the two scripts and the debug menu's certificate; what to do when
+  a replay fails, and when a floor does; the benchmarks and
+  `SIM_TIMEOUT_MS`; the view's helpers; the scene's `FakeShell` and
+  `startBoard()`; the shell's scripted rounds, `provideSpecPlay()`,
+  `runShownScene()` and the window jsdom gives `GameViewportService`; the
+  saved game's spoiled entries; and the mutation pass.
+- **The workspace's `AGENTS.md`** names the skill under its opening, as
+  its siblings' do, links it from Tests, and names `art_frames.ts`'
+  `everyScale()`, which X3a added.
+- **`src/testing/play.ts`:** `scriptedRounds()`' doc said a lost round
+  brought the wall to the floor's row; it steps it a row, as the code does.
+- `node .agents/link-claude-skills.mjs` links it into the workspace's
+  `.claude/skills/`, which git ignores.
+
+**Choice 1: what a failed replay asks first.** The spec's message says to
+run `yarn certify:levels`, which hides a bug as readily as it follows a
+change, so the skill asks first whether the change meant to change a
+flight: a refactor whose replay fails is the bug, and keeps its
+certificates.
+
+**Choice 2: what the skill leaves to others.** How a set, a kind or a level
+is added is the content skill's, D1's next piece, so the skill says only
+what the specs ask of a new set, and how a level that loses its line is
+redrawn.
+
+**Names added:** none in code.
+
+**Checks.** The workspace's `lint`, `typecheck` and `test:coverage` pass,
+4,882 tests in 104 files, and 150 in `sim`; the root's `yarn lint` passes,
+the reference check among it. Rebased onto X1's and X2's rules, the
+shell's and the moss's art and the screenshots, the skill names what they
+changed in `src/testing/`: `flyPicture()`'s friends, the stand-ins' rules
+that are now the real ones, the zappers' and wool's, and the run kept by
+the rules, which the screenshots and the layout check take up, the
+screenshots' run held to a level's line.
+
+**The mutation pass.** No code changed, so the references were broken
+instead, one at a time: a path of the workspace's in the skill, one of the
+repository's (`docs/`), and the target of `AGENTS.md`'s link each fail the
+reference check, and the skill's link in `.claude/skills/` taken away is
+warned of. All four were caught.
+
+**The review:** most of the skill held against the code; eleven findings.
+
+1. **It left out that the fixtures hold the rules,** `fly()` in
+   `flight.spec.ts` and `playRound()` in `round.spec.ts`, and its first
+   step on a failed replay named the view and the scene, which `sim`
+   doesn't import, and missed `@fz/core`, `levelStart()` and the solver's
+   replay. Fixed: the fixtures say what they hold, and the step names what
+   a replay reads and says a flight changed on purpose fails the fixtures'
+   specs first, to be worked out again by hand.
+2. **Its advice on a failed floor had no way out:** the spec's twenty games
+   are the gate. Fixed: the paragraph says so, and that a level added,
+   taken away or moved seeds every later level anew, and a change to the
+   careless player or `wallScore()` moves every floor.
+3. **The stand-ins' traps:** fixed, a picture's `-` and `|` are a bumper
+   and a portal, the legend's portal marks throw, the wall is judged by the
+   catalog's kinds, and the prism, wool and cage join a catalog of the
+   spec's own.
+4. **The saved game was missing:** fixed, a section of its own.
+5. **jsdom's window was half told:** fixed, it reads as roomy, wider than
+   tall, pointed at with a mouse and asking for no motion, until a spec
+   installs `installFakeViewport()`.
+6. **"Has a spec of its own" wasn't so of every helper:** fixed, the
+   helpers without one are named, with what trusts them.
+7. **Slips:** each fixed (`flyPicture()`'s lowest row, a lost round's row,
+   the debug menu in development builds, the spec's own `resizeTo()` and
+   `frameUntil()`, the library's helpers named as its, the failure's count
+   of shots, `report:levels`' exit), and `play.ts`'s `scriptedRounds()`
+   doc, which made the same slip as the skill about a lost round.
+8. **The floors in three places:** fixed in the skill, which says "near
+   100%" and "a little under" and leaves the numbers to the config, as
+   Asteroid Breaker's `AGENTS.md` does. `AGENTS.md`'s own numbers, there
+   before this change, are left for D1's piece on it; so is its line
+   saying D1 isn't here yet, which holds until D1's last piece lands.
+9. **The repository's lists don't name the skill:** left for D1's piece on
+   the repository's and the frontend's lists of games, which names the game
+   and its skills together, as the plan puts them.
+10. **Triggers and words:** fixed, each trigger that isn't a name of the
+    game's own names the game; "after each package" became the plan's ask,
+    the plan named; and the equivalent mutant is said to be the logs'
+    exception.
+11. **Style:** fixed, the oxc paragraph says why, the labels share their
+    case, and the ragged line in `AGENTS.md` is reflowed.
+
+**The second review,** as the first review's fixes reshaped the skill, on
+the change rebased: every helper, number and default it names checked
+against the code; seven findings.
+
+1. **A replay that fails on par alone was missing:** `holdEveryCertificate()`
+   holds the line and `par.json` in one assertion, under one message, so a
+   retuned `PAR_SHARE` fails it with the line still holding. Fixed: the
+   first step reads which of the two failed, and a stale par is mended by
+   certifying any one level again, which writes every level's par from
+   every line; `parseLevel()`, `shotOf()` and `par.json` join what a replay
+   reads.
+2. **"The fixtures fail first" wasn't so of every change:** a redrawn wall
+   or `levelStart()` fails no fixture, and `yarn test` runs the projects
+   side by side. Fixed: the fixtures whose rounds meet the change fail too,
+   and a wall's or `levelStart()`'s change none.
+3. **The scripted rounds read wrongly,** five names against four walls, and
+   their points as the fixtures'. Fixed: each round is spelled out, the
+   points the spec's own; and `play.ts`, which the shell's specs trust and
+   which has no spec, joins the helpers without one.
+4. **The mutation pass read as a standing rule,** leaning on "the plan"
+   unnamed. Fixed: it is the build-out's plan's ask, the plan and the logs
+   named by path, so the reference check flags them once Z2 moves them.
+5. **The log's claims:** fixed above, Asteroid Breaker's `AGENTS.md`, not
+   its skill, leaves its floors unnumbered; and the triggers another skill
+   shares (`FakeShell`, `keptRun`, `SCREENSHOT_API`, `runShownScene`) now
+   name the game.
+6. **The benchmarks' command ran the replays and the floors too:** fixed,
+   in the skill and `AGENTS.md`, it names `src/rules/flight/benchmarks`.
+7. **Lines broken mid-thought:** reflowed.

@@ -10,6 +10,9 @@ workspace keeps its own for its code. The repository's `phaser-core` skill
 says how any game here is drawn with Phaser. Paths are relative to
 `frontend/games/brick-fuzz-pop/`.
 
+Its skill, in `.agents/skills/`, covers how its specs run and what they
+share (`brick-fuzz-pop-testing`).
+
 The game is being built from `docs/brick-fuzz-pop/implementation-plan.md`,
 package by package, the design in `docs/brick-fuzz-pop/plan.md`, each
 stream's work logged under `docs/brick-fuzz-pop/worklog/`. So far the shell
@@ -627,7 +630,8 @@ over the levels' opening walls and seeded random shots, against the plan's
 100 µs and 2 ms, each held to no time, as no runner times anything alike
 twice; `guide.spec.ts` holds `guideOf()` under 1 ms at the 99th percentile
 over the levels' opening walls, five times the plan's 0.2 ms
-(`yarn vitest run --project sim --reporter=verbose` shows them); and
+(`yarn vitest run --project sim --reporter=verbose src/rules/flight/benchmarks`
+shows them); and
 `random_rounds.spec.ts` plays ten thousand seeded random shots at random
 walls along `playRound()`'s own path, none throwing, none capped and none
 coming nearer a brick than a fuzzball may; and `dom`, in jsdom, for every
@@ -639,9 +643,12 @@ test a store in memory; and stands in for the modal dialogs and
 together, to the floors `vitest.config.ts` sets (statements, branches,
 functions and lines): the rules and the view 100, 95, 100 and 100, the scene
 98, 92, 100 and 99, and the shell 98, 97, 97 and 98; `src/testing/` and the
-scripts have none, so what of them goes untested shows. The repository's
-`angular-testing` skill covers the patterns every Angular workspace's specs
-share, and `phaser-core` the harness.
+scripts have none, so what of them goes untested shows. This workspace's
+[`brick-fuzz-pop-testing`](.agents/skills/brick-fuzz-pop-testing/SKILL.md)
+skill covers its setup, coverage floors and fixtures, the certificates and
+the careless player's floors, what to do when a replay fails, and the
+mutation pass; the repository's `angular-testing` skill the patterns every
+Angular workspace's specs share, and `phaser-core` the harness.
 
 What the specs share is in `src/testing/`:
 
@@ -712,8 +719,9 @@ What the specs share is in `src/testing/`:
   take up.
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
   specs (`ART_FRAMES`), lists the pixel ratios they check the art at
-  (`PIXEL_RATIOS`), and measures how far a point lies from a line or past a
-  rounded rectangle.
+  (`PIXEL_RATIOS`) and every whole unit from 24 CSS px to 128 device px at
+  one (`everyScale()`), and measures how far a point lies from a line or
+  past a rounded rectangle.
 - `canvases.ts` gives the canvas a board has in a window (`boardCanvas()`),
   less the bar or the rail (`CHROME_CSS_PX`, which its spec holds to
   `@fz/game-ui`'s Sass, the compact bar's through

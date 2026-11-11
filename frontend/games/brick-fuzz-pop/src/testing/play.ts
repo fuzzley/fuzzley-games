@@ -55,8 +55,8 @@ const FLIGHTS: Readonly<Record<SpecRound, Flight>> = {
 /**
  * Returns a round player that plays the rounds a script lists, in turn, the
  * last again once it runs out: each a fixture's flight, and a round from
- * the start it is handed, its wall stepped, jumped, emptied or brought to
- * the floor's row, so the saved game can take its next start up again.
+ * the start it is handed, its wall stepped, jumped or emptied, or stepped
+ * as the level is lost, so the saved game can take its next start up again.
  */
 export function scriptedRounds(...script: readonly SpecRound[]): RoundPlayer {
   let played = 0;
