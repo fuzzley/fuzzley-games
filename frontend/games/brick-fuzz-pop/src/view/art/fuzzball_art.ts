@@ -1,24 +1,26 @@
 // The fuzzballs' art: `@fz/phaser`'s fuzzball, its fur combed by its
 // charge (`combedStrands()`), after `fuzzball()`, `flame()` and `hotShot()` in
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`. The player's at each charge,
-// sparking at a full one (`sparkCommands()`); the hot shot under a crown of
-// flame; a friend in each ink; and the eyes they all wear, a frame of their
-// own that the scene moves the way a fuzzball looks. A triple shot's mates
+// sparking at a full one (`wornSparks()`); the hot shot under a crown of
+// flame, each outlined as one with what it wears (`fuzzballWearing()`); a
+// friend in each ink; and the eyes they all wear, a frame of their own that
+// the scene moves the way a fuzzball looks. A triple shot's mates
 // are the player's fuzzball again, in its ink and at its charge, so the
 // triple shot is three of the player's frames and has none of its own.
 
 import {
   FUZZBALL_GRID,
   type Strand,
+  type Worn,
   combedStrands,
   eyesCommands,
   fuzzballCommands,
-  sparkCommands,
+  fuzzballWearing,
+  wornSparks,
 } from "@fz/phaser/fuzzball";
 import {
   type ArtFrame,
   type ArtScale,
-  type DrawCommand,
   type LineStyle,
   type Point,
   centered,
@@ -124,59 +126,6 @@ export function furOf(charge: Charge): readonly Strand[] {
   return itemAt(FUR, charge);
 }
 
-/** Says what a fuzzball is drawn in: its color, the charge its fur is combed to, and its outline. */
-interface FuzzballLook {
-  readonly color: number;
-  readonly charge: Charge;
-  readonly outline: LineStyle;
-}
-
-/**
- * Describes what a fuzzball wears: the outlines of its parts, the parts
- * that lie beneath its body and fur, and those that lie over them.
- */
-interface Worn {
-  readonly outlines: readonly DrawCommand[];
-  readonly beneath?: readonly DrawCommand[];
-  readonly over?: readonly DrawCommand[];
-}
-
-/** What a fuzzball wears that wears nothing. */
-const NOTHING_WORN: Worn = { outlines: [] };
-
-/**
- * Returns a fuzzball about its body's middle, `by` device pixels to a unit
- * of its grid, outlined as one with what it wears: its outline, then the
- * outlines of what it wears, then what lies beneath its body, then its
- * body and fur, then what lies over them, so no outline covers any of it.
- */
-function outlinedWith(
-  by: number,
-  { color, charge, outline }: FuzzballLook,
-  { outlines, beneath = [], over = [] }: Worn = NOTHING_WORN,
-): readonly DrawCommand[] {
-  const fur = furOf(charge);
-  const body = fuzzballCommands(by, { color, fur });
-  const whole = fuzzballCommands(by, { color, outline, fur });
-  return [
-    // The fuzzball draws its outline first, all of it, then its body.
-    ...whole.slice(0, whole.length - body.length),
-    ...outlines,
-    ...beneath,
-    ...body,
-    ...over,
-  ];
-}
-
-/**
- * Returns the style a part's outline is drawn in along its lines: the
- * outline's color, as wide as the part's own line, 0 for a filled part's
- * edge, and the outline's width more either side.
- */
-function outlineAlong(outline: LineStyle, width: number): LineStyle {
-  return { color: outline.color, width: width + 2 * outline.width };
-}
-
 /**
  * Returns the fuzzballs' frames in a palette at a scale, each about its
  * body's middle: the player's at each charge, the hot shot, a friend in
@@ -197,15 +146,15 @@ export function fuzzballFrames(
     width: widthOf(SPARK_WIDTH, scale),
   };
   const tongues = TONGUES.map((points) => placed(points, by));
-  const sparks: Worn = {
-    outlines: sparkCommands(by, outlineAlong(outline, spark.width)),
-    over: sparkCommands(by, spark),
-  };
+  const sparks = wornSparks(by, spark, outline);
   // The hot shot's tongues of flame lie behind it, each tongue's outline a
-  // closed line round it.
+  // closed line round it, the outline's width either side of its edge.
   const flames: Worn = {
     outlines: tongues.flatMap((points) =>
-      stroke([...points, ...points.slice(0, 1)], outlineAlong(outline, 0)),
+      stroke([...points, ...points.slice(0, 1)], {
+        color: outline.color,
+        width: 2 * outline.width,
+      }),
     ),
     beneath: tongues.map((points) => polygon(points, { color: palette.spark })),
   };
@@ -213,28 +162,28 @@ export function fuzzballFrames(
     ...CHARGES.map((charge) =>
       centered(
         FRAMES.fuzzball(charge),
-        outlinedWith(
+        fuzzballWearing(
           by,
-          { color: palette.fuzzball, charge, outline },
-          charge === MOST_CHARGE ? sparks : NOTHING_WORN,
+          { color: palette.fuzzball, outline, fur: furOf(charge) },
+          charge === MOST_CHARGE ? sparks : {},
         ),
       ),
     ),
     centered(
       FRAMES.hotShot,
-      outlinedWith(
+      fuzzballWearing(
         by,
-        { color: palette.hotShot, charge: MOST_CHARGE, outline },
+        { color: palette.hotShot, outline, fur: furOf(MOST_CHARGE) },
         flames,
       ),
     ),
     ...INKS.map((ink) =>
       centered(
         FRAMES.friend(ink),
-        outlinedWith(by, {
+        fuzzballCommands(by, {
           color: itemAt(palette.friends, ink),
-          charge: 0,
           outline,
+          fur: furOf(0),
         }),
       ),
     ),

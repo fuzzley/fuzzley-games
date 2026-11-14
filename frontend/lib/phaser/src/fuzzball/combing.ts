@@ -11,7 +11,7 @@ import {
   stroke,
   turned,
 } from "../shapes";
-import { FUZZBALL_STRANDS, type Strand } from "./fuzzball";
+import { FUZZBALL_STRANDS, type Strand, type Worn } from "./fuzzball";
 
 /** How much longer a strand grows combed all the way than not at all, as a share of its length. */
 const FULL_GROWTH = 0.3;
@@ -105,13 +105,33 @@ export function combedStrands(share: number): readonly Strand[] {
  * body about its middle, `by` device pixels to a unit of its grid, each a
  * line through its points in a style, round at its ends and corners.
  *
- * A fuzzball outlined as one with its sparks draws them again beneath its
- * body, in the outline's color and the outline's width wider either side,
- * as `fuzzballCommands()` widens its body and fur.
+ * A fuzzball wears them outlined as one with it as `wornSparks()` gives
+ * them.
  */
 export function sparkCommands(
   by: number,
   style: LineStyle,
 ): readonly DrawCommand[] {
   return ZIGZAGS.flatMap((points) => stroke(placed(points, by), style));
+}
+
+/**
+ * Returns the sparks about fur on end as a fuzzball wears them, `by` device
+ * pixels to a unit of its grid, for `fuzzballWearing()` to outline as one
+ * with it: the sparks in a style over its body and fur, and again beneath
+ * them in the outline's color, the outline's width wider either side, as
+ * the fuzzball's own outline widens its body and fur.
+ */
+export function wornSparks(
+  by: number,
+  style: LineStyle,
+  outline: LineStyle,
+): Worn {
+  return {
+    outlines: sparkCommands(by, {
+      color: outline.color,
+      width: style.width + 2 * outline.width,
+    }),
+    over: sparkCommands(by, style),
+  };
 }

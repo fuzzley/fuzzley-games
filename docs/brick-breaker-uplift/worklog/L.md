@@ -1257,3 +1257,114 @@ each with its fur on end and its tail in its ink, the yellow one seeking
 under its sight, and the standing cage holding the orange friend it frees
 next (`/tmp/l6-friends.png`); at 844 × 390 at 3× in Soft pastel, friends
 in green, blue and teal at ×2, each tail in its ink.
+
+## L8. The fur's outline, lifted
+
+Added by the integrator, for the user's ask to reuse library code between
+the games; it isn't in the implementation plan's §6. Brick Fuzz Pop's
+`outlinedWith()` outlined a fuzzball as one with its sparks or flames, and
+Brick Breaker's `streakBallCommands()` repeated it for a ball's sparks at
+×4 (L3's review comment 5), which L6's friends drew through too. Started
+from the integration tip 6503c59c.
+
+### How the two games' looks were held still
+
+As in L1 and L2: a spec of the moment's own in each game, never committed,
+hashed every frame `atlasFrames()` draws, in each of the four palettes, at
+every unit from 1 to 140 device pixels and each of six pixel ratios (1,
+1.25, 1.5, 2, 2.625, 3), one SHA-256 of each atlas's frames' JSON, so a
+number moved by a rounding shows: Brick Fuzz Pop's 235,200 frames (70 an
+atlas, about 60 s) and Brick Breaker's 846,720 (252 an atlas, about 4
+min). They were taken before the change, after it, and after the
+review's answers; both specs are deleted.
+
+### 2026-11-14: `fuzzballWearing()` and `wornSparks()`
+
+`refactor(phaser): lift the fuzzball outlined as one with what it wears into
+the fuzzball entry` (the one commit of L8).
+
+- `@fz/phaser/fuzzball` gains `fuzzballWearing()`: the fuzzball's body and
+  fur, as `fuzzballCommands()` draws them, outlined as one with what it
+  wears, a `Worn` (the outlines of its parts, the parts beneath its body
+  and fur, and those over them, each optional): its outline, then the
+  parts' outlines, then what lies beneath, then its body and fur, then
+  what lies over them, so no outline covers any of it. It draws the
+  outline itself, where the games sliced it off `fuzzballCommands()`'s
+  commands by the length of the body's. `fuzzballCommands()` is now
+  `fuzzballWearing()` wearing nothing. Beside `sparkCommands()`,
+  `wornSparks()` gives the sparks as a fuzzball wears them: over its body
+  in their style, and beneath it in the outline's color, the outline's
+  width wider either side. Specs: the order, nothing worn drawing as
+  `fuzzballCommands()` does, the parts' outlines first where the fuzzball
+  has no outline, no outline after the body with the sparks worn, and
+  `wornSparks()`' two lists.
+- Brick Fuzz Pop's `fuzzball_art.ts` draws through them: the player's
+  fuzzball at each charge wears `wornSparks()` at a full one, the hot shot
+  its flames as a `Worn`, and a friend is `fuzzballCommands()` in its ink.
+  Its `FuzzballLook`, `Worn`, `NOTHING_WORN`, `outlinedWith()` and
+  `outlineAlong()` are gone.
+- Brick Breaker's `art.ts`: `normalBallArt()` draws each step of the
+  streak with `fuzzballWearing()`, wearing `wornSparks()` where the step
+  has sparks; `streakBallCommands()` is gone.
+- Docs: the library's `AGENTS.md`, the `phaser-core` skill, and both
+  games' `AGENTS.md`, which named `sparkCommands()` for the sparks.
+
+Choices:
+
+- **A function of its own beside `fuzzballCommands()`,** as the ask was,
+  rather than a third argument to it: most callers (Asteroid Breaker's
+  pilot, the bricks' caged friend, Brick Breaker's fire and blast balls)
+  wear nothing, and `fuzzballCommands()` stays as they call it.
+- **Every part of a `Worn` is optional,** so `{}` wears nothing, where
+  Brick Fuzz Pop kept a `NOTHING_WORN`.
+- **`wornSparks()` too,** though the ask named one function: both games
+  built the sparks' wear alike, the sparks in the outline's color, its
+  width wider either side, beneath, and the sparks over, which the third
+  point of the ask lets this package lift, as it is tiny and in the same
+  entry. `sparkCommands()` stays exported, the sparks in one style.
+- **Brick Fuzz Pop's flames' outline is written where it is drawn,**
+  `2 * outline.width` wide, now that `outlineAlong()`'s only other caller,
+  the sparks, is in the library; it was `0 + 2 * outline.width`, the same
+  number.
+- **A friend keeps `furOf(0)`,** `combedStrands(0)`, which differs from
+  the fuzzball's own strands by a rounding, so its frames hash as before.
+
+Follow-ups, the third point of the ask (repeated, not lifted here):
+
+- **A slab cut below a line across it.** Brick Breaker's `plateCut()`
+  (`brick_art.ts`) cuts its body away below the plate's top, square at the
+  top and round at the foot's corners, as a `rect()` and a `roundRect()`;
+  Brick Fuzz Pop's plated tile (`kinds/plated.ts`) builds its tile's
+  rounded outline (`outlineOf()`) and cuts it at the plate's inner edge
+  (`cutAt()`) for the plate's gap, turned to each face. Both are the slab's
+  body below a line, the mirror of `@fz/phaser/bricks`' `topCap()`; a
+  polygon from the library would serve both, Brick Fuzz Pop turning its
+  points. It moves Brick Fuzz Pop's numbers, so it wants its own hashes.
+- **A crack cut out of a brick.** Brick Breaker's `crackOf()` and Brick
+  Fuzz Pop's tough `cracksCommands()` and hit cage's crack are each
+  `polygon(bandAlong(points, width, edge), { color: mark })`: a
+  composition of two library pieces, each game's points its own, so
+  likely too thin to be worth a name.
+
+The review (a fresh agent) found no bug, and checked that no number and no
+draw order moves in either game. Its comments, and the answers:
+
+1. _The log said the hashes were taken after the review's answers before
+   there was a review._ Fixed: this section, and the hashes taken again
+   once the answers were in.
+2. _"Draws as `fuzzballCommands()` does, wearing nothing" compared the
+   function with itself, as `fuzzballCommands()` is `fuzzballWearing()`
+   wearing nothing._ Fixed: deleted; `fuzzballCommands()`' own specs pin
+   that path.
+3. _The spec of the sparks outlined as one held only that no outline came
+   after the body, which passes with the sparks' outline dropped._ Fixed:
+   it holds the first commands, as many as the fuzzball's own outline and
+   the sparks' together, all in the outline's color, and none after them;
+   with `wornSparks()`' outlines taken out, it fails.
+
+Checks, after the answers: `@fz/phaser` lint, typecheck, tests (921 in
+60 files) and coverage (the fuzzball entry whole); Brick Fuzz Pop's lint,
+typecheck and tests (6,489 in 147 files); Brick Breaker's lint, typecheck
+and tests (3,493 in 75 files); the root's lint, typecheck and tests under the
+lock; both atlases' hashes unchanged (235,200 and 846,720 frames, none
+differing), after the change and after the answers.

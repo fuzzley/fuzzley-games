@@ -4,7 +4,7 @@ import {
   type Point,
   turned,
 } from "../shapes";
-import { combedStrands, sparkCommands } from "./combing";
+import { combedStrands, sparkCommands, wornSparks } from "./combing";
 import { FUZZBALL_STRANDS, type Strand } from "./fuzzball";
 
 /** Returns a number to a billionth, so two worked out alike but for a rounding are equal. */
@@ -227,5 +227,18 @@ describe("sparkCommands", () => {
         ].map(inBillionths),
       ),
     );
+  });
+});
+
+describe("wornSparks", () => {
+  it("draws the sparks over the body, and beneath it in the outline's color, its width wider either side", () => {
+    const style = { color: 7, width: 3 };
+
+    const worn = wornSparks(2, style, { color: 9, width: 1 });
+
+    expect(worn).toEqual({
+      outlines: sparkCommands(2, { color: 9, width: 5 }),
+      over: sparkCommands(2, style),
+    });
   });
 });

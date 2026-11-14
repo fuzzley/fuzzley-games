@@ -452,8 +452,8 @@ takes for the specs' helpers.
   as well as its color, and a normal ball's at each of the streak's
   multipliers (`STREAK_FUR`, `streakStep()`), as the kit's `ball()` does,
   with `combedStrands()`: flat, lifted half way at ×2, on end at ×3, and on
-  end with sparks about it at ×4 (`sparkCommands()`), outlined as one with
-  it; `brick_art.ts` draws each brick kind in each tint
+  end with sparks about it at ×4 (`wornSparks()`), outlined as one with
+  it (`fuzzballWearing()`); `brick_art.ts` draws each brick kind in each tint
   and state (`BRICK_ART`), one flattened frame a look, on
   `@fz/phaser/bricks`' slab (`BRICK_SLAB`) with that entry's marks, as the
   uplift's art kit draws them: a tough brick's pips in a row
