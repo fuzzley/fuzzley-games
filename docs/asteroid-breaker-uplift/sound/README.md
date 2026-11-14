@@ -140,8 +140,7 @@ that many takes. The plan says which event plays each.
   `burr-cling` (3), `burr-shed` (2), `burr-pop` (3); `lodestone-hum`
   (a loop); `near-miss` (3).
 - **`ship`:** `shot-gun` (5), `shot-spread` (4), `shot-rapid` (5),
-  `shot-lance` (3), `shot-tail` (3); `thrust` (a loop, with `thrust-b` and
-  `thrust-c` beside it until one of the three is chosen), `thrust-start`, `thrust-stop`;
+  `shot-lance` (3), `shot-tail` (3); `thrust` (a loop), `thrust-start`, `thrust-stop`;
   `dash` (2), `dash-ready`; `static-full`, `static-down`, `zap-dash`,
   `zap-arc` (4); `shield-up`, `shield-break`; `pod-hit` (2), `pod-lost`,
   `guard-end`.

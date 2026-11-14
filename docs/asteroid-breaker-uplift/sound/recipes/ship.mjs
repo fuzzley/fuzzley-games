@@ -503,20 +503,14 @@ export const SOUNDS = [
   {
     name: "thrust",
     about:
-      "The engine while thrust is held, a loop of 2 s: a band of brown noise from 250 to 600 Hz driven thick as its body, pink noise under a low low-pass as its rush, both swelling and dulling together on a slow uneven breath, with next to nothing above 3 kHz and no pitch of its own.",
+      "The engine while thrust is held, a loop of 2 s: a burn (a band of brown noise from 250 to 600 Hz driven thick, over pink noise under a low low-pass, breathing slowly) through a comb fed back upside down, which rings as a stopped pipe does, on a pitch and its odd multiples, the pitch wandering between 225 and 515 Hz all through the loop and never resting on a note. Chosen by ear from three: a plain burner, this throat, and a purr.",
     level: "tick",
     loop: true,
     plays: ["thrust held"],
-    make: (_take, seed) => looped(burn(seed), LOOP, OVERLAP),
-  },
-  {
-    name: "thrust-b",
-    about:
-      "An alternate engine, a throat: the same burn through a comb fed back upside down, which rings as a stopped pipe does, on a pitch and its odd multiples, the pitch wandering between 225 and 515 Hz all through the loop and never resting on a note.",
-    level: "tick",
-    loop: true,
-    plays: ["thrust held (an alternate to compare)"],
-    make: (_take, seed) => {
+    make: () => {
+      // The seed it was heard and chosen at, when it was one of three, so
+      // the loop kept is the very loop that was picked.
+      const seed = 2143847816;
       // Three wobbles of whole cycles a loop, so the throat comes round with
       // it; the quickest keeps it moving where the slower two turn back.
       const throat = (/** @type {number} */ t) =>
@@ -525,61 +519,12 @@ export const SOUNDS = [
           (0.36 * Math.sin(TAU * 0.5 * t + 0.3) +
             0.18 * Math.sin(TAU * 1.5 * t + 1.9) +
             0.06 * Math.sin(TAU * 3.5 * t + 0.5));
-      // It breathes less than the plain burn, as the throat moves its level too.
+      // A shallow breath, as the throat moves its level too.
       const hollow = comb(burn(seed, 0.14), (t) => 1 / (2 * throat(t)), -0.7, {
         damp: 0.3,
         mix: 0.6,
       });
       return looped(filter(hollow, "hp", 150), LOOP, OVERLAP);
-    },
-  },
-  {
-    name: "thrust-c",
-    about:
-      "An alternate engine, a purr: a warm band of pink noise near 500 Hz over a little driven body near 280 Hz, its level fluttering in soft pulses 21 to 33 times a second, the rate drifting and each pulse a little unlike the last, on a slow breath in and out.",
-    level: "tick",
-    loop: true,
-    plays: ["thrust held (an alternate to compare)"],
-    make: (_take, seed) => {
-      const all = LOOP + OVERLAP;
-      const random = seeded(seed);
-      // The pulses the purr has had by a time: 27 a second on average, the
-      // rate drifting by 4 and by 2 either way, 54 in a loop, so the purr,
-      // its drift and each pulse's own strength all come round with it.
-      const pulses = 27 * LOOP;
-      const had = (/** @type {number} */ t) =>
-        27 * t -
-        (4 / (TAU * 0.5)) * Math.cos(TAU * 0.5 * t) -
-        (2 / (TAU * 1.5)) * Math.cos(TAU * 1.5 * t + 1);
-      const strengths = Array.from(
-        { length: pulses },
-        () => 0.78 + 0.22 * random(),
-      );
-      const purring = (/** @type {number} */ t) => {
-        const count = had(t);
-        const which = ((Math.floor(count) % pulses) + pulses) % pulses;
-        const open = (0.5 - 0.5 * Math.cos(TAU * count)) ** 1.6;
-        const inAndOut = 1 + 0.22 * Math.sin(TAU * 1 * t + 0.5);
-        return (0.18 + 0.82 * open * (strengths[which] ?? 1)) * inAndOut;
-      };
-      const fur = filter(
-        noise("pink", all, seed + 1),
-        "bp",
-        (t) => 520 + 90 * Math.sin(TAU * 0.5 * t + 2),
-        0.8,
-      );
-      const body = drive(
-        gain(filter(noise("brown", all, seed + 2), "bp", 280, 1), 5),
-        1.5,
-      );
-      const purr = gain(
-        mix([
-          { x: unit(fur), gain: 1 },
-          { x: unit(body), gain: 0.55 },
-        ]),
-        purring,
-      );
-      return looped(filter(filter(purr, "lp", 1600), "hp", 150), LOOP, OVERLAP);
     },
   },
   {
