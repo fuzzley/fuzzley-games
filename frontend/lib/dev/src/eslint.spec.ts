@@ -135,6 +135,20 @@ async function lint(
   }
 }
 
+/**
+ * How long the file's first lint may take: it loads TypeScript's libraries
+ * and typescript-eslint's rules, which every lint after it reuses. On CI's
+ * runner it has taken 4.7 s of a test's 5 s, where each lint after it takes
+ * a tenth of a second.
+ */
+const FIRST_LINT_TIMEOUT_MS = 30_000;
+
+// Run before the tests, so that what every lint shares is loaded under a
+// limit of its own, not in whichever test comes first.
+beforeAll(async () => {
+  await lint({ "src/app.ts": "export const loaded = true;\n" });
+}, FIRST_LINT_TIMEOUT_MS);
+
 describe("typescript", () => {
   it("keeps a library's testing helpers out of what isn't a test", async () => {
     const problems = await lint({ "src/app.ts": 'import "@fz/ui/testing";\n' });

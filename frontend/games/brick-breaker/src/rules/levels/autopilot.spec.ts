@@ -18,6 +18,14 @@ import { type LevelData, type LevelEntry, parseLevel } from "./levels";
 /** The seeds a spec plays a level from, to judge the autopilot by more than one game. */
 const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);
 
+/**
+ * How long the spec that plays every seed through a level whose one brick
+ * sits behind steel may take. Each play can run to minutes of the game's
+ * time, and on CI's runner, with coverage, the twenty have taken 5.3 s,
+ * past Vitest's 5 s.
+ */
+const BEHIND_STEEL_TIMEOUT_MS = 20_000;
+
 /** Returns the first level of the bricks drawn, each row filled out with gaps, drawing from the capsules given. */
 function entryOf(
   rows: readonly string[],
@@ -171,16 +179,20 @@ describe("the autopilot", () => {
 
   // Sent straight at the brick, the ball would meet the shelf under it time
   // after time; sent about, it finds the gap.
-  it("aims only at a brick it can see, so one behind steel holds it up no longer than chance", () => {
-    const level = levelOf(["", "", "o", "", "", "############."]);
+  it(
+    "aims only at a brick it can see, so one behind steel holds it up no longer than chance",
+    { timeout: BEHIND_STEEL_TIMEOUT_MS },
+    () => {
+      const level = levelOf(["", "", "o", "", "", "############."]);
 
-    const steps = SEEDS.reduce(
-      (sum, seed) => sum + autoplay(level, "normal", seed).steps,
-      0,
-    );
+      const steps = SEEDS.reduce(
+        (sum, seed) => sum + autoplay(level, "normal", seed).steps,
+        0,
+      );
 
-    expect(steps).toBeLessThan(stepsIn(30 * 60_000));
-  });
+      expect(steps).toBeLessThan(stepsIn(30 * 60_000));
+    },
+  );
 
   it("catches most of the good capsules that fall", () => {
     // Each gift lets one fall, six a play.

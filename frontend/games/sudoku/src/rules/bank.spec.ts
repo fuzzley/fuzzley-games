@@ -23,6 +23,18 @@ function hintedSteps(givens: readonly number[]): Step[] {
   return steps;
 }
 
+/**
+ * Returns the first and last of each quarter of a count, from 1, as
+ * `it.each()` takes a table.
+ */
+function quartersOf(count: number): [number, number][] {
+  const size = Math.ceil(count / 4);
+  return [0, 1, 2, 3].map((quarter) => [
+    quarter * size + 1,
+    Math.min((quarter + 1) * size, count),
+  ]);
+}
+
 // The bank is written by `yarn generate:puzzles` and committed. These hold
 // every puzzle in it to what the game promises, so a bug in the generator,
 // the grader or a hand edit can't ship a bad one: the backtracking solver
@@ -59,14 +71,20 @@ describe.each(LEVELS)("the %s bank", (level) => {
     expect(unsound).toEqual([]);
   });
 
-  it("holds only puzzles whose hints all agree with the solution", () => {
-    const unsound = puzzles.flatMap((givens) => {
-      const solution = solve(givens) ?? [];
-      return hintedSteps(givens).filter((s) => !agrees(s, solution));
-    });
+  // Each hint finds its step afresh, so hinting a level's hundred through
+  // has taken 5.5 s on CI's runner, with coverage, past Vitest's 5 s: a
+  // quarter at a time keeps each test well inside it.
+  it.each(quartersOf(puzzles.length))(
+    "holds only puzzles whose hints all agree with the solution, %i to %i",
+    (first, last) => {
+      const unsound = puzzles.slice(first - 1, last).flatMap((givens) => {
+        const solution = solve(givens) ?? [];
+        return hintedSteps(givens).filter((s) => !agrees(s, solution));
+      });
 
-    expect(unsound).toEqual([]);
-  });
+      expect(unsound).toEqual([]);
+    },
+  );
 
   it("keeps the level's fewest givens", () => {
     const fewest = Math.min(
