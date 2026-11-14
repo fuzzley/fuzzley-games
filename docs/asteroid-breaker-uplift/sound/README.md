@@ -51,8 +51,11 @@ hears them, and a person's ear decides.**
 | `lib/synth.mjs`        | The synth: sources, envelopes, filters, resonators, space, files |
 | `lib/music.mjs`        | The key, the scale and the chain's ladder                        |
 | `lib/analyze.mjs`      | The instruments: loudness, bands, pictures, a loop's seam        |
+| `lib/parts-*.mjs`      | What a few families share: impacts, the ship's tones, the voice  |
 | `recipes/<family>.mjs` | A family of sounds, each a recipe                                |
 | `build.mjs`            | Renders, levels, measures and writes every family                |
+| `encode.mjs`           | Packs the takes as a game would ship them, with ffmpeg           |
+| `audition/`            | The page the sounds are heard on, and what serves it             |
 
 A family's module exports `SOUNDS`, a list of recipes (`Recipe` in
 `build.mjs`): a name, a sentence about it, how many takes, its level, and
@@ -65,7 +68,24 @@ node docs/asteroid-breaker-uplift/sound/build.mjs rocks
 
 builds one family: its takes into `../assets/sound/wav/rocks/`, their
 pictures into `sheets/rocks.png`, their measurements and any warnings into
-`report/rocks.md`.
+`report/rocks.md`. Without a name it builds them all.
+
+```bash
+node docs/asteroid-breaker-uplift/sound/encode.mjs
+```
+
+packs what was built: every take but the beds into one sprite, as Ogg and
+as M4A with the map Phaser plays a sprite by
+(`../assets/sound/sprite/`), and each bed by itself
+(`../assets/sound/beds/`). It needs ffmpeg on the path.
+
+```bash
+node docs/asteroid-breaker-uplift/sound/audition/serve.mjs
+```
+
+serves the page to hear them on, at `http://localhost:9120/`: moments of
+play with today's sounds and with the uplift's, every take on a button of
+its own, the beds, and a mark and a note to leave against each.
 
 ### Writing a recipe
 

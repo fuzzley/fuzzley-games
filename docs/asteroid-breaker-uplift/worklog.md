@@ -129,3 +129,45 @@ Four agents, each writing one note in `research/`:
 - **Next:** the sound research, then three agents on the sounds' recipes;
   the art agents' sheets, reviewed; the scene mocks; the assets written
   out; the page to hear the sounds on.
+
+### 2026-11-14, the sounds and the mocks begun
+
+- **`research/sound.md` is in.** What it changed: a tuned sound is never
+  detuned at random, only a noisy one; the gun stays dry and a burst ends
+  with one tail (`shot-tail`); a crowd of breaks in one frame plays as the
+  two largest and one `break-cluster`; the comet's warning gets faster, not
+  louder; the voice speaks once in four seconds at most; busy play aims at
+  about -17 LUFS; an iPhone on silent stays silent. It proposed D major
+  pentatonic; the kit had already settled on C, which is the same shape a
+  tone lower.
+- **Phaser's lighting, checked in its types** (4.2.1): `setLighting()`,
+  `lights.addLight()`, `maxLights` in the game's config, and
+  `Texture.setDataSource()`, which lets a texture made at run time be
+  another's normal map. The plan's "Where the code goes" says so, and still
+  asks for a spike.
+- **Three sound agents are writing recipes,** a family or three each:
+  rocks and hazards; ship, pickups and stingers; voice, rescue and beds.
+  Each builds its family, reads its report and looks at its sheet of
+  spectrograms.
+- **The page to hear them on is written and tried** (`sound/audition/`):
+  `node docs/asteroid-breaker-uplift/sound/audition/serve.mjs`, then
+  `http://localhost:9120/`. It loaded 59 sounds in 127 takes as built so
+  far, played two moments with nothing wrong in the console, and took its
+  takes in turn. `.claude/launch.json` has it as `uplift-sounds`.
+- **`sound/encode.mjs`** packs the takes into one sprite as Ogg and M4A
+  with ffmpeg, and each bed by itself. Not yet run.
+- **`art/make-assets.mjs`** writes the rocks out: `assets/art/geometry/rocks.json`
+  (102 outlines, their facets and normals) and an atlas of 2030 by 1064 at
+  24 px a unit in seven layers that share one map (inks dark and light, the
+  normal map, glow dark and light, lit dark and light). The other pieces
+  wait on the art agents.
+- **A mocks agent is staging the game in play** (`mocks/`): the screenshot's
+  moment restaged in a dark palette and a light one, a zap, a hit, a phone
+  upright in two palettes, the three cards, and the pod's marks called out.
+- **`.prettierignore`** leaves out `assets/` and `sound/report/`, which the
+  scripts write.
+- **Next:** each agent's report, reviewed against its sheet; the full sound
+  build, the sprite, and the page tried again; the rest of the assets; the
+  plan's pictures and names brought in line with what was drawn; a format
+  pass over the folder from the repository's root (never `yarn prettier`,
+  which formats everything).
