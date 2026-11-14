@@ -152,3 +152,169 @@ Checks: `@fz/phaser` lint, typecheck, tests (55 files, 788) and coverage
 Pop's lint, typecheck, tests (149 files, 6,495); Brick Breaker's lint; the
 root's lint, typecheck and tests under the lock; the art's hashes unchanged
 (235,200 frames).
+
+### 2026-11-14: the marks
+
+`feat(phaser): add the marks a brick game draws over a slab, and draw brick
+fuzz pop's kinds with them` (commit 3 of L1).
+
+- `@fz/phaser/bricks` gains `marks.ts`. In a square it is handed, at Brick
+  Fuzz Pop's shares of its tile, its lines' widths too, each a CSS pixel at
+  least at a pixel ratio handed in, refusing an area that isn't square:
+  `bombMark()` (body, neck, fuse, shine and spark), `sproutMark()`,
+  `sheen()`, `portalMark()` (with its `PortalBadge`, a dot or a hollow
+  diamond) and `bumperMark()` (its ticks toward the corners, or the way a
+  game gives). Laid out across a brick by places and sizes handed in:
+  `scallopedCap()`, `rivets()`, `cagedFriend()`, `cageBars()` and
+  `plateTeeth()`. Its specs hold each at a square tile's cell and at a cell
+  twice as wide as tall, a square mark drawn in the wide cell's middle
+  square as in the tile, moved, and in a square twice as large, reaching
+  past a brick's top and foot, as in one half as large, scaled.
+- Brick Fuzz Pop's `bomb.ts`, `moss.ts`, `steel.ts`, `portal.ts`,
+  `bumper.ts`, `cage.ts` and `plated.ts` draw through them, keeping what is
+  their own: the bomb's dots, the moss's numbers, the steel's frame and
+  rivets' places, the cage's inside, bars' places and crack, and the
+  plates' turned layout, gaps and cuts.
+- Docs: the library's `AGENTS.md`, the `phaser-core` skill, the
+  `fuzzley-ui` skill's row, and Brick Fuzz Pop's art paragraph.
+
+Choices, where the plan's list met the code:
+
+- **A mark that stands in a square takes the square, not a middle and a
+  size.** Brick Fuzz Pop's specs compare its points exactly, so a mark puts
+  them at `area.x + share * area.width` as its kinds did; worked out about a
+  middle, they would move by a rounding. A wide brick picks the square: the
+  kit's portal is the tile's at a square 1.11 of its height (its ring .40
+  where the tile's is .36), its bumper at 1.08 (.40 against .37), its bomb
+  at about 1.18, and its sprout at about 1.26, its foot at 0.3 of the square
+  down. Those are L2's and L7's to set, with the kit beside them.
+- **The inks are handed in; the mixes both games share are the marks'
+  own.** The sheen is half white over the steel and the bumper's shadow and
+  cap are 28% black and 52% white over its disc in both, so `sheen()` and
+  `bumperMark()` take the steel and the disc and mix them. The kit's steel
+  marks in `mix(steel, black, .34)` against Brick Fuzz Pop's `mark` are
+  inks, handed in.
+- **No dots in `bombMark()`.** Brick Fuzz Pop's seven dots point at the
+  bricks around a square tile and the kit's six at those around a wide
+  brick: each game's grid, so each places its own.
+- **`rivets()` is a grid of shares**, a rivet at each share across on each
+  share down, rather than an inset from a frame's corners: Brick Fuzz Pop's
+  right rivets are `0.74 * 62`, which `62 - 0.26 * 62` is not, to the last
+  digit. Its four rivets and the kit's (.13 and .87 across, .24 and .67
+  down) and the kit's plate's two all fit it.
+- **`cageMark()` became `cagedFriend()` and `cageBars()`.** Brick Fuzz Pop
+  bakes a cage as two frames, its friend in each ink under its bars whole or
+  hit, so one mark couldn't draw both. The bars take their count as the
+  places of those left of the middle, mirrored, since Brick Fuzz Pop's four
+  stand wider apart about the middle than at the sides and the kit's six
+  evenly; the bar a hit breaks is the first right of the middle in both.
+  The inside is a rounded rectangle, and the crack a `bandAlong()`, each
+  game's own.
+- **`plateMark()` became `plateTeeth()`.** Brick Fuzz Pop turns each plate
+  to its face, cuts its teeth where the next plate's gap begins, runs its
+  bar on under it and leaves out the rivets past it, none of which a mark's
+  commands could carry without bending to it. What both draw alike is the
+  row of teeth, so that is what is shared: Brick Fuzz Pop turns and cuts
+  them, and a plate along a wide brick's foot draws them as they are, with
+  its bar, a `roundRect()`, over them and its `rivets()` over that. The
+  kit's lighter band along the bar is Brick Breaker's to add.
+- **Two drifts left as they are**, for L2 and L7 to weigh: the kit's
+  second portal badge is a solid diamond, the mark's hollow, which Brick
+  Fuzz Pop chose so the two pairs differ in shape at the least units, and
+  which Brick Breaker gains as much from; and the kit's sheen fits a square
+  about 1.22 of its brick's height by its first stroke, where its second
+  lies some 4 kit units further up and to the right along itself than
+  `sheen()` puts it, and both are 5 wide against the mark's 5.6. (The
+  bumper's ticks, 35° from across in the kit and 45° in Brick Fuzz Pop,
+  became a parameter in review, below.)
+
+No browser check: nothing a player sees changed. Brick Breaker's art is as
+it was, and every frame of Brick Fuzz Pop's atlas hashes as it did.
+
+Left for L2 and the art packages: Brick Breaker draws nothing through the
+entry yet. L2 takes the slab (`BRICK_SLAB`), `pipRow()`, `bandAlong()` for
+its three cracks, `crispOutline()`, `rivets()` and `sheen()` for steel,
+`bombMark()`, `scallopedCap()` and `sproutMark()`, and `topCap()` for the
+shown ghost's sheet; L6 `cagedFriend()`, `cageBars()` and `plateTeeth()`;
+L7 `portalMark()` and `bumperMark()`, its ticks at
+`turned({ x: 1, y: 0 }, 35)`.
+
+The review, and the answers:
+
+1. The marks' lines were a fixed number of field units wide while all else
+   grew with the square, so the kit's squares, 1.08 to 1.26 of a brick's
+   height, would have drawn its lines 7–20% thin. Fixed: each line of a
+   square mark is a share of its square (`widthIn()`, private: `widthOf()`
+   with the square's side for the unit, so a CSS pixel at least at the
+   scale's ratio), and the docs say so. The scale then gave only the ratio,
+   so the marks now take the ratio (second review, 2). Brick Fuzz Pop's
+   cell is `round(unit)` and its unit whole device pixels
+   (`FieldShape.unit`), so its frames hash as they did.
+2. The specs' square tile and unit were both 62, so a mark reading one for
+   the other passed. Fixed: each square mark, drawn at a unit of 62 in a
+   square of 2000 reaching past a brick's top and foot, must be itself in a
+   square of 1000, scaled by two and moved, its lines twice as wide.
+   Squares of 1000 and 2000 rather than 62 and 69, since only there is
+   every line's share a whole number of pixels, which a resize keeps.
+   Tried: reading the unit for the bomb's radius fails it, and so do
+   widths in field units.
+3. The bumper's ticks were fixed at 45° though the kit kicks them at 35°.
+   Fixed: `bumperMark()` takes the way the bottom right tick kicks out, a
+   point a unit from the origin, which the other three mirror, toward the
+   corner unless given. A point rather than degrees, since `turned()` by
+   45° gives a sine a last digit off `Math.SQRT1_2`, which would move
+   Brick Fuzz Pop's ticks by a rounding. With a spec at 35°.
+4. Thin specs. Fixed: the bomb's neck (its middle, its side 0.14 rising to
+   the right, its end 0.1), its fuse's points and its shine's arc; the
+   sprout's leaves' middles, reach and turn; and every line's width in a
+   square of 1000, where each share is whole (fuse 36, shine 34, stem 34,
+   sheen 46, arms 44, ring 100, ticks 50, bumper's ring 75, the diamond's
+   band 35).
+5. The leaves' why was lost in the move. Fixed: `LEAVES` keeps it (a
+   device pixel under Brick Fuzz Pop's tile's top at every scale), and
+   `STEM` says its top is as much lower as its leaves.
+6. Two skills were wrong. Fixed: the `phaser-core` skill and the library's
+   `AGENTS.md` say a wider brick's square is "as large as the mark, which
+   may reach past the brick's edges", not picked inside it; the
+   `fuzzley-ui` row names `slabBody()`, `slabRadius()`, `topCap()` and
+   `showsDetail()` again.
+7. Nits. `PortalInks.badge` is `disc`, as `BumperInks` has it, and Brick
+   Fuzz Pop's `portal.ts` with it. `cageBars()`'s doc says its bars lie on
+   whole pixels where the area's edges and the width are whole. The
+   `@throws` of `scallopedCap()` names a count that isn't whole. Brick Fuzz
+   Pop's own `CageLook` stays, declined: `frames.ts` names its frames in its
+   own words, as its `PortalMark` (1 or 2) stands beside `PortalBadge`, and
+   the two types meet where `cage.ts` calls `cageBars()`, which fails to
+   compile once Brick Fuzz Pop has a look the library doesn't draw.
+
+The answers reshaped the marks' widths, so a second review read the change
+again, and its answers:
+
+1. No library spec reached the CSS pixel's floor: the diamond's band "at
+   the least" was 0.035 of 62 at 2 to one, which rounds to 2 anyway. Fixed:
+   that case is a square of 40 (1.4 rounds to 1, the floor 2), and every
+   square mark is drawn in a square of 20 at 3 to one, each line 3 wide.
+   Tried: widths without the floor fail 8 specs.
+2. The marks took an `ArtScale` whose unit they never read, where every
+   other `ArtScale` in the library sets a width by its unit. Fixed: they
+   take `pixelRatio: number`, and Brick Fuzz Pop hands them
+   `scale.pixelRatio`.
+3. Nothing refused an area that isn't square, which the marks would draw
+   stretched, the likeliest slip a wide brick makes. Fixed: each square
+   mark throws a `RangeError` for one, in its `@throws`, with a spec each.
+4. `plateTeeth()` took a count that isn't whole, which `Array.from` cuts
+   short while the pitch keeps it. Fixed: it throws for a count that isn't
+   a whole number from one, with a spec.
+5. The log gave no fit of the kit's sheen. Fixed: added to the drifts
+   above, for L2.
+6. Nits, all taken: the banner comments are gone from `marks.ts`; Brick
+   Fuzz Pop's art paragraph no longer runs past the wrap (its fuzzball
+   sentence starts a line, so the diff stays on the lines this commit
+   changed); the `phaser-core` skill reads "each at shares of a square it
+   is handed".
+
+Checks, after the answers: `@fz/phaser` lint, typecheck, tests (855 in
+56 files) and coverage (the entry whole); Brick Fuzz Pop's lint, typecheck,
+tests (149 files, 6,495, with the snapshot spec); the root's lint,
+typecheck and tests under the lock; the art's hashes unchanged (235,200
+frames).

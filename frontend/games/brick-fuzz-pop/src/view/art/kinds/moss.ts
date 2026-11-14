@@ -1,30 +1,19 @@
 // A moss brick, which grows a hit back after each round it survives: an earthy
 // tile under a scalloped cap of moss with a two-leaved sprout cut out of it,
-// and a die's pips below for the hits it has left, `moss()` in
+// `@fz/phaser/bricks`' `scallopedCap()` and `sproutMark()`, and a die's pips
+// below for the hits it has left, `moss()` in
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Its tile is the plain brick's
 // in amber, the moss's body, and its cap and its pips are frames over it.
 
-import { topCap } from "@fz/phaser/bricks";
+import { scallopedCap, sproutMark } from "@fz/phaser/bricks";
 import { mixColors } from "@fz/phaser/color";
-import {
-  type Area,
-  type ArtScale,
-  type DrawCommand,
-  ORIGIN,
-  circle,
-  ellipsePoints,
-  placed,
-  polygon,
-  stroke,
-  widthOf,
-  within,
-} from "@fz/phaser/shapes";
+import type { Area, ArtScale, DrawCommand } from "@fz/phaser/shapes";
 import { TINT, inkAt } from "../../colors/inks";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
 import { itemAt } from "../../items";
-import { cellFrame, diePips, turned } from "../symbols";
+import { cellFrame, diePips } from "../symbols";
 import { tileBody, tileFrame, tileRadius } from "./brick";
 
 /** The tint of the tile under a moss brick's cap, which is the moss's body in every palette. */
@@ -44,24 +33,6 @@ const SHADOW_DROP = 0.034;
 
 /** How much black a scallop's shadow takes over the moss's green. */
 const SHADOW_DARK = 0.38;
-
-/** Its sprout's stem, from its foot in the cap up to its leaves, as shares of its cell, its top as much lower than the design's as its leaves. */
-const STEM = [
-  [0.5, 0.3],
-  [0.5, 0.179],
-] as const;
-
-/** How wide its sprout's stem is, in field units. */
-const STEM_WIDTH = 0.034;
-
-/** Its sprout's two leaves, each an ellipse about its middle, as shares of its cell, turned from lying flat: a little lower than the design's, so each keeps a device pixel under the tile's top at every scale. */
-const LEAVES = [
-  { middle: [0.405, 0.141], degrees: 32 },
-  { middle: [0.595, 0.141], degrees: -32 },
-] as const;
-
-/** How far a leaf reaches along itself and across, either side of its middle, as shares of its cell. */
-const LEAF = { along: 0.082, across: 0.044 } as const;
 
 /** Where a die's middle pip sits in its cell, below the cap, and how far apart its pips are, as shares of the cell: a little higher and tighter than the design's, so each pip keeps a device pixel off the tile's lip and the shadows at every scale. */
 const DIE = { across: 0.5, down: 0.637, step: 0.14, radius: 0.056 } as const;
@@ -93,42 +64,19 @@ function capCommands(
     inkAt(palette.tints, TINT.green),
     SHADOW_DARK,
   );
-  const body = tileBody(cell);
-  const corner = tileRadius(cell);
-  const foot = cell.y + CAP_FOOT * cell.height;
-  const radius = SCALLOP_RADIUS * cell.width;
-  // The scallops run from the tile's left edge to its right, flush with
-  // both, whatever the tile's gap rounds to.
-  const scallops = Array.from({ length: SCALLOPS }, (_, at) => ({
-    x: body.x + radius + ((body.width - 2 * radius) * at) / (SCALLOPS - 1),
-    y: foot,
-  }));
   return [
-    ...scallops.map((middle) =>
-      circle({ x: middle.x, y: middle.y + SHADOW_DROP * cell.height }, radius, {
-        color: shadow,
-      }),
+    ...scallopedCap(
+      tileBody(cell),
+      tileRadius(cell),
+      cell.y + CAP_FOOT * cell.height,
+      {
+        count: SCALLOPS,
+        radius: SCALLOP_RADIUS * cell.width,
+        drop: SHADOW_DROP * cell.height,
+      },
+      { cap: face, shadow },
     ),
-    polygon(topCap(body, corner, foot), { color: face }),
-    ...scallops.map((middle) => circle(middle, radius, { color: face })),
-    ...stroke(within(cell, STEM), {
-      color: glyph,
-      width: widthOf(STEM_WIDTH, scale),
-    }),
-    ...LEAVES.map(({ middle: [across, down], degrees }) =>
-      polygon(
-        placed(
-          ellipsePoints(
-            ORIGIN,
-            LEAF.along * cell.width,
-            LEAF.across * cell.width,
-          ).map((point) => turned(point, degrees)),
-          1,
-          { x: cell.x + across * cell.width, y: cell.y + down * cell.height },
-        ),
-        { color: glyph },
-      ),
-    ),
+    ...sproutMark(cell, glyph, scale.pixelRatio),
   ];
 }
 

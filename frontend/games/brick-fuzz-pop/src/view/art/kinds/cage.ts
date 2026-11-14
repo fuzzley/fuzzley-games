@@ -3,18 +3,15 @@
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Each cage holds a friend in
 // an ink of its own, which its tint picks, so a cage is two layers: its tile
 // and inside with its friend, a frame for each ink, under its bars, whole or
-// hit.
+// hit, drawn with `@fz/phaser/bricks`' `cagedFriend()` and `cageBars()`.
 
-import { eyesCommands, fuzzballCommands } from "@fz/phaser/fuzzball";
+import { type CageBars, cageBars, cagedFriend } from "@fz/phaser/bricks";
 import {
   type Area,
   type ArtScale,
   type DrawCommand,
-  type Point,
   polygon,
-  rect,
   roundRect,
-  shifted,
   widthOf,
   within,
 } from "@fz/phaser/shapes";
@@ -46,27 +43,25 @@ const INSIDE_CORNER = 0.03;
  */
 const FRIEND = { across: 0.5, down: 0.505, grid: 0.015 } as const;
 
-/** Where its two left bars stand, the middle of each across its cell, as shares of the cell; the two right ones mirror them. */
-const LEFT_BARS = [0.215, 0.38] as const;
-
-/** How far down its cell its bars' tops lie, as a share of it, and their feet as far up from its bottom: a little past its inside. */
-const BAR_TOPS = 0.19;
+/**
+ * How its bars stand in its cell: the middles of its two left bars across
+ * it, which the two right ones mirror; how far down it their tops lie, a
+ * little past its inside, their feet as far up from its bottom; and the two
+ * ends of the bar a hit breaks, the third from its left, each from where the
+ * whole bar would end, bent aside: how far down it each bends, and where it
+ * ends, how far aside of the bar and how far down, as shares of the cell.
+ */
+const BARS: CageBars = {
+  lefts: [0.215, 0.38],
+  top: 0.19,
+  broken: [
+    { from: "top", bend: 0.3, aside: 0.08, down: 0.385 },
+    { from: "foot", bend: 0.72, aside: -0.07, down: 0.64 },
+  ],
+};
 
 /** How wide a bar is, in field units. */
 const BAR_WIDTH = 0.056;
-
-/** Which of its bars a hit breaks, from its left: the third. */
-const BROKEN_BAR = 2;
-
-/**
- * The two ends of the bar a hit breaks, each from where the whole bar would
- * end, bent aside: how far down its cell each bends, and where it ends, how
- * far aside of the bar and how far down the cell, as shares of the cell.
- */
-const BROKEN_ENDS = [
-  { from: "top", bend: 0.3, aside: 0.08, down: 0.385 },
-  { from: "foot", bend: 0.72, aside: -0.07, down: 0.64 },
-] as const;
 
 /**
  * The crack a hit leaves in its frame, down from the top edge of its tile
@@ -92,20 +87,6 @@ function insideOf(cell: Area): Area {
   };
 }
 
-/** Returns the friend a cage holds, in one of the friends' inks, about its body's middle in a cell: its body and fur in the ink, then its eyes in the mark. */
-function friendCommands(
-  cell: Area,
-  palette: WallPalette,
-  ink: number,
-): readonly DrawCommand[] {
-  const by = FRIEND.grid * cell.width;
-  const middle = pointAt(cell, FRIEND.across, FRIEND.down);
-  return [
-    ...fuzzballCommands(by, { color: itemAt(palette.friends, ink) }),
-    ...eyesCommands(by, { color: palette.mark }),
-  ].map((command) => shifted(command, middle));
-}
-
 /**
  * Returns a cage's tile and inside drawn in its cell, and the friend it
  * holds in one of the friends' inks: its tile in its body's color, its
@@ -120,52 +101,12 @@ function cagedCommands(
   return [
     ...tileCommands(cell, body),
     roundRect(insideOf(cell), INSIDE_CORNER * cell.width, { color: face }),
-    ...friendCommands(cell, palette, ink),
+    ...cagedFriend(
+      pointAt(cell, FRIEND.across, FRIEND.down),
+      FRIEND.grid * cell.width,
+      { body: itemAt(palette.friends, ink), eyes: palette.mark },
+    ),
   ];
-}
-
-/**
- * Returns a cage's bars in its cell in a color, each a whole number of
- * pixels wide, its edges on whole pixels, the right two as far from the
- * cell's right as the left two from its left: each standing whole, or the
- * one a hit breaks as its two ends, each bent aside.
- */
-function barsCommands(
-  cell: Area,
-  look: CageLook,
-  color: number,
-  scale: ArtScale,
-): readonly DrawCommand[] {
-  const width = widthOf(BAR_WIDTH, scale);
-  const top = Math.round(BAR_TOPS * cell.height);
-  const ends = { top, foot: cell.height - top };
-  const lefts = LEFT_BARS.map((across) =>
-    Math.round(across * cell.width - width / 2),
-  );
-  const bars = [
-    ...lefts,
-    ...lefts.map((left) => cell.width - left - width).reverse(),
-  ];
-  return bars.flatMap((left, i): readonly DrawCommand[] => {
-    const x = cell.x + left;
-    if (look === "whole" || i !== BROKEN_BAR) {
-      return [
-        rect(
-          { x, y: cell.y + ends.top, width, height: ends.foot - ends.top },
-          { color },
-        ),
-      ];
-    }
-    const middle = x + width / 2;
-    return BROKEN_ENDS.map(({ from, bend, aside, down }) => {
-      const points: readonly Point[] = [
-        { x: middle, y: cell.y + ends[from] },
-        { x: middle, y: cell.y + bend * cell.height },
-        { x: middle + aside * cell.width, y: cell.y + down * cell.height },
-      ];
-      return polygon(bandAlong(points, width), { color });
-    });
-  });
 }
 
 /**
@@ -180,7 +121,10 @@ function barsOverCommands(
   scale: ArtScale,
 ): readonly DrawCommand[] {
   return [
-    ...barsCommands(cell, look, palette.kinds.cage.glyph, scale),
+    ...cageBars(cell, BARS, look, {
+      color: palette.kinds.cage.glyph,
+      width: widthOf(BAR_WIDTH, scale),
+    }),
     ...(look === "hit" && detailed(scale)
       ? [
           polygon(

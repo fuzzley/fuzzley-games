@@ -273,8 +273,9 @@ helpers.
   friend it holds, in the ink its tint picks, `bumper.ts`'s disc,
   `prism.ts`'s faceted triangle, `portal.ts`'s ring in its pair's inks and
   `plated.ts`'s plates over its tile, for each of the legend's three
-  platings), on `symbols.ts`'s shared shapes and its rule that drops detail
-  under 30 CSS px a unit (`detailed()`). `fuzzball_art.ts` draws the
+  platings), on `@fz/phaser/bricks`' marks, `symbols.ts`'s shared shapes
+  and its rule that drops detail under 30 CSS px a unit (`detailed()`).
+  `fuzzball_art.ts` draws the
   fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
   combed out as it charges (`furOf()`) and sparking at a full one, the hot
   shot under its flames, a friend in each of the eight inks, and the eyes
