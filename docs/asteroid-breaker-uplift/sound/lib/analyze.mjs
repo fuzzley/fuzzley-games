@@ -48,7 +48,8 @@ export function spectrum(frame) {
     }
   }
   const out = new Float64Array(n / 2);
-  for (let i = 0; i < out.length; i++) out[i] = Math.hypot(re[i] ?? 0, im[i] ?? 0) / (n / 2);
+  for (let i = 0; i < out.length; i++)
+    out[i] = Math.hypot(re[i] ?? 0, im[i] ?? 0) / (n / 2);
   return out;
 }
 
@@ -136,7 +137,8 @@ export function measure(x) {
   const lufs = -0.691 + 10 * Math.log10(Math.max(1e-12, square / (last + 1)));
   const total = new Float64Array(1025);
   for (const frame of frames(x, 2048, 512)) {
-    for (let i = 0; i < total.length; i++) total[i] = (total[i] ?? 0) + (frame[i] ?? 0) ** 2;
+    for (let i = 0; i < total.length; i++)
+      total[i] = (total[i] ?? 0) + (frame[i] ?? 0) ** 2;
   }
   let all = 0;
   let weighted = 0;
@@ -150,7 +152,8 @@ export function measure(x) {
     const band = BANDS.find(({ to }) => freq <= to) ?? BANDS[BANDS.length - 1];
     if (band) bands[band.name] = (bands[band.name] ?? 0) + power;
   }
-  for (const name of Object.keys(bands)) bands[name] = (bands[name] ?? 0) / Math.max(1e-20, all);
+  for (const name of Object.keys(bands))
+    bands[name] = (bands[name] ?? 0) / Math.max(1e-20, all);
   const toDb = (/** @type {number} */ v) => 20 * Math.log10(Math.max(1e-9, v));
   return {
     seconds: x.length / SR,
@@ -177,7 +180,8 @@ export function measure(x) {
  */
 export function seam(x) {
   let most = 1e-9;
-  for (let i = 1; i < x.length; i++) most = Math.max(most, Math.abs((x[i] ?? 0) - (x[i - 1] ?? 0)));
+  for (let i = 1; i < x.length; i++)
+    most = Math.max(most, Math.abs((x[i] ?? 0) - (x[i - 1] ?? 0)));
   return Math.abs((x[0] ?? 0) - (x[x.length - 1] ?? 0)) / most;
 }
 
@@ -217,14 +221,19 @@ export function spectrogram(x, width, height, seconds = x.length / SR) {
       const bin = (freq * size) / SR;
       const k = Math.floor(bin);
       const f = bin - k;
-      const magnitude = frame ? (frame[k] ?? 0) * (1 - f) + (frame[k + 1] ?? 0) * f : 0;
+      const magnitude = frame
+        ? (frame[k] ?? 0) * (1 - f) + (frame[k + 1] ?? 0) * f
+        : 0;
       const db = 20 * Math.log10(Math.max(1e-9, magnitude));
-      const level = Math.min(1, Math.max(0, (db + 84) / 80)) * (HEAT.length - 1);
+      const level =
+        Math.min(1, Math.max(0, (db + 84) / 80)) * (HEAT.length - 1);
       const i = Math.min(Math.floor(level), HEAT.length - 2);
       const a = HEAT[i] ?? [0, 0, 0];
       const b = HEAT[i + 1] ?? [0, 0, 0];
       for (let c = 0; c < 3; c++) {
-        pixels[(py * width + px) * 3 + c] = Math.round((a[c] ?? 0) + ((b[c] ?? 0) - (a[c] ?? 0)) * (level - i));
+        pixels[(py * width + px) * 3 + c] = Math.round(
+          (a[c] ?? 0) + ((b[c] ?? 0) - (a[c] ?? 0)) * (level - i),
+        );
       }
     }
   }
@@ -240,7 +249,11 @@ export function spectrogram(x, width, height, seconds = x.length / SR) {
  * @param {{ columns?: number, tile?: [number, number], seconds?: number }} [how] The tiles across, a tile's size, and the time every tile spans (each sound's own unless given).
  * @returns {Promise<void>}
  */
-export async function contactSheet(sounds, file, { columns = 6, tile = [260, 130], seconds } = {}) {
+export async function contactSheet(
+  sounds,
+  file,
+  { columns = 6, tile = [260, 130], seconds } = {},
+) {
   const [tw, th] = tile;
   const label = 34;
   const gap = 8;
@@ -260,7 +273,8 @@ export async function contactSheet(sounds, file, { columns = 6, tile = [260, 130
       top,
     });
     const m = measure(x);
-    const escaped = (/** @type {string} */ s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
+    const escaped = (/** @type {string} */ s) =>
+      s.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
     words.push(
       `<text x="${left}" y="${top + th + 13}" font-family="Consolas, monospace" font-size="12" fill="#e8e8f0">${escaped(name)}</text>`,
       `<text x="${left}" y="${top + th + 27}" font-family="Consolas, monospace" font-size="10" fill="#9a9ab0">${escaped(
@@ -270,11 +284,15 @@ export async function contactSheet(sounds, file, { columns = 6, tile = [260, 130
     );
   });
   layers.push({
-    input: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${words.join("")}</svg>`),
+    input: Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${words.join("")}</svg>`,
+    ),
     left: 0,
     top: 0,
   });
-  await sharp({ create: { width, height, channels: 3, background: { r: 20, g: 20, b: 28 } } })
+  await sharp({
+    create: { width, height, channels: 3, background: { r: 20, g: 20, b: 28 } },
+  })
     .composite(layers)
     .png()
     .toFile(file);
@@ -289,7 +307,8 @@ export async function contactSheet(sounds, file, { columns = 6, tile = [260, 130
  */
 export function reportLine(name, x) {
   const m = measure(x);
-  const share = (/** @type {number | undefined} */ v) => `${Math.round((v ?? 0) * 100)}`;
+  const share = (/** @type {number | undefined} */ v) =>
+    `${Math.round((v ?? 0) * 100)}`;
   return `| \`${name}\` | ${(m.active * 1000).toFixed(0)} | ${m.peak.toFixed(1)} | ${m.rms50.toFixed(1)} | ${m.lufs.toFixed(1)} | ${m.crest.toFixed(1)} | ${m.centroid.toFixed(0)} | ${share(m.bands.sub)}/${share(m.bands.low)}/${share(m.bands.mid)}/${share(m.bands.high)}/${share(m.bands.air)} | ${share(m.phone)} |`;
 }
 

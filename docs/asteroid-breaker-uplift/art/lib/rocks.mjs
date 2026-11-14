@@ -79,7 +79,12 @@ import { ROCK_INKS, tonesOf } from "./palettes.mjs";
  */
 
 /** How far a rock of each size reaches, in field units, as `tuning.ts` has it. */
-export const ROCK_RADIUS = { boulder: 4.6, large: 2.8, medium: 1.6, small: 0.9 };
+export const ROCK_RADIUS = {
+  boulder: 4.6,
+  large: 2.8,
+  medium: 1.6,
+  small: 0.9,
+};
 
 /** The way the light travels to the field: from the upper left, and from the viewer's side. */
 export const LIGHT = unit([-0.52, -0.62, 0.58]);
@@ -111,31 +116,114 @@ const DIFFUSE = 0.95;
 /** @type {Record<RockKind, Partial<Record<RockSize, Cut>>>} */
 const CUTS = {
   stone: {
-    large: { sides: 11, jag: 0.2, rings: [{ at: 0.62, z: 0.46, sides: 6 }], top: 0.7 },
-    medium: { sides: 9, jag: 0.22, rings: [{ at: 0.58, z: 0.5, sides: 4 }], top: 0.72 },
+    large: {
+      sides: 11,
+      jag: 0.2,
+      rings: [{ at: 0.62, z: 0.46, sides: 6 }],
+      top: 0.7,
+    },
+    medium: {
+      sides: 9,
+      jag: 0.22,
+      rings: [{ at: 0.58, z: 0.5, sides: 4 }],
+      top: 0.72,
+    },
     small: { sides: 7, jag: 0.24, rings: [], top: 0.7 },
   },
   ice: {
-    large: { sides: 11, jag: 0.1, spike: 0.34, rings: [{ at: 0.5, z: 0.5, sides: 5 }], top: 0.85 },
-    medium: { sides: 9, jag: 0.1, spike: 0.36, rings: [{ at: 0.48, z: 0.52, sides: 4 }], top: 0.85 },
+    large: {
+      sides: 11,
+      jag: 0.1,
+      spike: 0.34,
+      rings: [{ at: 0.5, z: 0.5, sides: 5 }],
+      top: 0.85,
+    },
+    medium: {
+      sides: 9,
+      jag: 0.1,
+      spike: 0.36,
+      rings: [{ at: 0.48, z: 0.52, sides: 4 }],
+      top: 0.85,
+    },
     small: { sides: 7, jag: 0.1, spike: 0.36, rings: [], top: 0.8 },
   },
   crystal: {
-    large: { sides: 10, jag: 0.16, rings: [{ at: 0.6, z: 0.4, sides: 5 }], top: 0.55 },
-    medium: { sides: 8, jag: 0.18, rings: [{ at: 0.56, z: 0.42, sides: 4 }], top: 0.55 },
+    large: {
+      sides: 10,
+      jag: 0.16,
+      rings: [{ at: 0.6, z: 0.4, sides: 5 }],
+      top: 0.55,
+    },
+    medium: {
+      sides: 8,
+      jag: 0.18,
+      rings: [{ at: 0.56, z: 0.42, sides: 4 }],
+      top: 0.55,
+    },
   },
   iron: {
-    large: { sides: 8, jag: 0.06, squash: 0.84, rings: [{ at: 0.74, z: 0.5, sides: 8 }], top: 0.5, flatTop: true },
-    medium: { sides: 8, jag: 0.06, squash: 0.86, rings: [{ at: 0.7, z: 0.5, sides: 8 }], top: 0.5, flatTop: true },
-    small: { sides: 6, jag: 0.06, squash: 0.9, rings: [{ at: 0.62, z: 0.5, sides: 6 }], top: 0.5, flatTop: true },
+    large: {
+      sides: 8,
+      jag: 0.06,
+      squash: 0.84,
+      rings: [{ at: 0.74, z: 0.5, sides: 8 }],
+      top: 0.5,
+      flatTop: true,
+    },
+    medium: {
+      sides: 8,
+      jag: 0.06,
+      squash: 0.86,
+      rings: [{ at: 0.7, z: 0.5, sides: 8 }],
+      top: 0.5,
+      flatTop: true,
+    },
+    small: {
+      sides: 6,
+      jag: 0.06,
+      squash: 0.9,
+      rings: [{ at: 0.62, z: 0.5, sides: 6 }],
+      top: 0.5,
+      flatTop: true,
+    },
   },
   volatile: {
-    large: { sides: 13, jag: 0.1, rings: [{ at: 0.68, z: 0.42, sides: 7 }, { at: 0.34, z: 0.62, sides: 5 }], top: 0.62, flatTop: true },
-    medium: { sides: 11, jag: 0.1, rings: [{ at: 0.64, z: 0.44, sides: 6 }, { at: 0.32, z: 0.62, sides: 4 }], top: 0.62, flatTop: true },
+    large: {
+      sides: 13,
+      jag: 0.1,
+      rings: [
+        { at: 0.68, z: 0.42, sides: 7 },
+        { at: 0.34, z: 0.62, sides: 5 },
+      ],
+      top: 0.62,
+      flatTop: true,
+    },
+    medium: {
+      sides: 11,
+      jag: 0.1,
+      rings: [
+        { at: 0.64, z: 0.44, sides: 6 },
+        { at: 0.32, z: 0.62, sides: 4 },
+      ],
+      top: 0.62,
+      flatTop: true,
+    },
   },
   lodestone: {
-    large: { sides: 10, jag: 0.08, squash: 0.62, rings: [{ at: 0.58, z: 0.5, sides: 6 }], top: 0.7 },
-    medium: { sides: 8, jag: 0.08, squash: 0.62, rings: [{ at: 0.56, z: 0.5, sides: 4 }], top: 0.7 },
+    large: {
+      sides: 10,
+      jag: 0.08,
+      squash: 0.62,
+      rings: [{ at: 0.58, z: 0.5, sides: 6 }],
+      top: 0.7,
+    },
+    medium: {
+      sides: 8,
+      jag: 0.08,
+      squash: 0.62,
+      rings: [{ at: 0.56, z: 0.5, sides: 4 }],
+      top: 0.7,
+    },
     small: { sides: 6, jag: 0.08, squash: 0.64, rings: [], top: 0.66 },
   },
   boulder: {
@@ -179,15 +267,23 @@ function strip(outer, inner) {
   let start = 0;
   let nearest = Infinity;
   inner.forEach((corner, i) => {
-    const off = Math.abs(((corner.angle - first.angle + TURN * 1.5) % TURN) - TURN / 2);
+    const off = Math.abs(
+      ((corner.angle - first.angle + TURN * 1.5) % TURN) - TURN / 2,
+    );
     if (off < nearest) {
       nearest = off;
       start = i;
     }
   });
-  const rolled = inner.map((_, i) => /** @type {Corner} */ (inner[(i + start) % nb]));
+  const rolled = inner.map(
+    (_, i) => /** @type {Corner} */ (inner[(i + start) % nb]),
+  );
   // Angles run on past a turn, so the walk ends where it began.
-  const unwrap = (/** @type {Corner[]} */ ring, /** @type {number} */ k, /** @type {number} */ from) => {
+  const unwrap = (
+    /** @type {Corner[]} */ ring,
+    /** @type {number} */ k,
+    /** @type {number} */ from,
+  ) => {
     const corner = /** @type {Corner} */ (ring[k % ring.length]);
     let angle = corner.angle;
     while (angle < from - TURN / 2) angle += TURN;
@@ -251,7 +347,11 @@ function dome(random, cut) {
           ? cut.spike * between(random, 0.7, 1.35)
           : cut.spike * between(random, 0, 0.5);
     const reach = 1 - short - between(random, 0, cut.jag);
-    rim.push({ p: [Math.cos(angle) * reach, Math.sin(angle) * reach * squash], z: 0, angle });
+    rim.push({
+      p: [Math.cos(angle) * reach, Math.sin(angle) * reach * squash],
+      z: 0,
+      angle,
+    });
   }
   // The farthest corner reaches exactly the rock's radius.
   const farthest = Math.max(...rim.map(({ p }) => Math.hypot(p[0], p[1])));
@@ -263,7 +363,9 @@ function dome(random, cut) {
     let best = 1;
     let nearest = Infinity;
     for (const corner of rim) {
-      const off = Math.abs(((corner.angle - angle + TURN * 1.5) % TURN) - TURN / 2);
+      const off = Math.abs(
+        ((corner.angle - angle + TURN * 1.5) % TURN) - TURN / 2,
+      );
       if (off < nearest) {
         nearest = off;
         best = Math.hypot(corner.p[0], corner.p[1] / squash);
@@ -277,7 +379,8 @@ function dome(random, cut) {
     const corners = [];
     const turn = between(random, 0, TURN);
     for (let i = 0; i < ring.sides; i++) {
-      const angle = (turn + ((i + between(random, -0.2, 0.2)) / ring.sides) * TURN) % TURN;
+      const angle =
+        (turn + ((i + between(random, -0.2, 0.2)) / ring.sides) * TURN) % TURN;
       const reach = ring.at * reachAt(angle) * between(random, 0.9, 1.08);
       corners.push({
         p: [Math.cos(angle) * reach, Math.sin(angle) * reach * squash],
@@ -299,7 +402,11 @@ function dome(random, cut) {
   }
   const last = /** @type {Corner[]} */ (rings.at(-1));
   if (cut.flatTop) {
-    facets.push({ points: last.map(({ p }) => p), normal: [0, 0, 1], part: "body" });
+    facets.push({
+      points: last.map(({ p }) => p),
+      normal: [0, 0, 1],
+      part: "body",
+    });
   } else {
     /** @type {Corner} */
     const peak = {
@@ -331,12 +438,19 @@ function dent(random, at, r) {
   const rim = [];
   for (let i = 0; i < sides; i++) {
     const angle = turn + (i / sides) * TURN;
-    rim.push({ p: polar(angle, r * between(random, 0.85, 1.1), at), z: 0, angle });
+    rim.push({
+      p: polar(angle, r * between(random, 0.85, 1.1), at),
+      z: 0,
+      angle,
+    });
   }
   /** @type {Corner} */
   const pit = { p: at, z: -r * 0.9, angle: 0 };
   return rim.map((corner, i) =>
-    facetOf([corner, /** @type {Corner} */ (rim[(i + 1) % sides]), pit], "body"),
+    facetOf(
+      [corner, /** @type {Corner} */ (rim[(i + 1) % sides]), pit],
+      "body",
+    ),
   );
 }
 
@@ -435,16 +549,37 @@ export function makeRock(kind, size, seed) {
   switch (kind) {
     case "stone":
     case "boulder": {
-      const dents = kind === "boulder" ? 5 : size === "large" ? 2 : size === "medium" ? 1 : 0;
+      const dents =
+        kind === "boulder"
+          ? 5
+          : size === "large"
+            ? 2
+            : size === "medium"
+              ? 1
+              : 0;
       for (let i = 0; i < dents; i++) {
         const at = polar(between(random, 0, TURN), between(random, 0.2, 0.62));
-        rock.facets.push(...dent(random, at, kind === "boulder" ? between(random, 0.07, 0.13) : between(random, 0.12, 0.2)));
+        rock.facets.push(
+          ...dent(
+            random,
+            at,
+            kind === "boulder"
+              ? between(random, 0.07, 0.13)
+              : between(random, 0.12, 0.2),
+          ),
+        );
       }
       if (kind === "boulder") {
         // A seam across it, which its cracks later follow.
         const a = between(random, 0, TURN);
         rock.strokes.push({
-          points: jagged(random, polar(a, 0.86), polar(a + TURN / 2 + between(random, -0.5, 0.5), 0.8), 7, 0.07),
+          points: jagged(
+            random,
+            polar(a, 0.86),
+            polar(a + TURN / 2 + between(random, -0.5, 0.5), 0.8),
+            7,
+            0.07,
+          ),
           tone: "deep",
           width: 0.022,
         });
@@ -457,12 +592,22 @@ export function makeRock(kind, size, seed) {
       for (let i = 0; i < lines; i++) {
         const a = between(random, 0, TURN);
         rock.strokes.push({
-          points: jagged(random, polar(a, 0.08), polar(a + between(random, -0.3, 0.3), between(random, 0.5, 0.78)), 3, 0.12),
+          points: jagged(
+            random,
+            polar(a, 0.08),
+            polar(a + between(random, -0.3, 0.3), between(random, 0.5, 0.78)),
+            3,
+            0.12,
+          ),
           tone: "glint",
           width: 0.035,
         });
       }
-      rock.dots.push({ at: [-0.3, -0.34], r: big ? 0.07 : 0.09, tone: "glint" });
+      rock.dots.push({
+        at: [-0.3, -0.34],
+        r: big ? 0.07 : 0.09,
+        tone: "glint",
+      });
       if (big) rock.dots.push({ at: [-0.12, -0.52], r: 0.04, tone: "glint" });
       break;
     }
@@ -472,15 +617,32 @@ export function makeRock(kind, size, seed) {
       /** @type {Facet[]} */
       const prisms = [];
       for (let i = 0; i < gems; i++) {
-        const angle = fan + (i - (gems - 1) / 2) * 0.62 + between(random, -0.12, 0.12);
-        const length = i === Math.floor(gems / 2) ? 1.02 : between(random, 0.7, 0.9);
-        prisms.push(...prism(polar(angle, 0.12), angle, length - 0.12, between(random, 0.13, 0.17)));
+        const angle =
+          fan + (i - (gems - 1) / 2) * 0.62 + between(random, -0.12, 0.12);
+        const length =
+          i === Math.floor(gems / 2) ? 1.02 : between(random, 0.7, 0.9);
+        prisms.push(
+          ...prism(
+            polar(angle, 0.12),
+            angle,
+            length - 0.12,
+            between(random, 0.13, 0.17),
+          ),
+        );
       }
       rock.facets.push(...prisms);
-      rock.glows.push({ at: polar(fan, 0.45), r: 0.95, tone: "gem", strength: 0.5 });
+      rock.glows.push({
+        at: polar(fan, 0.45),
+        r: 0.95,
+        tone: "gem",
+        strength: 0.5,
+      });
       rock.dots.push({ at: polar(fan, 0.62), r: 0.05, tone: "glint" });
       // The gems reach past the stone they stand in.
-      rock.outline = hull([...rock.outline, ...prisms.flatMap(({ points }) => points)]);
+      rock.outline = hull([
+        ...rock.outline,
+        ...prisms.flatMap(({ points }) => points),
+      ]);
       break;
     }
     case "iron": {
@@ -488,10 +650,16 @@ export function makeRock(kind, size, seed) {
       const seam = between(random, -0.3, 0.3);
       rock.strokes.push({
         points: [
-          lerpPoint(/** @type {Corner} */ (inner[0]).p, /** @type {Corner} */ (inner[1]).p, 0.5 + seam * 0.4),
+          lerpPoint(
+            /** @type {Corner} */ (inner[0]).p,
+            /** @type {Corner} */ (inner[1]).p,
+            0.5 + seam * 0.4,
+          ),
           lerpPoint(
             /** @type {Corner} */ (inner[Math.floor(inner.length / 2)]).p,
-            /** @type {Corner} */ (inner[Math.floor(inner.length / 2) + 1] ?? inner[0]).p,
+            /** @type {Corner} */ (
+              inner[Math.floor(inner.length / 2) + 1] ?? inner[0]
+            ).p,
             0.5 - seam * 0.4,
           ),
         ],
@@ -508,7 +676,11 @@ export function makeRock(kind, size, seed) {
       });
       inner.forEach((corner, i) => {
         if (size === "small" && i % 2 === 1) return;
-        rock.dots.push({ at: [corner.p[0] * 0.8, corner.p[1] * 0.8], r: size === "small" ? 0.07 : 0.05, tone: "deep" });
+        rock.dots.push({
+          at: [corner.p[0] * 0.8, corner.p[1] * 0.8],
+          r: size === "small" ? 0.07 : 0.05,
+          tone: "deep",
+        });
       });
       break;
     }
@@ -516,13 +688,34 @@ export function makeRock(kind, size, seed) {
       // Its seams glow: the edges of its inner rings, and spokes out from them.
       const core = /** @type {Corner[]} */ (rings.at(-1));
       const mid = /** @type {Corner[]} */ (rings.at(-2));
-      rock.strokes.push({ points: [...core.map(({ p }) => p), /** @type {Corner} */ (core[0]).p], tone: "core", width: 0.05 });
+      rock.strokes.push({
+        points: [...core.map(({ p }) => p), /** @type {Corner} */ (core[0]).p],
+        tone: "core",
+        width: 0.05,
+      });
       core.forEach((corner, i) => {
-        const outer = /** @type {Corner} */ (mid[Math.floor((i * mid.length) / core.length) % mid.length]);
-        rock.strokes.push({ points: jagged(random, corner.p, outer.p, 2, 0.1), tone: "core", width: 0.04 });
-        const rim = /** @type {Point} */ (outline[Math.floor(((i + 0.5) * outline.length) / core.length) % outline.length]);
+        const outer = /** @type {Corner} */ (
+          mid[Math.floor((i * mid.length) / core.length) % mid.length]
+        );
         rock.strokes.push({
-          points: jagged(random, outer.p, lerpPoint(outer.p, rim, 0.72), 2, 0.12),
+          points: jagged(random, corner.p, outer.p, 2, 0.1),
+          tone: "core",
+          width: 0.04,
+        });
+        const rim = /** @type {Point} */ (
+          outline[
+            Math.floor(((i + 0.5) * outline.length) / core.length) %
+              outline.length
+          ]
+        );
+        rock.strokes.push({
+          points: jagged(
+            random,
+            outer.p,
+            lerpPoint(outer.p, rim, 0.72),
+            2,
+            0.12,
+          ),
           tone: "core",
           width: 0.028,
         });
@@ -534,15 +727,32 @@ export function makeRock(kind, size, seed) {
     case "lodestone": {
       // A band at each pole, and the field's lines around it.
       const pole = 0.6;
-      rock.strokes.push({ points: [[-pole, -0.3], [-pole - 0.05, 0.3]], tone: "lit", width: 0.07 });
-      rock.strokes.push({ points: [[pole, -0.3], [pole + 0.05, 0.3]], tone: "deep", width: 0.07 });
+      rock.strokes.push({
+        points: [
+          [-pole, -0.3],
+          [-pole - 0.05, 0.3],
+        ],
+        tone: "lit",
+        width: 0.07,
+      });
+      rock.strokes.push({
+        points: [
+          [pole, -0.3],
+          [pole + 0.05, 0.3],
+        ],
+        tone: "deep",
+        width: 0.07,
+      });
       for (const side of [-1, 1]) {
         for (const [reach, lift] of [[1.22, 0.7]]) {
           /** @type {Point[]} */
           const arc = [];
           for (let i = 0; i <= 14; i++) {
             const t = (i / 14) * Math.PI;
-            arc.push([-Math.cos(t) * /** @type {number} */ (reach) * 0.92, side * (0.34 + Math.sin(t) * /** @type {number} */ (lift) * 0.62)]);
+            arc.push([
+              -Math.cos(t) * /** @type {number} */ (reach) * 0.92,
+              side * (0.34 + Math.sin(t) * /** @type {number} */ (lift) * 0.62),
+            ]);
           }
           rock.aura.push({ points: arc, tone: "lit", width: 0.03 });
         }
@@ -573,18 +783,37 @@ function lerpPoint(a, b, share) {
  */
 export function hull(points) {
   const sorted = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const cross = (/** @type {Point} */ o, /** @type {Point} */ a, /** @type {Point} */ b) =>
-    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const cross = (
+    /** @type {Point} */ o,
+    /** @type {Point} */ a,
+    /** @type {Point} */ b,
+  ) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
   /** @type {Point[]} */
   const lower = [];
   for (const p of sorted) {
-    while (lower.length >= 2 && cross(/** @type {Point} */ (lower.at(-2)), /** @type {Point} */ (lower.at(-1)), p) <= 0) lower.pop();
+    while (
+      lower.length >= 2 &&
+      cross(
+        /** @type {Point} */ (lower.at(-2)),
+        /** @type {Point} */ (lower.at(-1)),
+        p,
+      ) <= 0
+    )
+      lower.pop();
     lower.push(p);
   }
   /** @type {Point[]} */
   const upper = [];
   for (const p of sorted.reverse()) {
-    while (upper.length >= 2 && cross(/** @type {Point} */ (upper.at(-2)), /** @type {Point} */ (upper.at(-1)), p) <= 0) upper.pop();
+    while (
+      upper.length >= 2 &&
+      cross(
+        /** @type {Point} */ (upper.at(-2)),
+        /** @type {Point} */ (upper.at(-1)),
+        p,
+      ) <= 0
+    )
+      upper.pop();
     upper.push(p);
   }
   return [...lower.slice(0, -1), ...upper.slice(0, -1)];
@@ -616,7 +845,11 @@ export function toneAt(light, tones) {
   const stops = [tones.deep, tones.shade, tones.ink, tones.lit];
   const at = clamp((light - 0.3) / 0.82, 0, 1) * (stops.length - 1);
   const i = Math.min(Math.floor(at), stops.length - 2);
-  return mix(/** @type {string} */ (stops[i]), /** @type {string} */ (stops[i + 1]), at - i);
+  return mix(
+    /** @type {string} */ (stops[i]),
+    /** @type {string} */ (stops[i + 1]),
+    at - i,
+  );
 }
 
 /**
@@ -649,19 +882,35 @@ export function toneAt(light, tones) {
  * @returns {Point[][]}
  */
 export function cracksOf(rock, hits) {
-  const random = seeded(rock.outline.length * 977 + Math.round((rock.outline[0]?.[0] ?? 0) * 1e4));
+  const random = seeded(
+    rock.outline.length * 977 + Math.round((rock.outline[0]?.[0] ?? 0) * 1e4),
+  );
   /** @type {Point[][]} */
   const cracks = [];
   const first = between(random, 0, TURN);
   for (let i = 0; i < hits; i++) {
     const angle = first + i * 2.4 + between(random, -0.3, 0.3);
     const from = polar(angle, 0.9);
-    const to = polar(angle + between(random, -0.5, 0.5), between(random, 0.05, 0.3));
+    const to = polar(
+      angle + between(random, -0.5, 0.5),
+      between(random, 0.05, 0.3),
+    );
     const line = jagged(random, from, to, 5, 0.09);
     cracks.push(line);
     // A branch off its middle.
     const mid = /** @type {Point} */ (line[2]);
-    cracks.push(jagged(random, mid, polar(angle + (random() < 0.5 ? -1 : 1) * between(random, 0.5, 0.9), between(random, 0.45, 0.7)), 3, 0.1));
+    cracks.push(
+      jagged(
+        random,
+        mid,
+        polar(
+          angle + (random() < 0.5 ? -1 : 1) * between(random, 0.5, 0.9),
+          between(random, 0.45, 0.7),
+        ),
+        3,
+        0.1,
+      ),
+    );
   }
   return cracks;
 }
@@ -676,7 +925,8 @@ export function cracksOf(rock, hits) {
  */
 export function normalColor(normal, turn) {
   const [x, y] = turned([normal[0], normal[1]], turn);
-  const channel = (/** @type {number} */ v) => Math.round((v * 0.5 + 0.5) * 255);
+  const channel = (/** @type {number} */ v) =>
+    Math.round((v * 0.5 + 0.5) * 255);
   return `rgb(${channel(x)},${channel(-y)},${channel(normal[2])})`;
 }
 
@@ -688,7 +938,21 @@ export function normalColor(normal, turn) {
  * @param {RockLook} [look]
  * @returns {string}
  */
-export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, pulse = 1, outline = true, light = LIGHT, hits = 0, lamps = [], as = "lit" } = {}) {
+export function rockSvg(
+  rock,
+  palette,
+  {
+    turn = 0,
+    unit: px = 16,
+    flat = false,
+    pulse = 1,
+    outline = true,
+    light = LIGHT,
+    hits = 0,
+    lamps = [],
+    as = "lit",
+  } = {},
+) {
   const inks = ROCK_INKS[palette.mode];
   const bodyInk = rock.kind === "crystal" ? inks.stone : inks[rock.kind];
   const tones = {
@@ -703,12 +967,25 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
     const [x, y] = turned(p, turn);
     return /** @type {Point} */ ([x * scale, y * scale]);
   };
-  const toneOf = { deep: tones.body.deep, lit: tones.body.lit, core: inks.core, glint: "#ffffff", field: palette.field, sheen: tones.body.lit };
+  const toneOf = {
+    deep: tones.body.deep,
+    lit: tones.body.lit,
+    core: inks.core,
+    glint: "#ffffff",
+    field: palette.field,
+    sheen: tones.body.lit,
+  };
   const parts = [];
   if (as === "normal") {
     for (const facet of rock.facets) {
       const fill = normalColor(facet.normal, turn);
-      parts.push(polygon(facet.points.map(at), fill, { stroke: fill, "stroke-width": 0.6, "stroke-linejoin": "round" }));
+      parts.push(
+        polygon(facet.points.map(at), fill, {
+          stroke: fill,
+          "stroke-width": 0.6,
+          "stroke-linejoin": "round",
+        }),
+      );
     }
     return place(parts.join(""));
   }
@@ -725,15 +1002,25 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
   }
   for (const stroke of fine ? rock.aura : []) {
     parts.push(
-      polyline(stroke.points.map(at), tones.body.ink, Math.max(1, stroke.width * scale), {
-        opacity: 0.45,
-        "stroke-dasharray": `${(0.1 * scale).toFixed(1)} ${(0.12 * scale).toFixed(1)}`,
-      }),
+      polyline(
+        stroke.points.map(at),
+        tones.body.ink,
+        Math.max(1, stroke.width * scale),
+        {
+          opacity: 0.45,
+          "stroke-dasharray": `${(0.1 * scale).toFixed(1)} ${(0.12 * scale).toFixed(1)}`,
+        },
+      ),
     );
   }
   if (outline) {
     const width = Math.max(2.5, 0.28 * px);
-    const edged = [rock.rim, ...rock.facets.filter(({ part }) => part === "gem").map(({ points }) => points)];
+    const edged = [
+      rock.rim,
+      ...rock.facets
+        .filter(({ part }) => part === "gem")
+        .map(({ points }) => points),
+    ];
     for (const points of edged) {
       parts.push(
         polygon(points.map(at), palette.field, {
@@ -749,7 +1036,9 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
     let fill = flat ? set.ink : toneAt(litBy(facet.normal, turn, light), set);
     if (!flat && lamps.length > 0) {
       // Each lamp tints the faces turned toward it, less the farther it is.
-      const middle = facet.points.reduce((sum, p) => [sum[0] + p[0], sum[1] + p[1]], [0, 0]).map((v) => v / facet.points.length);
+      const middle = facet.points
+        .reduce((sum, p) => [sum[0] + p[0], sum[1] + p[1]], [0, 0])
+        .map((v) => v / facet.points.length);
       const [mx, my] = at(/** @type {Point} */ (middle));
       const [nx, ny] = turned([facet.normal[0], facet.normal[1]], turn);
       for (const lamp of lamps) {
@@ -758,30 +1047,81 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
         const far = Math.hypot(dx, dy) || 1;
         const height = lamp.reach * 0.35;
         const length = Math.hypot(far, height);
-        const facing = Math.max(0, (nx * dx + ny * dy + facet.normal[2] * height) / length);
-        const share = clamp(lamp.strength * facing * Math.max(0, 1 - far / lamp.reach) * 1.6, 0, 0.85);
+        const facing = Math.max(
+          0,
+          (nx * dx + ny * dy + facet.normal[2] * height) / length,
+        );
+        const share = clamp(
+          lamp.strength * facing * Math.max(0, 1 - far / lamp.reach) * 1.6,
+          0,
+          0.85,
+        );
         fill = mix(fill, lamp.color, share);
       }
     }
     parts.push(
-      polygon(facet.points.map(at), fill, { stroke: fill, "stroke-width": 0.6, "stroke-linejoin": "round" }),
+      polygon(facet.points.map(at), fill, {
+        stroke: fill,
+        "stroke-width": 0.6,
+        "stroke-linejoin": "round",
+      }),
     );
   }
   if (hits > 0) {
     for (const crack of cracksOf(rock, hits)) {
       const line = crack.map(at);
-      parts.push(polyline(line.map(([x, y]) => /** @type {Point} */ ([x + 0.07 * px, y + 0.07 * px])), tones.body.lit, Math.max(0.8, 0.05 * px), { opacity: 0.55 }));
-      parts.push(polyline(line, palette.mode === "light" ? palette.fieldText : palette.field, Math.max(1.1, 0.085 * px)));
+      parts.push(
+        polyline(
+          line.map(
+            ([x, y]) => /** @type {Point} */ ([x + 0.07 * px, y + 0.07 * px]),
+          ),
+          tones.body.lit,
+          Math.max(0.8, 0.05 * px),
+          { opacity: 0.55 },
+        ),
+      );
+      parts.push(
+        polyline(
+          line,
+          palette.mode === "light" ? palette.fieldText : palette.field,
+          Math.max(1.1, 0.085 * px),
+        ),
+      );
     }
   }
   for (const stroke of rock.strokes) {
-    if (!fine && (stroke.tone === "glint" || stroke.tone === "sheen" || (stroke.tone !== "core" && stroke.width < 0.06))) continue;
+    if (
+      !fine &&
+      (stroke.tone === "glint" ||
+        stroke.tone === "sheen" ||
+        (stroke.tone !== "core" && stroke.width < 0.06))
+    )
+      continue;
     const color = toneOf[stroke.tone];
     if (stroke.tone === "core") {
-      parts.push(polyline(stroke.points.map(at), inks.core, Math.max(1.2, stroke.width * scale * 2.6), { opacity: 0.28 * pulse }));
+      parts.push(
+        polyline(
+          stroke.points.map(at),
+          inks.core,
+          Math.max(1.2, stroke.width * scale * 2.6),
+          { opacity: 0.28 * pulse },
+        ),
+      );
     }
-    const faint = stroke.tone === "glint" ? { opacity: 0.7 } : stroke.tone === "sheen" ? { opacity: 0.4, "stroke-linecap": "butt" } : {};
-    parts.push(polyline(stroke.points.map(at), color, Math.max(1, stroke.width * scale), faint));
+    const faint =
+      stroke.tone === "glint"
+        ? { opacity: 0.7 }
+        : stroke.tone === "sheen"
+          ? { opacity: 0.4, "stroke-linecap": "butt" }
+          : {};
+    parts.push(
+      polyline(
+        stroke.points.map(at),
+        color,
+        Math.max(1, stroke.width * scale),
+        faint,
+      ),
+    );
   }
   for (const dot of fine ? rock.dots : []) {
     const [x, y] = at(dot.at);
@@ -807,6 +1147,14 @@ export function rockDefs(palette) {
 }
 
 /** Every kind of rock, in How to play's order. */
-export const ROCK_KINDS = /** @type {RockKind[]} */ (["stone", "crystal", "ice", "boulder", "iron", "volatile", "lodestone"]);
+export const ROCK_KINDS = /** @type {RockKind[]} */ ([
+  "stone",
+  "crystal",
+  "ice",
+  "boulder",
+  "iron",
+  "volatile",
+  "lodestone",
+]);
 
 export { pick, wholeBetween };

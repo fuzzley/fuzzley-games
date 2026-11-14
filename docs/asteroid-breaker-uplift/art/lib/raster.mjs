@@ -24,9 +24,10 @@ export const sharp = require("sharp");
 export async function writeRaster(svg, file, { scale = 1 } = {}) {
   await mkdir(dirname(file), { recursive: true });
   const image = sharp(Buffer.from(svg), { density: 72 * scale });
-  await (file.endsWith(".webp")
-    ? image.webp({ quality: 90 })
-    : image.png({ compressionLevel: 9 })
+  await (
+    file.endsWith(".webp")
+      ? image.webp({ quality: 90 })
+      : image.png({ compressionLevel: 9 })
   ).toFile(file);
 }
 

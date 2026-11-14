@@ -179,11 +179,7 @@ export function rgbOf(hex) {
  */
 export function hexOf(rgb) {
   return `#${rgb
-    .map((v) =>
-      clamp(Math.round(v), 0, 255)
-        .toString(16)
-        .padStart(2, "0"),
-    )
+    .map((v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0"))
     .join("")}`;
 }
 

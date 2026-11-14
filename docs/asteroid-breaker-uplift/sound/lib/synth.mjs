@@ -312,14 +312,17 @@ export function noise(color, seconds, seed) {
   // octave between them, which is what pink is.
   const corners = [15, 45, 135, 405, 1215, 3645, 10935];
   const held = new Float64Array(corners.length);
-  const coefficients = corners.map((corner) => 1 - Math.exp((-TAU * corner) / SR));
+  const coefficients = corners.map(
+    (corner) => 1 - Math.exp((-TAU * corner) / SR),
+  );
   const levels = coefficients.map((a) => Math.sqrt((2 - a) / a));
   const scale = 0.3 / Math.sqrt(corners.length) / 1.8;
   for (let i = 0; i < out.length; i++) {
     let sum = 0;
     for (let k = 0; k < corners.length; k++) {
       const a = coefficients[k] ?? 0;
-      held[k] = (held[k] ?? 0) + a * ((random() * 2 - 1) * 1.732 - (held[k] ?? 0));
+      held[k] =
+        (held[k] ?? 0) + a * ((random() * 2 - 1) * 1.732 - (held[k] ?? 0));
       sum += (held[k] ?? 0) * (levels[k] ?? 0);
     }
     out[i] = sum * scale;
@@ -349,7 +352,9 @@ export function modes(partials, seconds) {
     const n = Math.min(out.length, samples(decay * 1.2));
     for (let i = 0; i < n; i++) {
       const t = i / SR;
-      const f = bend ? freq * 2 ** ((-bend * Math.min(1, t / decay)) / 1200) : freq;
+      const f = bend
+        ? freq * 2 ** ((-bend * Math.min(1, t / decay)) / 1200)
+        : freq;
       out[i] = (out[i] ?? 0) + gain * Math.sin(TAU * p) * Math.exp(-t * rate);
       p += f / SR;
     }
@@ -408,9 +413,13 @@ export function gain(x, amount) {
  */
 export function mix(layers) {
   const parts = layers.map((layer) =>
-    layer instanceof Float64Array ? { x: layer, at: 0, gain: 1 } : { at: 0, gain: 1, ...layer },
+    layer instanceof Float64Array
+      ? { x: layer, at: 0, gain: 1 }
+      : { at: 0, gain: 1, ...layer },
   );
-  const length = Math.max(...parts.map(({ x, at: start }) => x.length + Math.round(start * SR)));
+  const length = Math.max(
+    ...parts.map(({ x, at: start }) => x.length + Math.round(start * SR)),
+  );
   const out = new Float64Array(length);
   for (const { x, at: start, gain: level } of parts) {
     const offset = Math.round(start * SR);
@@ -475,7 +484,9 @@ export function resample(x, ratio) {
     // A cubic through four neighbours.
     out[i] =
       b +
-      0.5 * f * (c - a + f * (2 * a - 5 * b + 4 * c - d + f * (3 * (b - c) + d - a)));
+      0.5 *
+        f *
+        (c - a + f * (2 * a - 5 * b + 4 * c - d + f * (3 * (b - c) + d - a)));
   }
   return out;
 }
@@ -521,7 +532,13 @@ export function filter(x, type, cutoff, q = 0.707) {
     ic1 = 2 * v1 - ic1;
     ic2 = 2 * v2 - ic2;
     out[i] =
-      type === "lp" ? v2 : type === "bp" ? k * v1 : type === "hp" ? v0 - k * v1 - v2 : v0 - k * v1;
+      type === "lp"
+        ? v2
+        : type === "bp"
+          ? k * v1
+          : type === "hp"
+            ? v0 - k * v1 - v2
+            : v0 - k * v1;
   }
   return out;
 }
@@ -621,7 +638,12 @@ export function resonate(x, partials, tail = 0) {
  * @param {{ damp?: number, tail?: number, mix?: number }} [how]
  * @returns {Signal}
  */
-export function comb(x, seconds, feedback, { damp = 0, tail = 0, mix: wet = 1 } = {}) {
+export function comb(
+  x,
+  seconds,
+  feedback,
+  { damp = 0, tail = 0, mix: wet = 1 } = {},
+) {
   const out = new Float64Array(x.length + (tail ? samples(tail) : 0));
   const size = 1 << 16;
   const line = new Float64Array(size);
@@ -709,10 +731,14 @@ export function crush(x, hold, bits = 16) {
  * @param {{ time: number, feedback?: number, mix?: number, damp?: number, tail?: number }} how
  * @returns {Signal}
  */
-export function echo(x, { time, feedback = 0.35, mix: wet = 0.3, damp = 0.3, tail = time * 4 }) {
+export function echo(
+  x,
+  { time, feedback = 0.35, mix: wet = 0.3, damp = 0.3, tail = time * 4 },
+) {
   const delayed = comb(x, time, feedback, { damp, tail });
   const out = new Float64Array(delayed.length);
-  for (let i = 0; i < out.length; i++) out[i] = (x[i] ?? 0) + (delayed[i] ?? 0) * wet;
+  for (let i = 0; i < out.length; i++)
+    out[i] = (x[i] ?? 0) + (delayed[i] ?? 0) * wet;
   return out;
 }
 
@@ -774,7 +800,10 @@ function room(x, decay, damp, size, spread) {
  * @param {{ decay?: number, mix?: number, damp?: number, size?: number, predelay?: number }} [how]
  * @returns {Signal}
  */
-export function reverb(x, { decay = 0.4, mix: wet = 0.15, damp = 0.4, size = 1, predelay = 0.008 } = {}) {
+export function reverb(
+  x,
+  { decay = 0.4, mix: wet = 0.15, damp = 0.4, size = 1, predelay = 0.008 } = {},
+) {
   const tail = room(x, decay, damp, size, 0);
   return mix([x, { x: tail, at: predelay, gain: wet }]);
 }
@@ -787,7 +816,16 @@ export function reverb(x, { decay = 0.4, mix: wet = 0.15, damp = 0.4, size = 1, 
  * @param {{ decay?: number, mix?: number, damp?: number, size?: number, predelay?: number }} [how]
  * @returns {[Signal, Signal]}
  */
-export function reverbStereo(x, { decay = 1.2, mix: wet = 0.25, damp = 0.4, size = 1.2, predelay = 0.012 } = {}) {
+export function reverbStereo(
+  x,
+  {
+    decay = 1.2,
+    mix: wet = 0.25,
+    damp = 0.4,
+    size = 1.2,
+    predelay = 0.012,
+  } = {},
+) {
   return [
     mix([x, { x: room(x, decay, damp, size, 0), at: predelay, gain: wet }]),
     mix([x, { x: room(x, decay, damp, size, 23), at: predelay, gain: wet }]),
@@ -805,14 +843,24 @@ export function reverbStereo(x, { decay = 1.2, mix: wet = 0.25, damp = 0.4, size
  * @param {{ threshold?: number, ratio?: number, attack?: number, release?: number, makeup?: number }} [how] The threshold and makeup in dB, the times in seconds.
  * @returns {Signal}
  */
-export function compress(x, { threshold = -18, ratio = 3, attack = 0.003, release = 0.08, makeup = 0 } = {}) {
+export function compress(
+  x,
+  {
+    threshold = -18,
+    ratio = 3,
+    attack = 0.003,
+    release = 0.08,
+    makeup = 0,
+  } = {},
+) {
   const out = new Float64Array(x.length);
   const up = Math.exp(-1 / (attack * SR));
   const down = Math.exp(-1 / (release * SR));
   let level = 0;
   for (let i = 0; i < x.length; i++) {
     const v = Math.abs(x[i] ?? 0);
-    level = v > level ? up * level + (1 - up) * v : down * level + (1 - down) * v;
+    level =
+      v > level ? up * level + (1 - up) * v : down * level + (1 - down) * v;
     const db = 20 * Math.log10(Math.max(1e-9, level));
     const over = Math.max(0, db - threshold);
     out[i] = (x[i] ?? 0) * dB(makeup - over * (1 - 1 / ratio));
@@ -838,7 +886,8 @@ export function limit(x, ceiling = -1, release = 0.06) {
   let g = 1;
   for (let i = 0; i < x.length; i++) {
     let peak = 0;
-    for (let k = 0; k <= ahead; k++) peak = Math.max(peak, Math.abs(x[i + k] ?? 0));
+    for (let k = 0; k <= ahead; k++)
+      peak = Math.max(peak, Math.abs(x[i + k] ?? 0));
     const want = peak > top ? top / peak : 1;
     g = want < g ? want : Math.min(1, down * g + (1 - down) * want);
     out[i] = (x[i] ?? 0) * Math.min(g, want);
@@ -855,7 +904,8 @@ export function limit(x, ceiling = -1, release = 0.06) {
  */
 export function normalize(x, db = -1) {
   let loudest = 0;
-  for (let i = 0; i < x.length; i++) loudest = Math.max(loudest, Math.abs(x[i] ?? 0));
+  for (let i = 0; i < x.length; i++)
+    loudest = Math.max(loudest, Math.abs(x[i] ?? 0));
   if (!(loudest > 0 && Number.isFinite(loudest))) {
     throw new Error("A sound is silent or not a number.");
   }
@@ -884,13 +934,24 @@ export function centered(x) {
  * @param {{ count: number, seconds: number, seed: number, bias?: number, grain: (i: number, random: () => number, share: number) => Signal, level?: (share: number) => number }} how
  * @returns {Signal}
  */
-export function scatter({ count, seconds, seed, bias = 2, grain, level = () => 1 }) {
+export function scatter({
+  count,
+  seconds,
+  seed,
+  bias = 2,
+  grain,
+  level = () => 1,
+}) {
   const random = seeded(seed);
   /** @type {{ x: Signal, at: number, gain: number }[]} */
   const layers = [];
   for (let i = 0; i < count; i++) {
     const share = random() ** bias;
-    layers.push({ x: grain(i, random, share), at: share * seconds, gain: level(share) });
+    layers.push({
+      x: grain(i, random, share),
+      at: share * seconds,
+      gain: level(share),
+    });
   }
   return mix(layers);
 }

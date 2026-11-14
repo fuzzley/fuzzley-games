@@ -15,7 +15,13 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { REPORT_HEAD, contactSheet, measure, reportLine, seam } from "./lib/analyze.mjs";
+import {
+  REPORT_HEAD,
+  contactSheet,
+  measure,
+  reportLine,
+  seam,
+} from "./lib/analyze.mjs";
 import { SR, centered, dB, fade, gain, limit, wav } from "./lib/synth.mjs";
 
 /** @import { Signal } from "./lib/synth.mjs" */
@@ -65,7 +71,8 @@ const assets = join(here, "../assets/sound");
  */
 function seedOf(name) {
   let h = 2166136261;
-  for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 16777619);
+  for (let i = 0; i < name.length; i++)
+    h = Math.imul(h ^ name.charCodeAt(i), 16777619);
   return h >>> 0;
 }
 
@@ -106,7 +113,9 @@ try {
 
 for (const family of families) {
   /** @type {{ SOUNDS: Recipe[] }} */
-  const { SOUNDS } = await import(pathToFileURL(join(here, "recipes", `${family}.mjs`)).href);
+  const { SOUNDS } = await import(
+    pathToFileURL(join(here, "recipes", `${family}.mjs`)).href
+  );
   const folder = join(assets, "wav", family);
   if (files) await mkdir(folder, { recursive: true });
   /** @type {{ name: string, x: Signal }[]} */
@@ -130,14 +139,30 @@ for (const family of families) {
       tiles.push({ name, x: first });
       lines.push(reportLine(name, first));
       if (!first.every(Number.isFinite)) warnings.push(`${name}: not a number`);
-      if (!recipe.loop && m.edge > 0.002) warnings.push(`${name}: starts or ends off zero (${m.edge.toFixed(4)})`);
-      if (Math.abs(m.dc) > 0.004) warnings.push(`${name}: sits off the middle (${m.dc.toFixed(4)})`);
-      if (recipe.loop && seam(first) > 1.5) warnings.push(`${name}: its loop has a seam (${seam(first).toFixed(2)})`);
+      if (!recipe.loop && m.edge > 0.002)
+        warnings.push(
+          `${name}: starts or ends off zero (${m.edge.toFixed(4)})`,
+        );
+      if (Math.abs(m.dc) > 0.004)
+        warnings.push(`${name}: sits off the middle (${m.dc.toFixed(4)})`);
+      if (recipe.loop && seam(first) > 1.5)
+        warnings.push(
+          `${name}: its loop has a seam (${seam(first).toFixed(2)})`,
+        );
       if (recipe.level !== "bed" && m.phone < 0.35) {
-        warnings.push(`${name}: only ${(m.phone * 100).toFixed(0)}% of it is above 300 Hz, so a phone loses most of it`);
+        warnings.push(
+          `${name}: only ${(m.phone * 100).toFixed(0)}% of it is above 300 Hz, so a phone loses most of it`,
+        );
       }
       if (files) {
-        await writeFile(join(folder, `${name}.wav`), wav(done.length === 2 ? [first, /** @type {Signal} */ (done[1])] : first));
+        await writeFile(
+          join(folder, `${name}.wav`),
+          wav(
+            done.length === 2
+              ? [first, /** @type {Signal} */ (done[1])]
+              : first,
+          ),
+        );
       }
       names.push(`wav/${family}/${name}.wav`);
     }
@@ -151,18 +176,31 @@ for (const family of families) {
       files: names,
     };
   }
-  if (warnings.length > 0) lines.push("", "## Warnings", "", ...warnings.map((warning) => `- ${warning}`));
+  if (warnings.length > 0)
+    lines.push(
+      "",
+      "## Warnings",
+      "",
+      ...warnings.map((warning) => `- ${warning}`),
+    );
   await mkdir(join(here, "sheets"), { recursive: true });
   await mkdir(join(here, "report"), { recursive: true });
   await contactSheet(tiles, join(here, "sheets", `${family}.png`));
-  await writeFile(join(here, "report", `${family}.md`), `${lines.join("\n")}\n`);
-  console.log(`${family}: ${tiles.length} takes of ${SOUNDS.length} sounds${warnings.length ? `, ${warnings.length} warnings` : ""}`);
+  await writeFile(
+    join(here, "report", `${family}.md`),
+    `${lines.join("\n")}\n`,
+  );
+  console.log(
+    `${family}: ${tiles.length} takes of ${SOUNDS.length} sounds${warnings.length ? `, ${warnings.length} warnings` : ""}`,
+  );
   for (const warning of warnings) console.log(`  ! ${warning}`);
 }
 
 if (files) {
   await mkdir(assets, { recursive: true });
-  const sorted = Object.fromEntries(Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b)));
+  const sorted = Object.fromEntries(
+    Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b)),
+  );
   await writeFile(
     manifestFile,
     `${JSON.stringify({ sampleRate: SR, levels: LEVELS, sounds: sorted }, null, 2)}\n`,

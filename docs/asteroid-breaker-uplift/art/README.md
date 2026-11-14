@@ -60,12 +60,12 @@ middle, in pixels, given a palette and how many pixels a field unit takes
 `@fz/phaser/shapes`'s commands, from the geometry `make-assets.mjs` writes
 out.
 
-| File               | What it draws                                                    |
-| ------------------ | ---------------------------------------------------------------- |
-| `lib/core.mjs`     | The seeded random, vectors, colors and SVG helpers               |
+| File               | What it draws                                                     |
+| ------------------ | ----------------------------------------------------------------- |
+| `lib/core.mjs`     | The seeded random, vectors, colors and SVG helpers                |
 | `lib/palettes.mjs` | The site's four palettes, the game's inks and a lit thing's tones |
-| `lib/rocks.mjs`    | The seven kinds of rock, cut and lit                             |
-| `lib/raster.mjs`   | An SVG written as a PNG or a WebP, with sharp                    |
+| `lib/rocks.mjs`    | The seven kinds of rock, cut and lit                              |
+| `lib/raster.mjs`   | An SVG written as a PNG or a WebP, with sharp                     |
 
 Rules for a new piece of the kit:
 

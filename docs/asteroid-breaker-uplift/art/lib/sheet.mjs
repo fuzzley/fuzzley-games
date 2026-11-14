@@ -60,7 +60,12 @@ export function paragraph(
   x,
   y,
   words,
-  { width = SHEET.width - 2 * SHEET.margin, size = 14, fill = SHEET.muted, weight } = {},
+  {
+    width = SHEET.width - 2 * SHEET.margin,
+    size = 14,
+    fill = SHEET.muted,
+    weight,
+  } = {},
 ) {
   const lines = wrapped(words, Math.floor(width / (size * 0.52)));
   const leading = Math.round(size * 1.45);
@@ -87,7 +92,12 @@ export function paragraph(
  * @param {{ fill?: string, size?: number, anchor?: "start" | "middle" | "end", weight?: number }} [how]
  * @returns {string}
  */
-export function caption(x, y, words, { fill = SHEET.muted, size = 12, anchor = "start", weight } = {}) {
+export function caption(
+  x,
+  y,
+  words,
+  { fill = SHEET.muted, size = 12, anchor = "start", weight } = {},
+) {
   return text(x, y, words, {
     fill,
     "font-size": size,
@@ -133,11 +143,23 @@ export function panel(x, y, width, height, palette, { label } = {}) {
  * @param {{ title: string, lead: string, sections: Section[], defs?: string, width?: number }} sheet
  * @returns {string}
  */
-export function sheetFile({ title, lead, sections, defs = "", width = SHEET.width }) {
+export function sheetFile({
+  title,
+  lead,
+  sections,
+  defs = "",
+  width = SHEET.width,
+}) {
   const inner = width - 2 * SHEET.margin;
   const parts = [];
   let y = SHEET.margin + 26;
-  parts.push(text(SHEET.margin, y, title, { fill: SHEET.ink, "font-size": 28, "font-weight": 750 }));
+  parts.push(
+    text(SHEET.margin, y, title, {
+      fill: SHEET.ink,
+      "font-size": 28,
+      "font-weight": 750,
+    }),
+  );
   y += 30;
   const leadText = paragraph(SHEET.margin, y, lead, { width: inner, size: 15 });
   parts.push(leadText.svg);
@@ -145,7 +167,13 @@ export function sheetFile({ title, lead, sections, defs = "", width = SHEET.widt
   for (const section of sections) {
     parts.push(rect(SHEET.margin, y, inner, 1, SHEET.line));
     y += 34;
-    parts.push(text(SHEET.margin, y, section.heading, { fill: SHEET.ink, "font-size": 19, "font-weight": 700 }));
+    parts.push(
+      text(SHEET.margin, y, section.heading, {
+        fill: SHEET.ink,
+        "font-size": 19,
+        "font-weight": 700,
+      }),
+    );
     y += 24;
     if (section.note) {
       const note = paragraph(SHEET.margin, y, section.note, { width: inner });

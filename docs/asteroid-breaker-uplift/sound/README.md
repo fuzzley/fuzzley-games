@@ -46,13 +46,13 @@ hears them, and a person's ear decides.**
 
 ## The kit
 
-| File                 | What it is                                                       |
-| -------------------- | ---------------------------------------------------------------- |
-| `lib/synth.mjs`      | The synth: sources, envelopes, filters, resonators, space, files |
-| `lib/music.mjs`      | The key, the scale and the chain's ladder                        |
-| `lib/analyze.mjs`    | The instruments: loudness, bands, pictures, a loop's seam        |
-| `recipes/<family>.mjs` | A family of sounds, each a recipe                              |
-| `build.mjs`          | Renders, levels, measures and writes every family                |
+| File                   | What it is                                                       |
+| ---------------------- | ---------------------------------------------------------------- |
+| `lib/synth.mjs`        | The synth: sources, envelopes, filters, resonators, space, files |
+| `lib/music.mjs`        | The key, the scale and the chain's ladder                        |
+| `lib/analyze.mjs`      | The instruments: loudness, bands, pictures, a loop's seam        |
+| `recipes/<family>.mjs` | A family of sounds, each a recipe                                |
+| `build.mjs`            | Renders, levels, measures and writes every family                |
 
 A family's module exports `SOUNDS`, a list of recipes (`Recipe` in
 `build.mjs`): a name, a sentence about it, how many takes, its level, and
@@ -93,28 +93,28 @@ pictures into `sheets/rocks.png`, their measurements and any warnings into
 
 ### The levels
 
-| Level    | Loudest 50 ms | For                                                   |
-| -------- | ------------- | ----------------------------------------------------- |
-| `tick`   | -27 dB        | Heard many times a second: a shot, a mote, a UI tick  |
-| `small`  | -21 dB        | Small and frequent: a small rock, a ping, a blip      |
-| `medium` | -17 dB        | The body of play: a medium rock, a pickup, a voice    |
-| `large`  | -14 dB        | An event: a large rock, a zap, a stinger              |
-| `huge`   | -11 dB        | Rare, to be felt: a blast, a boulder, a ship lost     |
-| `bed`    | -27 dB        | Under everything, always                              |
+| Level    | Loudest 50 ms | For                                                  |
+| -------- | ------------- | ---------------------------------------------------- |
+| `tick`   | -27 dB        | Heard many times a second: a shot, a mote, a UI tick |
+| `small`  | -21 dB        | Small and frequent: a small rock, a ping, a blip     |
+| `medium` | -17 dB        | The body of play: a medium rock, a pickup, a voice   |
+| `large`  | -14 dB        | An event: a large rock, a zap, a stinger             |
+| `huge`   | -11 dB        | Rare, to be felt: a blast, a boulder, a ship lost    |
+| `bed`    | -27 dB        | Under everything, always                             |
 
 ## The sounds the game needs
 
 Each family is a file in `recipes/`. A name with a number in brackets has
 that many takes. The plan says which event plays each.
 
-| Family     | Sounds                                                                                                                                                                                                                                                                                              |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chain`    | `chain-ping`, `chain-x2`, `chain-x3`, `chain-x4`                                                                                                                                                                                                                                                    |
+| Family     | Sounds                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chain`    | `chain-ping`, `chain-x2`, `chain-x3`, `chain-x4`                                                                                                                                                                                                                                                                                                                                |
 | `rocks`    | `break-stone-small/medium/large` (3 each), `break-ice-small/medium/large` (3 each), `break-crystal-medium/large` (2 each), `break-iron-small/medium/large` (2 each), `break-lodestone-small/medium/large` (2 each), `hit-stone` (3), `hit-iron` (4), `hit-boulder` (3), `boulder-crack` (2), `break-boulder`, `fuse-volatile`, `blast-volatile` (3), `blast-volatile-small` (2) |
-| `hazards`  | `comet-warning`, `comet-pass` (2), `comet-smash` (2), `burr-cling` (3), `burr-shed` (2), `lodestone-hum` (loop)                                                                                                                                                                                     |
-| `ship`     | `shot-gun` (5), `shot-spread` (4), `shot-rapid` (5), `shot-lance` (3), `thrust` (loop), `thrust-start`, `thrust-stop`, `dash` (2), `dash-ready`, `zap-dash`, `zap-arc` (4), `static-crackle` (3), `shield-up`, `shield-break`, `guard-end`, `ship-lost`, `ship-arrive`                               |
-| `pickups`  | `pickup-drop` (2), `pickup-catch`, `pickup-spread`, `pickup-rapid`, `pickup-lance`, `pickup-shield`, `pickup-magnet`, `pickup-slow`, `pickup-nova`, `pickup-fade`, `effect-end`, `nova`, `slow-on`, `slow-off`, `mote` (6, up the scale)                                                             |
-| `stingers` | `wave-start`, `wave-clear`, `sector-clear`, `ship-gained`, `game-over`, `new-best`, `level-up`, `ui-move`, `ui-select`, `ui-back`, `pause`, `resume`                                                                                                                                                |
-| `voice`    | `voice-whee` (3), `voice-eep` (3), `voice-ouch` (2), `voice-yay` (3), `voice-ooh` (2), `voice-aww` (2), `voice-cheer` (2), `voice-hum` (2)                                                                                                                                                          |
-| `rescue`   | `stray-appear`, `stray-catch`, `stray-loose`, `stray-home` (4, up a chord), `stray-lost`                                                                                                                                                                                                            |
-| `beds`     | `bed-inner-belt`, `bed-iron-reach`, `bed-storm`, `bed-endless` (stereo loops), `bed-pulse`, `bed-shimmer` (loops layered over them)                                                                                                                                                                 |
+| `hazards`  | `comet-warning`, `comet-pass` (2), `comet-smash` (2), `burr-cling` (3), `burr-shed` (2), `lodestone-hum` (loop)                                                                                                                                                                                                                                                                 |
+| `ship`     | `shot-gun` (5), `shot-spread` (4), `shot-rapid` (5), `shot-lance` (3), `thrust` (loop), `thrust-start`, `thrust-stop`, `dash` (2), `dash-ready`, `zap-dash`, `zap-arc` (4), `static-crackle` (3), `shield-up`, `shield-break`, `guard-end`, `ship-lost`, `ship-arrive`                                                                                                          |
+| `pickups`  | `pickup-drop` (2), `pickup-catch`, `pickup-spread`, `pickup-rapid`, `pickup-lance`, `pickup-shield`, `pickup-magnet`, `pickup-slow`, `pickup-nova`, `pickup-fade`, `effect-end`, `nova`, `slow-on`, `slow-off`, `mote` (6, up the scale)                                                                                                                                        |
+| `stingers` | `wave-start`, `wave-clear`, `sector-clear`, `ship-gained`, `game-over`, `new-best`, `level-up`, `ui-move`, `ui-select`, `ui-back`, `pause`, `resume`                                                                                                                                                                                                                            |
+| `voice`    | `voice-whee` (3), `voice-eep` (3), `voice-ouch` (2), `voice-yay` (3), `voice-ooh` (2), `voice-aww` (2), `voice-cheer` (2), `voice-hum` (2)                                                                                                                                                                                                                                      |
+| `rescue`   | `stray-appear`, `stray-catch`, `stray-loose`, `stray-home` (4, up a chord), `stray-lost`                                                                                                                                                                                                                                                                                        |
+| `beds`     | `bed-inner-belt`, `bed-iron-reach`, `bed-storm`, `bed-endless` (stereo loops), `bed-pulse`, `bed-shimmer` (loops layered over them)                                                                                                                                                                                                                                             |

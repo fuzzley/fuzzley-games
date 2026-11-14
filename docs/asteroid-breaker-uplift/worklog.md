@@ -30,15 +30,15 @@ sound design hats:
 
 ## The order of work
 
-| Step | What                                                              | State |
-| ---- | ----------------------------------------------------------------- | ----- |
-| 1    | Read the earlier designs and the game as it is                    | done  |
-| 2    | Research: mechanics, look and feel, sound; an audit of the game   | begun |
-| 3    | The design: `plan.md`, with its decisions                         |       |
-| 4    | Mocks: the art sheets and the scenes, now and after               |       |
-| 5    | Real art: sprites, atlases and backdrops                          |       |
+| Step | What                                                               | State |
+| ---- | ------------------------------------------------------------------ | ----- |
+| 1    | Read the earlier designs and the game as it is                     | done  |
+| 2    | Research: mechanics, look and feel, sound; an audit of the game    | begun |
+| 3    | The design: `plan.md`, with its decisions                          |       |
+| 4    | Mocks: the art sheets and the scenes, now and after                |       |
+| 5    | Real art: sprites, atlases and backdrops                           |       |
 | 6    | Real sound: a synth, the effects, the bed, and a page to hear them |       |
-| 7    | Review, format, and a last entry here                             |       |
+| 7    | Review, format, and a last entry here                              |       |
 
 ## Log
 
