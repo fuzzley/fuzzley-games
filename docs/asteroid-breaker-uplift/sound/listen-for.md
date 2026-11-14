@@ -22,25 +22,25 @@ sounds on the audition page, the same day they were built, and marked each.
 - **`bed-pulse`: "the best one."**
 - **Needs work, three:**
 
-| Sound            | What the ear said                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| Sound            | What the ear said                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
 | `bed-inner-belt` | "Tone is too difficult to listen to for a long time, needs to be softer and maybe have more variation." |
-| `bed-endless`    | The same.                                                                                              |
-| `thrust`         | Needs work; no note. Of the three made in answer, the user chose the second, a throat.                 |
+| `bed-endless`    | The same.                                                                                               |
+| `thrust`         | Needs work; no note. Of the three made in answer, the user chose the second, a throat.                  |
 
 What was done about each is under "Beds" and "Ship" below.
 
 ## Rocks
 
-| Sound                 | It may sound                                             | Try first                                                       |
-| --------------------- | -------------------------------------------------------- | --------------------------------------------------------------- |
-| `break-stone-*`       | like a woodblock's "tok": the small one knocks at 560 Hz | halve the knock's decays, or spread its partials more by take   |
-| `break-ice-*`         | louder than stone at the same level, and tiring          | thin the slivers; bring its level down 2 dB                     |
-| `fuse-volatile`       | too loud: 5 dB over the other small sounds to the ear    | move it to the level `tick`, or pull its band down              |
-| `break-lodestone-*`   | like a cartoon wobble                                    | slow the wobble to 6 to 14 Hz, or wobble a filter in its place  |
-| `hit-iron`            | piercing when hit again and again: it rings on C6        | lower the anvil to G5                                           |
-| `break-boulder`       | weak before its split, with holes between its pieces     | a creak of 60 ms before the snaps; more rumble under the pieces |
-| `break-cluster`       | like one steady band at 600 to 900 Hz                    | spread its knocks from 300 to 1,400 Hz                          |
+| Sound               | It may sound                                             | Try first                                                       |
+| ------------------- | -------------------------------------------------------- | --------------------------------------------------------------- |
+| `break-stone-*`     | like a woodblock's "tok": the small one knocks at 560 Hz | halve the knock's decays, or spread its partials more by take   |
+| `break-ice-*`       | louder than stone at the same level, and tiring          | thin the slivers; bring its level down 2 dB                     |
+| `fuse-volatile`     | too loud: 5 dB over the other small sounds to the ear    | move it to the level `tick`, or pull its band down              |
+| `break-lodestone-*` | like a cartoon wobble                                    | slow the wobble to 6 to 14 Hz, or wobble a filter in its place  |
+| `hit-iron`          | piercing when hit again and again: it rings on C6        | lower the anvil to G5                                           |
+| `break-boulder`     | weak before its split, with holes between its pieces     | a creak of 60 ms before the snaps; more rumble under the pieces |
+| `break-cluster`     | like one steady band at 600 to 900 Hz                    | spread its knocks from 300 to 1,400 Hz                          |
 
 - **Changed because of the instruments:** the first build of the large
   stone, the large lodestone, the boulder and every blast kept 5 to 18% of
@@ -67,15 +67,15 @@ What was done about each is under "Beds" and "Ship" below.
 
 ## Ship
 
-| Sound                     | It may sound                                                   | Try first                                                    |
-| ------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| `shot-gun`, `shot-rapid`  | too much of a retro laser's "pew"                              | start the fall at 1.5 kHz, with more air and less tone       |
-| `shot-tail`               | metallic: it is mostly the small room's own ring               | damp the room more, or two plain dull echoes in its place    |
-| `thrust`                  | like plain filtered noise                                      | more of its driven band at 500 Hz; a slower, deeper flutter  |
-| `zap-dash`                | like a hiss over a thump, where it should tear                 | more of its low buzz through a sweeping band; less whoosh    |
-| `zap-arc`                 | sharp: a third to a half of it is above 3 kHz                  | lower each take's band by a third                            |
-| `pod-hit`                 | comic: its tone wobbles 170 cents either way                   | 90 cents, or a faster fall                                   |
-| `pod-lost`                | like a slide whistle                                           | a slower fall, with less vibrato                             |
+| Sound                    | It may sound                                     | Try first                                                   |
+| ------------------------ | ------------------------------------------------ | ----------------------------------------------------------- |
+| `shot-gun`, `shot-rapid` | too much of a retro laser's "pew"                | start the fall at 1.5 kHz, with more air and less tone      |
+| `shot-tail`              | metallic: it is mostly the small room's own ring | damp the room more, or two plain dull echoes in its place   |
+| `thrust`                 | like plain filtered noise                        | more of its driven band at 500 Hz; a slower, deeper flutter |
+| `zap-dash`               | like a hiss over a thump, where it should tear   | more of its low buzz through a sweeping band; less whoosh   |
+| `zap-arc`                | sharp: a third to a half of it is above 3 kHz    | lower each take's band by a third                           |
+| `pod-hit`                | comic: its tone wobbles 170 cents either way     | 90 cents, or a faster fall                                  |
+| `pod-lost`               | like a slide whistle                             | a slower fall, with less vibrato                            |
 
 - **Rapid against the gun.** A level is set by a sound's loudest 50 ms, so
   `shot-rapid`, heard fourteen times a second, measures about 4 dB louder
@@ -101,10 +101,10 @@ What was done about each is under "Beds" and "Ship" below.
 
 ## Pickups
 
-| Sound                  | It may sound                                    | Try first                                |
-| ---------------------- | ----------------------------------------------- | ---------------------------------------- |
-| `pickup-magnet`        | queasy: it wobbles 170 cents at 11 Hz           | 100 cents at 8 Hz                        |
-| `slow-on`, `slow-off`  | like a synth: saws through a slowing tape       | bells and mallet alone through the tape  |
+| Sound                 | It may sound                              | Try first                               |
+| --------------------- | ----------------------------------------- | --------------------------------------- |
+| `pickup-magnet`       | queasy: it wobbles 170 cents at 11 Hz     | 100 cents at 8 Hz                       |
+| `slow-on`, `slow-off` | like a synth: saws through a slowing tape | bells and mallet alone through the tape |
 
 - **Each catch has a shape of its own,** to be told by: Spread fans one
   note into three; Rapid stutters one note five times; Lance is one clean
@@ -116,10 +116,10 @@ What was done about each is under "Beds" and "Ship" below.
 
 ## Stingers
 
-| Sound                       | It may sound                                         | Try first                                             |
-| --------------------------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| Sound                       | It may sound                                           | Try first                                                  |
+| --------------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
 | every stinger and menu tick | plinky or toy-like: one mallet and bell plays them all | its ring's length by a third either way; more or less bell |
-| `run-end`                   | thin: it is the mallet alone                         | a little pad under all of it                          |
+| `run-end`                   | thin: it is the mallet alone                           | a little pad under all of it                               |
 
 - **The notes were checked by a pitch tracker,** and each settles within a
   few cents of the one it is named for.
@@ -133,13 +133,13 @@ What was done about each is under "Beds" and "Ship" below.
 
 All of it passed the ear. What their maker doubted, for the record:
 
-| Sound         | It might have sounded                                 | Would have tried                        |
-| ------------- | ----------------------------------------------------- | --------------------------------------- |
-| every call    | like a synth's "wah", not a creature                  | wider or narrower resonances            |
-| every call    | loud for its level: it sits where the ear is keenest  | play the voice 3 dB down in the game    |
-| `voice-yay`   | warbling: its trill is 55 cents either way at 15 Hz   | half the depth                          |
-| `voice-cheer` | rough: two of its voices meet on one note             | spread their notes                      |
-| `crew-loose`  | sharp for its 45 ms                                   | a lower low-pass                        |
+| Sound         | It might have sounded                                | Would have tried                     |
+| ------------- | ---------------------------------------------------- | ------------------------------------ |
+| every call    | like a synth's "wah", not a creature                 | wider or narrower resonances         |
+| every call    | loud for its level: it sits where the ear is keenest | play the voice 3 dB down in the game |
+| `voice-yay`   | warbling: its trill is 55 cents either way at 15 Hz  | half the depth                       |
+| `voice-cheer` | rough: two of its voices meet on one note            | spread their notes                   |
+| `crew-loose`  | sharp for its 45 ms                                  | a lower low-pass                     |
 
 - **How the voice is made:** a narrow pulse with a little saw and a breath
   of noise, on a pitch that glides without overshooting, through three
@@ -181,13 +181,13 @@ that, as the last point below says, and **has not been heard since.**
   note leaning to one ear, with three seconds of C alone before it comes
   round. Five bells in a longer room.
 
-| Sound            | It may sound                                                         | Try first                                      |
-| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------- |
-| `bed-inner-belt` | like a slow tune: seven bells in 32 s is near a melody               | take two of the bells out                      |
-| `bed-inner-belt` | still: its low C holds through every change                          | let the bass move, at the cost of a dip        |
-| `bed-endless`    | too forward for "deep": its second voice sits 10 dB under the C      | 3 dB less of it                                |
-| `bed-iron-reach` | like an organ: its drone is plain sines (it passed the ear as it is) | a little drive, or a slow drift of pitch       |
-| `bed-pulse`      | nagging, at steady eighths (it passed the ear as "the best one")     | drop the off-beats                             |
+| Sound            | It may sound                                                         | Try first                                |
+| ---------------- | -------------------------------------------------------------------- | ---------------------------------------- |
+| `bed-inner-belt` | like a slow tune: seven bells in 32 s is near a melody               | take two of the bells out                |
+| `bed-inner-belt` | still: its low C holds through every change                          | let the bass move, at the cost of a dip  |
+| `bed-endless`    | too forward for "deep": its second voice sits 10 dB under the C      | 3 dB less of it                          |
+| `bed-iron-reach` | like an organ: its drone is plain sines (it passed the ear as it is) | a little drive, or a slow drift of pitch |
+| `bed-pulse`      | nagging, at steady eighths (it passed the ear as "the best one")     | drop the off-beats                       |
 
 - **The air, after the second listen.** It was pink noise in a band round
   1.1 kHz (700 Hz in Endless), open to 3.6 kHz, never under a sixth of its

@@ -35,30 +35,35 @@ Everything made for the plan is in this folder,
   [`energy-and-effects.svg`](art/energy-and-effects.svg) and
   [`pickups-and-hazards.svg`](art/pickups-and-hazards.svg), each with a
   preview in `art/preview/`.
-- **[`mocks/`](mocks/),** the game as it would look in play: the same
-  moments now and after, on a laptop and on a phone, in a dark palette and
-  a light one.
+- **[`mocks/`](mocks/),** the game as it would look in play, staged from
+  the art by `mocks/make-mocks.mjs`: the screenshot's moment restaged in a
+  dark palette and a light one, a zap, a hit, a phone upright in two
+  palettes, the three cards, and the marks a pod wears. "The uplift in
+  pictures" shows them.
 - **[`sound/`](sound/),** the sound: its direction and its kit
   ([`sound/README.md`](sound/README.md)), a synth written for the plan
   (`sound/lib/`), a recipe for every sound (`sound/recipes/`), each take's
-  measurements (`sound/report/`) and its picture (`sound/sheets/`), and a
-  page to hear them on (`sound/audition/`).
-- **[`assets/`](assets/),** what the game can use as it is: the sounds as
-  files, the art as sprites, atlases and the geometry they were drawn from.
+  measurements (`sound/report/`) and its picture (`sound/sheets/`), a page
+  to hear them on (`sound/audition/`), and what an ear has said of them so
+  far ([`sound/listen-for.md`](sound/listen-for.md)).
+- **[`assets/`](assets/),** what the game can use as it is: the sounds
+  packed as a sprite with its map, and the beds; the art as geometry,
+  atlases, sprites and the four places as pictures
+  ([`assets/art/README.md`](assets/art/README.md)).
 
 ## What was asked, and where it is answered
 
-| Asked                                            | Answered in                                                           |
-| ------------------------------------------------ | --------------------------------------------------------------------- |
-| Research on similar games, no code and no assets | `research/`, and "What other games teach"                             |
-| Where the look can improve                       | "The game today", "Look", `art/`                                      |
-| Where the sound can improve                      | "The game today", "Sound", `sound/`                                   |
-| Detailed mocks                                   | `art/`'s five sheets, and `mocks/`                                    |
-| Real assets                                      | `assets/`, and "The assets"                                           |
-| Changes and additions to the play                | "Play"                                                                |
-| What to remove                                   | "What goes"                                                           |
-| More of the fuzzball, in look and in play        | "The fuzzball", and the sheet `pilot-and-pod`                         |
-| A later progression system kept in mind          | "Room for a progression system"                                       |
+| Asked                                            | Answered in                                                          |
+| ------------------------------------------------ | -------------------------------------------------------------------- |
+| Research on similar games, no code and no assets | `research/`, and "What other games teach"                            |
+| Where the look can improve                       | "The game today", "Look", `art/`                                     |
+| Where the sound can improve                      | "The game today", "Sound", `sound/`                                  |
+| Detailed mocks                                   | `art/`'s five sheets, and `mocks/`                                   |
+| Real assets                                      | `assets/`, and "The assets"                                          |
+| Changes and additions to the play                | "Play"                                                               |
+| What to remove                                   | "What goes"                                                          |
+| More of the fuzzball, in look and in play        | "The fuzzball", and the sheet `pilot-and-pod`                        |
+| A later progression system kept in mind          | "Room for a progression system"                                      |
 | A dedicated branch, regular commits, a work log  | The branch `claude/asteroid-breaker-uplift-a0bd76`, and `worklog.md` |
 
 ## The game today
@@ -149,9 +154,9 @@ the right and shedding sparks; sparks drawn in to the pod; a Spread pickup;
 the Inner belt's ringed planet behind; and in the bar the pilot's face, the
 crew and static's step.
 
-| The same moment in a light palette, as ink on paper              | On a phone, upright, in two palettes                       |
-| ---------------------------------------------------------------- | ---------------------------------------------------------- |
-| ![Wave 9 in Classic felt](mocks/preview/play-laptop-light.webp)  | ![Wave 9 on a phone](mocks/preview/phone-upright.webp)     |
+| The same moment in a light palette, as ink on paper             | On a phone, upright, in two palettes                   |
+| --------------------------------------------------------------- | ------------------------------------------------------ |
+| ![Wave 9 in Classic felt](mocks/preview/play-laptop-light.webp) | ![Wave 9 on a phone](mocks/preview/phone-upright.webp) |
 
 | A zap in the Iron reach: arcs to five rocks, a blast lighting its neighbours, a comet warned of | A hit in the Storm: one of the crew knocked loose, the pod untouchable for a moment |
 | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -405,12 +410,12 @@ sparks. Three materials, each drawn one way.
 
 What some sizes come to. A field unit is the field's short side over 40.
 
-| Screen                   | A unit | The pod | The pilot | A small rock | A spark |
-| ------------------------ | ------ | ------- | --------- | ------------ | ------- |
-| Small phone, upright     | 6 px   | 14 px   | 6 px      | 11 px        | 2 px    |
-| Large phone, upright     | 9 px   | 22 px   | 10 px     | 16 px        | 3 px    |
-| Laptop, 1280 × 720       | 15 px  | 36 px   | 16 px     | 27 px        | 5 px    |
-| Desktop, 1920 × 1080     | 24 px  | 58 px   | 25 px     | 43 px        | 7 px    |
+| Screen               | A unit | The pod | The pilot | A small rock | A spark |
+| -------------------- | ------ | ------- | --------- | ------------ | ------- |
+| Small phone, upright | 6 px   | 14 px   | 6 px      | 11 px        | 2 px    |
+| Large phone, upright | 9 px   | 22 px   | 10 px     | 16 px        | 3 px    |
+| Laptop, 1280 × 720   | 15 px  | 36 px   | 16 px     | 27 px        | 5 px    |
+| Desktop, 1920 × 1080 | 24 px  | 58 px   | 25 px     | 43 px        | 7 px    |
 
 Under 10 px a unit each piece leaves out its fine marks, as its sheet
 shows: rivets, glints, fractures, a lodestone's field, the pilot's glints.
@@ -460,8 +465,8 @@ it rests on.
 
 How the game plays them is as much of the uplift as the sounds are:
 
-| Rule                 | What                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------- |
+| Rule                 | What                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------- |
 | Takes in turn        | A sound with takes plays the next one each time, never the same twice running                           |
 | Variation            | ±40 cents and ±1.5 dB a play, for a noisy sound at the levels `tick` and `small`; never a tuned one     |
 | Place                | A sound is panned by where it happened across the field, to 60% of full left or right, its lows less    |
@@ -535,16 +540,16 @@ hand and by the autopilot as each slice is built.
 
 #### Pickups
 
-| Pickup     | Now                                | In the plan                                   |
-| ---------- | ---------------------------------- | --------------------------------------------- |
-| Spread     | three shots a pull, 12 s           | as now                                        |
-| Rapid      | a shot twice as often, 12 s        | as now                                        |
-| Lance      | a shot breaks up to three, 10 s    | as now                                        |
-| Shield     | the next hit breaks the rock       | as now; it is spent before anyone in tow is   |
-| Magnet     | pickups and strays from 14 units   | and sparks, and a loose fuzzball              |
-| Slow       | rocks and comets at half speed 8 s | as now                                        |
-| Nova       | a ring that hits rocks in 12 units | gone: the zap is the Nova, earned             |
-| Extra ship | one more ship                      | gone: a stray is the extra ship, rescued      |
+| Pickup     | Now                                | In the plan                                 |
+| ---------- | ---------------------------------- | ------------------------------------------- |
+| Spread     | three shots a pull, 12 s           | as now                                      |
+| Rapid      | a shot twice as often, 12 s        | as now                                      |
+| Lance      | a shot breaks up to three, 10 s    | as now                                      |
+| Shield     | the next hit breaks the rock       | as now; it is spent before anyone in tow is |
+| Magnet     | pickups and strays from 14 units   | and sparks, and a loose fuzzball            |
+| Slow       | rocks and comets at half speed 8 s | as now                                      |
+| Nova       | a ring that hits rocks in 12 units | gone: the zap is the Nova, earned           |
+| Extra ship | one more ship                      | gone: a stray is the extra ship, rescued    |
 
 - **A pickup says what it is** by its symbol and by its rim: a weapon's
   rim is one ring, protection's is doubled, and the rim of what changes the
@@ -601,17 +606,17 @@ pickups. A wave that waits for the player.
 
 ### The fuzzball
 
-| Where            | Now                                             | In the plan                                                               |
-| ---------------- | ----------------------------------------------- | ------------------------------------------------------------------------- |
-| At the controls  | 5 to 14 px in a window, one face                | 6 to 25 px in a canopy, nine faces, fur that shows force and static       |
-| The lives        | Icons in the bar                                | Fuzzballs in tow behind the pod, and in the bar                           |
-| A hit            | The ship bursts, and the pilot is gone for good | One is knocked loose, to be caught again in 6 s                           |
-| A stray          | 500 points, and a color for a later pilot       | A life, in tow at once, sweeping up sparks                                |
-| Its power        | None                                            | Static: its fur, the multiplier and the zap                               |
-| Its voice        | None                                            | Eight short calls                                                         |
-| The bar          | Still icons                                     | A face cam of the pilot, and the crew, who react                          |
-| The cards        | Strays at home, on two cards                    | The crew cheers on the cleared card; "Everyone is home" at the end        |
-| Nobody dies      | A pilot is lost with its ship                   | A fuzzball that goes, goes home                                           |
+| Where           | Now                                             | In the plan                                                         |
+| --------------- | ----------------------------------------------- | ------------------------------------------------------------------- |
+| At the controls | 5 to 14 px in a window, one face                | 6 to 25 px in a canopy, nine faces, fur that shows force and static |
+| The lives       | Icons in the bar                                | Fuzzballs in tow behind the pod, and in the bar                     |
+| A hit           | The ship bursts, and the pilot is gone for good | One is knocked loose, to be caught again in 6 s                     |
+| A stray         | 500 points, and a color for a later pilot       | A life, in tow at once, sweeping up sparks                          |
+| Its power       | None                                            | Static: its fur, the multiplier and the zap                         |
+| Its voice       | None                                            | Eight short calls                                                   |
+| The bar         | Still icons                                     | A face cam of the pilot, and the crew, who react                    |
+| The cards       | Strays at home, on two cards                    | The crew cheers on the cleared card; "Everyone is home" at the end  |
+| Nobody dies     | A pilot is lost with its ship                   | A fuzzball that goes, goes home                                     |
 
 ### Feel
 
@@ -621,19 +626,19 @@ at a blast's reach, at a dash's start and round a spent Shield, a
 warning's chevrons held), and what only dresses a moment shows nothing, as
 the sheet says of each.
 
-| Moment                    | What is added                                                                   | How long    |
-| ------------------------- | ------------------------------------------------------------------------------- | ----------- |
-| A shot leaves             | a two-frame flash at the prow                                                   | 33 ms       |
-| A rock breaks             | its facets fly apart, a ring of dust, sparks of light; the field kicks along it | 450 ms      |
-| A hit is held             | the struck faces flash, a crack is added, a spark flies                         | 150 ms      |
-| A blast                   | a flash, a ring with a hot inner edge, embers; rocks nearby take its light      | 600 ms      |
-| A boulder breaks          | three beats, crack, split and throw; the field holds still first                | 90 + 700 ms |
-| Static steps up           | a ring from the pod, the fur lifts, a chime                                     | 300 ms      |
-| A zap                     | the field holds still, then arcs with a white core, each rock flashing as hit   | 60 + 350 ms |
-| A fuzzball knocked loose  | the pod flashes, the bubble flies, the field shakes along the hit               | 300 ms      |
-| A fuzzball caught         | a soft ring, the line springs                                                   | 300 ms      |
-| A sector's last rock      | the field slows to a third for a moment, then the wave's ring                   | 250 ms      |
-| The run's end             | the pod bursts, the pilot's bubble rises, and the card waits for it             | 1.4 s       |
+| Moment                   | What is added                                                                   | How long    |
+| ------------------------ | ------------------------------------------------------------------------------- | ----------- |
+| A shot leaves            | a two-frame flash at the prow                                                   | 33 ms       |
+| A rock breaks            | its facets fly apart, a ring of dust, sparks of light; the field kicks along it | 450 ms      |
+| A hit is held            | the struck faces flash, a crack is added, a spark flies                         | 150 ms      |
+| A blast                  | a flash, a ring with a hot inner edge, embers; rocks nearby take its light      | 600 ms      |
+| A boulder breaks         | three beats, crack, split and throw; the field holds still first                | 90 + 700 ms |
+| Static steps up          | a ring from the pod, the fur lifts, a chime                                     | 300 ms      |
+| A zap                    | the field holds still, then arcs with a white core, each rock flashing as hit   | 60 + 350 ms |
+| A fuzzball knocked loose | the pod flashes, the bubble flies, the field shakes along the hit               | 300 ms      |
+| A fuzzball caught        | a soft ring, the line springs                                                   | 300 ms      |
+| A sector's last rock     | the field slows to a third for a moment, then the wave's ring                   | 250 ms      |
+| The run's end            | the pod bursts, the pilot's bubble rises, and the card waits for it             | 1.4 s       |
 
 - **A budget.** The field shakes for a hit and a boulder and for nothing
   else, along the way the hit came, and is still again within 0.3 s. It
@@ -704,20 +709,28 @@ The system is a later plan. This one leaves it:
 
 ### The assets
 
-`assets/` holds what the game can use as it is.
+`assets/` holds what the game can use as it is. Every file in it is
+written by a script, the same bytes every run.
 
-- **Sound:** every take as a WAV at 44,100 samples a second
-  (`assets/sound/wav/<family>/`), `assets/sound/sounds.json` saying what
-  each is, its level, its takes and the events that play it, and the beds
-  as Ogg and M4A. The recipes build the same bytes every run, so the
-  files can be made again from `sound/build.mjs`.
-- **Art:** each piece as an SVG in a dark palette and a light one
-  (`assets/art/sprites/`), atlases as PNG with their frames
-  (`assets/art/atlas/`), and the geometry every piece was drawn from as
-  JSON (`assets/art/geometry/`): points, facets and their normals, in
-  field units, with roles in place of colors. The game draws its art at
-  run time in the palette on the page, so the geometry is what it would
-  take; the sprites and atlases are for anything that wants pictures.
+- **Sound** (`assets/sound/`): ninety-eight sounds in 178 takes.
+  `sprite/sounds.ogg` and `sprite/sounds.m4a` hold every take but the beds,
+  104 seconds in about 1 MB, with `sprite/sounds.json`, the map Phaser plays
+  a sprite by, as the game's is today. `beds/` holds each bed and layer in
+  stereo, as Ogg and as M4A. `sounds.json` says what each sound is: its
+  family, its level, its takes, whether it loops, and the events that play
+  it. The takes as WAV are 22 MB and are not kept:
+  `node docs/asteroid-breaker-uplift/sound/build.mjs` writes them again in
+  a minute, and `sound/encode.mjs` packs them.
+- **Art** (`assets/art/`, with a README of its own): the geometry every
+  piece was drawn from, as JSON (`geometry/`): points, facets and the way
+  each faces, in field units, with roles in place of colors. The game draws
+  its art at run time in the palette on the page, so the geometry is what
+  it would take. The same art as pictures: the rocks and the pods' hulls as
+  atlases in layers that share one map (inks, a normal map, what glows, and
+  the two lit together), every other piece as a sprite and in one atlas,
+  the fuzzball's fur in white to be tinted and its eyes apart, and each of
+  the four places in a dark palette and a light one, for a field on its
+  side and upright.
 
 ### Where the code goes
 
@@ -901,13 +914,25 @@ The three notes hold the detail and their sources. What the plan took:
 - **The inventory** was read by a fourth agent from the game's own code,
   and its figures are the game's own autopilot's.
 - **The art** is drawn by the scripts in `art/`, from shapes and seeds.
-  Nothing was traced or copied. Each sheet was looked at as a picture, in
-  a dark palette and a light one, as it was drawn.
+  Nothing was traced or copied. The direction, the kit's base and the rocks
+  came first, tried as a throwaway sheet in three palettes; three agents
+  then drew the pilot and the pod, the four places, and the effects and
+  pickups, each looking at its own sheet as a picture, in a dark palette
+  and a light one, as it drew.
+- **The mocks** were staged by a fifth agent from that art, and what
+  staging showed went back to the artists: cracks that left a rock's edge,
+  stars shaped like sparks, girders that read as things in play, a burr
+  that read as a flower, three rings too many round the pod. The mocks were
+  then staged again.
 - **The sounds** are made by the synth in `sound/lib/`, written for the
   plan, from arithmetic alone: no recording, no sample, no pack and no
-  generated audio. Each take was measured and its spectrum looked at as it
-  was made, by agents that can't hear. The user then heard them all on the
-  audition page, and three were made again from what they said.
+  generated audio. Three agents wrote the recipes, each measuring every
+  take and looking at its spectrum as it was made, and none can hear. The
+  user then heard them all on the audition page, and three were made again
+  from what they said: two beds, and the thrust, chosen by ear from three.
+- **The assets** are written out by `art/make-assets.mjs`,
+  `sound/build.mjs` and `sound/encode.mjs`; two runs of each match byte
+  for byte.
 - **Not checked:** the sounds in the game and on a phone; the art in the
   game's renderer; the light's cost; a frame's cost with halos; every
   number under "Play".

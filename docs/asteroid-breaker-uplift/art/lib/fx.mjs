@@ -115,8 +115,18 @@ export function swell(share, peak = 0.25) {
  */
 export function energyOf(color, palette) {
   return palette.mode === "light"
-    ? { hot: mix(color, palette.fieldText, 0.45), body: color, halo: color, glow: 0.62 }
-    : { hot: mix(color, "#ffffff", 0.82), body: mix(color, "#ffffff", 0.22), halo: color, glow: 1 };
+    ? {
+        hot: mix(color, palette.fieldText, 0.45),
+        body: color,
+        halo: color,
+        glow: 0.62,
+      }
+    : {
+        hot: mix(color, "#ffffff", 0.82),
+        body: mix(color, "#ffffff", 0.22),
+        halo: color,
+        glow: 1,
+      };
 }
 
 /**
@@ -135,7 +145,9 @@ export function halo(x, y, r, color, strength = 1, { ry, turn = 0 } = {}) {
   if (strength <= 0.01 || r <= 0.2) return "";
   const id = `fxg-${hexOf(rgbOf(color)).slice(1)}`;
   const shape =
-    ry === undefined ? circle(0, 0, r, `url(#${id})`) : ellipse(0, 0, r, ry, `url(#${id})`);
+    ry === undefined
+      ? circle(0, 0, r, `url(#${id})`)
+      : ellipse(0, 0, r, ry, `url(#${id})`);
   return place(shape, { x, y, turn, opacity: clamp(strength, 0, 1) });
 }
 
@@ -153,7 +165,14 @@ export function halo(x, y, r, color, strength = 1, { ry, turn = 0 } = {}) {
  * @returns {string}
  */
 export function glow(x, y, r, color, palette, strength = 1, how = {}) {
-  return halo(x, y, r, color, strength * (palette.mode === "light" ? 0.62 : 1), how);
+  return halo(
+    x,
+    y,
+    r,
+    color,
+    strength * (palette.mode === "light" ? 0.62 : 1),
+    how,
+  );
 }
 
 /**
@@ -164,7 +183,11 @@ export function glow(x, y, r, color, palette, strength = 1, how = {}) {
  * @returns {string}
  */
 export function glowDefs(svg) {
-  const ids = [...new Set([...svg.matchAll(/url\(#(fxg-[0-9a-f]{6})\)/g)].map((m) => m[1]))].sort();
+  const ids = [
+    ...new Set(
+      [...svg.matchAll(/url\(#(fxg-[0-9a-f]{6})\)/g)].map((m) => m[1]),
+    ),
+  ].sort();
   return ids
     .map((id) => {
       const color = `#${String(id).slice(4)}`;
@@ -203,7 +226,14 @@ export function sparkPoints(r, pinch = 0.24, turn = 0, squash = 1) {
  * @param {{ turn?: number, opacity?: number, halo?: number, pinch?: number }} [how]
  * @returns {string}
  */
-export function spark(x, y, r, color, palette, { turn = 0, opacity = 1, halo: haloStrength = 0.8, pinch = 0.24 } = {}) {
+export function spark(
+  x,
+  y,
+  r,
+  color,
+  palette,
+  { turn = 0, opacity = 1, halo: haloStrength = 0.8, pinch = 0.24 } = {},
+) {
   if (opacity <= 0.02 || r <= 0.1) return "";
   const tones = energyOf(color, palette);
   return place(
@@ -238,10 +268,26 @@ export const SHIP_DART = /** @type {Point[]} */ ([
 
 /** The plates the placeholder ship breaks into, in field units. */
 export const SHIP_PLATES = /** @type {Point[][]} */ ([
-  [[1.2, 0], [0.3, 0.35], [0.3, -0.35]],
-  [[0.3, 0.35], [-1.0, 0.86], [-0.56, 0]],
-  [[0.3, -0.35], [-0.56, 0], [-1.0, -0.86]],
-  [[0.3, 0.35], [-0.56, 0], [0.3, -0.35]],
+  [
+    [1.2, 0],
+    [0.3, 0.35],
+    [0.3, -0.35],
+  ],
+  [
+    [0.3, 0.35],
+    [-1.0, 0.86],
+    [-0.56, 0],
+  ],
+  [
+    [0.3, -0.35],
+    [-0.56, 0],
+    [-1.0, -0.86],
+  ],
+  [
+    [0.3, 0.35],
+    [-0.56, 0],
+    [0.3, -0.35],
+  ],
 ]);
 
 /**
@@ -251,20 +297,45 @@ export const SHIP_PLATES = /** @type {Point[][]} */ ([
  * @param {{ unit?: number, turn?: number, ghost?: boolean, opacity?: number }} [how] A turn in radians; a ghost is its outline alone.
  * @returns {string}
  */
-export function shipPlaceholder(palette, { unit = 16, turn = 0, ghost = false, opacity } = {}) {
+export function shipPlaceholder(
+  palette,
+  { unit = 16, turn = 0, ghost = false, opacity } = {},
+) {
   const points = SHIP_DART.map((p) => {
     const [x, y] = turned(p, turn);
     return /** @type {Point} */ ([x * unit, y * unit]);
   });
   if (ghost) {
-    return place(polygon(points, "none", { stroke: palette.accent, "stroke-width": Math.max(1, 0.1 * unit), "stroke-linejoin": "round" }), seen(opacity));
+    return place(
+      polygon(points, "none", {
+        stroke: palette.accent,
+        "stroke-width": Math.max(1, 0.1 * unit),
+        "stroke-linejoin": "round",
+      }),
+      seen(opacity),
+    );
   }
   const [wx, wy] = turned([0.02, 0], turn);
   return place(
     [
-      polygon(points, palette.field, { stroke: palette.field, "stroke-width": Math.max(2.5, 0.28 * unit), "stroke-linejoin": "round" }),
-      polygon(points, palette.accent, { stroke: palette.accent, "stroke-width": 0.6, "stroke-linejoin": "round" }),
-      unit >= 10 ? circle(wx * unit, wy * unit, 0.3 * unit, mix(palette.accent, palette.field, 0.62)) : "",
+      polygon(points, palette.field, {
+        stroke: palette.field,
+        "stroke-width": Math.max(2.5, 0.28 * unit),
+        "stroke-linejoin": "round",
+      }),
+      polygon(points, palette.accent, {
+        stroke: palette.accent,
+        "stroke-width": 0.6,
+        "stroke-linejoin": "round",
+      }),
+      unit >= 10
+        ? circle(
+            wx * unit,
+            wy * unit,
+            0.3 * unit,
+            mix(palette.accent, palette.field, 0.62),
+          )
+        : "",
     ].join(""),
     seen(opacity),
   );
@@ -277,15 +348,34 @@ export function shipPlaceholder(palette, { unit = 16, turn = 0, ghost = false, o
  * @param {{ unit?: number, scale?: number, opacity?: number }} [how]
  * @returns {string}
  */
-export function bubblePlaceholder(palette, { unit = 16, scale = 1, opacity } = {}) {
+export function bubblePlaceholder(
+  palette,
+  { unit = 16, scale = 1, opacity } = {},
+) {
   const r = 1.15 * unit;
   const rim = Math.max(1, 0.1 * unit);
   return place(
     [
-      circle(0, 0, r, mix(palette.field, palette.fieldText, 0.1), { opacity: 0.9 }),
+      circle(0, 0, r, mix(palette.field, palette.fieldText, 0.1), {
+        opacity: 0.9,
+      }),
       ring(0, 0, r - rim / 2, palette.fieldMuted, rim),
-      circle(0, r * 0.12, r * 0.5, PILOT_INKS[palette.mode][0] ?? palette.danger),
-      polyline([polar(TURN * 0.56, r * 0.72), polar(TURN * 0.62, r * 0.72), polar(TURN * 0.68, r * 0.72)], "#ffffff", Math.max(1, 0.09 * unit), { opacity: 0.8 }),
+      circle(
+        0,
+        r * 0.12,
+        r * 0.5,
+        PILOT_INKS[palette.mode][0] ?? palette.danger,
+      ),
+      polyline(
+        [
+          polar(TURN * 0.56, r * 0.72),
+          polar(TURN * 0.62, r * 0.72),
+          polar(TURN * 0.68, r * 0.72),
+        ],
+        "#ffffff",
+        Math.max(1, 0.09 * unit),
+        { opacity: 0.8 },
+      ),
     ].join(""),
     { scale, ...seen(opacity) },
   );
@@ -336,16 +426,46 @@ function bolt(back, nose, half) {
 export function makeShot(weapon) {
   switch (weapon) {
     case "gun":
-      return { weapon, count: 1, fan: 0, body: bolt(-0.42, 0.52, 0.18), core: bolt(-0.26, 0.42, 0.085), tail: [1.9, 0.16], halo: [1.05, 0.62, 0.05], glow: 0.95, barbs: [] };
+      return {
+        weapon,
+        count: 1,
+        fan: 0,
+        body: bolt(-0.42, 0.52, 0.18),
+        core: bolt(-0.26, 0.42, 0.085),
+        tail: [1.9, 0.16],
+        halo: [1.05, 0.62, 0.05],
+        glow: 0.95,
+        barbs: [],
+      };
     case "spread":
-      return { weapon, count: 3, fan: 12, body: bolt(-0.3, 0.4, 0.14), core: bolt(-0.18, 0.32, 0.065), tail: [1.25, 0.12], halo: [0.8, 0.46, 0.04], glow: 0.7, barbs: [] };
+      return {
+        weapon,
+        count: 3,
+        fan: 12,
+        body: bolt(-0.3, 0.4, 0.14),
+        core: bolt(-0.18, 0.32, 0.065),
+        tail: [1.25, 0.12],
+        halo: [0.8, 0.46, 0.04],
+        glow: 0.7,
+        barbs: [],
+      };
     case "rapid":
       return {
         weapon,
         count: 1,
         fan: 0,
-        body: [[0.46, 0], [-0.24, 0.24], [-0.06, 0], [-0.24, -0.24]],
-        core: [[0.34, 0], [-0.1, 0.11], [-0.02, 0], [-0.1, -0.11]],
+        body: [
+          [0.46, 0],
+          [-0.24, 0.24],
+          [-0.06, 0],
+          [-0.24, -0.24],
+        ],
+        core: [
+          [0.34, 0],
+          [-0.1, 0.11],
+          [-0.02, 0],
+          [-0.1, -0.11],
+        ],
         tail: [1.15, 0.07],
         halo: [0.72, 0.5, 0.05],
         glow: 0.8,
@@ -356,14 +476,33 @@ export function makeShot(weapon) {
         weapon,
         count: 1,
         fan: 0,
-        body: [[1.6, 0], [0.95, 0.19], [-0.9, 0.09], [-1.25, 0], [-0.9, -0.09], [0.95, -0.19]],
-        core: [[1.42, 0], [0.92, 0.08], [-0.85, 0.035], [-0.85, -0.035], [0.92, -0.08]],
+        body: [
+          [1.6, 0],
+          [0.95, 0.19],
+          [-0.9, 0.09],
+          [-1.25, 0],
+          [-0.9, -0.09],
+          [0.95, -0.19],
+        ],
+        core: [
+          [1.42, 0],
+          [0.92, 0.08],
+          [-0.85, 0.035],
+          [-0.85, -0.035],
+          [0.92, -0.08],
+        ],
         tail: [2.3, 0.07],
         halo: [2.0, 0.56, 0.2],
         glow: 0.9,
         barbs: [
-          [[0.78, 0.2], [0.42, 0.42]],
-          [[0.78, -0.2], [0.42, -0.42]],
+          [
+            [0.78, 0.2],
+            [0.42, 0.42],
+          ],
+          [
+            [0.78, -0.2],
+            [0.42, -0.42],
+          ],
         ],
       };
   }
@@ -380,10 +519,15 @@ export function makeShot(weapon) {
  * @param {{ unit?: number, turn?: number, opacity?: number }} [how] The way it flies, in radians.
  * @returns {string}
  */
-export function shotSvg(weapon, palette, { unit = 16, turn = 0, opacity } = {}) {
+export function shotSvg(
+  weapon,
+  palette,
+  { unit = 16, turn = 0, opacity } = {},
+) {
   const shot = makeShot(weapon);
   const tones = energyOf(palette.accent, palette);
-  const px = (/** @type {Point[]} */ points) => points.map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
+  const px = (/** @type {Point[]} */ points) =>
+    points.map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
   const [reach, half] = shot.tail;
   const tailOf = (/** @type {number} */ share) =>
     px([
@@ -392,16 +536,29 @@ export function shotSvg(weapon, palette, { unit = 16, turn = 0, opacity } = {}) 
       [-0.1, half],
     ]);
   const parts = [
-    glow(shot.halo[2] * unit, 0, shot.halo[0] * unit, tones.halo, palette, shot.glow, { ry: shot.halo[1] * unit }),
+    glow(
+      shot.halo[2] * unit,
+      0,
+      shot.halo[0] * unit,
+      tones.halo,
+      palette,
+      shot.glow,
+      { ry: shot.halo[1] * unit },
+    ),
     polygon(tailOf(1), tones.body, { opacity: 0.3 }),
     polygon(tailOf(0.62), tones.body, { opacity: 0.45 }),
     polygon(tailOf(0.3), tones.body, { opacity: 0.6 }),
-    polygon(px(shot.body), palette.field, { stroke: palette.field, "stroke-width": Math.max(1.6, 0.16 * unit), "stroke-linejoin": "round" }),
+    polygon(px(shot.body), palette.field, {
+      stroke: palette.field,
+      "stroke-width": Math.max(1.6, 0.16 * unit),
+      "stroke-linejoin": "round",
+    }),
     polygon(px(shot.body), tones.body),
     polygon(px(shot.core), palette.fieldText),
   ];
   if (unit >= 10) {
-    for (const barb of shot.barbs) parts.push(polyline(px(barb), tones.body, Math.max(1, 0.09 * unit)));
+    for (const barb of shot.barbs)
+      parts.push(polyline(px(barb), tones.body, Math.max(1, 0.09 * unit)));
   }
   return place(parts.join(""), { turn: (turn / TURN) * 360, ...seen(opacity) });
 }
@@ -415,13 +572,19 @@ export function shotSvg(weapon, palette, { unit = 16, turn = 0, opacity } = {}) 
  * @param {{ unit?: number, turn?: number, distance?: number }} [how] How far they have flown, in field units.
  * @returns {string}
  */
-export function volleySvg(weapon, palette, { unit = 16, turn = 0, distance = 3 } = {}) {
+export function volleySvg(
+  weapon,
+  palette,
+  { unit = 16, turn = 0, distance = 3 } = {},
+) {
   const shot = makeShot(weapon);
   const parts = [];
   for (let i = 0; i < shot.count; i++) {
     const angle = turn + ((i - (shot.count - 1) / 2) * shot.fan * TURN) / 360;
     const [x, y] = polar(angle, distance * unit);
-    parts.push(place(shotSvg(weapon, palette, { unit, turn: angle }), { x, y }));
+    parts.push(
+      place(shotSvg(weapon, palette, { unit, turn: angle }), { x, y }),
+    );
   }
   return parts.join("");
 }
@@ -460,14 +623,44 @@ export function muzzleFlashSvg(frame, palette, { unit = 16, turn = 0 } = {}) {
   // The second frame is the first fading: the same star, smaller and fainter,
   // so a still of either reads as a flash.
   const size = frame === 0 ? 1 : 0.64;
-  const px = (/** @type {Point[]} */ points) => points.map(([x, y]) => /** @type {Point} */ ([x * unit * size, y * unit * size]));
+  const px = (/** @type {Point[]} */ points) =>
+    points.map(
+      ([x, y]) => /** @type {Point} */ ([x * unit * size, y * unit * size]),
+    );
   const star = [
-    polygon(px([[1.3, 0], [0.3, 0.13], [0.52, 0.62], [0.08, 0.24], [-0.12, 0], [0.08, -0.24], [0.52, -0.62], [0.3, -0.13]]), tones.body),
-    polygon(px([[0.85, 0], [0.18, 0.1], [0, 0], [0.18, -0.1]]), palette.fieldText),
+    polygon(
+      px([
+        [1.3, 0],
+        [0.3, 0.13],
+        [0.52, 0.62],
+        [0.08, 0.24],
+        [-0.12, 0],
+        [0.08, -0.24],
+        [0.52, -0.62],
+        [0.3, -0.13],
+      ]),
+      tones.body,
+    ),
+    polygon(
+      px([
+        [0.85, 0],
+        [0.18, 0.1],
+        [0, 0],
+        [0.18, -0.1],
+      ]),
+      palette.fieldText,
+    ),
   ].join("");
   return place(
     [
-      glow(0.25 * unit * size, 0, 1.05 * unit * size, tones.halo, palette, frame === 0 ? 0.95 : 0.5),
+      glow(
+        0.25 * unit * size,
+        0,
+        1.05 * unit * size,
+        tones.halo,
+        palette,
+        frame === 0 ? 0.95 : 0.5,
+      ),
       frame === 0 ? star : place(star, { opacity: 0.55 }),
     ].join(""),
     { turn: (turn / TURN) * 360 },
@@ -491,7 +684,18 @@ export function muzzleFlashSvg(frame, palette, { unit = 16, turn = 0 } = {}) {
  * @param {{ toward?: number, fan?: number, reach?: [number, number], length?: [number, number], life?: [number, number], delay?: number }} [how]
  * @returns {Tick[]}
  */
-function makeTicks(random, count, { toward = 0, fan = TURN, reach = [0.8, 1.4], length = [0.3, 0.5], life = [130, 200], delay = 30 } = {}) {
+function makeTicks(
+  random,
+  count,
+  {
+    toward = 0,
+    fan = TURN,
+    reach = [0.8, 1.4],
+    length = [0.3, 0.5],
+    life = [130, 200],
+    delay = 30,
+  } = {},
+) {
   /** @type {Tick[]} */
   const ticks = [];
   for (let i = 0; i < count; i++) {
@@ -523,12 +727,25 @@ function ticksAt(ticks, t, color, palette, { unit, from = 0.15, width = 0.1 }) {
     const s = shareOf(t, tick.delay, tick.delay + tick.life);
     if (t < tick.delay || s >= 1) continue;
     const head = (from + tick.reach * easeOut(s)) * unit;
-    const tail = Math.max(from * unit, head - tick.length * unit * (1 - s * 0.7));
+    const tail = Math.max(
+      from * unit,
+      head - tick.length * unit * (1 - s * 0.7),
+    );
     const opacity = 1 - s * s;
     const w = Math.max(1, width * unit * (1 - s * 0.4));
     parts.push(
-      polyline([polar(tick.angle, tail), polar(tick.angle, head)], tones.body, w, { opacity }),
-      polyline([polar(tick.angle, lerp(tail, head, 0.55)), polar(tick.angle, head)], tones.hot, w * 0.6, { opacity }),
+      polyline(
+        [polar(tick.angle, tail), polar(tick.angle, head)],
+        tones.body,
+        w,
+        { opacity },
+      ),
+      polyline(
+        [polar(tick.angle, lerp(tail, head, 0.55)), polar(tick.angle, head)],
+        tones.hot,
+        w * 0.6,
+        { opacity },
+      ),
     );
   }
   return parts.join("");
@@ -542,16 +759,39 @@ function ticksAt(ticks, t, color, palette, { unit, from = 0.15, width = 0.1 }) {
  * @param {{ unit?: number, toward?: number, seed?: number, count?: number }} [how] The way back to where the shot came from, in radians.
  * @returns {string}
  */
-export function impactFx(t, palette, { unit = 16, toward = TURN / 2, seed = 1, count = 5 } = {}) {
+export function impactFx(
+  t,
+  palette,
+  { unit = 16, toward = TURN / 2, seed = 1, count = 5 } = {},
+) {
   if (t < 0 || t >= FX_MS.impact) return "";
   const random = seeded(seed * 97 + 5);
-  const ticks = makeTicks(random, count, { toward, fan: TURN * 0.42, reach: [0.7, 1.3], life: [110, 150], delay: 10 });
+  const ticks = makeTicks(random, count, {
+    toward,
+    fan: TURN * 0.42,
+    reach: [0.7, 1.3],
+    life: [110, 150],
+    delay: 10,
+  });
   const tones = energyOf(palette.warning, palette);
   const s = shareOf(t, 0, 80);
   return [
-    glow(0, 0, (0.9 + 0.4 * s) * unit, tones.halo, palette, 1 - shareOf(t, 0, 130)),
+    glow(
+      0,
+      0,
+      (0.9 + 0.4 * s) * unit,
+      tones.halo,
+      palette,
+      1 - shareOf(t, 0, 130),
+    ),
     ticksAt(ticks, t, palette.warning, palette, { unit }),
-    s < 1 ? polygon(sparkPoints(0.42 * unit * (1 - s * 0.6), 0.3, toward), tones.hot, { opacity: 1 - s }) : "",
+    s < 1
+      ? polygon(
+          sparkPoints(0.42 * unit * (1 - s * 0.6), 0.3, toward),
+          tones.hot,
+          { opacity: 1 - s },
+        )
+      : "",
   ].join("");
 }
 
@@ -580,8 +820,14 @@ function broken(random, from, to, depth, sway) {
   const dy = to[1] - from[1];
   const off = between(random, -sway, sway);
   /** @type {Point} */
-  const mid = [(from[0] + to[0]) / 2 - dy * off, (from[1] + to[1]) / 2 + dx * off];
-  return [...broken(random, from, mid, depth - 1, sway).slice(0, -1), ...broken(random, mid, to, depth - 1, sway)];
+  const mid = [
+    (from[0] + to[0]) / 2 - dy * off,
+    (from[1] + to[1]) / 2 + dx * off,
+  ];
+  return [
+    ...broken(random, from, mid, depth - 1, sway).slice(0, -1),
+    ...broken(random, mid, to, depth - 1, sway),
+  ];
 }
 
 /**
@@ -604,9 +850,13 @@ function zigzag(random, from, to, steps, sway) {
   const points = [from];
   for (let i = 1; i < steps; i++) {
     const share = (i + between(random, -0.3, 0.3)) / steps;
-    const off = side * between(random, 0.3, 1) * sway + bow * Math.sin(share * Math.PI);
+    const off =
+      side * between(random, 0.3, 1) * sway + bow * Math.sin(share * Math.PI);
     if (random() < 0.8) side = -side;
-    points.push([from[0] + dx * share - dy * off, from[1] + dy * share + dx * off]);
+    points.push([
+      from[0] + dx * share - dy * off,
+      from[1] + dy * share + dx * off,
+    ]);
   }
   points.push(to);
   return points;
@@ -630,10 +880,24 @@ export function makeArc(from, to, seed, { sway = 0.065, branches = 2 } = {}) {
   /** @type {Point[][]} */
   const forks = [];
   for (let i = 0; i < branches; i++) {
-    const start = /** @type {Point} */ (main[2 + Math.floor(random() * (steps - 3))]);
+    const start = /** @type {Point} */ (
+      main[2 + Math.floor(random() * (steps - 3))]
+    );
     const side = i % 2 === 0 ? 1 : -1;
     const angle = along + side * between(random, 0.5, 0.95);
-    forks.push(zigzag(random, start, polar(angle, Math.min(2.6, length * between(random, 0.16, 0.26)), start), 3, 0.16));
+    forks.push(
+      zigzag(
+        random,
+        start,
+        polar(
+          angle,
+          Math.min(2.6, length * between(random, 0.16, 0.26)),
+          start,
+        ),
+        3,
+        0.16,
+      ),
+    );
   }
   return { main, branches: forks };
 }
@@ -646,18 +910,38 @@ export function makeArc(from, to, seed, { sway = 0.065, branches = 2 } = {}) {
  * @param {{ unit?: number, color?: string, strength?: number }} [how] The palette's accent unless told otherwise.
  * @returns {string}
  */
-export function arcSvg(arc, palette, { unit = 16, color = palette.accent, strength = 1 } = {}) {
+export function arcSvg(
+  arc,
+  palette,
+  { unit = 16, color = palette.accent, strength = 1 } = {},
+) {
   if (strength <= 0.02) return "";
   const tones = energyOf(color, palette);
-  const px = (/** @type {Point[]} */ points) => points.map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
+  const px = (/** @type {Point[]} */ points) =>
+    points.map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
   const lines = [
     { points: px(arc.main), weight: 1 },
     ...arc.branches.map((points) => ({ points: px(points), weight: 0.62 })),
   ];
   const parts = [];
-  for (const { points, weight } of lines) parts.push(polyline(points, tones.halo, 0.62 * unit * weight, { opacity: 0.2 * tones.glow }));
-  for (const { points, weight } of lines) parts.push(polyline(points, tones.body, Math.max(2, 0.26 * unit * weight), { opacity: 0.6 }));
-  for (const { points, weight } of lines) parts.push(polyline(points, tones.hot, Math.max(1.1, 0.11 * unit * weight), { "stroke-linejoin": "miter" }));
+  for (const { points, weight } of lines)
+    parts.push(
+      polyline(points, tones.halo, 0.62 * unit * weight, {
+        opacity: 0.2 * tones.glow,
+      }),
+    );
+  for (const { points, weight } of lines)
+    parts.push(
+      polyline(points, tones.body, Math.max(2, 0.26 * unit * weight), {
+        opacity: 0.6,
+      }),
+    );
+  for (const { points, weight } of lines)
+    parts.push(
+      polyline(points, tones.hot, Math.max(1.1, 0.11 * unit * weight), {
+        "stroke-linejoin": "miter",
+      }),
+    );
   return place(parts.join(""), { opacity: strength });
 }
 
@@ -676,18 +960,38 @@ export function zapFx(from, to, t, palette, { unit = 16, seed = 1 } = {}) {
   if (t < 0 || t >= FX_MS.zap) return "";
   const leap = Math.floor(t / 45);
   const strength = 1 - shareOf(t, 90, FX_MS.zap);
-  const arc = makeArc(from, to, seed * 31 + leap * 7, { branches: leap === 0 ? 2 : 1 });
+  const arc = makeArc(from, to, seed * 31 + leap * 7, {
+    branches: leap === 0 ? 2 : 1,
+  });
   return [
     arcSvg(arc, palette, { unit, strength }),
-    spark(to[0] * unit, to[1] * unit, (0.55 - 0.08 * leap) * unit, palette.accent, palette, { turn: leap * 0.6, opacity: strength }),
-    glow(from[0] * unit, from[1] * unit, 0.7 * unit, palette.accent, palette, 0.7 * strength),
+    spark(
+      to[0] * unit,
+      to[1] * unit,
+      (0.55 - 0.08 * leap) * unit,
+      palette.accent,
+      palette,
+      { turn: leap * 0.6, opacity: strength },
+    ),
+    glow(
+      from[0] * unit,
+      from[1] * unit,
+      0.7 * unit,
+      palette.accent,
+      palette,
+      0.7 * strength,
+    ),
   ].join("");
 }
 
 // --- A rock breaks ------------------------------------------------------
 
 /** The size a rock's pieces come in. */
-const SIZE_AFTER = /** @type {Partial<Record<RockSize, RockSize>>} */ ({ boulder: "large", large: "medium", medium: "small" });
+const SIZE_AFTER = /** @type {Partial<Record<RockSize, RockSize>>} */ ({
+  boulder: "large",
+  large: "medium",
+  medium: "small",
+});
 
 /**
  * @typedef {object} BreakStyle How a kind of rock comes apart.
@@ -705,13 +1009,90 @@ const SIZE_AFTER = /** @type {Partial<Record<RockSize, RockSize>>} */ ({ boulder
 
 /** @type {Record<RockKind, BreakStyle>} */
 const BREAK_STYLES = {
-  stone: { heroes: 6, reach: [0.85, 1.45], spin: 2.4, shrink: 0.45, sparks: 4, glints: 0, dust: 1, cut: "facets", pieces: 2, into: null },
-  ice: { heroes: 12, reach: [1.1, 1.95], spin: 4.6, shrink: 0.3, sparks: 0, glints: 5, dust: 0.45, cut: "slivers", pieces: 3, into: null },
-  crystal: { heroes: 5, reach: [0.85, 1.4], spin: 2.4, shrink: 0.45, sparks: 3, glints: 3, dust: 0.8, cut: "facets", pieces: 2, into: "stone" },
-  iron: { heroes: 7, reach: [0.85, 1.25], spin: 0.9, shrink: 0.6, sparks: 9, glints: 0, dust: 0.4, cut: "plates", pieces: 2, into: null },
-  volatile: { heroes: 7, reach: [1.0, 1.7], spin: 3, shrink: 0.35, sparks: 0, glints: 0, dust: 0, cut: "facets", pieces: 0, into: null },
-  lodestone: { heroes: 6, reach: [0.85, 1.4], spin: 2.2, shrink: 0.45, sparks: 4, glints: 0, dust: 0.9, cut: "facets", pieces: 2, into: null },
-  boulder: { heroes: 11, reach: [0.7, 1.25], spin: 1.8, shrink: 0.4, sparks: 10, glints: 0, dust: 1.5, cut: "facets", pieces: 3, into: "stone" },
+  stone: {
+    heroes: 6,
+    reach: [0.85, 1.45],
+    spin: 2.4,
+    shrink: 0.45,
+    sparks: 4,
+    glints: 0,
+    dust: 1,
+    cut: "facets",
+    pieces: 2,
+    into: null,
+  },
+  ice: {
+    heroes: 12,
+    reach: [1.1, 1.95],
+    spin: 4.6,
+    shrink: 0.3,
+    sparks: 0,
+    glints: 5,
+    dust: 0.45,
+    cut: "slivers",
+    pieces: 3,
+    into: null,
+  },
+  crystal: {
+    heroes: 5,
+    reach: [0.85, 1.4],
+    spin: 2.4,
+    shrink: 0.45,
+    sparks: 3,
+    glints: 3,
+    dust: 0.8,
+    cut: "facets",
+    pieces: 2,
+    into: "stone",
+  },
+  iron: {
+    heroes: 7,
+    reach: [0.85, 1.25],
+    spin: 0.9,
+    shrink: 0.6,
+    sparks: 9,
+    glints: 0,
+    dust: 0.4,
+    cut: "plates",
+    pieces: 2,
+    into: null,
+  },
+  volatile: {
+    heroes: 7,
+    reach: [1.0, 1.7],
+    spin: 3,
+    shrink: 0.35,
+    sparks: 0,
+    glints: 0,
+    dust: 0,
+    cut: "facets",
+    pieces: 0,
+    into: null,
+  },
+  lodestone: {
+    heroes: 6,
+    reach: [0.85, 1.4],
+    spin: 2.2,
+    shrink: 0.45,
+    sparks: 4,
+    glints: 0,
+    dust: 0.9,
+    cut: "facets",
+    pieces: 2,
+    into: null,
+  },
+  boulder: {
+    heroes: 11,
+    reach: [0.7, 1.25],
+    spin: 1.8,
+    shrink: 0.4,
+    sparks: 10,
+    glints: 0,
+    dust: 1.5,
+    cut: "facets",
+    pieces: 3,
+    into: "stone",
+  },
 };
 
 /**
@@ -790,7 +1171,9 @@ function areaOf(points) {
  */
 function cutFacets(rock, cut) {
   // A dent's facets are too small to fly.
-  const facets = rock.facets.filter(({ points, part }) => part !== "body" || areaOf(points) > 0.024);
+  const facets = rock.facets.filter(
+    ({ points, part }) => part !== "body" || areaOf(points) > 0.024,
+  );
   if (cut === "slivers") {
     return facets.flatMap((facet) => {
       if (facet.points.length !== 3) return [facet];
@@ -818,14 +1201,31 @@ function cutFacets(rock, cut) {
     for (let i = 0; i < triangles.length; i += run) {
       const group = triangles.slice(i, i + run);
       const normal = unitVector(
-        /** @type {Vec3} */ ([0, 1, 2].map((k) => group.reduce((sum, f) => sum + /** @type {number} */ (f.normal[k]), 0))),
+        /** @type {Vec3} */ (
+          [0, 1, 2].map((k) =>
+            group.reduce(
+              (sum, f) => sum + /** @type {number} */ (f.normal[k]),
+              0,
+            ),
+          )
+        ),
       );
-      plates.push({ points: hull(group.flatMap(({ points }) => points)), normal, part: "body" });
+      plates.push({
+        points: hull(group.flatMap(({ points }) => points)),
+        normal,
+        part: "body",
+      });
     }
     for (const top of tops) {
       const half = Math.floor(top.points.length / 2);
       plates.push({ ...top, points: top.points.slice(0, half + 1) });
-      plates.push({ ...top, points: [...top.points.slice(half), /** @type {Point} */ (top.points[0])] });
+      plates.push({
+        ...top,
+        points: [
+          ...top.points.slice(half),
+          /** @type {Point} */ (top.points[0]),
+        ],
+      });
     }
     return plates;
   }
@@ -840,7 +1240,10 @@ function cutFacets(rock, cut) {
  * @param {{ seed?: number, turn?: number, from?: number, headings?: number[] }} [how] The rock's turn, the way the shot flew, both in radians, and the ways its pieces go, if not its own.
  * @returns {Break}
  */
-export function makeBreak(rock, { seed = 1, turn = 0, from = 0, headings } = {}) {
+export function makeBreak(
+  rock,
+  { seed = 1, turn = 0, from = 0, headings } = {},
+) {
   const style = BREAK_STYLES[rock.kind];
   const random = seeded(seed * 4099 + rock.kind.length * 17 + rock.size.length);
   const big = rock.size === "large" || rock.size === "boulder";
@@ -848,31 +1251,52 @@ export function makeBreak(rock, { seed = 1, turn = 0, from = 0, headings } = {})
   // The shot's way, as the rock sees it before its turn.
   const push = polar(from - turn, 0.38);
   const facets = cutFacets(rock, style.cut);
-  const heroes = Math.max(3, Math.round(style.heroes * (big ? 1 : small ? 0.6 : 0.8)));
+  const heroes = Math.max(
+    3,
+    Math.round(style.heroes * (big ? 1 : small ? 0.6 : 0.8)),
+  );
   // Heroes are spread around the rock, so none of its sides is left bare.
   const byAngle = facets
-    .map((facet, i) => ({ i, angle: Math.atan2(middleOf(facet.points)[1], middleOf(facet.points)[0]), gem: facet.part === "gem" }))
+    .map((facet, i) => ({
+      i,
+      angle: Math.atan2(middleOf(facet.points)[1], middleOf(facet.points)[0]),
+      gem: facet.part === "gem",
+    }))
     .sort((a, b) => a.angle - b.angle);
   const every = Math.max(1, byAngle.length / heroes);
   const chosen = new Set();
-  for (let k = 0; k < heroes; k++) chosen.add(byAngle[Math.floor(k * every + every / 2) % byAngle.length]?.i);
+  for (let k = 0; k < heroes; k++)
+    chosen.add(byAngle[Math.floor(k * every + every / 2) % byAngle.length]?.i);
   /** @type {Shard[]} */
   const shards = facets.map((facet, i) => {
     const at = middleOf(facet.points);
     const far = Math.hypot(at[0], at[1]);
-    const out = far < 0.06 ? polar(between(random, 0, TURN), 1) : [at[0] / far, at[1] / far];
+    const out =
+      far < 0.06
+        ? polar(between(random, 0, TURN), 1)
+        : [at[0] / far, at[1] / far];
     const hero = chosen.has(i) || facet.part === "gem";
     const turnWay = random() < 0.5 ? -1 : 1;
     return {
-      points: facet.points.map(([x, y]) => /** @type {Point} */ ([x - at[0], y - at[1]])),
+      points: facet.points.map(
+        ([x, y]) => /** @type {Point} */ ([x - at[0], y - at[1]]),
+      ),
       at,
       normal: facet.normal,
       part: facet.part,
-      heading: Math.atan2(/** @type {number} */ (out[1]) + push[1], /** @type {number} */ (out[0]) + push[0]) + between(random, -0.28, 0.28),
-      reach: hero ? between(random, style.reach[0], style.reach[1]) : between(random, 0.25, 0.55),
+      heading:
+        Math.atan2(
+          /** @type {number} */ (out[1]) + push[1],
+          /** @type {number} */ (out[0]) + push[0],
+        ) + between(random, -0.28, 0.28),
+      reach: hero
+        ? between(random, style.reach[0], style.reach[1])
+        : between(random, 0.25, 0.55),
       spin: turnWay * between(random, 0.4, 1) * style.spin,
       shrink: style.shrink,
-      life: hero ? between(random, 0.82, 1) * (FX_MS.break - 30) : between(random, 110, 190),
+      life: hero
+        ? between(random, 0.82, 1) * (FX_MS.break - 30)
+        : between(random, 110, 190),
       hero,
     };
   });
@@ -881,11 +1305,18 @@ export function makeBreak(rock, { seed = 1, turn = 0, from = 0, headings } = {})
   /** @type {Piece[]} */
   const pieces = [];
   for (let i = 0; i < count; i++) {
-    const heading = headings?.[i] ?? from + (count === 2 ? (i === 0 ? -1 : 1) * between(random, 1.1, 1.3) : (i - 1) * between(random, 1.9, 2.2) + between(random, -0.15, 0.15));
+    const heading =
+      headings?.[i] ??
+      from +
+        (count === 2
+          ? (i === 0 ? -1 : 1) * between(random, 1.1, 1.3)
+          : (i - 1) * between(random, 1.9, 2.2) + between(random, -0.15, 0.15));
     pieces.push({
       rock: makeRock(style.into ?? rock.kind, into, seed * 31 + i * 7 + 3),
       heading,
-      reach: rock.radius * (rock.size === "boulder" ? 0.8 : count === 3 ? 0.8 : 0.72),
+      reach:
+        rock.radius *
+        (rock.size === "boulder" ? 0.8 : count === 3 ? 0.8 : 0.72),
       turn: between(random, 0, TURN),
       spin: between(random, -0.5, 0.5),
     });
@@ -896,18 +1327,26 @@ export function makeBreak(rock, { seed = 1, turn = 0, from = 0, headings } = {})
     rock,
     turn,
     shards,
-    sparks: makeTicks(random, sparkCount, { reach: [0.75, 1.35], length: [0.22, 0.4], life: [160, 240], delay: 40 }),
+    sparks: makeTicks(random, sparkCount, {
+      reach: [0.75, 1.35],
+      length: [0.22, 0.4],
+      life: [160, 240],
+      delay: 40,
+    }),
     puffs: Array.from({ length: puffCount }, (_, i) => ({
       angle: ((i + between(random, -0.3, 0.3)) / puffCount) * TURN,
       at: between(random, 0.9, 1.08),
       r: between(random, 0.11, 0.2),
     })),
-    glints: Array.from({ length: Math.round(style.glints * (big ? 1 : 0.6)) }, () => ({
-      at: polar(between(random, 0, TURN), between(random, 0.5, 1.5)),
-      delay: between(random, 50, 250),
-      r: between(random, 0.12, 0.22),
-      turn: between(random, 0, 0.6),
-    })),
+    glints: Array.from(
+      { length: Math.round(style.glints * (big ? 1 : 0.6)) },
+      () => ({
+        at: polar(between(random, 0, TURN), between(random, 0.5, 1.5)),
+        delay: between(random, 50, 250),
+        r: between(random, 0.12, 0.22),
+        turn: between(random, 0, 0.6),
+      }),
+    ),
     pieces,
     dust: style.dust,
   };
@@ -935,7 +1374,10 @@ function flashTone(ink, palette) {
  */
 function inksOf(rock, palette) {
   const inks = ROCK_INKS[palette.mode];
-  return { body: rock.kind === "crystal" ? inks.stone : inks[rock.kind], gem: inks.crystal };
+  return {
+    body: rock.kind === "crystal" ? inks.stone : inks[rock.kind],
+    gem: inks.crystal,
+  };
 }
 
 /**
@@ -956,24 +1398,57 @@ function inksOf(rock, palette) {
  *   are drawn; and how far apart its shards start, 1 for where they lay.
  * @returns {string}
  */
-export function breakFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, from = 0, headings, drop, pieces = true, spread = 1, made } = {}) {
+export function breakFx(
+  rock,
+  t,
+  palette,
+  {
+    unit = 16,
+    turn = 0,
+    seed = 1,
+    from = 0,
+    headings,
+    drop,
+    pieces = true,
+    spread = 1,
+    made,
+  } = {},
+) {
   if (t < 0) return rockSvg(rock, palette, { unit, turn });
-  const data = made ?? makeBreak(rock, { seed, turn, from, ...(headings ? { headings } : {}) });
+  const data =
+    made ??
+    makeBreak(rock, { seed, turn, from, ...(headings ? { headings } : {}) });
   const R = rock.radius * unit;
   const inks = inksOf(rock, palette);
-  const tones = { body: tonesOf(inks.body, palette), gem: tonesOf(inks.gem, palette), band: tonesOf(inks.body, palette) };
+  const tones = {
+    body: tonesOf(inks.body, palette),
+    gem: tonesOf(inks.gem, palette),
+    band: tonesOf(inks.body, palette),
+  };
   const flash = t < 25 ? 0.86 : 0.86 * (1 - shareOf(t, 25, 95));
   const parts = [];
   // Dust, behind everything.
   if (data.dust > 0) {
     const s = shareOf(t, 15, FX_MS.break - 20);
     if (s > 0 && s < 1) {
-      const dustTone = mix(inks.body, palette.field, palette.mode === "light" ? 0.45 : 0.3);
+      const dustTone = mix(
+        inks.body,
+        palette.field,
+        palette.mode === "light" ? 0.45 : 0.3,
+      );
       const at = R * (0.7 + 1.05 * easeOut(s));
-      parts.push(ring(0, 0, at, dustTone, Math.max(1, R * 0.16 * (1 - s) * data.dust), { opacity: 0.55 * (1 - s) }));
+      parts.push(
+        ring(0, 0, at, dustTone, Math.max(1, R * 0.16 * (1 - s) * data.dust), {
+          opacity: 0.55 * (1 - s),
+        }),
+      );
       for (const puff of data.puffs) {
         const [x, y] = polar(puff.angle + data.turn, at * puff.at);
-        parts.push(circle(x, y, R * puff.r * (0.7 + 0.9 * s), dustTone, { opacity: 0.42 * (1 - s) * Math.min(1, data.dust) }));
+        parts.push(
+          circle(x, y, R * puff.r * (0.7 + 0.9 * s), dustTone, {
+            opacity: 0.42 * (1 - s) * Math.min(1, data.dust),
+          }),
+        );
       }
     }
   }
@@ -984,7 +1459,9 @@ export function breakFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, from 
       const [x, y] = turned(p, turn);
       return /** @type {Point} */ ([x * R, y * R]);
     });
-    parts.push(polygon(outline, flashTone(inks.body, palette), { opacity: flash }));
+    parts.push(
+      polygon(outline, flashTone(inks.body, palette), { opacity: flash }),
+    );
   } else {
     for (const shard of data.shards) {
       const s = shareOf(t, 30, 30 + shard.life);
@@ -1001,12 +1478,32 @@ export function breakFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, from 
       });
       const set = tones[shard.part];
       const lit = toneAt(litBy(shard.normal, data.turn + rolled), set);
-      const fill = mix(mix(lit, flashTone(set.ink, palette), flash), palette.field, s ** 1.6 * 0.85);
+      const fill = mix(
+        mix(lit, flashTone(set.ink, palette), flash),
+        palette.field,
+        s ** 1.6 * 0.85,
+      );
       if (shard.part === "gem") {
         const [gx, gy] = turned([cx, cy], data.turn);
-        parts.push(glow(gx * R, gy * R, R * 0.42 * size, inks.gem, palette, 0.8 * (1 - s)));
+        parts.push(
+          glow(
+            gx * R,
+            gy * R,
+            R * 0.42 * size,
+            inks.gem,
+            palette,
+            0.8 * (1 - s),
+          ),
+        );
       }
-      parts.push(polygon(points, fill, { opacity: 1 - s ** 3, stroke: fill, "stroke-width": 0.5, "stroke-linejoin": "round" }));
+      parts.push(
+        polygon(points, fill, {
+          opacity: 1 - s ** 3,
+          stroke: fill,
+          "stroke-width": 0.5,
+          "stroke-linejoin": "round",
+        }),
+      );
     }
   }
   // The pieces it leaves, from its middle, over its shards, so nothing hides a rock that can be hit.
@@ -1015,21 +1512,47 @@ export function breakFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, from 
     const size = lerp(0.62, 1, easeOut(shareOf(t, 45, 220)));
     for (const piece of data.pieces) {
       const [x, y] = polar(piece.heading, piece.reach * unit * out);
-      parts.push(place(rockSvg(piece.rock, palette, { unit, turn: piece.turn + piece.spin * (t / 1000) }), { x, y, scale: size, opacity: shareOf(t, 45, 115) }));
+      parts.push(
+        place(
+          rockSvg(piece.rock, palette, {
+            unit,
+            turn: piece.turn + piece.spin * (t / 1000),
+          }),
+          { x, y, scale: size, opacity: shareOf(t, 45, 115) },
+        ),
+      );
     }
   }
   if (drop && t >= 110) parts.push(drop(easeOut(shareOf(t, 110, 330))));
   // Sparks and glints, over everything.
   if (data.sparks.length > 0) {
-    const scaled = data.sparks.map((tick) => ({ ...tick, reach: tick.reach * rock.radius, length: Math.max(0.3, tick.length * rock.radius * 0.6) }));
-    parts.push(ticksAt(scaled, t, palette.warning, palette, { unit, from: rock.radius * 0.45, width: rock.kind === "iron" ? 0.14 : 0.1 }));
+    const scaled = data.sparks.map((tick) => ({
+      ...tick,
+      reach: tick.reach * rock.radius,
+      length: Math.max(0.3, tick.length * rock.radius * 0.6),
+    }));
+    parts.push(
+      ticksAt(scaled, t, palette.warning, palette, {
+        unit,
+        from: rock.radius * 0.45,
+        width: rock.kind === "iron" ? 0.14 : 0.1,
+      }),
+    );
   }
   for (const glint of data.glints) {
     const s = shareOf(t, glint.delay, glint.delay + 150);
     if (t < glint.delay || s >= 1) continue;
     const [x, y] = turned(glint.at, data.turn);
     const r = R * glint.r * swell(s, 0.35) + 0.6;
-    parts.push(polygon(sparkPoints(r, 0.2, glint.turn).map(([px, py]) => /** @type {Point} */ ([x * R + px, y * R + py])), palette.mode === "light" ? tones.body.ink : "#ffffff", { opacity: 0.95 }));
+    parts.push(
+      polygon(
+        sparkPoints(r, 0.2, glint.turn).map(
+          ([px, py]) => /** @type {Point} */ ([x * R + px, y * R + py]),
+        ),
+        palette.mode === "light" ? tones.body.ink : "#ffffff",
+        { opacity: 0.95 },
+      ),
+    );
   }
   return parts.join("");
 }
@@ -1053,7 +1576,8 @@ export function rimPoint(outline, angle) {
     if (Math.abs(across) < 1e-9) return;
     const along = (a[0] * ey - a[1] * ex) / across;
     const share = (a[0] * dy - a[1] * dx) / across;
-    if (along > 0 && share >= -1e-6 && share <= 1 + 1e-6) far = Math.max(far, along);
+    if (along > 0 && share >= -1e-6 && share <= 1 + 1e-6)
+      far = Math.max(far, along);
   });
   return [dx * far, dy * far];
 }
@@ -1071,7 +1595,10 @@ function grown(points, share) {
   const whole = Math.floor(at);
   const a = /** @type {Point} */ (points[whole]);
   const b = /** @type {Point} */ (points[whole + 1]);
-  return [...points.slice(0, whole + 1), [lerp(a[0], b[0], at - whole), lerp(a[1], b[1], at - whole)]];
+  return [
+    ...points.slice(0, whole + 1),
+    [lerp(a[0], b[0], at - whole), lerp(a[1], b[1], at - whole)],
+  ];
 }
 
 /**
@@ -1085,7 +1612,12 @@ function grown(points, share) {
  * @param {{ unit?: number, turn?: number, toward?: number, seed?: number, still?: boolean }} [how] The way from the rock's middle to where the shot landed, in radians; still, for the crack alone.
  * @returns {string}
  */
-export function heldHitFx(rock, t, palette, { unit = 16, turn = 0, toward = TURN / 2, seed = 1, still = false } = {}) {
+export function heldHitFx(
+  rock,
+  t,
+  palette,
+  { unit = 16, turn = 0, toward = TURN / 2, seed = 1, still = false } = {},
+) {
   const parts = [rockSvg(rock, palette, { unit, turn })];
   if (t < 0) return parts.join("");
   const R = rock.radius * unit;
@@ -1125,13 +1657,42 @@ export function heldHitFx(rock, t, palette, { unit = 16, turn = 0, toward = TURN
   const inward = Math.atan2(-hit[1], -hit[0]) + between(random, -0.35, 0.35);
   const end = polar(inward, between(random, 0.45, 0.62), hit);
   const crack = broken(random, hit, end, 2, 0.16);
-  const fork = broken(random, /** @type {Point} */ (crack[2]), polar(inward + between(random, 0.6, 0.9), 0.24, /** @type {Point} */ (crack[2])), 1, 0.2);
+  const fork = broken(
+    random,
+    /** @type {Point} */ (crack[2]),
+    polar(
+      inward + between(random, 0.6, 0.9),
+      0.24,
+      /** @type {Point} */ (crack[2]),
+    ),
+    1,
+    0.2,
+  );
   const share = still ? 1 : easeOut(shareOf(t, 0, 80));
-  const px = (/** @type {Point[]} */ points) => points.map(([x, y]) => /** @type {Point} */ ([x * R, y * R]));
+  const px = (/** @type {Point[]} */ points) =>
+    points.map(([x, y]) => /** @type {Point} */ ([x * R, y * R]));
   const width = Math.max(1, 0.035 * R);
-  parts.push(polyline(px(grown(crack, share)), tones.deep, width, { "stroke-linejoin": "miter" }));
-  if (share > 0.6) parts.push(polyline(px(grown(fork, (share - 0.6) / 0.4)), tones.deep, width * 0.8));
-  if (!still) parts.push(place(impactFx(t * (FX_MS.impact / FX_MS.held), palette, { unit, toward, seed, count: rock.kind === "iron" ? 7 : 5 }), { x: rim[0] * R, y: rim[1] * R }));
+  parts.push(
+    polyline(px(grown(crack, share)), tones.deep, width, {
+      "stroke-linejoin": "miter",
+    }),
+  );
+  if (share > 0.6)
+    parts.push(
+      polyline(px(grown(fork, (share - 0.6) / 0.4)), tones.deep, width * 0.8),
+    );
+  if (!still)
+    parts.push(
+      place(
+        impactFx(t * (FX_MS.impact / FX_MS.held), palette, {
+          unit,
+          toward,
+          seed,
+          count: rock.kind === "iron" ? 7 : 5,
+        }),
+        { x: rim[0] * R, y: rim[1] * R },
+      ),
+    );
   return parts.join("");
 }
 
@@ -1167,7 +1728,9 @@ export function blastRingAt(t, radius, reach) {
  */
 export function blastLight(palette) {
   const inks = ROCK_INKS[palette.mode];
-  return palette.mode === "light" ? inks.volatile : mix(inks.volatile, inks.core, 0.3);
+  return palette.mode === "light"
+    ? inks.volatile
+    : mix(inks.volatile, inks.core, 0.3);
 }
 
 /**
@@ -1185,15 +1748,28 @@ export function flaringSvg(rock, palette, flare, { unit = 16, turn = 0 } = {}) {
   const hot = palette.mode === "light" ? mix(core, "#ffffff", 0.5) : "#ffffff";
   const parts = [rockSvg(rock, palette, { unit, turn, pulse: 1 })];
   if (flare <= 0) return parts.join("");
-  parts.unshift(glow(0, 0, R * (1.25 + 0.6 * flare), blastLight(palette), palette, flare));
+  parts.unshift(
+    glow(0, 0, R * (1.25 + 0.6 * flare), blastLight(palette), palette, flare),
+  );
   for (const stroke of rock.strokes) {
     if (stroke.tone !== "core") continue;
     const points = stroke.points.map((p) => {
       const [x, y] = turned(p, turn);
       return /** @type {Point} */ ([x * R, y * R]);
     });
-    parts.push(polyline(points, core, Math.max(1.5, stroke.width * R * (1.6 + 2.6 * flare)), { opacity: 0.5 * flare }));
-    parts.push(polyline(points, hot, Math.max(1, stroke.width * R * (1 + 1.1 * flare)), { opacity: flare }));
+    parts.push(
+      polyline(
+        points,
+        core,
+        Math.max(1.5, stroke.width * R * (1.6 + 2.6 * flare)),
+        { opacity: 0.5 * flare },
+      ),
+    );
+    parts.push(
+      polyline(points, hot, Math.max(1, stroke.width * R * (1 + 1.1 * flare)), {
+        opacity: flare,
+      }),
+    );
   }
   return parts.join("");
 }
@@ -1215,14 +1791,31 @@ export function flaringSvg(rock, palette, flare, { unit = 16, turn = 0 } = {}) {
  *   A neighbour's place is in field units from the rock's middle. Still, for the one mark a player sees where motion isn't welcome.
  * @returns {string}
  */
-export function blastFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, reach = BLAST_REACH[rock.size === "medium" ? "medium" : "large"], neighbour, still = false } = {}) {
+export function blastFx(
+  rock,
+  t,
+  palette,
+  {
+    unit = 16,
+    turn = 0,
+    seed = 1,
+    reach = BLAST_REACH[rock.size === "medium" ? "medium" : "large"],
+    neighbour,
+    still = false,
+  } = {},
+) {
   const R = rock.radius * unit;
   const inks = ROCK_INKS[palette.mode];
   const ember = energyOf(palette.warning, palette);
-  const hot = palette.mode === "light" ? mix(inks.core, inks.volatile, 0.3) : mix(inks.core, "#ffffff", 0.6);
+  const hot =
+    palette.mode === "light"
+      ? mix(inks.core, inks.volatile, 0.3)
+      : mix(inks.core, "#ffffff", 0.6);
   if (still) {
     // One still ring at its reach, and no flash.
-    return ring(0, 0, reach * unit, inks.volatile, Math.max(1.5, 0.16 * unit), { opacity: 0.8 });
+    return ring(0, 0, reach * unit, inks.volatile, Math.max(1.5, 0.16 * unit), {
+      opacity: 0.8,
+    });
   }
   const parts = [];
   const smokeRandom = seeded(seed * 733 + 3);
@@ -1231,14 +1824,37 @@ export function blastFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, reach
   if (neighbour) {
     const far = Math.hypot(neighbour.at[0], neighbour.at[1]);
     let reached = BLAST_BEATS.flare;
-    while (reached < 430 && blastRingAt(reached, rock.radius, reach) < far - neighbour.rock.radius * 0.9) reached += 5;
+    while (
+      reached < 430 &&
+      blastRingAt(reached, rock.radius, reach) <
+        far - neighbour.rock.radius * 0.9
+    )
+      reached += 5;
     const hitAt = reached + BLAST_BEATS.chain;
     const look = { unit, turn: neighbour.turn ?? 0 };
-    const inner = t < hitAt ? flaringSvg(neighbour.rock, palette, easeOut(shareOf(t, reached, hitAt)), look) : blastFx(neighbour.rock, t - hitAt + BLAST_BEATS.flare, palette, { ...look, seed: seed + 5 });
-    parts.push(place(inner, { x: neighbour.at[0] * unit, y: neighbour.at[1] * unit }));
+    const inner =
+      t < hitAt
+        ? flaringSvg(
+            neighbour.rock,
+            palette,
+            easeOut(shareOf(t, reached, hitAt)),
+            look,
+          )
+        : blastFx(neighbour.rock, t - hitAt + BLAST_BEATS.flare, palette, {
+            ...look,
+            seed: seed + 5,
+          });
+    parts.push(
+      place(inner, { x: neighbour.at[0] * unit, y: neighbour.at[1] * unit }),
+    );
   }
   if (t < BLAST_BEATS.flare) {
-    parts.push(flaringSvg(rock, palette, easeOut(shareOf(t, 0, BLAST_BEATS.flare)), { unit, turn }));
+    parts.push(
+      flaringSvg(rock, palette, easeOut(shareOf(t, 0, BLAST_BEATS.flare)), {
+        unit,
+        turn,
+      }),
+    );
     return parts.join("");
   }
   if (t >= FX_MS.blast) return parts.join("");
@@ -1246,33 +1862,67 @@ export function blastFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, reach
   const at = blastRingAt(t, rock.radius, reach) * unit;
   const band = unit * lerp(0.75, 0.16, s);
   // The ground the ring has swept, faintly lit.
-  if (s < 1) parts.push(circle(0, 0, at, inks.volatile, { opacity: 0.08 * (1 - s) }));
+  if (s < 1)
+    parts.push(circle(0, 0, at, inks.volatile, { opacity: 0.08 * (1 - s) }));
   // Scorch smoke, dark on a dark field and grey on a light one.
-  const smoke = palette.mode === "light" ? mix(palette.fieldMuted, palette.field, 0.35) : mix(palette.page, inks.volatile, 0.1);
+  const smoke =
+    palette.mode === "light"
+      ? mix(palette.fieldMuted, palette.field, 0.35)
+      : mix(palette.page, inks.volatile, 0.1);
   const smoked = shareOf(t, 105, FX_MS.blast);
   if (smoked > 0 && smoked < 1) {
     for (let i = 0; i < 5; i++) {
-      const [x, y] = polar(between(smokeRandom, 0, TURN), R * between(smokeRandom, 0.1, 0.5) * (1 + 0.5 * smoked));
-      parts.push(circle(x, y, R * between(smokeRandom, 0.34, 0.5) * (0.6 + 0.6 * easeOut(smoked)), smoke, { opacity: (palette.mode === "light" ? 0.3 : 0.42) * swell(smoked, 0.22) }));
+      const [x, y] = polar(
+        between(smokeRandom, 0, TURN),
+        R * between(smokeRandom, 0.1, 0.5) * (1 + 0.5 * smoked),
+      );
+      parts.push(
+        circle(
+          x,
+          y,
+          R * between(smokeRandom, 0.34, 0.5) * (0.6 + 0.6 * easeOut(smoked)),
+          smoke,
+          {
+            opacity:
+              (palette.mode === "light" ? 0.3 : 0.42) * swell(smoked, 0.22),
+          },
+        ),
+      );
     }
   }
   // The rock's own shards.
-  parts.push(breakFx(rock, (t - BLAST_BEATS.flare) * 1.1, palette, { unit, turn, seed }));
+  parts.push(
+    breakFx(rock, (t - BLAST_BEATS.flare) * 1.1, palette, { unit, turn, seed }),
+  );
   // The ring: a soft outside, its own ink, and a hot inner edge. The soft
   // outside steps down in two bands, so it reads as light and not as a rim.
   const soft = blastLight(palette);
   if (s < 1) {
     const dim = (1 - s) * (palette.mode === "light" ? 0.75 : 1);
-    parts.push(ring(0, 0, at + band * 0.7, soft, band * 2.4, { opacity: 0.12 * dim }));
-    parts.push(ring(0, 0, at + band * 0.3, soft, band * 1.3, { opacity: 0.26 * dim }));
-    parts.push(ring(0, 0, at, inks.volatile, band, { opacity: 0.9 * (1 - s * s) }));
-    parts.push(ring(0, 0, at - band * 0.32, hot, Math.max(1, band * 0.36), { opacity: 1 - s }));
+    parts.push(
+      ring(0, 0, at + band * 0.7, soft, band * 2.4, { opacity: 0.12 * dim }),
+    );
+    parts.push(
+      ring(0, 0, at + band * 0.3, soft, band * 1.3, { opacity: 0.26 * dim }),
+    );
+    parts.push(
+      ring(0, 0, at, inks.volatile, band, { opacity: 0.9 * (1 - s * s) }),
+    );
+    parts.push(
+      ring(0, 0, at - band * 0.32, hot, Math.max(1, band * 0.36), {
+        opacity: 1 - s,
+      }),
+    );
   }
   // The flash disc.
   const flashed = shareOf(t, BLAST_BEATS.flare, 175);
   if (flashed < 1) {
     parts.push(glow(0, 0, R * 2.7, soft, palette, 1 - flashed));
-    parts.push(circle(0, 0, R * (1.25 + 0.85 * flashed), hot, { opacity: 0.95 * (1 - flashed) ** 1.5 }));
+    parts.push(
+      circle(0, 0, R * (1.25 + 0.85 * flashed), hot, {
+        opacity: 0.95 * (1 - flashed) ** 1.5,
+      }),
+    );
   }
   // Embers.
   for (let i = 0; i < 12; i++) {
@@ -1284,9 +1934,24 @@ export function blastFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, reach
     if (e >= 1) continue;
     const head = lerp(R * 0.5, far, easeOut(e));
     const opacity = 1 - e * e;
-    parts.push(polyline([polar(angle, head - unit * 0.55 * (1 - e)), polar(angle, head)], ember.body, Math.max(1, 0.1 * unit), { opacity: opacity * 0.55 }));
+    parts.push(
+      polyline(
+        [polar(angle, head - unit * 0.55 * (1 - e)), polar(angle, head)],
+        ember.body,
+        Math.max(1, 0.1 * unit),
+        { opacity: opacity * 0.55 },
+      ),
+    );
     const [x, y] = polar(angle, head);
-    parts.push(circle(x, y, Math.max(0.9, unit * 0.13 * (1 - 0.5 * e)), mix(ember.hot, ember.body, e), { opacity }));
+    parts.push(
+      circle(
+        x,
+        y,
+        Math.max(0.9, unit * 0.13 * (1 - 0.5 * e)),
+        mix(ember.hot, ember.body, e),
+        { opacity },
+      ),
+    );
   }
   return parts.join("");
 }
@@ -1305,20 +1970,41 @@ export function blastFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, reach
  * @param {{ unit?: number, turn?: number, seed?: number }} [how]
  * @returns {string}
  */
-export function boulderFx(rock, t, palette, { unit = 16, turn = 0, seed = 1 } = {}) {
+export function boulderFx(
+  rock,
+  t,
+  palette,
+  { unit = 16, turn = 0, seed = 1 } = {},
+) {
   if (t < 0) return rockSvg(rock, palette, { unit, turn });
   const R = rock.radius * unit;
   const random = seeded(seed * 389 + 1);
   const inks = ROCK_INKS[palette.mode];
   const tones = tonesOf(inks[rock.kind], palette);
-  const hot = palette.mode === "light" ? mix(inks.core, inks.volatile, 0.35) : mix(inks.core, "#ffffff", 0.55);
+  const hot =
+    palette.mode === "light"
+      ? mix(inks.core, inks.volatile, 0.35)
+      : mix(inks.core, "#ffffff", 0.55);
   const glowInk = palette.mode === "light" ? palette.warning : inks.core;
   const outline = rock.outline.map((p) => turned(p, turn));
   const first = between(random, 0, TURN);
-  const angles = [0, 1, 2].map((i) => first + (i / 3) * TURN + between(random, -0.22, 0.22));
-  const middle = /** @type {Point} */ ([between(random, -0.08, 0.08), between(random, -0.08, 0.08)]);
-  const cracks = angles.map((angle) => broken(random, middle, rimPoint(outline, angle), 3, 0.13));
-  const px = (/** @type {Point[]} */ points, /** @type {Point} */ off = [0, 0]) => points.map(([x, y]) => /** @type {Point} */ ([(x + off[0]) * R, (y + off[1]) * R]));
+  const angles = [0, 1, 2].map(
+    (i) => first + (i / 3) * TURN + between(random, -0.22, 0.22),
+  );
+  const middle = /** @type {Point} */ ([
+    between(random, -0.08, 0.08),
+    between(random, -0.08, 0.08),
+  ]);
+  const cracks = angles.map((angle) =>
+    broken(random, middle, rimPoint(outline, angle), 3, 0.13),
+  );
+  const px = (
+    /** @type {Point[]} */ points,
+    /** @type {Point} */ off = [0, 0],
+  ) =>
+    points.map(
+      ([x, y]) => /** @type {Point} */ ([(x + off[0]) * R, (y + off[1]) * R]),
+    );
   // The way each third heads: between its two cracks.
   const ways = [0, 1, 2].map((i) => {
     const a = /** @type {number} */ (angles[i]);
@@ -1327,12 +2013,14 @@ export function boulderFx(rock, t, palette, { unit = 16, turn = 0, seed = 1 } = 
     return (a + b) / 2;
   });
   const first0 = /** @type {number} */ (angles[0]);
-  const wrapTurn = (/** @type {number} */ angle) => ((angle % TURN) + TURN) % TURN;
+  const wrapTurn = (/** @type {number} */ angle) =>
+    ((angle % TURN) + TURN) % TURN;
   const parts = [];
   if (t < 400) {
     const split = easeOut(shareOf(t, 200, 400));
     const flare = easeOut(shareOf(t, 0, 150));
-    if (split > 0) parts.push(glow(0, 0, R * (0.9 + 0.5 * split), glowInk, palette, 0.95));
+    if (split > 0)
+      parts.push(glow(0, 0, R * (0.9 + 0.5 * split), glowInk, palette, 0.95));
     if (split === 0) {
       parts.push(rockSvg(rock, palette, { unit, turn }));
     } else {
@@ -1341,40 +2029,114 @@ export function boulderFx(rock, t, palette, { unit = 16, turn = 0, seed = 1 } = 
       for (const outlineFirst of [true, false]) {
         for (const facet of rock.facets) {
           const mid = turned(middleOf(facet.points), turn);
-          const past = wrapTurn(Math.atan2(mid[1] - middle[1], mid[0] - middle[0]) - first0);
-          const third = past < wrapTurn(/** @type {number} */ (angles[1]) - first0) ? 0 : past < wrapTurn(/** @type {number} */ (angles[2]) - first0) ? 1 : 2;
+          const past = wrapTurn(
+            Math.atan2(mid[1] - middle[1], mid[0] - middle[0]) - first0,
+          );
+          const third =
+            past < wrapTurn(/** @type {number} */ (angles[1]) - first0)
+              ? 0
+              : past < wrapTurn(/** @type {number} */ (angles[2]) - first0)
+                ? 1
+                : 2;
           const off = polar(/** @type {number} */ (ways[third]), 0.17 * split);
-          const points = px(facet.points.map((p) => turned(p, turn)), off);
+          const points = px(
+            facet.points.map((p) => turned(p, turn)),
+            off,
+          );
           if (outlineFirst) {
-            parts.push(polygon(points, palette.field, { stroke: palette.field, "stroke-width": width, "stroke-linejoin": "round" }));
+            parts.push(
+              polygon(points, palette.field, {
+                stroke: palette.field,
+                "stroke-width": width,
+                "stroke-linejoin": "round",
+              }),
+            );
           } else {
             const fill = toneAt(litBy(facet.normal, turn), tones);
-            parts.push(polygon(points, fill, { stroke: fill, "stroke-width": 0.6, "stroke-linejoin": "round" }));
+            parts.push(
+              polygon(points, fill, {
+                stroke: fill,
+                "stroke-width": 0.6,
+                "stroke-linejoin": "round",
+              }),
+            );
           }
         }
-        if (outlineFirst) parts.push(glow(0, 0, R * 0.8 * split, glowInk, palette, 0.9));
+        if (outlineFirst)
+          parts.push(glow(0, 0, R * 0.8 * split, glowInk, palette, 0.9));
       }
     }
     // The cracks, flaring from the middle out.
     const fade = 1 - shareOf(t, 230, 400);
     cracks.forEach((crack, i) => {
-      const line = px(grown(crack, flare), polar(/** @type {number} */ (ways[i]), 0));
-      parts.push(polyline(line, glowInk, Math.max(3, 0.11 * R), { opacity: 0.32 * flare * fade }));
-      parts.push(polyline(line, inks.core, Math.max(2, 0.05 * R), { opacity: 0.9 * fade }));
-      parts.push(polyline(line, hot, Math.max(1, 0.022 * R), { opacity: fade, "stroke-linejoin": "miter" }));
+      const line = px(
+        grown(crack, flare),
+        polar(/** @type {number} */ (ways[i]), 0),
+      );
+      parts.push(
+        polyline(line, glowInk, Math.max(3, 0.11 * R), {
+          opacity: 0.32 * flare * fade,
+        }),
+      );
+      parts.push(
+        polyline(line, inks.core, Math.max(2, 0.05 * R), {
+          opacity: 0.9 * fade,
+        }),
+      );
+      parts.push(
+        polyline(line, hot, Math.max(1, 0.022 * R), {
+          opacity: fade,
+          "stroke-linejoin": "miter",
+        }),
+      );
     });
-    if (t < 200) parts.unshift(glow(0, 0, R * (0.5 + 0.8 * flare), glowInk, palette, 0.75 * flare));
+    if (t < 200)
+      parts.unshift(
+        glow(0, 0, R * (0.5 + 0.8 * flare), glowInk, palette, 0.75 * flare),
+      );
     // Sparks off the cracks' ends as they reach the rim.
-    const ticks = makeTicks(random, 8, { reach: [1.6, 3.2], length: [0.5, 0.8], life: [170, 240], delay: 60 });
-    parts.push(place(ticksAt(ticks, t - 110, palette.warning, palette, { unit, from: rock.radius * 0.9, width: 0.12 })));
+    const ticks = makeTicks(random, 8, {
+      reach: [1.6, 3.2],
+      length: [0.5, 0.8],
+      life: [170, 240],
+      delay: 60,
+    });
+    parts.push(
+      place(
+        ticksAt(ticks, t - 110, palette.warning, palette, {
+          unit,
+          from: rock.radius * 0.9,
+          width: 0.12,
+        }),
+      ),
+    );
     return parts.join("");
   }
   // The throw: its facets fly, and three large rocks come out.
   const thrown = 30 + (t - 400) * ((FX_MS.break - 30) / (FX_MS.boulder - 400));
-  parts.push(glow(0, 0, R * 1.6, glowInk, palette, 0.9 * (1 - shareOf(t, 400, 520))));
-  parts.push(breakFx(rock, thrown, palette, { unit, turn, seed, headings: ways, spread: 1.17 }));
+  parts.push(
+    glow(0, 0, R * 1.6, glowInk, palette, 0.9 * (1 - shareOf(t, 400, 520))),
+  );
+  parts.push(
+    breakFx(rock, thrown, palette, {
+      unit,
+      turn,
+      seed,
+      headings: ways,
+      spread: 1.17,
+    }),
+  );
   const ringed = shareOf(t, 400, FX_MS.boulder);
-  parts.push(ring(0, 0, R * (1 + 1.1 * easeOut(ringed)), inks.core, Math.max(1, 0.2 * unit * (1 - ringed)), { opacity: 0.7 * (1 - ringed) }));
+  parts.push(
+    ring(
+      0,
+      0,
+      R * (1 + 1.1 * easeOut(ringed)),
+      inks.core,
+      Math.max(1, 0.2 * unit * (1 - ringed)),
+      { opacity: 0.7 * (1 - ringed) },
+    ),
+  );
   return parts.join("");
 }
 
@@ -1395,7 +2157,10 @@ export function flameSvg(frame, palette, { unit = 16, turn = 0 } = {}) {
   const tip = /** @type {number} */ ([0.04, -0.06, 0.07][frame]);
   const tones = energyOf(palette.warning, palette);
   // Wide enough to hold a pale middle on a light field, where a thin shot's must be dense to show.
-  const middle = palette.mode === "light" ? mix(palette.warning, "#ffffff", 0.62) : tones.hot;
+  const middle =
+    palette.mode === "light"
+      ? mix(palette.warning, "#ffffff", 0.62)
+      : tones.hot;
   const shape = (/** @type {number} */ k) =>
     /** @type {Point[]} */ ([
       [0.06, -half * 0.8 * k],
@@ -1408,9 +2173,25 @@ export function flameSvg(frame, palette, { unit = 16, turn = 0 } = {}) {
     ]).map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
   return place(
     [
-      glow(-0.42 * length * unit, 0, 0.8 * length * unit, tones.halo, palette, 0.95, { ry: 0.72 * unit }),
-      polygon(shape(1), tones.body, { stroke: tones.body, "stroke-width": Math.max(0.6, 0.06 * unit), "stroke-linejoin": "round" }),
-      polygon(shape(0.56), middle, { stroke: middle, "stroke-width": Math.max(0.4, 0.04 * unit), "stroke-linejoin": "round" }),
+      glow(
+        -0.42 * length * unit,
+        0,
+        0.8 * length * unit,
+        tones.halo,
+        palette,
+        0.95,
+        { ry: 0.72 * unit },
+      ),
+      polygon(shape(1), tones.body, {
+        stroke: tones.body,
+        "stroke-width": Math.max(0.6, 0.06 * unit),
+        "stroke-linejoin": "round",
+      }),
+      polygon(shape(0.56), middle, {
+        stroke: middle,
+        "stroke-width": Math.max(0.4, 0.04 * unit),
+        "stroke-linejoin": "round",
+      }),
     ].join(""),
     { turn: (turn / TURN) * 360 },
   );
@@ -1431,10 +2212,24 @@ export function puffSvg(age, palette, { unit = 16, sway = 0 } = {}) {
   const tones = energyOf(palette.warning, palette);
   const x = -(0.4 + 2.6 * (s - 0.42 * s * s)) * unit;
   const y = sway * (0.08 + 0.5 * s) * unit;
-  const fill = s < 0.2 ? mix(tones.hot, tones.body, s / 0.2) : mix(tones.body, palette.fieldMuted, (s - 0.2) / 0.8);
+  const fill =
+    s < 0.2
+      ? mix(tones.hot, tones.body, s / 0.2)
+      : mix(tones.body, palette.fieldMuted, (s - 0.2) / 0.8);
   return [
-    s < 0.45 ? glow(x, y, (0.5 + 0.5 * s) * unit, tones.halo, palette, 0.6 * (1 - s / 0.45)) : "",
-    circle(x, y, Math.max(0.8, (0.13 + 0.27 * s) * unit), fill, { opacity: 0.8 * (1 - s) ** 1.2 }),
+    s < 0.45
+      ? glow(
+          x,
+          y,
+          (0.5 + 0.5 * s) * unit,
+          tones.halo,
+          palette,
+          0.6 * (1 - s / 0.45),
+        )
+      : "",
+    circle(x, y, Math.max(0.8, (0.13 + 0.27 * s) * unit), fill, {
+      opacity: 0.8 * (1 - s) ** 1.2,
+    }),
   ].join("");
 }
 
@@ -1447,12 +2242,18 @@ export function puffSvg(age, palette, { unit = 16, sway = 0 } = {}) {
  * @param {{ unit?: number, seed?: number, every?: number }} [how] The time between two puffs.
  * @returns {string}
  */
-export function exhaustFx(t, palette, { unit = 16, seed = 1, every = 25 } = {}) {
+export function exhaustFx(
+  t,
+  palette,
+  { unit = 16, seed = 1, every = 25 } = {},
+) {
   const parts = [];
   const first = Math.floor(t / every);
   for (let k = first; k > first - FX_MS.exhaust / every; k--) {
     const random = seeded(seed * 53 + k * 7);
-    parts.push(puffSvg(t - k * every, palette, { unit, sway: between(random, -1, 1) }));
+    parts.push(
+      puffSvg(t - k * every, palette, { unit, sway: between(random, -1, 1) }),
+    );
   }
   return parts.reverse().join("");
 }
@@ -1469,7 +2270,11 @@ export const DASH = { speed: 34, ms: 220, after: 15 };
  * @returns {number}
  */
 export function dashedAt(t) {
-  return (DASH.speed * Math.min(t, DASH.ms) + DASH.after * Math.max(0, t - DASH.ms)) / 1000;
+  return (
+    (DASH.speed * Math.min(t, DASH.ms) +
+      DASH.after * Math.max(0, t - DASH.ms)) /
+    1000
+  );
 }
 
 /**
@@ -1482,27 +2287,58 @@ export function dashedAt(t) {
  * @param {{ unit?: number, seed?: number, ship?: boolean, still?: boolean }} [how] Whether the placeholder ship is drawn. Still, for the one mark a player sees where motion isn't welcome.
  * @returns {string}
  */
-export function dashFx(t, palette, { unit = 16, seed = 1, ship = true, still = false } = {}) {
+export function dashFx(
+  t,
+  palette,
+  { unit = 16, seed = 1, ship = true, still = false } = {},
+) {
   const tones = energyOf(palette.accent, palette);
-  if (still) return ring(0, 0, 1.5 * unit, tones.body, Math.max(1.2, 0.1 * unit), { opacity: 0.7 });
+  if (still)
+    return ring(0, 0, 1.5 * unit, tones.body, Math.max(1.2, 0.1 * unit), {
+      opacity: 0.7,
+    });
   const parts = [];
   const random = seeded(seed * 71 + 13);
   const at = dashedAt(t) * unit;
   // The ring left where it began.
   const ringed = shareOf(t, 0, 340);
   if (ringed < 1) {
-    parts.push(ring(0, 0, (0.7 + 1.7 * easeOut(ringed)) * unit, tones.halo, Math.max(1.5, 0.42 * unit * (1 - ringed)), { opacity: 0.22 * (1 - ringed) }));
-    parts.push(ring(0, 0, (0.7 + 1.7 * easeOut(ringed)) * unit, tones.body, Math.max(1, 0.12 * unit * (1 - ringed * 0.6)), { opacity: 0.9 * (1 - ringed) }));
+    parts.push(
+      ring(
+        0,
+        0,
+        (0.7 + 1.7 * easeOut(ringed)) * unit,
+        tones.halo,
+        Math.max(1.5, 0.42 * unit * (1 - ringed)),
+        { opacity: 0.22 * (1 - ringed) },
+      ),
+    );
+    parts.push(
+      ring(
+        0,
+        0,
+        (0.7 + 1.7 * easeOut(ringed)) * unit,
+        tones.body,
+        Math.max(1, 0.12 * unit * (1 - ringed * 0.6)),
+        { opacity: 0.9 * (1 - ringed) },
+      ),
+    );
   }
   // After-images along the path.
   [0.2, 0.48, 0.76].forEach((share) => {
     const laid = share * DASH.ms;
     const faded = shareOf(t, laid, laid + 240);
     if (t < laid || faded >= 1) return;
-    parts.push(place(shipPlaceholder(palette, { unit, ghost: true }), { x: dashedAt(laid) * unit, opacity: 0.75 * (1 - faded) }));
+    parts.push(
+      place(shipPlaceholder(palette, { unit, ghost: true }), {
+        x: dashedAt(laid) * unit,
+        opacity: 0.75 * (1 - faded),
+      }),
+    );
   });
   // Streaks behind the ship.
-  const speeding = t < DASH.ms ? Math.min(1, t / 40) : 1 - shareOf(t, DASH.ms, DASH.ms + 120);
+  const speeding =
+    t < DASH.ms ? Math.min(1, t / 40) : 1 - shareOf(t, DASH.ms, DASH.ms + 120);
   if (speeding > 0) {
     for (let i = 0; i < 6; i++) {
       const y = (i - 2.5) * 0.36 * unit + between(random, -0.08, 0.08) * unit;
@@ -1510,8 +2346,28 @@ export function dashFx(t, palette, { unit = 16, seed = 1, ship = true, still = f
       const back = at - (0.6 + between(random, 0, 0.9)) * unit;
       const start = Math.max(-0.4 * unit, back - length);
       if (back <= start) continue;
-      parts.push(polyline([[start, y], [back, y]], tones.body, Math.max(1, 0.08 * unit), { opacity: 0.25 * speeding }));
-      parts.push(polyline([[lerp(start, back, 0.55), y], [back, y]], i % 2 === 0 ? tones.hot : tones.body, Math.max(1, 0.08 * unit), { opacity: 0.8 * speeding }));
+      parts.push(
+        polyline(
+          [
+            [start, y],
+            [back, y],
+          ],
+          tones.body,
+          Math.max(1, 0.08 * unit),
+          { opacity: 0.25 * speeding },
+        ),
+      );
+      parts.push(
+        polyline(
+          [
+            [lerp(start, back, 0.55), y],
+            [back, y],
+          ],
+          i % 2 === 0 ? tones.hot : tones.body,
+          Math.max(1, 0.08 * unit),
+          { opacity: 0.8 * speeding },
+        ),
+      );
     }
   }
   if (ship) parts.push(place(shipPlaceholder(palette, { unit }), { x: at }));
@@ -1529,9 +2385,16 @@ export function dashFx(t, palette, { unit = 16, seed = 1, ship = true, still = f
  * @param {{ unit?: number, reach?: number, still?: boolean }} [how] Its reach in field units, 12 as the catalog has it. Still, for the one mark a player sees where motion isn't welcome.
  * @returns {string}
  */
-export function novaFx(t, palette, { unit = 16, reach = 12, still = false } = {}) {
+export function novaFx(
+  t,
+  palette,
+  { unit = 16, reach = 12, still = false } = {},
+) {
   const tones = energyOf(palette.accent, palette);
-  if (still) return ring(0, 0, reach * unit, tones.body, Math.max(1.5, 0.16 * unit), { opacity: 0.75 });
+  if (still)
+    return ring(0, 0, reach * unit, tones.body, Math.max(1.5, 0.16 * unit), {
+      opacity: 0.75,
+    });
   if (t < 0 || t >= FX_MS.nova) return "";
   const s = shareOf(t, 0, 300);
   const fade = 1 - shareOf(t, 240, FX_MS.nova);
@@ -1539,14 +2402,25 @@ export function novaFx(t, palette, { unit = 16, reach = 12, still = false } = {}
   const band = lerp(1.5, 0.5, s) * unit;
   const parts = [
     circle(0, 0, at, tones.halo, { opacity: 0.03 * fade }),
-    ring(0, 0, at - band * 0.2, tones.halo, band * 1.8, { opacity: 0.18 * fade * tones.glow }),
+    ring(0, 0, at - band * 0.2, tones.halo, band * 1.8, {
+      opacity: 0.18 * fade * tones.glow,
+    }),
     ring(0, 0, at, tones.body, band * 0.5, { opacity: 0.85 * fade }),
     ring(0, 0, at, tones.hot, Math.max(1, band * 0.16), { opacity: fade }),
   ];
-  if (t < 90) parts.push(glow(0, 0, 3.4 * unit, tones.halo, palette, 1 - t / 90));
+  if (t < 90)
+    parts.push(glow(0, 0, 3.4 * unit, tones.halo, palette, 1 - t / 90));
   for (let i = 0; i < 8; i++) {
     const [x, y] = polar((i / 8) * TURN + 0.2, at);
-    parts.push(polygon(sparkPoints(0.38 * unit * fade + 0.5, 0.22, 0.3).map(([px, py]) => /** @type {Point} */ ([x + px, y + py])), tones.hot, { opacity: fade }));
+    parts.push(
+      polygon(
+        sparkPoints(0.38 * unit * fade + 0.5, 0.22, 0.3).map(
+          ([px, py]) => /** @type {Point} */ ([x + px, y + py]),
+        ),
+        tones.hot,
+        { opacity: fade },
+      ),
+    );
   }
   return parts.join("");
 }
@@ -1566,12 +2440,18 @@ export function shellSvg(palette, { unit = 16, lit = 0 } = {}) {
   const r = SHELL_RADIUS * unit;
   /** @type {Point[]} */
   const glint = [];
-  for (let i = 0; i <= 6; i++) glint.push(polar(TURN * (0.55 + (i / 6) * 0.13), r * 0.86));
+  for (let i = 0; i <= 6; i++)
+    glint.push(polar(TURN * (0.55 + (i / 6) * 0.13), r * 0.86));
   return [
     glow(0, 0, r * 1.25, tones.halo, palette, 0.35 + 0.6 * lit),
     circle(0, 0, r, tones.halo, { opacity: 0.12 + 0.3 * lit }),
     ring(0, 0, r, mix(tones.body, tones.hot, lit), Math.max(1.2, 0.12 * unit)),
-    polyline(glint, palette.mode === "light" ? tones.body : "#ffffff", Math.max(1, 0.1 * unit), { opacity: 0.8 }),
+    polyline(
+      glint,
+      palette.mode === "light" ? tones.body : "#ffffff",
+      Math.max(1, 0.1 * unit),
+      { opacity: 0.8 },
+    ),
   ].join("");
 }
 
@@ -1584,15 +2464,32 @@ export function shellSvg(palette, { unit = 16, lit = 0 } = {}) {
  * @param {{ unit?: number, seed?: number, still?: boolean }} [how] Still, for the one mark a player sees where motion isn't welcome.
  * @returns {string}
  */
-export function shieldFx(t, palette, { unit = 16, seed = 1, still = false } = {}) {
+export function shieldFx(
+  t,
+  palette,
+  { unit = 16, seed = 1, still = false } = {},
+) {
   const tones = energyOf(palette.accent, palette);
   const r = SHELL_RADIUS * unit;
-  if (still) return ring(0, 0, r, tones.body, Math.max(1.2, 0.12 * unit), { opacity: 0.7, "stroke-dasharray": `${num(0.5 * unit)} ${num(0.44 * unit)}` });
+  if (still)
+    return ring(0, 0, r, tones.body, Math.max(1.2, 0.12 * unit), {
+      opacity: 0.7,
+      "stroke-dasharray": `${num(0.5 * unit)} ${num(0.44 * unit)}`,
+    });
   if (t < 0 || t >= FX_MS.shield) return "";
   if (t < 50) return shellSvg(palette, { unit, lit: 1 - t / 100 });
   const random = seeded(seed * 157 + 7);
   const s = shareOf(t, 50, FX_MS.shield);
-  const parts = [ring(0, 0, r * (1 + 0.9 * easeOut(s)), tones.halo, Math.max(1, 0.3 * unit * (1 - s)), { opacity: 0.3 * (1 - s) })];
+  const parts = [
+    ring(
+      0,
+      0,
+      r * (1 + 0.9 * easeOut(s)),
+      tones.halo,
+      Math.max(1, 0.3 * unit * (1 - s)),
+      { opacity: 0.3 * (1 - s) },
+    ),
+  ];
   const count = 7;
   for (let i = 0; i < count; i++) {
     const middle = ((i + between(random, -0.2, 0.2)) / count) * TURN;
@@ -1604,18 +2501,42 @@ export function shieldFx(t, palette, { unit = 16, seed = 1, still = false } = {}
     const arc = [];
     for (let k = 0; k <= 6; k++) {
       const a = middle + (k / 6 - 0.5) * span;
-      const [x, y] = turned([Math.cos(a) * r - Math.cos(middle) * r, Math.sin(a) * r - Math.sin(middle) * r], roll);
+      const [x, y] = turned(
+        [
+          Math.cos(a) * r - Math.cos(middle) * r,
+          Math.sin(a) * r - Math.sin(middle) * r,
+        ],
+        roll,
+      );
       arc.push([cx + x, cy + y]);
     }
-    parts.push(polyline(arc, tones.halo, Math.max(2, 0.34 * unit), { opacity: 0.22 * (1 - s) }));
-    parts.push(polyline(arc, i % 3 === 0 ? tones.hot : tones.body, Math.max(1.1, 0.13 * unit * (1 - 0.4 * s)), { opacity: 1 - s * s }));
+    parts.push(
+      polyline(arc, tones.halo, Math.max(2, 0.34 * unit), {
+        opacity: 0.22 * (1 - s),
+      }),
+    );
+    parts.push(
+      polyline(
+        arc,
+        i % 3 === 0 ? tones.hot : tones.body,
+        Math.max(1.1, 0.13 * unit * (1 - 0.4 * s)),
+        { opacity: 1 - s * s },
+      ),
+    );
   }
   for (let i = 0; i < 4; i++) {
-    const [x, y] = polar(between(random, 0, TURN), r * between(random, 0.9, 1.5));
+    const [x, y] = polar(
+      between(random, 0, TURN),
+      r * between(random, 0.9, 1.5),
+    );
     const delay = 60 + i * 55;
     const g = shareOf(t, delay, delay + 130);
     if (t < delay || g >= 1) continue;
-    parts.push(spark(x, y, 0.4 * unit * swell(g, 0.4), palette.accent, palette, { halo: 0.5 }));
+    parts.push(
+      spark(x, y, 0.4 * unit * swell(g, 0.4), palette.accent, palette, {
+        halo: 0.5,
+      }),
+    );
   }
   return parts.join("");
 }
@@ -1632,7 +2553,11 @@ export function shieldFx(t, palette, { unit = 16, seed = 1, still = false } = {}
  * @param {{ unit?: number, turn?: number, seed?: number, still?: boolean }} [how] The ship's heading, in radians. Still, for the one mark a player sees where motion isn't welcome.
  * @returns {string}
  */
-export function shipLostFx(t, palette, { unit = 16, turn = 0, seed = 1, still = false } = {}) {
+export function shipLostFx(
+  t,
+  palette,
+  { unit = 16, turn = 0, seed = 1, still = false } = {},
+) {
   if (still) return bubblePlaceholder(palette, { unit, scale: 0.8 });
   if (t < 0) return shipPlaceholder(palette, { unit, turn });
   const random = seeded(seed * 239 + 17);
@@ -1644,8 +2569,21 @@ export function shipLostFx(t, palette, { unit = 16, turn = 0, seed = 1, still = 
   const ringed = shareOf(t, 40, 380);
   if (t >= 40 && ringed < 1) {
     const at = (0.8 + 4.2 * easeOut(ringed)) * unit;
-    parts.push(ring(0, 0, at, tones.halo, Math.max(2, 0.6 * unit * (1 - ringed)), { opacity: 0.2 * (1 - ringed) }));
-    parts.push(ring(0, 0, at, tones.body, Math.max(1, 0.14 * unit * (1 - 0.5 * ringed)), { opacity: 0.9 * (1 - ringed) }));
+    parts.push(
+      ring(0, 0, at, tones.halo, Math.max(2, 0.6 * unit * (1 - ringed)), {
+        opacity: 0.2 * (1 - ringed),
+      }),
+    );
+    parts.push(
+      ring(
+        0,
+        0,
+        at,
+        tones.body,
+        Math.max(1, 0.14 * unit * (1 - 0.5 * ringed)),
+        { opacity: 0.9 * (1 - ringed) },
+      ),
+    );
   }
   // The hull, whole for a frame, then its plates.
   if (t < 30) {
@@ -1654,18 +2592,32 @@ export function shipLostFx(t, palette, { unit = 16, turn = 0, seed = 1, still = 
     SHIP_PLATES.forEach((plate) => {
       const mid = middleOf(plate);
       const s = shareOf(t, 30, between(random, 400, 480));
-      const heading = Math.atan2(mid[1], mid[0] - 0.1) + between(random, -0.5, 0.5);
+      const heading =
+        Math.atan2(mid[1], mid[0] - 0.1) + between(random, -0.5, 0.5);
       const far = between(random, 2.2, 3.8) * easeOut(s);
       const roll = between(random, -3.4, 3.4) * s;
       if (s >= 1) return;
       const size = lerp(1, 0.5, s);
       const points = plate.map((p) => {
         const [x, y] = turned([p[0] - mid[0], p[1] - mid[1]], roll);
-        const [wx, wy] = turned([mid[0] + Math.cos(heading) * far + x * size, mid[1] + Math.sin(heading) * far + y * size], turn);
+        const [wx, wy] = turned(
+          [
+            mid[0] + Math.cos(heading) * far + x * size,
+            mid[1] + Math.sin(heading) * far + y * size,
+          ],
+          turn,
+        );
         return /** @type {Point} */ ([wx * unit, wy * unit]);
       });
       const fill = mix(palette.accent, palette.field, s ** 1.5 * 0.8);
-      parts.push(polygon(points, fill, { opacity: 1 - s ** 3, stroke: fill, "stroke-width": 0.5, "stroke-linejoin": "round" }));
+      parts.push(
+        polygon(points, fill, {
+          opacity: 1 - s ** 3,
+          stroke: fill,
+          "stroke-width": 0.5,
+          "stroke-linejoin": "round",
+        }),
+      );
     });
   }
   // Embers.
@@ -1676,15 +2628,38 @@ export function shipLostFx(t, palette, { unit = 16, turn = 0, seed = 1, still = 
     const e = shareOf(t, delay, delay + between(emberRandom, 320, 470));
     if (t < delay || e >= 1) continue;
     const head = lerp(0.4 * unit, far, easeOut(e));
-    parts.push(polyline([polar(angle, head - 0.5 * unit * (1 - e)), polar(angle, head)], ember.body, Math.max(1, 0.1 * unit), { opacity: 0.55 * (1 - e * e) }));
+    parts.push(
+      polyline(
+        [polar(angle, head - 0.5 * unit * (1 - e)), polar(angle, head)],
+        ember.body,
+        Math.max(1, 0.1 * unit),
+        { opacity: 0.55 * (1 - e * e) },
+      ),
+    );
     const [x, y] = polar(angle, head);
-    parts.push(circle(x, y, Math.max(0.9, 0.13 * unit * (1 - 0.5 * e)), mix(ember.hot, ember.body, e), { opacity: 1 - e * e }));
+    parts.push(
+      circle(
+        x,
+        y,
+        Math.max(0.9, 0.13 * unit * (1 - 0.5 * e)),
+        mix(ember.hot, ember.body, e),
+        { opacity: 1 - e * e },
+      ),
+    );
   }
   // The flash.
   const flashed = shareOf(t, 0, 110);
   if (flashed < 1) {
     parts.push(glow(0, 0, 3.2 * unit, tones.halo, palette, 1 - flashed));
-    parts.push(circle(0, 0, (1.1 + 0.8 * flashed) * unit, flashTone(palette.accent, palette), { opacity: 0.92 * (1 - flashed) ** 1.4 }));
+    parts.push(
+      circle(
+        0,
+        0,
+        (1.1 + 0.8 * flashed) * unit,
+        flashTone(palette.accent, palette),
+        { opacity: 0.92 * (1 - flashed) ** 1.4 },
+      ),
+    );
   }
   // The pilot, popping out and floating off, up and to the left.
   if (t >= 70 && t < FX_MS.bailOut) {
@@ -1692,7 +2667,13 @@ export function shipLostFx(t, palette, { unit = 16, turn = 0, seed = 1, still = 
     const scale = popped < 1 ? 0.3 + 0.82 * easeOut(popped) - 0.12 * popped : 1;
     const drift = (2.2 * (t - 70)) / 1000;
     const [x, y] = polar(TURN * 0.62, drift * unit);
-    parts.push(place(bubblePlaceholder(palette, { unit, scale: scale * 0.8 }), { x, y, opacity: t > 1100 ? 1 - shareOf(t, 1100, FX_MS.bailOut) : 1 }));
+    parts.push(
+      place(bubblePlaceholder(palette, { unit, scale: scale * 0.8 }), {
+        x,
+        y,
+        opacity: t > 1100 ? 1 - shareOf(t, 1100, FX_MS.bailOut) : 1,
+      }),
+    );
   }
   return parts.join("");
 }
@@ -1709,27 +2690,62 @@ export function shipLostFx(t, palette, { unit = 16, turn = 0, seed = 1, still = 
  * @param {{ unit?: number, from?: Point, orb?: (scale: number) => string }} [how] Where the orb was as it was caught, in field units from the ship, and the orb, drawn at a scale.
  * @returns {string}
  */
-export function caughtFx(t, palette, { unit = 16, from = [1.6, -1.1], orb } = {}) {
+export function caughtFx(
+  t,
+  palette,
+  { unit = 16, from = [1.6, -1.1], orb } = {},
+) {
   if (t < 0 || t >= FX_MS.caught) return "";
   const tones = energyOf(palette.accent, palette);
   const parts = [];
   const drawn = shareOf(t, 0, 170);
   if (orb && drawn < 1) {
     const eased = drawn * drawn;
-    parts.push(place(orb(lerp(1, 0.18, eased)), { x: from[0] * unit * (1 - eased), y: from[1] * unit * (1 - eased), opacity: 1 - drawn ** 4 }));
+    parts.push(
+      place(orb(lerp(1, 0.18, eased)), {
+        x: from[0] * unit * (1 - eased),
+        y: from[1] * unit * (1 - eased),
+        opacity: 1 - drawn ** 4,
+      }),
+    );
   }
   const closing = shareOf(t, 20, 220);
   if (t >= 20 && closing < 1) {
     const at = lerp(2.3, 0.45, closing * closing) * unit;
-    parts.push(ring(0, 0, at, tones.halo, Math.max(2, 0.4 * unit), { opacity: 0.22 * swell(closing, 0.5) }));
-    parts.push(ring(0, 0, at, tones.body, Math.max(1, 0.12 * unit), { opacity: 0.35 + 0.65 * closing }));
+    parts.push(
+      ring(0, 0, at, tones.halo, Math.max(2, 0.4 * unit), {
+        opacity: 0.22 * swell(closing, 0.5),
+      }),
+    );
+    parts.push(
+      ring(0, 0, at, tones.body, Math.max(1, 0.12 * unit), {
+        opacity: 0.35 + 0.65 * closing,
+      }),
+    );
   }
   const landed = shareOf(t, 150, FX_MS.caught);
   if (t >= 150 && landed < 1) {
-    parts.push(spark(0, 0, 1.1 * unit * swell(landed, 0.3) + 1, palette.accent, palette, { turn: 0.2 }));
+    parts.push(
+      spark(
+        0,
+        0,
+        1.1 * unit * swell(landed, 0.3) + 1,
+        palette.accent,
+        palette,
+        { turn: 0.2 },
+      ),
+    );
     for (let i = 0; i < 3; i++) {
       const [x, y] = polar(0.5 + (i / 3) * TURN, (0.9 + 1.1 * landed) * unit);
-      parts.push(polygon(sparkPoints(0.22 * unit * (1 - landed) + 0.5).map(([px, py]) => /** @type {Point} */ ([x + px, y + py])), tones.hot, { opacity: 1 - landed }));
+      parts.push(
+        polygon(
+          sparkPoints(0.22 * unit * (1 - landed) + 0.5).map(
+            ([px, py]) => /** @type {Point} */ ([x + px, y + py]),
+          ),
+          tones.hot,
+          { opacity: 1 - landed },
+        ),
+      );
     }
   }
   return parts.join("");
@@ -1752,8 +2768,16 @@ export function rescuedFx(t, palette, { unit = 16, seed = 1 } = {}) {
   const s = shareOf(t, 0, 460);
   if (s < 1) {
     const at = (1.15 + 1.5 * easeOut(s)) * unit;
-    parts.push(ring(0, 0, at, tones.halo, Math.max(2, 0.7 * unit * (1 - 0.5 * s)), { opacity: 0.24 * (1 - s) }));
-    parts.push(ring(0, 0, at, tones.body, Math.max(1, 0.1 * unit), { opacity: 0.75 * (1 - s) }));
+    parts.push(
+      ring(0, 0, at, tones.halo, Math.max(2, 0.7 * unit * (1 - 0.5 * s)), {
+        opacity: 0.24 * (1 - s),
+      }),
+    );
+    parts.push(
+      ring(0, 0, at, tones.body, Math.max(1, 0.1 * unit), {
+        opacity: 0.75 * (1 - s),
+      }),
+    );
   }
   for (let i = 0; i < 5; i++) {
     const x = (i - 2) * 0.62 * unit + between(random, -0.2, 0.2) * unit;
@@ -1763,7 +2787,16 @@ export function rescuedFx(t, palette, { unit = 16, seed = 1 } = {}) {
     const rise = between(random, 1.4, 2.4);
     const size = between(random, 0.26, 0.42);
     if (t < delay || g >= 1) continue;
-    parts.push(spark(x, (0.3 - rise * easeOut(g)) * unit, size * unit * swell(g, 0.3) + 0.6, palette.accent, palette, { turn: g * 0.8, halo: 0.55 }));
+    parts.push(
+      spark(
+        x,
+        (0.3 - rise * easeOut(g)) * unit,
+        size * unit * swell(g, 0.3) + 0.6,
+        palette.accent,
+        palette,
+        { turn: g * 0.8, halo: 0.55 },
+      ),
+    );
   }
   return parts.join("");
 }
@@ -1785,7 +2818,11 @@ export function clearedFx(t, palette, { unit = 16, reach = 60 } = {}) {
   const at = lerp(1.5, reach, s * (2 - s) * 0.5 + s * 0.5) * unit;
   const fade = 1 - s ** 2;
   return [
-    ring(0, 0, at - 0.6 * unit, tones.halo, 2.4 * unit, { opacity: 0.14 * fade }),
-    ring(0, 0, at, tones.body, Math.max(1.2, 0.16 * unit), { opacity: 0.7 * fade }),
+    ring(0, 0, at - 0.6 * unit, tones.halo, 2.4 * unit, {
+      opacity: 0.14 * fade,
+    }),
+    ring(0, 0, at, tones.body, Math.max(1.2, 0.16 * unit), {
+      opacity: 0.7 * fade,
+    }),
   ].join("");
 }

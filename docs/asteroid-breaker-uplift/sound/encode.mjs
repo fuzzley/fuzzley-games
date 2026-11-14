@@ -69,12 +69,30 @@ async function encode(from, to, quality, rate) {
     "-flags:a",
     "+bitexact",
   ];
-  await run("ffmpeg", [...quiet, "-c:a", "libvorbis", "-q:a", String(quality), `${to}.ogg`]);
-  await run("ffmpeg", [...quiet, "-c:a", "aac", "-b:a", rate, "-movflags", "+faststart", `${to}.m4a`]);
+  await run("ffmpeg", [
+    ...quiet,
+    "-c:a",
+    "libvorbis",
+    "-q:a",
+    String(quality),
+    `${to}.ogg`,
+  ]);
+  await run("ffmpeg", [
+    ...quiet,
+    "-c:a",
+    "aac",
+    "-b:a",
+    rate,
+    "-movflags",
+    "+faststart",
+    `${to}.m4a`,
+  ]);
 }
 
 /** @type {{ sounds: Record<string, { family: string, loop: boolean, files: string[] }> }} */
-const manifest = JSON.parse(await readFile(join(assets, "sounds.json"), "utf8"));
+const manifest = JSON.parse(
+  await readFile(join(assets, "sounds.json"), "utf8"),
+);
 const scratch = join(tmpdir(), `asteroid-breaker-uplift-${process.pid}`);
 await mkdir(scratch, { recursive: true });
 await mkdir(join(assets, "sprite"), { recursive: true });
@@ -87,7 +105,10 @@ const spritemap = {};
 let at = 0;
 for (const [, sound] of Object.entries(manifest.sounds)) {
   for (const file of sound.files) {
-    const take = /** @type {string} */ (file.split("/").at(-1)).replace(/\.wav$/, "");
+    const take = /** @type {string} */ (file.split("/").at(-1)).replace(
+      /\.wav$/,
+      "",
+    );
     if (sound.family === "beds") {
       await encode(join(assets, file), join(assets, "beds", take), 4, "128k");
       continue;
