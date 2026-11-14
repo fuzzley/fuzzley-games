@@ -1,12 +1,23 @@
-<fz-phaser-canvas #canvas [scene]="scene" [options]="hostOptions">
-  <!-- The empty field, sized as the scene sizes it, until the scene draws. -->
-  <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
-    <div class="field">
-      <div class="paddle" [style]="paddleStyle()"></div>
+<div
+  #play
+  class="play"
+  role="application"
+  tabindex="0"
+  aria-roledescription="game board"
+  aria-describedby="board-keys"
+  [attr.aria-label]="label()"
+  (pointerdown)="takeFocus()"
+>
+  <fz-phaser-canvas #canvas [scene]="scene" [options]="hostOptions">
+    <!-- The empty field, sized as the scene sizes it, until the scene draws. -->
+    <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
+      <div class="field">
+        <div class="paddle" [style]="paddleStyle()"></div>
+      </div>
     </div>
-  </div>
-</fz-phaser-canvas>
-<div class="ring" [style]="ringStyle()"></div>
+  </fz-phaser-canvas>
+  <div class="ring" [style]="ringStyle()"></div>
+</div>
 
 <p id="board-keys" class="fz-visually-hidden">
   The left and right arrow keys, or A and D, move the paddle, and so does the

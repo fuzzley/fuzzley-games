@@ -1,4 +1,3 @@
-import { DOCUMENT } from "@angular/common";
 import {
   Component,
   ElementRef,
@@ -66,19 +65,17 @@ const CARD_DROP =
  * canvas's own (`<fz-canvas-cards>`), that the board is still loading on a
  * slow connection, or that it couldn't be drawn.
  *
- * The board is an application to assistive technology, so a screen reader
- * hands it the keys rather than reading with them; the canvas in it is
- * hidden, and the announcer says what happens.
+ * Only the canvas and its ring are an application to assistive
+ * technology, so a screen reader hands it the keys rather than reading with
+ * them; the canvas in it is hidden, the announcer says what happens, and
+ * the cards beside it read as a page does. Phaser hears the keys on the
+ * board's own element, to which they rise from the application; a card's
+ * button keeps its own (`fzKeepKeys`).
  */
 @Component({
   selector: "app-board",
   imports: [CanvasCardsComponent, KeepKeysDirective, PhaserCanvasComponent],
   host: {
-    tabindex: "0",
-    role: "application",
-    "aria-roledescription": "game board",
-    "[attr.aria-label]": "label()",
-    "aria-describedby": "board-keys",
     "[attr.data-field]": "fieldRect()",
     "[attr.data-outcome]": "game.outcome()",
     "[class.in-play]": "inPlay()",
@@ -87,7 +84,6 @@ const CARD_DROP =
     "[style.--finger-room]": "fingerRoom()",
     "[style.--card-drop]": "cardDrop",
     "[style.--pixel-ratio]": "pixelRatio()",
-    "(pointerdown)": "takeFocus()",
   },
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
@@ -97,9 +93,9 @@ export class BoardComponent {
   private readonly viewport = inject(GameViewportService);
   private readonly settings = inject(SettingsService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private readonly canvas = viewChild.required(PhaserCanvasComponent);
+  private readonly play = viewChild.required<ElementRef<HTMLElement>>("play");
 
   protected readonly across = FIELD_WIDTH;
   protected readonly cardDrop = CARD_DROP;
@@ -292,7 +288,7 @@ export class BoardComponent {
   focus(options?: FocusOptions): void {
     afterNextRender(
       () => {
-        this.host.nativeElement.focus(options);
+        this.play().nativeElement.focus(options);
       },
       { injector: this.injector },
     );
@@ -301,13 +297,13 @@ export class BoardComponent {
   /** Goes on with the paused level, and hands the focus back to the board. */
   protected resume(): void {
     this.game.resume();
-    this.host.nativeElement.focus();
+    this.play().nativeElement.focus();
   }
 
   /** Goes on to the next level, and hands the focus back to the board. */
   protected nextLevel(): void {
     this.game.nextLevel();
-    this.host.nativeElement.focus();
+    this.play().nativeElement.focus();
   }
 
   /** Starts another run, from the card over an ended one. */
@@ -334,9 +330,6 @@ export class BoardComponent {
    * otherwise keeps from it, so the keys work after a tap or a click.
    */
   protected takeFocus(): void {
-    const board = this.host.nativeElement;
-    if (!board.contains(this.document.activeElement)) {
-      board.focus({ preventScroll: true });
-    }
+    this.play().nativeElement.focus({ preventScroll: true });
   }
 }

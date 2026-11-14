@@ -256,10 +256,9 @@ describe("AppComponent", () => {
 
     /** Runs the scene the board hands its canvas, its first frame drawn. */
     async function runBoardScene(): Promise<SceneRun<HostedScene>> {
-      const run = await runShownScene(
-        TestBed.inject(FakePhaserCanvas),
-        screen.getByRole("application"),
-      );
+      const board = document.querySelector<HTMLElement>("app-board");
+      if (!board) throw new Error("No board.");
+      const run = await runShownScene(TestBed.inject(FakePhaserCanvas), board);
       run.advance(FRAME_MS);
       return run;
     }
