@@ -1,5 +1,5 @@
 import { FrameSounds } from "@fz/core/frame_sounds";
-import type { Contact, FlightEvent } from "../../rules/flight/events";
+import type { FlightEvent, TurnOff } from "../../rules/flight/events";
 import type { Boon } from "../../rules/shot";
 import { AT_ONCE } from "../../rules/tuning";
 
@@ -92,10 +92,9 @@ const BEAT_EFFECTS: Readonly<Record<Beat, EventEffects>> = {
 };
 
 /** What a turn off each thing calls for: a brick's face or corner nothing, as the strike on it speaks for it. */
-const TURN_EFFECTS: Readonly<Record<Contact, EventEffects>> = {
+const TURN_EFFECTS: Readonly<Record<TurnOff, EventEffects>> = {
   side: calling("knock"),
   ceiling: calling("knock"),
-  floor: calling("knock"),
   face: QUIET,
   corner: QUIET,
   bumper: calling("bump"),

@@ -66,9 +66,6 @@ export const MOST_FLIGHT = 600;
 /** How many turns running, with no flight between them, bring a fuzzball home. */
 export const STILL_TURNS = 8;
 
-/** How many times a hot shot turns off the floor before it lands. */
-export const HOT_BOUNCES = 1;
-
 /** The hits a zap or a blast takes off each brick it reaches. */
 export const ZAP_HITS = 2;
 

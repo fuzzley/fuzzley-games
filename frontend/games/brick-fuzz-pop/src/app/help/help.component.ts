@@ -12,7 +12,6 @@ import {
   brickKind,
 } from "../../rules/catalog/bricks";
 import {
-  HOT_BOUNCES,
   JUMP_POINTS,
   MOST_CHARGE,
   STAR_POINTS,
@@ -20,7 +19,6 @@ import {
   TRIPLE_MATES,
   TWO_STARS_PAST_PAR,
 } from "../../rules/tuning";
-import { howOften } from "./help_words";
 
 /**
  * The pictures How to play shows, each an image's URL: every kind of brick's.
@@ -34,7 +32,7 @@ export interface HelpPictures {
 const CHARGE = `A fuzzball's charge, 0 to ${String(MOST_CHARGE)}, is how many hits it punches through. It spends as much as a brick has hits left, or all it has, taking that many hits off it: through a brick it breaks it flies on with what is left, and off one it doesn't it turns. A plain one takes one hit and turns. Steel takes the charge.`;
 
 /** What How to play says of the two boons, from the tuning. */
-const BOONS = `The hot shot flies at full charge whatever you charged, nothing takes its charge, and it bounces off the floor ${howOften(HOT_BOUNCES)} before it lands. The triple shot sends ${count(TRIPLE_MATES, "more fuzzball", "more fuzzballs")} out behind yours, each with the charge you chose. A boon lasts one shot, and a boon shot that clears below the line again earns the next.`;
+const BOONS = `The hot shot flies at full charge whatever you charged, and nothing takes its charge. The triple shot sends ${count(TRIPLE_MATES, "more fuzzball", "more fuzzballs")} out behind yours, each with the charge you chose. A boon lasts one shot, and a boon shot that clears below the line again earns the next.`;
 
 /** How the score adds up and stars are earned, from the tuning, as How to play says it. */
 const SCORING = {

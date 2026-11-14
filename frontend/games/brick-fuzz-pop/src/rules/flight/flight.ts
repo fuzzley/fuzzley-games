@@ -27,7 +27,6 @@ import { brickAt, cellAt, columnOf, fieldRowOf } from "../grid";
 import type { Aim } from "../shot";
 import {
   AT_ONCE,
-  HOT_BOUNCES,
   LAUNCH_GAP,
   MOST_CHARGE,
   MOST_FLIGHT,
@@ -49,9 +48,9 @@ import {
 import type {
   BallRole,
   BreakCause,
-  Contact,
   Flight,
   FlightEvent,
+  TurnOff,
   Waypoint,
   ZapPattern,
 } from "./events";
@@ -68,7 +67,7 @@ export interface FlightStart {
   readonly aim: Aim;
   /** The charge the player's fuzzball and its mates leave with, but a hot shot's. */
   readonly charge: number;
-  /** Whether the player's fuzzball is a hot shot: charged to the most, keeping it, and turning off the floor once. */
+  /** Whether the player's fuzzball is a hot shot: charged to the most, and keeping it. */
   readonly hot: boolean;
   /** How many mates leave behind the player's fuzzball, with its charge. */
   readonly mates: number;
@@ -137,8 +136,6 @@ interface Ball {
   /** The moment it is at its place. */
   at: number;
   charge: number;
-  /** How many times it turns off the floor before it lands. */
-  bounces: number;
   /** From when it has flown without taking a hit off a brick. */
   idleFrom: number;
   /** How many times running it has turned again where it turned, at the same moment. */
@@ -246,10 +243,10 @@ class Flying implements Hooks {
   // it; and the splits asked of it.
   private faceX = 0;
   private faceY = 0;
-  private faceOff: Contact | null = null;
+  private faceOff: TurnOff | null = null;
   private cornerX = 0;
   private cornerY = 0;
-  private cornerOff: Contact | null = null;
+  private cornerOff: TurnOff | null = null;
   private kickX = 0;
   private kickY = 0;
   private readonly struckCells: number[] = [];
@@ -444,7 +441,6 @@ class Flying implements Hooks {
       dy,
       at,
       charge,
-      bounces: hot ? HOT_BOUNCES : 0,
       idleFrom: at,
       still: 0,
       turnedAt: -1,
@@ -559,10 +555,10 @@ class Flying implements Hooks {
   }
 
   /**
-   * Plays what a fuzzball meets at a moment: it lands on the floor, unless
-   * it turns off it first; otherwise it strikes each brick it meets, then
-   * turns off what didn't let it through, and leaves any splits asked of
-   * it along its new heading.
+   * Plays what a fuzzball meets at a moment: it lands on the floor;
+   * otherwise it strikes each brick it meets, then turns off what didn't
+   * let it through, and leaves any splits asked of it along its new
+   * heading.
    */
   private meet(ball: Ball): void {
     const { contacts } = ball;
@@ -579,7 +575,6 @@ class Flying implements Hooks {
     this.struckCells.length = 0;
     this.passedCells.length = 0;
     this.splits.length = 0;
-    let bounced = false;
     let index = 0;
     for (const met of contacts.met) {
       if (index === contacts.count) {
@@ -588,26 +583,18 @@ class Flying implements Hooks {
       index++;
       switch (met.what) {
         case "floor":
-          if (ball.bounces === 0) {
-            this.landOn(ball);
-            return;
-          }
-          bounced = true;
-          this.turnFace(met);
-          break;
+          this.landOn(ball);
+          return;
         case "side":
         case "ceiling":
-          this.turnFace(met);
+          this.turnFace(met.what, met);
           break;
         case "face":
         case "corner":
         case "bumper":
-          this.meetBrick(ball, met);
+          this.meetBrick(ball, met.what, met);
           break;
       }
-    }
-    if (bounced) {
-      ball.bounces--;
     }
     const off = this.turn(ball);
     if (off !== null) {
@@ -638,8 +625,8 @@ class Flying implements Hooks {
     }
   }
 
-  /** Notes a face, a side wall, the ceiling or the floor a fuzzball turns off. */
-  private turnFace({ what, nx, ny }: Readonly<Met>): void {
+  /** Notes a face, a side wall or the ceiling a fuzzball turns off. */
+  private turnFace(what: TurnOff, { nx, ny }: Readonly<Met>): void {
     this.faceX += nx;
     this.faceY += ny;
     this.faceOff ??= what;
@@ -650,13 +637,17 @@ class Flying implements Hooks {
    * the fuzzball turns off, unless the strike let it through: a face, a
    * corner, or a disc, whose rules may kick it.
    */
-  private meetBrick(ball: Ball, met: Readonly<Met>): void {
-    const { what, cell, nx, ny } = met;
+  private meetBrick(
+    ball: Ball,
+    what: "face" | "corner" | "bumper",
+    met: Readonly<Met>,
+  ): void {
+    const { cell, nx, ny } = met;
     if (this.strikeOnce(ball, met)) {
       return;
     }
     if (what === "face") {
-      this.turnFace(met);
+      this.turnFace(what, met);
       return;
     }
     this.cornerX += nx;
@@ -681,7 +672,7 @@ class Flying implements Hooks {
    * a disc, about the sum of their lines to its middle, each a unit long as
    * C5 says, which it flies into, as it met them.
    */
-  private turn(ball: Ball): Contact | null {
+  private turn(ball: Ball): TurnOff | null {
     const kick = Math.sqrt(this.kickX * this.kickX + this.kickY * this.kickY);
     if (kick > 0) {
       ball.dx = this.kickX / kick;
