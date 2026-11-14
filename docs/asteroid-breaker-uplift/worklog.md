@@ -274,6 +274,10 @@ never `yarn prettier`, which formats the whole repository.
   under "Risks" in the plan: the lighting's spike, the balance of strays
   and hits by hand, and the sounds heard in the game itself.
 - **One sound more:** `bed-shimmer`, heard as "too thin and simple right
-  now. It needs more depth and complexity." Its maker is giving it a body
-  in the middle register, phrases in place of single notes, and sixteen
-  seconds in place of eight.
+  now. It needs more depth and complexity." It was made again as sixteen
+  seconds in three voices and three registers (a body of struck pairs,
+  bells in runs and echoes, a plucked figure), on the pulse's beat, and the
+  user heard it: "It's good." The audition page starts the pulse and the
+  shimmer on one bar line, as the game must.
+- **So every sound has passed the user's ear on the page,** the three made
+  again and the shimmer among them. `sound/listen-for.md` has each verdict.

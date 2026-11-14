@@ -209,8 +209,9 @@ ninety-eight sounds have passed the ear on the audition page.
 After everything else had passed, the user asked for one more pass on
 `bed-shimmer`: "It is too thin and simple right now. It needs more depth
 and complexity." It was eight single glass bells from E6 to E7 in eight
-seconds, 79% of its energy between 1.5 and 3 kHz. **The new one has not
-been heard.**
+seconds, 79% of its energy between 1.5 and 3 kHz. **Heard the same day:** "It's
+good." So the table at this section's foot is what its maker doubted, and
+none of it has been done.
 
 - **What it is now:** sixteen seconds, eight bars at the pulse's 120 beats
   a minute, 94 notes in three voices and three registers.
