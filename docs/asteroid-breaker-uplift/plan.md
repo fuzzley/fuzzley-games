@@ -136,6 +136,31 @@ What it lacks, by the inventory and the research:
   with, the one card between waves is where a choice would be made, and
   each fuzzball in tow is a place a power could sit.
 
+## The uplift in pictures
+
+`mocks/` stages the art as the game in play. The first restages the
+screenshot above, rock for rock: wave 9, Crowd, in Casino night.
+
+![Wave 9 as the uplift would draw it](mocks/preview/play-laptop-dark.webp)
+
+The pod at the lower left with two of its crew in tow, firing up the field;
+a stray to catch at the upper left; a rock breaking into its own facets at
+the right and shedding sparks; sparks drawn in to the pod; a Spread pickup;
+the Inner belt's ringed planet behind; and in the bar the pilot's face, the
+crew and static's step.
+
+| The same moment in a light palette, as ink on paper              | On a phone, upright, in two palettes                       |
+| ---------------------------------------------------------------- | ---------------------------------------------------------- |
+| ![Wave 9 in Classic felt](mocks/preview/play-laptop-light.webp)  | ![Wave 9 on a phone](mocks/preview/phone-upright.webp)     |
+
+| A zap in the Iron reach: arcs to five rocks, a blast lighting its neighbours, a comet warned of | A hit in the Storm: one of the crew knocked loose, the pod untouchable for a moment |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| ![A zap](mocks/preview/zap-laptop.webp)                                                         | ![A hit](mocks/preview/loose-laptop.webp)                                           |
+
+![The one card between waves, a sector's first wave, and the run's end](mocks/preview/cards.webp)
+
+![The marks a pod wears](mocks/preview/pod-hud.webp)
+
 ## What the user settles
 
 Ten choices are the user's more than the plan's. "Decisions" marks each
@@ -313,14 +338,21 @@ sparks. Three materials, each drawn one way.
   at rest, blinking, set, startled, happy, dizzy, sleepy, pleading and
   squeezed shut. Its fur shows force (it lags a thrust and sweeps flat in
   a dash) and static (four steps, from flat to on end and sparking).
-- **The state of the pod is on the pod.** Static is the fur and a thin
-  ring round the canopy that fills. The dash charging again is a short arc
-  behind the canopy, which pulses once when it is ready. A weapon's time
-  left is an arc outside those. The Shield is a glass shell. No digits are
-  drawn near the pod.
-- **The bar's face cam.** On a phone the pilot's face is a few pixels, so
-  the bar's first crew figure is the pilot at the controls, larger, with
-  its face and its fur as they are on the field.
+- **The state of the pod is on the pod,** in four marks and no more. Static
+  is the pilot's fur, and at its last step arcs crawl over the hull. The
+  dash charging again is the canopy's rim: dark after a dash, filling round,
+  whole when it is ready. The Shield is a glass shell. A pod that can't be
+  touched wears a dashed ring. A weapon's time left stays where it is now,
+  in the tags at the field's corner, and shows in the shots themselves,
+  since each weapon's shot has a shape of its own: a third ring round the
+  pod was tried in the mocks and crowded the other two. No digits are drawn
+  near the pod.
+- **The bar's face cam.** On a phone the pilot's face is a few pixels and
+  its fur can't show four steps, so the bar's first crew figure is the pilot
+  at the controls, larger, with its face and its fur as they are on the
+  field, and the bar carries the multiplier as a number and four pips: a
+  figure of its own where there is room, and beside the face cam on a
+  compact bar.
 
 ![The four places](art/preview/sectors.webp)
 
@@ -787,7 +819,20 @@ is, and the autopilot's report is run again after each.
 - **The numbers are guesses.** Every number under "Play" is.
 - **A tow line across the wrap.** The line must find the short way across
   an edge and be drawn on both sides of it, which the game does for single
-  things and not yet for a chain.
+  things and not yet for a chain. At the rule's spacing two in tow reach
+  5 units behind the pod and five nearly 10, so a line across an edge will
+  be common. The pilot's sheet draws the line looser than the rule, and
+  staged at that it was too long: five reached 15 units, a third of a
+  phone's width.
+- **A hit is a small event on a busy field.** In the mock of one, the large
+  rocks and the comet outweigh the pod, its ring and its flash. The shake
+  and the sound have to carry it, and the fuzzball knocked loose has to be
+  found at a glance: its bubble may need to blink from the start.
+- **The bar runs out of room.** Four figures, three in tow and a score of
+  five figures just fit a laptop's bar between the speed and Pause. Five in
+  tow and six figures don't: the crew becomes a count past three.
+- **The burr's look isn't settled.** Small, it read as a flower, and
+  clinging to the hull it barely shows against the accent.
 
 ## Not in this plan
 
