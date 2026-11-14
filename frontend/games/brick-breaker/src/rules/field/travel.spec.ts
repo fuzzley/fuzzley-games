@@ -14,9 +14,11 @@ import {
 import { hitBrick } from "../bricks/bricks";
 import { catchCapsule } from "../bricks/capsules";
 import { cellIndex, columnOf, rowOf } from "../grid";
+import type { Nudge } from "../levels/level";
 import { ballSpeed } from "../speed";
 import {
   BALL_RADIUS,
+  BUMPER_RADIUS,
   FLATTEST,
   LULL_BOUNCES,
   LULL_TURN,
@@ -545,6 +547,128 @@ describe("a gate", () => {
   });
 });
 
+describe("a bumper", () => {
+  // The bumper's disc lies about 13, 7.5, its radius a half; a ball's middle
+  // meets it 0.86 from there.
+
+  it("turns a ball that meets it head on straight back, takes no hit, and says so", () => {
+    const field = fieldFrom(sixthRow("......O"));
+    const ball = throwBall(field, 13, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      broken: brickAt(field, 6, 5).broken,
+      heading: Math.abs(headingOf(ball)),
+      climbed: field.climbed,
+      events: eventsOf(field),
+    }).toEqual({ broken: false, heading: 180, climbed: 0, events: ["bumped"] });
+  });
+
+  it("turns a ball as off a circle, about the line from its middle to the ball's", () => {
+    // Rising straight up half its reach right of the middle, the ball meets
+    // the disc where the line to its middle is 30° off straight down, and
+    // leaves 120° from straight up, where a brick's face would send it
+    // straight back.
+    const field = fieldFrom(sixthRow("......O"));
+    const ball = throwBall(
+      field,
+      13 + (BALL_RADIUS + BUMPER_RADIUS) / 2,
+      10,
+      0,
+    );
+
+    stepTimes(field, 15);
+
+    expect(Math.round(headingOf(ball))).toBe(120);
+  });
+
+  it("lets a ball pass beside its disc, through its cell", () => {
+    const field = fieldFrom(sixthRow("......O"));
+    const ball = throwBall(field, 12.1, 10, 0);
+
+    stepTimes(field, 30);
+
+    expect({
+      above: ball.y < 7,
+      rising: ball.dy < 0,
+      events: eventsOf(field),
+    }).toEqual({ above: true, rising: true, events: [] });
+  });
+
+  it("turns a fire ball, which passes through only what breaks", () => {
+    const field = fieldFrom(sixthRow("......O"));
+    catchCapsule(field, "fire", 0, 0);
+    const ball = throwBall(field, 13, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      heading: Math.abs(headingOf(ball)),
+      events: eventsOf(field),
+    }).toEqual({ heading: 180, events: ["caught", "bumped"] });
+  });
+
+  it("sets off no blast around it as a blast ball turns off it", () => {
+    const field = fieldFrom(["o", "", "", "", ".....ooo", ".....oOo"]);
+    throwBall(field, 13, 12, 0);
+    catchCapsule(field, "blast", 0, 0);
+
+    stepTimes(field, 35);
+
+    expect({
+      broken: field.bricks.filter((brick) => brick?.broken).length,
+      events: eventsOf(field),
+    }).toEqual({ broken: 0, events: ["caught", "bumped"] });
+  });
+
+  it("leaves the bottom face of a brick above it to be met through its cell", () => {
+    // Rising beside the disc, the ball meets the brick above's bottom face,
+    // which a brick in the bumper's place would hide.
+    const field = fieldFrom(["o", "", "", "", "......o", "......O"]);
+    const ball = throwBall(field, 12.1, 10, 0);
+
+    stepTimes(field, 30);
+
+    expect({
+      broken: brickAt(field, 6, 4).broken,
+      falling: ball.dy > 0,
+      events: eventsOf(field),
+    }).toEqual({ broken: true, falling: true, events: ["broken"] });
+  });
+
+  it("leaves the corner of a brick beside it to be met through its cell", () => {
+    // Rising up and left past the disc, the ball meets the bottom right
+    // corner of the brick beside it, which a brick in the bumper's place
+    // would cover.
+    const field = fieldFrom(sixthRow(".....oO"));
+    const ball = throwBall(field, 12.5, 9, -30);
+
+    stepTimes(field, 15);
+
+    expect({
+      broken: brickAt(field, 5, 5).broken,
+      right: ball.dx > 0,
+      events: eventsOf(field),
+    }).toEqual({ broken: true, right: true, events: ["broken"] });
+  });
+
+  it("leaves the corner of steel beside it to be met through its cell by a fire ball", () => {
+    // As above, by a ball that passes through what breaks, so its travel
+    // asks of steel alone which cells stop a ball.
+    const field = fieldFrom(sixthRow(".....#O"));
+    catchCapsule(field, "fire", 0, 0);
+    const ball = throwBall(field, 12.5, 9, -30);
+
+    stepTimes(field, 15);
+
+    expect({ right: ball.dx > 0, events: eventsOf(field) }).toEqual({
+      right: true,
+      events: ["caught", "hit"],
+    });
+  });
+});
+
 describe("a lull", () => {
   it(`turns a ball a few degrees at the wall after ${String(LULL_BOUNCES)} bounces`, () => {
     const field = fieldFrom(FAR_BRICK);
@@ -600,6 +724,42 @@ describe("a lull", () => {
       events: ["wall"],
       away: true,
     });
+  });
+
+  it.each([
+    ["steel", "#"],
+    ["a bumper", "O"],
+  ])(
+    `turns a ball a few degrees off %s after ${String(LULL_BOUNCES)} bounces, where the level nudges off what can't break`,
+    (_, brick) => {
+      const field = fieldFrom(sixthRow(`......${brick}`), {
+        nudge: "unbreakable",
+      });
+      const ball = throwBall(field, 13, 10, 0);
+      ball.bounces = LULL_BOUNCES;
+
+      stepTimes(field, 15);
+
+      const turn = 180 - Math.abs(headingOf(ball));
+      expect(turn).toBeGreaterThanOrEqual(LULL_TURN.least);
+      expect(turn).toBeLessThanOrEqual(LULL_TURN.most);
+    },
+  );
+
+  it.each<[string, string, Nudge]>([
+    ["steel, where the level nudges at the walls alone", "#", "walls"],
+    ["a brick that can break", "2", "unbreakable"],
+  ])("leaves a ball turning off %s as a mirror would", (_, brick, nudge) => {
+    const field = fieldFrom(sixthRow(`......${brick}`), { nudge });
+    const ball = throwBall(field, 13, 10, 0);
+    ball.bounces = LULL_BOUNCES;
+
+    stepTimes(field, 15);
+
+    expect({
+      heading: Math.abs(headingOf(ball)),
+      bounces: ball.bounces,
+    }).toEqual({ heading: 180, bounces: LULL_BOUNCES + 1 });
   });
 
   it("is counted again from the paddle", () => {

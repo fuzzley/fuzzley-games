@@ -610,3 +610,189 @@ The review, and the answers:
    as one.
 5. Nits, taken: four long sentences split, and Lanterns' `+` from 20 seeds
    named.
+
+## K3. Machines' kinds, with levels 41 to 43
+
+The branch held the integration tip (2213ea2a, with P1, R1, K1, K2, L1, P2,
+R2, L2, F1, R3 and F3a) as the package began. The integrator set its three
+commits in another order than §6's: the bumper, then the portal with the
+nudge, then the slider, whose change to `brick_painter.ts` rebases on
+stream L's and F's work there.
+
+### 2026-11-14: the bumper, with Pinball (41), and the nudge
+
+What it does:
+
+- `BRICK_KINDS.bumper` (`O`), which never breaks, isn't needed and scores
+  nothing, with a new trait, `bumps`, whose rule is empty: the travel reads
+  it through `isBumper()` (`bricks.ts`), from a set of the kinds made once,
+  as `isPlated()` reads its own (`kindsWith()`).
+- The travel meets a bumper as a disc of `BUMPER_RADIUS` (0.5, in
+  `tuning.ts`) at its cell's middle, through `@fz/core/sweep`'s
+  `sweepPoint()` at the ball's radius and the disc's together
+  (`noteDisc()`). Any ball, a fire ball too, turns there as off a circle,
+  about the line from the disc's middle to the ball's, as it turns off a
+  corner; the bumper takes no hit, the speed doesn't climb, a blast ball's
+  hit doesn't reach around, and the field records `bumped` at the ball, with
+  the bumper's cell. The list of plates met (`Contacts.plates`) is now the
+  list of what is met unhurt (`unhurt`), a plate's underside or a bumper,
+  each recording its own event (`unhurtBy()`).
+- `isRound()` (`bricks.ts`): the travel reads the field's `solid` and
+  `hardSolid` with a round brick's cell left open (`boxed` and `hardBoxed`
+  in `travel.ts`), so the faces of the bricks beside it stay exposed
+  (`exposureOf()`). `Field.solid` itself is as it was, holding the cell
+  whole, so the seeker (`nearestInSight()`) and the autopilot
+  (`chooseAim()`) take a bumper as blocking a line of sight (`inSight()`):
+  a ball passes a lone one only through the cells beside it. This refines
+  C16's wording, which has `Field.solid` and `hardSolid` leave the cell
+  open: the travel does, and `field.ts` stays as it was.
+- The lull's nudge (C19), brought here from the next commit: a set's
+  `nudge` (`LevelSetData.nudge`, `Level.nudge`, one of `NUDGES` in
+  `level.ts`, which `parseLevel()` checks) says where it turns a ball: at
+  the walls alone, by default, or, as `machines.json` says, off anything
+  that can't break (`unbreakable`), steel, a shut gate or a bumper. The
+  travel notes a brick that can't break among what turned the ball
+  (`Contacts.hard`), and nudges there after `LULL_BOUNCES` bounces
+  (`nudgesHere()`). `fieldFrom()` takes a `nudge`.
+- A bolt stops at a bumper's cell, which takes its hit as steel does
+  (`hit`), as a blast's does: neither needed a change.
+- A placeholder look: `roundPlaceholderArt()` in `brick_art.ts`, a disc of
+  the bumper's radius at its cell's middle in tint 8, pink, on no slab, and
+  How to play's picture in `PICTURED_BRICKS`. `EVENT_EFFECTS.bumped`, with
+  no flourish and no sound; `VOICES_OF_KINDS.bumper` rings as steel, and
+  `EVERY_KIND` holds a bumper.
+- The levels spec's reach: a spec holds a bumper's cell to stopping the
+  flood, as steel's does. Another holds each set to its nudge.
+- `src/rules/levels/machines.json`, id `machines`, name `Machines`, place
+  `arcade`, drops 0.14, nudge `unbreakable`, with Pinball, its `teaches`
+  note and the set's `says` dropped, and its mark 5 by the rule, where the
+  draft guessed 15: its middle best streak at Normal is 6. It follows
+  Friends in `LEVEL_SETS`, and the levels spec's places name it.
+- Pinball is redrawn: its lowest bumper is a row lower, in row 9 of its
+  picture rather than row 8, as below.
+- `AGENTS.md` (the geometry, the travel and its nudge, the bolts, the
+  levels, the set's nudge, the reach, the placeholders), both skills'
+  legends, the content skill's paces, a set's nudge, a round trait, the
+  slab, and two bumpers that hold a ball; `README.md` and `index.html`:
+  forty-one levels, and bumpers among the kinds.
+- `docs/brick-breaker-uplift/levels/variants-k3.json` and its record,
+  `report-k3-variants.txt`, played by K2's `play-variants.mjs`.
+
+Why the nudge came here, and Pinball was redrawn: with the seeker and the
+autopilot taking a bumper as blocking a line of sight, the report's 12 seeds played one
+play at Relaxed that never cleared (`-`). Its ball bounced between the bumper
+in row 6 at column 4 and the one below it in the middle, whose middles lie
+on a line 18° from level, flatter than the flattest a ball travels, 20°: it
+went back and forth at the flattest, off no wall, so the old nudge never
+turned it. With C19's nudge it cleared, but after an endgame of 2:06: each
+turn flatter is undone as the ball is held to the flattest, and the disc
+sends it back into the line. The trap is the draft's, whatever the seeds:
+over 300 seeds, with the nudge, as drafted one play at Fast didn't clear in
+eight minutes, and one at Relaxed took 2:06 over its last bricks. With the
+lowest bumper a row lower, the line 27° from level, none of 900 plays ran
+past a minute over its last bricks, the longest 0:41; two rows lower ran
+none either. The row lower is kept, the smaller change. It is still three
+bumpers under a wall.
+
+Choices where the plan was silent, and where it is departed from:
+
+- The placeholder is a disc, not the slab §5.2 names, which is a departure
+  from the plan: a slab would draw the bumper two units wide where a ball
+  passes beside it, and the art kit's bumper stands on no slab either.
+  `brick_art.spec.ts`' spec of the slab under every look leaves out a round
+  kind, as it does a ghost.
+- C19's nudge lands with the bumper, a commit before the integrator's
+  order, since a level with bumpers can hold a ball without it.
+- A set's `nudge` is data, where "from Machines on" could have been a level
+  number: the four sets before Machines say nothing and nudge at the walls
+  alone, so their plays, reports and marks don't move.
+- The reach treats a bumper's cell as a wall, as the drafts' checker
+  (`check-levels.mjs`) does: the disc is a cell high, and leaves 0.5 of a
+  unit either side of it in its cell, less than a ball's width, 0.72, so a
+  ball gets past a lone bumper only through the cells beside it. Two side
+  by side leave a ball 1.0 between their discs, which the flood, the seeker
+  and the autopilot take as shut, to be safe.
+- A bolt's hit and a blast's on a bumper record `hit`, which rings as
+  steel, and `bumped` is a ball's turn alone. F3b gives the bumper its
+  voice, on either event.
+- The saved game keeps nothing of a bumper, which play never changes, nor
+  of the nudge, which is the level's.
+- `BUMPER_RADIUS` is in `tuning.ts`, as K1's `FRIEND_SPREAD` is, as one
+  kind is a bumper.
+
+Added to other streams' files: `level.ts` (`NUDGES`,
+`Nudge`, `Level.nudge`), `levels.ts` (`LevelSetData.nudge`, `nudgeOf()`, a
+line of `parseLevel()`, the import of the set and `LEVEL_SETS`' last
+member), `levels.spec.ts` (a spec of the reach, a line of its doc comment,
+Machines' place, two specs of a set's nudge and one of each set's),
+`field_picture.ts` (the `nudge` option), `events.ts` (`bumped`),
+`tuning.ts` (`BUMPER_RADIUS`), `effects.ts` and its spec, `brick_art.ts`
+(`roundPlaceholderArt()` and the bumper's entry) and its spec (the round
+kinds left out of the slab's spec, the bumper's tint, and its frame's
+spec), `art.ts` (`PICTURED_BRICKS.bumper`), `seeker.spec.ts` (a member of a
+list), `bolts.spec.ts` (a spec), `README.md` and `index.html`.
+
+Measured: `yarn report:levels --seeds 12` reads as `report-k2.txt` for
+levels 1 to 40, line for line. Pinball takes 0:35 at Relaxed, 0:37 at Normal
+and 0:27 at Fast, its longest endgame 0:19, no life lost, no `!` and no `+`.
+`--marks` took 33 s.
+
+The `sim` specs pass for all 41 levels in 7.5 s.
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (68
+files, 2,865 specs, 14.2 s) in the workspace, the coverage of `pure` and
+`dom` above its floor, and the root's `yarn lint` under the lock (1:11).
+
+The review, and the answers:
+
+1. The seeker and the autopilot looked through a bumper, since `solid` left
+   its cell open, and a lent seeker could turn toward a brick behind one
+   and meet the disc head on. Fixed, at first by a new `Field.blocksSight`
+   they looked along, then, by the second review's first answer, by leaving
+   `solid` as it was and the travel alone opening the cell; the seeker's
+   spec holds a row of steel and bumpers to hiding a brick. This moved
+   Pinball's plays, which found the trap above.
+2. No spec held a blast ball turned off a bumper to setting off no reach.
+   Fixed: a spec, as the plate has.
+3. The spec of a face beside the bumper met the brick's corner, as no ball
+   can meet that face before the disc. Fixed: it says "corner", and a spec
+   of the bottom face of a brick above the bumper, which a ball rising
+   beside the disc breaks, holds what `AGENTS.md` says.
+4. The placeholder worked out the cell's middle by hand, and its spec sat
+   under `brickColor`. Fixed: `pointAt()`, and a describe of its own.
+5. `AGENTS.md` and the content skill still said every kind stands on the
+   slab, the skill didn't name `isRound()`, and the log called the disc a
+   choice where the plan was silent. Fixed: both name the round kind's
+   disc, the skill's trait section says what a round trait takes, and the
+   choice is called a departure.
+
+The fixes reshaped the change, with the nudge brought in and Pinball
+redrawn, so it had a second review, and the answers:
+
+1. `field.ts`, `seeker.ts` and `autopilot.ts` were changed where the
+   sharing rule allows only additions, and `solid` came to mean two things.
+   Fixed: the three are as they were, and the travel reads `solid` and
+   `hardSolid` through `boxed` and `hardBoxed`, its own, which leave a round
+   brick's cell open; `blocksSight` and its specs in `field.spec.ts` are
+   gone, and a spec of a fire ball meeting steel's corner beside a bumper
+   holds `hardBoxed`. Logged above as refining C16's wording. Plays and
+   the report don't move.
+2. The seeker's spec and three docs said a bumper's disc leaves no room to
+   pass, which two side by side do, 1.0 across. Fixed: the spec's row is
+   steel and bumpers in turn, and `AGENTS.md`, the reach's doc comment and
+   this log say a lone bumper is passed only beside it, and a pair is
+   taken as shut, to be safe.
+3. The skill's two-bumper trap left out distance, and its set section said
+   the nudge frees a ball between bumpers. Fixed: the trap needs the pair
+   near enough to meet at the flattest, Pinball's level pair named as too
+   far apart, and the set section says the nudge frees a loop unless two
+   bumpers hold the ball at the flattest.
+4. The testing skill's list of `fieldFrom()` options left out `nudge`.
+   Fixed: a line.
+5. Nits, taken: a bad nudge names its set (`nudgeOf(set)`); the `solid`
+   describe went with its specs; the disc's radius is
+   `radius * scale.unit`, and its spec reads the bumper's radius by the
+   frame's width.
+
+These fixes move where the cell is opened without changing a play, a
+correction rather than a reshaping, so no third review.

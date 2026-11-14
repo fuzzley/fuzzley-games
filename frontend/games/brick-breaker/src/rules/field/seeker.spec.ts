@@ -105,6 +105,10 @@ describe("a seeking ball", () => {
     ["behind steel", ["o", "#############"]],
     ["a plated brick, whose underside it would meet", ["u"]],
     ["a brick the level doesn't need", ["+"]],
+    [
+      "behind steel and bumpers in turn, which leave a ball no room to pass",
+      ["o", "#O#O#O#O#O#O#"],
+    ],
   ])("turns toward none it can't break from below: %s", (_, rows) => {
     const field = seekingUp(rows);
 

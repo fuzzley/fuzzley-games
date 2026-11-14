@@ -7,6 +7,15 @@ export const TINTS = 8;
 /** The layout a level is in where its data names none, as a level never redrawn is. */
 export const FIRST_LAYOUT = 1;
 
+/**
+ * Every place a lull's nudge may turn a ball, as a level's set says: at a
+ * wall of the field alone, or at anything that can't break.
+ */
+export const NUDGES = ["walls", "unbreakable"] as const;
+
+/** Names where a lull's nudge turns a ball. */
+export type Nudge = (typeof NUDGES)[number];
+
 /** Describes a brick as a level lays it out. */
 export interface LevelBrick {
   readonly kind: BrickKindId;
@@ -32,4 +41,9 @@ export interface Level {
   readonly drops: number;
   /** The capsules that can fall in it. */
   readonly capsules: readonly CapsuleId[];
+  /**
+   * Where a lull's nudge turns a ball that has bounced too often: at the
+   * walls alone, or, from Machines on, at anything that can't break.
+   */
+  readonly nudge: Nudge;
 }

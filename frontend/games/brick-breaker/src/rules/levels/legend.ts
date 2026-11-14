@@ -30,6 +30,7 @@ export const LEGEND: Readonly<Record<string, BrickSpec>> = {
   U: { kind: "plated", hits: 2 },
   k: { kind: "key" },
   "=": { kind: "gate" },
+  O: { kind: "bumper" },
 };
 
 /** Returns the brick a spec lays out, in a tint from 0 to 7. */

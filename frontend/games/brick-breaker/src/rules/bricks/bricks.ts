@@ -133,12 +133,19 @@ const TRAIT_RULES: {
   },
   // The last key's rule opens it.
   locked: {},
+  // Its disc is the travel's to meet (`isBumper()`), and its cell the
+  // travel's to leave open about it (`isRound()`).
+  bumps: {},
 };
 
 /** The kinds plated underneath, read at every contact, so a step makes nothing. */
-const PLATED: ReadonlySet<BrickKindId> = new Set(
-  BRICK_KIND_IDS.filter((id) => hasTrait(id, "plated")),
-);
+const PLATED = kindsWith("plated");
+
+/** The bumpers' kinds, read at every brick a ball passes, so a step makes nothing. */
+const BUMPERS = kindsWith("bumps");
+
+/** The round kinds, read at every look at a cell, so a step makes nothing. */
+const ROUND = BUMPERS;
 
 // Made once and reused, so a step makes nothing.
 const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
@@ -175,6 +182,24 @@ export function canBreak(brick: Readonly<Brick>): boolean {
  */
 export function isPlated(brick: Readonly<Brick>): boolean {
   return PLATED.has(brick.kind);
+}
+
+/**
+ * Returns whether a brick is round, a disc at its cell's middle rather than
+ * a box, so a ball's travel leaves its cell open about it, and the faces of
+ * the bricks beside it stay exposed: a bumper.
+ */
+export function isRound(brick: Readonly<Brick>): boolean {
+  return ROUND.has(brick.kind);
+}
+
+/**
+ * Returns whether a brick is a bumper: a disc of `BUMPER_RADIUS` at its
+ * cell's middle, off which a ball turns as off a circle, and which takes no
+ * hit from a ball.
+ */
+export function isBumper(brick: Readonly<Brick>): boolean {
+  return BUMPERS.has(brick.kind);
 }
 
 /** Returns how many of a level's bricks it needs that are not yet broken. */
@@ -263,6 +288,11 @@ export function stepBricks(field: Field): void {
     if (brick) runTraits("step", field, brick);
     if (field.state === "cleared") return;
   }
+}
+
+/** Returns the kinds with a trait of a kind, as a set to look a brick's kind up in. */
+function kindsWith(kind: TraitKind): ReadonlySet<BrickKindId> {
+  return new Set(BRICK_KIND_IDS.filter((id) => hasTrait(id, kind)));
 }
 
 /** Runs the rules of a brick's traits for a moment in play. */

@@ -49,6 +49,7 @@ import {
   dashes,
   ellipsePoints,
   pipRow,
+  pointAt,
   polygon,
   rect,
   ring,
@@ -64,7 +65,12 @@ import {
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { stepsIn } from "../../rules/stepper";
-import { BRICK_HEIGHT, BRICK_WIDTH, FRIEND_INKS } from "../../rules/tuning";
+import {
+  BRICK_HEIGHT,
+  BRICK_WIDTH,
+  BUMPER_RADIUS,
+  FRIEND_INKS,
+} from "../../rules/tuning";
 import {
   type BricksPalette,
   type UntintedKind,
@@ -1080,6 +1086,29 @@ function regrowingFrames(
   );
 }
 
+/**
+ * Returns how a round kind is drawn until it has art of its own: as a disc
+ * in one tint, of the radius a ball meets it at, in field units, at its
+ * cell's middle, in every state.
+ */
+function roundPlaceholderArt(
+  kind: BrickKindId,
+  tint: number,
+  radius: number,
+): BrickArt {
+  return {
+    frameOf: () => kind,
+    colorOf: (_, palette) => tintAt(palette.tints, tint),
+    frames: (palette, scale) => [
+      drawBrick(kind, scale, (cell) => [
+        circle(pointAt(cell, 0.5, 0.5), radius * scale.unit, {
+          color: tintAt(palette.tints, tint),
+        }),
+      ]),
+    ],
+  };
+}
+
 /** Returns how a kind drawn in a color of its own, in one look whatever its state, is drawn. */
 function untintedArt(
   kind: UntintedKind,
@@ -1174,6 +1203,7 @@ export const BRICK_ART = {
   },
   key: untintedArt("key", keyMarks),
   gate: untintedArt("gate", gateMarks),
+  bumper: roundPlaceholderArt("bumper", 7, BUMPER_RADIUS),
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 
 /**

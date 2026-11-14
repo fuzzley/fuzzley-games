@@ -20,7 +20,12 @@ export type BrickTrait =
   /** Opens every gate as it breaks, if it was the level's last key. */
   | { readonly kind: "unlocks" }
   /** Stands as steel until the level's last key breaks, then opens. */
-  | { readonly kind: "locked" };
+  | { readonly kind: "locked" }
+  /**
+   * Is round, a disc at its cell's middle, off which a ball turns as off a
+   * circle, taking no hit; its cell is open about it.
+   */
+  | { readonly kind: "bumps" };
 
 /** A brick trait's kind, such as "blasts". */
 export type TraitKind = BrickTrait["kind"];
@@ -151,6 +156,16 @@ export const BRICK_KINDS = {
     needed: false,
     points: 0,
     traits: [{ kind: "locked" }],
+  },
+  bumper: {
+    name: "Bumper",
+    about:
+      "Never breaks: it is round, and a ball leaves it at the angle a circle gives.",
+    hits: "never",
+    mostHits: 0,
+    needed: false,
+    points: 0,
+    traits: [{ kind: "bumps" }],
   },
 } as const satisfies Readonly<Record<string, BrickKind>>;
 

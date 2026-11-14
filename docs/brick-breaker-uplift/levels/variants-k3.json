@@ -1,0 +1,53 @@
+{
+  "levels": [
+    {
+      "id": "pinball",
+      "seeds": 300,
+      "kept": "its lowest bumper a row lower",
+      "variants": [
+        {
+          "name": "as drafted",
+          "bricks": [
+            ".............",
+            ".ooooooooooo.",
+            ".ooooooooooo.",
+            ".oo?ooooo?oo.",
+            ".............",
+            "...O.....O...",
+            ".............",
+            "......O......"
+          ]
+        },
+        {
+          "name": "its lowest bumper a row lower",
+          "bricks": [
+            ".............",
+            ".ooooooooooo.",
+            ".ooooooooooo.",
+            ".oo?ooooo?oo.",
+            ".............",
+            "...O.....O...",
+            ".............",
+            ".............",
+            "......O......"
+          ]
+        },
+        {
+          "name": "its lowest bumper two rows lower",
+          "bricks": [
+            ".............",
+            ".ooooooooooo.",
+            ".ooooooooooo.",
+            ".oo?ooooo?oo.",
+            ".............",
+            "...O.....O...",
+            ".............",
+            ".............",
+            ".............",
+            "......O......"
+          ]
+        }
+      ]
+    }
+  ]
+}
