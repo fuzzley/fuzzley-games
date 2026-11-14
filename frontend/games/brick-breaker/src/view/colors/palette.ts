@@ -1,4 +1,9 @@
-import { TILE_INKS, colorNumber, mixColors } from "@fz/phaser/color";
+import {
+  FUZZBALL_INKS,
+  TILE_INKS,
+  colorNumber,
+  mixColors,
+} from "@fz/phaser/color";
 import type { ColorMode } from "@fz/style/themes";
 import type { BallKindId } from "../../rules/catalog/balls";
 import type { BrickKindId } from "../../rules/catalog/bricks";
@@ -16,7 +21,7 @@ export interface PaletteRoles {
 /** The brick kinds drawn in a color of their own, rather than a tint. */
 export type UntintedKind = Extract<
   BrickKindId,
-  "steel" | "blast" | "gift" | "regrow"
+  "steel" | "blast" | "gift" | "regrow" | "cage" | "key" | "gate"
 >;
 
 /** The inks a brick's marks take beside the marks' own color, mixed as the art kit mixes them. */
@@ -35,6 +40,10 @@ export interface KindInks {
   readonly regrowRing: number;
   /** The track that ring fills along: the green tint at {@link REGROW_TRACK} over the field. */
   readonly regrowTrack: number;
+  /** A plated brick's plate along its foot, and the teeth it points down: the steel. */
+  readonly plate: number;
+  /** The shine along the top of a plate: the steel at {@link PLATE_SHINE} white. */
+  readonly plateShine: number;
 }
 
 /** The inks of the field's edge, mixed as the art kit mixes them. */
@@ -106,8 +115,14 @@ export interface BricksPalette {
   /** The sparks about a normal ball once the streak reaches its top multiplier: the warning color. */
   readonly streakSparks: number;
   /**
+   * The inks a friend a cage frees wears, by its ball's `ink`, and the friend
+   * a cage holds: {@link FUZZBALL_INKS} of the palette's mode.
+   */
+  readonly friendInks: readonly number[];
+  /**
    * Steel in text at {@link STEEL_WASH}, a blast brick in the danger color, a
-   * gift in the accent, and a regrowing brick's earth in the amber tint.
+   * gift in the accent, a regrowing brick's earth in the amber tint, a cage
+   * and a gate in the steel, and a key in the warning color.
    */
   readonly bricks: Readonly<Record<UntintedKind, number>>;
   /** The inks the kinds' marks take beside the marks' own color. */
@@ -170,6 +185,9 @@ export const CAPSULE_LIP_SHADE = 0.3;
 
 /** How much white the shine along a good capsule's top takes over the accent. */
 export const CAPSULE_SHINE = 0.5;
+
+/** How much white the shine along a plated brick's plate takes over the steel. */
+export const PLATE_SHINE = 0.4;
 
 /** How much of the green tint a regrowing brick's ring's track takes over the field. */
 export const REGROW_TRACK = 0.3;
@@ -246,11 +264,15 @@ export function bricksPalette(
     },
     capsuleShine: mixColors(WHITE, accent, CAPSULE_SHINE),
     streakSparks: warning,
+    friendInks: FUZZBALL_INKS[mode],
     bricks: {
       steel,
       blast: danger,
       gift: accent,
       regrow: tintAt(tints, EARTH_TINT),
+      cage: steel,
+      key: warning,
+      gate: steel,
     },
     kindInks: {
       steelLine: mixColors(BLACK, steel, STEEL_LINE_SHADE),
@@ -260,6 +282,8 @@ export function bricksPalette(
       mossShadow: mixColors(BLACK, green, MOSS_SHADE),
       regrowRing: green,
       regrowTrack: mixColors(green, panel, REGROW_TRACK),
+      plate: steel,
+      plateShine: mixColors(WHITE, steel, PLATE_SHINE),
     },
     tints,
     toughTints: tints.map((tint) => mixColors(text, tint, TOUGH_DEEPEN)),

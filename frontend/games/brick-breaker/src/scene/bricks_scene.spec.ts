@@ -1031,6 +1031,55 @@ describe("BricksScene", () => {
       });
     });
 
+    it("shows a cage holding the friend the field frees next", async () => {
+      const { shell, run, scene } = await startBoard((shell) => {
+        stillness(shell);
+        shell.field = fieldFrom(["c"]);
+      });
+      const cage = brickAt(shell.field, 0, 0);
+
+      shell.field.friendsFreed = 3;
+      run.advance(16);
+
+      expect(scene.bricks.images[cellIndex(0, 0)]?.frame.name).toBe(
+        brickFrame(cage, shell.field),
+      );
+    });
+
+    /** The cells of the gates `withGates()` lays. */
+    const gates = [1, 3].map((column) => cellIndex(column, 0));
+
+    /** Sets a shell up, still, on a field of a key and two gates, beside a plain brick that keeps the level in play once the key breaks. */
+    function withGates(shell: FakeShell): void {
+      stillness(shell);
+      shell.field = fieldFrom(["k=.=", "o"]);
+    }
+
+    it("shows each gate shut while a key is left", async () => {
+      const { shell, scene } = await startBoard(withGates);
+
+      expect(
+        gates.map((cell) => placed(scene.bricks.images[cell])),
+      ).toMatchObject(
+        gates.map(() => ({
+          visible: true,
+          frame: brickFrame(brickAt(shell.field, 1, 0)),
+        })),
+      );
+    });
+
+    it("hides every gate as the last key opens them", async () => {
+      const { shell, run, scene } = await startBoard(withGates);
+
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 0, 0);
+      run.advance(16);
+
+      expect(gates.map((cell) => scene.bricks.images[cell]?.visible)).toEqual([
+        false,
+        false,
+      ]);
+    });
+
     it("hides a brick once it breaks", async () => {
       const { shell, run, scene } = await startBoard(stillness);
 

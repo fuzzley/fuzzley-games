@@ -10,7 +10,12 @@
 // its caller, as a square tile's and a wide brick's differ.
 
 import { mixColors } from "../color";
-import { eyesCommands, fuzzballCommands } from "../fuzzball";
+import {
+  FUZZBALL_STRANDS,
+  type Strand,
+  eyesCommands,
+  fuzzballCommands,
+} from "../fuzzball";
 import {
   type Area,
   type CircleCommand,
@@ -565,14 +570,22 @@ export interface FriendInks {
   readonly eyes: number;
 }
 
-/** Returns the friend a cage holds, the fuzzball, about its body's middle, a number of device pixels to a unit of its grid: its body and fur, then its eyes. */
+/**
+ * Returns the friend a cage holds, the fuzzball, about its body's middle, a
+ * number of device pixels to a unit of its grid: its body and fur, then its
+ * eyes.
+ *
+ * Its fur is the fuzzball's own unless given, as none where a cage is drawn
+ * too small for strands a CSS pixel wide.
+ */
 export function cagedFriend(
   middle: Point,
   by: number,
   inks: FriendInks,
+  fur: readonly Strand[] = FUZZBALL_STRANDS,
 ): readonly DrawCommand[] {
   return [
-    ...fuzzballCommands(by, { color: inks.body }),
+    ...fuzzballCommands(by, { color: inks.body, fur }),
     ...eyesCommands(by, { color: inks.eyes }),
   ].map((command) => shifted(command, middle));
 }

@@ -37,9 +37,17 @@ const FAINT = 2;
 // against what they are drawn on: the marks' color against every brick, a
 // moss cap and a shown ghost among them, steel's frame and rivets against the
 // steel, and a blast brick's spark against the mark it is lit on; the bolts
-// in the paddle's caps are the marks' color too. A hidden ghost is held only
+// in the paddle's caps are the marks' color too. A friend freed from a cage
+// is a ball in an ink of its own, held as every ball is, and so is the
+// friend a cage holds, behind bars of steel, inside it cut out in the marks'
+// color. A plated brick's plate is steel, which keeps no contrast with a
+// brick's tint, so the brick is cut away round it in the marks' color, which
+// the plate and its teeth are held to; its rivets, like a gate's keyhole,
+// are held against the steel, and a key's gold and its key are held as a
+// brick and its marks are. A hidden ghost is held only
 // to FAINT, since it is meant to be hard to see, and a brick's shading (its
-// lip and strip, steel's sheen, a gift's ribbon, the moss's shadows), the
+// lip and strip, steel's sheen, a gift's ribbon, the moss's shadows, a
+// plate's shine and a gate's gold ends, which its keyhole tells), the
 // paddle's (its lip and pad), a good capsule's (its lip and shine), the rim's
 // lip and the regrowing ring's track to nothing, since none tells a kind: a
 // gift's bow is outlined in the marks' color.
@@ -59,8 +67,13 @@ describe("the field's contrast", () => {
     const hiddenGhosts = palette.ghostTints.hidden.map(
       (tint, i) => [`hidden ghost's tint ${String(i + 1)}`, tint] as const,
     );
+    // Numbered from 1, as the friends a level frees are counted.
+    const friends = palette.friendInks.map(
+      (ink, i) => [`friend ${String(i + 1)}'s ink`, ink] as const,
+    );
     const outlined = [
       ...named(palette.balls, "ball"),
+      ...friends,
       ...named(palette.capsules, "capsule"),
     ];
     const crossed = [
@@ -155,14 +168,30 @@ describe("the field's contrast", () => {
       ).toBeGreaterThanOrEqual(FAINT);
     });
 
-    it("keeps steel's frame and rivets at 3:1 or more against the steel", () => {
-      expect(
-        contrast(
-          rgbOf(palette.kindInks.steelLine),
-          rgbOf(palette.bricks.steel),
-        ),
-      ).toBeGreaterThanOrEqual(3);
-    });
+    it.each([
+      ["steel", palette.bricks.steel],
+      ["plate", palette.kindInks.plate],
+      ["gate", palette.bricks.gate],
+    ] as const)(
+      "keeps steel's frame and rivets, a plate's rivets and a gate's keyhole at 3:1 or more against the %s",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(palette.kindInks.steelLine), rgbOf(color)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each([
+      ["plate and its teeth", palette.kindInks.plate],
+      ["cage's bars", palette.bricks.cage],
+    ] as const)(
+      "keeps a %s at 3:1 or more against the marks' color they stand in",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(color), rgbOf(palette.mark)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
 
     it("keeps a blast brick's spark at 3:1 or more against the marks it is lit on", () => {
       expect(
