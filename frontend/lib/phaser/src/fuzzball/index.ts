@@ -1,3 +1,4 @@
+export { combedStrands, sparkCommands } from "./combing";
 export {
   type EyesStyle,
   FUZZBALL_GRID,

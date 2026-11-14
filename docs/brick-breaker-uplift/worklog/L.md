@@ -318,3 +318,87 @@ Checks, after the answers: `@fz/phaser` lint, typecheck, tests (855 in
 tests (149 files, 6,495, with the snapshot spec); the root's lint,
 typecheck and tests under the lock; the art's hashes unchanged (235,200
 frames).
+
+## L2. The fur lifted (lift 3), and the seven kinds in the slab
+
+Started from the integration tip c5b2e82d, after the integrator rebased it
+onto `origin/main` (the other session's Brick Fuzz Pop work); the branch was
+rebased onto it before Brick Fuzz Pop's `fuzzball_art.ts` was touched.
+
+### How Brick Fuzz Pop's look was held still
+
+As in L1: a spec of the moment's own, never committed, hashed every frame
+`atlasFrames()` draws, in each of the four palettes, at every unit from 1
+to 140 device pixels and each of the specs' six pixel ratios (235,200
+frames, 60 s), before the lift and after it. The baseline was taken again
+after the rebase, since the other session's work changed Brick Fuzz Pop.
+
+### 2026-11-14: the combed fur into `@fz/phaser/fuzzball`
+
+`feat(phaser): lift brick fuzz pop's combed fur and its sparks into the
+fuzzball entry` (commit 1 of L2).
+
+- `@fz/phaser/fuzzball` gains `src/fuzzball/combing.ts`: `combedStrands()`,
+  the fuzzball's fur combed a share of the way to standing on end (0 as it
+  grew, 0.5 straight and leaning half way out, 15% longer, 1 on end, 30%
+  longer), and `sparkCommands()`, the five sparks about fur on end, `by`
+  device pixels to a unit of the grid, in a line's style. Its spec holds
+  each root kept, the growth, the bend halved a quarter of the way and gone
+  from half way, the lean half way out at 0.5 and straight out at 1, the
+  shares it refuses, and each spark's zigzag in its place at a `by` of 2.5.
+- Brick Fuzz Pop's `fuzzball_art.ts` draws through them: `FUR` is
+  `combedStrands(charge / MOST_CHARGE)` for each charge, and a full charge's
+  sparks are `sparkCommands()` in the spark's style over the body, and
+  again, the outline's width wider either side and in its color, beneath
+  it. Its own `combed()`, `FULL_GROWTH`, `STRAIGHT_BY`, the sparks' turns,
+  starts and zigzag, and `SPARKS` are gone (and, after the review,
+  `outlinesOf()`).
+- Docs: the library's `AGENTS.md`, the `phaser-core` skill and Brick Fuzz
+  Pop's art paragraph name the two.
+
+Choices:
+
+- **A share of the way, not a charge.** The comb takes 0 to 1, so Brick
+  Fuzz Pop hands it its charge over its most and Brick Breaker, in L3, its
+  four looks: flat (0), half (0.5), full (1), and full with
+  `sparkCommands()`, as the kit's `ball()` draws them at charges 0, 0.5, 1
+  and 1 with sparks. Brick Fuzz Pop's half-combed look, straight from half
+  way, and its growth, are the kit's own, so neither is a parameter.
+- **No `fur` to comb.** `combedStrands(share)` combs the fuzzball's own
+  fur, as both games' looks do; a strand rooted at the body's middle would
+  have no way out to comb toward.
+- **One style for the sparks and their outline.** A spark's outline was
+  Brick Fuzz Pop's `outlinesOf()` over the zigzags, a line along each as
+  wide as the spark and the outline's width more either side, which is the
+  same commands as `sparkCommands()` in that width and color, so the entry
+  needs no outline option, and Brick Fuzz Pop keeps the outlines beneath
+  its body and the sparks over it, where its order wants them.
+- The spark's width stays each game's (Brick Fuzz Pop's a unit of its grid
+  in field units, through `widthOf()`), as the line's width is a game's
+  rounding.
+
+The review, and the answers:
+
+1. `sparkCommands()`'s doc opened with two sentences and didn't say how
+   much wider an outline is. Fixed: one sentence, then a paragraph saying
+   an outline is the sparks again, in the outline's color and its width
+   wider either side, as `fuzzballCommands()` widens its body and fur.
+2. Brick Fuzz Pop wrote the outline's widening twice, in `outlinesOf()`,
+   whose width only the flames now passed, always 0, and inline for the
+   sparks. Fixed: one `outlineAlong()`, the style of an outline along a
+   part's lines, which both the sparks and the flames take; `outlinesOf()`
+   is gone.
+3. Nothing held the lean between 0, 0.5 and 1, where Brick Fuzz Pop draws
+   charges 1, 2 and 4, so an easing that agreed at the three would pass.
+   Fixed: the doc says each way is the two unit ways blended by the share,
+   and a spec at 0.25 holds every strand's way to that blend.
+4. The older docs still called combing each game's own business. Fixed:
+   `fuzzball.ts`'s header and `FuzzballStyle.fur`, the library's
+   `AGENTS.md` and the `phaser-core` skill say fur combed by
+   `combedStrands()` or a game's own way; the `AGENTS.md` clause on the
+   sparks' outline reads with commas.
+
+Checks, after the answers: `@fz/phaser` lint, typecheck, tests (58 files, 893) and coverage (`combing.ts` whole); Brick Fuzz Pop's lint, typecheck,
+tests (147 files, 6,489); the root's lint, typecheck and tests under the
+lock; the art's hashes unchanged (235,200 frames, none differing), before
+and after the answers.

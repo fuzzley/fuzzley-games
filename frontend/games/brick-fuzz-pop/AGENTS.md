@@ -277,7 +277,8 @@ helpers.
   and its rule that drops detail under 30 CSS px a unit (`detailed()`).
   `fuzzball_art.ts` draws the
   fuzzballs (`fuzzballFrames()`): the player's at each charge, its fur
-  combed out as it charges (`furOf()`) and sparking at a full one, the hot
+  combed out as it charges (`furOf()`, through `@fz/phaser/fuzzball`'s
+  `combedStrands()`) and sparking at a full one (`sparkCommands()`), the hot
   shot under its flames, a friend in each of the eight inks, and the eyes
   every fuzzball wears, a frame of their own. `atlas_frames.ts`'s
   `atlasFrames()` is every frame the atlas holds, the kinds' in the
