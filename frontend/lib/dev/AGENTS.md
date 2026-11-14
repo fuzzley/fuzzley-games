@@ -247,10 +247,16 @@ too. Paths are relative to `frontend/lib/dev/`.
   and the bar's controls, and at least that size, so a game checks its layout
   with its deck shown. A deck shown all or none (`allOrNone`), such as panels
   laid over the canvas's spare room only where there is room for them all,
-  may list no zone at all, but must show every one once it lists any, so
-  the game's own inspection checks that it shows them where there is room,
-  and not elsewhere. The game's `inspect()` is then handed where the board
-  lies, a `BoardBox`, for what is its own, such as the least its unit may be.
+  may list no zone at all, but must show every one once it lists any; its
+  `spare`, a `DeckSpare`, says where it must show: the attribute that says
+  where the board's room lies, such as `data-room`, and the CSS px the room
+  must spare on the board's narrower side, held exactly, as Brick Fuzz Pop's
+  panels must show wherever 184 are spare at the check's whole pixel
+  ratio, and nowhere else; a deck with one is shown all or none, whatever
+  `allOrNone` says. A deck with no `spare` leaves where it shows to the
+  game's own inspection. The game's `inspect()` is then handed where
+  the board lies, a `BoardBox`, for what is its own, such as the least its
+  unit may be.
   The functions it runs in the page are in `src/layout_page.ts`, which only a
   browser runs, but for `settle()`, which its spec runs in jsdom, so
   coverage leaves it out, and the board's and the deck's inspections,

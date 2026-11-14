@@ -29,6 +29,7 @@ import { CONSOLE, type Printer, isStop, readArgs, stopWith } from "./script.ts";
 export type {
   BoardBox,
   CanvasRect,
+  DeckSpare,
   NamedRect,
   PhaserBoard,
   PhaserDeck,

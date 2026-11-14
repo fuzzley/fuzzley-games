@@ -616,12 +616,12 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
 - **Check the Layout:** `yarn check:layout` (runs `tools/check-layout.mjs`
   on the build `yarn build` made: `@fz/dev/layout`'s `checkPhaserLayout()`
   at each shape and turn, at twice the pixels, the field `--across` by
-  `--down`, the panels a deck shown both or neither (`data-panels`); then
-  its own inspection: a unit of 24 CSS px at least; the unit, the depth
-  (`data-depth`), the floor's band (`--band`) and the lintel (`--lintel`)
-  its room (`data-room`) asks for, the field lying in the room, filling its
-  width where it is deeper than 11 rows and its height where it is 11; the
-  panels wherever 184 CSS px are spare each side, and nowhere else;
+  `--down`, the panels a deck shown both or neither (`data-panels`), both
+  wherever its room (`data-room`) spares 184 CSS px each side, and nowhere
+  else; then its own inspection: a unit of 24 CSS px at least; the unit,
+  the depth (`data-depth`), the floor's band (`--band`) and the lintel
+  (`--lintel`) its room asks for, the field lying in the room, filling its
+  width where it is deeper than 11 rows and its height where it is 11;
   and the wall on the row a level opens on at the field's depth
   (`data-wall`), a turn of the window included, as a level with no round
   played begins again on a depth the field takes; then all of it again over

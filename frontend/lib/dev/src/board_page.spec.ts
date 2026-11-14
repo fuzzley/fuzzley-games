@@ -36,6 +36,11 @@ interface BoardPage {
    * doesn't.
    */
   readonly deck: string | null;
+  /**
+   * Where the board's room lies on the canvas, as its element says, or null
+   * where it doesn't.
+   */
+  readonly room: string | null;
   /** The bar's button, named Pause. */
   readonly control: Rect;
   /** The bar's link, named Home. */
@@ -82,6 +87,7 @@ const FITTING: BoardPage = {
   ring: RING,
   card: CARD,
   deck: null,
+  room: null,
   control: { left: 900, top: 10, width: 44, height: 44 },
   link: { left: 960, top: 10, width: 44, height: 44 },
 };
@@ -122,6 +128,7 @@ function lay(page: BoardPage): void {
   if (page.ratio !== null) board.style.setProperty("--pixel-ratio", page.ratio);
   if (page.drawnAt !== null) board.setAttribute("data-field", page.drawnAt);
   if (page.deck !== null) board.setAttribute("data-deck", page.deck);
+  if (page.room !== null) board.setAttribute("data-room", page.room);
   element("fz-phaser-canvas").setAttribute("data-state", page.state);
   const canvas = element("canvas");
   if (!(canvas instanceof HTMLCanvasElement)) throw new Error("No canvas.");
@@ -487,6 +494,47 @@ function allOrNone(zones: readonly string[]): PhaserBoard {
 /** The field with a stick and buttons beside it, shown all or none. */
 const ALL_OR_NONE = allOrNone(["stick", "buttons"]);
 
+/**
+ * The field with a stick and buttons beside it, shown all or none, where
+ * its room spares 20 CSS px on its narrower side, and only there.
+ */
+const SPARED: PhaserBoard = {
+  ...FIELD,
+  deck: {
+    drawnAt: "data-deck",
+    zones: ["stick", "buttons"],
+    least: 112,
+    allOrNone: true,
+    spare: { room: "data-room", least: 20 },
+  },
+};
+
+/**
+ * The field with a stick and buttons beside it, given a spare of 20 CSS px
+ * but not said to be shown all or none.
+ */
+const SPARED_ALONE: PhaserBoard = {
+  ...FIELD,
+  deck: {
+    drawnAt: "data-deck",
+    zones: ["stick", "buttons"],
+    least: 112,
+    spare: { room: "data-room", least: 20 },
+  },
+};
+
+/**
+ * The page with a deck beside the field, in a room that fills the canvas,
+ * so it spares 20 CSS px on the field's left and 120 on its right.
+ */
+const ROOMY: BoardPage = { ...BESIDE, room: "0 0 400 350" };
+
+/**
+ * The page with a deck beside the field, in a room a pixel in from the
+ * canvas's left, so it spares 19 CSS px on the field's left.
+ */
+const CRAMPED: BoardPage = { ...BESIDE, room: "1 0 399 350" };
+
 describe("inspectPhaserDeck", () => {
   it.each<[string, BoardPage, PhaserBoard, BoardBox]>([
     ["a deck beside the field", BESIDE, DECKED, FIELD_BOX],
@@ -545,6 +593,30 @@ describe("inspectPhaserDeck", () => {
       FIELD_BOX,
     ],
     ["a deck shown all or none that shows all", BESIDE, ALL_OR_NONE, FIELD_BOX],
+    [
+      "a deck with a spare that shows where its room spares enough",
+      ROOMY,
+      SPARED,
+      FIELD_BOX,
+    ],
+    [
+      "a deck with a spare that shows none where its room spares too little",
+      { ...CRAMPED, deck: "" },
+      SPARED,
+      FIELD_BOX,
+    ],
+    [
+      "a deck with a spare that shows where its room spares a hair under enough",
+      { ...BESIDE, room: "0.005 0 399.995 350" },
+      SPARED,
+      FIELD_BOX,
+    ],
+    [
+      "a deck with a spare, not said to be shown all or none, that shows none where its room spares too little",
+      { ...CRAMPED, deck: "" },
+      SPARED_ALONE,
+      FIELD_BOX,
+    ],
   ])("finds nothing wrong with %s", (_, page, board, box) => {
     lay(page);
 
@@ -782,6 +854,55 @@ describe("inspectPhaserDeck", () => {
       ["app-board doesn't say where its deck lies (data-deck)."],
     ],
     [
+      "a deck with a spare that shows none where its room spares enough",
+      { ...ROOMY, deck: "" },
+      SPARED,
+      FIELD_BOX,
+      [
+        "The deck shows none of its zones, with 20 CSS px spare each side of the field.",
+      ],
+    ],
+    [
+      "a deck with a spare that shows where its room spares too little",
+      CRAMPED,
+      SPARED,
+      FIELD_BOX,
+      ["The deck shows with 19 CSS px spare a side of the field, under 20."],
+    ],
+    [
+      "a deck with a spare that shows where its room spares a fiftieth of a CSS px too little",
+      { ...BESIDE, room: "0.02 0 399.98 350" },
+      SPARED,
+      FIELD_BOX,
+      ["The deck shows with 19.98 CSS px spare a side of the field, under 20."],
+    ],
+    [
+      "a deck with a spare that shows where its room spares too little on the field's right",
+      { ...BESIDE, room: "0 0 290 350" },
+      SPARED,
+      FIELD_BOX,
+      ["The deck shows with 10 CSS px spare a side of the field, under 20."],
+    ],
+    [
+      "a deck with a spare that lists only a zone it can't read where its room spares too little",
+      { ...CRAMPED, deck: "stick 280 25 120" },
+      SPARED,
+      FIELD_BOX,
+      [
+        "The deck's zone \"stick 280 25 120\" doesn't say where it lies.",
+        "The deck shows no stick zone.",
+        "The deck shows no buttons zone.",
+        "The deck shows with 19 CSS px spare a side of the field, under 20.",
+      ],
+    ],
+    [
+      "a deck with a spare whose board doesn't say where its room lies",
+      BESIDE,
+      SPARED,
+      FIELD_BOX,
+      ["app-board doesn't say where the field's room lies (data-room)."],
+    ],
+    [
       "a deck shown all or none whose zone lies a pixel onto the field",
       { ...BESIDE, deck: "stick 279 25 120 150, buttons 280 175 120 150" },
       ALL_OR_NONE,
@@ -792,6 +913,12 @@ describe("inspectPhaserDeck", () => {
     lay(page);
 
     expect(inspectPhaserDeck(board, box)).toEqual(problems);
+  });
+
+  it("leaves a deck with a spare on a board that doesn't say where it lies to the board's own inspection", () => {
+    lay({ ...ROOMY, deck: "", drawnAt: null });
+
+    expect(inspectPhaserDeck(SPARED, FIELD_BOX)).toEqual([]);
   });
 
   it("names a control of the bar by its text where it has no label", () => {
@@ -874,6 +1001,16 @@ describe("the inspections, sent into a page beside the readers", () => {
     expect(problems).toEqual([
       "The deck's zone \"stick 280 25 120\" doesn't say where it lies.",
       "The deck shows no stick zone.",
+    ]);
+  });
+
+  it("read where a deck's room lies, as the board's element says", async () => {
+    lay({ ...ROOMY, deck: "" });
+
+    const problems = await runAsSent(inspectPhaserDeck, SPARED, FIELD_BOX);
+
+    expect(problems).toEqual([
+      "The deck shows none of its zones, with 20 CSS px spare each side of the field.",
     ]);
   });
 });
