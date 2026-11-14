@@ -50,8 +50,17 @@ take the pure ones.
   Asteroid Breaker's is, lays itself out with: `roomInside()`, the canvas
   inside its chrome as a `PixelRect`, each inset rounded to the nearest device
   pixel; `framePixels()`, a frame's CSS thickness in whole device pixels, one
-  at least; and `cssRectOf()`, a `PixelRect` in CSS pixels. It imports nothing
-  but `insets`.
+  at least; and `cssRectOf()`, a `PixelRect` in CSS pixels. Beside them,
+  `sidePanels()` stands a panel either side of a field, as a wide room's
+  panels stand, given the room and the field as `PixelRect`s and the pixel
+  ratio: `PANEL_GAP_CSS_PX` (12) from the field, whatever the game keeps
+  its gap from, such as the cells or a wall around them, as tall as it and
+  level with it, each as wide as the room's narrower side spares past the
+  gap, from `PANEL_WIDTH_CSS_PX`'s least (172) to its most (320) in whole
+  device pixels, as `SidePanels` in CSS pixels, or null where a side spares
+  less: 184 CSS px at a whole pixel ratio, and up to a device pixel and a
+  half more, or half a pixel less, at another, as the gap and the least
+  round to whole device pixels. It imports nothing but `insets`.
 - `src/measure/`: what reads the page for a canvas, as the host sizes it
   and a board's placeholder measures it: `watchDevicePixels()`, which
   counts an element's device pixels, through a `ResizeObserver` on the

@@ -227,8 +227,9 @@ helpers.
   or the depth the debug menu sets, the floor's band, the lintel and
   whether panels fit beside it), where it lies on the canvas
   (`fieldMetrics()`, which keeps a shape's unit through a pixel's resize
-  mid-flight, gives the cells and, in CSS pixels, the panels and the field
-  from the lintel's top to the band's bottom, `framed`), whether a canvas
+  mid-flight, gives the cells and, in CSS pixels, the panels, through
+  `@fz/phaser/layout`'s `sidePanels()`, and the field from the lintel's top
+  to the band's bottom, `framed`), whether a canvas
   has room for any field (`hasRoom()`), and `toCanvas()` and `toField()`
   between field units and device pixels, which write into a place handed
   to them. The margin is the canvas's insets (`MARGIN_CSS_PX`), and the

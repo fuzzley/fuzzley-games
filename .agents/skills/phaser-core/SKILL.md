@@ -89,7 +89,10 @@ holds.
   spec. `fitCells()` in `layout` fits a field of cells, across by down,
   inside a canvas's insets, each cell whole device pixels; a field that isn't cells lays itself out with its steps,
   `roomInside()`, `framePixels()` and `cssRectOf()`, so its insets and frame
-  round as every board's do; `canvasPixelRatio()` is the ratio a canvas
+  round as every board's do; `sidePanels()` stands a panel either side of a
+  field where the room spares a gap and a panel's least a side, 184 CSS px
+  at a whole pixel ratio (`PANEL_GAP_CSS_PX` and `PANEL_WIDTH_CSS_PX`), as
+  wide rooms show them; `canvasPixelRatio()` is the ratio a canvas
   renders at on a display, `canvasSizeFor()` the size the host makes a canvas
   of a box, in the device pixels the browser counted where it can, and the
   ratio it renders it at, past 2× only within a budget of device pixels, which

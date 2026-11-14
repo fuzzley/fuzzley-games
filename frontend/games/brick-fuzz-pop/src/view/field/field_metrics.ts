@@ -2,9 +2,11 @@ import { clamp } from "@fz/core/math";
 import {
   type CssRect,
   type PixelRect,
+  type SidePanels,
   type Viewport,
   cssRectOf,
   roomInside,
+  sidePanels,
 } from "@fz/phaser/layout";
 import type { ArtScale } from "@fz/phaser/shapes";
 import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
@@ -51,7 +53,7 @@ export interface FieldMetrics extends ArtScale {
    */
   readonly framed: CssRect;
   /** Where the two panels lie, in CSS pixels, or null where the room has no space for them. */
-  readonly panels: { readonly left: CssRect; readonly right: CssRect } | null;
+  readonly panels: SidePanels | null;
 }
 
 /** Describes a place, which {@link toCanvas} and {@link toField} write into where a caller hands one over. */
@@ -83,15 +85,6 @@ export const FLOOR_BAND = { least: 0.6, most: 1.1 } as const;
  * it.
  */
 export const LINTEL = { least: 0.5, most: 1 } as const;
-
-/** How far a panel stands from the field's cells, in CSS pixels. */
-export const PANEL_GAP_CSS_PX = 12;
-
-/**
- * How wide a panel is, in CSS pixels: the narrowest that shows, the layout
- * check's least for a zone, and the widest it grows.
- */
-export const PANEL_WIDTH_CSS_PX = { least: 172, most: 320 } as const;
 
 /** How much under a whole number a size may fall and still count as it. */
 const WHOLE = 1e-6;
@@ -133,7 +126,7 @@ export function fieldShape(
     band: FLOOR_BAND.least + toBand,
     lintel: LINTEL.least + toLintel,
     panels:
-      panelWidthOf(sideSpare(room.width, unit), viewport.pixelRatio) !== null,
+      sidePanels(room, cellColumn(room, unit), viewport.pixelRatio) !== null,
     pixelRatio: viewport.pixelRatio,
   };
 }
@@ -152,8 +145,8 @@ export function hasRoom(viewport: Viewport): boolean {
  * Returns where a field of a shape lies on a canvas: at the shape's unit,
  * its cells, its band and its lintel centered in the canvas's room on whole
  * device pixels; and a panel either side, as tall as the field from the
- * lintel's top to the band's bottom, where the room spares
- * {@link PANEL_GAP_CSS_PX} and a panel's least width each side.
+ * lintel's top to the band's bottom, where the room spares one each side
+ * (`sidePanels()`).
  *
  * On the room the shape was worked out for, the field fills it from top to
  * bottom, unless the most rows leave some spare. A room resized since, as
@@ -176,16 +169,13 @@ export function fieldMetrics(
     fieldPixels(shape, shape.unit) <= room.height + slack
       ? shape.unit
       : unitFitting(room, shape.depth + shape.band + shape.lintel);
-  const width = COLUMNS * unit;
+  const { x, width } = cellColumn(room, unit);
   const height = shape.depth * unit;
   const lintel = lintelPixels(shape, unit);
   const tall = fieldPixels(shape, unit);
-  const spare = sideSpare(room.width, unit);
-  const x = room.x + spare;
   const top = room.y + Math.floor((room.height - tall) / 2);
   const y = top + lintel;
-  const panel = panelWidthOf(spare, pixelRatio);
-  const gap = Math.round(PANEL_GAP_CSS_PX * pixelRatio);
+  const framed = { x, y: top, width, height: tall };
   return {
     unit,
     pixelRatio,
@@ -194,20 +184,8 @@ export function fieldMetrics(
     width,
     height,
     css: cssRectOf({ x, y, width, height }, pixelRatio),
-    framed: cssRectOf({ x, y: top, width, height: tall }, pixelRatio),
-    panels:
-      panel === null
-        ? null
-        : {
-            left: cssRectOf(
-              { x: x - gap - panel, y: top, width: panel, height: tall },
-              pixelRatio,
-            ),
-            right: cssRectOf(
-              { x: x + width + gap, y: top, width: panel, height: tall },
-              pixelRatio,
-            ),
-          },
+    framed: cssRectOf(framed, pixelRatio),
+    panels: sidePanels(room, framed, pixelRatio),
   };
 }
 
@@ -277,22 +255,19 @@ export function toField(
   return into;
 }
 
-/** Returns how many whole device pixels a room spares on the cells' left, the narrower side where it spares an odd number. */
-function sideSpare(roomWidth: number, unit: number): number {
-  return Math.floor((roomWidth - COLUMNS * unit) / 2);
-}
-
 /**
- * Returns how wide a panel is beside a field that a room spares some
- * device pixels on each side of, in device pixels, or null where it would
- * be narrower than a panel's least.
+ * Returns the column a field's cells take across a room at a unit, as tall
+ * as the room: centered on whole device pixels, the narrower side on the
+ * left where the room spares an odd number.
  */
-function panelWidthOf(spare: number, pixelRatio: number): number | null {
-  const width = Math.min(
-    Math.round(PANEL_WIDTH_CSS_PX.most * pixelRatio),
-    spare - Math.round(PANEL_GAP_CSS_PX * pixelRatio),
-  );
-  return width >= PANEL_WIDTH_CSS_PX.least * pixelRatio - WHOLE ? width : null;
+function cellColumn(room: PixelRect, unit: number): PixelRect {
+  const width = COLUMNS * unit;
+  return {
+    x: room.x + Math.floor((room.width - width) / 2),
+    y: room.y,
+    width,
+    height: room.height,
+  };
 }
 
 /**
