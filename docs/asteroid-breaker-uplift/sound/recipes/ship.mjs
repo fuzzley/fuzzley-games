@@ -10,6 +10,7 @@ import {
   TAU,
   click,
   crackle,
+  curve,
   glass,
   mallet,
   puff,
@@ -23,6 +24,7 @@ import {
 } from "../lib/parts-ship.mjs";
 import {
   SR,
+  comb,
   drive,
   filter,
   fit,
@@ -217,6 +219,108 @@ function shards(seed, count, seconds) {
   );
 }
 
+/** How long the engine's loops are, in seconds. */
+const LOOP = 2;
+
+/** The stretch past its loop each engine is made for, which fades into its own start. */
+const OVERLAP = 0.25;
+
+/**
+ * Returns a breath for a loop, a wobble about 1: slow sines, each a whole
+ * number of cycles a loop long and at a phase of its own, the faster the
+ * weaker, so it swells unevenly and still meets itself at the loop's end.
+ *
+ * @param {number} seed
+ * @param {{ from?: number, to?: number, depth?: number }} [how]
+ *   The fewest and the most cycles a loop among its sines, and how far it
+ *   strays from 1, as a root mean square.
+ * @returns {(t: number) => number}
+ */
+function breath(seed, { from = 2, to = 12, depth = 0.22 } = {}) {
+  const random = seeded(seed);
+  /** @type {{ rate: number, level: number, phase: number }[]} */
+  const sines = [];
+  let power = 0;
+  for (let cycles = from; cycles <= to; cycles++) {
+    const level = 1 / Math.sqrt(cycles);
+    sines.push({ rate: cycles / LOOP, level, phase: random() });
+    power += (level * level) / 2;
+  }
+  const scale = depth / Math.sqrt(power);
+  return (t) =>
+    Math.max(
+      0.25,
+      1 +
+        scale *
+          sines.reduce(
+            (sum, { rate, level, phase }) =>
+              sum + level * Math.sin(TAU * (rate * t + phase)),
+            0,
+          ),
+    );
+}
+
+/**
+ * Returns the engine's burn, longer than its loop by the overlap: a band of
+ * brown noise from 250 to 600 Hz driven thick, which is its body, and pink
+ * noise under a low-pass, which is its rush, both swelling and dulling
+ * together as it breathes, with next to nothing above 3 kHz. Nothing in it
+ * has a pitch, and every wobble runs whole cycles a loop.
+ *
+ * @param {number} seed
+ * @param {number} [depth] How deep it breathes, as its breath's root mean square about 1.
+ * @returns {Signal}
+ */
+function burn(seed, depth = 0.22) {
+  const all = LOOP + OVERLAP;
+  const breathing = curve(breath(seed + 9, { depth }), all);
+  const body = filter(
+    drive(
+      gain(
+        filter(
+          noise("brown", all, seed + 1),
+          "bp",
+          (t) =>
+            400 +
+            90 * Math.sin(TAU * 0.5 * t + 0.7) +
+            50 * Math.sin(TAU * 1.5 * t),
+          0.9,
+        ),
+        breathing.map((swell) => 5 * swell),
+      ),
+      2.5,
+    ),
+    "lp",
+    1400,
+  );
+  const open = curve(
+    (t) =>
+      850 + 200 * Math.sin(TAU * 0.5 * t) + 110 * Math.sin(TAU * 1.5 * t + 1.3),
+    all,
+  );
+  const rush = filter(
+    noise("pink", all, seed),
+    "lp",
+    open.map((cutoff, i) => cutoff * (0.7 + 0.3 * (breathing[i] ?? 1))),
+    0.8,
+  );
+  return filter(
+    filter(
+      gain(
+        mix([
+          { x: unit(body), gain: 1 },
+          { x: unit(rush), gain: 0.55 },
+        ]),
+        breathing,
+      ),
+      "lp",
+      2600,
+    ),
+    "hp",
+    150,
+  );
+}
+
 /** @type {Recipe[]} */
 export const SOUNDS = [
   {
@@ -399,56 +503,83 @@ export const SOUNDS = [
   {
     name: "thrust",
     about:
-      "The engine while thrust is held, a loop of 2 s: pink noise under a low-pass that wanders, a driven band near 500 Hz for a phone, a faint hiss, and a slow flutter, with no pitch of its own.",
+      "The engine while thrust is held, a loop of 2 s: a band of brown noise from 250 to 600 Hz driven thick as its body, pink noise under a low low-pass as its rush, both swelling and dulling together on a slow uneven breath, with next to nothing above 3 kHz and no pitch of its own.",
     level: "tick",
     loop: true,
     plays: ["thrust held"],
+    make: (_take, seed) => looped(burn(seed), LOOP, OVERLAP),
+  },
+  {
+    name: "thrust-b",
+    about:
+      "An alternate engine, a throat: the same burn through a comb fed back upside down, which rings as a stopped pipe does, on a pitch and its odd multiples, the pitch wandering between 225 and 515 Hz all through the loop and never resting on a note.",
+    level: "tick",
+    loop: true,
+    plays: ["thrust held (an alternate to compare)"],
     make: (_take, seed) => {
-      const seconds = 2;
-      const overlap = 0.25;
-      const all = seconds + overlap;
-      // Every wobble runs whole cycles in the loop, so its end meets its start.
-      const rush = filter(
-        noise("pink", all, seed),
-        "lp",
-        (t) =>
-          1250 +
-          380 * Math.sin(TAU * 0.5 * t) +
-          200 * Math.sin(TAU * 1.5 * t + 1.3),
-        0.9,
+      // Three wobbles of whole cycles a loop, so the throat comes round with
+      // it; the quickest keeps it moving where the slower two turn back.
+      const throat = (/** @type {number} */ t) =>
+        340 *
+        2 **
+          (0.36 * Math.sin(TAU * 0.5 * t + 0.3) +
+            0.18 * Math.sin(TAU * 1.5 * t + 1.9) +
+            0.06 * Math.sin(TAU * 3.5 * t + 0.5));
+      // It breathes less than the plain burn, as the throat moves its level too.
+      const hollow = comb(burn(seed, 0.14), (t) => 1 / (2 * throat(t)), -0.7, {
+        damp: 0.3,
+        mix: 0.6,
+      });
+      return looped(filter(hollow, "hp", 150), LOOP, OVERLAP);
+    },
+  },
+  {
+    name: "thrust-c",
+    about:
+      "An alternate engine, a purr: a warm band of pink noise near 500 Hz over a little driven body near 280 Hz, its level fluttering in soft pulses 21 to 33 times a second, the rate drifting and each pulse a little unlike the last, on a slow breath in and out.",
+    level: "tick",
+    loop: true,
+    plays: ["thrust held (an alternate to compare)"],
+    make: (_take, seed) => {
+      const all = LOOP + OVERLAP;
+      const random = seeded(seed);
+      // The pulses the purr has had by a time: 27 a second on average, the
+      // rate drifting by 4 and by 2 either way, 54 in a loop, so the purr,
+      // its drift and each pulse's own strength all come round with it.
+      const pulses = 27 * LOOP;
+      const had = (/** @type {number} */ t) =>
+        27 * t -
+        (4 / (TAU * 0.5)) * Math.cos(TAU * 0.5 * t) -
+        (2 / (TAU * 1.5)) * Math.cos(TAU * 1.5 * t + 1);
+      const strengths = Array.from(
+        { length: pulses },
+        () => 0.78 + 0.22 * random(),
       );
-      const body = drive(
-        gain(
-          filter(
-            noise("brown", all, seed + 1),
-            "bp",
-            (t) => 520 + 130 * Math.sin(TAU * 1 * t + 0.7),
-            1.1,
-          ),
-          4,
-        ),
-        2.5,
-      );
-      const hiss = filter(
-        noise("white", all, seed + 2),
+      const purring = (/** @type {number} */ t) => {
+        const count = had(t);
+        const which = ((Math.floor(count) % pulses) + pulses) % pulses;
+        const open = (0.5 - 0.5 * Math.cos(TAU * count)) ** 1.6;
+        const inAndOut = 1 + 0.22 * Math.sin(TAU * 1 * t + 0.5);
+        return (0.18 + 0.82 * open * (strengths[which] ?? 1)) * inAndOut;
+      };
+      const fur = filter(
+        noise("pink", all, seed + 1),
         "bp",
-        (t) => 3600 + 700 * Math.sin(TAU * 0.5 * t + 2),
+        (t) => 520 + 90 * Math.sin(TAU * 0.5 * t + 2),
         0.8,
       );
-      const flutter = (/** @type {number} */ t) =>
-        1 +
-        0.14 * Math.sin(TAU * 6.5 * t) +
-        0.08 * Math.sin(TAU * 11 * t + 1) +
-        0.12 * Math.sin(TAU * 1.5 * t + 0.4);
-      const burn = gain(
-        mix([
-          { x: rush, gain: 1 },
-          { x: body, gain: 0.5 },
-          { x: hiss, gain: 0.1 },
-        ]),
-        flutter,
+      const body = drive(
+        gain(filter(noise("brown", all, seed + 2), "bp", 280, 1), 5),
+        1.5,
       );
-      return looped(filter(burn, "hp", 170), seconds, overlap);
+      const purr = gain(
+        mix([
+          { x: unit(fur), gain: 1 },
+          { x: unit(body), gain: 0.55 },
+        ]),
+        purring,
+      );
+      return looped(filter(filter(purr, "lp", 1600), "hp", 150), LOOP, OVERLAP);
     },
   },
   {
