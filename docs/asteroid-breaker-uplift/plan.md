@@ -351,12 +351,12 @@ sparks. Three materials, each drawn one way.
 
 What some sizes come to. A field unit is the field's short side over 40.
 
-| Screen                       | A unit | The pod | The pilot | A small rock | A spark |
-| ---------------------------- | ------ | ------- | --------- | ------------ | ------- |
-| Small phone, upright         | 6 px   | 14 px   | 7 px      | 11 px        | 2 px    |
-| Large phone, on its side     | 8 px   | 19 px   | 9 px      | 14 px        | 3 px    |
-| Laptop, 1280 × 720           | 16 px  | 38 px   | 18 px     | 29 px        | 5 px    |
-| Desktop, 1920 × 1080         | 24 px  | 58 px   | 27 px     | 43 px        | 7 px    |
+| Screen                   | A unit | The pod | The pilot | A small rock | A spark |
+| ------------------------ | ------ | ------- | --------- | ------------ | ------- |
+| Small phone, upright     | 6 px   | 14 px   | 6 px      | 11 px        | 2 px    |
+| Large phone, upright     | 9 px   | 22 px   | 10 px     | 16 px        | 3 px    |
+| Laptop, 1280 × 720       | 15 px  | 36 px   | 16 px     | 27 px        | 5 px    |
+| Desktop, 1920 × 1080     | 24 px  | 58 px   | 25 px     | 43 px        | 7 px    |
 
 Under 10 px a unit each piece leaves out its fine marks, as its sheet
 shows: rivets, glints, fractures, a lodestone's field, the pilot's glints.

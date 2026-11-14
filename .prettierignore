@@ -14,3 +14,8 @@ coverage
 .agents/skills/phaser-*
 !.agents/skills/phaser-core
 !.agents/skills/phaser-canvas-performance
+
+# What the Asteroid Breaker uplift's scripts write: its assets, and the
+# reports on its sounds, which the build that makes them lays out.
+docs/asteroid-breaker-uplift/assets
+docs/asteroid-breaker-uplift/sound/report
