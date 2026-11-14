@@ -43,3 +43,55 @@ A sound not listed measured as meant; it may still not sound as meant.
   last and sooner after it, never louder.
 - **`lodestone-hum`** loops at exactly two seconds; its seam jumps by 0.07
   of the largest jump inside it.
+
+## Ship
+
+| Sound                     | It may sound                                                   | Try first                                                    |
+| ------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
+| `shot-gun`, `shot-rapid`  | too much of a retro laser's "pew"                              | start the fall at 1.5 kHz, with more air and less tone       |
+| `shot-tail`               | metallic: it is mostly the small room's own ring               | damp the room more, or two plain dull echoes in its place    |
+| `thrust`                  | like plain filtered noise                                      | more of its driven band at 500 Hz; a slower, deeper flutter  |
+| `zap-dash`                | like a hiss over a thump, where it should tear                 | more of its low buzz through a sweeping band; less whoosh    |
+| `zap-arc`                 | sharp: a third to a half of it is above 3 kHz                  | lower each take's band by a third                            |
+| `pod-hit`                 | comic: its tone wobbles 170 cents either way                   | 90 cents, or a faster fall                                   |
+| `pod-lost`                | like a slide whistle                                           | a slower fall, with less vibrato                             |
+
+- **Rapid against the gun.** A level is set by a sound's loudest 50 ms, so
+  `shot-rapid`, heard fourteen times a second, measures about 4 dB louder
+  as a stream than `shot-gun` at seven. The game should play it 3 dB down.
+- **Changed because of the instruments:** `zap-dash`, `pod-hit` and
+  `pod-lost` first kept 23 to 30% above 300 Hz and now keep 53 to 70%;
+  `zap-arc` was a click with no body and now has a buzz under it; the
+  thrust's start and stop lost the lows a phone would never play.
+- **The thrust** loops at exactly two seconds with no pitched tone in it,
+  so it can't drone on a note; its seam reads 0.005.
+
+## Pickups
+
+| Sound                  | It may sound                                    | Try first                                |
+| ---------------------- | ----------------------------------------------- | ---------------------------------------- |
+| `pickup-magnet`        | queasy: it wobbles 170 cents at 11 Hz           | 100 cents at 8 Hz                        |
+| `slow-on`, `slow-off`  | like a synth: saws through a slowing tape       | bells and mallet alone through the tape  |
+
+- **Each catch has a shape of its own,** to be told by: Spread fans one
+  note into three; Rapid stutters one note five times; Lance is one clean
+  rising line; Shield closes in pairs from the outside; Magnet is two notes
+  pulled together; Slow steps down, each note longer and flatter.
+- **`spark`** sits exactly on C6 in all three takes, and raised an octave
+  and a half, as a long run of sparks would raise it, is 18 ms with nothing
+  above 8 kHz.
+
+## Stingers
+
+| Sound                       | It may sound                                         | Try first                                             |
+| --------------------------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| every stinger and menu tick | plinky or toy-like: one mallet and bell plays them all | its ring's length by a third either way; more or less bell |
+| `run-end`                   | thin: it is the mallet alone                         | a little pad under all of it                          |
+
+- **The notes were checked by a pitch tracker,** and each settles within a
+  few cents of the one it is named for.
+- **What each plays:** `run-start` G C E G; `wave-start` G to C;
+  `wave-clear` E G A G, then C over C; `sector-clear` up to a held G and a
+  chord of C; `run-end` A G E C slowing, then a D left hanging; `new-best`
+  eleven notes up two octaves and a shower; `level-up` C E G C rolled into
+  a held chord.

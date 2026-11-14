@@ -133,12 +133,13 @@ that many takes. The plan says which event plays each.
   `-large` (2 each); `break-iron-small`, `-medium`, `-large` (2 each);
   `break-lodestone-small`, `-medium`, `-large` (2 each); `hit-stone` (3),
   `hit-iron` (4), `hit-boulder` (3); `break-boulder`; `fuse-volatile`,
-  `blast-volatile` (3), `blast-volatile-small` (2).
+  `blast-volatile` (3), `blast-volatile-small` (2); `break-cluster` (3),
+  many small rocks broken in one frame.
 - **`hazards`:** `comet-warning`, `comet-pass` (2), `comet-smash` (2);
   `burr-cling` (3), `burr-shed` (2), `burr-pop` (3); `lodestone-hum`
   (a loop); `near-miss` (3).
 - **`ship`:** `shot-gun` (5), `shot-spread` (4), `shot-rapid` (5),
-  `shot-lance` (3); `thrust` (a loop), `thrust-start`, `thrust-stop`;
+  `shot-lance` (3), `shot-tail` (3); `thrust` (a loop), `thrust-start`, `thrust-stop`;
   `dash` (2), `dash-ready`; `static-full`, `static-down`, `zap-dash`,
   `zap-arc` (4); `shield-up`, `shield-break`; `pod-hit` (2), `pod-lost`,
   `guard-end`.
