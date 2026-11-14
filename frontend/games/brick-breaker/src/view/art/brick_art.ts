@@ -393,6 +393,8 @@ export const BRICK_ART = {
   },
   cage: placeholderArt("cage", 4),
   plated: placeholderArt("plated", 5),
+  key: placeholderArt("key", 2),
+  gate: placeholderArt("gate", 6),
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 
 /** Returns the name of the frame a brick shows, as it stands; it throws for a brick no level can lay. */

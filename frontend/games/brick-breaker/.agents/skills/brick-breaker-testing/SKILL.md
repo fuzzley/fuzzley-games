@@ -70,7 +70,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   bricks, a row of up to 13 characters from the top, in the shared legend's
   characters (`src/rules/levels/legend.ts`: `o` plain, `2` to `4` tough,
   `#` steel, `*` blast, `?` gift, `~` ghost, `+` regrowing, `c` cage,
-  `u` and `U` plated, of one hit and two, `.` none). The
+  `u` and `U` plated, of one hit and two, `k` key, `=` gate,
+  `.` none). The
   options set what a picture can't show: the speed, the seed, the pace, the
   chance of a capsule, the capsules that may fall, the one every gift gives
   and the field's height, 30 by default, as a tall screen makes it up to 45.
@@ -89,8 +90,9 @@ Run these from `frontend/games/brick-breaker/`, or as
 ## The Levels and the Autopilot
 
 - `src/rules/levels/levels.spec.ts` holds every level to parsing, ids and
-  names of its own, a needed brick a ball can reach and a pace that never
-  falls within a set, and every set to its place.
+  names of its own, a needed brick a ball can reach, a key wherever it has
+  a gate, and a pace that never falls within a set, and every set to its
+  place.
 - `src/rules/catalog/catalog.spec.ts` holds the catalogs to their rules, and the
   levels to using every brick kind and letting every capsule first fall at
   the level its `from` names.
@@ -122,7 +124,8 @@ Run these from `frontend/games/brick-breaker/`, or as
 - Its round trip plays the crowd in takes of 7 steps, keeping, reading back
   and taking up the run and its field at each, and expects every state a
   take-up must keep to have been reached: a fuse lit, a ghost shown, a
-  regrowing brick broken and grown back, a tough brick worn, streak points,
+  regrowing brick broken and grown back, a tough brick worn, a gate opened,
+  streak points,
   draws and a ball lost. A new state kept on a brick or the field belongs in
   that list.
 - A spoiled entry is a stored game read back from JSON (`stored()`) with one

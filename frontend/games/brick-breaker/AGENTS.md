@@ -143,7 +143,10 @@ takes for the specs' helpers.
   `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
   and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
   as a brick is hit, breaks, and at each step, typed so that a trait without
-  its rule fails to compile. `capsules.ts` drops capsules while the level is
+  its rule fails to compile: a key's, as the level's last key breaks
+  (`Field.keysLeft`, counted by `unbrokenKeys()`), marks every gate broken,
+  out of the balls' way, and records `opened`.
+  `capsules.ts` drops capsules while the level is
   in play (`dropFrom()`), by the level's chance or from a gift brick, by
   weight from the level's pool, from `src/rules/draws.ts`'s seeded draws;
   moves them down to be caught or missed; and holds `EFFECT_RULES`, what
@@ -165,7 +168,8 @@ takes for the specs' helpers.
   that changed the run.
   `describe.ts` puts what happened into the words the announcer says: a
   level's start, a capsule caught, the lives a frame gained and lost
-  (`describeLives()`, from the run before and after), the last few bricks, a
+  (`describeLives()`, from the run before and after), the last few bricks,
+  the gates opened (`describeOpened()`), a
   clearing, a pause, going on and the end; `endTitle()` says what an ended
   run is called; and `formatCustomPercent()` writes Custom's ball speed as
   its sliders read it, "150% of Normal". The announcer, the bar, the cards,
@@ -187,8 +191,10 @@ takes for the specs' helpers.
   not yet begun, and back (`restoreGame()`), paused, dropping a level the game
   doesn't have under that number, a field that doesn't fit its level, a number
   out of its range, or a state no run comes to, such as a brick broken with
-  hits left or a level that needs nothing more; `takeUpField()` lays the
-  bricks and counts kept over a new field of the level. `run.ts`'s
+  hits left, a gate open with a key left or a level that needs nothing
+  more; `takeUpField()` lays the
+  bricks and counts kept over a new field of the level, counting its keys
+  left anew. `run.ts`'s
   `nextLifeAfter()` gives the mark the next life comes at from a score,
   through `@fz/core/math`'s `nextMarkAfter()`, which a kept run's must match.
 - **`src/rules/levels/`** — the levels: a JSON file for each set of levels,
@@ -196,7 +202,7 @@ takes for the specs' helpers.
   of its bricks in the characters of `legend.ts`'s shared legend, with any of
   its own, and, for a picture, a grid of tints: `basics.json`, levels 1 to 10,
   `steel.json`, 11 to 20, `tricks.json`, 21 to 30, and `friends.json`,
-  31 and 32. `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every
+  31 to 33. `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every
   level from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one
   into a `Level` (`level.ts`) to play, or throws an error that names what is
   wrong with its data. A level's data names the layout its bricks are in
@@ -205,7 +211,7 @@ takes for the specs' helpers.
   on the one before are let go, and the level keeps its id. `placeOf()` reads
   the place a set is in, one of `PLACES` (`Place`), or throws for one it can't
   be in. `levels.ts`'s spec holds every level to parsing, ids and names of
-  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, and into a plated brick only from above or a side, and a pace that
+  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, into a plated brick only from above or a side, and past a gate only once it reaches every key, a key wherever it has a gate, and a pace that
   never falls within a set, and every set to its place; the specs in
   `every_level/` hold every level to being cleared by the autopilot, as Tests
   below says.
@@ -551,7 +557,8 @@ can't trust rather than failing:
 - `brick-breaker-progress`: the ids of the levels cleared, at any speed,
   which open the levels after them. Ids no level has any more are dropped.
 - `brick-breaker-game`: the run under way and its level's bricks, each
-  brick's hits left, whether it is broken or shown, and the steps its blast
+  brick's hits left, whether it is broken or shown (an open gate is kept
+  broken), and the steps its blast
   and its regrowth are due at, with the field's count of steps, its draws,
   how far the balls' speed has climbed, and the streak's points. The balls
   in flight, the capsules and the effects are not kept (decision 16).

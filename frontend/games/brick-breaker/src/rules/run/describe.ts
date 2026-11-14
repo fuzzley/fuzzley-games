@@ -54,6 +54,11 @@ export function describeFewLeft(before: number, after: number): string | null {
   return `${count(after, "brick", "bricks")} left.`;
 }
 
+/** Returns what is said as the level's last key breaks and every gate opens. */
+export function describeOpened(): string {
+  return "The gates are open.";
+}
+
 /** Returns what is said as a level is cleared, short of the last: the level and the score. */
 export function describeCleared(run: Run): string {
   return `Level ${String(run.level)} cleared! Score ${formatPoints(run.score)}.`;

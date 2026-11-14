@@ -11,6 +11,7 @@ import {
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
+import { hitBrick } from "../bricks/bricks";
 import { catchCapsule } from "../bricks/capsules";
 import { cellIndex, columnOf, rowOf } from "../grid";
 import { ballSpeed } from "../speed";
@@ -391,6 +392,17 @@ describe("a plated brick", () => {
     }).toEqual({ hits: 1, events: ["plated"] });
   });
 
+  it("says so once as a ball rises into its bottom face's end and corner at once", () => {
+    // The ball's middle rises straight up the line of the brick's left end,
+    // at 12 across.
+    const field = fieldFrom(sixthRow("......u"));
+    throwBall(field, 12, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect(eventsOf(field)).toEqual(["plated"]);
+  });
+
   it("takes a hit at its bottom corner from a falling ball", () => {
     // Falling a little as it goes right, the ball passes under the left
     // face and meets the bottom left corner, at 12, 8.
@@ -501,6 +513,34 @@ describe("a plated brick", () => {
       broken: [true, false],
       heading: 180,
       events: ["plated", "broken"],
+    });
+  });
+});
+
+describe("a gate", () => {
+  it("turns a ball as steel while a key is left", () => {
+    const field = fieldFrom(["ok", "", "", "", "", "......="]);
+    const ball = throwBall(field, 13, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      broken: brickAt(field, 6, 5).broken,
+      heading: Math.abs(headingOf(ball)),
+      events: eventsOf(field),
+    }).toEqual({ broken: false, heading: 180, events: ["hit"] });
+  });
+
+  it("lets a ball by once the last key has broken", () => {
+    const field = fieldFrom(["ok", "", "", "", "", "......="]);
+    hitBrick(field, brickAt(field, 1, 0), 0, 0);
+    const ball = throwBall(field, 13, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({ above: ball.y < 7, rising: ball.dy < 0 }).toEqual({
+      above: true,
+      rising: true,
     });
   });
 });

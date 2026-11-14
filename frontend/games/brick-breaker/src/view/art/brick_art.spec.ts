@@ -194,6 +194,20 @@ describe("brickColor", () => {
     expect(brickColor(look, ART_PALETTE)).toBe(color);
   });
 
+  it.each([
+    ["cage", ART_PALETTE.tints[4]],
+    ["plated", ART_PALETTE.tints[5]],
+    ["key", ART_PALETTE.tints[2]],
+    ["gate", ART_PALETTE.tints[6]],
+  ] as const)(
+    "draws a %s brick, which has no art of its own yet, in one tint, whatever the level tints it",
+    (kind, color) => {
+      const look: BrickLook = { kind, tint: 0, whole: 2, hits: 1, shown: true };
+
+      expect(brickColor(look, ART_PALETTE)).toBe(color);
+    },
+  );
+
   it("throws for a tint no level can name", () => {
     const look: BrickLook = {
       kind: "plain",

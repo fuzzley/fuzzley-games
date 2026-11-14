@@ -1,6 +1,6 @@
 import { isCount, isFiniteNumber, isRecord, isWhole } from "@fz/core/json";
 import { pick } from "@fz/core/records";
-import { type Brick, neededLeft } from "../bricks/bricks";
+import { type Brick, neededLeft, unbrokenKeys } from "../bricks/bricks";
 import { hasTrait, isNeeded } from "../catalog/bricks";
 import type { Field } from "../field/field";
 import { CELLS } from "../grid";
@@ -172,6 +172,7 @@ export function takeUpField(
     if (brick && kept) Object.assign(brick, kept);
   }
   field.needed = neededLeft(field.bricks);
+  field.keysLeft = unbrokenKeys(field.bricks);
   field.streakPoints = saved.streakPoints;
   field.climbed = saved.climbed;
   field.steps = saved.steps;
@@ -217,8 +218,8 @@ function savedField(field: SavableField): SavedField {
 
 /**
  * Returns a level's field as storage kept it, or null if it can't be
- * trusted: it doesn't fit the level, a number is out of its range, or the
- * level needs nothing more.
+ * trusted: it doesn't fit the level, a number is out of its range, the
+ * level needs nothing more, or its gates stand otherwise than its keys say.
  */
 function restoredField(
   value: unknown,
@@ -254,15 +255,15 @@ function restoredField(
     bricks.push(restored);
     if (isNeeded(placed.kind) && !restored.broken) needsMore = true;
   }
-  if (!needsMore) return null;
+  if (!needsMore || !gatesAsKeysSay(cells, bricks)) return null;
   return { bricks, streakPoints, climbed, steps, draws };
 }
 
 /**
  * Returns a brick as storage kept it, or null if a number is out of its
  * range or it is in a state its kind never comes to: broken with hits left
- * or whole without, hidden once hit, or with a fuse or a regrowth its kind
- * doesn't have.
+ * or whole without, but a gate, either way, hidden once hit, or with a fuse
+ * or a regrowth its kind doesn't have.
  */
 function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
   if (!isRecord(value)) return null;
@@ -279,7 +280,7 @@ function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
   }
   const { kind } = placed;
   if (
-    broken !== (placed.hits > 0 && hits === 0) ||
+    !brokenAsItComes(placed, hits, broken) ||
     (!shown && (!hasTrait(kind, "hidden") || hits < placed.hits)) ||
     (goesOffAt > 0 && (!hasTrait(kind, "blasts") || !broken)) ||
     (regrowsAt > 0 && !hasTrait(kind, "regrows"))
@@ -287,4 +288,42 @@ function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
     return null;
   }
   return { hits, broken, shown, goesOffAt, regrowsAt };
+}
+
+/**
+ * Returns whether a brick kept is broken as its kind comes to: one that
+ * breaks once it has no hits left, and a gate either way, which
+ * {@link gatesAsKeysSay} checks against the keys.
+ */
+function brokenAsItComes(
+  placed: LevelBrick,
+  hits: number,
+  broken: boolean,
+): boolean {
+  if (hasTrait(placed.kind, "locked")) return true;
+  return broken === (placed.hits > 0 && hits === 0);
+}
+
+/**
+ * Returns whether a level's gates stand as its keys say, as kept: every one
+ * open once the level has broken all its keys, and shut while one is left.
+ */
+function gatesAsKeysSay(
+  cells: readonly (LevelBrick | null)[],
+  bricks: readonly (SavedBrick | null)[],
+): boolean {
+  let keys = 0;
+  let left = 0;
+  for (const [cell, placed] of cells.entries()) {
+    if (!placed || !hasTrait(placed.kind, "unlocks")) continue;
+    keys++;
+    if (!bricks[cell]?.broken) left++;
+  }
+  const open = keys > 0 && left === 0;
+  return cells.every(
+    (placed, cell) =>
+      !placed ||
+      !hasTrait(placed.kind, "locked") ||
+      bricks[cell]?.broken === open,
+  );
 }
