@@ -49,8 +49,9 @@ const SEMITONE_CENTS = 100;
  * regrown brick's growing back, a streak's step or its reaching the
  * level's mark, a ring about the ball and the streak's count beside it,
  * the last brick's hit holding as the level clears, and, as a ball meets
- * the paddle, the ball's squash and the pad's dip. Each moves, so none
- * plays where motion isn't welcome.
+ * the paddle, the ball's squash and the pad's dip, and a slider's slide
+ * into its next cell. Each moves, so none plays where motion isn't
+ * welcome.
  */
 export type Flourish =
   | "pop"
@@ -62,7 +63,8 @@ export type Flourish =
   | "streak"
   | "hold"
   | "squash"
-  | "dip";
+  | "dip"
+  | "slide";
 
 /** Says what an event calls for: the flourishes it plays, and its sound. */
 export interface EventEffects {
@@ -99,6 +101,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   seeking: { flourishes: [], sound: "seeker" },
   bumped: { flourishes: [], sound: null },
   portalled: { flourishes: [], sound: null },
+  slid: { flourishes: ["slide"], sound: null },
 };
 
 /** What a hit on a brick that never breaks calls for. */

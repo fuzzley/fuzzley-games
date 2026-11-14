@@ -24,6 +24,7 @@ describe("FieldEventLog", () => {
         cell: -1,
         capsule: null,
         streak: 0,
+        way: 0,
       },
       {
         serial: 2,
@@ -33,6 +34,7 @@ describe("FieldEventLog", () => {
         cell: 17,
         capsule: "wide",
         streak: 0,
+        way: 0,
       },
       {
         serial: 3,
@@ -42,8 +44,17 @@ describe("FieldEventLog", () => {
         cell: 18,
         capsule: null,
         streak: 5,
+        way: 0,
       },
     ]);
+  });
+
+  it("records the way a slider stepped", () => {
+    const log = new FieldEventLog();
+
+    log.add("slid", 5, 2.5, 2, null, 0, -1);
+
+    expect(eventsSince(log, 0).map((event) => event.way)).toEqual([-1]);
   });
 
   it("keeps the latest events, as many as its size", () => {
@@ -75,6 +86,7 @@ describe("FieldEventLog", () => {
         cell: -1,
         capsule: null,
         streak: 0,
+        way: 0,
       },
     ]);
   });

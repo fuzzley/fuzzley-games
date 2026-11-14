@@ -65,6 +65,9 @@ export const BUMPER_RADIUS = 0.5;
 /** The radius of a portal's disc, at its cell's middle. */
 export const PORTAL_RADIUS = 0.5;
 
+/** How often the sliders step a cell along their rows, the field's beat, in milliseconds. */
+export const SLIDER_BEAT_MS = 800;
+
 /** The most balls in play at once. */
 export const MAX_BALLS = 8;
 

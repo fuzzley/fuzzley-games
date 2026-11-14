@@ -56,7 +56,8 @@ Its block in a set's file:
   `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `k` key,
   `=` gate,
   `O` bumper,
-  `@` and `%` portals, of two pairs, `.`
+  `@` and `%` portals, of two pairs,
+  `>` and `<` sliders, heading right and left, `.`
   none. A `legend` of its own adds characters, each a kind with its hits or
   the capsule a gift gives.
   A level with a gate has a key, whose last opens it.
@@ -66,6 +67,10 @@ Its block in a set's file:
   once by a ball coming out of it toward that brick, which, turned while
   still within the disc, goes straight back through: leave a row between
   them where a ball is meant to come out into the room.
+  Only the shared legend draws a slider too, as its way is the
+  character's. Sliders of a row that touch and head one way step as a
+  train, a cell each beat, and turn at a wall or an unbroken brick, so a
+  row left open beside a train is the room it moves in.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
@@ -274,6 +279,11 @@ Machines, the kinds that move a ball or themselves, starts at 1.16.
   leaves its cell open (`boxed` and `hardBoxed`), and the faces beside it
   stay exposed, while `Field.solid` holds it whole, and `inSight()` with
   it; the travel meets its disc by `sweepPoint()` (`noteDisc()`).
+- If it moves a brick, as a slider's `slides` does, it moves it through
+  `src/rules/bricks/sliders.ts`, which steps before the traits' step
+  (`stepSliders()`), changing `Brick.cell` with the field's list, and
+  the saved game keeps the cell and refuses one no move comes to
+  (`restoredPlace()`).
 - An event it records, as a cage's freeing records `freed`: a member of
   `FieldEventKind` (`src/rules/field/events.ts`), and its entry in
   `EVENT_EFFECTS` (`src/view/effects/effects.ts`), its sound and the

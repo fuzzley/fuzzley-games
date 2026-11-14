@@ -75,6 +75,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   `u` and `U` plated, of one hit and two, `k` key, `=` gate,
   `O` bumper,
   `@` and `%` portals,
+  `>` and `<` sliders,
   `.` none). The
   options set what a picture can't show: the speed, the seed, the pace, the
   level's mark, 5 by default, the chance of a capsule, the capsules that may
@@ -135,6 +136,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   and taking up the run and its field at each, and expects every state a
   take-up must keep to have been reached: a fuse lit, a ghost shown, a
   regrowing brick broken and grown back, a tough brick worn, a gate opened,
+  a slider stepped and one turned,
   streak points, dare points (a Fast ball caught as it starts pays them),
   draws, balls off the paddle since a needed brick broke (`dryBounces`), a
   best streak (`bestStreak`) and a ball lost. A new state kept on a brick

@@ -18,7 +18,7 @@ import { HOLD_MS } from "./timing";
 
 /** Returns an event of a kind, at a cell or none, at a length of streak. */
 function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {
-  return { serial: 1, kind, x: 0, y: 0, cell, capsule: null, streak };
+  return { serial: 1, kind, x: 0, y: 0, cell, capsule: null, streak, way: 0 };
 }
 
 /**
@@ -48,6 +48,7 @@ const VOICES_OF_EVENTS: Readonly<
   seeking: ["seeker", []],
   bumped: [null, []],
   portalled: [null, []],
+  slid: [null, ["slide"]],
 };
 
 /** Every event, with the sound it plays and what of it moves. */
@@ -76,10 +77,11 @@ const VOICES_OF_KINDS: Readonly<
   gate: ["steel", null],
   bumper: ["steel", null],
   portal: ["steel", null],
+  slider: ["hit", "broken"],
 };
 
 /** A field that holds a brick of every kind. */
-const EVERY_KIND = fieldFrom(["o2#*?~+cuk=O@"]);
+const EVERY_KIND = fieldFrom(["o2#*?~+cuk=O@", ">"]);
 
 /** Returns the cell of the field's brick of a kind, or throws for a kind it holds none of. */
 function cellOf(kind: BrickKindId): number {

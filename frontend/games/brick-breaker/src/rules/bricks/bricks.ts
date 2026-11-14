@@ -1,4 +1,3 @@
-import type { Box } from "@fz/core/sweep";
 import {
   BRICK_KIND_IDS,
   type BrickKindId,
@@ -13,7 +12,6 @@ import { nextDraw } from "../draws";
 import type { Field } from "../field/field";
 import { scoreBreak, scoreHit } from "../field/scoring";
 import {
-  brickBox,
   cellIndex,
   cellMiddleX,
   cellMiddleY,
@@ -22,10 +20,11 @@ import {
   rowOf,
 } from "../grid";
 import type { LevelBrick } from "../levels/level";
-import { overlapsBox, releaseBall } from "../paddle/balls";
+import { isBallInCell, releaseBall } from "../paddle/balls";
 import { stepsIn } from "../stepper";
 import { FRIEND_INKS, FRIEND_SPREAD } from "../tuning";
 import { dropFrom } from "./capsules";
+import { stepSliders } from "./sliders";
 
 /**
  * Describes a brick in play.
@@ -35,8 +34,8 @@ import { dropFrom } from "./capsules";
  */
 export interface Brick {
   readonly kind: BrickKindId;
-  /** Its cell in the grid. */
-  readonly cell: number;
+  /** Its cell in the grid, where it stands now, which a slider changes. */
+  cell: number;
   /** Its tint, from 0 to 7. */
   readonly tint: number;
   /** The capsule it gives, where the level pins one, else null. */
@@ -58,6 +57,10 @@ export interface Brick {
   regrowsAt: number;
   /** The pair a portal is of, by which it finds its twin, 0 for any other kind. */
   readonly pair: number;
+  /** The cell the level drew it in, by which the saved game keeps it. */
+  readonly home: number;
+  /** The way a slider heads along its row, 1 right or -1 left, 0 for any other kind. */
+  heading: number;
 }
 
 /** A brick trait of each kind, by its kind. */
@@ -109,7 +112,7 @@ const TRAIT_RULES: {
     },
     step: (field, brick) => {
       if (!brick.broken || field.steps < brick.regrowsAt) return;
-      if (isBallIn(field, brick)) return;
+      if (isBallInCell(field.balls, brick.cell)) return;
       brick.broken = false;
       brick.hits = brick.whole;
       field.events.add(
@@ -141,6 +144,8 @@ const TRAIT_RULES: {
   // Its disc is the travel's to meet (`isPortal()`), and its twin the
   // travel's to find (`twinOf()`), and it is no thing a hit is taken by.
   jumps: {},
+  // Its trains step together, on the field's beat (`stepSliders()`).
+  slides: {},
 };
 
 /** The kinds plated underneath, read at every contact, so a step makes nothing. */
@@ -154,9 +159,6 @@ const PORTALS = kindsWith("jumps");
 
 /** The round kinds, read at every look at a cell, so a step makes nothing. */
 const ROUND: ReadonlySet<BrickKindId> = new Set([...BUMPERS, ...PORTALS]);
-
-// Made once and reused, so a step makes nothing.
-const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
 
 /** Returns a brick as a level lays it out, whole. */
 export function createBrick(placed: LevelBrick, cell: number): Brick {
@@ -172,6 +174,8 @@ export function createBrick(placed: LevelBrick, cell: number): Brick {
     goesOffAt: 0,
     regrowsAt: 0,
     pair: placed.pair ?? 0,
+    home: cell,
+    heading: placed.heading ?? 0,
   };
   for (const trait of brickKind(brick.kind).traits) {
     layRule(brick, trait.kind, trait);
@@ -324,8 +328,12 @@ export function hitAround(
   }
 }
 
-/** Moves each brick's traits on by a step, until the level is cleared. */
+/**
+ * Moves each brick's traits on by a step, the sliders first, until the
+ * level is cleared.
+ */
 export function stepBricks(field: Field): void {
+  stepSliders(field);
   for (const brick of field.bricks) {
     if (brick) runTraits("step", field, brick);
     if (field.state === "cleared") return;
@@ -401,10 +409,4 @@ function freeFriend(field: Field, brick: Readonly<Brick>): void {
   releaseBall(friend, x, y, degrees, field.friendsFreed % FRIEND_INKS);
   field.friendsFreed++;
   field.events.add("freed", x, y, brick.cell);
-}
-
-/** Returns whether a ball in play overlaps a brick's place. */
-function isBallIn(field: Field, brick: Readonly<Brick>): boolean {
-  brickBox(columnOf(brick.cell), rowOf(brick.cell), box);
-  return field.balls.some((ball) => ball.live && overlapsBox(ball, box));
 }

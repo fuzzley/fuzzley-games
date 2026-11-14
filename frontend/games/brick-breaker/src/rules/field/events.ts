@@ -42,7 +42,9 @@ export type FieldEventKind =
   /** A ball turned off a bumper, which took no hit. */
   | "bumped"
   /** A ball touched a portal, and came out of its twin, here. */
-  | "portalled";
+  | "portalled"
+  /** A slider stepped a cell along its row, to here. */
+  | "slid";
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
@@ -62,6 +64,11 @@ export interface FieldEvent extends NumberedEvent {
    * keeps it.
    */
   streak: number;
+  /**
+   * The way a slider stepped, 1 right or -1 left; 0 for any other event.
+   * The event keeps it, as a train may have turned by the time it plays.
+   */
+  way: number;
 }
 
 /** How many events the log keeps, far more than a frame's steps make. */
@@ -77,6 +84,7 @@ function blankEvent(): FieldEvent {
     cell: -1,
     capsule: null,
     streak: 0,
+    way: 0,
   };
 }
 
@@ -94,6 +102,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     cell = -1,
     capsule: CapsuleId | null = null,
     streak = 0,
+    way = 0,
   ): void {
     const event = this.next();
     event.kind = kind;
@@ -102,5 +111,6 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.cell = cell;
     event.capsule = capsule;
     event.streak = streak;
+    event.way = way;
   }
 }

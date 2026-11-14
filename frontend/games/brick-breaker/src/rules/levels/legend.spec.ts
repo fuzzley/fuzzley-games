@@ -26,6 +26,10 @@ describe("brickOf", () => {
   it("lays a portal out with its pair", () => {
     expect(brickOf({ kind: "portal", pair: 1 }, 0).pair).toBe(1);
   });
+
+  it("lays a slider out heading its way", () => {
+    expect(brickOf({ kind: "slider", heading: -1 }, 0).heading).toBe(-1);
+  });
 });
 
 describe("the shared legend", () => {
@@ -44,6 +48,13 @@ describe("the shared legend", () => {
     expect([LEGEND["@"], LEGEND["%"]]).toEqual([
       { kind: "portal", pair: 0 },
       { kind: "portal", pair: 1 },
+    ]);
+  });
+
+  it("draws a slider heading right as > and left as <", () => {
+    expect([LEGEND[">"], LEGEND["<"]]).toEqual([
+      { kind: "slider", heading: 1 },
+      { kind: "slider", heading: -1 },
     ]);
   });
 });

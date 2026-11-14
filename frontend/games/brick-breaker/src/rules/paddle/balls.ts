@@ -1,5 +1,6 @@
 import { clamp } from "@fz/core/math";
 import type { Box } from "@fz/core/sweep";
+import { brickBox, columnOf, rowOf } from "../grid";
 import {
   BALL_RADIUS,
   FIELD_WIDTH,
@@ -234,6 +235,21 @@ export function settleBall(ball: Ball, nx: number, ny: number): void {
   ball.dx = ball.dx < 0 ? -FLATTEST_COS : FLATTEST_COS;
   ball.dy = ball.dy > 0 ? FLATTEST_SIN : -FLATTEST_SIN;
   if (ball.dx * nx + ball.dy * ny < 0) ball.dy = -ball.dy;
+}
+
+/** A cell's box, made once, as {@link isBallInCell} is asked at a step. */
+const cellBox: Box = { left: 0, top: 0, right: 0, bottom: 0 };
+
+/** Returns whether a ball in play overlaps a cell of the grid. */
+export function isBallInCell(
+  balls: readonly Readonly<Ball>[],
+  cell: number,
+): boolean {
+  brickBox(columnOf(cell), rowOf(cell), cellBox);
+  for (const ball of balls) {
+    if (ball.live && overlapsBox(ball, cellBox)) return true;
+  }
+  return false;
 }
 
 /** Returns whether a ball overlaps a box, some of it inside. */

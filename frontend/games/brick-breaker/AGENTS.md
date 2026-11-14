@@ -170,7 +170,8 @@ takes for the specs' helpers.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s `EventLog` of
   256 numbered records, which `add()` fills, the scene plays and the shell
   hears, each from the last one it read; a broken brick's carries the
-  streak as it broke, as the scene plays it once the field has moved on.
+  streak as it broke, as the scene plays it once the field has moved on,
+  and a slider's step the way it stepped (`FieldEvent.way`).
 - **`src/rules/paddle/`** — the paddle and what it sends up the field.
   `paddle.ts` steers the paddle (`Steer`: a pointer's place, a finger's
   drag, held keys) and `balls.ts` turns a ball: off the paddle by where it
@@ -195,6 +196,15 @@ takes for the specs' helpers.
   its rule fails to compile: a key's, as the level's last key breaks
   (`Field.keysLeft`, counted by `unbrokenKeys()`), marks every gate broken,
   out of the balls' way, and records `opened`.
+  `sliders.ts` steps the sliders on the field's beat, every
+  `SLIDER_BEAT_MS` (`stepSliders()`, before the traits' step): each train,
+  the unbroken sliders of a row that touch and head the same way
+  (`Brick.heading`), steps a cell its way, recording `slid` at each
+  slider's new cell; at a wall or an unbroken brick it turns and stands, it
+  waits while a ball is in the cell ahead (`isBallInCell()`, which a
+  regrowing brick waits on too), and a broken brick there takes
+  the cell the train left. It is the one thing that moves a brick
+  (`Brick.cell`, where `Brick.home` is the cell the level drew it in).
   `capsules.ts` drops capsules while the level is
   in play (`dropFrom()`), by the level's chance or from a gift brick, by
   weight from the level's pool, from `src/rules/draws.ts`'s seeded draws;
@@ -258,7 +268,11 @@ takes for the specs' helpers.
   hits left, a gate open with a key left or a level that needs nothing
   more; `takeUpField()` lays the
   bricks and counts kept over a new field of the level, counting its keys
-  left anew. `run.ts`'s
+  left anew.
+  It keeps each brick at its home, with the cell it stands in and the way
+  it heads, and puts it back there (`placeBricks()`), leaving out a brick
+  out of its row, two in one cell, or a whole one away from home that
+  neither slides nor grew back where a train left it. `run.ts`'s
   `nextLifeAfter()` gives the mark the next life comes at from a score,
   through `@fz/core/math`'s `nextMarkAfter()`, which a kept run's must match.
 - **`src/rules/levels/`** — the levels: a JSON file for each set of levels,
@@ -330,7 +344,8 @@ takes for the specs' helpers.
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
   step, or at the level's mark, adding the step's, and a ball meeting the
-  paddle squashing the ball and dipping the pad, in the picture alone.
+  paddle squashing the ball and dipping the pad, and a slider's step
+  sliding it in from the cell it left (`slid`), in the picture alone.
   A plate's underside clanks as
   it turns a ball back or a bolt is spent on it (`plated`), a cage rattles
   as it frees its friend (`freed`),
@@ -504,7 +519,8 @@ takes for the specs' helpers.
   shine, a caged friend's fur, and the
   ring's sprout
   (`showsDetail()`); a round kind without its art yet is a disc of its
-  radius in one tint, on no slab (`roundPlaceholderArt()`); and it names
+  radius in one tint, on no slab (`roundPlaceholderArt()`), and any other
+  kind without its art yet a slab in one tint (`placeholderArt()`); and it names
   the frame a brick shows as it and the
   field beside it stand (`brickFrame()`, given the field as `CellField`, a
   cage's by the friends the field has freed, `nextFriend()`, or as How to
@@ -549,7 +565,10 @@ takes for the specs' helpers.
   starts, a column after a column, each drawn its column's height above its
   place till it lands, or at once at a key, swollen at a hit a brick holds,
   its ring shown while it grows back and grown back as it
-  regrows, `GlowPainter` the frames around the last bricks a level needs,
+  regrows, and slid from the cell it left into a slider's new one, an
+  offset beside the drop-in's (`slide`, over `SLIDE_MS`), `GlowPainter`
+  the frames around the last bricks a level needs, a slider's following
+  its slide (`BrickPainter.slideOffsetOf()`),
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
   in the ink the painter last showed it in (`BallPainter.lostInk()`),
