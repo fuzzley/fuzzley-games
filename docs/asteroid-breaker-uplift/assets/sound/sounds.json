@@ -9,6 +9,387 @@
     "bed": -27
   },
   "sounds": {
+    "bed-endless": {
+      "family": "beds",
+      "about": "Under Endless, deep and open: a deep C that barely moves, a second soft voice that wanders over 32 seconds through G, A and E about middle C and then leaves the C alone, each note leaning to its own ear, faint air, and five muted bells far apart in a long room.",
+      "level": "bed",
+      "loop": true,
+      "seconds": 32,
+      "plays": [
+        "Endless, from wave 31"
+      ],
+      "files": [
+        "wav/beds/bed-endless.wav"
+      ]
+    },
+    "bed-inner-belt": {
+      "family": "beds",
+      "about": "Under the Inner belt, calm and warm: a soft low pad over a C that stays, drifting over 32 seconds from C and G to A and E, to C, G and D, and home, its middle notes cross-fading and its low ones handing over, under air that wanders and seven soft struck notes far apart.",
+      "level": "bed",
+      "loop": true,
+      "seconds": 32,
+      "plays": [
+        "the Inner belt, waves 1 to 10"
+      ],
+      "files": [
+        "wav/beds/bed-inner-belt.wav"
+      ]
+    },
+    "bed-iron-reach": {
+      "family": "beds",
+      "about": "Under the Iron reach, cold and heavy: a dark, undriven drone of A and E, a thin band of cold air high above it, and three far-off rings of metal that fade into a long room.",
+      "level": "bed",
+      "loop": true,
+      "seconds": 16,
+      "plays": [
+        "the Iron reach, waves 11 to 20"
+      ],
+      "files": [
+        "wav/beds/bed-iron-reach.wav"
+      ]
+    },
+    "bed-pulse": {
+      "family": "beds",
+      "about": "Over a bed while static is high: soft mallet notes in steady eighths at 120 beats a minute, a cell of E3, A3 and G3 rolling across two bars with a turn through C4 or D4 at their end, the beats a little louder than what falls between.",
+      "level": "bed",
+      "loop": true,
+      "seconds": 8,
+      "plays": [
+        "static at the second step or above"
+      ],
+      "files": [
+        "wav/beds/bed-pulse.wav"
+      ]
+    },
+    "bed-shimmer": {
+      "family": "beds",
+      "about": "Over a bed and its pulse while static is at its highest: eight small glass bells on the key's high notes, far apart and off the beat, each answered once, fainter, in the other ear, in a long room.",
+      "level": "bed",
+      "loop": true,
+      "seconds": 8,
+      "plays": [
+        "static at the third step or above"
+      ],
+      "files": [
+        "wav/beds/bed-shimmer.wav"
+      ]
+    },
+    "bed-storm": {
+      "family": "beds",
+      "about": "Under the Storm, charged: a low drone on A whose tones beat fast against their twins and tremble, wind that is noise through a band swept up and down, other in each ear, and two far-off rumbles.",
+      "level": "bed",
+      "loop": true,
+      "seconds": 16,
+      "plays": [
+        "the Storm, waves 21 to 30"
+      ],
+      "files": [
+        "wav/beds/bed-storm.wav"
+      ]
+    },
+    "blast-volatile": {
+      "family": "rocks",
+      "about": "A volatile rock goes off: a click, a body of driven noise closing down, a boom falling in pitch that speaks in its harmonics, a tail of noise falling after it, and embers spitting.",
+      "level": "huge",
+      "loop": false,
+      "seconds": 1.442,
+      "plays": [
+        "blast (large or medium)"
+      ],
+      "files": [
+        "wav/rocks/blast-volatile-1.wav",
+        "wav/rocks/blast-volatile-2.wav",
+        "wav/rocks/blast-volatile-3.wav"
+      ]
+    },
+    "blast-volatile-small": {
+      "family": "rocks",
+      "about": "A small volatile rock goes off, or a later link of a chain of blasts: the blast, higher, shorter and drier.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.939,
+      "plays": [
+        "blast (small)"
+      ],
+      "files": [
+        "wav/rocks/blast-volatile-small-1.wav",
+        "wav/rocks/blast-volatile-small-2.wav"
+      ]
+    },
+    "break-boulder": {
+      "family": "rocks",
+      "about": "The boulder breaks, in three beats: a crack that flares, snaps quickening over a tearing rise; a deep split, a knock and a falling boom under a roar of noise; and large pieces thrown out, knocking over a rumble as they go.",
+      "level": "huge",
+      "loop": false,
+      "seconds": 2.228,
+      "plays": [
+        "broken (boulder)"
+      ],
+      "files": [
+        "wav/rocks/break-boulder.wav"
+      ]
+    },
+    "break-cluster": {
+      "family": "rocks",
+      "about": "Many small rocks break in one frame, heard as one sound: a patter of small stone knocks and a few glassy ticks over a shared crumble, with no crack of its own.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.685,
+      "plays": [
+        "broken (more than three in a frame, with the largest breaks)"
+      ],
+      "files": [
+        "wav/rocks/break-cluster-1.wav",
+        "wav/rocks/break-cluster-2.wav",
+        "wav/rocks/break-cluster-3.wav"
+      ]
+    },
+    "break-crystal-large": {
+      "family": "rocks",
+      "about": "A large crystal breaks and drops its pickup: a chord of chimes on C, E and G, a crunch rung at the same notes, and shards pinging up the chord.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.986,
+      "plays": [
+        "broken (crystal, large)"
+      ],
+      "files": [
+        "wav/rocks/break-crystal-large-1.wav",
+        "wav/rocks/break-crystal-large-2.wav"
+      ]
+    },
+    "break-crystal-medium": {
+      "family": "rocks",
+      "about": "A medium crystal breaks and drops its pickup: a chord of chimes on C, E and G, a crunch rung at the same notes, and shards pinging up the chord.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.912,
+      "plays": [
+        "broken (crystal, medium)"
+      ],
+      "files": [
+        "wav/rocks/break-crystal-medium-1.wav",
+        "wav/rocks/break-crystal-medium-2.wav"
+      ]
+    },
+    "break-ice-large": {
+      "family": "rocks",
+      "about": "A large rock of ice breaks: a sharp crack, a pane's many high partials struck and shattered, dying fast, and a spray of tinkling slivers.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.831,
+      "plays": [
+        "broken (ice, large)"
+      ],
+      "files": [
+        "wav/rocks/break-ice-large-1.wav",
+        "wav/rocks/break-ice-large-2.wav",
+        "wav/rocks/break-ice-large-3.wav"
+      ]
+    },
+    "break-ice-medium": {
+      "family": "rocks",
+      "about": "A medium rock of ice breaks: a sharp crack, a pane's many high partials struck and shattered, dying fast, and a spray of tinkling slivers.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.576,
+      "plays": [
+        "broken (ice, medium)"
+      ],
+      "files": [
+        "wav/rocks/break-ice-medium-1.wav",
+        "wav/rocks/break-ice-medium-2.wav",
+        "wav/rocks/break-ice-medium-3.wav"
+      ]
+    },
+    "break-ice-small": {
+      "family": "rocks",
+      "about": "A small rock of ice breaks: a sharp crack, a pane's many high partials struck and shattered, dying fast, and a spray of tinkling slivers.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.336,
+      "plays": [
+        "broken (ice, small)"
+      ],
+      "files": [
+        "wav/rocks/break-ice-small-1.wav",
+        "wav/rocks/break-ice-small-2.wav",
+        "wav/rocks/break-ice-small-3.wav"
+      ]
+    },
+    "break-iron-large": {
+      "family": "rocks",
+      "about": "A large rock of iron breaks: a heavy clank of partials that disagree and ring on, the knock of its weight, and its plates clattering after.",
+      "level": "large",
+      "loop": false,
+      "seconds": 1.402,
+      "plays": [
+        "broken (iron, large)"
+      ],
+      "files": [
+        "wav/rocks/break-iron-large-1.wav",
+        "wav/rocks/break-iron-large-2.wav"
+      ]
+    },
+    "break-iron-medium": {
+      "family": "rocks",
+      "about": "A medium rock of iron breaks: a heavy clank of partials that disagree and ring on, the knock of its weight, and its plates clattering after.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 1.022,
+      "plays": [
+        "broken (iron, medium)"
+      ],
+      "files": [
+        "wav/rocks/break-iron-medium-1.wav",
+        "wav/rocks/break-iron-medium-2.wav"
+      ]
+    },
+    "break-iron-small": {
+      "family": "rocks",
+      "about": "A small rock of iron breaks: a heavy clank of partials that disagree and ring on, the knock of its weight, and its plates clattering after.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.599,
+      "plays": [
+        "broken (iron, small)"
+      ],
+      "files": [
+        "wav/rocks/break-iron-small-1.wav",
+        "wav/rocks/break-iron-small-2.wav"
+      ]
+    },
+    "break-lodestone-large": {
+      "family": "rocks",
+      "about": "A large lodestone breaks: a darker stone's crack, knock and crumble over a buzzing tone that bends down from E3 to A2 as its field lets go.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.907,
+      "plays": [
+        "broken (lodestone, large)"
+      ],
+      "files": [
+        "wav/rocks/break-lodestone-large-1.wav",
+        "wav/rocks/break-lodestone-large-2.wav"
+      ]
+    },
+    "break-lodestone-medium": {
+      "family": "rocks",
+      "about": "A medium lodestone breaks: a darker stone's crack, knock and crumble over a buzzing tone that bends down from A3 to E3 as its field lets go.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.581,
+      "plays": [
+        "broken (lodestone, medium)"
+      ],
+      "files": [
+        "wav/rocks/break-lodestone-medium-1.wav",
+        "wav/rocks/break-lodestone-medium-2.wav"
+      ]
+    },
+    "break-lodestone-small": {
+      "family": "rocks",
+      "about": "A small lodestone breaks: a darker stone's crack, knock and crumble over a buzzing tone that bends down from E4 to A3 as its field lets go.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.393,
+      "plays": [
+        "broken (lodestone, small)"
+      ],
+      "files": [
+        "wav/rocks/break-lodestone-small-1.wav",
+        "wav/rocks/break-lodestone-small-2.wav"
+      ]
+    },
+    "break-stone-large": {
+      "family": "rocks",
+      "about": "A large stone breaks: a crack, a knock of a few low, scattered partials sized to it, and a crumble of debris that settles.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.739,
+      "plays": [
+        "broken (stone, large)"
+      ],
+      "files": [
+        "wav/rocks/break-stone-large-1.wav",
+        "wav/rocks/break-stone-large-2.wav",
+        "wav/rocks/break-stone-large-3.wav"
+      ]
+    },
+    "break-stone-medium": {
+      "family": "rocks",
+      "about": "A medium stone breaks: a crack, a knock of a few low, scattered partials sized to it, and a crumble of debris that settles.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.508,
+      "plays": [
+        "broken (stone, medium)"
+      ],
+      "files": [
+        "wav/rocks/break-stone-medium-1.wav",
+        "wav/rocks/break-stone-medium-2.wav",
+        "wav/rocks/break-stone-medium-3.wav"
+      ]
+    },
+    "break-stone-small": {
+      "family": "rocks",
+      "about": "A small stone breaks: a crack, a knock of a few low, scattered partials sized to it, and a crumble of debris that settles.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.337,
+      "plays": [
+        "broken (stone, small)"
+      ],
+      "files": [
+        "wav/rocks/break-stone-small-1.wav",
+        "wav/rocks/break-stone-small-2.wav",
+        "wav/rocks/break-stone-small-3.wav"
+      ]
+    },
+    "burr-cling": {
+      "family": "hazards",
+      "about": "A burr catches on the pod: a \"zrrip\" of its hooks, ticks that come faster and higher until they buzz, and a soft thock as it lands.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.234,
+      "plays": [
+        "a burr clings to the pod"
+      ],
+      "files": [
+        "wav/hazards/burr-cling-1.wav",
+        "wav/hazards/burr-cling-2.wav",
+        "wav/hazards/burr-cling-3.wav"
+      ]
+    },
+    "burr-pop": {
+      "family": "hazards",
+      "about": "A shot pops a burr: one tiny dry pop, a tone that drops in a blink with a puff of air.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.136,
+      "plays": [
+        "a burr popped by a shot"
+      ],
+      "files": [
+        "wav/hazards/burr-pop-1.wav",
+        "wav/hazards/burr-pop-2.wav",
+        "wav/hazards/burr-pop-3.wav"
+      ]
+    },
+    "burr-shed": {
+      "family": "hazards",
+      "about": "A dash flings the burrs off: a quick ruffle of fluttering air, rising, and each burr popping as it goes.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.392,
+      "plays": [
+        "dashed (with burrs clinging)"
+      ],
+      "files": [
+        "wav/hazards/burr-shed-1.wav",
+        "wav/hazards/burr-shed-2.wav"
+      ]
+    },
     "chain-ping": {
       "family": "chain",
       "about": "Under every break of a chain: a small glass bell at C5, which the game raises up the scale by the break's place in its chain.",
@@ -59,6 +440,930 @@
       ],
       "files": [
         "wav/chain/chain-x4.wav"
+      ]
+    },
+    "comet-pass": {
+      "family": "hazards",
+      "about": "A comet crosses the field: a whoosh of air and a roar under it, with a hot core's tone, all rising as it comes and falling as it goes.",
+      "level": "large",
+      "loop": false,
+      "seconds": 1.758,
+      "plays": [
+        "a comet comes in (after its warning)"
+      ],
+      "files": [
+        "wav/hazards/comet-pass-1.wav",
+        "wav/hazards/comet-pass-2.wav"
+      ]
+    },
+    "comet-smash": {
+      "family": "hazards",
+      "about": "A comet breaks a rock: a crunch, a hard-driven knock under a run of snaps and grit, and a hot sizzle after it, hissing and spitting as it dies.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.67,
+      "plays": [
+        "broken (by a comet)"
+      ],
+      "files": [
+        "wav/hazards/comet-smash-1.wav",
+        "wav/hazards/comet-smash-2.wav"
+      ]
+    },
+    "comet-warning": {
+      "family": "hazards",
+      "about": "A comet is coming: three calm pulses on A, C and E over the warning's second and a half, each higher, brighter and sooner than the last.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 1.695,
+      "plays": [
+        "warned"
+      ],
+      "files": [
+        "wav/hazards/comet-warning.wav"
+      ]
+    },
+    "crew-caught": {
+      "family": "rescue",
+      "about": "A loose fuzzball caught again: the bloop of the catch, then three small bells running up from E5 through G5 to C6, home.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.413,
+      "plays": [
+        "a loose fuzzball caught again"
+      ],
+      "files": [
+        "wav/rescue/crew-caught-1.wav",
+        "wav/rescue/crew-caught-2.wav"
+      ]
+    },
+    "crew-home": {
+      "family": "rescue",
+      "about": "A fuzzball floats home off the field: two soft bells falling a third, E6 then C6, the second fainter and further into the room than the first.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.89,
+      "plays": [
+        "a fuzzball floats home"
+      ],
+      "files": [
+        "wav/rescue/crew-home.wav"
+      ]
+    },
+    "crew-loose": {
+      "family": "rescue",
+      "about": "The tow line snaps and a bubble is flung off: a plucked line whose pitch whips upward as it snaps short, then a hollow pop that falls from A5.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.389,
+      "plays": [
+        "a fuzzball knocked loose"
+      ],
+      "files": [
+        "wav/rescue/crew-loose-1.wav",
+        "wav/rescue/crew-loose-2.wav"
+      ]
+    },
+    "dash": {
+      "family": "ship",
+      "about": "The dash: a whoosh, pink noise in a band swept up from 450 Hz to 3.6 kHz, with a sung tone rising two octaves from G4 inside it and a few glass pings at its end.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.28,
+      "plays": [
+        "dashed"
+      ],
+      "files": [
+        "wav/ship/dash-1.wav",
+        "wav/ship/dash-2.wav"
+      ]
+    },
+    "dash-ready": {
+      "family": "ship",
+      "about": "The dash has charged again: a soft tick and a small glass bell on G6, quiet, as it comes round every few seconds.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.15,
+      "plays": [
+        "dash recharged"
+      ],
+      "files": [
+        "wav/ship/dash-ready.wav"
+      ]
+    },
+    "effect-end": {
+      "family": "pickups",
+      "about": "A pickup's effect runs out: a soft two-note fall on glass, G5 then E5, the second quieter, with the highs taken off.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.38,
+      "plays": [
+        "effect ended"
+      ],
+      "files": [
+        "wav/pickups/effect-end.wav"
+      ]
+    },
+    "fuse-volatile": {
+      "family": "rocks",
+      "about": "A volatile rock's seams flare just before it goes off: a sizzle of noise and a whine, both rising fast, with specks spitting faster as it comes.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.114,
+      "plays": [
+        "lit (a volatile rock's fuse)"
+      ],
+      "files": [
+        "wav/rocks/fuse-volatile.wav"
+      ]
+    },
+    "guard-end": {
+      "family": "ship",
+      "about": "The pod can be touched again: one soft sung blip on G5 that sags a little as it dies.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.1,
+      "plays": [
+        "the pod's untouchable time ends"
+      ],
+      "files": [
+        "wav/ship/guard-end.wav"
+      ]
+    },
+    "hit-boulder": {
+      "family": "rocks",
+      "about": "A boulder holds a hit: a deep knock and a thump, and a crack that runs on through it, its snaps slowing and falling.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.58,
+      "plays": [
+        "hit (boulder, held)"
+      ],
+      "files": [
+        "wav/rocks/hit-boulder-1.wav",
+        "wav/rocks/hit-boulder-2.wav",
+        "wav/rocks/hit-boulder-3.wav"
+      ]
+    },
+    "hit-iron": {
+      "family": "rocks",
+      "about": "A shot rings off iron that holds: a bright clank and a ring, each take the same anvil struck elsewhere, so other partials of it ring loudest.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.903,
+      "plays": [
+        "hit (iron, held)",
+        "shielded"
+      ],
+      "files": [
+        "wav/rocks/hit-iron-1.wav",
+        "wav/rocks/hit-iron-2.wav",
+        "wav/rocks/hit-iron-3.wav",
+        "wav/rocks/hit-iron-4.wav"
+      ]
+    },
+    "hit-stone": {
+      "family": "rocks",
+      "about": "A boulder or a lodestone holds a hit: a knock and a crack, with no crumble, as nothing came off.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.218,
+      "plays": [
+        "hit (stone, lodestone, held)"
+      ],
+      "files": [
+        "wav/rocks/hit-stone-1.wav",
+        "wav/rocks/hit-stone-2.wav",
+        "wav/rocks/hit-stone-3.wav"
+      ]
+    },
+    "level-up": {
+      "family": "stingers",
+      "about": "A level gained, kept for a progression system: four notes rolled up the C chord, C5, E5, G5 and C6, each held, into a pad's chord from C4 to E6 that blooms and trembles, with a bell on G6 over it.",
+      "level": "large",
+      "loop": false,
+      "seconds": 1.05,
+      "plays": [
+        "level gained (held back for a progression system)"
+      ],
+      "files": [
+        "wav/stingers/level-up.wav"
+      ]
+    },
+    "lodestone-hum": {
+      "family": "hazards",
+      "about": "While lodestones are on the field: a faint drone on A with its fifth, two saws a hair apart so they beat, a filter wobbling slowly through them, a tremor on top and a breath of noise; every pitch and wobble runs whole cycles in its two seconds, so it loops with no seam.",
+      "level": "tick",
+      "loop": true,
+      "seconds": 2,
+      "plays": [
+        "while a lodestone is on the field"
+      ],
+      "files": [
+        "wav/hazards/lodestone-hum.wav"
+      ]
+    },
+    "near-miss": {
+      "family": "hazards",
+      "about": "A rock passes a hair from the pod: a quick airy \"fwip\", a band of noise that rises as it comes and falls as it goes.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.274,
+      "plays": [
+        "near miss"
+      ],
+      "files": [
+        "wav/hazards/near-miss-1.wav",
+        "wav/hazards/near-miss-2.wav",
+        "wav/hazards/near-miss-3.wav"
+      ]
+    },
+    "new-best": {
+      "family": "stingers",
+      "about": "A new best score: a run of eleven notes up the scale from C5 to C7, ever quicker and louder, then E7 and G7 over the top, a pad's C chord blooming under them and a shower of sparkle falling after.",
+      "level": "large",
+      "loop": false,
+      "seconds": 1.55,
+      "plays": [
+        "new best set"
+      ],
+      "files": [
+        "wav/stingers/new-best.wav"
+      ]
+    },
+    "pause": {
+      "family": "stingers",
+      "about": "The game pauses: a soft falling pair on the mallet, E5 down to A4.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.42,
+      "plays": [
+        "paused"
+      ],
+      "files": [
+        "wav/stingers/pause.wav"
+      ]
+    },
+    "pickup-drop": {
+      "family": "pickups",
+      "about": "A pickup let go by a broken rock: a small glass bell on G6 with a second a moment after, on C7 in one take and E7 in the other, and a few pings of sparkle.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.21,
+      "plays": [
+        "pickup dropped"
+      ],
+      "files": [
+        "wav/pickups/pickup-drop-1.wav",
+        "wav/pickups/pickup-drop-2.wav"
+      ]
+    },
+    "pickup-fade": {
+      "family": "pickups",
+      "about": "A pickup blinks out uncaught: a tiny sigh, a nearly pure tone sliding from E6 down to A5 under a breath of air that falls with it.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.17,
+      "plays": [
+        "pickup faded"
+      ],
+      "files": [
+        "wav/pickups/pickup-fade.wav"
+      ]
+    },
+    "pickup-lance": {
+      "family": "pickups",
+      "about": "The Lance caught: one long clean line, a nearly pure tone sliding two octaves from C5 to C7 as it swells, a glass bell on C7 where it arrives and a thread of air after it.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.44,
+      "plays": [
+        "pickup caught (Lance)"
+      ],
+      "files": [
+        "wav/pickups/pickup-lance.wav"
+      ]
+    },
+    "pickup-magnet": {
+      "family": "pickups",
+      "about": "The Magnet caught: two sung tones, one from E5 below and one from G6 above, wobble as they are pulled together onto C6, the wobble narrowing as they close, and meet with a click, a glass bell and a glint of sparkle.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.45,
+      "plays": [
+        "pickup caught (Magnet)"
+      ],
+      "files": [
+        "wav/pickups/pickup-magnet.wav"
+      ]
+    },
+    "pickup-rapid": {
+      "family": "pickups",
+      "about": "The Rapid caught: one note stuttered, five quick damped glass strikes of G5 a twenty-fourth of a second apart, each louder and brighter, the last left to ring with the G above it and a glint of sparkle.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.42,
+      "plays": [
+        "pickup caught (Rapid)"
+      ],
+      "files": [
+        "wav/pickups/pickup-rapid.wav"
+      ]
+    },
+    "pickup-shield": {
+      "family": "pickups",
+      "about": "The Shield caught: a glass chord that closes, bells struck in pairs from the outside in, C5 with C7, E5 with G6, G5 with E6, and C6 last in the middle with a soft knock and a glint of sparkle.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.45,
+      "plays": [
+        "pickup caught (Shield)"
+      ],
+      "files": [
+        "wav/pickups/pickup-shield.wav"
+      ]
+    },
+    "pickup-slow": {
+      "family": "pickups",
+      "about": "The Slow caught: glass bells that sink and stretch, E6, C6, G5 and C5, each later than the last by more, each ringing longer and sagging further in pitch, under a low-pass that closes.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.45,
+      "plays": [
+        "pickup caught (Slow)"
+      ],
+      "files": [
+        "wav/pickups/pickup-slow.wav"
+      ]
+    },
+    "pickup-spread": {
+      "family": "pickups",
+      "about": "The Spread caught: one sung C5 that fans out into three, sliding up to E5, G5 and C6 at once, where three glass bells strike the chord under a glint of sparkle.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.45,
+      "plays": [
+        "pickup caught (Spread)"
+      ],
+      "files": [
+        "wav/pickups/pickup-spread.wav"
+      ]
+    },
+    "pod-hit": {
+      "family": "ship",
+      "about": "The pod is hit and someone is knocked loose: a click and a driven thud from 190 Hz with a knock, then a brassy tone that falls from E5 to A4 and wobbles ever slower, with a rattle.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.38,
+      "plays": [
+        "pod hit with someone in tow"
+      ],
+      "files": [
+        "wav/ship/pod-hit-1.wav",
+        "wav/ship/pod-hit-2.wav"
+      ]
+    },
+    "pod-lost": {
+      "family": "ship",
+      "about": "The run ends as the pod bursts: a crack, a driven boom from 130 Hz under noise whose low-pass closes, a sung tone falling from E5 to A3 with a slow vibrato, and debris and a few glass tinkles settling in a room.",
+      "level": "huge",
+      "loop": false,
+      "seconds": 1.25,
+      "plays": [
+        "pod hit with no one in tow"
+      ],
+      "files": [
+        "wav/ship/pod-lost.wav"
+      ]
+    },
+    "resume": {
+      "family": "stingers",
+      "about": "The game goes on: the pause's pair turned round, A4 up to E5, on the mallet.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.42,
+      "plays": [
+        "resumed"
+      ],
+      "files": [
+        "wav/stingers/resume.wav"
+      ]
+    },
+    "run-end": {
+      "family": "stingers",
+      "about": "The run is over and everyone has floated home: a gentle fall on the mallet alone, A5, G5, E5 and C5, each later than the last, then a D5 left hanging over a soft pad on A3 and E4, unresolved.",
+      "level": "large",
+      "loop": false,
+      "seconds": 1.85,
+      "plays": [
+        "run ended"
+      ],
+      "files": [
+        "wav/stingers/run-end.wav"
+      ]
+    },
+    "run-start": {
+      "family": "stingers",
+      "about": "A run begins: four warm notes rising, G4, C5, E5 and G5, on the mallet and its bell, over a soft pad on C4 and G4, left open on the fifth.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.95,
+      "plays": [
+        "run started"
+      ],
+      "files": [
+        "wav/stingers/run-start.wav"
+      ]
+    },
+    "sector-clear": {
+      "family": "stingers",
+      "about": "A sector's tenth wave cleared: a small fanfare, G4, C5 and E5 quick up to a held G5, then A5, G5 and C6, struck and blown at once, landing on a C chord from C4 to C6 that is held under two more bells and sparkle.",
+      "level": "large",
+      "loop": false,
+      "seconds": 2.05,
+      "plays": [
+        "sector cleared"
+      ],
+      "files": [
+        "wav/stingers/sector-clear.wav"
+      ]
+    },
+    "shield-break": {
+      "family": "ship",
+      "about": "The shell bursts: a pop (a click, a burst near 1.8 kHz and a blip that drops), a driven thump from 150 Hz with a knock, a bell on A5 and E6 that sags, and shards of glass falling away.",
+      "level": "large",
+      "loop": false,
+      "seconds": 0.42,
+      "plays": [
+        "shield spent on a hit"
+      ],
+      "files": [
+        "wav/ship/shield-break.wav"
+      ]
+    },
+    "shield-up": {
+      "family": "ship",
+      "about": "The glass shell forms: seven glass bells run up the C chord from C5 to C7 in a fifth of a second, over a hiss that rises with them, and seal on C6 and G6.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.38,
+      "plays": [
+        "shield raised"
+      ],
+      "files": [
+        "wav/ship/shield-up.wav"
+      ]
+    },
+    "shot-gun": {
+      "family": "ship",
+      "about": "The plain gun, seven times a second: a soft triangle pew falling from about 1.9 kHz to 600 Hz, a tick of hiss at its start and a breath of air, dry.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.1,
+      "plays": [
+        "fired (the gun)"
+      ],
+      "files": [
+        "wav/ship/shot-gun-1.wav",
+        "wav/ship/shot-gun-2.wav",
+        "wav/ship/shot-gun-3.wav",
+        "wav/ship/shot-gun-4.wav",
+        "wav/ship/shot-gun-5.wav"
+      ]
+    },
+    "shot-lance": {
+      "family": "ship",
+      "about": "The Lance's needle: a clean tone falling fast from 3.5 kHz onto G6 and ringing there, with two thin metal partials over it as its edge and a faint trail of air.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.17,
+      "plays": [
+        "fired (the Lance)"
+      ],
+      "files": [
+        "wav/ship/shot-lance-1.wav",
+        "wav/ship/shot-lance-2.wav",
+        "wav/ship/shot-lance-3.wav"
+      ]
+    },
+    "shot-rapid": {
+      "family": "ship",
+      "about": "The Rapid's shot, fourteen times a second: a lighter, higher pew from about 2.4 kHz to 1 kHz, shorter and purer, with less air, dry.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.064,
+      "plays": [
+        "fired (the Rapid)"
+      ],
+      "files": [
+        "wav/ship/shot-rapid-1.wav",
+        "wav/ship/shot-rapid-2.wav",
+        "wav/ship/shot-rapid-3.wav",
+        "wav/ship/shot-rapid-4.wav",
+        "wav/ship/shot-rapid-5.wav"
+      ]
+    },
+    "shot-spread": {
+      "family": "ship",
+      "about": "The Spread's three bolts at once: three pews a few milliseconds and a few hundred hertz apart over a low-passed saw, with a wider breath of air, dry.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.13,
+      "plays": [
+        "fired (the Spread)"
+      ],
+      "files": [
+        "wav/ship/shot-spread-1.wav",
+        "wav/ship/shot-spread-2.wav",
+        "wav/ship/shot-spread-3.wav",
+        "wav/ship/shot-spread-4.wav"
+      ]
+    },
+    "shot-tail": {
+      "family": "ship",
+      "about": "Once, as a burst of fire stops: the last shot heard again off a wall, dull and soft, and the small room's tail after it, so the shots themselves can stay dry.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.27,
+      "plays": [
+        "fire let go after a burst"
+      ],
+      "files": [
+        "wav/ship/shot-tail-1.wav",
+        "wav/ship/shot-tail-2.wav",
+        "wav/ship/shot-tail-3.wav"
+      ]
+    },
+    "slow-off": {
+      "family": "pickups",
+      "about": "The field comes back: the same trembling chord and ticks spun up from a third of their speed to full, a low-pass opening over them, and a glass C6 and G6 as they arrive.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.44,
+      "plays": [
+        "slow ended"
+      ],
+      "files": [
+        "wav/pickups/slow-off.wav"
+      ]
+    },
+    "slow-on": {
+      "family": "pickups",
+      "about": "The field slows: the C chord, trembling, with a glass tick on every tremble, played ever slower, down to a third of its speed, so its pitch, its beat and its brightness sink together as a record's do.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.64,
+      "plays": [
+        "slow started"
+      ],
+      "files": [
+        "wav/pickups/slow-on.wav"
+      ]
+    },
+    "spark": {
+      "family": "pickups",
+      "about": "One spark gathered: a tiny glass tick on C6, a fundamental with a faint octave and nothing above it, so it stays soft when the game raises it an octave and a half and plays twenty a second.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.065,
+      "plays": [
+        "spark gathered (raised up the ladder)"
+      ],
+      "files": [
+        "wav/pickups/spark-1.wav",
+        "wav/pickups/spark-2.wav",
+        "wav/pickups/spark-3.wav"
+      ]
+    },
+    "static-down": {
+      "family": "ship",
+      "about": "Static drops a step: a soft sung blip falling from A5 to E5, with a few faint clicks of the charge letting go.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.16,
+      "plays": [
+        "static falls a step"
+      ],
+      "files": [
+        "wav/ship/static-down.wav"
+      ]
+    },
+    "static-full": {
+      "family": "ship",
+      "about": "Static reaches full: a crackle that quickens over a rough buzz that climbs two octaves, both swelling, then a bright glass C6 with the C above it, a mallet's C5 under it and a little sparkle, saying ready.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.52,
+      "plays": [
+        "static reaches full"
+      ],
+      "files": [
+        "wav/ship/static-full.wav"
+      ]
+    },
+    "stray-appear": {
+      "family": "rescue",
+      "about": "A stray's bubble drifts onto the field: a scatter of small watery drips on the key's high notes under a faint breath, and a glint that slides from G6 up to a small bell on C7.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.624,
+      "plays": [
+        "a stray arrives"
+      ],
+      "files": [
+        "wav/rescue/stray-appear.wav"
+      ]
+    },
+    "stray-catch": {
+      "family": "rescue",
+      "about": "The pod catches a stray, which joins the tow line: a round bloop of two bubbles, then two bright bells rising a sixth, from G5 to E6.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.409,
+      "plays": [
+        "a stray caught"
+      ],
+      "files": [
+        "wav/rescue/stray-catch-1.wav",
+        "wav/rescue/stray-catch-2.wav"
+      ]
+    },
+    "tally-tick": {
+      "family": "stingers",
+      "about": "The tally counting up on the card between waves: a tiny damped mallet tick on G5, dry, which the game raises as it counts.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.05,
+      "plays": [
+        "tally counted (raised as it counts)"
+      ],
+      "files": [
+        "wav/stingers/tally-tick.wav"
+      ]
+    },
+    "thrust": {
+      "family": "ship",
+      "about": "The engine while thrust is held, a loop of 2 s: a burn (a band of brown noise from 250 to 600 Hz driven thick, over pink noise under a low low-pass, breathing slowly) through a comb fed back upside down, which rings as a stopped pipe does, on a pitch and its odd multiples, the pitch wandering between 225 and 515 Hz all through the loop and never resting on a note. Chosen by ear from three: a plain burner, this throat, and a purr.",
+      "level": "tick",
+      "loop": true,
+      "seconds": 2,
+      "plays": [
+        "thrust held"
+      ],
+      "files": [
+        "wav/ship/thrust.wav"
+      ]
+    },
+    "thrust-start": {
+      "family": "ship",
+      "about": "Thrust pressed: a puff of ignition, noise in a band that opens from 500 Hz to 1.6 kHz over a small driven tone that rises.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.13,
+      "plays": [
+        "thrust pressed"
+      ],
+      "files": [
+        "wav/ship/thrust-start.wav"
+      ]
+    },
+    "thrust-stop": {
+      "family": "ship",
+      "about": "Thrust let go: the burn's tail, noise under a low-pass that closes from 1.8 kHz to 400 Hz with a flutter that slows, and a faint tone that falls.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.19,
+      "plays": [
+        "thrust let go"
+      ],
+      "files": [
+        "wav/ship/thrust-stop.wav"
+      ]
+    },
+    "tow-twang": {
+      "family": "rescue",
+      "about": "The tow line springs as the pod turns hard: one soft pluck of a rubber band on E4, G4 or D4, its pitch a little sharp at first as the pull lets go.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.248,
+      "plays": [
+        "the pod turns hard with fuzzballs in tow"
+      ],
+      "files": [
+        "wav/rescue/tow-twang-1.wav",
+        "wav/rescue/tow-twang-2.wav",
+        "wav/rescue/tow-twang-3.wav"
+      ]
+    },
+    "ui-back": {
+      "family": "stingers",
+      "about": "Going back: the menu's G5 and at once a step down to E5 on the mallet.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.2,
+      "plays": [
+        "went back or closed"
+      ],
+      "files": [
+        "wav/stingers/ui-back.wav"
+      ]
+    },
+    "ui-move": {
+      "family": "stingers",
+      "about": "Moving between buttons: one short soft mallet note on G5, the note the other two menu sounds start from.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.09,
+      "plays": [
+        "focus moved between buttons"
+      ],
+      "files": [
+        "wav/stingers/ui-move.wav"
+      ]
+    },
+    "ui-select": {
+      "family": "stingers",
+      "about": "Choosing a button: the menu's G5 and at once a step up to C6 on the mallet, with a touch of glass on the C.",
+      "level": "tick",
+      "loop": false,
+      "seconds": 0.2,
+      "plays": [
+        "button chosen"
+      ],
+      "files": [
+        "wav/stingers/ui-select.wav"
+      ]
+    },
+    "voice-aww": {
+      "family": "voice",
+      "about": "Floating home: the voice's reed falling gently from A5 to E5 as the mouth closes from ah to oo, with a little wobble as it goes.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.569,
+      "plays": [
+        "a fuzzball floats home"
+      ],
+      "files": [
+        "wav/voice/voice-aww-1.wav",
+        "wav/voice/voice-aww-2.wav"
+      ]
+    },
+    "voice-cheer": {
+      "family": "voice",
+      "about": "A wave cleared: four or five fuzzballs of different sizes calling yaaay at once, each scooping up to its own note of C, E, G or A and wobbling there, none quite together.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.798,
+      "plays": [
+        "wave cleared"
+      ],
+      "files": [
+        "wav/voice/voice-cheer-1.wav",
+        "wav/voice/voice-cheer-2.wav"
+      ]
+    },
+    "voice-eep": {
+      "family": "voice",
+      "about": "At a near miss, startled: a tenth of a second of the voice's reed jumping from A5 to E6 with the mouth at ee, cut short.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.206,
+      "plays": [
+        "near miss",
+        "a rock passing close to a fuzzball in tow"
+      ],
+      "files": [
+        "wav/voice/voice-eep-1.wav",
+        "wav/voice/voice-eep-2.wav",
+        "wav/voice/voice-eep-3.wav"
+      ]
+    },
+    "voice-hum": {
+      "family": "voice",
+      "about": "Waiting before a wave: the voice's reed with its mouth shut, humming two contented notes of the key, E5 then G5 or G5 then A5, the second the higher.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.683,
+      "plays": [
+        "waiting for the player's first move of a wave"
+      ],
+      "files": [
+        "wav/voice/voice-hum-1.wav",
+        "wav/voice/voice-hum-2.wav"
+      ]
+    },
+    "voice-ooh": {
+      "family": "voice",
+      "about": "A stray arriving, curious: the voice's reed held soft on G5 with the mouth at oo, then rising to C6 as a question does.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.439,
+      "plays": [
+        "a stray arrives"
+      ],
+      "files": [
+        "wav/voice/voice-ooh-1.wav",
+        "wav/voice/voice-ooh-2.wav"
+      ]
+    },
+    "voice-ouch": {
+      "family": "voice",
+      "about": "Knocked loose from the tow line: the voice's reed leaping to C6 and falling through A5 to E5 as the mouth closes from ah to oo, surprised and not hurt.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.408,
+      "plays": [
+        "a fuzzball knocked loose"
+      ],
+      "files": [
+        "wav/voice/voice-ouch-1.wav",
+        "wav/voice/voice-ouch-2.wav"
+      ]
+    },
+    "voice-whee": {
+      "family": "voice",
+      "about": "At a dash: the voice's reed sliding up an octave from E5 to E6 as the mouth opens from oo to ee, tipping over toward C6 as it ends.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.452,
+      "plays": [
+        "dash"
+      ],
+      "files": [
+        "wav/voice/voice-whee-1.wav",
+        "wav/voice/voice-whee-2.wav",
+        "wav/voice/voice-whee-3.wav"
+      ]
+    },
+    "voice-yay": {
+      "family": "voice",
+      "about": "Rescued, or caught again: the voice's reed in two parts, up to G5 and then up again to C6, where it trills as the mouth opens and shuts on ya-yay.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.492,
+      "plays": [
+        "a stray caught",
+        "a loose fuzzball caught again"
+      ],
+      "files": [
+        "wav/voice/voice-yay-1.wav",
+        "wav/voice/voice-yay-2.wav",
+        "wav/voice/voice-yay-3.wav"
+      ]
+    },
+    "wave-clear": {
+      "family": "stingers",
+      "about": "A wave cleared: five bright notes, E5, G5, A5, G5 and a leap to C6, the last ringing over the C below it, with sparkle falling after.",
+      "level": "large",
+      "loop": false,
+      "seconds": 1.15,
+      "plays": [
+        "wave cleared"
+      ],
+      "files": [
+        "wav/stingers/wave-clear.wav"
+      ]
+    },
+    "wave-start": {
+      "family": "stingers",
+      "about": "The player's first move starts a wave: a soft two-note lift on the mallet, G4 up to C5.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.42,
+      "plays": [
+        "wave started (the first move)"
+      ],
+      "files": [
+        "wav/stingers/wave-start.wav"
+      ]
+    },
+    "zap-arc": {
+      "family": "ship",
+      "about": "An arc of the zap landing on a rock: a small click and a chirp down, 60 ms of crackle over a short buzz in a band of the take's own, and two or three stray snaps after.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.13,
+      "plays": [
+        "a zap's arc reaches a rock"
+      ],
+      "files": [
+        "wav/ship/zap-arc-1.wav",
+        "wav/ship/zap-arc-2.wav",
+        "wav/ship/zap-arc-3.wav",
+        "wav/ship/zap-arc-4.wav"
+      ]
+    },
+    "zap-dash": {
+      "family": "ship",
+      "about": "The charged dash: a crack and a chirp down, an arc that tears (bursts of hiss that slow, over a folded buzz), a whoosh up, a short driven thump with a rumble as thunder, and a glass C and G under falling crackle and sparkle.",
+      "level": "huge",
+      "loop": false,
+      "seconds": 0.64,
+      "plays": [
+        "zapped (a dash at full static)"
+      ],
+      "files": [
+        "wav/ship/zap-dash.wav"
       ]
     }
   }

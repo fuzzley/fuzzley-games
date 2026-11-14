@@ -149,3 +149,44 @@ All of it passed the ear. What their maker doubted, for the record:
 - **The voice plays 3 dB down in the game,** by its maker's figures: at the
   level `medium` a call measures about 3 dB louder to the ear than a struck
   sound at the same level.
+
+## Beds
+
+Four passed the ear as they were: `bed-iron-reach`, `bed-storm`,
+`bed-shimmer` and `bed-pulse`, "the best one". Two were made again from
+what the ear said of both: "Tone is too difficult to listen to for a long
+time, needs to be softer and maybe have more variation." **Neither has been
+heard since.**
+
+- **What was taken to be wrong.** The beds that passed are made of noise
+  and of things that come and go: far metal rings, wind, soft mallet notes.
+  The two that failed held steady pure tones in the upper range: the Inner
+  belt's sines at C6 and G6 over beating partials, Endless's seven glass
+  tones from G5 to E7. A held pure tone between 1 and 3 kHz is what tires
+  an ear over minutes.
+- **What both are now.** Loops of 32 seconds, twice as long. Nothing held
+  above 620 Hz. A soft pad of sines whose upper partials fall away fast,
+  with no drive, and beats so slow one takes 16 to 32 seconds. Dulled air
+  in a low band that wanders, differently in each ear. And in place of the
+  held high tones, a few muted bells in key, far apart and never on a grid,
+  as the pulse the ear liked is made of struck notes.
+- **`bed-inner-belt`:** C and G; then A and E come in over the held C from
+  4 to 18 s; then C, G and D from 14 to 29 s; then home. Seven bells.
+- **`bed-endless`:** a deep C that barely moves, and a second voice that
+  wanders through G, A and E far below where the glass tones were, each
+  note leaning to one ear, with three seconds of C alone before it comes
+  round. Five bells in a longer room.
+
+| Sound            | It may sound                                                         | Try first                                      |
+| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------- |
+| `bed-inner-belt` | like a slow tune: seven bells in 32 s is near a melody               | take two of the bells out                      |
+| `bed-inner-belt` | still: its low C holds through every change                          | let the bass move, at the cost of a dip        |
+| `bed-endless`    | too forward for "deep": its second voice sits 10 dB under the C      | 3 dB less of it                                |
+| either           | hissy: its air is 28 dB down                                         | turn the air down; it is one number            |
+| `bed-iron-reach` | like an organ: its drone is plain sines (it passed the ear as it is) | a little drive, or a slow drift of pitch       |
+| `bed-pulse`      | nagging, at steady eighths (it passed the ear as "the best one")     | drop the off-beats                             |
+
+- **Each loop's seam** was drawn twice end to end and shows nothing; the
+  level is level across it within 0.2 dB. Summed to one ear, a bed loses a
+  quarter of a decibel.
+- **A phone hears 9% of each,** which is the kit's allowance for a bed.
