@@ -427,7 +427,8 @@ takes for the specs' helpers.
   in the steel, a key in the warning color and a bumper in the accent
   (`bricks`), each pair of portals' ring, the violet tint and then the teal
   (`PORTAL_TINTS`), and its arms and badge, the ring a third of the way to
-  the text (`portals`),
+  the text (`portals`), the chevrons trailing a slider's lit one, each tint
+  a little under half over the marks' color (`sliderTrails`),
   and a ghost's tints, faded while it hides and paler once
   it shows (`ghostTints`), and the inks of the field's edge (`fieldInks`: the
   rim's lip, and the gutter under the paddle and its chevrons, washed with
@@ -443,7 +444,8 @@ takes for the specs' helpers.
   last bricks' glow to 3:1 against the field in every palette, a tough
   brick's deeper tints too, and a hidden ghost to 2:1, faint by design; each
   ball and capsule against its outline and the gutter it falls through,
-  the gutter's chevrons to 2:1 against it, the outline against every tint,
+  the gutter's chevrons to 2:1 against it, and a slider's trailing
+  chevrons to 2:1 against its tint, the outline against every tint,
   brick, the paddle and its caps, the marks against every brick, capsule,
   the paddle and its caps, steel's frame and rivets against the steel, and a
   plate's rivets and a gate's keyhole too, a plate and its teeth and a
@@ -532,17 +534,19 @@ takes for the specs' helpers.
   (`bumperMark()`), and a portal, round too, a ring in its pair's ink round
   three arms, with its pair's badge, the first's a dot and the second's a
   diamond (`portalMark()`), a frame for each pair, so a player who can't
-  tell the inks apart tells them by the badge, leaving out
+  tell the inks apart tells them by the badge, and a slider's three
+  chevrons pointing the way it heads, the one toward that end lit in the
+  marks' color and the two behind it in its tint's trail, a frame for each
+  heading in each tint, leaving out
   the cracks, rivets and sheen of a brick under 30 CSS px wide, a plate's
   shine, a caged friend's fur, and the
   ring's sprout
-  (`showsDetail()`), though a bumper and a portal are drawn whole at every
-  size; a kind without its art yet is a slab in one tint
-  (`placeholderArt()`); and it names
+  (`showsDetail()`), though Machines' kinds are drawn whole at every size;
+  and it names
   the frame a brick shows as it and the
   field beside it stand (`brickFrame()`, given the field as `CellField`, a
   cage's by the friends the field has freed, `nextFriend()`, a portal's by
-  its pair, or as How to
+  its pair and a slider's by its heading, or as How to
   play pictures a brick on its own, `PICTURED_FIELD`,
   and `regrowingFrame()` at how far it has come, `regrowShare()`, and so
   the frame a cell shows as the field stands, its brick's
@@ -584,8 +588,10 @@ takes for the specs' helpers.
   starts, a column after a column, each drawn its column's height above its
   place till it lands, or at once at a key, swollen at a hit a brick holds
   or as a ball turns off a bumper, its ring shown while it grows back and
-  grown back as it regrows, and slid from the cell it left into a slider's new one, an
-  offset beside the drop-in's (`slide`, over `SLIDE_MS`), `GlowPainter`
+  grown back as it regrows, and slid from the cell it left into a slider's
+  new one, an offset beside the drop-in's (`slide`, over `SLIDE_MS`), with
+  any move it had under way there carried along in place of one left in
+  the cell it takes, a train's lead first, `GlowPainter`
   the frames around the last bricks a level needs, a slider's following
   its slide (`BrickPainter.slideOffsetOf()`),
   `EffectsPainter` a broken brick's shards, each keeping its brick's color

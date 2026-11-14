@@ -1249,6 +1249,89 @@ describe("a portal's frames", () => {
   });
 });
 
+describe("a slider's frames", () => {
+  /** Returns the frame a slider heading a way shows, in the third tint. */
+  function sliderOf(heading: number, frames = ART_FRAMES): ArtFrame {
+    return frameOf({ ...lookOf("slider", 2), heading }, frames);
+  }
+
+  /** Returns each chevron a frame draws in a color, as its top end, its point and its foot end, as shares of the frame across and down. */
+  function chevronsIn(frame: ArtFrame, color: number): readonly Point[][] {
+    const lines = drawnIn(frame, "line", color).flatMap((command) =>
+      command.kind === "line" ? [command] : [],
+    );
+    const share = ({ x, y }: Point): Point => ({
+      x: billionths(x / frame.width),
+      y: billionths(y / frame.height),
+    });
+    return Array.from({ length: lines.length / 2 }, (_, i) => {
+      const [top, foot] = [lines[2 * i], lines[2 * i + 1]];
+      return [top?.from, top?.to, foot?.to].map((point) =>
+        share(point ?? { x: NaN, y: NaN }),
+      );
+    });
+  }
+
+  it.each([
+    [1, [0.625, 0.715]],
+    [-1, [0.375, 0.285]],
+  ] as const)(
+    "lights the chevron toward the end it heads for, heading %i, in the marks' color, pointing that way",
+    (heading, [ends, point]) => {
+      expect(chevronsIn(sliderOf(heading), ART_PALETTE.mark)).toEqual([
+        [
+          { x: ends, y: 0.3 },
+          { x: point, y: 0.46 },
+          { x: ends, y: 0.62 },
+        ],
+      ]);
+    },
+  );
+
+  it.each([
+    [1, [0.33, 0.5]],
+    [-1, [0.67, 0.5]],
+  ] as const)(
+    "trails two chevrons behind it, heading %i, in its tint's trail, each its middle 34 of the kit's units on from the last",
+    (heading, middles) => {
+      const chevrons = chevronsIn(
+        sliderOf(heading),
+        ART_PALETTE.sliderTrails[2] ?? NaN,
+      );
+
+      expect(
+        chevrons.map(([top, tip]) =>
+          billionths(((top?.x ?? NaN) + (tip?.x ?? NaN)) / 2),
+        ),
+      ).toEqual(middles);
+    },
+  );
+
+  it("keeps all three chevrons where a brick is too small for its finest detail", () => {
+    const frame = sliderOf(1, SMALL_FRAMES);
+
+    expect(frame.commands.filter(({ kind }) => kind === "line")).toHaveLength(
+      6,
+    );
+  });
+
+  it("names a frame of its own for each heading in each tint", () => {
+    const names = [1, -1].flatMap((heading) =>
+      Array.from({ length: TINTS }, (_, tint) =>
+        brickFrame({ ...lookOf("slider", tint), heading }),
+      ),
+    );
+
+    expect(new Set(names).size).toBe(2 * TINTS);
+  });
+
+  it("throws for a slider heading nowhere, as no level lays one", () => {
+    const look: BrickLook = { ...lookOf("slider"), heading: 0 };
+
+    expect(() => brickFrame(look)).toThrow("No slider heads 0");
+  });
+});
+
 describe("brickColor", () => {
   it.each([
     ["plain", ART_PALETTE.tints[2]],
@@ -1292,10 +1375,10 @@ describe("brickColor", () => {
     expect(() => brickColor(look, ART_PALETTE)).toThrow("No portal pair 2");
   });
 
-  it("draws a slider brick, which has no art of its own yet, in one tint, whatever the level tints it", () => {
-    expect(brickColor(lookOf("slider"), ART_PALETTE)).toBe(
-      ART_PALETTE.tints[6],
-    );
+  it.each([1, -1])("draws a slider heading %i in its tint", (heading) => {
+    const look: BrickLook = { ...lookOf("slider", 2), heading };
+
+    expect(brickColor(look, ART_PALETTE)).toBe(ART_PALETTE.tints[2]);
   });
 
   it("throws for a tint no level can name", () => {

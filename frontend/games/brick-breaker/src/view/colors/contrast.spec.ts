@@ -57,14 +57,16 @@ const PAIRS_APART = 27;
 // in the marks' color, which its arms and badge are held to; its two pairs
 // share a luminance, as every tint does, so they are held apart by hue, to
 // PAIRS_APART, and the art spec holds their badges apart in shape, a dot and
-// a diamond, for a player who can't tell the inks apart. A hidden ghost is held only
-// to FAINT, since it is meant to be hard to see, and a brick's shading (its
-// lip and strip, steel's sheen, a gift's ribbon, the moss's shadows, a
-// plate's shine, a gate's gold ends, which its keyhole tells, and a bumper's
-// shadow and cap), the
-// paddle's (its lip and pad), a good capsule's (its lip and shine), the rim's
-// lip and the regrowing ring's track to nothing, since none tells a kind: a
-// gift's bow is outlined in the marks' color.
+// a diamond, for a player who can't tell the inks apart. A slider is a brick
+// in its tint, its lit chevron in the marks' color, and the two trailing it
+// are held to FAINT against its tint, faint as a trail is. A hidden ghost is
+// held only to FAINT, since it is meant to be hard to see, and a brick's
+// shading (its lip and strip, steel's sheen, a gift's ribbon, the moss's
+// shadows, a plate's shine, a gate's gold ends, which its keyhole tells, and
+// a bumper's shadow and cap), the paddle's (its lip and pad), a good
+// capsule's (its lip and shine), the rim's lip and the regrowing ring's track
+// to nothing, since none tells a kind: a gift's bow is outlined in the marks'
+// color.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = bricksPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -179,6 +181,20 @@ describe("the field's contrast", () => {
         expect(
           contrast(rgbOf(color), rgbOf(palette.fieldInks.gutter)),
         ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each(
+      palette.sliderTrails.map(
+        (trail, i) =>
+          [`tint ${String(i + 1)}`, trail, palette.tints[i] ?? NaN] as const,
+      ),
+    )(
+      "keeps the chevrons trailing a slider's lit one at 2:1 or more against its %s, faint as a trail is",
+      (_, trail, tint) => {
+        expect(contrast(rgbOf(trail), rgbOf(tint))).toBeGreaterThanOrEqual(
+          FAINT,
+        );
       },
     );
 

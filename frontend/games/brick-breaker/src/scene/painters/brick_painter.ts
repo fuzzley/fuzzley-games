@@ -43,7 +43,8 @@ const MOVES: Readonly<
  * back, or hidden; drops them in as a level starts, a column after a
  * column, each drawn its column's height above its place, landing as the
  * drop-in ends or at once at a key; swells one at a hit it holds and grows
- * one back; and slides a slider in from the cell it left.
+ * one back; and slides a slider in from the cell it left, with whatever
+ * move it had under way there, in place of any left in the cell it takes.
  */
 export class BrickPainter implements Painter {
   /** An image for each cell, row by row. */
@@ -119,9 +120,17 @@ export class BrickPainter implements Painter {
     this.move(cell, "grow", now);
   }
 
-  /** Slides a slider that stepped into a cell, its way, from the cell it left. */
+  /**
+   * Slides a slider that stepped into a cell, its way, from the cell it
+   * left, carrying the move it had under way there, and stilling any left
+   * in the cell it took, as a brick that swelled there and broke leaves one.
+   *
+   * A train's slides come lead first, as the field records them, so each
+   * slider's move is carried on before the one behind it takes its cell.
+   */
   slide(cell: number, way: number, now: number): void {
     if (cell < 0 || cell >= this.slidAt.length) return;
+    this.carryMove(cell - way, cell);
     this.slidAt[cell] = now;
     this.slidWay[cell] = way;
     this.lastSlidAt = now;
@@ -158,6 +167,21 @@ export class BrickPainter implements Painter {
   /** Lands every brick dropping in at once, as a key skips the drop-in. */
   land(): void {
     this.droppedAt = -Infinity;
+  }
+
+  /**
+   * Carries a brick's move, as far as it has come, from the cell it left to
+   * the one it stepped into, in place of any move left there, and leaves
+   * both cells at their size but for the move carried.
+   */
+  private carryMove(from: number, to: number): void {
+    if (from < 0 || from >= this.moves.length) return;
+    const move = this.moves[from] ?? null;
+    this.moves[to] = move;
+    this.movedAt[to] = this.movedAt[from] ?? 0;
+    this.moves[from] = null;
+    this.images[from]?.setScale(1);
+    if (!move) this.images[to]?.setScale(1);
   }
 
   /** Starts a brick's move. */

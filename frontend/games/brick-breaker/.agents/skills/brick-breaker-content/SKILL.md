@@ -253,7 +253,8 @@ Machines, the kinds that move a ball or themselves, starts at 1.16.
   another shape tells them apart besides, for a player who can't tell the
   inks apart, as a portal's badge, a dot or a diamond, does. A look that
   differs by what the legend lays a brick with reads it from the
-  `BrickLook` (`pair`), a frame for each, as a portal's does. A kind that `regrows` shows the ring a regrowing brick fills as it
+  `BrickLook` (`pair`, `heading`), a frame for each, as a portal's does by
+  its pair and a slider's by its heading. A kind that `regrows` shows the ring a regrowing brick fills as it
   grows back while it is broken (`regrowingFrame()`, which `cellFrame()`
   picks), with nothing more. A look that reads the field beside its brick
   reads it from the `CellField` its art's `frameOf()` is handed, which
@@ -289,7 +290,11 @@ Machines, the kinds that move a ball or themselves, starts at 1.16.
   `src/rules/bricks/sliders.ts`, which steps before the traits' step
   (`stepSliders()`), changing `Brick.cell` with the field's list, and
   the saved game keeps the cell and refuses one no move comes to
-  (`restoredPlace()`).
+  (`restoredPlace()`). Each slider it moves records `slid` at its new
+  cell, a train's lead first, with its way (`FieldEvent.way`), by which
+  `BrickPainter` (`src/scene/painters/brick_painter.ts`) slides its
+  picture in from the cell it left, carrying any move it had under way
+  there in place of one left in the cell it takes.
 - An event it records, as a cage's freeing records `freed`: a member of
   `FieldEventKind` (`src/rules/field/events.ts`), and its entry in
   `EVENT_EFFECTS` (`src/view/effects/effects.ts`), its sound and the

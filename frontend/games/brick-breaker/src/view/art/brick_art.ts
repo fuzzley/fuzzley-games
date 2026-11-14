@@ -9,15 +9,18 @@
 // C draws them: a plated brick's pips over a plate of steel along its foot,
 // the brick cut away round it, with teeth pointing down, a cage's bars, one
 // bent once it is hit, over the friend it frees next, a key on gold, and a
-// gate's keyhole between gold ends; and Machines' round kinds, on no slab:
-// a bumper's disc with a ring cut out of it and four ticks kicking out, and
-// a portal's ring round its arms, with its pair's badge, a dot or a diamond.
+// gate's keyhole between gold ends; and Machines' kinds: a bumper and a
+// portal, round, on no slab, the bumper's disc with a ring cut out of it and
+// four ticks kicking out, and the portal's ring round its arms, with its
+// pair's badge, a dot or a diamond; and a slider's three chevrons, the one
+// toward the way it heads lit.
 // Every number is the art kit's (`art/kit.mjs`), in its box of 200 by 100,
 // drawn at the brick's height over 100, but where a constant's comment here
 // says otherwise. A brick under 30 CSS px wide leaves out its cracks, rivets
 // and sheen, a plate's shine and a caged friend's fur (`showsDetail()`).
 
 import { clamp } from "@fz/core/math";
+import { keysOf } from "@fz/core/records";
 import {
   BRICK_SLAB,
   type CageBars,
@@ -419,6 +422,27 @@ const PORTAL_FRAMES: readonly string[] = PORTAL_BADGES.map(
   (badge) => `portal-${badge}`,
 );
 
+/**
+ * A slider's three chevrons, the last the way it heads, which is lit: where
+ * the middle of each lies across from the brick's middle, the way it heads;
+ * how far its point reaches ahead of its middle and its ends behind it; its
+ * top's, its point's and its foot's places down; and how wide its line is.
+ */
+const CHEVRONS = {
+  middles: [-34, 0, 34],
+  reach: 9,
+  top: 30,
+  point: 46,
+  foot: 62,
+  line: 8,
+} as const;
+
+/** The ways a slider heads along its row, by its brick's `heading`: 1 right and -1 left. */
+const SLIDER_WAYS = { right: 1, left: -1 } as const;
+
+/** Names a way a slider heads. */
+type SliderWay = keyof typeof SLIDER_WAYS;
+
 /** How many steps of its own a regrowing brick's ring fills in as it grows back, each a frame. */
 export const REGROW_RING_STEPS = 24;
 
@@ -465,6 +489,19 @@ function tinted(look: string): readonly string[] {
 const PLAIN_FRAMES = tinted("plain");
 const GHOST_FRAMES = tinted("ghost");
 const SHOWN_GHOST_FRAMES = tinted("ghost-shown");
+
+/** A slider's frames, heading each way, in each tint. */
+const SLIDER_FRAMES: Readonly<Record<SliderWay, readonly string[]>> = {
+  right: tinted("slider-right"),
+  left: tinted("slider-left"),
+};
+
+/** Returns the way a slider heads, by its brick's `heading`; it throws for a heading no level lays. */
+function wayOf(heading: number): SliderWay {
+  const way = keysOf(SLIDER_WAYS).find((each) => SLIDER_WAYS[each] === heading);
+  if (!way) throw new Error(`No slider heads ${String(heading)}.`);
+  return way;
+}
 
 /** The kinds drawn in a tint that wear as they take hits, a pip for each left and a crack for each taken. */
 type WornKind = Extract<BrickKindId, "tough" | "plated">;
@@ -852,6 +889,38 @@ function bumperMarks(
   );
 }
 
+/**
+ * Returns a slider's chevrons, pointing the way it heads, 1 right or -1
+ * left, each a line round at its ends and its point: the last, the way it
+ * heads, lit in the marks' color, and those trailing it in the trail's ink.
+ *
+ * They lie on no rail, where the kit draws one across the cell: a rail in
+ * the brick's frame would slide with it.
+ */
+function sliderMarks(
+  cell: Area,
+  heading: number,
+  trail: number,
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly DrawCommand[] {
+  const { middles, reach, top, point, foot, line } = CHEVRONS;
+  const width = kitWidth(scale, line);
+  const lit = middles.at(-1);
+  return middles.flatMap((middle) => {
+    const across = (by: number): number =>
+      KIT.width / 2 + heading * (middle + by);
+    return stroke(
+      [
+        kitPoint(cell, [across(-reach), top]),
+        kitPoint(cell, [across(reach), point]),
+        kitPoint(cell, [across(-reach), foot]),
+      ],
+      { color: middle === lit ? palette.mark : trail, width },
+    );
+  });
+}
+
 /** Returns a pair of portals' inks, which the palette holds for every pair a level can lay; it throws for any other. */
 function portalInks(palette: BricksPalette, pair: number): PortalPairInks {
   const inks = palette.portals[pair];
@@ -1177,20 +1246,6 @@ function regrowingFrames(
   );
 }
 
-/**
- * Returns how a kind is drawn until it has art of its own: as a plain brick
- * in one tint, whatever the level tints it, in every state.
- */
-function placeholderArt(kind: BrickKindId, tint: number): BrickArt {
-  return {
-    frameOf: () => kind,
-    colorOf: (_, palette) => tintAt(palette.tints, tint),
-    frames: (palette, scale) => [
-      drawBrick(kind, scale, (cell) => slab(cell, tintAt(palette.tints, tint))),
-    ],
-  };
-}
-
 /** Draws a kind's marks in a brick's cell, in a palette at a scale. */
 type Marks = (
   cell: Area,
@@ -1301,7 +1356,25 @@ export const BRICK_ART = {
         ),
       ),
   },
-  slider: placeholderArt("slider", 6),
+  slider: {
+    frameOf: (brick) => nameAt(SLIDER_FRAMES[wayOf(brick.heading)], brick.tint),
+    colorOf: (brick, palette) => tintAt(palette.tints, brick.tint),
+    frames: (palette, scale) =>
+      keysOf(SLIDER_WAYS).flatMap((way) =>
+        palette.tints.map((tint, i) =>
+          drawBrick(nameAt(SLIDER_FRAMES[way], i), scale, (cell) => [
+            ...slab(cell, tint),
+            ...sliderMarks(
+              cell,
+              SLIDER_WAYS[way],
+              tintAt(palette.sliderTrails, i),
+              palette,
+              scale,
+            ),
+          ]),
+        ),
+      ),
+  },
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 
 /**
