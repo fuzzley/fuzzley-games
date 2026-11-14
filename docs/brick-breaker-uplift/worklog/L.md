@@ -1169,3 +1169,91 @@ play under the keys); Trellis's plates against their rows' tints, plainly
 apart from the plain bricks beside them. At 844 × 390 at 3× in Classic
 felt: Nest's three cages, their friends without fur, and Mushroom's and
 Drawbridge's plates, gates and keys, the teeth a CSS pixel tall.
+
+### 2026-11-14: the friends' balls in their inks
+
+`feat(brick-breaker): draw each friend in its ink, its tail and its streak's
+ring too` (commit 2 of L6; commit 1 is 5bcfe766).
+
+- `art.ts` draws a friend's frames in each friend's ink, as the player's
+  normal ball's (`normalBallArt()`), at each step of the streak (L3's fur, ×4's sparks) and with its
+  eyes (`ball-friend-<ink>`, `-x2` to `-x4`, `-faced`, 40 frames).
+  `ballFrame()` and `facedBallFrame()` take a ball's ink (`Ball.ink`), the
+  player's own (`OWN_INK`) unless given, and `ballColor()` names the color
+  a ball is drawn in, which its tail and its streak's ring take: a
+  friend's ink while the balls are normal, else its kind's. The atlas at a
+  unit of 54, 3 to a CSS pixel, is 1130 × 1301 px, 252 frames.
+- F's painters, each the smallest change: `BallPainter` names each ball's
+  frame by its ink inside its loop, where it named one frame for them all
+  before it (its sight is untouched, so a seeking friend shows its sight),
+  and says the ink of a ball it showed that the field has since lost
+  (`lostInk()`), which `bricks_scene.ts` hands `facedBallFrame()` for the
+  lost ball's fade (one line); `TailPainter` tints each tail by its ball's
+  color; `StreakPainter` tints the ring, and writes the count, in the
+  color of the ball it follows.
+- Specs: the art spec holds each friend's frames in its ink over its
+  outline, its fur lifted as the player's ball's at each multiplier, a
+  name apart for each, a fire or blast friend in its kind's look, a faced
+  friend's eyes, `ballColor()`, the atlas holding every friend's frame, and
+  every friend's fur a CSS pixel wide among the rest (`FUR_COLORS`). The
+  scene's spec holds a friend drawn in its ink at the streak, a seeking
+  friend's sight, a lost friend fading in its ink (by the place it was lost, among the balls shown), a friend's tail in its
+  ink, and the ring and count in a friend's ink about a friend.
+- Docs: the workspace's `AGENTS.md` (`src/view/art/` and `src/scene/`) and
+  the content skill's ball kind (a friend's ink only while the balls are
+  normal).
+
+Choices:
+
+- **A friend wears its ink only while the balls are normal,** as the kit
+  draws it: a fire or blast friend is a fire or blast ball, as the rules
+  make it, and wears that kind's look, tail and ring; the kind is what
+  plays differently.
+- **The tail and the ring take the friend's ink** (F1's note left it to
+  L6): in the browser a friend's tail in its ink reads as that ball's, and
+  a ring in the player's ball's color about a friend reads as the wrong
+  ball's. The count is written in the ring's color, as F1 has it, so it is
+  written again when a step follows a ball of another color than the last
+  (a few `Text`s, once per step at most).
+- **A lost friend fades in its ink,** as the player's ball fades in its
+  kind: the painter finds the ball by the place the field lost it at
+  (`FieldEvent.x` is the ball's `x`) among the balls it showed, so no
+  field event changes.
+
+The review (a fresh agent), each comment and its answer:
+
+1. _The lost-friend spec doesn't pin how `lostInk()` finds the ball: it
+   passes without the place or the sight of it._ Fixed: a spec loses the
+   player's ball and a friend at once, at two places, and fades each in
+   its own ink; another loses a friend where a record never shown says it
+   was lost before, in another ink. Each fails with its check taken out.
+2. _`lostInk()` guesses the ball by its place and the painter's images;
+   it fails where a cage frees a friend into the lost ball's record in the
+   same step, and it adds a method to F's painter._ Left, with its limit
+   known: such a friend fades in the player's color, once, rarely. The
+   exact fix is the lost ball's ink on the event, as the event keeps the
+   streak because the scene plays it after the field moves on; but a field
+   added to `FieldEvent` changes the events that `events.spec.ts` and
+   `effects.spec.ts` (others' specs) build and expect whole, and
+   `loseBall()`'s call in `field.ts`, more than adding. A follow-up for
+   the integrator or K: `FieldEvent.ink`, set by `loseBall()`, and
+   `facedBallFrame(kind, event.ink)` in place of `lostInk()`.
+3. _The art draws a normal ball's frames twice, the player's and the
+   friends'._ Fixed: `normalBallArt()` draws a normal ball's frames in a
+   color by their names (`NormalBallFrames`), the player's
+   (`OWN_BALL_FRAMES`) and each friend's, and `facedArt()` puts the eyes
+   on any ball's body.
+4. _`OWN_INK` is handled two ways._ Fixed: `ballFrame()` and
+   `facedBallFrame()` look a ball's names up one way (`normalFramesOf()`,
+   a friend's or the player's own), and `ballColor()` the same way.
+5. _The seeking friend's spec can't fail from this change._ Kept, as the
+   guard the package asks for: a seeking friend keeps its sight.
+6. _Two doc comments in `ball_painter.ts` are left unwrapped._ Fixed:
+   rewrapped, the two paragraphs this change touched.
+
+The browser (port 9104): Nest at 1280 × 720 at 2× in Midnight blue, three
+friends, coral, orange and yellow, in flight with the player's ball at ×3,
+each with its fur on end and its tail in its ink, the yellow one seeking
+under its sight, and the standing cage holding the orange friend it frees
+next (`/tmp/l6-friends.png`); at 844 × 390 at 3× in Soft pastel, friends
+in green, blue and teal at ×2, each tail in its ink.

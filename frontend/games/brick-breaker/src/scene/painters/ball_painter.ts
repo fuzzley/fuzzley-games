@@ -2,6 +2,7 @@ import { lerp, shareDone } from "@fz/core/math";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
 import type { BallKindId } from "../../rules/catalog/balls";
+import { OWN_INK } from "../../rules/paddle/balls";
 import { BALL_RADIUS, MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame, ballGrid } from "../../view/art/art";
 import { type Squash, squashAt } from "../../view/effects/flourish";
@@ -33,10 +34,10 @@ interface EmberPlace {
 /**
  * Draws the balls: an image for each the field may hold, made once, each
  * the fuzzball in the balls' kind, a normal ball's fur lifted by the
- * streak, its eyes looking the way it goes, a sight under a ball that
- * seeks, with a fire ball's trail of embers where motion is welcome, an
- * ember for each gap it goes, however often it is drawn, and a ball
- * squashed for a moment as it meets the paddle.
+ * streak, a friend's in its ink, its eyes looking the way it goes, a sight
+ * under a ball that seeks, with a fire ball's trail of embers where motion
+ * is welcome, an ember for each gap it goes, however often it is drawn, and
+ * a ball squashed for a moment as it meets the paddle.
  */
 export class BallPainter implements Painter {
   /** Each ball's sight, under it, shown while it seeks. */
@@ -80,13 +81,12 @@ export class BallPainter implements Painter {
 
   /**
    * Draws each ball in play between its last place and its next, in its
-   * kind's frame at the streak, squashed as it meets the paddle, its sight
-   * under it while it seeks, and hides the rest, leaving embers along each
-   * fire ball's way if motion is welcome.
+   * kind's frame at the streak and its ink, squashed as it meets the
+   * paddle, its sight under it while it seeks, and hides the rest, leaving
+   * embers along each fire ball's way if motion is welcome.
    */
   draw({ field, alpha, metrics, motion, now }: Readonly<PaintContext>): void {
     this.drawnKind = field.ballKind;
-    const frame = ballFrame(field.ballKind, field.streak);
     const trails = motion && field.ballKind === "fire";
     const by = ballGrid(metrics);
     for (let i = 0; i < this.images.length; i++) {
@@ -105,6 +105,7 @@ export class BallPainter implements Painter {
         ember.fresh = true;
         continue;
       }
+      const frame = ballFrame(field.ballKind, field.streak, ball.ink);
       if (image.frame.name !== frame) image.setFrame(frame);
       image.setPosition(
         toCanvasX(metrics, lerp(ball.lastX, ball.x, alpha)),
@@ -124,6 +125,18 @@ export class BallPainter implements Painter {
       ember.fresh = false;
       this.squashPicture(i, now, metrics.unit, image, eyes);
     }
+  }
+
+  /**
+   * Returns the ink of the ball a field lost at a place across it, one shown
+   * in play until it was lost, which its fade wears, or the player's own
+   * where none was.
+   */
+  lostInk(field: FieldView, x: number): number {
+    const lost = field.balls.find(
+      (ball, i) => !ball.live && ball.x === x && this.images[i]?.visible,
+    );
+    return lost?.ink ?? OWN_INK;
   }
 
   /** Puts out every ember, and rounds every ball, as a new field starts. */

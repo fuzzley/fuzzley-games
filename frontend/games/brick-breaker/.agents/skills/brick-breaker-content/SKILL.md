@@ -186,7 +186,10 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   of its own so it shows apart from the other kinds without its color, and
   its color in `bricksPalette()`'s `balls` (`src/view/colors/palette.ts`);
   the compiler asks for both. Only a normal ball's fur lifts with the
-  streak (`STREAK_FUR`); another kind keeps its own at any streak.
+  streak (`STREAK_FUR`); another kind keeps its own at any streak. A
+  friend a cage frees wears its ink (`Ball.ink`) only while the balls are
+  normal; while they are of another kind it wears that kind's look, as
+  `ballFrame()` and `ballColor()` (`src/view/art/art.ts`) hold.
 - A capsule whose effect is `{ kind: "ball", ball: "<id>", ms }`.
 - The physics needs nothing new while one that passes breaks what it
   passes through at a hit, as the catalog spec holds. Every ball's radius

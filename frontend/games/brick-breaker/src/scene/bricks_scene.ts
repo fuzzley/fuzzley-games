@@ -377,7 +377,10 @@ export class BricksScene extends Scene {
         this.effects.fade(
           event.x,
           event.y,
-          facedBallFrame(this.balls.drawnKind),
+          facedBallFrame(
+            this.balls.drawnKind,
+            this.balls.lostInk(field, event.x),
+          ),
           this.context.now,
           this.metrics,
         );
