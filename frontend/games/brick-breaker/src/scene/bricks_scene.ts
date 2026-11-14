@@ -46,6 +46,7 @@ import { GlowPainter } from "./painters/glow_painter";
 import { PaddlePainter } from "./painters/paddle_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { TagPainter } from "./painters/tag_painter";
+import { TailPainter } from "./painters/tail_painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
 
@@ -112,6 +113,8 @@ export class BricksScene extends Scene {
   paddle!: PaddlePainter;
   /** Draws the tags of the effects in play. */
   tags!: TagPainter;
+  /** Draws a tail behind each ball in a streak. */
+  tails!: TailPainter;
   /** Draws the balls. */
   balls!: BallPainter;
   /** Plays the sounds. */
@@ -181,6 +184,7 @@ export class BricksScene extends Scene {
       this.painted,
     );
     this.tags = new TagPainter(this, layers.tags);
+    this.tails = new TailPainter(this, layers.tails);
     this.balls = new BallPainter(this, layers.balls);
     this.painters = [
       this.field,
@@ -191,6 +195,7 @@ export class BricksScene extends Scene {
       this.bolts,
       this.paddle,
       this.tags,
+      this.tails,
       this.balls,
     ];
     const { field, alpha } = this.options.frame();
@@ -414,6 +419,7 @@ export class BricksScene extends Scene {
     this.bricks.still();
     this.effects.reset();
     this.balls.reset();
+    this.tails.reset();
     this.bricks.show(field);
     if (this.context.motion) this.bricks.dropIn(this.metrics);
     else this.bricks.layout(this.metrics);

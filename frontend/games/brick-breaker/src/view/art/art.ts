@@ -37,6 +37,7 @@ import {
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import { FUR, REACH } from "./fuzzball_art";
+import { streakArt } from "./streak_art";
 import { SYMBOLS } from "./symbols";
 
 /** Describes a capsule's shape as drawn: its size, its outline's width, and its outline's and its body's colors. */
@@ -372,6 +373,7 @@ export function atlasFrames(
     ...CAPSULE_IDS.map((id) => capsuleArt(id, palette, scale)),
     ...CAPSULE_IDS.map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
+    ...streakArt(scale),
   ];
 }
 

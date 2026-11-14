@@ -2,8 +2,8 @@
  * The layers the field is drawn in, back to front, in one list, so each
  * layer's depth is its place here: the field and its wall, the bricks,
  * what bursts from them as they break (shards and rings), the capsules,
- * the bolts, the paddle, the tags of the effects in play, below it, and
- * the balls, which nothing hides.
+ * the bolts, the paddle, the tags of the effects in play, below it, the
+ * balls' tails in a streak, and the balls, which nothing hides.
  */
 export const LAYERS = [
   "field",
@@ -13,6 +13,7 @@ export const LAYERS = [
   "bolts",
   "paddle",
   "tags",
+  "tails",
   "balls",
 ] as const;
 

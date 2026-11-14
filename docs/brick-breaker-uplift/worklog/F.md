@@ -114,3 +114,83 @@ Review, second round:
    brick's mostly" read wrong. Fixed both.
 4. The `Shard` doc comment was a noun phrase, and the painter's next color
    shared `Shard.thrownIn`'s name. Fixed: a sentence, and `nextColor`.
+
+### 2026-11-14: a tail behind the ball in a streak
+
+What it does:
+
+- While the field is in a streak, each ball in flight draws a tail where
+  motion is welcome: a dot at each of its last places, half a unit apart
+  (`TAIL_GAP`), four dots at the first step (×2, a streak of 5), six at the
+  second (×3, 10) and eight at the third (×4, 20), `tailLength()` in
+  `src/view/effects/tail.ts`, by `streakTier()`
+  (`src/view/effects/streak.ts`). Each dot back is fainter and smaller
+  (`tailAlpha()`, `tailScale()`), in the balls' color. The paddle ends the
+  streak, so the tail goes there; a ball on the paddle or out of play lays
+  none.
+- `Trail` keeps a ball's places on records made once, laying one at each
+  gap the ball goes, however often it is drawn, as the fire ball's embers
+  are laid, and starting afresh where the ball jumps farther in a frame than
+  one at twice Fast's top speed goes in the longest frame (moved, not
+  flying). The place within a gap of the ball lies under it, so a tail's
+  dots are the places before it.
+- `TailPainter` (`src/scene/painters/tail_painter.ts`), in a layer of its
+  own, `tails`, just behind the balls (`src/view/field/layers.ts`): eight
+  dots for each ball the field may hold, made once.
+- The dot is a frame of the atlas, white, which the painter tints: a new
+  file, `src/view/art/streak_art.ts` (`STREAK_FRAMES`, `streakArt()`), and
+  one line of `art.ts`'s `atlasFrames()`, which adds its frames.
+- Specs: `tail.spec.ts` (the trail, the lengths, the dots' fade),
+  `streak.spec.ts` (the steps and tiers), `streak_art.spec.ts` (the dot in
+  the atlas), `layers.spec.ts` (the layer), and the scene's spec, which
+  flies a ball across in each streak and reads the dots: their count, their
+  places, their fade and color, a second ball's tail of its own, the dots
+  following the ball as it is drawn, and none once the paddle ends the streak,
+  the ball rests on the paddle, or motion isn't welcome, and a new level's
+  ball starting no tail from the last level's places.
+- `AGENTS.md`: `streak.ts`, `tail.ts`, `streak_art.ts`, `TailPainter`, and
+  the tail among what motion's absence leaves out.
+
+Choices where the plan was silent:
+
+- A tail starts at the multiplier's first step, not at the streak's first
+  brick, so a ball shows one only once its streak scores more: a medium
+  dose, and the steps the plan's "longer at each step" counts.
+- The lengths are a share of eight, by the tiers reached:
+  `round(8 × (tier + 1) / (tiers + 1))`, 4, 6 and 8, so a fourth tier would
+  still end at eight.
+- The dots are half a unit apart and half a ball wide at their nearest,
+  fading from 0.6 toward nothing and shrinking toward 40%.
+- The tail takes the balls' kind's color, as the ball's body does
+  (`palette.balls`), not a friend's ink; L6 may tint a friend's tail by
+  its ink.
+- L3 draws the fur by the streak's tier; `streakTier()` is there for it.
+
+Added to other streams' files: `art.ts` (an import and `...streakArt()`
+at the end of `atlasFrames()`), `src/view/art/streak_art.ts` (new, in L's
+folder), `bricks_scene.ts` (the painter, its place in the list, its reset).
+
+Checks: the workspace's lint and typecheck pass, and its tests, 62 files
+and 2182 specs; the root's lint passes.
+
+Review:
+
+1. The scene's specs read only the first ball's tail, and none moved the
+   ball between its last place and its next, so a painter following one
+   ball for all, or dropping the interpolation, passed. Fixed: a spec flies
+   a second ball and holds every tail's count; another draws the ball at
+   half a frame and holds the nearest dot a gap behind it. Each fails with
+   its bug put back.
+2. `TAIL_LEAST`'s comment called it the farthest dot's size; it is the size
+   the dots shrink toward, one past the farthest. Fixed the comment.
+3. `DOT_RADIUS` was called a width and was a bare 0.18. Fixed: half of
+   `BALL_RADIUS`, called a reach.
+4. The jump was measured from the last place laid, against 3 units, so a
+   long frame at a fast ball's speed wiped the tail. Fixed: measured from
+   where the trail last followed the ball, against as far as twice Fast's
+   top speed goes in the longest frame (9 units); a spec holds a fast ball's
+   long frame laid.
+5. Small items, each fixed: `Trail.length` is a getter; `@throws` is on
+   `placeOf()`; `tailLength()` counts `STREAK_STEPS`; the layer and the
+   scene's painter are `tails`, the painter's records `byBall`; the log's
+   jump; a spec's name.
