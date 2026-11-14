@@ -414,6 +414,7 @@ describe("placeOf", () => {
       basics: "playroom",
       steel: "workshop",
       tricks: "funfair",
+      friends: "garden",
     });
   });
 

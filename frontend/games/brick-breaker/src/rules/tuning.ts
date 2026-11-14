@@ -62,6 +62,16 @@ export const BALL_RADIUS = 0.36;
 /** The most balls in play at once. */
 export const MAX_BALLS = 8;
 
+/** The most a friend a cage frees heads from straight up, either way, in degrees. */
+export const FRIEND_SPREAD = 20;
+
+/**
+ * How many inks the friends wear, one after another: `@fz/phaser/color`'s
+ * `FUZZBALL_INKS`, each mode's, which the rules can't import; its spec holds
+ * the two alike.
+ */
+export const FRIEND_INKS = 8;
+
 /** The share of the base speed each brick hit adds, to the speed's top. */
 export const CLIMB = 0.015;
 

@@ -24,6 +24,7 @@ import { cellIndex, inGrid } from "../grid";
 import type { Level } from "../levels/level";
 import {
   type Ball,
+  OWN_INK,
   bounceOffPaddle,
   createBall,
   followPaddle,
@@ -156,6 +157,8 @@ export interface Field {
   steps: number;
   /** How many random draws the field has made, which seeds the next. */
   draws: number;
+  /** How many friends the level's cages have freed, which picks the next one's ink. */
+  friendsFreed: number;
   /** What happened, for the scene to play. */
   readonly events: FieldEventLog;
 }
@@ -205,6 +208,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     boltsReadyAt: 0,
     steps: 0,
     draws: 0,
+    friendsFreed: 0,
     events: new FieldEventLog(),
   };
 }
@@ -334,11 +338,15 @@ export function reshapeField(field: Field, height: number): void {
   }
 }
 
-/** Puts a ball back on the paddle, to be served, once the last one is lost. */
+/**
+ * Puts a ball back on the paddle, to be served, once the last one is lost:
+ * the player's own, whatever ink the record last wore.
+ */
 export function serve(field: Field): void {
   const ball = field.balls.find((each) => !each.live);
   if (field.state !== "lost" || !ball) return;
   holdBall(ball, field.paddle, 0);
+  ball.ink = OWN_INK;
   field.state = "serve";
 }
 

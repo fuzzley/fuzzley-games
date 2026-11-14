@@ -391,6 +391,7 @@ const PICTURED_BRICKS: Readonly<Record<BrickKindId, BrickLook>> = {
   gift: { kind: "gift", tint: 0, whole: 1, hits: 1, shown: true },
   ghost: { kind: "ghost", tint: 6, whole: 2, hits: 2, shown: false },
   regrow: { kind: "regrow", tint: 3, whole: 1, hits: 1, shown: true },
+  cage: { kind: "cage", tint: 0, whole: 2, hits: 2, shown: true },
 };
 
 /** The frames How to play's pictures are taken from. */

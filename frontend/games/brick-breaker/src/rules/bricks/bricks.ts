@@ -7,6 +7,7 @@ import {
   isNeeded,
 } from "../catalog/bricks";
 import type { CapsuleId } from "../catalog/capsules";
+import { nextDraw } from "../draws";
 import type { Field } from "../field/field";
 import { scoreBreak, scoreHit } from "../field/scoring";
 import {
@@ -19,8 +20,9 @@ import {
   rowOf,
 } from "../grid";
 import type { LevelBrick } from "../levels/level";
-import { overlapsBox } from "../paddle/balls";
+import { overlapsBox, releaseBall } from "../paddle/balls";
 import { stepsIn } from "../stepper";
+import { FRIEND_INKS, FRIEND_SPREAD } from "../tuning";
 import { dropFrom } from "./capsules";
 
 /**
@@ -114,6 +116,11 @@ const TRAIT_RULES: {
       );
     },
   },
+  frees: {
+    broken: (field, brick) => {
+      freeFriend(field, brick);
+    },
+  },
 };
 
 // Made once and reused, so a step makes nothing.
@@ -184,7 +191,6 @@ export function hitBrick(
   brick.broken = true;
   scoreBreak(field, brick, before);
   field.events.add("broken", x, y, brick.cell, null, field.streak);
-  runTraits("broken", field, brick);
   if (isNeeded(brick.kind)) {
     field.needed--;
     if (field.needed === 0) {
@@ -192,6 +198,7 @@ export function hitBrick(
       field.events.add("cleared", x, y);
     }
   }
+  runTraits("broken", field, brick);
   dropFrom(field, brick);
   return true;
 }
@@ -255,6 +262,24 @@ function goOff(field: Field, brick: Brick): void {
   const y = cellMiddleY(brick.cell);
   field.events.add("blast", x, y, brick.cell);
   hitAround(field, brick, x, y);
+}
+
+/**
+ * Frees a cage's friend while the level is in play: a ball more, at the
+ * cage's middle, heading up within {@link FRIEND_SPREAD} of straight up by
+ * the field's next draw, wearing the next of the friends' inks. With every
+ * ball the field holds in play, the cage frees nobody.
+ */
+function freeFriend(field: Field, brick: Readonly<Brick>): void {
+  if (field.state !== "playing") return;
+  const friend = field.balls.find((ball) => !ball.live);
+  if (!friend) return;
+  const x = cellMiddleX(brick.cell);
+  const y = cellMiddleY(brick.cell);
+  const degrees = (nextDraw(field) * 2 - 1) * FRIEND_SPREAD;
+  releaseBall(friend, x, y, degrees, field.friendsFreed % FRIEND_INKS);
+  field.friendsFreed++;
+  field.events.add("freed", x, y, brick.cell);
 }
 
 /** Returns whether a ball in play overlaps a brick's place. */

@@ -1,3 +1,4 @@
+import { FUZZBALL_INKS } from "@fz/phaser/color";
 import {
   BALL_RADIUS,
   BRICKS_TOP,
@@ -8,6 +9,8 @@ import {
   FIELD_WIDTH,
   FIRST_LIVES,
   FLATTEST,
+  FRIEND_INKS,
+  FRIEND_SPREAD,
   KEY_SPEED,
   MAX_LIVES,
   PADDLE_HEIGHT,
@@ -41,6 +44,17 @@ describe("the tuning", () => {
   it("keeps the paddle above the floor", () => {
     expect(FIELD_HEIGHT - PADDLE_TOP - PADDLE_HEIGHT).toBeGreaterThan(0);
   });
+
+  it("sends a freed friend up no flatter than the flattest a ball travels", () => {
+    expect(FRIEND_SPREAD).toBeLessThanOrEqual(90 - FLATTEST);
+  });
+
+  it.each(["light", "dark"] as const)(
+    "dresses the friends in as many inks as the %s fuzzballs have",
+    (mode) => {
+      expect(FRIEND_INKS).toBe(FUZZBALL_INKS[mode].length);
+    },
+  );
 
   it("starts a run with fewer lives than the most it can hold", () => {
     expect(FIRST_LIVES).toBeLessThan(MAX_LIVES);

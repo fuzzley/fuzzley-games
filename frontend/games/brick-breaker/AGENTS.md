@@ -127,7 +127,12 @@ takes for the specs' helpers.
   `paddle.ts` steers the paddle (`Steer`: a pointer's place, a finger's
   drag, held keys) and `balls.ts` turns a ball: off the paddle by where it
   landed, as a mirror, by a lull's few degrees, and back to the flattest it
-  travels. `bolts.ts` fires and moves the laser's bolts.
+  travels. It puts one in play at a place too, as a cage frees a friend
+  (`releaseBall()`). Each ball wears an ink: the player's own (`OWN_INK`),
+  or a friend's, the next of `@fz/phaser/color`'s `FUZZBALL_INKS`
+  (`FRIEND_INKS` of them) for each friend a level frees
+  (`Field.friendsFreed`), kept by a ball split from it, for the view to
+  color it by. `bolts.ts` fires and moves the laser's bolts.
 - **`src/rules/bricks/`** — the bricks and the capsules they let fall.
   `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
   and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
@@ -184,7 +189,8 @@ takes for the specs' helpers.
   its name, its place, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any of
   its own, and, for a picture, a grid of tints: `basics.json`, levels 1 to 10,
-  `steel.json`, 11 to 20, and `tricks.json`, 21 to 30. `levels.ts` lists the
+  `steel.json`, 11 to 20, `tricks.json`, 21 to 30, and `friends.json`, 31.
+  `levels.ts` lists the
   sets in order (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, through
   `levelsOf()`), and `parseLevel()` turns one into a `Level` (`level.ts`) to
   play, or throws an error that names what is wrong with its data. A level's

@@ -8,6 +8,7 @@ import {
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
+import { OWN_INK } from "../paddle/balls";
 import { CUSTOM_PERCENT, SPEED_INFO, ballSpeed, customFactor } from "../speed";
 import { STEP_MS } from "../stepper";
 import {
@@ -345,6 +346,17 @@ describe("a lost ball", () => {
       state: "serve",
       ball: { live: true, held: true, x: field.paddle.x },
     });
+  });
+
+  it("is followed by the player's own ball, whatever ink its record wore", () => {
+    const field = fieldFrom(FAR_BRICK);
+    const ball = throwBall(field, 5, 29.5, 180);
+    ball.ink = 2;
+    stepTimes(field, 10);
+
+    serve(field);
+
+    expect(ballOf(field).ink).toBe(OWN_INK);
   });
 
   it("can't be served again while a ball is in play", () => {
