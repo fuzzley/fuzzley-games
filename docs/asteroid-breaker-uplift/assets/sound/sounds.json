@@ -1,0 +1,65 @@
+{
+  "sampleRate": 44100,
+  "levels": {
+    "tick": -27,
+    "small": -21,
+    "medium": -17,
+    "large": -14,
+    "huge": -11,
+    "bed": -27
+  },
+  "sounds": {
+    "chain-ping": {
+      "family": "chain",
+      "about": "Under every break of a chain: a small glass bell at C5, which the game raises up the scale by the break's place in its chain.",
+      "level": "small",
+      "loop": false,
+      "seconds": 0.635,
+      "plays": [
+        "broken (with its chain's step)"
+      ],
+      "files": [
+        "wav/chain/chain-ping.wav"
+      ]
+    },
+    "chain-x2": {
+      "family": "chain",
+      "about": "The multiplier reaches x2: 2 bells up the scale, quick, ending on C.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 0.987,
+      "plays": [
+        "chain reaches x2"
+      ],
+      "files": [
+        "wav/chain/chain-x2.wav"
+      ]
+    },
+    "chain-x3": {
+      "family": "chain",
+      "about": "The multiplier reaches x3: 3 bells up the scale, quick, ending on C.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 1.152,
+      "plays": [
+        "chain reaches x3"
+      ],
+      "files": [
+        "wav/chain/chain-x3.wav"
+      ]
+    },
+    "chain-x4": {
+      "family": "chain",
+      "about": "The multiplier reaches x4: 4 bells up the scale, quick, ending on C.",
+      "level": "medium",
+      "loop": false,
+      "seconds": 1.317,
+      "plays": [
+        "chain reaches x4"
+      ],
+      "files": [
+        "wav/chain/chain-x4.wav"
+      ]
+    }
+  }
+}

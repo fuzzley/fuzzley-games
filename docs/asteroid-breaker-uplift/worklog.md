@@ -62,8 +62,8 @@ sound design hats:
     bar as the ships left, as a stray in a bubble worth 500 points, and
     bailing out of a lost ship. A stray brought home changes nothing in the
     wave it was caught in.
-  - Pickups are all timed, which a later progression system would clash
-    with or lean on, depending on what the uplift makes of them.
+  - Five of the eight pickups are timed, which a later progression system
+    would clash with or lean on, depending on what the uplift makes of them.
 - **Tools on this machine:** Node 26.12, Chrome and ffmpeg are installed.
   The worktree had no `node_modules`; `yarn install --immutable` was run in
   `frontend/` so that the game's own report, sharp and Prettier can run.
