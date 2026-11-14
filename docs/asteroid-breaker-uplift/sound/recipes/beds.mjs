@@ -21,12 +21,12 @@ import {
   noise,
   normalize,
   perc,
+  pluck,
   points,
   reverbStereo,
   samples,
   seeded,
 } from "../lib/synth.mjs";
-import { bell } from "./chain.mjs";
 
 /** @import { Recipe } from "../build.mjs" */
 /** @import { Signal } from "../lib/synth.mjs" */
@@ -296,14 +296,6 @@ function together(layers) {
 }
 
 /**
- * Returns a stereo layer brought to a level: the loudness of its two ears
- * together over the whole loop, so a bed's mix is written down in decibels.
- *
- * @param {Stereo} x
- * @param {number} db Its level, in dB below full scale.
- * @returns {Stereo}
- */
-/**
  * Returns the level of air that comes and goes with a slow wander: nothing
  * for the lower half of the wander's swing, then a gentle swell, so the air
  * is gone between its breaths and no steady hiss is left under a bed.
@@ -316,6 +308,14 @@ function comeAndGo(swing) {
   return open * open;
 }
 
+/**
+ * Returns a stereo layer brought to a level: the loudness of its two ears
+ * together over the whole loop, so a bed's mix is written down in decibels.
+ *
+ * @param {Stereo} x
+ * @param {number} db Its level, in dB below full scale.
+ * @returns {Stereo}
+ */
 function leveled([left, right], db) {
   let sum = 0;
   for (const ear of [left, right])
@@ -523,6 +523,119 @@ function mallet(freq, seed) {
         [0.5, 1],
       ],
       0.5,
+    ),
+  );
+}
+
+/**
+ * Returns a glass bell that has a low end of its own: its note beside a
+ * twin a few Hz off, so the two beat as it rings, a hum an octave under
+ * them that outlasts both, and an octave and a twelfth above that die
+ * first. The higher the bell, the sooner all of it dies.
+ *
+ * @param {number} freq
+ * @param {number} seed
+ * @returns {Signal}
+ */
+function humBell(freq, seed) {
+  const random = seeded(seed);
+  const ring = 0.95 * (pitch("E6") / freq) ** 0.6;
+  const struck = modes(
+    [
+      { freq: freq * 0.5, decay: ring * 1.8, gain: 0.3, phase: random() },
+      { freq, decay: ring, gain: 1 },
+      {
+        freq: freq + 2.5 + 3 * random(),
+        decay: ring * 0.9,
+        gain: 0.45,
+        phase: random(),
+      },
+      { freq: freq * 2.003, decay: ring * 0.4, gain: 0.2, phase: random() },
+      { freq: freq * 3.01, decay: ring * 0.2, gain: 0.07, phase: random() },
+    ],
+    ring * 1.8,
+  );
+  const tick = gain(
+    filter(noise("white", 0.02, seed), "bp", Math.min(6000, freq * 3), 1.2),
+    perc(0.001, 0.018, 0.02),
+  );
+  return filter(
+    gain(
+      mix([struck, { x: tick, gain: 0.08 }]),
+      points(
+        [
+          [0, 0],
+          [0.002, 1],
+          [ring * 1.8, 1],
+        ],
+        ring * 1.8,
+      ),
+    ),
+    "lp",
+    5000,
+    0.6,
+  );
+}
+
+/**
+ * Returns a warm struck note for the middle of a layer: a soft mallet on a
+ * metal bar, its note beside a twin that beats slowly against it, a hum an
+ * octave under, and an octave above that is gone in half a second.
+ *
+ * @param {number} freq
+ * @param {number} seed
+ * @returns {Signal}
+ */
+function warmBar(freq, seed) {
+  const random = seeded(seed);
+  const struck = modes(
+    [
+      { freq: freq * 0.5, decay: 1.4, gain: 0.22, phase: random() },
+      { freq, decay: 1.2, gain: 1 },
+      { freq: freq + 1 + random(), decay: 1.1, gain: 0.3, phase: random() },
+      { freq: freq * 2.0, decay: 0.5, gain: 0.25, phase: random() },
+      { freq: freq * 3.98, decay: 0.14, gain: 0.08, phase: random() },
+    ],
+    1.6,
+  );
+  return filter(
+    gain(
+      struck,
+      points(
+        [
+          [0, 0],
+          [0.005, 1],
+          [1.6, 1],
+        ],
+        1.6,
+      ),
+    ),
+    "lp",
+    2600,
+    0.6,
+  );
+}
+
+/**
+ * Returns a small soft plucked note: a short string, dulled, with whatever
+ * its first noise left under the note taken out.
+ *
+ * @param {number} freq
+ * @param {number} seed
+ * @returns {Signal}
+ */
+function plucked(freq, seed) {
+  const string = pluck(freq, 0.6, { damp: 0.55, decay: 0.45, seed });
+  return gain(
+    filter(filter(string, "hp", freq * 0.6, 0.7), "lp", 3400, 0.6),
+    points(
+      [
+        [0, 0],
+        [0.003, 1],
+        [0.45, 1],
+        [0.6, 0],
+      ],
+      0.6,
     ),
   );
 }
@@ -1119,47 +1232,215 @@ export const SOUNDS = [
   {
     name: "bed-shimmer",
     about:
-      "Over a bed and its pulse while static is at its highest: eight small glass bells on the key's high notes, far apart and off the beat, each answered once, fainter, in the other ear, in a long room.",
+      "Over a bed and its pulse while static is at its highest: eight bars at the pulse's tempo in three voices. Warm struck pairs of notes from A4 to A5 fall three to a bar against the pulse's four beats; glass bells from E6 to E7, each with a hum an octave under it, play quick runs answered a beat later in the other ear and single strikes whose echoes fall away; a soft plucked figure of three notes turns between them. The bells ring in a long, wide room.",
     level: "bed",
     loop: true,
     plays: ["static at the third step or above"],
     make: (_take, seed) => {
       const random = seeded(seed);
-      // Where each bell falls, in sixteenth notes from the loop's start (an
-      // eighth of a second each), and its note.
-      const bells = /** @type {const} */ ([
-        [3, "G6"],
-        [14, "C7"],
-        [22, "E6"],
-        [29, "A6"],
-        [38, "D7"],
-        [45, "G6"],
-        [51, "E7"],
-        [60, "C7"],
-      ]);
-      const answer = 0.375;
-      return roomed(
-        strewn(
-          bells.flatMap(([sixteenth, name], k) => {
-            const where = (k % 2 === 0 ? -1 : 1) * (0.3 + 0.4 * random());
-            const ring = bell(pitch(name), 0.7 + 0.3 * random(), seed + k);
-            const at = sixteenth * 0.125;
-            const db = -6 - 3 * random();
-            return [
-              { x: ring, at, where, db },
-              {
-                x: filter(ring, "lp", 3000, 0.6),
-                at: at + answer,
-                where: -where,
-                db: db - 9,
-              },
-            ];
-          }),
-          LAYER,
+      // Eight bars at 120 beats a minute: twice the pulse's loop, so the
+      // two stay in step.
+      const seconds = 2 * LAYER;
+      // A time on the pulse's grid, by its bar and its sixteenth note in the
+      // bar, a few milliseconds loose, as a hand is.
+      const when = (/** @type {number} */ bar, /** @type {number} */ step) =>
+        Math.max(0, (bar * 16 + step) * 0.125 + 0.005 * (2 * random() - 1));
+
+      // The body: pairs of notes a third, a fourth, a fifth or a sixth
+      // apart, mostly on the first, fourth and seventh eighth of a bar,
+      // which is three against the pulse's four. Each is a bar, a sixteenth,
+      // its notes, its level and its place.
+      const body = /** @type {const} */ ([
+        [0, 0, ["C5", "G5"], -8, -0.2],
+        [0, 6, ["E5", "A5"], -12, 0.2],
+        [0, 12, ["D5", "G5"], -15, -0.1],
+        [1, 0, ["E5", "G5"], -11, 0.25],
+        [1, 12, ["C5", "E5"], -15, -0.25],
+        [2, 0, ["D5", "A5"], -8, 0.15],
+        [2, 6, ["C5", "G5"], -12, -0.2],
+        [2, 12, ["E5", "A5"], -15, 0.25],
+        [3, 6, ["G5"], -18, 0],
+        [3, 12, ["D5", "G5"], -12, -0.2],
+        [4, 0, ["A4", "E5"], -8, 0.1],
+        [4, 6, ["C5", "G5"], -13, -0.25],
+        [5, 0, ["E5", "G5"], -11, 0.2],
+        [5, 6, ["D5", "A5"], -15, -0.15],
+        [5, 12, ["C5", "E5"], -14, 0.25],
+        [6, 0, ["C5", "A5"], -8, -0.2],
+        [6, 6, ["E5", "G5"], -12, 0.2],
+        [6, 12, ["D5", "G5"], -12, -0.1],
+        [7, 0, ["C5", "G5"], -10, 0.15],
+        [7, 8, ["E5"], -18, -0.25],
+      ]).map(([bar, step, names, db, where], k) => ({
+        // The upper note of a pair is struck a moment after the lower, and
+        // a little softer.
+        x: mix(
+          names.map((name, n) => ({
+            x: warmBar(pitch(name), seed + 100 + 2 * k + n),
+            at: 0.012 * n,
+            gain: 1 - 0.2 * n,
+          })),
         ),
-        LAYER,
-        { decay: 1.4, mix: 0.3, damp: 0.4, size: 1.5 },
+        at: when(bar, step),
+        where,
+        db: db + random() - 0.5,
+      }));
+
+      /** @type {Event[]} */
+      const bells = [];
+      /**
+       * Adds a run of quick bells a sixteenth apart, growing or dying away,
+       * and its answer a beat later in the other ear, fainter and duller.
+       *
+       * @param {number} bar
+       * @param {number} step
+       * @param {readonly string[]} names
+       * @param {readonly string[]} answer
+       * @param {number} where
+       * @param {number} from The first note's level.
+       * @param {number} to The last note's level.
+       */
+      const run = (bar, step, names, answer, where, from, to) => {
+        names.forEach((name, k) =>
+          bells.push({
+            x: humBell(pitch(name), seed + 200 + bells.length),
+            at: when(bar, step + k),
+            where,
+            db: from + ((to - from) * k) / (names.length - 1),
+          }),
+        );
+        answer.forEach((name, k) =>
+          bells.push({
+            x: filter(
+              humBell(pitch(name), seed + 200 + bells.length),
+              "lp",
+              2800,
+              0.6,
+            ),
+            at: when(bar, step + 4 + k),
+            where: -where,
+            db: from + ((to - from) * k) / (answer.length - 1) - 7,
+          }),
+        );
+      };
+      /**
+       * Adds one bell and its echoes a dotted eighth apart, each fainter
+       * and duller than the last and in the other ear from it, with a grace
+       * note a thirty-second before the strike if one is named.
+       *
+       * @param {number} bar
+       * @param {number} step
+       * @param {string} name
+       * @param {number} where
+       * @param {number} db
+       * @param {number} echoes
+       * @param {string} [grace]
+       */
+      const strike = (bar, step, name, where, db, echoes, grace) => {
+        const at = when(bar, step);
+        if (grace !== undefined)
+          bells.push({
+            x: humBell(pitch(grace), seed + 200 + bells.length),
+            at: at - 0.0625,
+            where,
+            db: db - 7,
+          });
+        const ring = humBell(pitch(name), seed + 200 + bells.length);
+        // An echo keeps the bell's hum and loses its top, twice dulled, so
+        // it answers an octave under the strike and holds no high note.
+        const dulled = (/** @type {number} */ k) => {
+          const top = 1500 / Math.sqrt(k);
+          return filter(filter(ring, "lp", top, 0.6), "lp", top, 0.6);
+        };
+        for (let k = 0; k <= echoes; k++)
+          bells.push({
+            x: k === 0 ? ring : dulled(k),
+            at: at + 0.375 * k,
+            where: k % 2 === 0 ? where : -where,
+            db: db - 7 * k,
+          });
+      };
+      // The bells' loudest notes sit 6 dB under the body's, so the layer's
+      // weight is in its middle and the sparkle lies on top of it.
+      run(
+        0,
+        8,
+        ["E6", "G6", "A6", "C7"],
+        ["E6", "G6", "A6", "C7"],
+        0.55,
+        -20,
+        -15,
       );
+      strike(1, 6, "D7", -0.4, -15, 3);
+      strike(2, 4, "C7", -0.45, -16, 1, "A6");
+      strike(2, 10, "G6", 0.5, -21, 1);
+      run(
+        3,
+        4,
+        ["E7", "D7", "C7", "A6", "G6"],
+        ["D7", "C7", "A6", "G6", "E6"],
+        -0.5,
+        -14,
+        -19,
+      );
+      strike(4, 10, "E6", 0.35, -19, 2);
+      strike(5, 2, "A6", -0.3, -21, 0, "G6");
+      run(5, 8, ["A6", "C7", "D7"], ["A6", "C7", "D7"], 0.5, -19, -16);
+      strike(6, 4, "E7", 0.45, -15, 3);
+      run(
+        7,
+        2,
+        ["D7", "C7", "A6", "G6"],
+        ["C7", "A6", "G6", "E6"],
+        -0.55,
+        -16,
+        -20,
+      );
+      strike(7, 14, "E6", 0.3, -19, 0, "D6");
+
+      /** @type {Event[]} */
+      const plucks = [];
+      /**
+       * Adds a plucked figure: a cell of three notes turning a dotted
+       * eighth apart, so it falls with the beat only once in three beats,
+       * coming up from nothing and dying away again.
+       *
+       * @param {number} bar
+       * @param {number} step
+       * @param {number} count
+       * @param {readonly string[]} cell
+       * @param {number} where
+       */
+      const figure = (bar, step, count, cell, where) => {
+        for (let k = 0; k < count; k++)
+          plucks.push({
+            x: plucked(
+              pitch(cell[k % cell.length] ?? "G5"),
+              seed + 300 + plucks.length,
+            ),
+            at: when(bar, step + 3 * k),
+            where: where * (k % 2 === 0 ? 1 : 0.5),
+            db: -15 - 7 * (1 - Math.sin((Math.PI * (k + 0.5)) / count)),
+          });
+      };
+      figure(1, 2, 10, ["C6", "G5", "D6"], 0.35);
+      figure(4, 3, 12, ["A5", "E6", "G5"], -0.35);
+
+      return together([
+        roomed(strewn([...body, ...plucks], seconds), seconds, {
+          decay: 1.1,
+          mix: 0.22,
+          size: 1.3,
+        }),
+        // The bells' room is long and wide, and loses its highs fast, so a
+        // bell's hum blooms in it and its top is gone in under a second.
+        roomed(strewn(bells, seconds), seconds, {
+          decay: 2.2,
+          mix: 0.4,
+          damp: 0.8,
+          size: 1.8,
+        }),
+      ]);
     },
   },
 ];

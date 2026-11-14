@@ -463,9 +463,13 @@ it rests on.
   on one thing: fewer than you think.
 - **The comet's warning gets faster, not louder.** The research on
   warnings has rate carrying urgency and loudness carrying annoyance.
-- **The beds.** One loop a sector, 16 s, in stereo, 12 dB under a shot,
-  and two layers over it that fade in with static: a pulse from step two
-  and a shimmer at step three. Muted by its own setting.
+- **The beds.** One loop a sector, in stereo, 12 dB under a shot: 16
+  seconds for the Iron reach and the Storm, 32 for the Inner belt and
+  Endless. Over it, two layers fade in with static: a pulse from step two,
+  8 seconds of soft mallet eighths, and a shimmer at step three, 16 seconds
+  of bells, struck pairs and a plucked figure on the pulse's beat. The
+  layers start on one bar line, or they drift apart. Muted by its own
+  setting.
 
 How the game plays them is as much of the uplift as the sounds are:
 
