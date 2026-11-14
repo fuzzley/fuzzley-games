@@ -1,7 +1,8 @@
-// The pod as its own display: the plan draws the pod's state on the pod and
-// writes no digits near it. This draws the pod very large with each mark
-// called out, and the same pod small in four states at a laptop's unit and a
-// large phone's, where each mark has to survive.
+// The pod as its own display: the plan draws the pod's state on the pod, in
+// four marks and no more, and writes no digits near it. This draws the pod
+// very large, wearing all four at once with each called out, and the same
+// pod small in five states at a laptop's unit and a large phone's, where
+// each mark has to survive.
 
 import {
   TURN,
@@ -14,15 +15,9 @@ import {
 } from "../../art/lib/core.mjs";
 import { inkOf } from "../../art/lib/crew.mjs";
 import { fuzzballSvg } from "../../art/lib/fuzzball.mjs";
-import { PODS } from "../../art/lib/ship.mjs";
+import { PODS, RINGS } from "../../art/lib/ship.mjs";
 import { bubbleTones } from "../../art/lib/strays.mjs";
-import {
-  DASH_ARC,
-  WEAPON_ARC,
-  exhaustDrawn,
-  podDrawn,
-  towDrawn,
-} from "./scene.mjs";
+import { exhaustDrawn, podDrawn, towDrawn } from "./scene.mjs";
 
 /** @import { Point } from "../../art/lib/core.mjs" */
 /** @import { Palette } from "../../art/lib/palettes.mjs" */
@@ -31,27 +26,18 @@ import {
 /** The size of the drawing, in CSS pixels. */
 export const POD_HUD = { width: 1280, height: 560 };
 
-/** The four states the small pods show, with the words under each. */
+/** The five states the small pods show, with the words over each. */
 const STATES = /** @type {{ words: string[], pod: Partial<PodThing> }[]} */ ([
-  { words: ["resting"], pod: { charge: 0, static: 0.12, recharge: 1 } },
+  { words: ["resting"], pod: { charge: 0, recharge: 1 } },
   {
     words: ["thrusting,", "static at ×3"],
-    pod: {
-      charge: 2,
-      static: 0.62,
-      recharge: 1,
-      thrust: 0.9,
-      trail: true,
-      face: "set",
-    },
+    pod: { charge: 2, recharge: 1, thrust: 0.9, trail: true, face: "set" },
   },
+  { words: ["the dash", "at 40%"], pod: { charge: 0, recharge: 0.4 } },
+  { words: ["shielded"], pod: { charge: 0, recharge: 1, shield: true } },
   {
-    words: ["dash ready,", "a Spread running"],
-    pod: { charge: 1, static: 0.36, recharge: 1, ready: true, weapon: 0.62 },
-  },
-  {
-    words: ["shielded"],
-    pod: { charge: 0, static: 0.12, recharge: 0.45, shield: true },
+    words: ["just hit"],
+    pod: { charge: 0, recharge: 1, guard: 1, face: "eep" },
   },
 ]);
 
@@ -88,17 +74,17 @@ function callout(from, to, words, palette, anchor = "start") {
 }
 
 /**
- * Returns the drawing: the pod at 82 pixels a unit with its marks called
- * out, and at 15 and 9 pixels a unit in four states.
+ * Returns the drawing: the pod at 88 pixels a unit wearing its four marks,
+ * each called out, and at 15 and 9 pixels a unit in five states.
  *
  * @param {Palette} palette
  * @returns {string}
  */
 export function podHudSvg(palette) {
   const parts = [];
-  const big = 82;
+  const big = 88;
   /** @type {Point} */
-  const at = [300, 212];
+  const at = [322, 250];
   const turn = -TURN / 4;
   /** @type {PodThing} */
   const pod = {
@@ -106,9 +92,9 @@ export function podHudSvg(palette) {
     turn,
     pilot: 0,
     charge: 2,
-    static: 0.62,
-    recharge: 0.6,
-    weapon: 0.45,
+    recharge: 0.4,
+    shield: true,
+    guard: 1,
   };
   const about = (/** @type {number} */ angle, /** @type {number} */ far) =>
     polar(angle, far * big, at);
@@ -122,11 +108,8 @@ export function podHudSvg(palette) {
     text(
       36,
       68,
-      "No digits are drawn near it. Static at ×3, the dash at 60%, a Spread with 45% of its time left.",
-      {
-        fill: palette.fieldMuted,
-        "font-size": 13,
-      },
+      "Four marks and no more, and no digits. Here all at once: static at ×3, the dash at 40%, the Shield up, and just hit.",
+      { fill: palette.fieldMuted, "font-size": 13 },
     ),
   );
 
@@ -147,43 +130,46 @@ export function podHudSvg(palette) {
   );
 
   // The callouts, down the right in the order their marks lie, and the hook's on the left.
-  const label = 532;
+  const label = 566;
   parts.push(
     callout(
       about(-0.72, 0.5),
       [label, 112],
-      ["The pilot's fur", "lifts with static, a step for each multiplier"],
-      palette,
-    ),
-    callout(
-      about(-0.2, 0.66),
-      [label, 224],
       [
-        "The canopy's ring",
-        "fills with static; whole at ×4,",
-        "when the next dash is a zap",
+        "Static: the pilot's fur",
+        "A step for each multiplier, and at the",
+        "last, arcs crawl over the hull",
       ],
       palette,
     ),
     callout(
-      about(0.3, WEAPON_ARC),
-      [label, 296],
-      ["The outer arc", "counts a weapon's time down"],
+      about(-0.12, PODS.bumble.canopy),
+      [label, 254],
+      [
+        "The dash: the canopy's rim",
+        "Dark after a dash, filling round as it",
+        "charges again, whole when it is ready",
+      ],
       palette,
     ),
     callout(
-      about(TURN / 4 - 0.42, DASH_ARC.radius),
-      [label, 360],
+      about(0.24, RINGS.shield),
+      [label, 326],
+      ["The Shield: a glass shell", "It takes the next hit, and is spent"],
+      palette,
+    ),
+    callout(
+      about(0.56, RINGS.guard),
+      [label, 384],
       [
-        "The short arc behind the canopy",
-        "fills as the dash charges again,",
-        "and pulses once when it is ready",
+        "Can't be touched: a dashed ring",
+        "For a second and a half after a hit",
       ],
       palette,
     ),
     callout(
       [tied[0] - 5, tied[1] + 3],
-      [168, 392],
+      [200, 452],
       ["The hook", "The crew's tow line", "ties here"],
       palette,
       "end",
@@ -199,9 +185,9 @@ export function podHudSvg(palette) {
           { ink: inkOf(0, palette), size: 32, charge, seed: 3 },
           palette,
         ),
-        { x, y: 158 },
+        { x, y: 180 },
       ),
-      text(x, 187, `×${charge + 1}`, {
+      text(x, 209, `×${charge + 1}`, {
         fill: palette.fieldMuted,
         "font-size": 11.5,
         "text-anchor": "middle",
@@ -210,18 +196,18 @@ export function podHudSvg(palette) {
   });
 
   // The same pod small, and the phone's enlarged to show what is left of each mark.
-  const grid = { x: 800, width: 444 };
+  const grid = { x: 880, width: 380 };
   const column = grid.width / STATES.length;
   parts.push(
     polyline(
       [
-        [grid.x - 34, 96],
-        [grid.x - 34, POD_HUD.height - 40],
+        [grid.x - 22, 96],
+        [grid.x - 22, POD_HUD.height - 40],
       ],
       palette.fieldLine,
       1,
     ),
-    text(grid.x - 8, 46, "The same pod, small", {
+    text(grid.x - 4, 46, "The same pod, small", {
       fill: palette.fieldText,
       "font-size": 15,
       "font-weight": 700,
@@ -232,7 +218,7 @@ export function podHudSvg(palette) {
       parts.push(
         text(grid.x + column * (i + 0.5), 100 + k * 15, line, {
           fill: palette.fieldText,
-          "font-size": 12,
+          "font-size": 11.5,
           "text-anchor": "middle",
         }),
       );
@@ -243,15 +229,14 @@ export function podHudSvg(palette) {
     { unit: 9, scale: 1, y: 300, words: "9 px a unit: a large phone, upright" },
     {
       unit: 9,
-      scale: 3,
-      y: 446,
-      words:
-        "The phone's pod at three times its size: what is left of each mark",
+      scale: 2.2,
+      y: 440,
+      words: "The phone's pod enlarged: what is left of each mark",
     },
   ].forEach((row) => {
     const reach = 2 * row.unit * row.scale;
     parts.push(
-      text(grid.x - 8, row.y - reach - 14, row.words, {
+      text(grid.x - 4, row.y - reach - 14, row.words, {
         fill: palette.fieldMuted,
         "font-size": 12.5,
       }),

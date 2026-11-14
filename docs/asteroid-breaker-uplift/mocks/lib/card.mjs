@@ -8,7 +8,7 @@ import { mix, place, rect, ring, text } from "../../art/lib/core.mjs";
 import { inkOf } from "../../art/lib/crew.mjs";
 import { fuzzballSvg } from "../../art/lib/fuzzball.mjs";
 import { podTones } from "../../art/lib/ship.mjs";
-import { MONO } from "./scene.mjs";
+import { MONO } from "./draw.mjs";
 
 /** @import { Face } from "../../art/lib/fuzzball.mjs" */
 /** @import { Palette } from "../../art/lib/palettes.mjs" */

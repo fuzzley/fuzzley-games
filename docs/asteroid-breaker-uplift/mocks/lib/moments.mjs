@@ -106,7 +106,7 @@ const CROWD_ROCKS = [
  */
 export function crowd(field) {
   const lay = layOn(field);
-  const pod = lay([8.3, 32.2]);
+  const pod = lay([8.3, 34.6]);
   const turn = -TURN / 4;
   const broke = lay([58.6, 24.6]);
   // Where the medium rock broke a moment ago, up and to the right of the pod.
@@ -176,7 +176,6 @@ export function crowd(field) {
       charge: 1,
       thrust: 0.55,
       trail: true,
-      static: 0.38,
       recharge: 0.7,
       muzzle: 0,
     },
@@ -265,7 +264,6 @@ export function zap(field) {
       pilot: 0,
       dash: true,
       charge: 3,
-      static: 1,
       recharge: 0,
     },
     tow: { pilots: [3, 6, 2], heading: turn, phase: 0.2, sway: 0.28 },
@@ -348,7 +346,6 @@ export function loose(field) {
       look: polar(hit, 1),
       charge: 0,
       guard: 1,
-      static: 0,
       recharge: 1,
       struck: true,
       struckFrom: hit,
@@ -360,6 +357,7 @@ export function loose(field) {
       sway: 0.9,
       loose: 1,
       flung: 2.4,
+      face: "eep",
     },
     comet: { at: [50.6, 7.6], turn: 0.1, seed: 2 },
     sparks: [
@@ -393,7 +391,6 @@ export function cleared(field) {
       pilot: 0,
       face: "happy",
       charge: 1,
-      static: 0.3,
       recharge: 1,
     },
     tow: { pilots: [1, 2], heading: -0.36, phase: 0.9, sway: 0.7 },
@@ -439,7 +436,6 @@ export function ore(field) {
       turn: -TURN / 4,
       pilot: 0,
       charge: 0,
-      static: 0,
       recharge: 1,
     },
     tow: { pilots: [1, 2, 3], heading: -TURN / 4 - 0.5, phase: 0.4, sway: 0.5 },

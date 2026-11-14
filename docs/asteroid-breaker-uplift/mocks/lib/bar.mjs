@@ -1,8 +1,8 @@
 // The game bar of a mock, drawn simply in the palette's roles. In the game
 // the bar is HTML (`@fz/game-ui`'s game bar); this redraws it at the sizes
 // today's has at 1280 by 720, with the figures the plan gives it: the wave,
-// the score, the crew behind a face cam of the pilot, and static in place
-// of the chain.
+// the score, the crew behind a face cam of the pilot, and static, as a
+// number and four pips, in place of the chain.
 
 import {
   TURN,
@@ -19,7 +19,7 @@ import {
 } from "../../art/lib/core.mjs";
 import { faceCamSvg, inkOf } from "../../art/lib/crew.mjs";
 import { fuzzballSvg } from "../../art/lib/fuzzball.mjs";
-import { MONO, arcD } from "./scene.mjs";
+import { MONO, arcD, pipsSvg, pipsWidth } from "./draw.mjs";
 
 /** @import { Point } from "../../art/lib/core.mjs" */
 /** @import { Face } from "../../art/lib/fuzzball.mjs" */
@@ -43,6 +43,10 @@ import { MONO, arcD } from "./scene.mjs";
  * @property {1 | 2 | 3 | 4} times Static's multiplier.
  * @property {string} [speed] The speed's badge.
  */
+
+/** The size of static's pips in each bar. */
+const LAPTOP_PIPS = { width: 5.5, height: 5.5, gap: 2 };
+const PHONE_PIPS = { width: 4.2, height: 4.2, gap: 2 };
 
 /** How tall each bar is, in CSS pixels. */
 export const BAR_HEIGHT = { laptop: 72, phone: 56 };
@@ -171,33 +175,6 @@ function towRow(crew, size, gap, palette) {
  */
 function towRowWidth(count, size, gap) {
   return count === 0 ? 0 : count * size + (count - 1) * gap;
-}
-
-/**
- * Returns static's meter: four bars that rise, one lit for each step.
- *
- * @param {number} times
- * @param {Palette} palette
- * @param {number} [scale]
- * @returns {string} From its left end, standing on its base line.
- */
-function staticMeter(times, palette, scale = 1) {
-  const tones = chrome(palette);
-  return [0, 1, 2, 3]
-    .map((i) => {
-      const height = (6 + i * 3.4) * scale;
-      return rect(
-        i * 6.5 * scale,
-        -height,
-        4.5 * scale,
-        height,
-        i < times ? palette.accent : tones.line,
-        {
-          rx: 1.2,
-        },
-      );
-    })
-    .join("");
 }
 
 /**
@@ -434,13 +411,16 @@ export function laptopBar(figures, palette, width = 1280) {
   x += widths.crew + gap;
   parts.push(
     tile(x, top, widths.static, tall, "Static", palette),
-    text(x + 11, top + 40, `×${figures.times}`, {
+    text(x + 10, top + 40, `×${figures.times}`, {
       fill: palette.barText,
       "font-family": MONO,
       "font-size": 18,
       "font-weight": 700,
     }),
-    place(staticMeter(figures.times, palette), { x: x + 38, y: top + 41 }),
+    place(pipsSvg(figures.times, palette, LAPTOP_PIPS), {
+      x: x + widths.static - 9 - pipsWidth(LAPTOP_PIPS),
+      y: top + 34,
+    }),
   );
   return parts.join("");
 }
@@ -482,12 +462,17 @@ export function phoneBar(figures, palette, width = 390) {
   parts.push(roundButton(right - 18, mid, 18, icon.more, palette));
   right -= 36 + 6;
   parts.push(roundButton(right - 18, mid, 18, icon.pause, palette));
-  right -= 36 + 8;
+  right -= 36 + 6;
+  // The crew's tile: the face cam with the crew's count on its corner, and
+  // beside it the multiplier as a number over its four pips.
   const cam = 30;
-  const crewWidth = 5 + cam + 5 + 12 + 8;
+  const column = pipsWidth(PHONE_PIPS);
+  const crewWidth = 5 + cam + 7 + column + 7;
   const count = 1 + crew.tow.length - (crew.loose ?? 0);
+  const left = right - crewWidth;
+  const badge = { x: left + 5 + cam - 2.5, y: mid + cam / 2 - 3, r: 7 };
   parts.push(
-    rect(right - crewWidth, top, crewWidth, tall, tones.tile, {
+    rect(left, top, crewWidth, tall, tones.tile, {
       rx: 7,
       stroke: tones.line,
       "stroke-width": 1,
@@ -503,18 +488,33 @@ export function phoneBar(figures, palette, width = 390) {
         },
         palette,
       ),
-      {
-        x: right - crewWidth + 5 + cam / 2,
-        y: mid,
-      },
+      { x: left + 5 + cam / 2, y: mid },
     ),
-    figure(right - 8, mid + 6, String(count), palette, {
-      size: 16,
-      anchor: "end",
+    circle(badge.x, badge.y, badge.r, palette.barText, {
+      stroke: tones.tile,
+      "stroke-width": 1.5,
+    }),
+    text(badge.x, badge.y + 3.4, String(count), {
+      fill: palette.bar,
+      "font-family": MONO,
+      "font-size": 10,
+      "font-weight": 700,
+      "text-anchor": "middle",
+    }),
+    figure(
+      left + 5 + cam + 7 + column / 2,
+      mid + 1.5,
+      `×${figures.times}`,
+      palette,
+      { size: 13.5 },
+    ),
+    place(pipsSvg(figures.times, palette, PHONE_PIPS), {
+      x: left + 5 + cam + 7,
+      y: mid + 10,
     }),
   );
   right -= crewWidth + 6;
-  const scoreWidth = Math.max(52, 16 + figures.score.length * 8.6);
+  const scoreWidth = Math.max(50, 12 + figures.score.length * 8.7);
   parts.push(
     rect(right - scoreWidth, top, scoreWidth, tall, tones.tile, {
       rx: 7,

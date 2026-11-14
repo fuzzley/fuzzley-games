@@ -15,7 +15,7 @@ import {
   rect,
   ring,
 } from "../../art/lib/core.mjs";
-import { arcD } from "./scene.mjs";
+import { arcD } from "./draw.mjs";
 
 /** @import { Palette } from "../../art/lib/palettes.mjs" */
 

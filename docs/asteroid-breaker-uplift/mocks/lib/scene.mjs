@@ -7,14 +7,11 @@
 import {
   TURN,
   mix,
-  num,
-  path,
   place,
   polar,
   polygon,
   polyline,
   rect,
-  ring,
   seeded,
   text,
   turned,
@@ -27,6 +24,7 @@ import {
 import {
   arcSvg,
   blastFx,
+  blastLight,
   breakFx,
   energyOf,
   exhaustFx,
@@ -42,9 +40,9 @@ import {
 } from "../../art/lib/fx.mjs";
 import { PILOT_INKS, ROCK_INKS } from "../../art/lib/palettes.mjs";
 import { makeRock, rockDefs, rockSvg } from "../../art/lib/rocks.mjs";
-import { PODS, podDefs, podSvg, podTones } from "../../art/lib/ship.mjs";
+import { PODS, podDefs, podSvg } from "../../art/lib/ship.mjs";
 import {
-  TOW_RADIUS,
+  bubbleTones,
   straySvg,
   towLine,
   towSvg,
@@ -117,10 +115,7 @@ import {
  * @property {boolean} [dash]
  * @property {number} [guard] How brightly the ring of a pod that can't be touched shows.
  * @property {boolean} [shield]
- * @property {number} [static] How far the canopy's ring has filled with static, 0 to 1.
- * @property {number} [recharge] How far the dash has charged again, 0 to 1.
- * @property {boolean} [ready] Whether the dash's arc pulses, as it does once when it is ready.
- * @property {number} [weapon] How much of a weapon's time is left, 0 to 1; none if left out.
+ * @property {number} [recharge] How far the dash has charged again, 0 to 1, which the canopy's rim shows.
  * @property {0 | 1} [muzzle] The frame of the flash at its prow, if a shot has just left.
  * @property {boolean} [struck] Whether it has just been hit: it flashes, and a spark flies from where it was struck.
  * @property {number} [struckFrom] The way to what hit it, in radians.
@@ -132,8 +127,8 @@ import {
  * @property {number} [heading] The way the line was flown, in radians; it trails the other way. The pod's own unless told.
  * @property {number} [sway]
  * @property {number} [phase]
- * @property {number} [gap]
  * @property {number} [loose] How many of the last have been knocked loose.
+ * @property {Face} [face] The face of those still in tow, if not the kit's happy one.
  * @property {number} [flung] How far those knocked loose have flown since, in field units.
  */
 
@@ -226,17 +221,16 @@ import {
 /** How wide the field's frame is, in CSS pixels, as the game has it. */
 export const FRAME_PX = 2;
 
-/** How far out the arc that counts a weapon's time down lies, in field units. */
-export const WEAPON_ARC = 1.5;
-
-/** How far out the arc that shows the dash charging again lies, and half its sweep, in radians. */
-export const DASH_ARC = { radius: 1.22, half: 0.62 };
-
 /** How far from the pod's middle a zap's arcs leap from, in field units: its hull's edge. */
 const ARC_FROM = 1.2;
 
-/** The numbers' face, for points on the field and figures in the bar. */
-export const MONO = "ui-monospace, 'Cascadia Mono', Consolas, monospace";
+/**
+ * The tow line as the plan has it, in field units: a bubble's radius, the
+ * thread from the hook to the first bubble's rim and between two bubbles'
+ * rims. A bubble's middle is 1.6 units from the next one's, and the first
+ * 1.6 behind the hook, so five in tow reach under 10 units from the pod.
+ */
+export const TOW = { radius: 0.7, lead: 0.9, gap: 0.2 };
 
 /**
  * Returns the shifts a thing is drawn at: none, and one for each edge it
@@ -310,16 +304,12 @@ function wrapped(inner, at, reach, moment, how = {}) {
  */
 function lightsOf(moment) {
   const { palette } = moment;
-  const inks = ROCK_INKS[palette.mode];
   /** @type {Light[]} */
   const lights = [];
   for (const blast of moment.blasts ?? []) {
     lights.push({
       at: blast.at,
-      color:
-        palette.mode === "light"
-          ? mix(inks.core, inks.volatile, 0.35)
-          : inks.core,
+      color: blastLight(palette),
       strength: 0.95,
       reach: blast.size === "large" ? 13 : 9,
     });
@@ -462,8 +452,8 @@ function sparksLayer(moment, over) {
 }
 
 /**
- * Returns the tow line as the art kit lays it out, tied to the pod's own
- * hook whichever way the line trails.
+ * Returns the tow line as the art kit lays it out at the plan's sizes, tied
+ * to the pod's own hook whichever way the line trails.
  *
  * @param {PodThing} pod
  * @param {TowThing} tow
@@ -475,10 +465,10 @@ export function towOf(pod, tow) {
   // `towLine()` turns the hook by the line's heading, so hand it the hook as that heading sees it.
   const tied = turned(turned(hook, pod.turn), -heading);
   const how = {
+    ...TOW,
     heading,
     count: tow.pilots.length,
     hook: tied,
-    ...(tow.gap === undefined ? {} : { gap: tow.gap }),
     ...(tow.sway === undefined ? {} : { sway: tow.sway }),
     ...(tow.phase === undefined ? {} : { phase: tow.phase }),
   };
@@ -502,7 +492,10 @@ export function towOf(pod, tow) {
 }
 
 /**
- * Returns the crew in tow, about the pod's middle.
+ * Returns the crew in tow, about the pod's middle. With no face given it is
+ * the kit's own drawing, in which those in tow are happy; given one, each
+ * still in tow wears it, as they startle when one of them is knocked loose,
+ * which the kit's drawing has no way to say.
  *
  * @param {PodThing} pod
  * @param {TowThing} tow
@@ -511,105 +504,73 @@ export function towOf(pod, tow) {
  * @returns {string}
  */
 export function towDrawn(pod, tow, palette, unit) {
-  const inks = PILOT_INKS[palette.mode];
-  return towSvg(
-    {
-      tow: towOf(pod, tow),
-      inks: tow.pilots.map((pilot) => inks[pilot % 8] ?? palette.accent),
-      unit,
-      loose: tow.loose ?? 0,
-    },
-    palette,
+  const inks = tow.pilots.map(
+    (pilot) => PILOT_INKS[palette.mode][pilot % 8] ?? palette.accent,
   );
-}
-
-/**
- * Returns an arc of a circle about the origin as a path's `d`, clockwise
- * from one angle to another.
- *
- * @param {number} r
- * @param {number} from In radians.
- * @param {number} to
- * @returns {string}
- */
-export function arcD(r, from, to) {
-  const [x0, y0] = polar(from, r);
-  const [x1, y1] = polar(to, r);
-  return `M${num(x0)} ${num(y0)}A${num(r)} ${num(r)} 0 ${to - from > TURN / 2 ? 1 : 0} 1 ${num(x1)} ${num(y1)}`;
-}
-
-/**
- * Returns the two arcs the plan draws on the pod that the art kit's pod
- * lacks, about the pod's middle, to go under it: the short arc behind the
- * canopy that fills as the dash charges again, and the outer arc that
- * counts a weapon's time down.
- *
- * @param {PodThing} pod
- * @param {Palette} palette
- * @param {number} unit
- * @returns {string}
- */
-export function podArcs(pod, palette, unit) {
-  const tones = podTones(palette);
-  const parts = [];
-  const pen = Math.max(1.3, 0.1 * unit);
-  if (pod.weapon !== undefined && pod.weapon > 0) {
-    const r = WEAPON_ARC * unit;
-    const sweep = Math.min(0.999, pod.weapon) * TURN;
-    parts.push(
-      ring(0, 0, r, palette.fieldText, Math.max(1, 0.05 * unit), {
-        opacity: 0.12,
-      }),
-      path(arcD(r, -TURN / 4, -TURN / 4 + sweep), {
-        fill: "none",
-        stroke: palette.fieldText,
-        "stroke-width": pen,
-        "stroke-linecap": "round",
-        opacity: 0.5,
-      }),
+  const line = towOf(pod, tow);
+  const loose = tow.loose ?? 0;
+  if (!tow.face) {
+    return towSvg(
+      { tow: line, inks, unit, radius: TOW.radius, loose },
+      palette,
     );
   }
-  const recharge = pod.recharge ?? 1;
-  const r = DASH_ARC.radius * unit;
-  const tail = pod.turn + TURN / 2;
-  const from = tail - DASH_ARC.half;
-  const to = tail + DASH_ARC.half;
-  const stroke = {
-    fill: "none",
-    "stroke-width": pen,
-    "stroke-linecap": "round",
-  };
-  parts.push(
-    path(arcD(r, from, to), {
-      ...stroke,
-      stroke: palette.field,
-      "stroke-width": pen + Math.max(2, 0.16 * unit),
-    }),
+  const tones = bubbleTones(palette);
+  const px = (/** @type {Point[]} */ points) =>
+    points.map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
+  const parts = [...line.threads, ...line.ends].map((thread) =>
+    polyline(px(thread), tones.rim, Math.max(1, 0.05 * unit)),
   );
-  if (recharge >= 1) {
-    if (pod.ready) {
-      const [x, y] = polar(tail, r);
-      parts.push(glow(x, y, 1.1 * unit, palette.accent, palette, 0.9));
+  const last = /** @type {Point} */ (line.at.at(-1));
+  line.at.forEach((middle, i) => {
+    const knocked = i >= line.at.length - loose;
+    const far = Math.hypot(middle[0], middle[1]) || 1;
+    const off = Math.hypot(last[0] - middle[0], last[1] - middle[1]) || 1;
+    const at = /** @type {Point} */ ([middle[0] * unit, middle[1] * unit]);
+    parts.push(
+      place(
+        straySvg(
+          {
+            ink: inks[i] ?? palette.accent,
+            unit,
+            radius: TOW.radius,
+            face: knocked ? "eep" : tow.face,
+            // One knocked loose looks back at the pod; the rest look after the last of the line.
+            look: knocked
+              ? [-middle[0] / far, -middle[1] / far]
+              : [(last[0] - middle[0]) / off, (last[1] - middle[1]) / off],
+            puff: knocked ? 1 : 0.5,
+          },
+          palette,
+        ),
+        { x: at[0], y: at[1] },
+      ),
+    );
+    if (knocked && unit >= 10) {
+      // The knock, as a few short marks on the side it came from.
+      const side = Math.atan2(-middle[1], -middle[0]) + 0.5;
+      for (const off of [-0.32, 0, 0.32]) {
+        parts.push(
+          polyline(
+            [
+              polar(side + off, (TOW.radius + 0.18) * unit, at),
+              polar(side + off, (TOW.radius + 0.42) * unit, at),
+            ],
+            tones.rim,
+            Math.max(1.2, 0.07 * unit),
+          ),
+        );
+      }
     }
-    parts.push(path(arcD(r, from, to), { ...stroke, stroke: tones.rimLit }));
-  } else {
-    parts.push(path(arcD(r, from, to), { ...stroke, stroke: tones.rimDim }));
-    if (recharge > 0.03) {
-      parts.push(
-        path(arcD(r, from, from + (to - from) * recharge), {
-          ...stroke,
-          stroke: tones.rimLit,
-        }),
-      );
-    }
-  }
+  });
   return parts.join("");
 }
 
 /**
- * Returns the pod with everything the plan draws on it, about its middle:
- * the kit's pod, its canopy's rim filled by static, over the two arcs of
- * `podArcs()`.
+ * Returns the pod about its middle, wearing the plan's four marks and no
+ * more: static as the pilot's fur, the dash charging again as the canopy's
+ * rim, the Shield's shell, and the dashed ring of a pod that can't be
+ * touched.
  *
  * @param {PodThing} pod
  * @param {Palette} palette
@@ -627,12 +588,11 @@ export function podDrawn(pod, palette, unit) {
     dash: pod.dash ?? false,
     guard: pod.guard ?? 0,
     shield: pod.shield ?? false,
-    // The kit fills the canopy's rim with the dash; the plan fills it with static.
-    recharge: pod.static ?? 0,
+    recharge: pod.recharge ?? 1,
     ...(pod.face ? { face: pod.face } : {}),
     ...(pod.look ? { look: pod.look } : {}),
   };
-  return podArcs(pod, palette, unit) + podSvg(look, palette);
+  return podSvg(look, palette);
 }
 
 /**
@@ -981,7 +941,10 @@ export function sceneSvg(moment) {
       ? wrapped(
           towDrawn(moment.pod, moment.tow, palette, unit),
           moment.pod.at,
-          2 + moment.tow.pilots.length * (2 * TOW_RADIUS + 1.2),
+          2 +
+            TOW.lead +
+            moment.tow.pilots.length * 1.6 +
+            (moment.tow.flung ?? 0),
           moment,
         )
       : "",
