@@ -69,7 +69,8 @@ import { ROCK_INKS, tonesOf } from "./palettes.mjs";
  * @property {RockKind} kind
  * @property {RockSize} size
  * @property {number} radius How far its outline reaches, in field units.
- * @property {Point[]} outline
+ * @property {Point[]} outline Around all of it, whatever stands out of it included.
+ * @property {Point[]} rim Around its dome alone.
  * @property {Facet[]} facets Back to front.
  * @property {Stroke[]} strokes
  * @property {Dot[]} dots
@@ -422,6 +423,7 @@ export function makeRock(kind, size, seed) {
     size,
     radius: ROCK_RADIUS[size],
     outline,
+    rim: outline,
     facets,
     strokes: [],
     dots: [],
@@ -625,7 +627,58 @@ export function toneAt(light, tones) {
  * @property {number} [pulse] How strongly its glow shows, 0 to 1, for a rock that glows.
  * @property {boolean} [outline] Whether its outline is drawn, in the field's color.
  * @property {Vec3} [light] Another light than the field's.
+ * @property {number} [hits] The hits it has taken and held, each a crack more.
+ * @property {Lamp[]} [lamps] Lights near it, such as a blast's, each tinting the faces turned to it.
+ * @property {"lit" | "normal" | "ink"} [as] What is drawn: the rock lit (the default), its normal map, or its inks alone, unlit, which is what a lit sprite's texture holds.
  */
+
+/**
+ * @typedef {object} Lamp A light near a rock, at a place, which fades with distance.
+ * @property {Point} at Where it is from the rock's middle, in pixels.
+ * @property {string} color
+ * @property {number} strength From 0 to 1.
+ * @property {number} reach How far it carries, in pixels.
+ */
+
+/**
+ * Returns the cracks a rock shows for the hits it has taken: jagged lines in
+ * from its edge, one more a hit, the same ones every time for the same rock.
+ *
+ * @param {RockShape} rock
+ * @param {number} hits
+ * @returns {Point[][]}
+ */
+export function cracksOf(rock, hits) {
+  const random = seeded(rock.outline.length * 977 + Math.round((rock.outline[0]?.[0] ?? 0) * 1e4));
+  /** @type {Point[][]} */
+  const cracks = [];
+  const first = between(random, 0, TURN);
+  for (let i = 0; i < hits; i++) {
+    const angle = first + i * 2.4 + between(random, -0.3, 0.3);
+    const from = polar(angle, 0.9);
+    const to = polar(angle + between(random, -0.5, 0.5), between(random, 0.05, 0.3));
+    const line = jagged(random, from, to, 5, 0.09);
+    cracks.push(line);
+    // A branch off its middle.
+    const mid = /** @type {Point} */ (line[2]);
+    cracks.push(jagged(random, mid, polar(angle + (random() < 0.5 ? -1 : 1) * between(random, 0.5, 0.9), between(random, 0.45, 0.7)), 3, 0.1));
+  }
+  return cracks;
+}
+
+/**
+ * Returns the color a normal map holds for a way a face points: red for
+ * right, green for up, blue for toward the viewer.
+ *
+ * @param {Vec3} normal
+ * @param {number} turn
+ * @returns {string}
+ */
+export function normalColor(normal, turn) {
+  const [x, y] = turned([normal[0], normal[1]], turn);
+  const channel = (/** @type {number} */ v) => Math.round((v * 0.5 + 0.5) * 255);
+  return `rgb(${channel(x)},${channel(-y)},${channel(normal[2])})`;
+}
 
 /**
  * Returns a rock drawn in a palette, about its middle.
@@ -635,7 +688,7 @@ export function toneAt(light, tones) {
  * @param {RockLook} [look]
  * @returns {string}
  */
-export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, pulse = 1, outline = true, light = LIGHT } = {}) {
+export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, pulse = 1, outline = true, light = LIGHT, hits = 0, lamps = [], as = "lit" } = {}) {
   const inks = ROCK_INKS[palette.mode];
   const bodyInk = rock.kind === "crystal" ? inks.stone : inks[rock.kind];
   const tones = {
@@ -644,12 +697,22 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
     band: tonesOf(bodyInk, palette),
   };
   const scale = rock.radius * px;
+  // Under ten pixels a unit the fine marks go: rivets, glints, seams, sheen.
+  const fine = px >= 10;
   const at = (/** @type {Point} */ p) => {
     const [x, y] = turned(p, turn);
     return /** @type {Point} */ ([x * scale, y * scale]);
   };
   const toneOf = { deep: tones.body.deep, lit: tones.body.lit, core: inks.core, glint: "#ffffff", field: palette.field, sheen: tones.body.lit };
   const parts = [];
+  if (as === "normal") {
+    for (const facet of rock.facets) {
+      const fill = normalColor(facet.normal, turn);
+      parts.push(polygon(facet.points.map(at), fill, { stroke: fill, "stroke-width": 0.6, "stroke-linejoin": "round" }));
+    }
+    return place(parts.join(""));
+  }
+  if (as === "ink") flat = true;
   // What it gives off shows behind it and around it.
   for (const glow of rock.glows) {
     const color = glow.tone === "core" ? inks.core : inks.crystal;
@@ -660,7 +723,7 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
     );
     void color;
   }
-  for (const stroke of rock.aura) {
+  for (const stroke of fine ? rock.aura : []) {
     parts.push(
       polyline(stroke.points.map(at), tones.body.ink, Math.max(1, stroke.width * scale), {
         opacity: 0.45,
@@ -670,9 +733,10 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
   }
   if (outline) {
     const width = Math.max(2.5, 0.28 * px);
-    for (const facet of rock.facets) {
+    const edged = [rock.rim, ...rock.facets.filter(({ part }) => part === "gem").map(({ points }) => points)];
+    for (const points of edged) {
       parts.push(
-        polygon(facet.points.map(at), palette.field, {
+        polygon(points.map(at), palette.field, {
           stroke: palette.field,
           "stroke-width": width,
           "stroke-linejoin": "round",
@@ -682,12 +746,36 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
   }
   for (const facet of rock.facets) {
     const set = tones[facet.part];
-    const fill = flat ? set.ink : toneAt(litBy(facet.normal, turn, light), set);
+    let fill = flat ? set.ink : toneAt(litBy(facet.normal, turn, light), set);
+    if (!flat && lamps.length > 0) {
+      // Each lamp tints the faces turned toward it, less the farther it is.
+      const middle = facet.points.reduce((sum, p) => [sum[0] + p[0], sum[1] + p[1]], [0, 0]).map((v) => v / facet.points.length);
+      const [mx, my] = at(/** @type {Point} */ (middle));
+      const [nx, ny] = turned([facet.normal[0], facet.normal[1]], turn);
+      for (const lamp of lamps) {
+        const dx = lamp.at[0] - mx;
+        const dy = lamp.at[1] - my;
+        const far = Math.hypot(dx, dy) || 1;
+        const height = lamp.reach * 0.35;
+        const length = Math.hypot(far, height);
+        const facing = Math.max(0, (nx * dx + ny * dy + facet.normal[2] * height) / length);
+        const share = clamp(lamp.strength * facing * Math.max(0, 1 - far / lamp.reach) * 1.6, 0, 0.85);
+        fill = mix(fill, lamp.color, share);
+      }
+    }
     parts.push(
       polygon(facet.points.map(at), fill, { stroke: fill, "stroke-width": 0.6, "stroke-linejoin": "round" }),
     );
   }
+  if (hits > 0) {
+    for (const crack of cracksOf(rock, hits)) {
+      const line = crack.map(at);
+      parts.push(polyline(line.map(([x, y]) => /** @type {Point} */ ([x + 0.07 * px, y + 0.07 * px])), tones.body.lit, Math.max(0.8, 0.05 * px), { opacity: 0.55 }));
+      parts.push(polyline(line, palette.mode === "light" ? palette.fieldText : palette.field, Math.max(1.1, 0.085 * px)));
+    }
+  }
   for (const stroke of rock.strokes) {
+    if (!fine && (stroke.tone === "glint" || stroke.tone === "sheen" || (stroke.tone !== "core" && stroke.width < 0.06))) continue;
     const color = toneOf[stroke.tone];
     if (stroke.tone === "core") {
       parts.push(polyline(stroke.points.map(at), inks.core, Math.max(1.2, stroke.width * scale * 2.6), { opacity: 0.28 * pulse }));
@@ -695,7 +783,7 @@ export function rockSvg(rock, palette, { turn = 0, unit: px = 16, flat = false, 
     const faint = stroke.tone === "glint" ? { opacity: 0.7 } : stroke.tone === "sheen" ? { opacity: 0.4, "stroke-linecap": "butt" } : {};
     parts.push(polyline(stroke.points.map(at), color, Math.max(1, stroke.width * scale), faint));
   }
-  for (const dot of rock.dots) {
+  for (const dot of fine ? rock.dots : []) {
     const [x, y] = at(dot.at);
     parts.push(circle(x, y, Math.max(0.8, dot.r * scale), toneOf[dot.tone]));
   }
