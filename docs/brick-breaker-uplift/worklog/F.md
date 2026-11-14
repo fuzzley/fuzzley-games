@@ -563,3 +563,94 @@ Review:
    scripts, the same. Left: lifting it into `@fz/dev/sounds` is a library
    change with Brick Fuzz Pop's sprite to hold, beyond this package's
    files; a follow-up for the integrator's list.
+
+## F2. The paddle and the drop-in
+
+The branch was at the integration tip, a139c929 (L3 with L5), as the
+package began. After L3, stream F takes the paddle's, the balls' and the
+bricks' painters for this package (§7.3).
+
+### 2026-11-14: a ball squashes and the pad dips as they meet
+
+What it does:
+
+- The field's event for a ball meeting the paddle, `paddle` (recorded by
+  `meetPaddle()` in `src/rules/field/travel.ts`, as a ball bounces off it
+  or is caught), calls for two new flourishes, `"squash"` and `"dip"`
+  (`EVENT_EFFECTS.paddle`), so neither plays where motion isn't welcome.
+  The rules know nothing of them: the ball's circle and the paddle's edges
+  still decide the bounce.
+- Both last 90 ms (`MEET_MS`), deepest as the two meet, holding there a
+  moment, then easing back to nothing (`meetDepth()`, a half cosine, in
+  `flourish.ts`). At the deepest the ball is squashed as the art kit's
+  still of the paddle giving draws it (`art/sheet-kit.mjs`, through
+  `art/scene.mjs`'s `squash`): 1.28 times as wide, 0.7 times as tall, its
+  middle dropped 0.35 of its radius, so its foot presses into the pad
+  (`DEEPEST_SQUASH`, `squashAt()`, which writes a `Squash` made once). The
+  pad dips a tenth of a unit (`padDip()`), as the plan and the kit's note
+  say.
+- `BallPainter.squash()` squashes the ball in play nearest where the two
+  met, a ball held on the paddle too, as a catching paddle holds one
+  (`nearestBall(…, "inPlay")`, `BallsTaken` in `streak.ts`); each ball and
+  its eyes are scaled and dropped by their own squash, last, once the
+  sight and the embers have taken the ball's place (`squashPicture()`).
+- `PaddlePainter.dip()` dips the pad, the pale strip along the body's top,
+  in whole device pixels (`dipOf()`), handed to `placePad()` as an argument
+  of its own; the lip, the caps, the body, the hooks and the cannons stay
+  where they are.
+- A new field rounds the balls and raises the pad (`BallPainter.reset()`,
+  `PaddlePainter.reset()`).
+- Specs: `flourish.spec.ts` (the curve, the kit's squash at the deepest,
+  round by the end, the dip's tenth of a unit), `streak.spec.ts`
+  (`nearestBall()` taking a held ball), `effects.spec.ts` (the paddle's
+  event's flourishes), `timing.spec.ts` (the plan's times: the shards'
+  350 ms, the step's 300, the hold's 120 and the meeting's 90) and the
+  scene's spec, whose `meetPaddle()` drops a ball onto the paddle and steps
+  the rules till they record the meeting, throwing if they don't: the ball
+  and its eyes squashed, a caught ball and its eyes dropped toward the
+  paddle, round again after 90 ms, only the ball nearest squashed, a
+  caught ball squashed, the pad dipped a tenth of a unit in whole pixels
+  and the body still, the pad raised after 90 ms; neither without motion;
+  and neither left over by a new level. Each fails with its bug put back
+  (no squash or dip played, only balls in flight taken, the eyes left
+  round, no drop, the eyes not dropped, no reset, motion ignored).
+- `AGENTS.md`: `effects.ts`, `streak.ts`, `flourish.ts`, `timing.ts`, the
+  two painters, and the squash and dip among what motion's absence leaves
+  out.
+
+Choices where the plan was silent:
+
+- **Deepest at once, then back.** The scene plays the meeting a frame
+  after it, and a ball leaves the paddle at 15 to 25 units a second, so a
+  squash that grew to its deepest halfway would flatten the ball a unit
+  above the paddle. Deepest as they meet, a half cosine back to nothing,
+  reads as the knock.
+- **The pad alone dips,** as the plan says, the pale strip sinking into the
+  body; the body's top and the caps stay, so the paddle's edges, which
+  decide the bounce, never seem to move.
+- **A caught ball squashes too,** as it meets the paddle as much as a ball
+  sent off does; the net's turn (`netted`) is not the paddle, and doesn't.
+
+Checks, after the review's fixes: the workspace's lint and typecheck pass,
+and its tests, 70 files and 3020 specs; the root's lint passes.
+
+Review:
+
+1. The squash was the change's own (the ball's height less a tenth of a
+   unit, keeping its area, about its middle), and the log called the plan
+   silent, where the plan's kit draws it: `art/sheet-kit.mjs`'s "The paddle
+   gives" squashes the ball to 1.28 by 0.7 and drops it 0.35 of its radius,
+   so its foot stays on the face; about its middle, a caught ball's foot
+   lifted off the dipping pad. Fixed: the kit's numbers and its drop
+   (`DEEPEST_SQUASH`, `squashAt()`), the eyes dropped with the ball, and a
+   spec of a caught ball and its eyes dropped toward the paddle.
+2. The spec without motion, and the one rounding the ball again, would
+   pass with no meeting at all. Fixed: `meetPaddle()` throws unless the
+   rules recorded one, which holds every spec that uses it.
+3. `MEET_DEPTH` was exported for nothing. Fixed: the dip's depth is
+   `PAD_DIP`, the module's own, and the specs pin the plan's 0.1.
+4. A spec compared a boolean. Fixed: `closeTo()`.
+5. The plan's times held one row. Fixed: F1's 350, 300 and 120 ms too.
+6. The ball painter called a slot `ball`, as `draw()` calls the record.
+   Fixed: `slot`. `nearestBall()` stays in `streak.ts`, where F1 put it;
+   moving it would change F1's file for a name.

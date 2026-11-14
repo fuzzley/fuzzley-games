@@ -1,15 +1,18 @@
-import { lerp } from "@fz/core/math";
+import { lerp, shareDone } from "@fz/core/math";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
 import type { BallKindId } from "../../rules/catalog/balls";
-import { MAX_BALLS } from "../../rules/tuning";
+import { BALL_RADIUS, MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame, ballGrid } from "../../view/art/art";
-import { EMBERS_MS } from "../../view/effects/timing";
+import { type Squash, squashAt } from "../../view/effects/flourish";
+import { nearestBall } from "../../view/effects/streak";
+import { EMBERS_MS, MEET_MS } from "../../view/effects/timing";
 import {
   type FieldMetrics,
   toCanvasX,
   toCanvasY,
 } from "../../view/field/field_metrics";
+import type { FieldEvent, FieldView } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
@@ -32,7 +35,8 @@ interface EmberPlace {
  * the fuzzball in the balls' kind, a normal ball's fur lifted by the
  * streak, its eyes looking the way it goes, a sight under a ball that
  * seeks, with a fire ball's trail of embers where motion is welcome, an
- * ember for each gap it goes, however often it is drawn.
+ * ember for each gap it goes, however often it is drawn, and a ball
+ * squashed for a moment as it meets the paddle.
  */
 export class BallPainter implements Painter {
   /** Each ball's sight, under it, shown while it seeks. */
@@ -47,6 +51,10 @@ export class BallPainter implements Painter {
 
   /** Where each ball last left an ember, or was drawn without one. */
   private readonly embersAt: readonly EmberPlace[];
+  /** When each ball last met the paddle, in the flourishes' time, from which it squashes. */
+  private readonly squashedAt: number[];
+  /** How the ball being drawn is squashed, written over for each. */
+  private readonly squashing: Squash = { across: 1, down: 1, drop: 0 };
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.embers = scene.add.particles(0, 0, ATLAS, {
@@ -66,16 +74,17 @@ export class BallPainter implements Painter {
       scene.add.image(0, 0, ATLAS, FRAMES.eyes).setVisible(false),
     );
     this.embersAt = this.images.map(() => ({ x: 0, y: 0, fresh: true }));
+    this.squashedAt = this.images.map(() => -Infinity);
     layer.add([this.embers, ...this.sights, ...this.images, ...this.eyes]);
   }
 
   /**
    * Draws each ball in play between its last place and its next, in its
-   * kind's frame at the streak, its sight under it while it seeks, and
-   * hides the rest, leaving embers along each fire ball's way if motion is
-   * welcome.
+   * kind's frame at the streak, squashed as it meets the paddle, its sight
+   * under it while it seeks, and hides the rest, leaving embers along each
+   * fire ball's way if motion is welcome.
    */
-  draw({ field, alpha, metrics, motion }: Readonly<PaintContext>): void {
+  draw({ field, alpha, metrics, motion, now }: Readonly<PaintContext>): void {
     this.drawnKind = field.ballKind;
     const frame = ballFrame(field.ballKind, field.streak);
     const trails = motion && field.ballKind === "fire";
@@ -113,12 +122,40 @@ export class BallPainter implements Painter {
         ember.y = image.y;
       }
       ember.fresh = false;
+      this.squashPicture(i, now, metrics.unit, image, eyes);
     }
   }
 
-  /** Puts out every ember, as a new field starts. */
+  /** Puts out every ember, and rounds every ball, as a new field starts. */
   reset(): void {
     this.embers.killAll();
+    this.squashedAt.fill(-Infinity);
+  }
+
+  /** Starts squashing the ball in play nearest where a ball met the paddle. */
+  squash(event: Readonly<FieldEvent>, field: FieldView, now: number): void {
+    const slot = nearestBall(field.balls, event.x, event.y, "inPlay");
+    if (slot >= 0) this.squashedAt[slot] = now;
+  }
+
+  /**
+   * Squashes the picture of the ball in a slot and its eyes, wider and
+   * flatter and dropped toward the paddle, as far as its meeting with the
+   * paddle has come, or leaves them round where they were put.
+   */
+  private squashPicture(
+    slot: number,
+    now: number,
+    unit: number,
+    image: GameObjects.Image,
+    eyes: GameObjects.Image,
+  ): void {
+    const done = shareDone(this.squashedAt[slot] ?? -Infinity, now, MEET_MS);
+    squashAt(done, this.squashing);
+    const { across, down, drop } = this.squashing;
+    const lower = drop * BALL_RADIUS * unit;
+    image.setScale(across, down).setY(image.y + lower);
+    eyes.setScale(across, down).setY(eyes.y + lower);
   }
 
   /** Leaves an ember at each gap along a ball's way from where it last left one, and none where it stands still. */
