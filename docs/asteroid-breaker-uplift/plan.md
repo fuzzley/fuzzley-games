@@ -756,13 +756,17 @@ is, and the autopilot's report is run again after each.
 
 ## Risks
 
-- **Nobody heard the sounds as they were made.** They were built with
-  instruments in place of an ear: loudness, where the energy lies, a
-  picture of each take. Those catch a sound that is broken, thin, dull or
-  lost on a phone. They can't say whether a break is satisfying or a voice
-  is charming. The page in `sound/audition/` is for that, and slice 1
-  should start with the user's ear on it. Any sound may need its recipe
-  changed, and a few may need a different idea.
+- **The sounds were made without an ear, and have been heard once.** They
+  were built with instruments in place of an ear: loudness, where the
+  energy lies, a picture of each take. Those catch a sound that is broken,
+  thin, dull or lost on a phone, and can't say whether a break satisfies or
+  a voice charms. On 2026-11-14 the user heard every sound and every moment
+  on the page in `sound/audition/` and marked ninety-five of the
+  ninety-eight good as they are; two beds and the thrust were made again
+  from their notes (`sound/listen-for.md`). What nobody has heard is how
+  they sit in the game: on a phone's speaker, under real play, for minutes
+  at a time. A bed is the likeliest to tire there, and slice 1 should end
+  with that listen.
 - **The light may cost more than it looks.** Phaser 4's lighting is
   unused in this repository. Its types say a texture made at run time can
   be another's normal map; nothing here has tried it. Hence the spike, and
@@ -846,7 +850,9 @@ The three notes hold the detail and their sources. What the plan took:
   a dark palette and a light one, as it was drawn.
 - **The sounds** are made by the synth in `sound/lib/`, written for the
   plan, from arithmetic alone: no recording, no sample, no pack and no
-  generated audio. Each take was measured and its spectrum looked at.
-  None was heard.
-- **Not checked:** the sounds by ear; the art in the game's renderer; the
-  light's cost; a frame's cost with halos; every number under "Play".
+  generated audio. Each take was measured and its spectrum looked at as it
+  was made, by agents that can't hear. The user then heard them all on the
+  audition page, and three were made again from what they said.
+- **Not checked:** the sounds in the game and on a phone; the art in the
+  game's renderer; the light's cost; a frame's cost with halos; every
+  number under "Play".
