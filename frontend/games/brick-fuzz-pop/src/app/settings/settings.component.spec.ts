@@ -120,7 +120,7 @@ describe("SettingsComponent", () => {
   });
 
   describe("aiming", () => {
-    it("offers by the pointer, pull back, and point and hold, in that order", async () => {
+    it("offers point and hold, and pull back, in that order", async () => {
       await renderSettings();
 
       expect(
@@ -128,17 +128,16 @@ describe("SettingsComponent", () => {
           .getAllByRole("radio")
           .map((radio) => radio.textContent.trim()),
       ).toEqual([
-        expect.stringMatching(/^By the pointer\s*A finger pulls back/),
-        expect.stringMatching(/^Pull back\s*Press anywhere on the field/),
         expect.stringMatching(/^Point and hold\s*Point where to aim/),
+        expect.stringMatching(/^Pull back\s*Press anywhere on the field/),
       ]);
     });
 
-    it("aims by the pointer until another way is chosen", async () => {
+    it("points and holds until another way is chosen", async () => {
       await renderSettings();
 
       expect(
-        within(group("Aiming")).getByRole("radio", { name: /^By the pointer/ }),
+        within(group("Aiming")).getByRole("radio", { name: /^Point and hold/ }),
       ).toBeChecked();
     });
 
@@ -159,12 +158,10 @@ describe("SettingsComponent", () => {
     it("aims as chosen", async () => {
       const { user, store } = await renderSettings();
 
-      await user.click(screen.getByRole("radio", { name: /^Point and hold/ }));
+      await user.click(screen.getByRole("radio", { name: /^Pull back/ }));
 
-      expect(store.settings().aiming).toBe("pointAndHold");
-      expect(
-        screen.getByRole("radio", { name: /^Point and hold/ }),
-      ).toBeChecked();
+      expect(store.settings().aiming).toBe("pullBack");
+      expect(screen.getByRole("radio", { name: /^Pull back/ })).toBeChecked();
     });
   });
 

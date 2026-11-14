@@ -43,7 +43,7 @@ import {
   hasRoom,
 } from "../view/field/field_metrics";
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
-import { type PointerAimings, STRAIGHT_UP } from "../view/steering/aiming";
+import { type PointerAiming, STRAIGHT_UP } from "../view/steering/aiming";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { MOST_FINGERS, type Steer, Steering } from "../view/steering/steering";
 import { ATLAS, bakeWallAtlas, bakedScaleOf } from "./atlas";
@@ -101,8 +101,8 @@ export interface WallSceneOptions {
   readonly crew: () => Crew;
   /** Returns the guide to draw, or null where none shows. */
   readonly guide: () => Guide | null;
-  /** Returns how each kind of pointer aims, as the settings say; a new value is handed to the steering. */
-  readonly aimings: () => PointerAimings;
+  /** Returns how the mouse and fingers aim, as the settings say; a new value is handed to the steering. */
+  readonly pointerAiming: () => PointerAiming;
   /** Returns the colors to draw in; a new value bakes the atlas again. */
   readonly palette: () => WallPalette;
   /** Returns the field's shape, worked out between rounds; a new value lays the field out again. */
@@ -174,8 +174,8 @@ export class WallScene extends Scene {
   private painted!: WallPalette;
   /** The canvas the field was last laid out on. */
   private canvas!: Viewport;
-  /** How each kind of pointer aims, as the steering was last told. */
-  private aimed!: PointerAimings;
+  /** How the mouse and fingers aim, as the steering was last told. */
+  private aimed!: PointerAiming;
   /** Where the player's fuzzball last waited, across the field, which the steering aims a pointer from while it flies. */
   private from: number = FIRST_X;
   /** The charge the steering last read, whose every rise and fall ticks. */
@@ -230,7 +230,7 @@ export class WallScene extends Scene {
     this.effects.layout(this.metrics);
     this.fieldCamera.fit(this.metrics, this.laidOut);
     this.steering = new Steering(this.metrics, this.canvas);
-    this.aimed = options.aimings();
+    this.aimed = options.pointerAiming();
     this.steering.aimWith(this.aimed);
     this.from = options.waitingX() ?? FIRST_X;
     const view = options.view();
@@ -324,15 +324,15 @@ export class WallScene extends Scene {
   };
 
   /**
-   * Hands the steering how each kind of pointer aims, as the settings now
+   * Hands the steering how the mouse and fingers aim, as the settings now
    * say, and keeps where the fuzzball waits, which it aims a pointer from
    * while the fuzzball flies too.
    */
   private aim(): void {
-    const aimings = this.options.aimings();
-    if (aimings !== this.aimed) {
-      this.aimed = aimings;
-      this.steering.aimWith(aimings);
+    const aiming = this.options.pointerAiming();
+    if (aiming !== this.aimed) {
+      this.aimed = aiming;
+      this.steering.aimWith(aiming);
     }
     this.from = this.options.waitingX() ?? this.from;
   }

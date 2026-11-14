@@ -5,23 +5,11 @@
 import type { Aim } from "../../rules/shot";
 import { AIM_COUNT } from "../../rules/tuning";
 
-/** Names a way a pointer aims: pulled back from where it pressed, or pointed and held. */
-export type PointerAiming = "pullBack" | "pointAndHold";
-
-/** Says how each kind of pointer aims. */
-export interface PointerAimings {
-  readonly mouse: PointerAiming;
-  readonly finger: PointerAiming;
-}
-
 /**
- * Each kind of pointer its own way, as the settings' "by the pointer" has
- * them: a finger pulls back, and a mouse points and holds.
+ * Names a way the mouse and fingers aim: pointed and held, or pulled back
+ * from where they pressed.
  */
-export const BY_POINTER: PointerAimings = {
-  mouse: "pointAndHold",
-  finger: "pullBack",
-};
+export type PointerAiming = "pointAndHold" | "pullBack";
 
 /** The aim straight up, which the steering starts at. */
 export const STRAIGHT_UP: Aim = (AIM_COUNT - 1) / 2;

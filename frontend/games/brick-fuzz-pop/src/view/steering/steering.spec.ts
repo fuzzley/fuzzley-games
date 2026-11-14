@@ -7,7 +7,7 @@ import {
   fieldShape,
   toCanvas,
 } from "../field/field_metrics";
-import { BY_POINTER, type PointerAimings, STRAIGHT_UP } from "./aiming";
+import { type PointerAiming, STRAIGHT_UP } from "./aiming";
 import {
   HOLD_NOTCH_MS,
   type KeyPress,
@@ -40,26 +40,17 @@ beforeEach(() => {
   clock = 0;
 });
 
-/** Each kind of pointer pulling back. */
-const PULLED: PointerAimings = { mouse: "pullBack", finger: "pullBack" };
-
-/** Each kind of pointer pointing and holding. */
-const POINTED: PointerAimings = {
-  mouse: "pointAndHold",
-  finger: "pointAndHold",
-};
-
 /**
  * Returns a steering of a field laid out on a canvas, its pointers aiming as
  * given, read once, as the scene reads it each frame from the first.
  */
 function steeringOf(
-  aimings: PointerAimings = BY_POINTER,
+  aiming: PointerAiming = "pointAndHold",
   canvas: Viewport = PHONE,
   metrics: FieldMetrics = METRICS,
 ): Steering {
   const steering = new Steering(metrics, canvas);
-  steering.aimWith(aimings);
+  steering.aimWith(aiming);
   steering.read(clock, FIRST_X);
   return steering;
 }
@@ -474,21 +465,20 @@ describe("Steering's pointer, pointing and holding", () => {
     expect(next.aim).toBe(152);
   });
 
-  it("keeps a drag's aim as the fuzzball waits somewhere new", () => {
+  it("keeps a finger's aim over the mouse at rest as the fuzzball waits somewhere new", () => {
     const steering = steeringOf();
     steering.pointerMove(mouse(FIRST_X + 1, 1.25));
-    steering.pointerDown(finger(4.5, 8));
-    steering.pointerMove(finger(2.5, 6));
-    steering.pointerUp(finger(2.5, 6));
+    steering.pointerDown(finger(FIRST_X - 1, 1.25));
+    steering.pointerUp(finger(FIRST_X - 1, 1.25));
     frame(steering);
 
     const next = steering.read(nextFrame(), FIRST_X + 2);
 
-    expect(next.aim).toBe(148);
+    expect(next.aim).toBe(AIM_COUNT - 1 - 148);
   });
 
   it("keeps the aim of a finger lifted as the fuzzball waits somewhere new", () => {
-    const steering = steeringOf(POINTED);
+    const steering = steeringOf();
     steering.pointerDown(finger(FIRST_X + 1, 1.25));
     steering.pointerUp(finger(FIRST_X + 1, 1.25));
     frame(steering);
@@ -509,10 +499,10 @@ describe("Steering's pointer, pointing and holding", () => {
     expect(next.aim).toBe(AIM_COUNT - 1 - 148);
   });
 
-  it("keeps aiming at a mouse at rest as the settings change but leave it pointing", () => {
+  it("keeps aiming at a mouse at rest as the settings hand it pointing again", () => {
     const steering = steeringOf();
     steering.pointerMove(mouse(FIRST_X + 1, 1.25));
-    steering.aimWith(POINTED);
+    steering.aimWith("pointAndHold");
     frame(steering);
 
     const next = steering.read(nextFrame(), FIRST_X + 2);
@@ -523,7 +513,7 @@ describe("Steering's pointer, pointing and holding", () => {
   it("stops aiming at a mouse at rest once the settings have it pull back", () => {
     const steering = steeringOf();
     steering.pointerMove(mouse(FIRST_X + 1, 1.25));
-    steering.aimWith(PULLED);
+    steering.aimWith("pullBack");
     frame(steering);
 
     const next = steering.read(nextFrame(), FIRST_X + 2);
@@ -551,7 +541,7 @@ describe("Steering's pointer, pointing and holding", () => {
   });
 
   it("aims at a mouse that pulls back only while it is pressed", () => {
-    const steering = steeringOf(PULLED);
+    const steering = steeringOf("pullBack");
 
     steering.pointerMove(mouse(FIRST_X + 1, 1.25));
 
@@ -630,7 +620,7 @@ describe("Steering's pointer, pointing and holding", () => {
 
   it("counts nothing held before its first frame", () => {
     const steering = new Steering(METRICS, PHONE);
-    steering.aimWith(POINTED);
+    steering.aimWith("pointAndHold");
     steering.pointerDown(mouse(4.5, 5));
     steering.read(nextFrame(), FIRST_X);
 
@@ -747,16 +737,39 @@ describe("Steering's pointer, pointing and holding", () => {
     expect(frame(steering).aim).toBe(aim);
   });
 
-  it("aims at a finger pressed where the settings have it point and hold", () => {
-    const steering = steeringOf(POINTED);
+  it("aims at a finger as it presses", () => {
+    const steering = steeringOf();
 
     steering.pointerDown(finger(FIRST_X - 1, 1.25));
 
     expect(frame(steering).aim).toBe(AIM_COUNT - 1 - 148);
   });
 
-  it("charges a finger held where the settings have it point and hold, and lets it fly", () => {
-    const steering = steeringOf(POINTED);
+  it("follows a finger toward where it drags, not away from it", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(4.5, 5));
+
+    steering.pointerMove(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering).aim).toBe(148);
+  });
+
+  it("charges a finger held still, and lets it fly at the charge shown", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+    readFor(steering, 750);
+
+    steering.pointerUp(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({
+      aim: 148,
+      charge: 3,
+      release: true,
+    });
+  });
+
+  it("charges a finger as it drags, and lets it fly", () => {
+    const steering = steeringOf();
     steering.pointerDown(finger(4.5, 5));
     steering.pointerMove(finger(FIRST_X + 1, 1.25));
     readFor(steering, 500);
@@ -769,11 +782,51 @@ describe("Steering's pointer, pointing and holding", () => {
       release: true,
     });
   });
+
+  it("lets a tap fly plain", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(4.5, 5));
+
+    steering.pointerUp(finger(4.5, 5));
+
+    expect(frame(steering)).toMatchObject({ charge: 0, release: true });
+  });
+
+  it("calls a finger's charge off at a second finger, so neither flies", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(4.5, 5));
+    readFor(steering, 750);
+
+    steering.pointerDown(finger(6, 6, { id: 2 }));
+    steering.pointerUp(finger(4.5, 5));
+    steering.pointerUp(finger(6, 6, { id: 2 }));
+
+    expect(frame(steering)).toMatchObject({ charge: 0, release: false });
+  });
+
+  it("leaves the aim alone as a finger pressed within a side's 16 CSS px moves", () => {
+    const steering = steeringOf();
+    steering.pointerDown({ ...finger(FIRST_X - 1, 1.25), x: 15 });
+
+    steering.pointerMove(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering).aim).toBe(STRAIGHT_UP);
+  });
+
+  it("calls a finger's charge off as the browser takes the touch away", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(4.5, 5));
+    readFor(steering, 750);
+
+    steering.pointerUp(finger(4.5, 5, { wasCanceled: true }));
+
+    expect(frame(steering)).toMatchObject({ charge: 0, release: false });
+  });
 });
 
 describe("Steering's pointer, pulling back", () => {
   it("aims opposite a finger's drag", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
 
     steering.pointerMove(finger(2.5, 6));
@@ -789,7 +842,7 @@ describe("Steering's pointer, pulling back", () => {
     [5, 5],
     [8, 5],
   ])("charges a drag %f units long to %i", (length, charge) => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 10));
 
     steering.pointerMove(finger(4.5, 10 - length));
@@ -798,7 +851,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("keeps the aim while the drag is within its dead zone", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.keyDown(key("ArrowLeft"));
     steering.pointerDown(finger(4.5, 8));
 
@@ -811,7 +864,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("drops the charge as a drag comes back within its dead zone, keeping the aim", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -821,7 +874,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("starts a drag with no charge, whatever the keys chose", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     pressTimes(steering, "ArrowUp", 3);
 
     steering.pointerDown(finger(4.5, 8));
@@ -830,7 +883,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("lets the shot fly as a drag past its dead zone is let go", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -844,7 +897,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("calls the shot off as a drag is let go back within its dead zone", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
     steering.pointerMove(finger(4.4, 8));
@@ -855,7 +908,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("lets a drag fly from the very edge of its dead zone", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(4.5, 7.5));
 
@@ -865,7 +918,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("calls a tap off after a drag that flew", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
     steering.pointerUp(finger(2.5, 6));
@@ -878,7 +931,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("lets the shot fly as a drag ends over the bar, past the canvas", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 10));
     steering.pointerMove({ ...finger(4.5, 0), y: PHONE.height + 30 });
 
@@ -892,7 +945,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("calls the shot off at a second finger, so neither flies", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -904,7 +957,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("follows only the finger pressed", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -914,7 +967,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("calls the shot off as the browser takes the touch away", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -924,7 +977,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("calls the shot off as the pointer is lost, so letting go flies nothing", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -942,7 +995,7 @@ describe("Steering's pointer, pulling back", () => {
   ])(
     "leaves a finger pressed within 16 CSS px of the canvas's sides to the browser: a press at %i flies %s",
     (x, flies) => {
-      const steering = steeringOf();
+      const steering = steeringOf("pullBack");
 
       steering.pointerDown({ ...finger(4.5, 8), x });
       steering.pointerMove({ ...finger(4.5, 2), x });
@@ -953,7 +1006,7 @@ describe("Steering's pointer, pulling back", () => {
   );
 
   it("leaves the aim alone as a finger left to the browser moves", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown({ ...finger(4.5, 8), x: 15 });
 
     steering.pointerMove(finger(FIRST_X + 1, 1.25));
@@ -962,7 +1015,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("lets nothing fly as a finger left to the browser is let go during a drag", () => {
-    const steering = steeringOf();
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
     steering.pointerMove(finger(2.5, 6));
 
@@ -980,7 +1033,7 @@ describe("Steering's pointer, pulling back", () => {
     (x, flies) => {
       const canvas = boardCanvas(390, 844, 2);
       const metrics = fieldMetrics(canvas, fieldShape(canvas));
-      const steering = steeringOf(BY_POINTER, canvas, metrics);
+      const steering = steeringOf("pullBack", canvas, metrics);
 
       steering.pointerDown({ ...finger(4.5, 8, {}, metrics), x });
       steering.pointerMove({ ...finger(4.5, 2, {}, metrics), x });
@@ -991,9 +1044,9 @@ describe("Steering's pointer, pulling back", () => {
   );
 
   it("keeps the way a press began with though the settings change during it", () => {
-    const steering = steeringOf(PULLED);
+    const steering = steeringOf("pullBack");
     steering.pointerDown(finger(4.5, 8));
-    steering.aimWith(POINTED);
+    steering.aimWith("pointAndHold");
 
     steering.pointerMove(finger(2.5, 6));
 
@@ -1001,7 +1054,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("presses for a mouse's main button where the settings have it pull back", () => {
-    const steering = steeringOf(PULLED);
+    const steering = steeringOf("pullBack");
     steering.pointerDown(mouse(4.5, 8));
     steering.pointerMove(mouse(2.5, 6));
 
@@ -1015,7 +1068,7 @@ describe("Steering's pointer, pulling back", () => {
   });
 
   it("lets a mouse's drag fly as its last move showed though it is let go past the canvas", () => {
-    const steering = steeringOf(PULLED);
+    const steering = steeringOf("pullBack");
     steering.pointerDown(mouse(4.5, 8));
     steering.pointerMove(mouse(2.5, 6));
 
@@ -1028,8 +1081,24 @@ describe("Steering's pointer, pulling back", () => {
     });
   });
 
-  it("measures a drag in the units of the field it is handed last", () => {
+  it("keeps a pull back's aim as the fuzzball waits somewhere new, though the mouse pointed before", () => {
     const steering = steeringOf();
+    steering.pointerDown(mouse(4.5, 5));
+    steering.aimWith("pullBack");
+    steering.pointerMove(mouse(FIRST_X - 1, 1.25));
+    steering.pointerUp(mouse(FIRST_X - 1, 1.25));
+    steering.pointerDown(mouse(4.5, 8));
+    steering.pointerMove(mouse(2.5, 6));
+    steering.pointerUp(mouse(2.5, 6));
+    frame(steering);
+
+    const next = steering.read(nextFrame(), FIRST_X + 2);
+
+    expect(next.aim).toBe(148);
+  });
+
+  it("measures a drag in the units of the field it is handed last", () => {
+    const steering = steeringOf("pullBack");
     const canvas = boardCanvas(390, 844, 2);
     const metrics = fieldMetrics(canvas, fieldShape(canvas));
     steering.measure(metrics, canvas);

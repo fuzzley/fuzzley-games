@@ -19,8 +19,8 @@ import { kindsIn } from "./panels";
  * each a fuzzball in its ink; and the boon, a badge that lights while the
  * shot being aimed carries it.
  *
- * It is a region named by its heading, and takes no pointer, so a pull
- * back can start over it. The board lays it over its room with
+ * It is a region named by its heading, and takes no pointer, so a press
+ * can start over it. The board lays it over its room with
  * `cssRectStyle()`. The pictures and the fuzzballs are hidden from
  * assistive technology, as the words beside them say what they show.
  */

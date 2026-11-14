@@ -33,19 +33,15 @@ export const MENU_FAILED_WORDS =
 /** What the drawer says of each way a pointer may aim. */
 const AIMING_INFO: Readonly<Record<Aiming, Omit<ChoiceOption<Aiming>, "id">>> =
   {
-    byPointer: {
-      name: "By the pointer",
-      detail: "A finger pulls back, and a mouse points and holds.",
+    pointAndHold: {
+      name: "Point and hold",
+      detail:
+        "Point where to aim, then hold to charge, up to five and down again. Let go to fly.",
     },
     pullBack: {
       name: "Pull back",
       detail:
         "Press anywhere on the field and drag away from the aim: the longer the pull, the more charge. Let go to fly.",
-    },
-    pointAndHold: {
-      name: "Point and hold",
-      detail:
-        "Point where to aim, then hold to charge, up to five and down again. Let go to fly.",
     },
   };
 

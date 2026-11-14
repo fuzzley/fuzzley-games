@@ -87,17 +87,13 @@ import {
   withNewsSaid,
 } from "../../view/run_state";
 import type { FieldCommand } from "../../view/steering/controls";
-import {
-  BY_POINTER,
-  type PointerAimings,
-  STRAIGHT_UP,
-} from "../../view/steering/aiming";
+import { STRAIGHT_UP } from "../../view/steering/aiming";
 import type { Steer } from "../../view/steering/steering";
 import type { BoardCard } from "../board/board_card.component";
 import { DebugService, type RunStart } from "../debug/debug.service";
 import { waitingRows } from "../panels/panels";
 import type { RunEnd } from "../result/result.component";
-import { type Aiming, SettingsService } from "../settings/settings.service";
+import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, PLAY_ROUND } from "../tokens";
@@ -114,13 +110,6 @@ const FIRST_SHAPE: FieldShape = fieldShape({
   pixelRatio: 1,
   insets: NO_INSETS,
 });
-
-/** How each kind of pointer aims, by the settings' way of aiming. */
-const POINTER_AIMINGS: Readonly<Record<Aiming, PointerAimings>> = {
-  byPointer: BY_POINTER,
-  pullBack: { mouse: "pullBack", finger: "pullBack" },
-  pointAndHold: { mouse: "pointAndHold", finger: "pointAndHold" },
-};
 
 /** Describes a guide cast, with the start, the numbers and the shot it was cast for. */
 interface GuideCast {
@@ -323,8 +312,8 @@ export class GameService extends RunLifecycle implements KeptGame {
     () => this.phase() === "aiming" && this.start().boon !== null,
   );
 
-  /** How each kind of pointer aims, as the settings say, for the steering. */
-  readonly aimings = computed(() => POINTER_AIMINGS[this.settings().aiming]);
+  /** How the mouse and fingers aim, as the settings say, for the steering. */
+  readonly pointerAiming = computed(() => this.settings().aiming);
 
   /** The colors the field is drawn in, from the palette on the page, a new value as it changes. */
   readonly palette = computed(() =>

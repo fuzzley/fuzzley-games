@@ -84,11 +84,7 @@ import {
   RoundPlay,
   type RoundView,
 } from "../view/round_play";
-import {
-  BY_POINTER,
-  type PointerAimings,
-  STRAIGHT_UP,
-} from "../view/steering/aiming";
+import { type PointerAiming, STRAIGHT_UP } from "../view/steering/aiming";
 import type { FieldCommand } from "../view/steering/controls";
 import { MOST_FINGERS, type Steer, aimToward } from "../view/steering/steering";
 import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf } from "./atlas";
@@ -204,8 +200,8 @@ class FakeShell implements WallSceneOptions {
   carried: Boon | null = null;
   /** The crew, without a round played. */
   friends: Crew = { friends: [] };
-  /** How each kind of pointer aims, as the settings say. */
-  aiming: PointerAimings = BY_POINTER;
+  /** How the mouse and fingers aim, as the settings say. */
+  aimingSet: PointerAiming = "pointAndHold";
   /** Casts the guide for the shot steered, or none. */
   casting: ((steer: Readonly<Steer>) => Guide | null) | null = null;
   /** The round played, which the ticks play on and the scene draws, or null to draw the round set by hand. */
@@ -264,7 +260,7 @@ class FakeShell implements WallSceneOptions {
     const steer = this.steers.at(-1);
     return this.casting && steer ? this.casting(steer) : null;
   };
-  readonly aimings = (): PointerAimings => this.aiming;
+  readonly pointerAiming = (): PointerAiming => this.aimingSet;
   readonly palette = (): WallPalette => this.colors;
   readonly shape = (): FieldShape => this.fieldShape;
   readonly motion = (): boolean => this.welcomesMotion;
@@ -2644,9 +2640,30 @@ describe("WallScene", () => {
       }).toEqual({ built: 2, charge: 0, flown: false });
     });
 
+    it("charges a finger held still where it points, and lets the shot fly as it lifts", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      const at = toCanvas(metricsAt(), 6, 6);
+      run.touch("start", at.x, at.y);
+      run.advance(600);
+      const held = shell.steers.at(-1)?.charge;
+
+      run.touch("end", at.x, at.y);
+      run.advance(16);
+      const flown = shell.steers.find((steer) => steer.release);
+
+      expect({ held, aim: flown?.aim, charge: flown?.charge }).toEqual({
+        held: 2,
+        aim: aimToward(4, 6 - RADIUS),
+        charge: 2,
+      });
+    });
+
     it("calls a pulled shot off as the browser takes its touch away", async () => {
       const { shell, run } = await startBoard((each) => {
         each.waiting = 4.5;
+        each.aimingSet = "pullBack";
       });
       const from = toCanvas(metricsAt(), 4.5, 8);
       const to = toCanvas(metricsAt(), 4.5, 5);
@@ -2686,11 +2703,11 @@ describe("WallScene", () => {
       }).toEqual({ fast: false, charge: 0, flown: false });
     });
 
-    it("hands the steering how each pointer aims as the settings change", async () => {
+    it("hands the steering how the mouse and fingers aim as the settings change", async () => {
       const { shell, run } = await startBoard((each) => {
         each.waiting = 2;
       });
-      shell.aiming = { mouse: "pullBack", finger: "pullBack" };
+      shell.aimingSet = "pullBack";
       run.advance(16);
 
       const at = toCanvas(metricsAt(), 6, 6);
