@@ -10,6 +10,7 @@ import {
   describeOpened,
   describePause,
   describeResume,
+  describeStarsWon,
   describeTakenUp,
   endTitle,
   formatCustomPercent,
@@ -133,6 +134,24 @@ describe("describe", () => {
     ["streak", "Reach a streak of 15"],
   ] as const)("names what the %s star asks", (id, words) => {
     expect(starAsks(id, 15)).toBe(words);
+  });
+
+  it.each([
+    [["clean"], "1 new star, for losing no life."],
+    [
+      ["clear", "streak"],
+      "2 new stars, for clearing the level and reaching a streak of 15.",
+    ],
+    [
+      ["clear", "clean", "streak"],
+      "3 new stars, for clearing the level, losing no life and reaching a streak of 15.",
+    ],
+  ] as const)("says the stars %j won, and what for", (won, words) => {
+    expect(describeStarsWon(won, 15)).toBe(words);
+  });
+
+  it("says nothing of stars where a clearing won none", () => {
+    expect(describeStarsWon([], 15)).toBeNull();
   });
 
   it("says a run is paused, with the score, and how to go on", () => {

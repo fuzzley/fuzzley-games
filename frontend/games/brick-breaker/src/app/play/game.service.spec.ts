@@ -619,8 +619,29 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "cleared",
-        said: "Level 1 cleared! Score 2,100.",
+        said: "Level 1 cleared! Score 2,100. 3 new stars, for clearing the level, losing no life and reaching a streak of 5.",
       });
+    });
+
+    it("says only the stars the level didn't hold before", async () => {
+      TestBed.inject(StarsService).recordWon("blasts", STAR.clear | STAR.clean);
+
+      await clearedAt(SPEC_LEVEL.blasts);
+
+      expect(said()).toBe(
+        "Level 1 cleared! Score 2,100. 1 new star, for reaching a streak of 5.",
+      );
+    });
+
+    it("says no star where the level held each already", async () => {
+      TestBed.inject(StarsService).recordWon(
+        "blasts",
+        STAR.clear | STAR.clean | STAR.streak,
+      );
+
+      await clearedAt(SPEC_LEVEL.blasts);
+
+      expect(said()).toBe("Level 1 cleared! Score 2,100.");
     });
 
     it.each([SPEC_LEVEL.blasts, SPEC_LEVEL.dare])(
@@ -705,7 +726,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "won",
-        said: `Every level cleared! Score 2,100, at level ${String(SPEC_LEVEL.last)}. A new best!`,
+        said: `Every level cleared! Score 2,100, at level ${String(SPEC_LEVEL.last)}. A new best! 3 new stars, for clearing the level, losing no life and reaching a streak of 5.`,
       });
     });
 

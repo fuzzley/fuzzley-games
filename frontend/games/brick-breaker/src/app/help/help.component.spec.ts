@@ -52,6 +52,14 @@ describe("HelpComponent", () => {
     );
   });
 
+  it("says what a level's stars are won for, and that they open nothing", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText(/^Stars\./).parentElement).toHaveTextContent(
+      "Stars. Each level has three to win, at any speed: one for clearing it, one for clearing it without losing a life, and one for reaching its streak, the mark its Ready card names, in a play that clears it. A star once won is yours for good. Stars open nothing; the Levels dialog counts them.",
+    );
+  });
+
   it.each([
     ["Bricks", BRICK_KIND_IDS.length],
     ["Capsules", CAPSULE_IDS.length],

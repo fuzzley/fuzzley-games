@@ -616,3 +616,81 @@ line of so small a card.
 **Checks:** Brick Breaker's lint, typecheck and test (69 files, 2,748
 tests), `@fz/ui`'s (24 files, 317 tests), the root's lint, typecheck and
 test, and `check:layout` at every shape after a build, all pass.
+
+### 2026-11-14: the stars in the Levels dialog, How to play and the announcer
+
+The rest of P3: the last places a star shows, and the words for them.
+
+- **The Levels dialog** gains a line under its first, saying what each
+  level's three stars are won for, at any speed, that they open nothing
+  (decision 6), and how many every level holds of all there are, "You hold
+  7 of 99 stars", the plan's total; each set's count of its levels' stars
+  beside its name, "★ 7 of 30", a paragraph after the heading so the set's
+  region keeps its name; and under each level's name its three small stars,
+  filled in gold where held and outlined where not, as `<app-stars>` draws
+  them, with one text alternative for the three, "2 of 3 stars", the words
+  Brick Fuzz Pop's tiles use, where Brick Fuzz Pop's draw only the stars
+  earned. Every level shows its three, a locked one too, as the plan says
+  ("three small stars on each level"), so each tile's name grows by its
+  stars: "3 Steel 0 of 3 stars Locked".
+- **How to play** says what the stars are won for, that a star won is kept,
+  that they open nothing, and where they are counted, after the scoring.
+- **The announcer** says the stars a clearing won that the level didn't
+  hold before, after the clearing's words or a won run's end, and what
+  each was for: "Level 1 cleared! Score 2,100. 2 new stars, for clearing
+  the level and losing no life." (`describe.ts`'s `describeStarsWon()`;
+  `GameService` says it from `newStars`, so a star held already is not
+  said again, and the last level's, which no card shows, are said as the
+  run is won).
+- The dialog's spec keeps a level cleared as a play does, with its first
+  star (`clearLevel()`), since `StarsService` reads the progress only as
+  it starts.
+
+**Choices where the plan was silent:** the reasons are said as gerunds
+("for losing no life"), where the cards name a star by what it asks
+("Lose no life"), as the announcer says what happened and the cards what
+to do; the stars are said after the clear and after the end, not before,
+so the turning point comes first; the web-game-accessibility skill's rule,
+that a run's turning points are announced, already covers a star won, so
+it is unchanged, as no role changed.
+
+**Seen in headless Chrome** (port 9204, its own page), with three levels of
+Basics cleared and seven stars kept: at 1280 × 720 the dialog's line
+reads "You hold 7 of 99 stars", Basics "★ 7 of 30" at the end of its
+heading's line, the tiles' stars lit as held (Stripes three, Gifts the
+first two, Pyramid the first and third) and three outlines on every other
+level, locked ones too; at 844 × 390 and at 360 × 740 the tiles keep two to four columns, the
+stars on a line of their own. How to play's paragraph sits after the
+scoring.
+
+**Review** (a fresh agent, on the staged change), four comments and a nit:
+
+1. The dialog's line said the second star was "for losing no life on it",
+   looser than the rule, which How to play words right, and "for reaching
+   its streak" where the dialog shows no mark; How to play left out that
+   the streak counts only in a play that clears the level; and "You hold 4
+   of 27" had no noun. Fixed: both say "for clearing it, for clearing it
+   without losing a life, and for reaching its streak, the mark its Ready
+   card names, in a play that clears it", and the total ends "stars". The
+   announcer keeps "for losing no life", as it says it at the clearing.
+2. The set's count sat a few pixels above its name, as the count lines up
+   by its icon's foot. Fixed: the heading's line centres the two, the same
+   size of text; seen in headless Chrome, both now span the same pixels.
+3. `listed()` repeats the "a, b and c" join Brick Fuzz Pop's
+   `platedWords()` makes inline, where the games share `@fz/core`'s word
+   helpers. Left for a follow-up: lifting it into `@fz/core/format` with a
+   spec, and Brick Fuzz Pop onto it, is a library change of its own, a
+   commit and a review more, for six lines; noted for the integrator.
+   `words.at(-1) ?? ""`, suggested in its place, has a branch no call can
+   take, which the rules' coverage would count.
+4. The spec finds a set's count as its heading's next element. Left: the
+   count's place beside the name is what the case holds, and the region's
+   text can't find it, since a tile's words, "0 of 3 stars", match the
+   same text.
+
+Nit: two AGENTS.md entries ran past the file's width. Fixed, rewrapped.
+
+**Checks:** Brick Breaker's lint, typecheck and test (69 files, 2,758
+tests), its coverage (`pure` and `dom`, every floor held, the run's rules
+whole), the build and `check:layout` at every shape, and the root's lint,
+all pass.

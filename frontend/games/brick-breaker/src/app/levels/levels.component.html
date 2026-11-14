@@ -13,20 +13,33 @@
       Choose a level to start a run there. Clearing one opens the next; each
       shows its best at the speed in play.
     </p>
+    <p>
+      Each level has three stars to win, at any speed: for clearing it, for
+      clearing it without losing a life, and for reaching its streak, the mark
+      its Ready card names, in a play that clears it. Stars open nothing; they
+      are a record of how well you played. You hold {{ starsTotal() }} stars.
+    </p>
 
     @for (set of sets(); track set.id) {
       <section [attr.aria-labelledby]="set.headingId">
-        <h3 [id]="set.headingId">{{ set.name }}</h3>
+        <div class="set-head">
+          <h3 [id]="set.headingId">{{ set.name }}</h3>
+          <p class="count">
+            <fz-icon name="star" />{{ set.starsCount
+            }}<span class="fz-visually-hidden"> stars</span>
+          </p>
+        </div>
         <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
         <ul class="grid" role="list">
           @for (level of set.levels; track level.number) {
             <li>
               <!--
                 Named by its number and its name, "1 Blasts", as a voice
-                command reads it, then what it says under them: `&ngsp;`
-                keeps the spaces between them, which a template otherwise
-                drops. A locked level is marked `aria-disabled` rather than
-                disabled, so it is still found and read.
+                command reads it, then its stars and what it says under
+                them: `&ngsp;` keeps the spaces between them, which a
+                template otherwise drops. A locked level is marked
+                `aria-disabled` rather than disabled, so it is still found
+                and read.
               -->
               <button
                 type="button"
@@ -40,7 +53,15 @@
                   @if (level.cleared) {
                     <fz-icon name="tick" />
                   }</span
-                >&ngsp;<span class="name">{{ level.name }}</span>
+                >&ngsp;<span class="name">{{ level.name }}</span
+                >&ngsp;<span class="stars">
+                  @for (star of level.stars; track star.id) {
+                    <fz-icon [name]="star.icon" [attr.data-held]="star.held" />
+                  }
+                  <span class="fz-visually-hidden">{{
+                    level.starsWords
+                  }}</span></span
+                >
                 @if (level.status; as status) {
                   &ngsp;<span class="status">{{ status }}</span>
                 }

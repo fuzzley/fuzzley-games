@@ -22,6 +22,7 @@ import {
   describeOpened,
   describePause,
   describeResume,
+  describeStarsWon,
   describeTakenUp,
 } from "../../rules/run/describe";
 import type { FieldEvent } from "../../rules/field/events";
@@ -507,7 +508,8 @@ export class GameService extends RunLifecycle {
   /**
    * Takes the run the field brought it to, keeps the records, and gathers
    * what to say of the change: the end of a run lost, rather than
-   * its last ball; else the lives gained and lost, then a clearing or a win.
+   * its last ball; else the lives gained and lost, then a clearing or a win,
+   * and the stars it won.
    */
   private takeIn(after: Run): void {
     const before = this.runState();
@@ -526,9 +528,11 @@ export class GameService extends RunLifecycle {
       this.tallyState.set(tally);
       this.keepCleared(after, tally);
       this.news.push(describeCleared(after));
+      this.sayStarsWon();
     } else if (after.outcome === "won") {
       this.keepCleared(after, tallyOf(this.levelPlay.field));
       this.end(after);
+      this.sayStarsWon();
     }
   }
 
@@ -543,6 +547,12 @@ export class GameService extends RunLifecycle {
     this.newStarsState.set(
       this.stars.recordWon(id, starsWon(this.levelPlay.field)),
     );
+  }
+
+  /** Says the stars a level's clearing won that it didn't hold before, if any. */
+  private sayStarsWon(): void {
+    const words = describeStarsWon(this.newStarsState(), this.mark());
+    if (words !== null) this.news.push(words);
   }
 
   /** Keeps an ended run's score and reach, and says how it ended. */
