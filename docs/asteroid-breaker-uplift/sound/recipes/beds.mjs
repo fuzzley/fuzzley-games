@@ -303,6 +303,19 @@ function together(layers) {
  * @param {number} db Its level, in dB below full scale.
  * @returns {Stereo}
  */
+/**
+ * Returns the level of air that comes and goes with a slow wander: nothing
+ * for the lower half of the wander's swing, then a gentle swell, so the air
+ * is gone between its breaths and no steady hiss is left under a bed.
+ *
+ * @param {number} swing The wander's value, about -1 to 1.
+ * @returns {number} From 0 to 1.
+ */
+function comeAndGo(swing) {
+  const open = Math.max(0, (0.5 + 0.5 * swing - 0.48) / 0.52);
+  return open * open;
+}
+
 function leveled([left, right], db) {
   let sum = 0;
   for (const ear of [left, right])
@@ -641,11 +654,14 @@ export const SOUNDS = [
         [0, 1].map((ear) => {
           const band = wander(seed + 10 + ear);
           const swell = wander(seed + 20 + ear);
+          // Heard, the air was a static hiss: too bright, too loud and
+          // never gone. It is now a low breath under 1.2 kHz that comes in
+          // slow swells and is silent between them.
           return air("pink", DRIFT, seed + 2 + ear, {
-            cutoff: (share) => 1100 * 2 ** (0.55 * band(share)),
-            q: 0.7,
-            top: 3600,
-            level: (share) => 0.15 + 0.85 * (0.5 + 0.5 * swell(share)) ** 1.5,
+            cutoff: (share) => 520 * 2 ** (0.4 * band(share)),
+            q: 0.9,
+            top: 1200,
+            level: (share) => comeAndGo(swell(share)),
           });
         })
       );
@@ -698,7 +714,7 @@ export const SOUNDS = [
       );
       return together([
         leveled(tones, -14),
-        roomed(together([notes, leveled(breath, -28)]), DRIFT, {
+        roomed(together([notes, leveled(breath, -38)]), DRIFT, {
           decay: 2.4,
           mix: 0.5,
           damp: 0.65,
@@ -1000,11 +1016,12 @@ export const SOUNDS = [
         [0, 1].map((ear) => {
           const band = wander(seed + 10 + ear);
           const swell = wander(seed + 20 + ear);
+          // As the Inner belt's: a low breath in swells, where a hiss was.
           return air("pink", DRIFT, seed + 2 + ear, {
-            cutoff: (share) => 700 * 2 ** (0.5 * band(share)),
-            q: 0.6,
-            top: 2800,
-            level: (share) => 0.15 + 0.85 * (0.5 + 0.5 * swell(share)) ** 1.5,
+            cutoff: (share) => 380 * 2 ** (0.4 * band(share)),
+            q: 0.9,
+            top: 900,
+            level: (share) => comeAndGo(swell(share)),
           });
         })
       );
@@ -1045,7 +1062,7 @@ export const SOUNDS = [
       );
       return together([
         leveled(tones, -14),
-        roomed(together([bells, leveled(halo, -29)]), DRIFT, {
+        roomed(together([bells, leveled(halo, -40)]), DRIFT, {
           decay: 4.5,
           mix: 0.6,
           damp: 0.6,
