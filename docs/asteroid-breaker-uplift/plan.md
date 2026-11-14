@@ -341,7 +341,8 @@ sparks. Three materials, each drawn one way.
 - **The state of the pod is on the pod,** in four marks and no more. Static
   is the pilot's fur, and at its last step arcs crawl over the hull. The
   dash charging again is the canopy's rim: dark after a dash, filling round,
-  whole when it is ready. The Shield is a glass shell. A pod that can't be
+  whole when it is ready, with one flash and a soft tick as it fills, since
+  small, a rim nearly full and a rim full look alike. The Shield is a glass shell. A pod that can't be
   touched wears a dashed ring. A weapon's time left stays where it is now,
   in the tags at the field's corner, and shows in the shots themselves,
   since each weapon's shot has a shape of its own: a third ring round the
@@ -484,14 +485,17 @@ hand and by the autopilot as each slice is built.
 - **A run starts with a crew of three:** one at the controls and two in
   tow. Six is the most: five in tow.
 - **In tow,** each fuzzball rides in a bubble 0.7 units in radius, 1.6
-  units behind the one ahead, on a line that swings as the pod turns and
-  finds the short way across the field's edges. Rocks, comets and shots
+  units behind the one ahead, the first far enough behind the pod to ride
+  clear of its rings, on a line that swings as the pod turns and finds the
+  short way across the field's edges. Rocks, comets and shots
   pass through a bubble in tow. Only the pod is hit, as now.
 - **A hit with someone in tow** knocks the last one loose. The rock that
   hit breaks a size down, as it does against the Shield today, the pod
   can't be touched for 1.5 s, and static falls a step.
 - **Loose,** a fuzzball flies from the pod at 6 units a second, slows to a
-  stray's drift, and wraps with the field. For 6 s it can be caught again
+  stray's drift, and wraps with the field. Its bubble swells to a stray's
+  size as it goes, 1.15 units, since staged at the size it rides in tow it
+  was a small thing to find on a busy field. For 6 s it can be caught again
   by touching it, as a stray is; it blinks for its last 2 s; then it
   floats home, and is out of the run.
 - **A hit with no one in tow** ends the run. The pod bursts, the pilot
@@ -830,7 +834,13 @@ is, and the autopilot's report is run again after each.
   found at a glance: its bubble may need to blink from the start.
 - **The bar runs out of room.** Four figures, three in tow and a score of
   five figures just fit a laptop's bar between the speed and Pause. Five in
-  tow and six figures don't: the crew becomes a count past three.
+  tow and six figures don't: the crew becomes a count past three. A phone's
+  bar is full with the face cam, the multiplier and the crew's count as a
+  badge on the cam, and a score of six figures would push into the title.
+- **What a phone can't show.** At 9 px a unit the faces in tow are colored
+  dots, the fur's four steps are one picture and the dash's rim is a pixel
+  wide. The bar's face cam and its pips, the deck's Dash button and the
+  sounds carry what the pod can't there.
 - **The burr's look isn't settled.** Small, it read as a flower, and
   clinging to the hull it barely shows against the accent.
 
