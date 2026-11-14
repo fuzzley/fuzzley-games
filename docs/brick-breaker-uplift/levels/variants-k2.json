@@ -72,6 +72,93 @@
           ]
         }
       ]
+    },
+    {
+      "id": "trellis",
+      "seeds": 300,
+      "kept": "its wall plates plain",
+      "variants": [
+        {
+          "name": "as drafted",
+          "bricks": [
+            ".............",
+            "u.o.u.o.u.o.u",
+            ".o.o.o.o.o.o.",
+            "o.u.o.u.o.u.o",
+            ".o.o.o.o.o.o.",
+            "u.o.+.o.+.o.u",
+            ".o.o.o.o.o.o.",
+            "o.u.o.c.o.u.o"
+          ]
+        },
+        {
+          "name": "its wall plates plain",
+          "bricks": [
+            ".............",
+            "o.o.u.o.u.o.o",
+            ".o.o.o.o.o.o.",
+            "o.u.o.u.o.u.o",
+            ".o.o.o.o.o.o.",
+            "o.o.+.o.+.o.o",
+            ".o.o.o.o.o.o.",
+            "o.u.o.c.o.u.o"
+          ]
+        },
+        {
+          "name": "its wall plates moved in",
+          "bricks": [
+            ".............",
+            "o.u.u.o.u.u.o",
+            ".o.o.o.o.o.o.",
+            "o.u.o.u.o.u.o",
+            ".o.o.o.o.o.o.",
+            "o.u.+.o.+.u.o",
+            ".o.o.o.o.o.o.",
+            "o.u.o.c.o.u.o"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reunion",
+      "seeds": 40,
+      "kept": "as drafted",
+      "variants": [
+        {
+          "name": "as drafted",
+          "bricks": [
+            ".............",
+            ".22222222222.",
+            ".2ooooooooo2.",
+            ".2o?o?o?o?o2.",
+            ".2ooooooooo2.",
+            ".22222222222.",
+            ".............",
+            ".c.c.c.c.c.c.",
+            ".............",
+            "=============",
+            ".............",
+            ".k....k....k."
+          ]
+        },
+        {
+          "name": "a fort of four hits",
+          "bricks": [
+            ".............",
+            ".44444444444.",
+            ".42222222224.",
+            ".42?2?2?2?24.",
+            ".42222222224.",
+            ".44444444444.",
+            ".............",
+            ".c.c.c.c.c.c.",
+            ".............",
+            "=============",
+            ".............",
+            ".k....k....k."
+          ]
+        }
+      ]
     }
   ]
 }

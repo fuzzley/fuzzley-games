@@ -99,6 +99,11 @@ corridor two rows high between steel, and bricks shaded from below by a
 single steel cell. A steel floor under bricks traps the ball above them,
 and clears them fast.
 
+Plated bricks drag an endgame too. A ball breaks one only from above or a
+side, and neither the autopilot nor a seeking ball turns toward one, so the
+last of them are met by chance. One against a side wall, with a side fewer
+to be met from, drags most.
+
 ## A Set
 
 Its file in `src/rules/levels/`, with its `id`, `name`, `place` (one of
@@ -110,7 +115,7 @@ shows each set under its name. The levels spec lists each set's place by its
 id, so a new set adds its own there. It holds a set's paces from falling only
 within it, so a new set's paces start where the last set's end, kept so by
 hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
-thought rather than speed starts lower: Friends runs from 1.12.
+thought rather than speed starts lower: Friends runs 1.12 to 1.18.
 
 ## A Capsule With an Effect That Exists
 
