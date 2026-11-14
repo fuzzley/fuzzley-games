@@ -16,3 +16,16 @@ how many plays' endgames ran past a minute; and the most lives lost.
 37 as drafted             2:22+  1:59  5:01  2:15!  2:15   11    0     1:28  1:28  3:23  1:10!  1:40    5    0     1:34  1:15  3:16  1:02!  1:02    1    0
 37 its floor all gates     0:57  0:57  1:54   0:15  0:23    0    0     0:54  0:53  1:41   0:12  0:20    0    0     0:41  0:41  1:30   0:08  0:08    0    0
 
+39 Trellis, 300 seeds. Kept: its wall plates plain.
+                              relaxed                                     normal                                      fast
+                               mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost
+39 as drafted                   0:43  0:44  2:10   0:51  1:39    4    0     0:34  0:37  3:11   0:16  2:30    5    0     0:28  0:33  2:49   0:28  2:04    6    0
+39 its wall plates plain        0:37  0:38  1:50   0:36  1:13    2    0     0:39  0:34  1:22   0:16  0:51    0    0     0:30  0:29  1:49   0:15  1:14    1    0
+39 its wall plates moved in     0:41  0:39  2:35   0:28  1:38    1    0     0:38  0:35  2:00   0:30  1:20    2    0     0:33  0:32  1:41   0:19  0:58    0    0
+
+40 Reunion, 40 seeds. Kept: as drafted.
+                         relaxed                                     normal                                      fast
+                          mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost
+40 as drafted              0:25  0:25  0:43   0:03  0:05    0    0     0:23  0:24  0:43   0:03  0:05    0    0     0:21  0:23  0:45   0:05  0:09    0    0
+40 a fort of four hits     0:39  0:35  1:30   0:10  0:10    0    0     0:43  0:40  1:42   0:04  0:10    0    0     0:38  0:36  1:25   0:04  0:15    0    0
+

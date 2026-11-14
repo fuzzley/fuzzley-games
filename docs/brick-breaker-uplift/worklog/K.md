@@ -419,3 +419,77 @@ The script reshaped the change, so it had a second review, and the answers:
    `Speed`, and casts what Vite loads, as `report-levels.mjs` does.
 7. Nits, all taken: the long sentence on how the levels were measured, and
    two constants' comments.
+
+### 2026-11-14: Beehive, Trellis and Reunion (38 to 40)
+
+What it does:
+
+- `friends.json` gains Beehive (38), Trellis (39) and Reunion (40), each from
+  its draft, with its pace, its `teaches` note dropped, and its `mark` the
+  rule's: 15, 5 and 5, their middle best streaks at Normal being 16, 6 and
+  9, where the drafts guessed 20, 10 and 25. Reunion's six friends end its
+  streaks soon, as `plan.md`'s risks foresaw.
+  Friends is whole: ten levels, paced 1.12 to 1.18.
+- Trellis is redrawn with no plated brick against a side wall: the four
+  plates at the walls of its first and fifth rows are plain bricks
+  (`o.o.u.o.u.o.o` and `o.o.+.o.+.o.o`, where the draft had `u.o.u.o.u.o.u`
+  and `u.o.+.o.+.o.u`). Seven plates are left, each open to a hit from both
+  sides.
+- `variants-k2.json` and its record gain Trellis and Reunion.
+- `AGENTS.md`: `friends.json` holds 31 to 40. The content skill: Friends
+  runs 1.12 to 1.18, and plated bricks drag an endgame, one against a side
+  wall most.
+- `index.html`'s three descriptions: forty levels. `README.md`: forty levels
+  in four sets, its list of what the game holds gaining the plated brick,
+  cages, keys and gates, and twelve capsules, as R2's Seeker made them.
+
+Why Trellis was redrawn: `--seeds 12` holds it within the budgets, its
+longest endgame 0:51. Over 300 seeds, though, 15 of 900 plays' endgames ran
+past a minute, at every speed. Four of its eleven plates stood against a
+side wall, met only from above or their one open side, and neither the
+autopilot nor a seeking ball turns toward a plate. With those four plain
+bricks, 3 of 900 ran past a minute, and its middle times over 300 seeds fell
+a few seconds at every speed (0:38, 0:34 and 0:29, from 0:44, 0:37 and
+0:33). With the four moved a column in instead, keeping all eleven plates
+off the walls, 3 of 900 ran past a minute too, so the walls, not the count
+of plates, were the fault. The plain one is kept as the smaller change,
+four cells for eight. It is still a mesh the ball threads, its plates open
+to a hit from the side.
+
+Reunion stays as drafted, though it is the quickest of the set at Relaxed
+and Normal (0:25 and 0:23), and at Fast a second behind Hello's 0:20. Its
+six friends make it so, which `plan.md` foresaw ("Reunion is built on
+that"), and no budget marks it. A fort of four hits, its inside two, played
+for the record, takes 0:39, 0:43 and 0:38, if the user wants the set's last
+level to last longer. Beehive stays as drafted.
+
+Measured: each speed's middle time, Relaxed, Normal and Fast; the longest
+endgame and the most lives lost at any speed, from 12 seeds; and the middle
+times on the tallest field and from 20 seeds.
+
+| Level      | 12 seeds (R / N / F) | longest endgame | lost | tallest field, 12 seeds | 20 seeds           |
+| ---------- | -------------------- | --------------- | ---- | ----------------------- | ------------------ |
+| 38 Beehive | 0:32 / 0:24 / 0:21   | 0:06            | 0    | 0:28 / 0:27 / 0:20      | 0:32 / 0:25 / 0:22 |
+| 39 Trellis | 0:37 / 0:39 / 0:30   | 0:36            | 0    | 0:59 / 1:07 / 0:50      | 0:37 / 0:34 / 0:31 |
+| 40 Reunion | 0:25 / 0:23 / 0:21   | 0:05            | 0    | 0:46 / 0:35 / 0:33      | 0:25 / 0:25 / 0:24 |
+
+The `sim` specs pass for all 40 levels in 8.2 s.
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (63
+files, 2,365 specs, 14.6 s) in the workspace; the root's `yarn lint` under
+the lock.
+
+The review, and the answers:
+
+1. The skill's "one against a side wall drags most" rested on a redraw that
+   both took the plates off the walls and cut them from eleven to seven.
+   Answered with a third way, the four moved a column in, all eleven kept:
+   3 of 900 too, so the note stands, and the log says so. The plain one is
+   kept, as the smaller change.
+2. The note named the autopilot's aim alone, but the seeker, lent at three
+   bricks left, turns toward no plate either. Fixed in the skill and here.
+3. Reunion isn't the quickest at Fast, where Hello takes 0:20. Fixed.
+4. "Hardly moved" quoted 12 seeds' middles, where Normal rose. Fixed: the
+   300 seeds' middles, quicker at every speed.
+5. Nit, taken: `index.html` says forty levels, and only the README says
+   four sets.
