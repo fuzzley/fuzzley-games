@@ -59,6 +59,27 @@ runs:
         path: ${{ steps.yarn.outputs.cache }}
         key: yarn-${{ runner.os }}-${{ hashFiles('frontend/yarn.lock') }}
 
+    # Dependabot updates the lockfile without `yarn dedupe`, so its pull
+    # requests would stop at lint's `yarn dedupe --check`. The checks run on
+    # the lockfile deduped, the one an update lands with, but the pull
+    # request keeps Dependabot's, so merging it would fail lint on main:
+    # lint's job says so, and the update lands by hand. Only the lockfile is
+    # rewritten here; the install below is the one that links.
+    - name: Dedupe Dependabot's lockfile
+      if: >-
+        startsWith(github.head_ref, 'dependabot/npm_and_yarn/')
+        && github.event.pull_request.user.login == 'dependabot[bot]'
+      shell: bash
+      working-directory: frontend
+      env:
+        YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+        JOB: ${{ github.job }}
+      run: |
+        yarn dedupe --mode=update-lockfile
+        if [ "$JOB" = lint ] && ! git diff --quiet -- yarn.lock; then
+          echo "::warning title=Land by hand::This pull request's lockfile isn't deduped, so merging it would fail lint on main. The checks ran on it deduped; land the update by hand with yarn dedupe."
+        fi
+
     - name: Install dependencies
       shell: bash
       working-directory: frontend

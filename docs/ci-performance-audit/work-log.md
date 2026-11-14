@@ -34,7 +34,7 @@ built:
 | 7    | 6   | Yarn and its packages cached on CI                                  | done    |
 | 8    | 1   | `verify` split into parallel jobs, the layout check after the build | done    |
 | 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`        | done    |
-| 10   | 10  | Dependabot's pull requests deduped and grouped                      | pending |
+| 10   | 10  | Dependabot's pull requests deduped and grouped                      | done    |
 | 11   | —   | The audit run again, and its report                                 | pending |
 | 12   | —   | Merged into `main` and pushed                                       | pending |
 
@@ -392,3 +392,56 @@ The review, and the answers:
    that another job is saving it. Left: it is a line of noise in a log,
    and splitting restore from save would take a second action or an input
    for one job to save.
+
+### 2026-11-14: Dependabot's pull requests deduped and grouped (#10)
+
+`ci: check Dependabot's npm pull requests on their lockfile deduped, and group every other package's update in one`
+
+- `setup-frontend` runs `yarn dedupe --mode=update-lockfile` before the
+  install on a pull request Dependabot opened from its npm branch
+  (`dependabot/npm_and_yarn/`), with immutable installs off for that step
+  alone. Each job but `docker` then checks the update as it would land, so
+  lint's `yarn dedupe --check` passes and the tests say whether the update
+  works; `docker` builds the image from the lockfile as Dependabot wrote
+  it, which an install still accepts. Nothing is pushed back, so it needs
+  no token beyond the read-only one Dependabot's runs get; the report's
+  App token was for pushing the deduped lockfile.
+- Where the dedupe changed the lockfile, `lint` warns that merging the pull
+  request would fail lint on `main`, whose push run checks the lockfile as
+  committed, and that the update lands by hand.
+- Tested on Dependabot's own lockfiles of Nov 14, each in a scratch
+  worktree with `CI=true`: #24's (lint and test, 6 updates) and #27's
+  (Angular, 13) failed `yarn dedupe --check` with 7 and 3 packages to
+  merge, and passed once deduped; #26's (Sass) needed none.
+- `dependabot.yml` gains a third npm group, `everything-else` (`*`), after
+  Angular's and the lint and test tools', which take theirs first, so a
+  week's npm version updates come as three pull requests rather than one a
+  package, as Sass's and Vite's came on their own on Nov 14. Security
+  updates still come one at a time, and are deduped too.
+- The `github-actions-ci-cd` skill says so, and that an update still lands
+  by hand, deduped, in one commit on `main`.
+
+The review, and the answers:
+
+1. Plain `yarn dedupe` installs and links too, so every job installed
+   twice, and it wasn't the command tested. Fixed:
+   `--mode=update-lockfile`, as tested, which only rewrites the lockfile;
+   the install that follows links once.
+2. The pull request now passes while its own lockfile isn't deduped, so a
+   merge would turn `main` red, with only a notice in each job to say so.
+   Fixed: `lint` alone warns, titled "Land by hand", that merging it would
+   fail lint on `main`.
+3. "Each job checks the update as it would land" wasn't true of `docker`,
+   which builds from Dependabot's lockfile. Fixed in the skill and here;
+   the `Dockerfile` stays as it is, and the commit that lands the update is
+   built deduped before anything goes live.
+4. The branch name alone would dedupe any pull request from a branch named
+   so, a fork's among them. Fixed: the step also asks that
+   `dependabot[bot]` opened it. A manual run on a Dependabot branch isn't
+   deduped and fails lint, as it would on `main`.
+5. With immutable installs off, the dedupe would also resolve a lockfile
+   that didn't match `package.json`, which principle 1 says CI must fail
+   on. `--immutable` can't be combined with `--mode=update-lockfile`, and
+   checking first would take an install that links, so the skill names the
+   exception in principle 1 and in what `setup-frontend` does; the commit
+   that lands the update is checked with `--immutable` on `main`.
