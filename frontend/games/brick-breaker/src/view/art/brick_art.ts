@@ -9,21 +9,26 @@
 // C draws them: a plated brick's pips over a plate of steel along its foot,
 // the brick cut away round it, with teeth pointing down, a cage's bars, one
 // bent once it is hit, over the friend it frees next, a key on gold, and a
-// gate's keyhole between gold ends. Every number is the art kit's (`art/kit.mjs`), in its
-// box of 200 by 100, drawn at the brick's height over 100, but where a
-// constant's comment here says otherwise. A brick under 30 CSS px wide
-// leaves out its cracks, rivets and sheen, a plate's shine and a caged
-// friend's fur (`showsDetail()`).
+// gate's keyhole between gold ends; and Machines' round kinds, on no slab:
+// a bumper's disc with a ring cut out of it and four ticks kicking out, and
+// a portal's ring round its arms, with its pair's badge, a dot or a diamond.
+// Every number is the art kit's (`art/kit.mjs`), in its box of 200 by 100,
+// drawn at the brick's height over 100, but where a constant's comment here
+// says otherwise. A brick under 30 CSS px wide leaves out its cracks, rivets
+// and sheen, a plate's shine and a caged friend's fur (`showsDetail()`).
 
 import { clamp } from "@fz/core/math";
 import {
   BRICK_SLAB,
   type CageBars,
   type CageLook,
+  type PortalBadge,
   bombMark,
+  bumperMark,
   cageBars,
   cagedFriend,
   plateTeeth,
+  portalMark,
   rivets,
   scallopedCap,
   sheen,
@@ -49,12 +54,12 @@ import {
   dashes,
   ellipsePoints,
   pipRow,
-  pointAt,
   polygon,
   rect,
   ring,
   roundRect,
   stroke,
+  turned,
   widthOf,
 } from "@fz/phaser/shapes";
 import type { Brick } from "../../rules/bricks/bricks";
@@ -65,15 +70,10 @@ import {
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { stepsIn } from "../../rules/stepper";
-import {
-  BRICK_HEIGHT,
-  BRICK_WIDTH,
-  BUMPER_RADIUS,
-  FRIEND_INKS,
-  PORTAL_RADIUS,
-} from "../../rules/tuning";
+import { BRICK_HEIGHT, BRICK_WIDTH, FRIEND_INKS } from "../../rules/tuning";
 import {
   type BricksPalette,
+  type PortalPairInks,
   type UntintedKind,
   tintAt,
 } from "../colors/palette";
@@ -82,7 +82,7 @@ import type { FieldView } from "../field/frame";
 /** Describes what a brick's frame shows of it. */
 export type BrickLook = Pick<
   Brick,
-  "kind" | "tint" | "whole" | "hits" | "shown"
+  "kind" | "tint" | "whole" | "hits" | "shown" | "pair" | "heading"
 >;
 
 /**
@@ -380,6 +380,44 @@ const KEYHOLE = {
     [89, 68],
   ],
 } as const;
+
+/**
+ * The square `bumperMark()` draws a bumper in, about the brick's middle,
+ * 1.08 of its height, so its disc is the kit's, 40 round.
+ *
+ * The rest is `bumperMark()`'s, in that square: its ring and cap are 26 and
+ * 11.3 round, where the kit's are 26 and 11.5; its disc's middle lies at
+ * 48.4 down, where the kit's lies at 48.5, and its shadow 3.8 below it,
+ * where the kit's lies 4.5; and its ticks run from 47 to 53.5 out, 5.4
+ * wide, where the kit's run from 45 to 53, 6 wide.
+ */
+const BUMPER_SQUARE: KitSquare = { x: 46, y: -4, side: 108 };
+
+/** The way a bumper's tick toward its bottom right kicks out, 35° below across, as the kit's do. */
+const BUMPER_TICKS = turned({ x: 1, y: 0 }, 35);
+
+/**
+ * The square `portalMark()` draws a portal in, about the brick's middle,
+ * 1.11 of its height, so its ring is the kit's, 40 round and 11 wide.
+ *
+ * The rest is `portalMark()`'s, in that square: its badge's disc is 16
+ * round, where the kit's is 14.5, its dot 9.3, where the kit's is 9, and
+ * its diamond reaches 14.5, where the kit's reaches 11, and is hollow, so
+ * it differs from the dot in shape at the least units.
+ */
+const PORTAL_SQUARE: KitSquare = { x: 44.4, y: -5.6, side: 111.2 };
+
+/**
+ * The badge each pair of portals wears on its ring, by its brick's `pair`:
+ * the first's (`@`) a dot and the second's (`%`) a diamond, so a player who
+ * can't tell the pairs' inks apart tells them apart by shape.
+ */
+const PORTAL_BADGES: readonly PortalBadge[] = ["dot", "diamond"];
+
+/** A portal's frames, by its brick's `pair`. */
+const PORTAL_FRAMES: readonly string[] = PORTAL_BADGES.map(
+  (badge) => `portal-${badge}`,
+);
 
 /** How many steps of its own a regrowing brick's ring fills in as it grows back, each a frame. */
 export const REGROW_RING_STEPS = 24;
@@ -795,6 +833,58 @@ function gateMarks(cell: Area, palette: BricksPalette): readonly DrawCommand[] {
   ];
 }
 
+/**
+ * Returns a bumper, round, on no slab, as `bumperMark()` draws it: its
+ * ticks kicking out and its disc in its own color, the disc on a shadow, a
+ * ring cut out of it in the marks' color, and a cap lighter in its middle.
+ */
+function bumperMarks(
+  cell: Area,
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly DrawCommand[] {
+  const { bumper } = palette.bricks;
+  return bumperMark(
+    kitSquare(cell, BUMPER_SQUARE),
+    { ticks: bumper, disc: bumper, ring: palette.mark },
+    scale.pixelRatio,
+    BUMPER_TICKS,
+  );
+}
+
+/** Returns a pair of portals' inks, which the palette holds for every pair a level can lay; it throws for any other. */
+function portalInks(palette: BricksPalette, pair: number): PortalPairInks {
+  const inks = palette.portals[pair];
+  if (inks === undefined) throw new Error(`No portal pair ${String(pair)}.`);
+  return inks;
+}
+
+/**
+ * Returns a portal, round, on no slab, as `portalMark()` draws it: its
+ * middle in the marks' color, its arms spiralling out of it and a ring round
+ * it in its pair's inks, and on the ring a disc in the marks' color with its
+ * pair's badge.
+ */
+function portalMarks(
+  cell: Area,
+  badge: PortalBadge,
+  inks: PortalPairInks,
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly DrawCommand[] {
+  return portalMark(
+    kitSquare(cell, PORTAL_SQUARE),
+    badge,
+    {
+      middle: palette.mark,
+      ring: inks.ring,
+      glyph: inks.glyph,
+      disc: palette.mark,
+    },
+    scale.pixelRatio,
+  );
+}
+
 /** Returns a steel brick's marks: its bevelled frame, and, where it is drawn large enough, a rivet in each of the frame's corners and its sheen. */
 function steelMarks(
   cell: Area,
@@ -1101,48 +1191,30 @@ function placeholderArt(kind: BrickKindId, tint: number): BrickArt {
   };
 }
 
-/**
- * Returns how a round kind is drawn until it has art of its own: as a disc
- * in one tint, of the radius a ball meets it at, in field units, at its
- * cell's middle, in every state.
- */
-function roundPlaceholderArt(
-  kind: BrickKindId,
-  tint: number,
-  radius: number,
-): BrickArt {
-  return {
-    frameOf: () => kind,
-    colorOf: (_, palette) => tintAt(palette.tints, tint),
-    frames: (palette, scale) => [
-      drawBrick(kind, scale, (cell) => [
-        circle(pointAt(cell, 0.5, 0.5), radius * scale.unit, {
-          color: tintAt(palette.tints, tint),
-        }),
-      ]),
-    ],
-  };
-}
+/** Draws a kind's marks in a brick's cell, in a palette at a scale. */
+type Marks = (
+  cell: Area,
+  palette: BricksPalette,
+  scale: ArtScale,
+) => readonly DrawCommand[];
 
-/** Returns how a kind drawn in a color of its own, in one look whatever its state, is drawn. */
-function untintedArt(
-  kind: UntintedKind,
-  marks: (
-    cell: Area,
-    palette: BricksPalette,
-    scale: ArtScale,
-  ) => readonly DrawCommand[],
-): BrickArt {
+/** Returns how a kind drawn in a color of its own, in one look whatever its state, is drawn, as its drawing says. */
+function oneLookArt(kind: UntintedKind, draw: Marks): BrickArt {
   return {
     frameOf: () => kind,
     colorOf: (_, palette) => palette.bricks[kind],
     frames: (palette, scale) => [
-      drawBrick(kind, scale, (cell) => [
-        ...slab(cell, palette.bricks[kind]),
-        ...marks(cell, palette, scale),
-      ]),
+      drawBrick(kind, scale, (cell) => draw(cell, palette, scale)),
     ],
   };
+}
+
+/** Returns how a kind drawn in a color of its own, in one look whatever its state, is drawn: its marks over a slab in that color. */
+function untintedArt(kind: UntintedKind, marks: Marks): BrickArt {
+  return oneLookArt(kind, (cell, palette, scale) => [
+    ...slab(cell, palette.bricks[kind]),
+    ...marks(cell, palette, scale),
+  ]);
 }
 
 /** How a regrowing brick is drawn whole; broken, it shows its ring as it grows back besides. */
@@ -1218,8 +1290,17 @@ export const BRICK_ART = {
   },
   key: untintedArt("key", keyMarks),
   gate: untintedArt("gate", gateMarks),
-  bumper: roundPlaceholderArt("bumper", 7, BUMPER_RADIUS),
-  portal: roundPlaceholderArt("portal", 3, PORTAL_RADIUS),
+  bumper: oneLookArt("bumper", bumperMarks),
+  portal: {
+    frameOf: (brick) => nameAt(PORTAL_FRAMES, brick.pair),
+    colorOf: (brick, palette) => portalInks(palette, brick.pair).ring,
+    frames: (palette, scale) =>
+      PORTAL_BADGES.map((badge, pair) =>
+        drawBrick(nameAt(PORTAL_FRAMES, pair), scale, (cell) =>
+          portalMarks(cell, badge, portalInks(palette, pair), palette, scale),
+        ),
+      ),
+  },
   slider: placeholderArt("slider", 6),
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 

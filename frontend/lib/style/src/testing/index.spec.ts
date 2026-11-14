@@ -3,6 +3,7 @@ import {
   type Rgb,
   compileStylesheet,
   contrast,
+  deltaE,
   luminance,
   over,
   paint,
@@ -168,6 +169,30 @@ describe("contrast", () => {
 
   it("measures a color on itself at 1:1", () => {
     expect(contrast(RED, RED)).toBe(1);
+  });
+});
+
+describe("deltaE", () => {
+  it("measures black from white at 100", () => {
+    expect(deltaE(BLACK, WHITE)).toBeCloseTo(100, 4);
+  });
+
+  it("measures the same either way round", () => {
+    expect(deltaE(RED, WHITE)).toBe(deltaE(WHITE, RED));
+  });
+
+  it("measures a color from itself at nothing", () => {
+    expect(deltaE(RED, RED)).toBe(0);
+  });
+
+  it("tells two colors of one luminance apart by their hue, as contrast can't", () => {
+    const violet: Rgb = [0x8b, 0x55, 0xd2];
+    const teal: Rgb = [0x16, 0x7e, 0x7b];
+
+    expect({
+      contrast: contrast(violet, teal) < 1.05,
+      apart: Math.round(deltaE(violet, teal)),
+    }).toEqual({ contrast: true, apart: 91 });
   });
 });
 

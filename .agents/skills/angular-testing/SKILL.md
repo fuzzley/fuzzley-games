@@ -136,7 +136,9 @@ Each library's `testing` entry point holds what specs need of it, and
   stylesheet as its Vite does, `paletteRoles()` reads each palette's roles
   from the CSS, `paint()` works out the color a role or a tint lays down,
   `rgbOf()` reads a color written as a number, as a canvas game draws it,
-  and `contrast()` measures two colors. `stylesheetPalettes()` reads an
+  `contrast()` measures two colors, and `deltaE()` how far apart two lie in
+  CIELAB, by CIE76, which tells apart two of one luminance that
+  `contrast()` can't. `stylesheetPalettes()` reads an
   app's palettes, whole (`palette()`), a role at a time (`role()`) or under
   the names the app reads them by (`rolesIn()`), and `paintRoles()` gives
   the page roles in a spec's colors until the test finishes.

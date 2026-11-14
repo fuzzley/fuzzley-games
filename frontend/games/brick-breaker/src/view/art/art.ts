@@ -673,22 +673,43 @@ export interface Pictures {
   readonly capsules: Readonly<Record<CapsuleId, string>>;
 }
 
-/** How How to play pictures each kind of brick: a tough one with a hit taken, and a ghost still hidden. */
+/**
+ * Returns a brick as How to play pictures one of its kind: whole at a hit,
+ * shown, in the first tint, of the first pair and heading nowhere, but for
+ * what its look changes.
+ */
+function pictured(
+  kind: BrickKindId,
+  look: Partial<Omit<BrickLook, "kind">> = {},
+): BrickLook {
+  return {
+    kind,
+    tint: 0,
+    whole: 1,
+    hits: 1,
+    shown: true,
+    pair: 0,
+    heading: 0,
+    ...look,
+  };
+}
+
+/** How How to play pictures each kind of brick: a tough one with a hit taken, a ghost still hidden, and a slider heading right. */
 const PICTURED_BRICKS: Readonly<Record<BrickKindId, BrickLook>> = {
-  plain: { kind: "plain", tint: 0, whole: 1, hits: 1, shown: true },
-  tough: { kind: "tough", tint: 5, whole: 3, hits: 2, shown: true },
-  steel: { kind: "steel", tint: 0, whole: 0, hits: 0, shown: true },
-  blast: { kind: "blast", tint: 0, whole: 1, hits: 1, shown: true },
-  gift: { kind: "gift", tint: 0, whole: 1, hits: 1, shown: true },
-  ghost: { kind: "ghost", tint: 6, whole: 2, hits: 2, shown: false },
-  regrow: { kind: "regrow", tint: 3, whole: 1, hits: 1, shown: true },
-  cage: { kind: "cage", tint: 0, whole: 2, hits: 2, shown: true },
-  plated: { kind: "plated", tint: 0, whole: 2, hits: 2, shown: true },
-  key: { kind: "key", tint: 0, whole: 1, hits: 1, shown: true },
-  gate: { kind: "gate", tint: 0, whole: 0, hits: 0, shown: true },
-  bumper: { kind: "bumper", tint: 0, whole: 0, hits: 0, shown: true },
-  portal: { kind: "portal", tint: 0, whole: 0, hits: 0, shown: true },
-  slider: { kind: "slider", tint: 0, whole: 1, hits: 1, shown: true },
+  plain: pictured("plain"),
+  tough: pictured("tough", { tint: 5, whole: 3, hits: 2 }),
+  steel: pictured("steel", { whole: 0, hits: 0 }),
+  blast: pictured("blast"),
+  gift: pictured("gift"),
+  ghost: pictured("ghost", { tint: 6, whole: 2, hits: 2, shown: false }),
+  regrow: pictured("regrow", { tint: 3 }),
+  cage: pictured("cage", { whole: 2, hits: 2 }),
+  plated: pictured("plated", { whole: 2, hits: 2 }),
+  key: pictured("key"),
+  gate: pictured("gate", { whole: 0, hits: 0 }),
+  bumper: pictured("bumper", { whole: 0, hits: 0 }),
+  portal: pictured("portal", { whole: 0, hits: 0 }),
+  slider: pictured("slider", { heading: 1 }),
 };
 
 /** The frames How to play's pictures are taken from. */

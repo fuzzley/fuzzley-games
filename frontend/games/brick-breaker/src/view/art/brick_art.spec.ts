@@ -19,6 +19,7 @@ import {
   extentOf,
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
+import { luminance, rgbOf } from "@fz/style/testing";
 import { hitBrick } from "../../rules/bricks/bricks";
 import {
   BRICK_KINDS,
@@ -26,14 +27,10 @@ import {
   type BrickKindId,
   hasTrait,
 } from "../../rules/catalog/bricks";
+import { LEGEND } from "../../rules/levels/legend";
 import { TINTS } from "../../rules/levels/level";
 import { stepsIn } from "../../rules/stepper";
-import {
-  BRICK_WIDTH,
-  BUMPER_RADIUS,
-  FRIEND_INKS,
-  PORTAL_RADIUS,
-} from "../../rules/tuning";
+import { FRIEND_INKS } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -72,7 +69,24 @@ const ORIGIN: Point = { x: 0, y: 0 };
 /** The atlas's frames at a scale too small for a brick's finest detail. */
 const SMALL_FRAMES = atlasFrames(ART_PALETTE, SMALL_SCALE);
 
-/** Returns every look a brick of a kind can have: each whole, each count of hits left, shown or not, in each tint. */
+/** Describes where the shared legend lays a brick apart from its hits: its pair and its heading. */
+type Placing = Pick<BrickLook, "pair" | "heading">;
+
+/** Where a brick lies that is of no pair and heads nowhere, as every kind but a portal and a slider is. */
+const NOWHERE: Placing = { pair: 0, heading: 0 };
+
+/** Returns each pair and heading the shared legend lays a brick of a kind with, or {@link NOWHERE} for a kind it doesn't name. */
+function placingsOf(kind: BrickKindId): readonly Placing[] {
+  const specs = Object.values(LEGEND).filter((spec) => spec.kind === kind);
+  if (specs.length === 0) return [NOWHERE];
+  const pairs = new Set(specs.map((spec) => spec.pair ?? 0));
+  const headings = new Set(specs.map((spec) => spec.heading ?? 0));
+  return [...pairs].flatMap((pair) =>
+    [...headings].map((heading) => ({ pair, heading })),
+  );
+}
+
+/** Returns every look a brick of a kind can have: each whole, each count of hits left, shown or not, in each tint, of each pair and heading. */
 function looksOf(kind: BrickKindId): readonly BrickLook[] {
   const { hits, mostHits } = BRICK_KINDS[kind];
   const wholes =
@@ -85,23 +99,27 @@ function looksOf(kind: BrickKindId): readonly BrickLook[] {
       whole === 0 ? 0 : i + 1,
     ).flatMap((left) =>
       shown.flatMap((isShown) =>
-        Array.from({ length: TINTS }, (_, tint) => ({
-          kind,
-          tint,
-          whole,
-          hits: left,
-          shown: isShown,
-        })),
+        placingsOf(kind).flatMap((placing) =>
+          Array.from({ length: TINTS }, (_, tint) => ({
+            kind,
+            tint,
+            whole,
+            hits: left,
+            shown: isShown,
+            ...placing,
+          })),
+        ),
       ),
     ),
   );
 }
 
-/** Returns a look of a brick of a kind, whole, in a tint. */
+/** Returns a look of a brick of a kind, whole, in a tint, as the shared legend first lays it. */
 function lookOf(kind: BrickKindId, tint = 0): BrickLook {
   const { hits } = BRICK_KINDS[kind];
   const whole = hits === "never" ? 0 : hits;
-  return { kind, tint, whole, hits: whole, shown: true };
+  const [placing = NOWHERE] = placingsOf(kind);
+  return { kind, tint, whole, hits: whole, shown: true, ...placing };
 }
 
 /** Returns a field, as a brick is pictured on its own, that has freed so many friends. */
@@ -233,13 +251,7 @@ describe("brickFrame", () => {
   );
 
   it("shows a ghost brick, once it shows, as a frame of its own, not a plain brick's nor a hidden ghost's", () => {
-    const ghost: BrickLook = {
-      kind: "ghost",
-      tint: 3,
-      whole: 2,
-      hits: 1,
-      shown: true,
-    };
+    const ghost: BrickLook = { ...lookOf("ghost", 3), hits: 1 };
 
     expect(
       new Set([
@@ -264,13 +276,7 @@ describe("brickFrame", () => {
   ])(
     "throws for a tough brick taking %i hits whole with %i left, as no level lays one",
     (whole, hits) => {
-      const look: BrickLook = {
-        kind: "tough",
-        tint: 0,
-        whole,
-        hits,
-        shown: true,
-      };
+      const look: BrickLook = { ...lookOf("tough"), whole, hits };
 
       expect(() => brickFrame(look)).toThrow("No frame");
     },
@@ -316,10 +322,7 @@ describe("every brick's frame", () => {
 describe("a tough brick's frame", () => {
   /** Returns the frame a tough brick of four hits shows with some left. */
   function toughWith(hits: number, frames = ART_FRAMES): ArtFrame {
-    return frameOf(
-      { kind: "tough", tint: 0, whole: 4, hits, shown: true },
-      frames,
-    );
+    return frameOf({ ...lookOf("tough"), whole: 4, hits }, frames);
   }
 
   it.each([1, 2, 3, 4])(
@@ -467,13 +470,7 @@ describe("a gift brick's frame", () => {
 });
 
 describe("a ghost brick's frames", () => {
-  const ghost: BrickLook = {
-    kind: "ghost",
-    tint: 4,
-    whole: 2,
-    hits: 2,
-    shown: false,
-  };
+  const ghost: BrickLook = { ...lookOf("ghost", 4), shown: false };
   const hidden = ART_PALETTE.ghostTints.hidden[4] ?? NaN;
   const shown = ART_PALETTE.ghostTints.shown[4] ?? NaN;
 
@@ -534,10 +531,7 @@ describe("a plated brick's frame", () => {
     hits: number,
     frames = ART_FRAMES,
   ): ArtFrame {
-    return frameOf(
-      { kind: "plated", tint: 0, whole, hits, shown: true },
-      frames,
-    );
+    return frameOf({ ...lookOf("plated"), whole, hits }, frames);
   }
 
   /** Returns a frame's plate, the one rounded rectangle in the steel. */
@@ -1058,34 +1052,200 @@ describe("a regrowing brick's ring as it grows back", () => {
 });
 
 describe("a bumper's frame", () => {
-  it("is a disc of the bumper's radius at its cell's middle, in one tint, as it has no art of its own yet", () => {
-    const frame = frameOf(lookOf("bumper", 2));
+  const frame = frameOf(lookOf("bumper"));
+  const { bumper } = ART_PALETTE.bricks;
+  const disc = largest(circlesIn(frame, bumper));
 
-    expect(frame.commands).toEqual([
-      {
-        kind: "circle",
-        x: frame.width / 2,
-        y: frame.height / 2,
-        radius: BUMPER_RADIUS * (frame.width / BRICK_WIDTH),
-        color: ART_PALETTE.tints[7],
+  it("stands its disc on no slab, in the bumper's color, 40 of the kit's units round about the brick's middle, a ring 26 round cut out of it in the marks' color", () => {
+    const [ring] = ringsIn(frame, ART_PALETTE.mark);
+
+    expect({
+      slab: [
+        ...rectsIn(frame, "rect", bumper),
+        ...rectsIn(frame, "roundRect", bumper),
+      ],
+      across: disc && billionths(disc.x / frame.width),
+      radius: disc && Math.round((disc.radius / frame.height) * 100),
+      ring: ring && {
+        x: ring.x,
+        y: ring.y,
+        radius: Math.round((ring.radius / frame.height) * 100),
       },
-    ]);
+    }).toEqual({
+      slab: [],
+      across: 0.5,
+      radius: 40,
+      ring: { x: disc?.x, y: disc?.y, radius: 26 },
+    });
+  });
+
+  it("draws a shadow as large and lower under its disc, then the disc, the ring cut out of it, and a lighter cap in its middle, inside the ring", () => {
+    const [ring] = ringsIn(frame, ART_PALETTE.mark);
+    const circles = frame.commands.flatMap((command) =>
+      command.kind === "circle" && command !== disc ? [command] : [],
+    );
+    const shadow = circles.find(({ radius }) => radius === disc?.radius);
+    const cap = circles.find(({ x, y }) => x === disc?.x && y === disc.y);
+    const places = placesOf(frame, [shadow, disc, ring, cap]);
+
+    expect({
+      lower: (shadow?.y ?? 0) > (disc?.y ?? Infinity),
+      order: places.map((place) => place - (places[0] ?? NaN)),
+      lighter: luminance(rgbOf(cap?.color ?? NaN)) > luminance(rgbOf(bumper)),
+      inside:
+        (cap?.radius ?? Infinity) <
+        (ring?.radius ?? 0) - (ring?.width ?? 0) / 2,
+    }).toEqual({
+      lower: true,
+      order: [0, 1, 2, 3],
+      lighter: true,
+      inside: true,
+    });
+  });
+
+  it("kicks a tick out of it toward each corner, 35° from across, past its disc", () => {
+    const middle = { x: frame.width / 2, y: frame.height / 2 };
+    const ticks = drawnIn(frame, "line", bumper).flatMap((command) =>
+      command.kind === "line" ? [command] : [],
+    );
+
+    expect({
+      angles: ticks.map(({ from, to }) =>
+        Math.round((Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI),
+      ),
+      past: ticks.every(
+        ({ from }) =>
+          Math.hypot(from.x - middle.x, from.y - middle.y) >
+          (disc?.radius ?? Infinity),
+      ),
+    }).toEqual({ angles: [35, 145, -145, -35], past: true });
   });
 });
 
-describe("a portal's frame", () => {
-  it("is a disc of the portal's radius at its cell's middle, in one tint, as it has no art of its own yet", () => {
-    const frame = frameOf(lookOf("portal", 2));
+describe("a portal's frames", () => {
+  /** Returns the frame a portal of a pair shows, among frames. */
+  function portalOf(pair: number, frames = ART_FRAMES): ArtFrame {
+    return frameOf({ ...lookOf("portal"), pair }, frames);
+  }
 
-    expect(frame.commands).toEqual([
-      {
-        kind: "circle",
-        x: frame.width / 2,
-        y: frame.height / 2,
-        radius: PORTAL_RADIUS * (frame.width / BRICK_WIDTH),
-        color: ART_PALETTE.tints[3],
-      },
+  /** Returns a portal's badge's disc, the circle in the marks' color drawn after its middle. */
+  function badgeDiscOf(frame: ArtFrame): CircleCommand | undefined {
+    return circlesIn(frame, ART_PALETTE.mark)[1];
+  }
+
+  /** Returns what a portal's badge is drawn with: its disc, and what lies about the disc's middle after it, to a hundredth of a pixel. */
+  function badgeOf(frame: ArtFrame): readonly DrawCommand[] {
+    const disc = badgeDiscOf(frame);
+    const near = (a: number, b = NaN): boolean => Math.abs(a - b) < 0.01;
+    return frame.commands.filter((command) => {
+      const middle = middleOf(command);
+      return near(middle.x, disc?.x) && near(middle.y, disc?.y);
+    });
+  }
+
+  it.each([0, 1])(
+    "rings pair %i in its ring's ink, 40 of the kit's units round, on no slab, round a middle in the marks' color about the brick's",
+    (pair) => {
+      const frame = portalOf(pair);
+      const [ring] = ringsIn(frame, ART_PALETTE.portals[pair]?.ring ?? NaN);
+      const [middle] = circlesIn(frame, ART_PALETTE.mark);
+
+      expect({
+        ring: ring && {
+          x: ring.x,
+          y: ring.y,
+          radius: Math.round((ring.radius / frame.height) * 100),
+        },
+        middle: middle && {
+          x: middle.x,
+          y: middle.y,
+          radius: Math.round((middle.radius / frame.height) * 100),
+        },
+        first: frame.commands[0],
+      }).toEqual({
+        ring: { x: frame.width / 2, y: frame.height / 2, radius: 40 },
+        middle: { x: frame.width / 2, y: frame.height / 2, radius: 37 },
+        first: middle,
+      });
+    },
+  );
+
+  it.each([0, 1])(
+    "spirals three arms out of pair %i's middle in its glyph's ink, under its ring",
+    (pair) => {
+      const frame = portalOf(pair);
+      const inks = ART_PALETTE.portals[pair];
+      const arms = drawnIn(frame, "line", inks?.glyph ?? NaN);
+      const [ring] = ringsIn(frame, inks?.ring ?? NaN);
+
+      expect({
+        lines: arms.length,
+        under:
+          Math.max(...placesOf(frame, arms)) <
+          (placesOf(frame, [ring])[0] ?? NaN),
+        inside: arms.every(
+          (arm) =>
+            arm.kind === "line" &&
+            Math.hypot(
+              arm.to.x - frame.width / 2,
+              arm.to.y - frame.height / 2,
+            ) <
+              0.31 * frame.height,
+        ),
+      }).toEqual({ lines: 3 * 14, under: true, inside: true });
+    },
+  );
+
+  it.each([0, 1])(
+    "sets pair %i's badge on its ring, 40 of the kit's units up and to the right of its middle",
+    (pair) => {
+      const frame = portalOf(pair);
+      const disc = badgeDiscOf(frame);
+      const across = (disc?.x ?? NaN) - frame.width / 2;
+      const down = (disc?.y ?? NaN) - frame.height / 2;
+
+      expect({
+        angle: Math.round((Math.atan2(down, across) * 180) / Math.PI),
+        reach: Math.round((Math.hypot(across, down) / frame.height) * 100),
+      }).toEqual({ angle: -45, reach: 40 });
+    },
+  );
+
+  it("badges the first pair (`@`) with a dot and the second (`%`) with a hollow diamond, each in its glyph's ink on a disc in the marks' color on its ring", () => {
+    const badges = [0, 1].map((pair) =>
+      badgeOf(portalOf(pair)).map(({ kind, color }) => ({ kind, color })),
+    );
+    const { mark, portals } = ART_PALETTE;
+
+    expect(badges).toEqual([
+      [
+        { kind: "circle", color: mark },
+        { kind: "circle", color: portals[0]?.glyph },
+      ],
+      [
+        { kind: "circle", color: mark },
+        { kind: "polygon", color: portals[1]?.glyph },
+        { kind: "polygon", color: mark },
+      ],
     ]);
+  });
+
+  it("keeps its badges apart in shape where a brick is too small for its finest detail, a diamond reaching past a dot", () => {
+    const [dot, diamond] = [0, 1].map((pair) => {
+      const glyph = ART_PALETTE.portals[pair]?.glyph ?? NaN;
+      return badgeOf(portalOf(pair, SMALL_FRAMES)).find(
+        (command) => command.color === glyph,
+      );
+    });
+
+    expect({
+      dot: dot?.kind,
+      diamond: diamond?.kind,
+      reaches:
+        diamond !== undefined &&
+        dot !== undefined &&
+        extentOf(diamond).height > extentOf(dot).height,
+    }).toEqual({ dot: "circle", diamond: "polygon", reaches: true });
   });
 });
 
@@ -1101,8 +1261,9 @@ describe("brickColor", () => {
     ["plated", ART_PALETTE.toughTints[2]],
     ["key", ART_PALETTE.bricks.key],
     ["gate", ART_PALETTE.bricks.gate],
+    ["bumper", ART_PALETTE.bricks.bumper],
   ] as const)("draws a %s brick in its body's color", (kind, color) => {
-    const look: BrickLook = { kind, tint: 2, whole: 2, hits: 1, shown: true };
+    const look: BrickLook = { ...lookOf(kind, 2), whole: 2, hits: 1 };
 
     expect(brickColor(look, ART_PALETTE)).toBe(color);
   });
@@ -1113,39 +1274,32 @@ describe("brickColor", () => {
   ] as const)(
     "draws a ghost brick, shown %s, in its tint as it stands",
     (shown, color) => {
-      const look: BrickLook = {
-        kind: "ghost",
-        tint: 2,
-        whole: 2,
-        hits: 1,
-        shown,
-      };
+      const look: BrickLook = { ...lookOf("ghost", 2), hits: 1, shown };
 
       expect(brickColor(look, ART_PALETTE)).toBe(color);
     },
   );
 
-  it.each([
-    ["bumper", ART_PALETTE.tints[7]],
-    ["portal", ART_PALETTE.tints[3]],
-    ["slider", ART_PALETTE.tints[6]],
-  ] as const)(
-    "draws a %s brick, which has no art of its own yet, in one tint, whatever the level tints it",
-    (kind, color) => {
-      const look: BrickLook = { kind, tint: 0, whole: 2, hits: 1, shown: true };
+  it.each([0, 1])("draws a portal of pair %i in its ring's ink", (pair) => {
+    const look: BrickLook = { ...lookOf("portal", 2), pair };
 
-      expect(brickColor(look, ART_PALETTE)).toBe(color);
-    },
-  );
+    expect(brickColor(look, ART_PALETTE)).toBe(ART_PALETTE.portals[pair]?.ring);
+  });
+
+  it("throws for a portal of a pair no level can lay", () => {
+    const look: BrickLook = { ...lookOf("portal"), pair: 2 };
+
+    expect(() => brickColor(look, ART_PALETTE)).toThrow("No portal pair 2");
+  });
+
+  it("draws a slider brick, which has no art of its own yet, in one tint, whatever the level tints it", () => {
+    expect(brickColor(lookOf("slider"), ART_PALETTE)).toBe(
+      ART_PALETTE.tints[6],
+    );
+  });
 
   it("throws for a tint no level can name", () => {
-    const look: BrickLook = {
-      kind: "plain",
-      tint: TINTS,
-      whole: 1,
-      hits: 1,
-      shown: true,
-    };
+    const look: BrickLook = lookOf("plain", TINTS);
 
     expect(() => brickColor(look, ART_PALETTE)).toThrow("No tint");
   });

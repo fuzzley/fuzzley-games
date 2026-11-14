@@ -1,5 +1,5 @@
 import { THEMES } from "@fz/style/themes";
-import { contrast, rgbOf } from "@fz/style/testing";
+import { contrast, deltaE, rgbOf } from "@fz/style/testing";
 import { FIELD_ROLES } from "../../app/board/field_roles";
 import { PALETTES } from "../../testing/roles";
 import { bricksPalette } from "./palette";
@@ -17,6 +17,13 @@ function named(
 
 /** The contrast a hidden ghost keeps against the field: faint by design, as the art draws it, yet there to be found. */
 const FAINT = 2;
+
+/**
+ * How far apart in CIELAB, by CIE76, the two pairs of portals' inks keep,
+ * as far as any two fuzzballs' inks do, so two side by side never look
+ * alike to a player who tells inks apart.
+ */
+const PAIRS_APART = 27;
 
 // Everything a player follows, aims at or dodges is held to 3:1, the bar for
 // graphics, against the field, in every palette, the paddle's caps, its hooks
@@ -44,10 +51,17 @@ const FAINT = 2;
 // brick's tint, so the brick is cut away round it in the marks' color, which
 // the plate and its teeth are held to; its rivets, like a gate's keyhole,
 // are held against the steel, and a key's gold and its key are held as a
-// brick and its marks are. A hidden ghost is held only
+// brick and its marks are. A bumper is a brick in the accent, its ring cut
+// out of it in the marks' color, its ticks in the accent too. A portal's
+// ring is a brick in its pair's tint, round a middle and under a badge's disc
+// in the marks' color, which its arms and badge are held to; its two pairs
+// share a luminance, as every tint does, so they are held apart by hue, to
+// PAIRS_APART, and the art spec holds their badges apart in shape, a dot and
+// a diamond, for a player who can't tell the inks apart. A hidden ghost is held only
 // to FAINT, since it is meant to be hard to see, and a brick's shading (its
 // lip and strip, steel's sheen, a gift's ribbon, the moss's shadows, a
-// plate's shine and a gate's gold ends, which its keyhole tells), the
+// plate's shine, a gate's gold ends, which its keyhole tells, and a bumper's
+// shadow and cap), the
 // paddle's (its lip and pad), a good capsule's (its lip and shine), the rim's
 // lip and the regrowing ring's track to nothing, since none tells a kind: a
 // gift's bow is outlined in the marks' color.
@@ -71,6 +85,14 @@ describe("the field's contrast", () => {
     const friends = palette.friendInks.map(
       (ink, i) => [`friend ${String(i + 1)}'s ink`, ink] as const,
     );
+    // Numbered from 1, as `@` is the first pair and `%` the second.
+    const portalRings = palette.portals.map(
+      ({ ring }, i) => [`portal pair ${String(i + 1)}'s ring`, ring] as const,
+    );
+    const portalGlyphs = palette.portals.map(
+      ({ glyph }, i) =>
+        [`portal pair ${String(i + 1)}'s arms and badge`, glyph] as const,
+    );
     const outlined = [
       ...named(palette.balls, "ball"),
       ...friends,
@@ -81,6 +103,7 @@ describe("the field's contrast", () => {
       ...toughTints,
       ...shownGhosts,
       ...named(palette.bricks, "brick"),
+      ...portalRings,
       ["moss", palette.kindInks.moss] as const,
       ["paddle", palette.paddle] as const,
       ["paddle's caps", palette.paddleInks.cap] as const,
@@ -190,6 +213,27 @@ describe("the field's contrast", () => {
         expect(
           contrast(rgbOf(color), rgbOf(palette.mark)),
         ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each(portalGlyphs)(
+      "keeps the %s at 3:1 or more against the marks' color its middle and its badge's disc are filled in",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(color), rgbOf(palette.mark)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each([
+      ["rings", palette.portals.map(({ ring }) => ring)],
+      ["arms and badges", palette.portals.map(({ glyph }) => glyph)],
+    ])(
+      `keeps the two pairs of portals' %s ${String(PAIRS_APART)} or more apart`,
+      (_, [first = NaN, second = NaN]) => {
+        expect(deltaE(rgbOf(first), rgbOf(second))).toBeGreaterThanOrEqual(
+          PAIRS_APART,
+        );
       },
     );
 

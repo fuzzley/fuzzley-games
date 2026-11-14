@@ -21,7 +21,7 @@ export interface PaletteRoles {
 /** The brick kinds drawn in a color of their own, rather than a tint. */
 export type UntintedKind = Extract<
   BrickKindId,
-  "steel" | "blast" | "gift" | "regrow" | "cage" | "key" | "gate"
+  "steel" | "blast" | "gift" | "regrow" | "cage" | "key" | "gate" | "bumper"
 >;
 
 /** The inks a brick's marks take beside the marks' own color, mixed as the art kit mixes them. */
@@ -44,6 +44,14 @@ export interface KindInks {
   readonly plate: number;
   /** The shine along the top of a plate: the steel at {@link PLATE_SHINE} white. */
   readonly plateShine: number;
+}
+
+/** The inks a pair of portals is drawn in beside the marks' color, which fills its middle and its badge's disc. */
+export interface PortalPairInks {
+  /** Its ring: the pair's tint, {@link PORTAL_TINTS}. */
+  readonly ring: number;
+  /** Its arms and its badge: the ring {@link PORTAL_GLOW} of the way to the text. */
+  readonly glyph: number;
 }
 
 /** The inks of the field's edge, mixed as the art kit mixes them. */
@@ -122,9 +130,12 @@ export interface BricksPalette {
   /**
    * Steel in text at {@link STEEL_WASH}, a blast brick in the danger color, a
    * gift in the accent, a regrowing brick's earth in the amber tint, a cage
-   * and a gate in the steel, and a key in the warning color.
+   * and a gate in the steel, a key in the warning color, and a bumper in the
+   * accent.
    */
   readonly bricks: Readonly<Record<UntintedKind, number>>;
+  /** Each pair of portals' inks, by its brick's `pair`: the first's ring violet and the second's teal. */
+  readonly portals: readonly PortalPairInks[];
   /** The inks the kinds' marks take beside the marks' own color. */
   readonly kindInks: KindInks;
   /** The colors a brick takes by its tint, 0 to 7: the {@link TILE_INKS} of the palette's mode. */
@@ -218,6 +229,12 @@ export const GHOST_LIGHT: Readonly<Record<ColorMode, number>> = {
   dark: 0.3,
 };
 
+/** The tints each pair of portals' ring takes, by its brick's `pair`: violet, then teal. */
+export const PORTAL_TINTS: readonly number[] = [6, 4];
+
+/** How far a portal's arms and badge move from its ring toward the text. */
+export const PORTAL_GLOW = 0.34;
+
 /** The tint a regrowing brick's earth takes: amber. */
 export const EARTH_TINT = 2;
 
@@ -273,7 +290,12 @@ export function bricksPalette(
       cage: steel,
       key: warning,
       gate: steel,
+      bumper: accent,
     },
+    portals: PORTAL_TINTS.map((at) => {
+      const ring = tintAt(tints, at);
+      return { ring, glyph: mixColors(text, ring, PORTAL_GLOW) };
+    }),
     kindInks: {
       steelLine: mixColors(BLACK, steel, STEEL_LINE_SHADE),
       spark: warning,

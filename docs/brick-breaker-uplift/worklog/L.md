@@ -1368,3 +1368,150 @@ typecheck and tests (6,489 in 147 files); Brick Breaker's lint, typecheck
 and tests (3,493 in 75 files); the root's lint, typecheck and tests under the
 lock; both atlases' hashes unchanged (235,200 and 846,720 frames, none
 differing), after the change and after the answers.
+
+## L7. Machines' art
+
+Machines' three kinds drawn for real, replacing K3's placeholders, as
+`art/bricks.svg` sections B, C and E and `art/mechanics.svg` draw them
+(`bumper()`, `portal()` and `slider()` in `art/kit.mjs`), through lift 2's
+marks; and the slide K3 left: whatever is drawn for a brick follows it as
+it slides. Started from the integration tip b76415ac, with K3's three
+kinds and their placeholders.
+
+### 2026-11-14: the bumper and the portal
+
+`feat(brick-breaker): draw the bumper and the portal, each pair of portals
+in its ink and with a badge of its own` (commit 1 of L7).
+
+- `brick_art.ts` draws both round, on no slab, as K3's placeholders stood
+  and as the kit draws them:
+  - **The bumper** through `@fz/phaser/bricks`' `bumperMark()`, in a square
+    1.08 of the brick's height about its middle (`BUMPER_SQUARE`), so its
+    disc is the kit's, 40 of its units round, with the ring cut out of it 26
+    round and its cap 11.3, where the kit's is 11.5; its ticks kick out 35°
+    from across (`BUMPER_TICKS`), as L1 left for this package. Its disc and
+    ticks are in the accent (`bricks.bumper`), its ring in the marks' color.
+    One frame, `bumper`.
+  - **The portal** through `portalMark()`, in a square 1.11 of the brick's
+    height (`PORTAL_SQUARE`), so its ring is the kit's, 40 round and 11
+    wide: its middle in the marks' color, its three arms and its ring in its
+    pair's inks, and a badge on its ring, up and to the right, on a disc in
+    the marks' color: a dot for the first pair (`@`) and a hollow diamond for
+    the second (`%`) (`PORTAL_BADGES`). A frame for each pair,
+    `portal-dot` and `portal-diamond`, named by `Brick.pair`.
+  - `BrickLook` gains `pair` and `heading`, which `Brick` has since K3, so a
+    look can say a portal's pair and, in the next commit, a slider's
+    heading. `art.ts`' How to play pictures each kind through `pictured()`,
+    a whole brick of its kind but for what its look changes, as the record
+    would otherwise spell seven fields for each of fourteen kinds.
+  - `oneLookArt()` holds what `untintedArt()` held, a kind in a color of its
+    own in one look; `untintedArt()` puts its marks on the slab, and the
+    bumper is `oneLookArt()` on none. K3's `roundPlaceholderArt()` goes with
+    its last user.
+- `palette.ts`: `bricks.bumper`, the accent, as the kit's; and `portals`,
+  each pair's inks by `Brick.pair` (`PortalPairInks`): its ring the violet
+  tint, then the teal (`PORTAL_TINTS`), and its arms and badge the ring 34%
+  of the way to the text (`PORTAL_GLOW`), the kit's mix and Brick Fuzz
+  Pop's. A portal's shards would take its ring, though it never breaks, and
+  the bench's picture of the next level colors one so.
+- `@fz/style/testing` gains `deltaE()`, how far apart two colors lie in
+  CIELAB, by CIE76, beside `contrast()`: the tints share one luminance, so
+  violet and teal are 1.0:1 apart by contrast in every palette, and only a
+  measure of hue can hold them apart. `@fz/phaser/color`'s `inks.spec.ts`
+  held its own copy of the same math, for the fuzzballs' inks, and takes the
+  library's now, so it is written and tested once.
+- Specs: the art spec holds the bumper's disc, 40 round on no slab about the
+  middle, its ring 26 round, the shadow, disc, ring and cap in that order,
+  the shadow lower and the cap lighter and inside the ring, and the four
+  ticks at 35°, -35°, 145° and -145°, past the disc; each pair's ring and
+  middle, its 42 arms' lines under its ring and inside the middle, and the
+  badges, a dot on a disc for the first and a diamond with a hole on a disc
+  for the second, still a diamond reaching past a dot at a phone's unit; and
+  `brickColor()` of each, a portal of a pair no level lays throwing. The
+  palette spec holds the bumper's accent and each pair's inks in both
+  modes. The contrast spec holds the bumper among the bricks, each pair's
+  ring among what a ball crosses (3:1 against the field, the outline and
+  the marks against it), each pair's arms and badge to 3:1 against the
+  marks' color they sit in, and the two pairs' rings, and their arms and
+  badges, 27 or more apart by `deltaE()`, as far as any two fuzzballs' inks
+  keep (the rings lie 87.6 to 90.7 apart, the glyphs 60.3 to 64.7). The
+  style library's spec holds `deltaE()`: 100 from black to white, the same
+  either way, nothing from a color to itself, and violet and teal of one
+  luminance 91 apart.
+- Docs: the workspace's `AGENTS.md` (`src/view/colors/`, the contrast spec,
+  `src/view/art/`), the content skill (a round kind's marks, two looks told
+  apart by ink and by shape, a look read from the `BrickLook`), the testing
+  skill (the pairs apart), the style library's `AGENTS.md` and the
+  `angular-testing` skill (`deltaE()`).
+
+Choices, where the plan was silent or the kit fell short:
+
+- **Nothing of a bumper or a portal is left out under 30 CSS px wide.** At
+  a phone's unit, 11 and 12 CSS px, drawn and looked at for every palette,
+  the bumper's ticks, ring and cap and the portal's arms each stay a CSS
+  pixel or more and read whole, and a portal's badge must show at every
+  size, since it tells the pairs apart.
+- **The portal's middle and its badge's disc are the marks' color,** the
+  field's, where the kit fills the middle with the page's: Brick Breaker's
+  palette has no page, and a portal reads as a hole in the field.
+- **The badge's diamond is hollow,** as `portalMark()` draws it, where the
+  kit's is solid, so it differs from the dot in shape at a phone's unit too
+  (L1 chose it for Brick Fuzz Pop, and it serves here as well).
+- **Drawn at the kit's size, inside the rules' disc:** the bumper's disc is
+  0.4 of a unit round and the portal's ring 0.46 to its outer edge, where a
+  ball meets either at 0.5; the bumper's ticks reach 0.54. A ball turns a
+  CSS pixel or two before it touches the disc, at a window's unit.
+- **The pairs are held apart by `deltaE()`, at the fuzzballs' 27,** rather
+  than by contrast, which every tint shares, or by deepening one pair's ink,
+  which would leave the kit's look; the badge is what a player who can't
+  tell the inks apart reads.
+- **In Soft pastel the accent is violet,** so a bumper and the first pair
+  of portals share a hue there; they differ by shape, a disc and ticks
+  against a ring with arms and a badge.
+
+Added outside stream L's files: `@fz/style/testing`'s `deltaE()` and its
+spec, a sentence of the style library's `AGENTS.md`;
+`frontend/lib/phaser/src/color/inks.spec.ts` takes it in place of its own
+`labOf()` and `deltaE()`; a line of the `angular-testing` skill.
+
+Checks: the workspace's lint, typecheck and tests (77 files, 3,766
+specs); `@fz/style`'s lint, typecheck and tests (308) and `@fz/phaser`'s
+lint, typecheck and tests (921 in 60 files); and the root's lint, typecheck
+and tests (172 files, 6,874 specs) under the lock. After the review's
+answers: the workspace's again (3,768 specs), both libraries' tests, and the
+root's lint and typecheck under the lock.
+
+In the browser, on port 9104 at 1280 × 720 at 2× in Midnight blue: Pinball's
+three bumpers, each a cyan disc with its ring and cap and four ticks, the
+Ready card and the right panel picturing one; Wormhole's two portals,
+violet rings with arms and a dot. The second pair, which no level yet lays,
+was looked at drawn as SVG (`svgOf()`) beside the first and the bumper in
+all four palettes, at units of 20 and 12 CSS px at 2× and 11 at 3×: the dot
+and the diamond tell apart at every one.
+
+The review (a fresh agent), each comment and its answer:
+
+1. _The badge specs computed the badge's place at the kit's 40, where
+   `portalMark()` puts it at 40.03, and passed inside their hundredth of a
+   pixel by a thousandth._ Fixed: they find the badge's disc in the frame,
+   the second circle in the marks' color, and what lies about its middle;
+   a spec of its own holds where it sits, -45° and 40 of the kit's units
+   from the middle, rounded.
+2. _`looksOf()` gave no look for a kind the shared legend doesn't name, so
+   the specs over every look would pass it untested._ Fixed: `placingsOf()`
+   gives such a kind no pair and no heading (`NOWHERE`).
+3. _The two squares' comments left out where `bumperMark()` and
+   `portalMark()` differ from the kit beyond the disc and the ring._ Fixed:
+   each names the rest, the bumper's shadow and ticks, the portal's dot and
+   diamond.
+4. _Two docs said `deltaE()` measures two colors of one luminance by hue._
+   Fixed: the style library's `AGENTS.md` and the `angular-testing` skill
+   say it measures any two in CIELAB, telling apart two of one luminance
+   that `contrast()` can't.
+5. _The log's checks left out `@fz/phaser`'s tests._ Fixed above.
+6. _`deltaE(a, b)` named its colors as CIELAB names its axes, and
+   `portalInks()` didn't say it throws._ Fixed: `deltaE(one, other)`, and
+   the doc says it throws for a pair no level lays.
+
+These answers correct the change rather than reshape it, so no second
+review.

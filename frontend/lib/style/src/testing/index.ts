@@ -214,12 +214,14 @@ export function over(top: Rgb, under: Rgb, opacity: number): Rgb {
   return [blend(0), blend(1), blend(2)];
 }
 
+/** Returns a channel of sRGB, from 0 to 255, as light, from 0 to 1. */
+function linear(channel: number): number {
+  const value = channel / 255;
+  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+}
+
 /** Returns a color's relative luminance, as WCAG defines it, from 0 to 1. */
 export function luminance([red, green, blue]: Rgb): number {
-  const linear = (channel: number): number => {
-    const value = channel / 255;
-    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-  };
   return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue);
 }
 
@@ -227,6 +229,30 @@ export function luminance([red, green, blue]: Rgb): number {
 export function contrast(a: Rgb, b: Rgb): number {
   const [first, second] = [luminance(a), luminance(b)];
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
+/** Returns a color in CIELAB, under D65: its lightness, and how far it lies toward red and toward yellow. */
+function labOf([red, green, blue]: Rgb): readonly [number, number, number] {
+  const [r, g, b] = [linear(red), linear(green), linear(blue)];
+  const x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047;
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
+  const f = (t: number): number =>
+    t > 216 / 24389 ? Math.cbrt(t) : ((24389 / 27) * t + 16) / 116;
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+}
+
+/**
+ * Returns how far apart two colors lie in CIELAB, by CIE76: nothing for a
+ * color and itself, and 100 from black to white.
+ *
+ * Unlike {@link contrast}, which reads their luminance alone, it tells two
+ * colors of one luminance apart, as two inks side by side are told apart.
+ */
+export function deltaE(one: Rgb, other: Rgb): number {
+  const [l1, a1, b1] = labOf(one);
+  const [l2, a2, b2] = labOf(other);
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
 }
 
 /**
