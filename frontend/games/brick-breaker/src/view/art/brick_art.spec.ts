@@ -28,7 +28,12 @@ import {
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { stepsIn } from "../../rules/stepper";
-import { BRICK_WIDTH, BUMPER_RADIUS, FRIEND_INKS } from "../../rules/tuning";
+import {
+  BRICK_WIDTH,
+  BUMPER_RADIUS,
+  FRIEND_INKS,
+  PORTAL_RADIUS,
+} from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -274,9 +279,10 @@ describe("brickFrame", () => {
 
 describe("every brick's frame", () => {
   // Every look but a ghost's, which stands on no slab, hidden or shown, and
-  // a bumper's, which is round.
+  // a bumper's and a portal's, which are round.
   const slabbed = BRICK_KIND_IDS.filter(
-    (kind) => kind !== "ghost" && !hasTrait(kind, "bumps"),
+    (kind) =>
+      kind !== "ghost" && !hasTrait(kind, "bumps") && !hasTrait(kind, "jumps"),
   ).flatMap((kind) => looksOf(kind).filter((look) => look.tint === 2));
 
   it.each(slabbed)(
@@ -933,6 +939,7 @@ describe("cellFrame", () => {
     broken: false,
     goesOffAt: 0,
     regrowsAt: 0,
+    pair: 0,
   };
 
   it("shows a brick that stands in its own frame", () => {
@@ -1064,6 +1071,22 @@ describe("a bumper's frame", () => {
   });
 });
 
+describe("a portal's frame", () => {
+  it("is a disc of the portal's radius at its cell's middle, in one tint, as it has no art of its own yet", () => {
+    const frame = frameOf(lookOf("portal", 2));
+
+    expect(frame.commands).toEqual([
+      {
+        kind: "circle",
+        x: frame.width / 2,
+        y: frame.height / 2,
+        radius: PORTAL_RADIUS * (frame.width / BRICK_WIDTH),
+        color: ART_PALETTE.tints[3],
+      },
+    ]);
+  });
+});
+
 describe("brickColor", () => {
   it.each([
     ["plain", ART_PALETTE.tints[2]],
@@ -1100,7 +1123,10 @@ describe("brickColor", () => {
     },
   );
 
-  it.each([["bumper", ART_PALETTE.tints[7]]] as const)(
+  it.each([
+    ["bumper", ART_PALETTE.tints[7]],
+    ["portal", ART_PALETTE.tints[3]],
+  ] as const)(
     "draws a %s brick, which has no art of its own yet, in one tint, whatever the level tints it",
     (kind, color) => {
       const look: BrickLook = { kind, tint: 0, whole: 2, hits: 1, shown: true };

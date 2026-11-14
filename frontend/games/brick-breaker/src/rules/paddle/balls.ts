@@ -45,6 +45,16 @@ export interface Ball {
    * Seeker is in play (`Field.seeking`).
    */
   seeks: boolean;
+  /**
+   * Whether it came out of a portal and has touched no brick nor the paddle
+   * since, so it passes over every portal.
+   */
+  portalled: boolean;
+  /**
+   * The step it last came out of a portal at, 0 before it has, by which the
+   * view starts its tail afresh there.
+   */
+  jumpedAt: number;
 }
 
 /** The ink the player's own ball wears, rather than a friend's. */
@@ -72,6 +82,8 @@ export function createBall(): Ball {
     bounces: 0,
     ink: OWN_INK,
     seeks: false,
+    portalled: false,
+    jumpedAt: 0,
   };
 }
 
@@ -86,6 +98,7 @@ export function holdBall(
   ball.offset = offset;
   ball.letGoAt = 0;
   ball.bounces = 0;
+  ball.portalled = false;
   followPaddle(ball, paddle);
   ball.lastX = ball.x;
   ball.lastY = ball.y;
@@ -128,6 +141,8 @@ export function splitOff(
   copy.bounces = 0;
   copy.ink = ball.ink;
   copy.seeks = false;
+  copy.portalled = ball.portalled;
+  copy.jumpedAt = ball.jumpedAt;
   turnBall(copy, degrees);
   settleBall(copy, 0, 0);
 }
@@ -157,6 +172,8 @@ export function releaseBall(
   ball.bounces = 0;
   ball.ink = ink;
   ball.seeks = false;
+  ball.portalled = false;
+  ball.jumpedAt = 0;
   aim(ball, degrees);
 }
 

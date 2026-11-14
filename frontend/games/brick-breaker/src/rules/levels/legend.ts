@@ -9,6 +9,8 @@ export interface BrickSpec {
   readonly hits?: number;
   /** The capsule a gift brick gives, rather than one drawn. */
   readonly capsule?: CapsuleId;
+  /** The pair a portal is of, 0 or 1, by which it finds its twin. */
+  readonly pair?: number;
 }
 
 /** The character of a cell with no brick. */
@@ -31,6 +33,8 @@ export const LEGEND: Readonly<Record<string, BrickSpec>> = {
   k: { kind: "key" },
   "=": { kind: "gate" },
   O: { kind: "bumper" },
+  "@": { kind: "portal", pair: 0 },
+  "%": { kind: "portal", pair: 1 },
 };
 
 /** Returns the brick a spec lays out, in a tint from 0 to 7. */
@@ -41,5 +45,6 @@ export function brickOf(spec: BrickSpec, tint: number): LevelBrick {
     hits: hits === "never" ? 0 : (spec.hits ?? hits),
     tint,
     capsule: spec.capsule ?? null,
+    ...(spec.pair === undefined ? {} : { pair: spec.pair }),
   };
 }

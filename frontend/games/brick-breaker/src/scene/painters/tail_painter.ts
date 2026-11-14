@@ -1,6 +1,6 @@
 import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
-import { OWN_INK } from "../../rules/paddle/balls";
+import { type Ball, OWN_INK } from "../../rules/paddle/balls";
 import { MAX_BALLS } from "../../rules/tuning";
 import { ballColor } from "../../view/art/art";
 import { STREAK_FRAMES } from "../../view/art/streak_art";
@@ -20,6 +20,8 @@ interface Tail {
   readonly trail: Trail;
   /** Its dots, nearest first, made once. */
   readonly dots: readonly GameObjects.Image[];
+  /** The step its ball last came out of a portal at, as it last followed it. */
+  jumpedAt: number;
 }
 
 /**
@@ -38,6 +40,7 @@ export class TailPainter implements Painter {
       dots: Array.from({ length: TAIL_MOST }, () =>
         scene.add.image(0, 0, ATLAS, STREAK_FRAMES.dot).setVisible(false),
       ),
+      jumpedAt: 0,
     }));
     layer.add(this.byBall.flatMap(({ dots }) => dots));
   }
@@ -61,6 +64,7 @@ export class TailPainter implements Painter {
       const { trail, dots } = tail;
       const ball = field.balls[i];
       if (ball?.live && !ball.held) {
+        startAtPortal(tail, ball);
         trail.follow(
           lerp(ball.lastX, ball.x, alpha),
           lerp(ball.lastY, ball.y, alpha),
@@ -89,4 +93,15 @@ export class TailPainter implements Painter {
   reset(): void {
     for (const { trail } of this.byBall) trail.clear();
   }
+}
+
+/**
+ * Starts a ball's tail afresh where it came out of a portal since the tail
+ * last followed it, however near the portal it went into, so no dots lie
+ * between the two.
+ */
+function startAtPortal(tail: Tail, ball: Readonly<Ball>): void {
+  if (ball.jumpedAt === tail.jumpedAt) return;
+  tail.jumpedAt = ball.jumpedAt;
+  tail.trail.clear();
 }

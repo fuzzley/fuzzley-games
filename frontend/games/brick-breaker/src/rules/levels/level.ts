@@ -25,6 +25,8 @@ export interface LevelBrick {
   readonly tint: number;
   /** The capsule a gift brick gives, where the level pins one, else null. */
   readonly capsule: CapsuleId | null;
+  /** The pair a portal is of, of a level's two, by which it finds its twin. */
+  readonly pair?: number;
 }
 
 /** Describes a level, ready to play. */

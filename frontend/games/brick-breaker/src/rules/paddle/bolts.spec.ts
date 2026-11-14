@@ -188,6 +188,18 @@ describe("a bolt", () => {
     });
   });
 
+  it("is spent at a portal, which takes no hit", () => {
+    const field = laserField([".....o", "", "", "", ".....@"]);
+    fireBolts(field);
+
+    stepTimes(field, TO_TOP);
+
+    expect({
+      upper: isBroken(field, 5, 0),
+      events: eventsOf(field),
+    }).toEqual({ upper: false, events: ["caught", "fired"] });
+  });
+
   it("is spent at a plated brick's underside, which takes no hit, and says so", () => {
     const field = laserField([".....o", "", "", "", ".....u"]);
     fireBolts(field);

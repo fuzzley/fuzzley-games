@@ -687,6 +687,7 @@ const PICTURED_BRICKS: Readonly<Record<BrickKindId, BrickLook>> = {
   key: { kind: "key", tint: 0, whole: 1, hits: 1, shown: true },
   gate: { kind: "gate", tint: 0, whole: 0, hits: 0, shown: true },
   bumper: { kind: "bumper", tint: 0, whole: 0, hits: 0, shown: true },
+  portal: { kind: "portal", tint: 0, whole: 0, hits: 0, shown: true },
 };
 
 /** The frames How to play's pictures are taken from. */

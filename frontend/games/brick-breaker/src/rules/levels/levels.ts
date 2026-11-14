@@ -296,6 +296,12 @@ function specOf(
   if (!isBrickKindId(kind)) {
     throw wrong(data, `"${character}" is a "${kind}", which is no brick`);
   }
+  if (hasTrait(kind, "jumps")) {
+    throw wrong(
+      data,
+      `"${character}" is a portal, which only the shared legend's "@" and "%" draw, each of its pair`,
+    );
+  }
   const { hits: least, mostHits } = brickKind(kind);
   if (
     hits !== undefined &&

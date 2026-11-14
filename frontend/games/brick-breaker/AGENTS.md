@@ -99,7 +99,7 @@ takes for the specs' helpers.
   and corners of a brick a ball can touch, read through the field's `solid`,
   or `hardSolid` for a ball that passes through what can break, so bricks
   side by side make one face and a corner is only where nothing touches it.
-  A round brick, a bumper, is a disc rather than a box, met as a point is
+  A round brick, a bumper or a portal, is a disc rather than a box, met as a point is
   (`sweepPoint()`). `solid` holds its cell whole, but the travel reads it
   with a round brick's cell left open (`boxed` and `hardBoxed` in
   `src/rules/field/travel.ts`, by `isRound()` in
@@ -131,7 +131,13 @@ takes for the specs' helpers.
   records `plated` (`isPlated()`, in `src/rules/bricks/bricks.ts`), and a
   bumper (`isBumper()`), a disc of `BUMPER_RADIUS` at its cell's middle,
   off which any ball turns as off a circle, about the line from its middle
-  to the ball's, taking no hit and recording `bumped`; and
+  to the ball's, taking no hit and recording `bumped`,
+  and a portal (`isPortal()`), a disc of `PORTAL_RADIUS`, which takes a
+  ball that touches it to its twin's middle (`twinOf()`, the other of its
+  pair, `Brick.pair`), going as it went, turned as anything met with it
+  turned it, recording `portalled` there, after which the ball passes over
+  every portal (`Ball.portalled`) until it touches a brick or the paddle;
+  and
   lifts a ball the paddle is moved into onto its top (`liftOffPaddle()`).
   As the paddle meets a ball, it may lend it the seeker.
   Its spec plays the travel through the field's steps. The field counts
@@ -175,9 +181,13 @@ takes for the specs' helpers.
   (`FRIEND_INKS` of them) for each friend a level frees
   (`Field.friendsFreed`), kept by a ball split from it, for the view to
   color it by; and a ball may seek (`Ball.seeks`,
-  `src/rules/field/seeker.ts`). `bolts.ts` fires and moves the laser's
+  `src/rules/field/seeker.ts`).
+  `releaseBall()`, `holdBall()` and `createBall()` let a ball meet portals,
+  and `splitOff()` gives a copy the ball's `portalled`; the step a ball
+  last came out of a portal (`Ball.jumpedAt`) starts its tail afresh. `bolts.ts` fires and moves the laser's
   bolts, each spent at the first brick above it, hitting it, a bumper as
-  steel, or hitting nothing at a plate's underside.
+  steel, or hitting nothing at a plate's underside,
+  or at a portal, which takes no hit from anything (`hitBrick()`).
 - **`src/rules/bricks/`** — the bricks and the capsules they let fall.
   `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
   and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
@@ -272,7 +282,8 @@ takes for the specs' helpers.
   turns a ball in its levels: at the walls alone, by default, or, from
   Machines on, off anything that can't break (`unbreakable`), which
   `parseLevel()` checks. `levels.ts`'s spec holds every level to parsing, ids and names of
-  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, a bumper's among them, into a plated brick only from above or a side, and past a gate only once it reaches every key, a key wherever it has a gate, and a pace that
+  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, a bumper's among them, into a plated brick only from above or a side, on from a portal's twin where it reaches a portal, and past a gate only once it reaches every key, a key wherever it has a gate,
+  two portals of each pair or none, and a pace that
   never falls within a set, a mark that is a multiple of 5, 5 at least, and
   every set to its place,
   and its nudge; the specs in
@@ -552,6 +563,7 @@ takes for the specs' helpers.
   its own, `TagPainter` the effects in
   play and their emptying rings, `TailPainter` a tail behind each ball in
   play while the field is in a streak, a dot at each of its last places,
+  afresh where it came out of a portal (`startAtPortal()`),
   `StreakPainter` a streak's step, or its reaching the level's mark, a
   ring about the ball and the streak's count beside it, the one thing
   written over the field, a Phaser `Text` for each step in the page's font,

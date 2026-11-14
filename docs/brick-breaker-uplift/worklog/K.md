@@ -796,3 +796,141 @@ redrawn, so it had a second review, and the answers:
 
 These fixes move where the cell is opened without changing a play, a
 correction rather than a reshaping, so no third review.
+
+### 2026-11-14: the portal, with Wormhole (42 for now)
+
+What it does:
+
+- `BRICK_KINDS.portal`, drawn `@` for the first pair and `%` for the
+  second, which never breaks, isn't needed and scores nothing, with a new
+  trait, `jumps`, whose rule is empty: the travel reads it through
+  `isPortal()` (`bricks.ts`), from a set of the kinds made once, and a
+  portal is round (`ROUND`), so its cell is open to the travel, as a
+  bumper's is.
+- Its pair is the legend's (`BrickSpec.pair`), laid on the level's brick
+  (`LevelBrick.pair`) and on the field's (`Brick.pair`). A portal finds its
+  twin, the other of its pair, as a ball touches it (`twinOf()`, a look
+  through the field's bricks), so nothing links the two, and a slider
+  moving bricks can't unlink them.
+- The travel meets a portal as a disc of `PORTAL_RADIUS` (0.5, in
+  `tuning.ts`), by `noteDisc()`, as it meets a bumper, but the contact
+  turns nothing: the ball goes on to the twin's middle, going as it went,
+  and the field records `portalled` there, with the twin's cell. Then it
+  passes over every portal (`Ball.portalled`) until it touches a brick,
+  of any kind, or the paddle, which `meetPaddle()` says whether the ball
+  fell on it or it was moved into the ball; a wall doesn't count. A ball
+  that meets a brick as it touches a portal takes both: it turns and then
+  jumps, turned. A ball coming out of a portal toward a brick in the row
+  above or below it meets the brick 0.14 on, still within the disc, and
+  goes straight back through, as C17's rule has it; a spec holds it, and
+  the content skill says to leave a row between them.
+- The jump sets the ball's last place to the twin's middle too, so the
+  painters draw it from there that step, not across the field, and the
+  step it jumped at (`Ball.jumpedAt`), by which `TailPainter` starts its
+  tail afresh there (`startAtPortal()`): `Trail` starts afresh only past
+  `TAIL_JUMP`, 9 units, and a ball falling through Wormhole's low portal
+  comes out about 7 above it, which laid dots across the wall. A fire
+  ball's embers start afresh past 3 units (`TRAIL_JUMP` in
+  `ball_painter.ts`), nearer than Wormhole's portals stand, 8 apart; two
+  portals nearer than 3 would strew embers between them, which is L's to
+  weigh if K4 draws any.
+- `releaseBall()`, `holdBall()` and `createBall()` let a ball meet portals,
+  and `splitOff()` gives a copy the ball's `portalled` and `jumpedAt`, so a
+  copy split inside a disc doesn't jump at once.
+- `parseLevel()` refuses a portal in a level's own legend, which can't say
+  its pair.
+- `hitBrick()` takes no hit on a portal and records nothing: a bolt is
+  spent at it, unheard, and a blast reaches past it.
+- The levels spec's reach: where the flood comes to a portal it goes on
+  from its twin's cell, and a portal's own cell is entered only from its
+  twin, as a ball that touches one leaves the other. A spec holds every
+  level to two portals of each pair or none, as C17 says, as the spec
+  holds a gate to a key.
+- A placeholder look: a disc of the portal's radius in tint 4, green,
+  through K3's `roundPlaceholderArt()`, and How to play's picture in
+  `PICTURED_BRICKS`. `EVENT_EFFECTS.portalled`, with no flourish and no
+  sound; `VOICES_OF_KINDS.portal` rings as steel, as every kind that never
+  breaks does in the table, though no hit is recorded on one, and
+  `EVERY_KIND` holds a portal.
+- Wormhole, from the draft, its `teaches` note dropped and its mark 5 by
+  the rule, where the draft guessed 20, as its middle best streak at
+  Normal is 9. It is level 42 for now, at the end of `machines.json`: the
+  slider's commit puts Conveyor before it, which makes it 43, and plays
+  and marks it again there.
+- `AGENTS.md` (the round kinds, the travel's portal, the ball's
+  `portalled` and `jumpedAt`, the tail, the bolts, the reach and the
+  pairs), both skills' legends and levels specs, the content skill's level
+  rules and round trait; `README.md` and `index.html`: forty-two levels,
+  and portals among the kinds.
+
+Choices where the plan was silent, and where it is departed from:
+
+- One kind with a pair, rather than a kind for each pair, as §5.1 names
+  one kind and two characters.
+- A bolt and a blast pass a portal by, recording nothing, where the plan
+  says nothing of them: a portal is no thing to hit, and a clank there
+  would say it is.
+- A portal blocks a line of sight, as a bumper does: `Field.solid` holds
+  its cell whole, so the seeker and the autopilot take it as blocking.
+- The placeholder is a disc, as the bumper's, a departure from §5.2's
+  slab. Both pairs look alike until L7 draws them apart.
+- The saved game keeps nothing new: a portal never breaks, and a ball's
+  `portalled` isn't kept, as a saved run serves its ball afresh.
+
+Added to other streams' files: `level.ts` (`LevelBrick.pair`), `balls.ts`
+(`Ball.portalled` and `Ball.jumpedAt`, set in `createBall()`,
+`holdBall()`, `releaseBall()` and `splitOff()`) and its spec (four specs),
+`events.ts` (`portalled`), `tuning.ts` (`PORTAL_RADIUS`), `levels.ts` (the
+refusal of a legend's portal), `effects.ts` and its spec, `brick_art.ts`
+(the portal's entry, an import) and its spec (the portal's frame and
+tint, the round kinds left out of the slab's spec, and, on the rebase
+onto L3, a `pair` on the brick `cellFrame()`'s specs build), `art.ts`
+(`PICTURED_BRICKS.portal`), `tail_painter.ts` (`Tail.jumpedAt`,
+`startAtPortal()` and its call), `bricks_scene.spec.ts` (a spec),
+`bolts.spec.ts` (a spec), `legend.spec.ts` (two specs), `levels.spec.ts`
+(`isPortal()`, `twinOf()`, four lines of the flood and a sentence of its
+doc comment, three specs of the reach, one of the pairs and a legend's
+portal among the errors), `README.md` and `index.html`.
+
+Measured: `yarn report:levels --seeds 12` reads as before for levels 1 to
+41, line for line. Wormhole takes 0:47 at Relaxed, 0:26 at Normal and 0:25
+at Fast, its longest endgame 0:13, no life lost, no `!` and no `+`. Its
+balls go through the portal: in six plays at each speed, from the report's
+seeds, between 2 and 23 times a play. `--marks` took 32 s.
+
+The `sim` specs pass for all 42 levels in 7.6 s.
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (68
+files, 2,950 specs, 14.7 s) in the workspace, the coverage of `pure` and
+`dom` above its floor, and the root's `yarn lint` under the lock.
+
+The review, and the answers:
+
+1. A ball the paddle was moved into stayed `portalled`, as
+   `liftOffPaddle()` reaches `meetPaddle()` past `turn()`. Fixed:
+   `meetPaddle()` lets the ball meet portals again, and a spec moves the
+   paddle into a `portalled` ball. The report reads as before.
+2. The tail was laid across Wormhole's wall as a falling ball jumped, 7
+   units, under `TAIL_JUMP`, and the log said it wasn't. Fixed:
+   `Ball.jumpedAt` and `TailPainter`'s `startAtPortal()`, with a scene
+   spec, and the log says what the embers do.
+3. The spec's `twinOf()` checked only the row, so a flood at a side read a
+   portal at the far end of the next row. Fixed: `inGrid()`, and a spec of
+   it.
+4. A level's own legend could draw a portal with no pair, which the field
+   read as `@`'s and the specs as a pair of its own. Fixed: `parseLevel()`
+   refuses one, with a spec among the errors.
+5. Removing the unhurt contact's reset passed every spec, and nothing held
+   a brick beside the twin. Fixed: the brick's reset spec runs for a
+   bumper too, a spec holds a ball sent straight back by a brick beside
+   the twin, and the content skill advises a row between.
+6. The bumper's frame spec in `brick_art.spec.ts` was restyled into a
+   round kinds' table. Fixed: it is as it was, and the portal's frame has
+   a describe of its own beside it.
+7. Nits: the pairs rule is in the content skill, under its checks' table,
+   rather than in the table, which would have padded every row, and in the
+   testing skill; `isPortal()` is a type predicate. `Map.groupBy()` is
+   left, as the lib is ES2022's.
+
+These fixes correct the change, as the review's own fixes have it, rather
+than reshape it, so no second review.

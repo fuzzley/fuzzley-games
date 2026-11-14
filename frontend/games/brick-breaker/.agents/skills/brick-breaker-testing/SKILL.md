@@ -74,6 +74,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   `#` steel, `*` blast, `?` gift, `~` ghost, `+` regrowing, `c` cage,
   `u` and `U` plated, of one hit and two, `k` key, `=` gate,
   `O` bumper,
+  `@` and `%` portals,
   `.` none). The
   options set what a picture can't show: the speed, the seed, the pace, the
   level's mark, 5 by default, the chance of a capsule, the capsules that may
@@ -98,7 +99,9 @@ Run these from `frontend/games/brick-breaker/`, or as
 - `src/rules/levels/levels.spec.ts` holds every level to parsing, ids and
   names of its own, a needed brick a ball can reach, a key wherever it has
   a gate, a pace that never falls within a set and a mark that is a
-  multiple of 5, 5 at least; and every set to its place. A level the specs
+  multiple of 5, 5 at least; and every set to its place.
+  It holds each level to two portals of each pair or none, and its reach
+  goes on from a portal's twin. A level the specs
   draw for themselves names a mark too, as every level's data does.
 - `src/rules/catalog/catalog.spec.ts` holds the catalogs to their rules, and the
   levels to using every brick kind and letting every capsule first fall at

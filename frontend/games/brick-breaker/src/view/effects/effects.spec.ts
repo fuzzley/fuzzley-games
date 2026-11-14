@@ -47,6 +47,7 @@ const VOICES_OF_EVENTS: Readonly<
   opened: ["gates", []],
   seeking: ["seeker", []],
   bumped: [null, []],
+  portalled: [null, []],
 };
 
 /** Every event, with the sound it plays and what of it moves. */
@@ -74,10 +75,11 @@ const VOICES_OF_KINDS: Readonly<
   key: ["hit", "key"],
   gate: ["steel", null],
   bumper: ["steel", null],
+  portal: ["steel", null],
 };
 
 /** A field that holds a brick of every kind. */
-const EVERY_KIND = fieldFrom(["o2#*?~+cuk=O"]);
+const EVERY_KIND = fieldFrom(["o2#*?~+cuk=O@"]);
 
 /** Returns the cell of the field's brick of a kind, or throws for a kind it holds none of. */
 function cellOf(kind: BrickKindId): number {

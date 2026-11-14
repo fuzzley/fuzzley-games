@@ -1,6 +1,6 @@
 import { brickKind, hasTrait, isNeeded } from "../catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../catalog/capsules";
-import { CELLS, cellIndex, columnOf, rowOf } from "../grid";
+import { CELLS, cellIndex, columnOf, inGrid, rowOf } from "../grid";
 import { COLUMNS, ROWS } from "../tuning";
 import type { Level, LevelBrick } from "./level";
 import {
@@ -57,6 +57,31 @@ function isGate(brick: LevelBrick | null | undefined): boolean {
   return !!brick && hasTrait(brick.kind, "locked");
 }
 
+/** Returns whether a cell holds a portal, which takes a ball to its twin. */
+function isPortal(brick: LevelBrick | null | undefined): brick is LevelBrick {
+  return !!brick && hasTrait(brick.kind, "jumps");
+}
+
+/**
+ * Returns the column and row of the twin of a cell's portal, else null: where
+ * a ball that touches it leaves.
+ */
+function twinOf(
+  level: Level,
+  column: number,
+  row: number,
+): [number, number] | null {
+  if (!inGrid(column, row)) return null;
+  const cell = cellIndex(column, row);
+  const portal = level.cells[cell];
+  if (!isPortal(portal)) return null;
+  const twin = level.cells.findIndex(
+    (brick, other) =>
+      other !== cell && isPortal(brick) && brick.pair === portal.pair,
+  );
+  return twin < 0 ? null : [columnOf(twin), rowOf(twin)];
+}
+
 /** Returns each brick of a level's first row, as its kind and hits, up to the first gap. */
 function firstRow(level: Level): [string, number][] {
   const bricks: [string, number][] = [];
@@ -87,7 +112,9 @@ function firstColumn(level: Level): number[] {
  * stops it as steel does, as its disc is a cell high, and leaves less than
  * a ball's width either side of it within its cell, so a ball passes a lone
  * bumper only through the cells beside it; two side by side leave a ball
- * room between them, which the flood takes as shut, to be safe.
+ * room between them, which the flood takes as shut, to be safe. A portal's
+ * cell takes it on from its twin's, as a ball that touches one leaves the
+ * other.
  */
 function shutIn(level: Level, gatesOpen = false): number[] {
   const key = (column: number, row: number): string =>
@@ -111,6 +138,11 @@ function shutIn(level: Level, gatesOpen = false): number[] {
       [0, -1],
     ] as const) {
       const [c, r] = [column + across, row + down];
+      const twin = twinOf(level, c, r);
+      if (twin) {
+        waiting.push(twin);
+        continue;
+      }
       if (c >= 0 && c < COLUMNS && r >= -1 && r <= ROWS && isOpen(c, r)) {
         // A ball coming up into a plated brick meets its underside, unharmed.
         if (down >= 0 || !isPlated(level.cells[cellIndex(c, r)])) {
@@ -372,6 +404,11 @@ describe("parseLevel", () => {
       { tints: ["1...3........"] },
       `"3", in row 1 of its tints, tints no brick`,
     ],
+    [
+      "a legend's portal, whose pair only the shared legend draws",
+      { legend: { P: { kind: "portal" } } },
+      `"P" is a portal, which only the shared legend's "@" and "%" draw, each of its pair`,
+    ],
   ])("names %s", (_, changes, problem) => {
     expect(() => parsed(changes)).toThrow(`Level "spec": ${problem}.`);
   });
@@ -481,6 +518,45 @@ describe("the reach check", () => {
 
     expect(shutIn(level)).toEqual([cellIndex(1, 1)]);
   });
+
+  it("reaches a brick shut in by steel through a portal whose twin a ball reaches", () => {
+    const level = parsed({
+      bricks: [
+        "###..........",
+        "#o#..........",
+        "#@#..........",
+        "###...@......",
+      ],
+    });
+
+    expect(shutIn(level)).toEqual([]);
+  });
+
+  it("finds no portal across the grid's side, where a cell's index runs on into the next row", () => {
+    const level = parsed({
+      bricks: [
+        ".............",
+        "............#",
+        "...........#@",
+        "............#",
+        ".............",
+        "###..........",
+        "#o#..........",
+        "#@#..........",
+        "###..........",
+      ],
+    });
+
+    expect(shutIn(level)).toEqual([cellIndex(1, 6)]);
+  });
+
+  it("finds a brick behind a portal, which takes a ball to its twin, shut in by steel, rather than past it", () => {
+    const level = parsed({
+      bricks: ["###...###....", "#o#...#@#....", "#@#...###...."],
+    });
+
+    expect(shutIn(level)).toEqual([cellIndex(1, 1)]);
+  });
 });
 
 describe("the levels", () => {
@@ -530,6 +606,17 @@ describe("the levels", () => {
 
   it.each(gated)("give %s a key for its gates", (_, entry) => {
     expect(parseLevel(entry).cells.some(isKey)).toBe(true);
+  });
+
+  it.each(named)("give %s two portals of each pair, or none", (_, entry) => {
+    const pairs = new Map<number | undefined, number>();
+    for (const brick of parseLevel(entry).cells) {
+      if (isPortal(brick)) {
+        pairs.set(brick.pair, (pairs.get(brick.pair) ?? 0) + 1);
+      }
+    }
+
+    expect([...pairs.values()].filter((count) => count !== 2)).toEqual([]);
   });
 
   it.each(named)("let a ball reach every brick %s needs", (_, entry) => {
