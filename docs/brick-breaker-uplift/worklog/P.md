@@ -342,3 +342,65 @@ and the 632/631 px threshold by hand. Its comments:
 specs, with `sim`), its `dom` and `pure` specs with coverage before the
 review (2,013 specs, `app/panels` whole), its build; the root's lint,
 under the lock.
+
+### 2026-11-14: the Ready card names a kind new here
+
+C9's other half: the Ready card names each kind of brick the level is the
+first to hold, its picture beside "New: Steel brick." and its line, from
+`GameService.kindsHere()`, as the level opens (before its first serve,
+not again at a serve after a lost ball).
+
+- **On every board, panels or none,** as Brick Fuzz Pop's Ready card does
+  and plan.md's "Cards" says: a compact panel drops its kinds, so a card
+  shown only where no panels stand would leave a phone on its side with
+  the kind nowhere but How to play.
+- **Every kind new here, not one:** level 33 brings in the key and the
+  gate together.
+- **It never covers the ball.** The card stands between the bricks and
+  the paddle as before, but a card too tall for that gap rises, its foot
+  kept a ball's width above the ball (`--card-foot`), over the bricks'
+  lowest rows; it is no wider than the field; and on a small field (the
+  card's own small size) the line is left out, the picture and the name
+  kept. Seen in a browser at 844 × 390, 568 × 320 and 320 × 568, the last
+  two with level 33's two long lines put in its place: on the field, clear
+  of the ball. Before, at a unit of 10 the two-line card reached the
+  paddle's top, over the ball. The layout check now holds the card's foot
+  at every shape (and fails, as tried, with the card dropped as before).
+- **Pictures:** the board reads them for the card only where a kind is new,
+  so a level that brings none in, on a board without panels, has the
+  scene encode nothing until How to play opens; the app's spec of that
+  now starts on such a level. Three board specs hold when the scene
+  encodes: a new kind on the card, the panels, and neither.
+- The testing skill notes the panels' specs and the board spec's roles
+  and encoding spy.
+
+**Browser** (headless, port 9204, its own page, closed, the server
+stopped): 1280 × 720 and 844 × 390 show both panels, the latter compact
+(level and lives; streak and effects); 1000 × 1000 and 390 × 844 show
+none; the accessible tree reads each region by its heading and the
+level's heading as "Level 1 · Basics Stripes". `/tmp/p2-panels.png` is
+1280 × 720 at 2×.
+
+**Review** (a fresh agent): it found the CSS sound (the layer centres the
+card on the field's middle, the `min()` only raises it, `--card-foot`
+follows a taller field) and the pictures' gate lazy. Its comments:
+
+1. The spec named one kind and never checked the space between the name
+   and the line. Fixed: it opens the specs' wide level, where steel and
+   gift are both new, and reads each whole line in How to play's order.
+2. The new kinds came back at every serve, the card taller over a
+   mid-level serve. Fixed: only as the level opens (`outcome` "ready"),
+   as the plan's card is "the one a level opens on" and Brick Fuzz Pop's
+   is; a spec holds them gone at the next serve after a lost ball (it
+   fails without the gate, as tried).
+3. The card's rise rested on a browser check. Fixed: the layout check
+   reads `--card-foot` and holds the Ready card's foot to it.
+4. Nits: `.ready`'s `max-width` now says it repeats `board-card()`'s;
+   the picture keeps a brick's room, 2 by 1, even before it comes, so the
+   words don't move; the scene's paragraph in `AGENTS.md` names the three
+   that ask for the pictures; the board spec's sized scene is one helper,
+   at a level, which the encoding specs use too.
+
+**Checks:** Brick Breaker's lint, typecheck and test (62 files, 2,222
+specs, with `sim`), its build and `check:layout` (every shape and turn);
+the root's lint, under the lock.

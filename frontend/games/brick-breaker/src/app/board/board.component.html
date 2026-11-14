@@ -56,6 +56,22 @@
       <div class="card ready">
         <p class="card-title">{{ levelTitle() }}</p>
         <p>{{ launchWords() }}</p>
+        @for (kind of newKinds(); track kind.id) {
+          <div class="new-kind">
+            <!-- Its room kept, so the words stay put as the picture comes. -->
+            <span class="picture">
+              @if (kind.picture; as picture) {
+                <img [src]="picture" alt="" />
+              }
+            </span>
+            <!-- `&ngsp;` keeps the space a template drops between elements. -->
+            <p>
+              <strong>New: {{ kind.name }}.</strong>&ngsp;<span class="about">{{
+                kind.about
+              }}</span>
+            </p>
+          </div>
+        }
       </div>
     }
     @case ("paused") {

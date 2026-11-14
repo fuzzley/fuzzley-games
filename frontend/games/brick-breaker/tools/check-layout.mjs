@@ -16,7 +16,9 @@
  * it; its unit must be at least 10 CSS px (9 in a window under 360 CSS px
  * tall); and, as the ball waits to be served, a field taller than 30
  * units, and only one, must leave a finger's room under it
- * (`--finger-room`), past the canvas's inset (`--fz-canvas-inset-bottom`);
+ * (`--finger-room`), past the canvas's inset (`--fz-canvas-inset-bottom`),
+ * and the Ready card's foot lie no lower than `--card-foot` units below the
+ * field's middle, clear of the ball;
  * and the panels must both show wherever its room (`data-room`) spares 186
  * CSS px each side of the field's cells, and nowhere else, on the canvas
  * and in the window, off the field, each other and the bar, at least 172
@@ -64,8 +66,8 @@ const FIELD = {
 };
 
 /**
- * Returns what is wrong with the field's unit and the room under it, given
- * where the field lies. It runs in the page, so it uses nothing from this
+ * Returns what is wrong with the field's unit, the room under it and the
+ * Ready card's foot, given where the field lies. It runs in the page, so it uses nothing from this
  * module.
  *
  * @param {BoardBox} [field]
@@ -98,6 +100,17 @@ function inspectField(field) {
   } else if (under < inset + finger) {
     problems.push(
       `The field leaves ${under.toFixed(1)} CSS px under it, less than the canvas's inset, ${inset}, and a finger's room, ${finger}.`,
+    );
+  }
+  // The Ready card rises where it is too tall for the gap over the paddle,
+  // as one naming a new kind of brick may be, so its foot lies no lower
+  // than `--card-foot` units below the field's middle, clear of the ball.
+  const card = board.querySelector(".card.ready")?.getBoundingClientRect();
+  const foot = parseFloat(style.getPropertyValue("--card-foot"));
+  const lowest = field.top + (down / 2 + foot) * field.unit;
+  if (card && card.bottom > lowest + 1) {
+    problems.push(
+      `The Ready card's foot lies ${(card.bottom - lowest).toFixed(1)} CSS px lower than it may, over the ball.`,
     );
   }
   return problems;
