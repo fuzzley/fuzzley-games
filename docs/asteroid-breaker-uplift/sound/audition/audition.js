@@ -485,15 +485,15 @@ const SCENES = [
     ],
   },
   {
-    id: "engines",
-    title: "The engine, three ways",
-    about: "The thrust held for two and a half seconds, three times over, each with the same start and stop: first the burner (thrust), then the throat (thrust-b), then the purr (thrust-c). One of the three is to be kept.",
-    old: [{ t: 0, s: "thrust", loopFor: 2.5 }],
-    new: ["thrust", "thrust-b", "thrust-c"].flatMap((s, i) => [
-      { t: i * 3.6, s: "thrust-start" },
-      { t: i * 3.6, s, loopFor: 2.5 },
-      { t: i * 3.6 + 2.5, s: "thrust-stop" },
-    ]),
+    id: "engine",
+    title: "The engine",
+    about: "The thrust held for three seconds, with its start and its stop: a burn through a hollow throat that never settles on a note. It was chosen by ear from three.",
+    old: [{ t: 0, s: "thrust", loopFor: 3 }],
+    new: [
+      { t: 0, s: "thrust-start" },
+      { t: 0, s: "thrust", loopFor: 3 },
+      { t: 3, s: "thrust-stop" },
+    ],
   },
   {
     id: "end",

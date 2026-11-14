@@ -26,7 +26,7 @@ sounds on the audition page, the same day they were built, and marked each.
 | ---------------- | ------------------------------------------------------------------------------------------------------ |
 | `bed-inner-belt` | "Tone is too difficult to listen to for a long time, needs to be softer and maybe have more variation." |
 | `bed-endless`    | The same.                                                                                              |
-| `thrust`         | Needs work; no note.                                                                                   |
+| `thrust`         | Needs work; no note. Of the three made in answer, the user chose the second, a throat.                 |
 
 What was done about each is under "Beds" and "Ship" below.
 
@@ -84,23 +84,20 @@ What was done about each is under "Beds" and "Ship" below.
   `pod-lost` first kept 23 to 30% above 300 Hz and now keep 53 to 70%;
   `zap-arc` was a click with no body and now has a buzz under it; the
   thrust's start and stop lost the lows a phone would never play.
-- **The thrust, made again after the ear said it needs work,** with two
-  others beside it to choose from. All three loop at exactly two seconds,
-  have no oscillator and no line of pitch, keep under half a percent of
-  their energy above 2 kHz, and sit darker than the start and the stop,
-  which passed and are unchanged.
-  - `thrust`, the burner: no hiss at all now. A driven band of dark noise
-    wandering 260 to 540 Hz under a soft rush, the whole of it swelling and
-    dulling together on a slow breath. If it sputters, shallow the breath.
-  - `thrust-b`, the throat: the same burn through a comb whose pitch
-    wanders 225 to 515 Hz, like a stopped pipe that never settles. The
-    likeliest of the three to be heard as a sweep that repeats.
-  - `thrust-c`, the purr: a warm band of noise opening in soft pulses,
-    about 27 a second, drifting, each a little different. Its maker's pick:
-    it suits the pilot and can't be mistaken for debris. If it sounds like
-    a small motor, raise its floor or slow it to 23.
-  - The audition page has them as one moment, "The engine, three ways".
-    The two not chosen come out of `recipes/ship.mjs`.
+- **The thrust was made again after the ear said it needs work,** three
+  ways, and the user chose the second by ear the same day: a throat. It is
+  a burn (a driven band of dark noise from 250 to 600 Hz over a soft rush,
+  on a shallow breath) through a comb whose pitch wanders 225 to 515 Hz,
+  like a stopped pipe that never settles on a note. It loops at exactly two
+  seconds, has no oscillator and no line of pitch, keeps under half a
+  percent of its energy above 2 kHz, and sits darker than the start and the
+  stop, which passed and are unchanged. The loop kept is the very one that
+  was heard: its recipe holds the seed it was chosen at.
+  - The two not chosen are gone from the recipe: a plain burner, the same
+    burn with no throat, and a purr, a warm band of noise opening in soft
+    pulses about 27 times a second. Either is a few lines to make again if
+    the throat tires in play: its maker thought it the likeliest of the
+    three to be heard as a sweep that repeats every two seconds.
 
 ## Pickups
 
