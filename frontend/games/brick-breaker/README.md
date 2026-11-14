@@ -7,7 +7,7 @@ An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
 (`frontend/lib/`), with its field drawn by [Phaser](https://phaser.io/)
 through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with
 [Vitest](https://vitest.dev/), the scene against real Phaser run headless.
-It holds forty-seven levels in five sets, with tough, steel, blast, gift,
+It holds fifty levels in five sets, with tough, steel, blast, gift,
 ghost, regrowing and plated bricks, cages, keys, gates, bumpers, portals and
 sliders, twelve capsules and three kinds of ball, all played by
 rules that run without a framework, physics included. It plays at three
