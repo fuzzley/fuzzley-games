@@ -143,6 +143,10 @@ for (const family of families) {
         warnings.push(
           `${name}: starts or ends off zero (${m.edge.toFixed(4)})`,
         );
+      if (m.rms50 < LEVELS[recipe.level] - 1.5)
+        warnings.push(
+          `${name}: the limiter caught it, so it sits ${(LEVELS[recipe.level] - m.rms50).toFixed(1)} dB under its level; its peaks stand too far over its body for that level`,
+        );
       if (Math.abs(m.dc) > 0.004)
         warnings.push(`${name}: sits off the middle (${m.dc.toFixed(4)})`);
       if (recipe.loop && seam(first) > 1.5)
