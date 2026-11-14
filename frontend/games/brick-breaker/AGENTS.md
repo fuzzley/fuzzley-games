@@ -384,8 +384,12 @@ takes for the specs' helpers.
     (`FIELD_ROLES`), through `ThemeService`'s `roles()`, and its `mode`,
     and a finger steers as the settings say. The board asks the scene for
     How to play's pictures as How to play opens (`pictures`), and keeps them
-    until the scene bakes again. It is an application named for its level,
-    "Brick Breaker, level 3: Pyramid".
+    until the scene bakes again. The canvas and its focus ring are an
+    application (`.play`), named for its level, "Brick Breaker, level 3:
+    Pyramid", which takes the focus at a press and as Resume, Next level
+    and each run hand it back; the cards beside it read as a page does, and
+    Phaser hears the keys on the board's own element, to which they rise
+    from the application.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, which asks before it starts a run at another (while the
     run is at Custom, its menu offers the slider for the ball's speed
@@ -480,18 +484,20 @@ takes for the specs' helpers.
   scene's time, in fixed steps, and draws the frame the game hands back. A
   new field, as a level starts or a run is taken up, is how the scene knows
   to stop what the last one set off.
-- **The board is an application** to assistive technology, focusable,
-  named for its level and described by its keys; the canvas in it is
-  hidden, and the announcer says what happens. Pause and Sound keep the
+- **The board holds an application** for assistive technology, focusable,
+  named for its level and described by its keys, around the canvas and its
+  ring alone; the canvas in it is hidden, the announcer says what happens,
+  and the cards beside it read as a page does. Pause and Sound keep the
   focus on the board when pressed with a mouse or a finger, so the keys go
   on working.
 - **Phaser's input is the board's.** The keyboard's target is the board's
-  element, so the keys reach the game only while it has the focus. Phaser
-  cancels a captured key's default there, which is why the scene captures only
-  Left, Right, Up and Space, the keys it uses that would scroll the page, and
-  ignores a key pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
-  `isShortcut()`). Keys go by `event.code`, so an AZERTY keyboard steers
-  with Q and D.
+  element, to which the keys rise from its application, so they reach the
+  game only while the application has the focus; a card's button keeps its
+  own. Phaser cancels a captured key's default there, which is why the
+  scene captures only Left, Right, Up and Space, the keys it uses that would
+  scroll the page, and ignores a key pressed with Ctrl, Alt or Meta
+  (`@fz/core/keys`'s `isShortcut()`). Keys go by `event.code`, so an AZERTY
+  keyboard steers with Q and D.
 - **The level waits for the player.** A ball waits on the paddle until it is
   launched. The level pauses when the focus leaves the room, the page is
   hidden, the screen turns or a dialog opens, and goes on only when the
@@ -579,9 +585,9 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   game only, and stores no scale, though a run played at one keeps its
   records.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
-  skill's. Every overlay is an `<fz-dialog>`, the board is the application
-  above, and every level begun, ball lost, pause, going on, level cleared
-  and end is announced.
+  skill's. Every overlay is an `<fz-dialog>`, the board holds the
+  application above, and every level begun, ball lost, pause, going on,
+  level cleared and end is announced.
 
 ## Development Commands
 

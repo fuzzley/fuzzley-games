@@ -28,6 +28,14 @@
   cursor: none;
 }
 
+// The application a screen reader hands the keys to, around the canvas and
+// the ring alone, so the cards beside it read as a page does.
+.play {
+  position: absolute;
+  inset: 0;
+  outline: none;
+}
+
 .placeholder,
 .ring,
 .card {
@@ -71,7 +79,8 @@
   background-color: var(--fz-accent);
 }
 
-// Around the wall, while the board has the focus from the keyboard.
+// Around the wall, while the application has the focus from the keyboard:
+// `.play` holds the focus, not the host the mixin looks at.
 .ring {
   @include board-focus-ring(var(--wall));
 
@@ -80,6 +89,10 @@
   width: calc(var(--across) * var(--unit));
   height: calc(var(--down) * var(--unit));
   margin: auto;
+
+  .play:focus-visible > & {
+    outline-color: var(--fz-focus-ring-color);
+  }
 }
 
 // Over the field, a card in its middle, clear of the finger's room.

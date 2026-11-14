@@ -209,3 +209,53 @@ turn; told a spare of 12, it fails where a small phone on its side spares
 132 CSS px and shows no panels, so the check runs. Asteroid Breaker's build
 and `check:layout`, its deck shown always, which holds. The root's lint,
 typecheck and test, under the lock.
+
+## P2. Brick Breaker's two panels
+
+### 2026-11-14: the board's application on an inner `.play`
+
+Brick Breaker's board held the application role on its host, so anything
+laid beside the field, the cards and next the panels, sat inside the
+application, where a screen reader hands the keys over rather than
+reading. As Brick Fuzz Pop's board does, the role, its tab stop, its
+name, its description and the press that takes the focus move onto an
+inner `.play` around the canvas and the focus ring; the cards stay beside
+it, in the host, read as a page does.
+
+- **Phaser's keyboard target stays the host,** to which keys rise from
+  `.play`; a card's button keeps its own through `fzKeepKeys`, as before.
+  `boardHostOptions()` is made as the component's fields are, before
+  `.play` exists, so the host is also the target it can be given.
+- **`focus()`, Resume and Next level focus `.play`,** and a press on the
+  board focuses it at once: with the cards outside `.play`, a press on a
+  card's button no longer reaches the board's handler, so the old guard
+  against taking the focus from inside the board had nothing left to
+  guard, and the `DOCUMENT` it read went with it.
+- **The focus ring** follows `.play:focus-visible`, as Brick Fuzz Pop's
+  does, since `board-focus-ring()` looks at the host's focus.
+
+**Review** (a fresh agent): it found the layout unchanged (`.play` is the
+host's box, the host stays the size container that `canvasRoom()`
+measures), the focus paths sound and the tools unaffected. Its comments:
+
+1. The docs said keys rise to Phaser from a card's button, which
+   `fzKeepKeys` stops. Fixed in the component's doc and both places in
+   `AGENTS.md`, which now say the application's keys rise and a card's
+   button keeps its own; two ragged paragraphs rewrapped.
+2. The spec of the keyboard target checked only the config. Fixed: the
+   board's scene spec presses Space on the application and expects the
+   ball launched; the config spec keeps its plain name.
+3. The app's spec handed `runShownScene()` the application as the
+   keyboard target, which is now `.play`, not the board's. Fixed: it hands
+   it `app-board`.
+4. `board-focus-ring()`'s `:host(:focus-visible)` no longer matches in
+   either game with an inner application. Left: changing `@fz/style`'s
+   mixin is a library change of its own, which Brick Fuzz Pop would adopt
+   in the same commit; noted for the integrator as a follow-up.
+5. Nits: the template's comment repeated the stylesheet's, dropped; the
+   `web-game-accessibility` skill's line on Brick Fuzz Pop's application
+   is brought to Brick Breaker with the panels, in the next commit.
+
+**Checks:** Brick Breaker's lint, typecheck and test (59 files, 2,001
+specs, with `sim`), before the review and the board's and app's specs
+after; the root's lint, under the lock (33 s).

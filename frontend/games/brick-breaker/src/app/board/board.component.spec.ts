@@ -16,7 +16,7 @@ import {
   runShownScene,
   watchResizes,
 } from "@fz/phaser/testing";
-import { fireEvent, render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { figures } from "@fz/ui/testing";
 import {
@@ -48,7 +48,10 @@ const LEVEL_LIMIT_MS = 10_000;
 
 /** Renders the board beside a button outside it, on a fake canvas. */
 async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
+  /** The board's element, `app-board`, which Phaser hears the keys on and the layout check reads. */
   board: HTMLElement;
+  /** The application inside it, which takes the focus. */
+  application: HTMLElement;
   component: BoardComponent;
   game: GameService;
   fake: FakePhaserCanvas;
@@ -61,11 +64,11 @@ async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
       providers: [provideFakePhaserCanvas(options), ...provideSpecLevels()],
     },
   );
+  const debug = view.fixture.debugElement.query(By.directive(BoardComponent));
   return {
-    board: screen.getByRole("application"),
-    component: view.fixture.debugElement
-      .query(By.directive(BoardComponent))
-      .injector.get(BoardComponent),
+    board: debug.nativeElement as HTMLElement,
+    application: screen.getByRole("application"),
+    component: debug.injector.get(BoardComponent),
     game: TestBed.inject(GameService),
     fake: TestBed.inject(FakePhaserCanvas),
     detectChanges: () => {
@@ -91,6 +94,7 @@ function advanceWhilePlaying(
 /** Returns the board's game with its run at one of the specs' levels. */
 async function renderAt(level: number): Promise<{
   board: HTMLElement;
+  application: HTMLElement;
   game: GameService;
   detectChanges: () => void;
 }> {
@@ -132,11 +136,11 @@ describe("BoardComponent", () => {
     });
 
     it("takes the focus for a press on it", async () => {
-      const { board } = await renderBoard();
+      const { application } = await renderBoard();
 
-      fireEvent.pointerDown(board);
+      fireEvent.pointerDown(application);
 
-      expect(board).toHaveFocus();
+      expect(application).toHaveFocus();
     });
 
     it("hides the pointer while a ball is in play", async () => {
@@ -153,6 +157,15 @@ describe("BoardComponent", () => {
       const { board } = await renderAt(SPEC_LEVEL.steel);
 
       expect(board).not.toHaveClass("in-play");
+    });
+
+    it("keeps its cards outside the application, read as a page is", async () => {
+      const { application } = await renderBoard();
+
+      expect({
+        cards: screen.queryAllByText("Level 1: Blasts").length,
+        inApplication: within(application).queryByText("Level 1: Blasts"),
+      }).toEqual({ cards: 1, inApplication: null });
     });
   });
 
@@ -369,7 +382,9 @@ describe("BoardComponent", () => {
     });
 
     it("go on at Resume, handing the board the focus", async () => {
-      const { board, game, detectChanges } = await renderAt(SPEC_LEVEL.steel);
+      const { application, game, detectChanges } = await renderAt(
+        SPEC_LEVEL.steel,
+      );
       game.launch();
       game.pause();
       detectChanges();
@@ -377,7 +392,7 @@ describe("BoardComponent", () => {
       await userEvent.click(screen.getByRole("button", { name: "Resume" }));
 
       expect(game.outcome()).toBe("playing");
-      expect(board).toHaveFocus();
+      expect(application).toHaveFocus();
     });
 
     it("add up a cleared level's points", async () => {
@@ -397,7 +412,9 @@ describe("BoardComponent", () => {
     });
 
     it("go on to the next level at Next level, handing the board the focus", async () => {
-      const { board, game, detectChanges } = await renderAt(SPEC_LEVEL.blasts);
+      const { application, game, detectChanges } = await renderAt(
+        SPEC_LEVEL.blasts,
+      );
       playToClear(game);
       game.tick(FRAME_MS, STILL);
       detectChanges();
@@ -405,7 +422,7 @@ describe("BoardComponent", () => {
       await userEvent.click(screen.getByRole("button", { name: "Next level" }));
 
       expect(game.level().number).toBe(SPEC_LEVEL.wide);
-      expect(board).toHaveFocus();
+      expect(application).toHaveFocus();
     });
 
     describe("where motion is welcome", () => {
@@ -514,16 +531,17 @@ describe("BoardComponent", () => {
       canvas: { width?: number; height?: number } = {},
     ): Promise<{
       board: HTMLElement;
+      application: HTMLElement;
       component: BoardComponent;
       game: GameService;
       run: SceneRun<HostedScene>;
       detectChanges: () => void;
     }> {
-      const { board, component, game, fake, detectChanges } =
+      const { board, application, component, game, fake, detectChanges } =
         await renderBoard();
       const run = await runShownScene(fake, board, canvas);
       run.advance(FRAME_MS);
-      return { board, component, game, run, detectChanges };
+      return { board, application, component, game, run, detectChanges };
     }
 
     it("publishes where the scene laid the field out", async () => {
@@ -598,10 +616,10 @@ describe("BoardComponent", () => {
       expect(again).not.toEqual(asked);
     });
 
-    it("launches the ball at Space pressed on the board", async () => {
-      const { game, run } = await runBoardScene();
+    it("launches the ball at Space pressed on the board's application", async () => {
+      const { application, game, run } = await runBoardScene();
 
-      run.key("keydown", "Space", " ");
+      fireEvent.keyDown(application, SPACE);
       run.advance(FRAME_MS);
 
       expect(game.outcome()).toBe("playing");
