@@ -41,6 +41,7 @@ const RICH_LEVELS = levelsOf([
   {
     id: "rich",
     name: "Rich",
+    place: "playroom",
     drops: 0,
     levels: [
       {

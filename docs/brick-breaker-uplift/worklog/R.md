@@ -183,3 +183,55 @@ Review (a fresh reviewer, on the staged change):
    the plan's assets, so they stay out of the tree.
 4. The Lanterns bullet read as both rows set in the wall. Fixed.
 5. The notes came after Checks, unlike the earlier entries. Fixed.
+
+### 2026-11-14: each set's place (C12)
+
+- `LevelSetData.place`, with `PLACES` and their type `Place`
+  (`playroom`, `workshop`, `funfair`, `garden`, `arcade`) in `levels.ts`:
+  Basics is in the playroom, Steel the workshop, Tricks the fun fair, and
+  the garden and the arcade wait for Friends and Machines. Nothing draws a
+  place yet; L4 does.
+- A set's file is JSON, which TypeScript reads with its strings widened, so
+  `place` is text in the data, as a level's capsules are, and `placeOf()`
+  checks it as a `Place`, or throws naming the set and the place. The levels
+  spec holds the game's three sets to their places, by each set's id,
+  takes a set in the garden and the arcade, and refuses "fun fair", as a
+  slip would write it.
+- `place` is required, as every set has one, so every set a spec draws
+  gains `place: "playroom"`: in `levels.spec.ts`, `autopilot.spec.ts`,
+  `progress.spec.ts`, `saved_game.spec.ts`, `stats.spec.ts`,
+  `src/testing/play.ts`, and in P's `game.service.spec.ts` and
+  `stats.service.spec.ts` (a field added to a literal, nothing else).
+- The workspace's `AGENTS.md` names a set's place and `placeOf()`; the
+  content skill says what a set's `place` is; both skills' lines on the
+  levels spec say it holds every set to its place.
+
+Choices where the plan was silent: `placeOf()` beside the sets rather than
+`Level.place`, since a place is a set's (C12), and L4, which draws it, is
+the one to say how the scene reads it.
+
+Checks: the workspace's `lint`, `typecheck` and `test` (59 files, 2,016
+specs, 11.6 s with six workers), the root's `lint`, and, as R1's last
+commit to touch `src/rules`, the coverage of `pure` and `dom`, which held
+the floor: every file R1 changed at 100% but `levels.ts`'s branches, whose
+one gap, `line[column] ?? NO_BRICK` in `checkTints()`, was there before.
+
+Review (a fresh reviewer, on the staged change):
+
+1. The spec refused "attic" as no place, but the plan gives the Attic, a
+   set it sketches, the attic for its place. Fixed: it refuses "fun fair",
+   as a slip in a set's file would write the fun fair's id.
+2. The game's places were pinned as a list by position, and the skill
+   didn't say a new set must add its own. Fixed: the spec holds them by
+   each set's id, and the skill's "A Set" says so.
+3. `LevelEntry.number` was "its place in the game", beside a set's
+   `place`. Fixed: "its number in the order played"; the report's typedef
+   follows in the report's commit.
+4. "Its spec" in `AGENTS.md` now followed `placeOf()`'s sentence. Fixed:
+   "`levels.ts`'s spec". And `PLACE_IDS` with `Place` mixed the
+   workspace's two patterns (`CAPSULE_IDS` with `CapsuleId`, `SPEEDS` with
+   `Speed`). Fixed: `PLACES`, as §5.1 fixes the type's name `Place` and
+   leaves the list's to R1.
+
+Checks after the fixes: the workspace's `lint`, `typecheck` and `test`, and
+the root's `lint`.

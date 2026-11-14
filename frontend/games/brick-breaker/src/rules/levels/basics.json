@@ -1,6 +1,7 @@
 {
   "id": "basics",
   "name": "Basics",
+  "place": "playroom",
   "drops": 0.1,
   "levels": [
     {

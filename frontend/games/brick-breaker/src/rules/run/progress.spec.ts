@@ -6,6 +6,7 @@ const LEVELS = levelsOf([
   {
     id: "set",
     name: "Set",
+    place: "playroom",
     drops: 0,
     levels: ["a", "b", "c", "d"].map((id) => ({
       id,

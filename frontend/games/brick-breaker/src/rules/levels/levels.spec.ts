@@ -10,10 +10,17 @@ import {
   type LevelSetData,
   levelsOf,
   parseLevel,
+  placeOf,
 } from "./levels";
 
 /** The set of a spec's levels, whose chance of a capsule is 0.1. */
-const SET: LevelSetData = { id: "spec", name: "Spec", drops: 0.1, levels: [] };
+const SET: LevelSetData = {
+  id: "spec",
+  name: "Spec",
+  place: "playroom",
+  drops: 0.1,
+  levels: [],
+};
 
 /** Returns a level parsed from data changed as given, as the game's third. */
 function parsed(changes: Partial<LevelData> = {}, number = 3): Level {
@@ -399,12 +406,35 @@ describe("the levels", () => {
   });
 });
 
+describe("placeOf", () => {
+  it("puts each set of the game in its place", () => {
+    const places = LEVEL_SETS.map((set) => [set.id, placeOf(set)]);
+
+    expect(Object.fromEntries(places)).toEqual({
+      basics: "playroom",
+      steel: "workshop",
+      tricks: "funfair",
+    });
+  });
+
+  it.each(["garden", "arcade"])("takes a set in the %s", (place) => {
+    expect(placeOf({ ...SET, place })).toBe(place);
+  });
+
+  it("names a place no set can be in", () => {
+    expect(() => placeOf({ ...SET, place: "fun fair" })).toThrow(
+      `Set "spec": its place, "fun fair", is no place.`,
+    );
+  });
+});
+
 describe("levelsOf", () => {
   /** Returns a set of levels of one brick each, named by their ids. */
   function setOf(id: string, levelIds: readonly string[]): LevelSetData {
     return {
       id,
       name: id,
+      place: "playroom",
       drops: 0,
       levels: levelIds.map((levelId) => ({
         id: levelId,

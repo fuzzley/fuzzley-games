@@ -30,6 +30,7 @@ const LEVELS = levelsOf([
   {
     id: "set",
     name: "Set",
+    place: "playroom",
     drops: 0,
     levels: [
       { id: "mixed", name: "Mixed", capsules: [], bricks: ["o3#~+*o~....."] },
@@ -39,6 +40,7 @@ const LEVELS = levelsOf([
   {
     id: "crowds",
     name: "Crowds",
+    place: "playroom",
     drops: 0.25,
     levels: [
       {

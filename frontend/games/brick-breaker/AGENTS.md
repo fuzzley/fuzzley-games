@@ -180,22 +180,23 @@ takes for the specs' helpers.
   bricks and counts kept over a new field of the level. `run.ts`'s
   `nextLifeAfter()` gives the mark the next life comes at from a score,
   through `@fz/core/math`'s `nextMarkAfter()`, which a kept run's must match.
-- **`src/rules/levels/`** — the levels: a JSON file for each set of
-  levels, its name, its chance of a capsule and its levels, each a picture
-  of its bricks in the characters of `legend.ts`'s shared legend, with any
-  of its own, and, for a picture, a grid of tints: `basics.json`, levels 1
-  to 10, `steel.json`, 11 to 20, and `tricks.json`, 21 to 30.
-  `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every level
-  from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one into
-  a `Level` (`level.ts`) to play, or throws an error that names what is
-  wrong with its data. A level's data names the layout its bricks are in
-  (`layout`, which `layoutOf()` reads), a whole number from 1, the first
-  (`FIRST_LAYOUT`) where it names none; a redraw raises it, so the bests
-  made on the one before are let go, and the level keeps its id. Its spec
+- **`src/rules/levels/`** — the levels: a JSON file for each set of levels,
+  its name, its place, its chance of a capsule and its levels, each a picture
+  of its bricks in the characters of `legend.ts`'s shared legend, with any of
+  its own, and, for a picture, a grid of tints: `basics.json`, levels 1 to 10,
+  `steel.json`, 11 to 20, and `tricks.json`, 21 to 30. `levels.ts` lists the
+  sets in order (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, through
+  `levelsOf()`), and `parseLevel()` turns one into a `Level` (`level.ts`) to
+  play, or throws an error that names what is wrong with its data. A level's
+  data names the layout its bricks are in (`layout`, which `layoutOf()`
+  reads), a whole number from 1, the first (`FIRST_LAYOUT`) where it names
+  none; a redraw raises it, so the bests made on the one before are let go,
+  and the level keeps its id. `placeOf()` reads the place a set is in, one of
+  `PLACES` (`Place`), or throws for one it can't be in. `levels.ts`'s spec
   holds every level to parsing, ids and names of their own, a brick it needs
-  that a ball can reach, and a pace that never falls within a set; the
-  specs in `every_level/` hold every level to being cleared by the
-  autopilot, as Tests below says.
+  that a ball can reach, and a pace that never falls within a set, and every
+  set to its place; the specs in `every_level/` hold every level to being
+  cleared by the autopilot, as Tests below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
