@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, EVENT_EFFECTS, voice, sound, build-sounds, legend, tints, layout, redraw, place, pace, drops, mark, streak mark, report:levels, long level, frontend/games/brick-breaker levels.
+description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, EVENT_EFFECTS, voice, sound, build-sounds, legend, tints, layout, redraw, place, PLACE_ART, backdrop, pace, drops, mark, streak mark, report:levels, long level, frontend/games/brick-breaker levels.
 ---
 
 # Adding to Brick Breaker
@@ -33,6 +33,7 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, needed bricks in reach, a key for a gate, a pace that never falls in a set, every set in its place |
   | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field                            |
   | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette                                          |
+  | The places spec     | `src/view/places/places.spec.ts`    | Every set's place drawn, each tile's commands inside it, and every place dim over the field and the page, in every palette                      |
   | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                                                     |
   | The effects spec    | `src/view/effects/effects.spec.ts`  | Every event's sound and flourishes, and every kind's voice, each written in a record the compiler holds complete                                |
   | The sounds' spec    | `tools/build-sounds.spec.ts`        | The sprite checked in is what `tools/build-sounds.mjs` writes now, its sounds `SOUNDS`, in order                                                |
@@ -110,12 +111,32 @@ Its file in `src/rules/levels/`, with its `id`, `name`, `place` (one of
 `PLACES` in `src/rules/levels/levels.ts`, which `placeOf()` checks:
 `playroom`, `workshop`, `funfair`, `garden` or `arcade`), `drops` (the chance
 of a capsule its levels share) and `levels`, imported in
-`src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. The Levels dialog
+`src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. Its place's look is
+its art in `PLACE_ART` (`src/view/places/places.ts`), which a place new to
+the game needs, as "A Place" below says. The Levels dialog
 shows each set under its name. The levels spec lists each set's place by its
 id, so a new set adds its own there. It holds a set's paces from falling only
 within it, so a new set's paces start where the last set's end, kept so by
 hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
 thought rather than speed starts lower: Friends runs 1.12 to 1.18.
+
+## A Place
+
+- A member of `PLACES` (`src/rules/levels/levels.ts`), its id what a set's
+  `place` names.
+- Its art in `PLACE_ART` (`src/view/places/places.ts`), which the compiler
+  asks for: its `Motif`, in `src/view/places/motifs.ts`, a few shapes about
+  a middle in shares of their size, of which a pick from 0 to 1 chooses one
+  and turns it; whether a drawing board's grid lies under them; and how
+  much of the text it takes over the field and, a little more, over the
+  page.
+- The places spec holds its tile's commands inside it at every scale a
+  field is drawn at, and it to 1.05:1 to 1.2:1 against the field and the
+  page in every palette, so it reads but never competes with what is
+  played; the motifs spec, `src/view/places/motifs.spec.ts`, holds its
+  motif, as it holds every one of `PLACES`, to its ink, to two thirds of
+  its size and to no polyline's corner sharper than `SHARPEST`, as
+  `coverOf()` counts on.
 
 ## A Capsule With an Effect That Exists
 

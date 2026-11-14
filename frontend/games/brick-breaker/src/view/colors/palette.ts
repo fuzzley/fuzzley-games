@@ -87,6 +87,8 @@ export interface BricksPalette {
   readonly wall: number;
   /** The frame around each of the last bricks a level needs, once they glow: the text. */
   readonly glow: number;
+  /** The text, which a place's pattern is washed from over the field (`src/view/places/`). */
+  readonly text: number;
   /** The paddle's body: the accent. */
   readonly paddle: number;
   /** The inks of the paddle's other parts. */
@@ -227,6 +229,7 @@ export function bricksPalette(
     mark: panel,
     wall,
     glow: text,
+    text,
     paddle: accent,
     paddleInks: {
       lip: mixColors(BLACK, accent, PADDLE_LIP_SHADE),
