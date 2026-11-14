@@ -1113,7 +1113,11 @@ workspace's with the others'.
   Paused card's Resume), which the fuse
   clears with no ball launched, the Cleared card at its tallest, every star
   just won and a line for double pay, lies on the field, and the rest holds
-  as above).
+  as above; it gives each page a minute to show the card
+  (`CLEARED_TIMEOUT_MS`), past the 10 s a page is given to draw: Phaser
+  counts a frame as a 60th of a second at most as a game starts, so the fuse
+  and the card's wait take some 90 frames, which Chrome drawing WebGL in
+  software, as CI's does, draws a few a second at 2×).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the seventeen sounds, from the paddle's bop to the
   portal's whoosh, with `@fz/dev/sounds`' synths, its `withBurst()` laying a

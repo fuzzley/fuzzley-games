@@ -163,7 +163,11 @@ Run these from `frontend/games/brick-breaker/`, or as
   (`storedRun()`). `tools/check-layout.mjs` checks the Cleared card
   over one (`CLEARING_RUN`): Fuse with its tough row broken at double pay
   and its fuse lit, which the page goes on with, by its Paused card's
-  Resume, so the fuse clears the level with no ball launched.
+  Resume, so the fuse clears the level with no ball launched. It gives
+  the page a minute to show the card (`CLEARED_TIMEOUT_MS`): Phaser counts
+  a frame as a 60th of a second at most as a game starts, so the fuse and
+  the card's wait take some 90 frames, which Chrome drawing WebGL in
+  software, as CI's does, draws a few a second at 2×.
   `tools/stored_run.spec.ts` holds that run to clearing its level, taken up
   by the rules and stepped with the ball on the paddle, with double pay and
   every star, so a change to Fuse or the blasts fails there, not only in

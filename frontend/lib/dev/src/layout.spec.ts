@@ -189,6 +189,34 @@ describe("checkLayout", () => {
     );
   });
 
+  it("waits for the check's selector as long as the check gives the page", async () => {
+    const browser = browserFinding([]);
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, readyTimeoutMs: 60_000 },
+      ROOMY,
+    );
+
+    expect(evaluatedWith(browser, SETTLE)).toEqual([
+      expect.stringContaining(JSON.stringify(["main", 60_000])),
+    ]);
+  });
+
+  it("throws where nothing matches the check's selector in the time it gives, saying so", async () => {
+    const devtools = new DevToolsConnection(browserFindingIn({ drawn: false }));
+
+    const checking = checkLayout(
+      devtools,
+      { ...CHECK, readyTimeoutMs: 60_000 },
+      ROOMY,
+    );
+
+    await expect(checking).rejects.toThrow(
+      new Error("Nothing matched main in 60000 ms."),
+    );
+  });
+
   it("reports a control of the game bar that runs out of the window", async () => {
     const devtools = new DevToolsConnection(
       browserFindingIn({

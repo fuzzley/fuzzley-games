@@ -159,6 +159,16 @@ const CLEARED_AT = shapesAt(2, [...SHAPES, SMALLEST]);
 const CLEARED_CARD = "app-board .card.cleared";
 
 /**
+ * How long a page has to show the Cleared card: some 90 frames after it
+ * goes on with the run, as Phaser counts each of a game's first 120 frames
+ * as a 60th of a second at most, and any frame slower than a fifth of a
+ * second as the last it counted, and Chrome drawing WebGL in software, as
+ * CI's does, draws the roomy window at twice the pixels a few frames a
+ * second.
+ */
+const CLEARED_TIMEOUT_MS = 60_000;
+
+/**
  * Keeps a run where the game keeps one, and goes on with it, by its Paused
  * card's Resume, once the page has taken it up and drawn its field, in the
  * page before its own scripts. It is sent as its source, so it uses nothing
@@ -227,7 +237,12 @@ async function checkBoth(devtools, url) {
   const waiting = await checkPhaserLayout(devtools, check);
   const cleared = await checkLayout(
     devtools,
-    { ...check, ready: CLEARED_CARD, before },
+    {
+      ...check,
+      ready: CLEARED_CARD,
+      readyTimeoutMs: CLEARED_TIMEOUT_MS,
+      before,
+    },
     CLEARED_AT,
   );
   return [
