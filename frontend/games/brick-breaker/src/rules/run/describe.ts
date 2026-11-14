@@ -1,4 +1,4 @@
-import { count, formatPoints } from "@fz/core/format";
+import { count, formatPoints, listed } from "@fz/core/format";
 import { type CapsuleId, capsule } from "../catalog/capsules";
 import type { LevelEntry } from "../levels/levels";
 import type { Run } from "./run";
@@ -106,13 +106,6 @@ function starWonFor(id: StarId, mark: number): string {
     case "streak":
       return `reaching a streak of ${String(mark)}`;
   }
-}
-
-/** Returns words as a list: "a, b and c". */
-function listed(words: readonly string[]): string {
-  const head = words.slice(0, -1);
-  const last = words.slice(-1).join("");
-  return head.length > 0 ? `${head.join(", ")} and ${last}` : last;
 }
 
 /** Returns what is said as a run pauses. */
