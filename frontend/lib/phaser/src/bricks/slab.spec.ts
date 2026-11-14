@@ -21,7 +21,7 @@ import {
 /** A square tile's cell, 50 device pixels a side. */
 const SQUARE: Area = { x: 0, y: 0, width: 50, height: 50 };
 
-/** A brick's cell twice as wide as tall, 200 device pixels by 100, as the uplift's art kit draws one. */
+/** A brick's cell twice as wide as tall, 200 device pixels by 100, as Brick Breaker's is. */
 const WIDE: Area = { x: 0, y: 0, width: 200, height: 100 };
 
 const INK = 0x3366cc;

@@ -75,9 +75,9 @@ Its block in a set's file:
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
   3 amber, 4 green, 5 teal, 6 blue, 7 violet and 8 pink. Steel, blast,
-  gift and regrowing bricks, cages, keys and gates are drawn in colors of
-  their own, whatever their tint; a tough or plated brick takes its tint a
-  little deeper. By
+  gift and regrowing bricks, cages, keys, gates and bumpers are drawn in
+  colors of their own, and portals in their pair's, whatever their tint; a
+  tough or plated brick takes its tint a little deeper. By
   custom a picture leaves steel `.`, as Finale does, and marks a blast or
   gift brick with the tint of the part it sits in, as Rocket does, so the
   grid reads as the picture. Changing tints changes no play, so no bests:
@@ -116,7 +116,7 @@ Then:
    redraw sets it again; a star won under the old mark is kept
    (`src/rules/run/stars.ts`).
 
-What drags an endgame, as the levels so far have shown: bricks above steel,
+What drags an endgame, as the levels have shown: bricks above steel,
 a channel one cell wide at a wall, the inner corners of an enclosure, a
 corridor two rows high between steel, and bricks shaded from below by a
 single steel cell. A steel floor under bricks traps the ball above them,
@@ -155,10 +155,10 @@ Two bumpers whose middles lie on a line flatter than the flattest a ball
 travels (`FLATTEST`, 20°), near enough that a ball leaving one at the
 flattest still meets the other, can hold a ball between them: it bounces
 back and forth at the flattest, and each turn of the nudge flatter is undone
-as the ball is held to it. Pinball's draft had two 6 units apart at 18°,
-and a play that bounced there for minutes; with its lowest bumper a row
-lower, at 27°, none did. Its two level with each other, 12 units apart,
-can't: a ball leaving one at the flattest passes the other 4.4 units off
+as the ball is held to it. Pinball's lowest bumper lies 6 units across
+from each of the other two and three rows below them, on a line of 27°, so
+it holds no ball with either. Its two level with each other, 12 units
+apart, can't: a ball leaving one at the flattest passes the other 4.4 units off
 its middle, far beyond the 0.86 it meets the disc at.
 
 ## A Set
@@ -169,7 +169,7 @@ Its file in `src/rules/levels/`, with its `id`, `name`, `place` (one of
 of a capsule its levels share),
 `nudge`, where a lull's nudge turns a ball in its levels (`NUDGES` in
 `src/rules/levels/level.ts`: `walls`, the default, or `unbreakable`, off
-anything that can't break, as Machines and every set after it nudges, so a
+anything that can't break, as Machines does and a set after it would, so a
 ball looping off steel or bumpers is turned out of its loop, unless two
 bumpers hold it at the flattest, as above),
 and `levels`, imported in
@@ -177,7 +177,8 @@ and `levels`, imported in
 its art in `PLACE_ART` (`src/view/places/places.ts`), which a place new to
 the game needs, as "A Place" below says. The Levels dialog
 shows each set under its name. The levels spec lists each set's place by its
-id, so a new set adds its own there, and its nudge beside it. It holds a set's paces from falling only
+id, in `placeOf`'s spec, and its nudge, in another, so a new set adds its
+own to both. It holds a set's paces from falling only
 within it, so a new set's paces start where the last set's end, kept so by
 hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
 thought rather than speed starts lower: Friends runs 1.12 to 1.18.
@@ -206,12 +207,13 @@ Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
 
 ## A Capsule With an Effect That Exists
 
-- Its entry in `CAPSULES`: its `name` and `about`, its `tone` (`bad` ones
-  never fall at Relaxed), its `weight` against the others in a pool, the
-  level it first falls `from`, and its `effect`. A bad one `pays` 2: bricks
-  pay double while its effect is in play, after the streak's multiplier,
-  which its `about` says ("pay double"), and its effect lasts a time, as the
-  catalog spec holds; a good one leaves `pays` out.
+- Its entry in `CAPSULES`, among the others by its `from`, as the catalog
+  spec holds them in the order they join the pool: its `name` and `about`,
+  its `tone` (`bad` ones never fall at Relaxed), its `weight` against the
+  others in a pool, the level it first falls `from`, and its `effect`. A bad
+  one `pays` 2: bricks pay double while its effect is in play, after the
+  streak's multiplier, which its `about` says ("pay double"), and its effect
+  lasts a time, as the catalog spec holds; a good one leaves `pays` out.
 - Its symbol in `SYMBOLS` (`src/view/art/symbols.ts`), drawn in a square
   in shares of it, reaching no further than its edges, which the compiler
   asks for; its tag under the paddle is drawn from the same. Its tone's
@@ -295,9 +297,11 @@ Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
   (`EVERY_KIND`) holds one of. A kind knocks as it holds and bloops as it
   breaks, or rings as steel if it never breaks; one that sounds in a voice
   of its own takes its line in `VOICES` (`src/view/effects/effects.ts`),
-  and a sound of its own is a recipe in `tools/build-sounds.mjs` and a name
-  at the end of `SOUNDS`, written into the sprite by `yarn build:sounds`.
-  A broken brick's sound, whichever, rises along the streak.
+  and a sound of its own is a recipe at the end of `RECIPES`
+  (`tools/build-sounds.mjs`) and its name at the end of `SOUNDS`
+  (`effects.ts`), in the same order, written into the sprite by
+  `yarn build:sounds`. A broken brick's sound, whichever, rises along the
+  streak.
 - A level that brings it in: the catalog spec fails while a kind is used by
   none.
 

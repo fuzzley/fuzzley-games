@@ -246,15 +246,16 @@ takes for the specs' helpers.
   records, each speed's runs, best score and furthest level, and each level's
   best points at each speed, with the layout they were made on (`layouts`).
   `statsOf()` reads them as stored, keeping what makes sense and the bests of
-  a level the game still has made on the layout it has now, as bests stored
-  with no layout were made on the first. `withRunStarted()`, `withRunEnded()`
-  and `withLevelPoints()` (through `@fz/core/json`'s `withHigherCount()`),
-  which keeps the layout too, move them on, and `isNewBest()` says whether a
-  run's score beats the best. `stars.ts` holds the stars each level has won
-  (`StarsRecord`), as bits of `STAR`: clearing it, clearing it clean,
-  without losing a life (`isCleanClear()`, `scoring.ts`'s, as the
-  clearing's bonus is, over `livesLost`, which a run taken up keeps), and
-  reaching its mark (`bestStreak`, at `Level.mark` or past). `starsWon()` says what a level's play has won once it is cleared,
+  a level the game still has made on the layout it has now, a best stored
+  with no layout counting as made on the first. `withRunStarted()`,
+  `withRunEnded()` and `withLevelPoints()` (through `@fz/core/json`'s
+  `withHigherCount()`), which keeps the layout too, move them on, and
+  `isNewBest()` says whether a run's score beats the best. `stars.ts` holds
+  the stars each level has won (`StarsRecord`), as bits of `STAR`: clearing
+  it, clearing it clean, without losing a life (`isCleanClear()`,
+  `scoring.ts`'s, as the clearing's bonus is, over `livesLost`, which a run
+  taken up keeps), and reaching its mark (`bestStreak`, at `Level.mark` or
+  past). `starsWon()` says what a level's play has won once it is cleared,
   at any speed; `withStars()` adds them to what the level holds
   (`starsHeld()`), so a star once won is kept for good, through a redraw
   and a new mark; `starsIn()` names the stars among some bits, in
@@ -272,11 +273,12 @@ takes for the specs' helpers.
   bricks and counts kept over a new field of the level, counting its keys
   left anew.
   It keeps each brick at its home, with the cell it stands in and the way
-  it heads, and puts it back there (`placeBricks()`), leaving out a brick
-  out of its row, two in one cell, or a whole one away from home that
-  neither slides nor grew back where a train left it. `run.ts`'s
-  `nextLifeAfter()` gives the mark the next life comes at from a score,
-  through `@fz/core/math`'s `nextMarkAfter()`, which a kept run's must match.
+  it heads, and puts it back there (`sliders.ts`'s `placeBricks()`),
+  leaving out a brick out of its row, two in one cell, or a whole one
+  away from home that neither slides nor grew back where a train left it.
+  `run.ts`'s `nextLifeAfter()` gives the mark the next life comes at from a
+  score, through `@fz/core/math`'s `nextMarkAfter()`, which a kept run's must
+  match.
 - **`src/rules/levels/`** — the levels: a JSON file for each set of levels,
   its name, its place, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any of
@@ -291,8 +293,8 @@ takes for the specs' helpers.
   (`FIRST_LAYOUT`) where it names none; a redraw raises it, so the bests made
   on the one before are let go, and the level keeps its id. It names the
   streak its third star asks for too (`mark`, `Level.mark`), a whole number
-  from 1, which `yarn report:levels --marks` sets for every level by one
-  rule, as Development Commands says. `placeOf()` reads
+  from 1, copied from what `yarn report:levels --marks` prints for every
+  level by one rule, as Development Commands says. `placeOf()` reads
   the place a set is in, one of `PLACES` (`Place`), or throws for one it can't
   be in.
   A set's `nudge`, one of `NUDGES` (`level.ts`), says where a lull's nudge
@@ -803,7 +805,7 @@ takes for the specs' helpers.
     as Resume goes on, and asks the app for the levels, How to play and the
     settings.
   - `levels/` — the Levels dialog: a line saying what the stars are won
-    for, that they open nothing (decision 6), and how many every level
+    for, that they open nothing, and how many every level
     holds of all there are; each set under its name, with the count of its
     levels' stars beside it, its levels as buttons in a grid, named by
     number and name ("3 Pyramid"), then a tick once cleared, its three
@@ -853,12 +855,12 @@ takes for the specs' helpers.
     `ProgressService`, the levels cleared, at any speed, which open the
     levels after them; and `StarsService`, the stars each level has won,
     read through `starsRecordOf()` with the progress, so a level cleared
-    before stars were kept holds its first, each kept for good through
+    holds its first whatever the record says, each kept for good through
     `withStars()` (`recordWon()`, which returns those the level didn't
     hold), and named in their order (`heldBy()`).
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
-    `_index.scss`, the toolkit every component `@use`s, which emits no
-    CSS.
+    `_index.scss`, the toolkit every component but the app `@use`s, which
+    emits no CSS.
 
   A new feature gets a folder of its own, named for what it does, never for
   the kind of code in it.
@@ -913,11 +915,13 @@ takes for the specs' helpers.
   board calls from its canvas), since a level nobody can see would be lost.
 - **Its colors are the palette's and the tiles' inks.** `bricksPalette()`
   takes the field, its wall, the paddle, the balls, the capsules, the
-  steel, blast and gift bricks and the inks of their marks from the page's
-  roles, which `ThemeService` reads, and the bricks' tints, a regrowing
-  brick's earth and moss among them, from `@fz/phaser/color`'s
-  `TILE_INKS`, eight for light palettes and eight for dark;
-  `src/view/colors/contrast.spec.ts` holds them apart in every palette.
+  steel, blast, gift, cage, key, gate and bumper bricks and the inks of
+  their marks from the page's roles, which `ThemeService` reads, and the
+  bricks' tints, a regrowing brick's earth and moss and each pair of
+  portals' ring among them, from `@fz/phaser/color`'s `TILE_INKS`, eight
+  for light palettes and eight for dark, and the friends' inks from its
+  `FUZZBALL_INKS`; `src/view/colors/contrast.spec.ts` holds them apart in
+  every palette.
 - **The field takes the board's shape as it waits to serve.** On a board
   with room for more than 30 units of height, at the unit its width allows,
   over a finger's room to steer by, the field grows to as many as fit, up
@@ -948,10 +952,11 @@ takes for the specs' helpers.
 
 ## Styling
 
-Every component stylesheet opens with `@use "../styles" as *;`, which
-brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints and bar
-mixins, and nothing else. The frontend's Angular and Sass rules apply; on
-top of them:
+Every component stylesheet but the app's opens with
+`@use "../styles" as *;`, which brings in `@fz/style`'s mixins and
+`@fz/game-ui`'s breakpoints and bar mixins, and nothing else; the app's
+takes `@fz/game-ui` alone, for its page frame. The frontend's Angular and
+Sass rules apply; on top of them:
 
 - **No color is written in a stylesheet.** The field's are the palette's
   and the inks', which the scene draws, and the placeholder draws with the
@@ -974,29 +979,28 @@ can't trust rather than failing:
   the furthest level reached; and for each level's id, its best points at
   each speed it was cleared at, and the layout they were made on. Ids no
   level has any more are dropped, and so are a level's bests made on another
-  layout than its own, as a redrawn level's are; bests stored before the
-  layouts were kept read as made on the first, so the entry's version
-  stayed.
+  layout than its own, as a redrawn level's are; a best stored with no
+  layout reads as made on the first, so the entry reads either shape at
+  its one version.
 - `brick-breaker-progress`: the ids of the levels cleared, at any speed,
   which open the levels after them. Ids no level has any more are dropped.
 - `brick-breaker-stars`: for each level's id, the stars it has won, as bits
   of `STAR` (clear 1, clean 2, streak 4), each kept for good once won, at
   any speed, whatever its layout or mark later becomes. Ids no level has
   any more are dropped, and so are bits no play wins; a level the progress
-  holds cleared reads as holding its first star, so one cleared before
-  stars were kept shows it. Its version is 1 (`STARS_VERSION`, beside its
+  holds cleared reads as holding its first star, whatever the entry says.
+  Its version is 1 (`STARS_VERSION`, beside its
   key, `STARS_KEY`).
 - `brick-breaker-game`: the run under way and its level's bricks, each
   brick's hits left, whether it is broken or shown (an open gate is kept
-  broken), and the steps its blast
-  and its regrowth are due at, with the field's count of steps, its draws,
+  broken), the cell it stands in and the way it heads, and the steps its
+  blast and its regrowth are due at, with the field's count of steps, its draws,
   how far the balls' speed has climbed, what the streaks and double pay
   added, the balls that have left the paddle since a brick the level needs
   broke, and the longest streak of the level's play. The balls in flight,
-  the capsules and the effects are not kept (decision 16), nor whether a
-  ball seeks. Its version is 2: a run kept under 1, by the rules before
-  double pay, the seeker and the gates, is dropped rather than played by
-  rules it wasn't played by.
+  the capsules and the effects are not kept, nor whether a
+  ball seeks. Its version is 2 (`SAVED_GAME_VERSION`): a run kept under
+  another is dropped rather than played by rules it wasn't played by.
 
 ## In This Repository
 
@@ -1049,15 +1053,16 @@ workspace's with the others'.
   their JSDoc).
 - **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
   the autopilot plays every level at every preset speed, all but Custom, from
-  the level's number as the seed, as the autopilot's spec does, through
+  the level's number as the seed, as the specs in
+  `src/rules/levels/every_level/` do, through
   `playLevel()`, and it prints the game time each took, the time spent on the
   last three bricks the level needed, the paddle's bounces, the lives lost,
   the longest streak, the most bricks broken since the paddle last met a
   ball, and the longest the play went between two touches of the paddle,
   any ball meeting it or leaving it, or from the last to its end
   (`longestAway`), the longest the paddle had no ball to meet; it fails, as
-  the spec does, if a play didn't clear its level (`-`) or took longer over
-  its last bricks than the spec allows (`!`), and marks, failing on none, a
+  they do, if a play didn't clear its level (`-`) or took longer over its
+  last bricks than they allow (`!`), and marks, failing on none, a
   play that went past a minute between two touches of the paddle (`^`), one
   that hangs, its only ball held out of reach or circling what can't
   break). It is how the difficulty ramp is tuned. `--seeds <n>` plays each
@@ -1071,8 +1076,7 @@ workspace's with the others'.
   level not cleared. `--height <n>` plays them on a
   field that many units tall, up to 45, to the autopilot's limits for that
   height, stretched as far as the paddle lies farther from the bricks
-  (`limitsOf()`), and fails, as the spec does there, only on a level not
-  cleared. `--marks` prints each level's mark, the streak its third star
+  (`limitsOf()`), and fails only on a level not cleared. `--marks` prints each level's mark, the streak its third star
   asks for, by the one rule that sets every level's (`MARK_RULE`): the
   middle of its best streaks from 12 seeds at Normal on the least field,
   rounded down to a multiple of 5, and 5 at least; it fails only on a level
@@ -1147,9 +1151,9 @@ report's, the screenshots' script's, the stored runs' and the sounds' in
 `tools/`, in Node too, which has no page, as nothing they test touches one. `dom` runs every other spec, the scene's, the shell's and
 `src/testing/`'s, in jsdom, after `src/test-setup.ts`, which installs
 `@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs
-real Phaser through `runScene()`, with a fake shell over a pictured field.
-Coverage measures `dom` and `pure` together, leaving `src/testing/` and
-`tools/` out. This workspace's `brick-breaker-testing`
+real Phaser through its `runKeyedScene()`, with a fake shell over a
+pictured field. Coverage measures `dom` and `pure` together, leaving
+`src/testing/` and `tools/` out. This workspace's `brick-breaker-testing`
 skill covers its setup, floors and fixtures, the repository's
 `angular-testing` the patterns every Angular workspace's specs share, and
 `phaser-core` the harness. What the specs share is in `src/testing/`:

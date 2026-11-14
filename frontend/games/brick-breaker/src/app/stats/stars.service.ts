@@ -18,8 +18,8 @@ const STARS_VERSION = 1;
 
 /**
  * Keeps the stars each level has won, each kept for good once won, at any
- * speed; a level cleared before stars were kept holds its first, from the
- * progress.
+ * speed; a level the progress holds cleared holds its first star, whatever
+ * the record says.
  */
 @Injectable({ providedIn: "root" })
 export class StarsService {

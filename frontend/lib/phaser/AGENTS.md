@@ -150,17 +150,16 @@ take the pure ones.
   them as one with it. It imports
   nothing but `shapes` and `@fz/style/fuzzball`.
 - `src/bricks/`: what a brick game draws a brick with, in the shapes'
-  commands, which Brick Fuzz Pop's tiles are drawn through.
-  `slabCommands()` draws the slab a brick stands on, a body with a darker
-  lip along its foot and a lighter strip along its top, laid out by a
-  `SlabShares`, each length a share of its cell's short side, so a square
+  commands, which Brick Fuzz Pop's tiles and Brick Breaker's bricks are
+  drawn through. `slabCommands()` draws the slab a brick stands on, a body
+  with a darker lip along its foot and a lighter strip along its top, laid out
+  by a `SlabShares`, each length a share of its cell's short side, so a square
   tile and a brick twice as wide as tall take the same code: `TILE_SLAB` is
-  Brick Fuzz Pop's tile, and `BRICK_SLAB` a brick two units wide and one
-  tall as Brick Breaker's uplift's art kit draws one. `slabBody()`,
-  `slabFace()` and `slabRadius()` give its body, its body above the lip and
-  its corners' radius, which a mark laid over it follows, and `topCap()`
-  the polygon over a body's top, round its corners, down to a foot, that a
-  cap of moss is cut from. `showsDetail()`
+  Brick Fuzz Pop's tile, and `BRICK_SLAB` Brick Breaker's brick, two units
+  wide and one tall. `slabBody()`, `slabFace()` and `slabRadius()` give its
+  body, its body above the lip and its corners' radius, which a mark laid over
+  it follows, and `topCap()` the polygon over a body's top, round its corners,
+  down to a foot, that a cap of moss is cut from. `showsDetail()`
   says whether a brick so many units wide is drawn wide enough, 30 CSS
   pixels, for its finest detail. `src/bricks/marks.ts` draws the marks over
   a slab, their inks handed in. Those that stand in a square are laid out

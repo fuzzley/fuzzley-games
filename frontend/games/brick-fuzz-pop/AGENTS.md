@@ -465,15 +465,15 @@ helpers.
     (`<fz-canvas-cards>`), projected into it, show one, keeps its buttons'
     keys from Phaser's keyboard, and hands on each press.
   - `panels/` — the two panels beside a wide room's field, each a region
-    named by its heading, taking no pointer and no size of its own, to be
-    laid over its room with `cssRectStyle()`: Coming next,
-    `<app-coming-next>`, the level's number and name, the rows waiting over
-    the ceiling as squares in each brick's ink, hidden from assistive
-    technology beside a sentence counting them, and what a jump earns; and
-    In this wall, `<app-in-this-wall>`, each kind of brick the wall holds,
-    through `helpEntries()`, with its picture once the scene has drawn it,
-    the friends freed, and the boon's badge, lit through `lit` while the
-    shot being aimed carries it. `panels.ts` reads the wall for both
+    named by its heading, wearing `@fz/style`'s `board-panel`, so it takes
+    no pointer and no size of its own, to be laid over its room with
+    `cssRectStyle()`: Coming next, `<app-coming-next>`, the level's number and
+    name, the rows waiting over the ceiling as squares in each brick's ink,
+    hidden from assistive technology beside a sentence counting them, and what
+    a jump earns; and In this wall, `<app-in-this-wall>`, each kind of brick
+    the wall holds, through `helpEntries()`, with its picture once the scene
+    has drawn it, the friends freed, and the boon's badge, lit through `lit`
+    while the shot being aimed carries it. `panels.ts` reads the wall for both
     (`waitingRows()`, `kindsIn()`).
   - `settings/` — the settings drawer, `<app-settings>`: how a pointer aims
     (pointing and holding, or pulling back, the mouse and fingers alike; a

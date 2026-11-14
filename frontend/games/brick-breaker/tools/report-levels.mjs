@@ -27,8 +27,8 @@
  * endgame, the most lives lost, the middle of the longest streaks and the
  * longest any play went between two touches of the paddle, since the
  * capsules one seed lets fall can make a level look far easier or harder
- * than it is. It still marks and counts the endgames longer than the spec
- * allows, but fails only on a play that doesn't clear its level: across
+ * than it is. It still marks and counts the endgames longer than the specs
+ * allow, but fails only on a play that doesn't clear its level: across
  * many seeds, a few plays are unlucky however a level is drawn. On the
  * least field, it marks a level whose middle time at Relaxed, as printed,
  * is past 2:00 (`+`), as no level should be longer than its set there, and
@@ -38,7 +38,8 @@
  * as a tall screen lays it out, from the least height to the tallest, to
  * the autopilot's limits for that height (`limitsOf()`). It marks the
  * endgames longer than those allow, but fails only on a play that doesn't
- * clear its level, as the spec holds the tallest field.
+ * clear its level, as the specs hold the tallest field to no endgame's
+ * limit.
  *
  * With `--marks`, it prints the mark each level's data should hold, the
  * streak its third star asks for, by the one rule that sets every mark:
@@ -73,7 +74,7 @@ import {
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /**
- * The rule `--marks` sets each level's mark by: the middle of its best
+ * The rule `--marks` gives each level's mark by: the middle of its best
  * streaks from `seeds` seeds at `speed`, rounded down to a multiple of
  * `step`, and `step` at least.
  */
@@ -179,7 +180,7 @@ const HANGING_SECONDS = 60;
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} height How tall the field is played.
  * @property {boolean} tallerField Whether the field is taller than the
- *   least, which the spec holds to no endgame's limit, and on which `+`
+ *   least, which the specs hold to no endgame's limit, and on which `+`
  *   marks nothing.
  * @property {number} endgameLimit The most steps a play's endgame may take on that field.
  * @property {(entry: LevelEntry, speed: string, seed: number) => AutopilotReport} playLevel
@@ -397,7 +398,7 @@ function heightOf(height, rules) {
 
 /**
  * Returns an endgame's steps as the game time it takes, marked `!` when it
- * is longer than the spec allows.
+ * is longer than the specs allow.
  *
  * @param {number} steps
  * @param {Game} game
@@ -425,7 +426,7 @@ function endgameOf(steps, game) {
 function report(game, seeds, print) {
   const limit = game.tallerField
     ? `a field ${String(game.height)} tall allows`
-    : "the spec allows";
+    : "the specs allow";
   return printReport(
     {
       entries: game.levels,

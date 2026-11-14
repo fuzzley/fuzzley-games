@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-testing
-description: How Brick Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom and throwBall, the autopilot that holds every level to being cleared, the saved game's round trip, the scene run for real with runScene and a FakeShell, the shell's specs on its small levels through provideSpecLevels and tick, and the contrast spec over every palette. Triggers on: brick breaker spec, brick breaker test, fieldFrom, throwBall, playWithoutBall, autopilot spec, playLevel, FakeShell, startBoard, provideSpecLevels, SPEC_LEVEL, playToClear, keptRun, SCREENSHOT_API, script_api, shownRun, CLEARING_RUN, storedRun, stored_run, check-layout, brick breaker coverage, frontend/games/brick-breaker tests.
+description: How Brick Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom and throwBall, the autopilot that holds every level to being cleared, the saved game's round trip, the scene run for real with runKeyedScene and a FakeShell, the shell's specs on its small levels through provideSpecLevels and tick, and the contrast spec over every palette. Triggers on: brick breaker spec, brick breaker test, fieldFrom, throwBall, playWithoutBall, autopilot spec, playLevel, FakeShell, startBoard, runKeyedScene, provideSpecLevels, SPEC_LEVEL, playToClear, keptRun, SCREENSHOT_API, script_api, shownRun, CLEARING_RUN, storedRun, stored_run, check-layout, brick breaker coverage, frontend/games/brick-breaker tests.
 ---
 
 # Testing Brick Breaker
@@ -55,11 +55,12 @@ Run these from `frontend/games/brick-breaker/`, or as
     `src/` runs in jsdom rather than in neither. `src/testing/` is its, not
     `pure`'s, as `play.ts` hands the game Angular's providers.
 - A spec sits beside the file it tests, named after it, and its folder
-  sets its project. One of the rules or the view has no page, so what
-  needs one is the scene's or the shell's to test. Their code must hold
-  nothing Analog's plugin must compile, such as a decorated class: `dom`
-  compiles it with Vite's oxc, as `pure` does, so that coverage counts it
-  once (`frontend/lib/dev/AGENTS.md`).
+  sets its project, but for `src/rules/levels/autopilot.spec.ts`, which
+  tests `src/testing/autopilot.ts` in `pure`. One of the rules or the view
+  has no page, so what needs one is the scene's or the shell's to test. Their
+  code must hold nothing Analog's plugin must compile, such as a decorated
+  class: `dom` compiles it with Vite's oxc, as `pure` does, so that coverage
+  counts it once (`frontend/lib/dev/AGENTS.md`).
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and gives each
@@ -132,8 +133,10 @@ Run these from `frontend/games/brick-breaker/`, or as
 ## The Saved Game
 
 - `src/rules/run/saved_game.spec.ts` builds its fields on three levels of its
-  own: one of every kind, a row, and a crowd of every brick that changes as
-  it is played.
+  own: plain, tough, steel, hidden, regrowing and blast bricks in a row; a
+  row of plain bricks; and a crowd of tough, hidden, regrowing and blast bricks
+  over a row of blast bricks, a key between two gates and two trains of
+  sliders.
 - Its round trip plays the crowd in takes of 7 steps, keeping, reading back
   and taking up the run and its field at each, and expects every state a
   take-up must keep to have been reached: a fuse lit, a ghost shown, a
@@ -196,7 +199,7 @@ Run these from `frontend/games/brick-breaker/`, or as
 ## The Scene
 
 `src/scene/bricks_scene.spec.ts` runs the real scene in a headless Phaser
-game through `runScene()`:
+game through `@fz/phaser/testing`'s `runKeyedScene()`:
 
 - `FakeShell` plays the shell's part of `BricksSceneOptions`: it hands the
   scene a field (`showField(rows)` for a new one, as a level starts), a
@@ -269,8 +272,9 @@ game through `runScene()`:
   (`installFakeViewport()`, `setCoarsePointer(true)` for a touch screen),
   which takes itself off after.
 - A saved game is stored before the service starts: `SavedGameService`'s
-  spec writes `brick-breaker-game` through the rules' `saveGame()`, then
-  injects it, as `main.ts` does on load. The app's spec renders the app as
+  spec plays a game the service keeps, or writes one into its memory
+  storage, then resets the TestBed and injects the service again, as
+  `main.ts` does on load. The app's spec renders the app as
   `main.ts` starts it, over a stored run, on fake timers (`setTimeout` and
   `clearTimeout` alone), and moves them on by `@fz/ui/announcer`'s
   `ARRIVAL_MS` for the live region to say where the run stands, rather

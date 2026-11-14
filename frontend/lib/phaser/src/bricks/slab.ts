@@ -41,7 +41,7 @@ export const TILE_SLAB: SlabShares = {
   stripLight: 0.22,
 };
 
-/** A brick two units wide and one tall, as Brick Breaker's uplift's art kit draws one: rounder than the tile, with a deeper strip and lip, and its lip a little darker. */
+/** Brick Breaker's brick, two units wide and one tall: rounder than the tile, with a deeper strip and lip, and its lip a little darker. */
 export const BRICK_SLAB: SlabShares = {
   gap: 0.04,
   corner: 0.16,
