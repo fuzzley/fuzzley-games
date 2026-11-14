@@ -59,6 +59,12 @@ describe("IconComponent", () => {
     expect(icon.querySelector("svg")).not.toHaveClass("filled");
   });
 
+  it("outlines the star not yet won, which stands beside a filled one", async () => {
+    const icon = await renderIcon("star-outline");
+
+    expect(icon.querySelector("svg")).not.toHaveClass("filled");
+  });
+
   it("is hidden from assistive technology", async () => {
     const icon = await renderIcon("time");
 

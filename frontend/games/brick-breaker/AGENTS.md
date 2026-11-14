@@ -197,8 +197,9 @@ takes for the specs' helpers.
   gained and lost (`describeLives()`, from the run before and after), the
   last few bricks, the gates opened (`describeOpened()`), a clearing, a
   pause, going on and the end; `endTitle()` says what an ended
-  run is called; and `formatCustomPercent()` writes Custom's ball speed as
-  its sliders read it, "150% of Normal". The announcer, the bar, the cards,
+  run is called; `starAsks()` what each of a level's stars asks, "Reach a
+  streak of 15" naming its mark; and `formatCustomPercent()` writes Custom's
+  ball speed as its sliders read it, "150% of Normal". The announcer, the bar, the cards,
   the result, the levels and How to play all write points grouped in
   thousands, "4,250", with `@fz/core/format`'s `formatPoints()`.
   `progress.ts` says which levels a run may start at (`isOpen()`): the first,
@@ -503,8 +504,8 @@ takes for the specs' helpers.
     `tick()`, which the scene's frames drive, steered as the player steers,
     launches, fires, pauses, goes on and starts levels and runs, says what
     happened through `@fz/ui/announcer`, adds up a cleared level's points
-    (`tally`), keeps the records and the levels cleared through `stats/`,
-    and calls for the chime for a life the points brought and for a new best
+    (`tally`), keeps the records, the levels cleared and the stars won
+    through `stats/`, and calls for the chime for a life the points brought and for a new best
     as its card opens (`chimes`). It extends `@fz/game-ui/run_lifecycle`'s
     `RunLifecycle`, which holds what every game's run does around its play:
     the keys' `command()`, to which `GameService` adds `launch`, going on to
@@ -520,7 +521,10 @@ takes for the specs' helpers.
     `nextLifeAt`), the kinds of brick in the level, each new where it is
     the first to hold it (`kindsHere`), the capsules that can fall in it at
     the speed in play (`capsulesHere`) and the level after it
-    (`levelAfter`).
+    (`levelAfter`); and for the stars, the level's mark (`mark`), the stars
+    it holds (`starsHeld`), the longest streak of its play (`bestStreak`)
+    and, once it is cleared, the stars it won that it didn't hold before
+    (`newStars`), for its card.
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
     the levels (`GAME_LEVELS`); the seeds come from `@fz/game-ui/random`'s
     `GAME_RANDOM`.
@@ -533,14 +537,15 @@ takes for the specs' helpers.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty field and the paddle drawn in CSS until the scene has drawn; the
     focus ring; the pointer hidden while a ball is in play; and the cards:
-    Ready, with the level, how to launch and, as the level opens, each kind
-    of brick new in it (the first by number to hold it), its picture, name
-    and line, the line left out on a small field, whenever a ball waits on
-    the paddle,
-    between the bricks and the paddle, raised where it is too tall for the
-    gap so it never covers the ball; Paused; Cleared, with how the level's
-    points added up, a line for double pay only where it paid, and Next
-    level; Ended, once an ended run's result is put away; and, in their
+    Ready, with the level, how to launch and, as the level opens, its stars
+    (`stars/`) and each kind of brick new in it (the first by number to
+    hold it), its picture, name and line, the line left out on a small
+    field, whenever a ball waits on the paddle, between the bricks and the
+    paddle, raised where it is too tall for the gap so it never covers the
+    ball; Paused; Cleared, with the level's stars, those just won marked new
+    and the play's best streak beside a streak's star not won, over how the
+    level's points added up, a line for double pay only where it paid, and
+    Next level; Ended, once an ended run's result is put away; and, in their
     place, the canvas's own (`@fz/phaser/canvas`'s
     `<fz-canvas-cards>`): still loading, which a status region in the page
     from the start says to a screen reader, and couldn't be drawn. The
@@ -578,7 +583,7 @@ takes for the specs' helpers.
     `cssRectStyle()`, each part one element under it, so a panel under 400
     px tall keeps the first two (`board-panel($compact: true)`): the bench,
     `<app-bench>`, the level's number, set and name over a pip for each
-    level of its set, the lives waiting, each a fuzzball on a plank, and
+    level of its set and its stars (`stars/`), the lives waiting, each a fuzzball on a plank, and
     the score the next comes at, and the level after this one, its bricks
     drawn in their tints, hidden from assistive technology, with its name
     and its kinds; and in play, `<app-in-play>`, the streak's multiplier,
@@ -590,6 +595,14 @@ takes for the specs' helpers.
     them moves between the game's signals. `panels.ts` reads the levels and
     the field for both (`placeInSet()`, `kindsIn()`, `firstLevels()`,
     `kindsHere()`, `capsulesHere()`, `effectsInPlay()`, `nextLifeOf()`).
+  - `stars/` — `<app-stars>`, a level's three stars as a list named
+    "Stars", one under another, each with what it asks (`starAsks()`): one
+    held a filled star in the warning's gold, one not yet won `@fz/ui`'s
+    outline of it, its words muted, so its shape tells it as well as its
+    color, one just won marked New, and, where given, the play's best
+    streak beside the streak's star not won; each star's state is said in
+    words only a screen reader hears, the stars and the marks hidden from
+    it. The bench and the Ready and Cleared cards show it.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, which asks before it starts a run at another (while the
     run is at Custom, its menu offers the slider for the ball's speed
@@ -649,9 +662,13 @@ takes for the specs' helpers.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `src/rules/run/stats.ts` reads and moves on, each speed's runs, best
     score and furthest level, and each level's best points at each speed,
-    with the layout they were made on, which it finds by the level's id; and
+    with the layout they were made on, which it finds by the level's id;
     `ProgressService`, the levels cleared, at any speed, which open the
-    levels after them.
+    levels after them; and `StarsService`, the stars each level has won,
+    read through `starsRecordOf()` with the progress, so a level cleared
+    before stars were kept holds its first, each kept for good through
+    `withStars()` (`recordWon()`, which returns those the level didn't
+    hold), and named in their order (`heldBy()`).
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
     `_index.scss`, the toolkit every component `@use`s, which emits no
     CSS.
@@ -767,6 +784,13 @@ can't trust rather than failing:
   stayed.
 - `brick-breaker-progress`: the ids of the levels cleared, at any speed,
   which open the levels after them. Ids no level has any more are dropped.
+- `brick-breaker-stars`: for each level's id, the stars it has won, as bits
+  of `STAR` (clear 1, clean 2, streak 4), each kept for good once won, at
+  any speed, whatever its layout or mark later becomes. Ids no level has
+  any more are dropped, and so are bits no play wins; a level the progress
+  holds cleared reads as holding its first star, so one cleared before
+  stars were kept shows it. Its version is 1 (`STARS_VERSION`, beside its
+  key, `STARS_KEY`).
 - `brick-breaker-game`: the run under way and its level's bricks, each
   brick's hits left, whether it is broken or shown (an open gate is kept
   broken), and the steps its blast
@@ -870,7 +894,8 @@ workspace's with the others'.
   card's foot lies no lower than `--card-foot` units below the field's
   middle, clear of the ball; and the panels, a deck shown both or neither (`data-panels`), show both wherever
   the room (`data-room`) spares 186 CSS px each side of the field's cells,
-  the gap and the narrowest panel past the wall, and nowhere else).
+  the gap and the narrowest panel past the wall, and nowhere else, each
+  holding the parts it shows, the level's stars among them, whole).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the fifteen sounds, from the paddle's bop to the
   seeker's flutter, with `@fz/dev/sounds` into
@@ -962,6 +987,10 @@ skill covers its setup, floors and fixtures, the repository's
   through `tick()`, with `@fz/core/testing`'s `playUntil()`, steering the
   paddle from the frame it reads (`under()`, `awayFrom()`, `loseBall()`,
   `playToClear()`, `clearToNext()`).
+- `heard.ts` reads the shell as a screen reader does: the words it hears
+  of an element, what is hidden from it left out (`heardIn()`), of each of
+  a level's stars (`starsHeard()`), and a panel's part by its heading
+  (`partHeaded()`).
 - `kept_run.ts` keeps a run begun at a level, the bricks it names broken or
   worn through the rules (`keptRun()`), for the screenshots' script.
 - `screenshot_api.ts` holds what `tools/capture-screenshots.mjs` takes from

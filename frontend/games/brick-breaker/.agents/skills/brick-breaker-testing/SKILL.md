@@ -204,7 +204,8 @@ game through `runScene()`:
   bench draws the next level in the palette, and holds when the scene
   encodes its pictures by spying on its textures' `getBase64()`.
 - The panels' specs (`src/app/panels/`) render each panel alone, with its
-  inputs, and find it as a region by its name. What is hidden from
+  inputs, and find it as a region by its name, and a part by its heading
+  (`src/testing/heard.ts`'s `partHeaded()`). What is hidden from
   assistive technology, the meter, the rings, the fuzzballs and the next
   level's picture, they read under `[aria-hidden='true']`, and a query for
   what a screen reader hears leaves that out (`ignore`).
@@ -212,12 +213,20 @@ game through `runScene()`:
   it with a seed of its own (`provideSpecLevels()`): `SPEC_LEVELS`, each set
   up to come to one thing soon, by its number in `SPEC_LEVEL` (`blasts`,
   `wide`, `steel`, `few`, `lives`, `laser`, `catch`, `dare`, whose narrow
-  paddle pays double as `under()` plays it, and `last`), or
+  paddle pays double as `under()` plays it and whose mark, 10, lies past
+  the streak its blasts make, so it clears without its third star, and
+  `last`), or
   `TWO_SETS`. It runs on the time it is given: `game.tick(FRAME_MS, steer)`,
   steered `STILL`, `under()` the ball, `awayFrom()` it or `underCapsule()`;
   `playUntil()`, `playFor()`, `loseBall()`, `playToClear()` and
   `clearToNext()` play on to a point. `FRAME_MS`, `playUntil()` and
   `playFor()` are `@fz/core/testing`'s.
+- The stars' specs (`src/app/stars/`, the bench's and the board's) find
+  them as the list named "Stars" and read what a screen reader hears of
+  each, the star and its marks hidden, as "Lose no life, won just now"
+  (`starsHeard()`, `heardIn()`); a level's stars held before a play are
+  kept through `StarsService.recordWon()`, and `StarsService`'s own spec
+  stores the record, and the progress, before it starts.
 - `render()` sets up the TestBed, so a spec that changes a setting first
   stores it, or changes it after rendering.
 - jsdom has no `matchMedia`, so motion isn't welcome: the cards open at the

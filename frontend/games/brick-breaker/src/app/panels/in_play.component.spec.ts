@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/angular";
 import { brickKind } from "../../rules/catalog/bricks";
 import type { CapsuleId } from "../../rules/catalog/capsules";
+import { partHeaded } from "../../testing/heard";
 import { PICTURE_FRAMES, type Pictures } from "../../view/art/art";
 import { InPlayComponent } from "./in_play.component";
 import type { EffectInPlay, KindHere } from "./panels";
@@ -43,16 +44,6 @@ async function renderInPlay({
   return screen.getByRole("region", { name: "In play" });
 }
 
-/** Returns the part of the panel a heading heads. */
-function partOf(heading: string): HTMLElement {
-  const part = screen.getByRole("heading", {
-    level: 3,
-    name: heading,
-  }).parentElement;
-  if (!part) throw new Error(`No part under ${heading}.`);
-  return part;
-}
-
 /** The elements a query passes over to find only what assistive technology hears: those hidden from it, and scripts and styles. */
 const SHOWN_ONLY =
   "script, style, [aria-hidden='true'], [aria-hidden='true'] *";
@@ -87,7 +78,7 @@ describe("InPlayComponent", () => {
   it("shows the streak's multiplier and the bricks broken since the paddle", async () => {
     await renderInPlay({ streak: 12 });
 
-    const streak = within(partOf("Streak"));
+    const streak = within(partHeaded("Streak"));
     expect({
       times: streak.queryByText("×3", { ignore: SHOWN_ONLY }),
       bricks: streak.queryByText("12 bricks"),
@@ -101,7 +92,7 @@ describe("InPlayComponent", () => {
     await renderInPlay({ streak: 4 });
 
     expect(
-      within(partOf("Streak")).getByText("×1", { ignore: SHOWN_ONLY }),
+      within(partHeaded("Streak")).getByText("×1", { ignore: SHOWN_ONLY }),
     ).toBeInTheDocument();
   });
 
@@ -109,7 +100,7 @@ describe("InPlayComponent", () => {
     await renderInPlay({ streak: 12 });
 
     const ticks = Array.from(
-      partOf("Streak").querySelectorAll<HTMLElement>(
+      partHeaded("Streak").querySelectorAll<HTMLElement>(
         "[aria-hidden='true'] > *",
       ),
       (tick) => [
@@ -133,7 +124,7 @@ describe("InPlayComponent", () => {
     async ({ streak, filled }) => {
       await renderInPlay({ streak });
 
-      const meter = partOf("Streak").querySelector<HTMLElement>(
+      const meter = partHeaded("Streak").querySelector<HTMLElement>(
         "[aria-hidden='true']",
       );
       expect(meter?.style.getPropertyValue("--filled")).toBe(filled);
@@ -143,7 +134,7 @@ describe("InPlayComponent", () => {
   it("names each effect in play, with its time left in words", async () => {
     await renderInPlay({ effects: EFFECTS });
 
-    const effects = within(partOf("In effect"));
+    const effects = within(partHeaded("In effect"));
     expect(
       effects.getAllByRole("listitem").map((item) => ({
         name: within(item).queryByText(/^(Wide paddle|Catch)$/)?.textContent,
@@ -160,7 +151,7 @@ describe("InPlayComponent", () => {
   it("shows each effect's whole seconds left short, hidden from assistive technology", async () => {
     await renderInPlay({ effects: EFFECTS });
 
-    expect(within(partOf("In effect")).getByText("10 s")).toHaveAttribute(
+    expect(within(partHeaded("In effect")).getByText("10 s")).toHaveAttribute(
       "aria-hidden",
       "true",
     );
@@ -170,7 +161,7 @@ describe("InPlayComponent", () => {
     await renderInPlay({ effects: EFFECTS });
 
     const dashes = Array.from(
-      partOf("In effect").querySelectorAll(
+      partHeaded("In effect").querySelectorAll(
         "[aria-hidden='true'] circle[stroke-dasharray]",
       ),
       (share) => share.getAttribute("stroke-dasharray"),
@@ -183,7 +174,7 @@ describe("InPlayComponent", () => {
 
     expect(
       Array.from(
-        partOf("In effect").querySelectorAll("[aria-hidden='true'] img"),
+        partHeaded("In effect").querySelectorAll("[aria-hidden='true'] img"),
         (img) => img.getAttribute("src"),
       ),
     ).toEqual([pictureOf("wide"), PICTURE_FRAMES.capsules.catch]);
@@ -192,9 +183,9 @@ describe("InPlayComponent", () => {
   it("says no capsule is in effect while none is", async () => {
     await renderInPlay();
 
-    expect(within(partOf("In effect")).getByRole("listitem")).toHaveTextContent(
-      "No capsule in effect",
-    );
+    expect(
+      within(partHeaded("In effect")).getByRole("listitem"),
+    ).toHaveTextContent("No capsule in effect");
   });
 
   it("lists the level's kinds of brick, each with what it does, one new here marked", async () => {
@@ -205,7 +196,7 @@ describe("InPlayComponent", () => {
       ],
     });
 
-    const kinds = within(partOf("In this level")).getAllByRole("listitem");
+    const kinds = within(partHeaded("In this level")).getAllByRole("listitem");
     expect(
       kinds.map((kind) =>
         Array.from(kind.children, (part) =>
@@ -225,7 +216,7 @@ describe("InPlayComponent", () => {
     });
 
     expect(
-      within(partOf("In this level")).getByRole("presentation"),
+      within(partHeaded("In this level")).getByRole("presentation"),
     ).toHaveAttribute("src", pictureOf("steel"));
   });
 
@@ -233,7 +224,7 @@ describe("InPlayComponent", () => {
     await renderInPlay({ capsules: ["wide", "catch"] });
 
     expect(
-      within(partOf("Capsules here"))
+      within(partHeaded("Capsules here"))
         .getAllByRole("listitem")
         .map((item) => item.textContent.trim()),
     ).toEqual(["Wide paddle", "Catch"]);
@@ -242,7 +233,7 @@ describe("InPlayComponent", () => {
   it("shows each capsule's picture, its name kept for assistive technology", async () => {
     await renderInPlay({ capsules: ["wide"], pictures: PICTURES });
 
-    const capsules = within(partOf("Capsules here"));
+    const capsules = within(partHeaded("Capsules here"));
     expect({
       picture: capsules.getByRole("presentation").getAttribute("src"),
       name: capsules.getByText("Wide paddle").className,
@@ -253,7 +244,7 @@ describe("InPlayComponent", () => {
     await renderInPlay();
 
     expect(
-      within(partOf("Capsules here")).getByRole("listitem"),
+      within(partHeaded("Capsules here")).getByRole("listitem"),
     ).toHaveTextContent("None fall here");
   });
 });

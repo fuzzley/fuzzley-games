@@ -45,14 +45,17 @@ import {
   TALLEST_FIELD,
 } from "../../rules/tuning";
 import { paintRoles } from "@fz/style/testing";
+import { starsHeard } from "../../testing/heard";
 import { ROLES } from "../../testing/roles";
 import { FIELD_ROLES } from "./field_roles";
 import {
   FINGER_ROOM_CSS_PX,
   fieldMetrics,
 } from "../../view/field/field_metrics";
+import { STAR } from "../../rules/run/stars";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
+import { StarsService } from "../stats/stars.service";
 import { BoardComponent } from "./board.component";
 
 const SPACE = browserKey("Space", " ");
@@ -400,6 +403,31 @@ describe("BoardComponent", () => {
       expect(screen.queryByText(/^New:/)).not.toBeInTheDocument();
     });
 
+    it("give the level's stars under its name as the level opens, each with what it asks and whether it is won", async () => {
+      const { detectChanges } = await renderAt(SPEC_LEVEL.dare);
+
+      TestBed.inject(StarsService).recordWon("dare", STAR.clear);
+      detectChanges();
+
+      expect(starsHeard()).toEqual([
+        "Clear the level, won",
+        "Lose no life, not won yet",
+        "Reach a streak of 10, not won yet",
+      ]);
+    });
+
+    it("give no stars once a lost ball's next is on the paddle", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.steel);
+      loseBall(game);
+
+      playUntil(game, () => STILL, game.serving);
+      detectChanges();
+
+      expect(
+        screen.queryByRole("list", { name: "Stars" }),
+      ).not.toBeInTheDocument();
+    });
+
     it("name the level while the scene still loads, before it is slow", async () => {
       await renderBoard({ readyAtOnce: false });
 
@@ -479,6 +507,31 @@ describe("BoardComponent", () => {
         ["Bonus", "1,500"],
       ]);
       expect(screen.getByText("Score 2,100")).toBeInTheDocument();
+    });
+
+    it("give a cleared level's stars over its points, those just won marked", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.blasts);
+      TestBed.inject(StarsService).recordWon("blasts", STAR.clear);
+      playToClear(game);
+
+      game.tick(FRAME_MS, STILL);
+      detectChanges();
+
+      expect(starsHeard()).toEqual([
+        "Clear the level, won",
+        "Lose no life, won just now",
+        "Reach a streak of 5, won just now",
+      ]);
+    });
+
+    it("give the play's best streak beside a cleared level's streak star, where it wasn't won", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.dare);
+      playToClear(game);
+
+      game.tick(FRAME_MS, STILL);
+      detectChanges();
+
+      expect(starsHeard()[2]).toBe("Reach a streak of 10, not won yet, best 5");
     });
 
     it("add a line for what double pay added, where a bad capsule paid", async () => {
@@ -660,6 +713,22 @@ describe("BoardComponent", () => {
       expect(within(bench).getByText("Level 3 · Specs")).toBeInTheDocument();
       expect(within(bench).getByText("Few")).toBeInTheDocument();
       expect(within(inPlay).getByText("Steel brick")).toBeInTheDocument();
+    });
+
+    it("give the level's stars on the bench, each with what it asks and whether it is won", async () => {
+      const { board, detectChanges } = await renderAt(SPEC_LEVEL.dare);
+      TestBed.inject(StarsService).recordWon("dare", STAR.clear);
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      expect(
+        starsHeard(screen.getByRole("region", { name: "The bench" })),
+      ).toEqual([
+        "Clear the level, won",
+        "Lose no life, not won yet",
+        "Reach a streak of 10, not won yet",
+      ]);
     });
 
     it("publish nothing for the layout check before the scene has laid the field out", async () => {

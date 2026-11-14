@@ -33,6 +33,7 @@ export const ICON_NAMES = [
   "sound",
   "sound-off",
   "star",
+  "star-outline",
   "tick",
   "time",
   "trophy",

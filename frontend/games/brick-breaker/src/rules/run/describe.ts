@@ -2,6 +2,7 @@ import { count, formatPoints } from "@fz/core/format";
 import { type CapsuleId, capsule } from "../catalog/capsules";
 import type { LevelEntry } from "../levels/levels";
 import type { Run } from "./run";
+import type { StarId } from "./stars";
 
 /** Writes Custom's ball speed, a percent of Normal's, as its sliders read it: "150% of Normal". */
 export function formatCustomPercent(percent: number): string {
@@ -63,6 +64,22 @@ export function describeOpened(): string {
 /** Returns what is said as a level is cleared, short of the last: the level and the score. */
 export function describeCleared(run: Run): string {
   return `Level ${String(run.level)} cleared! Score ${formatPoints(run.score)}.`;
+}
+
+/**
+ * Returns what a level's star asks, as the bench and the cards name it:
+ * "Clear the level", "Lose no life", or the streak the level's mark sets,
+ * "Reach a streak of 15".
+ */
+export function starAsks(id: StarId, mark: number): string {
+  switch (id) {
+    case "clear":
+      return "Clear the level";
+    case "clean":
+      return "Lose no life";
+    case "streak":
+      return `Reach a streak of ${String(mark)}`;
+  }
 }
 
 /** Returns what is said as a run pauses. */

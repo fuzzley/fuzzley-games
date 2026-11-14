@@ -1,0 +1,43 @@
+@use "../styles" as *;
+
+:host {
+  display: block;
+}
+
+// A star beside what it asks, a line each, at the start of the line.
+.stars {
+  display: grid;
+  gap: var(--fz-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+}
+
+li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--fz-space-1);
+  align-items: center;
+  color: var(--fz-muted);
+
+  &[data-held="true"] {
+    color: var(--fz-text);
+  }
+}
+
+// Held, a filled star in the warning's gold; not yet won, an outline in the
+// muted text, so its shape tells it as well as its color.
+.star {
+  --fz-icon-size: 1.25em;
+
+  margin-inline-end: var(--fz-space-1);
+
+  [data-held="true"] > & {
+    color: var(--fz-warning);
+  }
+}
+
+.best {
+  font-size: var(--fz-font-xs);
+}

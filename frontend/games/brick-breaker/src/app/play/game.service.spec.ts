@@ -4,6 +4,7 @@ import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { FEW_BRICKS } from "../../rules/run/describe";
+import { STAR } from "../../rules/run/stars";
 import { levelsOf } from "../../rules/levels/levels";
 import { STEP_MS } from "../../rules/stepper";
 import {
@@ -30,6 +31,7 @@ import {
 import { CLEARED_MS, FADE_MS, SERVE_MS } from "../../view/effects/timing";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
+import { StarsService } from "../stats/stars.service";
 import { StatsService } from "../stats/stats.service";
 import { GameService } from "./game.service";
 import { GAME_LEVELS } from "../tokens";
@@ -1294,6 +1296,101 @@ describe("GameService", () => {
       playUntil(game, underCapsule, () => game.lives() > FIRST_LIVES);
 
       expect(game.chimes()).toBe(0);
+    });
+  });
+
+  describe("the stars", () => {
+    it("gives the mark of the level in play", async () => {
+      const game = await gameAt(SPEC_LEVEL.dare);
+
+      expect(game.mark()).toBe(10);
+    });
+
+    it("gives the stars the level in play holds", async () => {
+      TestBed.inject(StarsService).recordWon("dare", STAR.clear | STAR.clean);
+
+      const game = await gameAt(SPEC_LEVEL.dare);
+
+      expect(game.starsHeld()).toEqual(["clear", "clean"]);
+    });
+
+    it("copies the longest streak of the level's play, its five blasts at once", async () => {
+      const game = await gameAt(SPEC_LEVEL.blasts);
+
+      playToClear(game);
+
+      expect(game.bestStreak()).toBe(5);
+    });
+
+    it("starts the longest streak afresh on the next level", async () => {
+      const game = await gameAt(SPEC_LEVEL.blasts);
+
+      clearToNext(game);
+
+      expect(game.bestStreak()).toBe(0);
+    });
+
+    it("keeps every star a level's play won, cleared clean at its mark", async () => {
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+
+      expect({
+        held: game.starsHeld(),
+        kept: TestBed.inject(StarsService).heldBy("blasts"),
+      }).toEqual({
+        held: ["clear", "clean", "streak"],
+        kept: ["clear", "clean", "streak"],
+      });
+    });
+
+    it("wins no clean star for a level where a life was lost", async () => {
+      // Dare clears clean with its first two stars, as the spec after shows.
+      const game = await gameAt(SPEC_LEVEL.dare);
+      loseBall(game);
+      playUntil(game, () => STILL, game.serving);
+
+      playToClear(game);
+
+      expect({
+        outcome: game.outcome(),
+        held: game.starsHeld(),
+      }).toEqual({ outcome: "cleared", held: ["clear"] });
+    });
+
+    it("wins no streak star short of the level's mark", async () => {
+      const game = await clearedAt(SPEC_LEVEL.dare);
+
+      expect({
+        held: game.starsHeld(),
+        best: game.bestStreak(),
+      }).toEqual({ held: ["clear", "clean"], best: 5 });
+    });
+
+    it("gives the stars a level's clearing won that it didn't hold before, for its card", async () => {
+      TestBed.inject(StarsService).recordWon("blasts", STAR.clear);
+
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+
+      expect(game.newStars()).toEqual(["clean", "streak"]);
+    });
+
+    it("keeps a won run's last level's stars", async () => {
+      await clearedAt(SPEC_LEVEL.last);
+
+      expect(TestBed.inject(StarsService).heldBy("last")).toEqual([
+        "clear",
+        "clean",
+        "streak",
+      ]);
+    });
+
+    it("forgets the stars a level won as a new run begins", async () => {
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect(game.newStars()).toEqual([]);
     });
   });
 

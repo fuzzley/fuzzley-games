@@ -6,15 +6,22 @@ import {
   levelsOf,
   parseLevel,
 } from "../../rules/levels/levels";
+import type { StarId } from "../../rules/run/stars";
 import { MAX_LIVES } from "../../rules/tuning";
 import { ART_PALETTE } from "../../testing/art_frames";
+import { partHeaded, starsHeard } from "../../testing/heard";
 import { SPEC_LEVEL, SPEC_LEVELS } from "../../testing/play";
 import { brickColor } from "../../view/art/brick_art";
 import { BenchComponent } from "./bench.component";
 
-/** Says what differs in a bench from one at the specs' steel level, two lives waiting and the first life to come. */
+/**
+ * Says what differs in a bench from one at the specs' steel level, holding
+ * no star, its mark 5, two lives waiting and the first life to come.
+ */
 interface BenchOptions {
   readonly level?: number;
+  readonly stars?: readonly StarId[];
+  readonly mark?: number;
   readonly livesWaiting?: number;
   readonly nextLifeAt?: number | null;
   readonly levelAfter?: LevelEntry | null;
@@ -30,6 +37,8 @@ function specLevel(number: number): LevelEntry {
 /** Renders the bench and returns its region. */
 async function renderBench({
   level = SPEC_LEVEL.steel,
+  stars = [],
+  mark = 5,
   livesWaiting = 2,
   nextLifeAt = 20_000,
   levelAfter = specLevel(level + 1),
@@ -37,6 +46,8 @@ async function renderBench({
   await render(BenchComponent, {
     inputs: {
       level: specLevel(level),
+      stars,
+      mark,
       livesWaiting,
       nextLifeAt,
       levelAfter,
@@ -128,6 +139,16 @@ describe("BenchComponent", () => {
     ]);
   });
 
+  it("lists the level's three stars in its first part, each with what it asks and whether it is won", async () => {
+    const panel = await renderBench({ stars: ["clear", "streak"], mark: 15 });
+
+    expect(starsHeard(partHeaded(/^Level 3/, panel))).toEqual([
+      "Clear the level, won",
+      "Lose no life, not won yet",
+      "Reach a streak of 15, won",
+    ]);
+  });
+
   it("sits a fuzzball on the plank for each life waiting, and says how many", async () => {
     const panel = await renderBench({ livesWaiting: 2 });
 
@@ -160,7 +181,7 @@ describe("BenchComponent", () => {
   it("names the level after this one and its kinds of brick", async () => {
     const panel = await renderBench();
 
-    const next = within(panel);
+    const next = within(partHeaded("Next", panel));
     expect({
       title: next.queryByText("Level 4"),
       name: next.queryByText("Few"),

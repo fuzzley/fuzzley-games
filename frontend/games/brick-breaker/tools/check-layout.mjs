@@ -22,7 +22,8 @@
  * and the panels must both show wherever its room (`data-room`) spares 186
  * CSS px each side of the field's cells, and nowhere else, on the canvas
  * and in the window, off the field, each other and the bar, at least 172
- * CSS px across and down.
+ * CSS px across and down, each holding the parts it shows, the level's
+ * stars among them, whole, as a panel clips what runs past its foot.
  * It prints what is wrong and fails, or says the layout holds.
  */
 import { join } from "node:path";
@@ -66,9 +67,9 @@ const FIELD = {
 };
 
 /**
- * Returns what is wrong with the field's unit, the room under it and the
- * Ready card's foot, given where the field lies. It runs in the page, so it uses nothing from this
- * module.
+ * Returns what is wrong with the field's unit, the room under it, the
+ * Ready card's foot and the parts the panels show, given where the field
+ * lies. It runs in the page, so it uses nothing from this module.
  *
  * @param {BoardBox} [field]
  * @returns {string[]}
@@ -112,6 +113,16 @@ function inspectField(field) {
     problems.push(
       `The Ready card's foot lies ${(card.bottom - lowest).toFixed(1)} CSS px lower than it may, over the ball.`,
     );
+  }
+  // A panel clips what runs past its foot, so the parts it shows, a
+  // compact one its first two, must fit it whole.
+  for (const panel of board.querySelectorAll("app-bench, app-in-play")) {
+    const over = panel.scrollHeight - panel.clientHeight;
+    if (over > 1) {
+      problems.push(
+        `${panel.querySelector("h2")?.textContent ?? panel.localName} runs ${over} CSS px past its foot, clipped.`,
+      );
+    }
   }
   return problems;
 }

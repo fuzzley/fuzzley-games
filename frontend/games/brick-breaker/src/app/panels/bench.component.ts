@@ -6,6 +6,7 @@ import { createBrick } from "../../rules/bricks/bricks";
 import { brickKind } from "../../rules/catalog/bricks";
 import { columnOf, rowOf } from "../../rules/grid";
 import { type LevelEntry, parseLevel } from "../../rules/levels/levels";
+import type { StarId } from "../../rules/run/stars";
 import {
   BRICK_HEIGHT,
   BRICK_WIDTH,
@@ -15,6 +16,7 @@ import {
 } from "../../rules/tuning";
 import { brickColor } from "../../view/art/brick_art";
 import type { BricksPalette } from "../../view/colors/palette";
+import { StarsComponent } from "../stars/stars.component";
 import { kindsIn, placeInSet } from "./panels";
 
 /** How far in from its cell the next level's picture draws a brick, on each side, in field units. */
@@ -26,9 +28,10 @@ const HIDDEN_OPACITY = 0.4;
 /**
  * Shows the bench, the panel left of a wide room's field: the level's
  * number, set and name, over a pip for each level of its set, those played
- * before it lit; the lives that wait, each a fuzzball on a plank, and the
- * score the next comes at; and the level after this one, its bricks drawn
- * in their tints, its name and its kinds.
+ * before it lit, and its three stars, each with what it asks, lit where
+ * held; the lives that wait, each a fuzzball on a plank, and the score the
+ * next comes at; and the level after this one, its bricks drawn in their
+ * tints, its name and its kinds.
  *
  * It is a region named by its heading, which only a screen reader hears,
  * and takes no pointer, so a press can start over it. The board lays it
@@ -41,7 +44,7 @@ const HIDDEN_OPACITY = 0.4;
  */
 @Component({
   selector: "app-bench",
-  imports: [FuzzballComponent],
+  imports: [FuzzballComponent, StarsComponent],
   host: { role: "region", "aria-labelledby": "bench-title" },
   templateUrl: "./bench.component.html",
   styleUrl: "./bench.component.scss",
@@ -49,6 +52,12 @@ const HIDDEN_OPACITY = 0.4;
 export class BenchComponent {
   /** The level in play. */
   readonly level = input.required<LevelEntry>();
+
+  /** The stars the level holds. */
+  readonly stars = input.required<readonly StarId[]>();
+
+  /** The streak the level's third star asks for. */
+  readonly mark = input.required<number>();
 
   /** The lives that wait for the one in play to be lost. */
   readonly livesWaiting = input.required<number>();

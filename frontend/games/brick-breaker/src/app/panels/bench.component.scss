@@ -62,6 +62,11 @@ section {
   }
 }
 
+// The stars under the pips, set apart from them as a part's lines are.
+.stars {
+  margin-top: var(--fz-space-2);
+}
+
 // The lives waiting, each a fuzzball as the field draws a ball, sitting on
 // a plank with a leg near each end, the plank a size container, so the
 // most that wait shrink to fit it on the narrowest panel.

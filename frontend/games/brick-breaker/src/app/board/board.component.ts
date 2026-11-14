@@ -58,6 +58,7 @@ import { BenchComponent } from "../panels/bench.component";
 import { InPlayComponent } from "../panels/in_play.component";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
+import { StarsComponent } from "../stars/stars.component";
 import { fieldPalette } from "./field_palette";
 
 /** Names a card of the board's own laid over the field, or none. */
@@ -78,8 +79,9 @@ const CARD_DROP =
  * keys, the mouse and fingers while the board has the focus, a drawing of
  * the empty field in CSS until the scene has drawn, the panels beside the
  * field where the room spares them (the bench and in play), and the cards
- * that say how to launch, that the level is paused, how a level cleared
- * added up, and how to start again once an ended run's result is put away,
+ * that say how to launch and what the level's stars ask, that the level is
+ * paused, the stars a level cleared holds and how its points added up, and
+ * how to start again once an ended run's result is put away,
  * or the canvas's own (`<fz-canvas-cards>`), that the board is still
  * loading on a slow connection, or that it couldn't be drawn.
  *
@@ -102,6 +104,7 @@ const CARD_DROP =
     InPlayComponent,
     KeepKeysDirective,
     PhaserCanvasComponent,
+    StarsComponent,
   ],
   host: {
     "[attr.data-field]": "fieldRect()",
@@ -291,13 +294,20 @@ export class BoardComponent {
   });
 
   /**
+   * Whether the level opens, before its first serve, as the Ready card names
+   * its stars and the kinds of brick new in it; not at a serve after a lost
+   * ball, where the card would only stand taller over the field.
+   */
+  protected readonly opening = computed(() => this.game.outcome() === "ready");
+
+  /**
    * The kinds of brick new in the level, the first by number to hold them,
    * which the Ready card names as the level opens, before its first serve,
    * each with its line and its picture once the scene has drawn it; it
    * reads the pictures only where a kind is new.
    */
   protected readonly newKinds = computed(() => {
-    if (this.game.outcome() !== "ready") return [];
+    if (!this.opening()) return [];
     const ids = this.game
       .kindsHere()
       .filter(({ isNew }) => isNew)

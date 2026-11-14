@@ -43,12 +43,13 @@ const NO_BRICKS = ".".repeat(13);
 /**
  * A gift that lets a narrow paddle fall into the paddle kept under the ball
  * the gift sends straight back, which goes on to set off a row of blasts
- * far above it, each paying double.
+ * far above it, each paying double; its mark lies past the five blasts'
+ * streak, so it clears without its third star.
  */
 const DARE: LevelData = {
   id: "dare",
   name: "Dare",
-  mark: 5,
+  mark: 10,
   capsules: [],
   legend: { n: { kind: "gift", capsule: "narrow" } },
   bricks: [

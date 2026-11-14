@@ -1,0 +1,21 @@
+<!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+<ul class="stars" role="list" aria-label="Stars">
+  @for (star of stars(); track star.id) {
+    <li [attr.data-held]="star.held">
+      <fz-icon class="star" [name]="star.icon" />
+      <!-- `&ngsp;` keeps the spaces a template drops between elements. -->
+      <span class="asks"
+        >{{ star.asks
+        }}<span class="fz-visually-hidden">, {{ star.state }}</span></span
+      >
+      @if (star.isNew) {
+        &ngsp;<span class="fz-badge fz-badge-accent" aria-hidden="true"
+          >New</span
+        >
+      }
+      @if (star.best; as best) {
+        &ngsp;<span class="best" aria-hidden="true">{{ best }}</span>
+      }
+    </li>
+  }
+</ul>
