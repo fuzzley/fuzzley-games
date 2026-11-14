@@ -107,14 +107,34 @@ pictures into `sheets/rocks.png`, their measurements and any warnings into
 Each family is a file in `recipes/`. A name with a number in brackets has
 that many takes. The plan says which event plays each.
 
-| Family     | Sounds                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chain`    | `chain-ping`, `chain-x2`, `chain-x3`, `chain-x4`                                                                                                                                                                                                                                                                                                                                |
-| `rocks`    | `break-stone-small/medium/large` (3 each), `break-ice-small/medium/large` (3 each), `break-crystal-medium/large` (2 each), `break-iron-small/medium/large` (2 each), `break-lodestone-small/medium/large` (2 each), `hit-stone` (3), `hit-iron` (4), `hit-boulder` (3), `boulder-crack` (2), `break-boulder`, `fuse-volatile`, `blast-volatile` (3), `blast-volatile-small` (2) |
-| `hazards`  | `comet-warning`, `comet-pass` (2), `comet-smash` (2), `burr-cling` (3), `burr-shed` (2), `lodestone-hum` (loop)                                                                                                                                                                                                                                                                 |
-| `ship`     | `shot-gun` (5), `shot-spread` (4), `shot-rapid` (5), `shot-lance` (3), `thrust` (loop), `thrust-start`, `thrust-stop`, `dash` (2), `dash-ready`, `zap-dash`, `zap-arc` (4), `static-crackle` (3), `shield-up`, `shield-break`, `guard-end`, `ship-lost`, `ship-arrive`                                                                                                          |
-| `pickups`  | `pickup-drop` (2), `pickup-catch`, `pickup-spread`, `pickup-rapid`, `pickup-lance`, `pickup-shield`, `pickup-magnet`, `pickup-slow`, `pickup-nova`, `pickup-fade`, `effect-end`, `nova`, `slow-on`, `slow-off`, `mote` (6, up the scale)                                                                                                                                        |
-| `stingers` | `wave-start`, `wave-clear`, `sector-clear`, `ship-gained`, `game-over`, `new-best`, `level-up`, `ui-move`, `ui-select`, `ui-back`, `pause`, `resume`                                                                                                                                                                                                                            |
-| `voice`    | `voice-whee` (3), `voice-eep` (3), `voice-ouch` (2), `voice-yay` (3), `voice-ooh` (2), `voice-aww` (2), `voice-cheer` (2), `voice-hum` (2)                                                                                                                                                                                                                                      |
-| `rescue`   | `stray-appear`, `stray-catch`, `stray-loose`, `stray-home` (4, up a chord), `stray-lost`                                                                                                                                                                                                                                                                                        |
-| `beds`     | `bed-inner-belt`, `bed-iron-reach`, `bed-storm`, `bed-endless` (stereo loops), `bed-pulse`, `bed-shimmer` (loops layered over them)                                                                                                                                                                                                                                             |
+- **`chain`:** `chain-ping`, `chain-x2`, `chain-x3`, `chain-x4`.
+- **`rocks`:** `break-stone-small`, `-medium`, `-large` (3 each);
+  `break-ice-small`, `-medium`, `-large` (3 each); `break-crystal-medium`,
+  `-large` (2 each); `break-iron-small`, `-medium`, `-large` (2 each);
+  `break-lodestone-small`, `-medium`, `-large` (2 each); `hit-stone` (3),
+  `hit-iron` (4), `hit-boulder` (3); `break-boulder`; `fuse-volatile`,
+  `blast-volatile` (3), `blast-volatile-small` (2).
+- **`hazards`:** `comet-warning`, `comet-pass` (2), `comet-smash` (2);
+  `burr-cling` (3), `burr-shed` (2), `burr-pop` (3); `lodestone-hum`
+  (a loop); `near-miss` (3).
+- **`ship`:** `shot-gun` (5), `shot-spread` (4), `shot-rapid` (5),
+  `shot-lance` (3); `thrust` (a loop), `thrust-start`, `thrust-stop`;
+  `dash` (2), `dash-ready`; `static-full`, `static-down`, `zap-dash`,
+  `zap-arc` (4); `shield-up`, `shield-break`; `pod-hit` (2), `pod-lost`,
+  `guard-end`.
+- **`pickups`:** `pickup-drop` (2), `pickup-fade`; `pickup-spread`,
+  `pickup-rapid`, `pickup-lance`, `pickup-shield`, `pickup-magnet`,
+  `pickup-slow` (each its own short signature); `effect-end`; `slow-on`,
+  `slow-off`; `spark` (3, which the game raises up the ladder).
+- **`stingers`:** `run-start`, `wave-start`, `wave-clear`,
+  `sector-clear`, `run-end`, `new-best`, `level-up` (held back for a
+  progression system); `tally-tick`, `ui-move`, `ui-select`, `ui-back`,
+  `pause`, `resume`.
+- **`voice`:** `voice-whee` (3), `voice-eep` (3), `voice-ouch` (2),
+  `voice-yay` (3), `voice-ooh` (2), `voice-aww` (2), `voice-cheer` (2),
+  `voice-hum` (2).
+- **`rescue`:** `stray-appear`, `stray-catch` (2), `crew-loose` (2),
+  `crew-caught` (2), `crew-home`, `tow-twang` (3).
+- **`beds`:** `bed-inner-belt`, `bed-iron-reach`, `bed-storm`,
+  `bed-endless` (loops in stereo), and two loops laid over them,
+  `bed-pulse` and `bed-shimmer`.
