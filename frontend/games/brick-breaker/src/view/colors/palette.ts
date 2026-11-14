@@ -14,7 +14,32 @@ export interface PaletteRoles {
 }
 
 /** The brick kinds drawn in a color of their own, rather than a tint. */
-export type UntintedKind = Extract<BrickKindId, "steel" | "blast" | "gift">;
+export type UntintedKind = Extract<
+  BrickKindId,
+  "steel" | "blast" | "gift" | "regrow"
+>;
+
+/** The inks a brick's marks take beside the marks' own color, mixed as the art kit mixes them. */
+export interface KindInks {
+  /** A steel brick's frame and rivets: the steel at {@link STEEL_LINE_SHADE} black. */
+  readonly steelLine: number;
+  /** A blast brick's spark: the warning color. */
+  readonly spark: number;
+  /** A gift brick's ribbon and bow: the accent at {@link RIBBON_LIGHT} white for the palette's mode. */
+  readonly ribbon: number;
+  /** A regrowing brick's cap of moss: the green tint at {@link MOSS_LIGHT} white for the palette's mode. */
+  readonly moss: number;
+  /** The shadow under each scallop of its cap: the green tint at {@link MOSS_SHADE} black. */
+  readonly mossShadow: number;
+}
+
+/** The colors a ghost brick takes by its tint, 0 to 7, while it is hidden and once it shows. */
+export interface GhostTints {
+  /** Each tint at {@link GHOST_FADE} of the field, so a hidden ghost shows faintly. */
+  readonly hidden: readonly number[];
+  /** Each tint at {@link GHOST_LIGHT} white for the palette's mode, paler than a brick. */
+  readonly shown: readonly number[];
+}
 
 /** The field's colors, as the numbers Phaser takes. */
 export interface BricksPalette {
@@ -37,12 +62,19 @@ export interface BricksPalette {
   readonly paddle: number;
   readonly balls: Readonly<Record<BallKindId, number>>;
   readonly capsules: Readonly<Record<CapsuleTone, number>>;
-  /** Steel in text at {@link STEEL_WASH}, a blast brick in the danger color and a gift in the accent. */
+  /**
+   * Steel in text at {@link STEEL_WASH}, a blast brick in the danger color, a
+   * gift in the accent, and a regrowing brick's earth in the amber tint.
+   */
   readonly bricks: Readonly<Record<UntintedKind, number>>;
+  /** The inks the kinds' marks take beside the marks' own color. */
+  readonly kindInks: KindInks;
   /** The colors a brick takes by its tint, 0 to 7: the {@link TILE_INKS} of the palette's mode. */
   readonly tints: readonly number[];
   /** The deeper colors a tough brick takes by its tint: each toward the text by {@link TOUGH_DEEPEN}. */
   readonly toughTints: readonly number[];
+  /** The colors a ghost brick takes by its tint, hidden and shown. */
+  readonly ghostTints: GhostTints;
 }
 
 /** How much of the text the wall takes. */
@@ -52,7 +84,51 @@ export const WALL_WASH = 0.2;
 export const STEEL_WASH = 0.55;
 
 /** How much of the text a tough brick's tint takes, deepening it away from the field. */
-export const TOUGH_DEEPEN = 0.25;
+export const TOUGH_DEEPEN = 0.12;
+
+/**
+ * How much black a steel brick's frame and rivets take over the steel: the
+ * art kit's 0.34 deepened, so they keep 3:1 against the steel in every
+ * palette, as a mark that tells a kind does.
+ */
+export const STEEL_LINE_SHADE = 0.6;
+
+/** How much white a gift's ribbon takes over the accent, in each mode. */
+export const RIBBON_LIGHT: Readonly<Record<ColorMode, number>> = {
+  light: 0.72,
+  dark: 0.62,
+};
+
+/** How much white a regrowing brick's cap of moss takes over the green tint, in each mode. */
+export const MOSS_LIGHT: Readonly<Record<ColorMode, number>> = {
+  light: 0.12,
+  dark: 0.3,
+};
+
+/** How much black the shadow under the moss's scallops takes over the green tint. */
+export const MOSS_SHADE = 0.38;
+
+/** How much of the field a hidden ghost's tint takes, fading it toward the field. */
+export const GHOST_FADE = 0.35;
+
+/**
+ * How much white a shown ghost's tint takes, in each mode: the art kit's,
+ * but in a light palette 0.12 rather than 0.18, so it keeps 3:1 against
+ * Soft pastel's field.
+ */
+export const GHOST_LIGHT: Readonly<Record<ColorMode, number>> = {
+  light: 0.12,
+  dark: 0.3,
+};
+
+/** The tint a regrowing brick's earth takes: amber. */
+export const EARTH_TINT = 2;
+
+/** The tint a regrowing brick's moss is mixed from: green. */
+export const MOSS_TINT = 3;
+
+const WHITE = 0xffffff;
+const BLACK = 0x000000;
 
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
 export function bricksPalette(
@@ -63,7 +139,10 @@ export function bricksPalette(
   const text = colorNumber(roles.text);
   const accent = colorNumber(roles.accent);
   const danger = colorNumber(roles.danger);
+  const warning = colorNumber(roles.warning);
   const tints = TILE_INKS[mode];
+  const steel = mixColors(text, panel, STEEL_WASH);
+  const green = tintAt(tints, MOSS_TINT);
   return {
     field: panel,
     outline: panel,
@@ -71,14 +150,33 @@ export function bricksPalette(
     wall: mixColors(text, panel, WALL_WASH),
     glow: text,
     paddle: accent,
-    balls: { normal: text, fire: colorNumber(roles.warning), blast: danger },
+    balls: { normal: text, fire: warning, blast: danger },
     capsules: { good: accent, bad: danger },
     bricks: {
-      steel: mixColors(text, panel, STEEL_WASH),
+      steel,
       blast: danger,
       gift: accent,
+      regrow: tintAt(tints, EARTH_TINT),
+    },
+    kindInks: {
+      steelLine: mixColors(BLACK, steel, STEEL_LINE_SHADE),
+      spark: warning,
+      ribbon: mixColors(WHITE, accent, RIBBON_LIGHT[mode]),
+      moss: mixColors(WHITE, green, MOSS_LIGHT[mode]),
+      mossShadow: mixColors(BLACK, green, MOSS_SHADE),
     },
     tints,
     toughTints: tints.map((tint) => mixColors(text, tint, TOUGH_DEEPEN)),
+    ghostTints: {
+      hidden: tints.map((tint) => mixColors(panel, tint, GHOST_FADE)),
+      shown: tints.map((tint) => mixColors(WHITE, tint, GHOST_LIGHT[mode])),
+    },
   };
+}
+
+/** Returns the color at a place in a palette's list of tints, which holds one for every tint a level can name. */
+export function tintAt(tints: readonly number[], at: number): number {
+  const tint = tints[at];
+  if (tint === undefined) throw new Error(`No tint ${String(at)}.`);
+  return tint;
 }

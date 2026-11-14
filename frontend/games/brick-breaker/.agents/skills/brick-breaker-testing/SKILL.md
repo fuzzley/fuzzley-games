@@ -143,17 +143,20 @@ Run these from `frontend/games/brick-breaker/`, or as
 ## The View
 
 - `src/testing/art_frames.ts` draws the atlas in one palette (`ART_PALETTE`)
-  at one scale (`ART_SCALE`), as `ART_FRAMES`, so the art's specs check the
-  commands a frame is drawn with, finding the frame by its name and its
-  commands by their kind and color with `@fz/phaser/testing/pure`'s
-  `frameNamed()` and `drawnIn()`.
+  at one scale (`ART_SCALE`), a brick 40 CSS px wide in full detail, as
+  `ART_FRAMES`, and gives a scale a brick is too small at for its cracks,
+  rivets and sheen (`SMALL_SCALE`) and the scales a field is drawn at, from
+  the smallest unit the layout allows up (`FIELD_SCALES`), so the art's
+  specs check the commands a frame is drawn with, finding the frame by its
+  name and its commands by their kind and color with
+  `@fz/phaser/testing/pure`'s `frameNamed()` and `drawnIn()`.
 - `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
   `THEMES` with `@fz/style/testing`'s helpers: it reads each palette's
   roles from the global stylesheet, by the names the board reads them by
   (`PALETTES.rolesIn()`, from `src/testing/roles.ts`), builds
   `bricksPalette()` from them, and holds the tints, the kinds, the balls,
-  the capsules, the paddle and the glow to 3:1 against the field, and the
-  outline and the marks against what they cross.
+  the capsules, the paddle and the glow to 3:1 against the field, a hidden
+  ghost to 2:1, and the outline and the marks against what they cross.
 
 ## The Scene
 

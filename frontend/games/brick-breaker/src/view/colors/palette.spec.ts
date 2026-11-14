@@ -1,6 +1,6 @@
 import { TILE_INKS, mixColors } from "@fz/phaser/color";
 import { TINTS } from "../../rules/levels/level";
-import { type PaletteRoles, bricksPalette } from "./palette";
+import { type PaletteRoles, bricksPalette, tintAt } from "./palette";
 
 const ROLES: PaletteRoles = {
   panel: "#ffffff",
@@ -64,13 +64,73 @@ describe("bricksPalette", () => {
     });
   });
 
-  it("deepens a tough brick's tint a quarter of the way to the text", () => {
+  it("deepens a tough brick's tint 12% of the way to the text", () => {
     const palette = bricksPalette(ROLES, "light");
 
     expect(palette.toughTints[0]).toBe(
-      mixColors(0x000000, TILE_INKS.light[0] ?? 0, 0.25),
+      mixColors(0x000000, TILE_INKS.light[0] ?? 0, 0.12),
     );
   });
+
+  it.each(["light", "dark"] as const)(
+    "lays a regrowing brick's earth in the amber tint, in a %s palette",
+    (mode) => {
+      expect(bricksPalette(ROLES, mode).bricks.regrow).toBe(TILE_INKS[mode][2]);
+    },
+  );
+
+  it("frames steel and rivets it in the steel at 60% black, and sparks a blast brick in the warning color", () => {
+    const palette = bricksPalette(ROLES, "light");
+
+    expect({
+      steelLine: palette.kindInks.steelLine,
+      spark: palette.kindInks.spark,
+    }).toEqual({
+      steelLine: mixColors(0x000000, palette.bricks.steel, 0.6),
+      spark: 0xffa500,
+    });
+  });
+
+  it.each([
+    ["light", 0.72, 0.12],
+    ["dark", 0.62, 0.3],
+  ] as const)(
+    "lightens a gift's ribbon from the accent and a regrowing brick's moss from the green tint, in a %s palette",
+    (mode, ribbon, moss) => {
+      const green = TILE_INKS[mode][3] ?? NaN;
+
+      expect(bricksPalette(ROLES, mode).kindInks).toMatchObject({
+        ribbon: mixColors(0xffffff, 0x00ff00, ribbon),
+        moss: mixColors(0xffffff, green, moss),
+        mossShadow: mixColors(0x000000, green, 0.38),
+      });
+    },
+  );
+
+  it.each([
+    ["light", 0.12],
+    ["dark", 0.3],
+  ] as const)(
+    "fades a hidden ghost's tint 35% toward the field, and pales a shown one's toward white, in a %s palette",
+    (mode, light) => {
+      const tint = TILE_INKS[mode][4] ?? NaN;
+
+      const { ghostTints } = bricksPalette(
+        { ...ROLES, panel: "#102030" },
+        mode,
+      );
+
+      expect({
+        hidden: ghostTints.hidden[4],
+        shown: ghostTints.shown[4],
+        tints: [ghostTints.hidden.length, ghostTints.shown.length],
+      }).toEqual({
+        hidden: mixColors(0x102030, tint, 0.35),
+        shown: mixColors(0xffffff, tint, light),
+        tints: [TINTS, TINTS],
+      });
+    },
+  );
 
   it.each(["light", "dark"] as const)(
     "tints the bricks with the tiles' %s inks in a palette of that mode",
@@ -85,4 +145,14 @@ describe("bricksPalette", () => {
       expect(bricksPalette(ROLES, mode).tints).toHaveLength(TINTS);
     },
   );
+});
+
+describe("tintAt", () => {
+  it("gives the color at a place in a list of tints", () => {
+    expect(tintAt([1, 2, 3], 1)).toBe(2);
+  });
+
+  it("throws for a tint the list doesn't hold", () => {
+    expect(() => tintAt([1, 2, 3], 3)).toThrow("No tint 3");
+  });
 });

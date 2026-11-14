@@ -148,10 +148,11 @@ take the pure ones.
   `SlabShares`, each length a share of its cell's short side, so a square
   tile and a brick twice as wide as tall take the same code: `TILE_SLAB` is
   Brick Fuzz Pop's tile, and `BRICK_SLAB` a brick two units wide and one
-  tall as Brick Breaker's uplift's art kit draws one. `slabBody()` and
-  `slabRadius()` give its body and its corners' radius, which a mark laid
-  over it follows, and `topCap()` the polygon over a body's top, round its
-  corners, down to a foot, that a cap of moss is cut from. `showsDetail()`
+  tall as Brick Breaker's uplift's art kit draws one. `slabBody()`,
+  `slabFace()` and `slabRadius()` give its body, its body above the lip and
+  its corners' radius, which a mark laid over it follows, and `topCap()`
+  the polygon over a body's top, round its corners, down to a foot, that a
+  cap of moss is cut from. `showsDetail()`
   says whether a brick so many units wide is drawn wide enough, 30 CSS
   pixels, for its finest detail. `src/bricks/marks.ts` draws the marks over
   a slab, their inks handed in. Those that stand in a square are laid out

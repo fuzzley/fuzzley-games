@@ -13,6 +13,7 @@ import {
   showsDetail,
   slabBody,
   slabCommands,
+  slabFace,
   slabRadius,
   topCap,
 } from "./slab";
@@ -129,6 +130,43 @@ describe("slabBody", () => {
       });
     },
   );
+});
+
+describe("slabFace", () => {
+  it.each([
+    [
+      "a square tile's",
+      SQUARE,
+      TILE_SLAB,
+      { x: 2, y: 2, width: 46, height: 42 },
+    ],
+    [
+      "a wide brick's",
+      WIDE,
+      BRICK_SLAB,
+      { x: 4, y: 4, width: 192, height: 83 },
+    ],
+    [
+      "a small brick's",
+      { x: 3, y: 5, width: 21, height: 10.5 },
+      BRICK_SLAB,
+      { x: 4, y: 6, width: 19, height: 7.5 },
+    ],
+  ])(
+    "is %s body above its lip, the lip a whole number of pixels tall",
+    (_, cell, shares, face) => {
+      expect(slabFace(cell, shares)).toEqual(face);
+    },
+  );
+
+  it.each([
+    ["a square tile's", SQUARE, TILE_SLAB],
+    ["a wide brick's", WIDE, BRICK_SLAB],
+  ])("is where the slab draws %s body in its ink", (_, cell, shares) => {
+    const [, body] = slabCommands(cell, INK, shares);
+
+    expect(body && extentOf(body)).toEqual(slabFace(cell, shares));
+  });
 });
 
 describe("slabRadius", () => {

@@ -56,8 +56,9 @@ Its block in a set's file:
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
-  3 amber, 4 green, 5 teal, 6 blue, 7 violet and 8 pink. Steel, blast and
-  gift bricks are drawn in colors of their own, whatever their tint. By
+  3 amber, 4 green, 5 teal, 6 blue, 7 violet and 8 pink. Steel, blast,
+  gift and regrowing bricks are drawn in colors of their own, whatever
+  their tint. By
   custom a picture leaves steel `.`, as Finale does, and marks a blast or
   gift brick with the tint of the part it sits in, as Rocket does, so the
   grid reads as the picture. Changing tints changes no play, so no bests:
@@ -158,10 +159,15 @@ thought rather than speed starts lower: Friends runs from 1.12.
   `mostHits`, whether a level `needed` it broken, its `points` for each hit,
   and its `traits`.
 - Its look in every tint and state in `BRICK_ART`
-  (`src/view/art/brick_art.ts`) and How to play's picture in `PICTURED_BRICKS`
-  (`src/view/art/art.ts`); the compiler asks for both. A color of its own, as
-  steel's, blast's and gift's, goes in `bricksPalette()`'s `bricks`, which
-  the contrast spec then needs to hold.
+  (`src/view/art/brick_art.ts`), on the slab (`BRICK_SLAB`) with marks that
+  tell it apart by their shape, and How to play's picture in
+  `PICTURED_BRICKS` (`src/view/art/art.ts`); the compiler asks for both. A
+  color of its own, as steel's, blast's, gift's and a regrowing brick's
+  earth, goes in `bricksPalette()`'s `bricks`, and an ink its marks take
+  beside the marks' own color in its `kindInks`. The contrast spec holds
+  an ink that tells a kind to 3:1 against what it is drawn on, and leaves
+  out one that only shades, as the gift's ribbon and the moss's shadow
+  do.
 - Its character in the shared legend, or a level's own legend.
 - A level that brings it in: the catalog spec fails while a kind is used by
   none.
