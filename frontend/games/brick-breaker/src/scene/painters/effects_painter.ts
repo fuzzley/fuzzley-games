@@ -1,12 +1,20 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
 import { GameObjects, type Scene } from "phaser";
+import { hasTrait } from "../../rules/catalog/bricks";
+import { cellMiddleX, cellMiddleY } from "../../rules/grid";
 import { MAX_BALLS } from "../../rules/tuning";
-import { FRAMES, facedBallFrame } from "../../view/art/art";
+import { FRAMES, ballFrame } from "../../view/art/art";
+import { brickFrame } from "../../view/art/brick_art";
 import type { BricksPalette } from "../../view/colors/palette";
-import { ringScale, shardTint } from "../../view/effects/flourish";
+import {
+  openingHeight,
+  ringScale,
+  shardTint,
+} from "../../view/effects/flourish";
 import {
   FADE_MS,
+  OPEN_MS,
   RING_MS,
   SHAKE_INTENSITY,
   SHAKE_MS,
@@ -18,6 +26,7 @@ import {
   toCanvasX,
   toCanvasY,
 } from "../../view/field/field_metrics";
+import type { FieldView } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { Baked, PaintContext, Painter } from "./painter";
 
@@ -33,6 +42,15 @@ const SHARD_FALL = 30;
 /** Describes a blast's ring or a lost ball's fade: an image, played from where it began. */
 export interface Burst extends Playing {
   readonly image: GameObjects.Image;
+}
+
+/**
+ * Describes a lost ball's fade: its body, in the frame it flew in, and its
+ * eyes over it, looking ahead, played from where it was lost.
+ */
+export interface Fade extends Burst {
+  /** Its eyes, over its body. */
+  readonly eyes: GameObjects.Image;
 }
 
 /**
@@ -52,8 +70,9 @@ class Shard extends GameObjects.Particles.Particle {
 
 /**
  * Draws what bursts from the field as things happen on it: a broken brick's
- * shards, a blast's ring, a lost ball's fade, and the field's shake. Each is
- * made once, and the scene plays them only where motion is welcome.
+ * shards, a blast's ring, a lost ball's fade, the gates' opening, and the
+ * field's shake. Each is made once, and the scene plays them only where
+ * motion is welcome.
  */
 export class EffectsPainter implements Painter {
   /**
@@ -61,10 +80,16 @@ export class EffectsPainter implements Painter {
    * it toward the field's as it falls.
    */
   readonly shards: GameObjects.Particles.ParticleEmitter;
+  /**
+   * Opens each gate where it stood, as the last key opens them: its frame
+   * thinning to a line along its middle and fading, as many at once as a
+   * level holds.
+   */
+  readonly gates: GameObjects.Particles.ParticleEmitter;
   /** A ring for each blast that may spread at once, each played in turn. */
   readonly rings: Turns<Burst>;
   /** A fading ball for each ball that may be lost at once, each played in turn. */
-  readonly fades: Turns<Burst>;
+  readonly fades: Turns<Fade>;
 
   /** The color the shards thrown next take, their brick's. */
   private nextColor = 0xffffff;
@@ -102,19 +127,37 @@ export class EffectsPainter implements Painter {
       speed: { min: 0, max: 0 },
       gravityY: 0,
     });
+    this.gates = scene.add.particles(0, 0, ATLAS, {
+      emitting: false,
+      lifespan: OPEN_MS,
+      alpha: { start: 1, end: 0 },
+      scaleY: {
+        onEmit: () => openingHeight(0),
+        onUpdate: (_gate, _key, done) => openingHeight(done),
+      },
+    });
     this.rings = new Turns(RING_POOL, () =>
       burstOf(scene.add.image(0, 0, ATLAS, FRAMES.ring)),
     );
-    this.fades = new Turns(MAX_BALLS, () =>
-      burstOf(scene.add.image(0, 0, ATLAS, facedBallFrame("normal"))),
-    );
-    bursts.add([this.shards, ...this.rings.all.map(({ image }) => image)]);
-    balls.add(this.fades.all.map(({ image }) => image));
+    this.fades = new Turns(MAX_BALLS, () => ({
+      ...burstOf(scene.add.image(0, 0, ATLAS, ballFrame("normal", 0))),
+      eyes: scene.add.image(0, 0, ATLAS, FRAMES.eyes).setVisible(false),
+    }));
+    bursts.add([
+      this.gates,
+      this.shards,
+      ...this.rings.all.map(({ image }) => image),
+    ]);
+    balls.add(this.fades.all.flatMap(({ image, eyes }) => [image, eyes]));
   }
 
-  /** Holds the shards where they are while the last brick's hit holds, and lets them fly on after. */
+  /**
+   * Holds the shards and the opening gates where they are while the last
+   * brick's hit holds, and lets them go on after.
+   */
   hold(holding: boolean): void {
     this.shards.active = !holding;
+    this.gates.active = !holding;
   }
 
   /** Sets how fast the shards fly and fall for the field's unit. */
@@ -154,7 +197,7 @@ export class EffectsPainter implements Painter {
     this.scene.cameras.main.shake(SHAKE_MS, SHAKE_INTENSITY);
   }
 
-  /** Fades a lost ball out where it fell, in its frame. */
+  /** Fades a lost ball out where it fell, in the frame it flew in, its eyes over it. */
   fade(
     x: number,
     y: number,
@@ -162,12 +205,32 @@ export class EffectsPainter implements Painter {
     now: number,
     metrics: FieldMetrics,
   ): void {
-    this.fades
-      .play(x, y, now)
-      .image.setFrame(frame)
-      .setPosition(toCanvasX(metrics, x), toCanvasY(metrics, y))
+    const fade = this.fades.play(x, y, now);
+    const canvasX = toCanvasX(metrics, x);
+    const canvasY = toCanvasY(metrics, y);
+    fade.image
+      .setFrame(frame)
+      .setPosition(canvasX, canvasY)
       .setAlpha(1)
       .setVisible(true);
+    fade.eyes.setPosition(canvasX, canvasY).setAlpha(1).setVisible(true);
+  }
+
+  /**
+   * Opens every gate of a field, as its last key opened them: each, in its
+   * frame, thins to a line along its middle and fades where it stood.
+   */
+  open(field: FieldView, metrics: FieldMetrics): void {
+    for (const brick of field.bricks) {
+      if (!brick || !hasTrait(brick.kind, "locked")) continue;
+      this.gates
+        .setEmitterFrame(brickFrame(brick, field))
+        .emitParticleAt(
+          toCanvasX(metrics, cellMiddleX(brick.cell)),
+          toCanvasY(metrics, cellMiddleY(brick.cell)),
+          1,
+        );
+    }
   }
 
   /** Moves each ring and fade on to the time the flourishes run by, and hides those that are over. */
@@ -178,19 +241,27 @@ export class EffectsPainter implements Painter {
       ring.setScale(ringScale(done)).setAlpha(fadeAlpha(done));
       if (done === 1) ring.setVisible(false);
     }
-    for (const { image: fade, at } of this.fades.all) {
-      if (!fade.visible) continue;
+    for (const { image: body, eyes, at } of this.fades.all) {
+      if (!body.visible) continue;
       const done = shareDone(at, now, FADE_MS);
-      fade.setAlpha(fadeAlpha(done));
-      if (done === 1) fade.setVisible(false);
+      body.setAlpha(fadeAlpha(done));
+      eyes.setAlpha(fadeAlpha(done));
+      if (done === 1) {
+        body.setVisible(false);
+        eyes.setVisible(false);
+      }
     }
   }
 
   /** Stops everything bursting, as a new field starts. */
   reset(): void {
     this.shards.killAll();
+    this.gates.killAll();
     for (const { image } of this.rings.all) image.setVisible(false);
-    for (const { image } of this.fades.all) image.setVisible(false);
+    for (const { image, eyes } of this.fades.all) {
+      image.setVisible(false);
+      eyes.setVisible(false);
+    }
     this.scene.cameras.main.resetFX();
   }
 }

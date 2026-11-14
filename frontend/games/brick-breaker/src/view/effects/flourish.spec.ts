@@ -13,6 +13,7 @@ import {
   glowAlpha,
   isHolding,
   meetDepth,
+  openingHeight,
   padDip,
   popScale,
   ringScale,
@@ -42,6 +43,10 @@ describe("the flourishes' curves", () => {
       scales: [scales[0], scales[2]],
       fast: (scales[1] ?? 0) - STREAK_RING_FROM > (1 - STREAK_RING_FROM) / 2,
     }).toEqual({ scales: [STREAK_RING_FROM, 1], fast: true });
+  });
+
+  it("thins an opening gate from its whole height to nothing, slow at first, then quicker", () => {
+    expect([0, 0.5, 1].map(openingHeight)).toEqual([1, 0.75, 0]);
   });
 
   it("shows a streak's count whole for half its step, then fades it out", () => {

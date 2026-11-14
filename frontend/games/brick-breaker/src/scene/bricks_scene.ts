@@ -19,7 +19,7 @@ import { type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Place } from "../rules/levels/levels";
 import type { Steer } from "../rules/paddle/paddle";
-import { PICTURE_FRAMES, type Pictures, facedBallFrame } from "../view/art/art";
+import { PICTURE_FRAMES, type Pictures, ballFrame } from "../view/art/art";
 import { brickColor } from "../view/art/brick_art";
 import type { BricksPalette } from "../view/colors/palette";
 import {
@@ -376,17 +376,22 @@ export class BricksScene extends Scene {
         this.bricks.slide(event.cell, event.way, this.context.now);
         return;
       case "fade":
-        // The last ball's effect ends as it is lost, so it fades as it was drawn.
+        // The last ball's effect and the streak end as it is lost, so it
+        // fades as it was drawn.
         this.effects.fade(
           event.x,
           event.y,
-          facedBallFrame(
+          ballFrame(
             this.balls.drawnKind,
+            this.balls.drawnStreak,
             this.balls.lostInk(field, event.x),
           ),
           this.context.now,
           this.metrics,
         );
+        return;
+      case "open":
+        this.effects.open(field, this.metrics);
         return;
     }
   }

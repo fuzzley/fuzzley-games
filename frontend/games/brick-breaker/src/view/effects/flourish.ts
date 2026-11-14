@@ -115,6 +115,15 @@ export function ringScale(done: number): number {
 }
 
 /**
+ * Returns how tall a gate stands as it opens, as a share of its height, a
+ * share through its opening: slow to start, as a heavy door is, then
+ * quicker, thinned to nothing along its middle by its end.
+ */
+export function openingHeight(done: number): number {
+  return 1 - done * done;
+}
+
+/**
  * Returns the color a broken brick's shard takes, a share through its
  * flight: its brick's as it is thrown, dimming toward the field's as it
  * falls, so a shard loses the contrast a ball keeps and never looks like

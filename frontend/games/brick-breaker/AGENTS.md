@@ -343,24 +343,25 @@ takes for the specs' helpers.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
-  step, or at the level's mark, adding the step's, and a ball meeting the
-  paddle squashing the ball and dipping the pad, and a slider's step
-  sliding it in from the cell it left (`slid`), in the picture alone, with
-  no sound, as it comes on every beat. A plate's underside clanks as it
-  turns a ball back or a bolt is spent on it (`plated`), a cage rattles as
-  it frees its friend (`freed`), the gates sweep low and rising as they
-  open (`opened`), a soft flutter rises as the paddle lends a ball the
-  seeker (`seeking`), a bumper boings and pops as a ball turns off it
-  (`bumped`), and air whooshes up and back down as a ball goes through a
-  portal (`portalled`). A kind of brick with a voice of its own (`VOICES`)
-  sounds in it: a cage's bars rattle as a hit bends one, a key chimes as
-  it breaks, and a bumper boings as a bolt or a blast strikes it; any
-  other knocks as it holds, rings as steel if it never breaks, and bloops
-  as it breaks. `detuneOf()` says how far a broken brick's sound, its bloop or a
-  key's chime, rises along a streak, a note of a major pentatonic scale a
-  brick, up to an octave and a fifth, which Phaser plays as the sound's
-  rate, nearly three times as fast, past the ±1200 cents its docs give and
-  clamped by nothing. It holds `createFrameSounds()`,
+  step, or at the level's mark, adding the step's, a ball meeting the
+  paddle squashing the ball and dipping the pad, in the picture alone, the
+  last key opening the gates (`opened`), each thinning to a line and fading
+  where it stood (`"open"`), and a slider's step sliding it in from the
+  cell it left (`slid`), with no sound, as it comes on every beat. A
+  plate's underside clanks as it turns a ball back or a bolt is spent on
+  it (`plated`), a cage rattles as it frees its friend (`freed`), the
+  gates sweep low and rising as they open (`opened`), a soft flutter rises
+  as the paddle lends a ball the seeker (`seeking`), a bumper boings and
+  pops as a ball turns off it (`bumped`), and air whooshes up and back
+  down as a ball goes through a portal (`portalled`). A kind of brick with
+  a voice of its own (`VOICES`) sounds in it: a cage's bars rattle as a
+  hit bends one, a key chimes as it breaks, and a bumper boings as a bolt
+  or a blast strikes it; any other knocks as it holds, rings as steel if
+  it never breaks, and bloops as it breaks. `detuneOf()` says how far a
+  broken brick's sound, its bloop or a key's chime, rises along a streak,
+  a note of a major pentatonic scale a brick, up to an octave and a fifth,
+  which Phaser plays as the sound's rate, nearly three times as fast, past
+  the ±1200 cents its docs give and clamped by nothing. It holds `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
   sound once a frame at most, at the highest it was heard, and says how
   long a sound waits (`soundDelayOf()`), the clear's chord waiting out the last
@@ -385,7 +386,9 @@ takes for the specs' helpers.
   the paddle, wider and flatter and its foot pressed into the pad, as the
   art kit's still of the paddle giving draws it (`DEEPEST_SQUASH`,
   `squashAt()`), and the pad dips, a tenth of a unit, deepest as they meet,
-  then easing back (`padDip()`), how far above its place a brick stands
+  then easing back (`padDip()`), how tall a gate stands as it opens, slow
+  at first, as a heavy door, then quicker (`openingHeight()`), how far
+  above its place a brick stands
   as a level's bricks drop in, a column after a column, the first at once
   and the last landing as the drop-in ends, and how faded
   (`dropInHeight()`, `dropInAlpha()`), the time the flourishes run by,
@@ -393,8 +396,9 @@ takes for the specs' helpers.
   (`flourishTime()`, `isHolding()`), and how bright the last bricks a
   level needs glow once none has broken for a while, pulsing only where
   motion is welcome; and `timing.ts` how long each flourish lasts, the
-  bricks' drop-in (`DROP_IN_MS`) and a ball's squash and the pad's dip
-  (`MEET_MS`) among them, how long the last
+  bricks' drop-in (`DROP_IN_MS`), a ball's squash and the pad's dip
+  (`MEET_MS`) and the gates' opening, as long as their sweep rises
+  (`OPEN_MS`), among them, how long the last
   brick's hit holds as its level clears (`HOLD_MS`), how long the paddle
   stands empty after the last ball is lost (`SERVE_MS`), and how long the
   cards wait.
@@ -573,8 +577,13 @@ takes for the specs' helpers.
   its slide (`BrickPainter.slideOffsetOf()`),
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
-  in the ink the painter last showed it in (`BallPainter.lostInk()`),
-  each ring and fade taken in turn (`@fz/core/turns`'s `Turns`), and the
+  in the frame it flew in, its kind's, in the ink the painter last showed
+  it in (`BallPainter.lostInk()`) and with the fur of the streak it was
+  last drawn at (`BallPainter.drawnStreak`), though the streak ends as the
+  last ball is lost, its eyes over it looking ahead, each ring and fade
+  taken in turn (`@fz/core/turns`'s `Turns`), the gates' opening, each
+  gate's frame a particle that thins to a line along its middle and fades
+  where it stood (`open()`), as many at once as a level holds, and the
   field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle, its ends frames of the atlas
   and its lip, body and pad rectangles scaled across, which keep their
@@ -611,9 +620,10 @@ takes for the specs' helpers.
   the last one set off. The scene plays each of the field's events once,
   from the last it played, and the flourishes an event calls for only where
   motion is welcome. As a level clears, the last brick's hit holds
-  (`"hold"`): the flourishes' time stands still and the shards stop where
-  they are, then go on, and the clear's chord plays once the hold is over,
-  with motion or without, or at once if a new field starts first.
+  (`"hold"`): the flourishes' time stands still and the shards and the
+  opening gates stop where they are, then go on, and the clear's chord
+  plays once the hold is over, with motion or without, or at once if a new
+  field starts first.
   `atlas.ts` bakes the view's art with `@fz/phaser`'s `bakeAtlas()` and
   `atlasFrameOf()`, again on a new palette or a new unit,
   and at each bake the scene hands the shell (`onPictures()`) what
@@ -910,9 +920,9 @@ takes for the specs' helpers.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake, a
   ball's tail, a streak's step, the last brick's hold, a ball's squash and
-  the pad's dip, and the last bricks' pulse, are left out, a level's bricks
-  show in place at once, and the cards open without waiting; the clear's
-  chord still waits out the hold.
+  the pad's dip, the gates' opening and the last bricks' pulse, are left
+  out, a level's bricks show in place at once, and the cards open without
+  waiting; the clear's chord still waits out the hold.
 
 ## Styling
 

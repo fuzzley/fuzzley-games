@@ -49,6 +49,8 @@ export class BallPainter implements Painter {
   readonly embers: GameObjects.Particles.ParticleEmitter;
   /** The balls' kind as last drawn, which a lost ball fades in, though its effect ended as it was lost. */
   drawnKind: BallKindId = "normal";
+  /** The streak the balls were last drawn at, whose fur a lost ball fades in, though the streak ended as it was lost. */
+  drawnStreak = 0;
 
   /** Where each ball last left an ember, or was drawn without one. */
   private readonly embersAt: readonly EmberPlace[];
@@ -87,6 +89,7 @@ export class BallPainter implements Painter {
    */
   draw({ field, alpha, metrics, motion, now }: Readonly<PaintContext>): void {
     this.drawnKind = field.ballKind;
+    this.drawnStreak = field.streak;
     const trails = motion && field.ballKind === "fire";
     const by = ballGrid(metrics);
     for (let i = 0; i < this.images.length; i++) {

@@ -1,4 +1,4 @@
-import { lerp } from "@fz/core/math";
+import { fadeAlpha, lerp } from "@fz/core/math";
 import type { Turns } from "@fz/core/turns";
 import { cssHex } from "@fz/phaser/color";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
@@ -56,7 +56,6 @@ import {
   ballFrame,
   ballGrid,
   capsuleFrame,
-  facedBallFrame,
   tagFrame,
 } from "../view/art/art";
 import { brickColor, brickFrame, regrowingFrame } from "../view/art/brick_art";
@@ -74,6 +73,7 @@ import {
   DEEPEST_SQUASH,
   DROP_IN_HEIGHT,
   dropInHeight,
+  openingHeight,
   shardTint,
 } from "../view/effects/flourish";
 import { STREAK_STEPS } from "../view/effects/streak";
@@ -96,6 +96,7 @@ import {
   GLOW_PULSE_MS,
   HOLD_MS,
   MEET_MS,
+  OPEN_MS,
   POP_MS,
   REGROW_MS,
   RING_MS,
@@ -111,7 +112,7 @@ import {
   type BricksSceneOptions,
   makeBricksScene,
 } from "./bricks_scene";
-import type { Burst } from "./painters/effects_painter";
+import type { Burst, Fade } from "./painters/effects_painter";
 import { PLACE_TEXTURE } from "./painters/place_painter";
 
 const LIGHT = bricksPalette(
@@ -322,6 +323,51 @@ function fadingFrames(scene: BricksScene): readonly string[] {
   return imagesOf(scene.effects.fades)
     .filter((fade) => fade.visible)
     .map((fade) => fade.frame.name);
+}
+
+/** Returns the eyes of each lost ball's fade, shown or not. */
+function fadingEyes(fades: Turns<Fade>): GameObjects.Image[] {
+  return fades.all.map(({ eyes }) => eyes);
+}
+
+/** Describes an opening gate, as a spec reads it. */
+interface OpeningGate {
+  readonly x: number;
+  readonly y: number;
+  readonly frame: string;
+  /** How tall it stands, as a share of its height. */
+  readonly height: number;
+  readonly alpha: number;
+  /** How much of its time is done, from 0 to 1, as it was last moved on. */
+  readonly done: number;
+}
+
+/** Returns each gate opening, left to right. */
+function openingGates(scene: BricksScene): readonly OpeningGate[] {
+  const gates: OpeningGate[] = [];
+  scene.effects.gates.forEachAlive(({ x, y, frame, scaleY, alpha, lifeT }) => {
+    gates.push({
+      x,
+      y,
+      frame: frame?.name ?? "",
+      height: scaleY,
+      alpha,
+      done: lifeT,
+    });
+  }, null);
+  return gates.sort((a, b) => a.x - b.x);
+}
+
+/**
+ * A key, a gate either side of an empty column, and a plain brick under the
+ * key, which keeps the level in play once the key breaks, so the rules
+ * record the gates' opening.
+ */
+const GATED = ["k=.=", "o"];
+
+/** Breaks a shell's key, the last, which opens its gates. */
+function openGates(shell: FakeShell): void {
+  hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
 }
 
 /** Returns the dots of the first ball's tail that show, nearest first. */
@@ -2268,36 +2314,64 @@ describe("BricksScene", () => {
       });
     });
 
-    it("fades a lost ball out where it fell, in its frame", async () => {
+    it("fades a lost ball out where it fell, in the frame it flew in, its eyes over it looking ahead", async () => {
       const { shell, run, scene } = await startBoard();
       shell.field.ballKind = "blast";
       run.advance(16);
       shell.field.events.add("lost", 6, FIELD_HEIGHT);
+      const where = {
+        x: toCanvasX(metricsAt(), 6),
+        y: toCanvasY(metricsAt(), FIELD_HEIGHT),
+      };
 
       run.advance(16);
       const fading = imagesOf(scene.effects.fades)[0];
-      const seen = {
-        visible: fading?.visible,
-        frame: fading?.frame.name,
-        x: fading?.x,
-        y: fading?.y,
-      };
+      const eyes = fadingEyes(scene.effects.fades)[0];
+      const seen = { body: placed(fading), eyes: placed(eyes) };
       run.advance(FADE_MS / 2);
-      const halfway = fading?.alpha ?? 1;
+      const halfway = [fading?.alpha ?? 1, eyes?.alpha ?? 1];
       run.advance(FADE_MS);
 
       expect({
         ...seen,
-        halfway: halfway < 1 && halfway > 0,
-        after: fading?.visible,
+        halfway: halfway.map((alpha) => alpha < 1 && alpha > 0),
+        together: halfway[0] === halfway[1],
+        after: [fading?.visible, eyes?.visible],
       }).toEqual({
-        visible: true,
-        frame: facedBallFrame("blast"),
-        x: toCanvasX(metricsAt(), 6),
-        y: toCanvasY(metricsAt(), FIELD_HEIGHT),
-        halfway: true,
-        after: false,
+        body: { visible: true, frame: ballFrame("blast", 0), ...where },
+        eyes: { visible: true, frame: FRAMES.eyes, ...where },
+        halfway: [true, true],
+        together: true,
+        after: [false, false],
       });
+    });
+
+    it("fades a ball lost in a streak in the fur it flew in, though the streak ends as it is lost", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180);
+      shell.field.streak = 12;
+      run.advance(16);
+
+      stepTimes(shell.field, 30);
+      run.advance(16);
+
+      expect({
+        streak: shell.field.streak,
+        fading: fadingFrames(scene),
+      }).toEqual({ streak: 0, fading: [ballFrame("normal", 12)] });
+    });
+
+    it("fades a friend lost in a streak in its ink and the fur it flew in", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 13, 20, 0);
+      throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180, 1).ink = 2;
+      shell.field.streak = 20;
+      run.advance(16);
+
+      stepTimes(shell.field, 30);
+      run.advance(16);
+
+      expect(fadingFrames(scene)).toEqual([ballFrame("normal", 20, 2)]);
     });
 
     it("fades the last ball lost in its kind, though its effect ends as it is lost", async () => {
@@ -2314,7 +2388,7 @@ describe("BricksScene", () => {
         fading: imagesOf(scene.effects.fades)
           .filter((fade) => fade.visible)
           .map((fade) => fade.frame.name),
-      }).toEqual({ kind: "normal", fading: [facedBallFrame("fire")] });
+      }).toEqual({ kind: "normal", fading: [ballFrame("fire", 0)] });
     });
 
     it("fades a lost friend in its ink", async () => {
@@ -2326,7 +2400,7 @@ describe("BricksScene", () => {
       stepTimes(shell.field, 30);
       run.advance(16);
 
-      expect(fadingFrames(scene)).toEqual([facedBallFrame("normal", 2)]);
+      expect(fadingFrames(scene)).toEqual([ballFrame("normal", 0, 2)]);
     });
 
     it("fades each ball lost at once in its own ink, by where it was lost", async () => {
@@ -2339,7 +2413,7 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect([...fadingFrames(scene)].sort()).toEqual(
-        [facedBallFrame("normal"), facedBallFrame("normal", 2)].sort(),
+        [ballFrame("normal", 0), ballFrame("normal", 0, 2)].sort(),
       );
     });
 
@@ -2354,7 +2428,67 @@ describe("BricksScene", () => {
       Object.assign(ballOf(shell.field, 1), { x: friend.x, ink: 4 });
       run.advance(16);
 
-      expect(fadingFrames(scene)).toEqual([facedBallFrame("normal", 2)]);
+      expect(fadingFrames(scene)).toEqual([ballFrame("normal", 0, 2)]);
+    });
+
+    it("opens each gate where it stood, in its frame, as the last key breaks", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showField(GATED);
+      });
+      const metrics = metricsAt();
+      openGates(shell);
+
+      run.advance(16);
+
+      expect(openingGates(scene)).toEqual(
+        [1, 3].map((column) => ({
+          x: toCanvasX(metrics, cellMiddleX(cellIndex(column, 0))),
+          y: toCanvasY(metrics, cellMiddleY(cellIndex(column, 0))),
+          frame: brickFrame(brickAt(shell.field, column, 0)),
+          height: 1,
+          alpha: 1,
+          done: 0,
+        })),
+      );
+    });
+
+    it("thins each gate to a line along its middle and fades it as it opens", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showField(GATED);
+      });
+      openGates(shell);
+      run.advance(16);
+
+      run.advance(OPEN_MS / 2);
+      const halfway = openingGates(scene);
+
+      expect(halfway).toMatchObject(
+        [1, 3].map((_, i) => {
+          const done = halfway[i]?.done ?? NaN;
+          return {
+            height: openingHeight(done),
+            alpha: expect.closeTo(fadeAlpha(done)) as number,
+            done: expect.closeTo(0.5, 1) as number,
+          };
+        }),
+      );
+    });
+
+    it("has opened every gate once its time is up, and not before", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showField(GATED);
+      });
+      openGates(shell);
+      run.advance(16);
+
+      run.advance(OPEN_MS - 32);
+      const opening = openingGates(scene).length;
+      run.advance(48);
+
+      expect({ opening, opened: openingGates(scene).length }).toEqual({
+        opening: 2,
+        opened: 0,
+      });
     });
 
     it("grows a regrown brick back from nothing", async () => {
@@ -2964,6 +3098,28 @@ describe("BricksScene", () => {
       });
     });
 
+    it("holds the gates opening as the last brick's hit holds, then opens them on", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showField(GATED);
+      });
+      openGates(shell);
+      run.advance(16);
+      hitBrick(shell.field, brickAt(shell.field, 0, 1), 1, BRICKS_TOP + 2);
+      run.advance(16);
+      const opening = openingGates(scene).map(({ done }) => done);
+
+      run.advance(HOLD_MS - 16);
+      const held = openingGates(scene).map(({ done }) => done);
+      run.advance(32);
+      const after = openingGates(scene).map(({ done }) => done);
+
+      expect({
+        opening: opening.length,
+        held,
+        on: after.map((done, i) => done > (opening[i] ?? 1)),
+      }).toEqual({ opening: 2, held: opening, on: [true, true] });
+    });
+
     it("holds a ring that plays as the level clears, then spreads it on", async () => {
       const { shell, run, scene } = await startBoard();
       shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
@@ -3001,6 +3157,7 @@ describe("BricksScene", () => {
         embers: scene.balls.embers.getAliveParticleCount(),
         rings: showing(imagesOf(scene.effects.rings)),
         fades: showing(imagesOf(scene.effects.fades)),
+        eyes: showing(fadingEyes(scene.effects.fades)),
         shaking: scene.cameras.main.shakeEffect.isRunning,
         scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
       }).toEqual({
@@ -3008,9 +3165,27 @@ describe("BricksScene", () => {
         embers: 0,
         rings: 0,
         fades: 0,
+        eyes: 0,
         shaking: false,
         scaled: 0,
       });
+    });
+
+    it("opens the gates at once as the last key breaks", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        stillness(each);
+        each.showField(GATED);
+      });
+      openGates(shell);
+
+      run.advance(16);
+
+      expect({
+        opening: openingGates(scene),
+        shown: [1, 3].map(
+          (column) => scene.bricks.images[cellIndex(column, 0)]?.visible,
+        ),
+      }).toEqual({ opening: [], shown: [false, false] });
     });
 
     it("squashes no ball and dips no pad as they meet", async () => {
@@ -3123,6 +3298,7 @@ describe("BricksScene", () => {
         embers: scene.balls.embers.getAliveParticleCount(),
         rings: showing(imagesOf(scene.effects.rings)),
         fades: showing(imagesOf(scene.effects.fades)),
+        eyes: showing(fadingEyes(scene.effects.fades)),
         shaking: scene.cameras.main.shakeEffect.isRunning,
         scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
       }).toEqual({
@@ -3130,9 +3306,23 @@ describe("BricksScene", () => {
         embers: 0,
         rings: 0,
         fades: 0,
+        eyes: 0,
         shaking: false,
         scaled: 0,
       });
+    });
+
+    it("stops the last level's gates opening", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showField(GATED);
+      });
+      openGates(shell);
+      run.advance(16);
+
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+
+      expect(openingGates(scene)).toEqual([]);
     });
 
     it("stops the last level's streak's step", async () => {
