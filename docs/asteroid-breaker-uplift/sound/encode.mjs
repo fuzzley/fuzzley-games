@@ -53,7 +53,22 @@ async function samplesOf(file) {
  * @returns {Promise<void>}
  */
 async function encode(from, to, quality, rate) {
-  const quiet = ["-hide_banner", "-loglevel", "error", "-y", "-i", from];
+  // Bit-exact, with no date and no encoder's name written in, so the same
+  // WAV packs to the same bytes every run.
+  const quiet = [
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-y",
+    "-i",
+    from,
+    "-map_metadata",
+    "-1",
+    "-fflags",
+    "+bitexact",
+    "-flags:a",
+    "+bitexact",
+  ];
   await run("ffmpeg", [...quiet, "-c:a", "libvorbis", "-q:a", String(quality), `${to}.ogg`]);
   await run("ffmpeg", [...quiet, "-c:a", "aac", "-b:a", rate, "-movflags", "+faststart", `${to}.m4a`]);
 }
