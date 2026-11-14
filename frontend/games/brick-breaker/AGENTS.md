@@ -1126,14 +1126,13 @@ workspace's with the others'.
   with three bricks of its body's foot, three flames and a brick of each
   fin broken, taken up and gone on with, so the ball waits on the paddle
   under the card that says how to launch it, at 1280 × 720 and 2× on
-  Midnight blue, written to
-  `public/docs/screenshots/brick-breaker/` as the site's `preview.webp`
-  (2560 × 1440), which `index.html` names as the link preview, and
-  `thumb.webp` (576 × 324, the field) by `@fz/dev/screenshots`; `--url`
-  names another server, an http or https address, and `--chrome <path>` or
-  `CHROME_PATH` picks the browser. `--help` prints its options; an option it
-  can't read exits with 2, saying why, and a server that doesn't answer with
-  1, both before Chrome starts).
+  Midnight blue, written to `public/docs/screenshots/brick-breaker/` as the
+  site's `preview.webp` (2560 × 1440), which `index.html` names as the link
+  preview, and `thumb.webp` (576 × 324), each the whole page, by
+  `@fz/dev/screenshots`; `--url` names another server, an http or https
+  address, and `--chrome <path>` or `CHROME_PATH` picks the browser.
+  `--help` prints its options; an option it can't read exits with 2, saying
+  why, and a server that doesn't answer with 1, both before Chrome starts).
 
 ## Tests
 

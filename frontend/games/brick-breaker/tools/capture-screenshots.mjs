@@ -6,8 +6,10 @@
  *   yarn dev
  *   yarn capture:screenshots
  *
- * Writes `preview.webp`, the whole page, and `thumb.webp`, the field, to
- * `public/docs/screenshots/brick-breaker/`. Both show the same run, kept as
+ * Writes `preview.webp` and `thumb.webp`, each the whole page, to
+ * `public/docs/screenshots/brick-breaker/`: the field and the panels beside
+ * it reach nearly across the page, so a crop of the thumbnail's shape around
+ * them would take in part of the game bar. Both show the same run, kept as
  * the game keeps one, taken up paused on load and gone on with: at Normal on
  * level 9, Rocket, a bite out of its foot, three of its flames and a brick
  * of each fin broken, the ball waiting on the paddle under the card that
@@ -25,7 +27,6 @@ import {
   setUpPage,
   siteImagesFolder,
   takenUpBoard,
-  thumbRegionAround,
 } from "@fz/dev/screenshots";
 import { SAVED_GAME_KEY, loadScreenshotApi, storedRun } from "./stored_run.mjs";
 
@@ -135,7 +136,6 @@ async function capture(page, url, run) {
   }
   return {
     png: await page.screenshot(),
-    thumbRegion: thumbRegionAround(field, SCREENSHOT_VIEWPORT),
     says: `Took up the run with a score of ${run.score}, and went on with it.`,
   };
 }

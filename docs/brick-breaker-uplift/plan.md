@@ -45,6 +45,8 @@ Everything made for the plan is in this folder, `docs/brick-breaker-uplift/`:
   [`friends.svg`](mocks/friends.svg) and
   [`machines.svg`](mocks/machines.svg). `mocks/make-mocks.mjs` draws them
   again from `levels/` and the art.
+- **[`before.webp`](before.webp),** the site's screenshot of the game as
+  the plan found it, which "The game today" shows.
 
 ## What was asked, and where it is answered
 
@@ -61,7 +63,7 @@ Everything made for the plan is in this folder, `docs/brick-breaker-uplift/`:
 
 ## The game today
 
-![Brick Breaker as it is](../../frontend/games/brick-breaker/public/docs/screenshots/brick-breaker/preview.webp)
+![Brick Breaker as it is](before.webp)
 
 - **A field of 26 by 30 units,** 13 bricks across and up to 16 rows, the
   paddle near its foot. A tall phone gets a field up to 45 units tall, the
