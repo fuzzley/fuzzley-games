@@ -279,7 +279,9 @@ takes for the specs' helpers.
   streak (`detuneOf()`), a note of a major pentatonic
   scale a brick, up to an octave and a fifth, and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
-  sound once a frame at most, at the highest it was heard; `streak.ts` the
+  sound once a frame at most, at the highest it was heard, and how long a
+  sound waits (`soundDelayOf()`), the clear's chord waiting out the last
+  brick's hold, with motion or without, in a `DelayedSound`; `streak.ts` the
   streak's steps, the multiplier's tiers (`STREAK_STEPS`), how many a
   streak has reached (`streakTier()`), whether a broken brick took it to one
   (`isStreakStep()`), the ball in flight nearest a place (`nearestBall()`),
@@ -294,10 +296,13 @@ takes for the specs' helpers.
   color a broken brick's shard takes as it falls (`shardTint()`), dimming
   from its brick's color to mostly the field's (`SHARD_DIMMED`), so a shard
   never looks like a ball, how a streak's step's ring spreads and its count
-  fades (`streakRingScale()`, `countAlpha()`), and how
-  bright the last bricks a level needs glow once none has broken for a
-  while, pulsing only where motion is welcome; and `timing.ts` how long
-  each flourish lasts, how long the paddle stands empty after the last ball
+  fades (`streakRingScale()`, `countAlpha()`), the time the flourishes run
+  by, which stands still while the last brick's hit holds
+  (`flourishTime()`, `isHolding()`), and how bright the last bricks a
+  level needs glow once none has broken for a while, pulsing only where
+  motion is welcome; and `timing.ts` how long
+  each flourish lasts, how long the last brick's hit holds as its level
+  clears (`HOLD_MS`), how long the paddle stands empty after the last ball
   is lost (`SERVE_MS`), and how long the cards wait.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`, the commands and the held pushes; `steering.ts` the
@@ -391,8 +396,12 @@ takes for the specs' helpers.
   game object is made as the scene is created, and a new field stops what
   the last one set off. The scene plays each of the field's events once,
   from the last it played, and the flourishes an event calls for only where
-  motion is welcome. `atlas.ts` bakes the view's art with `@fz/phaser`'s
-  `bakeAtlas()` and `atlasFrameOf()`, again on a new palette or a new unit,
+  motion is welcome. As a level clears, the last brick's hit holds
+  (`"hold"`): the flourishes' time stands still and the shards stop where
+  they are, then go on, and the clear's chord plays once the hold is over,
+  with motion or without, or at once if a new field starts first.
+  `atlas.ts` bakes the view's art with `@fz/phaser`'s `bakeAtlas()` and
+  `atlasFrameOf()`, again on a new palette or a new unit,
   and at each bake the scene hands the shell (`onPictures()`) what
   `@fz/phaser/scene`'s `picturesWhenAsked()` returns, which encodes How to
   play's pictures from the atlas only as the board first asks for them, as
@@ -401,7 +410,8 @@ takes for the specs' helpers.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
   settings want none; it plays the chime, the level cleared's, each time the
-  game's count of `chimes()` goes up. The keys, clicks and taps go back
+  game's count of `chimes()` goes up, but for one called for while the
+  clear's chord waits, which is that chord. The keys, clicks and taps go back
   through `command()`, the keys heard through `@fz/phaser/scene`'s
   `onKeyDown()` and `onKeyUp()`, which hand over each key event once, and
   every key and finger held is let go as the player looks away
@@ -644,8 +654,9 @@ takes for the specs' helpers.
   until the scene's, so they never wait on the scene to stand.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake, a
-  ball's tail, a streak's step and the last bricks' pulse, are left out, and
-  the cards open without waiting.
+  ball's tail, a streak's step, the last brick's hold and the last bricks'
+  pulse, are left out, and the cards open without waiting; the clear's
+  chord still waits out the hold.
 
 ## Styling
 

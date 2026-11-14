@@ -1,8 +1,8 @@
-import { easeOutCubic, fadeAlpha } from "@fz/core/math";
+import { clamp, easeOutCubic, fadeAlpha } from "@fz/core/math";
 import { mixColors } from "@fz/phaser/color";
 import { STEP_MS, stepsIn } from "../../rules/stepper";
 import type { FieldView } from "../field/frame";
-import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
+import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS, HOLD_MS } from "./timing";
 
 /** How far a brick that holds a hit swells at its widest, as a share of its size. */
 export const POP_SWELL = 0.12;
@@ -74,4 +74,18 @@ export function streakRingScale(done: number): number {
 export function countAlpha(done: number): number {
   if (done <= COUNT_WHOLE) return 1;
   return fadeAlpha((done - COUNT_WHOLE) / (1 - COUNT_WHOLE));
+}
+
+/**
+ * Returns the time the flourishes run by, from the scene's: the same until
+ * the last brick's hit holds, standing still for {@link HOLD_MS} from when it
+ * held, and so far behind after; `heldAt` is Infinity while it hasn't held.
+ */
+export function flourishTime(time: number, heldAt: number): number {
+  return time - clamp(time - heldAt, 0, HOLD_MS);
+}
+
+/** Returns whether the last brick's hit holds at a time, from when it held, or Infinity while it hasn't. */
+export function isHolding(time: number, heldAt: number): boolean {
+  return time >= heldAt && time < heldAt + HOLD_MS;
 }

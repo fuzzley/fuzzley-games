@@ -74,6 +74,7 @@ import {
   FADE_MS,
   GLOW_AFTER_MS,
   GLOW_PULSE_MS,
+  HOLD_MS,
   POP_MS,
   REGROW_MS,
   RING_MS,
@@ -255,6 +256,13 @@ function shardsOf(scene: BricksScene): readonly Shard[] {
   return shards.sort((a, b) => b.done - a.done);
 }
 
+/** Returns where each shard alive is, left to right and top to bottom. */
+function shardPlacesOf(scene: BricksScene): { x: number; y: number }[] {
+  return shardsOf(scene)
+    .map(({ x, y }) => ({ x, y }))
+    .sort((a, b) => a.x - b.x || a.y - b.y);
+}
+
 /** Returns the tint each shard should have, dimmed from its brick's color toward a field's. */
 function dimmedTints(
   shards: readonly Shard[],
@@ -324,6 +332,18 @@ async function stepTo(
   hitBrick(field, brickAt(field, 0, 0), 6, 12);
   board.run.advance(16);
   return board;
+}
+
+/** Breaks both of the spec's field's bricks, the last as the streak's second, which clears its level as the rules do. */
+function clearLevel(shell: FakeShell): void {
+  hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+  hitBrick(
+    shell.field,
+    brickAt(shell.field, 1, 0),
+    3,
+    BRICKS_TOP + 1,
+    "breaks",
+  );
 }
 
 /** Returns how many of a set of images show. */
@@ -1338,7 +1358,10 @@ describe("BricksScene", () => {
     });
 
     it("keeps each broken brick's shards in its own color as another breaks", async () => {
-      const { shell, run, scene } = await startBoard();
+      // A third brick keeps the level from clearing, which would hold them.
+      const { shell, run, scene } = await startBoard((each) => {
+        each.showField(["o3o"]);
+      });
       const first = brickAt(shell.field, 0, 0);
       const second = brickAt(shell.field, 1, 0);
       hitBrick(shell.field, first, 1, BRICKS_TOP + 1);
@@ -1850,6 +1873,46 @@ describe("BricksScene", () => {
     });
   });
 
+  describe("the last brick's hold", () => {
+    it("holds the last brick's shards where they were thrown, then lets them fly", async () => {
+      const { shell, run, scene } = await startBoard();
+      clearLevel(shell);
+      run.advance(16);
+      const thrown = shardPlacesOf(scene);
+
+      run.advance(HOLD_MS - 16);
+      const held = shardPlacesOf(scene);
+      run.advance(32);
+      const flying = shardPlacesOf(scene);
+
+      expect({
+        held,
+        moved: flying.some((place, i) => place.x !== thrown[i]?.x),
+      }).toEqual({
+        held: thrown,
+        moved: true,
+      });
+    });
+
+    it("holds a ring that plays as the level clears, then spreads it on", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+      clearLevel(shell);
+      run.advance(16);
+      const ring = imagesOf(scene.effects.rings)[0];
+      const thrown = ring?.scale;
+
+      run.advance(HOLD_MS - 16);
+      const held = ring?.scale;
+      run.advance(32);
+
+      expect({ held, spread: (ring?.scale ?? 0) > (thrown ?? 0) }).toEqual({
+        held: thrown,
+        spread: true,
+      });
+    });
+  });
+
   describe("where the player prefers less motion", () => {
     it("plays no flourish", async () => {
       const { shell, run, scene } = await startBoard(stillness);
@@ -2105,6 +2168,79 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(played).toEqual([["broken", 900]]);
+    });
+
+    it("play the clear's chord once the last brick's hit has held", async () => {
+      const { shell, run } = await startBoard();
+      const played = soundsPlayed();
+      clearLevel(shell);
+      run.advance(16);
+
+      run.advance(HOLD_MS - 16);
+      const holding = [...played];
+      run.advance(16);
+
+      expect({ holding, held: played }).toEqual({
+        holding: [["broken", 200]],
+        held: [
+          ["broken", 200],
+          ["cleared", 0],
+        ],
+      });
+    });
+
+    it("play the clear's chord after the hold where the player prefers less motion too", async () => {
+      const { shell, run } = await startBoard(stillness);
+      const played = soundsPlayed();
+      clearLevel(shell);
+      run.advance(16);
+
+      run.advance(HOLD_MS - 16);
+      const holding = [...played];
+      run.advance(16);
+
+      expect({ holding, held: played }).toEqual({
+        holding: [["broken", 200]],
+        held: [
+          ["broken", 200],
+          ["cleared", 0],
+        ],
+      });
+    });
+
+    it("play the chime once, after the hold, as the points bring a life with the clear", async () => {
+      const { shell, run } = await startBoard();
+      const played = soundsPlayed();
+      clearLevel(shell);
+      shell.chimesCalled += 1;
+      run.advance(16);
+
+      run.advance(HOLD_MS - 16);
+      const holding = [...played];
+      run.advance(16);
+
+      expect({ holding, held: played }).toEqual({
+        holding: [["broken", 200]],
+        held: [
+          ["broken", 200],
+          ["cleared", 0],
+        ],
+      });
+    });
+
+    it("play the last level's chord at once as a new level starts during its wait", async () => {
+      const { shell, run } = await startBoard(stillness);
+      const played = soundsPlayed();
+      clearLevel(shell);
+      run.advance(16);
+
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+
+      expect(played).toEqual([
+        ["broken", 200],
+        ["cleared", 0],
+      ]);
     });
 
     it("play the chime each time the shell calls for it", async () => {

@@ -5,13 +5,15 @@ import {
   RING_FROM,
   STREAK_RING_FROM,
   countAlpha,
+  flourishTime,
   glowAlpha,
+  isHolding,
   popScale,
   ringScale,
   shardTint,
   streakRingScale,
 } from "./flourish";
-import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
+import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS, HOLD_MS } from "./timing";
 
 describe("the flourishes' curves", () => {
   it("swells a brick that holds a hit at the middle of its pop, and settles it back", () => {
@@ -101,5 +103,38 @@ describe("glowAlpha", () => {
 
   it("is dark once the level needs no more", () => {
     expect(glowAfter(QUIET, 0)).toBe(0);
+  });
+});
+
+describe("flourishTime", () => {
+  it("runs with the scene's time while nothing holds", () => {
+    expect(flourishTime(1000, Infinity)).toBe(1000);
+  });
+
+  it("stands still from when the last brick's hit held, as long as it holds", () => {
+    const times = [0, HOLD_MS / 2, HOLD_MS].map((after) =>
+      flourishTime(1000 + after, 1000),
+    );
+
+    expect(times).toEqual([1000, 1000, 1000]);
+  });
+
+  it("runs on after the hold, as far behind the scene's as it held", () => {
+    expect(flourishTime(1000 + HOLD_MS + 50, 1000)).toBe(1050);
+  });
+});
+
+describe("isHolding", () => {
+  it.each([
+    [999, false],
+    [1000, true],
+    [1000 + HOLD_MS - 1, true],
+    [1000 + HOLD_MS, false],
+  ])("says the hit held at 1000 holds at %i: %s", (time, holding) => {
+    expect(isHolding(time, 1000)).toBe(holding);
+  });
+
+  it("says nothing holds before the last brick's hit", () => {
+    expect(isHolding(1000, Infinity)).toBe(false);
   });
 });

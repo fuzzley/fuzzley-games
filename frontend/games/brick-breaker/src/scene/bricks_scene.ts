@@ -23,13 +23,17 @@ import { brickColor } from "../view/art/brick_art";
 import type { BricksPalette } from "../view/colors/palette";
 import {
   CHIME,
+  DelayedSound,
+  type EventEffects,
   type Flourish,
   type SoundName,
   createFrameSounds,
   detuneOf,
   effectsOf,
   flourishesOf,
+  soundDelayOf,
 } from "../view/effects/effects";
+import { flourishTime, isHolding } from "../view/effects/flourish";
 import { type FieldMetrics, fieldMetrics } from "../view/field/field_metrics";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
@@ -153,6 +157,12 @@ export class BricksScene extends Scene {
   private readonly frameSounds = createFrameSounds();
   /** How many chimes the game had called for as the scene last looked. */
   private chimed = 0;
+  /** The scene's time as of this frame, in milliseconds. */
+  private frameTime = 0;
+  /** When the last brick's hit began to hold, in the scene's time, or Infinity while it hasn't. */
+  private heldAt = Infinity;
+  /** The clear's chord, as it waits out the last brick's hold. */
+  private readonly delayed = new DelayedSound();
 
   constructor(
     private readonly options: BricksSceneOptions,
@@ -240,7 +250,8 @@ export class BricksScene extends Scene {
    * Audio starts each only once.
    */
   override update(time: number, delta: number): void {
-    this.context.now = time;
+    this.frameTime = time;
+    this.context.now = flourishTime(time, this.heldAt);
     let stale = this.fit();
     this.options.tick(delta, this.steering.read());
     this.sounds.follow(this.options.sound());
@@ -257,11 +268,14 @@ export class BricksScene extends Scene {
     if (frame.field !== this.shownField) this.startField(frame.field);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
+    this.effects.hold(isHolding(time, this.heldAt));
     const chimes = this.options.chimes();
     if (chimes !== this.chimed) {
       this.chimed = chimes;
-      this.frameSounds.hear(CHIME, 0);
+      // A chime called for as the clear's chord waits is that chord.
+      if (!this.delayed.isWaiting(CHIME)) this.frameSounds.hear(CHIME, 0);
     }
+    this.delayed.playDue(time, this.frameSounds);
     this.frameSounds.playEach(this.sounds.playRisen);
     this.draw(frame);
   }
@@ -288,10 +302,23 @@ export class BricksScene extends Scene {
     if (!field) return;
     if (event.kind === "broken") this.context.brokeAt = field.steps;
     const effects = effectsOf(event, field);
-    if (effects.sound) this.frameSounds.hear(effects.sound, detuneOf(event));
+    this.hear(effects, event);
     const flourishes = flourishesOf(effects, this.context.motion);
     for (const flourish of flourishes) this.flourish(flourish, event, field);
   };
+
+  /** Has the frame hear the sound an event calls for, if any, or keeps it to play once its wait is over. */
+  private hear(effects: EventEffects, event: Readonly<FieldEvent>): void {
+    const { sound } = effects;
+    if (sound === null) return;
+    const detune = detuneOf(event);
+    const delay = soundDelayOf(effects);
+    if (delay === 0) {
+      this.frameSounds.hear(sound, detune);
+    } else {
+      this.delayed.wait(sound, detune, this.frameTime + delay);
+    }
+  }
 
   /** Plays one of an event's flourishes. */
   private flourish(
@@ -325,6 +352,9 @@ export class BricksScene extends Scene {
         return;
       case "streak":
         this.streak.play(event, field, this.context.now);
+        return;
+      case "hold":
+        this.heldAt = this.frameTime;
         return;
       case "fade":
         // The last ball's effect ends as it is lost, so it fades as it was drawn.
@@ -432,6 +462,10 @@ export class BricksScene extends Scene {
     this.balls.reset();
     this.tails.reset();
     this.streak.reset();
+    this.heldAt = Infinity;
+    // A chord still waiting, as a level cleared without motion is gone on
+    // from at once, plays now rather than go unheard.
+    this.delayed.playDue(Infinity, this.frameSounds);
     this.bricks.show(field);
     if (this.context.motion) this.bricks.dropIn(this.metrics);
     else this.bricks.layout(this.metrics);

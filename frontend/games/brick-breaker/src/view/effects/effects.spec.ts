@@ -1,14 +1,17 @@
 import { fieldFrom } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
+  DelayedSound,
   SOUNDS,
   type SoundName,
   createFrameSounds,
   detuneOf,
   effectsOf,
   flourishesOf,
+  soundDelayOf,
 } from "./effects";
 import { STREAK_STEPS } from "./streak";
+import { HOLD_MS } from "./timing";
 
 /** Returns an event of a kind, at a cell or none, at a length of streak. */
 function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {
@@ -30,7 +33,7 @@ const EVENTS = [
   ["fired", "fired", []],
   ["netted", "paddle", []],
   ["lost", "lost", ["fade", "shake"]],
-  ["cleared", "cleared", []],
+  ["cleared", "cleared", ["hold"]],
   ["freed", null, []],
   ["plated", null, []],
   ["opened", null, []],
@@ -131,5 +134,64 @@ describe("createFrameSounds", () => {
     sounds.playEach((name) => played.push(name));
 
     expect(played).toEqual(SOUNDS);
+  });
+});
+
+describe("soundDelayOf", () => {
+  const field = fieldFrom(["2#"]);
+
+  it("has the clear's chord wait out the last brick's hold", () => {
+    expect(soundDelayOf(effectsOf(eventOf("cleared"), field))).toBe(HOLD_MS);
+  });
+
+  it.each(EVENTS.map(([kind]) => kind).filter((kind) => kind !== "cleared"))(
+    "plays the sound of %s at once",
+    (kind) => {
+      expect(soundDelayOf(effectsOf(eventOf(kind, 0), field))).toBe(0);
+    },
+  );
+});
+
+describe("DelayedSound", () => {
+  /** Returns the sounds a frame's sounds play once a delayed sound has had its turn at a time. */
+  function playedAt(delayed: DelayedSound, now: number): [SoundName, number][] {
+    const sounds = createFrameSounds();
+    delayed.playDue(now, sounds);
+    const played: [SoundName, number][] = [];
+    sounds.playEach((name, detune) => {
+      played.push([name, detune]);
+    });
+    return played;
+  }
+
+  it("plays a sound once its time comes, and only once", () => {
+    const delayed = new DelayedSound();
+    delayed.wait("cleared", 100, 1000);
+
+    const played = [999, 1000, 1001].map((now) => playedAt(delayed, now));
+
+    expect(played).toEqual([[], [["cleared", 100]], []]);
+  });
+
+  it("says which sound waits", () => {
+    const delayed = new DelayedSound();
+
+    delayed.wait("cleared", 0, 1000);
+
+    expect([delayed.isWaiting("cleared"), delayed.isWaiting("broken")]).toEqual(
+      [true, false],
+    );
+  });
+
+  it("plays a sound waiting whenever it is due, asked at Infinity", () => {
+    const delayed = new DelayedSound();
+    delayed.wait("cleared", 0, 1000);
+
+    const played = playedAt(delayed, Infinity);
+
+    expect({ played, waiting: delayed.isWaiting("cleared") }).toEqual({
+      played: [["cleared", 0]],
+      waiting: false,
+    });
   });
 });

@@ -313,3 +313,105 @@ Review:
    `BALL_RADIUS`; `tail.ts` takes `FieldPlace` from `streak.ts`; the
    effects spec's step without motion passed for any event and is gone (the
    scene's spec holds it); the spec's imports in order.
+
+### 2026-11-14: the last brick's hit holds before the clear's chord
+
+What it does:
+
+- The level's clearing calls for a new flourish, `"hold"`
+  (`EVENT_EFFECTS.cleared`). Where motion is welcome, the scene notes when
+  it held, and for 120 ms (`HOLD_MS`) the time the flourishes run by stands
+  still (`flourishTime()`), so a pop, a ring, a fade or a streak's step in
+  play stops where it is, and the shards' emitter stops too
+  (`EffectsPainter.hold()`, by `isHolding()`); then all of it goes on from
+  where it stood. The field itself already stands still once cleared.
+- The clear's chord waits out the hold its event calls for
+  (`soundDelayOf()`, from the event's effects), kept in a `DelayedSound`
+  the scene hands to the frame's sounds once its time comes, so the last
+  brick's note is heard alone first. A chime the shell calls for while the
+  chord waits (a life the points brought in the same frame) is that chord,
+  so it plays once, after the hold. A new field started while the chord
+  waits (without motion the cleared card opens at once) plays it at once.
+- Specs: `effects.spec.ts` (the clear's hold, the sounds' delays,
+  `DelayedSound`), `flourish.spec.ts` (`flourishTime()`, `isHolding()`),
+  `timing.spec.ts` (the cleared card still waits out the hold and the
+  shards, as does a won run's result), and the scene's spec: the last
+  brick's shards held then flying, a ring held then spreading, the chord
+  after the hold with and without motion, one chime after the hold with a
+  life, and the chord played at once as a new level starts during its
+  wait. The
+  spec that throws two bricks' shards keeps a third brick, so its level
+  doesn't clear and hold them.
+- `AGENTS.md`: `effects.ts`, `flourish.ts`, `timing.ts`, the scene's hold
+  and chime, and the hold among what motion's absence leaves out.
+
+Choices where the plan was silent:
+
+- Without motion, nothing holds (nothing moves to hold), but the chord
+  still waits its 120 ms: a sound plays either way, and the gap keeps the
+  last brick's note apart from the chord in both. The cards don't wait for
+  it: without motion the cleared card opens at once, as before.
+- A fire ball's embers are `BallPainter`'s, L's, and keep drifting through
+  the hold; the ball itself stands still, so they are few.
+
+Checks, after the review's fixes: the workspace's lint and typecheck
+pass, and its tests, 65 files and 2345 specs; its coverage of `pure` and
+`dom` holds the floor (all files 99.46% of statements, 97.4% of branches,
+99.71% of functions, 99.91% of lines; the rules and the view whole); the
+root's lint passes.
+
+Changed in other streams' files: `bricks_scene.ts` adds the hold's and
+the chord's fields, a method that hears or keeps a sound, the flourish's
+case and their reset, and changes three lines: the flourishes' time is
+`flourishTime()`'s rather than the frame's, an event's sound goes through
+that method, and the shell's chime is heard only while no chord waits.
+These are the hold itself; an addition alone couldn't change the time
+every painter reads. `src/scene/painters/painter.ts`: `PaintContext.now`'s
+doc comment, which said the scene's time, says the flourishes' time.
+
+Review:
+
+1. Without motion the cleared card opens at once, so a player pressing on
+   within 120 ms started the next field, which dropped the chord still
+   waiting. Fixed: a new field plays a waiting chord at once
+   (`DelayedSound.playDue(Infinity, …)`, and `clear()` gone); the spec runs
+   without motion.
+2. The one-chime spec would pass with the shell's chime played at once and
+   the chord dropped. Fixed: it holds no chime during the hold and one
+   after.
+3. The wait was a check of the event's kind, apart from the record that
+   calls for the hold. Fixed without a new field on the record:
+   `soundDelayOf()` reads the event's effects, and a sound waits wherever
+   its event calls for a hold.
+4. `PaintContext.now`'s and the effects painter's comments said the
+   scene's time, and `HOLD_MS`'s said every flourish stands still, where
+   the camera's shake and a fire ball's embers run on. Fixed all three.
+5. Small items, each fixed: the effects spec's imports in order; the
+   spec's setup parameter named `each`, as the file names it; the timing
+   specs read `clearedDelayMs()` and `resultDelayMs()` against the hold and
+   the shards.
+
+### 2026-11-14: the browser check
+
+Served on 9304 and played in headless Chrome at 1280 × 800 and 2×, on
+level 1, with the field's streak raised from the page (through Angular's
+dev tools, the board's `GameService`) so each step came at the next brick,
+and the paddle kept under the ball.
+
+- At ×2 (a streak of 5): the ring about the ball, the count "5" above it
+  and to its right, crisp in Figtree, 50 px at a 45 px unit, at whole
+  pixels, four tail dots behind the ball, and the brick's shards in its
+  blue, dimming.
+- At ×3 (10): the ring, "10", six tail dots.
+- The clear (the last brick broken from the page with the rules'
+  `hitBrick()`): its six shards stood still for 124 ms and then fell; the
+  last brick's note played at once and the chord 143 ms after the break,
+  the first frame past the hold.
+- With `prefers-reduced-motion: reduce` emulated, on level 2: a streak
+  past 5 showed no ring, count, tail or shard; the clear threw no shards
+  and the chord came 133 ms after the note.
+- No error or warning in the console. The page was closed and the server
+  stopped.
+- Not checked: how the scale's top notes sound. Headless Chrome plays
+  nothing to listen to; 1900 cents, nearly three times the sound's rate,
+  is for F3 to hear.
