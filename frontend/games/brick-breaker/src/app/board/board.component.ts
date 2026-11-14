@@ -55,6 +55,7 @@ import {
   fieldMetrics,
   fingerRoomOf,
 } from "../../view/field/field_metrics";
+import { RIM, rimWidth } from "../../view/field/rim";
 import { backdropStyle } from "../../view/places/backdrop";
 import { BenchComponent } from "../panels/bench.component";
 import { InPlayComponent } from "../panels/in_play.component";
@@ -128,6 +129,8 @@ const FULL_CLEARED_CARD_FIELD_CSS_PX = 380;
     "[style.--card-drop]": "cardDrop",
     "[style.--card-foot]": "cardFoot()",
     "[style.--pixel-ratio]": "pixelRatio()",
+    "[style.--rim-width]": "rim()?.width",
+    "[style.--rim-corner]": "rim()?.corner",
   },
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
@@ -222,6 +225,25 @@ export class BoardComponent {
     return fieldMetrics({ ...room, insets }, this.game.fieldHeight());
   });
 
+  /**
+   * Where the field and the panels lie: where the scene laid them out, or,
+   * until it has, where it will; or null before the board is measured.
+   */
+  private readonly fieldAt = computed(() => this.laid() ?? this.placeholder());
+
+  /**
+   * The rim the scene draws round the field, in CSS pixels: how wide
+   * (`rimWidth()`) and how round its outer corners, for the placeholder to
+   * draw it as wide and the focus ring to lie outside it, where the field
+   * lies (`fieldAt`); or null before the board is measured.
+   */
+  protected readonly rim = computed(() => {
+    const metrics = this.fieldAt();
+    if (!metrics) return null;
+    const width = rimWidth(metrics) / metrics.pixelRatio;
+    return { width, corner: RIM.corner * width };
+  });
+
   /** The field's rectangle, for the layout check: x, y, width and height. */
   protected readonly fieldRect = computed(() => {
     const laid = this.laid();
@@ -238,12 +260,11 @@ export class BoardComponent {
   });
 
   /**
-   * Where the panels lie beside the field: where the scene laid them out,
-   * or, until it has, where it will; or null where the room spares none,
-   * or before the board is measured.
+   * Where the panels lie beside the field (`fieldAt`), or null where the
+   * room spares none, or before the board is measured.
    */
   protected readonly panelStyles = computed(() => {
-    const panels = (this.laid() ?? this.placeholder())?.panels;
+    const panels = this.fieldAt()?.panels;
     return panels
       ? { left: cssRectStyle(panels.left), right: cssRectStyle(panels.right) }
       : null;
@@ -284,11 +305,10 @@ export class BoardComponent {
 
   /**
    * How the page shows the place past the field (`backdropStyle()`), from
-   * where the scene laid the field out, or, until it has, where it will; or
-   * null before the board is measured.
+   * where the field lies (`fieldAt`); or null before the board is measured.
    */
   protected readonly backdrop = computed(() => {
-    const metrics = this.laid() ?? this.placeholder();
+    const metrics = this.fieldAt();
     return metrics && backdropStyle(this.place(), metrics);
   });
 
@@ -357,11 +377,11 @@ export class BoardComponent {
 
   /**
    * Whether the field is too short for the Cleared card at its full size,
-   * where the scene laid it out or, until it has, where it will: the card
-   * sets smaller over it, its stars laid across, side by side.
+   * where it lies (`fieldAt`): the card sets smaller over it, its stars laid
+   * across, side by side.
    */
   protected readonly shortField = computed(() => {
-    const metrics = this.laid() ?? this.placeholder();
+    const metrics = this.fieldAt();
     return (
       metrics !== null && metrics.css.height < FULL_CLEARED_CARD_FIELD_CSS_PX
     );

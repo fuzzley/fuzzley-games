@@ -9,7 +9,11 @@
 // and the cards work out the same unit: the largest that fits the field
 // with room for its wall, whole device pixels at `--pixel-ratio`
 // (`fieldMetrics()`). `--across`, `--down` and `--finger-room` come
-// from the component, the first two the field's size in units.
+// from the component, the first two the field's size in units, and so do
+// `--rim-width` and `--rim-corner`, the rim the scene draws round the field
+// in CSS px, wider than the wall where the unit allows (`rimWidth()`), which
+// the placeholder draws and the focus ring lies outside; the wall's, square,
+// until the board is measured.
 :host {
   @include canvas-board-host;
 
@@ -18,6 +22,10 @@
   --pixel-ratio: 1;
   --finger-room: 0;
   --finger: calc(var(--finger-room) * 1px);
+  --rim-width: 2;
+  --rim-corner: 0;
+  --rim: calc(var(--rim-width) * 1px);
+  --rim-radius: calc(var(--rim-corner) * 1px);
   --fz-canvas-inset-top: var(--room);
   --fz-canvas-inset-right: var(--room);
   --fz-canvas-inset-bottom: var(--room);
@@ -55,17 +63,27 @@
   padding-bottom: var(--finger);
 }
 
-// The field in the panel's color, with the wall on its left, its top and its
-// right in text at 20% over the panel, as the scene draws it.
+// The field in the panel's color, with the rim on its left, its top and its
+// right in text at 20% over the panel, `--rim` wide and round at its outer
+// corners, its feet too, as the scene draws it: the shadow of a box over the
+// field, cut off at the field's foot, which leaves the field and its square
+// corners whole.
 .field {
   position: relative;
-  box-sizing: content-box;
   width: calc(var(--across) * var(--unit));
   height: calc(var(--down) * var(--unit));
-  border: var(--wall) solid
-    color-mix(in srgb, var(--fz-text) 20%, var(--fz-panel));
-  border-bottom-color: transparent;
   background-color: var(--fz-panel);
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 0 var(--rim)
+      color-mix(in srgb, var(--fz-text) 20%, var(--fz-panel));
+    content: "";
+    clip-path: inset(
+      calc(-1 * var(--rim)) calc(-1 * var(--rim)) 0 round var(--rim-radius)
+    );
+  }
 }
 
 // The paddle waiting in the middle, its ends round. Its places come from the
@@ -80,10 +98,10 @@
   background-color: var(--fz-accent);
 }
 
-// Around the wall, while the application, `.play`, has the focus from the
+// Around the rim, while the application, `.play`, has the focus from the
 // keyboard.
 .ring {
-  @include board-focus-ring(var(--wall), $application: ".play");
+  @include board-focus-ring(var(--rim), $application: ".play");
 
   position: absolute;
   inset: 0 0 var(--finger);

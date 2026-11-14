@@ -293,7 +293,8 @@ takes for the specs' helpers.
   the paddle, and how much of each one's time is left. `rim.ts` says how
   wide the rim the scene draws round the field is (`rimWidth()`): 0.3 of a
   unit, never narrower than the wall, nor further past it than half the
-  gap the panels keep from it.
+  gap the panels keep from it; the board's placeholder and focus ring
+  take it too.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
@@ -619,25 +620,26 @@ takes for the specs' helpers.
     first shows, and it takes up the run kept (`takeUp()`), paused with the
     ball on the paddle, its bricks as they were.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
-    the empty field and the paddle drawn in CSS until the scene has drawn;
+    the empty field and the paddle drawn in CSS until the scene has drawn,
+    the rim round the field as wide and as round as the scene draws it;
     the place the level's set is in over the page past the field
     (`.backdrop`, in `_backdrop.scss`), the text masked by the tile of
     `backdropStyle()`, a little stronger than the scene's over the field,
     laid from the scene's field, or, until the scene has laid it out, the
-    board's own, and under everything else on the board; the
-    focus ring; the pointer hidden while a ball is in play; and the cards:
-    Ready, with the level, how to launch and, as the level opens, its stars
-    (`stars/`) and each kind of brick new in it (the first by number to
-    hold it), its picture, name and line, the line left out on a small
-    field, whenever a ball waits on the paddle, between the bricks and the
-    paddle, raised where it is too tall for the gap so it never covers the
-    ball; Paused; Cleared, with the level's stars, those just won marked new
-    and the play's best streak beside a streak's star not won, over how the
-    level's points added up, a line for double pay only where it paid, and
-    Next level, set smaller over a field under 380 CSS px tall, its stars
-    laid across and its tally's lines closer, so it fits on the field;
-    Ended, once an ended run's result is put away; and, in their place,
-    the canvas's own (`@fz/phaser/canvas`'s
+    board's own, and under everything else on the board; the focus ring,
+    outside the rim; the pointer hidden while a ball is in play; and the
+    cards: Ready, with the level, how to launch and, as the level opens,
+    its stars (`stars/`) and each kind of brick new in it (the first by
+    number to hold it), its picture, name and line, the line left out on a
+    small field, whenever a ball waits on the paddle, between the bricks
+    and the paddle, raised where it is too tall for the gap so it never
+    covers the ball; Paused; Cleared, with the level's stars, those just won
+    marked new and the play's best streak beside a streak's star not won, over
+    how the level's points added up, a line for double pay only where it paid,
+    and Next level, set smaller over a field under 380 CSS px tall, its stars
+    laid across and its tally's lines closer, so it fits on the field; Ended,
+    once an ended run's result is put away; and, in their place, the canvas's
+    own (`@fz/phaser/canvas`'s
     `<fz-canvas-cards>`): still loading, which a status region in the page
     from the start says to a screen reader, and couldn't be drawn. The
     board is Phaser's keyboard target, so the cards' buttons keep their
@@ -843,8 +845,13 @@ takes for the specs' helpers.
   board measures it; the ring takes the scene's own rectangle once it has
   drawn, which the board writes for the layout check (`data-field`) with
   `@fz/phaser/layout`'s `rectAttribute()`, and the layout check holds the
-  placeholder to it. The panels take `fieldMetrics()`' own, the board's
-  until the scene's, so they never wait on the scene to stand.
+  placeholder to it. The rim the scene draws round the field, wider than
+  the wall where the unit allows, the board works out in TypeScript
+  (`rimWidth()`), from the scene's metrics or, until it has drawn, its
+  own, and hands the stylesheet in CSS px (`--rim-width`, `--rim-corner`):
+  the placeholder draws it as wide and as round, and the focus ring lies
+  outside it. The panels take `fieldMetrics()`' own, the board's until the
+  scene's, so they never wait on the scene to stand.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake, a
   ball's tail, a streak's step, the last brick's hold, a ball's squash and
