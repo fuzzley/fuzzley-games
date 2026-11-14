@@ -77,3 +77,65 @@ files, 736 specs) and its coverage (99.23% statements, 96.08% branches,
 `src/layout/` whole); Brick Fuzz Pop's lint, typecheck and test (148 files,
 6,494 specs, all three projects); the root's lint, typecheck and test,
 under the lock (2 min 57 s before the fixes).
+
+### 2026-11-14: `board-panel()` into `@fz/style`'s toolkit
+
+Brick Fuzz Pop's `src/app/panels/_panel.scss` became `@fz/style`'s
+`board-panel($compact: false)`, in `src/toolkit/_boards.scss` beside
+`board-card()`, and the partial is gone: both panels' stylesheets include
+`board-panel` through the game's toolkit, as its other components take
+theirs.
+
+- **Brick Fuzz Pop's CSS is the same, byte for byte.** Compiled with Dart
+  Sass, the old `_panel.scss` body and `board-panel` give identical CSS
+  under each panel's `:host`, its own `grid-template-rows` after it.
+- **The compact rule** is an option, as the plan asks, that Brick Fuzz Pop
+  doesn't take: with `$compact: true` the panel is a size container of its
+  own, named `fz-board-panel`, prefixed as everything the library shares
+  is, and a container query on it hides its children past the second,
+  not counting its `<h2>` (`:nth-child(n + 3 of :not(h2))`), since the
+  plan's parts are the sections under a panel's heading. The query
+  measures the content box, so it asks for under 374px: 400px less the
+  small card's padding and border. The 400px and the two parts are the
+  plan's, written into the rule rather than made parameters, since no
+  second user asks for others. Looked at in headless Chrome on a page of
+  its own: a panel 399px tall, a heading and three parts, hides the third;
+  one 400px tall shows all three.
+- **Its heading** is an `<h2>`, unmargined: Brick Fuzz Pop's panels are
+  regions named by one, and the plan asks the same of Brick Breaker's.
+- The toolkit's spec gains `winning()`, the value each property takes
+  over every rule of a selector, the last winning, since a mixin that
+  includes `board-card()` writes its own declarations in a second rule
+  after the card's nested ones.
+
+**Review** (a fresh agent): it found Brick Fuzz Pop's CSS unchanged, the
+`@use` path sound, and Angular's emulated encapsulation scoping the
+`@container` rule and its `:nth-child()` as meant. Its comments:
+
+1. The compact rule counted the heading as a part, so a panel with an
+   `<h2>` first would keep the heading and one part, where the plan keeps
+   two sections. Fixed: `:nth-child(n + 3 of :not(h2))`, which Angular's
+   scoping keeps whole (checked with `encapsulateStyle()`), and the docs
+   say "past its heading".
+2. A container query measures the content box, so `height < 400px`
+   compacted panels under 426px. Fixed: `height < 374px`, with why, and
+   the spec pins it.
+3. The specs would pass with the card's include removed. Fixed: one spec
+   holds the whole look the panel takes, every property's winning value,
+   and one its `.card-title`; `winning()`'s doc says it reads a rule in an
+   at-rule as always applying.
+4. Turning on `$compact` makes what is inside the panel size itself from
+   the panel, and the panel needs a definite height. Fixed: the doc
+   comment says both.
+5. Wording: the doc's opening said "beside" twice, and the skill had
+   `sidePanels()` place the panel. Fixed.
+
+These correct the change rather than reshape it, so it wasn't reviewed
+again.
+
+**Checks:** `@fz/style`'s lint, typecheck and test (13 files, 303 specs),
+before the fixes and after, and its coverage; Brick Fuzz Pop's lint
+(stylelint among it), typecheck and test (148 files, 6,494 specs), its
+build, and its `check:layout`, which holds at every shape and turn (19 s);
+the root's lint, typecheck and test, under the lock, before the fixes and
+after.

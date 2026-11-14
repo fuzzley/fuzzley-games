@@ -82,6 +82,13 @@ relative to `frontend/lib/style/`.
   `<fz-canvas-cards>`, since it sets the card's spacing through custom
   properties the card reads (`--fz-board-card-gap`,
   `--fz-board-card-padding`) and its type, which the cards inside inherit.
+  A panel beside a board, as a wide room's are, which the board lays over
+  the room its canvas spares, is `board-panel($compact)`: a `board-card()`
+  set small, its parts across it and its lines at the start, clipped, with
+  no glass and taking no pointer, its `<h2>` unmargined; with `$compact`, a
+  size container of its own (`fz-board-panel`), which what is inside it
+  sizes itself from, in which a panel under 400px tall keeps only its first
+  two parts past its heading.
   A board drawn on a canvas takes `canvas-board-host` on its `:host`: a
   size container that clips its parts, with no outline and nothing for a
   finger steering on it to set off. Its focus shows in

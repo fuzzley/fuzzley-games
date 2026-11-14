@@ -2,7 +2,7 @@
 
 // A game's board and what it shows over it: the host of a board drawn on a
 // canvas, the ring that shows its focus, the cards, such as Paused, and the
-// layer they show in.
+// layer they show in, and the panels beside it.
 
 /// Styles the host of a game's board drawn on a canvas, as the board's
 /// `:host`: a size container its parts size from, which holds them and clips
@@ -102,4 +102,51 @@
   --fz-board-card-padding: var(--fz-space-3) var(--fz-space-4);
 
   font-size: var(--fz-font-sm);
+}
+
+/// Styles a panel beside a game's board, which the board lays over the
+/// room its canvas spares, where `@fz/phaser/layout`'s `sidePanels()` puts
+/// it, with `cssRectStyle()`, so it takes no size of its own: a
+/// `board-card()` set small, its parts stretched across it and its lines
+/// set at the start, clipped to its room, its heading, an `<h2>`,
+/// unmargined, and taking no pointer, so a press can start over it.
+///
+/// It draws no glass: a card's blur of what lies behind it, here the
+/// canvas's spare room, redrawn every frame, is work the eye can't see.
+///
+/// With `$compact`, a panel under 400px tall keeps only its first two
+/// parts, the children past its heading, as a size container of its own
+/// (`fz-board-panel`); so what is inside it sizes itself from the panel,
+/// not the board, in `cq` units and unnamed container queries, and the
+/// panel needs the height `cssRectStyle()` gives it.
+@mixin board-panel($compact: false) {
+  // Its room only narrows a card, which the board's size for it overrides.
+  @include board-card(var(--fz-space-3));
+  @include board-card-small;
+
+  position: absolute;
+  justify-items: stretch;
+  max-width: none;
+  overflow: hidden;
+  text-align: start;
+  pointer-events: none;
+  backdrop-filter: none;
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-backdrop-filter: none;
+
+  @if $compact {
+    container: fz-board-panel / size;
+
+    // A query measures the panel's content box: 400px less the small
+    // card's padding, 12px above and below, and its 1px border.
+    @container fz-board-panel (height < 374px) {
+      > :nth-child(n + 3 of :not(h2)) {
+        display: none;
+      }
+    }
+  }
+
+  h2 {
+    margin: 0;
+  }
 }

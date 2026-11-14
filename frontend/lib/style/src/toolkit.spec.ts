@@ -22,6 +22,23 @@ function declarations(css: string, selector: string): string[] {
   return [];
 }
 
+/**
+ * Returns the value each property takes in compressed CSS's rules whose
+ * selector is `selector`, the last declared winning, as in the cascade,
+ * reading a rule inside an at-rule as if it always applied.
+ */
+function winning(css: string, selector: string): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const [, head, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (head !== selector) continue;
+    for (const declaration of (body ?? "").split(";")) {
+      const colon = declaration.indexOf(":");
+      values[declaration.slice(0, colon)] = declaration.slice(colon + 1).trim();
+    }
+  }
+  return values;
+}
+
 describe("the toolkit's mixins", () => {
   it("transition each property they name at the shared speed", () => {
     expect(compiled("@include fz.transition(background, transform);")).toBe(
@@ -272,6 +289,63 @@ describe("the toolkit's mixins", () => {
   it("set a board's card smaller for a small board, from the card or around it", () => {
     expect(compiled("@include fz.board-card-small;")).toBe(
       ".it{--fz-board-card-gap: var(--fz-space-1);--fz-board-card-padding: var(--fz-space-3) var(--fz-space-4);font-size:var(--fz-font-sm)}",
+    );
+  });
+
+  it("lay a board's panel over the room it is given as a small card, its parts across it, with no glass and taking no pointer", () => {
+    const panel = winning(compiled("@include fz.board-panel;"), ".it");
+
+    expect(panel).toEqual({
+      "backdrop-filter": "none",
+      "-webkit-backdrop-filter": "none",
+      display: "grid",
+      "justify-items": "stretch",
+      gap: "var(--fz-board-card-gap, var(--fz-space-2))",
+      "box-sizing": "border-box",
+      "max-width": "none",
+      padding:
+        "var(--fz-board-card-padding, var(--fz-space-5) var(--fz-space-6))",
+      border: "1px solid var(--fz-edge-3)",
+      "border-radius": "var(--fz-radius-lg)",
+      background: "var(--fz-panel-glass)",
+      "box-shadow": "var(--fz-shadow-card)",
+      color: "var(--fz-text)",
+      "text-align": "start",
+      "--fz-board-card-gap": "var(--fz-space-1)",
+      "--fz-board-card-padding": "var(--fz-space-3) var(--fz-space-4)",
+      "font-size": "var(--fz-font-sm)",
+      position: "absolute",
+      overflow: "hidden",
+      "pointer-events": "none",
+    });
+  });
+
+  it("set a board panel's title as a board card's", () => {
+    expect(compiled("@include fz.board-panel;")).toContain(
+      ".it .card-title{font-size:var(--fz-font-lg);font-weight:700}",
+    );
+  });
+
+  it("unmargin a board panel's heading", () => {
+    expect(compiled("@include fz.board-panel;")).toContain(".it h2{margin:0}");
+  });
+
+  it("keep every part of a board's panel, whatever its height, unless asked to be compact", () => {
+    expect(compiled("@include fz.board-panel;")).not.toContain("container");
+  });
+
+  it("make a compact board's panel a size container of its own", () => {
+    const panel = winning(
+      compiled("@include fz.board-panel($compact: true);"),
+      ".it",
+    );
+
+    expect(panel["container"]).toBe("fz-board-panel/size");
+  });
+
+  it("keep only the first two parts past the heading of a compact board's panel under 400px tall, its content box under 374px", () => {
+    expect(compiled("@include fz.board-panel($compact: true);")).toContain(
+      "@container fz-board-panel (height < 374px){.it>:nth-child(n+3 of :not(h2)){display:none}}",
     );
   });
 
