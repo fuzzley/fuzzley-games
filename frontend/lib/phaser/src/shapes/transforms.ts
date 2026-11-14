@@ -1,7 +1,8 @@
-// What moves, scales and frames a drawing. `shifted()` and `scaledBy()` are
-// each a `switch` over every kind of `DrawCommand`, and `centered()` and
-// `bounded()` lean on the one in `edgesOf()`, in `shapes.ts`, so a new kind
-// fails in the library's build rather than in a game's.
+// What moves, scales and frames a drawing, and turns a point. `shifted()` and
+// `scaledBy()` are each a `switch` over every kind of `DrawCommand`, and
+// `centered()` and `bounded()` lean on the one in `edgesOf()`, in
+// `shapes.ts`, so a new kind fails in the library's build rather than in a
+// game's.
 
 import {
   type ArtFrame,
@@ -21,6 +22,13 @@ export function placed(
     x: at.x + point.x * by,
     y: at.y + point.y * by,
   }));
+}
+
+/** Returns a point turned about the origin by an angle in degrees, clockwise down the screen. */
+export function turned({ x, y }: Point, degrees: number): Point {
+  const cos = Math.cos((degrees * Math.PI) / 180);
+  const sin = Math.sin((degrees * Math.PI) / 180);
+  return { x: x * cos - y * sin, y: x * sin + y * cos };
 }
 
 /** Returns a command moved across and down by an offset. */

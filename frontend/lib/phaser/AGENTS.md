@@ -91,21 +91,30 @@ take the pure ones.
   `src/shapes/curves.ts` gives the points of an arc, an ellipse and a
   quadratic or cubic curve, to draw as a polyline or a polygon;
   `src/shapes/transforms.ts` moves (`shifted()`) and scales (`scaledBy()`)
-  a shape, and places points (`placed()`), and frames a drawing about its
+  a shape, turns a point about the origin (`turned()`), and places points
+  (`placed()`), and frames a drawing about its
   origin (`centered()`) or about the middle of its own bounds
   (`bounded()`), in whole pixels, which is how a game frames its drawings;
   `src/shapes/areas.ts` lays a frame out in an area: points at shares of it
-  (`within()`), a part of it (`share()`), the area inset by a width, or
-  grown by a negative one (`inset()`), and a square in its middle
-  (`middleSquare()`); it draws the four bars of a frame inside it
+  (`within()`, or `pointAt()` for one), a part of it (`share()`), the area
+  inset by a width, or grown by a negative one (`inset()`), and a square in
+  its middle (`middleSquare()`); it draws the four bars of a frame inside it
   (`frameAround()`) and the outline of a rounded rectangle, its line's
   middle along its edge (`outlineRoundRect()`), as a band filled in one
   polygon, so what it covers is known exactly and no seam shows in an
   atlas, where it is meant to be drawn, since a WebGL `Graphics` thins a
-  path's points (the `phaser-core` skill says how), and it gives the
-  points of a star (`star()`) and the dashes of a straight line
+  path's points (the `phaser-core` skill says how), or such an outline
+  whose band's edges both lie on whole device pixels (`crispOutline()`,
+  about `crispEdge()`), and it gives the points of a star (`star()`) and of
+  a diamond (`diamond()`) and the dashes of a straight line
   (`dashes()`, each a `Dash`), centered along it with a gap clear of
-  each end; and `src/shapes/symbols.ts` draws in a square, as a pickup's
+  each end; `src/shapes/bands.ts` gives the outline of a line through
+  points drawn a width wide (`bandAlong()`), its corners mitred and its
+  ends cut square or its first along a way given, filled as one polygon,
+  as a crack or a bent bar is; `src/shapes/pips.ts` lays the pips a brick
+  shows its hits left with, a die's face of them about a middle
+  (`diePips()`) or a row across it (`pipRow()`); and
+  `src/shapes/symbols.ts` draws in a square, as a pickup's
   or a capsule's symbol is, its places and sizes as shares of the
   square: `dotIn()` anywhere in it, `discIn()` and `rimIn()` about its
   middle, and the lines' `symbolLineStyle()`. `atlasSize()` is how big the

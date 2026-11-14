@@ -1,6 +1,6 @@
 // What a game's art is laid out by: the areas and points of a frame as shares
-// of an area or insets into it, and the outlines, stars and dashes drawn in
-// them.
+// of an area or insets into it, and the outlines, stars, diamonds and dashes
+// drawn in them.
 
 import { arcPoints } from "./curves";
 import {
@@ -24,15 +24,17 @@ export interface Dash {
 /** A quarter of a turn, in radians. */
 const QUARTER = Math.PI / 2;
 
-/** Returns points given as shares of an area. */
+/** Returns points given as shares of an area, as {@link pointAt} gives one. */
 export function within(
   area: Area,
   shares: readonly (readonly [number, number])[],
 ): readonly Point[] {
-  return shares.map(([across, down]) => ({
-    x: area.x + across * area.width,
-    y: area.y + down * area.height,
-  }));
+  return shares.map(([across, down]) => pointAt(area, across, down));
+}
+
+/** Returns the point at shares of an area across and down. */
+export function pointAt(area: Area, across: number, down: number): Point {
+  return { x: area.x + across * area.width, y: area.y + down * area.height };
 }
 
 /** Returns the part of an area that shares of it give: from a share across and down, a share wide and tall. */
@@ -150,6 +152,42 @@ function edgeRing(area: Area, radius: number): readonly Point[] {
   return [...points, ...points.slice(0, 1)];
 }
 
+/**
+ * Returns the edge a band a whole number of device pixels wide is drawn
+ * about, near an area's own, so that both of the band's edges lie on whole
+ * device pixels and neither blurs: the band's outer edges, half the width out, each moved in to the
+ * nearest whole pixel, so the band reaches no further than it would have,
+ * and a band about an area centred in its frame stays centred.
+ */
+export function crispEdge(area: Area, width: number): Area {
+  const half = width / 2;
+  const left = Math.ceil(area.x - half);
+  const top = Math.ceil(area.y - half);
+  return inset(
+    {
+      x: left,
+      y: top,
+      width: Math.floor(area.x + area.width + half) - left,
+      height: Math.floor(area.y + area.height + half) - top,
+    },
+    half,
+  );
+}
+
+/**
+ * Returns a rounded rectangle's outline, a band a line a whole number of
+ * device pixels wide about its edge as {@link outlineRoundRect} draws it,
+ * about its {@link crispEdge}, so both of the band's edges lie on whole
+ * device pixels.
+ */
+export function crispOutline(
+  area: Area,
+  radius: number,
+  style: LineStyle,
+): PolygonCommand | RoundRectCommand {
+  return outlineRoundRect(crispEdge(area, style.width), radius, style);
+}
+
 /** Returns the points of a star around a middle, its first point straight up. */
 export function star(
   middle: Point,
@@ -165,6 +203,16 @@ export function star(
       y: middle.y + Math.sin(angle) * radius,
     };
   });
+}
+
+/** Returns a diamond's corners about a middle, from its top clockwise, each a reach from the middle. */
+export function diamond(middle: Point, reach: number): readonly Point[] {
+  return [
+    { x: middle.x, y: middle.y - reach },
+    { x: middle.x + reach, y: middle.y },
+    { x: middle.x, y: middle.y + reach },
+    { x: middle.x - reach, y: middle.y },
+  ];
 }
 
 /**
