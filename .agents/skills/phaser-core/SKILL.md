@@ -135,9 +135,17 @@ holds.
   every length is a share of the cell's short side, so a square tile
   (`TILE_SLAB`, Brick Fuzz Pop's) and a brick twice as wide as tall
   (`BRICK_SLAB`, as Brick Breaker's uplift's art kit draws one) take the
-  same code; `topCap()`, what covers a slab's top down to a foot; and
+  same code; `topCap()`, what covers a slab's top down to a foot;
   `showsDetail()`, whether a brick so many units wide is drawn wide enough
-  for its finest detail.
+  for its finest detail; and the marks drawn over a slab, their inks
+  handed in: each at shares of a square it is handed, its lines' widths
+  too, a CSS pixel at least at the pixel ratio it is handed, a square
+  tile's cell or, on a wider brick, a square of its own, as large as the
+  mark, which may reach past the brick's edges, `bombMark()`,
+  `sproutMark()`, `sheen()`, `portalMark()` and `bumperMark()`, and laid
+  out across a brick by places and sizes given,
+  `scallopedCap()`, `rivets()`, `cagedFriend()`, `cageBars()` and
+  `plateTeeth()`.
 - **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
   a `phaser` chunk of its own, `phaser({ files })` from `@fz/dev/eslint`
   lets the folders that draw off `no-unnecessary-condition`, since Phaser

@@ -8,6 +8,7 @@
 // the cell's edges, so the grid's dots and the flourishes under the wall show
 // past it; its steel stands out of the tile, as the art's does.
 
+import { plateTeeth } from "@fz/phaser/bricks";
 import {
   type Area,
   type ArtScale,
@@ -226,7 +227,6 @@ function plateCommands(
   );
   const toothFoot = barFoot - (TEETH.base - BAR.from) * side;
   const teeth = detailed(scale) ? TEETH.count : TEETH.fewer;
-  const pitch = ((TEETH.to - TEETH.from) * side) / teeth;
   const point = (shape: Point) => turnedIn(cell, shape, turns);
   const gapPoints = cutAt(
     outlineOf(tileBody(cell), tileRadius(cell)),
@@ -253,20 +253,15 @@ function plateCommands(
       BAR.corner * side,
       { color: glyph },
     ),
-    ...Array.from({ length: teeth }, (_, i) => {
-      const left = cell.x + TEETH.from * side + pitch * i + TEETH.gap * side;
-      const right =
-        cell.x + TEETH.from * side + pitch * (i + 1) - TEETH.gap * side;
-      return cutAt(
-        [
-          { x: left, y: toothFoot },
-          { x: (left + right) / 2, y: bottom - TEETH.tip * side },
-          { x: right, y: toothFoot },
-        ].map(point),
-        reach,
-        "above",
-      );
+    ...plateTeeth({
+      from: cell.x + TEETH.from * side,
+      span: (TEETH.to - TEETH.from) * side,
+      count: teeth,
+      gap: TEETH.gap * side,
+      foot: toothFoot,
+      tip: bottom - TEETH.tip * side,
     })
+      .map((tooth) => cutAt(tooth.map(point), reach, "above"))
       .filter((tooth) => tooth.length >= 3)
       .map((tooth) => polygon(tooth, { color: glyph })),
     ...(detailed(scale)

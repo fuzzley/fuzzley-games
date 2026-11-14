@@ -146,8 +146,23 @@ take the pure ones.
   over it follows, and `topCap()` the polygon over a body's top, round its
   corners, down to a foot, that a cap of moss is cut from. `showsDetail()`
   says whether a brick so many units wide is drawn wide enough, 30 CSS
-  pixels, for its finest detail. It imports nothing but `shapes`, `color`
-  and `fuzzball`.
+  pixels, for its finest detail. `src/bricks/marks.ts` draws the marks over
+  a slab, their inks handed in. Those that stand in a square are laid out
+  at shares of a square they are handed, their lines' widths too, a CSS
+  pixel at least at the pixel ratio they are handed, as Brick Fuzz Pop's
+  tile has them, so a wider brick hands one a square of its own, as large
+  as the mark, which may reach past the brick's top and foot:
+  `bombMark()`, a bomb, its fuse and its spark; `sproutMark()`, a stem and
+  two leaves; `sheen()`, two strokes over steel; `portalMark()`, a ring
+  with three arms and a badge, a dot or a hollow diamond (`PortalBadge`);
+  and `bumperMark()`, a disc on its shadow with ticks kicking out, toward
+  its corners or the way a game gives. Those laid out across a brick take
+  their places and sizes: `scallopedCap()`, a cap of moss down to a
+  scalloped foot; `rivets()`, at shares across and down an area;
+  `cagedFriend()`, the fuzzball a cage holds, and `cageBars()`, its bars in
+  mirrored pairs, the first right of its middle broken once it is hit; and
+  `plateTeeth()`, the row of teeth a plate points out of its edge. It
+  imports nothing but `shapes`, `color` and `fuzzball`.
 - `src/host/`: the host a canvas runs its scenes in. Its index names only
   the types an app's scene and board take of it, `HostedScene`,
   `SceneSurroundings` and `HostOptions`, so no app builds a host past the
